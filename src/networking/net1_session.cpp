@@ -13,6 +13,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern object *object_iterator_next(object_iterator *iterator);
@@ -79,7 +80,6 @@ extern void game_stop_current_map(void);
 extern void game_engine_reset_all_players(void);
 extern void game_engine_apply_variant(const game_variant *variant);
 extern void game_engine_init_tick_record_for_mode(void);
-extern void main_menu_music_stop(void);
 extern int32_t network_channel_key_open(network_player_entry *entry);
 extern uint8_t network_channel_table_default_flag;
 extern char network_player_entry_find(network_game_session *session, network_player_entry *key);
@@ -698,7 +698,7 @@ char GameSessionView::scenario_load_request()
         game_stop_current_map();
         game_unload_map();
     }
-    main_menu_music_stop();
+    halo::main::main_menu_music_stop();
     if (*(int32_t *)((uint8_t *)session + 0x134) != 0) {
         game_engine_apply_variant(&session->variant);
     }

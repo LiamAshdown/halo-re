@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_autopatch_status_widget.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 extern uint8_t autopatch_status_active_00719235;
@@ -10,7 +11,6 @@ extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
 extern void widget_instance_close_and_restore_previous(widget_instance *widget);
-extern int32_t security_check_write_access(void);
 extern int32_t autopatch_check_for_update_start(void);
 }
 
@@ -58,7 +58,7 @@ void AutopatchStatusWidget::widget_update(uint8_t *record)
     }
     case 3:
     case 4:
-        if (security_check_write_access() == 0) {
+        if (halo::shell::security_check_write_access() == 0) {
             if (quit_confirm_error_string_index == -1) {
                 quit_confirm_error_string_index = 0x3a;
                 quit_confirm_error_unknown_ae = 0;

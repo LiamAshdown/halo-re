@@ -12,6 +12,8 @@
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/ai/ai_constants.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
@@ -75,7 +77,6 @@ extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counter
 extern double sqrt(double x);
 extern void actor_replace_object_reference(datum_index actor_index, uint32_t new_reference, uint32_t old_reference);
 extern void actor_unlink_prop(datum_index actor_index, datum_index prop_to_remove);
-extern game_main_globals *main_game_globals;
 extern int16_t ai_squad_resolve_actor_type(ScenarioSquad *squad);
 extern void encounter_recompute_morale(datum_index encounter_index);
 extern void encounters_update_activation(void);
@@ -88,10 +89,6 @@ extern datum_index actor_place_new_unit(datum_index actor_variant_or_palette_tag
 extern float k_random_scale_65536;
 extern uint8_t encounter_evaluate_platoon_condition(datum_index encounter_index, const ai_platoon_condition *condition);
 extern data_array *ai_pursuit_data;
-extern uint8_t *game_state_base;
-extern int32_t game_state_cursor;
-extern uint32_t game_state_crc;
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern void encounter_new(int16_t *squad_cursor, ScenarioEncounter *definition, int16_t *platoon_cursor);
 extern void encounter_spawn_squads(datum_index encounter_index, int16_t squad_filter, int16_t platoon_filter);
 extern void encounter_advance_grenade_timers(datum_index encounter_index);
@@ -2750,7 +2747,7 @@ void EncounterView::spawn_squads(int16_t platoon_filter, int16_t squad_filter)
 
                 leader_chance = 0;
                 spawn_count = 0;
-                switch (main_game_globals->difficulty) {
+                switch (halo::main::globals().game_globals->difficulty) {
                 case 0:
                 case 1:
                     spawn_count = (int32_t)(uint16_t)squad->normal_diff_count;
@@ -3049,19 +3046,19 @@ void Encounters::initialize()
 {
     uint32_t reserved_size;
 
-    encounter_data = (data_array *)game_state_new((char *)"encounter", k_encounter_data_maximum_count, k_encounter_size);
+    encounter_data = (data_array *)halo::saved_games::game_state_new((char *)"encounter", k_encounter_data_maximum_count, k_encounter_size);
 
-    encounter_squad_states = (encounter_squad_state *)(game_state_base + game_state_cursor);
-    game_state_cursor = game_state_cursor + 0x8000;
+    encounter_squad_states = (encounter_squad_state *)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x8000;
     reserved_size = 0x8000;
-    halo::memory::crc32_update(&game_state_crc, &reserved_size, 4);
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, &reserved_size, 4);
 
-    encounter_platoon_states = (encounter_platoon_state *)(game_state_base + game_state_cursor);
-    game_state_cursor = game_state_cursor + 0x1000;
+    encounter_platoon_states = (encounter_platoon_state *)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x1000;
     reserved_size = 0x1000;
-    halo::memory::crc32_update(&game_state_crc, &reserved_size, 4);
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, &reserved_size, 4);
 
-    ai_pursuit_data = (data_array *)game_state_new((char *)"ai pursuit", k_ai_pursuit_data_maximum_count, k_ai_pursuit_size);
+    ai_pursuit_data = (data_array *)halo::saved_games::game_state_new((char *)"ai pursuit", k_ai_pursuit_data_maximum_count, k_ai_pursuit_size);
 }
 
 /**

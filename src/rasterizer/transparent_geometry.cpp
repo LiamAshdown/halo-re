@@ -8,6 +8,7 @@
 #include "internal/state.hpp"
 #include "halo/shaders/api.hpp"
 #include "halo/math/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 
@@ -980,7 +981,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
         rasterizer_model_draw_prepare_states(&context, 1);
         rasterizer_shader_environment_draw_dispatch(group->dynamic_vertex_slot, (uint8_t *)(uintptr_t)group->shader, (int16_t)group->shader_permutation, (rasterizer_index_buffer *)(uintptr_t)group->index_buffer, group->dynamic_index_slot, group->primitive_count, (rasterizer_vertex_buffer *)(uintptr_t)group->vertex_buffer);
         rasterizer_model_draw_restore_states();
-        render_lighting_disable_workaround();
+        halo::render::render_lighting_disable_workaround();
         rasterizer_camouflage_fade_active = 0;
     }
 

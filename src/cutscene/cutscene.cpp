@@ -6,6 +6,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern void game_engine_cleanup_stray_projectiles(void);
@@ -287,7 +288,7 @@ void CutsceneDirector::letterbox()
                              title->text_bounds.bottom == title->text_bounds.top)
                     ? &hud_globals_tag_data->default_chapter_title_bounds
                     : &title->text_bounds;
-                chimera__draw_16_bit_text((Rectangle2D *)0, (int32_t *)dest_rect, 0, 0,
+                halo::rasterizer::chimera__draw_16_bit_text((Rectangle2D *)0, (int32_t *)dest_rect, 0, 0,
                     (const int16_t *)help_text);
                 text_shadow_color_argb = 0;
 

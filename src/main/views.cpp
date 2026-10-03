@@ -32,10 +32,11 @@
 #include "halo/camera/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/main/layout.hpp"
+#include "halo/render/api.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
-extern "C" { void render_view_camera_fill(observer_camera *observer, render_view *view); }
-extern "C" { void screenshot_render(render_view *views); }
-extern "C" { void viewport_split_rect_compute(int32_t view_count, int32_t view_index, Rectangle2D *window, Rectangle2D *out_viewport); }
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern render_view render_views[2]; }
@@ -48,13 +49,10 @@ extern "C" { extern uint8_t render_view_local_player_sticky; }
 extern "C" { extern int32_t screenshots; }
 extern "C" { extern input_abstraction_globals input_globals; }
 extern "C" { extern const real_point3d *global_zero_vector3d_pointer; }
-extern "C" { extern float rasterizer_default_z_near; }
-extern "C" { extern float rasterizer_default_z_far; }
 extern "C" { extern uint8_t unknown_00873d30; }
 extern "C" { extern double tan(double x); }
 extern "C" { extern double atan2(double y, double x); }
 extern "C" { extern void halo::sound::sound_update(void); }
-extern "C" { extern void render_frame(Point2DInt *screenshot_tile, render_view *views, int16_t count, Point2DInt *screenshot_page, float time_since_tick, float time_since_frame); }
 namespace halo::main {
 
 /**
@@ -97,7 +95,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     resolved_local_player_index = -1;
     for (i = 0; i < view_count; i++) {
         view = &render_views[i];
-        viewport_split_rect_compute(view_count, i, &view->rasterizer_camera.window_bounds,
+        halo::main::viewport_split_rect_compute(view_count, i, &view->rasterizer_camera.window_bounds,
                                      &view->rasterizer_camera.viewport_bounds);
 
         if (showing_results || i >= view_count) {
@@ -122,7 +120,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
             resolved_local_player_index = candidate;
         }
 
-        render_view_camera_fill(view->local_player_index != -1
+        halo::main::render_view_camera_fill(view->local_player_index != -1
                                      ? &halo::camera::globals().observers[view->local_player_index].camera
                                      : 0,
                                  view);
@@ -130,7 +128,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     }
 
     view = &render_views[view_count];
-    viewport_split_rect_compute(1, 0, &view->rasterizer_camera.window_bounds,
+    halo::main::viewport_split_rect_compute(1, 0, &view->rasterizer_camera.window_bounds,
                                  &view->rasterizer_camera.viewport_bounds);
     view->local_player_index = -1;
     view->nonplayer = 1;
@@ -141,9 +139,9 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     view->rasterizer_camera.up.i = halo::math::globals().global_up3d_pointer->i;
     view->rasterizer_camera.up.j = halo::math::globals().global_up3d_pointer->j;
     view->rasterizer_camera.up.k = halo::math::globals().global_up3d_pointer->k;
-    view->rasterizer_camera.z_near = rasterizer_default_z_near;
+    view->rasterizer_camera.z_near = halo::rasterizer::globals().default_z_near;
     view->rasterizer_camera.mirrored = 0;
-    view->rasterizer_camera.z_far = rasterizer_default_z_far;
+    view->rasterizer_camera.z_far = halo::rasterizer::globals().default_z_far;
     view->rasterizer_camera.vertical_field_of_view =
         (float)(2.0 * atan2(tan(0.6981316804885864) * 0.6375f, 1.0));
     if (unknown_00873d30 == 0) {
@@ -151,7 +149,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     }
 
     if (screenshots == 0) {
-        render_frame(0, render_views, (int16_t)(view_count + 1), 0, time_since_tick,
+        halo::render::render_frame(0, render_views, (int16_t)(view_count + 1), 0, time_since_tick,
                      time_since_frame);
         halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count - 1;
         return;
@@ -160,7 +158,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     if (input_globals.system_key_states[2] == 0 &&
         input_globals.states[0].buttons[_input_action_screenshot] == 0) {
         if (main_globals_data.screenshot_tile_count < 1) {
-            render_frame(0, render_views, (int16_t)(view_count + 1), 0, time_since_tick,
+            halo::render::render_frame(0, render_views, (int16_t)(view_count + 1), 0, time_since_tick,
                          time_since_frame);
             halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count - 1;
             return;
@@ -168,7 +166,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     } else {
         main_globals_data.screenshot_tile_count = 1;
     }
-    screenshot_render(render_views);
+    halo::main::screenshot_render(render_views);
     halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count - 1;
 }
 
@@ -203,7 +201,6 @@ int RenderViews::local_view_count(void)
 }
 
 extern "C" { extern render_view pregame_render_view; }
-extern "C" { extern void render_pregame_frame(render_view *view); }
 namespace halo::main {
 
 /**
@@ -235,14 +232,14 @@ void RenderViews::pregame_view_initialize(void)
     camera->vertical_field_of_view =
         (float)(2.0 * atan2(tan(0.6981316804885864) * 0.6375f, 1.0));
 
-    viewport_split_rect_compute(1, 0, &camera->window_bounds, &camera->viewport_bounds);
+    halo::main::viewport_split_rect_compute(1, 0, &camera->window_bounds, &camera->viewport_bounds);
 
     camera->z_near = 0.01f;
     camera->z_far = 1.0f;
 
     pregame_render_view.source_camera = *camera;
 
-    render_pregame_frame(&pregame_render_view);
+    halo::render::render_pregame_frame(&pregame_render_view);
 }
 
 }
@@ -311,9 +308,9 @@ void RenderViews::view_camera_fill(observer_camera *observer, render_view *view)
             (float)(2.0 * atan2(tan(0.6981316804885864) * 0.6375f, 1.0));
     }
 
-    camera->z_far = rasterizer_default_z_far;
+    camera->z_far = halo::rasterizer::globals().default_z_far;
     camera->mirrored = 0;
-    camera->z_near = rasterizer_default_z_near;
+    camera->z_near = halo::rasterizer::globals().default_z_near;
 
     if (unknown_00873d30 == 0) {
         view->source_camera = view->rasterizer_camera;
@@ -382,8 +379,8 @@ void RenderViews::screenshot_render(render_view *views)
     *(void **)&((struct BitmapData *)bitmap)->pixel_base = GlobalAlloc(0, halo::bitmaps::bitmap_data_calculate_pixel_data_size(bitmap));
 
     if (*(void **)&((struct BitmapData *)bitmap)->pixel_base != 0) {
-        console_print_error_va(1, "");
-        console_deactivate();
+        halo::main::console_print_error_va(1, "");
+        halo::main::console_deactivate();
 
         for (page_row = 0; page_row < main_globals_data.screenshot_tile_count; page_row++) {
             for (page_col = 0; page_col < main_globals_data.screenshot_tile_count; page_col++) {
@@ -400,11 +397,11 @@ void RenderViews::screenshot_render(render_view *views)
                         tile.x = sub_col;
                         tile.y = sub_row;
                         if (main_globals_data.screenshot_tile_count < 2 && screenshot_scale < 2) {
-                            render_frame(0, views, 1, 0, 0.0f, 0.0f);
-                            rasterizer_capture_and_present(0, bitmap);
+                            halo::render::render_frame(0, views, 1, 0, 0.0f, 0.0f);
+                            halo::rasterizer::rasterizer_capture_and_present(0, bitmap);
                         } else {
-                            render_frame(&tile, views, 1, &page, 0.0f, 0.0f);
-                            rasterizer_capture_and_present(&tile.x, bitmap);
+                            halo::render::render_frame(&tile, views, 1, &page, 0.0f, 0.0f);
+                            halo::rasterizer::rasterizer_capture_and_present(&tile.x, bitmap);
                         }
                     }
                 }
@@ -418,7 +415,7 @@ void RenderViews::screenshot_render(render_view *views)
                 request.signature = k_file_reference_signature;
                 request.location = -1;
                 if ((request.flags & 1) != 0) {
-                    path_remove_last_component((uint8_t *)&request.path);
+                    halo::saved_games::path_remove_last_component((char *)((uint8_t *)&request.path));
                 }
                 if (filename[0] != 0) {
                     strncpy(request.path, filename, k_main_path_length - 1);

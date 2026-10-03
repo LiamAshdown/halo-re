@@ -17,6 +17,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern int32_t __ftol();
@@ -25,7 +26,6 @@ extern double atan2(double y, double x);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern datum_index *collideable_cluster_first;
 extern void *collideable_cluster_partition;
-extern void console_print_va(const char *format, ...);
 extern double cos(double x);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern real_vector3d *global_origin3d_pointer;
@@ -1535,7 +1535,7 @@ void halo::objects::ObjectRef::start_animation(datum_index graph_tag, char *name
             return;
         }
 
-        console_print_va("the animation '%s' doesn't exist in the graph '%s'", name,
+        halo::main::console_print_va("the animation '%s' doesn't exist in the graph '%s'", name,
             *(char **)((uint8_t *)&halo::cache::globals().tag_instances[halo::datum_slot(graph_tag)] + 0x10));
     }
 }

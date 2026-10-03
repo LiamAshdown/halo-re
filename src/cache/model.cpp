@@ -8,11 +8,9 @@
 #include "rasterizer.h"
 #include "halo/cache/globals.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
-extern void *rasterizer_device;
-extern uint8_t rasterizer_vertex_buffer_create(int16_t *record, int16_t vertex_type, int32_t count, uint32_t *source_data, int32_t second_stream, uint32_t size);
-extern uint8_t rasterizer_index_buffer_create(int32_t count, int16_t type, rasterizer_index_buffer *out, const void *source);
 extern uint32_t rasterizer_device_version;
 extern int16_t rasterizer_vertex_sizes[];
 }
@@ -53,7 +51,7 @@ void model_vertex_buffers::dispose()
                 part = (GBXModelGeometryPart *)(geometry->parts.pointer +
                     part_index * sizeof(GBXModelGeometryPart));
 
-                if (rasterizer_device != 0 && (void *)part != (void *)-0x54) {
+                if (halo::rasterizer::globals().device != 0 && (void *)part != (void *)-0x54) {
                     object = (void **)part->base.vertex_offset;
                     if (object != 0) {
                         vtable = *(void (__stdcall ***)(void *))object;
@@ -61,7 +59,7 @@ void model_vertex_buffers::dispose()
                         part->base.vertex_offset = 0;
                     }
                 }
-                if (rasterizer_device != 0 && (void *)part != (void *)-0x44) {
+                if (halo::rasterizer::globals().device != 0 && (void *)part != (void *)-0x44) {
                     object = (void **)part->base.triangle_offset_2;
                     if (object != 0) {
                         vtable = *(void (__stdcall ***)(void *))object;
@@ -141,10 +139,10 @@ void model_vertex_buffers::load(cache_file_tag_header *header)
                 if (rasterizer_device_version < 0xffff0101 &&
                     (shared_normals_model_shader ||
                      shader->shader.tag_fourcc == _tag_group_shader_transparent_water)) {
-                    success = rasterizer_vertex_buffer_create(&part->base.vertex_type, 0xe,
+                    success = halo::rasterizer::rasterizer_vertex_buffer_create((rasterizer_vertex_buffer *)(&part->base.vertex_type), 0xe,
                         vertex_count, (uint32_t *)vertex_data, 0, vertex_count << 5);
                 } else {
-                    success = rasterizer_vertex_buffer_create(&part->base.vertex_type,
+                    success = halo::rasterizer::rasterizer_vertex_buffer_create((rasterizer_vertex_buffer *)(&part->base.vertex_type),
                         part->base.vertex_type, vertex_count, (uint32_t *)vertex_data, 0,
                         rasterizer_vertex_sizes[part->base.vertex_type] * vertex_count);
                 }
@@ -152,7 +150,7 @@ void model_vertex_buffers::load(cache_file_tag_header *header)
                 if (success != 0) {
 
                     rasterizer_index_buffer *indices = (rasterizer_index_buffer *)&part->base.triangle_buffer_type;
-                    rasterizer_index_buffer_create(indices->count, indices->type, indices,
+                    halo::rasterizer::rasterizer_index_buffer_create(indices->count, indices->type, indices,
                         (uint8_t *)index_base + part->base.triangle_offset_2);
                 }
             }

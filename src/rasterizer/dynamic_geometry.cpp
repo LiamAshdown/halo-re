@@ -6,12 +6,13 @@
 
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
+#include "halo/render/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 
 extern void debug_fp_draw_state_note(const char *site, int32_t hresult, uint32_t primitive_type, uint32_t vertex_count, uint32_t primitive_count);
 extern void debug_fp_pre_draw(void);
-extern uint16_t *rasterizer_dynamic_index_slot_lock(int32_t dynamic_index_slot);
 
 }  // extern "C"
 
@@ -131,7 +132,7 @@ void chimera__rasterizer_draw_dynamic_triangles_static_vertices2(int32_t primiti
         render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                     rasterizer_vertex_declarations[vertex_buffer->type].usage) & 0x10);
         render_device().set_stream_source(0, (void *)vertex_buffer->hardware_buffer, 0, stride);
-        if (config_safe_mode == 0 && rasterizer_caps.max_streams > 1) {
+        if (halo::shell::globals().safe_mode == 0 && rasterizer_caps.max_streams > 1) {
             render_device().set_stream_source(1, (void *)second_stream->hardware_buffer, 0, second_stride);
         }
         render_device().set_indices(rasterizer_dynamic_index_buffer);
@@ -547,7 +548,7 @@ void rasterizer_dynamic_vertex_draw(int32_t first_primitive, int32_t primitive_c
             if (index_slot == -1) {
                 return;
             }
-            indices = rasterizer_dynamic_index_slot_lock(index_slot);
+            indices = (uint16_t *)halo::render::rasterizer_dynamic_index_slot_lock(index_slot);
             for (triangle = 0; triangle < triangle_count; triangle += 2) {
                 uint16_t base = (uint16_t)((triangle / 2) * 4);
                 uint16_t *quad = indices + triangle * 3;

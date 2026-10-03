@@ -19,28 +19,25 @@
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern int16_t pending_difficulty;
 extern void widget_play_sound_effect(int16_t effect_id);
 extern uint32_t ui_restart_saved_game(void);
 extern uint8_t autopatch_launch_updater(void);
-extern uint8_t saved_game_file_exists(char *name);
-extern int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, void *callback, void *user_data);
 extern uint8_t ui_restoring_previous_widget;
 extern void widget_instance_close_and_restore_previous(widget_instance *widget);
 extern char *campaign_level_paths[];
-extern void main_queue_map_change(char *map_name);
 extern uint8_t network_wait_flag_00719739;
-extern uint8_t saved_game_load_checkpoint_by_name(char *name);
 extern growable_array ui_lists[3];
 extern int32_t ui_list_current;
 extern uint8_t ui_list_has_default;
 extern uint8_t checkpoint_list_add_row(int32_t index, const char *name, int32_t level_index, int32_t difficulty, int32_t game_time, const void *time, void *user_data);
 extern char pending_delete_saved_game_name_00718fd0[];
 extern void ui_list_free_all(void);
-extern uint8_t saved_game_delete_files(char *name);
-extern uint8_t game_checkpoint_save_new(void);
 extern uint8_t autopatch_status_state_00719234;
 extern uint16_t network_host_name_field_00719238[32];
 extern uint16_t network_host_subname_007191f0[9];
@@ -65,22 +62,13 @@ extern uint8_t controls_device_sensitivity_b[];
 extern uint8_t ui_flag_007196d1;
 extern uint8_t ui_flag_007196d2;
 extern void video_options_menu_populate(uint8_t *context, uint8_t *settings);
-extern int32_t rasterizer_gamma_exponent;
-extern void chimera__gamma(void);
 extern int32_t video_resolution_count;
 extern video_resolution video_resolutions[0x20];
 extern int32_t video_gamma_setting;
 extern rasterizer_display_mode ui_video_requested_display_mode_006b7010;
 extern int32_t game_time_force_single_tick;
 extern d3d_display_mode rasterizer_desktop_display_mode;
-extern uint8_t rasterizer_needs_reset;
-extern void *rasterizer_device;
-extern uint8_t rasterizer_display_mode_differs(rasterizer_display_mode *requested);
-extern void rasterizer_build_present_parameters(d3d_present_parameters *dest, rasterizer_display_mode *source);
-extern uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters);
-extern void rasterizer_resize_game_window(int32_t height, int32_t width);
 extern float sound_master_gain;
-extern void display_mode_get_current(rasterizer_display_mode *out);
 }
 
 namespace halo::ui {
@@ -178,8 +166,8 @@ uint8_t UiEventHandlers::event_4a4190(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a41a0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t has_save = saved_game_file_exists((char *)"savegame");
-    uint8_t has_checkpoints = (uint8_t)(game_checkpoint_enumerate_files(1, 1, 0, 0) > 0);
+    uint8_t has_save = halo::saved_games::saved_game_file_exists((char *)"savegame");
+    uint8_t has_checkpoints = (uint8_t)(halo::saved_games::game_checkpoint_enumerate_files(1, 1, 0, 0) > 0);
     widget_instance *child = widget->first_child;
 
     show(child, has_save);
@@ -198,7 +186,7 @@ uint8_t UiEventHandlers::event_4a41a0(widget_instance *widget, int16_t *event, u
         widget_instance_close_and_restore_previous(widget);
         return 1;
     }
-    main_queue_map_change(campaign_level_paths[0]);
+    halo::main::main_queue_map_change(campaign_level_paths[0]);
     network_wait_flag_00719739 = 0;
     return (uint8_t)(ui_restoring_previous_widget != 0);
 }
@@ -210,7 +198,7 @@ uint8_t UiEventHandlers::event_4a41a0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a4270(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    return saved_game_load_checkpoint_by_name((char *)"savegame");
+    return halo::saved_games::saved_game_load_checkpoint_by_name((char *)"savegame");
 }
 
 /**
@@ -230,7 +218,7 @@ uint8_t UiEventHandlers::event_4a44f0(widget_instance *widget, int16_t *event, u
     }
     ui_list_current = -1;
     ui_list_has_default = 0;
-    count = game_checkpoint_enumerate_files(1, 1, (void *)checkpoint_list_add_row, 0);
+    count = halo::saved_games::game_checkpoint_enumerate_files(1, 1, (checkpoint_enumerate_proc)((void *)checkpoint_list_add_row), 0);
     pending_delete_saved_game_name_00718fd0[0] = 0;
     if (count == 0) {
         widget_instance_close_and_restore_previous(widget);
@@ -270,7 +258,7 @@ uint8_t UiEventHandlers::event_4a4580(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_4a45d0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     if (pending_delete_saved_game_name_00718fd0[0] != 0) {
-        saved_game_delete_files(pending_delete_saved_game_name_00718fd0);
+        halo::saved_games::saved_game_delete_files(pending_delete_saved_game_name_00718fd0);
     }
     return 1;
 }
@@ -286,7 +274,7 @@ uint8_t UiEventHandlers::event_4a45f0(widget_instance *widget, int16_t *event, u
     char name[0x40];
 
     sprintf(name, "checkpoints\\%s", (char *)(data + 0x48));
-    return saved_game_load_checkpoint_by_name(name);
+    return halo::saved_games::saved_game_load_checkpoint_by_name(name);
 }
 
 /**
@@ -296,7 +284,7 @@ uint8_t UiEventHandlers::event_4a45f0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a47b0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    game_checkpoint_save_new();
+    halo::saved_games::game_checkpoint_save_new();
     return 1;
 }
 
@@ -551,8 +539,8 @@ uint8_t UiEventHandlers::event_4bb300(widget_instance *widget, int16_t *event, u
     if (ui_flag_007196d1 == 0) {
         uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
 
-        rasterizer_gamma_exponent = profile[0xa76];
-        chimera__gamma();
+        halo::rasterizer::globals().gamma_exponent = profile[0xa76];
+        halo::rasterizer::chimera__gamma();
     }
     first->first_child->next_sibling->list_items = 0;
     first->next_sibling->first_child->next_sibling->list_items = 0;
@@ -605,7 +593,7 @@ uint8_t UiEventHandlers::event_4bb360(widget_instance *widget, int16_t *event, u
         mode.height = *(int16_t *)(profile + 0xa6a);
         mode.refresh_rate = *(int16_t *)(profile + 0xa6c);
         mode.vsync = (uint8_t)(profile[0xa6f] != 0);
-        result = rasterizer_display_mode_differs(&mode);
+        result = halo::rasterizer::rasterizer_display_mode_differs(&mode);
         if (result == 0) {
             widget_instance_close_and_restore_previous(screen);
         }
@@ -634,19 +622,19 @@ uint8_t UiEventHandlers::event_4bb7e0(widget_instance *widget, int16_t *event, u
         mode.height = *(int16_t *)(profile + 0xa6a);
         mode.refresh_rate = *(int16_t *)(profile + 0xa6c);
         mode.vsync = (uint8_t)(profile[0xa6f] != 0);
-        display_mode_get_current(&ui_video_requested_display_mode_006b7010);
+        halo::rasterizer::display_mode_get_current(&ui_video_requested_display_mode_006b7010);
         halo::sound::sound_set_master_gain(0.05f);
         changed = 0;
-        if (rasterizer_display_mode_differs(&mode) != 0) {
+        if (halo::rasterizer::rasterizer_display_mode_differs(&mode) != 0) {
             d3d_present_parameters parameters;
 
-            rasterizer_build_present_parameters(&parameters, &mode);
-            rasterizer_device_reset(&parameters);
-            ((int32_t (__stdcall *)(void *, uint32_t, void *))(*(void ***)rasterizer_device)[0x20 / 4])(rasterizer_device, 0,
+            halo::rasterizer::rasterizer_build_present_parameters(&parameters, &mode);
+            halo::rasterizer::rasterizer_device_reset(&parameters);
+            ((int32_t (__stdcall *)(void *, uint32_t, void *))(*(void ***)halo::rasterizer::globals().device)[0x20 / 4])(halo::rasterizer::globals().device, 0,
                 &rasterizer_desktop_display_mode);
             changed = 1;
-            rasterizer_resize_game_window(mode.height, mode.width);
-            rasterizer_needs_reset = 0;
+            halo::rasterizer::rasterizer_resize_game_window(mode.height, mode.width);
+            halo::rasterizer::globals().needs_reset = 0;
         }
         halo::sound::sound_set_master_gain(gain);
         widget->creation_time = (int32_t)halo::cseries::time_query_performance_counter_ms();
@@ -700,15 +688,15 @@ uint8_t UiEventHandlers::event_4bb970(widget_instance *widget, int16_t *event, u
         halo::interface::state::frame_rate_limiter_enabled = (uint8_t)(profile[0xa6f] == 2);
     }
     halo::sound::sound_set_master_gain(0.05f);
-    if (rasterizer_display_mode_differs(&ui_video_requested_display_mode_006b7010) != 0) {
+    if (halo::rasterizer::rasterizer_display_mode_differs(&ui_video_requested_display_mode_006b7010) != 0) {
         d3d_present_parameters parameters;
 
-        rasterizer_build_present_parameters(&parameters, &ui_video_requested_display_mode_006b7010);
-        rasterizer_device_reset(&parameters);
-        ((int32_t (__stdcall *)(void *, uint32_t, void *))(*(void ***)rasterizer_device)[0x20 / 4])(rasterizer_device, 0,
+        halo::rasterizer::rasterizer_build_present_parameters(&parameters, &ui_video_requested_display_mode_006b7010);
+        halo::rasterizer::rasterizer_device_reset(&parameters);
+        ((int32_t (__stdcall *)(void *, uint32_t, void *))(*(void ***)halo::rasterizer::globals().device)[0x20 / 4])(halo::rasterizer::globals().device, 0,
             &rasterizer_desktop_display_mode);
-        rasterizer_resize_game_window(ui_video_requested_display_mode_006b7010.height, ui_video_requested_display_mode_006b7010.width);
-        rasterizer_needs_reset = 0;
+        halo::rasterizer::rasterizer_resize_game_window(ui_video_requested_display_mode_006b7010.height, ui_video_requested_display_mode_006b7010.width);
+        halo::rasterizer::globals().needs_reset = 0;
     }
     halo::sound::sound_set_master_gain(gain);
     return 1;

@@ -9,6 +9,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -71,7 +72,6 @@ extern uint32_t biped_update(uint32_t object_index);
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t global_007102d8;
 extern uint8_t network_join_error_reason;
-extern main_globals main_globals_data;
 extern uint8_t *main_game_globals;
 extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type, datum_index subject, char broadcast);
 extern void player_kill_streak_tick(datum_index player_handle);
@@ -671,9 +671,9 @@ void StructureBsp::switch_structure_bsp()
                         }
                         local_player_globals->bsp_switch_trigger_volume_index = (int16_t)i;
                         if (destination < 0 || destination >= halo::scenario::globals().scenario->structure_bsps.count) {
-                            console_print_va("tried to switch to invalid structure-bsp %d", (int32_t)destination);
+                            halo::main::console_print_va("tried to switch to invalid structure-bsp %d", (int32_t)destination);
                         } else if (destination == halo::scenario::globals().structure_bsp_index) {
-                            console_print_va("tried to switch to current structure-bsp %d", (int32_t)destination);
+                            halo::main::console_print_va("tried to switch to current structure-bsp %d", (int32_t)destination);
                         } else {
 
                             split_screen_quit_prompt_string = (uint16_t)destination;
@@ -712,7 +712,7 @@ void StructureBsp::switch_structure_bsp()
         }
     } else if (current_game_engine == 0 && global_007102d8 == 0) {
         network_join_error_reason = 0;
-        main_globals_data.lost_map = 1;
+        halo::main::globals().main_globals.lost_map = 1;
         global_007102d8 = 1;
     }
 }

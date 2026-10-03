@@ -20,7 +20,7 @@ int32_t sound_fade_now_ms(void)
     large_integer counter;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    return (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    return (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 }
 
 /** Releases the unused cached sample pages of a sound tag. */

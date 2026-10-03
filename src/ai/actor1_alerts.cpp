@@ -4,6 +4,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/main/api.hpp"
 
 namespace c_actor_alert_from_damage {
 extern "C" {
@@ -878,7 +879,6 @@ extern data_array *actor_data;
 extern data_array *object_data;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
-extern game_main_globals *main_game_globals;
 
 extern void *actor_get_actor_definition(datum_index actor_index);
 extern uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t param_3);
@@ -951,7 +951,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
             float base_delay;
             float delay;
             float range;
-            int16_t difficulty = (int16_t)(uint16_t)main_game_globals->difficulty;
+            int16_t difficulty = (int16_t)(uint16_t)halo::main::globals().game_globals->difficulty;
 
             if (!actor_has_unshielded_threat_weapon(actor_index) && !(*(uint32_t *)actor_tag & 0x20000)) {
                 wide = 1;

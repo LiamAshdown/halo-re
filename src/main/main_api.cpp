@@ -39,8 +39,31 @@
 #include "halo/main/network.hpp"
 #include "halo/main/views.hpp"
 #include "halo/main/timedemo.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
+extern game_main_globals *main_game_globals;
+extern uint8_t main_menu_music_pending;
+extern int32_t movie_playback_abort;
+extern uint8_t terminal_initialized;
+extern datum_index console_message_head;
+extern datum_index console_message_tail;
+extern int32_t console_rcon_handle;
+extern uint8_t console_win32_attached;
+extern int32_t console_caret_blink_time;
+extern main_globals main_globals_data;
+extern console_globals console_globals_data;
+extern terminal_console *console_active;
+extern data_array *terminal_messages;
+}
+
+namespace halo::main {
+
+Globals &globals()
+{
+    static Globals instance{::main_game_globals, ::main_menu_music_pending, ::movie_playback_abort, ::terminal_initialized, ::console_message_head, ::console_message_tail, ::console_rcon_handle, ::console_win32_attached, ::console_caret_blink_time, ::main_globals_data, ::console_globals_data, ::console_active, ::terminal_messages};
+    return instance;
+}
 
 void campaign_level_advance()
 {

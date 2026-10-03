@@ -5,6 +5,9 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/core/lcg.hpp"
+#include "halo/render/api.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern void *const flag_render_device_slot;
@@ -17,7 +20,6 @@ extern void flag_cloth_update(flag *entry, Flag *tag, float dt);
 extern data_array *flag_data;
 extern void flag_pole_get_marker_positions(flag *entry, bsp_leaf_reference *node_ref, real_point3d *marker_positions, uint8_t *row_table, int16_t *row_start_scratch, int16_t *column_marker_index, Flag *tag);
 extern void flag_render(uint32_t *entry, uint32_t *submission_block, Flag *tag, uint8_t *second_geometry);
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern real_point3d *global_origin3d_pointer;
 extern real_point3d *global_zero_vector3d_pointer;
 extern data_array *object_data;
@@ -42,7 +44,7 @@ extern double sqrt(double x);
  */
 void halo::objects::FlagSystem::initialize()
 {
-    flag_data = game_state_new((char *)"flag", k_maximum_flags, 0x16bc  );
+    flag_data = halo::saved_games::game_state_new((char *)"flag", k_maximum_flags, 0x16bc  );
 }
 
 /**
@@ -680,12 +682,12 @@ void halo::objects::FlagSystem::render(uint32_t *entry, uint32_t *submission_blo
     float inv_width_minus1 = 1.0f / (float)(width - 1);
     float inv_height_minus1 = 1.0f / (float)(height - 1);
 
-    model_context = rasterizer_dynamic_index_cache_reserve();
-    if (model_context == -1 || rasterizer_dynamic_vertex_cache_reserve() == -1) {
+    model_context = halo::rasterizer::rasterizer_dynamic_index_cache_reserve(0);
+    if (model_context == -1 || halo::rasterizer::rasterizer_dynamic_vertex_cache_reserve(0, 0) == -1) {
         return;
     }
-    normal_buffer = rasterizer_dynamic_vertex_cache_lock();
-    index_buffer = rasterizer_dynamic_index_slot_lock();
+    normal_buffer = halo::rasterizer::rasterizer_dynamic_vertex_cache_lock(0);
+    index_buffer = halo::render::rasterizer_dynamic_index_slot_lock(0);
 
     for (col = 0; col < width; col++) {
         for (row = 0; row < height; row++) {
@@ -808,9 +810,9 @@ void halo::objects::FlagSystem::render(uint32_t *entry, uint32_t *submission_blo
         float cz = (v2[2] + v0[2] + v1[2] + *(float *)(second_geometry + 0x24)) * 0.25f;
 
         (void)fallback_tag;
-        rasterizer_model_draw_prepare_states(0);
-        rasterizer_shader_environment_draw_dispatch(0, 0, 0, row - 1, index_count, 0);
+        halo::rasterizer::rasterizer_model_draw_prepare_states(0, 0);
+        halo::rasterizer::rasterizer_shader_environment_draw_dispatch(0, 0, 0, 0, row - 1, index_count, 0);
 
-        rasterizer_model_draw_restore_states();
+        halo::rasterizer::rasterizer_model_draw_restore_states();
     }
 }

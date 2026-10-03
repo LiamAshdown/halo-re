@@ -9,6 +9,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count];
@@ -456,7 +457,7 @@ int NetworkRuntime::local_hostent_get(void **out_hostent)
 char * NetworkRuntime::log_path_resolve(char *requested_path)
 {
     network_log_path_buffer[0] = 0;
-    if (security_check_write_access() != 0) {
+    if (halo::shell::security_check_write_access() != 0) {
         _snprintf((char *)network_log_path_buffer, 0x104, network_log_path_format, requested_path);
     }
     if (network_log_path_buffer[0] == 0) {

@@ -8,6 +8,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/devices/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -20,7 +21,6 @@ extern void *global_zero_vector3d_pointer;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
 extern object *object_iterator_next(object_iterator *iterator);
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern Scenario *global_scenario;
 }
 
@@ -644,7 +644,7 @@ void DeviceGroupHandle::set_value_immediate(float value)
  */
 void DeviceGroupPool::allocate()
 {
-    device_groups = game_state_new((char *)"device groups", k_device_group_maximum_count, k_device_group_element_size);
+    device_groups = halo::saved_games::game_state_new((char *)"device groups", k_device_group_maximum_count, k_device_group_element_size);
 }
 
 /**

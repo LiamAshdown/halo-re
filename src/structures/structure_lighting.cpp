@@ -69,7 +69,7 @@ void bsp_lighting::lightmap_sample_vertex_color(BitmapData *bitmap, float weight
     uv[0] = (u1 - u0) * weight_1 + (u2 - u0) * weight_2 + u0;
     uv[1] = (v1 - v0) * weight_1 + (v2 - v0) * weight_2 + v0;
 
-    packed = rasterizer_bitmap_sample_texel(bitmap, uv, 1.0f);
+    packed = halo::rasterizer::rasterizer_bitmap_sample_texel(bitmap, uv, 1.0f);
     halo::bitmaps::color_rgb_int_to_real(out, (uint32_t)packed);
 }
 
@@ -107,7 +107,7 @@ void bsp_lighting::material_sample_base_map_color(BitmapData *bitmap, float weig
     uv[0] = (u2 - u0) * weight_2 + (u1 - u0) * weight_1 + u0;
     uv[1] = (v2 - v0) * weight_2 + (v1 - v0) * weight_1 + v0;
 
-    packed = rasterizer_bitmap_sample_texel(bitmap, uv, 0.3f);
+    packed = halo::rasterizer::rasterizer_bitmap_sample_texel(bitmap, uv, 0.3f);
     halo::bitmaps::color_rgb_int_to_real(out, (uint32_t)packed);
 }
 
@@ -194,7 +194,7 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
         ScenarioStructureBSPMaterialCompressedRenderedVertex *vertices =
             (ScenarioStructureBSPMaterialCompressedRenderedVertex *)(uintptr_t)material->compressed_vertices.pointer;
         for (i = 0; i < 3; i++) {
-            bsp_compressed_rendered_vertex_unpack_normal(&vertices[triangle[i]], &normals[i]);
+            halo::rasterizer::bsp_compressed_rendered_vertex_unpack_normal(&vertices[triangle[i]], &normals[i]);
         }
     } else if (vertex_type == vertextype_structure_bsp_uncompressed_rendered_vertices || vertex_type == k_vertex_type_uncompressed_rendered_alias) {
         ScenarioStructureBSPMaterialUncompressedRenderedVertex *vertices =
@@ -211,7 +211,7 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
             (ScenarioStructureBSPMaterialCompressedLightmapVertex *)(uintptr_t)material->compressed_vertices.pointer +
             material->rendered_vertices_count * 4;
         for (i = 0; i < 3; i++) {
-            bsp_compressed_lightmap_vertex_unpack_normal(&vertices[triangle[i]], &normals[i]);
+            halo::rasterizer::bsp_compressed_lightmap_vertex_unpack_normal(&vertices[triangle[i]], &normals[i]);
         }
     } else if (vertex_type == vertextype_structure_bsp_uncompressed_rendered_vertices || vertex_type == k_vertex_type_uncompressed_rendered_alias) {
         ScenarioStructureBSPMaterialUncompressedLightmapVertex *vertices =

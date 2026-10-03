@@ -11,6 +11,7 @@
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/devices/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern void *const network_index_cache_table;
@@ -162,10 +163,6 @@ extern uint8_t unit_update(uint32_t unit_index);
 extern uint32_t biped_update(uint32_t object_index);
 extern void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id);
 extern data_array *team_data;
-extern int32_t game_state_cursor;
-extern uint8_t *game_state_base;
-extern uint32_t game_state_crc;
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out);
 extern void game_engine_reattach_player_unit_unused(uint32_t player_index, uint32_t target_object, void *local_offset);
@@ -2818,21 +2815,21 @@ void Players::initialize()
 {
     uint32_t size;
 
-    player_data = (data_array *)game_state_new((char *)"players", k_maximum_players, k_player_size);
-    team_data = (data_array *)game_state_new((char *)"teams", k_maximum_teams, k_team_size);
+    player_data = (data_array *)halo::saved_games::game_state_new((char *)"players", k_maximum_players, k_player_size);
+    team_data = (data_array *)halo::saved_games::game_state_new((char *)"teams", k_maximum_teams, k_team_size);
 
-    local_player_globals = (player_globals *)(game_state_cursor + game_state_base);
-    game_state_cursor = game_state_cursor + k_player_globals_size;
+    local_player_globals = (player_globals *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + k_player_globals_size;
     size = k_player_globals_size;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     local_player_globals->local_players[0] = (datum_index)-1;
     local_player_globals->unknown_00 = (datum_index)-1;
     local_player_globals->local_player_count = 0;
 
-    player_control_globals_ptr = (player_control_globals *)(game_state_cursor + game_state_base);
-    game_state_cursor = game_state_cursor + k_player_control_globals_size;
+    player_control_globals_ptr = (player_control_globals *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + k_player_control_globals_size;
     size = k_player_control_globals_size;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
 }
 
 /**

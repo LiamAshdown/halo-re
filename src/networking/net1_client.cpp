@@ -8,6 +8,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern network_client_globals *network_client;
@@ -62,8 +63,6 @@ extern void network_channel_remote_address_or_default(network_channel *channel, 
 extern uint8_t network_server_host_valid;
 extern uint32_t split_screen_quit_prompt_string;
 extern uint32_t network_join_error_reason;
-extern void main_menu_music_stop(void);
-extern void chimera__load_ui_map(char reset);
 extern void network_game_server_host_dispose(network_server_globals *host);
 extern char network_client_state_dispatch(void);
 extern int32_t network_client_connect_progress_percent(void);
@@ -77,7 +76,6 @@ extern int16_t network_join_error_code;
 extern void network_connection_send_keepalive(network_client_globals *client);
 extern uint8_t network_ping_debug_log_enabled;
 extern uint32_t network_ping_debug_last_sample;
-extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern int32_t message_delta_sample_ring_buffer_average(message_delta_sample_ring_buffer *ring);
 extern data_packet_group network_game_messages_group;
 extern uint16_t network_challenge_packet_block[];
@@ -637,7 +635,7 @@ char ClientView::update_dispatch()
     result = 1;
     if (network_host_handoff_requested == 1) {
         network_game_mode = 0;
-        main_menu_music_stop();
+        halo::main::main_menu_music_stop();
         if (network_server != 0) {
             session = &network_server->session;
         } else if (network_client != 0) {
@@ -646,7 +644,7 @@ char ClientView::update_dispatch()
             session = 0;
         }
         if (session->map_loaded != 0) {
-            chimera__load_ui_map(1);
+            halo::main::chimera__load_ui_map(1);
         }
         session->map_loaded = 0;
         network_client_globals_dispose();
@@ -734,13 +732,13 @@ tail:
         int32_t now2;
 
         network_ping_debug_last_sample = (uint16_t)endpoint->message_count;
-        console_print_error_va(0, "current ping time[%d]  samples received[%d]  samples sent[%d]\n",
+        halo::main::console_print_error_va(0, "current ping time[%d]  samples received[%d]  samples sent[%d]\n",
             endpoint->current_ping_ms, endpoint->retry_count, (uint16_t)endpoint->message_count);
         server_base_time = *(int32_t *)endpoint->control_block;
 
         challenge_time = message_delta_sample_ring_buffer_average((message_delta_sample_ring_buffer *)endpoint->control_block);
         now2 = halo::cseries::time_query_performance_counter_ms();
-        console_print_error_va(0, "current time delta[%d]  latency[%d]  server time[%d]\n",
+        halo::main::console_print_error_va(0, "current time delta[%d]  latency[%d]  server time[%d]\n",
             server_base_time, challenge_time, now2 + server_base_time);
     }
     return result;

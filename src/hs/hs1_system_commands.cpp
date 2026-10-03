@@ -2,20 +2,17 @@
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern void game_engine_send_team_allegiance_message(char broadcast);
-extern uint8_t saved_game_load_checkpoint(char *name);
-extern uint8_t game_checkpoint_save_new(void);
-extern uint8_t terminal_initialized;
-extern data_array *terminal_messages;
 extern int32_t console_message_head;
 extern int32_t console_message_tail;
 extern void console_clear_screen(void);
-extern uint8_t network_game_client_connect_to_address_async(char *address, char *password);
 extern uint8_t main_globals_byte_00719752;
 extern uint8_t main_globals_byte_00719753;
 extern uint8_t main_globals_byte_00719751;
@@ -52,7 +49,7 @@ void SystemCommands::checkpoint_load(int16_t function_index, uint32_t thread_ind
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        saved_game_load_checkpoint((char *)arguments[0]);
+        halo::saved_games::saved_game_load_checkpoint((char *)arguments[0]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -64,7 +61,7 @@ void SystemCommands::checkpoint_load(int16_t function_index, uint32_t thread_ind
  */
 void SystemCommands::checkpoint_save(int16_t function_index, uint32_t thread_index, char first)
 {
-    game_checkpoint_save_new();
+    halo::saved_games::game_checkpoint_save_new();
     hs_thread_return(0, thread_index);
 }
 
@@ -77,10 +74,10 @@ void SystemCommands::cls(int16_t function_index, uint32_t thread_index, char fir
 {
     (void)function_index;
     (void)first;
-    if (terminal_initialized != 0) {
+    if (halo::main::globals().terminal_initialized != 0) {
         console_message_head = -1;
         console_message_tail = -1;
-        halo::memory::data_delete_all(terminal_messages);
+        halo::memory::data_delete_all(halo::main::globals().terminal_messages);
         console_clear_screen();
     }
     hs_thread_return(0, thread_index);
@@ -98,7 +95,7 @@ void SystemCommands::connect(int16_t function_index, uint32_t thread_index, char
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        network_game_client_connect_to_address_async((char *)arguments[0], (char *)arguments[1]);
+        halo::main::network_game_client_connect_to_address_async((char *)arguments[0], (char *)arguments[1]);
         hs_thread_return(0, thread_index);
     }
 }

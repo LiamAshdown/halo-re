@@ -16,15 +16,13 @@
 #include "saved_games.h"
 #include "main.h"
 #include "halo/networking/net2_autopatch.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/shell/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern int32_t autopatch_update_check_state;
 extern uint8_t * autopatch_update_cfg_directory;
-extern int32_t security_check_write_access(void);
-extern char file_reference_exists(file_reference *reference);
-extern uint8_t file_reference_delete(void);
-extern void path_append_component(char *destination, const char *component);
-extern void path_remove_last_component(uint8_t *path);
 extern autopatch_download_slot autopatch_download_slots[2];
 extern network_mutex_record network_mutex_table[k_network_mutex_table_count];
 extern int32_t network_mutex_name_counter;
@@ -45,18 +43,6 @@ extern int32_t ghttpSaveEx(void *url, void *filename, void *headers, void *post,
 extern char autopatch_proxy_server[0x100];
 extern char autopatch_update_url[0x100];
 extern char autopatch_update_version[0x100];
-extern char * shell_command_line;
-extern main_globals main_globals_data;
-extern int32_t movie_playback_abort;
-extern uint8_t file_reference_create(file_reference_record *ref);
-extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode);
-extern uint8_t file_reference_seek(int32_t offset, file_reference_record *ref);
-extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size);
-extern uint8_t file_reference_close(file_reference_record *ref);
-extern void path_append_extension(char *destination, const char *suffix);
-extern void path_build_full(char *source, char *destination, int16_t location);
-extern void path_split_components(char **dir_start_out, char *path, char **ext_fallback_out,
-    char **name_end_out, char **ext_start_out, uint8_t split_extension);
 extern uint8_t autopatch_proxy_ready;
 extern void ghttpSetProxy(void *proxy_settings);
 extern uint8_t ai_update_stagger[11];
@@ -142,7 +128,7 @@ int32_t AutopatchUpdater::check_for_update_start(void)
         void *thread;
         uint32_t thread_id;
 
-        if (security_check_write_access() != 0) {
+        if (halo::shell::security_check_write_access() != 0) {
             uint32_t *raw = (uint32_t *)&reference;
             int32_t i;
             for (i = 0; i < 0x43; i++) {
@@ -151,12 +137,12 @@ int32_t AutopatchUpdater::check_for_update_start(void)
             *(int32_t *)((uint8_t *)&reference + 4) = 0x66696c6f;
             *(uint16_t *)((uint8_t *)&reference + 6) = 0xffff;
             if ((*flags & 1) != 0) {
-                path_remove_last_component((uint8_t *)&reference + 8);
+                halo::saved_games::path_remove_last_component((char *)((uint8_t *)&reference + 8));
             }
-            path_append_component((char *)&reference + 8, "currentupdate.cfg");
+            halo::saved_games::path_append_component((char *)&reference + 8, "currentupdate.cfg");
             *flags = *flags | 1;
-            if (file_reference_exists(&reference) != 0) {
-                file_reference_delete();
+            if (halo::saved_games::file_reference_exists((file_reference_record *)&reference) != 0) {
+                halo::saved_games::file_reference_delete((file_reference_record *)&reference);
             }
         }
 
@@ -542,8 +528,6 @@ copy_proxy:
 
 uint8_t AutopatchUpdater::launch_updater(void)
 {
-    uint8_t (*const file_reference_delete)(file_reference_record *ref) = reinterpret_cast<uint8_t (*)(file_reference_record *ref)>(&::file_reference_delete);
-    void (*const path_remove_last_component)(char *path) = reinterpret_cast<void (*)(char *path)>(&::path_remove_last_component);
     file_reference_record config;
     file_reference_record module_ref;
     char module_path[0x105];
@@ -563,13 +547,13 @@ uint8_t AutopatchUpdater::launch_updater(void)
     config.signature = k_file_reference_signature;
     config.location = -1;
     if (config.flags & _file_reference_is_file_bit) {
-        path_remove_last_component(config.path);
+        halo::saved_games::path_remove_last_component(config.path);
     }
-    path_append_component(config.path, "currentupdate.cfg");
+    halo::saved_games::path_append_component(config.path, "currentupdate.cfg");
     config.flags |= _file_reference_is_file_bit;
 
-    if (!file_reference_create(&config) || !file_reference_open(&config, _file_open_write) ||
-        !file_reference_seek(0, &config)) {
+    if (!halo::saved_games::file_reference_create(&config) || !halo::saved_games::file_reference_open(&config, _file_open_write) ||
+        !halo::saved_games::file_reference_seek(0, &config)) {
         return 0;
     }
 
@@ -586,42 +570,42 @@ uint8_t AutopatchUpdater::launch_updater(void)
     module_ref.signature = k_file_reference_signature;
     module_ref.location = -1;
     if (module_ref.flags & _file_reference_is_file_bit) {
-        path_remove_last_component(module_ref.path);
+        halo::saved_games::path_remove_last_component(module_ref.path);
     }
-    path_append_component(module_ref.path, module_path);
+    halo::saved_games::path_append_component(module_ref.path, module_path);
     module_ref.flags |= _file_reference_is_file_bit;
 
     for (i = 0; i < sizeof(full_path); i++) {
         full_path[i] = 0;
     }
-    path_build_full(module_ref.path, full_path, module_ref.location);
-    path_split_components(&directory, full_path, &file_name, &path_start, &extension,
+    halo::saved_games::path_build_full(module_ref.path, full_path, module_ref.location);
+    halo::saved_games::path_split_components(&directory, full_path, &file_name, &path_start, &extension,
         (uint8_t)(module_ref.flags & _file_reference_is_file_bit));
     module_path[0] = 0;
-    path_append_component(module_path, file_name);
-    path_append_extension(module_path, extension);
+    halo::saved_games::path_append_component(module_path, file_name);
+    halo::saved_games::path_append_extension(module_path, extension);
 
     _snprintf(line, 0x400, "gamemode 1\n");
     line[0x400] = 0;
-    if (!file_reference_write(&config, line, autopatch_string_length(line))) {
+    if (!halo::saved_games::file_reference_write(&config, line, autopatch_string_length(line))) {
         return 0;
     }
     _snprintf(line, 0x400, "url \"%s\"\n", autopatch_update_url);
     line[0x400] = 0;
-    if (!file_reference_write(&config, line, autopatch_string_length(line))) {
+    if (!halo::saved_games::file_reference_write(&config, line, autopatch_string_length(line))) {
         return 0;
     }
     _snprintf(line, 0x400, "updateversion \"%s\"\n", autopatch_update_version);
     line[0x400] = 0;
-    if (!file_reference_write(&config, line, autopatch_string_length(line))) {
+    if (!halo::saved_games::file_reference_write(&config, line, autopatch_string_length(line))) {
         return 0;
     }
-    _snprintf(line, 0x400, "gamecommand \"%s %s\"\n", module_path, shell_command_line);
+    _snprintf(line, 0x400, "gamecommand \"%s %s\"\n", module_path, halo::shell::globals().command_line);
     line[0x400] = 0;
-    if (!file_reference_write(&config, line, autopatch_string_length(line))) {
+    if (!halo::saved_games::file_reference_write(&config, line, autopatch_string_length(line))) {
         return 0;
     }
-    if (!file_reference_close(&config)) {
+    if (!halo::saved_games::file_reference_close(&config)) {
         return 0;
     }
 
@@ -636,13 +620,13 @@ uint8_t AutopatchUpdater::launch_updater(void)
     sprintf(line, "%s waitprocessid=%d", "haloupdate.exe", GetCurrentProcessId());
 
     if (CreateProcessA(0, line, 0, 0, 0, 0x4000020, 0, 0, (LPSTARTUPINFOA)&startup, (LPPROCESS_INFORMATION)&process)) {
-        main_globals_data.return_to_main_menu = 0;
-        main_globals_data.quit = 1;
-        movie_playback_abort = 1;
+        halo::main::globals().main_globals.return_to_main_menu = 0;
+        halo::main::globals().main_globals.quit = 1;
+        halo::main::globals().movie_playback_abort = 1;
         return 1;
     }
 
-    file_reference_delete(&config);
+    halo::saved_games::file_reference_delete(&config);
     autopatch_update_check_state = 4;
     return 0;
 }

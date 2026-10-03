@@ -4,6 +4,7 @@
 #include "halo/memory/api.hpp"
 #include <wchar.h>
 #include "halo/cache/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -269,7 +270,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
             }
 
             halo::text::text_set_render_context(*(datum_index *)&tag->text_font.tag_id, &color, -1, justification, 0);
-            chimera__draw_16_bit_text(&clip, &rect, 0, 0, text);
+            halo::rasterizer::chimera__draw_16_bit_text(&clip, &rect, 0, 0, text);
         }
     }
 

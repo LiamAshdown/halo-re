@@ -5,6 +5,7 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/shell/api.hpp"
 
 namespace halo::sound {
 
@@ -33,7 +34,7 @@ void DirectSoundDevice::commit_spatial(int16_t channel_index, uint8_t spatialize
     uint8_t dialog_class = (sound_class >= 0x2c && sound_class <= 0x2f);
 
     if (channel->spatialized != spatialized || directsound_initialized == 0) {
-        if (config_head_relative_speech == 0 || spatialized != 0 || !dialog_class) {
+        if (halo::shell::globals().head_relative_speech == 0 || spatialized != 0 || !dialog_class) {
             set_mode(channel->buffer_3d, (spatialized != 0) ? 0u : 2u, 1);
         } else {
             set_mode(channel->buffer_3d, 1, 1);
@@ -49,7 +50,7 @@ void DirectSoundDevice::commit_spatial(int16_t channel_index, uint8_t spatialize
           sound_channel_set_spatial_fabsf(spatial->position.y - channel->position.y) >= 0.05f ||
           sound_channel_set_spatial_fabsf(spatial->position.z - channel->position.z) >= 0.05f)) ||
         directsound_initialized == 0) {
-        if (config_head_relative_speech == 0 || spatialized != 0 || !dialog_class) {
+        if (halo::shell::globals().head_relative_speech == 0 || spatialized != 0 || !dialog_class) {
             set_position(channel->buffer_3d, spatial->position.x, -spatial->position.y, spatial->position.z, 1);
         } else {
             set_position(channel->buffer_3d, 0.0f, 0.0f, 0.0f, 1);
@@ -498,7 +499,7 @@ void DirectSoundDevice::queue_source(int16_t channel_index, SoundPermutation *so
 void DirectSoundDevice::reset_channel(int16_t channel_index)
 {
     directsound_channel *channel = &directsound_channels[channel_index];
-    uint8_t keep_streaming = (config_enable_stop_start == 0);
+    uint8_t keep_streaming = (halo::shell::globals().enable_stop_start == 0);
 
     channel->source = (SoundPermutation *)0;
     channel->next_source = (SoundPermutation *)0;

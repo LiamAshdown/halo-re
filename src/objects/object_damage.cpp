@@ -20,6 +20,7 @@
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value);
@@ -42,7 +43,6 @@ extern real_vector3d *global_origin3d_pointer;
 extern int32_t hash_table_get(hash_table *table, uint32_t key);
 extern void hud_unit_meter_apply_predictive_damage(datum_index player_index, float damage);
 extern player_globals *local_player_globals;
-extern game_main_globals *main_game_globals;
 extern int8_t message_delta_decode_compound_field(void *globals, void *out_value);
 extern uint8_t message_delta_decode_compound_field_staged(void **context);
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
@@ -543,7 +543,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
             if (((1u << ((uint8_t)((struct object *)target)->type & 0x1f)) & 3) &&
                 (*(uint32_t *)(TAG_DATA(*(datum_index *)target) + 0x17c) & 0x80000) &&
                 target_index != dd->responsible_object) {
-                real scale = weapon_get_zoom_fov(8, main_game_globals->difficulty);
+                real scale = weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty);
 
                 apply = 1;
                 if ((scale > 0.0f || (flags & 0x400)) && (dd->flags & 0x40)) {
@@ -776,7 +776,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
         int16_t team = dd->team_index;
 
         if (team < 0 || team >= 10 || !teams_are_friends(team * 10 + 1)) {
-            amount = weapon_get_zoom_fov(0, main_game_globals->difficulty) * amount;
+            amount = weapon_get_zoom_fov(0, halo::main::globals().game_globals->difficulty) * amount;
             difficulty_scaled = 1;
         }
     }
@@ -1111,7 +1111,7 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
     if (*notify_flags & 0x10) {
         value = (1.0f - *(float *)(geometry + 0x44)) * body;
         if (*notify_flags & 0x20) {
-            real multiplier = weapon_get_zoom_fov(0, main_game_globals->difficulty);
+            real multiplier = weapon_get_zoom_fov(0, halo::main::globals().game_globals->difficulty);
 
             if (multiplier > 0.0f) {
                 value = value / multiplier;
@@ -1300,7 +1300,7 @@ void halo::objects::ObjectDamage::apply_shield_damage(uint8_t *geometry, uint8_t
         }
         passthrough = passthrough - to_shield;
         if ((*notify_flags & 0x10) && (*notify_flags & 0x20)) {
-            real multiplier = weapon_get_zoom_fov(0, main_game_globals->difficulty);
+            real multiplier = weapon_get_zoom_fov(0, halo::main::globals().game_globals->difficulty);
 
             if (multiplier > 0.0f) {
                 to_shield = to_shield / multiplier;

@@ -8,6 +8,7 @@
 #include "halo/projectiles/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "code_refs.hpp"
+#include "halo/shell/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/cutscene/api.hpp"
@@ -986,8 +987,8 @@ uint32_t table_00664b30[1] = {
 
 /* 0x0067359c..0x00673d5c */
 uint32_t length_error_throw_info_0067359c[496] = {
-    /* +0x0000 */ 0, (uint32_t)&length_error_throw_info_0069ff2c[14], 0, 0xffffffffu, 0, 0x28, (uint32_t)hwreq_parse_exception_copy_construct,
-    /* +0x001c */ 0, (uint32_t)&length_error_throw_info_0069ff2c[22], 0, 0xffffffffu, 0, 0x28, (uint32_t)std_out_of_range_copy_construct, 0xffffffffu,
+    /* +0x0000 */ 0, (uint32_t)&length_error_throw_info_0069ff2c[14], 0, 0xffffffffu, 0, 0x28, (uint32_t)&halo::shell::hwreq_parse_exception_copy_construct,
+    /* +0x001c */ 0, (uint32_t)&length_error_throw_info_0069ff2c[22], 0, 0xffffffffu, 0, 0x28, (uint32_t)&halo::shell::std_out_of_range_copy_construct, 0xffffffffu,
     /* +0x003c */ (uint32_t)0, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[14], 0, 0, 0, 0,
     /* +0x005c */ 0xffffffffu, (uint32_t)0, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[23], 0, 0, 0,
     /* +0x007c */ 0, 0xffffffffu, 0, 0xffffffffu, 0, 0x1, 0, 0x1,

@@ -3,19 +3,15 @@
 #include "main.h"
 #include "halo/cache/api.hpp"
 #include <string.h>
+#include "halo/saved_games/api.hpp"
+#include "halo/shell/api.hpp"
+#include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
-extern char *rasterizer_shader_file_name;
-extern game_main_globals *main_game_globals;
-extern main_globals main_globals_data;
 extern int16_t local_player_count;
-extern int32_t saved_player_profile_slots_handle;
 extern int32_t cached_profile_slot;
-extern uint8_t last_profile_name;
-extern void main_queue_cache_file_open(void);
-extern void saved_game_get_directory_by_handle(void);
-extern void saved_game_last_profile_clear(void);
-extern void shell_display_fatal_error_dialog(uint32_t a, uint32_t b, uint32_t c);
+extern char last_profile_name[];
 }
 
 namespace halo::game {
@@ -40,14 +36,14 @@ void CacheFileMaps::switch_map_by_path(char *path, uint8_t apply_state)
                 if (apply_state == 0) {
                     return;
                 }
-                rasterizer_shader_file_name = path;
-                shell_display_fatal_error_dialog(0x89, 0x7e, 1);
+                halo::rasterizer::globals().shader_file_name = path;
+                halo::shell::shell_display_fatal_error_dialog(0x89, 0x7e, 1);
             }
         } else {
             if (halo::cache::cache_file_download_matches(path) == 0) {
                 if (apply_state == 0) {
                     halo::cache::cache_file_download_stop();
-                    main_queue_cache_file_open();
+                    halo::main::main_queue_cache_file_open((char *)path);
                 } else {
                     halo::cache::cache_file_download_finish();
                 }
@@ -56,29 +52,29 @@ void CacheFileMaps::switch_map_by_path(char *path, uint8_t apply_state)
                 goto open_by_name;
             }
         }
-        globals = main_game_globals;
+        globals = halo::main::globals().game_globals;
         if (apply_state == 0) {
             return;
         }
-        main_game_globals->map_loading_in_progress = 0;
+        halo::main::globals().game_globals->map_loading_in_progress = 0;
         *(uint32_t *)&globals->map_load_progress = 0x3f800000;
     }
 
     if (apply_state != 0) {
-        main_globals_data.pending_cache_file_name[0] = 0;
-        main_globals_data.cache_file_open_pending = 0;
+        halo::main::globals().main_globals.pending_cache_file_name[0] = 0;
+        halo::main::globals().main_globals.cache_file_open_pending = 0;
         if (halo::cache::globals().map_download_in_progress != 0) {
             halo::cache::cache_file_download_finish();
         }
         if (local_player_count == 1) {
-            if (cached_profile_slot != saved_player_profile_slots_handle) {
-                if (saved_player_profile_slots_handle != -1) {
-                    saved_game_get_directory_by_handle();
+            if (cached_profile_slot != halo::saved_games::globals().player_profile_slots_handle) {
+                if (halo::saved_games::globals().player_profile_slots_handle != -1) {
+                    halo::saved_games::saved_game_get_directory_by_handle(halo::saved_games::globals().player_profile_slots_handle, last_profile_name);
                 }
-                cached_profile_slot = saved_player_profile_slots_handle;
+                cached_profile_slot = halo::saved_games::globals().player_profile_slots_handle;
             }
-            if (last_profile_name != 0) {
-                saved_game_last_profile_clear();
+            if (last_profile_name[0] != 0) {
+                halo::saved_games::saved_game_last_profile_clear(last_profile_name);
             }
         }
     }

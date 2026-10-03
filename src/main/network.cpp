@@ -14,11 +14,8 @@
 
 #include "halo/main/network.hpp"
 #include "halo/main/layout.hpp"
+#include "halo/main/api.hpp"
 
-extern "C" { uint32_t __stdcall network_game_client_connect_by_hostname(char *host_port_string); }
-extern "C" { uint8_t network_game_client_connect_to_address_async(char *address, char *password); }
-extern "C" { uint32_t network_hostname_resolve_thread_proc(char *hostname); }
-extern "C" { char network_hostname_resolve_with_timeout(char *hostname); }
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern void *connect_thread; }
@@ -53,7 +50,7 @@ uint32_t ClientConnection::game_client_connect_by_hostname(char *host_port_strin
         *colon = '\0';
     }
     network_dispatch_initialize();
-    if (network_hostname_resolve_with_timeout(host_port_string) != 0) {
+    if (halo::main::network_hostname_resolve_with_timeout(host_port_string) != 0) {
         host = gethostbyname(host_port_string);
         if (host != 0) {
             address_text = inet_ntoa(**(struct in_addr **)((char *)host + k_hostent_address_list_offset));
@@ -68,7 +65,7 @@ uint32_t ClientConnection::game_client_connect_by_hostname(char *host_port_strin
             goto done;
         }
     }
-    network_game_client_connect_to_address_async(0, 0);
+    halo::main::network_game_client_connect_to_address_async(0, 0);
     if (ui_split_screen == 1 && ui_root_widget[0] != 0 &&
         strncmp(ui_root_widget[0]->name, k_main_menu_widget_name, sizeof(k_main_menu_widget_name)) == 0) {
         goto done;
@@ -148,7 +145,7 @@ uint8_t ClientConnection::game_client_connect_to_address_async(char *address, ch
             Sleep(0);
         }
         connect_thread = CreateThread(0, k_main_connect_thread_stack_size,
-                                      (LPTHREAD_START_ROUTINE)((void *)network_game_client_connect_by_hostname), host_copy, 0,
+                                      (LPTHREAD_START_ROUTINE)((void *)halo::main::network_game_client_connect_by_hostname), host_copy, 0,
                                       (LPDWORD)(&thread_id));
         return 1;
     }
@@ -162,7 +159,7 @@ uint8_t ClientConnection::game_client_connect_to_address_async(char *address, ch
     return 1;
 
 fail:
-    network_game_client_connect_to_address_async(0, 0);
+    halo::main::network_game_client_connect_to_address_async(0, 0);
     display_error(k_join_error_connection_failed, -1, 1, 0);
     return 0;
 }
@@ -175,7 +172,6 @@ extern "C" { extern int32_t interface_loading_screen_progress; }
 extern "C" { extern uint16_t progress_screen_text[0x20]; }
 extern "C" { extern uint16_t progress_screen_subtext[0x20]; }
 extern "C" { extern int32_t interface_loading_screen_request_id; }
-extern "C" { extern void main_menu_music_stop(void); }
 extern "C" { extern uint32_t network_game_client_connect_to_address(char *address_string, uint16_t *target_string); }
 namespace halo::main {
 
@@ -223,7 +219,7 @@ void ClientConnection::game_client_connect_to_resolved_address(void)
         main_globals_data.return_to_main_menu = 1;
     } else {
         widget_close_all();
-        main_menu_music_stop();
+        halo::main::main_menu_music_stop();
     }
     main_globals_data.connect_address[0] = 0;
     main_globals_data.connect_password[0] = 0;
@@ -271,7 +267,7 @@ char ClientConnection::hostname_resolve_with_timeout(char *hostname)
 
     hostname_resolve_complete = 0;
     thread_handle = CreateThread(0, k_main_hostname_thread_stack_size,
-                                  (LPTHREAD_START_ROUTINE)network_hostname_resolve_thread_proc, hostname, 0,
+                                  (LPTHREAD_START_ROUTINE)halo::main::network_hostname_resolve_thread_proc, hostname, 0,
                                   (LPDWORD)(&thread_id));
     if (thread_handle != 0) {
         wait_result = WaitForSingleObject(thread_handle, k_main_hostname_resolve_timeout_ms);

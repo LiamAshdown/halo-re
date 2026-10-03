@@ -6,10 +6,10 @@
 
 #include "internal/state.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 
-extern int16_t render_local_view_count(void);
 
 }  // extern "C"
 
@@ -67,7 +67,7 @@ void rasterizer_detail_objects_begin(void)
 {
     float constants[24];
 
-    if (console_debug_toggle_689404 == 0 || render_local_view_count() > 1) {
+    if (console_debug_toggle_689404 == 0 || halo::main::render_local_view_count() > 1) {
         return;
     }
 
@@ -145,7 +145,7 @@ void rasterizer_detail_objects_draw(const rasterizer_detail_object_batches *list
 {
     int16_t batch_index;
 
-    if (console_debug_toggle_689404 == 0 || render_local_view_count() > 1) {
+    if (console_debug_toggle_689404 == 0 || halo::main::render_local_view_count() > 1) {
         return;
     }
 
@@ -288,7 +288,7 @@ void rasterizer_detail_objects_vertex_buffer_fill(rasterizer_detail_object_batch
     uint8_t *vertices = 0;
     void *buffer;
 
-    if (console_debug_toggle_689404 == 0 || render_local_view_count() > 1) {
+    if (console_debug_toggle_689404 == 0 || halo::main::render_local_view_count() > 1) {
         return;
     }
 

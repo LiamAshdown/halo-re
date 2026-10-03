@@ -7,6 +7,7 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "code_refs.hpp"
+#include "halo/shell/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/sound/api.hpp"
@@ -331,19 +332,19 @@ SLICE01_SIZE_CHECK(std_exception_vtable, 8);
 
 /* 0x00655080, 0x8 bytes */
 __declspec(align(4)) void * logic_error_vtable[2] = {
-    (void *)hwreq_parse_exception_scalar_deleting_destruct, (void *)std_exception_what
+    (void *)&halo::shell::hwreq_parse_exception_scalar_deleting_destruct, (void *)&halo::shell::std_exception_what
 };
 SLICE01_SIZE_CHECK(logic_error_vtable, 8);
 
 /* 0x0065508c, 0x8 bytes */
 __declspec(align(4)) void * length_error_vtable[2] = {
-    (void *)hwreq_length_error_scalar_deleting_destruct, (void *)std_exception_what
+    (void *)&halo::shell::hwreq_length_error_scalar_deleting_destruct, (void *)&halo::shell::std_exception_what
 };
 SLICE01_SIZE_CHECK(length_error_vtable, 8);
 
 /* 0x00655098, 0x8 bytes */
 __declspec(align(4)) void * out_of_range_vtable[2] = {
-    (void *)hwreq_out_of_range_scalar_deleting_destruct, (void *)std_exception_what
+    (void *)&halo::shell::hwreq_out_of_range_scalar_deleting_destruct, (void *)&halo::shell::std_exception_what
 };
 SLICE01_SIZE_CHECK(out_of_range_vtable, 8);
 

@@ -310,7 +310,7 @@ void update_clock(void)
     float old_time;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    new_time = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    new_time = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     old_time = (float)sound_time;
     sound_time = new_time;
     sound_time_delta = ((float)new_time - old_time) * 0.03f;

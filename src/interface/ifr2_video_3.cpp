@@ -1,5 +1,6 @@
 #include "halo/interface/ifr2_video.hpp"
 #include "halo/text/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -7,7 +8,6 @@
 
 extern "C" {
 extern uint8_t video_gamma_current;
-extern uint8_t player_profile_set_default_video_options(uint8_t *profile, int32_t flag);
 extern void video_options_menu_populate(widget_instance *screen, uint8_t *settings);
 extern void widget_play_sound_effect(int16_t effect_id);
 extern video_resolution video_resolutions[0x20];
@@ -22,7 +22,7 @@ namespace halo::interface {
 uint8_t VideoOptions::reset_to_defaults(widget_instance *button)
 {
     uint8_t profile[0x1ffc];
-    uint8_t result = player_profile_set_default_video_options(profile, 0);
+    uint8_t result = halo::saved_games::player_profile_set_default_video_options((saved_player_profile *)profile, 0);
 
     if (result != 0) {
         profile[0xa76] = video_gamma_current;

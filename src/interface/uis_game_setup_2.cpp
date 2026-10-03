@@ -17,6 +17,7 @@
 
 #include "halo/interface/uis_game_setup.hpp"
 #include "halo/input/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
@@ -36,12 +37,9 @@ extern int16_t network_game_mode;
 extern uint8_t network_wait_flag_00719739;
 extern int16_t profile_slot_id[];
 extern int16_t game_variant_saved_default;
-extern int32_t saved_player_profile_slots_handle;
 extern int32_t cached_profile_slot;
 extern char last_profile_name[];
 extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error);
-extern uint8_t saved_game_get_directory_by_handle(int32_t slot, char *out_name);
-extern void saved_game_last_profile_clear(char *name);
 }
 
 namespace halo::ui {
@@ -112,14 +110,14 @@ uint32_t UiGameSetup::start_campaign_from_level_one(void *widget, int16_t *event
     if (i != -1) {
         game_variant_saved_default = i;
     }
-    if (cached_profile_slot != saved_player_profile_slots_handle) {
-        if (saved_player_profile_slots_handle != -1) {
-            saved_game_get_directory_by_handle(saved_player_profile_slots_handle, last_profile_name);
+    if (cached_profile_slot != halo::saved_games::globals().player_profile_slots_handle) {
+        if (halo::saved_games::globals().player_profile_slots_handle != -1) {
+            halo::saved_games::saved_game_get_directory_by_handle(halo::saved_games::globals().player_profile_slots_handle, last_profile_name);
         }
-        cached_profile_slot = saved_player_profile_slots_handle;
+        cached_profile_slot = halo::saved_games::globals().player_profile_slots_handle;
     }
     if (last_profile_name[0] != '\0') {
-        saved_game_last_profile_clear(last_profile_name);
+        halo::saved_games::saved_game_last_profile_clear(last_profile_name);
     }
     return 1;
 

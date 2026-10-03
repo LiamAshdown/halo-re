@@ -10,13 +10,14 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/render/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern int32_t __ftol(double);
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
 extern void build_sprites_end(build_sprite_data *data);
 extern double cos(double x);
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern game_time_globals *game_time;
 extern real_point3d *global_zero_vector3d_pointer;
 extern void glow_chain_build(glow *entry);
@@ -36,7 +37,6 @@ extern void glow_update(uint32_t object_index, glow *entry );
 extern data_array *object_data;
 extern int8_t object_function_get_value(void);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
-extern float render_time_since_frame;
 extern double sin(double x);
 extern double sqrt(double x);
 }
@@ -64,9 +64,9 @@ void halo::objects::GlowSystem::initialize()
     if (glow_data != 0) {
         return;
     }
-    glow_data = game_state_new((char *)"glow", 8, 0x25c);
+    glow_data = halo::saved_games::game_state_new((char *)"glow", 8, 0x25c);
     if (glow_data != 0 && glow_particle_data == 0) {
-        glow_particle_data = game_state_new((char *)"glow particles", 0x200, 0x64);
+        glow_particle_data = halo::saved_games::game_state_new((char *)"glow particles", 0x200, 0x64);
     }
 }
 
@@ -360,7 +360,7 @@ void halo::objects::GlowView::update(uint32_t object_index)
             if (((uint8_t)p->flags & 2) == 0) {
 
                 glow_particle_advance_time(object_index, entry, (uint8_t *)p,
-                                            render_time_since_frame * *(float *)((uint8_t *)p));
+                                            halo::render::globals().time_since_frame * *(float *)((uint8_t *)p));
                 glow_particle_compute_position(object_index, entry, p);
                 *(uint32_t *)((uint8_t *)p + 0x24) = *(uint32_t *)((uint8_t *)p + 0x20);
             }
@@ -1075,9 +1075,9 @@ void halo::objects::GlowSystem::render(datum_index glow_handle)
     data.centroid = *global_zero_vector3d_pointer;
     data.group_count = 0;
     for (particle = *(uint8_t **)(entry + 0x250); particle != 0; particle = *(uint8_t **)(particle + 0x5c)) {
-        build_sprite(&data, 0, 0, 0, (real_point3d *)(particle + 0x2c),
+        halo::render::build_sprite(&data, 0, 0, 0, (real_point3d *)(particle + 0x2c),
                      (real_vector3d *)(entry + *(int16_t *)(particle + 0x2) * 0x6c + 0x44), 0.0f,
                      *(float *)(particle + 0x24), (ColorARGB *)(particle + 0xc), *(float *)(particle + 0x58), 0);
     }
-    build_sprites_end(&data);
+    halo::render::build_sprites_end(&data);
 }

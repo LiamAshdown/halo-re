@@ -17,9 +17,10 @@
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
-extern game_main_globals *main_game_globals;
 extern game_time_globals *game_time;
 extern real chimera_contrail_scale;
 extern void widgets_update_all(real tick_delta_time);
@@ -32,9 +33,6 @@ extern network_server_globals *network_server;
 extern void network_game_server_per_frame_tick(int16_t update_count, uint8_t *server);
 extern void game_effects_update(float delta_time);
 extern int32_t game_engine_accumulate_simulation_ticks(float elapsed_seconds, char keep_remainder);
-extern uint8_t *game_state_base;
-extern int32_t game_state_cursor;
-extern uint32_t game_state_crc;
 extern game_engine_definition *current_game_engine;
 extern data_array *player_data;
 extern uint8_t game_engine_players_ready_for_bsp_switch_strict(void);
@@ -63,7 +61,7 @@ void SimulationClock::effects_update(real delta_time)
     int16_t ticks_this_frame;
     real tick_delta_time;
 
-    scale = (main_game_globals->players_are_double_speed == 0) ? 1.0f : 0.5f;
+    scale = (halo::main::globals().game_globals->players_are_double_speed == 0) ? 1.0f : 0.5f;
     ticks_this_frame = game_time->ticks_this_frame;
     tick_delta_time = (real)ticks_this_frame * scale * 0.033333335f;
     delta_time = scale * delta_time;
@@ -163,11 +161,11 @@ void SimulationClock::advance_simulation_ticks(float delta_time)
  */
 void SimulationClock::allocate_tick_record(void)
 {
-    game_time_globals *record = (game_time_globals *)(game_state_base + game_state_cursor);
+    game_time_globals *record = (game_time_globals *)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
     int32_t record_size = 0x20;
 
-    game_state_cursor = game_state_cursor + 0x20;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&record_size, 4);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x20;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&record_size, 4);
 
     memset(record, 0, sizeof(*record));
 

@@ -7,6 +7,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern hs_global_reference hs_find_global_by_name(char *name);
@@ -44,7 +45,6 @@ extern char hs_types_are_compatible(hs_type_t destination_type, hs_type_t source
 extern uint8_t hs_postprocessing;
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern void hs_compile(int32_t source_length, char *source_text, char **error_message, int32_t *error_offset);
-extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 }
 
 namespace halo::hs {
@@ -736,7 +736,7 @@ char ScriptCompiler::compile_source(void)
             goto cleanup;
         }
     }
-    console_print_error_va(0, "scripts successfully compiled.");
+    halo::main::console_print_error_va(0, "scripts successfully compiled.");
 cleanup:
     if (hs_compile_release_source != 0) {
         if (hs_syntax_data_dirty != 0) {

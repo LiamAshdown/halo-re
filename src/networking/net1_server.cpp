@@ -7,6 +7,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern uint16_t *network_message_read_sized_buffer(uint16_t *buffer, int32_t capacity, bit_stream *stream);
@@ -129,7 +130,6 @@ typedef struct rcon_request_decode {
 extern char sv_rcon_password_value[9];
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern void message_delta_decode_compound_field_staged(void *decode_context);
-extern uint8_t console_process_rcon_command(char *command);
 extern void chimera__rcon_out(char *text, int32_t machine_id);
 extern void *global_white_argb;
 extern void chimera__console_out(ColorARGB *color, char *format, ...);
@@ -154,8 +154,6 @@ extern int16_t network_game_mode;
 extern uint8_t network_server_host_valid;
 extern uint32_t split_screen_quit_prompt_string;
 extern uint32_t network_join_error_reason;
-extern void main_menu_music_stop(void);
-extern void chimera__load_ui_map(char reset);
 extern void network_client_globals_dispose(void);
 extern char network_host_update_tick(network_server_globals *host);
 extern int32_t network_channel_remove_child(network_channel *parent, network_channel *child);
@@ -1147,7 +1145,8 @@ void ServerView::handle_rcon_request(network_player_entry *client, void *message
         chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (empty command)", machine_id);
         return;
     }
-    if (console_process_rcon_command(decode.command) != 0) {
+    halo::main::console_process_rcon_command(machine_id, decode.command);
+    {
         chimera__rcon_out((char *)"rcon command finished", machine_id);
         chimera__console_out((ColorARGB *)global_white_argb, (char *)"Successfully executed rcon command from client #%d.", machine_id + 1);
         return;
@@ -1732,7 +1731,7 @@ int32_t HostServerView::shutdown_or_defer()
             return network_host_update_tick(network_server);
         }
         network_game_mode = 0;
-        main_menu_music_stop();
+        halo::main::main_menu_music_stop();
         if (network_server != 0) {
             session = &network_server->session;
         } else if (network_client != 0) {
@@ -1741,7 +1740,7 @@ int32_t HostServerView::shutdown_or_defer()
             session = 0;
         }
         if (session->map_loaded != 0) {
-            chimera__load_ui_map(1);
+            halo::main::chimera__load_ui_map(1);
         }
         session->map_loaded = 0;
         network_client_globals_dispose();

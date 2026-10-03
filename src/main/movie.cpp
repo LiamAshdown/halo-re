@@ -42,7 +42,7 @@ void MoviePlayer::capture_frame_export(void)
     char path[k_main_movie_frame_path_length];
     BitmapData *movie_frame_bitmap = (BitmapData *)main_globals_data.movie_frame_bitmap;
 
-    rasterizer_capture_and_present(0, movie_frame_bitmap);
+    halo::rasterizer::rasterizer_capture_and_present(0, movie_frame_bitmap);
 
     if (main_globals_data.screenshot_tile_count < 1 && movie_frame_bitmap != 0) {
         file_reference_record request;
@@ -55,9 +55,9 @@ void MoviePlayer::capture_frame_export(void)
         request.location = -1;
 
         if ((request.flags & 1) != 0) {
-            path_remove_last_component((uint8_t *)&request.path);
+            halo::saved_games::path_remove_last_component((char *)((uint8_t *)&request.path));
         }
-        path_append_component(request.path, path);
+        halo::saved_games::path_append_component(request.path, path);
         request.flags = request.flags | 1;
 
         halo::bitmaps::targa_export(movie_frame_bitmap, &request);
@@ -67,10 +67,7 @@ void MoviePlayer::capture_frame_export(void)
 }
 
 extern "C" { extern int32_t movie_playback_abort; }
-extern "C" { extern void *rasterizer_device; }
-extern "C" { extern d3d_present_parameters rasterizer_present_parameters; }
 extern "C" { extern uint8_t rasterizer_device_lost; }
-extern "C" { extern uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters); }
 typedef int32_t (__stdcall *d3d_test_cooperative_level_fn)(void *device);
 
 typedef int32_t (__stdcall *d3d_create_offscreen_plain_surface_fn)(void *device, uint32_t width,
@@ -174,8 +171,8 @@ void MoviePlayer::play_bink(const char *movie_path)
                     d3d9::surface_function<d3d_release_fn>(offscreen_surface, d3d9::surface_method::release)(offscreen_surface);
                     offscreen_surface = 0;
                 }
-                present_parameters = rasterizer_present_parameters;
-                rasterizer_device_reset(&present_parameters);
+                present_parameters = halo::rasterizer::globals().present_parameters;
+                halo::rasterizer::rasterizer_device_reset(&present_parameters);
                 rasterizer_device_lost = 0;
                 d3d9::device_function<d3d_create_offscreen_plain_surface_fn>(rasterizer_device, d3d9::device_method::create_offscreen_plain_surface)(
                     rasterizer_device, k_movie_surface_width, k_movie_surface_height, d3d9::k_format_x8r8g8b8, 0, &offscreen_surface, 0);
@@ -202,7 +199,7 @@ void MoviePlayer::play_bink(const char *movie_path)
                     BinkNextFrame(bink);
                     d3d9::device_function<d3d_stretch_rect_fn>(rasterizer_device, d3d9::device_method::stretch_rect)(
                         rasterizer_device, offscreen_surface, 0, render_target, 0, 0);
-                    rasterizer_capture_and_present(0, 0);
+                    halo::rasterizer::rasterizer_capture_and_present(0, 0);
                 }
             }
         } while (bink->frame_index != bink->frame_count && movie_playback_abort == 0);

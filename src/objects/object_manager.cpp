@@ -8,18 +8,14 @@
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern void *ai_gc_callback_table;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern datum_index *collideable_cluster_first;
 extern void *collideable_cluster_partition;
-extern void console_print_error_va(const char *format, ...);
-extern uint8_t *game_state_base;
-extern uint32_t game_state_crc;
-extern int32_t game_state_cursor;
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
-extern memory_pool *game_state_new_pool(char *name, int32_t pool_size);
 extern game_time_globals *game_time;
 extern uint32_t global_structure_collision_bsp;
 extern datum_index *light_cluster_first;
@@ -126,20 +122,20 @@ void halo::objects::ObjectManager::initialize()
     widgets_initialize();
     object_type_definition_chain_build();
     lights_initialize();
-    object_data = game_state_new((char *)"object", k_maximum_objects, 0xc  );
+    object_data = halo::saved_games::game_state_new((char *)"object", k_maximum_objects, 0xc  );
 
-    object_memory_pool = game_state_new_pool((char *)"objects", 0x200000);
+    object_memory_pool = halo::saved_games::game_state_new_pool((char *)"objects", 0x200000);
 
-    globals_region = game_state_base + game_state_cursor;
-    game_state_cursor = game_state_cursor + 0x98;
+    globals_region = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x98;
     size = 0x98;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
 
-    name_list_region = game_state_base + game_state_cursor;
-    game_state_cursor = game_state_cursor + 0x800;
+    name_list_region = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x800;
     size = 0x800;
     object_globals_pointer = (object_globals *)globals_region;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     object_name_list = (datum_index *)name_list_region;
 
     halo::structures::cluster_partition_new(&collideable_cluster_first__as_objects_initialize, (char *)"collideable object");
@@ -773,7 +769,7 @@ void halo::objects::ObjectManager::garbage_collection()
             }
 
             sprintf(critical_text, "garbage collection %scritical (%s)", qualifier, free_text);
-            console_print_error_va(network_log_path_format, critical_text);
+            halo::main::console_print_error_va(0, network_log_path_format, critical_text);
             reported = 1;
             if (!critical || entry[1] == 0) {
                 break;
@@ -793,7 +789,7 @@ void halo::objects::ObjectManager::garbage_collection()
                         list, 0x1000);
                     if (removed) {
                         sprintf(removing_text, "removing objects: %s", callback_text);
-                        console_print_error_va(network_log_path_format, removing_text);
+                        halo::main::console_print_error_va(0, network_log_path_format, removing_text);
                     }
                     if (!more) {
                         entry += 2;

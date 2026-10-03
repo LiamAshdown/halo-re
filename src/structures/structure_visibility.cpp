@@ -10,6 +10,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern uint8_t render_frustum_global[];
@@ -31,7 +32,7 @@ void structure_visibility::camera_visibility_pass(void)
     }
 
     float screen_bounds[4];
-    render_frustum_compute_screen_clip_bounds(screen_bounds, (void *)render_frustum_global);
+    halo::render::render_frustum_compute_screen_clip_bounds(screen_bounds, (render_frustum *)((void *)render_frustum_global));
 
     polygon2d clip_polygon;
     clip_polygon.point_count = 4;
@@ -51,8 +52,8 @@ void structure_visibility::camera_visibility_pass(void)
 
     for (int16_t i = 0; i < halo::structures::globals().visible_cluster_count; i++) {
         uint8_t *cluster = (uint8_t *)&halo::structures::globals().visible_clusters[i];
-        render_camera_compute_frustum_bounds((void *)render_camera_global, screen_bounds, (float *)(cluster + k_visible_cluster_screen_bounds_offset));
-        chimera__render_camera_build_frustum(screen_bounds, (void *)render_camera_global, cluster + k_visible_cluster_frustum_offset, 0);
+        halo::render::render_camera_compute_frustum_bounds((void *)render_camera_global, screen_bounds, (float *)(cluster + k_visible_cluster_screen_bounds_offset));
+        halo::render::chimera__render_camera_build_frustum(screen_bounds, (void *)render_camera_global, cluster + k_visible_cluster_frustum_offset, 0);
     }
 }
 
@@ -91,8 +92,8 @@ void structure_visibility::cluster_visibility_update(void)
                 int16_t visible_index = globals().visible_cluster_count++;
                 globals().cluster_visible_index[cluster_index] = visible_index;
                 globals().visible_clusters[visible_index].cluster_index = cluster_index;
-                render_frustum_compute_screen_clip_bounds((float *)&globals().visible_clusters[visible_index].screen_bounds_x,
-                             (void *)render_frustum_global);
+                halo::render::render_frustum_compute_screen_clip_bounds((float *)&globals().visible_clusters[visible_index].screen_bounds_x,
+                             (render_frustum *)((void *)render_frustum_global));
             }
         }
     }
@@ -122,7 +123,7 @@ int16_t structure_visibility::collect_visible_objects(int32_t *out_handles, int1
                 get_bounds(handle, &center, &radius);
                 if (written < max_count &&
                     (globals().render_cluster_index == -1 ||
-                     render_frustum_test_sphere(&globals().visible_clusters[i].frustum, &center,
+                     halo::render::render_frustum_test_sphere((render_frustum *)(&globals().visible_clusters[i].frustum), &center,
                                                  radius) != 0)) {
                     out_handles[written] = (int32_t)handle;
                     written++;
@@ -192,7 +193,7 @@ uint8_t structure_visibility::mirror_query(void *camera_ref, void *camera, struc
         return 0;
     }
 
-    render_frustum_compute_screen_clip_bounds(screen_bounds, camera);
+    halo::render::render_frustum_compute_screen_clip_bounds(screen_bounds, (render_frustum *)camera);
     clip_points[0].x = screen_bounds[0]; clip_points[0].y = screen_bounds[2];
     clip_points[1].x = screen_bounds[1]; clip_points[1].y = screen_bounds[2];
     clip_points[2].x = screen_bounds[1]; clip_points[2].y = screen_bounds[3];

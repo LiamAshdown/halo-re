@@ -7,6 +7,9 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "code_refs.hpp"
+#include "halo/rasterizer/api.hpp"
+#include "halo/shell/api.hpp"
+#include "halo/saved_games/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/scenario/api.hpp"
@@ -213,9 +216,9 @@ void * game_state_revert_proc = &halo::sound::game_sound_revert_scripting_sounds
 void * game_state_after_load_procs[13] = {
     halo::scenario::scenario_structure_bsp_switch_after_load, &halo::sound::sound_stop_all,
     &halo::sound::game_sound_reconcile_scripting_state, &halo::camera::observer_initialize,
-    update_queues_revert, decal_geometry_cache_restore_procs,
+    update_queues_revert, &halo::rasterizer::decal_geometry_cache_restore_procs,
     &halo::cseries::function_do_nothing, &halo::cseries::function_do_nothing,
-    halo::structures::detail_objects_invalidate, game_state_after_load_restore_time,
+    halo::structures::detail_objects_invalidate, &halo::saved_games::game_state_after_load_restore_time,
     players_rebind_local_player_after_load, &halo::camera::director_game_state_loaded,
     hud_messaging_clear_after_load,
 };
@@ -538,34 +541,34 @@ int32_t config_maximum_resolution = 4096;
 
 /* 0x0069fe40 size 224: config_properties */
 void * config_properties[56] = {
-    (void *)"ForceShader", config_set_force_shader,
-    (void *)"DisableDriverManagement", config_set_disable_driver_management,
-    (void *)"LinearTextureAddressing", config_set_linear_texture_addressing,
-    (void *)"LinearTextureAddressingZoom", config_set_linear_texture_addressing_zoom,
-    (void *)"LinearTextureAddressingSun", config_set_linear_texture_addressing_sun,
-    (void *)"MaximumResolution", config_set_maximum_resolution,
-    (void *)"UseFixedFunction", config_set_use_fixed_function,
-    (void *)"UnsupportedCard", config_set_unsupported_card,
-    (void *)"DisableRenderTargets", config_set_disable_render_targets,
-    (void *)"DisableAlphaRenderTargets", config_set_disable_alpha_render_targets,
-    (void *)"DisableBuffering", config_set_disable_buffering,
-    (void *)"UseAlternateConvolveMask", config_set_use_alternate_convolve_mask,
-    (void *)"OldDriver", config_set_old_driver,
-    (void *)"EnableStopStart", config_set_enable_stop_start,
-    (void *)"HeadRelativeSpeech", config_set_head_relative_speech,
-    (void *)"OldSoundDriver", config_set_old_sound_driver,
-    (void *)"InvalidDriver", config_set_invalid_driver,
-    (void *)"InvalidSoundDriver", config_set_invalid_sound_driver,
-    (void *)"SafeMode", config_set_safe_mode,
-    (void *)"DisableSpecular", config_set_disable_specular,
-    (void *)"UseAnisotropicFilter", config_set_use_anisotropic_filter,
-    (void *)"UMA", config_compute_uma_video_memory,
-    (void *)"MinMaxBlendOpIsBroken", config_set_min_max_blend_op_is_broken,
-    (void *)"DecalZBiasValue", config_set_decal_z_bias,
-    (void *)"DecalSlopeZBiasValue", config_set_decal_slope_z_bias,
-    (void *)"TransparentDecalZBiasValue", config_set_transparent_decal_z_bias,
-    (void *)"TransparentDecalSlopeZBiasValue", config_set_transparent_decal_slope_z_bias,
-    (void *)"PrototypeCard", config_set_prototype_card,
+    (void *)"ForceShader", &halo::shell::config_set_force_shader,
+    (void *)"DisableDriverManagement", &halo::shell::config_set_disable_driver_management,
+    (void *)"LinearTextureAddressing", &halo::shell::config_set_linear_texture_addressing,
+    (void *)"LinearTextureAddressingZoom", &halo::shell::config_set_linear_texture_addressing_zoom,
+    (void *)"LinearTextureAddressingSun", &halo::shell::config_set_linear_texture_addressing_sun,
+    (void *)"MaximumResolution", &halo::shell::config_set_maximum_resolution,
+    (void *)"UseFixedFunction", &halo::shell::config_set_use_fixed_function,
+    (void *)"UnsupportedCard", &halo::shell::config_set_unsupported_card,
+    (void *)"DisableRenderTargets", &halo::shell::config_set_disable_render_targets,
+    (void *)"DisableAlphaRenderTargets", &halo::shell::config_set_disable_alpha_render_targets,
+    (void *)"DisableBuffering", &halo::shell::config_set_disable_buffering,
+    (void *)"UseAlternateConvolveMask", &halo::shell::config_set_use_alternate_convolve_mask,
+    (void *)"OldDriver", &halo::shell::config_set_old_driver,
+    (void *)"EnableStopStart", &halo::shell::config_set_enable_stop_start,
+    (void *)"HeadRelativeSpeech", &halo::shell::config_set_head_relative_speech,
+    (void *)"OldSoundDriver", &halo::shell::config_set_old_sound_driver,
+    (void *)"InvalidDriver", &halo::shell::config_set_invalid_driver,
+    (void *)"InvalidSoundDriver", &halo::shell::config_set_invalid_sound_driver,
+    (void *)"SafeMode", &halo::shell::config_set_safe_mode,
+    (void *)"DisableSpecular", &halo::shell::config_set_disable_specular,
+    (void *)"UseAnisotropicFilter", &halo::shell::config_set_use_anisotropic_filter,
+    (void *)"UMA", &halo::shell::config_compute_uma_video_memory,
+    (void *)"MinMaxBlendOpIsBroken", &halo::shell::config_set_min_max_blend_op_is_broken,
+    (void *)"DecalZBiasValue", &halo::shell::config_set_decal_z_bias,
+    (void *)"DecalSlopeZBiasValue", &halo::shell::config_set_decal_slope_z_bias,
+    (void *)"TransparentDecalZBiasValue", &halo::shell::config_set_transparent_decal_z_bias,
+    (void *)"TransparentDecalSlopeZBiasValue", &halo::shell::config_set_transparent_decal_slope_z_bias,
+    (void *)"PrototypeCard", &halo::shell::config_set_prototype_card,
 };
 
 /* 0x0069ff20 size 4: shell_language_id */

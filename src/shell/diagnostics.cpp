@@ -6,6 +6,7 @@
 #include "interface.h"
 #include "halo/sound/api.hpp"
 #include "halo/dialogs/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern void *shell_module_handle;
@@ -13,7 +14,6 @@ extern char fatal_error_text[k_shell_fatal_error_text_length];
 extern char fatal_error_help_file[k_shell_fatal_error_readme_length];
 extern char fatal_error_title[k_shell_fatal_error_title_length];
 extern int32_t fatal_error_is_fatal;
-extern char *rasterizer_shader_file_name;
 extern char *graphics_vendor_name;
 extern char *graphics_device_name;
 extern uint32_t graphics_device_id;
@@ -28,8 +28,6 @@ extern char exception_gathering_text[k_shell_exception_string_length];
 extern char eula_file_name[k_shell_eula_name_length];
 extern char strings_dll_invalid_text[k_shell_strings_dll_error_length];
 extern uint32_t shell_startup_tick_count;
-extern void chimera__registry_check_3(void);
-extern void rasterizer_service_deferred_windowed_ops(void);
 }
 
 namespace halo::shell {
@@ -228,8 +226,8 @@ void FatalError::shut_down_engine_services()
 {
     __try {
         shell_window_proc_bypass = 1;
-        chimera__registry_check_3();
-        rasterizer_service_deferred_windowed_ops();
+        halo::rasterizer::chimera__registry_check_3();
+        halo::rasterizer::rasterizer_service_deferred_windowed_ops();
         halo::sound::sound_stop_all();
         KeystoneLibrary::unload();
     } __except (1) {
@@ -260,11 +258,11 @@ int32_t FatalError::show(uint32_t resource_id, uint32_t help_text_or_id, int32_t
 
     fatal_error_is_fatal = is_fatal;
 
-    if (rasterizer_shader_file_name != 0) {
+    if (halo::rasterizer::globals().shader_file_name != 0) {
         strcat(fatal_error_text, " (");
-        strcat(fatal_error_text, rasterizer_shader_file_name);
+        strcat(fatal_error_text, halo::rasterizer::globals().shader_file_name);
         strcat(fatal_error_text, ")");
-        rasterizer_shader_file_name = 0;
+        halo::rasterizer::globals().shader_file_name = 0;
     }
 
     if (is_fatal == 0) {

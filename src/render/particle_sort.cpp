@@ -16,6 +16,7 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 }
@@ -70,7 +71,7 @@ void adjust_heap(rendered_particle_datum *first, int32_t hole, int32_t bottom, r
         first[hole] = first[bottom - 1];
         hole = bottom - 1;
     }
-    sort_push_heap(first, hole, top, value, predicate);
+    halo::render::sort_push_heap(first, hole, top, value, predicate);
 }
 
 /**
@@ -83,7 +84,7 @@ void heap_sort(rendered_particle_datum *first, rendered_particle_datum *last, in
     for (; last - first > 1; last--) {
         rendered_particle_datum value = last[-1];
         last[-1] = *first;
-        sort_adjust_heap(first, 0, (int32_t)(last - 1 - first), value, predicate);
+        halo::render::sort_adjust_heap(first, 0, (int32_t)(last - 1 - first), value, predicate);
     }
 }
 
@@ -104,7 +105,7 @@ void insertion_sort(rendered_particle_datum *first, rendered_particle_datum *las
     for (next = first + 1; next != last; next++) {
         if (rendered_particle_compare(next, first) < 0) {
             if (first != next && next != next + 1) {
-                sort_rotate(first, next, next + 1);
+                halo::render::sort_rotate(first, next, next + 1);
             }
         } else {
             destination = next;
@@ -112,7 +113,7 @@ void insertion_sort(rendered_particle_datum *first, rendered_particle_datum *las
                 destination = candidate;
             }
             if (destination != next && next != next + 1) {
-                sort_rotate(destination, next, next + 1);
+                halo::render::sort_rotate(destination, next, next + 1);
             }
         }
     }
@@ -130,26 +131,26 @@ void introsort_loop(rendered_particle_datum *first, rendered_particle_datum *las
     rendered_particle_range mid;
 
     for (count = (int32_t)(last - first); count > 32 && ideal > 0; count = (int32_t)(last - first)) {
-        sort_unguarded_partition(&mid, first, last, predicate);
+        halo::render::sort_unguarded_partition(&mid, first, last, predicate);
         ideal = ideal / 2;
         ideal += ideal / 2;
 
         if (mid.first - first < last - mid.second) {
-            sort_introsort_loop(first, mid.first, ideal, predicate);
+            halo::render::sort_introsort_loop(first, mid.first, ideal, predicate);
             first = mid.second;
         } else {
-            sort_introsort_loop(mid.second, last, ideal, predicate);
+            halo::render::sort_introsort_loop(mid.second, last, ideal, predicate);
             last = mid.first;
         }
     }
 
     if (count > 32) {
         if (last - first > 1) {
-            sort_make_heap(first, last, predicate);
+            halo::render::sort_make_heap(first, last, predicate);
         }
-        sort_heap_sort(first, last, predicate);
+        halo::render::sort_heap_sort(first, last, predicate);
     } else if (count > 1) {
-        sort_insertion_sort(first, last, predicate);
+        halo::render::sort_insertion_sort(first, last, predicate);
     }
 }
 
@@ -165,7 +166,7 @@ void make_heap(rendered_particle_datum *first, rendered_particle_datum *last, in
 
     for (hole = bottom / 2; hole > 0; ) {
         hole--;
-        sort_adjust_heap(first, hole, bottom, first[hole], predicate);
+        halo::render::sort_adjust_heap(first, hole, bottom, first[hole], predicate);
     }
 }
 
@@ -182,12 +183,12 @@ void median(rendered_particle_datum *first, rendered_particle_datum *mid, render
     if (count > 40) {
         int32_t step = (count + 1) / 8;
 
-        sort_median_of_three(first, first + step, first + 2 * step, predicate);
-        sort_median_of_three(mid - step, mid, mid + step, predicate);
-        sort_median_of_three(last - 2 * step, last - step, last, predicate);
-        sort_median_of_three(first + step, mid, last - step, predicate);
+        halo::render::sort_median_of_three(first, first + step, first + 2 * step, predicate);
+        halo::render::sort_median_of_three(mid - step, mid, mid + step, predicate);
+        halo::render::sort_median_of_three(last - 2 * step, last - step, last, predicate);
+        halo::render::sort_median_of_three(first + step, mid, last - step, predicate);
     } else {
-        sort_median_of_three(first, mid, last, predicate);
+        halo::render::sort_median_of_three(first, mid, last, predicate);
     }
 }
 
@@ -276,7 +277,7 @@ rendered_particle_range *unguarded_partition(rendered_particle_range *result, re
     rendered_particle_datum *gfirst;
     rendered_particle_datum *glast;
 
-    sort_median(first, mid, last - 1, predicate);
+    halo::render::sort_median(first, mid, last - 1, predicate);
     pfirst = mid;
     plast = pfirst + 1;
 

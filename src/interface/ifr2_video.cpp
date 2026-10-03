@@ -1,5 +1,7 @@
 #include "win32.h"
 #include "halo/interface/ifr2_video.hpp"
+#include "halo/shell/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -8,12 +10,7 @@
 extern "C" {
 extern d3d9_interface *rasterizer_direct3d;
 extern uint32_t d3d_adapter;
-extern uint32_t config_maximum_resolution;
-extern int32_t shell_argc;
-extern char **shell_argv;
 extern uint32_t video_memory;
-extern uint8_t rasterizer_fullscreen;
-extern void *rasterizer_device;
 extern int _stricmp(const char *a, const char *b);
 extern void video_resolution_add(int32_t height, int32_t width, int32_t refresh_rate);
 }
@@ -24,11 +21,11 @@ uint8_t VideoOptions::video_mode_memory_limit_applies(void)
 {
     int32_t i;
 
-    if (config_maximum_resolution == 0x1000) {
+    if (halo::shell::globals().maximum_resolution == 0x1000) {
         return 1;
     }
-    for (i = 0; i < shell_argc; i++) {
-        const char *argument = shell_argv[i];
+    for (i = 0; i < halo::shell::globals().argc; i++) {
+        const char *argument = halo::shell::globals().argv[i];
 
         if (argument[0] == '-' && _stricmp("-vidmode", argument) == 0) {
             return 1;
@@ -69,12 +66,12 @@ void VideoOptions::display_modes_enumerate(uint32_t format)
                 continue;
             }
         }
-        if (rasterizer_fullscreen == 0 || rasterizer_device == 0) {
+        if (halo::rasterizer::globals().fullscreen == 0 || halo::rasterizer::globals().device == 0) {
             if (mode.width >= (uint32_t)desktop.right || mode.height >= (uint32_t)desktop.bottom) {
                 continue;
             }
         }
-        if (mode.width > config_maximum_resolution || mode.width < 0x280 || mode.height < 0x1e0 || mode.width > 0x12c0 ||
+        if (mode.width > halo::shell::globals().maximum_resolution || mode.width < 0x280 || mode.height < 0x1e0 || mode.width > 0x12c0 ||
             mode.height > 0xe10 || mode.refresh_rate > 0x78) {
             continue;
         }

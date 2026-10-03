@@ -6,6 +6,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/main/api.hpp"
 
 typedef struct netgame_equipment_spawn_message {
     int32_t object_hash;
@@ -62,7 +63,6 @@ extern int32_t game_engine_find_one_valid_starting_location(int16_t type, int16_
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
 extern int16_t unit_get_local_player_weapon_index(datum_index unit_index);
 extern void chimera__hud_message(int16_t local_player_index, wchar_t *text);
-extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern void player_update_history_free_all(void *queue);
 extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out);
@@ -688,7 +688,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
         game_engine_find_valid_starting_locations(0, 0.0f, 0.0f, 7, entrance_usage_id, 1, &found_index);
 
         if (found_index == -1) {
-            console_print_error_va(0, "failed to teleport %d", (int32_t)entrance_usage_id);
+            halo::main::console_print_error_va(0, "failed to teleport %d", (int32_t)entrance_usage_id);
         } else {
             ScenarioNetgameFlags *exit_flag = &flags[found_index];
             real_vector3d forward;

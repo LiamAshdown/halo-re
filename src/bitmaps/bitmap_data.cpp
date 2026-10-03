@@ -8,13 +8,10 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern int8_t bitmap_format_bits_per_pixel[k_bitmap_data_format_count];
-extern uint8_t file_reference_create(file_reference_record *ref);
-extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode);
-extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size);
-extern uint8_t file_reference_close(file_reference_record *ref);
 }
 
 namespace halo::bitmaps {
@@ -309,8 +306,8 @@ char * bitmap_data_view::targa_export(file_reference_record *destination)
     int32_t row_byte_size;
     void *row_pixels;
 
-    if (file_reference_create(destination) != 0 &&
-        file_reference_open(destination, _file_open_write) != 0) {
+    if (halo::saved_games::file_reference_create(destination) != 0 &&
+        halo::saved_games::file_reference_open(destination, _file_open_write) != 0) {
         header.id_length = 0;
         header.color_map_type = 0;
         header.image_type = k_targa_image_type_true_color;
@@ -325,23 +322,23 @@ char * bitmap_data_view::targa_export(file_reference_record *destination)
         header.image_descriptor = k_targa_image_descriptor_top_left_8_alpha;
 
         error = 0;
-        if (file_reference_write(destination, &header, sizeof(header)) == 0) {
+        if (halo::saved_games::file_reference_write(destination, &header, sizeof(header)) == 0) {
             error = (char *)"couldn't write header";
         } else if (0 < (int16_t)self->height) {
             row_byte_size = (int32_t)(int16_t)self->width * 4;
             row = 0;
             do {
                 row_pixels = bitmap_data_view(self).get_row_address(0, 0, (int16_t)row);
-                if (file_reference_write(destination, row_pixels, row_byte_size) == 0) {
-                    file_reference_close(destination);
+                if (halo::saved_games::file_reference_write(destination, row_pixels, row_byte_size) == 0) {
+                    halo::saved_games::file_reference_close(destination);
                     return (char *)"couldn't write row";
                 }
                 row = row + 1;
             } while (row < (int16_t)self->height);
-            file_reference_close(destination);
+            halo::saved_games::file_reference_close(destination);
             return 0;
         }
-        file_reference_close(destination);
+        halo::saved_games::file_reference_close(destination);
         return error;
     }
     return (char *)"couldn't open file";

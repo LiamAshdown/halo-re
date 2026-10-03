@@ -4,6 +4,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/rasterizer/api.hpp"
 
 
 #ifdef __cplusplus
@@ -37,8 +38,6 @@ extern uint8_t *lights_enabled;
 extern void hs_doc(void);
 extern uint8_t hs_reload_pending;
 extern uint8_t *cinematic_screen_effect_state;
-extern int32_t rasterizer_gamma_exponent;
-extern void chimera__gamma(void);
 #ifdef __cplusplus
 }
 #endif
@@ -359,8 +358,8 @@ void DebugCommands::evaluate_set_gamma(int16_t function_index, uint32_t thread_i
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        rasterizer_gamma_exponent = arguments[0];
-        chimera__gamma();
+        halo::rasterizer::globals().gamma_exponent = arguments[0];
+        halo::rasterizer::chimera__gamma();
         hs_thread_return(0, thread_index);
     }
 }

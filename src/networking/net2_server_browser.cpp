@@ -26,6 +26,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 extern uint8_t playlist_profiles_need_defaults;
@@ -104,7 +106,6 @@ extern const wchar_t PTR_s_parameter_handles_0063fff0_0x35_006607a0[];
 extern uint8_t server_browser_initialized;
 extern uint8_t network_session_start_host_name[];
 extern uint8_t network_session_start_map_name[];
-extern int32_t saved_player_profile_slots_handle;
 extern uint8_t profile_globals_block[];
 extern void network_channels_open(void);
 extern int32_t master_server_connection_start(void);
@@ -112,7 +113,6 @@ extern void * ServerBrowserNew(void *a, void *b, void *c, int32_t d, int32_t e, 
                            void *callback, int32_t h);
 extern void network_channel_gap_4ba660(void);
 extern void autopatch_download_pool_initialize(void);
-extern int32_t shell_load_localized_string(int32_t id, char *out_buffer);
 extern int32_t autopatch_download_start(const char *source);
 extern wchar_t hud_text_unbound[];
 extern char * SBServerGetPlayerStringValue(void *entry, int32_t index, const char *key, const char *default_value);
@@ -207,6 +207,7 @@ void ServerBrowser::matching_substring(uint32_t argument_count, char **arguments
 {
     uint16_t filter[32];
     int32_t saved_game_ids[100];
+    uint16_t saved_game_capacity = 100;
     int32_t i;
 
     filter[0] = 0;
@@ -219,13 +220,13 @@ void ServerBrowser::matching_substring(uint32_t argument_count, char **arguments
     }
     chimera__console_out((ColorARGB *)console_color_00685214, (char *)"Game types matching substring \"%ls\" :", filter);
     if (playlist_profiles_need_defaults == 1) {
-        playlist_profile_create_default_profiles_on_disk();
+        halo::saved_games::playlist_profile_create_default_profiles_on_disk();
         playlist_profiles_need_defaults = 0;
     }
     for (i = 0; i < 100; i = i + 1) {
         saved_game_ids[i] = -1;
     }
-    saved_game_enumerate_by_type(1, saved_game_ids, 1);
+    halo::saved_games::saved_game_enumerate_by_type(1, saved_game_ids, 1, &saved_game_capacity);
     i = 0;
     do {
         char line[256];
@@ -237,7 +238,7 @@ void ServerBrowser::matching_substring(uint32_t argument_count, char **arguments
                 game_engine_apply_current_custom_variant();
             } else {
                 uint16_t variant_name[64];
-                if (saved_game_get_variant(saved_game_ids[i], variant_name) != 0) {
+                if (halo::saved_games::saved_game_get_variant(saved_game_ids[i], (game_variant *)variant_name) != 0) {
                     uint16_t lowered[64];
                     wcsncpy((wchar_t *)lowered, (const wchar_t *)variant_name, 0x3f);
                     lowered[0x3f] = 0;
@@ -1492,7 +1493,7 @@ int32_t ServerBrowser::open(network_ui_widget *root)
     network_join_target_address = 0;
     autopatch_download_pool_initialize();
     if (server_browser_require_valid_entry != 0 && browser_state::motd_download_state == 0) {
-        motd_available = shell_load_localized_string(0x90, motd_string);
+        motd_available = halo::shell::shell_load_localized_string(sizeof(motd_string), halo::shell::globals().module_handle, motd_string, 0x90);
         if (motd_available != 0) {
             browser_state::motd_download_slot = autopatch_download_start(motd_string);
             browser_state::motd_download_state = 1;
@@ -1520,7 +1521,7 @@ int32_t ServerBrowser::open(network_ui_widget *root)
     server_browser_variant_ticker.length = 0;
     server_browser_variant_ticker.scroll_cursor = 0;
 
-    if (saved_player_profile_slots_handle == -1) {
+    if (halo::saved_games::globals().player_profile_slots_handle == -1) {
         saved_config[0x1787] = 1;
         saved_config[0x1788] = 3;
         saved_config[0x1786] = 1;

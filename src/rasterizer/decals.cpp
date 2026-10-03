@@ -9,6 +9,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 
@@ -29,10 +30,10 @@ void chimera__transparent_decal_zbias(void)
 {
 
     if ((rasterizer_caps.raster_caps & 0x4000000) != 0) {
-        render_device().set_render_state(0xc3, config_transparent_decal_z_bias);
+        render_device().set_render_state(0xc3, __builtin_bit_cast(uint32_t, halo::shell::globals().transparent_decal_z_bias));
     }
     if ((rasterizer_caps.raster_caps & 0x2000000) != 0) {
-        render_device().set_render_state(0xaf, config_transparent_decal_slope_z_bias);
+        render_device().set_render_state(0xaf, __builtin_bit_cast(uint32_t, halo::shell::globals().transparent_decal_slope_z_bias));
     }
 }
 
@@ -129,10 +130,10 @@ void rasterizer_apply_decal_zbias(void)
 {
 
     if ((rasterizer_caps.raster_caps & 0x4000000) != 0) {
-        render_device().set_render_state(0xc3, config_decal_z_bias);
+        render_device().set_render_state(0xc3, __builtin_bit_cast(uint32_t, halo::shell::globals().decal_z_bias));
     }
     if ((rasterizer_caps.raster_caps & 0x2000000) != 0) {
-        render_device().set_render_state(0xaf, config_decal_slope_z_bias);
+        render_device().set_render_state(0xaf, __builtin_bit_cast(uint32_t, halo::shell::globals().decal_slope_z_bias));
     }
 }
 

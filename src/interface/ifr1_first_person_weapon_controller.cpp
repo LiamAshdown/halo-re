@@ -6,6 +6,9 @@
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/render/api.hpp"
+#include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -46,10 +49,6 @@ extern uint8_t rasterizer_caps_flag_68a;
 extern game_engine_definition *current_game_engine;
 extern game_engine_state game_engine_state_value;
 extern int32_t local_player_get_weapon_hud_interface(float *out_intensity);
-extern int16_t render_local_view_count(void);
-extern float cinematic_screen_effect_get_script_value(uint16_t source);
-extern void rasterizer_screen_effect_render(weapon_screen_effect_parameters *parameters);
-extern void rasterizer_screen_effect_render_fixed_function(weapon_screen_effect_parameters *parameters);
 extern void hud_update_player(void);
 extern void game_engine_post_rasterize_post_game(void);
 extern void hud_update_teammate_nameplate_fade(void);
@@ -68,13 +67,13 @@ static float clamp_unit(float value)
 
 static float script_source_value(uint16_t source)
 {
-    if (cinematic_screen_effect_get_script_value(source) < 0.0f) {
+    if (halo::render::cinematic_screen_effect_get_script_value(source) < 0.0f) {
         return 0.0f;
     }
-    if (cinematic_screen_effect_get_script_value(source) > 1.0f) {
+    if (halo::render::cinematic_screen_effect_get_script_value(source) > 1.0f) {
         return 1.0f;
     }
-    return cinematic_screen_effect_get_script_value(source);
+    return halo::render::cinematic_screen_effect_get_script_value(source);
 }
 
 namespace halo::interface {
@@ -736,7 +735,7 @@ void FirstPersonWeaponController::update_lighting(void)
     }
 
     first_person_interface = (GlobalsFirstPersonInterface *)global_globals->first_person_interface.pointer;
-    light_sample = (int32_t)(uintptr_t)object_get_cached_render_lighting((datum_index)unit_handle, 3.4028235e+38f);
+    light_sample = (int32_t)(uintptr_t)halo::render::object_get_cached_render_lighting((datum_index)unit_handle, 3.4028235e+38f);
     light_params.modifier_shader = 0;
 
     if ((*(uint8_t *)((char *)unit_obj + 0x204) & 0x10) != 0 ||
@@ -797,9 +796,9 @@ void FirstPersonWeaponController::update_screen_effects(void)
     if (hud_interface == -1 ||
         (int32_t)((WeaponHUDInterface *)halo::cache::globals().tag_instances[hud_interface & 0xffff].data)->screen_effect.count < 1) {
         if (rasterizer_device_version >= 0xffff0101u && rasterizer_caps_flag_68a == 0) {
-            rasterizer_screen_effect_render((weapon_screen_effect_parameters *)0);
+            halo::rasterizer::rasterizer_screen_effect_render((weapon_screen_effect_parameters *)0);
         } else {
-            rasterizer_screen_effect_render_fixed_function((weapon_screen_effect_parameters *)0);
+            halo::rasterizer::rasterizer_screen_effect_render_fixed_function((weapon_screen_effect_parameters *)0);
         }
         goto post_hud;
     }
@@ -815,7 +814,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
     memset(&parameters, 0, sizeof(parameters));
 
     if (zoomed || (effect->mask_flags & 1) == 0) {
-        datum_index mask = (render_local_view_count() > 1) ? *(datum_index *)&effect->mask_splitscreen.tag_id
+        datum_index mask = (halo::main::render_local_view_count() > 1) ? *(datum_index *)&effect->mask_splitscreen.tag_id
                                                 : *(datum_index *)&effect->mask_fullscreen.tag_id;
         if (mask != (datum_index)-1) {
             parameters.mask_bitmap_data =
@@ -825,7 +824,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
         }
     }
 
-    if (render_local_view_count() <= 1 && (zoomed || (effect->convolution_flags & 1) == 0)) {
+    if (halo::main::render_local_view_count() <= 1 && (zoomed || (effect->convolution_flags & 1) == 0)) {
         if (effect->convolution_fov_in_bounds[0] == effect->convolution_fov_in_bounds[1]) {
             amount = effect->convolution_radius_out_bounds[1];
         } else {
@@ -868,9 +867,9 @@ void FirstPersonWeaponController::update_screen_effects(void)
     }
 
     if (rasterizer_device_version >= 0xffff0101u && rasterizer_caps_flag_68a == 0) {
-        rasterizer_screen_effect_render(&parameters);
+        halo::rasterizer::rasterizer_screen_effect_render(&parameters);
     } else {
-        rasterizer_screen_effect_render_fixed_function(&parameters);
+        halo::rasterizer::rasterizer_screen_effect_render_fixed_function(&parameters);
     }
 
 post_hud:

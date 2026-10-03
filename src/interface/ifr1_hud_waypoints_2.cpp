@@ -3,16 +3,15 @@
 #include <string.h>
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern Globals *global_globals;
 extern char ai_marker_name_a[];
-extern real_matrix4x3 render_camera_world_to_view;
 extern uint8_t render_frustum_global[];
 extern uint8_t render_camera_global[];
 extern int16_t render_viewport_top;
-extern int16_t render_viewport_left;
 extern float waypoint_fade_near;
 extern float waypoint_fade_far;
 extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name,
@@ -47,8 +46,8 @@ void HudWaypoints::draw_one(datum_index player_index)
     object_get_node_local_transform(p->unit, ai_marker_name_a, &marker, 1);
     world_point = *(real_point3d *)((uint8_t *)&marker + 0x60);
     world_point.z = world_point.z + 0.3f;
-    halo::math::matrix4x3_transform_point(view_point, world_point, render_camera_world_to_view);
-    if (!render_project_world_point_to_screen(&screen_point, &view_point, render_frustum_global, render_camera_global)) {
+    halo::math::matrix4x3_transform_point(view_point, world_point, halo::render::globals().camera_world_to_view);
+    if (!halo::render::render_project_world_point_to_screen(&screen_point, &view_point, (render_frustum *)render_frustum_global, (render_camera *)render_camera_global)) {
         return;
     }
 
@@ -61,7 +60,7 @@ void HudWaypoints::draw_one(datum_index player_index)
         return;
     }
 
-    origin[0] = (int16_t)((int16_t)(int32_t)screen_point.x - render_viewport_left);
+    origin[0] = (int16_t)((int16_t)(int32_t)screen_point.x - halo::render::globals().viewport_left);
     origin[1] = (int16_t)((int32_t)screen_point.y - render_viewport_top);
 
     fade = 1.0f - ((-view_point.z - waypoint_fade_near) * 100.0f) / (waypoint_fade_far - waypoint_fade_near);

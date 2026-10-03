@@ -9,6 +9,7 @@
 #include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 

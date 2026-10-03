@@ -1,9 +1,9 @@
 #include "halo/objects/widgets.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern data_array *object_data;
 extern data_array *widget_data;
 extern widget_type_definition widget_type_definitions[k_maximum_widget_types];
@@ -20,7 +20,7 @@ void halo::objects::WidgetSystem::initialize()
 {
     int32_t i;
 
-    widget_data = game_state_new((char *)"widget", k_maximum_widgets, 0xc  );
+    widget_data = halo::saved_games::game_state_new((char *)"widget", k_maximum_widgets, 0xc  );
     for (i = 0; i < k_maximum_widget_types; i++) {
         if (widget_type_definitions[i].initialize != 0) {
             ((void (*)(void))widget_type_definitions[i].initialize)();

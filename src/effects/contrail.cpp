@@ -5,6 +5,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern data_array *contrail_data;
@@ -17,7 +18,6 @@ extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBS
 extern void contrail_next_sequence(contrail *self);
 extern void contrail_age_points(datum_index contrail_handle, real delta_time);
 extern void contrail_delete(datum_index contrail_index);
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 }
 
 namespace halo::effects {
@@ -575,8 +575,8 @@ void contrail_ref::update(real delta_time)
  */
 void contrail_ref::initialize()
 {
-    contrail_data = (data_array *)game_state_new((char *)"contrail", k_maximum_contrails, sizeof(contrail));
-    contrail_point_data = (data_array *)game_state_new((char *)"contrail point", k_maximum_contrail_points, sizeof(contrail_point));
+    contrail_data = (data_array *)halo::saved_games::game_state_new((char *)"contrail", k_maximum_contrails, sizeof(contrail));
+    contrail_point_data = (data_array *)halo::saved_games::game_state_new((char *)"contrail point", k_maximum_contrail_points, sizeof(contrail_point));
 
     if (contrail_data == 0) {
         if (contrail_point_data != 0) {

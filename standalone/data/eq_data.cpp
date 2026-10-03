@@ -15,6 +15,7 @@
 #include "tables.h"
 #include "halo/projectiles/api.hpp"
 #include "code_refs.hpp"
+#include "halo/shell/api.hpp"
 #include "halo/cseries/api.hpp"
 #include <stdint.h>
 
@@ -65,18 +66,18 @@ __declspec(allocate(".geq$00672f20v")) __declspec(align(16)) uint32_t unknown_00
 __declspec(allocate(".geq$00673524")) __declspec(align(16)) uint8_t eq_pad_00673524[4] = {0};
 #pragma section(".geq$00673524v", read, write)
 __declspec(allocate(".geq$00673524v")) __declspec(align(4)) uint32_t length_error_throw_info[15] = {
-    0x00000000u, (uint32_t)hwreq_length_error_destruct, 0x00000000u,
+    0x00000000u, (uint32_t)&halo::shell::hwreq_length_error_destruct, 0x00000000u,
     (uint32_t)((uint8_t *)&length_error_throw_info + 0x10), 0x00000003u,
     (uint32_t)((uint8_t *)&length_error_throw_info + 0x20), (uint32_t)&length_error_throw_info_0067359c[0],
     (uint32_t)((uint8_t *)&out_of_range_throw_info + 0x20), 0x00000000u, (uint32_t)&length_error_throw_info_0069ff2c[0], 0x00000000u, 0xffffffffu,
-    0x00000000u, 0x00000028u, (uint32_t)std_length_error_copy_construct
+    0x00000000u, 0x00000028u, (uint32_t)&halo::shell::std_length_error_copy_construct
 };
 #pragma section(".geq$00673560v", read, write)
 __declspec(allocate(".geq$00673560v")) __declspec(align(16)) uint32_t out_of_range_throw_info[15] = {
-    0x00000000u, (uint32_t)hwreq_out_of_range_destruct, 0x00000000u,
+    0x00000000u, (uint32_t)&halo::shell::hwreq_out_of_range_destruct, 0x00000000u,
     (uint32_t)((uint8_t *)&out_of_range_throw_info + 0x10), 0x00000003u, (uint32_t)&length_error_throw_info_0067359c[7], (uint32_t)&length_error_throw_info_0067359c[0],
     (uint32_t)((uint8_t *)&out_of_range_throw_info + 0x20), 0x00000000u, (uint32_t)&length_error_throw_info_0069ff2c[8], 0x00000000u, 0xffffffffu,
-    0x00000000u, 0x0000000cu, (uint32_t)exception_copy_construct
+    0x00000000u, 0x0000000cu, (uint32_t)&halo::shell::exception_copy_construct
 };
 
 /** 0x006851f4..0x006853f8: hud_text_message_hold_color, global_white_argb, hud_text_message_normal_color and 6 more */

@@ -9,6 +9,7 @@
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/ai/ai_constants.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
@@ -61,9 +62,6 @@ extern int16_t conversation_line_count;
 extern int32_t conversation_line_base;
 extern data_array *ai_conversation_data;
 extern ai_communication_event_definition ai_communication_event_definitions[];
-extern uint8_t *game_state_base;
-extern int32_t game_state_cursor;
-extern uint32_t game_state_crc;
 extern float ai_communication_class_repeat_delay[];
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern data_array *player_data;
@@ -931,9 +929,9 @@ void AiCommunication::initialize()
 
     if (communication_line_base == 0) {
         int32_t allocation_size = (int32_t)communication_line_count * 0x10;
-        communication_line_base = (int32_t)(game_state_base + game_state_cursor);
-        game_state_cursor = game_state_cursor + allocation_size;
-        halo::memory::crc32_update(&game_state_crc, (uint8_t *)&allocation_size, 4);
+        communication_line_base = (int32_t)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
+        halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + allocation_size;
+        halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&allocation_size, 4);
     }
 
     conversation_line_count = 0;
@@ -945,9 +943,9 @@ void AiCommunication::initialize()
 
     if (conversation_line_base == 0) {
         int32_t allocation_size = (int32_t)conversation_line_count * 0x10;
-        conversation_line_base = (int32_t)(game_state_base + game_state_cursor);
-        game_state_cursor = game_state_cursor + allocation_size;
-        halo::memory::crc32_update(&game_state_crc, (uint8_t *)&allocation_size, 4);
+        conversation_line_base = (int32_t)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
+        halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + allocation_size;
+        halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&allocation_size, 4);
     }
 
     conversation_index = 0;
@@ -974,11 +972,11 @@ void AiCommunication::initialize()
         }
     }
 
-    dest = game_state_base + game_state_cursor;
-    game_state_cursor = game_state_cursor + 0x358;
+    dest = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x358;
     {
         int32_t allocation_size = 0x358; // matches this allocation's own byte count exactly
-        halo::memory::crc32_update(&game_state_crc, (uint8_t *)&allocation_size, 4);
+        halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&allocation_size, 4);
     }
 
     header = dest;

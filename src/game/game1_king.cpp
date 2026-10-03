@@ -16,6 +16,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -56,7 +57,6 @@ extern real_point3d king_hill_boundary_center;
 extern int32_t game_engine_pick_random_recent_location(int32_t exclude_value, int32_t fallback);
 extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position, const char *icon_name,
     float height_offset, datum_index player_filter, int16_t team_filter);
-extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern void game_engine_koth_update_hill_occupancy_state(void);
 }
 
@@ -439,7 +439,7 @@ void King::unknown_48(void)
 
         custom_waypoint_register(0xffffffff, 0, &position, "crown_blue", 0.0f, 0xffffffff, -1);
     } else {
-        console_print_error_va(0, "FAILED TO FIND HILL");
+        halo::main::console_print_error_va(0, "FAILED TO FIND HILL");
     }
     if (network_game_mode == 2) {
         game_engine_koth_update_hill_occupancy_state();

@@ -6,6 +6,8 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern data_array *decal_data;
@@ -22,11 +24,6 @@ extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *ori
 extern void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction, real radius_scale, uint8_t object_attached, int16_t sequence_index);
 extern game_time_globals *game_time;
 extern long lrint(double x);
-extern uint8_t *game_state_base;
-extern int32_t game_state_cursor;
-extern uint32_t game_state_crc;
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
-extern void rasterizer_decals_initialize(void);
 }
 
 namespace halo::effects {
@@ -687,14 +684,14 @@ void decal_ref::initialize()
 {
     uint32_t block_size = sizeof(decal_grid);
 
-    decal_data = (data_array *)game_state_new((char *)"decals", k_maximum_decals, sizeof(decal));
+    decal_data = (data_array *)halo::saved_games::game_state_new((char *)"decals", k_maximum_decals, sizeof(decal));
     ((uint8_t *)decal_data)[0x25] = 1;
 
-    decal_grid_block = (decal_grid *)(game_state_base + game_state_cursor);
-    game_state_cursor = game_state_cursor + sizeof(decal_grid);
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
+    decal_grid_block = (decal_grid *)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + sizeof(decal_grid);
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&block_size, 4);
 
-    rasterizer_decals_initialize();
+    halo::rasterizer::rasterizer_decals_initialize();
 }
 
 /**

@@ -8,6 +8,7 @@
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern int16_t network_game_mode;
@@ -60,7 +61,6 @@ typedef struct network_item_stream {
     bit_stream stream;
     uint32_t bit_count;
 } network_item_stream;
-extern void main_queue_map_change_by_name_or_clear(void);
 extern int32_t join_ui_state;
 extern int32_t interface_loading_screen_request_id;
 extern char network_game_settings_ack_send(uint8_t *client, int16_t template_row);
@@ -375,7 +375,7 @@ int32_t GameClientView::settings_packet_receive(const uint32_t *request)
     }
 compare_done:
     if (cmp != 0) {
-        main_queue_map_change_by_name_or_clear();
+        halo::main::main_queue_map_change_by_name_or_clear((char *)"");
         if (join_ui_state != 1) {
             if (join_ui_state != 2 && join_ui_state == 4) {
                 interface_loading_screen_request_id = -1;
@@ -458,7 +458,7 @@ void GameClientView::settings_packet_send(const uint8_t *request)
     }
 compare_done:
     if (cmp != 0) {
-        main_queue_map_change_by_name_or_clear();
+        halo::main::main_queue_map_change_by_name_or_clear((char *)"");
         if (join_ui_state != 1) {
             if (join_ui_state != 2 && join_ui_state == 4) {
                 interface_loading_screen_request_id = -1;

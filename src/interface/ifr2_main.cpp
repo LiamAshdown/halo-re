@@ -8,6 +8,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -19,9 +21,6 @@ extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
-extern int32_t game_state_cursor;
-extern uint8_t *game_state_base;
-extern uint32_t game_state_crc;
 extern first_person_weapon_interface *first_person_weapon_interfaces;
 extern void terminal_initialize(void);
 extern void hud_state_allocate(void);
@@ -33,7 +32,6 @@ extern uint16_t progress_screen_text[0x20];
 extern uint16_t progress_screen_subtext[0x20];
 extern datum_index interface_loading_screen_request_id;
 extern uint8_t ui_cursor_changed;
-extern uint8_t main_menu_music_pending;
 extern widget_instance *ui_root_widget[1];
 extern int32_t ui_time_milliseconds;
 extern widget_history_node *ui_widget_history[3];
@@ -100,9 +98,9 @@ void InterfaceMain::globals_allocate()
     terminal_initialize();
     hud_state_allocate();
 
-    block = game_state_cursor + (int32_t)game_state_base;
-    game_state_cursor = game_state_cursor + 0x1ea0;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    block = halo::saved_games::globals().game_state_cursor + (int32_t)halo::saved_games::globals().game_state_base;
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x1ea0;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     first_person_weapon_interfaces = (first_person_weapon_interface *)block;
 }
 
@@ -182,13 +180,13 @@ void InterfaceMain::update_for_resolution_change(int32_t new_cursor_x, int32_t n
  */
 void InterfaceMain::on_shown(int32_t fade_milliseconds)
 {
-    if (main_menu_music_pending == 1) {
+    if (halo::main::globals().menu_music_pending == 1) {
         datum_index sound_tag = halo::cache::tag_lookup(0x6c736e64  , (char *)"sound\\music\\title1\\title1");
 
         if (sound_tag != (datum_index)-1) {
             halo::sound::sound_looping_stop(sound_tag);
         }
-        main_menu_music_pending = 0;
+        halo::main::globals().menu_music_pending = 0;
     }
     if (ui_root_widget[0] != (widget_instance *)0 && ui_root_widget[0]->is_error_dialog == 0) {
         ui_root_widget[0]->milliseconds_auto_close_fade = fade_milliseconds;
@@ -209,11 +207,11 @@ void InterfaceMain::play_title_music()
 {
     datum_index sound_tag;
 
-    if (main_menu_music_pending == 0 && main_menu_music_datum == 0) {
+    if (halo::main::globals().menu_music_pending == 0 && main_menu_music_datum == 0) {
         sound_tag = halo::cache::tag_lookup(0x6c736e64  , (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
             halo::sound::sound_looping_start(sound_tag, -1, 1.0f);
-            main_menu_music_pending = 1;
+            halo::main::globals().menu_music_pending = 1;
         }
     }
 }
@@ -348,15 +346,15 @@ void InterfaceMain::string_replace_all_in_place(char *buffer, char *search, char
  */
 void InterfaceMain::initialize_terminal()
 {
-    terminal_messages = halo::memory::data_new(sizeof(console_message), (char *)"terminal output", 0x20);
-    terminal_initialized = 1;
-    terminal_messages->valid = 1;
-    halo::memory::data_delete_all(terminal_messages);
-    console_active = (terminal_console *)0;
-    console_message_head = (datum_index)0xffffffff;
-    console_message_tail = (datum_index)0xffffffff;
-    console_caret_blink_time = 0;
-    console_rcon_handle = (int32_t)0xffffffff;
+    halo::main::globals().terminal_messages = halo::memory::data_new(sizeof(console_message), (char *)"terminal output", 0x20);
+    halo::main::globals().terminal_initialized = 1;
+    halo::main::globals().terminal_messages->valid = 1;
+    halo::memory::data_delete_all(halo::main::globals().terminal_messages);
+    halo::main::globals().console_active = (terminal_console *)0;
+    halo::main::globals().console_message_head = (datum_index)0xffffffff;
+    halo::main::globals().console_message_tail = (datum_index)0xffffffff;
+    halo::main::globals().console_caret_blink_time = 0;
+    halo::main::globals().console_rcon_handle = (int32_t)0xffffffff;
 }
 
 } // namespace halo::interface

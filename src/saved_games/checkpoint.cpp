@@ -10,6 +10,8 @@
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
 #include "halo/saved_games/layout.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern int32_t saved_player_profile_slots_handle;
@@ -21,9 +23,7 @@ extern char network_ban_file_read_mode_string[];
 extern uint8_t game_state_write_in_progress;
 extern game_time_globals *game_time;
 extern char network_summary_log_mode_string[];
-extern int16_t campaign_level_find_index_for_path(char *scenario_name);
 extern int16_t pending_difficulty;
-extern void main_queue_map_change(char *map_name);
 }
 
 namespace halo::saved_games::checkpoint {
@@ -56,7 +56,7 @@ int32_t enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, ch
     uint32_t remaining;
 
     entries = (checkpoint_file_entry *)GlobalAlloc(0, k_maximum_checkpoint_files * sizeof(checkpoint_file_entry));
-    saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
+    halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
     sprintf(search_path, "%s%s%s", directory, k_checkpoints_directory, "*.sav");
 
     found_count = 0;
@@ -70,7 +70,7 @@ int32_t enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, ch
                 *extension = 0;
             }
 
-            level = game_checkpoint_read_stats_file(&difficulty, name, &game_time_ticks, &time);
+            level = halo::saved_games::game_checkpoint_read_stats_file(&difficulty, name, &game_time_ticks, &time);
             if (level != -1) {
                 if (strstr(name, k_autosave_name) == 0 || include_autosaves != 0) {
                     entry->level_index = level;
@@ -99,7 +99,7 @@ int32_t enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, ch
 
     checkpoint_sort_newest_first = sort_newest_first;
     qsort(entries, found_count, sizeof(checkpoint_file_entry),
-        (int32_t (*)(const void *, const void *))saved_game_checkpoint_compare);
+        (int32_t (*)(const void *, const void *))halo::saved_games::saved_game_checkpoint_compare);
 
     accepted = 0;
     remaining = found_count;
@@ -146,7 +146,7 @@ uint8_t get_next_filename(char *out_name, char *directory)
     }
 
     *out_name = 0;
-    game_checkpoint_enumerate_files(0, 0, game_checkpoint_reclaim_slot_callback, out_name);
+    halo::saved_games::game_checkpoint_enumerate_files(0, 0, halo::saved_games::game_checkpoint_reclaim_slot_callback, out_name);
     return *out_name != 0;
 }
 
@@ -199,7 +199,7 @@ int16_t read_stats_file(int32_t *out_difficulty, char *name, int32_t *out_game_t
     win32_systemtime time;
 
     level = -1;
-    saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
+    halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
     strcpy(path, directory);
     strcpy(path + strlen(path), name);
     strcpy(path + strlen(path), ".sav");
@@ -259,11 +259,11 @@ uint8_t save_new(void)
         Sleep(0);
     }
 
-    saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
-    if (game_checkpoint_get_next_filename(target_name, directory) == 0) {
+    halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
+    if (halo::saved_games::game_checkpoint_get_next_filename(target_name, directory) == 0) {
         return 0;
     }
-    return saved_game_copy_files_to_target(directory, (char *)k_savegame_name, target_name);
+    return halo::saved_games::saved_game_copy_files_to_target(directory, (char *)k_savegame_name, target_name);
 }
 
 /**
@@ -281,14 +281,14 @@ void write_stats_file(char *scenario_name, int32_t difficulty)
     win32_systemtime now;
     int16_t level;
 
-    saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
+    halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
     strcpy(path, directory);
     strcpy(path + strlen(path), "savegame.sav");
 
     file = fopen(path, network_summary_log_mode_string);
     if (file != 0) {
         GetLocalTime((LPSYSTEMTIME)&now);
-        level = campaign_level_find_index_for_path(scenario_name);
+        level = halo::main::campaign_level_find_index_for_path(scenario_name);
         fprintf((FILE *)file, "%d,%d,%d\n", (int32_t)level, difficulty, game_time->game_time);
         fprintf((FILE *)file, "%hu,%hu,%hu\n", now.month, now.day, now.year);
         fprintf((FILE *)file, "%hu,%hu,%hu\n", now.hour, now.minute, now.second);
@@ -335,20 +335,20 @@ uint8_t load_checkpoint(char *name)
     char directory[264];
     char full_name[264];
 
-    saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
+    halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
 
     if (name == 0 || *name == 0) {
         name = (char *)k_autosave_name;
     } else if (*name == '*') {
-        game_checkpoint_enumerate_files(1, 1, game_checkpoint_print_list_entry, 0);
+        halo::saved_games::game_checkpoint_enumerate_files(1, 1, halo::saved_games::game_checkpoint_print_list_entry, 0);
         return 1;
     }
 
     if (strstr(name, k_checkpoints_directory) != 0) {
-        return saved_game_load_checkpoint_by_name(name);
+        return halo::saved_games::saved_game_load_checkpoint_by_name(name);
     }
     sprintf(full_name, "%s%s", k_checkpoints_directory, name);
-    return saved_game_load_checkpoint_by_name(full_name);
+    return halo::saved_games::saved_game_load_checkpoint_by_name(full_name);
 }
 
 /**
@@ -371,7 +371,7 @@ uint8_t load_checkpoint_by_name(char *name)
     int16_t level;
     char *map_path = 0;
 
-    saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
+    halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
     sprintf(path, "%s%s.sav", directory, name);
     find_handle = FindFirstFileA(path, (LPWIN32_FIND_DATAA)&find_data);
     if (find_handle == win32::invalid_handle()) {
@@ -379,7 +379,7 @@ uint8_t load_checkpoint_by_name(char *name)
     }
     FindClose(find_handle);
 
-    level = game_checkpoint_read_stats_file(&difficulty, name, 0, 0);
+    level = halo::saved_games::game_checkpoint_read_stats_file(&difficulty, name, 0, 0);
     if (level == -1) {
         return 0;
     }
@@ -389,9 +389,9 @@ uint8_t load_checkpoint_by_name(char *name)
     if (level >= 0 && level < 10) {
         map_path = campaign_level_paths[level];
     }
-    main_queue_map_change(map_path);
+    halo::main::main_queue_map_change(map_path);
     if (memcmp(name, k_savegame_name, sizeof(k_savegame_name)) != 0) {
-        saved_game_copy_files_to_target(directory, name, (char *)k_savegame_name);
+        halo::saved_games::saved_game_copy_files_to_target(directory, name, (char *)k_savegame_name);
     }
     return 1;
 }

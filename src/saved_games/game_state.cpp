@@ -36,18 +36,15 @@ extern game_state_header *game_state_header_ptr;
 extern uint8_t game_state_header_valid;
 extern uint8_t game_state_revert_available;
 extern int16_t local_player_count;
-extern game_main_globals *main_game_globals;
 extern uint32_t cache_file_current_header_crc32;
 extern uint32_t game_state_crc;
 extern void *game_state_persistent_storage;
 extern uint8_t game_state_persistent_storage_created;
-extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);
 extern game_state_proc game_state_after_load_procs[k_game_state_after_load_proc_count];
 extern uint16_t game_time_force_single_tick;
 extern int16_t pending_difficulty;
 extern uint8_t *game_state_base;
 extern game_state_proc game_state_revert_proc;
-extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern int32_t game_state_cursor;
 extern int32_t saved_player_profile_slots_handle;
 extern char *strcpy(char *dest, const char *source);
@@ -99,7 +96,7 @@ void *allocate_buffer(int32_t cpu_size, int32_t extra_size)
     _snprintf(game_state_core_directory, k_path_maximum_length, "%s\\%s", profile_directory, "core");
     game_state_write_in_progress = 0;
     game_state_write_event = CreateEventA(0, 0, 0, 0);
-    _beginthread((void (*)(void *))game_state_save_thread_proc, 0x1000, 0);
+    _beginthread((void (*)(void *))halo::saved_games::game_state_save_thread_proc, 0x1000, 0);
     return base;
 }
 
@@ -143,7 +140,7 @@ void build_header(void)
     header->build_version[12] = '1'; header->build_version[13] = '\0';
 
     header->local_player_count = local_player_count;
-    header->difficulty = main_game_globals->difficulty;
+    header->difficulty = halo::main::globals().game_globals->difficulty;
     header->map_checksum = cache_file_current_header_crc32;
     header->allocation_checksum = game_state_crc;
 }
@@ -164,7 +161,7 @@ void create_persistent_storage_file(void)
         game_state_persistent_storage_created = 1;
         return;
     }
-    shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
+    halo::shell::shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
 }
 
 /**
@@ -201,11 +198,11 @@ void load_checkpoint(void)
     if (game_time_force_single_tick != 0) {
         return;
     }
-    if (saved_game_validate_crc(k_game_state_size, k_game_state_header_size, (uint8_t *)&header,
+    if (halo::saved_games::saved_game_validate_crc(k_game_state_size, k_game_state_header_size, (uint8_t *)&header,
             &header.file_checksum, 0) == 0) {
         return;
     }
-    if (saved_game_verify_version_and_checksum(&header, 0) == 0) {
+    if (halo::saved_games::saved_game_verify_version_and_checksum(&header, 0) == 0) {
         return;
     }
     if (pending_difficulty != header.difficulty) {
@@ -213,10 +210,10 @@ void load_checkpoint(void)
     }
 
     game_state_revert_proc();
-    game_state_read_persistent_storage_block(k_game_state_size, game_state_base);
-    main_game_globals->difficulty = pending_difficulty;
-    game_state_dispatch_load_callbacks();
-    game_state_perform_save(0);
+    halo::saved_games::game_state_read_persistent_storage_block(k_game_state_size, game_state_base);
+    halo::main::globals().game_globals->difficulty = pending_difficulty;
+    halo::saved_games::game_state_dispatch_load_callbacks();
+    halo::saved_games::game_state_perform_save(0);
 }
 
 /**
@@ -231,15 +228,15 @@ void load_core(char *name)
 {
     game_state_header header;
 
-    if (game_state_read_profile_header(name, k_game_state_header_size, &header) != 0 &&
-        saved_game_verify_version_and_checksum(&header, 1) != 0) {
+    if (halo::saved_games::game_state_read_profile_header(name, k_game_state_header_size, &header) != 0 &&
+        halo::saved_games::saved_game_verify_version_and_checksum(&header, 1) != 0) {
         game_state_revert_proc();
-        game_state_read_profile_file(name, k_game_state_size, game_state_base);
-        console_print_error_va(0, "loaded '%s'", name);
-        game_state_dispatch_load_callbacks();
+        halo::saved_games::game_state_read_profile_file(name, k_game_state_size, game_state_base);
+        halo::main::console_print_error_va(0, "loaded '%s'", name);
+        halo::saved_games::game_state_dispatch_load_callbacks();
         return;
     }
-    console_print_error_va(0, "couldn't open '%s'", name);
+    halo::main::console_print_error_va(0, "couldn't open '%s'", name);
 }
 
 /**
@@ -329,10 +326,10 @@ void *open_persistent_storage(char *name)
     char delete_path[0x120];
 
     if (name == 0) {
-        if (saved_game_get_directory_by_handle(saved_player_profile_slots_handle, path) == 0) {
+        if (halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, path) == 0) {
             return win32::invalid_handle();
         }
-        saved_game_get_directory_by_handle(saved_player_profile_slots_handle, path);
+        halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, path);
     } else {
         strcpy(path, name);
     }
@@ -352,8 +349,8 @@ void *open_persistent_storage(char *name)
             bytes_written != k_game_state_file_initial_block ||
             SetFilePointer(file, k_game_state_file_size, 0, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
             SetEndOfFile(file) == 0) {
-            shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
-            if (saved_game_get_directory_by_handle(saved_player_profile_slots_handle, delete_path) != 0) {
+            halo::shell::shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
+            if (halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, delete_path) != 0) {
                 DeleteFileA(delete_path);
             }
             CloseHandle(file);
@@ -384,8 +381,8 @@ void perform_revert(void)
     }
 
     game_state_revert_proc();
-    game_state_read_persistent_storage();
-    game_state_dispatch_load_callbacks();
+    halo::saved_games::game_state_read_persistent_storage();
+    halo::saved_games::game_state_dispatch_load_callbacks();
 }
 
 /**
@@ -401,7 +398,7 @@ void perform_save(uint8_t is_checkpoint)
     game_state_before_save_proc();
     halo::main::fields::time_is_running = 0;
     halo::main::fields::reset_frame_timers = 0;
-    result = game_state_queue_write(is_checkpoint);
+    result = halo::saved_games::game_state_queue_write(is_checkpoint);
     game_state_revert_available = result != 0;
     halo::main::fields::reset_frame_timers = 1;
 }
@@ -437,7 +434,7 @@ uint8_t read_checkpoint_summary(uint8_t *corrupt_flag, int16_t *out_difficulty, 
 {
     game_state_header header;
 
-    if (saved_game_validate_crc(k_game_state_size, k_game_state_header_size, (uint8_t *)&header,
+    if (halo::saved_games::saved_game_validate_crc(k_game_state_size, k_game_state_header_size, (uint8_t *)&header,
             &header.file_checksum, corrupt_flag) != 0) {
         *out_difficulty = header.difficulty;
         strcpy(out_scenario_name, header.scenario_name);
@@ -467,7 +464,7 @@ uint8_t read_persistent_storage(void)
         bytes_read == game_state_size) {
         return 1;
     }
-    shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
+    halo::shell::shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
     return 0;
 }
 
@@ -484,7 +481,7 @@ void read_persistent_storage_block(int32_t size, void *buffer)
     uint32_t bytes_read;
     char directory[264];
 
-    file = game_state_open_persistent_storage(0);
+    file = halo::saved_games::game_state_open_persistent_storage(0);
     if (file == win32::invalid_handle()) {
         return;
     }
@@ -492,8 +489,8 @@ void read_persistent_storage_block(int32_t size, void *buffer)
     if (SetFilePointer(file, 0, 0, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
         ReadFile(file, buffer, size, (LPDWORD)&bytes_read, 0) == 0 ||
         bytes_read != (uint32_t)size) {
-        shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
-        if (saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory) != 0) {
+        halo::shell::shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
+        if (halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory) != 0) {
             DeleteFileA(directory);
         }
     }
@@ -517,7 +514,7 @@ void read_profile_file(char *name, int32_t size, void *buffer)
     if (file == win32::invalid_handle() ||
         ReadFile(file, buffer, size, (LPDWORD)&bytes_read, 0) == 0 ||
         bytes_read != (uint32_t)size) {
-        shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
+        halo::shell::shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
     }
     CloseHandle(file);
 }
@@ -582,19 +579,19 @@ void save_thread_proc(void)
         }
 
         if (remaining != 0) {
-            shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
+            halo::shell::shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
             game_state_write_in_progress = 0;
             continue;
         }
 
         if (is_checkpoint != 0) {
-            saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
-            game_state_write_persistent_storage(&((game_state_header *)game_state_write_buffer)->file_checksum,
+            halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory);
+            halo::saved_games::game_state_write_persistent_storage(&((game_state_header *)game_state_write_buffer)->file_checksum,
                 game_state_write_buffer, k_game_state_header_size, k_game_state_size);
-            game_checkpoint_write_stats_file(((game_state_header *)game_state_write_buffer)->scenario_name,
+            halo::saved_games::game_checkpoint_write_stats_file(((game_state_header *)game_state_write_buffer)->scenario_name,
                 ((game_state_header *)game_state_write_buffer)->difficulty);
-            saved_game_copy_files_to_target(directory, (char *)"checkpoints\\autosave", (char *)"checkpoints\\autosave1");
-            saved_game_copy_files_to_target(directory, (char *)"savegame", (char *)"checkpoints\\autosave");
+            halo::saved_games::saved_game_copy_files_to_target(directory, (char *)"checkpoints\\autosave", (char *)"checkpoints\\autosave1");
+            halo::saved_games::saved_game_copy_files_to_target(directory, (char *)"savegame", (char *)"checkpoints\\autosave");
         }
 
         game_state_write_completed = 1;
@@ -614,8 +611,8 @@ void startup(void)
     uint8_t *header_base;
 
     game_state_crc = k_crc32_seed;
-    game_state_base = (uint8_t *)game_state_allocate_buffer(k_game_state_cpu_size, k_game_state_extra_size);
-    game_state_create_persistent_storage_file();
+    game_state_base = (uint8_t *)halo::saved_games::game_state_allocate_buffer(k_game_state_cpu_size, k_game_state_extra_size);
+    halo::saved_games::game_state_create_persistent_storage_file();
     header_base = game_state_cursor + game_state_base;
     game_state_cursor = game_state_cursor + k_game_state_header_size;
     header_size = k_game_state_header_size;
@@ -642,7 +639,7 @@ void write_persistent_storage(uint32_t *crc_slot, uint8_t *buffer, int32_t heade
     uint32_t bytes_written;
     char directory[264];
 
-    file = game_state_open_persistent_storage(0);
+    file = halo::saved_games::game_state_open_persistent_storage(0);
     if (file == win32::invalid_handle()) {
         return;
     }
@@ -661,8 +658,8 @@ void write_persistent_storage(uint32_t *crc_slot, uint8_t *buffer, int32_t heade
         SetFilePointer(file, 0, 0, win32::k_file_begin) == win32::k_invalid_set_file_pointer ||
         WriteFile(file, header_backup, header_size, (LPDWORD)&bytes_written, 0) == 0 ||
         bytes_written != (uint32_t)header_size) {
-        shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
-        if (saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory) != 0) {
+        halo::shell::shell_display_fatal_error_dialog(k_error_game_state_io_string, k_error_game_state_io_title, 1);
+        if (halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory) != 0) {
             DeleteFileA(directory);
         }
     }

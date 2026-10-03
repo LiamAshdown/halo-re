@@ -7,6 +7,7 @@
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "tables.h"
 #include "code_refs.hpp"
+#include "halo/shell/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/sound/api.hpp"
@@ -77,22 +78,22 @@ char ai_marker_name_b[5] = "body";
 char s_blur_permutation[6] = "~blur";
 /* 0x006721e8 */
 void *hwreq_parser_vtable_instance[16] = {
-    (void *)hwreq_parser_parse,
-    (void *)hwreq_parser_scalar_deleting_destructor,
-    (void *)hwreq_parser_get_flags,
-    (void *)hwreq_parser_find_property_set,
-    (void *)hwreq_parser_get_flag_count,
-    (void *)hwreq_parser_get_flag_name,
-    (void *)hwreq_parser_get_flag_value,
-    (void *)hwreq_parser_get_requirement_count,
-    (void *)hwreq_parser_get_requirement_name,
-    (void *)hwreq_parser_get_requirement_value,
-    (void *)hwreq_parser_get_graphics_device_name,
-    (void *)hwreq_parser_get_graphics_vendor_name,
-    (void *)hwreq_parser_get_sound_device_name,
-    (void *)hwreq_parser_get_sound_vendor_name,
-    (void *)hwreq_parser_has_error,
-    (void *)hwreq_parser_get_error_message
+    (void *)&halo::shell::hwreq_parser_parse,
+    (void *)&halo::shell::hwreq_parser_scalar_deleting_destructor,
+    (void *)&halo::shell::hwreq_parser_get_flags,
+    (void *)&halo::shell::hwreq_parser_find_property_set,
+    (void *)&halo::shell::hwreq_parser_get_flag_count,
+    (void *)&halo::shell::hwreq_parser_get_flag_name,
+    (void *)&halo::shell::hwreq_parser_get_flag_value,
+    (void *)&halo::shell::hwreq_parser_get_requirement_count,
+    (void *)&halo::shell::hwreq_parser_get_requirement_name,
+    (void *)&halo::shell::hwreq_parser_get_requirement_value,
+    (void *)&halo::shell::hwreq_parser_get_graphics_device_name,
+    (void *)&halo::shell::hwreq_parser_get_graphics_vendor_name,
+    (void *)&halo::shell::hwreq_parser_get_sound_device_name,
+    (void *)&halo::shell::hwreq_parser_get_sound_vendor_name,
+    (void *)&halo::shell::hwreq_parser_has_error,
+    (void *)&halo::shell::hwreq_parser_get_error_message
 };
 /* 0x00672258 */
 char string_vector_too_long[19] = "vector<T> too long";

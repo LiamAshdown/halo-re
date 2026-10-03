@@ -42,18 +42,12 @@ extern real_rectangle3d *global_null_rectangle3d_pointer;
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern double sin(double x);
 extern double cos(double x);
-extern int16_t rasterizer_vertex_buffer_lock_state;
 extern uint8_t build_sprite_group_warning;
-extern int32_t rasterizer_dynamic_vertex_cache_reserve(int16_t vertex_type, int32_t count);
-extern void *rasterizer_dynamic_vertex_cache_lock(int32_t slot_index);
 extern double fmod(double x, double y);
 extern double atan2(double y, double x);
 extern rasterizer_dynamic_vertex_slot rasterizer_dynamic_vertex_slots[k_rasterizer_dynamic_vertex_slots];
 extern rasterizer_dynamic_vertex_cache rasterizer_dynamic_vertex_caches[k_rasterizer_vertex_type_count];
 extern rasterizer_vertex_buffer_slot rasterizer_vertex_buffer_slots[k_rasterizer_vertex_buffer_slots];
-extern void rasterizer_transparent_object_append(uint32_t lightmap_bitmap, int32_t dynamic_index_slot,
-    int32_t dynamic_vertex_slot, int32_t primitive_count, uint32_t flags, real_point3d *world_position,
-    Shader *shader);
 extern double sqrt(double x);
 extern double fabs(double x);
 extern render_camera render_camera_global;
@@ -137,18 +131,18 @@ int16_t halo::render::SpriteBuilder::get_group(BitmapData *bitmap)
                                       _rasterizer_vertex_type_dynamic_unlit;
             int32_t slot;
 
-            rasterizer_vertex_buffer_lock_state = 0x10;
-            slot = rasterizer_dynamic_vertex_cache_reserve(vertex_type, vertex_count);
+            halo::rasterizer::globals().vertex_buffer_lock_state = 0x10;
+            slot = halo::rasterizer::rasterizer_dynamic_vertex_cache_reserve(vertex_type, vertex_count);
             group->vertex_slot = slot;
             if (slot == -1) {
                 if (build_sprite_group_warning == 0) {
                     build_sprite_group_warning = 1;
                 }
                 group->vertices = 0;
-                rasterizer_vertex_buffer_lock_state = 0;
+                halo::rasterizer::globals().vertex_buffer_lock_state = 0;
             } else {
-                group->vertices = (uint32_t)(uintptr_t)rasterizer_dynamic_vertex_cache_lock(slot);
-                rasterizer_vertex_buffer_lock_state = 0;
+                group->vertices = (uint32_t)(uintptr_t)halo::rasterizer::rasterizer_dynamic_vertex_cache_lock(slot);
+                halo::rasterizer::globals().vertex_buffer_lock_state = 0;
             }
         }
         group->quad_count = 0;
@@ -182,7 +176,7 @@ void halo::render::SpriteBuilder::rotational(uint32_t flags, int16_t first_seque
         color = (ColorARGB *)global_white_argb;
     }
 
-    render_sprite_transform_point_and_normal(origin, axis, &transformed_axis, data,
+    halo::render::render_sprite_transform_point_and_normal(origin, axis, &transformed_axis, data,
                                              (uint8_t)(flags & 1), &transformed_origin);
     d = halo::math::vector3d_angle_between_4cd4f0(transformed_axis, *((real_vector3d *)&transformed_origin)) -
         1.5707964f;
@@ -222,7 +216,7 @@ void halo::render::SpriteBuilder::rotational(uint32_t flags, int16_t first_seque
                     quad_flags = 3;
                 }
             }
-            build_sprite(data, (int16_t)(first_sequence_index + 1), sprite, 0, &transformed_origin,
+            halo::render::build_sprite(data, (int16_t)(first_sequence_index + 1), sprite, 0, &transformed_origin,
                          0, quad_rotation, scale, color, t * fade, quad_flags);
         }
     }
@@ -238,7 +232,7 @@ void halo::render::SpriteBuilder::rotational(uint32_t flags, int16_t first_seque
         count = (int16_t)sequences[first_sequence_index].sprites.count;
         side_rotation = (real)atan2(transformed_axis.j, transformed_axis.i);
         sprite = (int16_t)(int32_t)fmod((real)count * rotation * 0.15915494f + 0.5f, (real)count);
-        build_sprite(data, first_sequence_index, sprite, 0, &transformed_origin, 0, side_rotation,
+        halo::render::build_sprite(data, first_sequence_index, sprite, 0, &transformed_origin, 0, side_rotation,
                      scale, color, side_fade, 1);
     }
 }
@@ -454,7 +448,7 @@ void draw(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index,
     sprite = &((BitmapGroupSprite *)sequence->sprites.pointer)[sprite_index];
     bitmap = &((BitmapData *)bitmap_group->bitmap_data.pointer)[(int16_t)sprite->bitmap_index];
 
-    group_index = build_sprite_get_group(data, bitmap);
+    group_index = halo::render::build_sprite_get_group(data, bitmap);
     if (group_index == -1) {
         return;
     }
@@ -472,16 +466,16 @@ void draw(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index,
         cos_rotation = (real)cos(rotation);
     }
 
-    render_sprite_transform_point_and_normal(origin, direction, &transformed_direction, data,
+    halo::render::render_sprite_transform_point_and_normal(origin, direction, &transformed_direction, data,
                                              (uint8_t)flags, &transformed_origin);
-    render_billboard_build_orientation_basis(data, mode, (real_vector3d *)&transformed_origin,
+    halo::render::render_billboard_build_orientation_basis(data, mode, (real_vector3d *)&transformed_origin,
                                              &transformed_direction, &basis);
-    render_billboard_compute_scale(data, &scale, mode, &transformed_origin, bitmap);
+    halo::render::render_billboard_compute_scale(data, &scale, mode, &transformed_origin, bitmap);
 
     shader = (LightningShader *)data->shader;
     if (shader != 0 && shader->framebuffer_fade_mode != 0 && mode != 0) {
         halo::math::vector3d_cross_product(basis.normal, basis.bitangent, basis.tangent);
-        fade = render_billboard_compute_view_fade((real_vector3d *)&transformed_origin,
+        fade = halo::render::render_billboard_compute_view_fade((real_vector3d *)&transformed_origin,
                                                   &basis.normal,
                                                   shader->framebuffer_fade_mode) * fade;
     }
@@ -567,7 +561,7 @@ void draw(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index,
     data->sprite_count++;
 
     if ((data->flags & _build_sprite_data_screen_space_bit) == 0) {
-        real area = render_frustum_compute_box_overlap_area(&bounds, &render_frustum_global);
+        real area = halo::render::render_frustum_compute_box_overlap_area(&bounds, &render_frustum_global);
 
         build_sprite_screen_coverage = build_sprite_screen_coverage + area;
         if (area > 0.5f) {
@@ -623,7 +617,7 @@ void sprites_end(build_sprite_data *data)
         }
 
         if (group->quad_count != 0 && (data->flags & _build_sprite_data_screen_space_bit) == 0) {
-            rasterizer_transparent_object_append(group->bitmap, -4, group->vertex_slot,
+            halo::rasterizer::rasterizer_transparent_object_append(group->bitmap, -4, group->vertex_slot,
                                                  (int32_t)group->quad_count * 2,
                                                  ((data->flags & to_bits(sprite_batch_flag::first_person)) << k_sprite_batch_first_person_shift) | k_transparent_append_sprite_flag,
                                                  &data->centroid,
@@ -703,24 +697,24 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
 
     bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(*(datum_index *)&definition->bitmap.tag_id,
                                                    c->frame_index, c->sequence_index);
-    rasterizer_vertex_buffer_lock_state = 0xf;
+    halo::rasterizer::globals().vertex_buffer_lock_state = 0xf;
     if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
-        rasterizer_vertex_buffer_lock_state = 0;
+        halo::rasterizer::globals().vertex_buffer_lock_state = 0;
         return;
     }
 
     segment_count = (int16_t)(c->point_count[instance] - 1);
     primitive_count = (int32_t)(int16_t)(segment_count * 2);
-    index_slot = rasterizer_dynamic_index_cache_reserve(primitive_count);
+    index_slot = halo::rasterizer::rasterizer_dynamic_index_cache_reserve(primitive_count);
     vertex_count = (int32_t)(int16_t)(segment_count * 2 + 2);
-    vertex_slot = rasterizer_dynamic_vertex_cache_reserve(_rasterizer_vertex_type_dynamic_unlit,
+    vertex_slot = halo::rasterizer::rasterizer_dynamic_vertex_cache_reserve(_rasterizer_vertex_type_dynamic_unlit,
                                                           vertex_count);
     if (index_slot == -1 || vertex_slot == -1) {
-        rasterizer_vertex_buffer_lock_state = 0;
+        halo::rasterizer::globals().vertex_buffer_lock_state = 0;
         return;
     }
-    indices = (uint16_t *)rasterizer_dynamic_index_slot_lock(index_slot);
-    vertices = (rasterizer_dynamic_screen_vertex *)rasterizer_dynamic_vertex_cache_lock(vertex_slot);
+    indices = (uint16_t *)halo::render::rasterizer_dynamic_index_slot_lock(index_slot);
+    vertices = (rasterizer_dynamic_screen_vertex *)halo::rasterizer::rasterizer_dynamic_vertex_cache_lock(vertex_slot);
 
     has_fade = definition->framebuffer_fade_mode != 0;
     centroid = *global_zero_vector3d_pointer;
@@ -868,7 +862,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
             return;
         }
 
-        color.alpha = contrail_compute_edge_fade_factor(&fade_normal, &point->position,
+        color.alpha = halo::render::contrail_compute_edge_fade_factor(&fade_normal, &point->position,
                                                         definition->framebuffer_fade_mode,
                                                         (uint8_t *)&definition->flags) * color.alpha;
         if (color.alpha < 0.0f) {
@@ -925,10 +919,10 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
             vertex_buffer = (void *)(uintptr_t)rasterizer_vertex_buffer_slots[buffer_handle - 1].hardware_buffer;
             d3d9::buffer_function<d3d_unlock_fn>(vertex_buffer, d3d9::buffer_method::unlock)(vertex_buffer);
         }
-        rasterizer_transparent_object_append((uint32_t)(uintptr_t)bitmap, index_slot, vertex_slot,
+        halo::rasterizer::rasterizer_transparent_object_append((uint32_t)(uintptr_t)bitmap, index_slot, vertex_slot,
                                              primitive_count, 0, &centroid, shader);
     }
-    rasterizer_vertex_buffer_lock_state = 0;
+    halo::rasterizer::globals().vertex_buffer_lock_state = 0;
 }
 
 /**
@@ -950,7 +944,7 @@ void render_all(uint32_t render_type_flags)
         for (i = 0; i < 4; i++) {
             if ((render_type_flags & bit_array_mask((uint8_t)definition->render_type)) != 0 &&
                 c->point_count[i] >= 2) {
-                render_contrail(c, definition, i);
+                halo::render::render_contrail(c, definition, i);
             }
         }
 
@@ -982,7 +976,7 @@ void particles(void)
         return;
     }
     viewer = current_local_player_index;
-    if (viewer == -1 || !(uint8_t)render_local_player_gunner_seat_visible(viewer)) {
+    if (viewer == -1 || !(uint8_t)halo::render::render_local_player_gunner_seat_visible(viewer)) {
         viewer = 1;
     }
     viewer_value = (int32_t)viewer;
@@ -1012,7 +1006,7 @@ void particles(void)
     if (record_count <= 0) {
         return;
     }
-    sort_introsort_loop(records, records + record_count, record_count, viewer_value);
+    halo::render::sort_introsort_loop(records, records + record_count, record_count, viewer_value);
 
     {
         int16_t group_count = 0;
@@ -1160,7 +1154,7 @@ void particles(void)
                     } else {
                         flags &= ~(uint32_t)_build_sprite_mirror_v_bit;
                     }
-                    build_sprite(&data, p->sequence_index, p->frame_index,
+                    halo::render::build_sprite(&data, p->sequence_index, p->frame_index,
                                  (int16_t)(uint16_t)definition->orientation, &origin, &direction,
                                  p->rotation, scale, &p->color, fade, flags);
                     p->last_update_tick = render_frame_index;
@@ -1173,7 +1167,7 @@ void particles(void)
                 average = 0.0f;
             }
             ((shader_effect *)(uintptr_t)data.shader)->average_particle_radius = average;
-            build_sprites_end(&data);
+            halo::render::build_sprites_end(&data);
         }
     }
 }

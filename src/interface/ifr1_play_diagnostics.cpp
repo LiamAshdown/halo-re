@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_play_diagnostics.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern uint8_t rasterizer_window[];
@@ -9,7 +10,6 @@ extern data_array *object_data;
 extern data_array *prop_data;
 extern data_array *actor_data;
 extern team_pair_globals *team_pair_data;
-extern void *rasterizer_device;
 extern real_point3d camera_position;
 
 int32_t debug_fp_state_armed;
@@ -200,7 +200,7 @@ void PlayDiagnostics::fp_draw_state_note(const char *site, int32_t hresult, uint
     void *tex0 = 0;
     int32_t i;
 
-    if (rasterizer_device == 0) {
+    if (halo::rasterizer::globals().device == 0) {
         return;
     }
     {
@@ -218,7 +218,7 @@ void PlayDiagnostics::fp_draw_state_note(const char *site, int32_t hresult, uint
             for (k = 0; k < 32; k++) {
                 c[k] = -999.0f;
             }
-            ((debug_get_ps_constants_fn)(*(void ***)rasterizer_device)[0x1b8 / 4])(rasterizer_device, 0, c, 8);
+            ((debug_get_ps_constants_fn)(*(void ***)halo::rasterizer::globals().device)[0x1b8 / 4])(halo::rasterizer::globals().device, 0, c, 8);
             standalone_log("DIAG fpps %s %s count=%u c0=(%.2f %.2f %.2f %.2f) c1=(%.2f %.2f %.2f %.2f) c2=(%.2f %.2f %.2f "
                            "%.2f) c3=(%.2f %.2f %.2f %.2f) c4=(%.2f %.2f %.2f %.2f) c5=(%.2f %.2f %.2f %.2f) c6=(%.2f %.2f "
                            "%.2f %.2f) c7=(%.2f %.2f %.2f %.2f)", debug_fp_state_armed ? "FP" : "other", site,
@@ -231,18 +231,18 @@ void PlayDiagnostics::fp_draw_state_note(const char *site, int32_t hresult, uint
         return;
     }
     debug_fp_state_lines++;
-    vtable = *(void ***)rasterizer_device;
+    vtable = *(void ***)halo::rasterizer::globals().device;
     for (i = 0; i < 16; i++) {
         rs[i] = 0xdeadbeef;
-        ((debug_get_render_state_fn)vtable[0xe8 / 4])(rasterizer_device, states[i], &rs[i]);
+        ((debug_get_render_state_fn)vtable[0xe8 / 4])(halo::rasterizer::globals().device, states[i], &rs[i]);
     }
     for (i = 0; i < 6; i++) {
         viewport[i] = 0;
     }
-    ((debug_get_viewport_fn)vtable[0xc0 / 4])(rasterizer_device, viewport);
-    ((debug_get_pointer_fn)vtable[0x174 / 4])(rasterizer_device, &vs);
-    ((debug_get_pointer_fn)vtable[0x1b0 / 4])(rasterizer_device, &ps);
-    ((debug_get_texture_fn)vtable[0x100 / 4])(rasterizer_device, 0, &tex0);
+    ((debug_get_viewport_fn)vtable[0xc0 / 4])(halo::rasterizer::globals().device, viewport);
+    ((debug_get_pointer_fn)vtable[0x174 / 4])(halo::rasterizer::globals().device, &vs);
+    ((debug_get_pointer_fn)vtable[0x1b0 / 4])(halo::rasterizer::globals().device, &ps);
+    ((debug_get_texture_fn)vtable[0x100 / 4])(halo::rasterizer::globals().device, 0, &tex0);
     if (debug_fp_state_lines <= 4) {
         typedef int32_t (__stdcall *debug_get_vs_constants_fn)(void *self, uint32_t start, float *data, uint32_t count);
         float c[16];
@@ -253,7 +253,7 @@ void PlayDiagnostics::fp_draw_state_note(const char *site, int32_t hresult, uint
         for (k = 0; k < 16; k++) {
             c[k] = 0.0f;
         }
-        ((debug_get_vs_constants_fn)vtable[0x17c / 4])(rasterizer_device, 0, c, 4);
+        ((debug_get_vs_constants_fn)vtable[0x17c / 4])(halo::rasterizer::globals().device, 0, c, 4);
         standalone_log("DIAG fpvs c0=(%.3f %.3f %.3f %.3f) c1=(%.3f %.3f %.3f %.3f) c2=(%.3f %.3f %.3f %.3f) "
                        "c3=(%.3f %.3f %.3f %.3f)", c[0], c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8], c[9], c[10],
             c[11], c[12], c[13], c[14], c[15]);
@@ -311,10 +311,10 @@ void PlayDiagnostics::fp_pre_draw(void)
 {
     typedef int32_t (__stdcall *debug_set_render_state_fn)(void *self, uint32_t state, uint32_t value);
 
-    if (!debug_fp_state_armed || rasterizer_device == 0) {
+    if (!debug_fp_state_armed || halo::rasterizer::globals().device == 0) {
         return;
     }
-    ((debug_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, 15, 0);
+    ((debug_set_render_state_fn)(*(void ***)halo::rasterizer::globals().device)[0xe4 / 4])(halo::rasterizer::globals().device, 15, 0);
 }
 
 }

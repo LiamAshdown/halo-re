@@ -9,11 +9,9 @@
 
 #include "crt.h"
 #include "tags.h"
+#include "halo/shell/api.hpp"
 
 extern "C" {
-extern int cpu_get_type(int feature);
-extern int32_t shell_argc;
-extern char **shell_argv;
 extern int32_t safe_mode;
 }
 
@@ -28,19 +26,19 @@ void math_initialize()
 
     globals().matrix4x3_multiply_procedure = matrix4x3_multiply;
 
-    for (i = 0; i < shell_argc; i++) {
-        char *arg = shell_argv[i];
+    for (i = 0; i < halo::shell::globals().argc; i++) {
+        char *arg = halo::shell::globals().argv[i];
         if (*arg == '-' && stricmp("-noSSE", arg) == 0) {
             return;
         }
     }
 
     if (safe_mode == 0) {
-        if (cpu_get_type(0x1d) != 0) {
+        if (halo::shell::cpu_get_type(0x1d) != 0) {
             globals().matrix4x3_multiply_procedure = matrix4x3_multiply_sse;
             return;
         }
-        if (cpu_get_type(0x1a) != 0) {
+        if (halo::shell::cpu_get_type(0x1a) != 0) {
             globals().matrix4x3_multiply_procedure = matrix4x3_multiply_3dnow;
         }
     }

@@ -9,16 +9,13 @@
 #include "halo/bitmaps/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 
 extern double atan2(double y, double x);
 extern double fpatan(double y, double x);
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
-extern uint8_t rasterizer_lens_flare_set_current_key(int32_t second_bitmap_tag_index, int16_t bitmap_tag_index, int16_t bitmap_index);
-extern void rasterizer_lens_flare_set_vertex_specular(float intensity);
-extern int32_t render_rasterizer_dispatch_537800(int32_t slot_index, real_point3d *point, float radius);
-extern void rasterizer_effect_slot_release_active(void);
 extern double floor(double x);
 extern double fcos(double x);
 extern double fsin(double x);
@@ -369,11 +366,11 @@ void lens_flare_render_all(void)
                 vertex.z = off[2] * along + position.z;
             }
 
-            if (rasterizer_lens_flare_set_current_key(*(int32_t *)(definition + 0x2c), 0,
+            if (halo::render::rasterizer_lens_flare_set_current_key(*(int32_t *)(definition + 0x2c), 0,
                                                       (int16_t)*(uint16_t *)(reflection + 0x04)) != 0) {
                 break;
             }
-            rasterizer_lens_flare_set_vertex_specular(specular);
+            halo::render::rasterizer_lens_flare_set_vertex_specular(specular);
             halo::rasterizer::globals::lens_flare_batch_mode = ((flags & 8) != 0 && (instance[0x22] & 0x80) != 0) ? 2 : 0;
             rasterizer_lens_flare_quad_add(scale, colour, &vertex, radius, reflection_rotation * 0.017453292f);
         }
@@ -455,10 +452,10 @@ void lens_flare_update_samples(void)
             sample_point = instance->position;
             break;
         }
-        instance->sample_count = render_rasterizer_dispatch_537800(i, &sample_point, radius);
+        instance->sample_count = halo::render::render_rasterizer_dispatch_537800(i, &sample_point, radius);
     }
 
-    rasterizer_effect_slot_release_active();
+    halo::render::rasterizer_effect_slot_release_active();
 }
 
 /**

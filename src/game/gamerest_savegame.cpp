@@ -3,6 +3,7 @@
 #include <wchar.h>
 #include <stdint.h>
 #include "halo/cache/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern int32_t user_save_path_register(uint32_t user_id, char *path);
@@ -11,17 +12,6 @@ extern char *user_save_path_lookup(uint32_t user_id);
 extern char saved_game_root_path[];
 extern file_reference savegame_index_file;
 extern network_mutex_record *savegame_index_mutex;
-extern uint8_t file_reference_open(file_reference *reference, int32_t mode);
-extern uint8_t file_reference_close(file_reference *reference);
-extern uint8_t file_reference_seek(int32_t offset, file_reference *reference);
-extern uint32_t file_reference_get_size(file_reference *reference);
-extern uint8_t file_reference_write(file_reference *reference, const void *buffer, uint32_t size);
-extern void path_append_component(char *destination, const char *component);
-extern void path_remove_last_component(uint8_t *path);
-extern uint8_t file_reference_get_size_by_path(void *ref, uint32_t *out_size);
-extern uint8_t file_reference_close(file_reference *ref);
-extern uint8_t file_reference_seek(int32_t offset, file_reference *ref);
-extern uint8_t file_reference_read(file_reference *ref, void *buffer, uint32_t size);
 extern uint32_t user_save_path_keys[k_maximum_user_save_paths];
 extern char user_save_paths[k_maximum_user_save_paths][k_user_save_path_slot_stride];
 extern wchar_t missing_string_text[];
@@ -450,22 +440,22 @@ uint8_t SaveGameIndex::append_slot(const void *entry, uint32_t *out_slot_count)
         raw[0] = 0x66696c6f;
         *word_at_6 = 2;
         if ((*flags_byte & 1) != 0) {
-            path_remove_last_component((uint8_t *)&savegame_index_file + 8);
+            halo::saved_games::path_remove_last_component((char *)((uint8_t *)&savegame_index_file + 8));
         }
-        path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
+        halo::saved_games::path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
         *flags_byte = *flags_byte | 1;
     }
 
-    if (file_reference_open(&savegame_index_file, 2) != 0) {
-        uint32_t size = file_reference_get_size(&savegame_index_file);
+    if (halo::saved_games::file_reference_open((file_reference_record *)&savegame_index_file, 2) != 0) {
+        uint32_t size = halo::saved_games::file_reference_get_size((file_reference_record *)&savegame_index_file);
         if (size / 0x206 < 999) {
-            if (file_reference_seek((int32_t)(size / 0x206) * 0x206, &savegame_index_file) != 0 &&
-                file_reference_write(&savegame_index_file, entry, 0x206) != 0) {
+            if (halo::saved_games::file_reference_seek((int32_t)(size / 0x206) * 0x206, (file_reference_record *)&savegame_index_file) != 0 &&
+                halo::saved_games::file_reference_write((file_reference_record *)&savegame_index_file, entry, 0x206) != 0) {
                 result = 1;
                 *out_slot_count = size / 0x206;
             }
         }
-        if (file_reference_close(&savegame_index_file) == 0) {
+        if (halo::saved_games::file_reference_close((file_reference_record *)&savegame_index_file) == 0) {
             result = 0;
         }
     }
@@ -494,13 +484,13 @@ uint8_t SaveGameIndex::file_exists()
     raw[0] = 0x66696c6f;
     *word_at_6 = 2;
     if ((*flags_byte & 1) != 0) {
-        path_remove_last_component((uint8_t *)&savegame_index_file + 8);
+        halo::saved_games::path_remove_last_component((char *)((uint8_t *)&savegame_index_file + 8));
     }
-    path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
+    halo::saved_games::path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
     *flags_byte = *flags_byte | 1;
 
-    if (file_reference_open(&savegame_index_file, 1) != 0) {
-        file_reference_get_size(&savegame_index_file);
+    if (halo::saved_games::file_reference_open((file_reference_record *)&savegame_index_file, 1) != 0) {
+        halo::saved_games::file_reference_get_size((file_reference_record *)&savegame_index_file);
         return 1;
     }
     return 0;
@@ -526,12 +516,12 @@ uint32_t SaveGameIndex::get_slot_count()
     raw[0] = 0x66696c6f;
     *word_at_6 = 2;
     if ((*flags_byte & 1) != 0) {
-        path_remove_last_component((uint8_t *)&savegame_index_file + 8);
+        halo::saved_games::path_remove_last_component((char *)((uint8_t *)&savegame_index_file + 8));
     }
-    path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
+    halo::saved_games::path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
     *flags_byte = *flags_byte | 1;
 
-    if (file_reference_get_size_by_path((void *)&savegame_index_file, &size) != 0) {
+    if (halo::saved_games::file_reference_get_size_by_path((file_reference_record *)((void *)&savegame_index_file), &size) != 0) {
         return size / 0x206;
     }
     return 0;
@@ -568,23 +558,23 @@ uint8_t SaveGameIndex::read_slot(uint16_t slot, void *out_entry)
         raw[0] = 0x66696c6f;
         *word_at_6 = 2;
         if ((*flags_byte & 1) != 0) {
-            path_remove_last_component((uint8_t *)&savegame_index_file + 8);
+            halo::saved_games::path_remove_last_component((char *)((uint8_t *)&savegame_index_file + 8));
         }
-        path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
+        halo::saved_games::path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
         *flags_byte = *flags_byte | 1;
     }
 
-    if (file_reference_open(&savegame_index_file, 1) != 0) {
-        uint32_t size = file_reference_get_size(&savegame_index_file);
+    if (halo::saved_games::file_reference_open((file_reference_record *)&savegame_index_file, 1) != 0) {
+        uint32_t size = halo::saved_games::file_reference_get_size((file_reference_record *)&savegame_index_file);
         if ((uint32_t)slot * 0x206 + 0x206 <= size) {
-            if (file_reference_seek((int32_t)slot * 0x206, (file_reference *)&savegame_index_file) != 0) {
+            if (halo::saved_games::file_reference_seek((int32_t)slot * 0x206, (file_reference_record *)((file_reference *)&savegame_index_file)) != 0) {
                 result = 1;
-                if (file_reference_read((file_reference *)&savegame_index_file, out_entry, 0x206) == 0) {
+                if (halo::saved_games::file_reference_read((file_reference_record *)((file_reference *)&savegame_index_file), out_entry, 0x206) == 0) {
                     result = 0;
                 }
             }
         }
-        if (file_reference_close((file_reference *)&savegame_index_file) == 0) {
+        if (halo::saved_games::file_reference_close((file_reference_record *)((file_reference *)&savegame_index_file)) == 0) {
             result = 0;
         }
     }
@@ -623,23 +613,23 @@ uint8_t SaveGameIndex::write_slot(uint16_t slot, const void *entry)
         raw[0] = 0x66696c6f;
         *word_at_6 = 2;
         if ((*flags_byte & 1) != 0) {
-            path_remove_last_component((uint8_t *)&savegame_index_file + 8);
+            halo::saved_games::path_remove_last_component((char *)((uint8_t *)&savegame_index_file + 8));
         }
-        path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
+        halo::saved_games::path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
         *flags_byte = *flags_byte | 1;
     }
 
-    if (file_reference_open(&savegame_index_file, 2) != 0) {
-        uint32_t size = file_reference_get_size(&savegame_index_file);
+    if (halo::saved_games::file_reference_open((file_reference_record *)&savegame_index_file, 2) != 0) {
+        uint32_t size = halo::saved_games::file_reference_get_size((file_reference_record *)&savegame_index_file);
         if ((uint32_t)slot * 0x206 + 0x206 <= size) {
-            if (file_reference_seek((int32_t)slot * 0x206, &savegame_index_file) != 0) {
+            if (halo::saved_games::file_reference_seek((int32_t)slot * 0x206, (file_reference_record *)&savegame_index_file) != 0) {
                 result = 1;
-                if (file_reference_write(&savegame_index_file, entry, 0x206) == 0) {
+                if (halo::saved_games::file_reference_write((file_reference_record *)&savegame_index_file, entry, 0x206) == 0) {
                     result = 0;
                 }
             }
         }
-        if (file_reference_close(&savegame_index_file) == 0) {
+        if (halo::saved_games::file_reference_close((file_reference_record *)&savegame_index_file) == 0) {
             result = 0;
         }
     }

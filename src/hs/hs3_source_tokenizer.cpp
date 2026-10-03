@@ -9,6 +9,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/saved_games/api.hpp"
 
 typedef struct rebuild_file_reference {
     uint32_t signature;
@@ -77,31 +78,31 @@ char SourceTokenizer::rebuild_source() const
     global_scripts.signature = 0x66696c6f;
     global_scripts.location = -1;
     if ((global_scripts.flags & 1) != 0) {
-        path_remove_last_component(global_scripts.path);
+        halo::saved_games::path_remove_last_component(global_scripts.path);
     }
-    path_append_component(global_scripts.path, "data\\global_scripts.hsc");
+    halo::saved_games::path_append_component(global_scripts.path, "data\\global_scripts.hsc");
     global_scripts.flags |= 1;
-    if (file_reference_exists(&global_scripts) != 0) {
-        file_reference_exists(&global_scripts);
+    if (halo::saved_games::file_reference_exists((file_reference_record *)&global_scripts) != 0) {
+        halo::saved_games::file_reference_exists((file_reference_record *)&global_scripts);
         nothing_found = 0;
     }
 
     memset(&scripts_directory, 0, sizeof(scripts_directory));
     scripts_directory.signature = 0x66696c6f;
     scripts_directory.location = -1;
-    path_append_component(scripts_directory.path, directory_path);
-    file_enumerate_start(0, &scripts_directory);
+    halo::saved_games::path_append_component(scripts_directory.path, directory_path);
+    halo::saved_games::file_enumerate_start(0, (file_reference_record *)&scripts_directory);
     for (count = 0; count < 8; count++) {
-        if (file_enumerate_find_next(&entries[count], 0) == 0) {
+        if (halo::saved_games::file_enumerate_find_next((file_reference_record *)(&entries[count]), 0) == 0) {
             break;
         }
     }
-    qsort(entries, count, sizeof(rebuild_file_reference), (int (*)(const void *, const void *))file_reference_compare_full_path);
+    qsort(entries, count, sizeof(rebuild_file_reference), (int (*)(const void *, const void *))halo::saved_games::file_reference_compare_full_path);
 
     for (i = 0; i < count; i++) {
         memset(display_name, 0, sizeof(display_name));
-        path_build_full(entries[i].path, display_name, entries[i].location);
-        path_split_components(&dir_start, display_name, &ext_fallback, &name_end, &ext_start, (uint8_t)(entries[i].flags & 1));
+        halo::saved_games::path_build_full(entries[i].path, display_name, entries[i].location);
+        halo::saved_games::path_split_components(&dir_start, display_name, &ext_fallback, &name_end, &ext_start, (uint8_t)(entries[i].flags & 1));
         extension[0] = 0;
         if (*ext_start != 0) {
             char *end = extension + strlen(extension);
@@ -114,7 +115,7 @@ char SourceTokenizer::rebuild_source() const
             extension[0xff] = 0;
         }
         if (strcmp(extension, "hsc") == 0) {
-            file_reference_exists(&entries[i]);
+            halo::saved_games::file_reference_exists((file_reference_record *)(&entries[i]));
             nothing_found = 0;
         }
     }

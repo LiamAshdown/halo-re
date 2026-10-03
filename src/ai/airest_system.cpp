@@ -12,12 +12,13 @@
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/ai/ai_constants.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern ai_globals *ai_globals_ptr;
 extern int32_t game_engine_get_current_tick(void);
 extern void ai_broadcast_communication_event(int16_t gate, real_point3d *point, int32_t source_object, int16_t event_type, int16_t unused);
@@ -32,13 +33,9 @@ extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_i
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index, char create_if_missing, uint32_t flag);
 extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index, int16_t grenade_type);
 extern int ai_squad_priority_compare(const ai_priority_target_record *record_a, const ai_priority_target_record *record_b);
-extern game_main_globals *main_game_globals;
 extern void team_pair_override_add(int16_t index_a, uint8_t unknown_08, int16_t index_b, uint8_t unknown_09, int16_t threshold, int16_t timer_reset, uint8_t unknown_0c);
 extern void actor_iterator_new(actor_iterator_state *out_iterator, uint8_t active_only);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
-extern uint8_t *game_state_base;
-extern int32_t game_state_cursor;
-extern uint32_t game_state_crc;
 extern void actors_initialize(void);
 extern void encounters_initialize(void);
 extern void ai_communication_initialize(void);
@@ -88,9 +85,9 @@ namespace halo::ai {
  */
 void AiSystem::actors_initialize()
 {
-    actor_data = (data_array *)game_state_new((char *)"actor", k_actor_data_maximum_count, k_actor_size);
-    swarm_data = (data_array *)game_state_new((char *)"swarm", k_swarm_data_maximum_count, k_swarm_size);
-    swarm_component_data = (data_array *)game_state_new((char *)"swarm component", k_swarm_component_data_maximum_count, k_swarm_component_size);
+    actor_data = (data_array *)halo::saved_games::game_state_new((char *)"actor", k_actor_data_maximum_count, k_actor_size);
+    swarm_data = (data_array *)halo::saved_games::game_state_new((char *)"swarm", k_swarm_data_maximum_count, k_swarm_size);
+    swarm_component_data = (data_array *)halo::saved_games::game_state_new((char *)"swarm component", k_swarm_component_data_maximum_count, k_swarm_component_size);
 }
 
 /**
@@ -365,7 +362,7 @@ void AiSystem::category_matches_wildcard(int16_t category, int16_t other_categor
         other = team_a;
     }
     if (other == 2 || other == 5) {
-        timer = k_forgiveness_ticks[main_game_globals->difficulty & 3];
+        timer = k_forgiveness_ticks[halo::main::globals().game_globals->difficulty & 3];
         human = other == 2;
         betrayable = 1;
         threshold = 5;
@@ -409,11 +406,11 @@ void AiSystem::get_difficulty_request(int16_t request_code, uint8_t *out_flag_a,
     switch (request_code) {
     case 1:
         *out_flag_a = 1;
-        *out_value = weapon_get_zoom_fov(0x1d, main_game_globals->difficulty);
+        *out_value = weapon_get_zoom_fov(0x1d, halo::main::globals().game_globals->difficulty);
         break;
     case 2:
         *out_flag_a = 1;
-        *out_value = weapon_get_zoom_fov(0x1e, main_game_globals->difficulty);
+        *out_value = weapon_get_zoom_fov(0x1e, halo::main::globals().game_globals->difficulty);
         break;
     case 3:
         *out_flag_a = 0;
@@ -425,7 +422,7 @@ void AiSystem::get_difficulty_request(int16_t request_code, uint8_t *out_flag_a,
         break;
     default:
         *out_flag_a = 1;
-        *out_value = weapon_get_zoom_fov(0x1c, main_game_globals->difficulty);
+        *out_value = weapon_get_zoom_fov(0x1c, halo::main::globals().game_globals->difficulty);
         break;
     }
 }
@@ -474,17 +471,17 @@ int16_t AiSystem::group_bucket_find_or_add(ai_group_bucket_entry *buckets, int32
  */
 void AiSystem::initialize_for_new_map()
 {
-    ai_globals *globals = (ai_globals *)(game_state_base + game_state_cursor);
+    ai_globals *globals = (ai_globals *)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
     int32_t size = k_ai_globals_size;
 
-    game_state_cursor = game_state_cursor + k_ai_globals_size;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + k_ai_globals_size;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
 
     ai_globals_ptr = globals;
     memset(globals, 0, k_ai_globals_size);
 
     actors_initialize();
-    prop_data = (data_array *)game_state_new(prop_array_name, k_prop_data_maximum_count, k_prop_size);
+    prop_data = (data_array *)halo::saved_games::game_state_new(prop_array_name, k_prop_data_maximum_count, k_prop_size);
     encounters_initialize();
     ai_communication_initialize();
     actor_avoidance_build_direction_tables();

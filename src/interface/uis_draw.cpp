@@ -19,14 +19,13 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                            void **out_data, int32_t *out_offset);
 extern uint16_t *ui_button_caption[0x28];
-extern int16_t rasterizer_vertex_buffer_lock_state;
-extern void rasterizer_ui_quad_draw(ui_quad_render_state *state, uint8_t *vertices);
 extern double fsin(double x);
 extern double fcos(double x);
 extern int32_t ui_network_wait_start_time;
@@ -68,7 +67,7 @@ static void draw_span_inline(Rectangle2D *origin, Rectangle2D *cursor, const uin
     halo::text::text_measure_string_extents(origin, cursor, &out, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
     cursor->left = (int16_t)(cursor->left - 3);
     out.left = origin->left;
-    chimera__draw_16_bit_text((Rectangle2D *)0, &out, 0, 0, text);
+    halo::rasterizer::chimera__draw_16_bit_text((Rectangle2D *)0, (int32_t *)&out, 0, 0, (const int16_t *)text);
     origin->top = cursor->top;
 }
 
@@ -182,9 +181,9 @@ void UiDraw::draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect)
     state.framebuffer_blend_function = 0;
     state.single_local_player = 0;
 
-    rasterizer_vertex_buffer_lock_state = 8;
-    rasterizer_ui_quad_draw(&state, vertices);
-    rasterizer_vertex_buffer_lock_state = 0;
+    halo::rasterizer::globals().vertex_buffer_lock_state = 8;
+    halo::rasterizer::rasterizer_ui_quad_draw(&state, (hud_quad_vertex *)vertices);
+    halo::rasterizer::globals().vertex_buffer_lock_state = 0;
 }
 
 /**
@@ -251,7 +250,7 @@ void UiDraw::draw_rotated_screen_quad(int16_t *origin, int32_t source_record, fl
     state.framebuffer_blend_function = 7;
     state.maps[0] = (BitmapData *)source_record;
 
-    rasterizer_ui_quad_draw(&state, quad);
+    halo::rasterizer::rasterizer_ui_quad_draw(&state, (hud_quad_vertex *)quad);
 }
 
 /**
@@ -366,7 +365,7 @@ void UiDraw::draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t 
         state.map_scales[0].y = 1.0f;
         state.map_scales[0].x = 1.0f;
 
-        rasterizer_ui_quad_draw(&state, submit_buffer);
+        halo::rasterizer::rasterizer_ui_quad_draw(&state, (hud_quad_vertex *)submit_buffer);
     }
 }
 
@@ -546,7 +545,7 @@ void UiDraw::widget_draw_prompt_span(const uint16_t *text, Rectangle2D *cursor, 
     halo::text::text_measure_string_extents(origin, cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
     cursor->left = (int16_t)(cursor->left - 3);
     bounds.left = origin->left;
-    chimera__draw_16_bit_text((Rectangle2D *)0, &bounds, 0, 0, text);
+    halo::rasterizer::chimera__draw_16_bit_text((Rectangle2D *)0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
     origin->top = cursor->top;
 }
 

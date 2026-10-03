@@ -5,6 +5,8 @@
 #include <wchar.h>
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/shell/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern uint8_t chat_dialog_open;
@@ -21,13 +23,11 @@ extern chat_gui_set_state_fn chat_gui_set_state;
 extern chat_gui_release_fn chat_gui_release;
 extern uint8_t chat_gui_active;
 extern data_array *player_data;
-extern void *shell_module_handle;
 extern wchar_t empty_string;
 extern uint8_t message_delta_decode_compound_field(void *event, chat_incoming_record *out_record);
 extern void message_delta_decode_compound_field_staged(void *event);
 extern int32_t shell_load_localized_string(int32_t id, char *out_buffer);
 extern void chimera__multiplayer_message(const wchar_t *text);
-extern console_globals console_globals_data;
 extern uint8_t chat_hotkey_all;
 extern uint8_t chat_hotkey_team;
 extern uint8_t chat_hotkey_vehicle;
@@ -174,7 +174,7 @@ void LocalizedChatSource::deliver(const chat_incoming_record &record, wchar_t *)
     int32_t string_id = (int32_t)_wtol((const wchar_t *)record.text);
 
     memset(short_line, 0, sizeof(short_line));
-    if (shell_load_localized_string(string_id, localized) == 0) {
+    if (halo::shell::shell_load_localized_string(sizeof(localized), halo::shell::globals().module_handle, localized, string_id) == 0) {
         return;
     }
     halo::text::string_format_wide_va_bounded(0x7f, (uint16_t *)short_line, (const uint16_t *)L"%S", localized);
@@ -248,7 +248,7 @@ void ChatDialog::dispatch_incoming(void *event)
  */
 uint8_t ChatDialog::poll_hotkeys(void)
 {
-    if (console_globals_data.active == 0) {
+    if (halo::main::globals().console_globals.active == 0) {
         if (chat_hotkey_all == 1) {
             chimera__chat_open(0);
             hud_chat_listbox_update();

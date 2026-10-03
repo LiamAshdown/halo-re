@@ -5,6 +5,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/shell/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -14,11 +16,7 @@ extern "C" {
 extern int32_t safe_mode;
 extern int16_t renderer_texture_quality;
 extern int32_t game_time_force_single_tick;
-extern uint8_t rasterizer_fullscreen;
-extern void *rasterizer_device;
-extern uint8_t rasterizer_needs_reset;
 extern uint8_t rasterizer_desktop_display_mode[];
-extern uint32_t config_disable_specular;
 extern uint8_t console_debug_toggle_6893f7;
 extern uint8_t console_debug_toggle_6893f6;
 extern uint8_t console_debug_toggle_6893fa;
@@ -28,12 +26,6 @@ extern uint32_t rasterizer_capability_007c10e4;
 extern int16_t light_count_enabled;
 extern uint8_t console_debug_toggle_689404;
 extern uint8_t particle_systems_enabled;
-extern int32_t rasterizer_gamma_exponent;
-extern uint8_t rasterizer_display_mode_differs(rasterizer_display_mode *requested);
-extern void rasterizer_build_present_parameters(void *dest, rasterizer_display_mode *source);
-extern uint8_t rasterizer_device_reset(void *present_parameters);
-extern void rasterizer_resize_game_window(int32_t height, int32_t width);
-extern void chimera__gamma(void);
 }
 
 typedef int32_t (__stdcall *d3d_get_display_mode_fn)(void *device, uint32_t swap_chain, void *mode);
@@ -82,7 +74,7 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
     mode.vsync = settings[0xa6f] != 0;
     state::frame_rate_limiter_enabled = game_time_force_single_tick != 0 ? 0 : settings[0xa6f] == 2;
 
-    if (rasterizer_fullscreen == 0 || rasterizer_device == 0) {
+    if (halo::rasterizer::globals().fullscreen == 0 || halo::rasterizer::globals().device == 0) {
         GetWindowRect(GetDesktopWindow(), &desktop);
         if ((uint32_t)mode.height >= (uint32_t)desktop.bottom || (uint32_t)mode.width >= (uint32_t)desktop.right) {
             if (desktop.bottom > 600) {
@@ -94,19 +86,19 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
             }
         }
     }
-    if (rasterizer_needs_reset == 0 && rasterizer_display_mode_differs(&mode)) {
+    if (halo::rasterizer::globals().needs_reset == 0 && halo::rasterizer::rasterizer_display_mode_differs(&mode)) {
         void **vtable;
 
-        rasterizer_build_present_parameters(present_parameters, &mode);
-        rasterizer_device_reset(present_parameters);
-        vtable = *(void ***)rasterizer_device;
-        ((d3d_get_display_mode_fn)vtable[0x20 / 4])(rasterizer_device, 0, rasterizer_desktop_display_mode);
+        halo::rasterizer::rasterizer_build_present_parameters((d3d_present_parameters *)present_parameters, &mode);
+        halo::rasterizer::rasterizer_device_reset((d3d_present_parameters *)present_parameters);
+        vtable = *(void ***)halo::rasterizer::globals().device;
+        ((d3d_get_display_mode_fn)vtable[0x20 / 4])(halo::rasterizer::globals().device, 0, rasterizer_desktop_display_mode);
         reset = 1;
-        rasterizer_resize_game_window(mode.height, mode.width);
-        rasterizer_needs_reset = 0;
+        halo::rasterizer::rasterizer_resize_game_window(mode.height, mode.width);
+        halo::rasterizer::globals().needs_reset = 0;
     }
 
-    value = config_disable_specular != 0 ? 0 : settings[0xa70];
+    value = halo::shell::globals().disable_specular != 0 ? 0 : settings[0xa70];
     console_debug_toggle_6893f7 = value;
     console_debug_toggle_6893f6 = value;
     console_debug_toggle_6893fa = value;
@@ -117,8 +109,8 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
     halo::effects::globals().decals_for_all_responses = (rasterizer_capability_007c10e4 & 0x6000000u) != 0 ? settings[0xa72] : 0;
     halo::effects::globals().particle_spawn_debug_mode = settings[0xa73];
     particle_systems_enabled = settings[0xa73];
-    rasterizer_gamma_exponent = settings[0xa76];
-    chimera__gamma();
+    halo::rasterizer::globals().gamma_exponent = settings[0xa76];
+    halo::rasterizer::chimera__gamma();
 
     if (mode_changed) {
         halo::cache::globals().texture_cache->age = halo::cache::globals().texture_cache->age + 1;

@@ -8,6 +8,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 namespace halo::sound {
 
@@ -18,7 +19,7 @@ int32_t game_sound_update_now_ms(void)
 {
     large_integer counter;
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    return (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    return (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 }
 
 }  // namespace
@@ -30,7 +31,7 @@ void initialize(void)
     int32_t size = sizeof(game_sound_globals);
     game_sound_globals *globals = (game_sound_globals *)(game_state_base + game_state_cursor);
 
-    game_looping_sound_data = (data_array *)game_state_new((char *)"object looping sounds", k_maximum_game_looping_sounds, sizeof(game_looping_sound));
+    game_looping_sound_data = (data_array *)halo::saved_games::game_state_new((char *)"object looping sounds", k_maximum_game_looping_sounds, sizeof(game_looping_sound));
 
     game_state_cursor = game_state_cursor + size;
     halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);

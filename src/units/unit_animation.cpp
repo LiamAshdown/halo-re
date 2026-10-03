@@ -16,11 +16,10 @@
 #include "halo/sound/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/main/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
-extern uint8_t *game_state_base;
-extern int32_t game_state_cursor;
-extern uint32_t game_state_crc;
 extern halo::units::ai_update_stagger_state *ai_update_stagger;
 extern data_array *object_data;
 extern int16_t unit_speech_fallback_index[];
@@ -63,11 +62,11 @@ namespace halo::units {
  */
 void unit_ai_update_stagger_allocate(void)
 {
-    uint8_t *block = game_state_base + game_state_cursor;
+    uint8_t *block = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
     int32_t size = 8;
 
-    game_state_cursor = game_state_cursor + 8;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 8;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     ai_update_stagger = (ai_update_stagger_state *)block;
 }
 
@@ -771,7 +770,7 @@ void UnitView::scripting_set_emotion_animation(const char *emotion_name)
             unit->emotion_animation_index = region;
             return;
         }
-        console_print_va("couldn't find the emotion animation '%s'", emotion_name);
+        halo::main::console_print_va("couldn't find the emotion animation '%s'", emotion_name);
     }
     return;
 }
@@ -974,7 +973,7 @@ uint8_t UnitView::start_user_animation(datum_index graph_tag, const char *animat
     unit = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(unit_index) * 0xc + 8);
     animation = halo::models::animation_graph_find_animation_by_name(graph_tag, animation_name);
     if (animation == -1) {
-        console_print_va("the animation '%s' doesn't exist in the graph '%s'", animation_name,
+        halo::main::console_print_va("the animation '%s' doesn't exist in the graph '%s'", animation_name,
             *(char **)((uint8_t *)halo::cache::globals().tag_instances + (int16_t)graph_tag * 0x20 + 0x10));
         return 0;
     }

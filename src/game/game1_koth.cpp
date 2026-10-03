@@ -20,6 +20,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/render/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern uint8_t hill_pulse_fade_done;
@@ -99,7 +101,6 @@ extern void game_engine_koth_find_marker_position(real_point3d *out_position, in
 extern void ctf_flag_object_clear_carrier(datum_index flag_object_index, real_point3d *position);
 extern const real_vector3d *global_white_color;
 extern king_hill_marker_history king_hill_markers;
-extern int16_t rasterizer_vertex_buffer_lock_state;
 extern void **rasterizer_dynamic_index_buffer;
 extern int16_t rasterizer_dynamic_vertex_slots[];
 extern int32_t render_unknown_d98f0[];
@@ -108,19 +109,9 @@ extern void *k_render_identity_matrix_ptr;
 extern const ColorARGB *global_white_argb;
 extern real_vector3d default_axis_b;
 extern uint8_t console_debug_toggle_6893ec;
-extern uint8_t rasterizer_render_states_dirty;
 extern uint8_t unknown_0071d1fa;
 extern uint32_t rasterizer_device_version;
 extern void **rasterizer_device;
-extern void *rasterizer_dynamic_index_cache_reserve(void);
-extern int32_t rasterizer_dynamic_vertex_cache_reserve(void);
-extern int32_t rasterizer_dynamic_vertex_cache_lock(void);
-extern void *rasterizer_dynamic_index_slot_lock(void);
-extern void rasterizer_model_draw_prepare_states(int32_t a);
-extern void rasterizer_shader_environment_draw_dispatch(int32_t tag_data, int32_t a, int32_t b, int32_t c, int32_t d, int32_t e);
-extern void rasterizer_transparent_geometry_group_build(int32_t tag_data, int32_t a, int32_t b, int32_t c, int32_t d, int32_t e,
-    int32_t f, void *g);
-extern void rasterizer_model_draw_restore_states(void);
 extern uint8_t king_hill_single_occupant_flag;
 extern king_globals king_hill_state_globals;
 }
@@ -922,10 +913,10 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
     float fStack_e8;
     int32_t iStack_fc = 0;
 
-    rasterizer_vertex_buffer_lock_state = 9;
-    fVar5 = *(float *)rasterizer_dynamic_index_cache_reserve();
+    halo::rasterizer::globals().vertex_buffer_lock_state = 9;
+    fVar5 = *(float *)halo::rasterizer::rasterizer_dynamic_index_cache_reserve(0);
     local_f0 = fVar5;
-    iVar6 = rasterizer_dynamic_vertex_cache_reserve();
+    iVar6 = halo::rasterizer::rasterizer_dynamic_vertex_cache_reserve(0, 0);
     if (fVar5 == fVar5 && iVar6 != -1) {
         uint8_t *dest_block;
         int32_t base;
@@ -936,8 +927,8 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
         int32_t tag_data;
         int32_t i;
 
-        base = rasterizer_dynamic_vertex_cache_lock();
-        dest_block = (uint8_t *)rasterizer_dynamic_index_slot_lock();
+        base = (int32_t)halo::rasterizer::rasterizer_dynamic_vertex_cache_lock(iVar6);
+        dest_block = (uint8_t *)halo::render::rasterizer_dynamic_index_slot_lock(0);
         offset = (int32_t)vertex_source - base;
         src = vertex_source + 9;
         dst = (uint32_t *)(base + 0xc);
@@ -1038,7 +1029,7 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
             *(float *)(record + 0xa0) = fStack_e8;
 
             if (console_debug_toggle_6893ec != 0) {
-                rasterizer_render_states_dirty = 1;
+                halo::rasterizer::globals().render_states_dirty = 1;
                 unknown_0071d1fa = 0;
                 if (rasterizer_device_version < 0xffff0101) {
                     ((void (__stdcall *)(void **, int32_t, int32_t))(*(void ***)((uint8_t *)*rasterizer_device + 0xe4)))(
@@ -1046,17 +1037,17 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
                 }
             }
 
-            rasterizer_model_draw_prepare_states(1);
+            halo::rasterizer::rasterizer_model_draw_prepare_states(0, 1);
 
             {
                 int16_t kind = *(int16_t *)((uint8_t *)tag_data + 0x24);
                 if (kind == 1 || (4 < kind && kind < 0xc)) {
-                    rasterizer_transparent_geometry_group_build(tag_data, 0, 0, 0, 2, 0, iStack_fc, &local_f0);
+                    halo::rasterizer::rasterizer_transparent_geometry_group_build((transparent_geometry_group_link *)tag_data, 0, 0, 0, 2, 0, (rasterizer_vertex_buffer *)iStack_fc, 0, (const real_point3d *)&local_f0);
                 } else {
-                    rasterizer_shader_environment_draw_dispatch(tag_data, 0, 0, 0, 2, 0);
+                    halo::rasterizer::rasterizer_shader_environment_draw_dispatch(tag_data, 0, 0, 0, 2, 0, 0);
                 }
             }
-            rasterizer_model_draw_restore_states();
+            halo::rasterizer::rasterizer_model_draw_restore_states();
 
             if (console_debug_toggle_6893ec != 0 && rasterizer_device_version < 0xffff0101) {
                 ((void (__stdcall *)(void **, int32_t, int32_t))(*(void ***)((uint8_t *)*rasterizer_device + 0xe4)))(
@@ -1064,10 +1055,10 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
             }
         }
 
-        rasterizer_vertex_buffer_lock_state = 0;
+        halo::rasterizer::globals().vertex_buffer_lock_state = 0;
         return;
     }
-    rasterizer_vertex_buffer_lock_state = 0;
+    halo::rasterizer::globals().vertex_buffer_lock_state = 0;
 }
 
 /**

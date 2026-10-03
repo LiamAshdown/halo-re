@@ -22,6 +22,9 @@
 #include "halo/structures/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/render/layout.hpp"
+#include "halo/render/api.hpp"
+#include "halo/rasterizer/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern int32_t render_frame_index;
@@ -30,25 +33,15 @@ extern float render_time_since_frame;
 extern int16_t render_window_index;
 extern int16_t screenshot_scale;
 extern game_time_globals *game_time;
-extern uint8_t rasterizer_reset_device_if_needed(void);
 extern void ui_draw_trouble_brewing_indicator(void);
-extern void rasterizer_end_frame(void);
-extern void rasterizer_unbind_stream_and_textures(void);
-extern uint8_t *game_state_base;
-extern int32_t game_state_cursor;
-extern uint32_t game_state_crc;
 extern ColorARGB *rasterizer_model_ambient_reflection_tint;
-extern uint8_t rasterizer_initialize_direct3d(void);
 extern render_camera render_camera_global;
 extern render_frustum render_frustum_global;
-extern rasterizer_window_parameters rasterizer_window;
-extern void rasterizer_begin_frame(rasterizer_window_parameters *source);
 extern void ui_error_modal_update(void);
 extern void hud_timer_draw(void);
 extern void chimera__do_show_loading_screen(void);
 extern void console_draw_overlay(void);
 extern void game_engine_maybe_render_post_game(void);
-extern rasterizer_frame_statistics rasterizer_frame_statistics_state;
 extern render_fog render_fog_state;
 extern uint8_t render_clip_warning;
 extern uint32_t rasterizer_device_version;
@@ -87,9 +80,9 @@ void draw(Point2DInt *screenshot_tile, render_view *views, int16_t count, Point2
     frame_time.unknown_08 = 0;
     frame_time.unknown_0c = 0;
     frame_time.time = (double)game_time->game_time * (1.0 / 30.0) + (double)time_since_tick;
-    render_cinematic_screen_effect_update(&frame_time);
+    halo::render::render_cinematic_screen_effect_update(&frame_time);
 
-    if (!rasterizer_reset_device_if_needed()) {
+    if (!halo::rasterizer::rasterizer_reset_device_if_needed()) {
         return;
     }
 
@@ -99,9 +92,9 @@ void draw(Point2DInt *screenshot_tile, render_view *views, int16_t count, Point2
         render_window_index = i;
 
         if (view->nonplayer != 0) {
-            render_nonplayer_frame(0, view);
+            halo::render::render_nonplayer_frame(0, view);
         } else if (view->local_player_index == -1) {
-            render_nonplayer_frame(1, view);
+            halo::render::render_nonplayer_frame(1, view);
         } else {
             Point2DInt combined_tile;
             Point2DInt *tile_argument = 0;
@@ -113,13 +106,13 @@ void draw(Point2DInt *screenshot_tile, render_view *views, int16_t count, Point2
             if (screenshot_tile != 0) {
                 tile_argument = &combined_tile;
             }
-            render_player_frame(tile_argument, view);
+            halo::render::render_player_frame(tile_argument, view);
         }
     }
 
     ui_draw_trouble_brewing_indicator();
-    rasterizer_end_frame();
-    rasterizer_unbind_stream_and_textures();
+    halo::rasterizer::rasterizer_end_frame();
+    halo::rasterizer::rasterizer_unbind_stream_and_textures();
 }
 
 /**
@@ -133,10 +126,10 @@ uint8_t initialize(void)
     int32_t block_size = k_model_ambient_reflection_tint_size;
 
     rasterizer_model_ambient_reflection_tint =
-        (ColorARGB *)(game_state_base + game_state_cursor);
-    game_state_cursor = game_state_cursor + k_model_ambient_reflection_tint_size;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
-    return rasterizer_initialize_direct3d();
+        (ColorARGB *)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + k_model_ambient_reflection_tint_size;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&block_size, 4);
+    return halo::rasterizer::rasterizer_initialize_direct3d();
 }
 
 /**
@@ -153,16 +146,16 @@ void nonplayer_frame(uint32_t nonplayer, render_view *view)
     rasterizer_window_parameters params = {0};
 
     render_camera_global = view->source_camera;
-    chimera__render_camera_build_frustum(0, &render_camera_global, &render_frustum_global, 1);
+    halo::render::chimera__render_camera_build_frustum(0, &render_camera_global, &render_frustum_global, 1);
 
     params.camera = view->rasterizer_camera;
-    chimera__render_camera_build_frustum(0, &params.camera, &params.frustum, 1);
+    halo::render::chimera__render_camera_build_frustum(0, &params.camera, &params.frustum, 1);
 
     params.type = 1;
     params.window_index = -1;
     params.clear_target = (uint8_t)(nonplayer == 0);
 
-    rasterizer_begin_frame(&params);
+    halo::rasterizer::rasterizer_begin_frame(&params);
 
     if (nonplayer == 0) {
         halo::cutscene::chimera__letterbox();
@@ -174,9 +167,9 @@ void nonplayer_frame(uint32_t nonplayer, render_view *view)
         game_engine_maybe_render_post_game();
     }
 
-    if (rasterizer_window.window_index == -1) {
-        rasterizer_frame_statistics_sample(&rasterizer_frame_statistics_state, 0);
-        rasterizer_frame_statistics_draw();
+    if (halo::rasterizer::globals().window.window_index == -1) {
+        halo::render::rasterizer_frame_statistics_sample(&halo::rasterizer::globals().frame_statistics, 0);
+        halo::render::rasterizer_frame_statistics_draw();
     }
 }
 
@@ -233,7 +226,7 @@ void player_frame(Point2DInt *screenshot_tile, render_view *view)
         source_camera->z_far = source_camera->z_near + 0.01f;
     }
 
-    render_camera_compute_projection_skew(source_camera, frustum_bounds);
+    halo::render::render_camera_compute_projection_skew(source_camera, frustum_bounds);
 
     if (screenshot_tile != 0) {
         int32_t tile_total = (int32_t)screenshot_scale * (int32_t)halo::rasterizer::globals::screenshot_tile_count;
@@ -249,8 +242,8 @@ void player_frame(Point2DInt *screenshot_tile, render_view *view)
         }
     }
 
-    chimera__render_camera_build_frustum(frustum_bounds, source_camera, &source_frustum, 1);
-    chimera__render_camera_build_frustum(frustum_bounds, &view->rasterizer_camera,
+    halo::render::chimera__render_camera_build_frustum(frustum_bounds, source_camera, &source_frustum, 1);
+    halo::render::chimera__render_camera_build_frustum(frustum_bounds, &view->rasterizer_camera,
                                           &rasterizer_frustum, 1);
 
     attempt_mirror = 1;
@@ -272,17 +265,17 @@ void player_frame(Point2DInt *screenshot_tile, render_view *view)
             render_frustum mirror_frustum;
             int32_t saved_cluster_index = halo::structures::globals().render_cluster_index;
 
-            render_camera_mirror(source_camera, &mirror_result, &mirror_camera);
-            chimera__render_camera_build_frustum(frustum_bounds, &mirror_camera, &mirror_frustum, 1);
+            halo::render::render_camera_mirror(source_camera, &mirror_result, &mirror_camera);
+            halo::render::chimera__render_camera_build_frustum(frustum_bounds, &mirror_camera, &mirror_frustum, 1);
             halo::structures::globals().render_cluster_index = mirror_result.cluster_index;
-            render_window(-1, &mirror_camera, &mirror_frustum, &mirror_camera, &mirror_frustum,
+            halo::render::render_window(-1, &mirror_camera, &mirror_frustum, &mirror_camera, &mirror_frustum,
                           _render_target_mirror, 0);
             halo::structures::globals().render_cluster_index = saved_cluster_index;
             has_mirror = 1;
         }
     }
 
-    render_window(view->local_player_index, source_camera, &source_frustum,
+    halo::render::render_window(view->local_player_index, source_camera, &source_frustum,
                   &view->rasterizer_camera, &rasterizer_frustum, _render_target_main, has_mirror);
 }
 
@@ -301,31 +294,31 @@ void pregame_frame(render_view *view)
     rasterizer_frame_time frame_time;
 
     render_frame_index = render_frame_index + 1;
-    render_cinematic_screen_effect_update(&frame_time);
+    halo::render::render_cinematic_screen_effect_update(&frame_time);
 
-    if (!rasterizer_reset_device_if_needed()) {
+    if (!halo::rasterizer::rasterizer_reset_device_if_needed()) {
         return;
     }
 
     render_camera_global = view->source_camera;
-    chimera__render_camera_build_frustum(0, &render_camera_global, &render_frustum_global, 1);
+    halo::render::chimera__render_camera_build_frustum(0, &render_camera_global, &render_frustum_global, 1);
 
     params.camera = view->rasterizer_camera;
-    chimera__render_camera_build_frustum(0, &params.camera, &params.frustum, 1);
+    halo::render::chimera__render_camera_build_frustum(0, &params.camera, &params.frustum, 1);
 
     params.type = 1;
-    rasterizer_begin_frame(&params);
+    halo::rasterizer::rasterizer_begin_frame(&params);
 
     widget_draw_fullscreen_region(0);
     chimera__do_show_loading_screen();
 
-    if (rasterizer_window.window_index == -1) {
-        rasterizer_frame_statistics_sample(&rasterizer_frame_statistics_state, 0);
-        rasterizer_frame_statistics_draw();
+    if (halo::rasterizer::globals().window.window_index == -1) {
+        halo::render::rasterizer_frame_statistics_sample(&halo::rasterizer::globals().frame_statistics, 0);
+        halo::render::rasterizer_frame_statistics_draw();
     }
 
-    rasterizer_end_frame();
-    rasterizer_unbind_stream_and_textures();
+    halo::rasterizer::rasterizer_end_frame();
+    halo::rasterizer::rasterizer_unbind_stream_and_textures();
 }
 
 }  // namespace halo::render::frame

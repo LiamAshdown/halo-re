@@ -6,6 +6,9 @@
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 extern progress_screen_state join_ui_state;
@@ -34,12 +37,10 @@ extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, in
 extern void chat_close(void);
 extern void NNCancel(datum_index tag);
 extern uint8_t main_menu_reload_pending;
-extern char *shell_command_line;
 extern uint8_t ui_input_batch_mode;
 extern uint8_t loading_thread_result;
 extern loading_thread_record *loading_thread;
 extern int16_t network_join_error_code;
-extern uint8_t main_menu_music_pending;
 extern datum_index cached_saved_game_something;
 extern void player_profile_check_storage_and_defaults(void);
 extern void widget_close_all(void);
@@ -60,9 +61,6 @@ extern void widget_initialize_from_tag(widget_instance *widget, datum_index tag_
                                        uint16_t controller_index, UIWidgetDefinition *tag);
 extern void sound_looping_stop(datum_index sound_tag);
 extern void sound_stop_all(void);
-extern void rasterizer_end_frame(void);
-extern uint8_t rasterizer_reset_device_if_needed(void);
-extern void movie_play_bink(const char *movie_path);
 }
 
 namespace halo::interface {
@@ -169,35 +167,35 @@ void ChimeraBridge::do_show_loading_screen(void)
     switch (join_ui_state) {
     case 2:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 1));
-        chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
+        halo::rasterizer::chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
         break;
     case 3:
     case 5:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 2), progress_screen_text);
-        chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
+        halo::rasterizer::chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
         break;
     case 4:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 0), progress_screen_text);
-        chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
+        halo::rasterizer::chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
         break;
     case 6:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 3), progress_screen_text,
                               interface_loading_screen_progress);
-        chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
+        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text_buffer);
         break;
     case 7:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 4));
-        chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
+        halo::rasterizer::chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
         break;
     case 8:
         halo::text::string_format_wide_va(text_buffer,
                               halo::text::text_string_list_get_string(strings, (network_game_mode == 2) ? 6 : 5),
                               progress_screen_subtext);
-        chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
+        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text_buffer);
         break;
     case 9:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 8), progress_screen_subtext);
-        chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
+        halo::rasterizer::chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
         break;
     default:
         break;
@@ -207,11 +205,11 @@ void ChimeraBridge::do_show_loading_screen(void)
     bounds.bottom = 0x1c2;
     switch (join_ui_state) {
     case 2: case 3: case 4: case 5: case 6: case 7: case 9:
-        chimera__draw_16_bit_text(0, &bounds, 0, 0, halo::text::text_string_list_get_string(strings, 7));
+        halo::rasterizer::chimera__draw_16_bit_text(0, &bounds, 0, 0, halo::text::text_string_list_get_string(strings, 7));
     case 8:
         bounds.top = 0x1cc;
         bounds.bottom = 0x1e0;
-        chimera__draw_16_bit_text(0, &bounds, 0, 0, halo::text::text_string_list_get_string(strings, 9));
+        halo::rasterizer::chimera__draw_16_bit_text(0, &bounds, 0, 0, halo::text::text_string_list_get_string(strings, 9));
         break;
     default:
         break;
@@ -231,8 +229,8 @@ void ChimeraBridge::load_main_menu(void)
 {
     ui_input_batch_mode = 0;
     if (main_menu_reload_pending == 1) {
-        if (shell_command_line != (char *)0) {
-            _stricmp(shell_command_line, "xdemo");
+        if (halo::shell::globals().command_line != (char *)0) {
+            _stricmp(halo::shell::globals().command_line, "xdemo");
         }
         ui_input_batch_mode = 1;
         loading_thread_result = 0;
@@ -249,7 +247,7 @@ void ChimeraBridge::load_main_menu(void)
         display_error(network_join_error_code, -1, 1, 0);
         network_join_error_code = -1;
     }
-    if (main_menu_music_pending == 0) {
+    if (halo::main::globals().menu_music_pending == 0) {
         main_menu_play_title_music();
     }
     cached_saved_game_something = (datum_index)-1;
@@ -338,22 +336,22 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
  */
 void ChimeraBridge::main_menu_music(uint8_t finalize_render_frame)
 {
-    if (main_menu_music_pending == 1) {
+    if (halo::main::globals().menu_music_pending == 1) {
         datum_index sound_tag = halo::cache::tag_lookup(0x6c736e64, (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
             halo::sound::sound_looping_stop(sound_tag);
         }
-        main_menu_music_pending = 0;
+        halo::main::globals().menu_music_pending = 0;
     }
     halo::sound::sound_stop_all();
     if (finalize_render_frame != 0) {
-        rasterizer_end_frame();
+        halo::rasterizer::rasterizer_end_frame();
     }
-    movie_play_bink("ending.bik");
+    halo::main::movie_play_bink("ending.bik");
     if (finalize_render_frame != 0) {
-        rasterizer_reset_device_if_needed();
+        halo::rasterizer::rasterizer_reset_device_if_needed();
     }
-    if (main_menu_music_pending == 0) {
+    if (halo::main::globals().menu_music_pending == 0) {
         main_menu_play_title_music();
     }
 }

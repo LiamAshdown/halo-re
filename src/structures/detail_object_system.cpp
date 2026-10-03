@@ -8,29 +8,25 @@
 #include "halo/memory/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/rasterizer/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
-extern uint8_t *game_state_base;
-extern int32_t game_state_cursor;
-extern uint32_t game_state_crc;
 extern player_globals *local_player_globals;
 extern int16_t current_local_player_index;
 extern real_point3d render_camera_global;
 extern long lrint(double x);
-extern void rasterizer_detail_objects_begin(void);
-extern void rasterizer_detail_objects_vertex_buffer_fill(detail_object_render_list *render_list);
-extern void rasterizer_detail_objects_draw(detail_object_render_list *render_list);
 }
 
 namespace halo::structures {
 
 void detail_object_system::globals_allocate(void)
 {
-    uint8_t *region = game_state_base + game_state_cursor;
+    uint8_t *region = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
     int32_t size = sizeof(detail_object_globals);
 
-    game_state_cursor = game_state_cursor + size;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + size;
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     globals().detail_objects = (detail_object_globals *)region;
 
     globals().detail_objects->default_z_reference.z_reference_i = 0.0f;
@@ -63,7 +59,7 @@ void detail_object_system::update_render_list(void)
     cell_z = (int16_t)(int32_t)lrint((double)(render_camera_global.z * 0.125f - 0.5f));
 
     if (detail_data->bullshit != 0) {
-        rasterizer_detail_objects_begin();
+        halo::rasterizer::rasterizer_detail_objects_begin();
 
         if (cell_x != frame->cell_x || cell_y != frame->cell_y || cell_z != frame->cell_z ||
             frame->valid == 0 || (detail_data->bullshit & 2) != 0) {
@@ -166,10 +162,10 @@ void detail_object_system::update_render_list(void)
                     frame->render_list.layer_count = frame->render_list.layer_count + 1;
                 }
             }
-            rasterizer_detail_objects_vertex_buffer_fill(&frame->render_list);
+            halo::rasterizer::rasterizer_detail_objects_vertex_buffer_fill((rasterizer_detail_object_batches *)(&frame->render_list));
         }
 
-        rasterizer_detail_objects_draw(&frame->render_list);
+        halo::rasterizer::rasterizer_detail_objects_draw((const rasterizer_detail_object_batches *)(&frame->render_list));
     }
 }
 

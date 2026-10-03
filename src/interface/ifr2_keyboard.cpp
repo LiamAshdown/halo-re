@@ -6,6 +6,8 @@
 #include <wchar.h>
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -26,7 +28,6 @@ extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
-extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0, int32_t unknown_1, const uint16_t *text);
 extern const int16_t *text_get_character_metrics(uint16_t character, const void *font_data);
 extern int16_t key_event_read_index;
 extern int16_t key_event_count;
@@ -37,7 +38,6 @@ extern void virtual_keyboard_backspace(void);
 extern uint8_t ui_wide_string_has_non_whitespace(const uint16_t *text);
 extern uint8_t ui_variant_name_is_available(const uint16_t *name);
 extern uint8_t virtual_keyboard_character_is_legal(int32_t validation_mode, uint8_t character);
-extern uint8_t saved_game_name_is_available(const uint16_t *name);
 extern uint8_t saved_item_name_matches(const uint16_t *text);
 extern uint16_t fortune_easter_egg_text[];
 extern uint16_t missing_string_text[];
@@ -198,7 +198,7 @@ void VirtualKeyboard::draw_text(Rectangle2D *bounds)
         }
     }
 
-    chimera__draw_16_bit_text(bounds, bounds, 0, 0, virtual_keyboard.destination);
+    halo::rasterizer::chimera__draw_16_bit_text(bounds, (int32_t *)bounds, 0, 0, (const int16_t *)virtual_keyboard.destination);
 
     if (virtual_keyboard.opened == 0 && virtual_keyboard.white_bitmap != (datum_index)-1 &&
         ((halo::cseries::time_query_performance_counter_ms() / 1000) & 1) != 0) {
@@ -309,7 +309,7 @@ void VirtualKeyboard::process_input()
                     !vk_trim_trailing_whitespace()) {
                     goto invalid;
                 }
-                if (saved_game_name_is_available(virtual_keyboard.destination)) {
+                if (halo::saved_games::saved_game_name_is_available(virtual_keyboard.destination)) {
                     goto commit_ok;
                 }
                 name_ok = saved_item_name_matches(virtual_keyboard.destination);
@@ -322,7 +322,7 @@ void VirtualKeyboard::process_input()
                 if (saved_item_name_matches(virtual_keyboard.destination)) {
                     goto commit_ok;
                 }
-                if (!saved_game_name_is_available(virtual_keyboard.destination)) {
+                if (!halo::saved_games::saved_game_name_is_available(virtual_keyboard.destination)) {
                     goto name_taken;
                 }
                 name_ok = ui_variant_name_is_available(virtual_keyboard.destination);
@@ -504,7 +504,7 @@ void VirtualKeyboard::render()
         rect.left = 0x72;
         rect.bottom = 0x6e;
         rect.right = 0x280;
-        chimera__draw_16_bit_text(&rect, &rect, 0, 0, title);
+        halo::rasterizer::chimera__draw_16_bit_text(&rect, (int32_t *)&rect, 0, 0, (const int16_t *)title);
     }
 
     string_list = *(const datum_index *)((const uint8_t *)virtual_keyboard.strings_tag_data + 0x2c);
@@ -527,7 +527,7 @@ void VirtualKeyboard::render()
     rect.left = 0;
     rect.bottom = 0x1c2;
     rect.right = 0x276;
-    chimera__draw_16_bit_text(&rect, &rect, 0, 0, prompt);
+    halo::rasterizer::chimera__draw_16_bit_text(&rect, (int32_t *)&rect, 0, 0, (const int16_t *)prompt);
 
     rect.top = 0x76;
     rect.left = 0x78;

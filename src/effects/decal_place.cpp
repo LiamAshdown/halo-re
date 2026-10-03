@@ -6,6 +6,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
@@ -14,7 +15,6 @@ extern game_time_globals *game_time;
 extern const decal_type_parameters k_decal_type_parameters[4];
 extern cache *rasterizer_decal_vertex_cache_handle;
 extern void *rasterizer_decal_vertex_cache;
-extern int16_t rasterizer_vertex_buffer_lock_state;
 extern long lrint(double x);
 extern double floor(double x);
 extern double sqrt(double x);
@@ -24,7 +24,6 @@ extern double sin(double x);
 extern datum_index decal_new(datum_index requested_handle, int16_t cluster_index, int16_t layer, datum_index insert_before, uint8_t object_attached);
 extern void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out);
 extern void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator *accumulator, int32_t surface_index, uint8_t is_first_surface, real radius, int16_t decal_type, int32_t *surface_queue, uint16_t *surface_queue_count, int32_t *fallback_queue, uint16_t *fallback_queue_count);
-extern void *rasterizer_decal_vertex_cache_lock(uint32_t decal_index, int32_t byte_count);
 }
 
 namespace halo::effects {
@@ -495,7 +494,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
             return;
         }
         self = &((decal *)decal_data->data)[(uint16_t)decal_index];
-        out = (decal_place_vertex *)rasterizer_decal_vertex_cache_lock(geometry_handle,
+        out = (decal_place_vertex *)halo::rasterizer::rasterizer_decal_vertex_cache_lock(geometry_handle,
             (int32_t)(int16_t)block_count << 6);
         if (out == 0) {
             halo::memory::cache_evict_entry(geometry_handle, rasterizer_decal_vertex_cache_handle);
@@ -603,7 +602,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
 
         inherit_geometry = (uint8_t)(*(const uint8_t *)&definition->flags & 1);
         decal_tag_index = *(datum_index *)&definition->next_decal_in_chain.tag_id;
-        rasterizer_vertex_buffer_lock_state = 0;
+        halo::rasterizer::globals().vertex_buffer_lock_state = 0;
         if (decal_tag_index == k_datum_index_none) {
             return;
         }

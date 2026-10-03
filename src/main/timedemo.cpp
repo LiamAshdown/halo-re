@@ -17,21 +17,19 @@
 #include "halo/effects/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/main/layout.hpp"
+#include "halo/shell/api.hpp"
+#include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern timedemo_globals timedemo_globals_data; }
 extern "C" { extern int32_t game_time_force_single_tick; }
 extern "C" { extern int32_t timedemo_last_frame_index; }
-extern "C" { extern int32_t rasterizer_present_counter_low; }
-extern "C" { extern int32_t rasterizer_present_counter_high; }
 extern "C" { extern uint8_t local_player_input_frozen[]; }
 extern "C" { extern player_globals *local_player_globals; }
 extern "C" { extern uint8_t console_debug_flag_5; }
 extern "C" { extern char timedemo_pixel_shader_version[0x14]; }
-extern "C" { extern d3d_caps9 rasterizer_caps; }
-extern "C" { extern d3d_present_parameters rasterizer_present_parameters; }
 extern "C" { extern int32_t os_platform_refresh_default; }
-extern "C" { extern int32_t config_force_shader; }
 extern "C" { extern char *graphics_vendor_name; }
 extern "C" { extern char *graphics_device_name; }
 extern "C" { extern uint32_t graphics_device_id; }
@@ -39,9 +37,7 @@ extern "C" { extern uint16_t graphics_driver_version[4]; }
 extern "C" { extern uint32_t physical_memory; }
 extern "C" { extern uint32_t cpu_speed; }
 extern "C" { extern uint32_t video_memory; }
-extern "C" { extern char *shell_command_line; }
 extern "C" { extern uint32_t shell_startup_tick_count; }
-extern "C" { extern int32_t shell_nosound; }
 extern "C" { extern int16_t sound_permutation_limit; }
 extern "C" { extern uint8_t directsound_eax_enabled; }
 extern "C" { extern int32_t directsound_quality; }
@@ -49,7 +45,6 @@ extern "C" { extern int16_t renderer_texture_quality; }
 extern "C" { extern int16_t light_count_enabled; }
 extern "C" { extern uint8_t console_debug_toggle_6893f2; }
 extern "C" { extern uint8_t console_debug_toggle_6893fa; }
-extern "C" { extern void main_queue_map_change(char *map_name); }
 extern "C" { extern char hs_compile_and_evaluate(const char *command); }
 extern "C" { extern uint32_t user_profile_signin_state_is_valid(void); }
 namespace halo::main {
@@ -93,9 +88,9 @@ void Timedemo::benchmark_update(void)
         return;
     }
 
-    if (rasterizer_present_counter_low != timedemo_last_frame_index ||
-        rasterizer_present_counter_high != (timedemo_last_frame_index >> 31)) {
-        timedemo_last_frame_index = rasterizer_present_counter_low;
+    if (halo::rasterizer::globals().present_counter_low != timedemo_last_frame_index ||
+        halo::rasterizer::globals().present_counter_high != (timedemo_last_frame_index >> 31)) {
+        timedemo_last_frame_index = halo::rasterizer::globals().present_counter_low;
         timedemo_globals_data.current_time_ms = halo::cseries::time_query_performance_counter_ms();
         frame_time = timedemo_globals_data.current_time_ms - timedemo_globals_data.previous_time_ms;
         timedemo_globals_data.previous_time_ms = timedemo_globals_data.current_time_ms;
@@ -151,7 +146,7 @@ void Timedemo::benchmark_update(void)
 
     switch (step) {
     case _timedemo_step_load_a30:
-        main_queue_map_change((char *)"a30");
+        halo::main::main_queue_map_change((char *)"a30");
         game_time_force_single_tick++;
         return;
     case _timedemo_step_load_b30:
@@ -172,14 +167,14 @@ void Timedemo::benchmark_update(void)
         GetTimeFormatA(win32::k_locale_user_default, 0, 0, 0, time, 0x20);
         fprintf(file, "Date / Time: %s %s (%dms)\n", date, time, shell_startup_tick_count);
 
-        if (config_force_shader == 9999) {
+        if (halo::shell::globals().force_shader == 9999) {
             shader = "2.0a";
         } else if (rasterizer_caps.pixel_shader_version < d3d9::k_pixel_shader_version_1_1) {
             shader = "Fixed Function";
         } else {
             sprintf(timedemo_pixel_shader_version, "%d.%d",
-                (rasterizer_caps.pixel_shader_version >> 8) & 0xff,
-                rasterizer_caps.pixel_shader_version & 0xff);
+                (halo::rasterizer::globals().caps.pixel_shader_version >> 8) & 0xff,
+                halo::rasterizer::globals().caps.pixel_shader_version & 0xff);
             shader = timedemo_pixel_shader_version;
         }
         if (graphics_device_id != 0) {
@@ -192,7 +187,7 @@ void Timedemo::benchmark_update(void)
             fprintf(file, "%dMHz, %dMB\n", cpu_speed, physical_memory);
         }
 
-        fprintf(file, "%s %s", module_path, shell_command_line);
+        fprintf(file, "%s %s", module_path, halo::shell::globals().command_line);
         version_size = GetFileVersionInfoSizeA(module_path, (LPDWORD)(&version_handle));
         version_data = GlobalAlloc(0, version_size);
         GetFileVersionInfoA(module_path, 0, version_size, version_data);
@@ -242,7 +237,7 @@ void Timedemo::benchmark_update(void)
             timedemo_globals_data.buckets[0].time_ms * 100 / timedemo_globals_data.total_time_ms,
             timedemo_globals_data.buckets[0].frames * 100 / timedemo_globals_data.frame_count);
 
-        if (shell_nosound != 0) {
+        if (halo::shell::globals().nosound != 0) {
             fprintf(file, "###Sound Options###\nSound Disabled\n");
         } else {
             if (sound_permutation_limit == 2) {
@@ -293,8 +288,8 @@ void Timedemo::benchmark_update(void)
             "Framerate throttle= No Vsync\nSpecular= %s\nShadows= %s\nDecals= %s\nParticles= %s\n"
             "Texture Quality= %s\n\nFor further information, please visit the timedemo FAQ at: "
             "http://halo.bungie.net/site/halo/features/hpcperformancefaq.html \n",
-            rasterizer_present_parameters.back_buffer_width,
-            rasterizer_present_parameters.back_buffer_height,
+            halo::rasterizer::globals().present_parameters.back_buffer_width,
+            halo::rasterizer::globals().present_parameters.back_buffer_height,
             os_platform_refresh_default, specular, shadows, decals, particles, texture_quality);
         fclose(file);
         break;

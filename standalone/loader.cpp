@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "halo/shell/api.hpp"
 
 #ifndef HALO_FOLDER
 #define HALO_FOLDER "C:\\Program Files (x86)\\Microsoft Games\\Halo"
@@ -21,7 +22,6 @@
 
 extern "C" {
 
-extern int __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCmdLine, int nCmdShow);
 extern char *shell_module_path;
 
 extern const char standalone_halo_folder[];
@@ -358,7 +358,7 @@ int run(HINSTANCE instance, HINSTANCE previous, LPSTR command_line, int show)
     }
     start_key_driver();
     log_line("calling shell_winmain");
-    return shell_winmain(instance, previous, command_line, show);
+    return halo::shell::shell_winmain(instance, previous, command_line, show);
 }
 
 }  // namespace halo::standalone

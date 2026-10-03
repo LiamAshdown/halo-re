@@ -1,5 +1,6 @@
 #include "halo/game/gamerest_teams.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern team_pair_globals *team_pair_data;
@@ -7,9 +8,6 @@ extern void ai_notify_actors_of_encounter_state_change(int16_t team_a, int16_t t
 extern void __cdecl standalone_log(const char *format, ...);
 extern game_engine_definition *current_game_engine;
 extern void team_pair_set(team_pair_override *entry, uint8_t active, uint8_t clear_secondary);
-extern int32_t game_state_cursor;
-extern uint8_t *game_state_base;
-extern uint32_t game_state_crc;
 }
 
 namespace halo::game {
@@ -340,10 +338,10 @@ void TeamPairTable::allocate()
     uint32_t *cursor;
     uint32_t size;
 
-    cursor = (uint32_t *)(game_state_cursor + game_state_base);
-    game_state_cursor = game_state_cursor + 0xb4;
+    cursor = (uint32_t *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0xb4;
     size = 0xb4;
-    halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
+    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     team_pair_data = (team_pair_globals *)cursor;
     for (count = 0x2d; count != 0; count = count - 1) {
         *cursor = 0;

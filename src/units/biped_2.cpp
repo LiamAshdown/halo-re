@@ -11,6 +11,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -25,7 +26,6 @@ extern double sin(double x);
 extern double sqrt(double x);
 extern double fabs(double x);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
-extern game_main_globals *main_game_globals;
 extern uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index);
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);

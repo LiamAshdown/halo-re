@@ -12,6 +12,10 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/render/api.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern char *shell_command_line;
@@ -19,8 +23,6 @@ extern void *shell_window;
 extern void *shell_instance;
 extern int32_t shell_show_command;
 extern uint32_t shell_window_proc;
-extern uint8_t code_address_shell_window_procedure[];
-extern void *rasterizer_window_handle;
 extern uint8_t shell_window_maximized;
 extern uint8_t shell_window_minimized;
 extern char shell_window_class_name[k_shell_window_name_length];
@@ -71,10 +73,9 @@ extern uint8_t port_overridden;
 extern uint32_t network_local_address;
 extern uint32_t connect_address;
 
-extern void main_loop(void);
 extern void network_session_host_start_info_set(char *game_name, char *secret_key, char *ip_address, int32_t port);
 
-extern large_integer performance_frequency;
+
 extern char profile_directory[0x105];
 extern uint8_t console_debug_flag_0;
 extern uint8_t error_file_enabled;
@@ -96,11 +97,8 @@ extern void *external_00686b5c;
 extern uint32_t external_00686b54;
 
 extern void input_directinput_initialize(void);
-extern uint32_t render_initialize(void);
-extern void game_state_startup(void);
 extern uint32_t sound_initialize(void);
 extern void input_directinput_release_devices(void);
-extern void rasterizer_shutdown(void);
 }
 
 typedef int32_t (__cdecl *eula_show_fn)(const char *registry_path, const char *eula_file, int32_t unknown_2, int32_t unknown_3);
@@ -121,7 +119,7 @@ uint8_t EngineLifecycle::initialize()
     uint32_t startup_ok;
 
     timeBeginPeriod(1);
-    QueryPerformanceFrequency((LARGE_INTEGER *)&performance_frequency);
+    QueryPerformanceFrequency((LARGE_INTEGER *)&halo::cseries::globals().performance_frequency);
 
     for (i = 0; i < k_profile_directory_buffer_size; i++) {
         profile_directory[i] = 0;
@@ -159,9 +157,9 @@ uint8_t EngineLifecycle::initialize()
 
     halo::cache::data_file_open();
     halo::math::math_initialize();
-    game_state_startup();
+    halo::saved_games::game_state_startup();
 
-    startup_ok = render_initialize();
+    startup_ok = halo::render::render_initialize();
     if ((uint8_t)startup_ok != 0) {
         halo::input::input_directinput_initialize();
         halo::sound::globals().disabled = (uint8_t)shell_nosound;
@@ -190,7 +188,7 @@ void EngineLifecycle::shutdown()
     global_globals = 0;
 
     halo::input::input_directinput_release_devices();
-    rasterizer_shutdown();
+    halo::rasterizer::rasterizer_shutdown();
     GlobalFree(halo::math::globals().sphere_point_table);
     halo::math::periodic_function_tables_free();
     halo::cache::data_file_close();
@@ -246,8 +244,8 @@ void Application::initialize_window_state(void *instance, char *command_line, in
     shell_window = 0;
     shell_instance = instance;
     shell_show_command = show_command;
-    shell_window_proc = (uint32_t)code_address_shell_window_procedure;
-    rasterizer_window_handle = 0;
+    shell_window_proc = (uint32_t)&GameWindow::procedure;
+    halo::rasterizer::globals().window_handle = 0;
     shell_window_maximized = 0;
     shell_window_minimized = 0;
     memcpy(shell_window_class_name, "Halo", 5);
@@ -467,7 +465,7 @@ void Application::run_engine()
     memset(secret_key, 0, sizeof(secret_key));
     memcpy(secret_key, "e4Rd9J", 7);
     network_session_host_start_info_set((char *)"halor", secret_key, (char *)ip_value, (int32_t)network_game_socket_port);
-    main_loop();
+    halo::main::main_loop();
     EngineLifecycle::shutdown();
 }
 

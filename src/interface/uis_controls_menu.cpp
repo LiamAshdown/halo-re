@@ -14,6 +14,7 @@
 
 #include "halo/interface/uis_controls_menu.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern uint8_t profile_globals_block[0x60a4];
@@ -23,7 +24,6 @@ extern void ui_list_free_all(void);
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
 extern int32_t profile_slot_lookup_cache_00692ac8;
-extern int32_t saved_player_profile_slots_handle;
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 extern uint64_t game_variant_option_default_by_index(void);
 extern uint8_t directsound_initialized;
@@ -180,11 +180,11 @@ uint8_t UiControlsMenu::controls_options_reload_profile(void)
 {
     profile_slot_lookup_cache_00692ac8 = -1;
     if ((selected_saved_item & 0xf) == 0) {
-        if (saved_player_profile_slots_handle != -1) {
+        if (halo::saved_games::globals().player_profile_slots_handle != -1) {
             uint8_t profile_copy[0x1ffc];
 
             memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-            player_profile_load(0, profile_copy, saved_player_profile_slots_handle);
+            player_profile_load(0, profile_copy, halo::saved_games::globals().player_profile_slots_handle);
         }
         selected_saved_item = -1;
     }

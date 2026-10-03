@@ -9,13 +9,15 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
 extern "C" {
 extern ai_update_stagger_state *ai_update_stagger;
 extern int16_t network_game_mode;
-extern game_main_globals *main_game_globals;
 extern int32_t network_scenario_round_counter_a;
 extern int32_t network_scenario_round_counter_b;
 extern void game_engine_flag_local_player_units(void);
@@ -70,8 +72,6 @@ extern void interface_local_player_state_reset(void);
 extern void scenario_objects_place(Scenario *scenario);
 extern void objects_reset(void);
 extern void breakable_surfaces_reset(void);
-extern void decal_and_font_system_reset(void);
-extern void game_state_build_header(void);
 extern uint32_t rasterizer_globals_data;
 extern data_array *ai_conversation_data;
 extern data_array *encounter_data;
@@ -81,14 +81,12 @@ extern data_array *actor_data;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
 extern ai_globals *ai_globals_ptr;
-extern uint32_t rasterizer_decal_vertex_cache_handle;
 extern data_array *player_data;
 extern data_array *team_data;
 extern uint32_t text_localization_strings;
 extern void update_queues_dispose(void);
 extern void hs_scripts_free(void);
 extern void objects_flush_dirty_state(void);
-extern void font_glyph_cache_clear_all(void);
 extern void widget_close_all(void);
 extern uint32_t global_scenario_index;
 extern uint16_t global_structure_bsp_index;
@@ -96,8 +94,6 @@ extern void *global_structure_bsp;
 extern void *global_structure_collision_bsp;
 extern void *global_collision_bsp;
 extern Globals *global_globals;
-extern void render_pregame_view_initialize(void);
-extern void movie_capture_frame_export(void);
 extern void interface_handle_quit_request(void);
 }
 
@@ -137,7 +133,7 @@ void GameLifecycle::simulate_tick(uint32_t predict_pass)
 
 after_role_update:
     {
-        float seconds_per_tick = (main_game_globals->players_are_double_speed == 0) ? 0.033333335f : 0.016666668f;
+        float seconds_per_tick = (halo::main::globals().game_globals->players_are_double_speed == 0) ? 0.033333335f : 0.016666668f;
         halo::effects::effects_update_all(seconds_per_tick);
     }
 
@@ -188,7 +184,7 @@ void GameLifecycle::start_new_map(void)
     uint32_t *dst;
     uint8_t *record;
 
-    halo::math::globals().random_seed_global = main_game_globals->random_seed;
+    halo::math::globals().random_seed_global = halo::main::globals().game_globals->random_seed;
 
     if (current_game_engine != (game_engine_definition *)0) {
         if (current_game_engine->dispose != (void *)0) {
@@ -205,8 +201,8 @@ void GameLifecycle::start_new_map(void)
 
     game_engine_load_from_variant(&game_engine_active_variant);
     _control87(0x9001f, 0xfffff);
-    decal_and_font_system_reset();
-    game_state_build_header();
+    halo::rasterizer::decal_and_font_system_reset();
+    halo::saved_games::game_state_build_header();
 
     {
         uint32_t *game_time_dwords = (uint32_t *)game_time;
@@ -343,7 +339,7 @@ void GameLifecycle::start_new_map(void)
     *((uint8_t *)recorded_animations + 0x24) = 1;
     halo::memory::data_delete_all((data_array *)recorded_animations);
 
-    main_game_globals->active = 1;
+    halo::main::globals().game_globals->active = 1;
     *object_globals_pointer = 1;
     scenario_objects_place(halo::scenario::globals().scenario);
     *object_globals_pointer = 0;
@@ -360,7 +356,7 @@ void GameLifecycle::stop_current_map(void)
 {
     uint8_t had_network_predicted_globals;
 
-    font_glyph_cache_clear_all();
+    halo::rasterizer::font_glyph_cache_clear_all();
     rasterizer_globals_data = 0;
     ((data_array *)recorded_animations)->valid = 0;
     hs_scripts_free();
@@ -380,9 +376,9 @@ void GameLifecycle::stop_current_map(void)
     if (halo::effects::globals().weather_particle_data->valid != 0) {
         halo::effects::globals().weather_particle_data->valid = 0;
     }
-    if (rasterizer_decal_vertex_cache_handle != 0) {
+    if (halo::rasterizer::globals().decal_vertex_cache_handle != 0) {
         halo::effects::decal_clear_flags(1);
-        halo::memory::cache_flush((::cache *)rasterizer_decal_vertex_cache_handle);
+        halo::memory::cache_flush((::cache *)halo::rasterizer::globals().decal_vertex_cache_handle);
     }
     halo::effects::globals().decal_data->valid = 0;
     if (object_render_state_cache != (data_array *)0 && object_render_state_cache->valid != 0) {
@@ -423,7 +419,7 @@ void GameLifecycle::stop_current_map(void)
     }
 
     widget_close_all();
-    main_game_globals->active = 0;
+    halo::main::globals().game_globals->active = 0;
 }
 
 /**
@@ -437,11 +433,11 @@ void GameLifecycle::unload_map(void)
     int16_t status;
 
     if (halo::cache::globals().map_download_in_progress != 0) {
-        main_game_globals->map_loading_in_progress = 1;
+        halo::main::globals().game_globals->map_loading_in_progress = 1;
         do {
-            status = halo::cache::cache_file_download_status_get(&main_game_globals->map_load_progress, 0);
-            render_pregame_view_initialize();
-            movie_capture_frame_export();
+            status = halo::cache::cache_file_download_status_get(&halo::main::globals().game_globals->map_load_progress, 0);
+            halo::main::render_pregame_view_initialize();
+            halo::main::movie_capture_frame_export();
         } while (status == 0);
         widget_close_all();
         if (status == 2) {
@@ -449,7 +445,7 @@ void GameLifecycle::unload_map(void)
         }
         halo::cache::cache_file_download_finish();
     }
-    if (main_game_globals->map_loaded != 0) {
+    if (halo::main::globals().game_globals->map_loaded != 0) {
         halo::cache::cache_file_unload();
         halo::scenario::globals().game_globals->structure_bsp_index = -1;
         global_scenario_index = 0xffffffff;
@@ -459,7 +455,7 @@ void GameLifecycle::unload_map(void)
         global_structure_collision_bsp = (void *)0;
         global_collision_bsp = (void *)0;
         global_globals = (Globals *)0;
-        main_game_globals->map_loaded = 0;
+        halo::main::globals().game_globals->map_loaded = 0;
     }
 }
 

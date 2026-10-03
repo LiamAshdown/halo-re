@@ -5,6 +5,8 @@
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/render/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -35,8 +37,6 @@ extern float zoom_static_tint_g;
 extern float zoom_static_tint_b;
 extern int32_t local_player_get_weapon_hud_interface(float *out_intensity);
 extern int32_t local_player_get_zoom_level(int16_t local_player_index);
-extern int16_t render_local_view_count(void);
-extern float cinematic_screen_effect_get_script_value(int16_t index);
 }
 
 #define FP_FLOAT(fp, offset) (*(float *)((uint8_t *)(fp) + (offset)))
@@ -410,7 +410,7 @@ void FirstPersonWeaponController::update_zoom_static_tint(uint8_t enabled)
         (effect->mask_flags & 1) != 0) {
         return;
     }
-    if (render_local_view_count() > 1) {
+    if (halo::main::render_local_view_count() > 1) {
         return;
     }
     if (*(datum_index *)&effect->mask_fullscreen.tag_id == (datum_index)-1) {
@@ -430,12 +430,12 @@ void FirstPersonWeaponController::update_zoom_static_tint(uint8_t enabled)
     scale = scale * effect->desaturation_intensity;
 
     source = effect->desaturation_script_source;
-    if (cinematic_screen_effect_get_script_value(source) < 0.0f) {
+    if (halo::render::cinematic_screen_effect_get_script_value(source) < 0.0f) {
         source_value = 0.0f;
-    } else if (cinematic_screen_effect_get_script_value(source) > 1.0f) {
+    } else if (halo::render::cinematic_screen_effect_get_script_value(source) > 1.0f) {
         source_value = 1.0f;
     } else {
-        source_value = cinematic_screen_effect_get_script_value(source);
+        source_value = halo::render::cinematic_screen_effect_get_script_value(source);
     }
 
     product = source_value * scale;

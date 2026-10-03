@@ -18,6 +18,7 @@
 #include "halo/networking/net2_server_commands.hpp"
 #include "halo/networking/server_command.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern int16_t network_game_mode;
@@ -47,8 +48,6 @@ extern void game_engine_free_custom_variant_cache(void);
 extern uint32_t game_engine_variant_add_to_history(char *name, game_variant *options, char *path);
 extern void widget_close_all(void);
 extern void game_engine_begin_end_game_sequence(void);
-extern void console_deactivate(void);
-extern void main_queue_map_change_by_name_or_clear(void);
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
 extern char network_game_start_new_server_from_profile(uint32_t param_1);
 extern game_engine_state game_engine_state_value;
@@ -374,21 +373,21 @@ void ServerCommands::map(uint32_t argument_count, uint16_t **arguments)
         game_variant_history_current = -1;
         widget_close_all();
         game_engine_begin_end_game_sequence();
-        console_deactivate();
+        halo::main::console_deactivate();
         return;
     }
 
     if (network_game_mode == 0) {
         game_variant new_variant;
 
-        main_queue_map_change_by_name_or_clear();
+        halo::main::main_queue_map_change_by_name_or_clear((char *)"");
         game_engine_get_variant_by_name(0, &new_variant);
         memcpy(&game_variant_saved_default, &new_variant, sizeof(game_variant));
         game_variant_saved_default_valid = 1;
         if (network_game_start_new_server_from_profile(0) == 0) {
             return;
         }
-        console_deactivate();
+        halo::main::console_deactivate();
         return;
     }
 

@@ -6,10 +6,10 @@
 
 #include "internal/state.hpp"
 #include "d3d.h"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 
-extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);
 
 }  // extern "C"
 
@@ -40,7 +40,7 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
 
     rasterizer_effect_defines[0].name = "PS_2_0_TARGET";
     rasterizer_effect_defines[0].definition = "ps_2_a";
-    if (config_force_shader != 0x270e) {
+    if (halo::shell::globals().force_shader != 0x270e) {
         rasterizer_effect_defines[0].definition = "ps_2_0";
     }
     rasterizer_effect_defines[1].name = 0;
@@ -53,12 +53,12 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
         success = rasterizer_dx9_pixel_shaders_load_all();
         if (success == 0) {
             rasterizer_shader_file_name = "shaders\\fx.bin";
-            shell_display_fatal_error_dialog(0x89, 0x7e, 1);
+            halo::shell::shell_display_fatal_error_dialog(0x89, 0x7e, 1);
         }
     }
     SetThreadLocale(saved_locale);
     if (success == 0) {
-        shell_display_fatal_error_dialog(0x69, 0x7e, 1);
+        halo::shell::shell_display_fatal_error_dialog(0x69, 0x7e, 1);
         return success;
     }
 
@@ -288,7 +288,7 @@ void rasterizer_render_loading_screen(int32_t mode)
         vtable = *(void ***)rasterizer_device;
         hr = render_device().create_offscreen_plain_surface(0x280, 0x1e0, 0x16, 0, &splash, 0);
         if (hr >= 0) {
-            hr = D3DXLoadSurfaceFromResourceA((LPDIRECT3DSURFACE9)splash, 0, 0, (HMODULE)shell_module_handle, MAKEINTRESOURCEA(0x86), 0,
+            hr = D3DXLoadSurfaceFromResourceA((LPDIRECT3DSURFACE9)splash, 0, 0, (HMODULE)halo::shell::globals().module_handle, MAKEINTRESOURCEA(0x86), 0,
                                               0xffffffff  , 0, 0);
             if (hr >= 0) {
                 vtable = *(void ***)rasterizer_device;

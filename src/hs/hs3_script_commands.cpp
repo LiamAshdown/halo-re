@@ -4,6 +4,7 @@
 #include "halo/input/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
@@ -12,7 +13,6 @@ extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t param
     int16_t *expected_types, char first);
 extern void player_update_history_log_set_name_filter(char *name);
 extern uint8_t ui_widget_show_path_flag;
-extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern data_array *hs_thread_data;
 extern data_array *hs_syntax_data;
 extern datum_index hs_thread_find_by_script_index(int16_t script_index);
@@ -130,7 +130,7 @@ void ScriptCommands::evaluate_unbind(int16_t function_index, uint32_t thread_ind
  */
 void ScriptCommands::evaluate_version(int16_t function_index, uint32_t thread_index, char first) const
 {
-    console_print_error_va(0, "halo pc 01.00.10.0621 Apr 16 2014 15:54:48");
+    halo::main::console_print_error_va(0, "halo pc 01.00.10.0621 Apr 16 2014 15:54:48");
     hs_thread_return(0, thread_index);
 }
 

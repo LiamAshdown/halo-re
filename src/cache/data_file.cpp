@@ -6,10 +6,10 @@
 #include "crt.h"
 #include "halo/cache/globals.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 extern int32_t printf(const char *format, ...);
-extern void os_platform_identify(void);
 extern int32_t os_platform;
 }
 
@@ -111,7 +111,7 @@ void data_files::open()
 
     flags = 0x48000080;
     if (os_platform == 0) {
-        os_platform_identify();
+        halo::shell::os_platform_identify();
     }
     if (os_platform < 3) {
         flags = 0x8000080;
@@ -145,7 +145,7 @@ void data_files::open()
 
     flags = 0x48000080;
     if (os_platform == 0) {
-        os_platform_identify();
+        halo::shell::os_platform_identify();
     }
     if (os_platform < 3) {
         flags = 0x8000080;

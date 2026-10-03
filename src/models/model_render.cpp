@@ -28,15 +28,10 @@ extern render_model_effect model_render_default_effect;
 extern ColorRGB model_render_default_change_colors[4];
 extern float model_render_default_function_values[4];
 extern int16_t console_model_lod_override;
-extern real_matrix4x3 render_camera_world_to_view;
 extern uint8_t rasterizer_caps_flag_689;
 extern uint8_t console_debug_toggle_6893f2;
-extern rasterizer_window_parameters rasterizer_window;
 extern rasterizer_model_draw_context *rasterizer_object_shadow_model_context;
 extern uint8_t rasterizer_object_shadow_model_active;
-extern void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context, uint8_t mode);
-extern void rasterizer_model_draw_restore_states(void);
-extern void chimera__rasterizer_set_model_skinning(uint8_t upload, rasterizer_node_matrices *nodes);
 extern void debug_fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, const float *node0,
     const float *center, int32_t early_out);
 extern void debug_fp_clip_note(const float *world, int32_t effect_type);
@@ -106,7 +101,7 @@ void model_view::render_parts(uint8_t *region_permutations, rasterizer_node_matr
                 }
 
                 if ((p->base.flags & 2) != 0) {
-                    chimera__rasterizer_set_up_node_parts(p->local_node_count, p->local_node_indices);
+                    halo::rasterizer::chimera__rasterizer_set_up_node_parts(p->local_node_count, p->local_node_indices);
                 }
 
                 shader_type = (int16_t)shader->shader_type;
@@ -121,7 +116,7 @@ void model_view::render_parts(uint8_t *region_permutations, rasterizer_node_matr
 
                         halo::math::matrix4x3_transform_point(transformed_centroid, *((real_point3d *)&p->base.centroid), *centroid_node_matrix);
 
-                        rasterizer_transparent_geometry_group_build(
+                        halo::rasterizer::rasterizer_transparent_geometry_group_build(
                             (transparent_geometry_group_link *)&links[link_count], (uint8_t *)shader, permutation,
                             (rasterizer_index_buffer *)&p->base.triangle_buffer_type, -1,
                             (int32_t)p->base.triangle_count, (rasterizer_vertex_buffer *)&p->base.vertex_type, -1,
@@ -137,17 +132,17 @@ void model_view::render_parts(uint8_t *region_permutations, rasterizer_node_matr
                     }
                 } else if (shader_type == 4 && (((ShaderModel *)shader)->shader_model_flags & 8) != 0) {
                     if (pass == _model_render_pass_model_decal) {
-                        rasterizer_shader_environment_draw_dispatch(-1, (uint8_t *)shader, permutation,
+                        halo::rasterizer::rasterizer_shader_environment_draw_dispatch(-1, (uint8_t *)shader, permutation,
                             (rasterizer_index_buffer *)&p->base.triangle_buffer_type, -1,
                             p->base.triangle_count, (rasterizer_vertex_buffer *)&p->base.vertex_type);
                     }
                 } else if (pass == _model_render_pass_opaque) {
                     if ((flags & _model_render_immediate_bit) == 0) {
-                        rasterizer_shader_environment_draw_dispatch(-1, (uint8_t *)shader, permutation,
+                        halo::rasterizer::rasterizer_shader_environment_draw_dispatch(-1, (uint8_t *)shader, permutation,
                             (rasterizer_index_buffer *)&p->base.triangle_buffer_type, -1,
                             p->base.triangle_count, (rasterizer_vertex_buffer *)&p->base.vertex_type);
                     } else {
-                        rasterizer_object_shadow_model_draw((const ShaderModel *)shader, permutation,
+                        halo::rasterizer::rasterizer_object_shadow_model_draw((const ShaderModel *)shader, permutation,
                             (rasterizer_index_buffer *)&p->base.triangle_buffer_type,
                             (rasterizer_vertex_buffer *)&p->base.vertex_type);
                     }
@@ -216,7 +211,7 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
 
     if (node_matrices == 0) {
         for (node = 0; (int32_t)node < model->nodes.count; node++) {
-            node_matrix_array[node] = render_camera_world_to_view;
+            node_matrix_array[node] = halo::render::globals().camera_world_to_view;
         }
     } else {
         for (node = 0; (int32_t)node < model->nodes.count; node++) {
@@ -271,9 +266,9 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
     }
 
     if ((flags & _model_render_immediate_bit) == 0) {
-        rasterizer_model_draw_prepare_states(&context, 0);
-    } else if (rasterizer_window.type == 1 && rasterizer_caps_flag_689 == 0 && console_debug_toggle_6893f2 != 0) {
-        chimera__rasterizer_set_model_skinning((uint8_t)(~(context.flags >> 8) & 1),
+        halo::rasterizer::rasterizer_model_draw_prepare_states(&context, 0);
+    } else if (halo::rasterizer::globals().window.type == 1 && rasterizer_caps_flag_689 == 0 && console_debug_toggle_6893f2 != 0) {
+        halo::rasterizer::chimera__rasterizer_set_model_skinning((uint8_t)(~(context.flags >> 8) & 1),
                                                 (rasterizer_node_matrices *)&context.node_matrices);
         rasterizer_object_shadow_model_context = &context;
         rasterizer_object_shadow_model_active = 1;
@@ -293,7 +288,7 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
         model_render_first_person = 0;
         return;
     }
-    rasterizer_model_draw_restore_states();
+    halo::rasterizer::rasterizer_model_draw_restore_states();
     model_render_first_person = 0;
 }
 

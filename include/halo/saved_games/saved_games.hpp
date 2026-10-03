@@ -252,4 +252,3 @@ void report_last_error(void);
 
 }  // namespace halo::saved_games::saved_game
 
-#include "halo/saved_games/c_api.h"

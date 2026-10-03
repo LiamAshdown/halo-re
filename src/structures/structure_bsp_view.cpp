@@ -7,11 +7,10 @@
 #include "halo/structures/structures.hpp"
 #include "halo/math/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern uint8_t render_frustum_global[];
-extern uint16_t render_frustum_classify_point_side_planes(void *frustum_or_camera, void *vertex);
-extern int16_t render_frustum_test_bounding_box(void *frustum_or_camera, void *box, int32_t flags);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern double sqrt(double x);
 }
@@ -57,15 +56,15 @@ void structure_bsp_view::expand_visible_clusters_by_plane()
                 cursor++;
                 if ((globals().surface_visible_bits[word] & mask) == 0) {
                     ScenarioStructureBSPSurface *surface = &surfaces[surface_index];
-                    uint16_t outside0 = render_frustum_classify_point_side_planes(
-                        frustum_or_camera, &vertices[surface->vertex0_index]);
+                    uint16_t outside0 = halo::render::render_frustum_classify_point_side_planes(
+                        (render_frustum *)frustum_or_camera, (real_point3d *)(&vertices[surface->vertex0_index]));
                     int rejected = 0;
                     if (outside0 != 0) {
-                        uint16_t outside1 = render_frustum_classify_point_side_planes(
-                            frustum_or_camera, &vertices[surface->vertex1_index]);
+                        uint16_t outside1 = halo::render::render_frustum_classify_point_side_planes(
+                            (render_frustum *)frustum_or_camera, (real_point3d *)(&vertices[surface->vertex1_index]));
                         if (outside1 != 0) {
-                            uint16_t outside2 = render_frustum_classify_point_side_planes(
-                                frustum_or_camera, &vertices[surface->vertex2_index]);
+                            uint16_t outside2 = halo::render::render_frustum_classify_point_side_planes(
+                                (render_frustum *)frustum_or_camera, (real_point3d *)(&vertices[surface->vertex2_index]));
                             if (outside2 != 0 && (outside2 & outside0 & 0x3f & outside1) != 0) {
                                 rejected = 1;
                             }
@@ -104,7 +103,7 @@ void structure_bsp_view::expand_visible_clusters_by_subcluster()
             }
             ScenarioStructureBSPSubcluster *subcluster =
                 &((ScenarioStructureBSPSubcluster *)cluster->subclusters.pointer)[j];
-            if (render_frustum_test_bounding_box(frustum_or_camera, subcluster, 0) == 0) {
+            if (halo::render::render_frustum_test_bounding_box((render_frustum *)frustum_or_camera, (real_rectangle3d *)subcluster, 0) == 0) {
                 continue;
             }
             int32_t *indices = (int32_t *)subcluster->surface_indices.pointer;

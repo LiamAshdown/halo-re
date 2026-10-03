@@ -7,6 +7,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern weather_instance weather_instances[1];
@@ -18,11 +19,6 @@ extern float camera_position_y;
 extern float camera_position_z;
 extern const uint32_t k_particle_render_constant[3];
 extern void weather_instance_update(int16_t instance_index);
-extern void render_camera_facing_frame_build(real reference);
-extern int16_t render_frustum_test_bounding_box(uint32_t mode);
-extern void build_sprite();
-extern void build_sprites_end(void);
-extern float render_time_since_frame;
 extern double fmod(double x, double y);
 extern void effect_random_direction_from_table(real_point3d *out);
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
@@ -153,10 +149,10 @@ void weather_instance_ref::build_render_geometry()
         if (slot->particle_count != 0) {
             uint8_t *regions = structure_weather_polyhedra_find_within_radius_unresolved(slot->field_extent);
             (void)regions;
-            render_camera_facing_frame_build(slot->field_extent);
+            halo::render::render_camera_facing_frame_build(nullptr, slot->field_extent);
             vector3d_positive_modulo_unresolved(slot->field_extent);
 
-            build_sprites_end();
+            halo::render::build_sprites_end(nullptr);
         }
     }
 }
@@ -209,7 +205,7 @@ void weather_instance_ref::update()
         (WeatherParticleSystem *)halo::cache::globals().tag_instances[(uint16_t)instance->definition_index].data;
     int32_t i;
 
-    instance->delta_time = render_time_since_frame;
+    instance->delta_time = halo::render::globals().time_since_frame;
     instance->elapsed_time = instance->delta_time + instance->elapsed_time;
 
     for (i = 0; i < (int32_t)tag->particle_types.count; i++) {
