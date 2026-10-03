@@ -5,6 +5,7 @@
 #include "win32.h"
 #include "halo/networking/game_mode.hpp"
 #include "halo/game/records.hpp"
+#include "halo/rasterizer/render_device.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
 #include "tags.h"
@@ -70,7 +71,12 @@ static auto &game_engine_dedicated_idle_timer = halo::link::ref<float>(halo::gam
 static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
 static auto &game_engine_map_table_value = halo::link::ref<int32_t>(halo::game::vars().game_engine_map_table_value);
 static auto &network_build_string = halo::link::ref<char []>(halo::networking::vars().network_build_string);
-static auto &map_per_map_table = halo::link::ref<uint8_t []>(halo::game::vars().map_per_map_table);
+struct MapGameTableEntry {
+    int32_t game_engine_value;
+    uint8_t unknown_04[0x2c];
+};
+static_assert(sizeof(MapGameTableEntry) == 0x30, "per-map game engine table stride");
+static auto &map_per_map_table = halo::link::ref<MapGameTableEntry [0x13]>(halo::game::vars().map_per_map_table);
 static auto &network_session_host_state = halo::link::ref<uint8_t>(halo::networking::vars().network_session_host_state);
 static auto &multiplayer_sound_queue = halo::link::ref<multiplayer_sound_request [5]>(halo::game::vars().multiplayer_sound_queue);
 static auto &multiplayer_sound_queue_count = halo::link::ref<int32_t>(halo::game::vars().multiplayer_sound_queue_count);
@@ -135,7 +141,7 @@ void Lifecycle::dispose(void)
     halo::effects::globals().decal_data = (data_array *)0;
 
     if (rasterizer_device != 0 && rasterizer_decal_vertex_cache != nullptr) {
-        ((void (__stdcall *)(void **))(*(void ***)((uint8_t *)*rasterizer_decal_vertex_cache + 8)))(rasterizer_decal_vertex_cache);
+        halo::rasterizer::render_device().release(rasterizer_decal_vertex_cache);
         rasterizer_decal_vertex_cache = nullptr;
     }
     object_render_state_cache = 0;
@@ -402,7 +408,7 @@ void Lifecycle::initialize_for_new_game(void)
         map_index = halo::interface::map_list_find_known_map_index(network_build_string);
         game_engine_map_table_value = 0;
         if (map_index < 0x13) {
-            game_engine_map_table_value = *(int32_t *)(map_per_map_table + map_index * 0x30);
+            game_engine_map_table_value = map_per_map_table[map_index].game_engine_value;
         }
         halo::game::game_engine_validate_scenario_placements_noop();
 
@@ -429,7 +435,7 @@ void Lifecycle::initialize_for_new_game(void)
         halo::game::game_engine_touch_multiplayer_predicted_resources();
         game_engine_dedicated_idle = 0;
         game_engine_dedicated_idle_timer = 0.0f;
-        ((uint8_t *)&game_engine_map_table_value)[1] = 0;
+        game_engine_map_table_value &= ~0xff00;
         if (network_session_host_state != 2) {
             network_session_host_state = 1;
         }

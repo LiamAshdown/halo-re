@@ -40,6 +40,26 @@ void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...)
     va_end(args);
 }
 
+static_assert(sizeof(wchar_t) == sizeof(uint16_t), "wide strings are UTF-16 code units");
+
+void string_format_wide_va(wchar_t *dest, const wchar_t *format, ...)
+{
+    va_list args;
+
+    va_start(args, format);
+    halo::text::wide_string_format::format_v(reinterpret_cast<uint16_t *>(dest), reinterpret_cast<const uint16_t *>(format), args);
+    va_end(args);
+}
+
+void string_format_wide_va_bounded(uint32_t count, wchar_t *dest, const wchar_t *format, ...)
+{
+    va_list args;
+
+    va_start(args, format);
+    halo::text::wide_string_format::format_bounded_v(count, reinterpret_cast<uint16_t *>(dest), reinterpret_cast<const uint16_t *>(format), args);
+    va_end(args);
+}
+
 void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...)
 {
     va_list args;

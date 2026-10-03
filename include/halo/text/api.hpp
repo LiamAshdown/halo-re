@@ -70,5 +70,7 @@ uint16_t * text_string_list_get_string(datum_index list_id, int16_t index);
 void text_measure_glyph_callback(text_parse_state *state, void *font, void *character, uint32_t color, int16_t x, int16_t y, int16_t source_x, int16_t source_y, int16_t width, int16_t height);
 void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
+void string_format_wide_va(wchar_t *dest, const wchar_t *format, ...);
+void string_format_wide_va_bounded(uint32_t count, wchar_t *dest, const wchar_t *format, ...);
 
 }
