@@ -775,9 +775,9 @@ void UnitView::set_facing_from_index_table()
  *
  * @address 0x565ca0
  */
-uint8_t halo::units::unit_state_allows_control(const uint8_t *animation_block)
+uint8_t halo::units::unit_state_allows_control(const unit_data &unit)
 {
-    switch (animation_state_id((int8_t)animation_block[0xb])) {
+    switch (animation_state_id(unit.animation_state)) {
     case unit_animation_state_id::unknown_01:
     case unit_animation_state_id::turn_in_place_a:
     case unit_animation_state_id::turn_in_place_b:
@@ -1077,7 +1077,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         allowed = 1;
     } else {
         stance_class = 1;
-        allowed = ::halo::units::unit_animation_state_is_compatible(reinterpret_cast<uint8_t *>(obj) + 0x298, new_state) ? 1 : 0;
+        allowed = ::halo::units::unit_animation_state_is_compatible(obj->unit, new_state) ? 1 : 0;
     }
     if ((uint8_t)obj->unit.animation_state == animation_state_value(unit_animation_state_id::unknown_17) && obj->base.animation_frame > unit_tag->hard_ping_interrupt_ticks) {
         allowed = 1;
