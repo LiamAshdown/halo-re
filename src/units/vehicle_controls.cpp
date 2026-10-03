@@ -585,24 +585,6 @@ void VehicleView::calculate_ground_lean_controls(uint8_t *out_transform)
 }
 
 /**
- * Not callable: see the header. Kept only so the address stays listed in the symbol tables.
- *
- * @address 0x5739a0
- */
-void halo::units::vehicle_calculate_hover_lift_toward_target(void)
-{
-}
-
-/**
- * Not callable: see the header. Kept only so the address stays listed in the symbol tables.
- *
- * @address 0x5738b0
- */
-void halo::units::vehicle_calculate_hover_turn_controls(void)
-{
-}
-
-/**
  * REWRITTEN from objdump. Physics tag +0x68 != 3: object_physics_tick(unit, 0, contacts, 0, 0). Otherwise the
  * ESI powered-mass-point buffer (vehicle_update [esp+0x88]) gets the drive: +0x04 forward speed, +0x0c/+0x6c
  * 0.003, +0x24/+0x28 sin/cos of turn * 0.5 * (1 - min(|speed| * 2.5, 1)), +0x88/+0xe8 1.0, +0xcc 0.005, the

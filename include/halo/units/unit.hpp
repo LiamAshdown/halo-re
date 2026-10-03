@@ -328,8 +328,6 @@ void unit_spawn_with_starting_weapons(void *command_record);
 void unit_throw_grenade_release(void);
 uint8_t unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index);
 uint8_t unit_weapon_is_best_of_type(uint32_t reference_weapon_index, uint32_t unit_index);
-void vehicle_calculate_hover_lift_toward_target(void);
-void vehicle_calculate_hover_turn_controls(void);
 
 }
 
@@ -577,8 +575,6 @@ void vehicle_calculate_animation_controls(uint32_t unit_index);
 void vehicle_calculate_ground_contact_lean(uint32_t unit_index, void *out_record, void *out_transform);
 void vehicle_calculate_ground_contact_lean_alt(uint32_t unit_index, void *out_record, void *out_transform);
 void vehicle_calculate_ground_lean_controls(uint32_t unit_index, uint8_t *out_transform);
-void vehicle_calculate_hover_lift_toward_target(void);
-void vehicle_calculate_hover_turn_controls(void);
 void vehicle_calculate_lean_controls(uint32_t unit_index, void *mass_points, float *powered_states);
 void vehicle_calculate_mounted_controls_dispatch(uint32_t unit_index, void *out_transform, void *out_record);
 void vehicle_calculate_steering_wheel_controls(uint32_t unit_index, void *mass_points, float *powered_states);

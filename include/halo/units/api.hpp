@@ -214,8 +214,6 @@ uint8_t unit_weapon_is_best_of_type(uint32_t reference_weapon_index, uint32_t un
 void vehicle_apply_network_update(datum_index vehicle_index, void **message, uint8_t *connection);
 void vehicle_blend_animations(datum_index object_index, real_orientation *orientations);
 void vehicle_calculate_animation_controls(uint32_t unit_index);
-void vehicle_calculate_hover_lift_toward_target(void);
-void vehicle_calculate_hover_turn_controls(void);
 uint8_t vehicle_create(datum_index object_index);
 int32_t vehicle_encode_network_create(datum_index vehicle_index, int32_t buffer, int32_t bit_budget);
 int32_t vehicle_encode_network_update(datum_index vehicle_index, void *buffer, int32_t bit_budget, int32_t full_update);
