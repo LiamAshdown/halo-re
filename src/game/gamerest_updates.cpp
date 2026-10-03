@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_updates.hpp"
+#include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/datum.hpp"
 #include <string.h>
@@ -175,7 +176,7 @@ uint32_t UpdateClient::update_client_new()
 {
     memset(&update_client_initialized, 0, 0x1843c);
 
-    update_client_queues = halo::memory::data_new(0x28, (char *)"update client queues", 16);
+    update_client_queues = halo::memory::data_new(0x28, halo::mutable_literal("update client queues"), 16);
     if (update_client_queues != 0) {
         memset(update_client_history, 0xff, sizeof(update_client_history));
         update_client_unknown_ea0 = -1;
@@ -378,7 +379,7 @@ uint8_t UpdateServer::update_server_new()
 {
     memset(&update_server_initialized, 0, 0x610c);
 
-    update_server_queues = halo::memory::data_new(0x64, (char *)"update server queues", 16);
+    update_server_queues = halo::memory::data_new(0x64, halo::mutable_literal("update server queues"), 16);
     if (update_server_queues != 0) {
         memset(update_server_history, 0, sizeof(update_server_history));
         if (UpdateClient::update_client_new() != 0) {

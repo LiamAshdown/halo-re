@@ -3,6 +3,7 @@
  * Server console commands.
  */
 #include "tags.h"
+#include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
@@ -97,14 +98,14 @@ void ServerCommands::ban(uint32_t argument_count, int32_t *arguments)
     network_machine *machine;
 
     if (network_game_mode != halo::networking::k_game_mode_host) {
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"sv_ban is a server-only function!");
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("sv_ban is a server-only function!"));
         return;
     }
     if (0 < (int32_t)argument_count && (int32_t)argument_count < 3) {
         if (argument_count == 2) {
             duration = halo::networking::parse_time_duration_string((char *)arguments[1], 'm', (uint8_t *)sv_ban_penalty_arg_buffer);
             if (duration == -1) {
-                halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_ban for more information.");
+                halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help sv_ban for more information."));
                 return;
             }
         }
@@ -112,7 +113,7 @@ void ServerCommands::ban(uint32_t argument_count, int32_t *arguments)
         if (player != 0) {
             machine = halo::networking::network_machine_find_by_id(network_server, player->machine_index);
             if (machine != 0 && machine->channel != 0 && machine->channel->connected != 0) {
-                halo::interface::chimera__console_out((ColorARGB *)console_message_default_color, (char *)"sv_ban:  Can't ban a local client!");
+                halo::interface::chimera__console_out((ColorARGB *)console_message_default_color, halo::mutable_literal("sv_ban:  Can't ban a local client!"));
                 return;
             }
             halo::networking::network_banlist_add_ban(machine->gcd_user_id, duration, player);
@@ -120,7 +121,7 @@ void ServerCommands::ban(uint32_t argument_count, int32_t *arguments)
         }
         return;
     }
-    halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_ban for more information.");
+    halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help sv_ban for more information."));
 }
 
 void ServerCommands::ban_penalty(uint32_t argument_count, int32_t *arguments)
@@ -130,13 +131,13 @@ void ServerCommands::ban_penalty(uint32_t argument_count, int32_t *arguments)
 
     if (argument_count == 0) {
     print_table:
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)("Offense    %s"), "Ban Time");
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Offense    %s"), "Ban Time");
         i = 0;
         do {
             int32_t seconds = sv_ban_penalty_seconds[i];
             char buf[16];
             if (seconds == -1) {
-                halo::interface::chimera__console_out((ColorARGB *)0, (char *)("%1d          %s"), i + 1, "Infinite");
+                halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("%1d          %s"), i + 1, "Infinite");
                 break;
             }
             {
@@ -163,10 +164,10 @@ void ServerCommands::ban_penalty(uint32_t argument_count, int32_t *arguments)
                 }
             }
             i = i + 1;
-            halo::interface::chimera__console_out((ColorARGB *)0, (char *)("%1d          %s"), i, buf);
+            halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("%1d          %s"), i, buf);
         } while (i < 4);
         if (i == 4 && sv_ban_penalty_seconds[3] != -1) {
-            halo::interface::chimera__console_out((ColorARGB *)0, (char *)(">%1d         %s"), 4, "Infinite");
+            halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal(">%1d         %s"), 4, "Infinite");
         }
         return;
     }
@@ -187,7 +188,7 @@ void ServerCommands::ban_penalty(uint32_t argument_count, int32_t *arguments)
                 sv_ban_penalty_seconds[1] = saved[1];
                 sv_ban_penalty_seconds[2] = saved[2];
                 sv_ban_penalty_seconds[3] = saved[3];
-                halo::interface::chimera__console_out((ColorARGB *)0, (char *)("Incorrect usage. Type help sv_ban_penalty for more information."));
+                halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help sv_ban_penalty for more information."));
                 return;
             }
             sv_ban_penalty_seconds[i] = value;
@@ -195,14 +196,14 @@ void ServerCommands::ban_penalty(uint32_t argument_count, int32_t *arguments)
         } while (i < (int32_t)argument_count);
         goto print_table;
     }
-    halo::interface::chimera__console_out((ColorARGB *)0, (char *)("Incorrect usage. Type help sv_ban_penalty for more information."));
+    halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help sv_ban_penalty for more information."));
 }
 
 void ServerCommands::banlist_file(uint32_t argument_count, int32_t *arguments)
 {
     if (argument_count == 0) {
     report:
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)"sv_banlist_file: %s", network_banlist_full_path);
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("sv_banlist_file: %s"), network_banlist_full_path);
         return;
     }
     if (argument_count == 1) {
@@ -210,14 +211,14 @@ void ServerCommands::banlist_file(uint32_t argument_count, int32_t *arguments)
         int32_t len = strlen(suffix);
 
         if (len == 0) {
-            halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Ban file names must not be empty.");
+            halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Ban file names must not be empty."));
         } else if (0xf5 < len) {
-            halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Ban file names cannot be longer than %d characters.", 0xfa);
+            halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Ban file names cannot be longer than %d characters."), 0xfa);
         } else {
             int32_t i;
             for (i = 0; suffix[i] != 0; i = i + 1) {
                 if (!isalnum((uint8_t)suffix[i])) {
-                    halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Ban list file names must be alphanumeric.");
+                    halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Ban list file names must be alphanumeric."));
                     goto usage;
                 }
             }
@@ -228,7 +229,7 @@ void ServerCommands::banlist_file(uint32_t argument_count, int32_t *arguments)
         }
     }
 usage:
-    halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_banlist_file for more information.");
+    halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help sv_banlist_file for more information."));
 }
 
 network_player_entry * ServerCommands::find_client_by_name_or_index(char *name_or_index)
@@ -269,7 +270,7 @@ void ServerCommands::friendly_fire(uint32_t argument_count, int32_t *arguments)
 
     if (argument_count != 0) {
         if (argument_count != 1) {
-            halo::interface::chimera__console_out((ColorARGB *)0, (char *)("Incorrect usage. Type help sv_friendly_fire for more information."));
+            halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help sv_friendly_fire for more information."));
             return;
         }
         {
@@ -287,8 +288,8 @@ void ServerCommands::friendly_fire(uint32_t argument_count, int32_t *arguments)
                 sv_friendly_fire_mode = 3;
                 changed = 1;
             } else {
-                halo::interface::chimera__console_out((ColorARGB *)0, (char *)("sv_friendly_fire:  invalid parameter %s"), arg);
-                halo::interface::chimera__console_out((ColorARGB *)0, (char *)("Incorrect usage. Type help sv_friendly_fire for more information."));
+                halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("sv_friendly_fire:  invalid parameter %s"), arg);
+                halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help sv_friendly_fire for more information."));
                 return;
             }
         }
@@ -302,9 +303,9 @@ void ServerCommands::friendly_fire(uint32_t argument_count, int32_t *arguments)
 
     case 0: label = "0 = default"; break;
     }
-    halo::interface::chimera__console_out((ColorARGB *)0, (char *)("sv_friendly_fire: %s"), label);
+    halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("sv_friendly_fire: %s"), label);
     if (changed && halo::game::globals().current_engine != 0) {
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)("   Game in progress...  Changes will apply to the next game."));
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("   Game in progress...  Changes will apply to the next game."));
     }
 }
 
@@ -314,14 +315,14 @@ void ServerCommands::kick(char *name_or_index)
     network_machine *machine;
 
     if (network_game_mode != halo::networking::k_game_mode_host) {
-        halo::interface::chimera__console_out((ColorARGB *)console_message_default_color, (char *)"sv_kick is a server-only function!");
+        halo::interface::chimera__console_out((ColorARGB *)console_message_default_color, halo::mutable_literal("sv_kick is a server-only function!"));
         return;
     }
     player = halo::networking::sv_find_client_by_name_or_index(name_or_index);
     if (player != 0) {
         machine = halo::networking::network_machine_find_by_id(network_server, player->machine_index);
         if (machine != 0 && machine->channel != 0 && machine->channel->connected != 0) {
-            halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"sv_kick:  Can't kick a local client!");
+            halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("sv_kick:  Can't kick a local client!"));
             return;
         }
         halo::networking::network_server_notify_or_resend_challenge(7, machine, network_server);
@@ -331,7 +332,7 @@ void ServerCommands::kick(char *name_or_index)
 void ServerCommands::map(uint32_t argument_count, uint16_t **arguments)
 {
     if (argument_count == 0 || arguments == 0 || halo::game::game_engine_is_map_and_variant_valid((const char *)(uintptr_t)argument_count, (const char *)arguments) == 0) {
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"sv_map specified invalid map or game variant");
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("sv_map specified invalid map or game variant"));
         return;
     }
 
@@ -348,7 +349,7 @@ void ServerCommands::map(uint32_t argument_count, uint16_t **arguments)
     if (network_game_mode == halo::networking::k_game_mode_local) {
         game_variant new_variant;
 
-        halo::main::main_queue_map_change_by_name_or_clear((char *)"");
+        halo::main::main_queue_map_change_by_name_or_clear(halo::mutable_literal(""));
         halo::game::game_engine_get_variant_by_name(0, &new_variant);
         memcpy(&game_variant_saved_default, &new_variant, sizeof(game_variant));
         game_variant_saved_default_valid = 1;
@@ -359,13 +360,13 @@ void ServerCommands::map(uint32_t argument_count, uint16_t **arguments)
         return;
     }
 
-    halo::interface::chimera__console_out((ColorARGB *)console_message_default_color, (char *)"sv_map is a server-only function!");
+    halo::interface::chimera__console_out((ColorARGB *)console_message_default_color, halo::mutable_literal("sv_map is a server-only function!"));
 }
 
 void ServerCommands::map_reset(void)
 {
     if (network_game_mode != halo::networking::k_game_mode_host) {
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)"sv_map_reset is a server-only function!");
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("sv_map_reset is a server-only function!"));
         return;
     }
     halo::interface::widget_close_all();
@@ -374,19 +375,19 @@ void ServerCommands::map_reset(void)
             halo::game::game_engine_reset_round_objects();
             halo::game::game_engine_send_round_reset_message();
             halo::game::game_engine_player_profile_cache_sync_all(0, (void *)halo::k_dword_none);
-            halo::interface::chimera__console_out((ColorARGB *)console_message_default_color, (char *)"Map reset.");
+            halo::interface::chimera__console_out((ColorARGB *)console_message_default_color, halo::mutable_literal("Map reset."));
             return;
         }
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Cannot restart the map when the game is over.");
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Cannot restart the map when the game is over."));
     }
-    halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Map reset.");
+    halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Map reset."));
 }
 
 void ServerCommands::maxplayers(uint32_t argument_count, int32_t *arguments)
 {
     if (argument_count == 0) {
     report:
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)"sv_maxplayers: %d", sv_maxplayers_value);
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("sv_maxplayers: %d"), sv_maxplayers_value);
         return;
     }
     if (argument_count == 1) {
@@ -397,13 +398,13 @@ void ServerCommands::maxplayers(uint32_t argument_count, int32_t *arguments)
                 network_server->session.maximum_players = (uint8_t)value;
             }
             if (value == 1) {
-                halo::interface::chimera__console_out((ColorARGB *)0, (char *)"WARNING: sv_maxplayers set to 1, are you sure you want to do this?");
+                halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("WARNING: sv_maxplayers set to 1, are you sure you want to do this?"));
             }
             goto report;
         }
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)"sv_maxplayers must be between 1 and %d", 0x10);
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("sv_maxplayers must be between 1 and %d"), 0x10);
     }
-    halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_maxplayers for more information.");
+    halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help sv_maxplayers for more information."));
 }
 
 void ServerCommands::name(uint32_t argument_count, char **arguments)
@@ -412,7 +413,7 @@ void ServerCommands::name(uint32_t argument_count, char **arguments)
 
     if (argument_count == 0) {
     report:
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)"sv_name: %ls", network_server_name);
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("sv_name: %ls"), network_server_name);
         return;
     }
     if (argument_count == 1) {
@@ -432,13 +433,13 @@ void ServerCommands::name(uint32_t argument_count, char **arguments)
                     goto report;
                 }
             }
-            halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Server names must only contain printable ASCII characters supported by the Halo UI.");
+            halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Server names must only contain printable ASCII characters supported by the Halo UI."));
             goto usage;
         }
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Server names must be between 1 and %d characters.", 0x3f);
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Server names must be between 1 and %d characters."), 0x3f);
     }
 usage:
-    halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_name for more information.");
+    halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help sv_name for more information."));
 }
 
 void ServerCommands::password(uint32_t argument_count, char **arguments)
@@ -447,7 +448,7 @@ void ServerCommands::password(uint32_t argument_count, char **arguments)
 
     if (argument_count == 0) {
     report:
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)"sv_password: %ls", network_server_password);
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("sv_password: %ls"), network_server_password);
         return;
     }
     if (argument_count == 1) {
@@ -471,12 +472,12 @@ void ServerCommands::password(uint32_t argument_count, char **arguments)
                     goto report;
                 }
             }
-            halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Server passwords must only contain printable ASCII characters supported by the Halo UI.");
+            halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Server passwords must only contain printable ASCII characters supported by the Halo UI."));
         } else {
-            halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Server passwords must be no more than %d characters.", 8);
+            halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Server passwords must be no more than %d characters."), 8);
         }
     }
-    halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_password for more information.");
+    halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help sv_password for more information."));
 }
 
 void ServerCommands::players(void)
@@ -488,7 +489,7 @@ void ServerCommands::players(void)
     int32_t remaining;
 
     if (network_game_mode != halo::networking::k_game_mode_host) {
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"sv_players is a server-only function!");
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("sv_players is a server-only function!"));
         return;
     }
 
@@ -571,10 +572,10 @@ void ServerCommands::rcon_password(uint32_t argument_count, int32_t *arguments)
     if (argument_count == 0) {
     report:
         if (sv_rcon_password_value[0] == 0) {
-            halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"sv_rcon_password: '' (rcon is DISABLED)");
+            halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("sv_rcon_password: '' (rcon is DISABLED)"));
             return;
         }
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"sv_rcon_password: '%s'", sv_rcon_password_value, strlen(sv_rcon_password_value));
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("sv_rcon_password: '%s'"), sv_rcon_password_value, strlen(sv_rcon_password_value));
         return;
     }
     if (argument_count == 1) {
@@ -583,9 +584,9 @@ void ServerCommands::rcon_password(uint32_t argument_count, int32_t *arguments)
             strcpy(sv_rcon_password_value, arg);
             goto report;
         }
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Maximum rcon password length is %d characters", 8);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Maximum rcon password length is %d characters"), 8);
     }
-    halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Incorrect usage. Type help sv_rcon_password for more information.");
+    halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Incorrect usage. Type help sv_rcon_password for more information."));
 }
 
 void ServerCommands::single_flag_force_reset(uint32_t argument_count, char **arguments)
@@ -596,7 +597,7 @@ void ServerCommands::single_flag_force_reset(uint32_t argument_count, char **arg
     halo::networking::console_command_bool_get_set(argument_count, &new_value, arguments, "sv_single_flag_force_reset");
 
     if (new_value != old_value && halo::game::globals().current_engine != 0) {
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Game in progress...  Changes will apply to the next game.");
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Game in progress...  Changes will apply to the next game."));
     }
     network_single_flag_force_reset_value = new_value;
 }
@@ -606,17 +607,17 @@ void ServerCommands::status(void)
     if (network_game_mode == halo::networking::k_game_mode_host) {
         if (network_server != 0) {
             int32_t player_count_info = halo::game::players_active_count();
-            halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Dedicated server is running on map %s (%d / %d players)",
+            halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Dedicated server is running on map %s (%d / %d players)"),
                                   network_build_string, player_count_info);
             if (halo::game::globals().state == _game_engine_state_not_started) {
-                halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Use the 'sv_end_game' command to stop the game.");
+                halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Use the 'sv_end_game' command to stop the game."));
                 return;
             }
-            halo::interface::chimera__console_out((ColorARGB *)console_message_default_color, (char *)"Game is ending...");
+            halo::interface::chimera__console_out((ColorARGB *)console_message_default_color, halo::mutable_literal("Game is ending..."));
         }
         return;
     }
-    halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"%s is a server-only function!", "sv_status");
+    halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("%s is a server-only function!"), "sv_status");
 }
 
 void ServerCommands::timelimit(uint32_t argument_count, int32_t *arguments)
@@ -625,7 +626,7 @@ void ServerCommands::timelimit(uint32_t argument_count, int32_t *arguments)
 
     if (argument_count != 0) {
         if (argument_count != 1) {
-            halo::interface::chimera__console_out((ColorARGB *)0, (char *)("Incorrect usage. Type help sv_timelimit for more information."));
+            halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help sv_timelimit for more information."));
             return;
         }
         {
@@ -639,8 +640,8 @@ void ServerCommands::timelimit(uint32_t argument_count, int32_t *arguments)
             } else {
                 int32_t value = atol(arg);
                 if (value < 1 || 599 < value) {
-                    halo::interface::chimera__console_out((ColorARGB *)0, (char *)("sv_timelimit:  invalid parameter %s"), arg);
-                    halo::interface::chimera__console_out((ColorARGB *)0, (char *)("Incorrect usage. Type help sv_timelimit for more information."));
+                    halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("sv_timelimit:  invalid parameter %s"), arg);
+                    halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help sv_timelimit for more information."));
                     return;
                 }
                 changed = 1;
@@ -649,16 +650,16 @@ void ServerCommands::timelimit(uint32_t argument_count, int32_t *arguments)
         }
     }
     if (sv_timelimit_minutes == -1) {
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)("sv_timelimit: -1 = default"));
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("sv_timelimit: -1 = default"));
     } else if (sv_timelimit_minutes != 0) {
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)("sv_timelimit: %d minutes"), sv_timelimit_minutes);
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("sv_timelimit: %d minutes"), sv_timelimit_minutes);
         goto done;
     } else {
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)("sv_timelimit: 0 = infinite"));
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("sv_timelimit: 0 = infinite"));
     }
 done:
     if (changed && halo::game::globals().current_engine != 0) {
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)("   Game in progress...  Changes will apply to the next game."));
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("   Game in progress...  Changes will apply to the next game."));
     }
 }
 
@@ -666,38 +667,38 @@ void ServerCommands::tk_cooldown(uint32_t argument_count, int32_t *arguments)
 {
     if (argument_count != 0) {
         if (argument_count != 1) {
-            halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_tk_cooldown for more information.");
+            halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help sv_tk_cooldown for more information."));
             return;
         }
         {
             int32_t seconds = halo::networking::parse_time_duration_string((char *)arguments[0], 's', (uint8_t *)sv_tk_grace_arg_buffer);
             if (seconds < 0) {
-                halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_tk_cooldown for more information.");
+                halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help sv_tk_cooldown for more information."));
                 return;
             }
             sv_tk_cooldown_ticks = seconds * 30;
         }
     }
-    halo::interface::chimera__console_out((ColorARGB *)0, (char *)"sv_tk_cooldown: %ds", sv_tk_cooldown_ticks / 30);
+    halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("sv_tk_cooldown: %ds"), sv_tk_cooldown_ticks / 30);
 }
 
 void ServerCommands::tk_grace(uint32_t argument_count, int32_t *arguments)
 {
     if (argument_count != 0) {
         if (argument_count != 1) {
-            halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_tk_grace for more information.");
+            halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help sv_tk_grace for more information."));
             return;
         }
         {
             int32_t seconds = halo::networking::parse_time_duration_string((char *)arguments[0], 's', (uint8_t *)sv_tk_grace_arg_buffer);
             if (seconds < 0) {
-                halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_tk_grace for more information.");
+                halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help sv_tk_grace for more information."));
                 return;
             }
             sv_tk_grace_ticks = seconds * 30;
         }
     }
-    halo::interface::chimera__console_out((ColorARGB *)0, (char *)"sv_tk_grace: %ds", sv_tk_grace_ticks / 30);
+    halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("sv_tk_grace: %ds"), sv_tk_grace_ticks / 30);
 }
 
 }  // namespace halo::networking

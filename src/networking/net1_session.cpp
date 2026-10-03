@@ -1,4 +1,5 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/core/cstring.hpp"
 #include "halo/networking/announcement.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
@@ -260,7 +261,7 @@ wchar_t * GameRuntime::get_random_player_name()
     uint32_t tag_id;
     void *definition;
 
-    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\random_player_names");
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::mutable_literal("ui\\random_player_names"));
     if (tag_id != halo::k_dword_none) {
         definition = *(void **)((uint8_t *)halo::cache::globals().tag_instances + (tag_id & halo::k_datum_slot_mask) * 0x20 + 0x14);
         if (definition != 0 && *(int32_t *)definition != 0) {
@@ -1265,7 +1266,7 @@ void HostSession::qr2_add_error(int32_t error, char *message, void *user_data)
 {
     (void)error;
     (void)user_data;
-    halo::interface::console_printf_verbose((ColorARGB *)console_message_default_color, (char *)"qr2_adderror_callback - %s", message);
+    halo::interface::console_printf_verbose((ColorARGB *)console_message_default_color, halo::mutable_literal("qr2_adderror_callback - %s"), message);
 }
 
 /**

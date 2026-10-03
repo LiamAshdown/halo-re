@@ -3,6 +3,7 @@
  * RCON requests, console glue, update server and registry lookups.
  */
 #include "win32.h"
+#include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
@@ -120,7 +121,7 @@ int8_t RemoteConsole::on_connect(const uint32_t *target_address, network_client_
 
     client->state = k_network_client_state_connecting;
     attempt->elapsed_counter = 0;
-    halo::interface::console_printf_verbose((ColorARGB *)0, (char *)"Connecting");
+    halo::interface::console_printf_verbose((ColorARGB *)0, halo::mutable_literal("Connecting"));
     memset(&client->connection, 0, 10 * sizeof(uint32_t));
     memcpy(&client->connection.address, target_address, 6 * sizeof(uint32_t));
     interface_loading_screen_progress = 0;
@@ -154,7 +155,7 @@ void RemoteConsole::bool_get_set(uint32_t argument_count, uint8_t *value, char *
 
     if (argument_count == 0) {
     report:
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)"%s: %u", name, *value);
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("%s: %u"), name, *value);
         return;
     }
     if (argument_count == 1) {
@@ -175,7 +176,7 @@ void RemoteConsole::bool_get_set(uint32_t argument_count, uint8_t *value, char *
             }
         }
     }
-    halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help %s for more information.", name);
+    halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help %s for more information."), name);
 }
 
 void RemoteConsole::rcon(int32_t argument_count, char **arguments)
@@ -187,17 +188,17 @@ void RemoteConsole::rcon(int32_t argument_count, char **arguments)
     int32_t i;
 
     if (network_game_mode != halo::networking::k_game_mode_client) {
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"rcon is a client-only function!");
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("rcon is a client-only function!"));
         return;
     }
     if (argument_count < 2) {
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Incorrect usage. Type help rcon for more information.");
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Incorrect usage. Type help rcon for more information."));
         return;
     }
     password = arguments[0];
     password_len = strlen(password);
     if (password_len == 0 || 8 < password_len) {
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"rcon password must be between 1 and %d characters", 8);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("rcon password must be between 1 and %d characters"), 8);
         return;
     }
 
@@ -209,7 +210,7 @@ void RemoteConsole::rcon(int32_t argument_count, char **arguments)
 
         budget = budget + (-3 - word_len);
         if (budget < 0) {
-            halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"rcon command can be no longer than %d characters", 0x40);
+            halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("rcon command can be no longer than %d characters"), 0x40);
             return;
         }
         if (command[0] != 0) {
@@ -233,11 +234,11 @@ void RemoteConsole::run_rcon_send_request(char *command, char *password)
     int32_t encoded_bits;
 
     if (strlen(password) > 8) {
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"ERROR: Maximum rcon password length is %d characters", 8);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("ERROR: Maximum rcon password length is %d characters"), 8);
         return;
     }
     if (strlen(command) > 0x40) {
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"ERROR: Maximum rcon command length is %d characters", 0x40);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("ERROR: Maximum rcon command length is %d characters"), 0x40);
         return;
     }
     strcpy(record.password, password);

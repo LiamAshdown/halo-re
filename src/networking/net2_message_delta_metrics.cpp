@@ -3,6 +3,7 @@
  * Message-delta size sampling and metrics.
  */
 #include "tags.h"
+#include "halo/core/cstring.hpp"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
@@ -31,7 +32,7 @@ void DeltaMetrics::metrics_dump(char *suffix)
         (void)len;
     }
     snprintf(path, 0x104, "%s\\%s %s", "message metrics", message_delta_metrics_filename_suffix, suffix);
-    halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Wrote network message metrics to %s"), path);
+    halo::interface::console_printf_verbose((ColorARGB *)0, halo::mutable_literal("Wrote network message metrics to %s"), path);
 }
 
 void DeltaMetrics::sample_record_and_append(int32_t a, int32_t c, int32_t b,

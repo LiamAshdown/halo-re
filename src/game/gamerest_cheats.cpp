@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_cheats.hpp"
+#include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
@@ -260,7 +261,7 @@ void Cheats::teleport_to_camera()
                 halo::objects::object_set_position_and_orientation(root, 0, 0, (real_point3d *)camera_row);
                 return;
             }
-            halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Camera is outside BSP... cannot initiate teleportation..."));
+            halo::interface::console_printf_verbose((ColorARGB *)0, halo::mutable_literal("Camera is outside BSP... cannot initiate teleportation..."));
         }
     }
 }

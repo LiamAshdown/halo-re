@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_match.hpp"
+#include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/game/variant_flags.hpp"
 #include "halo/core/network_constants.hpp"
@@ -314,9 +315,9 @@ void EngineMatch::tick(void)
     } else if (game_engine_state_value == _game_engine_state_ending) {
         if (game_engine_end_game_timer <= 2.0f && (game_engine_unknown_aa00 & 0x10) == 0) {
             halo::sound::sound_class_set_gain_by_name(k_empty_string, 0.0f, 0x1e);
-            halo::sound::sound_class_set_gain_by_name((char *)"ambient_nature", 0.2f, 0x1e);
-            halo::sound::sound_class_set_gain_by_name((char *)"ambient_machinery", 0.2f, 0x1e);
-            halo::sound::sound_class_set_gain_by_name((char *)"ambient_computers", 0.2f, 0x1e);
+            halo::sound::sound_class_set_gain_by_name(halo::mutable_literal("ambient_nature"), 0.2f, 0x1e);
+            halo::sound::sound_class_set_gain_by_name(halo::mutable_literal("ambient_machinery"), 0.2f, 0x1e);
+            halo::sound::sound_class_set_gain_by_name(halo::mutable_literal("ambient_computers"), 0.2f, 0x1e);
             game_engine_unknown_aa00 = game_engine_unknown_aa00 | 0x10;
         }
 

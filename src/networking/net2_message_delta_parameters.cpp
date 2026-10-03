@@ -3,6 +3,7 @@
  * Parameters-protocol registration, config file and update packets.
  */
 #include "crt.h"
+#include "halo/core/cstring.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/networking/delta_message_types.hpp"
 #include "tags.h"
@@ -203,9 +204,9 @@ void ParametersProtocol::run_register(char *scope, char *name, int32_t type, voi
             message_delta_parameter_count = message_delta_parameter_count + 1;
         }
         if (type == 1) {
-            halo::networking::message_delta_parameters_protocol_parse_value_from_config(buffer, (char *)"%d", value);
+            halo::networking::message_delta_parameters_protocol_parse_value_from_config(buffer, halo::mutable_literal("%d"), value);
         } else {
-            halo::networking::message_delta_parameters_protocol_parse_value_from_config(buffer, (char *)"%f", value);
+            halo::networking::message_delta_parameters_protocol_parse_value_from_config(buffer, halo::mutable_literal("%f"), value);
         }
     }
 }

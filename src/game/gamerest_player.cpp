@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_player.hpp"
+#include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
@@ -2740,8 +2741,8 @@ void Players::initialize()
 {
     uint32_t size;
 
-    player_data = (data_array *)halo::saved_games::game_state_new((char *)"players", k_maximum_players, k_player_size);
-    team_data = (data_array *)halo::saved_games::game_state_new((char *)"teams", k_maximum_teams, k_team_size);
+    player_data = (data_array *)halo::saved_games::game_state_new(halo::mutable_literal("players"), k_maximum_players, k_player_size);
+    team_data = (data_array *)halo::saved_games::game_state_new(halo::mutable_literal("teams"), k_maximum_teams, k_team_size);
 
     local_player_globals = (player_globals *)(halo::saved_games::globals().game_state_cursor + halo::saved_games::globals().game_state_base);
     halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + k_player_globals_size;

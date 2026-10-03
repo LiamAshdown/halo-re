@@ -1,4 +1,5 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
@@ -1366,7 +1367,7 @@ int32_t JoinView::connect_retry_tick()
     attempt->unknown_00 = 0;
     if (attempt->loading_started == 0) {
         attempt->elapsed_counter = 0;
-        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Loading"));
+        halo::interface::console_printf_verbose((ColorARGB *)0, halo::mutable_literal("Loading"));
         interface_loading_screen_progress = 0;
         if (network_game_mode == halo::networking::k_game_mode_host) {
             if (join_ui_state != 1) {

@@ -1,4 +1,5 @@
 #include "halo/networking/net1_channel.hpp"
+#include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/networking/browser_state.hpp"
@@ -174,7 +175,7 @@ network_channel * ChannelFactory::create_channel(uint32_t flags)
         ((flags & k_network_channel_listening) == 0 ||
          (halo::networking::network_listen_start(channel->endpoint) == 0 &&
           halo::networking::network_channel_list_add(channel->endpoint, channel->listen_list) == 0))) {
-        channel->incoming = halo::memory::circular_buffer_new((char *)"transport-incoming", 0);
+        channel->incoming = halo::memory::circular_buffer_new(halo::mutable_literal("transport-incoming"), 0);
         if (channel->incoming != 0) {
             goto primed;
         }
@@ -212,7 +213,7 @@ network_channel * ChannelFactory::create_child(network_receive_queue *endpoint)
     if (channel != 0) {
         channel->endpoint = endpoint;
         channel->flags = k_network_channel_transmit_pending;
-        channel->incoming = halo::memory::circular_buffer_new((char *)"transport-incoming", 0);
+        channel->incoming = halo::memory::circular_buffer_new(halo::mutable_literal("transport-incoming"), 0);
         halo::networking::network_channel_record_timestamp(channel);
         channel->reliable_count = 0;
         channel->reliable = 0;
@@ -378,7 +379,7 @@ network_receive_queue * ChannelFactory::create_receive_queue()
             buffer->write_cursor = 0;
             buffer->capacity = 0;
             buffer->data = 0;
-            buffer->name = (char *)"received_data_queue";
+            buffer->name = halo::mutable_literal("received_data_queue");
             buffer->signature = 0x63697263;
             buffer->capacity = 0x10001;
             buffer->data = (uint8_t *)buffer + 0x18;

@@ -1,4 +1,5 @@
 #include "halo/networking/net1_runtime.hpp"
+#include "halo/core/cstring.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/networking/delta_message_types.hpp"
@@ -122,7 +123,7 @@ void ConnectionStats::log_tick()
             tm_now = localtime(&now_time);
             strftime(date_buf, 0x103, "%Y-%m-%d %H_%M_%S", tm_now);
 
-            base_path = halo::networking::network_log_path_resolve((char *)"Gamespy Metrics");
+            base_path = halo::networking::network_log_path_resolve(halo::mutable_literal("Gamespy Metrics"));
             strcpy(path_buf, base_path);
             halo::cseries::directory_create_recursive(path_buf);
 
@@ -449,7 +450,7 @@ uint8_t NetworkRuntime::name_string_is_valid_for_mode(char *name, void *characte
     int32_t len;
     int32_t i;
 
-    datum_index small_ui_font = halo::cache::tag_lookup(halo::groups::font, (char *)"ui\\small_ui");
+    datum_index small_ui_font = halo::cache::tag_lookup(halo::groups::font, halo::mutable_literal("ui\\small_ui"));
     len = strlen(name);
     if (mode == 3) {
         ok = *name != 0;
@@ -1026,7 +1027,7 @@ void StatsSummaryLog::open()
             tm_now = localtime(&now);
             strftime(date_buf, 0x103, "%Y-%m-%d %H_%M_%S", tm_now);
 
-            base_path = halo::networking::network_log_path_resolve((char *)"Gamespy Metrics");
+            base_path = halo::networking::network_log_path_resolve(halo::mutable_literal("Gamespy Metrics"));
             strcpy(path_buf, base_path);
             halo::cseries::directory_create_recursive(path_buf);
 

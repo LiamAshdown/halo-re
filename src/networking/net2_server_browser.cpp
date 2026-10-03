@@ -3,6 +3,7 @@
  * Server browser filters, sorting, list rows and join latch.
  */
 #include "tags.h"
+#include "halo/core/cstring.hpp"
 #include "halo/core/ui_tag_paths.hpp"
 #include "halo/game/variant_flags.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -155,7 +156,7 @@ void ServerBrowser::matching_substring(uint32_t argument_count, char **arguments
             *p = towlower(*p);
         }
     }
-    halo::interface::chimera__console_out((ColorARGB *)console_color_00685214, (char *)"Game types matching substring \"%ls\" :", filter);
+    halo::interface::chimera__console_out((ColorARGB *)console_color_00685214, halo::mutable_literal("Game types matching substring \"%ls\" :"), filter);
     if (playlist_profiles_need_defaults == 1) {
         halo::saved_games::playlist_profile_create_default_profiles_on_disk();
         playlist_profiles_need_defaults = 0;
@@ -618,7 +619,7 @@ void ServerBrowser::map_list_matching_substring(uint32_t argument_count, char **
             *p = (char)tolower((uint8_t)*p);
         }
     }
-    halo::interface::chimera__console_out((ColorARGB *)console_color_00685214, (char *)"Maps matching substring \"%s\" :", filter);
+    halo::interface::chimera__console_out((ColorARGB *)console_color_00685214, halo::mutable_literal("Maps matching substring \"%s\" :"), filter);
     i = 0;
     while (i < halo::interface::globals().map_list_count) {
         char line[256];

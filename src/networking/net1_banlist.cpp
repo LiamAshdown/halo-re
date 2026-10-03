@@ -1,4 +1,5 @@
 #include "halo/networking/net1_banlist.hpp"
+#include "halo/core/cstring.hpp"
 #include "halo/text/api.hpp"
 #include <time.h>
 #include <stdio.h>
@@ -61,7 +62,7 @@ uint8_t Banlist::add_ban(int32_t identity_lookup_key, int32_t duration_override_
         if (duration_override_seconds == -1) {
             entry->indefinite = 1;
             entry->expiry_time = 0;
-            halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Banning %s (%s) indefinitely.", player_name, cd_key_hash);
+            halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Banning %s (%s) indefinitely."), player_name, cd_key_hash);
             halo::networking::network_banlist_save();
             return 1;
         }
@@ -70,7 +71,7 @@ uint8_t Banlist::add_ban(int32_t identity_lookup_key, int32_t duration_override_
         entry->expiry_time = expiry;
         entry->indefinite = 0;
         halo::networking::format_local_time_and_date(date_buf, 0x20, expiry, time_buf);
-        halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Banning %s (%s) until %s %s.", player_name, cd_key_hash, date_buf, time_buf);
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Banning %s (%s) until %s %s."), player_name, cd_key_hash, date_buf, time_buf);
         halo::networking::network_banlist_save();
     }
     return 1;
@@ -176,7 +177,7 @@ void Banlist::print()
     char entry_text[63];
     char line[257];
 
-    halo::interface::chimera__console_out((ColorARGB *)console_color_00685214, (char *)"[Num Bans Name]");
+    halo::interface::chimera__console_out((ColorARGB *)console_color_00685214, halo::mutable_literal("[Num Bans Name]"));
     if (0 < ban_list.count) {
         do {
             int32_t in_line = 0;
@@ -242,7 +243,7 @@ uint8_t Banlist::autoban_player(datum_index player_handle)
     if (machine != 0 && machine->channel != 0 && machine->channel->connected != 0) {
         return 0;
     }
-    halo::interface::chimera__console_out((ColorARGB *)0, (char *)"AUTOBAN: Banning %S.", target_player->name);
+    halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("AUTOBAN: Banning %S."), target_player->name);
     if (!halo::networking::network_banlist_add_ban(machine->gcd_user_id, 0, (network_player_entry *)target_player->name)) {
         return 0;
     }

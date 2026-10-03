@@ -1,4 +1,5 @@
 #include "halo/networking/net1_server.hpp"
+#include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
@@ -1078,37 +1079,37 @@ void ServerView::handle_rcon_request(network_player_entry *client, void *message
 
     if (*(int32_t *)*(int32_t *)message != 0) {
         halo::networking::message_delta_decode_compound_field_staged((void **)message);
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring meaningless rcon_request message from client #%d", machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Ignoring meaningless rcon_request message from client #%d"), machine_id);
         return;
     }
     memset(&decode, 0, sizeof(decode));
     if (halo::networking::message_delta_decode_compound_field((void **)message, &decode) == 0) {
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Could not decode rcon message from client #%d", machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Could not decode rcon message from client #%d"), machine_id);
         return;
     }
     if (sv_rcon_password_value[0] == 0) {
-        halo::networking::chimera__rcon_out((char *)"rcon command ignored (rcon is disabled)", machine_id);
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (rcon is disabled)", machine_id);
+        halo::networking::chimera__rcon_out(halo::mutable_literal("rcon command ignored (rcon is disabled)"), machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Ignoring rcon request from client #%d (rcon is disabled)"), machine_id);
         return;
     }
     if (strcmp(sv_rcon_password_value, decode.password) != 0) {
-        halo::networking::chimera__rcon_out((char *)"rcon command ignored (bad password)", machine_id);
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (bad password)", machine_id);
+        halo::networking::chimera__rcon_out(halo::mutable_literal("rcon command ignored (bad password)"), machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Ignoring rcon request from client #%d (bad password)"), machine_id);
         return;
     }
     if (decode.command[0] == 0) {
-        halo::networking::chimera__rcon_out((char *)"rcon command ignored (empty)", machine_id);
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (empty command)", machine_id);
+        halo::networking::chimera__rcon_out(halo::mutable_literal("rcon command ignored (empty)"), machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Ignoring rcon request from client #%d (empty command)"), machine_id);
         return;
     }
     halo::main::console_process_rcon_command(machine_id, decode.command);
     {
-        halo::networking::chimera__rcon_out((char *)"rcon command finished", machine_id);
-        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Successfully executed rcon command from client #%d.", machine_id + 1);
+        halo::networking::chimera__rcon_out(halo::mutable_literal("rcon command finished"), machine_id);
+        halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Successfully executed rcon command from client #%d."), machine_id + 1);
         return;
     }
-    halo::networking::chimera__rcon_out((char *)"rcon command failed", machine_id);
-    halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"Failure executing rcon command from client #%d.", machine_id);
+    halo::networking::chimera__rcon_out(halo::mutable_literal("rcon command failed"), machine_id);
+    halo::interface::chimera__console_out((ColorARGB *)global_white_argb, halo::mutable_literal("Failure executing rcon command from client #%d."), machine_id);
 }
 
 /**

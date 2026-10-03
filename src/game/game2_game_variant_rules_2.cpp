@@ -1,4 +1,5 @@
 #include "halo/game/game2_variants.hpp"
+#include "halo/core/cstring.hpp"
 #include "halo/core/datum.hpp"
 #include "interface.h"
 #include "main.h"
@@ -27,7 +28,7 @@ void GameVariantRules::sync_variant_defaults(void)
     void *session;
     uint8_t hosting;
 
-    halo::main::main_queue_map_change_by_name_or_clear((char *)"");
+    halo::main::main_queue_map_change_by_name_or_clear(halo::mutable_literal(""));
 
     session = halo::networking::globals().server;
     hosting = (session != 0);

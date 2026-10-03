@@ -3,6 +3,7 @@
  * Index, pointer, placement and range message-delta field codecs.
  */
 #include "message_delta_codec.h"
+#include "halo/core/cstring.hpp"
 #include "halo/core/datum.hpp"
 #include "win32.h"
 #include "halo/networking/net2_message_delta_index.hpp"
@@ -225,9 +226,9 @@ uint8_t IndexFieldCodec::item_placement_initialize(message_delta_field_type *fie
 {
     (void)field_type;
     if (message_delta_parameters_enabled == 1) {
-        halo::networking::message_delta_parameters_protocol_register(0, (char *)"gITEM_PLACEMENT_BITS_X", 1, &item_placement_bits_x);
-        halo::networking::message_delta_parameters_protocol_register(0, (char *)"gITEM_PLACEMENT_BITS_Y", 1, &item_placement_bits_y);
-        halo::networking::message_delta_parameters_protocol_register(0, (char *)"gITEM_PLACEMENT_BITS_Z", 1, &item_placement_bits_z);
+        halo::networking::message_delta_parameters_protocol_register(0, halo::mutable_literal("gITEM_PLACEMENT_BITS_X"), 1, &item_placement_bits_x);
+        halo::networking::message_delta_parameters_protocol_register(0, halo::mutable_literal("gITEM_PLACEMENT_BITS_Y"), 1, &item_placement_bits_y);
+        halo::networking::message_delta_parameters_protocol_register(0, halo::mutable_literal("gITEM_PLACEMENT_BITS_Z"), 1, &item_placement_bits_z);
     }
     return 1;
 }

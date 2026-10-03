@@ -1,4 +1,5 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/text/api.hpp"
 #include <stdlib.h>
@@ -409,7 +410,7 @@ void JoinView::status_text_update(int32_t mode)
 
     if (mode == 0) {
         attempt->elapsed_counter = 0;
-        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Connecting"));
+        halo::interface::console_printf_verbose((ColorARGB *)0, halo::mutable_literal("Connecting"));
         interface_loading_screen_progress = 0;
         join_ui_state = 5;
     } else if (mode == 1) {
@@ -422,7 +423,7 @@ void JoinView::status_text_update(int32_t mode)
             count = 0x10;
         }
         strncpy(dots, network_ellipsis_dots, count);
-        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Connecting%s"), dots);
+        halo::interface::console_printf_verbose((ColorARGB *)0, halo::mutable_literal("Connecting%s"), dots);
         interface_loading_screen_progress = attempt->elapsed_counter;
         if (join_ui_state != 1 && join_ui_state != 2) {
             if (join_ui_state == 4) {
@@ -434,7 +435,7 @@ void JoinView::status_text_update(int32_t mode)
         }
     } else {
         attempt->elapsed_counter = 0;
-        halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Loading"));
+        halo::interface::console_printf_verbose((ColorARGB *)0, halo::mutable_literal("Loading"));
         interface_loading_screen_progress = 0;
         if (network_game_mode == halo::networking::k_game_mode_host) {
             if (join_ui_state != 1) {

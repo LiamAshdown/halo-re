@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_match.hpp"
+#include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/game/legacy_globals.hpp"
 #include "halo/input/api.hpp"
@@ -64,7 +65,7 @@ void EngineMatch::update_end_game_sequence(float delta_time)
 
         if (game_engine_dedicated_idle == 0) {
             if ((*((uint8_t *)network_server + 6) >> 2 & 1) != 0) {
-                halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Game Complete. Dedicated server is now idle.");
+                halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Game Complete. Dedicated server is now idle."));
                 halo::networking::globals().host_handoff_requested = 1;
                 halo::interface::chat_close();
             }

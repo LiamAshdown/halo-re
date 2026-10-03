@@ -1,4 +1,5 @@
 #include "halo/networking/net1_decode.hpp"
+#include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/networking/delta_message_types.hpp"
 #include "halo/projectiles/api.hpp"
@@ -320,7 +321,7 @@ int32_t GameClientView::settings_packet_receive(const uint32_t *request)
     }
 compare_done:
     if (cmp != 0) {
-        halo::main::main_queue_map_change_by_name_or_clear((char *)"");
+        halo::main::main_queue_map_change_by_name_or_clear(halo::mutable_literal(""));
         if (join_ui_state != 1) {
             if (join_ui_state != 2 && join_ui_state == 4) {
                 interface_loading_screen_request_id = -1;
@@ -403,7 +404,7 @@ void GameClientView::settings_packet_send(const uint8_t *request)
     }
 compare_done:
     if (cmp != 0) {
-        halo::main::main_queue_map_change_by_name_or_clear((char *)"");
+        halo::main::main_queue_map_change_by_name_or_clear(halo::mutable_literal(""));
         if (join_ui_state != 1) {
             if (join_ui_state != 2 && join_ui_state == 4) {
                 interface_loading_screen_request_id = -1;
