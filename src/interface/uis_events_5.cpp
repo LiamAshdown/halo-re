@@ -34,6 +34,7 @@
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/wide_text.hpp"
+#include "halo/interface/com_object.hpp"
 
 extern "C" {
 extern int16_t pending_difficulty;
@@ -632,7 +633,7 @@ uint8_t UiEventHandlers::event_4bb7e0(widget_instance *widget, int16_t *event, u
 
             halo::rasterizer::rasterizer_build_present_parameters(&parameters, &mode);
             halo::rasterizer::rasterizer_device_reset(&parameters);
-            ((int32_t (__stdcall *)(void *, uint32_t, void *))(*(void ***)halo::rasterizer::globals().device)[0x20 / 4])(halo::rasterizer::globals().device, 0,
+            ((int32_t (__stdcall *)(void *, uint32_t, void *))(halo::interface::com_vtable(halo::rasterizer::globals().device))[0x20 / 4])(halo::rasterizer::globals().device, 0,
                 &rasterizer_desktop_display_mode);
             changed = 1;
             halo::rasterizer::rasterizer_resize_game_window(mode.height, mode.width);
@@ -695,7 +696,7 @@ uint8_t UiEventHandlers::event_4bb970(widget_instance *widget, int16_t *event, u
 
         halo::rasterizer::rasterizer_build_present_parameters(&parameters, &ui_video_requested_display_mode_006b7010);
         halo::rasterizer::rasterizer_device_reset(&parameters);
-        ((int32_t (__stdcall *)(void *, uint32_t, void *))(*(void ***)halo::rasterizer::globals().device)[0x20 / 4])(halo::rasterizer::globals().device, 0,
+        ((int32_t (__stdcall *)(void *, uint32_t, void *))(halo::interface::com_vtable(halo::rasterizer::globals().device))[0x20 / 4])(halo::rasterizer::globals().device, 0,
             &rasterizer_desktop_display_mode);
         halo::rasterizer::rasterizer_resize_game_window(ui_video_requested_display_mode_006b7010.height, ui_video_requested_display_mode_006b7010.width);
         halo::rasterizer::globals().needs_reset = 0;

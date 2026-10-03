@@ -16,6 +16,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/wide_text.hpp"
+#include "halo/interface/com_object.hpp"
 
 #ifdef interface
 #undef interface
@@ -155,7 +156,7 @@ uint8_t VirtualKeyboard::close()
 
     if (keyboard_device != 0) {
         int32_t minus_one = -1;
-        void **vtable = *(void ***)keyboard_device;
+        void **vtable = halo::interface::com_vtable(keyboard_device);
         ((directinput_set_property_fn)vtable[0x28 / 4])(keyboard_device, 0x14, 0, &minus_one, 0);
         memset(key_release_pending, 0, sizeof(key_release_pending));
         memset(key_frames, 0, sizeof(key_frames));
@@ -352,7 +353,7 @@ finish:
             virtual_keyboard.active = 0;
             if (keyboard_device != 0) {
                 int32_t minus_one = -1;
-                void **vtable = *(void ***)keyboard_device;
+                void **vtable = halo::interface::com_vtable(keyboard_device);
                 ((directinput_set_property_fn)vtable[0x28 / 4])(keyboard_device, 0x14, 0, &minus_one, 0);
                 memset(key_release_pending, 0, sizeof(key_release_pending));
                 memset(key_frames, 0, sizeof(key_frames));

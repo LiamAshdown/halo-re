@@ -19,6 +19,7 @@
 #include "halo/interface/widget_pool.hpp"
 #include "halo/interface/wide_text.hpp"
 #include "halo/interface/game_state_block.hpp"
+#include "halo/interface/layout_checks.hpp"
 
 #ifdef interface
 #undef interface

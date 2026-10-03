@@ -8,6 +8,7 @@
 #include "halo/ai/api.hpp"
 #include "halo/interface/api.hpp"
 #include "rasterizer.h"
+#include "halo/interface/com_object.hpp"
 
 namespace {
 
@@ -235,7 +236,7 @@ void PlayDiagnostics::fp_draw_state_note(const char *site, int32_t hresult, uint
             for (k = 0; k < 32; k++) {
                 c[k] = -999.0f;
             }
-            ((debug_get_ps_constants_fn)(*(void ***)halo::rasterizer::globals().device)[k_d3d_slot_get_pixel_shader_constants])(halo::rasterizer::globals().device, 0, c, 8);
+            ((debug_get_ps_constants_fn)(halo::interface::com_vtable(halo::rasterizer::globals().device))[k_d3d_slot_get_pixel_shader_constants])(halo::rasterizer::globals().device, 0, c, 8);
             standalone_log("DIAG fpps %s %s count=%u c0=(%.2f %.2f %.2f %.2f) c1=(%.2f %.2f %.2f %.2f) c2=(%.2f %.2f %.2f "
                            "%.2f) c3=(%.2f %.2f %.2f %.2f) c4=(%.2f %.2f %.2f %.2f) c5=(%.2f %.2f %.2f %.2f) c6=(%.2f %.2f "
                            "%.2f %.2f) c7=(%.2f %.2f %.2f %.2f)", debug_fp_state_armed ? "FP" : "other", site,
@@ -248,7 +249,7 @@ void PlayDiagnostics::fp_draw_state_note(const char *site, int32_t hresult, uint
         return;
     }
     debug_fp_state_lines++;
-    vtable = *(void ***)halo::rasterizer::globals().device;
+    vtable = halo::interface::com_vtable(halo::rasterizer::globals().device);
     for (i = 0; i < 16; i++) {
         rs[i] = k_debug_unread_pattern;
         ((debug_get_render_state_fn)vtable[k_d3d_slot_get_render_state])(halo::rasterizer::globals().device, states[i], &rs[i]);
@@ -295,9 +296,9 @@ void PlayDiagnostics::fp_draw_state_note(const char *site, int32_t hresult, uint
         rs[0], rs[1], rs[2], rs[3], rs[4], rs[5], rs[6], rs[7], rs[8], rs[9], rs[10], rs[11], rs[12], rs[13], rs[14],
         rs[15], viewport[0], viewport[1], viewport[2], viewport[3], *(float *)&viewport[4], *(float *)&viewport[5],
         vs, ps, tex0);
-    if (vs != 0) ((int32_t (__stdcall *)(void *))(*(void ***)vs)[2])(vs);
-    if (ps != 0) ((int32_t (__stdcall *)(void *))(*(void ***)ps)[2])(ps);
-    if (tex0 != 0) ((int32_t (__stdcall *)(void *))(*(void ***)tex0)[2])(tex0);
+    if (vs != 0) ((int32_t (__stdcall *)(void *))(halo::interface::com_vtable(vs))[2])(vs);
+    if (ps != 0) ((int32_t (__stdcall *)(void *))(halo::interface::com_vtable(ps))[2])(ps);
+    if (tex0 != 0) ((int32_t (__stdcall *)(void *))(halo::interface::com_vtable(tex0))[2])(tex0);
 }
 
 /**
@@ -331,7 +332,7 @@ void PlayDiagnostics::fp_pre_draw(void)
     if (!debug_fp_state_armed || halo::rasterizer::globals().device == 0) {
         return;
     }
-    ((debug_set_render_state_fn)(*(void ***)halo::rasterizer::globals().device)[0xe4 / 4])(halo::rasterizer::globals().device, 15, 0);
+    ((debug_set_render_state_fn)(halo::interface::com_vtable(halo::rasterizer::globals().device))[0xe4 / 4])(halo::rasterizer::globals().device, 15, 0);
 }
 
 }

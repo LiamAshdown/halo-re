@@ -12,6 +12,7 @@
 #include "halo/game/api.hpp"
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/com_object.hpp"
 extern "C" { extern uint32_t config_disable_specular; }
 
 #ifdef interface
@@ -94,7 +95,7 @@ uint8_t PlayerProfiles::apply_video_options(saved_player_profile *settings)
 
         halo::rasterizer::rasterizer_build_present_parameters((d3d_present_parameters *)present_parameters, &mode);
         halo::rasterizer::rasterizer_device_reset((d3d_present_parameters *)present_parameters);
-        vtable = *(void ***)halo::rasterizer::globals().device;
+        vtable = halo::interface::com_vtable(halo::rasterizer::globals().device);
         ((d3d_get_display_mode_fn)vtable[0x20 / 4])(halo::rasterizer::globals().device, 0, rasterizer_desktop_display_mode);
         reset = 1;
         halo::rasterizer::rasterizer_resize_game_window(mode.height, mode.width);
