@@ -20,6 +20,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern int16_t profile_slot_id[];
@@ -81,8 +83,8 @@ void UiWidgets::widget_text_ensure_and_refresh(widget_instance *widget)
         }
     }
     if (widget->text != nullptr) {
-        wcsncpy((wchar_t *)((uint16_t *)widget->text), (const wchar_t *)global_text_field_00719278, 0x3f);
-        ((uint16_t *)widget->text)[0x3f] = 0;
+        wcsncpy((wchar_t *)(halo::interface::widget_text(widget)), (const wchar_t *)global_text_field_00719278, 0x3f);
+        (halo::interface::widget_text(widget))[0x3f] = 0;
     }
 }
 
@@ -112,7 +114,7 @@ void UiWidgets::widget_text_from_hud_objective(widget_instance *widget)
     if (length <= 0) {
         return;
     }
-    buffer = (uint16_t *)halo::memory::heap_reallocate(widget->text, (uint16_t)(length * 2 + 2), widget_memory_pool);
+    buffer = halo::interface::widget_pool_resize_text(widget->text, (uint16_t)(length * 2 + 2));
     widget->text = buffer;
     if (buffer == 0) {
         return;

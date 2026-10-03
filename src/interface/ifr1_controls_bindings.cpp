@@ -17,6 +17,8 @@
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern uint8_t controls_row_device_mask_table[];
@@ -60,7 +62,7 @@ static void controls_set_dimmed(widget_instance *widget, uint8_t dimmed)
 
 static void controls_set_cell_text(widget_instance *cell, const uint16_t *text)
 {
-    uint16_t *buffer = (uint16_t *)halo::memory::heap_reallocate(cell->text, 0x40, widget_memory_pool);
+    uint16_t *buffer = halo::interface::widget_pool_resize_text(cell->text, 0x40);
 
     cell->text = buffer;
     if (buffer != 0) {
@@ -517,7 +519,7 @@ void ControlsBindings::build_device_label_table(void)
     saved_player_profile *profile = ((selected_saved_item & 0xf) != 0) ? nullptr : &saved_item_working_copy;
     datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_device_labels");
     int i;
-    const uint16_t *tag_supplied_label = (const uint16_t *)L"<missing string>";
+    const uint16_t *tag_supplied_label = halo::interface::wide(L"<missing string>");
 
     memset(controls_device_labels, 0, sizeof(controls_device_labels));
     controls_device_label_count = 0;

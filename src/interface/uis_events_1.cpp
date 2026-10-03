@@ -29,6 +29,7 @@
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/widget_pool.hpp"
 
 extern "C" {
 extern uint8_t level_select_entries[0x50];
@@ -103,13 +104,8 @@ static void widget_history_pop(int16_t controller)
     }
     node = ui_widget_history[controller];
     if (node != 0) {
-        heap_block *block = (heap_block *)((uint8_t *)node - 0x10);
-        uint32_t size = block->size & halo::interface::k_pool_block_size_mask;
-
         ui_widget_history[controller] = node->next;
-        halo::memory::heap_unlink_block(block, widget_memory_pool);
-        widget_memory_pool->bytes_allocated -= (int32_t)size;
-        widget_memory_pool->allocation_count -= 1;
+        halo::interface::widget_pool_free(node);
     }
 }
 

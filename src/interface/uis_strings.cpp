@@ -17,6 +17,7 @@
 #include "halo/interface/uis_strings.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/widget_pool.hpp"
 
 
 extern "C" {
@@ -164,9 +165,8 @@ int32_t UiStrings::string_replace_all(wchar_t *search, uint16_t *replacement, wc
             match = wcsstr(match + search_length, search);
         } while (match != (wchar_t *)0);
 
-        base = (wchar_t *)halo::memory::heap_reallocate(original,
-                                          ((replacement_length - search_length) * count + total_length) * 2,
-                                          widget_memory_pool);
+        base = (wchar_t *)halo::interface::widget_pool_resize_text(original,
+                                          ((replacement_length - search_length) * count + total_length) * 2);
         if (base == (wchar_t *)0) {
             return -1;
         }

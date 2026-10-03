@@ -9,6 +9,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern uint16_t missing_string_text[];
@@ -83,7 +84,7 @@ uint8_t CheckpointListRows::add_row(int32_t index, const char *name, int32_t lev
             }
         }
     }
-    halo::text::string_format_wide_va(wide, (const uint16_t *)L"%s - %02d:%02d:%02d", level_name, hours, minutes, seconds);
+    halo::text::string_format_wide_va(wide, halo::interface::wide(L"%s - %02d:%02d:%02d"), level_name, hours, minutes, seconds);
     halo::interface::ui_list_add_entry(0, wide, index, record, 0x68, (uint8_t)(index == 0));
     return 1;
 }

@@ -37,6 +37,7 @@
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/flags.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern uint8_t input_event_queue_active;
@@ -785,7 +786,7 @@ uint8_t UiEventHandlers::event_4a3a70(widget_instance *widget, int16_t *event, u
     uint8_t result = 0;
 
     if (second->parent->focused_child == second) {
-        halo::text::string_format_wide_va(network_host_number_text_0071921c, (const uint16_t *)L"%d", network_game_option_a_00719210);
+        halo::text::string_format_wide_va(network_host_number_text_0071921c, halo::interface::wide(L"%d"), network_game_option_a_00719210);
         if (halo::interface::virtual_keyboard_open(network_host_number_text_0071921c, 0x10, 0xd) != 0) {
             network_host_edit_field_00719410 = 4;
             network_host_number_field_00719218 = 1;
@@ -794,7 +795,7 @@ uint8_t UiEventHandlers::event_4a3a70(widget_instance *widget, int16_t *event, u
     }
     third = second->next_sibling;
     if (result == 0 && third->parent->focused_child == third) {
-        halo::text::string_format_wide_va(network_host_number_text_0071921c, (const uint16_t *)L"%d", network_game_option_b_00719214);
+        halo::text::string_format_wide_va(network_host_number_text_0071921c, halo::interface::wide(L"%d"), network_game_option_b_00719214);
         if (halo::interface::virtual_keyboard_open(network_host_number_text_0071921c, 0x10, 0xd) != 0) {
             network_host_edit_field_00719410 = 5;
             network_host_number_field_00719218 = 2;

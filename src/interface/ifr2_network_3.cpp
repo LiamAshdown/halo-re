@@ -12,6 +12,8 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 #ifdef interface
 #undef interface
@@ -92,14 +94,14 @@ void MenuListView::update()
 
     row = widget->first_child;
     for (i = 0; row != (widget_instance *)0 && i < count; i++) {
-        uint16_t *buf = (uint16_t *)halo::memory::heap_reallocate(row->text, 0x20, widget_memory_pool);
+        uint16_t *buf = halo::interface::widget_pool_resize_text(row->text, 0x20);
         network_game_search_entry *entry = server_list_entries_006b380c[i];
 
         row->text = buf;
         if (buf != nullptr) {
             if (entry->joinable == 1) {
                 wcsncpy((wchar_t *)buf, (const wchar_t *)entry->name, 0xf);
-                ((uint16_t *)row->text)[0xf] = 0;
+                (halo::interface::widget_text(row))[0xf] = 0;
             } else {
                 datum_index tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\multiplayer_game_text");
                 uint16_t *source = missing_string_text;
@@ -118,7 +120,7 @@ void MenuListView::update()
                     }
                 }
                 halo::text::string_format_wide_va_bounded(0xf, reinterpret_cast<uint16_t *>((wchar_t *)buf), reinterpret_cast<const uint16_t *>(L"%s %s"), source, entry->name);
-                ((uint16_t *)row->text)[0xf] = 0;
+                (halo::interface::widget_text(row))[0xf] = 0;
             }
         }
         row = row->next_sibling;
@@ -153,13 +155,13 @@ void MenuListView::update()
             r6->selection_index = 1;
             r7->selection_index = 1;
             {
-                uint16_t *b = (uint16_t *)halo::memory::heap_reallocate(r8->text, 8, widget_memory_pool);
+                uint16_t *b = halo::interface::widget_pool_resize_text(r8->text, 8);
 
                 r8->text = b;
                 if (b != nullptr) b[0] = 0;
             }
             {
-                uint16_t *b = (uint16_t *)halo::memory::heap_reallocate(r9->text, 8, widget_memory_pool);
+                uint16_t *b = halo::interface::widget_pool_resize_text(r9->text, 8);
 
                 r9->text = b;
                 if (b != nullptr) b[0] = 0;
@@ -212,23 +214,23 @@ void MenuListView::update()
             r7->selection_index = (sel->stats_logging != 1) + 0xc;
 
             {
-                uint16_t *b = (uint16_t *)halo::memory::heap_reallocate(r8->text, 8, widget_memory_pool);
+                uint16_t *b = halo::interface::widget_pool_resize_text(r8->text, 8);
 
                 r8->text = b;
                 if (b != nullptr) {
                     halo::text::string_format_wide_va_bounded(3, reinterpret_cast<uint16_t *>((wchar_t *)b), reinterpret_cast<const uint16_t *>((const wchar_t *)chat_local_prompt_string),
                                                    (int32_t)(uint16_t)sel->unknown_124);
-                    ((uint16_t *)r8->text)[3] = 0;
+                    (halo::interface::widget_text(r8))[3] = 0;
                 }
             }
             {
-                uint16_t *b = (uint16_t *)halo::memory::heap_reallocate(r9->text, 8, widget_memory_pool);
+                uint16_t *b = halo::interface::widget_pool_resize_text(r9->text, 8);
 
                 r9->text = b;
                 if (b != nullptr) {
                     halo::text::string_format_wide_va_bounded(3, reinterpret_cast<uint16_t *>((wchar_t *)b), reinterpret_cast<const uint16_t *>((const wchar_t *)chat_local_prompt_string),
                                                    (int32_t)sel->unknown_128);
-                    ((uint16_t *)r9->text)[3] = 0;
+                    (halo::interface::widget_text(r9))[3] = 0;
                 }
             }
 

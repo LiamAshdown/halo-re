@@ -8,6 +8,8 @@
 #include "halo/interface/flags.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/interface/records.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 #ifdef interface
 #undef interface
@@ -48,7 +50,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
         }
         src = halo::text::text_string_list_get_string(halo::interface::tag_handle(tag->text_label_unicode_strings_list.tag_id), index);
         byte_len = wcslen((const wchar_t *)src) * 2;
-        buf = (uint16_t *)halo::memory::heap_reallocate(widget->text, byte_len + 2, widget_memory_pool);
+        buf = halo::interface::widget_pool_resize_text(widget->text, byte_len + 2);
         widget->text = buf;
         if (buf == nullptr) {
             widget->text = ui_out_of_memory_text;
@@ -63,7 +65,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
         }
     }
 
-    if (widget->text == nullptr || *(uint16_t *)widget->text == 0) {
+    if (widget->text == nullptr || *halo::interface::widget_text(widget) == 0) {
         return;
     }
 
@@ -133,11 +135,11 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
         }
 
         halo::text::text_context::set_render_context(halo::interface::tag_handle(tag->text_font.tag_id), &color, -1, tag->justification, 0);
-        if (halo::interface::ui_string_has_button_prompt_token((uint16_t *)widget->text) == 0) {
-            halo::rasterizer::chimera__draw_16_bit_text(&rects[1], (int32_t *)(&rects[0]), 0, 0, (const int16_t *)((uint16_t *)widget->text));
+        if (halo::interface::ui_string_has_button_prompt_token(halo::interface::widget_text(widget)) == 0) {
+            halo::rasterizer::chimera__draw_16_bit_text(&rects[1], (int32_t *)(&rects[0]), 0, 0, (const int16_t *)(halo::interface::widget_text(widget)));
             return;
         }
-        halo::interface::ui_widget_draw_formatted_prompt_string(&rects[0], 0, (uint16_t *)widget->text);
+        halo::interface::ui_widget_draw_formatted_prompt_string(&rects[0], 0, halo::interface::widget_text(widget));
     }
 }
 

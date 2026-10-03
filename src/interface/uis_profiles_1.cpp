@@ -23,6 +23,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/widget_pool.hpp"
 
 extern "C" {
 extern int32_t profile_slot_lookup_cache_00692ac8;
@@ -134,13 +135,7 @@ uint32_t UiProfiles::build_profile_list(widget_instance *widget)
 uint32_t UiProfiles::free_profile_list(widget_instance *widget)
 {
     if (widget->list_items != nullptr) {
-        heap_block *block = (heap_block *)((uint8_t *)widget->list_items - 0x10);
-        uint32_t size = block->size;
-
-        halo::memory::heap_unlink_block(block, widget_memory_pool);
-        widget_memory_pool->bytes_allocated =
-            widget_memory_pool->bytes_allocated - (int32_t)(size & halo::interface::k_pool_block_size_mask);
-        widget_memory_pool->allocation_count = widget_memory_pool->allocation_count - 1;
+        halo::interface::widget_pool_free(widget->list_items);
         widget->list_items = nullptr;
     }
     widget->item_count = 0;
@@ -220,7 +215,7 @@ void UiProfiles::profile_carousel_fetch_name(widget_instance *widget)
 
     profile_record = profile_globals_block[widget->controller_index].profile;
 
-    dest = (uint16_t *)halo::memory::heap_reallocate(widget->text, 0x18, widget_memory_pool);
+    dest = halo::interface::widget_pool_resize_text(widget->text, 0x18);
     widget->text = dest;
     if (dest != 0) {
         wcsncpy((wchar_t *)dest, (const wchar_t *)profile_record.name, 0x0b);

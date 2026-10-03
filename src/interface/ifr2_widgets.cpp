@@ -18,6 +18,7 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/flags.hpp"
+#include "halo/interface/widget_pool.hpp"
 
 #ifdef interface
 #undef interface
@@ -78,20 +79,13 @@ uint8_t WidgetView::widget_is_focus_candidate(widget_instance *candidate)
 void WidgetLifecycle::pop(widget_history_node *out, widget_history_node **head)
 {
     widget_history_node *node = *head;
-    heap_block *block;
-    uint32_t size;
-
     out->definition = node->definition;
     out->list_definition = node->list_definition;
     out->selection = node->selection;
     out->controller_index = node->controller_index;
     *head = node->next;
 
-    block = (heap_block *)((uint8_t *)node - 0x10);
-    size = block->size;
-    halo::memory::heap_unlink_block(block, widget_memory_pool);
-    widget_memory_pool->bytes_allocated = widget_memory_pool->bytes_allocated - (int32_t)(size & halo::interface::k_pool_block_size_mask);
-    widget_memory_pool->allocation_count = widget_memory_pool->allocation_count - 1;
+    halo::interface::widget_pool_free(node);
 }
 
 /**

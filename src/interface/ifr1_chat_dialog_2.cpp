@@ -20,6 +20,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern uint8_t network_message_scratch[halo::interface::k_network_message_scratch_size];
@@ -251,15 +252,15 @@ gui_setup:
     chat_gui_active = 1;
     gui_object = chat_gui_find_object(chat_gui_root_handle, chat_gui_find_object_arg);
     if (gui_object != 0) {
-        child = chat_gui_find_child(gui_object, (const uint16_t *)L"oPrompt");
+        child = chat_gui_find_child(gui_object, halo::interface::wide(L"oPrompt"));
         if (child != 0) {
-            keystone_control_set_attribute(child, (const uint16_t *)L"text", prompt_text);
+            keystone_control_set_attribute(child, halo::interface::wide(L"text"), prompt_text);
         }
-        child = chat_gui_find_child(gui_object, (const uint16_t *)L"oEditbox");
+        child = chat_gui_find_child(gui_object, halo::interface::wide(L"oEditbox"));
         if (child != 0) {
             int32_t zero[2] = {0, 0};
             chat_gui_set_focus(gui_object, child);
-            keystone_control_set_attribute(child, (const uint16_t *)L"text", &empty_string);
+            keystone_control_set_attribute(child, halo::interface::wide(L"text"), &empty_string);
             chat_gui_set_property_int(child, halo::interface::k_chat_property_select_range, 0, zero);
         }
         chat_gui_set_state(gui_object, 5);

@@ -39,6 +39,7 @@
 #include "saved_games.h"
 #include "halo/interface/records.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/widget_pool.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -576,13 +577,8 @@ uint8_t UiEventHandlers::event_4a1b00(widget_instance *widget, int16_t *event, u
     }
     node = ui_widget_history[controller];
     if (node != 0) {
-        heap_block *block = (heap_block *)((uint8_t *)node - 0x10);
-        uint32_t size = block->size & halo::interface::k_pool_block_size_mask;
-
         ui_widget_history[controller] = node->next;
-        halo::memory::heap_unlink_block(block, widget_memory_pool);
-        widget_memory_pool->bytes_allocated -= (int32_t)size;
-        widget_memory_pool->allocation_count -= 1;
+        halo::interface::widget_pool_free(node);
     }
     return 1;
 }

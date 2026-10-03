@@ -12,6 +12,7 @@
 #include "halo/interface/constants.hpp"
 #include "halo/interface/flags.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/interface/widget_pool.hpp"
 
 #ifdef interface
 #undef interface
@@ -203,7 +204,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
             halo::text::text_string_list_get_string(halo::interface::tag_handle(tag->text_label_unicode_strings_list.tag_id),
                                         widget->selection_index);
         uint32_t byte_len = wcslen((const wchar_t *)src) * 2;
-        uint16_t *buf = (uint16_t *)halo::memory::heap_allocate(byte_len + 2, widget_memory_pool);
+        uint16_t *buf = halo::interface::widget_pool_allocate_text(byte_len + 2);
         int32_t i;
 
         text = buf;
@@ -275,12 +276,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
 
 free_and_return:
     if (halo::interface::tag_handle(tag->text_label_unicode_strings_list.tag_id) != halo::k_dword_none && text != nullptr) {
-        heap_block *block = (heap_block *)((uint8_t *)text - 0x10);
-        uint32_t size = block->size;
-
-        halo::memory::heap_unlink_block(block, widget_memory_pool);
-        widget_memory_pool->bytes_allocated -= (int32_t)(size & halo::interface::k_pool_block_size_mask);
-        widget_memory_pool->allocation_count -= 1;
+        halo::interface::widget_pool_free(text);
     }
 }
 

@@ -21,6 +21,8 @@
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/flags.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 #ifdef interface
 #undef interface
@@ -316,7 +318,7 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                 const saved_player_profile *profile = (const saved_player_profile *)profile_carousel_slots[slot].profile;
                 uint16_t flags = profile->flags;
                 int16_t color = profile->player_color;
-                uint16_t *name = (uint16_t *)halo::memory::heap_reallocate(widget->list_render_data, 0x18, widget_memory_pool);
+                uint16_t *name = halo::interface::widget_pool_resize_text(widget->list_render_data, 0x18);
 
                 widget->list_render_data = name;
                 if (name == 0) {
@@ -347,15 +349,15 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                         joysticks = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\player_profiles_select\\joystick_set_defaults_descriptions");
                         buttons = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\player_profiles_select\\button_set_long_descriptions");
                         if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
-                            ((uint16_t *)description_row->text)[0] = 0;
-                            ((uint16_t *)description_row->text)[0xff] = 0;
+                            (halo::interface::widget_text(description_row))[0] = 0;
+                            (halo::interface::widget_text(description_row))[0xff] = 0;
                             return;
                         }
                     } else {
                         joysticks = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\player_profiles_select\\joystick_set_short_descriptions");
                         buttons = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\player_profiles_select\\button_set_short_descriptions");
                         if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
-                            ((uint16_t *)description_row->text)[0xff] = 0;
+                            (halo::interface::widget_text(description_row))[0xff] = 0;
                             return;
                         }
                     }
@@ -365,20 +367,20 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                         halo::text::string_format_wide_va_bounded(0xff, reinterpret_cast<uint16_t *>((wchar_t *)description_row->text), reinterpret_cast<const uint16_t *>(L"%s%hs%s"),
                                                       joystick_text, joystick_set_separator_0065f010, button_text);
                     }
-                    ((uint16_t *)description_row->text)[0xff] = 0;
+                    (halo::interface::widget_text(description_row))[0xff] = 0;
                 }
                 return;
             }
         }
 
         if (widget->item_count == 0) {
-            uint16_t *text = (uint16_t *)halo::memory::heap_reallocate(widget->list_render_data, 4, widget_memory_pool);
+            uint16_t *text = halo::interface::widget_pool_resize_text(widget->list_render_data, 4);
             widget->list_render_data = text;
             if (text != 0) {
                 text[0] = 0;
             }
             name_row->background_bitmap_frame = 0;
-            text = (uint16_t *)halo::memory::heap_reallocate(description_row->text, 4, widget_memory_pool);
+            text = halo::interface::widget_pool_resize_text(description_row->text, 4);
             description_row->text = text;
             if (text != 0) {
                 text[0] = 0;
@@ -578,11 +580,11 @@ void PlayerProfiles::details_widget_refresh(widget_instance *widget, const uint8
                 ? halo::text::text_string_list_get_string(names_tag, (int16_t)(flags >> 8))
                 : hud_text_unknown;
 
-            wcsncpy((wchar_t *)((uint16_t *)a->text), (const wchar_t *)source, 0xb);
+            wcsncpy((wchar_t *)(halo::interface::widget_text(a)), (const wchar_t *)source, 0xb);
         } else {
-            wcsncpy((wchar_t *)((uint16_t *)a->text), (const wchar_t *)((const saved_player_profile *)profile_record)->name, 0xb);
+            wcsncpy((wchar_t *)(halo::interface::widget_text(a)), (const wchar_t *)((const saved_player_profile *)profile_record)->name, 0xb);
         }
-        ((uint16_t *)a->text)[0xb] = 0;
+        (halo::interface::widget_text(a))[0xb] = 0;
     }
 
     sensitivity = ((struct saved_player_profile *)profile_record)->player_color;

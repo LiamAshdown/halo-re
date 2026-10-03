@@ -13,6 +13,7 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern uint8_t chat_dialog_open;
@@ -170,7 +171,7 @@ void LocalizedChatSource::deliver(const chat_incoming_record &record, wchar_t *)
     if (halo::shell::shell_load_localized_string(sizeof(localized), halo::shell::globals().module_handle, localized, string_id) == 0) {
         return;
     }
-    halo::text::string_format_wide_va_bounded(0x7f, (uint16_t *)short_line, (const uint16_t *)L"%S", localized);
+    halo::text::string_format_wide_va_bounded(0x7f, (uint16_t *)short_line, halo::interface::wide(L"%S"), localized);
     short_line[0x7f] = 0;
     halo::interface::chimera__multiplayer_message(short_line);
 }
@@ -278,9 +279,9 @@ void ChatDialog::submit_input(void)
             const wchar_t *text = 0;
             void *gui_object = chat_gui_find_object(chat_gui_root_handle, chat_gui_find_object_arg);
             if (gui_object != 0) {
-                void *editbox = chat_gui_find_child(gui_object, (const uint16_t *)L"oEditbox");
+                void *editbox = chat_gui_find_child(gui_object, halo::interface::wide(L"oEditbox"));
                 if (editbox != 0) {
-                    text = (const wchar_t *)(keystone_control_get_attribute(editbox, (const uint16_t *)L"text"));
+                    text = (const wchar_t *)(keystone_control_get_attribute(editbox, halo::interface::wide(L"text")));
                 }
                 chat_gui_release(gui_object);
 

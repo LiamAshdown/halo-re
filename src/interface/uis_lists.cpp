@@ -28,6 +28,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/interface/flags.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern uint8_t ui_list_has_default;
@@ -115,7 +116,7 @@ void UiLists::list_add_entry(int32_t group_index, const uint16_t *name, int32_t 
 uint8_t UiLists::list_default_item_format(void *item_buffer, int32_t item_index, void *list_items)
 {
     uint16_t *out = (uint16_t *)item_buffer;
-    const uint16_t *name = (const uint16_t *)L"";
+    const uint16_t *name = halo::interface::wide(L"");
 
     if (item_index >= 0 && item_index < ui_lists[ui_list_current].count) {
         name = ((ui_list_item *)ui_lists[ui_list_current].data)[item_index].name;
@@ -232,7 +233,7 @@ int32_t UiLists::list_get_id(int32_t index)
  */
 uint8_t UiLists::list_item_format_name_and_cache_flag(uint16_t *out_name, int32_t item_index)
 {
-    const uint16_t *source = (const uint16_t *)L"";
+    const uint16_t *source = halo::interface::wide(L"");
     uint8_t result;
 
     if (item_index > -1 && item_index < ui_lists[ui_list_current].count) {

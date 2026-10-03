@@ -17,6 +17,8 @@
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 #ifdef interface
 #undef interface
@@ -163,7 +165,7 @@ void MenuListView::update_item(const uint16_t *record)
     icon_widget->hidden = 0;
 
     if (record == nullptr) {
-        uint16_t *name_buf = (uint16_t *)halo::memory::heap_reallocate(name_widget->text, halo::interface::k_name_text_bytes, widget_memory_pool);
+        uint16_t *name_buf = halo::interface::widget_pool_resize_text(name_widget->text, halo::interface::k_name_text_bytes);
 
         name_widget->text = name_buf;
         if (name_buf != nullptr) {
@@ -172,7 +174,7 @@ void MenuListView::update_item(const uint16_t *record)
         desc_widget->background_bitmap_frame = 5;
 
         {
-            uint16_t *desc_buf = (uint16_t *)halo::memory::heap_reallocate(desc_widget->text, halo::interface::k_description_text_bytes, widget_memory_pool);
+            uint16_t *desc_buf = halo::interface::widget_pool_resize_text(desc_widget->text, halo::interface::k_description_text_bytes);
 
             desc_widget->text = desc_buf;
             if (desc_buf != nullptr) {
@@ -204,7 +206,7 @@ void MenuListView::update_item(const uint16_t *record)
     }
 
     {
-        uint16_t *name_buf = (uint16_t *)halo::memory::heap_reallocate(name_widget->text, halo::interface::k_name_text_bytes, widget_memory_pool);
+        uint16_t *name_buf = halo::interface::widget_pool_resize_text(name_widget->text, halo::interface::k_name_text_bytes);
 
         name_widget->text = name_buf;
         if (name_buf != nullptr) {
@@ -214,7 +216,7 @@ void MenuListView::update_item(const uint16_t *record)
     }
     desc_widget->background_bitmap_frame = 5;
     {
-        uint16_t *desc_buf = (uint16_t *)halo::memory::heap_reallocate(desc_widget->text, halo::interface::k_description_text_bytes, widget_memory_pool);
+        uint16_t *desc_buf = halo::interface::widget_pool_resize_text(desc_widget->text, halo::interface::k_description_text_bytes);
 
         desc_widget->text = desc_buf;
         if (desc_buf != nullptr) {
@@ -234,8 +236,8 @@ void MenuListView::update_item(const uint16_t *record)
         if (variant_strings_tag != (datum_index)-1 && desc_widget->text != nullptr) {
             uint16_t *text = halo::text::text_string_list_get_string(variant_strings_tag, (int16_t)((record[0x4a] >> 8) + 0xa));
 
-            wcsncpy((wchar_t *)((uint16_t *)desc_widget->text), (const wchar_t *)text, 0xff);
-            ((uint16_t *)desc_widget->text)[0xff] = 0;
+            wcsncpy((wchar_t *)(halo::interface::widget_text(desc_widget)), (const wchar_t *)text, 0xff);
+            (halo::interface::widget_text(desc_widget))[0xff] = 0;
         }
         icon_widget->hidden = 1;
         return;
@@ -253,8 +255,8 @@ void MenuListView::update_item(const uint16_t *record)
     if (variant_strings_tag != (datum_index)-1 && desc_widget->text != nullptr) {
         uint16_t *text = halo::text::text_string_list_get_string(variant_strings_tag, (int16_t)(2 * (*(const uint32_t *)(record + 0x18) - 1) + (((const uint8_t *)record)[0x34] == 1 ? 1 : 0)));
 
-        wcsncpy((wchar_t *)((uint16_t *)desc_widget->text), (const wchar_t *)text, 0xff);
-        ((uint16_t *)desc_widget->text)[0xff] = 0;
+        wcsncpy((wchar_t *)(halo::interface::widget_text(desc_widget)), (const wchar_t *)text, 0xff);
+        (halo::interface::widget_text(desc_widget))[0xff] = 0;
     }
 }
 

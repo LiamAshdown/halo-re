@@ -10,6 +10,7 @@
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/interface/widget_pool.hpp"
 
 #ifdef interface
 #undef interface
@@ -202,7 +203,7 @@ uint8_t VideoOptions::update(widget_instance *screen)
     refresh->parent->focused_child = refresh;
 
     resolution_index = resolution->selection_index;
-    text = (uint16_t *)halo::memory::heap_reallocate(resolution->list_render_data, 0x20, widget_memory_pool);
+    text = halo::interface::widget_pool_resize_text(resolution->list_render_data, 0x20);
     resolution->list_render_data = text;
     if (text != 0) {
         wcsncpy((wchar_t *)text,
@@ -219,7 +220,7 @@ uint8_t VideoOptions::update(widget_instance *screen)
         refresh->selection_index = (int16_t)(video_resolutions[resolution_index].refresh_rate_count - 1);
         refresh_index = refresh->selection_index;
     }
-    text = (uint16_t *)halo::memory::heap_reallocate(refresh->list_render_data, 0x20, widget_memory_pool);
+    text = halo::interface::widget_pool_resize_text(refresh->list_render_data, 0x20);
     refresh->list_render_data = text;
     if (text != 0) {
         halo::text::string_format_wide_va(text, hz_format, video_resolutions[resolution_index].refresh_rates[refresh_index]);

@@ -6,6 +6,8 @@
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
 #include "input.h"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -239,7 +241,7 @@ void GamepadBindings::lists_refresh(widget_instance *screen)
     nodes[0]->hidden = controls_assigned_gamepad_count == 0;
     for (i = 0; i < 4; i++) {
         widget_instance *text = nodes[1 + i]->first_child;
-        uint16_t *buffer = (uint16_t *)halo::memory::heap_reallocate(text->text, 0x80, widget_memory_pool);
+        uint16_t *buffer = halo::interface::widget_pool_resize_text(text->text, 0x80);
 
         text->text = buffer;
         if (buffer == 0) {
@@ -247,12 +249,12 @@ void GamepadBindings::lists_refresh(widget_instance *screen)
         }
         if (i < controls_assigned_gamepad_count) {
             wcsncpy((wchar_t *)buffer, (const wchar_t *)&controls_assigned_gamepads[i], 0x3f);
-            ((uint16_t *)text->text)[0x3f] = 0;
+            (halo::interface::widget_text(text))[0x3f] = 0;
             text->parent->hidden = 0;
             text->parent->scale = 1.0f;
         } else {
             wcsncpy((wchar_t *)buffer, (const wchar_t *)dashes_text, 0x3f);
-            ((uint16_t *)text->text)[0x3f] = 0;
+            (halo::interface::widget_text(text))[0x3f] = 0;
             controls_gamepad_row_set_disabled(text->parent);
         }
     }
@@ -260,7 +262,7 @@ void GamepadBindings::lists_refresh(widget_instance *screen)
     nodes[5]->hidden = controls_available_gamepad_count == 0;
     for (i = 0; i < 8; i++) {
         widget_instance *text = nodes[6 + i]->first_child;
-        uint16_t *buffer = (uint16_t *)halo::memory::heap_reallocate(text->text, 0x80, widget_memory_pool);
+        uint16_t *buffer = halo::interface::widget_pool_resize_text(text->text, 0x80);
 
         text->text = buffer;
         if (buffer == 0) {
@@ -268,7 +270,7 @@ void GamepadBindings::lists_refresh(widget_instance *screen)
         }
         if (i < controls_available_gamepad_count) {
             wcsncpy((wchar_t *)buffer, (const wchar_t *)&controls_available_gamepads[i], 0x3f);
-            ((uint16_t *)text->text)[0x3f] = 0;
+            (halo::interface::widget_text(text))[0x3f] = 0;
             if (controls_assigned_gamepad_count != 4) {
                 text->parent->hidden = 0;
                 text->parent->scale = 1.0f;
@@ -276,7 +278,7 @@ void GamepadBindings::lists_refresh(widget_instance *screen)
             }
         } else {
             wcsncpy((wchar_t *)buffer, (const wchar_t *)empty_text, 0x3f);
-            ((uint16_t *)text->text)[0x3f] = 0;
+            (halo::interface::widget_text(text))[0x3f] = 0;
         }
         controls_gamepad_row_set_disabled(text->parent);
     }

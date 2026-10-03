@@ -16,6 +16,8 @@
 #include "halo/main/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 #ifdef interface
 #undef interface
@@ -308,8 +310,8 @@ void InterfaceMain::set_profile_name(widget_instance *widget, const uint16_t *na
                 }
             }
         }
-        halo::text::string_format_wide_va_bounded(0x3f, (uint16_t *)((wchar_t *)buffer), (const uint16_t *)L"%s %s", suffix, name_source);
-        ((uint16_t *)widget->text)[0x3f] = 0;
+        halo::text::string_format_wide_va_bounded(0x3f, (uint16_t *)((wchar_t *)buffer), halo::interface::wide(L"%s %s"), suffix, name_source);
+        (halo::interface::widget_text(widget))[0x3f] = 0;
     }
 }
 

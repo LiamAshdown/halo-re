@@ -17,6 +17,7 @@
 #include "halo/game/api.hpp"
 #include "tags.h"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern hud_messaging_globals *hud_messaging;
@@ -85,7 +86,7 @@ void HudMessaging::multiplayer_message(const wchar_t *text)
     if (chat_gui_find_object != 0) {
         void *gui_object = chat_gui_find_object(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
         if (gui_object != 0) {
-            void *listbox = chat_gui_find_child(gui_object, (const uint16_t *)L"oListbox");
+            void *listbox = chat_gui_find_child(gui_object, halo::interface::wide(L"oListbox"));
             if (listbox != 0) {
                 chat_gui_set_property_int(listbox, halo::interface::k_chat_property_add_item, 0, text);
                 chat_gui_set_property_int(listbox, halo::interface::k_chat_property_scroll, 2, 0);

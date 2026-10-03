@@ -21,6 +21,8 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern int32_t ui_list_current;
@@ -120,8 +122,8 @@ void UiNetworkMenu::network_adapter_details_refresh(widget_instance *widget)
 
         c3->text = halo::memory::heap_reallocate(c3->text, 0x40, widget_memory_pool);
         if (c3->text != nullptr) {
-            wcsncpy((wchar_t *)((uint16_t *)c3->text), (const wchar_t *)(blob + 4), 0x1f);
-            ((uint16_t *)c3->text)[0x1f] = 0;
+            wcsncpy((wchar_t *)(halo::interface::widget_text(c3)), (const wchar_t *)(blob + 4), 0x1f);
+            (halo::interface::widget_text(c3))[0x1f] = 0;
         }
     }
 }
@@ -216,11 +218,11 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
     int32_t resolution_index;
     widget_instance *ip_control;
 
-    buffer = (uint16_t *)halo::memory::heap_reallocate(control->text, 0x80, widget_memory_pool);
+    buffer = halo::interface::widget_pool_resize_text(control->text, 0x80);
     control->text = buffer;
     if (buffer != nullptr) {
         wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_name_00719170, 0x3f);
-        ((uint16_t *)control->text)[0x3f] = 0;
+        (halo::interface::widget_text(control))[0x3f] = 0;
     }
     if (row->parent->focused_child == row) {
         tab_index = 0;
@@ -228,11 +230,11 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
 
     row = row->next_sibling;
     control = row->first_child->next_sibling;
-    buffer = (uint16_t *)halo::memory::heap_reallocate(control->text, 0x12, widget_memory_pool);
+    buffer = halo::interface::widget_pool_resize_text(control->text, 0x12);
     control->text = buffer;
     if (buffer != nullptr) {
         wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_subname_007191f0, 8);
-        ((uint16_t *)control->text)[8] = 0;
+        (halo::interface::widget_text(control))[8] = 0;
     }
     if (row->parent->focused_child == row) {
         tab_index = 1;
@@ -295,7 +297,7 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
         halo::text::string_format_wide_va_bounded(
             0x1f - address_length, reinterpret_cast<uint16_t *>(ip_control->text) + address_length,
             reinterpret_cast<const uint16_t *>(ip_port_format_string_0066a564), halo::networking::globals().game_socket_port);
-        ((uint16_t *)ip_control->text)[0x1f] = 0;
+        (halo::interface::widget_text(ip_control))[0x1f] = 0;
     }
 
     if (tab_index == -1) {
@@ -326,11 +328,11 @@ void UiNetworkMenu::network_name_fields_refresh(widget_instance *widget)
     int32_t tab_index = -1;
     uint16_t *buffer;
 
-    buffer = (uint16_t *)halo::memory::heap_reallocate(control->text, 0x40, widget_memory_pool);
+    buffer = halo::interface::widget_pool_resize_text(control->text, 0x40);
     control->text = buffer;
     if (buffer != nullptr) {
         wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_name_field_00719238, 0x1f);
-        ((uint16_t *)control->text)[0x1f] = 0;
+        (halo::interface::widget_text(control))[0x1f] = 0;
     }
     if (row->parent->focused_child == row) {
         tab_index = 0;
@@ -338,11 +340,11 @@ void UiNetworkMenu::network_name_fields_refresh(widget_instance *widget)
 
     row = row->next_sibling;
     control = row->first_child->next_sibling;
-    buffer = (uint16_t *)halo::memory::heap_reallocate(control->text, 0x12, widget_memory_pool);
+    buffer = halo::interface::widget_pool_resize_text(control->text, 0x12);
     control->text = buffer;
     if (buffer != nullptr) {
         wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_subname_007191f0, 8);
-        ((uint16_t *)control->text)[8] = 0;
+        (halo::interface::widget_text(control))[8] = 0;
     }
 
     if (row->parent->focused_child == row) {

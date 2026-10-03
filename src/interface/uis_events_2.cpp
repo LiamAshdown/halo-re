@@ -29,6 +29,7 @@
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/net_session.hpp"
+#include "halo/interface/widget_pool.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -71,13 +72,8 @@ static void widget_history_pop(int16_t controller)
     }
     node = ui_widget_history[controller];
     if (node != 0) {
-        heap_block *block = (heap_block *)((uint8_t *)node - 0x10);
-        uint32_t size = block->size & halo::interface::k_pool_block_size_mask;
-
         ui_widget_history[controller] = node->next;
-        halo::memory::heap_unlink_block(block, widget_memory_pool);
-        widget_memory_pool->bytes_allocated -= (int32_t)size;
-        widget_memory_pool->allocation_count -= 1;
+        halo::interface::widget_pool_free(node);
     }
 }
 
@@ -533,7 +529,7 @@ uint8_t UiEventHandlers::event_49f610(widget_instance *widget, int16_t *event, u
     if (variant == 0) {
         return 0;
     }
-    text = (uint16_t *)halo::memory::heap_reallocate(widget->text, halo::interface::k_name_text_bytes, widget_memory_pool);
+    text = halo::interface::widget_pool_resize_text(widget->text, halo::interface::k_name_text_bytes);
     widget->text = text;
     if (text != 0) {
         wcsncpy((wchar_t *)text, (const wchar_t *)variant, 0x7f);

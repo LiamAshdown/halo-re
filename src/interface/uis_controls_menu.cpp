@@ -19,6 +19,7 @@
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/widget_pool.hpp"
 
 extern "C" {
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
@@ -98,13 +99,7 @@ void UiControlsMenu::controls_4wide_selector_refresh(widget_instance *widget)
 uint32_t UiControlsMenu::controls_options_free_list(widget_instance *widget)
 {
     if (widget->list_items != nullptr) {
-        heap_block *block = (heap_block *)((uint8_t *)widget->list_items - 0x10);
-        uint32_t size = block->size;
-
-        halo::memory::heap_unlink_block(block, widget_memory_pool);
-        widget_memory_pool->bytes_allocated =
-            widget_memory_pool->bytes_allocated - (int32_t)(size & halo::interface::k_pool_block_size_mask);
-        widget_memory_pool->allocation_count = widget_memory_pool->allocation_count - 1;
+        halo::interface::widget_pool_free(widget->list_items);
         widget->list_items = nullptr;
     }
     halo::interface::ui_list_free_all();
