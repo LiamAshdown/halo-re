@@ -1,4 +1,8 @@
 #include "halo/interface/ifr2_main.hpp"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "crt.h"
@@ -11,6 +15,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/constants.hpp"
 
 #ifdef interface
 #undef interface
@@ -70,7 +75,7 @@ void InterfaceMain::draw_cursor()
         if (bitmap_data != 0) {
             rect.bottom = (int16_t)(ui_cursor_y + 0x20);
             rect.right = (int16_t)(ui_cursor_x + 0x20);
-            halo::interface::ui_draw_screen_quad((int16_t *)0, (int16_t *)&rect, bitmap_data, (int16_t *)0, 0xffffffffu);
+            halo::interface::ui_draw_screen_quad(nullptr, (int16_t *)&rect, bitmap_data, nullptr, 0xffffffffu);
             return;
         }
     }
@@ -123,7 +128,7 @@ void InterfaceMain::loading_screen_reset()
  */
 void InterfaceMain::loading_screen_set_text(const char *text)
 {
-    if (text == (const char *)0) {
+    if (text == nullptr) {
         progress_screen_text[0] = 0;
     } else {
         halo::text::string_convert_ascii_to_unicode(progress_screen_text, 0x40, text);
@@ -151,7 +156,7 @@ void InterfaceMain::update_for_resolution_change(int32_t new_cursor_x, int32_t n
     if (new_cursor_x < 0) {
         ui_cursor_x = 0;
     } else {
-        ui_cursor_x = 0x280;
+        ui_cursor_x = halo::interface::k_base_screen_width;
         if (new_cursor_x < 0x281) {
             ui_cursor_x = new_cursor_x;
         }
@@ -161,7 +166,7 @@ void InterfaceMain::update_for_resolution_change(int32_t new_cursor_x, int32_t n
         ui_cursor_y = 0;
         return;
     }
-    ui_cursor_y = 0x1e0;
+    ui_cursor_y = halo::interface::k_base_screen_height;
     if (new_cursor_y < 0x1e1) {
         ui_cursor_y = new_cursor_y;
     }
@@ -176,7 +181,7 @@ void InterfaceMain::update_for_resolution_change(int32_t new_cursor_x, int32_t n
 void InterfaceMain::on_shown(int32_t fade_milliseconds)
 {
     if (halo::main::globals().menu_music_pending == 1) {
-        datum_index sound_tag = halo::cache::tag_lookup(0x6c736e64  , (char *)"sound\\music\\title1\\title1");
+        datum_index sound_tag = halo::interface::lookup_tag(halo::fourcc('l', 's', 'n', 'd'), "sound\\music\\title1\\title1");
 
         if (sound_tag != (datum_index)-1) {
             halo::sound::sound_looping_stop(sound_tag);
@@ -203,7 +208,7 @@ void InterfaceMain::play_title_music()
     datum_index sound_tag;
 
     if (halo::main::globals().menu_music_pending == 0 && main_menu_music_datum == 0) {
-        sound_tag = halo::cache::tag_lookup(0x6c736e64  , (char *)"sound\\music\\title1\\title1");
+        sound_tag = halo::interface::lookup_tag(halo::fourcc('l', 's', 'n', 'd'), "sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
             halo::sound::sound_looping_start(sound_tag, -1, 1.0f);
             halo::main::globals().menu_music_pending = 1;
@@ -255,7 +260,7 @@ void MapList::get_friendly_level_name(wchar_t *destination, char *map_path, int3
     wchar_t *source;
     char *filename;
 
-    map_list_tag = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\mp_map_list");
+    map_list_tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\mp_map_list");
     index = halo::interface::map_list_find_known_map_index(map_path);
     if (-1 < index && index < 0x13 && index != -1) {
 
@@ -266,7 +271,7 @@ void MapList::get_friendly_level_name(wchar_t *destination, char *map_path, int3
     }
 
     filename = strrchr(map_path, '\\');
-    if (filename != (char *)0) {
+    if (filename != nullptr) {
         halo::text::string_convert_ascii_to_unicode((uint16_t *)destination, destination_capacity * 2, filename + 1);
         return;
     }
@@ -283,14 +288,14 @@ void MapList::get_friendly_level_name(wchar_t *destination, char *map_path, int3
  */
 void InterfaceMain::set_profile_name(widget_instance *widget, const uint16_t *name_source)
 {
-    datum_index tag_id = halo::cache::tag_lookup(0x75737472  , (char *)"ui\\shell\\strings\\common_button_captions");
+    datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\strings\\common_button_captions");
     uint16_t *suffix = missing_string_text;
     void *buffer = halo::memory::heap_reallocate(widget->text, 0x80, widget_memory_pool);
 
     widget->text = buffer;
-    if (buffer != (void *)0) {
+    if (buffer != nullptr) {
         if (tag_id != (datum_index)-1) {
-            UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+            UnicodeStringList *list = halo::interface::tag_data<UnicodeStringList>(tag_id);
 
             if (list->strings.count > 7) {
                 UnicodeStringListString *strings = (UnicodeStringListString *)list->strings.pointer;
@@ -323,8 +328,8 @@ void InterfaceMain::string_replace_all_in_place(char *buffer, char *search, char
     buffer_end = buffer + strlen(buffer) + 1;
 
     cursor = buffer;
-    if (buffer != (char *)0) {
-        while ((cursor = strstr(cursor, search)) != (char *)0) {
+    if (buffer != nullptr) {
+        while ((cursor = strstr(cursor, search)) != nullptr) {
             uint32_t tail_size = (uint32_t)(buffer_end - cursor) - 1;
 
             memmove(cursor, replacement, replacement_length);
@@ -346,10 +351,10 @@ void InterfaceMain::initialize_terminal()
     halo::main::globals().terminal_messages->valid = 1;
     halo::memory::data_delete_all(halo::main::globals().terminal_messages);
     halo::main::globals().console_active = (terminal_console *)0;
-    halo::main::globals().console_message_head = (datum_index)0xffffffff;
-    halo::main::globals().console_message_tail = (datum_index)0xffffffff;
+    halo::main::globals().console_message_head = (datum_index)halo::k_dword_none;
+    halo::main::globals().console_message_tail = (datum_index)halo::k_dword_none;
     halo::main::globals().console_caret_blink_time = 0;
-    halo::main::globals().console_rcon_handle = (int32_t)0xffffffff;
+    halo::main::globals().console_rcon_handle = (int32_t)halo::k_dword_none;
 }
 
 } // namespace halo::interface

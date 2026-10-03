@@ -3,6 +3,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 #ifdef interface
 #undef interface
@@ -12,7 +13,7 @@ extern "C" {
 extern uint8_t profile_globals_block[0x60a4];
 extern int16_t profile_slot_id[];
 extern int32_t selected_saved_item;
-extern uint8_t default_profile_data[0x1ffc];
+extern uint8_t default_profile_data[k_saved_player_profile_size];
 extern uint8_t savegame_index_dirty;
 extern char last_profile_name[];
 extern int32_t cached_profile_slot;
@@ -32,7 +33,7 @@ void PlayerProfiles::subsystem_initialize()
 {
     int32_t enumerated_count;
     int32_t enumerated_slot;
-    uint8_t profile_data[0x1ffc];
+    uint8_t profile_data[k_saved_player_profile_size];
     int32_t slot_to_load;
 
     memset(profile_globals_block, 0, sizeof(profile_globals_block));

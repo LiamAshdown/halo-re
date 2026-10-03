@@ -1,4 +1,7 @@
 #include "win32.h"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/interface/ifr2_main.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "saved_games.h"
@@ -92,7 +95,7 @@ void InterfaceMain::handle_quit_request()
         if (halo::networking::globals().join_error_code == -1) {
             halo::networking::globals().join_error_code = 0x23;
         }
-        split_screen_quit_prompt_string = 0xffff;
+        split_screen_quit_prompt_string = halo::k_word_none;
         halo::networking::globals().join_error_reason = 0;
         split_screen_quit_prompt_armed = 1;
         ui_force_quit = 0;
@@ -133,7 +136,7 @@ void InterfaceMain::tick()
         root = ui_root_widget[0];
         if (got_exit_code != 0 && exit_code != 0x103  ) {
             CloseHandle(loading_thread->handle);
-            loading_thread->handle = (void *)0;
+            loading_thread->handle = nullptr;
             loading_thread->unknown_04 = 0;
             loading_thread = (loading_thread_record *)0;
             ui_input_batch_mode = 0;
@@ -156,7 +159,7 @@ void InterfaceMain::tick()
 
                 root = widget;
                 if (widget != (widget_instance *)0) {
-                    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
+                    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
                     int32_t scratch_i;
                     uint8_t looped = 0;
 
@@ -192,7 +195,7 @@ void InterfaceMain::tick()
                         root = ui_root_widget[0];
                         if (popped.definition != (datum_index)-1) {
                             widget_instance *reopened = halo::interface::chimera__load_ui_widget(
-                                (char *)0, popped.definition, (widget_instance *)0,
+                                nullptr, popped.definition, (widget_instance *)0,
                                 (uint16_t)popped.controller_index, (datum_index)-1, (datum_index)-1, -1);
 
                             root = ui_root_widget[0];
@@ -250,12 +253,12 @@ shared_tail:
                     halo::interface::widget_instance_verify_stack_chain(hit) == 0) {
                     widget_instance *parent = hit->parent;
                     UIWidgetDefinition *parent_tag =
-                        (UIWidgetDefinition *)halo::cache::globals().tag_instances[parent->definition & 0xffff].data;
+                        halo::interface::tag_data<UIWidgetDefinition>(parent->definition);
 
                     if (parent->focused_child != hit) {
                         halo::interface::widget_play_sound_effect(1);
                     }
-                    if (parent->widget_type == 2) {
+                    if (parent->widget_type == uiwidgettype_spinner_list) {
                         if (parent_tag->child_widgets.count > 1) {
                             halo::interface::widget_list_scroll_window((int32_t *)event_scratch, parent);
                             {
@@ -274,7 +277,7 @@ shared_tail:
                                 cursor = cursor->parent;
                             }
                         }
-                    } else if (parent->widget_type == 3) {
+                    } else if (parent->widget_type == uiwidgettype_column_list) {
                         parent->selection_index = (int16_t)halo::interface::widget_get_sibling_index(hit);
                         parent->focused_child = hit;
                         {
@@ -284,7 +287,7 @@ shared_tail:
                                 widget_instance *up = cursor->parent;
 
                                 up->focused_child = cursor;
-                                if (up->widget_type == 3) {
+                                if (up->widget_type == uiwidgettype_column_list) {
                                     up->selection_index = (int16_t)halo::interface::widget_get_sibling_index(cursor);
                                 }
                                 cursor = up;
@@ -347,7 +350,7 @@ void MapList::add_entry(char *path, int32_t map_id)
     }
 
     entry = &map_list[map_list_count];
-    entry->path = (char *)0;
+    entry->path = nullptr;
     entry->map_id = map_id;
     entry->cache_file_exists = 0;
 
@@ -356,7 +359,7 @@ void MapList::add_entry(char *path, int32_t map_id)
     strcpy(entry->path, path);
 
     extension = strstr(entry->path, ".map");
-    if (extension != (char *)0) {
+    if (extension != nullptr) {
         *extension = '\0';
     }
 
@@ -365,7 +368,7 @@ void MapList::add_entry(char *path, int32_t map_id)
     }
 
     filename = strrchr(entry->path, '\\');
-    filename = (filename != (char *)0) ? filename + 1 : entry->path;
+    filename = (filename != nullptr) ? filename + 1 : entry->path;
     entry->cache_file_exists = halo::cache::cache_file_exists(filename, &header);
     map_list_count = map_list_count + 1;
 }

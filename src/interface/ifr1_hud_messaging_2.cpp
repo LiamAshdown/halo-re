@@ -1,4 +1,6 @@
 #include "halo/interface/ifr1_hud_messaging.hpp"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
 #include <string.h>
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -7,6 +9,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "tags.h"
 
 extern "C" {
 extern uint8_t *hud_messaging;
@@ -71,7 +74,7 @@ void HudMessaging::receive_item_message(void **message)
     }
 
     halo::interface::hud_add_item_message(p->local_player_index, payload.item_definition, payload.kind, payload.count);
-    item_tag = (int16_t *)halo::cache::globals().tag_instances[payload.item_definition & 0xffff].data;
+    item_tag = halo::interface::tag_data<int16_t>(payload.item_definition);
     if (item_tag[0] == 3) {
         switch (*(int16_t *)((uint8_t *)item_tag + 0x308)) {
         case 2:
@@ -92,7 +95,7 @@ void HudMessaging::receive_item_message(void **message)
         }
         sound = *(datum_index *)((uint8_t *)item_tag + 0x31c);
     } else if (item_tag[0] == 2 && item_tag != 0) {
-        sound = *(datum_index *)((uint8_t *)item_tag + 0x49c);
+        sound = halo::interface::tag_handle(((struct Weapon *)item_tag)->pickup_sound.tag_id);
     } else {
         return;
     }

@@ -29,7 +29,7 @@ void chimera__load_main_menu(void)
  *
  * @address 0x497a70
  */
-widget_instance * chimera__load_ui_widget(char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection)
+widget_instance * chimera__load_ui_widget(const char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection)
 {
     return halo::interface::ChimeraBridge::load_ui_widget(tag_path, tag_index, parent, controller_index, history_definition, history_list_definition, history_selection);
 }

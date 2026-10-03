@@ -1,4 +1,6 @@
 #include "halo/interface/ifr1_hud_waypoints.hpp"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
 #include "halo/bitmaps/api.hpp"
 #include <string.h>
 #include "halo/math/api.hpp"
@@ -8,6 +10,7 @@
 #include "halo/units/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/flags.hpp"
 
 extern "C" {
 extern hud_waypoint_state *hud_waypoints;
@@ -64,7 +67,7 @@ bool WaypointSlotSet::for_player(datum_index player_index, WaypointSlotSet *out)
     if (player_index == (datum_index)-1) {
         return false;
     }
-    local_player_index = ((player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * 0x200))->local_player_index;
+    local_player_index = (halo::interface::player_record(player_index))->local_player_index;
     if (local_player_index < 0 || local_player_index >= 1) {
         return false;
     }
@@ -267,8 +270,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
     unit_index = (datum_index)-1;
     if (local_player_index != -1 && local_player_index < 1 &&
         halo::game::globals().local_player_globals->local_players[local_player_index] != (datum_index)-1) {
-        unit_index = ((player *)((uint8_t *)halo::game::globals().player_data->data +
-                                 (halo::game::globals().local_player_globals->local_players[local_player_index] & 0xffff) * 0x200))->unit;
+        unit_index = (halo::interface::player_record(halo::game::globals().local_player_globals->local_players[local_player_index]))->unit;
     }
     halo::units::unit_get_camera_position(unit_index, &camera);
     {
@@ -306,7 +308,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
             visibility = 1;
             x = x * k;
             y = y * k;
-            if ((arrow->flags & 1) == 0) {
+            if (!halo::interface::has_bit(arrow->flags, halo::tags::hud_globals_waypoint_arrow_tag_flag::dont_rotate_when_pointing_offscreen)) {
                 rotation = -atan2f(x, y);
             }
         }
@@ -399,7 +401,7 @@ void HudWaypoints::draw_all_for_player(void)
     } else {
         local_player = halo::game::globals().local_player_globals->local_players[current_local_player_index];
     }
-    team = ((player *)((uint8_t *)halo::game::globals().player_data->data + (local_player & 0xffff) * sizeof(player)))->team;
+    team = (halo::interface::player_record(local_player))->team;
     if (local_player == (datum_index)-1) {
         return;
     }

@@ -1,4 +1,6 @@
 #include "halo/interface/ifr2_widgets.hpp"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
 #include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/memory/api.hpp"
@@ -33,13 +35,13 @@ namespace halo::interface {
  */
 widget_instance * WidgetView::find_at_point(int32_t cursor_x, int32_t cursor_y, int32_t offset_xy)
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
     widget_instance *first_child = widget->first_child;
     uint8_t eligible =
         (widget->hidden == 0 &&
-         (tag->event_handlers.count > 0 || widget->widget_type == 2 || widget->widget_type == 3)) ||
-        (first_child == (widget_instance *)0 || first_child->widget_type == 2 ||
-         first_child->widget_type == 3) ||
+         (tag->event_handlers.count > 0 || widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list)) ||
+        (first_child == (widget_instance *)0 || first_child->widget_type == uiwidgettype_spinner_list ||
+         first_child->widget_type == uiwidgettype_column_list) ||
         ((int8_t)((uint32_t)tag->flags >> 8) < 0);
     widget_instance *result = (widget_instance *)0;
 
@@ -63,7 +65,7 @@ widget_instance * WidgetView::find_at_point(int32_t cursor_x, int32_t cursor_y, 
                 result = halo::interface::widget_instance_find_at_point(child, cursor_x, cursor_y, child_offset);
                 child = child->next_sibling;
             }
-            if (widget->widget_type == 3 || widget->widget_type == 2) {
+            if (widget->widget_type == uiwidgettype_column_list || widget->widget_type == uiwidgettype_spinner_list) {
                 widget = (widget_instance *)0;
             }
             if (result == (widget_instance *)0) {
@@ -84,7 +86,7 @@ widget_instance * WidgetView::find_at_point(int32_t cursor_x, int32_t cursor_y, 
  */
 uint8_t WidgetView::point_in_bounds()
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
     Rectangle2D rect = tag->bounds;
     int16_t x_sum = 0;
     int16_t y_sum = 0;
@@ -119,7 +121,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
     widget_instance *ancestor;
     uint8_t in_bounds;
     int32_t cursor_side;
-    uint16_t *text = (uint16_t *)0;
+    uint16_t *text = nullptr;
     uint8_t scroll_dir_up = 0;
     uint8_t scroll_dir_down = 0;
     int16_t x_off = (int16_t)offset_xy;
@@ -161,11 +163,11 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
 
         for (arrow = 0; arrow < 2; arrow++) {
             datum_index bitmap_tag = *(datum_index *)(t + (arrow == 0 ? 0x160 : 0x170));
-            uint8_t *bitmap_tag_data = (uint8_t *)halo::cache::globals().tag_instances[bitmap_tag & 0xffff].data;
+            uint8_t *bitmap_tag_data = halo::interface::tag_data<uint8_t>(bitmap_tag);
             int16_t frame = (int16_t)(arrow == 0 ? scroll_dir_up : scroll_dir_down);
             int32_t bitmap;
 
-            if (in_bounds != 0 && bitmap_tag_data != (uint8_t *)0 && *(int32_t *)(bitmap_tag_data + 0x60) == 4 &&
+            if (in_bounds != 0 && bitmap_tag_data != nullptr && *(int32_t *)(bitmap_tag_data + 0x60) == 4 &&
                 halo::interface::widget_instance_point_in_bounds(widget) != 0 &&
                 (arrow == 0 ? cursor_side <= 0 : cursor_side > 0)) {
                 frame = (int16_t)(frame + 2);
@@ -200,7 +202,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
         int32_t i;
 
         text = buf;
-        if (buf == (uint16_t *)0) {
+        if (buf == nullptr) {
             goto free_and_return;
         }
         {
@@ -218,7 +220,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
             for (i = 0; i < tag->search_and_replace_functions.count; i++) {
                 uint8_t *entry = entries + i * 0x22;
 
-                if (entry != (uint8_t *)0 && *entry != 0) {
+                if (entry != nullptr && *entry != 0) {
 
                     const uint16_t *replacement = halo::interface::ui_search_replace_function_call(*(int16_t *)(entry + 0x20), widget);
                     uint16_t search[0x20];
@@ -229,7 +231,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
         }
     }
 
-    if (text != (uint16_t *)0 && *(uint32_t *)&tag->text_font.tag_id != 0xffffffffu) {
+    if (text != nullptr && *(uint32_t *)&tag->text_font.tag_id != 0xffffffffu) {
         int16_t justification = tag->justification;
 
         if (justification >= 0 && justification < 3) {
@@ -267,7 +269,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
     }
 
 free_and_return:
-    if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id != 0xffffffffu && text != (uint16_t *)0) {
+    if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id != 0xffffffffu && text != nullptr) {
         heap_block *block = (heap_block *)((uint8_t *)text - 0x10);
         uint32_t size = block->size;
 
@@ -289,10 +291,10 @@ void WidgetList::adjust_rect_for_scroll_arrows(Rectangle2D *rect)
 {
     UIWidgetDefinition *tag;
 
-    if (widget->widget_type != 2  ) {
+    if (widget->widget_type != uiwidgettype_spinner_list  ) {
         return;
     }
-    tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
+    tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
     if (tag->child_widgets.count >= 2) {
         return;
     }

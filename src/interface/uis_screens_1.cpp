@@ -21,6 +21,7 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern int32_t chat_window_default_x;
@@ -191,7 +192,7 @@ void UiScreens::error_modal_update(void)
 {
     int16_t player_count_field;
 
-    if ((halo::game::globals().current_engine == (void *)0 || (int32_t)halo::game::globals().state < 2 || (int32_t)halo::game::globals().state > 3) &&
+    if ((halo::game::globals().current_engine == nullptr || (int32_t)halo::game::globals().state < 2 || (int32_t)halo::game::globals().state > 3) &&
         halo::cutscene::globals().cinematic_globals->in_progress == 0) {
         if (widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0) {
             strstr(ui_root_widget[0]->name, "error_modal");
@@ -203,12 +204,12 @@ void UiScreens::error_modal_update(void)
             bar.top = 0xef;
             bar.left = 0;
             bar.bottom = 0xf1;
-            bar.right = 0x280;
+            bar.right = halo::interface::k_base_screen_width;
             halo::interface::ui_draw_filled_rectangle(0xff000000, &bar);
             if (player_count_field > 2) {
                 bar.top = (player_count_field == 3) ? 0xf0 : 0;
                 bar.left = 0x13f;
-                bar.bottom = 0x1e0;
+                bar.bottom = halo::interface::k_base_screen_height;
                 bar.right = 0x141;
                 halo::interface::ui_draw_filled_rectangle(0xff000000, &bar);
             }
@@ -257,9 +258,9 @@ void UiScreens::handler_4a68f0(uint8_t *widget)
     uint8_t *child = *(uint8_t **)(widget + 0x4c);
     uint8_t *record;
 
-    *(int16_t *)(child + 0x58) = *(int16_t *)(widget + 0x40);
-    if (*(int16_t *)(child + 0x58) < 0) {
-        *(int16_t *)(child + 0x58) = 0;
+    ((struct widget_instance *)child)->background_bitmap_frame = *(int16_t *)(widget + 0x40);
+    if (((struct widget_instance *)child)->background_bitmap_frame < 0) {
+        ((struct widget_instance *)child)->background_bitmap_frame = 0;
     }
     if (network_disabled_flag != 0) {
         record = *(uint8_t **)(*(uint8_t **)(widget + 0x34) + 0x2c);

@@ -1,4 +1,8 @@
 #include "halo/interface/ifr2_network.hpp"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
 #include "crt.h"
 #include <string.h>
@@ -11,6 +15,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 #ifdef interface
 #undef interface
@@ -26,7 +31,7 @@ extern variant_carousel_slot variant_carousel_slots[3];
 extern uint8_t profile_globals_block[0x60a4];
 extern heap *widget_memory_pool;
 extern uint16_t missing_string_text[];
-extern uint8_t default_profile_data[0x1ffc];
+extern uint8_t default_profile_data[k_saved_player_profile_size];
 extern char k_empty_string[];
 extern uint8_t command_line_check_flag(const char *flag, const char **out_value);
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only, uint16_t *capacity_and_count);
@@ -146,18 +151,18 @@ void MenuListView::refresh_3wide()
 void MenuListView::update_item(const uint16_t *record)
 {
     datum_index variant_strings_tag =
-        halo::cache::tag_lookup(0x75737472  , (char *)"ui\\shell\\strings\\game_variant_descriptions");
+        halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\strings\\game_variant_descriptions");
     widget_instance *name_widget = widget->first_child;
     widget_instance *desc_widget = name_widget->next_sibling;
     widget_instance *icon_widget = desc_widget->next_sibling;
 
     icon_widget->hidden = 0;
 
-    if (record == (const uint16_t *)0) {
+    if (record == nullptr) {
         uint16_t *name_buf = (uint16_t *)halo::memory::heap_reallocate(name_widget->text, 0x100, widget_memory_pool);
 
         name_widget->text = name_buf;
-        if (name_buf != (uint16_t *)0) {
+        if (name_buf != nullptr) {
             name_buf[0] = 0;
         }
         desc_widget->background_bitmap_frame = 5;
@@ -166,14 +171,14 @@ void MenuListView::update_item(const uint16_t *record)
             uint16_t *desc_buf = (uint16_t *)halo::memory::heap_reallocate(desc_widget->text, 0x200, widget_memory_pool);
 
             desc_widget->text = desc_buf;
-            if (desc_buf != (uint16_t *)0) {
-                datum_index labels_tag = halo::cache::tag_lookup(
-                    0x75737472  ,
-                    (char *)"ui\\shell\\main_menu\\player_profiles_select\\profile_description_labels");
+            if (desc_buf != nullptr) {
+                datum_index labels_tag = halo::interface::lookup_tag(
+                    halo::groups::unicode_string_list,
+                    "ui\\shell\\main_menu\\player_profiles_select\\profile_description_labels");
 
                 desc_buf[0] = 0;
                 if (labels_tag != (datum_index)-1) {
-                    UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[labels_tag & 0xffff].data;
+                    UnicodeStringList *list = halo::interface::tag_data<UnicodeStringList>(labels_tag);
                     const uint16_t *source = missing_string_text;
 
                     if (list->strings.count > 5) {
@@ -198,7 +203,7 @@ void MenuListView::update_item(const uint16_t *record)
         uint16_t *name_buf = (uint16_t *)halo::memory::heap_reallocate(name_widget->text, 0x100, widget_memory_pool);
 
         name_widget->text = name_buf;
-        if (name_buf != (uint16_t *)0) {
+        if (name_buf != nullptr) {
             wcsncpy((wchar_t *)name_buf, (const wchar_t *)record, 0x7f);
             name_buf[0x7f] = 0;
         }
@@ -208,7 +213,7 @@ void MenuListView::update_item(const uint16_t *record)
         uint16_t *desc_buf = (uint16_t *)halo::memory::heap_reallocate(desc_widget->text, 0x200, widget_memory_pool);
 
         desc_widget->text = desc_buf;
-        if (desc_buf != (uint16_t *)0) {
+        if (desc_buf != nullptr) {
             desc_buf[0] = 0;
         }
     }
@@ -222,7 +227,7 @@ void MenuListView::update_item(const uint16_t *record)
         case 5: desc_widget->background_bitmap_frame = 4; break;
         default: break;
         }
-        if (variant_strings_tag != (datum_index)-1 && desc_widget->text != (void *)0) {
+        if (variant_strings_tag != (datum_index)-1 && desc_widget->text != nullptr) {
             uint16_t *text = halo::text::text_string_list_get_string(variant_strings_tag, (int16_t)((record[0x4a] >> 8) + 0xa));
 
             wcsncpy((wchar_t *)((uint16_t *)desc_widget->text), (const wchar_t *)text, 0xff);
@@ -241,7 +246,7 @@ void MenuListView::update_item(const uint16_t *record)
     default: return;
     }
 
-    if (variant_strings_tag != (datum_index)-1 && desc_widget->text != (void *)0) {
+    if (variant_strings_tag != (datum_index)-1 && desc_widget->text != nullptr) {
         uint16_t *text = halo::text::text_string_list_get_string(variant_strings_tag, (int16_t)(2 * (*(const uint32_t *)(record + 0x18) - 1) + (((const uint8_t *)record)[0x34] == 1 ? 1 : 0)));
 
         wcsncpy((wchar_t *)((uint16_t *)desc_widget->text), (const wchar_t *)text, 0xff);
@@ -259,7 +264,7 @@ uint8_t NetworkSetup::autojoin_from_command_line()
     const char *password = 0;
     uint16_t wide_name[0x40];
     int32_t slots[100];
-    uint8_t profile[0x1ffc];
+    uint8_t profile[k_saved_player_profile_size];
 
     if (!halo::shell::command_line_check_flag("-connect", &address) || address == 0) {
         return 0;
@@ -302,7 +307,7 @@ void NetworkSetup::clear_player_ready_flags()
     uint8_t local_ready_flags[16];
     int32_t i;
 
-    if (client == (int16_t *)0) {
+    if (client == nullptr) {
         return;
     }
 
@@ -316,7 +321,7 @@ void NetworkSetup::clear_player_ready_flags()
     }
 
     if (halo::networking::globals().server == (network_server_globals *)0) {
-        player = (client == (int16_t *)0) ? (int16_t *)0 : client + 0x58a;
+        player = (client == nullptr) ? nullptr : client + 0x58a;
     } else {
         player = (int16_t *)((uint8_t *)halo::networking::globals().server + 8);
     }
@@ -325,7 +330,7 @@ void NetworkSetup::clear_player_ready_flags()
 
     for (i = 0x10; i != 0; i--) {
         if (halo::networking::network_player_entry_validate((network_player_entry *)player) != 0) {
-            if (player == (int16_t *)0 || halo::networking::network_player_entry_validate((network_player_entry *)player) == 0) {
+            if (player == nullptr || halo::networking::network_player_entry_validate((network_player_entry *)player) == 0) {
                 if (halo::networking::globals().game_mode != 3 || *((int8_t *)player + 0x1c) == 0) {
                     goto clear_flag;
                 }
@@ -357,7 +362,7 @@ void NetworkSetup::game_setup_teardown()
     halo::networking::globals().game_mode = 0;
 
     if (halo::game::globals().current_engine != (game_engine_definition *)0) {
-        if (halo::game::globals().current_engine->dispose != (void *)0) {
+        if (halo::game::globals().current_engine->dispose != nullptr) {
             ((void (*)(void))halo::game::globals().current_engine->dispose)();
         }
         halo::game::globals().current_engine = (game_engine_definition *)0;
@@ -409,7 +414,7 @@ uint32_t MenuListView::choice_handler()
             if (halo::game::globals().state == 0) {
                 halo::game::game_engine_reset_round_objects();
                 halo::game::game_engine_send_round_reset_message();
-                halo::game::game_engine_player_profile_cache_sync_all(0, (void *)0xffffffff);
+                halo::game::game_engine_player_profile_cache_sync_all(0, (void *)halo::k_dword_none);
             } else {
                 halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Cannot restart the map when the game is over.");
             }

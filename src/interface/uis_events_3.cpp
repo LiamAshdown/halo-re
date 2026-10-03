@@ -4,6 +4,8 @@
  */
 
 #include "crt.h"
+#include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "tags.h"
 #include "memory.h"
@@ -34,10 +36,12 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
+#include "halo/interface/records.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern int32_t ui_list_current;
 extern growable_array ui_lists[3];
 extern int32_t profile_slot_lookup_cache_00692ac8;
@@ -52,7 +56,7 @@ extern int16_t profile_slot_id[];
 extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error);
 extern uint8_t local_team_00714dd8[];
 extern uint32_t network_server_reset_game_stats(void);
-extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc];
+extern uint8_t coop_profile_globals_block_00714ddc[k_saved_player_profile_size];
 extern widget_history_node *ui_widget_history[3];
 extern heap *widget_memory_pool;
 extern uint8_t level_select_flags_0071916b;
@@ -73,7 +77,7 @@ static widget_instance *first_list_child(widget_instance *widget)
 {
     widget_instance *child = widget->first_child;
 
-    while (child != 0 && child->widget_type != 2) {
+    while (child != 0 && child->widget_type != uiwidgettype_spinner_list) {
         child = child->next_sibling;
     }
     return child;
@@ -107,27 +111,27 @@ uint8_t UiEventHandlers::event_4a0fb0(widget_instance *widget, int16_t *event, u
     group = widget->first_child;
     selection = first_list_child(group)->selection_index;
     if (selection == 0 || selection == 1) {
-        profile[0x12f] = (uint8_t)(selection == 0);
+        ((struct saved_player_profile *)profile)->look_inverted = (uint8_t)(selection == 0);
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection >= 0 && selection <= 9) {
-        profile[0x12e] = (uint8_t)(selection + 1);
+        ((struct saved_player_profile *)profile)->look_sensitivity = (uint8_t)(selection + 1);
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection == 0 || selection == 1) {
-        profile[0x130] = (uint8_t)selection;
+        ((struct saved_player_profile *)profile)->unknown_130 = (uint8_t)selection;
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection == 0 || selection == 1) {
-        profile[0x131] = (uint8_t)(selection == 0);
+        ((struct saved_player_profile *)profile)->look_inverted_driving = (uint8_t)(selection == 0);
     }
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
     if (selection == 0 || selection == 1) {
-        profile[0x132] = (uint8_t)(selection == 0);
+        ((struct saved_player_profile *)profile)->auto_center_look = (uint8_t)(selection == 0);
     }
     return 1;
 }
@@ -260,7 +264,7 @@ uint8_t UiEventHandlers::event_4a1310(widget_instance *widget, int16_t *event, u
     halo::saved_games::saved_game_allocate_new_slot(name);
     if (name[0] != 0) {
         handle = halo::saved_games::saved_game_create_custom_variant((uint32_t)(uint16_t)widget->controller_index, name);
-        if (handle != 0xffffffff) {
+        if (handle != halo::k_dword_none) {
             halo::interface::saved_item_select((int32_t)handle);
             if ((selected_saved_item & 0xf) == 1) {
                 int32_t id = halo::interface::ui_list_get_id(*(int16_t *)&((struct widget_instance *)list)->text);
@@ -312,7 +316,7 @@ uint8_t UiEventHandlers::event_4a1480(widget_instance *widget, int16_t *event, u
     halo::saved_games::saved_game_allocate_new_slot(name);
     if (name[0] != 0) {
         handle = halo::saved_games::saved_game_create_default_profile(name);
-        if (handle != 0xffffffff) {
+        if (handle != halo::k_dword_none) {
             uint8_t *profile;
 
             halo::interface::saved_item_select((int32_t)handle);
@@ -322,7 +326,7 @@ uint8_t UiEventHandlers::event_4a1480(widget_instance *widget, int16_t *event, u
                 uint8_t opened;
 
                 wcsncpy((wchar_t *)(profile + 2), (const wchar_t *)name, 0xb);
-                *(uint16_t *)(profile + 0x18) = 0;
+                ((struct saved_player_profile *)profile)->name[11] = 0;
                 opened = halo::interface::virtual_keyboard_open((uint16_t *)(profile + 2), 0x18, 8);
                 if (opened != 0) {
                     return opened;
@@ -613,9 +617,9 @@ uint8_t UiEventHandlers::event_4a1b60(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_4a1bf0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     if (halo::main::globals().menu_music_pending == 1) {
-        datum_index music = halo::cache::tag_lookup(0x6c736e64, (char *)"sound\\music\\title1\\title1");
+        datum_index music = halo::interface::lookup_tag(halo::fourcc('l', 's', 'n', 'd'), "sound\\music\\title1\\title1");
 
-        if (music != 0xffffffff) {
+        if (music != halo::k_dword_none) {
             halo::sound::sound_looping_stop(music);
         }
         halo::main::globals().menu_music_pending = 0;

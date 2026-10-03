@@ -1,9 +1,12 @@
 #include "halo/interface/ifr2_players.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/records.hpp"
 
 #ifdef interface
 #undef interface
@@ -35,10 +38,10 @@ void PlayerProfiles::save_495fb0(uint8_t flag)
 
     state::profile_slot_flag = flag;
     if (halo::saved_games::globals().player_profile_slots_handle != -1) {
-        string_list_tag = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\temp_strings");
+        string_list_tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\strings\\temp_strings");
 
         text = empty_string;
-        if (string_list_tag != (datum_index)0xffffffff) {
+        if (string_list_tag != (datum_index)halo::k_dword_none) {
             string_list_data = (int32_t *)halo::cache::globals().tag_instances[(uint16_t)string_list_tag].data;
             text = missing_string_text;
             if (string_list_data[0] > 1) {

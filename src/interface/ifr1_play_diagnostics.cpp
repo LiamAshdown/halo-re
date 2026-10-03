@@ -1,4 +1,7 @@
 #include "halo/interface/ifr1_play_diagnostics.hpp"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
@@ -49,8 +52,8 @@ void PlayDiagnostics::run(void)
     if ((++debug_play_tick % 90) != 0) {
         return;
     }
-    if (fp->unit_index != (datum_index)0xffffffff) {
-        uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + 8 + (fp->unit_index & 0xffff) * 0xc);
+    if (fp->unit_index != (datum_index)halo::k_dword_none) {
+        uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + 8 + (fp->unit_index & halo::k_slot_mask) * 0xc);
 
         player_team = ((unit_object *)unit)->base.owner_team;
     }
@@ -92,12 +95,12 @@ void PlayDiagnostics::run(void)
         if (*(int16_t *)p == 0) {
             continue;
         }
-        if (*(datum_index *)(p + 0x18) == fp->unit_index && fp->unit_index != (datum_index)0xffffffff) {
+        if (*(datum_index *)(p + 0x18) == fp->unit_index && fp->unit_index != (datum_index)halo::k_dword_none) {
             datum_index owner = *(datum_index *)(p + 0x04);
             int16_t actor_team = -99;
 
-            if (owner != (datum_index)0xffffffff) {
-                actor_team = *(int16_t *)((uint8_t *)halo::ai::globals().actor_data->data + (owner & 0xffff) * halo::ai::globals().actor_data->size + 0x3e);
+            if (owner != (datum_index)halo::k_dword_none) {
+                actor_team = *(int16_t *)((uint8_t *)halo::ai::globals().actor_data->data + (owner & halo::k_slot_mask) * halo::ai::globals().actor_data->size + 0x3e);
             }
             standalone_log("DIAG prop %d actor=%08x actor_team=%d prop_team(+12)=%d enemy(+60)=%d kind(+24)=%d "
                            "u61=%d u62=%d", i, owner, actor_team, *(int16_t *)(p + 0x12), p[0x60],
@@ -110,7 +113,7 @@ void PlayDiagnostics::run(void)
  */
 void PlayDiagnostics::fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, const float *node0, const float *center, int32_t early_out)
 {
-    uint8_t *model = (uint8_t *)halo::cache::globals().tag_instances[model_tag & 0xffff].data;
+    uint8_t *model = halo::interface::tag_data<uint8_t>(model_tag);
     int32_t r;
 
     if ((debug_fp_draw_count++ % 90) != 0) {

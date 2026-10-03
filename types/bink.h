@@ -1,3 +1,4 @@
+#pragma once
 /* bink.h -- the Bink video functions the game calls, from binkw32.dll in the Halo folder (RAD Game Tools; not built
    here). binkw32.dll exports them under their decorated names (_BinkOpen@8, ...), so they are declared under those
    names -- _BinkOpen decorates to __BinkOpen@8, the symbol standalone/libs/binkw32.def gives the import that asks the

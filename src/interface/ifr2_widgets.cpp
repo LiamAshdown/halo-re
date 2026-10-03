@@ -1,4 +1,8 @@
 #include "halo/interface/ifr2_widgets.hpp"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/interface/engine_state.hpp"
@@ -12,6 +16,8 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/constants.hpp"
+#include "halo/interface/flags.hpp"
 
 #ifdef interface
 #undef interface
@@ -56,10 +62,10 @@ namespace halo::interface {
  */
 uint8_t WidgetView::widget_is_focus_candidate(widget_instance *candidate)
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[candidate->definition & 0xffff].data;
+    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(candidate->definition);
     return (uint8_t)(candidate->hidden == 0 &&
-                      (tag->game_data_inputs.count > 0 || candidate->widget_type == 2 ||
-                       candidate->widget_type == 3));
+                      (tag->game_data_inputs.count > 0 || candidate->widget_type == uiwidgettype_spinner_list ||
+                       candidate->widget_type == uiwidgettype_column_list));
 }
 
 /**
@@ -135,7 +141,7 @@ void WidgetLifecycle::close()
     }
 
     {
-        void *tag_data = halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
+        void *tag_data = halo::interface::tag_data<void>(widget->definition);
         TagReflexive *event_handlers = (TagReflexive *)((uint8_t *)tag_data + 0x54);
         int32_t i;
 
@@ -150,8 +156,8 @@ void WidgetLifecycle::close()
                     ui_event_function fn = (ui_event_function)ui_event_function_table[function];
                     uint8_t handled = 0;
 
-                    if (fn(widget, (int16_t *)0, &handled) == 1 && (handler->flags & 0x08) != 0 &&
-                        *(uint32_t *)&handler->widget_tag.tag_id != 0xffffffff) {
+                    if (fn(widget, nullptr, &handled) == 1 && halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::open_widget) &&
+                        *(uint32_t *)&handler->widget_tag.tag_id != halo::k_dword_none) {
                         halo::interface::widget_reopen_as_root_with_history(widget, *(datum_index *)&handler->widget_tag.tag_id);
                     }
                 }
@@ -198,15 +204,15 @@ void WidgetLifecycle::close()
     {
         heap *pool = widget_memory_pool;
 
-        if (widget->widget_type == 1) {
-            if (widget->text != (void *)0) {
+        if (widget->widget_type == uiwidgettype_text_box) {
+            if (widget->text != nullptr) {
                 heap_block *block = (heap_block *)((uint8_t *)widget->text - 0x10);
 
                 halo::memory::heap_unlink_block(block, widget_memory_pool);
                 pool = widget_memory_pool;
             }
-        } else if (widget->widget_type > 1 && widget->widget_type < 4) {
-            if (widget->list_render_data != (void *)0) {
+        } else if (widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) {
+            if (widget->list_render_data != nullptr) {
                 heap_block *block = (heap_block *)((uint8_t *)widget->list_render_data - 0x10);
 
                 halo::memory::heap_unlink_block(block, widget_memory_pool);
@@ -305,13 +311,13 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
     uint8_t ok = 1;
     int32_t i;
 
-    if ((tag->flags_2 & 2) != 0) {
+    if (halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_from_string_list_tag)) {
         UnicodeStringList *list =
-            (UnicodeStringList *)halo::cache::globals().tag_instances[*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id & 0xffff].data;
+            halo::interface::tag_data<UnicodeStringList>(*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id);
 
         widget_creating_children = 1;
         for (i = 0; i < list->strings.count; i++) {
-            widget_instance *child = halo::interface::chimera__load_ui_widget((char *)0, widget->definition, widget,
+            widget_instance *child = halo::interface::chimera__load_ui_widget(nullptr, widget->definition, widget,
                                                                widget->controller_index, (datum_index)-1,
                                                                (datum_index)-1, -1);
 
@@ -346,10 +352,10 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
                 uint16_t controller = widget->controller_index;
                 widget_instance *child;
 
-                if ((entry->flags & 1) != 0 && entry->custom_controller_index < 4) {
+                if (halo::interface::has_bit(entry->flags, halo::tags::child_widget_reference_tag_flag::use_custom_controller_index) && entry->custom_controller_index < 4) {
                     controller = entry->custom_controller_index;
                 }
-                child = halo::interface::chimera__load_ui_widget((char *)0, child_tag_index, widget, controller,
+                child = halo::interface::chimera__load_ui_widget(nullptr, child_tag_index, widget, controller,
                                                  (datum_index)-1, (datum_index)-1, -1);
                 if (child == (widget_instance *)0) {
                     ok = 0;
@@ -372,10 +378,10 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
         }
     }
 
-    if ((widget->widget_type == 2 || widget->widget_type == 3) &&
+    if ((widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) &&
         *(uint32_t *)&tag->extended_description_widget.tag_id != 0xffffffffu) {
         widget_instance *desc = halo::interface::chimera__load_ui_widget(
-            (char *)0, *(uint32_t *)&tag->extended_description_widget.tag_id, widget,
+            nullptr, *(uint32_t *)&tag->extended_description_widget.tag_id, widget,
             widget->controller_index, (datum_index)-1, (datum_index)-1, -1);
 
         widget->extended_description = desc;
@@ -389,27 +395,27 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
     }
 
     if ((int8_t)tag->flags >= 0) {
-        if (widget->widget_type == 2 || widget->widget_type == 3) {
+        if (widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) {
             widget->selection_index = 0;
             widget->scroll_blink = 0;
             widget->selection_direction = 0;
-        } else if ((tag->flags & 1) == 0) {
+        } else if (!halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::pass_unhandled_events_to_focused_child)) {
             return ok;
         }
         {
             widget_instance *child = widget->first_child;
 
             while (child != (widget_instance *)0) {
-                if (widget->widget_type == 2 || widget->widget_type == 3) {
+                if (widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) {
                     break;
                 }
                 {
                     UIWidgetDefinition *child_tag =
-                        (UIWidgetDefinition *)halo::cache::globals().tag_instances[child->definition & 0xffff].data;
+                        halo::interface::tag_data<UIWidgetDefinition>(child->definition);
 
                     if (child->hidden == 0 &&
-                        (child_tag->event_handlers.count > 0 || child->widget_type == 2 ||
-                         child->widget_type == 3)) {
+                        (child_tag->event_handlers.count > 0 || child->widget_type == uiwidgettype_spinner_list ||
+                         child->widget_type == uiwidgettype_column_list)) {
                         break;
                     }
                 }
@@ -430,7 +436,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
  */
 int32_t WidgetView::cursor_side_of_midpoint()
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
     int16_t cumulative_x = 0;
     widget_instance *ancestor;
     int16_t left;
@@ -504,7 +510,7 @@ void WidgetRender::draw_fullscreen_region(int16_t controller_index)
     int32_t clamped_controller;
     int32_t i;
 
-    last_controller_index_00879f50 = (controller_index == (int16_t)0xffff) ? 0 : controller_index;
+    last_controller_index_00879f50 = (controller_index == (int16_t)halo::k_word_none) ? 0 : controller_index;
 
     if (virtual_keyboard.active != 0) {
         halo::interface::virtual_keyboard_render();
@@ -526,7 +532,7 @@ void WidgetRender::draw_fullscreen_region(int16_t controller_index)
               ui_split_screen != 0)) ||
             (widget->is_error_dialog != 1 &&
              ((widget->controller_index == -1 && i == 0) || widget->controller_index == clamped_controller))) {
-            Rectangle2D dest = {0, 0, 0x1e0, 0x280};
+            Rectangle2D dest = {0, 0, halo::interface::k_base_screen_height, halo::interface::k_base_screen_width};
 
             halo::interface::widget_instance_render(widget, &dest, 0, 1, 0);
             drew_any = 1;
@@ -537,7 +543,7 @@ void WidgetRender::draw_fullscreen_region(int16_t controller_index)
         halo::interface::interface_draw_cursor();
     }
     if (0.0f <= state::screen_fade_progress && (state::screen_fade_progress < 1.0f) != (state::screen_fade_progress == 1.0f)) {
-        Rectangle2D rect = {0, 0, 0x1e0, 0x280};
+        Rectangle2D rect = {0, 0, halo::interface::k_base_screen_height, halo::interface::k_base_screen_width};
         int32_t fade_color;
 
         if (0.95f <= state::screen_fade_progress) {
@@ -637,14 +643,14 @@ void WidgetList::extended_description_sync_selection()
         list_child = sibling->first_child;
         for (; list_child != 0; list_child = list_child->next_sibling) {
             if (list_child->widget_type == uiwidgettype_spinner_list) {
-                list_tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[list_child->definition & 0xffff].data;
+                list_tag = halo::interface::tag_data<UIWidgetDefinition>(list_child->definition);
                 if (sibling == focused) {
-                    if ((list_tag->flags_2 & 4) == 0) {
+                    if (!halo::interface::has_bit(list_tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_only_one_tooltip)) {
                         index = index + list_child->selection_index;
                     }
                     goto enable;
                 }
-                if ((list_tag->flags_2 & 4) != 0) {
+                if (halo::interface::has_bit(list_tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_only_one_tooltip)) {
                     index = index + 1;
                 } else {
                     index = index + (uint16_t)list_child->item_count;
@@ -719,10 +725,10 @@ void WidgetView::focus_next_child()
     }
 
     while (candidate != current) {
-        UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[candidate->definition & 0xffff].data;
+        UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(candidate->definition);
 
-        if ((tag->game_data_inputs.count > 0 || (tag->flags & 1) != 0 ||
-             widget->widget_type == 2 || widget->widget_type == 3) &&
+        if ((tag->game_data_inputs.count > 0 || halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::pass_unhandled_events_to_focused_child) ||
+             widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) &&
             candidate->hidden == 0) {
             widget->focused_child = candidate;
             return;
@@ -778,9 +784,9 @@ void WidgetView::focus_previous_child()
             if (candidate == focused) {
                 return;
             }
-            tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[candidate->definition & 0xffff].data;
-            if ((tag->game_data_inputs.count > 0 || (tag->flags & 1) != 0 ||
-                 widget->widget_type == 2 || widget->widget_type == 3) &&
+            tag = halo::interface::tag_data<UIWidgetDefinition>(candidate->definition);
+            if ((tag->game_data_inputs.count > 0 || halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::pass_unhandled_events_to_focused_child) ||
+                 widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) &&
                 candidate->hidden == 0) {
                 widget->focused_child = candidate;
                 return;
@@ -844,8 +850,8 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
         }
     }
 
-    if ((tag->flags_2 & 2) != 0 && parent != (widget_instance *)0 && tag_index == parent->definition) {
-        widget->widget_type = 1;
+    if (halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_from_string_list_tag) && parent != (widget_instance *)0 && tag_index == parent->definition) {
+        widget->widget_type = uiwidgettype_text_box;
     }
     widget->controller_index = controller_index;
     widget->definition = tag_index;
@@ -861,12 +867,12 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
         tag->milliseconds_auto_close_fade_time & ((tag->milliseconds_auto_close_fade_time < 1) ? 0 : -1);
     widget->scale = 1.0f;
     widget->parent = parent;
-    if (widget->widget_type == 1) {
+    if (widget->widget_type == uiwidgettype_text_box) {
         widget->selection_index = -1;
-        widget->list_render_data = (void *)0;
+        widget->list_render_data = nullptr;
     }
     if (*(uint32_t *)&tag->background_bitmap.tag_id != 0xffffffffu) {
-        tag_instance *bg = &halo::cache::globals().tag_instances[*(uint32_t *)&tag->background_bitmap.tag_id & 0xffff];
+        tag_instance *bg = &halo::cache::globals().tag_instances[*(uint32_t *)&tag->background_bitmap.tag_id & halo::k_slot_mask];
         Bitmap *bitmap = (Bitmap *)bg->data;
         BitmapGroupSequence *seq = (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer;
 
@@ -891,10 +897,10 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
         widget_instance *child;
 
         for (child = widget->first_child; child != (widget_instance *)0; child = child->next_sibling) {
-            UIWidgetDefinition *child_tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[child->definition & 0xffff].data;
+            UIWidgetDefinition *child_tag = halo::interface::tag_data<UIWidgetDefinition>(child->definition);
 
             if (child->hidden == 0 &&
-                (child_tag->event_handlers.count > 0 || child->widget_type == 2 || child->widget_type == 3)) {
+                (child_tag->event_handlers.count > 0 || child->widget_type == uiwidgettype_spinner_list || child->widget_type == uiwidgettype_column_list)) {
                 halo::interface::widget_instance_relink_focus(widget, child);
             }
         }
@@ -919,7 +925,7 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
  */
 void WidgetLifecycle::close_and_restore_previous()
 {
-    int16_t slot = (widget->controller_index == (int16_t)0xffff) ? 0 : widget->controller_index;
+    int16_t slot = (widget->controller_index == (int16_t)halo::k_word_none) ? 0 : widget->controller_index;
     widget_history_node history;
     datum_index history_definition = (datum_index)-1;
     widget_instance *root;
@@ -938,7 +944,7 @@ void WidgetLifecycle::close_and_restore_previous()
 
     if (history_definition != (datum_index)-1) {
         ui_restoring_previous_widget = 1;
-        reopened = halo::interface::chimera__load_ui_widget((char *)0, history_definition, (widget_instance *)0,
+        reopened = halo::interface::chimera__load_ui_widget(nullptr, history_definition, (widget_instance *)0,
                                             (uint16_t)history.controller_index,
                                             (datum_index)-1, (datum_index)-1, -1);
         ui_restoring_previous_widget = 0;
@@ -1099,16 +1105,16 @@ after_close_check:
             if (*word_5a < 0) *word_5a = 0;
             if (*word_5c < 0) *word_5c = 0;
         }
-        if (widget->widget_type == 2) {
+        if (widget->widget_type == uiwidgettype_spinner_list) {
             halo::interface::widget_spinner_list_sync_selected(widget, tag);
-        } else if (widget->widget_type == 3) {
+        } else if (widget->widget_type == uiwidgettype_column_list) {
             halo::interface::widget_column_list_sync_selected(widget);
         }
         if (controller_matches) {
             if (list_nav_done != 0) {
                 goto dispatch_to_children;
             }
-            if ((tag->flags & 8) != 0 && widget->focused_child != (widget_instance *)0 && handled == 0) {
+            if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_up_down_tabs_thru_children) && widget->focused_child != (widget_instance *)0 && handled == 0) {
                 if (event[0] == 3 && *((int8_t *)event + 5) == 1) {
                     int8_t code = (int8_t)event[2];
 
@@ -1144,7 +1150,7 @@ after_close_check:
             goto tab_commit;
 
         dpad_lr_nav:
-            if ((tag->flags & 0x10) != 0 && widget->focused_child != (widget_instance *)0 && handled == 0) {
+            if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_left_right_tabs_thru_children) && widget->focused_child != (widget_instance *)0 && handled == 0) {
                 if (event[0] == 3 && *((int8_t *)event + 5) == 1) {
                     int8_t code = (int8_t)event[2];
 
@@ -1168,7 +1174,7 @@ after_close_check:
                 }
             }
         dpad_lr_nav_done:
-            if ((tag->flags & 0x20) != 0 && (widget->widget_type == 2 || widget->widget_type == 3) &&
+            if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_up_down_tabs_thru_list_items) && (widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) &&
                 list_nav_done == 0 && handled == 0) {
                 if (event[0] == 3 && *((int8_t *)event + 5) == 1) {
                     int8_t code = (int8_t)event[2];
@@ -1197,7 +1203,7 @@ after_close_check:
                 }
             }
         dpad_ud_nav:
-            if ((tag->flags & 0x40) != 0 && (widget->widget_type == 2 || widget->widget_type == 3) &&
+            if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_left_right_tabs_thru_list_items) && (widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) &&
                 list_nav_done == 0 && handled == 0) {
                 if (event[0] == 3 && *((int8_t *)event + 5) == 1) {
                     int8_t code = (int8_t)event[2];
@@ -1307,7 +1313,7 @@ dispatch_to_children:
                 if (child != (widget_instance *)0 &&
                     (child->controller_index == -1 || child->controller_index == event[1])) {
                     UIWidgetDefinition *child_tag =
-                        (UIWidgetDefinition *)halo::cache::globals().tag_instances[child->definition & 0xffff].data;
+                        halo::interface::tag_data<UIWidgetDefinition>(child->definition);
 
                     halo::interface::widget_instance_handle_input_event(child, child_tag, event, &handled);
                 }
@@ -1317,7 +1323,7 @@ dispatch_to_children:
                 while (child != (widget_instance *)0) {
                     if (child->controller_index == -1 || child->controller_index == event[1]) {
                         UIWidgetDefinition *child_tag =
-                            (UIWidgetDefinition *)halo::cache::globals().tag_instances[child->definition & 0xffff].data;
+                            halo::interface::tag_data<UIWidgetDefinition>(child->definition);
 
                         halo::interface::widget_instance_handle_input_event(child, child_tag, event, &handled);
                         if (handled == 1) {
@@ -1330,7 +1336,7 @@ dispatch_to_children:
         }
     }
 
-    if (handled == 1 && (tag->flags & 0x800) != 0) {
+    if (handled == 1 && halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::return_to_main_menu_if_no_history)) {
         int32_t i;
 
         for (i = 0; i < 1; i++) {
@@ -1339,7 +1345,7 @@ dispatch_to_children:
             }
         }
         if (i == 1) {
-            split_screen_quit_prompt_string = 0xffff;
+            split_screen_quit_prompt_string = halo::k_word_none;
             halo::networking::globals().join_error_reason = 0;
             split_screen_quit_prompt_armed = 1;
         }
@@ -1370,18 +1376,18 @@ uint8_t WidgetView::is_input_eligible()
     }
     result = 1;
     tag_source = cursor;
-    tag_data = halo::cache::globals().tag_instances[cursor->definition & 0xffff].data;
+    tag_data = halo::interface::tag_data<void>(cursor->definition);
     while (cursor != (widget_instance *)0 && result != 0) {
         UIWidgetDefinition *definition = (UIWidgetDefinition *)tag_data;
 
         tag_source = cursor;
-        if ((definition->flags & 1) == 0 && cursor->widget_type != 2 && cursor->widget_type != 3) {
+        if (!halo::interface::has_bit(definition->flags, halo::tags::ui_widget_definition_tag_flag::pass_unhandled_events_to_focused_child) && cursor->widget_type != uiwidgettype_spinner_list && cursor->widget_type != uiwidgettype_column_list) {
             result = 0;
         } else {
             result = 1;
         }
         cursor = cursor->parent;
-        tag_data = halo::cache::globals().tag_instances[tag_source->definition & 0xffff].data;
+        tag_data = halo::interface::tag_data<void>(tag_source->definition);
     }
     return result;
 }
@@ -1410,7 +1416,7 @@ uint8_t WidgetView::is_top_of_stack()
             if (ancestor->focused_child != cursor) {
                 return 0;
             }
-            is_list = (ancestor->widget_type == 2 || ancestor->widget_type == 3);
+            is_list = (ancestor->widget_type == uiwidgettype_spinner_list || ancestor->widget_type == uiwidgettype_column_list);
             is_focused = is_focused | is_list;
         }
         cursor = ancestor;
@@ -1498,7 +1504,7 @@ void WidgetView::relink_focus(widget_instance *child)
  */
 void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, int32_t flag2)
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
     float scale = widget->scale;
     widget_instance *ancestor;
     int32_t i;
@@ -1507,7 +1513,7 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
         scale = scale * ancestor->scale;
     }
 
-    if ((int8_t)flag2 == 0 && (tag->flags & 0x2000) != 0) {
+    if ((int8_t)flag2 == 0 && halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::always_use_nifty_render_fx)) {
         flag2 = (flag2 & ~0xff) | 1;
     }
 
@@ -1555,7 +1561,7 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
                 clip.right = (int16_t)(dest->right + x);
                 clip_arg = &clip;
             }
-            if ((tag->flags & 4) != 0) {
+            if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::flash_background_bitmap)) {
                 double t = (double)ui_time_milliseconds;
 
                 if (ui_time_milliseconds < 0) t += 4294967296.0;
@@ -1573,21 +1579,21 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
         }
     }
 
-    if (widget->widget_type == 1) {
+    if (widget->widget_type == uiwidgettype_text_box) {
         uint32_t use_flag1 = flag1;
 
-        if ((tag->flags_1 & 8) == 0) {
+        if (!halo::interface::has_bit(tag->flags_1, halo::tags::ui_widget_definition_flags1_tag_flag::don_t_do_that_weird_focus_test)) {
             use_flag1 = halo::interface::widget_instance_is_top_of_stack(widget);
         }
         halo::interface::widget_instance_render_text_box(widget, tag, dest, offset_xy, use_flag1 & 0xff);
-    } else if (widget->widget_type == 2) {
+    } else if (widget->widget_type == uiwidgettype_spinner_list) {
         halo::interface::widget_instance_render_list_head(widget, tag, dest, offset_xy, flag1);
-        if ((tag->flags_2 & 2) != 0 && tag->child_widgets.count == 0) {
+        if (halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_from_string_list_tag) && tag->child_widgets.count == 0) {
             goto post_render;
         }
-    } else if (widget->widget_type == 3) {
+    } else if (widget->widget_type == uiwidgettype_column_list) {
         halo::interface::widget_instance_render_column_list_items(widget, tag, dest, offset_xy, flag1);
-        if ((tag->flags_2 & 1) != 0) {
+        if (halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_generated_in_code)) {
             goto post_render;
         }
     }
@@ -1599,7 +1605,7 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
             uint32_t child_flag1 = (flag1 & 0xffffff00) | (child == widget->focused_child);
             int32_t child_flag2;
 
-            if (child == widget->focused_child && (widget->widget_type == 2 || widget->widget_type == 3)) {
+            if (child == widget->focused_child && (widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list)) {
                 child_flag2 = (flag2 & ~0xff) | 1;
             } else {
                 child_flag2 = (flag2 >> 8) << 8;
@@ -1648,7 +1654,7 @@ void WidgetRender::render_column_list_items(UIWidgetDefinition *tag, Rectangle2D
         halo::interface::widget_instance_render(widget->extended_description, dest, offset_xy, 0, 1);
     }
 
-    if ((tag->flags_2 & 1) == 0) {
+    if (!halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_generated_in_code)) {
         widget->scroll_blink = 0;
         return;
     }
@@ -1691,9 +1697,9 @@ void WidgetList::select_list_index(datum_index list_definition, int32_t selectio
 
     if ((int16_t)selection < 0) {
         if (halo::interface::widget_instance_is_input_eligible(target) != 0) {
-            UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[target->definition & 0xffff].data;
+            UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(target->definition);
 
-            if (target->widget_type != 2 || tag->child_widgets.count < 2) {
+            if (target->widget_type != uiwidgettype_spinner_list || tag->child_widgets.count < 2) {
                 halo::interface::widget_instance_relink_focus(target, target);
             }
         }
@@ -1707,8 +1713,8 @@ void WidgetList::select_list_index(datum_index list_definition, int32_t selectio
             if (cursor == (widget_instance *)0) {
                 return;
             }
-            tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[cursor->definition & 0xffff].data;
-            if (cursor->widget_type == 2 && tag->child_widgets.count > 1) {
+            tag = halo::interface::tag_data<UIWidgetDefinition>(cursor->definition);
+            if (cursor->widget_type == uiwidgettype_spinner_list && tag->child_widgets.count > 1) {
                 return;
             }
             if (index == (int16_t)selection) {
@@ -1719,7 +1725,7 @@ void WidgetList::select_list_index(datum_index list_definition, int32_t selectio
         }
         halo::interface::widget_instance_relink_focus(cursor, cursor);
         if (cursor->parent != (widget_instance *)0 &&
-            (cursor->parent->widget_type == 2 || cursor->parent->widget_type == 3)) {
+            (cursor->parent->widget_type == uiwidgettype_spinner_list || cursor->parent->widget_type == uiwidgettype_column_list)) {
             cursor->parent->selection_index = index;
         }
     }
@@ -1826,22 +1832,22 @@ clamp:
  */
 uint8_t WidgetList::select_next()
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
 
-    if (widget->list_items != (void *)0 && widget->item_count != 0) {
+    if (widget->list_items != nullptr && widget->item_count != 0) {
         int16_t next_index = widget->selection_index + 1;
 
         if ((int32_t)(uint16_t)widget->item_count <= next_index) {
             next_index = 0;
         }
-        if (widget->widget_type == 3) {
+        if (widget->widget_type == uiwidgettype_column_list) {
             widget_instance *child = halo::interface::widget_list_get_child_by_index(widget, next_index);
 
             if (child == (widget_instance *)0) {
                 return 0;
             }
             halo::interface::widget_relink_focus_by_tag_id(widget, child->definition);
-        } else if (widget->widget_type == 2) {
+        } else if (widget->widget_type == uiwidgettype_spinner_list) {
             if (tag->child_widgets.count > 1) {
                 widget_instance *focused = widget->focused_child;
 
@@ -1861,7 +1867,7 @@ uint8_t WidgetList::select_next()
         goto commit;
     }
 
-    if (widget->widget_type != 2 || (tag->flags_2 & 2) == 0 || tag->child_widgets.count != 0) {
+    if (widget->widget_type != uiwidgettype_spinner_list || !halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_from_string_list_tag) || tag->child_widgets.count != 0) {
         widget_instance *child;
 
         if ((widget->focused_child == (widget_instance *)0 ||
@@ -1917,15 +1923,15 @@ commit:
  */
 uint8_t WidgetList::select_previous()
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
 
-    if (widget->list_items != (void *)0 && widget->item_count != 0) {
+    if (widget->list_items != nullptr && widget->item_count != 0) {
         int16_t prev_index = widget->selection_index - 1;
 
         if (prev_index < 0) {
             prev_index = (int16_t)((uint16_t)widget->item_count - 1);
         }
-        if (widget->widget_type == 3) {
+        if (widget->widget_type == uiwidgettype_column_list) {
             widget_instance *child = halo::interface::widget_list_get_child_by_index(widget, prev_index);
 
             if (child == (widget_instance *)0) {
@@ -1934,10 +1940,10 @@ uint8_t WidgetList::select_previous()
             halo::interface::widget_relink_focus_by_tag_id(widget, child->definition);
             widget->selection_index = prev_index;
             widget->scroll_blink = (int16_t)0xfff1;
-            widget->selection_direction = 0xffff;
+            widget->selection_direction = halo::k_word_none;
             return 1;
         }
-        if (widget->widget_type == 2) {
+        if (widget->widget_type == uiwidgettype_spinner_list) {
             if (tag->child_widgets.count > 1 && widget->focused_child != widget->first_child &&
                 widget->focused_child != (widget_instance *)0 &&
                 widget->focused_child->previous_sibling != (widget_instance *)0) {
@@ -1945,18 +1951,18 @@ uint8_t WidgetList::select_previous()
             }
             widget->selection_index = prev_index;
             widget->scroll_blink = (int16_t)0xfff1;
-            widget->selection_direction = 0xffff;
+            widget->selection_direction = halo::k_word_none;
             return 1;
         }
         goto commit;
     }
 
-    if (widget->widget_type == 2 && (tag->flags_2 & 2) != 0 && tag->child_widgets.count == 0) {
+    if (widget->widget_type == uiwidgettype_spinner_list && halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_from_string_list_tag) && tag->child_widgets.count == 0) {
         widget->selection_index = widget->selection_index - 1;
         if (widget->selection_index < 0) {
             widget->selection_index = widget->item_count - 1;
             widget->scroll_blink = (int16_t)0xfff1;
-            widget->selection_direction = 0xffff;
+            widget->selection_direction = halo::k_word_none;
             return 1;
         }
         goto commit;
@@ -2000,10 +2006,10 @@ uint8_t WidgetList::select_previous()
             do {
                 if (cursor->hidden == 0) {
                     UIWidgetDefinition *cursor_tag =
-                        (UIWidgetDefinition *)halo::cache::globals().tag_instances[cursor->definition & 0xffff].data;
+                        halo::interface::tag_data<UIWidgetDefinition>(cursor->definition);
 
-                    if (cursor_tag->event_handlers.count > 0 || cursor->widget_type == 2 ||
-                        cursor->widget_type == 3) {
+                    if (cursor_tag->event_handlers.count > 0 || cursor->widget_type == uiwidgettype_spinner_list ||
+                        cursor->widget_type == uiwidgettype_column_list) {
                         break;
                     }
                 }
@@ -2048,7 +2054,7 @@ uint8_t WidgetList::select_previous()
 
 commit:
     widget->scroll_blink = (int16_t)0xfff1;
-    widget->selection_direction = 0xffff;
+    widget->selection_direction = halo::k_word_none;
     return 1;
 }
 
@@ -2064,19 +2070,19 @@ void WidgetLifecycle::play_sound_effect(int16_t effect_id)
 
     switch (effect_id) {
     case 1:
-        sound_tag = halo::cache::tag_lookup(0x736e6421  , (char *)"sound\\sfx\\ui\\cursor");
+        sound_tag = halo::interface::lookup_tag(halo::fourcc('s', 'n', 'd', '!'), "sound\\sfx\\ui\\cursor");
         halo::interface::widget_play_sound_effect_tag(sound_tag);
         return;
     case 2:
-        sound_tag = halo::cache::tag_lookup(0x736e6421  , (char *)"sound\\sfx\\ui\\forward");
+        sound_tag = halo::interface::lookup_tag(halo::fourcc('s', 'n', 'd', '!'), "sound\\sfx\\ui\\forward");
         halo::interface::widget_play_sound_effect_tag(sound_tag);
         return;
     case 3:
-        sound_tag = halo::cache::tag_lookup(0x736e6421  , (char *)"sound\\sfx\\ui\\back");
+        sound_tag = halo::interface::lookup_tag(halo::fourcc('s', 'n', 'd', '!'), "sound\\sfx\\ui\\back");
         halo::interface::widget_play_sound_effect_tag(sound_tag);
         return;
     case 4:
-        sound_tag = halo::cache::tag_lookup(0x736e6421  , (char *)"sound\\sfx\\ui\\flag_failure");
+        sound_tag = halo::interface::lookup_tag(halo::fourcc('s', 'n', 'd', '!'), "sound\\sfx\\ui\\flag_failure");
         halo::interface::widget_play_sound_effect_tag(sound_tag);
         return;
     default:
@@ -2170,14 +2176,14 @@ void WidgetView::relink_focus_by_tag_id(datum_index child_definition)
  */
 widget_instance * WidgetLifecycle::reopen_as_root_with_history(datum_index open_tag)
 {
-    UIWidgetDefinition *open_definition = (UIWidgetDefinition *)halo::cache::globals().tag_instances[open_tag & 0xffff].data;
+    UIWidgetDefinition *open_definition = halo::interface::tag_data<UIWidgetDefinition>(open_tag);
     uint16_t controller_index;
     widget_instance *ancestor;
     widget_instance *root;
     datum_index parent_definition;
     int16_t sibling_index;
 
-    if ((open_definition->flags & 0x1000) == 0) {
+    if (!halo::interface::has_bit(open_definition->flags, halo::tags::ui_widget_definition_tag_flag::always_use_tag_controller_index)) {
         switch (open_definition->controller_index) {
         case 0: controller_index = 0; break;
         case 1: controller_index = 1; break;
@@ -2229,7 +2235,7 @@ widget_instance * WidgetLifecycle::reopen_as_root_with_history(datum_index open_
         }
     }
 
-    return halo::interface::chimera__load_ui_widget((char *)0, open_tag, (widget_instance *)0, controller_index,
+    return halo::interface::chimera__load_ui_widget(nullptr, open_tag, (widget_instance *)0, controller_index,
                              root->definition, parent_definition, sibling_index);
 }
 

@@ -1,6 +1,7 @@
 #include "halo/interface/ifr2_players.hpp"
 #include <string.h>
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 #ifdef interface
 #undef interface
@@ -23,7 +24,7 @@ namespace halo::interface {
  */
 void PlayerProfiles::select_list_widget_build(widget_instance *widget)
 {
-    uint8_t profile_record[0x1ffc];
+    uint8_t profile_record[k_saved_player_profile_size];
     int32_t combo_index;
     widget_instance *row;
     widget_instance *target;

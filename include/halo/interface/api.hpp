@@ -108,7 +108,7 @@ void chimera__console_out_copy(char *text);
 void chimera__do_show_loading_screen(void);
 void chimera__hud_message(int16_t local_player_index, const wchar_t *text);
 void chimera__load_main_menu(void);
-widget_instance * chimera__load_ui_widget(char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection);
+widget_instance * chimera__load_ui_widget(const char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection);
 void chimera__main_menu_music(uint8_t finalize_render_frame);
 void chimera__motion_sensor_update(void);
 void chimera__multiplayer_message(const wchar_t *text);

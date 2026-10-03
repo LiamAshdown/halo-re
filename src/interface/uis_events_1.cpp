@@ -4,6 +4,7 @@
  */
 
 #include "crt.h"
+#include "halo/core/datum.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "halo/main/main_globals_fields.hpp"
 #include "win32.h"
@@ -26,6 +27,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 extern "C" {
 extern uint8_t level_select_entries[0x50];
@@ -35,7 +37,7 @@ extern uint32_t ui_start_campaign_from_level_one(void *widget, int16_t *event);
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t local_team_00714dd8;
-extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc];
+extern uint8_t coop_profile_globals_block_00714ddc[k_saved_player_profile_size];
 extern void network_game_setup_teardown(void);
 extern uint32_t game_engine_ensure_variant_history_has_entry(void);
 extern int32_t game_variant_history_current;
@@ -57,7 +59,7 @@ extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
 extern uint8_t game_variant_saved_default[0x98];
-extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern int32_t network_host_edit_field_00719410;
 extern widget_history_node *ui_widget_history[3];
 }
@@ -84,7 +86,7 @@ static widget_instance *first_list_child(widget_instance *widget)
 {
     widget_instance *child = widget->first_child;
 
-    while (child != 0 && child->widget_type != 2) {
+    while (child != 0 && child->widget_type != uiwidgettype_spinner_list) {
         child = child->next_sibling;
     }
     return child;
@@ -166,7 +168,7 @@ uint8_t UiEventHandlers::event_49d100(widget_instance *widget, int16_t *event, u
 {
     halo::networking::globals().join_error_reason = 0;
     halo::main::fields::lost_map = 0;
-    split_screen_quit_prompt_string = 0xffff;
+    split_screen_quit_prompt_string = halo::k_word_none;
     halo::main::fields::revert_map = 1;
     return 1;
 }
@@ -180,7 +182,7 @@ uint8_t UiEventHandlers::event_49d120(widget_instance *widget, int16_t *event, u
 {
     halo::networking::globals().join_error_reason = 0;
     halo::main::fields::lost_map = 0;
-    split_screen_quit_prompt_string = 0xffff;
+    split_screen_quit_prompt_string = halo::k_word_none;
     halo::interface::state::round_reset_pending = 1;
     return 1;
 }
@@ -192,7 +194,7 @@ uint8_t UiEventHandlers::event_49d120(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49d140(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    split_screen_quit_prompt_string = 0xffff;
+    split_screen_quit_prompt_string = halo::k_word_none;
     halo::networking::globals().join_error_reason = 0;
     split_screen_quit_prompt_armed = 1;
     return 1;
@@ -431,7 +433,7 @@ uint8_t UiEventHandlers::event_49d5f0(widget_instance *widget, int16_t *event, u
         halo::interface::map_list_get_friendly_level_name((wchar_t *)name, *(char **)(map_list + i * 0xc), 0x100);
         is_default = (uint8_t)(i == widget->selection_index);
         index = halo::memory::growable_array_add_element(&ui_lists[0]);
-        if (index != 0xffffffff) {
+        if (index != halo::k_dword_none) {
             ui_list_item *item = (ui_list_item *)ui_lists[0].data + index;
             uint16_t *copy;
 
@@ -470,7 +472,7 @@ uint8_t UiEventHandlers::event_49d7a0(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_49d8b0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     uint8_t grouped = (uint8_t)(widget->first_child != 0 && widget->first_child->first_child != 0 &&
-        widget->first_child->first_child->widget_type == 2);
+        widget->first_child->first_child->widget_type == uiwidgettype_spinner_list);
     int32_t *handles;
     uint16_t count = 0x64;
     int32_t last = -1;

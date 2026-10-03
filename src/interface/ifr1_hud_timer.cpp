@@ -1,4 +1,7 @@
 #include "halo/interface/ifr1_hud_timer.hpp"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
@@ -111,7 +114,7 @@ void HudTimer::draw(void)
         : (GlobalsInterfaceBitmaps *)0;
     digits_tag = *(datum_index *)&interface_bitmaps->hud_digits_definition.tag_id;
     if (digits_tag != (datum_index)-1) {
-        HUDNumber *digits = (HUDNumber *)halo::cache::globals().tag_instances[digits_tag & 0xffff].data;
+        HUDNumber *digits = halo::interface::tag_data<HUDNumber>(digits_tag);
         digit_step = __ftol((double)((float)(int32_t)digits->screen_digit_width + (float)(int32_t)digits->screen_digit_width));
     }
     switch (messaging->timer_anchor) {
@@ -138,7 +141,7 @@ void HudTimer::draw(void)
     } else {
         placement.flash = *(hud_flash_parameters *)&hud_globals_tag_data->time_out_flash_default_color;
         placement.disabled_color = hud_globals_tag_data->time_out_flash_disabled_color;
-        messaging->timer_ticks = 0xffff;
+        messaging->timer_ticks = halo::k_word_none;
         flash = 1;
         if (messaging->timer_start_time == -1) {
             messaging->timer_start_time = time->game_time;
@@ -175,8 +178,8 @@ uint32_t HudTimer::ticks(void) const
         return 0;
     }
     ticks = messaging->timer_ticks;
-    if (ticks == 0xffff) {
-        return 0xffffffff;
+    if (ticks == halo::k_word_none) {
+        return halo::k_dword_none;
     }
     if (messaging->timer_paused != 0) {
         return ticks;

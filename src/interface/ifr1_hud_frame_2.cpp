@@ -1,4 +1,7 @@
 #include "halo/interface/ifr1_hud_frame.hpp"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include <wchar.h>
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
@@ -17,26 +20,25 @@ extern uint8_t motion_sensor_override_value;
 extern uint8_t *cinematic_globals_ptr;
 }
 
-static uint8_t *object_get(datum_index object_index)
+static unit_object *unit_get(datum_index object_index)
 {
-    return (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+    return halo::interface::object_record<unit_object>(object_index);
 }
 
-static uint8_t *object_tag_data(datum_index object_index)
+static Unit *object_tag_data(datum_index object_index)
 {
-    return (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object_get(object_index) & 0xffff].data;
+    return halo::interface::tag_data<Unit>(halo::interface::object_record<object>(object_index)->definition_tag);
 }
 
-static const int16_t *weapon_hud_messaging(const uint8_t *weapon_object)
+static const int16_t *weapon_hud_messaging(const object *weapon_object)
 {
-    datum_index weapon_tag = *(const datum_index *)weapon_object;
-    datum_index hud = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[weapon_tag & 0xffff].data + 0x48c);
+    datum_index hud = halo::interface::tag_handle(halo::interface::tag_data<Weapon>(weapon_object->definition_tag)->hud_interface.tag_id);
     const int16_t *messaging;
 
     if (hud == (datum_index)-1) {
         return 0;
     }
-    messaging = (const int16_t *)((uint8_t *)halo::cache::globals().tag_instances[hud & 0xffff].data + 0x13c);
+    messaging = (const int16_t *)(halo::interface::tag_data<uint8_t>(hud) + 0x13c);
     return (*messaging == -1) ? 0 : messaging;
 }
 
@@ -51,7 +53,7 @@ namespace halo::interface {
  */
 void HudFrame::update_interaction_prompt(datum_index player_index)
 {
-    player *p = (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = halo::interface::player_record(player_index);
     int16_t local = current_local_player_index;
     int16_t target_message;
 
@@ -64,7 +66,7 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
     if (p->interaction_object == (datum_index)-1) {
         target_message = -1;
     } else {
-        target_message = *(int16_t *)(object_tag_data(p->interaction_object) + 0x13c);
+        target_message = object_tag_data(p->interaction_object)->base.hud_text_message_index;
     }
 
     switch (p->interaction_type) {
@@ -75,25 +77,25 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
         return;
 
     case 3: {
-        uint8_t *unit_object = object_get(p->unit);
+        unit_object *unit = unit_get(p->unit);
         halo::interface::hud_set_player_message(7, (uint16_t)local);
         halo::interface::hud_set_message_string_argument(local, 0,
-            halo::interface::object_get_hud_text_message_index(*(datum_index *)(unit_object + 0x11c)), 0);
+            halo::interface::object_get_hud_text_message_index(unit->base.parent_object), 0);
         return;
     }
 
     case 5: {
-        uint8_t *unit_object = object_get(p->unit);
+        unit_object *unit = unit_get(p->unit);
         halo::interface::hud_set_player_message(1, (uint16_t)local);
         halo::interface::hud_set_message_string_argument(local, 0,
-            halo::interface::object_get_hud_text_message_index(*(datum_index *)(unit_object + 0x318)), 0);
+            halo::interface::object_get_hud_text_message_index(unit->unit.equipment_object_index), 0);
         halo::interface::hud_set_message_string_argument(local, 1, target_message, 0);
         return;
     }
 
     case 6:
     case 7: {
-        uint8_t *weapon = (uint8_t *)halo::objects::object_try_and_get(p->interaction_object, 4);
+        object *weapon = (object *)halo::objects::object_try_and_get(p->interaction_object, 4);
         const int16_t *messaging;
         if (weapon == 0) {
             return;
@@ -110,19 +112,19 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
 
     case 8:
     case 9: {
-        uint8_t *seats;
+        UnitSeat *seats;
         int16_t seat_message;
         halo::interface::hud_set_player_message(6, (uint16_t)local);
-        seats = *(uint8_t **)(object_tag_data(p->interaction_object) + 0x2e8);
-        seat_message = *(int16_t *)(seats + p->interaction_seat * 0x11c + 0xec);
+        seats = halo::interface::reflexive_elements<UnitSeat>(object_tag_data(p->interaction_object)->seats);
+        seat_message = (int16_t)seats[p->interaction_seat].hud_text_message_index;
         halo::interface::hud_set_message_string_argument(local, 0, seat_message, 0);
         halo::interface::hud_set_message_string_argument(local, 1, target_message, 0);
         return;
     }
 
     case 10: {
-        uint16_t vehicle_string = *(uint16_t *)(object_get(p->interaction_object) + 0x218);
-        if (vehicle_string != 0xffff) {
+        uint16_t vehicle_string = (uint16_t)unit_get(p->interaction_object)->unit.controlling_player;
+        if (vehicle_string != halo::k_word_none) {
             halo::interface::hud_set_player_message(3, (uint16_t)local);
             halo::interface::hud_set_message_string_argument(local, 0, (int16_t)vehicle_string, 1);
         } else {
@@ -163,16 +165,16 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
 
     {
         datum_index unit_index = p->unit;
-        uint8_t *unit_object = object_get(unit_index);
-        unit_data *unit = (unit_data *)(unit_object + k_unit_data_offset);
+        unit_object *unit_record = unit_get(unit_index);
+        unit_data *unit = &unit_record->unit;
         datum_index current_weapon = halo::units::unit_get_weapon_object_index(unit_index, unit->current_weapon_index);
-        datum_index parent = *(datum_index *)(unit_object + 0x11c);
+        datum_index parent = unit_record->base.parent_object;
         uint8_t can_switch = 1;
         weapon_hud_ammo_state ammo;
 
         if (parent != (datum_index)-1 && unit->vehicle_seat_index != -1) {
-            uint8_t *seats = *(uint8_t **)(object_tag_data(parent) + 0x2e8);
-            can_switch = ((seats[unit->vehicle_seat_index * 0x11c] & 0xc) == 0);
+            UnitSeat *seats = halo::interface::reflexive_elements<UnitSeat>(object_tag_data(parent)->seats);
+            can_switch = ((seats[unit->vehicle_seat_index].flags & 0xc) == 0);
         }
 
         if (current_weapon != (datum_index)-1 && can_switch) {
@@ -200,10 +202,10 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
                 }
 
                 if (!halo::interface::weapon_hud_ammo_state_is_empty(&ammo) && candidate != current_weapon) {
-                    uint8_t *weapon;
+                    object *weapon;
                     const int16_t *messaging;
                     halo::interface::hud_set_player_message(5, (uint16_t)local);
-                    weapon = (uint8_t *)halo::objects::object_try_and_get(candidate, 4);
+                    weapon = (object *)halo::objects::object_try_and_get(candidate, 4);
                     if (weapon != 0) {
                         messaging = weapon_hud_messaging(weapon);
                         if (messaging != 0) {
@@ -247,7 +249,7 @@ void HudFrame::update_player(void)
     }
 
     {
-        player *local_player = (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * sizeof(player));
+        player *local_player = halo::interface::player_record(player_index);
 
         if ((current_game_engine == 0 || ((motion_sensor_override_value & 2) != 0 && halo::game::globals().teams_enabled != 0)) &&
             cinematic_globals_ptr[9] == 0) {

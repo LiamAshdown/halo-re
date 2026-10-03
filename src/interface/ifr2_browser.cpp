@@ -48,7 +48,7 @@ widget_instance * ServerBrowserHandler::find_control(widget_instance *row)
 {
     widget_instance *child;
 
-    for (child = row->first_child; child != 0 && child->widget_type != 2; child = child->next_sibling) {
+    for (child = row->first_child; child != 0 && child->widget_type != uiwidgettype_spinner_list; child = child->next_sibling) {
     }
     return child;
 }

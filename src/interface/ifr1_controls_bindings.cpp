@@ -1,4 +1,7 @@
 #include "halo/interface/ifr1_controls_bindings.hpp"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/tag_groups.hpp"
 #include <string.h>
 #include <wchar.h>
 #include "halo/memory/api.hpp"
@@ -12,6 +15,7 @@
 #include "halo/input/system.hpp"
 #include "halo/input/ui_events.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 extern "C" {
 extern uint8_t controls_row_device_mask_table[];
@@ -20,7 +24,7 @@ extern const uint16_t hud_text_unbound[];
 extern uint32_t wcslen_halo(const uint16_t *text);
 extern uint8_t controls_menu_list_mode;
 extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern uint8_t control_keyboard_scan_table[0xda];
 extern uint32_t control_mouse_button_scan_table[7];
 extern uint32_t input_default_profile_guid[4];
@@ -72,7 +76,7 @@ static void controls_set_cell_dimmed(widget_instance *cell, uint8_t dimmed)
 
 static widget_instance *controls_find_spinner(widget_instance *child)
 {
-    while (child != 0 && child->widget_type != 2) {
+    while (child != 0 && child->widget_type != uiwidgettype_spinner_list) {
         child = child->next_sibling;
     }
     return child;
@@ -157,13 +161,13 @@ uint8_t ControlsBindings::apply_preset(widget_instance *widget)
                 return result;
             }
         } else {
-            uint8_t profile[0x1ffc - 0x10];
+            uint8_t profile[k_saved_player_profile_size - 0x10];
             input_guid guid;
 
             memcpy(&guid, input_default_profile_guid, sizeof(guid));
             if (halo::input::input_device_default_profile_tag_find(guid, profile) != -1) {
-                memcpy(control_keyboard_scan_table, profile + 0x134, 0xda);
-                memcpy(control_mouse_button_scan_table, profile + 0x20e, sizeof(control_mouse_button_scan_table));
+                memcpy(control_keyboard_scan_table, ((struct saved_player_profile *)profile)->keyboard_bindings, 0xda);
+                memcpy(control_mouse_button_scan_table, ((struct saved_player_profile *)profile)->mouse_button_bindings, sizeof(control_mouse_button_scan_table));
             } else {
                 halo::saved_games::control_profile_reset_digital_bindings((saved_player_profile *)saved_item_working_copy);
                 halo::saved_games::control_profile_reset_analog_bindings((saved_player_profile *)saved_item_working_copy);
@@ -197,7 +201,7 @@ uint8_t ControlsBindings::binding_clear(int32_t action_index, int32_t device)
         return 0;
     }
     if (device >= 2 && (entry[0x14] & 4) != 0) {
-        uint8_t *profile = (selected_saved_item & 0xf) != 0 ? (uint8_t *)0 : saved_item_working_copy;
+        uint8_t *profile = (selected_saved_item & 0xf) != 0 ? nullptr : saved_item_working_copy;
         int16_t gamepad = record[1];
         int16_t control = record[3];
 
@@ -509,9 +513,8 @@ void ControlsBindings::binding_rows_toggle_device_mode(widget_instance *widget, 
  */
 void ControlsBindings::build_device_label_table(void)
 {
-    uint8_t *profile = ((selected_saved_item & 0xf) != 0) ? (uint8_t *)0 : saved_item_working_copy;
-    datum_index tag_id = halo::cache::tag_lookup(0x75737472,
-        (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_device_labels");
+    uint8_t *profile = ((selected_saved_item & 0xf) != 0) ? nullptr : saved_item_working_copy;
+    datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_device_labels");
     int i;
     const uint16_t *tag_supplied_label = (const uint16_t *)L"<missing string>";
 
@@ -522,9 +525,9 @@ void ControlsBindings::build_device_label_table(void)
     controls_device_label_count = 0;
 
     if (tag_id != (datum_index)-1) {
-        int32_t *reflexive = *(int32_t **)&halo::cache::globals().tag_instances[tag_id & 0xffff].data;
-        if (*(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[tag_id & 0xffff].data) > 0) {
-            uint32_t *item = (uint32_t *)((int32_t *)halo::cache::globals().tag_instances[tag_id & 0xffff].data)[1];
+        int32_t *reflexive = halo::interface::tag_data<int32_t>(tag_id);
+        if (*(int32_t *)(halo::interface::tag_data<uint8_t>(tag_id)) > 0) {
+            uint32_t *item = (uint32_t *)(halo::interface::tag_data<int32_t>(tag_id))[1];
             uint32_t count = item[0];
             (void)reflexive;
             if ((int32_t)count > 0) {

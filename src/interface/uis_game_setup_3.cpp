@@ -40,7 +40,7 @@ namespace {
 /** Local helper shared by the handlers of this file. */
 static uint8_t level_unlocked_for(int16_t player, int32_t level_id)
 {
-    uint8_t profile_copy[0x1ffc];
+    uint8_t profile_copy[k_saved_player_profile_size];
     int16_t type;
     int16_t last_level;
 

@@ -4,6 +4,8 @@
  */
 
 #include "win32.h"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
 #include "halo/text/api.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "tags.h"
@@ -31,6 +33,8 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern uint8_t *network_client;
@@ -38,7 +42,7 @@ extern uint8_t input_event_queue_active;
 extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
 extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern int32_t profile_slot_lookup_cache_00692ac8;
 extern int32_t ui_list_current;
 extern growable_array ui_lists[3];
@@ -88,7 +92,7 @@ static widget_instance *first_list_child(widget_instance *widget)
 {
     widget_instance *child = widget->first_child;
 
-    while (child != 0 && child->widget_type != 2) {
+    while (child != 0 && child->widget_type != uiwidgettype_spinner_list) {
         child = child->next_sibling;
     }
     return child;
@@ -209,7 +213,7 @@ uint8_t UiEventHandlers::event_4a1d90(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a1dc0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
+    uint8_t *definition = halo::interface::tag_data<uint8_t>(widget->definition);
     int32_t x = ui_cursor_x;
     int32_t y = ui_cursor_y;
     int16_t origin_x;
@@ -217,8 +221,8 @@ uint8_t UiEventHandlers::event_4a1dc0(widget_instance *widget, int16_t *event, u
     widget_instance *child;
 
     widget_absolute_origin(widget, &origin_x, &origin_y);
-    if (x >= 0 && x <= (int16_t)(*(int16_t *)(definition + 0x17a) + origin_x) &&
-        y >= (int16_t)(*(int16_t *)(definition + 0x174) + origin_y) && y <= (int16_t)(*(int16_t *)(definition + 0x178) + origin_y)) {
+    if (x >= 0 && x <= (int16_t)(((struct UIWidgetDefinition *)definition)->header_bounds.right + origin_x) &&
+        y >= (int16_t)(((struct UIWidgetDefinition *)definition)->header_bounds.top + origin_y) && y <= (int16_t)(((struct UIWidgetDefinition *)definition)->header_bounds.bottom + origin_y)) {
         int32_t selection = widget->selection_index - 1;
 
         if (selection < 0) {
@@ -232,8 +236,8 @@ uint8_t UiEventHandlers::event_4a1dc0(widget_instance *widget, int16_t *event, u
         }
         return 1;
     }
-    if (x >= (int16_t)(*(int16_t *)(definition + 0x17e) + origin_x) && x <= 0x280 &&
-        y >= (int16_t)(*(int16_t *)(definition + 0x17c) + origin_y) && y <= (int16_t)(*(int16_t *)(definition + 0x180) + origin_y)) {
+    if (x >= (int16_t)(((struct UIWidgetDefinition *)definition)->footer_bounds.left + origin_x) && x <= halo::interface::k_base_screen_width &&
+        y >= (int16_t)(((struct UIWidgetDefinition *)definition)->footer_bounds.top + origin_y) && y <= (int16_t)(((struct UIWidgetDefinition *)definition)->footer_bounds.bottom + origin_y)) {
         int32_t selection = widget->selection_index + 1;
 
         if (selection >= widget->item_count) {
@@ -248,13 +252,13 @@ uint8_t UiEventHandlers::event_4a1dc0(widget_instance *widget, int16_t *event, u
         return 1;
     }
     for (child = widget->first_child; child != 0; child = child->next_sibling) {
-        uint8_t *bounds = (uint8_t *)halo::cache::globals().tag_instances[child->definition & 0xffff].data;
+        uint8_t *bounds = halo::interface::tag_data<uint8_t>(child->definition);
         int16_t cx;
         int16_t cy;
 
         widget_absolute_origin(child, &cx, &cy);
-        if (x >= (int16_t)(*(int16_t *)(bounds + 0x26) + cx) && x <= (int16_t)(*(int16_t *)(bounds + 0x2a) + cx) &&
-            y >= (int16_t)(*(int16_t *)(bounds + 0x24) + cy) && y <= (int16_t)(*(int16_t *)(bounds + 0x28) + cy)) {
+        if (x >= (int16_t)(((struct UIWidgetDefinition *)bounds)->bounds.left + cx) && x <= (int16_t)(((struct UIWidgetDefinition *)bounds)->bounds.right + cx) &&
+            y >= (int16_t)(((struct UIWidgetDefinition *)bounds)->bounds.top + cy) && y <= (int16_t)(((struct UIWidgetDefinition *)bounds)->bounds.bottom + cy)) {
             if (input_event_queue_active != 0) {
                 ui_input_event queued;
 
@@ -300,11 +304,11 @@ uint8_t UiEventHandlers::event_4a21c0(widget_instance *widget, int16_t *event, u
         return 0;
     }
     group = widget->parent->parent->first_child;
-    profile[0x954] = (uint8_t)(first_list_child(group)->selection_index + 1);
+    ((struct saved_player_profile *)profile)->mouse_look_x_sensitivity = (uint8_t)(first_list_child(group)->selection_index + 1);
     group = group->next_sibling;
-    profile[0x955] = (uint8_t)(first_list_child(group)->selection_index + 1);
+    ((struct saved_player_profile *)profile)->mouse_look_y_sensitivity = (uint8_t)(first_list_child(group)->selection_index + 1);
     group = group->next_sibling;
-    profile[0x12f] = (uint8_t)(first_list_child(group)->selection_index == 1);
+    ((struct saved_player_profile *)profile)->look_inverted = (uint8_t)(first_list_child(group)->selection_index == 1);
     return 1;
 }
 
@@ -339,20 +343,20 @@ uint8_t UiEventHandlers::event_4a24c0(widget_instance *widget, int16_t *event, u
         return 0;
     }
     group = widget->parent->parent->first_child;
-    profile[0xb78] = clamp_selection(group, 10);
+    ((struct saved_player_profile *)profile)->master_volume = clamp_selection(group, 10);
     group = group->next_sibling;
-    profile[0xb79] = clamp_selection(group, 10);
+    ((struct saved_player_profile *)profile)->effects_volume = clamp_selection(group, 10);
     group = group->next_sibling;
-    profile[0xb7a] = clamp_selection(group, 10);
+    ((struct saved_player_profile *)profile)->music_volume = clamp_selection(group, 10);
     group = group->next_sibling;
-    profile[0xb7c] = (uint8_t)(first_list_child(group)->selection_index != 0);
+    ((struct saved_player_profile *)profile)->eax_enabled = (uint8_t)(first_list_child(group)->selection_index != 0);
     group = group->next_sibling;
-    profile[0xb7d] = clamp_selection(group, 2);
+    ((struct saved_player_profile *)profile)->sound_quality = clamp_selection(group, 2);
     group = group->next_sibling;
     selection = first_list_child(group)->selection_index;
-    profile[0xb7b] = (uint8_t)(selection >= 1 && profile[0xb7c] != 0);
+    ((struct saved_player_profile *)profile)->hardware_acceleration = (uint8_t)(selection >= 1 && ((struct saved_player_profile *)profile)->eax_enabled != 0);
     group = group->next_sibling;
-    profile[0xb7f] = clamp_selection(group, 2);
+    ((struct saved_player_profile *)profile)->sound_variety = clamp_selection(group, 2);
     return 1;
 }
 
@@ -363,7 +367,7 @@ uint8_t UiEventHandlers::event_4a24c0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a2950(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t profile[0x1ffc];
+    uint8_t profile[k_saved_player_profile_size];
     uint8_t ok;
 
     memset(profile, 0, sizeof(profile));
@@ -382,7 +386,7 @@ uint8_t UiEventHandlers::event_4a2950(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a2a00(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t profile[0x1ffc];
+    uint8_t profile[k_saved_player_profile_size];
     int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)widget)->text);
     int32_t item;
 
@@ -450,15 +454,15 @@ uint8_t UiEventHandlers::event_4a2f10(widget_instance *widget, int16_t *event, u
 
         halo::interface::saved_item_select(handle);
         profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
-        wcscpy((wchar_t *)(profile + 0xd8c), (const wchar_t *)network_host_name_00719170);
-        wcscpy((wchar_t *)(profile + 0xeac), (const wchar_t *)network_host_subname_007191f0);
+        wcscpy((wchar_t *)(((struct saved_player_profile *)profile)->server_name), (const wchar_t *)network_host_name_00719170);
+        wcscpy((wchar_t *)(((struct saved_player_profile *)profile)->server_password), (const wchar_t *)network_host_subname_007191f0);
         if (save_in_progress_00719010 == 0) {
-            profile[0xebf] = (uint8_t)resolution_selection_00719204;
+            ((struct saved_player_profile *)profile)->server_maximum_players_index = (uint8_t)resolution_selection_00719204;
         }
         if (network_game_info_packet_flag != 0) {
             int32_t quality = quality_selection_00692b04;
 
-            profile[0xfc0] = (uint8_t)(quality < 0 ? 0 : quality > 4 ? 4 : quality);
+            ((struct saved_player_profile *)profile)->connection_type = (uint8_t)(quality < 0 ? 0 : quality > 4 ? 4 : quality);
         }
         if (halo::interface::saved_item_has_unsaved_changes() != 0) {
             halo::interface::player_profile_save();
@@ -608,12 +612,12 @@ uint8_t UiEventHandlers::event_4a3510(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_4a3540(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     widget_instance *list = widget->parent;
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[list->definition & 0xffff].data;
-    int32_t rows = *(int32_t *)(definition + 0x3e0);
+    uint8_t *definition = halo::interface::tag_data<uint8_t>(list->definition);
+    int32_t rows = (int32_t)((struct UIWidgetDefinition *)definition)->child_widgets.count;
     int32_t first_visible = *(int16_t *)((uint8_t *)list + 0x3e);
     int32_t committed = *(int16_t *)&((struct widget_instance *)list)->text;
     widget_instance *child = list->first_child;
-    uint8_t header = (uint8_t)(child != 0 && child->first_child != 0 && child->first_child->widget_type == 2);
+    uint8_t header = (uint8_t)(child != 0 && child->first_child != 0 && child->first_child->widget_type == uiwidgettype_spinner_list);
     uint8_t double_click = 0;
     uint8_t fits;
     int32_t shown;
@@ -688,7 +692,7 @@ uint8_t UiEventHandlers::event_4a3790(widget_instance *widget, int16_t *event, u
     group = widget->first_child;
     first_list_child(group)->selection_index = (int16_t)(((struct game_variant *)variant)->friendly_fire <= 3 ? ((struct game_variant *)variant)->friendly_fire : 1);
     group = group->next_sibling;
-    time = *(int32_t *)(variant + 0x70);
+    time = ((struct game_variant *)variant)->betrayal_penalty;
     first_list_child(group)->selection_index = (int16_t)(time == 0x96 ? 1 : time == 0x12c ? 2 : time == 0x1c2 ? 3 : 0);
     first_list_child(group->next_sibling)->selection_index = (int16_t)(((struct game_variant *)variant)->team_autobalance != 0);
     return 1;
@@ -714,16 +718,16 @@ uint8_t UiEventHandlers::event_4a3870(widget_instance *widget, int16_t *event, u
     group = group->next_sibling;
     switch (first_list_child(group)->selection_index) {
     case 1:
-        *(int32_t *)(variant + 0x70) = 0x96;
+        ((struct game_variant *)variant)->betrayal_penalty = 0x96;
         break;
     case 2:
-        *(int32_t *)(variant + 0x70) = 0x12c;
+        ((struct game_variant *)variant)->betrayal_penalty = 0x12c;
         break;
     case 3:
-        *(int32_t *)(variant + 0x70) = 0x1c2;
+        ((struct game_variant *)variant)->betrayal_penalty = 0x1c2;
         break;
     default:
-        *(int32_t *)(variant + 0x70) = 0;
+        ((struct game_variant *)variant)->betrayal_penalty = 0;
         break;
     }
     ((struct game_variant *)variant)->team_autobalance = (uint8_t)(first_list_child(group->next_sibling)->selection_index == 1);
@@ -761,9 +765,9 @@ uint8_t UiEventHandlers::event_4a39e0(widget_instance *widget, int16_t *event, u
     } else if (selection > 4) {
         selection = 4;
     }
-    profile[0xfc0] = (uint8_t)selection;
-    *(uint16_t *)(profile + 0x1002) = (uint16_t)network_game_option_a_00719210;
-    *(uint16_t *)(profile + 0x1004) = (uint16_t)network_game_option_b_00719214;
+    ((struct saved_player_profile *)profile)->connection_type = (uint8_t)selection;
+    ((struct saved_player_profile *)profile)->server_port = (uint16_t)network_game_option_a_00719210;
+    ((struct saved_player_profile *)profile)->client_port = (uint16_t)network_game_option_b_00719214;
     return 1;
 }
 

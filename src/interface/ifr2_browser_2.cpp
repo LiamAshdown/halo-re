@@ -4,6 +4,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 #ifdef interface
 #undef interface
@@ -20,7 +21,7 @@ extern int32_t server_browser_query_elapsed_ms;
 extern uint8_t server_browser_player_ticker[0x1c];
 extern uint8_t server_browser_variant_ticker[0x1c];
 extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern uint8_t server_browser_sort_column;
 extern uint8_t server_browser_sort_ascending;
 extern uint8_t server_browser_allow_password;

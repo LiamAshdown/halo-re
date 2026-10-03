@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_keyboard.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "saved_games.h"
 #include "input.h"
@@ -10,6 +11,7 @@ extern "C" input_event_queue input_event_queue_active;
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/records.hpp"
 
 #ifdef interface
 #undef interface
@@ -58,8 +60,8 @@ uint8_t VirtualKeyboard::open(uint16_t *destination, uint16_t maximum_length, in
     wcsncpy((wchar_t *)virtual_keyboard.text, (const wchar_t *)destination, 0x20);
     virtual_keyboard.text[31] = 0;
     virtual_keyboard.committed = 0;
-    virtual_keyboard.large_ui_tag = halo::cache::tag_lookup(0x666f6e74  , (char *)"ui\\large_ui");
-    virtual_keyboard.small_ui_tag = halo::cache::tag_lookup(0x666f6e74  , (char *)((maximum_length < 0x33) ? "ui\\large_ui" : "ui\\small_ui"));
+    virtual_keyboard.large_ui_tag = halo::interface::lookup_tag(halo::fourcc('f', 'o', 'n', 't'), "ui\\large_ui");
+    virtual_keyboard.small_ui_tag = halo::interface::lookup_tag(halo::fourcc('f', 'o', 'n', 't'), (maximum_length < 0x33) ? "ui\\large_ui" : "ui\\small_ui");
     halo::interface::widget_play_sound_effect(2);
 
     controls_input_capture_flags |= 4;

@@ -1,4 +1,7 @@
 #include "halo/interface/ifr1_hud_text_queue.hpp"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include <wchar.h>
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -6,6 +9,7 @@
 #include "halo/text/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern int32_t hud_text_message_time_base;
@@ -29,7 +33,7 @@ namespace halo::interface {
  */
 uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
     UnicodeStringList *strings =
         (UnicodeStringList *)halo::cache::globals().tag_instances[tag->text_label_unicode_strings_list.tag_id.index].data;
     int32_t string_count = strings->strings.count;
@@ -82,7 +86,7 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
                 message_index = 0;
             }
 
-            if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id != 0xffffffff) {
+            if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id != halo::k_dword_none) {
                 UnicodeStringList *list =
                     (UnicodeStringList *)halo::cache::globals().tag_instances[tag->text_label_unicode_strings_list.tag_id.index].data;
 
@@ -110,9 +114,9 @@ draw:
         clip.top = 0x32;
         clip.left = 0;
         clip.bottom = 0x1ae;
-        clip.right = 0x280;
+        clip.right = halo::interface::k_base_screen_width;
         dest.left = 0;
-        dest.right = 0x280;
+        dest.right = halo::interface::k_base_screen_width;
         for (i = 0; i < hud_text_message_queue.count; i++) {
             hud_text_message *entry = &((hud_text_message *)hud_text_message_queue.data)[i];
             ColorARGB *color = (entry->hold == 1) ? hud_text_message_normal_color : hud_text_message_hold_color;

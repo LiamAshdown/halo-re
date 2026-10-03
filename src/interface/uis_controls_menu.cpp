@@ -17,12 +17,13 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 extern "C" {
 extern uint8_t profile_globals_block[0x60a4];
 extern heap *widget_memory_pool;
 extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[0x1ffc];
+extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern int32_t profile_slot_lookup_cache_00692ac8;
 extern uint8_t directsound_initialized;
 extern uint8_t directsound_eax_available;
@@ -37,7 +38,7 @@ static widget_instance *find_row_control(widget_instance *row)
 {
     widget_instance *control;
 
-    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != 2;
+    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != uiwidgettype_spinner_list;
          control = control->next_sibling) {
     }
     return control;
@@ -48,7 +49,7 @@ static widget_instance *find_row_control_until(widget_instance *row, widget_inst
 {
     widget_instance *control;
 
-    for (control = row->first_child; control != stop && control->widget_type != 2;
+    for (control = row->first_child; control != stop && control->widget_type != uiwidgettype_spinner_list;
          control = control->next_sibling) {
     }
     return control;
@@ -95,7 +96,7 @@ void UiControlsMenu::controls_4wide_selector_refresh(widget_instance *widget)
  */
 uint32_t UiControlsMenu::controls_options_free_list(widget_instance *widget)
 {
-    if (widget->list_items != (void *)0) {
+    if (widget->list_items != nullptr) {
         heap_block *block = (heap_block *)((uint8_t *)widget->list_items - 0x10);
         uint32_t size = block->size;
 
@@ -103,7 +104,7 @@ uint32_t UiControlsMenu::controls_options_free_list(widget_instance *widget)
         widget_memory_pool->bytes_allocated =
             widget_memory_pool->bytes_allocated - (int32_t)(size & 0x7fffffff);
         widget_memory_pool->allocation_count = widget_memory_pool->allocation_count - 1;
-        widget->list_items = (void *)0;
+        widget->list_items = nullptr;
     }
     halo::interface::ui_list_free_all();
     return 1;
@@ -177,7 +178,7 @@ uint8_t UiControlsMenu::controls_options_reload_profile(void)
     profile_slot_lookup_cache_00692ac8 = -1;
     if ((selected_saved_item & 0xf) == 0) {
         if (halo::saved_games::globals().player_profile_slots_handle != -1) {
-            uint8_t profile_copy[0x1ffc];
+            uint8_t profile_copy[k_saved_player_profile_size];
 
             memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
             halo::interface::player_profile_load(0, profile_copy, halo::saved_games::globals().player_profile_slots_handle);
@@ -292,21 +293,21 @@ void UiControlsMenu::controls_populate_sensitivity_row(widget_instance *widget, 
     widget_instance *control;
     uint8_t value;
 
-    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != 2;
+    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != uiwidgettype_spinner_list;
          control = control->next_sibling) {
     }
     value = profile_record[0x954];
     control->selection_index = (value == 0 || value > 10) ? 0 : (int16_t)(value - 1);
 
     row = row->next_sibling;
-    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != 2;
+    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != uiwidgettype_spinner_list;
          control = control->next_sibling) {
     }
     value = profile_record[0x955];
     control->selection_index = (value == 0 || value > 10) ? 0 : (int16_t)(value - 1);
 
     row = row->next_sibling;
-    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != 2;
+    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != uiwidgettype_spinner_list;
          control = control->next_sibling) {
     }
     control->selection_index = (profile_record[0x12f] != 0) ? 1 : 0;

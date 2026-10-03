@@ -2,6 +2,7 @@
 #include "halo/text/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 #ifdef interface
 #undef interface
@@ -20,7 +21,7 @@ namespace halo::interface {
  */
 uint8_t VideoOptions::reset_to_defaults(widget_instance *button)
 {
-    uint8_t profile[0x1ffc];
+    uint8_t profile[k_saved_player_profile_size];
     uint8_t result = halo::saved_games::player_profile_set_default_video_options((saved_player_profile *)profile, 0);
 
     if (result != 0) {

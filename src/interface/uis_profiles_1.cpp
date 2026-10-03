@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/core/datum.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -30,7 +31,7 @@ extern char last_profile_name[];
 extern int32_t cached_profile_slot;
 extern int32_t ui_list_current;
 extern uint8_t ui_list_has_default;
-extern uint8_t default_profile_data[0x1ffc];
+extern uint8_t default_profile_data[k_saved_player_profile_size];
 extern heap *widget_memory_pool;
 extern int16_t new_profile_name_entry_player_00692b00;
 extern virtual_keyboard_globals virtual_keyboard;
@@ -70,8 +71,8 @@ uint32_t UiProfiles::build_profile_list(widget_instance *widget)
 
     slot_ids = (int32_t *)halo::memory::heap_reallocate(widget->list_items, 400, widget_memory_pool);
     widget->list_items = slot_ids;
-    if (slot_ids != (int32_t *)0) {
-        uint8_t profile_buffer[0x1ffc];
+    if (slot_ids != nullptr) {
+        uint8_t profile_buffer[k_saved_player_profile_size];
         int32_t matched_profile;
         int32_t i;
 
@@ -87,9 +88,9 @@ uint32_t UiProfiles::build_profile_list(widget_instance *widget)
         ui_lists[0].count = 0;
         ui_lists[1].count = 0;
         ui_lists[2].count = 0;
-        ui_lists[0].data = (void *)0;
-        ui_lists[1].data = (void *)0;
-        ui_lists[2].data = (void *)0;
+        ui_lists[0].data = nullptr;
+        ui_lists[1].data = nullptr;
+        ui_lists[2].data = nullptr;
         ui_list_current = -1;
         ui_list_has_default = 0;
 
@@ -109,7 +110,7 @@ uint32_t UiProfiles::build_profile_list(widget_instance *widget)
             if (slot_id == -1) {
                 memcpy(profile_buffer, default_profile_data, sizeof(profile_buffer));
             } else if (halo::saved_games::player_profile_get(slot_id, (saved_player_profile *)profile_buffer) != 0) {
-                halo::interface::ui_list_add_entry(1, (const uint16_t *)(profile_buffer + 2), i, profile_buffer, 0x1ffc, 0);
+                halo::interface::ui_list_add_entry(1, (const uint16_t *)(profile_buffer + 2), i, profile_buffer, k_saved_player_profile_size, 0);
             }
         }
 
@@ -131,7 +132,7 @@ uint32_t UiProfiles::build_profile_list(widget_instance *widget)
  */
 uint32_t UiProfiles::free_profile_list(widget_instance *widget)
 {
-    if (widget->list_items != (void *)0) {
+    if (widget->list_items != nullptr) {
         heap_block *block = (heap_block *)((uint8_t *)widget->list_items - 0x10);
         uint32_t size = block->size;
 
@@ -139,7 +140,7 @@ uint32_t UiProfiles::free_profile_list(widget_instance *widget)
         widget_memory_pool->bytes_allocated =
             widget_memory_pool->bytes_allocated - (int32_t)(size & 0x7fffffff);
         widget_memory_pool->allocation_count = widget_memory_pool->allocation_count - 1;
-        widget->list_items = (void *)0;
+        widget->list_items = nullptr;
     }
     widget->item_count = 0;
     halo::interface::ui_list_free_all();
@@ -179,7 +180,7 @@ uint32_t UiProfiles::new_profile_name_entry_commit(void)
             }
         }
         if (halo::saved_games::player_profile_get_or_cached_default((saved_player_profile *)default_profile_data, (int32_t)profile_id) != 0) {
-            halo::interface::player_profile_load((int16_t)profile_id, (void *)0, profile_id);
+            halo::interface::player_profile_load((int16_t)profile_id, nullptr, profile_id);
             if (new_profile_name_flag_0071916e != 0) {
                 halo::interface::saved_item_select(-1);
             }
@@ -191,7 +192,7 @@ uint32_t UiProfiles::new_profile_name_entry_commit(void)
     }
 
 fail:
-    split_screen_quit_prompt_string = 0xffff;
+    split_screen_quit_prompt_string = halo::k_word_none;
     halo::networking::globals().join_error_reason = 0;
     split_screen_quit_prompt_armed = 1;
     if (quit_confirm_error_string_index == -1) {
@@ -213,7 +214,7 @@ fail:
  */
 void UiProfiles::profile_carousel_fetch_name(widget_instance *widget)
 {
-    uint8_t profile_record[0x1ffc];
+    uint8_t profile_record[k_saved_player_profile_size];
     uint16_t *dest;
 
     memcpy(profile_record, &profile_globals_block[widget->controller_index].profile, sizeof(profile_record));
@@ -234,7 +235,7 @@ void UiProfiles::profile_carousel_fetch_name(widget_instance *widget)
  */
 void UiProfiles::profile_carousel_fetch_sensitivity(widget_instance *widget)
 {
-    uint8_t profile_record[0x1ffc];
+    uint8_t profile_record[k_saved_player_profile_size];
     int16_t raw_value;
 
     memcpy(profile_record, &profile_globals_block[widget->controller_index].profile, sizeof(profile_record));
@@ -306,7 +307,7 @@ void UiProfiles::profile_carousel_slot_cache_populate(int32_t count, const int32
  */
 void UiProfiles::profile_details_list_widget_build(widget_instance *widget)
 {
-    uint8_t profile_record[0x1ffc];
+    uint8_t profile_record[k_saved_player_profile_size];
 
     halo::interface::ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)halo::interface::ui_list_default_item_format));
 
@@ -330,7 +331,7 @@ uint8_t UiProfiles::profile_list_apply_selection(widget_instance *widget, int16_
     widget_instance *list_widget = widget->parent;
     int32_t *slot_ids = (int32_t *)list_widget->list_items;
     int32_t entry_id = slot_ids[list_widget->selection_index];
-    uint8_t profile_data[0x1ffc];
+    uint8_t profile_data[k_saved_player_profile_size];
 
     (void)event;
 
@@ -342,7 +343,7 @@ uint8_t UiProfiles::profile_list_apply_selection(widget_instance *widget, int16_
     if (entry_id > -1) {
         if (quit_confirm_error_string_index == -1) {
             quit_confirm_error_string_index = 0x1f;
-            quit_confirm_error_unknown_ae = 0xffff;
+            quit_confirm_error_unknown_ae = halo::k_word_none;
             quit_confirm_error_modal = 1;
             quit_confirm_error_is_error = 0;
         }
@@ -373,10 +374,10 @@ uint32_t UiProfiles::profile_list_apply_selection_for_player(widget_instance *wi
     int32_t *slot_ids;
     int32_t entry_id;
     int32_t player_slot;
-    uint8_t profile_data[0x1ffc];
+    uint8_t profile_data[k_saved_player_profile_size];
 
     for (list_widget = widget->first_child;
-         list_widget != (widget_instance *)0 && list_widget->widget_type != 2;
+         list_widget != (widget_instance *)0 && list_widget->widget_type != uiwidgettype_spinner_list;
          list_widget = list_widget->next_sibling) {
     }
 

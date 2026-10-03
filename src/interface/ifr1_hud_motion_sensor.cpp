@@ -1,8 +1,11 @@
 #include "halo/interface/ifr1_hud_motion_sensor.hpp"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "tags.h"
 
 extern "C" {
 extern motion_sensor_globals *motion_sensor;
@@ -78,8 +81,7 @@ void HudMotionSensor::update(void)
 
             if (local_player_index != -1 && local_player_index < 1 &&
                 halo::game::globals().local_player_globals->local_players[local_player_index] != (datum_index)-1) {
-                unit_index = ((player *)((uint8_t *)halo::game::globals().player_data->data +
-                                         (halo::game::globals().local_player_globals->local_players[local_player_index] & 0xffff) * 0x200))->unit;
+                unit_index = (halo::interface::player_record(halo::game::globals().local_player_globals->local_players[local_player_index]))->unit;
             }
             local_players[k] = local_player_index;
             cameras[local_player_index].x = 0.0f;
@@ -119,7 +121,7 @@ void HudMotionSensor::update(void)
                 continue;
             }
             {
-                real_point3d position = *(real_point3d *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data + 0xa0);
+                real_point3d position = *(real_point3d *)(halo::interface::object_record(object_index) + 0xa0);
 
                 full_players = 0;
                 for (k = 0; k < count; k++) {
@@ -133,7 +135,7 @@ void HudMotionSensor::update(void)
                     }
                     player_index = halo::game::globals().local_player_globals->local_players[index];
                     if (player_index == (datum_index)-1 ||
-                        ((player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * 0x200))->unit == (datum_index)-1) {
+                        (halo::interface::player_record(player_index))->unit == (datum_index)-1) {
                         continue;
                     }
                     if (blip_counts[index] >= 0x10) {
@@ -145,7 +147,7 @@ void HudMotionSensor::update(void)
                         float dx = position.x - cameras[index].x;
                         float dy = position.y - cameras[index].y;
                         float dz = position.z - cameras[index].z;
-                        float range = *(float *)((uint8_t *)hud_globals_tag_data + 0x2d0);
+                        float range = hud_globals_tag_data->motion_sensor_range;
                         if (range * range < dz * dz + dy * dy + dx * dx) {
                             continue;
                         }

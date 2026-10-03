@@ -3,6 +3,8 @@
  */
 
 #include "crt.h"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -65,11 +67,11 @@ void UiWidgets::widget_sync_profile_status_flag(widget_instance *widget)
  */
 void UiWidgets::widget_text_ensure_and_refresh(widget_instance *widget)
 {
-    if (widget->text == (void *)0) {
+    if (widget->text == nullptr) {
         uint32_t *block = (uint32_t *)halo::memory::heap_reallocate(widget->text, 0x80, widget_memory_pool);
 
         widget->text = block;
-        if (block != (uint32_t *)0) {
+        if (block != nullptr) {
             int32_t i;
 
             for (i = 0; i < 0x20; i++) {
@@ -77,7 +79,7 @@ void UiWidgets::widget_text_ensure_and_refresh(widget_instance *widget)
             }
         }
     }
-    if (widget->text != (void *)0) {
+    if (widget->text != nullptr) {
         wcsncpy((wchar_t *)((uint16_t *)widget->text), (const wchar_t *)global_text_field_00719278, 0x3f);
         ((uint16_t *)widget->text)[0x3f] = 0;
     }
@@ -100,7 +102,7 @@ void UiWidgets::widget_text_from_hud_objective(widget_instance *widget)
     if (entry == 0) {
         return;
     }
-    text_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x5a0) & 0xffff].data;
+    text_tag = halo::interface::tag_data<uint8_t>(*(uint32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x5a0));
     text = (uint16_t *)(*(uint8_t **)(text_tag + 0xc) + (uint32_t)*(uint16_t *)(entry + 0x20) * 2);
     if (text == 0 || *text == 0) {
         return;

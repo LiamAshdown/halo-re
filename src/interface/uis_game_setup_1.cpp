@@ -3,6 +3,10 @@
  */
 
 #include "crt.h"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
 #include "win32.h"
 #include "tags.h"
@@ -24,6 +28,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "saved_games.h"
 
 extern "C" {
 extern char level_select_current_path_00719068[0x106];
@@ -45,7 +50,7 @@ extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
-extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc];
+extern uint8_t coop_profile_globals_block_00714ddc[k_saved_player_profile_size];
 extern map_list_entry *map_list;
 extern int32_t map_list_count;
 extern uint8_t save_in_progress_00719010;
@@ -82,7 +87,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
         return 1;
     }
 
-    string_list_tag = halo::cache::tag_lookup(0x75737472 , (char *)"ui\\shell\\main_menu\\map_list_oneline");
+    string_list_tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\map_list_oneline");
     memset(level_select_entries, 0, sizeof(level_select_entries));
 
     if (halo::saved_games::globals().player_profile_slots_handle != cached_saved_game_something) {
@@ -103,9 +108,9 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
     ui_lists[0].count = 0;
     ui_lists[1].count = 0;
     ui_lists[2].count = 0;
-    ui_lists[0].data = (void *)0;
-    ui_lists[1].data = (void *)0;
-    ui_lists[2].data = (void *)0;
+    ui_lists[0].data = nullptr;
+    ui_lists[1].data = nullptr;
+    ui_lists[2].data = nullptr;
     ui_list_current = -1;
     ui_list_has_default = 0;
 
@@ -138,7 +143,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
 
         entry_name = missing_string_text;
         if (string_list_tag != (datum_index)-1) {
-            UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[string_list_tag & 0xffff].data;
+            UnicodeStringList *list = halo::interface::tag_data<UnicodeStringList>(string_list_tag);
 
             if (i >= 0 && i < (int32_t)list->strings.count) {
                 UnicodeStringListString *strings = (UnicodeStringListString *)list->strings.pointer;
@@ -157,7 +162,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
             ui_list_item *item = (ui_list_item *)ui_lists[1].data + element_index;
             uint32_t name_length = wcslen((const wchar_t *)entry_name);
 
-            item->data = (void *)0;
+            item->data = nullptr;
             item->name = (uint16_t *)GlobalAlloc(0, name_length * 2 + 2);
             item->id = i;
             item->is_default = is_selected;
@@ -202,7 +207,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
         if (last_level_widget_selection_00692afc == -1) {
             if (quit_confirm_error_string_index == -1) {
                 quit_confirm_error_string_index = 0x27;
-                quit_confirm_error_unknown_ae = 0xffff;
+                quit_confirm_error_unknown_ae = halo::k_word_none;
                 quit_confirm_error_modal = 1;
                 quit_confirm_error_is_error = 0;
             }

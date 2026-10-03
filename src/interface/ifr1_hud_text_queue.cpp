@@ -107,7 +107,7 @@ uint32_t HudTextQueue::message_queue_init(void)
 
     hud_text_message_queue.element_size = 0x14;
     hud_text_message_queue.count = 0;
-    hud_text_message_queue.data = (void *)0;
+    hud_text_message_queue.data = nullptr;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     hud_text_message_time_base = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);

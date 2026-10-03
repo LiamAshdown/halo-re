@@ -1,4 +1,6 @@
 #include "halo/interface/ifr1_hud_waypoints.hpp"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
 #include "halo/bitmaps/api.hpp"
 #include <string.h>
 #include "halo/math/api.hpp"
@@ -30,7 +32,7 @@ namespace halo::interface {
  */
 void HudWaypoints::draw_one(datum_index player_index)
 {
-    player *p = (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = halo::interface::player_record(player_index);
     object_marker marker;
     real_point3d world_point;
     real_point3d view_point;

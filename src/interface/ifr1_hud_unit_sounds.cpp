@@ -1,4 +1,7 @@
 #include "halo/interface/ifr1_hud_unit_sounds.hpp"
+#include "halo/interface/records.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
@@ -29,7 +32,7 @@ void HudUnitSounds::play(uint32_t active_mask, const TagReflexive *sounds, int32
 
     for (i = 0; (int32_t)i < (int32_t)sounds->count; i++) {
         const UnitHUDInterfaceHUDSound *sound = (const UnitHUDInterfaceHUDSound *)sounds->pointer + i;
-        uint8_t is_looping = sound->sound.tag_fourcc == 0x6c736e64;
+        uint8_t is_looping = sound->sound.tag_fourcc == halo::fourcc('l', 's', 'n', 'd');
 
         if ((active_mask & *(const uint32_t *)&sound->latched_to) != 0) {
             if (is_looping) {
@@ -40,7 +43,7 @@ void HudUnitSounds::play(uint32_t active_mask, const TagReflexive *sounds, int32
                     if (tag != (datum_index)-1) {
                         handle = halo::memory::datum_new(halo::sound::globals().game_looping_sound_data);
                         if (handle != (datum_index)-1) {
-                            uint8_t *element = (uint8_t *)halo::sound::globals().game_looping_sound_data->data + (handle & 0xffff) * 0x34;
+                            uint8_t *element = (uint8_t *)halo::sound::globals().game_looping_sound_data->data + (handle & halo::k_slot_mask) * 0x34;
                             *(int32_t *)&((game_looping_sound *)element)->object_index = -1;
                             ((game_looping_sound *)element)->definition_index = tag;
                             ((game_looping_sound *)element)->state = 2;
@@ -67,7 +70,7 @@ void HudUnitSounds::play(uint32_t active_mask, const TagReflexive *sounds, int32
             *playing |= (uint16_t)(1u << i);
         } else if (handles[i] != -1) {
             if (is_looping) {
-                uint8_t *element = (uint8_t *)halo::sound::globals().game_looping_sound_data->data + (handles[i] & 0xffff) * 0x34;
+                uint8_t *element = (uint8_t *)halo::sound::globals().game_looping_sound_data->data + (handles[i] & halo::k_slot_mask) * 0x34;
                 ((game_looping_sound *)element)->flags |= 2;
             }
             handles[i] = -1;
@@ -102,7 +105,7 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
     if (unit == 0) {
         return;
     }
-    unit_tag = (Unit *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data;
+    unit_tag = halo::interface::tag_data<Unit>(*(datum_index *)unit);
     choice = (int16_t)(halo::game::globals().local_player_globals->local_player_count > 1);
     last = (int32_t)((struct Unit *)unit_tag)->new_hud_interfaces.count - 1;
     if (choice > last) {
@@ -115,7 +118,7 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
     if (hud_tag == (datum_index)-1) {
         return;
     }
-    hud = (UnitHUDInterface *)halo::cache::globals().tag_instances[hud_tag & 0xffff].data;
+    hud = halo::interface::tag_data<UnitHUDInterface>(hud_tag);
 
     mask = 0;
     if ((unit[0x10] & 4) != 0 || !(((unit_object *)unit)->base.body_vitality > 0.0f)) {
