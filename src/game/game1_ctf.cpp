@@ -135,17 +135,15 @@ void Ctf::broadcast_state(void *request_fields, int32_t machine_index)
 
         encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 1, halo::networking::message_id(halo::networking::delta_message::ctf_state), 0, (void **)&fields0, (uint32_t)&fields1, 1, 0);
 
-        *(int32_t *)((uint8_t *)&ctf_globals_network + 0x84) = ctf_neutral_flag_id;
+        ctf_globals_network.neutral_flag_id = ctf_neutral_flag_id;
         for (i = 0; i < 16; i++) {
-            ((int32_t *)((uint8_t *)&ctf_globals_network + 0x88))[i] =
-                ((int32_t *)((uint8_t *)&ctf_globals_live + 0x88))[i];
+            ctf_globals_network.bucket_scores[i] = ctf_globals_live.bucket_scores[i];
         }
         for (i = 0; i < 16; i++) {
             ctf_globals_network.team_flag_id[i] = ctf_globals_live.team_flag_id[i];
         }
         for (i = 0; i < 16; i++) {
-            ((int32_t *)((uint8_t *)&ctf_globals_network + 0x44))[i] =
-                ((int32_t *)((uint8_t *)&ctf_globals_live + 0x44))[i];
+            ctf_globals_network.team_captured_flags_mask[i] = ctf_globals_live.team_captured_flags_mask[i];
         }
         ctf_globals_network.flag_id_mask = ctf_globals_live.flag_id_mask;
     }
@@ -370,12 +368,10 @@ int32_t Ctf::initialize_flags(void)
     halo::game::game_engine_ctf_assign_flag_ids();
 
     {
-        uint32_t *raw = (uint32_t *)&ctf_globals_live;
-        for (i = 0; i < (int32_t)(sizeof(ctf_globals_live) / 4); i++) raw[i] = 0;
+        memset(&ctf_globals_live, 0, sizeof(ctf_globals_live));
     }
     {
-        uint32_t *raw = (uint32_t *)&ctf_globals_network;
-        for (i = 0; i < (int32_t)(sizeof(ctf_globals_network) / 4); i++) raw[i] = 0;
+        memset(&ctf_globals_network, 0, sizeof(ctf_globals_network));
     }
     game_engine_ctf_reset_ticks = 0x1e;
 

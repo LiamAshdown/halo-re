@@ -33,8 +33,8 @@ static auto &current_game_engine = halo::link::ref<game_engine_definition *>(hal
 static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_teams_enabled_flag);
 static auto &game_engine_bucket_scores_extra = halo::link::ref<int32_t [16]>(halo::game::vars().game_engine_bucket_scores_extra);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-static auto &ctf_globals_live = halo::link::ref<uint8_t []>(halo::game::vars().ctf_globals_live);
-static auto &ctf_globals_network = halo::link::ref<uint8_t []>(halo::game::vars().ctf_globals_network);
+static auto &ctf_globals_live = halo::link::ref<ctf_globals>(halo::game::vars().ctf_globals_live);
+static auto &ctf_globals_network = halo::link::ref<ctf_globals>(halo::game::vars().ctf_globals_network);
 static auto &game_engine_state_value = halo::link::ref<int32_t>(halo::game::vars().game_engine_state_value);
 
 namespace halo::game {
@@ -466,6 +466,20 @@ uint8_t RaceEngine::read_changed(void **context, void *changed_base, void *desti
     return 0;
 }
 
+namespace {
+
+/** Copies the replicated part of the ctf state (everything before unknown_c8) from source to destination. */
+void copy_replicated(ctf_globals &destination, const ctf_globals &source)
+{
+    memcpy(destination.bucket_scores, source.bucket_scores, sizeof(source.bucket_scores));
+    memcpy(destination.team_flag_id, source.team_flag_id, sizeof(source.team_flag_id));
+    memcpy(destination.team_captured_flags_mask, source.team_captured_flags_mask, sizeof(source.team_captured_flags_mask));
+    destination.flag_id_mask = source.flag_id_mask;
+    destination.neutral_flag_id = source.neutral_flag_id;
+}
+
+}
+
 /**
  * The profile_post_update decoder (called as (context, ECX) by 0x466e60): a baseline message decodes the
  * replicated copy with message_delta_decode_compound_field; an incremental one reads the changed subfields
@@ -480,23 +494,15 @@ void RaceEngine::profile_post_update(void **context)
     uint8_t changed;
 
     if (state->incremental == 0) {
-        changed = halo::networking::message_delta_decode_compound_field(context, ctf_globals_network);
+        changed = halo::networking::message_delta_decode_compound_field(context, &ctf_globals_network);
     } else {
-        changed = read_changed(context, ctf_globals_network, ctf_globals_live);
-        memcpy(ctf_globals_network + 0x88, ctf_globals_live + 0x88, 16 * 4);
-        memcpy(ctf_globals_network + 0x04, ctf_globals_live + 0x04, 16 * 4);
-        memcpy(ctf_globals_network + 0x44, ctf_globals_live + 0x44, 16 * 4);
-        *(uint32_t *)ctf_globals_network = *(uint32_t *)ctf_globals_live;
-        *(int32_t *)(ctf_globals_network + 0x84) = *(int32_t *)(ctf_globals_live + 0x84);
+        changed = read_changed(context, &ctf_globals_network, &ctf_globals_live);
+        copy_replicated(ctf_globals_network, ctf_globals_live);
     }
     if (changed != 1) {
         return;
     }
-    memcpy(ctf_globals_live + 0x88, ctf_globals_network + 0x88, 16 * 4);
-    memcpy(ctf_globals_live + 0x04, ctf_globals_network + 0x04, 16 * 4);
-    memcpy(ctf_globals_live + 0x44, ctf_globals_network + 0x44, 16 * 4);
-    *(uint32_t *)ctf_globals_live = *(uint32_t *)ctf_globals_network;
-    *(int32_t *)(ctf_globals_live + 0x84) = *(int32_t *)(ctf_globals_network + 0x84);
+    copy_replicated(ctf_globals_live, ctf_globals_network);
 }
 
 /**
