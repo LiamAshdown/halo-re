@@ -136,10 +136,10 @@ uint8_t actor_alert_from_disturbance(datum_index actor_index)
 
 namespace c_actor_alert_from_flag_1b4 {
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (actor[(o)])
-#define W(o) (*(int16_t *)(actor + (o)))
-#define D(o) (*(uint32_t *)(actor + (o)))
-#define F(o) (*(float *)(actor + (o)))
+#define B(o) (((uint8_t *)actor)[(o)])
+#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
+#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
+#define F(o) (*(float *)((uint8_t *)actor + (o)))
 }
 
 
@@ -777,10 +777,10 @@ uint8_t actor_escalate_check_weapon_range(datum_index actor_index)
 
 namespace c_actor_escalate_to_guard_or_combat {
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (actor[(o)])
-#define W(o) (*(int16_t *)(actor + (o)))
-#define D(o) (*(uint32_t *)(actor + (o)))
-#define F(o) (*(float *)(actor + (o)))
+#define B(o) (((uint8_t *)actor)[(o)])
+#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
+#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
+#define F(o) (*(float *)((uint8_t *)actor + (o)))
 
 }
 
@@ -994,7 +994,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                     goto consider_zero;
                 }
                 if (a->facing.k * p->direction.z + a->facing.j * p->direction.y +
-                        *(float *)((uint8_t *)p + 0xe0) * a->facing.i >= 0.5f) {
+                        p->direction.x * a->facing.i >= 0.5f) {
                     goto consider_zero;
                 }
                 goto guard;
