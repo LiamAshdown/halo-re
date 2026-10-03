@@ -75,7 +75,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     uint8_t *self = OBJECT_DATA(object_index);
     uint8_t *vehicle = OBJECT_DATA(vehicle_index);
     uint8_t *nodes = self + ((unit_object *)self)->base.nodes.offset;
-    uint8_t *seat = *(uint8_t **)(TAG_DATA(*(datum_index *)vehicle) + 0x2e8) + ((unit_object *)self)->unit.vehicle_seat_index * 0x11c;
+    uint8_t *seat = (uint8_t *)((struct Unit *)TAG_DATA(*(datum_index *)vehicle))->seats.pointer + ((unit_object *)self)->unit.vehicle_seat_index * 0x11c;
     uint8_t *model_nodes;
     object_marker marker;
     real_point3d offset;
@@ -87,9 +87,9 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
     offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
-    model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
+    model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)&((struct Unit *)TAG_DATA(*(datum_index *)self))->base.model.tag_id) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
-    if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && vehicle[0x2a3] != 0x25 &&
+    if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && (uint8_t)((struct unit_object *)vehicle)->unit.animation_state != 0x25 &&
         ((unit_object *)self)->base.parent_object != k_datum_index_none) {
         ::unit_try_set_animation_state(((unit_object *)self)->base.parent_object, 0x25);
     }
@@ -118,11 +118,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = OBJECT_DATA(object_index);
         uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (object[0x10] & 1) != 0) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && ((uint8_t)((struct object *)object)->flags & 1) != 0) {
             object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-            *(uint32_t *)(object + 0x10) &= ~1u;
+            ((struct object *)object)->flags &= ~1u;
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
@@ -233,10 +233,10 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
     }
     if (is_local == 1) {
         violent = (uint8_t)(killed && !(*(float *)(effect_block + 0x30) < 2.0f));
-        if (!killed && (unit_flags & 0x2000) && *(float *)(unit_tag + 0x22c) > 0.0f &&
-            *(float *)(unit_tag + 0x230) > 0.0f && ((unit_object *)obj)->base.body_vitality > 0.0f &&
-            ((unit_object *)obj)->base.recent_body_damage > *(float *)(unit_tag + 0x22c)) {
-            float ticks = (random_real_range(0.0f, 1.0f) + *(float *)(unit_tag + 0x230)) * 30.0f;
+        if (!killed && (unit_flags & 0x2000) && ((struct Unit *)unit_tag)->feign_death_threshold > 0.0f &&
+            ((struct Unit *)unit_tag)->feign_death_time > 0.0f && ((unit_object *)obj)->base.body_vitality > 0.0f &&
+            ((unit_object *)obj)->base.recent_body_damage > ((struct Unit *)unit_tag)->feign_death_threshold) {
+            float ticks = (random_real_range(0.0f, 1.0f) + ((struct Unit *)unit_tag)->feign_death_time) * 30.0f;
 
             obj[0x106] |= 4;
             knocked_down = 1;
@@ -248,7 +248,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
     }
 
     if (((unit_object *)obj)->unit.controlling_player == k_datum_index_none && killed && (effect_block[0x4] & 0x80) &&
-        (*(uint32_t *)(unit_tag + 0x17c) & 0x40000)) {
+        (((struct Unit *)unit_tag)->unit_flags & 0x40000)) {
         uint8_t *self;
         datum_index vehicle_index;
 
@@ -264,7 +264,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
         if (((unit_object *)self)->base.type == 1) {
             uint8_t *me = OBJECT_DATA(unit_index);
 
-            if (((struct object *)me)->parent_object != k_datum_index_none && *(int16_t *)(me + 0x2f0) != -1) {
+            if (((struct object *)me)->parent_object != k_datum_index_none && ((struct unit_object *)me)->unit.vehicle_seat_index != -1) {
                 biped_detach_from_seat(unit_index, ((struct object *)me)->parent_object);
             }
             biped_free_local_player_history(me);
@@ -275,8 +275,8 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
         }
         {
             uint8_t *self_tag = TAG_DATA(*(datum_index *)self);
-            datum_index graph = *(datum_index *)(self_tag + 0x44);
-            uint8_t *seat_block = *(uint8_t **)(TAG_DATA(graph) + 0x10) + (int8_t)self[0x2a0] * 0x64;
+            datum_index graph = *(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id;
+            uint8_t *seat_block = *(uint8_t **)(TAG_DATA(graph) + 0x10) + (int8_t)(uint8_t)((struct unit_object *)self)->unit.animation_definition_index * 0x64;
             int16_t death_animation;
             uint8_t *object;
             uint8_t *object_tag;
@@ -288,17 +288,17 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
             if (death_animation == -1) {
                 goto record_check;
             }
-            if (*(datum_index *)(OBJECT_DATA(vehicle_index) + 0x324) == unit_index) {
+            if (((struct unit_object *)OBJECT_DATA(vehicle_index))->unit.driver_unit_index == unit_index) {
                 UnitView((int32_t)vehicle_index).notify_weapon_removed();
             }
-            UnitView(unit_index).set_custom_animation(*(datum_index *)(self_tag + 0x44), animation_choose_random_permutation(graph, death_animation, 1));
+            UnitView(unit_index).set_custom_animation(*(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id, animation_choose_random_permutation(graph, death_animation, 1));
             object = OBJECT_DATA(unit_index);
             object_tag = TAG_DATA(*(datum_index *)object);
-            if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (object[0x10] & 1) != 0) {
+            if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && ((uint8_t)((struct object *)object)->flags & 1) != 0) {
                 object_for_each_light_attachment(unit_index, 0, 1);
             }
             if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-                *(uint32_t *)(object + 0x10) &= ~1u;
+                ((struct object *)object)->flags &= ~1u;
                 OBJECT_HEADER(unit_index).flags |= 2;
             }
             self[0x2a3] = 0x1b;
@@ -316,7 +316,7 @@ stunned:
     }
 
 record_check:
-    if ((dd->flags & 0x10) == 0 && (killed || knocked_down || (obj[0x106] & 4) == 0) &&
+    if ((dd->flags & 0x10) == 0 && (killed || knocked_down || ((uint8_t)((struct object *)obj)->vitality_flags & 4) == 0) &&
         (((unit_object *)obj)->unit.flags & 0x800000) == 0 && (*(uint32_t *)(effect_block + 0x4) & 0x10) == 0) {
         uint32_t effect_flags = *(uint32_t *)(effect_block + 0x4);
         real_vector2d direction;
@@ -334,10 +334,10 @@ record_check:
             angle = vector2d_angle_between(&forward, &direction);
             has_direction = 1;
         }
-        if ((unit_tag[0x17c] & 0x80) && (effect_flags & 4) == 0) {
+        if (((uint8_t)((struct Unit *)unit_tag)->unit_flags & 0x80) && (effect_flags & 4) == 0) {
             stunned_flag = 1;
         }
-        if (obj[0x28b] != 0) {
+        if ((uint8_t)((struct unit_object *)obj)->unit.flaming_ticks != 0) {
             stunned_flag = 1;
         }
         if (flags & 0x8a) {
@@ -392,7 +392,7 @@ local_reactions:
     if (is_local == 1 && ((unit_object *)obj)->base.type == 0) {
         if (killed) {
             actor_reassign_vehicle_seat(dd->responsible_object, unit_index, *(uint16_t *)(effect_block + 0x2));
-        } else if ((obj[0x106] & 4) == 0) {
+        } else if (((uint8_t)((struct object *)obj)->vitality_flags & 4) == 0) {
             actor_react_to_threat_event(unit_index, dd->responsible_object, *(uint16_t *)(effect_block + 0x2), total,
                 (uint32_t)(uintptr_t)&dd->direction, 0);
         }
@@ -648,10 +648,10 @@ void UnitView::melee_lunge_damage_tick()
     object_node_collision_result record;
     damage_data dd;
 
-    if (obj[0x289] != 4 || target == k_datum_index_none || *(datum_index *)&((Unit *)tag)->melee_damage.tag_id == k_datum_index_none) {
+    if ((uint8_t)((struct unit_object *)obj)->unit.melee_state != 4 || target == k_datum_index_none || *(datum_index *)&((Unit *)tag)->melee_damage.tag_id == k_datum_index_none) {
         return;
     }
-    if (obj[0x28a] == 0 && object_collision_context_build(target, &context)) {
+    if ((uint8_t)((struct unit_object *)obj)->unit.melee_damage_countdown == 0 && object_collision_context_build(target, &context)) {
         object_get_position(&start, unit_index);
         plane.normal.i = ((unit_object *)obj)->base.forward.i * 0.2f;
         plane.normal.j = ((unit_object *)obj)->base.forward.j * 0.2f;
@@ -710,17 +710,17 @@ void UnitView::melee_lunge_damage_tick()
 void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t target_index, uint32_t node_pair, uint32_t region_pair, uint32_t material, real_point3d *contact_point, real_plane3d *contact_plane, bsp_leaf_reference *contact_leaf)
 {
     uint8_t *attacker = OBJECT_DATA(attacker_index);
-    uint32_t unit_flags = *(uint32_t *)(TAG_DATA(*(datum_index *)attacker) + 0x17c);
+    uint32_t unit_flags = ((struct Unit *)TAG_DATA(*(datum_index *)attacker))->unit_flags;
     uint8_t *target = OBJECT_DATA(target_index);
 
     if ((unit_flags & 0x2000) && ((struct object *)target)->type == 0 && ((struct object *)target)->shield_vitality > 0.0f &&
-        (*(uint32_t *)(TAG_DATA(*(datum_index *)target) + 0x17c) & 0x400000)) {
+        (((struct Unit *)TAG_DATA(*(datum_index *)target))->unit_flags & 0x400000)) {
         UnitView(attacker_index).cause_melee_damage(1, target_index, (int16_t)node_pair, (int16_t)region_pair, (int16_t)material, (uint32_t)contact_plane);
         object_set_health_frozen_flag(attacker_index);
         object_delete(attacker_index);
         return;
     }
-    if (!(unit_flags & 0x1000) || !((1u << (target[0xb4] & 0x1f)) & 3) || (target[0x106] & 4)) {
+    if (!(unit_flags & 0x1000) || !((1u << ((uint8_t)((struct object *)target)->type & 0x1f)) & 3) || ((uint8_t)((struct object *)target)->vitality_flags & 4)) {
         return;
     }
     {
@@ -736,8 +736,8 @@ void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t ta
         }
     }
     {
-        real_vector3d *forward = (real_vector3d *)(attacker + 0x74);
-        real_vector3d *up = (real_vector3d *)(attacker + 0x80);
+        real_vector3d *forward = (real_vector3d *)&((struct object *)attacker)->forward;
+        real_vector3d *up = (real_vector3d *)&((struct object *)attacker)->up;
         real_vector3d left;
 
         *(real_vector3d *)&((struct object *)attacker)->velocity.i = *global_origin3d_pointer;
@@ -758,7 +758,7 @@ void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t ta
     object_set_position_and_relink(contact_point, attacker_index, contact_leaf);
     object_attach_to_object(target_index, attacker_index, (int16_t)node_pair);
     ((struct object *)attacker)->flags |= 0x20;
-    *(uint32_t *)(attacker + 0x204) |= 0x8000;
+    ((struct unit_object *)attacker)->unit.flags |= 0x8000;
     UnitView(attacker_index).try_ready_weapon(1, 0);
 }
 #undef OBJECT_DATA

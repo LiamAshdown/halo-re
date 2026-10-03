@@ -67,26 +67,26 @@ void UnitView::update_aiming_overlay_angles(void *output)
     float aim_pitch;
     int8_t state;
 
-    if (*(int16_t *)(unit + 0x2aa) != -1) {
-        animation_replace_frame_orientations(animations + *(int16_t *)(unit + 0x2aa) * 0xb4,
-            (int16_t)*(uint16_t *)(unit + 0x2ac), output);
+    if (((struct unit_object *)unit)->unit.overlays[0].animation_index != -1) {
+        animation_replace_frame_orientations(animations + ((struct unit_object *)unit)->unit.overlays[0].animation_index * 0xb4,
+            (int16_t)(uint16_t)((struct unit_object *)unit)->unit.overlays[0].frame, output);
     }
-    if (*(int16_t *)(unit + 0x2ae) != -1) {
-        animation_overlay_frame_orientations(animations + *(int16_t *)(unit + 0x2ae) * 0xb4,
-            (int16_t)*(uint16_t *)(unit + 0x2b0), output);
+    if (((struct unit_object *)unit)->unit.overlays[1].animation_index != -1) {
+        animation_overlay_frame_orientations(animations + ((struct unit_object *)unit)->unit.overlays[1].animation_index * 0xb4,
+            (int16_t)(uint16_t)((struct unit_object *)unit)->unit.overlays[1].frame, output);
     }
-    if (*(int16_t *)(unit + 0x2b2) != -1) {
-        animation_overlay_frame_orientations(animations + *(int16_t *)(unit + 0x2b2) * 0xb4,
-            (int16_t)*(uint16_t *)(unit + 0x2b4), output);
+    if (((struct unit_object *)unit)->unit.overlays[2].animation_index != -1) {
+        animation_overlay_frame_orientations(animations + ((struct unit_object *)unit)->unit.overlays[2].animation_index * 0xb4,
+            (int16_t)(uint16_t)((struct unit_object *)unit)->unit.overlays[2].frame, output);
     }
     unit[0x2b6] = 0;
     unit[0x2b7] = 0;
-    if ((*(uint32_t *)&((struct Unit *)unit_tag)->unit_flags & 0x800) || unit[0x2a0] == 0xff) {
+    if ((*(uint32_t *)&((struct Unit *)unit_tag)->unit_flags & 0x800) || (uint8_t)((struct unit_object *)unit)->unit.animation_definition_index == 0xff) {
         return;
     }
-    block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer + (int8_t)unit[0x2a0] * 0x64;
+    block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_definition_index * 0x64;
 
-    if (unit[0x2a8] != 0xff) {
+    if ((uint8_t)((struct unit_object *)unit)->unit.emotion_animation_frame != 0xff) {
         int16_t emotion = (*(int32_t *)(block + 0x40) > 0xb) ? (*(int16_t **)(block + 0x44))[0xb] : -1;
 
         if (((unit_object *)unit)->unit.emotion_animation_index != -1) {
@@ -94,7 +94,7 @@ void UnitView::update_aiming_overlay_angles(void *output)
         }
         if (emotion != -1) {
             uint8_t *record = animations + emotion * 0xb4;
-            int8_t frame = (int8_t)unit[0x2a8];
+            int8_t frame = (int8_t)(uint8_t)((struct unit_object *)unit)->unit.emotion_animation_frame;
 
             if (frame >= 0 && frame < *(int16_t *)(record + 0x22)) {
                 animation_overlay_frame_orientations(record, frame, output);
@@ -106,7 +106,7 @@ void UnitView::update_aiming_overlay_angles(void *output)
         animation_overlay_frame_orientations_weighted(animations + (*(int16_t **)(block + 0x44))[0xa] * 0xb4, 0,
             ((unit_object *)unit)->unit.mouth_aperture, output);
     }
-    if (unit[0x298] & 2) {
+    if ((uint8_t)((struct unit_object *)unit)->unit.animation_state_flags & 2) {
         int32_t slot;
 
         for (slot = 2; slot < 5; slot++) {
@@ -123,19 +123,19 @@ void UnitView::update_aiming_overlay_angles(void *output)
     if (*(uint32_t *)&((struct Unit *)unit_tag)->unit_flags & 0x400) {
         return;
     }
-    state = (int8_t)unit[0x2a3];
-    if ((state >= 0x17 && state <= 0x23) || state == 0x29 || unit[0x2a4] != 0) {
+    state = (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_state;
+    if ((state >= 0x17 && state <= 0x23) || state == 0x29 || (uint8_t)((struct unit_object *)unit)->unit.replacement_animation_state != 0) {
         return;
     }
 
     aim_yaw = global_zero_vector2d_pointer[0];
     aim_pitch = global_zero_vector2d_pointer[1];
     if (((unit_object *)unit)->unit.aiming_animation_index != -1) {
-        uint8_t *screen = *(uint8_t **)(block + 0x5c) + (int8_t)unit[0x2a1] * 0xbc + 0x60;
+        uint8_t *screen = *(uint8_t **)(block + 0x5c) + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_weapon_index * 0xbc + 0x60;
 
-        aiming_angles_in_unit_frame(unit_index, (real_vector3d *)(unit + 0x23c), &aim_yaw, &aim_pitch);
+        aiming_angles_in_unit_frame(unit_index, (real_vector3d *)&((struct unit_object *)unit)->unit.aiming_vector, &aim_yaw, &aim_pitch);
         unit[0x2b6] = 1;
-        aiming_screen_limits(screen, (float *)(unit + 0x2b8));
+        aiming_screen_limits(screen, (float *)&((struct unit_object *)unit)->unit.aiming_bounds);
         animation_aiming_screen_blend(animations + ((unit_object *)unit)->unit.aiming_animation_index * 0xb4, screen, aim_yaw, aim_pitch, output);
     }
 
@@ -147,11 +147,11 @@ void UnitView::update_aiming_overlay_angles(void *output)
         float look_yaw;
         float look_pitch;
 
-        aiming_angles_in_unit_frame(unit_index, (real_vector3d *)(unit + 0x260), &look_yaw, &look_pitch);
+        aiming_angles_in_unit_frame(unit_index, (real_vector3d *)&((struct unit_object *)unit)->unit.looking_vector, &look_yaw, &look_pitch);
         unit[0x2b7] = 1;
         look_yaw -= aim_yaw;
         look_pitch -= aim_pitch;
-        aiming_screen_limits(screen, (float *)(unit + 0x2c8));
+        aiming_screen_limits(screen, (float *)&((struct unit_object *)unit)->unit.looking_bounds);
         animation_aiming_screen_blend(animations + ((struct unit_object *)unit)->unit.looking_animation_index * 0xb4, screen, look_yaw, look_pitch,
             output);
     }

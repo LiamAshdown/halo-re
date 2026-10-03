@@ -203,7 +203,7 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
         }
     }
     if (orientation_object != k_datum_index_none) {
-        center = *(real_point3d *)(OBJECT_DATA(orientation_object) + 0xa0);
+        center = ((struct object *)OBJECT_DATA(orientation_object))->bounding_center;
     }
     if (anchor_object == k_datum_index_none) {
         anchor_object = orientation_object;
@@ -226,8 +226,8 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
         object_collision_context_build(orientation_object, &context);
     }
     {
-        real_vector3d *f = (real_vector3d *)(unit + 0x74);
-        real_vector3d *u = (real_vector3d *)(unit + 0x80);
+        real_vector3d *f = (real_vector3d *)&((struct object *)unit)->forward;
+        real_vector3d *u = (real_vector3d *)&((struct object *)unit)->up;
 
         side.i = u->k * f->j - f->k * u->j;
         side.j = f->k * u->i - u->k * f->i;
@@ -246,8 +246,8 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
         int32_t leaf;
 
         if (grid_mode) {
-            real_vector3d *f = (real_vector3d *)(unit + 0x74);
-            real_vector3d *u = (real_vector3d *)(unit + 0x80);
+            real_vector3d *f = (real_vector3d *)&((struct object *)unit)->forward;
+            real_vector3d *u = (real_vector3d *)&((struct object *)unit)->up;
             float a = radius * offset->i;
             float b = radius * offset->j;
             float c = radius * offset->k;
@@ -591,7 +591,7 @@ void UnitView::recalculate_position()
     using namespace unit_recalculate_position_local;
     uint32_t object_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    real_point3d *current = (real_point3d *)(obj + 0x5c);
+    real_point3d *current = (real_point3d *)&((struct object *)obj)->position;
     real_point3d anchor = *(real_point3d *)&((unit_object *)obj)->base.network_position.x;
     real_point3d previous = *current;
     real_point3d *target = &anchor;
@@ -665,7 +665,7 @@ uint32_t UnitView::snap_to_min_ground_height()
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
     float jump_speed;
     real_vector3d velocity;
-    real_vector3d *up = (real_vector3d *)(obj + 0x80);
+    real_vector3d *up = (real_vector3d *)&((struct object *)obj)->up;
     float up_speed;
     datum_index actor_index;
     uint8_t result = 1;
@@ -695,7 +695,7 @@ uint32_t UnitView::snap_to_min_ground_height()
         actor_index = ((unit_object *)obj)->unit.actor_index;
     }
     if (actor_index != k_datum_index_none) {
-        uint8_t skip_clamp = (obj[0x2a3] == 0x27 || obj[0x2a3] == 0x28) ? 1 : 0;
+        uint8_t skip_clamp = ((uint8_t)((struct unit_object *)obj)->unit.animation_state == 0x27 || (uint8_t)((struct unit_object *)obj)->unit.animation_state == 0x28) ? 1 : 0;
 
         result = actor_get_requested_velocity(skip_clamp, actor_index, &velocity, object_index, jump_speed);
         if (!result) {

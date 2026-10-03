@@ -42,7 +42,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     uint8_t *self = OBJECT_DATA(object_index);
     uint8_t *vehicle = OBJECT_DATA(vehicle_index);
     uint8_t *nodes = self + ((unit_object *)self)->base.nodes.offset;
-    uint8_t *seat = *(uint8_t **)(TAG_DATA(*(datum_index *)vehicle) + 0x2e8) + ((unit_object *)self)->unit.vehicle_seat_index * 0x11c;
+    uint8_t *seat = (uint8_t *)((struct Unit *)TAG_DATA(*(datum_index *)vehicle))->seats.pointer + ((unit_object *)self)->unit.vehicle_seat_index * 0x11c;
     uint8_t *model_nodes;
     object_marker marker;
     real_point3d offset;
@@ -54,9 +54,9 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
     offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
-    model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
+    model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)&((struct Unit *)TAG_DATA(*(datum_index *)self))->base.model.tag_id) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
-    if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && vehicle[0x2a3] != 0x25 &&
+    if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && (uint8_t)((struct unit_object *)vehicle)->unit.animation_state != 0x25 &&
         ((unit_object *)self)->base.parent_object != k_datum_index_none) {
         ::unit_try_set_animation_state(((unit_object *)self)->base.parent_object, 0x25);
     }
@@ -85,11 +85,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = OBJECT_DATA(object_index);
         uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (object[0x10] & 1) != 0) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && ((uint8_t)((struct object *)object)->flags & 1) != 0) {
             object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-            *(uint32_t *)(object + 0x10) &= ~1u;
+            ((struct object *)object)->flags &= ~1u;
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
@@ -194,7 +194,7 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
         uint8_t *unit_tag = TAG_DATA(*(datum_index *)obj);
 
         random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        if ((float)(int32_t)(random_seed_global >> 16) * 1.5259022e-05f < *(float *)(unit_tag + 0x248)) {
+        if ((float)(int32_t)(random_seed_global >> 16) * 1.5259022e-05f < ((struct Unit *)unit_tag)->feign_repeat_chance) {
             ((unit_object *)obj)->unit.flags |= 0x2000;
         } else {
             ((unit_object *)obj)->unit.flags &= 0xffffdfff;
@@ -212,14 +212,14 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
         *(int16_t *)&((struct weapon_object *)weapon)->weapon.control_flags = 0;
         ((struct weapon_object *)weapon)->weapon.primary_trigger = transition_function_evaluate((transition_function_t)4, 0.0f);
     }
-    *(uint32_t *)(OBJECT_DATA(unit_index) + 0x204) &= 0xfdffffff;
+    ((struct unit_object *)OBJECT_DATA(unit_index))->unit.flags &= 0xfdffffff;
     if (((unit_object *)obj)->base.parent_object != k_datum_index_none) {
         if (((unit_object *)obj)->unit.vehicle_seat_index == -1) {
             UnitView(unit_index).detach_reposition_and_nudge();
         } else if (network_game_mode != 1) {
             uint8_t *me = OBJECT_DATA(unit_index);
 
-            if (((struct object *)me)->parent_object != k_datum_index_none && *(int16_t *)(me + 0x2f0) != -1) {
+            if (((struct object *)me)->parent_object != k_datum_index_none && ((struct unit_object *)me)->unit.vehicle_seat_index != -1) {
                 biped_detach_from_seat(unit_index, ((struct object *)me)->parent_object);
             }
             biped_free_local_player_history(me);
@@ -230,19 +230,19 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
     {
         uint8_t *holder = OBJECT_DATA(unit_index);
 
-        if (*(datum_index *)(holder + 0x318) != k_datum_index_none) {
-            UnitView(unit_index).drop_object_from_hand(*(datum_index *)(holder + 0x318));
-            *(datum_index *)(holder + 0x318) = k_datum_index_none;
+        if (((struct unit_object *)holder)->unit.equipment_object_index != k_datum_index_none) {
+            UnitView(unit_index).drop_object_from_hand(((struct unit_object *)holder)->unit.equipment_object_index);
+            ((struct unit_object *)holder)->unit.equipment_object_index = k_datum_index_none;
         }
     }
     UnitView(unit_index).drop_grenades();
-    if (obj[0x28c] == 0) {
+    if ((uint8_t)((struct unit_object *)obj)->unit.delayed_weapon_drop_ticks == 0) {
         UnitView(unit_index).drop_current_weapon(1);
     }
-    *(int16_t *)(obj + 0x2ae) = -1;
-    *(int16_t *)(obj + 0x2aa) = -1;
+    ((struct unit_object *)obj)->unit.overlays[1].animation_index = -1;
+    ((struct unit_object *)obj)->unit.overlays[0].animation_index = -1;
     obj[0x289] = 0;
-    if (obj[0x28d] == 1) {
+    if ((uint8_t)((struct unit_object *)obj)->unit.throwing_grenade_state == 1) {
         obj[0x28d] = 0;
     }
 }

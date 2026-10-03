@@ -20,8 +20,9 @@ constexpr int32_t bit_array_word(int32_t bit) noexcept { return bit >> k_bit_arr
 constexpr uint32_t bit_array_mask(int32_t bit) noexcept { return 1u << (static_cast<uint32_t>(bit) & k_bit_array_bit_mask); }
 
 /** Number of 32-bit words needed for `bit_count` bits. */
-constexpr int32_t bit_array_word_count(int32_t bit_count) noexcept {
-    return (bit_count + static_cast<int32_t>(k_bit_array_bit_mask)) >> k_bit_array_word_shift;
+template <typename T>
+constexpr auto bit_array_word_count(T bit_count) noexcept {
+    return (bit_count + static_cast<T>(k_bit_array_bit_mask)) >> k_bit_array_word_shift;
 }
 
 }  // namespace halo

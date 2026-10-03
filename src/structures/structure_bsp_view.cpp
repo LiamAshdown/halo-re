@@ -95,7 +95,7 @@ void structure_bsp_view::expand_visible_clusters_by_subcluster()
     ScenarioStructureBSPCluster *clusters = (ScenarioStructureBSPCluster *)self->clusters.pointer;
 
     for (int16_t i = 0; i < visible_cluster_count; i++) {
-        if (visible_surface_count >= k_maximum_visible_surfaces) {
+        if (visible_surface_count > k_maximum_visible_surfaces - 1) {
             return;
         }
         ScenarioStructureBSPCluster *cluster = &clusters[visible_clusters[i].cluster_index];
@@ -107,7 +107,7 @@ void structure_bsp_view::expand_visible_clusters_by_subcluster()
         }
 
         for (int32_t j = 0; j < (int32_t)cluster->subclusters.count; j++) {
-            if (visible_surface_count >= k_maximum_visible_surfaces) {
+            if (visible_surface_count > k_maximum_visible_surfaces - 1) {
                 break;
             }
             ScenarioStructureBSPSubcluster *subcluster =
@@ -123,7 +123,7 @@ void structure_bsp_view::expand_visible_clusters_by_subcluster()
                 if ((surface_visible_bits[word] & mask) != 0) {
                     continue;
                 }
-                if (visible_surface_count >= k_maximum_visible_surfaces) {
+                if (visible_surface_count > k_maximum_visible_surfaces - 1) {
                     break;
                 }
                 surface_visible_bits[word] |= mask;

@@ -130,7 +130,7 @@ void UnitView::apply_network_health_update(void *message)
     guard = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
     record = (uint8_t *)((void **)message)[0x11];
     reliable = **(int32_t **)message == 1;
-    if ((*(uint32_t *)(guard + 0x10) & 0x8000000) != 0 && reliable) {
+    if ((((struct object *)guard)->flags & 0x8000000) != 0 && reliable) {
         int32_t incoming = record[5];
         int32_t current = unit[0x528];
 

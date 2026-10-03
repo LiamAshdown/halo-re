@@ -128,7 +128,7 @@ void unit_spawn_with_starting_weapons(void *command_record)
         if (weapon != -1) {
             ::halo::units::unit_pickup_weapon(0, (uint32_t)weapon, vehicle_index);
         } else {
-            ((int32_t *)(vehicle + 0x2f8))[i] = -1;
+            ((int32_t *)&((struct unit_object *)vehicle)->unit.weapons)[i] = -1;
         }
     }
 }

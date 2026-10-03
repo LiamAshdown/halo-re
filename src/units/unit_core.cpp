@@ -51,7 +51,7 @@ void UnitView::apply_impulse(real_vector3d *impulse)
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
 
-    if ((*(uint32_t *)((uint8_t *)tag_data + 0x17c) & 0x100000) != 0) {
+    if ((((struct Unit *)tag_data)->unit_flags & 0x100000) != 0) {
         return;
     }
 

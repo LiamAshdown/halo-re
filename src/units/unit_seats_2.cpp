@@ -47,7 +47,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     uint8_t *self = OBJECT_DATA(object_index);
     uint8_t *vehicle = OBJECT_DATA(vehicle_index);
     uint8_t *nodes = self + ((unit_object *)self)->base.nodes.offset;
-    uint8_t *seat = *(uint8_t **)(TAG_DATA(*(datum_index *)vehicle) + 0x2e8) + ((unit_object *)self)->unit.vehicle_seat_index * 0x11c;
+    uint8_t *seat = (uint8_t *)((struct Unit *)TAG_DATA(*(datum_index *)vehicle))->seats.pointer + ((unit_object *)self)->unit.vehicle_seat_index * 0x11c;
     uint8_t *model_nodes;
     object_marker marker;
     real_point3d offset;
@@ -59,9 +59,9 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
     offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
-    model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
+    model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)&((struct Unit *)TAG_DATA(*(datum_index *)self))->base.model.tag_id) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
-    if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && vehicle[0x2a3] != 0x25 &&
+    if (((unit_object *)vehicle)->unit.driver_unit_index == object_index && (uint8_t)((struct unit_object *)vehicle)->unit.animation_state != 0x25 &&
         ((unit_object *)self)->base.parent_object != k_datum_index_none) {
         ::unit_try_set_animation_state(((unit_object *)self)->base.parent_object, 0x25);
     }
@@ -90,11 +90,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         uint8_t *object = OBJECT_DATA(object_index);
         uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (object[0x10] & 1) != 0) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && ((uint8_t)((struct object *)object)->flags & 1) != 0) {
             object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-            *(uint32_t *)(object + 0x10) &= ~1u;
+            ((struct object *)object)->flags &= ~1u;
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
@@ -203,7 +203,7 @@ int16_t UnitView::detach_child_at_named_seat(char *seat_marker_name)
         if (*(datum_index *)(child + 0x11c) != unit_index) {
             continue;
         }
-        strcpy(label, (char *)(*(uint8_t **)(unit_tag + 0x2e8) + *(int16_t *)(child + 0x2f0) * 0x11c + 4));
+        strcpy(label, (char *)((uint8_t *)((struct Unit *)unit_tag)->seats.pointer + *(int16_t *)(child + 0x2f0) * 0x11c + 4));
         for (c = label; *c != 0; c++) {
             *c = (char)tolower((uint8_t)*c);
         }
@@ -228,8 +228,8 @@ int16_t UnitView::detach_child_at_named_seat(char *seat_marker_name)
         }
         if (!::halo::units::unit_state_is_scripted_animation((unit_data *)(self + k_unit_data_offset))) {
             uint8_t *self_tag = TAG_DATA(*(datum_index *)self);
-            datum_index graph = *(datum_index *)(self_tag + 0x44);
-            uint8_t *seat_block = *(uint8_t **)(TAG_DATA(graph) + 0x10) + (int8_t)self[0x2a0] * 0x64;
+            datum_index graph = *(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id;
+            uint8_t *seat_block = *(uint8_t **)(TAG_DATA(graph) + 0x10) + (int8_t)(uint8_t)((struct unit_object *)self)->unit.animation_definition_index * 0x64;
 
             if (*(int32_t *)(seat_block + 0x40) > 8 && (*(int16_t **)(seat_block + 0x44))[8] != -1) {
                 int16_t exit_animation = (*(int16_t **)(seat_block + 0x44))[8];
@@ -237,18 +237,18 @@ int16_t UnitView::detach_child_at_named_seat(char *seat_marker_name)
                 uint8_t *object;
                 uint8_t *object_tag;
 
-                if (*(datum_index *)(OBJECT_DATA(vehicle_index) + 0x324) == child_index) {
+                if (((struct unit_object *)OBJECT_DATA(vehicle_index))->unit.driver_unit_index == child_index) {
                     UnitView((int32_t)vehicle_index).notify_weapon_removed();
                 }
-                UnitView(child_index).set_custom_animation(*(datum_index *)(self_tag + 0x44), animation_choose_random_permutation(graph, exit_animation, 1));
+                UnitView(child_index).set_custom_animation(*(datum_index *)&((struct Unit *)self_tag)->base.animation_graph.tag_id, animation_choose_random_permutation(graph, exit_animation, 1));
                 object = OBJECT_DATA(child_index);
                 object_tag = TAG_DATA(*(datum_index *)object);
                 if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-                    if ((object[0x10] & 1) != 0) {
+                    if (((uint8_t)((struct object *)object)->flags & 1) != 0) {
                         object_for_each_light_attachment(child_index, 0, 1);
                     }
                     if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-                        *(uint32_t *)(object + 0x10) &= ~1u;
+                        ((struct object *)object)->flags &= ~1u;
                         OBJECT_HEADER(child_index).flags |= 2;
                     }
                 }

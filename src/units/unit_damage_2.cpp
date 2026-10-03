@@ -30,7 +30,7 @@ void UnitView::melee_attack_scan()
     uint32_t unit_index = datum_handle;
     uint8_t *obj = OBJECT_DATA(unit_index);
     uint8_t *unit_tag = TAG_DATA(*(datum_index *)obj);
-    real_vector3d *aim = (real_vector3d *)(obj + 0x23c);
+    real_vector3d *aim = (real_vector3d *)&((struct unit_object *)obj)->unit.aiming_vector;
     object_marker marker;
     real_point3d origin;
     real_vector3d perp;
@@ -118,14 +118,14 @@ void UnitView::melee_attack_scan()
         }
     }
     if (damage_effect == 0xffffffff) {
-        damage_effect = *(datum_index *)(unit_tag + 0x294);
+        damage_effect = *(datum_index *)&((struct Unit *)unit_tag)->melee_damage.tag_id;
     }
 
     if (best_object != 0xffffffff) {
         uint8_t *best = OBJECT_DATA(best_object);
 
         if (((struct object *)best)->type == 1 && ((struct object *)best)->network_role != 1) {
-            float scale = *(float *)(TAG_DATA(*(datum_index *)best) + 0x20) * 0.035f;
+            float scale = ((struct Unit *)TAG_DATA(*(datum_index *)best))->base.acceleration_scale * 0.035f;
 
             side.i = scale * aim->i;
             side.j = scale * aim->j;
@@ -159,7 +159,7 @@ void UnitView::melee_attack_scan()
         } else {
             float speed_scale = *(float *)((uint8_t *)global_globals->player_information.pointer + 0x34);
 
-            if (*(int16_t *)(OBJECT_DATA(best_object) + 0xb4) == 7) {
+            if (((struct object *)OBJECT_DATA(best_object))->type == 7) {
                 device_machine_melee_attacked(best_object);
             }
             if (speed_scale > 0.0f) {
@@ -177,7 +177,7 @@ void UnitView::melee_attack_scan()
             if (((unit_object *)obj)->base.type == 0 && *(int8_t *)(obj + 0x501) > 0x0f) {
                 dd.random_blend = 1.5f;
             }
-            if (*(int16_t *)(OBJECT_DATA(best_object) + 0xb4) == 0) {
+            if (((struct object *)OBJECT_DATA(best_object))->type == 0) {
                 object_apply_damage(&dd, best_object, -1, -1, -1, 0);
             }
         }

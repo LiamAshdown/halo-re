@@ -25,7 +25,7 @@ void UnitView::validate_and_clear_weapon_switch()
         datum_index player_index = player_index_from_unit_index(unit_index);
 
         if (*(int16_t *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200 + 2) != -1 &&
-            obj[0x320] != 0xff) {
+            (uint8_t)((struct unit_object *)obj)->unit.zoom_level != 0xff) {
             uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
             int16_t slot = ((unit_object *)unit)->unit.current_weapon_index;
 

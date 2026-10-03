@@ -90,7 +90,7 @@ uint32_t UnitView::update_marker_traction_effects()
         return 0;
     }
     physics = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
-    matrix4x3_from_forward_up((real_vector3d *)(obj + 0x80), (real_vector3d *)(obj + 0x74), &basis);
+    matrix4x3_from_forward_up((real_vector3d *)&((struct object *)obj)->up, (real_vector3d *)&((struct object *)obj)->forward, &basis);
     basis.position = *(real_point3d *)&((unit_object *)obj)->base.position.x;
 
     for (i = 0; (int32_t)i < *(int32_t *)(node_array + 0x68); i++) {

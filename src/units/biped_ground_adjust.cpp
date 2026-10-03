@@ -127,7 +127,7 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
     uint8_t *object_tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
     uint8_t *graph = (uint8_t *)tag_instances[*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id & 0xffff].data;
     float tolerance = ((ModelAnimations *)graph)->limp_body_node_radius;
-    uint8_t limit = obj[0x525];
+    uint8_t limit = ((struct biped_object *)obj)->biped.ground_adjust_iteration_limit;
     uint8_t iteration;
     float progress;
     uint32_t success_bits[2];
@@ -140,13 +140,13 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
     if (limit == 0 || limit >= 0x1e) {
         return;
     }
-    iteration = obj[0x524];
+    iteration = ((struct biped_object *)obj)->biped.ground_adjust_iteration;
     progress = (float)((int32_t)iteration + 1) / (float)(int32_t)limit;
     if (biped_ground_adjust_near_zero(progress) || iteration >= limit) {
         return;
     }
 
-    physics_model_build_from_sphere_query(0xc0a8, (real_point3d *)(obj + 0x5c), ((unit_object *)obj)->base.bounding_radius + 0.0625f,
+    physics_model_build_from_sphere_query(0xc0a8, (real_point3d *)&((struct object *)obj)->position, ((unit_object *)obj)->base.bounding_radius + 0.0625f,
         0.0f, tolerance, object_index, &ground_adjust_physics_model);
 
     success_bits[0] = 0;

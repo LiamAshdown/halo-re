@@ -62,11 +62,11 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
     }
     record = (uint8_t *)message[0x11];
     guard = (uint8_t *)((object_header *)object_data->data)[vehicle_index & 0xffff].data;
-    if ((*(uint32_t *)(guard + 0x10) & 0x8000000) != 0 && **(int32_t **)message == 1) {
+    if ((((struct object *)guard)->flags & 0x8000000) != 0 && **(int32_t **)message == 1) {
         int32_t incoming = record[5];
-        int32_t current = vehicle[0x527];
+        int32_t current = ((struct vehicle_object *)vehicle)->vehicle.network_update_sequence;
 
-        if (record[4] != vehicle[0x526] || (incoming <= current && incoming - current + 0xff >= 0x1e)) {
+        if (record[4] != ((struct vehicle_object *)vehicle)->vehicle.unknown_526 || (incoming <= current && incoming - current + 0xff >= 0x1e)) {
             message_delta_decode_compound_field_staged(message);
             return;
         }
@@ -80,10 +80,10 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
     if (!accepted) {
         return;
     }
-    vehicle[0x527] = record[5];
+    ((struct vehicle_object *)vehicle)->vehicle.network_update_sequence = record[5];
     ((unit_object *)vehicle)->base.flags |= 0x8000000;
     if (record[6] != 0) {
-        vehicle[0x526] = record[4];
+        ((struct vehicle_object *)vehicle)->vehicle.unknown_526 = record[4];
         memcpy(vehicle + 0x528, &baseline, sizeof(baseline));
     }
     vector3d_cross_product(&side, &baseline.up, &baseline.forward);
@@ -94,9 +94,9 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
     memcpy(vehicle + 0x48, &baseline.velocity, 12);
     memcpy(vehicle + 0x2c, &baseline.forward, 12);
     memcpy(vehicle + 0x38, &baseline.up, 12);
-    vehicle[0x18] = 1;
-    vehicle[0x44] = 1;
-    vehicle[0x28] = 1;
+    ((struct object *)vehicle)->network_position_valid = 1;
+    ((struct object *)vehicle)->network_velocity_valid = 1;
+    ((struct object *)vehicle)->unknown_028[0] = 1;
     if (baseline.object_flag_5 == 0) {
         ((unit_object *)vehicle)->base.flags &= ~0x20u;
     }
@@ -109,8 +109,8 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
     dy = baseline.position.y - ((unit_object *)vehicle)->base.position.y;
     dz = baseline.position.z - ((unit_object *)vehicle)->base.position.z;
     if ((real)sqrt(dx * dx + dy * dy + dz * dz) > 10.0f || (((unit_object *)vehicle)->base.flags & 0x20) != 0 ||
-        baseline.up.j * ((real *)(vehicle + 0x80))[1] + baseline.up.k * ((real *)(vehicle + 0x80))[2] +
-                baseline.up.i * ((real *)(vehicle + 0x80))[0] < 0.70710677f) {
+        baseline.up.j * ((real *)&((struct object *)vehicle)->up)[1] + baseline.up.k * ((real *)&((struct object *)vehicle)->up)[2] +
+                baseline.up.i * ((real *)&((struct object *)vehicle)->up)[0] < 0.70710677f) {
         memcpy(vehicle + 0x1c, &baseline.position, 12);
         memcpy(vehicle + 0x48, &baseline.velocity, 12);
         memcpy(vehicle + 0x74, &baseline.forward, 12);
@@ -121,13 +121,13 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
     latency_base = timing != 0 ? timing[0] : (int32_t)record;
     latency = timing != 0 ? timing[1] : (int32_t)record;
     if (latency > 10) {
-        vehicle[0x54] = 1;
+        ((struct object *)vehicle)->network_timestamp_valid = 1;
         *(int32_t *)&((unit_object *)vehicle)->base.network_timestamp = *(int32_t *)(record + 8) - latency_base;
     } else {
-        vehicle[0x54] = 0;
+        ((struct object *)vehicle)->network_timestamp_valid = 0;
     }
-    vehicle[0x18] = 1;
-    vehicle[0x44] = 1;
+    ((struct object *)vehicle)->network_position_valid = 1;
+    ((struct object *)vehicle)->network_velocity_valid = 1;
     vehicle[0x475] = 1;
     memcpy(vehicle + 0x56c, &baseline, sizeof(baseline));
 }
@@ -191,11 +191,11 @@ int32_t VehicleView::encode_network_create(int32_t buffer, int32_t bit_budget)
     record.creator_key = creator;
     record.machine_key = machine;
     for (i = 0; i < 4; i++) {
-        int32_t seat = ((int32_t *)(vehicle + 0x2f8))[i];
+        int32_t seat = ((int32_t *)&((struct unit_object *)vehicle)->unit.weapons)[i];
 
         record.seat_keys[i] = seat == -1 ? 0 : hash_table_get(keys, seat);
     }
-    record.unknown_526 = vehicle[0x526];
+    record.unknown_526 = ((struct vehicle_object *)vehicle)->vehicle.unknown_526;
     memcpy(record.vectors[0], vehicle + 0x52c, 12);
     memcpy(record.vectors[1], vehicle + 0x550, 12);
     memcpy(record.vectors[2], vehicle + 0x55c, 12);
@@ -229,14 +229,14 @@ void VehicleView::network_baseline_take()
     if (obj == 0) {
         return;
     }
-    obj[0x526]++;
-    obj[0x525] = 1;
-    obj[0x528] = 1;
+    ((struct vehicle_object *)obj)->vehicle.unknown_526++;
+    ((struct vehicle_object *)obj)->vehicle.unknown_525 = 1;
+    ((struct vehicle_object *)obj)->vehicle.network_delta_sequence = 1;
     copy3(obj, 0x52c, 0x5c);
     copy3(obj, 0x538, 0x68);
     copy3(obj, 0x544, 0x8c);
     copy3(obj, 0x550, 0x74);
-    obj[0x527] = 0;
+    ((struct vehicle_object *)obj)->vehicle.network_update_sequence = 0;
     copy3(obj, 0x55c, 0x80);
 }
 

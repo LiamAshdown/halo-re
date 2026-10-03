@@ -56,22 +56,22 @@ uint8_t VehicleView::create()
 
     VehicleView(object_index).reset_state();
     if (*(int32_t *)(definition + 0x8c) == -1) {
-        *(uint32_t *)(object + 0x10) |= 0x20;
+        ((struct object *)object)->flags |= 0x20;
     } else {
-        *(uint32_t *)(object + 0x10) &= ~(uint32_t)0x20;
-        *(float *)(object + 0x64) += *(float *)(definition + 4) * 0.5f;
+        ((struct object *)object)->flags &= ~(uint32_t)0x20;
+        ((struct object *)object)->position.z += *(float *)(definition + 4) * 0.5f;
     }
     if (network_game_mode == 1 || network_game_mode == 2) {
-        object[0x525] = 0;
-        object[0x526] = 0;
-        object[0x527] = 0;
-        object[0x9] = 0;
+        ((struct vehicle_object *)object)->vehicle.unknown_525 = 0;
+        ((struct vehicle_object *)object)->vehicle.unknown_526 = 0;
+        ((struct vehicle_object *)object)->vehicle.network_update_sequence = 0;
+        ((struct object *)object)->network_state_009 = 0;
     }
     *(uint32_t *)(object + 0x5ac) = (uint32_t)game_time->game_time;
     for (i = 0; i < 3; i++) {
-        ((uint32_t *)(object + 0x5b4))[i] = ((uint32_t *)(object + 0x5c))[i];
+        ((uint32_t *)&((struct vehicle_object *)object)->vehicle.unknown_5b2[2])[i] = ((uint32_t *)&((struct object *)object)->position)[i];
     }
-    object[0x524] = 0;
+    ((struct vehicle_object *)object)->vehicle.collision_update_pending = 0;
     return 1;
 }
 
@@ -92,7 +92,7 @@ uint8_t VehicleView::is_old_enough()
     if (game_time->game_time >= stamp + k_vehicle_minimum_age_ticks) {
         return 1;
     }
-    return (uint8_t)(obj[0x524] == 1);
+    return (uint8_t)(((struct vehicle_object *)obj)->vehicle.collision_update_pending == 1);
 }
 
 /**
@@ -146,14 +146,14 @@ uint32_t VehicleView::update()
     uint32_t object_index = datum_handle;
     uint8_t *obj = OBJECT_DATA(object_index);
     uint8_t *tag = TAG_DATA(*(datum_index *)obj);
-    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
-    real_vector3d *up = (real_vector3d *)(obj + 0x80);
+    real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
+    real_vector3d *up = (real_vector3d *)&((struct object *)obj)->up;
     static uint8_t node_output[0xc00];
     static uint8_t contact_points[0x2600];
 
     if (network_game_mode == 2 && ((struct vehicle_object *)obj)->vehicle.network_update_tick != -1 && vehicle_network_update_period != 0 &&
         game_time->game_time >= ((struct vehicle_object *)obj)->vehicle.network_update_tick + vehicle_network_update_period) {
-        if (vector3d_distance((real_point3d *)(obj + 0x5b4), (real_point3d *)(obj + 0x5c)) > 1.5f &&
+        if (vector3d_distance((real_point3d *)&((struct vehicle_object *)obj)->vehicle.unknown_5b2[2], (real_point3d *)&((struct object *)obj)->position) > 1.5f &&
             UnitView(object_index).get_recently_updated_flag() == 1 && !UnitView(object_index).has_child_of_type5()) {
             UnitView(object_index).set_facing_from_index_table();
         }
@@ -161,20 +161,20 @@ uint32_t VehicleView::update()
     }
 
     if (((unit_object *)obj)->base.parent_object != k_datum_index_none) {
-        F(obj, 0x8c) = 0.0f;
-        F(obj, 0x90) = 0.0f;
-        F(obj, 0x94) = 0.0f;
-        F(obj, 0x68) = 0.0f;
-        F(obj, 0x6c) = 0.0f;
-        F(obj, 0x70) = 0.0f;
+        ((struct object *)obj)->angular_velocity.i = 0.0f;
+        ((struct object *)obj)->angular_velocity.j = 0.0f;
+        ((struct object *)obj)->angular_velocity.k = 0.0f;
+        ((struct object *)obj)->velocity.i = 0.0f;
+        ((struct object *)obj)->velocity.j = 0.0f;
+        ((struct object *)obj)->velocity.k = 0.0f;
         ((unit_object *)obj)->base.flags &= ~0x20u;
     } else {
         uint32_t control = ((unit_object *)obj)->unit.control_flags;
         real_vector3d a;
         real_vector3d b;
         float angle;
-        float throttle = F(obj, 0x278);
-        float speed = F(obj, 0x4d4);
+        float throttle = ((struct unit_object *)obj)->unit.throttle.i;
+        float speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
 
         if (control & 1) {
             obj[0x4cc] |= 4;
@@ -182,7 +182,7 @@ uint32_t VehicleView::update()
             obj[0x4cc] &= ~4;
         }
         if ((control & 2) ||
-            ((*(uint32_t *)(tag + 0x2f0) & 0x10) &&
+            ((((struct Vehicle *)tag)->vehicle_flags & 0x10) &&
              ((throttle > 0.0f && speed < 0.0f) || (throttle < 0.0f && speed > 0.0f)))) {
             obj[0x4cc] |= 8;
         } else {
@@ -193,16 +193,16 @@ uint32_t VehicleView::update()
         a.j = up->k * forward->i - forward->k * up->i;
         a.k = up->i * forward->j - forward->i * up->j;
         b = a;
-        angle = (float)atan2(b.j * F(obj, 0x228) + b.k * F(obj, 0x22c) + b.i * F(obj, 0x224),
-                             F(obj, 0x22c) * forward->k + F(obj, 0x228) * forward->j + F(obj, 0x224) * forward->i);
-        if ((((unit_object *)obj)->base.network_role == 2 || ((unit_object *)obj)->base.network_role == 1) && obj[0x18] == 1) {
+        angle = (float)atan2(b.j * ((struct unit_object *)obj)->unit.desired_facing_vector.j + b.k * ((struct unit_object *)obj)->unit.desired_facing_vector.k + b.i * ((struct unit_object *)obj)->unit.desired_facing_vector.i,
+                             ((struct unit_object *)obj)->unit.desired_facing_vector.k * forward->k + ((struct unit_object *)obj)->unit.desired_facing_vector.j * forward->j + ((struct unit_object *)obj)->unit.desired_facing_vector.i * forward->i);
+        if ((((unit_object *)obj)->base.network_role == 2 || ((unit_object *)obj)->base.network_role == 1) && ((struct object *)obj)->network_position_valid == 1) {
             UnitView(object_index).any_flagged_seat_occupied();
         }
 
         {
-            uint8_t direction = obj[0x4d1];
+            uint8_t direction = ((struct vehicle_object *)obj)->vehicle.unknown_4d1;
 
-            if ((((struct vehicle_object *)obj)->vehicle.flags & 0x10) && direction != 0 && obj[0x4d2] < 0x1e && up->k <= 0.9f) {
+            if ((((struct vehicle_object *)obj)->vehicle.flags & 0x10) && direction != 0 && ((struct vehicle_object *)obj)->vehicle.unknown_4d2 < 0x1e && up->k <= 0.9f) {
                 float sign = (direction == 2 || direction == 4) ? 0.3f : -0.3f;
                 float spin;
 
@@ -212,10 +212,10 @@ uint32_t VehicleView::update()
                     a = *forward;
                 }
                 spin = up->k * -2.0f;
-                if (!(spin >= F(tag, 0x340))) {
-                    spin = F(tag, 0x340);
-                } else if (!(spin <= F(tag, 0x344))) {
-                    spin = F(tag, 0x344);
+                if (!(spin >= ((struct Vehicle *)tag)->minimum_flipping_angular_velocity)) {
+                    spin = ((struct Vehicle *)tag)->minimum_flipping_angular_velocity;
+                } else if (!(spin <= ((struct Vehicle *)tag)->maximum_flipping_angular_velocity)) {
+                    spin = ((struct Vehicle *)tag)->maximum_flipping_angular_velocity;
                 }
                 spin *= sign;
                 ((unit_object *)obj)->base.flags &= ~0x20u;
@@ -227,51 +227,51 @@ uint32_t VehicleView::update()
                     a.j += b.j * k;
                     a.k += k * b.k;
                 }
-                F(obj, 0x8c) = a.i * spin;
-                F(obj, 0x90) = a.j * spin;
-                F(obj, 0x94) = a.k * spin;
-                if (*(int16_t *)(tag + 0x2f4) == 0) {
-                    float along = forward->k * F(obj, 0x70) + forward->j * F(obj, 0x6c) + F(obj, 0x68) * forward->i;
+                ((struct object *)obj)->angular_velocity.i = a.i * spin;
+                ((struct object *)obj)->angular_velocity.j = a.j * spin;
+                ((struct object *)obj)->angular_velocity.k = a.k * spin;
+                if (((struct Vehicle *)tag)->vehicle_type == 0) {
+                    float along = forward->k * ((struct object *)obj)->velocity.k + forward->j * ((struct object *)obj)->velocity.j + ((struct object *)obj)->velocity.i * forward->i;
 
-                    F(obj, 0x68) = along * forward->i;
-                    F(obj, 0x6c) = along * forward->j;
-                    F(obj, 0x70) = along * forward->k;
-                } else if (*(int16_t *)(tag + 0x2f4) == 5) {
-                    if (-0.01f <= F(obj, 0x70)) {
-                        F(obj, 0x70) = -0.01f;
+                    ((struct object *)obj)->velocity.i = along * forward->i;
+                    ((struct object *)obj)->velocity.j = along * forward->j;
+                    ((struct object *)obj)->velocity.k = along * forward->k;
+                } else if (((struct Vehicle *)tag)->vehicle_type == 5) {
+                    if (-0.01f <= ((struct object *)obj)->velocity.k) {
+                        ((struct object *)obj)->velocity.k = -0.01f;
                     }
                 }
-                obj[0x4d2]++;
+                ((struct vehicle_object *)obj)->vehicle.unknown_4d2++;
             } else {
                 ((struct vehicle_object *)obj)->vehicle.flags &= 0xffef;
-                obj[0x4d2] = 0;
-                obj[0x4d1] = 0;
+                ((struct vehicle_object *)obj)->vehicle.unknown_4d2 = 0;
+                ((struct vehicle_object *)obj)->vehicle.unknown_4d1 = 0;
             }
         }
 
-        if (obj[0x4cc] & 8) {
-            physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)(obj + 0x4d4), 0.0f, 1.0f);
+        if ((uint8_t)((struct vehicle_object *)obj)->vehicle.flags & 8) {
+            physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)&((struct vehicle_object *)obj)->vehicle.forward_velocity, 0.0f, 1.0f);
         } else {
-            physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)(obj + 0x4d4), F(obj, 0x278), 1.0f);
-            physics_scalar_step_to_target_clamped(tag + 0x330, (float *)(obj + 0x4d8), F(obj, 0x27c), 1.0f);
+            physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)&((struct vehicle_object *)obj)->vehicle.forward_velocity, ((struct unit_object *)obj)->unit.throttle.i, 1.0f);
+            physics_scalar_step_to_target_clamped(tag + 0x330, (float *)&((struct vehicle_object *)obj)->vehicle.sideways_velocity, ((struct unit_object *)obj)->unit.throttle.j, 1.0f);
         }
-        if (*(int16_t *)(tag + 0x2f4) != 0) {
-            float target = F(obj, 0x4d4) >= 0.0f ? angle : -angle;
-            float low = F(tag, 0x30c) * 0.017453292f;
+        if (((struct Vehicle *)tag)->vehicle_type != 0) {
+            float target = ((struct vehicle_object *)obj)->vehicle.forward_velocity >= 0.0f ? angle : -angle;
+            float low = ((struct Vehicle *)tag)->maximum_right_turn * 0.017453292f;
 
             if (!(target >= low)) {
                 target = low;
             } else {
-                float high = F(tag, 0x308) * 0.017453292f;
+                float high = ((struct Vehicle *)tag)->maximum_left_turn * 0.017453292f;
 
                 if (!(target <= high)) {
                     target = high;
                 }
             }
-            physics_scalar_move_toward_target(tag + 0x308, (float *)(obj + 0x4dc), 0, target,
-                                              F(tag, 0x314) * 0.017453292f * 0.033333335f);
-        } else if (F(obj, 0x4d4) == 0.0f) {
-            physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)(obj + 0x4dc), 0.0f, 1.0f);
+            physics_scalar_move_toward_target(tag + 0x308, (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, 0, target,
+                                              ((struct Vehicle *)tag)->turn_rate * 0.017453292f * 0.033333335f);
+        } else if (((struct vehicle_object *)obj)->vehicle.forward_velocity == 0.0f) {
+            physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, 0.0f, 1.0f);
         } else {
             float target = angle * 0.63661975f;
 
@@ -280,21 +280,21 @@ uint32_t VehicleView::update()
             } else if (!(target <= 1.0f)) {
                 target = 1.0f;
             }
-            physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)(obj + 0x4dc), target * F(tag, 0x2f8), 2.0f);
+            physics_scalar_step_to_target_clamped(tag + 0x2f8, (float *)&((struct vehicle_object *)obj)->vehicle.turning_velocity, target * ((struct Vehicle *)tag)->maximum_forward_speed, 2.0f);
         }
 
         if (*(datum_index *)&((Unit *)tag)->base.physics.tag_id != k_datum_index_none) {
-            uint32_t flags = *(uint32_t *)(tag + 0x2f0);
+            uint32_t flags = ((struct Vehicle *)tag)->vehicle_flags;
 
-            if (((flags & 1) && F(obj, 0x4d4) != 0.0f) || ((flags & 2) && F(obj, 0x4dc) != 0.0f) ||
-                ((flags & 4) && F(obj, 0x338) != 0.0f) || ((flags & 8) && F(obj, 0x33c) != 0.0f) ||
-                ((flags & 0x20) && F(obj, 0x4d8) != 0.0f)) {
+            if (((flags & 1) && ((struct vehicle_object *)obj)->vehicle.forward_velocity != 0.0f) || ((flags & 2) && ((struct vehicle_object *)obj)->vehicle.turning_velocity != 0.0f) ||
+                ((flags & 4) && ((struct unit_object *)obj)->unit.driver_seat_power != 0.0f) || ((flags & 8) && ((struct unit_object *)obj)->unit.gunner_seat_power != 0.0f) ||
+                ((flags & 0x20) && ((struct vehicle_object *)obj)->vehicle.sideways_velocity != 0.0f)) {
                 ((unit_object *)obj)->base.flags &= ~0x20u;
             }
         }
         if (*(datum_index *)&((Unit *)tag)->base.physics.tag_id != k_datum_index_none && !(((unit_object *)obj)->base.flags & 0x20)) {
             b = *(real_vector3d *)&((unit_object *)obj)->base.velocity.i;
-            switch (*(int16_t *)(tag + 0x2f4)) {
+            switch (((struct Vehicle *)tag)->vehicle_type) {
             case 0: VehicleView(object_index).calculate_turret_controls(contact_points, (float *)node_output); break;
             case 1: VehicleView(object_index).calculate_steering_wheel_controls(contact_points, (float *)node_output); break;
             case 2: VehicleView(object_index).calculate_lean_controls(contact_points, (float *)node_output); break;
@@ -315,15 +315,15 @@ uint32_t VehicleView::update()
                 ((struct vehicle_object *)obj)->vehicle.decay_ticks_remaining = 15;
             }
             if (!(((unit_object *)obj)->base.flags & 0x1000000) &&
-                ((1u << (*(uint8_t *)(tag + 0x2f4) & 0x1f)) & 0x28)) {
+                ((1u << ((uint8_t)((struct Vehicle *)tag)->vehicle_type & 0x1f)) & 0x28)) {
                 float floor_z = F(global_structure_bsp, 0x10);
                 float ceiling_z = F(global_structure_bsp, 0x14);
 
-                if (floor_z != 0.0f && F(obj, 0x64) < floor_z) {
-                    F(obj, 0x70) += ((floor_z - F(obj, 0x64)) * 0.015625f - F(obj, 0x70) * 0.0625f) * F(obj, 0x338);
+                if (floor_z != 0.0f && ((struct object *)obj)->position.z < floor_z) {
+                    ((struct object *)obj)->velocity.k += ((floor_z - ((struct object *)obj)->position.z) * 0.015625f - ((struct object *)obj)->velocity.k * 0.0625f) * ((struct unit_object *)obj)->unit.driver_seat_power;
                 }
-                if (ceiling_z != 0.0f && F(obj, 0x64) > ceiling_z) {
-                    F(obj, 0x70) -= ((F(obj, 0x64) - ceiling_z) * 0.015625f + F(obj, 0x70) * 0.0625f) * F(obj, 0x338);
+                if (ceiling_z != 0.0f && ((struct object *)obj)->position.z > ceiling_z) {
+                    ((struct object *)obj)->velocity.k -= ((((struct object *)obj)->position.z - ceiling_z) * 0.015625f + ((struct object *)obj)->velocity.k * 0.0625f) * ((struct unit_object *)obj)->unit.driver_seat_power;
                 }
             }
         } else if (((struct vehicle_object *)obj)->vehicle.decay_ticks_remaining > 0) {
@@ -331,10 +331,10 @@ uint32_t VehicleView::update()
             UnitView(object_index).update_marker_traction_effects();
         }
 
-        if ((*(uint32_t *)(tag + 0x2f0) & 0x40) && !unit_updates_suppressed) {
+        if ((((struct Vehicle *)tag)->vehicle_flags & 0x40) && !unit_updates_suppressed) {
             uint8_t *impact = (uint8_t *)global_globals->falling_damage.pointer;
 
-            if (F(obj, 0x70) < -F(impact, 0x8c)) {
+            if (((struct object *)obj)->velocity.k < -F(impact, 0x8c)) {
                 datum_index child = ((unit_object *)obj)->base.first_child_object;
 
                 while (child != k_datum_index_none) {
@@ -363,9 +363,9 @@ uint32_t VehicleView::update()
         UnitView(object_index).update_animation_state_machine(request);
     }
     {
-        uint8_t over_blur = (uint8_t)(F(tag, 0x318) <= (float)fabs(F(obj, 0x4d4)));
+        uint8_t over_blur = (uint8_t)(((struct Vehicle *)tag)->blur_speed <= (float)fabs(((struct vehicle_object *)obj)->vehicle.forward_velocity));
 
-        if (over_blur != (obj[0x4cc] & 1)) {
+        if (over_blur != ((uint8_t)((struct vehicle_object *)obj)->vehicle.flags & 1)) {
             object_set_permutation_by_name(object_index, s_blur_permutation, -1, (char)over_blur);
             if (over_blur) {
                 obj[0x4cc] |= 1;

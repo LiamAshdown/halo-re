@@ -108,7 +108,7 @@ uint8_t UnitView::update()
         }
     }
     if ((((unit_object *)obj)->unit.flags & 0x2000000) != 0) {
-        UnitView(unit_index).update_random_turn_angle((real_vector3d *)(obj + 0x224));
+        UnitView(unit_index).update_random_turn_angle((real_vector3d *)&((struct unit_object *)obj)->unit.desired_facing_vector);
         *(real_vector3d *)&((unit_object *)obj)->unit.desired_aiming_vector.i = *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i;
         *(real_vector3d *)&((unit_object *)obj)->unit.desired_looking_vector.i = *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i;
         *(real_vector3d *)&((unit_object *)obj)->unit.throttle.i = *global_forward3d_pointer;
@@ -144,42 +144,42 @@ uint8_t UnitView::update()
             datum_index driver = ((unit_object *)obj)->unit.driver_unit_index;
             datum_index gunner = ((unit_object *)obj)->unit.gunner_unit_index;
 
-            if (driver != k_datum_index_none && (obj[0x106] & 4) == 0) {
+            if (driver != k_datum_index_none && ((uint8_t)((struct object *)obj)->vitality_flags & 4) == 0) {
                 uint8_t *d = OBJECT_DATA(driver);
 
                 ((unit_object *)obj)->base.owner_team = ((struct object *)d)->owner_team;
                 riding = 1;
-                if (*(datum_index *)(d + 0x218) != k_datum_index_none || (d[0x2a3] != 0x1b && d[0x2a3] != 0x1a)) {
-                    ((unit_object *)obj)->unit.control_flags |= *(uint32_t *)(d + 0x208) & 0x3f;
-                    *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i = *(real_vector3d *)(d + 0x224);
+                if (((struct unit_object *)d)->unit.controlling_player != k_datum_index_none || ((uint8_t)((struct unit_object *)d)->unit.animation_state != 0x1b && (uint8_t)((struct unit_object *)d)->unit.animation_state != 0x1a)) {
+                    ((unit_object *)obj)->unit.control_flags |= ((struct unit_object *)d)->unit.control_flags & 0x3f;
+                    *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i = ((struct unit_object *)d)->unit.desired_facing_vector;
                     *(real_point3d *)&((unit_object *)obj)->unit.throttle.i = *(real_point3d *)(d + 0x278);
                 }
             }
-            if (gunner != k_datum_index_none && (obj[0x106] & 4) == 0) {
+            if (gunner != k_datum_index_none && ((uint8_t)((struct object *)obj)->vitality_flags & 4) == 0) {
                 uint8_t *g = OBJECT_DATA(gunner);
 
                 if (!riding) {
                     ((unit_object *)obj)->base.owner_team = ((struct object *)g)->owner_team;
                 }
-                if (*(datum_index *)(g + 0x218) != k_datum_index_none || (g[0x2a3] != 0x1b && g[0x2a3] != 0x1a)) {
-                    *(real_vector3d *)&((unit_object *)obj)->unit.desired_aiming_vector.i = *(real_vector3d *)(g + 0x230);
-                    *(real_vector3d *)&((unit_object *)obj)->unit.desired_looking_vector.i = *(real_vector3d *)(g + 0x230);
-                    ((unit_object *)obj)->unit.control_flags |= *(uint32_t *)(g + 0x208) & 0x7c00;
-                    ((unit_object *)obj)->unit.primary_trigger = *(float *)(g + 0x284);
+                if (((struct unit_object *)g)->unit.controlling_player != k_datum_index_none || ((uint8_t)((struct unit_object *)g)->unit.animation_state != 0x1b && (uint8_t)((struct unit_object *)g)->unit.animation_state != 0x1a)) {
+                    *(real_vector3d *)&((unit_object *)obj)->unit.desired_aiming_vector.i = ((struct unit_object *)g)->unit.desired_aiming_vector;
+                    *(real_vector3d *)&((unit_object *)obj)->unit.desired_looking_vector.i = ((struct unit_object *)g)->unit.desired_aiming_vector;
+                    ((unit_object *)obj)->unit.control_flags |= ((struct unit_object *)g)->unit.control_flags & 0x7c00;
+                    ((unit_object *)obj)->unit.primary_trigger = ((struct unit_object *)g)->unit.primary_trigger;
                 }
             }
             if ((((unit_object *)obj)->unit.control_flags & 0x7c00) != 0) {
                 obj[0x322] = 0;
-            } else if ((int8_t)obj[0x322] < 0x7f) {
+            } else if ((int8_t)(uint8_t)((struct unit_object *)obj)->unit.weapon_control_idle_ticks < 0x7f) {
                 obj[0x322]++;
             }
         }
         if (!unit_updates_suppressed) {
-            if ((obj[0x204] & 0x10) != 0) {
+            if (((uint8_t)((struct unit_object *)obj)->unit.flags & 0x10) != 0) {
                 float step = 0.008333334f;
 
                 if (current_game_engine != 0 && ((struct unit_object *)obj)->unit.active_camouflage_regrowth != 0 && ((struct unit_object *)obj)->unit.active_camouflage_regrowth == 1) {
-                    datum_index weapon = UnitView(unit_index).get_weapon_object_index(*(int16_t *)(OBJECT_DATA(unit_index) + 0x2f2));
+                    datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)OBJECT_DATA(unit_index))->unit.current_weapon_index);
 
                     if (weapon != k_datum_index_none) {
                         uint8_t *weapon_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(weapon));
@@ -200,7 +200,7 @@ uint8_t UnitView::update()
                     ((struct unit_object *)obj)->unit.active_camouflage_power = 0.0f;
                 }
             }
-            if ((obj[0x204] & 0x20) != 0) {
+            if (((uint8_t)((struct unit_object *)obj)->unit.flags & 0x20) != 0) {
                 ((struct unit_object *)obj)->unit.super_active_camouflage_power += 0.011111111f;
                 if (((struct unit_object *)obj)->unit.super_active_camouflage_power > 1.0f) {
                     ((struct unit_object *)obj)->unit.super_active_camouflage_power = 1.0f;
@@ -214,15 +214,15 @@ uint8_t UnitView::update()
             if (((struct unit_object *)obj)->unit.stun_ticks > 0 && --((struct unit_object *)obj)->unit.stun_ticks == 0) {
                 *(int32_t *)&((struct unit_object *)obj)->unit.stun = 0;
             }
-            if ((int8_t)obj[0x28c] > 0 && --obj[0x28c] == 0) {
+            if ((int8_t)(uint8_t)((struct unit_object *)obj)->unit.delayed_weapon_drop_ticks > 0 && --obj[0x28c] == 0) {
                 UnitView(unit_index).drop_current_weapon(1);
                 if (unit_updates_suppressed) {
                     goto controls;
                 }
             }
-            if (((struct unit_object *)obj)->unit.feign_death_ticks > 0 && (obj[0x10] & 0x20) != 0 && --((struct unit_object *)obj)->unit.feign_death_ticks == 0) {
+            if (((struct unit_object *)obj)->unit.feign_death_ticks > 0 && ((uint8_t)((struct object *)obj)->flags & 0x20) != 0 && --((struct unit_object *)obj)->unit.feign_death_ticks == 0) {
                 if (((unit_object *)obj)->base.body_vitality > 0.0f) {
-                    int16_t state = (int16_t)((~(obj[0x298] >> 3) & 1) | 0x22);
+                    int16_t state = (int16_t)((~((uint8_t)((struct unit_object *)obj)->unit.animation_state_flags >> 3) & 1) | 0x22);
 
                     ((unit_object *)obj)->base.vitality_flags &= 0xfffb;
                     UnitView(unit_index).refresh_targeting_flag_and_weapons(1);
@@ -242,19 +242,19 @@ uint8_t UnitView::update()
 
 controls:
     if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x400) == 0) {
-        if ((obj[0x106] & 4) == 0 && !unit_updates_suppressed) {
+        if (((uint8_t)((struct object *)obj)->vitality_flags & 4) == 0 && !unit_updates_suppressed) {
             if ((((unit_object *)obj)->base.vitality_flags & 0x400) != 0) {
                 UnitView(unit_index).drop_current_weapon(1);
             } else if (((unit_object *)obj)->unit.desired_weapon_index != ((unit_object *)obj)->unit.current_weapon_index &&
                        !::halo::units::unit_state_is_scripted_animation((unit_data *)(obj + k_unit_data_offset))) {
-                datum_index weapon = UnitView(unit_index).get_weapon_object_index(*(int16_t *)(OBJECT_DATA(unit_index) + 0x2f4));
+                datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)OBJECT_DATA(unit_index))->unit.desired_weapon_index);
 
                 if (weapon != k_datum_index_none && UnitView(unit_index).check_weapon_use_permission(weapon)) {
                     UnitView(unit_index).ready_desired_weapon(1);
                 }
             }
-            if (obj[0x31d] != obj[0x31c] && !::halo::units::unit_state_is_scripted_animation((unit_data *)(obj + k_unit_data_offset))) {
-                int16_t grenade = UnitView(unit_index).find_next_grenade_type_with_count((int16_t)(int8_t)obj[0x31d], 0);
+            if ((uint8_t)((struct unit_object *)obj)->unit.desired_grenade_index != (uint8_t)((struct unit_object *)obj)->unit.current_grenade_index && !::halo::units::unit_state_is_scripted_animation((unit_data *)(obj + k_unit_data_offset))) {
+                int16_t grenade = UnitView(unit_index).find_next_grenade_type_with_count((int16_t)(int8_t)(uint8_t)((struct unit_object *)obj)->unit.desired_grenade_index, 0);
 
                 if (grenade != -1) {
                     obj[0x31c] = (uint8_t)grenade;
@@ -268,28 +268,28 @@ controls:
                         obj[0x31e + i] = 1;
                     }
                 }
-                if (obj[0x31d] == 0xff) {
+                if ((uint8_t)((struct unit_object *)obj)->unit.desired_grenade_index == 0xff) {
                     obj[0x31d] = 0;
                 }
             }
-            if (obj[0x321] != obj[0x320]) {
-                obj[0x320] = obj[0x321];
-                if (obj[0x320] == 0xff) {
+            if ((uint8_t)((struct unit_object *)obj)->unit.desired_zoom_level != (uint8_t)((struct unit_object *)obj)->unit.zoom_level) {
+                obj[0x320] = (uint8_t)((struct unit_object *)obj)->unit.desired_zoom_level;
+                if ((uint8_t)((struct unit_object *)obj)->unit.zoom_level == 0xff) {
                     *(int32_t *)&((struct unit_object *)obj)->unit.integrated_night_vision_power = 0;
                 }
                 if (player_index_from_unit_index(unit_index) != k_datum_index_none &&
                     *(int16_t *)((uint8_t *)player_data->data +
                         (player_index_from_unit_index(unit_index) & 0xffff) * 0x200 + 2) != -1) {
-                    datum_index weapon = UnitView(unit_index).get_weapon_object_index(*(int16_t *)(OBJECT_DATA(unit_index) + 0x2f2));
+                    datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)OBJECT_DATA(unit_index))->unit.current_weapon_index);
 
                     if (weapon != k_datum_index_none) {
                         uint8_t *weapon_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(weapon));
-                        datum_index sound = (obj[0x320] == 0xff) ? *(datum_index *)(weapon_tag + 0x4bc)
+                        datum_index sound = ((uint8_t)((struct unit_object *)obj)->unit.zoom_level == 0xff) ? *(datum_index *)(weapon_tag + 0x4bc)
                                                                  : *(datum_index *)(weapon_tag + 0x4ac);
                         float fraction = 1.0f;
 
-                        if (obj[0x320] != 0xff && *(int16_t *)(weapon_tag + 0x3da) > 1) {
-                            fraction = (float)(int8_t)obj[0x320] / (float)(*(int16_t *)(weapon_tag + 0x3da) - 1);
+                        if ((uint8_t)((struct unit_object *)obj)->unit.zoom_level != 0xff && *(int16_t *)(weapon_tag + 0x3da) > 1) {
+                            fraction = (float)(int8_t)(uint8_t)((struct unit_object *)obj)->unit.zoom_level / (float)(*(int16_t *)(weapon_tag + 0x3da) - 1);
                         }
                         if (sound != k_datum_index_none) {
                             sound_start_unspatialized(sound, fraction);
@@ -299,7 +299,7 @@ controls:
             }
         }
 
-        speed_scale = (obj[0x288] == 1) ? ((Unit *)tag)->casual_aiming_modifier : 1.0f;
+        speed_scale = ((uint8_t)((struct unit_object *)obj)->unit.aiming_speed == 1) ? ((Unit *)tag)->casual_aiming_modifier : 1.0f;
         rate = speed_scale * ((Unit *)tag)->aiming_velocity_maximum * 0.033333335f;
         acceleration = speed_scale * ((Unit *)tag)->aiming_acceleration_maximum * 0.0011111111f;
         previous_aim = *(real_vector3d *)&((unit_object *)obj)->unit.aiming_vector.i;
@@ -307,27 +307,27 @@ controls:
         if (rate == 0.0f && acceleration == 0.0f) {
             *(real_vector3d *)&((unit_object *)obj)->unit.aiming_vector.i = *(real_vector3d *)&((unit_object *)obj)->unit.desired_aiming_vector.i;
             if (UnitView(unit_index).is_look_target_valid()) {
-                UnitView(unit_index).clamp_direction_to_aim_or_look_bounds((real_vector3d *)(obj + 0x23c), 1);
+                UnitView(unit_index).clamp_direction_to_aim_or_look_bounds((real_vector3d *)&((struct unit_object *)obj)->unit.aiming_vector, 1);
             }
             *(real_point3d *)&((unit_object *)obj)->unit.aiming_velocity.i = *global_origin3d_pointer;
-        } else if (obj[0x2b6] != 0) {
+        } else if ((uint8_t)((struct unit_object *)obj)->unit.aiming_bounds_valid != 0) {
             real_matrix4x3 basis;
 
             basis.scale = 1.0f;
             object_get_orientation(&basis.forward, unit_index, &basis.up);
             vector3d_cross_product(&basis.left, &basis.forward, &basis.up);
             basis.position = *zero_vector;
-            vector3d_rotate_toward_bounded((real_vector3d *)(obj + 0x23c), (real_vector3d *)(obj + 0x248),
-                (real *)(obj + 0x2b8), rate, acceleration, (real_vector3d *)(obj + 0x230), &basis);
+            vector3d_rotate_toward_bounded((real_vector3d *)&((struct unit_object *)obj)->unit.aiming_vector, (real_vector3d *)&((struct unit_object *)obj)->unit.aiming_velocity,
+                (real *)&((struct unit_object *)obj)->unit.aiming_bounds, rate, acceleration, (real_vector3d *)&((struct unit_object *)obj)->unit.desired_aiming_vector, &basis);
         } else {
-            vector3d_rotate_toward_with_acceleration((real_vector3d *)(obj + 0x23c), (real_vector3d *)(obj + 0x230),
-                (real_vector3d *)(obj + 0x248), rate, acceleration);
+            vector3d_rotate_toward_with_acceleration((real_vector3d *)&((struct unit_object *)obj)->unit.aiming_vector, (real_vector3d *)&((struct unit_object *)obj)->unit.desired_aiming_vector,
+                (real_vector3d *)&((struct unit_object *)obj)->unit.aiming_velocity, rate, acceleration);
         }
         {
             float change = 0.0f;
 
             if (((Unit *)tag)->aiming_velocity_maximum != 0.0f) {
-                change = vector3d_angle_between_4cd4f0(&previous_aim, (real_vector3d *)(obj + 0x23c)) /
+                change = vector3d_angle_between_4cd4f0(&previous_aim, (real_vector3d *)&((struct unit_object *)obj)->unit.aiming_vector) /
                     (((Unit *)tag)->aiming_velocity_maximum * 0.033333335f);
                 if (change < 0.0f) {
                     change = 0.0f;
@@ -341,26 +341,26 @@ controls:
         acceleration = speed_scale * ((Unit *)tag)->looking_acceleration_maximum * 0.0011111111f;
         if (rate == 0.0f && acceleration == 0.0f) {
             *(real_vector3d *)&((unit_object *)obj)->unit.looking_vector.i = *(real_vector3d *)&((unit_object *)obj)->unit.desired_looking_vector.i;
-            UnitView(unit_index).clamp_direction_to_aim_or_look_bounds((real_vector3d *)(obj + 0x260), 0);
+            UnitView(unit_index).clamp_direction_to_aim_or_look_bounds((real_vector3d *)&((struct unit_object *)obj)->unit.looking_vector, 0);
             *(real_point3d *)&((unit_object *)obj)->unit.looking_velocity.i = *global_origin3d_pointer;
-        } else if (obj[0x2b7] != 0) {
+        } else if ((uint8_t)((struct unit_object *)obj)->unit.looking_bounds_valid != 0) {
             real_matrix4x3 basis;
 
             basis.scale = 1.0f;
             object_get_orientation(&basis.forward, unit_index, &basis.up);
             vector3d_cross_product(&basis.left, &basis.forward, &basis.up);
             basis.position = *zero_vector;
-            vector3d_rotate_toward_bounded((real_vector3d *)(obj + 0x260), (real_vector3d *)(obj + 0x26c),
-                (real *)(obj + 0x2c8), rate, acceleration, (real_vector3d *)(obj + 0x254), &basis);
+            vector3d_rotate_toward_bounded((real_vector3d *)&((struct unit_object *)obj)->unit.looking_vector, (real_vector3d *)&((struct unit_object *)obj)->unit.looking_velocity,
+                (real *)&((struct unit_object *)obj)->unit.looking_bounds, rate, acceleration, (real_vector3d *)&((struct unit_object *)obj)->unit.desired_looking_vector, &basis);
         } else {
-            vector3d_rotate_toward_with_acceleration((real_vector3d *)(obj + 0x260), (real_vector3d *)(obj + 0x254),
-                (real_vector3d *)(obj + 0x26c), rate, acceleration);
+            vector3d_rotate_toward_with_acceleration((real_vector3d *)&((struct unit_object *)obj)->unit.looking_vector, (real_vector3d *)&((struct unit_object *)obj)->unit.desired_looking_vector,
+                (real_vector3d *)&((struct unit_object *)obj)->unit.looking_velocity, rate, acceleration);
         }
 
         if (!unit_updates_suppressed) {
             uint8_t throwing = (uint8_t)((((unit_object *)obj)->unit.control_flags >> 13) & 1);
 
-            switch ((int8_t)obj[0x28d]) {
+            switch ((int8_t)(uint8_t)((struct unit_object *)obj)->unit.throwing_grenade_state) {
             case 0:
                 if (throwing) {
                     UnitView(unit_index).begin_throw_grenade(0);
@@ -373,12 +373,12 @@ controls:
                 break;
             case 2:
                 (((unit_object *)obj)->unit.throwing_grenade_counter)++;
-                if (obj[0x2a3] != 0x21) {
+                if ((uint8_t)((struct unit_object *)obj)->unit.animation_state != 0x21) {
                     UnitView(unit_index).release_thrown_grenade(1);
                 }
                 break;
             case 3:
-                if (obj[0x2a3] != 0x21 && !throwing) {
+                if ((uint8_t)((struct unit_object *)obj)->unit.animation_state != 0x21 && !throwing) {
                     obj[0x28d] = 0;
                 }
                 break;
@@ -395,7 +395,7 @@ controls:
             if (((unit_object *)obj)->unit.current_weapon_index == ((unit_object *)obj)->unit.desired_weapon_index) {
                 uint8_t flashing = (uint8_t)(((struct unit_object *)obj)->unit.persistent_control_ticks > 0 && (((struct unit_object *)obj)->unit.persistent_control_flags & 0x800) != 0);
 
-                if (valid_team_player && (obj[0x208] & 0x10) != 0) {
+                if (valid_team_player && ((uint8_t)((struct unit_object *)obj)->unit.control_flags & 0x10) != 0) {
                     control = 1;
                 }
                 if ((((unit_object *)obj)->unit.control_flags & 0x800) != 0) {
@@ -404,8 +404,8 @@ controls:
                 if ((((unit_object *)obj)->unit.control_flags & 0x1000) != 0) {
                     control |= 4;
                 }
-                if ((*(uint32_t *)(TAG_DATA(*(datum_index *)obj) + 0x17c) & 0x800000) != 0) {
-                    weapon_set_ready_timer(UnitView(unit_index).get_weapon_object_index(*(int16_t *)(OBJECT_DATA(unit_index) + 0x2f2)), ((struct unit_object *)obj)->unit.integrated_light_power);
+                if ((((struct Unit *)TAG_DATA(*(datum_index *)obj))->unit_flags & 0x800000) != 0) {
+                    weapon_set_ready_timer(UnitView(unit_index).get_weapon_object_index(((struct unit_object *)OBJECT_DATA(unit_index))->unit.current_weapon_index), ((struct unit_object *)obj)->unit.integrated_light_power);
                 }
                 if ((((unit_object *)obj)->unit.control_flags & 0x400) != 0) {
                     control |= 8;
@@ -416,15 +416,15 @@ controls:
                 if (((unit_object *)obj)->base.type == 0 && (int8_t)obj[0x505] > 0) {
                     control |= 0x10;
                 }
-                if (obj[0x320] != 0xff) {
+                if ((uint8_t)((struct unit_object *)obj)->unit.zoom_level != 0xff) {
                     control |= 0x40;
                 }
             } else {
                 control = 0x20;
             }
             unit_now = OBJECT_DATA(unit_index);
-            if (*(int16_t *)(unit_now + 0x2f2) != -1) {
-                weapon = *(datum_index *)(unit_now + 0x2f8 + *(int16_t *)(unit_now + 0x2f2) * 4);
+            if (((struct unit_object *)unit_now)->unit.current_weapon_index != -1) {
+                weapon = *(datum_index *)(unit_now + 0x2f8 + ((struct unit_object *)unit_now)->unit.current_weapon_index * 4);
             }
             weapon_set_control_flags(weapon, (uint16_t)control, trigger);
         }
@@ -433,11 +433,11 @@ controls:
     if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x800) == 0) {
         int16_t seat;
 
-        if ((obj[0x298] & 2) != 0) {
+        if (((uint8_t)((struct unit_object *)obj)->unit.animation_state_flags & 2) != 0) {
             UnitView(unit_index).update_look_delta_controls();
-            *(float *)(obj + 0x364) = *(float *)(obj + 0x370) * LOOK_BLEND_NEW + *(float *)(obj + 0x364) * LOOK_BLEND_OLD;
-            *(float *)(obj + 0x368) = *(float *)(obj + 0x374) * LOOK_BLEND_NEW + *(float *)(obj + 0x368) * LOOK_BLEND_OLD;
-            *(float *)(obj + 0x36c) = *(float *)(obj + 0x378) * LOOK_BLEND_NEW + *(float *)(obj + 0x36c) * LOOK_BLEND_OLD;
+            ((struct unit_object *)obj)->unit.animation_controls_smoothed[0] = ((struct unit_object *)obj)->unit.animation_controls[0] * LOOK_BLEND_NEW + ((struct unit_object *)obj)->unit.animation_controls_smoothed[0] * LOOK_BLEND_OLD;
+            ((struct unit_object *)obj)->unit.animation_controls_smoothed[1] = ((struct unit_object *)obj)->unit.animation_controls[1] * LOOK_BLEND_NEW + ((struct unit_object *)obj)->unit.animation_controls_smoothed[1] * LOOK_BLEND_OLD;
+            ((struct unit_object *)obj)->unit.animation_controls_smoothed[2] = ((struct unit_object *)obj)->unit.animation_controls[2] * LOOK_BLEND_NEW + ((struct unit_object *)obj)->unit.animation_controls_smoothed[2] * LOOK_BLEND_OLD;
         }
         for (seat = 0; seat < *(int32_t *)&((Unit *)tag)->powered_seats.count; seat++) {
             uint8_t *powered = *(uint8_t **)&((Unit *)tag)->powered_seats.pointer + seat * 0x44;
@@ -445,12 +445,12 @@ controls:
             uint8_t occupied;
 
             if (seat == 0) {
-                occupied = (uint8_t)(((unit_object *)obj)->unit.driver_unit_index != k_datum_index_none || (obj[0x204] & 1) != 0);
+                occupied = (uint8_t)(((unit_object *)obj)->unit.driver_unit_index != k_datum_index_none || ((uint8_t)((struct unit_object *)obj)->unit.flags & 1) != 0);
             } else {
                 occupied = (uint8_t)(((unit_object *)obj)->unit.gunner_unit_index != k_datum_index_none &&
                     ((unit_object *)obj)->unit.gunner_unit_index != ((unit_object *)obj)->unit.driver_unit_index);
             }
-            if ((obj[0x106] & 4) == 0 && occupied) {
+            if (((uint8_t)((struct object *)obj)->vitality_flags & 4) == 0 && occupied) {
                 if (*power != 1.0f) {
                     *power += 1.0f / (*(float *)(powered + 4) * 30.0f);
                     if (*power > 1.0f) {
@@ -481,7 +481,7 @@ controls:
             }
         }
     }
-    if (obj[0x28b] != 0) {
+    if ((uint8_t)((struct unit_object *)obj)->unit.flaming_ticks != 0) {
         if (unit_updates_suppressed) {
             goto done;
         }
@@ -547,7 +547,7 @@ controls:
                         }
                         ((unit_object *)obj)->unit.flags ^= 0x4000000;
                     }
-                    if ((obj[0x208] & 0x10) != 0) {
+                    if (((uint8_t)((struct unit_object *)obj)->unit.control_flags & 0x10) != 0) {
                         toggle_light = 0;
                     }
                 }
@@ -563,7 +563,7 @@ controls:
             if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x1000000) == 0) {
                 ((struct unit_object *)obj)->unit.integrated_light_energy -= 0.00027777778f;
             }
-            if (((unit_object *)obj)->base.parent_object != k_datum_index_none || (obj[0x106] & 4) != 0) {
+            if (((unit_object *)obj)->base.parent_object != k_datum_index_none || ((uint8_t)((struct object *)obj)->vitality_flags & 4) != 0) {
                 ((unit_object *)obj)->unit.flags = flags & 0xfff7ffff;
             }
             if (((struct unit_object *)obj)->unit.integrated_light_power != 1.0f) {

@@ -38,7 +38,7 @@ void UnitView::add_marker_relative_offset(uint32_t mode, float *world_point, uin
     real_point3d reference;
     int have_reference = 0;
 
-    if (parent_index == k_datum_index_none && (unit[0x106] & 4) == 0) {
+    if (parent_index == k_datum_index_none && ((uint8_t)((struct object *)unit)->vitality_flags & 4) == 0) {
         if (((unit_object *)unit)->base.type == 0) {
             UnitView(unit_index).compute_marker_offset_position((real_vector3d *)reference_direction, (int16_t)mode, accumulator, world_point, (float *)offsets);
             return;
@@ -321,7 +321,7 @@ void UnitView::update_marker_skid_effects(uint8_t *contact_points)
         }
         intensity_bits = *(uint32_t *)&scaled;
         material_effects_play_at_marker(*(uint32_t *)(tag + 0x3dc), (int16_t)(9 + (*(uint32_t *)(node + 0x24) & 1)),
-            *(int16_t *)(contact + 0x70), (uint32_t *)(obj + 0x98), intensity_bits, &position, &offset);
+            *(int16_t *)(contact + 0x70), (uint32_t *)&((struct object *)obj)->location_leaf_index, intensity_bits, &position, &offset);
     }
 }
 

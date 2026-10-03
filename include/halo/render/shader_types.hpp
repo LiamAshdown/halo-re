@@ -28,7 +28,7 @@ enum class shader_type_id : int16_t {
 constexpr bool shader_type_is_transparent(int32_t shader_type) noexcept {
     return shader_type == static_cast<int32_t>(shader_type_id::effect) ||
            (shader_type > static_cast<int32_t>(shader_type_id::model) &&
-            shader_type <= static_cast<int32_t>(shader_type_id::transparent_plasma));
+            shader_type < static_cast<int32_t>(shader_type_id::transparent_plasma) + 1);
 }
 
 }  // namespace halo::render

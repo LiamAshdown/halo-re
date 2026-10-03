@@ -143,11 +143,11 @@ uint8_t UnitView::clamp_direction_to_aim_or_look_bounds(real_vector3d *world_dir
     float x, y, z, yaw, pitch;
 
     if (use_aiming_bounds) {
-        valid = unit[0x2b6];
-        bounds = (float *)(unit + 0x2b8);
+        valid = (uint8_t)((struct unit_object *)unit)->unit.aiming_bounds_valid;
+        bounds = (float *)&((struct unit_object *)unit)->unit.aiming_bounds;
     } else {
-        valid = unit[0x2b7];
-        bounds = (float *)(unit + 0x2c8);
+        valid = (uint8_t)((struct unit_object *)unit)->unit.looking_bounds_valid;
+        bounds = (float *)&((struct unit_object *)unit)->unit.looking_bounds;
     }
     if (!valid) {
         return 0;
@@ -618,7 +618,7 @@ void UnitView::reset_orientation_and_find_position(uint32_t vehicle_index)
 {
     uint32_t object_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
+    real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
 
     forward->k = 0.0f;
     if (vector3d_normalize_with_length(forward) == 0.0f) {
@@ -854,7 +854,7 @@ void UnitView::update_look_delta_controls()
         up = obj->up;
         {
             Unit *tag = (Unit *)tag_instances[obj->definition_tag & 0xffff].data;
-            scale = (real_vector3d *)((uint8_t *)tag + 0x200);
+            scale = (real_vector3d *)&((struct Unit *)tag)->seat_acceleration_scale;
         }
     } else {
         object *parent = ((object_header *)object_data->data)[obj->parent_object & 0xffff].data;
@@ -1019,16 +1019,16 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
     if (forced) {
         allow_death_reaction = 0;
         soft_ping = 1;
-        hard_ping = OBJECT_F32(unit_tag, 0x228) > 0.0f && OBJECT_F32(obj, 0xec) > OBJECT_F32(unit_tag, 0x228);
+        hard_ping = ((struct Unit *)unit_tag)->hard_death_threshold > 0.0f && ((struct object *)obj)->current_body_damage > ((struct Unit *)unit_tag)->hard_death_threshold;
     } else if (allow_death_reaction) {
         forced = 1;
         soft_ping = 1;
         hard_ping = 0;
     } else {
-        soft_ping = OBJECT_F32(obj, 0xec) > OBJECT_F32(unit_tag, 0x218) ||
-            OBJECT_F32(obj, 0xe8) > OBJECT_F32(unit_tag, 0x218);
-        hard_ping = OBJECT_F32(obj, 0xec) > OBJECT_F32(unit_tag, 0x220);
-        if (ignore_disoriented || (int8_t)OBJECT_U8(obj, 0x204) < 0) {
+        soft_ping = ((struct object *)obj)->current_body_damage > ((struct Unit *)unit_tag)->soft_ping_threshold ||
+            ((struct object *)obj)->current_shield_damage > ((struct Unit *)unit_tag)->soft_ping_threshold;
+        hard_ping = ((struct object *)obj)->current_body_damage > ((struct Unit *)unit_tag)->hard_ping_threshold;
+        if (ignore_disoriented || (int8_t)(uint8_t)((struct unit_object *)obj)->unit.flags < 0) {
             hard_ping = 0;
         }
     }
@@ -1057,7 +1057,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
     graph = (uint8_t *)tag_instances[graph_tag & 0xffff].data;
 
     if (!hard_ping && !forced) {
-        if (OBJECT_I16(obj, 0x2b2) != -1 && OBJECT_I16(obj, 0x2b4) <= OBJECT_I16(unit_tag, 0x2c8)) {
+        if (((struct unit_object *)obj)->unit.overlays[2].animation_index != -1 && ((struct unit_object *)obj)->unit.overlays[2].frame <= ((struct Unit *)unit_tag)->soft_ping_interrupt_ticks) {
             return;
         }
         animation = animation_choose_random_permutation(graph_tag,
@@ -1065,8 +1065,8 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         if (animation == -1) {
             return;
         }
-        OBJECT_I16(obj, 0x2b2) = animation;
-        OBJECT_I16(obj, 0x2b4) = 0;
+        ((struct unit_object *)obj)->unit.overlays[2].animation_index = animation;
+        ((struct unit_object *)obj)->unit.overlays[2].frame = 0;
         return;
     }
 
@@ -1078,14 +1078,14 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         stance_class = 1;
         allowed = ::halo::units::unit_animation_state_is_compatible(obj + 0x298, new_state) ? 1 : 0;
     }
-    if (OBJECT_U8(obj, 0x2a3) == 0x17 && OBJECT_I16(obj, 0xd2) > OBJECT_I16(unit_tag, 0x2ca)) {
+    if ((uint8_t)((struct unit_object *)obj)->unit.animation_state == 0x17 && ((struct object *)obj)->animation_frame > ((struct Unit *)unit_tag)->hard_ping_interrupt_ticks) {
         allowed = 1;
     }
     if (!forced) {
-        if (OBJECT_U8(obj, 0x106) & 4) {
+        if ((uint8_t)((struct object *)obj)->vitality_flags & 4) {
             allowed = 0;
         }
-        if (OBJECT_I32(obj, 0x11c) != -1) {
+        if ((int32_t)((struct object *)obj)->parent_object != -1) {
             return;
         }
     }
@@ -1095,7 +1095,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
     if (forced) {
         UnitView(unit_index).set_or_test_seat_and_weapon_label(s_stand, UnitView(unit_index).get_current_weapon_label(), 1);
     }
-    if (new_state == 0x19 && OBJECT_I16(obj, 0xb4) == 0 && (OBJECT_U8(obj, 0x4cc) & 1) &&
+    if (new_state == 0x19 && ((struct object *)obj)->type == 0 && (OBJECT_U8(obj, 0x4cc) & 1) &&
         (OBJECT_I32(unit_tag, 0x2f4) & 0x400) == 0) {
         new_state = 0x18;
         if (UnitView(unit_index).try_set_animation_state(0x18)) {
@@ -1107,8 +1107,8 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         animation_table_lookup(graph, (int16_t)((facing + stance_class * 4) * 0xb + weapon_class)), 1);
     if (animation == -1) {
         if (forced) {
-            OBJECT_U16(obj, 0x298) = (uint16_t)((OBJECT_U16(obj, 0x298) & 0xfff7) | 4);
-            if (OBJECT_U8(unit_tag, 0x17c) & 2) {
+            ((struct unit_object *)obj)->unit.animation_state_flags = (uint16_t)((((struct unit_object *)obj)->unit.animation_state_flags & 0xfff7) | 4);
+            if ((uint8_t)((struct Unit *)unit_tag)->unit_flags & 2) {
                 object_delete_teardown(unit_index);
                 UnitView(unit_index).pick_random_spawned_actor_count();
             }
@@ -1116,7 +1116,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
     } else {
         uint8_t *animation_data = *(uint8_t **)&((ModelAnimations *)graph)->animations.pointer + animation * 0xb4;
 
-        if (OBJECT_U8(obj, 0x2a3) == 0x21) {
+        if ((uint8_t)((struct unit_object *)obj)->unit.animation_state == 0x21) {
             UnitView(unit_index).release_thrown_grenade(1);
         }
         object_copy_default_node_transforms(unit_index, 3);
@@ -1127,7 +1127,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
             uint8_t keep_still = suppress_shield_check || allow_death_reaction;
 
             if (!keep_still && network_game_mode != 0) {
-                datum_index weapon = UnitView(unit_index).get_weapon_object_index(OBJECT_I16(obj, 0x2f2));
+                datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)obj)->unit.current_weapon_index);
 
                 if (object_try_and_get(weapon, 4) != 0 && weapon_must_be_readied(weapon) == 1) {
                     keep_still = 1;
@@ -1158,8 +1158,8 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
     }
 
 aim:
-    if (throttle == 0 || (OBJECT_I32(unit_tag, 0x17c) & 0x200) || OBJECT_I16(obj, 0xb4) != 0 ||
-        OBJECT_I32(obj, 0x11c) != -1 || (!hard_ping && !forced)) {
+    if (throttle == 0 || ((int32_t)((struct Unit *)unit_tag)->unit_flags & 0x200) || ((struct object *)obj)->type != 0 ||
+        (int32_t)((struct object *)obj)->parent_object != -1 || (!hard_ping && !forced)) {
         return;
     }
     {

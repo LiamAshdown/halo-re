@@ -849,7 +849,7 @@ step_crouch:
         lunge.i = solve.result_position.x - solve.start_position.x;
         lunge.j = solve.result_position.y - solve.start_position.y;
         lunge.k = solve.result_position.z - solve.start_position.z;
-        if (ray_intersects_sphere_test(&solve.start_position, (real_point3d *)(target + 0xa0), &lunge,
+        if (ray_intersects_sphere_test(&solve.start_position, (real_point3d *)&((struct object *)target)->bounding_center, &lunge,
                                        ((object *)target)->bounding_radius) &&
             object_collision_context_build(target_index, &context) &&
             object_collision_context_test_segment(&context, 3, &solve.start_position, &lunge, &node_hit) &&
@@ -1373,7 +1373,7 @@ void biped_movement_solve(biped_movement_solver_data *solve)
             }
             if (header != 0 && (int8_t)(1 << (header->type & 0x1f)) < 0 && header->data != 0) {
                 uint8_t *tag = (uint8_t *)tag_instances[header->data->definition_tag & 0xffff].data;
-                if ((tag[0x292] & 4) != 0 && *(int16_t *)(tag + 0x2ea) != -1) {
+                if (((uint8_t)(((struct Unit *)tag)->melee_damage.path_size >> 16) & 4) != 0 && *(int16_t *)(tag + 0x2ea) != -1) {
                     solve->result_surface_index = object_index;
                 }
             }

@@ -201,8 +201,8 @@ uint8_t UnitView::begin_throw_grenade(const real_vector2d *direction)
         } else {
             real_vector2d aim;
 
-            aim.i = *(float *)((uint8_t *)unit_obj + 0x23c);
-            aim.j = *(float *)((uint8_t *)unit_obj + 0x240);
+            aim.i = ((struct unit_object *)unit_obj)->unit.aiming_vector.i;
+            aim.j = ((struct unit_object *)unit_obj)->unit.aiming_vector.j;
             if (0.0f < vector2d_normalize_with_length(&aim)) {
                 UnitView(unit_index).set_throw_aim_direction(&aim);
             }
@@ -556,23 +556,23 @@ void UnitView::drop_object_from_hand(uint32_t object_index)
         object_set_cluster_and_parent(object_index, 0);
         object = OBJECT_DATA(object_index);
         object_tag = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
-        if (*(int32_t *)(object_tag + 0x34) != -1) {
-            if (object[0x10] & 1) {
+        if (*(int32_t *)&((struct Unit *)object_tag)->base.model.tag_id != -1) {
+            if ((uint8_t)((struct object *)object)->flags & 1) {
                 object_for_each_light_attachment(object_index, 0, 1);
             }
-            if (*(int32_t *)(object_tag + 0x34) != -1) {
-                *(uint32_t *)(object + 0x10) &= ~1u;
+            if (*(int32_t *)&((struct Unit *)object_tag)->base.model.tag_id != -1) {
+                ((struct object *)object)->flags &= ~1u;
                 ((object_header *)object_data->data)[object_index & 0xffff].flags |= 2;
             }
         }
         object_reorient_relative_to_marker(unit_index, s_left_hand_marker, object_index, k_empty_string);
     }
-    *(uint32_t *)(OBJECT_DATA(object_index) + 0x1f4) &= ~3u;
+    ((struct unit_object *)OBJECT_DATA(object_index))->unit.actor_index &= ~3u;
     object_snap_to_parent_marker_and_detach(object_index);
     *(real_vector3d *)&((struct object *)dropped)->velocity.i = *global_origin3d_pointer;
     *(real_vector3d *)&((struct object *)dropped)->angular_velocity.i = *global_origin3d_pointer;
 
-    vector3d_randomize_direction((real_point3d *)(unit + 0x23c), &toss, &random_seed_global, 0.0f, 0.39269909f);
+    vector3d_randomize_direction((real_point3d *)&((struct unit_object *)unit)->unit.aiming_vector, &toss, &random_seed_global, 0.0f, 0.39269909f);
     random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
     speed = (real)(int32_t)((uint32_t)random_seed_global >> 16) * 1.5259022e-05f * 0.013333336f + 0.026666667f;
     toss.i *= speed;
@@ -580,7 +580,7 @@ void UnitView::drop_object_from_hand(uint32_t object_index)
     toss.k *= speed;
     object_get_root_object_velocities(unit_index, &root_velocity, 0);
     toss.i += root_velocity.i;
-    *(datum_index *)(dropped + 0x200) = unit_index;
+    ((struct unit_object *)dropped)->unit.swarm_previous_unit_index = unit_index;
     toss.j += root_velocity.j;
     toss.k += root_velocity.k;
     item_accelerate(object_index, &toss, 0);
@@ -590,7 +590,7 @@ void UnitView::drop_object_from_hand(uint32_t object_index)
         object_delete(object_index);
     }
     if (((unit_object *)unit)->unit.flags & 0x100000) {
-        role = *(int32_t *)(OBJECT_DATA(object_index) + 0x4);
+        role = ((struct object *)OBJECT_DATA(object_index))->network_role;
         if (role == 0) {
             object_delete_unparented(object_index);
             object_delete_recursive(object_index, 0);
@@ -735,9 +735,9 @@ uint8_t UnitView::find_weapon_marker_transform(uint32_t vehicle_index, int16_t s
 {
     uint32_t unit_index = datum_handle;
     uint8_t *unit_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(unit_index));
-    uint8_t *model = TAG_DATA(*(datum_index *)(unit_tag + 0x34));
-    uint8_t *graph = TAG_DATA(*(datum_index *)(unit_tag + 0x44));
-    uint8_t *seat = *(uint8_t **)(TAG_DATA(*(datum_index *)OBJECT_DATA(vehicle_index)) + 0x2e8) + seat_index * 0x11c;
+    uint8_t *model = TAG_DATA(*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id);
+    uint8_t *graph = TAG_DATA(*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id);
+    uint8_t *seat = (uint8_t *)((struct Unit *)TAG_DATA(*(datum_index *)OBJECT_DATA(vehicle_index)))->seats.pointer + seat_index * 0x11c;
     uint8_t *block = 0;
     int16_t i;
     int16_t enter_animation;
@@ -1183,9 +1183,9 @@ void UnitView::ready_desired_weapon(uint8_t force)
         int16_t desired;
 
         UnitView(unit_index).set_or_test_seat_and_weapon_label(UnitView(unit_index).get_seat_or_state_name(), weapon_label, 1);
-        graph = (uint8_t *)tag_instances[*(datum_index *)(unit_tag + 0x44) & 0xffff].data;
-        weapon_anim = *(uint8_t **)(*(uint8_t **)&((ModelAnimations *)graph)->units.pointer + (int8_t)unit[0x2a0] * 0x64 + 0x5c) +
-            (int8_t)unit[0x2a1] * 0xbc;
+        graph = (uint8_t *)tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id & 0xffff].data;
+        weapon_anim = *(uint8_t **)(*(uint8_t **)&((ModelAnimations *)graph)->units.pointer + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_definition_index * 0x64 + 0x5c) +
+            (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_weapon_index * 0xbc;
         object_set_cluster_and_parent(desired_weapon, 0);
         weapon_obj = (uint8_t *)OBJECT_HEADER(desired_weapon).data;
         weapon_tag = OBJECT_TAG(weapon_obj);
@@ -1292,11 +1292,11 @@ void UnitView::release_thrown_grenade(uint8_t early)
     uint32_t object_index = datum_handle;
     uint8_t *unit = OBJECT_DATA(object_index);
     uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
-    real_vector3d *aim = (real_vector3d *)(unit + 0x23c);
+    real_vector3d *aim = (real_vector3d *)&((struct unit_object *)unit)->unit.aiming_vector;
     datum_index grenade;
     real_vector3d velocity;
 
-    if (unit[0x28d] != 2) {
+    if ((uint8_t)((struct unit_object *)unit)->unit.throwing_grenade_state != 2) {
         return;
     }
     grenade = ((unit_object *)unit)->unit.throwing_grenade_projectile;
@@ -1360,9 +1360,9 @@ void UnitView::release_thrown_grenade(uint8_t early)
         real_vector3d delta;
         real_point3d camera;
 
-        delta.i = velocity.i - *(float *)(object + 0x68);
-        delta.j = velocity.j - *(float *)(object + 0x6c);
-        delta.k = velocity.k - *(float *)(object + 0x70);
+        delta.i = velocity.i - ((struct object *)object)->velocity.i;
+        delta.j = velocity.j - ((struct object *)object)->velocity.j;
+        delta.k = velocity.k - ((struct object *)object)->velocity.k;
         object_apply_impulse_and_spin(grenade, &delta);
         ((unit_object *)unit)->unit.throwing_grenade_projectile = k_datum_index_none;
         unit[0x28d] = 3;
@@ -1373,7 +1373,7 @@ void UnitView::release_thrown_grenade(uint8_t early)
         }
     }
     if (((unit_object *)unit)->base.network_role == 0 && network_game_mode == 2 && !object_is_delete_pending(grenade)) {
-        *(int32_t *)(OBJECT_DATA(grenade) + 0x4) = 0;
+        ((struct object *)OBJECT_DATA(grenade))->network_role = 0;
         object_type_override_call_0x68(grenade);
         int32_t bits = projectile_send_creation(grenade);
 
@@ -1433,7 +1433,7 @@ void unit_scripting_set_or_drop_weapon(int32_t *message)
     }
     if (UnitView(unit_index).get_weapon_object_index(((unit_object *)unit)->unit.current_weapon_index) != weapon) {
         for (i = 0; i < 4; i++) {
-            if (((datum_index *)(unit + 0x2f8))[i] == weapon) {
+            if (((datum_index *)&((struct unit_object *)unit)->unit.weapons)[i] == weapon) {
                 ((unit_object *)unit)->unit.desired_weapon_index = (int16_t)i;
                 UnitView(unit_index).ready_desired_weapon(1);
                 break;
@@ -1442,7 +1442,7 @@ void unit_scripting_set_or_drop_weapon(int32_t *message)
     }
     current_index = ((unit_object *)unit)->unit.current_weapon_index;
     if (current_index != -1) {
-        current = ((datum_index *)(unit + 0x2f8))[current_index];
+        current = ((datum_index *)&((struct unit_object *)unit)->unit.weapons)[current_index];
     }
     if (current == weapon) {
         UnitView(unit_index).drop_current_weapon((uint8_t)decoded.force);
@@ -1524,7 +1524,7 @@ void UnitView::throw_grenade_move_to_hand()
     object_placement_data_initialize(&placement, *(datum_index *)(grenade_table + grenade_type * 0x44 + 0x40),
                                      unit_index);
     placement.flags |= 2;
-    placement.forward = *(real_vector3d *)((uint8_t *)unit_obj + 0x23c);
+    placement.forward = ((struct unit_object *)unit_obj)->unit.aiming_vector;
     vector3d_build_perpendicular(&placement.up, &placement.forward);
     vector3d_normalize_with_length(&placement.up);
     placement.position = *(real_point3d *)((uint8_t *)&hand_marker + 0x60);
@@ -1610,7 +1610,7 @@ uint8_t UnitView::try_ready_weapon(uint8_t forced, const real_vector2d *directio
     uint32_t unit_index = datum_handle;
     uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     uint8_t *unit_tag = (uint8_t *)tag_instances[*(datum_index *)unit & 0xffff].data;
-    int8_t state = (int8_t)unit[0x2a3];
+    int8_t state = (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_state;
     uint8_t airborne = 0;
     int16_t new_state;
 
@@ -1671,7 +1671,7 @@ uint8_t UnitView::try_ready_weapon_variant(const real_vector2d *direction)
     uint32_t unit_index = datum_handle;
     uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
 
-    if (!unit_animation_state_allows_melee((int8_t)unit[0x2a3])) {
+    if (!unit_animation_state_allows_melee((int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_state)) {
         return 0;
     }
     if (((unit_object *)unit)->base.type == 0 && (unit[0x4cc] & 1) != 0) {
@@ -1759,9 +1759,9 @@ uint8_t unit_weapon_is_best_of_type(uint32_t reference_weapon_index, uint32_t un
             continue;
         }
         if (slot == unit->current_weapon_index) {
-            float slot_score = *(float *)((uint8_t *)slot_weapon + 0x240);
+            float slot_score = ((struct unit_object *)slot_weapon)->unit.aiming_vector.j;
             if (!(slot_score < 0.0f) && (slot_score != 0.0f)) {
-                float ref_score = *(float *)((uint8_t *)reference_obj + 0x240);
+                float ref_score = ((struct unit_object *)reference_obj)->unit.aiming_vector.j;
                 if (ref_score < slot_score) {
                     continue;
                 }

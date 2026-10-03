@@ -106,10 +106,10 @@ void VehicleView::blend_animations(real_orientation *orientations)
             (animation_aiming_screen *)entry, ((struct vehicle_object *)obj)->vehicle.turning_velocity, 0.0f, orientations);
     }
     if (count > 1 && indices[1] != -1) {
-        double speed = vector3d_scalar_triple_product((real_vector3d *)(obj + 0x80), (real_vector3d *)(obj + 0x74),
-            (real_vector3d *)(obj + 0x68));
+        double speed = vector3d_scalar_triple_product((real_vector3d *)&((struct object *)obj)->up, (real_vector3d *)&((struct object *)obj)->forward,
+            (real_vector3d *)&((struct object *)obj)->velocity);
 
-        speed = (speed / *(float *)(vehicle_tag + 0x2f8) + 1.0) * 0.5;
+        speed = (speed / ((struct Vehicle *)vehicle_tag)->maximum_forward_speed + 1.0) * 0.5;
         blend_fraction((ModelAnimationsAnimation *)(animations + indices[1] * 0xb4), clamp_unit(speed), orientations);
     }
     if (count > 2 && indices[2] != -1) {
@@ -117,9 +117,9 @@ void VehicleView::blend_animations(real_orientation *orientations)
         double fraction;
 
         if (steering < 0.0f) {
-            fraction = 0.5 - steering / *(float *)(vehicle_tag + 0x2fc) * 0.5;
+            fraction = 0.5 - steering / ((struct Vehicle *)vehicle_tag)->maximum_reverse_speed * 0.5;
         } else {
-            fraction = (steering / *(float *)(vehicle_tag + 0x2f8) + 1.0) * 0.5;
+            fraction = (steering / ((struct Vehicle *)vehicle_tag)->maximum_forward_speed + 1.0) * 0.5;
         }
         blend_fraction((ModelAnimationsAnimation *)(animations + indices[2] * 0xb4), fraction, orientations);
     }
@@ -128,7 +128,7 @@ void VehicleView::blend_animations(real_orientation *orientations)
             (double)((unit_object *)obj)->base.velocity.j * ((unit_object *)obj)->base.forward.j +
             (double)((unit_object *)obj)->base.velocity.i * ((unit_object *)obj)->base.forward.i;
 
-        forward_speed = clamp_unit(clamp_unit(forward_speed) / fabs(*(float *)(vehicle_tag + 0x2f8)));
+        forward_speed = clamp_unit(clamp_unit(forward_speed) / fabs(((struct Vehicle *)vehicle_tag)->maximum_forward_speed));
         blend_fraction((ModelAnimationsAnimation *)(animations + indices[3] * 0xb4), forward_speed, orientations);
     }
     if (count > 5 && indices[5] != -1) {
@@ -136,8 +136,8 @@ void VehicleView::blend_animations(real_orientation *orientations)
         double fraction = 0.0;
         int32_t frames = *(int16_t *)&((struct ModelAnimationsAnimation *)animation)->frame_count;
 
-        if (*(float *)(vehicle_tag + 0x310) > 0.0f) {
-            fraction = ((struct vehicle_object *)obj)->vehicle.wheel_rotation / *(float *)(vehicle_tag + 0x310);
+        if (((struct Vehicle *)vehicle_tag)->wheel_circumference > 0.0f) {
+            fraction = ((struct vehicle_object *)obj)->vehicle.wheel_rotation / ((struct Vehicle *)vehicle_tag)->wheel_circumference;
         }
         animation_overlay_interpolated_frame_orientations(animation, (float)((double)frames * fraction), orientations);
     }
@@ -167,9 +167,9 @@ void VehicleView::calculate_animation_controls()
     uint32_t unit_index = datum_handle;
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     Vehicle *tag = (Vehicle *)tag_instances[*(uint32_t *)obj & 0xffff].data;
-    real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
-    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
-    real_vector3d *up = (real_vector3d *)(obj + 0x80);
+    real_vector3d *velocity = (real_vector3d *)&((struct object *)obj)->velocity;
+    real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
+    real_vector3d *up = (real_vector3d *)&((struct object *)obj)->up;
     float forward_velocity = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     float sideways_velocity = ((struct vehicle_object *)obj)->vehicle.sideways_velocity;
     float turning_velocity = ((struct vehicle_object *)obj)->vehicle.turning_velocity;
@@ -182,8 +182,8 @@ void VehicleView::calculate_animation_controls()
     float max_left_turn = fabsf(tag->maximum_left_turn);
     float max_right_turn = fabsf(tag->maximum_right_turn);
     float max_turn = (max_left_turn > max_right_turn) ? max_left_turn : max_right_turn;
-    int16_t *selectors = (int16_t *)((uint8_t *)tag + 0x31c);
-    float *outputs = (float *)(obj + 0x124);
+    int16_t *selectors = (int16_t *)&((struct Vehicle *)tag)->vehicle_a_in;
+    float *outputs = (float *)&((struct object *)obj)->function_in_values;
     int i;
 
     for (i = 0; i < 4; i++) {
@@ -228,23 +228,23 @@ void VehicleView::calculate_animation_controls()
             value = fabsf(turning_velocity) / max_right_turn;
             break;
         case 0xb:
-            outputs[i] = (obj[0x4cc] & 4) ? 1.0f : 0.0f;
+            outputs[i] = ((uint8_t)((struct vehicle_object *)obj)->vehicle.flags & 4) ? 1.0f : 0.0f;
             continue;
         case 0xc:
-            outputs[i] = (obj[0x4cc] & 8) ? 1.0f : 0.0f;
+            outputs[i] = ((uint8_t)((struct vehicle_object *)obj)->vehicle.flags & 8) ? 1.0f : 0.0f;
             continue;
         case 0xe:
             value = vector3d_length(velocity) / max_speed;
             break;
         case 0xf:
-            if ((obj[0x10] & 0x1c) == 0) {
+            if (((uint8_t)((struct object *)obj)->flags & 0x1c) == 0) {
                 outputs[i] = 0.0f;
                 continue;
             }
             value = vector3d_length(velocity) / max_speed;
             break;
         case 0x10:
-            if ((obj[0x10] & 2) == 0) {
+            if (((uint8_t)((struct object *)obj)->flags & 2) == 0) {
                 outputs[i] = 0.0f;
                 continue;
             }
@@ -290,7 +290,7 @@ void VehicleView::calculate_animation_controls()
         case 0x23: {
             float lean = fabsf(forward->k * velocity->k + forward->j * velocity->j + forward->i * velocity->i) / max_speed;
             float speed = fabsf(forward_velocity) / max_forward;
-            float blend = ((float)obj[0x4d0] * 0.2f + 1.0f) * 0.5f;
+            float blend = ((float)((struct vehicle_object *)obj)->vehicle.airborne_ticks * 0.2f + 1.0f) * 0.5f;
 
             if (blend < 0.0f) {
                 blend = 0.0f;
@@ -335,10 +335,10 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     real mass = *(real *)(physics + 0x8);
     real throttle = ((struct vehicle_object *)obj)->unit.driver_seat_power;
-    real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
-    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
-    real_vector3d *object_up = (real_vector3d *)(obj + 0x80);
-    real_vector3d *angular_velocity = (real_vector3d *)(obj + 0x8c);
+    real_vector3d *velocity = (real_vector3d *)&((struct object *)obj)->velocity;
+    real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
+    real_vector3d *object_up = (real_vector3d *)&((struct object *)obj)->up;
+    real_vector3d *angular_velocity = (real_vector3d *)&((struct object *)obj)->angular_velocity;
     real_vector3d *world_up = global_up3d_pointer;
     real_point3d target_velocity;
     real_vector3d delta, force, torque, axis;
@@ -357,9 +357,9 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     target_velocity.x = speed * forward->i;
     target_velocity.y = speed * forward->j;
     target_velocity.z = speed * forward->k;
-    frac = speed > 0.0f ? speed / *(real *)(tag + 0x2f8) : -(speed / *(real *)(tag + 0x2fc));
+    frac = speed > 0.0f ? speed / ((struct Vehicle *)tag)->maximum_forward_speed : -(speed / ((struct Vehicle *)tag)->maximum_reverse_speed);
     vector3d_delta_toward_gravity_biased_clamp_length((real_point3d *)velocity, &target_velocity, &delta,
-        frac * *(real *)(tag + 0x300), frac * *(real *)(tag + 0x304));
+        frac * ((struct Vehicle *)tag)->speed_acceleration, frac * ((struct Vehicle *)tag)->speed_deceleration);
     force.i = delta.i * mass * throttle;
     force.j = delta.j * mass * throttle;
     force.k = delta.k * mass * throttle;
@@ -377,10 +377,10 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
         rider = (uint8_t *)((object_header *)object_data->data)[((unit_object *)obj)->unit.driver_unit_index & 0xffff].data;
     }
     if (*(datum_index *)(rider + 0x1f4) == (datum_index)0xffffffff) {
-        real pitch = *(real *)(tag + 0x364);
+        real pitch = ((struct Vehicle *)tag)->fixed_gun_pitch;
         vector3d_rotate_pair_in_plane(&basis[2], &basis[0], (real)sin((double)pitch), (real)cos((double)pitch));
     }
-    angle = (basis[0].i * velocity->j - basis[0].j * velocity->i) / *(real *)(tag + 0x2f8) * *(real *)(tag + 0x308);
+    angle = (basis[0].i * velocity->j - basis[0].j * velocity->i) / ((struct Vehicle *)tag)->maximum_forward_speed * ((struct Vehicle *)tag)->maximum_left_turn;
     vector3d_rotate_about_axis_perpendicular(&basis[2], &basis[0], (real)sin((double)angle), (real)cos((double)angle));
     basis[1].i = basis[2].j * basis[0].k - basis[2].k * basis[0].j;
     basis[1].j = basis[2].k * basis[0].i - basis[2].i * basis[0].k;
@@ -391,14 +391,14 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     quaternion_from_matrix3x3(&relative, &rotation);
     quaternion_to_axis_angle(&rotation, &axis, &angle);
 
-    k = -angle * *(real *)(tag + 0x314) * 0.31830987f;
+    k = -angle * ((struct Vehicle *)tag)->turn_rate * 0.31830987f;
     moment = (*(real *)(physics + 0x58) + *(real *)(physics + 0x54) + *(real *)(physics + 0x50)) * 0.33333334f;
     torque.i = (axis.i * k - angular_velocity->i) * moment * throttle;
     torque.j = (axis.j * k - angular_velocity->j) * moment * throttle;
     torque.k = (axis.k * k - angular_velocity->k) * moment * throttle;
 
     spin_rate = (real)sqrt((double)(angular_velocity->i * angular_velocity->i + angular_velocity->j * angular_velocity->j +
-        angular_velocity->k * angular_velocity->k)) / *(real *)(tag + 0x314);
+        angular_velocity->k * angular_velocity->k)) / ((struct Vehicle *)tag)->turn_rate;
     lean = ((struct vehicle_object *)obj)->vehicle.ground_contact_fraction;
     if (spin_rate > lean) {
         step = (1.0f - lean) * (1.0f - lean) * 0.2f;
@@ -444,13 +444,13 @@ void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_
     uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
     uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     uint8_t *powered = (uint8_t *)out_record;
-    real max_speed = *(real *)(tag + 0x2f8);
+    real max_speed = ((struct Vehicle *)tag)->maximum_forward_speed;
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     real throttle;
-    real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
-    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
-    real_vector3d *object_up = (real_vector3d *)(obj + 0x80);
-    real_vector3d *angular_velocity = (real_vector3d *)(obj + 0x8c);
+    real_vector3d *velocity = (real_vector3d *)&((struct object *)obj)->velocity;
+    real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
+    real_vector3d *object_up = (real_vector3d *)&((struct object *)obj)->up;
+    real_vector3d *angular_velocity = (real_vector3d *)&((struct object *)obj)->angular_velocity;
     real_vector3d facing, up, force, torque, axis;
     real_matrix4x3 current, desired, relative;
     real_quaternion rotation;
@@ -530,15 +530,15 @@ void VehicleView::calculate_ground_lean_controls(uint8_t *out_transform)
     uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
     uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
     uint16_t flags = ((struct vehicle_object *)obj)->vehicle.flags;
-    real max_speed = *(real *)(tag + 0x2f8);
+    real max_speed = ((struct Vehicle *)tag)->maximum_forward_speed;
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     real throttle = ((struct vehicle_object *)obj)->unit.driver_seat_power;
     real clamped, f2, k, delta, lean_scale, dot, x_force, y_force, angle, per_tick, torque_scale;
     real_vector3d facing, up, force, torque;
-    real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
-    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
-    real_vector3d *object_up = (real_vector3d *)(obj + 0x80);
-    real_vector3d *angular_velocity = (real_vector3d *)(obj + 0x8c);
+    real_vector3d *velocity = (real_vector3d *)&((struct object *)obj)->velocity;
+    real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
+    real_vector3d *object_up = (real_vector3d *)&((struct object *)obj)->up;
+    real_vector3d *angular_velocity = (real_vector3d *)&((struct object *)obj)->angular_velocity;
     real_matrix4x3 current, desired, relative;
     real_quaternion rotation;
     real_vector3d axis;
@@ -641,10 +641,10 @@ void VehicleView::calculate_lean_controls(void *mass_points, float *powered_stat
     uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
     uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
     uint8_t *physics = (uint8_t *)tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
-    real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
-    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
-    real_vector3d *up = (real_vector3d *)(obj + 0x80);
-    real_vector3d *angular_velocity = (real_vector3d *)(obj + 0x8c);
+    real_vector3d *velocity = (real_vector3d *)&((struct object *)obj)->velocity;
+    real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
+    real_vector3d *up = (real_vector3d *)&((struct object *)obj)->up;
+    real_vector3d *angular_velocity = (real_vector3d *)&((struct object *)obj)->angular_velocity;
     real_vector3d *world_up = global_up3d_pointer;
     uint8_t *ps = (uint8_t *)powered_states;
     real_vector3d zero_force;
@@ -760,7 +760,7 @@ void VehicleView::create_hover_thruster_effects()
     int16_t i;
     static char *names[3] = { (char *)"incident", (char *)"normal", (char *)"reflected" };
 
-    if (*(int32_t *)(tag + 0x3ec) == -1) {
+    if (*(int32_t *)&((struct Vehicle *)tag)->effect.tag_id == -1) {
         return;
     }
     hover_count = (int16_t)object_get_node_local_transform(unit_index, (char *)"hover thrusters", markers, 0xf);
@@ -800,7 +800,7 @@ void VehicleView::create_hover_thruster_effects()
             vectors[2].j = direction.j - result.plane.normal.j * twice_dot;
             vectors[2].k = direction.k - result.plane.normal.k * twice_dot;
             scale = 1.0f - result.t;
-            effect_new_with_color(*(uint32_t *)(tag + 0x3ec), 0xffffffff, 0, 3, names, points, vectors,
+            effect_new_with_color(*(uint32_t *)&((struct Vehicle *)tag)->effect.tag_id, 0xffffffff, 0, 3, names, points, vectors,
                 scale, scale, 0, 0, 1);
         }
     }
@@ -824,7 +824,7 @@ void VehicleView::create_hover_thruster_midpoint_effects()
     int16_t i;
     static char *names[4] = { (char *)"incident", (char *)"normal", (char *)"reflected", (char *)"midpoint" };
 
-    if (*(int32_t *)(tag + 0x3ec) == -1 || !(((struct vehicle_object *)obj)->unit.driver_seat_power > 0.0f)) {
+    if (*(int32_t *)&((struct Vehicle *)tag)->effect.tag_id == -1 || !(((struct vehicle_object *)obj)->unit.driver_seat_power > 0.0f)) {
         return;
     }
     count = (int16_t)object_get_node_local_transform(unit_index, (char *)"hover thrusters", markers, 0xf);
@@ -872,7 +872,7 @@ void VehicleView::create_hover_thruster_midpoint_effects()
             vectors[2].j = direction.j - result.plane.normal.j * twice_dot;
             vectors[2].k = direction.k - result.plane.normal.k * twice_dot;
             vectors[3] = vectors[2];
-            effect_new_with_color(*(uint32_t *)(tag + 0x3ec), 0xffffffff, 0, 4, names, points, vectors, v, v,
+            effect_new_with_color(*(uint32_t *)&((struct Vehicle *)tag)->effect.tag_id, 0xffffffff, 0, 4, names, points, vectors, v, v,
                 0, 0, 1);
         }
     }
