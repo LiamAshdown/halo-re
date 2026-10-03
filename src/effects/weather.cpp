@@ -536,7 +536,7 @@ void weather_particle_ref::update(int16_t type_index, int16_t instance_index)
 
         halo::physics::point_physics_tick(&p->velocity, flags_arg, physics,
             (bsp_leaf_reference *)((uint8_t *)instance + 0x10), (uint32_t)instance->cluster_index,
-            &p->position, (real_vector3d *)0, (real_vector3d *)0, &material_type, p->radius,
+            &p->position, nullptr, nullptr, &material_type, p->radius,
             instance->delta_time);
     }
 

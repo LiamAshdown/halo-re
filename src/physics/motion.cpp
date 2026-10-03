@@ -327,7 +327,7 @@ uint32_t PhysicsMotion::tick(real_vector3d *velocity, uint32_t flags_arg, PointP
             gravity_scale = 0.0f;
         }
 
-        if (wind != (real_vector3d *)0 && density != 0.0f) {
+        if (wind != nullptr && density != 0.0f) {
             velocity->i += wind_nudge_fraction * wind->i;
             velocity->j += wind_nudge_fraction * wind->j;
             velocity->k += wind_nudge_fraction * wind->k;
@@ -400,10 +400,10 @@ uint32_t PhysicsMotion::tick(real_vector3d *velocity, uint32_t flags_arg, PointP
                 result_flags |= _point_physics_collided_bit;
             }
 
-            if (out_normal != (real_vector3d *)0) {
+            if (out_normal != nullptr) {
                 *out_normal = hit.plane.normal;
             }
-            if (out_material_type != (int16_t *)0) {
+            if (out_material_type != nullptr) {
                 *out_material_type = hit.material_type;
             }
 

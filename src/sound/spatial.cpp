@@ -217,7 +217,7 @@ void update_listener(void)
 
     camera = &halo::camera::globals().observers[0].camera;
     underwater = halo::scenario::scenario_location_get_water_and_weather((real_point3d *)&camera->position,
-        (bsp_leaf_reference *)&camera->leaf_index, (int16_t *)0);
+        (bsp_leaf_reference *)&camera->leaf_index, nullptr);
     if (listener->underwater != underwater) {
         sound_location location = { 0 };
         location.type = _sound_location_none;
@@ -228,14 +228,14 @@ void update_listener(void)
             if (0 < global_globals->sounds.count) {
                 water_sound_tag = halo::tag_id_bits(((GlobalsSound *)global_globals->sounds.pointer)[0].sound.tag_id);
                 if (water_sound_tag != k_datum_index_none) {
-                    instances::play_new(water_sound_tag, &location, k_datum_index_none, (sound_location_proc)0, (void *)0, 0, 1);
+                    instances::play_new(water_sound_tag, &location, k_datum_index_none, (sound_location_proc)0, nullptr, 0, 1);
                 }
             }
         } else {
             if (1 < global_globals->sounds.count) {
                 water_sound_tag = halo::tag_id_bits(((GlobalsSound *)global_globals->sounds.pointer)[1].sound.tag_id);
                 if (water_sound_tag != k_datum_index_none) {
-                    instances::play_new(water_sound_tag, &location, k_datum_index_none, (sound_location_proc)0, (void *)0, 0, 1);
+                    instances::play_new(water_sound_tag, &location, k_datum_index_none, (sound_location_proc)0, nullptr, 0, 1);
                 }
             }
         }
@@ -389,7 +389,7 @@ void update_range_and_ducking(void)
 
 void Location::compute_obstruction_occlusion(int16_t listener_index, float reference_distance)
 {
-    observer_camera *listener = (observer_camera *)0;
+    observer_camera *listener = nullptr;
     int16_t listener_cluster;
     float distance;
 

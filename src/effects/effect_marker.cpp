@@ -137,7 +137,7 @@ effect_location_marker * effect_view::next(datum_index *marker, int32_t mode)
     effect_location_marker *entry;
 
     if (*marker == k_datum_index_none) {
-        return (effect_location_marker *)0;
+        return nullptr;
     }
 
     entry = &((effect_location_marker *)effect_location_data->data)[*marker & halo::k_slot_mask];

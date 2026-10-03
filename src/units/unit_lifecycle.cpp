@@ -419,7 +419,7 @@ uint8_t UnitView::new_()
         obj->owner_team = tag->default_team;
     }
 
-    UnitView(object_index).set_or_test_seat_and_weapon_label(s_stand, (const char *)0, 1);
+    UnitView(object_index).set_or_test_seat_and_weapon_label(s_stand, nullptr, 1);
 
     if (halo::networking::globals().game_mode != halo::networking::k_game_mode_client) {
         UnitView(object_index).add_initial_weapons();

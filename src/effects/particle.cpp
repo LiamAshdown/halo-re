@@ -464,7 +464,7 @@ uint8_t particle_ref::update_motion(real delta_time)
         uint8_t collided;
 
         collision_flags = halo::physics::point_physics_tick(&self->velocity, 0, physics, &self->location,
-            0xffffffff, &self->position, (real_vector3d *)0, &out_normal, &out_material_type,
+            0xffffffff, &self->position, nullptr, &out_normal, &out_material_type,
             radius, delta_time);
 
         collided = (collision_flags & _point_physics_collided_bit) != 0;

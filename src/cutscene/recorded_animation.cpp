@@ -56,13 +56,13 @@ uint8_t RecordedAnimationPlayer::start(int16_t scenario_animation_index, uint16_
         return 0;
     }
 
-    if (record == (recorded_animation *)0) {
+    if (record == nullptr) {
         new_index = halo::memory::datum_new(recorded_animations);
         if (new_index == (datum_index)k_datum_index_none) {
             return 0;
         }
         record = &((recorded_animation *)recorded_animations->data)[halo::datum_slot(new_index)];
-        if (record == (recorded_animation *)0) {
+        if (record == nullptr) {
             return 0;
         }
     }
@@ -117,7 +117,7 @@ uint8_t RecordedAnimationPlayer::is_playing()
 
     entry = (recorded_animation *)halo::memory::data_iterator_next(&iterator);
     for (;;) {
-        if (entry == (recorded_animation *)0) {
+        if (entry == nullptr) {
             return 0;
         }
         if ((entry->unit_index == unit_index) &&
@@ -153,13 +153,13 @@ recorded_animation * RecordedAnimationPlayer::find_by_object(datum_index *out_in
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     entry = (recorded_animation *)halo::memory::data_iterator_next(&iterator);
-    while ((entry != (recorded_animation *)0) && (entry->unit_index != unit_index)) {
+    while ((entry != nullptr) && (entry->unit_index != unit_index)) {
         entry = (recorded_animation *)halo::memory::data_iterator_next(&iterator);
     }
-    if (entry != (recorded_animation *)0) {
+    if (entry != nullptr) {
         found_index = iterator.index;
     }
-    if (out_index != (datum_index *)0) {
+    if (out_index != nullptr) {
         *out_index = found_index;
     }
     return entry;
@@ -218,10 +218,10 @@ void RecordedAnimationPlayer::update_all()
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     record = (recorded_animation *)halo::memory::data_iterator_next(&iterator);
-    while (record != (recorded_animation *)0) {
+    while (record != nullptr) {
         object *unit_object = halo::objects::object_try_and_get(record->unit_index, 0x3);
 
-        if (unit_object == (object *)0) {
+        if (unit_object == nullptr) {
             halo::memory::datum_delete(recorded_animations, iterator.index);
         } else if ((record->flags & _recorded_animation_flag_finished) != 0) {
             object_header *header = &((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(record->unit_index)];

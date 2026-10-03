@@ -433,7 +433,7 @@ int32_t UnitView::predict_aim_target_position(real_point3d *out_position)
         {
             uint32_t flt_max_bits = 0x7f7fffff;
             hit = halo::physics::collision_bsp_query_segment_init(1, &segment_result, (ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
-                (uint32_t *)0, &base_position, &delta, *(float *)&flt_max_bits);
+                nullptr, &base_position, &delta, *(float *)&flt_max_bits);
         }
         hit_fraction = segment_result.t;
         hit_result = *(int32_t *)((uint8_t *)&segment_result + 0x8);
@@ -594,7 +594,7 @@ void UnitView::project_onto_aiming_axis(real *out_speed, uint8_t project_point, 
         point->z = distance * axis->k + camera.z;
     }
 
-    halo::objects::object_get_root_object_velocities(unit_index, &velocity, (real_vector3d *)0);
+    halo::objects::object_get_root_object_velocities(unit_index, &velocity, nullptr);
     *out_speed = velocity.j * axis->j + velocity.k * axis->k + velocity.i * axis->i;
 }
 

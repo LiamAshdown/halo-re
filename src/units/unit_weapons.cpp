@@ -147,7 +147,7 @@ uint8_t UnitView::begin_throw_grenade(const real_vector2d *direction)
         halo::items::weapon_reset_triggers(current_weapon);
     }
     object *biped_check = halo::objects::object_try_and_get(unit_index, _object_mask_biped);
-    if (biped_check != (object *)0) {
+    if (biped_check != nullptr) {
         reinterpret_cast<biped_object *>(biped_check)->biped.melee_ticks = 0;
     }
     unit->replacement_animation_state = 0;
@@ -205,7 +205,7 @@ uint8_t UnitView::check_weapon_use_permission(uint32_t weapon_index)
     if (UnitView(unit_index).set_or_test_seat_and_weapon_label(seat_name, weapon_label, 0) == 0) {
         return 0;
     }
-    if (halo::game::globals().current_engine != 0 && (void *)halo::game::globals().current_engine->unknown_60 != (void *)0) {
+    if (halo::game::globals().current_engine != 0 && (void *)halo::game::globals().current_engine->unknown_60 != nullptr) {
         uint8_t (*permission)(uint32_t, uint32_t) =
             *(uint8_t (**)(uint32_t, uint32_t))((uint8_t *)halo::game::globals().current_engine + 0x60);
 
@@ -1035,7 +1035,7 @@ uint8_t halo::units::unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_ind
         }
         if (UnitView(unit_index).set_or_test_seat_and_weapon_label(seat_name, weapon_label, 0) == 0) {
             object *check = halo::objects::object_try_and_get(unit_index, _object_mask_unit);
-            if ((check != (object *)0) && ((halo::units::unit_data_of(check))->animation_state == animation_state_value(unit_animation_state_id::seat_exit))) {
+            if ((check != nullptr) && ((halo::units::unit_data_of(check))->animation_state == animation_state_value(unit_animation_state_id::seat_exit))) {
                 UnitView(unit_index).detach_from_seat(1, 1, 0);
             }
         }
@@ -1517,7 +1517,7 @@ uint8_t halo::units::unit_try_give_grenade(uint32_t tag_source_index, uint32_t u
     unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     int16_t *max_count_ptr = (int16_t *)(&halo::objects::block_element<GlobalsGrenade>(global_globals->grenades, grenade_type));
-    if ((max_count_ptr != (int16_t *)0) && (unit->grenade_counts[grenade_type] < *max_count_ptr)) {
+    if ((max_count_ptr != nullptr) && (unit->grenade_counts[grenade_type] < *max_count_ptr)) {
         unit->grenade_counts[grenade_type] += 1;
         set_flag(unit_obj->flags, objects::object_flag::changed);
         int32_t local_player = halo::game::player_index_from_unit_index(unit_index);

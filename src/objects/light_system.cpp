@@ -577,7 +577,7 @@ void halo::objects::LightSystem::apply_spot_falloff()
                     }
 
                     halo::structures::structure_debug_draw_surfaces_in_box_alt((void *)queue_slot, &position, radius, marker_count,
-                        is_cone ? (int16_t *)0 : references);
+                        is_cone ? nullptr : references);
 
                 }
             }
@@ -643,7 +643,7 @@ void halo::objects::LightSystem::apply_spot_falloff_specular()
                         }
 
                         halo::structures::structure_debug_draw_surfaces_in_box((void *)queue_slot, &position, radius, marker_count,
-                            is_cone ? (int16_t *)0 : references);
+                            is_cone ? nullptr : references);
 
                     }
                 }

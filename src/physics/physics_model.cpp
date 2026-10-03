@@ -55,7 +55,7 @@ uint8_t PhysicsModelOps::model_build_from_sphere_query(uint32_t flags, real_poin
             radius + 0.0625f);
 
         if (found_surface && (flags & 0x20) != 0) {
-            halo::physics::physics_shape_build_proxies_from_query(&sphere_result, (real_matrix4x3 *)0,
+            halo::physics::physics_shape_build_proxies_from_query(&sphere_result, nullptr,
                 global_structure_collision_bsp, x_offset, y_offset, -1, model);
         }
 

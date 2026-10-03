@@ -341,7 +341,7 @@ datum_index particle_system_ref::new_on_marker(uint32_t definition_index, uint32
             system->position = marker.node_transform.position;
 
             halo::objects::object_get_root_object_velocities(object_index, &system->velocity,
-                                               (real_vector3d *)0);
+                                               nullptr);
             system->velocity.i *= 30.0f;
             system->velocity.j *= 30.0f;
             system->velocity.k *= 30.0f;
@@ -840,8 +840,8 @@ void particle_system_view::update_physics_default(real dt)
 
     halo::physics::point_physics_tick(&system->velocity, 0,
         (PointPhysics *)halo::cache::globals().tag_instances[point_physics_tag_id & halo::k_slot_mask].data,
-        &system->location, (uint32_t)-1, &system->position, (real_vector3d *)0,
-        (real_vector3d *)0, (int16_t *)0, 1.0f, dt);
+        &system->location, (uint32_t)-1, &system->position, nullptr,
+        nullptr, nullptr, 1.0f, dt);
 }
 
 /**
@@ -865,7 +865,7 @@ void particle_system_ref::delete_all()
 {
     data_array *systems = particle_system_data;
 
-    if (systems != (data_array *)0 && systems->valid != 0) {
+    if (systems != nullptr && systems->valid != 0) {
         datum_index handle = halo::memory::datum_next(-1, systems);
 
         while (handle != k_datum_index_none) {
@@ -965,8 +965,8 @@ void particle_system_view::update_physics_default(int16_t type_index, real dt, p
         }
 
         collision_flags = halo::physics::point_physics_tick((real_vector3d *)&particle->velocity, 0, physics,
-            &particle->location, (uint32_t)-1, &particle->position, (real_vector3d *)0,
-            (real_vector3d *)0, (int16_t *)0, radius, dt);
+            &particle->location, (uint32_t)-1, &particle->position, nullptr,
+            nullptr, nullptr, radius, dt);
 
         if (((collision_flags & 1) != 0 && particle_type_has(particle_type, particle_type_flag::particles_die_in_air)) ||
             ((collision_flags & 2) != 0 && particle_type_has(particle_type, particle_type_flag::particles_die_in_water)) ||

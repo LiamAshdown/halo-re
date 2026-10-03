@@ -38,7 +38,7 @@ void sound_cache_manager::decode_permutation(SoundPermutation *permutation)
         buffer_size = permutation->buffer_size;
 
         if (globals().sound_decode_buffer_size < (int32_t)buffer_size) {
-            if (globals().sound_decode_buffer != (void *)0) {
+            if (globals().sound_decode_buffer != nullptr) {
                 GlobalFree(globals().sound_decode_buffer);
             }
             globals().sound_decode_buffer_size = buffer_size;
@@ -89,16 +89,16 @@ void sound_cache_manager::dispose()
     iterator.index = 0;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     entry = (sound_cache_entry *)halo::memory::view(&iterator)->next();
-    while (entry != (sound_cache_entry *)0) {
+    while (entry != nullptr) {
         halo::cache::sound_cache_manager::release_page(entry->permutation);
         entry = (sound_cache_entry *)halo::memory::view(&iterator)->next();
     }
 
     globals().sound_cache_entries->valid = 0;
 
-    if (globals().sound_decode_buffer != (void *)0) {
+    if (globals().sound_decode_buffer != nullptr) {
         GlobalFree(globals().sound_decode_buffer);
-        globals().sound_decode_buffer = (void *)0;
+        globals().sound_decode_buffer = nullptr;
         globals().sound_decode_buffer_size = 0;
     }
     return;
@@ -145,7 +145,7 @@ void sound_cache_manager::dump_to_file()
         scan += 4;
     }
 
-    if (file != (void *)0) {
+    if (file != nullptr) {
         halo::memory::view(globals().sound_cache)->build_status_bitmap(bitmap);
 
         for (bit = 0; bit < 4; bit++) {
@@ -169,7 +169,7 @@ void sound_cache_manager::dump_to_file()
         iterator.index = 0;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
         entry = (sound_cache_entry *)halo::memory::view(&iterator)->next();
-        while (entry != (sound_cache_entry *)0) {
+        while (entry != nullptr) {
             sound_count++;
             entry = (sound_cache_entry *)halo::memory::view(&iterator)->next();
         }
@@ -206,9 +206,9 @@ void sound_cache_manager::dump_to_file()
         iterator.index = 0;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
         entry = (sound_cache_entry *)halo::memory::view(&iterator)->next();
-        while (entry != (sound_cache_entry *)0) {
+        while (entry != nullptr) {
             permutation = entry->permutation;
-            if (permutation != (SoundPermutation *)0) {
+            if (permutation != nullptr) {
                 sprintf(line, "%d - %s %d c bytes %d u bytes\n", entry_number,
                     globals().tag_instances[permutation->tag_id_1.index].path,
                     permutation->samples.size, permutation->buffer_size);
@@ -272,7 +272,7 @@ void sound_cache_manager::initialize()
     globals().sound_cache_page_count = (scaled_megabytes + ((scaled_megabytes >> 0x1f) & 0xfff)) >> k_sound_cache_page_shift;
 
     cache_memory = GlobalAlloc(0, 0x387c);
-    if (cache_memory != (void *)0) {
+    if (cache_memory != nullptr) {
         halo::memory::view((struct cache *)cache_memory)->initialize((char *)"pc sound cache", globals().sound_cache_page_count, k_sound_cache_page_shift, k_sound_cache_maximum_entries, (void *)&sound_cache_manager::entry_release, (void *)&sound_cache_manager::entry_in_use);
     }
     globals().sound_cache = (struct cache *)cache_memory;
@@ -355,13 +355,13 @@ void sound_cache_manager::release_unused()
     data_iterator iterator;
     sound_cache_entry *entry;
 
-    if (globals().sound_cache_entries != (data_array *)0 && globals().sound_cache_entries->valid != 0) {
+    if (globals().sound_cache_entries != nullptr && globals().sound_cache_entries->valid != 0) {
         iterator.data = globals().sound_cache_entries;
         iterator.next_index = 0;
         iterator.index = 0;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
         entry = (sound_cache_entry *)halo::memory::view(&iterator)->next();
-        while (entry != (sound_cache_entry *)0) {
+        while (entry != nullptr) {
             if (entry->lock_count == 0 && entry->playing == 0) {
                 halo::cache::sound_cache_manager::release_page(entry->permutation);
             }

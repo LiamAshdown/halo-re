@@ -374,7 +374,7 @@ uint8_t DeviceHandle::frontfacing(real_vector3d *forward)
 
     object *control = halo::objects::object_try_and_get(device_index, _object_mask_device_control);
 
-    if (control != (object *)0) {
+    if (control != nullptr) {
         device_control_data *dev = (device_control_data *)((uint8_t *)control + sizeof(object));
 
         if ((dev->device.type_flags & (1u << _device_control_usable_from_both_sides_bit)) == 0) {
@@ -415,7 +415,7 @@ void DeviceHandle::play_state_change_effect(TagID tag_id)
             
             
             halo::effects::effect_new_on_object(object_index, *(datum_index *)&tag_id, object_index, -1, dev->position, dev->power,
-                (const ColorRGB *)0, (const effect_tint_source *)0);
+                nullptr, nullptr);
         } else if (group_tag == k_device_state_change_tag_sound) {
             
             halo::sound::sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer, (Vector3D *)halo::math::globals().global_forward3d_pointer,
@@ -562,7 +562,7 @@ uint8_t DeviceGroupHandle::set_value(float value)
     iterator.handle = k_datum_index_none;
 
     obj = halo::objects::object_iterator_next(&iterator);
-    while (obj != (object *)0) {
+    while (obj != nullptr) {
         device_data *candidate_dev = (device_data *)((uint8_t *)obj + sizeof(object));
 
         if (candidate_dev->power_group == (int16_t)group_index) { 
@@ -613,7 +613,7 @@ void DeviceGroupHandle::set_value_immediate(float value)
     iterator.handle = k_datum_index_none;
 
     obj = halo::objects::object_iterator_next(&iterator);
-    while (obj != (object *)0) {
+    while (obj != nullptr) {
         device_data *dev = (device_data *)((uint8_t *)obj + sizeof(object));
 
         if (dev->power_group == (int16_t)group_index) {

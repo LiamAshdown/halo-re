@@ -66,7 +66,7 @@ void halo::units::unit_apply_network_control_update(unit_network_control_packet 
     if (unit_index == k_datum_index_none) {
         return;
     }
-    throttle = message.no_throttle == 1 ? (const real_vector2d *)0 : &message.throttle;
+    throttle = message.no_throttle == 1 ? nullptr : &message.throttle;
     unit = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get(unit_index, 3));
     if (unit != 0) {
         set_flag(unit->base.vitality_flags, objects::vitality_flag::health_frozen);

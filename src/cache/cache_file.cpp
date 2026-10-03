@@ -42,7 +42,7 @@ void cache_files::download_finish()
     GetSystemTime((LPSYSTEMTIME)&now);
     SystemTimeToFileTime((const SYSTEMTIME *)&now, (LPFILETIME)&globals().cache_file_slots[slot_index].last_write_time);
     SetFileTime(globals().cache_file_slots[slot_index].file, (const FILETIME *)&globals().cache_file_slots[slot_index].last_write_time,
-        (const FILETIME *)((file_time *)0), (const FILETIME *)((file_time *)0));
+        nullptr, nullptr);
     halo::cache::cache_files::slot_read_header(slot_index);
 
     globals().map_download_in_progress = 0;
@@ -201,9 +201,9 @@ uint8_t cache_files::exists(char *name, cache_file_header *header_out)
 
     valid = 0;
     sprintf(path, "%s%s%s.map", globals().map_path_prefix, "maps\\", name);
-    file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, (LPSECURITY_ATTRIBUTES)((void *)0), halo::win32::k_open_existing, 0, (void *)0);
+    file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, nullptr, halo::win32::k_open_existing, 0, nullptr);
     if (file != halo::win32::invalid_handle()) {
-        if (ReadFile(file, header_out, k_cache_file_header_size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0)) != 0 &&
+        if (ReadFile(file, header_out, k_cache_file_header_size, (LPDWORD)(&bytes_read), nullptr) != 0 &&
             bytes_read == k_cache_file_header_size &&
             header_out->head == k_cache_file_head_signature &&
             header_out->foot == k_cache_file_foot_signature &&
@@ -429,7 +429,7 @@ uint8_t cache_files::open_by_name(char *name, uint8_t report_fatal_error)
         flags_and_attributes = halo::win32::k_file_flag_sequential_scan | halo::win32::k_file_attribute_normal;
     }
 
-    file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, (LPSECURITY_ATTRIBUTES)((void *)0), halo::win32::k_open_always, flags_and_attributes, (void *)0);
+    file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, nullptr, halo::win32::k_open_always, flags_and_attributes, nullptr);
     globals().cache_file_slots[slot_index].file = file;
     halo::cache::cache_files::slot_read_header(slot_index);
     return 1;
@@ -518,20 +518,20 @@ void cache_files::slot_read_header(int32_t slot_index)
     slot = &globals().cache_file_slots[slot_index];
     sprintf(path, "%s\\cache%03d.map", globals().profile_directory, slot_index);
 
-    GetFileTime(slot->file, (LPFILETIME)&slot->last_write_time, (LPFILETIME)((void *)0), (LPFILETIME)((void *)0));
+    GetFileTime(slot->file, (LPFILETIME)&slot->last_write_time, nullptr, nullptr);
 
     header_read_ok = 0;
     request.completion.flag = &header_read_ok;
     request.completion.procedure = (void (*)(cache_io_completion *))0;
-    request.completion.data = (void *)0;
+    request.completion.data = nullptr;
 
     if (globals().os_platform == 0) {
         halo::shell::os_platform_identify();
     }
 
     if (globals().os_platform < 3) {
-        if (SetFilePointer(slot->file, 0, (PLONG)((void *)0), 0) != halo::win32::k_invalid_set_file_pointer) {
-            if (ReadFile(slot->file, &slot->header, k_cache_file_header_size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0)) != 0 &&
+        if (SetFilePointer(slot->file, 0, nullptr, 0) != halo::win32::k_invalid_set_file_pointer) {
+            if (ReadFile(slot->file, &slot->header, k_cache_file_header_size, (LPDWORD)(&bytes_read), nullptr) != 0 &&
                 bytes_read == k_cache_file_header_size) {
                 goto validate_header;
             }
@@ -621,21 +621,21 @@ void cache_files::reserve_map_memory()
     get_mapped_file_name_a_t get_mapped_file_name_a;
     const char *caption;
 
-    globals().map_memory = (void *)0;
-    globals().tag_data_base = (void *)0;
-    globals().texture_cache_memory = (void *)0;
-    globals().sound_cache_memory = (void *)0;
+    globals().map_memory = nullptr;
+    globals().tag_data_base = nullptr;
+    globals().texture_cache_memory = nullptr;
+    globals().sound_cache_memory = nullptr;
 
     globals().map_memory = VirtualAlloc((void *)k_map_memory_base, k_map_memory_size, halo::win32::k_mem_commit_reserve, halo::win32::k_page_readwrite);
     globals().tag_data_base = (void *)k_tag_data_base;
-    globals().texture_cache_memory = VirtualAlloc((void *)0, 0x4000, halo::win32::k_mem_commit_reserve, halo::win32::k_page_readwrite);
-    globals().sound_cache_memory = VirtualAlloc((void *)0, (uint32_t)globals().sound_cache_size_megabytes << 0x14, halo::win32::k_mem_commit_reserve, halo::win32::k_page_readwrite);
+    globals().texture_cache_memory = VirtualAlloc(nullptr, 0x4000, halo::win32::k_mem_commit_reserve, halo::win32::k_page_readwrite);
+    globals().sound_cache_memory = VirtualAlloc(nullptr, (uint32_t)globals().sound_cache_size_megabytes << 0x14, halo::win32::k_mem_commit_reserve, halo::win32::k_page_readwrite);
 
-    if (globals().map_memory == (void *)0) {
+    if (globals().map_memory == nullptr) {
         memset(path_buffer, 0, sizeof(path_buffer));
 
         psapi_module = LoadLibraryA("Psapi.dll");
-        if (psapi_module != (void *)0) {
+        if (psapi_module != nullptr) {
             get_mapped_file_name_a = (get_mapped_file_name_a_t)GetProcAddress((HMODULE)psapi_module, "GetMappedFileNameA");
             if (get_mapped_file_name_a != (get_mapped_file_name_a_t)0) {
                 get_mapped_file_name_a(GetCurrentProcess(), (void *)k_map_memory_base, path_buffer, halo::win32::k_max_path);
@@ -647,7 +647,7 @@ void cache_files::reserve_map_memory()
         if (path_buffer[0] == '\0') {
             caption = "Error";
         }
-        MessageBoxA((HWND)((void *)0),
+        MessageBoxA(nullptr,
             "Cannot allocate required memory. Some other application has loaded where Halo needs to be located.",
             caption, 0);
         ExitProcess(1);

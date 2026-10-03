@@ -431,7 +431,7 @@ void halo::objects::ObjectManager::sweep_refresh_cluster_membership()
     iterator.handle = k_datum_index_none;
 
     obj = halo::objects::object_iterator_next(&iterator);
-    while (obj != (object *)0) {
+    while (obj != nullptr) {
         if (((obj->flags & _object_needs_cluster_update_bit) != 0) &&
             (obj->parent_object == k_datum_index_none)) {
             halo::objects::object_unlink_cluster_or_notify_parent(iterator.handle);
@@ -460,7 +460,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
     iterator.handle = k_datum_index_none;
 
     obj = halo::objects::object_iterator_next(&iterator);
-    while (obj != (object *)0) {
+    while (obj != nullptr) {
         if (((obj->flags & _object_needs_cluster_update_bit) != 0) &&
             (obj->parent_object == k_datum_index_none)) {
             object_header *header = (object_header *)object_data->data + halo::datum_slot(iterator.handle);
@@ -913,7 +913,7 @@ void halo::objects::ObjectManager::dump_memory()
     iterator.handle = k_datum_index_none;
 
     obj = halo::objects::object_iterator_next(&iterator);
-    while (obj != (object *)0) {
+    while (obj != nullptr) {
         int16_t slot = -1;
         int16_t j;
 

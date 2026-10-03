@@ -43,7 +43,7 @@ void particle_system_ref::update(float delta_time)
         }
 
         halo::objects::object_get_position(&self->position, self->object_index);
-        halo::objects::object_get_root_object_velocities(self->object_index, &self->velocity, (real_vector3d *)0);
+        halo::objects::object_get_root_object_velocities(self->object_index, &self->velocity, nullptr);
         self->velocity.i *= 30.0f;
         self->velocity.j *= 30.0f;
         self->velocity.k *= 30.0f;

@@ -75,7 +75,7 @@ uint8_t halo::units::unit_any_dying_or_seat_transition(void)
 {
     object_iterator iter = { _object_mask_unit, 1, 0, 0, 0xffffffff };
     object *obj = halo::objects::object_iterator_next(&iter);
-    while (obj != (object *)0) {
+    while (obj != nullptr) {
         unit_data *unit = halo::units::unit_data_of(obj);
         if (((unit->animation_state == animation_state_value(unit_animation_state_id::throwing_grenade)) && (unit->throwing_grenade_state != _unit_throwing_grenade_state_released)) ||
             (((unit->animation_state == animation_state_value(unit_animation_state_id::ready_weapon)) || (unit->animation_state == animation_state_value(unit_animation_state_id::unknown_18))) &&
@@ -802,7 +802,7 @@ uint8_t UnitView::is_seat_control_available(int16_t command)
     }
     if (unit_obj->parent_object != k_datum_index_none) {
         int16_t seat_index = unit->vehicle_seat_index;
-        if ((seat_index != -1) && (halo::objects::object_try_and_get(unit_obj->parent_object, _object_mask_unit) != (object *)0) &&
+        if ((seat_index != -1) && (halo::objects::object_try_and_get(unit_obj->parent_object, _object_mask_unit) != nullptr) &&
             (11 < command) && (command < 14)) {
             object *parent = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_obj->parent_object)].data;
             Unit *parent_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(parent->definition_tag)].data;
@@ -828,7 +828,7 @@ uint8_t halo::units::unit_is_seat_occupied(int32_t parent_index, int16_t seat_in
 {
     object_iterator iter = { _object_mask_unit, 0, 0, 0, 0xffffffff };
     object *obj = halo::objects::object_iterator_next(&iter);
-    while (obj != (object *)0) {
+    while (obj != nullptr) {
         if ((obj->parent_object == (uint32_t)parent_index) &&
             ((halo::units::unit_data_of(obj))->vehicle_seat_index == seat_index)) {
             return 1;
@@ -864,7 +864,7 @@ void halo::units::unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t
     }
 
     while (object_index != k_datum_index_none) {
-        object_header *found = (object_header *)0;
+        object_header *found = nullptr;
         if ((-1 < (int16_t)object_index) && ((int16_t)object_index < halo::objects::globals().object_data->maximum_count)) {
             object_header *hdr = (object_header *)halo::objects::globals().object_data->data + (int16_t)object_index;
             if ((hdr->identifier != 0) &&
@@ -872,8 +872,8 @@ void halo::units::unit_mark_zone_list_alt_flag(uint32_t zone_list_index, uint8_t
                 found = hdr;
             }
         }
-        if ((found != (object_header *)0) && ((_object_mask_unit & (1 << (found->type & 0x1f))) != 0) &&
-            (found->data != (object *)0)) {
+        if ((found != nullptr) && ((_object_mask_unit & (1 << (found->type & 0x1f))) != 0) &&
+            (found->data != nullptr)) {
             unit_data *unit = halo::units::unit_data_of(found->data);
             if (!use_second_bit) {
                 set_flag(unit->flags, units::unit_flag::unknown_20000000);
@@ -920,7 +920,7 @@ void halo::units::unit_mark_zone_occupants_flag(uint32_t zone_list_index)
     }
 
     while (object_index != k_datum_index_none) {
-        object_header *found = (object_header *)0;
+        object_header *found = nullptr;
         if ((-1 < (int16_t)object_index) && ((int16_t)object_index < halo::objects::globals().object_data->maximum_count)) {
             object_header *hdr = (object_header *)halo::objects::globals().object_data->data + (int16_t)object_index;
             if ((hdr->identifier != 0) &&
@@ -928,8 +928,8 @@ void halo::units::unit_mark_zone_occupants_flag(uint32_t zone_list_index)
                 found = hdr;
             }
         }
-        if ((found != (object_header *)0) && ((_object_mask_unit & (1 << (found->type & 0x1f))) != 0) &&
-            (found->data != (object *)0)) {
+        if ((found != nullptr) && ((_object_mask_unit & (1 << (found->type & 0x1f))) != 0) &&
+            (found->data != nullptr)) {
             unit_data *unit = halo::units::unit_data_of(found->data);
             set_flag(unit->flags, units::unit_flag::delete_when_dropped);
         }
@@ -974,7 +974,7 @@ uint8_t UnitView::named_seat_occupant_in_zone(char *seat_label, uint32_t zone_li
         object_iterator iter = { _object_mask_unit, 0, 0, 0, 0xffffffff };
         object *occupant = halo::objects::object_iterator_next(&iter);
         uint32_t occupant_index = k_datum_index_none;
-        while (occupant != (object *)0) {
+        while (occupant != nullptr) {
             if ((occupant->parent_object == unit_index) &&
                 ((halo::units::unit_data_of(occupant))->vehicle_seat_index == seat_index)) {
                 occupant_index = iter.handle;

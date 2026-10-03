@@ -102,7 +102,7 @@ datum_index halo::objects::ObjectQueries::collideable_iterate_next(datum_index *
  */
 object * halo::objects::ObjectQueries::try_and_get(datum_index object_index, uint32_t type_mask)
 {
-    object_header *found = (object_header *)0;
+    object_header *found = nullptr;
 
     if ((object_index != k_datum_index_none) && ((int16_t)object_index >= 0) &&
         ((int16_t)object_index < object_data->maximum_count)) {
@@ -113,10 +113,10 @@ object * halo::objects::ObjectQueries::try_and_get(datum_index object_index, uin
         }
     }
 
-    if ((found != (object_header *)0) && ((type_mask & (1 << (found->type & 0x1f))) != 0)) {
+    if ((found != nullptr) && ((type_mask & (1 << (found->type & 0x1f))) != 0)) {
         return found->data;
     }
-    return (object *)0;
+    return nullptr;
 }
 
 /**
@@ -144,7 +144,7 @@ object * halo::objects::ObjectIteratorView::next()
     }
 
     iterator->index = index;
-    return (object *)0;
+    return nullptr;
 }
 
 /**

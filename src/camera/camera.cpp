@@ -377,7 +377,7 @@ datum_index CameraSystem::dead_find_next_teammate(datum_index reference_player, 
     best = k_datum_index_none;
 
     p = (player *)halo::memory::data_iterator_next(&iterator);
-    while (p != (player *)0) {
+    while (p != nullptr) {
         if (iterator.index != reference_player && p->unit != k_datum_index_none &&
             (!require_same_team || p->team == team)) {
             if (best == k_datum_index_none) {
@@ -418,7 +418,7 @@ uint8_t CameraSystem::dead_player_has_teammate(datum_index reference_player)
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     p = (player *)halo::memory::data_iterator_next(&iterator);
-    while (p != (player *)0) {
+    while (p != nullptr) {
         if (iterator.index != reference_player && p->team == team) {
             return 1;
         }
@@ -571,7 +571,7 @@ dead_camera_data * DeadCamera::construct(dead_camera_data *self, int16_t local_p
     observer_camera *source;
     datum_index local_player;
 
-    source = (local_player_index != -1) ? &observers[local_player_index].camera : (observer_camera *)0;
+    source = (local_player_index != -1) ? &observers[local_player_index].camera : nullptr;
     self->focus = *(Point3D *)&source->position; 
 
     self->field_of_view = 1.2217305f; 
@@ -590,7 +590,7 @@ dead_camera_data * DeadCamera::construct(dead_camera_data *self, int16_t local_p
     if (unit != k_datum_index_none) {
         self->retarget_time = 3.4028235e38f; 
     } else {
-        self->retarget_time = (halo::game::globals().current_engine != (game_engine_definition *)0) ? 15.0f : 3.0f;
+        self->retarget_time = (halo::game::globals().current_engine != nullptr) ? 15.0f : 3.0f;
     }
 
     if (local_player_index == -1 || local_player_index > 0) {

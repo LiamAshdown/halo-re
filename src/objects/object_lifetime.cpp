@@ -299,7 +299,7 @@ void halo::objects::ObjectLifetime::clear_references_to_object()
     iterator.handle = k_datum_index_none;
 
     obj = halo::objects::object_iterator_next(&iterator);
-    while (obj != (object *)0) {
+    while (obj != nullptr) {
         if (obj->damage_owner == dying_object_index) {
             obj->damage_owner = k_datum_index_none;
         }

@@ -26,11 +26,11 @@ uint8_t data_file_view::read_data_block()
     void *buffer;
     uint32_t bytes_read;
 
-    if (SetFilePointer(this->file, this->data_offset, (PLONG)((void *)0), 0) != halo::win32::k_invalid_set_file_pointer) {
+    if (SetFilePointer(this->file, this->data_offset, nullptr, 0) != halo::win32::k_invalid_set_file_pointer) {
         block_size = this->table_offset - this->data_offset;
         buffer = GlobalAlloc(0, block_size);
         this->data = buffer;
-        if (ReadFile(this->file, buffer, block_size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0)) != 0 && bytes_read == block_size) {
+        if (ReadFile(this->file, buffer, block_size, (LPDWORD)(&bytes_read), nullptr) != 0 && bytes_read == block_size) {
             this->data_capacity = block_size;
             this->data_size = block_size;
             return 1;
@@ -50,7 +50,7 @@ int32_t data_file_view::read_header(int32_t expected_file_id)
 {
     uint32_t bytes_read;
 
-    if (ReadFile(this->file, this, 0x10, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0)) != 0 && bytes_read == 0x10) {
+    if (ReadFile(this->file, this, 0x10, (LPDWORD)(&bytes_read), nullptr) != 0 && bytes_read == 0x10) {
         if (this->file_id != expected_file_id) {
             this->file_id = 0;
             this->data_offset = 0;
@@ -77,11 +77,11 @@ uint8_t data_file_view::read_offset_table()
     void *buffer;
     uint32_t bytes_read;
 
-    if (SetFilePointer(this->file, this->table_offset, (PLONG)((void *)0), 0) != halo::win32::k_invalid_set_file_pointer) {
+    if (SetFilePointer(this->file, this->table_offset, nullptr, 0) != halo::win32::k_invalid_set_file_pointer) {
         table_size = this->entry_count * 0xc;
         buffer = GlobalAlloc(0, table_size);
         this->references = (data_file_reference *)buffer;
-        if (ReadFile(this->file, buffer, table_size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0)) != 0 && bytes_read == table_size) {
+        if (ReadFile(this->file, buffer, table_size, (LPDWORD)(&bytes_read), nullptr) != 0 && bytes_read == table_size) {
             this->reference_count = this->entry_count;
             return 1;
         }
@@ -115,7 +115,7 @@ void data_files::open()
     if (globals().os_platform < 3) {
         flags = 0x8000080;
     }
-    globals().bitmaps_data_file.file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, (LPSECURITY_ATTRIBUTES)((void *)0), halo::win32::k_open_always, flags, (void *)0);
+    globals().bitmaps_data_file.file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, nullptr, halo::win32::k_open_always, flags, nullptr);
     if (globals().bitmaps_data_file.file == halo::win32::invalid_handle()) {
         printf("### FAILED TO OPEN DATA-CACHE FILE.\n\n");
     } else {
@@ -133,7 +133,7 @@ void data_files::open()
             }
             printf("### FAILED TO OPEN DATA-CACHE FILE.\n\n");
         } else {
-            SetFilePointer(globals().bitmaps_data_file.file, globals().bitmaps_data_file.data_offset, (PLONG)((void *)0), 0);
+            SetFilePointer(globals().bitmaps_data_file.file, globals().bitmaps_data_file.data_offset, nullptr, 0);
         }
     }
 
@@ -149,12 +149,12 @@ void data_files::open()
     if (globals().os_platform < 3) {
         flags = 0x8000080;
     }
-    globals().sounds_data_file.file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, (LPSECURITY_ATTRIBUTES)((void *)0), halo::win32::k_open_always, flags, (void *)0);
+    globals().sounds_data_file.file = CreateFileA(path, halo::win32::k_generic_read, halo::win32::k_file_share_read, nullptr, halo::win32::k_open_always, flags, nullptr);
     if (globals().sounds_data_file.file != halo::win32::invalid_handle()) {
         if (halo::cache::view(&globals().sounds_data_file)->read_header(2) != 0 &&
             halo::cache::view(&globals().sounds_data_file)->read_data_block() != 0 &&
             halo::cache::view(&globals().sounds_data_file)->read_offset_table() != 0) {
-            SetFilePointer(globals().sounds_data_file.file, globals().sounds_data_file.data_offset, (PLONG)((void *)0), 0);
+            SetFilePointer(globals().sounds_data_file.file, globals().sounds_data_file.data_offset, nullptr, 0);
             goto allocate_io_queue;
         }
         if (globals().sounds_data_file.data != 0) {

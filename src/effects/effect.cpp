@@ -66,7 +66,7 @@ uint32_t effect_ref::check_object_collisions()
             player_iterator.index = k_datum_index_none;
             player_iterator.signature = (uint32_t)(uintptr_t)player_iterator.data ^ k_data_iterator_signature;
 
-            for (p = (player *)halo::memory::data_iterator_next(&player_iterator); p != (player *)0;
+            for (p = (player *)halo::memory::data_iterator_next(&player_iterator); p != nullptr;
                  p = (player *)halo::memory::data_iterator_next(&player_iterator)) {
                 if (p->unit == k_datum_index_none) {
                     continue;
@@ -83,7 +83,7 @@ uint32_t effect_ref::check_object_collisions()
                     if (entry->marker_index != halo::k_word_none && (entry->marker_index & 0x8000) != 0) {
                         entry = halo::effects::effect_marker_next(self, &marker_handle, 0);
                     }
-                    if (entry == (effect_location_marker *)0) {
+                    if (entry == nullptr) {
                         break;
                     }
 

@@ -494,7 +494,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     if (halo::objects::tag_handle(object_tag->creation_effect) != k_datum_index_none) {
 
         halo::effects::effect_new_on_object(new_index, halo::objects::tag_handle(object_tag->creation_effect), new_index, -1,
-            0.0f, 0.0f, (const ColorRGB *)0, (const effect_tint_source *)0);
+            0.0f, 0.0f, nullptr, nullptr);
         return new_index;
     }
     return new_index;

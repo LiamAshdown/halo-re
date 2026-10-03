@@ -228,15 +228,15 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                                    SRCCOPY);
                         ReleaseDC(hwnd, dc);
                     }
-                    ValidateRect(hwnd, (win32_rect *)0);
+                    ValidateRect(hwnd, nullptr);
                     return 0;
                 }
-                halo::rasterizer::rasterizer_capture_and_present((const int16_t *)0, (BitmapData *)((void *)0));
-                ValidateRect(hwnd, (win32_rect *)0);
+                halo::rasterizer::rasterizer_capture_and_present(nullptr, nullptr);
+                ValidateRect(hwnd, nullptr);
                 return 0;
             }
             if (halo::rasterizer::globals().device != 0) {
-                halo::rasterizer::rasterizer_capture_and_present((const int16_t *)0, (BitmapData *)((void *)0));
+                halo::rasterizer::rasterizer_capture_and_present(nullptr, nullptr);
             }
             break;
 

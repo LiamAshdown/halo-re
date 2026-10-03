@@ -22,7 +22,7 @@ int32_t halo::units::object_find_nearest_biped(int32_t reference_object_index)
 
     object_iterator iter = { _object_mask_biped, 0, 0, 0, 0xffffffff };
     object *obj = halo::objects::object_iterator_next(&iter);
-    while (obj != (object *)0) {
+    while (obj != nullptr) {
         int32_t this_handle = (int32_t)iter.handle;
         if ((this_handle != reference_object_index) && ((obj->vitality_flags & _object_health_frozen_bit) == 0)) {
             float distance;
@@ -59,11 +59,11 @@ int32_t halo::units::object_find_next_untargeted(int32_t starting_object_index)
     if (starting_object_index != -1) {
         object_iterator iter = { _object_mask_unit, 0, 0, 0, 0xffffffff };
         object *obj = halo::objects::object_iterator_next(&iter);
-        while ((obj != (object *)0) && ((int32_t)iter.handle != starting_object_index)) {
+        while ((obj != nullptr) && ((int32_t)iter.handle != starting_object_index)) {
             obj = halo::objects::object_iterator_next(&iter);
         }
         obj = halo::objects::object_iterator_next(&iter);
-        while (obj != (object *)0) {
+        while (obj != nullptr) {
             unit_data *unit = halo::units::unit_data_of(obj);
             if ((unit->actor_index == k_datum_index_none) && (unit->swarm_actor_index == k_datum_index_none) &&
                 ((obj->vitality_flags & _object_health_frozen_bit) == 0)) {
@@ -80,7 +80,7 @@ int32_t halo::units::object_find_next_untargeted(int32_t starting_object_index)
     {
         object_iterator iter = { _object_mask_unit, 0, 0, 0, 0xffffffff };
         object *obj = halo::objects::object_iterator_next(&iter);
-        while (obj != (object *)0) {
+        while (obj != nullptr) {
             unit_data *unit = halo::units::unit_data_of(obj);
             if ((unit->actor_index == k_datum_index_none) && (unit->swarm_actor_index == k_datum_index_none) &&
                 ((obj->vitality_flags & _object_health_frozen_bit) == 0)) {

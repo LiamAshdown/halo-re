@@ -678,7 +678,7 @@ int32_t halo::units::unit_map_action_command_to_animation_state(int16_t command,
     case 0xc: state = animation_state_value(unit_animation_state_id::unknown_28); break;
     case 0xd: state = animation_state_value(unit_animation_state_id::unknown_29); break;
     }
-    if (out_priority != (int16_t *)0) {
+    if (out_priority != nullptr) {
         switch (command) {
         case 0: case 1: case 2: case 3: case 6: case 7: case 0xc: case 0xd:
             *out_priority = 6;
@@ -765,7 +765,7 @@ uint8_t UnitView::scripted_action_animation_exists(int16_t command)
     int8_t weapon_index = (halo::units::unit_data_of(unit_obj))->animation_weapon_index;
     ModelAnimationsAnimationGraphWeapon &weapon_record = seat_weapon(units_block[seat_block_index], weapon_index);
 
-    int16_t state_index = (int16_t)::halo::units::unit_map_action_command_to_animation_state(command, (int16_t *)0);
+    int16_t state_index = (int16_t)::halo::units::unit_map_action_command_to_animation_state(command, nullptr);
     if ((-1 < state_index) && (state_index < static_cast<int32_t>(weapon_record.animations.count))) {
         return halo::objects::block_element<int16_t>(weapon_record.animations, state_index) != -1;
     }

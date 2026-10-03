@@ -77,15 +77,15 @@ void initialize(void)
         if (driver_parameters.driver_index >= 0 && driver_parameters.driver_index < 2) {
             sound_driver *driver = sound_drivers[driver_parameters.driver_index];
 
-            if (driver != (sound_driver *)0 && driver->type == driver_parameters.driver_index) {
+            if (driver != nullptr && driver->type == driver_parameters.driver_index) {
                 current_sound_driver = driver;
                 sound_data = halo::memory::data_new(sizeof(sound), (char *)"sounds", k_maximum_sounds);
 
-                if (sound_data != (data_array *)0) {
+                if (sound_data != nullptr) {
                     looping_sound_data = halo::memory::data_new(sizeof(looping_sound), (char *)"looping sounds", k_maximum_looping_sounds);
                 }
 
-                if (sound_data != (data_array *)0 && looping_sound_data != (data_array *)0) {
+                if (sound_data != nullptr && looping_sound_data != nullptr) {
                     uint8_t initialized;
 
                     audio_device().set_quality(0, 0, 1);
@@ -112,8 +112,8 @@ void initialize(void)
                                 do {
                                     sound_channels[index].sound_index = (datum_index)0xffffffff;
                                     sound_channels[index].type_flags = type_flags;
-                                    sound_channels[index].current_permutation = (SoundPermutation *)0;
-                                    sound_channels[index].next_permutation = (SoundPermutation *)0;
+                                    sound_channels[index].current_permutation = nullptr;
+                                    sound_channels[index].next_permutation = nullptr;
                                     index++;
                                     remaining--;
                                 } while (remaining != 0);
@@ -166,8 +166,8 @@ uint8_t reopen_device(sound_driver_parameters *new_parameters)
                 do {
                     sound_channels[channel_index].sound_index = (datum_index)0xffffffff;
                     sound_channels[channel_index].type_flags = type_flags;
-                    sound_channels[channel_index].current_permutation = (SoundPermutation *)0;
-                    sound_channels[channel_index].next_permutation = (SoundPermutation *)0;
+                    sound_channels[channel_index].current_permutation = nullptr;
+                    sound_channels[channel_index].next_permutation = nullptr;
                     channel_index++;
                     remaining--;
                 } while (remaining != 0);
@@ -193,18 +193,18 @@ void dispose(void)
         sound_initialized = 0;
     }
 
-    if (sound_data != (data_array *)0) {
+    if (sound_data != nullptr) {
         sound_dispose_zero_and_free(sound_data, 0xe);
     }
 
-    if (looping_sound_data != (data_array *)0) {
+    if (looping_sound_data != nullptr) {
         sound_dispose_zero_and_free(looping_sound_data, 0xe);
     }
 
     halo::cache::globals().sound_cache_initialized = 0;
     sound_dispose_zero_and_free(halo::cache::globals().sound_cache_entries, 0xe);
     sound_dispose_zero_and_free(halo::cache::globals().sound_cache, 0x11);
-    halo::cache::globals().sound_cache_base = (void *)0;
+    halo::cache::globals().sound_cache_base = nullptr;
 }
 
 void update(void)

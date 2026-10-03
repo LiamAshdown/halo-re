@@ -192,7 +192,7 @@ void FirstPersonCamera::deterministic(Point3D *out_position, datum_index unit, V
 
     {
         object *parent_object = halo::objects::object_try_and_get(parent, 2);
-        if (parent_object == (object *)0) {
+        if (parent_object == nullptr) {
             return;
         }
 
@@ -245,7 +245,7 @@ void FirstPersonCamera::for_unit_and_vector(observer_command *command, Vector3D 
         object *parent_object;
 
         halo::units::unit_get_camera_position(unit, (real_point3d *)&command->parameters.position);
-        halo::objects::object_get_root_object_velocities(unit, (real_vector3d *)&command->velocity, (real_vector3d *)0);
+        halo::objects::object_get_root_object_velocities(unit, (real_vector3d *)&command->velocity, nullptr);
 
         parent = unit_object->parent_object;
         if (parent == k_datum_index_none) {
@@ -254,7 +254,7 @@ void FirstPersonCamera::for_unit_and_vector(observer_command *command, Vector3D 
         }
 
         parent_object = halo::objects::object_try_and_get(parent, 2);
-        if (parent_object == (object *)0) {
+        if (parent_object == nullptr) {
             command->flags = 1;
             return;
         }
@@ -552,7 +552,7 @@ void TrackCamera::compute_pov(director_camera_data *data, camera_input *input, o
 
     if (dead->target_unit != k_datum_index_none) {
         object *target = halo::objects::object_try_and_get(dead->target_unit, k_all_object_types);
-        if (target != (object *)0) {
+        if (target != nullptr) {
             focus_position = *(Point3D *)&target->bounding_center;
         } else {
             focus_position = dead->focus;
@@ -603,7 +603,7 @@ void TrackCamera::compute_pov(director_camera_data *data, camera_input *input, o
         dead->target_player = new_target;
         if (new_target != k_datum_index_none) {
             player *p = (player *)halo::memory::datum_get(new_target, halo::game::globals().player_data);
-            if (p == (player *)0) {
+            if (p == nullptr) {
                 dead->target_player = dead->local_player;
             }
             p = (player *)((uint8_t *)halo::game::globals().player_data->data + (halo::datum_slot(dead->target_player)) * sizeof(player));
@@ -615,7 +615,7 @@ void TrackCamera::compute_pov(director_camera_data *data, camera_input *input, o
             dead->target_unit = new_unit;
         }
 
-        dead->retarget_time = (halo::game::globals().current_engine != (game_engine_definition *)0) ? 15.0f : 3.0f;
+        dead->retarget_time = (halo::game::globals().current_engine != nullptr) ? 15.0f : 3.0f;
     }
 }
 
@@ -648,7 +648,7 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
     case _camera_script_mode_point: {
         if (camera_script.object != k_datum_index_none) {
             object *obj = halo::objects::object_try_and_get(camera_script.object, k_all_object_types);
-            if (obj == (object *)0) {
+            if (obj == nullptr) {
                 break; 
             }
             default_position = *(Point3D *)&obj->bounding_center;
@@ -726,7 +726,7 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
 
     case _camera_script_mode_first_person: {
         object *obj = halo::objects::object_try_and_get(camera_script.object, 3);
-        if (obj != (object *)0) {
+        if (obj != nullptr) {
             halo::camera::first_person_camera_command_for_unit(camera_script.object, command);
         }
         break;
@@ -734,7 +734,7 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
 
     case _camera_script_mode_dead: {
         object *obj = halo::objects::object_try_and_get(camera_script.object, 3);
-        if (obj != (object *)0) {
+        if (obj != nullptr) {
             director_camera_data *track_data = data;
             if (camera_script.changed) {
                 track_data = (director_camera_data *)halo::camera::dead_camera_new(&data->dead, input->local_player_index,
@@ -870,7 +870,7 @@ void FlyingCamera::compute_pov(director_camera_data *data, camera_input *input, 
         editor_camera_data *flying;
 
         if (!input->has_look_input) {
-            halo::camera::camera_debug_compute_pov((director_camera_data *)0, input, command);
+            halo::camera::camera_debug_compute_pov(nullptr, input, command);
             return;
         }
         camera = &((flying_render_frame *)flying_camera_render_frame)->camera;

@@ -110,21 +110,21 @@ void FunctionTable::help_print_function(char *name) const
     function_index = halo::hs::hs_find_function_by_name(name);
     if (function_index != -1) {
         halo::hs::hs_format_function_signature(function_index, buffer);
-        halo::interface::chimera__console_out((ColorARGB *)0, buffer);
+        halo::interface::chimera__console_out(nullptr, buffer);
         strcpy(buffer, halo::hs::globals().function_definitions[function_index]->info);
         newline = strchr(buffer, '\n');
         if (newline == 0) {
-            halo::interface::chimera__console_out((ColorARGB *)0, buffer);
+            halo::interface::chimera__console_out(nullptr, buffer);
             return;
         }
         line = buffer;
         while (line != 0) {
             if (newline == 0) {
-                halo::interface::chimera__console_out((ColorARGB *)0, line);
+                halo::interface::chimera__console_out(nullptr, line);
                 return;
             }
             *newline = '\0';
-            halo::interface::chimera__console_out((ColorARGB *)0, line);
+            halo::interface::chimera__console_out(nullptr, line);
             line = newline + 1;
             newline = strchr(line, '\n');
         }

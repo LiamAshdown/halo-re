@@ -36,7 +36,7 @@ int32_t decode_dispatch(int16_t channel_count, void *destination, void *source, 
     int32_t out_0;
     int32_t out_1;
 
-    if (destination == (void *)0) {
+    if (destination == nullptr) {
         return decoded_size;
     }
 

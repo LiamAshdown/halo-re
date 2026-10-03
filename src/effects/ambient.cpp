@@ -74,7 +74,7 @@ uint8_t ambient_color::marker_visible(bsp_leaf_reference *location, real_point3d
 
     if (cluster != -1) {
         uint32_t skip_non_water = filter_flags & 4;
-        int16_t region = halo::scenario::location_view(location).fog_region(skip_non_water ? (real_point3d *)0 : position);
+        int16_t region = halo::scenario::location_view(location).fog_region(skip_non_water ? nullptr : position);
 
         weather_row = *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->clusters.pointer + cluster * 0x68 + 8);
         if (region != -1) {
@@ -211,9 +211,9 @@ void material_effects::play_at_marker(uint32_t material_effects_tag, int16_t mat
             spawn_position.z = offset->k * 0.01f + position->z;
 
             if (*(uint32_t *)&entry->effect.tag_id != halo::k_dword_none) {
-                halo::effects::effect_new_with_color(*(uint32_t *)&entry->effect.tag_id, 0xffffffff, (const real_vector3d *)0, 1, 0,
-                    &spawn_position, (uint32_t)offset, *(real *)&sound_param, 0.0f, (const ColorRGB *)0,
-                    (const effect_tint_source *)0, 0);
+                halo::effects::effect_new_with_color(*(uint32_t *)&entry->effect.tag_id, 0xffffffff, nullptr, 1, 0,
+                    &spawn_position, (uint32_t)offset, *(real *)&sound_param, 0.0f, nullptr,
+                    nullptr, 0);
             }
 
             if (*(uint32_t *)&entry->sound.tag_id != halo::k_dword_none) {

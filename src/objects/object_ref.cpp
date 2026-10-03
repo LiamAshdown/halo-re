@@ -546,7 +546,7 @@ int32_t halo::objects::ObjectRef::get_node_local_transform(char *marker_name, ob
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     void *node_array = (uint8_t *)obj + obj->nodes.offset;
 
-    int32_t result = halo::models::model_markers::get_by_name(*(datum_index *)(halo::objects::tag_record_bytes(obj->definition_tag) + 0x34), marker_name, (uint8_t *)obj + 0x180, (int16_t *)0, (real_matrix4x3 *)node_array, (uint8_t)((obj->flags >> 0xc) & 1), marker, (int16_t)maximum_markers);
+    int32_t result = halo::models::model_markers::get_by_name(*(datum_index *)(halo::objects::tag_record_bytes(obj->definition_tag) + 0x34), marker_name, (uint8_t *)obj + 0x180, nullptr, (real_matrix4x3 *)node_array, (uint8_t)((obj->flags >> 0xc) & 1), marker, (int16_t)maximum_markers);
 
     if ((int16_t)result == 0) {
         marker->node_index = 0;
@@ -894,10 +894,10 @@ void halo::objects::ObjectRef::get_orientation(real_vector3d *out_forward, real_
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
     if (obj->parent_object == k_datum_index_none) {
-        if (out_forward != (real_vector3d *)0) {
+        if (out_forward != nullptr) {
             *out_forward = obj->forward;
         }
-        if (out_up != (real_vector3d *)0) {
+        if (out_up != nullptr) {
             *out_up = obj->up;
         }
         return;
@@ -907,10 +907,10 @@ void halo::objects::ObjectRef::get_orientation(real_vector3d *out_forward, real_
         object *parent = ((object_header *)object_data->data)[halo::datum_slot(obj->parent_object)].data;
         real_matrix4x3 *parent_node = (halo::objects::object_block<real_matrix4x3>(*parent, parent->nodes) + ((int8_t)obj->parent_marker_index));
 
-        if (out_forward != (real_vector3d *)0) {
+        if (out_forward != nullptr) {
             halo::math::matrix4x3_transform_normal(*out_forward, obj->forward, *parent_node);
         }
-        if (out_up != (real_vector3d *)0) {
+        if (out_up != nullptr) {
             halo::math::matrix4x3_transform_normal(*out_up, obj->up, *parent_node);
         }
     }
@@ -953,10 +953,10 @@ void halo::objects::ObjectRef::get_root_object_velocities(real_vector3d *out_vel
         root = ((object_header *)object_data->data)[halo::datum_slot(root->parent_object)].data;
     }
 
-    if (out_velocity != (real_vector3d *)0) {
+    if (out_velocity != nullptr) {
         *out_velocity = root->velocity;
     }
-    if (out_angular_velocity != (real_vector3d *)0) {
+    if (out_angular_velocity != nullptr) {
         *out_angular_velocity = root->angular_velocity;
     }
 }

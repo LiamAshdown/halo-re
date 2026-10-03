@@ -577,7 +577,7 @@ int32_t player_effect_ref::locality_for_object(datum_index weapon_object_index)
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
     record = (player *)halo::memory::data_iterator_next(&iterator);
-    while (record != (player *)0) {
+    while (record != nullptr) {
         datum_index unit_index = record->unit;
 
         if (unit_index != k_datum_index_none) {

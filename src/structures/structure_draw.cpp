@@ -146,7 +146,7 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
                                         : (void *)globals().global_origin3d_pointer;
                                     void *lightmap_vertices = test_flag(material->flags, tags::scenario_structure_bsp_material_tag_flag::coplanar)
                                         ? (void *)&material->plane
-                                        : (void *)0;
+                                        : nullptr;
                                     transparent_material_cb(shader, material->shader_permutation, bitmap_data,
                                         render_context, surface_offset, consumed, &material->rendered_vertices_type,
                                         &material->centroid, lightmap_vertices, coplanar_vector,
