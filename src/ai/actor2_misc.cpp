@@ -1279,7 +1279,7 @@ void ActorView::replace_object_reference(uint32_t new_reference, uint32_t old_re
     }
 
     {
-        uint32_t proc = *(uint32_t *)((uint8_t *)&actor_mode_definitions[self->mode] + 0x20);
+        uint32_t proc = actor_mode_definitions[self->mode].replace_reference_proc;
         if (proc != 0) {
             ((void (*)(datum_index, datum_index, datum_index))proc)(actor_index, old_reference, new_reference);
         }

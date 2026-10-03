@@ -136,7 +136,11 @@ typedef struct actor_mode_definition {
     uint32_t tick_proc;               // 0x10 actor_update_activation_state calls it after the transition loop
     uint32_t update_proc;             // 0x14 actor_invoke_type_handler calls it
     uint32_t exit_proc;               // 0x18 actor_set_mode calls the outgoing mode proc first
-    uint8_t unknown_1c[28];           // 0x1c
+    uint8_t unknown_1c[4];            // 0x1c
+    uint32_t replace_reference_proc;  // 0x20 actor_replace_object_reference calls it with (actor, old, new)
+    uint8_t unknown_24[4];            // 0x24
+    uint32_t clear_target_proc;       // 0x28 actor_clear_target_state calls it with the actor
+    uint8_t unknown_2c[12];           // 0x2c
 } actor_mode_definition; // size 0x38
 // global 0x00655254: actor_mode_definition actor_mode_definitions[16]
 //   actor_set_mode reads the exit proc at +0x18 of the outgoing row and the enter proc at
