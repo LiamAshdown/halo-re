@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_player.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
@@ -134,7 +135,7 @@ void PlayerView::respawn()
         }
     }
 
-    if (halo::networking::globals().game_mode == 2 || halo::networking::globals().game_mode == 0) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host || halo::networking::globals().game_mode == halo::networking::k_game_mode_local) {
         int16_t location_index = PlayerView(player_index).pick_random_starting_location();
         datum_index unit_tag;
         ScenarioPlayerStartingLocation *location;
@@ -196,7 +197,7 @@ void PlayerView::respawn()
                 LocalPlayerUnit(((player *)p)->unit).apply_starting_profile(0, 1);
             }
         }
-        if (halo::networking::globals().game_mode == 2) {
+        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
             int32_t team = ((player *)p)->team;
             int32_t encoded_bits;
 
@@ -607,7 +608,7 @@ void StructureBsp::switch_structure_bsp()
             } else if (plr->unit != (datum_index)-1) {
                 object *unit_obj = halo::game::object_at(plr->unit);
                 if ((*((uint8_t *)unit_obj + 0x106) & 0x20) == 0) {
-                    if (halo::networking::globals().game_mode == 2) {
+                    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
 
                         halo::game::chimera__kill_feed(player_handle, 0x1f, (uint32_t)halo::k_dword_none, 1, 0);
                     }
@@ -666,7 +667,7 @@ void StructureBsp::switch_structure_bsp()
         plr->interaction_object = (datum_index)-1;
         plr->interaction_type = 0;
 
-        if (halo::networking::globals().game_mode == 1) {
+        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client) {
             halo::game::player_update_nearby_interactions_secondary(player_handle);
         } else {
             halo::game::player_update_nearby_interactions_primary(player_handle);

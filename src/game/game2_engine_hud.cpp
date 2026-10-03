@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_hud.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
@@ -441,7 +442,7 @@ void EngineHud::play_multiplayer_sound(int32_t sound_index, datum_index recipien
         halo::game::game_engine_queue_status_sound_message(sound_index, recipient_player);
     }
 
-    if (recipient_player == (datum_index)halo::k_dword_none || halo::networking::globals().game_mode != 2) {
+    if (recipient_player == (datum_index)halo::k_dword_none || halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         halo::sound::sound_start_unspatialized(*(datum_index *)(sound + 0xc), 1.0f);
     } else {
         player *p = (player *)halo::memory::datum_get(recipient_player, player_data);
@@ -462,7 +463,7 @@ void EngineHud::queue_multiplayer_sound(int32_t sound_index, datum_index player,
 {
     int32_t count;
 
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         broadcast = 0;
     }
     if (multiplayer_sound_enabled[sound_index] != 0) {

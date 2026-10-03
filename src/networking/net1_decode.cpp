@@ -1,4 +1,5 @@
 #include "halo/networking/net1_decode.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/networking/delta_message_types.hpp"
 #include "halo/projectiles/api.hpp"
 #include "halo/networking/net1_dispatch.hpp"
@@ -86,12 +87,12 @@ void GameClientView::action_apply(void **context)
     network_client_globals *client = self;
     int32_t type_id;
 
-    if (network_game_mode != 1 && network_game_mode != 2) {
+    if (network_game_mode != halo::networking::k_game_mode_client && network_game_mode != halo::networking::k_game_mode_host) {
         return;
     }
     network_action_apply_active = 1;
     type_id = ((int32_t *)context[0])[1];
-    if (network_game_mode == 2) {
+    if (network_game_mode == halo::networking::k_game_mode_host) {
         network_game_action_apply_shared(context, client, type_id);
         network_action_apply_active = 0;
         return;
@@ -1021,7 +1022,7 @@ int32_t ClientMessageDecoder::replicated_command(uint8_t *param_1, int32_t param
     if (client->state == 4 &&
         halo::memory::data_packet_group_decode_packet((param_2 -= 2, (int16_t *)&param_2), &network_game_messages_group,
             decoded_body, param_1 + 2, &out_type, (uint16_t *)&input, 6) != 0) {
-        if (network_game_mode != 1) {
+        if (network_game_mode != halo::networking::k_game_mode_client) {
             return 1;
         }
         halo::networking::network_client_timer_schedule((int32_t)decoded_body[0], (int32_t)decoded_body[1], client);

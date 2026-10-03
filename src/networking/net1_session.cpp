@@ -1,4 +1,5 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/networking/delta_message_types.hpp"
@@ -455,7 +456,7 @@ uint8_t GameRuntime::start_new_server_with_name_and_password(uint32_t unused, ui
         halo::game::globals().variant_history_current = -1;
         halo::game::game_engine_apply_current_custom_variant();
         halo::game::game_engine_sync_variant_defaults();
-        network_game_mode = 2;
+        network_game_mode = halo::networking::k_game_mode_host;
         halo::networking::network_host_round_reset(network_server);
         network_disconnect_timeout_flag = 1;
     } else {
@@ -621,7 +622,7 @@ char GameSessionView::scenario_load_request()
             if (shared_session != 0) {
                 request.salt = *(uint32_t *)((uint8_t *)shared_session + 0x3a4);
             }
-        } else if (network_game_mode == 3) {
+        } else if (network_game_mode == halo::networking::k_game_mode_replay) {
             request.salt = *(uint32_t *)((uint8_t *)session + 0x3a4);
         }
     }
@@ -631,7 +632,7 @@ char GameSessionView::scenario_load_request()
         halo::game::game_unload_map();
     }
     halo::main::main_menu_music_stop();
-    if (session->variant.game_engine_index != 0) {
+    if (session->variant.game_engine_index != _game_engine_none) {
         halo::game::game_engine_apply_variant(&session->variant);
     }
     halo::game::cache_file_switch_map_by_path(request.map_name, 1);
@@ -646,7 +647,7 @@ char GameSessionView::scenario_load_request()
     }
     session->map_loaded = 1;
     halo::game::game_start_new_map();
-    if (network_game_mode == 2) {
+    if (network_game_mode == halo::networking::k_game_mode_host) {
         for (i = 0; i < 0x10; i++) {
             if (halo::networking::network_player_entry_validate(&session->players[i]) == 0) {
                 break;
@@ -1057,7 +1058,7 @@ int32_t SearchEntryView::results_add_or_update(const uint8_t *announcement)
     entry->joinable = joinable;
     entry->stats_logging = (*(announcement + 0x15e) >> 2) & 1;
 
-    if (entry->game_engine_index == 3 && (*(announcement + 0x15e) & 8) != 0) {
+    if (entry->game_engine_index == _game_engine_oddball && (*(announcement + 0x15e) & 8) != 0) {
         entry->unknown_12f = 1;
         return 1;
     }

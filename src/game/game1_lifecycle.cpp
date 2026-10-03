@@ -3,6 +3,7 @@
  */
 
 #include "win32.h"
+#include "halo/networking/game_mode.hpp"
 #include "halo/game/records.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
@@ -301,7 +302,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
  */
 void Lifecycle::begin_end_game_sequence(void)
 {
-    if (halo::networking::globals().game_mode == 2 && game_engine_state_value == _game_engine_state_not_started) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host && game_engine_state_value == _game_engine_state_not_started) {
         *((uint8_t *)network_server + 0xa0f) = 1;
         game_engine_state_value = _game_engine_state_ending;
         game_engine_end_game_timer = 7.0f;

@@ -1,4 +1,5 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/text/api.hpp"
 #include <stdlib.h>
 #include <string.h>
@@ -435,7 +436,7 @@ void JoinView::status_text_update(int32_t mode)
         attempt->elapsed_counter = 0;
         halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Loading"));
         interface_loading_screen_progress = 0;
-        if (network_game_mode == 2) {
+        if (network_game_mode == halo::networking::k_game_mode_host) {
             if (join_ui_state != 1) {
                 if (join_ui_state != 2 && join_ui_state == 4) {
                     interface_loading_screen_request_id = -1;

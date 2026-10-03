@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/networking/game_mode.hpp"
 #include "halo/game/variant_flags.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
@@ -108,7 +109,7 @@ void ObjectCleanup::cleanup_stray_items(void)
 
     obj = halo::objects::object_iterator_next(&iter);
     while (obj != (object *)0) {
-        if (halo::networking::globals().game_mode != 1 || obj->network_role == 3) {
+        if (halo::networking::globals().game_mode != halo::networking::k_game_mode_client || obj->network_role == 3) {
             int16_t index16 = (int16_t)(uint32_t)iter.handle;
 
             if (iter.handle != (datum_index)halo::k_dword_none && index16 >= 0 &&
@@ -226,7 +227,7 @@ void ObjectCleanup::flag_local_player_units(void)
         p = (player *)halo::memory::data_iterator_next(&iterator);
         while (p != (player *)0) {
             if (p->quit_tick != k_datum_index_none && p->marked_for_deletion == 0 &&
-                (halo::networking::globals().game_mode == 1 || current_tick == (int32_t)p->quit_tick)) {
+                (halo::networking::globals().game_mode == halo::networking::k_game_mode_client || current_tick == (int32_t)p->quit_tick)) {
                 p->marked_for_deletion = 1;
                 if (p->unit == k_datum_index_none) {
                     halo::game::player_remove(iterator.index);

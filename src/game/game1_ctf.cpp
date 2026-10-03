@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
@@ -306,7 +307,7 @@ datum_index Ctf::create_flag_object(real_point3d *position, uint16_t name_index)
     placement.owner_team = (int16_t)name_index;
 
     role = 3;
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         int16_t object_type = *(int16_t *)halo::game::tag_data_at((uint32_t)placement.definition_tag);
         if (object_type_definitions[object_type]->network_delta_message_type != -1) {
             role = 0;
@@ -460,7 +461,7 @@ uint8_t Ctf::initialize_for_new_game(void)
             ctf_team_flag_stand_position[slot] = (real_point3d *)((uint8_t *)halo::scenario::globals().scenario->netgame_flags.pointer + index * 0x94);
         }
     }
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         if (game_engine_variant.engine.ctf.single_flag_time > 0) {
             int32_t active;
 
@@ -705,7 +706,7 @@ uint8_t Ctf::player_flag_tick(uint32_t flag_handle, uint32_t player_index)
     object *flag_obj = halo::game::object_at(flag_handle);
     int16_t team = ((struct object *)flag_obj)->owner_team;
 
-    if (player_index != halo::k_dword_none && halo::networking::globals().game_mode == 2) {
+    if (player_index != halo::k_dword_none && halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         player *p = halo::game::player_at(player_index);
 
         if ((int32_t)team == p->team) {
@@ -772,7 +773,7 @@ void Ctf::player_touch_flag(uint32_t player_index, int32_t team)
     ctf_team_flag_touch_count[team]++;
     (*touch_count)++;
 
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         halo::game::game_engine_player_profile_cache_sync_all(1, (void *)halo::k_dword_none);
     }
     halo::game::game_engine_queue_multiplayer_sound(p->team != 0 ? 0xa : 0xd, halo::k_dword_none, 1);

@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/networking/game_mode.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/shaders/api.hpp"
@@ -88,7 +89,7 @@ int32_t SimulationClock::accumulate_simulation_ticks(float elapsed_seconds, char
     double floor_result;
     int32_t tick_count;
 
-    if (halo::networking::globals().game_mode == 1 || halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client || halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         scale = 1.0f;
     } else {
         scale = game_time->speed;
@@ -125,13 +126,13 @@ void SimulationClock::advance_simulation_ticks(float delta_time)
         tick_count = 1;
     }
 
-    if (halo::networking::globals().game_mode == 0) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_local) {
         if (!game_time->active) {
             game_time->ticks_this_frame = 0;
             return;
         }
         halo::game::update_run_catchup_ticks((int16_t)tick_count);
-    } else if (halo::networking::globals().game_mode == 2) {
+    } else if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         halo::networking::network_game_server_per_frame_tick((int16_t)tick_count, (network_server_globals *)((uint8_t *)halo::networking::globals().server));
     }
 
@@ -142,7 +143,7 @@ void SimulationClock::advance_simulation_ticks(float delta_time)
     }
     game_time->ticks_this_frame = (int16_t)tick_count;
 
-    if (halo::networking::globals().game_mode != 1 && halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_client && halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         halo::game::game_effects_update(game_time->speed * delta_time);
     } else {
         halo::game::game_effects_update(delta_time * 1.0f);
@@ -188,7 +189,7 @@ int32_t SimulationClock::announce_time_remaining(void)
     if (current_game_engine == (game_engine_definition *)0) {
         return 0;
     }
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return 0;
     }
     ready = halo::game::game_engine_players_ready_for_bsp_switch_strict();
@@ -358,7 +359,7 @@ int32_t SimulationClock::get_time_remaining(void)
  */
 float SimulationClock::get_time_scale(void)
 {
-    if (halo::networking::globals().game_mode != 1 && halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_client && halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return game_time->speed;
     }
     return 1.0f;
@@ -379,12 +380,12 @@ void SimulationClock::init_tick_record_for_mode(void)
     game_time_unknown_48 = 0;
 
     switch (halo::networking::globals().game_mode) {
-    case 0:
-    case 2:
+    case halo::networking::k_game_mode_local:
+    case halo::networking::k_game_mode_host:
         halo::game::update_server_dispose();
         return;
-    case 1:
-    case 3:
+    case halo::networking::k_game_mode_client:
+    case halo::networking::k_game_mode_replay:
         halo::game::update_client_dispose();
         return;
     default:

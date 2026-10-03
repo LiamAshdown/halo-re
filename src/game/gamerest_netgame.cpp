@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_netgame.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
@@ -54,7 +55,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
     real_point3d item_position;
     uint8_t position_valid;
 
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         if (game_engine_variant.engine.ctf.single_flag_time > 0) {
             if (ctf_flag_auto_return_ticks > 0) {
                 ctf_flag_auto_return_ticks--;
@@ -286,9 +287,9 @@ uint8_t NetgameRules::equipment_game_type_matches(int16_t *types, int32_t count,
         if (type == 0x0c) {
             result = result | 1;
         } else if (type == 0x0d) {
-            result = result | (current_engine_index != 1);
+            result = result | (current_engine_index != _game_engine_ctf);
         } else if (type == 0x0e) {
-            result = result | (current_engine_index != 1 && current_engine_index != 5);
+            result = result | (current_engine_index != _game_engine_ctf && current_engine_index != _game_engine_race);
         }
     }
     return result;
@@ -310,7 +311,7 @@ void NetgameRules::broadcast_object_type_changes()
     uint8_t changed;
     int encode_result;
 
-    if (halo::networking::globals().game_mode != 2 || halo::networking::globals().server->state != 1) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host || halo::networking::globals().server->state != 1) {
         return;
     }
 

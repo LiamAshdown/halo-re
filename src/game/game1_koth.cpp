@@ -4,6 +4,7 @@
  */
 
 #include "tags.h"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/networking/delta_message_types.hpp"
@@ -150,7 +151,7 @@ void Koth::alt_scorer_tick(uint32_t player_index)
 {
     player *p = halo::game::player_at(player_index);
 
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         king_alt_player_score[player_index & halo::k_datum_slot_mask]++;
         king_alt_team_score[p->team]++;
         if (king_alt_score_target - king_alt_team_score[p->team] == 900) {
@@ -196,7 +197,7 @@ void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
 
     tick = game_time->game_time;
     if ((uint32_t)(game_time->game_time - item->held_game_time) > 0x4b0) {
-        if (halo::networking::globals().game_mode != 2) {
+        if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
             return;
         }
         if (halo::items::weapon_must_be_readied((datum_index)object_handle) == 0 || (obj->flags >> 0xb & 1) == 0 || obj->parent_object != (datum_index)halo::k_dword_none) {
@@ -218,7 +219,7 @@ void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
         halo::game::game_engine_koth_relocate_object_hill(object_handle);
     }
     tick = game_time->game_time;
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
 check_relocation:
@@ -744,14 +745,14 @@ void Koth::player_tick(uint32_t player_index)
     if (p->unit != (datum_index)halo::k_dword_none &&
         (current_game_engine == 0 || game_engine_state_value == 0) &&
         halo::game::game_engine_koth_player_in_hill_bounds(player_index) != 0) {
-        uint8_t hosting = (halo::networking::globals().game_mode == 2);
+        uint8_t hosting = (halo::networking::globals().game_mode == halo::networking::k_game_mode_host);
 
         king_hill_player_in_hill[idx] = 1;
         if (hosting) {
             *(int16_t *)&((struct player *)p)->objective_time += 1;
         }
 
-        if (king_bucket_last_credit_tick[p->team] < game_time->game_time && halo::networking::globals().game_mode == 2) {
+        if (king_bucket_last_credit_tick[p->team] < game_time->game_time && halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
             int32_t limit_ticks = game_engine_variant.score_limit * halo::game::k_ticks_per_minute;
             int32_t bucket;
 
@@ -828,7 +829,7 @@ void Koth::relocate_hill_marker(int32_t ball_index)
  */
 void Koth::relocate_object_hill(uint32_t object_index)
 {
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         object *obj = halo::game::object_at(object_index);
         real_point3d discarded_position;
 

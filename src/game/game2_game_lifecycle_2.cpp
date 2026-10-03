@@ -1,4 +1,5 @@
 #include "halo/game/game2_game_lifecycle.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/game/legacy_globals.hpp"
 #include "halo/math/api.hpp"
@@ -107,12 +108,12 @@ void GameLifecycle::simulate_tick(uint32_t predict_pass)
 
     halo::ai::ai_tick_dispatcher();
 
-    if (halo::networking::globals().game_mode != 0) {
-        if (halo::networking::globals().game_mode == 1) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_local) {
+        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client) {
             halo::game::game_engine_players_update_client();
             goto after_role_update;
         }
-        if (halo::networking::globals().game_mode != 2) {
+        if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
             goto after_role_update;
         }
     }
@@ -136,7 +137,7 @@ after_role_update:
     halo::interface::hud_update_dispatch();
     halo::effects::player_effect_clear_dead_players();
 
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         if (predict_pass == 0) {
             halo::game::players_server_catchup_on_client_updates();
         }
@@ -150,7 +151,7 @@ after_role_update:
             halo::networking::network_event_feed_flush((int32_t *)(fields::network_event_feed_b));
         }
     }
-    if (halo::networking::globals().game_mode == 1) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client) {
         halo::game::players_client_catchup_on_server_updates();
     }
 

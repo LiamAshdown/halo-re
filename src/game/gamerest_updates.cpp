@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_updates.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/datum.hpp"
 #include <string.h>
 #include <stdint.h>
@@ -275,7 +276,7 @@ uint32_t UpdateClient::queue_apply_tick(player_action *out_actions, client_updat
  */
 update_record * UpdateClient::queue_get_slot(int32_t tick)
 {
-    if (halo::networking::globals().game_mode != 2 && halo::networking::globals().game_mode != 0) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host && halo::networking::globals().game_mode != halo::networking::k_game_mode_local) {
         int32_t slot = update_client_write_cursor & 0x7f;
 
         update_client_write_cursor = update_client_write_cursor + 1;
@@ -749,7 +750,7 @@ void PlayerNetworkState::apply_first_position_update(uint32_t field0)
 {
     object *unit_obj;
 
-    if (halo::networking::globals().game_mode != 1 || plr->local_player_index != -1 || plr->unit == (datum_index)-1) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_client || plr->local_player_index != -1 || plr->unit == (datum_index)-1) {
         return;
     }
 

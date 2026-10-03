@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/networking/game_mode.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "memory.h"
@@ -114,7 +115,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     player_information = (GlobalsPlayerInformation *)global_globals->player_information.pointer;
     input = &local_player_input_states[plr->local_player_index];
 
-    if (halo::networking::globals().game_mode != 0) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_local) {
         input->throttle_x = halo::game::control_axis_sign(input->throttle_x);
         input->throttle_y = halo::game::control_axis_sign(input->throttle_y);
     }
@@ -344,7 +345,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
         out->action = input->buttons[0x02];
     }
 
-    if (halo::networking::globals().game_mode == 1 && (out->control_flags & 0x800u) != 0 &&
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client && (out->control_flags & 0x800u) != 0 &&
         plr->unit != (datum_index)-1) {
         unit_data *unit = (unit_data *)((uint8_t *)
             halo::game::object_at(plr->unit) + k_unit_data_offset);

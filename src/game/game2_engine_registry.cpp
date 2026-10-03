@@ -12,11 +12,11 @@ constinit RaceEngine race_engine;
 const GameEngineSlots *engine_slots_for(int32_t engine_index)
 {
     switch (engine_index) {
-    case 2:
+    case _game_engine_slayer:
         return &slayer_engine;
-    case 3:
+    case _game_engine_oddball:
         return &oddball_engine;
-    case 5:
+    case _game_engine_race:
         return &race_engine;
     default:
         return nullptr;

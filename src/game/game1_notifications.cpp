@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/networking/game_mode.hpp"
 #include "halo/game/variant_flags.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
@@ -381,7 +382,7 @@ void Notifications::client_apply_team_assignment(void **envelope)
         halo::networking::message_delta_decode_compound_field_staged(envelope);
         return;
     }
-    if (!halo::networking::message_delta_decode_compound_field(envelope, out_pair) || halo::networking::globals().game_mode != 1) {
+    if (!halo::networking::message_delta_decode_compound_field(envelope, out_pair) || halo::networking::globals().game_mode != halo::networking::k_game_mode_client) {
         return;
     }
 

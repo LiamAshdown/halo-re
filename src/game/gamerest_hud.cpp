@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_hud.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
@@ -651,7 +652,7 @@ void ChimeraHooks::kill_feed(datum_index recipient, int32_t hash_key, uint32_t m
             }
         }
 
-        if (halo::networking::globals().game_mode == 2 && broadcast == 1) {
+        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host && broadcast == 1) {
 
             halo::game::game_engine_notify_kill_event(recipient, hash_key, (int32_t)message_type, subject);
         }
@@ -691,7 +692,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
     halo::networking::server_browser_custom_options_unpack(variant_name, &options);
     halo::networking::ticker_text_buffer_append((wchar_t *)L"  ---  ", 0, ticker);
 
-    if (engine_index == 1) {
+    if (engine_index == _game_engine_ctf) {
         halo::networking::server_browser_gametype1_flags_unpack((uint32_t)fraglimit, &engine_extra.ctf);
         is_custom_variant = 1;
         if (game_flags_wide == 0 || game_flags_wide[0] == 0) {
@@ -773,7 +774,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
                 is_custom_variant = 1;
             }
         }
-    } else if (engine_index == 2) {
+    } else if (engine_index == _game_engine_slayer) {
         if (game_flags_wide == 0 || game_flags_wide[0] == 0) {
             label_text = halo::game::unicode_string_list_get_string(
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 31);
@@ -829,7 +830,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
             line[255] = 0;
             halo::networking::ticker_text_buffer_append(line, 0, ticker);
         }
-    } else if (engine_index == 3) {
+    } else if (engine_index == _game_engine_oddball) {
         halo::networking::server_browser_gametype3_flags_unpack((uint32_t)fraglimit, &oddball);
         if (game_flags_wide == 0 || game_flags_wide[0] == 0) {
             label_text = halo::game::unicode_string_list_get_string(
@@ -921,7 +922,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
             line[255] = 0;
             halo::networking::ticker_text_buffer_append(line, 0, ticker);
         }
-    } else if (engine_index == 4) {
+    } else if (engine_index == _game_engine_king) {
         if (game_flags_wide == 0 || game_flags_wide[0] == 0) {
             label_text = halo::game::unicode_string_list_get_string(
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings", 35);
@@ -963,7 +964,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
             line[255] = 0;
             halo::networking::ticker_text_buffer_append(line, 0, ticker);
         }
-    } else if (engine_index == 5) {
+    } else if (engine_index == _game_engine_race) {
         halo::networking::server_browser_gametype5_flags_unpack((uint32_t)fraglimit, engine_extra.race);
         if (game_flags_wide == 0 || game_flags_wide[0] == 0) {
             label_text = halo::game::unicode_string_list_get_string(

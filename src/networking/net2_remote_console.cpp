@@ -3,6 +3,7 @@
  * RCON requests, console glue, update server and registry lookups.
  */
 #include "win32.h"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/networking/delta_message_types.hpp"
@@ -185,7 +186,7 @@ void RemoteConsole::rcon(int32_t argument_count, char **arguments)
     int32_t budget;
     int32_t i;
 
-    if (network_game_mode != 1) {
+    if (network_game_mode != halo::networking::k_game_mode_client) {
         halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"rcon is a client-only function!");
         return;
     }
@@ -313,7 +314,7 @@ char RemoteConsole::send_update(int32_t tick_count, char frame_time_overflow)
     uint8_t sent_update = 0;
 
     if (network_client == 0) {
-        network_game_mode = 0;
+        network_game_mode = halo::networking::k_game_mode_local;
         halo::game::update_queues_dispose();
         halo::game::update_server_new();
         halo::game::update_server_dispose();
@@ -356,7 +357,7 @@ char RemoteConsole::send_update(int32_t tick_count, char frame_time_overflow)
         }
 
         if (local_player != 0 && local_player->unit != k_datum_index_none) {
-            if (network_game_mode == 1) {
+            if (network_game_mode == halo::networking::k_game_mode_client) {
                 char added = halo::networking::player_update_history_add(local_player->unit,
                     (player_update_history *)network_client->update_history, tick_count, control, &history_update_id);
 
@@ -395,7 +396,7 @@ char RemoteConsole::send_update(int32_t tick_count, char frame_time_overflow)
                 record.zoom_level = control.zoom_level;
             }
 
-            if (network_game_mode == 1) {
+            if (network_game_mode == halo::networking::k_game_mode_client) {
                 int32_t encoded_bits = halo::networking::message_delta_encode_single_value(0xd, &history_byte, &record,
                     &network_client->last_update_sent, (int32_t)network_message_scratch, halo::k_network_message_scratch_size, 1);
                 network_channel *channel = network_client->channel;

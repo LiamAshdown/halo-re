@@ -1,4 +1,5 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
@@ -65,7 +66,7 @@ int32_t ConnectionView::finalize_join(uint16_t *connection)
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     *(int32_t *)(iVar6 + 4) = now_ms;
 
-    if (network_game_mode == 2) {
+    if (network_game_mode == halo::networking::k_game_mode_host) {
         *((uint8_t *)connection + 0xec0) = 1;
     } else {
         ok = halo::networking::network_game_scenario_load_request((network_game_session *)((uint8_t *)connection + 0xb14));
@@ -173,7 +174,7 @@ after_search:
         halo::interface::widget_close_all();
         halo::game::game_engine_init_tick_record_for_mode();
         halo::game::game_engine_reset_all_players();
-        if (network_game_mode == 2 && ((*(uint8_t *)((uint8_t *)network_server + 6) >> 2 & 1) == 0)) {
+        if (network_game_mode == halo::networking::k_game_mode_host && ((*(uint8_t *)((uint8_t *)network_server + 6) >> 2 & 1) == 0)) {
             halo::networking::network_host_full_state_broadcast(network_server);
         }
         if (join_ui_state != 0) {

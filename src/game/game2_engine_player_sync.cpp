@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_players.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/networking/delta_message_types.hpp"
@@ -238,7 +239,7 @@ void EnginePlayerSync::players_update_server(void)
         player_handle = player_iter.index;
 
         if (entry->flag_a == 1) {
-            if (halo::networking::globals().game_mode == 2 && entry->field2 == entry->field3 + 1) {
+            if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host && entry->field2 == entry->field3 + 1) {
                 halo::networking::build_remote_player_transform_update(player_handle, action, entry->field1);
             }
             if (entry->flag_b == 1) {
@@ -261,7 +262,7 @@ void EnginePlayerSync::players_update_server(void)
             } else if (halo::game::game_engine_player_ready_to_respawn(player_handle) != 0) {
                 halo::game::game_engine_resolve_player_team(player_handle);
                 halo::game::player_respawn(player_handle);
-                if (halo::networking::globals().game_mode == 0) {
+                if (halo::networking::globals().game_mode == halo::networking::k_game_mode_local) {
                     if (plr->unit == (datum_index)-1) {
                         plr->respawn_timer = 1;
                     } else {
@@ -373,7 +374,7 @@ void EnginePlayerSync::server_update_player_positions(void)
     data_iterator iter;
     player *plr;
 
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
 
@@ -591,7 +592,7 @@ void EnginePlayerSync::update_local_player_control(int16_t local_player_index, r
     }
     button_flags = input.button_flags;
 
-    if (halo::networking::globals().game_mode == 0) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_local) {
         if ((button_flags & 0x18) != 0) {
             int32_t new_unit;
 
@@ -1013,7 +1014,7 @@ void EnginePlayerSync::spawn_player_starting_loadout(uint32_t starting_equipment
 
                 halo::objects::object_placement_data_initialize(&placement, picked_tag, (datum_index)halo::k_dword_none);
 
-                if (halo::networking::globals().game_mode == 2) {
+                if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
                     tag_instance *tag_inst = &halo::cache::globals().tag_instances[picked_tag & halo::k_datum_slot_mask];
                     Object *object_tag = (Object *)tag_inst->data;
                     if (object_type_definitions[object_tag->object_type]->network_delta_message_type != -1) {

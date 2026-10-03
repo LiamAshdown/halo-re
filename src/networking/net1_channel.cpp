@@ -1,4 +1,5 @@
 #include "halo/networking/net1_channel.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/networking/browser_state.hpp"
 #include "halo/networking/net_state.hpp"
@@ -1424,7 +1425,7 @@ char ChannelView::service(int32_t timeout_ms, network_channel **out_new_child)
             goto after_timestamp;
         }
         if (network_channel_service_backoff_bypass == 0 &&
-            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < halo::game::globals().game_time->game_time || network_game_mode == 1)) {
+            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < halo::game::globals().game_time->game_time || network_game_mode == halo::networking::k_game_mode_client)) {
             return 0;
         }
     }
@@ -1500,7 +1501,7 @@ char ChannelView::service_light(int32_t timeout_ms, network_channel **out_new_ch
             goto after_timestamp;
         }
         if (network_channel_service_backoff_bypass == 0 &&
-            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < halo::game::globals().game_time->game_time || network_game_mode == 1)) {
+            (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < halo::game::globals().game_time->game_time || network_game_mode == halo::networking::k_game_mode_client)) {
             return 0;
         }
     }
@@ -1728,7 +1729,7 @@ int32_t ChannelKeys::open(network_player_entry *entry)
 uint8_t ChannelKeys::resolve_target(network_player_entry *entry)
 {
     if (entry == 0 || halo::networking::network_player_entry_validate(entry) == 0) {
-        if (network_game_mode != 3) {
+        if (network_game_mode != halo::networking::k_game_mode_replay) {
             return 1;
         }
         return entry->machine_index == 0;
@@ -1753,7 +1754,7 @@ int32_t ChannelKeys::send_state(network_client_globals *client, int32_t **entry)
 {
     uint8_t scratch[0x3ba];
 
-    if (network_game_mode == 2 || (client->state != 2 && client->state != 3)) {
+    if (network_game_mode == halo::networking::k_game_mode_host || (client->state != 2 && client->state != 3)) {
         halo::networking::message_delta_decode_compound_field_staged((void **)entry);
         return 0;
     }

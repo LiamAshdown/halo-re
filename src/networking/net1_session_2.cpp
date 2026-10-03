@@ -1,4 +1,5 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/networking/delta_message_types.hpp"
 #include "halo/networking/net1_dispatch.hpp"
 #include <string.h>
@@ -127,7 +128,7 @@ void PlayerReports::ping_field_update_and_report(void *decode_context)
             do {
                 if (((player *)element)->local_player_index != -1) {
                     team_index = ((player *)element)->team_index_desired;
-                    if (team_index != -1 && network_game_mode == 2) {
+                    if (team_index != -1 && network_game_mode == halo::networking::k_game_mode_host) {
                         int32_t base = static_cast<int32_t>(network_server->last_stamp_ms);
                         int32_t now = halo::cseries::time_query_performance_counter_ms();
                         ((player *)element)->ping = now - base;

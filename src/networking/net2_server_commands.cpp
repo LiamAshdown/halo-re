@@ -3,6 +3,7 @@
  * Server console commands.
  */
 #include "tags.h"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "memory.h"
@@ -95,7 +96,7 @@ void ServerCommands::ban(uint32_t argument_count, int32_t *arguments)
     network_player_entry *player;
     network_machine *machine;
 
-    if (network_game_mode != 2) {
+    if (network_game_mode != halo::networking::k_game_mode_host) {
         halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"sv_ban is a server-only function!");
         return;
     }
@@ -312,7 +313,7 @@ void ServerCommands::kick(char *name_or_index)
     network_player_entry *player;
     network_machine *machine;
 
-    if (network_game_mode != 2) {
+    if (network_game_mode != halo::networking::k_game_mode_host) {
         halo::interface::chimera__console_out((ColorARGB *)console_message_default_color, (char *)"sv_kick is a server-only function!");
         return;
     }
@@ -334,7 +335,7 @@ void ServerCommands::map(uint32_t argument_count, uint16_t **arguments)
         return;
     }
 
-    if (network_game_mode == 2) {
+    if (network_game_mode == halo::networking::k_game_mode_host) {
         halo::game::game_engine_free_custom_variant_cache();
         halo::game::game_engine_variant_add_to_history(0, 0, 0);
         halo::game::globals().variant_history_current = -1;
@@ -344,7 +345,7 @@ void ServerCommands::map(uint32_t argument_count, uint16_t **arguments)
         return;
     }
 
-    if (network_game_mode == 0) {
+    if (network_game_mode == halo::networking::k_game_mode_local) {
         game_variant new_variant;
 
         halo::main::main_queue_map_change_by_name_or_clear((char *)"");
@@ -363,12 +364,12 @@ void ServerCommands::map(uint32_t argument_count, uint16_t **arguments)
 
 void ServerCommands::map_reset(void)
 {
-    if (network_game_mode != 2) {
+    if (network_game_mode != halo::networking::k_game_mode_host) {
         halo::interface::chimera__console_out((ColorARGB *)0, (char *)"sv_map_reset is a server-only function!");
         return;
     }
     halo::interface::widget_close_all();
-    if (network_game_mode == 2) {
+    if (network_game_mode == halo::networking::k_game_mode_host) {
         if (halo::game::globals().state == _game_engine_state_not_started) {
             halo::game::game_engine_reset_round_objects();
             halo::game::game_engine_send_round_reset_message();
@@ -486,7 +487,7 @@ void ServerCommands::players(void)
     network_player_entry *entry;
     int32_t remaining;
 
-    if (network_game_mode != 2) {
+    if (network_game_mode != halo::networking::k_game_mode_host) {
         halo::interface::chimera__console_out((ColorARGB *)global_white_argb, (char *)"sv_players is a server-only function!");
         return;
     }
@@ -602,7 +603,7 @@ void ServerCommands::single_flag_force_reset(uint32_t argument_count, char **arg
 
 void ServerCommands::status(void)
 {
-    if (network_game_mode == 2) {
+    if (network_game_mode == halo::networking::k_game_mode_host) {
         if (network_server != 0) {
             int32_t player_count_info = halo::game::players_active_count();
             halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Dedicated server is running on map %s (%d / %d players)",

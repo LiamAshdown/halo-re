@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
@@ -242,7 +243,7 @@ uint8_t King::initialize_for_new_game(void)
  */
 void King::player_new_life(datum_index player_index)
 {
-    if (halo::networking::globals().game_mode == 2 && (current_game_engine == 0 || game_engine_teams_enabled_flag == 0)) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host && (current_game_engine == 0 || game_engine_teams_enabled_flag == 0)) {
         int32_t team = halo::game::player_at(player_index)->team;
 
         king_bucket_credit_ticks[team] = 0;
@@ -378,7 +379,7 @@ void King::reset_objects(void)
 {
     int32_t i;
 
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
     for (i = 0; i < 0x10; i++) {
@@ -414,7 +415,7 @@ void King::reset_round(void)
  */
 void King::unknown_48(void)
 {
-    if ((current_game_engine == 0 || game_engine_state_value == 0) && halo::networking::globals().game_mode == 2 &&
+    if ((current_game_engine == 0 || game_engine_state_value == 0) && halo::networking::globals().game_mode == halo::networking::k_game_mode_host &&
         game_engine_variant.engine.king.moving_hill != 0 && --king_hill_move_ticks_006b1068 == 0) {
         king_hill_move_ticks_006b1068 = halo::game::k_ticks_per_minute;
         king_starting_location_type = halo::game::game_engine_pick_random_recent_location(king_starting_location_type, king_starting_location_type);
@@ -433,7 +434,7 @@ void King::unknown_48(void)
     } else {
         halo::main::console_print_error_va(0, "FAILED TO FIND HILL");
     }
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         halo::game::game_engine_koth_update_hill_occupancy_state();
     }
 }

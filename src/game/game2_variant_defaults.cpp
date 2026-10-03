@@ -24,7 +24,7 @@ game_variant * VariantDefaults::assault(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 1;
+    defaults.game_engine_index = _game_engine_ctf;
     defaults.teams = 1;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
@@ -70,7 +70,7 @@ game_variant * VariantDefaults::classic_accumulation(game_variant *variant_optio
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 3;
+    defaults.game_engine_index = _game_engine_oddball;
     defaults.teams = 0;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 2;
@@ -118,7 +118,7 @@ game_variant * VariantDefaults::classic_crazy_king(game_variant *variant_options
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 4;
+    defaults.game_engine_index = _game_engine_king;
     defaults.teams = 0;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
@@ -161,7 +161,7 @@ game_variant * VariantDefaults::classic_ctf(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 1;
+    defaults.game_engine_index = _game_engine_ctf;
     defaults.teams = 1;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
@@ -208,7 +208,7 @@ game_variant * VariantDefaults::classic_ctf_pro(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 1;
+    defaults.game_engine_index = _game_engine_ctf;
     defaults.teams = 1;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::loadout_override | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
@@ -303,7 +303,7 @@ game_variant * VariantDefaults::classic_invasion(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 1;
+    defaults.game_engine_index = _game_engine_ctf;
     defaults.teams = 1;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
@@ -350,7 +350,7 @@ game_variant * VariantDefaults::classic_iron_ctf(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 1;
+    defaults.game_engine_index = _game_engine_ctf;
     defaults.teams = 1;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
@@ -397,7 +397,7 @@ game_variant * VariantDefaults::classic_juggernaut(game_variant *variant_options
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 3;
+    defaults.game_engine_index = _game_engine_oddball;
     defaults.teams = 0;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
@@ -445,7 +445,7 @@ game_variant * VariantDefaults::classic_king(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 4;
+    defaults.game_engine_index = _game_engine_king;
     defaults.teams = 0;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
@@ -488,7 +488,7 @@ game_variant * VariantDefaults::classic_king_pro(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 4;
+    defaults.game_engine_index = _game_engine_king;
     defaults.teams = 0;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::loadout_override | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
@@ -584,7 +584,7 @@ game_variant * VariantDefaults::classic_race(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 5;
+    defaults.game_engine_index = _game_engine_race;
     defaults.teams = 0;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
@@ -628,7 +628,7 @@ game_variant * VariantDefaults::classic_rally(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 5;
+    defaults.game_engine_index = _game_engine_race;
     defaults.teams = 0;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
@@ -672,7 +672,7 @@ game_variant * VariantDefaults::classic_reverse_tag(game_variant *variant_option
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 3;
+    defaults.game_engine_index = _game_engine_oddball;
     defaults.teams = 0;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
@@ -814,7 +814,7 @@ game_variant * VariantDefaults::classic_stalker(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 3;
+    defaults.game_engine_index = _game_engine_oddball;
     defaults.teams = 0;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 0;
@@ -863,7 +863,7 @@ game_variant * VariantDefaults::classic_team_king(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 4;
+    defaults.game_engine_index = _game_engine_king;
     defaults.teams = 1;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
@@ -932,7 +932,7 @@ game_variant * VariantDefaults::classic_team_race(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 5;
+    defaults.game_engine_index = _game_engine_race;
     defaults.teams = 1;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
@@ -976,7 +976,7 @@ game_variant * VariantDefaults::classic_team_rally(game_variant *variant_options
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 5;
+    defaults.game_engine_index = _game_engine_race;
     defaults.teams = 1;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::object_placement_filter);
     defaults.objective_indicator = 1;
@@ -1044,7 +1044,7 @@ game_variant * VariantDefaults::crazy_king(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 4;
+    defaults.game_engine_index = _game_engine_king;
     defaults.teams = 0;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
@@ -1087,7 +1087,7 @@ game_variant * VariantDefaults::juggernaut(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 3;
+    defaults.game_engine_index = _game_engine_oddball;
     defaults.teams = 0;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
@@ -1135,7 +1135,7 @@ game_variant * VariantDefaults::king(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 4;
+    defaults.game_engine_index = _game_engine_king;
     defaults.teams = 0;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
@@ -1178,7 +1178,7 @@ game_variant * VariantDefaults::oddball(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 3;
+    defaults.game_engine_index = _game_engine_oddball;
     defaults.teams = 0;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
@@ -1226,7 +1226,7 @@ game_variant * VariantDefaults::race(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 5;
+    defaults.game_engine_index = _game_engine_race;
     defaults.teams = 0;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
@@ -1270,7 +1270,7 @@ game_variant * VariantDefaults::slayer(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 2;
+    defaults.game_engine_index = _game_engine_slayer;
     defaults.teams = 0;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 0;
@@ -1315,7 +1315,7 @@ game_variant * VariantDefaults::stalker(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 1;
+    defaults.game_engine_index = _game_engine_ctf;
     defaults.teams = 1;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::hide_radar_blips | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
@@ -1361,7 +1361,7 @@ game_variant * VariantDefaults::team_king(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 4;
+    defaults.game_engine_index = _game_engine_king;
     defaults.teams = 1;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
@@ -1404,7 +1404,7 @@ game_variant * VariantDefaults::team_oddball(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 3;
+    defaults.game_engine_index = _game_engine_oddball;
     defaults.teams = 1;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
@@ -1452,7 +1452,7 @@ game_variant * VariantDefaults::team_race(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 5;
+    defaults.game_engine_index = _game_engine_race;
     defaults.teams = 1;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 1;
@@ -1496,7 +1496,7 @@ game_variant * VariantDefaults::team_slayer(game_variant *variant_options)
         zero_cursor[i] = 0;
     }
 
-    defaults.game_engine_index = 2;
+    defaults.game_engine_index = _game_engine_slayer;
     defaults.teams = 1;
     defaults.flags = halo::to_bits(halo::game::game_variant_flags::individual_scoring | halo::game::game_variant_flags::reserved_1 | halo::game::game_variant_flags::hide_radar_blips | halo::game::game_variant_flags::slayer_default);
     defaults.objective_indicator = 0;

@@ -1,4 +1,5 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
@@ -169,7 +170,7 @@ uint8_t SlayerEngine::initialize_for_new_game(void)
  */
 void SlayerEngine::add_score(datum_index player_index, int32_t delta)
 {
-    if (halo::networking::globals().game_mode == 1) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client) {
         return;
     }
     slayer_team_score[halo::game::player_at(player_index)->team] += delta;
@@ -196,7 +197,7 @@ void SlayerEngine::player_killed(datum_index killer, datum_index death_object, d
         return;
     }
     halo::game::game_engine_animate_hill_pulse_icons(killer, victim);
-    if (game_engine_variant.engine.slayer.kill_in_order != 0 && halo::networking::globals().game_mode == 2) {
+    if (game_engine_variant.engine.slayer.kill_in_order != 0 && halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         if (static_cast<datum_index>(killer_player->slayer_target) != victim) {
             return;
         }
@@ -215,7 +216,7 @@ void SlayerEngine::player_new_life(datum_index player_index)
     ::player *player = halo::game::player_at(player_index);
 
     ((struct player *)player)->slayer_target = -1;
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
     slayer_player_score[player_index & halo::k_datum_slot_mask] = 0;
@@ -385,7 +386,7 @@ uint8_t SlayerEngine::query_team_score(int32_t key, int32_t team, void *buffer)
  */
 void SlayerEngine::reset_objects(void)
 {
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         memset(slayer_team_score, 0, sizeof(slayer_team_score));
         memset(slayer_player_score, 0, sizeof(slayer_player_score));
     }
@@ -450,7 +451,7 @@ void SlayerEngine::update(datum_index player_index)
                     player_index, -1);
             }
         }
-        if (halo::networking::globals().game_mode == 2) {
+        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
             if (((struct player *)player)->unit != halo::k_dword_none && *(datum_index *)&((struct player *)player)->slayer_target == halo::k_dword_none) {
                 halo::game::game_engine_player_select_random_target(player_index);
             }

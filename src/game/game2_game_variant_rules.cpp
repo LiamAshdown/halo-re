@@ -142,10 +142,10 @@ void GameVariantRules::variant_sanitize_options(game_variant *variant)
     int32_t engine_index;
 
     engine_index = variant->game_engine_index;
-    if (engine_index < 1) {
-        engine_index = 1;
-    } else if (engine_index > 5) {
-        engine_index = 5;
+    if (engine_index < _game_engine_ctf) {
+        engine_index = _game_engine_ctf;
+    } else if (engine_index > _game_engine_race) {
+        engine_index = _game_engine_race;
     }
     variant->game_engine_index = engine_index;
 

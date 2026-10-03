@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_cheats.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include <stdint.h>
@@ -187,7 +188,7 @@ void Cheats::spawn_objects_near_camera(TagDependency *tag_array, int16_t count)
         placement.position.x = (float)(cos(angle) * (double)1.5f + (double)unit_position.x);
         placement.position.y = (float)(sin(angle) * (double)1.5f + (double)unit_position.y);
         placement.position.z = unit_position.z + 0.8f;
-        if (halo::networking::globals().game_mode == 2) {
+        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
             int16_t object_type = *(int16_t *)halo::game::tag_data_at(placement.definition_tag);
 
             if (*(int32_t *)((uint8_t *)object_type_definitions[object_type] + 0x10) != -1) {

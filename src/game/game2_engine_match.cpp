@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_match.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/game/variant_flags.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
@@ -72,7 +73,7 @@ void EngineMatch::send_message(datum_index target, uint32_t message_type, datum_
             halo::interface::chimera__multiplayer_message(buffer);
         }
     }
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         halo::game::game_engine_notify_kill_event(target, target, message_type, victim);
     }
 }
@@ -159,7 +160,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
         v->respawn_timer = 9000;
     }
 
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         halo::game::game_engine_player_profile_cache_sync_all(1, (void *)halo::k_dword_none);
     }
 
@@ -232,10 +233,10 @@ void EngineMatch::tick(void)
     halo::game::game_engine_cleanup_dropped_objects();
     halo::game::game_engine_update_item_scale_and_pickup();
 
-    if (halo::networking::globals().game_mode == 2 || halo::networking::globals().game_mode == 0) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host || halo::networking::globals().game_mode == halo::networking::k_game_mode_local) {
         halo::game::game_engine_update_netgame_equipment(0);
     }
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         halo::game::game_engine_player_profile_cache_sync_all(1, (void *)halo::k_dword_none);
     }
 
@@ -320,7 +321,7 @@ void EngineMatch::tick(void)
         }
 
         game_engine_end_game_timer = game_engine_end_game_timer - 0.033333335f;
-        if (game_engine_end_game_timer <= 0.0f && halo::networking::globals().game_mode == 2) {
+        if (game_engine_end_game_timer <= 0.0f && halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
             halo::game::game_engine_end_game_sequence_stage2();
             halo::game::game_engine_send_end_game_notification(2);
             halo::networking::network_server_advance_connect_state(halo::networking::globals().server);

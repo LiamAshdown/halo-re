@@ -1,4 +1,5 @@
 #include "halo/networking/net1_server.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/networking/delta_message_types.hpp"
@@ -1685,7 +1686,7 @@ int32_t HostServerView::shutdown_or_defer()
 
             return halo::networking::network_host_update_tick(network_server);
         }
-        network_game_mode = 0;
+        network_game_mode = halo::networking::k_game_mode_local;
         halo::main::main_menu_music_stop();
         if (network_server != 0) {
             session = &network_server->session;

@@ -431,7 +431,7 @@ void Variants::load_from_variant(const game_variant *variant)
     game_engine_round_reset_tick = 0;
     game_engine_state_value = _game_engine_state_not_started;
 
-    if (variant != (const game_variant *)0 && variant->game_engine_index != 0) {
+    if (variant != (const game_variant *)0 && variant->game_engine_index != _game_engine_none) {
         src = (uint32_t *)variant;
         dst = (uint32_t *)&game_engine_variant;
         for (i = 0x26; i != 0; i = i - 1) {

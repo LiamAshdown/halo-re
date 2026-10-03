@@ -1,4 +1,5 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
@@ -118,7 +119,7 @@ uint32_t ClientView::begin_connect(wchar_t *player_name, s_network_address *targ
         halo::networking::network_debug_fill_canary_buffer(scratch.config_template);
         if (halo::networking::chimera__on_connect((const uint32_t *)target_address, network_client,
                 (const uint32_t *)&scratch) != 0) {
-            network_game_mode = 1;
+            network_game_mode = halo::networking::k_game_mode_client;
             return 1;
         }
         network_host_handoff_requested = 1;
@@ -545,7 +546,7 @@ char ClientView::update_dispatch()
 
     result = 1;
     if (network_host_handoff_requested == 1) {
-        network_game_mode = 0;
+        network_game_mode = halo::networking::k_game_mode_local;
         halo::main::main_menu_music_stop();
         if (network_server != 0) {
             session = &network_server->session;
@@ -612,7 +613,7 @@ int8_t ClientView::client_update()
             client->connection_stalled = (uint8_t)(flags >> 5) & 1;
         }
         service_ok = halo::networking::network_channel_service_light(channel, 0x3a98, 0);
-        if (network_game_mode == 2) {
+        if (network_game_mode == halo::networking::k_game_mode_host) {
             halo::networking::network_channel_record_timestamp(channel);
         }
         if (service_ok != 0) {
@@ -1367,7 +1368,7 @@ int32_t JoinView::connect_retry_tick()
         attempt->elapsed_counter = 0;
         halo::interface::console_printf_verbose((ColorARGB *)0, (char *)("Loading"));
         interface_loading_screen_progress = 0;
-        if (network_game_mode == 2) {
+        if (network_game_mode == halo::networking::k_game_mode_host) {
             if (join_ui_state != 1) {
                 if (join_ui_state != 2 && join_ui_state == 4) {
                     interface_loading_screen_request_id = -1;

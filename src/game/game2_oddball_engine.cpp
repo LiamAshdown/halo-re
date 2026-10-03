@@ -1,4 +1,5 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
@@ -97,7 +98,7 @@ uint8_t OddballEngine::initialize_for_new_game(void)
         king_hill_occupant_table[i] = halo::k_dword_none;
         king_hill_occupant_last_tick[i] = -1;
     }
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         if (mode > 0 && mode <= 2) {
             for (i = 0; i < game_engine_variant.engine.oddball.ball_count; i++) {
                 oddball_ball_timers_006b11cc[i] = 0;
@@ -160,7 +161,7 @@ void OddballEngine::player_killed(datum_index killer, datum_index death_object, 
     int32_t i;
 
     (void)death_object;
-    if (game_engine_variant.engine.oddball.ball_type <= 0 || game_engine_variant.engine.oddball.ball_type > 2 || halo::networking::globals().game_mode != 2) {
+    if (game_engine_variant.engine.oddball.ball_type <= 0 || game_engine_variant.engine.oddball.ball_type > 2 || halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
     count = game_engine_variant.engine.oddball.ball_count;
@@ -213,7 +214,7 @@ void OddballEngine::player_killed(datum_index killer, datum_index death_object, 
  */
 void OddballEngine::player_new_life(datum_index player_index)
 {
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
     king_alt_player_score[player_index & halo::k_datum_slot_mask] = 0;
@@ -358,7 +359,7 @@ void OddballEngine::reset_objects(void)
     int32_t count = game_engine_variant.engine.oddball.ball_count;
     int32_t i;
 
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         for (i = 0; i < 16; i++) {
             king_alt_player_score[i] = 0;
             king_alt_team_score[i] = 0;
@@ -427,7 +428,7 @@ void OddballEngine::unknown_48(void)
         halo::game::game_engine_queue_multiplayer_sound(teams != 0 ? 0x21 : 0x13, halo::k_dword_none, 0);
     }
     count = game_engine_variant.engine.oddball.ball_count;
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         for (i = 0; i < count; i++) {
             if (oddball_ball_timers_006b11cc[i] > 0 && --oddball_ball_timers_006b11cc[i] == 0) {
                 halo::game::game_engine_queue_multiplayer_sound(0, halo::k_dword_none, 0);

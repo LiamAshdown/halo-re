@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
@@ -378,7 +379,7 @@ void Scoreboard::check_bucket_scores_and_end_round(void)
 
     for (bucket = 0; bucket < 16; bucket++) {
         if (game_engine_bucket_scores[bucket] >= game_engine_variant.score_limit &&
-            halo::networking::globals().game_mode == 2 && game_engine_state_value == 0) {
+            halo::networking::globals().game_mode == halo::networking::k_game_mode_host && game_engine_state_value == 0) {
             halo::networking::globals().server->game_over = 1;
             game_engine_state_value = _game_engine_state_ending;
             game_engine_end_game_timer = 7.0f;
@@ -585,7 +586,7 @@ uint8_t Scoreboard::find_first_eligible_player_on_team(int32_t team)
  */
 void Scoreboard::find_player_by_name(char *source_name)
 {
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         wchar_t name[1024];
         data_iterator iter;
         void *element;

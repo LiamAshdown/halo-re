@@ -1,4 +1,5 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
@@ -152,7 +153,7 @@ void RaceEngine::race_spawn_next_vehicle(datum_index player_index)
  */
 uint8_t RaceEngine::allow_grenade_counts(datum_index player_index)
 {
-    if (halo::networking::globals().game_mode == 2 && halo::game::player_at(player_index)->deaths == 0 &&
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host && halo::game::player_at(player_index)->deaths == 0 &&
         race_used_location_count < player_data->actual_count) {
         race_spawn_next_vehicle(player_index);
     }
@@ -363,7 +364,7 @@ void RaceEngine::player_changed_object(datum_index player_index)
 {
     uint8_t *player;
 
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
     player = (uint8_t *)halo::memory::datum_get(player_index, player_data);
@@ -383,7 +384,7 @@ void RaceEngine::player_new_life(datum_index player)
 {
     halo::game::player_at(player)->slayer_target = game_time->game_time;
     ctf_team_captured_flags_mask[player & halo::k_datum_slot_mask] = 0;
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         halo::game::game_engine_check_bucket_scores_and_end_round();
     }
 }
@@ -401,7 +402,7 @@ void RaceEngine::player_round_reset(datum_index player_index, uint8_t team_flag)
     int16_t index = (int16_t)player_index;
     int16_t salt = (int16_t)(player_index >> 16);
 
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
     if (player_index != halo::k_dword_none && index >= 0 && index < player_data->maximum_count) {
@@ -576,7 +577,7 @@ void RaceEngine::update(datum_index player_index)
     if (current_game_engine != 0 && game_engine_state_value != 0) {
         return;
     }
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
     unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & halo::k_datum_slot_mask) * 12 + 8);

@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/networking/delta_message_types.hpp"
@@ -219,7 +220,7 @@ void Ctf::profiles_updated(int32_t mode, int32_t machine_index)
  */
 void Ctf::reset_objects(void)
 {
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
     if (ctf_team_flag_object[0] != halo::k_dword_none) {
@@ -252,7 +253,7 @@ void Ctf::return_all_flags(void)
     ScenarioNetgameFlags *flags;
     int32_t i;
 
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
 
@@ -339,7 +340,7 @@ void Ctf::unknown_48(void)
 {
     int32_t limit = ctf_flag_capture_limit_006b0ea0;
 
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
     if ((ctf_team_flag_touch_count[0] >= limit || ctf_team_flag_touch_count[1] >= limit) && game_engine_state_value == 0) {
@@ -380,7 +381,7 @@ uint8_t Ctf::unknown_60(datum_index unit_index, datum_index item_index)
     datum_index player = halo::game::player_index_from_unit_index(unit_index);
     uint8_t *weapon;
 
-    if (player == halo::k_dword_none || item_index == halo::k_dword_none || halo::networking::globals().game_mode != 2) {
+    if (player == halo::k_dword_none || item_index == halo::k_dword_none || halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return 1;
     }
     weapon = (uint8_t *)halo::objects::object_try_and_get(item_index, 4);
@@ -409,7 +410,7 @@ void Ctf::update(datum_index player_index)
     if (halo::game::unit_has_must_be_readied_weapon(player_index) != 0) {
         halo::game::unit_reset_gauge_if_flagged(player_index);
     }
-    if (halo::networking::globals().game_mode != 2) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
     unit_index = ((struct player *)player)->unit;
