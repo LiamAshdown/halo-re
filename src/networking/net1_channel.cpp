@@ -55,6 +55,29 @@ static auto &network_disconnect_timeout_flag = halo::link::ref<uint8_t>(halo::ne
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
 static auto &network_pending_connections = halo::link::ref<network_pending_connection [k_network_pending_connection_count]>(halo::networking::vars().network_pending_connections);
 
+namespace {
+
+/** The IPv4 socket address (AF_INET, network-order port, address, 8 zero bytes) the GameSpy handlers receive for a sender. */
+struct sender_sockaddr {
+    uint16_t family;
+    uint16_t port;
+    uint32_t ip;
+    uint8_t zero[8];
+};
+static_assert(sizeof(sender_sockaddr) == 16, "sockaddr_in is 16 bytes");
+
+sender_sockaddr make_sender_sockaddr(uint32_t ip, uint16_t port)
+{
+    sender_sockaddr address = {};
+
+    address.family = 2;
+    address.port = static_cast<uint16_t>((port >> 8) | (port << 8));
+    address.ip = ip;
+    return address;
+}
+
+}
+
 namespace halo::networking {
 
 /**
@@ -656,8 +679,6 @@ int32_t ChannelCallbacks::on_game_socket_unrecognized(void *socket, uint32_t ip,
 {
     uint8_t is_natneg = 0;
     uint8_t is_query;
-    uint8_t address[16];
-
     (void)socket;
     if (length >= 0x1fff) {
         length = 0x1fff;
@@ -669,19 +690,16 @@ int32_t ChannelCallbacks::on_game_socket_unrecognized(void *socket, uint32_t ip,
     }
     is_query = ((int32_t)length >= 1 && network_game_receive_buffer[0] == 0x5c) || network_game_receive_buffer[0] == 0x3b ||
                ((int32_t)length >= 2 && network_game_receive_buffer[0] == 0xfe && network_game_receive_buffer[1] == 0xfd);
-    memset(address, 0, sizeof(address));
-    *(uint16_t *)(address + 0) = 2;
-    *(uint16_t *)(address + 2) = (uint16_t)((port >> 8) | (port << 8));
-    *(uint32_t *)(address + 4) = ip;
+    sender_sockaddr address = make_sender_sockaddr(ip, port);
     if (is_natneg) {
-        NNProcessData((char *)network_game_receive_buffer, (int32_t)length, address);
+        NNProcessData((char *)network_game_receive_buffer, (int32_t)length, &address);
         return 1;
     }
     if (!is_query) {
         return 0;
     }
     if (network_session_host_object != 0) {
-        qr2_parse_queryA(network_session_host_object, (char *)network_game_receive_buffer, (int32_t)length, address);
+        qr2_parse_queryA(network_session_host_object, (char *)network_game_receive_buffer, (int32_t)length, &address);
     }
     return 1;
 }
@@ -711,13 +729,9 @@ int32_t ChannelCallbacks::on_query_socket_unrecognized(void *socket, uint32_t ip
     is_query = ((int32_t)length >= 1 && network_query_receive_buffer[0] == 0x5c) || network_query_receive_buffer[0] == 0x3b ||
                ((int32_t)length >= 2 && network_query_receive_buffer[0] == 0xfe && network_query_receive_buffer[1] == 0xfd);
     if (is_natneg) {
-        uint8_t address[16];
+        sender_sockaddr address = make_sender_sockaddr(ip, port);
 
-        memset(address, 0, sizeof(address));
-        *(uint16_t *)(address + 0) = 2;
-        *(uint16_t *)(address + 2) = (uint16_t)((port >> 8) | (port << 8));
-        *(uint32_t *)(address + 4) = ip;
-        NNProcessData((char *)network_query_receive_buffer, (int32_t)length, address);
+        NNProcessData((char *)network_query_receive_buffer, (int32_t)length, &address);
         return 1;
     }
     return is_query ? 1 : 0;
@@ -1271,7 +1285,8 @@ void ChannelView::remote_address_or_default(network_resolved_address *out_addres
         out_address->address.ipv6_1 = 0;
         out_address->address.ipv6_2 = 0;
         out_address->address.ipv6_3 = 0;
-        *(uint32_t *)&out_address->address.size = 0;
+        out_address->address.size = 0;
+        out_address->address.port = 0;
         out_address->unknown_14 = 0;
         out_address->address.size = k_network_address_size_ipv4;
     }
