@@ -27,7 +27,7 @@ namespace halo::rasterizer {
  */
 int rasterizer_transparent_decals_enabled(void)
 {
-    if (rasterizer_window.type != 1 || console_debug_toggle_689421 == 0 ||
+    if (rasterizer_window.type != 1 || halo::rasterizer::globals::active_camouflage_enabled == 0 ||
         (rasterizer_caps_flag_688 == 0 &&
          (rasterizer_caps_flag_68a == 0 && rasterizer_caps.pixel_shader_version > 0xffff0100))) {
         return 0;
@@ -825,7 +825,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
     const Shader *shader;
     float amount;
 
-    if (console_debug_toggle_689421 == 0 || rasterizer_window.type != 1) {
+    if (halo::rasterizer::globals::active_camouflage_enabled == 0 || rasterizer_window.type != 1) {
         return;
     }
     amount = group->parameters.blend_factor;

@@ -144,7 +144,7 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
         halo::rasterizer::globals::model_draw_mode = mode;
         rasterizer_active_model_context = context;
 
-        if (console_debug_toggle_689421 == 0 || rasterizer_window.type != 1 ||
+        if (halo::rasterizer::globals::active_camouflage_enabled == 0 || rasterizer_window.type != 1 ||
             context->group_parameters.mode != 1 || !(context->group_parameters.blend_factor > 0.0f)) {
             if (context->group_parameters.mode == 2) {
                 rasterizer_active_model_mode = 2;
@@ -459,7 +459,7 @@ void rasterizer_object_shadow_blur(void)
     uint32_t stage;
     uint32_t pass;
 
-    if (rasterizer_caps_flag_689 != 0 || halo::rasterizer::globals::object_shadows_enabled == 0 || console_debug_toggle_68941e == 0) {
+    if (rasterizer_caps_flag_689 != 0 || halo::rasterizer::globals::object_shadows_enabled == 0 || halo::rasterizer::globals::shadow_convolution_enabled == 0) {
         return;
     }
     effect = (void *)(uintptr_t)rasterizer_effects[45].effect;
@@ -656,10 +656,10 @@ void rasterizer_object_shadow_structure_draw(rasterizer_vertex_buffer *vertex_bu
         float vs[5][4];
         float ps[4];
 
-        if (console_debug_toggle_68941e) {
+        if (halo::rasterizer::globals::shadow_convolution_enabled) {
             rasterizer_object_shadow_blur();
         }
-        rasterizer_render_target_bind_texture_stage((int16_t)(console_debug_toggle_68941e ? 4 : 3), 0);
+        rasterizer_render_target_bind_texture_stage((int16_t)(halo::rasterizer::globals::shadow_convolution_enabled ? 4 : 3), 0);
         set_clamped_linear_sampler(0);
         chimera__rasterizer_set_texture_direct_d3d9(*(const uint32_t *)&rasterizer_globals_data->linear_corner_fade.tag_id, 1, 0);
         set_clamped_linear_sampler(1);

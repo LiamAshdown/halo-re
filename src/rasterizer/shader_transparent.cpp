@@ -396,7 +396,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
         constants[11] = 0.0f;
         render_device().set_vertex_shader_constant_f(0xa, constants, 3);
 
-        if (console_debug_toggle_689409 != 0 && bump_map_tag != 0xffffffff) {
+        if (halo::rasterizer::globals::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
             Bitmap *bitmap = (Bitmap *)tag_instances[bump_map_tag & 0xffff].data;
             int32_t count = (int32_t)bitmap->bitmap_data.count;
 
@@ -2371,7 +2371,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
                     *(datum_index *)(water + 0xd4) : k_datum_index_none;
                 uint8_t bound = 0;
 
-                if (console_debug_toggle_689409 != 0 && ripple_bitmap != k_datum_index_none) {
+                if (halo::rasterizer::globals::bump_mapping_enabled != 0 && ripple_bitmap != k_datum_index_none) {
                     uint8_t *bitmap_tag = (uint8_t *)tag_instances[ripple_bitmap & 0xffff].data;
                     int32_t bitmap_count = *(int32_t *)(bitmap_tag + 0x60);
 

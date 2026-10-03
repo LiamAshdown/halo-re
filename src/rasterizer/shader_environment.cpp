@@ -674,7 +674,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
     } else {
         BitmapData *bump_bitmap = 0;
 
-        if (console_debug_toggle_689409 != 0) {
+        if (halo::rasterizer::globals::bump_mapping_enabled != 0) {
             Bitmap *bitmap = (Bitmap *)tag_instances[bump_map_tag & 0xffff].data;
             int32_t count = (int32_t)bitmap->bitmap_data.count;
 
@@ -1004,7 +1004,7 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
 
     bump_map_tag = *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
     bump_bitmap = 0;
-    if (console_debug_toggle_689409 != 0 && bump_map_tag != 0xffffffff) {
+    if (halo::rasterizer::globals::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
         Bitmap *bitmap = (Bitmap *)tag_instances[bump_map_tag & 0xffff].data;
         int32_t count = (int32_t)bitmap->bitmap_data.count;
 
@@ -1098,7 +1098,7 @@ static void rasterizer_bind_bump_map(uint32_t bump_map_tag, int16_t frame, raste
 {
     BitmapData *bump_bitmap = 0;
 
-    if (console_debug_toggle_689409 != 0 && bump_map_tag != 0xffffffff) {
+    if (halo::rasterizer::globals::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
         Bitmap *bitmap = (Bitmap *)tag_instances[bump_map_tag & 0xffff].data;
         int32_t count = (int32_t)bitmap->bitmap_data.count;
 
@@ -1311,7 +1311,7 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
 
     bump_map_tag = *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
     bump_bitmap = 0;
-    if (console_debug_toggle_689409 != 0 && bump_map_tag != 0xffffffff) {
+    if (halo::rasterizer::globals::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
         Bitmap *bitmap = (Bitmap *)tag_instances[bump_map_tag & 0xffff].data;
         int32_t count = (int32_t)bitmap->bitmap_data.count;
 
@@ -1471,7 +1471,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
         return;
     }
 
-    render_device().set_render_state(0xf, (raw[0x28] & 1) != 0 && console_debug_toggle_68941c != 0 ? 1 : 0);
+    render_device().set_render_state(0xf, (raw[0x28] & 1) != 0 && halo::rasterizer::globals::environment_alpha_testing_enabled != 0 ? 1 : 0);
 
     map_tag = *(uint32_t *)&((struct ShaderEnvironment *)raw)->map.tag_id;
     if (map_tag == 0xffffffff) {
@@ -1490,7 +1490,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
 
     bump_map_tag = (raw[0x28] & 2) != 0 ? 0xffffffff : *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
     bump_bitmap = 0;
-    if (console_debug_toggle_689409 != 0 && bump_map_tag != 0xffffffff) {
+    if (halo::rasterizer::globals::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
         Bitmap *bitmap = (Bitmap *)tag_instances[bump_map_tag & 0xffff].data;
         int32_t count = (int32_t)bitmap->bitmap_data.count;
 
@@ -1647,7 +1647,7 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
     if (console_debug_toggle_6893f1 == 0) {
         return;
     }
-    render_device().set_render_state(0xf, (raw[0x28] & 1) != 0 && console_debug_toggle_68941c != 0);
+    render_device().set_render_state(0xf, (raw[0x28] & 1) != 0 && halo::rasterizer::globals::environment_alpha_testing_enabled != 0);
     render_device().set_vertex_shader(0);
 
     colour = 0xffffff00u | (uint32_t)(int32_t)(*(float *)&((struct ShaderEnvironment *)raw)->material_color * 255.0f);
@@ -1656,7 +1656,7 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
     render_device().set_render_state(0x3c, colour);
 
     self_illumination = (raw[0x28] & 2) ? k_datum_index_none : *(datum_index *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
-    if (console_debug_toggle_689409 != 0 && self_illumination != k_datum_index_none) {
+    if (halo::rasterizer::globals::bump_mapping_enabled != 0 && self_illumination != k_datum_index_none) {
         int32_t count = *(int32_t *)((uint8_t *)tag_instances[self_illumination & 0xffff].data + 0x60);
 
         if (count > 0) {
@@ -1743,7 +1743,7 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
     if (console_debug_toggle_6893f1 == 0) {
         return;
     }
-    render_device().set_render_state(0xf, (raw[0x28] & 1) != 0 && console_debug_toggle_68941c != 0);
+    render_device().set_render_state(0xf, (raw[0x28] & 1) != 0 && halo::rasterizer::globals::environment_alpha_testing_enabled != 0);
     render_device().set_vertex_shader(0);
 
     colour = 0xffffff00u | (uint32_t)(int32_t)(*(float *)&((struct ShaderEnvironment *)raw)->material_color * 255.0f);
@@ -1752,7 +1752,7 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
     render_device().set_render_state(0x3c, colour);
 
     self_illumination = (raw[0x28] & 2) ? k_datum_index_none : *(datum_index *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
-    if (console_debug_toggle_689409 != 0 && self_illumination != k_datum_index_none) {
+    if (halo::rasterizer::globals::bump_mapping_enabled != 0 && self_illumination != k_datum_index_none) {
         int32_t count = *(int32_t *)((uint8_t *)tag_instances[self_illumination & 0xffff].data + 0x60);
 
         if (count > 0) {

@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 
 extern "C" {
@@ -206,7 +207,7 @@ static BitmapData *rasterizer_tag_bitmap(uint32_t bitmap_tag_id, int16_t bitmap_
     int32_t count;
 
     *resolved = 0;
-    if ((console_debug_toggle_689409 == 0 && default_index == 3) || bitmap_tag_id == 0xffffffff) {
+    if ((halo::rasterizer::globals::bump_mapping_enabled == 0 && default_index == 3) || bitmap_tag_id == 0xffffffff) {
         return 0;
     }
     bitmap = (Bitmap *)tag_instances[bitmap_tag_id & 0xffff].data;

@@ -9,6 +9,12 @@
  */
 extern "C" {
 extern uint8_t unknown_006893ef;
+extern uint8_t console_debug_toggle_689409;
+extern uint8_t console_debug_toggle_689403;
+extern uint8_t console_debug_toggle_689421;
+extern uint8_t console_debug_toggle_68941e;
+extern uint8_t console_debug_toggle_68941c;
+extern uint8_t console_debug_toggle_6893f3;
 extern uint8_t console_debug_toggle_6893e0;
 extern uint8_t console_debug_toggle_6893e4;
 extern uint8_t console_debug_toggle_6893e6;
@@ -467,5 +473,47 @@ inline uint8_t &rasterizer_fog_plane = console_debug_toggle_689408;
  * @address 0x69c614
  */
 inline uint8_t &object_shadow_pass_enabled = console_debug_toggle_69c614;
+
+/**
+ * Bump mapping (the script debug table lists it as "rasterizer_bump_mapping"): the environment, model and water paths bind their bump maps only while it is set.
+ *
+ * @address 0x689409
+ */
+inline uint8_t &bump_mapping_enabled = console_debug_toggle_689409;
+
+/**
+ * Gate of the motion sensor draw and update (script debug "rasterizer_hud_motion_sensor").
+ *
+ * @address 0x689403
+ */
+inline uint8_t &hud_motion_sensor_enabled = console_debug_toggle_689403;
+
+/**
+ * Active camouflage (script debug "rasterizer_active_camouflage"): the camouflage render target and the camouflage shader paths are used only while it is set.
+ *
+ * @address 0x689421
+ */
+inline uint8_t &active_camouflage_enabled = console_debug_toggle_689421;
+
+/**
+ * Shadow convolution (script debug "rasterizer_shadows_convolution", by position): the object shadow pass binds the convolved shadow map on texture stage 4 instead of 3.
+ *
+ * @address 0x68941e
+ */
+inline uint8_t &shadow_convolution_enabled = console_debug_toggle_68941e;
+
+/**
+ * Alpha testing of environment surfaces (script debug "rasterizer_environment_alpha_testing"): enables the alpha test render state for shaders with the alpha test bit.
+ *
+ * @address 0x68941c
+ */
+inline uint8_t &environment_alpha_testing_enabled = console_debug_toggle_68941c;
+
+/**
+ * Dynamic diffuse lights on environment surfaces (script debug "rasterizer_environment_diffuse_lights", by position); gates the dynamic light passes of the lighting code.
+ *
+ * @address 0x6893f3
+ */
+inline uint8_t &environment_diffuse_lights_enabled = console_debug_toggle_6893f3;
 
 }

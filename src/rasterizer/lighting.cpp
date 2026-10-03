@@ -48,12 +48,12 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&halo::rasterizer::globals::rasterizer_debug_mode != 0 || console_debug_toggle_6893f3 == 0 || effect == 0) {
+    if (*(uint16_t *)&halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::environment_diffuse_lights_enabled == 0 || effect == 0) {
         return;
     }
 
     bump_map_tag = (raw[0x28] & 2) != 0 ? 0xffffffff : *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
-    if (console_debug_toggle_689409 != 0 && bump_map_tag != 0xffffffff) {
+    if (halo::rasterizer::globals::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
         Bitmap *bitmap = (Bitmap *)tag_instances[bump_map_tag & 0xffff].data;
         int32_t count = (int32_t)bitmap->bitmap_data.count;
 
@@ -136,7 +136,7 @@ void rasterizer_light_cone_set_orientation_constants(int32_t light_index)
     float constants_vs[5][4];
     float constants_ps[1][4];
 
-    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || console_debug_toggle_6893f3 == 0 ||
+    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::environment_diffuse_lights_enabled == 0 ||
         rasterizer_caps.pixel_shader_version <= 0xffff0100) {
         return;
     }
@@ -209,7 +209,7 @@ namespace rasterizer_light_cone_set_texture_stage_states_impl {
 void rasterizer_light_cone_set_texture_stage_states(void)
 {
 
-    if (halo::rasterizer::globals::rasterizer_debug_mode == 0 && console_debug_toggle_6893f3 != 0 &&
+    if (halo::rasterizer::globals::rasterizer_debug_mode == 0 && halo::rasterizer::globals::environment_diffuse_lights_enabled != 0 &&
         0xffff0100 < rasterizer_caps.pixel_shader_version &&rasterizer_effects[4].effect != 0) {
 
         render_device().set_sampler_state(0, 1, 1);

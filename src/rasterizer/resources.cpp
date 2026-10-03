@@ -705,7 +705,7 @@ void rasterizer_render_target_capture_frame(void)
     float inverse_width;
     float inverse_height;
 
-    if (console_debug_toggle_689421 == 0 || rasterizer_caps_flag_688 != 0 || rasterizer_caps_flag_68a != 0 ||
+    if (halo::rasterizer::globals::active_camouflage_enabled == 0 || rasterizer_caps_flag_688 != 0 || rasterizer_caps_flag_68a != 0 ||
         rasterizer_caps.pixel_shader_version < 0xffff0101) {
         return;
     }

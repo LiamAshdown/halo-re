@@ -384,7 +384,7 @@ void rasterizer_motion_sensor_begin(void)
     goo_bitmap = first_bitmap_data(*(uint32_t *)(interface_bitmaps + 0xdc));
 
     rasterizer_motion_sensor_ready = 0;
-    if (rasterizer_caps_flag_689 || !console_debug_toggle_689403) {
+    if (rasterizer_caps_flag_689 || !halo::rasterizer::globals::hud_motion_sensor_enabled) {
         return;
     }
     if (texture_cache_get(blip_bitmap, 0, 1) == NULL) {
@@ -469,7 +469,7 @@ void rasterizer_motion_sensor_blip_draw(const float *position, const float *colo
     uint32_t packed;
     int i;
 
-    if (!console_debug_toggle_689403 || !rasterizer_motion_sensor_ready) {
+    if (!halo::rasterizer::globals::hud_motion_sensor_enabled || !rasterizer_motion_sensor_ready) {
         return;
     }
     half_size = size * 0.0625f;
@@ -574,14 +574,14 @@ void rasterizer_motion_sensor_end(const float *position, float sweep)
     sweep_bitmap = first_bitmap_data(*(uint32_t *)(interface_bitmaps + 0x7c));
     mask_bitmap = first_bitmap_data(*(uint32_t *)(interface_bitmaps + 0x8c));
 
-    if (!console_debug_toggle_689403) {
+    if (!halo::rasterizer::globals::hud_motion_sensor_enabled) {
         return;
     }
     if (!rasterizer_motion_sensor_ready ||
         texture_cache_get(sweep_bitmap, 0, 1) == NULL ||
         texture_cache_get(mask_bitmap, 0, 1) == NULL) {
 
-        if (console_debug_toggle_689403 && rasterizer_motion_sensor_ready) {
+        if (halo::rasterizer::globals::hud_motion_sensor_enabled && rasterizer_motion_sensor_ready) {
             rasterizer_render_target_set_active(rasterizer_window.type, 0, 0);
         }
         return;
