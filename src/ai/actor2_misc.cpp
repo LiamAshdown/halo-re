@@ -2706,9 +2706,9 @@ extern data_array *actor_data;
 extern game_time_globals *game_time;
 extern void actor_target_get_relationship_object(datum_index target_prop_index);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 }
 }
 

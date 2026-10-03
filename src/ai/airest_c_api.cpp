@@ -1334,9 +1334,9 @@ void ai_search_compute_point_tangents(ai_search_obstacle_list *list, int16_t poi
  *
  * @address 0x43b790
  */
-void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint32_t unknown_00, ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t unknown_0c, real_point2d *position, int32_t surface_index, uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a)
+void ai_search_context_init(ai_search_context *context, uint8_t ignores_glass, uint32_t search_radius_bits, ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t structure_bsp, real_point2d *position, int32_t surface_index, uint32_t origin_surface_index, uint8_t final_leg, uint8_t ignore_flagged_obstacles)
 {
-    halo::ai::AiSearch(context).context_init(unknown_04, unknown_00, obstacles, origin, unknown_0c, position, surface_index, unknown_18, unknown_29, unknown_2a);
+    halo::ai::AiSearch(context).context_init(ignores_glass, search_radius_bits, obstacles, origin, structure_bsp, position, surface_index, origin_surface_index, final_leg, ignore_flagged_obstacles);
 }
 
 /**
@@ -1454,9 +1454,9 @@ void ai_search_partition_into_groups(ai_search_obstacle_list *list, float radius
  *
  * @address 0x43be20
  */
-uint8_t ai_search_run(ai_search_context *context, uint8_t unknown_04, ai_search_obstacle_list *obstacles, uint32_t unknown_00, real_point2d *position, int32_t surface_index, real_point2d *origin, uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a)
+uint8_t ai_search_run(ai_search_context *context, uint8_t ignores_glass, ai_search_obstacle_list *obstacles, uint32_t search_radius_bits, real_point2d *position, int32_t surface_index, real_point2d *origin, uint32_t origin_surface_index, uint8_t final_leg, uint8_t ignore_flagged_obstacles)
 {
-    return halo::ai::AiSearch(context).run(unknown_04, obstacles, unknown_00, position, surface_index, origin, unknown_18, unknown_29, unknown_2a);
+    return halo::ai::AiSearch(context).run(ignores_glass, obstacles, search_radius_bits, position, surface_index, origin, origin_surface_index, final_leg, ignore_flagged_obstacles);
 }
 
 /**

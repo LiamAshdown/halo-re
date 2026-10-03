@@ -14,11 +14,11 @@ public:
     explicit constexpr AiSearch(ai_search_context * p) : ptr(p) {}
 
     int16_t add_node(int16_t parent, real_point2d *position, int32_t surface_index, int16_t point_id, uint8_t side, float base_cost);
-    void context_init(uint8_t unknown_04, uint32_t unknown_00, ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t unknown_0c, real_point2d *position, int32_t surface_index, uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a);
+    void context_init(uint8_t ignores_glass, uint32_t search_radius_bits, ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t structure_bsp, real_point2d *position, int32_t surface_index, uint32_t origin_surface_index, uint8_t final_leg, uint8_t ignore_flagged_obstacles);
     void expand_point_neighbors(int16_t node_index, int16_t start_point_id);
     void heap_sift_down(int16_t index);
     void heap_sift_up(int16_t index);
-    uint8_t run(uint8_t unknown_04, ai_search_obstacle_list *obstacles, uint32_t unknown_00, real_point2d *position, int32_t surface_index, real_point2d *origin, uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a);
+    uint8_t run(uint8_t ignores_glass, ai_search_obstacle_list *obstacles, uint32_t search_radius_bits, real_point2d *position, int32_t surface_index, real_point2d *origin, uint32_t origin_surface_index, uint8_t final_leg, uint8_t ignore_flagged_obstacles);
     uint8_t step();
 };
 

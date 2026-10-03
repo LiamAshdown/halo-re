@@ -610,15 +610,15 @@ typedef struct actor {
     real_point3d search_position;     // 0x318 the position to search
     int32_t search_surface_index;     // 0x324 pathfinding surface of the position (-1 unknown); the start surface
                                       //    for actor_firing_position_near_point
-    uint32_t search_unknown_328;      // 0x328 caller parameter stored with the position (0 in the known callers)
+    uint32_t search_position_extra;   // 0x328 caller parameter stored with the position (0 in the known callers); the guard order data copies it
     uint8_t search_velocity_valid;    // 0x32c the request supplied a velocity
     uint8_t unknown_32d[3];           // 0x32d
     real_vector3d search_velocity;    // 0x330 the direction the searched target was moving
     uint32_t search_velocity_ticks;   // 0x33c caller parameter (90 in the known caller); the guard order data takes it
                                       //    as its first word and uses the velocity only while it is positive
     datum_index search_prop_index;    // 0x340 prop the request came from (swapped by actor_replace_object_reference)
-    uint32_t search_unknown_344;      // 0x344
-    uint8_t search_unknown_348;       // 0x348
+    uint32_t search_prop_value;      // 0x344 caller parameter stored with search_prop_index (150 in the known caller); the guard order data takes its low word when a prop is set
+    uint8_t search_prop_flag;        // 0x348 caller parameter stored with search_prop_index (0 in the known callers); the guard order data copies it when a prop is set
     uint8_t unknown_349;              // 0x349
     int16_t perception_event;         // 0x34a 0x422070 records the highest-priority pending perception event
     int32_t perception_event_data;    // 0x34c
@@ -1617,7 +1617,7 @@ typedef struct ai_search_context {
                                       //    max(request.pathfinding_radius, 0.2); read as the float radius by
                                       //    ai_search_step, ai_search_expand_point_neighbors and the covering-point
                                       //    lookup
-    uint8_t unknown_04;               // 0x04
+    uint8_t ignores_glass;            // 0x04 the path request's ignores_glass, forwarded as the edge cost permission flag
     uint8_t unknown_05[3];            // 0x05
     uint32_t obstacles;               // 0x08 pointer to the ai_search_obstacle_list this search reads
     uint32_t structure_bsp;           // 0x0c 0x0c pointer to the structure bsp the search traces surfaces in (passed
@@ -1631,7 +1631,7 @@ typedef struct ai_search_context {
     uint8_t unknown_22[2];            // 0x22
     float best_cost;                  // 0x24 FLT_MAX until best_node is set
     uint8_t complete;                 // 0x28 set when result_node is valid
-    uint8_t unknown_29;               // 0x29
+    uint8_t final_leg;                // 0x29 set from the caller: the waypoint leg is the last one of a valid path; never read
     uint8_t ignore_flagged_obstacles; // 0x2a 0x2a set to 1 by the rerun in ai_navigate_around_obstacles that ignores
                                       //    flagged obstacles; forwarded to ai_search_evaluate_edge_cost by
                                       //    ai_search_step and ai_search_expand_point_neighbors

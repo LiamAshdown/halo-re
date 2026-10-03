@@ -41,9 +41,9 @@ extern tag_instance *tag_instances;
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 }
 }
@@ -347,9 +347,9 @@ extern tag_instance *tag_instances;
 extern real random_real_range(real min, real max);
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 extern void * datum_get(datum_index handle, data_array *array);
 extern int16_t actor_dialogue_variant_table_b[];
 }
@@ -572,9 +572,9 @@ extern "C" {
 extern data_array *prop_data;
 extern data_array *actor_data;
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 extern void actor_record_perception_event(datum_index actor_index, int16_t event, int32_t data);
 }
 }
@@ -611,13 +611,13 @@ extern data_array *actor_data;
 }
 
 /**
- * stack -> unknown_324, unknown_328, unknown_33c, unknown_340, unknown_344, unknown_348 Records a candidate
+ * stack -> surface_index, position_extra, velocity_ticks, prop_index, prop_value, prop_flag Records a candidate
  * 'investigate/search' position for the actor if its priority is at least as high as any currently queued one,
  * replacing the stored position and/or velocity (each optional) and the caller-supplied
  *
  * @address 0x421af0
  */
-void ActorView::queue_search_position(real_point3d *position, int16_t priority, real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328, uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344, uint8_t unknown_348)
+void ActorView::queue_search_position(real_point3d *position, int16_t priority, real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra, uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value, uint8_t prop_flag)
 {
     using namespace actor_queue_search_position_local;
     actor *self;
@@ -632,8 +632,8 @@ void ActorView::queue_search_position(real_point3d *position, int16_t priority, 
         } else {
             self->search_position_valid = 1;
             self->search_position = *position;
-            self->search_surface_index = unknown_324;
-            self->search_unknown_328 = unknown_328;
+            self->search_surface_index = surface_index;
+            self->search_position_extra = position_extra;
         }
 
         if (velocity == (real_vector3d *)0) {
@@ -643,10 +643,10 @@ void ActorView::queue_search_position(real_point3d *position, int16_t priority, 
             self->search_velocity = *velocity;
         }
 
-        self->search_prop_index = unknown_340;
-        self->search_unknown_344 = unknown_344;
-        self->search_unknown_348 = unknown_348;
-        self->search_velocity_ticks = unknown_33c;
+        self->search_prop_index = prop_index;
+        self->search_prop_value = prop_value;
+        self->search_prop_flag = prop_flag;
+        self->search_velocity_ticks = velocity_ticks;
     }
 }
 
@@ -694,9 +694,9 @@ extern game_time_globals *game_time;
 extern real random_real_range(real min, real max);
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 extern void * datum_get(datum_index handle, data_array *array);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern int16_t actor_dialogue_variant_table_a[];
@@ -833,16 +833,16 @@ namespace actor_queue_velocity_search_from_prop_local {
 extern "C" {
 extern data_array *prop_data;
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 }
 }
 
 /**
  * Queues a priority-6 search request for the actor carrying no explicit position but a velocity vector taken
  * from the prop's scratch field, a 90-tick duration, a 150 secondary duration, and the raw prop handle threaded
- * through unknown_340.
+ * through prop_index.
  *
  * @address 0x4221b0
  */
@@ -865,9 +865,9 @@ extern real random_real_range(real min, real max);
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 extern void actor_record_perception_event(datum_index actor_index, int16_t event, int32_t data);
 extern int8_t teams_are_enemies(int16_t a, int16_t b);
 extern int16_t actor_dialogue_variant_table_e[];
@@ -943,9 +943,9 @@ extern real random_real_range(real min, real max);
 extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern int16_t actor_dialogue_variant_table_d[];
 }
@@ -1020,9 +1020,9 @@ extern game_time_globals *game_time;
 extern data_array *player_data;
 extern real random_real_range(real min, real max);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 extern void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index actor_index);
 extern void * datum_get(datum_index handle, data_array *array);
 extern int8_t teams_are_enemies(int16_t a, int16_t b);
