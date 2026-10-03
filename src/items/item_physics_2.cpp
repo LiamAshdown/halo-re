@@ -38,6 +38,7 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
 extern void object_delete(uint32_t object_index);
 extern double fabs(double x);
 extern double sqrt(double x);
+uint8_t item_update(uint32_t item_index);
 }
 
 namespace halo::items {

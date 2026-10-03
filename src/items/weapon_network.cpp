@@ -22,6 +22,15 @@ extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operan
 extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
 extern void weapon_build_creation_message(datum_index item_index, uint32_t unused_param_2, uint32_t unused_param_3, uint32_t object_flags);
+int32_t weapon_add_ammunition(void **message_record);
+void weapon_apply_ammo_correction(void **message_record);
+void weapon_apply_ammo_correction_and_resync(void **message_record);
+void weapon_apply_network_update(datum_index item_index, uint32_t *update_record);
+int32_t weapon_build_network_update(uint32_t item_index, uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type);
+void weapon_create_from_creation_message(void *incoming_record);
+void weapon_network_baseline_take(uint32_t item_index);
+void weapon_predict_ammo(void **message_record);
+void weapon_send_creation(uint32_t item_index, uint32_t arg2, uint32_t arg3);
 }
 
 namespace halo::items {

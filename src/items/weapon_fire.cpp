@@ -24,6 +24,7 @@ extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, i
 extern void weapon_reload_recovery_finish(datum_index item_index);
 extern void weapon_trigger_finish_shot(datum_index item_index, int16_t trigger_index);
 extern uint32_t weapon_play_trigger_tag_effect(datum_index item_index, datum_index tag_id, real scale_a, real scale_b);
+uint32_t weapon_fire_trigger(datum_index item_index, int16_t trigger_index);
 }
 
 namespace halo::items {

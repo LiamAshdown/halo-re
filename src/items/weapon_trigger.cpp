@@ -45,6 +45,20 @@ extern void weapon_trigger_effect_set_state(datum_index item_index, int16_t trig
 extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in, Projectile *tag, real_point3d *origin, void *unused_param_3, real *max_time, real *max_speed_override, uint8_t use_high_arc, real_vector3d *out_direction, real *out_speed, real *out_time_or_fraction, real *out_range_or_length, uint8_t *out_used_straight_line);
 extern void weapon_reload_recovery_finish(datum_index item_index);
 extern void weapon_trigger_enter_recovery(datum_index item_index, int16_t trigger_index);
+void trigger_create_projectiles(uint32_t item_index, int16_t trigger_index, uint32_t role);
+void weapon_trigger_become_charged(datum_index item_index, int16_t trigger_index);
+void weapon_trigger_begin_reload(datum_index item_index, int16_t magazine_index, int8_t is_client_predicted);
+void weapon_trigger_continue_burst(datum_index item_index, int16_t trigger_index);
+void weapon_trigger_effect_set_out_of_ammo(datum_index item_index, int16_t trigger_index);
+void weapon_trigger_finish_shot(datum_index item_index, int16_t trigger_index);
+void weapon_trigger_fire_or_reload(datum_index item_index, int16_t trigger_index, int8_t force);
+uint8_t weapon_trigger_get_aiming_vector(datum_index weapon_index, int16_t trigger_index, real_point3d *origin, real_point3d *target, uint8_t use_high_arc, real_vector3d *out_direction, real *out_time, real *out_range, uint8_t *out_used_straight_line);
+real weapon_trigger_get_average_damage(datum_index weapon_tag_id, float *out_max_rate_of_fire);
+real weapon_trigger_get_charge_fraction(datum_index item_index, int16_t trigger_index);
+void weapon_trigger_handle_empty(datum_index item_index, int16_t trigger_index);
+real weapon_trigger_projectile_time_fraction(datum_index item_index, int16_t trigger_index, real elapsed);
+int32_t weapon_trigger_ready_to_fire(datum_index item_index, int16_t trigger_index);
+void weapon_trigger_reset_tracking(datum_index item_index, int16_t trigger_index);
 }
 
 namespace halo::items {

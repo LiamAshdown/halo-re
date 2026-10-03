@@ -30,6 +30,8 @@ extern void weapon_trigger_finish_shot(datum_index item_index, int16_t trigger_i
 extern game_time_globals *game_time;
 extern real weapon_trigger_get_charge_fraction(datum_index item_index, int16_t trigger_index);
 extern int32_t weapon_is_reloading(datum_index item_index);
+int32_t weapon_update(datum_index item_index);
+void weapon_update_function_values(uint32_t object_index);
 }
 
 namespace halo::items {
