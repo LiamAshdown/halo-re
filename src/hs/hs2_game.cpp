@@ -5,6 +5,8 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "interface.h"
+#include "saved_games.h"
 #include "halo/core/datum.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
@@ -38,7 +40,7 @@ static auto &pending_difficulty = halo::link::ref<int16_t>(halo::ui::vars().pend
 static auto &local_player_count = halo::link::ref<int16_t>(halo::game::vars().local_player_count);
 static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
 static auto &game_state_revert_time = halo::link::ref<int32_t>(halo::saved_games::vars().game_state_revert_time);
-static auto &profile_globals_block = halo::link::ref<uint8_t [0x60a4]>(halo::ui::vars().profile_globals_block);
+static auto &profile_globals_block = halo::link::ref<saved_player_profile>(halo::ui::vars().profile_globals_block);
 static auto &ui_event_byte_0071975b = halo::link::ref<uint8_t>(halo::ui::vars().ui_event_byte_0071975b);
 static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
 
@@ -515,11 +517,11 @@ void GameCommands::evaluate_profile_unlock_solo_levels(int16_t function_index, u
     int32_t level;
 
     for (level = 0; level < 10; level++) {
-        profile_globals_block[0x11e + level] |= 0xf;
+        profile_globals_block.campaign_progress[level] |= 0xf;
     }
-    profile_globals_block[0x11c] |= 4;
+    profile_globals_block.flags |= _saved_player_profile_end_credits_reached_bit;
     if (halo::saved_games::globals().player_profile_slots_handle != -1) {
-        halo::saved_games::player_profile_write_data(halo::saved_games::globals().player_profile_slots_handle, (saved_player_profile *)profile_globals_block);
+        halo::saved_games::player_profile_write_data(halo::saved_games::globals().player_profile_slots_handle, &profile_globals_block);
     }
     halo::hs::hs_thread_return(0, thread_index);
 }
