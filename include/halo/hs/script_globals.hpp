@@ -23,7 +23,7 @@ extern uint8_t unknown_006869d1;
 extern uint8_t unknown_006894ba;
 }
 
-namespace halo::hs::globals {
+namespace halo::hs::fields {
 
 /**
  * hs global "cheat_deathless_player". While set, a player-controlled biped or vehicle (and the player-driven

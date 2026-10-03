@@ -805,7 +805,7 @@ void ActorView::queue_sighted_target_dialogue(datum_index target_prop_index, uin
 
 broadcast_check:
     if (target->is_parented != 0 && target->enemy != 0 && target->dead == 0 &&
-        self->type != 15 && halo::hs::globals::medusa != 0) {
+        self->type != 15 && halo::hs::fields::medusa != 0) {
         if (self->swarm == 0) {
             datum_index unit_index = self->unit_index;
             object_header *header = &((object_header *)object_data->data)[unit_index & halo::k_slot_mask];

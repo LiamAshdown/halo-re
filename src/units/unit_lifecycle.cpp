@@ -597,7 +597,7 @@ void UnitView::recalculate_position()
     real_point3d nudged;
 
     if (!(sqrt((anchor.z - previous.z) * (anchor.z - previous.z) + (anchor.y - previous.y) * (anchor.y - previous.y) +
-               (anchor.x - previous.x) * (anchor.x - previous.x)) > 5.0) && halo::hs::globals::object_prediction) {
+               (anchor.x - previous.x) * (anchor.x - previous.x)) > 5.0) && halo::hs::fields::object_prediction) {
         if (!object_nudge_position_by_velocity(object_index, &nudged)) {
             nudged = anchor;
         }
@@ -676,7 +676,7 @@ uint32_t UnitView::snap_to_min_ground_height()
         jump_speed = (1.0f - *(float *)((uint8_t *)global_globals->player_information.pointer + 0x84) * ((struct unit_object *)obj)->unit.stun) *
             jump_speed;
     }
-    if (halo::hs::globals::super_jump && ((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
+    if (halo::hs::fields::super_jump && ((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
         jump_speed = jump_speed * 4.0f;
     }
     velocity = *(real_vector3d *)&((unit_object *)obj)->base.velocity.i;

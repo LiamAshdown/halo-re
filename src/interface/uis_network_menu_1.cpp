@@ -153,7 +153,7 @@ uint8_t UiNetworkMenu::network_client_connect_and_save(void)
     halo::text::string_convert_unicode_to_ascii((uint8_t *)name, network_host_name_field_00719238, 0x20);
     halo::text::string_convert_unicode_to_ascii((uint8_t *)port, network_host_subname_007191f0, 9);
     result = halo::main::network_game_client_connect_to_address_async(name, port);
-    if (result == 0 || saved_player_profile_slots_handle == -1) {
+    if (result == 0 || halo::saved_games::globals().player_profile_slots_handle == -1) {
         return result;
     }
 

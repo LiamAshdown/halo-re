@@ -75,7 +75,7 @@ void EngineMatch::update_end_game_sequence(float delta_time)
             }
         }
 
-        if (local_player_input_states[0].buttons[halo::game::globals::k_input_action_accept] != 0 || halo::input::input_get_key_state(0x66) == 1 || idle_timer_expired) {
+        if (local_player_input_states[0].buttons[halo::game::fields::k_input_action_accept] != 0 || halo::input::input_get_key_state(0x66) == 1 || idle_timer_expired) {
             network_game_client_game_settings_updated(network_server);
         }
     }

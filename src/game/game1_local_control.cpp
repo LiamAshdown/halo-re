@@ -435,7 +435,7 @@ void LocalControl::digitize_control_input(player_control_input *input)
     uint32_t control_flags = input->control_flags;
     uint32_t button_flags = input->button_flags;
 
-    if ((input->melee != 0 || local_player_input_states[0].buttons[halo::game::globals::k_input_action_accept] != 0) && halo::saved_games::globals().game_state_write_in_progress == 0 &&
+    if ((input->melee != 0 || local_player_input_states[0].buttons[halo::game::fields::k_input_action_accept] != 0) && halo::saved_games::globals().game_state_write_in_progress == 0 &&
         *(int8_t *)(cinematic_globals_ptr + 10) != 0) {
         split_screen_quit_prompt_string = 0xffff;
         network_join_error_reason = 0;

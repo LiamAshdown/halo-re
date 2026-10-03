@@ -9,6 +9,8 @@
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/main/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern int32_t game_state_cursor;

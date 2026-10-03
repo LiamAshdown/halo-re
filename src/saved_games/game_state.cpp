@@ -15,6 +15,9 @@
 #include "halo/cache/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/main/api.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/shell/api.hpp"
 
 static_assert(sizeof(data_array) == halo::saved_games::k_game_state_block_header_size);
 static_assert(sizeof(memory_pool) == halo::saved_games::k_game_state_block_header_size);
@@ -368,7 +371,7 @@ void *open_persistent_storage(char *name)
  */
 void perform_revert(void)
 {
-    if (game_state_revert_available == 0 && halo::hs::globals::recover_saved_games_hack == 0) {
+    if (game_state_revert_available == 0 && halo::hs::fields::recover_saved_games_hack == 0) {
         split_screen_quit_prompt_string = k_word_none;
         network_join_error_reason = 0;
         halo::main::fields::reset_map = 1;

@@ -169,7 +169,7 @@ void Timedemo::benchmark_update(void)
 
         if (halo::shell::globals().force_shader == 9999) {
             shader = "2.0a";
-        } else if (rasterizer_caps.pixel_shader_version < d3d9::k_pixel_shader_version_1_1) {
+        } else if (halo::rasterizer::globals().caps.pixel_shader_version < d3d9::k_pixel_shader_version_1_1) {
             shader = "Fixed Function";
         } else {
             sprintf(timedemo_pixel_shader_version, "%d.%d",

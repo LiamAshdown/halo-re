@@ -167,16 +167,16 @@ void ChimeraBridge::do_show_loading_screen(void)
     switch (join_ui_state) {
     case 2:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 1));
-        halo::rasterizer::chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
+        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)text_buffer);
         break;
     case 3:
     case 5:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 2), progress_screen_text);
-        halo::rasterizer::chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
+        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)text_buffer);
         break;
     case 4:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 0), progress_screen_text);
-        halo::rasterizer::chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
+        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)text_buffer);
         break;
     case 6:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 3), progress_screen_text,
@@ -185,7 +185,7 @@ void ChimeraBridge::do_show_loading_screen(void)
         break;
     case 7:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 4));
-        halo::rasterizer::chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
+        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)text_buffer);
         break;
     case 8:
         halo::text::string_format_wide_va(text_buffer,
@@ -195,7 +195,7 @@ void ChimeraBridge::do_show_loading_screen(void)
         break;
     case 9:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 8), progress_screen_subtext);
-        halo::rasterizer::chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
+        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)text_buffer);
         break;
     default:
         break;
@@ -205,11 +205,11 @@ void ChimeraBridge::do_show_loading_screen(void)
     bounds.bottom = 0x1c2;
     switch (join_ui_state) {
     case 2: case 3: case 4: case 5: case 6: case 7: case 9:
-        halo::rasterizer::chimera__draw_16_bit_text(0, &bounds, 0, 0, halo::text::text_string_list_get_string(strings, 7));
+        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)(halo::text::text_string_list_get_string(strings, 7)));
     case 8:
         bounds.top = 0x1cc;
         bounds.bottom = 0x1e0;
-        halo::rasterizer::chimera__draw_16_bit_text(0, &bounds, 0, 0, halo::text::text_string_list_get_string(strings, 9));
+        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)(halo::text::text_string_list_get_string(strings, 9)));
         break;
     default:
         break;

@@ -469,7 +469,7 @@ void UnitView::apply_fall_damage(float fall_speed)
         exempt = 1;
     }
 
-    if (halo::hs::globals::jetpack == 0 || unit->controlling_player == k_datum_index_none) {
+    if (halo::hs::fields::jetpack == 0 || unit->controlling_player == k_datum_index_none) {
         if (fall_speed <= *(float *)(fall_table + 0x90)) {
             if (!test_flag(tag->biped_flags, tags::biped_tag_flag::flying) && obj->velocity.k < -*(float *)(fall_table + 0x8c)) {
                 if (!exempt && !test_flag(obj->vitality_flags, objects::vitality_flag::health_frozen)) {

@@ -10,6 +10,7 @@
 #include "halo/bitmaps/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 
@@ -365,7 +366,7 @@ void rasterizer_draw_text_begin(ui_quad_render_state *state)
     set_render_state(0x18, 0);
     set_render_state(0x7, 0);
     set_render_state(0x1c, 0);
-    if (halo::rasterizer::globals::rasterizer_wireframe != 0) {
+    if (halo::rasterizer::fields::rasterizer_wireframe != 0) {
         set_render_state(8, 3);
     }
 
@@ -421,7 +422,7 @@ namespace rasterizer_draw_text_end_impl {
 void rasterizer_draw_text_end(void)
 {
 
-    if (halo::rasterizer::globals::rasterizer_wireframe != 0) {
+    if (halo::rasterizer::fields::rasterizer_wireframe != 0) {
         render_device().set_render_state(8, 2);
     }
     render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
@@ -444,10 +445,10 @@ void rasterizer_editbox_log_dump(void)
     int32_t document;
 
     if (chat_gui_root_handle == (void *)0) {
-        if (halo::rasterizer::globals::keystone_create == (void *)0) {
+        if (halo::rasterizer::fields::keystone_create == (void *)0) {
             return;
         }
-        chat_gui_root_handle = halo::rasterizer::globals::keystone_create(shell_window, rasterizer_device, keystone_current_directory, 0, 0, 0, 0);
+        chat_gui_root_handle = halo::rasterizer::fields::keystone_create(shell_window, rasterizer_device, keystone_current_directory, 0, 0, 0, 0);
         if (chat_gui_root_handle == (void *)0) {
             return;
         }
@@ -469,13 +470,13 @@ void rasterizer_editbox_log_dump(void)
     wcscat(log_path, height_text);
     wcscat(log_path, L"log.ksml");
 
-    halo::rasterizer::globals::keystone_create_window(chat_gui_root_handle, editbox_path, chat_gui_find_object_arg, 0x10000000,   rect_zero, 0, 0, 0, 0, 0, 0);
-    document = halo::rasterizer::globals::keystone_get_window(chat_gui_root_handle, chat_gui_find_object_arg);
+    halo::rasterizer::fields::keystone_create_window(chat_gui_root_handle, editbox_path, chat_gui_find_object_arg, 0x10000000,   rect_zero, 0, 0, 0, 0, 0, 0);
+    document = halo::rasterizer::fields::keystone_get_window(chat_gui_root_handle, chat_gui_find_object_arg);
     if (document != 0) {
-        halo::rasterizer::globals::keystone_window_show(document, 0);
-        halo::rasterizer::globals::keystone_window_release(document);
+        halo::rasterizer::fields::keystone_window_show(document, 0);
+        halo::rasterizer::fields::keystone_window_release(document);
     }
-    halo::rasterizer::globals::keystone_create_window(chat_gui_root_handle, log_path, chat_listbox_gui_find_object_arg, 0x10000000,   rect_zero, 0, 0, 0, 0, 0, 0);
+    halo::rasterizer::fields::keystone_create_window(chat_gui_root_handle, log_path, chat_listbox_gui_find_object_arg, 0x10000000,   rect_zero, 0, 0, 0, 0, 0, 0);
 }
 
 namespace text_draw_glyph_callback_impl {

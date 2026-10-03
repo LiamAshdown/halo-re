@@ -11,7 +11,7 @@ extern "C" {
 extern uint8_t unknown_0072132a;
 }
 
-namespace halo::saved_games::globals {
+namespace halo::saved_games::fields {
 
 /**
  * Set to 1 at the end of the saved game file initialization once the default profile files exist. Nothing in

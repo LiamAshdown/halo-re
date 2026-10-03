@@ -8,6 +8,7 @@
 #include "internal/state.hpp"
 #include "halo/shaders/api.hpp"
 #include "halo/math/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 
@@ -133,17 +134,17 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
         set_sampler_state(3, 7, 2);
     }
 
-    if (halo::rasterizer::globals::models_enabled != 0) {
+    if (halo::rasterizer::fields::models_enabled != 0) {
         if ((int8_t)context->flags < 0 && mode == 0) {
             rasterizer_set_shader_stage_config(1);
             chimera__rasterizer_set_frustum_z_func(rasterizer_frustum_z_values[0], rasterizer_frustum_z_values[1]);
         }
 
         rasterizer_model_scratch_valid = 0;
-        halo::rasterizer::globals::model_draw_mode = mode;
+        halo::rasterizer::fields::model_draw_mode = mode;
         rasterizer_active_model_context = context;
 
-        if (halo::rasterizer::globals::active_camouflage_enabled == 0 || rasterizer_window.type != 1 ||
+        if (halo::rasterizer::fields::active_camouflage_enabled == 0 || rasterizer_window.type != 1 ||
             context->group_parameters.mode != 1 || !(context->group_parameters.blend_factor > 0.0f)) {
             if (context->group_parameters.mode == 2) {
                 rasterizer_active_model_mode = 2;
@@ -163,11 +164,11 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
                 rasterizer_window.camera.position.y * rasterizer_window.fog.plane.normal.j +
                 rasterizer_window.camera.position.z * rasterizer_window.fog.plane.normal.k) -
                    rasterizer_window.fog.plane.d < 0.0f))) {
-            halo::rasterizer::globals::planar_fog_vertex_shader_active = 0;
+            halo::rasterizer::fields::planar_fog_vertex_shader_active = 0;
         } else {
-            halo::rasterizer::globals::planar_fog_vertex_shader_active = 1;
+            halo::rasterizer::fields::planar_fog_vertex_shader_active = 1;
         }
-        halo::rasterizer::globals::model_begin_cleared_flag = 0;
+        halo::rasterizer::fields::model_begin_cleared_flag = 0;
 
         if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
             if ((context->flags & 0x200) != 0) {
@@ -233,7 +234,7 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
             density_limit = rasterizer_window.fog.planar_maximum_density;
             CLAMP01_X87(density_limit);
 
-            halo::rasterizer::globals::planar_fog_attenuation = 1.0f - density_limit *
+            halo::rasterizer::fields::planar_fog_attenuation = 1.0f - density_limit *
                 (plane_distance * ((1.0f - density_from_distance) * (1.0f - density_from_distance) - blend) + blend);
         }
     }
@@ -255,11 +256,11 @@ void rasterizer_model_draw_restore_states(void)
 {
     rasterizer_model_draw_context *context = (rasterizer_model_draw_context *)rasterizer_active_model_context;
 
-    if (halo::rasterizer::globals::models_enabled == 0) {
+    if (halo::rasterizer::fields::models_enabled == 0) {
         return;
     }
 
-    if ((int8_t)context->flags < 0 && halo::rasterizer::globals::model_draw_mode == 0) {
+    if ((int8_t)context->flags < 0 && halo::rasterizer::fields::model_draw_mode == 0) {
         rasterizer_set_shader_stage_config(2);
         chimera__rasterizer_set_frustum_z_func(0, 0);
     }
@@ -317,7 +318,7 @@ uint8_t rasterizer_object_shadow_begin(const real_matrix4x3 *projection, const C
     if (rasterizer_window.type != 1) {
         return 1;
     }
-    if (rasterizer_caps_flag_689 != 0 || halo::rasterizer::globals::object_shadows_enabled == 0) {
+    if (rasterizer_caps_flag_689 != 0 || halo::rasterizer::fields::object_shadows_enabled == 0) {
         if (out_radius != NULL) {
             *out_radius = 0.0f;
         }
@@ -458,7 +459,7 @@ void rasterizer_object_shadow_blur(void)
     uint32_t stage;
     uint32_t pass;
 
-    if (rasterizer_caps_flag_689 != 0 || halo::rasterizer::globals::object_shadows_enabled == 0 || halo::rasterizer::globals::shadow_convolution_enabled == 0) {
+    if (rasterizer_caps_flag_689 != 0 || halo::rasterizer::fields::object_shadows_enabled == 0 || halo::rasterizer::fields::shadow_convolution_enabled == 0) {
         return;
     }
     effect = (void *)(uintptr_t)rasterizer_effects[45].effect;
@@ -563,7 +564,7 @@ void rasterizer_object_shadow_model_draw(const ShaderModel *shader, int16_t fram
     float constants[3][4];
     rasterizer_model_draw_context *context;
 
-    if (rasterizer_window.type != 1 || rasterizer_caps_flag_689 != 0 || halo::rasterizer::globals::object_shadows_enabled == 0) {
+    if (rasterizer_window.type != 1 || rasterizer_caps_flag_689 != 0 || halo::rasterizer::fields::object_shadows_enabled == 0) {
         return;
     }
     if (shader->base.shader_type != 4) {
@@ -641,7 +642,7 @@ void rasterizer_object_shadow_structure_draw(rasterizer_vertex_buffer *vertex_bu
     uint32_t passes;
     uint32_t pass;
 
-    if (rasterizer_window.type != 1 || rasterizer_caps_flag_689 != 0 || halo::rasterizer::globals::object_shadows_enabled == 0) {
+    if (rasterizer_window.type != 1 || rasterizer_caps_flag_689 != 0 || halo::rasterizer::fields::object_shadows_enabled == 0) {
         return;
     }
     if (rasterizer_effects[47].effect == 0) {
@@ -655,10 +656,10 @@ void rasterizer_object_shadow_structure_draw(rasterizer_vertex_buffer *vertex_bu
         float vs[5][4];
         float ps[4];
 
-        if (halo::rasterizer::globals::shadow_convolution_enabled) {
+        if (halo::rasterizer::fields::shadow_convolution_enabled) {
             rasterizer_object_shadow_blur();
         }
-        rasterizer_render_target_bind_texture_stage((int16_t)(halo::rasterizer::globals::shadow_convolution_enabled ? 4 : 3), 0);
+        rasterizer_render_target_bind_texture_stage((int16_t)(halo::rasterizer::fields::shadow_convolution_enabled ? 4 : 3), 0);
         set_clamped_linear_sampler(0);
         chimera__rasterizer_set_texture_direct_d3d9(*(const uint32_t *)&rasterizer_globals_data->linear_corner_fade.tag_id, 1, 0);
         set_clamped_linear_sampler(1);
@@ -1289,7 +1290,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
     true_atmospheric_fog = *(uint16_t *)&((struct ShaderModel *)shader)->shader_model_flags & 0x10;
     if (true_atmospheric_fog) {
         vertex_shader = 0x1c;
-    } else if (halo::rasterizer::globals::planar_fog_vertex_shader_active) {
+    } else if (halo::rasterizer::fields::planar_fog_vertex_shader_active) {
         vertex_shader = 0x19;
     } else if (context->lighting.point_light_count > 0) {
         vertex_shader = 0x1a;
@@ -1349,10 +1350,10 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
             if (model->detail_mask != 0 && vertex_shader == 0x19) {
                 ColorRGB fixed_function_fog;
 
-                fixed_function_fog.red = clamp01(clamp01(fog_add.red - halo::rasterizer::globals::planar_fog_attenuation * fog_negative.red) + fog_planar.red);
-                fixed_function_fog.green = clamp01(clamp01(fog_add.green - halo::rasterizer::globals::planar_fog_attenuation * fog_negative.green) +
+                fixed_function_fog.red = clamp01(clamp01(fog_add.red - halo::rasterizer::fields::planar_fog_attenuation * fog_negative.red) + fog_planar.red);
+                fixed_function_fog.green = clamp01(clamp01(fog_add.green - halo::rasterizer::fields::planar_fog_attenuation * fog_negative.green) +
                                                    fog_planar.green);
-                fixed_function_fog.blue = clamp01(clamp01(fog_add.blue - halo::rasterizer::globals::planar_fog_attenuation * fog_negative.blue) +
+                fixed_function_fog.blue = clamp01(clamp01(fog_add.blue - halo::rasterizer::fields::planar_fog_attenuation * fog_negative.blue) +
                                                   fog_planar.blue);
                 set_render_state(0x1c, 1);
                 set_render_state(0x22, color_rgb_float_to_int(&fixed_function_fog));

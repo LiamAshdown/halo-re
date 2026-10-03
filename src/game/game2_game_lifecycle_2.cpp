@@ -109,7 +109,7 @@ namespace halo::game {
  */
 void GameLifecycle::simulate_tick(uint32_t predict_pass)
 {
-    globals::simulation_tick_in_progress = 1;
+    fields::simulation_tick_in_progress = 1;
     _control87(0x9001f, 0xfffff);
     game_engine_flag_local_player_units();
     team_pair_overrides_tick();
@@ -157,17 +157,17 @@ after_role_update:
         network_client_send_local_player_updates();
         network_server_broadcast_object_type_changes();
         if (0 < network_scenario_round_counter_a) {
-            network_event_feed_flush(globals::network_event_feed_a);
+            network_event_feed_flush(fields::network_event_feed_a);
         }
         if (0 < network_scenario_round_counter_b) {
-            network_event_feed_flush(globals::network_event_feed_b);
+            network_event_feed_flush(fields::network_event_feed_b);
         }
     }
     if (network_game_mode == 1) {
         players_client_catchup_on_server_updates();
     }
 
-    globals::simulation_tick_in_progress = 0;
+    fields::simulation_tick_in_progress = 0;
 }
 
 /**
@@ -308,8 +308,8 @@ void GameLifecycle::start_new_map(void)
     halo::effects::globals().weather_particle_data->valid = 1;
     halo::memory::data_delete_all(halo::effects::globals().weather_particle_data);
 
-    k_air_density = globals::air_density_base * 118613.34f;
-    k_water_density = globals::water_density_base * 118613.34f;
+    k_air_density = fields::air_density_base * 118613.34f;
+    k_water_density = fields::water_density_base * 118613.34f;
 
     game_engine_initialize_for_new_game();
     game_engine_attribute_enabled = 1;

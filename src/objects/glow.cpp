@@ -383,9 +383,9 @@ void halo::objects::GlowView::update(uint32_t object_index)
                 }
                 glow_particle_compute_color(entry, p);
 
-                *(float *)((uint8_t *)p + 0x2c) += render_time_since_frame * p->render_color[0];
-                *(float *)((uint8_t *)p + 0x30) += render_time_since_frame * p->render_color[1];
-                *(float *)((uint8_t *)p + 0x34) += render_time_since_frame * p->render_color[2];
+                *(float *)((uint8_t *)p + 0x2c) += halo::render::globals().time_since_frame * p->render_color[0];
+                *(float *)((uint8_t *)p + 0x30) += halo::render::globals().time_since_frame * p->render_color[1];
+                *(float *)((uint8_t *)p + 0x34) += halo::render::globals().time_since_frame * p->render_color[2];
 
                 if (*lifetime < *age) {
                     glow_particle *prev = *(glow_particle **)&((struct glow_particle *)p)->previous;

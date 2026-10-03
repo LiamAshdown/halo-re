@@ -744,7 +744,7 @@ default_profile:
         *(uint32_t *)zero_cursor = 0;
         zero_cursor += 4;
     }
-    halo::saved_games::globals::saved_game_files_initialized = 1;
+    halo::saved_games::fields::saved_game_files_initialized = 1;
 }
 
 /**

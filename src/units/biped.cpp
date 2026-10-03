@@ -873,7 +873,7 @@ void biped_update_target_lock_timer(datum_index target, uint32_t object_index)
     if ((int8_t)biped->bump_ticks <= 3) {
         return;
     }
-    if (target_obj->type == 0 && halo::hs::globals::bump_possession != 0) {
+    if (target_obj->type == 0 && halo::hs::fields::bump_possession != 0) {
         int32_t local_player = unit_get_local_player_weapon_index(object_index);
         if ((int16_t)local_player != -1) {
             biped_data *target_biped = (biped_data *)((uint8_t *)target_obj + k_unit_object_size);

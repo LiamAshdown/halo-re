@@ -10,6 +10,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 
@@ -43,8 +44,8 @@ void lens_flare_add_instance(lens_flare_instance *candidate)
 
     new_index = lens_flare_instance_count;
 
-    if (halo::rasterizer::globals::decals_and_lens_flares_enabled == 0 || halo::rasterizer::globals::screenshot_tile_count >= 2 ||
-        (halo::rasterizer::globals::screenshot_tile_count == 1 && screenshot_scale >= 2) || rasterizer_window.type != 1) {
+    if (halo::rasterizer::fields::decals_and_lens_flares_enabled == 0 || halo::rasterizer::fields::screenshot_tile_count >= 2 ||
+        (halo::rasterizer::fields::screenshot_tile_count == 1 && screenshot_scale >= 2) || rasterizer_window.type != 1) {
         return;
     }
 
@@ -203,7 +204,7 @@ void lens_flare_render_all(void)
     const float *axis_b = (const float *)(window + 0xb0);
     int16_t i;
 
-    if (halo::rasterizer::globals::decals_and_lens_flares_enabled == 0 || *(int16_t *)window != 1 || lens_flare_instance_count <= 0) {
+    if (halo::rasterizer::fields::decals_and_lens_flares_enabled == 0 || *(int16_t *)window != 1 || lens_flare_instance_count <= 0) {
         return;
     }
     if (lens_flare_occlusion_queries_supported != 1) {
@@ -371,7 +372,7 @@ void lens_flare_render_all(void)
                 break;
             }
             halo::render::rasterizer_lens_flare_set_vertex_specular(specular);
-            halo::rasterizer::globals::lens_flare_batch_mode = ((flags & 8) != 0 && (instance[0x22] & 0x80) != 0) ? 2 : 0;
+            halo::rasterizer::fields::lens_flare_batch_mode = ((flags & 8) != 0 && (instance[0x22] & 0x80) != 0) ? 2 : 0;
             rasterizer_lens_flare_quad_add(scale, colour, &vertex, radius, reflection_rotation * 0.017453292f);
         }
     }
@@ -392,7 +393,7 @@ void lens_flare_render_all(void)
         render_device().set_fvf(0);
     }
 
-    if (rasterizer_caps_flag_68a == 0 && halo::rasterizer::globals::lens_flare_occlusion_enabled != 0) {
+    if (rasterizer_caps_flag_68a == 0 && halo::rasterizer::fields::lens_flare_occlusion_enabled != 0) {
         for (i = 0; i < lens_flare_instance_count; i++) {
             uint8_t *instance = (uint8_t *)&lens_flare_instances[i];
 
@@ -423,8 +424,8 @@ void lens_flare_update_samples(void)
     LensFlare *definition;
     float radius;
 
-    if (halo::rasterizer::globals::decals_and_lens_flares_enabled == 0 || halo::rasterizer::globals::screenshot_tile_count > 1 ||
-        (halo::rasterizer::globals::screenshot_tile_count == 1 && screenshot_scale > 1) ||
+    if (halo::rasterizer::fields::decals_and_lens_flares_enabled == 0 || halo::rasterizer::fields::screenshot_tile_count > 1 ||
+        (halo::rasterizer::fields::screenshot_tile_count == 1 && screenshot_scale > 1) ||
         rasterizer_window.type != 1 || lens_flare_instance_count <= 0) {
         return;
     }
@@ -460,7 +461,7 @@ void lens_flare_update_samples(void)
 
 /**
  * 0x537b40, ESI slot = the loop index (0x5137c0) Per-frame smoothing pass: while occlusion queries are enabled
- * (halo::rasterizer::globals::decals_and_lens_flares_enabled) and the window/mode gate allows it, blends each active lens flare's visibility byte
+ * (halo::rasterizer::fields::decals_and_lens_flares_enabled) and the window/mode gate allows it, blends each active lens flare's visibility byte
  * toward its freshly sampled occlusion percentage (0 when it has no samples), then clears the active count.
  *
  * @address 0x513780
@@ -473,8 +474,8 @@ void lens_flare_update_visibility(void)
     uint8_t old_value;
     uint8_t new_value;
 
-    if (halo::rasterizer::globals::decals_and_lens_flares_enabled == 0 || halo::rasterizer::globals::screenshot_tile_count >= 2 ||
-        (halo::rasterizer::globals::screenshot_tile_count == 1 && screenshot_scale >= 2)) {
+    if (halo::rasterizer::fields::decals_and_lens_flares_enabled == 0 || halo::rasterizer::fields::screenshot_tile_count >= 2 ||
+        (halo::rasterizer::fields::screenshot_tile_count == 1 && screenshot_scale >= 2)) {
         return;
     }
 
@@ -700,10 +701,10 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
         set_render_state(0x1c, 0);
     }
 
-    rasterizer_effect_pool_scratch = &halo::rasterizer::globals::lens_flare_effect;
-    if (halo::rasterizer::globals::lens_flare_effect != 0) {
+    rasterizer_effect_pool_scratch = &halo::rasterizer::fields::lens_flare_effect;
+    if (halo::rasterizer::fields::lens_flare_effect != 0) {
         uint32_t pass_count = 0;
-        render_device().effect_begin(halo::rasterizer::globals::lens_flare_effect, &pass_count, 3);
+        render_device().effect_begin(halo::rasterizer::fields::lens_flare_effect, &pass_count, 3);
 
         render_device().effect_pass(*(void **)rasterizer_effect_pool_scratch, 0);
     } else {
@@ -1118,7 +1119,7 @@ void structure_cluster_add_lens_flares(int16_t cluster_index)
     const uint8_t *cluster;
     uint32_t marker_ordinal;
 
-    if (halo::rasterizer::globals::decals_and_lens_flares_enabled == 0 || halo::rasterizer::globals::screenshot_tile_count > 1 || (halo::rasterizer::globals::screenshot_tile_count == 1 && screenshot_scale > 1)) {
+    if (halo::rasterizer::fields::decals_and_lens_flares_enabled == 0 || halo::rasterizer::fields::screenshot_tile_count > 1 || (halo::rasterizer::fields::screenshot_tile_count == 1 && screenshot_scale > 1)) {
         return;
     }
 

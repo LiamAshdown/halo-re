@@ -8,6 +8,7 @@
 #include "internal/state.hpp"
 #include "halo/render/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 
@@ -391,7 +392,7 @@ namespace rasterizer_dynamic_light_technique_ps2_set_states_impl {
 void rasterizer_dynamic_light_technique_ps2_set_states(void)
 {
 
-    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::specular_lightmap_enabled == 0 ||
+    if (halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::specular_lightmap_enabled == 0 ||
         render_force_flag != 0 || rasterizer_caps.pixel_shader_version <= 0xffff0103) {
         return;
     }

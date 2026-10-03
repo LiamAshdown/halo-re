@@ -69,7 +69,7 @@ extern void *unknown_007c0490;
 extern void *unknown_007c0494;
 }
 
-namespace halo::rasterizer::globals {
+namespace halo::rasterizer::fields {
 
 /**
  * Statistics display level (the script global "rasterizer_stats" by position in the debug table). The

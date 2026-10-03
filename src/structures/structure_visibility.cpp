@@ -52,8 +52,8 @@ void structure_visibility::camera_visibility_pass(void)
 
     for (int16_t i = 0; i < halo::structures::globals().visible_cluster_count; i++) {
         uint8_t *cluster = (uint8_t *)&halo::structures::globals().visible_clusters[i];
-        halo::render::render_camera_compute_frustum_bounds((void *)render_camera_global, screen_bounds, (float *)(cluster + k_visible_cluster_screen_bounds_offset));
-        halo::render::chimera__render_camera_build_frustum(screen_bounds, (void *)render_camera_global, cluster + k_visible_cluster_frustum_offset, 0);
+        halo::render::render_camera_compute_frustum_bounds((render_camera *)((void *)render_camera_global), screen_bounds, (float *)(cluster + k_visible_cluster_screen_bounds_offset));
+        halo::render::chimera__render_camera_build_frustum(screen_bounds, (render_camera *)((void *)render_camera_global), (render_frustum *)(cluster + k_visible_cluster_frustum_offset), 0);
     }
 }
 

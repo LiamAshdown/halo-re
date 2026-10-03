@@ -10,6 +10,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias);

@@ -10,7 +10,7 @@ extern float unknown_0069c530;
 extern float unknown_0069c534;
 }
 
-namespace halo::game::globals {
+namespace halo::game::fields {
 
 /**
  * Index of the accept action in local_player_input_state::buttons (the input module's _input_action_accept).

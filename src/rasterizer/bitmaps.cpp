@@ -9,6 +9,7 @@
 #include "halo/bitmaps/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 
@@ -197,7 +198,7 @@ static BitmapData *rasterizer_tag_bitmap(uint32_t bitmap_tag_id, int16_t bitmap_
     int32_t count;
 
     *resolved = 0;
-    if ((halo::rasterizer::globals::bump_mapping_enabled == 0 && default_index == 3) || bitmap_tag_id == 0xffffffff) {
+    if ((halo::rasterizer::fields::bump_mapping_enabled == 0 && default_index == 3) || bitmap_tag_id == 0xffffffff) {
         return 0;
     }
     bitmap = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag_id & 0xffff].data;

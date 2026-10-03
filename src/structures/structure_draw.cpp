@@ -10,6 +10,8 @@
 #include "halo/cseries/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/rasterizer/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern void **rasterizer_dynamic_index_buffer;
@@ -17,7 +19,6 @@ extern int32_t rasterizer_dynamic_index_cache_reserve(int16_t vertex_count);
 extern void *rasterizer_dynamic_index_slot_lock(int32_t geometry_handle);
 extern breakable_surface_globals *breakable_surface_state;
 extern const real_point3d *global_origin3d_pointer;
-extern void ***rasterizer_device;
 extern void *unknown_007c048c;
 }
 
@@ -241,9 +242,9 @@ void structure_draw::picked_polygon_draw(void)
         return;
     }
 
-    saved_render_flag = render_force_flag;
+    saved_render_flag = halo::render::globals().force_flag;
     if (halo::scenario::globals().structure_bsp->lightmaps_bitmap.tag_id.index == k_word_none && saved_render_flag == 0) {
-        render_force_flag = 1;
+        halo::render::globals().force_flag = 1;
     }
 
     halo::rasterizer::rasterizer_underwater_tint_set_states();
@@ -251,7 +252,7 @@ void structure_draw::picked_polygon_draw(void)
     structure_draw::leaf_faces_for_each(globals().picked_surfaces_geometry, (structure_lightmap_begin_callback)structure_picked_polygon_lightmap_begin, (structure_material_callback)structure_picked_polygon_material, (structure_lightmap_end_callback)halo::cseries::function_do_nothing, (structure_transparent_material_callback)0, globals().visible_surface_indices, (int16_t)globals().visible_surface_count);
 
     if (halo::rasterizer::globals().device_version < 0xffff0101) {
-        void **device = *rasterizer_device;
+        void **device = (void **)halo::rasterizer::globals().device;
         (*(void (__stdcall **)(void *, int32_t, int32_t))((uint8_t *)device + 0xe4))(device, 0x89, 0);
     }
 

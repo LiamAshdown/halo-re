@@ -29,7 +29,6 @@
 #include "halo/rasterizer/api.hpp"
 
 extern "C" {
-extern float render_time_since_frame;
 extern float sky_animation_times[9];
 extern render_camera render_camera_global;
 extern real_point3d *global_zero_vector3d_pointer;
@@ -38,7 +37,6 @@ extern ColorRGB *global_white_color;
 extern uint8_t console_debug_toggle_6893ec;
 extern uint8_t rasterizer_render_states_dirty;
 extern uint32_t rasterizer_device_version;
-extern void *rasterizer_device;
 extern void light_transient_add(datum_index light_tag, ColorRGB *color, real_point3d *position,
     real_vector3d *direction, real_vector3d *up, float intensity);
 extern double fmod(double x, double y);
@@ -54,7 +52,6 @@ extern render_fog render_fog_state;
 extern rasterizer_frame_statistics rasterizer_frame_statistics_state;
 extern rasterizer_window_parameters rasterizer_window;
 extern uint8_t decals_for_all_responses;
-extern int16_t render_force_flag;
 extern uint32_t rasterizer_active_environment_effect;
 extern int32_t transparent_geometry_group_last_drawn_key;
 extern uint8_t rasterizer_secondary_groups_drawn;
@@ -110,7 +107,7 @@ typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
  */
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    halo::d3d9::device_function<d3d_call2_fn>(rasterizer_device, halo::d3d9::device_method::set_render_state)(rasterizer_device, state, value);
+    halo::d3d9::device_function<d3d_call2_fn>(halo::rasterizer::globals().device, halo::d3d9::device_method::set_render_state)(halo::rasterizer::globals().device, state, value);
 }
 
 /**
@@ -131,10 +128,10 @@ static void draw_visible_cluster_decals(void)
 static void reset_decal_fog_and_depth_bias(void)
 {
     set_render_state((uint32_t)halo::d3d9::render_state::fog_enable, 0);
-    if (halo::test_flag(rasterizer_caps.raster_caps, halo::d3d9::raster_cap::depth_bias)) {
+    if (halo::test_flag(halo::rasterizer::globals().caps.raster_caps, halo::d3d9::raster_cap::depth_bias)) {
         set_render_state((uint32_t)halo::d3d9::render_state::depth_bias, 0);
     }
-    if (halo::test_flag(rasterizer_caps.raster_caps, halo::d3d9::raster_cap::slope_scale_depth_bias)) {
+    if (halo::test_flag(halo::rasterizer::globals().caps.raster_caps, halo::d3d9::raster_cap::slope_scale_depth_bias)) {
         set_render_state((uint32_t)halo::d3d9::render_state::slope_scale_depth_bias, 0);
     }
     if (rasterizer_decal_layer == 3) {
@@ -205,7 +202,7 @@ void sky(void)
                     &((ModelAnimationsAnimation *)graph->animations.pointer)[i];
 
                 if ((int32_t)(int16_t)animation->node_count == (int32_t)model->nodes.count) {
-                    float time = (float)fmod(render_time_since_frame / entry->period +
+                    float time = (float)fmod(halo::render::globals().time_since_frame / entry->period +
                                              sky_animation_times[i], 1.0);
 
                     sky_animation_times[i] = time;
@@ -288,9 +285,9 @@ void sky(void)
         halo::math::globals().matrix4x3_multiply_procedure(&sky_transform, &matrices[i], &matrices[i]);
     }
 
-    if (halo::rasterizer::globals::models_enabled) {
+    if (halo::rasterizer::fields::models_enabled) {
         rasterizer_render_states_dirty = 1;
-        halo::rasterizer::globals::sky_pass_active = 1;
+        halo::rasterizer::fields::sky_pass_active = 1;
     }
     {
         uint8_t *raw = (uint8_t *)&lighting;
@@ -306,9 +303,9 @@ void sky(void)
 
     if (console_debug_toggle_6893ec && rasterizer_device_version < d3d9::k_pixel_shader_version_1_1) {
         d3d_set_render_state_fn set_render_state =
-            d3d9::device_function<d3d_set_render_state_fn>(rasterizer_device, d3d9::device_method::set_render_state);
+            d3d9::device_function<d3d_set_render_state_fn>(halo::rasterizer::globals().device, d3d9::device_method::set_render_state);
 
-        set_render_state(rasterizer_device, (uint32_t)d3d9::render_state::lighting, 0);
+        set_render_state(halo::rasterizer::globals().device, (uint32_t)d3d9::render_state::lighting, 0);
     }
 }
 
@@ -358,7 +355,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     halo::structures::structure_picked_polygon_refresh();
     halo::structures::structure_picked_polygon_draw();
     halo::rasterizer::lens_flare_update_samples();
-    if (halo::rasterizer::globals::object_shadow_pass_enabled) {
+    if (halo::rasterizer::fields::object_shadow_pass_enabled) {
         shadow_data.object_index = k_dword_none;
         shadow_data.unknown_44 = -1;
         shadow_data.lighting = 0;
@@ -396,15 +393,15 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     lights_apply_spot_falloff_specular();
 
     if (halo::structures::globals().picked_surfaces_valid) {
-        saved_69c67c = render_force_flag;
+        saved_69c67c = halo::render::globals().force_flag;
         if (*(int32_t *)&halo::scenario::globals().structure_bsp->lightmaps_bitmap.tag_id == -1 && saved_69c67c == 0) {
-            render_force_flag = 1;
+            halo::render::globals().force_flag = 1;
         }
         halo::rasterizer::rasterizer_dynamic_light_technique_ps2_set_states();
         structure_pass(halo::render::render_window_structure_lightmap_begin_0x511f90,
                        (structure_material_callback)halo::render::render_window_structure_material_0x511fe0,
                        (structure_lightmap_end_callback)halo::cseries::function_do_nothing, 0);
-        render_force_flag = saved_69c67c;
+        halo::render::globals().force_flag = saved_69c67c;
         if (halo::structures::globals().picked_surfaces_valid) {
             halo::rasterizer::rasterizer_shader_environment_technique_multipurpose_set_states();
             structure_pass(halo::render::render_window_structure_lightmap_begin_0x512010,
@@ -478,7 +475,7 @@ namespace halo::render::window_structure {
  */
 void lightmap_begin_0x511f90(void *bitmap_data)
 {
-    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::specular_lightmap_enabled == 0 ||
+    if (halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::specular_lightmap_enabled == 0 ||
         rasterizer_device_version < k_device_version_lightmap_pass) {
         return;
     }
@@ -509,7 +506,7 @@ void lightmap_begin_0x512010(void *bitmap_data)
 void material_0x511f40(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface,
     int32_t surface_count, void *material_extra)
 {
-    ((void (*)(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra))halo::rasterizer::globals::light_cone_draw)(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
+    ((void (*)(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra))halo::rasterizer::fields::light_cone_draw)(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
 }
 
 /**
@@ -531,7 +528,7 @@ void material_0x511f50(void *shader_data, int16_t shader_permutation, int32_t re
 void material_0x511f70(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface,
     int32_t surface_count, void *material_extra)
 {
-    ((void (*)(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra))halo::rasterizer::globals::environment_lightmap_draw)(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
+    ((void (*)(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra))halo::rasterizer::fields::environment_lightmap_draw)(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
 }
 
 /**

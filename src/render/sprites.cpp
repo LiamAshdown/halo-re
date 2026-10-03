@@ -23,6 +23,8 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/rasterizer/api.hpp"
+#include "halo/render/api.hpp"
 
 static_assert(offsetof(first_person_weapon_interface, node_matrices) == 0x108c);
 static_assert(sizeof(real_matrix4x3) == 0x34);

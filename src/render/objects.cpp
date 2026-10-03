@@ -405,7 +405,7 @@ void halo::render::ObjectRenderData::shadow_end()
 
     halo::structures::structure_debug_draw_surfaces_simple(position, data->shadow_radius * 4.0f, &box, planes, 6);
 
-    if (rasterizer_window.type == 1 && rasterizer_caps_flag_689 == 0 && halo::rasterizer::globals::object_shadows_enabled != 0 &&
+    if (rasterizer_window.type == 1 && rasterizer_caps_flag_689 == 0 && halo::rasterizer::fields::object_shadows_enabled != 0 &&
         rasterizer_object_shadow_window_restored == 0) {
         halo::rasterizer::rasterizer_render_target_set_active(1, 0, 0);
         rasterizer_object_shadow_window_restored = 1;
@@ -455,9 +455,9 @@ real compute_level_of_detail_pixels(datum_index object_index)
     }
 
     radius = obj->bounding_radius;
-    if ((int16_t)halo::rasterizer::globals::object_lod_quality == 1) {
+    if ((int16_t)halo::rasterizer::fields::object_lod_quality == 1) {
         radius = radius * 0.5f;
-    } else if ((int16_t)halo::rasterizer::globals::object_lod_quality == 0) {
+    } else if ((int16_t)halo::rasterizer::fields::object_lod_quality == 0) {
         radius = radius * 0.25f;
     }
 
@@ -672,8 +672,8 @@ namespace halo::render::lighting {
 void disable_workaround(void)
 {
     if (console_debug_toggle_6893ec != 0 && rasterizer_device_version < d3d9::k_pixel_shader_version_1_1) {
-        d3d_set_render_state_fn set_render_state = d3d9::device_function<d3d_set_render_state_fn>(rasterizer_device, d3d9::device_method::set_render_state);
-        set_render_state(rasterizer_device, (uint32_t)d3d9::render_state::lighting, 0);
+        d3d_set_render_state_fn set_render_state = d3d9::device_function<d3d_set_render_state_fn>(halo::rasterizer::globals().device, d3d9::device_method::set_render_state);
+        set_render_state(halo::rasterizer::globals().device, (uint32_t)d3d9::render_state::lighting, 0);
     }
 }
 
@@ -890,12 +890,12 @@ void s(void)
     uint8_t pass;
     uint8_t first_iteration;
 
-    if (halo::rasterizer::globals::models_enabled != 0) {
+    if (halo::rasterizer::fields::models_enabled != 0) {
         rasterizer_render_states_dirty = 1;
-        halo::rasterizer::globals::sky_pass_active = 0;
+        halo::rasterizer::fields::sky_pass_active = 0;
         if (rasterizer_device_version < d3d9::k_pixel_shader_version_1_1) {
-            d3d_set_render_state_fn set_render_state = d3d9::device_function<d3d_set_render_state_fn>(rasterizer_device, d3d9::device_method::set_render_state);
-            set_render_state(rasterizer_device, (uint32_t)d3d9::render_state::lighting, 1);
+            d3d_set_render_state_fn set_render_state = d3d9::device_function<d3d_set_render_state_fn>(halo::rasterizer::globals().device, d3d9::device_method::set_render_state);
+            set_render_state(halo::rasterizer::globals().device, (uint32_t)d3d9::render_state::lighting, 1);
         }
     }
 
@@ -918,8 +918,8 @@ void s(void)
     } while (first_iteration);
 
     if (console_debug_toggle_6893ec != 0 && rasterizer_device_version < d3d9::k_pixel_shader_version_1_1) {
-        d3d_set_render_state_fn set_render_state = d3d9::device_function<d3d_set_render_state_fn>(rasterizer_device, d3d9::device_method::set_render_state);
-        set_render_state(rasterizer_device, (uint32_t)d3d9::render_state::lighting, 0);
+        d3d_set_render_state_fn set_render_state = d3d9::device_function<d3d_set_render_state_fn>(halo::rasterizer::globals().device, d3d9::device_method::set_render_state);
+        set_render_state(halo::rasterizer::globals().device, (uint32_t)d3d9::render_state::lighting, 0);
     }
 }
 

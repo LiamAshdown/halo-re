@@ -10,6 +10,7 @@
 #include "halo/shaders/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 
@@ -44,12 +45,12 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::environment_diffuse_lights_enabled == 0 || effect == 0) {
+    if (*(uint16_t *)&halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::environment_diffuse_lights_enabled == 0 || effect == 0) {
         return;
     }
 
     bump_map_tag = (raw[0x28] & 2) != 0 ? 0xffffffff : *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
-    if (halo::rasterizer::globals::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
+    if (halo::rasterizer::fields::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
         Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & 0xffff].data;
         int32_t count = (int32_t)bitmap->bitmap_data.count;
 
@@ -132,7 +133,7 @@ void rasterizer_light_cone_set_orientation_constants(int32_t light_index)
     float constants_vs[5][4];
     float constants_ps[1][4];
 
-    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::environment_diffuse_lights_enabled == 0 ||
+    if (halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::environment_diffuse_lights_enabled == 0 ||
         rasterizer_caps.pixel_shader_version <= 0xffff0100) {
         return;
     }
@@ -205,7 +206,7 @@ namespace rasterizer_light_cone_set_texture_stage_states_impl {
 void rasterizer_light_cone_set_texture_stage_states(void)
 {
 
-    if (halo::rasterizer::globals::rasterizer_debug_mode == 0 && halo::rasterizer::globals::environment_diffuse_lights_enabled != 0 &&
+    if (halo::rasterizer::fields::rasterizer_debug_mode == 0 && halo::rasterizer::fields::environment_diffuse_lights_enabled != 0 &&
         0xffff0100 < rasterizer_caps.pixel_shader_version &&rasterizer_effects[4].effect != 0) {
 
         render_device().set_sampler_state(0, 1, 1);
@@ -454,14 +455,14 @@ void rasterizer_prepare_lighting_constants(render_lighting *lighting)
     float ambient_red, ambient_green, ambient_blue;
     int16_t i;
 
-    if (halo::rasterizer::globals::model_lighting_ambient_override > 0.0f) {
+    if (halo::rasterizer::fields::model_lighting_ambient_override > 0.0f) {
         float *words = (float *)&block;
         int32_t w;
 
         for (w = 0; w < 0x2c; w++) {
             words[w] = 0.0f;
         }
-        ambient_red = ambient_green = ambient_blue = halo::rasterizer::globals::model_lighting_ambient_override;
+        ambient_red = ambient_green = ambient_blue = halo::rasterizer::fields::model_lighting_ambient_override;
     } else {
         for (i = 0; i < 2; i++) {
             int32_t light_index = (i < lighting->point_light_count) ? lighting->point_light_indices[i] : -1;
@@ -498,7 +499,7 @@ void rasterizer_prepare_lighting_constants(render_lighting *lighting)
     block.ambient[3] = 0.0f;
 
     if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
-        float boost = (float)(halo::rasterizer::globals::fixed_function_ambient_color & 0xff) * 0.003921569f;
+        float boost = (float)(halo::rasterizer::fields::fixed_function_ambient_color & 0xff) * 0.003921569f;
         uint32_t red = (uint32_t)(int32_t)(clamp01(zoom_static_tint_r.red + boost + ambient_red) * 255.0f);
         uint32_t green = (uint32_t)(int32_t)(clamp01(zoom_static_tint_r.green + boost + ambient_green) * 255.0f);
         uint32_t blue = (uint32_t)(int32_t)(clamp01(zoom_static_tint_r.blue + boost + ambient_blue) * 255.0f);
@@ -523,7 +524,7 @@ void rasterizer_projected_light_constants_build(int32_t light_index)
     rasterizer_light *light;
     Light *definition;
 
-    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::specular_projected_light_enabled == 0 ||
+    if (halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::specular_projected_light_enabled == 0 ||
         rasterizer_caps.pixel_shader_version <= 0xffff0103) {
         return;
     }
@@ -588,7 +589,7 @@ void rasterizer_projected_light_constants_build_cube_map(int32_t light_index)
     float radius;
     float scale;
 
-    if (halo::rasterizer::globals::specular_projected_light_enabled == 0 || rasterizer_caps.pixel_shader_version <= 0xffff0103) {
+    if (halo::rasterizer::fields::specular_projected_light_enabled == 0 || rasterizer_caps.pixel_shader_version <= 0xffff0103) {
         return;
     }
 
@@ -675,7 +676,7 @@ void rasterizer_set_fog_constants(const render_fog *fog)
     if (window_fog->atmospheric_maximum_density <= 0.0f) {
         window_fog->atmospheric_maximum_density = 1.0f;
     }
-    if (window_fog->atmospheric_maximum_distance == 0.0f || halo::rasterizer::globals::rasterizer_fog_atmosphere == 0) {
+    if (window_fog->atmospheric_maximum_distance == 0.0f || halo::rasterizer::fields::rasterizer_fog_atmosphere == 0) {
         window_fog->atmospheric_maximum_distance = rasterizer_window.camera.z_far + rasterizer_window.camera.z_far;
         window_fog->atmospheric_maximum_density = 0.0f;
         window_fog->atmospheric_minimum_distance = rasterizer_window.camera.z_far;
@@ -685,7 +686,7 @@ void rasterizer_set_fog_constants(const render_fog *fog)
         window_fog->planar_maximum_density = 1.0f;
     }
     if (window_fog->planar_mode == 0 || (fog->flags & _render_fog_no_planar_bit) != 0 ||
-        halo::rasterizer::globals::rasterizer_fog_plane == 0) {
+        halo::rasterizer::fields::rasterizer_fog_plane == 0) {
 
         window_fog->planar_mode = 0;
         window_fog->planar_maximum_density = 0.0f;
@@ -769,7 +770,7 @@ void rasterizer_set_shader_stage_config(int16_t mode)
     uint32_t final_state;
     uint32_t final_value;
 
-    if (halo::rasterizer::globals::shader_stage_config_enabled == 0) {
+    if (halo::rasterizer::fields::shader_stage_config_enabled == 0) {
         mode = 0;
     }
     if (mode == rasterizer_shader_stage_config) {

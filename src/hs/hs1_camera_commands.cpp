@@ -7,6 +7,7 @@
 #include "halo/camera/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/render/api.hpp"
+#include "halo/main/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -90,7 +91,7 @@ void CameraCommands::camera_set_dead(int16_t function_index, uint32_t thread_ind
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
             director_camera_mode = 3;
-            halo::hs::globals::director_camera_target_changed = 1;
+            halo::hs::fields::director_camera_target_changed = 1;
             director_camera_target = (datum_index)arguments[0];
         }
         hs_thread_return(0, thread_index);
@@ -111,7 +112,7 @@ void CameraCommands::camera_set_first_person(int16_t function_index, uint32_t th
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
             director_camera_mode = 2;
-            halo::hs::globals::director_camera_target_changed = 1;
+            halo::hs::fields::director_camera_target_changed = 1;
             director_camera_target = (datum_index)arguments[0];
         }
         hs_thread_return(0, thread_index);

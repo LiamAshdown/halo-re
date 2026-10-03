@@ -23,6 +23,8 @@
 
 #include "halo/main/movie.hpp"
 #include "halo/main/layout.hpp"
+#include "halo/rasterizer/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); }
@@ -119,13 +121,13 @@ void MoviePlayer::play_bink(const char *movie_path)
         return;
     }
 
-    if (d3d9::device_function<d3d_create_offscreen_plain_surface_fn>(rasterizer_device, d3d9::device_method::create_offscreen_plain_surface)(
-            rasterizer_device, k_movie_surface_width, k_movie_surface_height, d3d9::k_format_x8r8g8b8, 0,
+    if (d3d9::device_function<d3d_create_offscreen_plain_surface_fn>(halo::rasterizer::globals().device, d3d9::device_method::create_offscreen_plain_surface)(
+            halo::rasterizer::globals().device, k_movie_surface_width, k_movie_surface_height, d3d9::k_format_x8r8g8b8, 0,
             &offscreen_surface, 0) != 0) {
         return;
     }
-    if (d3d9::device_function<d3d_get_render_target_fn>(rasterizer_device, d3d9::device_method::get_render_target)(
-            rasterizer_device, 0, &render_target) != 0) {
+    if (d3d9::device_function<d3d_get_render_target_fn>(halo::rasterizer::globals().device, d3d9::device_method::get_render_target)(
+            halo::rasterizer::globals().device, 0, &render_target) != 0) {
         d3d9::surface_function<d3d_release_fn>(render_target, d3d9::surface_method::release)(render_target);
         return;
     }
@@ -157,8 +159,8 @@ void MoviePlayer::play_bink(const char *movie_path)
                 }
             }
 
-            result = d3d9::device_function<d3d_test_cooperative_level_fn>(rasterizer_device, d3d9::device_method::test_cooperative_level)(
-                rasterizer_device);
+            result = d3d9::device_function<d3d_test_cooperative_level_fn>(halo::rasterizer::globals().device, d3d9::device_method::test_cooperative_level)(
+                halo::rasterizer::globals().device);
             if (result == d3d9::k_error_device_not_reset) {
                 if (bink->paused == 0) {
                     BinkPause(bink, 1);
@@ -174,10 +176,10 @@ void MoviePlayer::play_bink(const char *movie_path)
                 present_parameters = halo::rasterizer::globals().present_parameters;
                 halo::rasterizer::rasterizer_device_reset(&present_parameters);
                 rasterizer_device_lost = 0;
-                d3d9::device_function<d3d_create_offscreen_plain_surface_fn>(rasterizer_device, d3d9::device_method::create_offscreen_plain_surface)(
-                    rasterizer_device, k_movie_surface_width, k_movie_surface_height, d3d9::k_format_x8r8g8b8, 0, &offscreen_surface, 0);
-                d3d9::device_function<d3d_get_render_target_fn>(rasterizer_device, d3d9::device_method::get_render_target)(
-                    rasterizer_device, 0, &render_target);
+                d3d9::device_function<d3d_create_offscreen_plain_surface_fn>(halo::rasterizer::globals().device, d3d9::device_method::create_offscreen_plain_surface)(
+                    halo::rasterizer::globals().device, k_movie_surface_width, k_movie_surface_height, d3d9::k_format_x8r8g8b8, 0, &offscreen_surface, 0);
+                d3d9::device_function<d3d_get_render_target_fn>(halo::rasterizer::globals().device, d3d9::device_method::get_render_target)(
+                    halo::rasterizer::globals().device, 0, &render_target);
             } else if (result != 0) {
                 if (bink->paused == 0) {
                     BinkPause(bink, 1);
@@ -197,8 +199,8 @@ void MoviePlayer::play_bink(const char *movie_path)
                         d3d9::surface_function<d3d_unlock_rect_fn>(offscreen_surface, d3d9::surface_method::unlock_rect)(offscreen_surface);
                     }
                     BinkNextFrame(bink);
-                    d3d9::device_function<d3d_stretch_rect_fn>(rasterizer_device, d3d9::device_method::stretch_rect)(
-                        rasterizer_device, offscreen_surface, 0, render_target, 0, 0);
+                    d3d9::device_function<d3d_stretch_rect_fn>(halo::rasterizer::globals().device, d3d9::device_method::stretch_rect)(
+                        halo::rasterizer::globals().device, offscreen_surface, 0, render_target, 0, 0);
                     halo::rasterizer::rasterizer_capture_and_present(0, 0);
                 }
             }

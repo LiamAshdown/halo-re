@@ -229,7 +229,7 @@ void player_frame(Point2DInt *screenshot_tile, render_view *view)
     halo::render::render_camera_compute_projection_skew(source_camera, frustum_bounds);
 
     if (screenshot_tile != 0) {
-        int32_t tile_total = (int32_t)screenshot_scale * (int32_t)halo::rasterizer::globals::screenshot_tile_count;
+        int32_t tile_total = (int32_t)screenshot_scale * (int32_t)halo::rasterizer::fields::screenshot_tile_count;
         if (tile_total > 0) {
             float step_x = (frustum_bounds[1] - frustum_bounds[0]) / (float)tile_total;
             float step_y = (frustum_bounds[3] - frustum_bounds[2]) / (float)tile_total;

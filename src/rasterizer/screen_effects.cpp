@@ -11,6 +11,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 
@@ -49,8 +50,8 @@ void chimera__cinematic_screen_effect(rasterizer_frame_time *time_source)
 
     rasterizer_time = *time_source;
 
-    halo::rasterizer::globals::water_ripple_update_pending = (uint8_t)(1 - (rasterizer_caps.pixel_shader_version < 0xffff0101));
-    halo::rasterizer::globals::transparent_group_created = 0;
+    halo::rasterizer::fields::water_ripple_update_pending = (uint8_t)(1 - (rasterizer_caps.pixel_shader_version < 0xffff0101));
+    halo::rasterizer::fields::transparent_group_created = 0;
 
     lens_flare_update_visibility();
 
@@ -214,18 +215,18 @@ void rasterizer_fog_screen_overlay_set_states(void)
     uint32_t max_anisotropy;
     uint32_t fog_color;
 
-    if (halo::rasterizer::globals::rasterizer_environment_diffuse_textures == 0) {
+    if (halo::rasterizer::fields::rasterizer_environment_diffuse_textures == 0) {
         return;
     }
 
     render_device().set_render_state(0x16, 3);
     render_device().set_render_state(0xa8, (console_debug_toggle_68941d != 0) * 8 + 7);
     render_device().set_render_state(0x1b, 1);
-    render_device().set_render_state(0x13, (-(uint32_t)(halo::rasterizer::globals::rasterizer_debug_mode != 1) & 7) + 2);
-    render_device().set_render_state(0x14, (halo::rasterizer::globals::rasterizer_debug_mode == 1) + 1);
+    render_device().set_render_state(0x13, (-(uint32_t)(halo::rasterizer::fields::rasterizer_debug_mode != 1) & 7) + 2);
+    render_device().set_render_state(0x14, (halo::rasterizer::fields::rasterizer_debug_mode == 1) + 1);
     render_device().set_render_state(0xab, 1);
     render_device().set_render_state(0xf, 0);
-    render_device().set_render_state(7, halo::rasterizer::globals::rasterizer_debug_mode != 1);
+    render_device().set_render_state(7, halo::rasterizer::fields::rasterizer_debug_mode != 1);
     render_device().set_render_state(0x17, 3);
     render_device().set_render_state(0xe, 0);
 
@@ -376,7 +377,7 @@ void rasterizer_motion_sensor_begin(void)
     goo_bitmap = first_bitmap_data(*(uint32_t *)(interface_bitmaps + 0xdc));
 
     rasterizer_motion_sensor_ready = 0;
-    if (rasterizer_caps_flag_689 || !halo::rasterizer::globals::hud_motion_sensor_enabled) {
+    if (rasterizer_caps_flag_689 || !halo::rasterizer::fields::hud_motion_sensor_enabled) {
         return;
     }
     if (halo::cache::texture_cache_get(blip_bitmap, 0, 1) == NULL) {
@@ -461,7 +462,7 @@ void rasterizer_motion_sensor_blip_draw(const float *position, const float *colo
     uint32_t packed;
     int i;
 
-    if (!halo::rasterizer::globals::hud_motion_sensor_enabled || !rasterizer_motion_sensor_ready) {
+    if (!halo::rasterizer::fields::hud_motion_sensor_enabled || !rasterizer_motion_sensor_ready) {
         return;
     }
     half_size = size * 0.0625f;
@@ -561,14 +562,14 @@ void rasterizer_motion_sensor_end(const float *position, float sweep)
     sweep_bitmap = first_bitmap_data(*(uint32_t *)(interface_bitmaps + 0x7c));
     mask_bitmap = first_bitmap_data(*(uint32_t *)(interface_bitmaps + 0x8c));
 
-    if (!halo::rasterizer::globals::hud_motion_sensor_enabled) {
+    if (!halo::rasterizer::fields::hud_motion_sensor_enabled) {
         return;
     }
     if (!rasterizer_motion_sensor_ready ||
         halo::cache::texture_cache_get(sweep_bitmap, 0, 1) == NULL ||
         halo::cache::texture_cache_get(mask_bitmap, 0, 1) == NULL) {
 
-        if (halo::rasterizer::globals::hud_motion_sensor_enabled && rasterizer_motion_sensor_ready) {
+        if (halo::rasterizer::fields::hud_motion_sensor_enabled && rasterizer_motion_sensor_ready) {
             rasterizer_render_target_set_active(rasterizer_window.type, 0, 0);
         }
         return;
@@ -2393,9 +2394,9 @@ void rasterizer_underwater_tint_jitter_update(BitmapData *lightmap)
     }
 
     if (render_force_flag == 2) {
-        rasterizer_underwater_tint_jitter_b = halo::rasterizer::globals::underwater_tint_jitter_forced_value;
-        rasterizer_underwater_tint_jitter_g = halo::rasterizer::globals::underwater_tint_jitter_forced_value;
-        rasterizer_underwater_tint_jitter_r = halo::rasterizer::globals::underwater_tint_jitter_forced_value;
+        rasterizer_underwater_tint_jitter_b = halo::rasterizer::fields::underwater_tint_jitter_forced_value;
+        rasterizer_underwater_tint_jitter_g = halo::rasterizer::fields::underwater_tint_jitter_forced_value;
+        rasterizer_underwater_tint_jitter_r = halo::rasterizer::fields::underwater_tint_jitter_forced_value;
         return;
     }
 
@@ -2439,7 +2440,7 @@ void rasterizer_underwater_tint_set_states(void)
         render_device().set_render_state(0x89, 1);
         render_device().set_render_state(0x1c, rasterizer_fog_enabled);
         render_device().set_render_state(0x22, 0xffffffff);
-        render_device().set_render_state(0x8b, halo::rasterizer::globals::fixed_function_ambient_color);
+        render_device().set_render_state(0x8b, halo::rasterizer::fields::fixed_function_ambient_color);
 
         render_device().set_sampler_state(1, 1, 3);
         render_device().set_sampler_state(1, 2, 3);

@@ -15,6 +15,10 @@
 #include "halo/saved_games/layout.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
+#include "halo/saved_games/api.hpp"
+#include "halo/shell/api.hpp"
 
 static void copy_profile_block(saved_player_profile *destination, const saved_player_profile *source, size_t first_offset, size_t end_offset)
 {
@@ -522,7 +526,7 @@ uint8_t halo::saved_games::PlayerProfile::set_default_video_options(uint8_t allo
         profile->refresh_rate = (int16_t)mode.refresh_rate;
         profile->frame_rate_mode = 0;
         if (mode.vsync != 0) {
-            profile->frame_rate_mode = (halo::hs::globals::framerate_throttle != 0) + 1;
+            profile->frame_rate_mode = (halo::hs::fields::framerate_throttle != 0) + 1;
             return 1;
         }
     } else {

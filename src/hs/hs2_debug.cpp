@@ -231,7 +231,7 @@ void DebugCommands::evaluate_rasterizer_fixed_function_ambient(int16_t function_
     if (arguments != 0) {
         uint32_t level = (uint32_t)arguments[0] & 0xff;
 
-        halo::rasterizer::globals::fixed_function_ambient_color = 0xff000000 | (level << 16) | (level << 8) | level;
+        halo::rasterizer::fields::fixed_function_ambient_color = 0xff000000 | (level << 16) | (level << 8) | level;
         hs_thread_return(0, thread_index);
     }
 }

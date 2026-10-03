@@ -113,7 +113,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
     biped_flags = tag->biped_flags;
     speed_scale = 1.0f;
     if (test_flag(biped_flags, tags::biped_tag_flag::random_speed_increase) && unit->aiming_speed == 0) {
-        speed_scale = (float)(object_index % 0x89) * 0.00729927f * weapon_get_zoom_fov(8, main_game_globals->difficulty) + 1.0f;
+        speed_scale = (float)(object_index % 0x89) * 0.00729927f * weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty) + 1.0f;
     }
 
     if (!test_flag(biped_flags, tags::biped_tag_flag::flying) ||
@@ -509,7 +509,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
     biped_flags = tag->biped_flags;
     speed_scale = 1.0f;
     if (test_flag(biped_flags, tags::biped_tag_flag::random_speed_increase) && unit->aiming_speed == 0) {
-        speed_scale = (float)(object_index % 0x89) * 0.00729927f * weapon_get_zoom_fov(8, main_game_globals->difficulty) + 1.0f;
+        speed_scale = (float)(object_index % 0x89) * 0.00729927f * weapon_get_zoom_fov(8, halo::main::globals().game_globals->difficulty) + 1.0f;
     }
 
     if (!test_flag(biped_flags, tags::biped_tag_flag::flying) ||

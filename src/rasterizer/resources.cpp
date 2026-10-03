@@ -8,6 +8,7 @@
 #include "internal/state.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 
@@ -525,23 +526,23 @@ void rasterizer_ksml_ui_shutdown(void)
 {
     int32_t document;
 
-    if (chat_gui_root_handle == (void *)0 || halo::rasterizer::globals::keystone_get_window == (void *)0 || halo::rasterizer::globals::keystone_window_release == (void *)0) {
+    if (chat_gui_root_handle == (void *)0 || halo::rasterizer::fields::keystone_get_window == (void *)0 || halo::rasterizer::fields::keystone_window_release == (void *)0) {
         return;
     }
 
-    document = halo::rasterizer::globals::keystone_get_window(chat_gui_root_handle, chat_gui_find_object_arg);
+    document = halo::rasterizer::fields::keystone_get_window(chat_gui_root_handle, chat_gui_find_object_arg);
     if (document != 0) {
-        halo::rasterizer::globals::keystone_window_release(document);
-        halo::rasterizer::globals::keystone_window_release(document);
+        halo::rasterizer::fields::keystone_window_release(document);
+        halo::rasterizer::fields::keystone_window_release(document);
     }
 
-    document = halo::rasterizer::globals::keystone_get_window(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
+    document = halo::rasterizer::fields::keystone_get_window(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
     if (document != 0) {
-        halo::rasterizer::globals::keystone_window_release(document);
-        halo::rasterizer::globals::keystone_window_release(document);
+        halo::rasterizer::fields::keystone_window_release(document);
+        halo::rasterizer::fields::keystone_window_release(document);
     }
 
-    halo::rasterizer::globals::keystone_release(chat_gui_root_handle);
+    halo::rasterizer::fields::keystone_release(chat_gui_root_handle);
     chat_gui_root_handle = (void *)0;
 }
 
@@ -704,7 +705,7 @@ void rasterizer_render_target_capture_frame(void)
     float inverse_width;
     float inverse_height;
 
-    if (halo::rasterizer::globals::active_camouflage_enabled == 0 || rasterizer_caps_flag_688 != 0 || rasterizer_caps_flag_68a != 0 ||
+    if (halo::rasterizer::fields::active_camouflage_enabled == 0 || rasterizer_caps_flag_688 != 0 || rasterizer_caps_flag_68a != 0 ||
         rasterizer_caps.pixel_shader_version < 0xffff0101) {
         return;
     }

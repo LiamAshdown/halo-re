@@ -331,7 +331,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                     value_scale = 1;
                 }
                 halo::text::string_format_wide_va(reinterpret_cast<uint16_t *>(formatted), reinterpret_cast<const uint16_t *>((const wchar_t *)text), slot->count / value_scale);
-                halo::rasterizer::chimera__draw_16_bit_text(0, &cursor, 0, 0, (const uint16_t *)formatted);
+                halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&cursor), 0, 0, (const int16_t *)((const uint16_t *)formatted));
             } else {
                 halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&cursor, 0, 0, (const int16_t *)text);
             }
