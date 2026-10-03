@@ -169,7 +169,7 @@ void ActorView::schedule_grenade_throw()
     if (!(a->awareness_level > 1) || a->vocalization_line > 8) {
         return;
     }
-    if (a->mode == 0xb && !((uint8_t *)a)[0x9f]) {
+    if (a->mode == 0xb && !a->mode_data.obey.has_look_target) {
         return;
     }
     if (*(int16_t *)request == 1 && halo::memory::datum_get(*(datum_index *)(request + 0x4), halo::ai::globals().prop_data) == 0) {
@@ -447,7 +447,7 @@ char ActorView::update_grenade_and_morale_reactions()
             }
         }
     }
-    if (act->mode == 10 && (*(int16_t *)((uint8_t *)act + 0xa0) == 2 || *(int16_t *)((uint8_t *)act + 0xa0) == 3)) {
+    if (act->mode == 10 && (act->mode_data.charge.stage == 2 || act->mode_data.charge.stage == 3)) {
         may_target = 0;
     }
     if (result) {
