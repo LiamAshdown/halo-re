@@ -332,9 +332,9 @@ char ServerView::build_game_info_packet(network_machine *machine)
                         }
                     }
                     channel->send_budget = channel->send_budget + bit_len + 1;
-                    { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
+                    { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1); }
                     channel->outgoing.empty = 0;
-                    halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(encoded_buffer), bit_len);
+                    halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)(encoded_buffer), bit_len);
                     channel->outgoing.empty = 0;
                 }
                 return result;
