@@ -506,14 +506,14 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
                                 }
                             }
                             {
-                                float scale = *((float *)((uint8_t *)component + 0x28));
-                                float z = *((float *)((uint8_t *)component + 0x2c));
+                                float scale = component->infection.heading.k;
+                                float z = component->infection.turn_rate;
                                 out_offset[0] = dir.i * scale;
                                 out_offset[1] = dir.j * scale;
                                 out_offset[2] = z;
                             }
                         }
-                        *((uint8_t *)component + 2) &= 0xef;
+                        component->flags &= 0xef;
                     }
                 } else {
 
@@ -527,7 +527,7 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
                         radius = 0.12f;
                     }
                     if (halo::ai::projectile_solve_ballistic_arc(&target_prop->center_of_mass,
-                            (real_point3d *)((uint8_t *)component + 0x4), radius, 1.0f, &max_time, 0,
+                            &component->position, radius, 1.0f, &max_time, 0,
                             &leap, 0, 0, 0, 0, &half_gravity, &horizontal_speed)) {
                         float x, y, sum_sq;
 

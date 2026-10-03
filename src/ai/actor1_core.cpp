@@ -1,3 +1,5 @@
+#include "halo/objects/flags.hpp"
+#include "halo/core/flags.hpp"
 #include "halo/ai/actor_core.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -465,7 +467,7 @@ void halo::ai::actor_ref::dispatch_squad_order(datum_index prop_index, const act
 
         prop *p = &((prop *)halo::ai::globals().prop_data->data)[prop_index & halo::k_slot_mask];
         if (p->owner_actor_index != (datum_index)k_datum_index_none) {
-            datum_index ordered = *(datum_index *)((uint8_t *)order + 0x18);
+            datum_index ordered = order->squad_prop_index;
             prop *other = (prop *)halo::memory::datum_get(ordered, halo::ai::globals().prop_data);
 
             if (other != 0) {
@@ -1063,8 +1065,7 @@ void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, dat
 
     if (self->swarm == 0) {
         object *unit_object = halo::ai::object_at(self->unit_index);
-        uint8_t *flags = (uint8_t *)unit_object + 0x106;
-        *flags |= use_alternate_flag == 0 ? 0x20 : 0x40;
+        unit_object->vitality_flags |= halo::to_bits(use_alternate_flag == 0 ? halo::objects::vitality_flag::unknown_20 : halo::objects::vitality_flag::unknown_40);
 
         if (suppress_release != 0) {
             return;
@@ -1074,8 +1075,7 @@ void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, dat
         datum_index unit_index = self->cluster_unit_index;
         while (unit_index != (datum_index)k_datum_index_none) {
             object *unit_object = halo::ai::object_at(unit_index);
-            uint8_t *flags = (uint8_t *)unit_object + 0x106;
-            *flags |= use_alternate_flag == 0 ? 0x20 : 0x40;
+            unit_object->vitality_flags |= halo::to_bits(use_alternate_flag == 0 ? halo::objects::vitality_flag::unknown_20 : halo::objects::vitality_flag::unknown_40);
 
             if (suppress_release == 0) {
                 halo::ai::actor_remove_from_unit_cluster(actor_index, unit_index);

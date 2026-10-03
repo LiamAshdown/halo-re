@@ -2562,7 +2562,9 @@ typedef struct actor_perception_request {
 typedef struct actor_squad_order_header {
     uint8_t unknown_00[0x14]; // 0x00
     int16_t type;             // 0x14
-} actor_squad_order_header; // size 0x16, only verified up to 0x15
+    uint8_t unknown_16[2];    // 0x16
+    datum_index squad_prop_index; // 0x18 order type 3: the prop whose owner the order is relayed to
+} actor_squad_order_header; // size 0x1c, only verified up to 0x1b
 
 // ---------------------------------------------------------------------------
 // caller-owned scratch records

@@ -651,7 +651,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
 {
     unit_object *self = (unit_object *)halo::ai::object_at(object_index);
     vehicle_object *vehicle = (vehicle_object *)halo::ai::object_at(vehicle_index);
-    uint8_t *nodes = (uint8_t *)self + self->base.nodes.offset;
+    real_matrix4x3 *nodes = (real_matrix4x3 *)((uint8_t *)self + self->base.nodes.offset);
     Unit *vehicle_tag = halo::ai::tag_data<Unit>(vehicle->base.definition_tag);
     UnitSeat *seat = &halo::ai::reflexive_data<UnitSeat>(vehicle_tag->seats)[self->unit.vehicle_seat_index];
     ModelNode *model_nodes;
@@ -662,9 +662,9 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     real_matrix4x3 basis;
 
     halo::objects::object_get_node_local_transform(vehicle_index, seat->marker_name.string, &marker, 1);
-    offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
-    offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
-    offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
+    offset.x = nodes->position.x - marker.node_transform.position.x;
+    offset.y = nodes->position.y - marker.node_transform.position.y;
+    offset.z = nodes->position.z - marker.node_transform.position.z;
     model_nodes = halo::ai::reflexive_data<ModelNode>(
         halo::ai::tag_data<Model>(halo::ai::tag_handle(halo::ai::tag_data<Object>(self->base.definition_tag)->model))->nodes);
     default_translation = *(real_point3d *)&model_nodes->default_translation;

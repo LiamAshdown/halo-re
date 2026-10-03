@@ -1,3 +1,5 @@
+#include "halo/objects/flags.hpp"
+#include "halo/core/flags.hpp"
 #include "halo/ai/actor_combat.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
@@ -202,7 +204,7 @@ uint8_t halo::ai::combat_ops::has_unshielded_threat_weapon()
 
     if (has_weapon && self->unit_index != (datum_index)k_datum_index_none) {
         object *unit_object = halo::ai::object_at(self->unit_index);
-        if ((*((uint8_t *)unit_object + 0x107) & 1) != 0) {
+        if ((unit_object->vitality_flags & halo::to_bits(halo::objects::vitality_flag::region_response_100)) != 0) {
             has_weapon = 0;
         }
     }
