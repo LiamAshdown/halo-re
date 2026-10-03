@@ -1,3 +1,5 @@
+#include "halo/ai/flags.hpp"
+#include "halo/objects/flags.hpp"
 #include "halo/core/bit_cast.hpp"
 #include "halo/ai/airest_search.hpp"
 
@@ -14,6 +16,9 @@
 #include "halo/ai/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/ai/records.hpp"
+#include "devices.h"
+
+static_assert(offsetof(device_object, device.position) == 0x208);
 
 static auto &ai_default_2d_direction = halo::link::ref<real_point2d *>(halo::ai::vars().ai_default_2d_direction);
 
@@ -322,7 +327,7 @@ void AiSearch::expand_point_neighbors(int16_t node_index, int16_t start_point_id
 {
     ai_search_context * context = ptr;
     ai_search_obstacle_list *list = (ai_search_obstacle_list *)(uintptr_t)context->obstacles;
-    void *map = (void *)(uintptr_t)context->structure_bsp;
+    void *map = halo::ai::structure_bsp_of(*context);
     float radius = halo::bit_cast<float>(context->search_radius);
     ai_search_node *node = &context->nodes[node_index];
     uint32_t visited[8];
@@ -569,43 +574,43 @@ void ObstacleList::gather_obstacles(real_point3d *center, float radius, real_vec
     int16_t count;
     int16_t f;
 
-    count = halo::objects::object_find_in_sphere(1, 0xc3, halo::ai::object_bytes(self_object_a) + 0x98, center, radius, found, 0x100);
+    count = halo::objects::object_find_in_sphere(1, 0xc3, &halo::ai::object_at(self_object_a)->location_leaf_index, center, radius, found, 0x100);
     for (f = 0; f < count; f++) {
         datum_index object_index = found[f];
-        uint8_t *object = halo::ai::object_bytes(object_index);
-        uint8_t *object_tag;
-        uint8_t *collision;
+        object *object = halo::ai::object_at(object_index);
+        Object *object_tag;
+        ModelCollisionGeometry *collision;
         real_matrix4x3 world;
         int32_t s;
 
-        if (object_index == self_object_a || object_index == self_object_b || (object[0x10] & 1) != 0) {
+        if (object_index == self_object_a || object_index == self_object_b || (object->flags & 1) != 0) {
             continue;
         }
-        if (((struct object *)object)->type == 0 && (object[0x106] & 4) != 0) {
+        if (object->type == 0 && halo::ai::flag_set(object->vitality_flags, halo::objects::vitality_flag::health_frozen)) {
             continue;
         }
-        if (((struct object *)object)->type == 7) {
-            uint16_t machine_flags = *(uint16_t *)(halo::ai::tag_bytes(*(datum_index *)object) + 0x292);
+        if (object->type == 7) {
+            uint16_t machine_flags = halo::ai::tag_data<DeviceMachine>(object->definition_tag)->machine_flags;
 
             if ((machine_flags & 1) == 0) {
                 continue;
             }
-            if ((machine_flags & 2) != 0 && *(float *)(object + 0x208) == 1.0f) {
+            if ((machine_flags & 2) != 0 && ((device_object *)object)->device.position == 1.0f) {
                 continue;
             }
         }
-        if (!halo::math::point3d_within_radius(*(real_point3d *)(object + 0xa0), *center, radius + ((struct object *)object)->bounding_radius)) {
+        if (!halo::math::point3d_within_radius(*(real_point3d *)&object->bounding_center, *center, radius + object->bounding_radius)) {
             continue;
         }
-        object_tag = halo::ai::tag_bytes(*(datum_index *)object);
-        collision = halo::ai::tag_bytes(*(datum_index *)(object_tag + 0x7c));
-        if ((object_tag[2] & 8) != 0 || *(int32_t *)(collision + 0x280) <= 0) {
+        object_tag = halo::ai::tag_data<Object>(object->definition_tag);
+        collision = halo::ai::tag_data<ModelCollisionGeometry>(halo::ai::tag_handle(object_tag->collision_model));
+        if ((object_tag->flags & 8) != 0 || (int32_t)collision->pathfinding_spheres.count <= 0) {
             continue;
         }
         halo::objects::object_get_world_matrix(object_index, &world);
-        for (s = 0; s < *(int32_t *)(collision + 0x280); s++) {
-            uint8_t *sphere = *(uint8_t **)(collision + 0x284) + s * 0x20;
-            int16_t node = *(int16_t *)sphere;
+        for (s = 0; s < (int32_t)collision->pathfinding_spheres.count; s++) {
+            ModelCollisionGeometrySphere *sphere = &halo::ai::reflexive_data<ModelCollisionGeometrySphere>(collision->pathfinding_spheres)[s];
+            int16_t node = (int16_t)sphere->node;
             real_point3d point;
             float sphere_radius;
             float dx;
@@ -614,15 +619,15 @@ void ObstacleList::gather_obstacles(real_point3d *center, float radius, real_vec
             float reach;
             uint16_t flags = 0;
 
-            object = halo::ai::object_bytes(object_index);
+            object = halo::ai::object_at(object_index);
             if (node != -1) {
-                real_matrix4x3 *matrix = (real_matrix4x3 *)(object + ((struct object *)object)->nodes.offset + node * 0x34);
+                real_matrix4x3 *matrix = (real_matrix4x3 *)((uint8_t *)object + object->nodes.offset + node * 0x34);
 
-                halo::math::matrix4x3_transform_point(point, *(real_point3d *)(sphere + 0x10), *matrix);
-                sphere_radius = *(float *)(sphere + 0x1c) * matrix->scale;
+                halo::math::matrix4x3_transform_point(point, *(real_point3d *)&sphere->center, *matrix);
+                sphere_radius = sphere->radius * matrix->scale;
             } else {
-                halo::math::matrix4x3_transform_point(point, *(real_point3d *)(sphere + 0x10), world);
-                sphere_radius = world.scale * *(float *)(sphere + 0x1c);
+                halo::math::matrix4x3_transform_point(point, *(real_point3d *)&sphere->center, world);
+                sphere_radius = world.scale * sphere->radius;
             }
             if (!(point.z + sphere_radius + 0.5f >= center->z) && direction->k > -0.2f) {
                 continue;
@@ -637,9 +642,9 @@ void ObstacleList::gather_obstacles(real_point3d *center, float radius, real_vec
             if (reach * reach < dz * dz * 4.0f + dy * dy + dx * dx) {
                 continue;
             }
-            if (((struct object *)object)->type == 0 && dy * direction->j + dx * direction->i + dz * direction->k > 0.0f &&
-                ((struct object *)object)->velocity.k * direction->k + ((struct object *)object)->velocity.j * direction->j +
-                        ((struct object *)object)->velocity.i * direction->i > 0.06666667f) {
+            if (object->type == 0 && dy * direction->j + dx * direction->i + dz * direction->k > 0.0f &&
+                object->velocity.k * direction->k + object->velocity.j * direction->j +
+                        object->velocity.i * direction->i > 0.06666667f) {
                 flags = 1;
             }
             halo::ai::ai_search_append_obstacle(list, flags, object_index, (real_point2d *)&point, sphere_radius);
@@ -789,14 +794,14 @@ uint8_t AiSearch::step()
             ai_search_node *node = &context->nodes[index];
             ai_search_edge_result edge;
 
-            halo::ai::ai_search_evaluate_edge_cost((void *)(uintptr_t)context->structure_bsp, context->ignores_glass,
+            halo::ai::ai_search_evaluate_edge_cost(halo::ai::structure_bsp_of(*context), context->ignores_glass,
                 (ai_search_obstacle_list *)(uintptr_t)context->obstacles, -1, &node->position, halo::bit_cast<int32_t>(node->z),
                 halo::bit_cast<float>(context->search_radius), node->length, (uint8_t)(node->parent == -1), 1, context->ignore_flagged_obstacles,
                 &edge, &node->direction);
             if (edge.edge_index == -1) {
                 if (edge.point_id == -1) {
                     if (edge.surface_index == (int32_t)context->origin_surface_index ||
-                        halo::ai::path_find_heights_are_close((ScenarioStructureBSP *)(uintptr_t)context->structure_bsp,
+                        halo::ai::path_find_heights_are_close(halo::ai::structure_bsp_of(*context),
                             &context->origin, (int32_t)context->origin_surface_index, edge.surface_index)) {
                         real_point2d position;
 

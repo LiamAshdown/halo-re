@@ -80,17 +80,18 @@ void halo::ai::grenade_ops::attempt_grenade_throw()
                 }
                 ticks = (int16_t)(int32_t)(seconds * 30.0f);
                 halo::units::unit_set_control_countdown(a->unit_index, ticks, 0x800);
-                unit[0x28c] = (uint8_t)ticks;
+                ((unit_object *)unit)->unit.delayed_weapon_drop_ticks = (int8_t)ticks;
             }
         }
     }
 
     roll = (real)(int32_t)actor_death_random_16() * 1.5259022e-05f;
     unit = halo::ai::object_bytes(a->unit_index);
-    weapon = ((unit_object *)unit)->unit.current_weapon_index != -1 ? *(datum_index *)(unit + 0x2f8 + ((unit_object *)unit)->unit.current_weapon_index * 4)
+    weapon = ((unit_object *)unit)->unit.current_weapon_index != -1 ? ((unit_object *)unit)->unit.weapons[((unit_object *)unit)->unit.current_weapon_index]
                                               : k_datum_index_none;
     if (!halo::ai::globals().state->grenades_enabled || roll < variant->don_t_drop_grenades_chance) {
-        *(int16_t *)(unit + 0x31e) = 0;
+        ((unit_object *)unit)->unit.grenade_counts[0] = 0;
+        ((unit_object *)unit)->unit.grenade_counts[1] = 0;
     }
     if (weapon != k_datum_index_none) {
         float lo = variant->drop_weapon_loaded[0];
@@ -159,8 +160,7 @@ uint8_t halo::ai::grenade_ops::can_throw_grenade_at_target()
     }
 
     if (self->encounter_index != (datum_index)k_datum_index_none) {
-        encounter *enc = (encounter *)((uint8_t *)halo::ai::globals().encounter_data->data +
-                                        (self->encounter_index & halo::k_slot_mask) * sizeof(encounter));
+        encounter *enc = halo::ai::encounter_at(self->encounter_index);
         int32_t squad_deadline = enc->last_grenade_time;
 
         random_wait = variant->encounter_grenade_timeout *
@@ -247,8 +247,7 @@ uint8_t halo::ai::grenade_ops::check_grenade_facing_and_commit(uint8_t force_com
                 self->throw_grenade = 1;
                 self->grenade_throw_pending = 0;
                 if (self->encounter_index != (datum_index)k_datum_index_none) {
-                    encounter *enc = (encounter *)((uint8_t *)halo::ai::globals().encounter_data->data +
-                                                    (self->encounter_index & halo::k_slot_mask) * sizeof(encounter));
+                    encounter *enc = halo::ai::encounter_at(self->encounter_index);
                     enc->last_grenade_time = halo::game::globals().game_time->game_time;
                 }
                 return 1;
@@ -761,28 +760,28 @@ static auto &global_globals = halo::link::ref<::Globals *>(halo::game::vars().gl
 uint8_t halo::ai::grenade_ops::get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *direction, void *origin, float range, real_point3d *point, int32_t max_time, float *speed, void *out_time_or_fraction, real_vector3d *out_velocity, float *out_gravity)
 {
     using namespace c_actor_get_grenade_launch_velocity;
-    uint8_t *entry;
+    GlobalsGrenade *entry;
     uint32_t projectile_tag;
-    void *projectile_definition;
+    Projectile *projectile_definition;
     float scale;
     uint8_t used_straight_line;
 
-    entry = (uint8_t *)global_globals->grenades.pointer + (int32_t)grenade_type * 0x44;
-    if (entry == (uint8_t *)0) {
+    entry = &halo::ai::reflexive_data<GlobalsGrenade>(global_globals->grenades)[(int32_t)grenade_type];
+    if (entry == nullptr) {
         return 0;
     }
-    projectile_tag = *(uint32_t *)(entry + 0x40);
+    projectile_tag = halo::ai::tag_handle(entry->projectile);
     if (projectile_tag == halo::k_dword_none) {
         return 0;
     }
 
-    projectile_definition = halo::cache::globals().tag_instances[projectile_tag & halo::k_slot_mask].data;
-    if (projectile_definition == (void *)0) {
+    projectile_definition = halo::ai::tag_data<Projectile>(projectile_tag);
+    if (projectile_definition == nullptr) {
         return 0;
     }
 
     used_straight_line = 0;
-    if (halo::ai::projectile_get_aiming_vector(point, &range, (Projectile *)projectile_definition,
+    if (halo::ai::projectile_get_aiming_vector(point, &range, projectile_definition,
             (real_point3d *)origin, 0, (real *)(uintptr_t)max_time, 0, 0, direction, speed,
             (real *)out_time_or_fraction, 0, &used_straight_line) == 0) {
         return 0;
@@ -794,13 +793,13 @@ uint8_t halo::ai::grenade_ops::get_grenade_launch_velocity(int16_t grenade_type,
         out_velocity->j = scale * direction->j;
         out_velocity->k = scale * direction->k;
     }
-    if (out_gravity != (float *)0) {
+    if (out_gravity != nullptr) {
 
         if (used_straight_line) {
             *out_gravity = 0.0f;
         } else {
             *out_gravity = -(halo::physics::globals().gravity *
-                             *(float *)((uint8_t *)projectile_definition + 0x1cc));
+                             projectile_definition->air_gravity_scale);
         }
     }
     return 1;

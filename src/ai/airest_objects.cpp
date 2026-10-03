@@ -22,7 +22,7 @@
 #include "halo/ai/vars.hpp"
 
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-static auto &actor_type_procs = halo::link::ref<uint8_t *[]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 
 namespace halo::ai {
 
@@ -71,7 +71,7 @@ void AiActorView::link_to_unassigned_list()
         a->next_in_encounter = halo::ai::globals().state->first_encounterless_actor;
         halo::ai::globals().state->first_encounterless_actor = actor_index;
         a->encounterless = 1;
-        *(int16_t *)a->activation_delay = (a->active != 0) ? 0x5a : 0;
+        a->activation_delay = (a->active != 0) ? 0x5a : 0;
 
         halo::ai::actor_movement_action_cancel(actor_index);
     }
@@ -82,14 +82,14 @@ void AiActorView::link_to_unassigned_list()
  *
  * @address 0x434ed0
  */
-uint32_t AiObjects::type_get_morale_grade(int16_t actor_type_index, uint8_t *command_reference)
+uint32_t AiObjects::type_get_morale_grade(int16_t command_list_index, const actor_squad_action_state *action)
 {
     ScenarioCommandList *command_list =
-        &((ScenarioCommandList *)halo::scenario::globals().scenario->command_lists.pointer)[actor_type_index];
+        &halo::ai::reflexive_data<ScenarioCommandList>(halo::scenario::globals().scenario->command_lists)[command_list_index];
 
-    if ((uint32_t)command_reference[0] < (uint32_t)command_list->commands.count &&
-        (ScenarioCommand *)command_list->commands.pointer + command_reference[0] != 0) {
-        return ((uint8_t)(~command_reference[4]) & 0x10 | 0x20) >> 4;
+    if ((uint32_t)action->command_index < (uint32_t)command_list->commands.count &&
+        halo::ai::reflexive_data<ScenarioCommand>(command_list->commands) + action->command_index != 0) {
+        return ((uint8_t)(~action->flags) & 0x10 | 0x20) >> 4;
     }
     return 1;
 }
@@ -140,7 +140,7 @@ void AiObjects::clear_object_references(datum_index object_index)
         return;
     }
 
-    unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    unit = halo::units::unit_data_of(obj);
     if (unit->actor_index != (datum_index)k_datum_index_none) {
         halo::ai::actor_delete(unit->actor_index, 0);
     } else if (unit->swarm_actor_index != (datum_index)k_datum_index_none) {
@@ -189,9 +189,8 @@ ai_object_attention_record * AiObjects::object_attention_find_or_create(datum_in
     ai_object_attention_record *table;
     ai_object_attention_record *record;
     int16_t index;
-    int32_t i;
 
-    table = (ai_object_attention_record *)halo::ai::globals().state->object_attention_table;
+    table = halo::ai::globals().state->object_attention_table;
     record = 0;
 
     if (object_index == (datum_index)k_datum_index_none) {
@@ -214,9 +213,7 @@ ai_object_attention_record * AiObjects::object_attention_find_or_create(datum_in
 
     record = &table[index];
     if (halo::ai::globals().state->object_attention_count <= index) {
-        for (i = 0; i < 10; i = i + 1) {
-            ((int32_t *)record)[i] = 0;
-        }
+        memset(record, 0, sizeof(*record));
         record->object_index = object_index;
         record->weight = 8.0f;
         halo::ai::globals().state->object_attention_count = halo::ai::globals().state->object_attention_count + 1;
@@ -234,11 +231,8 @@ void AiObjects::object_attention_remove(datum_index object_index)
     ai_object_attention_record *table;
     int16_t index;
     int16_t last;
-    int32_t i;
-    int32_t *src;
-    int32_t *dst;
 
-    table = (ai_object_attention_record *)halo::ai::globals().state->object_attention_table;
+    table = halo::ai::globals().state->object_attention_table;
 
     if (object_index == (datum_index)k_datum_index_none) {
         return;
@@ -258,13 +252,7 @@ void AiObjects::object_attention_remove(datum_index object_index)
     last = halo::ai::globals().state->object_attention_count - 1;
     halo::ai::globals().state->object_attention_count = last;
     if (index < last) {
-        src = (int32_t *)&table[last];
-        dst = (int32_t *)&table[index];
-        for (i = 10; i != 0; i = i - 1) {
-            *dst = *src;
-            src = src + 1;
-            dst = dst + 1;
-        }
+        table[index] = table[last];
     }
 }
 
@@ -295,7 +283,7 @@ void ObjectListView::clear_orders_with_weapon()
 
     while (object_index != (datum_index)k_datum_index_none) {
         object_header *header = &((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask];
-        unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
+        unit_data *unit = halo::units::unit_data_of(header->data);
 
         if (unit->actor_index != (datum_index)k_datum_index_none) {
             halo::ai::actor_delete(unit->actor_index, 0);
@@ -367,7 +355,7 @@ void ObjectListView::detach_actors_from_encounters()
 
         if (entry != 0 && ((1 << (entry->type & 0x1f)) & 3) != 0 && entry->data != 0) {
             obj = entry->data;
-            unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+            unit = halo::units::unit_data_of(obj);
             if (unit->actor_index != (datum_index)k_datum_index_none &&
                 ((actor *)halo::ai::globals().actor_data->data)[unit->actor_index & halo::k_slot_mask].encounter_index !=
                     (datum_index)k_datum_index_none) {
@@ -504,7 +492,7 @@ int16_t ObjectListView::max_flee_grade()
 
         if (entry != 0 && ((1 << (entry->type & 0x1f)) & 3) != 0 && entry->data != 0) {
             obj = entry->data;
-            unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+            unit = halo::units::unit_data_of(obj);
             grade = 0;
             bool keep_grade = false;
             auto recently_hurt = [&]() {
@@ -532,9 +520,9 @@ int16_t ObjectListView::max_flee_grade()
                         if (component_index < component_count &&
                             (((swarm_component *)halo::ai::globals().swarm_component_data->data)
                                  [sw->component_index[component_index] & halo::k_slot_mask].flags & 8) != 0) {
-                            grade = (uint32_t)(uint16_t)halo::ai::ai_actor_type_get_morale_grade(*(int16_t *)&a->mode_data,
-                                (uint8_t *)&((swarm_component *)halo::ai::globals().swarm_component_data->data)
-                                    [sw->component_index[component_index] & halo::k_slot_mask] + 0x1c);
+                            grade = (uint32_t)(uint16_t)halo::ai::ai_actor_type_get_morale_grade(a->mode_data.obey.command_list_index,
+                                &((swarm_component *)halo::ai::globals().swarm_component_data->data)
+                                    [sw->component_index[component_index] & halo::k_slot_mask].action);
                             keep_grade = (int16_t)grade != 0;
                         }
                     }
@@ -626,7 +614,7 @@ namespace {
 static void reset_or_wake(datum_index unit_index, char flag)
 {
     object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
-    unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(header->data);
     datum_index actor_index = unit->actor_index;
 
     if (actor_index == (datum_index)k_datum_index_none) {
@@ -763,7 +751,7 @@ void ObjectListView::set_unit_flag_400(char flag)
     while (object_index != (datum_index)k_datum_index_none) {
         object *obj = halo::objects::object_try_and_get(object_index, 3);
         if (obj != 0) {
-            unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+            unit_data *unit = halo::units::unit_data_of(obj);
             if (flag == 0) {
                 unit->flags &= ~halo::to_bits(halo::units::unit_flag::unknown_400);
             } else {
@@ -808,7 +796,7 @@ void ObjectListView::set_unit_flag_800(char flag)
     while (object_index != (datum_index)k_datum_index_none) {
         object *obj = halo::objects::object_try_and_get(object_index, 3);
         if (obj != 0) {
-            unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+            unit_data *unit = halo::units::unit_data_of(obj);
             if (flag == 0) {
                 unit->flags &= ~halo::to_bits(halo::units::unit_flag::unknown_800);
             } else {
@@ -861,7 +849,7 @@ void ObjectListView::set_unit_flag_800000(char flag)
         }
 
         if (entry != 0 && ((1 << (entry->type & 0x1f)) & 3) != 0 && entry->data != 0) {
-            unit_data *unit = (unit_data *)((uint8_t *)entry->data + k_unit_data_offset);
+            unit_data *unit = halo::units::unit_data_of(entry->data);
             if (flag == 0) {
                 unit->flags &= ~(uint32_t)_unit_flag_unknown_800000;
             } else {
@@ -1190,7 +1178,7 @@ void AiUnitView::clear_actor_vocalization()
 {
     datum_index unit_index = handle;
     object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
-    unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(header->data);
 
     if (unit->actor_index != (datum_index)k_datum_index_none) {
         actor *a = &((actor *)halo::ai::globals().actor_data->data)[unit->actor_index & halo::k_slot_mask];
@@ -1218,20 +1206,19 @@ void AiObjects::create_actor(datum_index actor_variant_tag, datum_index unit_ind
         return;
     }
 
-    actor_definition_tag = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances
-        [actor_variant_tag & halo::k_slot_mask].data + 0x10);
+    actor_definition_tag = halo::ai::tag_handle(halo::ai::tag_data<ActorVariant>(actor_variant_tag)->actor_definition);
     if (actor_definition_tag == (datum_index)k_datum_index_none) {
         return;
     }
-    if ((**(uint32_t **)&halo::cache::globals().tag_instances[actor_definition_tag & halo::k_slot_mask].data & 0x4000000) != 0) {
-        return; // Actor.flags bit 26, "swarm"
+    if (halo::ai::flag_set(halo::ai::tag_data<Actor>(actor_definition_tag)->flags, halo::tags::actor_tag_flag::swarm)) {
+        return;
     }
 
     unit_definition = halo::objects::object_try_and_get(unit_index, 1);
     if (unit_definition == 0) {
         return;
     }
-    if ((*((uint8_t *)unit_definition + 0x106) & 4) != 0) {
+    if (halo::ai::flag_set(((object *)unit_definition)->vitality_flags, halo::objects::vitality_flag::health_frozen)) {
         return;
     }
 
@@ -1250,7 +1237,7 @@ void AiObjects::create_actor(datum_index actor_variant_tag, datum_index unit_ind
     a->pending_command_list = -1;
     a->sequence_id = 0;
 
-    if (a->swarm != actor_type_procs[a->type][0xd]) {
+    if (a->swarm != actor_type_procs[a->type]->swarm_actor) {
         halo::ai::actor_delete(actor_index, 0);
         return;
     }
@@ -1266,7 +1253,7 @@ void AiUnitView::dispatch_actor_event_d(int32_t unused)
 {
     datum_index unit_index = handle;
     object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
-    unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(header->data);
 
     if (unused != -1 && unit->actor_index != (datum_index)k_datum_index_none) {
         int16_t payload[8] = {0};
@@ -1287,7 +1274,7 @@ void AiUnitView::flee_if_ready(uint32_t readiness_param)
     object *unit_object = halo::objects::object_try_and_get(unit_index, 3);
 
     if (unit_object != 0) {
-        unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
+        unit_data *unit = halo::units::unit_data_of(unit_object);
         actor_mode_data mode_data;
 
         if (unit->actor_index != (datum_index)k_datum_index_none &&
@@ -1307,7 +1294,7 @@ void AiUnitView::remap_actor_to_squad(uint32_t packed_reference, char notify)
 {
     datum_index unit_index = handle;
     object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
-    unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(header->data);
     datum_index actor_index = unit->actor_index;
 
     if (actor_index == (datum_index)k_datum_index_none) {
@@ -1341,7 +1328,7 @@ void AiUnitView::set_actor_force_active(uint8_t value)
 {
     datum_index unit_index = handle;
     object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
-    unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(header->data);
     datum_index actor_index = unit->actor_index;
 
     if (actor_index != (datum_index)k_datum_index_none) {
@@ -1418,10 +1405,10 @@ void AiObjects::set_squad_reference(datum_index object_index, uint32_t packed_re
             out_squad = squad_index;
             out_encounter = encounter_index;
             if (encounter_index != -1 && (int16_t)squad_index != -1 &&
-                *(int16_t *)((uint8_t *)obj + 0x334) != -1) {
+                halo::units::unit_data_of(obj)->encounter_index != -1) {
                 datum_index cursor[3];
 
-                halo::ai::ai_reference_actor_iterator_init_cursor((int32_t)*(int16_t *)((uint8_t *)obj + 0x334), cursor);
+                halo::ai::ai_reference_actor_iterator_init_cursor((int32_t)halo::units::unit_data_of(obj)->encounter_index, cursor);
                 actor_index = cursor[2];
                 while (halo::ai::globals().state->actors_valid != 0 &&
                        actor_index != (datum_index)k_datum_index_none) {
@@ -1437,8 +1424,8 @@ void AiObjects::set_squad_reference(datum_index object_index, uint32_t packed_re
         }
     }();
 
-    *(int16_t *)((uint8_t *)obj + 0x334) = out_encounter;
-    *(int16_t *)((uint8_t *)obj + 0x336) = (int16_t)out_squad;
+    halo::units::unit_data_of(obj)->encounter_index = out_encounter;
+    halo::units::unit_data_of(obj)->squad_index = (int16_t)out_squad;
 }
 
 /**

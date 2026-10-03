@@ -6,6 +6,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/ai/records.hpp"
+#include "projectiles.h"
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
 
@@ -21,7 +22,7 @@ static uint8_t actor_danger_prop_seen_twice(datum_index actor_index, datum_index
     if (prop_index == k_datum_index_none) {
         return 0xff;
     }
-    return *(int16_t *)((uint8_t *)halo::ai::globals().prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size + 0x30) >= 2;
+    return halo::ai::prop_at(prop_index)->perception_level >= 2;
 }
 
 static uint8_t actor_danger_asleep(struct actor *actor)
@@ -54,24 +55,24 @@ void halo::ai::prop_ops::danger_update_reaction()
     using namespace c_actor_danger_update_reaction;
     datum_index actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
-    uint8_t *object;
-    uint32_t block[14];
+    object *object;
+    actor_firing_positions block;
     real_point3d *position = &actor->flee_from_point;
-    real_point3d *block_point = (real_point3d *)&block[3];
+    real_point3d *block_point = &block.body_position;
     uint8_t noticed = 0;
     uint8_t own = 0;
 
     if (actor->danger_type <= 0) {
         return;
     }
-    object = (uint8_t *)halo::objects::object_try_and_get(actor->danger_object_index, halo::k_dword_none);
+    object = (struct object *)halo::objects::object_try_and_get(actor->danger_object_index, halo::k_dword_none);
     if (object == 0) {
         actor->danger_type = 0;
         return;
     }
     halo::objects::object_get_position(position, actor->danger_object_index);
-    halo::ai::actor_get_firing_positions(actor_index, block, position);
-    actor->danger_velocity = *(real_vector3d *)&((struct object *)object)->velocity.i;
+    halo::ai::actor_get_firing_positions(actor_index, &block, position);
+    actor->danger_velocity = *(real_vector3d *)&object->velocity.i;
     {
         float dx = position->x - block_point->x;
         float dy = position->y - block_point->y;
@@ -111,15 +112,15 @@ void halo::ai::prop_ops::danger_update_reaction()
         break;
     }
     case 2: {
-        uint8_t *tag;
+        Projectile *tag;
         int16_t cluster;
         int16_t status;
 
-        if (actor->unit_index != halo::k_dword_none && *(uint32_t *)&((struct object *)object)->parent_object == actor->unit_index) {
+        if (actor->unit_index != halo::k_dword_none && object->parent_object == actor->unit_index) {
             own = 1;
         }
-        if (*(float *)(object + 0x240) > 0.0f && *(float *)(object + 0x244) > 0.0f) {
-            actor->danger_countdown = (int16_t)halo::x87::fistp_round((1.0f - *(float *)(object + 0x240)) / *(float *)(object + 0x244));
+        if (((projectile_object *)object)->projectile.detonation_timer > 0.0f && ((projectile_object *)object)->projectile.detonation_timer_rate > 0.0f) {
+            actor->danger_countdown = (int16_t)halo::x87::fistp_round((1.0f - ((projectile_object *)object)->projectile.detonation_timer) / ((projectile_object *)object)->projectile.detonation_timer_rate);
         } else {
             actor->danger_countdown = -1;
         }
@@ -130,35 +131,35 @@ void halo::ai::prop_ops::danger_update_reaction()
         if (actor_danger_asleep(actor)) {
             break;
         }
-        tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & halo::k_slot_mask].data;
-        if (!(actor->danger_distance < *(float *)(tag + 0x19c))) {
+        tag = halo::ai::tag_data<Projectile>(object->definition_tag);
+        if (!(actor->danger_distance < tag->ai_perception_radius)) {
             break;
         }
-        cluster = ((struct object *)object)->location_cluster_index;
-        if (((struct object *)object)->parent_object != halo::k_dword_none) {
-            uint8_t *root = (uint8_t *)halo::ai::object_at(halo::objects::object_get_root_object_index(actor->danger_object_index));
+        cluster = object->location_cluster_index;
+        if (object->parent_object != halo::k_dword_none) {
+            unit_object *root = (unit_object *)halo::ai::object_at(halo::objects::object_get_root_object_index(actor->danger_object_index));
 
             cluster = ((struct object *)root)->location_cluster_index;
         }
-        status = (int16_t)halo::ai::actor_evaluate_engagement_reachability(*(int16_t *)((uint8_t *)block + 0x28), cluster,
-            position, (real_point3d *)block, 0, 0, actor->danger_object_index, actor->active_unit_index != halo::k_dword_none);
+        status = (int16_t)halo::ai::actor_evaluate_engagement_reachability(block.location.cluster_index, cluster,
+            position, &block.aim_origin, 0, 0, actor->danger_object_index, actor->active_unit_index != halo::k_dword_none);
         actor = halo::ai::actor_at(actor_index);
-        if (halo::ai::actor_dispatch_look_handler_by_posture(status, actor_index, block, position, 0, 1,
+        if (halo::ai::actor_dispatch_look_handler_by_posture(status, actor_index, &block, position, 0, 1,
                 actor_danger_stance(actor_index)) >= 2) {
             noticed = 1;
         }
         break;
     }
     case 3: {
-        uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & halo::k_slot_mask].data;
-        float vi = ((struct object *)object)->velocity.i;
-        float vj = ((struct object *)object)->velocity.j;
-        float vk = ((struct object *)object)->velocity.k;
+        Unit *tag = halo::ai::tag_data<Unit>(object->definition_tag);
+        float vi = object->velocity.i;
+        float vj = object->velocity.j;
+        float vk = object->velocity.k;
         uint8_t asleep;
-        uint8_t *location;
+        bsp_leaf_reference *location;
         int16_t status;
 
-        if (vi * vi + vj * vj + vk * vk < 4.4444445e-05f || ((struct Object *)tag)->bounding_radius + 10.0f < actor->danger_distance) {
+        if (vi * vi + vj * vj + vk * vk < 4.4444445e-05f || tag->base.bounding_radius + 10.0f < actor->danger_distance) {
             actor->danger_type = 0;
             break;
         }
@@ -166,8 +167,8 @@ void halo::ai::prop_ops::danger_update_reaction()
         if (noticed) {
             break;
         }
-        if (*(uint32_t *)(object + 0x324) != halo::k_dword_none) {
-            uint8_t seen = actor_danger_prop_seen_twice(actor_index, *(uint32_t *)(object + 0x324));
+        if (halo::units::unit_data_of(object)->driver_unit_index != halo::k_dword_none) {
+            uint8_t seen = actor_danger_prop_seen_twice(actor_index, halo::units::unit_data_of(object)->driver_unit_index);
 
             if (seen != 0xff) {
                 noticed = seen;
@@ -175,19 +176,19 @@ void halo::ai::prop_ops::danger_update_reaction()
             }
         }
         asleep = actor_danger_asleep(actor);
-        location = object + 0x98;
-        if (((struct object *)object)->parent_object != halo::k_dword_none) {
-            location = (uint8_t *)halo::ai::object_at(halo::objects::object_get_root_object_index(actor->danger_object_index)) + 0x98;
+        location = halo::ai::object_location((struct object *)object);
+        if (object->parent_object != halo::k_dword_none) {
+            location = halo::ai::object_location(halo::ai::object_at(halo::objects::object_get_root_object_index(actor->danger_object_index)));
         }
-        status = (int16_t)halo::ai::actor_evaluate_engagement_reachability(*(int16_t *)((uint8_t *)block + 0x28),
-            *(int16_t *)(location + 4), position, (real_point3d *)block, 0, 0, actor->danger_object_index, actor->active_unit_index != halo::k_dword_none);
+        status = (int16_t)halo::ai::actor_evaluate_engagement_reachability(block.location.cluster_index,
+            location->cluster_index, position, &block.aim_origin, 0, 0, actor->danger_object_index, actor->active_unit_index != halo::k_dword_none);
         if (!asleep &&
-            halo::ai::actor_dispatch_look_handler_by_posture(status, actor_index, block, position, 0, 1,
+            halo::ai::actor_dispatch_look_handler_by_posture(status, actor_index, &block, position, 0, 1,
                 actor_danger_stance(actor_index)) >= 2) {
             noticed = 1;
             break;
         }
-        if ((int16_t)halo::ai::actor_target_hearing_check(location, status, actor_index, block, *(int16_t *)(tag + 0x182),
+        if ((int16_t)halo::ai::actor_target_hearing_check(location, status, actor_index, &block, (int16_t)tag->constant_sound_volume,
                 position) >= 2) {
             noticed = 1;
         }

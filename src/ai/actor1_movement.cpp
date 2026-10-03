@@ -365,7 +365,7 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
             obstructed = 1;
             {
 
-                float dz = *(float *)((uint8_t *)extra_param + 0xc) - self->body_position.z;
+                float dz = ((path_find_boundary_crossing *)extra_param)->position.z - self->body_position.z;
                 if (dz <= step_distance * 0.5f && (step_up != 0.0f || step_distance * -0.5f <= dz)) {
                     trace_done = true;
                 }
@@ -506,18 +506,18 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
                                 }
                             }
                             {
-                                float scale = *((float *)((uint8_t *)component + 0x28));
-                                float z = *((float *)((uint8_t *)component + 0x2c));
+                                float scale = component->infection.heading.k;
+                                float z = component->infection.turn_rate;
                                 out_offset[0] = dir.i * scale;
                                 out_offset[1] = dir.j * scale;
                                 out_offset[2] = z;
                             }
                         }
-                        *((uint8_t *)component + 2) &= 0xef;
+                        component->flags &= 0xef;
                     }
                 } else {
 
-                    prop *target_prop = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data + (target & halo::k_slot_mask) * k_prop_size);
+                    prop *target_prop = halo::ai::prop_at(target);
                     real max_time = 0.7f;
                     real half_gravity;
                     real horizontal_speed;
@@ -527,7 +527,7 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
                         radius = 0.12f;
                     }
                     if (halo::ai::projectile_solve_ballistic_arc(&target_prop->center_of_mass,
-                            (real_point3d *)((uint8_t *)component + 0x4), radius, 1.0f, &max_time, 0,
+                            &component->position, radius, 1.0f, &max_time, 0,
                             &leap, 0, 0, 0, 0, &half_gravity, &horizontal_speed)) {
                         float x, y, sum_sq;
 
@@ -611,13 +611,13 @@ datum_index halo::ai::movement_ops::create_swarm()
                     s2->component_index[s2->component_count] = component_index;
                     s2->component_count = s2->component_count + 1;
 
-                    marker = (unit_object->type == 0) ? *(datum_index *)((uint8_t *)unit_object + 0x4d8)
+                    marker = (unit_object->type == 0) ? ((biped_object *)unit_object)->biped.ground_surface_index
                                                        : (datum_index)k_datum_index_none;
                     halo::objects::object_get_position(&component->position, unit_index);
                     component->marker_index = marker;
                 }
 
-                unit_index = *(datum_index *)((uint8_t *)unit_object + 0x1fc);
+                unit_index = halo::units::unit_data_of(unit_object)->swarm_next_unit_index;
             }
         }
     }
@@ -681,7 +681,7 @@ static actor *actor_try_get(datum_index handle)
         return 0;
     }
     record = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + halo::ai::globals().actor_data->size * index);
-    if (*(int16_t *)record == 0 || (salt != 0 && *(int16_t *)record != salt)) {
+    if (record->identifier == 0 || (salt != 0 && record->identifier != salt)) {
         return 0;
     }
     return record;
@@ -719,7 +719,7 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
     if (halo::units::unit_is_seat_occupied((int32_t)vehicle_index, seat_index)) {
         return 0;
     }
-    if ((halo::ai::tag_bytes(act->actor_definition_tag)[0x4] & 8) && !halo::units::unit_seat_flag_bit10(vehicle_index, seat_index)) {
+    if ((halo::ai::tag_data<Actor>(act->actor_definition_tag)->more_flags & 8) && !halo::units::unit_seat_flag_bit10(vehicle_index, seat_index)) {
         return 0;
     }
     if (!halo::units::unit_find_weapon_marker_transform(act->unit_index, vehicle_index, seat_index, &entry, &seat,
@@ -820,35 +820,33 @@ static uint8_t *object_get(datum_index object_index)
  *
  * @address 0x4296c0
  */
-void halo::ai::movement_ops::fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context)
+void halo::ai::movement_ops::fill_unit_position_context(datum_index unit_index, actor_firing_positions *out_context)
 {
     using namespace c_actor_fill_unit_position_context;
-    uint8_t *context = (uint8_t *)out_context;
-    uint8_t *unit = object_get(unit_index);
+    object *unit = (object *)object_get(unit_index);
     object_marker marker;
     datum_index root = k_datum_index_none;
-    uint8_t *root_object;
+    object *root_object;
 
-    halo::objects::object_get_position((real_point3d *)(context + 0xc), unit_index);
-    *(real_vector3d *)&((struct actor_unit_position_context *)context)->forward.i = *(real_vector3d *)&((unit_object *)unit)->base.forward.i;
+    halo::objects::object_get_position(&out_context->body_position, unit_index);
+    out_context->forward = *(real_vector3d *)&unit->forward.i;
     halo::objects::object_get_node_local_transform(unit_index, ai_marker_name_a, &marker, 1);
-    *(real_point3d *)context = marker.node_transform.position;
-    halo::objects::object_get_root_object_velocities(unit_index, (real_vector3d *)(context + 0x2c), 0);
+    out_context->aim_origin = marker.node_transform.position;
+    halo::objects::object_get_root_object_velocities(unit_index, &out_context->velocity, 0);
     if (unit_index != k_datum_index_none) {
         datum_index cursor = unit_index;
 
         do {
             root = cursor;
-            cursor = *(datum_index *)(object_get(cursor) + 0x11c);
+            cursor = ((object *)object_get(cursor))->parent_object;
         } while (cursor != k_datum_index_none);
     }
-    root_object = object_get(root);
-    ((struct actor_unit_position_context *)context)->root_position_x = halo::bit_cast<float>(static_cast<uint32_t>(*(uint32_t *)(root_object + 0x98)));
-    ((struct actor_unit_position_context *)context)->root_position_y = halo::bit_cast<float>(static_cast<uint32_t>(*(uint32_t *)(root_object + 0x9c)));
+    root_object = (object *)object_get(root);
+    out_context->location = *halo::ai::object_location(root_object);
 }
 
 namespace halo::ai {
-void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context)
+void actor_fill_unit_position_context(datum_index unit_index, actor_firing_positions *out_context)
 {
     halo::ai::movement_ops::fill_unit_position_context(unit_index, out_context);
 }
@@ -868,8 +866,7 @@ int16_t halo::ai::movement_ops::find_best_search_node(datum_index vehicle_index,
 {
     using namespace c_actor_find_best_search_node;
     datum_index actor_index = datum;
-    uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)((object_header *)halo::objects::globals().object_data->data)
-                                                        [vehicle_index & halo::k_slot_mask].data & halo::k_slot_mask].data;
+    Unit *vehicle_tag = halo::ai::tag_data<Unit>(((object_header *)halo::objects::globals().object_data->data)[vehicle_index & halo::k_slot_mask].data->definition_tag);
     int16_t best_seat = -1;
     float best_score = 0.0f;
     real_point3d best_entry = {0.0f, 0.0f, 0.0f};
@@ -877,7 +874,7 @@ int16_t halo::ai::movement_ops::find_best_search_node(datum_index vehicle_index,
     real_point3d best_hint = {0.0f, 0.0f, 0.0f};
     int16_t i;
 
-    for (i = 0; i < *(int32_t *)(vehicle_tag + 0x2e4); i++) {
+    for (i = 0; i < (int32_t)vehicle_tag->seats.count; i++) {
         real_point3d entry;
         real_vector3d direction;
         real_point3d hint;

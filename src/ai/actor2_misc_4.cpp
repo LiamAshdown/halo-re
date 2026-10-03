@@ -16,7 +16,6 @@ namespace halo::ai {
 
 namespace actor_seek_vehicle_to_board_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-static auto &ai_globals_ptr = halo::link::ref<uint8_t *>(halo::ai::vars().ai_globals_ptr);
 }
 
 /**
@@ -82,13 +81,13 @@ uint8_t ActorView::seek_vehicle_to_board()
         if (act->ticks_threatened < 60) {
             return 0;
         }
-        for (i = 0; i < *(int16_t *)(ai_globals_ptr + 0x3b6); i++) {
-            uint8_t *offer = ai_globals_ptr + 0x3b8 + i * 0x28;
-            datum_index vehicle = *(datum_index *)(offer + 0x0);
-            float radius = *(float *)(offer + 0x4);
-            int16_t team_mask = *(int16_t *)(offer + 0x8);
-            int16_t type_mask = *(int16_t *)(offer + 0xa);
-            int16_t filter_count = *(int16_t *)(offer + 0xc);
+        for (i = 0; i < halo::ai::globals().state->object_attention_count; i++) {
+            const ai_vehicle_offer *offer = reinterpret_cast<const ai_vehicle_offer *>(&halo::ai::globals().state->object_attention_table[i]);
+            datum_index vehicle = offer->vehicle;
+            float radius = offer->radius;
+            int16_t team_mask = offer->team_mask;
+            int16_t type_mask = offer->type_mask;
+            int16_t filter_count = offer->filter_count;
             float dx;
             float dy;
             float dz;
@@ -105,7 +104,7 @@ uint8_t ActorView::seek_vehicle_to_board()
             if (!(distance_squared < best_distance)) {
                 continue;
             }
-            if (*(uint32_t *)(offer + 0x4) != 0x7f7fffff && distance_squared > radius * radius) {
+            if (offer->radius != 3.4028235e+38f && distance_squared > radius * radius) {
                 continue;
             }
             if (team_mask > 0) {
@@ -123,7 +122,7 @@ uint8_t ActorView::seek_vehicle_to_board()
                 int16_t j;
 
                 for (j = 0; j < filter_count; j++) {
-                    uint32_t filter = *(uint32_t *)(offer + 0x10 + j * 4);
+                    uint32_t filter = offer->filters[j];
 
                     if (filter == halo::k_dword_none) {
                         continue;

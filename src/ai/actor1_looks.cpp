@@ -36,11 +36,11 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
     datum_index actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
     uint32_t unit_index = actor->unit_index;
-    uint8_t *unit = (uint8_t *)halo::ai::object_at(unit_index);
+    unit_object *unit = (unit_object *)halo::ai::object_at(unit_index);
     unit_control_data control;
 
     control.animation_state = (int8_t)actor_control_animation_state_table[actor->control_animation_mode * 2];
-    control.aiming_speed = (int8_t)actor->unknown_6ee[10];
+    control.aiming_speed = (int8_t)actor->control_aiming_speed;
     control.control_flags = *(uint16_t *)&actor->control_flags;
     control.weapon_index = -1;
     control.grenade_index = -1;
@@ -62,7 +62,7 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
     halo::units::unit_apply_control_block(actor->unit_index, &control, -1);
     if (actor->control_animation_impulse != -1) {
         halo::units::unit_try_start_scripted_action_animation(actor->unit_index, actor->control_animation_impulse,
-            reinterpret_cast<const real_vector2d *>(&actor->unknown_6ee[2]));
+            &actor->control_animation_alignment);
     }
     if (actor->persistent_control_ticks > 0) {
         unit_object *object = (unit_object *)halo::ai::object_at(actor->unit_index);
@@ -658,7 +658,7 @@ void halo::ai::look_ops::look_randomize_direction(float *deviation_table, real_v
     }
 
     wait_ticks = halo::ai::actor_look_get_wait_ticks(actor_index, 2, out_in_front, deviation_table);
-    *(int32_t *)self->idle_minor_timer = wait_ticks;
+    self->idle_minor_timer = wait_ticks;
     if (wait_ticks != 0) {
         self->idle_minor_active = 1;
     }

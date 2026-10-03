@@ -40,7 +40,7 @@ int32_t ActorOps::reassign_vehicle_seat(datum_index vehicle_object_index, datum_
     if (vehicle_object_index != (datum_index)k_datum_index_none) {
         vehicle_obj = (object *)halo::objects::object_try_and_get(vehicle_object_index, 3);
         if (vehicle_obj != 0) {
-            vehicle_unit = (unit_data *)((uint8_t *)vehicle_obj + k_unit_data_offset);
+            vehicle_unit = halo::units::unit_data_of(vehicle_obj);
             occupant = (datum_index)k_datum_index_none;
             if (seat_selector != 9) {
                 occupant = vehicle_unit->gunner_unit_index;
@@ -73,7 +73,7 @@ int32_t ActorOps::reassign_vehicle_seat(datum_index vehicle_object_index, datum_
 }
 
 namespace actor_refresh_combat_context_local {
-static auto &team_pair_data = halo::link::ref<uint8_t *>(halo::ai::vars().team_pair_data);
+static auto &team_pair_data = halo::link::ref<team_pair_globals *>(halo::ai::vars().team_pair_data);
 static auto &global_zero_vector3d_pointer = halo::link::ref<const real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &ai_marker_name_b = halo::link::ref<char []>(halo::ai::vars().ai_marker_name_b);
 static uint8_t *object_get(datum_index object_index)
@@ -105,18 +105,17 @@ void ActorView::refresh_combat_context()
 
         *center = *global_zero_vector3d_pointer;
         for (i = 0; i < count; i++) {
-            uint8_t *creature = (uint8_t *)halo::ai::globals().swarm_component_data->data +
-                (*(datum_index *)((uint8_t *)swarm + 0x58 + i * 4) & halo::k_slot_mask) * 0x40;
-            datum_index creature_unit = *(datum_index *)((uint8_t *)swarm + 0x18 + i * 4);
+            swarm_component *creature = &((swarm_component *)halo::ai::globals().swarm_component_data->data)[swarm->component_index[i] & halo::k_slot_mask];
+            datum_index creature_unit = swarm->unit_index[i];
             uint8_t *creature_object = object_get(creature_unit);
             datum_index vehicle = ((struct object *)creature_object)->type == 0 ?
-                *(datum_index *)(creature_object + 0x4d8) : k_datum_index_none;
+                ((biped_object *)creature_object)->biped.ground_surface_index : k_datum_index_none;
 
-            halo::objects::object_get_position((real_point3d *)(creature + 4), creature_unit);
-            *(datum_index *)(creature + 0x10) = vehicle;
-            center->x = *(float *)(creature + 4) + center->x;
-            center->y = *(float *)(creature + 8) + center->y;
-            center->z = *(float *)(creature + 0xc) + center->z;
+            halo::objects::object_get_position(&creature->position, creature_unit);
+            creature->marker_index = vehicle;
+            center->x = creature->position.x + center->x;
+            center->y = creature->position.y + center->y;
+            center->z = creature->position.z + center->z;
         }
         if (count > 0) {
             float scale = 1.0f / (float)count;
@@ -129,7 +128,7 @@ void ActorView::refresh_combat_context()
         self->active_unit_index = -1;
         self->pathfinding_surface_index = -1;
         if (self->cluster_unit_index != -1) {
-            halo::ai::actor_fill_unit_position_context((int32_t)self->cluster_unit_index, reinterpret_cast<actor_unit_position_context *>(&self->aim_origin));
+            halo::ai::actor_fill_unit_position_context((int32_t)self->cluster_unit_index, halo::ai::own_firing_positions(self));
         }
         return;
     }
@@ -139,7 +138,7 @@ void ActorView::refresh_combat_context()
     if (parent_index != k_datum_index_none) {
         parent = (unit_object *)object_get(parent_index);
     }
-    halo::ai::actor_fill_unit_position_context((int32_t)self->unit_index, reinterpret_cast<actor_unit_position_context *>(&self->aim_origin));
+    halo::ai::actor_fill_unit_position_context((int32_t)self->unit_index, halo::ai::own_firing_positions(self));
     {
         object_marker marker;
         real_point3d head;
@@ -161,18 +160,18 @@ void ActorView::refresh_combat_context()
         if (static_cast<int32_t>(parent->unit.driver_unit_index) == self->unit_index) {
             self->vehicle_driving_type = 1;
             vehicle_flags = vehicle_tag->vehicle_flags;
-            if (vehicle_flags & 0x800) {
-                if (vehicle_flags & 0x1000) {
+            if (halo::ai::flag_set(vehicle_flags, halo::tags::vehicle_tag_flag::ai_driver_enable)) {
+                if (halo::ai::flag_set(vehicle_flags, halo::tags::vehicle_tag_flag::ai_driver_flying)) {
                     self->vehicle_driving_type = 4;
                     self->flying = 1;
-                } else if (vehicle_flags & 0x2000) {
+                } else if (halo::ai::flag_set(vehicle_flags, halo::tags::vehicle_tag_flag::ai_driver_can_sidestep)) {
                     self->vehicle_driving_type = (int16_t)((~(vehicle_flags >> 14) & 1) | 2);
                 }
             }
         }
         if (static_cast<int32_t>(parent->unit.gunner_unit_index) == self->unit_index) {
             self->vehicle_gunner = 1;
-            self->vehicle_gunner_bombards[0] = *(float *)((uint8_t *)halo::ai::actor_get_actor_definition(actor_index) + 0x14c) > 0.0f;
+            self->vehicle_gunner_bombards[0] = reinterpret_cast<ActorVariant *>(halo::ai::actor_get_actor_definition(actor_index))->bombardment_range > 0.0f;
         }
         self->order_committed = self->vehicle_driving_type <= 1;
         if (parent->unit.encounter_index != -1) {
@@ -189,10 +188,10 @@ void ActorView::refresh_combat_context()
 
                     if (encounter_record->follow_target_type > 0) {
                         int16_t first = encounter_record->first_squad;
-                        uint8_t *states = (uint8_t *)halo::ai::globals().squad_states;
+                        encounter_squad_state *states = halo::ai::globals().squad_states;
 
-                        if (states[(int16_t)(first + self->squad_index) * 0x20 + 0x10] != 0 &&
-                            states[(int16_t)(first + wanted_squad) * 0x20 + 0x10] != 0) {
+                        if (states[(int16_t)(first + self->squad_index)].automatic_migration != 0 &&
+                            states[(int16_t)(first + wanted_squad)].automatic_migration != 0) {
                             move = 0;
                         }
                     }
@@ -204,7 +203,7 @@ void ActorView::refresh_combat_context()
                     self->saved_squad_index = self->squad_index;
                     self->squad_link_saved = 1;
                     if (encounter != k_datum_index_none) {
-                        *((uint8_t *)halo::ai::globals().encounter_data->data + (encounter & halo::k_slot_mask) * 0x6c + 0x1e) = 1;
+                        halo::ai::encounter_at(encounter)->squads_carried_over = 1;
                     }
                 }
                 halo::ai::actor_reset_squad_link_for_type_change(actor_index, wanted_encounter, wanted_squad);
@@ -241,13 +240,13 @@ void ActorView::refresh_combat_context()
             } else {
                 int32_t bit = actor_team * 10 + child_team;
 
-                enemy = (((uint32_t *)(team_pair_data + 0xa4))[bit >> 5] & (1u << (bit & 0x1f))) == 0;
+                enemy = (team_pair_data->enemy_bits[bit >> 5] & (1u << (bit & 0x1f))) == 0;
             }
             if (enemy) {
                 self->enemy_child_attached = 1;
             }
         } else if (type == 5) {
-            if ((int8_t)child_object[0x22c] < 0 || (self->danger_type == 2 && child == self->danger_object_index)) {
+            if ((int8_t)((projectile_object *)child_object)->projectile.flags < 0 || (self->danger_type == 2 && child == self->danger_object_index)) {
                 self->stuck_projectile_index = child;
             }
         }
@@ -258,11 +257,11 @@ void ActorView::refresh_combat_context()
     if (unit->base.type == 0 && self->active_unit_index == -1) {
         uint8_t *unit_object = object_get((int32_t)self->unit_index);
 
-        if ((int8_t)unit_object[0x501] >= 6) {
+        if (((biped_object *)unit_object)->biped.airborne_ticks >= 6) {
             self->airborne = 1;
         }
-        self->pathfinding_surface_index = *(int32_t *)(unit_object + 0x4dc);
-        *(real_vector3d *)&self->pathfinding_point = *(real_vector3d *)(unit_object + 0x4e0);
+        self->pathfinding_surface_index = (int32_t)((biped_object *)unit_object)->biped.cached_ground_surface_index;
+        *(real_vector3d *)&self->pathfinding_point = *(real_vector3d *)&((biped_object *)unit_object)->biped.cached_ground_point;
     }
     halo::units::unit_get_forward_vector_or_marker_normal(self->vehicle_driving_type > 0 ? (int32_t)self->active_unit_index : (int32_t)self->unit_index,
         &self->facing);

@@ -116,7 +116,7 @@ static datum_index actor_create_unit_item(datum_index definition_tag, datum_inde
 
     halo::objects::object_placement_data_initialize(&placement, definition_tag, unit_index);
     if (halo::networking::globals().game_mode == 2) {
-        int16_t type = *(int16_t *)halo::cache::globals().tag_instances[placement.definition_tag & halo::k_slot_mask].data;
+        int16_t type = halo::ai::tag_data<Object>(placement.definition_tag)->object_type;
 
         if (object_type_definitions[type]->network_delta_message_type != -1) {
             role = 0;
@@ -137,8 +137,8 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
 {
     using namespace c_actor_apply_unit_definition_properties;
     ActorVariant *variant = halo::ai::tag_data<ActorVariant>(actor_variant_tag);
-    uint8_t *unit = object_get(unit_index);
-    Unit *unit_tag = halo::ai::tag_data<Unit>(*(datum_index *)&variant->actor_definition.tag_id);
+    unit_object *unit = (unit_object *)object_get(unit_index);
+    Unit *unit_tag = halo::ai::tag_data<Unit>(halo::ai::tag_handle(variant->actor_definition));
     int16_t i;
 
     if (variant->body_vitality > 0.0f || variant->shield_vitality > 0.0f) {
@@ -148,22 +148,22 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         ((struct unit_object *)unit)->base.forced_shader_permutation = static_cast<uint16_t>(static_cast<int16_t>(variant->forced_shader_permutation));
     }
     for (i = 0; i < static_cast<int32_t>(variant->change_colors.count); i++) {
-        uint8_t *change_color = *(uint8_t **)&variant->change_colors.pointer + i * 0x20;
+        ActorVariantChangeColors *change_color = &halo::ai::reflexive_data<ActorVariantChangeColors>(variant->change_colors)[i];
 
         if (i < 4) {
-            ColorRGB *working = (ColorRGB *)(unit + 0x188 + i * 0xc);
+            ColorRGB *working = &unit->base.base_change_colors[i];
 
             halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
-            halo::bitmaps::color_interpolate((ColorRGB *)(change_color + 0xc), (ColorRGB *)change_color, working, (color_interpolation_flags)1,
+            halo::bitmaps::color_interpolate((ColorRGB *)&change_color->color_upper_bound, (ColorRGB *)&change_color->color_lower_bound, working, (color_interpolation_flags)1,
                 (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f);
-            *(ColorRGB *)(unit + 0x1b8 + i * 0xc) = *working;
+            *(ColorRGB *)&unit->base.change_colors[i] = *working;
         }
     }
-    if (*(datum_index *)&variant->weapon.tag_id != k_datum_index_none) {
-        datum_index weapon = actor_create_unit_item(*(datum_index *)&variant->weapon.tag_id, unit_index);
+    if (halo::ai::tag_handle(variant->weapon) != k_datum_index_none) {
+        datum_index weapon = actor_create_unit_item(halo::ai::tag_handle(variant->weapon), unit_index);
 
         if (weapon != k_datum_index_none && !halo::units::unit_pickup_weapon(2, weapon, unit_index)) {
-            int32_t role = *(int32_t *)(object_get(weapon) + 4);
+            int32_t role = ((object *)object_get(weapon))->network_role;
 
             if (role == 0) {
                 halo::objects::object_delete_unparented(weapon);
@@ -177,20 +177,19 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         int16_t type = variant->grenade_type;
         int16_t minimum = variant->grenade_count[0];
         int32_t range = (int16_t)(variant->grenade_count[1] + 1) - minimum;
-        uint8_t *object = object_get(unit_index);
+        unit_data *unit_state = halo::units::unit_data_of(object_get(unit_index));
 
         halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
-        object[0x31e + type] = (uint8_t)(object[0x31e + type] +
+        unit_state->grenade_counts[type] = (int8_t)(unit_state->grenade_counts[type] +
             (uint8_t)(((uint32_t)range * (halo::math::globals().random_seed_global >> 0x10)) >> 0x10) + (uint8_t)minimum);
-        object[0x31d] = (uint8_t)type;
-        object[0x31c] = (uint8_t)type;
+        unit_state->desired_grenade_index = (int8_t)type;
+        unit_state->current_grenade_index = (int8_t)type;
     }
-    if (*(datum_index *)&variant->equipment.tag_id != k_datum_index_none) {
-        int16_t equipment_kind = *(int16_t *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&variant->equipment.tag_id & halo::k_slot_mask].data
-            + 0x308);
+    if (halo::ai::tag_handle(variant->equipment) != k_datum_index_none) {
+        int16_t equipment_kind = halo::ai::tag_data<Equipment>(halo::ai::tag_handle(variant->equipment))->powerup_type;
 
         if (equipment_kind != 0 && equipment_kind != 6) {
-            datum_index equipment = actor_create_unit_item(*(datum_index *)&variant->equipment.tag_id, unit_index);
+            datum_index equipment = actor_create_unit_item(halo::ai::tag_handle(variant->equipment), unit_index);
 
             if (equipment != k_datum_index_none && !halo::units::unit_try_select_equipment(unit_index, equipment, 1)) {
                 halo::objects::object_delete(equipment);
@@ -382,11 +381,7 @@ uint8_t halo::ai::prop_ops::danger_register_point(datum_index source_object_inde
 
     source_obj = halo::ai::object_at(source_object_index);
 
-    clear = (uint32_t *)&self->danger_type;
-    for (i = 0x1b; i != 0; i--) {
-        *clear = 0;
-        clear++;
-    }
+    memset(&self->danger_type, 0, 0x1b * sizeof(uint32_t));
 
     self->danger_object_radius = radius;
     self->danger_type = 1;
@@ -421,17 +416,17 @@ static float sqrt_f(float x) { return (float)halo::libm::sqrt((double)x); }
  *
  * @address 0x41ea60
  */
-uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *reference, datum_index actor_index, datum_index object_index, uint8_t unknown_byte)
+uint8_t halo::ai::prop_ops::danger_register_stationary_object(const actor_firing_positions *reference, datum_index actor_index, datum_index object_index, uint8_t unknown_byte)
 {
     using namespace c_actor_danger_register_stationary_object;
     actor *self;
     object *obj;
-    uint8_t *tag_data;
+    Vehicle *tag_data;
     float bounding_radius;
     float velocity_sq;
     real_point3d fetched_position;
-    uint32_t local_positions[14];
-    const float *block;
+    actor_firing_positions local_positions;
+    const actor_firing_positions *block;
     float px, py, pz;
     float dx, dy, dz;
     float distance;
@@ -447,9 +442,9 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
     }
 
     obj = halo::ai::object_at(object_index);
-    tag_data = (uint8_t *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
+    tag_data = halo::ai::tag_data<Vehicle>(obj->definition_tag);
 
-    if ((int8_t)tag_data[0x2f0] < 0) {
+    if ((int8_t)(uint8_t)tag_data->vehicle_flags < 0) {
         velocity_sq = obj->velocity.k * obj->velocity.k + obj->velocity.j * obj->velocity.j +
                       obj->velocity.i * obj->velocity.i;
 
@@ -460,17 +455,17 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
             pz = fetched_position.z;
 
             block = reference;
-            if (block == (const float *)0) {
-                halo::ai::actor_get_firing_positions(actor_index, local_positions, &fetched_position);
-                block = (const float *)local_positions;
+            if (block == (const actor_firing_positions *)0) {
+                halo::ai::actor_get_firing_positions(actor_index, &local_positions, &fetched_position);
+                block = &local_positions;
             }
 
-            dx = px - *(float *)((const uint8_t *)block + 0xc);
-            dy = py - *(float *)((const uint8_t *)block + 0x10);
-            dz = pz - *(float *)((const uint8_t *)block + 0x14);
+            dx = px - block->body_position.x;
+            dy = py - block->body_position.y;
+            dz = pz - block->body_position.z;
             distance = sqrt_f(dx * dx + dy * dy + dz * dz);
 
-            bounding_radius = *(float *)(tag_data + 4);
+            bounding_radius = tag_data->base.base.bounding_radius;
             threshold_distance = bounding_radius + 10.0f;
 
             if (threshold_distance <= distance) {
@@ -481,15 +476,11 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
             if (existing_type < 3 ||
                 (existing_type == 3 && self->danger_object_index != object_index &&
                  distance < self->danger_distance)) {
-                clear = (uint32_t *)&self->danger_type;
-                for (i = 0x1b; i != 0; i--) {
-                    *clear = 0;
-                    clear++;
-                }
+                memset(&self->danger_type, 0, 0x1b * sizeof(uint32_t));
 
                 self->danger_type = 3;
                 self->danger_object_index = object_index;
-                driver_field = *(int32_t *)((uint8_t *)obj + 0x324);
+                driver_field = (int32_t)halo::units::unit_data_of(obj)->driver_unit_index;
                 self->danger_owner_unit = driver_field;
                 self->danger_object_radius = bounding_radius;
 
@@ -504,7 +495,7 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
 
                 if (driver_field != -1) {
 
-                    if (halo::game::teams_are_enemies(*(int16_t *)((uint8_t *)halo::ai::object_at(driver_field) + 0xb8),
+                    if (halo::game::teams_are_enemies(halo::ai::object_at(driver_field)->owner_team,
                                           self->team) == 0) {
                         self->danger_owner_relation = 1;
                     }
@@ -517,7 +508,7 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
 }
 
 namespace halo::ai {
-uint8_t actor_danger_register_stationary_object(const float *reference, datum_index actor_index, datum_index object_index, uint8_t unknown_byte)
+uint8_t actor_danger_register_stationary_object(const actor_firing_positions *reference, datum_index actor_index, datum_index object_index, uint8_t unknown_byte)
 {
     return halo::ai::prop_ops::danger_register_stationary_object(reference, actor_index, object_index, unknown_byte);
 }
@@ -536,7 +527,7 @@ static auto &global_forward2d_pointer = halo::link::ref<const real_vector2d *>(h
  *
  * @address 0x40bc40
  */
-uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_position, real_vector3d *path_delta, uint8_t *in_danger)
+uint8_t halo::ai::prop_ops::find_danger_escape(int16_t *out_kind, float *out_step, real_vector3d *path_delta, uint8_t *in_danger)
 {
     using namespace c_actor_find_danger_escape;
     datum_index actor_index = datum;
@@ -565,7 +556,7 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
         uint8_t right_out;
         float left_distance;
         float right_distance;
-        uint8_t extra[0x30];
+        path_find_boundary_crossing extra;
         uint8_t have_axis = 0;
 
         axis.i = -act->danger_velocity.i;
@@ -607,10 +598,10 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
         right_point.y = right.j * step + act->body_position.y;
         right_point.z = step * 0.0f + act->body_position.z;
 
-        left_hit = halo::ai::actor_check_step_obstruction(actor_index, (real_vector2d *)&left, step, sideways, &left_blocked, extra);
+        left_hit = halo::ai::actor_check_step_obstruction(actor_index, (real_vector2d *)&left, step, sideways, &left_blocked, &extra);
         left_distance = (float)halo::libm::sqrt(halo::math::point3d_distance_squared_to_segment(act->flee_from_point, path, left_point));
         left_out = (uint8_t)(left_hit && left_distance > act->danger_object_radius);
-        right_hit = halo::ai::actor_check_step_obstruction(actor_index, (real_vector2d *)&right, step, sideways, &right_blocked, extra);
+        right_hit = halo::ai::actor_check_step_obstruction(actor_index, (real_vector2d *)&right, step, sideways, &right_blocked, &extra);
         right_distance = (float)halo::libm::sqrt(halo::math::point3d_distance_squared_to_segment(act->flee_from_point, path, right_point));
         right_out = (uint8_t)(right_hit && right_distance > act->danger_object_radius);
 
@@ -642,8 +633,8 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
             blocked = right_blocked;
         }
     }
-    *(int16_t *)out_word = kind;
-    *(float *)out_position = step;
+    *out_kind = kind;
+    *out_step = step;
     *in_danger = blocked;
     path_delta->i = axis.i;
     path_delta->j = axis.j;
@@ -651,9 +642,9 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
 }
 
 namespace halo::ai {
-uint8_t actor_find_danger_escape(datum_index actor_index, uint32_t *out_word, uint8_t *out_position, real_vector3d *path_delta, uint8_t *in_danger)
+uint8_t actor_find_danger_escape(datum_index actor_index, int16_t *out_kind, float *out_step, real_vector3d *path_delta, uint8_t *in_danger)
 {
-    return halo::ai::prop_ops(actor_index).find_danger_escape(out_word, out_position, path_delta, in_danger);
+    return halo::ai::prop_ops(actor_index).find_danger_escape(out_kind, out_step, path_delta, in_danger);
 }
 }
 
@@ -694,7 +685,7 @@ static int actor_prop_still_admitted(datum_index actor_index, actor *self, prop 
 
         if (encounter_index != k_datum_index_none) {
             struct encounter *encounter = halo::ai::encounter_at(encounter_index);
-            uint8_t *unit = (uint8_t *)halo::ai::object_at(p->object_index);
+            unit_object *unit = (unit_object *)halo::ai::object_at(p->object_index);
             int32_t reference = encounter->last_idle_time;
             uint8_t counts = 1;
             uint8_t calm;
@@ -885,18 +876,18 @@ datum_index halo::ai::prop_ops::find_or_create_shared_prop(datum_index object_in
 
         if (result == (datum_index)halo::k_dword_none) {
             if ((create_if_missing != 0) && (self->active != 0)) {
-                uint8_t scratch[56];
+                actor_firing_positions scratch;
 
                 result = halo::ai::actor_find_or_allocate_prop(actor_index, object_index,
                     (char)halo::game::teams_are_enemies(((struct object *)object)->owner_team, self->team));
                 if (result != (datum_index)halo::k_dword_none) {
                     prop *p = halo::ai::prop_at(result);
 
-                    halo::ai::actor_target_data_refresh(actor_index, result, scratch, 0, flag);
+                    halo::ai::actor_target_data_refresh(actor_index, result, &scratch, 0, flag);
                     p->retain_timer = 0x1e;
                     p->just_created = 1;
 
-                    if ((uint8_t)flag != 0 && (halo::ai::actor_target_update_tracking_speed(actor_index, result, scratch), 1 < p->perception_level)) {
+                    if ((uint8_t)flag != 0 && (halo::ai::actor_target_update_tracking_speed(actor_index, result, &scratch), 1 < p->perception_level)) {
                         uint8_t seen_flag = halo::ai::actor_target_has_conflicting_neighbor(actor_index, result);
                         p->state = 3;
                         halo::ai::actor_target_reset_combat_flags(result, actor_index, 0, seen_flag);
@@ -1037,28 +1028,28 @@ void halo::ai::prop_ops::init_prop_from_object(datum_index object_index, datum_i
     p->last_engaged_time = -1;
 
     if (object_index != (datum_index)halo::k_dword_none) {
-        uint8_t *object = reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index));
-        uint8_t *object_type = (uint8_t *)halo::cache::globals().tag_instances[*(uint16_t *)object & halo::k_slot_mask].data;
+        unit_object *object = (unit_object *)halo::ai::object_at(object_index);
+        Unit *object_type = halo::ai::tag_data<Unit>(object->base.definition_tag);
         uint8_t is_vault;
 
-        p->team = ((struct object *)object)->owner_team;
+        p->team = object->base.owner_team;
 
         p->enemy = halo::game::teams_are_enemies(p->team, self->team);
         p->allegiance = halo::game::team_pair_flag_test(self->team, p->team);
         p->team_pair_status = halo::game::team_pair_override_get_flag(self->team, p->team);
 
-        is_vault = (*(uint8_t *)&((struct object *)object)->vitality_flags >> 2) & 1;
+        is_vault = (object->base.vitality_flags >> 2) & 1;
         p->dead = is_vault;
-        p->danger_radius = *(float *)(object_type + 0x284);
-        p->dead_not_feigning = (is_vault != 0) && (*(int16_t *)(object + 0x420) == 0);
+        p->danger_radius = object_type->ai_danger_radius;
+        p->dead_not_feigning = (is_vault != 0) && (object->unit.feign_death_ticks == 0);
         p->dead_ticks = (is_vault != 0) ? 1000 : 0;
-        p->is_parented = static_cast<int32_t>(((struct object *)object)->owner_linkage) != -1;
+        p->is_parented = static_cast<int32_t>(object->base.owner_linkage) != -1;
 
-        if (*(int32_t *)(object + 0x1f8) == -1) {
-            p->owner_actor_index = *(datum_index *)(object + 0x1f4);
+        if ((int32_t)object->unit.swarm_actor_index == -1) {
+            p->owner_actor_index = object->unit.actor_index;
         } else {
             p->swarm_owned = 1;
-            p->owner_actor_index = *(datum_index *)(object + 0x1f8);
+            p->owner_actor_index = object->unit.swarm_actor_index;
             p->swarm_reassign_time = halo::game::globals().game_time->game_time;
         }
 

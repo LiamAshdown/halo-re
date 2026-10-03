@@ -1227,7 +1227,7 @@ int32_t actor_select_move_position(uint32_t actor_index, int16_t select_mode, in
  *
  * @address 0x4106b0
  */
-void actor_select_stance_offset_pair(datum_index actor_index, uint8_t *base, uint8_t **out_a, uint8_t **out_b)
+void actor_select_stance_offset_pair(datum_index actor_index, ActorVariant *base, actor_burst_parameters **out_a, actor_burst_scale **out_b)
 {
     halo::ai::ActorView(actor_index).select_stance_offset_pair(base, out_a, out_b);
 }
@@ -1325,7 +1325,7 @@ void actor_set_units_active(datum_index actor_index, uint8_t dormant)
  *
  * @address 0x4105c0
  */
-uint8_t actor_should_hold_position(datum_index actor_index, uint8_t *definition)
+uint8_t actor_should_hold_position(datum_index actor_index, const ActorVariant *definition)
 {
     return halo::ai::ActorView(actor_index).should_hold_position(definition);
 }
@@ -1489,9 +1489,9 @@ void actor_swarm_for_each_component_thunk(uint32_t actor_index)
  *
  * @address 0x40e060
  */
-uint8_t actor_take_danger_escape(real_vector3d *path_delta, datum_index actor_index, uint32_t escape, uint32_t extra, float distance)
+uint8_t actor_take_danger_escape(real_vector3d *path_delta, datum_index actor_index, uint16_t direction_kind, float step_distance, float distance)
 {
-    return halo::ai::ActorOps::take_danger_escape(path_delta, actor_index, escape, extra, distance);
+    return halo::ai::ActorOps::take_danger_escape(path_delta, actor_index, direction_kind, step_distance, distance);
 }
 
 /**
@@ -1511,7 +1511,7 @@ uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_in
  *
  * @address 0x41c4b0
  */
-void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, void *reference, char force, char allow_reassign)
+void actor_target_data_refresh(uint32_t actor_index, uint32_t target_prop_index, actor_firing_positions *reference, char force, char allow_reassign)
 {
     halo::ai::ActorView(actor_index).target_data_refresh(target_prop_index, reference, force, allow_reassign);
 }
@@ -1533,7 +1533,7 @@ uint32_t actor_target_data_release(datum_index target_prop_index, uint32_t actor
  *
  * @address 0x41e320
  */
-void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index object_index, int16_t *candidates_a, int16_t *candidates_b)
+void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index object_index, ai_target_candidate_list *candidates_a, ai_target_candidate_list *candidates_b)
 {
     halo::ai::ActorView(actor_index).target_evaluate_squad_link(object_index, candidates_a, candidates_b);
 }
@@ -1588,7 +1588,7 @@ uint8_t actor_target_has_conflicting_neighbor(datum_index actor_index, datum_ind
  *
  * @address 0x41c030
  */
-uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index, void *target_ref, int16_t gate, real_point3d *listener_position)
+uint16_t actor_target_hearing_check(const bsp_leaf_reference *record, int16_t stance, datum_index actor_index, const actor_firing_positions *target_ref, int16_t gate, real_point3d *listener_position)
 {
     return halo::ai::ActorOps::target_hearing_check(record, stance, actor_index, target_ref, gate, listener_position);
 }
@@ -1698,7 +1698,7 @@ uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index tar
  *
  * @address 0x41c8f0
  */
-void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target_prop_index, void *scratch)
+void actor_target_update_tracking_speed(uint32_t actor_index, datum_index target_prop_index, actor_firing_positions *scratch)
 {
     halo::ai::ActorView(actor_index).target_update_tracking_speed(target_prop_index, scratch);
 }

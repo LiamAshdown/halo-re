@@ -1,3 +1,4 @@
+#include "halo/ai/ai_constants.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/ai/flags.hpp"
@@ -141,7 +142,7 @@ void ActorOps::notify_weapon_pickup_once(datum_index object_index)
     actor *a;
 
     obj = halo::ai::object_at(object_index);
-    unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    unit = halo::units::unit_data_of(obj);
     actor_index = unit->actor_index;
     if (actor_index != (datum_index)k_datum_index_none) {
         a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
@@ -541,7 +542,7 @@ void ActorOps::queue_search_and_relay_perception(datum_index prop_index, datum_i
     if (owner_index != (datum_index)k_datum_index_none) {
         actor *owner = &((actor *)halo::ai::globals().actor_data->data)[owner_index & halo::k_slot_mask];
         if (owner->suspicion_status > 0) {
-            halo::ai::actor_record_perception_event(actor_index, owner->suspicion_status, 0x1c2);
+            halo::ai::actor_record_perception_event(actor_index, owner->suspicion_status, halo::ai::k_owner_suspicion_event_ticks);
         }
     }
 }
@@ -734,14 +735,14 @@ void ActorView::queue_sighted_target_dialogue(datum_index target_prop_index, uin
         if (self->swarm == 0) {
             datum_index unit_index = self->unit_index;
             object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
-            ((uint8_t *)header->data + 0x106)[0] |= 0x20;
+            header->data->vitality_flags |= halo::to_bits(halo::objects::vitality_flag::unknown_20);
         } else {
             datum_index cluster_index = self->cluster_unit_index;
             while (cluster_index != (datum_index)k_datum_index_none) {
                 object_header *header = &((object_header *)halo::objects::globals().object_data->data)[cluster_index & halo::k_slot_mask];
                 struct object *unit_object = header->data;
                 unit_object->vitality_flags |= halo::to_bits(halo::objects::vitality_flag::unknown_20);
-                cluster_index = *(datum_index *)((uint8_t *)unit_object + 0x1fc);
+                cluster_index = halo::units::unit_data_of(unit_object)->swarm_next_unit_index;
             }
         }
     }
@@ -801,7 +802,7 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
     if (flee_source_object != -1) {
         object *source = halo::ai::object_at(flee_source_object);
         if (halo::game::teams_are_enemies(source->owner_team , self->team) != 0) {
-            halo::ai::actor_record_perception_event(actor_index, 2, 0x384);
+            halo::ai::actor_record_perception_event(actor_index, 2, halo::ai::k_hostile_flee_event_ticks);
         }
     }
 
@@ -915,14 +916,14 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
 
     if (target->enemy == 0) {
         object *tracked = halo::ai::object_at(target->object_index);
-        unit_data *unit = (unit_data *)((uint8_t *)tracked + k_unit_data_offset);
+        unit_data *unit = halo::units::unit_data_of(tracked);
 
         halo::ai::actor_queue_search_and_relay_perception(target_prop_index, actor_index);
 
         if (unit->controlling_player != (datum_index)k_datum_index_none) {
-            uint8_t *player = (uint8_t *)halo::game::globals().player_data->data + (unit->controlling_player & halo::k_slot_mask) * 0x200;
-            int32_t unknown_40 = static_cast<int32_t>(((struct player *)player)->observer_target);
-            int32_t unknown_44 = ((struct player *)player)->observer_state;
+            struct player *player = &((struct player *)halo::game::globals().player_data->data)[unit->controlling_player & halo::k_slot_mask];
+            int32_t unknown_40 = static_cast<int32_t>(player->observer_target);
+            int32_t unknown_44 = player->observer_state;
 
             if (unknown_40 != -1 && (int32_t)halo::game::globals().game_time->game_time <= unknown_44 + 0x5a) {
                 object *player_unit = halo::ai::object_at(unknown_40);
@@ -1321,7 +1322,7 @@ void TargetView::scan_backup_and_panic_reaction(datum_index actor_index)
 
             if (ally->engaged != 0) {
                 ally->friends_killed = ally->friends_killed + 1;
-                ally->friends_killed_timer = 0x2ee;
+                ally->friends_killed_timer = halo::ai::k_friends_killed_timer_ticks;
             }
         }
     }

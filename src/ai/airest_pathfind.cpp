@@ -15,6 +15,7 @@
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
 #include "halo/units/api.hpp"
+#include "halo/ai/records.hpp"
 
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &breakable_surface_state = halo::link::ref<uint8_t *>(halo::physics::vars().breakable_surface_state);
@@ -25,12 +26,100 @@ namespace halo::ai {
 
 namespace {
 
+static_assert(offsetof(ModelCollisionGeometryBSP, planes) == 0x0c);
+static_assert(offsetof(ModelCollisionGeometryBSP, surfaces) == 0x3c);
+static_assert(offsetof(ModelCollisionGeometryBSP, edges) == 0x48);
+static_assert(offsetof(ModelCollisionGeometryBSP, vertices) == 0x54);
+static_assert(sizeof(ModelCollisionGeometryBSPSurface) == 12);
+static_assert(sizeof(ModelCollisionGeometryBSPEdge) == 0x18);
+static_assert(sizeof(ModelCollisionGeometryBSPVertex) == 16);
+
+/** Word indices into a collision bsp edge record viewed as int32_t[6]. */
+enum bsp_edge_word : int32_t {
+    k_edge_start_vertex = 0,
+    k_edge_end_vertex = 1,
+    k_edge_forward_edge = 2,
+    k_edge_reverse_edge = 3,
+    k_edge_left_surface = 4,
+    k_edge_right_surface = 5,
+};
+
+constexpr uint32_t k_bsp_plane_index_mask = 0x7fffffff;
+
+/** The vertex hash of a path_find_context: 512 buckets of 8 entries, probed linearly across all 4096 slots. */
+constexpr uint32_t k_vertex_hash_bucket_mask = 0x1ff;
+constexpr uint32_t k_vertex_hash_slot_mask = 0xfff;
+constexpr int32_t k_vertex_hash_slot_count = 0x1000;
+
+/** Capacity of the node array and of the (one-based) open heap of a path_find_context. */
+constexpr int32_t k_path_node_capacity = 0x400;
+
+template <typename T>
+inline T *bsp_reflexive_at(const TagReflexive &reflexive, int32_t index)
+{
+    return reinterpret_cast<T *>(static_cast<uintptr_t>(reflexive.pointer)) + index;
+}
+
+inline ModelCollisionGeometryBSPSurface *bsp_surface(const void *bsp, int32_t index)
+{
+    return bsp_reflexive_at<ModelCollisionGeometryBSPSurface>(static_cast<const ModelCollisionGeometryBSP *>(bsp)->surfaces, index);
+}
+
+inline int32_t *bsp_edge(const void *bsp, int32_t index)
+{
+    return reinterpret_cast<int32_t *>(bsp_reflexive_at<ModelCollisionGeometryBSPEdge>(static_cast<const ModelCollisionGeometryBSP *>(bsp)->edges, index));
+}
+
+inline float *bsp_vertex(const void *bsp, int32_t index)
+{
+    return reinterpret_cast<float *>(bsp_reflexive_at<ModelCollisionGeometryBSPVertex>(static_cast<const ModelCollisionGeometryBSP *>(bsp)->vertices, index));
+}
+
+inline real_plane3d *bsp_surface_plane(const void *bsp, int32_t surface_index)
+{
+    return reinterpret_cast<real_plane3d *>(bsp_reflexive_at<ModelCollisionGeometryBSPPlane>(
+        static_cast<const ModelCollisionGeometryBSP *>(bsp)->planes, static_cast<int32_t>(bsp_surface(bsp, surface_index)->plane & k_bsp_plane_index_mask)));
+}
+
+/** The per-actor obstacle and search cache that path_find_context.obstacle_cache points at: a valid flag, the number of waypoints already searched, and one obstacle list and search context per waypoint. */
+struct path_find_search_slot {
+    ai_search_context search;
+    uint8_t padding[0x1534 - sizeof(ai_search_context)];
+};
+static_assert(sizeof(path_find_search_slot) == 0x1534);
+static_assert(sizeof(ai_search_obstacle_list) == 0xa08);
+
+struct path_find_obstacle_cache {
+    uint8_t unknown_00[0x10588];
+    uint8_t valid;
+    uint8_t unknown_10589;
+    int16_t searched_count;
+    ai_search_obstacle_list obstacle_lists[4];
+    path_find_search_slot searches[4];
+};
+static_assert(offsetof(path_find_obstacle_cache, valid) == 0x10588 && offsetof(path_find_obstacle_cache, searched_count) == 0x1058a);
+static_assert(offsetof(path_find_obstacle_cache, obstacle_lists) == 0x1058c && offsetof(path_find_obstacle_cache, searches) == 0x12dac);
+static_assert(offsetof(path_find_request, avoid_object_index) == 0x34);
+
+
+static_assert(offsetof(ScenarioStructureBSP, collision_bsp) == 0xb0 && offsetof(ScenarioStructureBSP, pathfinding_surfaces) == 0x1e4);
+
+inline ModelCollisionGeometryBSP *map_collision_bsp(const void *map)
+{
+    return reinterpret_cast<ModelCollisionGeometryBSP *>(static_cast<uintptr_t>(static_cast<const ScenarioStructureBSP *>(map)->collision_bsp.pointer));
+}
+
+inline uint8_t *map_surface_permissions(const void *map)
+{
+    return reinterpret_cast<uint8_t *>(static_cast<uintptr_t>(static_cast<const ScenarioStructureBSP *>(map)->pathfinding_surfaces.pointer));
+}
+}
+
+namespace {
+
 static real_plane3d *ai_navigate_surface_plane(ModelCollisionGeometryBSP *bsp, int32_t surface)
 {
-    uint8_t *raw = (uint8_t *)bsp;
-    uint32_t plane = *(uint32_t *)(*(uint8_t **)&((struct ModelCollisionGeometryBSP *)raw)->surfaces.pointer + surface * 12) & 0x7fffffff;
-
-    return (real_plane3d *)(*(uint8_t **)&((struct ModelCollisionGeometryBSP *)raw)->planes.pointer + plane * 16);
+    return bsp_surface_plane(bsp, surface);
 }
 
 }
@@ -46,7 +135,7 @@ uint8_t PathFinder::navigate_around_obstacles(int16_t count, path_find_waypoint 
     path_find_request *request = (path_find_request *)context;
     ModelCollisionGeometryBSP *collision_bsp = halo::physics::globals().structure_collision_bsp;
     float radius = (request->pathfinding_radius > 0.2f) ? request->pathfinding_radius : 0.2f;
-    uint8_t *cache = *(uint8_t **)&context->obstacle_cache;
+    path_find_obstacle_cache *cache = (path_find_obstacle_cache *)(uintptr_t)context->obstacle_cache;
     ai_search_obstacle_list local_obstacles;
     ai_search_context local_search;
     path_find_waypoint path[0x80];
@@ -54,8 +143,8 @@ uint8_t PathFinder::navigate_around_obstacles(int16_t count, path_find_waypoint 
     int32_t previous_surface = 0;
     int16_t i;
 
-    if (cache != 0 && cache[0x10588] == 0) {
-        *(int16_t *)(cache + 0x1058a) = 0;
+    if (cache != 0 && cache->valid == 0) {
+        cache->searched_count = 0;
     }
     for (i = 0; i < count; i++) {
         ai_search_obstacle_list *obstacles = &local_obstacles;
@@ -94,10 +183,10 @@ uint8_t PathFinder::navigate_around_obstacles(int16_t count, path_find_waypoint 
             }
         }
         if (cache != 0) {
-            obstacles = (ai_search_obstacle_list *)(cache + 0x1058c + i * 0xa08);
-            search = (ai_search_context *)(cache + 0x12dac + i * 0x1534);
+            obstacles = &cache->obstacle_lists[i];
+            search = &cache->searches[i].search;
         }
-        if (cache == 0 || cache[0x10588] == 0 || !(i < *(int16_t *)(cache + 0x1058a))) {
+        if (cache == 0 || cache->valid == 0 || !(i < cache->searched_count)) {
             obstacles->group_count = 0;
             obstacles->count = 0;
             obstacles->flagged_count = 0;
@@ -108,14 +197,14 @@ uint8_t PathFinder::navigate_around_obstacles(int16_t count, path_find_waypoint 
                 obstacles->flagged_count++;
                 entry->flags = 1;
                 entry->link = -1;
-                entry->object_index = *(uint32_t *)((uint8_t *)context + 0x34);
+                entry->object_index = request->avoid_object_index;
                 entry->position.x = request->avoid_position.x;
                 entry->position.y = request->avoid_position.y;
                 entry->radius = request->avoid_radius;
             }
             halo::ai::ai_search_partition_into_groups(obstacles, radius);
-            if (cache != 0 && cache[0x10588] == 0) {
-                (*(int16_t *)(cache + 0x1058a))++;
+            if (cache != 0 && cache->valid == 0) {
+                cache->searched_count++;
             }
         }
 
@@ -226,7 +315,7 @@ uint8_t PathFinder::compute_heuristic(uint32_t vertex_id, real_point3d *point, f
         float closest_x, closest_y, closest_z;
         real_point3d closest;
 
-        halo::math::path_find_closest_point_on_segment(*(real_point3d *)((uint8_t *)context + 0x28), node->position, *point,
+        halo::math::path_find_closest_point_on_segment(reinterpret_cast<path_find_request *>(context)->avoid_position, node->position, *point,
             closest);
         closest_x = closest.x;
         closest_y = closest.y;
@@ -289,27 +378,10 @@ uint8_t PathFinder::compute_heuristic(uint32_t vertex_id, real_point3d *point, f
 void PathFinder::context_init(const path_find_request *request, uint32_t second_param)
 {
     path_find_context * context = ptr;
-    uint32_t *clear;
-    int32_t i;
-    const uint32_t *src;
-    uint32_t *dst;
 
-    clear = (uint32_t *)context;
-    for (i = 0x4023; i != 0; i = i - 1) {
-        *clear = 0;
-        clear = clear + 1;
-    }
-
+    memset(context, 0, sizeof(*context));
     context->structure_bsp = (uint32_t)halo::scenario::globals().structure_bsp;
-
-    src = (const uint32_t *)request;
-    dst = (uint32_t *)context;
-    for (i = 0x12; i != 0; i = i - 1) {
-        *dst = *src;
-        src = src + 1;
-        dst = dst + 1;
-    }
-
+    memcpy(context, request, sizeof(*request));
     context->obstacle_cache = second_param;
 }
 
@@ -334,7 +406,7 @@ uint8_t PathFinder::find_unobstructed_ancestor(uint32_t vertex_id, real_point3d 
         path_find_node *parent = &context->nodes[node->parent];
         path_find_boundary_crossing crossing;
 
-        if (halo::ai::path_find_trace_bsp_boundary((void *)context->structure_bsp, *((uint8_t *)context + 4), point,
+        if (halo::ai::path_find_trace_bsp_boundary(halo::ai::structure_bsp_of(*context), reinterpret_cast<path_find_request *>(context)->ignores_glass, point,
                 (int32_t)vertex_id, &parent->position, (int32_t)parent->vertex_id, &crossing) != 0) {
             break;
         }
@@ -361,27 +433,25 @@ uint8_t PathFinder::find_unobstructed_ancestor(uint32_t vertex_id, real_point3d 
  */
 int16_t PathFindGeometry::gather_adjacent_edges(void *context, int32_t vertex_id, path_find_adjacent_edge *out_edges)
 {
-    uint8_t *base = (uint8_t *)context;
-    uint8_t *flag_table = *(uint8_t **)(base + 0x1e8);
-    uint8_t *bsp = *(uint8_t **)(base + 0xb4);
-    int32_t *vertex_edge_index = *(int32_t **)(bsp + 0x40) + vertex_id * 3;
-    int32_t edge_index = vertex_edge_index[1];
+    uint8_t *flag_table = map_surface_permissions(context);
+    ModelCollisionGeometryBSP *bsp = map_collision_bsp(context);
+    int32_t edge_index = bsp_surface(bsp, vertex_id)->first_edge;
     int32_t first_edge_index = edge_index;
     int16_t count = 0;
     int32_t *edge;
     uint8_t is_second_vertex;
 
     do {
-        edge = (int32_t *)(*(uint8_t **)(bsp + 0x4c) + edge_index * 0x18);
-        is_second_vertex = (vertex_id == *(int32_t *)((uint8_t *)edge + 0x14));
+        edge = bsp_edge(bsp, edge_index);
+        is_second_vertex = (vertex_id == edge[k_edge_right_surface]);
 
-        edge_index = edge[(is_second_vertex ? 0 : 1) + 4];
+        edge_index = edge[is_second_vertex ? k_edge_left_surface : k_edge_right_surface];
         out_edges[count].edge_id = edge_index;
         out_edges[count].flag = flag_table[edge_index];
 
         {
-            float *point_a = (float *)(*(uint8_t **)(bsp + 0x58) + edge[0] * 0x10);
-            float *point_b = (float *)(*(uint8_t **)(bsp + 0x58) + edge[1] * 0x10);
+            float *point_a = bsp_vertex(bsp, edge[k_edge_start_vertex]);
+            float *point_b = bsp_vertex(bsp, edge[k_edge_end_vertex]);
             out_edges[count].start_x = point_a[0];
             out_edges[count].start_y = point_a[1];
             out_edges[count].start_z = point_a[2];
@@ -394,7 +464,7 @@ int16_t PathFindGeometry::gather_adjacent_edges(void *context, int32_t vertex_id
         if (count == 0x40) {
             return count;
         }
-        edge_index = edge[(is_second_vertex ? 1 : 0) + 2];
+        edge_index = edge[is_second_vertex ? k_edge_reverse_edge : k_edge_forward_edge];
     } while (edge_index != first_edge_index);
 
     return count;
@@ -408,12 +478,12 @@ int16_t PathFindGeometry::gather_adjacent_edges(void *context, int32_t vertex_id
 int16_t PathFinder::hash_lookup_vertex(uint32_t vertex_id)
 {
     path_find_context * context = ptr;
-    uint32_t slot = (vertex_id & 0x1ff) << 3;
+    uint32_t slot = (vertex_id & k_vertex_hash_bucket_mask) << 3;
     int16_t node;
 
     for (;;) {
         node = context->vertex_hash[slot];
-        slot = (slot + 1) & 0xfff;
+        slot = (slot + 1) & k_vertex_hash_slot_mask;
         if (node == -1) {
             return node;
         }
@@ -540,8 +610,8 @@ uint8_t PathFindGeometry::heights_are_close(ScenarioStructureBSP *structure_bsp,
     surfaces = (ModelCollisionGeometryBSPSurface *)(uintptr_t)collision_bsp->surfaces.pointer;
     planes = (real_plane3d *)(uintptr_t)collision_bsp->planes.pointer;
 
-    halo::math::decal_plane_solve_third_axis(&position_a, 1, 2, &planes[surfaces[surface_a].plane & 0x7fffffff], *point);
-    halo::math::decal_plane_solve_third_axis(&position_b, 1, 2, &planes[surfaces[surface_b].plane & 0x7fffffff], *point);
+    halo::math::decal_plane_solve_third_axis(&position_a, 1, 2, &planes[surfaces[surface_a].plane & k_bsp_plane_index_mask], *point);
+    halo::math::decal_plane_solve_third_axis(&position_b, 1, 2, &planes[surfaces[surface_b].plane & k_bsp_plane_index_mask], *point);
     return (uint8_t)(halo::libm::fabs((double)(position_a.z - position_b.z)) < 0.05000000074505806);
 }
 
@@ -602,7 +672,7 @@ uint8_t PathFinder::push_start_node()
         context->best_position.z = context->start_position.z;
     }
 
-    context->vertex_hash[(node->vertex_id & 0x1ff) * 8] = node_index;
+    context->vertex_hash[(node->vertex_id & k_vertex_hash_bucket_mask) * 8] = node_index;
     halo::ai::path_find_heap_push(context, node_index, (int16_t)key);
     return 1;
 }
@@ -625,25 +695,26 @@ uint8_t PathFinder::reconstruct_path(uint8_t *out_result)
     int16_t count;
     int16_t previous = -1;
     path_find_node *previous_node = 0;
-    real_point3d *end_point = (real_point3d *)(out_result + 4);
+    path_find_result *result = reinterpret_cast<path_find_result *>(out_result);
+    real_point3d *end_point = &result->end_point;
 
-    out_result[0] = 0;
+    result->found = 0;
     if (!context->have_goal) {
         return 0;
     }
     node_index = halo::ai::path_find_hash_lookup_vertex(context, context->goal_vertex_id);
     if (node_index != -1) {
         *end_point = context->goal_position;
-        *(uint32_t *)(out_result + 0x10) = context->goal_vertex_id;
-        *(float *)(out_result + 0x14) = 0.0f;
+        result->end_surface_index = (int32_t)context->goal_vertex_id;
+        result->remaining_distance = 0.0f;
     } else {
         if (!(context->best_cost < context->goal_cost)) {
             return 0;
         }
         node_index = context->best_node;
         *end_point = context->best_position;
-        *(uint32_t *)(out_result + 0x10) = context->nodes[node_index].vertex_id;
-        *(float *)(out_result + 0x14) = context->best_cost;
+        result->end_surface_index = (int32_t)context->nodes[node_index].vertex_id;
+        result->remaining_distance = context->best_cost;
     }
     if (node_index == -1) {
         return 0;
@@ -671,19 +742,19 @@ uint8_t PathFinder::reconstruct_path(uint8_t *out_result)
     if (!halo::ai::ai_navigate_around_obstacles(context, simplified_count, simplified, &final_count, final_waypoints, &valid)) {
         return 0;
     }
-    out_result[0x18] = valid;
-    out_result[0x19] = (uint8_t)final_count;
-    out_result[0] = 1;
-    out_result[0x1a] = 0;
-    memcpy(out_result + 0x1c, final_waypoints, (size_t)final_count * sizeof(path_find_waypoint));
-    if (out_result[0x18]) {
-        path_find_waypoint *last = (path_find_waypoint *)(out_result + 0x1c) + ((int8_t)out_result[0x19] - 1);
+    result->valid = valid;
+    result->waypoint_count = (int8_t)final_count;
+    result->found = 1;
+    result->unknown_1a[0] = 0;
+    memcpy(result->waypoints, final_waypoints, (size_t)final_count * sizeof(path_find_waypoint));
+    if (result->valid) {
+        path_find_waypoint *last = result->waypoints + (result->waypoint_count - 1);
 
         *end_point = last->position;
-        *(int32_t *)(out_result + 0x10) = last->surface_index;
-        *(float *)(out_result + 0x14) = halo::math::vector3d_distance(context->goal_position, *end_point);
+        result->end_surface_index = last->surface_index;
+        result->remaining_distance = halo::math::vector3d_distance(context->goal_position, *end_point);
     }
-    return out_result[0];
+    return result->found;
 }
 
 namespace {
@@ -723,7 +794,7 @@ static uint8_t path_find_search(path_find_context *context)
                 break;
             }
         }
-        edge_count = halo::ai::path_find_gather_adjacent_edges((void *)(uintptr_t)context->structure_bsp, node->vertex_id, edges);
+        edge_count = halo::ai::path_find_gather_adjacent_edges(halo::ai::structure_bsp_of(*context), node->vertex_id, edges);
         for (e = 0; e < edge_count; e++) {
             path_find_adjacent_edge *edge = &edges[e];
             uint8_t passable = (uint8_t)((uint32_t)edge->edge_id != (uint32_t)node->previous_vertex_id);
@@ -744,13 +815,11 @@ static uint8_t path_find_search(path_find_context *context)
                 passable = 0;
             }
             if (request->ignores_glass == 0 && (edge->flag & 0x80) != 0) {
-                uint8_t *map = (uint8_t *)(uintptr_t)context->structure_bsp;
-                uint8_t *record = *(uint8_t **)(*(uint8_t **)(map + 0xb4) + 0x40) + edge->edge_id * 12;
+                ModelCollisionGeometryBSPSurface *record = bsp_surface(map_collision_bsp(halo::ai::structure_bsp_of(*context)), edge->edge_id);
 
-                if ((record[8] & 8) != 0) {
-                    uint32_t bit = record[9];
-                    uint32_t word = *(uint32_t *)(breakable_surface_state + 1 +
-                        ((bit >> 5) + halo::scenario::globals().structure_bsp_index * 8) * 4);
+                if ((record->flags & 8) != 0) {
+                    uint32_t bit = (uint8_t)record->breakable_surface;
+                    uint32_t word = breakable_surface_state_typed->active[halo::scenario::globals().structure_bsp_index][bit >> 5];
 
                     if ((word & (1u << (bit & 0x1f))) == 0) {
                         continue; // 0x43aa82: the glass is still intact
@@ -822,7 +891,7 @@ static uint8_t path_find_search(path_find_context *context)
             }
 
             // 0x43aced: the vertex hash
-            slot = (int16_t)((edge->edge_id & 0x1ff) << 3);
+            slot = (int16_t)((edge->edge_id & k_vertex_hash_bucket_mask) << 3);
             while (context->vertex_hash[slot] != -1) {
                 path_find_node *existing = &context->nodes[context->vertex_hash[slot]];
 
@@ -834,13 +903,13 @@ static uint8_t path_find_search(path_find_context *context)
                     }
                     break;
                 }
-                slot = (int16_t)((slot + 1) & 0xfff);
+                slot = (int16_t)((slot + 1) & k_vertex_hash_slot_mask);
             }
             if (index == -2) {
                 continue;
             }
             if (index == -1) {
-                if (context->node_count >= 0x400) {
+                if (context->node_count >= k_path_node_capacity) {
                     continue;
                 }
                 index = context->node_count++;
@@ -863,7 +932,7 @@ static uint8_t path_find_search(path_find_context *context)
             if (next->heap_index != -1) {
                 context->heap[next->heap_index].key = (int16_t)key;
                 halo::ai::path_find_heap_sift_up(context, next->heap_index);
-            } else if (context->heap_count < 0x400) {
+            } else if (context->heap_count < k_path_node_capacity) {
                 int16_t heap_slot = context->heap_count++;
 
                 context->heap[heap_slot].key = (int16_t)key;
@@ -876,7 +945,7 @@ static uint8_t path_find_search(path_find_context *context)
                 float distance = goal_distance;
 
                 if (distance < 4.0f) {
-                    distance = halo::ai::path_find_vertex_distance((ScenarioStructureBSP *)(uintptr_t)context->structure_bsp,
+                    distance = halo::ai::path_find_vertex_distance(halo::ai::structure_bsp_of(*context),
                         edge->edge_id, &context->goal_position, &best_point);
                 }
                 if (distance < context->best_cost) {
@@ -909,7 +978,7 @@ uint8_t PathFinder::run()
 
     context->node_count = 0;
     context->heap_count = 1;
-    for (i = 0; i < 0x1000; i++) {
+    for (i = 0; i < k_vertex_hash_slot_count; i++) {
         context->vertex_hash[i] = -1;
     }
     context->best_node = -1;
@@ -989,7 +1058,7 @@ void PathFinder::simplify_waypoints(int16_t count, path_find_waypoint *waypoints
 {
     path_find_context * context = ptr;
     path_find_request *request = (path_find_request *)context;
-    void *map = (void *)(uintptr_t)context->structure_bsp;
+    void *map = halo::ai::structure_bsp_of(*context);
     uint8_t ignore_permission = request->ignores_glass;
     real_point3d current;
     int32_t current_surface;
@@ -1070,12 +1139,9 @@ void PathFinder::simplify_waypoints(int16_t count, path_find_waypoint *waypoints
                 }
             }
             {
-                uint8_t *bsp = *(uint8_t **)((uint8_t *)map + 0xb4);
-                uint32_t plane = *(uint32_t *)(*(uint8_t **)(bsp + 0x40) + current_surface * 12) & 0x7fffffff;
-
                 entry = &out_waypoints[emitted++];
                 halo::math::decal_plane_solve_third_axis(&entry->position, 1, 2,
-                    (real_plane3d *)(*(uint8_t **)(bsp + 0x10) + plane * 16), *((real_point2d *)&current));
+                    bsp_surface_plane(map_collision_bsp(map), current_surface), *((real_point2d *)&current));
                 entry->surface_index = current_surface;
             }
             if (emitted >= 4) {
@@ -1109,7 +1175,7 @@ uint8_t PathFindGeometry::test_direct_reachability(const real_point3d *point_a, 
         delta.i = point_a->x - point_b->x;
         delta.j = point_a->y - point_b->y;
         delta.k = point_a->z - point_b->z;
-        hit = halo::physics::collision_bsp_query_segment_init(1, &result, *(ModelCollisionGeometryBSP **)((uint8_t *)context + 0xb4),
+        hit = halo::physics::collision_bsp_query_segment_init(1, &result, map_collision_bsp(context),
             0, 0, const_cast<real_point3d *>(point_b), &delta, 3.4028235e+38f);
         fraction = result.t;
     }
@@ -1244,56 +1310,7 @@ uint8_t PathFindGeometry::test_segment_unobstructed(void *map, real_point3d *poi
     return 1;
 }
 
-namespace {
 
-static_assert(offsetof(ModelCollisionGeometryBSP, planes) == 0x0c);
-static_assert(offsetof(ModelCollisionGeometryBSP, surfaces) == 0x3c);
-static_assert(offsetof(ModelCollisionGeometryBSP, edges) == 0x48);
-static_assert(offsetof(ModelCollisionGeometryBSP, vertices) == 0x54);
-static_assert(sizeof(ModelCollisionGeometryBSPSurface) == 12);
-static_assert(sizeof(ModelCollisionGeometryBSPEdge) == 0x18);
-static_assert(sizeof(ModelCollisionGeometryBSPVertex) == 16);
-
-/** Word indices into a collision bsp edge record viewed as int32_t[6]. */
-enum bsp_edge_word : int32_t {
-    k_edge_start_vertex = 0,
-    k_edge_end_vertex = 1,
-    k_edge_forward_edge = 2,
-    k_edge_reverse_edge = 3,
-    k_edge_left_surface = 4,
-    k_edge_right_surface = 5,
-};
-
-constexpr uint32_t k_bsp_plane_index_mask = 0x7fffffff;
-
-template <typename T>
-inline T *bsp_reflexive_at(const TagReflexive &reflexive, int32_t index)
-{
-    return reinterpret_cast<T *>(static_cast<uintptr_t>(reflexive.pointer)) + index;
-}
-
-inline ModelCollisionGeometryBSPSurface *bsp_surface(const void *bsp, int32_t index)
-{
-    return bsp_reflexive_at<ModelCollisionGeometryBSPSurface>(static_cast<const ModelCollisionGeometryBSP *>(bsp)->surfaces, index);
-}
-
-inline int32_t *bsp_edge(const void *bsp, int32_t index)
-{
-    return reinterpret_cast<int32_t *>(bsp_reflexive_at<ModelCollisionGeometryBSPEdge>(static_cast<const ModelCollisionGeometryBSP *>(bsp)->edges, index));
-}
-
-inline float *bsp_vertex(const void *bsp, int32_t index)
-{
-    return reinterpret_cast<float *>(bsp_reflexive_at<ModelCollisionGeometryBSPVertex>(static_cast<const ModelCollisionGeometryBSP *>(bsp)->vertices, index));
-}
-
-inline real_plane3d *bsp_surface_plane(const void *bsp, int32_t surface_index)
-{
-    return reinterpret_cast<real_plane3d *>(bsp_reflexive_at<ModelCollisionGeometryBSPPlane>(
-        static_cast<const ModelCollisionGeometryBSP *>(bsp)->planes, static_cast<int32_t>(bsp_surface(bsp, surface_index)->plane & k_bsp_plane_index_mask)));
-}
-
-}
 
 /**
  * Behaviour of path find trace bsp boundary, moved unchanged from the original free function.
@@ -1302,9 +1319,9 @@ inline real_plane3d *bsp_surface_plane(const void *bsp, int32_t surface_index)
  */
 uint8_t PathFindGeometry::trace_bsp_boundary(void *map, uint8_t ignore_permission, real_point3d *start, int32_t start_surface, real_point3d *end, int32_t target_surface, path_find_boundary_crossing *out_result)
 {
-    uint8_t *bsp = *(uint8_t **)((uint8_t *)map + 0xb4);
-    uint8_t *walkable = *(uint8_t **)((uint8_t *)map + 0x1e8);
-    uint32_t *broken = (uint32_t *)(breakable_surface_state + 1 + halo::scenario::globals().structure_bsp_index * 32);
+    ModelCollisionGeometryBSP *bsp = map_collision_bsp(map);
+    uint8_t *walkable = map_surface_permissions(map);
+    uint32_t *broken = breakable_surface_state_typed->active[halo::scenario::globals().structure_bsp_index];
     float dx = end->x - start->x;
     float dy = end->y - start->y;
     uint8_t retried = 0;
@@ -1444,9 +1461,9 @@ static uint8_t path_find_surface_passable(const void *bsp, uint8_t *walkable, ui
  */
 uint8_t PathFindGeometry::trace_cluster_boundary(void *map, int32_t edge_index, real_point2d *origin, float radius, uint8_t side, uint8_t ignore_permission, real_point2d *out_point)
 {
-    uint8_t *bsp = *(uint8_t **)((uint8_t *)map + 0xb4);
-    uint8_t *walkable = *(uint8_t **)((uint8_t *)map + 0x1e8);
-    uint32_t *broken = (uint32_t *)(breakable_surface_state + 1 + halo::scenario::globals().structure_bsp_index * 32);
+    ModelCollisionGeometryBSP *bsp = map_collision_bsp(map);
+    uint8_t *walkable = map_surface_permissions(map);
+    uint32_t *broken = breakable_surface_state_typed->active[halo::scenario::globals().structure_bsp_index];
     int32_t first_pivot = -1;
     int32_t previous = -1;
     int32_t current = edge_index;
@@ -1548,8 +1565,8 @@ static uint8_t path_find_surface_passable_2(const uint8_t *surface_permissions, 
  */
 uint8_t PathFindGeometry::trace_cluster_boundary_from_vertex(void *context, uint8_t ignore_permission, real_point2d *point, int32_t start_index, real_vector2d *direction, float max_distance, path_find_boundary_trace_result *out)
 {
-    ModelCollisionGeometryBSP *bsp = *(ModelCollisionGeometryBSP **)((uint8_t *)context + 0xb4);
-    uint8_t *surface_permissions = *(uint8_t **)((uint8_t *)context + 0x1e8);
+    ModelCollisionGeometryBSP *bsp = map_collision_bsp(context);
+    uint8_t *surface_permissions = map_surface_permissions(context);
     uint32_t *intact_row = breakable_surface_state_typed->active[halo::scenario::globals().structure_bsp_index];
     int32_t surface_index = start_index;
     collision_bsp_boundary_clip clip;
@@ -1600,18 +1617,12 @@ uint8_t PathFindGeometry::trace_cluster_boundary_from_vertex(void *context, uint
  */
 uint8_t PathFindGeometry::validate_and_record_goal(ai_path_candidate_goal *candidate, void *context, uint32_t point_b, uint32_t unused_c, const real_point3d *position)
 {
-    uint32_t *clear;
-    int32_t i;
     real_point3d reached;
     uint8_t reachable;
 
     (void)unused_c;
 
-    clear = (uint32_t *)candidate;
-    for (i = 0x17; i != 0; i = i - 1) {
-        *clear = 0;
-        clear = clear + 1;
-    }
+    memset(candidate, 0, sizeof(*candidate));
 
     if (halo::ai::path_find_test_direct_reachability(position, (const real_point3d *)point_b, &reached, context,
                                            &reachable) != 0) {
@@ -1643,7 +1654,7 @@ float PathFindGeometry::vertex_distance(ScenarioStructureBSP *structure_bsp, int
     float dx, dy, dz;
 
     halo::physics::collision_bsp_surface_closest_edge_point_2d(collision_bsp, surface, 2, 1, (real_point2d *)point_a, &closest);
-    halo::math::decal_plane_solve_third_axis(out_point, 1, 2, &planes[surfaces[surface].plane & 0x7fffffff], closest);
+    halo::math::decal_plane_solve_third_axis(out_point, 1, 2, &planes[surfaces[surface].plane & k_bsp_plane_index_mask], closest);
 
     dx = out_point->x - point_a->x;
     dy = out_point->y - point_a->y;

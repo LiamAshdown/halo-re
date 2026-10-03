@@ -24,7 +24,7 @@ public:
  */
 class AiObjects {
 public:
-    static uint32_t type_get_morale_grade(int16_t actor_type_index, uint8_t *command_reference);
+    static uint32_t type_get_morale_grade(int16_t command_list_index, const actor_squad_action_state *action);
     static void clear_object_references(datum_index object_index);
     static ai_object_attention_record * object_attention_find_or_create(datum_index object_index);
     static void object_attention_remove(datum_index object_index);

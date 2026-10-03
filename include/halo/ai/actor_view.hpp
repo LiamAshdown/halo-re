@@ -107,13 +107,13 @@ public:
     uint8_t select_facing_target_prop(uint8_t require_trust, uint8_t skip_lane_test, actor_recognition_scan_result *out_result, uint8_t *out_in_front);
     int16_t select_firing_position(actor_firing_position_query *query, actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context, uint8_t *out_path_ok);
     int32_t select_move_position(int16_t select_mode, int32_t position_index, uint8_t *direction_flag);
-    void select_stance_offset_pair(uint8_t *base, uint8_t **out_a, uint8_t **out_b);
+    void select_stance_offset_pair(ActorVariant *base, actor_burst_parameters **out_a, actor_burst_scale **out_b);
     void set_combat_alert_flag(uint8_t new_flag);
     void set_flag_bit1();
     void set_mode(int32_t mode, void *mode_data);
     void set_override_target(uint8_t enable, datum_index override_target);
     void set_units_active(uint8_t dormant);
-    uint8_t should_hold_position(uint8_t *definition);
+    uint8_t should_hold_position(const ActorVariant *definition);
     uint8_t should_throw_grenade(char force);
     void snapshot_orientation();
     uint32_t solve_grenade_lob(real_point3d *point);
@@ -125,8 +125,8 @@ public:
     void swarm_for_each_component(char reset_first, actor_swarm_member_callback callback, uint32_t callback_extra, actor_mode_obey_data *obey);
     void swarm_for_each_component_thunk();
     uint8_t target_data_acquire(datum_index object_index, datum_index owner_reference, datum_index pair_reference);
-    void target_data_refresh(uint32_t target_prop_index, void *reference, char force, char allow_reassign);
-    void target_evaluate_squad_link(datum_index object_index, int16_t *candidates_a, int16_t *candidates_b);
+    void target_data_refresh(uint32_t target_prop_index, actor_firing_positions *reference, char force, char allow_reassign);
+    void target_evaluate_squad_link(datum_index object_index, ai_target_candidate_list *candidates_a, ai_target_candidate_list *candidates_b);
     uint16_t target_get_priority_class(datum_index target_prop_index);
     uint8_t target_has_conflicting_neighbor(datum_index target_prop_index);
     uint8_t target_is_visible_or_object_count_ok(int16_t kind);
@@ -135,7 +135,7 @@ public:
     void target_reset_shot_counters();
     void target_scan_potential_targets();
     uint8_t target_update_active_flag(datum_index target_prop_index);
-    void target_update_tracking_speed(datum_index target_prop_index, void *scratch);
+    void target_update_tracking_speed(datum_index target_prop_index, actor_firing_positions *scratch);
     uint8_t try_grenade_evasion(uint8_t allow_pain_reaction, uint8_t use_alt_base);
     void type_crew_update();
     void type_elite_update();
@@ -238,8 +238,8 @@ public:
     static char squad_action_execute(actor_command_aim *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, actor_squad_action_state *state);
     static uint8_t squad_action_is_complete(actor_command_aim *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, actor_squad_action_state *state);
     static void squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_object_index, datum_index other_object_index);
-    static uint8_t take_danger_escape(real_vector3d *path_delta, datum_index actor_index, uint32_t escape, uint32_t extra, float distance);
-    static uint16_t target_hearing_check(void *record, int16_t stance, datum_index actor_index, void *target_ref, int16_t gate, real_point3d *listener_position);
+    static uint8_t take_danger_escape(real_vector3d *path_delta, datum_index actor_index, uint16_t direction_kind, float step_distance, float distance);
+    static uint16_t target_hearing_check(const bsp_leaf_reference *record, int16_t stance, datum_index actor_index, const actor_firing_positions *target_ref, int16_t gate, real_point3d *listener_position);
     static uint8_t target_is_close_and_recognized(datum_index object_index, uint32_t param_2, datum_index actor_index);
     static uint8_t targets_share_descriptor(datum_index actor_a, datum_index actor_b);
     static uint8_t toggle_active_state(uint8_t activate, datum_index actor_index);

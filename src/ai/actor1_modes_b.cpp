@@ -38,7 +38,7 @@ void halo::ai::charge_mode::enter()
     actor *act = halo::ai::actor_at(actor_index);
 
     if (act->mode_data.charge.stage == 4 &&
-        *(int16_t *)((uint8_t *)halo::ai::actor_get_actor_definition(actor_index) + 0x156) == 3 &&
+        reinterpret_cast<ActorVariant *>(halo::ai::actor_get_actor_definition(actor_index))->special_fire_situation == 3 &&
         act->special_fire_strafe_cooldown > 0) {
         act->special_fire_strafe_cooldown -= 1;
     }
@@ -154,7 +154,7 @@ uint8_t halo::ai::charge_mode::process()
             } else {
                 float range_lo;
                 float range_hi;
-                uint8_t *weapon;
+                Weapon *weapon;
 
                 if (act->berserking) {
                     range_hi = definition->berserk_firing_ranges[1];
@@ -163,9 +163,9 @@ uint8_t halo::ai::charge_mode::process()
                     range_hi = definition->desired_combat_range[1];
                     range_lo = definition->desired_combat_range[0];
                 }
-                weapon = (uint8_t *)halo::ai::actor_get_threat_weapon_definition(actor_index);
-                if (weapon != 0 && *(float *)(weapon + 0x40c) > 0.0f && !(range_lo > *(float *)(weapon + 0x40c))) {
-                    range_lo = *(float *)(weapon + 0x40c);
+                weapon = (Weapon *)halo::ai::actor_get_threat_weapon_definition(actor_index);
+                if (weapon != 0 && weapon->minimum_target_range > 0.0f && !(range_lo > weapon->minimum_target_range)) {
+                    range_lo = weapon->minimum_target_range;
                 }
                 if (md->close_in) {
                     if (range_lo > target->distance) {
@@ -195,11 +195,11 @@ uint8_t halo::ai::charge_mode::process()
         uint8_t have_along = 0;
 
         if (target->distance < 0.8f) {
-            direction = *(real_vector3d *)((uint8_t *)target + 0xe0);
+            direction = *(real_vector3d *)&target->direction;
             strike = 1;
         } else {
-            real_vector3d *velocity = (real_vector3d *)((uint8_t *)target + 0xd4);
-            real_vector3d *facing = (real_vector3d *)((uint8_t *)target + 0xe0);
+            real_vector3d *velocity = (real_vector3d *)&target->velocity;
+            real_vector3d *facing = (real_vector3d *)&target->direction;
             float speed = halo::math::vector3d_length(*velocity);
             float factor = 0.0f;
             real_point3d lead;
@@ -487,13 +487,13 @@ void halo::ai::fight_mode::tick()
     using namespace c_actor_mode_fight_tick;
     uint32_t actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
-    int16_t countdown = *(int16_t *)&actor->mode_data;
+    int16_t countdown = actor->mode_data.fight.position_hold_countdown;
 
     if (countdown <= 0 || actor->movement_completed == 0) {
         return;
     }
     countdown = (int16_t)(countdown - 1);
-    *(int16_t *)&actor->mode_data = countdown;
+    actor->mode_data.fight.position_hold_countdown = countdown;
     if (countdown == 0 && *(uint16_t *)&actor->firing_position_index != halo::k_word_none && actor->firing_position_without_path == 0) {
         halo::ai::actor_push_recognition_entry(actor_index, actor->firing_position_index, 0);
     }
@@ -769,7 +769,7 @@ uint8_t halo::ai::flee_mode::process()
 
     kind = mode_data->panic;
     if (kind >= 9 && kind <= 12 && act->unit_index != k_datum_index_none) {
-        uint8_t *unit = (uint8_t *)halo::ai::object_at(act->unit_index);
+        unit_object *unit = (unit_object *)halo::ai::object_at(act->unit_index);
 
         if (((unit_object *)unit)->unit.current_speech.priority <= 0) {
             mode_data->announced = 0;

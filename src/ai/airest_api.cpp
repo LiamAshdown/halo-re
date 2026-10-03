@@ -55,9 +55,9 @@ void ai_actor_link_to_unassigned_list(datum_index actor_index)
  *
  * @address 0x434ed0
  */
-uint32_t ai_actor_type_get_morale_grade(int16_t actor_type_index, uint8_t *command_reference)
+uint32_t ai_actor_type_get_morale_grade(int16_t command_list_index, const actor_squad_action_state *action)
 {
-    return halo::ai::AiObjects::type_get_morale_grade(actor_type_index, command_reference);
+    return halo::ai::AiObjects::type_get_morale_grade(command_list_index, action);
 }
 
 /**
@@ -1235,7 +1235,7 @@ void ai_release_actors_filtered(datum_index encounter_index, int32_t platoon_ind
  *
  * @address 0x42ae50
  */
-int32_t ai_release_inactive_encounters(char *buffer, uint8_t *has_more, int16_t *state)
+int32_t ai_release_inactive_encounters(char *buffer, uint8_t *has_more, ai_release_state *state)
 {
     return halo::ai::Encounters::release_inactive_encounters(buffer, has_more, state);
 }
@@ -1975,7 +1975,7 @@ void encounters_update_activation()
  *
  * @address 0x41c2c0
  */
-datum_index object_find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index, char stamp_group)
+datum_index object_find_nearest_squad_member(datum_index actor_index, const actor_firing_positions *reference, datum_index exclude_index, char stamp_group)
 {
     return halo::ai::Encounters::find_nearest_squad_member(actor_index, reference, exclude_index, stamp_group);
 }

@@ -89,13 +89,13 @@ uint8_t halo::ai::alert_mode::process()
         return 0;
     }
     if (actor->encounter_index != halo::k_dword_none) {
-        uint8_t *encounter = (uint8_t *)halo::scenario::globals().scenario->encounters.pointer + (actor->encounter_index & halo::k_slot_mask) * 0xb0;
-        uint8_t *squad = *(uint8_t **)(encounter + 0x84) + actor->squad_index * 0xe8;
+        ScenarioEncounter *encounter = &halo::ai::reflexive_data<ScenarioEncounter>(halo::scenario::globals().scenario->encounters)[actor->encounter_index & halo::k_slot_mask];
+        ScenarioSquad *squad = &halo::ai::reflexive_data<ScenarioSquad>(encounter->squads)[actor->squad_index];
         int16_t next = actor->mode_data.alert.next_position;
 
-        if (next >= 0 && next < *(int32_t *)(squad + 0xc4)) {
-            uint8_t *position = *(uint8_t **)(squad + 0xc8) + next * 0x50;
-            float wait = halo::math::random_real_range(*(float *)(position + 0x14), *(float *)(position + 0x18)) * 30.0f;
+        if (next >= 0 && next < (int32_t)squad->move_positions.count) {
+            ScenarioMovePosition *position = &halo::ai::reflexive_data<ScenarioMovePosition>(squad->move_positions)[next];
+            float wait = halo::math::random_real_range(position->time[0], position->time[1]) * 30.0f;
 
             actor->mode_data.alert.current_position = actor->mode_data.alert.next_position;
             actor->mode_data.alert.next_position = -1;
@@ -186,13 +186,13 @@ void halo::ai::alert_mode::tick()
         return;
     }
     if (actor->mode_data.alert.animation_index != -1) {
-        uint8_t *animation = (uint8_t *)halo::scenario::globals().scenario->ai_animation_references.pointer + actor->mode_data.alert.animation_index * 0x3c;
-        datum_index graph = *(datum_index *)(animation + 0x2c);
+        ScenarioAIAnimationReference *animation = &halo::ai::reflexive_data<ScenarioAIAnimationReference>(halo::scenario::globals().scenario->ai_animation_references)[actor->mode_data.alert.animation_index];
+        datum_index graph = halo::ai::tag_handle(animation->animation_graph);
 
         if (graph == k_datum_index_none) {
             object *unit = (object *)halo::ai::object_at(actor->unit_index);
 
-            graph = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[unit->definition_tag & halo::k_slot_mask].data + 0x44);
+            graph = halo::ai::tag_handle(halo::ai::tag_data<Object>(unit->definition_tag)->animation_graph);
         }
         halo::units::unit_start_user_animation(actor->unit_index, graph, (const char *)animation, 1);
     }
@@ -224,7 +224,7 @@ void halo::ai::alert_mode::update()
     struct actor *actor = halo::ai::actor_at(actor_index);
 
     actor->look_posture = 1;
-    if (*(uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data & 0x40) {
+    if (halo::ai::flag_set(halo::ai::tag_data<Actor>(actor->actor_definition_tag)->flags, halo::tags::actor_tag_flag::crouch_when_not_in_combat)) {
         actor->crouch_decision[0] = 1;
         actor->crouch_decision[1] = 1;
     }
@@ -904,7 +904,7 @@ void halo::ai::search_mode::tick()
     } else {
         act->mode_data.search.unknown_03 = 0;
         if ((static_cast<uint8_t>(actor_tag->flags) & 2) && act->mode_data.search.stage == 0 && act->target_combat_status == 5 &&
-            (int8_t)((uint8_t *)halo::ai::globals().prop_data->data + (act->target_unit_index & halo::k_slot_mask) * k_prop_size)[0x121] <= 2) {
+            (int8_t)halo::ai::prop_at(act->target_unit_index)->distance_class <= 2) {
             act->mode_data.search.unknown_03 = 1;
         }
     }

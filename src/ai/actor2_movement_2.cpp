@@ -130,7 +130,7 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
 
         for (j = 0; j < 2; j++) {
             hit[j] = halo::ai::actor_movement_test_obstacle_ray(&elevation, actor_avoidance_samples_a[k * 2 + j], &end_point,
-                                                      &context, &ray_distance[j], (uint8_t *)act + 0x5c8 + k * 2 + j);
+                                                      &context, &ray_distance[j], &act->avoidance_ray_clear_ticks[k * 2 + j]);
         }
         for (j = 1; j >= 0; j--) {
             float weight = actor_avoidance_ray_weights[j];
@@ -139,7 +139,7 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
                 if (blocked) {
                     acc += 1.0f * weight;
                 } else {
-                    uint8_t clear_ticks = ((uint8_t *)act)[0x5c8 + k * 2 + j];
+                    uint8_t clear_ticks = act->avoidance_ray_clear_ticks[k * 2 + j];
                     float v = 0.0f;
 
                     if (clear_ticks >= 75) {
@@ -408,7 +408,7 @@ static auto &global_forward2d_pointer = halo::link::ref<const real_vector2d *>(h
 void ActorView::movement_update()
 {
     using namespace actor_movement_update_local;
-    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & 0xffffu];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     Actor *actor_def = halo::ai::tag_data<Actor>(a->actor_definition_tag);
 
     uint8_t sidestep_mode = 0;

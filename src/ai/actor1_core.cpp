@@ -1,3 +1,5 @@
+#include "halo/objects/flags.hpp"
+#include "halo/core/flags.hpp"
 #include "halo/ai/actor_core.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -106,7 +108,7 @@ void halo::ai::actor_ref::attach_to_unit(datum_index unit_index)
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
     object *unit_object = header->data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_object);
 
     if (unit->actor_index == actor_index) {
         return;
@@ -132,7 +134,7 @@ void halo::ai::actor_ref::attach_to_unit(datum_index unit_index)
     }
     self->team = unit_object->owner_team;
 
-    if (*(int16_t *)((uint8_t *)unit_object + 0xbe) > 99) {
+    if (unit_object->permutation_index > 99) {
         self->counts_toward_encounter = 1;
         if (self->encounter_index != (datum_index)k_datum_index_none) {
             encounter *enc = &((encounter *)halo::ai::globals().encounter_data->data)[self->encounter_index & halo::k_slot_mask];
@@ -166,7 +168,7 @@ void actor_attach_to_unit(datum_index actor_index, datum_index unit_index)
 }
 
 namespace c_actor_classify_communication_object_type {
-static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 }
 
 
@@ -185,7 +187,7 @@ int32_t halo::ai::actor_ref::classify_communication_object_type()
     int32_t result;
 
     a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    flags = *(uint16_t *)((uint8_t *)actor_type_procs[a->type] + 4);
+    flags = actor_type_procs[a->type]->flags;
 
     result = -1;
     if ((flags & 2) != 0) {
@@ -465,7 +467,7 @@ void halo::ai::actor_ref::dispatch_squad_order(datum_index prop_index, const act
 
         prop *p = &((prop *)halo::ai::globals().prop_data->data)[prop_index & halo::k_slot_mask];
         if (p->owner_actor_index != (datum_index)k_datum_index_none) {
-            datum_index ordered = *(datum_index *)((uint8_t *)order + 0x18);
+            datum_index ordered = order->squad_prop_index;
             prop *other = (prop *)halo::memory::datum_get(ordered, halo::ai::globals().prop_data);
 
             if (other != 0) {
@@ -485,7 +487,7 @@ void actor_dispatch_squad_order(datum_index prop_index, const actor_squad_order_
 }
 
 namespace c_actor_dispatch_type_vtable_0x10 {
-static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 }
 
 
@@ -500,7 +502,7 @@ void halo::ai::actor_ref::dispatch_type_vtable_0x10()
     using namespace c_actor_dispatch_type_vtable_0x10;
     datum_index actor_index = datum;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    actor_type_table_entry *entry = (actor_type_table_entry *)actor_type_procs[self->type];
+    actor_type_table_entry *entry = actor_type_procs[self->type];
 
     if (entry->proc_10 != 0) {
         ((void (*)(datum_index))entry->proc_10)(actor_index);
@@ -515,7 +517,7 @@ void actor_dispatch_type_vtable_0x10(datum_index actor_index)
 }
 
 namespace c_actor_dispatch_type_vtable_0x18 {
-static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 }
 
 
@@ -530,7 +532,7 @@ void halo::ai::actor_ref::dispatch_type_vtable_0x18()
     using namespace c_actor_dispatch_type_vtable_0x18;
     datum_index actor_index = datum;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    actor_type_table_entry *entry = (actor_type_table_entry *)actor_type_procs[self->type];
+    actor_type_table_entry *entry = actor_type_procs[self->type];
 
     ((void (*)(datum_index))entry->proc_18)(actor_index);
 }
@@ -543,7 +545,7 @@ void actor_dispatch_type_vtable_0x18(datum_index actor_index)
 }
 
 namespace c_actor_dispatch_type_vtable_0x1c {
-static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 }
 
 
@@ -558,7 +560,7 @@ void halo::ai::actor_ref::dispatch_type_vtable_0x1c(uint32_t a, uint32_t b, uint
     using namespace c_actor_dispatch_type_vtable_0x1c;
     datum_index actor_index = datum;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    actor_type_table_entry *entry = (actor_type_table_entry *)actor_type_procs[self->type];
+    actor_type_table_entry *entry = actor_type_procs[self->type];
 
     if (entry->proc_1c != 0) {
         ((void (*)(datum_index, uint32_t, uint32_t, uint32_t))entry->proc_1c)(actor_index, a, b, c);
@@ -747,7 +749,7 @@ uint8_t halo::ai::actor_ref::get_ranged_attack_vector(datum_index target_prop_in
     }
 
     unit_obj = halo::ai::object_at(target->object_index);
-    unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit = halo::units::unit_data_of(unit_obj);
     *out_vector = unit->aiming_vector;
 
     if (target->shooting == 0 && (int8_t)self->tally.unit_props > 0) {
@@ -798,7 +800,7 @@ uint8_t halo::ai::actor_ref::handle_death(uint8_t param_2, uint8_t param_3)
     using namespace c_actor_handle_death;
     datum_index actor_index = datum;
     actor *self;
-    uint8_t local_data[0x30];
+    actor_mode_flee_data local_data;
     int32_t previous_target;
 
     self = halo::ai::actor_at(actor_index);
@@ -809,23 +811,21 @@ uint8_t halo::ai::actor_ref::handle_death(uint8_t param_2, uint8_t param_3)
 
     previous_target = self->target_unit_index;
 
-    for (uint32_t i = 0; i < sizeof(local_data) / 4; i++) {
-        ((uint32_t *)local_data)[i] = 0;
-    }
-    *(int16_t *)(local_data + 0xc) = 0;
-    *(int16_t *)(local_data + 0) = 0;
-    *(int16_t *)(local_data + 8) = -1;
-    local_data[4] = param_2;
-    local_data[5] = param_3;
-    *(int32_t *)(local_data + 0x1c) = previous_target;
+    memset(&local_data, 0, sizeof(local_data));
+    local_data.panic = 0;
+    local_data.countdown_180 = 0;
+    local_data.destination = -1;
+    local_data.use_last_seen_position = param_2;
+    local_data.cover_flag = param_3;
+    local_data.reference = previous_target;
 
     if (previous_target != -1) {
         halo::ai::actor_consider_target_candidate(actor_index, (datum_index)previous_target);
     }
     if (self->swarm == 0) {
-        halo::ai::actor_check_melee_target_reachable(actor_index, reinterpret_cast<actor_mode_flee_data *>(local_data));
-        if (*(int16_t *)(local_data + 8) != -1) {
-            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::flee, local_data);
+        halo::ai::actor_check_melee_target_reachable(actor_index, &local_data);
+        if (local_data.destination != -1) {
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::flee, &local_data);
             return 1;
         }
     }
@@ -974,7 +974,7 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     object_header *header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
     object *unit_object = header->data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_object);
     datum_index new_component = (datum_index)k_datum_index_none;
 
     if (unit->swarm_actor_index == actor_index) {
@@ -1000,10 +1000,10 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
 
     unit->swarm_actor_index = actor_index;
     unit->swarm_next_unit_index = self->cluster_unit_index;
-    *(uint32_t *)((uint8_t *)unit_object + 0x200) = halo::k_dword_none;
+    unit->swarm_previous_unit_index = halo::k_dword_none;
     if (self->cluster_unit_index != (datum_index)k_datum_index_none) {
         object *head_object = halo::ai::object_at(self->cluster_unit_index);
-        *(uint32_t *)((uint8_t *)head_object + 0x200) = unit_index;
+        halo::units::unit_data_of(head_object)->swarm_previous_unit_index = unit_index;
     }
     self->cluster_unit_index = unit_index;
 
@@ -1063,8 +1063,7 @@ void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, dat
 
     if (self->swarm == 0) {
         object *unit_object = halo::ai::object_at(self->unit_index);
-        uint8_t *flags = (uint8_t *)unit_object + 0x106;
-        *flags |= use_alternate_flag == 0 ? 0x20 : 0x40;
+        unit_object->vitality_flags |= halo::to_bits(use_alternate_flag == 0 ? halo::objects::vitality_flag::unknown_20 : halo::objects::vitality_flag::unknown_40);
 
         if (suppress_release != 0) {
             return;
@@ -1074,13 +1073,12 @@ void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, dat
         datum_index unit_index = self->cluster_unit_index;
         while (unit_index != (datum_index)k_datum_index_none) {
             object *unit_object = halo::ai::object_at(unit_index);
-            uint8_t *flags = (uint8_t *)unit_object + 0x106;
-            *flags |= use_alternate_flag == 0 ? 0x20 : 0x40;
+            unit_object->vitality_flags |= halo::to_bits(use_alternate_flag == 0 ? halo::objects::vitality_flag::unknown_20 : halo::objects::vitality_flag::unknown_40);
 
             if (suppress_release == 0) {
                 halo::ai::actor_remove_from_unit_cluster(actor_index, unit_index);
             }
-            unit_index = *(datum_index *)((uint8_t *)unit_object + 0x1fc);
+            unit_index = halo::units::unit_data_of(unit_object)->swarm_next_unit_index;
         }
         if (suppress_release != 0) {
             return;

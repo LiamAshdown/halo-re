@@ -91,14 +91,15 @@ namespace c_actor_died_unit_grenade_count_mod {
  *
  * @address 0x428d35
  */
-void halo::ai::grenade_ops::died_unit_grenade_count_mod(object *unit_object, const uint8_t *actor_tag_data, datum_index weapon_object_index, datum_index actor_index, datum_index encounter_index)
+void halo::ai::grenade_ops::died_unit_grenade_count_mod(object *unit_object, const ActorVariant *actor_tag_data, datum_index weapon_object_index, datum_index actor_index, datum_index encounter_index)
 {
     using namespace c_actor_died_unit_grenade_count_mod;
-    *(int16_t *)((uint8_t *)unit_object + 0x31e) = 0;
+    halo::units::unit_data_of(unit_object)->grenade_counts[0] = 0;
+    halo::units::unit_data_of(unit_object)->grenade_counts[1] = 0;
 
     if (weapon_object_index != (datum_index)k_datum_index_none) {
-        float min_fraction = *(const float *)(actor_tag_data + 0x1d8);
-        float max_fraction = *(const float *)(actor_tag_data + 0x1dc);
+        float min_fraction = actor_tag_data->drop_weapon_loaded[0];
+        float max_fraction = actor_tag_data->drop_weapon_loaded[1];
 
         if (min_fraction > 0.0f || max_fraction > 0.0f) {
             halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
@@ -107,8 +108,8 @@ void halo::ai::grenade_ops::died_unit_grenade_count_mod(object *unit_object, con
         }
 
         {
-            int16_t min_count = *(const int16_t *)(actor_tag_data + 0x1e0);
-            int16_t max_count = *(const int16_t *)(actor_tag_data + 0x1e2);
+            int16_t min_count = actor_tag_data->drop_weapon_ammo[0];
+            int16_t max_count = actor_tag_data->drop_weapon_ammo[1];
 
             if (min_count > 0 || max_count > 0) {
                 int16_t count;

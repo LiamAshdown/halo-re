@@ -147,7 +147,7 @@ void ActorView::schedule_grenade_throw()
     struct actor *a = halo::ai::actor_at(actor_index);
     Actor *actor_tag;
     datum_index source;
-    uint8_t request[0x10];
+    actor_flee_source_reason request;
     datum_index prop;
     float delay;
     int32_t ticks;
@@ -159,14 +159,14 @@ void ActorView::schedule_grenade_throw()
     if (source == k_datum_index_none) {
         return;
     }
-    memset(request, 0, sizeof(request));
+    memset(&request, 0, sizeof(request));
     prop = halo::ai::actor_find_prop_for_object(source, actor_index);
     if (prop != k_datum_index_none) {
-        *(int16_t *)request = 1;
-        *(datum_index *)(request + 0x4) = prop;
+        request.code = 1;
+        request.payload.handle = prop;
     } else {
-        *(int16_t *)request = 3;
-        halo::units::unit_get_primary_eye_marker_position(source, (real_point3d *)(request + 0x4));
+        request.code = 3;
+        halo::units::unit_get_primary_eye_marker_position(source, &request.payload.point);
     }
     actor_tag = halo::ai::tag_data<Actor>(a->actor_definition_tag);
     if (!(a->awareness_level > 1) || a->vocalization_line > 8) {
@@ -175,7 +175,7 @@ void ActorView::schedule_grenade_throw()
     if (a->mode == halo::ai::actor_mode::obey && !a->mode_data.obey.allow_look) {
         return;
     }
-    if (*(int16_t *)request == 1 && halo::memory::datum_get(*(datum_index *)(request + 0x4), halo::ai::globals().prop_data) == 0) {
+    if (request.code == 1 && halo::memory::datum_get(request.payload.handle, halo::ai::globals().prop_data) == 0) {
         return;
     }
     delay = (a->awareness_level < 3 || a->combat_status == 0) ? 2.4f : 1.2f;
@@ -192,7 +192,7 @@ void ActorView::schedule_grenade_throw()
     a->vocalization_state = (int16_t)ticks;
     a->vocalization_line = 8;
     a->vocalization_variant = 5;
-    memcpy(&a->vocalization_source, request, 0x10);
+    a->vocalization_source = request;
 }
 
 namespace actor_should_throw_grenade_local {
@@ -257,8 +257,8 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
     using namespace actor_solve_grenade_lob_local;
     actor *self;
     ActorVariant *variant;
-    uint8_t *entry;
-    void *projectile_definition;
+    GlobalsGrenade *entry;
+    Projectile *projectile_definition;
     uint32_t projectile_tag;
     real_vector3d direction;
     real_vector3d velocity;
@@ -271,16 +271,16 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
     self = halo::ai::actor_at(actor_index);
     variant = halo::ai::tag_data<ActorVariant>(self->actor_variant_tag);
 
-    entry = (uint8_t *)global_globals->grenades.pointer + (int32_t)variant->grenade_type * 0x44;
-    projectile_definition = (void *)0;
-    if (entry != (uint8_t *)0) {
-        projectile_tag = *(uint32_t *)(entry + 0x40);
+    entry = &halo::ai::reflexive_data<GlobalsGrenade>(global_globals->grenades)[(int32_t)variant->grenade_type];
+    projectile_definition = nullptr;
+    if (entry != nullptr) {
+        projectile_tag = halo::ai::tag_handle(entry->projectile);
         if (projectile_tag != halo::k_dword_none) {
-            projectile_definition = halo::cache::globals().tag_instances[projectile_tag & halo::k_slot_mask].data;
+            projectile_definition = halo::ai::tag_data<Projectile>(projectile_tag);
         }
     }
 
-    if (halo::ai::projectile_get_aiming_vector(&self->grenade_impact_point, 0, (Projectile *)projectile_definition,
+    if (halo::ai::projectile_get_aiming_vector(&self->grenade_impact_point, 0, projectile_definition,
                      point, 0, 0, &self->grenade_throw_speed, self->grenade_high_arc[0], &direction,
                      &speed, &arc, 0, &flat) == 0) {
         return 0;
@@ -304,10 +304,10 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
     velocity.k = direction.k * speed;
     gravity = (flat != 0) ? 0.0f
                           : -(halo::physics::globals().gravity *
-                              *(float *)((uint8_t *)projectile_definition + 0x1cc));
+                              projectile_definition->air_gravity_scale);
 
     if (halo::ai::actor_grenade_parabolic_path_clear(&velocity, actor_index, point, arc, gravity,
-                                           *(datum_index *)self->grenade_exclude_object_index,
+                                           self->grenade_exclude_object_index,
                                            (uint8_t)(self->active_unit_index != (datum_index)halo::k_dword_none)) == 0) {
         return 0;
     }
@@ -553,7 +553,7 @@ uint8_t ActorView::update_grenade_throw_decision()
 
 
 namespace actor_validate_grenade_ally_candidate_local {
-static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
+static auto &actor_type_procs = halo::link::ref<actor_type_table_entry *[16]>(halo::ai::vars().actor_type_procs);
 }
 
 /**
@@ -583,7 +583,7 @@ uint8_t ActorOps::validate_grenade_ally_candidate(datum_index candidate_actor, u
         (candidate->mode == halo::ai::actor_mode::search || candidate->mode == halo::ai::actor_mode::uncover ||
          (caller_type_flag == 0 && candidate->mode == halo::ai::actor_mode::wait) ||
          (candidate->mode == halo::ai::actor_mode::guard && candidate->mode_data.guard.ambush_active == 0 && 0 < candidate->mode_data.guard.countdown_00))) {
-        type_entry = (actor_type_table_entry *)actor_type_procs[candidate->type];
+        type_entry = actor_type_procs[candidate->type];
         if (type_entry->swarm != caller_type_flag) {
             return 1;
         }

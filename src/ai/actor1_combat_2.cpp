@@ -1,3 +1,5 @@
+#include "halo/objects/flags.hpp"
+#include "halo/core/flags.hpp"
 #include "halo/ai/actor_combat.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
@@ -154,11 +156,11 @@ datum_index halo::ai::combat_ops::get_threat_weapon_object_index()
 
     if (self->vehicle_gunner != 0 && self->active_unit_index != (datum_index)k_datum_index_none) {
         object *unit_object = halo::ai::object_at(self->active_unit_index);
-        int16_t slot = *(int16_t *)((uint8_t *)unit_object + 0x2f2);
+        int16_t slot = halo::units::unit_data_of(unit_object)->current_weapon_index;
 
         result = (datum_index)k_datum_index_none;
         if (slot != -1) {
-            result = *(datum_index *)((uint8_t *)unit_object + 0x2f8 + slot * 4);
+            result = halo::units::unit_data_of(unit_object)->weapons[slot];
         }
         if (result != (datum_index)k_datum_index_none) {
             return result;
@@ -170,7 +172,7 @@ datum_index halo::ai::combat_ops::get_threat_weapon_object_index()
         if ((*variant_tag & 0x40) == 0) {
 
             object *own_unit = halo::ai::object_at(self->unit_index);
-            return halo::units::unit_get_weapon_object_index(self->unit_index, *(int16_t *)((uint8_t *)own_unit + 0x2f2));
+            return halo::units::unit_get_weapon_object_index(self->unit_index, halo::units::unit_data_of(own_unit)->current_weapon_index);
         }
     }
     return result;
@@ -202,7 +204,7 @@ uint8_t halo::ai::combat_ops::has_unshielded_threat_weapon()
 
     if (has_weapon && self->unit_index != (datum_index)k_datum_index_none) {
         object *unit_object = halo::ai::object_at(self->unit_index);
-        if ((*((uint8_t *)unit_object + 0x107) & 1) != 0) {
+        if ((unit_object->vitality_flags & halo::to_bits(halo::objects::vitality_flag::region_response_100)) != 0) {
             has_weapon = 0;
         }
     }

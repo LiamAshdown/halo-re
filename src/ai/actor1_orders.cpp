@@ -95,13 +95,8 @@ int32_t halo::ai::order_builder::default_(int16_t order_code, actor_order *order
     using namespace c_actor_build_order_default;
     uint32_t actor_index = datum;
     actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    uint32_t *body = (uint32_t *)order;
-    int32_t i;
 
-    for (i = 0x17; i != 0; i--) {
-        *body = 0;
-        body++;
-    }
+    memset(order, 0, sizeof(*order));
 
     if (a->swarm != 0) {
         order_code = 0;
@@ -785,8 +780,6 @@ void halo::ai::order_builder::build_path_find_request(path_find_request *request
     datum_index unit_index;
     float radius;
     uint8_t ignores_glass;
-    uint32_t *clear;
-    int32_t i;
 
     self = halo::ai::actor_at(actor_index);
     unit_index = self->unit_index;
@@ -805,11 +798,7 @@ void halo::ai::order_builder::build_path_find_request(path_find_request *request
     halo::ai::actor_update_target_lead_position(actor_index);
     ignores_glass = self->ignores_glass;
 
-    clear = (uint32_t *)request;
-    for (i = 0x12; i != 0; i--) {
-        *clear = 0;
-        clear++;
-    }
+    memset(request, 0, sizeof(*request));
 
     request->exclude_object_index_a = unit_index;
     request->pathfinding_radius = radius;

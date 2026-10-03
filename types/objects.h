@@ -393,7 +393,7 @@ typedef struct object {
     uint16_t dead_at_rest_ticks;    // 0x0bc ++ in biped_update while vitality health_frozen(4) and object
                                     //    at_rest(0x20), else 0; game_engine_cleanup_dropped_objects deletes bipeds
                                     //    past 900 ticks
-    int16_t permutation_group;      // 0x0be the region probability group the object's permutations were drawn from (the unit
+    union { int16_t permutation_group; int16_t permutation_index; };      // 0x0be the region probability group the object's permutations were drawn from (the unit
                                     //    variant); object_update refreshes it, unit_dialogue and the conversation code read it
     uint32_t owner_linkage;         // 0x0c0 seeded from the creating object at the same offset
     datum_index creator_object;     // 0x0c4 the creating object (formerly unknown_0c4), from
@@ -458,7 +458,10 @@ typedef struct object {
                                     //       object_regions_initialize_permutations write,
                                     //       object_regions_reset_permutation_lock forces to
                                     //       0 or 1, and model_markers_get_by_name is handed
-    uint8_t unknown_188[0x30];      // 0x188 untouched by this module
+    union {
+        uint8_t unknown_188[0x30];      // 0x188 untouched by this module
+        ColorRGB base_change_colors[4]; // 0x188 apply_unit_definition_properties rolls the actor variant colors here, then copies them to change_colors
+    };
     ColorRGB change_colors[4];      // 0x1b8 object_update_change_colors, clamped to [0,1]
     object_block_reference node_function_values;   // 0x1e8 node_count * 0x20 bytes
     object_block_reference node_function_defaults; // 0x1ec node_count * 0x20 bytes, the source
