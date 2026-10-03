@@ -30,21 +30,11 @@ static auto &network_server = halo::link::ref<network_server_globals *>(halo::ne
 static auto &network_challenge_packet_block = halo::link::ref<uint16_t []>(halo::networking::vars().network_challenge_packet_block);
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
 static auto &player_profile_cache = halo::link::ref<player_profile [16]>(halo::game::vars().player_profile_cache);
-extern "C" {
-extern void player_update_queue_create(player_update_queue *queue);
-}
 static auto &update_client_queues = halo::link::ref<data_array *>(halo::game::vars().update_client_queues);
 static auto &update_server_queues = halo::link::ref<data_array *>(halo::game::vars().update_server_queues);
-extern "C" {
-extern void game_engine_player_new_life(uint32_t player_datum);
-extern int32_t game_engine_player_profile_cache_find(void);
-}
 static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 extern "C" {
-extern int32_t game_engine_notify_object_value_event(int32_t team);
-extern void game_engine_capture_player_profile(int32_t value);
-extern void game_engine_send_unit_weapon_loadout(void *machine, int32_t team, int32_t machine_id);
 typedef void (*network_join_complete_callback)(int32_t unused, int32_t machine_id);
 }
 static auto &network_console_connection_id = halo::link::ref<int32_t>(halo::networking::vars().network_console_connection_id);
@@ -60,11 +50,6 @@ static auto &network_server_storage = halo::link::ref<network_server_globals>(ha
 static auto &network_scenario_round_counter_a = halo::link::ref<int32_t>(halo::game::vars().network_scenario_round_counter_a);
 static auto &network_scenario_round_counter_b = halo::link::ref<uint8_t>(halo::game::vars().network_scenario_round_counter_b);
 static auto &pending_difficulty = halo::link::ref<int16_t>(halo::ui::vars().pending_difficulty);
-extern "C" {
-extern void update_server_push_player_tick_history(void);
-extern void game_engine_tick(void);
-extern uint8_t game_engine_team_is_leading(uint32_t requested_team);
-}
 static auto &variant_defaults_source = halo::link::ref<char []>(halo::networking::vars().variant_defaults_source);
 extern "C" {
 typedef struct rcon_request_decode {
@@ -74,14 +59,8 @@ typedef struct rcon_request_decode {
 }
 static auto &sv_rcon_password_value = halo::link::ref<char [9]>(halo::networking::vars().sv_rcon_password_value);
 static auto &global_white_argb = halo::link::ref<void *>(halo::networking::vars().global_white_argb);
-extern "C" {
-extern void chimera__console_out(ColorARGB *color, char *format, ...);
-}
 static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
 static auto &network_host_handoff_requested = halo::link::ref<uint8_t>(halo::networking::vars().network_host_handoff_requested);
-extern "C" {
-extern void chat_close(void);
-}
 static auto &network_server_status_last_print_ms = halo::link::ref<int32_t>(halo::networking::vars().network_server_status_last_print_ms);
 static auto &network_pending_connection_count = halo::link::ref<int32_t>(halo::networking::vars().network_pending_connection_count);
 static auto &network_pending_connections = halo::link::ref<network_pending_connection [30]>(halo::networking::vars().network_pending_connections);

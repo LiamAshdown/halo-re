@@ -16,9 +16,6 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
-extern uint8_t object_physics_context_build(uint32_t object_index, object_physics_context *out_context);
-}
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
 static auto &ai_marker_name_b = halo::link::ref<char []>(halo::ai::vars().ai_marker_name_b);

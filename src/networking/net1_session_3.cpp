@@ -23,10 +23,6 @@ static auto &network_session_host_closing = halo::link::ref<uint8_t>(halo::netwo
 static auto &game_engine_variant = halo::link::ref<uint8_t []>(halo::game::vars().game_engine_variant);
 static auto &motion_sensor_override_value = halo::link::ref<uint8_t>(halo::ui::vars().motion_sensor_override_value);
 static auto &game_engine_variant_score_limit = halo::link::ref<int32_t>(halo::networking::vars().game_engine_variant_score_limit);
-extern "C" {
-extern int32_t players_active_count(void);
-extern uint8_t game_engine_get_teams_enabled(void);
-}
 
 namespace halo::networking {
 

@@ -15,9 +15,6 @@
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
-extern "C" {
-extern uint32_t cheat_get_target_object_index(void);
-}
 static auto &object_type_definitions = halo::link::ref<void *[12]>(halo::game::vars().object_type_definitions);
 
 namespace halo::game {

@@ -29,15 +29,6 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
-extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius);
-extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *current_position, float sample_radius, float x_margin, float y_margin, uint32_t exclude_object_index, real_point3d *out_position);
-extern uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, float radius, real_vector3d *delta, collision_result *result);
-extern uint8_t object_collision_context_test_pill(object_collision_context *context, real_point3d *origin, real_vector3d *delta, float radius_scale, object_node_collision_result *out_result);
-extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags, uint32_t exclude_object_index, collision_result *result);
-}
 static auto &global_structure_bsp = halo::link::ref<uint8_t *>(halo::ai::vars().global_structure_bsp);
 static auto &placement_offset_table = halo::link::ref<real_vector3d [27]>(halo::units::vars().placement_offset_table);
 static auto &s_stand = halo::link::ref<char *>(halo::units::vars().s_stand);

@@ -8,7 +8,6 @@
 #include "halo/core/libm.hpp"
 
 extern "C" {
-extern void player_effect_random_shake_offset(real_matrix4x3 *out, real magnitude, real angle);
 void player_effect_build_camera_shake_matrix(real_matrix4x3 *out, int16_t local_player_index);
 }
 static auto &player_effect_globals_pointer = halo::link::ref<player_effect_globals *>(halo::effects::vars().player_effect_globals_pointer);

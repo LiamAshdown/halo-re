@@ -28,12 +28,6 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
-extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
-extern void player_update_history_free_all(void *history);
-extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
-extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags, real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result);
-}
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &is_dedicated_server_flag = halo::link::ref<uint8_t>(halo::units::vars().is_dedicated_server_flag);

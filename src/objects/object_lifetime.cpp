@@ -20,14 +20,6 @@
 #include "halo/objects/vars.hpp"
 #include "halo/units/vars.hpp"
 
-extern "C" {
-extern void contrail_advance(datum_index contrail_handle, uint8_t detach, real delta_time);
-extern datum_index contrail_new(int16_t attachment_index, datum_index object_index, datum_index definition_index);
-extern void effect_delete(datum_index handle);
-extern datum_index effect_new_at_texture_coordinate(datum_index definition_index, datum_index object_index, int16_t change_color_index, int16_t u, int16_t v);
-extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-extern datum_index particle_system_new_on_marker(uint32_t definition_index, uint32_t object_index, int16_t attachment_index);
-}
 static auto &game_looping_sound_data = halo::link::ref<data_array *>(halo::ui::vars().game_looping_sound_data);
 static auto &network_message_scratch = halo::link::ref<uint8_t [halo::k_network_message_scratch_size]>(halo::game::vars().network_message_scratch);
 static auto &network_object_index_cache = halo::link::ref<void *>(halo::units::vars().network_object_index_cache);

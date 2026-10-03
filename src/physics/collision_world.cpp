@@ -26,14 +26,6 @@
 #include "halo/physics/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" { void halo::physics::collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object_index, real_point3d *origin, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
-extern "C" { uint8_t halo::physics::collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
-extern "C" { uint8_t halo::physics::object_collision_context_build(uint32_t object_index, object_collision_context *out_context); }
-extern "C" { uint8_t halo::physics::object_collision_context_gather_sphere_shapes(object_collision_context *context, real_point3d *origin, float radius_scale, float margin, float thickness, physics_model *model); }
-extern "C" { uint32_t halo::physics::object_collision_context_test_point(object_collision_context *context, real_point3d *point); }
-extern "C" { uint8_t halo::physics::object_collision_context_test_segment(object_collision_context *context, uint32_t flags, real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result); }
-extern "C" { uint8_t halo::physics::object_collision_test_nearby_chain(uint32_t start_object_index, uint32_t type_mask, real_point3d *position, uint32_t exclude_object_index); }
-extern "C" { uint8_t halo::physics::object_collision_test_ray_nearby_chain(uint32_t start_object_index, uint32_t type_mask, uint32_t test_flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *out_result); }
 
 namespace halo::physics {
 
@@ -204,7 +196,6 @@ uint8_t CollisionWorld::test_movement_pill(uint32_t flags, real_point3d *origin,
 
 static auto &object_cluster_stamp = halo::link::ref<int32_t>(halo::physics::vars().object_cluster_stamp);
 static auto &collideable_object_references = halo::link::ref<data_array *>(halo::physics::vars().collideable_object_references);
-extern "C" { extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result, ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin, real_vector3d *delta, float max_fraction); }
 static auto &breakable_surface_state = halo::link::ref<breakable_surface_globals *>(halo::physics::vars().breakable_surface_state);
 namespace halo::physics {
 
@@ -516,8 +507,6 @@ uint8_t CollisionWorld::context_build(uint32_t object_index, object_collision_co
 
 }
 
-extern "C" { extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius); }
-extern "C" { extern void physics_shape_build_proxies_from_query(collision_bsp_sphere_result *result, real_matrix4x3 *matrix, ModelCollisionGeometryBSP *bsp, float margin, float thickness, int32_t object_index, physics_model *model); }
 namespace halo::physics {
 
 /**
@@ -879,8 +868,6 @@ uint8_t CollisionWorld::test_nearby_chain(uint32_t start_object_index, uint32_t 
 
 }
 
-extern "C" { extern int16_t model_collision_geometry_resolve_material_type(int16_t material_index, ModelCollisionGeometry *definition); }
-extern "C" { extern uint8_t object_physics_test_ray_against_mass_points(real_point3d *world_origin, real_vector3d *world_direction, object_physics_ray_result *out_result, object_physics_context *context); }
 namespace halo::physics {
 
 /**

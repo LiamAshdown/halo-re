@@ -13,9 +13,6 @@ static auto &quit_confirm_error_string_index = halo::link::ref<int16_t>(halo::ui
 static auto &quit_confirm_error_unknown_ae = halo::link::ref<int16_t>(halo::ui::vars().quit_confirm_error_unknown_ae);
 static auto &quit_confirm_error_modal = halo::link::ref<uint8_t>(halo::ui::vars().quit_confirm_error_modal);
 static auto &quit_confirm_error_is_error = halo::link::ref<uint8_t>(halo::ui::vars().quit_confirm_error_is_error);
-extern "C" {
-extern void widget_instance_close_and_restore_previous(widget_instance *widget);
-}
 
 namespace halo::interface {
 

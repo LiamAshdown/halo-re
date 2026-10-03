@@ -11,9 +11,6 @@
 #include "halo/hs/vars.hpp"
 #include "halo/main/vars.hpp"
 
-extern "C" {
-extern void game_engine_send_team_allegiance_message(char broadcast);
-}
 static auto &console_message_head = halo::link::ref<int32_t>(halo::main::vars().console_message_head);
 static auto &console_message_tail = halo::link::ref<int32_t>(halo::main::vars().console_message_tail);
 static auto &main_globals_byte_00719752 = halo::link::ref<uint8_t>(halo::hs::vars().main_globals_byte_00719752);

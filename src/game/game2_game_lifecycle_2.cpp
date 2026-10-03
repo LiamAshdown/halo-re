@@ -32,20 +32,6 @@ typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uin
 static auto &ai_update_stagger = halo::link::ref<ai_update_stagger_state *>(halo::units::vars().ai_update_stagger);
 static auto &network_scenario_round_counter_a = halo::link::ref<int32_t>(halo::game::vars().network_scenario_round_counter_a);
 static auto &network_scenario_round_counter_b = halo::link::ref<int32_t>(halo::game::vars().network_scenario_round_counter_b);
-extern "C" {
-extern void game_engine_flag_local_player_units(void);
-extern void team_pair_overrides_tick(void);
-extern void game_engine_tick(void);
-extern void game_engine_players_update_server(void);
-extern void game_engine_players_update_client(void);
-extern void main_switch_structure_bsp(void);
-extern void game_engine_server_update_player_positions(void);
-extern void players_server_catchup_on_client_updates(void);
-extern void players_client_catchup_on_server_updates(void);
-extern void first_person_weapon_interface_tick(void);
-extern void hud_update_dispatch(void);
-extern void network_server_broadcast_object_type_changes(void);
-}
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 static auto &player_profile_cache_initialized = halo::link::ref<uint8_t>(halo::game::vars().player_profile_cache_initialized);
 static auto &player_profile_cache = halo::link::ref<uint32_t [0xc0]>(halo::game::vars().player_profile_cache);
@@ -68,26 +54,10 @@ static auto &recorded_animations = halo::link::ref<void *>(halo::game::vars().re
 static auto &cinematic_saved_music_gain = halo::link::ref<uint32_t>(halo::cutscene::vars().cinematic_saved_music_gain);
 static auto &cinematic_globals_ptr = halo::link::ref<uint32_t *>(halo::game::vars().cinematic_globals_ptr);
 static auto &object_globals_pointer = halo::link::ref<uint8_t *>(halo::objects::vars().object_globals_pointer);
-extern "C" {
-extern void team_pair_table_init_defaults(void);
-extern void game_engine_load_from_variant(const game_variant *variant);
-extern void game_engine_initialize_for_new_game(void);
-extern void game_engine_reset_player_look_state(void);
-extern uint8_t update_server_new(void);
-extern void players_dispose(void);
-extern void interface_local_player_state_reset(void);
-extern void scenario_objects_place(Scenario *scenario);
-extern void objects_reset(void);
-extern void breakable_surfaces_reset(void);
-}
 static auto &rasterizer_globals_data = halo::link::ref<uint32_t>(halo::game::vars().rasterizer_globals_data);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &team_data = halo::link::ref<data_array *>(halo::game::vars().team_data);
 static auto &text_localization_strings = halo::link::ref<uint32_t>(halo::game::vars().text_localization_strings);
-extern "C" {
-extern void update_queues_dispose(void);
-extern void objects_flush_dirty_state(void);
-}
 static auto &global_scenario_index = halo::link::ref<uint32_t>(halo::game::vars().global_scenario_index);
 static auto &global_structure_bsp_index = halo::link::ref<uint16_t>(halo::game::vars().global_structure_bsp_index);
 static auto &global_structure_bsp = halo::link::ref<void *>(halo::ai::vars().global_structure_bsp);

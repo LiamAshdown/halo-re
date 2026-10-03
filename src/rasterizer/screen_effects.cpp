@@ -18,7 +18,6 @@
 
 extern "C" {
 
-extern float effect_random_fraction(void);
 
 }  // extern "C"
 

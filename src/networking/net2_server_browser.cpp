@@ -38,11 +38,6 @@
 #include "halo/networking/vars.hpp"
 
 static auto &playlist_profiles_need_defaults = halo::link::ref<uint8_t>(halo::ui::vars().playlist_profiles_need_defaults);
-extern "C" {
-extern void playlist_profile_create_default_profiles_on_disk(void);
-extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_ids, int32_t flag);
-extern uint8_t saved_game_get_variant(int32_t saved_game_id, uint16_t *out_name);
-}
 static auto &console_color_00685214 = halo::link::ref<void *>(halo::networking::vars().console_color_00685214);
 static auto &actor_mode_default_look_weights = halo::link::ref<void *>(halo::networking::vars().actor_mode_default_look_weights);
 static auto &server_browser_join_target = halo::link::ref<void *>(halo::networking::vars().server_browser_join_target);
@@ -69,9 +64,6 @@ static auto &server_browser_total_players = halo::link::ref<int32_t>(halo::netwo
 static auto &k_empty_string = halo::link::ref<char []>(halo::networking::vars().k_empty_string);
 static auto &empty_string = halo::link::ref<wchar_t []>(halo::game::vars().empty_string);
 extern "C" {
-extern void widget_close_all(void);
-extern uint8_t input_get_key_state(int16_t key_index);
-extern void widget_play_sound_effect(int16_t effect_id);
 extern int32_t SBServerHasFullKeys(void *entry);
 extern int32_t ServerBrowserState(void *engine);
 }
@@ -121,10 +113,6 @@ extern int32_t SBServerHasBasicKeys(int32_t record);
 }
 static auto &server_browser_skip_reselect = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_skip_reselect);
 static auto &server_browser_ping_limits = halo::link::ref<int32_t []>(halo::networking::vars().server_browser_ping_limits);
-extern "C" {
-extern int32_t map_list_find_known_map_index(const char *mapname);
-
-}
 
 static network_ui_widget *ui_widget_find_control(network_ui_widget *container)
 {

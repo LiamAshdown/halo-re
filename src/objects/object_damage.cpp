@@ -34,9 +34,6 @@
 #include "halo/objects/vars.hpp"
 #include "halo/units/vars.hpp"
 
-extern "C" {
-extern void hud_unit_meter_apply_predictive_damage(datum_index player_index, float damage);
-}
 static auto &default_collision_material = halo::link::ref<ModelCollisionGeometryMaterial>(halo::objects::vars().default_collision_material);
 static auto &g_006f1cf4 = halo::link::ref<uint8_t>(halo::objects::vars().g_006f1cf4);
 static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);

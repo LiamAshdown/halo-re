@@ -54,7 +54,6 @@ static auto &screenshots = halo::link::ref<int32_t>(halo::main::vars().screensho
 static auto &input_globals = halo::link::ref<input_abstraction_globals>(halo::main::vars().input_globals);
 static auto &global_zero_vector3d_pointer = halo::link::ref<const real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &unknown_00873d30 = halo::link::ref<uint8_t>(halo::main::vars().unknown_00873d30);
-extern "C" { extern void halo::sound::sound_update(void); }
 namespace halo::main {
 
 /**
@@ -322,10 +321,6 @@ void RenderViews::view_camera_fill(observer_camera *observer, render_view *view)
 
 static auto &screenshot_scale = halo::link::ref<int16_t>(halo::main::vars().screenshot_scale);
 static auto &game_window_top_left = halo::link::ref<Rectangle2D>(halo::main::vars().game_window_top_left);
-extern "C" { extern void console_print_error_va(uint8_t clear_first, const char *format, ...); }
-extern "C" { extern void console_deactivate(void); }
-extern "C" { extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); }
-extern "C" { extern void path_remove_last_component(uint8_t *path); }
 namespace halo::main {
 
 /**

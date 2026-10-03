@@ -80,10 +80,6 @@ static auto &network_channel_service_backoff_bypass = halo::link::ref<uint8_t>(h
 static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 static auto &network_disconnect_timeout_flag = halo::link::ref<uint8_t>(halo::networking::vars().network_disconnect_timeout_flag);
-extern "C" {
-extern datum_index player_new_local(datum_index requested_handle, uint32_t machine_index, int16_t local_player_index, uint16_t *identifier_record);
-extern int32_t player_new_network(int32_t machine_index, int16_t machine_player_index);
-}
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
 extern "C" {
 extern int32_t gt2Send(int32_t socket, uint8_t *buffer, int32_t byte_count, int32_t mode);

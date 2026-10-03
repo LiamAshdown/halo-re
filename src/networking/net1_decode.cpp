@@ -22,22 +22,6 @@
 
 static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);
 static auto &network_action_apply_active = halo::link::ref<uint8_t>(halo::objects::vars().network_action_apply_active);
-extern "C" {
-extern void hud_receive_item_message(void **context);
-extern void game_engine_apply_player_join_message(void **context);
-extern void game_engine_apply_player_spawn_loadout_message(void **context);
-extern uint8_t game_engine_apply_player_interaction_message(void **context);
-extern uint8_t game_engine_apply_kill_streak_message(void **context);
-extern void chat_dispatch_incoming(void **context);
-extern void game_engine_invoke_profile_post_update_callback(network_client_globals *client, void **context);
-extern void game_engine_apply_player_profile_entry(void **context);
-extern void game_engine_dispatch_end_game_notification(void **context);
-extern void game_engine_apply_partial_round_reset_message(void **context);
-extern void game_engine_handle_kill_feed_network_event(void **context);
-extern void game_engine_handle_sound_status_event(void **context);
-extern void game_engine_client_apply_team_assignment(void **context);
-extern void game_engine_spawn_or_replay_netgame_equipment(void **context);
-}
 static auto &network_incoming_message_scratch = halo::link::ref<uint8_t [0x510]>(halo::networking::vars().network_incoming_message_scratch);
 extern "C" {
 typedef struct network_item_stream {
@@ -54,17 +38,11 @@ extern void gcd_compute_response(void *a, void *request, uint8_t *out);
 }
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-extern "C" {
-extern void update_client_advance_read_cursor(void *payload);
-}
 static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
 extern "C" {
 typedef int32_t (*network_game_message_handler_proc)(network_client_globals *client, const void *record, int32_t record_length, const uint32_t *sender);
 }
 static auto &network_host_handoff_requested = halo::link::ref<uint8_t>(halo::networking::vars().network_host_handoff_requested);
-extern "C" {
-extern void chat_close(void);
-}
 
 namespace halo::networking {
 

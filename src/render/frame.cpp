@@ -34,9 +34,6 @@
 #include "halo/main/vars.hpp"
 #include "halo/render/vars.hpp"
 
-extern "C" {
-extern void widget_draw_fullscreen_region(int16_t controller_index);
-}
 static auto &render_frame_index = halo::link::ref<int32_t>(halo::render::vars().render_frame_index);
 static auto &render_time_since_tick = halo::link::ref<float>(halo::render::vars().render_time_since_tick);
 static auto &render_time_since_frame = halo::link::ref<float>(halo::render::vars().render_time_since_frame);

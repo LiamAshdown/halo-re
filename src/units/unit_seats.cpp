@@ -28,12 +28,6 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
-extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
-extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern void player_reset_after_unit_change(uint32_t controlling_player);
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-}
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &object_network_id_table = halo::link::ref<uint8_t *>(halo::units::vars().object_network_id_table);

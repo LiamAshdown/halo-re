@@ -15,13 +15,7 @@
 #include "halo/core/libm.hpp"
 
 extern "C" {
-extern uint32_t camera_observer_update(datum_index player_index, real_point3d *observer_position, real_vector3d *fallback_facing);
 extern void weapon_trigger_barrel_spread_offset(real_vector3d *v, real_vector3d *axis, uint16_t barrel_index, int16_t distribution_function, real distribution_angle, uint32_t flags);
-extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force);
-extern uint32_t local_player_index_for_weapon(datum_index item_index);
-extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
-extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
-extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code);
 void halo::items::trigger_create_projectiles(uint32_t item_index, int16_t trigger_index, uint32_t role);
 void halo::items::weapon_trigger_become_charged(datum_index item_index, int16_t trigger_index);
 void halo::items::weapon_trigger_begin_reload(datum_index item_index, int16_t magazine_index, int8_t is_client_predicted);

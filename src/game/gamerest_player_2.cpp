@@ -28,14 +28,6 @@ static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &network_message_scratch = halo::link::ref<uint8_t>(halo::game::vars().network_message_scratch);
-extern "C" {
-extern ScenarioPlayerStartingLocation *game_get_player_starting_location(int16_t index);
-extern real *game_engine_get_player_color(uint32_t player_index, real *out_rgb);
-extern void object_placement_data_set_change_colors(real *color, object_placement_data *placement);
-extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index);
-extern void game_engine_apply_player_grenade_counts(uint32_t player_index);
-extern void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index player_handle, int32_t value, int32_t machine_index);
-}
 static auto &reference_axis_006696728 = halo::link::ref<real_vector3d *>(halo::game::vars().reference_axis_006696728);
 static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);
 static auto &k_random_scale_65536 = halo::link::ref<float>(halo::ai::vars().k_random_scale_65536);
@@ -52,9 +44,6 @@ static auto &server_maximum_pending_client_update_ticks = halo::link::ref<int32_
 static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
 static auto &global_007102d8 = halo::link::ref<uint8_t>(halo::game::vars().global_007102d8);
 static auto &main_game_globals = halo::link::ref<uint8_t *>(halo::game::vars().main_game_globals);
-extern "C" {
-extern void console_print_va(const char *format, ...);
-}
 
 namespace {
 static void player_respawn_drop_lights(datum_index object_index)

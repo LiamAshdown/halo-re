@@ -35,11 +35,6 @@ static void copy_profile_block(saved_player_profile *destination, const saved_pl
     memcpy((uint8_t *)destination + first_offset, (const uint8_t *)source + first_offset, end_offset - first_offset);
 }
 
-extern "C" {
-extern uint8_t rasterizer_decal_zbias_active(void);
-extern uint8_t rasterizer_parse_vidmode_commandline(int32_t *width_out, int32_t *height_out, long *refresh_out);
-extern void display_mode_get_current(rasterizer_display_mode *out);
-}
 static auto &variant_write_thread = halo::link::ref<network_thread_record *>(halo::saved_games::vars().variant_write_thread);
 static auto &variant_write_request_state = halo::link::ref<variant_write_request>(halo::saved_games::vars().variant_write_request_state);
 static auto &saved_game_files_mutex = halo::link::ref<network_mutex_record *>(halo::saved_games::vars().saved_game_files_mutex);

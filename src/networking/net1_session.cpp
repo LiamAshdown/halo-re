@@ -31,9 +31,6 @@ static auto &object_type_definitions = halo::link::ref<void *[12]>(halo::game::v
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 static auto &machine_to_player = halo::link::ref<datum_index [16]>(halo::game::vars().machine_to_player);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
-extern "C" {
-extern void update_server_queue_push_history(int16_t machine_index, int32_t tick_count, uint32_t *source, uint32_t extra);
-}
 static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
@@ -56,32 +53,9 @@ static auto &interface_loading_screen_request_id = halo::link::ref<int32_t>(halo
 static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);
 static auto &network_disconnect_timeout_flag = halo::link::ref<uint8_t>(halo::networking::vars().network_disconnect_timeout_flag);
 static auto &sv_maxplayers_value = halo::link::ref<int32_t>(halo::ui::vars().sv_maxplayers_value);
-extern "C" {
-extern uint8_t game_engine_ensure_variant_history_has_entry(void);
-extern void game_engine_apply_current_custom_variant(void);
-extern void game_engine_sync_variant_defaults(void);
-extern void widget_close_all(void);
-}
 static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
-extern "C" {
-extern void chat_close(void);
-}
 static auto &main_game_globals = halo::link::ref<uint8_t *>(halo::game::vars().main_game_globals);
-extern "C" {
-extern void cache_file_switch_map_by_path(char *path, uint8_t apply_state);
-extern void game_unload_map(void);
-extern void game_start_new_map(void);
-extern void game_stop_current_map(void);
-extern void game_engine_reset_all_players(void);
-extern void game_engine_apply_variant(const game_variant *variant);
-extern void game_engine_init_tick_record_for_mode(void);
-}
 static auto &network_channel_table_default_flag = halo::link::ref<uint8_t>(halo::networking::vars().network_channel_table_default_flag);
-extern "C" {
-extern int32_t game_engine_notify_object_value_event(int32_t team);
-extern int32_t game_engine_player_profile_cache_find(void);
-extern void game_engine_capture_player_profile(int32_t value);
-}
 static auto &network_player_update_log_enabled = halo::link::ref<uint8_t>(halo::networking::vars().network_player_update_log_enabled);
 static auto &network_player_update_history_log_path = halo::link::ref<char *>(halo::networking::vars().network_player_update_history_log_path);
 static auto &player_update_log_file_mode_string = halo::link::ref<char []>(halo::networking::vars().player_update_log_file_mode_string);

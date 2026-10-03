@@ -39,17 +39,6 @@ static auto &profile_directory = halo::link::ref<char [0x105]>(halo::saved_games
 static auto &sv_friendly_fire_mode = halo::link::ref<int32_t>(halo::game::vars().sv_friendly_fire_mode);
 static auto &game_variant_saved_default = halo::link::ref<game_variant>(halo::ui::vars().game_variant_saved_default);
 static auto &game_variant_saved_default_valid = halo::link::ref<uint8_t>(halo::game::vars().game_variant_saved_default_valid);
-extern "C" {
-extern char game_engine_is_map_and_variant_valid(void);
-extern void game_engine_free_custom_variant_cache(void);
-extern uint32_t game_engine_variant_add_to_history(char *name, game_variant *options, char *path);
-extern void widget_close_all(void);
-extern void game_engine_begin_end_game_sequence(void);
-extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
-extern void game_engine_reset_round_objects(void);
-extern void game_engine_send_round_reset_message(void);
-extern void game_engine_player_profile_cache_sync_all(int32_t commit);
-}
 static auto &sv_maxplayers_value = halo::link::ref<int32_t>(halo::ui::vars().sv_maxplayers_value);
 static auto &network_server_name = halo::link::ref<uint16_t [64]>(halo::networking::vars().network_server_name);
 static auto &network_server_name_is_default = halo::link::ref<uint8_t>(halo::networking::vars().network_server_name_is_default);

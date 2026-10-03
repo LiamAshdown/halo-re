@@ -29,10 +29,6 @@
 #include "halo/objects/vars.hpp"
 #include "halo/physics/vars.hpp"
 
-extern "C" {
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-}
 static auto &global_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_collision_bsp);
 static auto &global_scenario = halo::link::ref<uint8_t *>(halo::hs::vars().global_scenario);
 static auto &global_white_color = halo::link::ref<const real_vector3d *>(halo::effects::vars().global_white_color);

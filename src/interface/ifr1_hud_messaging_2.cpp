@@ -19,9 +19,6 @@ static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().play
 extern "C" {
 extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind,
                                  int16_t count);
-extern void player_trigger_shield_recharge_effect(uint32_t player_index);
-extern void player_trigger_kill_streak_effect(uint32_t player_index);
-extern void player_trigger_full_health_effect(uint32_t player_index);
 }
 
 namespace halo::interface {

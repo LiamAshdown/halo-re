@@ -83,10 +83,6 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
 #undef F
 
 namespace actor_react_to_threat_event_local {
-extern "C" {
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-extern void team_pair_override_refresh(int16_t index_b, int16_t index_a);
-}
 }
 
 /**

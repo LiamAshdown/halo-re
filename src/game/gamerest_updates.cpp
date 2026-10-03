@@ -32,10 +32,6 @@ static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().g
 static auto &update_client_unknown_102d4 = halo::link::ref<int32_t>(halo::game::vars().update_client_unknown_102d4);
 static auto &wait_tick_counter = halo::link::ref<int32_t>(halo::game::vars().wait_tick_counter);
 static auto &local_player_name_filter = halo::link::ref<uint16_t []>(halo::game::vars().local_player_name_filter);
-extern "C" {
-extern uint8_t position_update_queue_find_and_remove(circular_queue *queue, int32_t target_tick, real_point3d *out);
-extern void unit_snap_position_if_far(real_point3d *new_position, object *obj);
-}
 static auto &vehicle_wait_tick_counter = halo::link::ref<int32_t>(halo::game::vars().vehicle_wait_tick_counter);
 
 namespace halo::game {

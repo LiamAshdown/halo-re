@@ -16,18 +16,6 @@
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
 
-extern "C" {
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern void flag_pole_get_marker_positions(flag *entry, bsp_leaf_reference *node_ref, real_point3d *marker_positions, uint8_t *row_table, int16_t *row_start_scratch, int16_t *column_marker_index, Flag *tag);
-extern void flag_render(uint32_t *entry, uint32_t *submission_block, Flag *tag, uint8_t *second_geometry);
-extern int32_t rasterizer_dynamic_index_cache_reserve(void);
-extern void *rasterizer_dynamic_index_slot_lock(void);
-extern void *rasterizer_dynamic_vertex_cache_lock(void);
-extern int32_t rasterizer_dynamic_vertex_cache_reserve(void);
-extern void rasterizer_model_draw_prepare_states(uint32_t flag_arg);
-extern void rasterizer_model_draw_restore_states(void);
-extern void rasterizer_shader_environment_draw_dispatch(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f);
-}
 static auto &flag_render_device_slot = halo::link::ref<void *const>(halo::objects::vars().flag_render_device_slot);
 static auto &flag_data = halo::link::ref<data_array *>(halo::objects::vars().flag_data);
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);

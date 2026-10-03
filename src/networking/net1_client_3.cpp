@@ -18,11 +18,6 @@ static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().play
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 static auto &network_challenge_packet_block = halo::link::ref<uint16_t>(halo::networking::vars().network_challenge_packet_block);
 static auto &network_broadcast_body = halo::link::ref<uint32_t []>(halo::networking::vars().network_broadcast_body);
-extern "C" {
-extern void widget_close_all(void);
-extern void game_engine_init_tick_record_for_mode(void);
-extern void game_engine_reset_all_players(void);
-}
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 static auto &join_ui_state = halo::link::ref<int32_t>(halo::networking::vars().join_ui_state);
 static auto &interface_loading_screen_address_b = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_b);

@@ -36,10 +36,6 @@
 #include "halo/interface/vars.hpp"
 
 static auto &pending_difficulty = halo::link::ref<int16_t>(halo::ui::vars().pending_difficulty);
-extern "C" {
-extern void widget_play_sound_effect(int16_t effect_id);
-extern uint32_t ui_restart_saved_game(void);
-}
 static auto &ui_restoring_previous_widget = halo::link::ref<uint8_t>(halo::ui::vars().ui_restoring_previous_widget);
 static auto &campaign_level_paths = halo::link::ref<char *[]>(halo::ui::vars().campaign_level_paths);
 static auto &network_wait_flag_00719739 = halo::link::ref<uint8_t>(halo::ui::vars().network_wait_flag_00719739);

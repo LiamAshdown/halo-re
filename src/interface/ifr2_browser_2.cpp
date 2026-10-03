@@ -37,9 +37,6 @@ static auto &server_browser_filter_teamplay = halo::link::ref<uint8_t>(halo::ui:
 static auto &server_browser_filter_ping_limit_index = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_ping_limit_index);
 extern "C" {
 extern void ServerBrowserFree(void *sb);
-extern void saved_item_select(int32_t item);
-extern uint8_t saved_item_has_unsaved_changes(void);
-extern uint8_t player_profile_save(void);
 }
 
 namespace halo::interface {

@@ -22,9 +22,6 @@
 #include "halo/shell/vars.hpp"
 #include "halo/hs/vars.hpp"
 
-extern "C" {
-extern void network_client_rejoin_check(int8_t machine_player_index);
-}
 static auto &main_globals_byte_0071973d = halo::link::ref<uint8_t>(halo::hs::vars().main_globals_byte_0071973d);
 static auto &main_globals_byte_0071973e = halo::link::ref<uint8_t>(halo::hs::vars().main_globals_byte_0071973e);
 static auto &main_globals_dword_00719740 = halo::link::ref<int32_t>(halo::hs::vars().main_globals_dword_00719740);
@@ -33,10 +30,6 @@ static auto &main_globals_word_0071974c = halo::link::ref<int16_t>(halo::hs::var
 static auto &main_globals_word_0071976e = halo::link::ref<int16_t>(halo::hs::vars().main_globals_word_0071976e);
 static auto &main_globals_byte_0071976c = halo::link::ref<uint8_t>(halo::hs::vars().main_globals_byte_0071976c);
 static auto &main_globals_byte_0071974e = halo::link::ref<uint8_t>(halo::hs::vars().main_globals_byte_0071974e);
-extern "C" {
-extern void rcon(int32_t argument_count, char **arguments);
-extern void player_update_queue_flush_by_name(char *name);
-}
 static auto &console_debug_flag_4 = halo::link::ref<uint8_t>(halo::shell::vars().console_debug_flag_4);
 static auto &player_effect_globals_pointer = halo::link::ref<uint8_t *>(halo::effects::vars().player_effect_globals_pointer);
 static auto &pending_difficulty = halo::link::ref<int16_t>(halo::ui::vars().pending_difficulty);

@@ -30,9 +30,6 @@
 static auto &first_person_weapon_interfaces = halo::link::ref<first_person_weapon_interface *>(halo::ui::vars().first_person_weapon_interfaces);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &global_zero_vector3d_pointer = halo::link::ref<void *>(halo::units::vars().global_zero_vector3d_pointer);
-extern "C" {
-extern float effect_random_fraction(void);
-}
 static auto &render_camera_global = halo::link::ref<real_point3d>(halo::render::vars().render_camera_global);
 static auto &camera_forward_x = halo::link::ref<real_vector3d>(halo::effects::vars().camera_forward_x);
 static auto &camera_up = halo::link::ref<real_vector3d>(halo::ui::vars().camera_up);

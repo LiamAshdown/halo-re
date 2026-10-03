@@ -80,7 +80,6 @@ void ActorView::update_activation_state()
 
 namespace actor_update_aim_wander_local {
 extern "C" {
-extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
 static float aim_wander_random_fraction(void)
 {
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);

@@ -34,26 +34,12 @@
 static auto &level_select_entries = halo::link::ref<uint8_t [0x50]>(halo::ui::vars().level_select_entries);
 static auto &pending_difficulty = halo::link::ref<int16_t>(halo::ui::vars().pending_difficulty);
 static auto &save_in_progress_00719010 = halo::link::ref<uint8_t>(halo::ui::vars().save_in_progress_00719010);
-extern "C" {
-extern uint32_t ui_start_campaign_from_level_one(void *widget, int16_t *event);
-}
 static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
 static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
 static auto &local_team_00714dd8 = halo::link::ref<uint8_t>(halo::ui::vars().local_team_00714dd8);
 static auto &coop_profile_globals_block_00714ddc = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().coop_profile_globals_block_00714ddc);
-extern "C" {
-extern void network_game_setup_teardown(void);
-extern uint32_t game_engine_ensure_variant_history_has_entry(void);
-}
 static auto &game_variant_history_current = halo::link::ref<int32_t>(halo::ui::vars().game_variant_history_current);
-extern "C" {
-extern void game_engine_apply_current_custom_variant(void);
-extern void game_engine_sync_variant_defaults(void);
-}
 static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
-extern "C" {
-extern void main_menu_play_title_music(void);
-}
 static auto &map_list = halo::link::ref<uint8_t *>(halo::ui::vars().map_list);
 static auto &map_list_count = halo::link::ref<int32_t>(halo::ui::vars().map_list_count);
 static auto &ui_lists = halo::link::ref<growable_array [3]>(halo::ui::vars().ui_lists);

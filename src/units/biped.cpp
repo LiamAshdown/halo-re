@@ -28,17 +28,6 @@
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
 
-extern "C" {
-extern uint8_t collision_bsp_surface_test_point_side_2d(ModelCollisionGeometryBSP *bsp, real_point2d *point, int32_t surface_index, int16_t axis, uint8_t sign);
-extern uint32_t collision_bsp_surface_closest_edge_point_2d(ModelCollisionGeometryBSP *bsp, int32_t surface_index, uint16_t axis, uint8_t sign, real_point2d *point, real_point2d *out_point);
-extern real_point3d *collision_bsp_surface_solve_third_axis(ModelCollisionGeometryBSP *collision_bsp, int32_t surface_index, uint8_t component_sign, real_point3d *out, int32_t dominant_axis, const real_point2d *known);
-extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
-extern uint32_t weapon_prevents_melee_attack(datum_index item_index);
-extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index, int16_t category, int16_t mode);
-extern void weapon_reset_triggers(datum_index item_index);
-extern int32_t unit_get_local_player_weapon_index(datum_index unit);
-extern void local_player_set_controlled_unit(datum_index new_unit, int16_t local_player_index);
-}
 static auto &cinematic_globals_ptr = halo::link::ref<uint8_t *>(halo::game::vars().cinematic_globals_ptr);
 static auto &unit_updates_suppressed = halo::link::ref<uint8_t>(halo::units::vars().unit_updates_suppressed);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);

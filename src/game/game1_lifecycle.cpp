@@ -57,10 +57,6 @@ static auto &game_state_write_buffer_allocated = halo::link::ref<uint8_t>(halo::
 static auto &game_state_persistent_storage = halo::link::ref<void *>(halo::game::vars().game_state_persistent_storage);
 static auto &game_state_persistent_storage_created = halo::link::ref<uint8_t>(halo::game::vars().game_state_persistent_storage_created);
 extern "C" {
-extern void widget_close_all(void);
-extern void objects_dispose(void);
-extern void network_shutdown(void);
-extern void player_respawn(datum_index player_handle);
 extern uint8_t player_attach_unit_to_parent(datum_index player_handle, datum_index parent_object,
                              void *local_offset);
 }

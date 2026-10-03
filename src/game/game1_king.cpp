@@ -34,10 +34,6 @@ static auto &king_starting_location_type = halo::link::ref<int32_t>(halo::game::
 static auto &king_hill_move_ticks_006b1068 = halo::link::ref<int32_t>(halo::game::vars().king_hill_move_ticks_006b1068);
 static auto &king_hill_index_006b1058 = halo::link::ref<int32_t>(halo::game::vars().king_hill_index_006b1058);
 static auto &king_hill_state_globals = halo::link::ref<int32_t>(halo::game::vars().king_hill_state_globals);
-extern "C" {
-extern void game_engine_koth_build_hill_boundary(void);
-extern void game_engine_koth_reset_hill_marker_history(void);
-}
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_teams_enabled_flag);
 static auto &king_bucket_last_credit_tick = halo::link::ref<int32_t [16]>(halo::game::vars().king_bucket_last_credit_tick);

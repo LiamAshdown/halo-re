@@ -34,10 +34,6 @@ static auto &chat_gui_release = halo::link::ref<chat_gui_release_fn>(halo::ui::v
 static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
 static auto &empty_wide_string_pointer = halo::link::ref<uint16_t *>(halo::ui::vars().empty_wide_string_pointer);
 static auto &global_zero_vector3d_pointer = halo::link::ref<void *>(halo::units::vars().global_zero_vector3d_pointer);
-extern "C" {
-extern int16_t item_type_to_message_stage(int16_t item_type_code);
-extern int16_t item_type_to_animation_stage(int16_t message_stage);
-}
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 extern "C" {
 extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind,

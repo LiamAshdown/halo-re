@@ -9,11 +9,6 @@
 #include "halo/core/link.hpp"
 #include "halo/hs/vars.hpp"
 
-extern "C" {
-extern uint8_t team_pair_flag_test(int16_t team_a, int16_t team_b);
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-extern uint32_t team_pair_override_remove(int16_t index_a, int16_t index_b);
-}
 static auto &global_scenario = halo::link::ref<Scenario *>(halo::hs::vars().global_scenario);
 
 namespace halo::hs {

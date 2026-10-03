@@ -16,9 +16,6 @@
 namespace halo::ai {
 
 namespace actor_reassign_vehicle_seat_local {
-extern "C" {
-extern int8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-}
 }
 
 /**

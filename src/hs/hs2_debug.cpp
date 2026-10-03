@@ -24,13 +24,7 @@
 #include "halo/hs/vars.hpp"
 
 
-extern "C" {
-extern void chimera__console_out(void *color, const char *format, ...);
-}
 static auto &hs_type_inspectors = halo::link::ref<void (*[])(int16_t type, int32_t value, char *buffer)>(halo::hs::vars().hs_type_inspectors);
-extern "C" {
-extern void message_delta_metrics_dump(char *suffix);
-}
 static auto &network_bandwidth_graph_globals = halo::link::ref<uint8_t []>(halo::main::vars().network_bandwidth_graph_globals);
 static auto &actor_mode_default_look_weights = halo::link::ref<void *>(halo::networking::vars().actor_mode_default_look_weights);
 static auto &lens_flare_object_visibility_table = halo::link::ref<uint32_t [0x8c0]>(halo::rasterizer::vars().lens_flare_object_visibility_table);

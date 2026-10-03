@@ -8,9 +8,6 @@
 
 static auto &game_engine_active_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_active_variant);
 static auto &network_server = halo::link::ref<uint8_t *>(halo::networking::vars().network_server);
-extern "C" {
-extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
-}
 static auto &game_variant_history = halo::link::ref<game_variant_history_entry *>(halo::game::vars().game_variant_history);
 static auto &game_variant_history_count = halo::link::ref<uint32_t>(halo::game::vars().game_variant_history_count);
 static auto &game_variant_history_capacity = halo::link::ref<uint32_t>(halo::game::vars().game_variant_history_capacity);

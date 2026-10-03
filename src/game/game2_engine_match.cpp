@@ -17,19 +17,6 @@ static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::var
 static auto &game_engine_state_value = halo::link::ref<game_engine_state>(halo::game::vars().game_engine_state_value);
 static auto &game_engine_end_game_timer = halo::link::ref<float>(halo::game::vars().game_engine_end_game_timer);
 static auto &game_engine_unknown_aa00 = halo::link::ref<uint32_t>(halo::game::vars().game_engine_unknown_aa00);
-extern "C" {
-extern void game_engine_multiplayer_sound_queue_tick(void);
-extern void game_engine_cleanup_dropped_objects(void);
-extern void game_engine_update_item_scale_and_pickup(void);
-extern void game_engine_update_netgame_equipment(char force_respawn);
-extern void game_engine_clear_unit_shields_when_disabled(datum_index player_handle);
-extern void player_kill_streak_set_max(int16_t slot, uint32_t player_index, int16_t value);
-extern void game_engine_update_teleporter(datum_index player_handle);
-extern char game_engine_announce_time_remaining(void);
-extern void game_engine_begin_end_game_sequence(void);
-extern void game_engine_end_game_sequence_stage2(void);
-extern void game_engine_send_end_game_notification(uint32_t reason);
-}
 static auto &sv_tk_cooldown_ticks = halo::link::ref<int32_t>(halo::game::vars().sv_tk_cooldown_ticks);
 static auto &k_empty_string = halo::link::ref<char []>(halo::networking::vars().k_empty_string);
 static auto &player_profile_cache_initialized = halo::link::ref<uint8_t>(halo::game::vars().player_profile_cache_initialized);
@@ -38,9 +25,6 @@ static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::g
 static auto &shared_hud_text_draw_state = halo::link::ref<uint8_t>(halo::game::vars().shared_hud_text_draw_state);
 static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_teams_enabled_flag);
 static auto &network_client = halo::link::ref<uint8_t []>(halo::networking::vars().network_client);
-extern "C" {
-extern void game_engine_gather_team_score_totals(uint32_t out_count[2], uint32_t out_score[2], int32_t filter_value);
-}
 
 namespace halo::game {
 

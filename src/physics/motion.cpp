@@ -23,9 +23,6 @@
 #include "halo/physics/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" { void halo::physics::physics_clamp_value_to_spring_range(float *value, physics_scalar_rates *rates, float step); }
-extern "C" { void halo::physics::physics_scalar_advance_and_wrap(physics_scalar_range *range, float *value, uint8_t wrap, float delta); }
-extern "C" { float halo::physics::physics_scalar_approach_direction(physics_scalar_range *range, float value, uint8_t wrap, float target); }
 
 namespace halo::physics {
 

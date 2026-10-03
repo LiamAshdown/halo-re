@@ -12,17 +12,6 @@
 #include "halo/game/vars.hpp"
 #include "halo/physics/vars.hpp"
 
-extern "C" {
-extern datum_index player_index_from_unit_index(datum_index unit_index);
-extern void hud_waypoint_activate_for_player(datum_index player_index, datum_index target, int16_t kind, int16_t arrow_index, float vertical_offset);
-extern void hud_waypoint_activate_for_team(datum_index target, int16_t arrow_index, int16_t team, int16_t kind, float vertical_offset);
-extern void cheat_spawn_objects_near_camera(TagDependency *tag_array, int16_t count);
-extern void cheat_all_weapons(void);
-extern void cheat_spawn_warthog(void);
-extern void cheat_teleport_to_camera(void);
-extern void hud_waypoint_deactivate_for_player(datum_index player_index, datum_index target, int16_t kind);
-extern void hud_waypoint_deactivate_for_team(int16_t kind, int16_t team, datum_index target);
-}
 static auto &breakable_surface_state = halo::link::ref<uint8_t *>(halo::physics::vars().breakable_surface_state);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 

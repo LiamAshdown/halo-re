@@ -17,9 +17,6 @@
 #include "halo/core/libm.hpp"
 
 extern "C" {
-extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags, uint32_t exclude_object_index, collision_result *result);
-extern void item_compute_rotation(uint32_t object_index);
-extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position, uint32_t exclude_object_index);
 uint8_t halo::items::item_update(uint32_t item_index);
 }
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);

@@ -9,9 +9,6 @@
 #include "halo/core/link.hpp"
 #include "halo/hs/vars.hpp"
 
-extern "C" {
-extern void player_update_history_play_local_player(int32_t target_update_id);
-}
 static auto &playback_requested_00719768 = halo::link::ref<uint8_t>(halo::hs::vars().playback_requested_00719768);
 
 namespace halo::hs {

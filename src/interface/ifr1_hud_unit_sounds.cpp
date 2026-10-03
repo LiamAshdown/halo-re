@@ -14,7 +14,6 @@
 
 static auto &game_looping_sound_data = halo::link::ref<data_array *>(halo::ui::vars().game_looping_sound_data);
 extern "C" {
-extern void sound_impulse_fade_out(int32_t sound_handle);
 extern int32_t sound_play_new(datum_index sound_tag, void *parameters, int32_t unknown_0, int32_t unknown_1,
                             void *callback_data, int32_t unknown_3, int32_t unknown_4);
 }

@@ -14,7 +14,6 @@ static auto &network_console_connection_id = halo::link::ref<int32_t>(halo::netw
 static auto &sv_ban_penalty_seconds = halo::link::ref<int32_t [4]>(halo::networking::vars().sv_ban_penalty_seconds);
 extern "C" {
 extern char *gcd_getkeyhash(int32_t connection_id, int32_t identity_lookup_key);
-extern void chimera__console_out(ColorARGB *color, char *format, ...);
 }
 static auto &network_banlist_full_path = halo::link::ref<char [0x104]>(halo::networking::vars().network_banlist_full_path);
 static auto &network_ban_file_read_mode_string = halo::link::ref<char []>(halo::networking::vars().network_ban_file_read_mode_string);

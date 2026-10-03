@@ -10,7 +10,6 @@ static auto &network_game_socket = halo::link::ref<int32_t>(halo::networking::va
 static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
 static auto &network_host_handoff_requested = halo::link::ref<uint8_t>(halo::networking::vars().network_host_handoff_requested);
 extern "C" {
-extern void chat_close(void);
 extern int gt2NetworkToHostInt(unsigned int value);
 extern char *gt2AddressToString(unsigned int ip, unsigned short port, char *string);
 extern int gt2Connect(void *socket, void **connection_out, const char *remote_address, const unsigned char *message, int len, unsigned long timeout, const void *callbacks, int blocking);

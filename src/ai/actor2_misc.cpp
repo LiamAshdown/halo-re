@@ -662,7 +662,6 @@ namespace actor_process_vehicle_seat_exit_local {
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern void player_update_history_free_all(void *history);
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask])
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
@@ -1315,9 +1314,6 @@ void ActorView::replace_object_reference(uint32_t new_reference, uint32_t old_re
 }
 
 namespace actor_report_command_status_local {
-extern "C" {
-extern uint8_t team_pair_flag_test(int16_t team_a, int16_t team_b);
-}
 }
 
 /**
@@ -1443,9 +1439,6 @@ uint8_t ActorView::request_move_and_face()
 }
 
 namespace actor_reseed_movement_pause_timer_local {
-extern "C" {
-extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
-}
 }
 
 /**

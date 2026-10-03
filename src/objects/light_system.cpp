@@ -28,14 +28,6 @@
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
 
-extern "C" {
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern char *object_get_attachment_marker_name(uint32_t object_index, int16_t attachment_index);
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum);
-extern void object_get_root_location(int32_t *out, uint32_t object_index);
-extern void object_light_recompute_transform(uint32_t light_index);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-}
 static auto &game_engine_unknown_aa00 = halo::link::ref<uint8_t>(halo::game::vars().game_engine_unknown_aa00);
 static auto &global_white_color = halo::link::ref<float *>(halo::effects::vars().global_white_color);
 static auto &light_active_list = halo::link::ref<datum_index [0x80]>(halo::objects::vars().light_active_list);

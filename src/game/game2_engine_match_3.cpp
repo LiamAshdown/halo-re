@@ -13,14 +13,6 @@ static auto &network_client = halo::link::ref<uint8_t *>(halo::networking::vars(
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_engine_unknown_1cfc = halo::link::ref<uint8_t>(halo::game::vars().game_engine_unknown_1cfc);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
-extern "C" {
-extern void game_engine_player_round_reset(void);
-extern void chat_queue_team_message(int32_t color, int32_t message_id);
-extern uint8_t game_engine_team_close_game_check(int32_t side, int32_t filter_value);
-extern uint8_t game_engine_team_is_leading(int32_t filter_value);
-extern uint8_t player_customization_slot_set(uint8_t *base, uint8_t new_value, uint32_t key);
-extern void player_set_team_by_color(uint8_t new_team, int8_t target_team_index_desired);
-}
 
 namespace halo::game {
 

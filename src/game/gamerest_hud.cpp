@@ -22,9 +22,6 @@ static auto &hud_text_draw_color_a = halo::link::ref<float>(halo::ui::vars().hud
 static auto &hud_text_draw_color_r = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_r);
 static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_g);
 static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
-extern "C" {
-extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
-}
 static auto &player_control_globals_ptr = halo::link::ref<player_control_globals *>(halo::game::vars().player_control_globals_ptr);
 static auto &local_player_hud_status_table = halo::link::ref<uint8_t []>(halo::game::vars().local_player_hud_status_table);
 static auto &game_engine_nameplate_fade_opacity_array = halo::link::ref<float []>(halo::game::vars().game_engine_nameplate_fade_opacity_array);
@@ -40,15 +37,6 @@ static auto &hud_text_draw_tabstop_c = halo::link::ref<uint32_t>(halo::game::var
 static auto &hud_text_draw_box_field_4756 = halo::link::ref<int16_t>(halo::game::vars().hud_text_draw_box_field_4756);
 static auto &debug_print_enabled_flag = halo::link::ref<uint8_t>(halo::game::vars().debug_print_enabled_flag);
 static auto &custom_waypoints = halo::link::ref<custom_waypoint [k_maximum_custom_waypoints]>(halo::game::vars().custom_waypoints);
-extern "C" {
-extern uint8_t game_engine_ctf_unit_is_flag_holder(player *p);
-extern int16_t hud_waypoint_arrow_find(const char *name);
-extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t *out, uint32_t message_type, datum_index subject, size_t buffer_size);
-extern void game_engine_notify_kill_event(uint32_t player_index, int32_t hash_key, int32_t message_type, datum_index subject);
-extern void chimera__multiplayer_message(wchar_t *text);
-extern void chimera__hud_message(int16_t local_player_index, wchar_t *text);
-extern wchar_t *unicode_string_list_get_string(char *path, int16_t index);
-}
 static auto &ticker_field_separator = halo::link::ref<wchar_t []>(halo::game::vars().ticker_field_separator);
 static auto &missing_string_text = halo::link::ref<wchar_t []>(halo::ui::vars().missing_string_text);
 static auto &unicode_string_list_scratch_buffer = halo::link::ref<wchar_t>(halo::game::vars().unicode_string_list_scratch_buffer);

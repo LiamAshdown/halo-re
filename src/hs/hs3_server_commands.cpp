@@ -10,13 +10,6 @@
 #include "halo/hs/vars.hpp"
 #include "halo/networking/vars.hpp"
 
-extern "C" {
-extern void sv_ban(uint32_t argument_count, int32_t *arguments);
-extern void network_banlist_print(void);
-extern void chimera__console_out(void *color, char *format, ...);
-extern void game_engine_begin_end_game_sequence(void);
-extern void game_engine_find_player_by_name(char *source_name);
-}
 static auto &global_white_argb = halo::link::ref<void *>(halo::networking::vars().global_white_argb);
 static auto &message_delta_parameters_enabled = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_enabled);
 static auto &message_delta_config_text_buffer = halo::link::ref<char []>(halo::hs::vars().message_delta_config_text_buffer);

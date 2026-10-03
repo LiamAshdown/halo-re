@@ -21,15 +21,8 @@ extern "C" {
 extern uint8_t particle_advance_frame(datum_index particle_handle);
 extern uint8_t particle_next_sequence(datum_index particle_handle);
 extern void particle_impact_response_dispatch(particle *self, tag_group fourcc, datum_index definition_index, real intensity);
-extern datum_index effect_new_with_color(uint32_t definition_index, uint32_t creator, real_vector3d *velocity, int32_t count, char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale, int32_t color, int32_t tint, int32_t force);
-extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern uint16_t effect_random_uint16(void);
-extern int effect_random_int_between(int16_t minimum, int16_t maximum);
 extern real particle_current_radius(datum_index particle_handle);
 extern void particle_impact(datum_index particle_handle);
-extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
-extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
 extern uint8_t particle_advance_animation(datum_index particle_handle, real delta_time);
 extern uint8_t particle_update_motion(datum_index particle_handle, real delta_time);
 void particle_new(particle_creation_data *creation_data);

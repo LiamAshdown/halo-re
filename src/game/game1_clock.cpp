@@ -31,12 +31,6 @@
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &chimera_contrail_scale = halo::link::ref<real>(halo::game::vars().chimera_contrail_scale);
 static auto &game_time_force_single_tick = halo::link::ref<int32_t>(halo::game::vars().game_time_force_single_tick);
-extern "C" {
-extern void game_simulate_tick(uint32_t predict_pass);
-extern void update_run_catchup_ticks(int16_t tick_count);
-extern void game_effects_update(float delta_time);
-extern int32_t game_engine_accumulate_simulation_ticks(float elapsed_seconds, char keep_remainder);
-}
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);

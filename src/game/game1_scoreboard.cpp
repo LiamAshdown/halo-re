@@ -51,10 +51,6 @@ static auto &ui_widget_history = halo::link::ref<void *>(halo::ui::vars().ui_wid
 static auto &ui_pause_depth = halo::link::ref<uint8_t>(halo::ui::vars().ui_pause_depth);
 static auto &controls_input_capture_buffer = halo::link::ref<uint8_t [0xa0 * 4]>(halo::ui::vars().controls_input_capture_buffer);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
-extern "C" {
-extern int32_t players_active_count(void);
-extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_handle);
-}
 static auto &default_color_a = halo::link::ref<real *>(halo::game::vars().default_color_a);
 static auto &default_color_b = halo::link::ref<real *>(halo::game::vars().default_color_b);
 static auto &game_engine_unknown_aa00 = halo::link::ref<int32_t>(halo::game::vars().game_engine_unknown_aa00);

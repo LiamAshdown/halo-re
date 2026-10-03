@@ -26,11 +26,6 @@
 static auto &console_echo_prefix = halo::link::ref<char []>(halo::ui::vars().console_echo_prefix);
 static auto &console_rcon_out_reentrant_guard = halo::link::ref<uint8_t>(halo::ui::vars().console_rcon_out_reentrant_guard);
 static auto &console_output_handle = halo::link::ref<void *>(halo::ui::vars().console_output_handle);
-extern "C" {
-extern void console_clear_bottom_line(int32_t clear_all);
-extern void console_draw_input_line(void);
-extern void string_replace_all_in_place(char *buffer, char *search, char *replacement);
-}
 static auto &console_window_title = halo::link::ref<char [0x20]>(halo::ui::vars().console_window_title);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &console_caret_visible = halo::link::ref<uint8_t>(halo::ui::vars().console_caret_visible);

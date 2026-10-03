@@ -58,11 +58,6 @@ static auto &save_in_progress_00719010 = halo::link::ref<uint8_t>(halo::ui::vars
 static auto &cached_profile_slot = halo::link::ref<int32_t>(halo::ui::vars().cached_profile_slot);
 static auto &network_wait_flag_00719739 = halo::link::ref<uint8_t>(halo::ui::vars().network_wait_flag_00719739);
 static auto &last_profile_name = halo::link::ref<char []>(halo::ui::vars().last_profile_name);
-extern "C" {
-extern void saved_game_delete_files(void);
-extern uint8_t saved_game_get_directory_by_handle(int32_t slot, char *out_name);
-extern void saved_game_last_profile_clear(char *name);
-}
 
 namespace halo::ui {
 

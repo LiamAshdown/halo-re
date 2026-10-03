@@ -32,9 +32,6 @@
 #include "halo/game/vars.hpp"
 
 static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
-extern "C" {
-extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle);
-}
 static auto &game_engine_attribute_enabled = halo::link::ref<uint8_t>(halo::game::vars().game_engine_attribute_enabled);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);

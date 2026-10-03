@@ -46,36 +46,6 @@
 
 extern "C" {
 
-extern float g_007c1228;
-extern float g_007c122c;
-extern float g_007c1230;
-extern float g_007c1234;
-extern float g_007c1238;
-extern float g_007c123c;
-extern float g_007c1290;
-extern float g_007c1294;
-extern float g_007c1298;
-extern float g_007c129c;
-extern float g_007c12a0;
-extern float g_007c12a4;
-extern float g_007c12a8;
-extern float g_007c12ac;
-extern float g_007c12b0;
-extern float g_007c12b4;
-extern float g_007c12b8;
-extern float g_007c12bc;
-extern float g_007c12c4;
-extern float g_007c12c8;
-extern float g_007c12cc;
-extern float g_007c12d0;
-extern float g_007c12d4;
-extern float g_007c12d8;
-extern float g_007c13c0[16];
-extern float g_007c13d0;
-extern float g_007c13d4;
-extern float g_007c13e0;
-extern float g_007c13e4;
-extern float g_007c13f0;
 extern void *(__stdcall *direct3d_create9_procedure)(uint32_t sdk_version);
 
 }  // extern "C"

@@ -23,12 +23,6 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
-extern datum_index player_index_from_unit_index(datum_index unit_index);
-extern uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_object, void *local_offset);
-extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
-extern uint32_t player_index_from_unit_index(datum_index object_index);
-}
 static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);

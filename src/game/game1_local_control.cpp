@@ -49,9 +49,6 @@ static auto &look_rate_doubler_enabled = halo::link::ref<uint8_t>(halo::game::va
 static auto &game_engine_input_source_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_input_source_flag);
 static auto &cinematic_globals_ptr = halo::link::ref<uint8_t *>(halo::game::vars().cinematic_globals_ptr);
 static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
-extern "C" {
-extern real weapon_clamp_zoom_fov(datum_index item_index, int16_t zoom_level, real base_fov);
-}
 
 namespace halo::game::engine1 {
 

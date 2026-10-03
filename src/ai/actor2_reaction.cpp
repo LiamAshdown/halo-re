@@ -766,9 +766,6 @@ void ActorOps::queue_velocity_search_from_prop(datum_index prop_index, datum_ind
 }
 
 namespace actor_react_to_flee_point_local {
-extern "C" {
-extern int8_t teams_are_enemies(int16_t a, int16_t b);
-}
 static auto &actor_dialogue_variant_table_e = halo::link::ref<int16_t []>(halo::ai::vars().actor_dialogue_variant_table_e);
 }
 
@@ -898,9 +895,6 @@ void ActorOps::react_to_registered_danger(const real_point3d *point, datum_index
 namespace actor_react_to_seen_target_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
-extern "C" {
-extern int8_t teams_are_enemies(int16_t a, int16_t b);
-}
 static auto &actor_dialogue_variant_table_f = halo::link::ref<int16_t []>(halo::ai::vars().actor_dialogue_variant_table_f);
 }
 

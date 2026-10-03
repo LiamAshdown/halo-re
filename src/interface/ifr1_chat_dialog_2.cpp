@@ -26,9 +26,6 @@
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &chat_local_prompt_string = halo::link::ref<const uint16_t []>(halo::ui::vars().chat_local_prompt_string);
-extern "C" {
-extern datum_index player_get_vehicle(datum_index player_index);
-}
 static auto &chat_dialog_open = halo::link::ref<uint8_t>(halo::ui::vars().chat_dialog_open);
 static auto &chat_scope_active = halo::link::ref<int32_t>(halo::ui::vars().chat_scope_active);
 static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);

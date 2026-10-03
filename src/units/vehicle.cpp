@@ -17,11 +17,6 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
-extern uint8_t physics_scalar_step_to_target_clamped(void *rates, float *value, float target, float step);
-extern uint8_t physics_scalar_move_toward_target(void *range, float *value, uint8_t wrap, float target, float rate);
-extern void object_physics_tick(uint32_t object_index, void *powered_states, void *mass_points, real_vector3d *extra_force, real_vector3d *extra_torque);
-}
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &k_vehicle_minimum_age_ticks = halo::link::ref<int32_t>(halo::units::vars().k_vehicle_minimum_age_ticks);
 static auto &vehicle_network_update_period = halo::link::ref<int32_t>(halo::units::vars().vehicle_network_update_period);

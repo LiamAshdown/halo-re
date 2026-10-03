@@ -13,9 +13,6 @@
 #include "halo/effects/vars.hpp"
 
 extern "C" {
-extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
-extern real effect_random_scaled_range(uint32_t flags, real scale, real base_min, real base_max, uint8_t bit_index);
-extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void contrail_next_sequence(contrail *self);
 extern void contrail_age_points(datum_index contrail_handle, real delta_time);
 extern void contrail_delete(datum_index contrail_index);

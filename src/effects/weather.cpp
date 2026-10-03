@@ -24,8 +24,6 @@ static auto &render_frustum_global = halo::link::ref<render_frustum>(halo::rende
 extern "C" {
 extern datum_index weather_particle_new(int16_t instance_index, int16_t type_index);
 extern void weather_instance_update(int16_t instance_index);
-extern void effect_random_direction_from_table(real_point3d *out);
-extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
 }
 static auto &weather_instances = halo::link::ref<weather_instance [1]>(halo::effects::vars().weather_instances);
 static auto &weather_instance_count = halo::link::ref<int32_t>(halo::effects::vars().weather_instance_count);

@@ -13,11 +13,6 @@
 #include "halo/items/vars.hpp"
 
 extern "C" {
-extern datum_index player_index_from_unit_index(datum_index unit_index);
-extern void unit_update_active_camouflage_depower(datum_index player_handle);
-extern uint32_t local_player_index_for_weapon(datum_index item_index);
-extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
-extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
 uint32_t halo::items::weapon_fire_trigger(datum_index item_index, int16_t trigger_index);
 }
 static auto &weapon_infinite_ammo = halo::link::ref<uint8_t>(halo::items::vars().weapon_infinite_ammo);

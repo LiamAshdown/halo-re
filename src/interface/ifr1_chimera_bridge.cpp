@@ -59,10 +59,6 @@ static auto &ui_widget_opened = halo::link::ref<uint8_t>(halo::ui::vars().ui_wid
 static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
 static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
 static auto &ui_widget_history = halo::link::ref<widget_history_node *[3]>(halo::ui::vars().ui_widget_history);
-extern "C" {
-extern void sound_looping_stop(datum_index sound_tag);
-extern void sound_stop_all(void);
-}
 
 namespace halo::interface {
 

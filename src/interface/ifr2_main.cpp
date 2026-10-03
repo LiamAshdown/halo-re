@@ -40,9 +40,6 @@ static auto &ui_cursor_changed = halo::link::ref<uint8_t>(halo::ui::vars().ui_cu
 static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
 static auto &ui_time_milliseconds = halo::link::ref<int32_t>(halo::ui::vars().ui_time_milliseconds);
 static auto &ui_widget_history = halo::link::ref<widget_history_node *[3]>(halo::ui::vars().ui_widget_history);
-extern "C" {
-extern void sound_looping_stop(datum_index sound_tag);
-}
 static auto &main_menu_music_datum = halo::link::ref<int32_t>(halo::ui::vars().main_menu_music_datum);
 static auto &map_list = halo::link::ref<map_list_entry *>(halo::ui::vars().map_list);
 static auto &map_list_count = halo::link::ref<int32_t>(halo::ui::vars().map_list_count);

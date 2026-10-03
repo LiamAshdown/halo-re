@@ -35,9 +35,6 @@ static auto &network_transform_resend_interval_ms = halo::link::ref<int32_t>(hal
 static auto &network_vehicle_transform_resend_interval_ms_alt = halo::link::ref<int32_t>(halo::networking::vars().network_vehicle_transform_resend_interval_ms_alt);
 static auto &network_attachment_transform_resend_interval_ms_alt = halo::link::ref<int32_t>(halo::networking::vars().network_attachment_transform_resend_interval_ms_alt);
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
-extern "C" {
-extern uint8_t circular_queue_push(circular_queue *queue, void *record);
-}
 
 
 namespace halo::networking {

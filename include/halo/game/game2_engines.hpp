@@ -130,9 +130,9 @@ private:
     static uint8_t read_changed(void **context, void *changed_base, void *destination);
 };
 
-extern SlayerEngine slayer_engine;
-extern OddballEngine oddball_engine;
-extern RaceEngine race_engine;
+inline constinit SlayerEngine slayer_engine;
+inline constinit OddballEngine oddball_engine;
+inline constinit RaceEngine race_engine;
 
 /**
  * Returns the engine behaviour object for a game_engine_index value, or null for engines that are not

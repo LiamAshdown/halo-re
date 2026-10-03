@@ -18,10 +18,6 @@
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
 
-extern "C" {
-extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
-extern void build_sprites_end(build_sprite_data *data);
-}
 static auto &antenna_data = halo::link::ref<data_array *>(halo::objects::vars().antenna_data);
 static auto &antenna_sprite_shader = halo::link::ref<uint8_t []>(halo::objects::vars().antenna_sprite_shader);
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);

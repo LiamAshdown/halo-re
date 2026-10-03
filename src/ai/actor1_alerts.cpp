@@ -828,7 +828,6 @@ namespace c_actor_evaluate_combat_state_transition {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
 
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)

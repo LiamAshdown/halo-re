@@ -31,15 +31,8 @@ static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud
 static auto &hud_text_draw_color_a = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_a);
 static auto &hud_text_draw_color_or_flags = halo::link::ref<uint16_t>(halo::ui::vars().hud_text_draw_color_or_flags);
 static auto &hud_text_draw_font_tag_id = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_font_tag_id);
-extern "C" {
-extern uint16_t unit_find_weapon_index_by_flag(uint32_t unit_index, uint8_t flag_bit);
-}
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
-extern "C" {
-extern void game_engine_queue_status_sound_message(int32_t sound_index, datum_index recipient_player);
-extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
-}
 static auto &multiplayer_sound_enabled = halo::link::ref<uint8_t []>(halo::game::vars().multiplayer_sound_enabled);
 static auto &multiplayer_sound_queue_count = halo::link::ref<int32_t>(halo::game::vars().multiplayer_sound_queue_count);
 static auto &multiplayer_sound_queue = halo::link::ref<multiplayer_sound_request [k_maximum_queued_multiplayer_sounds]>(halo::game::vars().multiplayer_sound_queue);

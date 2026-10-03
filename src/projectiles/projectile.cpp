@@ -19,11 +19,6 @@
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
 
-extern "C" {
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
-extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t collision_mask, uint32_t ignore_object_index, void *out_record);
-extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind, char **labels, void *position_block, void *direction_block, real fade_in, real fade_out, int32_t color, int32_t tint_source, int32_t force_create);
-}
 static auto &k_empty_string = halo::link::ref<char [1]>(halo::networking::vars().k_empty_string);
 static auto &projectile_default_material_response = halo::link::ref<ProjectileMaterialResponse>(halo::projectiles::vars().projectile_default_material_response);
 static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);

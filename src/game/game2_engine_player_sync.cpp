@@ -24,21 +24,6 @@ static auto &current_game_engine = halo::link::ref<game_engine_definition *>(hal
 static auto &ui_split_screen = halo::link::ref<uint8_t>(halo::ui::vars().ui_split_screen);
 static auto &global_00719750 = halo::link::ref<uint8_t>(halo::game::vars().global_00719750);
 static auto &global_00719772 = halo::link::ref<int16_t>(halo::game::vars().global_00719772);
-extern "C" {
-extern uint32_t update_client_distribute_staged_entry(uint8_t *out);
-extern uint8_t player_update_queue_pop_current(player_update_record *out, player_update_queue *queue);
-extern void player_apply_first_position_update(uint32_t field0, player *plr);
-extern uint8_t game_engine_player_ready_to_respawn(uint32_t player_index);
-extern void game_engine_resolve_player_team(uint32_t player_index);
-extern void game_engine_apply_player_grenade_counts(uint32_t player_index);
-extern void player_respawn(datum_index player_handle);
-extern void player_apply_pickup_effect(datum_index player_handle, datum_index item_index);
-extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward);
-extern void game_engine_build_visible_cluster_bitmask(void *out_bitmask, uint32_t flag);
-extern uint32_t update_client_queue_apply_tick(player_action *out_actions, client_update_carry *out_carry);
-extern uint8_t player_execute_pending_interaction(datum_index player_handle);
-extern uint8_t player_execute_weapon_drop_interaction(datum_index player_handle);
-}
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);

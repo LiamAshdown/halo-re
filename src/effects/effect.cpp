@@ -15,7 +15,6 @@
 #include "halo/interface/vars.hpp"
 
 extern "C" {
-extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker, int32_t mode);
 extern void effect_delete(datum_index effect_handle);
 extern void effect_start_event(datum_index effect_handle, int16_t event_index);
 }

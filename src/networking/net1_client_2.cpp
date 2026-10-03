@@ -15,9 +15,6 @@
 static auto &network_disconnect_timeout_flag = halo::link::ref<uint8_t>(halo::networking::vars().network_disconnect_timeout_flag);
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
 static auto &network_host_handoff_requested = halo::link::ref<uint8_t>(halo::networking::vars().network_host_handoff_requested);
-extern "C" {
-extern void chat_close(void);
-}
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 static auto &network_disconnect_notice_shown = halo::link::ref<uint8_t>(halo::networking::vars().network_disconnect_notice_shown);
 static auto &local_player_globals = halo::link::ref<uint8_t [8]>(halo::game::vars().local_player_globals);

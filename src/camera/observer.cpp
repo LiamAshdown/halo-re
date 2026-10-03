@@ -15,9 +15,6 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
-extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
-}
 static auto &observers = halo::link::ref<observer [1]>(halo::camera::vars().observers);
 static auto &observer_dt = halo::link::ref<float>(halo::camera::vars().observer_dt);
 static auto &observer_derivative_float_counts = halo::link::ref<int16_t [5]>(halo::camera::vars().observer_derivative_float_counts);

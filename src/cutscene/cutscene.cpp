@@ -19,10 +19,6 @@
 #include "halo/interface/vars.hpp"
 #include "halo/core/x87.hpp"
 
-extern "C" {
-extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error);
-extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
-}
 static auto &cinematic_saved_music_gain = halo::link::ref<float>(halo::cutscene::vars().cinematic_saved_music_gain);
 static auto &cinematic_globals_ptr = halo::link::ref<cinematic_globals *>(halo::game::vars().cinematic_globals_ptr);
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);

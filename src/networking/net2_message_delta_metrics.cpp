@@ -16,7 +16,6 @@
 static auto &message_delta_metrics_filename_suffix = halo::link::ref<char []>(halo::networking::vars().message_delta_metrics_filename_suffix);
 extern "C" {
 extern int32_t snprintf(char *dest, uint32_t count, const char *format, ...);
-extern void console_printf_verbose(const char *format, ...);
 }
 
 

@@ -411,7 +411,6 @@ extern "C" {
 static float sqrt_f(float x) { return (float)halo::libm::sqrt((double)x); }
 
 
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 }
 }
 
@@ -839,10 +838,6 @@ datum_index actor_find_or_allocate_prop(datum_index actor_index, uint32_t object
 }
 
 namespace c_actor_find_or_create_shared_prop {
-extern "C" {
-
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-}
 }
 
 

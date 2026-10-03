@@ -31,17 +31,7 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" { void halo::physics::object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale, float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up); }
-extern "C" { uint8_t halo::physics::object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t candidate_object_index); }
-extern "C" { void halo::physics::object_physics_compute_mass_point_forces(object_physics_context *context, powered_mass_point_state *powered_states, uint32_t mass_points_address, real_vector3d *out_force, real_vector3d *out_torque); }
-extern "C" { uint8_t halo::physics::object_physics_context_build(uint32_t object_index, object_physics_context *out_context); }
-extern "C" { void halo::physics::object_physics_handle_nearby_object_impacts(uint32_t object_index); }
-extern "C" { void halo::physics::object_physics_integrate_and_test_at_rest(object_physics_context *context, mass_point_state *mass_point_states, real_vector3d *torque, real_vector3d *force); }
-extern "C" { void halo::physics::object_physics_mass_point_resolve_ground_contact(uint32_t exclude_object_index, mass_point_state *mass_point, PhysicsMassPoint *definition); }
-extern "C" { void halo::physics::object_physics_mass_point_update_orientation(real_vector3d *axis, real_vector3d *up, real_vector3d *forward, real_vector3d *fallback_forward, real_vector3d *fallback_up); }
-extern "C" { uint8_t halo::physics::object_physics_resolve_mass_point_overlap(object_physics_context *self, object_physics_context *other); }
 
-extern "C" { extern void physics_shape_vertex_to_sphere(physics_model *model, real_point3d *vertex, int16_t material_type, float height_offset, float radius, uint32_t object_index, int32_t surface_index, uint8_t surface_flags, int8_t breakable_surface_index); }
 namespace halo::physics {
 
 /**
@@ -128,9 +118,6 @@ void ObjectPhysics::blend_friction_axes(int16_t friction_type, float parallel_sc
 
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &k_impact_damage_scale_table = halo::link::ref<float []>(halo::physics::vars().k_impact_damage_scale_table);
-extern "C" { extern uint32_t object_collision_context_test_point(object_collision_context *context, real_point3d *point); }
-extern "C" { extern uint8_t object_collision_context_gather_sphere_shapes(void *context, real_point3d *origin, float radius_scale, float margin, float thickness, physics_model *model); }
-extern "C" { extern uint8_t physics_shape_test_point(physics_model *model, real_point3d *point, physics_model_contact *out_contact); }
 namespace halo::physics {
 
 /**
@@ -305,8 +292,6 @@ static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::
 static auto &material_table_warning_issued = halo::link::ref<uint8_t>(halo::physics::vars().material_table_warning_issued);
 static auto &material_table_bad_index = halo::link::ref<int32_t>(halo::physics::vars().material_table_bad_index);
 static auto &material_table_fallback = halo::link::ref<uint8_t [0x374]>(halo::physics::vars().material_table_fallback);
-extern "C" { extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); }
-extern "C" { extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
 namespace halo::physics {
 
 /**
@@ -1357,7 +1342,6 @@ uint8_t ObjectPhysics::test_ray_against_mass_points(real_point3d *world_origin, 
 
 }
 
-extern "C" { extern void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_state *powered_states, uint32_t mass_points, real_vector3d *extra_force, real_vector3d *extra_torque); }
 namespace halo::physics {
 
 /**

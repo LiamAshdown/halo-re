@@ -11,9 +11,6 @@
 #include "halo/ai/vars.hpp"
 #include "halo/effects/vars.hpp"
 
-extern "C" {
-extern void effect_start_event(datum_index effect_handle, int16_t event_index);
-}
 static auto &effect_data = halo::link::ref<data_array *>(halo::effects::vars().effect_data);
 static auto &global_white_color = halo::link::ref<const ColorRGB *>(halo::effects::vars().global_white_color);
 static auto &first_person_effects_enabled = halo::link::ref<uint8_t>(halo::effects::vars().first_person_effects_enabled);

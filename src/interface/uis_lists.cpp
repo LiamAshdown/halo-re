@@ -45,12 +45,6 @@ extern "C" {
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
     widget_instance *parent, uint16_t controller_index, datum_index history_definition,
     datum_index history_list_definition, int16_t history_selection);
-extern void widget_close(widget_instance *widget);
-extern void widget_play_sound_effect(int16_t effect_id);
-extern widget_instance *widget_find_by_tag_id(widget_instance *widget, datum_index tag_id);
-extern void widget_instance_relink_focus(widget_instance *widget, widget_instance *child);
-extern void widget_instance_close_and_restore_previous(widget_instance *widget);
-extern widget_instance *widget_reopen_as_root_with_history(widget_instance *widget, datum_index open_tag);
 }
 
 namespace halo::ui {

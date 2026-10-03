@@ -8,9 +8,6 @@
 #include "halo/hs/api.hpp"
 #include "halo/interface/api.hpp"
 
-extern "C" {
-extern void chimera__console_out(char *text);
-}
 
 namespace halo::hs::part3 {
 

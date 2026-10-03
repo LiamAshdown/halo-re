@@ -43,9 +43,6 @@ static_assert(offsetof(ObjectAttachment, change_color) == 0x34);
 static_assert(offsetof(Contrail, _pad_84) == 0x84);
 static_assert(offsetof(Particle, _pad_b0) == 0xb0);
 
-extern "C" {
-extern int32_t rasterizer_dynamic_index_cache_reserve(int32_t count);
-}
 static auto &build_sprite_screen_coverage = halo::link::ref<float>(halo::render::vars().build_sprite_screen_coverage);
 static auto &build_sprite_large_quad_count = halo::link::ref<int16_t>(halo::render::vars().build_sprite_large_quad_count);
 static auto &build_sprite_view_up = halo::link::ref<real_vector3d>(halo::render::vars().build_sprite_view_up);

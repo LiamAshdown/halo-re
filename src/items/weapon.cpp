@@ -20,7 +20,6 @@
 extern "C" {
 extern void weapon_reset_triggers(datum_index item_index);
 extern void weapon_magazine_reload_tick(datum_index item_index, int16_t magazine_index);
-extern void weapon_notify_reload_cancel(datum_index item_index, int16_t magazine_index);
 void halo::items::weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out);
 real halo::items::weapon_clamp_zoom_fov(datum_index item_index, int16_t zoom_level, real base_fov);
 void halo::items::weapon_force_settled_state(datum_index item_index);

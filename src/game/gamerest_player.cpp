@@ -33,20 +33,14 @@ extern void player_trigger_shield_recharge_effect(uint32_t player_index);
 extern void player_trigger_full_health_effect(uint32_t player_index);
 extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle);
 extern void player_trigger_kill_streak_effect(uint32_t player_index);
-extern void hud_post_item_message(int16_t count, int32_t source, uint8_t kind, int16_t local_player_index, int8_t machine_id);
 }
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
 extern uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object, real_point3d *point);
-extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind, int16_t count);
 extern void player_apply_pickup_effect(uint32_t player_index, uint32_t pickup_object);
 extern void unit_invalidate_local_player_zoom_level(datum_index unit);
-extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t edi_key, uint32_t mode, int32_t interaction_type, int32_t interaction_seat, int32_t secondary_key);
 }
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
-extern "C" {
-extern void player_update_history_free_all(void *queue);
-}
 static auto &global_origin3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &player_placement_ring = halo::link::ref<real_point3d [9]>(halo::game::vars().player_placement_ring);
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
@@ -75,32 +69,16 @@ static auto &global_006889e8 = halo::link::ref<uint32_t>(halo::game::vars().glob
 static auto &global_006889f0 = halo::link::ref<uint32_t>(halo::game::vars().global_006889f0);
 static auto &global_006889ec = halo::link::ref<uint32_t>(halo::game::vars().global_006889ec);
 static auto &global_007102f8 = halo::link::ref<uint32_t>(halo::game::vars().global_007102f8);
-extern "C" {
-extern real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level);
-}
 static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
 static auto &machine_to_player = halo::link::ref<datum_index [16]>(halo::game::vars().machine_to_player);
-extern "C" {
-extern void player_update_queue_create(player_update_queue *queue);
-extern void position_update_queue_create(circular_queue *queue);
-extern void vehicle_update_queue_create(circular_queue *queue);
-extern void game_engine_player_changed_object(uint32_t param);
-extern void network_queue_destroy(circular_queue *queue);
-}
 static auto &update_client_queues = halo::link::ref<data_array *>(halo::game::vars().update_client_queues);
 static auto &player_profile_cache = halo::link::ref<player_profile [16]>(halo::game::vars().player_profile_cache);
 static auto &player_profile_cache_count = halo::link::ref<int32_t>(halo::game::vars().player_profile_cache_count);
-extern "C" {
-extern void player_delete(uint32_t machine_index, datum_index player_handle);
-extern int32_t game_engine_player_profile_cache_find(datum_index player_handle);
-}
 static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
 static auto &catchup_backlog_threshold = halo::link::ref<int32_t>(halo::game::vars().catchup_backlog_threshold);
 static auto &catchup_time_threshold = halo::link::ref<int32_t>(halo::game::vars().catchup_time_threshold);
 extern "C" {
 extern uint8_t player_unit_has_parent(datum_index player_handle);
-extern void apply_remote_player_position_update(player *plr, object *unit_obj);
-extern void apply_remote_player_vehicle_position_update(player *plr, object *unit_obj);
 }
 static auto &team_data = halo::link::ref<data_array *>(halo::game::vars().team_data);
 static auto &camera_point = halo::link::ref<float []>(halo::game::vars().camera_point);

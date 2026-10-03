@@ -49,12 +49,6 @@ static auto &ui_root_widget = halo::link::ref<int32_t>(halo::ui::vars().ui_root_
 static auto &ui_widget_history = halo::link::ref<int32_t>(halo::ui::vars().ui_widget_history);
 static auto &ui_pause_depth = halo::link::ref<uint8_t>(halo::ui::vars().ui_pause_depth);
 static auto &controls_input_capture_buffer = halo::link::ref<uint8_t [0x280]>(halo::ui::vars().controls_input_capture_buffer);
-extern "C" {
-extern void game_engine_apply_current_custom_variant(void);
-extern void game_engine_sync_variant_defaults(void);
-extern void widget_close(int32_t widget);
-extern void widget_pool_list_free_all(void);
-}
 
 namespace halo::networking {
 

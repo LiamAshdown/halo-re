@@ -8,7 +8,6 @@
 #include "halo/game/api.hpp"
 
 extern "C" {
-extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 uint32_t halo::items::item_any_detonating();
 void halo::items::item_detonation_timer_start(uint32_t object_index);
 uint8_t halo::items::item_new(uint32_t object_index);

@@ -20,12 +20,6 @@
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
 
-extern "C" {
-extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
-extern void build_sprites_end(build_sprite_data *data);
-extern int8_t object_function_get_value(void);
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
-}
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &glow_data = halo::link::ref<data_array *>(halo::objects::vars().glow_data);
 static auto &glow_particle_data = halo::link::ref<data_array *>(halo::objects::vars().glow_particle_data);

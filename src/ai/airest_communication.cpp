@@ -37,10 +37,6 @@ static auto &ai_communication_selector_delay_seconds = halo::link::ref<float []>
 static auto &communication_line_base = halo::link::ref<uint8_t *>(halo::ai::vars().communication_line_base);
 static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
-extern "C" {
-extern uint32_t team_pair_override_adjust_counter(int16_t index_a, int16_t index_b, int16_t delta_selector, uint8_t *out_flag);
-extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-}
 static auto &communication_line_count = halo::link::ref<int16_t>(halo::ai::vars().communication_line_count);
 static auto &conversation_line_count = halo::link::ref<int16_t>(halo::ai::vars().conversation_line_count);
 static auto &conversation_line_base = halo::link::ref<int32_t>(halo::ai::vars().conversation_line_base);

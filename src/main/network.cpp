@@ -89,10 +89,6 @@ done:
 }
 
 static auto &join_ui_state = halo::link::ref<int32_t>(halo::networking::vars().join_ui_state);
-extern "C" { extern void widget_close_all(void); }
-extern "C" { extern void interface_loading_screen_reset(void); }
-extern "C" { extern void interface_loading_screen_set_text(const char *text); }
-extern "C" { extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error); }
 namespace halo::main {
 
 /**

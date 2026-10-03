@@ -224,8 +224,6 @@ static auto &ui_pause_pending_count_00718fa0 = halo::link::ref<int32_t>(halo::ma
 static auto &join_ui_state = halo::link::ref<int32_t>(halo::networking::vars().join_ui_state);
 static auto &interface_loading_screen_address_a = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_a);
 static auto &interface_loading_screen_address_b = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_b);
-extern "C" { extern void main_ensure_local_players(void); }
-extern "C" { extern void game_state_load_checkpoint(void); }
 namespace halo::main {
 
 /**

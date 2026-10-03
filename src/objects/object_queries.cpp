@@ -7,9 +7,6 @@
 #include "halo/objects/vars.hpp"
 #include "halo/physics/vars.hpp"
 
-extern "C" {
-extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-}
 static auto &collideable_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().collideable_cluster_first);
 static auto &collideable_object_references = halo::link::ref<data_array *>(halo::physics::vars().collideable_object_references);
 static auto &noncollideable_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().noncollideable_cluster_first);

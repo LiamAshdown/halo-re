@@ -28,11 +28,6 @@
 #include "halo/ai/vars.hpp"
 #include "halo/units/vars.hpp"
 
-extern "C" {
-extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
-extern void console_print_va(const char *format, ...);
-extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
-}
 static auto &ai_update_stagger = halo::link::ref<halo::units::ai_update_stagger_state *>(halo::units::vars().ai_update_stagger);
 static auto &unit_speech_fallback_index = halo::link::ref<int16_t []>(halo::units::vars().unit_speech_fallback_index);
 static auto &unit_speech_priority_table = halo::link::ref<int16_t []>(halo::units::vars().unit_speech_priority_table);

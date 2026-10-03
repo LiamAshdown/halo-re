@@ -17,8 +17,6 @@
 
 extern "C" {
 extern void decal_link(int16_t cluster_index, datum_index decal_index, int16_t layer);
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
-extern void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction, real radius_scale, uint8_t object_attached, int16_t sequence_index);
 }
 static auto &decal_data = halo::link::ref<data_array *>(halo::effects::vars().decal_data);
 static auto &decal_grid_block = halo::link::ref<decal_grid *>(halo::effects::vars().decal_grid_block);

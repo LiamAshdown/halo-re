@@ -13,7 +13,6 @@
 #include "halo/networking/vars.hpp"
 
 extern "C" {
-extern void game_variant_list_matching_substring(uint32_t argument_count, int32_t *arguments);
 extern void KeyValCompareKeyA(const void *a, const void *b);
 }
 static auto &hs_autocomplete_maximum_count = halo::link::ref<int16_t>(halo::hs::vars().hs_autocomplete_maximum_count);

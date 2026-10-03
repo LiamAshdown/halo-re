@@ -14,8 +14,6 @@
 #include "halo/effects/vars.hpp"
 
 extern "C" {
-extern effect_location_marker *effect_marker_next(effect *self, datum_index *marker, int32_t mode);
-extern real_matrix4x3 *effect_resolve_marker_transform(effect *self, int16_t marker);
 extern void effect_event_apply(effect *self, EffectPart *part, effect_location_marker *marker, real_vector3d *up, real_vector3d *forward, real_point3d *position, real scale);
 real effect_property_random_value(uint8_t bit_index, effect *self, uint32_t a_bitset, uint32_t b_bitset, random_seed *seed, real base_min, real base_max);
 void effect_set_placement(effect *self, const ColorRGB *color, const effect_tint_source *tint_source, real a_scale, real b_scale);

@@ -29,9 +29,6 @@
 #include "halo/main/vars.hpp"
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
-extern "C" { extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); }
-extern "C" { extern void path_append_component(char *destination, const char *component); }
-extern "C" { extern void path_remove_last_component(uint8_t *path); }
 namespace halo::main {
 
 /**

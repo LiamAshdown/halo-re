@@ -28,9 +28,6 @@ static auto &look_pitch_rate_setting = halo::link::ref<real [k_maximum_local_pla
 static auto &look_yaw_rate_setting = halo::link::ref<real [k_maximum_local_players]>(halo::game::vars().look_yaw_rate_setting);
 static auto &player_profile_cache = halo::link::ref<player_profile [16]>(halo::game::vars().player_profile_cache);
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
-extern "C" {
-extern uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object, real_point3d *point);
-}
 static auto &game_engine_recent_location_count = halo::link::ref<int16_t>(halo::game::vars().game_engine_recent_location_count);
 static auto &game_engine_recent_location_table = halo::link::ref<int16_t []>(halo::game::vars().game_engine_recent_location_table);
 

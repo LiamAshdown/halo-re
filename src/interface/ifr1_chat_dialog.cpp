@@ -30,9 +30,6 @@ static auto &chat_gui_set_state = halo::link::ref<chat_gui_set_state_fn>(halo::u
 static auto &chat_gui_release = halo::link::ref<chat_gui_release_fn>(halo::ui::vars().chat_gui_release);
 static auto &chat_gui_active = halo::link::ref<uint8_t>(halo::ui::vars().chat_gui_active);
 static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
-extern "C" {
-extern int32_t shell_load_localized_string(int32_t id, char *out_buffer);
-}
 static auto &chat_hotkey_all = halo::link::ref<uint8_t>(halo::ui::vars().chat_hotkey_all);
 static auto &chat_hotkey_team = halo::link::ref<uint8_t>(halo::ui::vars().chat_hotkey_team);
 static auto &chat_hotkey_vehicle = halo::link::ref<uint8_t>(halo::ui::vars().chat_hotkey_vehicle);

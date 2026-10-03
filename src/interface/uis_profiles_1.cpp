@@ -47,11 +47,6 @@ static auto &quit_confirm_error_modal = halo::link::ref<uint8_t>(halo::ui::vars(
 static auto &quit_confirm_error_is_error = halo::link::ref<uint8_t>(halo::ui::vars().quit_confirm_error_is_error);
 static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
 static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
-extern "C" {
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
-extern void saved_item_select(int32_t selection_id);
-extern void widget_play_sound_effect(int16_t effect_id);
-}
 static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
 
 namespace halo::ui {

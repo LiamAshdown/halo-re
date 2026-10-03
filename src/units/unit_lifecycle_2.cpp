@@ -20,10 +20,6 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 
-extern "C" {
-extern void player_reset_after_unit_change(uint32_t player_index);
-extern void player_update_history_free_all(void *history);
-}
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 

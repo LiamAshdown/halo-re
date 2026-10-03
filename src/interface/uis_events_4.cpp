@@ -60,15 +60,8 @@ static auto &save_in_progress_00719010 = halo::link::ref<uint8_t>(halo::ui::vars
 static auto &resolution_selection_00719204 = halo::link::ref<int32_t>(halo::ui::vars().resolution_selection_00719204);
 static auto &network_game_info_packet_flag = halo::link::ref<uint8_t>(halo::ui::vars().network_game_info_packet_flag);
 static auto &quality_selection_00692b04 = halo::link::ref<int32_t>(halo::ui::vars().quality_selection_00692b04);
-extern "C" {
-extern uint8_t saved_item_has_unsaved_changes(void);
-extern uint8_t player_profile_save(void);
-}
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_teams_enabled_flag);
-extern "C" {
-extern void game_engine_send_team_allegiance_message(char broadcast);
-}
 static auto &variant_teams_enabled_0071920c = halo::link::ref<uint8_t>(halo::ui::vars().variant_teams_enabled_0071920c);
 static auto &variant_team_selection_00692b08 = halo::link::ref<int32_t>(halo::ui::vars().variant_team_selection_00692b08);
 static auto &network_game_option_a_00719210 = halo::link::ref<uint32_t>(halo::ui::vars().network_game_option_a_00719210);

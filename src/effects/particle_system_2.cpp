@@ -10,11 +10,6 @@
 #include "halo/effects/vars.hpp"
 
 extern "C" {
-extern void particle_system_spawn(particle_system *self, int32_t type_index, float dt);
-extern void particle_system_delete(datum_index handle);
-extern void particle_system_advance_type_state(particle_system_type_state *state, ParticleSystemType *type, particle_system *system);
-extern void particle_system_advance_particle_state(particle_system_particle *particle, ParticleSystemType *type);
-extern void particle_system_roll_particle_state(int16_t index, ParticleSystemTypeParticleState *states, particle_state_values *out);
 void particle_system_update(float delta_time, datum_index handle);
 }
 static auto &particle_system_data = halo::link::ref<data_array *>(halo::effects::vars().particle_system_data);

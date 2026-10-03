@@ -245,29 +245,7 @@ static auto &update_client_unknown_ec4 = halo::link::ref<int32_t>(halo::game::va
 static auto &update_client_staged_count = halo::link::ref<int32_t>(halo::game::vars().update_client_staged_count);
 static auto &player_update_log_flags = halo::link::ref<uint32_t>(halo::main::vars().player_update_log_flags);
 static auto &main_render_skip_threshold_ms = halo::link::ref<int32_t>(halo::main::vars().main_render_skip_threshold_ms);
-extern "C" { extern void ui_chat_window_reset_position(void); }
-extern "C" { extern void game_initialize(void); }
-extern "C" { extern void map_list_add_entry(char *path, int32_t map_id); }
-extern "C" { extern uint8_t network_autojoin_from_command_line(void); }
-extern "C" { extern uint8_t game_engine_attach_players_to_new_bsp(void); }
-extern "C" { extern void hud_display_checkpoint_message(uint8_t is_begin); }
-extern "C" { extern void main_level_transition_update(void); }
-extern "C" { extern void game_stop_current_map(void); }
-extern "C" { extern void game_start_new_map(void); }
-extern "C" { extern void game_engine_init_tick_record_for_mode(void); }
-extern "C" { extern void game_engine_reset_all_players(void); }
 extern "C" { extern void gcd_think(void); }
-extern "C" { extern void chat_close(void); }
-extern "C" { extern void ui_cursor_update(void); }
-extern "C" { extern void interface_tick(void); }
-extern "C" { extern void console_process_input_events(void); }
-extern "C" { extern uint8_t console_process_queued_input(void); }
-extern "C" { extern void console_message_expire_old(void); }
-extern "C" { extern void console_update_display(void); }
-extern "C" { extern int32_t game_engine_accumulate_simulation_ticks(float elapsed_seconds, char keep_remainder); }
-extern "C" { extern void game_engine_update_local_player_control(int16_t local_player_index, float delta_time, int32_t ticks_this_frame); }
-extern "C" { extern uint8_t chat_poll_hotkeys(void); }
-extern "C" { extern void game_engine_update_end_game_sequence(float delta_time); }
 namespace halo::main {
 
 /**
@@ -838,8 +816,6 @@ apply:
 
 }
 
-extern "C" { extern void map_list_free_all(void); }
-extern "C" { extern void game_dispose(void); }
 namespace halo::main {
 
 /**
@@ -885,7 +861,6 @@ void MainLoop::loop_shutdown_cleanup(void)
 }
 
 static auto &main_menu_music_pending = halo::link::ref<uint8_t>(halo::main::vars().main_menu_music_pending);
-extern "C" { extern void halo::sound::sound_looping_stop(datum_index sound_tag); }
 namespace halo::main {
 
 /**
@@ -921,11 +896,6 @@ static auto &interface_loading_screen_request_id = halo::link::ref<int32_t>(halo
 static auto &ui_network_wait_timed_out = halo::link::ref<uint8_t>(halo::ui::vars().ui_network_wait_timed_out);
 static auto &ui_network_wait_active = halo::link::ref<uint8_t>(halo::ui::vars().ui_network_wait_active);
 static auto &ui_network_wait_start_time = halo::link::ref<int32_t>(halo::ui::vars().ui_network_wait_start_time);
-extern "C" { extern void chimera__load_main_menu(void); }
-extern "C" { extern void hud_chat_listbox_clear(void); }
-extern "C" { extern void update_queues_dispose(void); }
-extern "C" { extern void update_server_new(void); }
-extern "C" { extern void update_server_dispose(void); }
 namespace halo::main {
 
 /**

@@ -44,16 +44,6 @@ static auto &teleport_flash_green = halo::link::ref<uint32_t>(halo::game::vars()
 static auto &teleport_flash_blue = halo::link::ref<uint32_t>(halo::game::vars().teleport_flash_blue);
 static auto &teleport_flash_duration = halo::link::ref<uint32_t>(halo::game::vars().teleport_flash_duration);
 static auto &teleport_flash_fade_function = halo::link::ref<int16_t>(halo::game::vars().teleport_flash_fade_function);
-extern "C" {
-extern int game_engine_find_valid_starting_locations(real_point3d *origin, float max_horizontal_dist, float max_height_delta, int16_t team, int16_t type, int32_t max_results, int32_t *results);
-extern int32_t game_engine_find_one_valid_starting_location(int16_t type, int16_t team, real_point3d *origin, float max_horizontal_dist, float max_height_delta);
-extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
-extern int16_t unit_get_local_player_weapon_index(datum_index unit_index);
-extern void chimera__hud_message(int16_t local_player_index, wchar_t *text);
-extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
-extern void game_engine_scan_netgame_flags_noop(int16_t needle);
-extern void game_engine_notify_item_expired(datum_index object_index);
-}
 static auto &game_engine_round_reset_tick = halo::link::ref<int32_t>(halo::game::vars().game_engine_round_reset_tick);
 
 namespace halo::game {

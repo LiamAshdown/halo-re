@@ -11,10 +11,6 @@
 #endif
 
 static auto &server_browser_filter_panel_mode = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_panel_mode);
-extern "C" {
-extern void widget_play_sound_effect(int16_t effect_id);
-extern void widget_instance_close_and_restore_previous(widget_instance *widget);
-}
 static auto &server_browser_allow_empty = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_allow_empty);
 static auto &server_browser_allow_full = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_allow_full);
 static auto &server_browser_filter_ping_limit_index = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_ping_limit_index);

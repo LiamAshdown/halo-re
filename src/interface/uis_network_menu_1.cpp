@@ -33,9 +33,6 @@ static auto &network_host_name_field_00719238 = halo::link::ref<uint16_t [32]>(h
 static auto &network_host_subname_007191f0 = halo::link::ref<uint16_t [9]>(halo::ui::vars().network_host_subname_007191f0);
 static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
 static auto &saved_item_working_copy = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().saved_item_working_copy);
-extern "C" {
-extern uint8_t network_game_client_connect_to_address_async(char *name, char *address);
-}
 static auto &network_game_option_a_00719210 = halo::link::ref<uint32_t>(halo::ui::vars().network_game_option_a_00719210);
 static auto &network_game_option_b_00719214 = halo::link::ref<uint32_t>(halo::ui::vars().network_game_option_b_00719214);
 static auto &network_host_name_00719170 = halo::link::ref<uint16_t [144]>(halo::ui::vars().network_host_name_00719170);
@@ -51,9 +48,6 @@ static auto &ui_network_wait_active = halo::link::ref<uint8_t>(halo::ui::vars().
 static auto &ui_network_wait_start_time = halo::link::ref<int32_t>(halo::ui::vars().ui_network_wait_start_time);
 static auto &ui_network_wait_timed_out = halo::link::ref<uint8_t>(halo::ui::vars().ui_network_wait_timed_out);
 extern "C" {
-extern void *widget_instance_find_root(widget_instance *widget);
-extern int32_t widget_get_sibling_index(widget_instance *widget);
-extern void chat_close(void);
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
     widget_instance *parent, uint16_t controller_index, datum_index history_definition,
     datum_index history_list_definition, int16_t history_selection);

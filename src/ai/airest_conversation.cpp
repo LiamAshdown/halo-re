@@ -23,9 +23,6 @@
 
 static auto &ticks_per_second = halo::link::ref<float>(halo::ai::vars().ticks_per_second);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-extern "C" {
-extern int8_t teams_are_enemies(int16_t a, int16_t b);
-}
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 
 namespace halo::ai {

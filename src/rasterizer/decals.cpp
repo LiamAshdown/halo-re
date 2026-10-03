@@ -14,7 +14,6 @@
 
 extern "C" {
 
-extern void decal_delete(datum_index decal_index);
 
 }  // extern "C"
 

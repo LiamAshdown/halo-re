@@ -69,7 +69,6 @@ static auto &game_cport = halo::link::ref<uint32_t>(halo::ui::vars().game_cport)
 static auto &network_session_start_game_type = halo::link::ref<uint32_t>(halo::networking::vars().network_session_start_game_type);
 extern "C" {
 extern void player_profile_refresh_settings_cache(int16_t player_index);
-extern uint8_t player_profile_apply_video_options(uint8_t *settings);
 extern void player_profile_apply_audio_options(uint8_t *settings);
 }
 static auto &input_globals = halo::link::ref<player_control_settings []>(halo::main::vars().input_globals);

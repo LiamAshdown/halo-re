@@ -23,12 +23,6 @@
 #include "halo/items/vars.hpp"
 #include "halo/units/vars.hpp"
 
-extern "C" {
-extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const void *color, const void *tint_source);
-extern void weapon_set_control_flags(datum_index item_index, uint16_t control_flags, real primary_trigger);
-extern void weapon_set_ready_timer(datum_index item_index, real value);
-extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
-}
 static auto &object_network_id_table = halo::link::ref<uint8_t *>(halo::units::vars().object_network_id_table);
 static auto &network_message_scratch = halo::link::ref<uint8_t [halo::k_network_message_scratch_size]>(halo::game::vars().network_message_scratch);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);

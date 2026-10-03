@@ -18,7 +18,6 @@
 
 extern "C" {
 
-extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);
 extern uint32_t __stdcall D3DXGetFVFVertexSize(uint32_t fvf);
 
 }  // extern "C"

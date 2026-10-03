@@ -19,10 +19,6 @@
 #undef interface
 #endif
 
-extern "C" {
-extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
-extern void effect_rebuild_markers(effect *self, int32_t (*resolve_marker)(uint32_t, const char *, object_marker *, uint32_t));
-}
 static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_down3d_pointer);
 static auto &effect_location_data = halo::link::ref<data_array *>(halo::effects::vars().effect_location_data);
 static auto &effect_marker_callback_context = halo::link::ref<uint8_t *>(halo::effects::vars().effect_marker_callback_context);

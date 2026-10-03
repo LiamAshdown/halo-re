@@ -14,7 +14,6 @@
 
 extern "C" {
 
-extern void render_lighting_disable_workaround(void);
 
 }  // extern "C"
 

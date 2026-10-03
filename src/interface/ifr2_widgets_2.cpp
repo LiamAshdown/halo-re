@@ -21,9 +21,6 @@ static auto &ui_cursor_x = halo::link::ref<int32_t>(halo::ui::vars().ui_cursor_x
 static auto &ui_cursor_y = halo::link::ref<int32_t>(halo::ui::vars().ui_cursor_y);
 static auto &ui_time_milliseconds = halo::link::ref<int32_t>(halo::ui::vars().ui_time_milliseconds);
 static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
-extern "C" {
-extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0, int32_t unknown_1, const uint16_t *text);
-}
 
 namespace halo::interface {
 

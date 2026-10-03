@@ -34,9 +34,6 @@ static auto &hud_text_draw_color_a = halo::link::ref<float>(halo::ui::vars().hud
 static auto &hud_text_draw_color_r = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_r);
 static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_g);
 static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
-extern "C" {
-extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
-}
 static auto &key_event_read_index = halo::link::ref<int16_t>(halo::ui::vars().key_event_read_index);
 static auto &key_event_count = halo::link::ref<int16_t>(halo::ui::vars().key_event_count);
 static auto &key_events = halo::link::ref<ui_key_event []>(halo::ui::vars().key_events);

@@ -42,13 +42,6 @@
 extern "C" {
 extern void light_transient_add(datum_index light_tag, ColorRGB *color, real_point3d *position,
     real_vector3d *direction, real_vector3d *up, float intensity);
-extern void player_effect_build_screen_flash(render_screen_flash *out, int16_t local_player_index);
-extern void object_lights_update_all(void);
-extern void lights_apply_spot_falloff(void);
-extern void lights_apply_spot_falloff_specular(void);
-extern void weather_update_local_player(void);
-extern void particle_systems_render(void);
-extern void rasterizer_shader_environment_set_lightmap(void *lightmap);
 extern void rasterizer_object_shadow_structure_draw(void *vertex_buffer, int32_t dynamic_index_slot,
     int32_t first_primitive, int32_t primitive_count);
 extern void rasterizer_shader_environment_projected_light_draw(void *shader, int16_t frame,

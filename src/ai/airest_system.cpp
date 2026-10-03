@@ -24,15 +24,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
-extern int32_t game_engine_get_current_tick(void);
-extern void team_pair_override_add(int16_t index_a, uint8_t unknown_08, int16_t index_b, uint8_t unknown_09, int16_t threshold, int16_t timer_reset, uint8_t unknown_0c);
-extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
-}
 static auto &prop_array_name = halo::link::ref<char []>(halo::ai::vars().prop_array_name);
-extern "C" {
-extern void team_pair_override_clear_flag(int16_t index_b, int16_t index_a);
-}
 static auto &k_random_scale_65536 = halo::link::ref<float>(halo::ai::vars().k_random_scale_65536);
 static auto &team_pair_data = halo::link::ref<uint8_t *>(halo::ai::vars().team_pair_data);
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);

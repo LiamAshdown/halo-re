@@ -31,11 +31,6 @@
 #include "halo/networking/vars.hpp"
 #include "halo/units/vars.hpp"
 
-extern "C" {
-extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-extern real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level);
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
-}
 static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &k_empty_string = halo::link::ref<char []>(halo::networking::vars().k_empty_string);

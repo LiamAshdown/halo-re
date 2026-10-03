@@ -36,18 +36,6 @@
 #include "halo/saved_games/vars.hpp"
 #include "halo/shell/vars.hpp"
 
-extern "C" {
-
-
-
-
-
-
-
-
-
-extern uint32_t sound_initialize(void);
-}
 static auto &shell_command_line = halo::link::ref<char *>(halo::shell::vars().shell_command_line);
 static auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_window);
 static auto &shell_instance = halo::link::ref<void *>(halo::shell::vars().shell_instance);

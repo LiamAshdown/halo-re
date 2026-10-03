@@ -44,18 +44,6 @@ static auto &particle_system_data = halo::link::ref<void *>(halo::effects::vars(
 static auto &sound_class_gains = halo::link::ref<void *>(halo::game::vars().sound_class_gains);
 static auto &recorded_animations = halo::link::ref<void *>(halo::game::vars().recorded_animations);
 static auto &cinematic_globals_ptr = halo::link::ref<uint32_t *>(halo::game::vars().cinematic_globals_ptr);
-extern "C" {
-extern void team_pair_table_allocate(void);
-extern void game_engine_load_from_variant(const game_variant *variant);
-extern void game_engine_allocate_tick_record(void);
-extern void players_initialize(void);
-extern void interface_globals_allocate(void);
-extern void player_profile_subsystem_initialize(void);
-extern void widget_memory_pool_initialize(void);
-extern void objects_initialize(void);
-extern void game_sound_initialize(void);
-extern uint8_t players_any_without_unit(void);
-}
 static auto &debug_print_safety_checks = halo::link::ref<uint8_t>(halo::game::vars().debug_print_safety_checks);
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);

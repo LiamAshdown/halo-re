@@ -11,9 +11,6 @@
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
 
-extern "C" {
-extern void player_help_screen_select_by_name(int16_t value);
-}
 static auto &hud_messaging = halo::link::ref<uint8_t *>(halo::ui::vars().hud_messaging);
 static auto &hud_weapon_state = halo::link::ref<uint8_t *>(halo::ui::vars().hud_weapon_state);
 static auto &hud_flags = halo::link::ref<uint8_t *>(halo::ui::vars().hud_flags);

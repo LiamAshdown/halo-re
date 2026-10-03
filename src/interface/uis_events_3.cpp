@@ -52,26 +52,14 @@ static auto &quit_confirm_error_modal = halo::link::ref<uint8_t>(halo::ui::vars(
 static auto &quit_confirm_error_is_error = halo::link::ref<uint8_t>(halo::ui::vars().quit_confirm_error_is_error);
 static auto &pending_delete_saved_game_name_00718fd0 = halo::link::ref<char []>(halo::ui::vars().pending_delete_saved_game_name_00718fd0);
 static auto &network_host_edit_field_00719410 = halo::link::ref<int32_t>(halo::ui::vars().network_host_edit_field_00719410);
-extern "C" {
-extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
-}
 static auto &profile_slot_id = halo::link::ref<int16_t []>(halo::ui::vars().profile_slot_id);
-extern "C" {
-extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error);
-}
 static auto &local_team_00714dd8 = halo::link::ref<uint8_t []>(halo::ui::vars().local_team_00714dd8);
-extern "C" {
-extern uint32_t network_server_reset_game_stats(void);
-}
 static auto &coop_profile_globals_block_00714ddc = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().coop_profile_globals_block_00714ddc);
 static auto &ui_widget_history = halo::link::ref<widget_history_node *[3]>(halo::ui::vars().ui_widget_history);
 static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
 static auto &level_select_flags_0071916b = halo::link::ref<uint8_t>(halo::ui::vars().level_select_flags_0071916b);
 static auto &level_select_current_path_00719068 = halo::link::ref<char [0x106]>(halo::ui::vars().level_select_current_path_00719068);
 static auto &level_select_frame_00719168 = halo::link::ref<int16_t>(halo::ui::vars().level_select_frame_00719168);
-extern "C" {
-extern void sound_looping_stop(datum_index looping_definition);
-}
 static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
 static auto &ui_event_byte_0071975b = halo::link::ref<uint8_t>(halo::ui::vars().ui_event_byte_0071975b);
 static auto &input_event_queue_active = halo::link::ref<uint8_t>(halo::ui::vars().input_event_queue_active);

@@ -17,12 +17,6 @@ static auto &game_engine_dedicated_idle_timer = halo::link::ref<float>(halo::gam
 static auto &network_server = halo::link::ref<uint8_t *>(halo::networking::vars().network_server);
 static auto &local_player_input_states = halo::link::ref<local_player_input_state [k_maximum_local_players]>(halo::game::vars().local_player_input_states);
 static auto &chimera_loading_screen_cleanup_gate = halo::link::ref<uint8_t>(halo::game::vars().chimera_loading_screen_cleanup_gate);
-extern "C" {
-extern void game_engine_end_game_sequence_stage3(void);
-extern void game_engine_send_end_game_notification(uint32_t reason);
-extern void chimera__console_out(ColorARGB *color, char *format, ...);
-extern void chat_close(void);
-}
 
 namespace halo::game {
 

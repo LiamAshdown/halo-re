@@ -14,9 +14,6 @@
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
 
-extern "C" {
-extern void object_physics_tick(uint32_t unit_index, void *node_output, void *contact_points, void *extra_force, void *extra_torque);
-}
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &g_006966e4 = halo::link::ref<real_vector3d *>(halo::units::vars().g_006966e4);
 

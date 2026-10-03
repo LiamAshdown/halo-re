@@ -16,12 +16,6 @@
 #include "halo/objects/vars.hpp"
 #include "halo/render/vars.hpp"
 
-extern "C" {
-extern float curve_apply_exponent(float value, float exponent);
-extern uint8_t *object_attachment_get_blended_marker(uint32_t object_index, uint8_t *instance);
-extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
-}
 static auto &camera_forward_x = halo::link::ref<float>(halo::effects::vars().camera_forward_x);
 static auto &camera_forward_y = halo::link::ref<float>(halo::objects::vars().camera_forward_y);
 static auto &camera_forward_z = halo::link::ref<float>(halo::objects::vars().camera_forward_z);

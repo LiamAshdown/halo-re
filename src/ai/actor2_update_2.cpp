@@ -19,7 +19,6 @@ namespace halo::ai {
 namespace actor_update_firing_state_local {
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 extern "C" {
-extern float halo::game::weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
 #define F(p, o) (*(float *)((uint8_t *)(p) + (o)))
 #define W(p, o) (*(int16_t *)((uint8_t *)(p) + (o)))
 #define D(p, o) (*(datum_index *)((uint8_t *)(p) + (o)))

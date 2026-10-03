@@ -34,9 +34,6 @@ static auto &current_local_player_index = halo::link::ref<int16_t>(halo::ui::var
 static auto &render_camera_global = halo::link::ref<float>(halo::render::vars().render_camera_global);
 static auto &camera_position_y = halo::link::ref<float>(halo::ui::vars().camera_position_y);
 static auto &camera_position_z = halo::link::ref<float>(halo::effects::vars().camera_position_z);
-extern "C" {
-extern void *object_get_cached_render_lighting(datum_index object_index, real level_of_detail_pixels);
-}
 static auto &camera_field_of_view = halo::link::ref<float>(halo::ui::vars().camera_field_of_view);
 static auto &rasterizer_device_version = halo::link::ref<uint32_t>(halo::ui::vars().rasterizer_device_version);
 static auto &rasterizer_caps_flag_68a = halo::link::ref<uint8_t>(halo::ui::vars().rasterizer_caps_flag_68a);

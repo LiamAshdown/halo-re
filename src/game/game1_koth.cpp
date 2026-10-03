@@ -50,9 +50,6 @@ static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::var
 static auto &king_hill_occupant_table = halo::link::ref<uint32_t [16]>(halo::game::vars().king_hill_occupant_table);
 static auto &king_hill_occupant_last_tick = halo::link::ref<int32_t [16]>(halo::game::vars().king_hill_occupant_last_tick);
 static auto &king_hill_idle_timeout = halo::link::ref<int32_t>(halo::game::vars().king_hill_idle_timeout);
-extern "C" {
-extern uint8_t weapon_must_be_readied(void);
-}
 static auto &shared_hud_text_draw_state = halo::link::ref<uint8_t>(halo::game::vars().shared_hud_text_draw_state);
 static auto &king_team_hill_seconds_network = halo::link::ref<int32_t [16]>(halo::game::vars().king_team_hill_seconds_network);
 static auto &king_bucket_credit_ticks = halo::link::ref<int32_t [16]>(halo::game::vars().king_bucket_credit_ticks);

@@ -33,8 +33,6 @@ static auto &global_structure_collision_bsp = halo::link::ref<ModelCollisionGeom
 static auto &global_structure_bsp = halo::link::ref<uint8_t *>(halo::ai::vars().global_structure_bsp);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
-extern "C" { extern void particle_new(particle_creation_data *creation_data); }
-extern "C" { extern datum_index halo::sound::sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index, sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint); }
 #define F(p, o) (*(float *)((uint8_t *)(p) + (o)))
 #define I32(p, o) (*(int32_t *)((uint8_t *)(p) + (o)))
 #define I16(p, o) (*(int16_t *)((uint8_t *)(p) + (o)))

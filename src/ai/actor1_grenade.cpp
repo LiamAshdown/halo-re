@@ -384,10 +384,6 @@ uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point
 
 namespace c_actor_consider_grenade_throw {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-extern "C" {
-
-extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
-}
 }
 
 

@@ -12,9 +12,6 @@
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
 
-extern "C" {
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
-}
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
 

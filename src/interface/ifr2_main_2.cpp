@@ -52,20 +52,6 @@ static auto &ui_widget_opened = halo::link::ref<uint8_t>(halo::ui::vars().ui_wid
 static auto &ui_cursor_x = halo::link::ref<int32_t>(halo::ui::vars().ui_cursor_x);
 static auto &ui_cursor_y = halo::link::ref<int32_t>(halo::ui::vars().ui_cursor_y);
 static auto &controls_input_capture_flags = halo::link::ref<uint8_t>(halo::ui::vars().controls_input_capture_flags);
-extern "C" {
-extern void display_error(int16_t error_string_index, int32_t unknown, uint8_t modal, uint8_t is_error);
-extern uint8_t ui_check_for_pause_game(void);
-extern void virtual_keyboard_process_input(void);
-extern void widget_instance_handle_input_event(widget_instance *widget, UIWidgetDefinition *tag, uint8_t *event_scratch, uint8_t *out_handled);
-extern void list_node_pop(widget_history_node *out, widget_history_node **head);
-extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection);
-extern void widget_instance_select_list_index(widget_instance *widget, datum_index list_definition , int32_t selection );
-extern widget_instance *widget_instance_find_at_point(widget_instance *root, int32_t x, int32_t y, int32_t initial_hint);
-extern uint8_t widget_instance_verify_stack_chain(widget_instance *node);
-extern void widget_play_sound_effect(int16_t effect_id);
-extern void widget_list_scroll_window(int32_t out[3], widget_instance *widget);
-extern int32_t widget_get_sibling_index(widget_instance *widget);
-}
 static auto &map_list = halo::link::ref<map_list_entry *>(halo::ui::vars().map_list);
 static auto &map_list_count = halo::link::ref<int32_t>(halo::ui::vars().map_list_count);
 static auto &map_list_capacity = halo::link::ref<int32_t>(halo::ui::vars().map_list_capacity);

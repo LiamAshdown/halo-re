@@ -39,10 +39,6 @@
 
 static_assert(offsetof(Bitmap, bitmap_data) + offsetof(TagReflexive, pointer) == halo::render::k_bitmap_data_pointer_offset);
 
-extern "C" {
-extern void rasterizer_set_shader_stage_config(int16_t mode);
-extern void rasterizer_lens_flare_batch_flush_all(void);
-}
 static auto &rasterizer_globals_data = halo::link::ref<GlobalsRasterizerData *>(halo::game::vars().rasterizer_globals_data);
 static auto &default_axis_b = halo::link::ref<ColorRGB *>(halo::game::vars().default_axis_b);
 static auto &global_real_rgb_green_pointer = halo::link::ref<ColorRGB *>(halo::render::vars().global_real_rgb_green_pointer);

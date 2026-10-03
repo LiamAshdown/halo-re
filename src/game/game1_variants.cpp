@@ -37,9 +37,6 @@ static auto &sv_timelimit_minutes = halo::link::ref<int32_t>(halo::game::vars().
 static auto &player_profile_cache = halo::link::ref<player_profile [16]>(halo::game::vars().player_profile_cache);
 static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
-extern "C" {
-extern int32_t game_engine_player_profile_cache_find(datum_index player_handle);
-}
 static auto &machine_table = halo::link::ref<int32_t *>(halo::game::vars().machine_table);
 static auto &game_engine_active_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_active_variant);
 static auto &network_server = halo::link::ref<uint8_t *>(halo::networking::vars().network_server);
@@ -49,10 +46,8 @@ static auto &network_build_string = halo::link::ref<char []>(halo::networking::v
 static auto &game_variant_history_capacity = halo::link::ref<uint32_t>(halo::game::vars().game_variant_history_capacity);
 static auto &playlist_profiles_need_defaults = halo::link::ref<uint8_t>(halo::ui::vars().playlist_profiles_need_defaults);
 extern "C" {
-extern void playlist_profile_create_default_profiles_on_disk(void);
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
     uint16_t *capacity_and_count);
-extern uint8_t saved_game_get_variant(int32_t slot, game_variant *out);
 }
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 static auto &game_engine_unknown_aa00 = halo::link::ref<uint32_t>(halo::game::vars().game_engine_unknown_aa00);

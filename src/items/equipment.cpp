@@ -15,7 +15,6 @@
 #include "halo/core/libm.hpp"
 
 extern "C" {
-extern uint32_t sound_play_new(uint32_t sound_tag_id, void *parameters, uint32_t owner_index, int32_t extra_size, void *extra, uint32_t extra_count, uint32_t allow_deferred);
 void halo::items::equipment_apply_network_update(datum_index item_index, uint32_t *update_record);
 int32_t halo::items::equipment_build_network_update(uint32_t item_index, uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type);
 void halo::items::equipment_create_from_creation_message(void *incoming_record);

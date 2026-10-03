@@ -51,7 +51,6 @@ static auto &directsound_eax_enabled = halo::link::ref<uint8_t>(halo::hs::vars()
 static auto &directsound_quality = halo::link::ref<int32_t>(halo::main::vars().directsound_quality);
 static auto &renderer_texture_quality = halo::link::ref<int16_t>(halo::ui::vars().renderer_texture_quality);
 static auto &light_count_enabled = halo::link::ref<int16_t>(halo::effects::vars().light_count_enabled);
-extern "C" { extern uint32_t user_profile_signin_state_is_valid(void); }
 namespace halo::main {
 
 /**

@@ -50,11 +50,6 @@ static auto &network_initialized_at_ms = halo::link::ref<int32_t>(halo::networki
 static auto &network_local_hostname_buffer = halo::link::ref<char [0x100]>(halo::networking::vars().network_local_hostname_buffer);
 static auto &network_log_path_buffer = halo::link::ref<uint8_t [0x104]>(halo::networking::vars().network_log_path_buffer);
 static auto &network_log_path_format = halo::link::ref<char []>(halo::networking::vars().network_log_path_format);
-extern "C" {
-extern int32_t security_check_write_access(void);
-extern uint8_t virtual_keyboard_character_is_legal(uint8_t ch, void *character);
-extern uint8_t ui_wide_string_has_non_whitespace(void);
-}
 static auto &network_challenge_packet_block = halo::link::ref<uint16_t []>(halo::networking::vars().network_challenge_packet_block);
 static auto &network_random_seeded = halo::link::ref<uint8_t>(halo::networking::vars().network_random_seeded);
 static auto &network_query_socket = halo::link::ref<int32_t>(halo::networking::vars().network_query_socket);

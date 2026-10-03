@@ -2,9 +2,6 @@
 
 namespace halo::game {
 
-constinit SlayerEngine slayer_engine;
-constinit OddballEngine oddball_engine;
-constinit RaceEngine race_engine;
 
 /**
  * Looks up the engine behaviour for a game_engine_index; the table covers the engines converted so far.
