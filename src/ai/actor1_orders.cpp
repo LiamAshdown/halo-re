@@ -257,6 +257,9 @@ int32_t actor_build_order_flee(uint32_t actor_index, uint8_t byte_a, uint32_t *o
 }
 
 namespace c_actor_build_order_grenade_or_melee {
+/** Byte offsets inside the 0x30-byte order record (a uint16_t array here, so word indices differ from these). */
+constexpr size_t k_order_target_byte = 0x1c;
+constexpr size_t k_order_melee_reachable_byte = 0xe;
 }
 
 
@@ -288,7 +291,7 @@ int32_t halo::ai::order_builder::grenade_or_melee(uint32_t resolved_target, uint
     order[6] = order_code;
     *(uint8_t *)(order + 2) = byte_a;
     *((uint8_t *)order + 5) = byte_b;
-    *(uint32_t *)(order + 0xe) = resolved_target;
+    *(uint32_t *)((uint8_t *)order + k_order_target_byte) = resolved_target;
     if (resolved_target != halo::k_dword_none) {
         halo::ai::actor_consider_target_candidate(actor_index, (datum_index)resolved_target);
     }
@@ -305,7 +308,7 @@ int32_t halo::ai::order_builder::grenade_or_melee(uint32_t resolved_target, uint
         if (order[4] != halo::k_word_none) {
             return 1;
         }
-        *((uint8_t *)order + 0xe) = 0;
+        *((uint8_t *)order + k_order_melee_reachable_byte) = 0;
     }
     return 0;
 }

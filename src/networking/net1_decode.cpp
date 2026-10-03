@@ -379,7 +379,7 @@ void GameClientView::settings_packet_send(const uint8_t *request)
     memcpy(frame.header.session_key, &client->connect_attempt.session_info[5], sizeof(frame.header.session_key));
     *(uint8_t *)&client->pad_ee2 = 0;
     wcsncpy((wchar_t *)frame.header.password, (const wchar_t *)((const uint8_t *)client->connect_attempt.session_info + 2), 8);
-    frame.header.rate_index = *((uint8_t *)client + 0xf4c);
+    frame.header.rate_index = (uint8_t)client->connection_rate_index;
     frame.header.password_terminator = 0;
     gcd_compute_response(shell_product_id, (void *)request, frame.header.cd_key_response);
 

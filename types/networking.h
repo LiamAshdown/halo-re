@@ -747,7 +747,10 @@ typedef struct network_client_globals {
     client_update_record last_update_sent; // 0xf14 baseline of the message 0x0d records update_server_send_update sends;
                                //    zeroed at create
     void *update_history;      // 0xf48 player_update_history *, GlobalAlloc of 0x2c
-} network_client_globals;      // size 0xf4c
+    int32_t connection_rate_index; // 0xf4c begin_connect 0x4dc8d0 stores the profile connection_type (0..4) here, the host create path
+                               //    0x4e41d0 stores 4; the join request frame carries it as rate_index. Retail keeps it in the
+                               //    4 bytes of padding between 0x00873d2c..0x00873d30 after network_client_storage
+} network_client_globals;      // size 0xf50
 // global 0x0071c2d8: network_client_globals *network_client   points at 0x00872de0
 // global 0x00872de0: network_client_globals network_client_storage
 // global 0x0071c2c2: uint8_t network_session_active

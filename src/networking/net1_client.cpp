@@ -97,7 +97,7 @@ uint32_t ClientView::begin_connect(wchar_t *player_name, s_network_address *targ
     }
     memcpy(scratch.config_template, profile_globals_block,
         0x7ff * 4);
-    *(uint32_t *)((uint8_t *)network_client + 0xf4c) = 0;
+    network_client->connection_rate_index = ((const saved_player_profile *)profile_globals_block)->connection_type;
     if (network_client->state == 0 && target_address->ipv4 != 0 && target_address->port != 0) {
         wcsncpy((wchar_t *)scratch.name, (const wchar_t *)player_name, 8);
         scratch.name_terminator = 0;

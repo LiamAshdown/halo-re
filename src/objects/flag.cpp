@@ -424,7 +424,7 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                         if (!(row_cursor < tag->height)) break;
                     }
 
-                    vertex = (real_point3d *)((uint8_t *)entry + 0x1c + (tag->height * col + row_cursor) * 0x18);
+                    vertex = &entry->vertices[tag->height * col + row_cursor].position;
                     contributor_count = 0;
                     mode = 1;
 
@@ -465,8 +465,7 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                             int16_t nrow = neighbour_drow[n] + row_cursor;
 
                             if (ncol >= 0 && ncol < tag->width && nrow >= 0 && nrow < tag->height) {
-                                real_point3d *nvp = (real_point3d *)((uint8_t *)entry + 0x1c +
-                                                                      (tag->height * ncol + nrow) * 0x18);
+                                real_point3d *nvp = &entry->vertices[tag->height * ncol + nrow].position;
                                 float dx = target.x - nvp->x;
                                 float dy = target.y - nvp->y;
                                 float dz = target.z - nvp->z;
@@ -647,7 +646,7 @@ void halo::objects::FlagView::pole_get_marker_positions(bsp_leaf_reference *node
                     int16_t c;
                     for (c = 0; c < tag->height; c++) {
                         real_point3d *vertex_position =
-                            (real_point3d *)((uint8_t *)entry + 0x1c + (tag->height * r + c) * 0x18);
+                            &entry->vertices[tag->height * r + c].position;
                         vertex_position->x += delta.i;
                         vertex_position->y += delta.j;
                         vertex_position->z += delta.k;

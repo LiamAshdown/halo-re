@@ -397,7 +397,7 @@ are described here for completeness but are exercised only by functions that are
 | 0x0c | `int32_t` | `context` | (0xef0) the value the scheduler was handed in EDX |
 | 0x10 | `int32_t` | `retrigger_ms` | (0xef4) deadline_ms + context, the follow-up deadline |
 
-### `network_client_globals` — size 0xf4c
+### `network_client_globals` — size 0xf50
 
 | offset | type | field | note |
 | --- | --- | --- | --- |
@@ -424,6 +424,7 @@ are described here for completeness but are exercised only by functions that are
 | 0xf10 | `int32_t` | `unknown_f10` | initialized to -1 |
 | 0xf14 | `int32_t` | `unknown_f14[13]` | zeroed as one run at create |
 | 0xf48 | `void *` | `update_history` | player_update_history *, GlobalAlloc of 0x2c |
+| 0xf4c | `int32_t` | `connection_rate_index` | profile connection_type at begin_connect, 4 on host create; sent as the join request rate_index |
 
 ### `network_game_search_entry` — size 0x130
 
