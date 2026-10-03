@@ -74,6 +74,9 @@ enum class delta_message : int32_t {
 /** The typed view of the void ** decode context the delta handlers are called with. */
 inline ::message_delta_context *delta_context(void **context) noexcept { return reinterpret_cast<::message_delta_context *>(context); }
 
+/** The untyped context the delta decode primitives are declared with. */
+inline void **raw_context(::message_delta_context *context) noexcept { return reinterpret_cast<void **>(context); }
+
 /** The integer id the encoder takes for a message type. */
 constexpr int32_t message_id(delta_message type) noexcept { return static_cast<int32_t>(type); }
 
