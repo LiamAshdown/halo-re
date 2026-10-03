@@ -707,7 +707,7 @@ void rasterizer_geometry_part_draw(transparent_geometry_group *group)
             nodes.matrices = group->node_matrices;
             nodes.node_count = group->node_count;
         } else {
-            nodes.matrices = (uint32_t)(uintptr_t)k_render_identity_matrix_ptr;
+            nodes.matrices = k_render_identity_matrix_ptr;
             nodes.node_count = 1;
         }
         chimera__rasterizer_set_model_skinning((uint8_t)((group->flags & _group_node_parts_bit) == 0), &nodes);

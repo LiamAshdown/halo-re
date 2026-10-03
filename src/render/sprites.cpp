@@ -112,7 +112,7 @@ int16_t halo::render::SpriteBuilder::get_group(BitmapData *bitmap)
     build_sprite_group *group;
 
     for (i = 0; i < count; i++) {
-        if (data->groups[i].bitmap == (uint32_t)bitmap) {
+        if (data->groups[i].bitmap == bitmap) {
             break;
         }
     }
@@ -123,7 +123,7 @@ int16_t halo::render::SpriteBuilder::get_group(BitmapData *bitmap)
         }
         group = &data->groups[i];
         data->group_count = count + 1;
-        group->bitmap = (uint32_t)bitmap;
+        group->bitmap = bitmap;
 
         if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
             group->vertices = 0;

@@ -379,9 +379,9 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
     }
 
     {
-        uint32_t shader_something = *(uint32_t *)(
+        BitmapData *shader_something = *(BitmapData **)(
             halo::objects::tag_record_bytes(halo::objects::tag_handle(tag->bitmap)) + 100);
-        int32_t device = (int32_t)(uintptr_t)halo::cache::texture_cache_get((BitmapData *)(uintptr_t)shader_something, 0, 1);
+        int32_t device = (int32_t)(uintptr_t)halo::cache::texture_cache_get(shader_something, 0, 1);
 
         int16_t shard;
         if (device == 0) {

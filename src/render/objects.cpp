@@ -260,8 +260,8 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
         if (data->shadow_pass == 0 && obj->first_widget != k_datum_index_none) {
             render_animation animation;
 
-            animation.change_colors = (uint32_t)(uintptr_t)obj->change_colors;
-            animation.function_values = (uint32_t)(uintptr_t)obj->function_out_values;
+            animation.change_colors = obj->change_colors;
+            animation.function_values = obj->function_out_values;
             halo::objects::widget_list_notify(object_index, (uint32_t)((render_lighting *)(uintptr_t)data->lighting),
                                &animation);
         }

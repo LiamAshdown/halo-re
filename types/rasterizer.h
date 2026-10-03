@@ -496,7 +496,7 @@ typedef struct rasterizer_dynamic_screen_vertex {
 // its count, the same pair rasterizer_model_draw_context keeps at +0x08/+0x0c and
 // transparent_geometry_group at +0x60/+0x64.
 typedef struct rasterizer_node_matrices {
-    uint32_t matrices;              // 0x00 real_matrix4x3*
+    real_matrix4x3 *matrices;       // 0x00
     int16_t node_count;             // 0x04
     int16_t unknown_06;             // 0x06 not read
 } rasterizer_node_matrices;         // size 0x08 (only the first 6 bytes are read)
@@ -769,20 +769,27 @@ typedef enum rasterizer_model_draw_flags {
     _model_draw_fixed_function_fog_bit = 0x00000200 // pre ps_1_1 fog uses the node matrix
 } rasterizer_model_draw_flags;
 
+// render_animation: the 8 byte {change_colors, function_values} pair that rasterizer_model_draw_context keeps at
+// +0x84/+0x88 and transparent_geometry_group.lighting_extra points at (see types/render.h for its widget use).
+typedef struct render_animation {
+    const ColorRGB *change_colors;  // 0x00 object.change_colors (+0x1b8)
+    const float *function_values;   // 0x04 object.function_out_values (+0x134)
+} render_animation;                 // size 0x08
+
 typedef struct rasterizer_model_draw_context {
     uint32_t flags;                 // 0x00 rasterizer_model_draw_flags; bits 8..23 also feed
                                     //      set_model_skinning
     uint32_t object_index;          // 0x04 0x04 render_model stores object_index here; the model pixel shader seeds a
                                     //    per object pseudo random value from it and group_build copies it to the
                                     //    transparent group
-    uint32_t node_matrices;         // 0x08 real_matrix4x3* set_model_skinning reads scale/forward/left/up/position
+    real_matrix4x3 *node_matrices;  // 0x08 set_model_skinning reads scale/forward/left/up/position
     int16_t node_count;             // 0x0c
     int16_t unknown_0e;             // 0x0e
     render_lighting lighting;       // 0x10 group.lighting points here
-    uint32_t change_colors;         // 0x84 ColorRGB (*)[4]: render.h render_animation.change_colors
+    const ColorRGB *change_colors;  // 0x84 ColorRGB (*)[4]: render.h render_animation.change_colors
                                     //      (render_model 0x4d6fc0 arg3 -> [ebp-0x58], 0x4d716c;
                                     //      0x006b7f60 when NULL). R43
-    uint32_t function_values;       // 0x88 float (*)[4]: render_animation.function_values (arg4
+    const float *function_values;   // 0x88 float (*)[4]: render_animation.function_values (arg4
                                     //      -> [ebp-0x54], 0x4d717e; 0x006b7f08 when NULL). The
                                     //      pair +0x84/+0x88 IS a render_animation (render.h sorts
                                     //      after this header, so both stay uint32 here); group
@@ -849,7 +856,7 @@ typedef struct transparent_geometry_group {
     struct rasterizer_vertex_buffer *vertex_buffer; // 0x58 static vertices; +0x14 is the lightmap
                                     //      stream when it points into a BSP material
     struct BitmapData *lightmap_bitmap; // 0x5c BitmapData; its +0x28 texture gates the lightmap pass
-    uint32_t node_matrices;         // 0x60 real_matrix4x3* skinning source, NULL uses the identity at 0x0069673c
+    real_matrix4x3 *node_matrices;  // 0x60 skinning source, NULL uses the identity at 0x0069673c
     int16_t node_count;             // 0x64
     int16_t unknown_66;             // 0x66 never written
     uint8_t *node_part_indices;     // 0x68 0x0071d19c when node_parts_bit is set

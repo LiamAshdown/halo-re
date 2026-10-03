@@ -175,10 +175,7 @@ typedef struct render_model_effect {
 // the fourth argument of every widget type render callback, CEA antenna_render(object_index,
 // antenna_index, lighting, animation))
 // ---------------------------------------------------------------------------
-typedef struct render_animation {
-    uint32_t change_colors;         // 0x00 ColorRGB* object.change_colors (+0x1b8)
-    uint32_t function_values;       // 0x04 float* object.function_out_values (+0x134)
-} render_animation;                 // size 0x08
+// render_animation is defined in types/rasterizer.h (rasterizer_model_draw_context aliases it).
 
 // ---------------------------------------------------------------------------
 // object_render_data  (CEA name; the EDI block of render_object 0x50eba0)
@@ -274,7 +271,7 @@ typedef struct build_sprite_group {
                                     //      0x51be40; 0 on failure
     int16_t quad_count;             // 0x08 four vertices each
     int16_t unknown_0a;             // 0x0a never written
-    uint32_t bitmap;                // 0x0c BitmapData* texture page; the group key
+    struct BitmapData *bitmap;      // 0x0c texture page; the group key
 } build_sprite_group;               // size 0x10
 
 typedef struct build_sprite_data {

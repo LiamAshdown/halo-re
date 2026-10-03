@@ -10,6 +10,9 @@
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
+
+struct render_lighting;
+struct render_animation;
 #include "cache.h"
 #include "game.h"
 struct data_array;
@@ -254,7 +257,7 @@ void game_engine_koth_player_tick(uint32_t player_index);
 void game_engine_koth_relocate_hill_marker(int32_t ball_index);
 void game_engine_koth_relocate_object_hill(uint32_t object_index);
 void game_engine_koth_reset_hill_marker_history(void);
-void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *position_override, uint32_t *orientation_override, uint32_t param_4, uint32_t param_5, float *vertex_source);
+void game_engine_koth_submit_hill_marker_geometry(uint32_t tag_handle_as_uint, const render_lighting *lighting_override, const render_animation *animation_override, uint32_t param_4, uint32_t param_5, float *vertex_source);
 void game_engine_koth_update_hill_occupancy_state(void);
 void game_engine_koth_update_occupant_table(uint32_t index);
 void game_engine_load_from_variant(const game_variant *variant);

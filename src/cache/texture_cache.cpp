@@ -147,7 +147,7 @@ void *texture_cache_manager::get(BitmapData *bitmap, uint8_t wait, uint8_t alloc
 
     if (wait != 0 && result == nullptr) {
 
-        result = halo::rasterizer::rasterizer_get_capture_surface((uint8_t *)bitmap, nullptr);
+        result = halo::rasterizer::rasterizer_get_capture_surface(bitmap, nullptr);
         return result;
     }
     return result;
