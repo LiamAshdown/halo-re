@@ -10,6 +10,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 
+static_assert(sizeof(sound) == 0xb0);
+
 namespace halo::sound {
 
 namespace channels {
@@ -290,7 +292,7 @@ void apply_default_parameters(int16_t channel_index, sound_channel_parameters *p
     uint8_t first_person;
 
     if (channel->sound_index != k_datum_index_none) {
-        self = (sound *)((uint8_t *)sound_data->data + (channel->sound_index & halo::k_slot_mask) * 0xb0);
+        self = (sound *)((uint8_t *)sound_data->data + (channel->sound_index & halo::k_slot_mask) * sizeof(sound));
     }
     if (!update) {
         channel->current_pitch = parameters->pitch;
@@ -328,7 +330,7 @@ void apply_eax_parameters(int16_t channel_index, sound_channel_parameters *param
     uint8_t first_person = 0;
 
     if (channel->sound_index != k_datum_index_none) {
-        sound *self = (sound *)((uint8_t *)sound_data->data + (channel->sound_index & halo::k_slot_mask) * 0xb0);
+        sound *self = (sound *)((uint8_t *)sound_data->data + (channel->sound_index & halo::k_slot_mask) * sizeof(sound));
 
         if (self != 0) {
             first_person = self->first_person;
@@ -337,7 +339,7 @@ void apply_eax_parameters(int16_t channel_index, sound_channel_parameters *param
     if (!update) {
         channel->current_pitch = parameters->pitch;
     }
-    if (first_person && sound_class == 4) {
+    if (first_person && sound_class == soundclass_weapon_fire) {
         double gain = parameters->gain * 1.2;
 
         if (!(gain <= 0.6)) {

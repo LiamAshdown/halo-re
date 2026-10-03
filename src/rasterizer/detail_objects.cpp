@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/render/d3d9.hpp"
 #include "internal/state.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/main/api.hpp"
@@ -70,22 +71,22 @@ void rasterizer_detail_objects_begin(void)
         return;
     }
 
-    rasterizer_set_render_state(0x16, 1);
-    rasterizer_set_render_state(0xa8, 7);
-    rasterizer_set_render_state(0x1b, 1);
-    rasterizer_set_render_state(0x13, 5);
-    rasterizer_set_render_state(0x14, 6);
-    rasterizer_set_render_state(0xab, 1);
-    rasterizer_set_render_state(0xf, 0);
-    rasterizer_set_render_state(7, 1);
-    rasterizer_set_render_state(0x17, 4);
-    rasterizer_set_render_state(0xe, 0);
-    rasterizer_set_render_state(0x1c, 0);
-    rasterizer_set_sampler_state(0, 1, 3);
-    rasterizer_set_sampler_state(0, 2, 3);
-    rasterizer_set_sampler_state(0, 5, 2);
-    rasterizer_set_sampler_state(0, 6, 2);
-    rasterizer_set_sampler_state(0, 7, 2);
+    rasterizer_set_render_state(halo::d3d9::rs::cull_mode, 1);
+    rasterizer_set_render_state(halo::d3d9::rs::color_write_enable, 7);
+    rasterizer_set_render_state(halo::d3d9::rs::alpha_blend_enable, 1);
+    rasterizer_set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
+    rasterizer_set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
+    rasterizer_set_render_state(halo::d3d9::rs::blend_op, 1);
+    rasterizer_set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
+    rasterizer_set_render_state(halo::d3d9::rs::z_enable, 1);
+    rasterizer_set_render_state(halo::d3d9::rs::z_func, 4);
+    rasterizer_set_render_state(halo::d3d9::rs::z_write_enable, 0);
+    rasterizer_set_render_state(halo::d3d9::rs::fog_enable, 0);
+    rasterizer_set_sampler_state(0, halo::d3d9::ss::address_u, 3);
+    rasterizer_set_sampler_state(0, halo::d3d9::ss::address_v, 3);
+    rasterizer_set_sampler_state(0, halo::d3d9::ss::mag_filter, 2);
+    rasterizer_set_sampler_state(0, halo::d3d9::ss::min_filter, 2);
+    rasterizer_set_sampler_state(0, halo::d3d9::ss::mip_filter, 2);
 
     constants[0] = 255.01f;
     constants[1] = 0.0f;
@@ -115,14 +116,14 @@ void rasterizer_detail_objects_begin(void)
 
     render_device().set_stream_source(0, rasterizer_detail_object_vertex_buffer, 0, 0x14);
     render_device().set_pixel_shader(0);
-    rasterizer_set_texture_stage_state(0, 1, 4);
-    rasterizer_set_texture_stage_state(0, 2, 2);
-    rasterizer_set_texture_stage_state(0, 3, 0);
-    rasterizer_set_texture_stage_state(0, 4, 4);
-    rasterizer_set_texture_stage_state(0, 5, 2);
-    rasterizer_set_texture_stage_state(0, 6, 0);
-    rasterizer_set_texture_stage_state(1, 1, 1);
-    rasterizer_set_texture_stage_state(1, 4, 1);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 0);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 4);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg2, 0);
+    rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
+    rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
 }
 
 }  // namespace rasterizer_detail_objects_begin_impl

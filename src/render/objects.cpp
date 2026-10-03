@@ -1,3 +1,4 @@
+#include "halo/render/d3d9.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "crt.h"
 #include "halo/models/api.hpp"
@@ -649,7 +650,7 @@ namespace halo::render::lighting {
 
 /**
  * Disables fixed-function D3D lighting (D3DRS_LIGHTING = 0x89) when the debug toggle is set and
- * the device is older than version 0xffff0101.
+ * the device is older than version halo::d3d9::k_pixel_shader_version_1_1.
  *
  * @address 0x00511ef0
  */
@@ -861,7 +862,7 @@ uint8_t _is_camera_unit(datum_index object)
 
 /**
  * Per-frame object render driver: optionally forces D3D lighting off around the whole pass on
- * pre-0xffff0101 devices when the debug toggle is set, rebuilds the nearby-object candidate list,
+ * pre-halo::d3d9::k_pixel_shader_version_1_1 devices when the debug toggle is set, rebuilds the nearby-object candidate list,
  * then runs a two-iteration loop where exactly one iteration (selected by
  * console_debug_toggle_6893ee) calls render_object once per rendered object and the other calls
  * the foreign first_person_weapon_update_lighting instead.

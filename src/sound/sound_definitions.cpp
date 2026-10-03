@@ -134,8 +134,8 @@ int16_t pick_permutation(int16_t pitch_range_index, int16_t explicit_permutation
     range->last_permutation_index = (uint16_t)chosen;
     sound_class = tag->sound_class;
 
-    if (sound_class != 0x12 && sound_class != 0x13 &&
-        (sound_class < 0x20 || sound_class > 0x23) && sound_class < 0x2c) {
+    if (sound_class != soundclass_unit_footsteps && sound_class != soundclass_unit_dialog &&
+        (sound_class < soundclass_music || sound_class > soundclass_ambient_computers) && sound_class < soundclass_scripted_dialog_player) {
         int32_t limit = sound_permutation_limit;
 
         if (limit != 0) {

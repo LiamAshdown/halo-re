@@ -38,29 +38,28 @@ static real shake_random_signed(void)
 void player_effect_ref::build_camera_shake_matrix(real_matrix4x3 *out, int16_t local_player_index)
 {
     player_effect_globals *globals = player_effect_globals_pointer;
-    uint8_t *g = (uint8_t *)globals;
     int16_t dt;
 
     if (local_player_index == -1) {
         return;
     }
-    if ((*(uint8_t *)&((struct player_effect_globals *)g)->scripted_shake_flags & 1) != 0) {
-        real t = ((struct player_effect_globals *)g)->scripted_shake_intensity;
-        int16_t ticks = ((struct player_effect_globals *)g)->scripted_shake_ticks;
+    if ((globals->scripted_shake_flags & 1) != 0) {
+        real t = globals->scripted_shake_intensity;
+        int16_t ticks = globals->scripted_shake_ticks;
 
         *out = *k_render_identity_matrix_ptr;
         if (ticks > 0) {
-            real fraction = (real)(int32_t)ticks / (real)(int32_t)((struct player_effect_globals *)g)->scripted_shake_duration;
+            real fraction = (real)(int32_t)ticks / (real)(int32_t)globals->scripted_shake_duration;
 
-            if ((*(uint8_t *)&((struct player_effect_globals *)g)->scripted_shake_flags & 2) == 0) {
+            if ((globals->scripted_shake_flags & 2) == 0) {
                 fraction = 1.0f - fraction;
             }
             t = fraction * t;
-            ((struct player_effect_globals *)g)->scripted_shake_ticks = (int16_t)(ticks - halo::game::globals().game_time->ticks_this_frame);
-        } else if ((((struct player_effect_globals *)g)->scripted_shake_flags & 2) != 0) {
-            ((struct player_effect_globals *)g)->scripted_shake_flags &= ~(uint32_t)1;
+            globals->scripted_shake_ticks = (int16_t)(ticks - halo::game::globals().game_time->ticks_this_frame);
+        } else if ((globals->scripted_shake_flags & 2) != 0) {
+            globals->scripted_shake_flags &= ~(uint32_t)1;
         }
-        if ((*(uint8_t *)&((struct player_effect_globals *)g)->scripted_shake_flags & 1) == 0) {
+        if ((globals->scripted_shake_flags & 1) == 0) {
             return;
         }
         if (!(t >= 0.0f)) {
@@ -73,27 +72,27 @@ void player_effect_ref::build_camera_shake_matrix(real_matrix4x3 *out, int16_t l
             real a2 = shake_random_signed();
             real a3 = shake_random_signed();
 
-            halo::math::matrix4x3_from_euler_angles(*out, a3 * *(real *)(g + 0x10c) * t, a2 * *(real *)(g + 0x110) * t,
-                a1 * *(real *)(g + 0x114) * t);
+            halo::math::matrix4x3_from_euler_angles(*out, a3 * globals->scripted_shake_rotation[0] * t, a2 * globals->scripted_shake_rotation[1] * t,
+                a1 * globals->scripted_shake_rotation[2] * t);
         }
         {
             real b4 = shake_random_signed();
             real b5 = shake_random_signed();
             real b6 = shake_random_signed();
 
-            out->position.x = b6 * *(real *)(g + 0x104) * t;
-            out->position.y = b5 * *(real *)(g + 0x100) * t;
-            out->position.z = b4 * *(real *)(g + 0x108) * t;
+            out->position.x = b6 * globals->scripted_shake_translation[1] * t;
+            out->position.y = b5 * globals->scripted_shake_translation[0] * t;
+            out->position.z = b4 * globals->scripted_shake_translation[2] * t;
         }
         return;
     }
 
     {
-        uint8_t *self = g + (int32_t)local_player_index * 0xec;
-        int16_t ticks = *(int16_t *)(self + 0xe0);
+        player_effect *self = &globals->players[local_player_index];
+        int16_t ticks = self->impulse_ticks;
         real t;
 
-        if (ticks <= 0 && (self[0xe8] & 2) == 0) {
+        if (ticks <= 0 && (self->flags & _player_effect_camera_impulse_bit) == 0) {
             *out = *k_render_identity_matrix_ptr;
         } else {
             real_vector3d axis;
@@ -101,66 +100,66 @@ void player_effect_ref::build_camera_shake_matrix(real_matrix4x3 *out, int16_t l
             real k;
             real_matrix4x3 rotation;
 
-            if ((self[0xe8] & 2) != 0) {
+            if ((self->flags & _player_effect_camera_impulse_bit) != 0) {
                 t = 1.0f;
             } else {
-                real duration = *(real *)(self + 0x50);
+                real duration = self->impulse.duration;
 
-                t = halo::math::transition_function_evaluate(*(int16_t *)(self + 0x54),
-                    1.0f - (duration - (real)(int32_t)ticks) / duration) * *(real *)(self + 0x68);
+                t = halo::math::transition_function_evaluate(self->impulse.transition_function,
+                    1.0f - (duration - (real)(int32_t)ticks) / duration) * self->impulse.intensity;
             }
-            self[0xe8] &= 0xfd;
-            halo::math::vector3d_cross_product(axis, *(real_vector3d *)self, *halo::math::globals().global_up3d_pointer);
-            angle = t * *(real *)(self + 0x58);
+            self->flags &= ~(uint32_t)_player_effect_camera_impulse_bit;
+            halo::math::vector3d_cross_product(axis, self->impulse_direction, *halo::math::globals().global_up3d_pointer);
+            angle = t * self->impulse.rotation_angle;
             halo::math::matrix4x3_from_axis_angle(rotation, axis, (real)halo::libm::sin((double)angle), (real)halo::libm::cos((double)angle));
-            k = t * *(real *)(self + 0x5c);
-            rotation.position.x = t * *(real *)(self + 0x0c) + k * *(real *)(self + 0x00);
-            rotation.position.y = t * *(real *)(self + 0x10) + k * *(real *)(self + 0x04);
-            rotation.position.z = t * *(real *)(self + 0x14) + k * *(real *)(self + 0x08);
-            *(int16_t *)(self + 0xe0) = (int16_t)(*(int16_t *)(self + 0xe0) - halo::game::globals().game_time->ticks_this_frame);
+            k = t * self->impulse.translation_scale;
+            rotation.position.x = t * self->impulse_rotation.i + k * self->impulse_direction.i;
+            rotation.position.y = t * self->impulse_rotation.j + k * self->impulse_direction.j;
+            rotation.position.z = t * self->impulse_rotation.k + k * self->impulse_direction.k;
+            self->impulse_ticks = (int16_t)(self->impulse_ticks - halo::game::globals().game_time->ticks_this_frame);
             *out = rotation;
         }
 
-        ticks = *(int16_t *)(self + 0xe2);
-        if (ticks > 0 || (self[0xe8] & 4) != 0) {
+        ticks = self->shake_ticks;
+        if (ticks > 0 || (self->flags & _player_effect_camera_shake_bit) != 0) {
             real_matrix4x3 second = *k_render_identity_matrix_ptr;
             real t2;
             real w;
             real a;
             real b;
 
-            if ((self[0xe8] & 4) != 0) {
+            if ((self->flags & _player_effect_camera_shake_bit) != 0) {
                 t2 = 1.0f;
             } else {
-                real duration = *(real *)(self + 0x84);
+                real duration = self->shake.duration;
 
-                t2 = halo::math::transition_function_evaluate((int16_t)*(uint16_t *)(self + 0x88),
-                    1.0f - (duration - (real)(int32_t)ticks) / duration) * *(real *)(self + 0xac);
+                t2 = halo::math::transition_function_evaluate(self->shake.transition_function,
+                    1.0f - (duration - (real)(int32_t)ticks) / duration) * self->shake.intensity;
             }
-            w = halo::math::periodic_function_evaluate(*(int16_t *)(self + 0xa0),
-                (double)((*(real *)(self + 0x84) - (real)(int32_t)*(int16_t *)(self + 0xe2)) / *(real *)(self + 0xa4)));
-            w = (w * *(real *)(self + 0xa8) + (1.0f - *(real *)(self + 0xa8))) * t2;
-            a = w * *(real *)(self + 0x8c);
+            w = halo::math::periodic_function_evaluate(self->shake.wobble_function,
+                (double)((self->shake.duration - (real)(int32_t)self->shake_ticks) / self->shake.wobble_period));
+            w = (w * self->shake.wobble_weight + (1.0f - self->shake.wobble_weight)) * t2;
+            a = w * self->shake.random_translation;
             if (!(a > 0.0f)) {
                 a = 0.0f;
             }
-            b = w * *(real *)(self + 0x90);
+            b = w * self->shake.random_rotation;
             if (!(b > 0.0f)) {
                 b = 0.0f;
             }
-            self[0xe8] &= 0xfb;
-            halo::effects::player_effect_random_shake_offset(&second, a + *(real *)(self + 0xd4), b + *(real *)(self + 0xd8));
+            self->flags &= ~(uint32_t)_player_effect_camera_shake_bit;
+            halo::effects::player_effect_random_shake_offset(&second, a + self->shake_translation, b + self->shake_rotation);
             dt = halo::game::globals().game_time->ticks_this_frame;
-            *(int16_t *)(self + 0xdc) = (int16_t)(*(int16_t *)(self + 0xdc) + dt);
-            if (*(int16_t *)(self + 0xdc) > 0) {
-                *(int16_t *)(self + 0xdc) = 0;
-                *(real *)(self + 0xcc) = 0.0f;
-                *(real *)(self + 0xd0) = 0.0f;
-                *(real *)(self + 0xd4) = 0.0f;
-                *(real *)(self + 0xd8) = 0.0f;
+            self->vibrate_ticks = (int16_t)(self->vibrate_ticks + dt);
+            if (self->vibrate_ticks > 0) {
+                self->vibrate_ticks = 0;
+                self->low_frequency_vibrate = 0.0f;
+                self->high_frequency_vibrate = 0.0f;
+                self->shake_translation = 0.0f;
+                self->shake_rotation = 0.0f;
             }
             halo::effects::player_effect_random_shake_offset(&second, a, b);
-            *(int16_t *)(self + 0xe2) = (int16_t)(*(int16_t *)(self + 0xe2) - dt);
+            self->shake_ticks = (int16_t)(self->shake_ticks - dt);
             halo::math::globals().matrix4x3_multiply_procedure(out, &second, out);
         }
     }

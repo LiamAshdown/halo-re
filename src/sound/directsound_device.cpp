@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/sound/.
  */
 
+#include "halo/sound/directsound.hpp"
 #include "internal/state.hpp"
 
 namespace halo::sound {
@@ -30,7 +31,7 @@ void DirectSoundDevice::dispose(void)
         }
         if (buffer != 0) {
             void **vtable = *(void ***)buffer;
-            void (__stdcall *stop)(void *) = (void (__stdcall *)(void *))vtable[0x48 / 4];
+            void (__stdcall *stop)(void *) = (void (__stdcall *)(void *))vtable[halo::sound::dsound_slot::sb_stop];
             void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
             stop(buffer);
             release(buffer);
@@ -64,7 +65,7 @@ void DirectSoundDevice::dispose(void)
     if (directsound != 0) {
         void **vtable = *(void ***)directsound;
         int32_t (__stdcall *set_cooperative_level)(void *, void *, uint32_t) =
-            (int32_t (__stdcall *)(void *, void *, uint32_t))vtable[0x18 / 4];
+            (int32_t (__stdcall *)(void *, void *, uint32_t))vtable[halo::sound::dsound_slot::ds_set_cooperative_level];
         void (__stdcall *release)(void *) = (void (__stdcall *)(void *))vtable[2];
         void *active_window = GetActiveWindow();
 
@@ -82,7 +83,7 @@ void DirectSoundDevice::end_frame(void)
     int16_t i;
 
     if (directsound_deferred_dirty != 0) {
-        ((directsound_listener_commit_proc)(*(void ***)directsound_listener)[0x44 / 4])(directsound_listener);
+        ((directsound_listener_commit_proc)(*(void ***)directsound_listener)[halo::sound::dsound_slot::lst_commit_deferred_settings])(directsound_listener);
         directsound_deferred_dirty = 0;
     }
 
@@ -112,7 +113,7 @@ void DirectSoundDevice::end_frame(void)
                         volume = 0;
                     }
                 }
-                ((directsound_buffer_set_volume_proc)(*(void ***)channel->buffer)[0x3c / 4])(channel->buffer, volume);
+                ((directsound_buffer_set_volume_proc)(*(void ***)channel->buffer)[halo::sound::dsound_slot::sb_set_volume])(channel->buffer, volume);
             }
         }
 
@@ -121,7 +122,7 @@ void DirectSoundDevice::end_frame(void)
                 directsound_channel *channel = &directsound_channels[i];
 
                 if (channel->state != _directsound_channel_idle || channel->streaming != 0) {
-                    ((directsound_buffer_stop_proc)(*(void ***)channel->buffer)[0x48 / 4])(channel->buffer);
+                    ((directsound_buffer_stop_proc)(*(void ***)channel->buffer)[halo::sound::dsound_slot::sb_stop])(channel->buffer);
                 }
             }
         }
@@ -208,7 +209,7 @@ void DirectSoundDevice::set_paused(uint8_t paused)
                 if (channel->state != _directsound_channel_idle) {
                     channel->gain = 0.0f;
                     if (channel->buffer != 0) {
-                        ((directsound_buffer_play_proc)(*(void ***)channel->buffer)[0x30 / 4])(channel->buffer, 0, 0, 1);
+                        ((directsound_buffer_play_proc)(*(void ***)channel->buffer)[halo::sound::dsound_slot::sb_play])(channel->buffer, 0, 0, 1);
                     }
                     stream_update(i, channel->source_crosslap);
                 }
@@ -227,7 +228,7 @@ void DirectSoundDevice::set_listener(sound_listener_parameters *parameters)
         sound_listener_update_fabsf(parameters->position.z - directsound_listener_cached.position.z) >= 0.05f ||
         directsound_initialized == 0) {
         int32_t (__stdcall *set_position)(void *, float, float, float, uint32_t) =
-            (int32_t (__stdcall *)(void *, float, float, float, uint32_t))vtable[0x38 / 4];
+            (int32_t (__stdcall *)(void *, float, float, float, uint32_t))vtable[halo::sound::dsound_slot::lst_set_position];
         set_position(directsound_listener, parameters->position.x, parameters->position.y,
             parameters->position.z, 0);
         directsound_listener_cached.position = parameters->position;
@@ -246,7 +247,7 @@ void DirectSoundDevice::set_listener(sound_listener_parameters *parameters)
 
         if (changed) {
             int32_t (__stdcall *set_orientation)(void *, float, float, float, float, float, float, uint32_t) =
-                (int32_t (__stdcall *)(void *, float, float, float, float, float, float, uint32_t))vtable[0x34 / 4];
+                (int32_t (__stdcall *)(void *, float, float, float, float, float, float, uint32_t))vtable[halo::sound::dsound_slot::lst_set_orientation];
             set_orientation(directsound_listener, orientation[0], orientation[1], orientation[2],
                 orientation[3], orientation[4], orientation[5], 0);
             for (i = 0; i < 6; i++) {
@@ -260,7 +261,7 @@ void DirectSoundDevice::set_listener(sound_listener_parameters *parameters)
         sound_listener_update_fabsf(parameters->velocity.k - directsound_listener_cached.velocity.k) >= 0.01f ||
         directsound_initialized == 0) {
         int32_t (__stdcall *set_velocity)(void *, float, float, float, uint32_t) =
-            (int32_t (__stdcall *)(void *, float, float, float, uint32_t))vtable[0x40 / 4];
+            (int32_t (__stdcall *)(void *, float, float, float, uint32_t))vtable[halo::sound::dsound_slot::lst_set_velocity];
         set_velocity(directsound_listener, parameters->velocity.i, parameters->velocity.j,
             parameters->velocity.k, 0);
         directsound_listener_cached.velocity = parameters->velocity;

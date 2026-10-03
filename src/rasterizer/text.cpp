@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/render/d3d9.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/text/api.hpp"
@@ -357,15 +358,15 @@ void rasterizer_draw_text_begin(ui_quad_render_state *state)
         set_texture(0, *(uint32_t *)((uint8_t *)part0 + 0x28));
     }
 
-    set_render_state(0x16, 3);
-    set_render_state(0xa8, 7);
-    set_render_state(0x1b, 1);
-    set_render_state(0xf, 1);
-    set_render_state(0x18, 0);
-    set_render_state(0x7, 0);
-    set_render_state(0x1c, 0);
+    set_render_state(halo::d3d9::rs::cull_mode, 3);
+    set_render_state(halo::d3d9::rs::color_write_enable, 7);
+    set_render_state(halo::d3d9::rs::alpha_blend_enable, 1);
+    set_render_state(halo::d3d9::rs::alpha_test_enable, 1);
+    set_render_state(halo::d3d9::rs::alpha_ref, 0);
+    set_render_state(halo::d3d9::rs::z_enable, 0);
+    set_render_state(halo::d3d9::rs::fog_enable, 0);
     if (halo::rasterizer::fields::rasterizer_wireframe != 0) {
-        set_render_state(8, 3);
+        set_render_state(halo::d3d9::rs::fill_mode, 3);
     }
 
     render_device().set_vertex_declaration(rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
@@ -389,22 +390,22 @@ void rasterizer_draw_text_begin(ui_quad_render_state *state)
         set_texture(part, *(uint32_t *)((uint8_t *)part_texture + 0x28));
 
         address_mode = (context[0x18 + part] == 0) ? 3u : 1u;
-        set_sampler_state(part, 1, address_mode);
-        set_sampler_state(part, 2, address_mode);
+        set_sampler_state(part, halo::d3d9::ss::address_u, address_mode);
+        set_sampler_state(part, halo::d3d9::ss::address_v, address_mode);
         filter_value = (context[0x8a] == 0) ? 2u : 1u;
-        set_sampler_state(part, 5, filter_value);
-        set_sampler_state(part, 6, filter_value);
-        set_sampler_state(part, 7, filter_value);
+        set_sampler_state(part, halo::d3d9::ss::mag_filter, filter_value);
+        set_sampler_state(part, halo::d3d9::ss::min_filter, filter_value);
+        set_sampler_state(part, halo::d3d9::ss::mip_filter, filter_value);
     }
 
-    set_texture_stage_state(0, 1, 4);
-    set_texture_stage_state(0, 2, 2);
-    set_texture_stage_state(0, 3, 0);
-    set_texture_stage_state(0, 4, 4);
-    set_texture_stage_state(0, 5, 2);
-    set_texture_stage_state(0, 6, 0);
-    set_texture_stage_state(1, 1, 1);
-    set_texture_stage_state(1, 4, 1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 0);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 4);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg2, 0);
+    set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
 }
 
 namespace rasterizer_draw_text_end_impl {
@@ -421,7 +422,7 @@ void rasterizer_draw_text_end(void)
 {
 
     if (halo::rasterizer::fields::rasterizer_wireframe != 0) {
-        render_device().set_render_state(8, 2);
+        render_device().set_render_state(halo::d3d9::rs::fill_mode, 2);
     }
     render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 }

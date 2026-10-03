@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/render/d3d9.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -649,22 +650,22 @@ static void set_sampler_state(uint32_t stage, uint32_t type, uint32_t value)
 void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
 {
     if (mode == 6) {
-        set_render_state(0x16, 3);
-        set_render_state(0xa8, (console_debug_toggle_689425 != 0) ? 7u : 0u);
-        set_render_state(0x1b, 0);
-        set_render_state(0xf, 0);
-        set_render_state(0x7, 1);
-        set_render_state(0x17, 4);
-        set_render_state(0xe, console_debug_toggle_689425);
-        set_render_state(0x1c, 0);
-        set_render_state(0x3c, 0xffff0000);
+        set_render_state(halo::d3d9::rs::cull_mode, 3);
+        set_render_state(halo::d3d9::rs::color_write_enable, (console_debug_toggle_689425 != 0) ? 7u : 0u);
+        set_render_state(halo::d3d9::rs::alpha_blend_enable, 0);
+        set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
+        set_render_state(halo::d3d9::rs::z_enable, 1);
+        set_render_state(halo::d3d9::rs::z_func, 4);
+        set_render_state(halo::d3d9::rs::z_write_enable, console_debug_toggle_689425);
+        set_render_state(halo::d3d9::rs::fog_enable, 0);
+        set_render_state(halo::d3d9::rs::texture_factor, 0xffff0000);
 
-        set_texture_stage_state(0, 1, 2);
-        set_texture_stage_state(0, 2, 3);
-        set_texture_stage_state(0, 4, 2);
-        set_texture_stage_state(0, 5, 1);
-        set_texture_stage_state(1, 1, 1);
-        set_texture_stage_state(1, 4, 1);
+        set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
+        set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 3);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 1);
+        set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
+        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
 
         render_device().set_vertex_shader(0);
         render_device().set_pixel_shader(0);
@@ -678,17 +679,17 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
     {
         uint32_t z_enable = (lens_flare_occlusion_queries_supported == 0) ? 1u : (flags & 1);
 
-        set_render_state(0x16, 3);
-        set_render_state(0xa8, 7);
-        set_render_state(0x1b, 1);
-        set_render_state(0x13, 5);
-        set_render_state(0x14, 2);
-        set_render_state(0xab, 1);
-        set_render_state(0xf, 0);
-        set_render_state(0x7, z_enable);
-        set_render_state(0x17, 4);
-        set_render_state(0xe, (flags >> 1) & 1);
-        set_render_state(0x1c, 0);
+        set_render_state(halo::d3d9::rs::cull_mode, 3);
+        set_render_state(halo::d3d9::rs::color_write_enable, 7);
+        set_render_state(halo::d3d9::rs::alpha_blend_enable, 1);
+        set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
+        set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::one);
+        set_render_state(halo::d3d9::rs::blend_op, 1);
+        set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
+        set_render_state(halo::d3d9::rs::z_enable, z_enable);
+        set_render_state(halo::d3d9::rs::z_func, 4);
+        set_render_state(halo::d3d9::rs::z_write_enable, (flags >> 1) & 1);
+        set_render_state(halo::d3d9::rs::fog_enable, 0);
     }
 
     rasterizer_effect_pool_scratch = &halo::rasterizer::fields::lens_flare_effect;
@@ -698,24 +699,24 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
 
         render_device().effect_pass(*(void **)rasterizer_effect_pool_scratch, 0);
     } else {
-        set_texture_stage_state(0, 1, 4);
-        set_texture_stage_state(0, 2, 2);
-        set_texture_stage_state(0, 3, 0);
-        set_texture_stage_state(0, 4, 2);
-        set_texture_stage_state(0, 5, 0);
-        set_texture_stage_state(1, 1, 1);
-        set_texture_stage_state(1, 4, 1);
+        set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
+        set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
+        set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 0);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 0);
+        set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
+        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
         render_device().set_pixel_shader(0);
     }
 
     {
         uint32_t address_mode = (rasterizer_caps.texture_address_caps & 8) ? 4u : 3u;
-        set_sampler_state(0, 1, address_mode);
-        set_sampler_state(0, 2, address_mode);
+        set_sampler_state(0, halo::d3d9::ss::address_u, address_mode);
+        set_sampler_state(0, halo::d3d9::ss::address_v, address_mode);
     }
-    set_sampler_state(0, 5, 2);
-    set_sampler_state(0, 6, 2);
-    set_sampler_state(0, 7, 2);
+    set_sampler_state(0, halo::d3d9::ss::mag_filter, 2);
+    set_sampler_state(0, halo::d3d9::ss::min_filter, 2);
+    set_sampler_state(0, halo::d3d9::ss::mip_filter, 2);
     render_device().set_vertex_shader(0);
     render_device().set_fvf(0x1c4);
 

@@ -56,7 +56,7 @@ const d3dcaps_field_entry k_d3dcaps_fields[] = {
     { "MaxVertexShaderConst", offsetof(d3d_caps9, max_vertex_shader_const) },
     { "PixelShaderVersion", offsetof(d3d_caps9, pixel_shader_version) }
 };
-#define k_d3dcaps_field_count (sizeof(k_d3dcaps_fields) / sizeof(k_d3dcaps_fields[0]))
+constexpr size_t k_d3dcaps_field_count = sizeof(k_d3dcaps_fields) / sizeof(k_d3dcaps_fields[0]);
 
 }
 

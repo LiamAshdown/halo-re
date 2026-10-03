@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/render/d3d9.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -13,6 +14,13 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
 #include <stdio.h>
+
+static_assert(sizeof(ShaderEnvironment) == 0x344);
+
+static inline ShaderEnvironment *senv(const void *shader)
+{
+    return (ShaderEnvironment *)shader;
+}
 
 
 
@@ -46,7 +54,7 @@ static uint8_t build_stage(int32_t *table, int32_t count, int effect_index, cons
  */
 uint8_t rasterizer_shader_environment_build_technique_table(void)
 {
-    uint8_t ps_1_4 = rasterizer_caps.pixel_shader_version >= 0xffff0104;
+    uint8_t ps_1_4 = rasterizer_caps.pixel_shader_version >= halo::d3d9::k_pixel_shader_version_1_4;
     int32_t short_count = ps_1_4 ? 0xc : 6;
     int32_t long_count = ps_1_4 ? 0x18 : 0xc;
     uint8_t ok;
@@ -57,7 +65,7 @@ uint8_t rasterizer_shader_environment_build_technique_table(void)
     ok = ok && build_stage(environment_techniques_multipurpose, long_count, 119, "Multipurpose%s", 0);
     ok = ok && build_stage(environment_techniques_reflection, long_count, 120, "Reflection%s", 0);
     ok = ok && build_stage(environment_techniques_plain, short_count, 121, "No%s", 1);
-    if (rasterizer_caps.pixel_shader_version >= 0xffff0101 && rasterizer_caps.pixel_shader_version < 0xffff0104 && ok) {
+    if (rasterizer_caps.pixel_shader_version >= halo::d3d9::k_pixel_shader_version_1_1 && rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_4 && ok) {
         ok = build_stage(&environment_techniques_plain[6], short_count, 121, "No%sSelfIllumination", 0);
     }
     return ok;
@@ -127,8 +135,6 @@ void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, ui
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-#undef DEVICE_CALL
-#define DEVICE_CALL(offset) ((*(void ***)rasterizer_device)[(offset) / 4])
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
@@ -142,20 +148,20 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
 
 static void set_combine_stages(uint8_t *shader, int16_t frame, const float *matrix)
 {
-    chimera__rasterizer_set_texture(*(uint32_t *)(shader + 0x94), 0, 0, 1, frame);
+    chimera__rasterizer_set_texture(*(uint32_t *)&senv(shader)->base_map.tag_id, 0, 0, 1, frame);
     render_device().set_transform(0x10, matrix);
-    set_texture_stage_state(0, 0x18, 2);
-    set_texture_stage_state(0, 1, 4);
-    set_texture_stage_state(0, 2, 2);
-    set_texture_stage_state(0, 3, 0);
-    set_texture_stage_state(0, 4, 2);
-    set_texture_stage_state(0, 5, 0);
-    set_texture_stage_state(1, 1, 2);
-    set_texture_stage_state(1, 2, 1);
-    set_texture_stage_state(1, 4, 2);
-    set_texture_stage_state(1, 5, 2);
-    set_texture_stage_state(2, 1, 1);
-    set_texture_stage_state(2, 4, 1);
+    set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
+    set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 0);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 0);
+    set_texture_stage_state(1, halo::d3d9::ts::color_op, 2);
+    set_texture_stage_state(1, halo::d3d9::ts::color_arg1, 1);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 2);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, 2);
+    set_texture_stage_state(2, halo::d3d9::ts::color_op, 1);
+    set_texture_stage_state(2, halo::d3d9::ts::alpha_op, 1);
 }
 
 /**
@@ -172,22 +178,22 @@ void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t 
         return;
     }
     if (((uint8_t *)rasterizer_active_model_context)[0] & 8) {
-        set_render_state(7, 0);
+        set_render_state(halo::d3d9::rs::z_enable, 0);
     } else {
-        set_render_state(7, 1);
-        set_render_state(0xe, 1);
-        set_render_state(0x17, 4);
+        set_render_state(halo::d3d9::rs::z_enable, 1);
+        set_render_state(halo::d3d9::rs::z_write_enable, 1);
+        set_render_state(halo::d3d9::rs::z_func, 4);
         rasterizer_clear_decal_zbias();
     }
-    set_render_state(0x16, 3);
-    set_render_state(0xa8, 7);
-    set_render_state(0x1b, 0);
-    set_render_state(0x13, 5);
-    set_render_state(0x14, 6);
-    set_render_state(0xab, 1);
-    set_render_state(0xf, shader[0x28] & 1);
-    set_render_state(0x18, 0x7f);
-    set_render_state(0x1c, rasterizer_fog_enabled != 0);
+    set_render_state(halo::d3d9::rs::cull_mode, 3);
+    set_render_state(halo::d3d9::rs::color_write_enable, 7);
+    set_render_state(halo::d3d9::rs::alpha_blend_enable, 0);
+    set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
+    set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
+    set_render_state(halo::d3d9::rs::blend_op, 1);
+    set_render_state(halo::d3d9::rs::alpha_test_enable, senv(shader)->shader_environment_flags & 1);
+    set_render_state(halo::d3d9::rs::alpha_ref, 0x7f);
+    set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled != 0);
 
     if (rasterizer_effects[116].effect == 0) {
         rasterizer_clear_decal_zbias();
@@ -197,7 +203,7 @@ void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t 
     matrix[0] = *(float *)(((uint8_t *)rasterizer_active_model_context) + 0xc4);
     matrix[5] = *(float *)(((uint8_t *)rasterizer_active_model_context) + 0xc8);
     matrix[15] = 1.0f;
-    chimera__rasterizer_set_texture((shader[0x28] & 1) ? *(uint32_t *)(shader + 0x134) : 0xffffffff, 1, 0, 1, frame);
+    chimera__rasterizer_set_texture((senv(shader)->shader_environment_flags & 1) ? *(uint32_t *)&senv(shader)->bump_map.tag_id : 0xffffffff, 1, 0, 1, frame);
 
     if (*(uint32_t *)((uint8_t *)rasterizer_active_model_context) & 0x200) {
         render_device().set_vertex_shader(0);
@@ -205,7 +211,7 @@ void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t 
         set_combine_stages(shader, frame, matrix);
         rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, vertex_buffer, primitive_count, 0,
             dynamic_vertex_slot);
-        set_texture_stage_state(0, 0x18, 0);
+        set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 0);
         rasterizer_clear_decal_zbias();
         return;
     }
@@ -220,17 +226,16 @@ void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t 
         }
         processed.hardware_buffer = handle;
         processed.type = 0xf;
-        set_texture_stage_state(0, 0x18, 2);
+        set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
         render_device().set_vertex_shader(0);
         render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[15].declaration);
         set_combine_stages(shader, frame, matrix);
         rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, &processed, primitive_count, 0,
             dynamic_vertex_slot);
-        set_texture_stage_state(0, 0x18, 0);
+        set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 0);
     }
     rasterizer_clear_decal_zbias();
 }
-#undef DEVICE_CALL
 
 namespace rasterizer_shader_environment_draw_pixel_shader_impl {
 
@@ -272,7 +277,7 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
 {
     uint8_t *context;
     float relative[3];
-    uint16_t pixel_shader_fog = *(uint16_t *)(shader + 0x28) & 4;
+    uint16_t pixel_shader_fog = senv(shader)->shader_environment_flags & 4;
     int16_t vertex_shader;
     uint8_t draw_ok = 1;
     void *effect;
@@ -294,25 +299,25 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
     relative[1] = *(float *)(context + 0xb8) - rasterizer_camera_position[1];
     relative[2] = *(float *)(context + 0xbc) - rasterizer_camera_position[2];
     if (context[0] & 8) {
-        environment_set_render_state(0x07, 0);
+        environment_set_render_state(halo::d3d9::rs::z_enable, 0);
     } else {
-        environment_set_render_state(0x07, 1);
-        environment_set_render_state(0x0e, 1);
-        environment_set_render_state(0x17, 4);
+        environment_set_render_state(halo::d3d9::rs::z_enable, 1);
+        environment_set_render_state(halo::d3d9::rs::z_write_enable, 1);
+        environment_set_render_state(halo::d3d9::rs::z_func, 4);
         rasterizer_clear_decal_zbias();
     }
-    environment_set_render_state(0x16, 3);
-    environment_set_render_state(0xa8, 7);
-    environment_set_render_state(0x1b, 0);
-    environment_set_render_state(0x13, 5);
-    environment_set_render_state(0x14, 6);
-    environment_set_render_state(0xab, 1);
-    environment_set_render_state(0x0f, shader[0x28] & 1);
-    environment_set_render_state(0x18, 0x7f);
-    if (rasterizer_device_version < 0xffff0104) {
-        environment_set_render_state(0x1c, 0);
+    environment_set_render_state(halo::d3d9::rs::cull_mode, 3);
+    environment_set_render_state(halo::d3d9::rs::color_write_enable, 7);
+    environment_set_render_state(halo::d3d9::rs::alpha_blend_enable, 0);
+    environment_set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
+    environment_set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
+    environment_set_render_state(halo::d3d9::rs::blend_op, 1);
+    environment_set_render_state(halo::d3d9::rs::alpha_test_enable, senv(shader)->shader_environment_flags & 1);
+    environment_set_render_state(halo::d3d9::rs::alpha_ref, 0x7f);
+    if (rasterizer_device_version < halo::d3d9::k_pixel_shader_version_1_4) {
+        environment_set_render_state(halo::d3d9::rs::fog_enable, 0);
     } else {
-        environment_set_render_state(0x1c, (shader[0x28] >> 2) & 1);
+        environment_set_render_state(halo::d3d9::rs::fog_enable, (senv(shader)->shader_environment_flags >> 2) & 1);
     }
 
     if (pixel_shader_fog) {
@@ -321,7 +326,7 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
         vertex_shader = 0x19;
     } else if (*(int16_t *)(context + 0x50) > 0) {
         vertex_shader = 0x1a;
-    } else if (*(datum_index *)(shader + 0x330) != k_datum_index_none) {
+    } else if (*(datum_index *)&senv(shader)->reflection_cube_map.tag_id != k_datum_index_none) {
         vertex_shader = 0x1c;
     } else if (*(int16_t *)(context + 0xc) <= 1) {
         vertex_shader = 0x1d;
@@ -334,25 +339,25 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
         rasterizer_clear_decal_zbias();
         return;
     }
-    render_device().effect_set_technique(effect, (rasterizer_device_version >= 0xffff0104 && !pixel_shader_fog) ?
-            environment_techniques_ps14[*(int16_t *)(shader + 0xb0)] :
-            (uint32_t)environment_techniques_no[*(int16_t *)(shader + 0xb0)]);
-    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)(shader + 0x94), 0, 0, 1, frame, &environment_effect_slot);
-    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)(shader + 0xc4), 0, 1, 2, frame, &environment_effect_slot);
-    rasterizer_resolve_and_cache_submap_b((shader[0x28] & 1) ? *(uint32_t *)(shader + 0x134) : 0xffffffff, 0, 2, 1, frame,
+    render_device().effect_set_technique(effect, (rasterizer_device_version >= halo::d3d9::k_pixel_shader_version_1_4 && !pixel_shader_fog) ?
+            environment_techniques_ps14[senv(shader)->detail_map_function] :
+            (uint32_t)environment_techniques_no[senv(shader)->detail_map_function]);
+    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->base_map.tag_id, 0, 0, 1, frame, &environment_effect_slot);
+    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->primary_detail_map.tag_id, 0, 1, 2, frame, &environment_effect_slot);
+    rasterizer_resolve_and_cache_submap_b((senv(shader)->shader_environment_flags & 1) ? *(uint32_t *)&senv(shader)->bump_map.tag_id : 0xffffffff, 0, 2, 1, frame,
         &environment_effect_slot);
-    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)(shader + 0x330), 2, 3, 0, frame, &environment_effect_slot);
+    rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->reflection_cube_map.tag_id, 2, 3, 0, frame, &environment_effect_slot);
 
-    a[0] = *(float *)(shader + 0x2f4) * *(float *)(context + 0x5c);
-    a[1] = *(float *)(shader + 0x2a8) * *(float *)(context + 0x60);
-    a[2] = *(float *)(shader + 0x2ac) * *(float *)(context + 0x64);
-    a[3] = *(float *)(shader + 0x2b0) * *(float *)(context + 0x68);
-    b[0] = *(float *)(shader + 0x2f8) * *(float *)(context + 0x5c);
-    b[1] = *(float *)(shader + 0x2b4) * *(float *)(context + 0x60);
-    b[2] = *(float *)(shader + 0x2b8) * *(float *)(context + 0x64);
-    b[3] = *(float *)(shader + 0x2bc) * *(float *)(context + 0x68);
-    *(uint32_t *)&c10_c12[0] = *(uint32_t *)(shader + 0xb4);
-    *(uint32_t *)&c10_c12[1] = *(uint32_t *)(shader + 0xb4);
+    a[0] = senv(shader)->perpendicular_brightness * *(float *)(context + 0x5c);
+    a[1] = senv(shader)->perpendicular_color.red * *(float *)(context + 0x60);
+    a[2] = senv(shader)->perpendicular_color.green * *(float *)(context + 0x64);
+    a[3] = senv(shader)->perpendicular_color.blue * *(float *)(context + 0x68);
+    b[0] = senv(shader)->parallel_brightness * *(float *)(context + 0x5c);
+    b[1] = senv(shader)->parallel_color.red * *(float *)(context + 0x60);
+    b[2] = senv(shader)->parallel_color.green * *(float *)(context + 0x64);
+    b[3] = senv(shader)->parallel_color.blue * *(float *)(context + 0x68);
+    *(uint32_t *)&c10_c12[0] = *(uint32_t *)&senv(shader)->primary_detail_map_scale;
+    *(uint32_t *)&c10_c12[1] = *(uint32_t *)&senv(shader)->primary_detail_map_scale;
     c10_c12[2] = 1.0f;
     c10_c12[3] = 1.0f;
     *(uint32_t *)&c10_c12[4] = *(uint32_t *)(context + 0xc4);
@@ -391,10 +396,10 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
         fog[1] = fog[2] = fog[3] = 0.0f;
         negative[0] = negative[1] = negative[2] = 0.0f;
     } else if (pixel_shader_fog) {
-        if (rasterizer_device_version < 0xffff0104) {
+        if (rasterizer_device_version < halo::d3d9::k_pixel_shader_version_1_4) {
             fog[0] = 1.0f;
             fog[1] = fog[2] = fog[3] = 0.0f;
-            environment_set_render_state(0x22, halo::interface::color_rgb_float_to_int((const float *)&rasterizer_fog_atmospheric_color));
+            environment_set_render_state(halo::d3d9::rs::fog_color, halo::interface::color_rgb_float_to_int((const float *)&rasterizer_fog_atmospheric_color));
         }
     } else {
         {
@@ -427,14 +432,14 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
             add[0] = density * rasterizer_fog_atmospheric_color.red;
             add[1] = rasterizer_fog_atmospheric_color.green * density;
             add[2] = rasterizer_fog_atmospheric_color.blue * density;
-            if (rasterizer_device_version < 0xffff0104) {
+            if (rasterizer_device_version < halo::d3d9::k_pixel_shader_version_1_4) {
                 if (vertex_shader != 0x19) {
-                    environment_set_render_state(0x22, halo::interface::color_rgb_float_to_int((const float *)&rasterizer_fog_atmospheric_color));
+                    environment_set_render_state(halo::d3d9::rs::fog_color, halo::interface::color_rgb_float_to_int((const float *)&rasterizer_fog_atmospheric_color));
                 } else {
                     for (i = 0; i < 3; i++) {
                         add[i] = environment_clamp01(add[i] - halo::rasterizer::fields::planar_fog_attenuation * negative[i]);
                     }
-                    environment_set_render_state(0x22, halo::interface::color_pack_argb_from_real((ColorARGB *)fog));
+                    environment_set_render_state(halo::d3d9::rs::fog_color, halo::interface::color_pack_argb_from_real((ColorARGB *)fog));
                 }
             }
         }
@@ -472,8 +477,6 @@ namespace rasterizer_shader_environment_draw_single_stream_impl {
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-#undef DEVICE_CALL
-#define DEVICE_CALL(offset) ((*(void ***)rasterizer_device)[(offset) / 4])
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
@@ -499,22 +502,22 @@ void rasterizer_shader_environment_draw_single_stream(uint8_t *shader, int16_t f
         return;
     }
     if (((uint8_t *)rasterizer_active_model_context)[0] & 8) {
-        set_render_state(7, 0);
+        set_render_state(halo::d3d9::rs::z_enable, 0);
     } else {
-        set_render_state(7, 1);
-        set_render_state(0xe, 1);
-        set_render_state(0x17, 4);
+        set_render_state(halo::d3d9::rs::z_enable, 1);
+        set_render_state(halo::d3d9::rs::z_write_enable, 1);
+        set_render_state(halo::d3d9::rs::z_func, 4);
         rasterizer_clear_decal_zbias();
     }
-    set_render_state(0x16, 3);
-    set_render_state(0xa8, 7);
-    set_render_state(0x1b, 0);
-    set_render_state(0x13, 5);
-    set_render_state(0x14, 6);
-    set_render_state(0xab, 1);
-    set_render_state(0xf, shader[0x28] & 1);
-    set_render_state(0x18, 0x7f);
-    set_render_state(0x1c, rasterizer_fog_enabled != 0);
+    set_render_state(halo::d3d9::rs::cull_mode, 3);
+    set_render_state(halo::d3d9::rs::color_write_enable, 7);
+    set_render_state(halo::d3d9::rs::alpha_blend_enable, 0);
+    set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
+    set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
+    set_render_state(halo::d3d9::rs::blend_op, 1);
+    set_render_state(halo::d3d9::rs::alpha_test_enable, senv(shader)->shader_environment_flags & 1);
+    set_render_state(halo::d3d9::rs::alpha_ref, 0x7f);
+    set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled != 0);
 
     memset(matrix, 0, sizeof matrix);
     matrix[0] = *(float *)(((uint8_t *)rasterizer_active_model_context) + 0xc4);
@@ -522,22 +525,22 @@ void rasterizer_shader_environment_draw_single_stream(uint8_t *shader, int16_t f
     matrix[10] = 0.0f;
     matrix[15] = 1.0f;
 
-    set_texture_stage_state(0, 1, 2);
-    set_texture_stage_state(0, 2, 2);
-    set_texture_stage_state(0, 4, 2);
-    set_texture_stage_state(0, 5, 2);
-    set_texture_stage_state(1, 1, 1);
-    set_texture_stage_state(1, 4, 1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
+    set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
 
     if (*(uint32_t *)((uint8_t *)rasterizer_active_model_context) & 0x200) {
         render_device().set_vertex_shader(0);
         render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[14].declaration);
-        chimera__rasterizer_set_texture(*(uint32_t *)(shader + 0x94), 0, 0, 1, frame);
+        chimera__rasterizer_set_texture(*(uint32_t *)&senv(shader)->base_map.tag_id, 0, 0, 1, frame);
         render_device().set_transform(0x10, matrix);
-        set_texture_stage_state(0, 0x18, 2);
+        set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
         rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, vertex_buffer, primitive_count, 0,
             dynamic_vertex_slot);
-        set_texture_stage_state(0, 0x18, 0);
+        set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 0);
         rasterizer_clear_decal_zbias();
         return;
     }
@@ -552,19 +555,18 @@ void rasterizer_shader_environment_draw_single_stream(uint8_t *shader, int16_t f
         }
         processed.hardware_buffer = handle;
         processed.type = 0xf;
-        set_texture_stage_state(0, 0x18, 2);
+        set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
         render_device().set_vertex_shader(0);
         render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[15].declaration);
-        chimera__rasterizer_set_texture(*(uint32_t *)(shader + 0x94), 0, 0, 1, frame);
+        chimera__rasterizer_set_texture(*(uint32_t *)&senv(shader)->base_map.tag_id, 0, 0, 1, frame);
         render_device().set_transform(0x10, matrix);
-        set_texture_stage_state(0, 0x18, 2);
+        set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 2);
         rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, &processed, primitive_count, 0,
             dynamic_vertex_slot);
-        set_texture_stage_state(0, 0x18, 0);
+        set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 0);
         rasterizer_clear_decal_zbias();
     }
 }
-#undef DEVICE_CALL
 
 }  // namespace rasterizer_shader_environment_draw_single_stream_impl
 
@@ -754,17 +756,17 @@ void rasterizer_shader_environment_lightmap_draw(uint8_t *shader, int16_t frame,
     if (!halo::rasterizer::fields::rasterizer_environment_diffuse_textures) {
         return;
     }
-    index = (int16_t)(*(uint16_t *)(shader + 0x2a) * 3 + *(uint16_t *)(shader + 0xb0));
-    index = (int16_t)((uint16_t)(index * 3) + *(uint16_t *)(shader + 0xf4) + 5);
+    index = (int16_t)(*(uint16_t *)&senv(shader)->shader_environment_type * 3 + *(uint16_t *)&senv(shader)->detail_map_function);
+    index = (int16_t)((uint16_t)(index * 3) + *(uint16_t *)&senv(shader)->micro_detail_map_function + 5);
     slot = &rasterizer_effects[index];
     if (slot->effect == 0) {
         return;
     }
-    *(uint32_t *)size[0] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(*(uint32_t *)(shader + 0x94), 0, 0, 1, frame, slot);
-    *(uint32_t *)size[1] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(*(uint32_t *)(shader + 0xc4), 0, 1, 2, frame, slot);
-    *(uint32_t *)size[2] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(*(uint32_t *)(shader + 0xd8), 0, 2, 2, frame, slot);
-    *(uint32_t *)size[3] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(*(uint32_t *)(shader + 0x108), 0, 3, 2, frame, slot);
-    if (shader[0x6c] & 1) {
+    *(uint32_t *)size[0] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->base_map.tag_id, 0, 0, 1, frame, slot);
+    *(uint32_t *)size[1] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->primary_detail_map.tag_id, 0, 1, 2, frame, slot);
+    *(uint32_t *)size[2] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->secondary_detail_map.tag_id, 0, 2, 2, frame, slot);
+    *(uint32_t *)size[3] = *(uint32_t *)rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->micro_detail_map.tag_id, 0, 3, 2, frame, slot);
+    if (senv(shader)->diffuse_flags & 1) {
         float base_width = (float)size[0][0];
         float base_height = (float)size[0][1];
 
@@ -775,17 +777,17 @@ void rasterizer_shader_environment_lightmap_draw(uint8_t *shader, int16_t frame,
         su3 = base_width / (float)size[3][0];
         sv3 = base_height / (float)size[3][1];
     }
-    constants[0] = su1 * *(float *)(shader + 0xb4);
-    constants[1] = sv1 * *(float *)(shader + 0xb4);
-    constants[2] = su2 * *(float *)(shader + 0xc8);
-    constants[3] = sv2 * *(float *)(shader + 0xc8);
+    constants[0] = su1 * senv(shader)->primary_detail_map_scale;
+    constants[1] = sv1 * senv(shader)->primary_detail_map_scale;
+    constants[2] = su2 * senv(shader)->secondary_detail_map_scale;
+    constants[3] = sv2 * senv(shader)->secondary_detail_map_scale;
     constants[4] = 1.0f;
     constants[5] = 0.0f;
-    constants[6] = su3 * *(float *)(shader + 0xf8);
+    constants[6] = su3 * senv(shader)->micro_detail_map_scale;
     constants[7] = 0.0f;
     constants[8] = 0.0f;
     constants[9] = 1.0f;
-    constants[10] = sv3 * *(float *)(shader + 0xf8);
+    constants[10] = sv3 * senv(shader)->micro_detail_map_scale;
     constants[11] = 0.0f;
     halo::shaders::shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], (*(double *)&rasterizer_time), const_cast<ShaderEnvironment *>((const ShaderEnvironment *)shader));
 
@@ -810,8 +812,6 @@ namespace rasterizer_shader_environment_lightmap_draw_single_stream_impl {
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-#undef DEVICE_CALL
-#define DEVICE_CALL(offset) ((*(void ***)rasterizer_device)[(offset) / 4])
 
 /**
  * Direct3D 9 back end function rasterizer_shader_environment_lightmap_draw_single_stream. The original author
@@ -830,16 +830,15 @@ void rasterizer_shader_environment_lightmap_draw_single_stream(const ShaderEnvir
     render_device().set_vertex_shader(0);
     render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[19].declaration);
     render_device().set_pixel_shader(0);
-    set_texture_stage_state = (d3d_call3_fn)DEVICE_CALL(0x10c);
+    set_texture_stage_state = halo::d3d9::device_function<d3d_call3_fn>(rasterizer_device, halo::d3d9::device_method::set_texture_stage_state);
     set_texture_stage_state(rasterizer_device, 0, 1, 2);
     set_texture_stage_state(rasterizer_device, 0, 2, 2);
     set_texture_stage_state(rasterizer_device, 0, 4, 2);
     set_texture_stage_state(rasterizer_device, 0, 5, 1);
-    set_texture_stage_state(rasterizer_device, 1, 1, 1);
-    set_texture_stage_state(rasterizer_device, 1, 4, 1);
+    set_texture_stage_state(rasterizer_device, halo::d3d9::ts::color_op, 1, 1);
+    set_texture_stage_state(rasterizer_device, halo::d3d9::ts::color_op, 4, 1);
     chimera__rasterizer_draw_dynamic_triangles_static_vertices(primitive_count, (rasterizer_vertex_buffer *)vertex_buffer, dynamic_index_slot, first_primitive);
 }
-#undef DEVICE_CALL
 
 }  // namespace rasterizer_shader_environment_lightmap_draw_single_stream_impl
 
@@ -848,8 +847,6 @@ namespace rasterizer_shader_environment_lightmap_draw_two_stream_impl {
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-#undef DEVICE_CALL
-#define DEVICE_CALL(offset) ((*(void ***)rasterizer_device)[(offset) / 4])
 
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
@@ -894,34 +891,33 @@ void rasterizer_shader_environment_lightmap_draw_two_stream(const ShaderEnvironm
         matrix[5] = (float)(int32_t)base_height / (float)(int32_t)detail_size[1] * ((struct ShaderEnvironment *)raw)->primary_detail_map_scale;
         matrix[10] = 1.0f;
         matrix[15] = 1.0f;
-        set_texture_stage_state(1, 0x18, 2);
+        set_texture_stage_state(1, halo::d3d9::ts::texture_transform_flags, 2);
         render_device().set_transform(0x11, matrix);
-        set_texture_stage_state(1, 0xb, 0);
-        set_texture_stage_state(0, 1, 2);
-        set_texture_stage_state(0, 2, 2);
-        set_texture_stage_state(0, 4, 2);
-        set_texture_stage_state(0, 5, 1);
-        set_texture_stage_state(1, 1, 4);
-        set_texture_stage_state(1, 2, 2);
-        set_texture_stage_state(1, 3, 1);
-        set_texture_stage_state(1, 4, 2);
-        set_texture_stage_state(1, 5, 2);
-        set_texture_stage_state(2, 1, 1);
-        set_texture_stage_state(2, 4, 1);
+        set_texture_stage_state(1, halo::d3d9::ts::texcoord_index, 0);
+        set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
+        set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 1);
+        set_texture_stage_state(1, halo::d3d9::ts::color_op, 4);
+        set_texture_stage_state(1, halo::d3d9::ts::color_arg1, 2);
+        set_texture_stage_state(1, halo::d3d9::ts::color_arg2, 1);
+        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 2);
+        set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, 2);
+        set_texture_stage_state(2, halo::d3d9::ts::color_op, 1);
+        set_texture_stage_state(2, halo::d3d9::ts::alpha_op, 1);
         chimera__rasterizer_draw_dynamic_triangles_static_vertices(primitive_count, (rasterizer_vertex_buffer *)vertex_buffer, dynamic_index_slot, first_primitive);
-        set_texture_stage_state(1, 0x18, 0);
-        set_texture_stage_state(1, 0xb, 1);
+        set_texture_stage_state(1, halo::d3d9::ts::texture_transform_flags, 0);
+        set_texture_stage_state(1, halo::d3d9::ts::texcoord_index, 1);
         return;
     }
-    set_texture_stage_state(0, 1, 2);
-    set_texture_stage_state(0, 2, 2);
-    set_texture_stage_state(0, 4, 2);
-    set_texture_stage_state(0, 5, 1);
-    set_texture_stage_state(1, 1, 1);
-    set_texture_stage_state(1, 4, 1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 1);
+    set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
     chimera__rasterizer_draw_dynamic_triangles_static_vertices(primitive_count, (rasterizer_vertex_buffer *)vertex_buffer, dynamic_index_slot, first_primitive);
 }
-#undef DEVICE_CALL
 
 }  // namespace rasterizer_shader_environment_lightmap_draw_two_stream_impl
 
@@ -952,7 +948,7 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
     uint32_t pass;
 
     if (*(uint16_t *)&halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::specular_lightmap_enabled == 0 || render_force_flag != 0 ||
-        rasterizer_lightmap_bitmap_missing != 0 || rasterizer_caps.pixel_shader_version < 0xffff0104) {
+        rasterizer_lightmap_bitmap_missing != 0 || rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_4) {
         return;
     }
     if (!(((struct ShaderEnvironment *)raw)->brightness > 0.0f)) {
@@ -1112,7 +1108,7 @@ void rasterizer_shader_environment_projected_light_draw(const ShaderEnvironment 
     uint32_t pass;
 
     if (*(uint16_t *)&halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::specular_projected_light_enabled == 0 ||
-        rasterizer_caps.pixel_shader_version < 0xffff0104) {
+        rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_4) {
         return;
     }
     if (!(((struct ShaderEnvironment *)raw)->brightness > 0.0f) || !(rasterizer_projected_light_luminance > 0.0f)) {
@@ -1226,7 +1222,7 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
     uint32_t pass;
 
     if (*(uint16_t *)&halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::specular_enabled == 0 ||
-        rasterizer_caps.pixel_shader_version < 0xffff0101) {
+        rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         return;
     }
 
@@ -1364,7 +1360,7 @@ void rasterizer_shader_environment_select_draw_functions(void)
         shader_environment_draw = (void *)rasterizer_shader_model_draw_limited;
         return;
     }
-    if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
+    if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
         shader_environment_draw_simple = (void *)rasterizer_shader_environment_draw_fixed_function;
         shader_environment_draw = (void *)rasterizer_shader_model_draw_fixed_function;
         return;
@@ -1422,7 +1418,7 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
         return;
     }
 
-    render_device().set_render_state(0xf, (raw[0x28] & 1) != 0 && halo::rasterizer::fields::environment_alpha_testing_enabled != 0 ? 1 : 0);
+    render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, (raw[0x28] & 1) != 0 && halo::rasterizer::fields::environment_alpha_testing_enabled != 0 ? 1 : 0);
 
     map_tag = *(uint32_t *)&((struct ShaderEnvironment *)raw)->map.tag_id;
     if (map_tag == 0xffffffff) {
@@ -1471,13 +1467,13 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
 
     rasterizer_resolve_and_cache_submap_b(map_tag, 0, 1, 0, frame, effect_slot);
     if ((raw[0x180] & 1) != 0) {
-        rasterizer_set_sampler_state(1, 5, 1);
-        rasterizer_set_sampler_state(1, 6, 1);
-        rasterizer_set_sampler_state(1, 7, 1);
+        rasterizer_set_sampler_state(1, halo::d3d9::ss::mag_filter, 1);
+        rasterizer_set_sampler_state(1, halo::d3d9::ss::min_filter, 1);
+        rasterizer_set_sampler_state(1, halo::d3d9::ss::mip_filter, 1);
     } else {
-        rasterizer_set_sampler_state(1, 5, 2);
-        rasterizer_set_sampler_state(1, 6, 2);
-        rasterizer_set_sampler_state(1, 7, 2);
+        rasterizer_set_sampler_state(1, halo::d3d9::ss::mag_filter, 2);
+        rasterizer_set_sampler_state(1, halo::d3d9::ss::min_filter, 2);
+        rasterizer_set_sampler_state(1, halo::d3d9::ss::mip_filter, 2);
     }
 
     if (rasterizer_environment_lightmap != 0) {
@@ -1572,8 +1568,6 @@ namespace rasterizer_shader_environment_self_illumination_draw_single_stream_imp
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-#undef DEVICE_CALL
-#define DEVICE_CALL(offset) ((*(void ***)rasterizer_device)[(offset) / 4])
 
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
@@ -1597,13 +1591,13 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
     if (console_debug_toggle_6893f1 == 0) {
         return;
     }
-    render_device().set_render_state(0xf, (raw[0x28] & 1) != 0 && halo::rasterizer::fields::environment_alpha_testing_enabled != 0);
+    render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, (raw[0x28] & 1) != 0 && halo::rasterizer::fields::environment_alpha_testing_enabled != 0);
     render_device().set_vertex_shader(0);
 
     colour = 0xffffff00u | (uint32_t)(int32_t)(*(float *)&((struct ShaderEnvironment *)raw)->material_color * 255.0f);
     colour = (colour << 8) | ((uint32_t)(int32_t)(*(float *)(raw + 0x110) * 255.0f) & 0xff);
     colour = (colour << 8) | ((uint32_t)(int32_t)(*(float *)(raw + 0x114) * 255.0f) & 0xff);
-    render_device().set_render_state(0x3c, colour);
+    render_device().set_render_state(halo::d3d9::rs::texture_factor, colour);
 
     self_illumination = (raw[0x28] & 2) ? k_datum_index_none : *(datum_index *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
     if (halo::rasterizer::fields::bump_mapping_enabled != 0 && self_illumination != k_datum_index_none) {
@@ -1644,21 +1638,20 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
         }
         render_device().set_texture(1, texture);
     }
-    set_texture_stage_state(0, 1, 2);
-    set_texture_stage_state(0, 2, 0);
-    set_texture_stage_state(0, 4, 2);
-    set_texture_stage_state(0, 5, 2);
-    set_texture_stage_state(1, 1, 7);
-    set_texture_stage_state(1, 2, 2);
-    set_texture_stage_state(1, 3, 1);
-    set_texture_stage_state(1, 4, 2);
-    set_texture_stage_state(1, 5, 1);
-    set_texture_stage_state(2, 1, 1);
-    set_texture_stage_state(2, 4, 1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 0);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
+    set_texture_stage_state(1, halo::d3d9::ts::color_op, 7);
+    set_texture_stage_state(1, halo::d3d9::ts::color_arg1, 2);
+    set_texture_stage_state(1, halo::d3d9::ts::color_arg2, 1);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 2);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, 1);
+    set_texture_stage_state(2, halo::d3d9::ts::color_op, 1);
+    set_texture_stage_state(2, halo::d3d9::ts::alpha_op, 1);
     render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[19].declaration);
     chimera__rasterizer_draw_dynamic_triangles_static_vertices(primitive_count, (rasterizer_vertex_buffer *)vertex_buffer, dynamic_index_slot, first_primitive);
 }
-#undef DEVICE_CALL
 
 }  // namespace rasterizer_shader_environment_self_illumination_draw_single_stream_impl
 
@@ -1667,8 +1660,6 @@ namespace rasterizer_shader_environment_self_illumination_draw_two_stream_impl {
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-#undef DEVICE_CALL
-#define DEVICE_CALL(offset) ((*(void ***)rasterizer_device)[(offset) / 4])
 
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
@@ -1692,13 +1683,13 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
     if (console_debug_toggle_6893f1 == 0) {
         return;
     }
-    render_device().set_render_state(0xf, (raw[0x28] & 1) != 0 && halo::rasterizer::fields::environment_alpha_testing_enabled != 0);
+    render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, (raw[0x28] & 1) != 0 && halo::rasterizer::fields::environment_alpha_testing_enabled != 0);
     render_device().set_vertex_shader(0);
 
     colour = 0xffffff00u | (uint32_t)(int32_t)(*(float *)&((struct ShaderEnvironment *)raw)->material_color * 255.0f);
     colour = (colour << 8) | ((uint32_t)(int32_t)(*(float *)(raw + 0x110) * 255.0f) & 0xff);
     colour = (colour << 8) | ((uint32_t)(int32_t)(*(float *)(raw + 0x114) * 255.0f) & 0xff);
-    render_device().set_render_state(0x3c, colour);
+    render_device().set_render_state(halo::d3d9::rs::texture_factor, colour);
 
     self_illumination = (raw[0x28] & 2) ? k_datum_index_none : *(datum_index *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
     if (halo::rasterizer::fields::bump_mapping_enabled != 0 && self_illumination != k_datum_index_none) {
@@ -1739,22 +1730,21 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
         }
         render_device().set_texture(1, texture);
     }
-    set_texture_stage_state(0, 1, 2);
-    set_texture_stage_state(0, 2, 0);
-    set_texture_stage_state(0, 4, 2);
-    set_texture_stage_state(0, 5, 2);
-    set_texture_stage_state(1, 1, 7);
-    set_texture_stage_state(1, 2, 2);
-    set_texture_stage_state(1, 3, 1);
-    set_texture_stage_state(1, 4, 2);
-    set_texture_stage_state(1, 5, 1);
-    set_texture_stage_state(2, 1, 1);
-    set_texture_stage_state(2, 4, 1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 0);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
+    set_texture_stage_state(1, halo::d3d9::ts::color_op, 7);
+    set_texture_stage_state(1, halo::d3d9::ts::color_arg1, 2);
+    set_texture_stage_state(1, halo::d3d9::ts::color_arg2, 1);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 2);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_arg1, 1);
+    set_texture_stage_state(2, halo::d3d9::ts::color_op, 1);
+    set_texture_stage_state(2, halo::d3d9::ts::alpha_op, 1);
     render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[13].declaration);
     chimera__rasterizer_draw_dynamic_triangles_static_vertices2(primitive_count, vertex_buffer, dynamic_index_slot,
         first_primitive, (rasterizer_vertex_buffer *)((uint8_t *)vertex_buffer + (halo::rasterizer::fields::environment_effect_variant == 0 ? 20 : 0)));
 }
-#undef DEVICE_CALL
 
 }  // namespace rasterizer_shader_environment_self_illumination_draw_two_stream_impl
 
@@ -1871,23 +1861,23 @@ void rasterizer_shader_environment_technique_multipurpose_set_states(void)
 
     if (halo::rasterizer::fields::rasterizer_debug_mode == 0 && halo::rasterizer::fields::environment_multipurpose_enabled != 0 &&
         halo::rasterizer::fields::specular_enabled != 0 && render_force_flag == 0) {
-        render_device().set_render_state(0x16, 3);
-        render_device().set_render_state(0xa8, 8);
-        render_device().set_render_state(0x1b, 1);
-        render_device().set_render_state(0x13, 7);
-        render_device().set_render_state(0x14, 1);
-        render_device().set_render_state(0xab, 1);
-        render_device().set_render_state(0xf, 0);
-        render_device().set_render_state(7, 1);
-        render_device().set_render_state(0x17, 3);
-        render_device().set_render_state(0xe, 0);
-        render_device().set_render_state(0x1c, 0);
+        render_device().set_render_state(halo::d3d9::rs::cull_mode, 3);
+        render_device().set_render_state(halo::d3d9::rs::color_write_enable, 8);
+        render_device().set_render_state(halo::d3d9::rs::alpha_blend_enable, 1);
+        render_device().set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::dest_alpha);
+        render_device().set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::zero);
+        render_device().set_render_state(halo::d3d9::rs::blend_op, 1);
+        render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
+        render_device().set_render_state(halo::d3d9::rs::z_enable, 1);
+        render_device().set_render_state(halo::d3d9::rs::z_func, 3);
+        render_device().set_render_state(halo::d3d9::rs::z_write_enable, 0);
+        render_device().set_render_state(halo::d3d9::rs::fog_enable, 0);
 
-        render_device().set_sampler_state(0, 1, 3);
-        render_device().set_sampler_state(0, 2, 3);
-        render_device().set_sampler_state(0, 5, 2);
-        render_device().set_sampler_state(0, 6, 2);
-        render_device().set_sampler_state(0, 7, 2);
+        render_device().set_sampler_state(0, halo::d3d9::ss::address_u, 3);
+        render_device().set_sampler_state(0, halo::d3d9::ss::address_v, 3);
+        render_device().set_sampler_state(0, halo::d3d9::ss::mag_filter, 2);
+        render_device().set_sampler_state(0, halo::d3d9::ss::min_filter, 2);
+        render_device().set_sampler_state(0, halo::d3d9::ss::mip_filter, 2);
     }
     rasterizer_active_environment_effect = &rasterizer_effects[36];
 }
@@ -1909,46 +1899,46 @@ void rasterizer_shader_environment_technique_ps2_set_states(void)
 {
 
     if (halo::rasterizer::fields::rasterizer_debug_mode != 0 || halo::rasterizer::fields::specular_projected_light_enabled == 0 ||
-        rasterizer_caps.pixel_shader_version <= 0xffff0103) {
+        rasterizer_caps.pixel_shader_version <= halo::d3d9::k_pixel_shader_version_1_3) {
         return;
     }
 
-    render_device().set_render_state(0x16, 3);
-    render_device().set_render_state(0xa8, 7);
-    render_device().set_render_state(0x1b, 1);
-    render_device().set_render_state(0x13, 7);
-    render_device().set_render_state(0x14, 2);
-    render_device().set_render_state(0xab, 1);
-    render_device().set_render_state(0xf, 1);
-    render_device().set_render_state(0x18, 0);
-    render_device().set_render_state(7, 1);
-    render_device().set_render_state(0x17, 3);
-    render_device().set_render_state(0xe, 0);
-    render_device().set_render_state(0x1c, 0);
+    render_device().set_render_state(halo::d3d9::rs::cull_mode, 3);
+    render_device().set_render_state(halo::d3d9::rs::color_write_enable, 7);
+    render_device().set_render_state(halo::d3d9::rs::alpha_blend_enable, 1);
+    render_device().set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::dest_alpha);
+    render_device().set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::one);
+    render_device().set_render_state(halo::d3d9::rs::blend_op, 1);
+    render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, 1);
+    render_device().set_render_state(halo::d3d9::rs::alpha_ref, 0);
+    render_device().set_render_state(halo::d3d9::rs::z_enable, 1);
+    render_device().set_render_state(halo::d3d9::rs::z_func, 3);
+    render_device().set_render_state(halo::d3d9::rs::z_write_enable, 0);
+    render_device().set_render_state(halo::d3d9::rs::fog_enable, 0);
 
-    render_device().set_sampler_state(0, 1, 1);
-    render_device().set_sampler_state(0, 2, 1);
-    render_device().set_sampler_state(0, 5, 2);
-    render_device().set_sampler_state(0, 6, 2);
-    render_device().set_sampler_state(0, 7, 2);
-    render_device().set_sampler_state(1, 1, 3);
-    render_device().set_sampler_state(1, 2, 3);
-    render_device().set_sampler_state(1, 3, 3);
-    render_device().set_sampler_state(1, 5, 2);
-    render_device().set_sampler_state(1, 6, 2);
-    render_device().set_sampler_state(1, 7, 2);
-    render_device().set_sampler_state(2, 1, 3);
-    render_device().set_sampler_state(2, 2, 3);
-    render_device().set_sampler_state(2, 3, 3);
-    render_device().set_sampler_state(2, 5, 2);
-    render_device().set_sampler_state(2, 6, 2);
-    render_device().set_sampler_state(2, 7, 2);
-    render_device().set_sampler_state(3, 1, 3);
-    render_device().set_sampler_state(3, 2, 3);
-    render_device().set_sampler_state(3, 3, 3);
-    render_device().set_sampler_state(3, 5, 2);
-    render_device().set_sampler_state(3, 6, 2);
-    render_device().set_sampler_state(3, 7, 2);
+    render_device().set_sampler_state(0, halo::d3d9::ss::address_u, 1);
+    render_device().set_sampler_state(0, halo::d3d9::ss::address_v, 1);
+    render_device().set_sampler_state(0, halo::d3d9::ss::mag_filter, 2);
+    render_device().set_sampler_state(0, halo::d3d9::ss::min_filter, 2);
+    render_device().set_sampler_state(0, halo::d3d9::ss::mip_filter, 2);
+    render_device().set_sampler_state(1, halo::d3d9::ss::address_u, 3);
+    render_device().set_sampler_state(1, halo::d3d9::ss::address_v, 3);
+    render_device().set_sampler_state(1, halo::d3d9::ss::address_w, 3);
+    render_device().set_sampler_state(1, halo::d3d9::ss::mag_filter, 2);
+    render_device().set_sampler_state(1, halo::d3d9::ss::min_filter, 2);
+    render_device().set_sampler_state(1, halo::d3d9::ss::mip_filter, 2);
+    render_device().set_sampler_state(2, halo::d3d9::ss::address_u, 3);
+    render_device().set_sampler_state(2, halo::d3d9::ss::address_v, 3);
+    render_device().set_sampler_state(2, halo::d3d9::ss::address_w, 3);
+    render_device().set_sampler_state(2, halo::d3d9::ss::mag_filter, 2);
+    render_device().set_sampler_state(2, halo::d3d9::ss::min_filter, 2);
+    render_device().set_sampler_state(2, halo::d3d9::ss::mip_filter, 2);
+    render_device().set_sampler_state(3, halo::d3d9::ss::address_u, 3);
+    render_device().set_sampler_state(3, halo::d3d9::ss::address_v, 3);
+    render_device().set_sampler_state(3, halo::d3d9::ss::address_w, 3);
+    render_device().set_sampler_state(3, halo::d3d9::ss::mag_filter, 2);
+    render_device().set_sampler_state(3, halo::d3d9::ss::min_filter, 2);
+    render_device().set_sampler_state(3, halo::d3d9::ss::mip_filter, 2);
 }
 
 }  // namespace rasterizer_shader_environment_technique_ps2_set_states_impl
@@ -1973,40 +1963,40 @@ void rasterizer_shader_environment_technique_self_illumination_set_states(void)
         return;
     }
 
-    render_device().set_render_state(0x16, 3);
-    render_device().set_render_state(0xa8, 7);
-    render_device().set_render_state(0x1b, 1);
-    render_device().set_render_state(0x13, 7);
-    render_device().set_render_state(0x14, 2);
-    render_device().set_render_state(0xab, 1);
-    render_device().set_render_state(0xf, 0);
-    render_device().set_render_state(7, 1);
-    render_device().set_render_state(0x17, 3);
-    render_device().set_render_state(0xe, 0);
-    render_device().set_render_state(0x1c, 0);
+    render_device().set_render_state(halo::d3d9::rs::cull_mode, 3);
+    render_device().set_render_state(halo::d3d9::rs::color_write_enable, 7);
+    render_device().set_render_state(halo::d3d9::rs::alpha_blend_enable, 1);
+    render_device().set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::dest_alpha);
+    render_device().set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::one);
+    render_device().set_render_state(halo::d3d9::rs::blend_op, 1);
+    render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
+    render_device().set_render_state(halo::d3d9::rs::z_enable, 1);
+    render_device().set_render_state(halo::d3d9::rs::z_func, 3);
+    render_device().set_render_state(halo::d3d9::rs::z_write_enable, 0);
+    render_device().set_render_state(halo::d3d9::rs::fog_enable, 0);
 
-    render_device().set_sampler_state(0, 1, 1);
-    render_device().set_sampler_state(0, 2, 1);
-    render_device().set_sampler_state(0, 5, 2);
-    render_device().set_sampler_state(0, 6, 2);
-    render_device().set_sampler_state(0, 7, 2);
-    render_device().set_sampler_state(1, 1, 3);
-    render_device().set_sampler_state(1, 2, 3);
-    render_device().set_sampler_state(1, 3, 3);
-    render_device().set_sampler_state(1, 5, 2);
-    render_device().set_sampler_state(1, 6, 1);
-    render_device().set_sampler_state(1, 7, 1);
-    render_device().set_sampler_state(2, 1, 3);
-    render_device().set_sampler_state(2, 2, 3);
-    render_device().set_sampler_state(2, 3, 3);
-    render_device().set_sampler_state(2, 5, 2);
-    render_device().set_sampler_state(2, 6, 1);
-    render_device().set_sampler_state(2, 7, 1);
-    render_device().set_sampler_state(3, 1, 3);
-    render_device().set_sampler_state(3, 2, 3);
-    render_device().set_sampler_state(3, 5, 2);
-    render_device().set_sampler_state(3, 6, 2);
-    render_device().set_sampler_state(3, 7, 2);
+    render_device().set_sampler_state(0, halo::d3d9::ss::address_u, 1);
+    render_device().set_sampler_state(0, halo::d3d9::ss::address_v, 1);
+    render_device().set_sampler_state(0, halo::d3d9::ss::mag_filter, 2);
+    render_device().set_sampler_state(0, halo::d3d9::ss::min_filter, 2);
+    render_device().set_sampler_state(0, halo::d3d9::ss::mip_filter, 2);
+    render_device().set_sampler_state(1, halo::d3d9::ss::address_u, 3);
+    render_device().set_sampler_state(1, halo::d3d9::ss::address_v, 3);
+    render_device().set_sampler_state(1, halo::d3d9::ss::address_w, 3);
+    render_device().set_sampler_state(1, halo::d3d9::ss::mag_filter, 2);
+    render_device().set_sampler_state(1, halo::d3d9::ss::min_filter, 1);
+    render_device().set_sampler_state(1, halo::d3d9::ss::mip_filter, 1);
+    render_device().set_sampler_state(2, halo::d3d9::ss::address_u, 3);
+    render_device().set_sampler_state(2, halo::d3d9::ss::address_v, 3);
+    render_device().set_sampler_state(2, halo::d3d9::ss::address_w, 3);
+    render_device().set_sampler_state(2, halo::d3d9::ss::mag_filter, 2);
+    render_device().set_sampler_state(2, halo::d3d9::ss::min_filter, 1);
+    render_device().set_sampler_state(2, halo::d3d9::ss::mip_filter, 1);
+    render_device().set_sampler_state(3, halo::d3d9::ss::address_u, 3);
+    render_device().set_sampler_state(3, halo::d3d9::ss::address_v, 3);
+    render_device().set_sampler_state(3, halo::d3d9::ss::mag_filter, 2);
+    render_device().set_sampler_state(3, halo::d3d9::ss::min_filter, 2);
+    render_device().set_sampler_state(3, halo::d3d9::ss::mip_filter, 2);
 }
 
 }  // namespace rasterizer_shader_environment_technique_self_illumination_set_states_impl
