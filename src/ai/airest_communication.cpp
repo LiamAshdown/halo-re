@@ -13,6 +13,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/ai/records.hpp"
 
 extern "C" {
 extern uint8_t *global_structure_bsp;
@@ -638,11 +639,11 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         }
         case 4:
             if (unit_actor_index != k_datum_index_none) {
-                uint8_t *a = ACTOR_DATA(unit_actor_index);
+                actor *a = halo::ai::actor_at(unit_actor_index);
 
-                if (((actor *)a)->danger_type > 0) {
+                if (a->danger_type > 0) {
                     look_kind = 2;
-                    look_object = ((actor *)a)->danger_object_index;
+                    look_object = a->danger_object_index;
                     goto look_marker_default;
                 }
             }
@@ -1047,13 +1048,13 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
                     continue;
                 }
             } else if (mode == 2 || mode == 4) {
-                uint8_t *actor = object_actor != k_datum_index_none
-                    ? (uint8_t *)halo::ai::globals().actor_data->data + (object_actor & halo::k_slot_mask) * k_actor_size : 0;
+                struct actor *actor = (struct actor *)(object_actor != k_datum_index_none
+                    ? (uint8_t *)halo::ai::globals().actor_data->data + (object_actor & halo::k_slot_mask) * k_actor_size : 0);
 
-                if (mode == 2 && actor != 0 && ((struct actor *)actor)->encounter_index != k_datum_index_none) {
+                if (mode == 2 && actor != 0 && actor->encounter_index != k_datum_index_none) {
                     found = halo::ai::ai_communication_select_speaker_in_reference(9.0f, -1, (uint16_t)class_index,
                         (uint16_t)priority, *(uint16_t *)(row + 0x6), *(int16_t *)(row + 0x8), 0,
-                        ((struct actor *)actor)->encounter_index & halo::k_slot_mask, object_index, k_datum_index_none);
+                        actor->encounter_index & halo::k_slot_mask, object_index, k_datum_index_none);
                 } else {
                     found = halo::ai::ai_communication_select_speaker_by_team(mode == 2 ? 1 : 2, object_index, k_datum_index_none,
                         9.0f, -1, (uint16_t)class_index, (uint16_t)priority, *(uint16_t *)(row + 0x6),
@@ -1727,7 +1728,7 @@ public:
 uint8_t DialogueCondition_42f4f0::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
 {
     datum_index prop_index;
-    uint8_t *p;
+    prop *p;
 
     if (actor_index == k_datum_index_none) {
         return 0;
@@ -1736,11 +1737,11 @@ uint8_t DialogueCondition_42f4f0::test(datum_index object_index, uint32_t param_
     if (prop_index == k_datum_index_none) {
         return 0;
     }
-    p = PROP(prop_index);
-    if (((struct prop *)p)->distance > 5.0f) {
+    p = halo::ai::prop_at(prop_index);
+    if (p->distance > 5.0f) {
         return 1;
     }
-    return (uint8_t)(((struct prop *)p)->obstruction != 0 && ((struct prop *)p)->obstruction != 1);
+    return (uint8_t)(p->obstruction != 0 && p->obstruction != 1);
 }
 
 }
@@ -1766,16 +1767,16 @@ public:
  */
 uint8_t DialogueCondition_42f560::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
 {
-    uint8_t *actor;
+    struct actor *actor;
 
     if (actor_index == k_datum_index_none) {
         return 0;
     }
-    actor = ACTOR(actor_index);
-    if (((struct actor *)actor)->mode == 5) {
-        return (uint8_t)(*(int16_t *)(actor + 0xa4) == 1);
+    actor = halo::ai::actor_at(actor_index);
+    if (actor->mode == 5) {
+        return (uint8_t)(*(int16_t *)((uint8_t *)actor + 0xa4) == 1);
     }
-    return (uint8_t)(((struct actor *)actor)->mode == 7);
+    return (uint8_t)(actor->mode == 7);
 }
 
 }
@@ -1802,8 +1803,8 @@ public:
 uint8_t DialogueCondition_42f5b0::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
 {
     datum_index own_actor;
-    uint8_t *a;
-    uint8_t *b;
+    actor *a;
+    actor *b;
 
     if (!halo::ai::actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
         return 0;
@@ -1812,11 +1813,11 @@ uint8_t DialogueCondition_42f5b0::test(datum_index object_index, uint32_t param_
     if (own_actor == k_datum_index_none || actor_index == k_datum_index_none) {
         return 0;
     }
-    a = ACTOR(own_actor);
-    b = ACTOR(actor_index);
-    return (uint8_t)(((actor *)a)->encounter_index != k_datum_index_none &&
-        ((actor *)a)->encounter_index == ((struct actor *)b)->encounter_index &&
-        ((actor *)a)->platoon_index == ((struct actor *)b)->platoon_index);
+    a = halo::ai::actor_at(own_actor);
+    b = halo::ai::actor_at(actor_index);
+    return (uint8_t)(a->encounter_index != k_datum_index_none &&
+        a->encounter_index == b->encounter_index &&
+        a->platoon_index == b->platoon_index);
 }
 
 }
@@ -1842,10 +1843,10 @@ public:
  */
 uint8_t DialogueCondition_42f650::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
 {
-    uint8_t *actor = ACTOR(actor_index);
-    uint8_t result = (uint8_t)(((struct actor *)actor)->combat_status >= 7);
+    struct actor *actor = halo::ai::actor_at(actor_index);
+    uint8_t result = (uint8_t)(actor->combat_status >= 7);
 
-    if (result && ((struct actor *)actor)->mode == 4 && ((struct actor *)actor)->mode_data.flee.panic > 0) {
+    if (result && actor->mode == 4 && actor->mode_data.flee.panic > 0) {
         result = 0;
     }
     return result;
@@ -1874,16 +1875,16 @@ public:
  */
 uint8_t DialogueCondition_42f690::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
 {
-    uint8_t *actor;
+    struct actor *actor;
 
     if (!halo::ai::actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
         return 0;
     }
-    actor = ACTOR(actor_index);
-    if (((struct actor *)actor)->combat_status < 7) {
+    actor = halo::ai::actor_at(actor_index);
+    if (actor->combat_status < 7) {
         return 0;
     }
-    if (((struct actor *)actor)->mode == 4 && ((struct actor *)actor)->mode_data.flee.panic > 0) {
+    if (actor->mode == 4 && actor->mode_data.flee.panic > 0) {
         return 0;
     }
     return 1;
@@ -1957,13 +1958,13 @@ public:
  */
 uint8_t DialogueCondition_42f7b0::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
 {
-    uint8_t *actor;
+    struct actor *actor;
 
     if (actor_index == k_datum_index_none) {
         return 0;
     }
-    actor = ACTOR(actor_index);
-    return (uint8_t)(((struct actor *)actor)->awareness_level == 3 && ((struct actor *)actor)->combat_status < 4);
+    actor = halo::ai::actor_at(actor_index);
+    return (uint8_t)(actor->awareness_level == 3 && actor->combat_status < 4);
 }
 
 }
@@ -1989,15 +1990,15 @@ public:
  */
 uint8_t DialogueCondition_42f7f0::test(datum_index object_index, uint32_t param_2, datum_index actor_index) const
 {
-    uint8_t *actor = ACTOR(actor_index);
+    struct actor *actor = halo::ai::actor_at(actor_index);
 
-    if (((struct actor *)actor)->combat_status < 7) {
+    if (actor->combat_status < 7) {
         return 0;
     }
-    if (((struct actor *)actor)->mode == 4 && ((struct actor *)actor)->mode_data.flee.panic > 0) {
+    if (actor->mode == 4 && actor->mode_data.flee.panic > 0) {
         return 0;
     }
-    return (uint8_t)(((struct actor *)actor)->type == 0);
+    return (uint8_t)(actor->type == 0);
 }
 
 }
