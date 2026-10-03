@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "halo/objects/api.hpp"
@@ -52,7 +53,7 @@ int32_t UnitView::build_network_update(int32_t buffer, int32_t bit_budget)
 {
     using namespace unit_build_network_update_local;
     uint32_t object_index = datum_handle;
-    uint8_t *biped = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *biped = halo::objects::object_record_bytes(object_index);
     hash_table *keys = &object_network_id_table->id_to_index;
     biped_network_create_record record;
     void *item = &record;

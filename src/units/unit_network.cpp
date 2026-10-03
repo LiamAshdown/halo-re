@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "halo/core/network_constants.hpp"
@@ -124,7 +125,7 @@ void UnitView::apply_network_health_update(void *message)
         halo::networking::message_delta_decode_compound_field_staged((void **)message);
         return;
     }
-    guard = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
+    guard = halo::objects::object_record_bytes(object_index);
     record = (uint8_t *)((void **)message)[0x11];
     reliable = **(int32_t **)message == 1;
     if (test_flag(((struct object *)guard)->flags, objects::object_flag::took_network_update) && reliable) {

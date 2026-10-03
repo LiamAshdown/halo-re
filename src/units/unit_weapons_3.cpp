@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
@@ -15,20 +16,20 @@ namespace halo::units {
 void UnitView::validate_and_clear_weapon_switch()
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
+    uint8_t *obj = halo::objects::object_record_bytes(unit_index);
 
     if (halo::game::player_index_from_unit_index(unit_index) != k_datum_index_none) {
         datum_index player_index = halo::game::player_index_from_unit_index(unit_index);
 
         if (*(int16_t *)((uint8_t *)halo::game::globals().player_data->data + halo::datum_slot(player_index) * 0x200 + 2) != -1 &&
             (uint8_t)((struct unit_object *)obj)->unit.zoom_level != 0xff) {
-            uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
+            uint8_t *unit = halo::objects::object_record_bytes(unit_index);
             int16_t slot = ((unit_object *)unit)->unit.current_weapon_index;
 
             if (slot != -1 && *(datum_index *)(unit + 0x2f8 + slot * 4) != k_datum_index_none) {
                 uint8_t *weapon = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)
                     [halo::datum_slot(*(datum_index *)(unit + 0x2f8 + slot * 4))].data;
-                datum_index zoom_sound = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)weapon)].data + 0x4bc);
+                datum_index zoom_sound = *(datum_index *)(halo::objects::tag_record_bytes(*(datum_index *)weapon) + 0x4bc);
 
                 if (zoom_sound != k_datum_index_none) {
                     halo::sound::sound_start_unspatialized(zoom_sound, 1.0f);

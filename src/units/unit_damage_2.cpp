@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "halo/core/collision_flags.hpp"
@@ -18,8 +19,6 @@ static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_
 
 namespace halo::units {
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 /**
  * Engine function unit_melee_attack_scan.
  *
@@ -28,8 +27,8 @@ namespace halo::units {
 void UnitView::melee_attack_scan()
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = OBJECT_DATA(unit_index);
-    uint8_t *unit_tag = TAG_DATA(*(datum_index *)obj);
+    uint8_t *obj = halo::objects::object_record_bytes(unit_index);
+    uint8_t *unit_tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
     real_vector3d *aim = (real_vector3d *)&((struct unit_object *)obj)->unit.aiming_vector;
     object_marker marker;
     real_point3d origin;
@@ -78,12 +77,12 @@ void UnitView::melee_attack_scan()
                 }
             } else if (*(int16_t *)&hit == 3) {
                 uint32_t candidate = hit.object_index;
-                uint8_t *cand = OBJECT_DATA(candidate);
+                uint8_t *cand = halo::objects::object_record_bytes(candidate);
                 int16_t type;
 
                 if (((struct object *)cand)->type != 2 && ((struct object *)cand)->parent_object != k_datum_index_none) {
                     candidate = ((struct object *)cand)->parent_object;
-                    cand = OBJECT_DATA(candidate);
+                    cand = halo::objects::object_record_bytes(candidate);
                 }
                 type = ((struct object *)cand)->type;
                 if (best_object != k_datum_index_none) {
@@ -110,7 +109,7 @@ void UnitView::melee_attack_scan()
             datum_index weapon_index = *(datum_index *)(obj + 0x2f8 + weapon_slot * 4);
 
             if (weapon_index != k_datum_index_none) {
-                uint8_t *weapon_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(weapon_index));
+                uint8_t *weapon_tag = halo::objects::tag_record_bytes(*(datum_index *)halo::objects::object_record_bytes(weapon_index));
 
                 damage_effect = *(datum_index *)(weapon_tag + 0x3a0);
                 secondary_effect = *(datum_index *)(weapon_tag + 0x3b0);
@@ -122,10 +121,10 @@ void UnitView::melee_attack_scan()
     }
 
     if (best_object != k_datum_index_none) {
-        uint8_t *best = OBJECT_DATA(best_object);
+        uint8_t *best = halo::objects::object_record_bytes(best_object);
 
         if (((struct object *)best)->type == 1 && ((struct object *)best)->network_role != 1) {
-            float scale = ((struct Unit *)TAG_DATA(*(datum_index *)best))->base.acceleration_scale * 0.035f;
+            float scale = ((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)best))->base.acceleration_scale * 0.035f;
 
             side.i = scale * aim->i;
             side.j = scale * aim->j;
@@ -159,7 +158,7 @@ void UnitView::melee_attack_scan()
         } else {
             float speed_scale = *(float *)((uint8_t *)global_globals->player_information.pointer + 0x34);
 
-            if (((struct object *)OBJECT_DATA(best_object))->type == 7) {
+            if (((struct object *)halo::objects::object_record_bytes(best_object))->type == 7) {
                 halo::devices::device_machine_melee_attacked(best_object);
             }
             if (speed_scale > 0.0f) {
@@ -177,7 +176,7 @@ void UnitView::melee_attack_scan()
             if (((unit_object *)obj)->base.type == 0 && *(int8_t *)(obj + 0x501) > 0x0f) {
                 dd.random_blend = 1.5f;
             }
-            if (((struct object *)OBJECT_DATA(best_object))->type == 0) {
+            if (((struct object *)halo::objects::object_record_bytes(best_object))->type == 0) {
                 halo::objects::object_apply_damage(&dd, best_object, -1, -1, -1, 0);
             }
         }
@@ -208,7 +207,5 @@ void UnitView::melee_attack_scan()
     }
     ((struct unit_object *)obj)->unit.melee_state = 0;
 }
-#undef OBJECT_DATA
-#undef TAG_DATA
 
 }

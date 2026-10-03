@@ -1,3 +1,5 @@
+#include "halo/objects/record_access.hpp"
+#include "halo/units/records.hpp"
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "halo/units/flags.hpp"
@@ -97,7 +99,7 @@ void halo::units::unit_network_create_update_apply(void *incoming_record)
         return;
     }
     halo::networking::network_index_cache_insert_if_free(network_object_index_cache, message.network_key, (int32_t)biped_index);
-    biped = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(biped_index)].data;
+    biped = halo::objects::object_record_bytes(biped_index);
     *(uint32_t *)&((biped_object *)biped)->biped.network_body_vitality = message.body_vitality;
     ((biped_object *)biped)->biped.network_shield_vitality = message.shield_vitality;
     biped[0x538] = message.shield_stunned;
@@ -164,8 +166,8 @@ int32_t UnitView::submit_periodic_network_update(void *buffer, int32_t bit_budge
     if (obj == 0) {
         return 0;
     }
-    unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
+    unit = halo::units::unit_data_of(obj);
+    biped = halo::units::biped_data_of(obj);
 
     if (object_index != k_datum_index_none) {
         key = halo::objects::hash_table_get(&object_network_id_table->id_to_index, (int32_t)object_index);

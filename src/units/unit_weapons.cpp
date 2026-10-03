@@ -1,3 +1,5 @@
+#include "halo/units/records.hpp"
+#include "halo/objects/record_access.hpp"
 #include <string.h>
 #include "halo/projectiles/api.hpp"
 #include "halo/models/api.hpp"
@@ -117,7 +119,7 @@ uint8_t UnitView::begin_throw_grenade(const real_vector2d *direction)
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
     Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;
 
     datum_index current_weapon = k_datum_index_none;
@@ -154,7 +156,7 @@ uint8_t UnitView::begin_throw_grenade(const real_vector2d *direction)
 
         unit->throwing_grenade_state = 1;
         unit->throwing_grenade_counter = 0;
-        uint8_t *graph = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(unit_tag->base.animation_graph.tag_id.index)].data;
+        uint8_t *graph = halo::objects::tag_record_bytes(unit_tag->base.animation_graph.tag_id.index);
         ModelAnimationsAnimation *animations = (ModelAnimationsAnimation *)(*(uint8_t **)&((ModelAnimations *)graph)->animations.pointer);
         unit->throwing_grenade_duration = (animations[unit_obj->animation_index].key_frame_index - unit_obj->animation_frame) + 1;
 
@@ -221,7 +223,7 @@ void UnitView::clear_selected_equipment()
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     if (unit->equipment_object_index != k_datum_index_none) {
         UnitView(unit_index).drop_object_from_hand(unit->equipment_object_index);
@@ -241,14 +243,14 @@ int16_t UnitView::count_deployed_weapons()
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     int16_t count = 0;
     for (int32_t i = 0; i < k_maximum_weapons_per_unit; i++) {
         datum_index weapon_index = unit->weapons[i];
         if (weapon_index != k_datum_index_none) {
             object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(weapon_index)].data;
-            uint8_t *weapon_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(weapon_obj->definition_tag)].data;
+            uint8_t *weapon_tag = halo::objects::tag_record_bytes(weapon_obj->definition_tag);
             if ((*(uint8_t *)(weapon_tag + 0x308) & 0x10) == 0) {
                 count++;
             }
@@ -268,7 +270,7 @@ uint8_t UnitView::current_weapon_has_flag()
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(obj);
 
     if (unit->zoom_level != -1) {
         int16_t slot = unit->current_weapon_index;
@@ -298,7 +300,7 @@ uint8_t UnitView::current_weapon_is_type(datum_index weapon_tag_id)
     }
 
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(obj);
     int16_t slot = unit->current_weapon_index;
 
     if (slot == -1) {
@@ -325,7 +327,7 @@ uint8_t UnitView::current_weapon_type_is_2_or_3()
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     if (unit->current_weapon_index == -1) {
         return 0;
@@ -348,7 +350,7 @@ uint8_t UnitView::drop_current_weapon(uint8_t force)
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     datum_index current_weapon = k_datum_index_none;
     if (unit->current_weapon_index != -1) {
@@ -392,7 +394,7 @@ void UnitView::drop_grenades()
 
     for (grenade_type = 0; grenade_type < 2; grenade_type++) {
         object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-        unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+        unit_data *unit = halo::units::unit_data_of(unit_obj);
         int8_t *count = &unit->grenade_counts[grenade_type];
 
         while (*count > 0) {
@@ -436,7 +438,7 @@ void UnitView::drop_inventory_weapons()
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(obj);
     int16_t slot;
 
     for (slot = 0; slot < 4; slot++) {
@@ -470,7 +472,7 @@ void UnitView::drop_inventory_weapons_except_current()
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     for (int16_t slot = 0; slot < k_maximum_weapons_per_unit; slot++) {
         datum_index weapon_index = unit->weapons[slot];
@@ -494,7 +496,6 @@ void UnitView::drop_inventory_weapons_except_current()
     return;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
 /**
  * Engine function unit_drop_object_from_hand.
  *
@@ -503,8 +504,8 @@ void UnitView::drop_inventory_weapons_except_current()
 void UnitView::drop_object_from_hand(uint32_t object_index)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *unit = OBJECT_DATA(unit_index);
-    uint8_t *dropped = OBJECT_DATA(object_index);
+    uint8_t *unit = halo::objects::object_record_bytes(unit_index);
+    uint8_t *dropped = halo::objects::object_record_bytes(object_index);
     real_vector3d toss;
     real_vector3d root_velocity;
     real_point3d camera;
@@ -516,8 +517,8 @@ void UnitView::drop_object_from_hand(uint32_t object_index)
         uint8_t *object_tag;
 
         halo::objects::object_set_cluster_and_parent(object_index, 0);
-        object = OBJECT_DATA(object_index);
-        object_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)object)].data;
+        object = halo::objects::object_record_bytes(object_index);
+        object_tag = halo::objects::tag_record_bytes(*(datum_index *)object);
         if (*(int32_t *)&((struct Unit *)object_tag)->base.model.tag_id != -1) {
             if ((uint8_t)((struct object *)object)->flags & 1) {
                 halo::objects::object_for_each_light_attachment(object_index, 0, 1);
@@ -529,7 +530,7 @@ void UnitView::drop_object_from_hand(uint32_t object_index)
         }
         halo::objects::object_reorient_relative_to_marker(unit_index, s_left_hand_marker, object_index, k_empty_string);
     }
-    ((struct unit_object *)OBJECT_DATA(object_index))->unit.actor_index &= ~3u;
+    ((struct unit_object *)halo::objects::object_record_bytes(object_index))->unit.actor_index &= ~3u;
     halo::objects::object_snap_to_parent_marker_and_detach(object_index);
     *(real_vector3d *)&((struct object *)dropped)->velocity.i = *global_origin3d_pointer;
     *(real_vector3d *)&((struct object *)dropped)->angular_velocity.i = *global_origin3d_pointer;
@@ -552,7 +553,7 @@ void UnitView::drop_object_from_hand(uint32_t object_index)
         halo::objects::object_delete(object_index);
     }
     if (((unit_object *)unit)->unit.flags & 0x100000) {
-        role = ((struct object *)OBJECT_DATA(object_index))->network_role;
+        role = ((struct object *)halo::objects::object_record_bytes(object_index))->network_role;
         if (role == 0) {
             halo::objects::object_delete_unparented(object_index);
             halo::objects::object_delete_recursive(object_index, 0);
@@ -561,7 +562,6 @@ void UnitView::drop_object_from_hand(uint32_t object_index)
         }
     }
 }
-#undef OBJECT_DATA
 
 /**
  * Returns the index of the first empty weapon inventory slot, or an invalid index if the unit's inventory is
@@ -575,7 +575,7 @@ int16_t UnitView::find_empty_weapon_slot()
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     for (int16_t slot = 0; slot < k_maximum_weapons_per_unit; slot++) {
         if (unit->weapons[slot] == k_datum_index_none) {
@@ -596,7 +596,7 @@ int32_t UnitView::find_next_grenade_type_with_count(int32_t start_index, int16_t
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     int32_t fallback = -1;
     int32_t original = start_index;
@@ -638,7 +638,7 @@ uint16_t UnitView::find_weapon_index_by_flag(uint8_t flag_bit)
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(obj);
     int32_t slot = 0;
 
     for (;;) {
@@ -667,7 +667,7 @@ uint16_t UnitView::find_weapon_index_with_fixed_flag()
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(obj);
     int16_t slot = 0;
 
     for (;;) {
@@ -686,8 +686,6 @@ uint16_t UnitView::find_weapon_index_with_fixed_flag()
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 /**
  * Engine function unit_find_weapon_marker_transform.
  *
@@ -696,10 +694,10 @@ uint16_t UnitView::find_weapon_index_with_fixed_flag()
 uint8_t UnitView::find_weapon_marker_transform(uint32_t vehicle_index, int16_t seat_index, real_point3d *out_entry, real_point3d *out_seat, real_point3d *out_hint)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *unit_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(unit_index));
-    uint8_t *model = TAG_DATA(*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id);
-    uint8_t *graph = TAG_DATA(*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id);
-    uint8_t *seat = (uint8_t *)((struct Unit *)TAG_DATA(*(datum_index *)OBJECT_DATA(vehicle_index)))->seats.pointer + seat_index * 0x11c;
+    uint8_t *unit_tag = halo::objects::tag_record_bytes(*(datum_index *)halo::objects::object_record_bytes(unit_index));
+    uint8_t *model = halo::objects::tag_record_bytes(*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id);
+    uint8_t *graph = halo::objects::tag_record_bytes(*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id);
+    uint8_t *seat = (uint8_t *)((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)halo::objects::object_record_bytes(vehicle_index)))->seats.pointer + seat_index * 0x11c;
     uint8_t *block = 0;
     int16_t i;
     int16_t enter_animation;
@@ -744,8 +742,6 @@ uint8_t UnitView::find_weapon_marker_transform(uint32_t vehicle_index, int16_t s
     }
     return 1;
 }
-#undef OBJECT_DATA
-#undef TAG_DATA
 
 /**
  * FIXED (objdump 0x565ae7): a stack argument (the zoom level) goes on to weapon_get_zoom_magnification in DX
@@ -760,7 +756,7 @@ float UnitView::get_active_weapon_scale(int16_t zoom_level)
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(obj);
     int16_t slot = unit->current_weapon_index;
 
     if (slot != -1 && unit->weapons[slot] != k_datum_index_none) {
@@ -780,7 +776,7 @@ int8_t UnitView::get_current_grenade_index()
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
     return unit->current_grenade_index;
 }
 
@@ -795,7 +791,7 @@ char * UnitView::get_current_weapon_label()
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     if (unit->current_weapon_index != -1) {
         datum_index weapon_index = unit->weapons[unit->current_weapon_index];
@@ -821,7 +817,7 @@ int32_t UnitView::get_grenade_count(int16_t grenade_type)
         return 0;
     }
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
     return unit->grenade_counts[grenade_type];
 }
 
@@ -834,7 +830,7 @@ uint8_t UnitView::get_weapon_marker_indices(uint8_t use_alternate, uint32_t out_
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(obj);
     Object *obj_tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     void *graph = halo::cache::globals().tag_instances[obj_tag->animation_graph.tag_id.index].data;
     uint8_t *unit_block = *(uint8_t **)&((ModelAnimations *)graph)->units.pointer;
@@ -881,7 +877,7 @@ datum_index UnitView::get_weapon_object_index(int16_t slot_index)
         return k_datum_index_none;
     }
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
     return unit->weapons[slot_index];
 }
 
@@ -896,7 +892,7 @@ uint8_t UnitView::has_weapon_of_type(int32_t weapon_group_tag)
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     for (int16_t slot = 0; slot < k_maximum_weapons_per_unit; slot++) {
         datum_index weapon_index = unit->weapons[slot];
@@ -933,7 +929,7 @@ uint8_t halo::units::unit_lacks_weapon_type_of(uint32_t reference_object_index, 
 {
     object *reference_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(reference_object_index)].data;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     for (int32_t i = 0; i < k_maximum_weapons_per_unit; i++) {
         datum_index weapon_index = unit->weapons[i];
@@ -1016,7 +1012,7 @@ void UnitView::pick_and_ready_next_weapon()
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     unit->desired_weapon_index = UnitView(unit_index).find_next_zone_permitted_weapon_slot((int32_t)(uint16_t)unit->current_weapon_index, 0);
     UnitView(unit_index).ready_desired_weapon(1);
@@ -1033,7 +1029,7 @@ uint8_t halo::units::unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_ind
 {
     object *unit_obj = halo::objects::object_try_and_get(unit_index, _object_mask_unit);
     object *weapon_obj = halo::objects::object_try_and_get(weapon_index, _object_mask_weapon);
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     if (halo::networking::globals().game_mode == 1) {
         char *seat_name = UnitView(unit_index).get_seat_or_state_name();
@@ -1044,7 +1040,7 @@ uint8_t halo::units::unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_ind
         }
         if (UnitView(unit_index).set_or_test_seat_and_weapon_label(seat_name, weapon_label, 0) == 0) {
             object *check = halo::objects::object_try_and_get(unit_index, _object_mask_unit);
-            if ((check != (object *)0) && (((unit_data *)((uint8_t *)check + k_unit_data_offset))->animation_state == 0x1b)) {
+            if ((check != (object *)0) && ((halo::units::unit_data_of(check))->animation_state == 0x1b)) {
                 UnitView(unit_index).detach_from_seat(1, 1, 0);
             }
         }
@@ -1090,8 +1086,6 @@ uint8_t halo::units::unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_ind
     return 0;
 }
 
-#define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))])
-#define OBJECT_TAG(o) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)(o))].data)
 /**
  * Engine function unit_ready_desired_weapon.
  *
@@ -1100,8 +1094,8 @@ uint8_t halo::units::unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_ind
 void UnitView::ready_desired_weapon(uint8_t force)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *unit = (uint8_t *)OBJECT_HEADER(unit_index).data;
-    uint8_t *unit_tag = OBJECT_TAG(unit);
+    uint8_t *unit = (uint8_t *)halo::objects::object_header_of(unit_index).data;
+    uint8_t *unit_tag = halo::objects::tag_record_bytes(*(datum_index *)(unit));
     datum_index desired_weapon = k_datum_index_none;
     int16_t current = ((unit_object *)unit)->unit.current_weapon_index;
 
@@ -1117,12 +1111,12 @@ void UnitView::ready_desired_weapon(uint8_t force)
             halo::objects::object_snap_to_parent_marker_and_detach(weapon);
             halo::objects::object_unlink_cluster_or_notify_parent(weapon);
             halo::objects::object_mark_pending_delete(weapon);
-            weapon_obj = (uint8_t *)OBJECT_HEADER(weapon).data;
-            if (*(int32_t *)(OBJECT_TAG(weapon_obj) + 0x34) != -1 && (weapon_obj[0x10] & 1) == 0) {
+            weapon_obj = (uint8_t *)halo::objects::object_header_of(weapon).data;
+            if (*(int32_t *)(halo::objects::tag_record_bytes(*(datum_index *)(weapon_obj)) + 0x34) != -1 && (weapon_obj[0x10] & 1) == 0) {
                 halo::objects::object_for_each_light_attachment(weapon, 1, 0);
             }
             *(uint32_t *)(weapon_obj + 0x10) |= 1;
-            OBJECT_HEADER(weapon).flags &= 0xfd;
+            halo::objects::object_header_of(weapon).flags &= 0xfd;
             halo::items::item_set_holder(weapon, unit_index);
             ((unit_object *)unit)->unit.current_weapon_index = -1;
         }
@@ -1146,19 +1140,19 @@ void UnitView::ready_desired_weapon(uint8_t force)
         int16_t desired;
 
         UnitView(unit_index).set_or_test_seat_and_weapon_label(UnitView(unit_index).get_seat_or_state_name(), weapon_label, 1);
-        graph = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id & 0xffff].data;
+        graph = halo::objects::tag_record_bytes(*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id);
         weapon_anim = *(uint8_t **)(*(uint8_t **)&((ModelAnimations *)graph)->units.pointer + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_definition_index * 0x64 + 0x5c) +
             (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_weapon_index * 0xbc;
         halo::objects::object_set_cluster_and_parent(desired_weapon, 0);
-        weapon_obj = (uint8_t *)OBJECT_HEADER(desired_weapon).data;
-        weapon_tag = OBJECT_TAG(weapon_obj);
+        weapon_obj = (uint8_t *)halo::objects::object_header_of(desired_weapon).data;
+        weapon_tag = halo::objects::tag_record_bytes(*(datum_index *)(weapon_obj));
         if (*(int32_t *)(weapon_tag + 0x34) != -1) {
             if ((weapon_obj[0x10] & 1) != 0) {
                 halo::objects::object_for_each_light_attachment(desired_weapon, 0, 1);
             }
             if (*(int32_t *)(weapon_tag + 0x34) != -1) {
                 *(uint32_t *)(weapon_obj + 0x10) &= ~1u;
-                OBJECT_HEADER(desired_weapon).flags |= 2;
+                halo::objects::object_header_of(desired_weapon).flags |= 2;
             }
         }
         halo::objects::object_reorient_relative_to_marker(unit_index, (char *)&((struct ModelAnimationsAnimationGraphUnitSeat *)weapon_anim)->animations, desired_weapon,
@@ -1172,7 +1166,6 @@ void UnitView::ready_desired_weapon(uint8_t force)
         UnitView(unit_index).validate_and_clear_weapon_switch();
     }
 }
-#undef OBJECT_HEADER
 #undef OBJECT_TAG
 
 /**
@@ -1187,7 +1180,7 @@ void UnitView::refresh_targeting_flag_and_weapons(uint8_t initial_targeting_flag
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
     uint8_t has_reference = initial_targeting_flag;
 
     if ((unit->actor_index != k_datum_index_none) || (unit->swarm_actor_index != k_datum_index_none) ||
@@ -1226,7 +1219,7 @@ void UnitView::release_selected_equipment()
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     datum_index equipment_index = unit->equipment_object_index;
     if (equipment_index == k_datum_index_none) {
@@ -1244,7 +1237,6 @@ clear:
     return;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
 /**
  * Engine function unit_release_thrown_grenade.
  *
@@ -1253,8 +1245,8 @@ clear:
 void UnitView::release_thrown_grenade(uint8_t early)
 {
     uint32_t object_index = datum_handle;
-    uint8_t *unit = OBJECT_DATA(object_index);
-    uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)unit)].data;
+    uint8_t *unit = halo::objects::object_record_bytes(object_index);
+    uint8_t *unit_tag = halo::objects::tag_record_bytes(*(datum_index *)unit);
     real_vector3d *aim = (real_vector3d *)&((struct unit_object *)unit)->unit.aiming_vector;
     datum_index grenade;
     real_vector3d velocity;
@@ -1319,7 +1311,7 @@ void UnitView::release_thrown_grenade(uint8_t early)
     }
 
     {
-        uint8_t *object = OBJECT_DATA(grenade);
+        uint8_t *object = halo::objects::object_record_bytes(grenade);
         real_vector3d delta;
         real_point3d camera;
 
@@ -1336,7 +1328,7 @@ void UnitView::release_thrown_grenade(uint8_t early)
         }
     }
     if (((unit_object *)unit)->base.network_role == 0 && halo::networking::globals().game_mode == 2 && !halo::objects::object_is_delete_pending(grenade)) {
-        ((struct object *)OBJECT_DATA(grenade))->network_role = 0;
+        ((struct object *)halo::objects::object_record_bytes(grenade))->network_role = 0;
         halo::objects::object_type_override_call_0x68(grenade);
         int32_t bits = halo::projectiles::projectile_send_creation(grenade);
 
@@ -1345,7 +1337,6 @@ void UnitView::release_thrown_grenade(uint8_t early)
         }
     }
 }
-#undef OBJECT_DATA
 
 namespace unit_scripting_set_or_drop_weapon_local {
 
@@ -1423,7 +1414,7 @@ int32_t UnitView::set_grenade_type_and_count_delta(int16_t grenade_type, int8_t 
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     unit->grenade_counts[grenade_type] += delta;
     unit->desired_grenade_index = (int8_t)grenade_type;
@@ -1461,7 +1452,7 @@ void UnitView::throw_grenade_move_to_hand()
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
     int8_t grenade_type = unit->current_grenade_index;
     uint8_t *grenade_table = (uint8_t *)global_globals->grenades.pointer;
 
@@ -1524,11 +1515,10 @@ void halo::units::unit_throw_grenade_release(void)
  */
 uint8_t halo::units::unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index)
 {
-    uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[
-        ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(tag_source_index)].data->definition_tag & 0xffff].data;
+    uint8_t *tag_data = halo::objects::tag_record_bytes(((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(tag_source_index)].data->definition_tag);
     int16_t grenade_type = *(int16_t *)(tag_data + 0x30a);
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     int16_t *max_count_ptr = (int16_t *)((uint8_t *)global_globals->grenades.pointer + grenade_type * 0x44);
     if ((max_count_ptr != (int16_t *)0) && (unit->grenade_counts[grenade_type] < *max_count_ptr)) {
@@ -1571,8 +1561,8 @@ uint8_t UnitView::try_ready_weapon(uint8_t forced, const real_vector2d *directio
 {
     using namespace unit_try_ready_weapon_local;
     uint32_t unit_index = datum_handle;
-    uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)unit)].data;
+    uint8_t *unit = halo::objects::object_record_bytes(unit_index);
+    uint8_t *unit_tag = halo::objects::tag_record_bytes(*(datum_index *)unit);
     int8_t state = (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_state;
     uint8_t airborne = 0;
     int16_t new_state;
@@ -1632,7 +1622,7 @@ uint8_t UnitView::try_ready_weapon_variant(const real_vector2d *direction)
 {
     using namespace unit_try_ready_weapon_variant_local;
     uint32_t unit_index = datum_handle;
-    uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
+    uint8_t *unit = halo::objects::object_record_bytes(unit_index);
 
     if (!unit_animation_state_allows_melee((int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_state)) {
         return 0;
@@ -1659,7 +1649,7 @@ uint8_t UnitView::try_select_equipment(uint32_t new_equipment_object_index, int1
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
 
     if ((unit->equipment_object_index != k_datum_index_none) && (release_current == 1)) {
         halo::objects::object_delete(unit->equipment_object_index);
@@ -1700,7 +1690,7 @@ uint8_t UnitView::try_select_equipment(uint32_t new_equipment_object_index, int1
 uint8_t halo::units::unit_weapon_is_best_of_type(uint32_t reference_weapon_index, uint32_t unit_index)
 {
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(unit_obj);
     object *reference_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(reference_weapon_index)].data;
 
     if (unit->current_weapon_index == -1) {

@@ -1,3 +1,4 @@
+#include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -25,8 +26,8 @@ void BipedView::update_facing(int8_t *out_animation_state)
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
+    unit_data *unit = halo::units::unit_data_of(obj);
+    biped_data *biped = halo::units::biped_data_of(obj);
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     real_vector3d target;

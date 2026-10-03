@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
@@ -59,7 +60,7 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
         return;
     }
     record = (uint8_t *)message[0x11];
-    guard = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(vehicle_index)].data;
+    guard = halo::objects::object_record_bytes(vehicle_index);
     if (test_flag(((struct object *)guard)->flags, objects::object_flag::took_network_update) && **(int32_t **)message == 1) {
         int32_t incoming = record[5];
         int32_t current = ((struct vehicle_object *)vehicle)->vehicle.network_update_sequence;
@@ -156,7 +157,7 @@ int32_t VehicleView::encode_network_create(int32_t buffer, int32_t bit_budget)
 {
     using namespace vehicle_encode_network_create_local;
     datum_index vehicle_index = datum_handle;
-    uint8_t *vehicle = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(vehicle_index)].data;
+    uint8_t *vehicle = halo::objects::object_record_bytes(vehicle_index);
     hash_table *keys = &object_network_id_table->id_to_index;
     vehicle_network_create_record record;
     void *item = &record;

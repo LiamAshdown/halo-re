@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include "halo/objects/light_volume.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -155,7 +156,7 @@ void halo::objects::LightVolumeSystem::render(uint32_t object_index, datum_index
     }
 
     {
-        uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(uint32_t *)(instance + 4))].data;
+        uint8_t *tag = halo::objects::tag_record_bytes(*(uint32_t *)(instance + 4));
 
         if (*(int16_t *)(tag + 0x6e) > 0 && *(int32_t *)(tag + 0x120) > 0 &&
             (*(int16_t *)(tag + 0x44) == 0 || function_context == 0 ||
@@ -227,7 +228,7 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
             }
         }
     }
-    tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(uint32_t *)(instance + 4))].data;
+    tag = halo::objects::tag_record_bytes(*(uint32_t *)(instance + 4));
     if (*(int16_t *)(tag + 0x6e) <= 0 || *(int32_t *)(tag + 0x120) <= 0) {
         return;
     }
@@ -404,7 +405,7 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                 instance = (uint8_t *)off;
             }
         }
-        tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(uint32_t *)(instance + 4))].data;
+        tag = halo::objects::tag_record_bytes(*(uint32_t *)(instance + 4));
     }
 
     if (*(int32_t *)(tag + 0x98) <= 0) {
@@ -422,7 +423,7 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
 
     {
         uint32_t shader_something = *(uint32_t *)(
-            (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(tag + 0x40) & 0xffff].data + 100);
+            halo::objects::tag_record_bytes(*(uint32_t *)(tag + 0x40)) + 100);
         int32_t device = (int32_t)(uintptr_t)halo::cache::texture_cache_get((BitmapData *)(uintptr_t)shader_something, 0, 1);
 
         int16_t shard;

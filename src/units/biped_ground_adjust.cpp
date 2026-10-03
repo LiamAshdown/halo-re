@@ -1,3 +1,5 @@
+#include "halo/objects/record_access.hpp"
+#include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/core/collision_flags.hpp"
 #include "halo/tags/flags.hpp"
@@ -40,9 +42,9 @@ void BipedView::ground_adjust_apply_node_rotations(real_matrix4x3 *nodes, real_p
 {
     using namespace biped_ground_adjust_apply_node_rotations_local;
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
-    uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
-    uint8_t *graph = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id & 0xffff].data;
+    uint8_t *obj = halo::objects::object_record_bytes(object_index);
+    uint8_t *object_tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
+    uint8_t *graph = halo::objects::tag_record_bytes(*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id);
     int32_t i;
 
     for (i = 0; i < *(int32_t *)&((ModelAnimations *)graph)->nodes.count; i++) {
@@ -116,9 +118,9 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
 {
     using namespace biped_ground_adjust_solve_local;
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
-    uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
-    uint8_t *graph = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id & 0xffff].data;
+    uint8_t *obj = halo::objects::object_record_bytes(object_index);
+    uint8_t *object_tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
+    uint8_t *graph = halo::objects::tag_record_bytes(*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id);
     float tolerance = ((ModelAnimations *)graph)->limp_body_node_radius;
     uint8_t limit = ((struct biped_object *)obj)->biped.ground_adjust_iteration_limit;
     uint8_t iteration;
@@ -236,7 +238,7 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                 bone.j = self->y - parent->y;
                 bone.k = self->z - parent->z;
                 {
-                    uint8_t *model = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Object *)object_tag)->model.tag_id & 0xffff].data;
+                    uint8_t *model = halo::objects::tag_record_bytes(*(datum_index *)&((struct Object *)object_tag)->model.tag_id);
 
                     rest_length = *(float *)(*(uint8_t **)(model + 0xbc) + node_index * 0x9c + 0x44);
                 }
@@ -311,9 +313,9 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
 {
     using namespace biped_ground_adjust_solve_node_local;
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
-    uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
-    uint8_t *graph = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id & 0xffff].data;
+    uint8_t *obj = halo::objects::object_record_bytes(object_index);
+    uint8_t *object_tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
+    uint8_t *graph = halo::objects::tag_record_bytes(*(datum_index *)&((struct Object *)object_tag)->animation_graph.tag_id);
     uint8_t *graph_nodes = *(uint8_t **)&((ModelAnimations *)graph)->nodes.pointer;
     uint8_t *self_node = graph_nodes + node_index * 0x40;
     int16_t parent_index = *(int16_t *)(self_node + 0x24);
@@ -431,7 +433,7 @@ uint32_t BipedView::ground_adjust_step()
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
-    biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
+    biped_data *biped = halo::units::biped_data_of(obj);
     Object *object_tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     ModelAnimations *graph = (ModelAnimations *)halo::cache::globals().tag_instances[object_tag->animation_graph.tag_id.index].data;
     real_matrix4x3 *nodes = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset);
@@ -462,7 +464,7 @@ void UnitView::clear_ground_adjust_dirty()
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
+    biped_data *biped = halo::units::biped_data_of(obj);
 
     if (test_flag(tag->biped_flags, tags::biped_tag_flag::uses_limp_body_physics) && test_flag(biped->flags, units::biped_flag::ground_adjust_dirty)) {
         clear_flag(obj->flags, objects::object_flag::unknown_800000);
@@ -483,7 +485,7 @@ void UnitView::reset_ground_adjust_state()
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Biped *tag = (Biped *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
+    biped_data *biped = halo::units::biped_data_of(obj);
 
     if (((tag->biped_flags >> 9) & 1) != 0 && test_flag(obj->flags, objects::object_flag::at_rest) && !test_flag(biped->flags, units::biped_flag::airborne | units::biped_flag::ground_adjust_dirty)) {
         biped->ground_adjust_iteration = 0;

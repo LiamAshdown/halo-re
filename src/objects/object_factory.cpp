@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include "halo/objects/object_factory.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -203,7 +204,7 @@ void halo::objects::ObjectFactory::place_for_structure_bsp(uint8_t place)
                 halo::math::matrix4x3_from_euler_angles(basis, *(float *)(placement + 0x14), *(float *)(placement + 0x18),
                                             *(float *)(placement + 0x1c));
                 tag = *(datum_index *)((uint8_t *)palette->pointer + kind * 0x30 + 0xc);
-                definition_data = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(tag)].data;
+                definition_data = halo::objects::tag_record_bytes(tag);
                 halo::math::matrix4x3_transform_point(origin, *((real_point3d *)(definition_data + 8)), basis);
                 if (halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)(placement + 8)) == k_datum_index_none &&
                     halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, &origin) == k_datum_index_none) {
@@ -539,7 +540,7 @@ datum_index halo::objects::ObjectFactory::lookup_by_name(int16_t name_index)
 void halo::objects::ObjectFactory::notify_predicted_resources_if_valid(datum_index definition_tag)
 {
     if (definition_tag != k_datum_index_none) {
-        uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(definition_tag)].data;
+        uint8_t *tag_data = halo::objects::tag_record_bytes(definition_tag);
         halo::cache::predicted_resource_list_touch((TagReflexive *)(tag_data + 0x170));
     }
 }
@@ -597,10 +598,10 @@ uint8_t halo::objects::SceneryObject::initialize()
 {
     datum_index object_index = handle;
     uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)object)].data;
+    uint8_t *definition = halo::objects::tag_record_bytes(*(datum_index *)object);
     datum_index graph = *(datum_index *)&((struct Object *)definition)->animation_graph.tag_id;
 
-    if (graph != k_datum_index_none && *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(graph)].data + 0x74) > 0) {
+    if (graph != k_datum_index_none && *(int32_t *)(halo::objects::tag_record_bytes(graph) + 0x74) > 0) {
         int16_t animation = halo::models::animation_choose_random_permutation(graph, 0, (animation_random_stream)1);
         if (animation != -1) {
             ((struct object *)object)->animation_index = animation;

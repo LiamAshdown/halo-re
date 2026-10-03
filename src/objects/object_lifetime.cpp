@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include "halo/objects/object_lifetime.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
@@ -49,7 +50,7 @@ void halo::objects::ObjectLifetime::delete_teardown()
     if (definition->collision_model.tag_id.index != halo::k_word_none) {
 
         halo::effects::effect_new_on_object(object_index,
-            *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[definition->collision_model.tag_id.index].data + 0xc8),
+            *(datum_index *)(halo::objects::tag_record_bytes(definition->collision_model.tag_id.index) + 0xc8),
             object_index, -1, 0.0f, 0.0f, 0, 0);
     }
 
@@ -365,8 +366,8 @@ void halo::objects::ObjectLifetime::delete_4f9030(char recurse_siblings)
 void halo::objects::ObjectLifetime::create_attachments()
 {
     uint32_t object_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *obj = halo::objects::object_record_bytes(object_index);
+    uint8_t *definition = halo::objects::tag_record_bytes(*(datum_index *)obj);
     int16_t i;
 
     for (i = 0; i < *(int32_t *)&((struct Object *)definition)->attachments.count; i++) {

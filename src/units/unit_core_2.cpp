@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/tags/flags.hpp"
@@ -67,8 +68,6 @@ void halo::units::unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t has
     return;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 #define LOOK_BLEND_NEW 0.3f
 #define LOOK_BLEND_OLD 0.7f
 /**
@@ -79,8 +78,8 @@ void halo::units::unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t has
 uint8_t UnitView::update()
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = OBJECT_DATA(unit_index);
-    uint8_t *tag = TAG_DATA(*(datum_index *)obj);
+    uint8_t *obj = halo::objects::object_record_bytes(unit_index);
+    uint8_t *tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
     uint8_t over_budget = 0;
     uint8_t valid_team_player;
     uint8_t riding = 0;
@@ -141,7 +140,7 @@ uint8_t UnitView::update()
             datum_index gunner = ((unit_object *)obj)->unit.gunner_unit_index;
 
             if (driver != k_datum_index_none && !test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen)) {
-                uint8_t *d = OBJECT_DATA(driver);
+                uint8_t *d = halo::objects::object_record_bytes(driver);
 
                 ((unit_object *)obj)->base.owner_team = ((struct object *)d)->owner_team;
                 riding = 1;
@@ -152,7 +151,7 @@ uint8_t UnitView::update()
                 }
             }
             if (gunner != k_datum_index_none && !test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen)) {
-                uint8_t *g = OBJECT_DATA(gunner);
+                uint8_t *g = halo::objects::object_record_bytes(gunner);
 
                 if (!riding) {
                     ((unit_object *)obj)->base.owner_team = ((struct object *)g)->owner_team;
@@ -175,10 +174,10 @@ uint8_t UnitView::update()
                 float step = 0.008333334f;
 
                 if (halo::game::globals().current_engine != 0 && ((struct unit_object *)obj)->unit.active_camouflage_regrowth != 0 && ((struct unit_object *)obj)->unit.active_camouflage_regrowth == 1) {
-                    datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)OBJECT_DATA(unit_index))->unit.current_weapon_index);
+                    datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)halo::objects::object_record_bytes(unit_index))->unit.current_weapon_index);
 
                     if (weapon != k_datum_index_none) {
-                        uint8_t *weapon_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(weapon));
+                        uint8_t *weapon_tag = halo::objects::tag_record_bytes(*(datum_index *)halo::objects::object_record_bytes(weapon));
 
                         if (*(float *)(weapon_tag + 0x4d0) != 0.0f) {
                             step = *(float *)(weapon_tag + 0x4d0);
@@ -243,7 +242,7 @@ controls:
                 UnitView(unit_index).drop_current_weapon(1);
             } else if (((unit_object *)obj)->unit.desired_weapon_index != ((unit_object *)obj)->unit.current_weapon_index &&
                        !::halo::units::unit_state_is_scripted_animation((unit_data *)(obj + k_unit_data_offset))) {
-                datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)OBJECT_DATA(unit_index))->unit.desired_weapon_index);
+                datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)halo::objects::object_record_bytes(unit_index))->unit.desired_weapon_index);
 
                 if (weapon != k_datum_index_none && UnitView(unit_index).check_weapon_use_permission(weapon)) {
                     UnitView(unit_index).ready_desired_weapon(1);
@@ -276,10 +275,10 @@ controls:
                 if (halo::game::player_index_from_unit_index(unit_index) != k_datum_index_none &&
                     *(int16_t *)((uint8_t *)halo::game::globals().player_data->data +
                         halo::datum_slot(halo::game::player_index_from_unit_index(unit_index)) * 0x200 + 2) != -1) {
-                    datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)OBJECT_DATA(unit_index))->unit.current_weapon_index);
+                    datum_index weapon = UnitView(unit_index).get_weapon_object_index(((struct unit_object *)halo::objects::object_record_bytes(unit_index))->unit.current_weapon_index);
 
                     if (weapon != k_datum_index_none) {
-                        uint8_t *weapon_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(weapon));
+                        uint8_t *weapon_tag = halo::objects::tag_record_bytes(*(datum_index *)halo::objects::object_record_bytes(weapon));
                         datum_index sound = ((uint8_t)((struct unit_object *)obj)->unit.zoom_level == 0xff) ? *(datum_index *)(weapon_tag + 0x4bc)
                                                                  : *(datum_index *)(weapon_tag + 0x4ac);
                         float fraction = 1.0f;
@@ -400,8 +399,8 @@ controls:
                 if (test_flag(((unit_object *)obj)->unit.control_flags, units::unit_control_flag::secondary_trigger)) {
                     control |= 4;
                 }
-                if (test_flag(((struct Unit *)TAG_DATA(*(datum_index *)obj))->unit_flags, tags::unit_tag_flag::integrated_light_cntrls_weapon)) {
-                    halo::items::weapon_set_ready_timer(UnitView(unit_index).get_weapon_object_index(((struct unit_object *)OBJECT_DATA(unit_index))->unit.current_weapon_index), ((struct unit_object *)obj)->unit.integrated_light_power);
+                if (test_flag(((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)obj))->unit_flags, tags::unit_tag_flag::integrated_light_cntrls_weapon)) {
+                    halo::items::weapon_set_ready_timer(UnitView(unit_index).get_weapon_object_index(((struct unit_object *)halo::objects::object_record_bytes(unit_index))->unit.current_weapon_index), ((struct unit_object *)obj)->unit.integrated_light_power);
                 }
                 if (test_flag(((unit_object *)obj)->unit.control_flags, units::unit_control_flag::reload)) {
                     control |= 8;
@@ -418,7 +417,7 @@ controls:
             } else {
                 control = 0x20;
             }
-            unit_now = OBJECT_DATA(unit_index);
+            unit_now = halo::objects::object_record_bytes(unit_index);
             if (((struct unit_object *)unit_now)->unit.current_weapon_index != -1) {
                 weapon = *(datum_index *)(unit_now + 0x2f8 + ((struct unit_object *)unit_now)->unit.current_weapon_index * 4);
             }
@@ -598,8 +597,6 @@ controls:
 done:
     return 1;
 }
-#undef OBJECT_DATA
-#undef TAG_DATA
 #undef LOOK_BLEND_NEW
 #undef LOOK_BLEND_OLD
 

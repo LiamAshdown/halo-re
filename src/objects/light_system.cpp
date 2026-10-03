@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include "halo/objects/light_system.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/core/flag_bits.hpp"
@@ -216,7 +217,7 @@ static uint8_t *object_data_get(datum_index handle)
 
 static uint8_t *tag_data(datum_index tag)
 {
-    return (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(tag)].data;
+    return halo::objects::tag_record_bytes(tag);
 }
 
 static const char *light_owner_marker_name(uint8_t *light)
@@ -693,7 +694,7 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
     }
 
     if ((entry->flags & _light_attached_bit) != 0) {
-        uint8_t *light_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(entry->definition_tag)].data;
+        uint8_t *light_tag = halo::objects::tag_record_bytes(entry->definition_tag);
         float attenuation = ((struct Light *)light_tag)->radius_modifer[1] * *(float *)(light_tag + 4);
         bsp_leaf_reference leaf_reference;
         real_point3d position;
@@ -830,7 +831,7 @@ void halo::objects::LightSystem::gather_nearest(int16_t cluster_index, uint32_t 
                     eligible = 1;
                 } else {
 
-                    uint8_t *light_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((struct light *)entry)->definition_tag & 0xffff].data;
+                    uint8_t *light_tag = halo::objects::tag_record_bytes(*(uint32_t *)&((struct light *)entry)->definition_tag);
                     eligible = (light_tag[0] & 4) == 0;
                 }
 
@@ -958,7 +959,7 @@ static void offset_center(real_point3d *out, uint8_t *light, float distance)
 void halo::objects::LightSystem::get_render_bounds(datum_index handle, real_point3d *center_out, float *radius_out)
 {
     uint8_t *light = light_get(handle);
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)(light + 4))].data;
+    uint8_t *definition = halo::objects::tag_record_bytes(*(datum_index *)(light + 4));
     float reach = *(float *)(definition + 0xc) * *(float *)(definition + 4);
     float angle = *(float *)(definition + 0x14);
 

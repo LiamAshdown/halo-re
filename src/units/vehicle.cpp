@@ -1,3 +1,5 @@
+#include "halo/units/records.hpp"
+#include "halo/objects/record_access.hpp"
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "halo/units/flags.hpp"
@@ -38,7 +40,7 @@ static uint8_t *object_get(datum_index object_index)
 
 static uint8_t *object_definition(uint8_t *object)
 {
-    return (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)object)].data;
+    return halo::objects::tag_record_bytes(*(datum_index *)object);
 }
 
 }
@@ -85,7 +87,7 @@ uint8_t VehicleView::create()
 uint8_t VehicleView::is_old_enough()
 {
     uint32_t object_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *obj = halo::objects::object_record_bytes(object_index);
     int32_t stamp = ((unit_object *)obj)->base.network_update_tick;
 
     if (stamp == -1) {
@@ -108,7 +110,7 @@ void VehicleView::reset_state()
 {
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
-    vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
+    vehicle_data *vehicle = halo::units::vehicle_data_of(obj);
 
     vehicle->flags = 0;
     vehicle->decay_ticks_remaining = 0;
@@ -135,8 +137,6 @@ void VehicleView::reset_state()
     vehicle->active_marker_mask = 0;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot((h))].data)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((t))].data)
 #define F(p, o) (*(float *)((p) + (o)))
 /**
  * Engine function vehicle_update.
@@ -146,8 +146,8 @@ void VehicleView::reset_state()
 uint32_t VehicleView::update()
 {
     uint32_t object_index = datum_handle;
-    uint8_t *obj = OBJECT_DATA(object_index);
-    uint8_t *tag = TAG_DATA(*(datum_index *)obj);
+    uint8_t *obj = halo::objects::object_record_bytes(object_index);
+    uint8_t *tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
     real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
     real_vector3d *up = (real_vector3d *)&((struct object *)obj)->up;
     static uint8_t node_output[0xc00];
@@ -340,7 +340,7 @@ uint32_t VehicleView::update()
                 datum_index child = ((unit_object *)obj)->base.first_child_object;
 
                 while (child != k_datum_index_none) {
-                    uint8_t *child_obj = OBJECT_DATA(child);
+                    uint8_t *child_obj = halo::objects::object_record_bytes(child);
                     damage_data dd;
 
                     memset(&dd, 0, sizeof(dd));
@@ -378,8 +378,6 @@ uint32_t VehicleView::update()
     }
     return 1;
 }
-#undef OBJECT_DATA
-#undef TAG_DATA
 #undef F
 
 }

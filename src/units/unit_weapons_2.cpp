@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
@@ -103,7 +104,7 @@ void halo::units::unit_spawn_with_starting_weapons(void *command_record)
         return;
     }
     halo::networking::network_index_cache_insert_if_free(network_object_index_cache, message.network_key, (int32_t)vehicle_index);
-    vehicle = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(vehicle_index)].data;
+    vehicle = halo::objects::object_record_bytes(vehicle_index);
     memcpy(vehicle + 0x52c, &message.position, 12);
     memcpy(vehicle + 0x538, &message.velocity, 12);
     memcpy(vehicle + 0x544, &message.angular_velocity, 12);

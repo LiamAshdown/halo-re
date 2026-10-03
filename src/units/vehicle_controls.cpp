@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include <string.h>
 #include "halo/models/api.hpp"
 #include "halo/units/unit.hpp"
@@ -53,7 +54,7 @@ void VehicleView::blend_animations(real_orientation *orientations)
     using namespace vehicle_blend_animations_local;
     datum_index object_index = datum_handle;
     uint8_t *obj = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + halo::datum_slot(object_index) * 0xc + 8);
-    uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *vehicle_tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
     datum_index graph_tag = *(datum_index *)&((struct Object *)vehicle_tag)->animation_graph.tag_id;
     uint8_t *graph;
     uint8_t *entry;
@@ -65,7 +66,7 @@ void VehicleView::blend_animations(real_orientation *orientations)
     if (graph_tag == k_datum_index_none) {
         return;
     }
-    graph = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(graph_tag)].data;
+    graph = halo::objects::tag_record_bytes(graph_tag);
     if (*(int32_t *)&((ModelAnimations *)graph)->vehicles.count == 0) {
         return;
     }
@@ -140,7 +141,7 @@ void VehicleView::blend_animations(real_orientation *orientations)
 void VehicleView::calculate_animation_controls()
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
+    uint8_t *obj = halo::objects::object_record_bytes(unit_index);
     Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[halo::datum_slot(*(uint32_t *)obj)].data;
     real_vector3d *velocity = (real_vector3d *)&((struct object *)obj)->velocity;
     real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
@@ -303,9 +304,9 @@ void VehicleView::calculate_animation_controls()
 void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_transform)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
-    uint8_t *physics = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *obj = halo::objects::object_record_bytes(unit_index);
+    uint8_t *tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
+    uint8_t *physics = halo::objects::tag_record_bytes(*(datum_index *)&((Unit *)tag)->base.physics.tag_id);
     uint8_t *powered = (uint8_t *)out_record;
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     real mass = *(real *)(physics + 0x8);
@@ -349,7 +350,7 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     }
     rider = obj;
     if (((unit_object *)obj)->unit.driver_unit_index != k_datum_index_none) {
-        rider = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(((unit_object *)obj)->unit.driver_unit_index)].data;
+        rider = halo::objects::object_record_bytes(((unit_object *)obj)->unit.driver_unit_index);
     }
     if (*(datum_index *)(rider + 0x1f4) == k_datum_index_none) {
         real pitch = ((struct Vehicle *)tag)->fixed_gun_pitch;
@@ -415,9 +416,9 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
 void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_transform)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
-    uint8_t *physics = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *obj = halo::objects::object_record_bytes(unit_index);
+    uint8_t *tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
+    uint8_t *physics = halo::objects::tag_record_bytes(*(datum_index *)&((Unit *)tag)->base.physics.tag_id);
     uint8_t *powered = (uint8_t *)out_record;
     real max_speed = ((struct Vehicle *)tag)->maximum_forward_speed;
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
@@ -501,9 +502,9 @@ void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_
 void VehicleView::calculate_ground_lean_controls(uint8_t *out_transform)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
-    uint8_t *physics = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *obj = halo::objects::object_record_bytes(unit_index);
+    uint8_t *tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
+    uint8_t *physics = halo::objects::tag_record_bytes(*(datum_index *)&((Unit *)tag)->base.physics.tag_id);
     uint16_t flags = ((struct vehicle_object *)obj)->vehicle.flags;
     real max_speed = ((struct Vehicle *)tag)->maximum_forward_speed;
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
@@ -613,9 +614,9 @@ void halo::units::vehicle_calculate_hover_turn_controls(void)
 void VehicleView::calculate_lean_controls(void *mass_points, float *powered_states)
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
-    uint8_t *physics = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *obj = halo::objects::object_record_bytes(unit_index);
+    uint8_t *tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
+    uint8_t *physics = halo::objects::tag_record_bytes(*(datum_index *)&((Unit *)tag)->base.physics.tag_id);
     real_vector3d *velocity = (real_vector3d *)&((struct object *)obj)->velocity;
     real_vector3d *forward = (real_vector3d *)&((struct object *)obj)->forward;
     real_vector3d *up = (real_vector3d *)&((struct object *)obj)->up;
@@ -706,7 +707,7 @@ void VehicleView::calculate_mounted_controls_dispatch(void *out_transform, void 
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     Vehicle *tag = (Vehicle *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    uint8_t *physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    uint8_t *physics_tag = halo::objects::tag_record_bytes(*(uint32_t *)&((Unit *)tag)->base.physics.tag_id);
 
     if (*(float *)physics_tag > 0.0f) {
         VehicleView(unit_index).calculate_ground_contact_lean_alt(out_record, out_transform);
@@ -727,8 +728,8 @@ void VehicleView::calculate_mounted_controls_dispatch(void *out_transform, void 
 void VehicleView::create_hover_thruster_effects()
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *obj = halo::objects::object_record_bytes(unit_index);
+    uint8_t *tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
     uint8_t markers[16 * 0x6c];
     int16_t hover_count;
     int16_t total;
@@ -792,8 +793,8 @@ void VehicleView::create_hover_thruster_effects()
 void VehicleView::create_hover_thruster_midpoint_effects()
 {
     uint32_t unit_index = datum_handle;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *obj = halo::objects::object_record_bytes(unit_index);
+    uint8_t *tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
     uint8_t markers[15 * 0x6c];
     int16_t count;
     int16_t i;

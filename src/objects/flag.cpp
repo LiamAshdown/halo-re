@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include "halo/objects/flag.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
@@ -417,11 +418,11 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                     mode = 1;
 
                     if (!moving) {
-                        wind_scale = *(float *)((uint8_t *)halo::cache::globals().tag_instances[tag->physics.tag_id.index].data + 0x24) *
+                        wind_scale = *(float *)(halo::objects::tag_record_bytes(tag->physics.tag_id.index) + 0x24) *
                                      tag->wind_noise * 0.0004f;
                     } else {
                         mode = 3;
-                        wind_scale = *(float *)((uint8_t *)halo::cache::globals().tag_instances[tag->physics.tag_id.index].data + 0x28) *
+                        wind_scale = *(float *)(halo::objects::tag_record_bytes(tag->physics.tag_id.index) + 0x28) *
                                      tag->wind_noise * 0.00016f;
                     }
 

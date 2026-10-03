@@ -1,3 +1,4 @@
+#include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/core/lcg.hpp"
 #include "game.h"
@@ -23,7 +24,7 @@ void UnitView::choose_dialogue_variant()
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(obj);
     Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
     int16_t permutation_group = *(int16_t *)((uint8_t *)obj + 0xbe);
 
@@ -54,7 +55,7 @@ int32_t UnitView::commit_speech(const unit_speech *source, int16_t mode)
 {
     uint32_t unit_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
-    unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    unit_data *unit = halo::units::unit_data_of(obj);
 
     if ((obj->vitality_flags & _object_health_frozen_bit) == 0 || source->priority == 10) {
         if (mode > 1) {

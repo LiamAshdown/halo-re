@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -44,7 +45,7 @@ void UnitView::update_steering_deviation_effects(real_vector3d *reference_direct
                                 deviation.k * deviation.k));
 
         if (length > 0.02) {
-            uint8_t *physics_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+            uint8_t *physics_tag = halo::objects::tag_record_bytes(*(uint32_t *)&((Unit *)tag)->base.physics.tag_id);
             int32_t count = *(int32_t *)(physics_tag + 0x74);
             int32_t i = 0;
 

@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include "halo/objects/object_ref.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
@@ -545,7 +546,7 @@ int32_t halo::objects::ObjectRef::get_node_local_transform(char *marker_name, ob
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     void *node_array = (uint8_t *)obj + obj->nodes.offset;
 
-    int32_t result = halo::models::model_markers::get_by_name(*(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data + 0x34), marker_name, (uint8_t *)obj + 0x180, (int16_t *)0, (real_matrix4x3 *)node_array, (uint8_t)((obj->flags >> 0xc) & 1), marker, (int16_t)maximum_markers);
+    int32_t result = halo::models::model_markers::get_by_name(*(datum_index *)(halo::objects::tag_record_bytes(obj->definition_tag) + 0x34), marker_name, (uint8_t *)obj + 0x180, (int16_t *)0, (real_matrix4x3 *)node_array, (uint8_t)((obj->flags >> 0xc) & 1), marker, (int16_t)maximum_markers);
 
     if ((int16_t)result == 0) {
         marker->node_index = 0;
@@ -1223,7 +1224,7 @@ uint8_t halo::objects::ObjectRef::test_in_atmosphere_zone()
 
                         if (search_radius * search_radius <= dx * dx + dy * dy + dz * dz) {
 
-                            uint8_t *extended = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(*(uint16_t *)(zone_table + zone_offset + 0x34))].data;
+                            uint8_t *extended = halo::objects::object_record_bytes(*(uint16_t *)(zone_table + zone_offset + 0x34));
                             real_vector3d delta;
                             float length;
                             double angle;
@@ -1275,7 +1276,7 @@ void halo::objects::ObjectRef::notify_children_recursive()
         object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
         if (obj->definition_tag != k_datum_index_none) {
-            uint8_t *tag_data = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
+            uint8_t *tag_data = halo::objects::tag_record_bytes(obj->definition_tag);
             halo::cache::predicted_resource_list_touch((TagReflexive *)(tag_data + 0x170));
         }
 
@@ -1293,7 +1294,7 @@ uint8_t halo::objects::ObjectRef::reposition_to_spawn_location(real_point3d *tar
     uint32_t ignore_object_index)
 {
     uint32_t object_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *obj = halo::objects::object_record_bytes(object_index);
     real_vector3d delta;
     collision_result hit;
 
@@ -1308,7 +1309,7 @@ uint8_t halo::objects::ObjectRef::reposition_to_spawn_location(real_point3d *tar
         return 0;
     }
     halo::objects::object_unlink_cluster_or_notify_parent(object_index);
-    obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    obj = halo::objects::object_record_bytes(object_index);
     *(real_point3d *)&((object *)obj)->position.x = hit.point;
     halo::objects::object_set_cluster_and_parent(object_index, &hit.leaf);
     halo::objects::object_recalculate_bounding_radius(object_index);

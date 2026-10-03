@@ -1,3 +1,4 @@
+#include "halo/objects/record_access.hpp"
 #include "halo/objects/object_update.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/objects/flags.hpp"
@@ -190,7 +191,7 @@ void halo::objects::ObjectUpdater::update_export_functions()
 {
     datum_index object_index = handle;
     uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)object)].data;
+    uint8_t *definition = halo::objects::tag_record_bytes(*(datum_index *)object);
     int32_t i;
 
     for (i = 0; i < 4; i++) {
@@ -354,7 +355,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius_recursive()
 
 namespace {
 #define OFS(base, off, type) (*(type *)((uint8_t *)(base) + (off)))
-#define TAG_DATA(id) ((uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot((uint32_t)(id))].data)
+#define TAG_DATA(id) (halo::objects::tag_record_bytes((uint32_t)(id)))
 static void matrix4x3_set_translation_only(real_matrix4x3 *m, const real_point3d *position)
 {
     m->scale = 1.0f;
@@ -376,7 +377,7 @@ static void matrix4x3_set_translation_only(real_matrix4x3 *m, const real_point3d
 void halo::objects::ObjectUpdater::recalculate_bounding_radius()
 {
     uint32_t object_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *obj = halo::objects::object_record_bytes(object_index);
     uint8_t *def = TAG_DATA(((struct object *)obj)->definition_tag);
     real_matrix4x3 *nodes = (real_matrix4x3 *)(obj + ((struct object *)obj)->nodes.offset);
     real_orientation local_orientations[k_maximum_nodes_per_model];
@@ -403,7 +404,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         int16_t head, tail;
 
         if ((int32_t)((struct object *)obj)->parent_object != -1) {
-            uint8_t *parent = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(((struct object *)obj)->parent_object)].data;
+            uint8_t *parent = halo::objects::object_record_bytes(((struct object *)obj)->parent_object);
             parent_matrix = (real_matrix4x3 *)(parent + ((struct object *)parent)->nodes.offset) + (int8_t)((struct object *)obj)->parent_marker_index;
         }
 
@@ -585,8 +586,8 @@ static float clamp_unit(float value)
 void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
 {
     uint32_t object_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    uint8_t *obj = halo::objects::object_record_bytes(object_index);
+    uint8_t *tag = halo::objects::tag_record_bytes(*(datum_index *)obj);
     float *position = (float *)&((struct object *)obj)->position;
     int32_t i;
 
@@ -805,7 +806,7 @@ static float function_scale_input(uint8_t *obj, int16_t selector)
 void halo::objects::ObjectUpdater::update_functions()
 {
     uint32_t object_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *obj = halo::objects::object_record_bytes(object_index);
     Object *definition = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     float phase = (float)(int32_t)(halo::datum_slot(object_index) * 0x39 + halo::game::globals().game_time->game_time) * 0.033333335f;
     int16_t i;
