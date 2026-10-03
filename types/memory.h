@@ -1,3 +1,4 @@
+#pragma once
 // Blam memory module (halo.exe 1.0.10 retail, 0x4cf810..0x4d3980).
 // Structures recovered from the decompiled module plus the static definition
 // tables in .data. Offsets in comments are byte offsets from the struct base.
@@ -39,6 +40,10 @@ typedef struct growable_array {
     int32_t element_size;      // 0x00
     int32_t count;             // 0x04 element count; add_element refuses at 0x7fffffff
     void *data;                // 0x08 element_size*count bytes, NULL when count == 0
+#ifdef __cplusplus
+    uint32_t add_element();
+    void remove_element(uint32_t index);
+#endif
 } growable_array;              // size 0x0c
 
 // ---------------------------------------------------------------------------
@@ -54,6 +59,14 @@ typedef struct bit_stream {
     uint32_t byte_cursor;      // 0x0c byte offset into data
     uint32_t bit_cursor;       // 0x10 bit within that byte, 0..7
     uint32_t last_bit;         // 0x14 inclusive upper bound, absolute bit index
+#ifdef __cplusplus
+    uint32_t read_bit(uint8_t *out_bit);
+    uint32_t read_bits(uint32_t bit_count, uint32_t *out_value);
+    int32_t read_bits_chunked(int32_t total_bit_count, uint32_t *buffer);
+    uint8_t write_bit(int32_t bit_value);
+    uint8_t write_bits(uint32_t bit_count, uint32_t value);
+    int32_t write_bits_chunked(const uint32_t *values, int32_t total_bit_count);
+#endif
 } bit_stream;                  // size 0x18
 
 // bit-mask lookup tables shared by bit_stream_write_bits / bit_stream_read_bits
@@ -71,6 +84,13 @@ typedef struct byte_stream {
     int32_t size;              // 0x08 capacity of data
     uint8_t overflow;          // 0x0c set once a read/write ran past size
     uint8_t pad_0d[3];         // 0x0d
+#ifdef __cplusplus
+    uint32_t read_long();
+    uint32_t read_ranged_integer(int32_t maximum);
+    char *read_string();
+    uint32_t write_ranged_integer(int32_t maximum, uint32_t value);
+    uint32_t write_string(char *string, int16_t max_length);
+#endif
 } byte_stream;                 // size 0x10
 
 // ---------------------------------------------------------------------------
@@ -85,6 +105,11 @@ typedef struct circular_buffer {
     int32_t write_cursor;      // 0x0c advanced by circular_buffer_write
     int32_t capacity;          // 0x10 requested size + 1 (one slot is kept empty)
     uint8_t *data;             // 0x14 == (uint8_t *)this + 0x18
+#ifdef __cplusplus
+    static void create(char *name, int32_t requested_size);
+    uint32_t read(uint8_t *destination, uint32_t byte_count, char consume);
+    uint32_t write(uint32_t byte_count, uint8_t *source);
+#endif
 } circular_buffer;             // size 0x18, followed by capacity bytes of storage
 
 // ---------------------------------------------------------------------------
@@ -92,6 +117,9 @@ typedef struct circular_buffer {
 // ---------------------------------------------------------------------------
 typedef struct crc32_table {
     uint32_t entries[256];
+#ifdef __cplusplus
+    void build();
+#endif
 } crc32_table;                 // size 0x400
 // global 0x006b7b00: crc32_table crc32_lookup_table
 // global 0x00719cd8: uint8_t crc32_lookup_table_initialized
@@ -119,6 +147,17 @@ typedef struct data_array {
     int16_t actual_count;      // 0x30 number of live datums
     int16_t next_identifier;   // 0x32 salt counter, reseeded to 0x8000 on wrap
     void *data;                // 0x34 maximum_count*size bytes
+#ifdef __cplusplus
+    void delete_all();
+    static data_array *create(int16_t element_size, char *name, int16_t maximum_count);
+    void delete_datum(datum_index handle);
+    void initialize_element(void *element);
+    void *get(datum_index handle);
+    datum_index new_datum();
+    datum_index new_at_index(int16_t index);
+    datum_index new_at_index_with_salt(datum_index requested_handle);
+    datum_index next_datum(int16_t after_index);
+#endif
 } data_array;                  // size 0x38, data_new allocates 0x38 + maximum_count*size
 
 // data_iterator: never built by a constructor function; every caller builds it inline on the
@@ -132,6 +171,9 @@ typedef struct data_iterator {
     uint8_t pad_06[2];         // 0x06 never written by the inline constructors
     datum_index index;         // 0x08 handle of the element last returned
     uint32_t signature;        // 0x0c (uint32_t)data ^ k_data_iterator_signature
+#ifdef __cplusplus
+    void *next();
+#endif
 } data_iterator;               // size 0x10
 
 // ---------------------------------------------------------------------------
@@ -172,6 +214,13 @@ typedef struct struct_definition {
     struct_definition_field *fields; // 0x0c
     uint8_t size_computed;     // 0x10 set once compute_size has filled the fields
     uint8_t pad_11[3];         // 0x11
+#ifdef __cplusplus
+    void compute_size(int16_t *out_size, struct_definition_field *fields, int16_t *out_field_count);
+    void decode(byte_stream *input, int16_t version, void *dest_instance, int16_t *out_dest_size, struct_definition_field *fields, int16_t *out_field_count);
+    void encode(byte_stream *output, int16_t version, void *source, int16_t *out_source_size, struct_definition_field *fields, int16_t *out_field_count);
+    uint8_t decode_packet_body(uint8_t *buffer, int16_t remaining_length, void *dest, uint16_t *out_version_used, int16_t *out_bytes_consumed);
+    int32_t encode_packet_body(int16_t version, uint8_t *version_byte_dest, byte_stream *output, void *source, int16_t *out_wrote_version_byte, int16_t capacity_check);
+#endif
 } struct_definition;           // size 0x14
 
 // ---------------------------------------------------------------------------
@@ -200,6 +249,9 @@ typedef struct byte_swap_definition {
     int32_t *codes;            // 0x08
     uint32_t signature;        // 0x0c 'bysw'
     int32_t unknown_10;        // 0x10 zero in every instance in the image
+#ifdef __cplusplus
+    void swap(int32_t data, int32_t *codes, int32_t *out_size, int32_t *out_record_count);
+#endif
 } byte_swap_definition;        // size 0x14
 // global 0x00696780: byte_swap_definition packet_header_byte_swap_definition
 // global 0x00696770: int32_t packet_header_byte_swap_codes[4]
@@ -236,6 +288,12 @@ typedef struct data_packet_group {
     int32_t unknown_24;        // 0x24 0xffffffff
     int32_t unknown_28;        // 0x28 0xffffffff
     int32_t unknown_2c;        // 0x2c 0x10
+#ifdef __cplusplus
+    void compute_sizes();
+    int32_t append_packet_header(uint8_t *buffer, int16_t *cursor, uint8_t header_byte);
+    int32_t decode_packet(int16_t *remaining_length, void *decoded_body, uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class);
+    int32_t encode_packet(int16_t version, struct_definition *definition, uint8_t *version_byte_dest, byte_stream *output, uint8_t *buffer, int16_t *cursor, void *source, int16_t *out_wrote_version_byte, uint8_t packet_type);
+#endif
 } data_packet_group;           // size 0x30
 // global 0x006994f8: data_packet_group network_game_messages_group
 // global 0x006993c0: data_packet_type network_game_messages_types[39]
@@ -272,6 +330,14 @@ typedef struct cache {
     data_array *entries;       // 0x3c == &entry_data
     uint32_t signature;        // 0x40 'weee'
     data_array entry_data;     // 0x44 element size 0x1c, storage starts at 0x7c
+#ifdef __cplusplus
+    void initialize(char *name, int32_t block_count, int32_t block_shift, int16_t maximum_count, void *release_procedure, void *in_use_procedure);
+    datum_index allocate_block(uint32_t requested_bytes);
+    void build_status_bitmap(uint8_t *bitmap);
+    void evict_entry(datum_index handle);
+    void flush();
+    cache_entry *entry_at(datum_index handle);
+#endif
 } cache;                       // size 0x7c, followed by maximum_count*0x1c bytes
 
 // Per-byte status codes produced by cache_build_status_bitmap (0x4d1ca0).
@@ -315,6 +381,12 @@ typedef struct memory_pool {
     int32_t free_bytes;        // 0x2c
     memory_pool_block *first_block; // 0x30 lowest address block
     memory_pool_block *last_block;  // 0x34 highest address block
+#ifdef __cplusplus
+    int32_t allocate(int32_t requested_size, void **owner);
+    void compact();
+    int32_t reallocate(void **owner_cell, int32_t new_size);
+    void unlink(void **payload_ptr);
+#endif
 } memory_pool;                 // size 0x38, followed by size bytes of storage
 // global 0x006b8cb4: memory_pool *object_memory_pool
 
@@ -357,6 +429,18 @@ typedef struct heap {
     heap_block *first_block;   // 0x2c lowest address block
     heap_block *last_block;    // 0x30 highest address block
     heap_block *blocks[1];     // 0x34 maximum_blocks entries, NULL means the slot is free
+#ifdef __cplusplus
+    void advance_free_slot();
+    void *allocate(uint32_t size);
+    uint32_t allocate_raw(uint32_t size);
+    void compact();
+    uint32_t find_first_free_slot();
+    int32_t find_free_block(uint32_t size_needed, void **out_predecessor);
+    int32_t get_free_bytes();
+    void *reallocate(void *old_payload, uint32_t new_size);
+    void *resize_block(uint32_t new_size, heap_block *old_block);
+    void unlink_block(heap_block *block);
+#endif
 } heap;                        // size 0x34 + maximum_blocks*4
 
 #pragma pack(pop)
