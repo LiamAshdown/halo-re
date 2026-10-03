@@ -763,7 +763,7 @@ uint8_t ActorView::update_danger_avoidance()
         return 0;
     }
     {
-        float dx = F(0x2dc) - position->x;
+        float dx = actor->danger_center.x - position->x;
         float dy = actor->danger_center.y - position->y;
         float dz = actor->danger_center.z - position->z;
         float r = actor->danger_radius + 3.0f;
@@ -776,7 +776,7 @@ uint8_t ActorView::update_danger_avoidance()
         return 0;
     }
 
-    path_delta.i = F(0x2c8) - path_start->x;
+    path_delta.i = actor->danger_segment_end.x - path_start->x;
     path_delta.j = actor->danger_segment_end.y - path_start->y;
     path_delta.k = actor->danger_segment_end.z - path_start->z;
     {
@@ -801,7 +801,7 @@ uint8_t ActorView::update_danger_avoidance()
             if (actor->moving != 0 && !in_danger && !towards) {
                 real_vector3d movement;
 
-                movement.i = F(0x518) * 3.0f;
+                movement.i = actor->desired_movement_vector.x * 3.0f;
                 movement.j = actor->desired_movement_vector.y * 3.0f;
                 movement.k = actor->desired_movement_vector.z * 3.0f;
                 if (halo::math::segment3d_distance_squared_to_segment(path_start, position, &movement, &path_delta) <
