@@ -1,4 +1,5 @@
 #include "halo/networking/net1_decode.hpp"
+#include "halo/networking/message_decode.hpp"
 #include "halo/networking/channel_queue.hpp"
 #include "halo/core/cstring.hpp"
 #include "halo/saved_games/api.hpp"
@@ -42,25 +43,12 @@ static auto &shell_product_id = halo::link::ref<void *>(halo::networking::vars()
 static auto &profile_globals_block = halo::link::ref<uint8_t [0x1ffc]>(halo::ui::vars().profile_globals_block);
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
 
 namespace {
 
-/** Every client message is a 2-byte header followed by a group-encoded body; decodes the body, discarding the type and version out-values. */
-struct network_message_header {
-    uint8_t bytes[2];
-};
-static_assert(sizeof(network_message_header) == 2, "client message header");
-
 int32_t decode_game_message(const uint8_t *buffer, int32_t length, void *decoded_body, int16_t expected_class)
 {
-    int16_t body_length = (int16_t)(length - (int32_t)sizeof(network_message_header));
-    int16_t out_type;
-    uint16_t out_version;
-
-    return halo::memory::data_packet_group_decode_packet(&body_length, &network_game_messages_group, decoded_body,
-                                                         const_cast<uint8_t *>(buffer) + sizeof(network_message_header), &out_type, &out_version,
-                                                         expected_class);
+    return halo::networking::decode_message_body(buffer + sizeof(halo::networking::network_message_header), length, decoded_body, expected_class);
 }
 
 }

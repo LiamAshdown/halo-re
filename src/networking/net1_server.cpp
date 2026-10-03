@@ -1,4 +1,5 @@
 #include "halo/networking/net1_server.hpp"
+#include "halo/networking/message_decode.hpp"
 #include "halo/networking/record_layout.hpp"
 #include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
@@ -452,12 +453,10 @@ uint32_t ServerView::handle_info_request(network_machine *machine, network_messa
 {
     network_server_globals *server = self;
     uint32_t body[1];
-    int16_t out_type;
-    uint16_t version_used;
     int16_t state = server->state;
     uint8_t *connection;
 
-    if ((state != 0 && state != 1) || halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record->body, &out_type, &version_used, 5) == 0) {
+    if ((state != 0 && state != 1) || halo::networking::decode_message_body(record->body, length, body, 5) == 0) {
         return 0;
     }
     connection = machine != 0 ? *(uint8_t **)machine : 0;
@@ -1273,11 +1272,9 @@ uint32_t ServerMessageHandlers::client_map_data(network_message_record *record, 
 {
     network_server_globals *server = self;
     uint32_t body[8];
-    int16_t out_type;
-    uint16_t version_used;
     uint8_t *s = (uint8_t *)server;
 
-    if (server->state == 1 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record->body, &out_type, &version_used, 5) != 0 && server->join_finalize_pending == 0 &&
+    if (server->state == 1 && halo::networking::decode_message_body(record->body, length, body, 5) != 0 && server->join_finalize_pending == 0 &&
         halo::networking::network_player_entry_validate((network_player_entry *)body) != 0) {
         memcpy(s + 0x9d8, body, sizeof(body));
         server->join_finalize_pending = 1;
@@ -1299,10 +1296,8 @@ uint32_t ServerMessageHandlers::client_retry_schedule(network_machine *machine, 
 {
     network_server_globals *server = self;
     uint32_t body[1];
-    int16_t out_type;
-    uint16_t version_used;
 
-    if (server->state == 1 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record->body, &out_type, &version_used, 5) != 0) {
+    if (server->state == 1 && halo::networking::decode_message_body(record->body, length, body, 5) != 0) {
         halo::networking::network_machine_timer_start(machine, 0);
     }
     return 1;
@@ -1322,10 +1317,8 @@ uint32_t ServerMessageHandlers::client_settings_relay(network_message_record *re
 {
     network_server_globals *server = self;
     network_player_entry body;
-    int16_t out_type;
-    uint16_t version_used;
 
-    if (server->state == 1 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, &body, record->body, &out_type, &version_used, 5) != 0) {
+    if (server->state == 1 && halo::networking::decode_message_body(record->body, length, &body, 5) != 0) {
         return halo::networking::network_game_settings_broadcast_send(server, &body);
     }
     return 1;
@@ -1346,10 +1339,8 @@ uint32_t ServerMessageHandlers::build_version(network_machine *machine, network_
 {
     network_server_globals *server = self;
     char body[0x100];
-    int16_t out_type;
-    uint16_t version_used;
 
-    if (server->state == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record->body, &out_type, &version_used, 3) != 0) {
+    if (server->state == 0 && halo::networking::decode_message_body(record->body, length, body, 3) != 0) {
         halo::networking::network_machine_check_build_version(body, machine);
     }
     return 1;
@@ -1366,10 +1357,8 @@ uint32_t ServerMessageHandlers::handshake_forward(network_message_record *record
 {
     network_server_globals *server = self;
     int32_t body[1];
-    int16_t out_type;
-    uint16_t version_used;
 
-    if (server->state == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record->body, &out_type, &version_used, 3) != 0) {
+    if (server->state == 0 && halo::networking::decode_message_body(record->body, length, body, 3) != 0) {
         halo::networking::network_client_connection_handshake_tick((int16_t)body[0], server);
     }
     return 1;
@@ -1390,10 +1379,8 @@ uint32_t ServerMessageHandlers::join_finalize_ack_role2(network_machine *machine
 {
     network_server_globals *server = self;
     uint32_t body[1];
-    int16_t out_type;
-    uint16_t version_used;
 
-    if (server->state == 2 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record->body, &out_type, &version_used, 7) != 0) {
+    if (server->state == 2 && halo::networking::decode_message_body(record->body, length, body, 7) != 0) {
         machine->flags &= ~k_network_machine_join_handled;
     }
     return 1;
@@ -1476,11 +1463,9 @@ uint32_t ServerMessageHandlers::player_count_broadcast(network_message_record *r
 {
     network_server_globals *server = self;
     uint32_t body[1];
-    int16_t out_type;
-    uint16_t version_used;
     int16_t state = server->state;
 
-    if ((state == 0 || state == 1) && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record->body, &out_type, &version_used, 3) != 0) {
+    if ((state == 0 || state == 1) && halo::networking::decode_message_body(record->body, length, body, 3) != 0) {
         halo::networking::network_game_broadcast_player_set_changed((uint8_t *)server);
     }
     return 1;
@@ -1499,10 +1484,8 @@ uint32_t ServerMessageHandlers::player_entry_update(network_message_record *reco
 {
     network_server_globals *server = self;
     uint32_t body[8];
-    int16_t out_type;
-    uint16_t version_used;
 
-    if (server->state == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record->body, &out_type, &version_used, 3) != 0 &&
+    if (server->state == 0 && halo::networking::decode_message_body(record->body, length, body, 3) != 0 &&
         halo::networking::network_player_entry_update((network_player_entry *)body, (network_game_session *)((uint8_t *)server + 8)) != 0) {
         halo::networking::network_game_broadcast_player_set_changed((uint8_t *)server);
     }
@@ -1523,10 +1506,8 @@ uint32_t ServerMessageHandlers::retry_schedule(network_machine *machine, network
 {
     network_server_globals *server = self;
     uint32_t body[1];
-    int16_t out_type;
-    uint16_t version_used;
 
-    if (server->state == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record->body, &out_type, &version_used, 3) != 0) {
+    if (server->state == 0 && halo::networking::decode_message_body(record->body, length, body, 3) != 0) {
         halo::networking::network_machine_timer_start(machine, 0);
     }
     return 1;
@@ -1544,10 +1525,8 @@ uint32_t ServerMessageHandlers::settings_relay(network_message_record *record, i
 {
     network_server_globals *server = self;
     network_player_entry body;
-    int16_t out_type;
-    uint16_t version_used;
 
-    if (server->state == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, &body, record->body, &out_type, &version_used, 3) != 0) {
+    if (server->state == 0 && halo::networking::decode_message_body(record->body, length, &body, 3) != 0) {
         return halo::networking::network_game_settings_broadcast_send(server, &body);
     }
     return 1;
@@ -1567,10 +1546,8 @@ uint32_t ServerMessageHandlers::settings_relay_role2(network_message_record *rec
 {
     network_server_globals *server = self;
     network_player_entry body;
-    int16_t out_type;
-    uint16_t version_used;
 
-    if (server->state == 2 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, &body, record->body, &out_type, &version_used, 7) != 0) {
+    if (server->state == 2 && halo::networking::decode_message_body(record->body, length, &body, 7) != 0) {
         return halo::networking::network_game_settings_broadcast_send(server, &body);
     }
     return 1;
