@@ -294,7 +294,6 @@ datum_index halo::objects::ObjectFactory::create(object_placement_data *placemen
 
 namespace {
 static network_server_globals * &network_server__as_object_new_with_datum_role_control = reinterpret_cast<network_server_globals * &>(network_server);
-#define TAG_ID_AS_DATUM_INDEX(field) (*(datum_index *)&(field))
 }
 
 /**
@@ -378,7 +377,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     obj->damage_owner = k_datum_index_none;
     obj->placement_id = k_datum_index_none;
     obj->animation_index = -1;
-    obj->animation_graph = TAG_ID_AS_DATUM_INDEX(object_tag->animation_graph.tag_id);
+    obj->animation_graph = halo::objects::tag_handle(object_tag->animation_graph);
     obj->cached_render_state_index = -1;
     obj->parent_object = k_datum_index_none;
     obj->next_object = k_datum_index_none;
@@ -390,14 +389,14 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     if (test_flag(object_tag->flags, tags::object_tag_flag::does_not_cast_shadow)) {
         obj->flags |= _object_definition_flag0_bit;
     }
-    if (TAG_ID_AS_DATUM_INDEX(object_tag->collision_model.tag_id) == k_datum_index_none) {
+    if (halo::objects::tag_handle(object_tag->collision_model) == k_datum_index_none) {
         obj->flags &= ~(uint32_t)_object_has_collision_model_bit;
     } else {
         obj->flags |= _object_has_collision_model_bit;
     }
 
     halo::objects::object_set_collision_enabled(new_index,
-        (uint8_t)(TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id) != k_datum_index_none));
+        (uint8_t)(halo::objects::tag_handle(object_tag->model) != k_datum_index_none));
 
     obj->owner_team = (int16_t)placement->owner_team;
     obj->owner_linkage = placement->owner_linkage;
@@ -405,10 +404,10 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     *(int16_t *)((uint8_t *)obj + 0xbe) = placement->permutation_group;
     obj->forced_shader_permutation = (uint16_t)object_tag->forced_shader_permutation_index;
 
-    if (TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id) == k_datum_index_none) {
+    if (halo::objects::tag_handle(object_tag->model) == k_datum_index_none) {
         node_count = 1;
     } else {
-        GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[halo::datum_slot(TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id))].data;
+        GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[halo::datum_slot(halo::objects::tag_handle(object_tag->model))].data;
         node_count = model->nodes.count;
     }
 
@@ -487,15 +486,14 @@ out_of_objects:
         return new_index;
     }
 
-    if (TAG_ID_AS_DATUM_INDEX(object_tag->creation_effect.tag_id) != k_datum_index_none) {
+    if (halo::objects::tag_handle(object_tag->creation_effect) != k_datum_index_none) {
 
-        halo::effects::effect_new_on_object(new_index, TAG_ID_AS_DATUM_INDEX(object_tag->creation_effect.tag_id), new_index, -1,
+        halo::effects::effect_new_on_object(new_index, halo::objects::tag_handle(object_tag->creation_effect), new_index, -1,
             0.0f, 0.0f, (const ColorRGB *)0, (const effect_tint_source *)0);
         return new_index;
     }
     return new_index;
 }
-#undef TAG_ID_AS_DATUM_INDEX
 
 /**
  * Creates the object registered under a scenario name.

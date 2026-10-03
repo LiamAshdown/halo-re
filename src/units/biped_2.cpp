@@ -25,6 +25,8 @@
 #include "halo/physics/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
+static constexpr float k_flat_ground_k = 0.0001f;
+static constexpr float k_ground_normal_offset = 0.0078125f;
 
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
@@ -886,8 +888,6 @@ step_crouch:
     }
 }
 
-#define K_GROUND_NORMAL_OFFSET 0.0078125f
-#define K_FLAT_GROUND_K        0.0001f
 /**
  * Engine function biped_movement_solve.
  *
@@ -994,7 +994,7 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
             direction.i = c.i * solve->movement_delta.j + b.i * solve->movement_delta.i;
             direction.j = c.j * solve->movement_delta.j + b.j * solve->movement_delta.i;
             direction.k = c.k * solve->movement_delta.j + b.k * solve->movement_delta.i + solve->movement_delta.k;
-        } else if (ground_normal->k > K_FLAT_GROUND_K) {
+        } else if (ground_normal->k > k_flat_ground_k) {
             lateral_x = solve->facing.i * solve->movement_delta.i - solve->movement_delta.j * solve->facing.j;
             direction.i = lateral_x;
             lateral_y = solve->movement_delta.j * solve->facing.i + solve->movement_delta.i * solve->facing.j;
@@ -1055,9 +1055,9 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
             c = delta;
         }
         *result_flags = jumping ? 2 : 0;
-        solve->result_velocity.i = (c.i - ground_normal->i * K_GROUND_NORMAL_OFFSET) + solve->velocity.i;
-        solve->result_velocity.j = (c.j - ground_normal->j * K_GROUND_NORMAL_OFFSET) + solve->velocity.j;
-        solve->result_velocity.k = (c.k - ground_normal->k * K_GROUND_NORMAL_OFFSET) + solve->velocity.k;
+        solve->result_velocity.i = (c.i - ground_normal->i * k_ground_normal_offset) + solve->velocity.i;
+        solve->result_velocity.j = (c.j - ground_normal->j * k_ground_normal_offset) + solve->velocity.j;
+        solve->result_velocity.k = (c.k - ground_normal->k * k_ground_normal_offset) + solve->velocity.k;
         if ((*result_flags & 2) != 0) {
             solve->result_velocity.k -= halo::physics::globals().gravity;
         }
@@ -1408,8 +1408,6 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
         }
     }
 }
-#undef K_GROUND_NORMAL_OFFSET
-#undef K_FLAT_GROUND_K
 
 /**
  * object_type_definition "biped" row, +0x50 column. Clears the whole biped_data extension to zero, reseeds

@@ -84,7 +84,7 @@ uint32_t UnitView::update_marker_traction_effects()
         return 0;
     }
     graph = halo::objects::tag_as<ModelAnimations>(halo::objects::tag_handle(tag->base.animation_graph));
-    if (*(int32_t *)&graph->vehicles.count == 0) {
+    if ((int32_t)graph->vehicles.count == 0) {
         return 0;
     }
     node_array = halo::objects::block_elements<ModelAnimationsAnimationGraphVehicleAnimations>(graph->vehicles);

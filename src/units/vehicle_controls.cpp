@@ -67,7 +67,7 @@ void VehicleView::blend_animations(real_orientation *orientations)
         return;
     }
     graph = halo::objects::tag_as<ModelAnimations>(graph_tag);
-    if (*(int32_t *)&graph->vehicles.count == 0) {
+    if ((int32_t)graph->vehicles.count == 0) {
         return;
     }
     entry = reinterpret_cast<ModelAnimationsAnimationGraphVehicleAnimations *>(halo::objects::block_elements<ModelAnimationsAnimationGraphVehicleAnimations>(graph->vehicles));

@@ -24,6 +24,8 @@
 #include "halo/game/vars.hpp"
 #include "halo/items/vars.hpp"
 #include "halo/units/vars.hpp"
+static constexpr float k_look_blend_old = 0.7f;
+static constexpr float k_look_blend_new = 0.3f;
 
 static auto &object_network_id_table = halo::link::ref<uint8_t *>(halo::units::vars().object_network_id_table);
 static auto &network_message_scratch = halo::link::ref<uint8_t [halo::k_network_message_scratch_size]>(halo::game::vars().network_message_scratch);
@@ -69,8 +71,6 @@ void halo::units::unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t has
     return;
 }
 
-#define LOOK_BLEND_NEW 0.3f
-#define LOOK_BLEND_OLD 0.7f
 /**
  * Engine function unit_update.
  *
@@ -399,7 +399,7 @@ controls:
                 if (test_flag(obj->unit.control_flags, units::unit_control_flag::secondary_trigger)) {
                     control |= 4;
                 }
-                if (test_flag(((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)obj))->unit_flags, tags::unit_tag_flag::integrated_light_cntrls_weapon)) {
+                if (test_flag(halo::objects::tag_as<Unit>(*(datum_index *)obj)->unit_flags, tags::unit_tag_flag::integrated_light_cntrls_weapon)) {
                     halo::items::weapon_set_ready_timer(UnitView(unit_index).get_weapon_object_index(((struct unit_object *)halo::objects::object_record_bytes(unit_index))->unit.current_weapon_index), obj->unit.integrated_light_power);
                 }
                 if (test_flag(obj->unit.control_flags, units::unit_control_flag::reload)) {
@@ -430,11 +430,11 @@ controls:
 
         if (test_flag(obj->unit.animation_state_flags, units::unit_animation_state_flag::aiming_enabled)) {
             UnitView(unit_index).update_look_delta_controls();
-            obj->unit.animation_controls_smoothed[0] = obj->unit.animation_controls[0] * LOOK_BLEND_NEW + obj->unit.animation_controls_smoothed[0] * LOOK_BLEND_OLD;
-            obj->unit.animation_controls_smoothed[1] = obj->unit.animation_controls[1] * LOOK_BLEND_NEW + obj->unit.animation_controls_smoothed[1] * LOOK_BLEND_OLD;
-            obj->unit.animation_controls_smoothed[2] = obj->unit.animation_controls[2] * LOOK_BLEND_NEW + obj->unit.animation_controls_smoothed[2] * LOOK_BLEND_OLD;
+            obj->unit.animation_controls_smoothed[0] = obj->unit.animation_controls[0] * k_look_blend_new + obj->unit.animation_controls_smoothed[0] * k_look_blend_old;
+            obj->unit.animation_controls_smoothed[1] = obj->unit.animation_controls[1] * k_look_blend_new + obj->unit.animation_controls_smoothed[1] * k_look_blend_old;
+            obj->unit.animation_controls_smoothed[2] = obj->unit.animation_controls[2] * k_look_blend_new + obj->unit.animation_controls_smoothed[2] * k_look_blend_old;
         }
-        for (seat = 0; seat < *(int32_t *)&tag->powered_seats.count; seat++) {
+        for (seat = 0; seat < (int32_t)tag->powered_seats.count; seat++) {
             UnitPoweredSeat *powered = &halo::objects::block_element<UnitPoweredSeat>(tag->powered_seats, seat);
             float *power = (float *)(reinterpret_cast<uint8_t *>(obj) + 0x338 + seat * 4);
             uint8_t occupied;
@@ -597,7 +597,5 @@ controls:
 done:
     return 1;
 }
-#undef LOOK_BLEND_NEW
-#undef LOOK_BLEND_OLD
 
 }

@@ -138,7 +138,6 @@ void VehicleView::reset_state()
     vehicle->active_marker_mask = 0;
 }
 
-#define F(p, o) (*(float *)((p) + (o)))
 /**
  * Engine function vehicle_update.
  *
@@ -319,8 +318,8 @@ uint32_t VehicleView::update()
             }
             if (!(test_flag(((unit_object *)obj)->base.flags, objects::object_flag::unknown_1000000)) &&
                 ((1u << ((uint8_t)tag->vehicle_type & 0x1f)) & 0x28)) {
-                float floor_z = F(global_structure_bsp, 0x10);
-                float ceiling_z = F(global_structure_bsp, 0x14);
+                float floor_z = *(float *)(global_structure_bsp + 0x10);
+                float ceiling_z = *(float *)(global_structure_bsp + 0x14);
 
                 if (floor_z != 0.0f && ((struct object *)obj)->position.z < floor_z) {
                     ((struct object *)obj)->velocity.k += ((floor_z - ((struct object *)obj)->position.z) * 0.015625f - ((struct object *)obj)->velocity.k * 0.0625f) * ((struct unit_object *)obj)->unit.driver_seat_power;
@@ -337,7 +336,7 @@ uint32_t VehicleView::update()
         if (test_flag(tag->vehicle_flags, tags::vehicle_tag_flag::kills_riders_at_terminal_velocity) && !unit_updates_suppressed) {
             GlobalsFallingDamage *impact = halo::objects::block_elements<GlobalsFallingDamage>(global_globals->falling_damage);
 
-            if (((struct object *)obj)->velocity.k < -F(impact, 0x8c)) {
+            if (((struct object *)obj)->velocity.k < -*(float *)(impact + 0x8c)) {
                 datum_index child = ((unit_object *)obj)->base.first_child_object;
 
                 while (child != k_datum_index_none) {
@@ -379,6 +378,5 @@ uint32_t VehicleView::update()
     }
     return 1;
 }
-#undef F
 
 }

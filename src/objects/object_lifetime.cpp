@@ -129,7 +129,6 @@ void halo::objects::ObjectLifetime::clear_pending_delete_flag()
 }
 
 namespace {
-#define TAG_ID_AS_DATUM_INDEX(field) (*(datum_index *)&(field)) // see object_new_with_datum_role_control.c
 }
 
 /**
@@ -156,7 +155,7 @@ void halo::objects::ObjectLifetime::delete_recursive(uint8_t recurse_siblings)
     header = (object_header *)object_data->data + halo::datum_slot(object_index);
     obj = header->data;
     object_tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    if (TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id) != k_datum_index_none &&
+    if (halo::objects::tag_handle(object_tag->model) != k_datum_index_none &&
         (obj->flags & _object_no_collision_bit) == 0) {
 
         halo::objects::object_for_each_light_attachment(object_index, 1, 0);
@@ -168,7 +167,6 @@ void halo::objects::ObjectLifetime::delete_recursive(uint8_t recurse_siblings)
 
     halo::objects::object_release_render_cache_slot(object_index);
 }
-#undef TAG_ID_AS_DATUM_INDEX
 
 /**
  * Deletes an object that has no parent.

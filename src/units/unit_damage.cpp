@@ -49,7 +49,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     unit_object *self = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(object_index));
     unit_object *vehicle = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(vehicle_index));
     uint8_t *nodes = reinterpret_cast<uint8_t *>(self) + self->base.nodes.offset;
-    uint8_t *seat = (uint8_t *)((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)vehicle))->seats.pointer + self->unit.vehicle_seat_index * 0x11c;
+    UnitSeat *seat = &halo::objects::block_element<UnitSeat>(halo::objects::tag_as<Unit>(*(datum_index *)vehicle)->seats, self->unit.vehicle_seat_index);
     uint8_t *model_nodes;
     object_marker marker;
     real_point3d offset;
@@ -57,11 +57,11 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     real_point3d position;
     real_matrix4x3 basis;
 
-    halo::objects::object_get_node_local_transform(vehicle_index, (char *)(seat + 0x24), &marker, 1);
+    halo::objects::object_get_node_local_transform(vehicle_index, seat->marker_name.string, &marker, 1);
     offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
     offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
-    model_nodes = *(uint8_t **)(halo::objects::tag_record_bytes(halo::objects::tag_handle(((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)self))->base.model)) + 0xbc);
+    model_nodes = *(uint8_t **)(halo::objects::tag_record_bytes(halo::objects::tag_handle(halo::objects::tag_as<Unit>(*(datum_index *)self)->base.model)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
     if (vehicle->unit.driver_unit_index == object_index && (uint8_t)vehicle->unit.animation_state != 0x25 &&
         self->base.parent_object != k_datum_index_none) {
@@ -679,11 +679,11 @@ void UnitView::melee_lunge_damage_tick()
 void halo::units::unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t target_index, uint32_t node_pair, uint32_t region_pair, uint32_t material, real_point3d *contact_point, real_plane3d *contact_plane, bsp_leaf_reference *contact_leaf)
 {
     unit_object *attacker = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(attacker_index));
-    uint32_t unit_flags = ((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)attacker))->unit_flags;
+    uint32_t unit_flags = halo::objects::tag_as<Unit>(*(datum_index *)attacker)->unit_flags;
     object *target = reinterpret_cast<object *>(halo::objects::object_record_bytes(target_index));
 
     if ((unit_flags & 0x2000) && target->type == 0 && target->shield_vitality > 0.0f &&
-        (test_flag(((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)target))->unit_flags, tags::unit_tag_flag::shields_fry_infection_forms))) {
+        (test_flag(halo::objects::tag_as<Unit>(*(datum_index *)target)->unit_flags, tags::unit_tag_flag::shields_fry_infection_forms))) {
         UnitView(attacker_index).cause_melee_damage(1, target_index, (int16_t)node_pair, (int16_t)region_pair, (int16_t)material, (uint32_t)contact_plane);
         halo::objects::object_set_health_frozen_flag(attacker_index);
         halo::objects::object_delete(attacker_index);

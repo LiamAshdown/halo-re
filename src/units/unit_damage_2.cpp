@@ -124,7 +124,7 @@ void UnitView::melee_attack_scan()
         object *best = reinterpret_cast<object *>(halo::objects::object_record_bytes(best_object));
 
         if (best->type == 1 && best->network_role != 1) {
-            float scale = ((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)best))->base.acceleration_scale * 0.035f;
+            float scale = halo::objects::tag_as<Unit>(*(datum_index *)best)->base.acceleration_scale * 0.035f;
 
             side.i = scale * aim->i;
             side.j = scale * aim->j;

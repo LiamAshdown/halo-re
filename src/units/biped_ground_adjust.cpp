@@ -47,7 +47,7 @@ void BipedView::ground_adjust_apply_node_rotations(real_matrix4x3 *nodes, real_p
     ModelAnimations *graph = halo::objects::tag_as<ModelAnimations>(halo::objects::tag_handle(object_tag->animation_graph));
     int32_t i;
 
-    for (i = 0; i < *(int32_t *)&graph->nodes.count; i++) {
+    for (i = 0; i < (int32_t)graph->nodes.count; i++) {
         ModelAnimationsAnimationGraphNode *graph_nodes = halo::objects::block_elements<ModelAnimationsAnimationGraphNode>(graph->nodes);
         int16_t parent_index;
         real_vector3d saved;

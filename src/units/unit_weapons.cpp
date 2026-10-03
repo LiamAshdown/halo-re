@@ -699,7 +699,7 @@ uint8_t UnitView::find_weapon_marker_transform(uint32_t vehicle_index, int16_t s
     Unit *unit_tag = halo::objects::tag_as<Unit>(*(datum_index *)halo::objects::object_record_bytes(unit_index));
     GBXModel *model = halo::objects::tag_as<GBXModel>(halo::objects::tag_handle(unit_tag->base.model));
     ModelAnimations *graph = halo::objects::tag_as<ModelAnimations>(halo::objects::tag_handle(unit_tag->base.animation_graph));
-    uint8_t *seat = (uint8_t *)((struct Unit *)halo::objects::tag_record_bytes(*(datum_index *)halo::objects::object_record_bytes(vehicle_index)))->seats.pointer + seat_index * 0x11c;
+    uint8_t *seat = (uint8_t *)halo::objects::tag_as<Unit>(*(datum_index *)halo::objects::object_record_bytes(vehicle_index))->seats.pointer + seat_index * 0x11c;
     ModelAnimationsAnimationGraphUnitSeat *block = reinterpret_cast<ModelAnimationsAnimationGraphUnitSeat *>(0);
     int16_t i;
     int16_t enter_animation;

@@ -23,6 +23,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
+static constexpr int32_t k_max_tracked_units = 4;
 
 static auto &global_globals = halo::link::ref<uint8_t *>(halo::game::vars().global_globals);
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
@@ -497,7 +498,6 @@ uint8_t UnitView::has_child_of_type5()
     }
 }
 
-#define K_MAX_TRACKED_UNITS 4
 /**
  * Resolves a small globally tracked list of parentless unit objects and returns whether no other nearby
  * (within 100 units, per the squared-distance test) attached object with significant velocity exists near any
@@ -507,7 +507,7 @@ uint8_t UnitView::has_child_of_type5()
  */
 uint8_t halo::units::unit_is_area_clear_of_fast_objects(void)
 {
-    real_point3d tracked_positions[K_MAX_TRACKED_UNITS];
+    real_point3d tracked_positions[k_max_tracked_units];
     int32_t tracked_count = 0;
     int16_t slot = -1;
     uint8_t result = 1;
@@ -523,7 +523,7 @@ uint8_t halo::units::unit_is_area_clear_of_fast_objects(void)
                 uint32_t unit_handle = halo::game::player_at(player_handle)->unit;
                 if (unit_handle != k_datum_index_none) {
                     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_handle)].data;
-                    if (obj->parent_object == k_datum_index_none && tracked_count < K_MAX_TRACKED_UNITS) {
+                    if (obj->parent_object == k_datum_index_none && tracked_count < k_max_tracked_units) {
                         tracked_positions[tracked_count] = obj->bounding_center;
                         tracked_count++;
                     }
@@ -558,7 +558,6 @@ uint8_t halo::units::unit_is_area_clear_of_fast_objects(void)
     }
     return !result;
 }
-#undef K_MAX_TRACKED_UNITS
 
 /**
  * Engine function unit_point_in_front_and_asleep.

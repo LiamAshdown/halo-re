@@ -16,6 +16,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/cache/api.hpp"
 #include "objects.h"
+#include "hs.h"
 
 namespace halo::objects {
 
@@ -36,6 +37,20 @@ template <typename T>
 inline T *object_as(uint32_t handle)
 {
     return reinterpret_cast<T *>(object_record_bytes(handle));
+}
+
+/** Header of the object list in the slot named by a list handle (the script object_list container). */
+inline object_list_header *object_list_header_at(uint32_t handle)
+{
+    return reinterpret_cast<object_list_header *>(static_cast<uint8_t *>(globals().object_list_header_data->data) +
+                                                  halo::datum_slot(handle) * sizeof(object_list_header));
+}
+
+/** Reference node of an object list in the slot named by a node handle. */
+inline object_list_reference *object_list_reference_at(uint32_t handle)
+{
+    return reinterpret_cast<object_list_reference *>(static_cast<uint8_t *>(globals().object_list_reference_data->data) +
+                                                     halo::datum_slot(handle) * sizeof(object_list_reference));
 }
 
 /** First byte of the loaded tag data with the given tag handle. */
