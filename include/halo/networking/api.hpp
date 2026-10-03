@@ -108,7 +108,7 @@ int32_t build_local_player_position_update(uint8_t *out_changed, player *plr);
 int32_t build_local_player_vehicle_update(uint8_t *out_changed, player *plr);
 void build_player_full_resync_update(uint32_t player_index);
 void build_remote_player_action_update(uint32_t player_index, uint32_t network_key, uint8_t update_id_byte, player_action control);
-void build_remote_player_transform_update(uint32_t player_index, player_action *control, int32_t network_key);
+void build_remote_player_transform_update(uint32_t player_index, uint32_t network_key, uint8_t update_id_byte, player_action control);
 int32_t build_remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t update_id, uint8_t flags, char is_full, player_action *control, int32_t network_key);
 int32_t build_remote_player_vehicle_update(uint8_t *cache, uint8_t update_id, uint8_t flags, char is_full, player_action *control, int32_t network_key);
 int8_t chimera__on_connect(const uint32_t *target_address, network_client_globals *client, const uint32_t *session_info);

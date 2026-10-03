@@ -227,7 +227,7 @@ void EnginePlayerSync::players_update_server(void)
 
         if (entry->flag_a == 1) {
             if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host && entry->field2 == entry->field3 + 1) {
-                halo::networking::build_remote_player_transform_update(player_handle, action, entry->field1);
+                halo::networking::build_remote_player_transform_update(player_handle, entry->field1, (uint8_t)entry->field2, *action);
             }
             if (entry->flag_b == 1) {
                 grenade_value = entry->field1;

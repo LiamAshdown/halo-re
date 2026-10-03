@@ -330,8 +330,8 @@ void PlayerUpdateBuilder::remote_player_action_update(uint32_t player_index, uin
     }
 }
 
-void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, player_action *control,
-    int32_t network_key)
+void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, uint32_t network_key,
+    uint8_t update_id_byte, player_action control)
 {
     player *plr;
     uint8_t *cache;
@@ -369,8 +369,8 @@ void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, 
                     is_full = 1;
                 }
                 if (!fall_back) {
-                    encoded_size = halo::networking::build_remote_player_vehicle_update(cache, 0, is_full, is_full,
-                        control, network_key);
+                    encoded_size = halo::networking::build_remote_player_vehicle_update(cache, (uint8_t)network_key, update_id_byte, is_full,
+                        &control, (int32_t)player_index);
                 }
             } else if (halo::game::player_unit_has_parent(plr->unit) != 1) {
                 fall_back = true;
@@ -387,8 +387,8 @@ void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, 
                     is_full = 1;
                 }
                 if (!fall_back) {
-                    encoded_size = halo::networking::build_remote_player_vehicle_attachment_update(cache, 0, is_full,
-                        is_full, control, network_key);
+                    encoded_size = halo::networking::build_remote_player_vehicle_attachment_update(cache, (uint8_t)network_key, update_id_byte,
+                        is_full, &control, (int32_t)player_index);
                 }
             }
 
@@ -427,7 +427,7 @@ void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, 
         }
     }
 
-    halo::networking::build_remote_player_action_update(player_index, network_key, 0, *control);
+    halo::networking::build_remote_player_action_update(player_index, network_key, update_id_byte, control);
 }
 
 int32_t PlayerUpdateBuilder::remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t update_id,
@@ -761,10 +761,10 @@ void build_remote_player_action_update(uint32_t player_index, uint32_t network_k
     halo::networking::PlayerUpdateBuilder::remote_player_action_update(player_index, network_key, update_id_byte, control);
 }
 
-void build_remote_player_transform_update(uint32_t player_index, player_action *control,
-    int32_t network_key)
+void build_remote_player_transform_update(uint32_t player_index, uint32_t network_key,
+    uint8_t update_id_byte, player_action control)
 {
-    halo::networking::PlayerUpdateBuilder::remote_player_transform_update(player_index, control, network_key);
+    halo::networking::PlayerUpdateBuilder::remote_player_transform_update(player_index, network_key, update_id_byte, control);
 }
 
 int32_t build_remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t update_id,
