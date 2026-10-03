@@ -530,7 +530,7 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
         break;
 
     case 8:
-        if (mode == 6 && *(int16_t *)((uint8_t *)act + 0xc0) == 1) {
+        if (mode == 6 && act->mode_data.guard.stage == 1) {
             break;
         }
         if (halo::ai::actor_build_order_return_to_anchor(actor_index, (actor_order *)order)) {
@@ -1444,7 +1444,7 @@ uint8_t ActorView::request_move_and_face()
             actor->mode_data.guard.firing_position = claimed;
         }
     }
-    *(int16_t *)&actor->mode_data = (int16_t)(int32_t)(halo::math::random_real_range(*(float *)(actor_tag + 0x3b8),
+    actor->mode_data.guard.countdown_00 = (int16_t)(int32_t)(halo::math::random_real_range(*(float *)(actor_tag + 0x3b8),
         *(float *)(actor_tag + 0x3bc)) * 30.0f);
     return 0;
 }
@@ -1702,7 +1702,7 @@ uint8_t ActorView::scale_value_by_ally_exposure(float *value)
             ally = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (target->owner_actor_index & halo::k_slot_mask) * sizeof(actor));
 
             if (ally->pending_panic_type < 1 &&
-                (ally->mode != 4 || *(int16_t *)((uint8_t *)ally + 0xa8) < 1)) {
+                (ally->mode != 4 || ally->mode_data.flee.panic < 1)) {
                 if (target->owner_stalled != 0) {
                     exposed_count++;
                 }
