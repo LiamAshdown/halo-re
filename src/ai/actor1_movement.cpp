@@ -769,10 +769,10 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
         if (prop->enemy == 0 && other_index != k_datum_index_none) {
             actor *other = actor_try_get(other_index);
 
-            if (other != 0 && *(int16_t *)(other + 0x6c) == 9 && *(datum_index *)(other + 0x9c) == vehicle_index &&
-                *(int16_t *)(other + 0xa0) == seat_index) {
-                float dx = *(float *)(other + 0xcc) - *(float *)(other + 0x12c);
-                float dy = *(float *)(other + 0xd0) - *(float *)(other + 0x130);
+            if (other != 0 && other->mode == 9 && *(datum_index *)((uint8_t *)other + 0x9c) == vehicle_index &&
+                *(int16_t *)((uint8_t *)other + 0xa0) == seat_index) {
+                float dx = *(float *)((uint8_t *)other + 0xcc) - other->body_position.x;
+                float dy = *(float *)((uint8_t *)other + 0xd0) - other->body_position.y;
 
                 if (distance * distance > dy * dy + dx * dx) {
                     return 0;
