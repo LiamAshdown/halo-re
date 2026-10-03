@@ -16,7 +16,7 @@ fails, revert the latest merges one by one until it is green and log the offende
 | a690688f77ce90677 | camera, cutscene, devices, dialogs, projectiles | done | yes (e92165ab; all 5 checks 0 missing/0 extra; handle classes, no registry because dispatch tables are fixed data in standalone/data) |
 | a30d258f6c14fe84c | input, main, physics | done | yes (f1a0498d; checks 0 missing/0 extra; static-function service classes) |
 | a48cce8b581c8e3c3 | items, effects | done | yes (e93f959d; check items 115/115, effects 162/162; classes in anonymous namespaces, no Strategy/State patterns yet) |
-| a18f610ee74d844a2 | saved_games, render (relaunched after stale-base stop) | running | no |
+| a18f610ee74d844a2 | saved_games, render (relaunched after stale-base stop) | done | pending (branch worktree-agent-a18f610ee74d844a2, commit d61c3c75) |
 | a828a5b449c367e7c | units | done | yes (9a6e0ae8; check units 410 base, 0 missing, 263 new halo:: symbols; UnitView/BipedView/VehicleView; no UnitTypeBehavior registry) |
 | a8e2e4a6addbda413 | objects | running | no |
 | a9d9f7699c4305c1b | sound | running | no |
@@ -36,4 +36,4 @@ Launched: ai_actor_1 = a816627a3d7da40e7, ai_actor_2 = ab96a7b6b4db18803
 - Note: concurrent `git merge --ff-only` into an agent worktree by both the lead and the agent causes an index.lock race; the lead does it once right after spawning and the agent only verifies.
 - harness/gen_link.py scans src/*/*.c for extern address comments; converted modules no longer appear there (standalone link tables are not affected). Revisit if the regenerate tools are needed.
 
-- INTEGRATION BUILD #1 in progress (started by the lead after merging items, effects, units, camera group, input/main/physics; retail files hidden as *.hidden while it runs; log build/cxx_wave1_build.log). The supervising loop must not start another build or touch the hidden files until this entry says "finished".
+- INTEGRATION BUILD #1 in progress (started by the lead after merging items, effects, units, camera group, input/main/physics; retail files hidden as *.hidden while it runs; log build/cxx_wave1_build.log). The supervising loop must not start another build, must not MERGE anything (it would change sources under the build), and must not touch the hidden files until this entry says "finished". Pending merges after it finishes: a18f610ee74d844a2 (saved_games, render: done, checks 0 missing/0 extra; view classes + c_api shims).
