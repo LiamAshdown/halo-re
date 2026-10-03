@@ -1363,7 +1363,7 @@ void ObjectPhysics::tick(uint32_t object_index, powered_mass_point_state *powere
             float *m = &state->matrix_scale;
             float t;
 
-            halo::math::matrix4x3_from_quaternion(*(real_quaternion *)state->unknown_1c, *(real_matrix4x3 *)m);
+            halo::math::matrix4x3_from_quaternion(state->rotation, *(real_matrix4x3 *)m);
             t = m[2]; m[2] = m[4]; m[4] = t;
             t = m[3]; m[3] = m[7]; m[7] = t;
             t = m[6]; m[6] = m[8]; m[8] = t;

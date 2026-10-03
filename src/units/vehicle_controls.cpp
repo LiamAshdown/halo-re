@@ -17,6 +17,8 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
+#include "physics.h"
+#include "halo/core/bit_cast.hpp"
 
 static auto &global_identity_quaternion_pointer = halo::link::ref<uint8_t *>(halo::units::vars().global_identity_quaternion_pointer);
 
@@ -307,7 +309,7 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     uint8_t *obj = halo::objects::object_record_bytes(unit_index);
     Vehicle *tag = halo::objects::tag_as<Vehicle>(*(datum_index *)obj);
     Physics *physics = halo::objects::tag_as<Physics>(halo::objects::tag_handle(tag->base.base.physics));
-    uint8_t *powered = (uint8_t *)out_record;
+    powered_mass_point_state *powered = static_cast<powered_mass_point_state *>(out_record);
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     real mass = physics->mass;
     real throttle = ((struct vehicle_object *)obj)->unit.driver_seat_power;
@@ -398,10 +400,10 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     }
     ((struct vehicle_object *)obj)->vehicle.ground_contact_fraction = step + lean;
 
-    *(real *)(powered + 0x18) = throttle;
-    memcpy(powered + 0x1c, global_identity_quaternion_pointer, 16);
-    *(real *)(powered + 0x78) = throttle;
-    memcpy(powered + 0x7c, global_identity_quaternion_pointer, 16);
+    powered[0].antigrav = throttle;
+    powered[0].rotation = *reinterpret_cast<const real_quaternion *>(global_identity_quaternion_pointer);
+    powered[1].antigrav = throttle;
+    powered[1].rotation = *reinterpret_cast<const real_quaternion *>(global_identity_quaternion_pointer);
     halo::physics::object_physics_tick(unit_index, (powered_mass_point_state *)out_record, (uint32_t)out_transform, &force, &torque);
 }
 
@@ -419,7 +421,7 @@ void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_
     uint8_t *obj = halo::objects::object_record_bytes(unit_index);
     Vehicle *tag = halo::objects::tag_as<Vehicle>(*(datum_index *)obj);
     Physics *physics = halo::objects::tag_as<Physics>(halo::objects::tag_handle(tag->base.base.physics));
-    uint8_t *powered = (uint8_t *)out_record;
+    powered_mass_point_state *powered = static_cast<powered_mass_point_state *>(out_record);
     real max_speed = tag->maximum_forward_speed;
     real speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     real throttle;
@@ -470,16 +472,16 @@ void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_
     torque.k = (axis.k * per_tick - angular_velocity->k) * torque_scale;
 
     throttle = ((struct vehicle_object *)obj)->unit.driver_seat_power;
-    *(real *)(powered + 0x18) = throttle;
-    *(real *)(powered + 0x28) = 1.0f;
-    *(real *)(powered + 0x1c) = 0.0f;
-    *(real *)(powered + 0x20) = 0.0f;
-    *(real *)(powered + 0x24) = 0.0f;
-    *(real *)(powered + 0x78) = throttle;
-    *(real *)(powered + 0x88) = 1.0f;
-    *(real *)(powered + 0x7c) = 0.0f;
-    *(real *)(powered + 0x80) = 0.0f;
-    *(real *)(powered + 0x84) = 0.0f;
+    powered[0].antigrav = throttle;
+    powered[0].rotation.w = 1.0f;
+    powered[0].rotation.i = 0.0f;
+    powered[0].rotation.j = 0.0f;
+    powered[0].rotation.k = 0.0f;
+    powered[1].antigrav = throttle;
+    powered[1].rotation.w = 1.0f;
+    powered[1].rotation.i = 0.0f;
+    powered[1].rotation.j = 0.0f;
+    powered[1].rotation.k = 0.0f;
 
     force.i = throttle * force.i;
     force.j = throttle * force.j;
@@ -604,7 +606,7 @@ void VehicleView::calculate_lean_controls(void *mass_points, float *powered_stat
     real_vector3d *up = (real_vector3d *)&obj->base.up;
     real_vector3d *angular_velocity = (real_vector3d *)&obj->base.angular_velocity;
     real_vector3d *world_up = halo::math::globals().global_up3d_pointer;
-    uint8_t *ps = (uint8_t *)powered_states;
+    powered_mass_point_state *ps = reinterpret_cast<powered_mass_point_state *>(powered_states);
     real_vector3d zero_force;
     real_vector3d torque;
     real speed_factor, half_turn, steer;
@@ -621,22 +623,22 @@ void VehicleView::calculate_lean_controls(void *mass_points, float *powered_stat
         speed_factor = 1.0f;
     }
     steer = (1.0f - speed_factor) * half_turn;
-    *(real *)(ps + 0x04) = obj->vehicle.forward_velocity;
-    *(uint32_t *)(ps + 0x0c) = 0x3b449ba6;
-    *(real *)(ps + 0x1c) = 0.0f;
-    *(real *)(ps + 0x20) = 0.0f;
-    *(real *)(ps + 0x24) = (real)halo::libm::sin((double)steer);
-    *(real *)(ps + 0x28) = (real)halo::libm::cos((double)steer);
-    *(uint32_t *)(ps + 0x6c) = 0x3b449ba6;
-    *(real *)(ps + 0x7c) = 0.0f;
-    *(real *)(ps + 0x80) = 0.0f;
-    *(real *)(ps + 0x84) = 0.0f;
-    *(real *)(ps + 0x88) = 1.0f;
-    *(uint32_t *)(ps + 0xcc) = 0x3ba3d70a;
-    *(real *)(ps + 0xe8) = 1.0f;
-    *(real *)(ps + 0xdc) = 0.0f;
-    *(real *)(ps + 0xe0) = 0.0f;
-    *(real *)(ps + 0xe4) = 0.0f;
+    ps[0].water_friction = obj->vehicle.forward_velocity;
+    ps[0].water_lift = halo::bit_cast<float>(0x3b449ba6u);
+    ps[0].rotation.i = 0.0f;
+    ps[0].rotation.j = 0.0f;
+    ps[0].rotation.k = (real)halo::libm::sin((double)steer);
+    ps[0].rotation.w = (real)halo::libm::cos((double)steer);
+    ps[1].water_lift = halo::bit_cast<float>(0x3b449ba6u);
+    ps[1].rotation.i = 0.0f;
+    ps[1].rotation.j = 0.0f;
+    ps[1].rotation.k = 0.0f;
+    ps[1].rotation.w = 1.0f;
+    ps[2].water_lift = halo::bit_cast<float>(0x3ba3d70au);
+    ps[2].rotation.w = 1.0f;
+    ps[2].rotation.i = 0.0f;
+    ps[2].rotation.j = 0.0f;
+    ps[2].rotation.k = 0.0f;
     zero_force.i = 0.0f;
     zero_force.j = 0.0f;
     zero_force.k = 0.0f;
