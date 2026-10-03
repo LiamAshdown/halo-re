@@ -410,3 +410,12 @@ Fixes against the binary in the rewriters' files:
   constant pointers), render internal prototypes agree (frustum builder `uint8_t
   build_projection`, `render_window` `int16_t` target and `uint8_t` mirror flag),
   `billboard_basis` folded into `types/render.h`, `render_animation` added.
+
+## C++ layout (converted)
+
+The one-function-per-file `.c` sources were merged into topic files (`camera_frustum.cpp`, `sprites.cpp`,
+`objects.cpp`, `screen_effects.cpp`, `particle_sort.cpp`, `window.cpp`, `frame.cpp`). Operations on the module's own
+records are member functions of the view classes in `include/halo/render/render.hpp` (`SpriteBuilder`,
+`CinematicScreenEffect`, `FrameStatistics`, `ObjectRenderData`); the rest are namespace functions in
+`halo::render::<family>`. `render_c_api.cpp` holds the `extern "C"` shims with the original names. The old author
+notes and decompile blocks are in `docs/original/render/`.
