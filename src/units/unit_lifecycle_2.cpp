@@ -216,7 +216,7 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
         *(int16_t *)&((struct weapon_object *)weapon)->weapon.control_flags = 0;
         ((struct weapon_object *)weapon)->weapon.primary_trigger = transition_function_evaluate((transition_function_t)4, 0.0f);
     }
-    ((struct unit_object *)OBJECT_DATA(unit_index))->unit.flags &= 0xfdffffff;
+    clear_flag(((struct unit_object *)OBJECT_DATA(unit_index))->unit.flags, units::unit_flag::idle_turn_seeded);
     if (((unit_object *)obj)->base.parent_object != k_datum_index_none) {
         if (((unit_object *)obj)->unit.vehicle_seat_index == -1) {
             UnitView(unit_index).detach_reposition_and_nudge();

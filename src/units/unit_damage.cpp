@@ -720,13 +720,13 @@ void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t ta
     uint8_t *target = OBJECT_DATA(target_index);
 
     if ((unit_flags & 0x2000) && ((struct object *)target)->type == 0 && ((struct object *)target)->shield_vitality > 0.0f &&
-        (((struct Unit *)TAG_DATA(*(datum_index *)target))->unit_flags & 0x400000)) {
+        (test_flag(((struct Unit *)TAG_DATA(*(datum_index *)target))->unit_flags, tags::unit_tag_flag::shields_fry_infection_forms))) {
         UnitView(attacker_index).cause_melee_damage(1, target_index, (int16_t)node_pair, (int16_t)region_pair, (int16_t)material, (uint32_t)contact_plane);
         object_set_health_frozen_flag(attacker_index);
         object_delete(attacker_index);
         return;
     }
-    if (!(unit_flags & 0x1000) || !((1u << ((uint8_t)((struct object *)target)->type & 0x1f)) & 3) || (test_flag(((struct object *)target)->vitality_flags, objects::vitality_flag::health_frozen))) {
+    if (!(test_flag(unit_flags, tags::unit_tag_flag::impact_melee_attaches_to_unit)) || !((1u << ((uint8_t)((struct object *)target)->type & 0x1f)) & 3) || (test_flag(((struct object *)target)->vitality_flags, objects::vitality_flag::health_frozen))) {
         return;
     }
     {

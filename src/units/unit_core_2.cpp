@@ -1,4 +1,5 @@
 #include "halo/units/unit.hpp"
+#include "halo/tags/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
@@ -124,7 +125,7 @@ uint8_t UnitView::update()
         ((unit_object *)obj)->unit.control_flags = 0;
     }
 
-    if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x800) == 0) {
+    if (!test_flag(((Unit *)tag)->unit_flags, tags::unit_tag_flag::simple_creature)) {
         int32_t ticks = ((struct unit_object *)obj)->unit.persistent_control_ticks;
 
         if (ticks > 0) {
@@ -244,7 +245,7 @@ uint8_t UnitView::update()
     }
 
 controls:
-    if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x400) == 0) {
+    if (!test_flag(((Unit *)tag)->unit_flags, tags::unit_tag_flag::has_no_aiming)) {
         if (!test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen) && !unit_updates_suppressed) {
             if (test_flag(((unit_object *)obj)->base.vitality_flags, objects::vitality_flag::region_response_400)) {
                 UnitView(unit_index).drop_current_weapon(1);
@@ -407,7 +408,7 @@ controls:
                 if (test_flag(((unit_object *)obj)->unit.control_flags, units::unit_control_flag::secondary_trigger)) {
                     control |= 4;
                 }
-                if ((((struct Unit *)TAG_DATA(*(datum_index *)obj))->unit_flags & 0x800000) != 0) {
+                if (test_flag(((struct Unit *)TAG_DATA(*(datum_index *)obj))->unit_flags, tags::unit_tag_flag::integrated_light_cntrls_weapon)) {
                     weapon_set_ready_timer(UnitView(unit_index).get_weapon_object_index(((struct unit_object *)OBJECT_DATA(unit_index))->unit.current_weapon_index), ((struct unit_object *)obj)->unit.integrated_light_power);
                 }
                 if (test_flag(((unit_object *)obj)->unit.control_flags, units::unit_control_flag::reload)) {
@@ -433,7 +434,7 @@ controls:
         }
     }
 
-    if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x800) == 0) {
+    if (!test_flag(((Unit *)tag)->unit_flags, tags::unit_tag_flag::simple_creature)) {
         int16_t seat;
 
         if (test_flag(((struct unit_object *)obj)->unit.animation_state_flags, units::unit_animation_state_flag::aiming_enabled)) {
@@ -563,7 +564,7 @@ controls:
         }
         flags = ((unit_object *)obj)->unit.flags;
         if (test_flag(flags, units::unit_flag::unknown_80000)) {
-            if ((*(uint32_t *)&((Unit *)tag)->unit_flags & 0x1000000) == 0) {
+            if (!test_flag(((Unit *)tag)->unit_flags, tags::unit_tag_flag::integrated_light_lasts_forever)) {
                 ((struct unit_object *)obj)->unit.integrated_light_energy -= 0.00027777778f;
             }
             if (((unit_object *)obj)->base.parent_object != k_datum_index_none || test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen)) {
