@@ -18,6 +18,7 @@
 #include "halo/render/render.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/structures/api.hpp"
+#include "halo/cutscene/api.hpp"
 
 extern "C" {
 extern int32_t render_frame_index;
@@ -39,7 +40,6 @@ extern render_camera render_camera_global;
 extern render_frustum render_frustum_global;
 extern rasterizer_window_parameters rasterizer_window;
 extern void rasterizer_begin_frame(rasterizer_window_parameters *source);
-extern void chimera__letterbox(void);
 extern void ui_error_modal_update(void);
 extern void hud_timer_draw(void);
 extern void chimera__do_show_loading_screen(void);
@@ -53,7 +53,6 @@ extern uint8_t rasterizer_caps_flag_68a;
 extern game_engine_definition *current_game_engine;
 extern game_engine_state game_engine_state_value;
 extern player_globals *local_player_globals;
-extern cinematic_globals *cinematic_globals_ptr;
 extern int16_t unknown_00719aac;
 extern void scenario_sky_fog_state_update(int16_t sky_index, int16_t local_player_index,
     real_point3d *camera_position, render_fog *out);
@@ -163,7 +162,7 @@ void nonplayer_frame(uint32_t nonplayer, render_view *view)
     rasterizer_begin_frame(&params);
 
     if (nonplayer == 0) {
-        chimera__letterbox();
+        halo::cutscene::chimera__letterbox();
         ui_error_modal_update();
         hud_timer_draw();
         chimera__do_show_loading_screen();
@@ -254,7 +253,7 @@ void player_frame(Point2DInt *screenshot_tile, render_view *view)
     attempt_mirror = 1;
     if (!(current_game_engine != 0 && game_engine_state_value >= _game_engine_state_ended &&
           game_engine_state_value <= _game_engine_state_post_game)) {
-        if (cinematic_globals_ptr->in_progress == 0) {
+        if (halo::cutscene::globals().cinematic_globals->in_progress == 0) {
             int16_t local_player_count = local_player_globals->local_player_count;
             if (local_player_count == 1 && local_player_count != 1) {
                 attempt_mirror = 0;

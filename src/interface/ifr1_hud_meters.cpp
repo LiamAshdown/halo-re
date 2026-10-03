@@ -2,6 +2,7 @@
 #include <string.h>
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/cutscene/api.hpp"
 
 extern "C" {
 extern int32_t ui_real_to_int_truncate(float value);
@@ -26,7 +27,6 @@ extern player_globals *local_player_globals;
 extern void hud_unit_meters_update_for_player(int16_t local_player_index);
 extern data_array *object_data;
 extern hud_globals_flags *hud_flags;
-extern cinematic_globals *cinematic_globals_ptr;
 extern void hud_unit_sounds_update(player *p, uint8_t hud_enabled);
 }
 
@@ -414,7 +414,7 @@ void HudMeters::unit_meters_update_for_player(int16_t local_player_index)
         }
     }
 
-    if (cinematic_globals_ptr->in_progress != 0 && local_player_index != -1 && local_player_index < 1) {
+    if (halo::cutscene::globals().cinematic_globals->in_progress != 0 && local_player_index != -1 && local_player_index < 1) {
         player_index = local_player_globals->local_players[local_player_index];
         if (player_index != (datum_index)-1) {
             hud_unit_sounds_update((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200),

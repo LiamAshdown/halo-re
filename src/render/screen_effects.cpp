@@ -19,9 +19,9 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cutscene/api.hpp"
 
 extern "C" {
-extern cinematic_screen_effect_globals *cinematic_screen_effect_state;
 extern game_time_globals *game_time;
 extern GlobalsRasterizerData *rasterizer_globals_data;
 extern ColorRGB *default_axis_b;
@@ -173,7 +173,7 @@ namespace halo::render::cinematic_screen_effect {
  */
 float get_script_value(int16_t index)
 {
-    cinematic_screen_effect_globals *g = cinematic_screen_effect_state;
+    cinematic_screen_effect_globals *g = halo::cutscene::globals().cinematic_screen_effect_state;
 
     if (g != 0 && index >= 0 && index < 4) {
         return g->script_values[index];
@@ -191,7 +191,7 @@ float get_script_value(int16_t index)
 void set_convolution(int16_t convolution_type, int16_t extra_passes, float radius_lower_bound,
     float radius_upper_bound, float duration)
 {
-    cinematic_screen_effect_globals *g = cinematic_screen_effect_state;
+    cinematic_screen_effect_globals *g = halo::cutscene::globals().cinematic_screen_effect_state;
     float start_time;
 
     if (g == 0) {
@@ -225,7 +225,7 @@ void set_convolution(int16_t convolution_type, int16_t extra_passes, float radiu
 void set_filter(float light_enhancement_lower, float light_enhancement_upper, float desaturation_lower,
     float desaturation_upper, uint8_t is_additive, float duration)
 {
-    cinematic_screen_effect_globals *g = cinematic_screen_effect_state;
+    cinematic_screen_effect_globals *g = halo::cutscene::globals().cinematic_screen_effect_state;
     float start_time;
 
     if (g == 0) {
@@ -261,7 +261,7 @@ void set_filter(float light_enhancement_lower, float light_enhancement_upper, fl
  */
 void set_video(int16_t overbright_mode, float noise_intensity)
 {
-    cinematic_screen_effect_globals *g = cinematic_screen_effect_state;
+    cinematic_screen_effect_globals *g = halo::cutscene::globals().cinematic_screen_effect_state;
     tag_instance *scanline_tag;
     tag_instance *noise_tag;
     uint32_t *block;
@@ -316,7 +316,7 @@ void set_video(int16_t overbright_mode, float noise_intensity)
  */
 cinematic_screen_effect_globals *update(cinematic_screen_effect_globals *input)
 {
-    cinematic_screen_effect_globals *g = cinematic_screen_effect_state;
+    cinematic_screen_effect_globals *g = halo::cutscene::globals().cinematic_screen_effect_state;
     float convolution_progress;
     float filter_progress;
     uint32_t *tint;

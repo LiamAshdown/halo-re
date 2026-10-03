@@ -2,6 +2,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/cutscene/api.hpp"
 
 extern "C" {
 extern data_array *game_looping_sound_data;
@@ -10,7 +11,6 @@ extern int32_t sound_play_new(datum_index sound_tag, void *parameters, int32_t u
                             void *callback_data, int32_t unknown_3, int32_t unknown_4);
 extern player_globals *local_player_globals;
 extern hud_unit_meter_globals *hud_unit_meters;
-extern cinematic_globals *cinematic_globals_ptr;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index local_player_to_player_index(int16_t local_player_index);
 extern uint8_t game_engine_object_flag_bit3_clear(datum_index player_index);
@@ -123,7 +123,7 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
     mask = 0;
     if ((unit[0x10] & 4) != 0 || !(((unit_object *)unit)->base.body_vitality > 0.0f)) {
         state->last_unit = (datum_index)-1;
-    } else if (hud_enabled != 0 && cinematic_globals_ptr->in_progress == 0) {
+    } else if (hud_enabled != 0 && halo::cutscene::globals().cinematic_globals->in_progress == 0) {
         float shield = ((unit_object *)unit)->base.shield_vitality;
         float health = ((unit_object *)unit)->base.body_vitality;
 

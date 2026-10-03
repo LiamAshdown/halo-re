@@ -6,6 +6,7 @@
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "tables.h"
 #include "code_refs.hpp"
+#include "halo/cutscene/api.hpp"
 #include "halo/devices/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/sound/api.hpp"
@@ -1284,8 +1285,8 @@ uint32_t hs_enum_definitions_006853f8[1391] = {
 
 /* 0x00686fd8..0x00686fe8 */
 uint32_t recorded_animation_codecs_by_version_00686fd8[4] = {
-    /* +0x0000 */ (uint32_t)recorded_animation_compressed_begin, (uint32_t)recorded_animation_compressed_update,
-    /* +0x0008 */ (uint32_t)recorded_animation_v1_begin, (uint32_t)recorded_animation_v1_update,
+    /* +0x0000 */ (uint32_t)&halo::cutscene::recorded_animation_compressed_begin, (uint32_t)&halo::cutscene::recorded_animation_compressed_update,
+    /* +0x0008 */ (uint32_t)&halo::cutscene::recorded_animation_v1_begin, (uint32_t)&halo::cutscene::recorded_animation_v1_update,
 };
 
 /* 0x00687020..0x00687044 */

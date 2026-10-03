@@ -27,6 +27,7 @@
 #include "halo/math/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/cutscene/api.hpp"
 
 extern "C" { void render_view_camera_fill(observer_camera *observer, render_view *view); }
 extern "C" { void screenshot_render(render_view *views); }
@@ -39,7 +40,6 @@ extern "C" { extern game_engine_state game_engine_state_value; }
 extern "C" { extern player_globals *local_player_globals; }
 extern "C" { extern uint8_t widget_memory_pool_valid; }
 extern "C" { extern widget_instance *ui_root_widget[1]; }
-extern "C" { extern cinematic_globals *cinematic_globals_ptr; }
 extern "C" { extern observer observers[1]; }
 extern "C" { extern uint8_t render_view_local_player_sticky; }
 extern "C" { extern int32_t screenshots; }
@@ -87,7 +87,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     if (widget_memory_pool_valid != 0 && ui_root_widget[0] != 0) {
         strstr(ui_root_widget[0]->name, "error_modal");
     }
-    if (showing_results || cinematic_globals_ptr->in_progress != 0) {
+    if (showing_results || halo::cutscene::globals().cinematic_globals->in_progress != 0) {
         view_count = 1;
     }
 
@@ -188,7 +188,7 @@ int RenderViews::local_view_count(void)
 
     if ((current_game_engine == 0 || (int32_t)game_engine_state_value < 2 ||
          (int32_t)game_engine_state_value > 3) &&
-        cinematic_globals_ptr->in_progress == 0) {
+        halo::cutscene::globals().cinematic_globals->in_progress == 0) {
         local_player_count_field = local_player_globals->local_player_count;
         if (local_player_count_field > 0 && local_player_count_field < 2) {
             return local_player_count_field;

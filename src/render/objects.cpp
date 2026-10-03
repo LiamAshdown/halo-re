@@ -21,10 +21,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/cutscene/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern cinematic_globals *cinematic_globals_ptr;
 extern int32_t unknown_00689450;
 extern render_frustum render_frustum_global;
 extern data_array *object_render_state_cache;
@@ -458,7 +458,7 @@ real compute_level_of_detail_pixels(datum_index object_index)
 
     obj = ((object_header *)object_data->data)[(uint16_t)object_index].data;
 
-    if (cinematic_globals_ptr->in_progress != 0 && (obj->flags & 0x400000) != 0) {
+    if (halo::cutscene::globals().cinematic_globals->in_progress != 0 && (obj->flags & 0x400000) != 0) {
         return 3.4028235e+38f;
     }
 

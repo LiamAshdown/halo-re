@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/cutscene/api.hpp"
 
 namespace halo::ai {
 
@@ -133,8 +134,6 @@ extern void ai_communication_target_result_reset(ai_communication_target_result 
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
 extern void actor_prop_iterator_init(datum_index actor_index, actor_prop_iterator *out_iterator);
 extern prop *actor_prop_iterator_next(actor_prop_iterator *iterator);
-extern int16_t recorded_animation_find_by_name(const char *name, Scenario *scenario);
-extern uint8_t recorded_animation_start(datum_index unit_index, int16_t scenario_animation_index, uint16_t extra_flags);
 extern char hs_call_script_by_name(char *name);
 extern void object_reset_velocity_and_wake(uint32_t object_index);
 extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward,
@@ -556,12 +555,12 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         if (recording < 0 || recording >= *(int32_t *)((uint8_t *)global_scenario + 0x45c)) {
             return 0;
         }
-        animation_index = recorded_animation_find_by_name(
+        animation_index = halo::cutscene::recorded_animation_find_by_name(
             *(char **)((uint8_t *)global_scenario + 0x460) + recording * 0x28, global_scenario);
         if (animation_index == -1) {
             return 0;
         }
-        return (char)recorded_animation_start(check_object_index, animation_index, 0);
+        return (char)halo::cutscene::recorded_animation_start(check_object_index, animation_index, 0);
     }
 
     case 0xf:
@@ -714,7 +713,6 @@ extern uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d 
 extern void actor_movement_action_stop(datum_index actor_index);
 extern uint8_t actor_movement_action_in_progress(datum_index actor_index);
 extern float actor_compute_accuracy_scale(datum_index actor_index);
-extern uint8_t recorded_animation_object_is_playing(datum_index unit_index);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 extern uint32_t unit_get_biped_specific_value(uint32_t object_index);
@@ -879,7 +877,7 @@ uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_in
         return OBJECT_DATA(check_object_index)[0x2a3] != 0x1c;
 
     case 0xe:
-        return recorded_animation_object_is_playing(check_object_index) == 0;
+        return halo::cutscene::recorded_animation_object_is_playing(check_object_index) == 0;
 
     case 0xf:
         if (aim_state != 0 && aim_state[0x30]) {

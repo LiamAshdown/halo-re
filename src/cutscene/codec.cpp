@@ -1,37 +1,13 @@
 #include "halo/cutscene/codec.hpp"
+#include "halo/cutscene/api.hpp"
 
 extern "C" {
 extern double cos(double x);
 extern double sin(double x);
 extern float recorded_animation_angle_scale;
 extern unit_control_data_field_layout *unit_control_data_version_layouts[4];
-extern void unit_control_data_unpack(unit_control_data *control, uint8_t **cursor, uint8_t version);
 extern recorded_animation_compressed_event_proc recorded_animation_compressed_event_handlers[k_recorded_animation_event_type_count];
-extern void recorded_animation_apply_char_difference(recorded_animation_angles *angles, recorded_animation_char_difference *delta);
-extern void recorded_animation_angle_to_vector(real_vector3d *out, recorded_animation_angles *angles);
-extern void recorded_animation_apply_short_difference(recorded_animation_angles *angles, recorded_animation_short_difference *delta);
 extern recorded_animation_v1_event_proc recorded_animation_v1_event_handlers[k_recorded_animation_event_type_count];
-void recorded_animation_compressed_begin(recorded_animation_decoder_state *state, unit_control_data *control, uint8_t **cursor, uint8_t version);
-uint8_t recorded_animation_compressed_update(recorded_animation_decoder_state *state, unit_control_data *control, int32_t *event_ticks, uint8_t **cursor);
-void recorded_animation_decode_aiming_speed_event(recorded_animation_decoder_state *state, unit_control_data *control, uint8_t *header, uint8_t **cursor);
-void recorded_animation_decode_animation_state_event(recorded_animation_decoder_state *state, unit_control_data *control, uint8_t *header, uint8_t **cursor);
-void recorded_animation_decode_char_difference_event(recorded_animation_decoder_state *state, unit_control_data *control, uint8_t *header, uint8_t **cursor);
-void recorded_animation_decode_control_flags_event(recorded_animation_decoder_state *state, unit_control_data *control, uint8_t *header, uint8_t **cursor);
-void recorded_animation_decode_short_difference_event(recorded_animation_decoder_state *state, unit_control_data *control, uint8_t *header, uint8_t **cursor);
-void recorded_animation_decode_throttle_event(recorded_animation_decoder_state *state, unit_control_data *control, uint8_t *header, uint8_t **cursor);
-void recorded_animation_decode_weapon_index_event(recorded_animation_decoder_state *state, unit_control_data *control, uint8_t *header, uint8_t **cursor);
-void recorded_animation_v1_begin(recorded_animation_decoder_state *state, unit_control_data *control, uint8_t **cursor, uint8_t version);
-uint8_t recorded_animation_v1_update(recorded_animation_decoder_state *state, unit_control_data *control, int32_t *event_ticks, uint8_t **cursor);
-void recorded_animation_decode_aiming_speed_event_v1(unit_control_data *control, recorded_animation_event_v1 *event, uint8_t **cursor);
-void recorded_animation_decode_aiming_vector_event_v1(unit_control_data *control, recorded_animation_event_v1 *event, uint8_t **cursor);
-void recorded_animation_decode_angle_vector_event_v1(unit_control_data *control, recorded_animation_angle_vector_set_event_v1 *event, uint8_t **cursor);
-void recorded_animation_decode_animation_state_event_v1(unit_control_data *control, recorded_animation_event_v1 *event, uint8_t **cursor);
-void recorded_animation_decode_control_flags_event_v1(unit_control_data *control, recorded_animation_event_v1 *event, uint8_t **cursor);
-void recorded_animation_decode_facing_vector_event_v1(unit_control_data *control, recorded_animation_event_v1 *event, uint8_t **cursor);
-void recorded_animation_decode_looking_vector_event_v1(unit_control_data *control, recorded_animation_event_v1 *event, uint8_t **cursor);
-void recorded_animation_decode_multi_vector_event_v1(unit_control_data *control, recorded_animation_event_v1 *event, uint8_t **cursor);
-void recorded_animation_decode_throttle_event_v1(unit_control_data *control, recorded_animation_event_v1 *event, uint8_t **cursor);
-void recorded_animation_decode_weapon_index_event_v1(unit_control_data *control, recorded_animation_event_v1 *event, uint8_t **cursor);
 }
 
 namespace halo::cutscene {
@@ -173,7 +149,7 @@ void CompressedCodec::begin(recorded_animation_decoder_state *state, unit_contro
     uint32_t *source;
     uint32_t *destination;
 
-    unit_control_data_unpack(control, cursor, version);
+    halo::cutscene::unit_control_data_unpack(control, cursor, version);
 
     source = (uint32_t *)*cursor;
     destination = (uint32_t *)state;
@@ -314,7 +290,7 @@ void CompressedCodec::decode_char_difference_event(recorded_animation_decoder_st
 
     if ((mask & 2) != 0) {
         if (facing_bit == 0) {
-            recorded_animation_apply_char_difference(&state->aiming, delta);
+            halo::cutscene::recorded_animation_apply_char_difference(&state->aiming, delta);
             yaw = state->aiming.yaw;
             pitch = state->aiming.pitch;
             cos_pitch = cos((double)pitch * (double)recorded_animation_angle_scale);
@@ -341,8 +317,8 @@ void CompressedCodec::decode_char_difference_event(recorded_animation_decoder_st
             *cursor += 2;
             return;
         }
-        recorded_animation_apply_char_difference(&state->looking, delta);
-        recorded_animation_angle_to_vector(&control->looking_vector, &state->looking);
+        halo::cutscene::recorded_animation_apply_char_difference(&state->looking, delta);
+        halo::cutscene::recorded_animation_angle_to_vector(&control->looking_vector, &state->looking);
     }
     *cursor += 2;
 }
@@ -407,7 +383,7 @@ void CompressedCodec::decode_short_difference_event(recorded_animation_decoder_s
 
     if ((mask & 2) != 0) {
         if (facing_bit == 0) {
-            recorded_animation_apply_short_difference(&state->aiming, delta);
+            halo::cutscene::recorded_animation_apply_short_difference(&state->aiming, delta);
             yaw = state->aiming.yaw;
             pitch = state->aiming.pitch;
             cos_pitch = cos((double)pitch * (double)recorded_animation_angle_scale);
@@ -434,8 +410,8 @@ void CompressedCodec::decode_short_difference_event(recorded_animation_decoder_s
             *cursor += 4;
             return;
         }
-        recorded_animation_apply_short_difference(&state->looking, delta);
-        recorded_animation_angle_to_vector(&control->looking_vector, &state->looking);
+        halo::cutscene::recorded_animation_apply_short_difference(&state->looking, delta);
+        halo::cutscene::recorded_animation_angle_to_vector(&control->looking_vector, &state->looking);
     }
     *cursor += 4;
 }
@@ -487,7 +463,7 @@ void CompressedCodec::decode_weapon_index_event(recorded_animation_decoder_state
 void LegacyCodec::begin(recorded_animation_decoder_state *state, unit_control_data *control, uint8_t **cursor, uint8_t version)
 {
     (void)state;
-    unit_control_data_unpack(control, cursor, version);
+    halo::cutscene::unit_control_data_unpack(control, cursor, version);
 }
 
 /**
@@ -740,7 +716,7 @@ void LegacyCodec::decode_weapon_index_event(unit_control_data *control, recorded
 
 }
 
-extern "C" {
+namespace halo::cutscene {
 
 void recorded_animation_angle_to_vector(real_vector3d *out, recorded_animation_angles *angles)
 {

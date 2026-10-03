@@ -6,6 +6,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/cutscene/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -20,7 +21,6 @@ extern void team_pair_overrides_tick(void);
 extern void game_engine_tick(void);
 extern void hs_runtime_update(void);
 extern void ai_tick_dispatcher(void);
-extern void recorded_animations_update(void);
 extern void game_engine_players_update_server(void);
 extern void game_engine_players_update_client(void);
 extern void main_switch_structure_bsp(void);
@@ -152,7 +152,7 @@ after_role_update:
 
     game_engine_tick();
     hs_runtime_update();
-    recorded_animations_update();
+    halo::cutscene::recorded_animations_update();
     objects_update();
     main_switch_structure_bsp();
     hud_update_dispatch();

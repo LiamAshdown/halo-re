@@ -3,6 +3,7 @@
 #include "objects.h"
 #include "units.h"
 #include "cutscene.h"
+#include "halo/cutscene/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -13,8 +14,6 @@ extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t param
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern void player_update_history_play_local_player(int32_t target_update_id);
 extern uint8_t playback_requested_00719768;
-extern recorded_animation *recorded_animation_find_by_object(datum_index unit_index, datum_index *out_index);
-extern uint8_t recorded_animation_start(datum_index unit_index, int16_t scenario_animation_index, uint16_t extra_flags);
 #ifdef __cplusplus
 }
 #endif
@@ -64,7 +63,7 @@ void RecordingCommands::evaluate_recording_kill(int16_t function_index, uint32_t
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    uint8_t *recording = (uint8_t *)recorded_animation_find_by_object((datum_index)arguments[0], 0);
+    uint8_t *recording = (uint8_t *)halo::cutscene::recorded_animation_find_by_object((datum_index)arguments[0], 0);
 
     if (recording != 0) {
         recording[0xa] |= 3;
@@ -86,7 +85,7 @@ void RecordingCommands::evaluate_recording_play(int16_t function_index, uint32_t
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)recorded_animation_start((datum_index)arguments[0], *(int16_t *)&arguments[1], 0), thread_index);
+    hs_thread_return((int32_t)halo::cutscene::recorded_animation_start((datum_index)arguments[0], *(int16_t *)&arguments[1], 0), thread_index);
     }
 }
 
@@ -103,7 +102,7 @@ void RecordingCommands::evaluate_recording_play_and_delete(int16_t function_inde
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    hs_thread_return((int32_t)recorded_animation_start((datum_index)arguments[0], *(int16_t *)&arguments[1], 8), thread_index);
+    hs_thread_return((int32_t)halo::cutscene::recorded_animation_start((datum_index)arguments[0], *(int16_t *)&arguments[1], 8), thread_index);
     }
 }
 
@@ -120,7 +119,7 @@ void RecordingCommands::evaluate_recording_play_and_hover(int16_t function_index
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        uint8_t result = recorded_animation_start((datum_index)arguments[0], (int16_t)*(uint16_t *)&arguments[1], 0x10);
+        uint8_t result = halo::cutscene::recorded_animation_start((datum_index)arguments[0], (int16_t)*(uint16_t *)&arguments[1], 0x10);
         hs_thread_return((int32_t)result, thread_index);
     }
 }
@@ -139,7 +138,7 @@ void RecordingCommands::evaluate_recording_time(int16_t function_index, uint32_t
 
     if (arguments != 0) {
     datum_index unit = (datum_index)arguments[0];
-    uint8_t *recording = (uint8_t *)recorded_animation_find_by_object(unit, 0);
+    uint8_t *recording = (uint8_t *)halo::cutscene::recorded_animation_find_by_object(unit, 0);
     uint16_t ticks = 0;
 
     if (recording != 0 && *(datum_index *)(recording + 4) == unit) {

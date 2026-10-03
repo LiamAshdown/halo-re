@@ -1,5 +1,6 @@
 #include "halo/hs/hs1_camera_commands.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/cutscene/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -19,12 +20,7 @@ extern void cinematic_screen_effect_set_convolution(int16_t convolution_type, in
 extern void cinematic_screen_effect_set_filter(float light_enhancement_lower, float light_enhancement_upper, float desaturation_lower, float desaturation_upper, uint8_t is_additive, float duration);
 extern uint8_t *cinematic_screen_effect_state;
 extern void cinematic_screen_effect_set_video(int16_t overbright_mode, float noise_intensity);
-extern void cutscene_title_queue(int16_t title_index, float delay_seconds);
-extern cinematic_globals *cinematic_globals_ptr;
 extern game_time_globals *game_time;
-extern float cinematic_saved_music_gain;
-extern void cutscene_start(void);
-extern void cutscene_stop(void);
 }
 
 namespace halo::hs {
@@ -331,7 +327,7 @@ void CinematicCommands::cinematic_set_title(int16_t function_index, uint32_t thr
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    cutscene_title_queue(*(int16_t *)&arguments[0], 0.0f);
+    halo::cutscene::cutscene_title_queue(*(int16_t *)&arguments[0], 0.0f);
     hs_thread_return(0, thread_index);
     }
 }
@@ -348,7 +344,7 @@ void CinematicCommands::cinematic_set_title_delayed(int16_t function_index, uint
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    cutscene_title_queue(*(int16_t *)&arguments[0], *(float *)&arguments[1]);
+    halo::cutscene::cutscene_title_queue(*(int16_t *)&arguments[0], *(float *)&arguments[1]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -367,9 +363,9 @@ void CinematicCommands::cinematic_show_letterbox(int16_t function_index, uint32_
     if (arguments != 0) {
     uint8_t show = *(uint8_t *)&arguments[0];
 
-    cinematic_globals_ptr->show_letterbox = show;
+    halo::cutscene::globals().cinematic_globals->show_letterbox = show;
     if (show) {
-        cinematic_globals_ptr->letterbox_last_tick = game_time->game_time;
+        halo::cutscene::globals().cinematic_globals->letterbox_last_tick = game_time->game_time;
     }
     hs_thread_return(0, thread_index);
     }
@@ -382,7 +378,7 @@ void CinematicCommands::cinematic_show_letterbox(int16_t function_index, uint32_
  */
 void CinematicCommands::cinematic_skip_start_internal(int16_t function_index, uint32_t thread_index, char first)
 {
-    cinematic_globals_ptr->skip_in_progress = 1;
+    halo::cutscene::globals().cinematic_globals->skip_in_progress = 1;
     hs_thread_return(0, thread_index);
 }
 
@@ -393,11 +389,11 @@ void CinematicCommands::cinematic_skip_start_internal(int16_t function_index, ui
  */
 void CinematicCommands::cinematic_skip_stop_internal(int16_t function_index, uint32_t thread_index, char first)
 {
-    if (!(cinematic_saved_music_gain == -1.0f)) {
-        halo::sound::sound_set_music_gain(cinematic_saved_music_gain);
-        cinematic_saved_music_gain = -1.0f;
+    if (!(halo::cutscene::globals().cinematic_saved_music_gain == -1.0f)) {
+        halo::sound::sound_set_music_gain(halo::cutscene::globals().cinematic_saved_music_gain);
+        halo::cutscene::globals().cinematic_saved_music_gain = -1.0f;
     }
-    cinematic_globals_ptr->skip_in_progress = 0;
+    halo::cutscene::globals().cinematic_globals->skip_in_progress = 0;
     hs_thread_return(0, thread_index);
 }
 
@@ -408,7 +404,7 @@ void CinematicCommands::cinematic_skip_stop_internal(int16_t function_index, uin
  */
 void CinematicCommands::cinematic_start(int16_t function_index, uint32_t thread_index, char first)
 {
-    cutscene_start();
+    halo::cutscene::cutscene_start();
     hs_thread_return(0, thread_index);
 }
 
@@ -419,7 +415,7 @@ void CinematicCommands::cinematic_start(int16_t function_index, uint32_t thread_
  */
 void CinematicCommands::cinematic_stop(int16_t function_index, uint32_t thread_index, char first)
 {
-    cutscene_stop();
+    halo::cutscene::cutscene_stop();
     hs_thread_return(0, thread_index);
 }
 
@@ -435,7 +431,7 @@ void CinematicCommands::cinematic_suppress_bsp_object_creation(int16_t function_
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    cinematic_globals_ptr->suppress_bsp_object_creation = *(uint8_t *)&arguments[0];
+    halo::cutscene::globals().cinematic_globals->suppress_bsp_object_creation = *(uint8_t *)&arguments[0];
     hs_thread_return(0, thread_index);
     }
 }

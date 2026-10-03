@@ -18,6 +18,7 @@
 #include "halo/interface/uis_screens.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cutscene/api.hpp"
 
 extern "C" {
 extern void widget_extended_description_sync_selection(widget_instance *widget);
@@ -48,7 +49,6 @@ extern void interface_update_for_resolution_change(int32_t new_cursor_x, int32_t
 extern int32_t __ftol(double x);
 extern game_engine_definition *current_game_engine;
 extern game_engine_state game_engine_state_value;
-extern cinematic_globals *cinematic_globals_ptr;
 extern uint8_t widget_memory_pool_valid;
 extern widget_instance *ui_root_widget[1];
 extern player_globals *local_player_globals;
@@ -197,7 +197,7 @@ void UiScreens::error_modal_update(void)
     int16_t player_count_field;
 
     if ((current_game_engine == (void *)0 || (int32_t)game_engine_state_value < 2 || (int32_t)game_engine_state_value > 3) &&
-        cinematic_globals_ptr->in_progress == 0) {
+        halo::cutscene::globals().cinematic_globals->in_progress == 0) {
         if (widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0) {
             strstr(ui_root_widget[0]->name, "error_modal");
         }

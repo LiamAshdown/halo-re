@@ -2,14 +2,13 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/flags.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cutscene/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
 extern data_array *recorded_animations;
 extern data_array *object_data;
 extern recorded_animation_codec *recorded_animation_codecs_by_version[4];
-extern recorded_animation *recorded_animation_find_by_object(datum_index unit_index, datum_index *out_index);
-extern uint8_t recorded_animation_object_is_playing(datum_index unit_index);
 extern int32_t player_index_from_unit_index(uint32_t unit_index);
 extern void unit_refresh_targeting_flag_and_weapons(datum_index unit_handle, uint8_t attaching);
 extern uint8_t unit_get_flag_bit6(datum_index unit_index);
@@ -19,9 +18,6 @@ extern void unit_apply_control_block(uint32_t unit_index, const unit_control_dat
 extern char hs_object_hierarchy_test(datum_index object_index);
 extern void object_delete(datum_index object_index);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
-uint8_t recorded_animation_start(datum_index unit_index, int16_t scenario_animation_index, uint16_t extra_flags);
-int16_t recorded_animation_find_by_name(const char *name, Scenario *scenario);
-void recorded_animations_update(void);
 }
 
 namespace halo::cutscene {
@@ -58,10 +54,10 @@ uint8_t RecordedAnimationPlayer::start(int16_t scenario_animation_index, uint16_
     }
 
     player_index_from_unit_index((uint32_t)unit_index);
-    record = recorded_animation_find_by_object(unit_index, &existing_index);
+    record = halo::cutscene::recorded_animation_find_by_object(unit_index, &existing_index);
     def = (ScenarioRecordedAnimation *)global_scenario->recorded_animations.pointer + scenario_animation_index;
 
-    if (recorded_animation_object_is_playing(unit_index) != 0) {
+    if (halo::cutscene::recorded_animation_object_is_playing(unit_index) != 0) {
         return 0;
     }
 
@@ -293,7 +289,7 @@ void RecordedAnimationPlayer::update_all()
 
 }
 
-extern "C" {
+namespace halo::cutscene {
 
 uint8_t recorded_animation_start(datum_index unit_index, int16_t scenario_animation_index, uint16_t extra_flags)
 {

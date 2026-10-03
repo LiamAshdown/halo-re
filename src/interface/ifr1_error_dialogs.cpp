@@ -1,8 +1,8 @@
 #include "halo/interface/ifr1_error_dialogs.hpp"
 #include "halo/interface/engine_state.hpp"
+#include "halo/cutscene/api.hpp"
 
 extern "C" {
-extern cinematic_globals *cinematic_globals_ptr;
 extern ui_pending_error ui_pending_errors[4];
 extern player_globals *local_player_globals;
 extern uint8_t ui_split_screen;
@@ -36,7 +36,7 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
     datum_index history_source;
     widget_instance *dialog;
 
-    if (cinematic_globals_ptr->in_progress != 0) {
+    if (halo::cutscene::globals().cinematic_globals->in_progress != 0) {
         int32_t index = (slot == -1) ? 0 : slot;
 
         if (ui_pending_errors[index].error_string_index != -1) {

@@ -7,6 +7,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/cutscene/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -45,7 +46,6 @@ extern int16_t animation_choose_random_permutation(datum_index animation_graph_t
 extern double sqrt(double x);
 extern uint8_t DAT_0087abc3;
 extern void actor_squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_object_index, datum_index other_object_index);
-extern uint8_t recorded_animation_object_is_playing(datum_index unit_index);
 extern int32_t unit_get_local_player_weapon_index(datum_index unit);
 extern void local_player_set_controlled_unit(datum_index new_unit, int16_t local_player_index);
 }
@@ -857,7 +857,7 @@ void biped_update_target_lock_timer(datum_index target, uint32_t object_index)
     }
     target_obj = ((object_header *)object_data->data)[target & 0xffff].data;
     actor_squad_react_to_grenade_for_vehicle_occupants(target, object_index);
-    if (unit->controlling_player == k_datum_index_none && !recorded_animation_object_is_playing(object_index)) {
+    if (unit->controlling_player == k_datum_index_none && !halo::cutscene::recorded_animation_object_is_playing(object_index)) {
         return;
     }
     if (biped->bump_object_index != target) {

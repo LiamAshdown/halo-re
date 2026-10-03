@@ -10,12 +10,12 @@
 #include "halo/input/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/cutscene/api.hpp"
 
 extern "C" {
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern int32_t animation_state_advance(uint32_t animation_graph_tag_index, void *state, int32_t *sound_tag_id, int32_t random_stream);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern cinematic_globals *cinematic_globals_ptr;
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
 extern game_engine_definition *current_game_engine;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
@@ -178,7 +178,7 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
  */
 void halo::objects::ObjectFactory::place_for_structure_bsp_on_activate()
 {
-    if (cinematic_globals_ptr->in_progress == 0 || cinematic_globals_ptr->suppress_bsp_object_creation == 0) {
+    if (halo::cutscene::globals().cinematic_globals->in_progress == 0 || halo::cutscene::globals().cinematic_globals->suppress_bsp_object_creation == 0) {
         scenario_objects_place_for_structure_bsp(1);
     }
 }

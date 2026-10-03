@@ -2,9 +2,9 @@
 #include <string.h>
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cutscene/api.hpp"
 
 extern "C" {
-extern cinematic_globals *cinematic_globals_ptr;
 extern player_globals *local_player_globals;
 extern HUDGlobals *hud_messaging_parameters;
 extern HUDGlobals *hud_globals_tag_data;
@@ -116,7 +116,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
     uint8_t action_shown;
     int32_t now;
 
-    if (cinematic_globals_ptr->in_progress != 0 || local_player_index == -1) {
+    if (halo::cutscene::globals().cinematic_globals->in_progress != 0 || local_player_index == -1) {
         return;
     }
     player_index = local_player_index < 1 ? local_player_globals->local_players[local_player_index]

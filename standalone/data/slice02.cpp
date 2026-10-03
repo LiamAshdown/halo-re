@@ -7,6 +7,7 @@
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "tables.h"
 #include "code_refs.hpp"
+#include "halo/cutscene/api.hpp"
 #include "halo/sound/api.hpp"
 #include <stdint.h>
 
@@ -497,53 +498,53 @@ float cinematic_saved_music_gain = -1.0f;
 void *recorded_animation_compressed_event_handlers[23] = {
     0,
     0,
-    (void *)recorded_animation_decode_animation_state_event,
-    (void *)recorded_animation_decode_aiming_speed_event,
-    (void *)recorded_animation_decode_control_flags_event,
-    (void *)recorded_animation_decode_weapon_index_event,
-    (void *)recorded_animation_decode_throttle_event,
-    (void *)recorded_animation_decode_char_difference_event,
-    (void *)recorded_animation_decode_char_difference_event,
-    (void *)recorded_animation_decode_char_difference_event,
-    (void *)recorded_animation_decode_char_difference_event,
-    (void *)recorded_animation_decode_char_difference_event,
-    (void *)recorded_animation_decode_char_difference_event,
-    (void *)recorded_animation_decode_char_difference_event,
-    (void *)recorded_animation_decode_char_difference_event,
-    (void *)recorded_animation_decode_short_difference_event,
-    (void *)recorded_animation_decode_short_difference_event,
-    (void *)recorded_animation_decode_short_difference_event,
-    (void *)recorded_animation_decode_short_difference_event,
-    (void *)recorded_animation_decode_short_difference_event,
-    (void *)recorded_animation_decode_short_difference_event,
-    (void *)recorded_animation_decode_short_difference_event,
-    (void *)recorded_animation_decode_short_difference_event
+    (void *)&halo::cutscene::recorded_animation_decode_animation_state_event,
+    (void *)&halo::cutscene::recorded_animation_decode_aiming_speed_event,
+    (void *)&halo::cutscene::recorded_animation_decode_control_flags_event,
+    (void *)&halo::cutscene::recorded_animation_decode_weapon_index_event,
+    (void *)&halo::cutscene::recorded_animation_decode_throttle_event,
+    (void *)&halo::cutscene::recorded_animation_decode_char_difference_event,
+    (void *)&halo::cutscene::recorded_animation_decode_char_difference_event,
+    (void *)&halo::cutscene::recorded_animation_decode_char_difference_event,
+    (void *)&halo::cutscene::recorded_animation_decode_char_difference_event,
+    (void *)&halo::cutscene::recorded_animation_decode_char_difference_event,
+    (void *)&halo::cutscene::recorded_animation_decode_char_difference_event,
+    (void *)&halo::cutscene::recorded_animation_decode_char_difference_event,
+    (void *)&halo::cutscene::recorded_animation_decode_char_difference_event,
+    (void *)&halo::cutscene::recorded_animation_decode_short_difference_event,
+    (void *)&halo::cutscene::recorded_animation_decode_short_difference_event,
+    (void *)&halo::cutscene::recorded_animation_decode_short_difference_event,
+    (void *)&halo::cutscene::recorded_animation_decode_short_difference_event,
+    (void *)&halo::cutscene::recorded_animation_decode_short_difference_event,
+    (void *)&halo::cutscene::recorded_animation_decode_short_difference_event,
+    (void *)&halo::cutscene::recorded_animation_decode_short_difference_event,
+    (void *)&halo::cutscene::recorded_animation_decode_short_difference_event
 };
 /* 0x00686ea8 */
 void *recorded_animation_v1_event_handlers[23] = {
     0,
     0,
-    (void *)recorded_animation_decode_animation_state_event_v1,
-    (void *)recorded_animation_decode_aiming_speed_event_v1,
-    (void *)recorded_animation_decode_control_flags_event_v1,
-    (void *)recorded_animation_decode_weapon_index_event_v1,
-    (void *)recorded_animation_decode_throttle_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_animation_state_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_aiming_speed_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_control_flags_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_weapon_index_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_throttle_event_v1,
     0,
     0,
-    (void *)recorded_animation_decode_facing_vector_event_v1,
-    (void *)recorded_animation_decode_aiming_vector_event_v1,
-    (void *)recorded_animation_decode_looking_vector_event_v1,
-    (void *)recorded_animation_decode_multi_vector_event_v1,
-    (void *)recorded_animation_decode_multi_vector_event_v1,
-    (void *)recorded_animation_decode_multi_vector_event_v1,
-    (void *)recorded_animation_decode_multi_vector_event_v1,
-    (void *)recorded_animation_decode_angle_vector_event_v1,
-    (void *)recorded_animation_decode_angle_vector_event_v1,
-    (void *)recorded_animation_decode_angle_vector_event_v1,
-    (void *)recorded_animation_decode_angle_vector_event_v1,
-    (void *)recorded_animation_decode_angle_vector_event_v1,
-    (void *)recorded_animation_decode_angle_vector_event_v1,
-    (void *)recorded_animation_decode_angle_vector_event_v1
+    (void *)&halo::cutscene::recorded_animation_decode_facing_vector_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_aiming_vector_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_looking_vector_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_multi_vector_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_multi_vector_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_multi_vector_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_multi_vector_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_angle_vector_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_angle_vector_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_angle_vector_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_angle_vector_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_angle_vector_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_angle_vector_event_v1,
+    (void *)&halo::cutscene::recorded_animation_decode_angle_vector_event_v1
 };
 /* 0x00687004 */
 uint8_t decals_enabled = 0x1;

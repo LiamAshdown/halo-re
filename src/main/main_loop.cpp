@@ -27,6 +27,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cutscene/api.hpp"
 
 extern "C" { void game_engine_flush_pending_simulation_ticks(void); }
 extern "C" { uint32_t game_frame_rate_average_update(void); }
@@ -38,7 +39,6 @@ extern "C" { void main_menu_return_and_reset(void); }
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern game_time_globals *game_time; }
-extern "C" { extern cinematic_globals *cinematic_globals_ptr; }
 extern "C" { extern void game_engine_advance_simulation_ticks(float dt); }
 namespace halo::main {
 
@@ -52,7 +52,7 @@ namespace halo::main {
  */
 void MainLoop::engine_flush_pending_simulation_ticks(void)
 {
-    if (main_globals_data.skip_tick_count != 0 && cinematic_globals_ptr->in_progress != 0) {
+    if (main_globals_data.skip_tick_count != 0 && halo::cutscene::globals().cinematic_globals->in_progress != 0) {
         float saved_speed = (main_globals_data.game_connection == 1 || main_globals_data.game_connection == 2)
                                  ? 1.0f
                                  : game_time->speed;
@@ -423,7 +423,7 @@ void MainLoop::loop(void)
             campaign_level_advance();
         }
         if (main_globals_data.respawn_coop_players != 0 && game_time->paused == 0 &&
-            cinematic_globals_ptr->in_progress == 0) {
+            halo::cutscene::globals().cinematic_globals->in_progress == 0) {
             previous_frames = main_globals_data.respawn_coop_frames;
             main_globals_data.respawn_coop_frames = (int16_t)(previous_frames + 1);
             if (previous_frames > k_main_respawn_delay_frames &&
@@ -450,7 +450,7 @@ void MainLoop::loop(void)
             main_globals_data.revert_map = 0;
         }
         if (main_globals_data.revert_map_if_allowed != 0) {
-            if (game_state_write_in_progress == 0 && cinematic_globals_ptr->skip_in_progress != 0) {
+            if (game_state_write_in_progress == 0 && halo::cutscene::globals().cinematic_globals->skip_in_progress != 0) {
                 game_state_perform_revert();
                 ui_pause_pending_count_00718fa0 = 0x1e;
                 main_globals_data.revert_map = 0;
@@ -591,7 +591,7 @@ void MainLoop::loop(void)
             main_globals_data.last_activity_time_ms =
                 (int32_t)((counter * 1000) / performance_frequency);
         } else if (game_time->initialized != 0 && (game_time->active != 0 || game_time->paused != 0) &&
-                   game_time->paused == 0 && cinematic_globals_ptr->in_progress != 0) {
+                   game_time->paused == 0 && halo::cutscene::globals().cinematic_globals->in_progress != 0) {
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             main_globals_data.last_gameplay_time_ms =
                 (int32_t)((counter * 1000) / performance_frequency);
@@ -812,7 +812,7 @@ void MainLoop::loop_frame_pacer(void)
     float delta;
 
     pacing = (game_time_force_single_tick == 0 &&
-              (unknown_006894ba != 0 || cinematic_globals_ptr->in_progress != 0))
+              (unknown_006894ba != 0 || halo::cutscene::globals().cinematic_globals->in_progress != 0))
                  ? 1
                  : 0;
 
@@ -840,7 +840,7 @@ void MainLoop::loop_frame_pacer(void)
             elapsed_seconds = 0.0;
         }
 
-        if (main_globals_data.game_connection != 0 || cinematic_globals_ptr->in_progress != 0) {
+        if (main_globals_data.game_connection != 0 || halo::cutscene::globals().cinematic_globals->in_progress != 0) {
             goto apply;
         }
         if (unknown_00710301 == 0) {
