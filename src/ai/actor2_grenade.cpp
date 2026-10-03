@@ -477,7 +477,6 @@ void ActorView::update_grenade_eligibility_state()
     using namespace actor_update_grenade_eligibility_state_local;
     actor *self;
     uint8_t eligible;
-    uint32_t buffer[12];
     int16_t out_a;
     int32_t out_b;
     int16_t result;
@@ -500,15 +499,14 @@ void ActorView::update_grenade_eligibility_state()
             out_b = -1;
             result = (int16_t)halo::units::unit_animation_change_priority_check(self->unit_index, 1, 1, 0, 0, &out_a, &out_b);
             if (0 < result) {
-                int i;
-                for (i = 0; i < 12; i++) {
-                    buffer[i] = 0;
-                }
-                *(int16_t *)((uint8_t *)buffer + 2) = (int16_t)out_a;
-                *((uint32_t *)((uint8_t *)buffer + 4)) = out_b;
-                *(int16_t *)buffer = 1;
-                halo::ai::ai_communication_target_result_reset((ai_communication_target_result *)((uint8_t *)buffer + 0x10));
-                halo::units::unit_commit_speech(self->unit_index, (const unit_speech *)buffer, result);
+                unit_speech speech;
+
+                memset(&speech, 0, sizeof(speech));
+                speech.scream_type = (int16_t)out_a;
+                speech.sound_tag = (datum_index)out_b;
+                speech.priority = 1;
+                halo::ai::ai_communication_target_result_reset(&halo::ai::speech_target(speech));
+                halo::units::unit_commit_speech(self->unit_index, &speech, result);
             }
         }
     }

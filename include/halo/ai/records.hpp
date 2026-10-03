@@ -5,6 +5,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
@@ -76,6 +77,15 @@ inline object *object_at(uint32_t handle)
 inline object_header &object_header_at(uint32_t handle)
 {
     return static_cast<object_header *>(halo::objects::globals().object_data->data)[handle & k_slot_mask];
+}
+
+static_assert(sizeof(unit_speech) == 0x30);
+static_assert(offsetof(unit_speech, unknown_10) == 0x10);
+
+/** Returns the communication record that fills the second half of a unit_speech (offsets 0x10..0x2f). */
+inline ai_communication_target_result &speech_target(unit_speech &speech)
+{
+    return *reinterpret_cast<ai_communication_target_result *>(reinterpret_cast<uint8_t *>(&speech) + offsetof(unit_speech, unknown_10));
 }
 
 /** Returns the datum handle of the tag a tag-reference field names. */

@@ -291,21 +291,22 @@ uint8_t ConversationView::current_line_is_ready()
                     return inst->line_finished;
                 }
                 if (result > 0) {
-                    uint8_t speech[0x30];
+                    unit_speech speech;
+                    ai_communication_target_result &target = halo::ai::speech_target(speech);
 
-                    memset(speech, 0, sizeof(speech));
-                    *(int16_t *)(speech + 0x0) = 6;
-                    *(int16_t *)(speech + 0x2) = -1;
-                    *(datum_index *)(speech + 0x4) = sound;
-                    *(datum_index *)(speech + 0x10) = inst->addressee_unit_index;
-                    *(int16_t *)(speech + 0x14) = -1;
-                    *(int16_t *)(speech + 0x18) = -1;
-                    *(int16_t *)(speech + 0x16) = -1;
-                    *(int16_t *)(speech + 0x1c) = 1;
-                    *(int16_t *)(speech + 0x1e) = 1;
-                    *(datum_index *)(speech + 0x20) = static_cast<datum_index>(inst->speaker_unit_index);
-                    *(int16_t *)(speech + 0x24) = 0;
-                    halo::units::unit_commit_speech(static_cast<datum_index>(inst->speaker_unit_index), (const unit_speech *)speech, result);
+                    memset(&speech, 0, sizeof(speech));
+                    speech.priority = 6;
+                    speech.scream_type = -1;
+                    speech.sound_tag = sound;
+                    target.target = inst->addressee_unit_index;
+                    target.event = -1;
+                    target.row = -1;
+                    target.object_b = -1;
+                    target.look_marker = 1;
+                    target.look_kind = 1;
+                    target.look_object = static_cast<datum_index>(inst->speaker_unit_index);
+                    target.tag_value = 0;
+                    halo::units::unit_commit_speech(static_cast<datum_index>(inst->speaker_unit_index), &speech, result);
                 }
             } else {
                 halo::sound::sound_impulse_start(k_datum_index_none, sound, 1.0f);

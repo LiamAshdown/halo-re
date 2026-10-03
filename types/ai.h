@@ -2354,14 +2354,23 @@ typedef struct ai_communication_order {
 } ai_communication_order; // size 0x20
 
 // The 0x20-byte block ai_communication_target_result_reset @0x42d2c0 clears.
+// The 0x20 byte record that follows the 0x10 byte header of a unit_speech (the line a unit is about to say and who it is about):
+// the communication builders fill it, ai_communication_target_result_reset clears it.
 typedef struct ai_communication_target_result {
-    datum_index target;       // 0x00 set to none
-    int16_t unknown_04;       // 0x04 set to -1
-    int16_t unknown_06;       // 0x06 set to -1
-    int16_t unknown_08;       // 0x08 set to -1
-    int16_t unknown_0a;       // 0x0a left zeroed
-    uint8_t unknown_0c[20];   // 0x0c left zeroed
+    datum_index target;       // 0x00 the object the line is about, none when unset
+    int16_t event;            // 0x04 the communication event, -1 when unset
+    int16_t row;              // 0x06 the event definition row, -1 when unset
+    int16_t object_b;         // 0x08 second event object, -1 when unset
+    uint8_t valid;            // 0x0a 1 once a builder filled the record
+    uint8_t unknown_0b;       // 0x0b
+    int16_t look_marker;      // 0x0c marker the listeners look at
+    int16_t look_kind;        // 0x0e 1 object, 2 danger
+    datum_index look_object;  // 0x10 the object the listeners look at
+    int16_t tag_value;        // 0x14 third event object, 0 when none
+    uint8_t unknown_16[2];    // 0x16
+    uint32_t extra_data[2];   // 0x18 the two extra words of the event, copied through
 } ai_communication_target_result; // size 0x20
+typedef char ai_communication_target_result_size[sizeof(ai_communication_target_result) == 0x20 ? 1 : -1];
 
 // The record ai_communication_gate_line_played @0x42cfe0 inspects.
 typedef struct ai_communication_record {

@@ -747,7 +747,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
     }
     {
         broadcast_candidate *chosen = &candidates[0];
-        uint8_t header[0x20];
+        ai_communication_target_result header;
         int16_t tag_value;
 
         if (count > 1) {
@@ -767,43 +767,43 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             chosen = &candidates[i];
         }
 
-        memset(header, 0, sizeof(header));
-        *(datum_index *)(header + 0x00) = chosen->other_object;
-        *(int16_t *)(header + 0x04) = event;
-        *(int16_t *)(header + 0x06) = chosen->row;
-        *(int16_t *)(header + 0x08) = (int16_t)object_b;
-        header[0x0a] = 1;
-        *(int16_t *)(header + 0x0c) = chosen->look_marker;
-        *(int16_t *)(header + 0x0e) = chosen->look_kind;
-        *(datum_index *)(header + 0x10) = chosen->look_object;
+        memset(&header, 0, sizeof(header));
+        header.target = chosen->other_object;
+        header.event = event;
+        header.row = chosen->row;
+        header.object_b = (int16_t)object_b;
+        header.valid = 1;
+        header.look_marker = chosen->look_marker;
+        header.look_kind = chosen->look_kind;
+        header.look_object = chosen->look_object;
         tag_value = (int16_t)object_c;
-        *(int16_t *)(header + 0x14) = tag_value == -1 ? 0 : tag_value;
+        header.tag_value = tag_value == -1 ? 0 : tag_value;
         if (extra_data != 0) {
-            *(uint32_t *)(header + 0x18) = extra_data[0];
-            *(uint32_t *)(header + 0x1c) = extra_data[1];
+            header.extra_data[0] = extra_data[0];
+            header.extra_data[1] = extra_data[1];
         }
 
         if (chosen->no_actor_speaker) {
-            halo::ai::ai_propagate_communication_reaction(chosen->speaker_unit, (ai_communication_order *)header);
+            halo::ai::ai_propagate_communication_reaction(chosen->speaker_unit, reinterpret_cast<ai_communication_order *>(&header));
             halo::ai::ai_communication_play_event_line(chosen->speaker_unit, chosen->dialogue_index, 1, chosen->target,
-                                             (uint32_t *)header);
+                                             reinterpret_cast<uint32_t *>(&header));
             return;
         }
 
         {
-            uint8_t speech[0x30];
+            unit_speech speech;
             datum_index speaker_unit = chosen->speaker_unit;
             datum_index other_object = chosen->other_object;
 
-            memset(speech, 0, sizeof(speech));
-            *(int16_t *)(speech + 0x00) = chosen->priority;
-            *(int16_t *)(speech + 0x02) = chosen->dialogue_index;
-            *(int32_t *)(speech + 0x04) = chosen->chain;
-            *(int16_t *)(speech + 0x08) = chosen->delay_ticks;
-            *(int16_t *)(speech + 0x0a) = chosen->lipsync_ticks;
-            *(int16_t *)(speech + 0x0c) = 0x18;
-            memcpy(speech + 0x10, header, 0x20);
-            halo::units::unit_commit_speech(speaker_unit, (unit_speech *)speech, chosen->check_result);
+            memset(&speech, 0, sizeof(speech));
+            speech.priority = chosen->priority;
+            speech.scream_type = chosen->dialogue_index;
+            speech.sound_tag = (datum_index)chosen->chain;
+            speech.delay_ticks = chosen->delay_ticks;
+            speech.lipsync_ticks = chosen->lipsync_ticks;
+            speech.tail_ticks = 0x18;
+            halo::ai::speech_target(speech) = header;
+            halo::units::unit_commit_speech(speaker_unit, &speech, chosen->check_result);
 
             if ((uint16_t)chosen->animation != halo::k_word_none) {
                 unit_object *object = (unit_object *)halo::ai::object_bytes(speaker_unit);
@@ -1092,21 +1092,25 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
         }
 
         {
-            uint8_t speech[0x30];
+            unit_speech speech;
 
-            memset(speech, 0, sizeof(speech));
-            *(int16_t *)(speech + 0x00) = priority;
-            *(int16_t *)(speech + 0x02) = dialogue_index;
-            *(int32_t *)(speech + 0x04) = chain;
-            *(int16_t *)(speech + 0x08) = delay;
-            *(int16_t *)(speech + 0x0a) = (int16_t)(int32_t)(ai_communication_class_tail_seconds[class_index] * 30.0f);
-            *(int16_t *)(speech + 0x0c) = 0x18;
-            *(datum_index *)(speech + 0x10) = object_index;
-            *(int16_t *)(speech + 0x14) = -1;
-            *(int16_t *)(speech + 0x16) = -1;
-            *(int16_t *)(speech + 0x18) = -1;
-            speech[0x1a] = 1;
-            halo::units::unit_commit_speech(speaker_unit, (unit_speech *)speech, (int16_t)status);
+            memset(&speech, 0, sizeof(speech));
+            speech.priority = priority;
+            speech.scream_type = dialogue_index;
+            speech.sound_tag = (datum_index)chain;
+            speech.delay_ticks = delay;
+            speech.lipsync_ticks = (int16_t)(int32_t)(ai_communication_class_tail_seconds[class_index] * 30.0f);
+            speech.tail_ticks = 0x18;
+            {
+                ai_communication_target_result &target = halo::ai::speech_target(speech);
+
+                target.target = object_index;
+                target.event = -1;
+                target.row = -1;
+                target.object_b = -1;
+                target.valid = 1;
+            }
+            halo::units::unit_commit_speech(speaker_unit, &speech, (int16_t)status);
             halo::ai::ai_communication_record_line_played(speaker_unit, priority, -1, (int16_t)row_index);
             halo::ai::actor_issue_order_or_vocalize(k_datum_index_none, speaker->unit.actor_index, object_index, 8,
                                           (int16_t)(uint16_t)ai_communication_class_follow_up[class_index]);
@@ -1683,15 +1687,11 @@ datum_index AiCommunication::select_speaker_in_reference(float radius, int16_t a
  */
 void AiCommunication::target_result_reset(ai_communication_target_result *record)
 {
-    uint8_t *bytes = (uint8_t *)record;
-    int32_t i;
-    for (i = 0; i < 0x20; i++) {
-        bytes[i] = 0;
-    }
+    memset(record, 0, sizeof(*record));
     record->target = (datum_index)k_datum_index_none;
-    record->unknown_04 = -1;
-    record->unknown_06 = -1;
-    record->unknown_08 = -1;
+    record->event = -1;
+    record->row = -1;
+    record->object_b = -1;
 }
 
 namespace {

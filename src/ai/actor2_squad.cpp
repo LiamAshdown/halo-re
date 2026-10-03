@@ -561,7 +561,7 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
         speech.priority = 6;
         speech.scream_type = dialogue;
         speech.sound_tag = (datum_index)chain;
-        halo::ai::ai_communication_target_result_reset((ai_communication_target_result *)((uint8_t *)&speech + 0x10));
+        halo::ai::ai_communication_target_result_reset(&halo::ai::speech_target(speech));
         halo::units::unit_commit_speech(check_object_index, &speech, (int16_t)mode);
         return 1;
     }
