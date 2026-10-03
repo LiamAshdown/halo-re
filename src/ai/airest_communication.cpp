@@ -942,7 +942,7 @@ void AiCommunication::initialize()
     for (i = 0; i < 0x38; i++) {
         header[i] = 0;
     }
-    strncpy((char *)dest, "ai conversation", 0x1f);
+    strncpy((char *)dest, halo::ai::k_ai_conversation_data_name, 0x1f);
     halo::ai::globals().conversation_data = (data_array *)dest;
     halo::ai::globals().conversation_data->maximum_count = 8;
     halo::ai::globals().conversation_data->size = 0x64;

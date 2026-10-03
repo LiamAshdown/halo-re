@@ -20,6 +20,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/ai/ai_constants.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
@@ -753,7 +754,7 @@ uint8_t ReferenceView::parse(char *reference_string, Scenario *scenario, uint32_
     uint32_t packed = halo::k_dword_none;
     char *slash;
 
-    if (_stricmp(reference_string, "none") == 0) {
+    if (_stricmp(reference_string, halo::ai::k_ai_reference_none) == 0) {
         *out_packed_reference = halo::k_dword_none;
         return 1;
     }

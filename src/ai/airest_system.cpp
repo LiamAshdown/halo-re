@@ -42,9 +42,9 @@ namespace halo::ai {
  */
 void AiSystem::actors_initialize()
 {
-    halo::ai::globals().actor_data = (data_array *)halo::saved_games::game_state_new(const_cast<char *>("actor"), k_actor_data_maximum_count, k_actor_size);
-    halo::ai::globals().swarm_data = (data_array *)halo::saved_games::game_state_new(const_cast<char *>("swarm"), k_swarm_data_maximum_count, k_swarm_size);
-    halo::ai::globals().swarm_component_data = (data_array *)halo::saved_games::game_state_new(const_cast<char *>("swarm component"), k_swarm_component_data_maximum_count, k_swarm_component_size);
+    halo::ai::globals().actor_data = (data_array *)halo::saved_games::game_state_new(const_cast<char *>(halo::ai::k_actor_data_name), k_actor_data_maximum_count, k_actor_size);
+    halo::ai::globals().swarm_data = (data_array *)halo::saved_games::game_state_new(const_cast<char *>(halo::ai::k_swarm_data_name), k_swarm_data_maximum_count, k_swarm_size);
+    halo::ai::globals().swarm_component_data = (data_array *)halo::saved_games::game_state_new(const_cast<char *>(halo::ai::k_swarm_component_data_name), k_swarm_component_data_maximum_count, k_swarm_component_size);
 }
 
 /**
