@@ -12,7 +12,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern void chimera__console_out(void *color, const char *format, ...);
 extern void (*hs_type_inspectors[])(int16_t type, int32_t value, char *buffer);
 extern void message_delta_metrics_dump(char *suffix);
@@ -47,7 +46,7 @@ namespace halo::hs {
  */
 void DebugCommands::evaluate_help(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -97,7 +96,7 @@ void DebugCommands::evaluate_inspect(int16_t function_index, uint32_t thread_ind
  */
 void DebugCommands::evaluate_list_count(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -120,7 +119,7 @@ void DebugCommands::evaluate_list_count(int16_t function_index, uint32_t thread_
  */
 void DebugCommands::evaluate_list_get(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -137,7 +136,7 @@ void DebugCommands::evaluate_list_get(int16_t function_index, uint32_t thread_in
  */
 void DebugCommands::evaluate_message_metrics_dump(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -167,7 +166,7 @@ void DebugCommands::evaluate_net_graph_clear(int16_t function_index, uint32_t th
  */
 void DebugCommands::evaluate_net_graph_show(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -184,7 +183,7 @@ void DebugCommands::evaluate_net_graph_show(int16_t function_index, uint32_t thr
  */
 void DebugCommands::evaluate_print(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -214,7 +213,7 @@ void DebugCommands::evaluate_print_binds(int16_t function_index, uint32_t thread
  */
 void DebugCommands::evaluate_rasterizer_fixed_function_ambient(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -254,7 +253,7 @@ void DebugCommands::evaluate_rasterizer_lights_reset_for_new_map(int16_t functio
  */
 void DebugCommands::evaluate_rasterizer_model_ambient_reflection_tint(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -277,7 +276,7 @@ void DebugCommands::evaluate_rasterizer_model_ambient_reflection_tint(int16_t fu
  */
 void DebugCommands::evaluate_render_lights(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -321,7 +320,7 @@ void DebugCommands::evaluate_script_recompile(int16_t function_index, uint32_t t
  */
 void DebugCommands::evaluate_script_screen_effect_set_value(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -343,7 +342,7 @@ void DebugCommands::evaluate_script_screen_effect_set_value(int16_t function_ind
  */
 void DebugCommands::evaluate_set_gamma(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 

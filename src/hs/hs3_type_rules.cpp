@@ -2,7 +2,6 @@
 #include "halo/hs/api.hpp"
 
 extern "C" {
-extern uint16_t hs_object_type_masks[6];
 extern int32_t (*hs_type_conversion_procedures[k_hs_type_count][k_hs_type_count])(int32_t value);
 }
 
@@ -85,8 +84,8 @@ char TypeRules::type_mask_is_subset(int16_t subtype_index, int16_t supertype_ind
 {
     uint16_t subtype_mask;
 
-    subtype_mask = hs_object_type_masks[subtype_index];
-    return (hs_object_type_masks[supertype_index] & subtype_mask) == subtype_mask;
+    subtype_mask = halo::hs::globals().object_type_masks[subtype_index];
+    return (halo::hs::globals().object_type_masks[supertype_index] & subtype_mask) == subtype_mask;
 }
 
 /**

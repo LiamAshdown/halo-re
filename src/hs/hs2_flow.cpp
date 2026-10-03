@@ -14,8 +14,6 @@ extern "C" {
 #endif
 extern data_array *hs_thread_data;
 extern int16_t hs_type_sizes[];
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
 extern game_time_globals *game_time;
 #ifdef __cplusplus
 }
@@ -165,7 +163,7 @@ void FlowCommands::evaluate_if(int16_t function_index, uint32_t thread_index, ch
  */
 void FlowCommands::evaluate_ignore_arguments(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -182,7 +180,7 @@ void FlowCommands::evaluate_ignore_arguments(int16_t function_index, uint32_t th
  */
 void FlowCommands::evaluate_not(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -312,7 +310,7 @@ void FlowCommands::evaluate_set(int16_t function_index, uint32_t thread_index, c
     reference = (hs_global_reference)variable->data.global_reference;
     index = reference & k_hs_global_index_mask;
     if ((reference & k_hs_global_builtin_bit) != 0) {
-        type = hs_global_definitions[index]->type;
+        type = halo::hs::globals().global_definitions[index]->type;
     } else {
         type = ((ScenarioGlobal *)halo::scenario::globals().scenario->globals.pointer)[index].type;
     }

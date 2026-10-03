@@ -9,7 +9,6 @@
 extern "C" {
 #endif
 extern uint8_t *player_control_globals_ptr;
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern long lrint(double x);
 #ifdef __cplusplus
 }
@@ -38,7 +37,7 @@ void PlayerCommands::evaluate_player_action_test_action(int16_t function_index, 
  */
 void PlayerCommands::evaluate_player_effect_start(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -62,7 +61,7 @@ void PlayerCommands::evaluate_player_effect_start(int16_t function_index, uint32
  */
 void PlayerCommands::evaluate_player_effect_stop(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 

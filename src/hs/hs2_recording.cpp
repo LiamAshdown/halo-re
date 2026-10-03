@@ -9,7 +9,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern void player_update_history_play_local_player(int32_t target_update_id);
 extern uint8_t playback_requested_00719768;
 #ifdef __cplusplus
@@ -26,7 +25,7 @@ namespace halo::hs {
  */
 void RecordingCommands::evaluate_play_update_history(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -56,7 +55,7 @@ void RecordingCommands::evaluate_playback(int16_t function_index, uint32_t threa
  */
 void RecordingCommands::evaluate_recording_kill(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -78,7 +77,7 @@ void RecordingCommands::evaluate_recording_kill(int16_t function_index, uint32_t
  */
 void RecordingCommands::evaluate_recording_play(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -95,7 +94,7 @@ void RecordingCommands::evaluate_recording_play(int16_t function_index, uint32_t
  */
 void RecordingCommands::evaluate_recording_play_and_delete(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -112,7 +111,7 @@ void RecordingCommands::evaluate_recording_play_and_delete(int16_t function_inde
  */
 void RecordingCommands::evaluate_recording_play_and_hover(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -130,7 +129,7 @@ void RecordingCommands::evaluate_recording_play_and_hover(int16_t function_index
  */
 void RecordingCommands::evaluate_recording_time(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 

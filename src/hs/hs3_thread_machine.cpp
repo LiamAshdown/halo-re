@@ -9,9 +9,7 @@
 #include "halo/hs/api.hpp"
 
 extern "C" {
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern game_time_globals *game_time;
-extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
 extern int32_t (*hs_type_conversion_procedures[k_hs_type_count][k_hs_type_count])(int32_t value);
 }
 
@@ -74,7 +72,7 @@ void ThreadMachine::evaluate_step(uint32_t thread_index) const
         first = saved_flags & 1;
 
         if ((node->flags & _hs_syntax_node_script_call_bit) == 0) {
-            definition = hs_function_definitions[node->index_union];
+            definition = halo::hs::globals().function_definitions[node->index_union];
             ((void (*)(int16_t, uint32_t, char))definition->evaluate)(node->index_union,
                 thread_index, first);
         } else {
@@ -237,7 +235,7 @@ void ThreadMachine::push(datum_index node, uint32_t thread_index, void *result_a
         reference = (hs_global_reference)syntax_node->data.global_reference;
         index = reference & k_hs_global_index_mask;
         if ((reference & k_hs_global_builtin_bit) != 0) {
-            source_type = hs_global_definitions[index]->type;
+            source_type = halo::hs::globals().global_definitions[index]->type;
         } else {
             source_type = ((ScenarioGlobal *)halo::scenario::globals().scenario->globals.pointer)[index].type;
         }
@@ -325,7 +323,7 @@ void ThreadMachine::return_value(int32_t value, uint32_t thread_index) const
     node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (frame->syntax_node & halo::k_slot_mask) * 0x14);
 
     if ((node->flags & _hs_syntax_node_script_call_bit) == 0) {
-        actual_type = hs_function_definitions[node->index_union]->return_type;
+        actual_type = halo::hs::globals().function_definitions[node->index_union]->return_type;
     } else {
         scripts = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer;
         actual_type = scripts[node->index_union].return_type;

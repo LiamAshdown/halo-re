@@ -11,13 +11,10 @@
 #include "halo/hs/api.hpp"
 
 extern "C" {
-extern char *hs_type_names[k_hs_type_count];
-extern char *hs_script_type_names[k_hs_script_type_count];
 extern uint8_t hs_syntax_data_dirty;
 extern uint8_t hs_compiling;
 extern uint8_t hs_compile_release_source;
 extern uint8_t hs_compiled_source_owned;
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 }
 
 namespace halo::hs {
@@ -61,7 +58,7 @@ char ScriptCompiler::add_global(datum_index node_index)
                     value_node = (hs_syntax_node *)((uint8_t *)nodes->data + (value_index & halo::k_slot_mask) * nodes->size);
                     if (value_node->next_node == k_datum_index_none) {
                         type_ordinal = halo::text::string_table_index_of(halo::hs::globals().compiled_source + type_node->source_offset,
-                                                     k_hs_type_count, (const char **)hs_type_names);
+                                                     k_hs_type_count, (const char **)halo::hs::globals().type_names);
                         if ((type_ordinal < 4) || (0x30 < type_ordinal)) {
                             halo::hs::globals().compile_error = (char *)"this is not a valid type.";
                             halo::hs::globals().compile_error_offset = type_node->source_offset;
@@ -139,7 +136,7 @@ char ScriptCompiler::add_script(datum_index node_index)
     }
     type_node = (hs_syntax_node *)((uint8_t *)nodes->data + (type_index & halo::k_slot_mask) * nodes->size);
     script_type = halo::text::string_table_index_of(halo::hs::globals().compiled_source + type_node->source_offset,
-                                k_hs_script_type_count, (const char **)hs_script_type_names);
+                                k_hs_script_type_count, (const char **)halo::hs::globals().script_type_names);
     if (script_type == -1) {
         halo::hs::globals().compile_error = (char *)"script type must be \"startup\", \"dormant\", \"continuous\", or \"static\".";
         halo::hs::globals().compile_error_offset = type_node->source_offset;
@@ -155,7 +152,7 @@ char ScriptCompiler::add_script(datum_index node_index)
         }
         return_type_node = (hs_syntax_node *)((uint8_t *)nodes->data + (return_type_index & halo::k_slot_mask) * nodes->size);
         return_type = halo::text::string_table_index_of(halo::hs::globals().compiled_source + return_type_node->source_offset,
-                                    k_hs_type_count, (const char **)hs_type_names);
+                                    k_hs_type_count, (const char **)halo::hs::globals().type_names);
         name_index = return_type_node->next_node;
         if ((return_type < 4) || (0x30 < return_type)) {
             halo::hs::globals().compile_error = (char *)"this is not a valid return type.";
@@ -585,7 +582,7 @@ char ScriptCompiler::compile_postprocess(char **error_message, int32_t *error_of
                 goto fail;
             }
             node->index_union = function_index;
-            node_type = hs_function_definitions[function_index]->return_type;
+            node_type = halo::hs::globals().function_definitions[function_index]->return_type;
             goto resolved;
         }
 

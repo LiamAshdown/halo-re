@@ -9,9 +9,12 @@
 
 
 
+
 struct TagReflexive;
 struct data_array;
 struct effect;
+struct hs_function_definition;
+struct hs_global_definition;
 struct hs_thread;
 typedef uint32_t datum_index;
 typedef datum_index object_list_iterator;
@@ -19,6 +22,13 @@ typedef int16_t hs_type_t;
 typedef uint16_t hs_global_reference;
 
 namespace halo::hs {
+
+/** Element counts of the definition and name tables the Globals struct references (checked against types/hs.h in hs_api.cpp). */
+inline constexpr int k_function_definition_count = 0x20a;
+inline constexpr int k_builtin_global_count = 0x1eb;
+inline constexpr int k_type_count = 0x31;
+inline constexpr int k_script_type_count = 5;
+inline constexpr int k_error_buffer_size = 0x100;
 
 /**
  * The engine globals the hs module owns (their storage is defined by standalone/data under the original link names);
@@ -41,6 +51,12 @@ struct Globals {
     uint8_t &postprocessing;
     uint8_t &blocking_forbidden;
     uint16_t &autocomplete_gametype_mask;
+    hs_function_definition *(&function_definitions)[k_function_definition_count];
+    hs_global_definition *(&global_definitions)[k_builtin_global_count];
+    char *(&type_names)[k_type_count];
+    char *(&script_type_names)[k_script_type_count];
+    uint16_t (&object_type_masks)[6];
+    char (&compile_error_buffer)[k_error_buffer_size];
 };
 
 Globals &globals();

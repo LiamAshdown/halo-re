@@ -4,9 +4,6 @@
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
 
-extern "C" {
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-}
 
 namespace halo::game {
 
@@ -17,7 +14,7 @@ namespace halo::game {
  */
 void HsPlayerFunctions::vehicle_gunner_evaluate(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -40,7 +37,7 @@ void HsPlayerFunctions::vehicle_gunner_evaluate(int16_t function_index, uint32_t
  */
 void HsPlayerFunctions::vehicle_test_seat_evaluate(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -107,7 +104,7 @@ void HsPlayerFunctions::examine_nearby_vehicle(int16_t index, uint32_t thread_in
  */
 void HsPlayerFunctions::set_action_result(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *args = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 

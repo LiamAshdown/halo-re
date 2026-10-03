@@ -5,9 +5,6 @@
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
 
-extern "C" {
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-}
 
 namespace halo::hs::part3 {
 
@@ -19,7 +16,7 @@ namespace halo::hs::part3 {
  */
 void VolumeCommands::evaluate_volume_teleport_players_not_inside(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -37,7 +34,7 @@ void VolumeCommands::evaluate_volume_teleport_players_not_inside(int16_t functio
  */
 void VolumeCommands::evaluate_volume_test_object(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -61,7 +58,7 @@ void VolumeCommands::evaluate_volume_test_object(int16_t function_index, uint32_
  */
 void VolumeCommands::evaluate_volume_test_objects(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -79,7 +76,7 @@ void VolumeCommands::evaluate_volume_test_objects(int16_t function_index, uint32
  */
 void VolumeCommands::evaluate_volume_test_objects_all(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 

@@ -3,7 +3,6 @@
 #include "halo/hs/api.hpp"
 
 extern "C" {
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern void *global_sound_effect_object;
 extern void *directsound_listener;
 extern float sound_listener_doppler_factor;
@@ -22,7 +21,7 @@ namespace halo::hs::part3 {
  */
 void SoundCommands::evaluate_sound_looping_set_scale(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -40,7 +39,7 @@ void SoundCommands::evaluate_sound_looping_set_scale(int16_t function_index, uin
  */
 void SoundCommands::evaluate_sound_looping_start(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -58,7 +57,7 @@ void SoundCommands::evaluate_sound_looping_start(int16_t function_index, uint32_
  */
 void SoundCommands::evaluate_sound_looping_stop(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -76,7 +75,7 @@ void SoundCommands::evaluate_sound_looping_stop(int16_t function_index, uint32_t
  */
 void SoundCommands::evaluate_sound_set_effects_gain(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -94,7 +93,7 @@ void SoundCommands::evaluate_sound_set_effects_gain(int16_t function_index, uint
  */
 void SoundCommands::evaluate_sound_set_env(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -114,7 +113,7 @@ void SoundCommands::evaluate_sound_set_env(int16_t function_index, uint32_t thre
  */
 void SoundCommands::evaluate_sound_set_factor(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -136,7 +135,7 @@ void SoundCommands::evaluate_sound_set_factor(int16_t function_index, uint32_t t
  */
 void SoundCommands::evaluate_sound_set_gain(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -158,7 +157,7 @@ void SoundCommands::evaluate_sound_set_gain(int16_t function_index, uint32_t thr
  */
 void SoundCommands::evaluate_sound_set_master_gain(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -176,7 +175,7 @@ void SoundCommands::evaluate_sound_set_master_gain(int16_t function_index, uint3
  */
 void SoundCommands::evaluate_sound_set_music_gain(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -194,7 +193,7 @@ void SoundCommands::evaluate_sound_set_music_gain(int16_t function_index, uint32
  */
 void SoundCommands::evaluate_sound_set_rolloff(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -216,7 +215,7 @@ void SoundCommands::evaluate_sound_set_rolloff(int16_t function_index, uint32_t 
  */
 void SoundCommands::evaluate_sound_set_supplementary_buffers(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 

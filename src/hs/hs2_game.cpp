@@ -17,7 +17,6 @@ extern "C" {
 extern network_client_globals *network_client;
 extern int16_t network_game_mode;
 extern void network_client_rejoin_check(int8_t machine_player_index);
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern uint8_t console_debug_flag_4;
 extern uint8_t *player_effect_globals_pointer;
 extern game_time_globals *game_time;
@@ -73,7 +72,7 @@ void GameCommands::evaluate_disconnect(int16_t function_index, uint32_t thread_i
  */
 void GameCommands::evaluate_error_overflow_suppression(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -91,7 +90,7 @@ void GameCommands::evaluate_error_overflow_suppression(int16_t function_index, u
  */
 void GameCommands::evaluate_fade_in(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -114,7 +113,7 @@ void GameCommands::evaluate_fade_in(int16_t function_index, uint32_t thread_inde
  */
 void GameCommands::evaluate_fade_out(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -137,7 +136,7 @@ void GameCommands::evaluate_fade_out(int16_t function_index, uint32_t thread_ind
  */
 void GameCommands::evaluate_fast_setup_network_server(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -193,7 +192,7 @@ void GameCommands::evaluate_game_difficulty_get_real(int16_t function_index, uin
  */
 void GameCommands::evaluate_game_difficulty_set(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -364,7 +363,7 @@ void GameCommands::evaluate_game_saving(int16_t function_index, uint32_t thread_
  */
 void GameCommands::evaluate_game_skip_ticks(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -387,7 +386,7 @@ void GameCommands::evaluate_game_skip_ticks(int16_t function_index, uint32_t thr
  */
 void GameCommands::evaluate_game_speed(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -405,7 +404,7 @@ void GameCommands::evaluate_game_speed(int16_t function_index, uint32_t thread_i
  */
 void GameCommands::evaluate_game_variant(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -450,7 +449,7 @@ void GameCommands::evaluate_garbage_collect_now(int16_t function_index, uint32_t
  */
 void GameCommands::evaluate_map_name(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -483,7 +482,7 @@ void GameCommands::evaluate_map_reset(int16_t function_index, uint32_t thread_in
  */
 void GameCommands::evaluate_multiplayer_map_name(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -501,7 +500,7 @@ void GameCommands::evaluate_multiplayer_map_name(int16_t function_index, uint32_
  */
 void GameCommands::evaluate_profile_load(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -570,7 +569,7 @@ void GameCommands::evaluate_rcon(int16_t function_index, uint32_t thread_index, 
  */
 void GameCommands::evaluate_remote_player_stats(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 

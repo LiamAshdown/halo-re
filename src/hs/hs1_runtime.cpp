@@ -5,9 +5,6 @@
 #include "halo/scenario/api.hpp"
 #include "halo/hs/api.hpp"
 
-extern "C" {
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-}
 
 namespace halo::hs {
 
@@ -101,7 +98,7 @@ void ScriptRuntime::doc(void)
     for (i = 0; i < k_hs_function_count; i = i + 1) {
         halo::hs::hs_format_function_signature(i, buffer);
         fprintf(file, "%s\r\n", buffer);
-        strcpy(buffer, hs_function_definitions[i]->info);
+        strcpy(buffer, halo::hs::globals().function_definitions[i]->info);
         fprintf(file, "%s\r\n\r\n", buffer);
     }
     fclose(file);

@@ -8,7 +8,6 @@
 #include "halo/hs/api.hpp"
 
 extern "C" {
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern void player_update_history_log_set_name_filter(char *name);
 extern uint8_t ui_widget_show_path_flag;
 }
@@ -34,7 +33,7 @@ void ScriptCommands::evaluate_structure_bsp_index(int16_t function_index, uint32
  */
 void ScriptCommands::evaluate_switch_bsp(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -52,7 +51,7 @@ void ScriptCommands::evaluate_switch_bsp(int16_t function_index, uint32_t thread
  */
 void ScriptCommands::evaluate_thread_sleep(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -70,7 +69,7 @@ void ScriptCommands::evaluate_thread_sleep(int16_t function_index, uint32_t thre
  */
 void ScriptCommands::evaluate_track_remote_player_position_updates(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -88,7 +87,7 @@ void ScriptCommands::evaluate_track_remote_player_position_updates(int16_t funct
  */
 void ScriptCommands::evaluate_ui_widget_show_path(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -106,7 +105,7 @@ void ScriptCommands::evaluate_ui_widget_show_path(int16_t function_index, uint32
  */
 void ScriptCommands::evaluate_unbind(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 

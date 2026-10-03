@@ -8,7 +8,6 @@
 #include "halo/hs/api.hpp"
 
 extern "C" {
-extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
 extern char *hs_empty_string;
 }
 
@@ -29,7 +28,7 @@ hs_global_reference GlobalTable::find_global_by_name(char *name) const
 
     index = 0;
     do {
-        if (_stricmp(name, hs_global_definitions[index]->name) == 0) {
+        if (_stricmp(name, halo::hs::globals().global_definitions[index]->name) == 0) {
             return (hs_global_reference)(index | k_hs_global_builtin_bit);
         }
         index = index + 1;
@@ -61,7 +60,7 @@ char *GlobalTable::get_name(hs_global_reference global) const
     ScenarioGlobal *scenario_global;
 
     if ((global & k_hs_global_builtin_bit) != 0) {
-        definition = hs_global_definitions[global & k_hs_global_index_mask];
+        definition = halo::hs::globals().global_definitions[global & k_hs_global_index_mask];
         return definition->name;
     }
     scenario_global = (ScenarioGlobal *)halo::scenario::globals().scenario->globals.pointer + (global & k_hs_global_index_mask);
@@ -80,7 +79,7 @@ hs_type_t GlobalTable::get_type(hs_global_reference global) const
     ScenarioGlobal *scenario_global;
 
     if ((global & k_hs_global_builtin_bit) != 0) {
-        definition = hs_global_definitions[global & k_hs_global_index_mask];
+        definition = halo::hs::globals().global_definitions[global & k_hs_global_index_mask];
         return definition->type;
     }
     scenario_global = (ScenarioGlobal *)halo::scenario::globals().scenario->globals.pointer + (global & k_hs_global_index_mask);
@@ -124,7 +123,7 @@ void GlobalTable::read_value(hs_global_reference reference) const
         return;
     }
 
-    definition = hs_global_definitions[reference & k_hs_global_index_mask];
+    definition = halo::hs::globals().global_definitions[reference & k_hs_global_index_mask];
     slot = (hs_global *)((uint8_t *)halo::hs::globals().globals_data->data +
         (reference & k_hs_global_index_mask) * 8);
 
@@ -175,7 +174,7 @@ void GlobalTable::write_value(hs_global_reference reference) const
         return;
     }
 
-    definition = hs_global_definitions[reference & k_hs_global_index_mask];
+    definition = halo::hs::globals().global_definitions[reference & k_hs_global_index_mask];
     slot = (hs_global *)((uint8_t *)halo::hs::globals().globals_data->data +
         (reference & k_hs_global_index_mask) * 8);
 

@@ -5,6 +5,12 @@
 #include "halo/hs/api.hpp"
 
 extern "C" {
+extern hs_function_definition *hs_function_definitions[k_hs_function_count];
+extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
+extern char *hs_type_names[k_hs_type_count];
+extern char *hs_script_type_names[k_hs_script_type_count];
+extern uint16_t hs_object_type_masks[6];
+extern char hs_compile_error_buffer[k_hs_error_buffer_size];
 extern data_array *hs_thread_data;
 extern data_array *hs_globals_data;
 extern data_array *hs_syntax_data;
@@ -25,9 +31,11 @@ extern uint16_t hs_autocomplete_gametype_mask;
 
 namespace halo::hs {
 
+static_assert(k_function_definition_count == k_hs_function_count && k_builtin_global_count == k_hs_builtin_global_count && k_type_count == k_hs_type_count && k_script_type_count == k_hs_script_type_count && k_error_buffer_size == k_hs_error_buffer_size);
+
 Globals &globals()
 {
-    static Globals instance{::hs_thread_data, ::hs_globals_data, ::hs_syntax_data, ::hs_runtime_active, ::hs_syntax_data_is_local, ::hs_current_thread_index, ::hs_compile_error_offset, ::hs_compile_error, ::hs_compiled_source, ::hs_compiled_source_length, ::hs_set_forbidden, ::hs_reload_pending, ::hs_preserve_token_case, ::hs_postprocessing, ::hs_blocking_forbidden, ::hs_autocomplete_gametype_mask};
+    static Globals instance{::hs_thread_data, ::hs_globals_data, ::hs_syntax_data, ::hs_runtime_active, ::hs_syntax_data_is_local, ::hs_current_thread_index, ::hs_compile_error_offset, ::hs_compile_error, ::hs_compiled_source, ::hs_compiled_source_length, ::hs_set_forbidden, ::hs_reload_pending, ::hs_preserve_token_case, ::hs_postprocessing, ::hs_blocking_forbidden, ::hs_autocomplete_gametype_mask, ::hs_function_definitions, ::hs_global_definitions, ::hs_type_names, ::hs_script_type_names, ::hs_object_type_masks, ::hs_compile_error_buffer};
     return instance;
 }
 

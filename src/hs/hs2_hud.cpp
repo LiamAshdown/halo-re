@@ -9,7 +9,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern void player_help_screen_select_by_name(int16_t value);
 extern uint8_t *hud_messaging;
 extern game_time_globals *game_time;
@@ -34,7 +33,7 @@ namespace halo::hs {
  */
 void HudCommands::evaluate_display_scenario_help(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -52,7 +51,7 @@ void HudCommands::evaluate_display_scenario_help(int16_t function_index, uint32_
  */
 void HudCommands::evaluate_enable_hud_help_flash(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -75,7 +74,7 @@ void HudCommands::evaluate_enable_hud_help_flash(int16_t function_index, uint32_
  */
 void HudCommands::evaluate_hud_blink_health(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -97,7 +96,7 @@ void HudCommands::evaluate_hud_blink_health(int16_t function_index, uint32_t thr
  */
 void HudCommands::evaluate_hud_blink_motion_sensor(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -119,7 +118,7 @@ void HudCommands::evaluate_hud_blink_motion_sensor(int16_t function_index, uint3
  */
 void HudCommands::evaluate_hud_blink_shield(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -195,7 +194,7 @@ void HudCommands::evaluate_hud_help_flash_restart(int16_t function_index, uint32
  */
 void HudCommands::evaluate_hud_set_help_text(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -213,7 +212,7 @@ void HudCommands::evaluate_hud_set_help_text(int16_t function_index, uint32_t th
  */
 void HudCommands::evaluate_hud_set_objective_text(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -231,7 +230,7 @@ void HudCommands::evaluate_hud_set_objective_text(int16_t function_index, uint32
  */
 void HudCommands::evaluate_hud_set_timer_position(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -253,7 +252,7 @@ void HudCommands::evaluate_hud_set_timer_position(int16_t function_index, uint32
  */
 void HudCommands::evaluate_hud_set_timer_time(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -271,7 +270,7 @@ void HudCommands::evaluate_hud_set_timer_time(int16_t function_index, uint32_t t
  */
 void HudCommands::evaluate_hud_show_crosshair(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -293,7 +292,7 @@ void HudCommands::evaluate_hud_show_crosshair(int16_t function_index, uint32_t t
  */
 void HudCommands::evaluate_hud_show_health(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -315,7 +314,7 @@ void HudCommands::evaluate_hud_show_health(int16_t function_index, uint32_t thre
  */
 void HudCommands::evaluate_hud_show_motion_sensor(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -337,7 +336,7 @@ void HudCommands::evaluate_hud_show_motion_sensor(int16_t function_index, uint32
  */
 void HudCommands::evaluate_hud_show_shield(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -359,7 +358,7 @@ void HudCommands::evaluate_hud_show_shield(int16_t function_index, uint32_t thre
  */
 void HudCommands::evaluate_numeric_countdown_timer_get(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -388,7 +387,7 @@ void HudCommands::evaluate_numeric_countdown_timer_restart(int16_t function_inde
  */
 void HudCommands::evaluate_numeric_countdown_timer_set(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -421,7 +420,7 @@ void HudCommands::evaluate_numeric_countdown_timer_stop(int16_t function_index, 
  */
 void HudCommands::evaluate_pause_hud_timer(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -439,7 +438,7 @@ void HudCommands::evaluate_pause_hud_timer(int16_t function_index, uint32_t thre
  */
 void HudCommands::evaluate_show_hud(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -459,7 +458,7 @@ void HudCommands::evaluate_show_hud(int16_t function_index, uint32_t thread_inde
  */
 void HudCommands::evaluate_show_hud_help_text(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -479,7 +478,7 @@ void HudCommands::evaluate_show_hud_help_text(int16_t function_index, uint32_t t
  */
 void HudCommands::evaluate_show_hud_timer(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 

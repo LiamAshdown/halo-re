@@ -14,7 +14,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern data_array *player_data;
 extern int16_t magic_seat_animation_state_0069fde0;
 extern int16_t hs_object_type_masks[];
@@ -32,7 +31,7 @@ namespace halo::hs {
  */
 void ObjectCommands::evaluate_effect_new(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -50,7 +49,7 @@ void ObjectCommands::evaluate_effect_new(int16_t function_index, uint32_t thread
  */
 void ObjectCommands::evaluate_effect_new_on_object_marker(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -82,7 +81,7 @@ void ObjectCommands::evaluate_magic_melee_attack(int16_t function_index, uint32_
  */
 void ObjectCommands::evaluate_magic_seat_name(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -100,7 +99,7 @@ void ObjectCommands::evaluate_magic_seat_name(int16_t function_index, uint32_t t
  */
 void ObjectCommands::evaluate_object_beautify(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -128,7 +127,7 @@ void ObjectCommands::evaluate_object_beautify(int16_t function_index, uint32_t t
  */
 void ObjectCommands::evaluate_object_can_take_damage(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -146,7 +145,7 @@ void ObjectCommands::evaluate_object_can_take_damage(int16_t function_index, uin
  */
 void ObjectCommands::evaluate_object_cannot_take_damage(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -198,7 +197,7 @@ void ObjectCommands::evaluate_object_cast(int16_t function_index, uint32_t threa
  */
 void ObjectCommands::evaluate_object_create(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -220,7 +219,7 @@ void ObjectCommands::evaluate_object_create(int16_t function_index, uint32_t thr
  */
 void ObjectCommands::evaluate_object_create_anew(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -238,7 +237,7 @@ void ObjectCommands::evaluate_object_create_anew(int16_t function_index, uint32_
  */
 void ObjectCommands::evaluate_object_create_anew_containing(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -256,7 +255,7 @@ void ObjectCommands::evaluate_object_create_anew_containing(int16_t function_ind
  */
 void ObjectCommands::evaluate_object_create_containing(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -274,7 +273,7 @@ void ObjectCommands::evaluate_object_create_containing(int16_t function_index, u
  */
 void ObjectCommands::evaluate_object_destroy(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -308,7 +307,7 @@ void ObjectCommands::evaluate_object_destroy_all(int16_t function_index, uint32_
  */
 void ObjectCommands::evaluate_object_destroy_containing(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -338,7 +337,7 @@ void ObjectCommands::evaluate_object_pvs_clear(int16_t function_index, uint32_t 
  */
 void ObjectCommands::evaluate_object_pvs_set_camera(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -356,7 +355,7 @@ void ObjectCommands::evaluate_object_pvs_set_camera(int16_t function_index, uint
  */
 void ObjectCommands::evaluate_object_pvs_set_object(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -381,7 +380,7 @@ void ObjectCommands::evaluate_object_pvs_set_object(int16_t function_index, uint
  */
 void ObjectCommands::evaluate_object_set_collideable(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -408,7 +407,7 @@ void ObjectCommands::evaluate_object_set_collideable(int16_t function_index, uin
  */
 void ObjectCommands::evaluate_object_set_facing(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -426,7 +425,7 @@ void ObjectCommands::evaluate_object_set_facing(int16_t function_index, uint32_t
  */
 void ObjectCommands::evaluate_object_set_melee_attack_inhibited(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -452,7 +451,7 @@ void ObjectCommands::evaluate_object_set_melee_attack_inhibited(int16_t function
  */
 void ObjectCommands::evaluate_object_set_permutation(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -470,7 +469,7 @@ void ObjectCommands::evaluate_object_set_permutation(int16_t function_index, uin
  */
 void ObjectCommands::evaluate_object_set_ranged_attack_inhibited(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -496,7 +495,7 @@ void ObjectCommands::evaluate_object_set_ranged_attack_inhibited(int16_t functio
  */
 void ObjectCommands::evaluate_object_set_scale(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -515,7 +514,7 @@ void ObjectCommands::evaluate_object_set_scale(int16_t function_index, uint32_t 
  */
 void ObjectCommands::evaluate_object_set_shield(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -533,7 +532,7 @@ void ObjectCommands::evaluate_object_set_shield(int16_t function_index, uint32_t
  */
 void ObjectCommands::evaluate_object_teleport(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -551,7 +550,7 @@ void ObjectCommands::evaluate_object_teleport(int16_t function_index, uint32_t t
  */
 void ObjectCommands::evaluate_object_type_predict(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -573,7 +572,7 @@ void ObjectCommands::evaluate_object_type_predict(int16_t function_index, uint32
  */
 void ObjectCommands::evaluate_objects_attach(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -598,7 +597,7 @@ void ObjectCommands::evaluate_objects_attach(int16_t function_index, uint32_t th
  */
 void ObjectCommands::evaluate_objects_can_see_flag(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -616,7 +615,7 @@ void ObjectCommands::evaluate_objects_can_see_flag(int16_t function_index, uint3
  */
 void ObjectCommands::evaluate_objects_can_see_object(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -634,7 +633,7 @@ void ObjectCommands::evaluate_objects_can_see_object(int16_t function_index, uin
  */
 void ObjectCommands::evaluate_objects_delete_by_definition(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -652,7 +651,7 @@ void ObjectCommands::evaluate_objects_delete_by_definition(int16_t function_inde
  */
 void ObjectCommands::evaluate_objects_detach(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -688,7 +687,7 @@ void ObjectCommands::evaluate_objects_dump_memory(int16_t function_index, uint32
  */
 void ObjectCommands::evaluate_objects_predict(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -706,7 +705,7 @@ void ObjectCommands::evaluate_objects_predict(int16_t function_index, uint32_t t
  */
 void ObjectCommands::evaluate_scenery_animation_start(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -724,7 +723,7 @@ void ObjectCommands::evaluate_scenery_animation_start(int16_t function_index, ui
  */
 void ObjectCommands::evaluate_scenery_animation_start_at_frame(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -743,7 +742,7 @@ void ObjectCommands::evaluate_scenery_animation_start_at_frame(int16_t function_
  */
 void ObjectCommands::evaluate_scenery_get_animation_time(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 

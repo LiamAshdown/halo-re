@@ -11,7 +11,6 @@ extern int16_t network_game_mode;
 extern uint8_t g_006f1d25;
 extern void game_engine_begin_end_game_sequence(void);
 extern void *global_white_argb;
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern void game_engine_find_player_by_name(char *source_name);
 extern void sv_kick(char *name_or_index);
 extern void sv_map(uint32_t argument_count, uint16_t **arguments);
@@ -96,7 +95,7 @@ void ServerCommands::evaluate_sv_end_game(int16_t function_index, uint32_t threa
  */
 void ServerCommands::evaluate_sv_get_player_action_queue_length(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -114,7 +113,7 @@ void ServerCommands::evaluate_sv_get_player_action_queue_length(int16_t function
  */
 void ServerCommands::evaluate_sv_kick(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -132,7 +131,7 @@ void ServerCommands::evaluate_sv_kick(int16_t function_index, uint32_t thread_in
  */
 void ServerCommands::evaluate_sv_map(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -186,7 +185,7 @@ void ServerCommands::evaluate_sv_mapcycle(int16_t function_index, uint32_t threa
  */
 void ServerCommands::evaluate_sv_mapcycle_add(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -216,7 +215,7 @@ void ServerCommands::evaluate_sv_mapcycle_begin(int16_t function_index, uint32_t
  */
 void ServerCommands::evaluate_sv_mapcycle_del(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -293,7 +292,7 @@ void ServerCommands::evaluate_sv_status(int16_t function_index, uint32_t thread_
  */
 void ServerCommands::evaluate_sv_unban(int16_t function_index, uint32_t thread_index, char first) const
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 

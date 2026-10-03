@@ -11,7 +11,6 @@
 #include "halo/hs/api.hpp"
 
 extern "C" {
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int16_t director_camera_mode;
 extern datum_index director_camera_target;
 extern float camera_script_time_remaining;
@@ -30,7 +29,7 @@ namespace halo::hs {
  */
 void CameraCommands::run_camera_control(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -47,7 +46,7 @@ void CameraCommands::run_camera_control(int16_t function_index, uint32_t thread_
  */
 void CameraCommands::camera_set(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -64,7 +63,7 @@ void CameraCommands::camera_set(int16_t function_index, uint32_t thread_index, c
  */
 void CameraCommands::camera_set_animation(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -81,7 +80,7 @@ void CameraCommands::camera_set_animation(int16_t function_index, uint32_t threa
  */
 void CameraCommands::camera_set_dead(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -102,7 +101,7 @@ void CameraCommands::camera_set_dead(int16_t function_index, uint32_t thread_ind
  */
 void CameraCommands::camera_set_first_person(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -123,7 +122,7 @@ void CameraCommands::camera_set_first_person(int16_t function_index, uint32_t th
  */
 void CameraCommands::camera_set_relative(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -185,7 +184,7 @@ void CinematicCommands::cinematic_abort(int16_t function_index, uint32_t thread_
  */
 void CinematicCommands::run_cinematic_screen_effect_set_convolution(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -204,7 +203,7 @@ void CinematicCommands::run_cinematic_screen_effect_set_convolution(int16_t func
  */
 void CinematicCommands::run_cinematic_screen_effect_set_filter(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -223,7 +222,7 @@ void CinematicCommands::run_cinematic_screen_effect_set_filter(int16_t function_
  */
 void CinematicCommands::cinematic_screen_effect_set_filter_desaturation_tint(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -244,7 +243,7 @@ void CinematicCommands::cinematic_screen_effect_set_filter_desaturation_tint(int
  */
 void CinematicCommands::run_cinematic_screen_effect_set_video(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -261,7 +260,7 @@ void CinematicCommands::run_cinematic_screen_effect_set_video(int16_t function_i
  */
 void CinematicCommands::cinematic_screen_effect_start(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -301,7 +300,7 @@ void CinematicCommands::cinematic_screen_effect_stop(int16_t function_index, uin
  */
 void CinematicCommands::cinematic_set_near_clip_distance(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -320,7 +319,7 @@ void CinematicCommands::cinematic_set_near_clip_distance(int16_t function_index,
  */
 void CinematicCommands::cinematic_set_title(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -337,7 +336,7 @@ void CinematicCommands::cinematic_set_title(int16_t function_index, uint32_t thr
  */
 void CinematicCommands::cinematic_set_title_delayed(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -354,7 +353,7 @@ void CinematicCommands::cinematic_set_title_delayed(int16_t function_index, uint
  */
 void CinematicCommands::cinematic_show_letterbox(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -424,7 +423,7 @@ void CinematicCommands::cinematic_stop(int16_t function_index, uint32_t thread_i
  */
 void CinematicCommands::cinematic_suppress_bsp_object_creation(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 

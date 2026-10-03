@@ -6,7 +6,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t input_device_count;
 extern uint8_t input_device_to_slot[];
 #ifdef __cplusplus
@@ -23,7 +22,7 @@ namespace halo::hs {
  */
 void InputDeviceCommands::evaluate_input_deactivate_joy(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 

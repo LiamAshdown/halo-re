@@ -8,9 +8,6 @@
 #include "halo/hs/api.hpp"
 
 extern "C" {
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern char *hs_type_names[k_hs_type_count];
-extern char hs_compile_error_buffer[k_hs_error_buffer_size];
 extern void chimera__console_out(char *text);
 }
 
@@ -32,7 +29,7 @@ int16_t FunctionTable::find_function_by_name(char *name) const
         name = (char *)"player_effect_set_max_vibrate";
     }
     for (index = 0; index < k_hs_function_count; index++) {
-        if (_stricmp(hs_function_definitions[index]->name, name) == 0) {
+        if (_stricmp(halo::hs::globals().function_definitions[index]->name, name) == 0) {
             return index;
         }
     }
@@ -51,7 +48,7 @@ void FunctionTable::format_function_signature(int16_t function_index, char *out)
     char *end;
     int16_t i;
 
-    def = hs_function_definitions[function_index];
+    def = halo::hs::globals().function_definitions[function_index];
     sprintf(out, "(%s", def->name);
     if (def->param_info != 0) {
         end = out + strlen(out);
@@ -59,7 +56,7 @@ void FunctionTable::format_function_signature(int16_t function_index, char *out)
     } else {
         for (i = 0; i < def->parameter_count; i = i + 1) {
             end = out + strlen(out);
-            sprintf(end, " <%s>", hs_type_names[def->parameters[i]]);
+            sprintf(end, " <%s>", halo::hs::globals().type_names[def->parameters[i]]);
         }
     }
     end = out + strlen(out);
@@ -90,8 +87,8 @@ char FunctionTable::get_parameter_indices(char *function_name, int16_t required_
         child = ((hs_syntax_node *)((uint8_t *)nodes->data + (child & halo::k_slot_mask) * nodes->size))->next_node;
     }
     if ((count != required_count) || (child != k_datum_index_none)) {
-        sprintf(hs_compile_error_buffer, "the %s call requires %d arguments.", function_name, (int)required_count);
-        halo::hs::globals().compile_error = hs_compile_error_buffer;
+        sprintf(halo::hs::globals().compile_error_buffer, "the %s call requires %d arguments.", function_name, (int)required_count);
+        halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
         halo::hs::globals().compile_error_offset = node->source_offset;
         success = 0;
     }
@@ -115,7 +112,7 @@ void FunctionTable::help_print_function(char *name) const
     if (function_index != -1) {
         halo::hs::hs_format_function_signature(function_index, buffer);
         chimera__console_out(buffer);
-        strcpy(buffer, hs_function_definitions[function_index]->info);
+        strcpy(buffer, halo::hs::globals().function_definitions[function_index]->info);
         newline = strchr(buffer, '\n');
         if (newline == 0) {
             chimera__console_out(buffer);

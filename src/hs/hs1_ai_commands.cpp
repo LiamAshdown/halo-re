@@ -7,7 +7,6 @@
 #include "halo/hs/api.hpp"
 
 extern "C" {
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern uint8_t team_pair_flag_test(int16_t team_a, int16_t team_b);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 extern uint32_t team_pair_override_remove(int16_t index_a, int16_t index_b);
@@ -23,7 +22,7 @@ namespace halo::hs {
  */
 void AiQueryCommands::ai(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -40,7 +39,7 @@ void AiQueryCommands::ai(int16_t function_index, uint32_t thread_index, char fir
  */
 void AiQueryCommands::actors(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -56,7 +55,7 @@ void AiQueryCommands::actors(int16_t function_index, uint32_t thread_index, char
  */
 void AiQueryCommands::is_attacking(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -72,7 +71,7 @@ void AiQueryCommands::is_attacking(int16_t function_index, uint32_t thread_index
  */
 void AiQueryCommands::living_count(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -88,7 +87,7 @@ void AiQueryCommands::living_count(int16_t function_index, uint32_t thread_index
  */
 void AiQueryCommands::living_fraction(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -111,7 +110,7 @@ void AiQueryCommands::living_fraction(int16_t function_index, uint32_t thread_in
  */
 void AiQueryCommands::nonswarm_count(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -128,7 +127,7 @@ void AiQueryCommands::nonswarm_count(int16_t function_index, uint32_t thread_ind
  */
 void AiQueryCommands::status(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -145,7 +144,7 @@ void AiQueryCommands::status(int16_t function_index, uint32_t thread_index, char
  */
 void AiQueryCommands::run_strength(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -164,7 +163,7 @@ void AiQueryCommands::run_strength(int16_t function_index, uint32_t thread_index
  */
 void AiQueryCommands::swarm_count(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -203,7 +202,7 @@ const ScriptCommandGroup &AiQueryCommands::commands()
  */
 void AiBehaviourCommands::allegiance(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -220,7 +219,7 @@ void AiBehaviourCommands::allegiance(int16_t function_index, uint32_t thread_ind
  */
 void AiBehaviourCommands::allegiance_broken(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -244,7 +243,7 @@ void AiBehaviourCommands::allegiance_broken(int16_t function_index, uint32_t thr
  */
 void AiBehaviourCommands::allegiance_remove(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -266,7 +265,7 @@ void AiBehaviourCommands::allegiance_remove(int16_t function_index, uint32_t thr
  */
 void AiBehaviourCommands::automatic_migration_target(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -283,7 +282,7 @@ void AiBehaviourCommands::automatic_migration_target(int16_t function_index, uin
  */
 void AiBehaviourCommands::braindead(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -300,7 +299,7 @@ void AiBehaviourCommands::braindead(int16_t function_index, uint32_t thread_inde
  */
 void AiBehaviourCommands::braindead_by_unit(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -317,7 +316,7 @@ void AiBehaviourCommands::braindead_by_unit(int16_t function_index, uint32_t thr
  */
 void AiBehaviourCommands::dialogue_triggers(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -334,7 +333,7 @@ void AiBehaviourCommands::dialogue_triggers(int16_t function_index, uint32_t thr
  */
 void AiBehaviourCommands::force_active(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -355,7 +354,7 @@ void AiBehaviourCommands::force_active(int16_t function_index, uint32_t thread_i
  */
 void AiBehaviourCommands::force_active_by_unit(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -372,7 +371,7 @@ void AiBehaviourCommands::force_active_by_unit(int16_t function_index, uint32_t 
  */
 void AiBehaviourCommands::link_activation(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -394,7 +393,7 @@ void AiBehaviourCommands::link_activation(int16_t function_index, uint32_t threa
  */
 void AiBehaviourCommands::set_current_state(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -411,7 +410,7 @@ void AiBehaviourCommands::set_current_state(int16_t function_index, uint32_t thr
  */
 void AiBehaviourCommands::set_respawn(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -435,7 +434,7 @@ void AiBehaviourCommands::set_respawn(int16_t function_index, uint32_t thread_in
  */
 void AiBehaviourCommands::set_return_state(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -452,7 +451,7 @@ void AiBehaviourCommands::set_return_state(int16_t function_index, uint32_t thre
  */
 void AiBehaviourCommands::set_team(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -469,7 +468,7 @@ void AiBehaviourCommands::set_team(int16_t function_index, uint32_t thread_index
  */
 void AiBehaviourCommands::timer_expire(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -486,7 +485,7 @@ void AiBehaviourCommands::timer_expire(int16_t function_index, uint32_t thread_i
  */
 void AiBehaviourCommands::timer_start(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -533,7 +532,7 @@ const ScriptCommandGroup &AiBehaviourCommands::commands()
  */
 void AiTargetingCommands::allow_charge(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -550,7 +549,7 @@ void AiTargetingCommands::allow_charge(int16_t function_index, uint32_t thread_i
  */
 void AiTargetingCommands::allow_dormant(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -567,7 +566,7 @@ void AiTargetingCommands::allow_dormant(int16_t function_index, uint32_t thread_
  */
 void AiTargetingCommands::attack(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -584,7 +583,7 @@ void AiTargetingCommands::attack(int16_t function_index, uint32_t thread_index, 
  */
 void AiTargetingCommands::berserk(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -601,7 +600,7 @@ void AiTargetingCommands::berserk(int16_t function_index, uint32_t thread_index,
  */
 void AiTargetingCommands::defend(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -618,7 +617,7 @@ void AiTargetingCommands::defend(int16_t function_index, uint32_t thread_index, 
  */
 void AiTargetingCommands::disregard(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -635,7 +634,7 @@ void AiTargetingCommands::disregard(int16_t function_index, uint32_t thread_inde
  */
 void AiTargetingCommands::follow_distance(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -654,7 +653,7 @@ void AiTargetingCommands::follow_distance(int16_t function_index, uint32_t threa
  */
 void AiTargetingCommands::follow_target_ai(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -680,7 +679,7 @@ void AiTargetingCommands::follow_target_ai(int16_t function_index, uint32_t thre
  */
 void AiTargetingCommands::follow_target_disable(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -701,7 +700,7 @@ void AiTargetingCommands::follow_target_disable(int16_t function_index, uint32_t
  */
 void AiTargetingCommands::follow_target_players(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -722,7 +721,7 @@ void AiTargetingCommands::follow_target_players(int16_t function_index, uint32_t
  */
 void AiTargetingCommands::follow_target_unit(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -748,7 +747,7 @@ void AiTargetingCommands::follow_target_unit(int16_t function_index, uint32_t th
  */
 void AiTargetingCommands::grenades(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -765,7 +764,7 @@ void AiTargetingCommands::grenades(int16_t function_index, uint32_t thread_index
  */
 void AiTargetingCommands::look_at_object(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -782,7 +781,7 @@ void AiTargetingCommands::look_at_object(int16_t function_index, uint32_t thread
  */
 void AiTargetingCommands::magically_see_encounter(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -799,7 +798,7 @@ void AiTargetingCommands::magically_see_encounter(int16_t function_index, uint32
  */
 void AiTargetingCommands::magically_see_players(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -816,7 +815,7 @@ void AiTargetingCommands::magically_see_players(int16_t function_index, uint32_t
  */
 void AiTargetingCommands::magically_see_unit(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -834,7 +833,7 @@ void AiTargetingCommands::magically_see_unit(int16_t function_index, uint32_t th
  */
 void AiTargetingCommands::magically_see_units(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -851,7 +850,7 @@ void AiTargetingCommands::magically_see_units(int16_t function_index, uint32_t t
  */
 void AiTargetingCommands::maneuver_enable(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -868,7 +867,7 @@ void AiTargetingCommands::maneuver_enable(int16_t function_index, uint32_t threa
  */
 void AiTargetingCommands::playfight(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -889,7 +888,7 @@ void AiTargetingCommands::playfight(int16_t function_index, uint32_t thread_inde
  */
 void AiTargetingCommands::prefer_target(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -906,7 +905,7 @@ void AiTargetingCommands::prefer_target(int16_t function_index, uint32_t thread_
  */
 void AiTargetingCommands::run_retreat(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -923,7 +922,7 @@ void AiTargetingCommands::run_retreat(int16_t function_index, uint32_t thread_in
  */
 void AiTargetingCommands::set_blind(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -942,7 +941,7 @@ void AiTargetingCommands::set_blind(int16_t function_index, uint32_t thread_inde
  */
 void AiTargetingCommands::set_deaf(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -961,7 +960,7 @@ void AiTargetingCommands::set_deaf(int16_t function_index, uint32_t thread_index
  */
 void AiTargetingCommands::stop_looking(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -978,7 +977,7 @@ void AiTargetingCommands::stop_looking(int16_t function_index, uint32_t thread_i
  */
 void AiTargetingCommands::try_to_fight(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -995,7 +994,7 @@ void AiTargetingCommands::try_to_fight(int16_t function_index, uint32_t thread_i
  */
 void AiTargetingCommands::try_to_fight_nothing(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1012,7 +1011,7 @@ void AiTargetingCommands::try_to_fight_nothing(int16_t function_index, uint32_t 
  */
 void AiTargetingCommands::try_to_fight_player(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1070,7 +1069,7 @@ const ScriptCommandGroup &AiTargetingCommands::commands()
  */
 void AiPlacementCommands::attach(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1087,7 +1086,7 @@ void AiPlacementCommands::attach(int16_t function_index, uint32_t thread_index, 
  */
 void AiPlacementCommands::attach_free(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1105,7 +1104,7 @@ void AiPlacementCommands::attach_free(int16_t function_index, uint32_t thread_in
  */
 void AiPlacementCommands::attach_units(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1122,7 +1121,7 @@ void AiPlacementCommands::attach_units(int16_t function_index, uint32_t thread_i
  */
 void AiPlacementCommands::detach(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1148,7 +1147,7 @@ void AiPlacementCommands::detach(int16_t function_index, uint32_t thread_index, 
  */
 void AiPlacementCommands::detach_units(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1165,7 +1164,7 @@ void AiPlacementCommands::detach_units(int16_t function_index, uint32_t thread_i
  */
 void AiPlacementCommands::erase(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1195,7 +1194,7 @@ void AiPlacementCommands::erase_all(int16_t function_index, uint32_t thread_inde
  */
 void AiPlacementCommands::run_free(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1212,7 +1211,7 @@ void AiPlacementCommands::run_free(int16_t function_index, uint32_t thread_index
  */
 void AiPlacementCommands::free_units(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1229,7 +1228,7 @@ void AiPlacementCommands::free_units(int16_t function_index, uint32_t thread_ind
  */
 void AiPlacementCommands::kill(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1246,7 +1245,7 @@ void AiPlacementCommands::kill(int16_t function_index, uint32_t thread_index, ch
  */
 void AiPlacementCommands::kill_silent(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1263,7 +1262,7 @@ void AiPlacementCommands::kill_silent(int16_t function_index, uint32_t thread_in
  */
 void AiPlacementCommands::migrate(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1280,7 +1279,7 @@ void AiPlacementCommands::migrate(int16_t function_index, uint32_t thread_index,
  */
 void AiPlacementCommands::migrate_and_speak(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1305,7 +1304,7 @@ void AiPlacementCommands::migrate_and_speak(int16_t function_index, uint32_t thr
  */
 void AiPlacementCommands::migrate_by_unit(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1322,7 +1321,7 @@ void AiPlacementCommands::migrate_by_unit(int16_t function_index, uint32_t threa
  */
 void AiPlacementCommands::place(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1339,7 +1338,7 @@ void AiPlacementCommands::place(int16_t function_index, uint32_t thread_index, c
  */
 void AiPlacementCommands::renew(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1356,7 +1355,7 @@ void AiPlacementCommands::renew(int16_t function_index, uint32_t thread_index, c
  */
 void AiPlacementCommands::spawn_actor(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1373,7 +1372,7 @@ void AiPlacementCommands::spawn_actor(int16_t function_index, uint32_t thread_in
  */
 void AiPlacementCommands::teleport_to_starting_location(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1390,7 +1389,7 @@ void AiPlacementCommands::teleport_to_starting_location(int16_t function_index, 
  */
 void AiPlacementCommands::teleport_to_starting_location_if_unsupported(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1440,7 +1439,7 @@ const ScriptCommandGroup &AiPlacementCommands::commands()
  */
 void AiCommandListCommands::command_list(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1457,7 +1456,7 @@ void AiCommandListCommands::command_list(int16_t function_index, uint32_t thread
  */
 void AiCommandListCommands::command_list_advance(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1474,7 +1473,7 @@ void AiCommandListCommands::command_list_advance(int16_t function_index, uint32_
  */
 void AiCommandListCommands::command_list_advance_by_unit(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1501,7 +1500,7 @@ void AiCommandListCommands::command_list_advance_by_unit(int16_t function_index,
  */
 void AiCommandListCommands::command_list_by_unit(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1518,7 +1517,7 @@ void AiCommandListCommands::command_list_by_unit(int16_t function_index, uint32_
  */
 void AiCommandListCommands::command_list_status(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1553,7 +1552,7 @@ const ScriptCommandGroup &AiCommandListCommands::commands()
  */
 void AiConversationCommands::conversation(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1569,7 +1568,7 @@ void AiConversationCommands::conversation(int16_t function_index, uint32_t threa
  */
 void AiConversationCommands::conversation_advance(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1586,7 +1585,7 @@ void AiConversationCommands::conversation_advance(int16_t function_index, uint32
  */
 void AiConversationCommands::conversation_line(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1603,7 +1602,7 @@ void AiConversationCommands::conversation_line(int16_t function_index, uint32_t 
  */
 void AiConversationCommands::conversation_status(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1619,7 +1618,7 @@ void AiConversationCommands::conversation_status(int16_t function_index, uint32_
  */
 void AiConversationCommands::conversation_stop(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1655,7 +1654,7 @@ const ScriptCommandGroup &AiConversationCommands::commands()
  */
 void AiVehicleCommands::exit_vehicle(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1672,7 +1671,7 @@ void AiVehicleCommands::exit_vehicle(int16_t function_index, uint32_t thread_ind
  */
 void AiVehicleCommands::go_to_vehicle(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1689,7 +1688,7 @@ void AiVehicleCommands::go_to_vehicle(int16_t function_index, uint32_t thread_in
  */
 void AiVehicleCommands::go_to_vehicle_override(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1706,7 +1705,7 @@ void AiVehicleCommands::go_to_vehicle_override(int16_t function_index, uint32_t 
  */
 void AiVehicleCommands::going_to_vehicle(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1723,7 +1722,7 @@ void AiVehicleCommands::going_to_vehicle(int16_t function_index, uint32_t thread
  */
 void AiVehicleCommands::vehicle_encounter(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1740,7 +1739,7 @@ void AiVehicleCommands::vehicle_encounter(int16_t function_index, uint32_t threa
  */
 void AiVehicleCommands::vehicle_enterable_actor_type(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1763,7 +1762,7 @@ void AiVehicleCommands::vehicle_enterable_actor_type(int16_t function_index, uin
  */
 void AiVehicleCommands::vehicle_enterable_actors(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1787,7 +1786,7 @@ void AiVehicleCommands::vehicle_enterable_actors(int16_t function_index, uint32_
  */
 void AiVehicleCommands::vehicle_enterable_disable(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1804,7 +1803,7 @@ void AiVehicleCommands::vehicle_enterable_disable(int16_t function_index, uint32
  */
 void AiVehicleCommands::vehicle_enterable_distance(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -1827,7 +1826,7 @@ void AiVehicleCommands::vehicle_enterable_distance(int16_t function_index, uint3
  */
 void AiVehicleCommands::vehicle_enterable_team(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 

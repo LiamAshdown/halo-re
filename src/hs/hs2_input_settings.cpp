@@ -6,7 +6,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern uint8_t input_globals[];
 extern uint8_t player_control_look_rates_0070facc[];
 extern uint8_t profile_globals_block[0x60a4];
@@ -27,7 +26,7 @@ namespace halo::hs {
  */
 void InputSettingsCommands::evaluate_get_digital_forward_throttle(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -51,7 +50,7 @@ void InputSettingsCommands::evaluate_get_digital_forward_throttle(int16_t functi
  */
 void InputSettingsCommands::evaluate_get_digital_pitch_increment(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -70,7 +69,7 @@ void InputSettingsCommands::evaluate_get_digital_pitch_increment(int16_t functio
  */
 void InputSettingsCommands::evaluate_get_digital_strafe_throttle(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -94,7 +93,7 @@ void InputSettingsCommands::evaluate_get_digital_strafe_throttle(int16_t functio
  */
 void InputSettingsCommands::evaluate_get_digital_yaw_increment(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -113,7 +112,7 @@ void InputSettingsCommands::evaluate_get_digital_yaw_increment(int16_t function_
  */
 void InputSettingsCommands::evaluate_get_gamepad_forward_threshold(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -130,7 +129,7 @@ void InputSettingsCommands::evaluate_get_gamepad_forward_threshold(int16_t funct
  */
 void InputSettingsCommands::evaluate_get_gamepad_strafe_threshold(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -147,7 +146,7 @@ void InputSettingsCommands::evaluate_get_gamepad_strafe_threshold(int16_t functi
  */
 void InputSettingsCommands::evaluate_get_gamepad_yaw_scale(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -164,7 +163,7 @@ void InputSettingsCommands::evaluate_get_gamepad_yaw_scale(int16_t function_inde
  */
 void InputSettingsCommands::evaluate_get_mouse_forward_threshold(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -181,7 +180,7 @@ void InputSettingsCommands::evaluate_get_mouse_forward_threshold(int16_t functio
  */
 void InputSettingsCommands::evaluate_get_mouse_pitch_scale(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -200,7 +199,7 @@ void InputSettingsCommands::evaluate_get_mouse_pitch_scale(int16_t function_inde
  */
 void InputSettingsCommands::evaluate_get_mouse_strafe_threshold(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -217,7 +216,7 @@ void InputSettingsCommands::evaluate_get_mouse_strafe_threshold(int16_t function
  */
 void InputSettingsCommands::evaluate_get_mouse_yaw_scale(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -236,7 +235,7 @@ void InputSettingsCommands::evaluate_get_mouse_yaw_scale(int16_t function_index,
  */
 void InputSettingsCommands::evaluate_get_pitch_rate(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -253,7 +252,7 @@ void InputSettingsCommands::evaluate_get_pitch_rate(int16_t function_index, uint
  */
 void InputSettingsCommands::evaluate_get_yaw_rate(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -283,7 +282,7 @@ void InputSettingsCommands::evaluate_player0_joystick_set_is_normal(int16_t func
  */
 void InputSettingsCommands::evaluate_player0_look_invert_pitch(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -312,7 +311,7 @@ void InputSettingsCommands::evaluate_player0_look_pitch_is_inverted(int16_t func
  */
 void InputSettingsCommands::evaluate_set_digital_forward_throttle(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -334,7 +333,7 @@ void InputSettingsCommands::evaluate_set_digital_forward_throttle(int16_t functi
  */
 void InputSettingsCommands::evaluate_set_digital_pitch_increment(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -356,7 +355,7 @@ void InputSettingsCommands::evaluate_set_digital_pitch_increment(int16_t functio
  */
 void InputSettingsCommands::evaluate_set_digital_strafe_throttle(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -378,7 +377,7 @@ void InputSettingsCommands::evaluate_set_digital_strafe_throttle(int16_t functio
  */
 void InputSettingsCommands::evaluate_set_digital_yaw_increment(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -400,7 +399,7 @@ void InputSettingsCommands::evaluate_set_digital_yaw_increment(int16_t function_
  */
 void InputSettingsCommands::evaluate_set_gamepad_forward_threshold(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -418,7 +417,7 @@ void InputSettingsCommands::evaluate_set_gamepad_forward_threshold(int16_t funct
  */
 void InputSettingsCommands::evaluate_set_gamepad_strafe_threshold(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -436,7 +435,7 @@ void InputSettingsCommands::evaluate_set_gamepad_strafe_threshold(int16_t functi
  */
 void InputSettingsCommands::evaluate_set_mouse_forward_threshold(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -458,7 +457,7 @@ void InputSettingsCommands::evaluate_set_mouse_forward_threshold(int16_t functio
  */
 void InputSettingsCommands::evaluate_set_mouse_pitch_scale(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -480,7 +479,7 @@ void InputSettingsCommands::evaluate_set_mouse_pitch_scale(int16_t function_inde
  */
 void InputSettingsCommands::evaluate_set_mouse_strafe_threshold(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -502,7 +501,7 @@ void InputSettingsCommands::evaluate_set_mouse_strafe_threshold(int16_t function
  */
 void InputSettingsCommands::evaluate_set_mouse_yaw_scale(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -524,7 +523,7 @@ void InputSettingsCommands::evaluate_set_mouse_yaw_scale(int16_t function_index,
  */
 void InputSettingsCommands::evaluate_set_pitch_rate(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -546,7 +545,7 @@ void InputSettingsCommands::evaluate_set_pitch_rate(int16_t function_index, uint
  */
 void InputSettingsCommands::evaluate_set_yaw_rate(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 

@@ -9,7 +9,6 @@
 extern "C" {
 #endif
 extern player_control_globals *player_control_globals_ptr;
-extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_index unit_handle, uint8_t reset_stats);
 extern uint8_t *player_effect_globals_pointer;
 extern player_globals *local_player_globals;
@@ -179,7 +178,7 @@ void PlayerCommands::evaluate_player_action_test_zoom(int16_t function_index, ui
  */
 void PlayerCommands::evaluate_player_add_equipment(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -197,7 +196,7 @@ void PlayerCommands::evaluate_player_add_equipment(int16_t function_index, uint3
  */
 void PlayerCommands::evaluate_player_camera_control(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -221,7 +220,7 @@ void PlayerCommands::evaluate_player_camera_control(int16_t function_index, uint
  */
 void PlayerCommands::evaluate_player_effect_set_max_rotation(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -241,7 +240,7 @@ void PlayerCommands::evaluate_player_effect_set_max_rotation(int16_t function_in
  */
 void PlayerCommands::evaluate_player_effect_set_max_translation(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
@@ -261,7 +260,7 @@ void PlayerCommands::evaluate_player_effect_set_max_translation(int16_t function
  */
 void PlayerCommands::evaluate_player_enable_input(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_function_definition *definition = hs_function_definitions[function_index];
+    hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
         (int16_t *)definition->parameters, first);
 
