@@ -16,6 +16,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/hs/vars.hpp"
 #include "halo/game/api.hpp"
+#include "halo/objects/record_access.hpp"
 
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &hs_parse_primitive_procedures = halo::link::ref<void *[k_hs_type_count]>(halo::hs::vars().hs_parse_primitive_procedures);
@@ -1141,7 +1142,7 @@ char Parser::parse_tag_reference(datum_index node_index) const
         reference = (ScenarioReference *)halo::scenario::globals().scenario->references.pointer + i;
         if ((strcmp((char *)reference->reference.path_pointer, token_text) == 0) &&
             (reference->reference.tag_fourcc == hs_tag_group_for_type[node->type - 0x18])) {
-            node->data.tag_reference = *(datum_index *)&reference->reference.tag_id;
+            node->data.tag_reference = halo::objects::tag_handle(reference->reference);
             return 1;
         }
     }

@@ -14,6 +14,7 @@
 #include "halo/projectiles/vars.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/projectiles/records.hpp"
+#include "halo/objects/record_access.hpp"
 
 static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
@@ -81,7 +82,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         }
     }
 
-    if (hit->type == _collision_result_type_object && *(int32_t *)&tag->impact_damage.tag_id != -1) {
+    if (hit->type == _collision_result_type_object && halo::objects::tag_handle(tag->impact_damage) != -1) {
         damage_data dd;
         uint8_t *zero = (uint8_t *)&dd;
         int32_t i;
@@ -101,7 +102,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         dd.direction = *velocity;
         dd.random_blend = speed_fraction;
         dd.multiplier = 1.0f;
-        dd.damage_effect_tag = *(datum_index *)&tag->impact_damage.tag_id;
+        dd.damage_effect_tag = halo::objects::tag_handle(tag->impact_damage);
 
         halo::math::vector3d_normalize_with_length(dd.direction);
         halo::objects::object_apply_damage(&dd, hit->object_index, hit->node_index, hit->region_index, hit->collision_material_index, (uint32_t)&hit->plane.normal);
@@ -157,10 +158,10 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         ((real)((halo::math::globals().random_seed_global = advance_random_seed(halo::math::globals().random_seed_global), halo::math::globals().random_seed_global) >> k_random_high_shift) *
              halo::k_unit_word_scale < response->potential_skip_fraction)) {
         response_type = (ProjectileResponse)response->default_response;
-        response_effect_tag = *(uint32_t *)&response->default_effect.tag_id;
+        response_effect_tag = halo::objects::tag_handle(response->default_effect);
     } else {
         response_type = (ProjectileResponse)response->potential_response;
-        response_effect_tag = *(uint32_t *)&response->potential_effect.tag_id;
+        response_effect_tag = halo::objects::tag_handle(response->potential_effect);
     }
 
     if (hit->type == _collision_result_type_structure && (hit->surface_flags & 0x08) != 0) {
@@ -174,7 +175,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         for (i = 0; i < (int32_t)sizeof(breakable_surface_damage); i++) {
             zero[i] = 0;
         }
-        breakable_surface_damage.damage_effect_tag = *(datum_index *)&tag->impact_damage.tag_id;
+        breakable_surface_damage.damage_effect_tag = halo::objects::tag_handle(tag->impact_damage);
         breakable_surface_damage.flags |= 0x08;
         breakable_surface_damage.responsible_player = (datum_index)k_datum_index_none;
         breakable_surface_damage.responsible_object = (datum_index)k_datum_index_none;
@@ -356,11 +357,11 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
             ((pd->flags & _projectile_at_rest_bit) != 0 || response_type == projectileresponse_attach)) {
             if (hit->type == _collision_result_type_object) {
                 
-                halo::effects::effect_new_on_object_with_node_table(projectile_index, *(uint32_t *)&tag->detonation_started.tag_id,
+                halo::effects::effect_new_on_object_with_node_table(projectile_index, halo::objects::tag_handle(tag->detonation_started),
                     hit->object_index, (uint16_t)hit->node_index, 5, (uint32_t)projectile_effect_coordinate_system_names,
                     (uint32_t)positions, (uint32_t)coordinate_system, effect_scale, fade_out, 0, 0);
             } else {
-                halo::effects::effect_new_with_color(*(uint32_t *)&tag->detonation_started.tag_id, projectile_index, 0, 5, (uint32_t)projectile_effect_coordinate_system_names, positions, (uint32_t)coordinate_system, effect_scale, fade_out, 0, 0, 1);
+                halo::effects::effect_new_with_color(halo::objects::tag_handle(tag->detonation_started), projectile_index, 0, 5, (uint32_t)projectile_effect_coordinate_system_names, positions, (uint32_t)coordinate_system, effect_scale, fade_out, 0, 0, 1);
             }
         }
     }

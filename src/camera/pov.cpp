@@ -20,6 +20,7 @@
 #include "halo/core/x87.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/units/records.hpp"
+#include "halo/objects/record_access.hpp"
 
 static auto &director_last_pov_proc = halo::link::ref<director_pov_proc>(halo::camera::vars().director_last_pov_proc);
 static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
@@ -333,7 +334,7 @@ void FirstPersonCamera::track_offset(unit_camera_properties *properties, float a
         first_track = (UnitCameraTrack *)((uint8_t *)properties->camera_tracks.pointer +
             clamped_index * (int32_t)sizeof(UnitCameraTrack));
         if (first_track != 0) {
-            track_tag = *(datum_index *)&first_track->track.tag_id;
+            track_tag = halo::objects::tag_handle(first_track->track);
         }
     }
     if (track_tag == (datum_index)k_datum_index_none) {

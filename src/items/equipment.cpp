@@ -17,6 +17,7 @@
 #include "halo/game/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/items/records.hpp"
+#include "halo/objects/record_access.hpp"
 
 static auto &equipment_network_update_position_tolerance = halo::link::ref<real>(halo::items::vars().equipment_network_update_position_tolerance);
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
@@ -320,7 +321,7 @@ void equipment_ref::definition_play_pickup_sound(uint32_t equipment_tag_id)
     uint8_t parameters[16];
 
     tag = (Equipment *)halo::cache::globals().tag_instances[equipment_tag_id & halo::k_slot_mask].data;
-    pickup_sound_tag_id = *(int32_t *)&tag->pickup_sound.tag_id;
+    pickup_sound_tag_id = halo::objects::tag_handle(tag->pickup_sound);
 
     if (pickup_sound_tag_id != -1) {
         ((sound_location *)parameters)->type = 0;
@@ -451,7 +452,7 @@ void equipment_ref::pickup_play_sound()
     item = halo::items::item_data_of(obj);
     item->flags &= ~(uint32_t)_item_unknown_40_bit;
 
-    pickup_sound_tag_id = *(int32_t *)&tag->pickup_sound.tag_id;
+    pickup_sound_tag_id = halo::objects::tag_handle(tag->pickup_sound);
     if (pickup_sound_tag_id != -1) {
         ((sound_location *)parameters)->type = 0;
         ((sound_location *)parameters)->scale = 1.0f;

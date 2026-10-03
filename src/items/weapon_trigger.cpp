@@ -18,6 +18,7 @@
 #include "halo/projectiles/layout.hpp"
 #include "halo/projectiles/api.hpp"
 #include "halo/items/records.hpp"
+#include "halo/objects/record_access.hpp"
 
 static auto &s_primary_trigger_marker = halo::link::ref<char []>(halo::items::vars().s_primary_trigger_marker);
 static auto &s_secondary_trigger_marker = halo::link::ref<char []>(halo::items::vars().s_secondary_trigger_marker);
@@ -168,7 +169,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
             item->weapon.alternate_shots_loaded = 0;
         } else {
             count = trigger->projectiles_per_shot;
-            projectile_tag = *(datum_index *)&trigger->projectile.tag_id;
+            projectile_tag = halo::objects::tag_handle(trigger->projectile);
         }
         if (projectile_tag == k_datum_index_none) {
             continue;
@@ -192,7 +193,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
             datum_index projectile;
             Projectile *projectile_definition;
 
-            halo::objects::object_placement_data_initialize(&placement, *(datum_index *)&trigger->projectile.tag_id, owner);
+            halo::objects::object_placement_data_initialize(&placement, halo::objects::tag_handle(trigger->projectile), owner);
             placement.position = origin;
             placement.forward = forward;
             if (state->firing_rate == 0.0f) {
@@ -392,7 +393,7 @@ void weapon_trigger_ref::begin_reload(int16_t magazine_index, int8_t is_client_p
                 halo::items::weapon_notify_reload_begin(item_index, magazine_index);
             }
             halo::items::weapon_set_state(item_index, magazine_index + 5, 0);
-            halo::items::weapon_play_trigger_tag_effect(item_index, *(datum_index *)&magazine_tag->reloading_effect.tag_id,
+            halo::items::weapon_play_trigger_tag_effect(item_index, halo::objects::tag_handle(magazine_tag->reloading_effect),
                 0.0f, 0.0f);
             halo::interface::weapon_action_notify_for_weapon(item_index, magazine->rounds_loaded != 0 ? 10 : 9);
 
@@ -586,7 +587,7 @@ void weapon_trigger_ref::fire_or_reload(int16_t trigger_index, int8_t force)
                     }
                 } else {
                     wd->triggers[trigger_index].effect_handle =
-                        halo::items::weapon_play_trigger_tag_effect(item_index, *(datum_index *)&tag_trigger->charging_effect.tag_id, 0, 0);
+                        halo::items::weapon_play_trigger_tag_effect(item_index, halo::objects::tag_handle(tag_trigger->charging_effect), 0, 0);
                 }
                 halo::items::weapon_trigger_effect_set_state(item_index, trigger_index, _weapon_trigger_effect_charging,
                     (int16_t)(int32_t)(tag_trigger->charging_time * 30.0f));
@@ -618,7 +619,7 @@ uint8_t weapon_trigger_ref::get_aiming_vector(int16_t trigger_index, real_point3
     if (trigger_index >= 0 && (int32_t)trigger_index < (int32_t)weapon_tag->triggers.count) {
         WeaponTrigger *trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
         Projectile *projectile_tag =
-            (Projectile *)halo::cache::globals().tag_instances[(uint16_t)(*(datum_index *)&trigger->projectile.tag_id)].data;
+            (Projectile *)halo::cache::globals().tag_instances[(uint16_t)(halo::objects::tag_handle(trigger->projectile))].data;
 
         halo::ai::projectile_get_aiming_vector(target, 0, projectile_tag, origin, 0, 0, 0, use_high_arc,
             out_direction, 0, out_time, out_range, out_used_straight_line);
@@ -651,17 +652,17 @@ real weapon_trigger_ref::get_average_damage(datum_index weapon_tag_id, float *ou
         *out_max_rate_of_fire = trigger->maximum_rate_of_fire[1];
     }
 
-    projectile_tag_id = *(datum_index *)&trigger->projectile.tag_id;
+    projectile_tag_id = halo::objects::tag_handle(trigger->projectile);
     if (projectile_tag_id != k_datum_index_none) {
         projectile_tag = (Projectile *)halo::cache::globals().tag_instances[(uint16_t)projectile_tag_id].data;
 
-        damage_tag_id = *(datum_index *)&projectile_tag->impact_damage.tag_id;
+        damage_tag_id = halo::objects::tag_handle(projectile_tag->impact_damage);
         if (damage_tag_id != k_datum_index_none) {
             damage_tag = (DamageEffect *)halo::cache::globals().tag_instances[(uint16_t)damage_tag_id].data;
             total = (damage_tag->damage_upper_bound[1] + damage_tag->damage_upper_bound[0]) * 0.5f;
         }
 
-        damage_tag_id = *(datum_index *)&projectile_tag->attached_detonation_damage.tag_id;
+        damage_tag_id = halo::objects::tag_handle(projectile_tag->attached_detonation_damage);
         if (damage_tag_id != k_datum_index_none) {
             damage_tag = (DamageEffect *)halo::cache::globals().tag_instances[(uint16_t)damage_tag_id].data;
             total = total + (damage_tag->damage_upper_bound[1] + damage_tag->damage_upper_bound[0]) * 0.5f;
@@ -742,7 +743,7 @@ real weapon_trigger_ref::projectile_time_fraction(int16_t trigger_index, real el
 
     if (trigger_index >= 0 && trigger_index < weapon_tag->triggers.count) {
         WeaponTrigger *trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
-        uint8_t *projectile_tag = (uint8_t *)halo::cache::globals().tag_instances[(uint16_t)(*(datum_index *)&trigger->projectile.tag_id)].data;
+        uint8_t *projectile_tag = (uint8_t *)halo::cache::globals().tag_instances[(uint16_t)(halo::objects::tag_handle(trigger->projectile))].data;
         real initial_velocity = ((Projectile *)projectile_tag)->initial_velocity;
 
         if (initial_velocity > 0.0f) {

@@ -17,6 +17,7 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/items/records.hpp"
+#include "halo/objects/record_access.hpp"
 
 static auto &k_weapon_zoom_fov_maximum = halo::link::ref<real>(halo::items::vars().k_weapon_zoom_fov_maximum);
 static auto &k_weapon_zoom_fov_minimum = halo::link::ref<real>(halo::items::vars().k_weapon_zoom_fov_minimum);
@@ -127,7 +128,7 @@ int16_t weapon_ref::get_first_person_animation_time(int16_t animation_index, int
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
-    graph_tag_id = *(datum_index *)&weapon_tag->first_person_animations.tag_id;
+    graph_tag_id = halo::objects::tag_handle(weapon_tag->first_person_animations);
 
     if (graph_tag_id != k_datum_index_none) {
         ModelAnimations *graph = (ModelAnimations *)halo::cache::globals().tag_instances[(uint16_t)graph_tag_id].data;
@@ -362,7 +363,7 @@ void weapon_ref::magazine_begin_chamber(int16_t magazine_index)
     if ((magazine->state == 0 || magazine->state == _weapon_magazine_chamber_pending) &&
         wd->triggers[0].effect_state == 0 && wd->triggers[1].effect_state == 0 && wd->state == 0) {
         halo::items::weapon_set_state(item_index, magazine_index + 3, 0);
-        halo::items::weapon_play_trigger_tag_effect(item_index, *(datum_index *)&magazine_tag->chambering_effect.tag_id, 0, 0);
+        halo::items::weapon_play_trigger_tag_effect(item_index, halo::objects::tag_handle(magazine_tag->chambering_effect), 0, 0);
         magazine->state = _weapon_magazine_chambering;
         magazine->state_ticks = (int16_t)(magazine_tag->chamber_time * 30.0f);
     }
@@ -734,7 +735,7 @@ void weapon_ref::ready()
         halo::interface::hud_play_pickup_notification(item_index, 0xc);
     }
 
-    halo::items::weapon_play_trigger_tag_effect(item_index, *(datum_index *)&weapon_tag->ready_effect.tag_id, 0.0f, 0.0f);
+    halo::items::weapon_play_trigger_tag_effect(item_index, halo::objects::tag_handle(weapon_tag->ready_effect), 0.0f, 0.0f);
     wd->action_ticks = halo::items::weapon_get_first_person_animation_time(item_index, 10, 0, -1);
 
     if (item_obj->network_role == 0) {
@@ -961,7 +962,7 @@ int32_t weapon_ref::set_state(int16_t new_state, int8_t force)
 
     {
         Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
-        datum_index graph_tag_id = *(datum_index *)&weapon_tag->base.base.animation_graph.tag_id;
+        datum_index graph_tag_id = halo::objects::tag_handle(weapon_tag->base.base.animation_graph);
 
         if (graph_tag_id != k_datum_index_none) {
             ModelAnimations *graph = (ModelAnimations *)halo::cache::globals().tag_instances[(uint16_t)graph_tag_id].data;
@@ -1113,9 +1114,9 @@ uint32_t weapon_ref::transfer_ammunition(datum_index source_item_index, int16_t 
                     }
                     if (moved > 0) {
                         *source_rounds_unloaded = *source_rounds_unloaded - moved;
-                        if (*(datum_index *)&target_tag->pickup_sound.tag_id != k_datum_index_none &&
+                        if (halo::objects::tag_handle(target_tag->pickup_sound) != k_datum_index_none &&
                             requesting_player_index != -1) {
-                            halo::sound::sound_start_unspatialized(*(datum_index *)&target_tag->pickup_sound.tag_id, 1.0f);
+                            halo::sound::sound_start_unspatialized(halo::objects::tag_handle(target_tag->pickup_sound), 1.0f);
                         }
                         if (*source_rounds_unloaded == 0) {
                             halo::objects::object_delete(source_item_index);
@@ -1133,7 +1134,7 @@ uint32_t weapon_ref::transfer_ammunition(datum_index source_item_index, int16_t 
                         WeaponMagazineObject *magazine_object =
                             (WeaponMagazineObject *)magazine_tag->magazine_objects.pointer + object_index;
 
-                        if (*(datum_index *)&magazine_object->equipment.tag_id == source_definition_tag) {
+                        if (halo::objects::tag_handle(magazine_object->equipment) == source_definition_tag) {
                             moved = space_available;
                             if (magazine_object->rounds <= space_available) {
                                 moved = magazine_object->rounds;
@@ -1143,7 +1144,7 @@ uint32_t weapon_ref::transfer_ammunition(datum_index source_item_index, int16_t 
 
                                 if (requesting_player_index != -1) {
                                     halo::items::equipment_definition_play_pickup_sound(
-                                        *(uint32_t *)&magazine_object->equipment.tag_id);
+                                        halo::objects::tag_handle(magazine_object->equipment));
                                 }
                                 source_role = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)source_item_index].data->network_role;
                                 if (source_role == 0) {

@@ -34,6 +34,7 @@
 #include "halo/core/libm.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/units/records.hpp"
+#include "halo/objects/record_access.hpp"
 
 
 namespace {
@@ -234,7 +235,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
 
     {
         GlobalsFallingDamage *collision_damage_tag = (GlobalsFallingDamage *)global_globals->falling_damage.pointer;
-        int32_t impact_damage_tag_id = *(int32_t *)&collision_damage_tag->vehicle_collision_damage.tag_id;
+        int32_t impact_damage_tag_id = halo::objects::tag_handle(collision_damage_tag->vehicle_collision_damage);
         int32_t breakable_damage_tag_id;
 
         if (impact_damage_tag_id != -1) {
@@ -269,7 +270,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
             halo::objects::object_apply_damage(&dd, candidate_object_index, -1, -1, -1, 0);
         }
 
-        breakable_damage_tag_id = *(int32_t *)&collision_damage_tag->vehicle_killed_unit_damage.tag_id;
+        breakable_damage_tag_id = halo::objects::tag_handle(collision_damage_tag->vehicle_killed_unit_damage);
         if (breakable_damage_tag_id != -1) {
             void *candidate_tag = halo::cache::globals().tag_instances[candidate_obj->definition_tag & halo::k_slot_mask].data;
 
@@ -1345,7 +1346,7 @@ void ObjectPhysics::tick(uint32_t object_index, powered_mass_point_state *powere
 {
     uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     Object *object_tag = (Object *)halo::cache::globals().tag_instances[((object *)obj)->definition_tag & halo::k_slot_mask].data;
-    Physics *physics = (Physics *)halo::cache::globals().tag_instances[*(datum_index *)&object_tag->physics.tag_id & halo::k_slot_mask].data;
+    Physics *physics = (Physics *)halo::cache::globals().tag_instances[halo::objects::tag_handle(object_tag->physics) & halo::k_slot_mask].data;
     object_physics_context context;
     real_vector3d torque;
     real_vector3d force;

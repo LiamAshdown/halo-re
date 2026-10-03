@@ -7,6 +7,7 @@
 #include "halo/structures/structures.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/record_access.hpp"
 
 
 namespace halo::structures {
@@ -28,7 +29,7 @@ uint32_t structure_fog::resolve_fog_tag(int16_t cluster_index, ScenarioStructure
         if (sky_tag_id != k_dword_none) {
             Sky *sky = (Sky *)halo::cache::globals().tag_instances[datum_slot(sky_tag_id)].data;
             if (sky != 0) {
-                return *(uint32_t *)&sky->indoor_fog_screen.tag_id;
+                return halo::objects::tag_handle(sky->indoor_fog_screen);
             }
         }
         return k_dword_none;
@@ -60,7 +61,7 @@ uint32_t structure_fog::resolve_fog_tag(int16_t cluster_index, ScenarioStructure
     }
     ScenarioStructureBSPFogPalette *palette =
         &((ScenarioStructureBSPFogPalette *)structure_bsp->fog_palette.pointer)[palette_index];
-    return *(uint32_t *)&palette->fog.tag_id;
+    return halo::objects::tag_handle(palette->fog);
 }
 
 void structure_fog::build_fog_environment(int16_t cluster_index, structure_fog_environment *out)

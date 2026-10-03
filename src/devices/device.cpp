@@ -15,6 +15,7 @@
 #include "halo/devices/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/record_access.hpp"
 
 static auto &device_groups = halo::link::ref<data_array *>(halo::devices::vars().device_groups);
 static auto &global_zero_vector3d_pointer = halo::link::ref<void *>(halo::units::vars().global_zero_vector3d_pointer);
@@ -137,7 +138,7 @@ void DeviceHandle::blend_animations(real_orientation *orientations)
     device_object *obj = (device_object *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     Device *device_tag = (Device *)halo::cache::globals().tag_instances[halo::datum_slot(obj->base.definition_tag)].data;
     ModelAnimations *graph =
-        (ModelAnimations *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)&device_tag->base.animation_graph.tag_id)].data;
+        (ModelAnimations *)halo::cache::globals().tag_instances[halo::datum_slot(halo::objects::tag_handle(device_tag->base.animation_graph))].data;
     ModelAnimationsDeviceAnimations *entry;
     uint8_t *animations;
     int32_t count;

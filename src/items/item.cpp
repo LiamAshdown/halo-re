@@ -8,6 +8,7 @@
 #include "halo/game/api.hpp"
 #include "halo/items/records.hpp"
 #include "halo/units/records.hpp"
+#include "halo/objects/record_access.hpp"
 
 
 namespace halo::items {
@@ -53,7 +54,7 @@ void item_ref::detonation_timer_start()
     if (item->detonation_countdown == 0) {
         Item *tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
 
-        halo::effects::effect_new_on_object(object_index, *(datum_index *)&((struct Item *)tag)->detonating_effect.tag_id, object_index, -1, 0.0f, 0.0f,
+        halo::effects::effect_new_on_object(object_index, halo::objects::tag_handle(((struct Item *)tag)->detonating_effect), object_index, -1, 0.0f, 0.0f,
             0, 0);
 
         item->detonation_countdown =

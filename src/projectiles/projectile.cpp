@@ -20,6 +20,7 @@
 #include "halo/core/x87.hpp"
 #include "halo/units/records.hpp"
 #include "halo/projectiles/records.hpp"
+#include "halo/objects/record_access.hpp"
 
 static auto &k_empty_string = halo::link::ref<char [1]>(halo::networking::vars().k_empty_string);
 static auto &projectile_default_material_response = halo::link::ref<ProjectileMaterialResponse>(halo::projectiles::vars().projectile_default_material_response);
@@ -122,7 +123,7 @@ uint8_t ProjectileHandle::construct()
         if (region->fog != (uint16_t)-1) {
             ScenarioStructureBSPFogPalette *fog_entry =
                 &((ScenarioStructureBSPFogPalette *)halo::scenario::globals().structure_bsp->fog_palette.pointer)[region->fog];
-            datum_index fog_tag_id = *(datum_index *)&fog_entry->fog.tag_id;
+            datum_index fog_tag_id = halo::objects::tag_handle(fog_entry->fog);
             if (fog_tag_id != (datum_index)k_datum_index_none) {
                 Fog *fog_tag = (Fog *)halo::cache::globals().tag_instances[halo::datum_slot(fog_tag_id)].data;
                 in_water = (*(uint8_t *)fog_tag & 1) != 0;
@@ -368,7 +369,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
 
     effect_names[0] = k_empty_string;
     effect_names[1] = (char *)"gravity";
-    effect_tag_id = *(datum_index *)&tag->effect.tag_id;
+    effect_tag_id = halo::objects::tag_handle(tag->effect);
 
     if ((tag->projectile_flags & _projectile_definition_has_super_combining_explosion_bit) != 0 &&
         ((halo::projectiles::projectile_data_of(obj))->flags &
@@ -415,7 +416,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
                 cursor = sibling->next_object;
             }
 
-            effect_tag_id = *(datum_index *)&tag->super_detonation.tag_id;
+            effect_tag_id = halo::objects::tag_handle(tag->super_detonation);
 
             
             
@@ -456,7 +457,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
     }
 
     if (obj->parent_object != (datum_index)k_datum_index_none &&
-        *(int32_t *)&tag->attached_detonation_damage.tag_id != -1) {
+        halo::objects::tag_handle(tag->attached_detonation_damage) != -1) {
         damage_data dd;
         uint8_t *zero = (uint8_t *)&dd;
         int32_t i;
@@ -472,7 +473,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
         dd.material_type = -1; 
         dd.random_blend = 1.0f;
         dd.multiplier = 1.0f;
-        dd.damage_effect_tag = *(datum_index *)&tag->attached_detonation_damage.tag_id;
+        dd.damage_effect_tag = halo::objects::tag_handle(tag->attached_detonation_damage);
 
         halo::objects::object_get_orientation(0, object_index, 0); 
         halo::objects::object_get_position(&dd.epicentre, object_index); 
@@ -496,7 +497,7 @@ void ProjectileHandle::detonate(char first_collision, real remaining_tick_fracti
             } else {
                 response = (ProjectileMaterialResponse *)tag->projectile_material_response.pointer + index;
             }
-            halo::effects::effect_new_with_color(*(uint32_t *)&response->detonation_effect.tag_id, obj->creator_object, 0, 2,
+            halo::effects::effect_new_with_color(halo::objects::tag_handle(response->detonation_effect), obj->creator_object, 0, 2,
                          (uint32_t)effect_names, position_block, (uint32_t)direction_block, 0, 0, 0, 0, 1);
         }
     }

@@ -12,6 +12,7 @@
 #include "halo/core/link.hpp"
 #include "halo/items/vars.hpp"
 #include "halo/items/records.hpp"
+#include "halo/objects/record_access.hpp"
 
 static auto &weapon_blur_permutation_names = halo::link::ref<char *[2]>(halo::items::vars().weapon_blur_permutation_names);
 
@@ -56,9 +57,9 @@ int32_t weapon_ref::update()
         return 1;
     }
 
-    if (*(datum_index *)&weapon_tag->base.base.animation_graph.tag_id != k_datum_index_none &&
+    if (halo::objects::tag_handle(weapon_tag->base.base.animation_graph) != k_datum_index_none &&
         item_obj->animation_index != -1) {
-        int16_t kind = (int16_t)halo::models::animation_state_advance(*(datum_index *)&weapon_tag->base.base.animation_graph.tag_id,
+        int16_t kind = (int16_t)halo::models::animation_state_advance(halo::objects::tag_handle(weapon_tag->base.base.animation_graph),
                                                         (animation_state *)((uint8_t *)item_obj + 0xd0), 0,
                                                         (animation_random_stream)1);
         if (kind == 1) {
@@ -105,7 +106,7 @@ int32_t weapon_ref::update()
                 action = 0x10;
             }
             halo::interface::weapon_action_notify_for_weapon(item_index, action);
-            wd->overheat_effect_handle = halo::items::weapon_stop_object_effect(item_index, *(datum_index *)&weapon_tag->overheated.tag_id);
+            wd->overheat_effect_handle = halo::items::weapon_stop_object_effect(item_index, halo::objects::tag_handle(weapon_tag->overheated));
         }
 
         if (wd->charged_fraction == 0.0f) {
