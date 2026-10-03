@@ -4,6 +4,7 @@
 #include <wchar.h>
 
 extern "C" {
+extern void *const network_index_cache_table;
 extern data_array *player_data;
 extern data_array *object_data;
 extern tag_instance *tag_instances;
@@ -2300,7 +2301,7 @@ void Players::remove_player(datum_index player_handle)
 
     Players::delete_player((uint32_t)(int8_t)*((uint8_t *)p + 0x64), player_handle);
 
-    network_index_cache_remove((void *)0x687500, player_handle);
+    network_index_cache_remove(network_index_cache_table, player_handle);
     profile_index = game_engine_player_profile_cache_find(player_handle);
     player_profile_cache[profile_index].in_use = 0;
     player_profile_cache_count = player_profile_cache_count - 1;

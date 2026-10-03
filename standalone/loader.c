@@ -1,17 +1,10 @@
-/* Standalone halo.exe loader (first-boot track).
-   Our exe links far from 0x400000 and runs no original code. Halo's globals are referenced by absolute address
-   (the EQU symbols tools/gen_standalone_link.py emits), so before any game code runs this loader puts halo.exe's
-   data sections back where they were:
-     1. The first instance starts a suspended copy of itself and reserves 0x400000..0x891000 in it before its
-        loader initialises (the same trick harness/difftest_main.c uses), so no heap or DLL can land there.
-     2. The child commits the range and copies the data image linked into this exe (standalone/image/*.asm:
-        .rdata, initialised .data, .tls and .rsrc; every code pointer in it is already our C function's address,
-        relocated by the linker) to the original addresses. The retail import slots in it stay unfilled: the C calls
-        Windows and the third-party DLLs through this exe's own (delay-)imports.
-     3. It changes to the Halo install folder (maps\, binkw32.dll, vorbis.dll live there) and calls the rewritten
-        shell_winmain, as the original CRT entry did.
-   A call to a function we have no C for lands in standalone_missing_function (the trap stubs in
-   build/standalone/resolve.asm), which logs the name to halo_standalone.log and exits. */
+/* Standalone halo.exe loader.
+   The game is plain C++ linked into this exe: its globals are C objects and the data tables are a set of
+   ordinary arrays (standalone/data/tables.c) whose internal pointers are linker relocations. The loader only
+   installs the diagnostics, preloads the system dinput8, redirects data files to override\ where present, changes to the Halo
+   install folder (maps\, binkw32.dll, vorbis.dll live there) and calls the rewritten shell_winmain, as the original CRT entry
+   did. A call to a function we have no C for lands in standalone_missing_function (the trap stubs in
+   standalone/generated/code_entries.c), which logs the name to halo_standalone.log and exits. */
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,11 +17,6 @@
 #define HALO_FOLDER "C:\\Program Files (x86)\\Microsoft Games\\Halo"
 #endif
 const char standalone_halo_folder[] = HALO_FOLDER;
-
-/* the data image starts at .rdata 0x63a000 (the original code range below it is never used: nothing original runs),
-   so the reservation starts at the 64 KB boundary under it; under a debugger 0x400000.. is already mapped */
-#define RESERVE_BASE 0x630000
-#define RESERVE_END  0x891000
 
 extern int __stdcall shell_winmain(void *hInstance, void *hPrevInstance, char *lpCmdLine, int nCmdShow);
 
@@ -181,60 +169,6 @@ static void install_diagnostics(void)
     g_code_end = g_code_begin + nt->OptionalHeader.SizeOfCode;
     AddVectoredExceptionHandler(1, log_exception);
     AddVectoredExceptionHandler(1, redirect_original_entry); /* first: before the diagnostic log */
-}
-
-static int run_reserved_child(void)
-{
-    STARTUPINFOA si;
-    PROCESS_INFORMATION pi;
-    DWORD code = 1;
-    HANDLE job;
-    JOBOBJECT_EXTENDED_LIMIT_INFORMATION li;
-
-    ZeroMemory(&si, sizeof si);
-    si.cb = sizeof si;
-    SetEnvironmentVariableA("HALO_STANDALONE_CHILD", "1");
-    SetEnvironmentVariableA("HALO_STANDALONE_RELAUNCHED", "1");
-    if (g_log) fflush(g_log);
-    if (!CreateProcessA(NULL, GetCommandLineA(), NULL, NULL, TRUE, CREATE_SUSPENDED, NULL, NULL, &si, &pi)) {
-        log_line("CreateProcess failed (%lu)", GetLastError());
-        return 1;
-    }
-    job = CreateJobObjectA(NULL, NULL);
-    ZeroMemory(&li, sizeof li);
-    li.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-    if (job) {
-        SetInformationJobObject(job, JobObjectExtendedLimitInformation, &li, sizeof li);
-        AssignProcessToJobObject(job, pi.hProcess);
-    }
-    if (!VirtualAllocEx(pi.hProcess, (void *)RESERVE_BASE, RESERVE_END - RESERVE_BASE, MEM_RESERVE, PAGE_EXECUTE_READWRITE)) {
-        log_line("could not reserve 0x%x..0x%x in the child (%lu)", RESERVE_BASE, RESERVE_END, GetLastError());
-    }
-    ResumeThread(pi.hThread);
-    WaitForSingleObject(pi.hProcess, INFINITE);
-    GetExitCodeProcess(pi.hProcess, &code);
-    return (int)code;
-}
-
-static int map_image(void)
-{
-    DWORD old_protect;
-    int i;
-
-    if (!VirtualAlloc((void *)RESERVE_BASE, RESERVE_END - RESERVE_BASE, MEM_COMMIT, PAGE_EXECUTE_READWRITE)) {
-        log_line("could not commit 0x%x..0x%x (%lu) -- was the range reserved?", RESERVE_BASE, RESERVE_END,
-                 GetLastError());
-        return 0;
-    }
-    for (i = 0; i < standalone_piece_count; i++) {
-        const standalone_piece *p = &standalone_pieces[i];
-        memcpy((void *)p->va, p->source, p->size);   /* the rest of the committed range stays zero */
-    }
-    /* nothing in the range is code any more: without execute permission a jump into original code faults at once
-       (DEP is on for this exe: /NXCOMPAT) and log_exception names the address */
-    VirtualProtect((void *)RESERVE_BASE, RESERVE_END - RESERVE_BASE, PAGE_READWRITE, &old_protect);
-    log_line("mapped %d image pieces (range now read/write, no execute)", standalone_piece_count);
-    return 1;
 }
 
 /* Data overrides: a relative path opened through CreateFileA that has a copy under <exe folder>\override\ opens
@@ -421,28 +355,7 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR command_line, i
     slash = strrchr(g_exe_dir, '\\');
     if (slash) *slash = 0;
 
-    if (!GetEnvironmentVariableA("HALO_STANDALONE_CHILD", NULL, 0)) {
-        /* under a debugger, run in this process when the range is still free, so the debugger sees the game
-           (it does not follow the child); otherwise relaunch as usual */
-        if (IsDebuggerPresent() &&
-            VirtualAlloc((void *)RESERVE_BASE, RESERVE_END - RESERVE_BASE, MEM_RESERVE, PAGE_EXECUTE_READWRITE)) {
-            SetEnvironmentVariableA("HALO_STANDALONE_CHILD", "1");
-            log_line("halo standalone: debugger attached, running in-process");
-        } else {
-            if (IsDebuggerPresent()) {
-                MEMORY_BASIC_INFORMATION mbi;
-                DWORD error = GetLastError();
-
-                VirtualQuery((void *)RESERVE_BASE, &mbi, sizeof mbi);
-                log_line("halo standalone: debugger attached but 0x%x.. is taken (%lu; state 0x%lx, base %p, size 0x%lx, "
-                         "type 0x%lx): relaunching; the child waits for the debugger to attach", RESERVE_BASE, error,
-                         mbi.State, mbi.AllocationBase, (unsigned long)mbi.RegionSize, mbi.Type);
-                SetEnvironmentVariableA("HALO_STANDALONE_WAIT_DEBUGGER", "1");
-            }
-            return run_reserved_child();
-        }
-    }
-    log_line("halo standalone: child started");
+    log_line("halo standalone: started");
     /* the debugger of the first instance does not follow the child: HALO_STANDALONE_WAIT_DEBUGGER (set then, or by
        hand) holds the game until one attaches to this process */
     if (GetEnvironmentVariableA("HALO_STANDALONE_WAIT_DEBUGGER", NULL, 0) && !IsDebuggerPresent()) {
@@ -455,7 +368,6 @@ int WINAPI WinMain(HINSTANCE instance, HINSTANCE previous, LPSTR command_line, i
         MessageBoxA(NULL, text, "halo_rebuilt: waiting for debugger", MB_OK | MB_ICONINFORMATION | MB_TOPMOST);
     }
     install_diagnostics();
-    if (!map_image()) return 2;
     preload_system_dinput8();
     SetDllDirectoryA(standalone_halo_folder);
     hook_own_create_file_a();

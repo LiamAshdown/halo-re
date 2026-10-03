@@ -525,7 +525,7 @@ void ControlsBindings::build_device_label_table(void)
     datum_index tag_id = tag_lookup(0x75737472,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_device_labels");
     int i;
-    const uint16_t *tag_supplied_label = (const uint16_t *)0x671fac;
+    const uint16_t *tag_supplied_label = (const uint16_t *)L"<missing string>";
 
     {
         int32_t *clear = (int32_t *)controls_device_labels;

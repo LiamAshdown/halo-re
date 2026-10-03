@@ -46,5 +46,5 @@ for name, va, vsize, raw, rsize in secs:
             count.setdefault(s, []).append((d, v))
 tot = sum(len(v) for v in count.values())
 print("%d dwords in the old range, in %d symbols" % (tot, len(count)))
-for s, v in sorted(count.items(), key=lambda kv: -len(kv[1]))[:3000]:
+for s, v in sorted(count.items(), key=lambda kv: -len(kv[1]))[:5000]:
     print("%4d  %s  e.g. +0x%x = 0x%x" % (len(v), s[:90], v[0][0], v[0][1]))

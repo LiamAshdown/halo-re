@@ -1,0 +1,3024 @@
+/* standalone/data/tables.c -- data tables that the engine's own tables point into: records of definitions (script
+   functions, enums, message deltas, throw info, default colours, ...), referenced by standalone/data/eq_data.c and
+   each other. Strings are inline literals, function pointers are names, pointers between tables are addresses of
+   these arrays. Generated once by tools/materialize_image.py from the original data; edit freely. */
+
+#include "tables.h"
+
+extern char actor_mode_guard_look_weights_ambush[];
+extern char actor_mode_guard_look_weights_idle[];
+extern char actor_mode_uncover_look_weights_active[];
+extern char console_color_00685214[];
+extern char console_message_default_color[];
+extern char global_white_argb[];
+extern char hud_text_message_hold_color[];
+extern char hud_text_message_normal_color[];
+extern void actor_compute_swarm_avoidance_offset(void);
+extern void actor_investigate_disturbance_update(void);
+extern void actor_mode_alert_movement_cancelled(void);
+extern void actor_mode_alert_process(void);
+extern void actor_mode_alert_target_cleared(void);
+extern void actor_mode_alert_tick(void);
+extern void actor_mode_alert_update(void);
+extern void actor_mode_avoid_update(void);
+extern void actor_mode_charge_enter(void);
+extern void actor_mode_charge_process(void);
+extern void actor_mode_charge_tick(void);
+extern void actor_mode_charge_update(void);
+extern void actor_mode_converse_exit(void);
+extern void actor_mode_converse_process(void);
+extern void actor_mode_converse_replace_reference(void);
+extern void actor_mode_converse_update(void);
+extern void actor_mode_fight_tick(void);
+extern void actor_mode_fight_update(void);
+extern void actor_mode_flee_enter(void);
+extern void actor_mode_flee_exit(void);
+extern void actor_mode_flee_get_look_weights(void);
+extern void actor_mode_flee_movement_cancelled(void);
+extern void actor_mode_flee_process(void);
+extern void actor_mode_flee_replace_reference(void);
+extern void actor_mode_flee_tick(void);
+extern void actor_mode_flee_update(void);
+extern void actor_mode_guard_enter(void);
+extern void actor_mode_guard_exit(void);
+extern void actor_mode_guard_get_look_weights(void);
+extern void actor_mode_guard_movement_cancelled(void);
+extern void actor_mode_guard_replace_reference(void);
+extern void actor_mode_guard_target_cleared(void);
+extern void actor_mode_guard_tick(void);
+extern void actor_mode_guard_update(void);
+extern void actor_mode_obey_enter(void);
+extern void actor_mode_obey_exit(void);
+extern void actor_mode_obey_process(void);
+extern void actor_mode_obey_tick_members(void);
+extern void actor_mode_obey_update(void);
+extern void actor_mode_search_enter(void);
+extern void actor_mode_search_movement_cancelled(void);
+extern void actor_mode_search_process(void);
+extern void actor_mode_search_tick(void);
+extern void actor_mode_search_update(void);
+extern void actor_mode_sleep_update(void);
+extern void actor_mode_uncover_enter(void);
+extern void actor_mode_uncover_get_look_weights(void);
+extern void actor_mode_uncover_movement_cancelled(void);
+extern void actor_mode_uncover_tick(void);
+extern void actor_mode_uncover_update(void);
+extern void actor_mode_vehicle_enter(void);
+extern void actor_mode_vehicle_update(void);
+extern void actor_mode_wait_process(void);
+extern void actor_mode_wait_tick(void);
+extern void actor_mode_wait_update(void);
+extern void actor_reject_firing_position_by_perception(void);
+extern void actor_reject_firing_position_by_pursuit(void);
+extern void actor_reject_firing_position_by_request_result(void);
+extern void actor_reject_firing_position_by_target_approach(void);
+extern void actor_reject_firing_position_unreachable(void);
+extern void actor_request_move_and_face(void);
+extern void actor_request_path_with_grenade_arc(void);
+extern void actor_score_firing_positions_by_history(void);
+extern void actor_score_firing_positions_by_range(void);
+extern void actor_score_firing_positions_by_standoff(void);
+extern void actor_score_firing_positions_by_threat(void);
+extern void actor_score_firing_positions_close_range(void);
+extern void actor_score_firing_positions_near_target(void);
+extern void actor_type_crew_update(void);
+extern void actor_type_elite_update(void);
+extern void actor_type_engineer_update(void);
+extern void actor_type_flood_carrier_update(void);
+extern void actor_type_flood_update(void);
+extern void actor_type_grunt_update(void);
+extern void actor_type_hunter_update(void);
+extern void actor_type_infection_swarm_update(void);
+extern void actor_type_infection_update(void);
+extern void actor_type_jackal_update(void);
+extern void actor_type_marine_update(void);
+extern void actor_type_mounted_weapon_update(void);
+extern void actor_type_sentinel_update(void);
+extern void actor_update_movement_destination(void);
+extern void actor_update_path_if_needed(void);
+extern void ai_clear_object_references(void);
+extern void biped_clear_ground_surface_references(void);
+extern void biped_create(void);
+extern void biped_is_old_enough(void);
+extern void biped_network_baseline_take(void);
+extern void biped_placement_offset_centered_pill(void);
+extern void biped_reset_state(void);
+extern void biped_update(void);
+extern void biped_update_scale_function_inputs(void);
+extern void bitmap_data_block_delete_element(void);
+extern void bitmap_group_postprocess(void);
+extern void control_place(void);
+extern void ctf_engine_flag_tick(void);
+extern void device_blend_animations(void);
+extern void device_compute_function_values(void);
+extern void device_create(void);
+extern void device_delete(void);
+extern void device_groups_allocate(void);
+extern void device_groups_clear_disposing_flag(void);
+extern void device_groups_dispose(void);
+extern void device_machine_update(void);
+extern void device_update_change_values(void);
+extern void director_update_seat_camera(void);
+extern void equipment_apply_network_update(void);
+extern void equipment_build_network_update(void);
+extern void equipment_is_old_enough(void);
+extern void equipment_network_baseline_take(void);
+extern void equipment_new(void);
+extern void equipment_new_from_placement(void);
+extern void equipment_send_creation(void);
+extern void function_do_nothing(void);
+extern void game_engine_ctf_broadcast_state(void);
+extern void game_engine_ctf_build_message_text(void);
+extern void game_engine_ctf_build_player_text(void);
+extern void game_engine_ctf_build_score_header_text(void);
+extern void game_engine_ctf_build_team_score_text(void);
+extern void game_engine_ctf_get_score(void);
+extern void game_engine_ctf_get_team_score(void);
+extern void game_engine_ctf_initialize_flags(void);
+extern void game_engine_ctf_initialize_for_new_game(void);
+extern void game_engine_ctf_object_expired(void);
+extern void game_engine_ctf_player_flag_tick(void);
+extern void game_engine_ctf_player_round_reset(void);
+extern void game_engine_ctf_profile_post_update(void);
+extern void game_engine_ctf_profiles_updated(void);
+extern void game_engine_ctf_query_player_score(void);
+extern void game_engine_ctf_query_team_score(void);
+extern void game_engine_ctf_reset_objects(void);
+extern void game_engine_ctf_reset_round(void);
+extern void game_engine_ctf_return_all_flags(void);
+extern void game_engine_ctf_unknown_48(void);
+extern void game_engine_ctf_unknown_60(void);
+extern void game_engine_ctf_unknown_70(void);
+extern void game_engine_ctf_unknown_84(void);
+extern void game_engine_ctf_update(void);
+extern void game_engine_king_build_message_text(void);
+extern void game_engine_king_build_player_text(void);
+extern void game_engine_king_build_score_header_text(void);
+extern void game_engine_king_build_team_score_text(void);
+extern void game_engine_king_get_score(void);
+extern void game_engine_king_get_team_score(void);
+extern void game_engine_king_initialize_for_new_game(void);
+extern void game_engine_king_player_new_life(void);
+extern void game_engine_king_player_round_reset(void);
+extern void game_engine_king_profile_post_update(void);
+extern void game_engine_king_query_player_score(void);
+extern void game_engine_king_query_team_score(void);
+extern void game_engine_king_reset_objects(void);
+extern void game_engine_king_reset_round(void);
+extern void game_engine_king_unknown_48(void);
+extern void game_engine_king_waypoint_filter(void);
+extern void game_engine_koth_ball_idle_tick(void);
+extern void game_engine_koth_broadcast_hill_times(void);
+extern void game_engine_koth_broadcast_team_scores(void);
+extern void game_engine_koth_build_hill_boundary_fence(void);
+extern void game_engine_koth_dispatch_player_scoring(void);
+extern void game_engine_koth_player_eligible_to_score(void);
+extern void game_engine_koth_player_tick(void);
+extern void game_engine_oddball_build_message_text(void);
+extern void game_engine_oddball_build_player_text(void);
+extern void game_engine_oddball_build_score_header_text(void);
+extern void game_engine_oddball_build_team_score_text(void);
+extern void game_engine_oddball_get_score(void);
+extern void game_engine_oddball_get_team_score(void);
+extern void game_engine_oddball_initialize_for_new_game(void);
+extern void game_engine_oddball_player_killed(void);
+extern void game_engine_oddball_player_new_life(void);
+extern void game_engine_oddball_player_round_reset(void);
+extern void game_engine_oddball_profile_post_update(void);
+extern void game_engine_oddball_query_player_score(void);
+extern void game_engine_oddball_query_team_score(void);
+extern void game_engine_oddball_reset_objects(void);
+extern void game_engine_oddball_time_scale_override(void);
+extern void game_engine_oddball_unknown_48(void);
+extern void game_engine_oddball_unknown_84(void);
+extern void game_engine_race_allow_grenade_counts(void);
+extern void game_engine_race_build_message_text(void);
+extern void game_engine_race_build_player_text(void);
+extern void game_engine_race_build_score_header_text(void);
+extern void game_engine_race_build_team_score_text(void);
+extern void game_engine_race_get_score(void);
+extern void game_engine_race_get_team_score(void);
+extern void game_engine_race_is_winner(void);
+extern void game_engine_race_player_changed_object(void);
+extern void game_engine_race_player_new_life(void);
+extern void game_engine_race_player_round_reset(void);
+extern void game_engine_race_profile_post_update(void);
+extern void game_engine_race_query_player_score(void);
+extern void game_engine_race_query_team_score(void);
+extern void game_engine_race_unknown_48(void);
+extern void game_engine_race_update(void);
+extern void game_engine_race_waypoint_filter(void);
+extern void game_engine_slayer_build_message_text(void);
+extern void game_engine_slayer_build_player_text(void);
+extern void game_engine_slayer_build_team_score_text(void);
+extern void game_engine_slayer_get_score(void);
+extern void game_engine_slayer_get_team_score(void);
+extern void game_engine_slayer_initialize_for_new_game(void);
+extern void game_engine_slayer_player_killed(void);
+extern void game_engine_slayer_player_new_life(void);
+extern void game_engine_slayer_player_round_reset(void);
+extern void game_engine_slayer_profile_post_update(void);
+extern void game_engine_slayer_profiles_updated(void);
+extern void game_engine_slayer_query_player_score(void);
+extern void game_engine_slayer_query_team_score(void);
+extern void game_engine_slayer_reset_objects(void);
+extern void game_engine_slayer_reset_round(void);
+extern void game_engine_slayer_unknown_84(void);
+extern void game_engine_slayer_update(void);
+extern void game_variant_list_matching_substring_evaluate(void);
+extern void garbage_new(void);
+extern void garbage_update(void);
+extern void halo_code_57bc00(void);
+extern void halo_code_57cfa3(void);
+extern void halo_code_57f892(void);
+extern void halo_code_57f8a5(void);
+extern void halo_code_57f934(void);
+extern void halo_code_57f947(void);
+extern void halo_code_57f9f9(void);
+extern void halo_code_57fa23(void);
+extern void halo_code_57fab1(void);
+extern void halo_code_57fadb(void);
+extern void halo_code_57fb8a(void);
+extern void halo_code_57fbb9(void);
+extern void halo_code_57fbfc(void);
+extern void halo_code_57fc20(void);
+extern void halo_code_57fc44(void);
+extern void halo_code_57fc68(void);
+extern void halo_code_57fca5(void);
+extern void halo_code_57fd53(void);
+extern void halo_code_57fd7d(void);
+extern void halo_code_57fe4e(void);
+extern void halo_code_57fe7d(void);
+extern void halo_code_57ff72(void);
+extern void halo_code_58002a(void);
+extern void halo_code_58003d(void);
+extern void halo_code_580054(void);
+extern void halo_code_5800cd(void);
+extern void halo_code_58015c(void);
+extern void halo_code_5802d4(void);
+extern void halo_code_5803a5(void);
+extern void halo_code_5803cf(void);
+extern void halo_code_5804c2(void);
+extern void halo_code_5804f1(void);
+extern void halo_code_580614(void);
+extern void halo_code_5807bb(void);
+extern void halo_code_580a04(void);
+extern void halo_code_580cc7(void);
+extern void halo_code_581079(void);
+extern void halo_code_581109(void);
+extern void halo_code_581193(void);
+extern void halo_code_5811af(void);
+extern void halo_code_581229(void);
+extern void halo_code_581245(void);
+extern void halo_code_5812c0(void);
+extern void halo_code_5812dc(void);
+extern void halo_code_581358(void);
+extern void halo_code_581378(void);
+extern void halo_code_58147a(void);
+extern void halo_code_58156f(void);
+extern void halo_code_58159d(void);
+extern void halo_code_5815ae(void);
+extern void halo_code_5815d5(void);
+extern void halo_code_581858(void);
+extern void halo_code_581878(void);
+extern void halo_code_5818d4(void);
+extern void halo_code_5819e1(void);
+extern void halo_code_581b4d(void);
+extern void halo_code_581c11(void);
+extern void halo_code_581c9f(void);
+extern void halo_code_581d4a(void);
+extern void halo_code_581e57(void);
+extern void halo_code_581e81(void);
+extern void halo_code_581ed8(void);
+extern void halo_code_581f18(void);
+extern void halo_code_581fa0(void);
+extern void halo_code_5822a3(void);
+extern void halo_code_5825dc(void);
+extern void halo_code_582688(void);
+extern void halo_code_5826f3(void);
+extern void halo_code_582776(void);
+extern void halo_code_5827f3(void);
+extern void halo_code_58288b(void);
+extern void halo_code_5828c7(void);
+extern void halo_code_58291b(void);
+extern void halo_code_5829b8(void);
+extern void halo_code_582a74(void);
+extern void halo_code_582b53(void);
+extern void halo_code_582ce0(void);
+extern void halo_code_582ee0(void);
+extern void halo_code_583086(void);
+extern void halo_code_5832b7(void);
+extern void halo_code_5832f0(void);
+extern void halo_code_5835a4(void);
+extern void halo_code_58367e(void);
+extern void halo_code_5923a8(void);
+extern void halo_code_627e98(void);
+extern void halo_code_627ea1(void);
+extern void halo_code_628c3a(void);
+extern void halo_code_639300(void);
+extern void halo_code_639320(void);
+extern void halo_code_639350(void);
+extern void halo_code_639360(void);
+extern void halo_code_639380(void);
+extern void halo_code_639390(void);
+extern void halo_code_6393b0(void);
+extern void halo_code_6393d0(void);
+extern void halo_code_6393db(void);
+extern void halo_code_6393e6(void);
+extern void halo_code_6393f1(void);
+extern void halo_code_6393fc(void);
+extern void halo_code_63940a(void);
+extern void halo_code_639430(void);
+extern void halo_code_639440(void);
+extern void halo_code_639460(void);
+extern void halo_code_639480(void);
+extern void halo_code_63948b(void);
+extern void halo_code_639496(void);
+extern void halo_code_6394a1(void);
+extern void halo_code_6394ac(void);
+extern void halo_code_6394ba(void);
+extern void halo_code_6394c7(void);
+extern void halo_code_6394e0(void);
+extern void halo_code_6394e8(void);
+extern void halo_code_6394f0(void);
+extern void halo_code_639510(void);
+extern void halo_code_639530(void);
+extern void halo_code_63953b(void);
+extern void halo_code_639550(void);
+extern void halo_code_639558(void);
+extern void halo_code_639570(void);
+extern void halo_code_63957e(void);
+extern void hs_evaluate_activate_nav_point_flag(void);
+extern void hs_evaluate_activate_nav_point_object(void);
+extern void hs_evaluate_activate_team_nav_point_flag(void);
+extern void hs_evaluate_activate_team_nav_point_object(void);
+extern void hs_evaluate_ai(void);
+extern void hs_evaluate_ai_actors(void);
+extern void hs_evaluate_ai_allegiance(void);
+extern void hs_evaluate_ai_allegiance_broken(void);
+extern void hs_evaluate_ai_allegiance_remove(void);
+extern void hs_evaluate_ai_allow_charge(void);
+extern void hs_evaluate_ai_allow_dormant(void);
+extern void hs_evaluate_ai_attach(void);
+extern void hs_evaluate_ai_attach_free(void);
+extern void hs_evaluate_ai_attach_units(void);
+extern void hs_evaluate_ai_attack(void);
+extern void hs_evaluate_ai_automatic_migration_target(void);
+extern void hs_evaluate_ai_berserk(void);
+extern void hs_evaluate_ai_braindead(void);
+extern void hs_evaluate_ai_braindead_by_unit(void);
+extern void hs_evaluate_ai_command_list(void);
+extern void hs_evaluate_ai_command_list_advance(void);
+extern void hs_evaluate_ai_command_list_advance_by_unit(void);
+extern void hs_evaluate_ai_command_list_by_unit(void);
+extern void hs_evaluate_ai_command_list_status(void);
+extern void hs_evaluate_ai_conversation(void);
+extern void hs_evaluate_ai_conversation_advance(void);
+extern void hs_evaluate_ai_conversation_line(void);
+extern void hs_evaluate_ai_conversation_status(void);
+extern void hs_evaluate_ai_conversation_stop(void);
+extern void hs_evaluate_ai_defend(void);
+extern void hs_evaluate_ai_detach(void);
+extern void hs_evaluate_ai_detach_units(void);
+extern void hs_evaluate_ai_dialogue_triggers(void);
+extern void hs_evaluate_ai_disregard(void);
+extern void hs_evaluate_ai_erase(void);
+extern void hs_evaluate_ai_erase_all(void);
+extern void hs_evaluate_ai_exit_vehicle(void);
+extern void hs_evaluate_ai_follow_distance(void);
+extern void hs_evaluate_ai_follow_target_ai(void);
+extern void hs_evaluate_ai_follow_target_disable(void);
+extern void hs_evaluate_ai_follow_target_players(void);
+extern void hs_evaluate_ai_follow_target_unit(void);
+extern void hs_evaluate_ai_force_active(void);
+extern void hs_evaluate_ai_force_active_by_unit(void);
+extern void hs_evaluate_ai_free(void);
+extern void hs_evaluate_ai_free_units(void);
+extern void hs_evaluate_ai_go_to_vehicle(void);
+extern void hs_evaluate_ai_go_to_vehicle_override(void);
+extern void hs_evaluate_ai_going_to_vehicle(void);
+extern void hs_evaluate_ai_grenades(void);
+extern void hs_evaluate_ai_is_attacking(void);
+extern void hs_evaluate_ai_kill(void);
+extern void hs_evaluate_ai_kill_silent(void);
+extern void hs_evaluate_ai_link_activation(void);
+extern void hs_evaluate_ai_living_count(void);
+extern void hs_evaluate_ai_living_fraction(void);
+extern void hs_evaluate_ai_look_at_object(void);
+extern void hs_evaluate_ai_magically_see_encounter(void);
+extern void hs_evaluate_ai_magically_see_players(void);
+extern void hs_evaluate_ai_magically_see_unit(void);
+extern void hs_evaluate_ai_magically_see_units(void);
+extern void hs_evaluate_ai_maneuver_enable(void);
+extern void hs_evaluate_ai_migrate(void);
+extern void hs_evaluate_ai_migrate_and_speak(void);
+extern void hs_evaluate_ai_migrate_by_unit(void);
+extern void hs_evaluate_ai_nonswarm_count(void);
+extern void hs_evaluate_ai_place(void);
+extern void hs_evaluate_ai_playfight(void);
+extern void hs_evaluate_ai_prefer_target(void);
+extern void hs_evaluate_ai_renew(void);
+extern void hs_evaluate_ai_retreat(void);
+extern void hs_evaluate_ai_set_blind(void);
+extern void hs_evaluate_ai_set_current_state(void);
+extern void hs_evaluate_ai_set_deaf(void);
+extern void hs_evaluate_ai_set_respawn(void);
+extern void hs_evaluate_ai_set_return_state(void);
+extern void hs_evaluate_ai_set_team(void);
+extern void hs_evaluate_ai_spawn_actor(void);
+extern void hs_evaluate_ai_status(void);
+extern void hs_evaluate_ai_stop_looking(void);
+extern void hs_evaluate_ai_strength(void);
+extern void hs_evaluate_ai_swarm_count(void);
+extern void hs_evaluate_ai_teleport_to_starting_location(void);
+extern void hs_evaluate_ai_teleport_to_starting_location_if_unsupported(void);
+extern void hs_evaluate_ai_timer_expire(void);
+extern void hs_evaluate_ai_timer_start(void);
+extern void hs_evaluate_ai_try_to_fight(void);
+extern void hs_evaluate_ai_try_to_fight_nothing(void);
+extern void hs_evaluate_ai_try_to_fight_player(void);
+extern void hs_evaluate_ai_vehicle_encounter(void);
+extern void hs_evaluate_ai_vehicle_enterable_actor_type(void);
+extern void hs_evaluate_ai_vehicle_enterable_actors(void);
+extern void hs_evaluate_ai_vehicle_enterable_disable(void);
+extern void hs_evaluate_ai_vehicle_enterable_distance(void);
+extern void hs_evaluate_ai_vehicle_enterable_team(void);
+extern void hs_evaluate_argument_list(void);
+extern void hs_evaluate_arithmetic_reduce(void);
+extern void hs_evaluate_begin(void);
+extern void hs_evaluate_bind(void);
+extern void hs_evaluate_boolean_and_or(void);
+extern void hs_evaluate_breakable_surfaces_enable(void);
+extern void hs_evaluate_breakable_surfaces_reset(void);
+extern void hs_evaluate_camera_control(void);
+extern void hs_evaluate_camera_set(void);
+extern void hs_evaluate_camera_set_animation(void);
+extern void hs_evaluate_camera_set_dead(void);
+extern void hs_evaluate_camera_set_first_person(void);
+extern void hs_evaluate_camera_set_relative(void);
+extern void hs_evaluate_camera_time(void);
+extern void hs_evaluate_change_team(void);
+extern void hs_evaluate_cheat_active_camouflage(void);
+extern void hs_evaluate_cheat_active_camouflage_local_player(void);
+extern void hs_evaluate_cheat_all_powerups(void);
+extern void hs_evaluate_cheat_all_vehicles(void);
+extern void hs_evaluate_cheat_all_weapons(void);
+extern void hs_evaluate_cheat_spawn_warthog(void);
+extern void hs_evaluate_cheat_teleport_to_camera(void);
+extern void hs_evaluate_checkpoint_load(void);
+extern void hs_evaluate_checkpoint_save(void);
+extern void hs_evaluate_cinematic_abort(void);
+extern void hs_evaluate_cinematic_screen_effect_set_convolution(void);
+extern void hs_evaluate_cinematic_screen_effect_set_filter(void);
+extern void hs_evaluate_cinematic_screen_effect_set_filter_desaturation_tint(void);
+extern void hs_evaluate_cinematic_screen_effect_set_video(void);
+extern void hs_evaluate_cinematic_screen_effect_start(void);
+extern void hs_evaluate_cinematic_screen_effect_stop(void);
+extern void hs_evaluate_cinematic_set_near_clip_distance(void);
+extern void hs_evaluate_cinematic_set_title(void);
+extern void hs_evaluate_cinematic_set_title_delayed(void);
+extern void hs_evaluate_cinematic_show_letterbox(void);
+extern void hs_evaluate_cinematic_skip_start_internal(void);
+extern void hs_evaluate_cinematic_skip_stop_internal(void);
+extern void hs_evaluate_cinematic_start(void);
+extern void hs_evaluate_cinematic_stop(void);
+extern void hs_evaluate_cinematic_suppress_bsp_object_creation(void);
+extern void hs_evaluate_cls(void);
+extern void hs_evaluate_comparison(void);
+extern void hs_evaluate_connect(void);
+extern void hs_evaluate_core_load(void);
+extern void hs_evaluate_core_load_at_startup(void);
+extern void hs_evaluate_core_save(void);
+extern void hs_evaluate_crash(void);
+extern void hs_evaluate_custom_animation(void);
+extern void hs_evaluate_custom_animation_list(void);
+extern void hs_evaluate_damage_new(void);
+extern void hs_evaluate_damage_object(void);
+extern void hs_evaluate_deactivate_nav_point_flag(void);
+extern void hs_evaluate_deactivate_nav_point_object(void);
+extern void hs_evaluate_deactivate_team_nav_point_flag(void);
+extern void hs_evaluate_deactivate_team_nav_point_object(void);
+extern void hs_evaluate_debug_camera_load(void);
+extern void hs_evaluate_debug_camera_save(void);
+extern void hs_evaluate_debug_sounds_enable(void);
+extern void hs_evaluate_device_get_position(void);
+extern void hs_evaluate_device_get_power(void);
+extern void hs_evaluate_device_group_change_only_once_more_set(void);
+extern void hs_evaluate_device_group_get(void);
+extern void hs_evaluate_device_group_set(void);
+extern void hs_evaluate_device_group_set_immediate(void);
+extern void hs_evaluate_device_one_sided_set(void);
+extern void hs_evaluate_device_operates_automatically_set(void);
+extern void hs_evaluate_device_set_never_appears_locked(void);
+extern void hs_evaluate_device_set_position(void);
+extern void hs_evaluate_device_set_position_immediate(void);
+extern void hs_evaluate_device_set_power(void);
+extern void hs_evaluate_disconnect(void);
+extern void hs_evaluate_display_scenario_help(void);
+extern void hs_evaluate_effect_new(void);
+extern void hs_evaluate_effect_new_on_object_marker(void);
+extern void hs_evaluate_enable_hud_help_flash(void);
+extern void hs_evaluate_equality(void);
+extern void hs_evaluate_error_overflow_suppression(void);
+extern void hs_evaluate_fade_in(void);
+extern void hs_evaluate_fade_out(void);
+extern void hs_evaluate_fast_setup_network_server(void);
+extern void hs_evaluate_game_all_quiet(void);
+extern void hs_evaluate_game_difficulty_get(void);
+extern void hs_evaluate_game_difficulty_get_real(void);
+extern void hs_evaluate_game_difficulty_set(void);
+extern void hs_evaluate_game_is_cooperative(void);
+extern void hs_evaluate_game_lost(void);
+extern void hs_evaluate_game_revert(void);
+extern void hs_evaluate_game_reverted(void);
+extern void hs_evaluate_game_safe_to_save(void);
+extern void hs_evaluate_game_safe_to_speak(void);
+extern void hs_evaluate_game_save(void);
+extern void hs_evaluate_game_save_cancel(void);
+extern void hs_evaluate_game_save_no_timeout(void);
+extern void hs_evaluate_game_save_totally_unsafe(void);
+extern void hs_evaluate_game_saving(void);
+extern void hs_evaluate_game_skip_ticks(void);
+extern void hs_evaluate_game_speed(void);
+extern void hs_evaluate_game_time(void);
+extern void hs_evaluate_game_variant(void);
+extern void hs_evaluate_game_won(void);
+extern void hs_evaluate_garbage_collect_now(void);
+extern void hs_evaluate_get_digital_forward_throttle(void);
+extern void hs_evaluate_get_digital_pitch_increment(void);
+extern void hs_evaluate_get_digital_strafe_throttle(void);
+extern void hs_evaluate_get_digital_yaw_increment(void);
+extern void hs_evaluate_get_gamepad_forward_threshold(void);
+extern void hs_evaluate_get_gamepad_strafe_threshold(void);
+extern void hs_evaluate_get_gamepad_yaw_scale(void);
+extern void hs_evaluate_get_mouse_forward_threshold(void);
+extern void hs_evaluate_get_mouse_pitch_scale(void);
+extern void hs_evaluate_get_mouse_strafe_threshold(void);
+extern void hs_evaluate_get_mouse_yaw_scale(void);
+extern void hs_evaluate_get_pitch_rate(void);
+extern void hs_evaluate_get_yaw_rate(void);
+extern void hs_evaluate_help(void);
+extern void hs_evaluate_hud_blink_health(void);
+extern void hs_evaluate_hud_blink_motion_sensor(void);
+extern void hs_evaluate_hud_blink_shield(void);
+extern void hs_evaluate_hud_clear_messages(void);
+extern void hs_evaluate_hud_get_timer_ticks(void);
+extern void hs_evaluate_hud_help_flash_restart(void);
+extern void hs_evaluate_hud_set_help_text(void);
+extern void hs_evaluate_hud_set_objective_text(void);
+extern void hs_evaluate_hud_set_timer_position(void);
+extern void hs_evaluate_hud_set_timer_time(void);
+extern void hs_evaluate_hud_set_timer_warning_time(void);
+extern void hs_evaluate_hud_show_crosshair(void);
+extern void hs_evaluate_hud_show_health(void);
+extern void hs_evaluate_hud_show_motion_sensor(void);
+extern void hs_evaluate_hud_show_shield(void);
+extern void hs_evaluate_if(void);
+extern void hs_evaluate_ignore_arguments(void);
+extern void hs_evaluate_input_activate_joy(void);
+extern void hs_evaluate_input_deactivate_joy(void);
+extern void hs_evaluate_input_find_default(void);
+extern void hs_evaluate_input_find_joystick(void);
+extern void hs_evaluate_input_get_joy_count(void);
+extern void hs_evaluate_input_is_joy_active(void);
+extern void hs_evaluate_input_show_joystick_info(void);
+extern void hs_evaluate_inspect(void);
+extern void hs_evaluate_list_count(void);
+extern void hs_evaluate_list_get(void);
+extern void hs_evaluate_magic_melee_attack(void);
+extern void hs_evaluate_magic_seat_name(void);
+extern void hs_evaluate_map_name(void);
+extern void hs_evaluate_map_reset(void);
+extern void hs_evaluate_message_metrics_dump(void);
+extern void hs_evaluate_multiplayer_map_name(void);
+extern void hs_evaluate_net_graph_clear(void);
+extern void hs_evaluate_net_graph_show(void);
+extern void hs_evaluate_not(void);
+extern void hs_evaluate_nothing(void);
+extern void hs_evaluate_numeric_countdown_timer_get(void);
+extern void hs_evaluate_numeric_countdown_timer_restart(void);
+extern void hs_evaluate_numeric_countdown_timer_set(void);
+extern void hs_evaluate_numeric_countdown_timer_stop(void);
+extern void hs_evaluate_object_beautify(void);
+extern void hs_evaluate_object_can_take_damage(void);
+extern void hs_evaluate_object_cannot_take_damage(void);
+extern void hs_evaluate_object_cast(void);
+extern void hs_evaluate_object_create(void);
+extern void hs_evaluate_object_create_anew(void);
+extern void hs_evaluate_object_create_anew_containing(void);
+extern void hs_evaluate_object_create_containing(void);
+extern void hs_evaluate_object_destroy(void);
+extern void hs_evaluate_object_destroy_all(void);
+extern void hs_evaluate_object_destroy_containing(void);
+extern void hs_evaluate_object_pvs_clear(void);
+extern void hs_evaluate_object_pvs_set_camera(void);
+extern void hs_evaluate_object_pvs_set_object(void);
+extern void hs_evaluate_object_set_collideable(void);
+extern void hs_evaluate_object_set_facing(void);
+extern void hs_evaluate_object_set_melee_attack_inhibited(void);
+extern void hs_evaluate_object_set_permutation(void);
+extern void hs_evaluate_object_set_ranged_attack_inhibited(void);
+extern void hs_evaluate_object_set_scale(void);
+extern void hs_evaluate_object_set_shield(void);
+extern void hs_evaluate_object_teleport(void);
+extern void hs_evaluate_object_type_predict(void);
+extern void hs_evaluate_objects_attach(void);
+extern void hs_evaluate_objects_can_see_flag(void);
+extern void hs_evaluate_objects_can_see_object(void);
+extern void hs_evaluate_objects_delete_by_definition(void);
+extern void hs_evaluate_objects_detach(void);
+extern void hs_evaluate_objects_dump_memory(void);
+extern void hs_evaluate_objects_predict(void);
+extern void hs_evaluate_pause_hud_timer(void);
+extern void hs_evaluate_play_update_history(void);
+extern void hs_evaluate_playback(void);
+extern void hs_evaluate_player0_joystick_set_is_normal(void);
+extern void hs_evaluate_player0_look_invert_pitch(void);
+extern void hs_evaluate_player0_look_pitch_is_inverted(void);
+extern void hs_evaluate_player_action_test_accept(void);
+extern void hs_evaluate_player_action_test_action(void);
+extern void hs_evaluate_player_action_test_back(void);
+extern void hs_evaluate_player_action_test_grenade_trigger(void);
+extern void hs_evaluate_player_action_test_jump(void);
+extern void hs_evaluate_player_action_test_look_relative_all_directions(void);
+extern void hs_evaluate_player_action_test_look_relative_down(void);
+extern void hs_evaluate_player_action_test_look_relative_left(void);
+extern void hs_evaluate_player_action_test_look_relative_right(void);
+extern void hs_evaluate_player_action_test_look_relative_up(void);
+extern void hs_evaluate_player_action_test_move_relative_all_directions(void);
+extern void hs_evaluate_player_action_test_primary_trigger(void);
+extern void hs_evaluate_player_action_test_reset(void);
+extern void hs_evaluate_player_action_test_zoom(void);
+extern void hs_evaluate_player_add_equipment(void);
+extern void hs_evaluate_player_camera_control(void);
+extern void hs_evaluate_player_effect_set_max_rotation(void);
+extern void hs_evaluate_player_effect_set_max_translation(void);
+extern void hs_evaluate_player_effect_start(void);
+extern void hs_evaluate_player_effect_stop(void);
+extern void hs_evaluate_player_enable_input(void);
+extern void hs_evaluate_players(void);
+extern void hs_evaluate_players_unzoom_all(void);
+extern void hs_evaluate_print(void);
+extern void hs_evaluate_print_binds(void);
+extern void hs_evaluate_profile_load(void);
+extern void hs_evaluate_profile_unlock_solo_levels(void);
+extern void hs_evaluate_quit(void);
+extern void hs_evaluate_random(void);
+extern void hs_evaluate_random_range(void);
+extern void hs_evaluate_rasterizer_fixed_function_ambient(void);
+extern void hs_evaluate_rasterizer_lights_reset_for_new_map(void);
+extern void hs_evaluate_rasterizer_model_ambient_reflection_tint(void);
+extern void hs_evaluate_rcon(void);
+extern void hs_evaluate_real_random_range(void);
+extern void hs_evaluate_recording_kill(void);
+extern void hs_evaluate_recording_play(void);
+extern void hs_evaluate_recording_play_and_delete(void);
+extern void hs_evaluate_recording_play_and_hover(void);
+extern void hs_evaluate_recording_time(void);
+extern void hs_evaluate_remote_player_stats(void);
+extern void hs_evaluate_render_lights(void);
+extern void hs_evaluate_scenery_animation_start(void);
+extern void hs_evaluate_scenery_animation_start_at_frame(void);
+extern void hs_evaluate_scenery_get_animation_time(void);
+extern void hs_evaluate_script_doc(void);
+extern void hs_evaluate_script_recompile(void);
+extern void hs_evaluate_script_screen_effect_set_value(void);
+extern void hs_evaluate_set(void);
+extern void hs_evaluate_set_digital_forward_throttle(void);
+extern void hs_evaluate_set_digital_pitch_increment(void);
+extern void hs_evaluate_set_digital_strafe_throttle(void);
+extern void hs_evaluate_set_digital_yaw_increment(void);
+extern void hs_evaluate_set_gamepad_forward_threshold(void);
+extern void hs_evaluate_set_gamepad_strafe_threshold(void);
+extern void hs_evaluate_set_gamma(void);
+extern void hs_evaluate_set_mouse_forward_threshold(void);
+extern void hs_evaluate_set_mouse_pitch_scale(void);
+extern void hs_evaluate_set_mouse_strafe_threshold(void);
+extern void hs_evaluate_set_mouse_yaw_scale(void);
+extern void hs_evaluate_set_pitch_rate(void);
+extern void hs_evaluate_set_yaw_rate(void);
+extern void hs_evaluate_show_hud(void);
+extern void hs_evaluate_show_hud_help_text(void);
+extern void hs_evaluate_show_hud_timer(void);
+extern void hs_evaluate_sleep(void);
+extern void hs_evaluate_sleep_ticks(void);
+extern void hs_evaluate_sound_cache_dump_to_file(void);
+extern void hs_evaluate_sound_class_set_gain(void);
+extern void hs_evaluate_sound_eax_enabled(void);
+extern void hs_evaluate_sound_enable(void);
+extern void hs_evaluate_sound_enable_eax(void);
+extern void hs_evaluate_sound_enable_hardware(void);
+extern void hs_evaluate_sound_get_effects_gain(void);
+extern void hs_evaluate_sound_get_gain(void);
+extern void hs_evaluate_sound_get_master_gain(void);
+extern void hs_evaluate_sound_get_music_gain(void);
+extern void hs_evaluate_sound_get_supplementary_buffers(void);
+extern void hs_evaluate_sound_impulse_start(void);
+extern void hs_evaluate_sound_impulse_stop(void);
+extern void hs_evaluate_sound_impulse_time(void);
+extern void hs_evaluate_sound_looping_predict(void);
+extern void hs_evaluate_sound_looping_set_alternate(void);
+extern void hs_evaluate_sound_looping_set_scale(void);
+extern void hs_evaluate_sound_looping_start(void);
+extern void hs_evaluate_sound_looping_stop(void);
+extern void hs_evaluate_sound_set_effects_gain(void);
+extern void hs_evaluate_sound_set_env(void);
+extern void hs_evaluate_sound_set_factor(void);
+extern void hs_evaluate_sound_set_gain(void);
+extern void hs_evaluate_sound_set_master_gain(void);
+extern void hs_evaluate_sound_set_music_gain(void);
+extern void hs_evaluate_sound_set_rolloff(void);
+extern void hs_evaluate_sound_set_supplementary_buffers(void);
+extern void hs_evaluate_structure_bsp_index(void);
+extern void hs_evaluate_sv_ban(void);
+extern void hs_evaluate_sv_banlist(void);
+extern void hs_evaluate_sv_end_game(void);
+extern void hs_evaluate_sv_get_player_action_queue_length(void);
+extern void hs_evaluate_sv_kick(void);
+extern void hs_evaluate_sv_map(void);
+extern void hs_evaluate_sv_map_next(void);
+extern void hs_evaluate_sv_map_reset(void);
+extern void hs_evaluate_sv_mapcycle(void);
+extern void hs_evaluate_sv_mapcycle_add(void);
+extern void hs_evaluate_sv_mapcycle_begin(void);
+extern void hs_evaluate_sv_mapcycle_del(void);
+extern void hs_evaluate_sv_parameters_dump(void);
+extern void hs_evaluate_sv_parameters_reload(void);
+extern void hs_evaluate_sv_players(void);
+extern void hs_evaluate_sv_status(void);
+extern void hs_evaluate_sv_unban(void);
+extern void hs_evaluate_switch_bsp(void);
+extern void hs_evaluate_thread_sleep(void);
+extern void hs_evaluate_track_remote_player_position_updates(void);
+extern void hs_evaluate_ui_widget_show_path(void);
+extern void hs_evaluate_unbind(void);
+extern void hs_evaluate_unit_aim_without_turning(void);
+extern void hs_evaluate_unit_can_blink(void);
+extern void hs_evaluate_unit_close(void);
+extern void hs_evaluate_unit_custom_animation_at_frame(void);
+extern void hs_evaluate_unit_doesnt_drop_items(void);
+extern void hs_evaluate_unit_enter_vehicle(void);
+extern void hs_evaluate_unit_exit_vehicle(void);
+extern void hs_evaluate_unit_get_current_flashlight_state(void);
+extern void hs_evaluate_unit_get_custom_animation_time(void);
+extern void hs_evaluate_unit_get_health(void);
+extern void hs_evaluate_unit_get_shield(void);
+extern void hs_evaluate_unit_get_total_grenade_count(void);
+extern void hs_evaluate_unit_has_weapon(void);
+extern void hs_evaluate_unit_has_weapon_readied(void);
+extern void hs_evaluate_unit_impervious(void);
+extern void hs_evaluate_unit_is_playing_custom_animation(void);
+extern void hs_evaluate_unit_kill_silent(void);
+extern void hs_evaluate_unit_open(void);
+extern void hs_evaluate_unit_set_current_vitality(void);
+extern void hs_evaluate_unit_set_desired_flashlight_state(void);
+extern void hs_evaluate_unit_set_emotion(void);
+extern void hs_evaluate_unit_set_emotion_animation(void);
+extern void hs_evaluate_unit_set_enterable_by_player(void);
+extern void hs_evaluate_unit_set_maximum_vitality(void);
+extern void hs_evaluate_unit_set_seat(void);
+extern void hs_evaluate_unit_solo_player_integrated_night_vision_is_active(void);
+extern void hs_evaluate_unit_stop_custom_animation(void);
+extern void hs_evaluate_unit_suspended(void);
+extern void hs_evaluate_units_set_current_vitality(void);
+extern void hs_evaluate_units_set_desired_flashlight_state(void);
+extern void hs_evaluate_units_set_maximum_vitality(void);
+extern void hs_evaluate_vehicle_driver(void);
+extern void hs_evaluate_vehicle_hover(void);
+extern void hs_evaluate_vehicle_load_magic(void);
+extern void hs_evaluate_vehicle_riders(void);
+extern void hs_evaluate_vehicle_test_seat_list(void);
+extern void hs_evaluate_vehicle_unload(void);
+extern void hs_evaluate_version(void);
+extern void hs_evaluate_volume_teleport_players_not_inside(void);
+extern void hs_evaluate_volume_test_object(void);
+extern void hs_evaluate_volume_test_objects(void);
+extern void hs_evaluate_volume_test_objects_all(void);
+extern void hs_evaluate_wake(void);
+extern void hs_parse_arithmetic(void);
+extern void hs_parse_begin(void);
+extern void hs_parse_cond(void);
+extern void hs_parse_function_arguments(void);
+extern void hs_parse_if(void);
+extern void hs_parse_inspect(void);
+extern void hs_parse_logical(void);
+extern void hs_parse_set(void);
+extern void hs_parse_sleep(void);
+extern void hs_parse_sleep_until(void);
+extern void hs_parse_string_arguments(void);
+extern void hs_parse_two_numeric_arguments(void);
+extern void hs_parse_two_object_arguments(void);
+extern void hs_parse_unit(void);
+extern void hs_parse_wake(void);
+extern void hs_vehicle_gunner_evaluate(void);
+extern void hs_vehicle_test_seat_evaluate(void);
+extern void hwreq_parse_exception_copy_construct(void);
+extern void item_new(void);
+extern void item_stamp_age_timestamp(void);
+extern void item_update(void);
+extern void light_fixture_place(void);
+extern void machine_create(void);
+extern void machine_place(void);
+extern void map_list_matching_substring_evaluate(void);
+extern void message_delta_long_decode(void);
+extern void message_delta_long_encode(void);
+extern void message_delta_real_encode(void);
+extern void object_clear_references_to_object(void);
+extern void object_type_definition_return_false(void);
+extern void object_type_definition_return_true(void);
+extern void object_update_export_functions(void);
+extern void player_set_action_result(void);
+extern void players_handle_deleted_unit(void);
+extern void projectile_apply_network_update(void);
+extern void projectile_build_network_update(void);
+extern void projectile_force_detonate(void);
+extern void projectile_is_old_enough(void);
+extern void projectile_network_baseline_take(void);
+extern void projectile_new(void);
+extern void projectile_notify_object_deleted(void);
+extern void projectile_send_creation(void);
+extern void projectile_update(void);
+extern void projectile_update_function_values(void);
+extern void recorded_animation_compressed_begin(void);
+extern void recorded_animation_compressed_update(void);
+extern void recorded_animation_v1_begin(void);
+extern void recorded_animation_v1_update(void);
+extern void scenery_new(void);
+extern void scenery_update(void);
+extern void sound_scenery_create(void);
+extern void sv_ban_penalty_evaluate(void);
+extern void sv_banlist_file_evaluate(void);
+extern void sv_friendly_fire_evaluate(void);
+extern void sv_maxplayers_evaluate(void);
+extern void sv_name_evaluate(void);
+extern void sv_password_evaluate(void);
+extern void sv_rcon_password_evaluate(void);
+extern void sv_single_flag_force_reset_evaluate(void);
+extern void sv_timelimit_evaluate(void);
+extern void sv_tk_cooldown_evaluate(void);
+extern void sv_tk_grace_evaluate(void);
+extern void unit_ai_update_stagger_allocate(void);
+extern void unit_ai_update_stagger_reset(void);
+extern void unit_apply_network_health_update(void);
+extern void unit_build_network_update(void);
+extern void unit_forget_object_reference(void);
+extern void unit_new(void);
+extern void unit_place(void);
+extern void unit_play_default_reaction_sound(void);
+extern void unit_region_damage_reaction(void);
+extern void unit_submit_periodic_network_update(void);
+extern void unit_update(void);
+extern void unit_update_aiming_overlay_angles(void);
+extern void unit_update_ik_detail_nodes(void);
+extern void unit_update_scale_function_inputs(void);
+extern void vehicle_apply_network_update(void);
+extern void vehicle_blend_animations(void);
+extern void vehicle_calculate_animation_controls(void);
+extern void vehicle_create(void);
+extern void vehicle_encode_network_create(void);
+extern void vehicle_encode_network_update(void);
+extern void vehicle_is_old_enough(void);
+extern void vehicle_network_baseline_take(void);
+extern void vehicle_reset_state(void);
+extern void vehicle_update(void);
+extern void weapon_apply_network_update(void);
+extern void weapon_build_network_update(void);
+extern void weapon_is_old_enough(void);
+extern void weapon_network_baseline_take(void);
+extern void weapon_new(void);
+extern void weapon_new_from_placement(void);
+extern void weapon_send_creation(void);
+extern void weapon_update(void);
+extern void weapon_update_function_values(void);
+
+/* 0x0063acac..0x0063cd8c */
+uint32_t table_0063acac[2104] = {
+    /* +0x0000 */ 0x3e59999a, 0x3f372474, 0x3d93a92a, 0, 0x1, 0x6d, 0x3, 0xaf,
+    /* +0x0020 */ 0x5, 0x18, 0x7, 0xb2, 0xec, 0x25, 0xf0, 0x95,
+    /* +0x0040 */ 0xd, 0x98, 0xf, 0x11, 0xc6, 0xbe, 0x16, 0xe1,
+    /* +0x0060 */ 0x82, 0x13, 0x17, 0xc3, 0x19, 0x4a, 0x1b, 0x55,
+    /* +0x0080 */ 0x1d, 0x42, 0x1f, 0xbf, 0x21, 0xbc, 0xfe, 0xe,
+    /* +0x00a0 */ 0xa6, 0xe9, 0x78, 0xeb, 0x29, 0x1c, 0x90, 0x28,
+    /* +0x00c0 */ 0x2d, 0x15, 0x2f, 0xcd, 0xf8, 0x8, 0x6e, 0xa3,
+    /* +0x00e0 */ 0x35, 0x69, 0x37, 0x9a, 0x39, 0x47, 0x3b, 0xf4,
+    /* +0x0100 */ 0xd4, 0x10, 0xae, 0xb1, 0x41, 0xb7, 0x9c, 0x54,
+    /* +0x0120 */ 0x45, 0xb9, 0xa8, 0x77, 0x58, 0xb, 0x9e, 0x60,
+    /* +0x0140 */ 0xaa, 0x3e, 0x4f, 0x79, 0x51, 0x43, 0x53, 0xc7,
+    /* +0x0160 */ 0xa0, 0x88, 0x57, 0xd2, 0x86, 0x24, 0x5b, 0xf2,
+    /* +0x0180 */ 0x5d, 0xa1, 0xa4, 0x12, 0xe8, 0xf1, 0xd8, 0x38,
+    /* +0x01a0 */ 0x65, 0x33, 0x67, 0xbd, 0x36, 0x8a, 0x6b, 0xfc,
+    /* +0x01c0 */ 0xca, 0x66, 0x6f, 0x7a, 0x71, 0x30, 0x73, 0x48,
+    /* +0x01e0 */ 0xe4, 0x3a, 0xe2, 0x27, 0xb8, 0x59, 0x7b, 0x87,
+    /* +0x0200 */ 0x7d, 0x64, 0x7f, 0x52, 0x81, 0x2e, 0x83, 0x9d,
+    /* +0x0220 */ 0x85, 0x94, 0xc4, 0xb5, 0x89, 0x6c, 0x8b, 0xed,
+    /* +0x0240 */ 0x8d, 0x5a, 0x8f, 0x2b, 0x91, 0xbb, 0x93, 0x8e,
+    /* +0x0260 */ 0xc, 0xee, 0xc0, 0xb4, 0x99, 0x4b, 0x9b, 0xb0,
+    /* +0x0280 */ 0x84, 0xde, 0xba, 0x2a, 0x5e, 0x74, 0xe6, 0x5f,
+    /* +0x02a0 */ 0xa5, 0xc2, 0xa7, 0x76, 0xa9, 0x4d, 0xab, 0x50,
+    /* +0x02c0 */ 0xad, 0x3f, 0x4, 0x80, 0x40, 0x8c, 0x3c, 0x70,
+    /* +0x02e0 */ 0x56, 0x7c, 0x1e, 0x22, 0x46, 0x9f, 0x92, 0xe0,
+    /* +0x0300 */ 0x68, 0xa, 0x20, 0x97, 0xc1, 0x4c, 0xf6, 0xb6,
+    /* +0x0320 */ 0xc5, 0x4e, 0xce, 0x2c, 0xc9, 0x2, 0xcb, 0xf9,
+    /* +0x0340 */ 0x96, 0xfa, 0xcf, 0xea, 0xd1, 0x49, 0xd3, 0x3d,
+    /* +0x0360 */ 0xd5, 0xfb, 0xd7, 0x63, 0xd9, 0x1a, 0xdb, 0x32,
+    /* +0x0380 */ 0xdd, 0x7e, 0xdf, 0xac, 0xd0, 0x6a, 0xe3, 0x75,
+    /* +0x03a0 */ 0xe5, 0x34, 0xe7, 0x61, 0x26, 0x14, 0xc8, 0x9,
+    /* +0x03c0 */ 0xdc, 0x72, 0xef, 0xda, 0x62, 0x6, 0xf3, 0xb3,
+    /* +0x03e0 */ 0xf5, 0x5c, 0xf7, 0x31, 0xcc, 0x44, 0xd6, 0xa2,
+    /* +0x0400 */ 0, 0x23, 0xff, 0, 0x1, 0x6d, 0x3, 0xaf,
+    /* +0x0420 */ 0x5, 0x18, 0x7, 0xb2, 0xec, 0x25, 0xf0, 0x95,
+    /* +0x0440 */ 0xd, 0x98, 0xf, 0x11, 0xc6, 0xbe, 0x16, 0xe1,
+    /* +0x0460 */ 0x82, 0x13, 0x17, 0xc3, 0x19, 0x4a, 0x1b, 0x55,
+    /* +0x0480 */ 0x1d, 0x42, 0x1f, 0xbf, 0x21, 0xbc, 0xfe, 0xe,
+    /* +0x04a0 */ 0xa6, 0xe9, 0x78, 0xeb, 0x29, 0x1c, 0x90, 0x28,
+    /* +0x04c0 */ 0x2d, 0x15, 0x2f, 0xcd, 0xf8, 0x8, 0x6e, 0xa3,
+    /* +0x04e0 */ 0x35, 0x69, 0x37, 0x9a, 0x39, 0x47, 0x3b, 0xf4,
+    /* +0x0500 */ 0xd4, 0x10, 0xae, 0xb1, 0x41, 0xb7, 0x9c, 0x54,
+    /* +0x0520 */ 0x45, 0xb9, 0xa8, 0x77, 0x58, 0xb, 0x9e, 0x60,
+    /* +0x0540 */ 0xaa, 0x3e, 0x4f, 0x79, 0x51, 0x43, 0x53, 0xc7,
+    /* +0x0560 */ 0xa0, 0x88, 0x57, 0xd2, 0x86, 0x24, 0x5b, 0xf2,
+    /* +0x0580 */ 0x5d, 0xa1, 0xa4, 0x12, 0xe8, 0xf1, 0xd8, 0x38,
+    /* +0x05a0 */ 0x65, 0x33, 0x67, 0xbd, 0x36, 0x8a, 0x6b, 0xfc,
+    /* +0x05c0 */ 0xca, 0x66, 0x6f, 0x7a, 0x71, 0x30, 0x73, 0x48,
+    /* +0x05e0 */ 0xe4, 0x3a, 0xe2, 0x27, 0xb8, 0x59, 0x7b, 0x87,
+    /* +0x0600 */ 0x7d, 0x64, 0x7f, 0x52, 0x81, 0x2e, 0x83, 0x9d,
+    /* +0x0620 */ 0x85, 0x94, 0xc4, 0xb5, 0x89, 0x6c, 0x8b, 0xed,
+    /* +0x0640 */ 0x8d, 0x5a, 0x8f, 0x2b, 0x91, 0xbb, 0x93, 0x8e,
+    /* +0x0660 */ 0xc, 0xee, 0xc0, 0xb4, 0x99, 0x4b, 0x9b, 0xb0,
+    /* +0x0680 */ 0x84, 0xde, 0xba, 0x2a, 0x5e, 0x74, 0xe6, 0x5f,
+    /* +0x06a0 */ 0xa5, 0xc2, 0xa7, 0x76, 0xa9, 0x4d, 0xab, 0x50,
+    /* +0x06c0 */ 0xad, 0x3f, 0x4, 0x80, 0x40, 0x8c, 0x3c, 0x70,
+    /* +0x06e0 */ 0x56, 0x7c, 0x1e, 0x22, 0x46, 0x9f, 0x92, 0xe0,
+    /* +0x0700 */ 0x68, 0xa, 0x20, 0x97, 0xc1, 0x4c, 0xf6, 0xb6,
+    /* +0x0720 */ 0xc5, 0x4e, 0xce, 0x2c, 0xc9, 0x2, 0xcb, 0xf9,
+    /* +0x0740 */ 0x96, 0xfa, 0xcf, 0xea, 0xd1, 0x49, 0xd3, 0x3d,
+    /* +0x0760 */ 0xd5, 0xfb, 0xd7, 0x63, 0xd9, 0x1a, 0xdb, 0x32,
+    /* +0x0780 */ 0xdd, 0x7e, 0xdf, 0xac, 0xd0, 0x6a, 0xe3, 0x75,
+    /* +0x07a0 */ 0xe5, 0x34, 0xe7, 0x61, 0x26, 0x14, 0xc8, 0x9,
+    /* +0x07c0 */ 0xdc, 0x72, 0xef, 0xda, 0x62, 0x6, 0xf3, 0xb3,
+    /* +0x07e0 */ 0xf5, 0x5c, 0xf7, 0x31, 0xcc, 0x44, 0xd6, 0xa2,
+    /* +0x0800 */ 0, 0x23, 0xff, 0, 0x1, 0x3f42f06b, 0xbe371fffu, 0x3f1f7ee5,
+    /* +0x0820 */ 0xbeae5a14u, 0xbf2a3348u, 0x3f2a3348, 0xbda28912u, 0x3f7d48aa, 0xbdf9389bu, 0xbe874795u, 0x3edb5f5f,
+    /* +0x0840 */ 0xbf5d335du, 0x3dcb69db, 0x3f035efa, 0xbf5a3ee2u, 0x3e1acb43, 0x3d04ae86, 0x3f7cec20, 0x3eb9e68a,
+    /* +0x0860 */ 0xbe320bc4u, 0x3f6a56de, 0x3dab68cf, 0x3eb74fd7, 0x3f6e1145, 0xbf4fe1fcu, 0xbe97c99bu, 0xbf00b07du,
+    /* +0x0880 */ 0xbebe2329u, 0xbf6dac04u, 0x3c4ad14a, 0xbf48c77eu, 0xbf1e7243u, 0x3d2e2b8c, 0x3e9b1bdf, 0x3e468a0d,
+    /* +0x08a0 */ 0x3f6ede12, 0x3f44e304, 0xbe3132b5u, 0x3f1d8266, 0xbf6de16du, 0x3ebce7ab, 0xbca7eb6cu, 0x3e97ce96,
+    /* +0x08c0 */ 0x3f64c016, 0xbeac9a35u, 0x3e98d64d, 0xbf57c515u, 0x3ee54174, 0xbe929867u, 0xbf638716u, 0xbeb73e68u,
+    /* +0x08e0 */ 0xbf121f2au, 0xbe370585u, 0x3f4d2924, 0xbeedb37du, 0xbf62b23au, 0x3c8cdc87, 0xbf4dd207u, 0x3e45f288,
+    /* +0x0900 */ 0xbf0ff63cu, 0xbf3d0c5fu, 0xbeab990bu, 0xbf15c8c9u, 0xbee27daau, 0x3f34c1db, 0xbf0d8e86u, 0xbf1dbe4du,
+    /* +0x0920 */ 0xbe2d3565u, 0x3f44ebdd, 0x3e1453d2, 0xbe9bbe88u, 0xbf710870u, 0xbf5ebbcbu, 0xbe1801f7u, 0xbef0adcdu,
+    /* +0x0940 */ 0x3e0a7371, 0x3f335b70, 0x3f335b70, 0x3f45f3e9, 0x3eecf180, 0x3eddf267, 0xbf513554u, 0xbf127222u,
+    /* +0x0960 */ 0x3d8f74cd, 0xbefdf783u, 0xbe666730u, 0x3f56b192, 0x3f75bb38, 0x3e6d6bec, 0x3e217269, 0xbe299b6fu,
+    /* +0x0980 */ 0xbf37bd9du, 0xbf2d23e6u, 0x3dfd249e, 0x3e374f72, 0x3f79de7a, 0xbf1cdb7bu, 0xbf127a31u, 0xbf0b8e9fu,
+    /* +0x09a0 */ 0x3ec692b4, 0x3da387df, 0xbf6b1349u, 0xbf785b4bu, 0, 0xbe785b5bu, 0x3ecced0b, 0xbef2f406u,
+    /* +0x09c0 */ 0x3f48b35f, 0xbf7470dau, 0x3e708fa8, 0x3e3a3db4, 0x3f4a083a, 0xbf0c6530u, 0x3e8d896a, 0x3f3a1954,
+    /* +0x09e0 */ 0xbf2eeed9u, 0x3d8af46b, 0x3f2c8451, 0x3f2e310e, 0xbe93649du, 0xbd3b6fe3u, 0x3ec0a4a0, 0xbf6ce608u,
+    /* +0x0a00 */ 0xbe70c0f0u, 0xbf53e9b8u, 0x3f02686e, 0xbf7c9332u, 0xbd2fb4c4u, 0x3e210fd8, 0x3f692f0a, 0x3da996b7,
+    /* +0x0a20 */ 0xbeceff5cu, 0xbf00e9f7u, 0x3e6262cc, 0x3f55cef2, 0x3f122691, 0xbc1a9974u, 0xbf522ac3u, 0xbe4132b5u,
+    /* +0x0a40 */ 0x3e4132b5, 0xbf76b80fu, 0x3f7752ca, 0x3e8199fe, 0xbd4f5d35u, 0xbd4d5736u, 0x3f65d713, 0x3ee001b4,
+    /* +0x0a60 */ 0xbe92aa19u, 0x3f6dbd1f, 0xbe714984u, 0xbf20d76bu, 0xbe3a3ceau, 0xbf41a501u, 0xbf3b29d4u, 0xbf28727eu,
+    /* +0x0a80 */ 0x3e38ab0d, 0x3f40d163, 0xbf25884cu, 0x3df7635e, 0x3e3318b9, 0x3f58092d, 0xbf01d862u, 0xbedd2999u,
+    /* +0x0aa0 */ 0xbf650fa6u, 0x3de7b1c0, 0xbf01b24fu, 0x3f21da49, 0x3f160fe4, 0x3e486e3b, 0xbd7fde72u, 0xbf7a89dbu,
+    /* +0x0ac0 */ 0xbf031cfcu, 0xbf523290u, 0xbe81083eu, 0x3f52f1ed, 0xbf0ed3c8u, 0xbdca27f2u, 0x3f2fc87e, 0x3f212275,
+    /* +0x0ae0 */ 0xbeba3f25u, 0xbf09a3b1u, 0xbe8be554u, 0x3f4c33d7, 0xbf516873u, 0xbe9e4606u, 0xbef85e1cu, 0x3f79a826,
+    /* +0x0b00 */ 0xbe28997cu, 0x3e174ea9, 0xbe5db22du, 0xbf5253a8u, 0xbf0701c9u, 0xbf268805u, 0xbf2f2eaeu, 0x3ea8b1bc,
+    /* +0x0b20 */ 0xbe90d90eu, 0x3de7c17b, 0xbf73d3b3u, 0xbf06339cu, 0x3efabecf, 0x3f3258d6, 0xbf1aff5cu, 0xbee2a27fu,
+    /* +0x0b40 */ 0x3f295337, 0xbf1f5b81u, 0x3f100315, 0x3f0b4a45, 0xbf423337u, 0xbeb11080u, 0x3f0d5dc4, 0xbeacb33eu,
+    /* +0x0b60 */ 0xbf6e4852u, 0xbe104817u, 0x3eb7ca21, 0xbf6a2ee4u, 0xbe3db7f1u, 0xbf63356eu, 0x3e1a5482, 0x3edeebf6,
+    /* +0x0b80 */ 0x3ec46d61, 0xbf3983c7u, 0x3f128a83, 0xbe3e52dfu, 0xbf72d3b7u, 0x3e834203, 0xbec4bc6au, 0xbf6a032eu,
+    /* +0x0ba0 */ 0x3e0489d2, 0x3e46aceb, 0x3d46ad2e, 0x3f7ad40b, 0x3e26640a, 0x3e768167, 0xbf74f701u, 0x3f73e7d1,
+    /* +0x0bc0 */ 0xbe8f3040u, 0xbdf2b12du, 0x3e9ff866, 0xbf4f3bfbu, 0x3efe7f91, 0xbf7bd662u, 0x3d1f9485, 0xbe338716u,
+    /* +0x0be0 */ 0xbd9fb268u, 0xbf0720eau, 0x3f588345, 0xbe14c72au, 0xbf7d4706u, 0xbbe2b8c7u, 0xbf4470dau, 0x3d07abfc,
+    /* +0x0c00 */ 0xbf23efaeu, 0x3f11b2c4, 0xbf0beab3u, 0xbf1d4307u, 0xbed78099u, 0xbf4db4feu, 0xbed78099u, 0xbf4b26f2u,
+    /* +0x0c20 */ 0x3e36f199, 0x3f14e842, 0xbf58cc57u, 0xbdc0b567u, 0xbf05fe54u, 0x3f01a555, 0x3f4ed0d5, 0x3e9a5721,
+    /* +0x0c40 */ 0xbef86db5u, 0x3f455992, 0x3ed347c7, 0xbeb6b702u, 0xbedf518bu, 0x3f5379c8, 0x3f290d5a, 0x3f11a943,
+    /* +0x0c60 */ 0xbefaeb81u, 0xbef72fdcu, 0x3f079bfe, 0x3f32861f, 0xbd524074u, 0xbf3a98eeu, 0xbf2ec54cu, 0x3f7ec96d,
+    /* +0x0c80 */ 0x3d7b29a2, 0xbd9a9004u, 0x3f48aa43, 0x3ef699a6, 0x3ec8aa43, 0x3f0ab303, 0x3f51dfb9, 0xbe3dcca7u,
+    /* +0x0ca0 */ 0xbef31a8fu, 0xbed555e7u, 0xbf4673b4u, 0x3f7b5aea, 0x3e421d97, 0xbb9f4906u, 0xbf63ff7au, 0x3ebb0575,
+    /* +0x0cc0 */ 0x3e8ab0a7, 0xbf1e05abu, 0x3f3ac0e8, 0xbe96d6dcu, 0xbd03eea2u, 0x3f534b94, 0x3f104c9d, 0x3f0ab6ae,
+    /* +0x0ce0 */ 0xbedbe2f8u, 0xbf38f388u, 0xbebc9258u, 0xbf43a4a5u, 0xbf07892fu, 0x3ea169c2, 0xbf5a5259u, 0xbed525eeu,
+    /* +0x0d00 */ 0xbe78cd21u, 0x3f17c4e3, 0xbf448db0u, 0xbf29f3e9u, 0xbe1075b4u, 0x3f3c029f, 0x3f1828c3, 0x3f4da71a,
+    /* +0x0d20 */ 0x3d182880, 0x3f79614e, 0xbe2faa04u, 0x3e1691a7, 0xbee7af86u, 0x3dc8a266, 0xbf62e88eu, 0x3ec4a2ba,
+    /* +0x0d40 */ 0x3e979f66, 0xbf5fe154u, 0xbf1c3bb4u, 0xbed67d56u, 0xbf2c1f10u, 0xbed38412u, 0x3f596441, 0xbea86df8u,
+    /* +0x0d60 */ 0xbe8819d2u, 0x3ed046a6, 0xbf5fbdf1u, 0x3e2c447c, 0x3f7c3fd5, 0x3ce5aff3, 0x3e746e09, 0xbf789891u,
+    /* +0x0d80 */ 0x3bb1c433, 0x3f595400, 0x3e0bd1ab, 0x3f02b368, 0xbe703926u, 0x3f62c333, 0xbecd04a3u, 0x3e8f99c4,
+    /* +0x0da0 */ 0xbf4bdc9cu, 0x3f09309c, 0x3f255715, 0x3e4a5b53, 0x3f3cc8ac, 0x3f1e5a9b, 0xbe4d9514u, 0xbf42784bu,
+    /* +0x0dc0 */ 0xbed75ec8u, 0x3f48903f, 0x3eea3704, 0xbda9d734u, 0xbe7ec28bu, 0xbf770a4eu, 0xbf2ebee0u, 0x3f00b2a7,
+    /* +0x0de0 */ 0xbf07c83bu, 0xbf14af71u, 0x3f5028d4, 0xbd1e98ddu, 0xbe04d22du, 0x3f69795b, 0x3ec73b21, 0x3f2be048,
+    /* +0x0e00 */ 0xbf2f7b5bu, 0x3e903b60, 0x3ef32f01, 0xbf12680au, 0x3f2b3893, 0xbf3fc622u, 0x3e846003, 0x3f1c2268,
+    /* +0x0e20 */ 0xbf6b9c63u, 0x3e98c240, 0x3e8174e6, 0xbf27ee70u, 0x3f2147e0, 0x3ed4d2f6, 0x3e81e8a3, 0xbf076fd2u,
+    /* +0x0e40 */ 0xbf4f4d16u, 0x3f724606, 0x3d81c0ca, 0x3ea230fd, 0xbf7a681bu, 0xbda9c454u, 0xbe433b54u, 0x3f4cbce0,
+    /* +0x0e60 */ 0x3eb8012e, 0xbef63411u, 0xbf0e0c5bu, 0xbf4dcd60u, 0x3e5b395c, 0xbf271d82u, 0xbe665908u, 0x3f392e84,
+    /* +0x0e80 */ 0xbf178f36u, 0xbe5253dau, 0x3f478067, 0xbedff1d8u, 0xbf0baa15u, 0x3f37022e, 0xbf6fc350u, 0xbe81654du,
+    /* +0x0ea0 */ 0xbe78a47fu, 0x3ed0470b, 0xbe981cd6u, 0x3f5d25ff, 0x3f0cd4bb, 0x3ec3502b, 0x3f3e2c56, 0xbf6cc34cu,
+    /* +0x0ec0 */ 0x3eb19286, 0xbe1fd08du, 0xbe5f82b2u, 0x3c525edd, 0x3f79ce4a, 0x3f2409f6, 0xbf41dd3cu, 0x3e013e3e,
+    /* +0x0ee0 */ 0x3ed068fd, 0x3f2218bd, 0xbf288766u, 0xbeba23e2u, 0x3ee19fe4, 0xbf521cdeu, 0x3dc7f6f5, 0x3f732389,
+    /* +0x0f00 */ 0x3e983eea, 0x3e4719f8, 0xbf756766u, 0x3e54fdf4, 0xbee1988du, 0xbf0f8facu, 0x3f33738e, 0x3f43d827,
+    /* +0x0f20 */ 0xbed05858u, 0xbeff91e6u, 0x3e9315b5, 0x3f710e34, 0x3e33c537, 0xbf10e821u, 0xbf04419au, 0xbf24752eu,
+    /* +0x0f40 */ 0x3f46ab36, 0xbf092d13u, 0xbeaa49a1u, 0xbf616a27u, 0xbe5910c3u, 0x3ed910e4, 0x3f6fdb6e, 0xbd039475u,
+    /* +0x0f60 */ 0xbeb22df9u, 0x3f3e3bbc, 0xbee977eau, 0x3efac322, 0x3f08560c, 0x3f58a4d3, 0x3c6f0f17, 0x3eb41dd2,
+    /* +0x0f80 */ 0x3f5e7f2c, 0xbeb1ff50u, 0x3f60a106, 0x3ebe121f, 0xbe9b8327u, 0x3f74d0ff, 0x3e5c3090, 0x3e4ace68,
+    /* +0x0fa0 */ 0x3f38dfce, 0x3e4fb939, 0xbf294b7bu, 0x3d731e3a, 0xbe241aacu, 0xbf7c3be6u, 0xbe91c821u, 0xbe3a46e1u,
+    /* +0x0fc0 */ 0x3f70f1c3, 0x3ee7f844, 0xbe82584fu, 0xbf5ab6f2u, 0x3f15270b, 0xbf16889cu, 0xbf0fa0e8u, 0x3d5434a0,
+    /* +0x0fe0 */ 0x3eb18506, 0x3f6fc0f4, 0x3f7481f5, 0xbe81ccd9u, 0xbe1cf7cbu, 0x3f60c964, 0xbe9efed6u, 0xbeba6890u,
+    /* +0x1000 */ 0xbf20a02cu, 0x3edec3fc, 0x3f2550ca, 0xbee72a17u, 0xbf561c7au, 0xbe9f2991u, 0x3e3ccc03, 0xbf7a9af6u,
+    /* +0x1020 */ 0x3db3ce64, 0x3f77ad19, 0xbe80f7bau, 0x3cbb96af, 0xbf060264u, 0x3f4ac311, 0xbea0cf9eu, 0xbf320f4du,
+    /* +0x1040 */ 0x3f000b03, 0x3f040b56, 0xbf700e49u, 0xbeabfaf4u, 0xbdb588e3u, 0xbe813c47u, 0xbf495df6u, 0xbf10434eu,
+    /* +0x1060 */ 0x3e769058, 0xbf4f865du, 0x3f08a340, 0xbf00a559u, 0xbe366235u, 0x3f5894b4, 0x3f5d491f, 0xbd742dcfu,
+    /* +0x1080 */ 0x3eff9f88, 0xbf5f8ad2u, 0x3dc3bcd3, 0xbef4ac4bu, 0xbf2bc569u, 0x3efbee5f, 0x3f0dff61, 0x3eb8259e,
+    /* +0x10a0 */ 0x3dbb7e91, 0xbf6db77cu, 0xbd8f1801u, 0xbe485511u, 0x3f7a6a44, 0xbe509aaau, 0x3e18711d, 0xbf77b7a6u,
+    /* +0x10c0 */ 0x3f2f1b9b, 0xbd5e5c0cu, 0xbf3a39d6u, 0x3f6d6cb5, 0xbda7136au, 0x3ebadcb1, 0x3f18e2d2, 0x3d91cc96,
+    /* +0x10e0 */ 0x3f4c85e4, 0xbf361c9bu, 0x3d1d80e5, 0xbf33a69cu, 0x3e8840e1, 0x3f6b3ffb, 0xbe9506ddu, 0xbedeee95u,
+    /* +0x1100 */ 0xbf1cbfd3u, 0x3f28f0d8, 0xbf65116bu, 0xbede0115u, 0xbdd9f7f9u, 0x3f52be8c, 0xbe8f4e66u, 0x3efce4a8,
+    /* +0x1120 */ 0x3e3df00b, 0xbf48fb12u, 0xbf1749aeu, 0xbf0d46c3u, 0x3e5e5647, 0x3f4e1fe2, 0xbe16a0dcu, 0x3f7d363f,
+    /* +0x1140 */ 0x3ba63305, 0x3f498612, 0x3deb7d41, 0x3f1b1af4, 0xbd4e3bcdu, 0xbf79bcdcu, 0x3e5b1fef, 0x3f4d754b,
+    /* +0x1160 */ 0x3f1830f5, 0x3d4aeb81, 0xbf608851u, 0x3eaa6a23, 0xbeb152b1u, 0xbed8f1b2u, 0x3ddd5ed0, 0x3f6639e7,
+    /* +0x1180 */ 0x3f3ab7bb, 0xbc147065u, 0xbf2f1ed1u, 0xbf786812u, 0x3e259ab7, 0xbe38012eu, 0x3f2ebf66, 0xbf324a27u,
+    /* +0x11a0 */ 0x3e62b303, 0x3f0527d4, 0x3f4867e0, 0x3eaed9be, 0xbe18c437u, 0x3f78e736, 0xbe385f8du, 0x3f5bf76a,
+    /* +0x11c0 */ 0x3ef075d5, 0xbe4fab97u, 0xbeac8063u, 0xbf6fbf83u, 0xbdc6d0d5u, 0x3f2e7fe5, 0xbe3a97e1u, 0x3f35691a,
+    /* +0x11e0 */ 0x3ecd0093, 0xbea1628du, 0xbf5c44bfu, 0xbf4b777du, 0x3e6102bc, 0xbf10d20bu, 0xbf2d00b4u, 0x3f13e3b0,
+    /* +0x1200 */ 0x3eea641b, 0x3f6ed341, 0x3e8376b4, 0xbe8145b7u, 0x3f1ad752, 0x3f11ac47, 0xbf0e9de9u, 0x3dcf8488,
+    /* +0x1220 */ 0xbf6ff152u, 0x3eaac519, 0x3f0e0019, 0x3ecb519c, 0x3f3b2eae, 0xbf732aaeu, 0x3e8210e0, 0xbe3a9de9u,
+    /* +0x1240 */ 0x3f65bcfd, 0x3e89d7dc, 0xbeb2f449u, 0x3e6a593a, 0x3e61fa76, 0x3f72b7bb, 0x3f1c90b4, 0xbc59d346u,
+    /* +0x1260 */ 0x3f4a837f, 0x3f27bcd3, 0x3ee4a2db, 0xbf1bfc44u, 0xbf039baau, 0x3eadde16, 0x3f49a34d, 0x3f1533e3,
+    /* +0x1280 */ 0x3f4925bb, 0x3e54330d, 0xbf7aefc3u, 0xbe1e3f79u, 0xbdfd3240u, 0x3eef2453, 0xbe42a66eu, 0xbf5d1138u,
+    /* +0x12a0 */ 0x3f32fbf4, 0x3f20112c, 0x3eb18762, 0x3f773238, 0xbe7fce31u, 0x3d939431, 0x3dbf1737, 0xbf0ccd96u,
+    /* +0x12c0 */ 0x3f547629, 0xbf243afbu, 0x3f1466a1, 0x3f009d39, 0xbf37674du, 0x3f19e3eb, 0x3eb54b8c, 0x3ee631b6,
+    /* +0x12e0 */ 0x3f3e4335, 0xbefdaee6u, 0x3ea677b4, 0x3dfae819, 0xbf700d0bu, 0xbf61d14eu, 0xbebf5558u, 0xbe92d645u,
+    /* +0x1300 */ 0xbf657eaau, 0x3ecb530d, 0xbe494fadu, 0xbf47c0f4u, 0xbec36135u, 0x3efdb39e, 0x3f6def63, 0xbe6f43c8u,
+    /* +0x1320 */ 0xbe92378bu, 0x3e030553, 0x3d63dc48, 0xbf7d7efeu, 0xbf7a2164u, 0x3e55c960, 0xbd2b074au, 0x3df7d49d,
+    /* +0x1340 */ 0xbf7bf60au, 0x3e042d06, 0xbf554c01u, 0xbefb23ddu, 0x3e82bb02, 0xbeb06c87u, 0x3f411cd2, 0x3f0f0be1,
+    /* +0x1360 */ 0x3e8f4235, 0xbf17f0dcu, 0x3f412e94, 0xbefa500du, 0x3e69a027, 0xbf578c11u, 0xbe450332u, 0x3ed315b5,
+    /* +0x1380 */ 0x3f63f8a9, 0x3f1dc10d, 0xbf194a1bu, 0xbf02f73cu, 0x3ed228dd, 0xbf604e0eu, 0x3e815443, 0xbf4a32b1u,
+    /* +0x13a0 */ 0xbe9de15du, 0x3f07b8d4, 0x3ea2d9cf, 0xbf48fc93u, 0x3f080d6f, 0xbe0c3372u, 0xbf3aef2cu, 0xbf2b5b3eu,
+    /* +0x13c0 */ 0xbeadff82u, 0x3f65bb49, 0xbe901798u, 0xbf0ac9c1u, 0xbe68012eu, 0x3f4f2581, 0x3f477250, 0x3e5d2029,
+    /* +0x13e0 */ 0x3f16ab36, 0xbf4dc26eu, 0x3f182d28, 0x3ccdc22b, 0xbf472e27u, 0x3e89cc32, 0x3f115065, 0xbf58f451u,
+    /* +0x1400 */ 0xbf03a5b1u, 0x3e06ce79, 0x3d9f151e, 0xbf0639c5u, 0x3f5914b1, 0x3f42f06b, 0xbe371fffu, 0x3f1f7ee5,
+    /* +0x1420 */ 0xbeae5a14u, 0xbf2a3348u, 0x3f2a3348, 0xbda28912u, 0x3f7d48aa, 0xbdf9389bu, 0xbe874795u, 0x3edb5f5f,
+    /* +0x1440 */ 0xbf5d335du, 0x3dcb69db, 0x3f035efa, 0xbf5a3ee2u, 0x3e1acb43, 0x3d04ae86, 0x3f7cec20, 0x3eb9e68a,
+    /* +0x1460 */ 0xbe320bc4u, 0x3f6a56de, 0x3dab68cf, 0x3eb74fd7, 0x3f6e1145, 0xbf4fe1fcu, 0xbe97c99bu, 0xbf00b07du,
+    /* +0x1480 */ 0xbebe2329u, 0xbf6dac04u, 0x3c4ad14a, 0xbf48c77eu, 0xbf1e7243u, 0x3d2e2b8c, 0x3e9b1bdf, 0x3e468a0d,
+    /* +0x14a0 */ 0x3f6ede12, 0x3f44e304, 0xbe3132b5u, 0x3f1d8266, 0xbf6de16du, 0x3ebce7ab, 0xbca7eb6cu, 0x3e97ce96,
+    /* +0x14c0 */ 0x3f64c016, 0xbeac9a35u, 0x3e98d64d, 0xbf57c515u, 0x3ee54174, 0xbe929867u, 0xbf638716u, 0xbeb73e68u,
+    /* +0x14e0 */ 0xbf121f2au, 0xbe370585u, 0x3f4d2924, 0xbeedb37du, 0xbf62b23au, 0x3c8cdc87, 0xbf4dd207u, 0x3e45f288,
+    /* +0x1500 */ 0xbf0ff63cu, 0xbf3d0c5fu, 0xbeab990bu, 0xbf15c8c9u, 0xbee27daau, 0x3f34c1db, 0xbf0d8e86u, 0xbf1dbe4du,
+    /* +0x1520 */ 0xbe2d3565u, 0x3f44ebdd, 0x3e1453d2, 0xbe9bbe88u, 0xbf710870u, 0xbf5ebbcbu, 0xbe1801f7u, 0xbef0adcdu,
+    /* +0x1540 */ 0x3e0a7371, 0x3f335b70, 0x3f335b70, 0x3f45f3e9, 0x3eecf180, 0x3eddf267, 0xbf513554u, 0xbf127222u,
+    /* +0x1560 */ 0x3d8f74cd, 0xbefdf783u, 0xbe666730u, 0x3f56b192, 0x3f75bb38, 0x3e6d6bec, 0x3e217269, 0xbe299b6fu,
+    /* +0x1580 */ 0xbf37bd9du, 0xbf2d23e6u, 0x3dfd249e, 0x3e374f72, 0x3f79de7a, 0xbf1cdb7bu, 0xbf127a31u, 0xbf0b8e9fu,
+    /* +0x15a0 */ 0x3ec692b4, 0x3da387df, 0xbf6b1349u, 0xbf785b4bu, 0, 0xbe785b5bu, 0x3ecced0b, 0xbef2f406u,
+    /* +0x15c0 */ 0x3f48b35f, 0xbf7470dau, 0x3e708fa8, 0x3e3a3db4, 0x3f4a083a, 0xbf0c6530u, 0x3e8d896a, 0x3f3a1954,
+    /* +0x15e0 */ 0xbf2eeed9u, 0x3d8af46b, 0x3f2c8451, 0x3f2e310e, 0xbe93649du, 0xbd3b6fe3u, 0x3ec0a4a0, 0xbf6ce608u,
+    /* +0x1600 */ 0xbe70c0f0u, 0xbf53e9b8u, 0x3f02686e, 0xbf7c9332u, 0xbd2fb4c4u, 0x3e210fd8, 0x3f692f0a, 0x3da996b7,
+    /* +0x1620 */ 0xbeceff5cu, 0xbf00e9f7u, 0x3e6262cc, 0x3f55cef2, 0x3f122691, 0xbc1a9974u, 0xbf522ac3u, 0xbe4132b5u,
+    /* +0x1640 */ 0x3e4132b5, 0xbf76b80fu, 0x3f7752ca, 0x3e8199fe, 0xbd4f5d35u, 0xbd4d5736u, 0x3f65d713, 0x3ee001b4,
+    /* +0x1660 */ 0xbe92aa19u, 0x3f6dbd1f, 0xbe714984u, 0xbf20d76bu, 0xbe3a3ceau, 0xbf41a501u, 0xbf3b29d4u, 0xbf28727eu,
+    /* +0x1680 */ 0x3e38ab0d, 0x3f40d163, 0xbf25884cu, 0x3df7635e, 0x3e3318b9, 0x3f58092d, 0xbf01d862u, 0xbedd2999u,
+    /* +0x16a0 */ 0xbf650fa6u, 0x3de7b1c0, 0xbf01b24fu, 0x3f21da49, 0x3f160fe4, 0x3e486e3b, 0xbd7fde72u, 0xbf7a89dbu,
+    /* +0x16c0 */ 0xbf031cfcu, 0xbf523290u, 0xbe81083eu, 0x3f52f1ed, 0xbf0ed3c8u, 0xbdca27f2u, 0x3f2fc87e, 0x3f212275,
+    /* +0x16e0 */ 0xbeba3f25u, 0xbf09a3b1u, 0xbe8be554u, 0x3f4c33d7, 0xbf516873u, 0xbe9e4606u, 0xbef85e1cu, 0x3f79a826,
+    /* +0x1700 */ 0xbe28997cu, 0x3e174ea9, 0xbe5db22du, 0xbf5253a8u, 0xbf0701c9u, 0xbf268805u, 0xbf2f2eaeu, 0x3ea8b1bc,
+    /* +0x1720 */ 0xbe90d90eu, 0x3de7c17b, 0xbf73d3b3u, 0xbf06339cu, 0x3efabecf, 0x3f3258d6, 0xbf1aff5cu, 0xbee2a27fu,
+    /* +0x1740 */ 0x3f295337, 0xbf1f5b81u, 0x3f100315, 0x3f0b4a45, 0xbf423337u, 0xbeb11080u, 0x3f0d5dc4, 0xbeacb33eu,
+    /* +0x1760 */ 0xbf6e4852u, 0xbe104817u, 0x3eb7ca21, 0xbf6a2ee4u, 0xbe3db7f1u, 0xbf63356eu, 0x3e1a5482, 0x3edeebf6,
+    /* +0x1780 */ 0x3ec46d61, 0xbf3983c7u, 0x3f128a83, 0xbe3e52dfu, 0xbf72d3b7u, 0x3e834203, 0xbec4bc6au, 0xbf6a032eu,
+    /* +0x17a0 */ 0x3e0489d2, 0x3e46aceb, 0x3d46ad2e, 0x3f7ad40b, 0x3e26640a, 0x3e768167, 0xbf74f701u, 0x3f73e7d1,
+    /* +0x17c0 */ 0xbe8f3040u, 0xbdf2b12du, 0x3e9ff866, 0xbf4f3bfbu, 0x3efe7f91, 0xbf7bd662u, 0x3d1f9485, 0xbe338716u,
+    /* +0x17e0 */ 0xbd9fb268u, 0xbf0720eau, 0x3f588345, 0xbe14c72au, 0xbf7d4706u, 0xbbe2b8c7u, 0xbf4470dau, 0x3d07abfc,
+    /* +0x1800 */ 0xbf23efaeu, 0x3f11b2c4, 0xbf0beab3u, 0xbf1d4307u, 0xbed78099u, 0xbf4db4feu, 0xbed78099u, 0xbf4b26f2u,
+    /* +0x1820 */ 0x3e36f199, 0x3f14e842, 0xbf58cc57u, 0xbdc0b567u, 0xbf05fe54u, 0x3f01a555, 0x3f4ed0d5, 0x3e9a5721,
+    /* +0x1840 */ 0xbef86db5u, 0x3f455992, 0x3ed347c7, 0xbeb6b702u, 0xbedf518bu, 0x3f5379c8, 0x3f290d5a, 0x3f11a943,
+    /* +0x1860 */ 0xbefaeb81u, 0xbef72fdcu, 0x3f079bfe, 0x3f32861f, 0xbd524074u, 0xbf3a98eeu, 0xbf2ec54cu, 0x3f7ec96d,
+    /* +0x1880 */ 0x3d7b29a2, 0xbd9a9004u, 0x3f48aa43, 0x3ef699a6, 0x3ec8aa43, 0x3f0ab303, 0x3f51dfb9, 0xbe3dcca7u,
+    /* +0x18a0 */ 0xbef31a8fu, 0xbed555e7u, 0xbf4673b4u, 0x3f7b5aea, 0x3e421d97, 0xbb9f4906u, 0xbf63ff7au, 0x3ebb0575,
+    /* +0x18c0 */ 0x3e8ab0a7, 0xbf1e05abu, 0x3f3ac0e8, 0xbe96d6dcu, 0xbd03eea2u, 0x3f534b94, 0x3f104c9d, 0x3f0ab6ae,
+    /* +0x18e0 */ 0xbedbe2f8u, 0xbf38f388u, 0xbebc9258u, 0xbf43a4a5u, 0xbf07892fu, 0x3ea169c2, 0xbf5a5259u, 0xbed525eeu,
+    /* +0x1900 */ 0xbe78cd21u, 0x3f17c4e3, 0xbf448db0u, 0xbf29f3e9u, 0xbe1075b4u, 0x3f3c029f, 0x3f1828c3, 0x3f4da71a,
+    /* +0x1920 */ 0x3d182880, 0x3f79614e, 0xbe2faa04u, 0x3e1691a7, 0xbee7af86u, 0x3dc8a266, 0xbf62e88eu, 0x3ec4a2ba,
+    /* +0x1940 */ 0x3e979f66, 0xbf5fe154u, 0xbf1c3bb4u, 0xbed67d56u, 0xbf2c1f10u, 0xbed38412u, 0x3f596441, 0xbea86df8u,
+    /* +0x1960 */ 0xbe8819d2u, 0x3ed046a6, 0xbf5fbdf1u, 0x3e2c447c, 0x3f7c3fd5, 0x3ce5aff3, 0x3e746e09, 0xbf789891u,
+    /* +0x1980 */ 0x3bb1c433, 0x3f595400, 0x3e0bd1ab, 0x3f02b368, 0xbe703926u, 0x3f62c333, 0xbecd04a3u, 0x3e8f99c4,
+    /* +0x19a0 */ 0xbf4bdc9cu, 0x3f09309c, 0x3f255715, 0x3e4a5b53, 0x3f3cc8ac, 0x3f1e5a9b, 0xbe4d9514u, 0xbf42784bu,
+    /* +0x19c0 */ 0xbed75ec8u, 0x3f48903f, 0x3eea3704, 0xbda9d734u, 0xbe7ec28bu, 0xbf770a4eu, 0xbf2ebee0u, 0x3f00b2a7,
+    /* +0x19e0 */ 0xbf07c83bu, 0xbf14af71u, 0x3f5028d4, 0xbd1e98ddu, 0xbe04d22du, 0x3f69795b, 0x3ec73b21, 0x3f2be048,
+    /* +0x1a00 */ 0xbf2f7b5bu, 0x3e903b60, 0x3ef32f01, 0xbf12680au, 0x3f2b3893, 0xbf3fc622u, 0x3e846003, 0x3f1c2268,
+    /* +0x1a20 */ 0xbf6b9c63u, 0x3e98c240, 0x3e8174e6, 0xbf27ee70u, 0x3f2147e0, 0x3ed4d2f6, 0x3e81e8a3, 0xbf076fd2u,
+    /* +0x1a40 */ 0xbf4f4d16u, 0x3f724606, 0x3d81c0ca, 0x3ea230fd, 0xbf7a681bu, 0xbda9c454u, 0xbe433b54u, 0x3f4cbce0,
+    /* +0x1a60 */ 0x3eb8012e, 0xbef63411u, 0xbf0e0c5bu, 0xbf4dcd60u, 0x3e5b395c, 0xbf271d82u, 0xbe665908u, 0x3f392e84,
+    /* +0x1a80 */ 0xbf178f36u, 0xbe5253dau, 0x3f478067, 0xbedff1d8u, 0xbf0baa15u, 0x3f37022e, 0xbf6fc350u, 0xbe81654du,
+    /* +0x1aa0 */ 0xbe78a47fu, 0x3ed0470b, 0xbe981cd6u, 0x3f5d25ff, 0x3f0cd4bb, 0x3ec3502b, 0x3f3e2c56, 0xbf6cc34cu,
+    /* +0x1ac0 */ 0x3eb19286, 0xbe1fd08du, 0xbe5f82b2u, 0x3c525edd, 0x3f79ce4a, 0x3f2409f6, 0xbf41dd3cu, 0x3e013e3e,
+    /* +0x1ae0 */ 0x3ed068fd, 0x3f2218bd, 0xbf288766u, 0xbeba23e2u, 0x3ee19fe4, 0xbf521cdeu, 0x3dc7f6f5, 0x3f732389,
+    /* +0x1b00 */ 0x3e983eea, 0x3e4719f8, 0xbf756766u, 0x3e54fdf4, 0xbee1988du, 0xbf0f8facu, 0x3f33738e, 0x3f43d827,
+    /* +0x1b20 */ 0xbed05858u, 0xbeff91e6u, 0x3e9315b5, 0x3f710e34, 0x3e33c537, 0xbf10e821u, 0xbf04419au, 0xbf24752eu,
+    /* +0x1b40 */ 0x3f46ab36, 0xbf092d13u, 0xbeaa49a1u, 0xbf616a27u, 0xbe5910c3u, 0x3ed910e4, 0x3f6fdb6e, 0xbd039475u,
+    /* +0x1b60 */ 0xbeb22df9u, 0x3f3e3bbc, 0xbee977eau, 0x3efac322, 0x3f08560c, 0x3f58a4d3, 0x3c6f0f17, 0x3eb41dd2,
+    /* +0x1b80 */ 0x3f5e7f2c, 0xbeb1ff50u, 0x3f60a106, 0x3ebe121f, 0xbe9b8327u, 0x3f74d0ff, 0x3e5c3090, 0x3e4ace68,
+    /* +0x1ba0 */ 0x3f38dfce, 0x3e4fb939, 0xbf294b7bu, 0x3d731e3a, 0xbe241aacu, 0xbf7c3be6u, 0xbe91c821u, 0xbe3a46e1u,
+    /* +0x1bc0 */ 0x3f70f1c3, 0x3ee7f844, 0xbe82584fu, 0xbf5ab6f2u, 0x3f15270b, 0xbf16889cu, 0xbf0fa0e8u, 0x3d5434a0,
+    /* +0x1be0 */ 0x3eb18506, 0x3f6fc0f4, 0x3f7481f5, 0xbe81ccd9u, 0xbe1cf7cbu, 0x3f60c964, 0xbe9efed6u, 0xbeba6890u,
+    /* +0x1c00 */ 0xbf20a02cu, 0x3edec3fc, 0x3f2550ca, 0xbee72a17u, 0xbf561c7au, 0xbe9f2991u, 0x3e3ccc03, 0xbf7a9af6u,
+    /* +0x1c20 */ 0x3db3ce64, 0x3f77ad19, 0xbe80f7bau, 0x3cbb96af, 0xbf060264u, 0x3f4ac311, 0xbea0cf9eu, 0xbf320f4du,
+    /* +0x1c40 */ 0x3f000b03, 0x3f040b56, 0xbf700e49u, 0xbeabfaf4u, 0xbdb588e3u, 0xbe813c47u, 0xbf495df6u, 0xbf10434eu,
+    /* +0x1c60 */ 0x3e769058, 0xbf4f865du, 0x3f08a340, 0xbf00a559u, 0xbe366235u, 0x3f5894b4, 0x3f5d491f, 0xbd742dcfu,
+    /* +0x1c80 */ 0x3eff9f88, 0xbf5f8ad2u, 0x3dc3bcd3, 0xbef4ac4bu, 0xbf2bc569u, 0x3efbee5f, 0x3f0dff61, 0x3eb8259e,
+    /* +0x1ca0 */ 0x3dbb7e91, 0xbf6db77cu, 0xbd8f1801u, 0xbe485511u, 0x3f7a6a44, 0xbe509aaau, 0x3e18711d, 0xbf77b7a6u,
+    /* +0x1cc0 */ 0x3f2f1b9b, 0xbd5e5c0cu, 0xbf3a39d6u, 0x3f6d6cb5, 0xbda7136au, 0x3ebadcb1, 0x3f18e2d2, 0x3d91cc96,
+    /* +0x1ce0 */ 0x3f4c85e4, 0xbf361c9bu, 0x3d1d80e5, 0xbf33a69cu, 0x3e8840e1, 0x3f6b3ffb, 0xbe9506ddu, 0xbedeee95u,
+    /* +0x1d00 */ 0xbf1cbfd3u, 0x3f28f0d8, 0xbf65116bu, 0xbede0115u, 0xbdd9f7f9u, 0x3f52be8c, 0xbe8f4e66u, 0x3efce4a8,
+    /* +0x1d20 */ 0x3e3df00b, 0xbf48fb12u, 0xbf1749aeu, 0xbf0d46c3u, 0x3e5e5647, 0x3f4e1fe2, 0xbe16a0dcu, 0x3f7d363f,
+    /* +0x1d40 */ 0x3ba63305, 0x3f498612, 0x3deb7d41, 0x3f1b1af4, 0xbd4e3bcdu, 0xbf79bcdcu, 0x3e5b1fef, 0x3f4d754b,
+    /* +0x1d60 */ 0x3f1830f5, 0x3d4aeb81, 0xbf608851u, 0x3eaa6a23, 0xbeb152b1u, 0xbed8f1b2u, 0x3ddd5ed0, 0x3f6639e7,
+    /* +0x1d80 */ 0x3f3ab7bb, 0xbc147065u, 0xbf2f1ed1u, 0xbf786812u, 0x3e259ab7, 0xbe38012eu, 0x3f2ebf66, 0xbf324a27u,
+    /* +0x1da0 */ 0x3e62b303, 0x3f0527d4, 0x3f4867e0, 0x3eaed9be, 0xbe18c437u, 0x3f78e736, 0xbe385f8du, 0x3f5bf76a,
+    /* +0x1dc0 */ 0x3ef075d5, 0xbe4fab97u, 0xbeac8063u, 0xbf6fbf83u, 0xbdc6d0d5u, 0x3f2e7fe5, 0xbe3a97e1u, 0x3f35691a,
+    /* +0x1de0 */ 0x3ecd0093, 0xbea1628du, 0xbf5c44bfu, 0xbf4b777du, 0x3e6102bc, 0xbf10d20bu, 0xbf2d00b4u, 0x3f13e3b0,
+    /* +0x1e00 */ 0x3eea641b, 0x3f6ed341, 0x3e8376b4, 0xbe8145b7u, 0x3f1ad752, 0x3f11ac47, 0xbf0e9de9u, 0x3dcf8488,
+    /* +0x1e20 */ 0xbf6ff152u, 0x3eaac519, 0x3f0e0019, 0x3ecb519c, 0x3f3b2eae, 0xbf732aaeu, 0x3e8210e0, 0xbe3a9de9u,
+    /* +0x1e40 */ 0x3f65bcfd, 0x3e89d7dc, 0xbeb2f449u, 0x3e6a593a, 0x3e61fa76, 0x3f72b7bb, 0x3f1c90b4, 0xbc59d346u,
+    /* +0x1e60 */ 0x3f4a837f, 0x3f27bcd3, 0x3ee4a2db, 0xbf1bfc44u, 0xbf039baau, 0x3eadde16, 0x3f49a34d, 0x3f1533e3,
+    /* +0x1e80 */ 0x3f4925bb, 0x3e54330d, 0xbf7aefc3u, 0xbe1e3f79u, 0xbdfd3240u, 0x3eef2453, 0xbe42a66eu, 0xbf5d1138u,
+    /* +0x1ea0 */ 0x3f32fbf4, 0x3f20112c, 0x3eb18762, 0x3f773238, 0xbe7fce31u, 0x3d939431, 0x3dbf1737, 0xbf0ccd96u,
+    /* +0x1ec0 */ 0x3f547629, 0xbf243afbu, 0x3f1466a1, 0x3f009d39, 0xbf37674du, 0x3f19e3eb, 0x3eb54b8c, 0x3ee631b6,
+    /* +0x1ee0 */ 0x3f3e4335, 0xbefdaee6u, 0x3ea677b4, 0x3dfae819, 0xbf700d0bu, 0xbf61d14eu, 0xbebf5558u, 0xbe92d645u,
+    /* +0x1f00 */ 0xbf657eaau, 0x3ecb530d, 0xbe494fadu, 0xbf47c0f4u, 0xbec36135u, 0x3efdb39e, 0x3f6def63, 0xbe6f43c8u,
+    /* +0x1f20 */ 0xbe92378bu, 0x3e030553, 0x3d63dc48, 0xbf7d7efeu, 0xbf7a2164u, 0x3e55c960, 0xbd2b074au, 0x3df7d49d,
+    /* +0x1f40 */ 0xbf7bf60au, 0x3e042d06, 0xbf554c01u, 0xbefb23ddu, 0x3e82bb02, 0xbeb06c87u, 0x3f411cd2, 0x3f0f0be1,
+    /* +0x1f60 */ 0x3e8f4235, 0xbf17f0dcu, 0x3f412e94, 0xbefa500du, 0x3e69a027, 0xbf578c11u, 0xbe450332u, 0x3ed315b5,
+    /* +0x1f80 */ 0x3f63f8a9, 0x3f1dc10d, 0xbf194a1bu, 0xbf02f73cu, 0x3ed228dd, 0xbf604e0eu, 0x3e815443, 0xbf4a32b1u,
+    /* +0x1fa0 */ 0xbe9de15du, 0x3f07b8d4, 0x3ea2d9cf, 0xbf48fc93u, 0x3f080d6f, 0xbe0c3372u, 0xbf3aef2cu, 0xbf2b5b3eu,
+    /* +0x1fc0 */ 0xbeadff82u, 0x3f65bb49, 0xbe901798u, 0xbf0ac9c1u, 0xbe68012eu, 0x3f4f2581, 0x3f477250, 0x3e5d2029,
+    /* +0x1fe0 */ 0x3f16ab36, 0xbf4dc26eu, 0x3f182d28, 0x3ccdc22b, 0xbf472e27u, 0x3e89cc32, 0x3f115065, 0xbf58f451u,
+    /* +0x2000 */ 0xbf03a5b1u, 0x3e06ce79, 0x3d9f151e, 0xbf0639c5u, 0x3f5914b1, 0x3f42f06b, 0xbe371fffu, 0x3f1f7ee5,
+    /* +0x2020 */ 0xbeae5a14u, 0xbf2a3348u, 0x3f2a3348, 0x34000000, 0xb4000000u, 0x800000, 0x20000000, 0xbe800000u,
+    /* +0x2040 */ 0, 0, 0x1, 0x1, 0x2, 0x1, 0x2, 0x2,
+    /* +0x2060 */ 0x3, 0x1, 0x2, 0x2, 0x3, 0x2, 0x3, 0x3,
+    /* +0x2080 */ 0x4, 0, 0x2, 0x1, 0x2, 0x1, 0, 0xa0b5ed8du,
+    /* +0x20a0 */ 0x3eb0c6f7, 0, 0x1, 0x2, 0, 0x1, 0x2, 0x8,
+    /* +0x20c0 */ 0xc, 0x10, 0x4, 0x100c0804, 0x8040404, 0x4080404, 0x4040408, 0x8,
+};
+
+/* 0x0064efb0..0x0064f09c */
+uint32_t table_0064efb0[59] = {
+    /* +0x0000 */ (uint32_t)halo_code_627ea1, 0, 0xffffffffu, 0, (uint32_t)halo_code_627e98, 0, 0xffffffffu, 0x6280a1,
+    /* +0x0020 */ 0x6280b5, 0, 0xffffffffu, 0, (uint32_t)halo_code_628c3a, 0, 0xffffffffu, 0,
+    /* +0x0040 */ 0x628f6c, 0, 0xffffffffu, 0, 0x62915f, 0, 0xffffffffu, 0x629195,
+    /* +0x0060 */ 0x629199, 0x881000, 0x881008, 0x6a3438, (uint32_t)&table_00676030[0], 0, 0, 0,
+    /* +0x0080 */ 0xffffffffu, 0, 0x6293e0, 0, 0x6000006, 0x100, 0x6030010, 0x10020600,
+    /* +0x00a0 */ 0x45454504, 0x5050505, 0x303505, 0x50, 0x38282000, 0x8075850, 0x30303700, 0x75057,
+    /* +0x00c0 */ 0x8202000, 0, 0x60686008, 0x606060, 0x78707000, 0x8787878, 0x807, 0x8080007,
+    /* +0x00e0 */ 0x8000008, 0x7000800, 0x8,
+};
+
+/* 0x0065512c..0x00655130 */
+uint32_t table_0065512c[1] = {
+    /* +0x0000 */ 0,
+};
+
+/* 0x00655138..0x00655744 */
+uint32_t global_white_argb_00655138[387] = {
+    /* +0x0000 */ 0x3f800000,
+    /* +0x0004 */ 0x3f800000, 0x3f800000, 0x3f800000,
+    /* +0x0010 */ 0x3f800000,
+    /* +0x0014 */ 0x3f000000, 0x3f000000, 0x3f000000, 0x3f800000,
+    /* +0x0024 */ 0, 0, 0,
+    /* +0x0030 */ 0x3f800000,
+    /* +0x0034 */ 0x3f800000, 0, 0,
+    /* +0x0040 */ 0x3f800000,
+    /* +0x0044 */ 0, 0x3f800000, 0,
+    /* +0x0050 */ 0x3f800000,
+    /* +0x0054 */ 0, 0, 0x3f800000,
+    /* +0x0060 */ 0x3f800000, 0, 0x3f800000, 0x3f800000,
+    /* +0x0070 */ 0x3f800000, 0x3f800000, 0x3f800000, 0,
+    /* +0x0080 */ 0x3f800000, 0x3f800000, 0, 0x3f800000,
+    /* +0x0090 */ 0x3f800000, 0x3f800000, 0x3ed1eb85, 0x3f333333,
+    /* +0x00a0 */ 0x3f800000, 0x3ec7ae14, 0x3f147ae1, 0x3f6e147b,
+    /* +0x00b0 */ 0x3f800000, 0x3f800000, 0x3f000000, 0,
+    /* +0x00c0 */ 0x3f800000, 0x3ee147ae, 0x3d4ccccd, 0x3edc28f6,
+    /* +0x00d0 */ 0x3f800000, 0x3f000000, 0x3f800000, 0x3f547ae1,
+    /* +0x00e0 */ 0x3f800000, 0, 0x3ec7ae14, 0,
+    /* +0x00f0 */ 0x3f800000, 0x3f800000, 0x3f2147ae, 0x3ef5c28f,
+    /* +0x0100 */ 0x3f800000, 0x3f4f5c29, 0x3e051eb8, 0x3f0f5c29, 0, (uint32_t)"none", (uint32_t)"XQe", 0,
+    /* +0x0120 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0140 */ 0, 0, 0x1, (uint32_t)"sleep", (uint32_t)hud_text_message_hold_color, 0, 0, 0,
+    /* +0x0160 */ 0, 0, (uint32_t)actor_mode_sleep_update, 0, 0, 0, 0, 0,
+    /* +0x0180 */ 0x2, (uint32_t)"alert", (uint32_t)&table_006851f8[0], 0x5c, 0, (uint32_t)function_do_nothing, (uint32_t)actor_mode_alert_process, (uint32_t)actor_mode_alert_tick,
+    /* +0x01a0 */ (uint32_t)actor_mode_alert_update, 0, 0, 0, (uint32_t)actor_mode_alert_movement_cancelled, (uint32_t)actor_mode_alert_target_cleared, 0x3, (uint32_t)"fight",
+    /* +0x01c0 */ (uint32_t)global_white_argb, 0x4, 0x4, (uint32_t)function_do_nothing, (uint32_t)actor_update_movement_destination, (uint32_t)actor_mode_fight_tick, (uint32_t)actor_mode_fight_update, (uint32_t)function_do_nothing,
+    /* +0x01e0 */ 0, 0, 0, 0, 0x4, (uint32_t)"flee", (uint32_t)hud_text_message_normal_color, 0x30,
+    /* +0x0200 */ 0x2, (uint32_t)actor_mode_flee_enter, (uint32_t)actor_mode_flee_process, (uint32_t)actor_mode_flee_tick, (uint32_t)actor_mode_flee_update, (uint32_t)actor_mode_flee_exit, (uint32_t)actor_mode_flee_get_look_weights, (uint32_t)actor_mode_flee_replace_reference,
+    /* +0x0220 */ (uint32_t)actor_mode_flee_movement_cancelled, 0, 0x5, (uint32_t)"uncover", (uint32_t)actor_mode_uncover_look_weights_active, 0x34, 0x3, (uint32_t)actor_mode_uncover_enter,
+    /* +0x0240 */ (uint32_t)actor_request_path_with_grenade_arc, (uint32_t)actor_mode_uncover_tick, (uint32_t)actor_mode_uncover_update, 0, (uint32_t)actor_mode_uncover_get_look_weights, 0, (uint32_t)actor_mode_uncover_movement_cancelled, 0,
+    /* +0x0260 */ 0x6, (uint32_t)"guard", (uint32_t)actor_mode_guard_look_weights_idle, 0x44, 0x1, (uint32_t)actor_mode_guard_enter, (uint32_t)actor_request_move_and_face, (uint32_t)actor_mode_guard_tick,
+    /* +0x0280 */ (uint32_t)actor_mode_guard_update, (uint32_t)actor_mode_guard_exit, (uint32_t)actor_mode_guard_get_look_weights, (uint32_t)actor_mode_guard_replace_reference, (uint32_t)actor_mode_guard_movement_cancelled, (uint32_t)actor_mode_guard_target_cleared, 0x7, (uint32_t)"search",
+    /* +0x02a0 */ (uint32_t)&table_0068520c[0], 0x2c, 0x3, (uint32_t)actor_mode_search_enter, (uint32_t)actor_mode_search_process, (uint32_t)actor_mode_search_tick, (uint32_t)actor_mode_search_update, 0,
+    /* +0x02c0 */ 0, 0, (uint32_t)actor_mode_search_movement_cancelled, 0, 0x8, (uint32_t)"wait", (uint32_t)&table_0068520c[1], 0x18,
+    /* +0x02e0 */ 0x3, (uint32_t)function_do_nothing, (uint32_t)actor_mode_wait_process, (uint32_t)actor_mode_wait_tick, (uint32_t)actor_mode_wait_update, 0, 0, 0,
+    /* +0x0300 */ 0, 0, 0x9, (uint32_t)"vehicle", (uint32_t)console_color_00685214, 0x4c, 0x2, (uint32_t)actor_mode_vehicle_enter,
+    /* +0x0320 */ (uint32_t)actor_investigate_disturbance_update, (uint32_t)function_do_nothing, (uint32_t)actor_mode_vehicle_update, 0, 0, 0, 0, 0,
+    /* +0x0340 */ 0xa, (uint32_t)"charge", (uint32_t)console_message_default_color, 0x38, 0x4, (uint32_t)actor_mode_charge_enter, (uint32_t)actor_mode_charge_process, (uint32_t)actor_mode_charge_tick,
+    /* +0x0360 */ (uint32_t)actor_mode_charge_update, 0, 0, 0, 0, 0, 0xb, (uint32_t)"obey",
+    /* +0x0380 */ (uint32_t)actor_mode_guard_look_weights_ambush, 0x84, 0x2, (uint32_t)actor_mode_obey_enter, (uint32_t)actor_mode_obey_process, (uint32_t)actor_mode_obey_tick_members, (uint32_t)actor_mode_obey_update, (uint32_t)actor_mode_obey_exit,
+    /* +0x03a0 */ 0, 0, 0, 0, 0xc, (uint32_t)"converse", (uint32_t)&table_00685220[0], 0x14,
+    /* +0x03c0 */ 0x2, (uint32_t)function_do_nothing, (uint32_t)actor_mode_converse_process, (uint32_t)function_do_nothing, (uint32_t)actor_mode_converse_update, (uint32_t)actor_mode_converse_exit, 0, (uint32_t)actor_mode_converse_replace_reference,
+    /* +0x03e0 */ 0, 0, 0xd, (uint32_t)"avoid", (uint32_t)&table_00685220[1], 0x4, 0x2, (uint32_t)function_do_nothing,
+    /* +0x0400 */ (uint32_t)actor_update_path_if_needed, (uint32_t)function_do_nothing, (uint32_t)actor_mode_avoid_update, (uint32_t)function_do_nothing, 0, 0, 0, 0,
+    /* +0x0420 */ 0xa, 0x3fc00000, 0x6, 0, 0x1000b, 0x3fc00000, 0x10007, 0,
+    /* +0x0440 */ 0x20008, 0x3fc00000, 0x30009, 0x3fc00000, 0xffffffffu, 0, 0, 0x10000,
+    /* +0x0460 */ 0x30002, 0x50004, 0, 0, 0x20000, 0x30002, 0x50004, 0x70006,
+    /* +0x0480 */ 0x90008, 0x80009, 0xffff, (uint32_t)actor_score_firing_positions_by_threat, 0x9, (uint32_t)actor_score_firing_positions_by_range, 0x4d, (uint32_t)actor_score_firing_positions_by_history,
+    /* +0x04a0 */ 0x10, (uint32_t)actor_score_firing_positions_close_range, 0x2, (uint32_t)actor_score_firing_positions_by_standoff, 0x20, (uint32_t)actor_score_firing_positions_near_target, 0, 0,
+    /* +0x04c0 */ 0xffff, (uint32_t)actor_reject_firing_position_unreachable, 0x51, (uint32_t)actor_reject_firing_position_by_request_result, 0x8, (uint32_t)actor_reject_firing_position_by_target_approach, 0x6, (uint32_t)actor_reject_firing_position_by_perception,
+    /* +0x04e0 */ 0x20, (uint32_t)actor_reject_firing_position_by_pursuit, 0, 0, 0x10001, 0x20002, 0x20002, 0x30003,
+    /* +0x0500 */ 0x30005, 0x40004, 0x40005, 0x40005, 0x30004, 0x50005, 0x30006, 0x30006,
+    /* +0x0520 */ 0x50007, 0x20007, 0, 0x3fa66666, 0x3f666666, 0x3f666666, 0x3f666666, 0x3f333333,
+    /* +0x0540 */ 0x3f666666, 0x3f666666, 0x3f99999a, 0x40000000, 0x40000000, 0x40200000, 0x3fc00000, 0x447a0000,
+    /* +0x0560 */ 0x3f800000, 0x3f333333, 0x3d567750, 0, 0x3f000000, 0x3f000000, 0x3f000000, 0x3f000000,
+    /* +0x0580 */ 0x3f800000, 0x3f800000, 0x3f800000, 0x3f800000, 0, 0x3e99999a, 0x3e99999a, 0x3e99999a,
+    /* +0x05a0 */ 0x3e99999a, 0x3f800000, 0x3f800000, 0x3f800000, 0x3f800000, 0, 0, 0x3fc90fdb,
+    /* +0x05c0 */ 0x40490fdb, 0x4096cbe4, 0, 0x3fc90fdb, 0x40490fdb, 0x4096cbe4, 0x3f333333, 0,
+    /* +0x05e0 */ 0x3f490fdb, 0x3fc90fdb, 0x4016cbe4, 0x40490fdb, 0x407b53d2, 0x4096cbe4, 0x40afede0, 0x3f333333,
+    /* +0x0600 */ 0x3f800000, 0x3f060a92, 0x3f75be0b,
+};
+
+/* 0x00657660..0x0065b638 */
+uint32_t hs_function_definitions_00657660[4086] = {
+    /* +0x0000 */ 0x3, (uint32_t)"begin", (uint32_t)hs_parse_begin, (uint32_t)hs_evaluate_begin, (uint32_t)"returns the last expression in a sequence after evaluating the sequence in order.", (uint32_t)"<expression(s)>", 0,
+    /* +0x001c */ 0x3, (uint32_t)"begin_random", (uint32_t)hs_parse_begin, (uint32_t)hs_evaluate_random, (uint32_t)"evaluates the sequence of expressions in random order and returns the last value evaluated.", (uint32_t)"<expression(s)>", 0,
+    /* +0x0038 */ 0x3, (uint32_t)"if", (uint32_t)hs_parse_if, (uint32_t)hs_evaluate_if, (uint32_t)"returns one of two values based on the value of a condition.", (uint32_t)"<boolean> <then> [<else>]", 0,
+    /* +0x0054 */ 0x3, (uint32_t)"cond", (uint32_t)hs_parse_cond, 0, (uint32_t)"returns the value associated with the first true condition.", (uint32_t)"(<boolean1> <result1>) [(<boolean2> <result2>) [...]]", 0,
+    /* +0x0070 */ 0x3, (uint32_t)"set", (uint32_t)hs_parse_set, (uint32_t)hs_evaluate_set, (uint32_t)"set the value of a global variable.", (uint32_t)"<variable name> <expression>", 0,
+    /* +0x008c */ 0x5, (uint32_t)"and", (uint32_t)hs_parse_logical, (uint32_t)hs_evaluate_boolean_and_or, (uint32_t)"returns true if all specified expressions are true.", (uint32_t)"<boolean(s)>", 0,
+    /* +0x00a8 */ 0x5, (uint32_t)"or", (uint32_t)hs_parse_logical, (uint32_t)hs_evaluate_boolean_and_or, (uint32_t)"returns true if any specified expressions are true.", (uint32_t)"<boolean(s)>", 0,
+    /* +0x00c4 */ 0x6, (uint32_t)&table_00664b30[0], (uint32_t)hs_parse_arithmetic, (uint32_t)hs_evaluate_arithmetic_reduce, (uint32_t)"returns the sum of all specified expressions.", (uint32_t)"<number(s)>", 0,
+    /* +0x00e0 */ 0x6, (uint32_t)&table_00664af0[0], (uint32_t)hs_parse_arithmetic, (uint32_t)hs_evaluate_arithmetic_reduce, (uint32_t)"returns the difference of two expressions.", (uint32_t)"<number> <number>", 0,
+    /* +0x00fc */ 0x6, (uint32_t)&table_00664aac[0], (uint32_t)hs_parse_arithmetic, (uint32_t)hs_evaluate_arithmetic_reduce, (uint32_t)"returns the product of all specified expressions.", (uint32_t)"<number(s)>", 0,
+    /* +0x0118 */ 0x6, (uint32_t)&table_00664a74[0], (uint32_t)hs_parse_arithmetic, (uint32_t)hs_evaluate_arithmetic_reduce, (uint32_t)"returns the quotient of two expressions.", (uint32_t)"<number> <number>", 0,
+    /* +0x0134 */ 0x6, (uint32_t)"min", (uint32_t)hs_parse_arithmetic, (uint32_t)hs_evaluate_arithmetic_reduce, (uint32_t)"returns the minimum of all specified expressions.", (uint32_t)"<number(s)>", 0,
+    /* +0x0150 */ 0x6, (uint32_t)"max", (uint32_t)hs_parse_arithmetic, (uint32_t)hs_evaluate_arithmetic_reduce, (uint32_t)"returns the maximum of all specified expressions.", (uint32_t)"<number(s)>", 0,
+    /* +0x016c */ 0x5, (uint32_t)&table_006649d4[0], (uint32_t)hs_parse_two_numeric_arguments, (uint32_t)hs_evaluate_equality, (uint32_t)"returns true if two expressions are equal", (uint32_t)"<expression> <expression>", 0,
+    /* +0x0188 */ 0x5, (uint32_t)"!=", (uint32_t)hs_parse_two_numeric_arguments, (uint32_t)hs_evaluate_equality, (uint32_t)"returns true if two expressions are not equal", (uint32_t)"<expression> <expression>", 0,
+    /* +0x01a4 */ 0x5, (uint32_t)&table_00664954[0], (uint32_t)hs_parse_two_object_arguments, (uint32_t)hs_evaluate_comparison, (uint32_t)"returns true if the first number is larger than the second.", (uint32_t)"<number> <number>", 0,
+    /* +0x01c0 */ 0x5, (uint32_t)&table_00664914[0], (uint32_t)hs_parse_two_object_arguments, (uint32_t)hs_evaluate_comparison, (uint32_t)"returns true if the first number is smaller than the second.", (uint32_t)"<number> <number>", 0,
+    /* +0x01dc */ 0x5, (uint32_t)">=", (uint32_t)hs_parse_two_object_arguments, (uint32_t)hs_evaluate_comparison, (uint32_t)"returns true if the first number is larger than or equal to the second.", (uint32_t)"<number> <number>", 0,
+    /* +0x01f8 */ 0x5, (uint32_t)"<=", (uint32_t)hs_parse_two_object_arguments, (uint32_t)hs_evaluate_comparison, (uint32_t)"returns true if the first number is smaller than or equal to the second.", (uint32_t)"<number> <number>", 0,
+    /* +0x0214 */ 0x4, (uint32_t)"sleep", (uint32_t)hs_parse_sleep, (uint32_t)hs_evaluate_sleep_ticks, (uint32_t)"pauses execution of this script (or, optionally, another script) for the specified number of ticks.", (uint32_t)"<short> [<script>]", 0,
+    /* +0x0230 */ 0x4, (uint32_t)"sleep_until", (uint32_t)hs_parse_sleep_until, (uint32_t)hs_evaluate_sleep, (uint32_t)"pauses execution of this script until the specified condition is true, checking once per second unless a different number of ticks is specified.", (uint32_t)"<boolean> [<short>]", 0,
+    /* +0x024c */ 0x4, (uint32_t)"wake", (uint32_t)hs_parse_wake, (uint32_t)hs_evaluate_wake, (uint32_t)"wakes a sleeping script in the next update.", (uint32_t)"<script name>", 0,
+    /* +0x0268 */ 0x4, (uint32_t)"inspect", (uint32_t)hs_parse_inspect, (uint32_t)hs_evaluate_inspect, (uint32_t)"prints the value of an expression to the screen for debugging purposes.", (uint32_t)"<expression>", 0,
+    /* +0x0284 */ 0x26, (uint32_t)"unit", (uint32_t)hs_parse_unit, (uint32_t)hs_evaluate_object_cast, (uint32_t)"converts an object to a unit.", (uint32_t)"<object>", 0,
+    /* +0x02a0 */ 0x4, (uint32_t)"ai_debug_communication_suppress", (uint32_t)hs_parse_string_arguments, (uint32_t)hs_evaluate_argument_list, (uint32_t)"suppresses (or stops suppressing) a set of AI communication types.", (uint32_t)"<string(s)>", 0,
+    /* +0x02bc */ 0x4, (uint32_t)"ai_debug_communication_ignore", (uint32_t)hs_parse_string_arguments, (uint32_t)hs_evaluate_argument_list, (uint32_t)"ignores (or stops ignoring) a set of AI communication types when printing out communications.", (uint32_t)"<string(s)>", 0,
+    /* +0x02d8 */ 0x4, (uint32_t)"ai_debug_communication_focus", (uint32_t)hs_parse_string_arguments, (uint32_t)hs_evaluate_argument_list, (uint32_t)"focuses (or stops focusing) a set of unit vocalization types.", (uint32_t)"<string(s)>", 0,
+    /* +0x02f4 */ 0x5, (uint32_t)"not", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_not, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x0314 */ 0x4, (uint32_t)"print", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_print, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x0334 */ 0x17, (uint32_t)"players", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_players, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x0350 */ 0x4, (uint32_t)"volume_teleport_players_not_inside", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_volume_teleport_players_not_inside, (uint32_t)&table_0065512c[0], 0, 0x20000, 0xc000b,
+    /* +0x0370 */ 0x5, (uint32_t)"volume_test_object", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_volume_test_object, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x25000b,
+    /* +0x0390 */ 0x5, (uint32_t)"volume_test_objects", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_volume_test_objects, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x17000b,
+    /* +0x03b0 */ 0x5, (uint32_t)"volume_test_objects_all", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_volume_test_objects_all, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x17000b,
+    /* +0x03d0 */ 0x4, (uint32_t)"object_create", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_create, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x2b,
+    /* +0x03f0 */ 0x4, (uint32_t)"object_destroy", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_destroy, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x25,
+    /* +0x0410 */ 0x4, (uint32_t)"object_create_anew", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_create_anew, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x2b,
+    /* +0x0430 */ 0x4, (uint32_t)"object_create_containing", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_create_containing, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x0450 */ 0x4, (uint32_t)"object_create_anew_containing", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_create_anew_containing, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x0470 */ 0x4, (uint32_t)"object_destroy_containing", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_destroy_containing, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x0490 */ 0x4, (uint32_t)"object_destroy_all", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_destroy_all, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x04ac */ 0x4, (uint32_t)"object_teleport", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_teleport, (uint32_t)&table_0065512c[0], 0, 0x20000, 0xc0025,
+    /* +0x04cc */ 0x4, (uint32_t)"object_set_facing", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_set_facing, (uint32_t)&table_0065512c[0], 0, 0x20000, 0xc0025,
+    /* +0x04ec */ 0x4, (uint32_t)"object_set_shield", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_set_shield, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60025,
+    /* +0x050c */ 0x4, (uint32_t)"object_set_permutation", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_set_permutation, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x90025,
+    /* +0x052c */ 0x9,
+    /* +0x0530 */ 0x25, (uint32_t)"list_get", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_list_get, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x70017,
+    /* +0x0550 */ 0x7, (uint32_t)"list_count", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_list_count, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x17,
+    /* +0x0570 */ 0x4, (uint32_t)"effect_new", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_effect_new, (uint32_t)&table_0065512c[0], 0, 0x20000, 0xc0019,
+    /* +0x0590 */ 0x4, (uint32_t)"effect_new_on_object_marker", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_effect_new_on_object_marker, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x250019,
+    /* +0x05b0 */ 0x9,
+    /* +0x05b4 */ 0x4, (uint32_t)"damage_new", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_damage_new, (uint32_t)&table_0065512c[0], 0, 0x20000, 0xc001a,
+    /* +0x05d4 */ 0x4, (uint32_t)"damage_object", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_damage_object, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x25001a,
+    /* +0x05f4 */ 0x5, (uint32_t)"objects_can_see_object", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_objects_can_see_object, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x250017,
+    /* +0x0614 */ 0x6,
+    /* +0x0618 */ 0x5, (uint32_t)"objects_can_see_flag", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_objects_can_see_flag, (uint32_t)&table_0065512c[0], 0, 0x30000, 0xc0017,
+    /* +0x0638 */ 0x6,
+    /* +0x063c */ 0x4, (uint32_t)"objects_delete_by_definition", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_objects_delete_by_definition, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x1f,
+    /* +0x065c */ 0x4, (uint32_t)"sound_set_gain", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_set_gain, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60009,
+    /* +0x067c */ 0x6, (uint32_t)"sound_get_gain", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_get_gain, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x069c */ 0x4, (uint32_t)"script_recompile", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_script_recompile, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x06b8 */ 0x4, (uint32_t)"script_doc", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_script_doc, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x06d4 */ 0x7, (uint32_t)"random_range", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_random_range, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x70007,
+    /* +0x06f4 */ 0x6, (uint32_t)"real_random_range", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_real_random_range, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60006,
+    /* +0x0714 */ 0x4, (uint32_t)"numeric_countdown_timer_set", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_numeric_countdown_timer_set, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50008,
+    /* +0x0734 */ 0x7, (uint32_t)"numeric_countdown_timer_get", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_numeric_countdown_timer_get, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x0754 */ 0x4, (uint32_t)"numeric_countdown_timer_stop", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_numeric_countdown_timer_stop, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x0770 */ 0x4, (uint32_t)"numeric_countdown_timer_restart", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_numeric_countdown_timer_restart, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x078c */ 0x4, (uint32_t)"breakable_surfaces_enable", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_breakable_surfaces_enable, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x07ac */ 0x5, (uint32_t)"recording_play", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_recording_play, (uint32_t)&table_0065512c[0], 0, 0x20000, 0xf0026,
+    /* +0x07cc */ 0x5, (uint32_t)"recording_play_and_delete", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_recording_play_and_delete, (uint32_t)&table_0065512c[0], 0, 0x20000, 0xf0026,
+    /* +0x07ec */ 0x5, (uint32_t)"recording_play_and_hover", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_recording_play_and_hover, (uint32_t)&table_0065512c[0], 0, 0x20000, 0xf0027,
+    /* +0x080c */ 0x4, (uint32_t)"recording_kill", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_recording_kill, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x082c */ 0x7, (uint32_t)"recording_time", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_recording_time, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x084c */ 0x4, (uint32_t)"object_set_ranged_attack_inhibited", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_set_ranged_attack_inhibited, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50025,
+    /* +0x086c */ 0x4, (uint32_t)"object_set_melee_attack_inhibited", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_set_melee_attack_inhibited, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50025,
+    /* +0x088c */ 0x4, (uint32_t)"objects_dump_memory", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_objects_dump_memory, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x08a8 */ 0x4, (uint32_t)"object_set_collideable", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_set_collideable, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50025,
+    /* +0x08c8 */ 0x4, (uint32_t)"object_set_scale", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_set_scale, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x60025,
+    /* +0x08e8 */ 0x7,
+    /* +0x08ec */ 0x4, (uint32_t)"objects_attach", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_objects_attach, (uint32_t)&table_0065512c[0], 0, 0x40000, 0x90025,
+    /* +0x090c */ 0x90025,
+    /* +0x0910 */ 0x4, (uint32_t)"objects_detach", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_objects_detach, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x250025,
+    /* +0x0930 */ 0x4, (uint32_t)"garbage_collect_now", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_garbage_collect_now, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x094c */ 0x4, (uint32_t)"object_cannot_take_damage", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_cannot_take_damage, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x17,
+    /* +0x096c */ 0x4, (uint32_t)"object_can_take_damage", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_can_take_damage, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x17,
+    /* +0x098c */ 0x4, (uint32_t)"object_beautify", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_beautify, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50025,
+    /* +0x09ac */ 0x4, (uint32_t)"objects_predict", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_objects_predict, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x17,
+    /* +0x09cc */ 0x4, (uint32_t)"object_type_predict", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_type_predict, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x1f,
+    /* +0x09ec */ 0x4, (uint32_t)"object_pvs_set_object", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_pvs_set_object, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x25,
+    /* +0x0a0c */ 0x4, (uint32_t)"object_pvs_set_camera", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_pvs_set_camera, (uint32_t)&table_0065512c[0], 0, 0x10000, 0xd,
+    /* +0x0a2c */ 0x4, (uint32_t)"object_pvs_clear", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_pvs_clear, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x0a48 */ 0x4, (uint32_t)"object_pvs_activate", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_object_pvs_set_object, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x25,
+    /* +0x0a68 */ 0x5, (uint32_t)"render_lights", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_render_lights, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x0a88 */ 0x7, (uint32_t)"scenery_get_animation_time", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_scenery_get_animation_time, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x2a,
+    /* +0x0aa8 */ 0x4, (uint32_t)"scenery_animation_start", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_scenery_animation_start, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x1c002a,
+    /* +0x0ac8 */ 0x9,
+    /* +0x0acc */ 0x4, (uint32_t)"scenery_animation_start_at_frame", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_scenery_animation_start_at_frame, (uint32_t)&table_0065512c[0], 0, 0x40000, 0x1c002a,
+    /* +0x0aec */ 0x70009,
+    /* +0x0af0 */ 0x4, (uint32_t)"render_effects", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x0b10 */ 0x4, (uint32_t)"unit_can_blink", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_can_blink, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50026,
+    /* +0x0b30 */ 0x4, (uint32_t)"unit_open", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_open, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x0b50 */ 0x4, (uint32_t)"unit_close", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_close, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x0b70 */ 0x4, (uint32_t)"unit_kill", (uint32_t)hs_parse_function_arguments, (uint32_t)player_set_action_result, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x0b90 */ 0x4, (uint32_t)"unit_kill_silent", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_kill_silent, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x0bb0 */ 0x7, (uint32_t)"unit_get_custom_animation_time", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_get_custom_animation_time, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x0bd0 */ 0x4, (uint32_t)"unit_stop_custom_animation", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_stop_custom_animation, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x0bf0 */ 0x5, (uint32_t)"custom_animation", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_custom_animation, (uint32_t)&table_0065512c[0], 0, 0x40000, 0x1c0026,
+    /* +0x0c10 */ 0x50009,
+    /* +0x0c14 */ 0x5, (uint32_t)"custom_animation_list", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_custom_animation_list, (uint32_t)&table_0065512c[0], 0, 0x40000, 0x1c0017,
+    /* +0x0c34 */ 0x50009,
+    /* +0x0c38 */ 0x5, (uint32_t)"unit_custom_animation_at_frame", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_custom_animation_at_frame, (uint32_t)&table_0065512c[0], 0, 0x50000, 0x1c0026,
+    /* +0x0c58 */ 0x50009, 0x7,
+    /* +0x0c60 */ 0x5, (uint32_t)"unit_is_playing_custom_animation", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_is_playing_custom_animation, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x0c80 */ 0x4, (uint32_t)"unit_aim_without_turning", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_aim_without_turning, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50026,
+    /* +0x0ca0 */ 0x4, (uint32_t)"unit_set_emotion", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_set_emotion, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x70026,
+    /* +0x0cc0 */ 0x4, (uint32_t)"unit_set_enterable_by_player", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_set_enterable_by_player, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50026,
+    /* +0x0ce0 */ 0x4, (uint32_t)"unit_enter_vehicle", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_enter_vehicle, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x270026,
+    /* +0x0d00 */ 0x9,
+    /* +0x0d04 */ 0x5, (uint32_t)"vehicle_test_seat_list", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_vehicle_test_seat_list, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x90027,
+    /* +0x0d24 */ 0x17,
+    /* +0x0d28 */ 0x5, (uint32_t)"vehicle_test_seat", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_vehicle_test_seat_evaluate, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x90027,
+    /* +0x0d48 */ 0x26,
+    /* +0x0d4c */ 0x4, (uint32_t)"unit_set_emotion_animation", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_set_emotion_animation, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x90026,
+    /* +0x0d6c */ 0x4, (uint32_t)"unit_exit_vehicle", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_exit_vehicle, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x0d8c */ 0x4, (uint32_t)"unit_set_maximum_vitality", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_set_maximum_vitality, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x60026,
+    /* +0x0dac */ 0x6,
+    /* +0x0db0 */ 0x4, (uint32_t)"units_set_maximum_vitality", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_units_set_maximum_vitality, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x60017,
+    /* +0x0dd0 */ 0x6,
+    /* +0x0dd4 */ 0x4, (uint32_t)"unit_set_current_vitality", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_set_current_vitality, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x60026,
+    /* +0x0df4 */ 0x6,
+    /* +0x0df8 */ 0x4, (uint32_t)"units_set_current_vitality", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_units_set_current_vitality, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x60017,
+    /* +0x0e18 */ 0x6,
+    /* +0x0e1c */ 0x7, (uint32_t)"vehicle_load_magic", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_vehicle_load_magic, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x90026,
+    /* +0x0e3c */ 0x17,
+    /* +0x0e40 */ 0x7, (uint32_t)"vehicle_unload", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_vehicle_unload, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x90026,
+    /* +0x0e60 */ 0x4, (uint32_t)"magic_seat_name", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_magic_seat_name, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x0e80 */ 0x4, (uint32_t)"unit_set_seat", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_set_seat, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x90026,
+    /* +0x0ea0 */ 0x4, (uint32_t)"magic_melee_attack", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_magic_melee_attack, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x0ebc */ 0x17, (uint32_t)"vehicle_riders", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_vehicle_riders, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x0edc */ 0x26, (uint32_t)"vehicle_driver", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_vehicle_driver, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x0efc */ 0x26, (uint32_t)"vehicle_gunner", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_vehicle_gunner_evaluate, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x0f1c */ 0x6, (uint32_t)"unit_get_health", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_get_health, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x0f3c */ 0x6, (uint32_t)"unit_get_shield", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_get_shield, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x0f5c */ 0x7, (uint32_t)"unit_get_total_grenade_count", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_get_total_grenade_count, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x0f7c */ 0x5, (uint32_t)"unit_has_weapon", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_has_weapon, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x1f0026,
+    /* +0x0f9c */ 0x5, (uint32_t)"unit_has_weapon_readied", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_has_weapon_readied, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x1f0026,
+    /* +0x0fbc */ 0x4, (uint32_t)"unit_doesnt_drop_items", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_doesnt_drop_items, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x17,
+    /* +0x0fdc */ 0x4, (uint32_t)"unit_impervious", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_impervious, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50017,
+    /* +0x0ffc */ 0x4, (uint32_t)"unit_suspended", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_suspended, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50026,
+    /* +0x101c */ 0x5, (uint32_t)"unit_solo_player_integrated_night_vision_is_active", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_solo_player_integrated_night_vision_is_active, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x1038 */ 0x4, (uint32_t)"units_set_desired_flashlight_state", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_units_set_desired_flashlight_state, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50017,
+    /* +0x1058 */ 0x4, (uint32_t)"unit_set_desired_flashlight_state", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_set_desired_flashlight_state, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50026,
+    /* +0x1078 */ 0x5, (uint32_t)"unit_get_current_flashlight_state", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unit_get_current_flashlight_state, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x1098 */ 0x4, (uint32_t)"device_set_never_appears_locked", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_device_set_never_appears_locked, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50029,
+    /* +0x10b8 */ 0x4, (uint32_t)"device_set_power", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_device_set_power, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60029,
+    /* +0x10d8 */ 0x6, (uint32_t)"device_get_power", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_device_get_power, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x29,
+    /* +0x10f8 */ 0x5, (uint32_t)"device_set_position", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_device_set_position, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60029,
+    /* +0x1118 */ 0x6, (uint32_t)"device_get_position", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_device_get_position, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x29,
+    /* +0x1138 */ 0x4, (uint32_t)"device_set_position_immediate", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_device_set_position_immediate, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60029,
+    /* +0x1158 */ 0x6, (uint32_t)"device_group_get", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_device_group_get, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x10,
+    /* +0x1178 */ 0x5, (uint32_t)"device_group_set", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_device_group_set, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60010,
+    /* +0x1198 */ 0x4, (uint32_t)"device_group_set_immediate", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_device_group_set_immediate, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60010,
+    /* +0x11b8 */ 0x4, (uint32_t)"device_one_sided_set", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_device_one_sided_set, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50029,
+    /* +0x11d8 */ 0x4, (uint32_t)"device_operates_automatically_set", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_device_operates_automatically_set, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50029,
+    /* +0x11f8 */ 0x4, (uint32_t)"device_group_change_only_once_more_set", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_device_group_change_only_once_more_set, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50010,
+    /* +0x1218 */ 0x4, (uint32_t)"breakable_surfaces_reset", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_breakable_surfaces_reset, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x1234 */ 0x4, (uint32_t)"cheat_all_powerups", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cheat_all_powerups, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x1250 */ 0x4, (uint32_t)"cheat_spawn_warthog", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cheat_spawn_warthog, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x126c */ 0x4, (uint32_t)"cheat_teleport_to_camera", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cheat_teleport_to_camera, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x1288 */ 0x4, (uint32_t)"cheat_active_camouflage", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cheat_active_camouflage, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x12a4 */ 0x4, (uint32_t)"cheat_active_camouflage_local_player", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cheat_active_camouflage_local_player, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x12c4 */ 0x4, (uint32_t)"cheats_load", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x12e0 */ 0x4, (uint32_t)"ai_dialogue_triggers", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_dialogue_triggers, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x1300 */ 0x4, (uint32_t)"ai_grenades", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_grenades, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x1320 */ 0x4, (uint32_t)"ai_free", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_free, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1340 */ 0x4, (uint32_t)"ai_free_units", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_free_units, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x17,
+    /* +0x1360 */ 0x4, (uint32_t)"ai_attach", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_attach, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x110026,
+    /* +0x1380 */ 0x4, (uint32_t)"ai_attach_units", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_attach_units, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x110017,
+    /* +0x13a0 */ 0x4, (uint32_t)"ai_attach_free", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_attach_free, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x1d0026,
+    /* +0x13c0 */ 0x4, (uint32_t)"ai_detach", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_detach, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x13e0 */ 0x4, (uint32_t)"ai_detach_units", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_detach_units, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x17,
+    /* +0x1400 */ 0x4, (uint32_t)"ai_place", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_place, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1420 */ 0x4, (uint32_t)"ai_kill", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_kill, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1440 */ 0x4, (uint32_t)"ai_kill_silent", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_kill_silent, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1460 */ 0x4, (uint32_t)"ai_erase", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_erase, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1480 */ 0x4, (uint32_t)"ai_erase_all", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_erase_all, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x149c */ 0x4, (uint32_t)"ai_select", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ignore_arguments, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x14bc */ 0x4, (uint32_t)"ai_deselect", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x14d8 */ 0x4, (uint32_t)"ai_spawn_actor", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_spawn_actor, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x14f8 */ 0x4, (uint32_t)"ai_set_respawn", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_set_respawn, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50011,
+    /* +0x1518 */ 0x4, (uint32_t)"ai_set_deaf", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_set_deaf, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50011,
+    /* +0x1538 */ 0x4, (uint32_t)"ai_set_blind", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_set_blind, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50011,
+    /* +0x1558 */ 0x4, (uint32_t)"ai_magically_see_encounter", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_magically_see_encounter, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x110011,
+    /* +0x1578 */ 0x4, (uint32_t)"ai_magically_see_players", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_magically_see_players, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1598 */ 0x4, (uint32_t)"ai_magically_see_unit", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_magically_see_unit, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x260011,
+    /* +0x15b8 */ 0x4, (uint32_t)"ai_magically_see_units", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_magically_see_units, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x170011,
+    /* +0x15d8 */ 0x4, (uint32_t)"ai_timer_start", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_timer_start, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x15f8 */ 0x4, (uint32_t)"ai_timer_expire", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_timer_expire, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1618 */ 0x4, (uint32_t)"ai_attack", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_attack, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1638 */ 0x4, (uint32_t)"ai_defend", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_defend, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1658 */ 0x4, (uint32_t)"ai_retreat", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_retreat, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1678 */ 0x4, (uint32_t)"ai_maneuver", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_retreat, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1698 */ 0x4, (uint32_t)"ai_maneuver_enable", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_maneuver_enable, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50011,
+    /* +0x16b8 */ 0x4, (uint32_t)"ai_migrate", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_migrate, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x110011,
+    /* +0x16d8 */ 0x4, (uint32_t)"ai_migrate_and_speak", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_migrate_and_speak, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x110011,
+    /* +0x16f8 */ 0x9,
+    /* +0x16fc */ 0x4, (uint32_t)"ai_migrate_by_unit", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_migrate_by_unit, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x110017,
+    /* +0x171c */ 0x4, (uint32_t)"ai_allegiance", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_allegiance, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x210021,
+    /* +0x173c */ 0x4, (uint32_t)"ai_allegiance_remove", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_allegiance_remove, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x210021,
+    /* +0x175c */ 0x4, (uint32_t)"ai_go_to_vehicle", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_go_to_vehicle, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x260011,
+    /* +0x177c */ 0x9,
+    /* +0x1780 */ 0x4, (uint32_t)"ai_go_to_vehicle_override", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_go_to_vehicle_override, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x260011,
+    /* +0x17a0 */ 0x9,
+    /* +0x17a4 */ 0x4, (uint32_t)"ai_exit_vehicle", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_exit_vehicle, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x17c4 */ 0x4, (uint32_t)"ai_braindead", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_braindead, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50011,
+    /* +0x17e4 */ 0x4, (uint32_t)"ai_braindead_by_unit", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_braindead_by_unit, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50017,
+    /* +0x1804 */ 0x4, (uint32_t)"ai_disregard", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_disregard, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50017,
+    /* +0x1824 */ 0x4, (uint32_t)"ai_prefer_target", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_prefer_target, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50017,
+    /* +0x1844 */ 0x4, (uint32_t)"ai_teleport_to_starting_location", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_teleport_to_starting_location, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1864 */ 0x4, (uint32_t)"ai_teleport_to_starting_location_if_unsupported", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_teleport_to_starting_location_if_unsupported, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1884 */ 0x4, (uint32_t)"ai_renew", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_renew, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x18a4 */ 0x4, (uint32_t)"ai_try_to_fight_nothing", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_try_to_fight_nothing, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x18c4 */ 0x4, (uint32_t)"ai_try_to_fight", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_try_to_fight, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x110011,
+    /* +0x18e4 */ 0x4, (uint32_t)"ai_try_to_fight_player", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_try_to_fight_player, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1904 */ 0x4, (uint32_t)"ai_command_list", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_command_list, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x120011,
+    /* +0x1924 */ 0x4, (uint32_t)"ai_command_list_by_unit", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_command_list_by_unit, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x120026,
+    /* +0x1944 */ 0x4, (uint32_t)"ai_command_list_advance", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_command_list_advance, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1964 */ 0x4, (uint32_t)"ai_command_list_advance_by_unit", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_command_list_advance_by_unit, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x1984 */ 0x4, (uint32_t)"ai_force_active", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_force_active, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50011,
+    /* +0x19a4 */ 0x4, (uint32_t)"ai_force_active_by_unit", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_force_active_by_unit, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50026,
+    /* +0x19c4 */ 0x4, (uint32_t)"ai_set_return_state", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_set_return_state, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x220011,
+    /* +0x19e4 */ 0x4, (uint32_t)"ai_set_current_state", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_set_current_state, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x220011,
+    /* +0x1a04 */ 0x4, (uint32_t)"ai_playfight", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_playfight, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50011,
+    /* +0x1a24 */ 0x4, (uint32_t)"ai_reconnect", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x1a40 */ 0x4, (uint32_t)"ai_vehicle_encounter", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_vehicle_encounter, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x110026,
+    /* +0x1a60 */ 0x4, (uint32_t)"ai_vehicle_enterable_distance", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_vehicle_enterable_distance, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60026,
+    /* +0x1a80 */ 0x4, (uint32_t)"ai_vehicle_enterable_team", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_vehicle_enterable_team, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x210026,
+    /* +0x1aa0 */ 0x4, (uint32_t)"ai_vehicle_enterable_actor_type", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_vehicle_enterable_actor_type, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x230026,
+    /* +0x1ac0 */ 0x4, (uint32_t)"ai_vehicle_enterable_actors", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_vehicle_enterable_actors, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x110026,
+    /* +0x1ae0 */ 0x4, (uint32_t)"ai_vehicle_enterable_disable", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_vehicle_enterable_disable, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x1b00 */ 0x4, (uint32_t)"ai_look_at_object", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_look_at_object, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x250026,
+    /* +0x1b20 */ 0x4, (uint32_t)"ai_stop_looking", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_stop_looking, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x1b40 */ 0x4, (uint32_t)"ai_automatic_migration_target", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_automatic_migration_target, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50011,
+    /* +0x1b60 */ 0x4, (uint32_t)"ai_follow_target_disable", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_follow_target_disable, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1b80 */ 0x4, (uint32_t)"ai_follow_target_players", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_follow_target_players, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1ba0 */ 0x4, (uint32_t)"ai_follow_target_unit", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_follow_target_unit, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x260011,
+    /* +0x1bc0 */ 0x4, (uint32_t)"ai_follow_target_ai", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_follow_target_ai, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x110011,
+    /* +0x1be0 */ 0x4, (uint32_t)"ai_follow_distance", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_follow_distance, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60011,
+    /* +0x1c00 */ 0x4, (uint32_t)"ai_conversation_stop", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_conversation_stop, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x14,
+    /* +0x1c20 */ 0x4, (uint32_t)"ai_conversation_advance", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_conversation_advance, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x14,
+    /* +0x1c40 */ 0x4, (uint32_t)"ai_link_activation", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_link_activation, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x110011,
+    /* +0x1c60 */ 0x4, (uint32_t)"ai_berserk", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_berserk, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50011,
+    /* +0x1c80 */ 0x4, (uint32_t)"ai_set_team", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_set_team, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x210011,
+    /* +0x1ca0 */ 0x4, (uint32_t)"ai_allow_charge", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_allow_charge, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50011,
+    /* +0x1cc0 */ 0x4, (uint32_t)"ai_allow_dormant", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_allow_dormant, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50011,
+    /* +0x1ce0 */ 0x5, (uint32_t)"ai_is_attacking", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_is_attacking, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1d00 */ 0x7, (uint32_t)"ai_command_list_status", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_command_list_status, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x17,
+    /* +0x1d20 */ 0x7, (uint32_t)"ai_going_to_vehicle", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_going_to_vehicle, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x1d40 */ 0x7, (uint32_t)"ai_living_count", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_living_count, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1d60 */ 0x6, (uint32_t)"ai_living_fraction", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_living_fraction, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1d80 */ 0x6, (uint32_t)"ai_strength", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_strength, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1da0 */ 0x7, (uint32_t)"ai_swarm_count", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_swarm_count, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1dc0 */ 0x7, (uint32_t)"ai_nonswarm_count", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_nonswarm_count, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1de0 */ 0x17, (uint32_t)"ai_actors", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_actors, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1e00 */ 0x7, (uint32_t)"ai_status", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_status, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x1e20 */ 0x5, (uint32_t)"ai_conversation", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_conversation, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x14,
+    /* +0x1e40 */ 0x7, (uint32_t)"ai_conversation_line", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_conversation_line, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x14,
+    /* +0x1e60 */ 0x7, (uint32_t)"ai_conversation_status", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_conversation_status, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x14,
+    /* +0x1e80 */ 0x5, (uint32_t)"ai_allegiance_broken", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai_allegiance_broken, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x210021,
+    /* +0x1ea0 */ 0x4, (uint32_t)"camera_control", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_camera_control, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x1ec0 */ 0x4, (uint32_t)"camera_set", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_camera_set, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x7000d,
+    /* +0x1ee0 */ 0x4, (uint32_t)"camera_set_relative", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_camera_set_relative, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x7000d,
+    /* +0x1f00 */ 0x25,
+    /* +0x1f04 */ 0x4, (uint32_t)"camera_set_animation", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_camera_set_animation, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x9001c,
+    /* +0x1f24 */ 0x4, (uint32_t)"camera_set_first_person", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_camera_set_first_person, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x1f44 */ 0x4, (uint32_t)"camera_set_dead", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_camera_set_dead, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x26,
+    /* +0x1f64 */ 0x7, (uint32_t)"camera_time", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_camera_time, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x1f80 */ 0x4, (uint32_t)"debug_camera_save", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_debug_camera_save, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x1f9c */ 0x4, (uint32_t)"debug_camera_load", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_debug_camera_load, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x1fb8 */ 0x4, (uint32_t)"game_variant", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_variant, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x1fd8 */ 0x8, (uint32_t)"game_time", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_time, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x1ff4 */ 0x20, (uint32_t)"game_difficulty_get", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_difficulty_get, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2010 */ 0x20, (uint32_t)"game_difficulty_get_real", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_difficulty_get_real, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x202c */ 0x4, (uint32_t)"players_unzoom_all", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_players_unzoom_all, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2048 */ 0x4, (uint32_t)"player_enable_input", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_enable_input, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x2068 */ 0x5, (uint32_t)"player_camera_control", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_camera_control, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x2088 */ 0x4, (uint32_t)"player_action_test_reset", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_action_test_reset, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x20a4 */ 0x5, (uint32_t)"player_action_test_jump", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_action_test_jump, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x20c0 */ 0x5, (uint32_t)"player_action_test_primary_trigger", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_action_test_primary_trigger, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x20dc */ 0x5, (uint32_t)"player_action_test_grenade_trigger", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_action_test_grenade_trigger, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x20f8 */ 0x5, (uint32_t)"player_action_test_zoom", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_action_test_zoom, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2114 */ 0x5, (uint32_t)"player_action_test_action", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_action_test_action, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2130 */ 0x5, (uint32_t)"player_action_test_accept", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_action_test_accept, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x214c */ 0x5, (uint32_t)"player_action_test_back", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_action_test_back, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2168 */ 0x5, (uint32_t)"player_action_test_look_relative_up", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_action_test_look_relative_up, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2184 */ 0x5, (uint32_t)"player_action_test_look_relative_down", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_action_test_look_relative_down, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x21a0 */ 0x5, (uint32_t)"player_action_test_look_relative_left", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_action_test_look_relative_left, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x21bc */ 0x5, (uint32_t)"player_action_test_look_relative_right", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_action_test_look_relative_right, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x21d8 */ 0x5, (uint32_t)"player_action_test_look_relative_all_directions", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_action_test_look_relative_all_directions, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x21f4 */ 0x5, (uint32_t)"player_action_test_move_relative_all_directions", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_action_test_move_relative_all_directions, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2210 */ 0x4, (uint32_t)"player_add_equipment", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_add_equipment, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x130026,
+    /* +0x2230 */ 0x5,
+    /* +0x2234 */ 0x4, (uint32_t)"profile_service_clear_timers", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2250 */ 0x4, (uint32_t)"profile_service_dump_timers", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x226c */ 0x4, (uint32_t)"map_reset", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_map_reset, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2288 */ 0x4, (uint32_t)"multiplayer_map_name", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_multiplayer_map_name, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x22a8 */ 0x4, (uint32_t)"game_difficulty_set", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_difficulty_set, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x20,
+    /* +0x22c8 */ 0x4, (uint32_t)"crash", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_crash, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x22e8 */ 0x4, (uint32_t)"switch_bsp", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_switch_bsp, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x2308 */ 0x7, (uint32_t)"structure_bsp_index", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_structure_bsp_index, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2324 */ 0x4, (uint32_t)"version", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_version, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2340 */ 0x4, (uint32_t)"playback", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_playback, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x235c */ 0x4, (uint32_t)"texture_cache_flush", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2378 */ 0x4, (uint32_t)"sound_cache_flush", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2394 */ 0x4, (uint32_t)"sound_cache_dump_to_file", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_cache_dump_to_file, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x23b0 */ 0x4, (uint32_t)"debug_memory", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x23cc */ 0x4, (uint32_t)"debug_memory_by_file", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x23e8 */ 0x4, (uint32_t)"debug_memory_for_file", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x2408 */ 0x4, (uint32_t)"debug_tags", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2424 */ 0x4, (uint32_t)"profile_reset", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2440 */ 0x4, (uint32_t)"profile_dump", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x2460 */ 0x4, (uint32_t)"profile_activate", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x2480 */ 0x4, (uint32_t)"profile_deactivate", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x24a0 */ 0x4, (uint32_t)"profile_graph_toggle", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x24c0 */ 0x4, (uint32_t)"ai_lines", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x24dc */ 0x4, (uint32_t)"ai_debug_sound_point_set", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x24f8 */ 0x4, (uint32_t)"ai_debug_vocalize", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x90009,
+    /* +0x2518 */ 0x4, (uint32_t)"ai_debug_teleport_to", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x11,
+    /* +0x2538 */ 0x4, (uint32_t)"ai_debug_speak", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x2558 */ 0x4, (uint32_t)"ai_debug_speak_list", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x2578 */ 0x4, (uint32_t)"fade_in", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_fade_in, (uint32_t)&table_0065512c[0], 0, 0x40000, 0x60006,
+    /* +0x2598 */ 0x70006,
+    /* +0x259c */ 0x4, (uint32_t)"fade_out", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_fade_out, (uint32_t)&table_0065512c[0], 0, 0x40000, 0x60006,
+    /* +0x25bc */ 0x70006,
+    /* +0x25c0 */ 0x4, (uint32_t)"cinematic_start", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cinematic_start, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x25dc */ 0x4, (uint32_t)"cinematic_stop", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cinematic_stop, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x25f8 */ 0x4, (uint32_t)"cinematic_abort", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cinematic_abort, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2614 */ 0x4, (uint32_t)"cinematic_skip_start_internal", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cinematic_skip_start_internal, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2630 */ 0x4, (uint32_t)"cinematic_skip_stop_internal", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cinematic_skip_stop_internal, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x264c */ 0x4, (uint32_t)"cinematic_show_letterbox", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cinematic_show_letterbox, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x266c */ 0x4, (uint32_t)"cinematic_set_title", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cinematic_set_title, (uint32_t)&table_0065512c[0], 0, 0x10000, 0xe,
+    /* +0x268c */ 0x4, (uint32_t)"cinematic_set_title_delayed", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cinematic_set_title_delayed, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x6000e,
+    /* +0x26ac */ 0x4, (uint32_t)"cinematic_suppress_bsp_object_creation", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cinematic_suppress_bsp_object_creation, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x26cc */ 0x4, (uint32_t)"attract_mode_start", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x26e8 */ 0x4, (uint32_t)"game_won", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_won, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2704 */ 0x4, (uint32_t)"game_lost", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_lost, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2720 */ 0x5, (uint32_t)"game_safe_to_save", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_safe_to_save, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x273c */ 0x5, (uint32_t)"game_all_quiet", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_all_quiet, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2758 */ 0x5, (uint32_t)"game_safe_to_speak", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_safe_to_speak, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2774 */ 0x5, (uint32_t)"game_is_cooperative", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_is_cooperative, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2790 */ 0x4, (uint32_t)"game_save", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_save, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x27ac */ 0x4, (uint32_t)"game_save_cancel", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_save_cancel, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x27c8 */ 0x4, (uint32_t)"game_save_no_timeout", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_save_no_timeout, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x27e4 */ 0x4, (uint32_t)"game_save_totally_unsafe", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_save_totally_unsafe, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2800 */ 0x5, (uint32_t)"game_saving", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_saving, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x281c */ 0x4, (uint32_t)"game_revert", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_revert, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2838 */ 0x4, (uint32_t)"core_load_at_startup", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_core_load_at_startup, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2854 */ 0x4, (uint32_t)"core_load_name", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ignore_arguments, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x2874 */ 0x4, (uint32_t)"core_load_name_at_startup", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ignore_arguments, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x2894 */ 0x4, (uint32_t)"core_save_name", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ignore_arguments, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x28b4 */ 0x4, (uint32_t)"game_skip_ticks", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_skip_ticks, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x28d4 */ 0x5, (uint32_t)"game_reverted", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_reverted, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x28f0 */ 0x4, (uint32_t)"sound_impulse_predict", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ignore_arguments, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50018,
+    /* +0x2910 */ 0x4, (uint32_t)"sound_impulse_start", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_impulse_start, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x250018,
+    /* +0x2930 */ 0x6,
+    /* +0x2934 */ 0x8, (uint32_t)"sound_impulse_time", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_impulse_time, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x18,
+    /* +0x2954 */ 0x4, (uint32_t)"sound_impulse_stop", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_impulse_stop, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x18,
+    /* +0x2974 */ 0x4, (uint32_t)"sound_looping_predict", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_looping_predict, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x1b,
+    /* +0x2994 */ 0x4, (uint32_t)"sound_looping_start", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_looping_start, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x25001b,
+    /* +0x29b4 */ 0x6,
+    /* +0x29b8 */ 0x4, (uint32_t)"sound_looping_stop", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_looping_stop, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x1b,
+    /* +0x29d8 */ 0x4, (uint32_t)"sound_looping_set_scale", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_looping_set_scale, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x6001b,
+    /* +0x29f8 */ 0x4, (uint32_t)"sound_looping_set_alternate", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_looping_set_alternate, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x5001b,
+    /* +0x2a18 */ 0x4, (uint32_t)"debug_sounds_enable", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_debug_sounds_enable, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50009,
+    /* +0x2a38 */ 0x4, (uint32_t)"debug_sounds_distances", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x60009,
+    /* +0x2a58 */ 0x6,
+    /* +0x2a5c */ 0x4, (uint32_t)"debug_sounds_wet", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60009,
+    /* +0x2a7c */ 0x4, (uint32_t)"sound_class_set_gain", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_class_set_gain, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x60009,
+    /* +0x2a9c */ 0x7,
+    /* +0x2aa0 */ 0x4, (uint32_t)"sound_enable", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_enable, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x2ac0 */ 0x4, (uint32_t)"sound_set_master_gain", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_set_master_gain, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x6,
+    /* +0x2ae0 */ 0x6, (uint32_t)"sound_get_master_gain", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_get_master_gain, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2afc */ 0x4, (uint32_t)"sound_set_music_gain", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_set_music_gain, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x6,
+    /* +0x2b1c */ 0x6, (uint32_t)"sound_get_music_gain", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_get_music_gain, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2b38 */ 0x4, (uint32_t)"sound_set_effects_gain", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_set_effects_gain, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x6,
+    /* +0x2b58 */ 0x6, (uint32_t)"sound_get_effects_gain", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_get_effects_gain, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2b74 */ 0x4, (uint32_t)"vehicle_hover", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_vehicle_hover, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50027,
+    /* +0x2b94 */ 0x5, (uint32_t)"show_hud", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_show_hud, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x2bb4 */ 0x5, (uint32_t)"show_hud_help_text", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_show_hud_help_text, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x2bd4 */ 0x4, (uint32_t)"enable_hud_help_flash", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_enable_hud_help_flash, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x2bf4 */ 0x4, (uint32_t)"hud_help_flash_restart", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_hud_help_flash_restart, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2c10 */ 0x4, (uint32_t)"activate_nav_point_flag", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_activate_nav_point_flag, (uint32_t)&table_0065512c[0], 0, 0x40000, 0x260015,
+    /* +0x2c30 */ 0x6000c,
+    /* +0x2c34 */ 0x4, (uint32_t)"activate_nav_point_object", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_activate_nav_point_object, (uint32_t)&table_0065512c[0], 0, 0x40000, 0x260015,
+    /* +0x2c54 */ 0x60025,
+    /* +0x2c58 */ 0x4, (uint32_t)"activate_team_nav_point_flag", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_activate_team_nav_point_flag, (uint32_t)&table_0065512c[0], 0, 0x40000, 0x210015,
+    /* +0x2c78 */ 0x6000c,
+    /* +0x2c7c */ 0x4, (uint32_t)"activate_team_nav_point_object", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_activate_team_nav_point_object, (uint32_t)&table_0065512c[0], 0, 0x40000, 0x210015,
+    /* +0x2c9c */ 0x60025,
+    /* +0x2ca0 */ 0x4, (uint32_t)"deactivate_nav_point_flag", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_deactivate_nav_point_flag, (uint32_t)&table_0065512c[0], 0, 0x20000, 0xc0026,
+    /* +0x2cc0 */ 0x4, (uint32_t)"deactivate_nav_point_object", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_deactivate_nav_point_object, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x250026,
+    /* +0x2ce0 */ 0x4, (uint32_t)"deactivate_team_nav_point_flag", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_deactivate_team_nav_point_flag, (uint32_t)&table_0065512c[0], 0, 0x20000, 0xc0021,
+    /* +0x2d00 */ 0x4, (uint32_t)"deactivate_team_nav_point_object", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_deactivate_team_nav_point_object, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x250021,
+    /* +0x2d20 */ 0x4, (uint32_t)"hammer_begin", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0x50000, 0x90009,
+    /* +0x2d40 */ 0x70008, 0x7,
+    /* +0x2d48 */ 0x4, (uint32_t)"hammer_stop", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2d64 */ 0x4, (uint32_t)"network_server_dump", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2d80 */ 0x4, (uint32_t)"network_client_dump", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2d9c */ 0x4, (uint32_t)"net_graph_clear", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_net_graph_clear, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2db8 */ 0x5, (uint32_t)"net_graph_show", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_net_graph_show, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x90009,
+    /* +0x2dd8 */ 0x4, (uint32_t)"play_update_history", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_play_update_history, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50008,
+    /* +0x2df8 */ 0x4, (uint32_t)"show_player_update_stats", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2e14 */ 0x4, (uint32_t)"message_metrics_clear", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2e30 */ 0x4, (uint32_t)"message_metrics_dump", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_message_metrics_dump, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x2e50 */ 0x4, (uint32_t)"error_overflow_suppression", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_error_overflow_suppression, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x2e70 */ 0x4, (uint32_t)"structure_lens_flares_place", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x2e8c */ 0x4, (uint32_t)"player_effect_set_max_translation", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_effect_set_max_translation, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x60006,
+    /* +0x2eac */ 0x6,
+    /* +0x2eb0 */ 0x4, (uint32_t)"player_effect_set_max_rotation", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_effect_set_max_rotation, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x60006,
+    /* +0x2ed0 */ 0x6,
+    /* +0x2ed4 */ 0x4, (uint32_t)"player_effect_set_max_vibrate", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ignore_arguments, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60006,
+    /* +0x2ef4 */ 0x4, (uint32_t)"player_effect_start", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_effect_start, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60006,
+    /* +0x2f14 */ 0x4, (uint32_t)"player_effect_stop", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player_effect_stop, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x6,
+    /* +0x2f34 */ 0x4, (uint32_t)"hud_show_health", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_hud_show_health, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x2f54 */ 0x4, (uint32_t)"hud_blink_health", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_hud_blink_health, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x2f74 */ 0x4, (uint32_t)"hud_show_shield", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_hud_show_shield, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x2f94 */ 0x4, (uint32_t)"hud_blink_shield", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_hud_blink_shield, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x2fb4 */ 0x4, (uint32_t)"hud_show_motion_sensor", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_hud_show_motion_sensor, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x2fd4 */ 0x4, (uint32_t)"hud_blink_motion_sensor", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_hud_blink_motion_sensor, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x2ff4 */ 0x4, (uint32_t)"hud_show_crosshair", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_hud_show_crosshair, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x3014 */ 0x4, (uint32_t)"hud_clear_messages", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_hud_clear_messages, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3030 */ 0x4, (uint32_t)"hud_set_help_text", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_hud_set_help_text, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x16,
+    /* +0x3050 */ 0x4, (uint32_t)"hud_set_objective_text", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_hud_set_objective_text, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x16,
+    /* +0x3070 */ 0x4, (uint32_t)"hud_set_timer_time", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_hud_set_timer_time, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x70007,
+    /* +0x3090 */ 0x4, (uint32_t)"hud_set_timer_warning_time", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_hud_set_timer_warning_time, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x70007,
+    /* +0x30b0 */ 0x4, (uint32_t)"hud_set_timer_position", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_hud_set_timer_position, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x70007,
+    /* +0x30d0 */ 0x24,
+    /* +0x30d4 */ 0x4, (uint32_t)"show_hud_timer", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_show_hud_timer, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x30f4 */ 0x4, (uint32_t)"pause_hud_timer", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_pause_hud_timer, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x3114 */ 0x7, (uint32_t)"hud_get_timer_ticks", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_hud_get_timer_ticks, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3130 */ 0x4, (uint32_t)"time_code_show", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x3150 */ 0x4, (uint32_t)"time_code_start", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x3170 */ 0x4, (uint32_t)"time_code_reset", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x318c */ 0x4, (uint32_t)"set_gamma", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_set_gamma, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x8,
+    /* +0x31ac */ 0x4, (uint32_t)"rasterizer_fixed_function_ambient", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_rasterizer_fixed_function_ambient, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x8,
+    /* +0x31cc */ 0x4, (uint32_t)"rasterizer_decals_flush", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x31e8 */ 0x4, (uint32_t)"rasterizer_fps_accumulate", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3204 */ 0x4, (uint32_t)"rasterizer_model_ambient_reflection_tint", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_rasterizer_model_ambient_reflection_tint, (uint32_t)&table_0065512c[0], 0, 0x40000, 0x60006,
+    /* +0x3224 */ 0x60006,
+    /* +0x3228 */ 0x4, (uint32_t)"rasterizer_lights_reset_for_new_map", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_rasterizer_lights_reset_for_new_map, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3244 */ 0x4, (uint32_t)"script_screen_effect_set_value", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_script_screen_effect_set_value, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60007,
+    /* +0x3264 */ 0x4, (uint32_t)"cinematic_screen_effect_start", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cinematic_screen_effect_start, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x3284 */ 0x4, (uint32_t)"cinematic_screen_effect_set_convolution", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cinematic_screen_effect_set_convolution, (uint32_t)&table_0065512c[0], 0, 0x50000, 0x70007,
+    /* +0x32a4 */ 0x60006, 0x6,
+    /* +0x32ac */ 0x4, (uint32_t)"cinematic_screen_effect_set_filter", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cinematic_screen_effect_set_filter, (uint32_t)&table_0065512c[0], 0, 0x60000, 0x60006,
+    /* +0x32cc */ 0x60006, 0x60005,
+    /* +0x32d4 */ 0x4, (uint32_t)"cinematic_screen_effect_set_filter_desaturation_tint", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cinematic_screen_effect_set_filter_desaturation_tint, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x60006,
+    /* +0x32f4 */ 0x6,
+    /* +0x32f8 */ 0x4, (uint32_t)"cinematic_screen_effect_set_video", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cinematic_screen_effect_set_video, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60007,
+    /* +0x3318 */ 0x4, (uint32_t)"cinematic_screen_effect_stop", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cinematic_screen_effect_stop, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3334 */ 0x4, (uint32_t)"cinematic_set_near_clip_distance", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cinematic_set_near_clip_distance, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x6,
+    /* +0x3354 */ 0x4, (uint32_t)"delete_save_game_files", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_nothing, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3370 */ 0x4, (uint32_t)"fast_setup_network_server", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_fast_setup_network_server, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x90009,
+    /* +0x3390 */ 0x5,
+    /* +0x3394 */ 0x4, (uint32_t)"profile_unlock_solo_levels", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_profile_unlock_solo_levels, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x33b0 */ 0x4, (uint32_t)"player0_look_invert_pitch", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player0_look_invert_pitch, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x33d0 */ 0x5, (uint32_t)"player0_look_pitch_is_inverted", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player0_look_pitch_is_inverted, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x33ec */ 0x5, (uint32_t)"player0_joystick_set_is_normal", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_player0_joystick_set_is_normal, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3408 */ 0x4, (uint32_t)"ui_widget_show_path", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ui_widget_show_path, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x3428 */ 0x4, (uint32_t)"display_scenario_help", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_display_scenario_help, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x3448 */ 0x4, (uint32_t)"sound_enable_eax", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_enable_eax, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x3468 */ 0x5, (uint32_t)"sound_eax_enabled", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_eax_enabled, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3484 */ 0x4, (uint32_t)"sound_set_env", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_set_env, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x34a4 */ 0x4, (uint32_t)"sound_enable_hardware", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_enable_hardware, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50005,
+    /* +0x34c4 */ 0x4, (uint32_t)"sound_set_supplementary_buffers", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_set_supplementary_buffers, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x50007,
+    /* +0x34e4 */ 0x7, (uint32_t)"sound_get_supplementary_buffers", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_get_supplementary_buffers, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3500 */ 0x4, (uint32_t)"sound_set_rolloff", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_set_rolloff, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x6,
+    /* +0x3520 */ 0x4, (uint32_t)"sound_set_factor", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sound_set_factor, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x6,
+    /* +0x3540 */ 0x7, (uint32_t)"input_get_joy_count", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_input_get_joy_count, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x355c */ 0x5, (uint32_t)"input_is_joy_active", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_input_is_joy_active, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x357c */ 0x5, (uint32_t)"input_activate_joy", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_input_activate_joy, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x70007,
+    /* +0x359c */ 0x4, (uint32_t)"input_deactivate_joy", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_input_deactivate_joy, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x35bc */ 0x7, (uint32_t)"input_find_joystick", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_input_find_joystick, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x35dc */ 0x4, (uint32_t)"input_show_joystick_info", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_input_show_joystick_info, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x35f8 */ 0x4, (uint32_t)"input_find_default", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_input_find_default, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x3618 */ 0x4, (uint32_t)"config_one_control", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ignore_arguments, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x3638 */ 0x6, (uint32_t)"get_yaw_rate", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_get_yaw_rate, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x3658 */ 0x6, (uint32_t)"get_pitch_rate", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_get_pitch_rate, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x3678 */ 0x4, (uint32_t)"set_yaw_rate", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_set_yaw_rate, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60007,
+    /* +0x3698 */ 0x4, (uint32_t)"set_pitch_rate", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_set_pitch_rate, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60007,
+    /* +0x36b8 */ 0x6, (uint32_t)"get_digital_forward_throttle", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_get_digital_forward_throttle, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x36d8 */ 0x4, (uint32_t)"set_digital_forward_throttle", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_set_digital_forward_throttle, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60007,
+    /* +0x36f8 */ 0x6, (uint32_t)"get_digital_strafe_throttle", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_get_digital_strafe_throttle, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x3718 */ 0x4, (uint32_t)"set_digital_strafe_throttle", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_set_digital_strafe_throttle, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60007,
+    /* +0x3738 */ 0x6, (uint32_t)"get_digital_yaw_increment", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_get_digital_yaw_increment, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x3758 */ 0x4, (uint32_t)"set_digital_yaw_increment", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_set_digital_yaw_increment, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60007,
+    /* +0x3778 */ 0x6, (uint32_t)"get_digital_pitch_increment", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_get_digital_pitch_increment, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x3798 */ 0x4, (uint32_t)"set_digital_pitch_increment", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_set_digital_pitch_increment, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60007,
+    /* +0x37b8 */ 0x6, (uint32_t)"get_mouse_forward_threshold", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_get_mouse_forward_threshold, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x37d8 */ 0x4, (uint32_t)"set_mouse_forward_threshold", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_set_mouse_forward_threshold, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60007,
+    /* +0x37f8 */ 0x6, (uint32_t)"get_mouse_strafe_threshold", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_get_mouse_strafe_threshold, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x3818 */ 0x4, (uint32_t)"set_mouse_strafe_threshold", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_set_mouse_strafe_threshold, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60007,
+    /* +0x3838 */ 0x6, (uint32_t)"get_mouse_yaw_scale", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_get_mouse_yaw_scale, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x3858 */ 0x4, (uint32_t)"set_mouse_yaw_scale", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_set_mouse_yaw_scale, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60007,
+    /* +0x3878 */ 0x6, (uint32_t)"get_mouse_pitch_scale", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_get_mouse_pitch_scale, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x3898 */ 0x4, (uint32_t)"set_mouse_pitch_scale", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_set_mouse_pitch_scale, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60007,
+    /* +0x38b8 */ 0x6, (uint32_t)"get_gamepad_forward_threshold", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_get_gamepad_forward_threshold, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x38d8 */ 0x4, (uint32_t)"set_gamepad_forward_threshold", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_set_gamepad_forward_threshold, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60007,
+    /* +0x38f8 */ 0x6, (uint32_t)"get_gamepad_strafe_threshold", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_get_gamepad_strafe_threshold, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x3918 */ 0x4, (uint32_t)"set_gamepad_strafe_threshold", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_set_gamepad_strafe_threshold, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60007,
+    /* +0x3938 */ 0x6, (uint32_t)"get_gamepad_yaw_scale", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_get_gamepad_yaw_scale, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x3958 */ 0x4, (uint32_t)"set_gamepad_yaw_scale", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ignore_arguments, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60007,
+    /* +0x3978 */ 0x6, (uint32_t)"get_gamepad_pitch_scale", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_get_gamepad_yaw_scale, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x3998 */ 0x4, (uint32_t)"set_gamepad_pitch_scale", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ignore_arguments, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x60007,
+    /* +0x39b8 */ 0x4, (uint32_t)"bind", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_bind, (uint32_t)&table_0065512c[0], 0, 0x30000, 0x90009,
+    /* +0x39d8 */ 0x9,
+    /* +0x39dc */ 0x4, (uint32_t)"unbind", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_unbind, (uint32_t)&table_0065512c[0], 0, 0x20000, 0x90009,
+    /* +0x39fc */ 0x4, (uint32_t)"print_binds", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_print_binds, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3a18 */ 0x4, (uint32_t)"change_team", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_change_team, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x7,
+    /* +0x3a38 */ 0x4, (uint32_t)"sv_parameters_reload", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sv_parameters_reload, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3a54 */ 0x4, (uint32_t)"sv_parameters_dump", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sv_parameters_dump, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3a70 */ 0x4, (uint32_t)"track_remote_player_position_updates", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_track_remote_player_position_updates, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x3a90 */ 0x4, (uint32_t)"remote_player_stats", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_remote_player_stats, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x3ab0 */ 0x4, (uint32_t)"sv_get_player_action_queue_length", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sv_get_player_action_queue_length, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x3ad0 */ 0x4, (uint32_t)"thread_sleep", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_thread_sleep, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x8,
+    /* +0x3af0 */ 0x4, (uint32_t)"checkpoint_save", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_checkpoint_save, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3b0c */ 0x4, (uint32_t)"checkpoint_load", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_checkpoint_load, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x3b2c */ 0x4, (uint32_t)"cls", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cls, (uint32_t)"clears console text from the screen", 0, 0x5f,
+    /* +0x3b48 */ 0x4, (uint32_t)"connect", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_connect, (uint32_t)"Attempt to connect to server - use ip:port password as parameters", 0, 0x2005f, 0x90009,
+    /* +0x3b68 */ 0x4, (uint32_t)"disconnect", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_disconnect, (uint32_t)"Disconnect from a server", 0, 0x5f,
+    /* +0x3b84 */ 0x4, (uint32_t)"profile_load", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_profile_load, (uint32_t)"Load any included builtin profiles and create profiles on disk.", 0, 0x1005f, 0x9,
+    /* +0x3ba4 */ 0x4, (uint32_t)"help", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_help, (uint32_t)"prints a description of the named function.", 0, 0x1005f, 0x9,
+    /* +0x3bc4 */ 0x4, (uint32_t)"quit", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_quit, (uint32_t)"quits the game", 0, 0x5f,
+    /* +0x3be0 */ 0x4, (uint32_t)"ai", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_ai, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x5,
+    /* +0x3c00 */ 0x4, (uint32_t)"cheat_all_weapons", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cheat_all_weapons, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3c1c */ 0x4, (uint32_t)"cheat_all_vehicles", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_cheat_all_vehicles, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3c38 */ 0x4, (uint32_t)"core_load", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_core_load, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3c54 */ 0x4, (uint32_t)"core_save", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_core_save, (uint32_t)&table_0065512c[0], 0, 0,
+    /* +0x3c70 */ 0x4, (uint32_t)"game_speed", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_game_speed, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x6,
+    /* +0x3c90 */ 0x4, (uint32_t)"map_name", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_map_name, (uint32_t)&table_0065512c[0], 0, 0x10000, 0x9,
+    /* +0x3cb0 */ 0x4, (uint32_t)"rcon", (uint32_t)hs_parse_string_arguments, (uint32_t)hs_evaluate_rcon, (uint32_t)"Sends a command for server to execute at console. Use \\\" to send quotes.", (uint32_t)"[rcon password] [command]", 0x49,
+    /* +0x3ccc */ 0x4, (uint32_t)"sv_banlist", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sv_banlist, (uint32_t)"Print a list of banned players", 0, 0x5f,
+    /* +0x3ce8 */ 0x4, (uint32_t)"sv_unban", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sv_unban, (uint32_t)"<Server Only> Usage: sv_unban <index> \nRemoves player at index in the banlist.  Use sv_banlist to find the index", 0, 0x1005f, 0x8,
+    /* +0x3d08 */ 0x4, (uint32_t)"sv_map_next", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sv_map_next, (uint32_t)"<Server Only> Abort the current game and begin the next game in the playlist", 0, 0x4f,
+    /* +0x3d24 */ 0x4, (uint32_t)"sv_map_reset", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sv_map_reset, (uint32_t)"<Server Only> Reset the current game", 0, 0x4f,
+    /* +0x3d40 */ 0x4, (uint32_t)"sv_map", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sv_map, (uint32_t)"<Server Only> Usage: \"sv_map <mapname> <variantname>\" \nAbort current game and playlist and start specified game", 0, 0x2005f, 0x90009,
+    /* +0x3d60 */ 0x4, (uint32_t)"sv_rcon_password", (uint32_t)hs_parse_string_arguments, (uint32_t)sv_rcon_password_evaluate, (uint32_t)"Sets the server remote console password. If no password is given, displays the\n current password. Enter \"\" to disable rcon.", (uint32_t)"[remote console password]", 0x5f,
+    /* +0x3d7c */ 0x4, (uint32_t)"sv_maxplayers", (uint32_t)hs_parse_string_arguments, (uint32_t)sv_maxplayers_evaluate, (uint32_t)"Sets the maximum number of players (between 1 and 16). If no value is given, displays the current value.", (uint32_t)"[1 - 16]", 0x5f,
+    /* +0x3d98 */ 0x4, (uint32_t)"sv_end_game", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sv_end_game, (uint32_t)"End the current game.", 0, 0x4f,
+    /* +0x3db4 */ 0x4, (uint32_t)"sv_players", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sv_players, (uint32_t)"<Server Only> Print a list of players in the current game", 0, 0x4f,
+    /* +0x3dd0 */ 0x4, (uint32_t)"sv_kick", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sv_kick, (uint32_t)"<Server Only> Usage: sv_kick <player # or name>  \nKicks the specified player from the server", 0, 0x1004f, 0x9,
+    /* +0x3df0 */ 0x4, (uint32_t)"sv_status", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sv_status, (uint32_t)"Shows status of the server", 0, 0x4f,
+    /* +0x3e0c */ 0x4, (uint32_t)"sv_ban", (uint32_t)hs_parse_string_arguments, (uint32_t)hs_evaluate_sv_ban, (uint32_t)"<Server Only> Player is kicked and added to banned.txt.  Use sv_players to find the index.\nSpecify optional duration for timed ban.  Use 0 to follow sv_ban_penalty rules.", (uint32_t)"[player # or name] opt:[duration (#)(m,h,d)]", 0x4f,
+    /* +0x3e28 */ 0x4, (uint32_t)"sv_ban_penalty", (uint32_t)hs_parse_string_arguments, (uint32_t)sv_ban_penalty_evaluate, (uint32_t)"Specify up to 4 ban times for repeat ban/TK offenders.", (uint32_t)"[(#)(m,h,d), 0=infinite]", 0x4f,
+    /* +0x3e44 */ 0x4, (uint32_t)"sv_tk_grace", (uint32_t)hs_parse_string_arguments, (uint32_t)sv_tk_grace_evaluate, (uint32_t)"Specify the grace period for TK during which you don't get a TK point.", (uint32_t)"[time (#)(s,m)]", 0x4f,
+    /* +0x3e60 */ 0x4, (uint32_t)"sv_tk_cooldown", (uint32_t)hs_parse_string_arguments, (uint32_t)sv_tk_cooldown_evaluate, (uint32_t)"Specify a TK point cooldown period, after which players lose a TK point.", (uint32_t)"[time (#)(s,m)]", 0x4f,
+    /* +0x3e7c */ 0x4, (uint32_t)"sv_banlist_file", (uint32_t)hs_parse_string_arguments, (uint32_t)sv_banlist_file_evaluate, (uint32_t)"Sets and opens the file to be used for the player ban list.", (uint32_t)"[alphanumeric banlist file suffix]", 0x5f,
+    /* +0x3e98 */ 0x4, (uint32_t)"sv_mapcycle_begin", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sv_mapcycle_begin, (uint32_t)"Restart or begin playing the currently loaded mapcycle file", 0, 0x1d,
+    /* +0x3eb4 */ 0x4, (uint32_t)"sv_mapcycle", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sv_mapcycle, (uint32_t)"Print the contents of the currently loaded mapcycle file", 0, 0x1d,
+    /* +0x3ed0 */ 0x4, (uint32_t)"sv_mapcycle_add", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sv_mapcycle_add, (uint32_t)"Usage: sv_mapcycle_add <mapname> <variantname>\nAdd a new game to the end of the mapcycle file.", 0, 0x2001d, 0x90009,
+    /* +0x3ef0 */ 0x4, (uint32_t)"sv_mapcycle_del", (uint32_t)hs_parse_function_arguments, (uint32_t)hs_evaluate_sv_mapcycle_del, (uint32_t)"Usage: sv_mapcycle_del <index> \nRemoves the game at <index>.  Will not affect running games.", 0, 0x1001d, 0x8,
+    /* +0x3f10 */ 0x4, (uint32_t)"sv_name", (uint32_t)hs_parse_string_arguments, (uint32_t)sv_name_evaluate, (uint32_t)"Sets the name of the server. If no name is given, displays the current name.", (uint32_t)"[name]", 0x1d,
+    /* +0x3f2c */ 0x4, (uint32_t)"sv_password", (uint32_t)hs_parse_string_arguments, (uint32_t)sv_password_evaluate, (uint32_t)"Sets the server password. If no password is given, displays the\ncurrent password.", (uint32_t)"[password]", 0x1d,
+    /* +0x3f48 */ 0x4, (uint32_t)"sv_friendly_fire", (uint32_t)hs_parse_string_arguments, (uint32_t)sv_friendly_fire_evaluate, (uint32_t)"Use to provide a global override for the gametype friendly fire setting.", (uint32_t)"[\"0\" = defaults, \"1\" = off, \"2\" = shields, \"3\" = on]", 0x5f,
+    /* +0x3f64 */ 0x4, (uint32_t)"sv_timelimit", (uint32_t)hs_parse_string_arguments, (uint32_t)sv_timelimit_evaluate, (uint32_t)"Use to provide a global override for the gametype timelimit setting.", (uint32_t)"[\"-1\" = default, \"0\" = infinite, <time in minutes>]", 0x5f,
+    /* +0x3f80 */ 0x4, (uint32_t)"sv_maplist", (uint32_t)hs_parse_string_arguments, (uint32_t)map_list_matching_substring_evaluate, (uint32_t)"Display a list of maps, matching an optional substring.", (uint32_t)"[substring]", 0x5f,
+    /* +0x3f9c */ 0x4, (uint32_t)"sv_gamelist", (uint32_t)hs_parse_string_arguments, (uint32_t)game_variant_list_matching_substring_evaluate, (uint32_t)"Display a list of game types, matching an optional substring.", (uint32_t)"[substring]", 0x5f,
+    /* +0x3fb8 */ 0x4, (uint32_t)"sv_single_flag_force_reset", (uint32_t)hs_parse_string_arguments, (uint32_t)sv_single_flag_force_reset_evaluate, (uint32_t)"Force the flag to reset in single flag CTF games when the timer expires, even if held by a player.\nIf not specified, displays the current value.", (uint32_t)"[boolean]", 0x5f, 0x20a,
+};
+
+/* 0x00664914..0x00664918 */
+uint32_t table_00664914[1] = {
+    /* +0x0000 */ 0x3c,
+};
+
+/* 0x00664954..0x00664958 */
+uint32_t table_00664954[1] = {
+    /* +0x0000 */ 0x3e,
+};
+
+/* 0x006649d4..0x006649d8 */
+uint32_t table_006649d4[1] = {
+    /* +0x0000 */ 0x3d,
+};
+
+/* 0x00664a74..0x00664a78 */
+uint32_t table_00664a74[1] = {
+    /* +0x0000 */ 0x2f,
+};
+
+/* 0x00664aac..0x00664ab0 */
+uint32_t table_00664aac[1] = {
+    /* +0x0000 */ 0x2a,
+};
+
+/* 0x00664af0..0x00664af4 */
+uint32_t table_00664af0[1] = {
+    /* +0x0000 */ 0x2d,
+};
+
+/* 0x00664b30..0x00664b34 */
+uint32_t table_00664b30[1] = {
+    /* +0x0000 */ 0x2b,
+};
+
+/* 0x0067359c..0x00673d5c */
+uint32_t length_error_throw_info_0067359c[496] = {
+    /* +0x0000 */ 0, (uint32_t)&length_error_throw_info_0069ff2c[14], 0, 0xffffffffu, 0, 0x28, (uint32_t)hwreq_parse_exception_copy_construct,
+    /* +0x001c */ 0, (uint32_t)&length_error_throw_info_0069ff2c[22], 0, 0xffffffffu, 0, 0x28, (uint32_t)halo_code_57bc00, 0xffffffffu,
+    /* +0x003c */ (uint32_t)halo_code_639300, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[14], 0, 0, 0, 0,
+    /* +0x005c */ 0xffffffffu, (uint32_t)halo_code_639320, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[23], 0, 0, 0,
+    /* +0x007c */ 0, 0xffffffffu, 0, 0xffffffffu, 0, 0x1, 0, 0x1,
+    /* +0x009c */ 0, 0, 0, 0, 0x57c7e2, 0, 0, 0,
+    /* +0x00bc */ 0x57c743, 0x2, 0x2, 0x3, 0x1, (uint32_t)&length_error_throw_info_0067359c[40], 0, 0,
+    /* +0x00dc */ 0x3, 0x1, (uint32_t)&length_error_throw_info_0067359c[44], 0x19930520, 0x4, (uint32_t)&length_error_throw_info_0067359c[32], 0x2, (uint32_t)&length_error_throw_info_0067359c[48],
+    /* +0x00fc */ 0, 0, 0xffffffffu, (uint32_t)halo_code_639320, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[65], 0,
+    /* +0x011c */ 0, 0, 0, 0xffffffffu, 0, 0, (uint32_t)halo_code_639350, 0xffffffffu,
+    /* +0x013c */ 0, 0, 0, 0, 0x57ccc4, 0, 0x1, 0x2,
+    /* +0x015c */ 0x1, (uint32_t)&length_error_throw_info_0067359c[80], 0x19930520, 0x3, (uint32_t)&length_error_throw_info_0067359c[74], 0x1, (uint32_t)&length_error_throw_info_0067359c[84], 0,
+    /* +0x017c */ 0, 0xffffffffu, (uint32_t)halo_code_639300, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[96], 0, 0,
+    /* +0x019c */ 0, 0, 0xffffffffu, (uint32_t)halo_code_639320, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[105], 0,
+    /* +0x01bc */ 0, 0, 0, 0xffffffffu, (uint32_t)halo_code_639300, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[114],
+    /* +0x01dc */ 0, 0, 0, 0, 0xffffffffu, (uint32_t)halo_code_639360, 0x19930520, 0x1,
+    /* +0x01fc */ (uint32_t)&length_error_throw_info_0067359c[123], 0, 0, 0, 0, 0xffffffffu, 0, 0,
+    /* +0x021c */ (uint32_t)halo_code_639380, 0xffffffffu, 0, 0, 0, 0, 0x57ced1, 0,
+    /* +0x023c */ 0x1, 0x2, 0x1, (uint32_t)&length_error_throw_info_0067359c[138], 0x19930520, 0x3, (uint32_t)&length_error_throw_info_0067359c[132], 0x1,
+    /* +0x025c */ (uint32_t)&length_error_throw_info_0067359c[142], 0, 0, 0xffffffffu, (uint32_t)halo_code_639390, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[154],
+    /* +0x027c */ 0, 0, 0, 0, 0xffffffffu, (uint32_t)halo_code_639390, 0x19930520, 0x1,
+    /* +0x029c */ (uint32_t)&length_error_throw_info_0067359c[163], 0, 0, 0, 0, 0xffffffffu, (uint32_t)halo_code_639390, 0x19930520,
+    /* +0x02bc */ 0x1, (uint32_t)&length_error_throw_info_0067359c[172], 0, 0, 0, 0, 0xffffffffu, (uint32_t)halo_code_639390,
+    /* +0x02dc */ 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[181], 0, 0, 0, 0, 0xffffffffu,
+    /* +0x02fc */ (uint32_t)halo_code_6393b0, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[190], 0, 0, 0, 0,
+    /* +0x031c */ 0xffffffffu, (uint32_t)halo_code_6393d0, 0, (uint32_t)halo_code_6393db, 0x1, (uint32_t)halo_code_6393e6, 0x2, (uint32_t)halo_code_6393f1,
+    /* +0x033c */ 0x3, (uint32_t)halo_code_6393fc, 0x4, (uint32_t)halo_code_63940a, 0x19930520, 0x6, (uint32_t)&length_error_throw_info_0067359c[199], 0,
+    /* +0x035c */ 0, 0, 0, 0xffffffffu, 0, 0, (uint32_t)halo_code_639430, 0xffffffffu,
+    /* +0x037c */ 0, 0, 0, 0, (uint32_t)halo_code_57cfa3, 0, 0x1, 0x2,
+    /* +0x039c */ 0x1, (uint32_t)&length_error_throw_info_0067359c[224], 0x19930520, 0x3, (uint32_t)&length_error_throw_info_0067359c[218], 0x1, (uint32_t)&length_error_throw_info_0067359c[228], 0,
+    /* +0x03bc */ 0, 0xffffffffu, (uint32_t)halo_code_639440, 0, 0, 0, 0, 0,
+    /* +0x03dc */ 0, 0, 0, 0, 0, 0, 0x57bfec, 0,
+    /* +0x03fc */ 0, 0, 0x57c0a8, 0x1, 0x1, 0x2, 0x1, (uint32_t)&length_error_throw_info_0067359c[250],
+    /* +0x041c */ 0x3, 0x3, 0x4, 0x1, (uint32_t)&length_error_throw_info_0067359c[254], 0x19930520, 0x5, (uint32_t)&length_error_throw_info_0067359c[240],
+    /* +0x043c */ 0x2, (uint32_t)&length_error_throw_info_0067359c[258], 0, 0, 0xffffffffu, (uint32_t)halo_code_639460, 0x19930520, 0x1,
+    /* +0x045c */ (uint32_t)&length_error_throw_info_0067359c[275], 0, 0, 0, 0, 0xffffffffu, (uint32_t)halo_code_639480, 0,
+    /* +0x047c */ (uint32_t)halo_code_63948b, 0x1, (uint32_t)halo_code_639496, 0x2, (uint32_t)halo_code_6394a1, 0x3, (uint32_t)halo_code_6394ac, 0x4,
+    /* +0x049c */ (uint32_t)halo_code_6394ba, 0x5, (uint32_t)halo_code_6394c7, 0x19930520, 0x7, (uint32_t)&length_error_throw_info_0067359c[284], 0, 0,
+    /* +0x04bc */ 0, 0, 0xffffffffu, (uint32_t)halo_code_6394e0, 0, (uint32_t)halo_code_6394e8, 0x1, (uint32_t)halo_code_6394f0,
+    /* +0x04dc */ 0x19930520, 0x3, (uint32_t)&length_error_throw_info_0067359c[305], 0, 0, 0, 0, 0xffffffffu,
+    /* +0x04fc */ (uint32_t)halo_code_639510, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[318], 0, 0, 0, 0,
+    /* +0x051c */ 0xffffffffu, (uint32_t)halo_code_639530, 0xffffffffu, (uint32_t)halo_code_63953b, 0x19930520, 0x2, (uint32_t)&length_error_throw_info_0067359c[327], 0,
+    /* +0x053c */ 0, 0, 0, 0xffffffffu, (uint32_t)halo_code_639550, 0, (uint32_t)halo_code_639558, 0x19930520,
+    /* +0x055c */ 0x2, (uint32_t)&length_error_throw_info_0067359c[338], 0, 0, 0, 0, 0xffffffffu, (uint32_t)halo_code_639570,
+    /* +0x057c */ 0xffffffffu, (uint32_t)halo_code_63957e, 0x19930520, 0x2, (uint32_t)&length_error_throw_info_0067359c[349], 0, 0, 0,
+    /* +0x059c */ 0, 0x1, 0x23a470, 0x2a00a0, 0x29ffe4, 0x273cb0, 0x273ec8, 0,
+    /* +0x05bc */ 0, 0x1, 0x24dde0, 0x2a2488, 0x29ffb0, 0x273c7c, 0x273ef4, 0,
+    /* +0x05dc */ 0, 0x1, 0x24e380, 0x2a248c, 0x29ffd8, 0x273ca4, 0x273efc, 0,
+    /* +0x05fc */ 0, 0x1, 0x24e390, 0x2a2490, 0x2a0078, 0x273d44, 0x273f08, 0,
+    /* +0x061c */ 0, 0x1, 0x24ea70, 0x2a32a0, 0x29ffb8, 0x273c84, 0x273f1c, 0,
+    /* +0x063c */ 0, 0x1, 0x255070, 0x2a38d8, 0x2a0050, 0x273d1c, 0x273f24, 0,
+    /* +0x065c */ 0, 0x1, 0x2550d0, 0x2a38dc, 0x29ffd0, 0x273c9c, 0x273f4c, 0,
+    /* +0x067c */ 0, 0x1, 0x2550e0, 0x2a38e0, 0x29ffc0, 0x273c8c, 0x273f54, 0,
+    /* +0x069c */ 0, 0x1, 0x2550f0, 0x2a38e4, 0x2a0010, 0x273cdc, 0x273f64, 0,
+    /* +0x06bc */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x06dc */ 0, 0x80000009u, 0, 0x273db2, 0, 0x273e98, 0x273e86, 0x273eb2,
+    /* +0x06fc */ 0, 0x273e6e, 0, 0x273d68, 0x273d58, 0, 0x80000017u, 0x80000011u,
+    /* +0x071c */ 0x8000006fu, 0x80000039u, 0x80000073u, 0x80000034u, 0x8000000bu, 0x80000015u, 0x8000000cu, 0x80000014u,
+    /* +0x073c */ 0, 0x80000012u, 0x80000002u, 0x80000003u, 0x80000097u, 0x80000006u, 0x80000009u, 0x8000000fu,
+    /* +0x075c */ 0x80000008u, 0x80000074u, 0x8000000cu, 0x80000013u, 0x80000010u, 0x80000016u, 0x80000004u, 0x8000000eu,
+    /* +0x077c */ 0, 0x273e54, 0x273e3c, 0x273e2c, 0x273e18, 0x273e0a, 0x273dea, 0x273dda,
+    /* +0x079c */ 0x273dc2, 0x273df8, 0, 0x273d84, 0x273d7a, 0x273d98, 0x273da4, 0,
+    /* +0x07bc */ 0x69740000,
+};
+
+/* 0x00676030..0x00676390 */
+uint32_t table_00676030[216] = {
+    /* +0x0000 */ 0, 0, 0x62400a, 0x6362cf, 0, 0, 0x637a95, 0,
+    /* +0x0020 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0040 */ 0, 0, 0, 0, (uint32_t)&table_0063acac[0], 0, (uint32_t)halo_code_57fbfc, 0x57feda,
+    /* +0x0060 */ 0x580568, (uint32_t)halo_code_5807bb, 0x580a84, (uint32_t)halo_code_57fc44, (uint32_t)halo_code_580054, (uint32_t)halo_code_57fc68, 0x58029d, (uint32_t)halo_code_57fc20,
+    /* +0x0080 */ (uint32_t)halo_code_58002a, 0x5806e4, 0x582103, 0x582148, (uint32_t)halo_code_58015c, 0x58017e, 0x5801a0, (uint32_t)halo_code_57f9f9,
+    /* +0x00a0 */ (uint32_t)halo_code_580cc7, (uint32_t)halo_code_5819e1, 0x581a8a, (uint32_t)halo_code_581fa0, 0x582054, 0x5816d5, 0x581717, (uint32_t)halo_code_5818d4,
+    /* +0x00c0 */ (uint32_t)halo_code_581109, 0x5816bb, 0x5816c8, (uint32_t)halo_code_581858, (uint32_t)halo_code_581193, (uint32_t)halo_code_581229, (uint32_t)halo_code_5812c0, (uint32_t)halo_code_581079,
+    /* +0x00e0 */ 0x5821f7, (uint32_t)halo_code_581d4a, 0x581ee9, (uint32_t)halo_code_580a04, (uint32_t)halo_code_58147a, (uint32_t)halo_code_58159d, (uint32_t)halo_code_58156f, (uint32_t)halo_code_5815ae,
+    /* +0x0100 */ (uint32_t)halo_code_581358, (uint32_t)halo_code_581e57, (uint32_t)halo_code_581b4d, (uint32_t)halo_code_581ed8, 0x57f9ec, (uint32_t)halo_code_57fab1, (uint32_t)halo_code_57fb8a, 0x57fc7b,
+    /* +0x0120 */ (uint32_t)halo_code_57fd53, (uint32_t)halo_code_57fe4e, 0x5802aa, (uint32_t)halo_code_5803a5, (uint32_t)halo_code_5804c2, (uint32_t)halo_code_581c11, (uint32_t)halo_code_581c9f, (uint32_t)halo_code_57f892,
+    /* +0x0140 */ (uint32_t)halo_code_57f934, 0x57fc0f, 0x57fc33, 0x57fc57, (uint32_t)halo_code_57ff72, (uint32_t)halo_code_58003d, (uint32_t)halo_code_5800cd, (uint32_t)halo_code_580614,
+    /* +0x0160 */ 0x58016d, 0x58018f, (uint32_t)halo_code_5822a3, (uint32_t)halo_code_5825dc, 0x5825ed, 0, (uint32_t)halo_code_582688, 0x57fee7,
+    /* +0x0180 */ 0x580575, 0x5807ce, 0x580a91, (uint32_t)halo_code_58288b, 0x580067, (uint32_t)halo_code_58291b, 0x581a97, (uint32_t)halo_code_582776,
+    /* +0x01a0 */ (uint32_t)halo_code_5829b8, 0x5806f1, 0x582110, 0x582155, (uint32_t)halo_code_582b53, (uint32_t)halo_code_582ee0, 0x5801ad, (uint32_t)halo_code_57fa23,
+    /* +0x01c0 */ 0x580cda, 0x5819f4, 0x581a97, 0x581fb3, 0x582061, 0x5816e2, 0x581724, 0x581908,
+    /* +0x01e0 */ 0x581137, (uint32_t)halo_code_5835a4, (uint32_t)halo_code_58367e, (uint32_t)halo_code_581878, (uint32_t)halo_code_5811af, (uint32_t)halo_code_581245, (uint32_t)halo_code_5812dc, 0x5810ad,
+    /* +0x0200 */ 0x582204, 0x581d74, (uint32_t)halo_code_581f18, 0x580a17, 0x58148d, (uint32_t)halo_code_5832f0, (uint32_t)halo_code_5832b7, (uint32_t)halo_code_5815d5,
+    /* +0x0220 */ (uint32_t)halo_code_581378, (uint32_t)halo_code_581e81, 0x581b60, 0x58373d, 0x5825fe, (uint32_t)halo_code_57fadb, (uint32_t)halo_code_57fbb9, (uint32_t)halo_code_57fca5,
+    /* +0x0240 */ (uint32_t)halo_code_57fd7d, (uint32_t)halo_code_57fe7d, (uint32_t)halo_code_5802d4, (uint32_t)halo_code_5803cf, (uint32_t)halo_code_5804f1, 0x581c24, 0x581cb2, (uint32_t)halo_code_57f8a5,
+    /* +0x0260 */ (uint32_t)halo_code_57f947, (uint32_t)halo_code_5826f3, (uint32_t)halo_code_5827f3, (uint32_t)halo_code_5828c7, 0x57ff83, (uint32_t)halo_code_582a74, 0x5800de, 0x580625,
+    /* +0x0280 */ (uint32_t)halo_code_582ce0, (uint32_t)halo_code_583086, 0x5822b4, (uint32_t)halo_code_5923a8, 0x59284f, 0xffffffffu, 0x16, 0,
+    /* +0x02a0 */ 0x29, 0x32, 0x1b, 0x14, 0x18, 0x16, 0x15, 0x17,
+    /* +0x02c0 */ 0x1e, 0x19, 0x1a, 0x51, 0x33, 0x1d, 0x21, 0x20,
+    /* +0x02e0 */ 0x1f, 0x23, 0x22, 0, 0x14, 0x15, 0x16, 0x17,
+    /* +0x0300 */ 0x18, 0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f,
+    /* +0x0320 */ 0x20, 0x21, 0x22, 0x23, 0x28, 0x29, 0x32, 0x33,
+    /* +0x0340 */ 0x34, 0x51, 0x3c, 0x3d, 0x3e, 0x3f, 0x40, 0x43,
+};
+
+/* 0x006851f8..0x006851fc */
+uint32_t table_006851f8[1] = {
+    /* +0x0000 */ (uint32_t)&global_white_argb_00655138[24],
+};
+
+/* 0x0068520c..0x00685214 */
+uint32_t table_0068520c[2] = {
+    /* +0x0000 */ (uint32_t)&global_white_argb_00655138[52], (uint32_t)&global_white_argb_00655138[32],
+};
+
+/* 0x00685220..0x006853b8 */
+uint32_t table_00685220[102] = {
+    /* +0x0000 */ (uint32_t)&global_white_argb_00655138[44], (uint32_t)&global_white_argb_00655138[4], (uint32_t)"asleep", (uint32_t)"alert", (uint32_t)"combat", 0, (uint32_t)"flood carrier", 0x10,
+    /* +0x0020 */ 0x20002, 0x1, 0, (uint32_t)actor_type_flood_carrier_update, 0, 0, (uint32_t)"crew", 0x2,
+    /* +0x0040 */ 0, 0, 0, (uint32_t)actor_type_crew_update, 0, 0, (uint32_t)"elite", 0x4,
+    /* +0x0060 */ 0x10001, 0x1, 0, (uint32_t)actor_type_elite_update, 0, 0, (uint32_t)"engineer", 0x4,
+    /* +0x0080 */ 0, 0, 0, (uint32_t)actor_type_engineer_update, 0, 0, (uint32_t)"flood", 0x8,
+    /* +0x00a0 */ 0, 0x1, 0, (uint32_t)actor_type_flood_update, 0, 0, (uint32_t)"grunt", 0x4,
+    /* +0x00c0 */ 0, 0, 0, (uint32_t)actor_type_grunt_update, 0, 0, (uint32_t)"hunter", 0x4,
+    /* +0x00e0 */ 0x10001, 0x1, 0, (uint32_t)actor_type_hunter_update, 0, 0, (uint32_t)"infection", 0x20020,
+    /* +0x0100 */ 0x20002, 0x100, 0, (uint32_t)actor_type_infection_update, (uint32_t)actor_type_infection_swarm_update, (uint32_t)actor_compute_swarm_avoidance_offset, (uint32_t)"jackal", 0x20004,
+    /* +0x0120 */ 0x20000, 0, 0, (uint32_t)actor_type_jackal_update, 0, 0, (uint32_t)"marine", 0x2,
+    /* +0x0140 */ 0, 0, 0, (uint32_t)actor_type_marine_update, 0, 0, (uint32_t)"mounted_weapon", 0x20000,
+    /* +0x0160 */ 0x20002, 0, 0, (uint32_t)actor_type_mounted_weapon_update, 0, 0, (uint32_t)"sentinel", 0x40,
+    /* +0x0180 */ 0, 0, 0, (uint32_t)actor_type_sentinel_update, 0, 0,
+};
+
+/* 0x006853f8..0x006869b4 */
+uint32_t hs_enum_definitions_006853f8[1391] = {
+    /* +0x0000 */ (uint32_t)"elite", (uint32_t)"jackal", (uint32_t)"grunt", (uint32_t)"hunter", (uint32_t)"engineer", (uint32_t)"assassin", (uint32_t)"player", (uint32_t)"marine",
+    /* +0x0020 */ (uint32_t)"crew", (uint32_t)"combat_form", (uint32_t)"infection_form", (uint32_t)"carrier_form", (uint32_t)"monitor", (uint32_t)"sentinel", (uint32_t)"none", (uint32_t)"mounted_weapon",
+    /* +0x0040 */ (uint32_t)"silent", (uint32_t)"medium", (uint32_t)"loud", (uint32_t)"shout", (uint32_t)"quiet", 0x5, (uint32_t)&hs_enum_definitions_006853f8[16], 0,
+    /* +0x0060 */ (uint32_t)"none", (uint32_t)"sleep", (uint32_t)"alert", (uint32_t)"move_repeat", (uint32_t)"move_loop", (uint32_t)"move_loop_back_and_forth", (uint32_t)"move_loop_random", (uint32_t)"move_random",
+    /* +0x0080 */ (uint32_t)"guard", (uint32_t)"guard_at_position", (uint32_t)"search", (uint32_t)"flee", 0xffffffffu, 0xffffffffu, 0xffff, 0,
+    /* +0x00a0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x00c0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x00e0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0100 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0120 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0140 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0160 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0180 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x01a0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x01c0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x01e0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0200 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0220 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0240 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0260 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0280 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x02a0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x02c0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x02e0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0300 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0320 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0340 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0360 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0380 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x03a0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x03c0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x03e0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0400 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0420 */ 0, 0, 0, 0, 0x1, 0, 0, 0,
+    /* +0x0440 */ 0, 0, 0, 0, 0, 0, 0x40004, 0,
+    /* +0x0460 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0480 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x04a0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x04c0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x04e0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0500 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0520 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0540 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0560 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0580 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x05a0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x05c0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x05e0 */ 0, 0, 0, 0, 0, 0, 0x1, 0,
+    /* +0x0600 */ 0, 0, 0xa0005, 0xc0000, 0, 0, 0, 0,
+    /* +0x0620 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0640 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0660 */ 0, 0, 0, 0, 0x7, 0, 0, 0,
+    /* +0x0680 */ 0, 0, 0, 0, 0, 0, 0x60006, 0xb000b,
+    /* +0x06a0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x06c0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x06e0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0700 */ 0x7, 0, 0x8, 0, 0, 0, 0, 0,
+    /* +0x0720 */ 0, 0, 0x90006, 0xd000b, 0, 0, 0, 0,
+    /* +0x0740 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0760 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0780 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x07a0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x07c0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x07e0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0800 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0820 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0840 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0860 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0880 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x08a0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x08c0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x08e0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0900 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0920 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0940 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0960 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0980 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x09a0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x09c0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x09e0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0a00 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0a20 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0a40 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0a60 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0a80 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0aa0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0ac0 */ 0x40, 0x35, 0x36, 0x39, 0x3a, 0x24, 0x21, 0x28,
+    /* +0x0ae0 */ 0x22, 0, 0x6269746d, 0, 0, 0x6269746d, 0, (uint32_t)"2D texture",
+    /* +0x0b00 */ (uint32_t)"3D texture", (uint32_t)"cube map", (uint32_t)"white", 0x4, (uint32_t)&hs_enum_definitions_006853f8[703], 0, (uint32_t)"a8", (uint32_t)"y8",
+    /* +0x0b20 */ (uint32_t)"ay8", (uint32_t)"a8y8", (uint32_t)"unused1", (uint32_t)"unused2", (uint32_t)"r5g6b5", (uint32_t)"unused3", (uint32_t)"a1r5g5b5", (uint32_t)"a4r4g4b4",
+    /* +0x0b40 */ (uint32_t)"x8r8g8b8", (uint32_t)"a8r8g8b8", (uint32_t)"unused4", (uint32_t)"unused5", (uint32_t)"dxt1", (uint32_t)"dxt3", (uint32_t)"dxt5", (uint32_t)"p8-bump",
+    /* +0x0b60 */ 0x12, (uint32_t)&hs_enum_definitions_006853f8[710], 0, (uint32_t)"power of two dimensions", (uint32_t)"compressed", (uint32_t)"palettized", (uint32_t)"swizzled", (uint32_t)"linear",
+    /* +0x0b80 */ (uint32_t)"v16u16", 0x6, (uint32_t)&hs_enum_definitions_006853f8[731], 0, 0x5, (uint32_t)"signature*", 0, 0x2,
+    /* +0x0ba0 */ (uint32_t)"width*:pixels", 0, 0x2, (uint32_t)"height*:pixels", 0, 0x2, (uint32_t)"depth*:pixels#depth is 1 for 2D textures and cube maps", 0,
+    /* +0x0bc0 */ 0x6, (uint32_t)"type*#determines bitmap 'geometry'", (uint32_t)&hs_enum_definitions_006853f8[707], 0x6, (uint32_t)"format*#determines how pixels are represented internally", (uint32_t)&hs_enum_definitions_006853f8[728], 0x8, (uint32_t)"flags*",
+    /* +0x0be0 */ (uint32_t)&hs_enum_definitions_006853f8[737], 0xa, (uint32_t)"registration point*", 0, 0x2, (uint32_t)"mipmap count*", 0, 0x28,
+    /* +0x0c00 */ 0, 0x2, 0x3, (uint32_t)"pixels offset*", 0, 0x28, 0, 0x4,
+    /* +0x0c20 */ 0x28, 0, 0x4, 0x28, 0, 0x4, 0x28, 0,
+    /* +0x0c40 */ 0x8, 0x2c, 0, 0, (uint32_t)"bitmap_data_block", 0, 0x800, 0x30,
+    /* +0x0c60 */ 0, (uint32_t)&hs_enum_definitions_006853f8[740], 0, (uint32_t)object_type_definition_return_true, 0, (uint32_t)bitmap_data_block_delete_element, 0, 0,
+    /* +0x0c80 */ 0x2, (uint32_t)"bitmap index*", 0, 0x28, 0, 0x2, 0x28, 0,
+    /* +0x0ca0 */ 0x4, 0xe, (uint32_t)"left*", 0, 0xe, (uint32_t)"right*", 0, 0xe,
+    /* +0x0cc0 */ (uint32_t)"top*", 0, 0xe, (uint32_t)"bottom*", 0, 0x10, (uint32_t)"registration point*", 0,
+    /* +0x0ce0 */ 0x2c, 0, 0, (uint32_t)"bitmap_group_sprite_block", 0, 0x40, 0x20, 0,
+    /* +0x0d00 */ (uint32_t)&hs_enum_definitions_006853f8[800], 0, 0, 0, 0, 0, 0, (uint32_t)"name^",
+    /* +0x0d20 */ 0, 0x2, (uint32_t)"first bitmap index*", 0, 0x2, (uint32_t)"bitmap count*", 0, 0x28,
+    /* +0x0d40 */ 0, 0x10, 0x22, (uint32_t)"sprites*", (uint32_t)&hs_enum_definitions_006853f8[827], 0x2c, 0, 0,
+    /* +0x0d60 */ (uint32_t)"bitmap_group_sequence_block", 0, 0x100, 0x40, 0, (uint32_t)&hs_enum_definitions_006853f8[838], 0, 0,
+    /* +0x0d80 */ 0, 0, 0, (uint32_t)"enable diffusion dithering", (uint32_t)"disable height map compression", (uint32_t)"uniform sprite sequences", (uint32_t)"filthy sprite bug fix", 0x4,
+    /* +0x0da0 */ (uint32_t)&hs_enum_definitions_006853f8[867], (uint32_t)"2D textures", (uint32_t)"3D textures", (uint32_t)"cube maps", (uint32_t)"sprites", (uint32_t)"interface bitmaps", 0x5, (uint32_t)&hs_enum_definitions_006853f8[873],
+    /* +0x0dc0 */ 0, (uint32_t)"alpha-blend", (uint32_t)"default", (uint32_t)"height map", (uint32_t)"detail map", (uint32_t)"light map", (uint32_t)"vector map", 0x6,
+    /* +0x0de0 */ (uint32_t)&hs_enum_definitions_006853f8[881], 0, (uint32_t)"compressed with color-key transparency", (uint32_t)"compressed with explicit alpha", (uint32_t)"compressed with interpolated alpha", (uint32_t)"16-bit color", (uint32_t)"32-bit color", (uint32_t)"monochrome",
+    /* +0x0e00 */ 0x6, (uint32_t)&hs_enum_definitions_006853f8[890], 0, (uint32_t)"32x32", (uint32_t)"64x64", (uint32_t)"128x128", (uint32_t)"256x256", (uint32_t)"512x512",
+    /* +0x0e20 */ 0x5, (uint32_t)&hs_enum_definitions_006853f8[899], 0, (uint32_t)"blend/add/subtract/max", (uint32_t)"multiply/min", (uint32_t)"double multiply", 0x3, (uint32_t)&hs_enum_definitions_006853f8[907],
+    /* +0x0e40 */ 0, (uint32_t)"bitmap_pixel_data", 0, 0x1000000, 0, (uint32_t)"color_plate_data", 0x1, 0x1000000,
+    /* +0x0e60 */ 0, 0, 0x2b, 0, 0x62736877, 0x2a, (uint32_t)"type", (uint32_t)&table_0065512c[0],
+    /* +0x0e80 */ 0x6, (uint32_t)"type", (uint32_t)&hs_enum_definitions_006853f8[878], 0x2a, (uint32_t)"format", (uint32_t)&table_0065512c[0], 0x6, (uint32_t)"format",
+    /* +0x0ea0 */ (uint32_t)&hs_enum_definitions_006853f8[896], 0x2a, (uint32_t)"usage", (uint32_t)&table_0065512c[0], 0x6, (uint32_t)"usage", (uint32_t)&hs_enum_definitions_006853f8[887], 0x8,
+    /* +0x0ec0 */ (uint32_t)"flags", (uint32_t)&hs_enum_definitions_006853f8[871], 0x2a, (uint32_t)"post-processing", (uint32_t)&table_0065512c[0], 0xf, (uint32_t)"detail fade factor:[0,1]#0 means fade to gray by last mipmap, 1 means fade to gray by first mipmap", 0,
+    /* +0x0ee0 */ 0xf, (uint32_t)"sharpen amount:[0,1]#sharpens mipmap after downsampling", 0, 0xf, (uint32_t)"bump height:repeats#the apparent height of the bump map above the triangle it is textured onto, in texture repeats (i.e., 1.0 would be as high as the texture is wide)", 0, 0x2a, (uint32_t)"sprite processing",
+    /* +0x0f00 */ (uint32_t)&table_0065512c[0], 0x6, (uint32_t)"sprite budget size", (uint32_t)&hs_enum_definitions_006853f8[904], 0x2, (uint32_t)"sprite budget count", 0, 0x2a,
+    /* +0x0f20 */ (uint32_t)"color plate", (uint32_t)&table_0065512c[0], 0x2, (uint32_t)"color plate width*:pixels", 0, 0x2, (uint32_t)"color plate height*:pixels", 0,
+    /* +0x0f40 */ 0x25, (uint32_t)"compressed color plate data*", (uint32_t)&hs_enum_definitions_006853f8[917], 0x2a, (uint32_t)"processed pixel data", (uint32_t)&table_0065512c[0], 0x25, (uint32_t)"processed pixel data*",
+    /* +0x0f60 */ (uint32_t)&hs_enum_definitions_006853f8[913], 0x2a, (uint32_t)"miscellaneous", (uint32_t)&table_0065512c[0], 0xe, (uint32_t)"blur filter size:[0,10] pixels#blurs the bitmap before generating mipmaps", 0, 0xe,
+    /* +0x0f80 */ (uint32_t)"alpha bias:[-1,1]#affects alpha mipmap generation", 0, 0x2, (uint32_t)"mipmap count:levels#0 defaults to all levels", 0, 0x2a, (uint32_t)"...more sprite processing", (uint32_t)&table_0065512c[0],
+    /* +0x0fa0 */ 0x6, (uint32_t)"sprite usage", (uint32_t)&hs_enum_definitions_006853f8[910], 0x2, (uint32_t)"sprite spacing*", 0, 0x28, 0,
+    /* +0x0fc0 */ 0x2, 0x22, (uint32_t)"sequences*", (uint32_t)&hs_enum_definitions_006853f8[856], 0x22, (uint32_t)"bitmaps*", (uint32_t)&hs_enum_definitions_006853f8[788], 0x2c,
+    /* +0x0fe0 */ 0, 0, (uint32_t)"bitmap", 0, 0x1, 0x6c, 0, (uint32_t)&hs_enum_definitions_006853f8[922],
+    /* +0x1000 */ 0, 0, 0, 0, 0, 0, (uint32_t)"bitmap", 0x8,
+    /* +0x1020 */ 0x6269746d, 0xffffffffu, 0x7, (uint32_t)bitmap_group_postprocess, (uint32_t)&hs_enum_definitions_006853f8[1018], 0, 0, 0,
+    /* +0x1040 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x1060 */ 0, 0, 0, 0, 0, 0, 0xff7a19ccu, 0xff7e19ccu,
+    /* +0x1080 */ 0xff8019ccu, 0xff8119ccu, 0xff8519ccu, 0xff742fe2u, 0xff7a2fe2u, 0xff7e2fe2u, 0xff802fe2u, 0xff812fe2u,
+    /* +0x10a0 */ 0xff852fe2u, 0xff8b2fe2u, 0xff6b42edu, 0xff7442eeu, 0xff7a42efu, 0xff7e42efu, 0xff8042efu, 0xff8142efu,
+    /* +0x10c0 */ 0xff8542efu, 0xff8b42eeu, 0xff9442edu, 0xff6052f2u, 0xff6b52f5u, 0xff7452f6u, 0xff7a52f7u, 0xff7e52f7u,
+    /* +0x10e0 */ 0xff8052f7u, 0xff8152f7u, 0xff8552f7u, 0xff8b52f6u, 0xff9452f5u, 0xff9f52f2u, 0xff5260f2u, 0xff6060f7u,
+    /* +0x1100 */ 0xff6b60f9u, 0xff7460fbu, 0xff7a60fbu, 0xff7e60fbu, 0xff8060fbu, 0xff8160fbu, 0xff8560fbu, 0xff8b60fbu,
+    /* +0x1120 */ 0xff9460f9u, 0xff9f60f7u, 0xffad60f2u, 0xff426bedu, 0xff526bf5u, 0xff606bf9u, 0xff6b6bfcu, 0xff746bfdu,
+    /* +0x1140 */ 0xff7a6bfdu, 0xff7e6bfdu, 0xff806bfdu, 0xff816bfdu, 0xff856bfdu, 0xff8b6bfdu, 0xff946bfcu, 0xff9f6bf9u,
+    /* +0x1160 */ 0xffad6bf5u, 0xffbd6bedu, 0xff2f74e2u, 0xff4274eeu, 0xff5274f6u, 0xff6074fbu, 0xff6b74fdu, 0xff7474feu,
+    /* +0x1180 */ 0xff7a74feu, 0xff7e74feu, 0xff8074feu, 0xff8174feu, 0xff8574feu, 0xff8b74feu, 0xff9474fdu, 0xff9f74fbu,
+    /* +0x11a0 */ 0xffad74f6u, 0xffbd74eeu, 0xffd074e2u, 0xff197accu, 0xff2f7ae2u, 0xff427aefu, 0xff527af7u, 0xff607afbu,
+    /* +0x11c0 */ 0xff6b7afdu, 0xff747afeu, 0xff7a7affu, 0xff7e7affu, 0xff807affu, 0xff817affu, 0xff857affu, 0xff8b7afeu,
+    /* +0x11e0 */ 0xff947afdu, 0xff9f7afbu, 0xffad7af7u, 0xffbd7aefu, 0xffd07ae2u, 0xffe57accu, 0xff197eccu, 0xff2f7ee2u,
+    /* +0x1200 */ 0xff427eefu, 0xff527ef7u, 0xff607efbu, 0xff6b7efdu, 0xff747efeu, 0xff7a7effu, 0xff7e7effu, 0xff807effu,
+    /* +0x1220 */ 0xff817effu, 0xff857effu, 0xff8b7efeu, 0xff947efdu, 0xff9f7efbu, 0xffad7ef7u, 0xffbd7eefu, 0xffd07ee2u,
+    /* +0x1240 */ 0xffe57eccu, 0xff1980ccu, 0xff2f80e2u, 0xff4280efu, 0xff5280f7u, 0xff6080fbu, 0xff6b80fdu, 0xff7480feu,
+    /* +0x1260 */ 0xff7a80ffu, 0xff7e80ffu, 0xff8080ffu, 0xff8180ffu, 0xff8580ffu, 0xff8b80feu, 0xff9480fdu, 0xff9f80fbu,
+    /* +0x1280 */ 0xffad80f7u, 0xffbd80efu, 0xffd080e2u, 0xffe580ccu, 0xff1981ccu, 0xff2f81e2u, 0xff4281efu, 0xff5281f7u,
+    /* +0x12a0 */ 0xff6081fbu, 0xff6b81fdu, 0xff7481feu, 0xff7a81ffu, 0xff7e81ffu, 0xff8081ffu, 0xff8181ffu, 0xff8581ffu,
+    /* +0x12c0 */ 0xff8b81feu, 0xff9481fdu, 0xff9f81fbu, 0xffad81f7u, 0xffbd81efu, 0xffd081e2u, 0xffe581ccu, 0xff1985ccu,
+    /* +0x12e0 */ 0xff2f85e2u, 0xff4285efu, 0xff5285f7u, 0xff6085fbu, 0xff6b85fdu, 0xff7485feu, 0xff7a85ffu, 0xff7e85ffu,
+    /* +0x1300 */ 0xff8085ffu, 0xff8185ffu, 0xff8585ffu, 0xff8b85feu, 0xff9485fdu, 0xff9f85fbu, 0xffad85f7u, 0xffbd85efu,
+    /* +0x1320 */ 0xffd085e2u, 0xffe585ccu, 0xff2f8be2u, 0xff428beeu, 0xff528bf6u, 0xff608bfbu, 0xff6b8bfdu, 0xff748bfeu,
+    /* +0x1340 */ 0xff7a8bfeu, 0xff7e8bfeu, 0xff808bfeu, 0xff818bfeu, 0xff858bfeu, 0xff8b8bfeu, 0xff948bfdu, 0xff9f8bfbu,
+    /* +0x1360 */ 0xffad8bf6u, 0xffbd8beeu, 0xffd08be2u, 0xff4294edu, 0xff5294f5u, 0xff6094f9u, 0xff6b94fcu, 0xff7494fdu,
+    /* +0x1380 */ 0xff7a94fdu, 0xff7e94fdu, 0xff8094fdu, 0xff8194fdu, 0xff8594fdu, 0xff8b94fdu, 0xff9494fcu, 0xff9f94f9u,
+    /* +0x13a0 */ 0xffad94f5u, 0xffbd94edu, 0xff529ff2u, 0xff609ff7u, 0xff6b9ff9u, 0xff749ffbu, 0xff7a9ffbu, 0xff7e9ffbu,
+    /* +0x13c0 */ 0xff809ffbu, 0xff819ffbu, 0xff859ffbu, 0xff8b9ffbu, 0xff949ff9u, 0xff9f9ff7u, 0xffad9ff2u, 0xff60adf2u,
+    /* +0x13e0 */ 0xff6badf5u, 0xff74adf6u, 0xff7aadf7u, 0xff7eadf7u, 0xff80adf7u, 0xff81adf7u, 0xff85adf7u, 0xff8badf6u,
+    /* +0x1400 */ 0xff94adf5u, 0xff9fadf2u, 0xff6bbdedu, 0xff74bdeeu, 0xff7abdefu, 0xff7ebdefu, 0xff80bdefu, 0xff81bdefu,
+    /* +0x1420 */ 0xff85bdefu, 0xff8bbdeeu, 0xff94bdedu, 0xff74d0e2u, 0xff7ad0e2u, 0xff7ed0e2u, 0xff80d0e2u, 0xff81d0e2u,
+    /* +0x1440 */ 0xff85d0e2u, 0xff8bd0e2u, 0xff7ae5ccu, 0xff7ee5ccu, 0xff80e5ccu, 0xff81e5ccu, 0xff85e5ccu, 0,
+    /* +0x1460 */ 0, 0, 0, 0, 0, 0x8080ff, (uint32_t)"2d texture", (uint32_t)"3d texture",
+    /* +0x1480 */ (uint32_t)"cube map", 0, 0, 0, (uint32_t)"alpha", (uint32_t)"intensity", (uint32_t)"combined alpha-intensity", (uint32_t)"separate alpha-intensity",
+    /* +0x14a0 */ (uint32_t)&table_0065512c[0], (uint32_t)&table_0065512c[0], (uint32_t)"high-color", (uint32_t)"r6g5b5", (uint32_t)"high-color with 1-bit alpha", (uint32_t)"high-color with alpha", (uint32_t)"true-color", (uint32_t)"true-color with alpha",
+    /* +0x14c0 */ (uint32_t)&table_0065512c[0], (uint32_t)&table_0065512c[0], (uint32_t)"compressed with color-key transparency", (uint32_t)"compressed with explicit alpha", (uint32_t)"compressed with interpolated alpha", (uint32_t)"palettized bump map", 0, 0x50000,
+    /* +0x14e0 */ 0x50006, 0x50008, 0x50005, 0x40004, 0x40004, 0x3da7ef9e, 0x3f1c01a3, 0x3e9e00d2,
+    /* +0x1500 */ 0, 0x2, 0x3, 0x1, 0, 0x2, 0x1, 0x3,
+    /* +0x1520 */ 0x20003, 0, 0x30000, 0x2, 0, 0x20003, 0, 0x90000,
+    /* +0x1540 */ 0, 0, (uint32_t)"message_initiate_key_agreement_packet", 0, 0x10018, (uint32_t)&hs_enum_definitions_006853f8[1352], 0, 0x20003,
+    /* +0x1560 */ 0, 0x90000, 0, 0, (uint32_t)"message_finalize_key_agreement_packet", 0, 0x10008, (uint32_t)&hs_enum_definitions_006853f8[1367],
+    /* +0x1580 */ 0, 0, (uint32_t)&hs_enum_definitions_006853f8[1362], 0, (uint32_t)&hs_enum_definitions_006853f8[1372], (uint32_t)"key_agreement_packets_group", 0x10002, 0x60,
+    /* +0x15a0 */ 0x80, (uint32_t)&hs_enum_definitions_006853f8[1377], 0xffff0000u, 0, 0, 0, 0,
+};
+
+/* 0x00686fd8..0x00686fe8 */
+uint32_t recorded_animation_codecs_by_version_00686fd8[4] = {
+    /* +0x0000 */ (uint32_t)recorded_animation_compressed_begin, (uint32_t)recorded_animation_compressed_update,
+    /* +0x0008 */ (uint32_t)recorded_animation_v1_begin, (uint32_t)recorded_animation_v1_update,
+};
+
+/* 0x00687020..0x00687044 */
+uint32_t multiplayer_sound_enabled_00687020[9] = {
+    /* +0x0000 */ 0, 0xffffffffu, 0, 0, 0, 0, 0x2, 0,
+    /* +0x0020 */ 0,
+};
+
+/* 0x006870a8..0x006870dc */
+uint32_t object_network_id_table_006870a8[13] = {
+    /* +0x0000 */ 0x1ff, 0x80, 0, 0, 0, 0, 0, 0,
+    /* +0x0020 */ 0, 0, 0, 0, 0xd,
+};
+
+/* 0x00687148..0x0068714c */
+uint32_t table_00687148[1] = {
+    /* +0x0000 */ 0xf,
+};
+
+/* 0x006871b0..0x00687254 */
+uint32_t table_006871b0[41] = {
+    /* +0x0000 */ 0x1, 0x6c616572, 0, 0, 0, 0, 0, 0,
+    /* +0x0020 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0040 */ 0, 0, 0, 0, (uint32_t)message_delta_real_encode, (uint32_t)message_delta_long_decode, 0, 0xffffffffu,
+    /* +0x0060 */ 0, 0, 0x10000, 0x30002, 0x50004, 0x6, 0x8, 0x1010101,
+    /* +0x0080 */ 0x1010101, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x00a0 */ 0x11,
+};
+
+/* 0x006872b8..0x00687394 */
+uint32_t message_delta_definitions_006872b8[55] = {
+    /* +0x0000 */ 0xb, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0x6, 0xffffffffu, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0, 0, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x4,
+    /* +0x0040 */ 0x4, 0, (uint32_t)&table_006871b0[40], 0x8, 0x8, 0, (uint32_t)&table_00687148[0], 0xc,
+    /* +0x0060 */ 0xc, 0, (uint32_t)&table_006871b0[0], 0x18, 0x18, 0, (uint32_t)&table_006871b0[0], 0x1c,
+    /* +0x0080 */ 0x1c, 0, 0, 0, 0, 0, 0x1,
+    /* +0x009c */ (uint32_t)"easy", (uint32_t)"normal", (uint32_t)"hard", (uint32_t)"impossible",
+    /* +0x00ac */ (uint32_t)"default", (uint32_t)"player", (uint32_t)"human", (uint32_t)"covenant", (uint32_t)"flood", (uint32_t)"sentinel", (uint32_t)"unused6", (uint32_t)"unused7",
+    /* +0x00cc */ (uint32_t)"unused8", (uint32_t)"unused9", 0, 0x2,
+};
+
+/* 0x006873f8..0x006873fc */
+uint32_t table_006873f8[1] = {
+    /* +0x0000 */ 0,
+};
+
+/* 0x00687468..0x0068746c */
+uint32_t table_00687468[1] = {
+    /* +0x0000 */ 0,
+};
+
+/* 0x006874d0..0x00687504 */
+uint32_t machine_table_006874d0[13] = {
+    /* +0x0000 */ 0x11, 0x11, 0, 0, 0, 0, 0, 0,
+    /* +0x0020 */ 0, 0, 0, 0,
+    /* +0x0030 */ 0xd,
+};
+
+/* 0x006879b8..0x006879bc */
+uint32_t table_006879b8[1] = {
+    /* +0x0000 */ 0x9,
+};
+
+/* 0x00687a20..0x00687af0 */
+uint32_t message_delta_definitions_00687a20[52] = {
+    /* +0x0000 */ 0x2f, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0x3, 0xffffffffu, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x4,
+    /* +0x0040 */ 0x4, 0, (uint32_t)&table_00687468[0], 0x8, 0x8, 0, 0, 0,
+    /* +0x0060 */ 0, 0,
+    /* +0x0068 */ 0x18, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0088 */ 0x3, 0xffffffffu, (uint32_t)&machine_table_006874d0[12], 0, 0, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x4,
+    /* +0x00a8 */ 0x4, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x8, 0x8, 0, 0, 0,
+    /* +0x00c8 */ 0, 0,
+};
+
+/* 0x00687b1c..0x00687de4 */
+uint32_t message_delta_definitions_00687b1c[178] = {
+    /* +0x0000 */ 0x1, 0xffffffffu, (uint32_t)&machine_table_006874d0[12], 0, 0, 0, 0, 0,
+    /* +0x0020 */ 0, 0, 0,
+    /* +0x002c */ 0x15, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&message_delta_definitions_00687b1c[0],
+    /* +0x004c */ 0x11, 0xffffffffu, (uint32_t)&table_00687468[0], 0, 0, 0, (uint32_t)&table_00687468[0], 0x2,
+    /* +0x006c */ 0x2, 0, (uint32_t)&table_00687468[0], 0x4, 0x4, 0, (uint32_t)&table_00687468[0], 0x6,
+    /* +0x008c */ 0x6, 0, (uint32_t)&table_00687468[0], 0x8, 0x8, 0, (uint32_t)&table_00687468[0], 0xa,
+    /* +0x00ac */ 0xa, 0, (uint32_t)&table_00687468[0], 0xc, 0xc, 0, (uint32_t)&table_00687468[0], 0xe,
+    /* +0x00cc */ 0xe, 0, (uint32_t)&table_00687468[0], 0x10, 0x10, 0, (uint32_t)&table_00687468[0], 0x12,
+    /* +0x00ec */ 0x12, 0, (uint32_t)&table_00687468[0], 0x14, 0x14, 0, (uint32_t)&table_00687468[0], 0x16,
+    /* +0x010c */ 0x16, 0, (uint32_t)&table_00687468[0], 0x18, 0x18, 0, (uint32_t)&table_00687468[0], 0x1a,
+    /* +0x012c */ 0x1a, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x1c, 0x1c, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0x20,
+    /* +0x014c */ 0x20, 0, (uint32_t)&table_006871b0[0], 0x24, 0x24, 0, 0, 0,
+    /* +0x016c */ 0, 0,
+    /* +0x0174 */ 0x16, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0194 */ 0x1, 0xffffffffu, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0, 0, 0, 0, 0,
+    /* +0x01b4 */ 0, 0,
+    /* +0x01bc */ 0x17, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x01dc */ 0x1, 0xffffffffu, (uint32_t)&message_delta_definitions_006872b8[54], 0, 0, 0, 0, 0,
+    /* +0x01fc */ 0, 0,
+    /* +0x0204 */ (uint32_t)"ctf", 0x1, (uint32_t)function_do_nothing, (uint32_t)game_engine_ctf_initialize_for_new_game, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, 0, (uint32_t)function_do_nothing,
+    /* +0x0224 */ (uint32_t)game_engine_ctf_reset_round, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)game_engine_ctf_update, (uint32_t)ctf_engine_flag_tick,
+    /* +0x0244 */ (uint32_t)game_engine_ctf_player_flag_tick, (uint32_t)game_engine_ctf_object_expired, (uint32_t)game_engine_ctf_unknown_48, (uint32_t)game_engine_ctf_get_score, (uint32_t)game_engine_ctf_get_team_score, (uint32_t)game_engine_ctf_build_player_text, (uint32_t)game_engine_ctf_build_score_header_text, (uint32_t)game_engine_ctf_build_team_score_text,
+    /* +0x0264 */ (uint32_t)game_engine_ctf_unknown_60, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)game_engine_ctf_build_message_text, (uint32_t)game_engine_ctf_unknown_70, (uint32_t)function_do_nothing, 0, 0,
+    /* +0x0284 */ 0, (uint32_t)game_engine_ctf_unknown_84, 0, 0, (uint32_t)game_engine_ctf_profiles_updated, (uint32_t)game_engine_ctf_profile_post_update, (uint32_t)game_engine_ctf_player_round_reset, 0,
+    /* +0x02a4 */ (uint32_t)game_engine_ctf_query_player_score, (uint32_t)game_engine_ctf_query_team_score, 0, (uint32_t)game_engine_ctf_reset_objects, 0x2, 0x4, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0,
+    /* +0x02c4 */ 0x8,
+};
+
+/* 0x00687e48..0x00687f8c */
+uint32_t message_delta_definitions_00687e48[81] = {
+    /* +0x0000 */ 0x1, 0xffffffffu, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0, 0, 0, 0, 0,
+    /* +0x0020 */ 0, 0,
+    /* +0x0028 */ 0x11, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&message_delta_definitions_00687e48[0],
+    /* +0x0048 */ 0x2, 0xffffffffu, (uint32_t)&message_delta_definitions_00687b1c[177], 0, 0, 0, (uint32_t)&table_006873f8[0], 0x8,
+    /* +0x0068 */ 0x8, 0, 0, 0, 0, 0,
+    /* +0x0080 */ (uint32_t)"king", 0x4, (uint32_t)function_do_nothing, (uint32_t)game_engine_king_initialize_for_new_game, (uint32_t)function_do_nothing, (uint32_t)game_engine_king_player_new_life, 0, (uint32_t)function_do_nothing,
+    /* +0x00a0 */ (uint32_t)game_engine_king_reset_round, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)game_engine_koth_build_hill_boundary_fence, (uint32_t)game_engine_koth_player_tick, 0,
+    /* +0x00c0 */ 0, 0, (uint32_t)game_engine_king_unknown_48, (uint32_t)game_engine_king_get_score, (uint32_t)game_engine_king_get_team_score, (uint32_t)game_engine_king_build_player_text, (uint32_t)game_engine_king_build_score_header_text, (uint32_t)game_engine_king_build_team_score_text,
+    /* +0x00e0 */ 0, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)game_engine_king_build_message_text, 0, (uint32_t)function_do_nothing, 0, 0,
+    /* +0x0100 */ (uint32_t)game_engine_king_waypoint_filter, 0, 0, 0, (uint32_t)game_engine_koth_broadcast_hill_times, (uint32_t)game_engine_king_profile_post_update, (uint32_t)game_engine_king_player_round_reset, 0,
+    /* +0x0120 */ (uint32_t)game_engine_king_query_player_score, (uint32_t)game_engine_king_query_team_score, 0, (uint32_t)game_engine_king_reset_objects, 0x10, 0x4, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0,
+    /* +0x0140 */ 0x8,
+};
+
+/* 0x00687ff0..0x00688308 */
+uint32_t message_delta_definitions_00687ff0[198] = {
+    /* +0x0000 */ 0x13, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0x2, 0xffffffffu, (uint32_t)&message_delta_definitions_00687e48[80], 0, 0, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x1a4,
+    /* +0x0040 */ 0x1a4, 0, 0, 0, 0, 0,
+    /* +0x0058 */ (uint32_t)"stub", 0x7, (uint32_t)function_do_nothing, (uint32_t)object_type_definition_return_true, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, 0, (uint32_t)function_do_nothing,
+    /* +0x0078 */ (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, 0, 0,
+    /* +0x0098 */ 0, 0, (uint32_t)function_do_nothing, 0, 0, 0, 0, 0,
+    /* +0x00b8 */ (uint32_t)object_type_definition_return_true, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, 0, 0, 0, 0, 0,
+    /* +0x00d8 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x00f8 */ 0, 0, 0, 0,
+    /* +0x0108 */ (uint32_t)"slayer", 0x2, (uint32_t)function_do_nothing, (uint32_t)game_engine_slayer_initialize_for_new_game, (uint32_t)function_do_nothing, (uint32_t)game_engine_slayer_player_new_life, 0, (uint32_t)function_do_nothing,
+    /* +0x0128 */ (uint32_t)game_engine_slayer_reset_round, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)game_engine_slayer_update, 0,
+    /* +0x0148 */ 0, 0, (uint32_t)function_do_nothing, (uint32_t)game_engine_slayer_get_score, (uint32_t)game_engine_slayer_get_team_score, (uint32_t)game_engine_slayer_build_player_text, (uint32_t)game_engine_ctf_build_score_header_text, (uint32_t)game_engine_slayer_build_team_score_text,
+    /* +0x0168 */ (uint32_t)object_type_definition_return_true, (uint32_t)function_do_nothing, (uint32_t)game_engine_slayer_player_killed, (uint32_t)game_engine_slayer_build_message_text, 0, (uint32_t)function_do_nothing, 0, 0,
+    /* +0x0188 */ 0, (uint32_t)game_engine_slayer_unknown_84, 0, 0, (uint32_t)game_engine_slayer_profiles_updated, (uint32_t)game_engine_slayer_profile_post_update, (uint32_t)game_engine_slayer_player_round_reset, 0,
+    /* +0x01a8 */ (uint32_t)game_engine_slayer_query_player_score, (uint32_t)game_engine_slayer_query_team_score, 0, (uint32_t)game_engine_slayer_reset_objects,
+    /* +0x01b8 */ (uint32_t)"race", 0x5, (uint32_t)function_do_nothing, (uint32_t)game_engine_ctf_initialize_flags, (uint32_t)function_do_nothing, (uint32_t)game_engine_race_player_new_life, (uint32_t)game_engine_race_player_changed_object, (uint32_t)function_do_nothing,
+    /* +0x01d8 */ (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)game_engine_race_update, (uint32_t)function_do_nothing,
+    /* +0x01f8 */ 0, 0, (uint32_t)game_engine_race_unknown_48, (uint32_t)game_engine_race_get_score, (uint32_t)game_engine_race_get_team_score, (uint32_t)game_engine_race_build_player_text, (uint32_t)game_engine_race_build_score_header_text, (uint32_t)game_engine_race_build_team_score_text,
+    /* +0x0218 */ 0, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)game_engine_race_build_message_text, 0, (uint32_t)function_do_nothing, (uint32_t)game_engine_race_allow_grenade_counts, 0,
+    /* +0x0238 */ (uint32_t)game_engine_race_waypoint_filter, 0, 0, (uint32_t)game_engine_race_is_winner, (uint32_t)game_engine_ctf_broadcast_state, (uint32_t)game_engine_race_profile_post_update, (uint32_t)game_engine_race_player_round_reset, 0,
+    /* +0x0258 */ (uint32_t)game_engine_race_query_player_score, (uint32_t)game_engine_race_query_team_score, 0, (uint32_t)game_engine_ctf_return_all_flags,
+    /* +0x0268 */ (uint32_t)"oddball", 0x3, (uint32_t)function_do_nothing, (uint32_t)game_engine_oddball_initialize_for_new_game, (uint32_t)function_do_nothing, (uint32_t)game_engine_oddball_player_new_life, 0, (uint32_t)function_do_nothing,
+    /* +0x0288 */ (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)game_engine_koth_dispatch_player_scoring, (uint32_t)game_engine_koth_ball_idle_tick,
+    /* +0x02a8 */ (uint32_t)game_engine_koth_player_eligible_to_score, (uint32_t)function_do_nothing, (uint32_t)game_engine_oddball_unknown_48, (uint32_t)game_engine_oddball_get_score, (uint32_t)game_engine_oddball_get_team_score, (uint32_t)game_engine_oddball_build_player_text, (uint32_t)game_engine_oddball_build_score_header_text, (uint32_t)game_engine_oddball_build_team_score_text,
+    /* +0x02c8 */ 0, (uint32_t)function_do_nothing, (uint32_t)game_engine_oddball_player_killed, (uint32_t)game_engine_oddball_build_message_text, 0, (uint32_t)function_do_nothing, 0, 0,
+    /* +0x02e8 */ 0, (uint32_t)game_engine_oddball_unknown_84, (uint32_t)game_engine_oddball_time_scale_override, 0, (uint32_t)game_engine_koth_broadcast_team_scores, (uint32_t)game_engine_oddball_profile_post_update, (uint32_t)game_engine_oddball_player_round_reset, 0,
+    /* +0x0308 */ (uint32_t)game_engine_oddball_query_player_score, (uint32_t)game_engine_oddball_query_team_score, 0, (uint32_t)game_engine_oddball_reset_objects,
+};
+
+/* 0x006883b0..0x006883b4 */
+uint32_t table_006883b0[1] = {
+    /* +0x0000 */ 0x8,
+};
+
+/* 0x00688490..0x0068850c */
+uint32_t message_delta_definitions_00688490[31] = {
+    /* +0x0000 */ 0x12, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0x3, 0xffffffffu, (uint32_t)&table_006883b0[0], 0x44, 0x44, 0, (uint32_t)&table_006883b0[0], 0x4,
+    /* +0x0040 */ 0x4, 0, (uint32_t)&table_006883b0[0], 0xc4, 0xc4, 0, 0, 0,
+    /* +0x0060 */ 0, 0, 0x10, 0x4, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0, 0x8,
+};
+
+/* 0x00688570..0x0068860c */
+uint32_t message_delta_definitions_00688570[39] = {
+    /* +0x0000 */ 0x14, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0x5, 0xffffffffu, (uint32_t)&message_delta_definitions_00688490[30], 0x88, 0x88, 0, (uint32_t)&message_delta_definitions_00688490[30], 0x4,
+    /* +0x0040 */ 0x4, 0, (uint32_t)&message_delta_definitions_00688490[30], 0x44, 0x44, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0,
+    /* +0x0060 */ 0, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x84, 0x84, 0, 0, 0,
+    /* +0x0080 */ 0, 0, 0x10, 0x4, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0, 0x8,
+};
+
+/* 0x00688670..0x00688b58 */
+uint32_t message_delta_definitions_00688670[314] = {
+    /* +0x0000 */ 0x10, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0x2, 0xffffffffu, (uint32_t)&message_delta_definitions_00688570[38], 0x40, 0x40, 0, (uint32_t)&message_delta_definitions_00688570[38], 0,
+    /* +0x0040 */ 0, 0, 0, 0, 0, 0, (uint32_t)"dirt", (uint32_t)"sand",
+    /* +0x0060 */ (uint32_t)"stone", (uint32_t)"snow", (uint32_t)"wood", (uint32_t)"metal (hollow)", (uint32_t)"metal (thin)", (uint32_t)"metal (thick)", (uint32_t)"rubber", (uint32_t)"glass",
+    /* +0x0080 */ (uint32_t)"force field", (uint32_t)"grunt", (uint32_t)"hunter armor", (uint32_t)"hunter skin", (uint32_t)"elite", (uint32_t)"jackal", (uint32_t)"jackal energy shield", (uint32_t)"engineer skin",
+    /* +0x00a0 */ (uint32_t)"engineer force field", (uint32_t)"flood combat form", (uint32_t)"flood carrier form", (uint32_t)"cyborg armor", (uint32_t)"cyborg energy shield", (uint32_t)"human armor", (uint32_t)"human skin", (uint32_t)"sentinel",
+    /* +0x00c0 */ (uint32_t)"monitor", (uint32_t)"plastic", (uint32_t)"water", (uint32_t)"leaves", (uint32_t)"elite energy shield", (uint32_t)"ice", (uint32_t)"hunter shield", 0,
+    /* +0x00e0 */ 0x1a, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0100 */ 0x2, 0xffffffffu, (uint32_t)&table_006873f8[0], 0, 0, 0, (uint32_t)&table_006873f8[0], 0x1,
+    /* +0x0120 */ 0x1, 0, 0, 0, 0, 0, 0x1, 0x3f000000,
+    /* +0x0140 */ 0x1, 0x2, 0x6, 0x2, 0x6, 0,
+    /* +0x0158 */ 0x7, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0178 */ 0x4, 0xffffffffu, (uint32_t)&table_006873f8[0], 0, 0, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x4,
+    /* +0x0198 */ 0x4, 0, (uint32_t)&machine_table_006874d0[12], 0x8, 0x8, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0xc,
+    /* +0x01b8 */ 0xc, 0, 0, 0, 0, 0,
+    /* +0x01d0 */ 0x8, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x01f0 */ 0xc, 0xffffffffu, (uint32_t)&machine_table_006874d0[12], 0, 0, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x4,
+    /* +0x0210 */ 0x4, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x8, 0x8, 0, (uint32_t)&object_network_id_table_006870a8[12], 0xc,
+    /* +0x0230 */ 0xc, 0, (uint32_t)&table_00687468[0], 0x10, 0x10, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x14,
+    /* +0x0250 */ 0x14, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x18, 0x18, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x1c,
+    /* +0x0270 */ 0x1c, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x20, 0x20, 0, (uint32_t)&table_00687468[0], 0x24,
+    /* +0x0290 */ 0x24, 0, (uint32_t)&table_00687468[0], 0x26, 0x26, 0, (uint32_t)&table_00687468[0], 0x28,
+    /* +0x02b0 */ 0x28, 0, 0, 0, 0, 0,
+    /* +0x02c8 */ 0xa, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x02e8 */ 0x6, 0xffffffffu, (uint32_t)&machine_table_006874d0[12], 0, 0, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x4,
+    /* +0x0308 */ 0x4, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x8, 0x8, 0, (uint32_t)&table_00687468[0], 0xc,
+    /* +0x0328 */ 0xc, 0, (uint32_t)&table_00687468[0], 0xe, 0xe, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x10,
+    /* +0x0348 */ 0x10, 0, 0, 0, 0, 0, 0x5, 0x3f800000,
+    /* +0x0368 */ 0x3f4ccccd, 0x3f4ccccd, 0x40000000, 0x2, 0x3f800000, 0x3eb33333, 0x3eb33333, 0x40000000,
+    /* +0x0388 */ 0xe, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x03a8 */ 0x3, 0xffffffffu, (uint32_t)&machine_table_006874d0[12], 0, 0, 0, (uint32_t)&table_00687468[0], 0x4,
+    /* +0x03c8 */ 0x4, 0, (uint32_t)&table_00687468[0], 0x6, 0x6, 0, 0, 0,
+    /* +0x03e8 */ 0, 0, (uint32_t)"top_left", (uint32_t)"top_right", (uint32_t)"bottom_left", (uint32_t)"bottom_right", (uint32_t)"center", 0,
+    /* +0x0408 */ (uint32_t)"unparsed", (uint32_t)"special form", (uint32_t)"function name", (uint32_t)"passthrough", (uint32_t)"void", (uint32_t)"boolean", (uint32_t)"real", (uint32_t)"short",
+    /* +0x0428 */ (uint32_t)"long", (uint32_t)"string", (uint32_t)"script", (uint32_t)"trigger_volume", (uint32_t)"cutscene_flag", (uint32_t)"cutscene_camera_point", (uint32_t)"cutscene_title", (uint32_t)"cutscene_recording",
+    /* +0x0448 */ (uint32_t)"device_group", (uint32_t)"ai", (uint32_t)"ai_command_list", (uint32_t)"starting_profile", (uint32_t)"conversation", (uint32_t)"navpoint", (uint32_t)"hud_message", (uint32_t)"object_list",
+    /* +0x0468 */ (uint32_t)"sound", (uint32_t)"effect", (uint32_t)"damage", (uint32_t)"looping_sound", (uint32_t)"animation_graph", (uint32_t)"actor_variant", (uint32_t)"damage_effect", (uint32_t)"object_definition",
+    /* +0x0488 */ (uint32_t)"game_difficulty", (uint32_t)"team", (uint32_t)"ai_default_state", (uint32_t)"actor_type", (uint32_t)"hud_corner", (uint32_t)"object", (uint32_t)"unit", (uint32_t)"vehicle",
+    /* +0x04a8 */ (uint32_t)"weapon", (uint32_t)"device", (uint32_t)"scenery", (uint32_t)"object_name", (uint32_t)"unit_name", (uint32_t)"vehicle_name", (uint32_t)"weapon_name", (uint32_t)"device_name",
+    /* +0x04c8 */ (uint32_t)"scenery_name", (uint32_t)"startup", (uint32_t)"dormant", (uint32_t)"continuous", (uint32_t)"static", (uint32_t)"stub", (uint32_t)&table_0065512c[0], 0,
+};
+
+/* 0x00692e08..0x00692e0c */
+uint32_t table_00692e08[1] = {
+    /* +0x0000 */ 0xa,
+};
+
+/* 0x00692e70..0x00692ee4 */
+uint32_t message_delta_definitions_00692e70[29] = {
+    /* +0x0000 */ 0xf, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0x3, 0xffffffffu, (uint32_t)&table_006873f8[0], 0, 0, 0, (uint32_t)&table_006873f8[0], 0x4,
+    /* +0x0040 */ 0x4, 0, (uint32_t)&table_00692e08[0], 0x8, 0x8, 0, 0, 0,
+    /* +0x0060 */ 0, 0, 0x1, 0x2, 0,
+};
+
+/* 0x00692f58..0x00692fe8 */
+uint32_t message_delta_definitions_00692f58[36] = {
+    /* +0x0000 */ 0x6, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0x3, 0xffffffffu, (uint32_t)&message_delta_definitions_00692e70[28], 0, 0, 0, (uint32_t)&table_006873f8[0], 0x4,
+    /* +0x0040 */ 0x4, 0, (uint32_t)&table_00687468[0], 0x6, 0x6, 0, 0, 0,
+    /* +0x0060 */ 0, 0, 0x11, 0xffffffffu, 0xffffffffu, 0x4, 0x3f800000, 0,
+    /* +0x0080 */ 0xbf400000u, 0x3f800000, 0x3f800000, 0x3f8ccccd,
+};
+
+/* 0x00695478..0x0069547c */
+uint32_t table_00695478[1] = {
+    /* +0x0000 */ 0x15,
+};
+
+/* 0x006954e8..0x006954ec */
+uint32_t table_006954e8[1] = {
+    /* +0x0000 */ 0xe,
+};
+
+/* 0x00695870..0x00695874 */
+uint32_t table_00695870[1] = {
+    /* +0x0000 */ 0x1a,
+};
+
+/* 0x00695bf8..0x00695bfc */
+uint32_t table_00695bf8[1] = {
+    /* +0x0000 */ 0x1a,
+};
+
+/* 0x00695c60..0x00695e24 */
+uint32_t message_delta_definitions_00695c60[113] = {
+    /* +0x0000 */ 0x4, 0xffffffffu, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0, (uint32_t)&table_006873f8[0], 0x4,
+    /* +0x0020 */ 0x4, 0, (uint32_t)&table_006873f8[0], 0x5, 0x5, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0x6,
+    /* +0x0040 */ 0x6, 0, 0, 0, 0, 0,
+    /* +0x0058 */ 0x1f, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0078 */ 0xc, 0xffffffffu, (uint32_t)&message_delta_definitions_00692e70[28], 0, 0, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x4,
+    /* +0x0098 */ 0x4, 0, (uint32_t)&table_00687468[0], 0x8, 0x8, 0, (uint32_t)&machine_table_006874d0[12], 0xc,
+    /* +0x00b8 */ 0xc, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x10, 0x10, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x14,
+    /* +0x00d8 */ 0x14, 0, (uint32_t)&table_00695478[0], 0x24, 0x24, 0, (uint32_t)&table_00695478[0], 0x30,
+    /* +0x00f8 */ 0x30, 0, (uint32_t)&table_006873f8[0], 0x54, 0x54, 0, (uint32_t)&table_006954e8[0], 0x18,
+    /* +0x0118 */ 0x18, 0, (uint32_t)&table_00695870[0], 0x3c, 0x3c, 0, (uint32_t)&table_00695bf8[0], 0x48,
+    /* +0x0138 */ 0x48, 0, 0, 0, 0, 0,
+    /* +0x0150 */ 0x2, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&message_delta_definitions_00695c60[0],
+    /* +0x0170 */ 0x3, 0xffffffffu, (uint32_t)&table_006954e8[0], 0, 0, 0, (uint32_t)&table_00695870[0], 0xc,
+    /* +0x0190 */ 0xc, 0, (uint32_t)&table_00695bf8[0], 0x18, 0x18, 0, 0, 0,
+    /* +0x01b0 */ 0, 0, 0x40000000, 0, 0,
+};
+
+/* 0x00695ec0..0x00695ec4 */
+uint32_t table_00695ec0[1] = {
+    /* +0x0000 */ 0x16,
+};
+
+/* 0x00695f28..0x00696154 */
+uint32_t message_delta_definitions_00695f28[139] = {
+    /* +0x0000 */ 0x30, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0x2, 0xffffffffu, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0, (uint32_t)&table_006954e8[0], 0x4,
+    /* +0x0040 */ 0x4, 0, 0, 0, 0, 0, (uint32_t)"normal", (uint32_t)"incident",
+    /* +0x0060 */ (uint32_t)"negative incident", (uint32_t)"reflection", (uint32_t)"gravity", 0,
+    /* +0x0070 */ 0x33, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0090 */ 0x3, 0xffffffffu, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x4,
+    /* +0x00b0 */ 0x4, 0, (uint32_t)&table_00687468[0], 0x8, 0x8, 0, 0, 0,
+    /* +0x00d0 */ 0, 0,
+    /* +0x00d8 */ 0x1e, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x00f8 */ 0xb, 0xffffffffu, (uint32_t)&message_delta_definitions_00692e70[28], 0, 0, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x4,
+    /* +0x0118 */ 0x4, 0, (uint32_t)&table_00687468[0], 0x8, 0x8, 0, (uint32_t)&machine_table_006874d0[12], 0xc,
+    /* +0x0138 */ 0xc, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x10, 0x10, 0, (uint32_t)&table_00695478[0], 0x20,
+    /* +0x0158 */ 0x20, 0, (uint32_t)&table_00695478[0], 0x2c, 0x2c, 0, (uint32_t)&table_00695bf8[0], 0x44,
+    /* +0x0178 */ 0x44, 0, (uint32_t)&table_006873f8[0], 0x50, 0x50, 0, (uint32_t)&table_00695ec0[0], 0x14,
+    /* +0x0198 */ 0x14, 0, (uint32_t)&table_00695870[0], 0x38, 0x38, 0, 0, 0,
+    /* +0x01b8 */ 0, 0,
+    /* +0x01c0 */ 0x1, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&message_delta_definitions_00695c60[0],
+    /* +0x01e0 */ 0x2, 0xffffffffu, (uint32_t)&table_00695ec0[0], 0, 0, 0, (uint32_t)&table_00695870[0], 0xc,
+    /* +0x0200 */ 0xc, 0, 0, 0, 0, 0, 0x3e4ccccd, 0x6,
+    /* +0x0220 */ 0x3f, 0, 0x14,
+};
+
+/* 0x006961c0..0x006965a0 */
+uint32_t message_delta_definitions_006961c0[248] = {
+    /* +0x0000 */ 0x2c, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0x3, 0xffffffffu, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0, (uint32_t)&table_00687468[0], 0x4,
+    /* +0x0040 */ 0x4, 0, (uint32_t)&table_00687468[0], 0x6, 0x6, 0, 0, 0,
+    /* +0x0060 */ 0, 0,
+    /* +0x0068 */ 0x2b, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0088 */ 0x4, 0xffffffffu, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0, (uint32_t)&table_00687468[0], 0x4,
+    /* +0x00a8 */ 0x4, 0, (uint32_t)&table_00687468[0], 0x6, 0x6, 0, (uint32_t)&table_00687468[0], 0x8,
+    /* +0x00c8 */ 0x8, 0, 0, 0, 0, 0,
+    /* +0x00e0 */ 0x2d, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0100 */ 0x4, 0xffffffffu, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0, (uint32_t)&table_00687468[0], 0x4,
+    /* +0x0120 */ 0x4, 0, (uint32_t)&table_00687468[0], 0x6, 0x6, 0, (uint32_t)&table_00687468[0], 0x8,
+    /* +0x0140 */ 0x8, 0, 0, 0, 0, 0,
+    /* +0x0158 */ 0x2e, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0178 */ 0x4, 0xffffffffu, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0, (uint32_t)&table_00687468[0], 0x4,
+    /* +0x0198 */ 0x4, 0, (uint32_t)&table_00687468[0], 0x6, 0x6, 0, (uint32_t)&table_00687468[0], 0x8,
+    /* +0x01b8 */ 0x8, 0, 0, 0, 0, 0,
+    /* +0x01d0 */ 0x20, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x01f0 */ 0x10, 0xffffffffu, (uint32_t)&message_delta_definitions_00692e70[28], 0, 0, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x4,
+    /* +0x0210 */ 0x4, 0, (uint32_t)&table_00687468[0], 0x8, 0x8, 0, (uint32_t)&machine_table_006874d0[12], 0xc,
+    /* +0x0230 */ 0xc, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x10, 0x10, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x14,
+    /* +0x0250 */ 0x14, 0, (uint32_t)&table_00695478[0], 0x24, 0x24, 0, (uint32_t)&table_00695478[0], 0x30,
+    /* +0x0270 */ 0x30, 0, (uint32_t)&table_006873f8[0], 0x48, 0x48, 0, (uint32_t)&table_006954e8[0], 0x18,
+    /* +0x0290 */ 0x18, 0, (uint32_t)&table_00695870[0], 0x3c, 0x3c, 0, (uint32_t)&table_00687468[0], 0x4a,
+    /* +0x02b0 */ 0x4a, 0, (uint32_t)&table_00687468[0], 0x4c, 0x4c, 0, (uint32_t)&message_delta_definitions_00695f28[138], 0x50,
+    /* +0x02d0 */ 0x50, 0, (uint32_t)&table_00687468[0], 0x54, 0x54, 0, (uint32_t)&table_00687468[0], 0x56,
+    /* +0x02f0 */ 0x56, 0, 0, 0, 0, 0,
+    /* +0x0308 */ 0x3, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&message_delta_definitions_00695c60[0],
+    /* +0x0328 */ 0x5, 0xffffffffu, (uint32_t)&table_006954e8[0], 0, 0, 0, (uint32_t)&table_00695870[0], 0xc,
+    /* +0x0348 */ 0xc, 0, (uint32_t)&table_00687468[0], 0x24, 0x24, 0, (uint32_t)&table_00687468[0], 0x26,
+    /* +0x0368 */ 0x26, 0, (uint32_t)&message_delta_definitions_00695f28[138], 0x28, 0x28, 0, 0, 0,
+    /* +0x0388 */ 0, 0, 0x3f000000, 0x3f800000, 0x3f800000, 0x3e99999a, 0x3f800000, 0x1,
+    /* +0x03a8 */ 0x1, 0xffffffffu, 0x1, (uint32_t)"levels\\a10\\a10", (uint32_t)"levels\\a30\\a30", (uint32_t)"levels\\a50\\a50", (uint32_t)"levels\\b30\\b30", (uint32_t)"levels\\b40\\b40",
+    /* +0x03c8 */ (uint32_t)"levels\\c10\\c10", (uint32_t)"levels\\c20\\c20", (uint32_t)"levels\\c40\\c40", (uint32_t)"levels\\d20\\d20", (uint32_t)"levels\\d40\\d40", (uint32_t)"levels\\b30\\demob30",
+};
+
+/* 0x00697e90..0x00697efc */
+uint32_t message_delta_definitions_00697e90[27] = {
+    /* +0x0000 */ 0x34, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0x1, 0xffffffffu, (uint32_t)&table_006873f8[0], 0, 0, 0, 0, 0,
+    /* +0x0040 */ 0, 0, 0x3, 0x88b8, 0x222e0, 0x111700, (uint32_t)director_update_seat_camera, 0x88b800,
+    /* +0x0060 */ 0x6, 0, 0,
+};
+
+/* 0x00697f68..0x00697f6c */
+uint32_t table_00697f68[1] = {
+    /* +0x0000 */ 0,
+};
+
+/* 0x00697ff8..0x00697ffc */
+uint32_t table_00697ff8[1] = {
+    /* +0x0000 */ 0x11,
+};
+
+/* 0x00698060..0x00698064 */
+uint32_t table_00698060[1] = {
+    /* +0x0000 */ 0x17,
+};
+
+/* 0x006980d0..0x006980d4 */
+uint32_t table_006980d0[1] = {
+    /* +0x0000 */ 0x14,
+};
+
+/* 0x00698138..0x0069813c */
+uint32_t table_00698138[1] = {
+    /* +0x0000 */ 0x18,
+};
+
+/* 0x006981a0..0x006981a4 */
+uint32_t table_006981a0[1] = {
+    /* +0x0000 */ 0x19,
+};
+
+/* 0x006982ec..0x006983ec */
+uint32_t message_delta_definitions_006982ec[64] = {
+    /* +0x0000 */ 0x1, 0xffffffffu, (uint32_t)&message_delta_definitions_00697e90[26], 0, 0, 0, 0, 0,
+    /* +0x0020 */ 0, 0, 0,
+    /* +0x002c */ 0xd, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&message_delta_definitions_006982ec[0],
+    /* +0x004c */ 0x9, 0xffffffffu, (uint32_t)&table_00697f68[0], 0, 0, 0, (uint32_t)&table_00697ff8[0], 0x8,
+    /* +0x006c */ 0x8, 0, (uint32_t)&table_006871b0[0], 0xc, 0xc, 0, (uint32_t)&table_006871b0[0], 0x10,
+    /* +0x008c */ 0x10, 0, (uint32_t)&table_00698060[0], 0x20, 0x20, 0, (uint32_t)&table_006980d0[0], 0x28,
+    /* +0x00ac */ 0x28, 0, (uint32_t)&table_00698138[0], 0x2c, 0x2c, 0, (uint32_t)&table_006981a0[0], 0x2e,
+    /* +0x00cc */ 0x2e, 0, (uint32_t)&table_00687468[0], 0x30, 0x30, 0, 0, 0,
+    /* +0x00ec */ 0, 0, 0x80, 0, 0x5,
+};
+
+/* 0x00698478..0x0069847c */
+uint32_t table_00698478[1] = {
+    /* +0x0000 */ 0x9,
+};
+
+/* 0x00698638..0x0069863c */
+uint32_t table_00698638[1] = {
+    /* +0x0000 */ 0x6,
+};
+
+/* 0x006986b0..0x006986b4 */
+uint32_t table_006986b0[1] = {
+    /* +0x0000 */ 0x8,
+};
+
+/* 0x00698718..0x006994f8 */
+uint32_t message_delta_definitions_00698718[888] = {
+    /* +0x0000 */ 0x21, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0xb, 0xffffffffu, (uint32_t)&table_00698638[0], 0, 0, 0, (uint32_t)&table_00698478[0], 0x80,
+    /* +0x0040 */ 0x80, 0, (uint32_t)&table_006879b8[0], 0x104, 0x104, 0, (uint32_t)&table_006873f8[0], 0x19c,
+    /* +0x0060 */ 0x19c, 0, (uint32_t)&table_006873f8[0], 0x19d, 0x19d, 0, (uint32_t)&table_00687468[0], 0x19e,
+    /* +0x0080 */ 0x19e, 0, (uint32_t)&table_00687468[0], 0x1a0, 0x1a0, 0, (uint32_t)&table_006986b0[0], 0x1a2,
+    /* +0x00a0 */ 0x1a2, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x3a4, 0x3a4, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x3a8,
+    /* +0x00c0 */ 0x3a8, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x3ac, 0x3ac, 0, 0, 0,
+    /* +0x00e0 */ 0, 0, 0x20002, 0, 0x10000, 0x8, 0, 0x9,
+    /* +0x0100 */ 0, 0, (uint32_t)"message_client_broadcast_game_search_packet", 0, 0x1000c, (uint32_t)&message_delta_definitions_00698718[58], 0, 0x10003,
+    /* +0x0120 */ 0, 0x90000, 0, 0, (uint32_t)"message_client_ping_packet", 0, 0x10004, (uint32_t)&message_delta_definitions_00698718[71],
+    /* +0x0140 */ 0, 0x1700008, 0, 0x90000, 0, 0, (uint32_t)"message_server_game_advertise_packet", 0,
+    /* +0x0160 */ 0x10170, (uint32_t)&message_delta_definitions_00698718[81], 0, 0x10003, 0, 0x30000, 0x1, 0,
+    /* +0x0180 */ 0x9, 0, 0, (uint32_t)"message_server_pong_packet", 0, 0x10008, (uint32_t)&message_delta_definitions_00698718[91], 0,
+    /* +0x01a0 */ 0x80001, 0, 0x10000, 0x1, 0, 0x30000, 0, 0x30000,
+    /* +0x01c0 */ 0x1, 0, 0x10003, 0, 0x50000, 0x7f, 0, 0x9,
+    /* +0x01e0 */ 0, 0, (uint32_t)"message_server_new_client_challenge_packet", 0, 0x10094, (uint32_t)&message_delta_definitions_00698718[104], 0, 0x10003,
+    /* +0x0200 */ 0, 0x20000, 0x1, 0, 0x20000, 0, 0x90000, 0,
+    /* +0x0220 */ 0, (uint32_t)"message_server_machine_accepted_packet", 0, 0x10008, (uint32_t)&message_delta_definitions_00698718[127], 0, 0x10003, 0,
+    /* +0x0240 */ 0x90000, 0, 0, (uint32_t)"message_server_machine_rejected_packet", 0, 0x10004, (uint32_t)&message_delta_definitions_00698718[142], 0,
+    /* +0x0260 */ 0x10003, 0, 0x90000, 0, 0, (uint32_t)"message_server_game_is_ending_holdup_packet", 0, 0x10004,
+    /* +0x0280 */ (uint32_t)&message_delta_definitions_00698718[152], 0, 0x3b00008, 0, 0x90000, 0, 0, (uint32_t)"message_server_game_settings_update_packet",
+    /* +0x02a0 */ 0, 0x103b0, (uint32_t)&message_delta_definitions_00698718[162], 0, 0x10002, 0, 0x90000, 0,
+    /* +0x02c0 */ 0, (uint32_t)"message_server_pregame_countdown_packet", 0, 0x10002, (uint32_t)&message_delta_definitions_00698718[172], 0, 0x10002, 0,
+    /* +0x02e0 */ 0x90000, 0, 0, (uint32_t)"message_server_pregame_keep_alive_packet", 0, 0x10002, (uint32_t)&message_delta_definitions_00698718[182], 0,
+    /* +0x0300 */ 0x10002, 0, 0x90000, 0, 0, (uint32_t)"message_server_postgame_keep_alive_packet", 0, 0x10002,
+    /* +0x0320 */ (uint32_t)&message_delta_definitions_00698718[192], 0, 0x10003, 0, 0x90000, 0, 0, (uint32_t)"message_server_begin_game_packet",
+    /* +0x0340 */ 0, 0x10004, (uint32_t)&message_delta_definitions_00698718[202], 0, 0x10003, 0, 0x90000, 0,
+    /* +0x0360 */ 0, (uint32_t)"message_server_graceful_game_exit_pregame_packet", 0, 0x10004, (uint32_t)&message_delta_definitions_00698718[212], 0, 0x100001, 0,
+    /* +0x0380 */ 0x20000, 0x9, 0, 0x490001, 0, 0x10000, 0x1, 0,
+    /* +0x03a0 */ 0x20000, 0, 0x20000, 0xc, 0, 0x20002, 0, 0x10000,
+    /* +0x03c0 */ 0x4, 0, 0x9, 0, 0, (uint32_t)"message_client_join_game_request_packet", 0, 0x1008e,
+    /* +0x03e0 */ (uint32_t)&message_delta_definitions_00698718[222], 0, 0xc0002, 0, 0x20000, 0x2, 0, 0x40001,
+    /* +0x0400 */ 0, 0x90000, 0, 0, (uint32_t)"message_client_add_player_request_pregame_packet", 0, 0x10020, (uint32_t)&message_delta_definitions_00698718[250],
+    /* +0x0420 */ 0, 0xc0002, 0, 0x20000, 0x2, 0, 0x40001, 0,
+    /* +0x0440 */ 0x90000, 0, 0, (uint32_t)"message_client_remove_player_request_pregame_packet", 0, 0x10020, (uint32_t)&message_delta_definitions_00698718[265], 0,
+    /* +0x0460 */ 0x10003, 0, 0x90000, 0, 0, (uint32_t)"message_client_settings_request_packet", 0, 0x10004,
+    /* +0x0480 */ (uint32_t)&message_delta_definitions_00698718[280], 0, 0xc0002, 0, 0x20000, 0x2, 0, 0x40001,
+    /* +0x04a0 */ 0, 0x90000, 0, 0, (uint32_t)"message_client_player_settings_request_packet", 0, 0x10020, (uint32_t)&message_delta_definitions_00698718[290],
+    /* +0x04c0 */ 0, 0x10002, 0, 0x90000, 0, 0, (uint32_t)"message_client_game_start_request_packet", 0,
+    /* +0x04e0 */ 0x10002, (uint32_t)&message_delta_definitions_00698718[305], 0, 0x10003, 0, 0x90000, 0, 0,
+    /* +0x0500 */ (uint32_t)"message_client_graceful_game_exit_pregame_packet", 0, 0x10004, (uint32_t)&message_delta_definitions_00698718[315], 0, 0x1000001, 0, 0x90000,
+    /* +0x0520 */ 0, 0, (uint32_t)"message_client_map_is_precached_pregame_packet", 0, 0x10100, (uint32_t)&message_delta_definitions_00698718[325], 0, 0,
+    /* +0x0540 */ 0x30003, 0, 0, 0x2, 0, 0x100007, 0, 0x30000,
+    /* +0x0560 */ 0x6, 0, 0x30002, 0, 0, 0x2, 0, 0x9,
+    /* +0x0580 */ 0, 0x90000, 0, 0, (uint32_t)"message_server_game_update_packet", 0, 0x10210, (uint32_t)&message_delta_definitions_00698718[336],
+    /* +0x05a0 */ 0, 0x20003, 0, 0x20000, 0x1, 0, 0x20000, 0,
+    /* +0x05c0 */ 0x80000, 0x88, 0, 0x9, 0, 0, (uint32_t)"message_server_object_creation_packet", 0,
+    /* +0x05e0 */ 0x10094, (uint32_t)&message_delta_definitions_00698718[361], 0, 0x10003, 0, 0x90000, 0, 0,
+    /* +0x0600 */ (uint32_t)"message_server_object_deletion_packet", 0, 0x10004, (uint32_t)&message_delta_definitions_00698718[379], 0, 0x10003, 0, 0x80000,
+    /* +0x0620 */ 0xc, 0, 0xc0008, 0, 0x90000, 0, 0, (uint32_t)"message_server_projectile_update_packet",
+    /* +0x0640 */ 0, 0x1001c, (uint32_t)&message_delta_definitions_00698718[389], 0, 0x10003, 0, 0x80000, 0xc,
+    /* +0x0660 */ 0, 0xc0008, 0, 0x80000, 0xc, 0, 0x9, 0,
+    /* +0x0680 */ 0, (uint32_t)"message_server_equipment_update_packet", 0, 0x10028, (uint32_t)&message_delta_definitions_00698718[404], 0, 0x10003, 0,
+    /* +0x06a0 */ 0x80000, 0xc, 0, 0xc0008, 0, 0x80000, 0xc, 0,
+    /* +0x06c0 */ 0x9, 0, 0, (uint32_t)"message_server_weapon_update_packet", 0, 0x10028, (uint32_t)&message_delta_definitions_00698718[422], 0,
+    /* +0x06e0 */ 0x10001, 0, 0, 0x3, 0, 0x30003, 0, 0x90000,
+    /* +0x0700 */ 0, 0, (uint32_t)"message_server_player_index_set_packet", 0, 0x10010, (uint32_t)&message_delta_definitions_00698718[440], 0, 0,
+    /* +0x0720 */ 0x10003, 0, 0x80000, 0x1, 0, 0x10000, 0, 0x10000,
+    /* +0x0740 */ 0x2, 0, 0x40008, 0, 0x80000, 0x4, 0, 0xc0008,
+    /* +0x0760 */ 0, 0x80000, 0xc, 0, 0x10003, 0, 0x80000, 0x40,
+    /* +0x0780 */ 0, 0x9, 0, 0, (uint32_t)"message_server_biped_update_packet", 0, 0x1006c, (uint32_t)&message_delta_definitions_00698718[456],
+    /* +0x07a0 */ 0, 0, 0x10003, 0, 0x80000, 0x1, 0, 0x30000,
+    /* +0x07c0 */ 0, 0x80000, 0xc, 0, 0xc0008, 0, 0x80000, 0xc,
+    /* +0x07e0 */ 0, 0xc0008, 0, 0x80000, 0xc, 0, 0x10003, 0,
+    /* +0x0800 */ 0x80000, 0x40, 0, 0x9, 0, 0, (uint32_t)"message_server_vehicle_update_packet", 0,
+    /* +0x0820 */ 0x10088, (uint32_t)&message_delta_definitions_00698718[490], 0, 0x10003, 0, 0x10000, 0x1, 0,
+    /* +0x0840 */ 0x10000, 0, 0x20000, 0x1, 0, 0x9, 0, 0,
+    /* +0x0860 */ (uint32_t)"message_server_hud_add_item_packet", 0, 0x10008, (uint32_t)&message_delta_definitions_00698718[523], 0, 0x30003, 0, 0x80000,
+    /* +0x0880 */ 0xc, 0, 0x40008, 0, 0x80000, 0x4, 0, 0x9,
+    /* +0x08a0 */ 0, 0, (uint32_t)"message_server_player_effect_start_packet", 0, 0x10020, (uint32_t)&message_delta_definitions_00698718[541], 0, 0x40008,
+    /* +0x08c0 */ 0, 0x30000, 0x2, 0, 0x20002, 0, 0x90000, 0,
+    /* +0x08e0 */ 0, (uint32_t)"message_server_player_set_action_result_packet", 0, 0x10010, (uint32_t)&message_delta_definitions_00698718[559], 0, 0x10008, 0,
+    /* +0x0900 */ 0, 0x1, 0, 0x20000, 0, 0x30000, 0x1, 0,
+    /* +0x0920 */ 0x9, 0, 0, (uint32_t)"message_server_player_exit_vehicle_packet", 0, 0x10008, (uint32_t)&message_delta_definitions_00698718[574], 0,
+    /* +0x0940 */ 0xc0002, 0, 0x20000, 0x2, 0, 0x40001, 0, 0x90000,
+    /* +0x0960 */ 0, 0, (uint32_t)"message_server_add_player_ingame_packet", 0, 0x10020, (uint32_t)&message_delta_definitions_00698718[592], 0, 0xc0002,
+    /* +0x0980 */ 0, 0x20000, 0x2, 0, 0x40001, 0, 0x30000, 0x1,
+    /* +0x09a0 */ 0, 0x9, 0, 0, (uint32_t)"message_server_remove_player_ingame_packet", 0, 0x10024, (uint32_t)&message_delta_definitions_00698718[607],
+    /* +0x09c0 */ 0, 0x10003, 0, 0x90000, 0, 0, (uint32_t)"message_server_game_over_packet", 0,
+    /* +0x09e0 */ 0x10004, (uint32_t)&message_delta_definitions_00698718[625], 0, 0x10003, 0, 0x90000, 0, 0,
+    /* +0x0a00 */ (uint32_t)"message_client_loaded_packet", 0, 0x10004, (uint32_t)&message_delta_definitions_00698718[635], 0, 0, 0x10003, 0,
+    /* +0x0a20 */ 0, 0x2, 0, 0x10007, 0, 0x30000, 0x6, 0,
+    /* +0x0a40 */ 0x30002, 0, 0, 0x2, 0, 0x9, 0, 0x90000,
+    /* +0x0a60 */ 0, 0, (uint32_t)"message_client_game_update_packet", 0, 0x10028, (uint32_t)&message_delta_definitions_00698718[646], 0, 0xc0002,
+    /* +0x0a80 */ 0, 0x20000, 0x2, 0, 0x40001, 0, 0x90000, 0,
+    /* +0x0aa0 */ 0, (uint32_t)"message_client_add_player_request_ingame_packet", 0, 0x10020, (uint32_t)&message_delta_definitions_00698718[671], 0, 0xc0002, 0,
+    /* +0x0ac0 */ 0x20000, 0x2, 0, 0x40001, 0, 0x90000, 0, 0,
+    /* +0x0ae0 */ (uint32_t)"message_client_remove_player_request_ingame_packet", 0, 0x10020, (uint32_t)&message_delta_definitions_00698718[686], 0, 0x10003, 0, 0x90000,
+    /* +0x0b00 */ 0, 0, (uint32_t)"message_client_graceful_game_exit_ingame_packet", 0, 0x10004, (uint32_t)&message_delta_definitions_00698718[701], 0, 0x30003,
+    /* +0x0b20 */ 0, 0x20000, 0x1, 0, 0x20000, 0, 0x90000, 0,
+    /* +0x0b40 */ 0, (uint32_t)"message_client_host_crashed_cry_for_help_packet", 0, 0x10010, (uint32_t)&message_delta_definitions_00698718[711], 0, 0x30003, 0,
+    /* +0x0b60 */ 0x20000, 0x1, 0, 0x20000, 0, 0x90000, 0, 0,
+    /* +0x0b80 */ (uint32_t)"message_client_join_new_host_packet", 0, 0x10010, (uint32_t)&message_delta_definitions_00698718[726], 0, 0x20003, 0, 0x90000,
+    /* +0x0ba0 */ 0, 0, (uint32_t)"message_server_reconnect_packet", 0, 0x10008, (uint32_t)&message_delta_definitions_00698718[741], 0, 0x10003,
+    /* +0x0bc0 */ 0, 0x90000, 0, 0, (uint32_t)"message_server_graceful_game_exit_postgame_packet", 0, 0x10004, (uint32_t)&message_delta_definitions_00698718[751],
+    /* +0x0be0 */ 0, 0xc0002, 0, 0x20000, 0x2, 0, 0x40001, 0,
+    /* +0x0c00 */ 0x90000, 0, 0, (uint32_t)"message_client_remove_player_request_postgame_packet", 0, 0x10020, (uint32_t)&message_delta_definitions_00698718[761], 0,
+    /* +0x0c20 */ 0x10003, 0, 0x90000, 0, 0, (uint32_t)"message_client_switch_to_pregame_packet", 0, 0x10004,
+    /* +0x0c40 */ (uint32_t)&message_delta_definitions_00698718[776], 0, 0x10003, 0, 0x90000, 0, 0, (uint32_t)"message_client_graceful_game_exit_postgame_packet",
+    /* +0x0c60 */ 0, 0x10004, (uint32_t)&message_delta_definitions_00698718[786], 0, 0x10003, 0, 0x60000, 0x5fa,
+    /* +0x0c80 */ 0, 0x9, 0, 0, (uint32_t)"message_server_game_object_update_packet", 0, 0x10600, (uint32_t)&message_delta_definitions_00698718[796],
+    /* +0x0ca0 */ 0, 0,
+    /* +0x0ca8 */ 0, (uint32_t)&message_delta_definitions_00698718[66], 0, (uint32_t)&message_delta_definitions_00698718[76], 0x1, (uint32_t)&message_delta_definitions_00698718[86], 0x1, (uint32_t)&message_delta_definitions_00698718[99],
+    /* +0x0cc8 */ 0x2, (uint32_t)&message_delta_definitions_00698718[122], 0x2, (uint32_t)&message_delta_definitions_00698718[137], 0x2, (uint32_t)&message_delta_definitions_00698718[147], 0x2, (uint32_t)&message_delta_definitions_00698718[157],
+    /* +0x0ce8 */ 0x2, (uint32_t)&message_delta_definitions_00698718[167], 0x2, (uint32_t)&message_delta_definitions_00698718[177], 0x2, (uint32_t)&message_delta_definitions_00698718[207], 0x2, (uint32_t)&message_delta_definitions_00698718[217],
+    /* +0x0d08 */ 0x2, (uint32_t)&message_delta_definitions_00698718[187], 0x6, (uint32_t)&message_delta_definitions_00698718[197], 0x3, (uint32_t)&message_delta_definitions_00698718[245], 0x3, (uint32_t)&message_delta_definitions_00698718[260],
+    /* +0x0d28 */ 0x3, (uint32_t)&message_delta_definitions_00698718[275], 0x3, (uint32_t)&message_delta_definitions_00698718[285], 0x3, (uint32_t)&message_delta_definitions_00698718[300], 0x3, (uint32_t)&message_delta_definitions_00698718[310],
+    /* +0x0d48 */ 0x3, (uint32_t)&message_delta_definitions_00698718[320], 0x3, (uint32_t)&message_delta_definitions_00698718[330], 0x4, (uint32_t)&message_delta_definitions_00698718[356], 0x4, (uint32_t)&message_delta_definitions_00698718[602],
+    /* +0x0d68 */ 0x4, (uint32_t)&message_delta_definitions_00698718[620], 0x4, (uint32_t)&message_delta_definitions_00698718[630], 0x5, (uint32_t)&message_delta_definitions_00698718[640], 0x5, (uint32_t)&message_delta_definitions_00698718[666],
+    /* +0x0d88 */ 0x5, (uint32_t)&message_delta_definitions_00698718[681], 0x5, (uint32_t)&message_delta_definitions_00698718[696], 0x5, (uint32_t)&message_delta_definitions_00698718[706], 0x5, (uint32_t)&message_delta_definitions_00698718[721],
+    /* +0x0da8 */ 0x5, (uint32_t)&message_delta_definitions_00698718[736], 0x6, (uint32_t)&message_delta_definitions_00698718[746], 0x6, (uint32_t)&message_delta_definitions_00698718[756], 0x7, (uint32_t)&message_delta_definitions_00698718[771],
+    /* +0x0dc8 */ 0x7, (uint32_t)&message_delta_definitions_00698718[781], 0x7, (uint32_t)&message_delta_definitions_00698718[791], 0, 0,
+};
+
+/* 0x00699610..0x00699614 */
+uint32_t table_00699610[1] = {
+    /* +0x0000 */ 0x5,
+};
+
+/* 0x00699680..0x00699684 */
+uint32_t table_00699680[1] = {
+    /* +0x0000 */ 0x5,
+};
+
+/* 0x006996e8..0x0069974c */
+uint32_t message_delta_definitions_006996e8[25] = {
+    /* +0x0000 */ 0x36, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0x2, 0xffffffffu, (uint32_t)&table_00699610[0], 0, 0, 0, (uint32_t)&table_00699680[0], 0x9,
+    /* +0x0040 */ 0x9, 0, 0, 0, 0, 0, 0x50, 0,
+    /* +0x0060 */ 0x5,
+};
+
+/* 0x006997b0..0x00699804 */
+uint32_t message_delta_definitions_006997b0[21] = {
+    /* +0x0000 */ 0x37, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0x1, 0xffffffffu, (uint32_t)&message_delta_definitions_006996e8[24], 0, 0, 0, 0, 0,
+    /* +0x0040 */ 0, 0, (uint32_t)"ClientPlayerUpdateHistory.log", 0x5, 0,
+};
+
+/* 0x00699870..0x00699874 */
+uint32_t table_00699870[1] = {
+    /* +0x0000 */ 0,
+};
+
+/* 0x006998e0..0x006998e4 */
+uint32_t table_006998e0[1] = {
+    /* +0x0000 */ 0,
+};
+
+/* 0x00699948..0x00699f40 */
+uint32_t message_delta_definitions_00699948[382] = {
+    /* +0x0000 */ 0x23, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0x3, 0xffffffffu, (uint32_t)&message_delta_definitions_006997b0[20], 0, 0, 0, (uint32_t)&message_delta_definitions_00697e90[26], 0x1,
+    /* +0x0040 */ 0x1, 0, (uint32_t)&table_006954e8[0], 0x4, 0x4, 0, 0, 0,
+    /* +0x0060 */ 0, 0,
+    /* +0x0068 */ 0x24, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0088 */ 0x8, 0xffffffffu, (uint32_t)&message_delta_definitions_006997b0[20], 0, 0, 0, (uint32_t)&message_delta_definitions_00697e90[26], 0x1,
+    /* +0x00a8 */ 0x1, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x4, 0x4, 0, (uint32_t)&table_00695ec0[0], 0x8,
+    /* +0x00c8 */ 0x8, 0, (uint32_t)&table_00695870[0], 0x14, 0x14, 0, (uint32_t)&table_00695bf8[0], 0x20,
+    /* +0x00e8 */ 0x20, 0, (uint32_t)&table_00695478[0], 0x2c, 0x2c, 0, (uint32_t)&table_00695478[0], 0x38,
+    /* +0x0108 */ 0x38, 0, 0, 0, 0, 0, 0x3, 0xffffffffu,
+    /* +0x0128 */ (uint32_t)&machine_table_006874d0[12], 0, 0, 0, (uint32_t)&message_delta_definitions_00697e90[26], 0x4, 0x4, 0,
+    /* +0x0148 */ (uint32_t)&table_00699870[0], 0x5, 0x5, 0, 0, 0, 0, 0,
+    /* +0x0168 */ 0x25, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&message_delta_definitions_00699948[72],
+    /* +0x0188 */ 0x7, 0xffffffffu, (uint32_t)&table_00697f68[0], 0, 0, 0, (uint32_t)&table_00697ff8[0], 0x4,
+    /* +0x01a8 */ 0x4, 0, (uint32_t)&table_00695478[0], 0x24, 0x24, 0, (uint32_t)&table_00698060[0], 0x10,
+    /* +0x01c8 */ 0x10, 0, (uint32_t)&table_006980d0[0], 0x18, 0x18, 0, (uint32_t)&table_00698138[0], 0x1c,
+    /* +0x01e8 */ 0x1c, 0, (uint32_t)&table_006981a0[0], 0x1e, 0x1e, 0, 0, 0,
+    /* +0x0208 */ 0, 0,
+    /* +0x0210 */ 0x26, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x10, 0, (uint32_t)&message_delta_definitions_00699948[72],
+    /* +0x0230 */ 0x7, 0xffffffffu, (uint32_t)&table_00697f68[0], 0, 0, 0, (uint32_t)&table_00697ff8[0], 0x4,
+    /* +0x0250 */ 0x4, 0, (uint32_t)&table_00695478[0], 0x24, 0x24, 0, (uint32_t)&table_00698060[0], 0x10,
+    /* +0x0270 */ 0x10, 0, (uint32_t)&table_006980d0[0], 0x18, 0x18, 0, (uint32_t)&table_00698138[0], 0x1c,
+    /* +0x0290 */ 0x1c, 0, (uint32_t)&table_006981a0[0], 0x1e, 0x1e, 0, 0, 0,
+    /* +0x02b0 */ 0, 0, 0x3, 0xffffffffu, (uint32_t)&machine_table_006874d0[12], 0, 0, 0,
+    /* +0x02d0 */ (uint32_t)&message_delta_definitions_00697e90[26], 0x4, 0x4, 0, (uint32_t)&table_006998e0[0], 0x5, 0x5, 0,
+    /* +0x02f0 */ 0, 0, 0, 0,
+    /* +0x0300 */ 0x27, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&message_delta_definitions_00699948[174],
+    /* +0x0320 */ 0x1, 0xffffffffu, (uint32_t)&table_00695ec0[0], 0, 0, 0, 0, 0,
+    /* +0x0340 */ 0, 0,
+    /* +0x0348 */ 0x28, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&message_delta_definitions_00699948[174],
+    /* +0x0368 */ 0x6, 0xffffffffu, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0, (uint32_t)&table_00695ec0[0], 0x4,
+    /* +0x0388 */ 0x4, 0, (uint32_t)&table_00695870[0], 0x10, 0x10, 0, (uint32_t)&table_00695bf8[0], 0x1c,
+    /* +0x03a8 */ 0x1c, 0, (uint32_t)&table_00695478[0], 0x28, 0x28, 0, (uint32_t)&table_00695478[0], 0x34,
+    /* +0x03c8 */ 0x34, 0, 0, 0, 0, 0, 0x4, 0xffffffffu,
+    /* +0x03e8 */ (uint32_t)&machine_table_006874d0[12], 0, 0, 0, (uint32_t)&message_delta_definitions_00697e90[26], 0x4, 0x4, 0,
+    /* +0x0408 */ (uint32_t)&table_00699870[0], 0x5, 0x5, 0, (uint32_t)&table_006998e0[0], 0x8, 0x8, 0,
+    /* +0x0428 */ 0, 0, 0, 0,
+    /* +0x0438 */ 0x29, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&message_delta_definitions_00699948[248],
+    /* +0x0458 */ 0x8, 0xffffffffu, (uint32_t)&table_00697f68[0], 0, 0, 0, (uint32_t)&table_00697ff8[0], 0x4,
+    /* +0x0478 */ 0x4, 0, (uint32_t)&table_00695478[0], 0x24, 0x24, 0, (uint32_t)&table_00698060[0], 0x10,
+    /* +0x0498 */ 0x10, 0, (uint32_t)&table_006980d0[0], 0x18, 0x18, 0, (uint32_t)&table_00698138[0], 0x1c,
+    /* +0x04b8 */ 0x1c, 0, (uint32_t)&table_006981a0[0], 0x1e, 0x1e, 0, (uint32_t)&table_00695ec0[0], 0x30,
+    /* +0x04d8 */ 0x30, 0, 0, 0, 0, 0,
+    /* +0x04f0 */ 0x2a, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&message_delta_definitions_00699948[248],
+    /* +0x0510 */ 0xd, 0xffffffffu, (uint32_t)&table_00697f68[0], 0, 0, 0, (uint32_t)&table_00697ff8[0], 0x4,
+    /* +0x0530 */ 0x4, 0, (uint32_t)&table_00695478[0], 0x24, 0x24, 0, (uint32_t)&table_00698060[0], 0x10,
+    /* +0x0550 */ 0x10, 0, (uint32_t)&table_006980d0[0], 0x18, 0x18, 0, (uint32_t)&table_00698138[0], 0x1c,
+    /* +0x0570 */ 0x1c, 0, (uint32_t)&table_006981a0[0], 0x1e, 0x1e, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x30,
+    /* +0x0590 */ 0x30, 0, (uint32_t)&table_00695ec0[0], 0x34, 0x34, 0, (uint32_t)&table_00695870[0], 0x40,
+    /* +0x05b0 */ 0x40, 0, (uint32_t)&table_00695bf8[0], 0x4c, 0x4c, 0, (uint32_t)&table_00695478[0], 0x58,
+    /* +0x05d0 */ 0x58, 0, (uint32_t)&table_00695478[0], 0x64, 0x64, 0, 0, 0,
+    /* +0x05f0 */ 0, 0,
+};
+
+/* 0x0069a590..0x0069a594 */
+uint32_t table_0069a590[1] = {
+    /* +0x0000 */ 0x13,
+};
+
+/* 0x0069a600..0x0069a604 */
+uint32_t table_0069a600[1] = {
+    /* +0x0000 */ 0x14,
+};
+
+/* 0x0069a6f0..0x0069a6f4 */
+uint32_t table_0069a6f0[1] = {
+    /* +0x0000 */ 0x15,
+};
+
+/* 0x0069a838..0x0069a83c */
+uint32_t table_0069a838[1] = {
+    /* +0x0000 */ 0xf,
+};
+
+/* 0x0069a8a0..0x0069a90c */
+uint32_t table_0069a8a0[27] = {
+    /* +0x0000 */ 0x12, 0x656d6974, 0, 0, 0, 0, 0, 0,
+    /* +0x0020 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0040 */ 0, 0, 0, 0, (uint32_t)message_delta_long_encode, (uint32_t)message_delta_long_decode, 0, 0xffffffffu,
+    /* +0x0060 */ 0, 0, 0x1b,
+};
+
+/* 0x0069a998..0x0069ae6c */
+uint32_t message_delta_definitions_0069a998[309] = {
+    /* +0x0000 */ 0x5, 0xffffffffu, (uint32_t)&table_006873f8[0], 0x5, 0x5, 0, (uint32_t)&table_006873f8[0], 0x4,
+    /* +0x0020 */ 0x4, 0, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0, (uint32_t)&table_0069a8a0[0], 0x8,
+    /* +0x0040 */ 0x8, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0x6, 0x6, 0, 0, 0,
+    /* +0x0060 */ 0, 0,
+    /* +0x0068 */ 0x5, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&message_delta_definitions_0069a998[0],
+    /* +0x0088 */ 0x6, 0xffffffffu, (uint32_t)&message_delta_definitions_006872b8[54], 0, 0, 0, (uint32_t)&table_00695ec0[0], 0x4,
+    /* +0x00a8 */ 0x4, 0, (uint32_t)&table_00695870[0], 0x10, 0x10, 0, (uint32_t)&table_00695bf8[0], 0x1c,
+    /* +0x00c8 */ 0x1c, 0, (uint32_t)&table_00695478[0], 0x28, 0x28, 0, (uint32_t)&table_00695478[0], 0x34,
+    /* +0x00e8 */ 0x34, 0, 0, 0, 0, 0,
+    /* +0x0100 */ 0x1c, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0120 */ 0xf, 0xffffffffu, (uint32_t)&message_delta_definitions_00692e70[28], 0, 0, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x4,
+    /* +0x0140 */ 0x4, 0, (uint32_t)&table_00687468[0], 0x8, 0x8, 0, (uint32_t)&machine_table_006874d0[12], 0xc,
+    /* +0x0160 */ 0xc, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x10, 0x10, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x14,
+    /* +0x0180 */ 0x14, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x18, 0x18, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x1c,
+    /* +0x01a0 */ 0x1c, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x20, 0x20, 0, (uint32_t)&table_006873f8[0], 0x60,
+    /* +0x01c0 */ 0x60, 0, (uint32_t)&table_006954e8[0], 0x24, 0x24, 0, (uint32_t)&table_00695478[0], 0x30,
+    /* +0x01e0 */ 0x30, 0, (uint32_t)&table_00695478[0], 0x3c, 0x3c, 0, (uint32_t)&table_00695870[0], 0x48,
+    /* +0x0200 */ 0x48, 0, (uint32_t)&table_00695bf8[0], 0x54, 0x54, 0, 0, 0,
+    /* +0x0220 */ 0, 0,
+    /* +0x0228 */ 0x9, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0248 */ 0x2, 0xffffffffu, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0x4,
+    /* +0x0268 */ 0x4, 0, 0, 0, 0, 0,
+    /* +0x0280 */ 0xc, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x02a0 */ 0xc, 0xffffffffu, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0x4,
+    /* +0x02c0 */ 0x4, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0x5, 0x5, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0x6,
+    /* +0x02e0 */ 0x6, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0x7, 0x7, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0x8,
+    /* +0x0300 */ 0x8, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0x9, 0x9, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0xa,
+    /* +0x0320 */ 0xa, 0, (uint32_t)&table_00687468[0], 0xc, 0xc, 0, (uint32_t)&table_006871b0[0], 0x10,
+    /* +0x0340 */ 0x10, 0, (uint32_t)&table_0069a838[0], 0x14, 0x14, 0, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0x1c,
+    /* +0x0360 */ 0x1c, 0, 0, 0, 0, 0,
+    /* +0x0378 */ 0x1b, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0398 */ 0x3, 0xffffffffu, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x4,
+    /* +0x03b8 */ 0x4, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0x8, 0x8, 0, 0, 0,
+    /* +0x03d8 */ 0, 0, 0x5, 0xffffffffu, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0,
+    /* +0x03f8 */ (uint32_t)&table_006873f8[0], 0x4, 0x4, 0, (uint32_t)&table_006873f8[0], 0x5, 0x5, 0,
+    /* +0x0418 */ (uint32_t)&message_delta_definitions_006872b8[54], 0x6, 0x6, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0x7, 0x7, 0,
+    /* +0x0438 */ 0, 0, 0, 0,
+    /* +0x0448 */ 0x4, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&message_delta_definitions_0069a998[248],
+    /* +0x0468 */ 0x4, 0xffffffffu, (uint32_t)&table_0069a590[0], 0, 0, 0, (uint32_t)&table_0069a600[0], 0x4,
+    /* +0x0488 */ 0x4, 0, (uint32_t)&message_delta_definitions_00695f28[138], 0x8, 0x8, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0xc,
+    /* +0x04a8 */ 0xc, 0, 0, 0, 0, 0, 0xc, 0x4,
+    /* +0x04c8 */ (uint32_t)&table_006871b0[0], 0, 0x8,
+};
+
+/* 0x0069aed0..0x0069b144 */
+uint32_t message_delta_definitions_0069aed0[157] = {
+    /* +0x0000 */ 0x1d, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0x11, 0xffffffffu, (uint32_t)&message_delta_definitions_00692e70[28], 0, 0, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x4,
+    /* +0x0040 */ 0x4, 0, (uint32_t)&table_00687468[0], 0x8, 0x8, 0, (uint32_t)&machine_table_006874d0[12], 0xc,
+    /* +0x0060 */ 0xc, 0, (uint32_t)&object_network_id_table_006870a8[12], 0x10, 0x10, 0, (uint32_t)&table_00695478[0], 0x20,
+    /* +0x0080 */ 0x20, 0, (uint32_t)&table_00695478[0], 0x2c, 0x2c, 0, (uint32_t)&message_delta_definitions_0069a998[308], 0x44,
+    /* +0x00a0 */ 0x44, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0x74, 0x74, 0, (uint32_t)&message_delta_definitions_00695f28[138], 0x78,
+    /* +0x00c0 */ 0x78, 0, (uint32_t)&table_006873f8[0], 0x7c, 0x7c, 0, (uint32_t)&table_006954e8[0], 0x14,
+    /* +0x00e0 */ 0x14, 0, (uint32_t)&table_00695870[0], 0x38, 0x38, 0, (uint32_t)&table_0069a590[0], 0x7d,
+    /* +0x0100 */ 0x7d, 0, (uint32_t)&table_0069a600[0], 0x80, 0x80, 0, (uint32_t)&message_delta_definitions_00695f28[138], 0x84,
+    /* +0x0120 */ 0x84, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0x88, 0x88, 0, 0, 0,
+    /* +0x0140 */ 0, 0,
+    /* +0x0148 */ 0, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0168 */ 0x1, 0xffffffffu, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0, 0, 0,
+    /* +0x0188 */ 0, 0,
+    /* +0x0190 */ 0x31, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x01b0 */ 0x3, 0xffffffffu, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0, (uint32_t)&table_006871b0[0], 0x4,
+    /* +0x01d0 */ 0x4, 0, (uint32_t)&table_0069a6f0[0], 0x8, 0x8, 0, 0, 0,
+    /* +0x01f0 */ 0, 0,
+    /* +0x01f8 */ 0x32, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0218 */ 0x3, 0xffffffffu, (uint32_t)&object_network_id_table_006870a8[12], 0, 0, 0, (uint32_t)&message_delta_definitions_00695f28[138], 0x4,
+    /* +0x0238 */ 0x4, 0, (uint32_t)&message_delta_definitions_006872b8[54], 0x8, 0x8, 0, 0, 0,
+    /* +0x0258 */ 0, 0, 0x40, 0x4, (uint32_t)&multiplayer_sound_enabled_00687020[8], 0, 0x8,
+};
+
+/* 0x0069b1a8..0x0069bfdc */
+uint32_t message_delta_definitions_0069b1a8[909] = {
+    /* +0x0000 */ 0x22, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
+    /* +0x0020 */ 0x2, 0xffffffffu, (uint32_t)&table_006873f8[0], 0, 0, 0, (uint32_t)&message_delta_definitions_0069aed0[156], 0x4,
+    /* +0x0040 */ 0x4, 0, 0, 0, 0, 0, 0x6, 0x8,
+    /* +0x0060 */ 0x8, 0x6, 0x6, 0x8, 0x7, 0xa, 0, 0,
+    /* +0x0080 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x00a0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x00c0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x00e0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0100 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0120 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0140 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0160 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0180 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x01a0 */ 0, 0, 0x1, (uint32_t)object_clear_references_to_object, (uint32_t)ai_clear_object_references, (uint32_t)players_handle_deleted_unit, (uint32_t)"object", 0x6f626a65,
+    /* +0x01c0 */ 0xffff01f4u, 0xffffffffu, 0xffffffffu, 0, 0, 0, 0, 0,
+    /* +0x01e0 */ 0, 0, 0, 0, (uint32_t)object_update_export_functions, 0, 0, 0,
+    /* +0x0200 */ 0, 0, 0, 0, 0, (uint32_t)function_do_nothing, 0, 0,
+    /* +0x0220 */ 0, 0, 0, 0, 0, 0, (uint32_t)&message_delta_definitions_0069b1a8[110], 0,
+    /* +0x0240 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0260 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0280 */ (uint32_t)"unit", 0x756e6974, 0xffff04ccu, 0xffffffffu, 0xffffffffu, (uint32_t)unit_ai_update_stagger_allocate, (uint32_t)function_do_nothing, (uint32_t)unit_ai_update_stagger_reset,
+    /* +0x02a0 */ (uint32_t)function_do_nothing, 0, (uint32_t)unit_new, 0, (uint32_t)function_do_nothing, (uint32_t)unit_update, (uint32_t)unit_update_scale_function_inputs, (uint32_t)unit_forget_object_reference,
+    /* +0x02c0 */ (uint32_t)unit_region_damage_reaction, 0, (uint32_t)unit_update_aiming_overlay_angles, (uint32_t)unit_update_ik_detail_nodes, 0, 0, (uint32_t)unit_play_default_reaction_sound, (uint32_t)function_do_nothing,
+    /* +0x02e0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0300 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[160], 0, 0, 0, 0, 0, 0,
+    /* +0x0320 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0340 */ 0, 0,
+    /* +0x0348 */ (uint32_t)"biped", 0x62697064, 0x2280550, 0x780234, 0x4, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing,
+    /* +0x0368 */ (uint32_t)function_do_nothing, (uint32_t)biped_placement_offset_centered_pill, (uint32_t)biped_create, (uint32_t)unit_place, (uint32_t)function_do_nothing, (uint32_t)biped_update, (uint32_t)biped_update_scale_function_inputs, 0,
+    /* +0x0388 */ 0, 0, (uint32_t)function_do_nothing, 0, (uint32_t)biped_reset_state, (uint32_t)biped_clear_ground_surface_references, 0, (uint32_t)function_do_nothing,
+    /* +0x03a8 */ (uint32_t)object_type_definition_return_false, (uint32_t)unit_build_network_update, (uint32_t)biped_network_baseline_take, (uint32_t)unit_submit_periodic_network_update, (uint32_t)unit_apply_network_health_update, (uint32_t)biped_is_old_enough, (uint32_t)object_type_definition_return_true, (uint32_t)item_stamp_age_timestamp,
+    /* +0x03c8 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[160], (uint32_t)&message_delta_definitions_0069b1a8[210], 0, 0, 0, 0, 0,
+    /* +0x03e8 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0408 */ 0, 0,
+    /* +0x0410 */ (uint32_t)"vehicle", 0x76656869, 0x24005c0, 0x78024c, 0x5, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing,
+    /* +0x0430 */ (uint32_t)function_do_nothing, 0, (uint32_t)vehicle_create, (uint32_t)unit_place, (uint32_t)function_do_nothing, (uint32_t)vehicle_update, (uint32_t)vehicle_calculate_animation_controls, 0,
+    /* +0x0450 */ 0, 0, (uint32_t)vehicle_blend_animations, 0, (uint32_t)vehicle_reset_state, 0, 0, (uint32_t)function_do_nothing,
+    /* +0x0470 */ (uint32_t)object_type_definition_return_false, (uint32_t)vehicle_encode_network_create, (uint32_t)vehicle_network_baseline_take, (uint32_t)vehicle_encode_network_update, (uint32_t)vehicle_apply_network_update, (uint32_t)vehicle_is_old_enough, (uint32_t)object_type_definition_return_true, (uint32_t)item_stamp_age_timestamp,
+    /* +0x0490 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[160], (uint32_t)&message_delta_definitions_0069b1a8[260], 0, 0, 0, 0, 0,
+    /* +0x04b0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x04d0 */ 0, 0, (uint32_t)"item", 0x6974656d, 0xffff022cu, 0xffffffffu, 0xffffffffu, (uint32_t)function_do_nothing,
+    /* +0x04f0 */ (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, 0, (uint32_t)item_new, 0, (uint32_t)function_do_nothing, (uint32_t)item_update,
+    /* +0x0510 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0530 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0550 */ 0, 0, (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[310], 0, 0, 0, 0,
+    /* +0x0570 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0590 */ 0, 0, 0, 0,
+    /* +0x05a0 */ (uint32_t)"weapon", 0x77656170, 0x2700340, 0x5c027c, 0x3, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing,
+    /* +0x05c0 */ (uint32_t)function_do_nothing, 0, (uint32_t)weapon_new, (uint32_t)weapon_new_from_placement, (uint32_t)function_do_nothing, (uint32_t)weapon_update, (uint32_t)weapon_update_function_values, 0,
+    /* +0x05e0 */ 0, 0, (uint32_t)function_do_nothing, 0, 0, 0, 0, 0,
+    /* +0x0600 */ (uint32_t)object_type_definition_return_false, (uint32_t)weapon_send_creation, (uint32_t)weapon_network_baseline_take, (uint32_t)weapon_build_network_update, (uint32_t)weapon_apply_network_update, (uint32_t)weapon_is_old_enough, (uint32_t)object_type_definition_return_true, (uint32_t)item_stamp_age_timestamp,
+    /* +0x0620 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[310], (uint32_t)&message_delta_definitions_0069b1a8[360], 0, 0, 0, 0, 0,
+    /* +0x0640 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0660 */ 0, 0,
+    /* +0x0668 */ (uint32_t)"equipment", 0x65716970, 0x2580294, 0x280264, 0x2, 0, 0, 0,
+    /* +0x0688 */ 0, 0, (uint32_t)equipment_new, (uint32_t)equipment_new_from_placement, 0, 0, 0, 0,
+    /* +0x06a8 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x06c8 */ (uint32_t)object_type_definition_return_false, (uint32_t)equipment_send_creation, (uint32_t)equipment_network_baseline_take, (uint32_t)equipment_build_network_update, (uint32_t)equipment_apply_network_update, (uint32_t)equipment_is_old_enough, (uint32_t)object_type_definition_return_true, (uint32_t)item_stamp_age_timestamp,
+    /* +0x06e8 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[310], (uint32_t)&message_delta_definitions_0069b1a8[410], 0, 0, 0, 0, 0,
+    /* +0x0708 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0728 */ 0, 0,
+    /* +0x0730 */ (uint32_t)"garbage", 0x67617262, 0xffff0244u, 0xffffffffu, 0xffffffffu, 0, 0, 0,
+    /* +0x0750 */ 0, 0, (uint32_t)garbage_new, 0, 0, (uint32_t)garbage_update, 0, 0,
+    /* +0x0770 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0790 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x07b0 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[310], (uint32_t)&message_delta_definitions_0069b1a8[460], 0, 0, 0, 0, 0,
+    /* +0x07d0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x07f0 */ 0, 0,
+    /* +0x07f8 */ (uint32_t)"projectile", 0x70726f6a, 0xffff02b0u, 0xffffffffu, 0x1, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing,
+    /* +0x0818 */ (uint32_t)function_do_nothing, 0, (uint32_t)projectile_new, 0, (uint32_t)function_do_nothing, (uint32_t)projectile_update, (uint32_t)projectile_update_function_values, (uint32_t)projectile_notify_object_deleted,
+    /* +0x0838 */ 0, (uint32_t)projectile_force_detonate, 0, 0, 0, 0, 0, 0,
+    /* +0x0858 */ (uint32_t)object_type_definition_return_false, (uint32_t)projectile_send_creation, (uint32_t)projectile_network_baseline_take, (uint32_t)projectile_build_network_update, (uint32_t)projectile_apply_network_update, (uint32_t)projectile_is_old_enough, (uint32_t)object_type_definition_return_true, (uint32_t)item_stamp_age_timestamp,
+    /* +0x0878 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[510], 0, 0, 0, 0, 0, 0,
+    /* +0x0898 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x08b8 */ 0, 0,
+    /* +0x08c0 */ (uint32_t)"scenery", 0x7363656e, 0x21001f8, 0x48021c, 0xffffffffu, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing,
+    /* +0x08e0 */ (uint32_t)function_do_nothing, 0, (uint32_t)scenery_new, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)scenery_update, 0, 0,
+    /* +0x0900 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0920 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0940 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[560], 0, 0, 0, 0, 0, 0,
+    /* +0x0960 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0980 */ 0, 0,
+    /* +0x0988 */ (uint32_t)"sound_scenery", 0x73736365, 0x2dc01f8, 0x2802e8, 0xffffffffu, 0, 0, 0,
+    /* +0x09a8 */ 0, 0, (uint32_t)sound_scenery_create, 0, (uint32_t)function_do_nothing, 0, 0, 0,
+    /* +0x09c8 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x09e8 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0a08 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[610], 0, 0, 0, 0, 0, 0,
+    /* +0x0a28 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0a48 */ 0, 0, (uint32_t)"device", 0x64657669, 0xffff0214u, 0xffffffffu, 0xffffffffu, (uint32_t)device_groups_allocate,
+    /* +0x0a68 */ (uint32_t)function_do_nothing, (uint32_t)device_groups_dispose, (uint32_t)device_groups_clear_disposing_flag, 0, (uint32_t)device_create, 0, (uint32_t)device_delete, (uint32_t)device_update_change_values,
+    /* +0x0a88 */ (uint32_t)device_compute_function_values, 0, 0, 0, (uint32_t)device_blend_animations, 0, 0, 0,
+    /* +0x0aa8 */ 0, (uint32_t)function_do_nothing, 0, 0, 0, 0, 0, 0,
+    /* +0x0ac8 */ 0, 0, (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[660], 0, 0, 0, 0,
+    /* +0x0ae8 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0b08 */ 0, 0, 0, 0,
+    /* +0x0b18 */ (uint32_t)"machine", 0x6d616368, 0x2940228, 0x4002a0, 0xffffffffu, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing,
+    /* +0x0b38 */ (uint32_t)function_do_nothing, 0, (uint32_t)machine_create, (uint32_t)machine_place, (uint32_t)function_do_nothing, (uint32_t)device_machine_update, 0, 0,
+    /* +0x0b58 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0b78 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0b98 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[660], (uint32_t)&message_delta_definitions_0069b1a8[710], 0, 0, 0, 0, 0,
+    /* +0x0bb8 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0bd8 */ 0, 0,
+    /* +0x0be0 */ (uint32_t)"control", 0x6374726c, 0x2ac021c, 0x4002b8, 0xffffffffu, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing,
+    /* +0x0c00 */ (uint32_t)function_do_nothing, 0, (uint32_t)object_type_definition_return_true, (uint32_t)control_place, (uint32_t)function_do_nothing, (uint32_t)object_type_definition_return_true, 0, 0,
+    /* +0x0c20 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0c40 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0c60 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[660], (uint32_t)&message_delta_definitions_0069b1a8[760], 0, 0, 0, 0, 0,
+    /* +0x0c80 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0ca0 */ 0, 0,
+    /* +0x0ca8 */ (uint32_t)"light_fixture", 0x6c696669, 0x2c4022c, 0x5802d0, 0xffffffffu, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing,
+    /* +0x0cc8 */ (uint32_t)function_do_nothing, 0, (uint32_t)object_type_definition_return_true, (uint32_t)light_fixture_place, (uint32_t)function_do_nothing, (uint32_t)object_type_definition_return_true, 0, 0,
+    /* +0x0ce8 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0d08 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0d28 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[660], (uint32_t)&message_delta_definitions_0069b1a8[810], 0, 0, 0, 0, 0,
+    /* +0x0d48 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0d68 */ 0, 0,
+    /* +0x0d70 */ (uint32_t)"placeholder", 0x706c6163, 0xffff01fcu, 0xffffffffu, 0xffffffffu, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing,
+    /* +0x0d90 */ (uint32_t)function_do_nothing, 0, (uint32_t)object_type_definition_return_true, (uint32_t)function_do_nothing, (uint32_t)function_do_nothing, 0, 0, 0,
+    /* +0x0db0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0dd0 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0df0 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[860], 0, 0, 0, 0, 0, 0,
+    /* +0x0e10 */ 0, 0, 0, 0, 0, 0, 0, 0,
+    /* +0x0e30 */ 0,
+};
+
+/* 0x0069ff2c..0x006a0088 */
+uint32_t length_error_throw_info_0069ff2c[87] = {
+    /* +0x0000 */ (uint32_t)&table_0064efb0[0], 0, 0x56413f2e, 0x676e656c, 0x655f6874, 0x726f7272, 0x64747340, 0x4040,
+    /* +0x0020 */ (uint32_t)&table_0064efb0[0], 0, 0x56413f2e, 0x65637865, 0x6f697470, 0x40406e, (uint32_t)&table_0064efb0[0], 0,
+    /* +0x0040 */ 0x56413f2e, 0x69676f6c, 0x72655f63, 0x40726f72, 0x40647473, 0x40, (uint32_t)&table_0064efb0[0], 0,
+    /* +0x0060 */ 0x56413f2e, 0x5f74756f, 0x725f666f, 0x65676e61, 0x64747340, 0x4040, 0, 0,
+    /* +0x0080 */ 0, 0x6133d1, 0, 0x623142, 0, 0x638f30, 0x638f0f, 0x638f40,
+    /* +0x00a0 */ 0, 0x638ef4, 0, 0x6144cb, 0x6144b0, 0, 0x57f58e, 0x57f5ce,
+    /* +0x00c0 */ 0x57f5be, 0x57f57e, 0x57f56e, 0x57f55e, 0x57f52d, 0x57f5ae, 0x57f54e, 0x57f59e,
+    /* +0x00e0 */ 0, 0x638fd1, 0x638fc1, 0x638fb1, 0x639041, 0x638fa1, 0x638f91, 0x638f81,
+    /* +0x0100 */ 0x638f71, 0x638fe1, 0x638ff1, 0x639011, 0x639021, 0x639031, 0x639001, 0x638f50,
+    /* +0x0120 */ 0, 0x638e6a, 0x638e60, 0x638e56, 0x638e4c, 0x638e42, 0x638e2e, 0x638e24,
+    /* +0x0140 */ 0x638e09, 0x638e38, 0, 0x6144f6, 0x6144d5, 0x614506, 0x614516,
+};
+
+/* zero-filled object at 0x006e09e8 (3596 bytes) */
+uint8_t bss_006e09e8[3596];
+
+void *const network_index_cache_table = (void *)&machine_table_006874d0[12];
+void *const flag_render_device_slot = (void *)bss_006e09e8;
+

@@ -1,6 +1,6 @@
 """Build step (CMakeLists.txt, HALO_REGENERATE): runs between compiling src/ and linking halo_rebuilt, so adding or
 renaming a function needs no manual step: tools/gen_link_sources.py rewrites standalone/generated/code_entries.c,
-image_bindings.c and standalone/image/pieces.c (it tells a function from a fragment file by the compiled objects: here
+image_bindings.c (it tells a function from a fragment file by the compiled objects: here
 the build's own objects). Engine globals are C definitions in standalone/data/*.c; a new one is added there by hand
 (tools/update_globals.py lists what a link left unresolved).
 The committed files are rewritten only when their content changes; the stamp is touched only then too, so an
@@ -29,8 +29,7 @@ def object_map(list_file):
 def main():
     list_file, stamp = sys.argv[1], sys.argv[2]
     objects = object_map(list_file)
-    watched = [os.path.join(gls.GEN, "code_entries.c"), os.path.join(gls.GEN, "image_bindings.c"),
-               os.path.join(gls.SA, "image", "pieces.c")]
+    watched = [os.path.join(gls.GEN, "code_entries.c"), os.path.join(gls.GEN, "image_bindings.c")]
     before = [open(p, "rb").read() if os.path.exists(p) else None for p in watched]
 
     gls.defines_function = lambda e: _defines(objects, e)

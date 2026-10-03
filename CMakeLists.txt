@@ -71,7 +71,6 @@ add_custom_target(third_party_import_libs DEPENDS ${THIRD_PARTY_LIBS})
 
 # ---- the standalone exe: loader, data image, link tables
 set(SA "${CMAKE_SOURCE_DIR}/standalone")
-file(GLOB IMAGE_C CONFIGURE_DEPENDS "${SA}/image/halo_image_*.c")   # the data image pieces as C data
 # the engine globals as C definitions (standalone/data/*.c), compiled with the game code's flags and headers
 file(GLOB DATA_SOURCES CONFIGURE_DEPENDS "${SA}/data/*.c")
 add_library(halo_data OBJECT ${DATA_SOURCES})
@@ -82,16 +81,15 @@ set(SUPPORT_SOURCES
     "${SA}/loader.c"
     "${SA}/d3dx_compat.c"
     "${CMAKE_SOURCE_DIR}/harness/x87_shims.c"
-    "${SA}/image/pieces.c"
     "${SA}/generated/image_bindings.c"
     "${SA}/generated/code_entries.c"
     "${SA}/bridges.cpp")
-add_executable(halo_rebuilt WIN32 ${SUPPORT_SOURCES} ${IMAGE_C}
+add_executable(halo_rebuilt WIN32 ${SUPPORT_SOURCES}
     $<TARGET_OBJECTS:halo_game> $<TARGET_OBJECTS:halo_data>)
 add_dependencies(halo_rebuilt third_party_import_libs)
 
 # ---- keep the committed link sources in step with src/ (tools/cmake_regen.py): after the game objects compile and
-# before the link, regenerate code_entries.c / image_bindings.c / pieces.c (new or renamed functions). Off, or
+# before the link, regenerate code_entries.c / image_bindings.c (new or renamed functions). Off, or
 # without Python, the committed files are used as they are.
 find_package(Python3 COMPONENTS Interpreter)
 option(HALO_REGENERATE "Regenerate the link sources from src/ during the build" ${Python3_FOUND})
@@ -112,7 +110,7 @@ if(HALO_REGENERATE)
         COMMENT "Regenerating link sources from src/" VERBATIM)
     add_custom_target(halo_regenerate DEPENDS "${_regen_stamp}")
     add_dependencies(halo_rebuilt halo_regenerate)
-    set_source_files_properties("${SA}/image/pieces.c" "${SA}/generated/image_bindings.c"
+    set_source_files_properties("${SA}/generated/image_bindings.c"
         "${SA}/generated/code_entries.c" PROPERTIES OBJECT_DEPENDS "${_regen_stamp}")
 endif()
 set_source_files_properties(${SUPPORT_SOURCES} PROPERTIES COMPILE_OPTIONS "/O2;/GS-")

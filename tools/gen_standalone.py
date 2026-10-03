@@ -1,7 +1,7 @@
 """Standalone build generator, stage 1: the build-time tables for a halo.exe built from src/.
 
 The standalone exe is linked away from 0x400000 (it runs no original code), and at start-up its loader copies the data
-image linked into it (standalone/image/*.asm) back to the original addresses, so every global our C references by
+image back to the original addresses, so every global our C references by
 absolute address (gen_link's EQU symbols) stays valid. This stage reads only committed files -- standalone/frozen/
 and the src/ headers; it never reads the retail binary (retail_guard.forbid_retail) -- and writes:
   build/standalone/layout.json         where each piece goes (virtual address, raw size, virtual size)

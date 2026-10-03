@@ -1,6 +1,7 @@
 #include "halo/objects/flag.hpp"
 
 extern "C" {
+extern void *const flag_render_device_slot;
 extern int32_t __ftol(double);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void data_delete_all(data_array *array);
@@ -796,7 +797,7 @@ void halo::objects::FlagSystem::render(uint32_t *entry, uint32_t *submission_blo
     }
 
     {
-        void ***device = (void ***)0x006e09e8;
+        void ***device = (void ***)flag_render_device_slot;
         (*(void (__stdcall **)(void *))((uint8_t *)(*device)[0] + 0x30 * 0))(device);
     }
 

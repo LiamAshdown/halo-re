@@ -1,6 +1,7 @@
 #include "halo/interface/ifr1_play_diagnostics.hpp"
 
 extern "C" {
+extern uint8_t rasterizer_window[];
 extern void __cdecl standalone_log(const char *format, ...);
 extern first_person_weapon_interface *first_person_weapon_interfaces;
 extern data_array *object_data;
@@ -158,8 +159,8 @@ void PlayDiagnostics::fp_render_model_note(uint32_t model_tag, float pixels, int
  */
 void PlayDiagnostics::fp_clip_note(const float *world, int32_t effect_type)
 {
-    const float *view = (const float *)0x007c1290;
-    const float *projection = (const float *)0x007c13c0;
+    const float *view = (const float *)(rasterizer_window + 0x70);
+    const float *projection = (const float *)(rasterizer_window + 0x1a0);
     float v[3], clip[4];
     int32_t i;
 
