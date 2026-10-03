@@ -1,0 +1,133 @@
+// unit_find_weapon_marker_transform  (Ghidra: FUN_005640a0; it finds a vehicle seat's entry points)
+// address 0x5640a0, size 533 bytes
+// name confidence: 0.2   rewrite confidence: 0.85
+// VERIFIED against disassembly 0x5640a0..0x5642b5 (2026-09-30): stack (vehicle, seat, out_entry, out_seat, out_hint) at
+//   [ebp+8..+0x18]; the seat marker transform is the first multiplicand, the entry point is the product's position.
+// REWRITTEN from objdump 0x5640a0..0x5642b4 (the draft swapped the unit and the vehicle, dropped the entering
+//   unit and returned bogus positions). EAX: the unit about to enter; stack (vehicle, seat, out_entry,
+//   out_seat, out_hint). The unit's animation graph (tag +0x44) must have a units block whose label matches the
+//   seat's label (_stricmp, 0x64 each) with more than 7 animations and an "enter" animation (slot 7); otherwise 0.
+//   The seat marker (seat +0x24) of the vehicle gives the seat's world transform; frame 0 of the enter animation
+//   (0x4d4a80 on the unit's model) placed on it gives the world point the unit starts entering from. The optional
+//   outputs are that entry point, the seat marker's world position and the world position of the marker named
+//   "<seat marker> enter-hint".
+// blam-cc: EAX -> unit_index, stack -> (vehicle_index, seat_index, out_entry, out_seat, out_hint)
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x008603b0 | extern data_array *object_data;
+  // 0x0087bc14 | extern tag_instance *tag_instances;
+  // 0x4f6080 | object_marker *marker, uint32_t flags);
+  // 0x4d4a80, EAX model, EDI animation, stack | int16_t frame, real_orientation *out_orientations);
+  // 0x4cbad0, ECX q, EDX out | extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out);
+  // 0x4cc0d0 (via 0x696664) | extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
+
+#if 0
+Original Ghidra decompilation (0x5640a0):
+
+undefined4
+FUN_005640a0(uint param_1,short param_2,undefined4 *param_3,undefined4 *param_4,undefined4 *param_5)
+
+{
+  char cVar1;
+  int iVar2;
+  undefined4 *puVar3;
+  uint in_EAX;
+  int iVar4;
+  int iVar5;
+  char *pcVar6;
+  short sVar7;
+  undefined4 *puVar8;
+  undefined1 local_a60 [16];
+  undefined4 local_a50;
+  undefined4 local_a4c;
+  undefined4 local_a48;
+  undefined4 uStack_261;
+  undefined1 local_160 [96];
+  undefined4 local_100;
+  undefined4 local_fc;
+  undefined4 local_f8;
+  undefined1 local_f0 [56];
+  undefined1 local_b8 [40];
+  undefined4 local_90;
+  undefined4 local_8c;
+  undefined4 local_88;
+  undefined1 local_80 [40];
+  undefined4 local_58;
+  undefined4 local_54;
+  undefined4 local_50;
+  undefined1 local_48 [40];
+  undefined4 local_20;
+  undefined4 local_1c;
+  undefined4 local_18;
+  undefined4 local_c;
+
+  iVar5 = *(int *)((**(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 + (in_EAX & 0xffff) * 0xc) &
+                   0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+  iVar2 = *(int *)((*(uint *)(iVar5 + 0x44) & 0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+  local_c = *(undefined4 *)((*(uint *)(iVar5 + 0x34) & 0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+  iVar5 = param_2 * 0x11c +
+          *(int *)(*(int *)((**(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 +
+                                        (param_1 & 0xffff) * 0xc) & 0xffff) * 0x20 + 0x14 +
+                           DAT_0087bc14) + 0x2e8);
+  sVar7 = 0;
+  if (0 < *(int *)(iVar2 + 0xc)) {
+    iVar4 = 0;
+    do {
+      iVar4 = __stricmp((char *)(iVar4 * 100 + *(int *)(iVar2 + 0x10)),(char *)(iVar5 + 4));
+      if (iVar4 == 0) {
+        if (sVar7 == -1) {
+          return 0;
+        }
+        if (*(int *)(sVar7 * 100 + 0x40 + *(int *)(iVar2 + 0x10)) < 8) {
+          return 0;
+        }
+        if (*(short *)(*(int *)(sVar7 * 100 + *(int *)(iVar2 + 0x10) + 0x44) + 0xe) == -1) {
+          return 0;
+        }
+        pcVar6 = (char *)(iVar5 + 0x24);
+        object_get_node_local_transform(param_1,pcVar6,local_f0,1);
+        FUN_004d4a80(0,local_a60);
+        matrix4x3_from_quaternion();
+        local_20 = local_a50;
+        local_1c = local_a4c;
+        local_18 = local_a48;
+        (*(code *)PTR_matrix4x3_multiply_00696664)(local_b8,local_48,local_80);
+        iVar5 = 1 - (int)pcVar6;
+        do {
+          cVar1 = *pcVar6;
+          pcVar6[(int)&uStack_261 + iVar5] = cVar1;
+          pcVar6 = pcVar6 + 1;
+        } while (cVar1 != '\0');
+        puVar3 = &uStack_261;
+        do {
+          puVar8 = puVar3;
+          puVar3 = (undefined4 *)((int)puVar8 + 1);
+        } while (*(char *)((int)puVar8 + 1) != '\0');
+        *(undefined4 *)((int)puVar8 + 1) = 0x746e6520;
+        *(undefined4 *)((int)puVar8 + 5) = 0x682d7265;
+        *(undefined **)((int)puVar8 + 9) = &DAT_00746e69;
+        object_get_node_local_transform(param_1,(int)&uStack_261 + 1,local_160,1);
+        if (param_4 != (undefined4 *)0x0) {
+          *param_4 = local_90;
+          param_4[1] = local_8c;
+          param_4[2] = local_88;
+        }
+        if (param_3 != (undefined4 *)0x0) {
+          *param_3 = local_58;
+          param_3[1] = local_54;
+          param_3[2] = local_50;
+        }
+        if (param_5 != (undefined4 *)0x0) {
+          *param_5 = local_100;
+          param_5[1] = local_fc;
+          param_5[2] = local_f8;
+        }
+        return 1;
+      }
+      sVar7 = sVar7 + 1;
+      iVar4 = (int)sVar7;
+    } while (iVar4 < *(int *)(iVar2 + 0xc));
+  }
+  return 0;
+}
+#endif

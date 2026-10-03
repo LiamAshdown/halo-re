@@ -1,0 +1,214 @@
+#include <string.h>
+#include "halo/units/unit.hpp"
+#include "projectiles.h"
+
+extern "C" {
+extern data_array *object_data;
+extern tag_instance *tag_instances;
+extern Globals *global_globals;
+extern char ai_marker_name_a[];
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
+extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
+extern real vector3d_normalize_with_length(real_vector3d *v);
+extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
+extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
+extern void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index, int32_t collision_surface_index);
+extern void device_machine_melee_attacked(uint32_t object_index);
+}
+
+namespace halo::units {
+
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+/**
+ * Engine function unit_melee_attack_scan.
+ *
+ * @address 0x56f550
+ */
+void UnitView::melee_attack_scan()
+{
+    uint32_t unit_index = datum_handle;
+    uint8_t *obj = OBJECT_DATA(unit_index);
+    uint8_t *unit_tag = TAG_DATA(*(datum_index *)obj);
+    real_vector3d *aim = (real_vector3d *)(obj + 0x23c);
+    object_marker marker;
+    real_point3d origin;
+    real_vector3d perp;
+    real_vector3d side;
+    uint32_t best_object = 0xffffffff;
+    int32_t material = -1;
+    int16_t best_type = 0;
+    float best_fraction = 0.0f;
+    uint32_t breakable_index = 0xffffffff;
+    int32_t breakable_surface = 0;
+    datum_index secondary_effect = 0xffffffff;
+    datum_index damage_effect;
+    int32_t row;
+    int32_t col;
+
+    object_get_node_local_transform(unit_index, ai_marker_name_a, &marker, 1);
+    origin = marker.node_transform.position;
+    vector3d_build_perpendicular(&perp, aim);
+    vector3d_normalize_with_length(&perp);
+    side.i = aim->j * perp.k - aim->k * perp.j;
+    side.j = aim->k * perp.i - aim->i * perp.k;
+    side.k = aim->i * perp.j - aim->j * perp.i;
+
+    for (row = -2; row <= 2; row++) {
+        float rowf = (float)row;
+
+        for (col = -2; col <= 2; col++) {
+            float colf = (float)col;
+            real_vector3d delta;
+            collision_result hit;
+
+            delta.i = (rowf * perp.i + colf * side.i) * 0.1f + aim->i * 0.8f;
+            delta.j = (rowf * perp.j + colf * side.j) * 0.1f + aim->j * 0.8f;
+            delta.k = (rowf * perp.k + colf * side.k) * 0.1f + aim->k * 0.8f;
+            if (!collision_test_movement_segment(0x1000e9, &origin, &delta, unit_index, &hit)) {
+                continue;
+            }
+            if (*(int16_t *)&hit == 2) {
+                if (best_object == 0xffffffff) {
+                    material = *(int32_t *)&hit.material_type;
+                    if (hit.surface_flags & 8) {
+                        breakable_index = (breakable_index & 0xffff0000u) | hit.breakable_surface_index;
+                        breakable_surface = hit.surface_index;
+                    }
+                }
+            } else if (*(int16_t *)&hit == 3) {
+                uint32_t candidate = hit.object_index;
+                uint8_t *cand = OBJECT_DATA(candidate);
+                int16_t type;
+
+                if (((struct object *)cand)->type != 2 && ((struct object *)cand)->parent_object != k_datum_index_none) {
+                    candidate = ((struct object *)cand)->parent_object;
+                    cand = OBJECT_DATA(candidate);
+                }
+                type = ((struct object *)cand)->type;
+                if (best_object != 0xffffffff) {
+                    if (type != 0) {
+                        continue;
+                    }
+                    if (best_type == 0 && !(best_fraction > hit.t)) {
+                        continue;
+                    }
+                }
+                best_object = candidate;
+                best_type = type;
+                material = *(int32_t *)&hit.material_type;
+                best_fraction = hit.t;
+            }
+        }
+    }
+
+    damage_effect = 0xffffffff;
+    {
+        int16_t weapon_slot = ((unit_object *)obj)->unit.current_weapon_index;
+
+        if (weapon_slot != -1) {
+            datum_index weapon_index = *(datum_index *)(obj + 0x2f8 + weapon_slot * 4);
+
+            if (weapon_index != k_datum_index_none) {
+                uint8_t *weapon_tag = TAG_DATA(*(datum_index *)OBJECT_DATA(weapon_index));
+
+                damage_effect = *(datum_index *)(weapon_tag + 0x3a0);
+                secondary_effect = *(datum_index *)(weapon_tag + 0x3b0);
+            }
+        }
+    }
+    if (damage_effect == 0xffffffff) {
+        damage_effect = *(datum_index *)(unit_tag + 0x294);
+    }
+
+    if (best_object != 0xffffffff) {
+        uint8_t *best = OBJECT_DATA(best_object);
+
+        if (((struct object *)best)->type == 1 && ((struct object *)best)->network_role != 1) {
+            float scale = *(float *)(TAG_DATA(*(datum_index *)best) + 0x20) * 0.035f;
+
+            side.i = scale * aim->i;
+            side.j = scale * aim->j;
+            side.k = scale * aim->k;
+            UnitView(best_object).apply_impulse_to_seat(&side);
+        }
+    }
+
+    if (damage_effect != 0xffffffff) {
+        damage_data dd;
+
+        memset(&dd, 0, sizeof(dd));
+        dd.flags |= 1;
+        dd.damage_effect_tag = damage_effect;
+        dd.responsible_player = ((unit_object *)obj)->unit.controlling_player;
+        dd.responsible_object = unit_index;
+        dd.team_index = ((unit_object *)obj)->base.owner_team;
+        dd.location_leaf_index = ((unit_object *)obj)->base.location_leaf_index;
+        *(int32_t *)&dd.location_cluster_index = *(int32_t *)&((unit_object *)obj)->base.location_cluster_index;
+        dd.epicentre = origin;
+        dd.origin = *(real_point3d *)&((unit_object *)obj)->base.bounding_center.x;
+        dd.direction = *aim;
+        dd.random_blend = 1.0f;
+        dd.multiplier = 1.0f;
+        dd.material_type = (int16_t)material;
+
+        if (best_object == 0xffffffff) {
+            if ((int16_t)breakable_index != -1) {
+                breakable_surface_apply_damage(&dd, (int32_t)breakable_index, breakable_surface);
+            }
+        } else {
+            float speed_scale = *(float *)((uint8_t *)global_globals->player_information.pointer + 0x34);
+
+            if (*(int16_t *)(OBJECT_DATA(best_object) + 0xb4) == 7) {
+                device_machine_melee_attacked(best_object);
+            }
+            if (speed_scale > 0.0f) {
+                float f = (((unit_object *)obj)->base.velocity.k * ((unit_object *)obj)->base.forward.k +
+                           ((unit_object *)obj)->base.velocity.j * ((unit_object *)obj)->base.forward.j +
+                           ((unit_object *)obj)->base.forward.i * ((unit_object *)obj)->base.velocity.i) * 30.0f / speed_scale;
+
+                if (f < 0.0f) {
+                    f = 0.0f;
+                } else if (f > 1.0f) {
+                    f = 1.0f;
+                }
+                dd.random_blend = f;
+            }
+            if (((unit_object *)obj)->base.type == 0 && *(int8_t *)(obj + 0x501) > 0x0f) {
+                dd.random_blend = 1.5f;
+            }
+            if (*(int16_t *)(OBJECT_DATA(best_object) + 0xb4) == 0) {
+                object_apply_damage(&dd, best_object, -1, -1, -1, 0);
+            }
+        }
+    }
+
+    if ((int16_t)material != -1) {
+        ::halo::units::unit_trigger_material_hit_effect((int16_t)material, damage_effect, unit_index);
+        if (secondary_effect != 0xffffffff) {
+            damage_data dd;
+
+            memset(&dd, 0, sizeof(dd));
+            dd.flags |= 8;
+            dd.damage_effect_tag = secondary_effect;
+            dd.responsible_player = k_datum_index_none;
+            dd.responsible_object = k_datum_index_none;
+            dd.team_index = -1;
+            dd.location_cluster_index = -1;
+            dd.epicentre = *(real_point3d *)&((unit_object *)obj)->base.bounding_center.x;
+            dd.origin = *(real_point3d *)&((unit_object *)obj)->base.bounding_center.x;
+            dd.direction.i = -aim->i;
+            dd.direction.j = -aim->j;
+            dd.direction.k = -aim->k;
+            dd.random_blend = 1.0f;
+            dd.multiplier = 1.0f;
+            dd.material_type = -1;
+            object_apply_damage(&dd, unit_index, -1, -1, -1, 0);
+        }
+    }
+    obj[0x289] = 0;
+}
+#undef OBJECT_DATA
+#undef TAG_DATA
+
+}

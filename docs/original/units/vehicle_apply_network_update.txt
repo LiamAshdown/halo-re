@@ -1,0 +1,31 @@
+// vehicle_apply_network_update  (reached only through a .data code pointer; no C existed)
+// address 0x5726e0, size 846 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x5726e0..0x572a2d: the vehicle object type  +0x70 hook (0x69b628; the biped one
+//   is 0x55b5f0): applies a received update. A vehicle already updated rejects (staged) a reliable update whose
+//   sequence (+4) differs or whose delta counter (+5) is not ahead within 30. The 0x40-byte baseline decodes
+//   (reliable: forced, from the current one at +0x528); on success the counter and flag 0x8000000 are taken, a full
+//   update also the sequence and baseline. Forward/up are re-orthonormalized (two cross products, normalized) and
+//   written with position and velocity to the network block (+0x1c.., +0x48, +0x2c, +0x38) and the object (+0x68,
+//   +0x8c, +0x74, +0x80; flag 0x20 cleared unless set in the update); children follow the position (0x570cb0), and a
+//   position more than 10 away, flag 0x20, or up misaligned beyond cos 45 snaps again. The message  latency (+0xad8
+//   of the connection, else garbage from the record pointer as the binary does) above 10 records an extrapolation;
+//   the baseline is kept at +0x56c.
+// blam-cc: stack -> vehicle_index, message, connection
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x008603b0 | extern data_array *object_data;
+  // 0x4f6ec0, ECX index | extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
+  // 0x4ec600, EAX context, ECX destination, EDX | int32_t force);
+  // 0x4ec590, EAX, ECX | extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
+  // 0x4ec670, EAX | extern uint8_t message_delta_decode_compound_field_staged(void **context);
+  // 0x4052c0 | extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
+  // 0x401990 | extern real vector3d_normalize_with_length(real_vector3d *v);
+  // 0x570cb0 | extern void unit_propagate_position_delta_to_children(real_point3d *new_position, uint32_t unit_index);
+  // 0x00 | uint8_t object_flag_5;
+  // 0x04 | real_point3d position;
+  // 0x10 | real_vector3d velocity;
+  // 0x1c | real_vector3d angular_velocity;
+  // 0x28 | real_vector3d forward;
+  // 0x34 | real_vector3d up;
+  // size 0x40 | } vehicle_network_baseline;

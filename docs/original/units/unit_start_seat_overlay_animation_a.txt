@@ -1,0 +1,110 @@
+// unit_start_seat_overlay_animation_a  (Ghidra: unit_start_seat_overlay_animation_a)
+// address 0x565e00, size 349 bytes
+// name confidence: 0.3 (phase2 candidate)   rewrite confidence: 0.35
+// evidence: types/units.h unit_data.overlays[0] (0x2aa), .unknown_2a4 (0x2a4),
+//   .animation_definition_index/.animation_weapon_index/.animation_weapon_type_index (0x2a0/
+//   0x2a1/0x2a2); types/objects.h object.definition_tag (0x000), Object.animation_graph
+//   (tag+0x44); types/tags.h ModelAnimationsAnimationGraphUnitSeat (weapons at 0x58),
+//   ModelAnimationsAnimationGraphWeapon (animations TagReflexive at 0x98, weapon_types
+//   TagReflexive at 0xb0), ModelAnimationsAnimationGraphWeaponType (0x3c, animations
+//   TagReflexive at 0x30) -- same lookup chain as unit_try_set_animation_state, one level
+//   deeper for the command values that resolve through the weapon-type table instead of the
+//   weapon table.
+
+Original comment above the definition:
+// FIXED (register inputs, objdump: each stack slot's first use checked against the parameter): the original never reads EAX; unit_index arrive(s) on the stack (2 stack argument(s)).
+// blam-cc: stack -> unit_index, command
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x008603b0 | extern data_array *object_data;
+  // 0x0087bc14 | extern tag_instance *tag_instances;
+  // 0x4f6b70, EAX, DX | extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count);
+  // 0x4d6280, EAX graph, DX animation, stack | int32_t stream);
+  // blam-cc: see file header | void unit_start_seat_overlay_animation_a(uint32_t unit_index, int16_t command)
+  // sentinel: skip the whole lookup below | default: raw_index = -2; break;
+  // 0x565f24: EAX unit, DX 6 | object_copy_default_node_transforms(unit_index, 6);
+  // 0x565f2d | *(datum_index *)&obj_tag->animation_graph.tag_id, animation_index, 1);
+
+#if 0
+Original Ghidra decompilation (0x565e00):
+
+void FUN_00565e00(uint param_1,short param_2)
+
+{
+  uint *puVar1;
+  undefined2 uVar2;
+  int iVar3;
+  int iVar4;
+  short sVar5;
+  int iVar6;
+
+  puVar1 = *(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 + (param_1 & 0xffff) * 0xc);
+  if (param_2 == 0) {
+    *(undefined1 *)(puVar1 + 0xa9) = 0;
+    *(undefined2 *)((int)puVar1 + 0x2aa) = 0xffff;
+    return;
+  }
+  iVar6 = *(int *)(*(int *)(*(int *)((*(uint *)(*(int *)((*puVar1 & 0xffff) * 0x20 + 0x14 +
+                                                        DAT_0087bc14) + 0x44) & 0xffff) * 0x20 +
+                                     0x14 + DAT_0087bc14) + 0x10) + 0x5c + (char)puVar1[0xa8] * 100)
+  ;
+  iVar3 = *(char *)((int)puVar1 + 0x2a1) * 0xbc;
+  iVar4 = iVar3 + iVar6;
+  iVar6 = *(char *)((int)puVar1 + 0x2a2) * 0x3c + *(int *)(iVar3 + 0xb4 + iVar6);
+  sVar5 = -1;
+  switch((int)param_2) {
+  case 1:
+    sVar5 = 0x15;
+    break;
+  case 2:
+    sVar5 = 0x16;
+    break;
+  case 3:
+    sVar5 = 0x17;
+    break;
+  case 4:
+    sVar5 = 0x18;
+    break;
+  case 5:
+    sVar5 = 0;
+    goto LAB_00565ef7;
+  case 6:
+    sVar5 = 1;
+    goto LAB_00565ef7;
+  case 7:
+    sVar5 = 8;
+    goto LAB_00565ef7;
+  case 8:
+    sVar5 = 0x14;
+    break;
+  case 9:
+    sVar5 = 9;
+LAB_00565ef7:
+    if ((int)sVar5 < *(int *)(iVar6 + 0x30)) {
+      sVar5 = *(short *)(*(int *)(iVar6 + 0x34) + sVar5 * 2);
+      goto switchD_00565e9f_default;
+    }
+    goto LAB_00565f0a;
+  default:
+    goto switchD_00565e9f_default;
+  }
+  if ((int)sVar5 < *(int *)(iVar4 + 0x98)) {
+    sVar5 = *(short *)(*(int *)(iVar4 + 0x9c) + sVar5 * 2);
+  }
+  else {
+LAB_00565f0a:
+    sVar5 = -1;
+  }
+switchD_00565e9f_default:
+  if (sVar5 != -1) {
+    if (((param_2 == 7) - 1U & 6) != 0) {
+      FUN_004f6b70();
+    }
+    uVar2 = FUN_004d6280(1);
+    *(undefined2 *)((int)puVar1 + 0x2aa) = uVar2;
+    *(undefined2 *)(puVar1 + 0xab) = 0;
+    *(undefined1 *)(puVar1 + 0xa9) = (undefined1)param_2;
+  }
+  return;
+}
+#endif

@@ -1,0 +1,117 @@
+#include "halo/units/unit.hpp"
+
+extern "C" {
+extern data_array *object_data;
+extern tag_instance *tag_instances;
+extern double fmod(double x, double y);
+extern void object_physics_tick(uint32_t unit_index, uint32_t powered_states, void *transform, uint32_t extra_force, uint32_t extra_torque);
+extern double cos(double x);
+extern double sin(double x);
+}
+
+namespace halo::units {
+
+/**
+ * Computes a single-axis (steering-wheel-style) rotation control transform for a vehicle-type unit each tick:
+ * accumulates and wraps the wheel-rotation angle, then either dispatches generically or writes a pair of
+ * scalar+quaternion blocks (rotated by half the turning angle about a fixed axis) when the supporting
+ * object's physics type is 2. FIXED (objdump 0x572d6e..0x572dc7): EDI is the caller's powered-mass-point
+ * buffer;
+ *
+ * @address 0x572cd0
+ */
+void VehicleView::calculate_steering_wheel_controls(void *mass_points, float *powered_states)
+{
+    uint32_t unit_index = datum_handle;
+    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
+    vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
+    uint8_t *physics_tag = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    float *out_transform = powered_states;
+    float wrapped;
+
+    vehicle->wheel_rotation = vehicle->forward_velocity + vehicle->wheel_rotation;
+    wrapped = (float)fmod(vehicle->wheel_rotation, tag->wheel_circumference);
+    vehicle->wheel_rotation = wrapped;
+    if (wrapped < 0.0f) {
+        vehicle->wheel_rotation = wrapped + tag->wheel_circumference;
+    }
+
+    if (*(int32_t *)(physics_tag + 0x68) != 2) {
+        object_physics_tick(unit_index, 0, mass_points, 0, 0);
+        return;
+    }
+
+    {
+        float turning = vehicle->turning_velocity;
+        float c = (float)cos((double)turning * 0.5);
+        float s = (float)sin((double)turning * 0.5);
+
+        out_transform[0] = vehicle->forward_velocity;
+        out_transform[7] = 0.0f;
+        out_transform[8] = 0.0f;
+        out_transform[9] = s;
+        out_transform[10] = c;
+        out_transform[0x18] = vehicle->forward_velocity;
+        out_transform[0x1f] = 0.0f;
+        out_transform[0x20] = 0.0f;
+        out_transform[0x21] = -s;
+        out_transform[0x22] = c;
+    }
+    object_physics_tick(unit_index, (uint32_t)out_transform, mass_points, 0, 0);
+}
+
+/**
+ * Computes the dual-axis (pitch/yaw) turret control transform for a vehicle-type unit each tick, accumulating
+ * and wrapping left/right wheel-rotation-shaped angle accumulators, and dispatches to object_physics_tick --
+ * either generically, or (when the supporting object's physics type is 2) by writing a pair of
+ * scalar+identity-quaternion blocks directly into out_transform. FIXED (objdump 0x572c62..0x572ca0): EDI is
+ * the caller's powered-mass-point buffer (vehicle_update [esp+0x88]);
+ *
+ * @address 0x572b60
+ */
+void VehicleView::calculate_turret_controls(void *mass_points, float *powered_states)
+{
+    uint32_t unit_index = datum_handle;
+    object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
+    Vehicle *tag = (Vehicle *)tag_instances[obj->definition_tag & 0xffff].data;
+    vehicle_data *vehicle = (vehicle_data *)((uint8_t *)obj + k_unit_object_size);
+    float *out_transform = powered_states;
+    float forward = vehicle->forward_velocity;
+    float turning = vehicle->turning_velocity;
+    uint8_t *physics_tag = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
+    float wrapped;
+
+    vehicle->left_wheel_rotation = (forward - turning) + vehicle->left_wheel_rotation;
+    wrapped = (float)fmod(vehicle->left_wheel_rotation, tag->wheel_circumference);
+    vehicle->left_wheel_rotation = wrapped;
+    if (wrapped < 0.0f) {
+        vehicle->left_wheel_rotation = wrapped + tag->wheel_circumference;
+    }
+
+    vehicle->right_wheel_rotation = (turning + forward) + vehicle->right_wheel_rotation;
+    wrapped = (float)fmod(vehicle->right_wheel_rotation, tag->wheel_circumference);
+    vehicle->right_wheel_rotation = wrapped;
+    if (wrapped < 0.0f) {
+        vehicle->right_wheel_rotation = wrapped + tag->wheel_circumference;
+    }
+
+    if (*(int32_t *)(physics_tag + 0x68) != 2) {
+        object_physics_tick(unit_index, 0, mass_points, 0, 0);
+        return;
+    }
+
+    out_transform[0] = forward - turning;
+    out_transform[7] = 0.0f;
+    out_transform[8] = 0.0f;
+    out_transform[9] = 0.0f;
+    out_transform[10] = 1.0f;
+    out_transform[0x18] = turning + forward;
+    out_transform[0x1f] = 0.0f;
+    out_transform[0x20] = 0.0f;
+    out_transform[0x21] = 0.0f;
+    out_transform[0x22] = 1.0f;
+    object_physics_tick(unit_index, (uint32_t)out_transform, mass_points, 0, 0);
+}
+
+}
