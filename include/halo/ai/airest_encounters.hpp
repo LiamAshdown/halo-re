@@ -69,7 +69,7 @@ public:
 class Encounters {
 public:
     static void release_actors_and_swarms();
-    static int32_t release_inactive_encounters(char *buffer, uint8_t *has_more, int16_t *state);
+    static int32_t release_inactive_encounters(char *buffer, uint8_t *has_more, ai_release_state *state);
     static int release_inactive_swarms(char *buffer, uint8_t *has_more);
     static int32_t find_best_matching_member(uint32_t packed_reference, int16_t requested_squad_index, const Actor *requested_actor_data, const ActorVariant *requested_actor_variant_data, char match_by_index);
     static int __cdecl priority_compare(const ai_priority_target_record *record_a, const ai_priority_target_record *record_b);

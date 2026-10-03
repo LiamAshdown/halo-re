@@ -1235,7 +1235,7 @@ void ai_release_actors_filtered(datum_index encounter_index, int32_t platoon_ind
  *
  * @address 0x42ae50
  */
-int32_t ai_release_inactive_encounters(char *buffer, uint8_t *has_more, int16_t *state)
+int32_t ai_release_inactive_encounters(char *buffer, uint8_t *has_more, ai_release_state *state)
 {
     return halo::ai::Encounters::release_inactive_encounters(buffer, has_more, state);
 }

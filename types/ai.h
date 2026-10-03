@@ -2268,6 +2268,21 @@ typedef struct ai_group_bucket_entry {
     int32_t nearest_friend_actor_index; // 0x18 the ally at that distance
 } ai_group_bucket_entry; // size 0x1c
 
+// The work queue ai_release_inactive_encounters walks: how many entries it holds, the next one to release, then the
+// entries (kind 0 releases an encounter, anything else an encounterless actor).
+typedef struct ai_release_entry {
+    uint8_t kind;             // 0x00
+    uint8_t unknown_01[3];    // 0x01
+    uint32_t index;           // 0x04 the encounter or actor datum
+    uint8_t unknown_08[4];    // 0x08
+} ai_release_entry;           // size 0x0c
+
+typedef struct ai_release_state {
+    int16_t count;            // 0x00
+    int16_t cursor;           // 0x02
+    ai_release_entry entries[1]; // 0x04 count entries
+} ai_release_state;
+
 // One entry of the two perception candidate lists actor_target_scan_potential_targets
 // @0x41d7e0 builds on its stack, sorted with ai_target_distance_qsort_compare @0x41d7a0.
 typedef struct ai_target_candidate {

@@ -198,9 +198,9 @@ void EncounterView::release_actors_filtered(int32_t platoon_index, int32_t squad
  *
  * @address 0x42ae50
  */
-int32_t Encounters::release_inactive_encounters(char *buffer, uint8_t *has_more, int16_t *state)
+int32_t Encounters::release_inactive_encounters(char *buffer, uint8_t *has_more, ai_release_state *state)
 {
-    int16_t *entry;
+    ai_release_entry *entry;
     uint32_t index;
     ScenarioEncounter *scenario_encounter;
     encounter *runtime_encounter;
@@ -210,10 +210,10 @@ int32_t Encounters::release_inactive_encounters(char *buffer, uint8_t *has_more,
     int32_t result;
 
     result = 0;
-    if (state[1] < state[0]) {
-        entry = state + state[1] * 6 + 2;
-        index = *(uint32_t *)(entry + 2);
-        if ((char)*entry == '\0') {
+    if (state->cursor < state->count) {
+        entry = &state->entries[state->cursor];
+        index = entry->index;
+        if ((char)entry->kind == '\0') {
             scenario_encounter = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[index & halo::k_slot_mask];
             runtime_encounter = &((encounter *)halo::ai::globals().encounter_data->data)[index & halo::k_slot_mask];
             sprintf(buffer, "encounter %s (%d units)", scenario_encounter->name.string,
@@ -231,10 +231,10 @@ int32_t Encounters::release_inactive_encounters(char *buffer, uint8_t *has_more,
             sprintf(buffer, "encounterless-actor %s", file_name);
             halo::ai::actor_delete_or_release_unit(index, 1);
         }
-        state[1] = state[1] + 1;
+        state->cursor = state->cursor + 1;
         result = (result & 0xffffff00) | 1;
     }
-    *has_more = (uint8_t)(state[1] < state[0]);
+    *has_more = (uint8_t)(state->cursor < state->count);
     return result;
 }
 
@@ -1649,8 +1649,7 @@ void EncounterView::gather_occupied_clusters(uint32_t *out_clusters, uint8_t rec
                     int16_t k = 0;
                     int32_t m = 0;
                     do {
-                        position_cluster = *(int16_t *)((uint8_t *)squad->move_positions.pointer +
-                            m * 0x50 + 0x28);
+                        position_cluster = (int16_t)halo::ai::reflexive_data<ScenarioMovePosition>(squad->move_positions)[m].cluster_index;
                         if (position_cluster != -1) {
                             out_clusters[(int32_t)position_cluster >> 5] =
                                 out_clusters[(int32_t)position_cluster >> 5] |
