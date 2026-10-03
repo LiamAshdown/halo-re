@@ -2,9 +2,9 @@
 #include <wchar.h>
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
-extern int64_t performance_frequency;
 extern int32_t hud_text_message_time_base;
 extern growable_array hud_text_message_queue;
 extern int32_t hud_text_message_cycle_state_00719230;
@@ -42,7 +42,7 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
     int32_t elapsed;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     elapsed = (int32_t)(long long)((double)(uint32_t)(now_ms - hud_text_message_time_base) * (double)0.08f);
 
     if (elapsed != 0) {

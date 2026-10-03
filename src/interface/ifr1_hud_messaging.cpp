@@ -5,6 +5,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern hud_messaging_globals *hud_messaging;
@@ -13,7 +14,6 @@ extern hud_message_slot *hud_message_find_slot(int32_t source, hud_player_messag
                                                uint8_t source_kind);
 extern int32_t hud_chat_message_count;
 extern int32_t hud_chat_message_expiry[8];
-extern int64_t performance_frequency;
 extern void *chat_gui_root_handle;
 extern chat_gui_find_object_fn chat_gui_find_object;
 extern void *chat_listbox_gui_find_object_arg;
@@ -106,7 +106,7 @@ void HudMessaging::multiplayer_message(const wchar_t *text)
     }
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (counter * 1000) / performance_frequency;
+    now_ms = (counter * 1000) / halo::cseries::globals().performance_frequency;
     hud_chat_message_expiry[hud_chat_message_count] = (int32_t)now_ms + 8000;
     hud_chat_message_count = hud_chat_message_count + 1;
 }

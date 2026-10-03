@@ -11,6 +11,7 @@
 #include "halo/networking/browser_state.hpp"
 #include "halo/networking/net2_master_server.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern void * negotiatorList;
@@ -22,7 +23,6 @@ extern int32_t master_server_last_result;
 extern int32_t mutex_create(network_mutex_record **out_handle);
 extern int32_t network_thread_create(uint8_t flags, void *start_address, void *parameter,
                                        network_thread_record **out_handle);
-extern int64_t performance_frequency;
 extern void * master_server_query_engine;
 extern int32_t server_browser_query_elapsed_ms;
 extern int32_t ServerBrowserState(void *engine);
@@ -125,7 +125,7 @@ void MasterServerConnection::connection_wait_thread(void)
             break;
         }
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-        now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+        now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
         if (0x84 < (uint32_t)(now_ms - halo::sound::globals().time)) {
             halo::sound::sound_idle_update();
         }
@@ -173,7 +173,7 @@ void MasterServerConnection::list_refresh_request(void)
 
     master_server_request_flags = master_server_request_flags | 8;
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     browser_state::next_auto_refresh_ms = now_ms + 10000;
     browser_state::refresh_in_flight = 1;
 }

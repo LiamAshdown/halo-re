@@ -61,7 +61,6 @@ extern network_server_globals *network_server;
 extern uint16_t network_challenge_packet_block[];
 extern uint16_t *network_message_block_build(uint16_t *dest, uint32_t *buffer, uint8_t flags, uint32_t length);
 extern network_client_globals *network_client;
-extern int64_t performance_frequency;
 extern player_profile player_profile_cache[16];
 extern int32_t player_profile_cache_count;
 extern char network_player_join_finalize(void);
@@ -481,7 +480,7 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
             large_integer counter;
 
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-            *field_9c4 = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+            *field_9c4 = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
         }
     }
 
@@ -1242,7 +1241,7 @@ uint32_t ServerView::status_periodic_print()
         int32_t now_ms;
 
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-        now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+        now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
         if ((uint32_t)(now_ms - network_server_status_last_print_ms) > 15000) {
             sv_status();
             network_server_status_last_print_ms = now_ms;
@@ -1495,7 +1494,7 @@ uint32_t ServerMessageHandlers::keepalive(network_channel **channel, int32_t *re
     }
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     payload.echoed_value = *record;
-    payload.timestamp_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    payload.timestamp_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     packet = network_prepare_challenge_packet(3, &payload);
     if (packet != 0) {
         uint8_t reliable_flag = 0;
@@ -1909,7 +1908,7 @@ void MachineView::timer_start(int32_t duration_ms)
     int32_t now_ms;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     machine->timer_14 = now_ms;
     machine->disconnect_timer_active = 1;
     machine->timer_18 = now_ms + duration_ms;

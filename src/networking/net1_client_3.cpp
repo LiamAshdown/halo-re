@@ -3,11 +3,9 @@
 #include "halo/cseries/api.hpp"
 
 extern "C" {
-extern uint8_t debug_log_level;
 extern uint8_t network_statistics_logging_enabled;
 extern void *network_summary_log_file;
 extern char network_build_string[];
-extern int64_t performance_frequency;
 extern int16_t network_game_mode;
 extern char network_game_scenario_load_request(network_game_session *session);
 extern data_array *player_data;
@@ -65,7 +63,7 @@ int32_t ConnectionView::finalize_join(uint16_t *connection)
     uint32_t capacity;
     int32_t i;
 
-    if (debug_log_level > 2 && network_statistics_logging_enabled != 0 &&
+    if (halo::cseries::globals().debug_log_level > 2 && network_statistics_logging_enabled != 0 &&
         network_summary_log_file != 0) {
         fprintf((FILE *)network_summary_log_file, "%s\t", network_build_string);
     }
@@ -74,7 +72,7 @@ int32_t ConnectionView::finalize_join(uint16_t *connection)
     connection[0x76c] = 0xffff;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     *(int32_t *)(iVar6 + 4) = now_ms;
 
     if (network_game_mode == 2) {
@@ -132,7 +130,7 @@ have_machine:
 after_search:
     iVar6 = *(int32_t *)((uint8_t *)connection + 0xadc);
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     *(int32_t *)(iVar6 + 4) = now_ms;
 
     capacity = 0x600;

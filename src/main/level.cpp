@@ -225,7 +225,6 @@ extern "C" { extern void game_engine_init_tick_record_for_mode(void); }
 extern "C" { extern void main_ensure_local_players(void); }
 extern "C" { extern char scenario_load(char *scenario_path); }
 extern "C" { extern void game_state_load_checkpoint(void); }
-extern "C" { extern int64_t performance_frequency; }
 namespace halo::main {
 
 /**
@@ -284,7 +283,7 @@ after_load:
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     counter_ms = counter * 1000;
-    main_globals_data.last_activity_time_ms = (int32_t)(counter_ms / performance_frequency);
+    main_globals_data.last_activity_time_ms = (int32_t)(counter_ms / halo::cseries::globals().performance_frequency);
 
     if (main_globals_data.restore_checkpoint_on_load != 0) {
         game_state_load_checkpoint();

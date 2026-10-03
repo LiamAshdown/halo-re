@@ -16,7 +16,6 @@ extern network_screen_point game_window_bottom_right;
 extern void network_bandwidth_graph_instance_history_reset(network_bandwidth_graph *graph);
 extern void network_stats_overlay_draw(network_bandwidth_graph *graph);
 extern const char *network_bandwidth_units_label_table[2];
-extern int64_t performance_frequency;
 extern void network_bandwidth_graph_update_columns(int32_t new_sample, network_bandwidth_graph *graph);
 extern void network_bandwidth_graph_new_sample(network_bandwidth_graph *graph);
 extern int32_t network_bandwidth_graph_find_peak_sample(int32_t *out_peak_countdown, network_bandwidth_graph *graph);
@@ -517,7 +516,7 @@ void BandwidthGraphView::new_sample()
     graph->displayed_rate = (float)recent_sum * 0.25f;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    graph->last_sample_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    graph->last_sample_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     graph->pending_sample = 0;
 }
 
@@ -543,7 +542,7 @@ void BandwidthGraphView::tick()
         return;
     }
 
-    elapsed_ms = (uint32_t)((counter.quad_part * 1000) / performance_frequency) -
+    elapsed_ms = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency) -
                  (uint32_t)graph->last_sample_ms;
     while (graph->sample_interval_ms <= elapsed_ms) {
         network_bandwidth_graph_new_sample(graph);
@@ -633,7 +632,7 @@ void BandwidthGraphView::rate_compute()
     float elapsed_seconds;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     elapsed_seconds = as_unsigned_float(now_ms - base_ms) * 0.001f;
 
     if (base_ms == 0) {

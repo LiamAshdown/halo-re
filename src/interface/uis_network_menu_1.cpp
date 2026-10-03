@@ -55,7 +55,6 @@ extern uint8_t network_host_name_flag_00719276;
 extern uint8_t ui_network_wait_active;
 extern int32_t ui_network_wait_start_time;
 extern uint8_t ui_network_wait_timed_out;
-extern int64_t performance_frequency;
 extern network_client_globals *network_client;
 extern int16_t network_game_mode;
 extern uint8_t network_host_handoff_requested;
@@ -437,7 +436,7 @@ void UiNetworkMenu::network_wait_timeout_start(void)
         large_integer counter;
 
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-        ui_network_wait_start_time = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+        ui_network_wait_start_time = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     }
     ui_network_wait_active = 1;
 }

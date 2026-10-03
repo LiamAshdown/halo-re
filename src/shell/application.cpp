@@ -78,7 +78,6 @@ extern uint8_t console_debug_flag_0;
 extern uint8_t error_file_enabled;
 extern uint8_t console_debug_flag_4;
 extern uint8_t console_debug_flag_5;
-extern uint8_t debug_log_level;
 extern uint16_t console_debug_word_8;
 
 extern uint32_t global_scenario_index;
@@ -150,7 +149,7 @@ uint8_t EngineLifecycle::initialize()
 
     halo::cseries::directory_create_recursive(profile_directory);
 
-    debug_log_level = 0;
+    halo::cseries::globals().debug_log_level = 0;
     error_file_enabled = 1;
     console_debug_flag_4 = 1;
     console_debug_flag_5 = 0;

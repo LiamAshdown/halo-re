@@ -4,6 +4,7 @@
 #include <wchar.h>
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/cseries/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -12,7 +13,6 @@
 extern "C" {
 extern void *server_list_entries_006b380c[9];
 extern network_client_globals *network_client;
-extern int64_t performance_frequency;
 extern heap *widget_memory_pool;
 extern uint16_t missing_string_text[];
 extern uint16_t chat_local_prompt_string[];
@@ -67,7 +67,7 @@ void MenuListView::update()
                 int32_t now_ms;
 
                 QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-                now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+                now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
                 if (now_ms - *entry <= 0x1770 && *(int16_t *)((uint8_t *)entry + 0x112) == 1 &&
                     *((int8_t *)entry + 0x45 * 4) == 0) {
                     server_list_entries_006b380c[count] = (uint8_t *)entry - 0x18;
@@ -139,7 +139,7 @@ void MenuListView::update()
         widget_instance *r10 = r9->next_sibling;
 
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-        now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+        now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
         if (widget->selection_index < 0) {
             r1->background_bitmap_frame = 5;

@@ -15,7 +15,6 @@
 #include "halo/cseries/api.hpp"
 
 extern "C" {
-extern int64_t performance_frequency;
 extern int16_t network_join_error_code;
 extern int32_t interface_loading_screen_progress;
 extern int32_t join_ui_state;
@@ -96,7 +95,7 @@ int8_t RemoteConsole::on_connect(const uint32_t *target_address, network_client_
     attempt->unknown_00 = 0;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    started_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    started_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     attempt->elapsed_counter = 0;
     attempt->started_ms = started_ms;

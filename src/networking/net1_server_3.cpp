@@ -4,7 +4,6 @@
 #include "halo/cseries/api.hpp"
 
 extern "C" {
-extern int64_t performance_frequency;
 extern network_client_globals *network_client;
 extern void *network_prepare_challenge_packet(void);
 extern void network_timer_advance(network_timer_pair *timer);
@@ -51,7 +50,7 @@ uint8_t ServerView::heartbeat_tick()
     timer = (network_timer_pair *)(base + 0x9c8);
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     result = 1;
 
     if (*(uint8_t *)(base + 0x9f9) == 0) {
@@ -159,7 +158,7 @@ uint32_t ServerView::resend_challenge_periodic()
     uint32_t *last_sent;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     last_sent = (uint32_t *)((uint8_t *)server + 0x9bc);
     if (*last_sent + 5000u < now_ms) {
         void *packet;

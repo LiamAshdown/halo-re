@@ -10,6 +10,7 @@ extern "C" input_event_queue input_event_queue_active;
 #include <ctype.h>
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cseries/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -41,7 +42,6 @@ extern uint8_t ui_widget_opened;
 extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
 extern uint8_t controls_input_capture_flags;
-extern int64_t performance_frequency;
 extern void display_error(int16_t error_string_index, int32_t unknown, uint8_t modal, uint8_t is_error);
 extern uint8_t ui_check_for_pause_game(void);
 extern void virtual_keyboard_process_input(void);
@@ -119,7 +119,7 @@ void InterfaceMain::tick()
     uint8_t event_scratch[16] = {0};
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    ui_time_milliseconds = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    ui_time_milliseconds = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     if (loading_thread != (loading_thread_record *)0) {
         uint32_t exit_code;

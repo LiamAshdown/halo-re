@@ -84,7 +84,6 @@ static int16_t cache_file_download_status_get_unresolved(float *progress_out)
 }
 
 extern "C" { extern main_frame_rate_average frame_rate_average_data; }
-extern "C" { extern int64_t performance_frequency; }
 namespace halo::main {
 
 /**
@@ -120,7 +119,7 @@ uint32_t MainLoop::frame_rate_average_update(void)
     }
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    frame_rate_average_data.sample_time_ms = (int32_t)((counter * 1000) / performance_frequency);
+    frame_rate_average_data.sample_time_ms = (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
 
     return average;
 }
@@ -144,7 +143,7 @@ void MainLoop::timer_reset(void)
     main_globals_data.frame_counter_high = (uint32_t)(counter >> 32);
     main_globals_data.render_counter_low = (uint32_t)counter;
     main_globals_data.render_counter_high = (uint32_t)(counter >> 32);
-    main_globals_data.frame_time_ms = (uint32_t)((counter * 1000) / performance_frequency);
+    main_globals_data.frame_time_ms = (uint32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
 }
 
 }
@@ -361,7 +360,7 @@ void MainLoop::loop(void)
     main_globals_data.switch_structure_bsp_index = -1;
     main_globals_data.time_is_running = 1;
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    main_globals_data.last_activity_time_ms = (int32_t)((counter * 1000) / performance_frequency);
+    main_globals_data.last_activity_time_ms = (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
 
     console_initialize();
     network_bandwidth_graph_reset();
@@ -522,7 +521,7 @@ void MainLoop::loop(void)
         if (input_event_queue_active.enabled != 0) {
             previous_queue_time = input_event_queue_active.start_time;
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-            input_event_queue_active.start_time = (uint32_t)((counter * 1000) / performance_frequency);
+            input_event_queue_active.start_time = (uint32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
             if (input_event_queue_active.last_event_time < previous_queue_time && input_event_queue_active.enabled != 0) {
                 memset(&idle_event, 0, sizeof(idle_event));
                 halo::input::input_queue_push_event(0, &idle_event);
@@ -587,21 +586,21 @@ void MainLoop::loop(void)
         if (input_globals.idle == 0 || console_globals_data.active != 0) {
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             main_globals_data.last_activity_time_ms =
-                (int32_t)((counter * 1000) / performance_frequency);
+                (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
         } else if (game_time->initialized != 0 && (game_time->active != 0 || game_time->paused != 0) &&
                    game_time->paused == 0 && halo::cutscene::globals().cinematic_globals->in_progress != 0) {
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             main_globals_data.last_gameplay_time_ms =
-                (int32_t)((counter * 1000) / performance_frequency);
+                (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
         } else if (main_globals_data.idle_timeout_ms > 0) {
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             idle_remaining = main_globals_data.idle_timeout_ms -
-                (int32_t)((counter * 1000) / performance_frequency) +
+                (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency) +
                 main_globals_data.last_activity_time_ms;
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
             if (idle_remaining <= 0 &&
                 main_globals_data.last_gameplay_time_ms -
-                    (int32_t)((counter * 1000) / performance_frequency) +
+                    (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency) +
                     k_main_idle_gameplay_grace_ms <= 0) {
                 if (ui_split_screen != 0) {
                     main_globals_data.return_to_main_menu = 0;
@@ -732,7 +731,7 @@ void MainLoop::loop(void)
             leftover_time = game_time->leftover_time;
             render_time = counter - ((int64_t)main_globals_data.render_counter_high << 32 |
                 main_globals_data.render_counter_low);
-            frame_delta = (float)render_time / (float)performance_frequency;
+            frame_delta = (float)render_time / (float)halo::cseries::globals().performance_frequency;
             if (game_time_force_single_tick != 0) {
                 frame_delta = 1.0f / 30.0f;
             }
@@ -765,7 +764,7 @@ void MainLoop::loop(void)
             main_globals_data.frame_counter_high = (uint32_t)(counter >> 32);
             main_globals_data.render_counter_low = (uint32_t)counter;
             main_globals_data.render_counter_high = (uint32_t)(counter >> 32);
-            main_globals_data.frame_time_ms = (uint32_t)((counter * 1000) / performance_frequency);
+            main_globals_data.frame_time_ms = (uint32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
             main_globals_data.time_is_running = 1;
         }
         if (shell_application_inactive != 0) {
@@ -774,7 +773,7 @@ void MainLoop::loop(void)
                 0xff );
         }
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-        elapsed_ms = (int32_t)((counter * 1000) / performance_frequency) -
+        elapsed_ms = (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency) -
             frame_rate_average_data.sample_time_ms;
         frame_rate_average_data.history[0] = elapsed_ms;
         if ((uint32_t)elapsed_ms > k_main_frame_time_clamp_ms) {
@@ -821,7 +820,7 @@ void MainLoop::loop_frame_pacer(void)
         QueryPerformanceCounter((LARGE_INTEGER *)&now);
         elapsed_ticks = now - (((int64_t)main_globals_data.frame_counter_high << 32) |
                                 main_globals_data.frame_counter_low);
-        elapsed_seconds = (double)elapsed_ticks / (double)performance_frequency;
+        elapsed_seconds = (double)elapsed_ticks / (double)halo::cseries::globals().performance_frequency;
 
         sleep_ms = (!pacing || (0.03333333507180214 - elapsed_seconds <= 0.012)) ? 0 : 10;
         Sleep(sleep_ms);
@@ -876,7 +875,7 @@ apply:
 
     main_globals_data.frame_counter_low = (uint32_t)now;
     main_globals_data.frame_counter_high = (uint32_t)(now >> 32);
-    main_globals_data.frame_time_ms = (uint32_t)((now * 1000) / performance_frequency);
+    main_globals_data.frame_time_ms = (uint32_t)((now * 1000) / halo::cseries::globals().performance_frequency);
     main_globals_data.frame_delta_time = (float)elapsed_seconds;
 }
 

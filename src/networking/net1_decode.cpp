@@ -6,6 +6,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern int16_t network_game_mode;
@@ -72,7 +73,6 @@ extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *pa
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
 extern network_server_globals *network_server;
 extern game_time_globals *game_time;
-extern int64_t performance_frequency;
 extern void update_client_advance_read_cursor(void *payload);
 extern char network_game_action_queue_drain(network_client_globals *client, bit_stream *stream, const uint32_t *sender);
 extern uint16_t *network_message_read_sized_buffer(uint16_t *buffer, int32_t capacity, bit_stream *stream);
@@ -585,7 +585,7 @@ int32_t GameClientView::state_update_receive(uint8_t *record)
     client->last_update_id = *(uint32_t *)record;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     client->last_update_received_ms = now_ms;
     return 1;
 }

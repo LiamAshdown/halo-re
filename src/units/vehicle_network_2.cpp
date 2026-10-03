@@ -1,11 +1,11 @@
 #include "halo/units/unit.hpp"
 #include "win32.h"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern network_id_table *object_network_id_table;
 extern uint8_t network_client_vehicle_ack_enabled;
-extern int64_t performance_frequency;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern int32_t message_delta_encode_message(void *buffer, int32_t bit_budget, int32_t flag, int32_t message_type, void *changed, void *items, void *types, int32_t count, char force_changed);
@@ -88,7 +88,7 @@ int32_t VehicleView::encode_network_update(void *buffer, int32_t bit_budget, int
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     header.timestamp_milliseconds = __alldiv(
         __allmul((int32_t)counter.parts.low_part, counter.parts.high_part, 1000, 0),
-        (int32_t)performance_frequency, (int32_t)(performance_frequency >> 32));
+        (int32_t)halo::cseries::globals().performance_frequency, (int32_t)(halo::cseries::globals().performance_frequency >> 32));
 
     message_type = object_type_definitions[obj->type]->network_delta_message_type;
 

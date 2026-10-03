@@ -3,6 +3,7 @@
 #include <wchar.h>
 #include <stdio.h>
 #include "halo/memory/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload);
@@ -22,7 +23,6 @@ extern int32_t network_machine_reset(network_machine *machine);
 extern network_server_globals *network_server;
 extern int32_t network_scenario_round_counter_a;
 extern int32_t network_scenario_round_counter_b;
-extern uint8_t debug_log_level;
 extern uint8_t network_statistics_logging_enabled;
 extern FILE *network_summary_log_file;
 extern char network_build_string[];
@@ -63,7 +63,6 @@ static datum_index datum_get_unresolved(data_array *array, datum_index index)
     using call_t = datum_index (*)(data_array *array, datum_index index);
     return reinterpret_cast<call_t>(&halo::memory::datum_get)(array, index);
 }
-extern int64_t performance_frequency;
 extern network_client_globals *network_client;
 extern int32_t network_console_connection_id;
 extern uint8_t network_message_scratch[0x7ff8];
@@ -228,7 +227,7 @@ char ServerView::load_scenario()
     network_scenario_round_counter_a = 0;
     network_scenario_round_counter_b = 0;
     ok = network_game_scenario_load_request(&server->session);
-    if ((server->flags >> 2 & 1) != 0 && debug_log_level > 2 &&
+    if ((server->flags >> 2 & 1) != 0 && halo::cseries::globals().debug_log_level > 2 &&
         network_statistics_logging_enabled != 0 && network_summary_log_file != 0) {
         fprintf(network_summary_log_file, "%s\t", network_build_string);
     }
@@ -410,7 +409,7 @@ int32_t ServerView::check_machine_timeout(network_machine *machine)
     int32_t result;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     timer_18 = (uint32_t)machine->timer_18;
     timer_14 = (uint32_t)machine->timer_14;
     result = 0;

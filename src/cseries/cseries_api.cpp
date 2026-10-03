@@ -4,7 +4,18 @@
 using halo::cseries::md5_context;
 using halo::cseries::tea_key;
 
+extern "C" {
+extern int64_t performance_frequency;
+extern uint8_t debug_log_level;
+}
+
 namespace halo::cseries {
+
+Globals &globals()
+{
+    static Globals instance{::performance_frequency, ::debug_log_level};
+    return instance;
+}
 
 void md5_hex_digest(const uint8_t *data, int32_t length, char *out)
 {

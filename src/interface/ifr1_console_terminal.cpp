@@ -5,6 +5,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern uint8_t terminal_initialized;
@@ -46,10 +47,8 @@ extern void console_message_delete(datum_index message);
 extern void widget_text_edit_clamp_selection(text_edit_state *state);
 extern void console_restore_cursor(void);
 extern uint32_t strlen(const char *s);
-extern uint8_t debug_log_level;
 extern void *console_input_handle;
 extern int32_t console_caret_blink_time;
-extern int64_t performance_frequency;
 extern uint8_t controls_input_capture_flags;
 extern int16_t key_event_read_index;
 extern int16_t key_event_count;
@@ -497,7 +496,7 @@ void ConsoleTerminal::printf_verbose(ColorARGB *color, char *format, va_list arg
     datum_index message_handle;
     console_message *message;
 
-    if (debug_log_level <= 3 || terminal_initialized == 0) {
+    if (halo::cseries::globals().debug_log_level <= 3 || terminal_initialized == 0) {
         return;
     }
 
@@ -575,7 +574,7 @@ uint8_t ConsoleTerminal::process_queued_input(void)
     }
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     console_active->key_event_count = 0;
 
     while (controls_input_capture_flags != 1 && (controls_input_capture_flags & 8) == 0 &&

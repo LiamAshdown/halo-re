@@ -22,7 +22,6 @@ extern datum_index machine_to_player[16];
 extern data_array *player_data;
 extern uint8_t network_stats_enabled_gate;
 extern int64_t main_globals_data;
-extern int64_t performance_frequency;
 extern int32_t network_connect_timeout_ms;
 extern int32_t message_delta_decode_begin(message_delta_decode_state *state, bit_stream *stream);
 extern int32_t message_delta_decode_array_field(void **context);
@@ -259,7 +258,7 @@ uint32_t ClientView::check_connection_quality(uint32_t machine_index, uint8_t un
         float loss_ratio;
         float latency;
 
-        now_ms = (int32_t)((main_globals_data * 1000) / performance_frequency);
+        now_ms = (int32_t)((main_globals_data * 1000) / halo::cseries::globals().performance_frequency);
         added = units;
 
         if (plr->connection_quality_started == 0) {
@@ -481,7 +480,7 @@ int32_t ClientView::identity_tick()
     int32_t i;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     if (client->timer.active != 0 && (uint32_t)client->timer.deadline_ms <= now_ms) {
         int32_t result = network_channel_service_close_if_disconnected(client->channel);
@@ -607,7 +606,7 @@ void ClientView::timer_schedule(int32_t delay_ms, int32_t context)
     int32_t now_ms;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     timer = &client->timer;
     timer->deadline_ms = now_ms + delay_ms;
@@ -1192,7 +1191,7 @@ int32_t ConnectionView::initiate(const uint32_t *target, const uint32_t *session
     attempt->unknown_00 = 0;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    started_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    started_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     attempt->elapsed_counter = 0;
     attempt->loading_started = 0;
@@ -1316,7 +1315,7 @@ void ConnectionView::send_keepalive()
     uint8_t out_flag;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     endpoint = &client->connection;
     if (endpoint->ready == 1 && 3000 < (int32_t)(now_ms - endpoint->last_send_ms)) {
@@ -1419,7 +1418,7 @@ void HostClientView::presence_broadcast_tick()
     char retransmit_ok;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     if (client->last_presence_broadcast_ms + 1000 < now_ms) {
         client->last_presence_broadcast_ms = now_ms;
@@ -1467,11 +1466,11 @@ int32_t JoinView::connect_retry_tick()
     int32_t ok;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     channel = client->channel;
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     endpoint = channel->endpoint;
     attempt = &client->connect_attempt;
@@ -1558,7 +1557,7 @@ uint32_t JoinView::handshake_tick()
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     channel = client->channel;
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     channel->last_activity_ms = now_ms;
 
     result = 1;

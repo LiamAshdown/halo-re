@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_hud_text_queue.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -15,7 +16,6 @@ extern void globals_color_table_get_cyclic_color(int16_t table_index, int16_t co
                                                    ColorARGB *out);
 extern growable_array hud_text_message_queue;
 extern uint16_t empty_string[];
-extern int64_t performance_frequency;
 extern int32_t hud_text_message_time_base;
 }
 
@@ -112,7 +112,7 @@ uint32_t HudTextQueue::message_queue_init(void)
     hud_text_message_queue.data = (void *)0;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    hud_text_message_time_base = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    hud_text_message_time_base = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     return 1;
 }
 

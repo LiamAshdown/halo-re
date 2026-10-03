@@ -90,7 +90,6 @@ extern char network_channel_transmit(network_channel *channel);
 extern int32_t network_server_validate_join_request(network_receive_queue *listen_endpoint);
 extern void network_channel_reliable_pool_store(network_channel *channel, uint8_t *body_data, uint8_t *header_data, int32_t priority, uint32_t header_bits, uint32_t body_bits);
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
-extern int64_t performance_frequency;
 extern int32_t network_channel_reliable_pool_ensure_capacity(network_channel *channel, int32_t body_capacity_needed, int32_t header_capacity_needed);
 extern int32_t network_rate_override;
 extern int32_t network_rate_table[];
@@ -1201,7 +1200,7 @@ void ChannelView::record_timestamp()
     large_integer counter;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 }
 
 /**
@@ -1457,7 +1456,7 @@ char ChannelView::service(int32_t timeout_ms, network_channel **out_new_child)
 
         large_integer counter;
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-        now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+        now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     }
 
     flags = channel->flags;
@@ -1534,7 +1533,7 @@ char ChannelView::service_light(int32_t timeout_ms, network_channel **out_new_ch
     uint32_t flags;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     flags = channel->flags;
     channel->flags = flags & 0xffffffdf;
@@ -1693,7 +1692,7 @@ char ChannelView::transmit()
 
         if (count > 0) {
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-            channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+            channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
             halo::memory::circular_buffer_write((uint32_t)count, channel->incoming, scratch);
         } else {
             if (count == -4) {

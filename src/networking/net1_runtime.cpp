@@ -10,7 +10,6 @@
 #include "halo/cseries/api.hpp"
 
 extern "C" {
-extern uint8_t debug_log_level;
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count];
 extern int32_t network_connection_stats_lookup_or_add(int32_t connection_id, uint16_t connection_key);
 extern uint8_t network_statistics_logging_enabled;
@@ -61,7 +60,6 @@ extern void gt2CloseSocket(int32_t socket);
 extern void gt2AddressToString(uint32_t address, uint16_t port, void *out_address);
 extern int32_t network_high_res_clock_ms;
 extern uint8_t network_update_unknown_869bf;
-extern int64_t performance_frequency;
 extern void network_connection_stats_log_tick(void);
 extern void gt2Think(int32_t socket);
 extern void gamespy_think_all(void);
@@ -110,7 +108,7 @@ void ConnectionStats::end(int32_t connection_id, uint16_t connection_key)
     int32_t index;
     int32_t now;
 
-    if (2 < debug_log_level &&
+    if (2 < halo::cseries::globals().debug_log_level &&
         (index = network_connection_stats_lookup_or_add(connection_id, connection_key), index != -1) &&
         network_connection_stats[index].active != 0) {
         now = halo::cseries::time_query_performance_counter_ms();
@@ -142,7 +140,7 @@ void ConnectionStats::log_tick()
     network_game_session *session;
     uint8_t control_char;
 
-    if (2 < debug_log_level && network_statistics_logging_enabled == 1) {
+    if (2 < halo::cseries::globals().debug_log_level && network_statistics_logging_enabled == 1) {
         now = halo::cseries::time_query_performance_counter_ms();
         if (network_connection_log_needs_open == 1) {
             network_connection_log_needs_open = 0;
@@ -265,7 +263,7 @@ void ConnectionStats::record_packet(void *gamespy_connection, int32_t payload_le
     int32_t *stats_index_field;
     int32_t index;
 
-    if (2 < debug_log_level) {
+    if (2 < halo::cseries::globals().debug_log_level) {
         total_bytes = payload_length + 0x1c;
         if (is_sent == 0) {
             network_bandwidth_graph_accumulate_received(1);
@@ -689,7 +687,7 @@ uint32_t NetworkRuntime::update_()
     uint32_t result;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    network_high_res_clock_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    network_high_res_clock_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     if (network_update_unknown_869bf == 1) {
         network_update_unknown_869bf = 0;
@@ -1051,7 +1049,7 @@ void StatsSummaryLog::open()
     struct tm *tm_now;
     char *base_path;
 
-    if (2 < debug_log_level && network_statistics_logging_enabled != 0) {
+    if (2 < halo::cseries::globals().debug_log_level && network_statistics_logging_enabled != 0) {
         if (network_summary_log_needs_open != 0) {
             time(&now);
             tm_now = localtime(&now);
@@ -1106,7 +1104,7 @@ void StatsSummaryLog::write()
     float bytes_sent_per_packet;
     float bytes_received_per_packet;
 
-    if (2 < debug_log_level && network_statistics_logging_enabled != 0 &&
+    if (2 < halo::cseries::globals().debug_log_level && network_statistics_logging_enabled != 0 &&
         network_summary_log_file != 0) {
         now = halo::cseries::time_query_performance_counter_ms();
         elapsed_ms = (float)(now - network_summary_stats.start_ms);

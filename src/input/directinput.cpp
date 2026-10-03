@@ -18,6 +18,7 @@
 
 #include "halo/input/directinput.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" { extern int32_t input_device_count; }
 extern "C" { extern input_device input_devices[8]; }
@@ -944,7 +945,6 @@ void DirectInput::joystick_state_process(joystick_raw_state *raw, joystick_state
 }
 
 extern "C" { extern int16_t system_keys[k_input_system_key_count]; }
-extern "C" { extern int64_t performance_frequency; }
 namespace halo::input {
 
 /**
@@ -977,7 +977,7 @@ void DirectInput::key_block_timer_set(int16_t key, int32_t duration_ms)
 
     if (chosen != (key_block_timer *)0) {
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-        now = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
+        now = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
         chosen->deadline = now + duration_ms;
         chosen->key = key;
 
@@ -1008,7 +1008,7 @@ void DirectInput::key_block_timers_expire(void)
     for (i = 0; i < k_input_key_block_timer_count; i++) {
         if (key_block_timers[i].deadline != 0xffffffff) {
             QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-            now = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
+            now = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
             if (key_block_timers[i].deadline <= now) {
                 key_block_timers[i].deadline = 0xffffffff;
                 key_block_timers[i].key = -1;

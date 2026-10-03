@@ -15,10 +15,10 @@
 
 #include "halo/input/system.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" { extern input_abstraction_globals input_globals; }
 extern "C" { extern int32_t last_input_device; }
-extern "C" { extern int64_t performance_frequency; }
 namespace halo::input {
 
 /**
@@ -39,7 +39,7 @@ void InputSystem::state_initialize(void)
     input_globals.unknown_2214 = 1;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    input_globals.time_base = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
+    input_globals.time_base = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     input_globals.scan_result.device_type = 0;
     input_globals.scan_result.device_index = 0;
@@ -126,7 +126,7 @@ void InputSystem::time_base_resync(void)
     large_integer counter;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    input_globals.time_base = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
+    input_globals.time_base = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 }
 
 }
@@ -153,7 +153,7 @@ void InputSystem::update_tick(void)
     uint8_t mode;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     input_globals.idle = 1;
     halo::input::input_key_block_timers_expire();

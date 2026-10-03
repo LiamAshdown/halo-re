@@ -2,6 +2,7 @@
 #include "halo/units/unit.hpp"
 #include "win32.h"
 #include "halo/math/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -13,7 +14,6 @@ extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
 extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key);
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
-extern int64_t performance_frequency;
 extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern int32_t message_delta_encode_message(void *buffer, int32_t bit_budget, int32_t flag, int32_t message_type, void *changed, void *items, void *types, int32_t count, char force_changed);
 extern object * object_try_and_get(datum_index object_index, uint32_t type_mask);
@@ -183,8 +183,8 @@ int32_t UnitView::submit_periodic_network_update(void *buffer, int32_t bit_budge
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     header.timestamp_milliseconds = __alldiv(__allmul(counter.parts.low_part, counter.parts.high_part, 1000, 0),
-                                             (int32_t)performance_frequency,
-                                             (int32_t)(performance_frequency >> 32));
+                                             (int32_t)halo::cseries::globals().performance_frequency,
+                                             (int32_t)(halo::cseries::globals().performance_frequency >> 32));
 
     message_type = (int32_t)object_type_definitions[obj->type]->network_delta_message_type;
     obj->shield_update_pending = 0;

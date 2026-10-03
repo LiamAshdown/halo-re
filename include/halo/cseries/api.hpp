@@ -7,9 +7,22 @@
 
 #include <stdint.h>
 
+
+
 typedef uint8_t (*qsort_dword_compare_proc)(int32_t element, int32_t other);
 
 namespace halo::cseries {
+
+/**
+ * The engine globals the cseries module owns (their storage is defined by standalone/data under the original link names);
+ * other modules reach them through globals().
+ */
+struct Globals {
+    int64_t &performance_frequency;
+    uint8_t &debug_log_level;
+};
+
+Globals &globals();
 
 void md5_hex_digest(const uint8_t *data, int32_t length, char *out);
 void tea_encrypt_buffer(int32_t length, uint8_t *data, const uint32_t *key);

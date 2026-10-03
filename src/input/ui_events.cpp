@@ -16,6 +16,7 @@
 
 #include "halo/input/ui_events.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" { uint8_t halo::input::input_queue_pop_event(ui_input_event *out_event, int16_t queue_index); }
 
@@ -35,7 +36,6 @@ extern "C" { extern menu_repeat_state menu_repeat_states[4]; }
 extern "C" { extern void *mouse_device; }
 extern "C" { extern mouse_state live_mouse_state; }
 extern "C" { extern uint32_t mouse_double_click_time; }
-extern "C" { extern int64_t performance_frequency; }
 static void menu_direction_update(menu_repeat_state *state, uint8_t active, int32_t now_ms,
                                    int32_t virtual_key_id, uint8_t *fired)
 {
@@ -124,7 +124,7 @@ void UiEvents::menu_generate_events(void)
     back_fired = 0;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
     memset(&input_globals.states[0], 0, sizeof(input_globals.states[0]));
 
@@ -261,7 +261,7 @@ void UiEvents::menu_generate_events(void)
     {
         uint32_t double_click_ms = GetDoubleClickTime();
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-        now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+        now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
         if (mouse_double_click_time == 0) {
             if (live_mouse_state.button_pressed[0] != 0) {
@@ -308,7 +308,7 @@ void UiEvents::queue_initialize(void)
     }
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    input_event_queue_active.last_event_time = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
+    input_event_queue_active.last_event_time = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     input_event_queue_active.start_time = input_event_queue_active.last_event_time;
     input_event_queue_active.enabled = 1;
 }
@@ -373,7 +373,7 @@ void UiEvents::queue_push_event(int16_t queue_index, ui_input_event *record)
 
     if (input_event_queue_active.push_disabled == 0) {
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-        now = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
+        now = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
         record->controller_index = queue_index;
         slots = input_event_queue_active.events[queue_index];
@@ -401,7 +401,7 @@ void UiEvents::queue_sample_time_update(void)
     large_integer counter;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    input_queue_sample_time = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
+    input_queue_sample_time = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 }
 
 }

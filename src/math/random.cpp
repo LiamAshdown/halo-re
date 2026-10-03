@@ -9,9 +9,9 @@
 
 #include "tags.h"
 #include "win32.h"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
-extern int64_t performance_frequency;
 extern int rand(void);
 extern double cos(double x);
 extern double sin(double x);
@@ -51,8 +51,8 @@ uint32_t random_seed_generate()
     QueryPerformanceCounter((LARGE_INTEGER *)&counter_b);
     rand_value = (uint32_t)rand();
 
-    scaled_a = (uint32_t)((counter_a.quad_part * 1000) / performance_frequency);
-    scaled_b = (uint32_t)(counter_b.quad_part / performance_frequency);
+    scaled_a = (uint32_t)((counter_a.quad_part * 1000) / halo::cseries::globals().performance_frequency);
+    scaled_b = (uint32_t)(counter_b.quad_part / halo::cseries::globals().performance_frequency);
 
     return rand_value ^ scaled_a ^ scaled_b;
 }

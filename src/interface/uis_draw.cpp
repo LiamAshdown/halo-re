@@ -16,10 +16,10 @@
 #include "halo/interface/uis_draw.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
-extern int64_t performance_frequency;
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                            void **out_data, int32_t *out_offset);
 extern uint16_t *ui_button_caption[0x28];
@@ -102,7 +102,7 @@ void UiDraw::button_prompt_draw_icon(HUDGlobalsButtonIcon *icon)
         uint32_t milliseconds;
 
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-        milliseconds = (uint32_t)((counter * 1000) / performance_frequency);
+        milliseconds = (uint32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
         frame = (int32_t)((milliseconds * 30u / 1000u) / (uint32_t)(int32_t)icon->frame_rate);
     }
     hud_meter_resolve_bitmap_frame(bitmap_tag, (int16_t)icon->sequence_index, (uint16_t)frame, (void **)&zero,

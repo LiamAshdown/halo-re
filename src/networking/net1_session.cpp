@@ -83,7 +83,6 @@ extern int32_t network_channel_key_open(network_player_entry *entry);
 extern char scenario_load(char *path);
 extern uint8_t network_channel_table_default_flag;
 extern char network_player_entry_find(network_game_session *session, network_player_entry *key);
-extern int64_t performance_frequency;
 extern uint32_t player_data_iterator_advance(uint8_t slot_index);
 extern int32_t game_engine_notify_object_value_event(int32_t team);
 extern int32_t game_engine_player_profile_cache_find(void);
@@ -1014,7 +1013,7 @@ uint8_t SearchEntryView::entry_is_fresh()
         return 0;
     }
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     elapsed_ms = now_ms - entry->received_ms;
     if (elapsed_ms < 0x1771) {
         return 1;
@@ -1055,7 +1054,7 @@ int32_t SearchEntryView::results_add_or_update(const uint8_t *announcement)
             continue;
         }
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-        now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+        now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
         if (6000 < now_ms - entry->received_ms) {
             memset(entry, 0, sizeof(network_game_search_entry));
         }
@@ -1104,7 +1103,7 @@ int32_t SearchEntryView::results_add_or_update(const uint8_t *announcement)
     entry->identity[5] = *(const uint32_t *)(announcement + 0x14);
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     entry->received_ms = now_ms;
 
     entry->unknown_12a = *(const int16_t *)(announcement + 0x1c);

@@ -11,13 +11,13 @@
 #include "halo/sound/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cseries/api.hpp"
 
 
 extern "C" {
 extern int32_t sound_decode_dispatch(int16_t channel_count, void *destination, void *source, int32_t source_size);
 extern int32_t sound_cache_size_megabytes;
 extern char file_open_mode_w[];
-extern int64_t performance_frequency;
 }
 
 namespace halo::cache {
@@ -423,7 +423,7 @@ uint8_t sound_cache_manager::touch(uint8_t allocate_if_missing, uint8_t lock, ui
         }
 
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-        elapsed_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+        elapsed_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
         stall_ms = (uint32_t)(elapsed_ms - halo::sound::globals().time);
         if (0x84 < stall_ms) {
             halo::sound::sound_idle_update();

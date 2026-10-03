@@ -9,11 +9,11 @@
 #include "halo/sound/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 typedef int32_t (__stdcall *d3d_release_fn)(void *object);
 extern uint8_t debug_texture_cache_prints;
-extern int64_t performance_frequency;
 extern void console_print_va(const char *format, ...);
 extern uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap);
 extern void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap);
@@ -136,7 +136,7 @@ void *texture_cache_manager::get(BitmapData *bitmap, uint8_t wait, uint8_t alloc
                 }
 
                 QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-                elapsed_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+                elapsed_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
                 if (0x84 < (uint32_t)(elapsed_ms - halo::sound::globals().time)) {
                     halo::sound::sound_idle_update();
                 }

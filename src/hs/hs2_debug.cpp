@@ -1,5 +1,6 @@
 #include "halo/hs/hs2_commands.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cseries/api.hpp"
 
 
 #ifdef __cplusplus
@@ -16,7 +17,6 @@ extern data_array *hs_thread_data;
 extern data_array *hs_syntax_data;
 extern void (*hs_type_inspectors[])(int16_t type, int32_t value, char *buffer);
 extern uint8_t hs_preserve_token_case;
-extern uint8_t debug_log_level;
 extern data_array *object_list_header_data;
 extern int32_t object_list_nth_reference(datum_index header_index, int16_t n);
 extern void message_delta_metrics_dump(char *suffix);
@@ -89,7 +89,7 @@ void DebugCommands::evaluate_inspect(int16_t function_index, uint32_t thread_ind
 
         if (hs_type_inspectors[type] != 0) {
             hs_type_inspectors[type](type, *result, buffer);
-            if (hs_preserve_token_case != 0 || debug_log_level >= 4) {
+            if (hs_preserve_token_case != 0 || halo::cseries::globals().debug_log_level >= 4) {
                 chimera__console_out(0, buffer);
             }
         }

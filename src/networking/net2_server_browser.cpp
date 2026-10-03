@@ -24,6 +24,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern uint8_t playlist_profiles_need_defaults;
@@ -67,7 +68,6 @@ extern void widget_play_sound_effect(int16_t effect_id);
 extern void master_server_process_pending_requests(void);
 extern int32_t SBServerHasFullKeys(void *entry);
 extern int32_t ServerBrowserState(void *engine);
-extern int64_t performance_frequency;
 extern void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self);
 extern ticker_text_buffer server_browser_player_ticker;
 extern ticker_text_buffer server_browser_variant_ticker;
@@ -587,7 +587,7 @@ scroll_fade_settled:
     default:
         master_server_last_result = 0;
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-        now_ms = (int32_t)((counter.quad_part * 1000) / performance_frequency);
+        now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
         if ((uint32_t)server_browser_variant_ticker.scroll_delay_ms <= (uint32_t)(now_ms - master_server_connection_last_tick_ms)) {
             master_server_connection_last_tick_ms = now_ms;
             ticker_text_buffer_advance((uint8_t *)w17, &server_browser_player_ticker);

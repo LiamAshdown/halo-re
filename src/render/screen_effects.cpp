@@ -56,7 +56,6 @@ extern int32_t frame_statistics_last_time;
 extern int64_t frame_statistics_unknown_d0;
 extern int64_t frame_statistics_unknown_d8;
 extern rasterizer_frame_statistics rasterizer_frame_statistics_state;
-extern int64_t performance_frequency;
 extern Rectangle2D game_screen_rect;
 extern int32_t rasterizer_present_counter_low;
 extern int32_t rasterizer_present_counter_high;
@@ -633,7 +632,7 @@ void draw(void)
     }
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    milliseconds = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
+    milliseconds = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     delta = milliseconds - (uint32_t)frame_statistics_last_time;
     frame_statistics_last_time = (int32_t)milliseconds;
     sample = delta;
@@ -673,7 +672,7 @@ void draw(void)
     restore_color[3] = 1.0f;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    milliseconds = (uint32_t)((counter.quad_part * 1000) / performance_frequency);
+    milliseconds = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     elapsed = (int64_t)(uint64_t)milliseconds - frame_statistics_unknown_d0;
 
     for (i = 0; i < 6; i++) {
