@@ -754,9 +754,9 @@ static_assert(offsetof(actor_mode_fight_data, unknown_00) == 0);
 
 static_assert(offsetof(swarm_component, identifier) == 0);
 static_assert(offsetof(swarm_component, flags) == 2);
-static_assert(offsetof(swarm_component, unknown_03) == 3);
 static_assert(offsetof(swarm_component, position) == 4);
 static_assert(offsetof(swarm_component, marker_index) == 16);
 static_assert(offsetof(swarm_component, leap_target_index) == 20);
+static_assert(offsetof(swarm_component, infection) == 24);
 static_assert(offsetof(swarm_component, unknown_18) == 24);
 static_assert(offsetof(swarm_component, action) == 28);

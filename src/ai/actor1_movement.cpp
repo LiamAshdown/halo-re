@@ -500,7 +500,7 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
             if (s->unit_index[i] == unit_index) {
                 object *unit_object = halo::ai::object_at(unit_index);
                 swarm_component *component = &((swarm_component *)halo::ai::globals().swarm_component_data->data)[s->component_index[i] & halo::k_slot_mask];
-                uint16_t flags = *(uint16_t *)&component->flags;
+                uint16_t flags = component->flags;
                 datum_index target = component->leap_target_index;
 
                 if ((flags & 1) == 0 || target == (datum_index)k_datum_index_none) {

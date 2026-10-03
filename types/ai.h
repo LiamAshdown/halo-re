@@ -1246,18 +1246,38 @@ typedef struct swarm {
 } swarm;                // size 0x98
 // global 0x0088035c: data_array *swarm_data          element size 0x98, capacity 0x20
 
+// The per-component state the infection form swarm update keeps in swarm_component + 0x18; the same bytes hold the command list
+// execution record (actor_squad_action_state) while the swarm runs a command list.
+typedef struct swarm_infection_state {
+    uint8_t parent_ticks;               // 0x00 ticks the form has ridden its parent unit (saturates at 255), 0 while it is free
+    uint8_t free_ticks;                 // 0x01 ticks the form has been free and not airborne (saturates at 255); the leap needs 45
+    uint8_t detach_delay;               // 0x02 set to 45 when the form is made to leave its parent, counted down while free
+    uint8_t unknown_03;                 // 0x03
+    uint8_t turn_wait_ticks;            // 0x04 counted down to the next wander turn
+    uint8_t turn_ticks;                 // 0x05 ticks left in the current wander turn
+    uint8_t unknown_06[2];              // 0x06
+    real_vector3d heading;              // 0x08 wander heading (swarm_component + 0x20)
+    float turn_rate;                    // 0x14 current turn rate of the wander heading (swarm_component + 0x2c)
+    uint8_t unknown_18[0x10];           // 0x18
+} swarm_infection_state;                // size 0x28
+typedef char swarm_infection_state_size[sizeof(swarm_infection_state) == 0x28 ? 1 : -1];
+
 typedef struct swarm_component {
     int16_t identifier;               // 0x00 datum_header
-    uint8_t flags;                    // 0x02 bit 3 read by ai_object_list_max_flee_grade
-    uint8_t unknown_03;               // 0x03
+    uint16_t flags;                   // 0x02 swarm_component_flag; bit 3 (active) read by ai_object_list_max_flee_grade
     real_point3d position;            // 0x04 object_get_position of the component unit
     datum_index marker_index;         // 0x10 object+0x4d8 when object+0xb4 is 0, otherwise none
     uint32_t leap_target_index;       // 0x14 0x14 -1 at swarm_add_component / actor_create_swarm;
                                       //    actor_compute_swarm_avoidance_offset uses it as 'target' for the leap
                                       //    solve when flag bit 0 is set; actor_replace_object_reference remaps it
                                       //    like the other object references
-    uint8_t unknown_18[4];            // 0x18
-    actor_squad_action_state action;  // 0x1c the command list execution record of this member (zeroed by command_list_reset_record)
+    union {
+        swarm_infection_state infection;  // 0x18 infection form wander / leap state
+        struct {
+            uint8_t unknown_18[4];            // 0x18
+            actor_squad_action_state action;  // 0x1c the command list execution record of this member (zeroed by command_list_reset_record)
+        };
+    };
 } swarm_component;      // size 0x40
 // global 0x00880358: data_array *swarm_component_data  element size 0x40, capacity 0x100
 

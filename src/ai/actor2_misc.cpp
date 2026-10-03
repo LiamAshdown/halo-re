@@ -2497,7 +2497,7 @@ void ActorView::swarm_for_each_component(char reset_first, actor_swarm_member_ca
 
             if (reset_first != 0) {
                 memset(&comp->action, 0, sizeof(comp->action));
-                comp->flags = (uint8_t)((comp->flags & 0xfb) | 8);
+                comp->flags = (uint16_t)((comp->flags & 0xfffb) | 8);
             }
             if ((comp->flags & 8) != 0) {
                 callback(actor_index, sw->unit_index[i], obey->command_list_index, &comp->action, 0, callback_extra);
