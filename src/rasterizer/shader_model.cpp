@@ -568,8 +568,8 @@ void rasterizer_object_shadow_model_draw(const ShaderModel *shader, int16_t fram
     if (shader->base.shader_type != 4) {
         return;
     }
-    render_device().set_render_state(halo::d3d9::rs::cull_mode, (shader->shader_model_flags & 2) ? 1 : 3);
-    if ((shader->shader_model_flags & 4) == 0) {
+    render_device().set_render_state(halo::d3d9::rs::cull_mode, halo::test_flag(shader->shader_model_flags, halo::tags::shader_model_tag_flag::two_sided) ? 1 : 3);
+    if (!halo::test_flag(shader->shader_model_flags, halo::tags::shader_model_tag_flag::not_alpha_tested)) {
         chimera__rasterizer_set_texture(halo::tag_id_bits(shader->base_map.tag_id), 0, 0, 1, frame);
         set_sampler_state(0, halo::d3d9::ss::address_u, 1);
         set_sampler_state(0, halo::d3d9::ss::address_v, 1);
@@ -757,7 +757,7 @@ static void set_transform(uint32_t state, const float *matrix)
 void rasterizer_shader_model_draw_fixed_function(Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
 {
     rasterizer_model_draw_context *context = rasterizer_active_model_context;
-    uint8_t decal = (smodel(shader)->shader_model_flags >> 3) & 1;
+    uint8_t decal = halo::test_flag(smodel(shader)->shader_model_flags, halo::tags::shader_model_tag_flag::alpha_blended_decal);
     uint16_t flags;
     uint8_t cull = 1;
     ColorRGB color;
@@ -780,8 +780,8 @@ void rasterizer_shader_model_draw_fixed_function(Shader *shader, int16_t frame, 
         }
     }
     flags = smodel(shader)->shader_model_flags;
-    if (flags & 2) {
-        if (flags & 0x20) {
+    if (halo::test_flag(flags, halo::tags::shader_model_tag_flag::two_sided)) {
+        if (halo::test_flag(flags, halo::tags::shader_model_tag_flag::disable_two_sided_culling)) {
             float dx, dy, dz;
 
             context = rasterizer_active_model_context;
@@ -802,7 +802,7 @@ void rasterizer_shader_model_draw_fixed_function(Shader *shader, int16_t frame, 
     set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
     set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
     set_render_state(halo::d3d9::rs::blend_op, 1);
-    set_render_state(halo::d3d9::rs::alpha_test_enable, (!rasterizer_camouflage_fade_active && !(smodel(shader)->shader_model_flags & 4)) ? 1 : 0);
+    set_render_state(halo::d3d9::rs::alpha_test_enable, (!rasterizer_camouflage_fade_active && !halo::test_flag(smodel(shader)->shader_model_flags, halo::tags::shader_model_tag_flag::not_alpha_tested)) ? 1 : 0);
     set_render_state(halo::d3d9::rs::alpha_ref, 0x7f);
     set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled ? 1 : 0);
 
@@ -822,7 +822,7 @@ void rasterizer_shader_model_draw_fixed_function(Shader *shader, int16_t frame, 
                                       context->base_map_u_scale * smodel(shader)->map_u_scale,
                                       context->base_map_v_scale * smodel(shader)->map_v_scale, 0.0f, 0.0f, 0.0f,
                                       (float)rasterizer_time.time);
-    if (smodel(shader)->shader_model_flags & 2) {
+    if (halo::test_flag(smodel(shader)->shader_model_flags, halo::tags::shader_model_tag_flag::two_sided)) {
         set_render_state(halo::d3d9::rs::cull_mode, 1);
     }
     alpha = rasterizer_camouflage_fade_active ? rasterizer_camouflage_fade : 1.0f;
@@ -948,7 +948,7 @@ static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t valu
 void rasterizer_shader_model_draw_limited(Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
 {
     rasterizer_model_draw_context *context = rasterizer_active_model_context;
-    uint8_t decal = (smodel(shader)->shader_model_flags >> 3) & 1;
+    uint8_t decal = halo::test_flag(smodel(shader)->shader_model_flags, halo::tags::shader_model_tag_flag::alpha_blended_decal);
     uint16_t flags;
     uint8_t cull = 1;
     ColorRGB color;
@@ -970,8 +970,8 @@ void rasterizer_shader_model_draw_limited(Shader *shader, int16_t frame, rasteri
         }
     }
     flags = smodel(shader)->shader_model_flags;
-    if (flags & 2) {
-        if (flags & 0x20) {
+    if (halo::test_flag(flags, halo::tags::shader_model_tag_flag::two_sided)) {
+        if (halo::test_flag(flags, halo::tags::shader_model_tag_flag::disable_two_sided_culling)) {
             float dx, dy, dz;
 
             context = rasterizer_active_model_context;
@@ -992,7 +992,7 @@ void rasterizer_shader_model_draw_limited(Shader *shader, int16_t frame, rasteri
     set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
     set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
     set_render_state(halo::d3d9::rs::blend_op, 1);
-    set_render_state(halo::d3d9::rs::alpha_test_enable, (!rasterizer_camouflage_fade_active && !(smodel(shader)->shader_model_flags & 4)) ? 1 : 0);
+    set_render_state(halo::d3d9::rs::alpha_test_enable, (!rasterizer_camouflage_fade_active && !halo::test_flag(smodel(shader)->shader_model_flags, halo::tags::shader_model_tag_flag::not_alpha_tested)) ? 1 : 0);
     set_render_state(halo::d3d9::rs::alpha_ref, 0x7f);
     set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled ? 1 : 0);
 
@@ -1017,7 +1017,7 @@ void rasterizer_shader_model_draw_limited(Shader *shader, int16_t frame, rasteri
                                       context->base_map_u_scale * smodel(shader)->map_u_scale,
                                       context->base_map_v_scale * smodel(shader)->map_v_scale, 0.0f, 0.0f, 0.0f,
                                       (float)rasterizer_time.time);
-    if (smodel(shader)->shader_model_flags & 2) {
+    if (halo::test_flag(smodel(shader)->shader_model_flags, halo::tags::shader_model_tag_flag::two_sided)) {
         set_render_state(halo::d3d9::rs::cull_mode, 1);
     }
     alpha = rasterizer_camouflage_fade_active ? rasterizer_camouflage_fade : 1.0f;
@@ -1110,7 +1110,7 @@ void rasterizer_shader_model_draw_pixel_shader(Shader *shader, int16_t frame, ra
     const ShaderModel *model = (const ShaderModel *)shader;
     rasterizer_model_draw_context *context;
     rasterizer_effect_slot *slot;
-    uint8_t decal = (smodel(shader)->shader_model_flags >> 3) & 1;
+    uint8_t decal = halo::test_flag(smodel(shader)->shader_model_flags, halo::tags::shader_model_tag_flag::alpha_blended_decal);
     uint8_t ok = 1;
     uint8_t cull = 1;
     uint16_t true_atmospheric_fog;
@@ -1160,8 +1160,8 @@ void rasterizer_shader_model_draw_pixel_shader(Shader *shader, int16_t frame, ra
             rasterizer_clear_decal_zbias();
         }
     }
-    if (smodel(shader)->shader_model_flags & 2) {
-        if (smodel(shader)->shader_model_flags & 0x20) {
+    if (halo::test_flag(smodel(shader)->shader_model_flags, halo::tags::shader_model_tag_flag::two_sided)) {
+        if (halo::test_flag(smodel(shader)->shader_model_flags, halo::tags::shader_model_tag_flag::disable_two_sided_culling)) {
             float distance = (float)halo::math::vector3d_distance(rasterizer_active_model_context->center,
                                                       rasterizer_window.camera.position);
 
@@ -1181,12 +1181,12 @@ void rasterizer_shader_model_draw_pixel_shader(Shader *shader, int16_t frame, ra
     set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
     set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
     set_render_state(halo::d3d9::rs::blend_op, 1);
-    set_render_state(halo::d3d9::rs::alpha_test_enable, (!rasterizer_camouflage_fade_active && !decal && !(smodel(shader)->shader_model_flags & 4)) ? 1 : 0);
+    set_render_state(halo::d3d9::rs::alpha_test_enable, (!rasterizer_camouflage_fade_active && !decal && !halo::test_flag(smodel(shader)->shader_model_flags, halo::tags::shader_model_tag_flag::not_alpha_tested)) ? 1 : 0);
     set_render_state(halo::d3d9::rs::alpha_ref, 0x7f);
     if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_4) {
         set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled ? 1 : 0);
     } else {
-        set_render_state(halo::d3d9::rs::fog_enable, (smodel(shader)->shader_model_flags >> 4) & 1);
+        set_render_state(halo::d3d9::rs::fog_enable, halo::test_flag(smodel(shader)->shader_model_flags, halo::tags::shader_model_tag_flag::true_atmospheric_fog));
     }
     rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(((struct ShaderModel *)shader)->base_map.tag_id), 0, 0, 1, frame, slot);
     rasterizer_resolve_and_cache_submap_b(halo::tag_id_bits(((struct ShaderModel *)shader)->detail_map.tag_id), 0, 1, 2, frame, slot);
@@ -1413,7 +1413,7 @@ void rasterizer_shader_model_draw_pixel_shader(Shader *shader, int16_t frame, ra
         }
         render_device().effect_end(slot->effect);
 
-        if ((smodel(shader)->shader_model_flags & 2) && cull) {
+        if (halo::test_flag(smodel(shader)->shader_model_flags, halo::tags::shader_model_tag_flag::two_sided) && cull) {
 
             context = rasterizer_active_model_context;
             detail_constants[0][0] = model->detail_map_scale;
@@ -1477,10 +1477,10 @@ rasterizer_effect_slot * rasterizer_shader_model_select_technique(const ShaderMo
     rasterizer_effect_slot *slot;
     int32_t technique;
 
-    if (flags & 1) {
+    if (halo::test_flag(flags, halo::tags::shader_model_tag_flag::detail_after_reflection)) {
         index += 3;
     }
-    if (rasterizer_caps.pixel_shader_version >= halo::d3d9::k_pixel_shader_version_1_4 && !(flags & 0x10)) {
+    if (rasterizer_caps.pixel_shader_version >= halo::d3d9::k_pixel_shader_version_1_4 && !halo::test_flag(flags, halo::tags::shader_model_tag_flag::true_atmospheric_fog)) {
         index += (shader->detail_mask == 0) ? 6 : 0xc;
     }
     switch (shader->detail_mask) {
