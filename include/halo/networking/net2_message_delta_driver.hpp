@@ -6,6 +6,8 @@
  */
 #pragma once
 
+#include "halo/networking/message_delta_context.hpp"
+
 namespace halo::networking {
 
 /**
@@ -62,14 +64,14 @@ public:
      *
      * @address 0x4ecc00
      */
-    static uint8_t encode_all_fields(uint8_t *ctx, int32_t static_base, int32_t item, int32_t type_base);
+    static uint8_t encode_all_fields(message_delta_encode_context *ctx, int32_t static_base, int32_t item, int32_t type_base);
 
     /**
      * Encodes one top-level message field via its type-specific callback. For an incremental message, reports the field's changed bit through the bit stream; for a stateless message, simply reports whether it encoded any bits. Accumulates the field's bit count into the context's running total and records its changed flag into the shared scratch array.
      *
      * @address 0x4ecde0
      */
-    static uint8_t encode_field(int32_t changed_offset, uint8_t *ctx, int32_t field_index, int32_t type_offset);
+    static uint8_t encode_field(int32_t changed_offset, message_delta_encode_context *ctx, int32_t field_index, int32_t type_offset);
 
     /**
      * REWRITTEN from objdump 0x4ec940..0x4ecb57 (EAX = output buffer, EDX = its size in bits; stack as declared). The context (0x94 bytes, zeroed) holds: +0 "started" byte, +4 message type, +8 flag, +0xc buffer, +0x10 size, +0x14 total item bits, +0x18 remaining budget, +0x1c an inline bit_stream {0, buffer, 0, 0, 0, header_bits - 1}, +0x34 header bits, +0x38 item count, +0x3c running bit offset, then per-item blocks the helpers fill (+0x40 static bits, +0x44 field bits, +0x48..
@@ -85,14 +87,14 @@ public:
      *
      * @address 0x4ecd00
      */
-    static uint8_t encode_message_header(uint8_t *ctx);
+    static uint8_t encode_message_header(message_delta_encode_context *ctx);
 
     /**
      * Initializes per-item bit-offset state within the message-delta encode context before encoding one item's fields: when the message is flagged, precomputes the item's static-field bit range; either way, computes the item's total (static + array) bit range against the message's remaining budget. FIXED (objdump 0x4ecb60): the context arrives in EAX and the result is AL only (mov...
      *
      * @address 0x4ecb60
      */
-    static uint8_t encode_prepare_item(uint8_t *ctx);
+    static uint8_t encode_prepare_item(message_delta_encode_context *ctx);
 
     /**
      * Builds a message-delta message carrying a single item into `buffer` (bit_budget bits): the one-element items array holds `item`, the baseline slots hold `changed_value` (reported "changed" only when non-null) and `type_value`; force_changed arrives in dl.
