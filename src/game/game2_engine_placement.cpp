@@ -837,55 +837,55 @@ void EnginePlacement::touch_multiplayer_predicted_resources(void)
 
     switch (game_engine_variant.red_vehicle_set & 0xf) {
     case 2:
-        halo::objects::object_notify_predicted_resources_if_valid((datum_index)*(int32_t *)&vehicles[0].vehicle.tag_id);
+        halo::objects::object_notify_predicted_resources_if_valid((datum_index)halo::tag_id_bits<int32_t>(vehicles[0].vehicle.tag_id));
         break;
     case 3:
-        halo::objects::object_notify_predicted_resources_if_valid((datum_index)*(int32_t *)&vehicles[1].vehicle.tag_id);
+        halo::objects::object_notify_predicted_resources_if_valid((datum_index)halo::tag_id_bits<int32_t>(vehicles[1].vehicle.tag_id));
         break;
     case 4:
-        halo::objects::object_notify_predicted_resources_if_valid((datum_index)*(int32_t *)&vehicles[2].vehicle.tag_id);
+        halo::objects::object_notify_predicted_resources_if_valid((datum_index)halo::tag_id_bits<int32_t>(vehicles[2].vehicle.tag_id));
         break;
     case 6:
-        halo::objects::object_notify_predicted_resources_if_valid((datum_index)*(int32_t *)&vehicles[3].vehicle.tag_id);
+        halo::objects::object_notify_predicted_resources_if_valid((datum_index)halo::tag_id_bits<int32_t>(vehicles[3].vehicle.tag_id));
         break;
     case 7:
-        halo::objects::object_notify_predicted_resources_if_valid((datum_index)*(int32_t *)&vehicles[4].vehicle.tag_id);
+        halo::objects::object_notify_predicted_resources_if_valid((datum_index)halo::tag_id_bits<int32_t>(vehicles[4].vehicle.tag_id));
         break;
     default:
-        touch_tag_if_valid(*(int32_t *)&vehicles[0].vehicle.tag_id);
-        touch_tag_if_valid(*(int32_t *)&vehicles[1].vehicle.tag_id);
-        touch_tag_if_valid(*(int32_t *)&vehicles[2].vehicle.tag_id);
-        touch_tag_if_valid(*(int32_t *)&vehicles[3].vehicle.tag_id);
-        touch_tag_if_valid(*(int32_t *)&vehicles[4].vehicle.tag_id);
-        touch_tag_if_valid(*(int32_t *)&vehicles[5].vehicle.tag_id);
+        touch_tag_if_valid(halo::tag_id_bits<int32_t>(vehicles[0].vehicle.tag_id));
+        touch_tag_if_valid(halo::tag_id_bits<int32_t>(vehicles[1].vehicle.tag_id));
+        touch_tag_if_valid(halo::tag_id_bits<int32_t>(vehicles[2].vehicle.tag_id));
+        touch_tag_if_valid(halo::tag_id_bits<int32_t>(vehicles[3].vehicle.tag_id));
+        touch_tag_if_valid(halo::tag_id_bits<int32_t>(vehicles[4].vehicle.tag_id));
+        touch_tag_if_valid(halo::tag_id_bits<int32_t>(vehicles[5].vehicle.tag_id));
         break;
     }
 
     weapons = (GlobalsWeapon *)global_globals->weapon_list.pointer;
 
     if (game_engine_variant.game_engine_index == _game_engine_oddball) {
-        touch_tag_if_valid(*(int32_t *)&weapons[10].weapon.tag_id);
+        touch_tag_if_valid(halo::tag_id_bits<int32_t>(weapons[10].weapon.tag_id));
     }
     if (game_engine_variant.game_engine_index == _game_engine_ctf) {
-        touch_tag_if_valid(*(int32_t *)&weapons[11].weapon.tag_id);
+        touch_tag_if_valid(halo::tag_id_bits<int32_t>(weapons[11].weapon.tag_id));
     }
 
-    weapon_tags[0] = *(int32_t *)&weapons[0].weapon.tag_id;
-    weapon_tags[1] = *(int32_t *)&weapons[1].weapon.tag_id;
-    weapon_tags[2] = *(int32_t *)&weapons[2].weapon.tag_id;
+    weapon_tags[0] = halo::tag_id_bits<int32_t>(weapons[0].weapon.tag_id);
+    weapon_tags[1] = halo::tag_id_bits<int32_t>(weapons[1].weapon.tag_id);
+    weapon_tags[2] = halo::tag_id_bits<int32_t>(weapons[2].weapon.tag_id);
     weapon_tags[3] = -1;
-    weapon_tags[4] = *(int32_t *)&weapons[4].weapon.tag_id;
-    weapon_tags[5] = *(int32_t *)&weapons[5].weapon.tag_id;
-    weapon_tags[6] = *(int32_t *)&weapons[6].weapon.tag_id;
-    weapon_tags[7] = *(int32_t *)&weapons[7].weapon.tag_id;
-    weapon_tags[8] = *(int32_t *)&weapons[8].weapon.tag_id;
-    weapon_tags[9] = *(int32_t *)&weapons[9].weapon.tag_id;
+    weapon_tags[4] = halo::tag_id_bits<int32_t>(weapons[4].weapon.tag_id);
+    weapon_tags[5] = halo::tag_id_bits<int32_t>(weapons[5].weapon.tag_id);
+    weapon_tags[6] = halo::tag_id_bits<int32_t>(weapons[6].weapon.tag_id);
+    weapon_tags[7] = halo::tag_id_bits<int32_t>(weapons[7].weapon.tag_id);
+    weapon_tags[8] = halo::tag_id_bits<int32_t>(weapons[8].weapon.tag_id);
+    weapon_tags[9] = halo::tag_id_bits<int32_t>(weapons[9].weapon.tag_id);
     weapon_tags[10] = -1;
     weapon_tags[11] = -1;
-    weapon_tags[12] = *(int32_t *)&weapons[12].weapon.tag_id;
-    weapon_tags[13] = *(int32_t *)&weapons[13].weapon.tag_id;
-    weapon_tags[14] = *(int32_t *)&weapons[14].weapon.tag_id;
-    weapon_tags[15] = *(int32_t *)&weapons[15].weapon.tag_id;
+    weapon_tags[12] = halo::tag_id_bits<int32_t>(weapons[12].weapon.tag_id);
+    weapon_tags[13] = halo::tag_id_bits<int32_t>(weapons[13].weapon.tag_id);
+    weapon_tags[14] = halo::tag_id_bits<int32_t>(weapons[14].weapon.tag_id);
+    weapon_tags[15] = halo::tag_id_bits<int32_t>(weapons[15].weapon.tag_id);
 
     for (i = 0; i < 16; i = i + 1) {
         if (weapon_tags[i] != -1) {

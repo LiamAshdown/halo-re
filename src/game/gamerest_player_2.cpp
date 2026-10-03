@@ -58,13 +58,13 @@ static void player_respawn_drop_lights(datum_index object_index)
     object *obj = halo::game::object_at(object_index);
     Object *tag = (Object *)halo::game::tag_data_at(obj->definition_tag);
 
-    if (*(int32_t *)&tag->model.tag_id == -1) {
+    if (halo::tag_id_bits<int32_t>(tag->model.tag_id) == -1) {
         return;
     }
     if (obj->flags & 1) {
         halo::objects::object_for_each_light_attachment(object_index, 0, 1);
     }
-    if (*(int32_t *)&tag->model.tag_id != -1) {
+    if (halo::tag_id_bits<int32_t>(tag->model.tag_id) != -1) {
         obj->flags &= ~1u;
         halo::game::object_header_at(object_index).flags |= 2;
     }

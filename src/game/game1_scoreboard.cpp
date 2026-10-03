@@ -396,7 +396,7 @@ void Scoreboard::check_bucket_scores_and_end_round(void)
                     (GlobalsMultiplayerInformation *)global_globals->multiplayer_information.pointer;
                 if (mp_info != (GlobalsMultiplayerInformation *)0 && (int32_t)mp_info->sounds.count > 1) {
                     GlobalsSound *sound1 = (GlobalsSound *)mp_info->sounds.pointer + 1;
-                    if ((int32_t)mp_info->sounds.pointer != -0x10 && *(int32_t *)&sound1->sound.tag_id != -1) {
+                    if ((int32_t)mp_info->sounds.pointer != -0x10 && halo::tag_id_bits<int32_t>(sound1->sound.tag_id) != -1) {
                         halo::sound::sound_start_unspatialized(*(datum_index *)&sound1->sound.tag_id, 1.0f);
                     }
                 }
@@ -415,7 +415,7 @@ void Scoreboard::check_bucket_scores_and_end_round(void)
                         (GlobalsMultiplayerInformation *)global_globals->multiplayer_information.pointer;
                     if (mp_info != (GlobalsMultiplayerInformation *)0 && (int32_t)mp_info->sounds.count > 1) {
                         GlobalsSound *sound1 = (GlobalsSound *)mp_info->sounds.pointer + 1;
-                        if ((int32_t)mp_info->sounds.pointer != -0x10 && *(int32_t *)&sound1->sound.tag_id != -1) {
+                        if ((int32_t)mp_info->sounds.pointer != -0x10 && halo::tag_id_bits<int32_t>(sound1->sound.tag_id) != -1) {
                             halo::sound::sound_start_unspatialized(*(datum_index *)&sound1->sound.tag_id, 1.0f);
                         }
                     }

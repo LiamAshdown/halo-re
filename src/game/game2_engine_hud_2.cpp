@@ -97,7 +97,7 @@ void EngineHud::post_rasterize_post_game(void)
         ? (GlobalsInterfaceBitmaps *)0
         : (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer;
     hud_globals = (HUDGlobals *)halo::cache::globals().tag_instances[interface_bitmaps->hud_globals.tag_id.index].data;
-    quad_tag = (Bitmap *)halo::game::tag_data_at(*(uint32_t *)&hud_globals->carnage_report_bitmap.tag_id);
+    quad_tag = (Bitmap *)halo::game::tag_data_at(halo::tag_id_bits<uint32_t>(hud_globals->carnage_report_bitmap.tag_id));
     rect.top = 0;
     rect.left = 0;
     rect.bottom = 0x1e0;

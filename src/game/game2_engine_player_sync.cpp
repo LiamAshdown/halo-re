@@ -999,7 +999,7 @@ void EnginePlayerSync::spawn_player_starting_loadout(uint32_t starting_equipment
         int32_t slot;
 
         for (slot = 0; slot < 5; slot++) {
-            if (*(int32_t *)&item_collections[slot].tag_id != -1) {
+            if (halo::tag_id_bits<int32_t>(item_collections[slot].tag_id) != -1) {
                 object_placement_data placement;
                 datum_index picked_tag = (datum_index)halo::game::tag_reflexive_pick_weighted_random_index(
                     *(datum_index *)&item_collections[slot].tag_id);
