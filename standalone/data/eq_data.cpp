@@ -1,5 +1,5 @@
 /**
- * standalone/data/eq_data.c -- the engine globals of the initialised .rdata/.data image that the C code reaches
+ * standalone/data/eq_data.cpp -- the engine globals of the initialised .rdata/.data image that the C code reaches
  * through several names or as one larger object (tables strided past their declared end, a struct seen through field
  * names). They were absolute EQU symbols in standalone/globals.asm.
  *
@@ -9,70 +9,17 @@
  * congruent with the original addresses, so every name sits at its original offset from the cluster start. Initial
  * values are the bytes the data image holds at the original address: code pointers name the function, pointers into a
  * global that is now a C definition point at that definition. tools/globals_check_eq.py verifies layout and bytes.
+ *
+ * All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names.
  */
 #include "tables.h"
-extern uint8_t cache_file_current_header_crc32[];
+#include "code_refs.hpp"
 #include <stdint.h>
 
-/** code the tables point at (defined in src/ or bound by image_bindings.c) */
-extern void actor_compute_swarm_avoidance_offset();
-extern void actor_type_crew_update();
-extern void actor_type_elite_update();
-extern void actor_type_engineer_update();
-extern void actor_type_flood_carrier_update();
-extern void actor_type_flood_update();
-extern void actor_type_grunt_update();
-extern void actor_type_hunter_update();
-extern void actor_type_infection_swarm_update();
-extern void actor_type_infection_update();
-extern void actor_type_jackal_update();
-extern void actor_type_marine_update();
-extern void actor_type_mounted_weapon_update();
-extern void actor_type_sentinel_update();
-extern void exception_copy_construct();
-extern void function_do_nothing();
-extern void hwreq_length_error_destruct();
-extern void hwreq_out_of_range_destruct();
-extern void message_delta_blob_compute_size();
-extern void message_delta_compound_compute_size();
-extern void message_delta_compound_initialize();
-extern void message_delta_compute_size_1();
-extern void message_delta_compute_size_16();
-extern void message_delta_compute_size_2();
-extern void message_delta_compute_size_3();
-extern void message_delta_compute_size_32();
-extern void message_delta_compute_size_4();
-extern void message_delta_compute_size_6();
-extern void message_delta_compute_size_8();
-extern void message_delta_count_initialize();
-extern void message_delta_enum_width_compute_size();
-extern void message_delta_first_dword_compute_size();
-extern void message_delta_flags_initialize();
-extern void message_delta_index_compute_size();
-extern void message_delta_index_initialize();
-extern void message_delta_index_teardown();
-extern void message_delta_integer_compute_size();
-extern void message_delta_integer_initialize();
-extern void message_delta_item_placement_compute_size();
-extern void message_delta_item_placement_initialize();
-extern void message_delta_locality_compute_size();
-extern void message_delta_locality_initialize();
-extern void message_delta_normal_compute_size();
-extern void message_delta_normal_initialize();
-extern void message_delta_pointer_compute_size();
-extern void message_delta_pointer_initialize();
-extern void message_delta_quantized_real_initialize();
-extern void message_delta_range_compute_size();
-extern void message_delta_range_initialize();
-extern void message_delta_scalar_array_compute_size();
-extern void message_delta_string_compute_size();
-extern void message_delta_structure_array_compute_size();
-extern void message_delta_structure_array_initialize();
-extern void message_delta_velocity_compute_size();
-extern void message_delta_wide_string_compute_size();
-extern void object_type_definition_return_true();
-extern void __fastcall std_length_error_copy_construct(void *, void *, void *);
-extern void waypoint_table_quantize_initialize();
+extern "C" {
+
+extern uint8_t cache_file_current_header_crc32[];
+
 
 /** the globals the tables point into, defined below or in a slice file */
 extern uint32_t actor_mode_guard_look_weights_ambush[];
@@ -647,3 +594,5 @@ __declspec(allocate(".geq$0069fde4")) __declspec(align(16)) uint8_t eq_pad_0069f
 __declspec(allocate(".geq$0069fde4v")) __declspec(align(4)) uint32_t unit_base_animation_state_names[2] = {(uint32_t)"asleep", (uint32_t)"alert"};
 #pragma section(".geq$0069fdecv", read, write)
 __declspec(allocate(".geq$0069fdecv")) __declspec(align(4)) uint32_t s_stand[4] = {(uint32_t)"stand", (uint32_t)"crouch", (uint32_t)"flee", (uint32_t)"flaming"};
+
+}

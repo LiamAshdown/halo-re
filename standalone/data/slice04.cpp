@@ -1,124 +1,16 @@
-/* standalone/data/slice04.c -- engine globals 0x0069c648..0x006b1318 as real C definitions (slice 4 of the
+/* standalone/data/slice04.cpp -- engine globals 0x0069c648..0x006b1318 as extern "C" definitions (slice 4 of the
    globals->C conversion). Initial values are the retail .data/.rdata image bytes; pointers inside them are
    expressed in C (function names, string literals, &other_global). The marker comment before each definition
    ("0xADDR size N: name") is read by tools/globals_check_slice04.py.
    Not converted (still EQU in standalone/globals.asm), because their extents overlap other symbols: see the
-   commit message / PLAN notes. */
+   commit message / PLAN notes.
+
+   All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
+#include "code_refs.hpp"
 #include <stdint.h>
 
-extern void ai_reset_fire_group_assignments();
-extern void ai_unassigned_actors_attach_to_structure_bsp();
-extern void config_compute_uma_video_memory();
-extern void config_set_decal_slope_z_bias();
-extern void config_set_decal_z_bias();
-extern void config_set_disable_alpha_render_targets();
-extern void config_set_disable_buffering();
-extern void config_set_disable_driver_management();
-extern void config_set_disable_render_targets();
-extern void config_set_disable_specular();
-extern void config_set_enable_stop_start();
-extern void config_set_force_shader();
-extern void config_set_head_relative_speech();
-extern void config_set_invalid_driver();
-extern void config_set_invalid_sound_driver();
-extern void config_set_linear_texture_addressing();
-extern void config_set_linear_texture_addressing_sun();
-extern void config_set_linear_texture_addressing_zoom();
-extern void config_set_maximum_resolution();
-extern void config_set_min_max_blend_op_is_broken();
-extern void config_set_old_driver();
-extern void config_set_old_sound_driver();
-extern void config_set_prototype_card();
-extern void config_set_safe_mode();
-extern void config_set_transparent_decal_slope_z_bias();
-extern void config_set_transparent_decal_z_bias();
-extern void config_set_unsupported_card();
-extern void config_set_use_alternate_convolve_mask();
-extern void config_set_use_anisotropic_filter();
-extern void config_set_use_fixed_function();
-extern void contrail_refresh_lightmap();
-extern void decal_geometry_cache_restore_procs();
-extern void decal_rehash_object_decals();
-extern void decals_detach_from_structure_bsp();
-extern void detail_objects_invalidate();
-extern void director_game_state_loaded();
-extern void effects_refresh_structure_locations();
-extern void function_do_nothing();
-extern void game_engine_variant_defaults_assault();
-extern void game_engine_variant_defaults_classic_accumulation();
-extern void game_engine_variant_defaults_classic_crazy_king();
-extern void game_engine_variant_defaults_classic_ctf();
-extern void game_engine_variant_defaults_classic_ctf_pro();
-extern void game_engine_variant_defaults_classic_elimination();
-extern void game_engine_variant_defaults_classic_endurance();
-extern void game_engine_variant_defaults_classic_invasion();
-extern void game_engine_variant_defaults_classic_iron_ctf();
-extern void game_engine_variant_defaults_classic_juggernaut();
-extern void game_engine_variant_defaults_classic_king();
-extern void game_engine_variant_defaults_classic_king_pro();
-extern void game_engine_variant_defaults_classic_oddball();
-extern void game_engine_variant_defaults_classic_phantoms();
-extern void game_engine_variant_defaults_classic_race();
-extern void game_engine_variant_defaults_classic_rally();
-extern void game_engine_variant_defaults_classic_reverse_tag();
-extern void game_engine_variant_defaults_classic_rockets();
-extern void game_engine_variant_defaults_classic_slayer();
-extern void game_engine_variant_defaults_classic_slayer_pro();
-extern void game_engine_variant_defaults_classic_snipers();
-extern void game_engine_variant_defaults_classic_stalker();
-extern void game_engine_variant_defaults_classic_team_king();
-extern void game_engine_variant_defaults_classic_team_oddball();
-extern void game_engine_variant_defaults_classic_team_race();
-extern void game_engine_variant_defaults_classic_team_rally();
-extern void game_engine_variant_defaults_classic_team_slayer();
-extern void game_engine_variant_defaults_crazy_king();
-extern void game_engine_variant_defaults_juggernaut();
-extern void game_engine_variant_defaults_king();
-extern void game_engine_variant_defaults_oddball();
-extern void game_engine_variant_defaults_race();
-extern void game_engine_variant_defaults_slayer();
-extern void game_engine_variant_defaults_stalker();
-extern void game_engine_variant_defaults_team_king();
-extern void game_engine_variant_defaults_team_oddball();
-extern void game_engine_variant_defaults_team_race();
-extern void game_engine_variant_defaults_team_slayer();
-extern void game_sound_reconcile_scripting_state();
-extern void game_sound_revert_scripting_sounds();
-extern void game_state_after_load_restore_time();
-extern void hud_messaging_clear_after_load();
-extern void object_lights_detach_from_structure_bsp();
-extern void object_lights_refresh_transforms();
-extern void object_sweep_refresh_cluster_membership();
-extern void objects_delete_unparented_of_type_mask();
-extern void objects_recompute_cluster_membership();
-extern void observer_initialize();
-extern void observer_update_location();
-extern void particle_system_resolve_local_players();
-extern void particles_refresh_structure_locations();
-extern void players_rebind_local_player_after_load();
-extern void players_structure_bsp_switch_regroup();
-extern void scenario_objects_place_for_structure_bsp_on_activate();
-extern void scenario_structure_bsp_switch_after_load();
-extern void sound_driver_begin_frame();
-extern void sound_driver_channel_continue();
-extern void sound_driver_channel_get_state();
-extern void sound_driver_channel_play();
-extern void sound_driver_channel_set_parameters();
-extern void sound_driver_channel_set_spatial();
-extern void sound_driver_channel_stop();
-extern void sound_driver_dispose();
-extern void sound_driver_eax_available();
-extern void sound_driver_end_frame();
-extern void sound_driver_initialize();
-extern void sound_driver_set_paused();
-extern void sound_driver_set_quality();
-extern void sound_driver_stop_all();
-extern void sound_listener_update();
-extern void sound_stop_all();
-extern void sounds_refresh_structure_locations();
-extern void structure_runtime_decals_evict();
-extern void structure_runtime_decals_mark_dirty();
-extern void update_queues_revert();
+extern "C" {
+
 extern char k_empty_string[];
 
 /* 0x0069c648 size 4: rasterizer_present_counter_low */
@@ -169,10 +61,10 @@ uint8_t rasterizer_caps_flag_68a;
 int32_t rasterizer_frame_index = 12;
 
 /* 0x0069c698 size 4: chat_gui_find_object_arg */
-void * chat_gui_find_object_arg = L"KeystoneEditbox";
+void * chat_gui_find_object_arg = (void *)L"KeystoneEditbox";
 
 /* 0x0069c69c size 4: chat_listbox_gui_find_object_arg */
-void * chat_listbox_gui_find_object_arg = L"KeystoneChatLog";
+void * chat_listbox_gui_find_object_arg = (void *)L"KeystoneChatLog";
 
 /* 0x0069c6a0 size 4: rasterizer_device_type */
 uint32_t rasterizer_device_type = 0x1u;
@@ -424,11 +316,11 @@ int32_t shell_instance_mode_value = -1;
 
 /* 0x0069eab8 size 36: shell_instance_mutex_names */
 void * shell_instance_mutex_names[9] = {
-    "Global\\{cff2f1a0-500e-4fae-a789-ceaa827d8c08}", "Global\\{38642482-262e-4413-bd01-01b4ccd937ae}1",
-    "Global\\{38642482-262e-4413-bd01-01b4ccd937ae}2", "Global\\{38642482-262e-4413-bd01-01b4ccd937ae}3",
-    "Global\\{38642482-262e-4413-bd01-01b4ccd937ae}4", "Global\\{38642482-262e-4413-bd01-01b4ccd937ae}5",
-    "Global\\{38642482-262e-4413-bd01-01b4ccd937ae}6", "Global\\{38642482-262e-4413-bd01-01b4ccd937ae}7",
-    "Global\\{38642482-262e-4413-bd01-01b4ccd937ae}8",
+    (void *)"Global\\{cff2f1a0-500e-4fae-a789-ceaa827d8c08}", (void *)"Global\\{38642482-262e-4413-bd01-01b4ccd937ae}1",
+    (void *)"Global\\{38642482-262e-4413-bd01-01b4ccd937ae}2", (void *)"Global\\{38642482-262e-4413-bd01-01b4ccd937ae}3",
+    (void *)"Global\\{38642482-262e-4413-bd01-01b4ccd937ae}4", (void *)"Global\\{38642482-262e-4413-bd01-01b4ccd937ae}5",
+    (void *)"Global\\{38642482-262e-4413-bd01-01b4ccd937ae}6", (void *)"Global\\{38642482-262e-4413-bd01-01b4ccd937ae}7",
+    (void *)"Global\\{38642482-262e-4413-bd01-01b4ccd937ae}8",
 };
 
 /* 0x0069eae0 size 2244: sound_class_definitions */
@@ -531,32 +423,32 @@ uint32_t sound_class_definitions[561] = {
 
 /* 0x0069f3a8 size 204: sound_class_names */
 void * sound_class_names[51] = {
-    "projectile_impact", "projectile_detonation",
+    (void *)"projectile_impact", (void *)"projectile_detonation",
     k_empty_string, k_empty_string,
-    "weapon_fire", "weapon_ready",
-    "weapon_reload", "weapon_empty",
-    "weapon_charge", "weapon_overheat",
-    "weapon_idle", k_empty_string,
-    k_empty_string, "object_impacts",
-    "particle_impacts", "slow_particle_impacts",
+    (void *)"weapon_fire", (void *)"weapon_ready",
+    (void *)"weapon_reload", (void *)"weapon_empty",
+    (void *)"weapon_charge", (void *)"weapon_overheat",
+    (void *)"weapon_idle", k_empty_string,
+    k_empty_string, (void *)"object_impacts",
+    (void *)"particle_impacts", (void *)"slow_particle_impacts",
     k_empty_string, k_empty_string,
-    "unit_footsteps", "unit_dialog",
+    (void *)"unit_footsteps", (void *)"unit_dialog",
     k_empty_string, k_empty_string,
-    "vehicle_collision", "vehicle_engine",
+    (void *)"vehicle_collision", (void *)"vehicle_engine",
     k_empty_string, k_empty_string,
-    "device_door", "device_force_field",
-    "device_machinery", "device_nature",
-    "device_computers", k_empty_string,
-    "music", "ambient_nature",
-    "ambient_machinery", "ambient_computers",
+    (void *)"device_door", (void *)"device_force_field",
+    (void *)"device_machinery", (void *)"device_nature",
+    (void *)"device_computers", k_empty_string,
+    (void *)"music", (void *)"ambient_nature",
+    (void *)"ambient_machinery", (void *)"ambient_computers",
     k_empty_string, k_empty_string,
-    k_empty_string, "first_person_damage",
+    k_empty_string, (void *)"first_person_damage",
     k_empty_string, k_empty_string,
     k_empty_string, k_empty_string,
-    "scripted_dialog_player", "scripted_effect",
-    "scripted_dialog_other", "scripted_dialog_force_unspatialized",
+    (void *)"scripted_dialog_player", (void *)"scripted_effect",
+    (void *)"scripted_dialog_other", (void *)"scripted_dialog_force_unspatialized",
     k_empty_string, k_empty_string,
-    "game_event",
+    (void *)"game_event",
 };
 
 /* 0x0069f4c0 size 4: directsound_rolloff_factor */
@@ -640,34 +532,34 @@ int32_t config_maximum_resolution = 4096;
 
 /* 0x0069fe40 size 224: config_properties */
 void * config_properties[56] = {
-    "ForceShader", config_set_force_shader,
-    "DisableDriverManagement", config_set_disable_driver_management,
-    "LinearTextureAddressing", config_set_linear_texture_addressing,
-    "LinearTextureAddressingZoom", config_set_linear_texture_addressing_zoom,
-    "LinearTextureAddressingSun", config_set_linear_texture_addressing_sun,
-    "MaximumResolution", config_set_maximum_resolution,
-    "UseFixedFunction", config_set_use_fixed_function,
-    "UnsupportedCard", config_set_unsupported_card,
-    "DisableRenderTargets", config_set_disable_render_targets,
-    "DisableAlphaRenderTargets", config_set_disable_alpha_render_targets,
-    "DisableBuffering", config_set_disable_buffering,
-    "UseAlternateConvolveMask", config_set_use_alternate_convolve_mask,
-    "OldDriver", config_set_old_driver,
-    "EnableStopStart", config_set_enable_stop_start,
-    "HeadRelativeSpeech", config_set_head_relative_speech,
-    "OldSoundDriver", config_set_old_sound_driver,
-    "InvalidDriver", config_set_invalid_driver,
-    "InvalidSoundDriver", config_set_invalid_sound_driver,
-    "SafeMode", config_set_safe_mode,
-    "DisableSpecular", config_set_disable_specular,
-    "UseAnisotropicFilter", config_set_use_anisotropic_filter,
-    "UMA", config_compute_uma_video_memory,
-    "MinMaxBlendOpIsBroken", config_set_min_max_blend_op_is_broken,
-    "DecalZBiasValue", config_set_decal_z_bias,
-    "DecalSlopeZBiasValue", config_set_decal_slope_z_bias,
-    "TransparentDecalZBiasValue", config_set_transparent_decal_z_bias,
-    "TransparentDecalSlopeZBiasValue", config_set_transparent_decal_slope_z_bias,
-    "PrototypeCard", config_set_prototype_card,
+    (void *)"ForceShader", config_set_force_shader,
+    (void *)"DisableDriverManagement", config_set_disable_driver_management,
+    (void *)"LinearTextureAddressing", config_set_linear_texture_addressing,
+    (void *)"LinearTextureAddressingZoom", config_set_linear_texture_addressing_zoom,
+    (void *)"LinearTextureAddressingSun", config_set_linear_texture_addressing_sun,
+    (void *)"MaximumResolution", config_set_maximum_resolution,
+    (void *)"UseFixedFunction", config_set_use_fixed_function,
+    (void *)"UnsupportedCard", config_set_unsupported_card,
+    (void *)"DisableRenderTargets", config_set_disable_render_targets,
+    (void *)"DisableAlphaRenderTargets", config_set_disable_alpha_render_targets,
+    (void *)"DisableBuffering", config_set_disable_buffering,
+    (void *)"UseAlternateConvolveMask", config_set_use_alternate_convolve_mask,
+    (void *)"OldDriver", config_set_old_driver,
+    (void *)"EnableStopStart", config_set_enable_stop_start,
+    (void *)"HeadRelativeSpeech", config_set_head_relative_speech,
+    (void *)"OldSoundDriver", config_set_old_sound_driver,
+    (void *)"InvalidDriver", config_set_invalid_driver,
+    (void *)"InvalidSoundDriver", config_set_invalid_sound_driver,
+    (void *)"SafeMode", config_set_safe_mode,
+    (void *)"DisableSpecular", config_set_disable_specular,
+    (void *)"UseAnisotropicFilter", config_set_use_anisotropic_filter,
+    (void *)"UMA", config_compute_uma_video_memory,
+    (void *)"MinMaxBlendOpIsBroken", config_set_min_max_blend_op_is_broken,
+    (void *)"DecalZBiasValue", config_set_decal_z_bias,
+    (void *)"DecalSlopeZBiasValue", config_set_decal_slope_z_bias,
+    (void *)"TransparentDecalZBiasValue", config_set_transparent_decal_z_bias,
+    (void *)"TransparentDecalSlopeZBiasValue", config_set_transparent_decal_slope_z_bias,
+    (void *)"PrototypeCard", config_set_prototype_card,
 };
 
 /* 0x0069ff20 size 4: shell_language_id */
@@ -898,3 +790,4 @@ uint32_t multiplayer_sound_queue[20];
 /* 0x006b1140 size 4: multiplayer_sound_queue_count */
 int32_t multiplayer_sound_queue_count;
 
+}

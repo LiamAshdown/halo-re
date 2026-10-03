@@ -1,8 +1,11 @@
-/* standalone/data/slice09.c -- engine globals 0x00721ebc..0x007c04a0 as C variables (all zero-initialised BSS in
+/* standalone/data/slice09.cpp -- engine globals 0x00721ebc..0x007c04a0 as C variables (all zero-initialised BSS in
    the original image). Generated once from standalone/globals.asm + the extern declarations in src/; the names are the
    symbols src/ links against. Names that share an address with another variable are /alternatename aliases.
    Left as absolute EQU symbols in globals.asm: the 0x00746280 block (unknown_00746280_block, ambient_noise,
-   weather_particle_system_count, weather_wind_states, weather_frame_counter), see the slice 9 notes. */
+   weather_particle_system_count, weather_wind_states, weather_frame_counter), see the slice 9 notes.
+
+   All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
+#include "code_refs.hpp"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -19,6 +22,8 @@
 #include "structures.h"
 #include "scenario.h"
 
+extern "C" {
+
 /* the gamespy gcd game record (src/gamespy/gcd_authenticate_user.c, 0x10 bytes) */
 typedef struct gcd_client_node_s09 {
     struct gcd_client_node_s09 *next, *prev;
@@ -29,7 +34,7 @@ typedef struct gcd_game {
 } gcd_game;
 
 /* the object must fit before the next fixed-address global of the original layout */
-#define HALO_SZ_CHECK(var, limit) typedef char halo_sz_##var[(sizeof(var) <= (limit)) ? 1 : -1]
+#define HALO_SZ_CHECK(var, limit) static_assert(sizeof(var) <= (limit))
 
 keystone_update_fn keystone_update;  // 0x00721ebc
 keystone_dispatch_message_fn keystone_dispatch_message;  // 0x00721ec0
@@ -429,3 +434,5 @@ HALO_SZ_CHECK(unknown_007c048c, 4);
 HALO_SZ_CHECK(unknown_007c0490, 4);
 HALO_SZ_CHECK(unknown_007c0494, 12);
 HALO_SZ_CHECK(rasterizer_present_parameters, 64);
+
+}

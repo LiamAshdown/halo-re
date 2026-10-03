@@ -1,4 +1,5 @@
-/* D3DX 2003 -> June 2010 compatibility for the standalone build.
+/**
+ * D3DX 2003 -> June 2010 compatibility for the standalone build.
 
    halo.exe links the 2003 (DirectX 9.0b era) D3DX statically, and the rewritten C calls ID3DXEffect methods through
    that version's vtable layout (0x00644d10, 71 slots; each slot's argument size checked against the `ret N` of the
@@ -21,18 +22,30 @@
    standalone_d3dx_create_effect replaces D3DXCreateEffect for the rewritten C (tools/gen_standalone_link.py routes
    the symbol here): it creates the June 2010 effect and hands back a proxy whose vtable has the 2003 layout. Pass()
    is emulated as EndPass (when a pass is open) + BeginPass, which applies the pass with the parameter values set
-   before it, as the 2003 Pass() did; End() closes an open pass first. */
+   before it, as the 2003 Pass() did; End() closes an open pass first.
+
+   The one exported name, standalone_d3dx_create_effect, is in the single extern "C" block at the end; the proxy lives
+   in halo::standalone::d3dx. */
 #include <windows.h>
 #include <d3dx9.h>
 #include <stdio.h>
 
-typedef struct effect_proxy {
-    const void **vtable;
-    ID3DXEffect *effect;
-    int in_pass;
-} effect_proxy;
+extern "C" {
 
 void __cdecl standalone_log(const char *format, ...);
+long __cdecl standalone_d3dx_create_effect(IDirect3DDevice9 *device, const void *data, UINT size,
+                                           const D3DXMACRO *defines, ID3DXInclude *include, DWORD flags,
+                                           ID3DXEffectPool *pool, void **out_effect, ID3DXBuffer **out_errors);
+
+}
+
+namespace halo::standalone::d3dx {
+
+struct effect_proxy {
+    const void *const *vtable;
+    ID3DXEffect *effect;
+    int in_pass;
+};
 
 /* forward the call to the same-signature method of the June 2010 effect: replace `this` and jump */
 #define FORWARD(name, slot)                                     \
@@ -62,7 +75,7 @@ FORWARD(get_device, 68) FORWARD(on_lost_device, 69) FORWARD(on_reset_device, 70)
 
 static ULONG __stdcall proxy_release(effect_proxy *proxy)
 {
-    ULONG count = proxy->effect->lpVtbl->Release(proxy->effect);
+    ULONG count = proxy->effect->Release();
     if (count == 0) {
         HeapFree(GetProcessHeap(), 0, proxy);
     }
@@ -79,10 +92,10 @@ static HRESULT __stdcall proxy_set_shader(effect_proxy *proxy, D3DXHANDLE parame
 static HRESULT __stdcall proxy_pass(effect_proxy *proxy, UINT pass)
 {
     if (proxy->in_pass) {
-        proxy->effect->lpVtbl->EndPass(proxy->effect);
+        proxy->effect->EndPass();
         proxy->in_pass = 0;
     }
-    if (proxy->effect->lpVtbl->BeginPass(proxy->effect, pass) < 0) {
+    if (proxy->effect->BeginPass(pass) < 0) {
         return D3DERR_INVALIDCALL;
     }
     proxy->in_pass = 1;
@@ -92,36 +105,43 @@ static HRESULT __stdcall proxy_pass(effect_proxy *proxy, UINT pass)
 static HRESULT __stdcall proxy_end(effect_proxy *proxy)
 {
     if (proxy->in_pass) {
-        proxy->effect->lpVtbl->EndPass(proxy->effect);
+        proxy->effect->EndPass();
         proxy->in_pass = 0;
     }
-    return proxy->effect->lpVtbl->End(proxy->effect);
+    return proxy->effect->End();
 }
 
-static const void *proxy_vtable[71] = {
-    f00, f01, proxy_release,
-    f03, f04, f05, f06, f07, f08, f09, f10, f11, f12, f13, f14, f15, f16, f17, f18, f19, f20, f21, f22, f23, f24,
-    f25, f26, f27, f28, f29, f30, f31, f32, f33, f34, f35, f36, f37, f38, f39, f40, f41, f42, f43, f44, f45, f46,
-    f47, f48, f49, f50, f51, f52, f53,
-    proxy_set_shader, get_pixel_shader, proxy_set_shader, get_vertex_shader,
-    get_pool, set_technique, get_current_technique, validate_technique, find_next_valid_technique,
-    is_parameter_used, begin, proxy_pass, proxy_end, get_device, on_lost_device, on_reset_device, clone_effect,
+#define V(fn) ((const void *)(fn))
+
+const void *const proxy_vtable[71] = {
+    V(f00), V(f01), V(proxy_release), V(f03), V(f04), V(f05), V(f06), V(f07), V(f08), V(f09), V(f10), V(f11), V(f12),
+    V(f13), V(f14), V(f15), V(f16), V(f17), V(f18), V(f19), V(f20), V(f21), V(f22), V(f23), V(f24), V(f25), V(f26),
+    V(f27), V(f28), V(f29), V(f30), V(f31), V(f32), V(f33), V(f34), V(f35), V(f36), V(f37), V(f38), V(f39), V(f40),
+    V(f41), V(f42), V(f43), V(f44), V(f45), V(f46), V(f47), V(f48), V(f49), V(f50), V(f51), V(f52), V(f53),
+    V(proxy_set_shader), V(get_pixel_shader), V(proxy_set_shader), V(get_vertex_shader), V(get_pool),
+    V(set_technique), V(get_current_technique), V(validate_technique), V(find_next_valid_technique),
+    V(is_parameter_used), V(begin), V(proxy_pass), V(proxy_end), V(get_device), V(on_lost_device), V(on_reset_device),
+    V(clone_effect),
 };
 
-/* D3DXCreateEffect as the rewritten C calls it (cdecl, the 2003 argument list, which June 2010 kept) */
+#undef V
+
+}  // namespace halo::standalone::d3dx
+
+/** D3DXCreateEffect as the rewritten code calls it (cdecl, the 2003 argument list, which June 2010 kept). */
 long __cdecl standalone_d3dx_create_effect(IDirect3DDevice9 *device, const void *data, UINT size,
                                            const D3DXMACRO *defines, ID3DXInclude *include, DWORD flags,
                                            ID3DXEffectPool *pool, void **out_effect, ID3DXBuffer **out_errors)
 {
-    ID3DXEffect *effect = 0;
+    using namespace halo::standalone::d3dx;
+    ID3DXEffect *effect = nullptr;
     HRESULT hr = D3DXCreateEffect(device, data, size, defines, include, flags, pool, &effect, out_errors);
-    effect_proxy *proxy;
 
     if (hr < 0) {
-        *out_effect = 0;
+        *out_effect = nullptr;
         return hr;
     }
-    proxy = (effect_proxy *)HeapAlloc(GetProcessHeap(), 0, sizeof *proxy);
+    auto *proxy = static_cast<effect_proxy *>(HeapAlloc(GetProcessHeap(), 0, sizeof(effect_proxy)));
     proxy->vtable = proxy_vtable;
     proxy->effect = effect;
     proxy->in_pass = 0;

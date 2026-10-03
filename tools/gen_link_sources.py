@@ -1,154 +1,31 @@
-"""Maintenance tool (not part of the build): regenerates the committed link sources that follow from src/.
+"""Maintenance tool: lists the engine functions that the standalone data tables point at.
 
-The standalone exe links in one pass from committed files only (tools/gen_standalone_link.py, or CMakeLists.txt).
-Three of them list every rewritten function or every code pointer in the data image, so they change when functions
-are added or renamed; this tool rewrites them:
-  standalone/generated/code_entries.c  original address -> C function for every rewritten function (the loader
-                                         redirects a jump into original code with it) and the named stubs for the
-                                         library code pointers without C (dead retail D3DX / CRT tables)
-  standalone/generated/image_bindings.c  binds each halo_code_<address> the data tables (standalone/data/tables.c)
-                                         stores to the C function at that address (#pragma comment(linker,
-                                         "/alternatename:...")), or to its stub
-It reads src/ and the committed standalone/frozen/ inputs, and the built objects (build/obj/, from
-tools/msvc_build.py) to tell a function from a fragment file with no code.
-Usage: python tools/msvc_build.py && python tools/gen_link_sources.py"""
-import glob, json, os, re, sys
+The standalone exe links in one pass from committed files only (tools/gen_standalone_link.py, or CMakeLists.txt). The
+old generated link sources (code_entries.c, image_bindings.c, the cp_trap_ stubs) are gone: the tables in
+standalone/data/*.cpp name the real functions through standalone/data/code_refs.hpp, and an entry whose target is not
+part of the game is nullptr. This tool prints the functions code_refs.hpp declares: the worklist of names that
+still have only a C-linkage definition (the link is the check that each one resolves).
+Usage: python tools/gen_link_sources.py"""
+import glob, os, re, sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import retail_guard as rg
-import gen_standalone
-
-ROOT = rg.ROOT
-OUT = os.path.join(ROOT, "build", "standalone")
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SA = os.path.join(ROOT, "standalone")
-GEN = os.path.join(SA, "generated")
+REFS = os.path.join(SA, "data", "code_refs.hpp")
 
 
-def stdcall_definitions():
-    """function name -> argument bytes, for rewrites defined __stdcall (their symbol is _name@N)"""
-    out = {}
-    for p in glob.glob(os.path.join(ROOT, "src", "*", "*.c")):
-        name = os.path.splitext(os.path.basename(p))[0]
-        t = open(p, encoding="utf-8", errors="replace").read()
-        m = re.search(r"^[^\n;{]*__stdcall\s+%s\s*\(([^)]*)\)\s*\n?\{" % re.escape(name), t, re.M)
-        if m:
-            params = [x for x in m.group(1).split(",") if x.strip() and x.strip() != "void"]
-            out[name] = 4 * len(params)
-    return out
-
-
-def fastcall_definitions():
-    """function name -> argument bytes, for rewrites defined __fastcall (their symbol is @name@N)"""
-    out = {}
-    for p in glob.glob(os.path.join(ROOT, "src", "*", "*.c")):
-        name = os.path.splitext(os.path.basename(p))[0]
-        t = open(p, encoding="utf-8", errors="replace").read()
-        m = re.search(r"^[^\n;{]*__fastcall\s+%s\s*\(([^)]*)\)\s*\n?\{" % re.escape(name), t, re.M)
-        if m:
-            params = [x for x in m.group(1).split(",") if x.strip() and x.strip() != "void"]
-            out[name] = 4 * len(params)
-    return out
-
-
-def c_symbol(n, std, fast):
-    """the decorated symbol of a rewrite: cdecl _name, __stdcall _name@N, __fastcall @name@N"""
-    if n in std:
-        return "_%s@%d" % (n, std[n])
-    if n in fast:
-        return "@%s@%d" % (n, fast[n])
-    return "_" + n
-
-
-def defines_function(e):
-    """whether a function's object defines it: fragment files (a range inside another function whose C covers it)
-    carry an address header but no code"""
-    obj = os.path.join(ROOT, "build", "obj", e["module"], e["c_symbol"] + ".obj")
-    if not os.path.exists(obj):
-        return False
-    data = open(obj, "rb").read()
-    name = e["c_symbol"].encode()
-    return any(p + name + s in data for p in (b"_", b"@") for s in (b"\0", b"@"))
-
-
-def decl_for(sym):
-    """(C declaration, C name) that makes the compiler reference exactly the link symbol sym (_name, _name@N,
-    @name@N): a dummy int parameter per argument word gives the stdcall / fastcall decoration its size"""
-    m = re.fullmatch(r"@(\w+)@(\d+)", sym)
-    if m:
-        conv, name, size = "__fastcall ", m.group(1), int(m.group(2))
-    else:
-        m = re.fullmatch(r"_(\w+)@(\d+)", sym)
-        if m:
-            conv, name, size = "__stdcall ", m.group(1), int(m.group(2))
-        else:
-            conv, name, size = "", sym[1:], 0
-    args = ", ".join(["int"] * (size // 4)) or "void"
-    return "extern void %s%s(%s);" % (conv, name, args), name
-
-
-def code_entries_c(pointers, entries, std, fast):
-    traps, names, rows = [], set(), []
-    for p in pointers:
-        if "c_symbol" not in p:
-            sym = "cp_trap_%06x" % p["target"]
-            if sym not in {x[0] for x in traps}:
-                traps.append((sym, p["name"]))
-    for e in entries:
-        if not defines_function(e):
-            continue
-        sym = c_symbol(e["c_symbol"], std, fast)
-        names.add(sym)
-        rows.append("    { 0x%08XUL, (void *)%s }," % (e["addr"], decl_for(sym)[1]))
-    lines = ["/* standalone/generated/code_entries.c -- generated by tools/gen_link_sources.py from src/; do not edit.",
-             "   The address of every rewritten function in the original executable with its C function (the loader",
-             "   continues a jump into original code there), and a named stub for every library code pointer in the",
-             "   data image that has no C (the dead retail D3DX / CRT tables: reaching one logs its name). Each rewrite is",
-             "   declared with dummy parameters of its argument size so the reference carries its link decoration. */",
-             '#include "../standalone_tables.h"', "",
-             "extern void __cdecl standalone_missing_function(const char *name);", ""]
-    lines += [decl_for(s)[0] for s in sorted(names)]
-    lines += [""]
-    for sym, name in traps:
-        lines += ["void %s(void) { standalone_missing_function(\"%s (stored code pointer)\"); }" % (sym, name)]
-    lines += ["", "const int standalone_code_entry_count = %d;" % len(rows), "",
-              "const standalone_code_entry standalone_code_entries[] = {"] + rows + ["};", ""]
-    return "\n".join(lines), len(rows), len(traps)
-
-
-def image_bindings_c(pointers, std, fast):
-    bound = {}
-    for p in pointers:
-        bound[p["target"]] = c_symbol(p["c_symbol"], std, fast) if "c_symbol" in p else "_cp_trap_%06x" % p["target"]
-    lines = ["/* standalone/generated/image_bindings.c -- generated by tools/gen_link_sources.py from src/; do not edit.",
-             "   The data tables (standalone/data/tables.c) refer to functions without a plain C name as halo_code_<original address>; each",
-             "   is bound here to the C function at that address (or to its named stub in code_entries.c). */", ""]
-    for a, s in sorted(bound.items()):
-        lines.append('#pragma comment(linker, "/alternatename:_halo_code_%06x=%s")' % (a, s))
-    return "\n".join(lines) + "\n", len(bound)
-
-
-def write(path, text):
-    old = open(path, encoding="utf-8").read() if os.path.exists(path) else None
-    if old != text:
-        with open(path, "w", encoding="utf-8", newline="\n") as f:
-            f.write(text)
-    return old != text
+def declared_functions():
+    """function names declared in code_refs.hpp"""
+    text = open(REFS, encoding="utf-8").read()
+    return sorted(set(re.findall(r"^extern\s+\w+\s+(?:__\w+\s+)?(\w+)\s*\(", text, re.M)))
 
 
 def main():
-    rg.forbid_retail()
-    os.makedirs(GEN, exist_ok=True)
-    gen_standalone.main()                      # build/standalone/code_pointers.json, code_entries.json (from frozen/ + src/)
-    pointers = json.load(open(os.path.join(OUT, "code_pointers.json")))
-    entries = json.load(open(os.path.join(OUT, "code_entries.json")))
-    std, fast = stdcall_definitions(), fastcall_definitions()
-    src, n_entries, n_traps = code_entries_c(pointers, entries, std, fast)
-    c1 = write(os.path.join(GEN, "code_entries.c"), src)
-    bindings, n_bound = image_bindings_c(pointers, std, fast)
-    c2 = write(os.path.join(GEN, "image_bindings.c"), bindings)
-    print("code_entries.c: %d functions, %d stubs%s" % (n_entries, n_traps, " (changed)" if c1 else ""))
-    print("image_bindings.c: %d code pointer targets%s" % (n_bound, " (changed)" if c2 else ""))
+    declared = declared_functions()
+    print("code_refs.hpp: %d functions the data tables point at (the link resolves them)" % len(declared))
+    for n in declared:
+        print("  " + n)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

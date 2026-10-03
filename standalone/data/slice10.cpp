@@ -1,10 +1,13 @@
-/* Engine globals of slice 10 (0x007c04e0..0x008805a0) as ordinary C definitions.
+/* Engine globals of slice 10 (0x007c04e0..0x008805a0) as extern "C" definitions.
 
    All of them lie past the initialised part of the original .data (zero-initialised BSS), so every definition is
    zero. The sizes are the declared sizes in src/ and types/; the ones that cannot be separated from their
    neighbours (alias names at one address, fields of a bigger object that other files name individually) are
    still absolute symbols in standalone/globals.asm. Generated once by hand-checked script; do not add globals
-   here without the matching extern declaration in src/. */
+   here without the matching extern declaration in src/.
+
+   All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
+#include "code_refs.hpp"
 #include <stdint.h>
 #include "tags.h"
 #include "memory.h"
@@ -38,6 +41,8 @@
 #include "scenario.h"
 #include "devices.h"
 #include "shaders.h"
+
+extern "C" {
 
 rasterizer_skinning_matrix rasterizer_skinning_palette[63] = {0}; /* 0x007c04e0 */
 uint8_t rasterizer_device_lost = {0}; /* 0x007c10b0 */
@@ -118,7 +123,7 @@ int32_t game_engine_unknown_aa00 = {0}; /* 0x0087aa00 */
 int32_t game_engine_auto_team_counter = {0}; /* 0x0087aa04 */
 float game_engine_end_game_timer = {0}; /* 0x0087aa08 */
 float game_engine_post_game_fade = {0}; /* 0x0087aa0c */
-game_engine_state game_engine_state_value = {0}; /* 0x0087aa10 */
+game_engine_state game_engine_state_value = {}; /* 0x0087aa10 */
 int32_t game_engine_ctf_reset_ticks = {0}; /* 0x0087aa24 */
 uint8_t DAT_0087ab18 = {0}; /* 0x0087ab18 */
 game_variant game_engine_active_variant = {0}; /* 0x0087ab20 */
@@ -166,3 +171,5 @@ data_array *actor_data = {0}; /* 0x00880360 */
 float actor_avoidance_samples_a[16][7] = {0}; /* 0x00880380 */
 float actor_avoidance_circle[8][3] = {0}; /* 0x00880540 */
 float actor_avoidance_samples_b[9][7] = {0}; /* 0x008805a0 */
+
+}

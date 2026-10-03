@@ -1,132 +1,17 @@
-/* standalone/data/slice01.c -- engine globals of address range 0x000050..0x66e660, as real C definitions.
+/* standalone/data/slice01.cpp -- engine globals of address range 0x000050..0x66e660, as extern "C" definitions.
    (globals->C slice 1.) Replaces the absolute EQU symbols formerly in standalone/globals.asm.
    Initial values are the bytes the data image held at the original address; each pointer is expressed in C
    (function name, &global, string literal). The tables of the AI region (0x655254..0x6571f4) are strided across
    their symbols by the original code, so they sit in one section in address order with no gaps: the layout
-   is the original one (tools/globals_check_slice01.py verifies it from the link map). */
+   is the original one (tools/globals_check_slice01.py verifies it from the link map).
+
+   All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
+#include "code_refs.hpp"
 #include <stdint.h>
 #include <stddef.h>
 
+extern "C" {
 
-/* code the tables point at (defined in src/ or as stubs in standalone/generated/code_entries.asm) */
-extern void __fastcall std_exception_what(void *, void *);
-extern void actor_investigate_disturbance_update();
-extern void actor_mode_alert_movement_cancelled();
-extern void actor_mode_alert_process();
-extern void actor_mode_alert_target_cleared();
-extern void actor_mode_alert_tick();
-extern void actor_mode_alert_update();
-extern void actor_mode_avoid_update();
-extern void actor_mode_charge_enter();
-extern void actor_mode_charge_process();
-extern void actor_mode_charge_tick();
-extern void actor_mode_charge_update();
-extern void actor_mode_converse_exit();
-extern void actor_mode_converse_process();
-extern void actor_mode_converse_replace_reference();
-extern void actor_mode_converse_update();
-extern void actor_mode_fight_tick();
-extern void actor_mode_fight_update();
-extern void actor_mode_flee_enter();
-extern void actor_mode_flee_exit();
-extern void actor_mode_flee_get_look_weights();
-extern void actor_mode_flee_movement_cancelled();
-extern void actor_mode_flee_process();
-extern void actor_mode_flee_replace_reference();
-extern void actor_mode_flee_tick();
-extern void actor_mode_flee_update();
-extern void actor_mode_guard_enter();
-extern void actor_mode_guard_exit();
-extern void actor_mode_guard_get_look_weights();
-extern void actor_mode_guard_movement_cancelled();
-extern void actor_mode_guard_replace_reference();
-extern void actor_mode_guard_target_cleared();
-extern void actor_mode_guard_tick();
-extern void actor_mode_guard_update();
-extern void actor_mode_obey_enter();
-extern void actor_mode_obey_exit();
-extern void actor_mode_obey_process();
-extern void actor_mode_obey_tick_members();
-extern void actor_mode_obey_update();
-extern void actor_mode_search_enter();
-extern void actor_mode_search_movement_cancelled();
-extern void actor_mode_search_process();
-extern void actor_mode_search_tick();
-extern void actor_mode_search_update();
-extern void actor_mode_sleep_update();
-extern void actor_mode_uncover_enter();
-extern void actor_mode_uncover_get_look_weights();
-extern void actor_mode_uncover_movement_cancelled();
-extern void actor_mode_uncover_tick();
-extern void actor_mode_uncover_update();
-extern void actor_mode_vehicle_enter();
-extern void actor_mode_vehicle_update();
-extern void actor_mode_wait_process();
-extern void actor_mode_wait_tick();
-extern void actor_mode_wait_update();
-extern void actor_reject_firing_position_by_perception();
-extern void actor_reject_firing_position_by_pursuit();
-extern void actor_reject_firing_position_by_request_result();
-extern void actor_reject_firing_position_by_target_approach();
-extern void actor_reject_firing_position_unreachable();
-extern void actor_request_move_and_face();
-extern void actor_request_path_with_grenade_arc();
-extern void actor_score_firing_positions_by_history();
-extern void actor_score_firing_positions_by_range();
-extern void actor_score_firing_positions_by_standoff();
-extern void actor_score_firing_positions_by_threat();
-extern void actor_score_firing_positions_close_range();
-extern void actor_score_firing_positions_near_target();
-extern void actor_target_is_close_and_recognized();
-extern void actor_update_movement_destination();
-extern void actor_update_path_if_needed();
-extern void ai_build_priority_target_list();
-extern void ai_dialogue_condition_42f4f0();
-extern void ai_dialogue_condition_42f560();
-extern void ai_dialogue_condition_42f5b0();
-extern void ai_dialogue_condition_42f650();
-extern void ai_dialogue_condition_42f690();
-extern void ai_dialogue_condition_42f6f0();
-extern void ai_dialogue_condition_42f7b0();
-extern void ai_dialogue_condition_42f7f0();
-extern void ai_release_inactive_encounters();
-extern void ai_release_inactive_swarms();
-extern void cp_trap_627e3f(void);
-#pragma comment(linker, "/alternatename:_cp_trap_627e3f=cp_trap_627e3f")
-extern void function_do_nothing();
-extern void hs_parse_ai();
-extern void hs_parse_ai_command_list();
-extern void hs_parse_boolean();
-extern void hs_parse_conversation();
-extern void hs_parse_cutscene_camera_point();
-extern void hs_parse_cutscene_flag();
-extern void hs_parse_cutscene_recording();
-extern void hs_parse_cutscene_title();
-extern void hs_parse_device_group();
-extern void hs_parse_hud_message();
-extern void hs_parse_integer();
-extern void hs_parse_navpoint();
-extern void hs_parse_object();
-extern void hs_parse_object_list();
-extern void hs_parse_object_name();
-extern void hs_parse_real();
-extern void hs_parse_script();
-extern void hs_parse_starting_profile();
-extern void hs_parse_string();
-extern void hs_parse_tag_reference();
-extern void hs_parse_trigger_volume();
-extern void hs_report_expected_enum_values();
-extern void hwreq_length_error_scalar_deleting_destruct();
-extern void hwreq_out_of_range_scalar_deleting_destruct();
-extern void hwreq_parse_exception_scalar_deleting_destruct();
-extern void particle_creation_physics_default();
-extern void particle_creation_physics_explosion();
-extern void particle_creation_physics_jet();
-extern void particle_system_update_physics_default();
-extern void particle_system_update_physics_explosion();
-extern void particle_update_physics_default();
-extern void sound_adpcm_decode_mono();
-extern void sound_adpcm_decode_stereo();
 /* globals of other slices that these tables point at */
 extern char actor_mode_guard_look_weights_ambush[];
 extern char actor_mode_guard_look_weights_idle[];
@@ -345,7 +230,7 @@ extern char network_team_color_name_red[4];
 extern char network_team_color_names[8];
 extern char message_delta_config_mode_string[4];
 
-#define SLICE01_SIZE_CHECK(name, bytes) typedef char slice01_size_##name[(sizeof(name) == (bytes)) ? 1 : -1]
+#define SLICE01_SIZE_CHECK(name, bytes) static_assert(sizeof(name) == (bytes))
 
 /* 0x0064e1fc, 0x10 bytes */
 __declspec(align(4)) uint32_t ds3dalg_hrtf_full[4] = {
@@ -437,7 +322,7 @@ SLICE01_SIZE_CHECK(md5_hex_byte_format, 8);
 
 /* 0x0064ef90, 0x8 bytes */
 __declspec(align(4)) void * std_exception_vtable[2] = {
-    (void *)cp_trap_627e3f, (void *)0x627e32
+    nullptr, (void *)0x627e32
 };
 SLICE01_SIZE_CHECK(std_exception_vtable, 8);
 
@@ -2126,3 +2011,4 @@ SLICE01_SIZE_CHECK(network_team_color_names, 8);
 char message_delta_config_mode_string[4] = "rb";
 SLICE01_SIZE_CHECK(message_delta_config_mode_string, 4);
 
+}

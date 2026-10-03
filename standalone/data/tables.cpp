@@ -1,9 +1,13 @@
-/* standalone/data/tables.c -- data tables that the engine's own tables point into: records of definitions (script
-   functions, enums, message deltas, throw info, default colours, ...), referenced by standalone/data/eq_data.c and
+/* standalone/data/tables.cpp -- data tables that the engine's own tables point into: records of definitions (script
+   functions, enums, message deltas, throw info, default colours, ...), referenced by standalone/data/eq_data.cpp and
    each other. Strings are inline literals, function pointers are names, pointers between tables are addresses of
-   these arrays. Generated once by tools/materialize_image.py from the original data; edit freely. */
+   these arrays. Generated once by tools/materialize_image.py from the original data; edit freely.
 
+   All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "tables.h"
+#include "code_refs.hpp"
+
+extern "C" {
 
 extern char actor_mode_guard_look_weights_ambush[];
 extern char actor_mode_guard_look_weights_idle[];
@@ -13,883 +17,6 @@ extern char console_message_default_color[];
 extern char global_white_argb[];
 extern char hud_text_message_hold_color[];
 extern char hud_text_message_normal_color[];
-extern void actor_compute_swarm_avoidance_offset(void);
-extern void actor_investigate_disturbance_update(void);
-extern void actor_mode_alert_movement_cancelled(void);
-extern void actor_mode_alert_process(void);
-extern void actor_mode_alert_target_cleared(void);
-extern void actor_mode_alert_tick(void);
-extern void actor_mode_alert_update(void);
-extern void actor_mode_avoid_update(void);
-extern void actor_mode_charge_enter(void);
-extern void actor_mode_charge_process(void);
-extern void actor_mode_charge_tick(void);
-extern void actor_mode_charge_update(void);
-extern void actor_mode_converse_exit(void);
-extern void actor_mode_converse_process(void);
-extern void actor_mode_converse_replace_reference(void);
-extern void actor_mode_converse_update(void);
-extern void actor_mode_fight_tick(void);
-extern void actor_mode_fight_update(void);
-extern void actor_mode_flee_enter(void);
-extern void actor_mode_flee_exit(void);
-extern void actor_mode_flee_get_look_weights(void);
-extern void actor_mode_flee_movement_cancelled(void);
-extern void actor_mode_flee_process(void);
-extern void actor_mode_flee_replace_reference(void);
-extern void actor_mode_flee_tick(void);
-extern void actor_mode_flee_update(void);
-extern void actor_mode_guard_enter(void);
-extern void actor_mode_guard_exit(void);
-extern void actor_mode_guard_get_look_weights(void);
-extern void actor_mode_guard_movement_cancelled(void);
-extern void actor_mode_guard_replace_reference(void);
-extern void actor_mode_guard_target_cleared(void);
-extern void actor_mode_guard_tick(void);
-extern void actor_mode_guard_update(void);
-extern void actor_mode_obey_enter(void);
-extern void actor_mode_obey_exit(void);
-extern void actor_mode_obey_process(void);
-extern void actor_mode_obey_tick_members(void);
-extern void actor_mode_obey_update(void);
-extern void actor_mode_search_enter(void);
-extern void actor_mode_search_movement_cancelled(void);
-extern void actor_mode_search_process(void);
-extern void actor_mode_search_tick(void);
-extern void actor_mode_search_update(void);
-extern void actor_mode_sleep_update(void);
-extern void actor_mode_uncover_enter(void);
-extern void actor_mode_uncover_get_look_weights(void);
-extern void actor_mode_uncover_movement_cancelled(void);
-extern void actor_mode_uncover_tick(void);
-extern void actor_mode_uncover_update(void);
-extern void actor_mode_vehicle_enter(void);
-extern void actor_mode_vehicle_update(void);
-extern void actor_mode_wait_process(void);
-extern void actor_mode_wait_tick(void);
-extern void actor_mode_wait_update(void);
-extern void actor_reject_firing_position_by_perception(void);
-extern void actor_reject_firing_position_by_pursuit(void);
-extern void actor_reject_firing_position_by_request_result(void);
-extern void actor_reject_firing_position_by_target_approach(void);
-extern void actor_reject_firing_position_unreachable(void);
-extern void actor_request_move_and_face(void);
-extern void actor_request_path_with_grenade_arc(void);
-extern void actor_score_firing_positions_by_history(void);
-extern void actor_score_firing_positions_by_range(void);
-extern void actor_score_firing_positions_by_standoff(void);
-extern void actor_score_firing_positions_by_threat(void);
-extern void actor_score_firing_positions_close_range(void);
-extern void actor_score_firing_positions_near_target(void);
-extern void actor_type_crew_update(void);
-extern void actor_type_elite_update(void);
-extern void actor_type_engineer_update(void);
-extern void actor_type_flood_carrier_update(void);
-extern void actor_type_flood_update(void);
-extern void actor_type_grunt_update(void);
-extern void actor_type_hunter_update(void);
-extern void actor_type_infection_swarm_update(void);
-extern void actor_type_infection_update(void);
-extern void actor_type_jackal_update(void);
-extern void actor_type_marine_update(void);
-extern void actor_type_mounted_weapon_update(void);
-extern void actor_type_sentinel_update(void);
-extern void actor_update_movement_destination(void);
-extern void actor_update_path_if_needed(void);
-extern void ai_clear_object_references(void);
-extern void biped_clear_ground_surface_references(void);
-extern void biped_create(void);
-extern void biped_is_old_enough(void);
-extern void biped_network_baseline_take(void);
-extern void biped_placement_offset_centered_pill(void);
-extern void biped_reset_state(void);
-extern void biped_update(void);
-extern void biped_update_scale_function_inputs(void);
-extern void bitmap_data_block_delete_element(void);
-extern void bitmap_group_postprocess(void);
-extern void control_place(void);
-extern void ctf_engine_flag_tick(void);
-extern void device_blend_animations(void);
-extern void device_compute_function_values(void);
-extern void device_create(void);
-extern void device_delete(void);
-extern void device_groups_allocate(void);
-extern void device_groups_clear_disposing_flag(void);
-extern void device_groups_dispose(void);
-extern void device_machine_update(void);
-extern void device_update_change_values(void);
-extern void director_update_seat_camera(void);
-extern void equipment_apply_network_update(void);
-extern void equipment_build_network_update(void);
-extern void equipment_is_old_enough(void);
-extern void equipment_network_baseline_take(void);
-extern void equipment_new(void);
-extern void equipment_new_from_placement(void);
-extern void equipment_send_creation(void);
-extern void function_do_nothing(void);
-extern void game_engine_ctf_broadcast_state(void);
-extern void game_engine_ctf_build_message_text(void);
-extern void game_engine_ctf_build_player_text(void);
-extern void game_engine_ctf_build_score_header_text(void);
-extern void game_engine_ctf_build_team_score_text(void);
-extern void game_engine_ctf_get_score(void);
-extern void game_engine_ctf_get_team_score(void);
-extern void game_engine_ctf_initialize_flags(void);
-extern void game_engine_ctf_initialize_for_new_game(void);
-extern void game_engine_ctf_object_expired(void);
-extern void game_engine_ctf_player_flag_tick(void);
-extern void game_engine_ctf_player_round_reset(void);
-extern void game_engine_ctf_profile_post_update(void);
-extern void game_engine_ctf_profiles_updated(void);
-extern void game_engine_ctf_query_player_score(void);
-extern void game_engine_ctf_query_team_score(void);
-extern void game_engine_ctf_reset_objects(void);
-extern void game_engine_ctf_reset_round(void);
-extern void game_engine_ctf_return_all_flags(void);
-extern void game_engine_ctf_unknown_48(void);
-extern void game_engine_ctf_unknown_60(void);
-extern void game_engine_ctf_unknown_70(void);
-extern void game_engine_ctf_unknown_84(void);
-extern void game_engine_ctf_update(void);
-extern void game_engine_king_build_message_text(void);
-extern void game_engine_king_build_player_text(void);
-extern void game_engine_king_build_score_header_text(void);
-extern void game_engine_king_build_team_score_text(void);
-extern void game_engine_king_get_score(void);
-extern void game_engine_king_get_team_score(void);
-extern void game_engine_king_initialize_for_new_game(void);
-extern void game_engine_king_player_new_life(void);
-extern void game_engine_king_player_round_reset(void);
-extern void game_engine_king_profile_post_update(void);
-extern void game_engine_king_query_player_score(void);
-extern void game_engine_king_query_team_score(void);
-extern void game_engine_king_reset_objects(void);
-extern void game_engine_king_reset_round(void);
-extern void game_engine_king_unknown_48(void);
-extern void game_engine_king_waypoint_filter(void);
-extern void game_engine_koth_ball_idle_tick(void);
-extern void game_engine_koth_broadcast_hill_times(void);
-extern void game_engine_koth_broadcast_team_scores(void);
-extern void game_engine_koth_build_hill_boundary_fence(void);
-extern void game_engine_koth_dispatch_player_scoring(void);
-extern void game_engine_koth_player_eligible_to_score(void);
-extern void game_engine_koth_player_tick(void);
-extern void game_engine_oddball_build_message_text(void);
-extern void game_engine_oddball_build_player_text(void);
-extern void game_engine_oddball_build_score_header_text(void);
-extern void game_engine_oddball_build_team_score_text(void);
-extern void game_engine_oddball_get_score(void);
-extern void game_engine_oddball_get_team_score(void);
-extern void game_engine_oddball_initialize_for_new_game(void);
-extern void game_engine_oddball_player_killed(void);
-extern void game_engine_oddball_player_new_life(void);
-extern void game_engine_oddball_player_round_reset(void);
-extern void game_engine_oddball_profile_post_update(void);
-extern void game_engine_oddball_query_player_score(void);
-extern void game_engine_oddball_query_team_score(void);
-extern void game_engine_oddball_reset_objects(void);
-extern void game_engine_oddball_time_scale_override(void);
-extern void game_engine_oddball_unknown_48(void);
-extern void game_engine_oddball_unknown_84(void);
-extern void game_engine_race_allow_grenade_counts(void);
-extern void game_engine_race_build_message_text(void);
-extern void game_engine_race_build_player_text(void);
-extern void game_engine_race_build_score_header_text(void);
-extern void game_engine_race_build_team_score_text(void);
-extern void game_engine_race_get_score(void);
-extern void game_engine_race_get_team_score(void);
-extern void game_engine_race_is_winner(void);
-extern void game_engine_race_player_changed_object(void);
-extern void game_engine_race_player_new_life(void);
-extern void game_engine_race_player_round_reset(void);
-extern void game_engine_race_profile_post_update(void);
-extern void game_engine_race_query_player_score(void);
-extern void game_engine_race_query_team_score(void);
-extern void game_engine_race_unknown_48(void);
-extern void game_engine_race_update(void);
-extern void game_engine_race_waypoint_filter(void);
-extern void game_engine_slayer_build_message_text(void);
-extern void game_engine_slayer_build_player_text(void);
-extern void game_engine_slayer_build_team_score_text(void);
-extern void game_engine_slayer_get_score(void);
-extern void game_engine_slayer_get_team_score(void);
-extern void game_engine_slayer_initialize_for_new_game(void);
-extern void game_engine_slayer_player_killed(void);
-extern void game_engine_slayer_player_new_life(void);
-extern void game_engine_slayer_player_round_reset(void);
-extern void game_engine_slayer_profile_post_update(void);
-extern void game_engine_slayer_profiles_updated(void);
-extern void game_engine_slayer_query_player_score(void);
-extern void game_engine_slayer_query_team_score(void);
-extern void game_engine_slayer_reset_objects(void);
-extern void game_engine_slayer_reset_round(void);
-extern void game_engine_slayer_unknown_84(void);
-extern void game_engine_slayer_update(void);
-extern void game_variant_list_matching_substring_evaluate(void);
-extern void garbage_new(void);
-extern void garbage_update(void);
-extern void halo_code_57bc00(void);
-extern void halo_code_57cfa3(void);
-extern void halo_code_57f892(void);
-extern void halo_code_57f8a5(void);
-extern void halo_code_57f934(void);
-extern void halo_code_57f947(void);
-extern void halo_code_57f9f9(void);
-extern void halo_code_57fa23(void);
-extern void halo_code_57fab1(void);
-extern void halo_code_57fadb(void);
-extern void halo_code_57fb8a(void);
-extern void halo_code_57fbb9(void);
-extern void halo_code_57fbfc(void);
-extern void halo_code_57fc20(void);
-extern void halo_code_57fc44(void);
-extern void halo_code_57fc68(void);
-extern void halo_code_57fca5(void);
-extern void halo_code_57fd53(void);
-extern void halo_code_57fd7d(void);
-extern void halo_code_57fe4e(void);
-extern void halo_code_57fe7d(void);
-extern void halo_code_57ff72(void);
-extern void halo_code_58002a(void);
-extern void halo_code_58003d(void);
-extern void halo_code_580054(void);
-extern void halo_code_5800cd(void);
-extern void halo_code_58015c(void);
-extern void halo_code_5802d4(void);
-extern void halo_code_5803a5(void);
-extern void halo_code_5803cf(void);
-extern void halo_code_5804c2(void);
-extern void halo_code_5804f1(void);
-extern void halo_code_580614(void);
-extern void halo_code_5807bb(void);
-extern void halo_code_580a04(void);
-extern void halo_code_580cc7(void);
-extern void halo_code_581079(void);
-extern void halo_code_581109(void);
-extern void halo_code_581193(void);
-extern void halo_code_5811af(void);
-extern void halo_code_581229(void);
-extern void halo_code_581245(void);
-extern void halo_code_5812c0(void);
-extern void halo_code_5812dc(void);
-extern void halo_code_581358(void);
-extern void halo_code_581378(void);
-extern void halo_code_58147a(void);
-extern void halo_code_58156f(void);
-extern void halo_code_58159d(void);
-extern void halo_code_5815ae(void);
-extern void halo_code_5815d5(void);
-extern void halo_code_581858(void);
-extern void halo_code_581878(void);
-extern void halo_code_5818d4(void);
-extern void halo_code_5819e1(void);
-extern void halo_code_581b4d(void);
-extern void halo_code_581c11(void);
-extern void halo_code_581c9f(void);
-extern void halo_code_581d4a(void);
-extern void halo_code_581e57(void);
-extern void halo_code_581e81(void);
-extern void halo_code_581ed8(void);
-extern void halo_code_581f18(void);
-extern void halo_code_581fa0(void);
-extern void halo_code_5822a3(void);
-extern void halo_code_5825dc(void);
-extern void halo_code_582688(void);
-extern void halo_code_5826f3(void);
-extern void halo_code_582776(void);
-extern void halo_code_5827f3(void);
-extern void halo_code_58288b(void);
-extern void halo_code_5828c7(void);
-extern void halo_code_58291b(void);
-extern void halo_code_5829b8(void);
-extern void halo_code_582a74(void);
-extern void halo_code_582b53(void);
-extern void halo_code_582ce0(void);
-extern void halo_code_582ee0(void);
-extern void halo_code_583086(void);
-extern void halo_code_5832b7(void);
-extern void halo_code_5832f0(void);
-extern void halo_code_5835a4(void);
-extern void halo_code_58367e(void);
-extern void halo_code_5923a8(void);
-extern void halo_code_627e98(void);
-extern void halo_code_627ea1(void);
-extern void halo_code_628c3a(void);
-extern void halo_code_639300(void);
-extern void halo_code_639320(void);
-extern void halo_code_639350(void);
-extern void halo_code_639360(void);
-extern void halo_code_639380(void);
-extern void halo_code_639390(void);
-extern void halo_code_6393b0(void);
-extern void halo_code_6393d0(void);
-extern void halo_code_6393db(void);
-extern void halo_code_6393e6(void);
-extern void halo_code_6393f1(void);
-extern void halo_code_6393fc(void);
-extern void halo_code_63940a(void);
-extern void halo_code_639430(void);
-extern void halo_code_639440(void);
-extern void halo_code_639460(void);
-extern void halo_code_639480(void);
-extern void halo_code_63948b(void);
-extern void halo_code_639496(void);
-extern void halo_code_6394a1(void);
-extern void halo_code_6394ac(void);
-extern void halo_code_6394ba(void);
-extern void halo_code_6394c7(void);
-extern void halo_code_6394e0(void);
-extern void halo_code_6394e8(void);
-extern void halo_code_6394f0(void);
-extern void halo_code_639510(void);
-extern void halo_code_639530(void);
-extern void halo_code_63953b(void);
-extern void halo_code_639550(void);
-extern void halo_code_639558(void);
-extern void halo_code_639570(void);
-extern void halo_code_63957e(void);
-extern void hs_evaluate_activate_nav_point_flag(void);
-extern void hs_evaluate_activate_nav_point_object(void);
-extern void hs_evaluate_activate_team_nav_point_flag(void);
-extern void hs_evaluate_activate_team_nav_point_object(void);
-extern void hs_evaluate_ai(void);
-extern void hs_evaluate_ai_actors(void);
-extern void hs_evaluate_ai_allegiance(void);
-extern void hs_evaluate_ai_allegiance_broken(void);
-extern void hs_evaluate_ai_allegiance_remove(void);
-extern void hs_evaluate_ai_allow_charge(void);
-extern void hs_evaluate_ai_allow_dormant(void);
-extern void hs_evaluate_ai_attach(void);
-extern void hs_evaluate_ai_attach_free(void);
-extern void hs_evaluate_ai_attach_units(void);
-extern void hs_evaluate_ai_attack(void);
-extern void hs_evaluate_ai_automatic_migration_target(void);
-extern void hs_evaluate_ai_berserk(void);
-extern void hs_evaluate_ai_braindead(void);
-extern void hs_evaluate_ai_braindead_by_unit(void);
-extern void hs_evaluate_ai_command_list(void);
-extern void hs_evaluate_ai_command_list_advance(void);
-extern void hs_evaluate_ai_command_list_advance_by_unit(void);
-extern void hs_evaluate_ai_command_list_by_unit(void);
-extern void hs_evaluate_ai_command_list_status(void);
-extern void hs_evaluate_ai_conversation(void);
-extern void hs_evaluate_ai_conversation_advance(void);
-extern void hs_evaluate_ai_conversation_line(void);
-extern void hs_evaluate_ai_conversation_status(void);
-extern void hs_evaluate_ai_conversation_stop(void);
-extern void hs_evaluate_ai_defend(void);
-extern void hs_evaluate_ai_detach(void);
-extern void hs_evaluate_ai_detach_units(void);
-extern void hs_evaluate_ai_dialogue_triggers(void);
-extern void hs_evaluate_ai_disregard(void);
-extern void hs_evaluate_ai_erase(void);
-extern void hs_evaluate_ai_erase_all(void);
-extern void hs_evaluate_ai_exit_vehicle(void);
-extern void hs_evaluate_ai_follow_distance(void);
-extern void hs_evaluate_ai_follow_target_ai(void);
-extern void hs_evaluate_ai_follow_target_disable(void);
-extern void hs_evaluate_ai_follow_target_players(void);
-extern void hs_evaluate_ai_follow_target_unit(void);
-extern void hs_evaluate_ai_force_active(void);
-extern void hs_evaluate_ai_force_active_by_unit(void);
-extern void hs_evaluate_ai_free(void);
-extern void hs_evaluate_ai_free_units(void);
-extern void hs_evaluate_ai_go_to_vehicle(void);
-extern void hs_evaluate_ai_go_to_vehicle_override(void);
-extern void hs_evaluate_ai_going_to_vehicle(void);
-extern void hs_evaluate_ai_grenades(void);
-extern void hs_evaluate_ai_is_attacking(void);
-extern void hs_evaluate_ai_kill(void);
-extern void hs_evaluate_ai_kill_silent(void);
-extern void hs_evaluate_ai_link_activation(void);
-extern void hs_evaluate_ai_living_count(void);
-extern void hs_evaluate_ai_living_fraction(void);
-extern void hs_evaluate_ai_look_at_object(void);
-extern void hs_evaluate_ai_magically_see_encounter(void);
-extern void hs_evaluate_ai_magically_see_players(void);
-extern void hs_evaluate_ai_magically_see_unit(void);
-extern void hs_evaluate_ai_magically_see_units(void);
-extern void hs_evaluate_ai_maneuver_enable(void);
-extern void hs_evaluate_ai_migrate(void);
-extern void hs_evaluate_ai_migrate_and_speak(void);
-extern void hs_evaluate_ai_migrate_by_unit(void);
-extern void hs_evaluate_ai_nonswarm_count(void);
-extern void hs_evaluate_ai_place(void);
-extern void hs_evaluate_ai_playfight(void);
-extern void hs_evaluate_ai_prefer_target(void);
-extern void hs_evaluate_ai_renew(void);
-extern void hs_evaluate_ai_retreat(void);
-extern void hs_evaluate_ai_set_blind(void);
-extern void hs_evaluate_ai_set_current_state(void);
-extern void hs_evaluate_ai_set_deaf(void);
-extern void hs_evaluate_ai_set_respawn(void);
-extern void hs_evaluate_ai_set_return_state(void);
-extern void hs_evaluate_ai_set_team(void);
-extern void hs_evaluate_ai_spawn_actor(void);
-extern void hs_evaluate_ai_status(void);
-extern void hs_evaluate_ai_stop_looking(void);
-extern void hs_evaluate_ai_strength(void);
-extern void hs_evaluate_ai_swarm_count(void);
-extern void hs_evaluate_ai_teleport_to_starting_location(void);
-extern void hs_evaluate_ai_teleport_to_starting_location_if_unsupported(void);
-extern void hs_evaluate_ai_timer_expire(void);
-extern void hs_evaluate_ai_timer_start(void);
-extern void hs_evaluate_ai_try_to_fight(void);
-extern void hs_evaluate_ai_try_to_fight_nothing(void);
-extern void hs_evaluate_ai_try_to_fight_player(void);
-extern void hs_evaluate_ai_vehicle_encounter(void);
-extern void hs_evaluate_ai_vehicle_enterable_actor_type(void);
-extern void hs_evaluate_ai_vehicle_enterable_actors(void);
-extern void hs_evaluate_ai_vehicle_enterable_disable(void);
-extern void hs_evaluate_ai_vehicle_enterable_distance(void);
-extern void hs_evaluate_ai_vehicle_enterable_team(void);
-extern void hs_evaluate_argument_list(void);
-extern void hs_evaluate_arithmetic_reduce(void);
-extern void hs_evaluate_begin(void);
-extern void hs_evaluate_bind(void);
-extern void hs_evaluate_boolean_and_or(void);
-extern void hs_evaluate_breakable_surfaces_enable(void);
-extern void hs_evaluate_breakable_surfaces_reset(void);
-extern void hs_evaluate_camera_control(void);
-extern void hs_evaluate_camera_set(void);
-extern void hs_evaluate_camera_set_animation(void);
-extern void hs_evaluate_camera_set_dead(void);
-extern void hs_evaluate_camera_set_first_person(void);
-extern void hs_evaluate_camera_set_relative(void);
-extern void hs_evaluate_camera_time(void);
-extern void hs_evaluate_change_team(void);
-extern void hs_evaluate_cheat_active_camouflage(void);
-extern void hs_evaluate_cheat_active_camouflage_local_player(void);
-extern void hs_evaluate_cheat_all_powerups(void);
-extern void hs_evaluate_cheat_all_vehicles(void);
-extern void hs_evaluate_cheat_all_weapons(void);
-extern void hs_evaluate_cheat_spawn_warthog(void);
-extern void hs_evaluate_cheat_teleport_to_camera(void);
-extern void hs_evaluate_checkpoint_load(void);
-extern void hs_evaluate_checkpoint_save(void);
-extern void hs_evaluate_cinematic_abort(void);
-extern void hs_evaluate_cinematic_screen_effect_set_convolution(void);
-extern void hs_evaluate_cinematic_screen_effect_set_filter(void);
-extern void hs_evaluate_cinematic_screen_effect_set_filter_desaturation_tint(void);
-extern void hs_evaluate_cinematic_screen_effect_set_video(void);
-extern void hs_evaluate_cinematic_screen_effect_start(void);
-extern void hs_evaluate_cinematic_screen_effect_stop(void);
-extern void hs_evaluate_cinematic_set_near_clip_distance(void);
-extern void hs_evaluate_cinematic_set_title(void);
-extern void hs_evaluate_cinematic_set_title_delayed(void);
-extern void hs_evaluate_cinematic_show_letterbox(void);
-extern void hs_evaluate_cinematic_skip_start_internal(void);
-extern void hs_evaluate_cinematic_skip_stop_internal(void);
-extern void hs_evaluate_cinematic_start(void);
-extern void hs_evaluate_cinematic_stop(void);
-extern void hs_evaluate_cinematic_suppress_bsp_object_creation(void);
-extern void hs_evaluate_cls(void);
-extern void hs_evaluate_comparison(void);
-extern void hs_evaluate_connect(void);
-extern void hs_evaluate_core_load(void);
-extern void hs_evaluate_core_load_at_startup(void);
-extern void hs_evaluate_core_save(void);
-extern void hs_evaluate_crash(void);
-extern void hs_evaluate_custom_animation(void);
-extern void hs_evaluate_custom_animation_list(void);
-extern void hs_evaluate_damage_new(void);
-extern void hs_evaluate_damage_object(void);
-extern void hs_evaluate_deactivate_nav_point_flag(void);
-extern void hs_evaluate_deactivate_nav_point_object(void);
-extern void hs_evaluate_deactivate_team_nav_point_flag(void);
-extern void hs_evaluate_deactivate_team_nav_point_object(void);
-extern void hs_evaluate_debug_camera_load(void);
-extern void hs_evaluate_debug_camera_save(void);
-extern void hs_evaluate_debug_sounds_enable(void);
-extern void hs_evaluate_device_get_position(void);
-extern void hs_evaluate_device_get_power(void);
-extern void hs_evaluate_device_group_change_only_once_more_set(void);
-extern void hs_evaluate_device_group_get(void);
-extern void hs_evaluate_device_group_set(void);
-extern void hs_evaluate_device_group_set_immediate(void);
-extern void hs_evaluate_device_one_sided_set(void);
-extern void hs_evaluate_device_operates_automatically_set(void);
-extern void hs_evaluate_device_set_never_appears_locked(void);
-extern void hs_evaluate_device_set_position(void);
-extern void hs_evaluate_device_set_position_immediate(void);
-extern void hs_evaluate_device_set_power(void);
-extern void hs_evaluate_disconnect(void);
-extern void hs_evaluate_display_scenario_help(void);
-extern void hs_evaluate_effect_new(void);
-extern void hs_evaluate_effect_new_on_object_marker(void);
-extern void hs_evaluate_enable_hud_help_flash(void);
-extern void hs_evaluate_equality(void);
-extern void hs_evaluate_error_overflow_suppression(void);
-extern void hs_evaluate_fade_in(void);
-extern void hs_evaluate_fade_out(void);
-extern void hs_evaluate_fast_setup_network_server(void);
-extern void hs_evaluate_game_all_quiet(void);
-extern void hs_evaluate_game_difficulty_get(void);
-extern void hs_evaluate_game_difficulty_get_real(void);
-extern void hs_evaluate_game_difficulty_set(void);
-extern void hs_evaluate_game_is_cooperative(void);
-extern void hs_evaluate_game_lost(void);
-extern void hs_evaluate_game_revert(void);
-extern void hs_evaluate_game_reverted(void);
-extern void hs_evaluate_game_safe_to_save(void);
-extern void hs_evaluate_game_safe_to_speak(void);
-extern void hs_evaluate_game_save(void);
-extern void hs_evaluate_game_save_cancel(void);
-extern void hs_evaluate_game_save_no_timeout(void);
-extern void hs_evaluate_game_save_totally_unsafe(void);
-extern void hs_evaluate_game_saving(void);
-extern void hs_evaluate_game_skip_ticks(void);
-extern void hs_evaluate_game_speed(void);
-extern void hs_evaluate_game_time(void);
-extern void hs_evaluate_game_variant(void);
-extern void hs_evaluate_game_won(void);
-extern void hs_evaluate_garbage_collect_now(void);
-extern void hs_evaluate_get_digital_forward_throttle(void);
-extern void hs_evaluate_get_digital_pitch_increment(void);
-extern void hs_evaluate_get_digital_strafe_throttle(void);
-extern void hs_evaluate_get_digital_yaw_increment(void);
-extern void hs_evaluate_get_gamepad_forward_threshold(void);
-extern void hs_evaluate_get_gamepad_strafe_threshold(void);
-extern void hs_evaluate_get_gamepad_yaw_scale(void);
-extern void hs_evaluate_get_mouse_forward_threshold(void);
-extern void hs_evaluate_get_mouse_pitch_scale(void);
-extern void hs_evaluate_get_mouse_strafe_threshold(void);
-extern void hs_evaluate_get_mouse_yaw_scale(void);
-extern void hs_evaluate_get_pitch_rate(void);
-extern void hs_evaluate_get_yaw_rate(void);
-extern void hs_evaluate_help(void);
-extern void hs_evaluate_hud_blink_health(void);
-extern void hs_evaluate_hud_blink_motion_sensor(void);
-extern void hs_evaluate_hud_blink_shield(void);
-extern void hs_evaluate_hud_clear_messages(void);
-extern void hs_evaluate_hud_get_timer_ticks(void);
-extern void hs_evaluate_hud_help_flash_restart(void);
-extern void hs_evaluate_hud_set_help_text(void);
-extern void hs_evaluate_hud_set_objective_text(void);
-extern void hs_evaluate_hud_set_timer_position(void);
-extern void hs_evaluate_hud_set_timer_time(void);
-extern void hs_evaluate_hud_set_timer_warning_time(void);
-extern void hs_evaluate_hud_show_crosshair(void);
-extern void hs_evaluate_hud_show_health(void);
-extern void hs_evaluate_hud_show_motion_sensor(void);
-extern void hs_evaluate_hud_show_shield(void);
-extern void hs_evaluate_if(void);
-extern void hs_evaluate_ignore_arguments(void);
-extern void hs_evaluate_input_activate_joy(void);
-extern void hs_evaluate_input_deactivate_joy(void);
-extern void hs_evaluate_input_find_default(void);
-extern void hs_evaluate_input_find_joystick(void);
-extern void hs_evaluate_input_get_joy_count(void);
-extern void hs_evaluate_input_is_joy_active(void);
-extern void hs_evaluate_input_show_joystick_info(void);
-extern void hs_evaluate_inspect(void);
-extern void hs_evaluate_list_count(void);
-extern void hs_evaluate_list_get(void);
-extern void hs_evaluate_magic_melee_attack(void);
-extern void hs_evaluate_magic_seat_name(void);
-extern void hs_evaluate_map_name(void);
-extern void hs_evaluate_map_reset(void);
-extern void hs_evaluate_message_metrics_dump(void);
-extern void hs_evaluate_multiplayer_map_name(void);
-extern void hs_evaluate_net_graph_clear(void);
-extern void hs_evaluate_net_graph_show(void);
-extern void hs_evaluate_not(void);
-extern void hs_evaluate_nothing(void);
-extern void hs_evaluate_numeric_countdown_timer_get(void);
-extern void hs_evaluate_numeric_countdown_timer_restart(void);
-extern void hs_evaluate_numeric_countdown_timer_set(void);
-extern void hs_evaluate_numeric_countdown_timer_stop(void);
-extern void hs_evaluate_object_beautify(void);
-extern void hs_evaluate_object_can_take_damage(void);
-extern void hs_evaluate_object_cannot_take_damage(void);
-extern void hs_evaluate_object_cast(void);
-extern void hs_evaluate_object_create(void);
-extern void hs_evaluate_object_create_anew(void);
-extern void hs_evaluate_object_create_anew_containing(void);
-extern void hs_evaluate_object_create_containing(void);
-extern void hs_evaluate_object_destroy(void);
-extern void hs_evaluate_object_destroy_all(void);
-extern void hs_evaluate_object_destroy_containing(void);
-extern void hs_evaluate_object_pvs_clear(void);
-extern void hs_evaluate_object_pvs_set_camera(void);
-extern void hs_evaluate_object_pvs_set_object(void);
-extern void hs_evaluate_object_set_collideable(void);
-extern void hs_evaluate_object_set_facing(void);
-extern void hs_evaluate_object_set_melee_attack_inhibited(void);
-extern void hs_evaluate_object_set_permutation(void);
-extern void hs_evaluate_object_set_ranged_attack_inhibited(void);
-extern void hs_evaluate_object_set_scale(void);
-extern void hs_evaluate_object_set_shield(void);
-extern void hs_evaluate_object_teleport(void);
-extern void hs_evaluate_object_type_predict(void);
-extern void hs_evaluate_objects_attach(void);
-extern void hs_evaluate_objects_can_see_flag(void);
-extern void hs_evaluate_objects_can_see_object(void);
-extern void hs_evaluate_objects_delete_by_definition(void);
-extern void hs_evaluate_objects_detach(void);
-extern void hs_evaluate_objects_dump_memory(void);
-extern void hs_evaluate_objects_predict(void);
-extern void hs_evaluate_pause_hud_timer(void);
-extern void hs_evaluate_play_update_history(void);
-extern void hs_evaluate_playback(void);
-extern void hs_evaluate_player0_joystick_set_is_normal(void);
-extern void hs_evaluate_player0_look_invert_pitch(void);
-extern void hs_evaluate_player0_look_pitch_is_inverted(void);
-extern void hs_evaluate_player_action_test_accept(void);
-extern void hs_evaluate_player_action_test_action(void);
-extern void hs_evaluate_player_action_test_back(void);
-extern void hs_evaluate_player_action_test_grenade_trigger(void);
-extern void hs_evaluate_player_action_test_jump(void);
-extern void hs_evaluate_player_action_test_look_relative_all_directions(void);
-extern void hs_evaluate_player_action_test_look_relative_down(void);
-extern void hs_evaluate_player_action_test_look_relative_left(void);
-extern void hs_evaluate_player_action_test_look_relative_right(void);
-extern void hs_evaluate_player_action_test_look_relative_up(void);
-extern void hs_evaluate_player_action_test_move_relative_all_directions(void);
-extern void hs_evaluate_player_action_test_primary_trigger(void);
-extern void hs_evaluate_player_action_test_reset(void);
-extern void hs_evaluate_player_action_test_zoom(void);
-extern void hs_evaluate_player_add_equipment(void);
-extern void hs_evaluate_player_camera_control(void);
-extern void hs_evaluate_player_effect_set_max_rotation(void);
-extern void hs_evaluate_player_effect_set_max_translation(void);
-extern void hs_evaluate_player_effect_start(void);
-extern void hs_evaluate_player_effect_stop(void);
-extern void hs_evaluate_player_enable_input(void);
-extern void hs_evaluate_players(void);
-extern void hs_evaluate_players_unzoom_all(void);
-extern void hs_evaluate_print(void);
-extern void hs_evaluate_print_binds(void);
-extern void hs_evaluate_profile_load(void);
-extern void hs_evaluate_profile_unlock_solo_levels(void);
-extern void hs_evaluate_quit(void);
-extern void hs_evaluate_random(void);
-extern void hs_evaluate_random_range(void);
-extern void hs_evaluate_rasterizer_fixed_function_ambient(void);
-extern void hs_evaluate_rasterizer_lights_reset_for_new_map(void);
-extern void hs_evaluate_rasterizer_model_ambient_reflection_tint(void);
-extern void hs_evaluate_rcon(void);
-extern void hs_evaluate_real_random_range(void);
-extern void hs_evaluate_recording_kill(void);
-extern void hs_evaluate_recording_play(void);
-extern void hs_evaluate_recording_play_and_delete(void);
-extern void hs_evaluate_recording_play_and_hover(void);
-extern void hs_evaluate_recording_time(void);
-extern void hs_evaluate_remote_player_stats(void);
-extern void hs_evaluate_render_lights(void);
-extern void hs_evaluate_scenery_animation_start(void);
-extern void hs_evaluate_scenery_animation_start_at_frame(void);
-extern void hs_evaluate_scenery_get_animation_time(void);
-extern void hs_evaluate_script_doc(void);
-extern void hs_evaluate_script_recompile(void);
-extern void hs_evaluate_script_screen_effect_set_value(void);
-extern void hs_evaluate_set(void);
-extern void hs_evaluate_set_digital_forward_throttle(void);
-extern void hs_evaluate_set_digital_pitch_increment(void);
-extern void hs_evaluate_set_digital_strafe_throttle(void);
-extern void hs_evaluate_set_digital_yaw_increment(void);
-extern void hs_evaluate_set_gamepad_forward_threshold(void);
-extern void hs_evaluate_set_gamepad_strafe_threshold(void);
-extern void hs_evaluate_set_gamma(void);
-extern void hs_evaluate_set_mouse_forward_threshold(void);
-extern void hs_evaluate_set_mouse_pitch_scale(void);
-extern void hs_evaluate_set_mouse_strafe_threshold(void);
-extern void hs_evaluate_set_mouse_yaw_scale(void);
-extern void hs_evaluate_set_pitch_rate(void);
-extern void hs_evaluate_set_yaw_rate(void);
-extern void hs_evaluate_show_hud(void);
-extern void hs_evaluate_show_hud_help_text(void);
-extern void hs_evaluate_show_hud_timer(void);
-extern void hs_evaluate_sleep(void);
-extern void hs_evaluate_sleep_ticks(void);
-extern void hs_evaluate_sound_cache_dump_to_file(void);
-extern void hs_evaluate_sound_class_set_gain(void);
-extern void hs_evaluate_sound_eax_enabled(void);
-extern void hs_evaluate_sound_enable(void);
-extern void hs_evaluate_sound_enable_eax(void);
-extern void hs_evaluate_sound_enable_hardware(void);
-extern void hs_evaluate_sound_get_effects_gain(void);
-extern void hs_evaluate_sound_get_gain(void);
-extern void hs_evaluate_sound_get_master_gain(void);
-extern void hs_evaluate_sound_get_music_gain(void);
-extern void hs_evaluate_sound_get_supplementary_buffers(void);
-extern void hs_evaluate_sound_impulse_start(void);
-extern void hs_evaluate_sound_impulse_stop(void);
-extern void hs_evaluate_sound_impulse_time(void);
-extern void hs_evaluate_sound_looping_predict(void);
-extern void hs_evaluate_sound_looping_set_alternate(void);
-extern void hs_evaluate_sound_looping_set_scale(void);
-extern void hs_evaluate_sound_looping_start(void);
-extern void hs_evaluate_sound_looping_stop(void);
-extern void hs_evaluate_sound_set_effects_gain(void);
-extern void hs_evaluate_sound_set_env(void);
-extern void hs_evaluate_sound_set_factor(void);
-extern void hs_evaluate_sound_set_gain(void);
-extern void hs_evaluate_sound_set_master_gain(void);
-extern void hs_evaluate_sound_set_music_gain(void);
-extern void hs_evaluate_sound_set_rolloff(void);
-extern void hs_evaluate_sound_set_supplementary_buffers(void);
-extern void hs_evaluate_structure_bsp_index(void);
-extern void hs_evaluate_sv_ban(void);
-extern void hs_evaluate_sv_banlist(void);
-extern void hs_evaluate_sv_end_game(void);
-extern void hs_evaluate_sv_get_player_action_queue_length(void);
-extern void hs_evaluate_sv_kick(void);
-extern void hs_evaluate_sv_map(void);
-extern void hs_evaluate_sv_map_next(void);
-extern void hs_evaluate_sv_map_reset(void);
-extern void hs_evaluate_sv_mapcycle(void);
-extern void hs_evaluate_sv_mapcycle_add(void);
-extern void hs_evaluate_sv_mapcycle_begin(void);
-extern void hs_evaluate_sv_mapcycle_del(void);
-extern void hs_evaluate_sv_parameters_dump(void);
-extern void hs_evaluate_sv_parameters_reload(void);
-extern void hs_evaluate_sv_players(void);
-extern void hs_evaluate_sv_status(void);
-extern void hs_evaluate_sv_unban(void);
-extern void hs_evaluate_switch_bsp(void);
-extern void hs_evaluate_thread_sleep(void);
-extern void hs_evaluate_track_remote_player_position_updates(void);
-extern void hs_evaluate_ui_widget_show_path(void);
-extern void hs_evaluate_unbind(void);
-extern void hs_evaluate_unit_aim_without_turning(void);
-extern void hs_evaluate_unit_can_blink(void);
-extern void hs_evaluate_unit_close(void);
-extern void hs_evaluate_unit_custom_animation_at_frame(void);
-extern void hs_evaluate_unit_doesnt_drop_items(void);
-extern void hs_evaluate_unit_enter_vehicle(void);
-extern void hs_evaluate_unit_exit_vehicle(void);
-extern void hs_evaluate_unit_get_current_flashlight_state(void);
-extern void hs_evaluate_unit_get_custom_animation_time(void);
-extern void hs_evaluate_unit_get_health(void);
-extern void hs_evaluate_unit_get_shield(void);
-extern void hs_evaluate_unit_get_total_grenade_count(void);
-extern void hs_evaluate_unit_has_weapon(void);
-extern void hs_evaluate_unit_has_weapon_readied(void);
-extern void hs_evaluate_unit_impervious(void);
-extern void hs_evaluate_unit_is_playing_custom_animation(void);
-extern void hs_evaluate_unit_kill_silent(void);
-extern void hs_evaluate_unit_open(void);
-extern void hs_evaluate_unit_set_current_vitality(void);
-extern void hs_evaluate_unit_set_desired_flashlight_state(void);
-extern void hs_evaluate_unit_set_emotion(void);
-extern void hs_evaluate_unit_set_emotion_animation(void);
-extern void hs_evaluate_unit_set_enterable_by_player(void);
-extern void hs_evaluate_unit_set_maximum_vitality(void);
-extern void hs_evaluate_unit_set_seat(void);
-extern void hs_evaluate_unit_solo_player_integrated_night_vision_is_active(void);
-extern void hs_evaluate_unit_stop_custom_animation(void);
-extern void hs_evaluate_unit_suspended(void);
-extern void hs_evaluate_units_set_current_vitality(void);
-extern void hs_evaluate_units_set_desired_flashlight_state(void);
-extern void hs_evaluate_units_set_maximum_vitality(void);
-extern void hs_evaluate_vehicle_driver(void);
-extern void hs_evaluate_vehicle_hover(void);
-extern void hs_evaluate_vehicle_load_magic(void);
-extern void hs_evaluate_vehicle_riders(void);
-extern void hs_evaluate_vehicle_test_seat_list(void);
-extern void hs_evaluate_vehicle_unload(void);
-extern void hs_evaluate_version(void);
-extern void hs_evaluate_volume_teleport_players_not_inside(void);
-extern void hs_evaluate_volume_test_object(void);
-extern void hs_evaluate_volume_test_objects(void);
-extern void hs_evaluate_volume_test_objects_all(void);
-extern void hs_evaluate_wake(void);
-extern void hs_parse_arithmetic(void);
-extern void hs_parse_begin(void);
-extern void hs_parse_cond(void);
-extern void hs_parse_function_arguments(void);
-extern void hs_parse_if(void);
-extern void hs_parse_inspect(void);
-extern void hs_parse_logical(void);
-extern void hs_parse_set(void);
-extern void hs_parse_sleep(void);
-extern void hs_parse_sleep_until(void);
-extern void hs_parse_string_arguments(void);
-extern void hs_parse_two_numeric_arguments(void);
-extern void hs_parse_two_object_arguments(void);
-extern void hs_parse_unit(void);
-extern void hs_parse_wake(void);
-extern void hs_vehicle_gunner_evaluate(void);
-extern void hs_vehicle_test_seat_evaluate(void);
-extern void hwreq_parse_exception_copy_construct(void);
-extern void item_new(void);
-extern void item_stamp_age_timestamp(void);
-extern void item_update(void);
-extern void light_fixture_place(void);
-extern void machine_create(void);
-extern void machine_place(void);
-extern void map_list_matching_substring_evaluate(void);
-extern void message_delta_long_decode(void);
-extern void message_delta_long_encode(void);
-extern void message_delta_real_encode(void);
-extern void object_clear_references_to_object(void);
-extern void object_type_definition_return_false(void);
-extern void object_type_definition_return_true(void);
-extern void object_update_export_functions(void);
-extern void player_set_action_result(void);
-extern void players_handle_deleted_unit(void);
-extern void projectile_apply_network_update(void);
-extern void projectile_build_network_update(void);
-extern void projectile_force_detonate(void);
-extern void projectile_is_old_enough(void);
-extern void projectile_network_baseline_take(void);
-extern void projectile_new(void);
-extern void projectile_notify_object_deleted(void);
-extern void projectile_send_creation(void);
-extern void projectile_update(void);
-extern void projectile_update_function_values(void);
-extern void recorded_animation_compressed_begin(void);
-extern void recorded_animation_compressed_update(void);
-extern void recorded_animation_v1_begin(void);
-extern void recorded_animation_v1_update(void);
-extern void scenery_new(void);
-extern void scenery_update(void);
-extern void sound_scenery_create(void);
-extern void sv_ban_penalty_evaluate(void);
-extern void sv_banlist_file_evaluate(void);
-extern void sv_friendly_fire_evaluate(void);
-extern void sv_maxplayers_evaluate(void);
-extern void sv_name_evaluate(void);
-extern void sv_password_evaluate(void);
-extern void sv_rcon_password_evaluate(void);
-extern void sv_single_flag_force_reset_evaluate(void);
-extern void sv_timelimit_evaluate(void);
-extern void sv_tk_cooldown_evaluate(void);
-extern void sv_tk_grace_evaluate(void);
-extern void unit_ai_update_stagger_allocate(void);
-extern void unit_ai_update_stagger_reset(void);
-extern void unit_apply_network_health_update(void);
-extern void unit_build_network_update(void);
-extern void unit_forget_object_reference(void);
-extern void unit_new(void);
-extern void unit_place(void);
-extern void unit_play_default_reaction_sound(void);
-extern void unit_region_damage_reaction(void);
-extern void unit_submit_periodic_network_update(void);
-extern void unit_update(void);
-extern void unit_update_aiming_overlay_angles(void);
-extern void unit_update_ik_detail_nodes(void);
-extern void unit_update_scale_function_inputs(void);
-extern void vehicle_apply_network_update(void);
-extern void vehicle_blend_animations(void);
-extern void vehicle_calculate_animation_controls(void);
-extern void vehicle_create(void);
-extern void vehicle_encode_network_create(void);
-extern void vehicle_encode_network_update(void);
-extern void vehicle_is_old_enough(void);
-extern void vehicle_network_baseline_take(void);
-extern void vehicle_reset_state(void);
-extern void vehicle_update(void);
-extern void weapon_apply_network_update(void);
-extern void weapon_build_network_update(void);
-extern void weapon_is_old_enough(void);
-extern void weapon_network_baseline_take(void);
-extern void weapon_new(void);
-extern void weapon_new_from_placement(void);
-extern void weapon_send_creation(void);
-extern void weapon_update(void);
-extern void weapon_update_function_values(void);
 
 /* 0x0063acac..0x0063cd8c */
 uint32_t table_0063acac[2104] = {
@@ -1160,8 +287,8 @@ uint32_t table_0063acac[2104] = {
 
 /* 0x0064efb0..0x0064f09c */
 uint32_t table_0064efb0[59] = {
-    /* +0x0000 */ (uint32_t)halo_code_627ea1, 0, 0xffffffffu, 0, (uint32_t)halo_code_627e98, 0, 0xffffffffu, 0x6280a1,
-    /* +0x0020 */ 0x6280b5, 0, 0xffffffffu, 0, (uint32_t)halo_code_628c3a, 0, 0xffffffffu, 0,
+    /* +0x0000 */ (uint32_t)0, 0, 0xffffffffu, 0, (uint32_t)0, 0, 0xffffffffu, 0x6280a1,
+    /* +0x0020 */ 0x6280b5, 0, 0xffffffffu, 0, (uint32_t)0, 0, 0xffffffffu, 0,
     /* +0x0040 */ 0x628f6c, 0, 0xffffffffu, 0, 0x62915f, 0, 0xffffffffu, 0x629195,
     /* +0x0060 */ 0x629199, 0x881000, 0x881008, 0x6a3438, (uint32_t)&table_00676030[0], 0, 0, 0,
     /* +0x0080 */ 0xffffffffu, 0, 0x6293e0, 0, 0x6000006, 0x100, 0x6030010, 0x10020600,
@@ -1852,50 +979,50 @@ uint32_t table_00664b30[1] = {
 /* 0x0067359c..0x00673d5c */
 uint32_t length_error_throw_info_0067359c[496] = {
     /* +0x0000 */ 0, (uint32_t)&length_error_throw_info_0069ff2c[14], 0, 0xffffffffu, 0, 0x28, (uint32_t)hwreq_parse_exception_copy_construct,
-    /* +0x001c */ 0, (uint32_t)&length_error_throw_info_0069ff2c[22], 0, 0xffffffffu, 0, 0x28, (uint32_t)halo_code_57bc00, 0xffffffffu,
-    /* +0x003c */ (uint32_t)halo_code_639300, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[14], 0, 0, 0, 0,
-    /* +0x005c */ 0xffffffffu, (uint32_t)halo_code_639320, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[23], 0, 0, 0,
+    /* +0x001c */ 0, (uint32_t)&length_error_throw_info_0069ff2c[22], 0, 0xffffffffu, 0, 0x28, (uint32_t)std_out_of_range_copy_construct, 0xffffffffu,
+    /* +0x003c */ (uint32_t)0, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[14], 0, 0, 0, 0,
+    /* +0x005c */ 0xffffffffu, (uint32_t)0, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[23], 0, 0, 0,
     /* +0x007c */ 0, 0xffffffffu, 0, 0xffffffffu, 0, 0x1, 0, 0x1,
     /* +0x009c */ 0, 0, 0, 0, 0x57c7e2, 0, 0, 0,
     /* +0x00bc */ 0x57c743, 0x2, 0x2, 0x3, 0x1, (uint32_t)&length_error_throw_info_0067359c[40], 0, 0,
     /* +0x00dc */ 0x3, 0x1, (uint32_t)&length_error_throw_info_0067359c[44], 0x19930520, 0x4, (uint32_t)&length_error_throw_info_0067359c[32], 0x2, (uint32_t)&length_error_throw_info_0067359c[48],
-    /* +0x00fc */ 0, 0, 0xffffffffu, (uint32_t)halo_code_639320, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[65], 0,
-    /* +0x011c */ 0, 0, 0, 0xffffffffu, 0, 0, (uint32_t)halo_code_639350, 0xffffffffu,
+    /* +0x00fc */ 0, 0, 0xffffffffu, (uint32_t)0, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[65], 0,
+    /* +0x011c */ 0, 0, 0, 0xffffffffu, 0, 0, (uint32_t)0, 0xffffffffu,
     /* +0x013c */ 0, 0, 0, 0, 0x57ccc4, 0, 0x1, 0x2,
     /* +0x015c */ 0x1, (uint32_t)&length_error_throw_info_0067359c[80], 0x19930520, 0x3, (uint32_t)&length_error_throw_info_0067359c[74], 0x1, (uint32_t)&length_error_throw_info_0067359c[84], 0,
-    /* +0x017c */ 0, 0xffffffffu, (uint32_t)halo_code_639300, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[96], 0, 0,
-    /* +0x019c */ 0, 0, 0xffffffffu, (uint32_t)halo_code_639320, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[105], 0,
-    /* +0x01bc */ 0, 0, 0, 0xffffffffu, (uint32_t)halo_code_639300, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[114],
-    /* +0x01dc */ 0, 0, 0, 0, 0xffffffffu, (uint32_t)halo_code_639360, 0x19930520, 0x1,
+    /* +0x017c */ 0, 0xffffffffu, (uint32_t)0, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[96], 0, 0,
+    /* +0x019c */ 0, 0, 0xffffffffu, (uint32_t)0, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[105], 0,
+    /* +0x01bc */ 0, 0, 0, 0xffffffffu, (uint32_t)0, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[114],
+    /* +0x01dc */ 0, 0, 0, 0, 0xffffffffu, (uint32_t)0, 0x19930520, 0x1,
     /* +0x01fc */ (uint32_t)&length_error_throw_info_0067359c[123], 0, 0, 0, 0, 0xffffffffu, 0, 0,
-    /* +0x021c */ (uint32_t)halo_code_639380, 0xffffffffu, 0, 0, 0, 0, 0x57ced1, 0,
+    /* +0x021c */ (uint32_t)0, 0xffffffffu, 0, 0, 0, 0, 0x57ced1, 0,
     /* +0x023c */ 0x1, 0x2, 0x1, (uint32_t)&length_error_throw_info_0067359c[138], 0x19930520, 0x3, (uint32_t)&length_error_throw_info_0067359c[132], 0x1,
-    /* +0x025c */ (uint32_t)&length_error_throw_info_0067359c[142], 0, 0, 0xffffffffu, (uint32_t)halo_code_639390, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[154],
-    /* +0x027c */ 0, 0, 0, 0, 0xffffffffu, (uint32_t)halo_code_639390, 0x19930520, 0x1,
-    /* +0x029c */ (uint32_t)&length_error_throw_info_0067359c[163], 0, 0, 0, 0, 0xffffffffu, (uint32_t)halo_code_639390, 0x19930520,
-    /* +0x02bc */ 0x1, (uint32_t)&length_error_throw_info_0067359c[172], 0, 0, 0, 0, 0xffffffffu, (uint32_t)halo_code_639390,
+    /* +0x025c */ (uint32_t)&length_error_throw_info_0067359c[142], 0, 0, 0xffffffffu, (uint32_t)0, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[154],
+    /* +0x027c */ 0, 0, 0, 0, 0xffffffffu, (uint32_t)0, 0x19930520, 0x1,
+    /* +0x029c */ (uint32_t)&length_error_throw_info_0067359c[163], 0, 0, 0, 0, 0xffffffffu, (uint32_t)0, 0x19930520,
+    /* +0x02bc */ 0x1, (uint32_t)&length_error_throw_info_0067359c[172], 0, 0, 0, 0, 0xffffffffu, (uint32_t)0,
     /* +0x02dc */ 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[181], 0, 0, 0, 0, 0xffffffffu,
-    /* +0x02fc */ (uint32_t)halo_code_6393b0, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[190], 0, 0, 0, 0,
-    /* +0x031c */ 0xffffffffu, (uint32_t)halo_code_6393d0, 0, (uint32_t)halo_code_6393db, 0x1, (uint32_t)halo_code_6393e6, 0x2, (uint32_t)halo_code_6393f1,
-    /* +0x033c */ 0x3, (uint32_t)halo_code_6393fc, 0x4, (uint32_t)halo_code_63940a, 0x19930520, 0x6, (uint32_t)&length_error_throw_info_0067359c[199], 0,
-    /* +0x035c */ 0, 0, 0, 0xffffffffu, 0, 0, (uint32_t)halo_code_639430, 0xffffffffu,
-    /* +0x037c */ 0, 0, 0, 0, (uint32_t)halo_code_57cfa3, 0, 0x1, 0x2,
+    /* +0x02fc */ (uint32_t)0, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[190], 0, 0, 0, 0,
+    /* +0x031c */ 0xffffffffu, (uint32_t)0, 0, (uint32_t)0, 0x1, (uint32_t)0, 0x2, (uint32_t)0,
+    /* +0x033c */ 0x3, (uint32_t)0, 0x4, (uint32_t)0, 0x19930520, 0x6, (uint32_t)&length_error_throw_info_0067359c[199], 0,
+    /* +0x035c */ 0, 0, 0, 0xffffffffu, 0, 0, (uint32_t)0, 0xffffffffu,
+    /* +0x037c */ 0, 0, 0, 0, (uint32_t)0, 0, 0x1, 0x2,
     /* +0x039c */ 0x1, (uint32_t)&length_error_throw_info_0067359c[224], 0x19930520, 0x3, (uint32_t)&length_error_throw_info_0067359c[218], 0x1, (uint32_t)&length_error_throw_info_0067359c[228], 0,
-    /* +0x03bc */ 0, 0xffffffffu, (uint32_t)halo_code_639440, 0, 0, 0, 0, 0,
+    /* +0x03bc */ 0, 0xffffffffu, (uint32_t)0, 0, 0, 0, 0, 0,
     /* +0x03dc */ 0, 0, 0, 0, 0, 0, 0x57bfec, 0,
     /* +0x03fc */ 0, 0, 0x57c0a8, 0x1, 0x1, 0x2, 0x1, (uint32_t)&length_error_throw_info_0067359c[250],
     /* +0x041c */ 0x3, 0x3, 0x4, 0x1, (uint32_t)&length_error_throw_info_0067359c[254], 0x19930520, 0x5, (uint32_t)&length_error_throw_info_0067359c[240],
-    /* +0x043c */ 0x2, (uint32_t)&length_error_throw_info_0067359c[258], 0, 0, 0xffffffffu, (uint32_t)halo_code_639460, 0x19930520, 0x1,
-    /* +0x045c */ (uint32_t)&length_error_throw_info_0067359c[275], 0, 0, 0, 0, 0xffffffffu, (uint32_t)halo_code_639480, 0,
-    /* +0x047c */ (uint32_t)halo_code_63948b, 0x1, (uint32_t)halo_code_639496, 0x2, (uint32_t)halo_code_6394a1, 0x3, (uint32_t)halo_code_6394ac, 0x4,
-    /* +0x049c */ (uint32_t)halo_code_6394ba, 0x5, (uint32_t)halo_code_6394c7, 0x19930520, 0x7, (uint32_t)&length_error_throw_info_0067359c[284], 0, 0,
-    /* +0x04bc */ 0, 0, 0xffffffffu, (uint32_t)halo_code_6394e0, 0, (uint32_t)halo_code_6394e8, 0x1, (uint32_t)halo_code_6394f0,
+    /* +0x043c */ 0x2, (uint32_t)&length_error_throw_info_0067359c[258], 0, 0, 0xffffffffu, (uint32_t)0, 0x19930520, 0x1,
+    /* +0x045c */ (uint32_t)&length_error_throw_info_0067359c[275], 0, 0, 0, 0, 0xffffffffu, (uint32_t)0, 0,
+    /* +0x047c */ (uint32_t)0, 0x1, (uint32_t)0, 0x2, (uint32_t)0, 0x3, (uint32_t)0, 0x4,
+    /* +0x049c */ (uint32_t)0, 0x5, (uint32_t)0, 0x19930520, 0x7, (uint32_t)&length_error_throw_info_0067359c[284], 0, 0,
+    /* +0x04bc */ 0, 0, 0xffffffffu, (uint32_t)0, 0, (uint32_t)0, 0x1, (uint32_t)0,
     /* +0x04dc */ 0x19930520, 0x3, (uint32_t)&length_error_throw_info_0067359c[305], 0, 0, 0, 0, 0xffffffffu,
-    /* +0x04fc */ (uint32_t)halo_code_639510, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[318], 0, 0, 0, 0,
-    /* +0x051c */ 0xffffffffu, (uint32_t)halo_code_639530, 0xffffffffu, (uint32_t)halo_code_63953b, 0x19930520, 0x2, (uint32_t)&length_error_throw_info_0067359c[327], 0,
-    /* +0x053c */ 0, 0, 0, 0xffffffffu, (uint32_t)halo_code_639550, 0, (uint32_t)halo_code_639558, 0x19930520,
-    /* +0x055c */ 0x2, (uint32_t)&length_error_throw_info_0067359c[338], 0, 0, 0, 0, 0xffffffffu, (uint32_t)halo_code_639570,
-    /* +0x057c */ 0xffffffffu, (uint32_t)halo_code_63957e, 0x19930520, 0x2, (uint32_t)&length_error_throw_info_0067359c[349], 0, 0, 0,
+    /* +0x04fc */ (uint32_t)0, 0x19930520, 0x1, (uint32_t)&length_error_throw_info_0067359c[318], 0, 0, 0, 0,
+    /* +0x051c */ 0xffffffffu, (uint32_t)0, 0xffffffffu, (uint32_t)0, 0x19930520, 0x2, (uint32_t)&length_error_throw_info_0067359c[327], 0,
+    /* +0x053c */ 0, 0, 0, 0xffffffffu, (uint32_t)0, 0, (uint32_t)0, 0x19930520,
+    /* +0x055c */ 0x2, (uint32_t)&length_error_throw_info_0067359c[338], 0, 0, 0, 0, 0xffffffffu, (uint32_t)0,
+    /* +0x057c */ 0xffffffffu, (uint32_t)0, 0x19930520, 0x2, (uint32_t)&length_error_throw_info_0067359c[349], 0, 0, 0,
     /* +0x059c */ 0, 0x1, 0x23a470, 0x2a00a0, 0x29ffe4, 0x273cb0, 0x273ec8, 0,
     /* +0x05bc */ 0, 0x1, 0x24dde0, 0x2a2488, 0x29ffb0, 0x273c7c, 0x273ef4, 0,
     /* +0x05dc */ 0, 0x1, 0x24e380, 0x2a248c, 0x29ffd8, 0x273ca4, 0x273efc, 0,
@@ -1920,25 +1047,25 @@ uint32_t length_error_throw_info_0067359c[496] = {
 uint32_t table_00676030[216] = {
     /* +0x0000 */ 0, 0, 0x62400a, 0x6362cf, 0, 0, 0x637a95, 0,
     /* +0x0020 */ 0, 0, 0, 0, 0, 0, 0, 0,
-    /* +0x0040 */ 0, 0, 0, 0, (uint32_t)&table_0063acac[0], 0, (uint32_t)halo_code_57fbfc, 0x57feda,
-    /* +0x0060 */ 0x580568, (uint32_t)halo_code_5807bb, 0x580a84, (uint32_t)halo_code_57fc44, (uint32_t)halo_code_580054, (uint32_t)halo_code_57fc68, 0x58029d, (uint32_t)halo_code_57fc20,
-    /* +0x0080 */ (uint32_t)halo_code_58002a, 0x5806e4, 0x582103, 0x582148, (uint32_t)halo_code_58015c, 0x58017e, 0x5801a0, (uint32_t)halo_code_57f9f9,
-    /* +0x00a0 */ (uint32_t)halo_code_580cc7, (uint32_t)halo_code_5819e1, 0x581a8a, (uint32_t)halo_code_581fa0, 0x582054, 0x5816d5, 0x581717, (uint32_t)halo_code_5818d4,
-    /* +0x00c0 */ (uint32_t)halo_code_581109, 0x5816bb, 0x5816c8, (uint32_t)halo_code_581858, (uint32_t)halo_code_581193, (uint32_t)halo_code_581229, (uint32_t)halo_code_5812c0, (uint32_t)halo_code_581079,
-    /* +0x00e0 */ 0x5821f7, (uint32_t)halo_code_581d4a, 0x581ee9, (uint32_t)halo_code_580a04, (uint32_t)halo_code_58147a, (uint32_t)halo_code_58159d, (uint32_t)halo_code_58156f, (uint32_t)halo_code_5815ae,
-    /* +0x0100 */ (uint32_t)halo_code_581358, (uint32_t)halo_code_581e57, (uint32_t)halo_code_581b4d, (uint32_t)halo_code_581ed8, 0x57f9ec, (uint32_t)halo_code_57fab1, (uint32_t)halo_code_57fb8a, 0x57fc7b,
-    /* +0x0120 */ (uint32_t)halo_code_57fd53, (uint32_t)halo_code_57fe4e, 0x5802aa, (uint32_t)halo_code_5803a5, (uint32_t)halo_code_5804c2, (uint32_t)halo_code_581c11, (uint32_t)halo_code_581c9f, (uint32_t)halo_code_57f892,
-    /* +0x0140 */ (uint32_t)halo_code_57f934, 0x57fc0f, 0x57fc33, 0x57fc57, (uint32_t)halo_code_57ff72, (uint32_t)halo_code_58003d, (uint32_t)halo_code_5800cd, (uint32_t)halo_code_580614,
-    /* +0x0160 */ 0x58016d, 0x58018f, (uint32_t)halo_code_5822a3, (uint32_t)halo_code_5825dc, 0x5825ed, 0, (uint32_t)halo_code_582688, 0x57fee7,
-    /* +0x0180 */ 0x580575, 0x5807ce, 0x580a91, (uint32_t)halo_code_58288b, 0x580067, (uint32_t)halo_code_58291b, 0x581a97, (uint32_t)halo_code_582776,
-    /* +0x01a0 */ (uint32_t)halo_code_5829b8, 0x5806f1, 0x582110, 0x582155, (uint32_t)halo_code_582b53, (uint32_t)halo_code_582ee0, 0x5801ad, (uint32_t)halo_code_57fa23,
+    /* +0x0040 */ 0, 0, 0, 0, (uint32_t)&table_0063acac[0], 0, (uint32_t)0, 0x57feda,
+    /* +0x0060 */ 0x580568, (uint32_t)0, 0x580a84, (uint32_t)0, (uint32_t)0, (uint32_t)0, 0x58029d, (uint32_t)0,
+    /* +0x0080 */ (uint32_t)0, 0x5806e4, 0x582103, 0x582148, (uint32_t)0, 0x58017e, 0x5801a0, (uint32_t)0,
+    /* +0x00a0 */ (uint32_t)0, (uint32_t)0, 0x581a8a, (uint32_t)0, 0x582054, 0x5816d5, 0x581717, (uint32_t)0,
+    /* +0x00c0 */ (uint32_t)0, 0x5816bb, 0x5816c8, (uint32_t)0, (uint32_t)0, (uint32_t)0, (uint32_t)0, (uint32_t)0,
+    /* +0x00e0 */ 0x5821f7, (uint32_t)0, 0x581ee9, (uint32_t)0, (uint32_t)0, (uint32_t)0, (uint32_t)0, (uint32_t)0,
+    /* +0x0100 */ (uint32_t)0, (uint32_t)0, (uint32_t)0, (uint32_t)0, 0x57f9ec, (uint32_t)0, (uint32_t)0, 0x57fc7b,
+    /* +0x0120 */ (uint32_t)0, (uint32_t)0, 0x5802aa, (uint32_t)0, (uint32_t)0, (uint32_t)0, (uint32_t)0, (uint32_t)0,
+    /* +0x0140 */ (uint32_t)0, 0x57fc0f, 0x57fc33, 0x57fc57, (uint32_t)0, (uint32_t)0, (uint32_t)0, (uint32_t)0,
+    /* +0x0160 */ 0x58016d, 0x58018f, (uint32_t)0, (uint32_t)0, 0x5825ed, 0, (uint32_t)0, 0x57fee7,
+    /* +0x0180 */ 0x580575, 0x5807ce, 0x580a91, (uint32_t)0, 0x580067, (uint32_t)0, 0x581a97, (uint32_t)0,
+    /* +0x01a0 */ (uint32_t)0, 0x5806f1, 0x582110, 0x582155, (uint32_t)0, (uint32_t)0, 0x5801ad, (uint32_t)0,
     /* +0x01c0 */ 0x580cda, 0x5819f4, 0x581a97, 0x581fb3, 0x582061, 0x5816e2, 0x581724, 0x581908,
-    /* +0x01e0 */ 0x581137, (uint32_t)halo_code_5835a4, (uint32_t)halo_code_58367e, (uint32_t)halo_code_581878, (uint32_t)halo_code_5811af, (uint32_t)halo_code_581245, (uint32_t)halo_code_5812dc, 0x5810ad,
-    /* +0x0200 */ 0x582204, 0x581d74, (uint32_t)halo_code_581f18, 0x580a17, 0x58148d, (uint32_t)halo_code_5832f0, (uint32_t)halo_code_5832b7, (uint32_t)halo_code_5815d5,
-    /* +0x0220 */ (uint32_t)halo_code_581378, (uint32_t)halo_code_581e81, 0x581b60, 0x58373d, 0x5825fe, (uint32_t)halo_code_57fadb, (uint32_t)halo_code_57fbb9, (uint32_t)halo_code_57fca5,
-    /* +0x0240 */ (uint32_t)halo_code_57fd7d, (uint32_t)halo_code_57fe7d, (uint32_t)halo_code_5802d4, (uint32_t)halo_code_5803cf, (uint32_t)halo_code_5804f1, 0x581c24, 0x581cb2, (uint32_t)halo_code_57f8a5,
-    /* +0x0260 */ (uint32_t)halo_code_57f947, (uint32_t)halo_code_5826f3, (uint32_t)halo_code_5827f3, (uint32_t)halo_code_5828c7, 0x57ff83, (uint32_t)halo_code_582a74, 0x5800de, 0x580625,
-    /* +0x0280 */ (uint32_t)halo_code_582ce0, (uint32_t)halo_code_583086, 0x5822b4, (uint32_t)halo_code_5923a8, 0x59284f, 0xffffffffu, 0x16, 0,
+    /* +0x01e0 */ 0x581137, (uint32_t)0, (uint32_t)0, (uint32_t)0, (uint32_t)0, (uint32_t)0, (uint32_t)0, 0x5810ad,
+    /* +0x0200 */ 0x582204, 0x581d74, (uint32_t)0, 0x580a17, 0x58148d, (uint32_t)0, (uint32_t)0, (uint32_t)0,
+    /* +0x0220 */ (uint32_t)0, (uint32_t)0, 0x581b60, 0x58373d, 0x5825fe, (uint32_t)0, (uint32_t)0, (uint32_t)0,
+    /* +0x0240 */ (uint32_t)0, (uint32_t)0, (uint32_t)0, (uint32_t)0, (uint32_t)0, 0x581c24, 0x581cb2, (uint32_t)0,
+    /* +0x0260 */ (uint32_t)0, (uint32_t)0, (uint32_t)0, (uint32_t)0, 0x57ff83, (uint32_t)0, 0x5800de, 0x580625,
+    /* +0x0280 */ (uint32_t)0, (uint32_t)0, 0x5822b4, (uint32_t)0, 0x59284f, 0xffffffffu, 0x16, 0,
     /* +0x02a0 */ 0x29, 0x32, 0x1b, 0x14, 0x18, 0x16, 0x15, 0x17,
     /* +0x02c0 */ 0x1e, 0x19, 0x1a, 0x51, 0x33, 0x1d, 0x21, 0x20,
     /* +0x02e0 */ 0x1f, 0x23, 0x22, 0, 0x14, 0x15, 0x16, 0x17,
@@ -3022,3 +2149,4 @@ uint8_t bss_006e09e8[3596];
 void *const network_index_cache_table = (void *)&machine_table_006874d0[12];
 void *const flag_render_device_slot = (void *)bss_006e09e8;
 
+}

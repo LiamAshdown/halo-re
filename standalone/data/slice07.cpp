@@ -1,9 +1,14 @@
-/* standalone/data/slice07.c -- engine globals 0x00710426..0x0071976e as real C definitions (globals->C slice 7).
+/* standalone/data/slice07.cpp -- engine globals 0x00710426..0x0071976e as extern "C" definitions (globals->C slice 7).
    All of them lie past the initialised part of .data, so they are zero-initialised BSS: no initial bytes, no pointers.
    Objects that other code reaches as part of a larger object (struct views, memset/memcpy sweeps, strides) were left
-   as absolute symbols in globals.asm; see the slice 7 report. */
+   as absolute symbols in globals.asm; see the slice 7 report.
+
+   All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
+#include "code_refs.hpp"
 #include <stdint.h>
 #include <stddef.h>
+
+extern "C" {
 
 uint32_t input_menu_exit_deadline; // 0x00712918
 uint8_t mouse_axis_frames[3][2]; // 0x0071291c
@@ -112,3 +117,5 @@ int32_t network_disabled_flag; // 0x007196ec
 int32_t width640; // 0x007196f0
 int32_t safe_mode; // 0x007196f4
 int32_t nowindowskey; // 0x007196f8
+
+}
