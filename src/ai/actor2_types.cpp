@@ -558,12 +558,6 @@ void ActorView::type_hunter_update()
 namespace actor_type_infection_swarm_update_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
-#define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
-#define SWARM(h) ((uint8_t *)halo::ai::globals().swarm_data->data + ((h) & halo::k_slot_mask) * k_swarm_size)
-#define COMPONENT(h) ((uint8_t *)halo::ai::globals().swarm_component_data->data + ((h) & halo::k_slot_mask) * k_swarm_component_size)
-#define F(p, o) (*(float *)((uint8_t *)(p) + (o)))
-#define U16(p, o) (*(uint16_t *)((uint8_t *)(p) + (o)))
-#define I16(p, o) (*(int16_t *)((uint8_t *)(p) + (o)))
 static uint32_t swarm_random_next(void)
 {
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
@@ -1038,11 +1032,6 @@ void ActorView::type_infection_swarm_update()
     }
 }
 
-#undef OBJECT
-#undef COMPONENT
-#undef F
-#undef U16
-#undef I16
 
 namespace actor_type_infection_update_local {
 }

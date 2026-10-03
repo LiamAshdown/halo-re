@@ -71,6 +71,12 @@ inline object *object_at(uint32_t handle)
     return static_cast<object_header *>(halo::objects::globals().object_data->data)[handle & k_slot_mask].data;
 }
 
+/** Returns the object header (not the object data) of the slot that `handle` indexes in the object data array. */
+inline object_header &object_header_at(uint32_t handle)
+{
+    return static_cast<object_header *>(halo::objects::globals().object_data->data)[handle & k_slot_mask];
+}
+
 /** Returns the datum handle of the tag a tag-reference field names. */
 inline datum_index tag_handle(const TagDependency &reference)
 {

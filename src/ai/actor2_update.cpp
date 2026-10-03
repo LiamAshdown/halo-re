@@ -732,10 +732,6 @@ void ActorView::update_crouch_state()
 
 namespace actor_update_danger_avoidance_local {
 static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
 }
 
 /**
@@ -1036,7 +1032,6 @@ void ActorView::update_idle_stagger()
 
 namespace actor_update_look_target_local {
 static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
-#define ULT_V3(p) (*(real_point3d *)(p))
 static uint8_t ult_cone(real_point3d *point, uint8_t *reference, float cos_threshold)
 {
     return halo::math::point3d_within_horizontal_cone(*point, *(real_point3d *)reference, cos_threshold);
@@ -1045,6 +1040,11 @@ static uint8_t ult_lane(real_point3d *point, uint8_t *forward, uint8_t *axis, fl
 {
     return halo::ai::actor_point_in_directional_lane(point, (real_point3d *)forward, (real_point3d *)axis, cos_threshold, side);
 }
+}
+
+static inline real_point3d &ult_v3(void *p)
+{
+    return *static_cast<real_point3d *>(p);
 }
 
 /**
@@ -1065,8 +1065,8 @@ void ActorView::update_look_target()
     uint8_t aim_speed_zero;
 
     if (look_mode == 1) {
-        ULT_V3(cache_b) = ULT_V3(cache_a);
-        ULT_V3(cache_c) = ULT_V3(cache_a);
+        ult_v3(cache_b) = ult_v3(cache_a);
+        ult_v3(cache_c) = ult_v3(cache_a);
     } else {
         uint8_t has_weapon;
         uint8_t side_a = a->unknown_58c[1];
@@ -1153,13 +1153,13 @@ void ActorView::update_look_target()
                 commit = 1;
             }
             if (commit) {
-                ULT_V3(cache_b) = flee_point;
+                ult_v3(cache_b) = flee_point;
                 free_aim = 0;
                 look_follows = has_weapon;
                 if (reason >= 7) {
                     claimed = 1;
                     if (has_weapon) {
-                        ULT_V3(cache_c) = flee_point;
+                        ult_v3(cache_c) = flee_point;
                     }
                 }
             }
@@ -1167,7 +1167,7 @@ void ActorView::update_look_target()
                 reason = side_a ? 5 : 0;
             }
             if (side_a) {
-                ULT_V3(cache_a) = flee_point;
+                ult_v3(cache_a) = flee_point;
                 a->turn_required = (uint8_t)(a->turn_required | (reason == 4));
                 side_a = 0;
                 side_b = 0;
@@ -1186,32 +1186,32 @@ void ActorView::update_look_target()
             voc_claim();
         };
         auto voc_aim = [&]() {
-            ULT_V3(cache_b) = voc_point;
-            ULT_V3(cache_c) = voc_point;
+            ult_v3(cache_b) = voc_point;
+            ult_v3(cache_c) = voc_point;
             voc_face();
         };
         auto take_all = [&]() {
             if (!(a->turn_required != 0 && in_cone)) {
-                ULT_V3(cache_a) = voc_point;
+                ult_v3(cache_a) = voc_point;
                 a->turn_required = 0;
             }
             voc_aim();
         };
         auto lane_or_take = [&]() {
             if (has_weapon && ult_lane(&voc_point, cache_b, cache_a, cos_look, side_cos)) {
-                ULT_V3(cache_c) = voc_point;
+                ult_v3(cache_c) = voc_point;
                 look_follows = 0;
             } else if (free_aim && in_cone) {
-                ULT_V3(cache_b) = voc_point;
-                ULT_V3(cache_c) = voc_point;
+                ult_v3(cache_b) = voc_point;
+                ult_v3(cache_c) = voc_point;
                 look_follows = 1;
                 free_aim = 0;
             }
         };
         auto priority_gate = [&]() {
             if (priority >= 5 || (priority >= 3 && free_aim)) {
-                ULT_V3(cache_b) = voc_point;
-                ULT_V3(cache_c) = voc_point;
+                ult_v3(cache_b) = voc_point;
+                ult_v3(cache_c) = voc_point;
                 look_follows = has_weapon;
                 voc_claim();
                 return;
@@ -1269,16 +1269,16 @@ void ActorView::update_look_target()
             }
             if (!skip_voc) {
                 if (!aim_only) {
-                    ULT_V3(cache_a) = voc_point;
+                    ult_v3(cache_a) = voc_point;
                     a->turn_required = in_cone;
                 }
                 voc_aim();
             }
         }
         if (reason == 2 && free_aim && ult_cone(&flee_point, cache_a, cos_aim)) {
-            ULT_V3(cache_b) = flee_point;
+            ult_v3(cache_b) = flee_point;
             if (look_follows) {
-                ULT_V3(cache_c) = flee_point;
+                ult_v3(cache_c) = flee_point;
             }
             a->unknown_58c[0] = 0;
             free_aim = 0;
@@ -1301,7 +1301,7 @@ void ActorView::update_look_target()
             if (a->idle_major_active != 0 && a->idle_major_is_aiming != 0 && !free_aim) {
                 a->idle_major_active = 1;
                 a->idle_major_timer = halo::ai::actor_look_get_wait_ticks(actor_index, 2, 1, range);
-                ULT_V3((uint8_t *)a + 0x570) = ULT_V3(cache_b);
+                ult_v3((uint8_t *)a + 0x570) = ult_v3(cache_b);
                 a->idle_major_direction_type = 4;
             }
             if (!(a->idle_major_active != 0 && a->idle_major_timer != 0)) {
@@ -1342,23 +1342,23 @@ void ActorView::update_look_target()
                             take_ab = true;
                         }
                         if (take_ab) {
-                            ULT_V3(cache_a) = voc_point;
-                            ULT_V3(cache_b) = voc_point;
+                            ult_v3(cache_a) = voc_point;
+                            ult_v3(cache_b) = voc_point;
                             a->unknown_58c[0] = 1;
                             idle_timers = true;
                         } else if (ult_cone(&voc_point, cache_a, cos_aim)) {
-                            ULT_V3(cache_b) = voc_point;
+                            ult_v3(cache_b) = voc_point;
                             a->unknown_58c[0] = 1;
                             idle_timers = true;
                         }
                     } else if (ult_lane(&voc_point, cache_b, cache_a, cos_look, side_cos)) {
-                        ULT_V3(cache_c) = voc_point;
+                        ult_v3(cache_c) = voc_point;
                         idle_timers = true;
                     }
                 }
             }
             if (!idle_timers) {
-                voc_point = ULT_V3(cache_b);
+                voc_point = ult_v3(cache_b);
                 a->idle_major_active = 0;
             } else if (resolved && in_cone) {
                 a->idle_minor_active = 1;
@@ -1380,9 +1380,9 @@ void ActorView::update_look_target()
                            !(claimed ? !ult_cone(&flee_point, cache_a, cos_aim)
                                      : !ult_lane(&flee_point, cache_b, cache_a, cos_look, side_cos))) {
                     if (claimed) {
-                        ULT_V3(cache_b) = flee_point;
+                        ult_v3(cache_b) = flee_point;
                     }
-                    ULT_V3(cache_c) = flee_point;
+                    ult_v3(cache_c) = flee_point;
                     clear_hold = false;
                 }
             }
@@ -1406,14 +1406,14 @@ void ActorView::update_look_target()
             }
         }
         if (!has_weapon) {
-            ULT_V3(cache_c) = ULT_V3(cache_b);
+            ult_v3(cache_c) = ult_v3(cache_b);
         }
     }
 
     if (a->flying == 0 && !(halo::libm::fabs((double)a->desired_facing_vector.z) < 9.999999747378752e-05)) {
         a->desired_facing_vector.z = 0.0f;
         if (halo::math::vector2d_normalize_with_length(*(real_vector2d *)cache_a) == 0.0f) {
-            ULT_V3(cache_a) = ULT_V3((uint8_t *)a + 0x174);
+            ult_v3(cache_a) = ult_v3((uint8_t *)a + 0x174);
         }
     }
     if (a->unknown_58c[3] != 0) {
@@ -1421,7 +1421,7 @@ void ActorView::update_look_target()
             if (a->moving == 0 &&
                 a->unit_aiming_vector.k * a->desired_aiming_vector.z + a->unit_aiming_vector.j * a->desired_aiming_vector.y +
                 a->unit_aiming_vector.i * a->desired_aiming_vector.x > 0.9f) {
-                ULT_V3((uint8_t *)a + 0x598) = ULT_V3(cache_a);
+                ult_v3((uint8_t *)a + 0x598) = ult_v3(cache_a);
                 a->unknown_58c[4] = 1;
             }
         } else if (definition->stationary_facing_angle > 0.0f) {
@@ -1456,9 +1456,9 @@ void ActorView::update_look_target()
         a->unknown_58c[4] = 0;
     }
 
-    ULT_V3((uint8_t *)a + 0x6fc) = ULT_V3(cache_a);
-    ULT_V3((uint8_t *)a + 0x708) = ULT_V3(cache_b);
-    ULT_V3((uint8_t *)a + 0x714) = ULT_V3(cache_c);
+    ult_v3((uint8_t *)a + 0x6fc) = ult_v3(cache_a);
+    ult_v3((uint8_t *)a + 0x708) = ult_v3(cache_b);
+    ult_v3((uint8_t *)a + 0x714) = ult_v3(cache_c);
     if (a->turn_required != 0) {
         a->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::exact_facing);
     } else {
@@ -1478,13 +1478,10 @@ void ActorView::update_look_target()
     *(int16_t *)((uint8_t *)a + 0x6f8) = aim_speed_zero ? 0 : 1;
 }
 
-#undef ULT_V3
 
 namespace actor_update_melee_combat_action_local {
 static auto &actor_type_procs = halo::link::ref<uint8_t *[]>(halo::ai::vars().actor_type_procs);
 static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
-#define W(p, o) (*(int16_t *)((uint8_t *)(p) + (o)))
-#define D(p, o) (*(datum_index *)((uint8_t *)(p) + (o)))
 static uint8_t actor_combat_commit_position(datum_index actor_index, actor *a, prop *target, int16_t position)
 {
     datum_index object = target != 0 ? (uint32_t)target->last_perceived_time : k_datum_index_none;

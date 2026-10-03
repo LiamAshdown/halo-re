@@ -181,7 +181,6 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
 
 namespace actor_new_and_attach_to_unit_local {
 static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
-#define ACTOR_AT(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -651,7 +650,6 @@ uint8_t ActorView::process_pending_command_list()
 namespace actor_process_vehicle_seat_exit_local {
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-#define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask])
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
 {
     uint8_t *self = halo::ai::object_bytes(object_index);
@@ -705,7 +703,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
             ((struct object *)object)->flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
-            OBJECT_HEADER(object_index).flags |= 2;
+            halo::ai::object_header_at(object_index).flags |= 2;
         }
     }
     *(int16_t *)(self + 0x2f0) = -1;
@@ -851,7 +849,7 @@ uint8_t ActorView::process_vehicle_seat_exit()
                         }
                         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
                             ((struct object *)object)->flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
-                            OBJECT_HEADER(rider_index).flags |= 2;
+                            halo::ai::object_header_at(rider_index).flags |= 2;
                         }
                     }
                     rider->unit.animation_state = 0x1b;
@@ -871,7 +869,6 @@ uint8_t ActorView::process_vehicle_seat_exit()
     return result;
 }
 
-#undef OBJECT_HEADER
 
 namespace actor_prop_iterator_init_local {
 }

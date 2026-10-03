@@ -1293,7 +1293,6 @@ void ReferenceView::squad_set_automatic_migration(uint8_t value)
     }
 }
 
-#define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask])
 namespace {
 
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
@@ -1349,7 +1348,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
             ((struct object *)object)->flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
-            OBJECT_HEADER(object_index).flags |= 2;
+            halo::ai::object_header_at(object_index).flags |= 2;
         }
     }
     *(int16_t *)(self + 0x2f0) = -1;
@@ -1479,7 +1478,7 @@ void ReferenceView::units_exit_vehicles()
                     }
                     if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
                         ((struct object *)object)->flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
-                        OBJECT_HEADER(unit_index).flags |= 2;
+                        halo::ai::object_header_at(unit_index).flags |= 2;
                     }
                 }
                 self[0x2a3] = 0x1b;
@@ -1492,7 +1491,6 @@ void ReferenceView::units_exit_vehicles()
     }
 }
 
-#undef OBJECT_HEADER
 
 /**
  * Behaviour of squad members assign team and request order, moved unchanged from the original free

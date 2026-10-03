@@ -779,8 +779,6 @@ void AiSystem::reset_all_actors_perception()
     }
 }
 
-#define OBJ(h) ((uint8_t *)halo::ai::object_at((h)))
-#define AI_STATE_BYTES (*reinterpret_cast<uint8_t **>(&halo::ai::globals().state))
 namespace {
 
 static uint8_t ai_bsp_actor_should_carry(struct actor *actor)
@@ -844,10 +842,10 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, struct actor *actor)
         datum_index root = unit_index;
         int16_t cluster;
 
-        while (*(datum_index *)(OBJ(root) + 0x11c) != k_datum_index_none) {
-            root = *(datum_index *)(OBJ(root) + 0x11c);
+        while (*(datum_index *)(halo::ai::object_bytes(root) + 0x11c) != k_datum_index_none) {
+            root = *(datum_index *)(halo::ai::object_bytes(root) + 0x11c);
         }
-        cluster = *(int16_t *)(OBJ(root) + 0x9c);
+        cluster = *(int16_t *)(halo::ai::object_bytes(root) + 0x9c);
         if (cluster == -1 ||
             (*(uint32_t *)&halo::game::globals().local_player_globals->cluster_pvs[(cluster >> 5)] & (1u << (cluster & 0x1f))) == 0) {
             hidden_units[hidden++] = unit_index;
@@ -867,7 +865,7 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, struct actor *actor)
         actor = halo::ai::actor_at(actor_index);
         if (halo::ai::actor_new_and_attach_to_unit(1, unit_index, actor->actor_variant_tag, actor->encounter_index,
                 actor->squad_index, 0, actor_index, 0, 2, 0, halo::k_word_none, 0) == k_datum_index_none) {
-            int32_t kind = *(int32_t *)(OBJ(unit_index) + 4);
+            int32_t kind = *(int32_t *)(halo::ai::object_bytes(unit_index) + 4);
 
             if (kind == 0) {
                 halo::objects::object_delete_unparented(unit_index);
@@ -901,7 +899,7 @@ void AiSystem::reset_fire_group_assignments()
             continue;
         }
         next = encounter->first_actor;
-        while (AI_STATE_BYTES[1] != 0 && next != k_datum_index_none) {
+        while (halo::ai::globals().state->actors_valid != 0 && next != k_datum_index_none) {
             struct actor *actor;
             uint8_t carry;
 
@@ -932,12 +930,12 @@ void AiSystem::reset_fire_group_assignments()
                 }
             }
             halo::ai::encounter_remove_actor(actor_index, 0);
-            if (AI_STATE_BYTES[1] == 0) {
+            if (halo::ai::globals().state->actors_valid == 0) {
                 break;
             }
             actor = halo::ai::actor_at(actor_index);
-            actor->next_in_encounter = *(datum_index *)(AI_STATE_BYTES + 8);
-            *(datum_index *)(AI_STATE_BYTES + 8) = actor_index;
+            actor->next_in_encounter = halo::ai::globals().state->first_encounterless_actor;
+            halo::ai::globals().state->first_encounterless_actor = actor_index;
             actor->encounterless = 1;
             *(int16_t *)((uint8_t *)actor + 0x10) = actor->active != 0 ? 0x5a : 0;
             halo::ai::actor_movement_action_cancel(actor_index);
@@ -947,7 +945,7 @@ void AiSystem::reset_fire_group_assignments()
         halo::ai::encounter_deactivate((datum_index)(int32_t)e);
     }
 
-    for (actor_index = *(datum_index *)(AI_STATE_BYTES + 8); actor_index != k_datum_index_none;) {
+    for (actor_index = halo::ai::globals().state->first_encounterless_actor; actor_index != k_datum_index_none;) {
         datum_index following = ((struct actor *)halo::ai::actor_bytes(actor_index))->next_in_encounter;
         datum_index prop_index;
 
@@ -964,8 +962,6 @@ void AiSystem::reset_fire_group_assignments()
     }
 }
 
-#undef OBJ
-#undef AI_STATE_BYTES
 
 /**
  * Behaviour of ai reset for new map, moved unchanged from the original free function.

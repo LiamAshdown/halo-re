@@ -22,6 +22,7 @@
 #include "halo/core/libm.hpp"
 
 static auto &global_structure_bsp = halo::link::ref<uint8_t *>(halo::ai::vars().global_structure_bsp);
+static auto &global_structure_bsp_typed = reinterpret_cast<ScenarioStructureBSP *&>(global_structure_bsp);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &actor_type_procs = halo::link::ref<uint8_t *[]>(halo::ai::vars().actor_type_procs);
 static auto &team_pair_data = halo::link::ref<uint8_t *>(halo::ai::vars().team_pair_data);
@@ -35,12 +36,17 @@ static auto &ai_communication_class_look_marker = halo::link::ref<int16_t []>(ha
 static auto &ai_communication_class_no_actor_class = halo::link::ref<int16_t []>(halo::ai::vars().ai_communication_class_no_actor_class);
 static auto &ai_communication_selector_delay_seconds = halo::link::ref<float []>(halo::ai::vars().ai_communication_selector_delay_seconds);
 static auto &communication_line_base = halo::link::ref<uint8_t *>(halo::ai::vars().communication_line_base);
+static auto &communication_line_word = reinterpret_cast<int32_t &>(communication_line_base);
 static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
 static auto &communication_line_count = halo::link::ref<int16_t>(halo::ai::vars().communication_line_count);
 static auto &conversation_line_count = halo::link::ref<int16_t>(halo::ai::vars().conversation_line_count);
 static auto &conversation_line_base = halo::link::ref<int32_t>(halo::ai::vars().conversation_line_base);
 static auto &ai_communication_event_definitions = halo::link::ref<ai_communication_event_definition []>(halo::ai::vars().ai_communication_event_definitions);
+static inline uint8_t *ai_communication_event_definition_bytes()
+{
+    return reinterpret_cast<uint8_t *>(ai_communication_event_definitions);
+}
 static auto &ai_communication_class_repeat_delay = halo::link::ref<float []>(halo::ai::vars().ai_communication_class_repeat_delay);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &DAT_00655ab4 = halo::link::ref<real []>(halo::ai::vars().DAT_00655ab4);
@@ -96,8 +102,6 @@ void AiCommunication::broadcast_communication_event(int16_t gate, real_point3d *
     }
 }
 
-#define ACTOR_DATA(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define AI_STATE_BYTES (*reinterpret_cast<uint8_t **>(&halo::ai::globals().state))
 namespace {
 
 typedef struct broadcast_candidate {
@@ -202,7 +206,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         unit_actor_index = unit->unit.actor_index;
         unit_class = broadcast_team_class((int16_t)unit_team);
         if (unit_actor_index != k_datum_index_none) {
-            unit_actor = (actor *)ACTOR_DATA(unit_actor_index);
+            unit_actor = halo::ai::actor_at(unit_actor_index);
             unit_class = (unit_class & 0xffff0000u) |
                          *(uint16_t *)(actor_type_procs[unit_actor->type] + 0x4);
             unit_encounter_index = unit_actor->encounter_index;
@@ -226,7 +230,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         other_team_or_class = static_cast<uint16_t>(other->base.owner_team);
         other_class = broadcast_team_class((int16_t)other_team_or_class);
         if (other_actor_index != k_datum_index_none) {
-            other_actor = (actor *)ACTOR_DATA(other_actor_index);
+            other_actor = halo::ai::actor_at(other_actor_index);
             other_class = (other_class & 0xffff0000u) |
                           *(uint16_t *)(actor_type_procs[other_actor->type] + 0x4);
             if ((int8_t)other_actor->tally.group_c_total > 0) {
@@ -337,7 +341,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
     memset(recent, 0, sizeof(recent));
     memset(recent_ticks, 0, sizeof(recent_ticks));
     for (side = 0; side < 2; side++) {
-        int32_t *ticks = (int32_t *)(AI_STATE_BYTES + 0x1c) + side;
+        int32_t *ticks = &halo::ai::globals().state->loudest_line_tick[0][0] + 2 + side;
         int32_t gap_far = now - ticks[2];
         int32_t gap_mid = now - ticks[0];
         int32_t gap_near = now - ticks[-2];
@@ -395,7 +399,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         }
     }
 
-    if (AI_STATE_BYTES[0x10] == 0) {
+    if (halo::ai::globals().state->dialogue_triggers_enabled == 0) {
         return;
     }
     row_index = conversation_index_lookup[event];
@@ -507,7 +511,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             }
             speaker_actor = found;
             if (found != k_datum_index_none) {
-                speaker = (actor *)ACTOR_DATA(found);
+                speaker = halo::ai::actor_at(found);
                 speaker_unit = speaker->unit_index;
             }
             break;
@@ -841,8 +845,6 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
     }
 }
 
-#undef ACTOR_DATA
-#undef AI_STATE_BYTES
 
 /**
  * Behaviour of ai communication gate line played, moved unchanged from the original free function.
@@ -863,7 +865,6 @@ void AiCommunication::gate_line_played(int16_t event_id, ai_communication_record
     }
 }
 
-#define communication_line_base (*reinterpret_cast<int32_t *>(&communication_line_base))
 /**
  * Behaviour of ai communication initialize, moved unchanged from the original free function.
  *
@@ -886,9 +887,9 @@ void AiCommunication::initialize()
         communication_line_count = communication_line_count + 1;
     } while (*(int16_t *)entry != -1);
 
-    if (communication_line_base == 0) {
+    if (communication_line_word == 0) {
         int32_t allocation_size = (int32_t)communication_line_count * 0x10;
-        communication_line_base = (int32_t)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
+        communication_line_word = (int32_t)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
         halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + allocation_size;
         halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&allocation_size, 4);
     }
@@ -951,7 +952,6 @@ void AiCommunication::initialize()
     halo::ai::globals().conversation_data->data = dest + 0x38;
 }
 
-#undef communication_line_base
 
 /**
  * Behaviour of ai communication line fade multiplier, moved unchanged from the original free function.
@@ -987,7 +987,6 @@ int16_t AiCommunication::line_fade_multiplier(uint32_t unit_index, int16_t prior
     return status;
 }
 
-#define ai_communication_event_definitions (reinterpret_cast<uint8_t *>(ai_communication_event_definitions))
 namespace {
 
 typedef uint8_t (*ai_communication_line_predicate)(datum_index object_index, uint32_t *event_record,
@@ -1002,7 +1001,7 @@ typedef uint8_t (*ai_communication_line_predicate)(datum_index object_index, uin
  */
 void AiCommunication::play_event_line(datum_index object_index, int16_t event_id, uint8_t force, datum_index explicit_speaker_actor_index, uint32_t *event_record)
 {
-    uint8_t *row = ai_communication_event_definitions;
+    uint8_t *row = ai_communication_event_definition_bytes();
     int32_t row_index = 0;
 
     if (!halo::ai::globals().state->dialogue_triggers_enabled || event_id == -1) {
@@ -1116,9 +1115,7 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
     }
 }
 
-#undef ai_communication_event_definitions
 
-#define global_structure_bsp (*reinterpret_cast<ScenarioStructureBSP * *>(&global_structure_bsp))
 /**
  * Optionally reports the winning player's unit object index and its distance.
  *
@@ -1193,8 +1190,8 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
                         player_cluster = *(int16_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)
                                                           [previous & halo::k_slot_mask].data + 0x9c);
                         if (self_cluster != -1 && player_cluster != -1) {
-                        bitmap_row_dwords = (int32_t)(global_structure_bsp->clusters.count + 0x1f) >> 5;
-                        if ((((uint32_t *)(uintptr_t)global_structure_bsp->cluster_data.pointer)
+                        bitmap_row_dwords = (int32_t)(global_structure_bsp_typed->clusters.count + 0x1f) >> 5;
+                        if ((((uint32_t *)(uintptr_t)global_structure_bsp_typed->cluster_data.pointer)
                                  [bitmap_row_dwords * (int32_t)self_cluster +
                                   ((int32_t)player_cluster >> 5)] &
                              (1u << ((uint8_t)player_cluster & 0x1f))) == 0) {
@@ -1253,7 +1250,6 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
     return best_score;
 }
 
-#undef global_structure_bsp
 
 /**
  * The actor is rejected outright when it is not at least "alerted" (awareness_level < 2), when it controls
@@ -1416,7 +1412,6 @@ float AiCommunication::rate_speaker(datum_index actor_index, datum_index object_
     return 0.0f;
 }
 
-#define communication_line_base (*reinterpret_cast<int32_t *>(&communication_line_base))
 /**
  * Behaviour of ai communication record line played, moved unchanged from the original free function.
  *
@@ -1476,7 +1471,7 @@ void AiCommunication::record_line_played(datum_index object_index, int16_t tier,
     if (communication_line_id != -1) {
         float delay = DAT_00655ab4[communication_line_id * 0x28 / 4];
 
-        entry = (int32_t *)(communication_line_base + (category + communication_line_id * 2) * 8);
+        entry = (int32_t *)(communication_line_word + (category + communication_line_id * 2) * 8);
         entry[0] = current_tick;
         if (delay > 0.0f) {
             entry[1] = (int32_t)(delay * 30.0f + (float)stamp);
@@ -1493,9 +1488,7 @@ void AiCommunication::record_line_played(datum_index object_index, int16_t tier,
     }
 }
 
-#undef communication_line_base
 
-#define communication_line_base (*reinterpret_cast<int32_t *>(&communication_line_base))
 /**
  * Behaviour of ai communication reset, moved unchanged from the original free function.
  *
@@ -1514,7 +1507,7 @@ void AiCommunication::reset()
         halo::ai::globals().state->loudest_line_tick[i][1] = 0;
     }
 
-    entries = (int32_t *)communication_line_base;
+    entries = (int32_t *)communication_line_word;
     entry_count = communication_line_count * 2;
     for (i = 0; i < entry_count; i++) {
         entries[i * 2] = -1;
@@ -1550,7 +1543,6 @@ void AiCommunication::reset()
     }
 }
 
-#undef communication_line_base
 
 /**
  * Behaviour of ai communication select speaker by team, moved unchanged from the original free function.
@@ -1765,7 +1757,6 @@ uint8_t DialogueCondition_42f560::test(datum_index object_index, uint32_t param_
 }
 
 
-#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
 class DialogueCondition_42f5b0 final : public DialogueCondition {
@@ -1787,7 +1778,7 @@ uint8_t DialogueCondition_42f5b0::test(datum_index object_index, uint32_t param_
     if (!halo::ai::actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
         return 0;
     }
-    own_actor = *(datum_index *)(OBJECT(object_index) + 0x1f4);
+    own_actor = *(datum_index *)(halo::ai::object_bytes(object_index) + 0x1f4);
     if (own_actor == k_datum_index_none || actor_index == k_datum_index_none) {
         return 0;
     }
@@ -1800,7 +1791,6 @@ uint8_t DialogueCondition_42f5b0::test(datum_index object_index, uint32_t param_
 
 }
 
-#undef OBJECT
 
 namespace {
 
@@ -1860,7 +1850,6 @@ uint8_t DialogueCondition_42f690::test(datum_index object_index, uint32_t param_
 }
 
 
-#define OBJECT(h) ((uint8_t *)halo::ai::object_at((h)))
 namespace {
 
 class DialogueCondition_42f6f0 final : public DialogueCondition {
@@ -1882,7 +1871,7 @@ uint8_t DialogueCondition_42f6f0::test(datum_index object_index, uint32_t param_
     if (!halo::ai::actor_target_is_close_and_recognized(object_index, param_2, actor_index)) {
         return 0;
     }
-    own_actor = *(datum_index *)(OBJECT(object_index) + 0x1f4);
+    own_actor = *(datum_index *)(halo::ai::object_bytes(object_index) + 0x1f4);
     if (own_actor == k_datum_index_none || actor_index == k_datum_index_none) {
         return 0;
     }
@@ -1899,7 +1888,6 @@ uint8_t DialogueCondition_42f6f0::test(datum_index object_index, uint32_t param_
 
 }
 
-#undef OBJECT
 
 namespace {
 
@@ -2082,11 +2070,6 @@ void AiCommunication::propagate_communication_reaction(datum_index object_index,
 }
 
 
-static inline void * object_try_and_get__ai_select_communication_target(datum_index object_index, int32_t kind)
-{
-    return reinterpret_cast<void * (*)(datum_index, int32_t)>(&halo::objects::object_try_and_get)(object_index, kind);
-}
-#define object_try_and_get object_try_and_get__ai_select_communication_target
 /**
  * Reports a recency-based weight (0..1) through out_weight when given.
  *
@@ -2136,7 +2119,7 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
                                                    (uint32_t)(uint16_t)candidate_a, candidate_b, 0,
                                                    *(int16_t *)((uint8_t *)halo::ai::object_at(param_a) + 0xb8));
                         } else if (target_kind == 3) {
-                            vehicle_obj = (unit_object *)object_try_and_get(param_b, 3);
+                            vehicle_obj = (unit_object *)halo::objects::object_try_and_get(param_b, 3);
                             result = -1;
                             if (vehicle_obj != 0) {
                                 result = static_cast<int32_t>(vehicle_obj->unit.actor_index);
@@ -2183,7 +2166,6 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
     return result;
 }
 
-#undef object_try_and_get
 
 namespace {
 

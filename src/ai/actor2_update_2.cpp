@@ -18,9 +18,6 @@ namespace halo::ai {
 
 namespace actor_update_firing_state_local {
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
-#define F(p, o) (*(float *)((uint8_t *)(p) + (o)))
-#define W(p, o) (*(int16_t *)((uint8_t *)(p) + (o)))
-#define D(p, o) (*(datum_index *)((uint8_t *)(p) + (o)))
 }
 
 /**
@@ -359,7 +356,7 @@ void ActorView::update_firing_state()
                 a->line_of_fire_blocked_ticks += 1;
                 a->firing_state_timer += 1;
                 if (a->line_of_fire_blocked_ticks >= 0x2d && a->target_combat_status >= 7) {
-                    datum_index in_the_way = blocking_prop != -1 ? D(halo::ai::prop_bytes(blocking_prop), 0x18) : k_datum_index_none;
+                    datum_index in_the_way = blocking_prop != -1 ? halo::ai::prop_at(blocking_prop)->object_index : k_datum_index_none;
 
                     halo::ai::ai_communication_broadcast(0xe, a->unit_index, in_the_way, 2, k_datum_index_none, k_datum_index_none, 0);
                     a->line_of_fire_blocked_ticks = 0;
@@ -410,6 +407,5 @@ void ActorView::update_firing_state()
     }
 }
 
-#undef D
 
 }
