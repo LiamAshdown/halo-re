@@ -304,11 +304,11 @@ void halo::ai::avoid_mode::update()
 
     if (((actor *)act)->target_combat_status >= 5) {
         act[0x454] = 1;
-        ((actor *)act)->vocalization_unknown_3e8 = 7;
-        ((actor *)act)->vocalization_unknown_3ec = 2;
+        ((actor *)act)->flee_reason = 7;
+        ((actor *)act)->flee_source.code = 2;
     } else {
-        ((actor *)act)->vocalization_unknown_3e8 = 5;
-        ((actor *)act)->vocalization_unknown_3ec = ((actor *)act)->danger_type > 0 ? 5 : 2;
+        ((actor *)act)->flee_reason = 5;
+        ((actor *)act)->flee_source.code = ((actor *)act)->danger_type > 0 ? 5 : 2;
     }
     ((struct actor *)act)->look_posture = 4;
     act[0x426] = act[0x358];
@@ -499,8 +499,8 @@ void halo::ai::converse_mode::update()
     }
     ((struct actor *)act)->look_posture = 1;
     if (look_prop != k_datum_index_none) {
-        ((actor *)act)->vocalization_unknown_3e8 = 3;
-        ((actor *)act)->vocalization_unknown_3ec = 1;
+        ((actor *)act)->flee_reason = 3;
+        ((actor *)act)->flee_source.code = 1;
         *(datum_index *)(act + 0x3f0) = look_prop;
     }
 }
@@ -1141,8 +1141,8 @@ void halo::ai::search_mode::update()
     uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
 
     if (act[0x504]) {
-        ((actor *)act)->vocalization_unknown_3e8 = 3;
-        ((actor *)act)->vocalization_unknown_3ec = 0;
+        ((actor *)act)->flee_reason = 3;
+        ((actor *)act)->flee_source.code = 0;
     } else {
         int32_t total = ((struct actor *)act)->mode_data.search.duration_ticks;
         int32_t third = total / 3;
@@ -1151,14 +1151,14 @@ void halo::ai::search_mode::update()
             third = 90;
         }
         if (total - ((struct actor *)act)->mode_data.search.remaining_ticks < third && ((struct actor *)act)->mode_data.search.stage == 0) {
-            ((actor *)act)->vocalization_unknown_3e8 = 3;
-            ((actor *)act)->vocalization_unknown_3ec = 2;
+            ((actor *)act)->flee_reason = 3;
+            ((actor *)act)->flee_source.code = 2;
         } else if (total - ((struct actor *)act)->mode_data.search.remaining_ticks < third && ((struct actor *)act)->mode_data.search.stage == 1) {
-            ((actor *)act)->vocalization_unknown_3e8 = 3;
-            ((actor *)act)->vocalization_unknown_3ec = 3;
+            ((actor *)act)->flee_reason = 3;
+            ((actor *)act)->flee_source.code = 3;
             *(real_point3d *)(act + 0x3f0) = ((struct actor *)act)->mode_data.search.position;
         } else {
-            ((actor *)act)->vocalization_unknown_3e8 = 1;
+            ((actor *)act)->flee_reason = 1;
         }
     }
     ((struct actor *)act)->look_posture = 3;

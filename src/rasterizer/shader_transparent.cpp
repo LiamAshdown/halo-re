@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -395,7 +396,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
         constants[11] = 0.0f;
         render_device().set_vertex_shader_constant_f(0xa, constants, 3);
 
-        if (console_debug_toggle_689409 != 0 && bump_map_tag != 0xffffffff) {
+        if (halo::rasterizer::globals::bump_mapping_enabled != 0 && bump_map_tag != 0xffffffff) {
             Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bump_map_tag & 0xffff].data;
             int32_t count = (int32_t)bitmap->bitmap_data.count;
 
@@ -1919,9 +1920,9 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
     }
 
     z_write = (uint8_t)((raw[0] & 0x10) == 0 && (*(uint16_t *)(water + 0x28) & 8) == 0);
-    if (unknown_0071d275 != 0) {
+    if (halo::rasterizer::globals::water_ripple_update_pending != 0) {
         rasterizer_water_update_ripple_texture(water);
-        unknown_0071d275 = 0;
+        halo::rasterizer::globals::water_ripple_update_pending = 0;
     }
 
     effect = (void *)rasterizer_effects[102].effect;
@@ -2052,7 +2053,7 @@ void rasterizer_water_fade_compute_and_set_states(void)
 {
     float plane_distance;
 
-    if (console_debug_toggle_6893e4 != 0 || rasterizer_fog_enabled == 0 ||
+    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || rasterizer_fog_enabled == 0 ||
         rasterizer_caps.pixel_shader_version <= 0xffff0100) {
         return;
     }
@@ -2153,7 +2154,7 @@ void rasterizer_water_ripple_draw(rasterizer_vertex_buffer *vertex_buffer, const
     uint32_t pass_count;
     uint32_t pass;
 
-    if (*(uint16_t *)&console_debug_toggle_6893e4 != 0 || rasterizer_fog_enabled == 0 ||
+    if (*(uint16_t *)&halo::rasterizer::globals::rasterizer_debug_mode != 0 || rasterizer_fog_enabled == 0 ||
         rasterizer_caps.pixel_shader_version < 0xffff0101 || effect == 0) {
         return;
     }
@@ -2274,7 +2275,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
         set_render_state(0x1c, 0);
         set_linear_clamped_stage(0);
         render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[8].declaration);
-        render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10u : 0u) | renderer_unknown_6e1af8) & 0x10);
+        render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10u : 0u) | rasterizer_vertex_declarations[8].usage) & 0x10);
         render_device().set_vertex_shader(rasterizer_vertex_shaders[0].shader);
 
         ripple_count = *(int16_t *)(water + 0xd8);
@@ -2370,7 +2371,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
                     *(datum_index *)(water + 0xd4) : k_datum_index_none;
                 uint8_t bound = 0;
 
-                if (console_debug_toggle_689409 != 0 && ripple_bitmap != k_datum_index_none) {
+                if (halo::rasterizer::globals::bump_mapping_enabled != 0 && ripple_bitmap != k_datum_index_none) {
                     uint8_t *bitmap_tag = (uint8_t *)halo::cache::globals().tag_instances[ripple_bitmap & 0xffff].data;
                     int32_t bitmap_count = *(int32_t *)(bitmap_tag + 0x60);
 

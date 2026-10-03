@@ -52,10 +52,10 @@ void ActorView::update_activation_state()
     actor_choose_best_target(actor_index);
     actor_update_crouch_state(actor_index);
 
-    memset(&self->vocalization_unknown_3e8, 0, 0x21 * sizeof(uint32_t));
+    memset(&self->flee_reason, 0, 0x21 * sizeof(uint32_t));
     self->secondary_action = -1;
-    *(int16_t *)((uint8_t *)self + 0x42c) = -1;
-    *(int16_t *)((uint8_t *)self + 0x42e) = -1;
+    self->movement_style_override = -1;
+    self->strafe_axis_override = -1;
 
     actor_run_mode_transition_loop(actor_index);
 
@@ -211,7 +211,7 @@ void ActorView::update_aim_wander()
 
         bombard = (kind < 2 || kind > 3 || ((struct prop *)prop)->visual_perception == 0) ? 1 : 0;
     }
-    target = *(real_point3d *)&((actor *)a)->wander_unknown_62c;
+    target = ((actor *)a)->firing_target_point;
     if (bombard) {
         actor_choose_random_point_near(&target, ((ActorVariant *)variant)->bombardment_range);
     }
@@ -251,7 +251,7 @@ void ActorView::update_aim_wander()
         if (!(sweep <= 0.7853982f)) {
             sweep = 0.7853982f;
         }
-        limit = (float)ftan((double)sweep) * ((actor *)a)->wander_unknown_638;
+        limit = (float)ftan((double)sweep) * ((actor *)a)->firing_target_distance;
         if (radius_a > limit) {
             float limit_15 = limit * 1.5f;
 
@@ -283,9 +283,9 @@ void ActorView::update_aim_wander()
         recoil.j = recoil.j * per_tick;
         recoil.k = recoil.k * per_tick;
     }
-    *(real_point3d *)&((actor *)a)->wander_unknown_64c.i = target;
-    *(real_vector3d *)&((actor *)a)->wander_unknown_664.i = wander;
-    *(real_vector3d *)&((actor *)a)->wander_unknown_670.i = recoil;
+    ((actor *)a)->aim_target_point = target;
+    ((actor *)a)->aim_wander_offset = wander;
+    ((actor *)a)->aim_recoil_per_tick = recoil;
     ((actor *)a)->grenade_aim_direction.i = wander.i + target.x;
     ((actor *)a)->grenade_aim_direction.j = wander.j + target.y;
     ((actor *)a)->grenade_aim_direction.k = wander.k + target.z;
@@ -1042,12 +1042,12 @@ uint8_t ActorView::update_flee_response()
 
     result = 0;
 
-    if (self->vocalization_unknown_3ec == 0 && self->movement_action_complete == 0) {
-        self->vocalization_unknown_3e8 = 0;
+    if (self->flee_source.code == 0 && self->movement_action_complete == 0) {
+        self->flee_reason = 0;
     }
 
-    if (self->vocalization_unknown_3e8 > 2 && self->vocalization_unknown_3ec != 0) {
-        result = actor_resolve_flee_source_point((actor_flee_source_reason *)((uint8_t *)self + 0x3ec),
+    if (self->flee_reason > 2 && self->flee_source.code != 0) {
+        result = actor_resolve_flee_source_point(&self->flee_source,
             &self->forced_aim_direction, actor_index);
         if (result != 0) {
             self->forced_aim = 1;
@@ -1192,11 +1192,11 @@ void ActorView::update_look_target()
             reason = 7;
             flee_look = 1;
         } else {
-            reason = (int16_t)*(uint16_t *)&((actor *)a)->vocalization_unknown_3e8;
+            reason = (int16_t)*(uint16_t *)&((actor *)a)->flee_reason;
             if (reason != 0 && reason != 1) {
-                if (actor_resolve_flee_source_point((actor_flee_source_reason *)(a + 0x3ec),
+                if (actor_resolve_flee_source_point(&((actor *)a)->flee_source,
                         (real_vector3d *)&flee_point, actor_index)) {
-                    flee_look = ((actor *)a)->vocalization_unknown_3ec == 2;
+                    flee_look = ((actor *)a)->flee_source.code == 2;
                 } else {
                     reason = 0;
                 }
@@ -1204,7 +1204,7 @@ void ActorView::update_look_target()
         }
 
         if (((actor *)a)->vocalization_line >= 0 && ((actor *)a)->vocalization_state > 0 &&
-            actor_resolve_flee_source_point((actor_flee_source_reason *)(a + 0x54c), (real_vector3d *)&voc_point,
+            actor_resolve_flee_source_point(&((actor *)a)->vocalization_source, (real_vector3d *)&voc_point,
                 actor_index)) {
             priority = (int16_t)*(uint16_t *)&((actor *)a)->vocalization_variant;
         }
@@ -1490,8 +1490,8 @@ void ActorView::update_look_target()
     if (a[0x58f] != 0) {
         if (a[0x590] == 0) {
             if (a[0x504] == 0 &&
-                ((actor *)a)->facing_unknown_180.k * ((actor *)a)->desired_aiming_vector.z + ((actor *)a)->facing_unknown_180.j * ((actor *)a)->desired_aiming_vector.y +
-                ((actor *)a)->facing_unknown_180.i * ((actor *)a)->desired_aiming_vector.x > 0.9f) {
+                ((actor *)a)->unit_aiming_vector.k * ((actor *)a)->desired_aiming_vector.z + ((actor *)a)->unit_aiming_vector.j * ((actor *)a)->desired_aiming_vector.y +
+                ((actor *)a)->unit_aiming_vector.i * ((actor *)a)->desired_aiming_vector.x > 0.9f) {
                 ULT_V3(a + 0x598) = ULT_V3(cache_a);
                 a[0x590] = 1;
             }

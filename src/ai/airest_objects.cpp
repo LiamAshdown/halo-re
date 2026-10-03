@@ -1307,7 +1307,7 @@ void AiObjects::create_actor(datum_index actor_variant_tag, datum_index unit_ind
     a->awareness_level = 2;
     a->pending_order_request = 2;
     a->standing_order_request = 2;
-    a->unknown_8e = 0;
+    a->command_list_run_immediately = 0;
     a->command_list_delay = 2;
     a->pending_command_list = -1;
     a->sequence_id = 0;
@@ -1395,11 +1395,11 @@ void AiUnitView::remap_actor_to_squad(uint32_t packed_reference, char notify)
 }
 
 /**
- * Behaviour of ai unit set actor unknown 0a, moved unchanged from the original free function.
+ * Sets force_active on the unit's actor when that actor has no encounter (hs ai_force_active_by_unit).
  *
  * @address 0x435540
  */
-void AiUnitView::set_actor_unknown_0a(uint8_t value)
+void AiUnitView::set_actor_force_active(uint8_t value)
 {
     datum_index unit_index = handle;
     object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];

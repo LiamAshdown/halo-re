@@ -273,7 +273,7 @@ void halo::render::SpriteBuilder::billboard_build_orientation_basis(int16_t rend
         dot = build_sprite_view_up.j * normal->j + build_sprite_view_up.i * normal->i +
               build_sprite_view_up.k * normal->k;
         axis = &build_sprite_view_up;
-        if ((normal->i * normal->i + normal->j * normal->j + normal->k * normal->k) * unknown_00672f20 < dot * dot) {
+        if ((normal->i * normal->i + normal->j * normal->j + normal->k * normal->k) * 0.99f < dot * dot) {
             axis = &build_sprite_view_left;
         }
 

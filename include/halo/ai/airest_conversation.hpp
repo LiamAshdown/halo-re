@@ -15,7 +15,7 @@ public:
 
     uint8_t activate(uint8_t allow_eviction);
     int32_t get_status();
-    int16_t get_unknown_48();
+    int16_t get_line_index();
     void mark_all();
     datum_index create(uint8_t allow_eviction);
     void stop_all();

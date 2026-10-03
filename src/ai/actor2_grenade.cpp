@@ -107,7 +107,7 @@ uint8_t ActorView::request_path_with_grenade_arc()
         query.have_explicit_target = 1;
         query.explicit_target_position = *(real_point3d *)(actor + 0xb0);
         query.explicit_target_object = *(uint32_t *)(actor + 0xac);
-        query.explicit_target_unknown_34 = *(int16_t *)(actor + 0xa8);
+        query.explicit_target_cluster_index = *(int16_t *)(actor + 0xa8);
     } else {
         query.use_last_seen_position = actor[0xa0];
     }
@@ -300,7 +300,7 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
     }
 
     if (projectile_get_aiming_vector(&self->grenade_impact_point, 0, (Projectile *)projectile_definition,
-                     point, 0, 0, &self->grenade_unknown_6c8, self->grenade_high_arc[0], &direction,
+                     point, 0, 0, &self->grenade_throw_speed, self->grenade_high_arc[0], &direction,
                      &speed, &arc, 0, &flat) == 0) {
         return 0;
     }
@@ -331,10 +331,10 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
         return 0;
     }
 
-    self->grenade_unknown_6bc = direction.i;
-    self->grenade_unknown_6c0 = direction.j;
-    self->grenade_unknown_6c4 = direction.k;
-    self->grenade_unknown_6c8 = speed;
+    self->grenade_throw_direction.i = direction.i;
+    self->grenade_throw_direction.j = direction.j;
+    self->grenade_throw_direction.k = direction.k;
+    self->grenade_throw_speed = speed;
     return 1;
 }
 
@@ -514,7 +514,7 @@ extern data_array *actor_data;
 extern ai_globals *ai_globals_ptr;
 extern void actor_recompute_grenade_eligibility(datum_index actor_index);
 extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback,
-    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index,
+    int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_communication_hold_tick, int16_t *dialogue_index,
     int32_t *chain_value);
 extern int32_t unit_commit_speech(uint32_t unit_index, const void *source, int16_t mode);
 extern void ai_communication_target_result_reset(void *record);

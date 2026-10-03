@@ -1,3 +1,4 @@
+#include "halo/rasterizer/globals.hpp"
 #include "crt.h"
 #include "win32.h"
 #include "tags.h"
@@ -32,7 +33,6 @@ extern real_matrix4x3 *k_render_identity_matrix_ptr;
 extern ColorRGB *global_white_color;
 extern uint8_t console_debug_toggle_6893ec;
 extern uint8_t rasterizer_render_states_dirty;
-extern uint8_t unknown_0071d1fa;
 extern uint32_t rasterizer_device_version;
 extern void *rasterizer_device;
 extern void model_nodes_get_default_transforms(GBXModel *model, void *nodes);
@@ -60,8 +60,6 @@ extern render_frustum render_frustum_global;
 extern render_fog render_fog_state;
 extern rasterizer_frame_statistics rasterizer_frame_statistics_state;
 extern rasterizer_window_parameters rasterizer_window;
-extern uint8_t console_debug_toggle_69c614;
-extern int16_t console_debug_toggle_6893e4;
 extern uint8_t decals_for_all_responses;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern int16_t render_force_flag;
@@ -101,10 +99,8 @@ extern uint8_t console_debug_toggle_6893f7;
 extern void *rasterizer_lightmap_bitmap;
 extern uint8_t rasterizer_lightmap_bitmap_missing;
 extern void rasterizer_shader_environment_set_lightmap(void *lightmap);
-extern void *unknown_007c0494;
 extern void rasterizer_object_shadow_structure_draw(void *vertex_buffer, int32_t dynamic_index_slot,
     int32_t first_primitive, int32_t primitive_count);
-extern void *unknown_007c0490;
 extern void rasterizer_shader_environment_projected_light_draw(void *shader, int16_t frame,
     int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, void *vertex_buffer);
 extern void rasterizer_shader_environment_lightmap_specular_draw(void *shader, int16_t frame,
@@ -317,9 +313,9 @@ void sky(void)
         halo::math::globals().matrix4x3_multiply_procedure(&sky_transform, &matrices[i], &matrices[i]);
     }
 
-    if (console_debug_toggle_6893ec) {
+    if (halo::rasterizer::globals::models_enabled) {
         rasterizer_render_states_dirty = 1;
-        unknown_0071d1fa = 1;
+        halo::rasterizer::globals::sky_pass_active = 1;
     }
     {
         uint8_t *raw = (uint8_t *)&lighting;
@@ -333,7 +329,7 @@ void sky(void)
     render_model(sky->model.tag_id, matrices, 0.0f, 0, 0, function_values, &lighting,
                  &render_camera_global.position, 0.0f, 0, 0, 0, 1);
 
-    if (console_debug_toggle_6893ec && rasterizer_device_version < 0xffff0101) {
+    if (halo::rasterizer::globals::models_enabled && rasterizer_device_version < 0xffff0101) {
         d3d_set_render_state_fn set_render_state =
             (d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4];
 
@@ -387,7 +383,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     halo::structures::structure_picked_polygon_refresh();
     halo::structures::structure_picked_polygon_draw();
     lens_flare_update_samples();
-    if (console_debug_toggle_69c614) {
+    if (halo::rasterizer::globals::object_shadow_pass_enabled) {
         shadow_data.object_index = 0xffffffff;
         shadow_data.unknown_44 = -1;
         shadow_data.lighting = 0;
@@ -507,7 +503,7 @@ namespace halo::render::window_structure {
  */
 void lightmap_begin_0x511f90(void *bitmap_data)
 {
-    if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f7 == 0 ||
+    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::specular_lightmap_enabled == 0 ||
         rasterizer_device_version < 0xffff0104) {
         return;
     }
@@ -538,7 +534,7 @@ void lightmap_begin_0x512010(void *bitmap_data)
 void material_0x511f40(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface,
     int32_t surface_count, void *material_extra)
 {
-    ((void (*)(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra))unknown_007c0494)(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
+    ((void (*)(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra))halo::rasterizer::globals::light_cone_draw)(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
 }
 
 /**
@@ -560,7 +556,7 @@ void material_0x511f50(void *shader_data, int16_t shader_permutation, int32_t re
 void material_0x511f70(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface,
     int32_t surface_count, void *material_extra)
 {
-    ((void (*)(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra))unknown_007c0490)(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
+    ((void (*)(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra))halo::rasterizer::globals::environment_lightmap_draw)(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
 }
 
 /**

@@ -169,7 +169,7 @@ public:
      * Snaps the object to its parent's marker and detaches it.
      *
      * Original register convention: the object index is a plain STACK argument (0x4f6619 mov edx,[ebp+0x8]), not a
-     * register parameter, despite Ghidra's "void FUN_004f6610(uint param_1)" -- confirmed against objdump -d -M intel
+     * register parameter, as the original prototype -- confirmed against objdump -d -M intel
      * bin/halo.exe at 0x4f6610.
      *
      * @address 0x004f6610
@@ -296,8 +296,7 @@ public:
     /**
      * Notifies each child of an object, recursively.
      *
-     * Original register convention: object index is the sole, genuinely-stack, parameter (Ghidra's own
-     * "FUN_004f7b00(uint param_1)"). Confirmed against objdump -d -M intel bin/halo.exe: 0x4f7b00 mov eax,[esp+0x4]
+     * Original register convention: object index is the sole, genuinely-stack, parameter. Confirmed against objdump -d -M intel bin/halo.exe: 0x4f7b00 mov eax,[esp+0x4]
      * at entry.
      *
      * @address 0x004f7b00
@@ -342,8 +341,8 @@ public:
     /**
      * Sets the object's scale over a number of ticks and refreshes its nodes.
      *
-     * Original register convention: object index in EAX, new scale as the sole stack parameter. Consistent with
-     * Ghidra's own "FUN_004f96a0(undefined4 param_1)" plus "in_EAX". // blam-cc: EAX -> object_index, stack -> scale.
+     * Original register convention: object index in EAX, new scale as the sole stack parameter. Confirmed against the
+     * disassembly: EAX -> object_index, stack -> scale.
      *
      * @address 0x004f96a0
      */

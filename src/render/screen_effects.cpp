@@ -1,3 +1,4 @@
+#include "halo/rasterizer/globals.hpp"
 #include "crt.h"
 #include "win32.h"
 #include "tags.h"
@@ -47,7 +48,6 @@ extern void *rasterizer_dynamic_index_buffer;
 extern rasterizer_dynamic_index_slot rasterizer_dynamic_index_slots[];
 extern void **rasterizer_effect_pool_scratch;
 extern void rasterizer_lens_flare_batch_flush_all(void);
-extern uint8_t console_debug_toggle_6893e0;
 extern int32_t frame_statistics_key_a_latch;
 extern int32_t frame_statistics_key_b_latch;
 extern int32_t frame_graph_render_graph;
@@ -64,7 +64,6 @@ extern void network_bandwidth_graph_update(void);
 extern Rectangle2D game_window_top_left;
 extern int32_t frame_graph_window_width;
 extern int32_t frame_graph_window_height;
-extern uint16_t unknown_006893e2;
 extern uint32_t frame_statistics_times[60];
 extern uint8_t frame_statistics_dropped[60];
 extern int16_t frame_statistics_count;
@@ -644,7 +643,7 @@ void draw(void)
     fg_render((uint8_t)frame_graph_render_graph, (uint8_t)frame_graph_render_infos);
     network_bandwidth_graph_update();
 
-    if (!console_debug_toggle_6893e0) {
+    if (!halo::rasterizer::globals::rasterizer_fps) {
         return;
     }
 
@@ -815,7 +814,7 @@ void sample(rasterizer_frame_statistics *statistics, uint8_t dropped)
     int16_t dropped_count;
     int16_t i;
 
-    if ((console_debug_toggle_6893e0 == 0 && unknown_006893e2 == 0) || statistics == 0) {
+    if ((halo::rasterizer::globals::rasterizer_fps == 0 && halo::rasterizer::globals::frame_statistics_level == 0) || statistics == 0) {
         frame_statistics_count = 0;
         return;
     }

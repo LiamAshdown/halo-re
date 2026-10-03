@@ -1,3 +1,4 @@
+#include "halo/hs/script_globals.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -41,9 +42,9 @@ extern "C" {
 extern data_array *actor_data;
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 }
 }
@@ -343,9 +344,9 @@ extern data_array *actor_data;
 extern data_array *prop_data;
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 extern int16_t actor_dialogue_variant_table_b[];
 }
 }
@@ -430,11 +431,11 @@ void ActorOps::queue_directional_reaction_event(const real_vector3d *direction, 
         self->vocalization_variant = actor_dialogue_variant_table_b[self->combat_status >= 4];
         self->vocalization_line = 11;
         if (target_prop_index != (datum_index)k_datum_index_none) {
-            self->vocalization_unknown_54c = target_prop_index;
-            self->vocalization_unknown_550 = 0;
-            self->vocalization_unknown_554 = 0;
+            self->vocalization_source.code = target_prop_index;
+            self->vocalization_source.payload.handle = 0;
+            self->vocalization_source.payload.point.y = 0.0f;
         } else {
-            memcpy(&self->vocalization_unknown_54c, &normalized, sizeof(real_vector3d));
+            memcpy(&self->vocalization_source, &normalized, sizeof(real_vector3d));
         }
     }
 }
@@ -463,7 +464,7 @@ void ActorOps::queue_point_reaction_dialogue(const real_point3d *point, datum_in
 
         if (self->awareness_level > 1 && self->vocalization_line < 2 &&
             (self->mode != 11 || self->mode_data.raw[3] != 0) &&
-            self->vocalization_unknown_3e8 < 7) {
+            self->flee_reason < 7) {
             float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 2.6f : 1.3f;
 
             if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
@@ -481,10 +482,8 @@ void ActorOps::queue_point_reaction_dialogue(const real_point3d *point, datum_in
                 self->vocalization_variant = actor_dialogue_variant_table_g[self->combat_status >= 4];
                 self->vocalization_line = 1;
                 self->vocalization_state = (int16_t)ticks;
-                self->vocalization_unknown_54c = 3;
-                self->vocalization_unknown_550 = *(uint32_t *)&point->x;
-                self->vocalization_unknown_554 = *(uint32_t *)&point->y;
-                self->vocalization_unknown_558 = *(uint32_t *)&point->z;
+                self->vocalization_source.code = 3;
+                self->vocalization_source.payload.point = *point;
             }
         }
     }
@@ -550,10 +549,10 @@ void ActorView::queue_recognized_target_dialogue(datum_index target_prop_index)
                 self->vocalization_state = (int16_t)ticks;
                 self->vocalization_variant = actor_dialogue_variant_table_c[self->combat_status >= 4];
                 self->vocalization_line = 5;
-                self->vocalization_unknown_54c = 1;
-                self->vocalization_unknown_550 = target_prop_index;
-                self->vocalization_unknown_554 = 0;
-                self->vocalization_unknown_558 = 0;
+                self->vocalization_source.code = 1;
+                self->vocalization_source.payload.handle = target_prop_index;
+                self->vocalization_source.payload.point.y = 0.0f;
+                self->vocalization_source.payload.point.z = 0.0f;
             }
         }
     }
@@ -564,9 +563,9 @@ extern "C" {
 extern data_array *prop_data;
 extern data_array *actor_data;
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 extern void actor_record_perception_event(datum_index actor_index, int16_t event, int32_t data);
 }
 }
@@ -603,13 +602,13 @@ extern data_array *actor_data;
 }
 
 /**
- * stack -> unknown_324, unknown_328, unknown_33c, unknown_340, unknown_344, unknown_348 Records a candidate
+ * stack -> surface_index, position_extra, velocity_ticks, prop_index, prop_value, prop_flag Records a candidate
  * 'investigate/search' position for the actor if its priority is at least as high as any currently queued one,
  * replacing the stored position and/or velocity (each optional) and the caller-supplied
  *
  * @address 0x421af0
  */
-void ActorView::queue_search_position(real_point3d *position, int16_t priority, real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328, uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344, uint8_t unknown_348)
+void ActorView::queue_search_position(real_point3d *position, int16_t priority, real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra, uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value, uint8_t prop_flag)
 {
     using namespace actor_queue_search_position_local;
     actor *self;
@@ -620,29 +619,25 @@ void ActorView::queue_search_position(real_point3d *position, int16_t priority, 
         self->search_priority = priority;
 
         if (position == (real_point3d *)0) {
-            self->search_unknown_314 = 0;
+            self->search_position_valid = 0;
         } else {
-            self->search_unknown_314 = 1;
-            self->search_unknown_318 = ((uint32_t *)position)[0];
-            self->search_unknown_31c = ((uint32_t *)position)[1];
-            self->search_unknown_320 = ((uint32_t *)position)[2];
-            self->search_unknown_324 = unknown_324;
-            self->search_unknown_328 = unknown_328;
+            self->search_position_valid = 1;
+            self->search_position = *position;
+            self->search_surface_index = surface_index;
+            self->search_position_extra = position_extra;
         }
 
         if (velocity == (real_vector3d *)0) {
-            self->search_unknown_32c = 0;
+            self->search_velocity_valid = 0;
         } else {
-            self->search_unknown_32c = 1;
-            self->search_unknown_330 = ((uint32_t *)velocity)[0];
-            *(uint32_t *)&self->unknown_334 = ((uint32_t *)velocity)[1];
-            self->search_unknown_338 = ((uint32_t *)velocity)[2];
+            self->search_velocity_valid = 1;
+            self->search_velocity = *velocity;
         }
 
-        self->search_unknown_340 = unknown_340;
-        self->search_unknown_344 = unknown_344;
-        self->search_unknown_348 = unknown_348;
-        self->search_unknown_33c = unknown_33c;
+        self->search_prop_index = prop_index;
+        self->search_prop_value = prop_value;
+        self->search_prop_flag = prop_flag;
+        self->search_velocity_ticks = velocity_ticks;
     }
 }
 
@@ -689,9 +684,9 @@ extern game_time_globals *game_time;
 extern uint8_t ai_debug_gate_87abc6;
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern int16_t actor_dialogue_variant_table_a[];
 }
@@ -720,7 +715,7 @@ void ActorView::queue_sighted_target_dialogue(datum_index target_prop_index, uin
 
     if (self->awareness_level > 1 && self->vocalization_line < 5 &&
         (self->mode != 11 || self->mode_data.raw[3] != 0)) {
-        int16_t recent = self->vocalization_unknown_3e8;
+        int16_t recent = self->flee_reason;
 
         validated = (prop *)halo::memory::datum_get(target_prop_index, prop_data);
         if (validated != 0) {
@@ -752,11 +747,11 @@ void ActorView::queue_sighted_target_dialogue(datum_index target_prop_index, uin
 
                 self->vocalization_line = 4;
                 self->vocalization_state = (int16_t)ticks;
-                self->vocalization_unknown_54c = 1;
+                self->vocalization_source.code = 1;
                 self->vocalization_variant = actor_dialogue_variant_table_a[self->combat_status >= 4];
-                self->vocalization_unknown_550 = target_prop_index;
-                self->vocalization_unknown_554 = 0;
-                self->vocalization_unknown_558 = 0;
+                self->vocalization_source.payload.handle = target_prop_index;
+                self->vocalization_source.payload.point.y = 0.0f;
+                self->vocalization_source.payload.point.z = 0.0f;
             }
         }
     }
@@ -806,7 +801,7 @@ void ActorView::queue_sighted_target_dialogue(datum_index target_prop_index, uin
 
 broadcast_check:
     if (target->is_parented != 0 && target->enemy != 0 && target->dead == 0 &&
-        self->type != 15 && ai_debug_gate_87abc6 != 0) {
+        self->type != 15 && halo::hs::globals::medusa != 0) {
         if (self->swarm == 0) {
             datum_index unit_index = self->unit_index;
             object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
@@ -827,16 +822,16 @@ namespace actor_queue_velocity_search_from_prop_local {
 extern "C" {
 extern data_array *prop_data;
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 }
 }
 
 /**
  * Queues a priority-6 search request for the actor carrying no explicit position but a velocity vector taken
  * from the prop's scratch field, a 90-tick duration, a 150 secondary duration, and the raw prop handle threaded
- * through unknown_340.
+ * through prop_index.
  *
  * @address 0x4221b0
  */
@@ -856,9 +851,9 @@ extern data_array *object_data;
 extern double fabs(double x);
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 extern void actor_record_perception_event(datum_index actor_index, int16_t event, int32_t data);
 extern int8_t teams_are_enemies(int16_t a, int16_t b);
 extern int16_t actor_dialogue_variant_table_e[];
@@ -919,10 +914,8 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
             self->vocalization_state = (int16_t)ticks;
             self->vocalization_line = 6;
             self->vocalization_variant = actor_dialogue_variant_table_e[self->combat_status >= 4];
-            self->vocalization_unknown_54c = 3;
-            self->vocalization_unknown_550 = *(uint32_t *)&point->x;
-            self->vocalization_unknown_554 = *(uint32_t *)&point->y;
-            self->vocalization_unknown_558 = *(uint32_t *)&point->z;
+            self->vocalization_source.code = 3;
+            self->vocalization_source.payload.point = *point;
         }
     }
 }
@@ -933,9 +926,9 @@ extern data_array *actor_data;
 extern double fabs(double x);
 extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern int16_t actor_dialogue_variant_table_d[];
 }
@@ -955,7 +948,7 @@ void ActorOps::react_to_registered_danger(const real_point3d *point, datum_index
     Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data);
     real_vector3d direction;
 
-    if (self->danger_type >= 1 && self->danger_object_index == danger_object_index && self->danger_unknown_284 >= 1) {
+    if (self->danger_type >= 1 && self->danger_object_index == danger_object_index && self->danger_reaction_ticks >= 1) {
         ai_communication_broadcast(10, self->unit_index, (datum_index)k_datum_index_none, (datum_index)k_datum_index_none,
                                    (datum_index)k_datum_index_none, (datum_index)k_datum_index_none, 0);
     } else {
@@ -976,7 +969,7 @@ void ActorOps::react_to_registered_danger(const real_point3d *point, datum_index
     }
 
     if (self->awareness_level > 1 && self->vocalization_line < 4 &&
-        (self->mode != 11 || self->mode_data.raw[3] != 0) && self->vocalization_unknown_3e8 < 7) {
+        (self->mode != 11 || self->mode_data.raw[3] != 0) && self->flee_reason < 7) {
         float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 1.8f : 0.9f;
 
         if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
@@ -994,10 +987,8 @@ void ActorOps::react_to_registered_danger(const real_point3d *point, datum_index
             self->vocalization_variant = actor_dialogue_variant_table_d[self->combat_status >= 4];
             self->vocalization_state = (int16_t)ticks;
             self->vocalization_line = 3;
-            self->vocalization_unknown_54c = 3;
-            self->vocalization_unknown_550 = *(uint32_t *)&point->x;
-            self->vocalization_unknown_554 = *(uint32_t *)&point->y;
-            self->vocalization_unknown_558 = *(uint32_t *)&point->z;
+            self->vocalization_source.code = 3;
+            self->vocalization_source.payload.point = *point;
         }
     }
 }
@@ -1010,9 +1001,9 @@ extern data_array *object_data;
 extern game_time_globals *game_time;
 extern data_array *player_data;
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 extern void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index actor_index);
 extern int8_t teams_are_enemies(int16_t a, int16_t b);
 extern uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_index,
@@ -1068,7 +1059,7 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
 
     if (self->awareness_level > 1 && self->vocalization_line < 8 &&
         (self->mode != 11 || self->mode_data.raw[3] != 0)) {
-        int16_t recent = self->vocalization_unknown_3e8;
+        int16_t recent = self->flee_reason;
 
         prop *validated = (prop *)halo::memory::datum_get(target_prop_index, prop_data);
         if (validated != 0) {
@@ -1104,10 +1095,10 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
                 self->vocalization_state = (int16_t)ticks;
                 self->vocalization_variant = actor_dialogue_variant_table_f[self->combat_status >= 4];
                 self->vocalization_line = 7;
-                self->vocalization_unknown_54c = 1;
-                self->vocalization_unknown_550 = target_prop_index;
-                self->vocalization_unknown_554 = 0;
-                self->vocalization_unknown_558 = 0;
+                self->vocalization_source.code = 1;
+                self->vocalization_source.payload.handle = target_prop_index;
+                self->vocalization_source.payload.point.y = 0.0f;
+                self->vocalization_source.payload.point.z = 0.0f;
             }
         }
     }
@@ -1133,15 +1124,13 @@ void ActorView::record_look_at_point(const uint32_t *point, int16_t priority, ui
 
     if (self->look_at_priority < priority) {
         self->look_at_priority = priority;
-        self->look_at_unknown_2f4 = data;
+        self->look_at_reference = data;
         if (point == 0) {
-            *(uint8_t *)&self->look_at_unknown_2f8 = 0;
+            self->look_at_has_point = 0;
             return;
         }
-        *(uint8_t *)&self->look_at_unknown_2f8 = 1;
-        memcpy(&self->look_at_unknown_2fc, &point[0], sizeof(uint32_t));
-        memcpy(&self->look_at_unknown_300, &point[1], sizeof(uint32_t));
-        memcpy(&self->look_at_unknown_304, &point[2], sizeof(uint32_t));
+        self->look_at_has_point = 1;
+        memcpy(&self->look_at_point, point, sizeof(real_point3d));
     }
 }
 
@@ -1298,8 +1287,8 @@ void ActorView::scan_allies_for_backup_request()
             }
 
             if (claimant->sighted_ticks >= 0x2d ||b->priority >= 4) {
-                if (claimant->shots_unknown_ae > 0 &&
-                    claimant->shots_hit >= claimant->shots_unknown_ae) {
+                if (claimant->danger_trigger_ticks > 0 &&
+                    claimant->shots_hit >= claimant->danger_trigger_ticks) {
                     if (b->priority < 7) b->priority = 7;
                 }
                 if (flagged) {

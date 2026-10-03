@@ -116,10 +116,11 @@ typedef enum effect_constants {
 typedef struct decal_type_parameters {
     float maximum_edge_angle;       // 0x00 degrees; 40.0 for scratch, splatter and burn, 10.0
                                     //      for painted_sign
-    float unknown_04;               // 0x04 110.0 for the first three, 10.0 for painted_sign;
-                                    //      no reader in this module
+    float fallback_edge_angle;      // 0x04 degrees; 110.0 for the first three, 10.0 for painted_sign. A flooded surface
+                                    //      beyond maximum_edge_angle but within this angle goes on the fallback queue
     float radius_scale;             // 0x08 1.5 for every type
-    int32_t unknown_0c;             // 0x0c 1 for the first three, 0 for painted_sign
+    int32_t wraps_fallback_surfaces;// 0x0c 1 for the first three, 0 for painted_sign. Non-zero: decal_place wraps the
+                                    //      decal onto the fallback queue surfaces after the main flood
 } decal_type_parameters;            // size 0x10
 
 // ===========================================================================
@@ -404,8 +405,8 @@ typedef struct effect_tint_source {
 // are local_18[2] / local_14 / local_10 / local_c / local_8 / local_4 in 0x450870 and
 // local_1c[2] / local_18 / local_14 / local_10 / local_c / local_8 in 0x450980, and the address
 // stored into the global is the first of them.
-// UNSURE: only node_index and node_table_entry have recovered meaning. The other four are
-// forwarded caller arguments whose consumer, LAB_00451850, Ghidra never split into a function.
+// The marker count, name table, position array and forward array are caller arguments consumed by
+// effect_marker_new 0x451850 and effect_marker_from_node_table 0x451930.
 // ---------------------------------------------------------------------------
 typedef struct effect_marker_node_context {
     uint16_t node_index;            // 0x00 0 when the caller passed 0xffff (0x450870 masks it
@@ -414,11 +415,12 @@ typedef struct effect_marker_node_context {
     uint16_t unknown_02;            // 0x02 upper half of the ushort[2]; never written
     int32_t node_table_entry;       // 0x04 node_index * 0x34 + *(int16 *)(object + 0x1f2) plus
                                     //      the object base, or 0 when there is no node table
-    uint16_t unknown_08;            // 0x08
+    uint16_t marker_count;          // 0x08 number of entries of marker_names / marker_positions / marker_forwards
     uint16_t unknown_0a;            // 0x0a never written
-    uint32_t unknown_0c;            // 0x0c
-    uint32_t unknown_10;            // 0x10
-    uint32_t unknown_14;            // 0x14
+    uint32_t marker_names;          // 0x0c char ** the effect marker names the callbacks match against
+    uint32_t marker_positions;      // 0x10 real_point3d array, one entry per marker (stride 12), in object space when
+                                    //      node_table_entry is set, else in world space
+    uint32_t marker_forwards;       // 0x14 real_vector3d array, one forward vector per marker (stride 12)
 } effect_marker_node_context;       // size 0x18
 
 // ---------------------------------------------------------------------------
@@ -570,7 +572,8 @@ typedef struct particle_system {
     ColorARGB color;                // 0x38 the tint the per type colour multipliers scale by
     ColorRGB ambient_color;         // 0x48 object_sample_ambient_lightmap_point result; the
                                     //      renderer multiplies the particle colour by it
-    uint32_t unknown_54;            // 0x54 no writer or reader found in this module
+    uint32_t burst_mirror_z;          // 0x54 only its low byte is read: when non-zero the random burst direction is
+                                    //      mirrored above the marker (|z|); no writer in this module
     particle_system_type_state type_states[4]; // 0x58 one per ParticleSystemType, bounded by the
                                     //      struct size rather than by a check
 } particle_system;                  // size 0x158

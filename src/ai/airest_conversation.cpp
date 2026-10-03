@@ -18,7 +18,7 @@ extern int32_t __ftol(double x);
 extern data_array *object_data;
 extern game_time_globals *game_time;
 extern int32_t ai_communication_quiet_until_tick;
-extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index, int32_t *chain_value);
+extern int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_communication_hold_tick, int16_t *dialogue_index, int32_t *chain_value);
 extern int32_t unit_commit_speech(uint32_t unit_index, const void *source, int16_t mode);
 extern ai_globals *ai_globals_ptr;
 extern data_array *encounter_data;
@@ -464,11 +464,12 @@ int32_t ConversationDefinitionView::get_status()
 }
 
 /**
- * Behaviour of ai conversation get unknown 48, moved unchanged from the original free function.
+ * Returns the line index of the running instance of the conversation definition, or 999 when no instance is running (hs
+ * ai_conversation_line).
  *
  * @address 0x430960
  */
-int16_t ConversationDefinitionView::get_unknown_48()
+int16_t ConversationDefinitionView::get_line_index()
 {
     int16_t conversation_definition_index = handle;
     data_iterator iterator;

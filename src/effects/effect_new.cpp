@@ -173,7 +173,7 @@ datum_index effect_ref::new_on_object(datum_index creator_object_index, datum_in
  *
  * @address 0x450870
  */
-datum_index effect_ref::new_on_object_with_node_table(datum_index creator_object_index, datum_index definition_index, datum_index object_index, uint16_t node_index, uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source)
+datum_index effect_ref::new_on_object_with_node_table(datum_index creator_object_index, datum_index definition_index, datum_index object_index, uint16_t node_index, uint16_t marker_count, uint32_t marker_names, uint32_t marker_positions, uint32_t marker_forwards, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source)
 {
     datum_index handle = halo::effects::effect_new(definition_index, creator_object_index, 1);
 
@@ -190,10 +190,10 @@ datum_index effect_ref::new_on_object_with_node_table(datum_index creator_object
             self->flags = self->flags | _effect_first_person_bit;
         }
 
-        context.unknown_08 = ctx_08;
-        context.unknown_0c = ctx_0c;
-        context.unknown_14 = ctx_14;
-        context.unknown_10 = ctx_10;
+        context.marker_count = marker_count;
+        context.marker_names = marker_names;
+        context.marker_forwards = marker_forwards;
+        context.marker_positions = marker_positions;
         context.node_index = (node_index == 0xffff) ? 0 : node_index;
 
         attach_object = ((object_header *)object_data->data)[(uint16_t)object_index].data;
@@ -224,7 +224,7 @@ datum_index effect_ref::new_on_object_with_node_table(datum_index creator_object
  *
  * @address 0x450980
  */
-datum_index effect_ref::new_with_color(datum_index definition_index, datum_index creator_object_index, const real_vector3d *velocity, uint16_t ctx_08, uint32_t ctx_0c, real_point3d *position, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source, uint8_t force_create)
+datum_index effect_ref::new_with_color(datum_index definition_index, datum_index creator_object_index, const real_vector3d *velocity, uint16_t marker_count, uint32_t marker_names, real_point3d *position, uint32_t marker_forwards, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source, uint8_t force_create)
 {
     datum_index handle = halo::effects::effect_new(definition_index, creator_object_index, force_create);
 
@@ -237,10 +237,10 @@ datum_index effect_ref::new_with_color(datum_index definition_index, datum_index
         halo::effects::effect_set_placement(self, color, tint_source, a_scale, b_scale);
         self->object_index = k_datum_index_none;
 
-        context.unknown_08 = ctx_08;
-        context.unknown_0c = ctx_0c;
-        context.unknown_10 = (uint32_t)position;
-        context.unknown_14 = ctx_14;
+        context.marker_count = marker_count;
+        context.marker_names = marker_names;
+        context.marker_positions = (uint32_t)position;
+        context.marker_forwards = marker_forwards;
         context.node_index = 0xffff;
         context.node_table_entry = 0;
 
@@ -287,14 +287,14 @@ datum_index effect_new_on_object(datum_index creator_object_index, datum_index d
     return halo::effects::effect_ref::new_on_object(creator_object_index, definition_index, object_index, first_person_weapon_override, a_scale, b_scale, color, tint_source);
 }
 
-datum_index effect_new_on_object_with_node_table(datum_index creator_object_index, datum_index definition_index, datum_index object_index, uint16_t node_index, uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source)
+datum_index effect_new_on_object_with_node_table(datum_index creator_object_index, datum_index definition_index, datum_index object_index, uint16_t node_index, uint16_t marker_count, uint32_t marker_names, uint32_t marker_positions, uint32_t marker_forwards, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source)
 {
-    return halo::effects::effect_ref::new_on_object_with_node_table(creator_object_index, definition_index, object_index, node_index, ctx_08, ctx_0c, ctx_10, ctx_14, a_scale, b_scale, color, tint_source);
+    return halo::effects::effect_ref::new_on_object_with_node_table(creator_object_index, definition_index, object_index, node_index, marker_count, marker_names, marker_positions, marker_forwards, a_scale, b_scale, color, tint_source);
 }
 
-datum_index effect_new_with_color(datum_index definition_index, datum_index creator_object_index, const real_vector3d *velocity, uint16_t ctx_08, uint32_t ctx_0c, real_point3d *position, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source, uint8_t force_create)
+datum_index effect_new_with_color(datum_index definition_index, datum_index creator_object_index, const real_vector3d *velocity, uint16_t marker_count, uint32_t marker_names, real_point3d *position, uint32_t marker_forwards, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source, uint8_t force_create)
 {
-    return halo::effects::effect_ref::new_with_color(definition_index, creator_object_index, velocity, ctx_08, ctx_0c, position, ctx_14, a_scale, b_scale, color, tint_source, force_create);
+    return halo::effects::effect_ref::new_with_color(definition_index, creator_object_index, velocity, marker_count, marker_names, position, marker_forwards, a_scale, b_scale, color, tint_source, force_create);
 }
 
 }

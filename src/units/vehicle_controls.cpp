@@ -17,7 +17,6 @@ extern void object_physics_tick(uint32_t object_index, void *powered_states, voi
 extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);
-extern float DAT_0069c52c;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, void *marker, uint32_t flags);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void effect_new_with_color(uint32_t effect, uint32_t creator, void *velocity, int32_t count, char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale, int32_t color, int32_t tint, int32_t force);

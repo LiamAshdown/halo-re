@@ -21,7 +21,7 @@ extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, v
 extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out);
 extern uint8_t ai_search_append_obstacle(ai_search_obstacle_list *list, uint16_t flags, uint32_t object_index, real_point2d *position, float radius);
 extern void ai_search_flood_fill_group(ai_search_obstacle_list *list, float radius, uint32_t *out_bitmask, int16_t start_index);
-extern void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint32_t unknown_00, ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t unknown_0c, real_point2d *position, int32_t surface_index, uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a);
+extern void ai_search_context_init(ai_search_context *context, uint8_t ignores_glass, uint32_t search_radius_bits, ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t structure_bsp, real_point2d *position, int32_t surface_index, uint32_t origin_surface_index, uint8_t final_leg, uint8_t ignore_flagged_obstacles);
 extern uint8_t ai_search_step(ai_search_context *context);
 extern ScenarioStructureBSP *global_structure_bsp;
 extern void ai_search_heap_sift_down(ai_search_context *context, int16_t index);
@@ -231,24 +231,24 @@ void ObstacleList::compute_point_tangents(int16_t point_index, real_point2d *pos
  *
  * @address 0x43b790
  */
-void AiSearch::context_init(uint8_t unknown_04, uint32_t unknown_00, ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t unknown_0c, real_point2d *position, int32_t surface_index, uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a)
+void AiSearch::context_init(uint8_t ignores_glass, uint32_t search_radius_bits, ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t structure_bsp, real_point2d *position, int32_t surface_index, uint32_t origin_surface_index, uint8_t final_leg, uint8_t ignore_flagged_obstacles)
 {
     ai_search_context * context = ptr;
     int16_t covering_point;
 
-    context->search_radius = unknown_00;
-    context->structure_bsp = unknown_0c;
-    context->unknown_04 = unknown_04;
+    context->search_radius = search_radius_bits;
+    context->structure_bsp = structure_bsp;
+    context->ignores_glass = ignores_glass;
     context->obstacles = (uint32_t)(uintptr_t)obstacles;
     context->complete = 0;
     context->origin = *origin;
-    context->origin_surface_index = unknown_18;
+    context->origin_surface_index = origin_surface_index;
 
-    covering_point = ai_search_find_covering_point(obstacles, origin, -1, *(float *)&unknown_00);
+    covering_point = ai_search_find_covering_point(obstacles, origin, -1, *(float *)&search_radius_bits);
     context->goal_point_id = (covering_point == -1) ? -1 : obstacles->obstacles[covering_point].link;
 
-    context->unknown_29 = unknown_29;
-    context->ignore_flagged_obstacles = unknown_2a;
+    context->final_leg = final_leg;
+    context->ignore_flagged_obstacles = ignore_flagged_obstacles;
     context->result_node = -1;
     context->best_cost = 3.4028235e+38f;
     context->best_node = -1;
@@ -359,7 +359,7 @@ void AiSearch::expand_point_neighbors(int16_t node_index, int16_t start_point_id
         for (side = 0; side < 2; side++) {
             ai_search_edge_result edge;
 
-            ai_search_evaluate_edge_cost(map, context->unknown_04, list, point, &node->position,
+            ai_search_evaluate_edge_cost(map, context->ignores_glass, list, point, &node->position,
                 *(int32_t *)&node->z, radius, radius + radius + tangent_distance, 0, 0, context->ignore_flagged_obstacles, &edge,
                 &directions[side]);
             if (edge.point_id != -1 && (visited[edge.point_id >> 5] & (1u << (edge.point_id & 0x1f))) == 0) {
@@ -371,7 +371,7 @@ void AiSearch::expand_point_neighbors(int16_t node_index, int16_t start_point_id
                 path_find_boundary_trace_result trace;
                 real_point2d position;
 
-                path_find_trace_cluster_boundary_from_vertex(map, context->unknown_04, &node->position,
+                path_find_trace_cluster_boundary_from_vertex(map, context->ignores_glass, &node->position,
                     *(int32_t *)&node->z, &directions[side], half, &trace);
                 position.x = half * directions[side].i + node->position.x;
                 position.y = half * directions[side].j + node->position.y;
@@ -766,11 +766,11 @@ void ObstacleList::partition_into_groups(float radius)
  *
  * @address 0x43be20
  */
-uint8_t AiSearch::run(uint8_t unknown_04, ai_search_obstacle_list *obstacles, uint32_t unknown_00, real_point2d *position, int32_t surface_index, real_point2d *origin, uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a)
+uint8_t AiSearch::run(uint8_t ignores_glass, ai_search_obstacle_list *obstacles, uint32_t search_radius_bits, real_point2d *position, int32_t surface_index, real_point2d *origin, uint32_t origin_surface_index, uint8_t final_leg, uint8_t ignore_flagged_obstacles)
 {
     ai_search_context * context = ptr;
-    ai_search_context_init(context, unknown_04, unknown_00, obstacles, origin,
-        (uint32_t)global_structure_bsp, position, surface_index, unknown_18, unknown_29, unknown_2a);
+    ai_search_context_init(context, ignores_glass, search_radius_bits, obstacles, origin,
+        (uint32_t)global_structure_bsp, position, surface_index, origin_surface_index, final_leg, ignore_flagged_obstacles);
 
     while (ai_search_step(context) != 0) {
     }
@@ -805,7 +805,7 @@ uint8_t AiSearch::step()
             ai_search_node *node = &context->nodes[index];
             ai_search_edge_result edge;
 
-            ai_search_evaluate_edge_cost((void *)(uintptr_t)context->structure_bsp, context->unknown_04,
+            ai_search_evaluate_edge_cost((void *)(uintptr_t)context->structure_bsp, context->ignores_glass,
                 (ai_search_obstacle_list *)(uintptr_t)context->obstacles, -1, &node->position, *(int32_t *)&node->z,
                 *(float *)&context->search_radius, node->length, (uint8_t)(node->parent == -1), 1, context->ignore_flagged_obstacles,
                 &edge, &node->direction);

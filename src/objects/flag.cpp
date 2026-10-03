@@ -660,7 +660,7 @@ void halo::objects::FlagView::pole_get_marker_positions(bsp_leaf_reference *node
  * Builds the flag's cloth mesh (vertex normals and index list) and submits it to the rasterizer. Unreferenced in the
  * retail binary; kept as a close transliteration with a guessed signature.
  *
- * Original register convention: UNSURE throughout, see file header; this signature is a guess with no verified.
+ * Original register convention: not observable, because the retail binary never calls this function.
  *
  * @address 0x004fc350
  */

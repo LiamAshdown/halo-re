@@ -451,14 +451,14 @@ void halo::ai::charge_mode::update()
     uint32_t actor_flags = *(uint32_t *)actor_tag;
     int16_t kind = ((struct actor *)act)->mode_data.charge.stage;
 
-    ((actor *)act)->vocalization_unknown_3ec = 2;
+    ((actor *)act)->flee_source.code = 2;
     ((struct actor *)act)->look_posture = 4;
     if ((kind == 2 || kind == 3) && act[0xa5] && !act[0x504] && !act[0x4a8]) {
-        ((actor *)act)->vocalization_unknown_3e8 = 4;
+        ((actor *)act)->flee_reason = 4;
     } else if (((struct actor *)act)->combat_status >= 5 && kind != 1) {
-        ((actor *)act)->vocalization_unknown_3e8 = 7;
+        ((actor *)act)->flee_reason = 7;
     } else {
-        ((actor *)act)->vocalization_unknown_3e8 = 5;
+        ((actor *)act)->flee_reason = 5;
     }
     if (((struct actor *)act)->mode_data.charge.stage == 1) {
         act[0x426] = (uint8_t)(act[0xc1] == 0);
@@ -561,8 +561,8 @@ void halo::ai::fight_mode::update()
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
 
     actor[0x426] = actor[0x358];
-    ((struct actor *)actor)->vocalization_unknown_3e8 = 5;
-    ((struct actor *)actor)->vocalization_unknown_3ec = 2;
+    ((struct actor *)actor)->flee_reason = 5;
+    ((struct actor *)actor)->flee_source.code = 2;
     ((struct actor *)actor)->look_posture = 4;
     actor[0x427] = 0;
     actor[0x428] = 0;
@@ -570,7 +570,7 @@ void halo::ai::fight_mode::update()
     actor[0x425] = 0;
     if (((struct actor *)actor)->vehicle_driving_type != 4 && ((struct actor *)actor)->combat_status >= 5) {
         actor[0x454] = 1;
-        ((struct actor *)actor)->vocalization_unknown_3e8 = 7;
+        ((struct actor *)actor)->flee_reason = 7;
     }
 }
 
@@ -1010,19 +1010,19 @@ void halo::ai::flee_mode::update()
     int16_t destination;
 
     if (panic > 0) {
-        ((actor *)act)->vocalization_unknown_3e8 = 6;
-        ((actor *)act)->vocalization_unknown_3ec = 0;
+        ((actor *)act)->flee_reason = 6;
+        ((actor *)act)->flee_source.code = 0;
         act[0x456] = 1;
     } else if (target != k_datum_index_none && *(int16_t *)(PROP(target) + 0x32) > 0) {
-        ((actor *)act)->vocalization_unknown_3e8 = 7;
-        ((actor *)act)->vocalization_unknown_3ec = 2;
+        ((actor *)act)->flee_reason = 7;
+        ((actor *)act)->flee_source.code = 2;
         act[0x454] = 1;
     } else if (((struct actor *)act)->mode_data.flee.reference != k_datum_index_none) {
-        ((actor *)act)->vocalization_unknown_3e8 = 3;
-        ((actor *)act)->vocalization_unknown_3ec = 1;
+        ((actor *)act)->flee_reason = 3;
+        ((actor *)act)->flee_source.code = 1;
         *(datum_index *)(act + 0x3f0) = ((struct actor *)act)->mode_data.flee.reference;
     } else {
-        ((actor *)act)->vocalization_unknown_3e8 = 0;
+        ((actor *)act)->flee_reason = 0;
     }
     ((struct actor *)act)->look_posture = 4;
     act[0x428] = (uint8_t)(((struct actor *)act)->mode_data.flee.panic > 0);
@@ -1516,27 +1516,27 @@ void halo::ai::guard_mode::update()
     }
 
     if (act[0xa3]) {
-        ((actor *)act)->vocalization_unknown_3e8 = 7;
-        ((actor *)act)->vocalization_unknown_3ec = 2;
+        ((actor *)act)->flee_reason = 7;
+        ((actor *)act)->flee_source.code = 2;
         act[0x454] = 1;
         act[0x45d] = 1;
         *(float *)(act + 0x460) = halo::math::globals().global_up3d_pointer->i * 0.05f + *(float *)(act + 0xc4);
         *(float *)(act + 0x464) = halo::math::globals().global_up3d_pointer->j * 0.05f + *(float *)(act + 0xc8);
         *(float *)(act + 0x468) = halo::math::globals().global_up3d_pointer->k * 0.05f + *(float *)(act + 0xcc);
     } else if (((struct actor *)act)->mode_data.guard.guard_target != k_datum_index_none) {
-        ((actor *)act)->vocalization_unknown_3e8 = 5;
-        ((actor *)act)->vocalization_unknown_3ec = 1;
+        ((actor *)act)->flee_reason = 5;
+        ((actor *)act)->flee_source.code = 1;
         *(datum_index *)(act + 0x3f0) = ((struct actor *)act)->mode_data.guard.guard_target;
     } else if (act[0xb0]) {
-        ((actor *)act)->vocalization_unknown_3ec = 4;
-        ((actor *)act)->vocalization_unknown_3e8 = act[0xb1] ? 5 : 3;
+        ((actor *)act)->flee_source.code = 4;
+        ((actor *)act)->flee_reason = act[0xb1] ? 5 : 3;
         *(real_point3d *)(act + 0x3f0) = *(real_point3d *)(act + 0xb4);
     } else if (((struct actor *)act)->combat_status > 0 && ((actor *)act)->target_unit_index != k_datum_index_none) {
-        ((actor *)act)->vocalization_unknown_3e8 = 3;
-        ((actor *)act)->vocalization_unknown_3ec = 1;
+        ((actor *)act)->flee_reason = 3;
+        ((actor *)act)->flee_source.code = 1;
         *(datum_index *)(act + 0x3f0) = ((actor *)act)->target_unit_index;
     } else {
-        ((actor *)act)->vocalization_unknown_3e8 = 0;
+        ((actor *)act)->flee_reason = 0;
     }
     ((struct actor *)act)->look_posture = ((struct actor *)act)->combat_status >= 4 ? 4 : 2;
 }

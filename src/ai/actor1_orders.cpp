@@ -621,7 +621,7 @@ int32_t halo::ai::order_builder::random_wait(uint8_t byte_a, uint32_t *order)
     }
 
     if (a->order_committed == 0) {
-        *((uint8_t *)order + 1) = a->unknown_1cc;
+        *((uint8_t *)order + 1) = a->grenade_ally_phase_flag;
         *((uint8_t *)order + 2) = byte_a;
         order[2] = (uint32_t)game_time->game_time;
         *(int16_t *)((uint8_t *)order + 0xe) = 0;
@@ -921,9 +921,7 @@ void halo::ai::order_builder::build_path_find_request(path_find_request *request
     request->ignores_glass = ignores_glass;
     request->exclude_object_index_b = (datum_index)k_datum_index_none;
     request->have_start = 1;
-    request->start_position.x = *(float *)&self->pathfinding_point;
-    request->start_position.y = *(float *)&self->unknown_16c;
-    request->start_position.z = *(float *)&self->unknown_170;
+    request->start_position = self->pathfinding_point;
     request->start_surface_index = (uint32_t)self->pathfinding_surface_index;
 }
 

@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -221,7 +222,7 @@ void rasterizer_decal_pass_begin(int16_t stage)
     if (decals_for_all_responses == 0 && stage != 3) {
         proceed = 0;
     }
-    if (*(int16_t *)&console_debug_toggle_6893e4 != 0 || !proceed) {
+    if (*(int16_t *)&halo::rasterizer::globals::rasterizer_debug_mode != 0 || !proceed) {
         rasterizer_decal_layer = stage;
         return;
     }
@@ -229,7 +230,7 @@ void rasterizer_decal_pass_begin(int16_t stage)
     rasterizer_decal_blend_mode = 0xffff;
     rasterizer_decal_bitmap_frame = 0xffff;
     rasterizer_decal_bitmap_tag = 0xffffffff;
-    unknown_0071d1c4 = 0;
+    halo::rasterizer::globals::decal_fog_state_applied = 0;
     rasterizer_decal_layer = stage;
 
     {
@@ -270,11 +271,11 @@ void rasterizer_decal_pass_begin(int16_t stage)
         render_device().set_render_state(0x18, 0x7f);
         rasterizer_set_shader_stage_config(4);
     } else {
-        if ((console_debug_toggle_689441 == 0 || rasterizer_window.fog.atmospheric_maximum_density != 1.0f) && unknown_0071d1c4 == 0) {
+        if ((console_debug_toggle_689441 == 0 || rasterizer_window.fog.atmospheric_maximum_density != 1.0f) && halo::rasterizer::globals::decal_fog_state_applied == 0) {
             render_device().set_render_state(0xf, 0);
             goto stream_source;
         }
-        unknown_0071d1c4 = 1;
+        halo::rasterizer::globals::decal_fog_state_applied = 1;
         render_device().set_render_state(0xf, 1);
         render_device().set_render_state(0x18, 0);
     }
@@ -359,7 +360,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
     if (decals_for_all_responses == 0 && rasterizer_decal_layer != 3) {
         layer_enabled = 0;
     }
-    if (*(uint16_t *)&console_debug_toggle_6893e4 != 0 || !layer_enabled) {
+    if (*(uint16_t *)&halo::rasterizer::globals::rasterizer_debug_mode != 0 || !layer_enabled) {
         return;
     }
 
@@ -561,7 +562,7 @@ namespace rasterizer_shader_decal_pass_set_states_impl {
 void rasterizer_shader_decal_pass_set_states(void)
 {
 
-    if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893fa == 0 ||
+    if (halo::rasterizer::globals::rasterizer_debug_mode != 0 || halo::rasterizer::globals::specular_enabled == 0 ||
         rasterizer_caps.pixel_shader_version <= 0xffff0100) {
         return;
     }

@@ -304,8 +304,7 @@ uint8_t halo::objects::ObjectLifetime::is_delete_pending()
 /**
  * Clears every reference other objects hold to an object that is about to die.
  *
- * Original register convention: the dying object index is the sole, genuinely-stack, parameter (Ghidra's own
- * "FUN_004f73e0(int param_1)"), confirmed against objdump 0x4f7415 mov esi,[esp+0x20].
+ * Original register convention: the dying object index is the sole, genuinely-stack, parameter, confirmed against objdump 0x4f7415 mov esi,[esp+0x20].
  *
  * @address 0x004f73e0
  */

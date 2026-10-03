@@ -11,7 +11,7 @@ extern double sqrt(double x);
 extern double fabs(double x);
 extern void ai_search_gather_obstacles(ai_search_obstacle_list *list, real_point3d *center, float radius, real_vector3d *direction, uint32_t self_object_a, uint32_t self_object_b);
 extern void ai_search_partition_into_groups(ai_search_obstacle_list *list, float radius);
-extern void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint32_t unknown_00, ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t unknown_0c, real_point2d *position, int32_t surface_index, uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a);
+extern void ai_search_context_init(ai_search_context *context, uint8_t ignores_glass, uint32_t search_radius_bits, ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t structure_bsp, real_point2d *position, int32_t surface_index, uint32_t origin_surface_index, uint8_t final_leg, uint8_t ignore_flagged_obstacles);
 extern uint8_t ai_search_step(ai_search_context *context);
 extern uint8_t ai_search_run(ai_search_context *context, uint8_t unknown_04, ai_search_obstacle_list *obstacles, uint32_t unknown_00, real_point2d *position, int32_t surface_index, real_point2d *origin, uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a);
 extern real_point3d *global_origin3d_pointer;

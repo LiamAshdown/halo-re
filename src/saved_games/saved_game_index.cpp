@@ -1,3 +1,4 @@
+#include "halo/saved_games/globals.hpp"
 #include "crt.h"
 #include "win32.h"
 #include "tags.h"
@@ -61,7 +62,6 @@ extern char last_multiplayer_map_path[0x100];
 extern uint8_t default_player_profile_initialized;
 extern variant_write_request variant_write_request_state;
 extern int16_t default_game_variant_count;
-extern uint8_t unknown_0072132a;
 extern int32_t mutex_create(network_mutex_record **out_handle);
 extern uint16_t saved_game_display_name_buffer[0x80];
 extern network_thread_record *variant_write_thread;
@@ -554,7 +554,7 @@ uint8_t delete_files(char *name)
 
 /**
  * Rebuilds the saved-game index first if it is marked dirty, then scans up to *capacity_and_count
- * index entries (rebuilding the count from savegame_index_get_slot_count (FUN_0053e420) as the scan bound) for ones matching
+ * index entries (rebuilding the count from savegame_index_get_slot_count as the scan bound) for ones matching
  * type, writing their packed handles into out_handles until either the scan bound or the
  * caller's capacity is reached. builtin_only selects whether non-builtin entries are skipped.
  * *capacity_and_count is always overwritten with the number of handles actually written (0 if
@@ -741,7 +741,7 @@ default_profile:
         *(uint32_t *)zero_cursor = 0;
         zero_cursor += 4;
     }
-    unknown_0072132a = 1;
+    halo::saved_games::globals::saved_game_files_initialized = 1;
 }
 
 /**

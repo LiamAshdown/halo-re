@@ -347,7 +347,7 @@ void halo::ai::combat_ops::choose_best_target()
                 in_group_a = 0;
                 in_group_b = 0;
                 if (p->distance >= 8.0f) {
-                    if (p->unknown_12d != 0 && target_actor != (actor *)0 &&
+                    if (p->owner_burst_length_exceeded != 0 && target_actor != (actor *)0 &&
                         self->target_unit_index != (datum_index)k_datum_index_none &&
                         target_actor->target_unit_index != (datum_index)k_datum_index_none &&
                         ((prop *)prop_data->data)[self->target_unit_index & 0xffff].object_index ==
@@ -366,40 +366,40 @@ void halo::ai::combat_ops::choose_best_target()
 
                 if (in_group_a) {
                     self->tally.group_a_total = (uint8_t)(self->tally.group_a_total + 1);
-                    if (p->unknown_12d != 0) {
+                    if (p->owner_burst_length_exceeded != 0) {
                         self->tally.group_a_marked = (uint8_t)(self->tally.group_a_marked + 1);
-                        if (p->unknown_12d != 0 && p->is_vehicle_gunner != 0) {
+                        if (p->owner_burst_length_exceeded != 0 && p->is_vehicle_gunner != 0) {
                             self->tally.group_a_marked_135 =
                                 (uint8_t)(self->tally.group_a_marked_135 + 1);
                         }
                     }
                     self->tally.group_a_by_actor_type[actor_type_slot] =
                         (uint8_t)(self->tally.group_a_by_actor_type[actor_type_slot] + 1);
-                    if (p->unknown_12d != 0) {
+                    if (p->owner_burst_length_exceeded != 0) {
                         self->tally.group_a_marked_by_actor_type[actor_type_slot] =
                             (uint8_t)(self->tally.group_a_marked_by_actor_type[actor_type_slot] + 1);
                     }
                 }
                 if (in_group_b) {
                     self->tally.group_b_total = (uint8_t)(self->tally.group_b_total + 1);
-                    if (p->unknown_12d != 0) {
+                    if (p->owner_burst_length_exceeded != 0) {
                         self->tally.group_b_marked = (uint8_t)(self->tally.group_b_marked + 1);
                     }
                     self->tally.group_b_by_actor_type[actor_type_slot] =
                         (uint8_t)(self->tally.group_b_by_actor_type[actor_type_slot] + 1);
-                    if (p->unknown_12d != 0) {
+                    if (p->owner_burst_length_exceeded != 0) {
                         self->tally.group_b_marked_by_actor_type[actor_type_slot] =
                             (uint8_t)(self->tally.group_b_marked_by_actor_type[actor_type_slot] + 1);
                     }
                 }
                 if (in_group_c) {
                     self->tally.group_c_total = (uint8_t)(self->tally.group_c_total + 1);
-                    if (p->unknown_12d != 0) {
+                    if (p->owner_burst_length_exceeded != 0) {
                         self->tally.group_c_marked = (uint8_t)(self->tally.group_c_marked + 1);
                     }
                     self->tally.group_c_by_actor_type[actor_type_slot] =
                         (uint8_t)(self->tally.group_c_by_actor_type[actor_type_slot] + 1);
-                    if (p->unknown_12d != 0) {
+                    if (p->owner_burst_length_exceeded != 0) {
                         self->tally.group_c_marked_by_actor_type[actor_type_slot] =
                             (uint8_t)(self->tally.group_c_marked_by_actor_type[actor_type_slot] + 1);
                     }
@@ -605,7 +605,7 @@ void halo::ai::combat_ops::clear_target_state()
     *(int16_t *)((uint8_t *)self + 0x148) = -1;
     *(uint32_t *)((uint8_t *)self + 0x144) = 0xffffffff;
     self->pathfinding_surface_index = 0xffffffff;
-    self->search_unknown_324 = 0xffffffff;
+    self->search_surface_index = 0xffffffff;
 
     if (self->queued_movement.type == 2) {
         self->queued_movement.parameter = 0xffffffff;

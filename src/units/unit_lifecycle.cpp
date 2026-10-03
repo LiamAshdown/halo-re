@@ -1,3 +1,4 @@
+#include "halo/hs/script_globals.hpp"
 #include "halo/units/unit.hpp"
 #include "game.h"
 #include "hs.h"
@@ -35,12 +36,10 @@ extern ai_globals *ai_globals_ptr;
 extern char *s_stand;
 extern int16_t actor_spawn_additional_units(datum_index actor_variant_tag, int16_t spawn_count, datum_index source_actor_index, float health_scale);
 extern void object_set_position_and_recalculate(real_point3d *position, uint32_t object_index);
-extern uint8_t DAT_00689471;
 extern uint8_t object_nudge_position_by_velocity(uint32_t object_index, real_point3d *out);
 extern double sqrt(double x);
 extern real_point3d *global_origin3d_pointer;
 extern Globals *global_globals;
-extern uint8_t cheat_super_jump;
 extern uint8_t unit_updates_suppressed;
 extern uint8_t actor_get_requested_velocity(uint8_t skip_clamp, datum_index actor_index, real_vector3d *out_velocity, uint32_t object_index, float speed_limit);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
@@ -357,7 +356,7 @@ uint8_t UnitView::new_()
     unit->overlays[1].animation_index = -1;
     unit->overlays[2].animation_index = -1;
     unit->base_animation_state = 2;
-    unit->unknown_29e = -1;
+    unit->overlay_animation_index = -1;
     unit->emotion_animation_frame = -1;
     unit->emotion_animation_index = -1;
     unit->scripted_base_animation_state = -1;
@@ -386,7 +385,7 @@ uint8_t UnitView::new_()
     for (i = 0x1f; i != 0; i--) {
         *field++ = 0;
     }
-    unit->unknown_3f0 = (uint32_t)-1;
+    unit->communication_hold_tick = (uint32_t)-1;
 
     UnitView(object_index).dialogue_determine_variant();
 
@@ -452,12 +451,12 @@ done_seat_scan:
 }
 
 /**
- * Currently a no-op; its referenced globals suggest it once performed unit/tag- table work that has since
- * been inlined away.
+ * Returns the object the camera and aiming code should treat as the unit: the vehicle the unit is seated in when
+ * the seat is invisible or a gunner seat (seat flags 0x9), otherwise the unit itself.
  *
  * @address 0x569670
  */
-uint32_t UnitView::noop_569670()
+uint32_t UnitView::resolve_camera_object()
 {
     uint32_t object_index = datum_handle;
     uint32_t result = object_index;
@@ -594,7 +593,7 @@ void UnitView::recalculate_position()
     real_point3d nudged;
 
     if (!(sqrt((anchor.z - previous.z) * (anchor.z - previous.z) + (anchor.y - previous.y) * (anchor.y - previous.y) +
-               (anchor.x - previous.x) * (anchor.x - previous.x)) > 5.0) && DAT_00689471) {
+               (anchor.x - previous.x) * (anchor.x - previous.x)) > 5.0) && halo::hs::globals::object_prediction) {
         if (!object_nudge_position_by_velocity(object_index, &nudged)) {
             nudged = anchor;
         }
@@ -673,7 +672,7 @@ uint32_t UnitView::snap_to_min_ground_height()
         jump_speed = (1.0f - *(float *)((uint8_t *)global_globals->player_information.pointer + 0x84) * ((struct unit_object *)obj)->unit.stun) *
             jump_speed;
     }
-    if (cheat_super_jump && ((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
+    if (halo::hs::globals::super_jump && ((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
         jump_speed = jump_speed * 4.0f;
     }
     velocity = *(real_vector3d *)&((unit_object *)obj)->base.velocity.i;

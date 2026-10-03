@@ -338,7 +338,7 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
 
     kind = (query->goal_kind >= 1 && query->goal_kind <= 3) ? 1 : 0;
     candidate->request_result = (int16_t)actor_evaluate_engagement_reachability(
-        *(int16_t *)((uint8_t *)candidate->position + 0xe), ((struct actor_firing_position_query *)query)->target_unknown_640,
+        *(int16_t *)((uint8_t *)candidate->position + 0xe), ((struct actor_firing_position_query *)query)->target_cluster_index,
         (real_point3d *)((uint8_t *)query + 0x61c), &marker_point, (int16_t)kind, 1,
         (uint32_t)query->target_relationship_object, self->active_unit_index != (datum_index)0xffffffff);
 }
@@ -711,12 +711,12 @@ void ActorView::score_firing_positions_by_threat(actor_firing_position_query *qu
             if (dx * dx + dy * dy + dz * dz < radius * radius) {
                 distance_squared = halo::math::point3d_distance_squared_to_segment(self->flee_from_point, segment, *p);
                 bonus = 0.0f;
-                if (self->danger_unknown_294 * self->danger_unknown_294 <= distance_squared) {
-                    radius = self->danger_unknown_294 + 2.5f;
+                if (self->danger_object_radius * self->danger_object_radius <= distance_squared) {
+                    radius = self->danger_object_radius + 2.5f;
                     if (radius * radius <= distance_squared) {
                         bonus = 20.0f;
                     } else {
-                        bonus = ((float)sqrt((double)distance_squared) - self->danger_unknown_294) * 8.0f;
+                        bonus = ((float)sqrt((double)distance_squared) - self->danger_object_radius) * 8.0f;
                     }
                 } else {
                     c->rejected = 1;
@@ -746,7 +746,7 @@ void ActorView::score_firing_positions_by_threat(actor_firing_position_query *qu
                           (c->direction_from_actor.k * 3.0f) * (c->direction_from_actor.k * 3.0f) &&
                 halo::math::segment3d_distance_squared_to_segment(&self->flee_from_point, &self->body_position, &scaled_direction,
                     &segment) <
-                    self->danger_unknown_294 * self->danger_unknown_294) {
+                    self->danger_object_radius * self->danger_object_radius) {
                 c->rejected = 1;
                 if (query->collect_all == 0) {
                     c->valid = 0;

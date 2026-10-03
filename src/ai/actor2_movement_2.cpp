@@ -525,7 +525,7 @@ void ActorView::movement_update()
         }
     }
 
-    movement_style = *(int16_t *)&a->unknown_42b[1];
+    movement_style = a->movement_style_override;
     if (movement_style == -1) {
         movement_style = 2;
         if (actor_base[0x429] != 0) {
@@ -541,7 +541,7 @@ void ActorView::movement_update()
         }
     }
     a->control_animation_mode = movement_style;
-    cached_axis = *(int16_t *)&a->unknown_42b[3];
+    cached_axis = a->strafe_axis_override;
 
     if (a->movement_action_complete != 0 &&
         actor_def->stationary_movement_dist <= *(float *)&a->movement_timer) {

@@ -469,7 +469,7 @@ typedef struct unit_data {
     int16_t looking_animation_index;    // 0x29c the "look" unit animation permutation (unit_try_set_animation_state),
                                         //    blended by the looking vector (0x563b50); -1 none
                                         //       seat / turret overlay
-    int16_t unknown_29e;                // 0x29e
+    int16_t overlay_animation_index;       // 0x29e third animation overlay index next to aiming/looking (seat / turret overlay); -1 at spawn, nothing else touches it
     int8_t animation_definition_index;  // 0x2a0 index into the unit block of the animation graph
                                         //       (tag data + 0x0c count, + 0x10 address,
                                         //       stride 100); -1 when the unit has none
@@ -578,7 +578,7 @@ typedef struct unit_data {
     int16_t major_hurt_speech_delay_ticks; // 0x3ee 60 after a high-damage line; blocks non-scripted lines while set
                                            //    (nothing in the rewrite counts it down: 0x561620 decrements 0x3ec
                                            //    twice)
-    uint32_t unknown_3f0;               // 0x3f0 0x560d00 returns it to its caller unchanged
+    uint32_t communication_hold_tick;      // 0x3f0 ai_communication_record_line_played stamps it with game tick + max(speech_duration_ticks - 45, 0); -1 at spawn; unit_animation_change_priority_check hands it back to its callers
     int8_t speech_started;              // 0x3f4 0x561620 sets it once the sound was started
     int8_t speech_lipsync_stopped;      // 0x3f5 set once the lipsync countdown hit 0
     int8_t speech_finished;             // 0x3f6 set once the duration countdown hit 0
@@ -804,9 +804,11 @@ typedef struct vehicle_data {
                                         //       counts it down and fires on the 0 edge
     uint8_t airborne_ticks;             // 0x4d0 0x575640 increments it while off the ground
                                         //       and 0x5756f0 folds it into the blend weight
-    uint8_t unknown_4d1;                // 0x4d1 vehicle_update clears it with unknown_4d2
-    uint8_t unknown_4d2;                // 0x4d2 counter vehicle_update raises while 0x4d1 is
-                                        //       1 or 2 and clears past 0x1d
+    uint8_t push_direction;             // 0x4d1 direction code a player push interaction (action type 11) stores:
+                                        //       1 / 2 push sideways, 3 / 4 push along the vehicle's forward axis;
+                                        //       vehicle_update applies the velocity impulse while it is non-zero
+    uint8_t push_ticks;                 // 0x4d2 ticks the impulse has been applied; vehicle_update clears it
+                                        //       and push_direction once it reaches 0x1e
     uint8_t landing_ticks;              // 0x4d3 0x575640 bumps it when ground contact resumes
     float forward_velocity;             // 0x4d4 divided by the Vehicle tag field
                                         //       maximum_forward_speed (0x2f8) or
@@ -842,7 +844,8 @@ typedef struct vehicle_data {
     uint8_t collision_update_pending;   // 0x524 0x524 set when mass-point overlap applies force to the vehicle;
                                         //    cleared by vehicle_encode_network_update and player_update_history_play
     uint8_t unknown_525;                // 0x525 the scripted spawn seeds it with 1
-    uint8_t unknown_526;                // 0x526 read into the film snapshot
+    uint8_t network_epoch;              // 0x526 incremented by the vehicle reset at 0x572410 (which also sets 0x525 and 0x528 to 1); sent in every
+                                        //    vehicle network update header; the receiver compares it with its own epoch (0x572742) and takes a different path on a mismatch
     uint8_t network_update_sequence;    // 0x527 0x5724d0 increments it and wraps it at 0xff
     uint8_t network_delta_sequence;     // 0x528 base of the delta record 0x5724d0 encodes
     uint8_t unknown_529[0x83];          // 0x529 untouched by this module

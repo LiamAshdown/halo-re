@@ -251,11 +251,10 @@ void halo::ai::combat_ops::issue_multi_target_vocalization(int16_t line, datum_i
         vehicle_object_index != (datum_index)k_datum_index_none) {
         obj = object_try_and_get(vehicle_object_index, -1);
         if (obj != 0) {
-            context.kind = 0;
-            context.unknown_02 = 0;
-            context.handle = (datum_index)k_datum_index_none;
-            context.unknown_08 = 0;
-            context.unknown_0c = 0;
+            context.code = 0;
+            context.payload.handle = (datum_index)k_datum_index_none;
+            context.payload.point.y = 0.0f;
+            context.payload.point.z = 0.0f;
             actor_begin_vocalization(actor_index, line, variant, &context);
         }
     }

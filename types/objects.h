@@ -574,7 +574,9 @@ typedef struct object_shield_impulse_result {
 typedef struct object_globals {
     uint8_t unknown_00;             // 0x00
     uint8_t collecting_in_clusters; // 0x01 raised around the object_collect_in_clusters walk
-    uint8_t unknown_02[2];          // 0x02
+    uint8_t garbage_collect_requested; // 0x02 the script function garbage_collect_now raises it; the next sweep then
+                                    //    collects every eligible object (mode 0); the sweep clears it on exit
+    uint8_t unknown_03;             // 0x03
     int16_t active_garbage_object_count; // 0x04 object_update increments per active tracked (garbage) object;
                                          //    objects_update zeroes; objects_garbage_collection collects at >=50 down
                                          //    to 30 and decrements per delete

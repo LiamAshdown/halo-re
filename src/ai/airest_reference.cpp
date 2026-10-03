@@ -86,11 +86,11 @@ extern void actor_process_order_request(datum_index actor_index, uint32_t order)
 namespace halo::ai {
 
 /**
- * Behaviour of ai platoon range clear unknown 00, moved unchanged from the original free function.
+ * Clears the defending state of every platoon in the reference's platoon range (hs ai_attack).
  *
  * @address 0x433200
  */
-void ReferenceView::clear_unknown_00()
+void ReferenceView::clear_defending()
 {
     uint32_t packed_reference = handle;
     ai_reference_platoon_range range;
@@ -150,11 +150,11 @@ uint8_t ReferenceView::has_available()
 }
 
 /**
- * Behaviour of ai platoon range set unknown 00, moved unchanged from the original free function.
+ * Sets the defending state of every platoon in the reference's platoon range (hs ai_defend).
  *
  * @address 0x433270
  */
-void ReferenceView::set_unknown_00()
+void ReferenceView::set_defending()
 {
     uint32_t packed_reference = handle;
     ai_reference_platoon_range range;
@@ -178,11 +178,11 @@ void ReferenceView::set_unknown_00()
 }
 
 /**
- * Behaviour of ai platoon range set unknown 01, moved unchanged from the original free function.
+ * Sets the maneuvering state of every platoon in the reference's platoon range (hs ai_retreat).
  *
  * @address 0x4332e0
  */
-void ReferenceView::set_unknown_01()
+void ReferenceView::set_maneuvering()
 {
     uint32_t packed_reference = handle;
     ai_reference_platoon_range range;
@@ -206,11 +206,11 @@ void ReferenceView::set_unknown_01()
 }
 
 /**
- * Behaviour of ai platoon range set unknown 02, moved unchanged from the original free function.
+ * Stores maneuver_disabled = (flag == 0) for every platoon in the reference's platoon range (hs ai_maneuver_enable).
  *
  * @address 0x433350
  */
-void ReferenceView::set_unknown_02(char flag)
+void ReferenceView::set_maneuver_enabled(char flag)
 {
     uint32_t packed_reference = handle;
     ai_reference_platoon_range range;
@@ -710,11 +710,11 @@ void ReferenceView::invoke_squad_callback_406f80()
 }
 
 /**
- * Behaviour of ai reference mark squads unknown 11, moved unchanged from the original free function.
+ * Sets timer_started on every squad of the reference (hs ai_timer_start).
  *
  * @address 0x432f10
  */
-void ReferenceView::mark_squads_unknown_11()
+void ReferenceView::start_squad_timers()
 {
     uint32_t packed_reference = handle;
     if (packed_reference != (uint32_t)k_datum_index_none) {
@@ -1127,11 +1127,11 @@ void ReferenceView::set_search_target_point(uint32_t reference_value)
 }
 
 /**
- * Behaviour of ai reference set squads unknown 14, moved unchanged from the original free function.
+ * Stores dormancy_disabled = (flag == 0) on every squad of the reference (hs ai_allow_dormant).
  *
  * @address 0x435bc0
  */
-void ReferenceView::set_squads_unknown_14(char flag)
+void ReferenceView::set_squads_dormancy_allowed(char flag)
 {
     uint32_t packed_reference = handle;
     ai_reference_squad_iterator iterator;
@@ -1147,11 +1147,11 @@ void ReferenceView::set_squads_unknown_14(char flag)
 }
 
 /**
- * Behaviour of ai reference set unknown 1cb, moved unchanged from the original free function.
+ * Stores charge_disallowed = (flag == 0) on every actor of the reference (hs ai_allow_charge).
  *
  * @address 0x434d40
  */
-void ReferenceView::set_unknown_1cb(char flag)
+void ReferenceView::set_charge_allowed(char flag)
 {
     uint32_t packed_reference = handle;
     ai_reference_actor_iterator iterator;
@@ -1326,11 +1326,11 @@ encounter_squad_state * ReferenceView::squad_iterator_next(ai_reference_squad_it
 }
 
 /**
- * Behaviour of ai reference squad set unknown 10, moved unchanged from the original free function.
+ * Stores the value as automatic_migration on every squad of the reference (hs ai_automatic_migration_target).
  *
  * @address 0x435ab0
  */
-void ReferenceView::squad_set_unknown_10(uint8_t value)
+void ReferenceView::squad_set_automatic_migration(uint8_t value)
 {
     uint32_t packed_reference = handle;
     if (packed_reference != (uint32_t)k_datum_index_none) {

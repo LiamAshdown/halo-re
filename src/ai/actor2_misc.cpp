@@ -78,7 +78,7 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
     self->pending_order_request = -1;
     self->standing_order_request = -1;
     self->last_order_request_time = -1;
-    self->unknown_8e = 0;
+    self->command_list_run_immediately = 0;
     self->pending_command_list = -1;
     self->command_list_finished_time = -1;
     self->mode = 0;
@@ -92,7 +92,7 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
     self->pathfinding_surface_index = -1;
     self->active_unit_index = (datum_index)k_datum_index_none;
     self->platoon_defending = 0;
-    self->unknown_1cc = 0;
+    self->grenade_ally_phase_flag = 0;
     self->nearby_friend_prop_index = (datum_index)k_datum_index_none;
     self->try_to_fight_type = 0;
     self->conversation_index = (datum_index)k_datum_index_none;
@@ -119,7 +119,7 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
         self->ignores_glass = halo::math::random_real() < actor_tag->glass_ignorance_chance;
     }
 
-    self->vocalization_unknown_3e8 = 0;
+    self->flee_reason = 0;
     self->secondary_action = 0;
     self->movement_completed = 0;
     self->destination_surface_index = 0xffffffff;
@@ -1361,14 +1361,14 @@ void ActorView::replace_object_reference(uint32_t new_reference, uint32_t old_re
     if (self->grenade_target_prop_index == old_reference) {
         self->grenade_target_prop_index = new_reference;
     }
-    if (self->look_at_unknown_2f4 == old_reference) {
-        self->look_at_unknown_2f4 = new_reference;
+    if (self->look_at_reference == old_reference) {
+        self->look_at_reference = new_reference;
     }
     if (self->pending_panic_prop_index == old_reference) {
         self->pending_panic_prop_index = new_reference;
     }
-    if (self->search_unknown_340 == old_reference) {
-        self->search_unknown_340 = new_reference;
+    if (self->search_prop_index == old_reference) {
+        self->search_prop_index = new_reference;
     }
     if (self->retreat_prop_index == old_reference) {
         if (new_reference == 0xffffffff) {
@@ -1395,8 +1395,8 @@ void ActorView::replace_object_reference(uint32_t new_reference, uint32_t old_re
         }
     }
 
-    if (self->vocalization_unknown_54c == 1 && self->vocalization_unknown_550 == old_reference) {
-        self->vocalization_unknown_550 = new_reference;
+    if (self->vocalization_source.code == 1 && self->vocalization_source.payload.handle == old_reference) {
+        self->vocalization_source.payload.handle = new_reference;
     }
     if (self->idle_major_direction_type == 1 && *(uint32_t *)((uint8_t *)self + 0x570) == old_reference) {
         *(uint32_t *)((uint8_t *)self + 0x570) = new_reference;
@@ -2540,8 +2540,8 @@ void ActorView::snapshot_orientation()
     actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
 
     self->snapshot_facing = self->facing;
-    self->snapshot_unknown_708 = self->facing_unknown_180;
-    self->snapshot_unknown_714 = self->facing_unknown_18c;
+    self->aiming_vector_snapshot = self->unit_aiming_vector;
+    self->looking_vector_snapshot = self->unit_looking_vector;
 
     self->control_flags = 0;
     self->override_target = 0;
@@ -2682,9 +2682,9 @@ extern data_array *actor_data;
 extern game_time_globals *game_time;
 extern void actor_target_get_relationship_object(datum_index target_prop_index);
 extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
-                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
-                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
-                                        uint8_t unknown_348);
+                                        real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra,
+                                        uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value,
+                                        uint8_t prop_flag);
 }
 }
 

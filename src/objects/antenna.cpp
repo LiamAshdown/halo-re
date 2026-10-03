@@ -471,7 +471,7 @@ static void (*const build_sprite__as_antenna_render_wire)(int32_t, uint8_t *, re
  * Builds the wire segments between antenna vertices as sprites. Unreferenced in the retail binary and kept as a
  * literal transliteration; its signature is a best-effort reconstruction.
  *
- * Original register convention: UNSURE, see file header; this signature is a best-effort reconstruction with no.
+ * Original register convention: not observable, because the retail binary never calls this function.
  *
  * @address 0x004fb3e0
  */

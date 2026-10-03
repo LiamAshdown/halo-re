@@ -44,8 +44,8 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
     control.throttle = *(real_vector3d *)&((struct actor *)actor)->throttle.i;
     control.primary_trigger = *(float *)&((struct actor *)actor)->override_target;
     control.facing_vector = *(real_vector3d *)&((struct actor *)actor)->snapshot_facing.i;
-    control.aiming_vector = *(real_vector3d *)&((struct actor *)actor)->snapshot_unknown_708.i;
-    control.looking_vector = *(real_vector3d *)&((struct actor *)actor)->snapshot_unknown_714.i;
+    control.aiming_vector = *(real_vector3d *)&((struct actor *)actor)->aiming_vector_snapshot.i;
+    control.looking_vector = *(real_vector3d *)&((struct actor *)actor)->looking_vector_snapshot.i;
 
     if (*(uint32_t *)&((unit_object *)unit)->unit.controlling_player != 0xffffffff && local_player_globals->input_disabled == 0) {
         return;
@@ -114,14 +114,14 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
         return 0;
     }
 
-    urgent = (uint8_t)(self->vocalization_unknown_3e8 > 6);
+    urgent = (uint8_t)(self->flee_reason > 6);
 
     if ((line < 13 && self->mode == _actor_mode_flee && self->mode_data.raw[3] == 0) ||
         (urgent != 0 && line < 4)) {
         return 0;
     }
 
-    if (context->kind == 1) {
+    if (context->code == 1) {
 
         target = (prop *)halo::memory::datum_get(context->handle, prop_data);
         if (target == (prop *)0) {
@@ -166,10 +166,7 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
     self->vocalization_line = line;
     self->vocalization_state = (int16_t)ticks;
     self->vocalization_variant = variant;
-    self->vocalization_unknown_54c = ((uint32_t *)context)[0];
-    self->vocalization_unknown_550 = ((uint32_t *)context)[1];
-    self->vocalization_unknown_554 = ((uint32_t *)context)[2];
-    self->vocalization_unknown_558 = ((uint32_t *)context)[3];
+    memcpy(&self->vocalization_source, context, sizeof(self->vocalization_source));
     return 1;
 }
 
@@ -278,9 +275,9 @@ int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, ui
     }
 
     if (actor[6] == 0 && check_facing != 0) {
-        float forward = dz * ((struct actor *)actor)->facing_unknown_18c.k + dy * ((struct actor *)actor)->facing_unknown_18c.j + dx * ((struct actor *)actor)->facing_unknown_18c.i;
-        float left = dz * *(float *)(actor + 0x1a0) + dy * *(float *)&((struct actor *)actor)->unknown_19c + dx * *(float *)(actor + 0x198);
-        float up = dz * *(float *)(actor + 0x1ac) + dy * *(float *)&((struct actor *)actor)->unknown_1a8 + dx * *(float *)(actor + 0x1a4);
+        float forward = dz * ((struct actor *)actor)->unit_looking_vector.k + dy * ((struct actor *)actor)->unit_looking_vector.j + dx * ((struct actor *)actor)->unit_looking_vector.i;
+        float left = dz * ((struct actor *)actor)->looking_left_vector.k + dy * ((struct actor *)actor)->looking_left_vector.j + dx * ((struct actor *)actor)->looking_left_vector.i;
+        float up = dz * ((struct actor *)actor)->looking_up_vector.k + dy * ((struct actor *)actor)->looking_up_vector.j + dx * ((struct actor *)actor)->looking_up_vector.i;
         float elevation = (float)atan2((double)up, sqrt((double)(left * left + forward * forward)));
 
         if (elevation > 0.5235988f || !(elevation > -0.78539819f)) {
@@ -441,11 +438,11 @@ void halo::ai::look_ops::issue_order_or_vocalize(datum_index prop_index, datum_i
     }
 
     if (prop_index == (datum_index)k_datum_index_none || kind < 2 || 3 < kind) {
-        context.kind = 3;
-        unit_get_primary_eye_marker_position(vehicle_object_index, (real_point3d *)&context.handle);
+        context.code = 3;
+        unit_get_primary_eye_marker_position(vehicle_object_index, &context.payload.point);
     } else {
-        context.kind = 1;
-        context.handle = prop_index;
+        context.code = 1;
+        context.payload.handle = prop_index;
     }
     actor_begin_vocalization(actor_index, line, variant, &context);
 }

@@ -51,7 +51,7 @@ typedef struct vehicle_network_create_message {
     real_vector3d up;
     real_vector3d velocity;
     real_vector3d angular_velocity;
-    uint8_t unknown_526;
+    uint8_t network_epoch;
     uint8_t pad_61[3];
 } vehicle_network_create_message;
 
@@ -111,7 +111,7 @@ void unit_spawn_with_starting_weapons(void *command_record)
     memcpy(vehicle + 0x544, &message.angular_velocity, 12);
     memcpy(vehicle + 0x550, &message.forward, 12);
     memcpy(vehicle + 0x55c, &message.up, 12);
-    vehicle[0x526] = message.unknown_526;
+    vehicle[0x526] = message.network_epoch;
     vehicle[0x525] = 1;
     vehicle[0x527] = 0;
     object_set_position_and_recalculate((real_point3d *)(vehicle + 0x52c), vehicle_index);

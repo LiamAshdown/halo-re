@@ -1,3 +1,4 @@
+#include "halo/rasterizer/globals.hpp"
 #include "crt.h"
 #include "win32.h"
 #include "tags.h"
@@ -38,7 +39,6 @@ extern uint8_t render_lighting_smoothing_enabled;
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity,
     real_vector3d *out_angular_velocity);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern uint8_t console_debug_toggle_6893ec;
 extern uint32_t rasterizer_device_version;
 extern void *rasterizer_device;
 extern player_globals *local_player_globals;
@@ -61,13 +61,11 @@ extern uint8_t rasterizer_object_shadow_begin(real_matrix4x3 *projection, ColorR
     float *out_radius);
 extern rasterizer_window_parameters rasterizer_window;
 extern uint8_t rasterizer_caps_flag_689;
-extern uint8_t console_debug_toggle_6893f2;
 extern uint8_t rasterizer_object_shadow_window_restored;
 extern void rasterizer_render_target_set_active(int16_t target_index, uint32_t clear_color, uint8_t clear);
 extern int16_t rendered_object_count;
 extern datum_index rendered_objects[0x100];
 extern uint8_t rasterizer_render_states_dirty;
-extern uint8_t unknown_0071d1fa;
 extern uint8_t console_debug_toggle_6893ee;
 extern void first_person_weapon_update_lighting(void);
 extern object_globals *object_globals_pointer;
@@ -413,7 +411,7 @@ void halo::render::ObjectRenderData::shadow_end()
 
     halo::structures::structure_debug_draw_surfaces_simple(position, data->shadow_radius * 4.0f, &box, planes, 6);
 
-    if (rasterizer_window.type == 1 && rasterizer_caps_flag_689 == 0 && console_debug_toggle_6893f2 != 0 &&
+    if (rasterizer_window.type == 1 && rasterizer_caps_flag_689 == 0 && halo::rasterizer::globals::object_shadows_enabled != 0 &&
         rasterizer_object_shadow_window_restored == 0) {
         rasterizer_render_target_set_active(1, 0, 0);
         rasterizer_object_shadow_window_restored = 1;
@@ -463,9 +461,9 @@ real compute_level_of_detail_pixels(datum_index object_index)
     }
 
     radius = obj->bounding_radius;
-    if ((int16_t)unknown_00689450 == 1) {
+    if ((int16_t)halo::rasterizer::globals::object_lod_quality == 1) {
         radius = radius * 0.5f;
-    } else if ((int16_t)unknown_00689450 == 0) {
+    } else if ((int16_t)halo::rasterizer::globals::object_lod_quality == 0) {
         radius = radius * 0.25f;
     }
 
@@ -679,7 +677,7 @@ namespace halo::render::lighting {
  */
 void disable_workaround(void)
 {
-    if (console_debug_toggle_6893ec != 0 && rasterizer_device_version < 0xffff0101) {
+    if (halo::rasterizer::globals::models_enabled != 0 && rasterizer_device_version < 0xffff0101) {
         void **vtable = *(void ***)rasterizer_device;
         d3d_set_render_state_fn set_render_state = (d3d_set_render_state_fn)vtable[0xe4 / 4];
         set_render_state(rasterizer_device, 0x89, 0);
@@ -899,9 +897,9 @@ void s(void)
     uint8_t pass;
     uint8_t first_iteration;
 
-    if (console_debug_toggle_6893ec != 0) {
+    if (halo::rasterizer::globals::models_enabled != 0) {
         rasterizer_render_states_dirty = 1;
-        unknown_0071d1fa = 0;
+        halo::rasterizer::globals::sky_pass_active = 0;
         if (rasterizer_device_version < 0xffff0101) {
             void **vtable = *(void ***)rasterizer_device;
             d3d_set_render_state_fn set_render_state = (d3d_set_render_state_fn)vtable[0xe4 / 4];
@@ -927,7 +925,7 @@ void s(void)
         pass = 1;
     } while (first_iteration);
 
-    if (console_debug_toggle_6893ec != 0 && rasterizer_device_version < 0xffff0101) {
+    if (halo::rasterizer::globals::models_enabled != 0 && rasterizer_device_version < 0xffff0101) {
         void **vtable = *(void ***)rasterizer_device;
         d3d_set_render_state_fn set_render_state = (d3d_set_render_state_fn)vtable[0xe4 / 4];
         set_render_state(rasterizer_device, 0x89, 0);

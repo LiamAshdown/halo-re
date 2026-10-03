@@ -1,3 +1,5 @@
+#include "halo/hs/script_globals.hpp"
+#include "halo/main/main_globals_fields.hpp"
 #include "halo/hs/hs1_camera_commands.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/cutscene/api.hpp"
@@ -8,12 +10,10 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern int16_t director_camera_mode;
-extern uint8_t unknown_006869d1;
 extern datum_index director_camera_target;
 extern float camera_script_time_remaining;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t network_join_error_reason;
-extern uint8_t unknown_0071973b;
 extern void cinematic_screen_effect_set_convolution(int16_t convolution_type, int16_t extra_passes, float radius_lower_bound, float radius_upper_bound, float duration);
 extern void cinematic_screen_effect_set_filter(float light_enhancement_lower, float light_enhancement_upper, float desaturation_lower, float desaturation_upper, uint8_t is_additive, float duration);
 extern uint8_t *cinematic_screen_effect_state;
@@ -88,7 +88,7 @@ void CameraCommands::camera_set_dead(int16_t function_index, uint32_t thread_ind
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != 0xffffffff) {
             director_camera_mode = 3;
-            unknown_006869d1 = 1;
+            halo::hs::globals::director_camera_target_changed = 1;
             director_camera_target = (datum_index)arguments[0];
         }
         hs_thread_return(0, thread_index);
@@ -109,7 +109,7 @@ void CameraCommands::camera_set_first_person(int16_t function_index, uint32_t th
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != 0xffffffff) {
             director_camera_mode = 2;
-            unknown_006869d1 = 1;
+            halo::hs::globals::director_camera_target_changed = 1;
             director_camera_target = (datum_index)arguments[0];
         }
         hs_thread_return(0, thread_index);
@@ -173,7 +173,7 @@ void CinematicCommands::cinematic_abort(int16_t function_index, uint32_t thread_
 {
     split_screen_quit_prompt_string = 0xffff;
     network_join_error_reason = 0;
-    unknown_0071973b = 1;
+    halo::main::fields::revert_map_if_allowed = 1;
     hs_thread_return(0, thread_index);
 }
 

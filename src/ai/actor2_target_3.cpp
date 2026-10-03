@@ -97,21 +97,21 @@ void ActorView::target_relationship_think()
     {
         uint8_t should_react;
 
-        if (self->danger_is_own == 0 && self->danger_unknown_282 == 0) {
+        if (self->danger_is_own == 0 && self->danger_owner_relation == 0) {
             should_react = 0;
-            if (self->danger_unknown_284 > 0 && self->danger_unknown_286 != 0) {
+            if (self->danger_reaction_ticks > 0 && self->danger_reaction_delayed != 0) {
                 if (self->ticks_since_threatened == -1 || self->ticks_since_threatened > 0x3b) {
-                    self->danger_unknown_284 -= 1;
-                    should_react = (uint8_t)(self->danger_unknown_284 == 0);
+                    self->danger_reaction_ticks -= 1;
+                    should_react = (uint8_t)(self->danger_reaction_ticks == 0);
                 } else {
-                    self->danger_unknown_284 = 0;
+                    self->danger_reaction_ticks = 0;
                     should_react = 1;
                 }
             }
         } else {
             self->danger_reacting = 1;
-            should_react = (uint8_t)(self->danger_unknown_284 > 0);
-            self->danger_unknown_284 = 0;
+            should_react = (uint8_t)(self->danger_reaction_ticks > 0);
+            self->danger_reaction_ticks = 0;
         }
 
         if (should_react) {
@@ -140,12 +140,12 @@ void ActorView::target_relationship_think()
                     self->danger_dive = 0;
                 }
                 actor_notify_squad_of_threat_direction(&self->flee_from_point, actor_index, (uint16_t)self->danger_type,
-                    (uint16_t)self->danger_unknown_282);
+                    (uint16_t)self->danger_owner_relation);
             }
         }
     }
 
-    if (self->danger_unknown_284 == 0) {
+    if (self->danger_reaction_ticks == 0) {
         if (self->vocalization_line == 0xc) {
             if (self->vocalization_variant > 5) {
                 self->vocalization_variant = 5;
@@ -190,7 +190,7 @@ restart:
             self->ticks_since_engaged = 0;
         }
 
-        *(int16_t *)&self->unknown_4d[1] = (int16_t)reaction_ticks;
+        self->target_reaction_threshold = (int16_t)reaction_ticks;
         self->nearest_orphan_prop_index = result;
         return;
     }
@@ -263,7 +263,7 @@ restart:
         if (target->distance_class > 2) {
             timer = (int16_t)(timer >> 1);
         }
-        if (danger_reacted == 0 && timer >= *(int16_t *)&self->unknown_4d[1]) {
+        if (danger_reacted == 0 && timer >= self->target_reaction_threshold) {
             need_aim_refresh = 1;
             refresh_needed = 1;
             timer = 0;
@@ -281,8 +281,8 @@ restart:
                               (self->nearest_orphan_prop_index == target_prop_index) ||
                               (self->retreat_prop_index == target_prop_index) ||
                               (self->nearby_friend_prop_index == target_prop_index) ||
-                              (self->vocalization_line != 0 && *(int16_t *)&self->vocalization_unknown_54c == 1 &&
-                               self->vocalization_unknown_550 == target_prop_index) ||
+                              (self->vocalization_line != 0 && self->vocalization_source.code == 1 &&
+                               self->vocalization_source.payload.handle == target_prop_index) ||
                               (self->idle_major_active != 0 && self->idle_major_direction_type == 1 &&
                                self->idle_major_prop_index == target_prop_index) ||
                               (self->idle_look_state[1] != 0 && self->idle_look_direction_type == 1 &&

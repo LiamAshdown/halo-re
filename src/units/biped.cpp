@@ -1,3 +1,4 @@
+#include "halo/hs/script_globals.hpp"
 #include "halo/units/unit.hpp"
 #include "game.h"
 #include "hs.h"
@@ -44,7 +45,6 @@ extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern double sqrt(double x);
-extern uint8_t DAT_0087abc3;
 extern void actor_squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_object_index, datum_index other_object_index);
 extern int32_t unit_get_local_player_weapon_index(datum_index unit);
 extern void local_player_set_controlled_unit(datum_index new_unit, int16_t local_player_index);
@@ -54,7 +54,7 @@ namespace halo::units {
 
 /**
  * Advances the biped's animation frame counter (unknown_4d0); once it reaches the loaded threshold
- * (unknown_4d1), invalidates the cached comparison (unknown_508). Then, unless updates are globally
+ * (byte 0x4d1), invalidates the cached comparison (unknown_508). Then, unless updates are globally
  * suppressed, fires paired trigger events (ids 5) once the counter reaches exactly 2, or if the comparison is
  * unresolved and the threshold is small. Reports state 0x15 or 0x16 depending on whether the comparison flag
  * reads 1.
@@ -869,7 +869,7 @@ void biped_update_target_lock_timer(datum_index target, uint32_t object_index)
     if ((int8_t)biped->bump_ticks <= 3) {
         return;
     }
-    if (target_obj->type == 0 && DAT_0087abc3 != 0) {
+    if (target_obj->type == 0 && halo::hs::globals::bump_possession != 0) {
         int32_t local_player = unit_get_local_player_weapon_index(object_index);
         if ((int16_t)local_player != -1) {
             biped_data *target_biped = (biped_data *)((uint8_t *)target_obj + k_unit_object_size);

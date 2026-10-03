@@ -1491,7 +1491,7 @@ void EncounterView::evaluate_support_needs(datum_index self_actor_index, int16_t
         not_self = (uint8_t)(current != self_actor_index);
         actor_index = a->next_in_encounter;
 
-        if (not_self != 0 && a->unknown_1cc == phase) {
+        if (not_self != 0 && a->grenade_ally_phase_flag == phase) {
             if (a->mode == 5) {
                 if (*(int16_t *)(a->mode_data.raw + 8) == 0) {
                     if (a->combat_status < 3) {
@@ -1528,11 +1528,11 @@ void EncounterView::evaluate_support_needs(datum_index self_actor_index, int16_t
     if (phase == 0) {
         actor_find_nearest_grenade_ally(self_actor_index, 0);
         *out_reachable_b = (uint8_t)(self->nearby_friend_prop_index != (datum_index)k_datum_index_none);
-        self->unknown_1cc = 0;
+        self->grenade_ally_phase_flag = 0;
     } else {
         reachable = actor_find_nearest_grenade_ally(self_actor_index, 1);
         *out_reachable_a = (uint8_t)(1 < reachable);
-        self->unknown_1cc = (uint8_t)(1 < reachable);
+        self->grenade_ally_phase_flag = (uint8_t)(1 < reachable);
     }
 
     any = (uint8_t)(out_reachable_a != 0 || out_reachable_b != 0);

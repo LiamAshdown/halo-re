@@ -142,7 +142,7 @@ typedef struct vehicle_network_create_record {
     int32_t creator_key;
     int32_t seat_keys[4];
     uint8_t vectors[5][12];
-    uint8_t unknown_526;
+    uint8_t network_epoch;
     uint8_t pad_61[3];
 } vehicle_network_create_record;
 
@@ -194,7 +194,7 @@ int32_t VehicleView::encode_network_create(int32_t buffer, int32_t bit_budget)
 
         record.seat_keys[i] = seat == -1 ? 0 : hash_table_get(keys, seat);
     }
-    record.unknown_526 = vehicle[0x526];
+    record.network_epoch = vehicle[0x526];
     memcpy(record.vectors[0], vehicle + 0x52c, 12);
     memcpy(record.vectors[1], vehicle + 0x550, 12);
     memcpy(record.vectors[2], vehicle + 0x55c, 12);

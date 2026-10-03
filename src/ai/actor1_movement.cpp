@@ -1064,7 +1064,7 @@ uint8_t halo::ai::movement_ops::get_cached_wander_position(real_vector3d *out_po
 
     if (self->target_combat_status > 8 && actor_mode_definitions[self->mode].combat_grade == 4) {
         if (self->grenade_throw_pending != 0) {
-            *out_position = self->facing_unknown_180;
+            *out_position = self->unit_aiming_vector;
             return 1;
         }
         if (self->firing_target_type > 0) {

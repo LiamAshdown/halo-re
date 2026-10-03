@@ -1,3 +1,4 @@
+#include "halo/hs/script_globals.hpp"
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "game.h"
@@ -32,7 +33,6 @@ extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern uint8_t unit_updates_suppressed;
-extern uint8_t DAT_0087abc1;
 extern void damage_data_initialize(damage_data *dd, datum_index damage_effect_tag);
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
 extern int32_t player_index_from_unit_index(uint32_t unit_index);
@@ -463,7 +463,7 @@ void UnitView::apply_fall_damage(float fall_speed)
         exempt = 1;
     }
 
-    if (DAT_0087abc1 == 0 || unit->controlling_player == k_datum_index_none) {
+    if (halo::hs::globals::jetpack == 0 || unit->controlling_player == k_datum_index_none) {
         if (fall_speed <= *(float *)(fall_table + 0x90)) {
             if ((tag->biped_flags & 4) == 0 && obj->velocity.k < -*(float *)(fall_table + 0x8c)) {
                 if (!exempt && (obj->vitality_flags & 4) == 0) {

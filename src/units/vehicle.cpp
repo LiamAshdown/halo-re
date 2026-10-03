@@ -111,8 +111,8 @@ void VehicleView::reset_state()
     vehicle->flags = 0;
     vehicle->decay_ticks_remaining = 0;
     vehicle->airborne_ticks = 0;
-    vehicle->unknown_4d1 = 0;
-    vehicle->unknown_4d2 = 0;
+    vehicle->push_direction = 0;
+    vehicle->push_ticks = 0;
     vehicle->landing_ticks = 0;
     vehicle->forward_velocity = 0.0f;
     vehicle->sideways_velocity = 0.0f;

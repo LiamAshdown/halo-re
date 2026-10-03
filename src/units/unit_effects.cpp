@@ -229,7 +229,7 @@ void UnitView::get_forward_vector_or_marker_normal(real_vector3d *out)
 }
 
 /**
- * Retrieves the world position of a fixed named marker via FUN_004f6080 and returns it through the implicit
+ * Retrieves the world position of a fixed named marker via object_get_node_local_transform and returns it through the implicit
  * ESI output pointer
  *
  * Original register convention: ECX -> object_index, ESI -> out.
@@ -246,7 +246,7 @@ void UnitView::get_primary_eye_marker_position(real_point3d *out)
 }
 
 /**
- * Retrieves the world position of a second fixed named marker via FUN_004f6080 and returns it through the
+ * Retrieves the world position of a second fixed named marker via object_get_node_local_transform and returns it through the
  * implicit ESI output pointer
  *
  * Original register convention: ECX -> object_index, ESI -> out.

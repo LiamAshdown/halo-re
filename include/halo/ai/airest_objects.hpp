@@ -72,7 +72,7 @@ public:
     void dispatch_actor_event_d(int32_t unused);
     void flee_if_ready(uint32_t readiness_param);
     void remap_actor_to_squad(uint32_t packed_reference, char notify);
-    void set_actor_unknown_0a(uint8_t value);
+    void set_actor_force_active(uint8_t value);
 };
 
 }

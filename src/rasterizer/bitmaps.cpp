@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -206,7 +207,7 @@ static BitmapData *rasterizer_tag_bitmap(uint32_t bitmap_tag_id, int16_t bitmap_
     int32_t count;
 
     *resolved = 0;
-    if ((console_debug_toggle_689409 == 0 && default_index == 3) || bitmap_tag_id == 0xffffffff) {
+    if ((halo::rasterizer::globals::bump_mapping_enabled == 0 && default_index == 3) || bitmap_tag_id == 0xffffffff) {
         return 0;
     }
     bitmap = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag_id & 0xffff].data;
@@ -368,7 +369,8 @@ uint8_t rasterizer_bind_texture_d3dx(int16_t stage, BitmapData *bitmap, rasteriz
 }  // namespace rasterizer_bind_texture_d3dx_impl
 
 /**
- * 0x0068944e, UNSURE owner; clamped to [0,2] skip levels Returns how many mip levels were skipped (0 if the
+ * Computes how many top mip levels the bitmap skips for the texture quality setting (renderer_texture_quality at
+ * 0x0068944e: 0 high, 1 medium, 2 low), clamped to [0,2]. Returns how many mip levels were skipped (0 if the
  * quality setting, bitmap flags or mip count don't allow skipping), halving *out_width/*out_height once per
  * level skipped.
  *

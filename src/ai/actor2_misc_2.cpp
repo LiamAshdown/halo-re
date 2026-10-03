@@ -296,10 +296,10 @@ void ActorView::refresh_combat_context()
         if (*(uint32_t *)(vehicle_tag + 0x2f0) & 0x100) {
             unit_get_forward_vector_or_marker_normal(A_I32(0x18), (real_vector3d *)(self + 0x180));
         } else {
-            *(real_vector3d *)&((struct actor *)self)->facing_unknown_180.i = *(real_vector3d *)&((vehicle_object *)vehicle)->unit.aiming_vector.i;
+            *(real_vector3d *)&((struct actor *)self)->unit_aiming_vector.i = *(real_vector3d *)&((vehicle_object *)vehicle)->unit.aiming_vector.i;
         }
     } else {
-        *(real_vector3d *)&((struct actor *)self)->facing_unknown_180.i = *(real_vector3d *)&((unit_object *)unit)->unit.aiming_vector.i;
+        *(real_vector3d *)&((struct actor *)self)->unit_aiming_vector.i = *(real_vector3d *)&((unit_object *)unit)->unit.aiming_vector.i;
     }
     *(real_vector3d *)&((struct actor *)self)->facing_unknown_18c.i = *(real_vector3d *)&((unit_object *)unit)->unit.looking_vector.i;
     halo::math::vector3d_cross_product(*(real_vector3d *)(self + 0x198), *(real_vector3d *)(self + 0x18c), *halo::math::globals().global_up3d_pointer);

@@ -398,7 +398,7 @@ uint8_t halo::ai::prop_ops::danger_register_point(datum_index source_object_inde
     if (existing_type <= 0) {
         should_register = 1;
     } else if (existing_type == 1 && self->danger_object_index != source_object_index &&
-               distance < self->danger_unknown_2d4) {
+               distance < self->danger_distance) {
         should_register = 1;
     }
 
@@ -414,18 +414,16 @@ uint8_t halo::ai::prop_ops::danger_register_point(datum_index source_object_inde
         clear++;
     }
 
-    self->danger_unknown_294 = radius;
+    self->danger_object_radius = radius;
     self->danger_type = 1;
     self->danger_object_index = source_object_index;
 
     object_get_position(&self->danger_center, source_object_index);
 
-    self->danger_unknown_2a4 = *(uint32_t *)&source_obj->velocity.i;
-    self->danger_unknown_2a8 = *(uint32_t *)&source_obj->velocity.j;
-    self->danger_unknown_2ac = *(uint32_t *)&source_obj->velocity.k;
-    self->danger_unknown_284 = 6;
-    self->danger_unknown_286 = unknown_byte;
-    self->danger_unknown_282 = (int16_t)(accept_flag == 0);
+    self->danger_object_velocity = *(real_vector3d *)&source_obj->velocity.i;
+    self->danger_reaction_ticks = 6;
+    self->danger_reaction_delayed = unknown_byte;
+    self->danger_owner_relation = (int16_t)(accept_flag == 0);
     return 1;
 }
 
@@ -515,7 +513,7 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
             existing_type = self->danger_type;
             if (existing_type < 3 ||
                 (existing_type == 3 && self->danger_object_index != object_index &&
-                 distance < self->danger_unknown_2d4)) {
+                 distance < self->danger_distance)) {
                 clear = (uint32_t *)&self->danger_type;
                 for (i = 0x1b; i != 0; i--) {
                     *clear = 0;
@@ -525,24 +523,23 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
                 self->danger_type = 3;
                 self->danger_object_index = object_index;
                 driver_field = *(int32_t *)((uint8_t *)obj + 0x324);
-                self->danger_unknown_290 = driver_field;
-                self->danger_unknown_294 = bounding_radius;
+                self->danger_owner_unit = driver_field;
+                self->danger_object_radius = bounding_radius;
 
-                self->danger_unknown_298 = px;
-                self->danger_unknown_29c = py;
-                self->danger_unknown_2a0 = pz;
-                self->danger_unknown_2a4 = *(uint32_t *)&obj->velocity.i;
-                self->danger_unknown_2a8 = *(uint32_t *)&obj->velocity.j;
-                self->danger_unknown_286 = unknown_byte;
-                self->danger_unknown_2ac = *(uint32_t *)&obj->velocity.k;
-                self->danger_unknown_284 = 0x14;
-                self->danger_unknown_282 = 0;
+                self->danger_object_position.x = px;
+                self->danger_object_position.y = py;
+                self->danger_object_position.z = pz;
+                self->danger_object_velocity = *(real_vector3d *)&obj->velocity.i;
+                self->danger_reaction_delayed = unknown_byte;
+
+                self->danger_reaction_ticks = 0x14;
+                self->danger_owner_relation = 0;
 
                 if (driver_field != -1) {
 
                     if (teams_are_enemies(*(int16_t *)((uint8_t *)((object_header *)object_data->data)[driver_field & 0xffff].data + 0xb8),
                                           ((struct actor *)self)->team) == 0) {
-                        self->danger_unknown_282 = 1;
+                        self->danger_owner_relation = 1;
                     }
                 }
                 return 1;

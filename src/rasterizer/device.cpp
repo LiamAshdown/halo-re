@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -167,7 +168,7 @@ void rasterizer_begin_frame(rasterizer_window_parameters *source)
     rasterizer_dynamic_index_count = 0;
     rasterizer_dynamic_index_slot_count = 0;
     transparent_geometry_group_count = 0;
-    unknown_0071d160 = 0;
+    halo::rasterizer::globals::frame_reset_cleared_word = 0;
     for (i = 0; i < 12; i++) {
         transparent_geometry_group_drawn_bits[i] = 0;
     }
@@ -175,8 +176,8 @@ void rasterizer_begin_frame(rasterizer_window_parameters *source)
     rasterizer_light_count = 0;
     rasterizer_light_disable_all();
 
-    unknown_0071d276 = 0;
-    unknown_0071d1b4 = 0;
+    halo::rasterizer::globals::transparent_group_created = 0;
+    halo::rasterizer::globals::frame_reset_cleared_word_b = 0;
     rasterizer_render_target_capture_done = 0;
     rasterizer_render_target_capture_requested = 0;
 
@@ -184,7 +185,7 @@ void rasterizer_begin_frame(rasterizer_window_parameters *source)
     rasterizer_set_fog_constants(&source->fog);
 
     {
-        uint32_t clear_color = (console_debug_toggle_6893e4 == 1) ? 0 : color_rgb_float_to_int(&rasterizer_window.fog.atmospheric_color);
+        uint32_t clear_color = (halo::rasterizer::globals::rasterizer_debug_mode == 1) ? 0 : color_rgb_float_to_int(&rasterizer_window.fog.atmospheric_color);
         if (rasterizer_window.type == 1 || rasterizer_window.type == 2) {
             rasterizer_render_target_set_active(rasterizer_window.type, clear_color, source->clear_target == 0);
         }
@@ -192,7 +193,7 @@ void rasterizer_begin_frame(rasterizer_window_parameters *source)
 
     chimera__rasterizer_set_frustum_z_func(0xbf800000, 0xbf800000);
 
-    render_device().set_render_state(8, 3 - (uint32_t)(console_debug_toggle_6893e6 != 0));
+    render_device().set_render_state(8, 3 - (uint32_t)(halo::rasterizer::globals::rasterizer_wireframe != 0));
 }
 
 /**
@@ -220,7 +221,7 @@ void rasterizer_build_present_parameters(d3d_present_parameters *dest, rasterize
         raw_dest[i] = 0;
     }
 
-    dest->flags = (config_disable_buffering == 0 && unknown_0071d18d == 0 && screenshots == 0) ? 0 : 1;
+    dest->flags = (config_disable_buffering == 0 && halo::rasterizer::globals::lockable_back_buffer_requested == 0 && screenshots == 0) ? 0 : 1;
     dest->enable_auto_depth_stencil = 1;
     dest->swap_effect = (rasterizer_fullscreen == 0) ? 3 : 1;
     dest->back_buffer_width = (uint32_t)source->width;
@@ -634,7 +635,7 @@ void rasterizer_end_frame(void)
         viewport.max_z = 1.0f;
         render_device().set_viewport(&viewport);
 
-        if (console_debug_toggle_6893e6 != 0) {
+        if (halo::rasterizer::globals::rasterizer_wireframe != 0) {
             rasterizer_set_render_state(8, 3);
         }
 
@@ -689,7 +690,7 @@ void rasterizer_end_frame(void)
             }
         }
 
-        if (console_debug_toggle_6893e6 != 0) {
+        if (halo::rasterizer::globals::rasterizer_wireframe != 0) {
             rasterizer_set_render_state(8, 2);
         }
     }
@@ -712,7 +713,7 @@ void rasterizer_end_frame(void)
     rasterizer_set_render_state(0xab, 1);
 
     if (chat_gui_root_handle != 0 && rasterizer_ui_render_failed == 0 &&
-        unknown_00721ebc(chat_gui_root_handle) < 0) {
+        halo::rasterizer::globals::keystone_update(chat_gui_root_handle) < 0) {
         rasterizer_ui_render_failed = 1;
     }
 
@@ -1163,7 +1164,7 @@ uint8_t rasterizer_parse_vidmode_commandline(int32_t *width_out, int32_t *height
             if (height_out != (int32_t *)0) {
                 *height_out = height;
             }
-            if (unknown_0071d1b0 == 0) {
+            if (halo::rasterizer::globals::video_mode_command_line_parsed == 0) {
                 rasterizer_needs_reset = 1;
             }
             found = 1;
@@ -1178,11 +1179,11 @@ uint8_t rasterizer_parse_vidmode_commandline(int32_t *width_out, int32_t *height
         found = 1;
     }
 
-    if (unknown_0071d1b0 == 0) {
+    if (halo::rasterizer::globals::video_mode_command_line_parsed == 0) {
         if (refresh == 0) {
             video_force_mode_flag = 1;
         }
-        unknown_0071d1b0 = 1;
+        halo::rasterizer::globals::video_mode_command_line_parsed = 1;
     }
     return found;
 }
@@ -1202,13 +1203,13 @@ uint8_t rasterizer_reset_device_if_needed(void)
     int32_t hr;
 
     if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
-        unknown_006893f6 = 0;
-        unknown_006893f7 = 0;
-        unknown_006893f8 = 0;
+        halo::rasterizer::globals::specular_projected_light_enabled = 0;
+        halo::rasterizer::globals::specular_lightmap_enabled = 0;
+        halo::rasterizer::globals::environment_multipurpose_enabled = 0;
         console_debug_toggle_6893f9 = 0;
-        unknown_006893fd = 0;
-        unknown_0068941d = 0;
-        console_debug_toggle_6893f2 = 0;
+        halo::rasterizer::globals::device_reset_cleared_flag = 0;
+        halo::rasterizer::globals::fog_screen_overlay_enabled = 0;
+        halo::rasterizer::globals::object_shadows_enabled = 0;
     }
 
     if (rasterizer_device_lost != 0) {
@@ -1239,7 +1240,7 @@ uint8_t rasterizer_reset_device_if_needed(void)
 }  // namespace rasterizer_reset_device_if_needed_impl
 
 /**
- * 0x0069c64c UNSURE Repositions/resizes the game window to a centered `width` by `height` client area if that
+ * Repositions/resizes the game window to a centered `width` by `height` client area if that
  * differs from its current adjusted rect, then updates the cached client-area/mouse-bound globals.
  *
  * Registers: EAX -> height, ECX -> width
@@ -1268,10 +1269,10 @@ void rasterizer_resize_game_window(int32_t height, int32_t width)
     }
 
     game_window_bottom_right = (uint16_t)(int16_t)height | ((uint32_t)(uint16_t)(int16_t)width << 16);
-    unknown_0069c640 = (int16_t)height - 8;
-    unknown_0069c642 = (int16_t)width - 8;
+    halo::rasterizer::globals::game_screen_rect_bottom = (int16_t)height - 8;
+    halo::rasterizer::globals::game_screen_rect_right = (int16_t)width - 8;
     game_window_top_left = 0;
-    unknown_0069c63e = 8;
+    halo::rasterizer::globals::game_screen_rect_left = 8;
     game_screen_rect = 8;
     rasterizer_present_counter_low = 1;
     rasterizer_present_counter_high = 0;
@@ -1312,11 +1313,11 @@ int32_t rasterizer_round_up_resolution_height(int32_t height)
 void rasterizer_select_hardware_codepaths(void)
 {
     if (rasterizer_caps.max_streams < 2) {
-        unknown_007c048c = (void *)rasterizer_shader_environment_self_illumination_draw_single_stream;
+        halo::rasterizer::globals::environment_self_illumination_draw = (void *)rasterizer_shader_environment_self_illumination_draw_single_stream;
     } else {
-        unknown_007c048c = (void *)rasterizer_shader_environment_self_illumination_draw_two_stream;
+        halo::rasterizer::globals::environment_self_illumination_draw = (void *)rasterizer_shader_environment_self_illumination_draw_two_stream;
         if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
-            unknown_007c048c = (void *)rasterizer_shader_environment_self_illumination_draw;
+            halo::rasterizer::globals::environment_self_illumination_draw = (void *)rasterizer_shader_environment_self_illumination_draw;
         }
     }
 
@@ -1324,22 +1325,22 @@ void rasterizer_select_hardware_codepaths(void)
     rasterizer_shader_environment_select_draw_functions();
 
     if (rasterizer_caps.max_streams < 2) {
-        unknown_007c0490 = (void *)rasterizer_shader_environment_lightmap_draw_single_stream;
+        halo::rasterizer::globals::environment_lightmap_draw = (void *)rasterizer_shader_environment_lightmap_draw_single_stream;
         if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
-            unknown_007c0494 = (void *)rasterizer_light_cone_draw;
+            halo::rasterizer::globals::light_cone_draw = (void *)rasterizer_light_cone_draw;
             goto set_vertex_buffer_slot;
         }
     } else {
-        unknown_007c0490 = (void *)rasterizer_shader_environment_lightmap_draw_two_stream;
+        halo::rasterizer::globals::environment_lightmap_draw = (void *)rasterizer_shader_environment_lightmap_draw_two_stream;
         if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
-            unknown_007c0490 = (void *)rasterizer_shader_environment_lightmap_draw;
+            halo::rasterizer::globals::environment_lightmap_draw = (void *)rasterizer_shader_environment_lightmap_draw;
             if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
-                unknown_007c0494 = (void *)rasterizer_light_cone_draw;
+                halo::rasterizer::globals::light_cone_draw = (void *)rasterizer_light_cone_draw;
                 goto set_vertex_buffer_slot;
             }
         }
     }
-    unknown_007c0494 = (void *)halo::cseries::function_do_nothing;
+    halo::rasterizer::globals::light_cone_draw = (void *)halo::cseries::function_do_nothing;
 
 set_vertex_buffer_slot:
     rasterizer_water_draw_procedure = (void *)rasterizer_water_draw_fixed_function;

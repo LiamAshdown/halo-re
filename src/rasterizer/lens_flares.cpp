@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -45,8 +46,8 @@ void lens_flare_add_instance(lens_flare_instance *candidate)
 
     new_index = lens_flare_instance_count;
 
-    if (unknown_006893ff == 0 || unknown_00719aac >= 2 ||
-        (unknown_00719aac == 1 && screenshot_scale >= 2) || rasterizer_window.type != 1) {
+    if (halo::rasterizer::globals::decals_and_lens_flares_enabled == 0 || halo::rasterizer::globals::screenshot_tile_count >= 2 ||
+        (halo::rasterizer::globals::screenshot_tile_count == 1 && screenshot_scale >= 2) || rasterizer_window.type != 1) {
         return;
     }
 
@@ -205,7 +206,7 @@ void lens_flare_render_all(void)
     const float *axis_b = (const float *)(window + 0xb0);
     int16_t i;
 
-    if (unknown_006893ff == 0 || *(int16_t *)window != 1 || lens_flare_instance_count <= 0) {
+    if (halo::rasterizer::globals::decals_and_lens_flares_enabled == 0 || *(int16_t *)window != 1 || lens_flare_instance_count <= 0) {
         return;
     }
     if (lens_flare_occlusion_queries_supported != 1) {
@@ -373,7 +374,7 @@ void lens_flare_render_all(void)
                 break;
             }
             rasterizer_lens_flare_set_vertex_specular(specular);
-            unknown_00746fbc = ((flags & 8) != 0 && (instance[0x22] & 0x80) != 0) ? 2 : 0;
+            halo::rasterizer::globals::lens_flare_batch_mode = ((flags & 8) != 0 && (instance[0x22] & 0x80) != 0) ? 2 : 0;
             rasterizer_lens_flare_quad_add(scale, colour, &vertex, radius, reflection_rotation * 0.017453292f);
         }
     }
@@ -394,7 +395,7 @@ void lens_flare_render_all(void)
         render_device().set_fvf(0);
     }
 
-    if (rasterizer_caps_flag_68a == 0 && unknown_00689426 != 0) {
+    if (rasterizer_caps_flag_68a == 0 && halo::rasterizer::globals::lens_flare_occlusion_enabled != 0) {
         for (i = 0; i < lens_flare_instance_count; i++) {
             uint8_t *instance = (uint8_t *)&lens_flare_instances[i];
 
@@ -410,7 +411,9 @@ void lens_flare_render_all(void)
 }
 
 /**
- * 0x512150, UNSURE name/signature
+ * Takes no arguments. For every lens flare instance of the current window computes the occlusion sample point (behind
+ * the camera forward axis, along the flare normal or at the instance position, per the definition's occlusion offset
+ * direction) and issues the occlusion query, storing the returned sample count in the instance.
  *
  * @address 0x513ba0
  */
@@ -423,8 +426,8 @@ void lens_flare_update_samples(void)
     LensFlare *definition;
     float radius;
 
-    if (unknown_006893ff == 0 || unknown_00719aac > 1 ||
-        (unknown_00719aac == 1 && screenshot_scale > 1) ||
+    if (halo::rasterizer::globals::decals_and_lens_flares_enabled == 0 || halo::rasterizer::globals::screenshot_tile_count > 1 ||
+        (halo::rasterizer::globals::screenshot_tile_count == 1 && screenshot_scale > 1) ||
         rasterizer_window.type != 1 || lens_flare_instance_count <= 0) {
         return;
     }
@@ -460,7 +463,7 @@ void lens_flare_update_samples(void)
 
 /**
  * 0x537b40, ESI slot = the loop index (0x5137c0) Per-frame smoothing pass: while occlusion queries are enabled
- * (unknown_006893ff) and the window/mode gate allows it, blends each active lens flare's visibility byte
+ * (halo::rasterizer::globals::decals_and_lens_flares_enabled) and the window/mode gate allows it, blends each active lens flare's visibility byte
  * toward its freshly sampled occlusion percentage (0 when it has no samples), then clears the active count.
  *
  * @address 0x513780
@@ -473,8 +476,8 @@ void lens_flare_update_visibility(void)
     uint8_t old_value;
     uint8_t new_value;
 
-    if (unknown_006893ff == 0 || unknown_00719aac >= 2 ||
-        (unknown_00719aac == 1 && screenshot_scale >= 2)) {
+    if (halo::rasterizer::globals::decals_and_lens_flares_enabled == 0 || halo::rasterizer::globals::screenshot_tile_count >= 2 ||
+        (halo::rasterizer::globals::screenshot_tile_count == 1 && screenshot_scale >= 2)) {
         return;
     }
 
@@ -700,10 +703,10 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
         set_render_state(0x1c, 0);
     }
 
-    rasterizer_effect_pool_scratch = &unknown_0069da10;
-    if (unknown_0069da10 != 0) {
+    rasterizer_effect_pool_scratch = &halo::rasterizer::globals::lens_flare_effect;
+    if (halo::rasterizer::globals::lens_flare_effect != 0) {
         uint32_t pass_count = 0;
-        render_device().effect_begin(unknown_0069da10, &pass_count, 3);
+        render_device().effect_begin(halo::rasterizer::globals::lens_flare_effect, &pass_count, 3);
 
         render_device().effect_pass(*(void **)rasterizer_effect_pool_scratch, 0);
     } else {
@@ -789,7 +792,7 @@ namespace rasterizer_lens_flare_occlusion_query_get_result_impl {
 
 /**
  * Polls the occlusion query for one lens-flare slot until a result is available, returning the query's
- * visible-pixel-count result. UNSURE/note: the original overwrites its own "query pointer" stack slot in place
+ * visible-pixel-count result. Note: the original overwrites its own "query pointer" stack slot in place
  * with the 4-byte GetData result and returns that slot's value reinterpreted as a pointer, rather than
  * returning through a separate out-parameter; the same in-place reuse is reproduced here via `slot`.
  *
@@ -1118,7 +1121,7 @@ void structure_cluster_add_lens_flares(int16_t cluster_index)
     const uint8_t *cluster;
     uint32_t marker_ordinal;
 
-    if (unknown_006893ff == 0 || unknown_00719aac > 1 || (unknown_00719aac == 1 && screenshot_scale > 1)) {
+    if (halo::rasterizer::globals::decals_and_lens_flares_enabled == 0 || halo::rasterizer::globals::screenshot_tile_count > 1 || (halo::rasterizer::globals::screenshot_tile_count == 1 && screenshot_scale > 1)) {
         return;
     }
 

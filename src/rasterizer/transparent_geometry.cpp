@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
 
@@ -26,7 +27,7 @@ namespace halo::rasterizer {
  */
 int rasterizer_transparent_decals_enabled(void)
 {
-    if (rasterizer_window.type != 1 || console_debug_toggle_689421 == 0 ||
+    if (rasterizer_window.type != 1 || halo::rasterizer::globals::active_camouflage_enabled == 0 ||
         (rasterizer_caps_flag_688 == 0 &&
          (rasterizer_caps_flag_68a == 0 && rasterizer_caps.pixel_shader_version > 0xffff0100))) {
         return 0;
@@ -49,7 +50,7 @@ transparent_geometry_group * rasterizer_transparent_geometry_group_build(transpa
     uint8_t test_immediate;
     uint32_t flags;
 
-    if (!console_debug_toggle_6893ec || !console_debug_toggle_6893ed) {
+    if (!halo::rasterizer::globals::models_enabled || !console_debug_toggle_6893ed) {
         return NULL;
     }
     skip = (shader != NULL && *(int16_t *)&((struct Shader *)shader)->shader_type == 4 && (shader[0x28] & 8) != 0);
@@ -824,7 +825,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
     const Shader *shader;
     float amount;
 
-    if (console_debug_toggle_689421 == 0 || rasterizer_window.type != 1) {
+    if (halo::rasterizer::globals::active_camouflage_enabled == 0 || rasterizer_window.type != 1) {
         return;
     }
     amount = group->parameters.blend_factor;
@@ -971,9 +972,9 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
         rasterizer_set_render_state(0xe, 0);
         rasterizer_camouflage_fade_active = 1;
         rasterizer_camouflage_fade = 1.0f - amount;
-        if (console_debug_toggle_6893ec != 0) {
+        if (halo::rasterizer::globals::models_enabled != 0) {
             rasterizer_render_states_dirty = 1;
-            unknown_0071d1fa = 0;
+            halo::rasterizer::globals::sky_pass_active = 0;
             if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
                 rasterizer_set_render_state(0x89, 1);
             }
@@ -1127,7 +1128,7 @@ void rasterizer_transparent_geometry_group_new(Shader *shader, int16_t shader_pe
     group->lighting_extra = 0;
 
     if (shader->shader_type == 8) {
-        unknown_0071d276 = 1;
+        halo::rasterizer::globals::transparent_group_created = 1;
     }
     if (shader->shader_type == 8 && (*((uint8_t *)shader + 0x28) & 8) != 0) {
         group->flags = group->flags | 2;
@@ -1142,7 +1143,7 @@ void rasterizer_transparent_geometry_group_new(Shader *shader, int16_t shader_pe
 }
 
 /**
- * 0x00689400, UNSURE meaning; gates this whole function Appends a new transparent_geometry_group built from a
+ * Gated by the debug toggle at 0x00689400 (default 1, read nowhere else). Appends a new transparent_geometry_group built from a
  * dynamic vertex/index cache submission (as opposed to rasterizer_transparent_geometry_group_new's static-tag
  * submission), computing its depth sort key from the camera position/forward axis and bumping it by 0.25 for
  * shaders whose type is 1 with flag bit 0 set. Sets the sticky overflow flag once if the pool is full.
@@ -1156,7 +1157,7 @@ void rasterizer_transparent_object_append(uint32_t lightmap_bitmap, int32_t dyna
     transparent_geometry_group *group;
     float dx, dy, dz;
 
-    if (console_debug_toggle_689400 == 0) {
+    if (halo::rasterizer::globals::transparent_object_append_enabled == 0) {
         return;
     }
 
@@ -1521,7 +1522,7 @@ uint8_t transparent_geometry_group_test_drawn_bit(transparent_geometry_group *gr
 }
 
 /**
- * 0x534e50, UNSURE arguments, outside this session's range Allocates the primary (384 entry) and secondary (32
+ * Takes no arguments. Allocates the primary (384 entry) and secondary (32
  * entry) transparent geometry group pools and the primary pool's sorted-index buffer, then performs further
  * subsystem init via rasterizer_misc_vertex_buffer_create. Returns a nonzero low byte on success.
  *

@@ -635,9 +635,9 @@ void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index
  *
  * @address 0x421af0
  */
-void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority, real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328, uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344, uint8_t unknown_348)
+void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority, real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra, uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value, uint8_t prop_flag)
 {
-    halo::ai::ActorView(actor_index).queue_search_position(position, priority, velocity, unknown_324, unknown_328, unknown_33c, unknown_340, unknown_344, unknown_348);
+    halo::ai::ActorView(actor_index).queue_search_position(position, priority, velocity, surface_index, position_extra, velocity_ticks, prop_index, prop_value, prop_flag);
 }
 
 /**
