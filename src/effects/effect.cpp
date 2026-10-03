@@ -1,3 +1,5 @@
+#include "halo/core/flags.hpp"
+#include "halo/tags/flags.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
@@ -17,6 +19,10 @@
 static auto &effect_data = halo::link::ref<data_array *>(halo::effects::vars().effect_data);
 static auto &effect_location_data = halo::link::ref<data_array *>(halo::effects::vars().effect_location_data);
 static auto &first_person_weapon_interfaces = halo::link::ref<uint8_t *>(halo::ui::vars().first_person_weapon_interfaces);
+
+static_assert(sizeof(effect) == 0xfc);
+static_assert(sizeof(EffectEvent) == 0x44);
+static_assert(sizeof(EffectParticle) == 0xe8);
 
 namespace halo::effects {
 
@@ -265,9 +271,9 @@ effect * effect_ref::try_and_get()
 /**
  * One roll of the effect's random stream (tag flag bit 2 selects the global one), 0..1.
  */
-static real effect_update_roll_fraction(uint8_t *tag)
+static real effect_update_roll_fraction(const Effect *tag)
 {
-    random_seed *seed = (tag[0] & 4) ? &halo::math::globals().random_seed_global : &halo::math::globals().effect_random_seed;
+    random_seed *seed = (tag->flags & halo::to_bits(halo::tags::effect_tag_flag::must_be_deterministic_pc)) ? &halo::math::globals().random_seed_global : &halo::math::globals().effect_random_seed;
 
     *seed = *seed * k_random_multiplier + k_random_increment;
     return (real)(*seed >> k_random_value_shift) * halo::k_unit_word_scale;
@@ -281,10 +287,10 @@ static real effect_update_roll_fraction(uint8_t *tag)
 void effect_ref::update(real dt)
 {
     datum_index effect_index = datum;
-    effect *self = (effect *)((uint8_t *)effect_data->data + (effect_index & halo::k_slot_mask) * 0xfc);
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[self->definition_index & halo::k_slot_mask].data;
-    uint8_t *events = *(uint8_t **)(tag + 0x38);
-    int32_t event_count = *(int32_t *)(tag + 0x34);
+    effect *self = (effect *)((uint8_t *)effect_data->data + (effect_index & halo::k_slot_mask) * sizeof(effect));
+    Effect *tag = (Effect *)halo::cache::globals().tag_instances[self->definition_index & halo::k_slot_mask].data;
+    EffectEvent *events = (EffectEvent *)tag->events.pointer;
+    int32_t event_count = (int32_t)tag->events.count;
     datum_index object_index = self->object_index;
     int16_t steps;
 
@@ -305,17 +311,17 @@ void effect_ref::update(real dt)
         } else {
             ((struct effect *)self)->location.cluster_index = -1;
         }
-        if (self->flags & 2) {
+        if (self->flags & _effect_looping_bit) {
             if (halo::objects::object_function_get_value(object_index, self->a_scale_function_index, &self->a_scale)) {
-                if (self->flags & 8) {
-                    if (self->flags & 0x20) {
+                if (self->flags & _effect_finished_bit) {
+                    if (self->flags & _effect_stop_immediately_bit) {
                         halo::effects::effect_delete(effect_index);
                     } else {
-                        self->flags = (uint16_t)(self->flags & 0xfff7);
+                        self->flags = (uint16_t)(self->flags & ~_effect_finished_bit);
                         halo::effects::effect_start_event(effect_index, 0);
                     }
                 }
-            } else if (tag[0] & 1) {
+            } else if (tag->flags & halo::to_bits(halo::tags::effect_tag_flag::deleted_when_attachment_deactivates)) {
                 uint8_t *obj_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)obj & halo::k_slot_mask].data;
                 int16_t i;
 
@@ -327,7 +333,7 @@ void effect_ref::update(real dt)
                 }
                 halo::effects::effect_delete(effect_index);
                 return;
-            } else if ((self->flags & 0xc) == 0) {
+            } else if ((self->flags & (_effect_stopping_bit | _effect_finished_bit)) == 0) {
                 halo::effects::effect_stop(effect_index, 0);
             }
             halo::objects::object_function_get_value(self->object_index, self->b_scale_function_index, &self->b_scale);
@@ -342,20 +348,20 @@ void effect_ref::update(real dt)
         uint8_t visible = 0;
 
         if (cluster != -1) {
-            uint32_t *bits = (uint32_t *)((uint8_t *)halo::game::globals().local_player_globals + ((tag[0] & 4) ? 0x18 : 0x58));
+            uint32_t *bits = (uint32_t *)((uint8_t *)halo::game::globals().local_player_globals + ((tag->flags & halo::to_bits(halo::tags::effect_tag_flag::must_be_deterministic_pc)) ? 0x18 : 0x58));
 
             visible = (bits[cluster >> 5] & (1u << (cluster & 0x1f))) != 0;
         }
         if (visible) {
-            if (self->flags & 0x10) {
-                self->flags = (uint16_t)(self->flags & 0xffef);
+            if (self->flags & _effect_hidden_bit) {
+                self->flags = (uint16_t)(self->flags & ~_effect_hidden_bit);
             }
-        } else if ((self->flags & 0x10) == 0) {
-            if ((self->flags & 2) == 0) {
+        } else if ((self->flags & _effect_hidden_bit) == 0) {
+            if ((self->flags & _effect_looping_bit) == 0) {
                 halo::effects::effect_delete(effect_index);
                 return;
             }
-            self->flags = (uint16_t)(self->flags | 0x10);
+            self->flags = (uint16_t)(self->flags | _effect_hidden_bit);
         }
     }
 
@@ -367,7 +373,7 @@ void effect_ref::update(real dt)
         uint8_t finished;
         real remaining;
 
-        if ((flags & 8) || steps >= 8) {
+        if ((flags & _effect_finished_bit) || steps >= 8) {
             return;
         }
         remaining = self->event_duration - self->event_time;
@@ -380,27 +386,27 @@ void effect_ref::update(real dt)
             self->event_time = self->event_time + dt;
             dt = -1.0f;
         }
-        if (flags & 1) {
-            if ((flags & 0x10) == 0) {
+        if (flags & _effect_event_started_bit) {
+            if ((flags & _effect_hidden_bit) == 0) {
                 halo::effects::effect_spawn_particles(self);
             }
             if (finished) {
                 int16_t next;
 
-                if ((self->flags & 2) && self->event_index == *(int16_t *)(tag + 6) &&
-                    *(int16_t *)(tag + 4) != -1) {
-                    next = *(int16_t *)(tag + 4);
+                if ((self->flags & _effect_looping_bit) && self->event_index == (int16_t)tag->loop_stop_event &&
+                    (int16_t)tag->loop_start_event != -1) {
+                    next = (int16_t)tag->loop_start_event;
                 } else {
                     next = (int16_t)(self->event_index + 1);
                 }
                 while (next < event_count &&
-                    effect_update_roll_fraction((uint8_t *)halo::cache::globals().tag_instances[self->definition_index & halo::k_slot_mask].data) <
-                        *(float *)(events + next * 0x44 + 4)) {
+                    effect_update_roll_fraction((const Effect *)halo::cache::globals().tag_instances[self->definition_index & halo::k_slot_mask].data) <
+                        events[next].skip_fraction) {
                     next++;
                 }
                 if (next >= event_count) {
-                    if (self->flags & 2) {
-                        self->flags = (uint16_t)(self->flags | 8);
+                    if (self->flags & _effect_looping_bit) {
+                        self->flags = (uint16_t)(self->flags | _effect_finished_bit);
                         return;
                     }
                     halo::effects::effect_delete(effect_index);
@@ -409,23 +415,23 @@ void effect_ref::update(real dt)
                 halo::effects::effect_start_event(effect_index, next);
             }
         } else if (finished) {
-            uint8_t *event = events + self->event_index * 0x44;
+            EffectEvent *event = &events[self->event_index];
             int32_t particle;
 
-            self->flags = (uint16_t)(flags | 1);
+            self->flags = (uint16_t)(flags | _effect_event_started_bit);
             self->event_time = 0.0f;
             self->previous_event_fraction = -1.0f;
             {
-                real fraction = effect_update_roll_fraction((uint8_t *)halo::cache::globals().tag_instances[self->definition_index & halo::k_slot_mask].data);
+                real fraction = effect_update_roll_fraction((const Effect *)halo::cache::globals().tag_instances[self->definition_index & halo::k_slot_mask].data);
 
-                self->event_duration = (*(float *)(event + 0x14) - *(float *)(event + 0x10)) * fraction +
-                    *(float *)(event + 0x10);
+                self->event_duration = (event->duration_bounds[1] - event->duration_bounds[0]) * fraction +
+                    event->duration_bounds[0];
             }
-            for (particle = 0; particle < *(int32_t *)(event + 0x38); particle = (int16_t)(particle + 1)) {
-                uint8_t *part = *(uint8_t **)(event + 0x3c) + particle * 0xe8;
-                uint8_t count = (uint8_t)(int32_t)halo::effects::effect_property_random_value(5, self, *(uint32_t *)(part + 0xe0),
-                    *(uint32_t *)(part + 0xe4), &halo::math::globals().effect_random_seed, (real)*(int16_t *)(part + 0x6c),
-                    (real)*(int16_t *)(part + 0x6e));
+            for (particle = 0; particle < (int32_t)event->particles.count; particle = (int16_t)(particle + 1)) {
+                EffectParticle *part = &((EffectParticle *)event->particles.pointer)[particle];
+                uint8_t count = (uint8_t)(int32_t)halo::effects::effect_property_random_value(5, self, part->a_scales_values,
+                    part->b_scales_values, &halo::math::globals().effect_random_seed, (real)part->count[0],
+                    (real)part->count[1]);
 
                 self->particle_counts[particle] = count;
                 if (count > 6) {
@@ -433,7 +439,7 @@ void effect_ref::update(real dt)
                         (real)*(int16_t *)((uint8_t *)halo::game::globals().local_player_globals + 0xc) + 6.0f);
                 }
             }
-            if ((self->flags & 0x10) == 0) {
+            if ((self->flags & _effect_hidden_bit) == 0) {
                 halo::effects::object_change_color_evaluate(self);
             }
         }
@@ -454,7 +460,7 @@ void effect_ref::refresh_structure_locations()
 
     for (handle = halo::memory::datum_next(-1, effect_data); handle != k_datum_index_none;
          handle = halo::memory::datum_next((int16_t)handle, effect_data)) {
-        effect *entry = (effect *)((uint8_t *)effect_data->data + (handle & halo::k_slot_mask) * 0xfc);
+        effect *entry = (effect *)((uint8_t *)effect_data->data + (handle & halo::k_slot_mask) * sizeof(effect));
         datum_index marker;
         effect_location_marker *location;
         uint32_t leaf;
