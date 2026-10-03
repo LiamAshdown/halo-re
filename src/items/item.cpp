@@ -1,11 +1,11 @@
 #include "halo/items/items.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern object *object_iterator_next(object_iterator *iterator);
 extern data_array *object_data;
 extern tag_instance *tag_instances;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-extern real random_real_range(real min, real max);
 extern game_time_globals *game_time;
 extern void object_list_membership_set(uint32_t object_index, char add);
 uint32_t item_any_detonating();
@@ -62,7 +62,7 @@ void item_ref::detonation_timer_start()
             0, 0);
 
         item->detonation_countdown =
-            (int16_t)(random_real_range(tag->detonation_delay[0], tag->detonation_delay[1]) * 30.0f);
+            (int16_t)(halo::math::random_real_range(tag->detonation_delay[0], tag->detonation_delay[1]) * 30.0f);
     }
 }
 

@@ -2,6 +2,7 @@
 #include "game.h"
 #include "hs.h"
 #include "physics.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -13,9 +14,6 @@ extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern real_point3d *global_zero_vector3d_pointer;
 extern uint8_t object_physics_context_build(uint32_t object_index, object_physics_context *out_context);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m);
 extern char ai_marker_name_a[];
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers);
 extern char ai_marker_name_b[];
@@ -190,12 +188,12 @@ uint8_t UnitView::get_average_active_marker_direction(real_vector3d *out_directi
     sum.x *= inv;
     sum.y *= inv;
     sum.z *= inv;
-    matrix4x3_transform_point(&world, &sum, (real_matrix4x3 *)&ctx.scale);
+    halo::math::matrix4x3_transform_point(world, sum, *((real_matrix4x3 *)&ctx.scale));
     object_get_position(&position, unit_index);
     out_direction->i = world.x - position.x;
     out_direction->j = world.y - position.y;
     out_direction->k = world.z - position.z;
-    if (vector3d_normalize_with_length(out_direction) == 0.0f) {
+    if (halo::math::vector3d_normalize_with_length(*out_direction) == 0.0f) {
         return 0;
     }
     return 1;
@@ -224,7 +222,7 @@ void UnitView::get_forward_vector_or_marker_normal(real_vector3d *out)
     object *parent = ((object_header *)object_data->data)[unit_obj->parent_object & 0xffff].data;
     if (out != (real_vector3d *)0) {
         real_matrix4x3 *node = (real_matrix4x3 *)((uint8_t *)parent + parent->nodes.offset) + unit_obj->parent_marker_index;
-        matrix4x3_transform_normal(out, &unit_obj->forward, node);
+        halo::math::matrix4x3_transform_normal(*out, unit_obj->forward, *node);
     }
     return;
 }

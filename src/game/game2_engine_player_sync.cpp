@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_players.hpp"
+#include "halo/math/api.hpp"
 
 #define k_uninitialized_fill 0xfafafafau
 
@@ -11,7 +12,6 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t ui_split_screen;
 extern uint8_t global_00719750;
 extern int16_t global_00719772;
-extern real_vector3d global_origin3d;
 extern uint32_t update_client_distribute_staged_entry(uint8_t *out);
 extern void *data_iterator_next(data_iterator *iterator);
 extern uint8_t player_update_queue_pop_current(player_update_record *out, player_update_queue *queue);
@@ -63,7 +63,6 @@ extern int32_t weapon_get_next_zoom_level(int32_t current_level, datum_index ite
 extern uint8_t player_profile_get_flag_by_id(int16_t local_player_index);
 extern void chimera__spectate_fp_camera_position(camera_basis_out *out, int16_t local_player_index);
 extern void value_step_toward_target(float *value, float target, float max_step);
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, void *marker, uint32_t flags);
 extern double atan2(double y, double x);
 extern double cos(double x);
@@ -205,7 +204,7 @@ void EnginePlayerSync::players_update_client(void)
                     ctrl.weapon_index = -1;
                     ctrl.grenade_index = -1;
                     ctrl.zoom_level = -1;
-                    ctrl.throttle = global_origin3d;
+                    ctrl.throttle = reinterpret_cast<real_vector3d &>(halo::math::globals().global_origin3d);
                     ctrl.primary_trigger = 0.0f;
                     ctrl.facing_vector = unit->desired_facing_vector;
                     ctrl.aiming_vector = unit->desired_aiming_vector;
@@ -368,7 +367,7 @@ void EnginePlayerSync::players_update_server(void)
                     ctrl.weapon_index = -1;
                     ctrl.grenade_index = -1;
                     ctrl.zoom_level = -1;
-                    ctrl.throttle = global_origin3d;
+                    ctrl.throttle = reinterpret_cast<real_vector3d &>(halo::math::globals().global_origin3d);
                     ctrl.primary_trigger = 0.0f;
                     ctrl.facing_vector = unit->desired_facing_vector;
                     ctrl.aiming_vector = unit->desired_aiming_vector;
@@ -859,7 +858,7 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
                 heading.i = (real)cos((double)look->yaw) * 1.0f;
                 heading.j = (real)sin((double)look->yaw) * 1.0f;
                 heading.k = 0.0f;
-                adjust = 1.5707964f - vector3d_angle_between_4cd4f0((real_vector3d *)(unit + 0x80), &heading);
+                adjust = 1.5707964f - halo::math::vector3d_angle_between_4cd4f0(*(real_vector3d *)(unit + 0x80), heading);
                 pitch_min = pitch_min - adjust;
                 pitch_max = pitch_max - adjust;
                 target_pitch = target_pitch - adjust;

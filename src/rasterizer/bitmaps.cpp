@@ -5,10 +5,10 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 
-extern int32_t uint32_log2_floor(uint32_t value);
 extern uint32_t bitmap_data_calculate_mip_level_pixel_count(BitmapData *bitmap, int32_t mip_level);
 extern BitmapData *bitmap_group_get_bitmap_data(uint32_t bitmap_tag_id, int16_t index);
 extern int32_t fistp_round(float x);
@@ -74,9 +74,9 @@ int16_t bitmap_compute_mipmap_count(BitmapData *bitmap)
         if (levels < (int16_t)bitmap->mipmap_count) {
             int16_t hd = (height <= depth) ? depth : height;
             if (hd < width) {
-                return (uint32_t)uint32_log2_floor((uint32_t)max_dim);
+                return (uint32_t)halo::math::uint32_log2_floor((uint32_t)max_dim);
             }
-            return (uint32_t)uint32_log2_floor((uint32_t)max_dim);
+            return (uint32_t)halo::math::uint32_log2_floor((uint32_t)max_dim);
         }
     } else {
         int16_t depth = (int16_t)bitmap->depth;
@@ -111,9 +111,9 @@ int16_t bitmap_compute_mipmap_count(BitmapData *bitmap)
                 wb = depth;
             }
             if (wb < height_blocks) {
-                return (uint32_t)uint32_log2_floor((uint32_t)max2);
+                return (uint32_t)halo::math::uint32_log2_floor((uint32_t)max2);
             }
-            return (uint32_t)uint32_log2_floor((uint32_t)max2);
+            return (uint32_t)halo::math::uint32_log2_floor((uint32_t)max2);
         }
     }
     return result;

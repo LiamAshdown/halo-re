@@ -5,6 +5,7 @@
  */
 
 #include "halo/scenario/scenario.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
@@ -12,10 +13,6 @@ extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward,
-    real_matrix4x3 *out);
-extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out,
-    real_point3d *point);
 extern float sqrtf(float x);
 extern void value_step_toward_target(float *value, float target, float max_step);
 extern void render_lighting_step_vector3_toward(float *current, float *target, float max_delta);
@@ -251,14 +248,14 @@ uint8_t scenario_query::trigger_volume_contains_point(int16_t trigger_volume_ind
         real_matrix4x3 matrix;
         real_point3d local;
 
-        matrix4x3_from_forward_up((real_vector3d *)&volume->rotation_vector_up,
-            (real_vector3d *)&volume->rotation_vector_forward, &matrix);
+        halo::math::matrix4x3_from_forward_up(*((real_vector3d *)&volume->rotation_vector_up),
+            *((real_vector3d *)&volume->rotation_vector_forward), matrix);
 
         matrix.position.x = volume->starting_corner.x;
         matrix.position.y = volume->starting_corner.y;
         matrix.position.z = volume->starting_corner.z;
 
-        matrix4x3_inverse_transform_point(&matrix, &local, point);
+        halo::math::matrix4x3_inverse_transform_point(matrix, local, *point);
 
         if (!(0.0f < local.x)) return 0;
         if (!(0.0f < local.y)) return 0;

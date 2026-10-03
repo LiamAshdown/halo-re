@@ -5,9 +5,9 @@
  */
 
 #include "halo/shaders/shaders.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
-extern real periodic_function_evaluate(periodic_function_t type, double time);
 extern double cos(double x);
 extern double sin(double x);
 }
@@ -42,11 +42,11 @@ void shader_texture_animation_evaluate(render_animation *frame_animation, shader
                                      : function_values[texture_animation->rotation.source - 1];
     }
 
-    u_wave = periodic_function_evaluate(texture_animation->u.function,
+    u_wave = halo::math::periodic_function_evaluate(texture_animation->u.function,
                                         ((double)time + texture_animation->u.phase) / u_period);
-    v_wave = periodic_function_evaluate(texture_animation->v.function,
+    v_wave = halo::math::periodic_function_evaluate(texture_animation->v.function,
                                         ((double)time + texture_animation->v.phase) / v_period);
-    rotation_wave = periodic_function_evaluate(
+    rotation_wave = halo::math::periodic_function_evaluate(
         texture_animation->rotation.function,
         ((double)time + texture_animation->rotation.phase) / rotation_period);
 
@@ -80,11 +80,11 @@ void shader_texture_animation_evaluate(render_animation *frame_animation, shader
 
 void shader_environment_texture_scrolling_evaluate(float *u_out, float *v_out, double time, ShaderEnvironment *environment)
 {
-    *u_out = (float)periodic_function_evaluate(
+    *u_out = (float)halo::math::periodic_function_evaluate(
         environment->u_animation_function,
         time / (double)environment->u_animation_period) * environment->u_animation_scale;
 
-    *v_out = (float)periodic_function_evaluate(
+    *v_out = (float)halo::math::periodic_function_evaluate(
         environment->v_animation_function,
         time / (double)environment->v_animation_period) * environment->v_animation_scale;
 }

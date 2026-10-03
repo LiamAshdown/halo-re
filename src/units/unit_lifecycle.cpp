@@ -5,6 +5,7 @@
 #include "projectiles.h"
 #include "ai.h"
 #include "crt.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -17,12 +18,10 @@ extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern breakable_surface_globals *breakable_surface_state;
 extern int16_t global_structure_bsp_index;
 extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius);
-extern real_vector3d *global_up3d_pointer;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint8_t *global_structure_bsp;
 extern real_vector3d placement_offset_table[27];
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *current_position, float sample_radius, float x_margin, float y_margin, uint32_t exclude_object_index, real_point3d *out_position);
 extern uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, float radius, real_vector3d *delta, collision_result *result);
@@ -34,8 +33,6 @@ extern int16_t network_game_mode;
 extern game_engine_definition *current_game_engine;
 extern ai_globals *ai_globals_ptr;
 extern char *s_stand;
-extern float random_real(void);
-extern random_seed random_seed_global;
 extern int16_t actor_spawn_additional_units(datum_index actor_variant_tag, int16_t spawn_count, datum_index source_actor_index, float health_scale);
 extern void object_set_position_and_recalculate(real_point3d *position, uint32_t object_index);
 extern uint8_t DAT_00689471;
@@ -232,11 +229,11 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
         side.i = u->k * f->j - f->k * u->j;
         side.j = f->k * u->i - u->k * f->i;
         side.k = u->j * f->i - u->i * f->j;
-        vector3d_normalize_with_length(&side);
+        halo::math::vector3d_normalize_with_length(side);
     }
-    vertical.i = pill_height * global_up3d_pointer->i;
-    vertical.j = pill_height * global_up3d_pointer->j;
-    vertical.k = pill_height * global_up3d_pointer->k;
+    vertical.i = pill_height * halo::math::globals().global_up3d_pointer->i;
+    vertical.j = pill_height * halo::math::globals().global_up3d_pointer->j;
+    vertical.k = pill_height * halo::math::globals().global_up3d_pointer->k;
     if (scale_radius) {
         radius = pill_radius * radius;
     }
@@ -420,7 +417,7 @@ uint8_t UnitView::new_()
     obj->flags |= 0x6000;
 
     if (tag->feign_death_threshold > 0.0f && tag->feign_death_time > 0.0f && tag->feign_death_chance > 0.0f) {
-        float roll = random_real();
+        float roll = halo::math::random_real();
         if (roll < tag->feign_death_chance) {
             unit->flags |= 0x2000;
         } else {
@@ -505,9 +502,9 @@ int32_t UnitView::pick_random_spawned_actor_count()
     if ((unit->flags & _unit_flag_permutation_chosen) == 0) {
         Unit *unit_tag = (Unit *)tag_instances[unit_obj->definition_tag & 0xffff].data;
         if (*(int32_t *)&unit_tag->spawned_actor.tag_id != -1) {
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
             int32_t range = (int32_t)(int16_t)(unit_tag->spawned_actor_count[1] + 1) - (int32_t)unit_tag->spawned_actor_count[0];
-            result = (int32_t)(((uint32_t)range * (random_seed_global >> 0x10)) >> 0x10) +
+            result = (int32_t)(((uint32_t)range * (halo::math::globals().random_seed_global >> 0x10)) >> 0x10) +
                      (int32_t)((((uint32_t)tag_instances >> 16) << 16) | (uint16_t)unit_tag->spawned_actor_count[0]);
             if (0 < (int16_t)result) {
                 result = actor_spawn_additional_units(*(datum_index *)&((struct Unit *)unit_tag)->spawned_actor.tag_id, (int16_t)result,
@@ -726,9 +723,9 @@ int32_t UnitView::test_placement_candidate(const real_vector3d *direction, real_
     real_vector3d delta;
 
     object_get_position(&origin, unit_index);
-    origin.x += global_up3d_pointer->i * 0.4f;
-    origin.y += global_up3d_pointer->j * 0.4f;
-    origin.z += global_up3d_pointer->k * 0.4f;
+    origin.x += halo::math::globals().global_up3d_pointer->i * 0.4f;
+    origin.y += halo::math::globals().global_up3d_pointer->j * 0.4f;
+    origin.z += halo::math::globals().global_up3d_pointer->k * 0.4f;
     delta.i = distance * direction->i;
     delta.j = distance * direction->j;
     delta.k = distance * direction->k;

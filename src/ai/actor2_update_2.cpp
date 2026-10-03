@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/math/api.hpp"
 
 namespace halo::ai {
 
@@ -9,13 +10,6 @@ extern data_array *object_data;
 extern data_array *prop_data;
 extern tag_instance *tag_instances;
 extern player_globals *local_player_globals;
-extern real random_real_range(real min, real max);
-extern real random_real(void);
-extern real vector2d_normalize_with_length(real_vector2d *v);
-extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale);
-extern real vector3d_distance(real_point3d *a, real_point3d *b);
-extern real vector3d_magnitude_squared(real_vector3d *v);
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);
 extern uint8_t actor_grenade_behavior_kind_allowed(datum_index actor_index, int16_t kind);
 extern uint8_t actor_target_is_visible_or_object_count_ok(datum_index actor_index, int16_t kind);
 extern void actor_get_aim_from_position(datum_index actor_index, uint32_t out_position[3]);
@@ -105,7 +99,7 @@ void ActorView::update_firing_state()
         } else if (kind == 1) {
             changed = (uint8_t)(D(a, 0x610) != D(a, 0x270));
         } else if (kind == 2) {
-            changed = (uint8_t)(vector3d_distance_squared((real_point3d *)(a + 0x610), (real_point3d *)(a + 0x460)) > 0.25f);
+            changed = (uint8_t)(halo::math::vector3d_distance_squared(*(real_point3d *)(a + 0x610), *(real_point3d *)(a + 0x460)) > 0.25f);
         } else {
             changed = 0;
         }
@@ -154,8 +148,8 @@ void ActorView::update_firing_state()
             allowed = 1;
         }
         if (allowed && actor_grenade_behavior_kind_allowed(actor_index, (int16_t)*(uint16_t *)(def + 0x156))) {
-            float delay = random_real_range(0.0f, 1.5f) + F(def, 0x15c);
-            float roll = random_real();
+            float delay = halo::math::random_real_range(0.0f, 1.5f) + F(def, 0x15c);
+            float roll = halo::math::random_real();
 
             W(a, 0x5fc) = (int16_t)(int32_t)(delay * 30.0f);
             if (roll < F(def, 0x158) &&
@@ -188,7 +182,7 @@ void ActorView::update_firing_state()
             }
         } else {
             *(real_point3d *)&((actor *)a)->wander_unknown_62c = *(real_point3d *)&((struct actor *)a)->firing_target_prop_index;
-            F(a, 0x638) = vector3d_distance((real_point3d *)(a + 0x610), (real_point3d *)(a + 0x120));
+            F(a, 0x638) = halo::math::vector3d_distance(*(real_point3d *)(a + 0x610), *(real_point3d *)(a + 0x120));
             a[0x621] = 0;
             a[0x624] = 0;
             if (((struct actor *)a)->firing_target_ticks % 10 == 0) {
@@ -310,7 +304,7 @@ dispatch:
                 delta.i = F(p, 0xc8) - F(a, 0x64c);
                 delta.j = F(p, 0xcc) - F(a, 0x650);
                 delta.k = F(p, 0xd0) - F(a, 0x654);
-                point3d_add_scaled(aim_point, &delta, aim_point, F(def, 0xbc));
+                halo::math::point3d_add_scaled(*aim_point, delta, *aim_point, F(def, 0xbc));
             }
             f = weapon_get_zoom_fov_resolved(0x10, W(a, 0x3e)) + F(def, 0xc0);
             if (!(f <= 0.0f && f < 1.0f)) {
@@ -339,7 +333,7 @@ dispatch:
 
                 if (v->i * v->i + v->j * v->j + v->k * v->k > 9.999999747378752e-05f) {
                     offset = def + 0xb0;
-                } else if (vector3d_magnitude_squared((real_vector3d *)(actor_tag + 0x40)) > 9.999999747378752e-05f) {
+                } else if (halo::math::vector3d_magnitude_squared(*(real_vector3d *)(actor_tag + 0x40)) > 9.999999747378752e-05f) {
                     offset = actor_tag + 0x40;
                 }
             } else {
@@ -347,7 +341,7 @@ dispatch:
 
                 if (v->i * v->i + v->j * v->j + v->k * v->k > 9.999999747378752e-05f) {
                     offset = def + 0xa4;
-                } else if (vector3d_magnitude_squared((real_vector3d *)(actor_tag + 0x34)) > 9.999999747378752e-05f) {
+                } else if (halo::math::vector3d_magnitude_squared(*(real_vector3d *)(actor_tag + 0x34)) > 9.999999747378752e-05f) {
                     offset = actor_tag + 0x34;
                 }
             }
@@ -359,7 +353,7 @@ dispatch:
                 facing.i = F(a, 0x12c) - final_point->x;
                 facing.j = F(a, 0x130) - final_point->y;
                 facing.k = F(a, 0x134) - final_point->z;
-                if (vector2d_normalize_with_length((real_vector2d *)&facing) > 0.0f) {
+                if (halo::math::vector2d_normalize_with_length(*((real_vector2d *)&facing)) > 0.0f) {
                     facing.k = 0.0f;
                 } else {
                     facing = *(real_vector3d *)&((actor *)a)->facing.i;

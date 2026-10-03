@@ -1,4 +1,5 @@
 #include "halo/projectiles/projectile.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -17,18 +18,11 @@ extern void projectile_response(datum_index projectile_index, collision_result *
 extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d *origin, int32_t kind, int16_t noise, int32_t unused);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern void unit_get_secondary_eye_marker_position(uint32_t object_index, real_point3d *out);
-extern real periodic_function_evaluate(periodic_function_t type, double time);
 extern double cos(double x);
 extern double sin(double x);
 extern double sqrt(double x);
-extern real vector3d_magnitude_squared(real_vector3d *v);
 extern float sound_definition_maximum_distance(datum_index sound_definition);
-extern void vector3d_project_onto_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v, real_vector3d *perp_out);
 extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
 extern void object_recalculate_bounding_radius(uint32_t object_index);
@@ -179,9 +173,9 @@ int ProjectileHandle::update()
                 }
             }
             unit_get_secondary_eye_marker_position(tracked_index, &target);
-            angle_a = periodic_function_evaluate(_periodic_function_wander,
+            angle_a = halo::math::periodic_function_evaluate(_periodic_function_wander,
                 (double)((real)(int32_t)((salt * 7 + tick) & 0xffff) * 0.011111111f)) * 6.2831855f;
-            angle_b = 3.1415927f - periodic_function_evaluate(_periodic_function_wander,
+            angle_b = 3.1415927f - halo::math::periodic_function_evaluate(_periodic_function_wander,
                 (double)((real)(int32_t)((tick + salt * 3) & 0xffff) * 0.011111111f)) * 1.5707964f;
             {
                 real cos_b = (real)cos(angle_b);
@@ -196,10 +190,10 @@ int ProjectileHandle::update()
             to_target.i = target.x - F(obj, 0x5c);
             to_target.j = target.y - F(obj, 0x60);
             to_target.k = target.z - F(obj, 0x64);
-            vector3d_cross_product(&axis, &to_target, velocity);
+            halo::math::vector3d_cross_product(axis, to_target, *velocity);
             if (to_target.k * velocity->k + to_target.j * velocity->j + to_target.i * velocity->i > 0.0f &&
-                vector3d_normalize_with_length(&axis) > 0.0f) {
-                vector3d_rotate_about_axis(&vel, &axis, (real)sin(turn), (real)cos(turn));
+                halo::math::vector3d_normalize_with_length(axis) > 0.0f) {
+                halo::math::vector3d_rotate_about_axis(vel, axis, (real)sin(turn), (real)cos(turn));
             }
         }
 
@@ -340,17 +334,17 @@ int ProjectileHandle::update()
                     to_listener.i = center->x - F(obj, 0x5c);
                     to_listener.j = center->y - F(obj, 0x60);
                     to_listener.k = center->z - F(obj, 0x64);
-                    vector3d_project_onto_axis(&projected, &moved, &to_listener, &perpendicular);
+                    halo::math::vector3d_project_onto_axis(projected, moved, to_listener, perpendicular);
                     along = projected.k * moved.k + projected.j * moved.j + projected.i * moved.i;
-                    if (!(along < 0.0f) && vector3d_magnitude_squared(&moved) > along &&
-                        radius * radius > vector3d_magnitude_squared(&perpendicular)) {
+                    if (!(along < 0.0f) && halo::math::vector3d_magnitude_squared(moved) > along &&
+                        radius * radius > halo::math::vector3d_magnitude_squared(perpendicular)) {
                         sound_placement placement;  
 
                         placement.position.x = center->x - perpendicular.i;
                         placement.position.y = center->y - perpendicular.j;
                         placement.position.z = center->z - perpendicular.k;
                         *(real_vector3d *)&placement.forward = moved;
-                        vector3d_normalize_with_length((real_vector3d *)&placement.forward);
+                        halo::math::vector3d_normalize_with_length(*((real_vector3d *)&placement.forward));
                         *(real_vector3d *)&placement.velocity = *global_origin3d_pointer;
                         placement.leaf_index = *(int32_t *)&hit.leaf;
                         *(int32_t *)&placement.cluster_index = *(int32_t *)((uint8_t *)&hit.leaf + 4);
@@ -366,28 +360,28 @@ int ProjectileHandle::update()
             (velocity->i != 0.0f || velocity->j != 0.0f || velocity->k != 0.0f)) {
             real_vector3d direction = *velocity;
 
-            if (vector3d_normalize_with_length(&direction) > 0.0f) {
+            if (halo::math::vector3d_normalize_with_length(direction) > 0.0f) {
                 real_vector3d side;
 
                 *forward = direction;
-                vector3d_cross_product(&side, forward, up);
-                vector3d_cross_product(up, &side, forward);
-                if (vector3d_normalize_with_length(up) == 0.0f) {
-                    vector3d_build_perpendicular(up, forward);
-                    vector3d_normalize_with_length(up);
+                halo::math::vector3d_cross_product(side, *forward, *up);
+                halo::math::vector3d_cross_product(*up, side, *forward);
+                if (halo::math::vector3d_normalize_with_length(*up) == 0.0f) {
+                    halo::math::vector3d_build_perpendicular(*up, *forward);
+                    halo::math::vector3d_normalize_with_length(*up);
                 }
             }
-            vector3d_rotate_about_axis(up, forward, F(obj, 0x270), F(obj, 0x274));
+            halo::math::vector3d_rotate_about_axis(*up, *forward, F(obj, 0x270), F(obj, 0x274));
         } else if (((projectile_object *)obj)->projectile.flags & 1) {
             real_vector3d *axis = (real_vector3d *)(obj + 0x264);
             real_vector3d side;
 
-            vector3d_rotate_about_axis(forward, axis, F(obj, 0x270), F(obj, 0x274));
-            vector3d_rotate_about_axis(up, axis, F(obj, 0x270), F(obj, 0x274));
-            vector3d_normalize_with_length(forward);
-            vector3d_cross_product(&side, forward, up);
-            vector3d_cross_product(up, &side, forward);
-            vector3d_normalize_with_length(up);
+            halo::math::vector3d_rotate_about_axis(*forward, *axis, F(obj, 0x270), F(obj, 0x274));
+            halo::math::vector3d_rotate_about_axis(*up, *axis, F(obj, 0x270), F(obj, 0x274));
+            halo::math::vector3d_normalize_with_length(*forward);
+            halo::math::vector3d_cross_product(side, *forward, *up);
+            halo::math::vector3d_cross_product(*up, side, *forward);
+            halo::math::vector3d_normalize_with_length(*up);
         }
 
         

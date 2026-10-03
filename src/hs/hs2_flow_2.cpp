@@ -1,11 +1,11 @@
 #include "halo/hs/hs2_commands.hpp"
+#include "halo/math/api.hpp"
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
-extern uint32_t random_seed_global;
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
@@ -32,8 +32,8 @@ void FlowCommands::evaluate_random_range(int16_t function_index, uint32_t thread
         int16_t high = arguments[2];
         uint16_t result;
 
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        result = (uint16_t)(((uint32_t)((int32_t)high - (int32_t)low) * (random_seed_global >> 0x10)) >> 0x10);
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        result = (uint16_t)(((uint32_t)((int32_t)high - (int32_t)low) * (halo::math::globals().random_seed_global >> 0x10)) >> 0x10);
         result = (uint16_t)(result + (uint16_t)low);
         hs_thread_return((int32_t)result, thread_index);
     }
@@ -56,8 +56,8 @@ void FlowCommands::evaluate_real_random_range(int16_t function_index, uint32_t t
     float high = *(float *)&arguments[1];
     float result;
 
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    result = (high - low) * ((float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f) + low;
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    result = (high - low) * ((float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f) + low;
     hs_thread_return(*(int32_t *)&result, thread_index);
     }
 }

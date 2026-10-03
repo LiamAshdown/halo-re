@@ -5,6 +5,7 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -17,18 +18,9 @@ extern real_bounds *k_default_screen_bounds;
 extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters];
 extern uint8_t render_cluster_has_sky;
 extern float portal_visibility_tolerance;
-extern int16_t polygon2d_clip_to_planes(int16_t vertex_count, real_point2d *vertices,
-                                         int16_t clip_point_count, real_point2d *clip_points,
-                                         int16_t maximum_count, real_point2d *out,
-                                         real epsilon);
 extern int32_t cluster_flood_stamp;
 extern uint8_t cluster_flood_in_progress;
 extern int32_t cluster_visit_stamp[0x200];
-extern uint8_t vector3d_projection_band_test(real_vector3d *axis, real_point3d *point_a, real_point3d *point_b,
-    real radius, real max_distance, real sin_angle, real cos_angle);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point,
-                                       real_matrix4x3 *m);
-extern int16_t polygon3d_clip_to_plane(int16_t count, real_point3d *in, real_plane3d *plane, int16_t max_count, real_point3d *out, uint8_t *clipped_flag, real epsilon, char keep_coplanar);
 extern real_plane3d near_clip_plane;
 extern double k_plane_side_epsilon;
 extern float k_projection_numerator;
@@ -106,7 +98,7 @@ void cluster_flood::camera_portal_flood_recursive(int16_t cluster_index, polygon
                 continue;
             }
 
-            int16_t clipped_count = polygon2d_clip_to_planes(
+            int16_t clipped_count = halo::math::polygon2d_clip_to_planes(
                 portal_polygon.point_count, &portal_polygon.points[0],
                 view_polygon->point_count, &view_polygon->points[0], 0x100,
                 &clipped_polygon.points[0], 9.99999975e-05f);
@@ -160,7 +152,7 @@ int16_t cluster_flood::fill_with_predicate(real_point3d *position, real_vector3d
             if (cluster_visit_stamp[neighbor] == cluster_flood_stamp) {
                 continue;
             }
-            if (!vector3d_projection_band_test(facing, position, (real_point3d *)(portal + 8),
+            if (!halo::math::vector3d_projection_band_test(*facing, *position, *(real_point3d *)(portal + 8),
                     *(real *)(portal + 0x14), max_distance, sin_angle, cos_angle)) {
                 continue;
             }
@@ -256,11 +248,11 @@ uint8_t cluster_flood::portal_project(real_plane3d *plane, void *camera_ref, rea
     }
 
     for (n = 0; (int16_t)vertex_count > 0 && n < (vertex_count & 0xffff); n = n + 1) {
-        matrix4x3_transform_point(&clipped[n], &vertices[n],
-                                  (real_matrix4x3 *)((uint8_t *)camera + 0x10));
+        halo::math::matrix4x3_transform_point(clipped[n], vertices[n],
+                                  *(real_matrix4x3 *)((uint8_t *)camera + 0x10));
     }
 
-    clipped_count = polygon3d_clip_to_plane(vertex_count, clipped, &near_clip_plane, 0x100,
+    clipped_count = halo::math::polygon3d_clip_to_plane(vertex_count, clipped, near_clip_plane, 0x100,
                                             clipped, 0, 9.99999975e-05f, 1);
     out->point_count = clipped_count;
 

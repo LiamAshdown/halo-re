@@ -4,6 +4,7 @@
 #include "hs.h"
 #include "ai.h"
 #include "crt.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern uint8_t *game_state_base;
@@ -18,12 +19,8 @@ extern int16_t unit_speech_priority_table[];
 extern float unit_speech_repeat_seconds[];
 extern char *unit_base_animation_state_names[6];
 extern data_array *actor_data;
-extern real random_real(void);
 extern void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priority, int16_t stimulus_value);
-extern uint32_t random_seed_global;
 extern game_time_globals *game_time;
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern real vector3d_length(real_vector3d *v);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern real_vector3d *global_down3d_pointer;
 extern float k_physics_gravity;
@@ -43,10 +40,8 @@ extern void object_for_each_light_attachment(uint32_t object_index, int32_t regi
 extern void object_delete_teardown(uint32_t object_index);
 extern void model_animation_get_frame_delta(int16_t frame, void *animation, real_vector3d *out, void *model);
 extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out);
-extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m);
 extern void object_set_collision_enabled(uint32_t object_index, uint8_t enable);
 extern real_point3d *global_zero_vector3d_pointer;
-extern real_vector3d *global_forward3d_pointer;
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
 extern void ai_communication_gate_line_played(int16_t event_id, ai_communication_record *record, datum_index object_index);
 extern void ai_communication_play_event_line(datum_index object_index, int16_t event_id, uint8_t force, datum_index explicit_speaker_actor_index, uint32_t *event_record);
@@ -331,7 +326,7 @@ uint8_t UnitView::choose_combat_reaction_animation(const datum_index *reaction_s
             if (unit->minor_hurt_speech_count > 2) {
                 return 0;
             }
-            if (unit->current_speech.priority != 0 && random_real() >= 0.4f) {
+            if (unit->current_speech.priority != 0 && halo::math::random_real() >= 0.4f) {
                 return 0;
             }
             reaction_id = (recent_damage <= 0.0f) * 2 + 6;
@@ -438,8 +433,8 @@ uint8_t UnitView::dispatch_reaction_animation(int16_t reaction_code)
         index = 0xa;
         break;
     case 1:
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        index = ((float)(random_seed_global >> 16) * 1.5259022e-05f < 0.5f) ? 0x27 : 0xb;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        index = ((float)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f < 0.5f) ? 0x27 : 0xb;
         break;
     case 2:
         index = 0xb;
@@ -511,14 +506,14 @@ void UnitView::evaluate_flee_reaction()
             direction.i = parent->velocity.i * 60.0f;
             direction.j = parent->velocity.j * 60.0f;
             direction.k = parent->velocity.k * 60.0f - k_physics_gravity * 1800.0f;
-            if (!(vector3d_normalize_with_length(&direction) > 0.0f) ||
+            if (!(halo::math::vector3d_normalize_with_length(direction) > 0.0f) ||
                 UnitView(object_index).test_placement_candidate(&direction, &normal, 8.0f, 0) == -1 ||
                 !(normal.k > 0.3f)) {
                 ai_communication_broadcast(0x28, object_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
                 return;
             }
         }
-        if (parent->up.k > 0.6f && vector3d_length(&parent->angular_velocity) < 0.05235988f) {
+        if (parent->up.k > 0.6f && halo::math::vector3d_length(parent->angular_velocity) < 0.05235988f) {
             ai_communication_broadcast(0x26, object_index, (datum_index)-1, -1, (datum_index)-1, (datum_index)-1, 0);
             return;
         }
@@ -1374,7 +1369,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
                 model_animation_get_frame_delta(((unit_object *)unit)->base.animation_frame,
                     animations + ((unit_object *)unit)->base.animation_index * 0xb4, &delta, model);
                 matrix = object_get_world_matrix(unit_index, &world);
-                matrix4x3_transform_vector(&delta, &delta, matrix);
+                halo::math::matrix4x3_transform_vector(delta, delta, *matrix);
                 UnitView(unit_index).detach_from_seat(1, 1, 1);
                 ((unit_object *)unit)->base.velocity.i = delta.i + ((unit_object *)unit)->base.velocity.i;
                 ((unit_object *)unit)->base.velocity.j = delta.j + ((unit_object *)unit)->base.velocity.j;
@@ -1479,7 +1474,7 @@ void UnitView::update_animation_timers()
                 node = *(int16_t *)raw;
             } else {
                 position = *(Point3D *)global_zero_vector3d_pointer;
-                forward = *(Vector3D *)global_forward3d_pointer;
+                forward = *(Vector3D *)halo::math::globals().global_forward3d_pointer;
             }
             if (((unit_object *)obj)->unit.current_speech.sound_tag != k_datum_index_none) {
                 ((unit_object *)obj)->unit.speech_sound_handle = sound_start_at_object_marker(unit_index, &position, &forward,

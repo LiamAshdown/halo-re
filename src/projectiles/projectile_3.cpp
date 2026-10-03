@@ -1,10 +1,9 @@
 #include "halo/projectiles/projectile.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern tag_instance *tag_instances;
-extern random_seed random_seed_global;
-extern real_vector3d *global_up3d_pointer;
 extern real_vector3d *global_down3d_pointer;
 extern real_point3d *global_origin3d_pointer;
 extern char *projectile_effect_coordinate_system_names[5];
@@ -18,10 +17,6 @@ extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_refere
 extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, int16_t marker_index);
 extern void projectile_send_attach(datum_index projectile_index, datum_index parent_object_index, int16_t marker_index);
 extern void projectile_request_state(datum_index projectile_index, int16_t requested_state);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_project_onto_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v, real_vector3d *perp_out);
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
-extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, void *seed, real lo, real hi);
 extern datum_index effect_new_on_object_with_node_table(datum_index creator_object_index, datum_index definition_index, datum_index object_index, uint16_t node_index, uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale, real b_scale, const void *color, const void *tint_source);
 extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind, char **labels, void *position_block, void *direction_block, real fade_in, real fade_out, int32_t color, int32_t tint_source, int32_t force_create);
 extern void breakable_surface_apply_damage(damage_data *request, uint32_t packed_leaf_and_flags, int32_t surface_index);
@@ -74,9 +69,9 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
 
     
     
-    impact_speed = vector3d_normalize_with_length(&unit_velocity);
+    impact_speed = halo::math::vector3d_normalize_with_length(unit_velocity);
     if (0.0f == impact_speed) {
-        unit_velocity = *global_up3d_pointer;
+        unit_velocity = *halo::math::globals().global_up3d_pointer;
     }
     if (tag->final_velocity == tag->initial_velocity) {
         speed_fraction = 1.0f;
@@ -111,7 +106,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         dd.multiplier = 1.0f;
         dd.damage_effect_tag = *(datum_index *)&tag->impact_damage.tag_id;
 
-        vector3d_normalize_with_length(&dd.direction);
+        halo::math::vector3d_normalize_with_length(dd.direction);
         object_apply_damage(&dd, hit->object_index, hit->node_index, hit->region_index, hit->collision_material_index, (uint32_t)&hit->plane.normal);
 
         
@@ -135,9 +130,9 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
     
     
     {
-        uint32_t seed_step = random_seed_global * 0x19660d + 0x3c6ef35f;
+        uint32_t seed_step = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
         real angular_noise = response->angular_noise;
-        random_seed_global = seed_step * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = seed_step * 0x19660d + 0x3c6ef35f;
         
         
         
@@ -146,8 +141,8 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
             -response->velocity_noise) - hit->plane.normal.k * velocity->k) - hit->plane.normal.j * velocity->j -
             hit->plane.normal.i * velocity->i;
         
-        angle_score = ((angular_noise - -angular_noise) * ((real)((random_seed_global >> 0x10) & 0xffff) * 1.5259022e-05f) +
-            -angular_noise) + (vector3d_angle_between_4cd4f0((real_vector3d *)&hit->plane.normal, (real_vector3d *)velocity) - 1.5707964f);
+        angle_score = ((angular_noise - -angular_noise) * ((real)((halo::math::globals().random_seed_global >> 0x10) & 0xffff) * 1.5259022e-05f) +
+            -angular_noise) + (halo::math::vector3d_angle_between_4cd4f0(*((real_vector3d *)&hit->plane.normal), *(real_vector3d *)velocity) - 1.5707964f);
         
     }
 
@@ -162,7 +157,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
           alignment_score > response->potential_and[1])) ||
         ((response->potential_flags & 1) != 0 && 
          (hit->type != _collision_result_type_object || object_try_and_get(hit->object_index, _object_mask_unit) == 0)) ||
-        ((real)((random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f, random_seed_global) >> 0x10) *
+        ((real)((halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f, halo::math::globals().random_seed_global) >> 0x10) *
              1.5259022e-05f < response->potential_skip_fraction)) {
         response_type = (ProjectileResponse)response->default_response;
         response_effect_tag = *(uint32_t *)&response->default_effect.tag_id;
@@ -194,7 +189,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         breakable_surface_damage.direction = *velocity;
         breakable_surface_damage.random_blend = 1.0f;
         breakable_surface_damage.multiplier = 1.0f;
-        vector3d_normalize_with_length(&breakable_surface_damage.direction);
+        halo::math::vector3d_normalize_with_length(breakable_surface_damage.direction);
 
         
         
@@ -249,8 +244,8 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         
         
         real_vector3d parallel_component, perpendicular_component;
-        vector3d_project_onto_axis(&parallel_component, &hit->plane.normal, velocity,
-                                   &perpendicular_component);
+        halo::math::vector3d_project_onto_axis(parallel_component, hit->plane.normal, *velocity,
+                                   perpendicular_component);
         velocity->i = (1.0f - response->perpendicular_friction) * perpendicular_component.i -
             (1.0f - response->parallel_friction) * parallel_component.i;
         velocity->j = (1.0f - response->perpendicular_friction) * perpendicular_component.j -
@@ -265,7 +260,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
     if (response->angular_noise != 0.0f) {
         
         
-        vector3d_randomize_direction((real_point3d *)velocity, velocity, &random_seed_global, 0.0f,
+        halo::math::vector3d_randomize_direction(*(real_point3d *)velocity, velocity, halo::math::globals().random_seed_global, 0.0f,
             response->angular_noise);
     }
     {
@@ -275,8 +270,8 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         
         real pre_length;
         if (response->velocity_noise != 0.0f &&
-            (pre_length = vector3d_normalize_with_length(velocity)) != 0.0f) {
-            real scale = (real)((random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f, random_seed_global) >> 0x10) *
+            (pre_length = halo::math::vector3d_normalize_with_length(*velocity)) != 0.0f) {
+            real scale = (real)((halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f, halo::math::globals().random_seed_global) >> 0x10) *
                 1.5259022e-05f * (response->velocity_noise - -response->velocity_noise) +
                 -response->velocity_noise + pre_length;
             velocity->i *= scale;
@@ -439,7 +434,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
             pd->detonation_timer_rate = 1.0f / (t * 30.0f);
         }
     } else if ((tag->projectile_flags & _projectile_definition_random_attached_detonation_time_bit) != 0) {
-        real t = (real)((random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f, random_seed_global) >> 0x10) *
+        real t = (real)((halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f, halo::math::globals().random_seed_global) >> 0x10) *
             1.5259022e-05f * (tag->timer[1] - tag->timer[0]) + tag->timer[0];
         if (1.0f <= t * 30.0f) {
             pd->detonation_timer_rate = 1.0f / (t * 30.0f);

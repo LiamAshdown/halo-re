@@ -1,4 +1,5 @@
 #include "halo/game/game2_game_lifecycle.hpp"
+#include "halo/math/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -32,7 +33,6 @@ extern void network_client_send_local_player_updates(void);
 extern void network_event_feed_flush(void *queue);
 extern void objects_update(void);
 extern void network_server_broadcast_object_type_changes(void);
-extern random_seed random_seed_global;
 extern game_engine_definition *current_game_engine;
 extern uint8_t player_profile_cache_initialized;
 extern uint32_t player_profile_cache[0xc0];
@@ -222,7 +222,7 @@ void GameLifecycle::start_new_map(void)
     uint32_t *dst;
     uint8_t *record;
 
-    random_seed_global = main_game_globals->random_seed;
+    halo::math::globals().random_seed_global = main_game_globals->random_seed;
 
     if (current_game_engine != (game_engine_definition *)0) {
         if (current_game_engine->dispose != (void *)0) {

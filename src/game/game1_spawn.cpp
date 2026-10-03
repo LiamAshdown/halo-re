@@ -11,6 +11,7 @@
 #include "cache.h"
 
 #include "halo/game/game1_spawn.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -18,7 +19,6 @@ extern data_array *object_data;
 extern int16_t objects_get_ambient_cluster(void);
 extern data_array *player_data;
 extern void *data_iterator_next(data_iterator *iterator);
-extern void bit_vector_or(uint32_t *a, int16_t bit_count, uint32_t *b, uint32_t *dst);
 extern game_engine_definition *current_game_engine;
 extern game_variant game_engine_variant;
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
@@ -97,7 +97,7 @@ void SpawnLocations::build_visible_cluster_bitmask(uint32_t *out_bitmask, uint8_
         uint32_t *row = (uint32_t *)(*(uint8_t **)(bsp_info + 0x14c) +
             ((cluster_count + 0x1f) >> 5) * player_gate_result * 4);
 
-        bit_vector_or(row, (int16_t)cluster_count, out_bitmask, out_bitmask);
+        halo::math::bit_vector_or(row, (int16_t)cluster_count, out_bitmask, out_bitmask);
     }
 }
 

@@ -5,13 +5,11 @@
  */
 
 #include "halo/models/models.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern uint8_t animation_compressed_data_enabled;
-extern void quaternion_normalize(real_quaternion *q);
 extern double floor(double x);
-extern void quaternion_lerp(real_quaternion *a, real_quaternion *b, real_quaternion *out, real t);
-extern void quaternion_multiply(real_quaternion *a, real_quaternion *b, real_quaternion *out);
 extern real_quaternion *global_identity_quaternion_pointer;
 extern double fabs(double x);
 extern double fmod(double x, double y);
@@ -139,7 +137,7 @@ void animation_view::get_frame_orientations(GBXModel *model, int16_t frame, real
                 animation_quaternion48 *def = (animation_quaternion48 *)(frame_cursor + header->rotation_defaults +
                                                                           (int)node * (int)sizeof(animation_quaternion48));
                 animation_graph::quaternion48_decode(def, &out_node->rotation);
-                quaternion_normalize(&out_node->rotation);
+                halo::math::quaternion_normalize(out_node->rotation);
             }
         } else if (use_compressed_codec) {
             animation_view(self).node_get_rotation((float)frame, rotation_index, node, &out_node->rotation);
@@ -210,7 +208,7 @@ void animation_view::node_get_rotation(real frame, int16_t rotation_index, int16
 
     if (count == 0) {
         animation_graph::quaternion48_decode(&defaults[node], out);
-        quaternion_normalize(out);
+        halo::math::quaternion_normalize(*out);
         return;
     }
 
@@ -249,11 +247,11 @@ void animation_view::node_get_rotation(real frame, int16_t rotation_index, int16
             animation_graph::quaternion48_decode(source_a, &quat_a);
             animation_graph::quaternion48_decode(source_b, &quat_b);
             t = (frame - (real)time_a) / (real)(time_b - time_a);
-            quaternion_lerp(&quat_b, &quat_a, out, t);
-            quaternion_normalize(out);
+            halo::math::quaternion_lerp(quat_b, quat_a, *out, t);
+            halo::math::quaternion_normalize(*out);
         } else {
             animation_graph::quaternion48_decode(source_a, out);
-            quaternion_normalize(out);
+            halo::math::quaternion_normalize(*out);
         }
     }
 }
@@ -426,7 +424,7 @@ void animation_view::overlay_frame_orientations(int16_t frame, real_orientation 
                 animation_graph::quaternion16_decode((int16_t *)frame_cursor, &new_rotation);
                 frame_cursor += 8;
             }
-            quaternion_multiply(&out_node->rotation, &new_rotation, &out_node->rotation);
+            halo::math::quaternion_multiply(&out_node->rotation, &new_rotation, &out_node->rotation);
         }
         rotation_mask = rotation_mask >> 1;
 
@@ -516,8 +514,8 @@ void animation_view::overlay_frame_orientations_weighted(int16_t frame, float we
                 animation_graph::quaternion16_decode((int16_t *)frame_cursor, &new_rotation);
                 frame_cursor += 8;
             }
-            quaternion_lerp(&new_rotation, global_identity_quaternion_pointer, &new_rotation, weight);
-            quaternion_multiply(&out_node->rotation, &new_rotation, &out_node->rotation);
+            halo::math::quaternion_lerp(new_rotation, *global_identity_quaternion_pointer, new_rotation, weight);
+            halo::math::quaternion_multiply(&out_node->rotation, &new_rotation, &out_node->rotation);
         }
         rotation_mask = rotation_mask >> 1;
 
@@ -624,10 +622,10 @@ void animation_view::overlay_interpolated_frame_orientations(float frame, real_o
                 base_cursor += 8;
                 animation_graph::quaternion16_decode((int16_t *)next_cursor, &corner_next);
                 next_cursor += 8;
-                quaternion_lerp(&corner_next, &corner_base, &new_rotation, weight);
-                quaternion_normalize(&new_rotation);
+                halo::math::quaternion_lerp(corner_next, corner_base, new_rotation, weight);
+                halo::math::quaternion_normalize(new_rotation);
             }
-            quaternion_multiply(&out_node->rotation, &new_rotation, &out_node->rotation);
+            halo::math::quaternion_multiply(&out_node->rotation, &new_rotation, &out_node->rotation);
         }
         rotation_mask = rotation_mask >> 1;
 
@@ -745,12 +743,12 @@ void animation_view::overlay_interpolated_frame_orientations_weighted(float fram
                 base_cursor += 8;
                 animation_graph::quaternion16_decode((int16_t *)next_cursor, &corner_next);
                 next_cursor += 8;
-                quaternion_lerp(&corner_next, &corner_base, &new_rotation, frame_weight);
-                quaternion_normalize(&new_rotation);
+                halo::math::quaternion_lerp(corner_next, corner_base, new_rotation, frame_weight);
+                halo::math::quaternion_normalize(new_rotation);
             }
-            quaternion_lerp(&new_rotation, global_identity_quaternion_pointer, &new_rotation, weight);
-            quaternion_normalize(&new_rotation);
-            quaternion_multiply(&out_node->rotation, &new_rotation, &out_node->rotation);
+            halo::math::quaternion_lerp(new_rotation, *global_identity_quaternion_pointer, new_rotation, weight);
+            halo::math::quaternion_normalize(new_rotation);
+            halo::math::quaternion_multiply(&out_node->rotation, &new_rotation, &out_node->rotation);
         }
         rotation_mask = rotation_mask >> 1;
 
@@ -995,13 +993,13 @@ void animation_view::aiming_screen_blend(animation_aiming_screen *screen, real y
                         animation_graph::quaternion16_decode((int16_t *)p11, &q11); p11 += 8;
                     }
 
-                    quaternion_lerp(&q01, &q00, &row0, yaw_frac);
-                    quaternion_normalize(&row0);
-                    quaternion_lerp(&q11, &q10, &row1, yaw_frac);
-                    quaternion_normalize(&row1);
-                    quaternion_lerp(&row1, &row0, &blended, pitch_frac);
-                    quaternion_normalize(&blended);
-                    quaternion_multiply(&out_node->rotation, &blended, &out_node->rotation);
+                    halo::math::quaternion_lerp(q01, q00, row0, yaw_frac);
+                    halo::math::quaternion_normalize(row0);
+                    halo::math::quaternion_lerp(q11, q10, row1, yaw_frac);
+                    halo::math::quaternion_normalize(row1);
+                    halo::math::quaternion_lerp(row1, row0, blended, pitch_frac);
+                    halo::math::quaternion_normalize(blended);
+                    halo::math::quaternion_multiply(&out_node->rotation, &blended, &out_node->rotation);
                 }
                 rotation_mask = rotation_mask >> 1;
 

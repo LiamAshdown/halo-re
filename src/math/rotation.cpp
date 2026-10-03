@@ -5,7 +5,7 @@
  */
 
 #include "halo/math/math.hpp"
-#include "halo/math/math_globals.h"
+#include "halo/math/globals.hpp"
 
 #include "tags.h"
 
@@ -105,9 +105,9 @@ void vector3d_rotate_toward_with_acceleration(real_vector3d *direction, const re
     real speed;
 
     if (acceleration <= 0.0f && maximum_velocity <= 0.0f) {
-        angular_velocity.i = global_origin3d.x;
-        angular_velocity.j = global_origin3d.y;
-        angular_velocity.k = global_origin3d.z;
+        angular_velocity.i = globals().global_origin3d.x;
+        angular_velocity.j = globals().global_origin3d.y;
+        angular_velocity.k = globals().global_origin3d.z;
         *direction = target_direction;
         return;
     }
@@ -147,9 +147,9 @@ void vector3d_rotate_toward_with_acceleration(real_vector3d *direction, const re
         angular_velocity.j = dy * step + angular_velocity.j;
         angular_velocity.k = dz * step + angular_velocity.k;
     } else if (target_speed < 1.0000001e-06f) {
-        angular_velocity.i = global_origin3d.x;
-        angular_velocity.j = global_origin3d.y;
-        angular_velocity.k = global_origin3d.z;
+        angular_velocity.i = globals().global_origin3d.x;
+        angular_velocity.j = globals().global_origin3d.y;
+        angular_velocity.k = globals().global_origin3d.z;
         *direction = target_direction;
         return;
     } else {
@@ -285,9 +285,9 @@ velocity_prediction:
         current->i = clamped_x;
         current->j = clamped_y;
         current->k = clamped_z;
-        velocity->i = global_origin3d.x;
-        velocity->j = global_origin3d.y;
-        velocity->k = global_origin3d.z;
+        velocity->i = globals().global_origin3d.x;
+        velocity->j = globals().global_origin3d.y;
+        velocity->k = globals().global_origin3d.z;
         return;
     }
 

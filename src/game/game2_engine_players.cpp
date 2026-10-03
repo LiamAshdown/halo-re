@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_players.hpp"
+#include "halo/math/api.hpp"
 
 static const int8_t k_unit_exit_seat_request[2] = {0x14, 0};
 
@@ -18,7 +19,6 @@ extern uint8_t game_engine_player_is_eliminated(uint32_t player_index);
 extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_index);
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
 extern void player_kill_and_release_unit(int32_t respawn_time);
-extern random_seed random_seed_global;
 extern int32_t players_active_count(void);
 extern void game_engine_player_new_life(uint32_t player_index);
 extern player_control_globals *player_control_globals_ptr;
@@ -38,7 +38,6 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
 extern int32_t bsp3d_node_find_leaf(void);
 extern void object_get_node_local_transform(datum_index object_index, int32_t node_index, void *out_transform, int32_t unknown);
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern void unit_try_set_animation_state(datum_index unit_handle, int32_t state);
 extern void object_snap_to_parent_marker_and_detach(datum_index object_index);
 extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
@@ -375,8 +374,8 @@ void EnginePlayers::player_select_random_target(datum_index player_or_all)
     if (match_count > 0) {
         int16_t pick;
 
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        pick = (int16_t)(((random_seed_global >> 16) *
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        pick = (int16_t)(((halo::math::globals().random_seed_global >> 16) *
                           (uint32_t)(int32_t)(int16_t)match_count) >> 16);
 
         iter.data = player_data;
@@ -850,7 +849,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
 
                     object_snap_to_parent_marker_and_detach(unit_handle);
                     object_set_position_and_orientation(unit_handle, 0, 0, 0);
-                    matrix4x3_multiply(&local_transform, (real_matrix4x3 *)(unknown_block + 0xac),
+                    halo::math::matrix4x3_multiply(&local_transform, (real_matrix4x3 *)(unknown_block + 0xac),
                                         &result_transform);
                     unit_obj->forward = result_transform.forward;
                     unit_obj->up = result_transform.up;
@@ -951,7 +950,7 @@ int32_t EnginePlayers::pick_random_recent_location(int32_t exclude_value, int32_
 {
     int16_t i;
 
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
 
     if (game_engine_recent_location_count < 1) {
         return fallback;
@@ -959,7 +958,7 @@ int32_t EnginePlayers::pick_random_recent_location(int32_t exclude_value, int32_
 
     for (i = 0; i < game_engine_recent_location_count; i++) {
         int16_t slot = (int16_t)(((int32_t)i +
-            (int16_t)(((int32_t)(random_seed_global >> 0x10) * (int32_t)game_engine_recent_location_count) >> 0x10))
+            (int16_t)(((int32_t)(halo::math::globals().random_seed_global >> 0x10) * (int32_t)game_engine_recent_location_count) >> 0x10))
             % (int32_t)game_engine_recent_location_count);
         if (exclude_value != (int32_t)game_engine_recent_location_table[slot]) {
             return (int32_t)game_engine_recent_location_table[slot];

@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -25,7 +26,6 @@ extern datum_index datum_new(data_array *array);
 extern datum_index datum_new_at_index_with_salt(datum_index requested_handle, data_array *array);
 extern data_array *encounter_data;
 extern datum_index *object_name_list;
-extern uint32_t random_seed_global;
 extern double sqrt(double x);
 extern actor *actor_iterator_next(actor_iterator_state *iterator);
 extern void ai_reference_actor_iterator_new(uint32_t reference, ai_reference_actor_iterator *iterator);
@@ -845,10 +845,10 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
                 }
                 chosen_variant = variant_candidates[0];
                 if (variant_candidate_count != 1) {
-                    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+                    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
                     chosen_variant = (uint32_t)variant_candidates
                         [(int16_t)(((int32_t)variant_candidate_count *
-                                    (int32_t)(random_seed_global >> 0x10)) >> 0x10)];
+                                    (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10)];
                 }
             }
 have_variant:

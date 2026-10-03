@@ -1,4 +1,5 @@
 #include "halo/ai/actor_firing.hpp"
+#include "halo/math/api.hpp"
 
 namespace c_actor_claim_firing_position {
 extern "C" {
@@ -73,7 +74,6 @@ extern data_array *prop_data;
 extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
 extern ScenarioStructureBSP *global_structure_bsp;
-extern uint32_t random_seed_global;
 extern const real_vector3d *global_origin3d_pointer;
 
 extern int16_t qsort_candidate_count;
@@ -81,7 +81,6 @@ extern actor_firing_position_candidate *qsort_candidate_base;
 
 extern double sqrt(double x);
 
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void actor_firing_position_run_score_rules(datum_index actor_index, uint16_t count, actor_firing_position_query *query, actor_firing_position_candidate *candidates);
 extern uint8_t actor_firing_position_run_reject_rules(datum_index actor_index, actor_firing_position_query *query, actor_firing_position_candidate *candidate);
 extern uint8_t actor_firing_position_probe_reject_rules(actor_firing_position_query *query, datum_index actor_index);
@@ -98,7 +97,6 @@ extern uint8_t path_find_compute_heuristic(path_find_context *context, uint32_t 
     float *out_distance, float *out_secondary, real_vector3d *out_direction);
 extern uint8_t path_find_run(path_find_context *context);
 extern void qsort_dword_array(uint32_t count, int32_t *elements, qsort_dword_compare_proc compare);
-extern real point3d_distance_squared_to_segment(real_point3d *segment_start, real_vector3d *segment_direction, real_point3d *point);
 extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
     uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator);
 extern void unit_get_aiming_vector(uint32_t unit_index, real_vector3d *out);
@@ -499,7 +497,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
                 delta.k = p->z - query->target_position.z;
                 if (delta.j * delta.j + delta.k * delta.k + delta.i * delta.i < 400.0f &&
                     path_find_test_direct_reachability(p, &query->target_position, 0, global_structure_bsp, 0) != 0) {
-                    c->distance_from_target = vector3d_normalize_with_length(&delta);
+                    c->distance_from_target = halo::math::vector3d_normalize_with_length(delta);
                     if (query->want_direction_from_target != 0) {
                         c->direction_from_target = delta;
                     }
@@ -569,8 +567,8 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
                              (query->danger_active != 0) ? &c->direction_from_actor : 0);
             } else {
 
-                c->segment_distance = (float)sqrt((double)point3d_distance_squared_to_segment(
-                    &self->body_position, &delta, &query->target_position));
+                c->segment_distance = (float)sqrt((double)halo::math::point3d_distance_squared_to_segment(
+                    self->body_position, delta, query->target_position));
                 length = (float)sqrt((double)distance_squared);
                 if (length < 0.0001f && length > -0.0001f) {
                     length = 0.0f;
@@ -598,8 +596,8 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         actor_firing_position_candidate *c;
         uint32_t roll;
 
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        roll = ((random_seed_global >> 0x10) * (uint32_t)(int32_t)candidate_count) >> 0x10;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        roll = ((halo::math::globals().random_seed_global >> 0x10) * (uint32_t)(int32_t)candidate_count) >> 0x10;
         *out_path_ok = 0;
         best_index = roll;
 

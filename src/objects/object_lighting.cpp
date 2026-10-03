@@ -2,6 +2,7 @@
 #include "structures.h"
 #include "rasterizer.h"
 #include <stdint.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern BitmapData *bitmap_group_get_bitmap_data(datum_index bitmap_tag_index, int16_t bitmap_data_index);
@@ -30,7 +31,6 @@ extern double sqrt(double x);
 extern uint8_t structure_bsp_resolve_position_to_surface(real_point3d *start_position, real_point3d *position, int16_t *out_lightmap_index, void *out_barycentric_v, real_vector3d *direction, int16_t *out_material_index, int32_t *out_surface, void *out_barycentric_u);
 extern tag_instance *tag_instances;
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 }
 
 /**
@@ -319,14 +319,14 @@ void halo::objects::ObjectLighting::sample_ambient_lighting(float *sample)
             sample[0] *= scale; sample[1] *= scale; sample[2] *= scale;
             for (i = 0x13; i <= 0x16; i++) sample[i] *= scale;
             for (i = 4; i <= 9; i++) sample[i] *= scale;
-            vector3d_normalize_with_length((real_vector3d *)(sample + 7));
+            halo::math::vector3d_normalize_with_length(*(real_vector3d *)(sample + 7));
 
             for (i = 0x0a; i <= 0x0f; i++) sample[i] *= scale;
-            vector3d_normalize_with_length((real_vector3d *)(sample + 0x0d));
+            halo::math::vector3d_normalize_with_length(*(real_vector3d *)(sample + 0x0d));
 
             for (i = 0x1a; i <= 0x1c; i++) sample[i] *= scale;
             for (i = 0x17; i <= 0x19; i++) sample[i] *= scale;
-            vector3d_normalize_with_length((real_vector3d *)(sample + 0x17));
+            halo::math::vector3d_normalize_with_length(*(real_vector3d *)(sample + 0x17));
             return;
         }
 

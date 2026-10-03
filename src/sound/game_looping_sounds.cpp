@@ -5,6 +5,7 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/math/api.hpp"
 
 namespace halo::sound {
 
@@ -188,8 +189,8 @@ void update_sound(datum_index looping_sound_index, int32_t *root_location)
         object *obj = ((object_header *)object_data->data)[self->object_index & 0xffff].data;
         real_matrix4x3 *node_matrix = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset + self->node_index * 0x34);
 
-        matrix4x3_transform_point((real_point3d *)&location.position, (real_point3d *)&self->position, node_matrix);
-        matrix4x3_transform_normal((real_vector3d *)&location.forward, (real_vector3d *)&self->forward, node_matrix);
+        halo::math::matrix4x3_transform_point(*((real_point3d *)&location.position), *((real_point3d *)&self->position), *node_matrix);
+        halo::math::matrix4x3_transform_normal(*((real_vector3d *)&location.forward), *((real_vector3d *)&self->forward), *node_matrix);
         object_get_root_object_velocities(self->object_index, (real_vector3d *)&location.velocity,
             (real_vector3d *)0);
         location.leaf_index = root_location[0];

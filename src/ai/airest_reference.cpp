@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include <stdint.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern encounter_platoon_state *encounter_platoon_states;
@@ -46,7 +47,6 @@ extern int32_t encounter_definition_find_platoon_index_by_name(ScenarioEncounter
 extern tag_instance *tag_instances;
 extern float k_real_zero;
 extern float k_real_one;
-extern uint32_t random_seed_global;
 extern void actor_clear_perceived_props(datum_index actor_index);
 extern void actor_dispatch_perception_reset(datum_index actor_index);
 extern void actor_set_units_active(datum_index actor_index, uint8_t dormant);
@@ -64,7 +64,6 @@ extern game_time_globals *game_time;
 extern network_client_globals *network_client;
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern void *datum_get(datum_index handle, data_array *array);
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern void player_update_history_free_all(void *history);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
@@ -881,10 +880,10 @@ void ReferenceView::refill_grenades()
             ((unit_object *)unit)->base.shield_vitality = (((unit_object *)unit)->base.maximum_shield_vitality <= 0.0f) ? k_real_zero : k_real_one;
 
             if (*(int16_t *)(variant_data + 0x180) != -1) {
-                random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
                 rolled = (int32_t)((uint32_t)(((int32_t)(int16_t)(*(int16_t *)(variant_data + 0x1d2) + 1) -
                                      (int32_t)(int16_t)*(uint16_t *)(variant_data + 0x1d0)) *
-                                    (int32_t)(random_seed_global >> 0x10)) >> 0x10) +
+                                    (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10) +
                          (int32_t)*(uint16_t *)(variant_data + 0x1d0);
 
                 unit = (uint8_t *)((object_header *)object_data->data)
@@ -1393,7 +1392,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     {
         uint8_t *reloaded = OBJECT_DATA(object_index);
 
-        matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
+        halo::math::matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
             (real_matrix4x3 *)(model_nodes + 0x68), &basis);
     }
     *(real_vector3d *)&((struct object *)self)->forward.i = basis.forward;

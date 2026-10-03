@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/math/api.hpp"
 
 namespace halo::ai {
 
@@ -18,7 +19,6 @@ extern int16_t actor_movement_test_obstacle_ray(real_vector3d *out_elevation, co
     uint8_t *out_clear_counter);
 extern uint8_t actor_avoidance_interpolate_sample(const real_vector3d *direction, const real_vector3d *samples,
     int16_t count, const float *values, float *out_index, float *out_value);
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
 extern float actor_avoidance_samples_a[16][7];
 extern float actor_avoidance_circle[8][3];
 extern float actor_avoidance_samples_b[9][7];
@@ -301,7 +301,7 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
                 axis.j *= inverse;
                 axis.k *= inverse;
                 if (length > 0.0f) {
-                    float angle = vector3d_angle_between_4cd4f0(&v, desired);
+                    float angle = halo::math::vector3d_angle_between_4cd4f0(v, *desired);
 
                     result.i = axis.i * angle;
                     result.j = axis.j * angle;
@@ -398,10 +398,6 @@ extern const real_vector2d *global_forward2d_pointer;
 extern double sin(double x);
 extern double cos(double x);
 extern double sqrt(double x);
-extern real vector2d_normalize_with_length(real_vector2d *v);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *axis,
-                                       real sin_angle, real cos_angle);
 extern void actor_movement_choose_avoidance_direction(datum_index actor_index,
                                                       const real_vector3d *desired_direction,
                                                       real_vector3d *out_direction,
@@ -523,7 +519,7 @@ void ActorView::movement_update()
                 turn.i *= inverse;
                 turn.j *= inverse;
                 turn.k *= inverse;
-                vector3d_rotate_about_axis((real_vector3d *)&a->desired_movement_vector, &turn, (real)sin(length), (real)cos(length));
+                halo::math::vector3d_rotate_about_axis(*((real_vector3d *)&a->desired_movement_vector), turn, (real)sin(length), (real)cos(length));
             }
             avoidance_scale = a->avoidance_scale;
         }
@@ -584,7 +580,7 @@ void ActorView::movement_update()
             away.k = a->grenade_impact_point.z - a->body_position.z;
             a->moving = 0;
             movement_mode = 0;
-            if (vector3d_normalize_with_length(&away) == 0.0f) {
+            if (halo::math::vector3d_normalize_with_length(away) == 0.0f) {
                 actor_base[0x58d] = 1;
             } else {
                 a->desired_facing_vector.x = away.i;
@@ -650,7 +646,7 @@ void ActorView::movement_update()
                     righting.j = unit_object->up.j;
                     righting.k = 0.0f;
                     movement_mode = 0;
-                    if (vector3d_normalize_with_length(&righting) <= 0.0f) {
+                    if (halo::math::vector3d_normalize_with_length(righting) <= 0.0f) {
                         a->moving = 0;
                     } else {
                         a->moving = 1;
@@ -753,7 +749,7 @@ void ActorView::movement_update()
             target_object = target_prop->object_index;
             facing.i = target_prop->direction.x;
             facing.j = target_prop->direction.y;
-            if (vector2d_normalize_with_length(&facing) == 0.0f) {
+            if (halo::math::vector2d_normalize_with_length(facing) == 0.0f) {
                 facing.i = a->facing.i;
                 facing.j = a->facing.j;
             }
@@ -778,7 +774,7 @@ void ActorView::movement_update()
             } else {
                 facing.i = a->facing.i;
                 facing.j = a->facing.j;
-                if (vector2d_normalize_with_length(&facing) == 0.0f) {
+                if (halo::math::vector2d_normalize_with_length(facing) == 0.0f) {
                     facing = *global_forward2d_pointer;
                 }
             }

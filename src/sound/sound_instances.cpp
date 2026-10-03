@@ -5,6 +5,7 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/math/api.hpp"
 
 namespace halo::sound {
 
@@ -147,7 +148,7 @@ void impulse_start(datum_index object_index, datum_index definition_index, float
             node_index = marker.node_index;
         } else {
             position = *(Point3D *)global_origin3d_pointer;
-            forward = *(Vector3D *)global_forward3d_pointer;
+            forward = *(Vector3D *)halo::math::globals().global_forward3d_pointer;
             node_index = 0;
         }
 
@@ -202,8 +203,8 @@ uint8_t object_marker_location_proc(datum_index owner, void *callback_data, soun
 
     location->leaf_index = root_location[0];
     *(int32_t *)&location->cluster_index = root_location[1];
-    matrix4x3_transform_point((real_point3d *)&location->position, (real_point3d *)&marker->position, node_matrix);
-    matrix4x3_transform_normal((real_vector3d *)&location->forward, (real_vector3d *)&marker->forward, node_matrix);
+    halo::math::matrix4x3_transform_point(*((real_point3d *)&location->position), *((real_point3d *)&marker->position), *node_matrix);
+    halo::math::matrix4x3_transform_normal(*((real_vector3d *)&location->forward), *((real_vector3d *)&marker->forward), *node_matrix);
     object_get_root_object_velocities(owner, (real_vector3d *)&location->velocity, (real_vector3d *)0);
     return 1;
 }
@@ -287,10 +288,10 @@ datum_index play_new(datum_index definition_index, sound_location *location, dat
         }
 
         if ((location->scale != 0.0f || tag->zero_gain_modifier != 0.0f)) {
-            effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
             if (((tag->one_skip_fraction_modifier - tag->zero_skip_fraction_modifier) * location->scale +
                  tag->zero_skip_fraction_modifier) * tag->skip_fraction <
-                (float)(effect_random_seed >> 16) * 1.5259022e-05f) {
+                (float)(halo::math::globals().effect_random_seed >> 16) * 1.5259022e-05f) {
                 float maximum_distance = definitions::maximum_distance(definition_index);
 
                 if (definitions::has_audible_permutations(*(TagID *)&definition_index) != 0) {
@@ -692,8 +693,8 @@ void update_active(void)
                     float min_distance, max_distance, distance, attenuation;
 
                     if (instance->location.type == _sound_location_absolute) {
-                        matrix4x3_inverse_transform_point((real_matrix4x3 *)&sound_listeners[instance->listener_index].scale,
-                            &transformed, (real_point3d *)&instance->location.position);
+                        halo::math::matrix4x3_inverse_transform_point(*((real_matrix4x3 *)&sound_listeners[instance->listener_index].scale),
+                            transformed, *((real_point3d *)&instance->location.position));
                     }
 
                     distance = (float)sqrt((double)(transformed.x * transformed.x + transformed.y * transformed.y +
@@ -722,12 +723,12 @@ void update_active(void)
                     real_vector3d transformed_velocity;
                     sound_channel_spatial spatial;
 
-                    matrix4x3_inverse_transform_point(listener_matrix, &transformed_position,
-                        (real_point3d *)&instance->location.position);
-                    matrix4x3_inverse_transform_normal(&transformed_forward, (real_vector3d *)&instance->location.forward,
-                        listener_matrix);
-                    matrix4x3_inverse_transform_vector(&transformed_velocity, (real_vector3d *)&instance->location.velocity,
-                        listener_matrix);
+                    halo::math::matrix4x3_inverse_transform_point(*listener_matrix, transformed_position,
+                        *((real_point3d *)&instance->location.position));
+                    halo::math::matrix4x3_inverse_transform_normal(transformed_forward, *((real_vector3d *)&instance->location.forward),
+                        *listener_matrix);
+                    halo::math::matrix4x3_inverse_transform_vector(transformed_velocity, *((real_vector3d *)&instance->location.velocity),
+                        *listener_matrix);
                     spatial.position = *(Point3D *)&transformed_position;
                     spatial.forward = *(Vector3D *)&transformed_forward;
                     spatial.velocity.i = transformed_velocity.i * 30.0f - sound_listeners[instance->listener_index].velocity.i;
@@ -740,7 +741,7 @@ void update_active(void)
                 } else {
                     sound_channel_spatial default_spatial;
                     default_spatial.position = *(Point3D *)global_zero_vector3d_pointer;
-                    default_spatial.forward = *(Vector3D *)global_forward3d_pointer;
+                    default_spatial.forward = *(Vector3D *)halo::math::globals().global_forward3d_pointer;
                     default_spatial.velocity = *(Vector3D *)global_origin3d_pointer;
                     audio_device().channel_set_spatial(channel_index, 0, &default_spatial, 0.0f, 0.0f,
                         sound_listeners[instance->listener_index].underwater, definition->sound_class);

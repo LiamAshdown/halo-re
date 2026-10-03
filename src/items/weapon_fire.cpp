@@ -1,16 +1,15 @@
 #include "halo/items/items.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern tag_instance *tag_instances;
 extern uint8_t weapon_infinite_ammo;
-extern random_seed random_seed_global;
 extern int16_t network_game_mode;
 extern game_engine_definition *current_game_engine;
 extern uint8_t weapon_bottomless_clip;
 extern uint8_t weapon_client_side_projectiles;
 extern game_time_globals *game_time;
-extern real random_real(void);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern void unit_update_active_camouflage_depower(datum_index player_handle);
@@ -128,8 +127,8 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
             uint16_t chosen_index = start_index;
 
             if (tag_trigger->flags & 2) {
-                random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                chosen_index = (uint16_t)((random_seed_global >> 0x10) % (uint32_t)tag_trigger->firing_effects.count);
+                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                chosen_index = (uint16_t)((halo::math::globals().random_seed_global >> 0x10) % (uint32_t)tag_trigger->firing_effects.count);
             }
             do {
                 uint16_t used_mask;
@@ -151,8 +150,8 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
 
                 lower = effects[chosen_index].shot_count_lower_bound;
                 upper = effects[chosen_index].shot_count_upper_bound;
-                random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                rounds = lower + (int16_t)(((int32_t)(upper - lower) * (int32_t)(random_seed_global >> 0x10)) >> 0x10);
+                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                rounds = lower + (int16_t)(((int32_t)(upper - lower) * (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10);
                 trigger->firing_effect_rounds = rounds;
             } while (trigger->firing_effect_rounds < 1 && chosen_index != start_index);
         }
@@ -169,7 +168,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
                 if (trigger->effect_state == _weapon_trigger_effect_spewing) {
                     misfire_chance = misfire_chance + misfire_chance;
                 }
-                if (random_real() < misfire_chance) {
+                if (halo::math::random_real() < misfire_chance) {
                     is_misfire = 1;
                 }
             }
@@ -306,8 +305,8 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
 
 tail:
     if (weapon_tag->heat_detonation_threshold < wd->heat) {
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        if ((real)(random_seed_global >> 0x10) * 1.5259022e-05f < weapon_tag->heat_detonation_fraction) {
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        if ((real)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f < weapon_tag->heat_detonation_fraction) {
             weapon_reload_recovery_finish(item_index);
         }
     }

@@ -2,6 +2,7 @@
 #include "rasterizer.h"
 #include "render.h"
 #include <stdint.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern int32_t __ftol(double);
@@ -19,21 +20,15 @@ extern void data_delete_all(data_array *array);
 extern void datum_delete(data_array *array, datum_index index);
 extern datum_index datum_new(data_array *array);
 extern datum_index datum_next(int16_t after_index, data_array *array);
-extern uint32_t effect_random_seed;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern real_vector3d *global_left3d_pointer;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern real_point3d *global_zero_vector3d_pointer;
-extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern uint32_t point_physics_tick(real_vector3d *velocity , uint32_t mode, void *physics_tag_data, bsp_leaf_reference *node_ref, uint32_t flags, real_point3d *position, real_vector3d *wind_direction, void *unused_c, void *unused_d, float damping_constant, float dt);
 extern double sin(double x);
 extern double sqrt(double x);
 extern tag_instance *tag_instances;
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
 }
 
 /**
@@ -311,9 +306,9 @@ void halo::objects::AntennaView::update_physics(Antenna *antenna_tag, float dt)
                     axis.j = bend_delta.i - bend_delta.k * 0.0f;
                     axis.k = bend_delta.j * 0.0f - bend_delta.i * 0.0f;
 
-                    length = vector3d_normalize_with_length(&axis);
+                    length = halo::math::vector3d_normalize_with_length(axis);
                     if (length == 0.0f) {
-                        axis = *global_left3d_pointer;
+                        axis = *halo::math::globals().global_left3d_pointer;
                     }
 
                     offset.i = tag_vertex->offset.x;
@@ -323,11 +318,11 @@ void halo::objects::AntennaView::update_physics(Antenna *antenna_tag, float dt)
                     {
                         real_vector3d world_up_z = { 0.0f, 0.0f, 1.0f };
 
-                        angle = vector3d_angle_between_4cd4f0(&bend_delta, &world_up_z);
+                        angle = halo::math::vector3d_angle_between_4cd4f0(bend_delta, world_up_z);
                     }
                     s = (real)sin((double)angle);
                     c = (real)cos((double)angle);
-                    vector3d_rotate_about_axis(&offset, &axis, s, c);
+                    halo::math::vector3d_rotate_about_axis(offset, axis, s, c);
 
                     anchor.x = new_position.x;
                     anchor.y = new_position.y;
@@ -522,14 +517,14 @@ void halo::objects::AntennaView::render_wire(uint32_t widget_flags, float scale,
  */
 void halo::objects::AntennaSystem::tip_jitter(real_vector3d *amplitude, real_point3d *position, real_matrix4x3 *m)
 {
-    uint32_t s1 = effect_random_seed * 0x19660dU + 0x3c6ef35fU;
+    uint32_t s1 = halo::math::globals().effect_random_seed * 0x19660dU + 0x3c6ef35fU;
     uint32_t s2 = s1 * 0x19660dU + 0x3c6ef35fU;
     float rz = (float)(s1 >> 16) * 1.5259022e-05f;
     float ry, rx;
 
-    effect_random_seed = s2 * 0x19660dU + 0x3c6ef35fU;
+    halo::math::globals().effect_random_seed = s2 * 0x19660dU + 0x3c6ef35fU;
     ry = (float)(s2 >> 16) * 1.5259022e-05f;
-    rx = (float)(effect_random_seed >> 16) * 1.5259022e-05f;
+    rx = (float)(halo::math::globals().effect_random_seed >> 16) * 1.5259022e-05f;
 
     {
         real_vector3d jitter;
@@ -537,7 +532,7 @@ void halo::objects::AntennaSystem::tip_jitter(real_vector3d *amplitude, real_poi
         jitter.i = (rx + rx - 1.0f) * amplitude->i;
         jitter.j = (ry + ry - 1.0f) * amplitude->j;
         jitter.k = (rz + rz - 1.0f) * amplitude->k;
-        matrix4x3_transform_vector(&jitter, &jitter, m);
+        halo::math::matrix4x3_transform_vector(jitter, jitter, *m);
         position->x = jitter.i + position->x;
         position->y = jitter.j + position->y;
         position->z = jitter.k + position->z;

@@ -1,4 +1,5 @@
 #include "halo/ai/actor_props.hpp"
+#include "halo/math/api.hpp"
 
 namespace c_actor_allocate_paired_prop {
 extern "C" {
@@ -95,7 +96,6 @@ namespace c_actor_apply_unit_definition_properties {
 extern "C" {
 extern data_array *object_data;
 extern tag_instance *tag_instances;
-extern uint32_t random_seed_global;
 extern int16_t network_game_mode;
 extern object_type_definition *object_type_definitions[12];
 
@@ -165,9 +165,9 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         if (i < 4) {
             ColorRGB *working = (ColorRGB *)(unit + 0x188 + i * 0xc);
 
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
             color_interpolate((ColorRGB *)(change_color + 0xc), (ColorRGB *)change_color, working, 1,
-                (float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f);
+                (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f);
             *(ColorRGB *)(unit + 0x1b8 + i * 0xc) = *working;
         }
     }
@@ -191,9 +191,9 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         int32_t range = (int16_t)(*(int16_t *)(variant + 0x1d2) + 1) - minimum;
         uint8_t *object = object_get(unit_index);
 
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
         object[0x31e + type] = (uint8_t)(object[0x31e + type] +
-            (uint8_t)(((uint32_t)range * (random_seed_global >> 0x10)) >> 0x10) + (uint8_t)minimum);
+            (uint8_t)(((uint32_t)range * (halo::math::globals().random_seed_global >> 0x10)) >> 0x10) + (uint8_t)minimum);
         object[0x31d] = (uint8_t)type;
         object[0x31c] = (uint8_t)type;
     }
@@ -569,11 +569,8 @@ extern const real_vector2d *global_forward2d_pointer;
 
 extern double sqrt(double x);
 extern double fabs(double x);
-extern real vector2d_normalize_with_length(real_vector2d *v);
 extern uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *direction, float step_distance,
                                             float step_up, uint8_t *out_flag, void *extra_param);
-extern real point3d_distance_squared_to_segment(real_point3d *segment_start, real_vector3d *segment_direction,
-                                                real_point3d *point);
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
@@ -636,10 +633,10 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
         if (!have_axis) {
             axis.i = ((actor *)act)->flee_from_point.x - ((actor *)act)->body_position.x;
             axis.j = ((actor *)act)->flee_from_point.y - ((actor *)act)->body_position.y;
-            if (vector2d_normalize_with_length(&axis) == 0.0f) {
+            if (halo::math::vector2d_normalize_with_length(axis) == 0.0f) {
                 axis.i = ((actor *)act)->facing.i;
                 axis.j = ((actor *)act)->facing.j;
-                if (vector2d_normalize_with_length(&axis) == 0.0f) {
+                if (halo::math::vector2d_normalize_with_length(axis) == 0.0f) {
                     axis = *global_forward2d_pointer;
                 }
             }
@@ -661,10 +658,10 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
         right_point.z = step * 0.0f + ((actor *)act)->body_position.z;
 
         left_hit = actor_check_step_obstruction(actor_index, (real_vector2d *)&left, step, sideways, &left_blocked, extra);
-        left_distance = (float)sqrt(point3d_distance_squared_to_segment((real_point3d *)(act + 0x2b0), &path, &left_point));
+        left_distance = (float)sqrt(halo::math::point3d_distance_squared_to_segment(*(real_point3d *)(act + 0x2b0), path, left_point));
         left_out = (uint8_t)(left_hit && left_distance > ((actor *)act)->danger_unknown_294);
         right_hit = actor_check_step_obstruction(actor_index, (real_vector2d *)&right, step, sideways, &right_blocked, extra);
-        right_distance = (float)sqrt(point3d_distance_squared_to_segment((real_point3d *)(act + 0x2b0), &path, &right_point));
+        right_distance = (float)sqrt(halo::math::point3d_distance_squared_to_segment(*(real_point3d *)(act + 0x2b0), path, right_point));
         right_out = (uint8_t)(right_hit && right_distance > ((actor *)act)->danger_unknown_294);
 
         if (left_hit) {

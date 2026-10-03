@@ -1,25 +1,19 @@
 #include "halo/items/items.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern tag_instance *tag_instances;
 extern game_engine_definition *current_game_engine;
 extern uint8_t *global_structure_collision_bsp;
-extern random_seed random_seed_global;
-extern real_vector3d *global_up3d_pointer;
 extern void item_detonation_timer_start(uint32_t object_index);
 extern void item_compute_rotation(uint32_t object_index);
 extern void object_list_membership_set(uint32_t object_index, char add);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location);
 extern void structure_bsp_plane_fetch_signed(real_plane3d *out, void *planes_owner, int32_t signed_index);
-extern real random_real_range(real min, real max);
 extern void random_get_table_point(real_vector3d *out);
 extern double sqrt(double x);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand);
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
-extern void quaternion_rotate_vector(real_quaternion *q, real_vector3d *v, real_vector3d *out);
 extern void object_recompute_basis_from_marker_delta(object *obj, object_marker *marker, real_matrix4x3 *output_matrix);
 extern double fsin(double x);
 extern double fcos(double x);
@@ -99,20 +93,20 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
         real angle;
 
         if (magnitude < 0.0001f) {
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-            magnitude = (real)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f;
+            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            magnitude = (real)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
         }
-        seed_snapshot = random_seed_global;
+        seed_snapshot = halo::math::globals().random_seed_global;
 
-        vector3d_cross_product(&cross_axis, delta, global_up3d_pointer);
-        length = vector3d_normalize_with_length(&cross_axis);
+        halo::math::vector3d_cross_product(cross_axis, *delta, *halo::math::globals().global_up3d_pointer);
+        length = halo::math::vector3d_normalize_with_length(cross_axis);
         if (length <= 0.0f) {
             random_get_table_point(&cross_axis);
-            seed_snapshot = random_seed_global;
+            seed_snapshot = halo::math::globals().random_seed_global;
         }
 
-        random_seed_global = seed_snapshot * 0x19660d + 0x3c6ef35f;
-        angle = (real)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f * magnitude * 1.5707964f;
+        halo::math::globals().random_seed_global = seed_snapshot * 0x19660d + 0x3c6ef35f;
+        angle = (real)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f * magnitude * 1.5707964f;
         obj->angular_velocity.i += cross_axis.i * angle;
         obj->angular_velocity.j += cross_axis.j * angle;
         obj->angular_velocity.k += cross_axis.k * angle;
@@ -124,9 +118,9 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
         if (object_get_node_local_transform(item_index, (char *)"ground point", &marker, 1) != 0) {
             axis = marker.node_transform.up;
         } else {
-            axis = *global_up3d_pointer;
+            axis = *halo::math::globals().global_up3d_pointer;
         }
-        angle = random_real_range(-1.5707964f, 1.5707964f);
+        angle = halo::math::random_real_range(-1.5707964f, 1.5707964f);
         obj->angular_velocity.i += axis.i * angle;
         obj->angular_velocity.j += axis.j * angle;
         obj->angular_velocity.k += axis.k * angle;
@@ -174,22 +168,22 @@ void item_ref::align_to_normal_and_point(real_point3d *out_position, real_vector
 
     if (s <= 0.01f) {
         real_vector3d cross1;
-        vector3d_cross_product(&cross1, forward, normal);
-        vector3d_cross_product(&rotated_forward, normal, &cross1);
-        vector3d_normalize_with_length(&rotated_forward);
+        halo::math::vector3d_cross_product(cross1, *forward, *normal);
+        halo::math::vector3d_cross_product(rotated_forward, *normal, cross1);
+        halo::math::vector3d_normalize_with_length(rotated_forward);
     } else {
         real_quaternion q;
         real inverse_s = 1.0f / s;
         real_vector3d axis;
-        vector3d_cross_product(&axis, normal, up);
+        halo::math::vector3d_cross_product(axis, *normal, *up);
         q.i = axis.i * inverse_s;
         q.j = axis.j * inverse_s;
         q.k = axis.k * inverse_s;
         q.w = s * 0.5f;
-        quaternion_rotate_vector(&q, forward, &rotated_forward);
+        halo::math::quaternion_rotate_vector(q, *forward, rotated_forward);
     }
 
-    matrix4x3_from_forward_up(normal, &rotated_forward, &basis);
+    halo::math::matrix4x3_from_forward_up(*normal, rotated_forward, basis);
     basis.position = *point;
 
     object_recompute_basis_from_marker_delta(obj, &marker, &basis);

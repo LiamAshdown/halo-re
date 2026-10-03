@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/math/api.hpp"
 
 namespace halo::ai {
 
@@ -100,8 +101,6 @@ extern data_array *prop_data;
 extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
 extern ScenarioStructureBSP *global_structure_bsp;
-extern float vector3d_distance_squared(const real_point3d *a, const real_point3d *b);
-extern real vector3d_distance(const real_point3d *a, const real_point3d *b);
 extern uint8_t actor_movement_check_arrival(datum_index actor_index);
 extern void actor_movement_action_complete(datum_index actor_index);
 extern void actor_build_path_find_request(datum_index actor_index, path_find_request *request);
@@ -254,13 +253,13 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
         if (have_previous == 0) {
             return result;
         }
-        if (vector3d_distance_squared(&self->destination, &previous_destination) <= 0.010000001f) {
+        if (halo::math::vector3d_distance_squared(self->destination, previous_destination) <= 0.010000001f) {
             return result;
         }
     }
 
     actor_definition = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
-    distance = vector3d_distance(&self->destination, &self->body_position);
+    distance = halo::math::vector3d_distance(self->destination, self->body_position);
 
     if (self->flying != 0) {
         result = path_find_validate_and_record_goal((uint8_t *)self + 0x4a8, (void *)global_structure_bsp,
@@ -483,10 +482,6 @@ extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);
 extern double fabs(double x);
-extern real vector2d_normalize_with_length(real_vector2d *v);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
 extern void actor_update_target_lead_position(datum_index actor_index);
 extern float actor_compute_accuracy_scale(datum_index actor_index);
 extern void actor_movement_get_stopping_distances(datum_index actor_index, float *out_accelerate_stop_distance,
@@ -534,7 +529,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
         if (!keep_z) {
             heading.k = 0.0f;
         }
-        if (vector3d_normalize_with_length(&heading) == 0.0f) {
+        if (halo::math::vector3d_normalize_with_length(heading) == 0.0f) {
             heading = *facing;
         }
         switch (cached_axis) {
@@ -571,11 +566,11 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
                 desired.k = 0.0f;
                 aim.k = 0.0f;
             }
-            if (vector3d_normalize_with_length(&aim) == 0.0f) {
+            if (halo::math::vector3d_normalize_with_length(aim) == 0.0f) {
                 aim = *facing;
             }
             fallback = aim;
-            if (vector3d_normalize_with_length(&desired) == 0.0f) {
+            if (halo::math::vector3d_normalize_with_length(desired) == 0.0f) {
                 desired = fallback;
             }
             if (use_scratch) {
@@ -583,7 +578,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
                 if (!keep_z) {
                     heading.k = 0.0f;
                 }
-                if (vector3d_normalize_with_length(&heading) == 0.0f) {
+                if (halo::math::vector3d_normalize_with_length(heading) == 0.0f) {
                     heading = fallback;
                 }
                 actor_movement_project_into_frame(keep_z, &heading, &desired, &rotated);
@@ -599,7 +594,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
             if (!keep_z) {
                 aim.k = 0.0f;
             }
-            if (vector3d_normalize_with_length(&aim) == 0.0f) {
+            if (halo::math::vector3d_normalize_with_length(aim) == 0.0f) {
                 aim = *facing;
             }
             chosen_axis = 0;
@@ -624,7 +619,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
                 case 2: probe.i = facing->j; probe.j = -facing->i; probe.k = facing->k; break;
                 default: probe.i = -facing->j; probe.j = facing->i; probe.k = facing->k; break;
                 }
-                if (vector2d_normalize_with_length((real_vector2d *)&probe) > 0.0f) {
+                if (halo::math::vector2d_normalize_with_length(*((real_vector2d *)&probe)) > 0.0f) {
                     real_point3d point;
                     path_find_boundary_crossing crossing;
 
@@ -730,9 +725,9 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
             if (fabs(step) > 9.999999747378752e-05) {
                 real_vector3d axis;
 
-                vector3d_cross_product(&axis, &aim, facing);
-                if (vector3d_normalize_with_length(&axis) > 0.0f) {
-                    vector3d_rotate_about_axis(&aim, &axis, (real)sin(step), (real)cos(step));
+                halo::math::vector3d_cross_product(axis, aim, *facing);
+                if (halo::math::vector3d_normalize_with_length(axis) > 0.0f) {
+                    halo::math::vector3d_rotate_about_axis(aim, axis, (real)sin(step), (real)cos(step));
                 }
             }
         }
@@ -781,7 +776,6 @@ uint8_t ActorView::movement_check_arrival()
 
 namespace actor_movement_choose_strafe_axis_local {
 extern "C" {
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern const real_vector3d *global_origin3d_pointer;
 }
 }
@@ -806,14 +800,14 @@ void ActorOps::movement_choose_strafe_axis(const real_vector3d *direction, uint8
     candidates[0] = *direction;
     if (use_3d == 0) {
         candidates[0].k = 0.0f;
-        if (vector3d_normalize_with_length(&candidates[0]) == 0.0f) {
+        if (halo::math::vector3d_normalize_with_length(candidates[0]) == 0.0f) {
             candidates[0] = *facing;
         }
         candidates[2].i = -candidates[0].j;
         candidates[2].j = candidates[0].i;
         candidates[2].k = 0.0f;
     } else {
-        if (vector3d_normalize_with_length(&candidates[0]) == 0.0f) {
+        if (halo::math::vector3d_normalize_with_length(candidates[0]) == 0.0f) {
             candidates[0] = *facing;
         }
         candidates[2] = *global_origin3d_pointer;
@@ -873,8 +867,6 @@ extern int16_t object_find_in_sphere(int32_t kind, int32_t type_mask, const void
                                      const real_point3d *center, float radius,
                                      datum_index *out_objects, int32_t maximum_count);
 extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out);
-extern void matrix4x3_transform_point(real_point3d *out, const real_point3d *point,
-                                      const real_matrix4x3 *matrix);
 }
 }
 
@@ -937,8 +929,8 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
                 for (i = 0; (int32_t)i < sphere_count; i++) {
                     sphere = &spheres[i];
                     if ((int16_t)sphere->node == -1) {
-                        matrix4x3_transform_point(&transformed, (const real_point3d *)&sphere->center,
-                                                  &world_matrix);
+                        halo::math::matrix4x3_transform_point(transformed, *((const real_point3d *)&sphere->center),
+                                                  world_matrix);
                         reach = world_matrix.scale * sphere->radius;
                     } else {
                         candidate_object = ((object_header *)object_data->data)[*cursor & 0xffff].data;
@@ -946,8 +938,8 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
                             ((uint8_t *)candidate_object +
                              (int32_t)((struct object *)candidate_object)->nodes.offset +
                              (int16_t)sphere->node * 0x34);
-                        matrix4x3_transform_point(&transformed, (const real_point3d *)&sphere->center,
-                                                  node_matrix);
+                        halo::math::matrix4x3_transform_point(transformed, *((const real_point3d *)&sphere->center),
+                                                  *node_matrix);
                         reach = sphere->radius * node_matrix->scale;
                     }
                     dx = transformed.x - origin_x;
@@ -985,7 +977,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
 extern tag_instance *tag_instances;
-extern real vector3d_normalize_with_length(real_vector3d *v);
 }
 }
 
@@ -1018,7 +1009,7 @@ uint8_t ActorView::movement_flying_needs_steering(const real_point3d *destinatio
             delta.i = destination->x - self->body_position.x;
             delta.j = destination->y - self->body_position.y;
             delta.k = destination->z - self->body_position.z;
-            length = vector3d_normalize_with_length(&delta);
+            length = halo::math::vector3d_normalize_with_length(delta);
             if (length > 0.0f) {
                 facing_dot = delta.i * self->facing.i + delta.j * self->facing.j +
                              delta.k * self->facing.k;
@@ -1112,11 +1103,6 @@ void ActorView::movement_get_stopping_distances(float *out_accelerate_stop_dista
 }
 
 namespace actor_movement_project_into_frame_local {
-extern "C" {
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void real_matrix4x3_rotation_from_forward(const real_vector3d *axis, real_vector3d *out_axis2,
-                         real_vector3d *out_axis3);
-}
 }
 
 /**
@@ -1131,18 +1117,18 @@ void ActorOps::movement_project_into_frame(uint8_t use_3d, const real_vector3d *
     real_vector3d axis3;
 
     if (use_3d != 0) {
-        real_matrix4x3_rotation_from_forward(frame_axis, &axis2, &axis3);
+        halo::math::real_matrix4x3_rotation_from_forward(frame_axis, &axis2, &axis3);
         out->i = frame_axis->i * v->i + frame_axis->j * v->j + frame_axis->k * v->k;
         out->j = axis2.i * v->i + axis2.j * v->j + axis2.k * v->k;
         out->k = axis3.i * v->i + axis3.j * v->j + axis3.k * v->k;
-        vector3d_normalize_with_length(out);
+        halo::math::vector3d_normalize_with_length(*out);
         return;
     }
 
     out->i = frame_axis->i * v->i + frame_axis->j * v->j;
     out->k = 0.0f;
     out->j = frame_axis->i * v->j - frame_axis->j * v->i;
-    vector3d_normalize_with_length(out);
+    halo::math::vector3d_normalize_with_length(*out);
 }
 
 namespace actor_movement_set_destination_firing_position_local {
@@ -1319,8 +1305,6 @@ extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_se
                                                 int16_t breakable_surface_count,
                                                 uint32_t *breakable_surfaces, real_point3d *origin,
                                                 real_vector3d *delta, float max_fraction);
-extern uint8_t ray_intersects_cylinder(real height, real radius, real_vector3d *hit_out, real *t_out,
-    real_point3d *center, real_point3d *origin, real_vector3d *direction);
 }
 }
 
@@ -1384,7 +1368,7 @@ int16_t ActorOps::movement_test_obstacle_ray(real_vector3d *out_elevation, const
     for (i = 0; i < context->obstacle_count; i++) {
         actor_movement_obstacle *obstacle = &context->obstacles[i];
 
-        if (ray_intersects_cylinder(obstacle->height, obstacle->radius, &segment, &hit_fraction,
+        if (halo::math::ray_intersects_cylinder(obstacle->height, obstacle->radius, &segment, &hit_fraction,
                                     (real_point3d *)&obstacle->position, out_end_point, out_elevation) != 0 &&
             hit_fraction < *out_distance) {
             result = 1;

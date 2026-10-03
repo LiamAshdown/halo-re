@@ -3,6 +3,7 @@
 #include "units.h"
 #include <stdint.h>
 #include "crt.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -41,9 +42,6 @@ extern void unit_pick_and_ready_next_weapon(uint32_t unit_index);
 extern void player_update_history_free_all(void *history);
 extern void *datum_get(datum_index handle, data_array *array);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
-extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in);
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m);
-extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern uint32_t player_index_from_unit_index(datum_index object_index);
 extern uint8_t hs_object_angle_predicate_helper(datum_index object_index, datum_index viewer_unit, float angle_degrees);
 extern data_array *object_list_header_data;
@@ -113,7 +111,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
         position.z = delta.k + ((unit_object *)unit)->base.position.z - root_offset.k;
         object_set_position_and_orientation(object_index, 0, 0, &position);
         unit = OBJ(object_index);
-        matrix4x3_multiply_procedure((real_matrix4x3 *)(unit + ((unit_object *)unit)->base.nodes.offset), root_matrix, &basis);
+        halo::math::globals().matrix4x3_multiply_procedure((real_matrix4x3 *)(unit + ((unit_object *)unit)->base.nodes.offset), root_matrix, &basis);
         *(real_vector3d *)&((unit_object *)unit)->base.forward.i = basis.forward;
         *(real_vector3d *)&((unit_object *)unit)->base.up.i = basis.up;
         unit = OBJ(object_index);
@@ -274,8 +272,8 @@ void ScriptObjects::object_detach_and_place_at_location(int16_t location_index, 
                 (int8_t)unit_bytes[0x120] * 0x34);
             real_matrix4x3 inverse;
 
-            matrix4x3_inverse(&inverse, node);
-            matrix4x3_transform_normal(&local_forward, &forward, &inverse);
+            halo::math::matrix4x3_inverse(&inverse, *node);
+            halo::math::matrix4x3_transform_normal(local_forward, forward, inverse);
         } else {
             local_forward = forward;
         }

@@ -1,5 +1,6 @@
 #include "halo/game/gamerest_camera.hpp"
 #include <string.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -7,17 +8,14 @@ extern data_array *object_data;
 extern game_time_globals *game_time;
 extern uint32_t unit_noop_569670(uint32_t object_index);
 extern char camera_observer_find_best_target(real_point3d *observer_position, observer_target_cone *cone, real_vector3d *facing, datum_index exclude_object, int16_t team, void *out);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out);
 extern int16_t camera_get_seat_camera_state(datum_index unit, int16_t *out_state);
 extern void first_person_camera_deterministic(Point3D *out_position, datum_index unit, Vector3D *out_direction);
 extern void first_person_camera_apply_weapon_offset(real_point3d *position, datum_index unit, real_vector3d *aiming_direction);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, void *result);
-extern void vector3d_normalize(real_vector3d *v);
 extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);
-extern uint8_t vector3d_rotate_toward(real_vector3d *target, real_vector3d *source, real_vector3d *out, real sin_angle, real cos_angle);
 }
 
 namespace halo::game {
@@ -73,7 +71,7 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
             target_direction.i = *(real *)(record + 0x04) - observer_position->x;
             target_direction.j = *(real *)(record + 0x08) - observer_position->y;
             target_direction.k = *(real *)(record + 0x0c) - observer_position->z;
-            if (vector3d_normalize_with_length(&target_direction) == 0.0f) {
+            if (halo::math::vector3d_normalize_with_length(target_direction) == 0.0f) {
                 target_direction = *fallback_facing;
             }
             fraction = *(real *)(record + 0x30);
@@ -86,7 +84,7 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
         dz = camera_position.z - *(real *)(unit_obj + 0x64);
         distance = (real)sqrt((double)(dx * dx + dy * dy + dz * dz));
         camera_forward = camera_direction;
-        vector3d_normalize_with_length(&camera_forward);
+        halo::math::vector3d_normalize_with_length(camera_forward);
         probe_origin.x = camera_forward.i * distance + camera_position.x;
         probe_origin.y = camera_forward.j * distance + camera_position.y;
         probe_origin.z = camera_forward.k * distance + camera_position.z;
@@ -98,14 +96,14 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
         look_direction.i = *(real *)(record + 0x18) - observer_position->x;
         look_direction.j = *(real *)(record + 0x1c) - observer_position->y;
         look_direction.k = *(real *)(record + 0x20) - observer_position->z;
-        if (vector3d_normalize_with_length(&look_direction) == 0.0f) {
+        if (halo::math::vector3d_normalize_with_length(look_direction) == 0.0f) {
             look_direction = *fallback_facing;
         }
         blend.i = look_direction.i * (1.0f - fraction) + target_direction.i * fraction;
         blend.j = look_direction.j * (1.0f - fraction) + target_direction.j * fraction;
         blend.k = look_direction.k * (1.0f - fraction) + target_direction.k * fraction;
-        vector3d_normalize(&blend);
-        vector3d_rotate_toward(&blend, fallback_facing, fallback_facing, (real)sin((double)cone[4]),
+        halo::math::vector3d_normalize(blend);
+        halo::math::vector3d_rotate_toward(&blend, *fallback_facing, fallback_facing, (real)sin((double)cone[4]),
             (real)cos((double)cone[4]));
     }
 

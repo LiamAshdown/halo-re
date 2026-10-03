@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/math/api.hpp"
 
 namespace halo::ai {
 
@@ -9,7 +10,6 @@ extern data_array *prop_data;
 extern data_array *encounter_data;
 extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
-extern real random_real(void);
 extern void actor_target_scan_potential_targets(datum_index actor_index);
 extern void actor_danger_update_reaction(datum_index actor_index);
 extern uint16_t actor_target_get_priority_class(datum_index actor_index, datum_index target_prop_index);
@@ -124,7 +124,7 @@ void ActorView::target_relationship_think()
                 } else if (danger_type == 3) {
                     threshold = definition->notice_vehicle_chance;
                 }
-                if (threshold > 0.0f && random_real() < threshold) {
+                if (threshold > 0.0f && halo::math::random_real() < threshold) {
                     self->danger_reacting = 1;
                 }
             }
@@ -132,7 +132,7 @@ void ActorView::target_relationship_think()
             if (self->danger_reacting != 0) {
                 if (self->danger_is_own == 0) {
                     if (self->danger_unknown_282 == 0 && danger_type != 3 && danger_type != 1) {
-                        self->danger_dive = (uint8_t)(random_real() < definition->dive_from_grenade_chance);
+                        self->danger_dive = (uint8_t)(halo::math::random_real() < definition->dive_from_grenade_chance);
                     } else {
                         self->danger_dive = 1;
                     }

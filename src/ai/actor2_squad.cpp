@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/math/api.hpp"
 
 namespace halo::ai {
 
@@ -117,11 +118,6 @@ extern data_array *object_data;
 extern data_array *player_data;
 extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);
-extern real random_real_range(real min, real max);
-extern real vector2d_normalize_with_length(real_vector2d *v);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern int32_t random_int_range(int16_t min, int16_t max);
 extern void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request);
 extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index,
                                                    char *seat_name, int16_t seat_flags, int16_t count);
@@ -157,7 +153,6 @@ extern void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_v
 extern int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_t grenade_type, int8_t delta);
 extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,
     uint8_t interpolate);
-extern int32_t float_compare_ascending(const void *a, const void *b);
 extern const char k_empty_string[];
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
@@ -244,7 +239,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
             direction->i = points[point_index].position.x - start->x;
             direction->j = points[point_index].position.y - start->y;
             direction->k = points[point_index].position.z - start->z;
-            if (!(vector3d_normalize_with_length(direction) > 0.0f)) {
+            if (!(halo::math::vector3d_normalize_with_length(*direction) > 0.0f)) {
                 return 0;
             }
         } else {
@@ -293,11 +288,11 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
             int16_t p2 = (int16_t)entry->point_2;
 
             if (p1 >= 0 && p1 < point_count && p2 >= 0 && p2 < point_count) {
-                look_point = random_int_range(p1, (int16_t)(p2 + 1));
+                look_point = halo::math::random_int_range(p1, (int16_t)(p2 + 1));
                 if (entry->parameter1 == 0.0f && entry->parameter2 == 0.0f) {
-                    duration = random_real_range(*(float *)(actor_tag + 0xec), *(float *)(actor_tag + 0xf0));
+                    duration = halo::math::random_real_range(*(float *)(actor_tag + 0xec), *(float *)(actor_tag + 0xf0));
                 } else {
-                    duration = random_real_range(entry->parameter1, entry->parameter2);
+                    duration = halo::math::random_real_range(entry->parameter1, entry->parameter2);
                 }
             }
         } else if (entry->atom_type == 0x18) {
@@ -329,7 +324,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
                         float distance;
 
                         unit_get_primary_eye_marker_position(player_unit, &eye);
-                        distance = vector3d_distance_squared((real_point3d *)(act + 0x120), &eye);
+                        distance = halo::math::vector3d_distance_squared(*(real_point3d *)(act + 0x120), eye);
                         if (distance <= best) {
                             best = distance;
                             look_object = player_unit;
@@ -449,7 +444,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
             float distance;
 
             object_get_position(&position, vehicle_index);
-            distance = vector3d_distance_squared(&position, (real_point3d *)(act + 0x12c));
+            distance = halo::math::vector3d_distance_squared(position, *(real_point3d *)(act + 0x12c));
             if (entry->parameter1 == 0.0f || distance <= entry->parameter1 * entry->parameter1) {
                 samples[sample_count].distance_squared = distance;
                 samples[sample_count].vehicle_index = vehicle_index;
@@ -460,7 +455,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
             }
         }
         if (sample_count > 1) {
-            qsort(samples, sample_count, 8, float_compare_ascending);
+            qsort(samples, sample_count, 8, halo::math::float_compare_ascending);
         }
         if (entry->atom_modifier >= 0 && entry->atom_modifier < 5) {
             seat_flags = entry->atom_modifier;
@@ -682,10 +677,10 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
             forward.j = facing->y - destination->y;
             forward.k = facing->z - destination->z;
             if (biped_tag != 0 && (biped_tag[0x2f4] & 0x44) != 0) {
-                length = vector3d_normalize_with_length(&forward);
+                length = halo::math::vector3d_normalize_with_length(forward);
             } else {
                 forward.k = 0.0f;
-                length = vector2d_normalize_with_length((real_vector2d *)&forward);
+                length = halo::math::vector2d_normalize_with_length(*((real_vector2d *)&forward));
             }
             if (length == 0.0f) {
                 unit_get_forward_vector_or_marker_normal(check_object_index, &forward);
@@ -715,10 +710,6 @@ extern data_array *actor_data;
 extern data_array *object_data;
 extern tag_instance *tag_instances;
 extern Scenario *global_scenario;
-extern real vector3d_magnitude_squared(real_vector3d *v);
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);
-extern real vector2d_normalize_with_length(real_vector2d *v);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point, uint32_t object_handle,
                                           uint32_t exclude_object_index);
 extern void actor_movement_action_stop(datum_index actor_index);
@@ -770,7 +761,7 @@ uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_in
             delta.i = *(float *)(aim_state + 0x8) - ((actor *)act)->body_position.x;
             delta.j = *(float *)(aim_state + 0xc) - ((actor *)act)->body_position.y;
             delta.k = *(float *)(aim_state + 0x10) - ((actor *)act)->body_position.z;
-            distance_squared = vector3d_magnitude_squared(&delta);
+            distance_squared = halo::math::vector3d_magnitude_squared(delta);
             if (distance_squared <= range * range) {
                 done = 1;
             } else if (distance_squared <= (range + 0.5f) * (range + 0.5f)) {
@@ -800,7 +791,7 @@ uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_in
                 direction.i = *(float *)(aim_state + 0x1c) - ((actor *)act)->body_position.x;
                 direction.j = *(float *)(aim_state + 0x20) - ((actor *)act)->body_position.y;
                 direction.k = *(float *)(aim_state + 0x24) - ((actor *)act)->body_position.z;
-                if (vector3d_normalize_with_length(&direction) > 0.0f &&
+                if (halo::math::vector3d_normalize_with_length(direction) > 0.0f &&
                     direction.k * ((actor *)act)->facing.k + direction.j * ((actor *)act)->facing.j +
                     direction.i * ((actor *)act)->facing.i < 0.984f) {
                     return 0;
@@ -810,7 +801,7 @@ uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_in
 
                 direction.i = *(float *)(aim_state + 0x1c) - ((actor *)act)->body_position.x;
                 direction.j = *(float *)(aim_state + 0x20) - ((actor *)act)->body_position.y;
-                if (vector2d_normalize_with_length(&direction) > 0.0f &&
+                if (halo::math::vector2d_normalize_with_length(direction) > 0.0f &&
                     direction.j * ((actor *)act)->facing.j + direction.i * ((actor *)act)->facing.i < 0.984f) {
                     return 0;
                 }
@@ -841,7 +832,7 @@ uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_in
             return 1;
         }
         if (((struct actor *)act)->firing_target_type != 2 ||
-            !(vector3d_distance_squared((real_point3d *)(act + 0x610), (real_point3d *)(aim_state + 0x38)) < 0.25f)) {
+            !(halo::math::vector3d_distance_squared(*(real_point3d *)(act + 0x610), *(real_point3d *)(aim_state + 0x38)) < 0.25f)) {
             int16_t ticks = (int16_t)(int32_t)(*(float *)(TAG_DATA(((actor *)act)->actor_variant_tag) + 0x84) * 30.0f);
 
             *(int16_t *)(state + 0x2) = ticks > 0x3c ? ticks : 0x3c;

@@ -5,6 +5,7 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 
@@ -14,7 +15,6 @@ extern uint32_t color_rgb_float_to_int(const ColorRGB *color);
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern BitmapData *bitmap_group_get_bitmap_data(uint32_t bitmap_tag_id, int16_t index);
 extern void shader_environment_texture_scrolling_evaluate(float *u, float *v, double time, const ShaderEnvironment *shader);
-extern real periodic_function_evaluate(periodic_function_t type, double time);
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 
 }  // extern "C"
@@ -1439,7 +1439,7 @@ static float shader_field(const uint8_t *raw, uint32_t offset)
 
 static float self_illumination_animation(const uint8_t *raw, uint32_t offset)
 {
-    return periodic_function_evaluate((periodic_function_t)*(const int16_t *)(raw + offset),
+    return halo::math::periodic_function_evaluate((periodic_function_t)*(const int16_t *)(raw + offset),
                                       (shader_field(raw, offset + 8) + rasterizer_time.time) / shader_field(raw, offset + 4));
 }
 

@@ -16,6 +16,7 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern cinematic_screen_effect_globals *cinematic_screen_effect_state;
@@ -24,7 +25,6 @@ extern GlobalsRasterizerData *rasterizer_globals_data;
 extern tag_instance *tag_instances;
 extern ColorRGB *default_axis_b;
 extern ColorRGB *global_real_rgb_green_pointer;
-extern void real_lerp_clamped(real *out, real a, real b, real t);
 extern frame_graph frame_graphs[1];
 extern void *rasterizer_device;
 extern rasterizer_window_parameters rasterizer_window;
@@ -331,10 +331,10 @@ cinematic_screen_effect_globals *update(cinematic_screen_effect_globals *input)
 
     g->convolution_radius = (1.0f - convolution_progress) * g->convolution_radius_lower_bound +
                             convolution_progress * g->convolution_radius_upper_bound;
-    real_lerp_clamped(&g->filter_light_enhancement_intensity,
+    halo::math::real_lerp_clamped(g->filter_light_enhancement_intensity,
                       g->filter_light_enhancement_intensity_lower_bound,
                       g->filter_light_enhancement_intensity_upper_bound, filter_progress);
-    real_lerp_clamped(&g->filter_desaturation_intensity,
+    halo::math::real_lerp_clamped(g->filter_desaturation_intensity,
                       g->filter_desaturation_intensity_lower_bound,
                       g->filter_desaturation_intensity_upper_bound, filter_progress);
 

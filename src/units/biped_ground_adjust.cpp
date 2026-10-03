@@ -1,15 +1,11 @@
 #include "halo/units/unit.hpp"
 #include "physics.h"
 #include "projectiles.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern tag_instance *tag_instances;
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
-extern uint8_t real_matrix4x3_rotation_is_orthonormal(real_vector3d *forward, real_vector3d *left, real_vector3d *up);
-extern void real_matrix4x3_rotation_rebuild_orthonormal(real_vector3d *forward, real_vector3d *left, real_vector3d *up);
 extern double acos(double x);
 extern double sin(double x);
 extern double fabs(double x);
@@ -19,9 +15,6 @@ extern int16_t physics_model_slide_along_contacts(real_point3d *start_position, 
 extern uint8_t physics_point_refresh_leaf(real_point3d *point, float radius);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern double sqrt(double x);
-extern void plane3d_from_point_and_normal(real_plane3d *out, const real_vector3d *normal, const real_point3d *point);
-extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in);
-extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m);
 extern real_point3d unit_ground_adjust_node_positions[64];
 }
 
@@ -31,8 +24,8 @@ namespace biped_ground_adjust_apply_node_rotations_local {
 
 static void biped_ground_adjust_make_orthonormal(real_matrix4x3 *m)
 {
-    if (!real_matrix4x3_rotation_is_orthonormal(&m->forward, &m->left, &m->up)) {
-        real_matrix4x3_rotation_rebuild_orthonormal(&m->forward, &m->left, &m->up);
+    if (!halo::math::real_matrix4x3_rotation_is_orthonormal(&m->forward, &m->left, &m->up)) {
+        halo::math::real_matrix4x3_rotation_rebuild_orthonormal(&m->forward, &m->left, &m->up);
     }
 }
 
@@ -74,12 +67,12 @@ void BipedView::ground_adjust_apply_node_rotations(real_matrix4x3 *nodes, real_p
         current.i = nodes[i].position.x - nodes[parent_index].position.x;
         current.j = nodes[i].position.y - nodes[parent_index].position.y;
         current.k = nodes[i].position.z - nodes[parent_index].position.z;
-        vector3d_normalize_with_length(&saved);
-        vector3d_normalize_with_length(&current);
+        halo::math::vector3d_normalize_with_length(saved);
+        halo::math::vector3d_normalize_with_length(current);
         axis.i = current.k * saved.j - current.j * saved.k;
         axis.j = current.i * saved.k - current.k * saved.i;
         axis.k = current.j * saved.i - saved.j * current.i;
-        vector3d_normalize_with_length(&axis);
+        halo::math::vector3d_normalize_with_length(axis);
         cosine = current.k * saved.k + current.j * saved.j + current.i * saved.i;
         if (fabs((double)(cosine - 1.0f)) < 9.999999747378752e-05) {
             continue;
@@ -94,12 +87,12 @@ void BipedView::ground_adjust_apply_node_rotations(real_matrix4x3 *nodes, real_p
 
             biped_ground_adjust_make_orthonormal(parent);
             sine = (real)sin((double)angle);
-            vector3d_rotate_about_axis(&parent->forward, &axis, sine, cosine);
-            vector3d_rotate_about_axis(&parent->up, &axis, sine, cosine);
-            vector3d_normalize_with_length(&parent->forward);
-            vector3d_normalize_with_length(&parent->up);
-            vector3d_cross_product(&parent->left, &parent->forward, &parent->up);
-            vector3d_normalize_with_length(&parent->left);
+            halo::math::vector3d_rotate_about_axis(parent->forward, axis, sine, cosine);
+            halo::math::vector3d_rotate_about_axis(parent->up, axis, sine, cosine);
+            halo::math::vector3d_normalize_with_length(parent->forward);
+            halo::math::vector3d_normalize_with_length(parent->up);
+            halo::math::vector3d_cross_product(parent->left, parent->forward, parent->up);
+            halo::math::vector3d_normalize_with_length(parent->left);
             biped_ground_adjust_make_orthonormal(parent);
         }
     }
@@ -347,10 +340,10 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
         to_reference.i = reference_position->x - parent_position->x;
         to_reference.j = reference_position->y - parent_position->y;
         to_reference.k = reference_position->z - parent_position->z;
-        vector3d_normalize_with_length(&to_self);
-        vector3d_normalize_with_length(&to_reference);
-        vector3d_cross_product(&axis, &to_reference, &to_self);
-        vector3d_normalize_with_length(&axis);
+        halo::math::vector3d_normalize_with_length(to_self);
+        halo::math::vector3d_normalize_with_length(to_reference);
+        halo::math::vector3d_cross_product(axis, to_reference, to_self);
+        halo::math::vector3d_normalize_with_length(axis);
         cosine = to_reference.k * to_self.k + to_reference.j * to_self.j + to_reference.i * to_self.i;
 
         if (!biped_ground_adjust_is_one(cosine)) {
@@ -361,11 +354,11 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
             real_vector3d local_axis;
             real_vector3d local_forward;
 
-            matrix4x3_inverse(&parent_inverse, parent_matrix);
-            matrix4x3_inverse(&grandparent_inverse, &nodes[*(int16_t *)(parent_node + 0x24)]);
-            matrix4x3_transform_vector(&local_axis, &axis, &parent_inverse);
+            halo::math::matrix4x3_inverse(&parent_inverse, *parent_matrix);
+            halo::math::matrix4x3_inverse(&grandparent_inverse, nodes[*(int16_t *)(parent_node + 0x24)]);
+            halo::math::matrix4x3_transform_vector(local_axis, axis, parent_inverse);
             local_forward = parent_matrix->forward;
-            matrix4x3_transform_vector(&local_forward, &local_forward, &grandparent_inverse);
+            halo::math::matrix4x3_transform_vector(local_forward, local_forward, grandparent_inverse);
 
             if (parent_node[0x28] & 2) {
                 real_vector3d up = parent_matrix->up;
@@ -375,7 +368,7 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
                 real_vector3d local_direction;
                 float distance;
 
-                plane3d_from_point_and_normal(&plane, &up, parent_position);
+                halo::math::plane3d_from_point_and_normal(plane, up, *parent_position);
                 distance = (plane.normal.j * reference_position->y + plane.normal.i * reference_position->x +
                     plane.normal.k * reference_position->z - plane.d) * -1.0f;
                 projected.x = up.i * distance + reference_position->x;
@@ -384,8 +377,8 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
                 direction.i = projected.x - parent_position->x;
                 direction.j = projected.y - parent_position->y;
                 direction.k = projected.z - parent_position->z;
-                vector3d_normalize_with_length(&direction);
-                matrix4x3_transform_vector(&local_direction, &direction, &parent_inverse);
+                halo::math::vector3d_normalize_with_length(direction);
+                halo::math::matrix4x3_transform_vector(local_direction, direction, parent_inverse);
                 if (!biped_ground_adjust_is_one(local_direction.j * base[1] + local_direction.k * base[2] +
                         local_direction.i * base[0])) {
                     biped_ground_adjust_mark(success_bits, node_index);
@@ -397,7 +390,7 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
             } else {
                 float alignment;
 
-                vector3d_rotate_about_axis(&local_forward, &local_axis, (real)sin((double)angle), cosine);
+                halo::math::vector3d_rotate_about_axis(local_forward, local_axis, (real)sin((double)angle), cosine);
                 alignment = local_forward.j * base[1] + local_forward.k * base[2] + local_forward.i * base[0];
                 if (!biped_ground_adjust_is_one(alignment) &&
                     *(float *)(parent_node + 0x38) > (float)fabs(acos((double)alignment)) &&

@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_first_person_weapon_controller.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -6,7 +7,6 @@ extern data_array *object_data;
 extern tag_instance *tag_instances;
 extern player_control_globals *player_control_globals_ptr;
 extern Globals *global_globals;
-extern real_vector3d *global_forward3d_pointer;
 extern void *global_zero_vector3d_pointer;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern int16_t camera_get_type_for_player(int16_t player_index);
@@ -20,9 +20,6 @@ extern void first_person_weapon_set_state(int16_t local_player_index, uint8_t fo
                                           int16_t new_state);
 extern void first_person_weapon_snapshot_pose(int16_t local_player_index, int16_t blend_gap);
 extern void first_person_weapon_interface_tick_reset(int16_t local_player_index);
-extern uint8_t real_seek_toward_clamped(int wrap, real *velocity, real *value, real target,
-    real accel, real max_speed, real range_min, real range_max);
-extern real random_range_real(real minimum, real maximum);
 extern float effect_random_fraction(void);
 extern float angle_delta_wrapped(float a, float b);
 extern double fmod(double x, double y);
@@ -141,7 +138,7 @@ void FirstPersonWeaponController::update()
 
         if (frame_sound != (datum_index)-1 && camera_get_type_for_player(local_player_index) == 0) {
             fp->frame_sound_index = sound_start_at_object_marker(fp->weapon_index, global_zero_vector3d_pointer,
-                                            global_forward3d_pointer, frame_sound, -1, 1.0f,
+                                            halo::math::globals().global_forward3d_pointer, frame_sound, -1, 1.0f,
                                             local_player_index != -1);
             fp->frame_sound_state = fp->state;
         }
@@ -199,9 +196,9 @@ void FirstPersonWeaponController::update()
         }
 
         if (fp->unknown_30[0x20] != 0) {
-            real_seek_toward_clamped(0, &FP_FLOAT(fp, 0x38), &FP_FLOAT(fp, 0x30),
+            halo::math::real_seek_toward_clamped(0, FP_FLOAT(fp, 0x38), FP_FLOAT(fp, 0x30),
                                      *(float *)((uint8_t *)unit_obj + 0x278), 0.08f, 0.5f, -1.0f, 1.0f);
-            real_seek_toward_clamped(0, &FP_FLOAT(fp, 0x3c), &FP_FLOAT(fp, 0x34),
+            halo::math::real_seek_toward_clamped(0, FP_FLOAT(fp, 0x3c), FP_FLOAT(fp, 0x34),
                                      *(float *)((uint8_t *)unit_obj + 0x27c), 0.08f, 0.5f, -1.0f, 1.0f);
             target_yaw = angle_delta_wrapped(FP_FLOAT(fp, 0x68), FP_FLOAT(fp, 0x60)) * 30.0f;
             target_pitch = angle_delta_wrapped(FP_FLOAT(fp, 0x6c), FP_FLOAT(fp, 0x64)) * -30.0f;
@@ -215,12 +212,12 @@ void FirstPersonWeaponController::update()
             } else if (target_pitch > 1.0f) {
                 target_pitch = 1.0f;
             }
-            real_seek_toward_clamped(0, &FP_FLOAT(fp, 0x48), &FP_FLOAT(fp, 0x40), target_yaw,
+            halo::math::real_seek_toward_clamped(0, FP_FLOAT(fp, 0x48), FP_FLOAT(fp, 0x40), target_yaw,
                                      0.03f, 0.2f, -1.0f, 1.0f);
-            real_seek_toward_clamped(0, &FP_FLOAT(fp, 0x4c), &FP_FLOAT(fp, 0x44), target_pitch,
+            halo::math::real_seek_toward_clamped(0, FP_FLOAT(fp, 0x4c), FP_FLOAT(fp, 0x44), target_pitch,
                                      0.03f, 0.2f, -1.0f, 1.0f);
         }
-        real_seek_toward_clamped(0, &fp->charge, &fp->recoil, 0.0f, 0.01f, 0.2f, 0.0f, 1.0f);
+        halo::math::real_seek_toward_clamped(0, fp->charge, fp->recoil, 0.0f, 0.01f, 0.2f, 0.0f, 1.0f);
         if (fp->recoil == 1.0f) {
             fp->charge = 0.0f;
         }
@@ -246,7 +243,7 @@ void FirstPersonWeaponController::update()
                         (GlobalsPlayerInformation *)global_globals->player_information.pointer;
                     if (fp->idle_delay_ticks == 0) {
                         fp->idle_delay_ticks = (int16_t)__ftol(
-                            random_range_real(player_information->first_person_idle_time[0],
+                            halo::math::random_range_real(player_information->first_person_idle_time[0],
                                               player_information->first_person_idle_time[1]) * 30.0f);
                     }
                     fp->idle_ticks++;

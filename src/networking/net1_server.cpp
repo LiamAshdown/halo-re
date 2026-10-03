@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <wchar.h>
 #include "units.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern uint16_t *network_message_read_sized_buffer(uint16_t *buffer, int32_t capacity, bit_stream *stream);
@@ -50,7 +51,6 @@ extern void build_player_full_resync_update(int32_t machine_id);
 extern void game_engine_capture_player_profile(int32_t value);
 extern void game_engine_send_unit_weapon_loadout(void *machine, int32_t team, int32_t machine_id);
 typedef void (*network_join_complete_callback)(int32_t unused, int32_t machine_id);
-extern random_seed effect_random_seed;
 extern network_server_globals *network_game_server_host_new(void);
 extern int32_t network_console_connection_id;
 extern uint8_t network_session_active2;
@@ -676,8 +676,8 @@ int32_t ServerView::host_create()
     host = network_game_server_host_new();
     network_server = host;
     if (host != 0) {
-        effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
-        salt = effect_random_seed >> 0x10;
+        halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
+        salt = halo::math::globals().effect_random_seed >> 0x10;
         *(uint32_t *)((uint8_t *)host + 0x3ac) = salt;
         if (network_client != 0) {
             *(uint32_t *)((uint8_t *)network_client + 0xeb8) = salt;

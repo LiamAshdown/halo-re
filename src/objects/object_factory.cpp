@@ -4,6 +4,7 @@
 #include "effects.h"
 #include "networking.h"
 #include "cutscene.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
@@ -19,18 +20,13 @@ extern void control_binding_table_update_a(void);
 extern void control_binding_table_update_b(void);
 extern game_engine_definition *current_game_engine;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
-extern void euler_angles_to_basis_vectors(real_euler_angles3d *angles, real_vector3d *up_out, real_vector3d *forward_out);
 extern uint8_t g_control_binding_secondary_active;
 extern uint8_t g_control_binding_state;
 extern uint32_t game_engine_remap_placement_by_type(uint32_t handle);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern real_vector3d *global_forward3d_pointer;
 extern uint8_t *global_scenario;
 extern int16_t global_structure_bsp_index;
-extern real_vector3d *global_up3d_pointer;
 extern const real_vector3d *global_white_color;
-extern void matrix4x3_from_euler_angles(real_matrix4x3 *out, real yaw, real pitch, real roll);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern uint8_t network_action_apply_active;
 extern int32_t network_client;
 extern int16_t network_game_mode;
@@ -234,11 +230,11 @@ void halo::objects::ObjectFactory::place_for_structure_bsp(uint8_t place)
                 if (kind == -1) {
                     continue;
                 }
-                matrix4x3_from_euler_angles(&basis, *(float *)(placement + 0x14), *(float *)(placement + 0x18),
+                halo::math::matrix4x3_from_euler_angles(basis, *(float *)(placement + 0x14), *(float *)(placement + 0x18),
                                             *(float *)(placement + 0x1c));
                 tag = *(datum_index *)((uint8_t *)palette->pointer + kind * 0x30 + 0xc);
                 definition_data = (uint8_t *)tag_instances[tag & 0xffff].data;
-                matrix4x3_transform_point(&origin, (real_point3d *)(definition_data + 8), &basis);
+                halo::math::matrix4x3_transform_point(origin, *(real_point3d *)(definition_data + 8), basis);
                 if (bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)(placement + 8)) == 0xffffffff &&
                     bsp3d_node_find_leaf(0, global_collision_bsp, &origin) == 0xffffffff) {
                     *(uint16_t *)(placement + 0x20) &= (uint16_t)~bsp_bit;
@@ -286,8 +282,8 @@ void halo::objects::ObjectPlacementDataView::initialize(datum_index definition_t
 
     placement->definition_tag = definition_tag;
     placement->flags = 0;
-    placement->forward = *global_forward3d_pointer;
-    placement->up = *global_up3d_pointer;
+    placement->forward = *halo::math::globals().global_forward3d_pointer;
+    placement->up = *halo::math::globals().global_up3d_pointer;
     placement->permutation_group = 0;
 
     current = object_try_and_get(role, _object_mask_all);
@@ -609,7 +605,7 @@ datum_index halo::objects::ObjectFactory::create_from_scenario_placement(uint8_t
     }
     object_placement_data_initialize(&data, tag, k_datum_index_none);
     data.position = *(real_point3d *)&((struct object_placement_data *)placement)->owner_linkage;
-    euler_angles_to_basis_vectors((real_euler_angles3d *)(placement + 0x14), &data.up, &data.forward);
+    halo::math::euler_angles_to_basis_vectors(*(real_euler_angles3d *)(placement + 0x14), data.up, data.forward);
     data.permutation_group = *(int16_t *)(placement + 0x06);
     object = object_new(&data);
     if (object != k_datum_index_none) {

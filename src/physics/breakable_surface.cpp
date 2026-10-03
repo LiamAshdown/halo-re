@@ -10,11 +10,11 @@
 #include "physics.h"
 
 #include "halo/physics/breakable_surface.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" { extern breakable_surface_globals *breakable_surface_state; }
 extern "C" { extern int16_t global_structure_bsp_index; }
 extern "C" { extern tag_instance *tag_instances; }
-extern "C" { extern real random_real_range(real min, real max); }
 extern "C" { extern GlobalsMaterial *globals_material_get(int16_t material_type); }
 extern "C" { extern void breakable_surface_shatter(uint16_t surface_index, damage_data *damage, int32_t collision_surface_index); }
 namespace halo::physics {
@@ -41,7 +41,7 @@ void BreakableSurfaces::apply_damage(damage_data *damage, int32_t surface_index,
                     (DamageEffect *)tag_instances[(uint16_t)damage->damage_effect_tag].data;
 
                 float *material_damage_modifiers = &effect->dirt;
-                float random_amount = random_real_range(effect->damage_upper_bound[0],
+                float random_amount = halo::math::random_real_range(effect->damage_upper_bound[0],
                                                           effect->damage_upper_bound[1]);
                 float blended_amount = (random_amount - effect->damage_lower_bound) *
                                            damage->random_blend +

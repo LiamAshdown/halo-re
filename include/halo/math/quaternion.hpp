@@ -1,7 +1,7 @@
 /**
  * @file include/halo/math/quaternion.hpp
  * Real_quaternion: normalize, multiply, lerp, rotate, matrix conversions.
- * The C symbols other modules link against are the wrappers in src/math/math_c_api.cpp.
+ * Declared for other modules through halo/math/api.hpp.
  */
 #pragma once
 

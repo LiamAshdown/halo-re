@@ -3,6 +3,7 @@
 #include "rasterizer.h"
 #include "render.h"
 #include <string.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern int32_t __ftol(double);
@@ -13,7 +14,6 @@ extern double cos(double x);
 extern void data_delete_all(data_array *array);
 extern void datum_delete(data_array *array, datum_index index);
 extern datum_index datum_new(data_array *array);
-extern uint32_t effect_random_seed;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern game_time_globals *game_time;
 extern real_point3d *global_zero_vector3d_pointer;
@@ -38,8 +38,17 @@ extern float render_time_since_frame;
 extern double sin(double x);
 extern double sqrt(double x);
 extern tag_instance *tag_instances;
-extern void vector3d_cubic_interpolate(real_point3d *out, real_point3d *control_points , float t0, float t1, float t2, float t3, float t);
-extern real vector3d_normalize_with_length(real_vector3d *v);
+}
+
+/**
+ * Calls halo::math::vector3d_cubic_interpolate with the seven arguments the glow code was reversed with (output,
+ * control points, four knots, parameter); the function takes ten, so p1..p3 are whatever the caller left behind.
+ * Unresolved: the glow particle code still has to be reversed to name the real control points.
+ */
+static void vector3d_cubic_interpolate_unresolved(real_point3d *out, real_point3d *control_points, float t0, float t1, float t2, float t3, float t)
+{
+    using call_t = void (*)(real_point3d *, real_point3d *, float, float, float, float, float);
+    reinterpret_cast<call_t>(&halo::math::vector3d_cubic_interpolate)(out, control_points, t0, t1, t2, t3, t);
 }
 
 /**
@@ -254,7 +263,7 @@ void halo::objects::GlowView::update(uint32_t object_index)
                             d.i = mj->node_transform.position.x - mi->node_transform.position.x;
                             d.j = mj->node_transform.position.y - mi->node_transform.position.y;
                             d.k = mj->node_transform.position.z - mi->node_transform.position.z;
-                            vector3d_normalize_with_length(&d);
+                            halo::math::vector3d_normalize_with_length(d);
 
                             score = d.i + d.j + d.k;
                             if (best_score < score) {
@@ -667,8 +676,8 @@ void halo::objects::GlowView::chain_build()
 namespace {
 static float glow_next_random_unit(void)
 {
-    effect_random_seed = effect_random_seed * 0x19660dU + 0x3c6ef35fU;
-    return (float)(effect_random_seed >> 16) * 1.5259022e-05f;
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660dU + 0x3c6ef35fU;
+    return (float)(halo::math::globals().effect_random_seed >> 16) * 1.5259022e-05f;
 }
 }
 
@@ -761,7 +770,7 @@ glow_particle * halo::objects::GlowView::particle_spawn()
                 v.i = glow_next_random_unit() * 2.0f - 1.0f;
                 v.j = glow_next_random_unit() * 2.0f - 1.0f;
                 v.k = glow_next_random_unit() * 2.0f - 1.0f;
-                vector3d_normalize_with_length(&v);
+                halo::math::vector3d_normalize_with_length(v);
                 *(float *)(pb + 0x38) = v.i;
                 *(float *)(pb + 0x3c) = v.j;
                 *(float *)(pb + 0x40) = v.k;
@@ -1013,9 +1022,9 @@ void halo::objects::GlowView::particle_reposition(uint8_t *particle, float phase
 
 evaluate:
 
-    vector3d_cubic_interpolate((real_point3d *)(particle + 0x2c), c0, t0, t1, t2, t3, *(float *)(particle + 0x28));
-    vector3d_cubic_interpolate(&out1, c1, t0, t1, t2, t3, *(float *)(particle + 0x28));
-    vector3d_cubic_interpolate(&out2, c2, t0, t1, t2, t3, *(float *)(particle + 0x28));
+    vector3d_cubic_interpolate_unresolved((real_point3d *)(particle + 0x2c), c0, t0, t1, t2, t3, *(float *)(particle + 0x28));
+    vector3d_cubic_interpolate_unresolved(&out1, c1, t0, t1, t2, t3, *(float *)(particle + 0x28));
+    vector3d_cubic_interpolate_unresolved(&out2, c2, t0, t1, t2, t3, *(float *)(particle + 0x28));
 
     {
         double angle = (double)phase_rate * (double)(*(float *)(particle + 0x28)) +

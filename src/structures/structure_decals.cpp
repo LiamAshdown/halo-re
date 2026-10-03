@@ -5,6 +5,7 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -13,7 +14,6 @@ extern Scenario *global_scenario;
 extern uint8_t decals_for_all_responses;
 extern uint8_t decals_enabled;
 extern tag_instance *tag_instances;
-extern uint32_t effect_random_seed;
 extern double cos(double x);
 extern double sin(double x);
 extern void decal_evict_object_decals(int32_t cluster_slot);
@@ -41,7 +41,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
     }
 
     for (slot = 0; ; slot = slot + 1) {
-        uint32_t saved_seed = effect_random_seed;
+        uint32_t saved_seed = halo::math::globals().effect_random_seed;
         ScenarioStructureBSPCluster *cluster =
             (ScenarioStructureBSPCluster *)((uint8_t *)global_structure_bsp->clusters.pointer + cluster_offset);
         int cluster_has_decals = cluster->first_decal_index != (uint16_t)-1 && cluster->decal_count != 0;
@@ -67,7 +67,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
         if (entering) {
             decal_evict_object_decals(slot);
         } else {
-            effect_random_seed = saved_seed;
+            halo::math::globals().effect_random_seed = saved_seed;
             if (leaving && cluster->decal_count != 0) {
                 int32_t i;
                 for (i = 0; i < cluster->decal_count; i = i + 1) {
@@ -98,7 +98,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
                     if (decals_enabled != 0 && spawn_ok) {
                         collision_result placement;
 
-                        effect_random_seed = *(uint32_t *)&decal->position.z ^
+                        halo::math::globals().effect_random_seed = *(uint32_t *)&decal->position.z ^
                             *(uint32_t *)&decal->position.y ^ *(uint32_t *)&decal->position.x ^ 0xdeadc0de;
                         if (collision_test_movement_segment(0x100061,
                                 (real_point3d *)&decal->position, &orientation, 0xffffffff,
@@ -108,7 +108,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
                             decal_place(*(datum_index *)&shader_tag_id, &placement, &orientation, 1.0f, 1, -1);
                         }
                     }
-                    effect_random_seed = saved_seed;
+                    halo::math::globals().effect_random_seed = saved_seed;
                 }
             }
         }

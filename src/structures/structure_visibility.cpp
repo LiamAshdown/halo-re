@@ -5,6 +5,7 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern int32_t render_cluster_index;
@@ -32,10 +33,6 @@ extern int32_t render_leaf_index;
 extern uint8_t render_cluster_has_sky;
 extern int16_t render_cluster_sky_index;
 extern int32_t bsp3d_node_find_leaf(int32_t node_index, void *bsp, real_point3d *point);
-extern int16_t polygon2d_clip_to_planes(int16_t vertex_count, real_point2d *vertices,
-                                         int16_t clip_point_count, real_point2d *clip_points,
-                                         int16_t maximum_count, real_point2d *out,
-                                         real epsilon);
 }
 
 namespace halo::structures {
@@ -240,7 +237,7 @@ uint8_t structure_visibility::mirror_query(void *camera_ref, void *camera, struc
                 int16_t project_result = cluster_flood::portal_project((real_plane3d *)&mirror->plane, camera_ref, (real_point3d *)mirror->vertices.pointer, camera, mirror->vertices.count, 1, &project_out);
                 int16_t clip_result = 0;
                 if (project_result == 0) {
-                    clip_result = polygon2d_clip_to_planes(project_out.point_count,
+                    clip_result = halo::math::polygon2d_clip_to_planes(project_out.point_count,
                                         &project_out.points[0], 4, clip_points, 0x100,
                                         &clip_polygon.points[0], 9.99999975e-05f);
                     clip_polygon.point_count = clip_result;

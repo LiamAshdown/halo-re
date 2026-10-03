@@ -1,6 +1,7 @@
 #include "halo/interface/ifr1_hud_messaging.hpp"
 #include <wchar.h>
 #include <stdint.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern hud_messaging_globals *hud_messaging;
@@ -31,7 +32,6 @@ extern data_array *player_data;
 extern void *data_iterator_next(data_iterator *iterator);
 extern data_array *object_data;
 extern void *global_zero_vector3d_pointer;
-extern real_vector3d *global_forward3d_pointer;
 extern int16_t item_type_to_message_stage(int16_t item_type_code);
 extern int16_t item_type_to_animation_stage(int16_t message_stage);
 extern void *datum_get(datum_index handle, data_array *array);
@@ -408,7 +408,7 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
         }
     }
 
-    sound_start_at_object_marker((datum_index)object_or_slot_index, global_zero_vector3d_pointer, global_forward3d_pointer,
+    sound_start_at_object_marker((datum_index)object_or_slot_index, global_zero_vector3d_pointer, halo::math::globals().global_forward3d_pointer,
                  (datum_index)message_index, -1, 1.0f, has_carried_object);
 }
 

@@ -16,6 +16,7 @@
 #include <stdint.h>
 
 #include "halo/game/game1_ctf.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -61,7 +62,6 @@ extern void game_engine_ctf_assign_flag_ids(void);
 extern int32_t game_engine_ctf_pick_random_flag(int32_t exclude_id);
 extern int16_t hud_waypoint_arrow_find(void);
 extern game_engine_definition *current_game_engine;
-extern uint32_t random_seed_global;
 extern real_point3d *ctf_team_flag_stand_position[2];
 extern datum_index ctf_team_flag_object[2];
 extern int32_t ctf_flag_capture_limit_006b0ea0;
@@ -495,8 +495,8 @@ uint8_t Ctf::initialize_for_new_game(void)
         if (game_engine_variant.engine.ctf.single_flag_time > 0) {
             int32_t active;
 
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-            active = (int16_t)((((random_seed_global >> 16) << 1) & 0xffffffff) >> 16);
+            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            active = (int16_t)((((halo::math::globals().random_seed_global >> 16) << 1) & 0xffffffff) >> 16);
             if (ctf_team_flag_stand_position[active] != 0) {
                 datum_index flag = game_engine_ctf_create_flag_object(ctf_team_flag_stand_position[active], (uint16_t)active);
 
@@ -520,7 +520,7 @@ uint8_t Ctf::initialize_for_new_game(void)
             }
         }
     } else if (game_engine_variant.engine.ctf.single_flag_time > 0) {
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
     }
     ctf_flag_capture_limit_006b0ea0 = game_engine_variant.score_limit;
     count = *(int16_t *)&global_scenario->player_starting_locations.count;

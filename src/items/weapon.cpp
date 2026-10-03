@@ -1,4 +1,5 @@
 #include "halo/items/items.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -22,7 +23,6 @@ extern datum_index effect_new_on_object(datum_index creator_object_index, datum_
 extern void *effect_try_and_get(datum_index effect_index);
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
 extern const real_point3d *global_zero_vector3d_pointer;
-extern const real_vector3d *global_forward3d_pointer;
 extern void weapon_reset_triggers(datum_index item_index);
 extern uint32_t local_player_index_for_weapon(datum_index item_index);
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
@@ -32,7 +32,6 @@ extern void object_delete_unparented(datum_index object_index);
 extern void object_delete_recursive(datum_index object_index, uint8_t recurse_siblings);
 extern void weapon_magazine_reload_tick(datum_index item_index, int16_t magazine_index);
 extern void weapon_notify_reload_cancel(datum_index item_index, int16_t magazine_index);
-extern real transition_function_evaluate(transition_function_t type, real phase);
 extern double floor(double x);
 extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
 extern void unit_dispatch_seat_overlay_command(uint32_t unit_index, int16_t command);
@@ -688,7 +687,7 @@ uint32_t weapon_ref::play_trigger_tag_effect(datum_index tag_id, real scale_a, r
     if (group == 0x736e6421) {
         effect_try_and_get(tag_id);
         sound_start_at_object_marker(creator, (Point3D *)global_zero_vector3d_pointer,
-            (Vector3D *)global_forward3d_pointer, tag_id, -1, a_scale, 0);
+            (Vector3D *)halo::math::globals().global_forward3d_pointer, tag_id, -1, a_scale, 0);
     }
     return 0xffffffff;
 }
@@ -901,7 +900,7 @@ void weapon_ref::set_control_flags(uint16_t control_flags, real primary_trigger)
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
 
     wd->control_flags = control_flags;
-    wd->primary_trigger = transition_function_evaluate(0, primary_trigger);
+    wd->primary_trigger = halo::math::transition_function_evaluate(0, primary_trigger);
 }
 
 /**

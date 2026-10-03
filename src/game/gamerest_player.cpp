@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <wchar.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern void *const network_index_cache_table;
@@ -23,7 +24,6 @@ extern void object_delete(uint32_t object_index);
 extern game_time_globals *game_time;
 extern network_client_globals *network_client;
 extern void *datum_get(datum_index handle, data_array *array);
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern void player_update_history_free_all(void *history);
 extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
@@ -40,7 +40,6 @@ extern void unit_recompute_seat_occupants(uint32_t unit_index);
 extern void unit_pick_and_ready_next_weapon(uint32_t unit_index);
 extern uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object, real_point3d *point);
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
-extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin, real_vector3d *direction, real radius);
 extern uint8_t device_frontfacing(uint32_t device_index, real_vector3d *forward);
 extern uint8_t device_can_change_position(uint32_t candidate_object);
 extern void player_set_pending_interaction_action(int16_t priority_type, int16_t seat, uint32_t player_index, uint32_t candidate_object);
@@ -60,7 +59,6 @@ extern Globals *global_globals;
 extern double cos(double x);
 extern uint8_t unit_current_weapon_type_is_2_or_3(uint32_t unit_index);
 extern int16_t unit_find_best_seat_to_enter(uint32_t unit_index, uint32_t vehicle_index, uint32_t *out_seat);
-extern real_vector3d *global_up3d_pointer;
 extern double fabs(double x);
 extern void unit_clear_selected_equipment(uint32_t unit_index);
 extern uint8_t unit_try_select_equipment(uint32_t unit_index, uint32_t new_equipment_object_index, int16_t release_current);
@@ -70,19 +68,12 @@ extern uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_ind
 extern void player_update_history_free_all(void *queue);
 extern void device_control_touched(uint32_t object_index);
 extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
 extern uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, datum_index actor_index, uint8_t flag_pursue);
 extern uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force);
 extern Scenario *global_scenario;
 extern int16_t global_structure_bsp_index;
 extern real_vector3d *global_origin3d_pointer;
-extern uint32_t random_seed_global;
-extern real_point3d *sphere_point_table;
-extern int16_t sphere_point_table_count;
 extern real_point3d player_placement_ring[9];
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern uint32_t object_get_root_object_index(uint32_t object_index);
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
 extern uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientation_object, real_point3d *out_position, float radius, char grid_mode, char skip_reposition, char scale_radius, uint32_t object_index_a, real_vector3d *reference_direction);
@@ -144,7 +135,6 @@ extern uint32_t global_006889f0;
 extern uint32_t global_006889ec;
 extern uint32_t global_007102f8;
 extern real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level);
-extern real_vector3d global_origin3d;
 extern void object_set_position_and_recalculate(void *position_or_object, uint32_t unknown);
 extern wchar_t empty_string;
 extern datum_index machine_to_player[16];
@@ -245,7 +235,7 @@ static void player_unit_exit_seat(uint32_t object_index, datum_index vehicle_ind
     {
         uint8_t *reloaded = OBJECT_DATA(object_index);
 
-        matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
+        halo::math::matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
             (real_matrix4x3 *)(model_nodes + 0x68), &basis);
     }
     *(real_vector3d *)&((struct object *)self)->forward.i = basis.forward;
@@ -459,8 +449,8 @@ void PlayerView::check_assassination_opportunity(uint32_t candidate_object)
 
     unit_get_camera_position(p->unit, &camera_position);
 
-    if (ray_intersects_sphere_test(&candidate->bounding_center, &camera_position,
-            &((unit_data *)((uint8_t *)unit + k_unit_data_offset))->aiming_vector, candidate->bounding_radius)) {
+    if (halo::math::ray_intersects_sphere_test(candidate->bounding_center, camera_position,
+            *(&((unit_data *)((uint8_t *)unit + k_unit_data_offset))->aiming_vector), candidate->bounding_radius)) {
         if (device_frontfacing(candidate_object, &((unit_data *)((uint8_t *)unit + k_unit_data_offset))->aiming_vector)) {
             if (device_can_change_position(candidate_object)) {
                 PlayerView(player_index).set_pending_interaction_action(10, (int16_t)0xffff, candidate_object);
@@ -788,7 +778,7 @@ uint8_t PlayerView::execute_pending_interaction()
             side.i = target_position->x - unit_position->x;
             side.j = target_position->y - unit_position->y;
             side.k = target_position->z - unit_position->z;
-            vector3d_cross_product(&side, &side, global_up3d_pointer);
+            halo::math::vector3d_cross_product(side, side, *halo::math::globals().global_up3d_pointer);
             direction = (int8_t)((side.k * ((struct object *)target)->forward.k + side.j * ((struct object *)target)->forward.j +
                                   side.i * ((struct object *)target)->forward.i > 0.0f) ? 2 : 1);
         }
@@ -898,24 +888,24 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
         facing.k = 0.0f;
         facing.i = -facing.i;
         facing.j = -facing.j;
-        vector3d_normalize_with_length(&facing);
-        matrix4x3_from_forward_up(global_up3d_pointer, &facing, &ring);
+        halo::math::vector3d_normalize_with_length(facing);
+        halo::math::matrix4x3_from_forward_up(*halo::math::globals().global_up3d_pointer, facing, ring);
         ring.position = *(real_point3d *)&((struct object *)root_object)->bounding_center.x;
         ring.scale = collision_radius * 3.0f + ((struct object *)root_object)->bounding_radius;
         for (i = 0; !placed && (uint16_t)i < 9; i++) {
             real_point3d spot;
             int16_t attempt;
 
-            matrix4x3_transform_point(&spot, &player_placement_ring[i], &ring);
+            halo::math::matrix4x3_transform_point(spot, player_placement_ring[i], ring);
             placed = (uint8_t)unit_find_placement_position(unit_index, root, 0, 2.0f, 0, 0, 1, 0,
                 (real_vector3d *)&spot);
             for (attempt = 0; !placed && attempt < 8; attempt++) {
                 real_point3d jittered;
                 int16_t index;
 
-                random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                index = (int16_t)(((random_seed_global >> 16) * (int32_t)sphere_point_table_count) >> 16);
-                facing = *(real_vector3d *)&sphere_point_table[index];
+                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                index = (int16_t)(((halo::math::globals().random_seed_global >> 16) * (int32_t)halo::math::globals().sphere_point_table_count) >> 16);
+                facing = *(real_vector3d *)&halo::math::globals().sphere_point_table[index];
                 jittered.x = facing.i * collision_radius + spot.x;
                 jittered.y = facing.j * collision_radius + spot.y;
                 jittered.z = facing.k * collision_radius + spot.z;
@@ -2020,7 +2010,7 @@ void ObjectView::snap_position_if_far(real_point3d *new_position)
     float dz = new_position->z - obj->position.z;
 
     if (sqrt(dy * dy + dz * dz + dx * dx) > 1.1) {
-        obj->velocity = global_origin3d;
+        obj->velocity = reinterpret_cast<real_vector3d &>(halo::math::globals().global_origin3d);
         obj->flags = obj->flags | _object_at_rest_bit;
     }
     object_set_position_and_recalculate(obj, 0);

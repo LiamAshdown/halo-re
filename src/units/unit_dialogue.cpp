@@ -1,11 +1,11 @@
 #include "halo/units/unit.hpp"
 #include "game.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern tag_instance *tag_instances;
 extern int32_t unit_dialogue_variant_counter;
-extern random_seed random_seed_global;
 }
 
 namespace halo::units {
@@ -146,8 +146,8 @@ TagID unit_pick_random_dialogue_variant(Unit *unit_tag, int16_t variant_number)
             if (match_count == 1) {
                 chosen = matches[0];
             } else {
-                random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                chosen = matches[(int16_t)((random_seed_global >> 0x10) * (uint32_t)match_count >> 0x10)];
+                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                chosen = matches[(int16_t)((halo::math::globals().random_seed_global >> 0x10) * (uint32_t)match_count >> 0x10)];
             }
             return variants[chosen].dialogue.tag_id;
         }

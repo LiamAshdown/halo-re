@@ -1,4 +1,5 @@
 #include "halo/ai/actor_looks.hpp"
+#include "halo/math/api.hpp"
 
 namespace c_actor_apply_queued_look_to_unit {
 extern "C" {
@@ -78,7 +79,6 @@ extern game_time_globals *game_time;
 extern float actor_vocalization_duration[14];
 extern int16_t actor_vocalization_variant[14][2];
 
-extern real random_real_range(real min, real max);
 extern void * datum_get(datum_index handle, data_array *array);
 }
 }
@@ -150,7 +150,7 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
     if (actor_definition->event_look_time_modifier[0] != 0.0f || actor_definition->event_look_time_modifier[1] != 0.0f) {
         low = (actor_definition->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_definition->event_look_time_modifier[0];
         high = (actor_definition->event_look_time_modifier[1] <= 2.0f) ? actor_definition->event_look_time_modifier[1] : 2.0f;
-        duration = random_real_range(low, high) * duration;
+        duration = halo::math::random_real_range(low, high) * duration;
     }
 
     ticks = (int32_t)(duration * 30.0f + 0.5f);
@@ -458,7 +458,6 @@ extern "C" void actor_issue_order_or_vocalize(datum_index prop_index, datum_inde
 
 namespace c_actor_look_get_wait_ticks {
 extern "C" {
-extern uint32_t random_seed_global;
 
 extern data_array *object_data;
 extern tag_instance *tag_instances;
@@ -506,8 +505,8 @@ int32_t halo::ai::look_ops::look_get_wait_ticks(int16_t mode, uint32_t flags, fl
     }
 
     if (((lo < 0.0f) == (lo == 0.0f)) || ((hi < 0.0f) == (hi == 0.0f))) {
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        rng = random_seed_global;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        rng = halo::math::globals().random_seed_global;
         fraction = (hi - lo) * (float)(rng >> 0x10) * 1.5259022e-05f + lo;
     } else {
         fraction = 0.5f;
@@ -542,16 +541,11 @@ extern "C" int32_t actor_look_get_wait_ticks(datum_index actor_index, int16_t mo
 
 namespace c_actor_look_pick_random_point_in_cone {
 extern "C" {
-extern uint32_t random_seed_global;
-extern const real_vector3d *global_left3d_pointer;
-extern const real_vector3d *global_up3d_pointer;
 
 extern double cos(double x);
 extern double sin(double x);
 extern double sqrt(double x);
 
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *axis, real sin_angle, real cos_angle);
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 }
 }
@@ -578,28 +572,28 @@ uint8_t halo::ai::look_ops::look_pick_random_point_in_cone(void *origin, float y
     right_axis.i = -base_direction->j;
     right_axis.j = base_direction->i;
     right_axis.k = 0.0f;
-    if (vector3d_normalize_with_length(&right_axis) == 0.0f) {
-        right_axis = *global_left3d_pointer;
+    if (halo::math::vector3d_normalize_with_length(right_axis) == 0.0f) {
+        right_axis = *halo::math::globals().global_left3d_pointer;
     }
 
     for (attempt = 0; attempt < 10; attempt++) {
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        rng = random_seed_global;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        rng = halo::math::globals().random_seed_global;
         yaw = (float)(rng >> 0x10) * 1.5259022e-05f * (yaw_max - yaw_min) + yaw_min;
 
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        rng = random_seed_global;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        rng = halo::math::globals().random_seed_global;
         pitch = (float)(rng >> 0x10) * 1.5259022e-05f * (pitch_max - pitch_min) + pitch_min;
 
         direction = *base_direction;
 
         cos_a = (float)cos((double)pitch);
         sin_a = (float)sin((double)pitch);
-        vector3d_rotate_about_axis(&direction, &right_axis, sin_a, cos_a);
+        halo::math::vector3d_rotate_about_axis(direction, right_axis, sin_a, cos_a);
 
         cos_a = (float)cos((double)yaw);
         sin_a = (float)sin((double)yaw);
-        vector3d_rotate_about_axis(&direction, (real_vector3d *)global_up3d_pointer, sin_a, cos_a);
+        halo::math::vector3d_rotate_about_axis(direction, *(real_vector3d *)halo::math::globals().global_up3d_pointer, sin_a, cos_a);
 
         if (!check_obstruction) {
             break;

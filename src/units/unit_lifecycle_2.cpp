@@ -4,6 +4,7 @@
 #include "networking.h"
 #include "ai.h"
 #include "items.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -13,14 +14,11 @@ extern data_array *actor_data;
 extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern network_client_globals *network_client;
-extern uint32_t random_seed_global;
 extern void object_list_membership_set(uint32_t object_index, char add);
 extern void player_reset_after_unit_change(uint32_t player_index);
 extern void actor_attempt_grenade_throw(datum_index actor_index);
 extern void actor_release_from_cluster_or_delete(datum_index actor_index, datum_index unit_index);
-extern real transition_function_evaluate(transition_function_t type, real phase);
 extern void *datum_get(datum_index handle, data_array *array);
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern void player_update_history_free_all(void *history);
 extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
@@ -76,7 +74,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     {
         uint8_t *reloaded = OBJECT_DATA(object_index);
 
-        matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
+        halo::math::matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
             (real_matrix4x3 *)(model_nodes + 0x68), &basis);
     }
     *(real_vector3d *)&((unit_object *)self)->base.forward.i = basis.forward;
@@ -193,8 +191,8 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
     } else {
         uint8_t *unit_tag = TAG_DATA(*(datum_index *)obj);
 
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        if ((float)(int32_t)(random_seed_global >> 16) * 1.5259022e-05f < *(float *)(unit_tag + 0x248)) {
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        if ((float)(int32_t)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f < *(float *)(unit_tag + 0x248)) {
             ((unit_object *)obj)->unit.flags |= 0x2000;
         } else {
             ((unit_object *)obj)->unit.flags &= 0xffffdfff;
@@ -210,7 +208,7 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
         uint8_t *weapon = OBJECT_DATA(weapon_index);
 
         *(int16_t *)&((struct weapon_object *)weapon)->weapon.control_flags = 0;
-        ((struct weapon_object *)weapon)->weapon.primary_trigger = transition_function_evaluate((transition_function_t)4, 0.0f);
+        ((struct weapon_object *)weapon)->weapon.primary_trigger = halo::math::transition_function_evaluate((transition_function_t)4, 0.0f);
     }
     *(uint32_t *)(OBJECT_DATA(unit_index) + 0x204) &= 0xfdffffff;
     if (((unit_object *)obj)->base.parent_object != k_datum_index_none) {

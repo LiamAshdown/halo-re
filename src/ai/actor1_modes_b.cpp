@@ -1,4 +1,5 @@
 #include "halo/ai/actor_modes.hpp"
+#include "halo/math/api.hpp"
 
 namespace c_actor_mode_charge_enter {
 extern "C" {
@@ -52,11 +53,6 @@ extern game_time_globals *game_time;
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
-extern const real_vector3d *global_forward3d_pointer;
-extern real vector2d_normalize_with_length(real_vector2d *v);
-extern void point3d_add_scaled(real_point3d *out, real_vector3d *direction, real_point3d *base, real scale);
-extern real vector3d_length(real_vector3d *v);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern float actor_get_consideration_wait_threshold(uint32_t actor_index, int16_t mode,
                                                     actor_combat_consideration *consideration);
 extern void *actor_get_threat_weapon_definition(int32_t actor_index);
@@ -222,7 +218,7 @@ uint8_t halo::ai::charge_mode::process()
         } else {
             real_vector3d *velocity = (real_vector3d *)(target + 0xd4);
             real_vector3d *facing = (real_vector3d *)(target + 0xe0);
-            float speed = vector3d_length(velocity);
+            float speed = halo::math::vector3d_length(*velocity);
             float factor = 0.0f;
             real_point3d lead;
 
@@ -231,7 +227,7 @@ uint8_t halo::ai::charge_mode::process()
                 factor = ((velocity->k * facing->k + velocity->j * facing->j + velocity->i * facing->i) / speed + 1.0f) * 0.5f;
             }
             lead_ticks = (float)*(int16_t *)(md + 0x32);
-            point3d_add_scaled(&lead, velocity, (real_point3d *)(target + 0xbc), lead_ticks * factor);
+            halo::math::point3d_add_scaled(lead, *velocity, *(real_point3d *)(target + 0xbc), lead_ticks * factor);
             direction.i = lead.x - ((actor *)act)->body_position.x;
             direction.j = lead.y - ((actor *)act)->body_position.y;
             direction.k = lead.z - ((actor *)act)->body_position.z;
@@ -239,7 +235,7 @@ uint8_t halo::ai::charge_mode::process()
                 along = 0.0f;
                 direction = *facing;
             } else {
-                along = vector3d_normalize_with_length(&direction);
+                along = halo::math::vector3d_normalize_with_length(direction);
                 if (along == 0.0f) {
                     direction = *facing;
                 }
@@ -257,10 +253,10 @@ uint8_t halo::ai::charge_mode::process()
                     if (projectile_solve_ballistic_arc((real_point3d *)(target + 0xbc), (real_point3d *)(act + 0x12c),
                                                        ((Actor *)actor_tag)->melee_leap_velocity, 1.0f, (real *)(actor_tag + 0x394),
                                                        0, &leap, 0, 0, 0, 0, &half_gravity, &horizontal_speed)) {
-                        if (vector2d_normalize_with_length((real_vector2d *)&leap) == 0.0f) {
+                        if (halo::math::vector2d_normalize_with_length(*((real_vector2d *)&leap)) == 0.0f) {
                             leap = *(real_vector3d *)&((actor *)act)->facing.i;
-                            if (vector2d_normalize_with_length((real_vector2d *)&leap) == 0.0f) {
-                                leap = *global_forward3d_pointer;
+                            if (halo::math::vector2d_normalize_with_length(*((real_vector2d *)&leap)) == 0.0f) {
+                                leap = *halo::math::globals().global_forward3d_pointer;
                             }
                         }
                         *(float *)(md + 0x14) = leap.i;
@@ -299,7 +295,7 @@ uint8_t halo::ai::charge_mode::process()
 
             flat.i = direction.i;
             flat.j = direction.j;
-            if (vector2d_normalize_with_length(&flat) > 0.0f &&
+            if (halo::math::vector2d_normalize_with_length(flat) > 0.0f &&
                 flat.j * ((actor *)act)->facing.j + flat.i * ((actor *)act)->facing.i < (md[0xb] ? 0.0f : 0.8660254f)) {
                 md[0xc] = 0;
                 md[0x9] = 1;
@@ -312,7 +308,7 @@ uint8_t halo::ai::charge_mode::process()
 
             flat.i = direction.i;
             flat.j = direction.j;
-            if (vector2d_normalize_with_length(&flat) == 0.0f) {
+            if (halo::math::vector2d_normalize_with_length(flat) == 0.0f) {
                 flat.i = ((actor *)act)->facing.i;
                 flat.j = ((actor *)act)->facing.j;
             }
@@ -1420,8 +1416,6 @@ extern data_array *prop_data;
 
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
-extern const real_vector3d *global_up3d_pointer;
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);
 extern void actor_movement_action_stop(datum_index actor_index);
 extern uint8_t actor_movement_set_destination_point(real_point3d *destination, datum_index actor_index,
                                                     int32_t parameter, uint32_t extra);
@@ -1474,7 +1468,7 @@ void halo::ai::guard_mode::update()
             in_place = 1;
             break;
         case 2: {
-            float distance_squared = vector3d_distance_squared((real_point3d *)(act + 0xc4), (real_point3d *)(act + 0x12c));
+            float distance_squared = halo::math::vector3d_distance_squared(*(real_point3d *)(act + 0xc4), *(real_point3d *)(act + 0x12c));
             float radius = *(float *)(act + 0xd4);
 
             if (distance_squared < radius * radius) {
@@ -1499,7 +1493,7 @@ void halo::ai::guard_mode::update()
             if (!act[0x4a8]) {
                 in_place = 1;
             } else {
-                in_place = (uint8_t)(vector3d_distance_squared((real_point3d *)(act + 0x12c), (real_point3d *)(act + 0x4ac)) < 9.0f);
+                in_place = (uint8_t)(halo::math::vector3d_distance_squared(*(real_point3d *)(act + 0x12c), *(real_point3d *)(act + 0x4ac)) < 9.0f);
             }
             break;
         }
@@ -1530,9 +1524,9 @@ void halo::ai::guard_mode::update()
         ((actor *)act)->vocalization_unknown_3ec = 2;
         act[0x454] = 1;
         act[0x45d] = 1;
-        *(float *)(act + 0x460) = global_up3d_pointer->i * 0.05f + *(float *)(act + 0xc4);
-        *(float *)(act + 0x464) = global_up3d_pointer->j * 0.05f + *(float *)(act + 0xc8);
-        *(float *)(act + 0x468) = global_up3d_pointer->k * 0.05f + *(float *)(act + 0xcc);
+        *(float *)(act + 0x460) = halo::math::globals().global_up3d_pointer->i * 0.05f + *(float *)(act + 0xc4);
+        *(float *)(act + 0x464) = halo::math::globals().global_up3d_pointer->j * 0.05f + *(float *)(act + 0xc8);
+        *(float *)(act + 0x468) = halo::math::globals().global_up3d_pointer->k * 0.05f + *(float *)(act + 0xcc);
     } else if (((struct actor *)act)->mode_data.guard.guard_target != k_datum_index_none) {
         ((actor *)act)->vocalization_unknown_3e8 = 5;
         ((actor *)act)->vocalization_unknown_3ec = 1;
@@ -1571,7 +1565,6 @@ extern tag_instance *tag_instances;
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern data_array *prop_data;
-extern uint32_t random_seed_global;
 }
 }
 
@@ -1602,8 +1595,8 @@ void halo::ai::uncover_mode::enter()
             hi = *(float *)(actor_tag + 0x348);
         }
     }
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    t = (float)(random_seed_global >> 16) * 1.5259022e-05f;
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    t = (float)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f;
     ticks = (int32_t)(((hi - lo) * t + lo) * 30.0f);
     ((struct actor *)act)->mode_data.uncover.duration_ticks = ticks;
     ((struct actor *)act)->mode_data.uncover.remaining_ticks = ticks;

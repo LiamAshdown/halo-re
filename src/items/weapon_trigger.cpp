@@ -1,24 +1,18 @@
 #include "halo/items/items.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern data_array *actor_data;
 extern tag_instance *tag_instances;
-extern random_seed random_seed_global;
-extern real_vector3d *global_up3d_pointer;
-extern real_vector3d *global_left3d_pointer;
 extern char s_primary_trigger_marker[];
 extern char s_secondary_trigger_marker[];
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *markers, uint32_t max_count);
 extern void unit_project_onto_aiming_axis(datum_index unit_index, real *out_speed, uint8_t project_point, uint8_t use_unit_aiming_vector, real_point3d *point, real_vector3d *axis);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern uint32_t camera_observer_update(datum_index player_index, real_point3d *observer_position, real_vector3d *fallback_facing);
 extern uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point3d *target_point, real_vector3d *out_direction, float *out_698);
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
-extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, random_seed *seed, real lo, real hi);
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
 extern void weapon_trigger_barrel_spread_offset(real_vector3d *v, real_vector3d *axis, uint16_t barrel_index, int16_t distribution_function, real distribution_angle, uint32_t flags);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
 extern void unit_get_camera_position(uint32_t unit_index, real_point3d *out);
@@ -27,7 +21,6 @@ extern double fabs(double x);
 extern double sqrt(double x);
 extern double cos(double x);
 extern double sin(double x);
-extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
 extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force);
 extern uint32_t local_player_index_for_weapon(datum_index item_index);
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
@@ -161,12 +154,12 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
                 real y = F(trigger, 0x88);
                 real z = F(trigger, 0x8c);
 
-                vector3d_cross_product(&left, &forward, global_up3d_pointer);
-                if (vector3d_normalize_with_length(&left) == 0.0f) {
-                    left = *global_left3d_pointer;
+                halo::math::vector3d_cross_product(left, forward, *halo::math::globals().global_up3d_pointer);
+                if (halo::math::vector3d_normalize_with_length(left) == 0.0f) {
+                    left = *halo::math::globals().global_left3d_pointer;
                 }
-                vector3d_cross_product(&up, &left, &forward);
-                vector3d_normalize_with_length(&up);
+                halo::math::vector3d_cross_product(up, left, forward);
+                halo::math::vector3d_normalize_with_length(up);
                 origin.x = origin.x + forward.i * x + left.i * y + up.i * z;
                 origin.y = origin.y + forward.j * x + left.j * y + up.j * z;
                 origin.z = origin.z + forward.k * x + left.k * y + up.k * z;
@@ -235,7 +228,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
                 error = (1.0f - e) * F(trigger, 0x7c) + e * F(trigger, 0x80);
             }
             if (!(*(uint32_t *)trigger & 0x400) || !(item[0x230] & 0x40)) {
-                vector3d_randomize_direction((real_point3d *)&placement.forward, &placement.forward, &random_seed_global,
+                halo::math::vector3d_randomize_direction(*((real_point3d *)&placement.forward), &placement.forward, halo::math::globals().random_seed_global,
                                              F(trigger, 0x78), error);
             }
             {
@@ -248,7 +241,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
                     placement.forward = first_direction;
                 }
             }
-            vector3d_build_perpendicular(&placement.up, &placement.forward);
+            halo::math::vector3d_build_perpendicular(placement.up, placement.forward);
             {
                 double length = sqrt((double)placement.up.i * (double)placement.up.i +
                                      (double)placement.up.j * (double)placement.up.j +
@@ -342,7 +335,7 @@ void weapon_trigger_ref::barrel_spread_offset(real_vector3d *v, real_vector3d *a
         real angle = index * distribution_angle;
         real sin_angle = (real)sin((double)angle);
         real cos_angle = (real)cos((double)angle);
-        vector3d_rotate_about_axis(v, axis, sin_angle, cos_angle);
+        halo::math::vector3d_rotate_about_axis(*v, *axis, sin_angle, cos_angle);
     }
 }
 

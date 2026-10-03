@@ -5,15 +5,14 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 
 extern void shader_texture_animation_evaluate(const void *function_source, const void *animation, float *out_u, float *out_v, float u_scale, float v_scale, float unused_z, float unused_w, float unused_5, float time);
 extern double sqrt(double x);
 extern uint32_t color_rgb_float_to_int(const ColorRGB *color);
-extern real vector3d_distance(const real_point3d *a, const real_point3d *b);
 extern double fabs(double x);
-extern real periodic_function_evaluate(periodic_function_t type, double time);
 
 }  // extern "C"
 
@@ -1195,8 +1194,8 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
     }
     if (shader[0x28] & 2) {
         if (shader[0x28] & 0x20) {
-            float distance = (float)vector3d_distance(&rasterizer_active_model_context->center,
-                                                      &rasterizer_window.camera.position);
+            float distance = (float)halo::math::vector3d_distance(rasterizer_active_model_context->center,
+                                                      rasterizer_window.camera.position);
 
             cull = 0;
             if (!(distance > 8.0f)) {
@@ -1247,7 +1246,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
         delta.red = model->animation_color_upper_bound.red - model->animation_color_lower_bound.red;
         delta.green = model->animation_color_upper_bound.green - model->animation_color_lower_bound.green;
         delta.blue = model->animation_color_upper_bound.blue - model->animation_color_lower_bound.blue;
-        value = (float)periodic_function_evaluate((periodic_function_t)model->animation_function,
+        value = (float)halo::math::periodic_function_evaluate((periodic_function_t)model->animation_function,
                                                   phase + rasterizer_time.time / model->animation_period);
         animated.red = delta.red * value + model->animation_color_lower_bound.red;
         animated.green = delta.green * value + model->animation_color_lower_bound.green;
@@ -1261,7 +1260,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
             animated.blue *= source->blue;
             if (model->detail_mask == 0 && model->color_source == 2 &&
                 rasterizer_caps.pixel_shader_version < 0xffff0104) {
-                float distance = (float)fabs(vector3d_distance(&context->center, &rasterizer_window.camera.position));
+                float distance = (float)fabs(halo::math::vector3d_distance(context->center, rasterizer_window.camera.position));
 
                 if (distance < 6.0f) {
                     scale = 1.0f - distance * 0.16666667f;
@@ -1533,7 +1532,7 @@ rasterizer_effect_slot * rasterizer_shader_model_select_technique(const ShaderMo
         }
         if (rasterizer_caps.pixel_shader_version >= 0xffff0101 && rasterizer_caps.pixel_shader_version < 0xffff0104 &&
             shader->color_source == 2 &&
-            fabs(vector3d_distance(&rasterizer_active_model_context->center, &rasterizer_window.camera.position)) < 6.0) {
+            fabs(halo::math::vector3d_distance(rasterizer_active_model_context->center, rasterizer_window.camera.position)) < 6.0) {
             index += 6;
         }
         technique = environment_techniques_plain[index];

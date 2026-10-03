@@ -1,5 +1,6 @@
 #include "halo/objects/light_volume.hpp"
 #include "bitmaps.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern void antenna_tip_jitter(real_vector3d *amplitude, real_point3d *position, real_matrix4x3 *m);
@@ -14,7 +15,6 @@ extern float curve_apply_exponent(float value, float exponent);
 extern void data_delete_all(data_array *array);
 extern void datum_delete(data_array *array, datum_index index);
 extern datum_index datum_new(data_array *array);
-extern uint32_t effect_random_seed;
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern real_vector3d *global_white_color;
 extern data_array *light_volume_instances;
@@ -36,9 +36,6 @@ extern float render_camera_global;
 extern real_vector3d *shared_constant_vector_696704;
 extern tag_instance *tag_instances;
 extern int32_t texture_cache_get(uint32_t a, uint32_t b);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern void vector3d_normalize(real_vector3d *v);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 }
 
 /**
@@ -381,8 +378,8 @@ static uint8_t * &lightning_instances__as_lightning_render = reinterpret_cast<ui
 static uint32_t (*const color_pack_argb_from_real__as_lightning_render)(float *argb) = reinterpret_cast<uint32_t (*)(float *argb)>(&color_pack_argb_from_real);
 static float glow_random_unit_for_lightning(void)
 {
-    effect_random_seed = effect_random_seed * 0x19660dU + 0x3c6ef35fU;
-    return (float)(effect_random_seed >> 16) * 1.5259022e-05f;
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660dU + 0x3c6ef35fU;
+    return (float)(halo::math::globals().effect_random_seed >> 16) * 1.5259022e-05f;
 }
 }
 
@@ -501,8 +498,8 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                         axis.j = verts[end * 8 + 1] - verts[base * 8 + 1];
                         axis.k = verts[end * 8 + 2] - verts[base * 8 + 2];
 
-                        vector3d_cross_product(&axis, (const real_vector3d *)&camera_forward_x, &axis);
-                        if (vector3d_normalize_with_length(&axis) == 0.0f) {
+                        halo::math::vector3d_cross_product(axis, *((const real_vector3d *)&camera_forward_x), axis);
+                        if (halo::math::vector3d_normalize_with_length(axis) == 0.0f) {
                             axis = *shared_constant_vector_696704;
                         }
 
@@ -548,7 +545,7 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                                 normal.i = (next[1] - prev[1]) * camera_forward_z - (next[2] - prev[2]) * camera_forward_y;
                                 normal.j = (next[2] - prev[2]) * camera_forward_x - (next[0] - prev[0]) * camera_forward_z;
                                 normal.k = (next[0] - prev[0]) * camera_forward_y - (next[1] - prev[1]) * camera_forward_x;
-                                vector3d_normalize(&normal);
+                                halo::math::vector3d_normalize(normal);
 
                                 argb[0] = color_scale_extra * v[4];
                                 argb[1] = v[5] * color_scale->i;

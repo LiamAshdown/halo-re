@@ -1,4 +1,5 @@
 #include "halo/ai/actor_alerts.hpp"
+#include "halo/math/api.hpp"
 
 namespace c_actor_alert_from_damage {
 extern "C" {
@@ -461,7 +462,6 @@ extern data_array *object_data;
 extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 
-extern real random_real(void);
 extern float actor_get_consideration_wait_threshold(uint32_t actor_index, int16_t mode, actor_combat_consideration *consideration);
 extern int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3d *target_point);
 extern uint8_t actor_movement_set_destination_near_target(datum_index target_prop_index, datum_index actor_index,
@@ -524,7 +524,7 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
             leap = 1;
             mode = 3;
         } else {
-            leap = random_real() < ((Actor *)actor_tag)->melee_leap_chance;
+            leap = halo::math::random_real() < ((Actor *)actor_tag)->melee_leap_chance;
             record[0xa] = leap;
             if (*(float *)(target + 0x11c) < *(float *)(actor_tag + 0x384)) {
                 leap = 0;
@@ -779,7 +779,6 @@ extern game_time_globals *game_time;
 #define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 
-extern uint32_t random_seed_global;
 extern void *actor_get_actor_definition(datum_index actor_index);
 }
 }
@@ -806,8 +805,8 @@ uint8_t halo::ai::alert_ops::escalate_check_weapon_range()
     if (!(*(float *)(PROP(((actor *)act)->target_unit_index) + 0x11c) < *(float *)(definition + 0x16c))) {
         return 0;
     }
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    if (!((float)(random_seed_global >> 16) * 1.5259022e-05f < ((Actor *)actor_tag)->berserk_grenade_chance)) {
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    if (!((float)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f < ((Actor *)actor_tag)->berserk_grenade_chance)) {
         return 0;
     }
     if (*(int16_t *)(act + 0x310) <= 4) {

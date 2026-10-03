@@ -2,16 +2,13 @@
 #include "game.h"
 #include "hs.h"
 #include "networking.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern uint8_t *cinematic_globals_ptr;
 extern uint8_t unit_updates_suppressed;
 extern tag_instance *tag_instances;
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand);
-extern real_vector3d *global_up3d_pointer;
-extern real random_real_range(real min, real max);
 extern double fcos(double x);
 extern double fsin(double x);
 extern game_time_globals *game_time;
@@ -24,13 +21,11 @@ extern uint32_t k_default_resting_plane[4];
 extern uint8_t collision_bsp_surface_test_point_side_2d(ModelCollisionGeometryBSP *bsp, real_point2d *point, int32_t surface_index, int16_t axis, uint8_t sign);
 extern uint32_t collision_bsp_surface_closest_edge_point_2d(ModelCollisionGeometryBSP *bsp, int32_t surface_index, uint16_t axis, uint8_t sign, real_point2d *point, real_point2d *out_point);
 extern real_point3d *collision_bsp_surface_solve_third_axis(ModelCollisionGeometryBSP *collision_bsp, int32_t surface_index, uint8_t component_sign, real_point3d *out, int32_t dominant_axis, const real_point2d *known);
-extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis, const real_plane3d *plane, const real_point2d *known);
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern int32_t k_biped_minimum_age_ticks;
 extern data_array *player_data;
 extern network_client_globals *network_client;
 extern uint8_t biped_detach_from_flipped_vehicle;
-extern real_vector3d *global_forward3d_pointer;
 extern real_point3d *global_origin3d_pointer;
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
@@ -38,7 +33,6 @@ extern uint32_t weapon_prevents_melee_attack(datum_index item_index);
 extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index, int16_t category, int16_t mode);
 extern void weapon_reset_triggers(datum_index item_index);
 extern void *datum_get(datum_index handle, data_array *array);
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern void player_update_history_free_all(void *history);
 extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
@@ -109,18 +103,18 @@ void BipedView::apply_idle_fidget(uint8_t *state_out)
             goto tail;
         }
         if (unit->animation_state != 0x1f && unit->animation_state != 0x29) {
-            float magnitude = (float)random_real_range(0.05235988, 0.08726646);
+            float magnitude = (float)halo::math::random_real_range(0.05235988, 0.08726646);
             real_vector3d impulse_dir;
 
             if (!(obj->up.k <= 0.8f)) {
-                double angle = random_real_range(0.0, 6.2831855);
+                double angle = halo::math::random_real_range(0.0, 6.2831855);
                 impulse_dir.i = (float)fcos(angle);
                 impulse_dir.j = (float)fsin(angle);
                 impulse_dir.k = 0.0f;
             } else {
-                vector3d_cross_product(&impulse_dir, global_up3d_pointer, &obj->up);
-                if (!(vector3d_normalize_with_length(&impulse_dir) > 0.0f)) {
-                    double angle = random_real_range(0.0, 6.2831855);
+                halo::math::vector3d_cross_product(impulse_dir, *halo::math::globals().global_up3d_pointer, obj->up);
+                if (!(halo::math::vector3d_normalize_with_length(impulse_dir) > 0.0f)) {
+                    double angle = halo::math::random_real_range(0.0, 6.2831855);
                     impulse_dir.i = (float)fcos(angle);
                     impulse_dir.j = (float)fsin(angle);
                     impulse_dir.k = 0.0f;
@@ -287,7 +281,7 @@ datum_index BipedView::get_cached_look_at_position(real_point3d *out_position)
 
             collision_bsp_surface_closest_edge_point_2d(bsp, surface, 2, 1,
                 (real_point2d *)&biped->cached_ground_point, &closest);
-            decal_plane_solve_third_axis(&point, 1, 2, plane, &closest);
+            halo::math::decal_plane_solve_third_axis(&point, 1, 2, plane, closest);
             biped->cached_ground_surface_index = biped->ground_surface_index;
         } else {
             int32_t previous = (int32_t)biped->last_ground_surface_index;
@@ -435,7 +429,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     {
         uint8_t *reloaded = OBJECT_DATA(object_index);
 
-        matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
+        halo::math::matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
             (real_matrix4x3 *)(model_nodes + 0x68), &basis);
     }
     *(real_vector3d *)&((unit_object *)self)->base.forward.i = basis.forward;
@@ -604,8 +598,8 @@ uint8_t BipedView::update()
     ::halo::units::unit_update_up_vector((Biped *)(Biped *)tag, (::object *)(object *)obj);
     if ((obj[0x106] & 4) != 0 || (*(uint32_t *)(tag + 0x2f4) & 0x44) == 0) {
         ((unit_object *)obj)->unit.desired_facing_vector.k = 0.0f;
-        if (vector3d_normalize_with_length((real_vector3d *)(obj + 0x224)) == 0.0f) {
-            *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i = *global_forward3d_pointer;
+        if (halo::math::vector3d_normalize_with_length(*(real_vector3d *)(obj + 0x224)) == 0.0f) {
+            *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i = *halo::math::globals().global_forward3d_pointer;
         }
     }
     switch (obj[0x2a3]) {

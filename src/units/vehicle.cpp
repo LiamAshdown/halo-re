@@ -2,6 +2,7 @@
 #include "halo/units/unit.hpp"
 #include "game.h"
 #include "hs.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -15,8 +16,6 @@ extern uint8_t *global_structure_bsp;
 extern Globals *global_globals;
 extern double atan2(double y, double x);
 extern double fabs(double x);
-extern real vector3d_distance(real_point3d *a, real_point3d *b);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
 extern uint8_t physics_scalar_step_to_target_clamped(void *rates, float *value, float target, float step);
 extern uint8_t physics_scalar_move_toward_target(void *range, float *value, uint8_t wrap, float target, float rate);
 extern void object_physics_tick(uint32_t object_index, void *powered_states, void *mass_points, real_vector3d *extra_force, real_vector3d *extra_torque);
@@ -153,7 +152,7 @@ uint32_t VehicleView::update()
 
     if (network_game_mode == 2 && ((struct vehicle_object *)obj)->vehicle.network_update_tick != -1 && vehicle_network_update_period != 0 &&
         game_time->game_time >= ((struct vehicle_object *)obj)->vehicle.network_update_tick + vehicle_network_update_period) {
-        if (vector3d_distance((real_point3d *)(obj + 0x5b4), (real_point3d *)(obj + 0x5c)) > 1.5f &&
+        if (halo::math::vector3d_distance(*(real_point3d *)(obj + 0x5b4), *(real_point3d *)(obj + 0x5c)) > 1.5f &&
             UnitView(object_index).get_recently_updated_flag() == 1 && !UnitView(object_index).has_child_of_type5()) {
             UnitView(object_index).set_facing_from_index_table();
         }
@@ -207,7 +206,7 @@ uint32_t VehicleView::update()
                 float spin;
 
                 if (direction == 4 || direction == 3) {
-                    vector3d_cross_product(&a, up, forward);
+                    halo::math::vector3d_cross_product(a, *up, *forward);
                 } else {
                     a = *forward;
                 }
@@ -222,7 +221,7 @@ uint32_t VehicleView::update()
                 if (direction == 2 || direction == 1) {
                     float k = -forward->k;
 
-                    vector3d_cross_product(&b, up, forward);
+                    halo::math::vector3d_cross_product(b, *up, *forward);
                     a.i += b.i * k;
                     a.j += b.j * k;
                     a.k += k * b.k;

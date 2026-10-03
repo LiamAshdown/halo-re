@@ -1,5 +1,6 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
@@ -10,8 +11,6 @@ extern network_id_table *machine_table;
 extern uint8_t network_object_index_cache[];
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
 extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key);
 extern void object_set_position_and_recalculate(real_point3d *position, uint32_t object_index);
@@ -83,10 +82,10 @@ void unit_spawn_with_starting_weapons(void *command_record)
     if (message_delta_decode_compound_field(command_record, &message) != 1) {
         return;
     }
-    vector3d_cross_product(&side, &message.up, &message.forward);
-    vector3d_cross_product(&message.up, &message.forward, &side);
-    vector3d_normalize_with_length(&message.forward);
-    vector3d_normalize_with_length(&message.up);
+    halo::math::vector3d_cross_product(side, message.up, message.forward);
+    halo::math::vector3d_cross_product(message.up, message.forward, side);
+    halo::math::vector3d_normalize_with_length(message.forward);
+    halo::math::vector3d_normalize_with_length(message.up);
     if (message.creator_key != 0) {
         creator = ((int32_t *)object_network_id_table->handles)[message.creator_key];
     }

@@ -1,4 +1,5 @@
 #include "halo/ai/actor_core.hpp"
+#include "halo/math/api.hpp"
 
 namespace c_actor_action_has_queued_secondary {
 extern "C" {
@@ -261,8 +262,6 @@ extern "C" uint8_t actor_command_list_permits_escalation(datum_index actor_index
 }
 
 namespace c_actor_command_list_reset_record {
-extern "C" {
-}
 }
 
 extern "C" void actor_command_list_reset_record(uint32_t actor_index, datum_index unit_index, uint16_t extra, void *component_record, int32_t secondary_record, uint32_t callback_extra);
@@ -682,11 +681,7 @@ namespace c_actor_get_body_axis_vector {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern const real_vector3d *global_forward3d_pointer;
-extern const real_vector3d *global_up3d_pointer;
 
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
 
 extern void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d *out);
 }
@@ -730,13 +725,13 @@ void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_axis_r
         {
             real_vector3d perp;
 
-            vector3d_cross_product(&perp, &reference, global_up3d_pointer);
-            if (vector3d_normalize_with_length(&perp) == 0.0f) {
+            halo::math::vector3d_cross_product(perp, reference, *halo::math::globals().global_up3d_pointer);
+            if (halo::math::vector3d_normalize_with_length(perp) == 0.0f) {
                 object *obj = ((object_header *)object_data->data)[unit_index & 0xffff].data;
 
-                vector3d_cross_product(&perp, &reference, &obj->up);
-                if (vector3d_normalize_with_length(&perp) == 0.0f) {
-                    perp = *global_forward3d_pointer;
+                halo::math::vector3d_cross_product(perp, reference, obj->up);
+                if (halo::math::vector3d_normalize_with_length(perp) == 0.0f) {
+                    perp = *halo::math::globals().global_forward3d_pointer;
                 }
             }
             if (request->axis == 2) {
@@ -790,7 +785,6 @@ extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *object_data;
 
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern uint8_t actor_get_cached_wander_position(datum_index actor_index, real_vector3d *out_position);
 }
 }
@@ -844,7 +838,7 @@ uint8_t halo::ai::actor_ref::get_ranged_attack_vector(datum_index target_prop_in
                 delta.i = ally->last_known_position.x - target->last_known_position.x;
                 delta.j = ally->last_known_position.y - target->last_known_position.y;
                 delta.k = ally->last_known_position.z - target->last_known_position.z;
-                length = vector3d_normalize_with_length(&delta);
+                length = halo::math::vector3d_normalize_with_length(delta);
 
                 if (length > 0.0f) {
                     dot = delta.i * out_vector->i + delta.j * out_vector->j + delta.k * out_vector->k;

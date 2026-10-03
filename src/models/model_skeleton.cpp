@@ -5,15 +5,10 @@
  */
 
 #include "halo/models/models.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
-extern void quaternion_lerp(real_quaternion *a, real_quaternion *b, real_quaternion *out, real t);
-extern void quaternion_normalize(real_quaternion *q);
-extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
-extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out);
 extern double sqrt(double x);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 }
 
 namespace halo::models {
@@ -29,8 +24,8 @@ void model_skeleton::blend_transforms(real_orientation *in_out, int16_t node_cou
     for (node = 0; node < node_count; node++) {
         in_out[node].scale = weight * in_out[node].scale + one_minus_weight * other[node].scale;
 
-        quaternion_lerp(&in_out[node].rotation, &other[node].rotation, &in_out[node].rotation, weight);
-        quaternion_normalize(&in_out[node].rotation);
+        halo::math::quaternion_lerp(in_out[node].rotation, other[node].rotation, in_out[node].rotation, weight);
+        halo::math::quaternion_normalize(in_out[node].rotation);
 
         in_out[node].translation.x = weight * in_out[node].translation.x +
                                       one_minus_weight * other[node].translation.x;
@@ -47,7 +42,7 @@ void model_skeleton::build_matrices(real_point3d *root_position, real_vector3d *
     int16_t queue[k_maximum_nodes_per_model];
     int16_t read_index, write_index;
 
-    matrix4x3_from_forward_up(up, forward, &root_parent);
+    halo::math::matrix4x3_from_forward_up(*up, *forward, root_parent);
     root_parent.position = *root_position;
 
     if (model->nodes.count <= 0) {
@@ -69,11 +64,11 @@ void model_skeleton::build_matrices(real_point3d *root_position, real_vector3d *
 
         parent_matrix = (node == 0) ? &root_parent : &out_matrices[(int16_t)node_def->parent_node_index];
 
-        matrix4x3_from_quaternion(&orientations[node].rotation, &local_matrix);
+        halo::math::matrix4x3_from_quaternion(orientations[node].rotation, local_matrix);
         local_matrix.scale = orientations[node].scale;
         local_matrix.position = orientations[node].translation;
 
-        matrix4x3_multiply_procedure(parent_matrix, &local_matrix, &out_matrices[node]);
+        halo::math::globals().matrix4x3_multiply_procedure(parent_matrix, &local_matrix, &out_matrices[node]);
 
         if (node_def->next_sibling_node_index != 0xffff) {
             queue[write_index] = (int16_t)node_def->next_sibling_node_index;
@@ -129,7 +124,7 @@ void model_skeleton::ik_solve_two_bone(real_matrix4x3 *target, real_matrix4x3 *m
         pole.i = dir_y * ez - dir_z * ey;
         pole.j = dir_z * ex - dir_x * ez;
         pole.k = dir_x * ey - dir_y * ex;
-        vector3d_normalize_with_length(&pole);
+        halo::math::vector3d_normalize_with_length(pole);
         pole_x = pole.i;
         pole_y = pole.j;
         pole_z = pole.k;
@@ -156,12 +151,12 @@ void model_skeleton::ik_solve_two_bone(real_matrix4x3 *target, real_matrix4x3 *m
         middle->forward.i = projected * dir_x + side_x * perp;
         middle->forward.j = projected * dir_y + side_y * perp;
         middle->forward.k = projected * dir_z + side_z * perp;
-        vector3d_normalize_with_length(&middle->forward);
+        halo::math::vector3d_normalize_with_length(middle->forward);
 
         middle->up.i = middle->left.k * middle->forward.j - middle->left.j * middle->forward.k;
         middle->up.j = middle->left.i * middle->forward.k - middle->left.k * middle->forward.i;
         middle->up.k = middle->forward.i * middle->left.j - middle->left.i * middle->forward.j;
-        vector3d_normalize_with_length(&middle->up);
+        halo::math::vector3d_normalize_with_length(middle->up);
 
         middle->left.i = middle->up.j * middle->forward.k - middle->up.k * middle->forward.j;
         middle->left.j = middle->up.k * middle->forward.i - middle->up.i * middle->forward.k;
@@ -170,12 +165,12 @@ void model_skeleton::ik_solve_two_bone(real_matrix4x3 *target, real_matrix4x3 *m
         end->forward.i = remaining * dir_x - side_x * perp;
         end->forward.j = remaining * dir_y - side_y * perp;
         end->forward.k = remaining * dir_z - side_z * perp;
-        vector3d_normalize_with_length(&end->forward);
+        halo::math::vector3d_normalize_with_length(end->forward);
 
         end->up.i = end->left.k * end->forward.j - end->left.j * end->forward.k;
         end->up.j = end->left.i * end->forward.k - end->left.k * end->forward.i;
         end->up.k = end->forward.i * end->left.j - end->left.i * end->forward.j;
-        vector3d_normalize_with_length(&end->up);
+        halo::math::vector3d_normalize_with_length(end->up);
 
         end->left.i = end->up.j * end->forward.k - end->up.k * end->forward.j;
         end->left.j = end->up.k * end->forward.i - end->up.i * end->forward.k;

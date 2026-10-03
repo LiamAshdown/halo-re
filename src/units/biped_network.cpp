@@ -1,9 +1,9 @@
 #include "halo/units/unit.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern double fcos(double x);
 extern double fsin(double x);
-extern real random_real_range(real min, real max);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 
@@ -19,7 +19,7 @@ void biped_build_update_delta_unit_grenade_count_mod1(uint32_t flags, object *ob
     unit_data *unit = (unit_data *)((uint8_t *)object_base + k_unit_data_offset);
 
     if ((flags & 0x4100) != 0) {
-        double angle = random_real_range(0.0, 6.2831855);
+        double angle = halo::math::random_real_range(0.0, 6.2831855);
         dir_x = (float)fcos(angle);
         dir_y = (float)fsin(angle);
         dir_z = 0.0f;

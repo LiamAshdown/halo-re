@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_placement.hpp"
+#include "halo/math/api.hpp"
 
 typedef struct netgame_equipment_spawn_message {
     int32_t object_hash;
@@ -22,7 +23,6 @@ extern int32_t game_engine_resolve_netgame_flag_role(uint32_t handle);
 extern uint32_t game_engine_resolve_multiplayer_placement(uint32_t handle);
 extern Globals *global_globals;
 extern int32_t game_engine_unknown_aa00;
-extern random_seed random_seed_global;
 extern uint8_t game_engine_map_table_value;
 extern Scenario *global_scenario;
 extern data_array *object_data;
@@ -53,7 +53,6 @@ extern uint32_t teleport_flash_green;
 extern uint32_t teleport_flash_blue;
 extern uint32_t teleport_flash_duration;
 extern int16_t teleport_flash_fade_function;
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern datum_index tag_lookup(tag_group group, char *path);
 extern double atan2(double y, double x);
 extern void player_effect_set_screen_flash_for_player(datum_index player_index, player_screen_flash *descriptor, float intensity_falloff);
@@ -321,16 +320,16 @@ uint32_t EnginePlacement::resolve_multiplayer_placement(uint32_t handle)
     if ((game_engine_unknown_aa00 & 8) == 0) {
         if ((game_engine_unknown_aa00 & 4) != 0) {
             float roll;
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-            roll = (float)(random_seed_global >> 0x10) * 1.5259022e-05f;
+            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            roll = (float)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
             if (!(roll < 0.55f) && roll != 0.55f) {
                 index = -1;
             }
         }
     } else {
         float roll;
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        roll = (float)(random_seed_global >> 0x10) * 1.5259022e-05f;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        roll = (float)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
         if (!(roll < 0.3f) && roll != 0.3f) {
             index = -1;
         }
@@ -782,7 +781,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
                 yaw = (yaw + exit_flag->facing) - entrance->facing;
                 forward.i = (float)fcos(yaw);
                 forward.j = (float)fsin(yaw);
-                vector3d_normalize_with_length(&forward);
+                halo::math::vector3d_normalize_with_length(forward);
 
                 object_set_position_and_orientation(unit, &forward, 0, (real_point3d *)(&exit_flag->position));
 

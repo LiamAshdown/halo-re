@@ -1,11 +1,11 @@
 #include "halo/ai/actor_alerts.hpp"
+#include "halo/math/api.hpp"
 
 namespace c_actor_investigate_disturbance_update {
 extern "C" {
 extern data_array *actor_data;
 extern game_time_globals *game_time;
 
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);
 extern uint8_t actor_is_within_alert_range(uint8_t always_in_range, float radius_a, float radius_b, uint8_t vitality_only, uint8_t use_radius_b, uint32_t actor_index, uint32_t object_index);
 extern uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_index, int16_t seat_index,
     real_point3d *out_entry, real_vector3d *out_direction, real_point3d *out_hint, float *out_score,
@@ -54,7 +54,7 @@ int32_t halo::ai::alert_ops::investigate_disturbance_update()
 
             if (game_time->game_time >= *(int32_t *)(act + 0xac) + 150) {
                 *(int32_t *)(act + 0xac) = game_time->game_time;
-                if (vector3d_distance_squared((real_point3d *)(act + 0x12c), (real_point3d *)(act + 0xb0)) <= 25.0f) {
+                if (halo::math::vector3d_distance_squared(*(real_point3d *)(act + 0x12c), *(real_point3d *)(act + 0xb0)) <= 25.0f) {
                     *(int16_t *)(act + 0xaa) += 1;
                 } else {
                     *(int16_t *)(act + 0xaa) = 0;
@@ -97,7 +97,7 @@ int32_t halo::ai::alert_ops::investigate_disturbance_update()
                         }
                     }
                 }
-                act[0xc8] = (uint8_t)(vector3d_distance_squared(&entry, (real_point3d *)(act + 0x12c)) <= 1.0f);
+                act[0xc8] = (uint8_t)(halo::math::vector3d_distance_squared(entry, *(real_point3d *)(act + 0x12c)) <= 1.0f);
                 *(real_vector3d *)(act + 0xd8) = direction;
                 act[0xc5] = facing;
                 act[0xc4] = close;

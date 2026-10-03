@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
@@ -13,16 +14,12 @@ extern void ai_search_partition_into_groups(ai_search_obstacle_list *list, float
 extern void ai_search_context_init(ai_search_context *context, uint8_t unknown_04, uint32_t unknown_00, ai_search_obstacle_list *obstacles, real_point2d *origin, uint32_t unknown_0c, real_point2d *position, int32_t surface_index, uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a);
 extern uint8_t ai_search_step(ai_search_context *context);
 extern uint8_t ai_search_run(ai_search_context *context, uint8_t unknown_04, ai_search_obstacle_list *obstacles, uint32_t unknown_00, real_point2d *position, int32_t surface_index, real_point2d *origin, uint32_t unknown_18, uint8_t unknown_29, uint8_t unknown_2a);
-extern real_point3d *decal_plane_solve_third_axis(real_point3d *out, uint32_t component_sign, int32_t dominant_axis, const real_plane3d *plane, const real_point2d *known);
 extern real_point3d *global_origin3d_pointer;
 extern int16_t path_find_hash_lookup_vertex(path_find_context *context, uint32_t vertex_id);
-extern void path_find_closest_point_on_segment(const real_point3d *point, const real_point3d *segment_start, const real_point3d *segment_end, real_point3d *out);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern uint8_t path_find_trace_bsp_boundary(void *context, uint8_t ignore_permission, real_point3d *point_a, int32_t start_edge, real_point3d *point_b, int32_t exclude_vertex, path_find_boundary_crossing *out_result);
 extern void path_find_heap_sift_up(path_find_context *context, int16_t index);
 extern int32_t __ftol(double x);
 extern void path_find_heap_push(path_find_context *context, int16_t node, int16_t key);
-extern real vector3d_distance(real_point3d *a, real_point3d *b);
 extern void path_find_simplify_waypoints(path_find_context *context, int16_t count, path_find_waypoint *waypoints, int16_t *out_count, path_find_waypoint *out_waypoints, uint8_t *out_valid);
 extern uint8_t ai_navigate_around_obstacles(path_find_context *context, int16_t count, path_find_waypoint *waypoints, int16_t *out_count, path_find_waypoint *out_waypoints, uint8_t *out_valid);
 extern void path_find_heap_sift_down(path_find_context *context, int16_t index);
@@ -168,8 +165,8 @@ uint8_t PathFinder::navigate_around_obstacles(int16_t count, path_find_waypoint 
             ai_search_node *best = &search->nodes[search->result_node];
 
             previous_surface = *(int32_t *)&best->z;
-            decal_plane_solve_third_axis(&previous, 1, 2, ai_navigate_surface_plane(collision_bsp, previous_surface),
-                &best->position);
+            halo::math::decal_plane_solve_third_axis(&previous, 1, 2, ai_navigate_surface_plane(collision_bsp, previous_surface),
+                best->position);
         }
 
         index = search->result_node;
@@ -250,8 +247,8 @@ uint8_t PathFinder::compute_heuristic(uint32_t vertex_id, real_point3d *point, f
         float closest_x, closest_y, closest_z;
         real_point3d closest;
 
-        path_find_closest_point_on_segment((real_point3d *)((uint8_t *)context + 0x28), &node->position, point,
-            &closest);
+        halo::math::path_find_closest_point_on_segment(*(real_point3d *)((uint8_t *)context + 0x28), node->position, *point,
+            closest);
         closest_x = closest.x;
         closest_y = closest.y;
         closest_z = closest.z;
@@ -300,7 +297,7 @@ uint8_t PathFinder::compute_heuristic(uint32_t vertex_id, real_point3d *point, f
         out_direction->i = lookahead_position->x - context->start_position.x;
         out_direction->j = lookahead_position->y - context->start_position.y;
         out_direction->k = lookahead_position->z - context->start_position.z;
-        vector3d_normalize_with_length(out_direction);
+        halo::math::vector3d_normalize_with_length(*out_direction);
     }
     return 1;
 }
@@ -564,8 +561,8 @@ uint8_t PathFindGeometry::heights_are_close(ScenarioStructureBSP *structure_bsp,
     surfaces = (ModelCollisionGeometryBSPSurface *)(uintptr_t)collision_bsp->surfaces.pointer;
     planes = (real_plane3d *)(uintptr_t)collision_bsp->planes.pointer;
 
-    decal_plane_solve_third_axis(&position_a, 1, 2, &planes[surfaces[surface_a].plane & 0x7fffffff], point);
-    decal_plane_solve_third_axis(&position_b, 1, 2, &planes[surfaces[surface_b].plane & 0x7fffffff], point);
+    halo::math::decal_plane_solve_third_axis(&position_a, 1, 2, &planes[surfaces[surface_a].plane & 0x7fffffff], *point);
+    halo::math::decal_plane_solve_third_axis(&position_b, 1, 2, &planes[surfaces[surface_b].plane & 0x7fffffff], *point);
     return (uint8_t)(fabs((double)(position_a.z - position_b.z)) < 0.05000000074505806);
 }
 
@@ -705,7 +702,7 @@ uint8_t PathFinder::reconstruct_path(uint8_t *out_result)
 
         *end_point = last->position;
         *(int32_t *)(out_result + 0x10) = last->surface_index;
-        *(float *)(out_result + 0x14) = vector3d_distance(&context->goal_position, end_point);
+        *(float *)(out_result + 0x14) = halo::math::vector3d_distance(context->goal_position, *end_point);
     }
     return out_result[0];
 }
@@ -958,7 +955,7 @@ float PathFinder::score_avoidance_penalty(const real_point3d *segment_start, con
     float dx, dy, dz;
     float distance2;
 
-    path_find_closest_point_on_segment(&request->avoid_position, segment_start, segment_end, &closest);
+    halo::math::path_find_closest_point_on_segment(request->avoid_position, *segment_start, *segment_end, closest);
     dx = closest.x - request->avoid_position.x;
     dy = closest.y - request->avoid_position.y;
     dz = closest.z - request->avoid_position.z;
@@ -1098,8 +1095,8 @@ void PathFinder::simplify_waypoints(int16_t count, path_find_waypoint *waypoints
                 uint32_t plane = *(uint32_t *)(*(uint8_t **)(bsp + 0x40) + current_surface * 12) & 0x7fffffff;
 
                 entry = &out_waypoints[emitted++];
-                decal_plane_solve_third_axis(&entry->position, 1, 2,
-                    (real_plane3d *)(*(uint8_t **)(bsp + 0x10) + plane * 16), (real_point2d *)&current);
+                halo::math::decal_plane_solve_third_axis(&entry->position, 1, 2,
+                    (real_plane3d *)(*(uint8_t **)(bsp + 0x10) + plane * 16), *((real_point2d *)&current));
                 entry->surface_index = current_surface;
             }
             if (emitted >= 4) {
@@ -1341,7 +1338,7 @@ uint8_t PathFindGeometry::trace_bsp_boundary(void *map, uint8_t ignore_permissio
 
                         hit.x = dx * t + start->x;
                         hit.y = dy * t + start->y;
-                        decal_plane_solve_third_axis(&out_result->position, 1, 2, SURFACE_PLANE(bsp, surface), &hit);
+                        halo::math::decal_plane_solve_third_axis(&out_result->position, 1, 2, SURFACE_PLANE(bsp, surface), hit);
                         out_result->edge_a = surface;
                         out_result->edge_b = edge_index;
                         out_result->found = 1;
@@ -1367,7 +1364,7 @@ uint8_t PathFindGeometry::trace_bsp_boundary(void *map, uint8_t ignore_permissio
                 out_result->fraction = 0.0f;
                 return 1;
             }
-            decal_plane_solve_third_axis(&out_result->position, 1, 2, SURFACE_PLANE(bsp, surface), (real_point2d *)end);
+            halo::math::decal_plane_solve_third_axis(&out_result->position, 1, 2, SURFACE_PLANE(bsp, surface), *(real_point2d *)end);
             out_result->edge_a = surface;
             out_result->edge_b = -1;
             out_result->found = 0;
@@ -1387,8 +1384,8 @@ uint8_t PathFindGeometry::trace_bsp_boundary(void *map, uint8_t ignore_permissio
                 continue;
             }
         }
-        decal_plane_solve_third_axis(&out_result->position, 1, 2, SURFACE_PLANE(bsp, start_surface),
-            (real_point2d *)start);
+        halo::math::decal_plane_solve_third_axis(&out_result->position, 1, 2, SURFACE_PLANE(bsp, start_surface),
+            *(real_point2d *)start);
         out_result->edge_a = -1;
         out_result->edge_b = -1;
         out_result->found = 1;
@@ -1632,7 +1629,7 @@ float PathFindGeometry::vertex_distance(ScenarioStructureBSP *structure_bsp, int
     float dx, dy, dz;
 
     collision_bsp_surface_closest_edge_point_2d(collision_bsp, surface, 2, 1, (real_point2d *)point_a, &closest);
-    decal_plane_solve_third_axis(out_point, 1, 2, &planes[surfaces[surface].plane & 0x7fffffff], &closest);
+    halo::math::decal_plane_solve_third_axis(out_point, 1, 2, &planes[surfaces[surface].plane & 0x7fffffff], closest);
 
     dx = out_point->x - point_a->x;
     dy = out_point->y - point_a->y;

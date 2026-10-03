@@ -1,6 +1,7 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "win32.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -9,8 +10,6 @@ extern network_id_table *machine_table;
 extern uint8_t network_object_index_cache[];
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
 extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key);
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
@@ -75,10 +74,10 @@ void unit_network_create_update_apply(void *incoming_record)
     if (message_delta_decode_compound_field(incoming_record, &message) != 1) {
         return;
     }
-    vector3d_cross_product(&side, &message.up, &message.forward);
-    vector3d_cross_product(&message.up, &message.forward, &side);
-    vector3d_normalize_with_length(&message.forward);
-    vector3d_normalize_with_length(&message.up);
+    halo::math::vector3d_cross_product(side, message.up, message.forward);
+    halo::math::vector3d_cross_product(message.up, message.forward, side);
+    halo::math::vector3d_normalize_with_length(message.forward);
+    halo::math::vector3d_normalize_with_length(message.up);
     if (message.creator_key != 0) {
         creator = ((int32_t *)object_network_id_table->handles)[message.creator_key];
     }

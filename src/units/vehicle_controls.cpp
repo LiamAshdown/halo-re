@@ -1,44 +1,22 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "projectiles.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern tag_instance *tag_instances;
-extern float vector3d_scalar_triple_product(const real_vector3d *a, const real_vector3d *b, const real_vector3d *c);
 extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAnimation *animation, float frame, real_orientation *out_orientations);
 extern void animation_aiming_screen_blend(ModelAnimationsAnimation *animation, animation_aiming_screen *screen, real yaw, real pitch, real_orientation *orientation_out);
 extern double fabs(double x);
-extern real vector3d_length(real_vector3d *v);
-extern void vector3d_project_onto_unit_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v, real_vector3d *perp_out);
 extern float fabsf(float x);
-extern real_vector3d *global_up3d_pointer;
-extern real_vector3d *global_forward3d_pointer;
 extern uint8_t *global_identity_quaternion_pointer;
 extern void object_physics_tick(uint32_t object_index, void *powered_states, void *contact_points, real_vector3d *extra_force, real_vector3d *extra_torque);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_delta_toward_gravity_biased_clamp_length(real_point3d *origin, real_point3d *target, real_vector3d *out_delta, real max_length_aligned, real max_length_default);
-extern void matrix3x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix3x3 *out);
-extern void vector3d_rotate_pair_in_plane(real_vector3d *a, real_vector3d *b, real sin_angle, real cos_angle);
-extern void vector3d_rotate_about_axis_perpendicular(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
-extern void matrix3x3_transpose(real_matrix3x3 *out, real_matrix3x3 *in);
-extern void matrix3x3_multiply(real_matrix3x3 *out, real_matrix3x3 *a, real_matrix3x3 *b);
-extern real_quaternion *quaternion_from_matrix3x3(real_matrix3x3 *m, real_quaternion *out);
-extern void quaternion_to_axis_angle(real_quaternion *quat, real_vector3d *axis_out, real *angle_out);
 extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
-extern void matrix4x3_inverse(real_matrix4x3 *out, real_matrix4x3 *in);
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
-extern void quaternion_from_matrix4x3(real_matrix4x3 *m, real_quaternion *out);
 extern float DAT_0069c52c;
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
-extern random_seed effect_random_seed;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, void *marker, uint32_t flags);
-extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, void *seed, real lo, real hi);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void effect_new_with_color(uint32_t effect, uint32_t creator, void *velocity, int32_t count, char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale, int32_t color, int32_t tint, int32_t force);
 }
@@ -106,8 +84,8 @@ void VehicleView::blend_animations(real_orientation *orientations)
             (animation_aiming_screen *)entry, ((struct vehicle_object *)obj)->vehicle.turning_velocity, 0.0f, orientations);
     }
     if (count > 1 && indices[1] != -1) {
-        double speed = vector3d_scalar_triple_product((real_vector3d *)(obj + 0x80), (real_vector3d *)(obj + 0x74),
-            (real_vector3d *)(obj + 0x68));
+        double speed = halo::math::vector3d_scalar_triple_product(*(real_vector3d *)(obj + 0x80), *(real_vector3d *)(obj + 0x74),
+            *(real_vector3d *)(obj + 0x68));
 
         speed = (speed / *(float *)(vehicle_tag + 0x2f8) + 1.0) * 0.5;
         blend_fraction((ModelAnimationsAnimation *)(animations + indices[1] * 0xb4), clamp_unit(speed), orientations);
@@ -234,21 +212,21 @@ void VehicleView::calculate_animation_controls()
             outputs[i] = (obj[0x4cc] & 8) ? 1.0f : 0.0f;
             continue;
         case 0xe:
-            value = vector3d_length(velocity) / max_speed;
+            value = halo::math::vector3d_length(*velocity) / max_speed;
             break;
         case 0xf:
             if ((obj[0x10] & 0x1c) == 0) {
                 outputs[i] = 0.0f;
                 continue;
             }
-            value = vector3d_length(velocity) / max_speed;
+            value = halo::math::vector3d_length(*velocity) / max_speed;
             break;
         case 0x10:
             if ((obj[0x10] & 2) == 0) {
                 outputs[i] = 0.0f;
                 continue;
             }
-            value = vector3d_length(velocity) / max_speed;
+            value = halo::math::vector3d_length(*velocity) / max_speed;
             break;
         case 0x11:
             value = fabsf(velocity->k * forward->k + velocity->j * forward->j + velocity->i * forward->i) / max_speed;
@@ -276,8 +254,8 @@ void VehicleView::calculate_animation_controls()
             real_vector3d perpendicular;
             float slide;
 
-            vector3d_project_onto_unit_axis(&parallel, forward, velocity, &perpendicular);
-            slide = vector3d_length(&perpendicular) * 3.3333333f;
+            halo::math::vector3d_project_onto_unit_axis(&parallel, *forward, *velocity, &perpendicular);
+            slide = halo::math::vector3d_length(perpendicular) * 3.3333333f;
             value = slide * slide;
             break;
         }
@@ -301,7 +279,7 @@ void VehicleView::calculate_animation_controls()
             break;
         }
         case 0x24:
-            value = ((vector3d_length(velocity) / tag->maximum_forward_speed) * ((struct vehicle_object *)obj)->vehicle.ground_contact_fraction - 0.05f) *
+            value = ((halo::math::vector3d_length(*velocity) / tag->maximum_forward_speed) * ((struct vehicle_object *)obj)->vehicle.ground_contact_fraction - 0.05f) *
                 1.1764706f;
             break;
         default:
@@ -339,7 +317,7 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     real_vector3d *forward = (real_vector3d *)(obj + 0x74);
     real_vector3d *object_up = (real_vector3d *)(obj + 0x80);
     real_vector3d *angular_velocity = (real_vector3d *)(obj + 0x8c);
-    real_vector3d *world_up = global_up3d_pointer;
+    real_vector3d *world_up = halo::math::globals().global_up3d_pointer;
     real_point3d target_velocity;
     real_vector3d delta, force, torque, axis;
     real_vector3d basis[3];
@@ -358,19 +336,19 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     target_velocity.y = speed * forward->j;
     target_velocity.z = speed * forward->k;
     frac = speed > 0.0f ? speed / *(real *)(tag + 0x2f8) : -(speed / *(real *)(tag + 0x2fc));
-    vector3d_delta_toward_gravity_biased_clamp_length((real_point3d *)velocity, &target_velocity, &delta,
+    halo::math::vector3d_delta_toward_gravity_biased_clamp_length(*(real_point3d *)velocity, target_velocity, &delta,
         frac * *(real *)(tag + 0x300), frac * *(real *)(tag + 0x304));
     force.i = delta.i * mass * throttle;
     force.j = delta.j * mass * throttle;
     force.k = delta.k * mass * throttle;
-    matrix3x3_from_forward_up(object_up, forward, &current);
+    halo::math::matrix3x3_from_forward_up(*object_up, *forward, current);
 
     basis[0] = *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i;
     basis[2].i = -basis[0].k * basis[0].i + world_up->i;
     basis[2].j = -basis[0].k * basis[0].j + world_up->j;
     basis[2].k = -basis[0].k * basis[0].k + world_up->k;
-    if (vector3d_normalize_with_length(&basis[2]) == 0.0f) {
-        basis[2] = *global_forward3d_pointer;
+    if (halo::math::vector3d_normalize_with_length(basis[2]) == 0.0f) {
+        basis[2] = *halo::math::globals().global_forward3d_pointer;
     }
     rider = obj;
     if (((unit_object *)obj)->unit.driver_unit_index != (datum_index)0xffffffff) {
@@ -378,18 +356,18 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     }
     if (*(datum_index *)(rider + 0x1f4) == (datum_index)0xffffffff) {
         real pitch = *(real *)(tag + 0x364);
-        vector3d_rotate_pair_in_plane(&basis[2], &basis[0], (real)sin((double)pitch), (real)cos((double)pitch));
+        halo::math::vector3d_rotate_pair_in_plane(basis[2], basis[0], (real)sin((double)pitch), (real)cos((double)pitch));
     }
     angle = (basis[0].i * velocity->j - basis[0].j * velocity->i) / *(real *)(tag + 0x2f8) * *(real *)(tag + 0x308);
-    vector3d_rotate_about_axis_perpendicular(&basis[2], &basis[0], (real)sin((double)angle), (real)cos((double)angle));
+    halo::math::vector3d_rotate_about_axis_perpendicular(basis[2], basis[0], (real)sin((double)angle), (real)cos((double)angle));
     basis[1].i = basis[2].j * basis[0].k - basis[2].k * basis[0].j;
     basis[1].j = basis[2].k * basis[0].i - basis[2].i * basis[0].k;
     basis[1].k = basis[0].j * basis[2].i - basis[2].j * basis[0].i;
 
-    matrix3x3_transpose(&current, &current);
-    matrix3x3_multiply(&relative, (real_matrix3x3 *)basis, &current);
-    quaternion_from_matrix3x3(&relative, &rotation);
-    quaternion_to_axis_angle(&rotation, &axis, &angle);
+    halo::math::matrix3x3_transpose(&current, &current);
+    halo::math::matrix3x3_multiply(&relative, (real_matrix3x3 *)basis, &current);
+    halo::math::quaternion_from_matrix3x3(&relative, &rotation);
+    halo::math::quaternion_to_axis_angle(rotation, &axis, angle);
 
     k = -angle * *(real *)(tag + 0x314) * 0.31830987f;
     moment = (*(real *)(physics + 0x58) + *(real *)(physics + 0x54) + *(real *)(physics + 0x50)) * 0.33333334f;
@@ -465,7 +443,7 @@ void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_
     up.i = -(facing.i * facing.k);
     up.j = -(facing.j * facing.k);
     up.k = 1.0f - facing.k * facing.k;
-    if (vector3d_normalize_with_length(&up) == 0.0f) {
+    if (halo::math::vector3d_normalize_with_length(up) == 0.0f) {
         up.i = 1.0f;
         up.j = 0.0f;
         up.k = 0.0f;
@@ -479,13 +457,13 @@ void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_
     force.k = forward->k * x_force + object_up->k * y_force;
 
     angle = (velocity->j * facing.i - facing.j * velocity->i) * 1.5707964f / (real)fabs((double)max_speed);
-    vector3d_rotate_about_axis_perpendicular(&up, &facing, (real)sin((double)angle), (real)cos((double)angle));
-    matrix4x3_from_forward_up(object_up, forward, &current);
-    matrix4x3_from_forward_up(&up, &facing, &desired);
-    matrix4x3_inverse(&desired, &desired);
-    matrix4x3_multiply(&current, &desired, &relative);
-    quaternion_from_matrix4x3(&relative, &rotation);
-    quaternion_to_axis_angle(&rotation, &axis, &angle);
+    halo::math::vector3d_rotate_about_axis_perpendicular(up, facing, (real)sin((double)angle), (real)cos((double)angle));
+    halo::math::matrix4x3_from_forward_up(*object_up, *forward, current);
+    halo::math::matrix4x3_from_forward_up(up, facing, desired);
+    halo::math::matrix4x3_inverse(&desired, desired);
+    halo::math::matrix4x3_multiply(&current, &desired, &relative);
+    halo::math::quaternion_from_matrix4x3(&relative, rotation);
+    halo::math::quaternion_to_axis_angle(rotation, &axis, angle);
 
     per_tick = angle * 0.13333334f;
     torque_scale = *(real *)(physics + 0x0) * *(real *)(physics + 0x0) * *(real *)(physics + 0x8) * 0.05f;
@@ -570,7 +548,7 @@ void VehicleView::calculate_ground_lean_controls(uint8_t *out_transform)
     up.i = -(facing.i * facing.k);
     up.j = -(facing.j * facing.k);
     up.k = 1.0f - facing.k * facing.k;
-    if (vector3d_normalize_with_length(&up) == 0.0f) {
+    if (halo::math::vector3d_normalize_with_length(up) == 0.0f) {
         up.i = 1.0f;
         up.j = 0.0f;
         up.k = 0.0f;
@@ -585,13 +563,13 @@ void VehicleView::calculate_ground_lean_controls(uint8_t *out_transform)
     force.k = forward->k * x_force + object_up->k * y_force;
 
     angle = (velocity->j * facing.i - facing.j * velocity->i) * 1.5707964f / (real)fabs((double)max_speed);
-    vector3d_rotate_about_axis_perpendicular(&up, &facing, (real)sin((double)angle), (real)cos((double)angle));
-    matrix4x3_from_forward_up(object_up, forward, &current);
-    matrix4x3_from_forward_up(&up, &facing, &desired);
-    matrix4x3_inverse(&desired, &desired);
-    matrix4x3_multiply(&current, &desired, &relative);
-    quaternion_from_matrix4x3(&relative, &rotation);
-    quaternion_to_axis_angle(&rotation, &axis, &angle);
+    halo::math::vector3d_rotate_about_axis_perpendicular(up, facing, (real)sin((double)angle), (real)cos((double)angle));
+    halo::math::matrix4x3_from_forward_up(*object_up, *forward, current);
+    halo::math::matrix4x3_from_forward_up(up, facing, desired);
+    halo::math::matrix4x3_inverse(&desired, desired);
+    halo::math::matrix4x3_multiply(&current, &desired, &relative);
+    halo::math::quaternion_from_matrix4x3(&relative, rotation);
+    halo::math::quaternion_to_axis_angle(rotation, &axis, angle);
 
     per_tick = angle * 0.033333335f;
     torque_scale = *(real *)(physics + 0x0) * *(real *)(physics + 0x0) * *(real *)(physics + 0x8) * 0.05f;
@@ -645,7 +623,7 @@ void VehicleView::calculate_lean_controls(void *mass_points, float *powered_stat
     real_vector3d *forward = (real_vector3d *)(obj + 0x74);
     real_vector3d *up = (real_vector3d *)(obj + 0x80);
     real_vector3d *angular_velocity = (real_vector3d *)(obj + 0x8c);
-    real_vector3d *world_up = global_up3d_pointer;
+    real_vector3d *world_up = halo::math::globals().global_up3d_pointer;
     uint8_t *ps = (uint8_t *)powered_states;
     real_vector3d zero_force;
     real_vector3d torque;
@@ -686,7 +664,7 @@ void VehicleView::calculate_lean_controls(void *mass_points, float *powered_stat
     torque.i = -forward->k * forward->i + world_up->i;
     torque.j = -forward->k * forward->j + world_up->j;
     torque.k = -forward->k * forward->k + world_up->k;
-    if (vector3d_normalize_with_length(&torque) == 0.0f) {
+    if (halo::math::vector3d_normalize_with_length(torque) == 0.0f) {
         torque.i = 0.0f;
         torque.j = 0.0f;
         torque.k = 0.0f;
@@ -696,11 +674,11 @@ void VehicleView::calculate_lean_controls(void *mass_points, float *powered_stat
         real angle, spin, w;
         int32_t sign;
 
-        vector3d_cross_product(&side, forward, up);
-        vector3d_cross_product(&slip, velocity, forward);
+        halo::math::vector3d_cross_product(side, *forward, *up);
+        halo::math::vector3d_cross_product(slip, *velocity, *forward);
         angle = (slip.i * world_up->i + slip.j * world_up->j + slip.k * world_up->k) * 6.2831855f;
-        vector3d_rotate_about_axis(&torque, forward, (real)sin((double)angle), (real)cos((double)angle));
-        angle = vector3d_angle_between_4cd4f0(up, &torque);
+        halo::math::vector3d_rotate_about_axis(torque, *forward, (real)sin((double)angle), (real)cos((double)angle));
+        angle = halo::math::vector3d_angle_between_4cd4f0(*up, torque);
         if (side.k * torque.k + side.j * torque.j + side.i * torque.i > 0.0f) {
             angle = -angle;
         }
@@ -774,7 +752,7 @@ void VehicleView::create_hover_thruster_effects()
         collision_result result;
         real length;
 
-        vector3d_randomize_direction((real_point3d *)(marker + 0x3c), &direction, &effect_random_seed, 0.0f,
+        halo::math::vector3d_randomize_direction(*(real_point3d *)(marker + 0x3c), &direction, halo::math::globals().effect_random_seed, 0.0f,
             0.2617994f);
         length = (i < hover_count ? ((struct vehicle_object *)obj)->vehicle.ground_lean : ((struct vehicle_object *)obj)->vehicle.ground_contact_fraction) * 6.0f + 2.0f;
         delta.i = direction.i * length;
@@ -836,7 +814,7 @@ void VehicleView::create_hover_thruster_midpoint_effects()
         collision_result result;
         real v;
 
-        vector3d_randomize_direction((real_point3d *)(marker + 0x3c), &direction, &effect_random_seed, 0.0f, 15.0f);
+        halo::math::vector3d_randomize_direction(*(real_point3d *)(marker + 0x3c), &direction, halo::math::globals().effect_random_seed, 0.0f, 15.0f);
         delta = direction;
         if (!collision_test_movement_segment(0x61, marker_position, &delta, unit_index, &result)) {
             continue;

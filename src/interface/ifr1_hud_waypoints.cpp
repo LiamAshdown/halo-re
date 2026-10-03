@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_hud_waypoints.hpp"
 #include <string.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -21,7 +22,6 @@ extern long lrint(double x);
 extern int32_t __ftol(double x);
 extern int32_t ui_real_to_int_truncate(float value);
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *point, void *frustum,
                                                     void *camera);
 extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed);
@@ -293,7 +293,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
         scale = (float)(pow((double)(1.0f - distance * 0.06666667014360428f), 0.7) + 0.5);
     }
 
-    matrix4x3_transform_point(&point, &point, &render_camera_world_to_view);
+    halo::math::matrix4x3_transform_point(point, point, render_camera_world_to_view);
     if (visibility != 1 && render_project_world_point_to_screen(&screen, &point, render_frustum_global, render_camera_global) != 0) {
         x = screen.x - (float)(render_viewport_left + 0x140);
         y = screen.y - (float)(render_viewport_top + 0xf0);

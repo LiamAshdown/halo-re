@@ -5,6 +5,7 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/math/api.hpp"
 
 #define TRACK_TAG(track, field) (*(uint32_t *)&(track)->field.tag_id)
 
@@ -446,7 +447,7 @@ datum_index state_new(datum_index definition_index, int32_t owner, sound_locatio
 
     for (detail_index = 0; detail_index < (int32_t)definition->detail_sounds.count; detail_index++) {
         SoundLoopingDetail *detail = (SoundLoopingDetail *)definition->detail_sounds.pointer + detail_index;
-        float random_value = random_real_range_seeded(&effect_random_seed, detail->random_period_bounds[0],
+        float random_value = halo::math::random_real_range_seeded(halo::math::globals().effect_random_seed, detail->random_period_bounds[0],
             detail->random_period_bounds[1]);
         float period = definition->zero_detail_sound_period +
             (definition->one_detail_sound_period - definition->zero_detail_sound_period) * location->scale;
@@ -498,7 +499,7 @@ void update_states(void)
                         period = definition->zero_detail_sound_period +
                             (definition->one_detail_sound_period - definition->zero_detail_sound_period) *
                                 state->location.scale;
-                        random_value = random_real_range_seeded(&effect_random_seed, detail->random_period_bounds[0],
+                        random_value = halo::math::random_real_range_seeded(halo::math::globals().effect_random_seed, detail->random_period_bounds[0],
                             detail->random_period_bounds[1]);
                         state->detail_next_time[detail_index] = (int32_t)(random_value * period * 1000.0f +
                             (float)(int32_t)detail_tag->longest_permutation_length + (float)sound_time);
@@ -579,7 +580,7 @@ datum_index create_detail_sound(datum_index owner, datum_index definition_index,
     instance->channel_index = -1;
     instance->listener_index = listener_index;
     instance->flags = 0;
-    pitch = random_range_real(definition->random_pitch_bounds[0], definition->random_pitch_bounds[1]);
+    pitch = halo::math::random_range_real(definition->random_pitch_bounds[0], definition->random_pitch_bounds[1]);
     instance->pitch = pitch;
     instance->owner_index = owner;
     instance->location = state->location;
@@ -637,7 +638,7 @@ uint8_t detail_location_proc(datum_index owner, void *callback_data, sound_locat
     location->occlusion = owner_sound->location.occlusion;
 
     if (owner_sound->location.type == _sound_location_none) {
-        location->forward = *(Vector3D *)global_forward3d_pointer;
+        location->forward = *(Vector3D *)halo::math::globals().global_forward3d_pointer;
         location->velocity = *(Vector3D *)global_origin3d_pointer;
     } else {
         location->forward = owner_sound->location.forward;

@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern tag_instance *tag_instances;
@@ -6,10 +7,6 @@ extern const real_vector3d *global_down3d_pointer;
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
-extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out, real_point3d *point);
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
 extern data_array *effect_location_data;
 extern datum_index datum_new(data_array *array);
 extern player_globals *local_player_globals;
@@ -83,7 +80,7 @@ void effect_view::from_node_table(int16_t entry_index, uint8_t *context, object_
 
     *(uint16_t *)out = *(uint16_t *)context;
     if (node != 0) {
-        matrix4x3_inverse_transform_point(node, &position, point);
+        halo::math::matrix4x3_inverse_transform_point(*node, position, *point);
         forward.i = normal->k * node->forward.k + normal->j * node->forward.j + normal->i * node->forward.i;
         forward.j = normal->k * node->left.k + normal->j * node->left.j + normal->i * node->left.i;
         forward.k = normal->k * node->up.k + normal->j * node->up.j + normal->i * node->up.i;
@@ -91,9 +88,9 @@ void effect_view::from_node_table(int16_t entry_index, uint8_t *context, object_
         position = *point;
         forward = *normal;
     }
-    vector3d_build_perpendicular(&up, &forward);
-    vector3d_normalize_with_length(&up);
-    matrix4x3_from_forward_up(&up, &forward, (real_matrix4x3 *)((uint8_t *)out + 4));
+    halo::math::vector3d_build_perpendicular(up, forward);
+    halo::math::vector3d_normalize_with_length(up);
+    halo::math::matrix4x3_from_forward_up(up, forward, *(real_matrix4x3 *)((uint8_t *)out + 4));
     ((real_matrix4x3 *)((uint8_t *)out + 4))->position = position;
 }
 

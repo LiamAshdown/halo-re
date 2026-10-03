@@ -5,6 +5,7 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias);
@@ -16,9 +17,6 @@ extern real_vector3d object_lightmap_probe_direction[1];
 extern real_vector3d object_lighting_probe_sideways[4];
 extern BitmapData *bitmap_group_get_bitmap_data(datum_index bitmap_tag_index, int16_t bitmap_data_index);
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
-extern void vector3d_barycentric_interpolate(real_vector3d *out, real_vector3d *v1, real_vector3d *v2,
-    real_vector3d *v0, float w2, float w1);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void bsp_compressed_rendered_vertex_unpack_normal(ScenarioStructureBSPMaterialCompressedRenderedVertex *vertex,
     real_vector3d *out);
 extern void bsp_compressed_lightmap_vertex_unpack_normal(ScenarioStructureBSPMaterialCompressedLightmapVertex *vertex,
@@ -206,8 +204,8 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
             normals[i] = *(real_vector3d *)&vertices[triangle[i]].normal;
         }
     }
-    vector3d_barycentric_interpolate(&shading_normal, &normals[2], &normals[1], &normals[0], weight_1, weight_2);
-    vector3d_normalize_with_length(&shading_normal);
+    halo::math::vector3d_barycentric_interpolate(shading_normal, normals[2], normals[1], normals[0], weight_1, weight_2);
+    halo::math::vector3d_normalize_with_length(shading_normal);
 
     if (vertex_type == vertextype_structure_bsp_compressed_rendered_vertices) {
         ScenarioStructureBSPMaterialCompressedLightmapVertex *vertices =
@@ -224,11 +222,11 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
             normals[i] = *(real_vector3d *)&vertices[triangle[i]].normal;
         }
     }
-    lengths[0] = vector3d_normalize_with_length(&normals[0]);
-    lengths[1] = vector3d_normalize_with_length(&normals[1]);
-    lengths[2] = vector3d_normalize_with_length(&normals[2]);
-    vector3d_barycentric_interpolate(&lightmap_normal, &normals[2], &normals[1], &normals[0], weight_1, weight_2);
-    vector3d_normalize_with_length(&lightmap_normal);
+    lengths[0] = halo::math::vector3d_normalize_with_length(normals[0]);
+    lengths[1] = halo::math::vector3d_normalize_with_length(normals[1]);
+    lengths[2] = halo::math::vector3d_normalize_with_length(normals[2]);
+    halo::math::vector3d_barycentric_interpolate(lightmap_normal, normals[2], normals[1], normals[0], weight_1, weight_2);
+    halo::math::vector3d_normalize_with_length(lightmap_normal);
 
     object_build_effect_parameter_block(flags, &shading_normal,
         (lengths[1] - lengths[0]) * weight_1 + (lengths[2] - lengths[0]) * weight_2 + lengths[0],

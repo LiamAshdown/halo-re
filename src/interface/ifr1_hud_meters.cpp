@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_hud_meters.hpp"
 #include <string.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern tag_instance *tag_instances;
@@ -18,7 +19,6 @@ extern double sqrt(double x);
 extern double fmod(double x, double y);
 extern game_time_globals *game_time;
 extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed);
-extern void vector3d_lerp(real_vector3d *out, real_vector3d *a, real_vector3d *b, real t);
 extern int32_t bitmap_group_sequence_get_bitmap_offset(datum_index bitmap_tag, int16_t sequence_index,
                                                          int16_t frame_index);
 extern data_array *player_data;
@@ -41,7 +41,7 @@ static int32_t hud_meter_alpha(const hud_meter_placement *meter, uint8_t value)
 static uint32_t hud_flash_blend(ColorARGB *a, ColorARGB *b, float s)
 {
     ColorARGB out;
-    vector3d_lerp((real_vector3d *)&out, (real_vector3d *)a, (real_vector3d *)b, s);
+    halo::math::vector3d_lerp(*((real_vector3d *)&out), *(real_vector3d *)a, *(real_vector3d *)b, s);
     out.blue = (1.0f - s) * b->blue + a->blue * s;
     return color_pack_argb_from_real(&out);
 }

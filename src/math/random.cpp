@@ -5,7 +5,7 @@
  */
 
 #include "halo/math/math.hpp"
-#include "halo/math/math_globals.h"
+#include "halo/math/globals.hpp"
 
 #include "tags.h"
 #include "win32.h"
@@ -76,8 +76,8 @@ real_vector3d * vector3d_randomize_direction(const real_point3d &direction, real
 
     random_stream rng(seed);
 
-    index = (int16_t)rng.next_index((uint32_t)(int32_t)sphere_point_table_count);
-    sample = &sphere_point_table[index];
+    index = (int16_t)rng.next_index((uint32_t)(int32_t)globals().sphere_point_table_count);
+    sample = &globals().sphere_point_table[index];
 
     axis.i = sample->z * direction.y - sample->y * direction.z;
     axis.j = sample->x * direction.z - sample->z * direction.x;

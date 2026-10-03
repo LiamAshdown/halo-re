@@ -5,6 +5,7 @@
 #include "halo/shell/system.hpp"
 #include "halo/shell/window.hpp"
 #include <excpt.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern char *shell_command_line;
@@ -88,7 +89,6 @@ extern ScenarioStructureBSP *global_structure_bsp;
 extern uint32_t global_structure_collision_bsp;
 extern uint32_t global_collision_bsp;
 extern uint32_t global_globals;
-extern void *sphere_point_table;
 extern uint32_t external_00686b4c;
 extern uint8_t external_00686b50;
 extern void *external_00686b58;
@@ -99,14 +99,12 @@ extern uint8_t data_file_open(void);
 extern void directory_create_recursive(char *path);
 extern void profile_path_initialize(void);
 extern void input_directinput_initialize(void);
-extern void math_initialize(void);
 extern uint32_t render_initialize(void);
 extern void game_state_startup(void);
 extern uint32_t sound_initialize(void);
 extern void cache_file_unload(void);
 extern void data_file_close(void);
 extern void input_directinput_release_devices(void);
-extern void periodic_function_tables_free(void);
 extern void rasterizer_shutdown(void);
 extern void sound_dispose(void);
 }
@@ -166,7 +164,7 @@ uint8_t EngineLifecycle::initialize()
     console_debug_word_8 = 0;
 
     data_file_open();
-    math_initialize();
+    halo::math::math_initialize();
     game_state_startup();
 
     startup_ok = render_initialize();
@@ -199,8 +197,8 @@ void EngineLifecycle::shutdown()
 
     input_directinput_release_devices();
     rasterizer_shutdown();
-    GlobalFree(sphere_point_table);
-    periodic_function_tables_free();
+    GlobalFree(halo::math::globals().sphere_point_table);
+    halo::math::periodic_function_tables_free();
     data_file_close();
     sound_dispose();
 

@@ -1,5 +1,6 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -12,8 +13,6 @@ extern void animation_overlay_frame_orientations_weighted(void *animation, int16
 extern void animation_overlay_interpolated_frame_orientations(void *animation, float frame, void *out_orientations);
 extern void animation_aiming_screen_blend(void *animation, void *screen, real yaw, real pitch, void *orientation_out);
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern void matrix4x3_inverse_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m);
 extern double atan2(double y, double x);
 extern double sqrt(double x);
 extern Globals *global_globals;
@@ -32,9 +31,9 @@ static void aiming_angles_in_unit_frame(uint32_t unit_index, real_vector3d *dire
 
     frame.scale = 1.0f;
     object_get_orientation(&frame.forward, unit_index, &frame.up);
-    vector3d_cross_product(&frame.left, &frame.forward, &frame.up);
+    halo::math::vector3d_cross_product(frame.left, frame.forward, frame.up);
     frame.position = *global_zero_vector3d_pointer;
-    matrix4x3_inverse_transform_normal(&local, direction, &frame);
+    halo::math::matrix4x3_inverse_transform_normal(local, *direction, frame);
     *yaw = (float)atan2((double)local.j, (double)local.i);
     *pitch = (float)atan2((double)local.k, sqrt((double)(local.i * local.i + local.j * local.j)));
 }

@@ -1,19 +1,12 @@
 #include "halo/effects/effects.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern player_effect_globals *player_effect_globals_pointer;
 extern game_time_globals *game_time;
 extern real_matrix4x3 *k_render_identity_matrix_ptr;
-extern random_seed effect_random_seed;
-extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
-extern real_vector3d *global_up3d_pointer;
 extern double cos(double x);
 extern double sin(double x);
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *a, real_vector3d *b);
-extern void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, real sin_angle, real cos_angle);
-extern void matrix4x3_from_euler_angles(real_matrix4x3 *out, real yaw, real pitch, real roll);
-extern real transition_function_evaluate(int16_t type, real phase);
-extern real periodic_function_evaluate(int16_t type, double phase);
 extern void player_effect_random_shake_offset(real_matrix4x3 *out, real magnitude, real angle);
 void player_effect_build_camera_shake_matrix(real_matrix4x3 *out, int16_t local_player_index);
 }
@@ -25,8 +18,8 @@ namespace halo::effects {
  */
 static real shake_random_signed(void)
 {
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    return (real)(int32_t)(effect_random_seed >> 16) * 1.5259022e-05f * 2.0f - 1.0f;
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    return (real)(int32_t)(halo::math::globals().effect_random_seed >> 16) * 1.5259022e-05f * 2.0f - 1.0f;
 }
 
 /**
@@ -80,7 +73,7 @@ void player_effect_ref::build_camera_shake_matrix(real_matrix4x3 *out, int16_t l
             real a2 = shake_random_signed();
             real a3 = shake_random_signed();
 
-            matrix4x3_from_euler_angles(out, a3 * *(real *)(g + 0x10c) * t, a2 * *(real *)(g + 0x110) * t,
+            halo::math::matrix4x3_from_euler_angles(*out, a3 * *(real *)(g + 0x10c) * t, a2 * *(real *)(g + 0x110) * t,
                 a1 * *(real *)(g + 0x114) * t);
         }
         {
@@ -113,13 +106,13 @@ void player_effect_ref::build_camera_shake_matrix(real_matrix4x3 *out, int16_t l
             } else {
                 real duration = *(real *)(self + 0x50);
 
-                t = transition_function_evaluate(*(int16_t *)(self + 0x54),
+                t = halo::math::transition_function_evaluate(*(int16_t *)(self + 0x54),
                     1.0f - (duration - (real)(int32_t)ticks) / duration) * *(real *)(self + 0x68);
             }
             self[0xe8] &= 0xfd;
-            vector3d_cross_product(&axis, (real_vector3d *)self, global_up3d_pointer);
+            halo::math::vector3d_cross_product(axis, *(real_vector3d *)self, *halo::math::globals().global_up3d_pointer);
             angle = t * *(real *)(self + 0x58);
-            matrix4x3_from_axis_angle(&rotation, &axis, (real)sin((double)angle), (real)cos((double)angle));
+            halo::math::matrix4x3_from_axis_angle(rotation, axis, (real)sin((double)angle), (real)cos((double)angle));
             k = t * *(real *)(self + 0x5c);
             rotation.position.x = t * *(real *)(self + 0x0c) + k * *(real *)(self + 0x00);
             rotation.position.y = t * *(real *)(self + 0x10) + k * *(real *)(self + 0x04);
@@ -141,10 +134,10 @@ void player_effect_ref::build_camera_shake_matrix(real_matrix4x3 *out, int16_t l
             } else {
                 real duration = *(real *)(self + 0x84);
 
-                t2 = transition_function_evaluate((int16_t)*(uint16_t *)(self + 0x88),
+                t2 = halo::math::transition_function_evaluate((int16_t)*(uint16_t *)(self + 0x88),
                     1.0f - (duration - (real)(int32_t)ticks) / duration) * *(real *)(self + 0xac);
             }
-            w = periodic_function_evaluate(*(int16_t *)(self + 0xa0),
+            w = halo::math::periodic_function_evaluate(*(int16_t *)(self + 0xa0),
                 (double)((*(real *)(self + 0x84) - (real)(int32_t)*(int16_t *)(self + 0xe2)) / *(real *)(self + 0xa4)));
             w = (w * *(real *)(self + 0xa8) + (1.0f - *(real *)(self + 0xa8))) * t2;
             a = w * *(real *)(self + 0x8c);
@@ -168,7 +161,7 @@ void player_effect_ref::build_camera_shake_matrix(real_matrix4x3 *out, int16_t l
             }
             player_effect_random_shake_offset(&second, a, b);
             *(int16_t *)(self + 0xe2) = (int16_t)(*(int16_t *)(self + 0xe2) - dt);
-            matrix4x3_multiply_procedure(out, &second, out);
+            halo::math::globals().matrix4x3_multiply_procedure(out, &second, out);
         }
     }
 }

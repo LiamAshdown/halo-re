@@ -1,4 +1,5 @@
 #include "halo/ai/airest_objects.hpp"
+#include "halo/math/api.hpp"
 
 #include <stdint.h>
 
@@ -39,7 +40,6 @@ extern void unit_update_vitality_fractions(uint32_t unit_index, float body_delta
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator);
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator);
-extern int object_sort_by_flag_then_distance(const void *a, const void *b);
 extern int16_t unit_find_seats_matching_name_and_flags(uint32_t unit_index, char *name_filter, uint16_t flag_selector, int16_t *out_indices, int16_t max_indices);
 extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index, char *seat_name, int16_t seat_flags, int16_t count);
 extern data_array *ai_pursuit_data;
@@ -1118,7 +1118,7 @@ void AiObjects::object_process_nearby_actors(uint32_t ai_reference, datum_index 
                 a = ai_reference_actor_iterator_next(&iterator);
             }
 
-            qsort(candidates, candidate_count, sizeof(ai_nearby_actor_candidate), object_sort_by_flag_then_distance);
+            qsort(candidates, candidate_count, sizeof(ai_nearby_actor_candidate), halo::math::object_sort_by_flag_then_distance);
 
             {
                 int16_t i;

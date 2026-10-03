@@ -1,14 +1,9 @@
 #include "halo/effects/effects.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern tag_instance *tag_instances;
-extern const real_vector3d *global_up3d_pointer;
 extern void effect_random_direction_from_table(real_point3d *out);
-extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *axis, real sin_angle, real cos_angle);
-extern random_seed effect_random_seed;
-extern real_point3d *sphere_point_table;
-extern int16_t sphere_point_table_count;
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
 extern data_array *particle_system_data;
 extern data_array *particle_system_particle_data;
 extern void datum_delete(data_array *array, datum_index handle);
@@ -25,12 +20,10 @@ extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern real random_real_range_seeded(random_seed *seed, real min, real max);
 extern uint8_t particle_system_update(float delta_time, datum_index handle);
 extern uint32_t cluster_visible_bits[];
 extern real_matrix4x3 render_camera_world_to_view;
 extern real_point3d *global_zero_vector3d_pointer;
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern void build_sprite_rotational(build_sprite_data *data, uint32_t flags, int16_t first_sequence_index, int16_t sprite_index, real_point3d *origin, real_vector3d *axis, float rotation, float scale, ColorARGB *color, float fade);
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
 extern void build_sprites_end(build_sprite_data *data);
@@ -132,7 +125,7 @@ void particle_system_view::creation_physics_explosion(int32_t type_index, partic
     particle->velocity.y = scaled_y * k2 + system->velocity.j;
     particle->velocity.z = k2 * scaled_z + system->velocity.k;
 
-    vector3d_rotate_about_axis(&particle->direction, global_up3d_pointer, 1.0f, 0.0f);
+    halo::math::vector3d_rotate_about_axis(particle->direction, *halo::math::globals().global_up3d_pointer, 1.0f, 0.0f);
 }
 
 /**
@@ -158,15 +151,15 @@ void particle_system_view::creation_physics_jet(int32_t type_index, particle_sys
     float forward_weight = (1.0f - k1) * k0 * 0.033333335f;
     int16_t table_index;
 
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    table_index = (int16_t)(((effect_random_seed >> k_random_value_shift) *
-        (uint32_t)(int32_t)sphere_point_table_count) >> 16);
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    table_index = (int16_t)(((halo::math::globals().effect_random_seed >> k_random_value_shift) *
+        (uint32_t)(int32_t)halo::math::globals().sphere_point_table_count) >> 16);
 
-    particle->velocity.x = sphere_point_table[table_index].x * random_weight +
+    particle->velocity.x = halo::math::globals().sphere_point_table[table_index].x * random_weight +
         forward_weight * marker->node_transform.forward.i + system->velocity.i;
-    particle->velocity.y = sphere_point_table[table_index].y * random_weight +
+    particle->velocity.y = halo::math::globals().sphere_point_table[table_index].y * random_weight +
         forward_weight * marker->node_transform.forward.j + system->velocity.j;
-    particle->velocity.z = sphere_point_table[table_index].z * random_weight +
+    particle->velocity.z = halo::math::globals().sphere_point_table[table_index].z * random_weight +
         forward_weight * marker->node_transform.forward.k + system->velocity.k;
 
     particle->position.x = marker->node_transform.position.x;
@@ -174,11 +167,11 @@ void particle_system_view::creation_physics_jet(int32_t type_index, particle_sys
     particle->position.z = marker->node_transform.position.z;
 
     if (k2 != 0.0f) {
-        vector3d_cross_product((real_vector3d *)&particle->direction,
-            global_up3d_pointer, (real_vector3d *)&particle->velocity);
+        halo::math::vector3d_cross_product(*((real_vector3d *)&particle->direction),
+            *halo::math::globals().global_up3d_pointer, *((real_vector3d *)&particle->velocity));
     } else {
-        vector3d_cross_product((real_vector3d *)&particle->direction,
-            (real_vector3d *)&particle->velocity, &marker->node_transform.forward);
+        halo::math::vector3d_cross_product(*((real_vector3d *)&particle->direction),
+            *((real_vector3d *)&particle->velocity), marker->node_transform.forward);
     }
 }
 
@@ -441,7 +434,7 @@ uint8_t particle_system_ref::new_type_states()
                 state->first_particle = (datum_index)0xffffffff;
 
                 if (0 < (int32_t)type->states.count) {
-                    float duration = random_real_range_seeded(&effect_random_seed,
+                    float duration = halo::math::random_real_range_seeded(halo::math::globals().effect_random_seed,
                         first_state->duration_bounds[0], first_state->duration_bounds[1]);
                     any_type_ok = 1;
                     state->state_time_remaining = duration;
@@ -546,7 +539,7 @@ void particle_system_ref::render()
                 float vz = *(float *)(particle + 0x3c);
                 float *m = (float *)&render_camera_world_to_view;
 
-                matrix4x3_transform_point(&position, (real_point3d *)(particle + 0x1c), &render_camera_world_to_view);
+                halo::math::matrix4x3_transform_point(position, *(real_point3d *)(particle + 0x1c), render_camera_world_to_view);
                 direction.i = vx * m[1] + vy * m[4] + vz * m[7];
                 direction.j = vx * m[2] + vy * m[5] + vz * m[8];
                 direction.k = vx * m[3] + vy * m[6] + vz * m[9];
@@ -589,8 +582,8 @@ void particle_system_ref::render()
                     int16_t count = *(int16_t *)(sequence + 0x34);
                     int16_t picked;
 
-                    effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
-                    picked = (int16_t)(((uint32_t)count * (effect_random_seed >> 0x10)) >> 0x10);
+                    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
+                    picked = (int16_t)(((uint32_t)count * (halo::math::globals().effect_random_seed >> 0x10)) >> 0x10);
                     *(float *)(particle + 0x44) = (float)picked;
                     frame = picked;
                 } else {
@@ -709,14 +702,14 @@ void particle_system_ref::roll_particle_state(int16_t index, ParticleSystemTypeP
     ParticleSystemTypeParticleState *state = &states[index];
     float color_fraction_bits;
 
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    color_fraction_bits = (float)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    color_fraction_bits = (float)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
 
-    out->animation_rate = random_real_range_seeded(&effect_random_seed,
+    out->animation_rate = halo::math::random_real_range_seeded(halo::math::globals().effect_random_seed,
         state->animation_rate[0], state->animation_rate[1]);
-    out->rotation_rate = random_real_range_seeded(&effect_random_seed,
+    out->rotation_rate = halo::math::random_real_range_seeded(halo::math::globals().effect_random_seed,
         state->rotation_rate[0], state->rotation_rate[1]);
-    out->scale = random_real_range_seeded(&effect_random_seed,
+    out->scale = halo::math::random_real_range_seeded(halo::math::globals().effect_random_seed,
         state->scale[0], state->scale[1]);
 
     out->color.alpha = (state->color_2.alpha - state->color_1.alpha) * color_fraction_bits +
@@ -734,8 +727,8 @@ void particle_system_ref::roll_particle_state(int16_t index, ParticleSystemTypeP
  */
 static real particle_roll(void)
 {
-    effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
-    return (real)(effect_random_seed >> 0x10) * 1.5259022e-05f;
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
+    return (real)(halo::math::globals().effect_random_seed >> 0x10) * 1.5259022e-05f;
 }
 
 /**
@@ -838,8 +831,8 @@ void particle_system_view::spawn(int32_t type_index, float dt)
         particle[2] = 1;
         ((struct particle_system_particle *)particle)->frame = -1.0f;
         ((struct particle_system_particle *)particle)->rotation = particle_roll() * 6.2831855f;
-        effect_random_seed = effect_random_seed * 0x19660d + 0x3c6ef35f;
-        marker_index = (int16_t)(((effect_random_seed >> 0x10) * (uint32_t)(int32_t)marker_count) >> 0x10);
+        halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
+        marker_index = (int16_t)(((halo::math::globals().effect_random_seed >> 0x10) * (uint32_t)(int32_t)marker_count) >> 0x10);
         particle_creation_physics_table[physics](system_record, type_index, (particle_system_particle *)particle,
             &markers[marker_index]);
         scenario_location_from_point((bsp_leaf_reference *)(particle + 0x14), (real_point3d *)(particle + 0x1c));

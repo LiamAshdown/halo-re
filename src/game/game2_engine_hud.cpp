@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_hud.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -26,7 +27,6 @@ extern datum_index tag_lookup(tag_group group, char *path);
 extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index);
 extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern uint16_t *string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
-extern uint32_t color_real_to_argb_pack(float alpha, float *rgb);
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern int32_t select_players_to_display(int32_t mode, int32_t max_count, scoreboard_entry *out);
 extern void game_engine_build_end_game_result_text(datum_index player, wchar_t *out);
@@ -154,7 +154,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
     bg_rect.left = 0xa;
     bg_rect.bottom = 0x186;
     bg_rect.right = 0x276;
-    ui_draw_filled_rectangle(color_real_to_argb_pack(opacity * 0.69f, &bg_color.i), &bg_rect);
+    ui_draw_filled_rectangle(halo::math::color_real_to_argb_pack(opacity * 0.69f, &bg_color.i), &bg_rect);
 
     params_result.alpha = opacity;
     params_result.red = 0.7f;

@@ -10,14 +10,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *game_looping_sound_data;
 extern game_sound_globals *game_sound_globals_ptr;
 extern data_array *object_data;
 extern tag_instance *tag_instances;
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m);
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
 extern void datum_delete(data_array *array, datum_index handle);
 extern uint8_t *game_state_base;
@@ -40,21 +39,17 @@ extern data_array *looping_sound_data;
 extern data_array *sound_data;
 extern int32_t sound_time;
 extern uint8_t sound_cache_touch(uint8_t allocate_if_missing, uint8_t lock, uint8_t wait_until_loaded, void *permutation);
-extern real random_range_real(real minimum, real maximum);
 extern uint8_t sound_initialized;
 extern uint8_t sound_enabled;
 extern uint8_t sound_disabled;
 extern uint8_t sound_update_toggle;
 extern void *datum_get(datum_index handle, data_array *array);
-extern const real_vector3d *global_forward3d_pointer;
 extern const real_point3d *global_origin3d_pointer;
 extern data_array *sound_cache_entries;
 extern struct cache *sound_cache;
 extern void cache_evict_entry(datum_index handle, struct cache *self);
 extern void player_effect_apply_at_object(uint32_t tag_reference, int16_t local_player_index, real_point3d *origin);
 extern char k_empty_string[];
-extern random_seed effect_random_seed;
-extern real random_real_range_seeded(random_seed *seed, real min, real max);
 extern sound_channel sound_channels[k_maximum_sound_channels];
 extern float sound_music_gain;
 extern uint8_t sound_idle_update_active;
@@ -74,9 +69,6 @@ extern double pow(double base, double exponent);
 extern int16_t sound_channel_count;
 extern sound_listener sound_listeners[1];
 extern const real_point3d *global_zero_vector3d_pointer;
-extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out, real_point3d *point);
-extern void matrix4x3_inverse_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m);
-extern void matrix4x3_inverse_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m);
 extern void unit_accumulate_clamped_offset(uint32_t object_index, float new_value);
 extern double sqrt(double x);
 extern uint8_t sound_paused;
@@ -101,8 +93,6 @@ extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern Globals *global_globals;
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
-extern const real_vector3d *global_up3d_pointer;
 extern float sound_dialog_ducking_gain;
 extern float sound_ducking_gain;
 extern float sound_time_delta;

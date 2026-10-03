@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *effect_data;
@@ -14,9 +15,6 @@ extern void *datum_get(datum_index handle, data_array *array);
 extern void datum_delete(data_array *array, datum_index handle);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern game_time_globals *game_time;
-extern random_seed random_seed_global;
-extern random_seed effect_random_seed;
-extern real random_real_range_seeded(random_seed *seed, real min, real max);
 extern void effect_delete(datum_index effect_handle);
 extern void effect_start_event(datum_index effect_handle, int16_t event_index);
 extern player_globals *local_player_globals;
@@ -228,8 +226,8 @@ void effect_ref::start_event(int16_t event_index)
             self->flags = self->flags & ~_effect_event_started_bit;
             self->event_index = event_index;
             self->event_time = 0.0f;
-            self->event_duration = random_real_range_seeded((tag->flags & 4) != 0 ? &random_seed_global
-                : &effect_random_seed, event->delay_bounds[0], event->delay_bounds[1]);
+            self->event_duration = halo::math::random_real_range_seeded(*((tag->flags & 4) != 0 ? &halo::math::globals().random_seed_global
+                : &halo::math::globals().effect_random_seed), event->delay_bounds[0], event->delay_bounds[1]);
         }
     }
 }
@@ -286,7 +284,7 @@ effect * effect_ref::try_and_get()
  */
 static real effect_update_roll_fraction(uint8_t *tag)
 {
-    random_seed *seed = (tag[0] & 4) ? &random_seed_global : &effect_random_seed;
+    random_seed *seed = (tag[0] & 4) ? &halo::math::globals().random_seed_global : &halo::math::globals().effect_random_seed;
 
     *seed = *seed * k_random_multiplier + k_random_increment;
     return (real)(*seed >> k_random_value_shift) * 1.5259022e-05f;
@@ -443,7 +441,7 @@ void effect_ref::update(real dt)
             for (particle = 0; particle < *(int32_t *)(event + 0x38); particle = (int16_t)(particle + 1)) {
                 uint8_t *part = *(uint8_t **)(event + 0x3c) + particle * 0xe8;
                 uint8_t count = (uint8_t)(int32_t)effect_property_random_value(5, self, *(uint32_t *)(part + 0xe0),
-                    *(uint32_t *)(part + 0xe4), &effect_random_seed, (real)*(int16_t *)(part + 0x6c),
+                    *(uint32_t *)(part + 0xe4), &halo::math::globals().effect_random_seed, (real)*(int16_t *)(part + 0x6c),
                     (real)*(int16_t *)(part + 0x6e));
 
                 self->particle_counts[particle] = count;

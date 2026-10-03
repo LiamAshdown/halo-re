@@ -1,5 +1,6 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -7,8 +8,6 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t message_delta_decode_compound_field_forced(void **context, void *destination, int32_t changed_offset, int32_t force);
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void **context);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern double sqrt(double x);
 extern network_id_table *object_network_id_table;
 extern uint8_t *machine_table;
@@ -86,10 +85,10 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
         vehicle[0x526] = record[4];
         memcpy(vehicle + 0x528, &baseline, sizeof(baseline));
     }
-    vector3d_cross_product(&side, &baseline.up, &baseline.forward);
-    vector3d_cross_product(&baseline.up, &baseline.forward, &side);
-    vector3d_normalize_with_length(&baseline.forward);
-    vector3d_normalize_with_length(&baseline.up);
+    halo::math::vector3d_cross_product(side, baseline.up, baseline.forward);
+    halo::math::vector3d_cross_product(baseline.up, baseline.forward, side);
+    halo::math::vector3d_normalize_with_length(baseline.forward);
+    halo::math::vector3d_normalize_with_length(baseline.up);
     memcpy(vehicle + 0x1c, &baseline.position, 12);
     memcpy(vehicle + 0x48, &baseline.velocity, 12);
     memcpy(vehicle + 0x2c, &baseline.forward, 12);

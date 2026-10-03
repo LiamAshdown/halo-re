@@ -1,4 +1,5 @@
 #include "halo/objects/flag.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern void *const flag_render_device_slot;
@@ -8,7 +9,6 @@ extern void data_delete_all(data_array *array);
 extern void datum_delete(data_array *array, datum_index index);
 extern datum_index datum_new(data_array *array);
 extern datum_index datum_next(int16_t after_index, data_array *array);
-extern uint32_t effect_random_seed;
 extern void flag_cloth_init_shape_constraints(flag *entry);
 extern void flag_cloth_mark_border_cells(flag *entry);
 extern void flag_cloth_stamp_region_split_flags(int16_t outer_start, Flag *tag, flag *entry, int16_t inner_start, int16_t size, uint16_t split_code);
@@ -33,8 +33,6 @@ extern void rasterizer_model_draw_restore_states(void);
 extern void rasterizer_shader_environment_draw_dispatch(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f);
 extern void rasterizer_transparent_geometry_group_build(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f, int32_t g, void *h);
 extern int8_t scenario_location_get_water_and_weather(int32_t *a, void *b);
-extern real_point3d *sphere_point_table;
-extern int16_t sphere_point_table_count;
 extern double sqrt(double x);
 extern tag_instance *tag_instances;
 }
@@ -439,11 +437,11 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                                      tag->wind_noise * 0.00016f;
                     }
 
-                    effect_random_seed = effect_random_seed * 0x19660dU + 0x3c6ef35fU;
+                    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660dU + 0x3c6ef35fU;
                     {
-                        int16_t idx = (int16_t)(((effect_random_seed >> 16) *
-                                                  (uint32_t)sphere_point_table_count) >> 16);
-                        real_point3d *dir = &sphere_point_table[idx];
+                        int16_t idx = (int16_t)(((halo::math::globals().effect_random_seed >> 16) *
+                                                  (uint32_t)halo::math::globals().sphere_point_table_count) >> 16);
+                        real_point3d *dir = &halo::math::globals().sphere_point_table[idx];
                         wind_dir.i = dir->x * wind_scale;
                         wind_dir.j = dir->y * wind_scale;
                         wind_dir.k = dir->z * wind_scale;

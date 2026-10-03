@@ -2,6 +2,7 @@
 #include "halo/networking/net1_dispatch.hpp"
 #include <string.h>
 #include <wchar.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern int16_t network_game_mode;
@@ -76,7 +77,6 @@ extern char network_channel_stream_flush(network_channel_stream *stream, network
 extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count);
 extern network_server_globals *network_server;
 extern game_time_globals *game_time;
-extern random_seed random_seed_global;
 extern int64_t performance_frequency;
 extern void update_client_advance_read_cursor(void *payload);
 extern char network_game_action_queue_drain(network_client_globals *client, bit_stream *stream, const uint32_t *sender);
@@ -569,7 +569,7 @@ int32_t GameClientView::state_update_receive(uint8_t *record)
 
     if (*(uint32_t *)record <= (uint32_t)client->last_update_id ||
         (network_server == 0 && (uint32_t)game_time->game_time == *(uint32_t *)(record + 8) &&
-         *(uint32_t *)(record + 4) != random_seed_global)) {
+         *(uint32_t *)(record + 4) != halo::math::globals().random_seed_global)) {
         network_disconnect_notify_dropped_machines(client);
     }
 

@@ -5,6 +5,7 @@
 #include "networking.h"
 #include "effects.h"
 #include "crt.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -18,7 +19,6 @@ extern void object_delete(uint32_t object_index);
 extern void object_delete_unparented(uint32_t object_index);
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings);
 extern Globals *global_globals;
-extern real vector2d_normalize_with_length(real_vector2d *v);
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern void unit_invalidate_local_player_zoom_level(uint32_t unit_index);
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
@@ -30,20 +30,16 @@ extern int32_t weapon_put_away(datum_index item_index, int8_t force);
 extern uint8_t weapon_is_out_of_ammo(datum_index item_index);
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
 extern real_vector3d *global_origin3d_pointer;
-extern random_seed random_seed_global;
 extern char s_left_hand_marker[];
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
 extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
 extern void object_reorient_relative_to_marker(uint32_t parent_index, char *parent_marker_name, uint32_t object_index, char *object_marker_name);
 extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
-extern real_vector3d *vector3d_randomize_direction(real_point3d *direction, real_vector3d *out, random_seed *seed, real lo, real hi);
 extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
 extern void item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer);
 extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position, uint32_t ignore_object_index);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern void animation_get_frame_orientations(ModelAnimationsAnimation *animation, GBXModel *model, int16_t frame, real_orientation *out_orientations);
-extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out);
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern real weapon_get_zoom_magnification(datum_index item_index, int16_t zoom_level);
 extern void animation_get_frame_info_distance(ModelAnimationsAnimation *animation, float *dx_to_key_frame, float *dx_total);
 extern uint8_t *local_player_globals;
@@ -55,15 +51,11 @@ extern game_time_globals *game_time;
 extern char *weapon_get_label(datum_index item_index);
 extern void weapon_ready(datum_index item_index);
 extern void object_mark_pending_delete(uint32_t object_index);
-extern real_vector3d *global_up3d_pointer;
 extern uint8_t network_message_scratch[0x7ff8];
 extern network_server_globals *network_server;
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location);
 extern uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real_point3d *grenade_position, real_vector3d *out_vector);
-extern real random_real_range(real min, real max);
 extern void object_apply_impulse_and_spin(uint32_t object_index, real_vector3d *delta_velocity);
 extern uint8_t object_is_delete_pending(uint32_t object_index);
 extern void object_type_override_call_0x68(uint32_t object_index);
@@ -75,7 +67,6 @@ extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern uint8_t weapon_bottomless_clip;
 extern uint32_t game_engine_unknown_aa00;
 extern uint32_t motion_sensor_override_value;
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
 extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, int16_t marker_index);
 extern int32_t player_index_from_unit_index(uint32_t unit_index);
 extern void equipment_pickup_play_sound(uint32_t object_index);
@@ -203,7 +194,7 @@ uint8_t UnitView::begin_throw_grenade(const real_vector2d *direction)
 
             aim.i = *(float *)((uint8_t *)unit_obj + 0x23c);
             aim.j = *(float *)((uint8_t *)unit_obj + 0x240);
-            if (0.0f < vector2d_normalize_with_length(&aim)) {
+            if (0.0f < halo::math::vector2d_normalize_with_length(aim)) {
                 UnitView(unit_index).set_throw_aim_direction(&aim);
             }
         }
@@ -572,9 +563,9 @@ void UnitView::drop_object_from_hand(uint32_t object_index)
     *(real_vector3d *)&((struct object *)dropped)->velocity.i = *global_origin3d_pointer;
     *(real_vector3d *)&((struct object *)dropped)->angular_velocity.i = *global_origin3d_pointer;
 
-    vector3d_randomize_direction((real_point3d *)(unit + 0x23c), &toss, &random_seed_global, 0.0f, 0.39269909f);
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    speed = (real)(int32_t)((uint32_t)random_seed_global >> 16) * 1.5259022e-05f * 0.013333336f + 0.026666667f;
+    halo::math::vector3d_randomize_direction(*(real_point3d *)(unit + 0x23c), &toss, halo::math::globals().random_seed_global, 0.0f, 0.39269909f);
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    speed = (real)(int32_t)((uint32_t)halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f * 0.013333336f + 0.026666667f;
     toss.i *= speed;
     toss.j *= speed;
     toss.k *= speed;
@@ -765,9 +756,9 @@ uint8_t UnitView::find_weapon_marker_transform(uint32_t vehicle_index, int16_t s
     animation = (ModelAnimationsAnimation *)(*(uint8_t **)&((ModelAnimations *)graph)->animations.pointer + enter_animation * 0xb4);
     object_get_node_local_transform(vehicle_index, (char *)(seat + 0x24), &seat_marker, 1);
     animation_get_frame_orientations(animation, (GBXModel *)model, 0, orientations);
-    matrix4x3_from_quaternion(&orientations[0].rotation, &root);
+    halo::math::matrix4x3_from_quaternion(orientations[0].rotation, root);
     root.position = orientations[0].translation;
-    matrix4x3_multiply(&seat_marker.node_transform, &root, &entry);
+    halo::math::matrix4x3_multiply(&seat_marker.node_transform, &root, &entry);
     strcpy(hint_name, (char *)(seat + 0x24));
     strcat(hint_name, " enter-hint");
     object_get_node_local_transform(vehicle_index, hint_name, &hint_marker, 1);
@@ -1321,12 +1312,12 @@ void UnitView::release_thrown_grenade(uint8_t early)
             real right_offset = *(float *)(info + 0x6c);
             real up_offset = *(float *)(info + 0x70);
 
-            vector3d_cross_product(&right, &forward, global_up3d_pointer);
-            if (vector3d_normalize_with_length(&right) == 0.0f) {
-                right = *global_up3d_pointer;
+            halo::math::vector3d_cross_product(right, forward, *halo::math::globals().global_up3d_pointer);
+            if (halo::math::vector3d_normalize_with_length(right) == 0.0f) {
+                right = *halo::math::globals().global_up3d_pointer;
             }
-            vector3d_cross_product(&up, &right, &forward);
-            vector3d_normalize_with_length(&up);
+            halo::math::vector3d_cross_product(up, right, forward);
+            halo::math::vector3d_normalize_with_length(up);
             UnitView(object_index).get_camera_position(&launch);
             launch.x = launch.x + forward.i * forward_offset + right.i * right_offset + up.i * up_offset;
             launch.y = launch.y + forward.j * forward_offset + right.j * right_offset + up.j * up_offset;
@@ -1346,7 +1337,7 @@ void UnitView::release_thrown_grenade(uint8_t early)
         real progress = (real)((unit_object *)unit)->unit.throwing_grenade_counter / (real)((unit_object *)unit)->unit.throwing_grenade_duration;
 
         if (progress < 1.0f) {
-            real lob = random_real_range(0.02f, 0.046666667f);
+            real lob = halo::math::random_real_range(0.02f, 0.046666667f);
             real rest = 1.0f - progress;
 
             velocity.i = lob * aim->i * rest + velocity.i * progress;
@@ -1484,7 +1475,7 @@ void UnitView::set_throw_aim_direction(const real_vector2d *direction_xy)
         obj->forward.i = direction_xy->i;
         obj->forward.j = direction_xy->j;
         obj->forward.k = 0.0f;
-        obj->up = *global_up3d_pointer;
+        obj->up = *halo::math::globals().global_up3d_pointer;
     }
 }
 
@@ -1525,8 +1516,8 @@ void UnitView::throw_grenade_move_to_hand()
                                      unit_index);
     placement.flags |= 2;
     placement.forward = *(real_vector3d *)((uint8_t *)unit_obj + 0x23c);
-    vector3d_build_perpendicular(&placement.up, &placement.forward);
-    vector3d_normalize_with_length(&placement.up);
+    halo::math::vector3d_build_perpendicular(placement.up, placement.forward);
+    halo::math::vector3d_normalize_with_length(placement.up);
     placement.position = *(real_point3d *)((uint8_t *)&hand_marker + 0x60);
 
     uint32_t projectile_index = object_new_with_datum_role_control(&placement, 3);

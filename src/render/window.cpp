@@ -16,6 +16,7 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern uint8_t render_cluster_has_sky;
@@ -26,11 +27,8 @@ extern float render_time_since_frame;
 extern float sky_animation_times[9];
 extern render_camera render_camera_global;
 extern real_point3d *global_zero_vector3d_pointer;
-extern real_vector3d *global_forward3d_pointer;
-extern real_vector3d *global_up3d_pointer;
 extern real_matrix4x3 *k_render_identity_matrix_ptr;
 extern ColorRGB *global_white_color;
-extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern uint8_t console_debug_toggle_6893ec;
 extern uint8_t rasterizer_render_states_dirty;
 extern uint8_t unknown_0071d1fa;
@@ -43,7 +41,6 @@ extern void model_nodes_build_matrices(real_point3d *position, real_vector3d *fo
     real_matrix4x3 *matrices, void *nodes, real_vector3d *up);
 extern int16_t model_markers_get_by_name(datum_index model_tag, const char *name, uint8_t *permutations,
     uint32_t reserved, real_matrix4x3 *node_matrices, uint32_t flags, object_marker *out, int32_t maximum_count);
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
 extern void light_transient_add(datum_index light_tag, ColorRGB *color, real_point3d *position,
     real_vector3d *direction, real_vector3d *up, float intensity);
 extern void render_model(TagID model_tag_id, void *node_matrices, float level_of_detail_pixels,
@@ -262,7 +259,7 @@ void sky(void)
         }
     }
 
-    model_nodes_build_matrices(global_zero_vector3d_pointer, global_forward3d_pointer, model, matrices, nodes, global_up3d_pointer);
+    model_nodes_build_matrices(global_zero_vector3d_pointer, halo::math::globals().global_forward3d_pointer, model, matrices, nodes, halo::math::globals().global_up3d_pointer);
 
     for (i = 0; (int32_t)i < (int32_t)sky->shader_functions.count; i++) {
         function_values[i] = 1.0f;
@@ -312,7 +309,7 @@ void sky(void)
         toward_camera.i = -direction.i;
         toward_camera.j = -direction.j;
         toward_camera.k = -direction.k;
-        vector3d_build_perpendicular(&up, &toward_camera);
+        halo::math::vector3d_build_perpendicular(up, toward_camera);
         length = (real)sqrt(up.k * up.k + up.j * up.j + up.i * up.i);
         if (fabs(length) >= 0.0001) {
             real inverse = 1.0f / length;
@@ -331,7 +328,7 @@ void sky(void)
     sky_transform.position.z = render_camera_global.position.z * 0.99902344f;
     sky_transform.scale = 0.0009765625f;
     for (i = 0; (int32_t)i < (int32_t)model->nodes.count; i++) {
-        matrix4x3_multiply_procedure(&sky_transform, &matrices[i], &matrices[i]);
+        halo::math::globals().matrix4x3_multiply_procedure(&sky_transform, &matrices[i], &matrices[i]);
     }
 
     if (console_debug_toggle_6893ec) {

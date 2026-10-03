@@ -5,10 +5,10 @@
  */
 
 #include "halo/bitmaps/bitmaps.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern int8_t bitmap_format_bits_per_pixel[k_bitmap_data_format_count];
-extern int32_t uint32_log2_floor(uint32_t value);
 extern struct cache *texture_cache;
 extern void cache_evict_entry(datum_index handle, struct cache *self);
 extern uint8_t file_reference_create(file_reference_record *ref);
@@ -254,7 +254,7 @@ uint8_t bitmap_data_view::verify(uint8_t require_runtime)
     if (self->width > max_dimension) {
         max_dimension = self->width;
     }
-    max_levels = uint32_log2_floor((uint32_t)max_dimension);
+    max_levels = halo::math::uint32_log2_floor((uint32_t)max_dimension);
     if ((int16_t)self->mipmap_count > (int16_t)max_levels) {
         return 0;
     }

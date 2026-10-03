@@ -16,6 +16,7 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern float build_sprite_screen_coverage;
@@ -23,13 +24,9 @@ extern int16_t build_sprite_large_quad_count;
 extern real_vector3d build_sprite_view_up;
 extern real_vector3d build_sprite_view_left;
 extern render_frustum render_frustum_global;
-extern const real_vector3d *global_up3d_pointer;
-extern const real_vector3d *global_left3d_pointer;
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m);
 extern tag_instance *tag_instances;
 extern const ColorARGB *global_white_argb;
 extern real_rectangle3d *global_null_rectangle3d_pointer;
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern double sin(double x);
 extern double cos(double x);
@@ -38,30 +35,24 @@ extern uint8_t build_sprite_group_warning;
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern int32_t rasterizer_dynamic_vertex_cache_reserve(int16_t vertex_type, int32_t count);
 extern void *rasterizer_dynamic_vertex_cache_lock(int32_t slot_index);
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
 extern double fmod(double x, double y);
 extern double atan2(double y, double x);
 extern rasterizer_dynamic_vertex_slot rasterizer_dynamic_vertex_slots[k_rasterizer_dynamic_vertex_slots];
 extern rasterizer_dynamic_vertex_cache rasterizer_dynamic_vertex_caches[k_rasterizer_vertex_type_count];
 extern rasterizer_vertex_buffer_slot rasterizer_vertex_buffer_slots[k_rasterizer_vertex_buffer_slots];
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
 extern void rasterizer_transparent_object_append(uint32_t lightmap_bitmap, int32_t dynamic_index_slot,
     int32_t dynamic_vertex_slot, int32_t primitive_count, uint32_t flags, real_point3d *world_position,
     Shader *shader);
-extern real transition_function_evaluate(transition_function_t type, real phase);
 extern double sqrt(double x);
 extern double fabs(double x);
 extern render_camera render_camera_global;
 extern float unknown_00672f20;
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
 extern data_array *contrail_point_data;
 extern data_array *object_data;
 extern real_point3d *global_zero_vector3d_pointer;
 extern void *rasterizer_dynamic_index_buffer;
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
 extern int32_t rasterizer_dynamic_index_cache_reserve(int32_t count);
-extern real vector2d_normalize_with_length(real_vector2d *v);
 extern data_array *contrail_data;
 extern datum_index datum_next(int16_t after_index, data_array *array);
 extern uint8_t particle_spawn_debug_mode;
@@ -186,7 +177,7 @@ void halo::render::SpriteBuilder::rotational(uint32_t flags, int16_t first_seque
 
     render_sprite_transform_point_and_normal(origin, axis, &transformed_axis, data,
                                              (uint8_t)(flags & 1), &transformed_origin);
-    d = vector3d_angle_between_4cd4f0(&transformed_axis, (real_vector3d *)&transformed_origin) -
+    d = halo::math::vector3d_angle_between_4cd4f0(transformed_axis, *((real_vector3d *)&transformed_origin)) -
         1.5707964f;
     t = d * d * 0.40528470f;
 
@@ -273,9 +264,9 @@ void halo::render::SpriteBuilder::billboard_build_orientation_basis(int16_t rend
 
     if (render_type == 1) {
         out->tangent = *normal;
-        vector3d_normalize_with_length(&out->tangent);
-        vector3d_cross_product(&out->bitangent, &out->tangent, position);
-        vector3d_normalize_with_length(&out->bitangent);
+        halo::math::vector3d_normalize_with_length(out->tangent);
+        halo::math::vector3d_cross_product(out->bitangent, out->tangent, *position);
+        halo::math::vector3d_normalize_with_length(out->bitangent);
         return;
     }
 
@@ -287,13 +278,13 @@ void halo::render::SpriteBuilder::billboard_build_orientation_basis(int16_t rend
             axis = &build_sprite_view_left;
         }
 
-        vector3d_cross_product(&out->tangent, axis, normal);
-        vector3d_normalize_with_length(&out->tangent);
+        halo::math::vector3d_cross_product(out->tangent, *axis, *normal);
+        halo::math::vector3d_normalize_with_length(out->tangent);
 
         out->bitangent = out->tangent;
         out->normal = *normal;
-        vector3d_normalize_with_length(&out->normal);
-        vector3d_rotate_about_axis(&out->bitangent, &out->normal, -1.0f, 0.0f);
+        halo::math::vector3d_normalize_with_length(out->normal);
+        halo::math::vector3d_rotate_about_axis(out->bitangent, out->normal, -1.0f, 0.0f);
     }
 }
 
@@ -341,9 +332,9 @@ void halo::render::SpriteBuilder::sprite_transform_point_and_normal(real_point3d
     }
 
     if ((flags & _build_sprite_already_transformed_bit) == 0) {
-        matrix4x3_transform_point(out_position, position, &render_frustum_global.world_to_view);
+        halo::math::matrix4x3_transform_point(*out_position, *position, render_frustum_global.world_to_view);
         if (normal != 0) {
-            matrix4x3_transform_normal(out_normal, normal, &render_frustum_global.world_to_view);
+            halo::math::matrix4x3_transform_normal(*out_normal, *normal, render_frustum_global.world_to_view);
         }
     } else {
         *out_position = *position;
@@ -367,10 +358,10 @@ void frame_init(void)
     build_sprite_screen_coverage = 0.0f;
     build_sprite_large_quad_count = 0;
 
-    matrix4x3_transform_normal(&build_sprite_view_up, (real_vector3d *)global_up3d_pointer,
-                                &render_frustum_global.world_to_view);
-    matrix4x3_transform_normal(&build_sprite_view_left, (real_vector3d *)global_left3d_pointer,
-                                &render_frustum_global.world_to_view);
+    halo::math::matrix4x3_transform_normal(build_sprite_view_up, *(real_vector3d *)halo::math::globals().global_up3d_pointer,
+                                render_frustum_global.world_to_view);
+    halo::math::matrix4x3_transform_normal(build_sprite_view_left, *(real_vector3d *)halo::math::globals().global_left3d_pointer,
+                                render_frustum_global.world_to_view);
 }
 
 /**
@@ -482,7 +473,7 @@ void draw(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index,
 
     shader = (LightningShader *)data->shader;
     if (shader != 0 && shader->framebuffer_fade_mode != 0 && mode != 0) {
-        vector3d_cross_product(&basis.normal, &basis.bitangent, &basis.tangent);
+        halo::math::vector3d_cross_product(basis.normal, basis.bitangent, basis.tangent);
         fade = render_billboard_compute_view_fade((real_vector3d *)&transformed_origin,
                                                   &basis.normal,
                                                   shader->framebuffer_fade_mode) * fade;
@@ -608,7 +599,7 @@ void sprites_end(build_sprite_data *data)
     data->centroid.x = scale * data->centroid.x;
     data->centroid.y = scale * data->centroid.y;
     data->centroid.z = scale * data->centroid.z;
-    matrix4x3_transform_point(&data->centroid, &data->centroid, &render_frustum_global.view_to_world);
+    halo::math::matrix4x3_transform_point(data->centroid, data->centroid, render_frustum_global.view_to_world);
 
     for (i = 0; i < data->group_count; i++) {
         build_sprite_group *group = &data->groups[i];
@@ -667,7 +658,7 @@ real compute_edge_fade_factor(real_vector3d *direction, real_point3d *point, int
                                                to_camera.i * to_camera.i))));
 
     if ((*flags & 0x40) != 0) {
-        fade = transition_function_evaluate(_transition_function_very_early, fade);
+        fade = halo::math::transition_function_evaluate(_transition_function_very_early, fade);
     }
     if (fade_mode == 2) {
         fade = 1.0f - fade;
@@ -807,7 +798,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
                     fade_normal.j = next->position.x - point->position.x;
                     fade_normal.k = 0.0f;
                 }
-                vector3d_normalize_with_length(&fade_normal);
+                halo::math::vector3d_normalize_with_length(fade_normal);
             }
             break;
         case 1:
@@ -821,7 +812,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
                 side.i = point->position.y - next->position.y;
                 side.j = next->position.x - point->position.x;
             }
-            vector2d_normalize_with_length(&side);
+            halo::math::vector2d_normalize_with_length(side);
             vertices[0].x = point->position.x - side.i * half_width;
             vertices[0].y = point->position.y - side.j * half_width;
             vertices[0].z = point->position.z;
@@ -829,7 +820,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
             vertices[1].y = side.j * half_width + point->position.y;
             vertices[1].z = point->position.z;
             if (has_fade) {
-                fade_normal = *global_up3d_pointer;
+                fade_normal = *halo::math::globals().global_up3d_pointer;
             }
             break;
         }
@@ -854,7 +845,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
             side.i = segment.k * to_camera.j - segment.j * to_camera.k;
             side.j = segment.i * to_camera.k - segment.k * to_camera.i;
             side.k = segment.j * to_camera.i - segment.i * to_camera.j;
-            vector3d_normalize_with_length(&side);
+            halo::math::vector3d_normalize_with_length(side);
             vertices[0].x = point->position.x - side.i * half_width;
             vertices[0].y = point->position.y - side.j * half_width;
             vertices[0].z = point->position.z - side.k * half_width;
@@ -862,8 +853,8 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
             vertices[1].y = side.j * half_width + point->position.y;
             vertices[1].z = side.k * half_width + point->position.z;
             if (has_fade) {
-                vector3d_cross_product(&fade_normal, &side, &segment);
-                vector3d_normalize_with_length(&fade_normal);
+                halo::math::vector3d_cross_product(fade_normal, side, segment);
+                halo::math::vector3d_normalize_with_length(fade_normal);
             }
             break;
         }

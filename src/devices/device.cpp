@@ -1,4 +1,5 @@
 #include "halo/devices/device.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -12,11 +13,9 @@ extern uint8_t device_group_set_value(uint16_t group_index, float value);
 extern void device_play_state_change_effect(uint32_t object_index, TagID tag_id);
 extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name, object_marker *marker, uint32_t flags);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void *global_forward3d_pointer;
 extern void *global_zero_vector3d_pointer;
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source);
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
-extern uint8_t real_seek_toward_clamped(int wrap, real *velocity, real *value, real target, real accel, real max_speed, real range_min, real range_max);
 extern object *object_iterator_next(object_iterator *iterator);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern void data_delete_all(data_array *array);
@@ -437,7 +436,7 @@ void DeviceHandle::play_state_change_effect(TagID tag_id)
                 (const ColorRGB *)0, (const effect_tint_source *)0);
         } else if (group_tag == k_device_state_change_tag_sound) {
             
-            sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer, (Vector3D *)global_forward3d_pointer,
+            sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer, (Vector3D *)halo::math::globals().global_forward3d_pointer,
                 *(datum_index *)&tag_id, -1, 1.0f, 0);
         }
     }
@@ -465,7 +464,7 @@ uint8_t DeviceHandle::update_change_values()
         device_group *group = &((device_group *)device_groups->data)[(uint16_t)dev->power_group];
         if (group->value != dev->power || dev->power_change != 0.0f) {
             float old_power = dev->power;
-            uint8_t settled = real_seek_toward_clamped(0, &dev->power_change, &dev->power,
+            uint8_t settled = halo::math::real_seek_toward_clamped(0, dev->power_change, dev->power,
                 group->value, tag->inverse_power_acceleration_time,
                 tag->inverse_power_transition_time, 0.0f, 1.0f);
             still_settling = !settled;
@@ -497,9 +496,9 @@ uint8_t DeviceHandle::update_change_values()
                     dev->position_change = (old_position_change <= 0.0f) ? -max_speed : max_speed;
                 }
 
-                settled = real_seek_toward_clamped(
+                settled = halo::math::real_seek_toward_clamped(
                     (tag->device_flags & 0x1) != 0, 
-                    &dev->position_change, &dev->position, group->value, accel, max_speed, 0.0f, 1.0f);
+                    dev->position_change, dev->position, group->value, accel, max_speed, 0.0f, 1.0f);
 
                 if (settled == 0) {
                     still_settling = 1;

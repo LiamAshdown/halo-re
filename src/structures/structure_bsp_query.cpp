@@ -5,6 +5,7 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -15,8 +16,6 @@ extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryB
                                       real_point3d *point);
 extern real_point3d render_camera_global;
 extern real_vector3d camera_forward_x;
-extern uint8_t triangle_point_barycentric_2d(real_point3d *a, real_point3d *v_ecx, real_point3d *v_edx, real_point3d *p,
-    real *out_u, real *out_v);
 extern float k_surface_resolve_step;
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin,
     real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
@@ -283,8 +282,8 @@ uint8_t structure_bsp_query::leaf_find_material_surface(real_point3d *point, int
             continue;
         }
 
-        if (triangle_point_barycentric_2d(&triangle[0], &triangle[2], &triangle[1], point,
-                                          (real *)out_barycentric_u, (real *)out_barycentric_v)) {
+        if (halo::math::triangle_point_barycentric_2d(triangle[0], triangle[2], triangle[1], *point,
+                                          *(real *)out_barycentric_u, *(real *)out_barycentric_v)) {
             *out_surface = surface_index;
             return 1;
         }

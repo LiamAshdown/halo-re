@@ -1,4 +1,5 @@
 #include "halo/camera/camera.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern director_globals camera_director_globals;
@@ -29,12 +30,9 @@ extern void camera_update(float dt);
 extern void observer_set_command(int16_t local_player_index);
 extern void observer_advance(int16_t local_player_index);
 extern void observer_commit(int16_t local_player_index);
-extern void matrix4x3_from_euler_angles(real_matrix4x3 *out, real yaw, real pitch, real roll);
 extern void editor_camera_set_position_and_direction(editor_camera_data *out, Vector3D *direction, Point3D *position);
 extern void vector3d_compute_up_from_forward(Vector3D *forward, Vector3D *out_up);
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
 extern void editor_camera_compute_pov(director_camera_data *data, camera_input *input, observer_command *command);
-extern random_seed effect_random_seed;
 extern game_engine_definition *current_game_engine;
 void camera_initialize(void);
 void camera_control(uint8_t enable);
@@ -479,7 +477,7 @@ void CameraSystem::debug_start(int16_t camera_point_index, int16_t ticks, datum_
     camera_script.position = point->position;
     camera_script.camera_point_index = camera_point_index;
 
-    matrix4x3_from_euler_angles(&matrix, point->orientation.yaw, point->orientation.pitch,
+    halo::math::matrix4x3_from_euler_angles(matrix, point->orientation.yaw, point->orientation.pitch,
                                  point->orientation.roll);
     camera_script.forward = *(Vector3D *)&matrix.forward;
     camera_script.up = *(Vector3D *)&matrix.up;
@@ -536,7 +534,7 @@ void CameraSystem::debug_load_from_file()
     editor_camera_set_position_and_direction(&directors[0].data.editor, &forward, &position);
     vector3d_compute_up_from_forward(&forward, &computed_up);
     directors[0].data.editor.roll =
-        vector3d_angle_between_4cd4f0((real_vector3d *)&saved_up, (real_vector3d *)&computed_up);
+        halo::math::vector3d_angle_between_4cd4f0(*((real_vector3d *)&saved_up), *((real_vector3d *)&computed_up));
 
     {
         
@@ -601,16 +599,16 @@ dead_camera_data * DeadCamera::construct(dead_camera_data *self, int16_t local_p
 
     self->field_of_view = 1.2217305f; 
 
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    self->distance = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 4.0f + 2.0f;
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    self->distance = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 4.0f + 2.0f;
 
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    self->yaw = (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 6.2831855f;
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    self->yaw = (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 6.2831855f;
 
     self->transition_time = 3.0f;
 
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    self->pitch = -((real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 0.6283184f + 0.47123894f);
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    self->pitch = -((real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * 0.6283184f + 0.47123894f);
 
     if (unit != k_datum_index_none) {
         self->retarget_time = 3.4028235e38f; 

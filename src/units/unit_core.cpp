@@ -1,14 +1,11 @@
 #include "halo/units/unit.hpp"
 #include "game.h"
 #include "networking.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern tag_instance *tag_instances;
-extern random_seed random_seed_global;
-extern real_vector3d *global_up3d_pointer;
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand);
 extern double sqrt(double x);
 extern uint8_t *global_globals;
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
@@ -71,13 +68,13 @@ void UnitView::apply_impulse(real_vector3d *impulse)
     if ((obj->vitality_flags & 4) != 0 || (*(uint8_t *)((uint8_t *)tag_data + 0x2f4) & 0x44) != 0) {
         real_vector3d jitter_axis;
         float length;
-        vector3d_cross_product(&jitter_axis, impulse, global_up3d_pointer);
-        length = vector3d_normalize_with_length(&jitter_axis);
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::vector3d_cross_product(jitter_axis, *impulse, *halo::math::globals().global_up3d_pointer);
+        length = halo::math::vector3d_normalize_with_length(jitter_axis);
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
         {
             float magnitude = (float)sqrt((double)(impulse->i * impulse->i + impulse->j * impulse->j +
                                                      impulse->k * impulse->k));
-            float angle = (float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f * magnitude * 1.5707964f;
+            float angle = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f * magnitude * 1.5707964f;
             obj->angular_velocity.i += jitter_axis.i * angle;
             obj->angular_velocity.j += jitter_axis.j * angle;
             obj->angular_velocity.k += jitter_axis.k * angle;
@@ -86,7 +83,7 @@ void UnitView::apply_impulse(real_vector3d *impulse)
 
     if (obj->parent_object == k_datum_index_none) {
         real_vector3d direction = *impulse;
-        float length = vector3d_normalize_with_length(&direction);
+        float length = halo::math::vector3d_normalize_with_length(direction);
         if (length > 0.0f) {
             obj->forward = direction;
             ::halo::units::unit_update_up_vector((Biped *)(Biped *)tag_data, (::object *)obj);

@@ -5,6 +5,7 @@
 #include "rasterizer.h"
 #include "hs.h"
 #include <string.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
@@ -13,7 +14,6 @@ extern void cluster_reference_add_within_radius(uint32_t light_or_object_handle,
 extern void cluster_reference_remove_all(uint32_t handle, datum_index *link, void *cluster_list);
 extern void *color_interpolate(void *color1, void *color0, void *dest, uint32_t flags, float t);
 extern void *color_interpolate_argb_with_tint(uint32_t flags, void *color1, void *dest, void *tint, void *color0, float t);
-extern uint32_t color_real_to_argb_pack(float alpha, real_vector3d *color);
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern game_engine_definition *current_game_engine;
 extern int16_t current_local_player_index;
@@ -54,8 +54,6 @@ extern int16_t light_transient_count_or_queue;
 extern light_transient light_transient_table[k_maximum_transient_lights];
 extern uint8_t *lights_enabled;
 extern int32_t local_player_index_for_weapon(datum_index weapon_index);
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *in, real_matrix4x3 *m);
 extern data_array *object_data;
 extern char *object_get_attachment_marker_name(uint32_t object_index, int16_t attachment_index);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum);
@@ -75,10 +73,7 @@ extern void structure_cluster_add_lens_flares(int16_t cluster_index);
 extern void structure_debug_draw_surfaces_in_box(void *render_point, real_point3d *query_point, float radius, int16_t cluster_count, int16_t *cluster_indices);
 extern void structure_debug_draw_surfaces_in_box_alt(void *render_point, real_point3d *query_point, float radius, int16_t cluster_count, int16_t *cluster_indices);
 extern tag_instance *tag_instances;
-extern real transition_function_evaluate(int16_t type, real phase);
 extern uint8_t unit_get_first_person_marker_transform(datum_index object_index, const char *marker_name, real_point3d *out_position, real_vector3d *out_extents, real_vector3d *out_direction);
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern uint32_t vector3d_pack_normal_11_11_10(real_vector3d *direction);
 extern int16_t visible_cluster_count;
 extern uint8_t visible_clusters[];
@@ -350,7 +345,7 @@ void halo::objects::LightSystem::update_all()
         } else {
             int32_t age_ticks = tick - ((struct light *)light)->marker_link;
             float phase = (float)age_ticks / *(float *)(tag + 0xf4);
-            t = (1.0f - transition_function_evaluate(*(int16_t *)(tag + 0xfa), phase)) * *(float *)&((struct light *)light)->transient_color_scale;
+            t = (1.0f - halo::math::transition_function_evaluate(*(int16_t *)(tag + 0xfa), phase)) * *(float *)&((struct light *)light)->transient_color_scale;
             color_interpolate(tag + 0x4c, tag + 0x3c, color, *(uint32_t *)(tag + 0x34), t);
 
             memcpy(&blend, &age_ticks, sizeof(blend));
@@ -483,7 +478,7 @@ void halo::objects::LightSystem::transient_add(datum_index light_tag, real_vecto
         (color->i != 0.0f || color->j != 0.0f || color->k != 0.0f)) {
         light_transient *slot = &light_transient_table[light_transient_count];
 
-        slot->color = color_real_to_argb_pack(1.0f, color);
+        slot->color = halo::math::color_real_to_argb_pack(1.0f, reinterpret_cast<float *>(color));
         slot->intensity = (uint8_t)fistp_round(intensity * 255.0f);
         slot->definition = tag_instances[light_tag & 0xffff].data;
         slot->position = *position;
@@ -719,11 +714,11 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
         real_vector3d *up = (real_vector3d *)((uint8_t *)entry + 0x48);
         real_vector3d *world_direction;
 
-        matrix4x3_transform_point(&entry->position, local_position, (real_matrix4x3 *)node);
-        matrix4x3_transform_normal(&entry->direction, local_direction, (real_matrix4x3 *)node);
+        halo::math::matrix4x3_transform_point(entry->position, *local_position, *(real_matrix4x3 *)node);
+        halo::math::matrix4x3_transform_normal(entry->direction, *local_direction, *(real_matrix4x3 *)node);
         world_direction = &entry->direction;
-        vector3d_build_perpendicular(up, world_direction);
-        vector3d_normalize_with_length(up);
+        halo::math::vector3d_build_perpendicular(*up, *world_direction);
+        halo::math::vector3d_normalize_with_length(*up);
     }
 
     if ((entry->flags & _light_attached_bit) != 0) {

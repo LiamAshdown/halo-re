@@ -5,6 +5,7 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 
@@ -17,8 +18,6 @@ extern double exp(double x);
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
 extern float effect_random_fraction(void);
 extern weapon_screen_effect_parameters *cinematic_screen_effect_update(weapon_screen_effect_parameters *input);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern double floor(double x);
 extern double cos(double x);
 
@@ -1864,7 +1863,7 @@ uint8_t rasterizer_sun_glow_project_point(real_point3d *point, float radius, flo
     viewport_width = rasterizer_window.camera.viewport_bounds.right - rasterizer_window.camera.viewport_bounds.left;
     viewport_height = rasterizer_window.camera.viewport_bounds.bottom - rasterizer_window.camera.viewport_bounds.top;
 
-    matrix4x3_transform_point(&view, point, &rasterizer_window.frustum.world_to_view);
+    halo::math::matrix4x3_transform_point(view, *point, rasterizer_window.frustum.world_to_view);
 
     proj_y = rasterizer_window.frustum.projection[0][1] * view.x +
              rasterizer_window.frustum.projection[1][1] * view.y +
@@ -2048,7 +2047,7 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
     to_flare.i = instance->position.x - rasterizer_window.camera.position.x;
     to_flare.j = instance->position.y - rasterizer_window.camera.position.y;
     to_flare.k = instance->position.z - rasterizer_window.camera.position.z;
-    vector3d_normalize_with_length(&to_flare);
+    halo::math::vector3d_normalize_with_length(to_flare);
     cone_cosine = (float)cos(0.7853981852531433);
     falloff = (to_flare.k * rasterizer_window.camera.forward.k + to_flare.j * rasterizer_window.camera.forward.j +
                to_flare.i * rasterizer_window.camera.forward.i - cone_cosine) / (1.0f - cone_cosine);

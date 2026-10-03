@@ -5,13 +5,13 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 
 extern uint8_t shader_is_decal(const Shader *shader);
 extern uint8_t shader_draw_before_water(const void *shader);
 extern void shader_texture_animation_evaluate(const void *function_source, const void *animation, float *out_u, float *out_v, float u_scale, float v_scale, float unused_z, float unused_w, float unused_5, float time);
-extern real periodic_function_evaluate(periodic_function_t type, double time);
 extern void render_lighting_disable_workaround(void);
 
 }  // extern "C"
@@ -438,7 +438,7 @@ static void draw_meter_shader(transparent_geometry_group *group, const uint8_t *
         }
     }
     if (console_debug_toggle_6893eb) {
-        float animated = (float)periodic_function_evaluate(2, rasterizer_time.time / console_debug_meter_period);
+        float animated = (float)halo::math::periodic_function_evaluate(2, rasterizer_time.time / console_debug_meter_period);
 
         meter_brightness = (console_debug_meter_values[0] < 0.0f) ? animated : console_debug_meter_values[0];
         flash_brightness = (console_debug_meter_values[1] < 0.0f) ? animated : console_debug_meter_values[1];

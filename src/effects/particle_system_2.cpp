@@ -1,11 +1,11 @@
 #include "halo/effects/effects.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *particle_system_data;
 extern data_array *particle_system_particle_data;
 extern data_array *object_data;
 extern tag_instance *tag_instances;
-extern random_seed effect_random_seed;
 extern void (*particle_system_update_physics_table[2])(particle_system *self, float delta_time);
 extern void (*particle_update_physics_table[1])(particle_system *self, int32_t type_index, float delta_time, particle_system_particle *particle);
 extern void datum_delete(data_array *array, datum_index handle);
@@ -14,7 +14,6 @@ extern void object_get_root_object_velocities(uint32_t object_index, real_vector
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
 extern void particle_system_spawn(particle_system *self, int32_t type_index, float dt);
 extern void particle_system_delete(datum_index handle);
-extern real random_real_range_seeded(random_seed *seed, real min, real max);
 extern void particle_system_advance_type_state(particle_system_type_state *state, ParticleSystemType *type, particle_system *system);
 extern void particle_system_advance_particle_state(particle_system_particle *particle, ParticleSystemType *type);
 extern void particle_system_roll_particle_state(int16_t index, ParticleSystemTypeParticleState *states, particle_state_values *out);
@@ -97,7 +96,7 @@ void particle_system_ref::update(float delta_time)
                         max_bound = current_state->duration_bounds[1];
                     }
 
-                    rolled = random_real_range_seeded(&effect_random_seed, min_bound, max_bound);
+                    rolled = halo::math::random_real_range_seeded(halo::math::globals().effect_random_seed, min_bound, max_bound);
                     state->state_duration = rolled;
                     state->state_time_remaining += rolled;
 
@@ -196,7 +195,7 @@ void particle_system_ref::update(float delta_time)
                         float rolled;
 
                         particle->state_index = 0;
-                        rolled = random_real_range_seeded(&effect_random_seed,
+                        rolled = halo::math::random_real_range_seeded(halo::math::globals().effect_random_seed,
                             initial_state->duration_bounds[0], initial_state->duration_bounds[1]);
                         particle->state_duration = rolled;
                         particle->state_time_remaining = rolled;
@@ -230,7 +229,7 @@ void particle_system_ref::update(float delta_time)
                                 max_bound = entry->duration_bounds[1];
                             }
 
-                            rolled = random_real_range_seeded(&effect_random_seed, min_bound, max_bound);
+                            rolled = halo::math::random_real_range_seeded(halo::math::globals().effect_random_seed, min_bound, max_bound);
                             particle->state_duration = rolled;
                             particle->state_time_remaining += rolled;
 

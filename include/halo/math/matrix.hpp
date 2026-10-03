@@ -1,7 +1,7 @@
 /**
  * @file include/halo/math/matrix.hpp
  * Real_matrix3x3 / real_matrix4x3: build, invert, multiply (scalar, sse, 3dnow!), transform.
- * The C symbols other modules link against are the wrappers in src/math/math_c_api.cpp.
+ * Declared for other modules through halo/math/api.hpp.
  */
 #pragma once
 
@@ -202,6 +202,6 @@ void real_matrix4x3_rotation_rebuild_orthonormal(real_vector3d *forward, real_ve
  * Original register convention: ESI -> forward, EBX -> left (out), EDI -> up (out).
  * @address 0x0055eed0
  */
-void real_matrix4x3_rotation_from_forward(real_vector3d *forward, real_vector3d *left, real_vector3d *up);
+void real_matrix4x3_rotation_from_forward(const real_vector3d *forward, real_vector3d *left, real_vector3d *up);
 
 }  // namespace halo::math

@@ -1,17 +1,15 @@
 #include "halo/effects/effects.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern tag_instance *tag_instances;
 extern data_array *decal_data;
-extern random_seed effect_random_seed;
 extern game_time_globals *game_time;
 extern const decal_type_parameters k_decal_type_parameters[4];
 extern cache *rasterizer_decal_vertex_cache_handle;
 extern void *rasterizer_decal_vertex_cache;
 extern int16_t rasterizer_vertex_buffer_lock_state;
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
 extern long lrint(double x);
 extern double floor(double x);
 extern double sqrt(double x);
@@ -20,14 +18,10 @@ extern double cos(double x);
 extern double sin(double x);
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
 extern void *texture_cache_get(void *bitmap, uint8_t wait, uint8_t allocate_if_missing);
-extern int16_t vector3d_major_axis_index(real_vector3d *v);
 extern void structure_lightmap_uv_rect_build(int16_t sequence_index, int16_t sprite_index, real scale, real *out_extent, real *out_sprite_rect, const Decal *decal_definition);
 extern datum_index decal_new(datum_index requested_handle, int16_t cluster_index, int16_t layer, datum_index insert_before, uint8_t object_attached);
 extern void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out);
 extern void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator *accumulator, int32_t surface_index, uint8_t is_first_surface, real radius, int16_t decal_type, int32_t *surface_queue, uint16_t *surface_queue_count, int32_t *fallback_queue, uint16_t *fallback_queue_count);
-extern void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, real sin_angle, real cos_angle);
-extern real vector3d_angle_between_4cd5e0(real_vector3d *a, real_vector3d *b);
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
 extern datum_index cache_allocate_block(cache *self, uint32_t requested_bytes);
 extern void cache_evict_entry(datum_index handle, cache *self);
 extern void *rasterizer_decal_vertex_cache_lock(uint32_t decal_index, int32_t byte_count);
@@ -48,8 +42,8 @@ typedef struct decal_place_vertex {
  */
 static real decal_place_random_fraction(void)
 {
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    return (real)(int32_t)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    return (real)(int32_t)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
 }
 
 /**
@@ -77,7 +71,7 @@ static void decal_place_snap_basis(real_vector3d *axis_source, const real_vector
     real_vector3d *normal, real_vector3d *a, real_vector3d *b)
 {
     real_vector3d v;
-    int16_t axis = vector3d_major_axis_index(axis_source);
+    int16_t axis = halo::math::vector3d_major_axis_index(*axis_source);
     real sign = (((real *)axis_source)[axis] > 0.0f) ? 1.0f : -1.0f;
     real side;
 
@@ -100,9 +94,9 @@ static void decal_place_snap_basis(real_vector3d *axis_source, const real_vector
         v.j = v.j - normal->j;
         v.k = v.k - normal->k;
     }
-    vector3d_normalize_with_length(&v);
-    vector3d_cross_product(a, &v, normal);
-    vector3d_cross_product(b, a, normal);
+    halo::math::vector3d_normalize_with_length(v);
+    halo::math::vector3d_cross_product(*a, v, *normal);
+    halo::math::vector3d_cross_product(*b, *a, *normal);
 }
 
 /**
@@ -171,7 +165,7 @@ static int16_t decal_place_wrap_group(int32_t *fallback_queue, int16_t fallback_
             real_plane3d plane;
 
             decal_place_surface_plane(&plane, surfaces[fallback_queue[j]].plane);
-            if (vector3d_angle_between_4cd5e0(&plane.normal, &first_plane.normal) <= maximum_angle) {
+            if (halo::math::vector3d_angle_between_4cd5e0(plane.normal, first_plane.normal) <= maximum_angle) {
                 group[group_count] = fallback_queue[j];
                 group_count++;
                 fallback_queue[j] = -1;
@@ -247,8 +241,8 @@ static int16_t decal_place_wrap_group(int32_t *fallback_queue, int16_t fallback_
             if (!(crossed.i * axis.i + crossed.k * axis.k + crossed.j * axis.j < 0.0f)) {
                 sign = -1.0f;
             }
-            angle = vector3d_angle_between_4cd5e0(decal_normal, &best_plane.normal) * sign;
-            matrix4x3_from_axis_angle(&rotation, &axis, (real)sin((double)angle), (real)cos((double)angle));
+            angle = halo::math::vector3d_angle_between_4cd5e0(*decal_normal, best_plane.normal) * sign;
+            halo::math::matrix4x3_from_axis_angle(rotation, axis, (real)sin((double)angle), (real)cos((double)angle));
 
             offset.i = matrix->position.x - edge_start.x;
             offset.j = matrix->position.y - edge_start.y;
@@ -351,15 +345,15 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
                         decal_place_snap_basis(&projected, 0, normal, &a, &b);
                     }
                 } else {
-                    vector3d_cross_product(&a, direction, normal);
-                    vector3d_cross_product(&b, &a, normal);
+                    halo::math::vector3d_cross_product(a, *direction, *normal);
+                    halo::math::vector3d_cross_product(b, a, *normal);
                 }
             } else {
                 real angle = decal_place_random_fraction() * 6.2831855f;
 
                 rotation_cos = (real)cos((double)angle);
                 rotation_sin = (real)sin((double)angle);
-                vector3d_build_perpendicular(&a, normal);
+                halo::math::vector3d_build_perpendicular(a, *normal);
                 b.i = a.k * normal->j - a.j * normal->k;
                 b.j = a.i * normal->k - a.k * normal->i;
                 b.k = a.j * normal->i - a.i * normal->j;
@@ -381,8 +375,8 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
                 int16_t count = (int16_t)bitmap->bitmap_group_sequence.count;
                 int32_t roll;
 
-                effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-                roll = (int32_t)((uint32_t)((int32_t)count * (int32_t)(effect_random_seed >> k_random_value_shift)) >> 16);
+                halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+                roll = (int32_t)((uint32_t)((int32_t)count * (int32_t)(halo::math::globals().effect_random_seed >> k_random_value_shift)) >> 16);
                 sequence_index = (int16_t)roll;
                 if ((int32_t)(int16_t)roll >= (int32_t)bitmap->bitmap_group_sequence.count) {
                     sequence_index = (int16_t)((uint16_t)bitmap->bitmap_group_sequence.count - 1);
@@ -480,7 +474,7 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
             lift.i = normal_min.i + normal_max.i;
             lift.j = normal_min.j + normal_max.j;
             lift.k = normal_min.k + normal_max.k;
-            vector3d_normalize_with_length(&lift);
+            halo::math::vector3d_normalize_with_length(lift);
             lift.i = lift.i * 0.00390625f;
             lift.j = lift.j * 0.00390625f;
             lift.k = lift.k * 0.00390625f;

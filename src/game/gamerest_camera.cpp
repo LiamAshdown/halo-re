@@ -1,10 +1,10 @@
 #include "halo/game/gamerest_camera.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern data_array *player_data;
 extern tag_instance *tag_instances;
-extern uint8_t vector3d_projection_band_test(real_vector3d *axis, real_point3d *point_a, real_point3d *point_b, real radius, real max_distance, real sin_max_angle, real cos_max_angle);
 extern uint32_t camera_observer_target_score(real_vector3d *facing, observer_target_cone *cone, datum_index object, observer_target_candidate *out, real_point3d *reference_position);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -29,7 +29,6 @@ extern void object_get_root_object_velocities(uint32_t object_index, real_vector
 extern double atan2(double y, double x);
 extern double sqrt(double x);
 extern void vector3d_closest_point_on_segment(datum_index unit_index, real_vector3d *aux_vector, real_point3d *reference_point, real_point3d *out_closest);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern double acos(double x);
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 extern datum_index object_get_root_object_index(datum_index object_index);
@@ -68,7 +67,7 @@ uint16_t CameraObserver::collect_target_candidates(observer_target_cone *cone, d
         if ((type_bit & _object_mask_unit) != 0 && (obj->flags & 1) == 0 &&
             *(real *)((uint8_t *)obj + 0x37c) < 1.0f) {
 
-            if (vector3d_projection_band_test(facing, observer_position, &obj->bounding_center,
+            if (halo::math::vector3d_projection_band_test(*facing, *observer_position, obj->bounding_center,
                                                obj->bounding_radius, max_distance,
                                                sin_max_angle, cos_max_angle) != 0) {
                 if ((type_bit & _object_mask_biped) != 0 && (obj->vitality_flags & _object_health_frozen_bit) == 0 &&
@@ -303,7 +302,7 @@ uint32_t CameraObserver::target_direction(real_point3d *candidate_point, real_ve
         out_direction->i = candidate_point->x - reference_position->x;
         out_direction->j = candidate_point->y - reference_position->y;
         out_direction->k = candidate_point->z - reference_position->z;
-        *out_distance = vector3d_normalize_with_length(out_direction);
+        *out_distance = halo::math::vector3d_normalize_with_length(*out_direction);
         if (*out_distance != 0.0f) {
             dot = facing->i * out_direction->i + facing->j * out_direction->j + facing->k * out_direction->k;
             if (dot < -1.0f) {
@@ -386,7 +385,7 @@ uint32_t CameraObserver::target_score(real_vector3d *facing, observer_target_con
     out->offset.j = out->point.y - reference_position->y;
     out->offset.k = out->point.z - reference_position->z;
     out->direction = out->offset;
-    out->distance = vector3d_normalize_with_length(&out->direction);
+    out->distance = halo::math::vector3d_normalize_with_length(out->direction);
 
     dot = out->direction.k * facing->k + out->direction.j * facing->j + out->direction.i * facing->i;
     if (dot < -1.0f) {

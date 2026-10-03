@@ -1,15 +1,13 @@
 #include "halo/ai/actor_grenade.hpp"
+#include "halo/math/api.hpp"
 
 namespace c_actor_attempt_grenade_throw {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
 extern tag_instance *tag_instances;
-extern uint32_t random_seed_global;
 extern ai_globals *ai_globals_ptr;
 
-extern real random_real(void);
-extern real random_real_range(real min, real max);
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
 extern void unit_set_control_countdown(uint32_t unit_index, int32_t countdown, uint32_t extra_control_flags);
 extern void encounter_recompute_morale(datum_index encounter_index);
@@ -21,8 +19,8 @@ extern void weapon_set_ammo_counts(datum_index item_index, int16_t *reserve_coun
 
 static uint32_t actor_death_random_16(void)
 {
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    return random_seed_global >> 16;
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    return halo::math::globals().random_seed_global >> 16;
 }
 }
 }
@@ -68,12 +66,12 @@ void halo::ai::grenade_ops::attempt_grenade_throw()
                     chance = boosted;
                 }
             }
-            if (random_real() < chance) {
+            if (halo::math::random_real() < chance) {
                 float seconds = ((ActorVariant *)variant)->death_fire_wildly_time;
                 int16_t ticks;
 
                 if (seconds == 0.0f) {
-                    seconds = random_real_range(0.8f, 1.3f);
+                    seconds = halo::math::random_real_range(0.8f, 1.3f);
                 } else if (!(seconds >= 0.8f)) {
                     seconds = 0.8f;
                 } else if (!(seconds <= 1.3f)) {
@@ -209,7 +207,6 @@ extern data_array *actor_data;
 extern data_array *object_data;
 extern data_array *encounter_data;
 extern game_time_globals *game_time;
-extern real vector2d_normalize_with_length(real_vector2d *v);
 
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 extern uint8_t actor_can_throw_grenade_at_target(datum_index actor_index);
@@ -261,7 +258,7 @@ uint8_t halo::ai::grenade_ops::check_grenade_facing_and_commit(uint8_t force_com
         delta.i = self->grenade_impact_point.x - self->body_position.x;
         delta.j = self->grenade_impact_point.y - self->body_position.y;
 
-        if (vector2d_normalize_with_length(&delta) > 0.0f) {
+        if (halo::math::vector2d_normalize_with_length(delta) > 0.0f) {
             dot = delta.i * self->facing.i + delta.j * self->facing.j;
             if (dot >= 0.8660254f) {
                 self->throw_grenade = 1;
@@ -346,10 +343,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
-extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *axis, real sin_angle, real cos_angle);
 extern void actor_get_aim_from_position(datum_index actor_index, uint32_t out_position[3]);
 }
 }
@@ -386,7 +379,7 @@ uint32_t halo::ai::grenade_ops::compute_grenade_aim_direction(real_point3d *targ
             out_direction->i = self->grenade_aim_direction.i - target_point->x;
             out_direction->j = self->grenade_aim_direction.j - target_point->y;
             out_direction->k = self->grenade_aim_direction.k - target_point->z;
-            vector3d_normalize_with_length(out_direction);
+            halo::math::vector3d_normalize_with_length(*out_direction);
         } else {
             *out_direction = self->firing_vector;
         }
@@ -397,16 +390,16 @@ uint32_t halo::ai::grenade_ops::compute_grenade_aim_direction(real_point3d *targ
             uint8_t should_rotate = 1;
             real_vector3d axis;
 
-            vector3d_cross_product(&axis, out_direction, &aim_from);
-            if (vector3d_normalize_with_length(&axis) == 0.0f) {
-                vector3d_build_perpendicular(&axis, &aim_from);
-                if (vector3d_normalize_with_length(&axis) == 0.0f) {
+            halo::math::vector3d_cross_product(axis, *out_direction, aim_from);
+            if (halo::math::vector3d_normalize_with_length(axis) == 0.0f) {
+                halo::math::vector3d_build_perpendicular(axis, aim_from);
+                if (halo::math::vector3d_normalize_with_length(axis) == 0.0f) {
                     should_rotate = 0;
                 }
             }
             *out_direction = aim_from;
             if (should_rotate) {
-                vector3d_rotate_about_axis(out_direction, &axis, 0.5f, 0.86602539f);
+                halo::math::vector3d_rotate_about_axis(*out_direction, axis, 0.5f, 0.86602539f);
             }
         }
         *out_698 = self->projectile_error;
@@ -426,7 +419,6 @@ extern tag_instance *tag_instances;
 extern ai_globals *ai_globals_ptr;
 extern game_time_globals *game_time;
 
-extern real random_real(void);
 extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
 extern uint8_t actor_can_throw_grenade_at_target(datum_index actor_index);
 extern uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t force_commit);
@@ -473,7 +465,7 @@ uint8_t halo::ai::grenade_ops::consider_grenade_throw()
         float roll;
 
         self->last_grenade_check_time = now;
-        roll = random_real();
+        roll = halo::math::random_real();
         if (roll < scaled && actor_can_throw_grenade_at_target(actor_index) != 0) {
             self->grenade_throw_pending = 1;
             actor_check_grenade_facing_and_commit(actor_index, 1);
@@ -494,7 +486,6 @@ extern data_array *actor_data;
 extern data_array *object_data;
 extern data_array *prop_data;
 extern tag_instance *tag_instances;
-extern real vector2d_normalize_with_length(real_vector2d *v);
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 extern uint8_t actor_probe_step_direction(datum_index actor_index, float step_distance, real_vector2d *direction,
     uint16_t *variant, float step_up, uint8_t *out_flag, void *extra_param);
@@ -549,7 +540,7 @@ uint8_t halo::ai::grenade_ops::evaluate_grenade_target_position()
 
         flat.i = *(float *)(p + 0xe0);
         flat.j = *(float *)(p + 0xe4);
-        if (vector2d_normalize_with_length(&flat) > 0.0f && !(flat.j * facing[1] + flat.i * facing[0] > 0.4f)) {
+        if (halo::math::vector2d_normalize_with_length(flat) > 0.0f && !(flat.j * facing[1] + flat.i * facing[0] > 0.4f)) {
             return 0;
         }
     }
@@ -562,7 +553,7 @@ uint8_t halo::ai::grenade_ops::evaluate_grenade_target_position()
 
         direction.i = *(float *)(p + 0xe0);
         direction.j = *(float *)(p + 0xe4);
-        vector2d_normalize_with_length(&direction);
+        halo::math::vector2d_normalize_with_length(direction);
         if (!actor_probe_step_direction(actor_index, *(float *)(unit_tag + 0x234), &direction, &side, 0.0f, &flag, extra)) {
             return 0;
         }
@@ -989,7 +980,6 @@ extern int16_t actor_gather_nearby_grenade_targets(datum_index source_actor_inde
                                                      ai_grenade_avoidance_entry *out_entries);
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
                              uint32_t exclude_object, void *scratch);
-extern int segment3d_within_radius_of_segment(real_point3d *a_start, real_point3d *b_start, real_vector3d *a_direction, real_vector3d *b_direction, real radius);
 }
 }
 
@@ -1045,7 +1035,7 @@ uint8_t halo::ai::grenade_ops::parabolic_path_clear(real_vector3d *initial_veloc
             target_offset.i = 0.0f;
             target_offset.j = 0.0f;
             target_offset.k = entries[i].crouch_offset;
-            hit = segment3d_within_radius_of_segment(&position, &entries[i].target_position, &segment_delta,
+            hit = halo::math::segment3d_within_radius_of_segment(&position, &entries[i].target_position, &segment_delta,
                                                        &target_offset, entries[i].avoid_until);
             if (hit) {
                 return 0;
@@ -1123,8 +1113,6 @@ namespace c_actor_grenade_trajectory_blocked {
 extern "C" {
 extern int16_t actor_gather_nearby_grenade_targets(datum_index source_actor_index, int16_t maximum_count,
                                                      ai_grenade_avoidance_entry *out_entries);
-extern uint8_t ray_intersects_sphere_test(real_point3d *center, real_point3d *origin, real_vector3d *direction, real radius);
-extern int segment3d_within_radius_of_segment(real_point3d *a_start, real_point3d *b_start, real_vector3d *a_direction, real_vector3d *b_direction, real radius);
 }
 }
 
@@ -1155,14 +1143,14 @@ uint8_t halo::ai::grenade_ops::trajectory_blocked(real_vector3d *trajectory_dire
             continue;
         }
         if (entries[i].already_clear) {
-            hit = ray_intersects_sphere_test(&entries[i].target_position, landing_position,
-                                              trajectory_direction, entries[i].avoid_until);
+            hit = halo::math::ray_intersects_sphere_test(entries[i].target_position, *landing_position,
+                                              *trajectory_direction, entries[i].avoid_until);
         } else {
             real_vector3d target_offset;
             target_offset.i = 0.0f;
             target_offset.j = 0.0f;
             target_offset.k = entries[i].crouch_offset;
-            hit = (uint8_t)segment3d_within_radius_of_segment(landing_position, &entries[i].target_position,
+            hit = (uint8_t)halo::math::segment3d_within_radius_of_segment(landing_position, &entries[i].target_position,
                                                                 trajectory_direction, &target_offset,
                                                                 entries[i].avoid_until);
         }

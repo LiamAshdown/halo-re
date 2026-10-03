@@ -5,14 +5,10 @@
  */
 
 #include "halo/models/models.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern tag_instance *tag_instances;
-extern random_seed random_seed_global;
-extern random_seed effect_random_seed;
-extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out);
-extern void (*matrix4x3_multiply_procedure)(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
 }
 
 namespace halo::models {
@@ -78,11 +74,11 @@ int16_t animation_graph::choose_random_permutation(datum_index animation_graph_t
     animations = (ModelAnimationsAnimation *)graph->animations.pointer;
 
     if (stream == _animation_random_global) {
-        random_seed_global = random_seed_global * k_random_multiplier + k_random_increment;
-        seed = random_seed_global;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * k_random_multiplier + k_random_increment;
+        seed = halo::math::globals().random_seed_global;
     } else {
-        effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-        seed = effect_random_seed;
+        halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+        seed = halo::math::globals().effect_random_seed;
     }
     threshold = (real)(seed >> k_random_value_shift) * 1.5259022e-05f;
 
@@ -161,7 +157,7 @@ void animation_graph::get_root_node_matrix(real_matrix4x3 *out, int16_t frame, M
     real_orientation orientations[k_maximum_nodes_per_model];
 
     animation_view(animation).get_frame_orientations(model, frame, orientations);
-    matrix4x3_from_quaternion(&orientations[0].rotation, out);
+    halo::math::matrix4x3_from_quaternion(orientations[0].rotation, *out);
     out->position = orientations[0].translation;
 }
 
@@ -188,7 +184,7 @@ void animation_graph::nodes_build_matrices(datum_index animation_graph_tag, real
 
     graph = (ModelAnimations *)tag_instances[animation_graph_tag & 0xffff].data;
 
-    matrix4x3_from_forward_up(up, forward, &root_parent);
+    halo::math::matrix4x3_from_forward_up(*up, *forward, root_parent);
     root_parent.position = *root_position;
 
     if (graph->nodes.count <= 0) {
@@ -210,11 +206,11 @@ void animation_graph::nodes_build_matrices(datum_index animation_graph_tag, real
 
         parent_matrix = (node == 0) ? &root_parent : &out_matrices[(int16_t)node_def->parent_node_index];
 
-        matrix4x3_from_quaternion(&orientations[node].rotation, &local_matrix);
+        halo::math::matrix4x3_from_quaternion(orientations[node].rotation, local_matrix);
         local_matrix.scale = orientations[node].scale;
         local_matrix.position = orientations[node].translation;
 
-        matrix4x3_multiply_procedure(parent_matrix, &local_matrix, &out_matrices[node]);
+        halo::math::globals().matrix4x3_multiply_procedure(parent_matrix, &local_matrix, &out_matrices[node]);
 
         if (node_def->next_sibling_node_index != 0xffff) {
             queue[write_index] = (int16_t)node_def->next_sibling_node_index;

@@ -4,6 +4,7 @@
 #include "hs.h"
 #include "networking.h"
 #include "physics.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -16,14 +17,10 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t is_dedicated_server_flag;
 extern Globals *global_globals;
 extern uint8_t network_object_index_cache[];
-extern real random_real_range(real min, real max);
-extern real vector2d_normalize_with_length(real_vector2d *v);
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern int32_t actor_reassign_vehicle_seat(datum_index vehicle_object_index, datum_index self_object_index, int32_t seat_selector);
 extern void actor_react_to_threat_event(datum_index self_object_index, datum_index other_object_index, int32_t event_kind, real magnitude, uint32_t extra_param, uint8_t suppress_vehicle_relay);
-extern real vector2d_angle_between(real_vector2d *a, real_vector2d *b);
 extern void *datum_get(datum_index handle, data_array *array);
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
 extern void player_update_history_free_all(void *history);
 extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
@@ -41,23 +38,15 @@ extern int32_t player_index_from_unit_index(uint32_t unit_index);
 extern void object_delete(uint32_t object_index);
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 extern void damage_apply_area_effect(damage_data *request, uint32_t param_2);
-extern random_seed random_seed_global;
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
 extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags, real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result);
-extern void matrix4x3_transform_plane(real_plane3d *out, real_matrix4x3 *m, real_plane3d *plane);
 extern real_vector3d *global_origin3d_pointer;
-extern real_vector3d *global_forward3d_pointer;
-extern real_vector3d *global_up3d_pointer;
 extern void object_set_health_frozen_flag(uint32_t object_index);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location);
 extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, int16_t marker_index);
 extern uint8_t *team_pair_data;
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
-extern void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, real sin_angle, real cos_angle);
-extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m);
 extern double sin(double x);
 extern double cos(double x);
 extern void object_set_shield_depleted_flag(uint32_t object_index);
@@ -109,7 +98,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     {
         uint8_t *reloaded = OBJECT_DATA(object_index);
 
-        matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
+        halo::math::matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
             (real_matrix4x3 *)(model_nodes + 0x68), &basis);
     }
     *(real_vector3d *)&((unit_object *)self)->base.forward.i = basis.forward;
@@ -236,7 +225,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
         if (!killed && (unit_flags & 0x2000) && *(float *)(unit_tag + 0x22c) > 0.0f &&
             *(float *)(unit_tag + 0x230) > 0.0f && ((unit_object *)obj)->base.body_vitality > 0.0f &&
             ((unit_object *)obj)->base.recent_body_damage > *(float *)(unit_tag + 0x22c)) {
-            float ticks = (random_real_range(0.0f, 1.0f) + *(float *)(unit_tag + 0x230)) * 30.0f;
+            float ticks = (halo::math::random_real_range(0.0f, 1.0f) + *(float *)(unit_tag + 0x230)) * 30.0f;
 
             obj[0x106] |= 4;
             knocked_down = 1;
@@ -330,8 +319,8 @@ record_check:
         direction.j = dd->direction.j;
         forward.i = ((unit_object *)obj)->base.forward.i;
         forward.j = ((unit_object *)obj)->base.forward.j;
-        if (vector2d_normalize_with_length(&direction) > 0.0f && vector2d_normalize_with_length(&forward) > 0.0f) {
-            angle = vector2d_angle_between(&forward, &direction);
+        if (halo::math::vector2d_normalize_with_length(direction) > 0.0f && halo::math::vector2d_normalize_with_length(forward) > 0.0f) {
+            angle = halo::math::vector2d_angle_between(forward, direction);
             has_direction = 1;
         }
         if ((unit_tag[0x17c] & 0x80) && (effect_flags & 4) == 0) {
@@ -614,8 +603,8 @@ void UnitView::enter_stunned_state(uint32_t responsible_object)
     if (unit->flaming_ticks == 0) {
         int16_t duration;
 
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        duration = (int16_t)(((int32_t)(random_seed_global >> 0x10) * 0x5a) >> 0x10) + 0x3c;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        duration = (int16_t)(((int32_t)(halo::math::globals().random_seed_global >> 0x10) * 0x5a) >> 0x10) + 0x3c;
 
         if (duration == 0) {
             duration = 1;
@@ -665,9 +654,9 @@ void UnitView::melee_lunge_damage_tick()
             hit_point.x = plane.normal.i * fraction + start.x;
             hit_point.y = plane.normal.j * fraction + start.y;
             hit_point.z = plane.normal.k * fraction + start.z;
-            matrix4x3_transform_plane(&plane,
-                (real_matrix4x3 *)((uint8_t *)context.nodes + record.node_index * 0x34),
-                *(real_plane3d **)((uint8_t *)&record + 0x0c));
+            halo::math::matrix4x3_transform_plane(plane,
+                *(real_matrix4x3 *)((uint8_t *)context.nodes + record.node_index * 0x34),
+                *(*(real_plane3d **)((uint8_t *)&record + 0x0c)));
             if (*(int32_t *)((uint8_t *)&record + 0x14) < 0) {
                 plane.normal.i = -plane.normal.i;
                 plane.normal.j = -plane.normal.j;
@@ -746,14 +735,14 @@ void unit_process_melee_special_interaction(uint32_t attacker_index, uint32_t ta
         forward->i = -forward->i;
         forward->j = -forward->j;
         forward->k = -forward->k;
-        vector3d_cross_product(&left, forward, up);
-        if (vector3d_normalize_with_length(&left) == 0.0f) {
-            vector3d_cross_product(&left, forward, global_up3d_pointer);
-            if (vector3d_normalize_with_length(&left) == 0.0f) {
-                left = *global_forward3d_pointer;
+        halo::math::vector3d_cross_product(left, *forward, *up);
+        if (halo::math::vector3d_normalize_with_length(left) == 0.0f) {
+            halo::math::vector3d_cross_product(left, *forward, *halo::math::globals().global_up3d_pointer);
+            if (halo::math::vector3d_normalize_with_length(left) == 0.0f) {
+                left = *halo::math::globals().global_forward3d_pointer;
             }
         }
-        vector3d_cross_product(up, &left, forward);
+        halo::math::vector3d_cross_product(*up, left, *forward);
     }
     object_set_position_and_relink(contact_point, attacker_index, contact_leaf);
     object_attach_to_object(target_index, attacker_index, (int16_t)node_pair);
@@ -945,15 +934,15 @@ void UnitView::update_recoil_decay()
     target_point.y = obj->velocity.j + obj->position.y;
     target_point.z = obj->velocity.k + obj->position.z;
 
-    length = vector3d_normalize_with_length(&axis);
+    length = halo::math::vector3d_normalize_with_length(axis);
     if (length == 0.0f) {
         forward = obj->forward;
         up = obj->up;
     } else {
         real_matrix4x3 rotation;
-        matrix4x3_from_axis_angle(&rotation, &axis, (real)sin((double)length), (real)cos((double)length));
-        matrix4x3_transform_vector(&forward, &obj->forward, &rotation);
-        matrix4x3_transform_vector(&up, &obj->up, &rotation);
+        halo::math::matrix4x3_from_axis_angle(rotation, axis, (real)sin((double)length), (real)cos((double)length));
+        halo::math::matrix4x3_transform_vector(forward, obj->forward, rotation);
+        halo::math::matrix4x3_transform_vector(up, obj->up, rotation);
     }
 
     if (vehicle->decay_ticks_remaining == 0) {

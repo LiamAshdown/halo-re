@@ -2,6 +2,7 @@
 #include "game.h"
 #include "networking.h"
 #include "effects.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern uint8_t *object_network_id_table;
@@ -21,21 +22,16 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t weapon_bottomless_clip;
 extern Globals *global_globals;
 extern char *s_stand;
-extern real_vector3d *global_forward3d_pointer;
 extern real_point3d *global_origin3d_pointer;
 extern real_point3d *global_zero_vector3d_pointer;
 extern void actor_react_to_threat_event(datum_index self_object_index, datum_index other_object_index, int32_t event_kind, real magnitude, uint32_t extra_param, uint8_t suppress_vehicle_relay);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
 extern datum_index effect_new_on_object(datum_index creator_object_index, datum_index definition_index, datum_index object_index, int16_t first_person_weapon_override, real a_scale, real b_scale, const void *color, const void *tint_source);
 extern uint8_t game_engine_is_valid_team_player(uint32_t identifier);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern void weapon_set_control_flags(datum_index item_index, uint16_t control_flags, real primary_trigger);
 extern void weapon_set_ready_timer(datum_index item_index, real value);
-extern real vector3d_angle_between_4cd4f0(real_vector3d *a, real_vector3d *b);
-extern void vector3d_rotate_toward_with_acceleration(real_vector3d *direction, real_vector3d *target_direction, real_vector3d *angular_velocity, real maximum_velocity, real acceleration);
 extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up);
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
-extern void vector3d_rotate_toward_bounded(real_vector3d *current, real_vector3d *velocity, real *bounds, real max_velocity, real max_acceleration, real_vector3d *target, real_matrix4x3 *transform);
 }
 
 namespace halo::units {
@@ -111,7 +107,7 @@ uint8_t UnitView::update()
         UnitView(unit_index).update_random_turn_angle((real_vector3d *)(obj + 0x224));
         *(real_vector3d *)&((unit_object *)obj)->unit.desired_aiming_vector.i = *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i;
         *(real_vector3d *)&((unit_object *)obj)->unit.desired_looking_vector.i = *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i;
-        *(real_vector3d *)&((unit_object *)obj)->unit.throttle.i = *global_forward3d_pointer;
+        *(real_vector3d *)&((unit_object *)obj)->unit.throttle.i = *halo::math::globals().global_forward3d_pointer;
         ((unit_object *)obj)->unit.control_flags = 0;
     } else if ((((unit_object *)obj)->unit.flags & 1) == 0) {
         *(real_vector3d *)&((unit_object *)obj)->unit.desired_looking_vector.i = *(real_vector3d *)&((unit_object *)obj)->base.forward.i;
@@ -315,19 +311,19 @@ controls:
 
             basis.scale = 1.0f;
             object_get_orientation(&basis.forward, unit_index, &basis.up);
-            vector3d_cross_product(&basis.left, &basis.forward, &basis.up);
+            halo::math::vector3d_cross_product(basis.left, basis.forward, basis.up);
             basis.position = *zero_vector;
-            vector3d_rotate_toward_bounded((real_vector3d *)(obj + 0x23c), (real_vector3d *)(obj + 0x248),
-                (real *)(obj + 0x2b8), rate, acceleration, (real_vector3d *)(obj + 0x230), &basis);
+            halo::math::vector3d_rotate_toward_bounded((real_vector3d *)(obj + 0x23c), (real_vector3d *)(obj + 0x248),
+                (real *)(obj + 0x2b8), rate, acceleration, *(real_vector3d *)(obj + 0x230), &basis);
         } else {
-            vector3d_rotate_toward_with_acceleration((real_vector3d *)(obj + 0x23c), (real_vector3d *)(obj + 0x230),
-                (real_vector3d *)(obj + 0x248), rate, acceleration);
+            halo::math::vector3d_rotate_toward_with_acceleration((real_vector3d *)(obj + 0x23c), *(real_vector3d *)(obj + 0x230),
+                *(real_vector3d *)(obj + 0x248), rate, acceleration);
         }
         {
             float change = 0.0f;
 
             if (((Unit *)tag)->aiming_velocity_maximum != 0.0f) {
-                change = vector3d_angle_between_4cd4f0(&previous_aim, (real_vector3d *)(obj + 0x23c)) /
+                change = halo::math::vector3d_angle_between_4cd4f0(previous_aim, *(real_vector3d *)(obj + 0x23c)) /
                     (((Unit *)tag)->aiming_velocity_maximum * 0.033333335f);
                 if (change < 0.0f) {
                     change = 0.0f;
@@ -348,13 +344,13 @@ controls:
 
             basis.scale = 1.0f;
             object_get_orientation(&basis.forward, unit_index, &basis.up);
-            vector3d_cross_product(&basis.left, &basis.forward, &basis.up);
+            halo::math::vector3d_cross_product(basis.left, basis.forward, basis.up);
             basis.position = *zero_vector;
-            vector3d_rotate_toward_bounded((real_vector3d *)(obj + 0x260), (real_vector3d *)(obj + 0x26c),
-                (real *)(obj + 0x2c8), rate, acceleration, (real_vector3d *)(obj + 0x254), &basis);
+            halo::math::vector3d_rotate_toward_bounded((real_vector3d *)(obj + 0x260), (real_vector3d *)(obj + 0x26c),
+                (real *)(obj + 0x2c8), rate, acceleration, *(real_vector3d *)(obj + 0x254), &basis);
         } else {
-            vector3d_rotate_toward_with_acceleration((real_vector3d *)(obj + 0x260), (real_vector3d *)(obj + 0x254),
-                (real_vector3d *)(obj + 0x26c), rate, acceleration);
+            halo::math::vector3d_rotate_toward_with_acceleration((real_vector3d *)(obj + 0x260), *(real_vector3d *)(obj + 0x254),
+                *(real_vector3d *)(obj + 0x26c), rate, acceleration);
         }
 
         if (!unit_updates_suppressed) {

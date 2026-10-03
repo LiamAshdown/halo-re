@@ -15,6 +15,7 @@
 #include "cache.h"
 
 #include "halo/game/game1_koth.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern uint8_t hill_pulse_fade_done;
@@ -71,7 +72,6 @@ extern int32_t game_engine_find_valid_starting_locations(real_point3d *origin,
     int32_t max_results, int32_t *results);
 extern void point3d_array_project_to_xy_plane(real_point3d *source, Point2D *destination,
     int32_t count);
-extern int16_t polygon2d_convex_hull_build(int32_t count, Point2D *points);
 extern Globals *global_globals;
 extern double sqrt(double x);
 extern double fabs(double x);
@@ -84,11 +84,9 @@ extern game_engine_state game_engine_state_value;
 extern void unit_reset_gauge_if_flagged(void);
 extern void game_engine_koth_alt_scorer_tick(uint32_t player_index);
 extern void game_engine_koth_update_occupant_table(uint32_t index);
-extern random_seed random_seed_global;
 extern void game_engine_broadcast_kill_feed_by_relationship(uint32_t source_player,
     int32_t no_source_message, int32_t message_a, int32_t message_b, uint32_t subject, uint8_t broadcast);
 extern uint16_t unit_find_weapon_index_by_flag(uint32_t unit_index, uint8_t flag_bit);
-extern uint8_t polygon2d_point_inside_margin(int16_t vertex_count, Point2D *point, int32_t margin);
 extern uint8_t king_hill_player_in_hill[16];
 extern int32_t king_bucket_last_credit_tick[16];
 extern uint8_t game_engine_koth_player_in_hill_bounds(uint32_t player_index);
@@ -125,6 +123,17 @@ extern void rasterizer_transparent_geometry_group_build(int32_t tag_data, int32_
 extern void rasterizer_model_draw_restore_states(void);
 extern uint8_t king_hill_single_occupant_flag;
 extern king_globals king_hill_state_globals;
+}
+
+/**
+ * Calls halo::math::polygon2d_point_inside_margin with the three arguments the koth code was reversed with (count,
+ * point, margin); the function also takes the vertex array, which the original passed in ECX and the reversal has
+ * not identified yet.
+ */
+static uint8_t polygon2d_point_inside_margin_unresolved(int16_t count, Point2D *point, int32_t margin)
+{
+    using call_t = uint8_t (*)(int16_t, Point2D *, int32_t);
+    return reinterpret_cast<call_t>(&halo::math::polygon2d_point_inside_margin)(count, point, margin);
 }
 
 namespace halo::game::engine1 {
@@ -427,7 +436,7 @@ void Koth::build_hill_boundary(void)
     }
 
     point3d_array_project_to_xy_plane(points, hull_points, count);
-    hull_count = polygon2d_convex_hull_build(count, hull_points);
+    hull_count = halo::math::polygon2d_convex_hull_build(reinterpret_cast<real_point2d *>(hull_points), count, reinterpret_cast<int16_t *>(hull_points));
     king_starting_location_count = hull_count;
 
     if (hull_count > 0) {
@@ -673,8 +682,8 @@ void Koth::find_marker_position(real_point3d *out_position, int16_t type_filter)
 
         if (matching != 0) {
             int32_t pick;
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-            pick = (int16_t)(((random_seed_global >> 0x10) *
+            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            pick = (int16_t)(((halo::math::globals().random_seed_global >> 0x10) *
                               (uint32_t)(int32_t)(int16_t)matching) >> 0x10);
 
             for (i = 0; i < flag_count; i++) {
@@ -758,7 +767,7 @@ uint8_t Koth::player_in_hill_bounds(uint32_t player_index)
         Point2D point;
         point.x = unit_obj->bounding_center.x;
         point.y = unit_obj->bounding_center.y;
-        return polygon2d_point_inside_margin((int16_t)king_starting_location_count, &point, 0);
+        return polygon2d_point_inside_margin_unresolved((int16_t)king_starting_location_count, &point, 0);
     }
     return 0;
 }

@@ -16,6 +16,7 @@
 #include "render.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -37,7 +38,6 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t console_debug_toggle_6893ec;
 extern uint32_t rasterizer_device_version;
 extern void *rasterizer_device;
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern int16_t camera_get_type_for_player(int16_t local_player_index);
 extern player_globals *local_player_globals;
 extern data_array *player_data;
@@ -56,8 +56,6 @@ extern void render_model(TagID model_tag_id, void *node_matrices, float level_of
     uint8_t *region_permutations, ColorRGB *change_colors, float *function_out_values, render_lighting *lighting,
     real_point3d *bounding_center, float bounding_radius, render_model_effect *effect, datum_index object_index,
     uint16_t forced_shader_permutation, uint32_t flags);
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
 extern uint8_t rasterizer_object_shadow_begin(real_matrix4x3 *projection, ColorRGB *color, float radius,
     float *out_radius);
 extern rasterizer_window_parameters rasterizer_window;
@@ -327,9 +325,9 @@ uint8_t halo::render::ObjectRenderData::shadow_begin(float fade)
     ColorRGB color;
     float t;
 
-    vector3d_build_perpendicular(&forward, &lighting->shadow_vector);
-    vector3d_normalize_with_length(&forward);
-    matrix4x3_from_forward_up(&lighting->shadow_vector, &forward, &data->shadow_matrix);
+    halo::math::vector3d_build_perpendicular(forward, lighting->shadow_vector);
+    halo::math::vector3d_normalize_with_length(forward);
+    halo::math::matrix4x3_from_forward_up(lighting->shadow_vector, forward, data->shadow_matrix);
     data->shadow_matrix.position = center;
 
     color = lighting->shadow_color;
@@ -720,7 +718,7 @@ void step_direction_toward(real_vector3d *current, real_vector3d *target, float 
         }
         cur[i] = cur[i] + step;
     }
-    vector3d_normalize_with_length(current);
+    halo::math::vector3d_normalize_with_length(*current);
 }
 
 /**

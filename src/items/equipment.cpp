@@ -1,4 +1,5 @@
 #include "halo/items/items.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern real equipment_network_update_position_tolerance;
@@ -16,8 +17,6 @@ extern uint8_t network_object_index_cache[];
 extern int32_t network_index_cache_find_or_allocate_slot(uint8_t *container, int32_t key);
 extern int message_delta_encode_message(int flag, int message_type, int changed_offset, void **items, int type_offset, int count, char force_changed);
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand);
 extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key);
 extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
 extern tag_instance *tag_instances;
@@ -268,10 +267,10 @@ void equipment_ref::create_from_creation_message(void *incoming_record)
 
     forward = decoded.forward;
     up = decoded.up;
-    vector3d_cross_product(&cross, &up, &forward);
-    vector3d_cross_product(&up, &forward, &cross);
-    vector3d_normalize_with_length(&forward);
-    vector3d_normalize_with_length(&up);
+    halo::math::vector3d_cross_product(cross, up, forward);
+    halo::math::vector3d_cross_product(up, forward, cross);
+    halo::math::vector3d_normalize_with_length(forward);
+    halo::math::vector3d_normalize_with_length(up);
 
     role_material = 0xffffffff;
     if (decoded.parent_hash != 0) {

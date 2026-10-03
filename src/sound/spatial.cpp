@@ -5,6 +5,7 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/math/api.hpp"
 
 namespace halo::sound {
 
@@ -236,18 +237,18 @@ void update_listener(void)
     }
     listener->underwater = underwater;
 
-    matrix4x3_from_forward_up((real_vector3d *)&camera->up, (real_vector3d *)&camera->forward,
-        (real_matrix4x3 *)&listener->scale);
+    halo::math::matrix4x3_from_forward_up(*((real_vector3d *)&camera->up), *((real_vector3d *)&camera->forward),
+        *((real_matrix4x3 *)&listener->scale));
 
     listener->position = camera->position;
 
-    matrix4x3_inverse_transform_vector((real_vector3d *)&listener->velocity, (real_vector3d *)&camera->velocity,
-        (real_matrix4x3 *)&listener->scale);
+    halo::math::matrix4x3_inverse_transform_vector(*((real_vector3d *)&listener->velocity), *((real_vector3d *)&camera->velocity),
+        *((real_matrix4x3 *)&listener->scale));
 
 push_listener_parameters:
     params.position = *(Point3D *)global_zero_vector3d_pointer;
-    params.forward = *(Vector3D *)global_forward3d_pointer;
-    params.up = *(Vector3D *)global_up3d_pointer;
+    params.forward = *(Vector3D *)halo::math::globals().global_forward3d_pointer;
+    params.up = *(Vector3D *)halo::math::globals().global_up3d_pointer;
     params.velocity = *(Vector3D *)global_origin3d_pointer;
     params.environment = &sound_environment;
     audio_device().set_listener(&params);

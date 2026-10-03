@@ -1,14 +1,11 @@
 #include "halo/effects/effects.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
-extern random_seed effect_random_seed;
-extern real_point3d *sphere_point_table;
-extern int16_t sphere_point_table_count;
 extern const real_point3d *global_origin3d_pointer;
 extern real effect_property_random_value(uint8_t bit_index, effect *self, uint32_t a_bitset, uint32_t b_bitset, random_seed *seed, real base_min, real base_max);
 extern double cos(double x);
 extern double sin(double x);
-extern void vector3d_rotate_about_axis(real_vector3d *v, real_vector3d *axis, real sin_angle, real cos_angle);
 float effect_distribution_function_evaluate(EffectDistributionFunction_t type, float fraction);
 void effect_random_direction_from_table(real_point3d *out);
 void effect_random_direction_vector(random_seed *seed, real_point3d *out, real min, real max, effect *self, uint32_t a_bitset, uint32_t b_bitset);
@@ -56,9 +53,9 @@ void effect_random::direction_from_table(real_point3d *out)
 {
     int16_t index;
 
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    index = (int16_t)(((effect_random_seed >> k_random_value_shift) * (uint32_t)(int32_t)sphere_point_table_count) >> 16);
-    *out = sphere_point_table[index];
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    index = (int16_t)(((halo::math::globals().effect_random_seed >> k_random_value_shift) * (uint32_t)(int32_t)halo::math::globals().sphere_point_table_count) >> 16);
+    *out = halo::math::globals().sphere_point_table[index];
 }
 
 /**
@@ -78,11 +75,11 @@ void effect_random::direction_vector(random_seed *seed, real_point3d *out, real 
         int16_t index;
 
         *seed = *seed * k_random_multiplier + k_random_increment;
-        index = (int16_t)(((*seed >> k_random_value_shift) * (uint32_t)(int32_t)sphere_point_table_count) >> 16);
+        index = (int16_t)(((*seed >> k_random_value_shift) * (uint32_t)(int32_t)halo::math::globals().sphere_point_table_count) >> 16);
 
-        out->x = magnitude * sphere_point_table[index].x;
-        out->y = magnitude * sphere_point_table[index].y;
-        out->z = magnitude * sphere_point_table[index].z;
+        out->x = magnitude * halo::math::globals().sphere_point_table[index].x;
+        out->y = magnitude * halo::math::globals().sphere_point_table[index].y;
+        out->z = magnitude * halo::math::globals().sphere_point_table[index].z;
     } else {
         *out = *global_origin3d_pointer;
     }
@@ -95,8 +92,8 @@ void effect_random::direction_vector(random_seed *seed, real_point3d *out, real 
  */
 real effect_random::fraction()
 {
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    return (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    return (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f;
 }
 
 /**
@@ -107,8 +104,8 @@ real effect_random::fraction()
  */
 int16_t effect_random::int_between(int16_t minimum, int16_t maximum)
 {
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    return (int16_t)((int)((uint32_t)(((int)maximum - (int)minimum) * (int)(effect_random_seed >> k_random_value_shift)) >> 16) +
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    return (int16_t)((int)((uint32_t)(((int)maximum - (int)minimum) * (int)(halo::math::globals().effect_random_seed >> k_random_value_shift)) >> 16) +
                      minimum);
 }
 
@@ -131,8 +128,8 @@ real effect_random::scaled_range(uint32_t flags, real scale, real base_min, real
     if ((flags & (1u << ((bit_index + 1) & 0x1f))) != 0) {
         span = span * scale;
     }
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    return (real)(effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * span + lower;
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    return (real)(halo::math::globals().effect_random_seed >> k_random_value_shift) * 1.5259022e-05f * span + lower;
 }
 
 /**
@@ -142,8 +139,8 @@ real effect_random::scaled_range(uint32_t flags, real scale, real base_min, real
  */
 uint32_t effect_random::uint16()
 {
-    effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-    return effect_random_seed >> k_random_value_shift;
+    halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+    return halo::math::globals().effect_random_seed >> k_random_value_shift;
 }
 
 /**
@@ -180,12 +177,12 @@ void effect_random::velocity_vector(effect *self, random_seed *seed, real_vector
         *seed = *seed * k_random_multiplier + k_random_increment;
         sin_angle = (real)sin(angle);
 
-        index = (int16_t)(((*seed >> k_random_value_shift) * (uint32_t)(int32_t)sphere_point_table_count) >> 16);
-        axis.i = sphere_point_table[index].x;
-        axis.j = sphere_point_table[index].y;
-        axis.k = sphere_point_table[index].z;
+        index = (int16_t)(((*seed >> k_random_value_shift) * (uint32_t)(int32_t)halo::math::globals().sphere_point_table_count) >> 16);
+        axis.i = halo::math::globals().sphere_point_table[index].x;
+        axis.j = halo::math::globals().sphere_point_table[index].y;
+        axis.k = halo::math::globals().sphere_point_table[index].z;
 
-        vector3d_rotate_about_axis(out_direction, &axis, sin_angle, cos_angle);
+        halo::math::vector3d_rotate_about_axis(*out_direction, axis, sin_angle, cos_angle);
     }
 
     out_velocity->i = magnitude * out_direction->i;

@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/math/api.hpp"
 
 namespace halo::ai {
 
@@ -6,8 +7,6 @@ namespace actor_new_local {
 extern "C" {
 extern data_array *actor_data;
 extern tag_instance *tag_instances;
-extern const real_vector3d *global_forward3d_pointer;
-extern real random_real(void);
 extern datum_index datum_new(data_array *array);
 extern void actor_clear_recognition_history(datum_index actor_index, uint8_t keep_when_typed);
 extern void actor_dispatch_type_vtable_0x10(datum_index actor_index);
@@ -117,7 +116,7 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
     self->panic_cooldown_time = (datum_index)k_datum_index_none;
 
     if (actor_tag->glass_ignorance_chance > 0.0f) {
-        self->ignores_glass = random_real() < actor_tag->glass_ignorance_chance;
+        self->ignores_glass = halo::math::random_real() < actor_tag->glass_ignorance_chance;
     }
 
     self->vocalization_unknown_3e8 = 0;
@@ -147,9 +146,9 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
     self->avoidance_turn_around_ticks = -1;
     self->vocalization_line = 0;
     self->vocalization_state = 0;
-    self->desired_aiming_vector = *(const real_point3d *)global_forward3d_pointer;
-    self->desired_facing_vector = *(const real_point3d *)global_forward3d_pointer;
-    self->desired_looking_vector = *(const real_point3d *)global_forward3d_pointer;
+    self->desired_aiming_vector = *(const real_point3d *)halo::math::globals().global_forward3d_pointer;
+    self->desired_facing_vector = *(const real_point3d *)halo::math::globals().global_forward3d_pointer;
+    self->desired_looking_vector = *(const real_point3d *)halo::math::globals().global_forward3d_pointer;
     self->grenade_eligible = 0;
     self->grenade_recheck_ticks = 30;
     self->target_combat_status = 0;
@@ -391,7 +390,6 @@ namespace actor_point_in_directional_lane_local {
 extern "C" {
 extern double sqrt(double x);
 extern double fabs(double x);
-extern real vector2d_normalize_with_length(real_vector2d *v);
 }
 }
 
@@ -428,7 +426,7 @@ uint8_t ActorOps::point_in_directional_lane(real_point3d *to_point, real_point3d
     if (!(point.j * cone_axis->y + point.i * cone_axis->x > min_cos_threshold)) {
         return 0;
     }
-    if (!(vector2d_normalize_with_length(&facing) > 0.0f)) {
+    if (!(halo::math::vector2d_normalize_with_length(facing) > 0.0f)) {
         return 0;
     }
     cross = point.i * facing.j - facing.i * point.j;
@@ -440,7 +438,6 @@ uint8_t ActorOps::point_in_directional_lane(real_point3d *to_point, real_point3d
 
 namespace actor_probe_step_direction_local {
 extern "C" {
-extern uint32_t random_seed_global;
 extern uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *direction, float step_distance, float step_up,
                                              uint8_t *out_flag, void *extra_param);
 }
@@ -481,8 +478,8 @@ uint8_t ActorView::probe_step_direction(float step_distance, real_vector2d *dire
         break;
     case 4: {
         uint32_t rng;
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        rng = (uint32_t)random_seed_global;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        rng = (uint32_t)halo::math::globals().random_seed_global;
         if ((uint16_t)(rng >> 0x10) <= 0x8000) {
             probe.i = direction->j;
             probe.j = -direction->i;
@@ -718,7 +715,6 @@ extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern network_client_globals *network_client;
 extern void *datum_get(datum_index handle, data_array *array);
-extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
 extern void player_update_history_free_all(void *history);
 extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up,
     real_point3d *position);
@@ -784,7 +780,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     {
         uint8_t *reloaded = OBJECT_DATA(object_index);
 
-        matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
+        halo::math::matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
             (real_matrix4x3 *)(model_nodes + 0x68), &basis);
     }
     *(real_vector3d *)&((struct object *)self)->forward.i = basis.forward;
@@ -1505,7 +1501,6 @@ namespace actor_request_move_and_face_local {
 extern "C" {
 extern data_array *actor_data;
 extern tag_instance *tag_instances;
-extern real random_real_range(real min, real max);
 extern uint32_t actor_get_firing_position_group_mask(datum_index actor_index, int16_t kind, int16_t search_override);
 extern uint32_t actor_find_best_firing_position(datum_index actor_index, actor_firing_position_query *query,
     actor_firing_position_candidate *out_candidate, uint32_t *out_previous_owner, path_find_context *path_context,
@@ -1573,7 +1568,7 @@ uint8_t ActorView::request_move_and_face()
             *(int16_t *)(actor + 0xc4) = claimed;
         }
     }
-    *(int16_t *)&((struct actor *)actor)->mode_data = (int16_t)(int32_t)(random_real_range(*(float *)(actor_tag + 0x3b8),
+    *(int16_t *)&((struct actor *)actor)->mode_data = (int16_t)(int32_t)(halo::math::random_real_range(*(float *)(actor_tag + 0x3b8),
         *(float *)(actor_tag + 0x3bc)) * 30.0f);
     return 0;
 }
@@ -1581,7 +1576,6 @@ uint8_t ActorView::request_move_and_face()
 namespace actor_reseed_movement_pause_timer_local {
 extern "C" {
 extern data_array *actor_data;
-extern uint32_t random_seed_global;
 extern void * actor_get_actor_definition(datum_index actor_index);
 extern void actor_select_stance_offset_pair(datum_index actor_index, uint8_t *base, uint8_t **out_a, uint8_t **out_b);
 extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
@@ -1607,8 +1601,8 @@ void ActorView::reseed_movement_pause_timer()
     actor_select_stance_offset_pair(actor_index, (uint8_t *)definition, &entry_a, &entry_b);
     upper = *(float *)(entry_a + 0x20);
     lower = *(float *)(entry_a + 0x1c);
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    fraction = (float)(int32_t)(random_seed_global >> 0x10) * 1.5259022e-05f;
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    fraction = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
     pause = fraction * (upper - lower) + lower;
     pause = weapon_get_zoom_fov_resolved(0xe, ((struct actor *)self)->team) * pause;
     if (entry_b != 0 && *(float *)(entry_b + 4) != 0.0f) {
@@ -1703,8 +1697,6 @@ namespace actor_resolve_look_target_local {
 extern "C" {
 extern data_array *actor_data;
 extern tag_instance *tag_instances;
-extern const real_vector3d *global_forward3d_pointer;
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern uint8_t actor_select_facing_target_prop(datum_index actor_index, uint8_t require_trust, uint8_t skip_lane_test,
                                                 actor_recognition_scan_result *out_result, uint8_t *out_in_front);
 extern uint8_t actor_look_pick_random_point_in_cone(void *origin, float yaw_min, float yaw_max, float pitch_min, float pitch_max, real_vector3d *base_direction, uint8_t check_obstruction, real_point3d *out);
@@ -1761,8 +1753,8 @@ uint8_t ActorOps::resolve_look_target(real_point3d *preferred_direction, datum_i
                               : definition->idle_aiming_range.pitch;
 
             direction.k = 0.0f;
-            if (vector3d_normalize_with_length(&direction) == 0.0f) {
-                direction = *global_forward3d_pointer;
+            if (halo::math::vector3d_normalize_with_length(direction) == 0.0f) {
+                direction = *halo::math::globals().global_forward3d_pointer;
             }
         }
 
@@ -1791,7 +1783,6 @@ uint8_t ActorOps::resolve_look_target(real_point3d *preferred_direction, datum_i
 namespace actor_resolve_wander_or_look_direction_local {
 extern "C" {
 extern data_array *actor_data;
-extern real vector3d_normalize_with_length(real_vector3d *v);
 }
 }
 
@@ -1824,7 +1815,7 @@ uint8_t ActorView::resolve_wander_or_look_direction(real_vector3d *out_direction
         out_direction->k = self->desired_movement_vector.z;
     }
 
-    return vector3d_normalize_with_length(out_direction) != 0.0f;
+    return halo::math::vector3d_normalize_with_length(*out_direction) != 0.0f;
 }
 
 namespace actor_scale_value_by_ally_exposure_local {
@@ -2066,7 +2057,6 @@ extern data_array *prop_data;
 extern tag_instance *tag_instances;
 extern game_time_globals *game_time;
 extern double cos(double x);
-extern uint8_t point3d_within_horizontal_cone(real_point3d *to_point, real_point3d *reference, float min_cos_threshold);
 extern uint8_t actor_point_in_directional_lane(real_point3d *to_point, real_point3d *forward, real_point3d *cone_axis,
                                                 float min_cos_threshold, float side_thresholds[2]);
 }
@@ -2158,7 +2148,7 @@ uint8_t ActorView::select_facing_target_prop(uint8_t require_trust, uint8_t skip
         if (skip_lane_test) {
             uint8_t accepted;
             if (require_trust == 0 || !still_valid) {
-                accepted = point3d_within_horizontal_cone((real_point3d *)&cur->direction, &self->desired_facing_vector, aiming_cos_threshold);
+                accepted = halo::math::point3d_within_horizontal_cone(*((real_point3d *)&cur->direction), self->desired_facing_vector, aiming_cos_threshold);
             } else {
                 accepted = 1;
             }
@@ -2500,7 +2490,6 @@ namespace actor_should_hold_position_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-extern uint32_t random_seed_global;
 }
 }
 
@@ -2534,8 +2523,8 @@ uint8_t ActorView::should_hold_position(uint8_t *definition)
         float hi = *(float *)(definition + 0x84);
         float r;
 
-        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-        r = (float)(int32_t)(random_seed_global >> 16) * 1.5259022e-05f;
+        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        r = (float)(int32_t)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f;
         self->firing_state_timer = (int16_t)(int32_t)(((hi - lo) * r + lo) * 30.0f);
     }
     return 1;
@@ -2575,8 +2564,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
 extern tag_instance *tag_instances;
-extern uint32_t random_seed_global;
-extern real random_real_range(real min, real max);
 extern double cos(double x);
 extern double sin(double x);
 extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
@@ -2642,8 +2629,8 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
                 float angle;
                 uint32_t random_bits;
 
-                random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                random_bits = random_seed_global >> 16;
+                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                random_bits = halo::math::globals().random_seed_global >> 16;
                 angle = (float)(int32_t)random_bits * 1.5259022e-05f * 6.2831855f;
                 object_placement_data_initialize(&placement, (datum_index)variant[8], (datum_index)k_datum_index_none);
                 placement.forward.i = (float)cos(angle);
@@ -2677,12 +2664,12 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
                     }
                     if (health_scale > 0.0f) {
                         real_vector3d impulse;
-                        float r1 = random_real_range(0.5f, 1.0f);
+                        float r1 = halo::math::random_real_range(0.5f, 1.0f);
                         float r2;
 
                         impulse.i = placement.forward.i * r1;
                         impulse.j = placement.forward.j * r1;
-                        r2 = random_real_range(0.8f, 1.5f);
+                        r2 = halo::math::random_real_range(0.8f, 1.5f);
                         impulse.i = impulse.i * health_scale;
                         impulse.j = impulse.j * health_scale;
                         impulse.k = r2 * health_scale;

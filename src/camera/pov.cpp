@@ -1,4 +1,5 @@
 #include "halo/camera/pov.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern player_control_globals *player_control_globals_ptr;
@@ -20,9 +21,6 @@ extern int16_t object_get_node_local_transform(datum_index object_index, const c
 extern const real_point3d *global_origin3d_pointer;
 extern void object_get_root_object_velocities(datum_index object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
 extern void vector3d_compute_up_from_forward(Vector3D *forward, Vector3D *out_up);
-extern void matrix4x3_from_forward_up_position(real_vector3d *up, real_vector3d *forward, real_point3d *position, real_matrix4x3 *out);
-extern void matrix4x3_inverse_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m);
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m);
 extern Globals *global_globals;
 extern void vector3d_catmull_rom_interpolate(Vector3D *source1, Vector3D *source3, Vector3D *source2, Vector3D *out, Vector3D *source0, float time0, float dt, float time);
 extern double fcos(double angle);
@@ -45,7 +43,6 @@ extern void first_person_camera_command_for_unit(datum_index unit, observer_comm
 extern void animation_get_root_node_matrix(real_matrix4x3 *out, int16_t frame, ModelAnimationsAnimation *animation, GBXModel *model);
 extern int32_t __ftol(double x);
 extern double atan2(double y, double x);
-extern void vector3d_rotate_about_axis(real_vector3d *v, const real_vector3d *axis, real sin_angle, real cos_angle);
 extern datum_index flying_camera_attached_object;
 extern editor_camera_data *flying_camera_data;
 extern Vector3D flying_camera_attached_offset;
@@ -64,7 +61,6 @@ extern uint8_t flying_camera_home_initialized;
 extern flying_camera_home flying_camera_home_location;
 extern float flying_camera_speed;
 extern uint8_t flying_camera_allow_roll;
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern director directors[1];
 void camera_first_person_compute_pov(director_camera_data *data, camera_input *input, observer_command *command);
 void first_person_camera_apply_weapon_offset(real_point3d *position, datum_index unit, real_vector3d *aiming_direction);
@@ -305,16 +301,16 @@ void FirstPersonCamera::for_unit_and_vector(observer_command *command, Vector3D 
                 }
             } else {
                 real_matrix4x3 seat_matrix;
-                matrix4x3_from_forward_up_position((real_vector3d *)&parent_object->up,
+                halo::math::matrix4x3_from_forward_up_position((real_vector3d *)&parent_object->up,
                                                     (real_vector3d *)&parent_object->forward,
-                                                    (real_point3d *)&parent_object->position, &seat_matrix);
-                matrix4x3_inverse_transform_normal((real_vector3d *)&command->parameters.forward,
-                                                    (real_vector3d *)&command->parameters.forward, &seat_matrix);
+                                                    *((real_point3d *)&parent_object->position), &seat_matrix);
+                halo::math::matrix4x3_inverse_transform_normal(*((real_vector3d *)&command->parameters.forward),
+                                                    *((real_vector3d *)&command->parameters.forward), seat_matrix);
                 vector3d_compute_up_from_forward(&command->parameters.forward, &command->parameters.up);
-                matrix4x3_transform_normal((real_vector3d *)&command->parameters.forward,
-                                            (real_vector3d *)&command->parameters.forward, &seat_matrix);
-                matrix4x3_transform_normal((real_vector3d *)&command->parameters.up,
-                                            (real_vector3d *)&command->parameters.up, &seat_matrix);
+                halo::math::matrix4x3_transform_normal(*((real_vector3d *)&command->parameters.forward),
+                                            *((real_vector3d *)&command->parameters.forward), seat_matrix);
+                halo::math::matrix4x3_transform_normal(*((real_vector3d *)&command->parameters.up),
+                                            *((real_vector3d *)&command->parameters.up), seat_matrix);
             }
         }
 
@@ -814,8 +810,8 @@ void EditorCamera::compute_pov(director_camera_data *data, camera_input *input, 
     command->parameters.forward.j = (float)sin(camera->yaw) * cos_pitch;
     command->parameters.forward.k = (float)sin(camera->pitch);
     vector3d_compute_up_from_forward(&command->parameters.forward, &command->parameters.up);
-    vector3d_rotate_about_axis((real_vector3d *)&command->parameters.up,
-        (const real_vector3d *)&command->parameters.forward,
+    halo::math::vector3d_rotate_about_axis(*((real_vector3d *)&command->parameters.up),
+        *((const real_vector3d *)&command->parameters.forward),
         (real)sin(camera->roll), (real)cos(camera->roll));
 
     if (input->has_look_input) {
@@ -1072,7 +1068,7 @@ void FlyingCamera::update(director_camera_data *data, camera_input *input, obser
     forward->k = (float)sin(camera->pitch);
     right.j = -forward->i;
     right.i = forward->j;
-    if (vector3d_normalize_with_length(&right) == 0.0f) {
+    if (halo::math::vector3d_normalize_with_length(right) == 0.0f) {
         right.i = 1.0f;
         right.j = 0.0f;
         right.k = 0.0f;
@@ -1080,7 +1076,7 @@ void FlyingCamera::update(director_camera_data *data, camera_input *input, obser
     up->i = right.j * forward->k - right.k * forward->j;
     up->j = right.k * forward->i - right.i * forward->k;
     up->k = right.i * forward->j - right.j * forward->i;
-    vector3d_rotate_about_axis((real_vector3d *)up, (const real_vector3d *)forward,
+    halo::math::vector3d_rotate_about_axis(*(real_vector3d *)up, *(const real_vector3d *)forward,
         (real)sin(camera->roll), (real)cos(camera->roll));
 
     cos_yaw = (float)cos(camera->yaw);

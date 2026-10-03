@@ -5,18 +5,13 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 
 extern BitmapData *bitmap_group_get_bitmap_data(uint32_t bitmap_tag_id, int16_t index);
 extern void shader_environment_texture_scrolling_evaluate(float *u, float *v, double time, const ShaderEnvironment *shader);
-extern real periodic_function_evaluate(periodic_function_t type, double time);
-extern void matrix4x3_from_euler_angles(real_matrix4x3 *out, real yaw, real pitch, real roll);
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern uint32_t color_rgb_float_to_int(const ColorRGB *color);
-extern void plane3d_from_point_and_normal(real_plane3d *plane, const real_vector3d *normal, const real_point3d *point);
 
 }  // extern "C"
 
@@ -147,16 +142,16 @@ void rasterizer_light_cone_set_orientation_constants(int32_t light_index)
                                               &rasterizer_effects[4]);
     }
 
-    yaw = periodic_function_evaluate(*(int16_t *)((uint8_t *)light->definition + 0x8e), rasterizer_time.time / *(float *)((uint8_t *)light->definition + 0x90)) * 6.2831855f;
-    pitch = periodic_function_evaluate(*(int16_t *)((uint8_t *)light->definition + 0x9e), rasterizer_time.time / *(float *)((uint8_t *)light->definition + 0xa0)) * 6.2831855f;
-    roll = periodic_function_evaluate(*(int16_t *)((uint8_t *)light->definition + 0x96), rasterizer_time.time / *(float *)((uint8_t *)light->definition + 0x98)) * 6.2831855f;
+    yaw = halo::math::periodic_function_evaluate(*(int16_t *)((uint8_t *)light->definition + 0x8e), rasterizer_time.time / *(float *)((uint8_t *)light->definition + 0x90)) * 6.2831855f;
+    pitch = halo::math::periodic_function_evaluate(*(int16_t *)((uint8_t *)light->definition + 0x9e), rasterizer_time.time / *(float *)((uint8_t *)light->definition + 0xa0)) * 6.2831855f;
+    roll = halo::math::periodic_function_evaluate(*(int16_t *)((uint8_t *)light->definition + 0x96), rasterizer_time.time / *(float *)((uint8_t *)light->definition + 0x98)) * 6.2831855f;
 
-    matrix4x3_from_euler_angles(&orientation, yaw, pitch, roll);
-    matrix4x3_transform_normal(&axis_a, &light->forward, &orientation);
-    matrix4x3_transform_normal(&axis_b, &light->up, &orientation);
+    halo::math::matrix4x3_from_euler_angles(orientation, yaw, pitch, roll);
+    halo::math::matrix4x3_transform_normal(axis_a, light->forward, orientation);
+    halo::math::matrix4x3_transform_normal(axis_b, light->up, orientation);
 
-    vector3d_cross_product(&axis_c, &axis_b, &axis_a);
-    vector3d_normalize_with_length(&axis_c);
+    halo::math::vector3d_cross_product(axis_c, axis_b, axis_a);
+    halo::math::vector3d_normalize_with_length(axis_c);
 
     constants_vs[0][0] = light->position.x;
     constants_vs[0][1] = light->position.y;
@@ -361,8 +356,8 @@ void rasterizer_light_set(rasterizer_light *light)
 
             if ((*(uint8_t *)(uintptr_t)light->definition & 0x10) != 0) {
 
-                vector3d_cross_product(&flashlight_offset, &light->up, &light->forward);
-                vector3d_normalize_with_length(&flashlight_offset);
+                halo::math::vector3d_cross_product(flashlight_offset, light->up, light->forward);
+                halo::math::vector3d_normalize_with_length(flashlight_offset);
                 d3dlight[0x34 / 4] -= flashlight_offset.i * 0.3f;
                 d3dlight[0x38 / 4] -= flashlight_offset.j * 0.3f;
                 d3dlight[0x3c / 4] -= flashlight_offset.k * 0.3f;
@@ -603,8 +598,8 @@ void rasterizer_projected_light_constants_build_cube_map(int32_t light_index)
         cube_map_tag_index = *(int32_t *)&((struct Light *)definition)->secondary_cube_map.tag_id;
     }
 
-    vector3d_cross_product(&cross_axis, &light->up, &light->forward);
-    vector3d_normalize_with_length(&cross_axis);
+    halo::math::vector3d_cross_product(cross_axis, light->up, light->forward);
+    halo::math::vector3d_normalize_with_length(cross_axis);
 
     rasterizer_projected_light.position = light->position;
     radius = ((struct Light *)definition)->specular_radius_multiplier * light->radius;
@@ -702,7 +697,7 @@ void rasterizer_set_fog_constants(const render_fog *fog)
     } else if (window_fog->planar_mode == 2) {
 
         window_fog->planar_maximum_depth = 1.0f;
-        plane3d_from_point_and_normal(&window_fog->plane, camera_forward, camera_position);
+        halo::math::plane3d_from_point_and_normal(window_fog->plane, *camera_forward, *camera_position);
         window_fog->plane.d = window_fog->plane.d + rasterizer_window.camera.z_far;
     }
 

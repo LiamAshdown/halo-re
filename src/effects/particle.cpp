@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *particle_data;
@@ -9,9 +10,7 @@ extern void particle_impact_response_dispatch(particle *self, tag_group fourcc, 
 extern void datum_delete(data_array *array, datum_index handle);
 extern datum_index effect_new_with_color(uint32_t definition_index, uint32_t creator, real_vector3d *velocity, int32_t count, char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale, int32_t color, int32_t tint, int32_t force);
 extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern const real_vector3d *global_down3d_pointer;
-extern const real_vector3d *global_forward3d_pointer;
 extern char *particle_impact_vector_names[2];
 extern data_array *object_data;
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -20,14 +19,11 @@ extern uint8_t *first_person_weapon_interfaces;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern int32_t render_frame_index;
 extern datum_index datum_new(data_array *array);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *in, real_matrix4x3 *m);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern real random_range_real(real minimum, real maximum);
 extern uint16_t effect_random_uint16(void);
 extern int effect_random_int_between(int16_t minimum, int16_t maximum);
 extern real particle_current_radius(datum_index particle_handle);
 extern void object_sample_ambient_lightmap_point(real_point3d *point, real_vector3d *lightmap_color, real_vector3d *base_map_color, uint8_t wait_for_textures);
-extern random_seed effect_random_seed;
 extern void particle_impact(datum_index particle_handle);
 extern double sqrt(double x);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
@@ -203,14 +199,14 @@ void particle_ref::impact_response_dispatch(particle *self, tag_group fourcc, da
         points[1] = self->position;
         vectors[0] = self->direction;
         vectors[1] = *global_down3d_pointer;
-        vector3d_normalize_with_length(&vectors[0]);
+        halo::math::vector3d_normalize_with_length(vectors[0]);
         effect_new_with_color(definition_index, 0xffffffff, &velocity, 2, particle_impact_vector_names, points,
             vectors, intensity, 0.0f, 0, 0, 0);
     } else if (fourcc == 0x736e6421) {
         sound_placement placement;
 
         placement.position = *(Point3D *)&self->position;
-        placement.forward = *(Vector3D *)global_forward3d_pointer;
+        placement.forward = *(Vector3D *)halo::math::globals().global_forward3d_pointer;
         placement.velocity = *(Vector3D *)&velocity;
         *(bsp_leaf_reference *)&placement.leaf_index = self->location;
         sound_start_at_location(definition_index, &placement, intensity);
@@ -246,12 +242,12 @@ void particle_ref::create(particle_creation_data *creation_data)
         object *obj = ((object_header *)object_data->data)[creation_data->object_index & 0xffff].data;
         real_matrix4x3 *marker = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset +
             creation_data->marker_index * 0x34);
-        matrix4x3_transform_point(&position, &creation_data->position, marker);
+        halo::math::matrix4x3_transform_point(position, creation_data->position, *marker);
     } else {
         real_matrix4x3 *marker = (real_matrix4x3 *)(first_person_weapon_interfaces + 0x108c +
             creation_data->first_person_weapon_index * 0x1ea0 +
             (uint16_t)creation_data->marker_index * 0x34);
-        matrix4x3_transform_point(&position, &creation_data->position, marker);
+        halo::math::matrix4x3_transform_point(position, creation_data->position, *marker);
     }
 
     leaf = bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)global_collision_bsp, &position);
@@ -294,7 +290,7 @@ void particle_ref::create(particle_creation_data *creation_data)
             self->sequence_state = _particle_sequence_state_new;
             self->last_update_tick = render_frame_index;
 
-            speed = random_range_real(tag->lifespan[0], tag->lifespan[1]);
+            speed = halo::math::random_range_real(tag->lifespan[0], tag->lifespan[1]);
             if (speed > 0.7f) {
                 speed = (speed - 0.7f) / (real)local_player_globals->local_player_count + 0.7f;
             }
@@ -305,7 +301,7 @@ void particle_ref::create(particle_creation_data *creation_data)
             if (tag->animation_rate[1] == 0.0f) {
                 self->inverse_animation_period = 3.4028235e+38f;
             } else {
-                self->inverse_animation_period = 1.0f / random_range_real(tag->animation_rate[0],
+                self->inverse_animation_period = 1.0f / halo::math::random_range_real(tag->animation_rate[0],
                                                                            tag->animation_rate[1]);
             }
 
@@ -387,8 +383,8 @@ uint8_t particle_ref::next_sequence()
 
     if (self->sequence_state == _particle_sequence_state_new) {
         if (tag->initial_sequence_count > 0) {
-            effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-            self->sequence_index = (int16_t)(((effect_random_seed >> k_random_value_shift) *
+            halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+            self->sequence_index = (int16_t)(((halo::math::globals().effect_random_seed >> k_random_value_shift) *
                 (uint32_t)(int32_t)tag->initial_sequence_count) >> 16) + tag->first_sequence_index;
         }
         self->sequence_state = _particle_sequence_state_initial;
@@ -401,8 +397,8 @@ uint8_t particle_ref::next_sequence()
         if (!(self->age < self->lifespan) || tag->looping_sequence_count < 1) {
             self->sequence_state = self->sequence_state + 1;
         } else {
-            effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-            self->sequence_index = (int16_t)(((effect_random_seed >> k_random_value_shift) *
+            halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+            self->sequence_index = (int16_t)(((halo::math::globals().effect_random_seed >> k_random_value_shift) *
                 (uint32_t)(int32_t)tag->looping_sequence_count) >> 16) +
                 tag->initial_sequence_count + tag->first_sequence_index;
         }
@@ -410,8 +406,8 @@ uint8_t particle_ref::next_sequence()
 
     if (self->sequence_index == -1 && self->sequence_state == _particle_sequence_state_final) {
         if (tag->final_sequence_count > 0) {
-            effect_random_seed = effect_random_seed * k_random_multiplier + k_random_increment;
-            self->sequence_index = (int16_t)(((effect_random_seed >> k_random_value_shift) *
+            halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
+            self->sequence_index = (int16_t)(((halo::math::globals().effect_random_seed >> k_random_value_shift) *
                 (uint32_t)(int32_t)tag->final_sequence_count) >> 16) +
                 tag->looping_sequence_count + tag->initial_sequence_count + tag->first_sequence_index;
         }

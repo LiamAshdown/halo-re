@@ -73,7 +73,7 @@ set(SA "${CMAKE_SOURCE_DIR}/standalone")
 # the engine globals as extern "C" definitions (standalone/data/*.cpp), compiled with the game code's flags and headers
 file(GLOB DATA_SOURCES CONFIGURE_DEPENDS "${SA}/data/*.cpp")
 add_library(halo_data OBJECT ${DATA_SOURCES})
-target_include_directories(halo_data PRIVATE "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
+target_include_directories(halo_data PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
 target_compile_options(halo_data PRIVATE /std:c++20 /permissive- /GR- /W3 /Od /GS- /Oy- /Gy /wd4996
     "/FI${CMAKE_SOURCE_DIR}/harness/msvc_compat.h")
 set(SUPPORT_SOURCES

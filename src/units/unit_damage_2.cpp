@@ -1,6 +1,7 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
 #include "projectiles.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -8,8 +9,6 @@ extern tag_instance *tag_instances;
 extern Globals *global_globals;
 extern char ai_marker_name_a[];
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
 extern void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index, int32_t collision_surface_index);
@@ -48,8 +47,8 @@ void UnitView::melee_attack_scan()
 
     object_get_node_local_transform(unit_index, ai_marker_name_a, &marker, 1);
     origin = marker.node_transform.position;
-    vector3d_build_perpendicular(&perp, aim);
-    vector3d_normalize_with_length(&perp);
+    halo::math::vector3d_build_perpendicular(perp, *aim);
+    halo::math::vector3d_normalize_with_length(perp);
     side.i = aim->j * perp.k - aim->k * perp.j;
     side.j = aim->k * perp.i - aim->i * perp.k;
     side.k = aim->i * perp.j - aim->j * perp.i;

@@ -1,5 +1,6 @@
 #include "halo/game/gamerest_netgame.hpp"
 #include <stdint.h>
+#include "halo/math/api.hpp"
 
 #ifdef __cplusplus
 #define CTF_CUSTOM_WAYPOINT_ZERO custom_waypoint{}
@@ -42,8 +43,6 @@ extern datum_index game_engine_find_player_holding_object(datum_index target_obj
 extern uint8_t item_get_effective_position(datum_index object_index, real_point3d *out_position);
 extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point3d *position, float height_offset, datum_index player_filter, int16_t team_filter);
 extern int16_t hud_waypoint_arrow_find(void);
-extern real_vector3d *global_forward3d_pointer;
-extern real_vector3d *global_up3d_pointer;
 extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
 extern void object_reset_velocity_and_wake(uint32_t object_index);
 extern game_engine_definition *current_game_engine;
@@ -262,8 +261,8 @@ void CtfEngine::clear_carrier(datum_index flag_object_index, real_point3d *posit
 
     flag_obj = ((object_header *)object_data->data)[flag_object_index & 0xffff].data;
 
-    object_set_position_and_orientation(flag_object_index, global_forward3d_pointer,
-                                         global_up3d_pointer, position);
+    object_set_position_and_orientation(flag_object_index, halo::math::globals().global_forward3d_pointer,
+                                         halo::math::globals().global_up3d_pointer, position);
     object_reset_velocity_and_wake(flag_object_index);
 
     unknown_22c = (uint32_t *)((uint8_t *)flag_obj + 0x22c);

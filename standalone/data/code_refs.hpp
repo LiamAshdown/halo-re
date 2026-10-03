@@ -914,7 +914,6 @@ extern void lightnings_initialize();
 extern void machine_create();
 extern void machine_place();
 extern void map_list_matching_substring_evaluate();
-extern void matrix4x3_multiply();
 extern void message_delta_blob_compute_size();
 extern void message_delta_compound_compute_size();
 extern void message_delta_compound_initialize();

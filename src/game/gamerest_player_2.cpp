@@ -1,6 +1,7 @@
 #include "halo/game/gamerest_player.hpp"
 #include <string.h>
 #include <stdint.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -10,7 +11,6 @@ extern game_engine_definition *current_game_engine;
 extern int16_t network_game_mode;
 extern Globals *global_globals;
 extern Scenario *global_scenario;
-extern const real_vector3d *global_up3d_pointer;
 extern uint8_t network_message_scratch;
 extern tag_instance *tag_instances;
 extern network_server_globals *network_server;
@@ -41,11 +41,6 @@ extern real_vector3d *reference_axis_006696728;
 extern real_vector3d *global_down3d_pointer;
 extern double fcos(double radians);
 extern double fsin(double radians);
-extern void vector3d_cross_product(real_vector3d *out, real_vector3d *ecx_operand, real_vector3d *stack_operand);
-extern real vector3d_normalize_with_length(real_vector3d *v);
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m);
-extern random_seed random_seed_global;
 extern float k_random_scale_65536;
 extern double sqrt_pow_exponent;
 extern uint8_t netgame_equipment_game_type_matches(int16_t *types, int32_t count, int32_t current_engine_index);
@@ -189,7 +184,7 @@ void PlayerView::respawn()
         placement.forward.i = (real)cos(facing);
         placement.forward.j = (real)sin(facing);
         placement.forward.k = 0.0f;
-        placement.up = *global_up3d_pointer;
+        placement.up = *halo::math::globals().global_up3d_pointer;
         player_color = game_engine_get_player_color(player_index, color_buffer);
         color[0] = player_color[0];
         color[1] = player_color[1];
@@ -299,14 +294,14 @@ void PlayerView::compute_view_forward_vector(real *yaw_pitch, real_vector3d *out
         return;
     }
 
-    vector3d_cross_product(&cross_result, reference_axis_006696728, &parent_obj->up);
-    length = vector3d_normalize_with_length(&cross_result);
+    halo::math::vector3d_cross_product(cross_result, *reference_axis_006696728, parent_obj->up);
+    length = halo::math::vector3d_normalize_with_length(cross_result);
     if (length == 0.0f) {
-        vector3d_cross_product(&cross_result, global_down3d_pointer, &parent_obj->up);
-        vector3d_normalize_with_length(&cross_result);
+        halo::math::vector3d_cross_product(cross_result, *global_down3d_pointer, parent_obj->up);
+        halo::math::vector3d_normalize_with_length(cross_result);
     }
-    matrix4x3_from_forward_up(&parent_obj->up, &cross_result, &basis);
-    matrix4x3_transform_normal(out_forward, out_forward, &basis);
+    halo::math::matrix4x3_from_forward_up(parent_obj->up, cross_result, basis);
+    halo::math::matrix4x3_transform_normal(*out_forward, *out_forward, basis);
 }
 
 /**
@@ -354,9 +349,9 @@ int16_t PlayerView::pick_random_starting_location()
                 suitability = game_engine_rate_player_starting_location(location, player_handle);
             }
 
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
             {
-                float unit_random = (float)(random_seed_global >> 0x10) * k_random_scale_65536;
+                float unit_random = (float)(halo::math::globals().random_seed_global >> 0x10) * k_random_scale_65536;
                 float weight = (float)pow((double)unit_random, sqrt_pow_exponent) * suitability;
                 if (best_score < weight) {
                     best_score = weight;

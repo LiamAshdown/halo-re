@@ -1,4 +1,5 @@
 #include "halo/ai/actor_modes.hpp"
+#include "halo/math/api.hpp"
 
 namespace c_actor_mode_alert_movement_cancelled {
 extern "C" {
@@ -45,11 +46,9 @@ extern Scenario *global_scenario;
 #define D(o) (*(uint32_t *)(actor + (o)))
 #define F(o) (*(float *)(actor + (o)))
 
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);
 extern float actor_compute_accuracy_scale(datum_index actor_index);
 extern int32_t actor_select_move_position(uint32_t actor_index, int16_t select_mode, int32_t position_index,
     uint8_t *direction_flag);
-extern real random_real_range(real min, real max);
 extern uint8_t actor_movement_set_destination_move_position(datum_index actor_index, int16_t move_position_index);
 }
 }
@@ -74,7 +73,7 @@ uint8_t halo::ai::alert_mode::process()
         int ready = 1;
 
         if (current != -1 && B(0x4a8) != 0) {
-            float distance_squared = vector3d_distance_squared((real_point3d *)(actor + 0xa8), (real_point3d *)(actor + 0x12c));
+            float distance_squared = halo::math::vector3d_distance_squared(*(real_point3d *)(actor + 0xa8), *(real_point3d *)(actor + 0x12c));
             float radius = actor_compute_accuracy_scale(actor_index);
 
             if (!(radius > 0.5f)) {
@@ -103,7 +102,7 @@ uint8_t halo::ai::alert_mode::process()
 
         if (next >= 0 && next < *(int32_t *)(squad + 0xc4)) {
             uint8_t *position = *(uint8_t **)(squad + 0xc8) + next * 0x50;
-            float wait = random_real_range(*(float *)(position + 0x14), *(float *)(position + 0x18)) * 30.0f;
+            float wait = halo::math::random_real_range(*(float *)(position + 0x14), *(float *)(position + 0x18)) * 30.0f;
 
             W(0xa2) = W(0xa4);
             W(0xa4) = -1;
@@ -672,7 +671,6 @@ extern data_array *actor_data;
 extern real_vector2d *global_forward2d_pointer;
 
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
-extern real vector2d_normalize_with_length(real_vector2d *v);
 extern uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, uint32_t payload[2]);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
@@ -755,7 +753,7 @@ void halo::ai::obey_mode::update()
 
             direction[0] = D(0x5a4);
             direction[1] = D(0x5a8);
-            vector2d_normalize_with_length((real_vector2d *)direction);
+            halo::math::vector2d_normalize_with_length(*(real_vector2d *)direction);
             actor_queue_secondary_action(actor_index, W(0xfa), direction);
         }
         if (W(0xfc) != -1) {
@@ -782,7 +780,7 @@ void halo::ai::obey_mode::update()
         float y;
 
         direction = *(real_vector2d *)&((struct actor *)actor)->facing.i;
-        if (vector2d_normalize_with_length(&direction) == 0.0f) {
+        if (halo::math::vector2d_normalize_with_length(direction) == 0.0f) {
             x = global_forward2d_pointer->i;
             y = global_forward2d_pointer->j;
         } else {
@@ -824,7 +822,6 @@ extern data_array *actor_data;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 
 extern tag_instance *tag_instances;
-extern uint32_t random_seed_global;
 }
 }
 
@@ -854,8 +851,8 @@ void halo::ai::search_mode::enter()
         lo = *(float *)(actor_tag + 0x34c);
         hi = *(float *)(actor_tag + 0x350);
     }
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-    t = (float)(random_seed_global >> 16) * 1.5259022e-05f;
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    t = (float)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f;
     ticks = (int32_t)(((hi - lo) * t + lo) * 30.0f);
     ((struct actor *)act)->mode_data.search.duration_ticks = ticks;
     ((struct actor *)act)->mode_data.search.remaining_ticks = ticks;
@@ -911,7 +908,6 @@ extern data_array *prop_data;
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);
 extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
     uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator);
 extern int32_t actor_evaluate_engagement_reachability(int16_t self_cluster, int16_t target_cluster,
@@ -953,11 +949,11 @@ uint8_t halo::ai::search_mode::process()
     if (kind == 0 && ((actor *)act)->target_unit_index != k_datum_index_none) {
         uint8_t *target = PROP(((actor *)act)->target_unit_index);
         float radius = *(int16_t *)(target + 0x38) == 0 ? 1.7f : 0.7f;
-        float distance_squared = vector3d_distance_squared((real_point3d *)(act + 0x12c), (real_point3d *)(target + 0xbc));
+        float distance_squared = halo::math::vector3d_distance_squared(*(real_point3d *)(act + 0x12c), *(real_point3d *)(target + 0xbc));
 
         ((struct actor *)act)->mode_data.search.reachable = (uint8_t)(radius * radius > distance_squared);
     } else if (kind == 1 && ((struct actor *)act)->mode_data.search.firing_position != -1) {
-        float distance_squared = vector3d_distance_squared((real_point3d *)(act + 0x12c), &((struct actor *)act)->mode_data.search.position);
+        float distance_squared = halo::math::vector3d_distance_squared(*(real_point3d *)(act + 0x12c), *(&((struct actor *)act)->mode_data.search.position));
 
         if (distance_squared < 0.49f) {
             ((struct actor *)act)->mode_data.search.reachable = 1;
@@ -992,7 +988,7 @@ uint8_t halo::ai::search_mode::process()
 
                 sharing++;
                 if (!other[0x6] && !other[0x504] &&
-                    vector3d_distance_squared((real_point3d *)(other + 0x12c), (real_point3d *)(act + 0x12c)) < 0.64000005f) {
+                    halo::math::vector3d_distance_squared(*(real_point3d *)(other + 0x12c), *(real_point3d *)(act + 0x12c)) < 0.64000005f) {
                     close_idle++;
                 }
             }

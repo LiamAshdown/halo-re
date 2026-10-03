@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/math/api.hpp"
 
 namespace halo::ai {
 
@@ -10,7 +11,6 @@ extern void * datum_get(datum_index handle, data_array *array);
 extern void *object_try_and_get(datum_index object_index, int32_t kind);
 extern void object_get_position(real_point3d *out_position, datum_index object_index);
 extern void unit_get_primary_eye_marker_position(datum_index object_index, real_point3d *out);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 }
 }
 
@@ -111,7 +111,7 @@ uint8_t ActorOps::resolve_flee_source_point(actor_flee_source_reason *reason, re
         return 0;
     }
 
-    length = vector3d_normalize_with_length(out);
+    length = halo::math::vector3d_normalize_with_length(*out);
     return (0.0f < length) ? 1 : 0;
 }
 

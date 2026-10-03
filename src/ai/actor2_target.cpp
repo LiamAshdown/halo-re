@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/math/api.hpp"
 
 namespace halo::ai {
 
@@ -102,19 +103,16 @@ extern data_array *actor_data;
 extern data_array *prop_data;
 extern data_array *object_data;
 extern game_time_globals *game_time;
-extern const real_vector3d *global_forward3d_pointer;
 extern char ai_marker_name_a[];
 extern char ai_marker_name_b[];
 extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern void object_get_position(real_point3d *out_position, datum_index object_index);
 extern datum_index object_get_root_object_index(uint32_t object_index);
-extern real vector3d_magnitude_squared(real_vector3d *v);
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
     int16_t *weather_index_out);
 extern char unit_get_tag_flag_bit7(uint32_t unit_index);
 extern datum_index object_find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index, char stamp_group);
 extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 }
 }
 
@@ -157,7 +155,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
         }
         {
             if (((unit_obj->vitality_flags & 4) == 0 || *(int16_t *)((uint8_t *)unit_obj + 0x420) != 0) ||
-                (target->perception_level != 0 || 0.010000001f <= vector3d_magnitude_squared(&unit_obj->velocity))) {
+                (target->perception_level != 0 || 0.010000001f <= halo::math::vector3d_magnitude_squared(unit_obj->velocity))) {
                 is_eligible = 0;
             } else {
                 is_eligible = 1;
@@ -256,11 +254,11 @@ after_reassign:
     target->direction.x = target->last_known_position.x - *(float *)((uint8_t *)reference + 0xc);
     target->direction.y = target->last_known_position.y - *(float *)((uint8_t *)reference + 0x10);
     target->direction.z = target->last_known_position.z - *(float *)((uint8_t *)reference + 0x14);
-    length = vector3d_normalize_with_length((real_vector3d *)&target->direction);
+    length = halo::math::vector3d_normalize_with_length(*((real_vector3d *)&target->direction));
     target->distance = length;
 
     if (length == 0.0f) {
-        *(real_vector3d *)&target->direction = *global_forward3d_pointer;
+        *(real_vector3d *)&target->direction = *halo::math::globals().global_forward3d_pointer;
     }
 }
 
@@ -1721,7 +1719,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern void * datum_get(datum_index handle, data_array *array);
-extern real vector3d_distance_squared(real_point3d *a, real_point3d *b);
 }
 }
 
@@ -1752,7 +1749,7 @@ uint8_t ActorOps::targets_share_descriptor(datum_index actor_a, datum_index acto
         prop *prop_a = (prop *)datum_get(datum_a, prop_data);
         prop *prop_b = (prop *)datum_get(datum_b, prop_data);
         if (prop_a == (prop *)0 || prop_b == (prop *)0) return 0;
-        if (0.48999998f <= vector3d_distance_squared(&prop_b->last_known_position, &prop_a->last_known_position)) return 0;
+        if (0.48999998f <= halo::math::vector3d_distance_squared(prop_b->last_known_position, prop_a->last_known_position)) return 0;
     } else if (desc_a[0] == 1 && desc_b[0] == 1) {
         return desc_a[1] == desc_b[1];
     } else if (desc_a[0] != 2 || desc_b[0] != 2) {

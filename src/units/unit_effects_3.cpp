@@ -1,5 +1,6 @@
 #include "halo/units/unit.hpp"
 #include "projectiles.h"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -8,14 +9,9 @@ extern uint8_t material_table_warning_issued;
 extern int32_t material_table_bad_index;
 extern uint8_t material_table_fallback[0x374];
 extern const real_point3d *global_zero_vector3d_pointer;
-extern const real_vector3d *global_forward3d_pointer;
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
 extern data_array *object_data;
-extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out);
-extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m);
-extern void matrix4x3_transform_normal(real_vector3d *out, real_vector3d *normal, real_matrix4x3 *m);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
-extern uint8_t lerp_find_threshold_byte(real lo, real hi, real threshold);
 }
 
 namespace halo::units {
@@ -45,7 +41,7 @@ void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_t
 
     if (*(datum_index *)(material_record + 0x370) != k_datum_index_none) {
         sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer,
-            (Vector3D *)global_forward3d_pointer, *(datum_index *)(material_record + 0x370), -1, 1.0f, 0);
+            (Vector3D *)halo::math::globals().global_forward3d_pointer, *(datum_index *)(material_record + 0x370), -1, 1.0f, 0);
     }
 
     if (unit_tag_id != k_datum_index_none) {
@@ -53,7 +49,7 @@ void unit_trigger_material_hit_effect(int16_t material_index, datum_index unit_t
         datum_index effect = *(datum_index *)(tag_data + 0x120);
         if (effect != k_datum_index_none) {
             sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer,
-                (Vector3D *)global_forward3d_pointer, effect, -1, 1.0f, 0);
+                (Vector3D *)halo::math::globals().global_forward3d_pointer, effect, -1, 1.0f, 0);
         }
     }
 }
@@ -90,7 +86,7 @@ uint32_t UnitView::update_marker_traction_effects()
         return 0;
     }
     physics = (uint8_t *)tag_instances[*(uint32_t *)&((Unit *)tag)->base.physics.tag_id & 0xffff].data;
-    matrix4x3_from_forward_up((real_vector3d *)(obj + 0x80), (real_vector3d *)(obj + 0x74), &basis);
+    halo::math::matrix4x3_from_forward_up(*(real_vector3d *)(obj + 0x80), *(real_vector3d *)(obj + 0x74), basis);
     basis.position = *(real_point3d *)&((unit_object *)obj)->base.position.x;
 
     for (i = 0; (int32_t)i < *(int32_t *)(node_array + 0x68); i++) {
@@ -112,8 +108,8 @@ uint32_t UnitView::update_marker_traction_effects()
         mass_point = *(uint8_t **)(physics + 0x78) + (int32_t)contact_index * 0x80;
         old_byte = obj[0x4f4 + i];
         old = old_byte == 0xff ? 1.0f : (real)old_byte * 0.003921569f;
-        matrix4x3_transform_point(&point, (real_point3d *)(mass_point + 0x38), &basis);
-        matrix4x3_transform_normal(&normal, (real_vector3d *)(mass_point + 0x50), &basis);
+        halo::math::matrix4x3_transform_point(point, *(real_point3d *)(mass_point + 0x38), basis);
+        halo::math::matrix4x3_transform_normal(normal, *(real_vector3d *)(mass_point + 0x50), basis);
         range = *(real *)(entry + 4) - *(real *)(entry + 8);
         offset = *(real *)(entry + 8) - *(real *)(physics + 0x14) - range;
         origin.x = normal.i * offset + point.x;
@@ -134,7 +130,7 @@ uint32_t UnitView::update_marker_traction_effects()
         if (rise > max_rise) {
             max_rise = rise;
         }
-        obj[0x4f4 + i] = lerp_find_threshold_byte(0.0f, 1.0f, (v + old) * 0.5f);
+        obj[0x4f4 + i] = halo::math::lerp_find_threshold_byte(0.0f, 1.0f, (v + old) * 0.5f);
     }
 
     if (*(int32_t *)(tag + 0x3bc) != -1 && max_rise > 0.3f) {
@@ -145,7 +141,7 @@ uint32_t UnitView::update_marker_traction_effects()
             scale = 1.0f;
         }
         sound_start_at_object_marker(object_index, (Point3D *)global_zero_vector3d_pointer,
-            (Vector3D *)global_forward3d_pointer, *(datum_index *)(tag + 0x3bc), -1, scale, 0);
+            (Vector3D *)halo::math::globals().global_forward3d_pointer, *(datum_index *)(tag + 0x3bc), -1, scale, 0);
         return 1;
     }
     return 0;

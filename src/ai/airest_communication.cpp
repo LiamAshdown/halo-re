@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
@@ -30,7 +31,6 @@ extern int16_t ai_communication_class_look_marker[];
 extern int16_t ai_communication_class_no_actor_class[];
 extern float ai_communication_selector_delay_seconds[];
 extern uint8_t *communication_line_base;
-extern uint32_t random_seed_global;
 extern int32_t ai_communication_quiet_until_tick;
 extern actor_mode_definition actor_mode_definitions[16];
 extern char ai_marker_name_a[];
@@ -62,7 +62,6 @@ extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
 extern void crc32_update(uint32_t *crc, uint8_t *data, int32_t length);
 extern float ai_communication_class_repeat_delay[];
-extern real random_real(void);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern data_array *player_data;
 extern void * data_iterator_next(data_iterator *iterator);
@@ -792,8 +791,8 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             float sum = 0.0f;
             int16_t i = 0;
 
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-            pick = (float)(int32_t)(random_seed_global >> 16) * 1.5259022e-05f * total;
+            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            pick = (float)(int32_t)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f * total;
             while (i < count - 1) {
                 sum += candidates[i].score;
                 if (!(sum < pick)) {
@@ -1119,7 +1118,7 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
         if (!force) {
             float probability = *(float *)(row + 0x10);
 
-            if (!(probability > 0.0f) || !(random_real() < probability)) {
+            if (!(probability > 0.0f) || !(halo::math::random_real() < probability)) {
                 continue;
             }
         }
@@ -2216,8 +2215,8 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
                 if ((ai_communication_quiet_until_tick <= game_time->game_time ||
                      (*(uint8_t *)(entry + 5) & 1) != 0) &&
                     0.0f < *(float *)(entry + 9)) {
-                    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-                    if ((float)((uint32_t)random_seed_global >> 0x10) * 1.5259022e-05f <
+                    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                    if ((float)((uint32_t)halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f <
                         *(float *)(entry + 9)) {
                         target_kind = *(int16_t *)(entry + 1);
                         if (target_kind == 2 || target_kind == 4) {

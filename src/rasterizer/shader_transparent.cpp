@@ -5,6 +5,7 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 
@@ -14,7 +15,6 @@ extern int16_t numeric_countdown_timer_get_digit(int16_t digit);
 extern double floor(double x);
 extern void shader_texture_animation_evaluate(const void *function_source, const void *animation, float *out_u, float *out_v, float u_scale, float v_scale, float u_offset, float v_offset, float rotation, float time);
 extern double pow(double base, double exponent);
-extern real vector3d_length(real_vector3d *v);
 extern double sin(double x);
 extern double cos(double x);
 extern void *texture_cache_get(BitmapData *bitmap, uint8_t wait, uint8_t allocate_if_missing);
@@ -2005,7 +2005,7 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
             set_stage_samplers(0, 1, 0);
             chimera__rasterizer_set_texture(*(uint32_t *)(water + 0xa8), 3, 2, 0, (int16_t)frame);
             set_stage_samplers(3, 3, 1);
-            if (vector3d_length(normal) > 0.0f) {
+            if (halo::math::vector3d_length(*normal) > 0.0f) {
                 float facing = -(rasterizer_camera_forward[1] * normal->j + rasterizer_camera_forward[2] * normal->k +
                     rasterizer_camera_forward[0] * normal->i);
                 float t;

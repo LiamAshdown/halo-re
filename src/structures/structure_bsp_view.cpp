@@ -5,6 +5,7 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern int32_t render_cluster_index;
@@ -17,10 +18,6 @@ extern int16_t visible_surface_count;
 extern uint16_t render_frustum_classify_point_side_planes(void *frustum_or_camera, void *vertex);
 extern int16_t render_frustum_test_bounding_box(void *frustum_or_camera, void *box, int32_t flags);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern int16_t vector3d_major_axis_index(real_vector3d *v);
-extern const projection_axis_pair k_projection_axes[6];
-extern uint8_t polygon2d_point_inside_tolerance(real_point2d *vertices, int16_t count,
-                                                 real_point2d *point, real tolerance);
 extern double sqrt(double x);
 }
 
@@ -160,10 +157,10 @@ uint8_t structure_bsp_view::portal_sphere_test(real_point3d *point, int16_t port
                                   .pointer)[portal->plane_index]
                                  .plane.vector;
     real_vector3d *normal = (real_vector3d *)normal_raw;
-    int16_t axis = vector3d_major_axis_index(normal);
+    int16_t axis = halo::math::vector3d_major_axis_index(*normal);
     int32_t table_index = ((0.0f < ((float *)normal)[axis]) ? 1 : 0) + axis * 2;
-    int16_t axis_i = k_projection_axes[table_index].i;
-    int16_t axis_j = k_projection_axes[table_index].j;
+    int16_t axis_i = halo::math::globals().k_projection_axes[table_index].i;
+    int16_t axis_j = halo::math::globals().k_projection_axes[table_index].j;
 
     real_point3d projected;
     float neg_distance = -distance;
@@ -184,7 +181,7 @@ uint8_t structure_bsp_view::portal_sphere_test(real_point3d *point, int16_t port
 
     float remaining = tolerance * tolerance - distance * projected.x;
     float radius_2d = (real)sqrt((double)remaining);
-    return polygon2d_point_inside_tolerance(polygon_2d, (int16_t)portal->vertices.count, &point_2d,
+    return halo::math::polygon2d_point_inside_tolerance(polygon_2d, (int16_t)portal->vertices.count, point_2d,
                                              radius_2d);
 }
 

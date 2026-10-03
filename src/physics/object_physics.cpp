@@ -14,6 +14,7 @@
 #include "units.h"
 
 #include "halo/physics/object_physics.hpp"
+#include "halo/math/api.hpp"
 
 extern "C" { void object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale, float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up); }
 extern "C" { uint8_t object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t candidate_object_index); }
@@ -25,7 +26,6 @@ extern "C" { void object_physics_mass_point_resolve_ground_contact(uint32_t excl
 extern "C" { void object_physics_mass_point_update_orientation(real_vector3d *axis, real_vector3d *up, real_vector3d *forward, real_vector3d *fallback_forward, real_vector3d *fallback_up); }
 extern "C" { uint8_t object_physics_resolve_mass_point_overlap(object_physics_context *self, object_physics_context *other); }
 
-extern "C" { extern void matrix4x3_transform_point(real_point3d *out, real_point3d *point, real_matrix4x3 *m); }
 extern "C" { extern void physics_shape_vertex_to_sphere(physics_model *model, real_point3d *vertex, int16_t material_type, float height_offset, float radius, uint32_t object_index, int32_t surface_index, uint8_t surface_flags, int8_t breakable_surface_index); }
 namespace halo::physics {
 
@@ -49,8 +49,8 @@ uint8_t ObjectPhysics::add_mass_point_shapes(float x_offset, float y_offset, obj
         PhysicsMassPoint *mass_point = &((PhysicsMassPoint *)definition->mass_points.pointer)[i];
         real_point3d world_position;
 
-        matrix4x3_transform_point(&world_position, (real_point3d *)&mass_point->position,
-            (real_matrix4x3 *)&context->scale);
+        halo::math::matrix4x3_transform_point(world_position, *((real_point3d *)&mass_point->position),
+            *((real_matrix4x3 *)&context->scale));
         physics_shape_vertex_to_sphere((physics_model *)model_counts, &world_position, -1, x_offset,
             mass_point->radius * context->scale + y_offset, context->object_index, -1, 0, -1);
     }
@@ -60,8 +60,6 @@ uint8_t ObjectPhysics::add_mass_point_shapes(float x_offset, float y_offset, obj
 
 }
 
-extern "C" { extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b); }
-extern "C" { extern void vector3d_project_onto_unit_axis(real_vector3d *parallel_out, real_vector3d *axis, real_vector3d *v, real_vector3d *perp_out); }
 namespace halo::physics {
 
 /**
@@ -90,13 +88,13 @@ void ObjectPhysics::blend_friction_axes(int16_t friction_type, float parallel_sc
     if (friction_type == 1) {
         axis = forward;
     } else if (friction_type == 2) {
-        vector3d_cross_product(&cross, forward, up);
+        halo::math::vector3d_cross_product(cross, *forward, *up);
         axis = &cross;
     } else if (friction_type == 3) {
         axis = up;
     }
     if (axis != 0) {
-        vector3d_project_onto_unit_axis((real_vector3d *)&friction[3], axis, (real_vector3d *)friction,
+        halo::math::vector3d_project_onto_unit_axis((real_vector3d *)&friction[3], *axis, *(real_vector3d *)friction,
             (real_vector3d *)&friction[6]);
     }
 
@@ -122,7 +120,6 @@ extern "C" { extern void unit_get_crouch_height_offset(real_point3d *object_posi
 extern "C" { extern uint32_t object_collision_context_test_point(object_collision_context *context, real_point3d *point); }
 extern "C" { extern uint8_t object_collision_context_gather_sphere_shapes(void *context, real_point3d *origin, float radius_scale, float margin, float thickness, physics_model *model); }
 extern "C" { extern uint8_t physics_shape_test_point(physics_model *model, real_point3d *point, physics_model_contact *out_contact); }
-extern "C" { extern real vector3d_normalize_with_length(real_vector3d *v); }
 extern "C" { extern void unit_apply_impulse(uint32_t object_index, real_vector3d *impulse); }
 extern "C" { extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location); }
 extern "C" { extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane); }
@@ -191,9 +188,9 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
     impulse.j = candidate_obj->bounding_center.y - self_center->y;
     impulse.k = candidate_obj->bounding_center.z - self_center->z;
 
-    vector3d_normalize_with_length(&impulse);
+    halo::math::vector3d_normalize_with_length(impulse);
     impulse.k += 0.8f;
-    vector3d_normalize_with_length(&impulse);
+    halo::math::vector3d_normalize_with_length(impulse);
 
     clamped_speed = (relative_speed <= 0.1f) ? 0.1f : relative_speed;
     impulse.i = (impulse.i * clamped_speed + self_obj->velocity.i) * 0.5f;
@@ -265,7 +262,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
             dd.direction = impulse;
             dd.damage_effect_tag = impact_damage_tag_id;
 
-            vector3d_normalize_with_length(&dd.direction);
+            halo::math::vector3d_normalize_with_length(dd.direction);
             object_apply_damage(&dd, candidate_object_index, -1, -1, -1, 0);
         }
 
@@ -306,9 +303,7 @@ extern "C" { extern uint8_t material_table_warning_issued; }
 extern "C" { extern int32_t material_table_bad_index; }
 extern "C" { extern uint8_t material_table_fallback[0x374]; }
 extern "C" { extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); }
-extern "C" { extern void matrix4x3_multiply(void *a, void *b, real_matrix4x3 *out); }
 extern "C" { extern float scenario_location_water_surface_distance(bsp_leaf_reference *location, real_point3d *point); }
-extern "C" { extern float real_inverse_lerp_clamped(float value, float ref_k0, float ref_k1); }
 extern "C" { extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
 namespace halo::physics {
 
@@ -357,8 +352,8 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
         }
 
         mp->flags = 0;
-        matrix4x3_transform_point((real_point3d *)&mp->position_x, (real_point3d *)&mp_def->position,
-            (real_matrix4x3 *)&context->scale);
+        halo::math::matrix4x3_transform_point(*((real_point3d *)&mp->position_x), *((real_point3d *)&mp_def->position),
+            *((real_matrix4x3 *)&context->scale));
 
         if (powered_state == 0) {
             mp->forward_i = mp_def->forward.k * context->up_i + mp_def->forward.j * context->left_i +
@@ -375,7 +370,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
                 mp_def->up.i * context->forward_k;
         } else {
             real_matrix4x3 combined;
-            matrix4x3_multiply(&context->scale, &powered_state->matrix_scale, &combined);
+            halo::math::matrix4x3_multiply(reinterpret_cast<real_matrix4x3 *>(&context->scale), reinterpret_cast<real_matrix4x3 *>(&powered_state->matrix_scale), &combined);
             mp->forward_i = mp_def->forward.k * combined.up.i + mp_def->forward.j * combined.left.i +
                 mp_def->forward.i * combined.forward.i;
             mp->forward_j = mp_def->forward.k * combined.up.j + mp_def->forward.j * combined.left.j +
@@ -466,7 +461,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
                 mp->ground_friction_force[2] = friction_magnitude * mp->tangential_velocity_k;
 
                 if (powered_def != 0 && (powered_def->flags & 0x01) != 0 && powered_state->ground_friction != 0.0f) {
-                    float lean = real_inverse_lerp_clamped(mp->resting_plane_k, ground_normal_k0, ground_normal_k1);
+                    float lean = halo::math::real_inverse_lerp_clamped(mp->resting_plane_k, ground_normal_k0, ground_normal_k1);
                     float alignment = mp->up_k * mp->resting_plane_k + mp->up_j * mp->resting_plane_j +
                         mp->resting_plane_i * mp->up_i;
                     float scale;
@@ -624,7 +619,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
                 if (collision_test_movement_segment(0xc0a0, (real_point3d *)&mp->position_x, &delta,
                         context->object_index, &result)) {
                     float clearance = probe_length * result.t - mp_def->radius;
-                    float lean = real_inverse_lerp_clamped(mp->up_k, powered_def->antigrav_normal_k0,
+                    float lean = halo::math::real_inverse_lerp_clamped(mp->up_k, powered_def->antigrav_normal_k0,
                         powered_def->antigrav_normal_k1);
                     float fade = (clearance <= 0.0f) ? 1.0f : 1.0f - clearance / powered_def->antigrav_height;
                     float dot_nv = result.plane.normal.j * mp->velocity_j + result.plane.normal.k * mp->velocity_k +
@@ -696,14 +691,14 @@ uint8_t ObjectPhysics::context_build(uint32_t object_index, object_physics_conte
 
     object_get_position((real_point3d *)&out_context->position_x, object_index);
     object_get_orientation((real_vector3d *)&out_context->forward_i, object_index, (real_vector3d *)&out_context->up_i);
-    vector3d_cross_product((real_vector3d *)&out_context->left_i, (const real_vector3d *)&out_context->forward_i,
-                           (const real_vector3d *)&out_context->up_i);
+    halo::math::vector3d_cross_product(*((real_vector3d *)&out_context->left_i), *((const real_vector3d *)&out_context->forward_i),
+                           *((const real_vector3d *)&out_context->up_i));
     {
         real_point3d point;
         point.x = -*(float *)((uint8_t *)physics_definition + 0x0c);
         point.y = -*(float *)((uint8_t *)physics_definition + 0x10);
         point.z = -*(float *)((uint8_t *)physics_definition + 0x14);
-        matrix4x3_transform_point(&point, &point, (real_matrix4x3 *)&out_context->scale);
+        halo::math::matrix4x3_transform_point(point, point, *((real_matrix4x3 *)&out_context->scale));
         out_context->position_x = point.x;
         out_context->position_y = point.y;
         out_context->position_z = point.z;
@@ -777,11 +772,6 @@ void ObjectPhysics::handle_nearby_object_impacts(uint32_t object_index)
 }
 
 extern "C" { extern uint8_t physics_disable_integration; }
-extern "C" { extern void matrix3x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix3x3 *out); }
-extern "C" { extern void matrix3x3_multiply(real_matrix3x3 *out, real_matrix3x3 *a, real_matrix3x3 *b); }
-extern "C" { extern void matrix3x3_transpose(real_matrix3x3 *out, real_matrix3x3 *in); }
-extern "C" { extern void matrix3x3_inverse_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix3x3 *m); }
-extern "C" { extern void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out); }
 extern "C" { extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position); }
 namespace halo::physics {
 
@@ -829,11 +819,11 @@ void ObjectPhysics::integrate_and_test_at_rest(object_physics_context *context, 
         real_matrix3x3 *inverse_inertia_local =
             (real_matrix3x3 *)((uint8_t *)definition->inertial_matrix_and_inverse.pointer + 0x24);
 
-        matrix3x3_from_forward_up(&self->up, &self->forward, &orientation);
-        matrix3x3_multiply(&step1, &orientation, inverse_inertia_local);
-        matrix3x3_transpose(&step1_transposed, &step1);
-        matrix3x3_multiply(&world_inverse_inertia, &step1_transposed, &orientation);
-        matrix3x3_inverse_transform_vector(&delta_angular_velocity, torque, &world_inverse_inertia);
+        halo::math::matrix3x3_from_forward_up(self->up, self->forward, orientation);
+        halo::math::matrix3x3_multiply(&step1, &orientation, inverse_inertia_local);
+        halo::math::matrix3x3_transpose(&step1_transposed, &step1);
+        halo::math::matrix3x3_multiply(&world_inverse_inertia, &step1_transposed, &orientation);
+        halo::math::matrix3x3_inverse_transform_vector(&delta_angular_velocity, torque, world_inverse_inertia);
     }
     new_angular_velocity.i = delta_angular_velocity.i + self->angular_velocity.i;
     new_angular_velocity.j = delta_angular_velocity.j + self->angular_velocity.j;
@@ -870,13 +860,13 @@ void ObjectPhysics::integrate_and_test_at_rest(object_physics_context *context, 
 
                 hit_mask = 0;
 
-                matrix4x3_from_forward_up(&new_up, &new_forward, &step_matrix);
+                halo::math::matrix4x3_from_forward_up(new_up, new_forward, step_matrix);
                 step_matrix.position = commit_position;
 
                 center_of_mass_local.x = -definition->center_of_mass.x;
                 center_of_mass_local.y = -definition->center_of_mass.y;
                 center_of_mass_local.z = -definition->center_of_mass.z;
-                matrix4x3_transform_point(&center_of_mass_world, &center_of_mass_local, &step_matrix);
+                halo::math::matrix4x3_transform_point(center_of_mass_world, center_of_mass_local, step_matrix);
                 step_matrix.position = center_of_mass_world;
 
                 for (i = 0; i < definition->mass_points.count; i++) {
@@ -1063,8 +1053,6 @@ void ObjectPhysics::mass_point_resolve_ground_contact(uint32_t exclude_object_in
 
 }
 
-extern "C" { extern void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *axis, real sin_angle, real cos_angle); }
-extern "C" { extern void matrix4x3_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); }
 extern "C" { extern double sin(double x); }
 extern "C" { extern double cos(double x); }
 namespace halo::physics {
@@ -1084,20 +1072,20 @@ namespace halo::physics {
 void ObjectPhysics::mass_point_update_orientation(real_vector3d *axis, real_vector3d *up, real_vector3d *forward, real_vector3d *fallback_forward, real_vector3d *fallback_up)
 {
     real_vector3d local_axis = *axis;
-    real length = vector3d_normalize_with_length(&local_axis);
+    real length = halo::math::vector3d_normalize_with_length(local_axis);
 
     if (length != 0.0f) {
         real_matrix4x3 rotation;
-        matrix4x3_from_axis_angle(&rotation, &local_axis, (real)sin((double)length), (real)cos((double)length));
-        matrix4x3_transform_vector(forward, fallback_forward, &rotation);
-        matrix4x3_transform_vector(up, fallback_up, &rotation);
-        vector3d_normalize_with_length(forward);
+        halo::math::matrix4x3_from_axis_angle(rotation, local_axis, (real)sin((double)length), (real)cos((double)length));
+        halo::math::matrix4x3_transform_vector(*forward, *fallback_forward, rotation);
+        halo::math::matrix4x3_transform_vector(*up, *fallback_up, rotation);
+        halo::math::vector3d_normalize_with_length(*forward);
 
         real neg_dot = -(forward->k * up->k + up->j * forward->j + forward->i * up->i);
         up->i = neg_dot * forward->i + up->i;
         up->j = neg_dot * forward->j + up->j;
         up->k = neg_dot * forward->k + up->k;
-        vector3d_normalize_with_length(up);
+        halo::math::vector3d_normalize_with_length(*up);
         return;
     }
 
@@ -1150,8 +1138,8 @@ uint8_t ObjectPhysics::resolve_mass_point_overlap(object_physics_context *self, 
             real_point3d self_world_position;
             int32_t j;
 
-            matrix4x3_transform_point(&self_world_position, (real_point3d *)&self_mass_points[i].position,
-                (real_matrix4x3 *)&self->scale);
+            halo::math::matrix4x3_transform_point(self_world_position, *((real_point3d *)&self_mass_points[i].position),
+                *((real_matrix4x3 *)&self->scale));
 
             for (j = 0; j < other_mass_point_count; j++) {
                 float combined_radius = other_mass_points[j].radius + self_mass_points[i].radius;
@@ -1273,7 +1261,6 @@ uint8_t ObjectPhysics::resolve_mass_point_overlap(object_physics_context *self, 
 
 }
 
-extern "C" { extern void matrix4x3_inverse_transform_point(real_matrix4x3 *m, real_point3d *out, real_point3d *point); }
 namespace halo::physics {
 
 /**
@@ -1290,7 +1277,7 @@ uint8_t ObjectPhysics::test_point_against_mass_points(object_physics_context *co
     int32_t count = definition->mass_points.count;
     int16_t i;
 
-    matrix4x3_inverse_transform_point((real_matrix4x3 *)&context->scale, &local_point, world_point);
+    halo::math::matrix4x3_inverse_transform_point(*((real_matrix4x3 *)&context->scale), local_point, *world_point);
 
     for (i = 0; i < count; i++) {
         PhysicsMassPoint *mass_point =
@@ -1313,8 +1300,6 @@ uint8_t ObjectPhysics::test_point_against_mass_points(object_physics_context *co
 
 }
 
-extern "C" { extern void matrix4x3_inverse_transform_vector(real_vector3d *out, real_vector3d *v, real_matrix4x3 *m); }
-extern "C" { extern uint8_t ray_intersects_sphere(real_point3d *origin, real_vector3d *normal_out, real_vector3d *direction, real *t_out, real_point3d *center, real radius); }
 namespace halo::physics {
 
 /**
@@ -1341,8 +1326,8 @@ uint8_t ObjectPhysics::test_ray_against_mass_points(real_point3d *world_origin, 
 
     out_result->t = 3.4028235e+38f;
 
-    matrix4x3_inverse_transform_point((real_matrix4x3 *)&context->scale, &local_origin, world_origin);
-    matrix4x3_inverse_transform_vector(&local_direction, world_direction, (real_matrix4x3 *)&context->scale);
+    halo::math::matrix4x3_inverse_transform_point(*((real_matrix4x3 *)&context->scale), local_origin, *world_origin);
+    halo::math::matrix4x3_inverse_transform_vector(local_direction, *world_direction, *((real_matrix4x3 *)&context->scale));
 
     for (i = 0; i < count; i++) {
         PhysicsMassPoint *mass_point =
@@ -1350,8 +1335,8 @@ uint8_t ObjectPhysics::test_ray_against_mass_points(real_point3d *world_origin, 
         real_vector3d normal;
         float t;
 
-        if (ray_intersects_sphere(&local_origin, &normal, &local_direction, &t,
-                (real_point3d *)&mass_point->position, mass_point->radius) && t < out_result->t) {
+        if (halo::math::ray_intersects_sphere(local_origin, &normal, local_direction, t,
+                *((real_point3d *)&mass_point->position), mass_point->radius) && t < out_result->t) {
             out_result->t = t;
             out_result->plane_i = normal.i;
             out_result->plane_j = normal.j;
@@ -1382,7 +1367,6 @@ uint8_t ObjectPhysics::test_ray_against_mass_points(real_point3d *world_origin, 
 
 }
 
-extern "C" { extern void matrix4x3_from_quaternion(real_quaternion *q, real_matrix4x3 *out); }
 extern "C" { extern void object_physics_tick_single_pass(uint32_t object_index, powered_mass_point_state *powered_states, uint32_t mass_points, real_vector3d *extra_force, real_vector3d *extra_torque); }
 namespace halo::physics {
 
@@ -1418,7 +1402,7 @@ void ObjectPhysics::tick(uint32_t object_index, powered_mass_point_state *powere
             float *m = (float *)(state + 0x2c);
             float t;
 
-            matrix4x3_from_quaternion((real_quaternion *)(state + 0x1c), (real_matrix4x3 *)m);
+            halo::math::matrix4x3_from_quaternion(*(real_quaternion *)(state + 0x1c), *(real_matrix4x3 *)m);
             t = m[2]; m[2] = m[4]; m[4] = t;
             t = m[3]; m[3] = m[7]; m[7] = t;
             t = m[6]; m[6] = m[8]; m[8] = t;

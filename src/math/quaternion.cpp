@@ -5,7 +5,7 @@
  */
 
 #include "halo/math/math.hpp"
-#include "halo/math/math_globals.h"
+#include "halo/math/globals.hpp"
 
 #include "tags.h"
 
@@ -97,8 +97,8 @@ void quaternion_from_matrix4x3(const real_matrix4x3 *m, real_quaternion &out)
     if (m4x3_elem(m, i, i) < m4x3_elem(m, 2, 2)) {
         i = 2;
     }
-    j = k_quaternion_next_index_matrix4x3[i];
-    k = k_quaternion_next_index_matrix4x3[j];
+    j = globals().k_quaternion_next_index_matrix4x3[i];
+    k = globals().k_quaternion_next_index_matrix4x3[j];
 
     s = (real)sqrt((double)((m4x3_elem(m, i, i) - (m4x3_elem(m, j, j) + m4x3_elem(m, k, k))) + 1.0f));
     vec[i] = s * 0.5f;
@@ -136,8 +136,8 @@ real_quaternion * quaternion_from_matrix3x3(real_matrix3x3 *m, real_quaternion *
     if (m3x3_elem(m, i, i) < m3x3_elem(m, 2, 2)) {
         i = 2;
     }
-    j = k_quaternion_next_index_matrix3x3[i];
-    k = k_quaternion_next_index_matrix3x3[j];
+    j = globals().k_quaternion_next_index_matrix3x3[i];
+    k = globals().k_quaternion_next_index_matrix3x3[j];
 
     s = (real)sqrt((double)((m3x3_elem(m, i, i) - (m3x3_elem(m, j, j) + m3x3_elem(m, k, k))) + 1.0f));
     vec[i] = s * 0.5f;

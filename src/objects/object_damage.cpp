@@ -7,6 +7,7 @@
 #include "hs.h"
 #include "projectiles.h"
 #include <stdint.h>
+#include "halo/math/api.hpp"
 
 extern "C" {
 extern uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value);
@@ -33,7 +34,6 @@ extern game_engine_state game_engine_state_value;
 extern uint8_t game_engine_teams_enabled_flag;
 extern game_time_globals *game_time;
 extern real_vector3d *global_down3d_pointer;
-extern real_vector3d *global_forward3d_pointer;
 extern Globals *global_globals;
 extern real_vector3d *global_origin3d_pointer;
 extern int16_t global_structure_bsp_index;
@@ -80,21 +80,15 @@ extern data_array *player_data;
 extern void player_effect_mark_damage_direction(datum_index player_index, const damage_data *dd, const real_vector3d *direction, float random_blend, float damage_amount);
 extern void player_effect_send_network_update(datum_index player_handle, const real_vector3d *direction, const damage_data *dd, float random_blend, float damage_amount);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
-extern real random_real(void);
-extern uint32_t random_seed_global;
 extern tag_instance *tag_instances;
 extern uint8_t *team_pair_data;
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-extern real transition_function_evaluate(transition_function_t type, real phase);
 extern uint8_t unit_any_flagged_seat_occupied(uint32_t unit_index);
 extern void unit_apply_damage_effects(datum_index unit_index, damage_data *dd, uint32_t flags, float shield_damage, float body_damage, int32_t region_index, uint8_t is_local);
 extern void unit_apply_impulse(uint32_t object_index, real_vector3d *impulse);
 extern void unit_apply_impulse_to_seat(uint32_t unit_index, real_vector3d *impulse);
 extern uint8_t unit_point_in_front_and_asleep(real_point3d *world_point, uint32_t unit_index);
 extern void unit_update_stance_and_jump(uint32_t unit_index, uint8_t force_ready, uint8_t allow_death_reaction, uint8_t suppress_shield_check, uint8_t ignore_disoriented, uint8_t force_reaction, float turn_angle, int16_t weapon_class_index, const real_vector2d *throttle, uint8_t require_still);
-extern void vector3d_build_perpendicular(real_vector3d *out, real_vector3d *dir);
-extern void vector3d_cross_product(real_vector3d *out, const real_vector3d *a, const real_vector3d *b);
-extern real vector3d_normalize_with_length(real_vector3d *v);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
 }
@@ -493,10 +487,10 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
             to_center.i = ((struct object *)target)->bounding_center.x - origin->x;
             to_center.j = ((struct object *)target)->bounding_center.y - origin->y;
             to_center.k = ((struct object *)target)->bounding_center.z - origin->z;
-            vector3d_build_perpendicular(&side_a, &to_center);
-            vector3d_normalize_with_length(&side_a);
-            vector3d_cross_product(&side_b, &side_a, &to_center);
-            vector3d_normalize_with_length(&side_b);
+            halo::math::vector3d_build_perpendicular(side_a, to_center);
+            halo::math::vector3d_normalize_with_length(side_a);
+            halo::math::vector3d_cross_product(side_b, side_a, to_center);
+            halo::math::vector3d_normalize_with_length(side_b);
             for (i = 0; i < 4; i++) {
                 real radius = *(float *)(effect + 0x1cc);
                 real_vector3d *side = i < 2 ? &side_a : &side_b;
@@ -557,7 +551,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
                 if ((scale > 0.0f || (flags & 0x400)) && (dd->flags & 0x40)) {
                     apply = 0;
                 }
-                if (scale > 0.0f && scale * 0.25f > random_real()) {
+                if (scale > 0.0f && scale * 0.25f > halo::math::random_real()) {
                     apply = 0;
                 }
                 spared_player = 1;
@@ -574,7 +568,7 @@ void halo::objects::ObjectDamage::apply_line_of_sight(damage_data *dd, int8_t co
             dd->direction.i = ((struct object *)target)->bounding_center.x - origin->x;
             dd->direction.j = ((struct object *)target)->bounding_center.y - origin->y;
             dd->direction.k = ((struct object *)target)->bounding_center.z - origin->z;
-            distance = vector3d_normalize_with_length(&dd->direction);
+            distance = halo::math::vector3d_normalize_with_length(dd->direction);
             range = *(float *)(effect + 0x4) - *(float *)(effect + 0x0);
             if (range > 0.0f) {
                 blend = 1.0f - (distance - *(float *)(effect + 0x0)) / range;
@@ -752,9 +746,9 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
     if (dd->responsible_player != k_datum_index_none && player_try_get(dd->responsible_player) == 0) {
         dd->responsible_player = k_datum_index_none;
     }
-    random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
     amount = ((*(float *)(effect_block + 0x14) - *(float *)(effect_block + 0x10)) *
-              ((float)(int32_t)(random_seed_global >> 16) * 1.5259022e-05f) + *(float *)(effect_block + 0x10)) *
+              ((float)(int32_t)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f) + *(float *)(effect_block + 0x10)) *
              dd->random_blend + (1.0f - dd->random_blend) * *(float *)(effect_block + 0x0c);
     amount = amount * dd->multiplier;
     if (dd->responsible_object != k_datum_index_none) {
@@ -1290,7 +1284,7 @@ void halo::objects::ObjectDamage::apply_shield_damage(uint8_t *geometry, uint8_t
 
         to_shield = (1.0f - *(float *)(material + 0x28)) * passthrough;
         if (*shield <= threshold && threshold > 0.0f) {
-            real t = transition_function_evaluate(*(transition_function_t *)(geometry + 0xec), *shield / threshold);
+            real t = halo::math::transition_function_evaluate(*(transition_function_t *)(geometry + 0xec), *shield / threshold);
             float leak = *(float *)(geometry + 0xf4);
 
             to_shield = ((1.0f - leak) * t + leak) * to_shield;
@@ -1468,7 +1462,7 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
 
         direction = dd->direction;
         direction.k = direction.k + 0.45f;
-        vector3d_normalize_with_length(&direction);
+        halo::math::vector3d_normalize_with_length(direction);
         type = ((object *)obj)->type;
         scale = ((struct Object *)object_tag)->acceleration_scale * *(float *)(effect + 0x1f4) * 0.033333335f;
         impulse.i = direction.i * scale;
@@ -1572,8 +1566,8 @@ void halo::objects::DamageSystem::effect_new_at_location(datum_index effect_tag,
     for (i = 0; i < 5; i++) {
         names[i] = k_names[i];
     }
-    if (vector3d_normalize_with_length(&direction) == 0.0f) {
-        direction = *global_forward3d_pointer;
+    if (halo::math::vector3d_normalize_with_length(direction) == 0.0f) {
+        direction = *halo::math::globals().global_forward3d_pointer;
     }
     vectors[1].i = direction.i * -1.0f;
     vectors[1].j = direction.j * -1.0f;
@@ -1588,7 +1582,7 @@ void halo::objects::DamageSystem::effect_new_at_location(datum_index effect_tag,
         away.i = impact_position->x - object_position.x;
         away.j = impact_position->y - object_position.y;
         away.k = impact_position->z - object_position.z;
-        if (vector3d_normalize_with_length(&away) == 0.0f) {
+        if (halo::math::vector3d_normalize_with_length(away) == 0.0f) {
             away = *(real_vector3d *)((uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data + 0x74);
         }
         vectors[0] = away;
