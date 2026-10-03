@@ -3,7 +3,7 @@
 
 extern "C" {
 extern uint8_t default_locale_name[2];
-extern char *locale_codepage_format;
+extern char locale_codepage_format[4];
 
 extern void *keystone_module;
 extern keystone_create_fn keystone_create;

@@ -8,6 +8,8 @@
 
 extern "C" {
 extern int32_t render_cluster_index;
+extern uint8_t render_frustum_global[];
+extern uint8_t render_camera_global[];
 extern uint32_t *flood_recursion_bits;
 extern int16_t visible_cluster_count;
 extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters];
@@ -45,7 +47,7 @@ void structure_visibility::camera_visibility_pass(void)
     }
 
     float screen_bounds[4];
-    render_frustum_compute_screen_clip_bounds(screen_bounds, (void *)0x7c3168);
+    render_frustum_compute_screen_clip_bounds(screen_bounds, (void *)render_frustum_global);
 
     polygon2d clip_polygon;
     clip_polygon.point_count = 4;
@@ -65,8 +67,8 @@ void structure_visibility::camera_visibility_pass(void)
 
     for (int16_t i = 0; i < visible_cluster_count; i++) {
         uint8_t *cluster = (uint8_t *)&visible_clusters[i];
-        render_camera_compute_frustum_bounds((void *)0x7c3114, screen_bounds, (float *)(cluster + 4));
-        chimera__render_camera_build_frustum(screen_bounds, (void *)0x7c3114, cluster + 0x14, 0);
+        render_camera_compute_frustum_bounds((void *)render_camera_global, screen_bounds, (float *)(cluster + 4));
+        chimera__render_camera_build_frustum(screen_bounds, (void *)render_camera_global, cluster + 0x14, 0);
     }
 }
 
@@ -106,7 +108,7 @@ void structure_visibility::cluster_visibility_update(void)
                 cluster_visible_index[cluster_index] = visible_index;
                 visible_clusters[visible_index].cluster_index = cluster_index;
                 render_frustum_compute_screen_clip_bounds((float *)&visible_clusters[visible_index].screen_bounds_x,
-                             (void *)0x7c3168);
+                             (void *)render_frustum_global);
             }
         }
     }

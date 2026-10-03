@@ -8,6 +8,7 @@
 
 extern "C" {
 extern int32_t render_cluster_index;
+extern uint8_t render_frustum_global[];
 extern uint8_t debug_render_cluster_pvs;
 extern structure_bsp_visible_cluster visible_clusters[k_maximum_visible_clusters];
 extern int16_t visible_cluster_count;
@@ -35,7 +36,7 @@ void structure_bsp_view::expand_visible_clusters_by_plane()
         ScenarioStructureBSPCluster *cluster = &clusters[visible_clusters[i].cluster_index];
         void *frustum_or_camera;
         if (debug_render_cluster_pvs != 0 || render_cluster_index == -1) {
-            frustum_or_camera = (void *)0x7c3168;
+            frustum_or_camera = (void *)render_frustum_global;
         } else {
             frustum_or_camera = &visible_clusters[i].frustum;
         }
@@ -100,7 +101,7 @@ void structure_bsp_view::expand_visible_clusters_by_subcluster()
         ScenarioStructureBSPCluster *cluster = &clusters[visible_clusters[i].cluster_index];
         void *frustum_or_camera;
         if (debug_render_cluster_pvs != 0 || render_cluster_index == -1) {
-            frustum_or_camera = (void *)0x7c3168;
+            frustum_or_camera = (void *)render_frustum_global;
         } else {
             frustum_or_camera = &visible_clusters[i].frustum;
         }
