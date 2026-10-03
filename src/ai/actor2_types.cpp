@@ -94,9 +94,7 @@ void ActorView::type_crew_update()
 }
 
 namespace actor_type_elite_update_local {
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 /**
@@ -198,9 +196,7 @@ void ActorView::type_elite_update()
 #undef ACTOR
 
 namespace actor_type_engineer_update_local {
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 /**
@@ -279,9 +275,7 @@ void ActorView::type_engineer_update()
 #undef ACTOR
 
 namespace actor_type_flood_carrier_update_local {
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 /**
@@ -343,9 +337,7 @@ void ActorView::type_flood_carrier_update()
 #undef ACTOR
 
 namespace actor_type_flood_update_local {
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 /**
@@ -411,9 +403,7 @@ void ActorView::type_flood_update()
 #undef ACTOR
 
 namespace actor_type_grunt_update_local {
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 /**
@@ -508,9 +498,7 @@ void ActorView::type_grunt_update()
 #undef ACTOR
 
 namespace actor_type_hunter_update_local {
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 /**
@@ -1069,9 +1057,7 @@ void ActorView::type_infection_swarm_update()
 #undef U32
 
 namespace actor_type_infection_update_local {
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 /**
@@ -1127,9 +1113,7 @@ void ActorView::type_infection_update()
 #undef ACTOR
 
 namespace actor_type_jackal_update_local {
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 /**
@@ -1221,9 +1205,7 @@ void ActorView::type_jackal_update()
 #undef ACTOR
 
 namespace actor_type_marine_update_local {
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 /**
@@ -1309,9 +1291,7 @@ void ActorView::type_marine_update()
 #undef ACTOR
 
 namespace actor_type_mounted_weapon_update_local {
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 /**
@@ -1359,9 +1339,7 @@ void ActorView::type_mounted_weapon_update()
 #undef ACTOR
 
 namespace actor_type_sentinel_update_local {
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 /**

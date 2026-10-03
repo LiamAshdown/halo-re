@@ -667,9 +667,6 @@ uint8_t actor_find_danger_escape(datum_index actor_index, uint32_t *out_word, ui
 #undef TAG_DATA
 
 namespace c_actor_find_or_allocate_prop {
-extern "C" {
-
-
 enum {
     k_prop_admit_drop,
     k_prop_admit_keep,
@@ -762,7 +759,6 @@ static int actor_prop_still_admitted(datum_index actor_index, uint8_t *self, uin
         *far_out = 0;
     }
     return distance_squared < 225.0f ? k_prop_admit_keep : k_prop_admit_drop;
-}
 }
 }
 
@@ -1112,11 +1108,7 @@ void actor_init_prop_from_object(datum_index object_index, datum_index actor_ind
 }
 
 namespace c_actor_mark_prop_seen_with_delta {
-extern "C" {
-
-
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-}
 }
 
 

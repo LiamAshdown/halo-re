@@ -9,11 +9,9 @@
 namespace halo::ai {
 
 namespace actor_mode_uncover_tick_local {
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-}
 }
 
 /**
@@ -89,11 +87,9 @@ void ActorView::mode_uncover_tick()
 #undef PROP
 
 namespace actor_mode_uncover_update_local {
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-}
 }
 
 /**
@@ -175,9 +171,7 @@ void ActorView::mode_vehicle_enter()
 #undef ACTOR
 
 namespace actor_mode_vehicle_update_local {
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 /**
@@ -286,9 +280,7 @@ decided:
 #undef TAG_DATA
 
 namespace actor_mode_wait_tick_local {
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 /**
@@ -329,9 +321,7 @@ void ActorView::mode_wait_tick()
 #undef ACTOR
 
 namespace actor_mode_wait_update_local {
-extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 /**

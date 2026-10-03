@@ -10,8 +10,6 @@
 #include "halo/ai/api.hpp"
 
 namespace c_actor_alert_from_damage {
-extern "C" {
-
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
@@ -28,7 +26,6 @@ static void actor_raise_alert(uint8_t *actor, int16_t level, uint32_t source)
     }
 }
 
-}
 }
 
 
@@ -85,8 +82,6 @@ uint8_t actor_alert_from_damage(datum_index actor_index)
 #undef W
 
 namespace c_actor_alert_from_disturbance {
-extern "C" {
-
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
@@ -101,7 +96,6 @@ static void actor_raise_alert(uint8_t *actor, int16_t level, uint32_t source)
     if (W(0x308) <= level) {
         W(0x308) = level;
     }
-}
 }
 }
 
@@ -140,14 +134,11 @@ uint8_t actor_alert_from_disturbance(datum_index actor_index)
 #undef W
 
 namespace c_actor_alert_from_flag_1b4 {
-extern "C" {
-
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
 #define F(o) (*(float *)(actor + (o)))
-}
 }
 
 
@@ -187,8 +178,6 @@ uint8_t actor_alert_from_flag_1b4(datum_index actor_index)
 #undef W
 
 namespace c_actor_alert_from_projectile {
-extern "C" {
-
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
@@ -205,7 +194,6 @@ static void actor_raise_alert(uint8_t *actor, int16_t level, uint32_t source)
     }
 }
 
-}
 }
 
 
@@ -264,8 +252,6 @@ uint8_t actor_alert_from_projectile(datum_index actor_index)
 #undef W
 
 namespace c_actor_alert_from_squad_attack {
-extern "C" {
-
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
@@ -282,7 +268,6 @@ static void actor_raise_alert(uint8_t *actor, int16_t level, uint32_t source)
     }
 }
 
-}
 }
 
 
@@ -330,8 +315,6 @@ uint8_t actor_alert_from_squad_attack(datum_index actor_index)
 #undef W
 
 namespace c_actor_check_pain_reaction {
-extern "C" {
-}
 }
 
 
@@ -792,15 +775,12 @@ uint8_t actor_escalate_check_weapon_range(datum_index actor_index)
 #undef TAG_DATA
 
 namespace c_actor_escalate_to_guard_or_combat {
-extern "C" {
-
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
 #define F(o) (*(float *)(actor + (o)))
 
-}
 }
 
 

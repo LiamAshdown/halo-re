@@ -85,9 +85,6 @@ uint32_t actor_compute_grenade_throw_vector(datum_index actor_index, real_point3
 }
 
 namespace c_actor_died_unit_grenade_count_mod {
-extern "C" {
-
-}
 }
 
 

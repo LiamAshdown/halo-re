@@ -11,16 +11,12 @@
 #include "halo/ai/api.hpp"
 
 namespace c_actor_attempt_grenade_throw {
-extern "C" {
-
-
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 
 static uint32_t actor_death_random_16(void)
 {
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     return halo::math::globals().random_seed_global >> 16;
-}
 }
 }
 
@@ -835,8 +831,6 @@ uint8_t actor_get_grenade_launch_velocity(int16_t grenade_type, real_vector3d *d
 }
 
 namespace c_actor_grenade_avoidance_entry_init {
-extern "C" {
-}
 }
 
 
@@ -906,8 +900,6 @@ uint8_t actor_grenade_behavior_kind_allowed(datum_index actor_index, int16_t kin
 }
 
 namespace c_actor_grenade_parabolic_path_clear {
-extern "C" {
-}
 }
 
 
@@ -1031,8 +1023,6 @@ int32_t actor_grenade_trace_from_source(uint32_t actor_index, real_point3d *targ
 }
 
 namespace c_actor_grenade_trajectory_blocked {
-extern "C" {
-}
 }
 
 

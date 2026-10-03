@@ -15,9 +15,7 @@
 namespace halo::ai {
 
 namespace actor_target_data_acquire_local {
-extern "C" {
 #define PROP(h) ((prop *)((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * sizeof(prop)))
-}
 }
 
 /**

@@ -10,10 +10,7 @@
 #include "halo/ai/api.hpp"
 
 namespace c_actor_mode_alert_movement_cancelled {
-extern "C" {
-
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 
@@ -43,14 +40,11 @@ void actor_mode_alert_movement_cancelled(datum_index actor_index)
 #undef ACTOR
 
 namespace c_actor_mode_alert_process {
-extern "C" {
-
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
 #define F(o) (*(float *)(actor + (o)))
 
-}
 }
 
 
@@ -133,10 +127,7 @@ uint8_t actor_mode_alert_process(uint32_t actor_index)
 #undef W
 
 namespace c_actor_mode_alert_target_cleared {
-extern "C" {
-
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 
@@ -166,14 +157,11 @@ void actor_mode_alert_target_cleared(datum_index actor_index)
 #undef ACTOR
 
 namespace c_actor_mode_alert_tick {
-extern "C" {
-
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
 #define F(o) (*(float *)(actor + (o)))
 
-}
 }
 
 
@@ -234,13 +222,10 @@ void actor_mode_alert_tick(uint32_t actor_index)
 #undef W
 
 namespace c_actor_mode_alert_update {
-extern "C" {
-
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
 #define F(o) (*(float *)(actor + (o)))
-}
 }
 
 
@@ -276,10 +261,7 @@ void actor_mode_alert_update(uint32_t actor_index)
 #undef W
 
 namespace c_actor_mode_avoid_update {
-extern "C" {
-
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 
@@ -321,11 +303,8 @@ void actor_mode_avoid_update(datum_index actor_index)
 #undef ACTOR
 
 namespace c_actor_mode_converse_exit {
-extern "C" {
-
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
-}
 }
 
 
@@ -356,11 +335,8 @@ void actor_mode_converse_exit(datum_index actor_index)
 #undef ACTOR
 
 namespace c_actor_mode_converse_process {
-extern "C" {
-
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
-}
 }
 
 
@@ -416,10 +392,7 @@ uint8_t actor_mode_converse_process(datum_index actor_index)
 #undef ACTOR
 
 namespace c_actor_mode_converse_replace_reference {
-extern "C" {
-
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 
@@ -450,11 +423,8 @@ void actor_mode_converse_replace_reference(datum_index actor_index, datum_index 
 #undef ACTOR
 
 namespace c_actor_mode_converse_update {
-extern "C" {
-
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
-}
 }
 
 
@@ -772,11 +742,8 @@ void actor_mode_obey_update(uint32_t actor_index)
 #undef W
 
 namespace c_actor_mode_search_enter {
-extern "C" {
-
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
-}
 }
 
 
@@ -821,10 +788,7 @@ void actor_mode_search_enter(datum_index actor_index)
 #undef ACTOR
 
 namespace c_actor_mode_search_movement_cancelled {
-extern "C" {
-
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 
@@ -856,12 +820,9 @@ void actor_mode_search_movement_cancelled(datum_index actor_index)
 #undef ACTOR
 
 namespace c_actor_mode_search_process {
-extern "C" {
-
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 
-}
 }
 
 
@@ -977,12 +938,9 @@ uint8_t actor_mode_search_process(datum_index actor_index)
 #undef PROP
 
 namespace c_actor_mode_search_tick {
-extern "C" {
-
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 
-}
 }
 
 
@@ -1057,11 +1015,8 @@ void actor_mode_search_tick(datum_index actor_index)
 #undef TAG_DATA
 
 namespace c_actor_mode_search_update {
-extern "C" {
-
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-}
 }
 
 
@@ -1121,10 +1076,7 @@ void actor_mode_search_update(datum_index actor_index)
 #undef TAG_DATA
 
 namespace c_actor_mode_sleep_update {
-extern "C" {
-
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-}
 }
 
 

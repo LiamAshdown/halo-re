@@ -878,9 +878,6 @@ void actor_fill_unit_position_context(datum_index unit_index, actor_unit_positio
 }
 
 namespace c_actor_find_best_search_node {
-extern "C" {
-
-}
 }
 
 

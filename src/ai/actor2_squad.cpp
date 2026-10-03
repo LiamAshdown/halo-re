@@ -56,8 +56,6 @@ void ActorView::obey_member_enter(datum_index unit_index, uint16_t command_list_
 }
 
 namespace actor_obey_member_exit_local {
-extern "C" {
-}
 }
 
 /**
@@ -82,8 +80,6 @@ void ActorView::obey_member_exit(datum_index unit_index, uint16_t command_list_i
 }
 
 namespace actor_obey_member_tick_local {
-extern "C" {
-}
 }
 
 /**
@@ -669,10 +665,8 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
 #undef TAG_DATA
 
 namespace actor_squad_action_is_complete_local {
-extern "C" {
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-}
 }
 
 /**
@@ -868,8 +862,6 @@ uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_in
 #undef TAG_DATA
 
 namespace actor_squad_action_list_process_local {
-extern "C" {
-}
 }
 
 /**
@@ -1138,9 +1130,7 @@ void ActorView::squad_react_to_grenade(datum_index target_prop_index, int16_t gr
 }
 
 namespace actor_squad_react_to_grenade_for_vehicle_occupants_local {
-extern "C" {
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
-}
 }
 
 /**

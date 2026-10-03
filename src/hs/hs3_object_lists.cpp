@@ -7,8 +7,6 @@
 #include "halo/objects/api.hpp"
 #include "halo/hs/api.hpp"
 
-extern "C" {
-}
 
 namespace halo::hs::part3 {
 

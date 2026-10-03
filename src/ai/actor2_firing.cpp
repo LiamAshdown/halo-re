@@ -10,14 +10,12 @@
 namespace halo::ai {
 
 namespace actor_reject_firing_position_by_perception_local {
-extern "C" {
 static void reject(actor_firing_position_query *query, actor_firing_position_candidate *candidate)
 {
     candidate->rejected = 1;
     if (query->collect_all == 0) {
         candidate->valid = 0;
     }
-}
 }
 }
 
@@ -329,8 +327,6 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
 }
 
 namespace actor_score_firing_positions_by_history_local {
-extern "C" {
-}
 }
 
 /**

@@ -218,8 +218,6 @@ uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index)
 }
 
 namespace c_actor_issue_multi_target_vocalization {
-extern "C" {
-}
 }
 
 

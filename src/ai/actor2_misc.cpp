@@ -412,8 +412,6 @@ uint8_t ActorOps::point_in_directional_lane(real_point3d *to_point, real_point3d
 }
 
 namespace actor_probe_step_direction_local {
-extern "C" {
-}
 }
 
 /**
@@ -622,13 +620,11 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
 }
 
 namespace actor_process_pending_command_list_local {
-extern "C" {
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
 #define F(o) (*(float *)(actor + (o)))
-}
 }
 
 /**
@@ -974,13 +970,11 @@ void ActorView::propagate_unit_field(int16_t value)
 }
 
 namespace actor_raise_timer_5f6_local {
-extern "C" {
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
 #define F(o) (*(float *)(actor + (o)))
-}
 }
 
 /**

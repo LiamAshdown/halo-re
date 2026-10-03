@@ -1452,8 +1452,6 @@ void actor_get_target_state_flags(int16_t ax_mode, int16_t cx_mode, uint8_t shar
 }
 
 namespace c_actor_get_threat_weapon_definition {
-extern "C" {
-}
 }
 
 

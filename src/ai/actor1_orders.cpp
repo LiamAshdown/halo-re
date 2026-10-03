@@ -10,15 +10,12 @@
 #include "halo/ai/api.hpp"
 
 namespace c_actor_build_guard_mode_data {
-extern "C" {
-
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
 #define F(o) (*(float *)(actor + (o)))
 
-}
 }
 
 

@@ -692,8 +692,6 @@ uint8_t actor_firing_position_compare(int32_t element, int32_t other)
 }
 
 namespace c_actor_firing_position_evaluate {
-extern "C" {
-}
 }
 
 
