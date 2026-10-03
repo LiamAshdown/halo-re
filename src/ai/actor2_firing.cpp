@@ -104,11 +104,11 @@ uint8_t ActorView::reject_firing_position_by_pursuit(actor_firing_position_query
     if (candidate->request_result != 0 || candidate->distance_from_actor >= 6.0f) {
         int16_t count16 = 0;
         missed = (uint8_t)(halo::ai::ai_pursuit_check_object(actor_index, self->encounter_index, candidate->firing_position_index,
-            *(int32_t *)((uint8_t *)query + 0xc), 0, &count16, (uint32_t *)&last_tick) == 0);
+            (int32_t)query->pursuit_last_perceived_time, 0, &count16, (uint32_t *)&last_tick) == 0);
         sighting_count = count16;
     } else {
         halo::ai::ai_pursuit_note_object(actor_index, self->encounter_index, candidate->firing_position_index,
-            *(int32_t *)((uint8_t *)query + 0xc));
+            (int32_t)query->pursuit_last_perceived_time);
         sighting_count = 7;
         missed = 0;
         last_tick = tick;
@@ -324,8 +324,8 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
 
     kind = (query->goal_kind >= 1 && query->goal_kind <= 3) ? 1 : 0;
     candidate->request_result = (int16_t)halo::ai::actor_evaluate_engagement_reachability(
-        *(int16_t *)((uint8_t *)candidate->position + 0xe), query->target_cluster_index,
-        (real_point3d *)((uint8_t *)query + 0x61c), &marker_point, (int16_t)kind, 1,
+        (int16_t)((ScenarioFiringPosition *)(uintptr_t)candidate->position)->cluster_index, query->target_cluster_index,
+        &query->target_lead_position, &marker_point, (int16_t)kind, 1,
         (uint32_t)query->target_relationship_object, self->active_unit_index != (datum_index)halo::k_dword_none);
 }
 

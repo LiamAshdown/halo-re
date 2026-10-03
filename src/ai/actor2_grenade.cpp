@@ -147,7 +147,7 @@ void ActorView::schedule_grenade_throw()
     struct actor *a = halo::ai::actor_at(actor_index);
     Actor *actor_tag;
     datum_index source;
-    uint8_t request[0x10];
+    actor_flee_source_reason request;
     datum_index prop;
     float delay;
     int32_t ticks;
@@ -159,14 +159,14 @@ void ActorView::schedule_grenade_throw()
     if (source == k_datum_index_none) {
         return;
     }
-    memset(request, 0, sizeof(request));
+    memset(&request, 0, sizeof(request));
     prop = halo::ai::actor_find_prop_for_object(source, actor_index);
     if (prop != k_datum_index_none) {
-        *(int16_t *)request = 1;
-        *(datum_index *)(request + 0x4) = prop;
+        request.code = 1;
+        request.payload.handle = prop;
     } else {
-        *(int16_t *)request = 3;
-        halo::units::unit_get_primary_eye_marker_position(source, (real_point3d *)(request + 0x4));
+        request.code = 3;
+        halo::units::unit_get_primary_eye_marker_position(source, &request.payload.point);
     }
     actor_tag = halo::ai::tag_data<Actor>(a->actor_definition_tag);
     if (!(a->awareness_level > 1) || a->vocalization_line > 8) {
@@ -175,7 +175,7 @@ void ActorView::schedule_grenade_throw()
     if (a->mode == halo::ai::actor_mode::obey && !a->mode_data.obey.allow_look) {
         return;
     }
-    if (*(int16_t *)request == 1 && halo::memory::datum_get(*(datum_index *)(request + 0x4), halo::ai::globals().prop_data) == 0) {
+    if (request.code == 1 && halo::memory::datum_get(request.payload.handle, halo::ai::globals().prop_data) == 0) {
         return;
     }
     delay = (a->awareness_level < 3 || a->combat_status == 0) ? 2.4f : 1.2f;
@@ -192,7 +192,7 @@ void ActorView::schedule_grenade_throw()
     a->vocalization_state = (int16_t)ticks;
     a->vocalization_line = 8;
     a->vocalization_variant = 5;
-    memcpy(&a->vocalization_source, request, 0x10);
+    a->vocalization_source = request;
 }
 
 namespace actor_should_throw_grenade_local {

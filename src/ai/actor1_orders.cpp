@@ -95,13 +95,8 @@ int32_t halo::ai::order_builder::default_(int16_t order_code, actor_order *order
     using namespace c_actor_build_order_default;
     uint32_t actor_index = datum;
     actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    uint32_t *body = (uint32_t *)order;
-    int32_t i;
 
-    for (i = 0x17; i != 0; i--) {
-        *body = 0;
-        body++;
-    }
+    memset(order, 0, sizeof(*order));
 
     if (a->swarm != 0) {
         order_code = 0;

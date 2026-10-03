@@ -369,27 +369,10 @@ uint8_t PathFinder::compute_heuristic(uint32_t vertex_id, real_point3d *point, f
 void PathFinder::context_init(const path_find_request *request, uint32_t second_param)
 {
     path_find_context * context = ptr;
-    uint32_t *clear;
-    int32_t i;
-    const uint32_t *src;
-    uint32_t *dst;
 
-    clear = (uint32_t *)context;
-    for (i = 0x4023; i != 0; i = i - 1) {
-        *clear = 0;
-        clear = clear + 1;
-    }
-
+    memset(context, 0, sizeof(*context));
     context->structure_bsp = (uint32_t)halo::scenario::globals().structure_bsp;
-
-    src = (const uint32_t *)request;
-    dst = (uint32_t *)context;
-    for (i = 0x12; i != 0; i = i - 1) {
-        *dst = *src;
-        src = src + 1;
-        dst = dst + 1;
-    }
-
+    memcpy(context, request, sizeof(*request));
     context->obstacle_cache = second_param;
 }
 
