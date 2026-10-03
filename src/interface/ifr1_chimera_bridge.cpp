@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_chimera_bridge.hpp"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -267,7 +268,7 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
             return (widget_instance *)0;
         }
     }
-    tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[tag_index & halo::k_slot_mask].data;
+    tag = halo::interface::tag_data<UIWidgetDefinition>(tag_index);
     widget = (widget_instance *)halo::memory::heap_allocate(sizeof(widget_instance), widget_memory_pool);
     if (widget == (widget_instance *)0) {
         return (widget_instance *)0;
@@ -284,7 +285,7 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
         ui_root_widget[slot] = widget;
 
         if (history_definition != (datum_index)-1) {
-            uint8_t *history_tag_data = (uint8_t *)halo::cache::globals().tag_instances[history_definition & halo::k_slot_mask].data;
+            uint8_t *history_tag_data = halo::interface::tag_data<uint8_t>(history_definition);
 
             if ((*(uint32_t *)(history_tag_data + 0x2c) & 0x4000) == 0) {
                 widget_history_node history_template;

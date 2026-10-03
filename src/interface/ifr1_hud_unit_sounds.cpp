@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_unit_sounds.hpp"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/memory/api.hpp"
@@ -104,7 +105,7 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
     if (unit == 0) {
         return;
     }
-    unit_tag = (Unit *)halo::cache::globals().tag_instances[*(datum_index *)unit & halo::k_slot_mask].data;
+    unit_tag = halo::interface::tag_data<Unit>(*(datum_index *)unit);
     choice = (int16_t)(halo::game::globals().local_player_globals->local_player_count > 1);
     last = (int32_t)((struct Unit *)unit_tag)->new_hud_interfaces.count - 1;
     if (choice > last) {
@@ -117,7 +118,7 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
     if (hud_tag == (datum_index)-1) {
         return;
     }
-    hud = (UnitHUDInterface *)halo::cache::globals().tag_instances[hud_tag & halo::k_slot_mask].data;
+    hud = halo::interface::tag_data<UnitHUDInterface>(hud_tag);
 
     mask = 0;
     if ((unit[0x10] & 4) != 0 || !(((unit_object *)unit)->base.body_vitality > 0.0f)) {

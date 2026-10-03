@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_first_person_weapon_controller.hpp"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/models/api.hpp"
@@ -273,8 +274,7 @@ void FirstPersonWeaponController::interface_tick(void)
     fp = &first_person_weapon_interfaces[0];
 
     if (halo::game::globals().local_player_globals->local_players[0] != (datum_index)halo::k_dword_none) {
-        record = (player *)((char *)halo::game::globals().player_data->data +
-                             (halo::game::globals().local_player_globals->local_players[0] & halo::k_slot_mask) * sizeof(player));
+        record = halo::interface::player_record(halo::game::globals().local_player_globals->local_players[0]);
         unit_index = record->unit;
 
         if (fp->unit_index != unit_index) {
@@ -455,7 +455,7 @@ void FirstPersonWeaponController::set_state(uint8_t force_pose_snapshot, int16_t
     fp = &first_person_weapon_interfaces[local_player_index];
 
     if (fp->weapon_index != (datum_index)halo::k_dword_none) {
-        weapon_obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[fp->weapon_index & halo::k_slot_mask].data;
+        weapon_obj = halo::interface::object_record(fp->weapon_index);
         if ((*(uint8_t *)(weapon_obj + 0x22c) & 1) != 0) {
             if (new_state == 0x13) {
                 new_state = 2;
@@ -500,7 +500,7 @@ void FirstPersonWeaponController::set_state(uint8_t force_pose_snapshot, int16_t
         return;
     }
 
-    weapon_obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[fp->weapon_index & halo::k_slot_mask].data;
+    weapon_obj = halo::interface::object_record(fp->weapon_index);
     item_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances +
                                    (*(uint32_t *)weapon_obj & halo::k_slot_mask) * 0x20 + 0x14);
     if (*(int16_t *)(item_tag_data + 0x4e2) == 3 && new_state == 3 &&
@@ -580,7 +580,7 @@ void FirstPersonWeaponController::snapshot_pose(int16_t blend_gap)
 
     fp = &first_person_weapon_interfaces[local_player_index];
 
-    weapon_obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[fp->weapon_index & halo::k_slot_mask].data;
+    weapon_obj = halo::interface::object_record(fp->weapon_index);
     item_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances +
                                    (*(uint32_t *)weapon_obj & halo::k_slot_mask) * 0x20 + 0x14);
     graph = (ModelAnimations *)*(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances +
@@ -768,7 +768,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
 
     hud_interface = halo::interface::local_player_get_weapon_hud_interface(&intensity);
     if (hud_interface == -1 ||
-        (int32_t)((WeaponHUDInterface *)halo::cache::globals().tag_instances[hud_interface & halo::k_slot_mask].data)->screen_effect.count < 1) {
+        (int32_t)(halo::interface::tag_data<WeaponHUDInterface>(hud_interface))->screen_effect.count < 1) {
         if (rasterizer_device_version >= 0xffff0101u && rasterizer_caps_flag_68a == 0) {
             halo::rasterizer::rasterizer_screen_effect_render((weapon_screen_effect_parameters *)0);
         } else {
@@ -778,7 +778,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
     }
 
     effect = (WeaponHUDInterfaceScreenEffect *)
-        ((WeaponHUDInterface *)halo::cache::globals().tag_instances[hud_interface & halo::k_slot_mask].data)->screen_effect.pointer;
+        (halo::interface::tag_data<WeaponHUDInterface>(hud_interface))->screen_effect.pointer;
     desired_zoom_level = -1;
     if (current_local_player_index != -1) {
         desired_zoom_level =
@@ -792,7 +792,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
                                                 : *(datum_index *)&effect->mask_fullscreen.tag_id;
         if (mask != (datum_index)-1) {
             parameters.mask_bitmap_data =
-                *(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[mask & halo::k_slot_mask].data + 0x64);
+                *(uint32_t *)(halo::interface::tag_data<uint8_t>(mask) + 0x64);
             parameters.night_vision_masked = (uint8_t)((effect->even_more_flags >> 2) & 1);
             parameters.desaturation_masked = (uint8_t)((effect->desaturation_flags >> 3) & 1);
         }
@@ -890,7 +890,7 @@ void FirstPersonWeaponController::update_state()
     case 3: case 4:
         return;
     case 0xd: case 0xe:
-        weapon_obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[fp->weapon_index & halo::k_slot_mask].data;
+        weapon_obj = halo::interface::object_record(fp->weapon_index);
         item_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances +
                                        (*(uint32_t *)weapon_obj & halo::k_slot_mask) * 0x20 + 0x14);
         device_entry = *(int16_t *)(fpb + 0x1e94);
@@ -900,7 +900,7 @@ void FirstPersonWeaponController::update_state()
         }
         break;
     case 0xf:
-        weapon_obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[fp->weapon_index & halo::k_slot_mask].data;
+        weapon_obj = halo::interface::object_record(fp->weapon_index);
         item_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances +
                                        (*(uint32_t *)weapon_obj & halo::k_slot_mask) * 0x20 + 0x14);
         if (*(int16_t *)(item_tag_data + 0x4e2) != 1 || *(int16_t *)(fpb + 0x1e94) != 2) {

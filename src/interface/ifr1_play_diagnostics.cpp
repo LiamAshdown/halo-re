@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_play_diagnostics.hpp"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/cache/api.hpp"
@@ -112,7 +113,7 @@ void PlayDiagnostics::run(void)
  */
 void PlayDiagnostics::fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, const float *node0, const float *center, int32_t early_out)
 {
-    uint8_t *model = (uint8_t *)halo::cache::globals().tag_instances[model_tag & halo::k_slot_mask].data;
+    uint8_t *model = halo::interface::tag_data<uint8_t>(model_tag);
     int32_t r;
 
     if ((debug_fp_draw_count++ % 90) != 0) {

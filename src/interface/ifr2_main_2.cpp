@@ -1,4 +1,5 @@
 #include "win32.h"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/interface/ifr2_main.hpp"
@@ -152,7 +153,7 @@ void InterfaceMain::tick()
 
                 root = widget;
                 if (widget != (widget_instance *)0) {
-                    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & halo::k_slot_mask].data;
+                    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
                     int32_t scratch_i;
                     uint8_t looped = 0;
 
@@ -246,7 +247,7 @@ shared_tail:
                     halo::interface::widget_instance_verify_stack_chain(hit) == 0) {
                     widget_instance *parent = hit->parent;
                     UIWidgetDefinition *parent_tag =
-                        (UIWidgetDefinition *)halo::cache::globals().tag_instances[parent->definition & halo::k_slot_mask].data;
+                        halo::interface::tag_data<UIWidgetDefinition>(parent->definition);
 
                     if (parent->focused_child != hit) {
                         halo::interface::widget_play_sound_effect(1);

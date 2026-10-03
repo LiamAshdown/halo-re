@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_network.hpp"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -176,7 +177,7 @@ void MenuListView::update_item(const uint16_t *record)
 
                 desc_buf[0] = 0;
                 if (labels_tag != (datum_index)-1) {
-                    UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[labels_tag & halo::k_slot_mask].data;
+                    UnicodeStringList *list = halo::interface::tag_data<UnicodeStringList>(labels_tag);
                     const uint16_t *source = missing_string_text;
 
                     if (list->strings.count > 5) {

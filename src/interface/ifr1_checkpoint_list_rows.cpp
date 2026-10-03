@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_checkpoint_list_rows.hpp"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -66,7 +67,7 @@ uint8_t CheckpointListRows::add_row(int32_t index, const char *name, int32_t lev
     seconds = game_time / 30;
 
     if (strings != halo::k_dword_none) {
-        uint8_t *list = (uint8_t *)halo::cache::globals().tag_instances[strings & halo::k_slot_mask].data;
+        uint8_t *list = halo::interface::tag_data<uint8_t>(strings);
         int16_t level = (int16_t)level_index;
 
         if (level >= 0 && level < *(int32_t *)list) {

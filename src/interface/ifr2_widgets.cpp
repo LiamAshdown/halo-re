@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_widgets.hpp"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -58,7 +59,7 @@ namespace halo::interface {
  */
 uint8_t WidgetView::widget_is_focus_candidate(widget_instance *candidate)
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[candidate->definition & halo::k_slot_mask].data;
+    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(candidate->definition);
     return (uint8_t)(candidate->hidden == 0 &&
                       (tag->game_data_inputs.count > 0 || candidate->widget_type == 2 ||
                        candidate->widget_type == 3));
@@ -137,7 +138,7 @@ void WidgetLifecycle::close()
     }
 
     {
-        void *tag_data = halo::cache::globals().tag_instances[widget->definition & halo::k_slot_mask].data;
+        void *tag_data = halo::interface::tag_data<void>(widget->definition);
         TagReflexive *event_handlers = (TagReflexive *)((uint8_t *)tag_data + 0x54);
         int32_t i;
 
@@ -309,7 +310,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
 
     if ((tag->flags_2 & 2) != 0) {
         UnicodeStringList *list =
-            (UnicodeStringList *)halo::cache::globals().tag_instances[*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id & halo::k_slot_mask].data;
+            halo::interface::tag_data<UnicodeStringList>(*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id);
 
         widget_creating_children = 1;
         for (i = 0; i < list->strings.count; i++) {
@@ -407,7 +408,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
                 }
                 {
                     UIWidgetDefinition *child_tag =
-                        (UIWidgetDefinition *)halo::cache::globals().tag_instances[child->definition & halo::k_slot_mask].data;
+                        halo::interface::tag_data<UIWidgetDefinition>(child->definition);
 
                     if (child->hidden == 0 &&
                         (child_tag->event_handlers.count > 0 || child->widget_type == 2 ||
@@ -432,7 +433,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
  */
 int32_t WidgetView::cursor_side_of_midpoint()
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & halo::k_slot_mask].data;
+    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
     int16_t cumulative_x = 0;
     widget_instance *ancestor;
     int16_t left;
@@ -639,7 +640,7 @@ void WidgetList::extended_description_sync_selection()
         list_child = sibling->first_child;
         for (; list_child != 0; list_child = list_child->next_sibling) {
             if (list_child->widget_type == uiwidgettype_spinner_list) {
-                list_tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[list_child->definition & halo::k_slot_mask].data;
+                list_tag = halo::interface::tag_data<UIWidgetDefinition>(list_child->definition);
                 if (sibling == focused) {
                     if ((list_tag->flags_2 & 4) == 0) {
                         index = index + list_child->selection_index;
@@ -721,7 +722,7 @@ void WidgetView::focus_next_child()
     }
 
     while (candidate != current) {
-        UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[candidate->definition & halo::k_slot_mask].data;
+        UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(candidate->definition);
 
         if ((tag->game_data_inputs.count > 0 || (tag->flags & 1) != 0 ||
              widget->widget_type == 2 || widget->widget_type == 3) &&
@@ -780,7 +781,7 @@ void WidgetView::focus_previous_child()
             if (candidate == focused) {
                 return;
             }
-            tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[candidate->definition & halo::k_slot_mask].data;
+            tag = halo::interface::tag_data<UIWidgetDefinition>(candidate->definition);
             if ((tag->game_data_inputs.count > 0 || (tag->flags & 1) != 0 ||
                  widget->widget_type == 2 || widget->widget_type == 3) &&
                 candidate->hidden == 0) {
@@ -893,7 +894,7 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
         widget_instance *child;
 
         for (child = widget->first_child; child != (widget_instance *)0; child = child->next_sibling) {
-            UIWidgetDefinition *child_tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[child->definition & halo::k_slot_mask].data;
+            UIWidgetDefinition *child_tag = halo::interface::tag_data<UIWidgetDefinition>(child->definition);
 
             if (child->hidden == 0 &&
                 (child_tag->event_handlers.count > 0 || child->widget_type == 2 || child->widget_type == 3)) {
@@ -1309,7 +1310,7 @@ dispatch_to_children:
                 if (child != (widget_instance *)0 &&
                     (child->controller_index == -1 || child->controller_index == event[1])) {
                     UIWidgetDefinition *child_tag =
-                        (UIWidgetDefinition *)halo::cache::globals().tag_instances[child->definition & halo::k_slot_mask].data;
+                        halo::interface::tag_data<UIWidgetDefinition>(child->definition);
 
                     halo::interface::widget_instance_handle_input_event(child, child_tag, event, &handled);
                 }
@@ -1319,7 +1320,7 @@ dispatch_to_children:
                 while (child != (widget_instance *)0) {
                     if (child->controller_index == -1 || child->controller_index == event[1]) {
                         UIWidgetDefinition *child_tag =
-                            (UIWidgetDefinition *)halo::cache::globals().tag_instances[child->definition & halo::k_slot_mask].data;
+                            halo::interface::tag_data<UIWidgetDefinition>(child->definition);
 
                         halo::interface::widget_instance_handle_input_event(child, child_tag, event, &handled);
                         if (handled == 1) {
@@ -1372,7 +1373,7 @@ uint8_t WidgetView::is_input_eligible()
     }
     result = 1;
     tag_source = cursor;
-    tag_data = halo::cache::globals().tag_instances[cursor->definition & halo::k_slot_mask].data;
+    tag_data = halo::interface::tag_data<void>(cursor->definition);
     while (cursor != (widget_instance *)0 && result != 0) {
         UIWidgetDefinition *definition = (UIWidgetDefinition *)tag_data;
 
@@ -1383,7 +1384,7 @@ uint8_t WidgetView::is_input_eligible()
             result = 1;
         }
         cursor = cursor->parent;
-        tag_data = halo::cache::globals().tag_instances[tag_source->definition & halo::k_slot_mask].data;
+        tag_data = halo::interface::tag_data<void>(tag_source->definition);
     }
     return result;
 }
@@ -1500,7 +1501,7 @@ void WidgetView::relink_focus(widget_instance *child)
  */
 void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, int32_t flag2)
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & halo::k_slot_mask].data;
+    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
     float scale = widget->scale;
     widget_instance *ancestor;
     int32_t i;
@@ -1693,7 +1694,7 @@ void WidgetList::select_list_index(datum_index list_definition, int32_t selectio
 
     if ((int16_t)selection < 0) {
         if (halo::interface::widget_instance_is_input_eligible(target) != 0) {
-            UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[target->definition & halo::k_slot_mask].data;
+            UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(target->definition);
 
             if (target->widget_type != 2 || tag->child_widgets.count < 2) {
                 halo::interface::widget_instance_relink_focus(target, target);
@@ -1709,7 +1710,7 @@ void WidgetList::select_list_index(datum_index list_definition, int32_t selectio
             if (cursor == (widget_instance *)0) {
                 return;
             }
-            tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[cursor->definition & halo::k_slot_mask].data;
+            tag = halo::interface::tag_data<UIWidgetDefinition>(cursor->definition);
             if (cursor->widget_type == 2 && tag->child_widgets.count > 1) {
                 return;
             }
@@ -1828,7 +1829,7 @@ clamp:
  */
 uint8_t WidgetList::select_next()
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & halo::k_slot_mask].data;
+    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
 
     if (widget->list_items != (void *)0 && widget->item_count != 0) {
         int16_t next_index = widget->selection_index + 1;
@@ -1919,7 +1920,7 @@ commit:
  */
 uint8_t WidgetList::select_previous()
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & halo::k_slot_mask].data;
+    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
 
     if (widget->list_items != (void *)0 && widget->item_count != 0) {
         int16_t prev_index = widget->selection_index - 1;
@@ -2002,7 +2003,7 @@ uint8_t WidgetList::select_previous()
             do {
                 if (cursor->hidden == 0) {
                     UIWidgetDefinition *cursor_tag =
-                        (UIWidgetDefinition *)halo::cache::globals().tag_instances[cursor->definition & halo::k_slot_mask].data;
+                        halo::interface::tag_data<UIWidgetDefinition>(cursor->definition);
 
                     if (cursor_tag->event_handlers.count > 0 || cursor->widget_type == 2 ||
                         cursor->widget_type == 3) {
@@ -2172,7 +2173,7 @@ void WidgetView::relink_focus_by_tag_id(datum_index child_definition)
  */
 widget_instance * WidgetLifecycle::reopen_as_root_with_history(datum_index open_tag)
 {
-    UIWidgetDefinition *open_definition = (UIWidgetDefinition *)halo::cache::globals().tag_instances[open_tag & halo::k_slot_mask].data;
+    UIWidgetDefinition *open_definition = halo::interface::tag_data<UIWidgetDefinition>(open_tag);
     uint16_t controller_index;
     widget_instance *ancestor;
     widget_instance *root;

@@ -4,6 +4,7 @@
  */
 
 #include "win32.h"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/text/api.hpp"
 #include "halo/interface/engine_state.hpp"
@@ -205,7 +206,7 @@ uint8_t UiEventHandlers::event_4a1d90(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a1dc0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[widget->definition & halo::k_slot_mask].data;
+    uint8_t *definition = halo::interface::tag_data<uint8_t>(widget->definition);
     int32_t x = ui_cursor_x;
     int32_t y = ui_cursor_y;
     int16_t origin_x;
@@ -244,7 +245,7 @@ uint8_t UiEventHandlers::event_4a1dc0(widget_instance *widget, int16_t *event, u
         return 1;
     }
     for (child = widget->first_child; child != 0; child = child->next_sibling) {
-        uint8_t *bounds = (uint8_t *)halo::cache::globals().tag_instances[child->definition & halo::k_slot_mask].data;
+        uint8_t *bounds = halo::interface::tag_data<uint8_t>(child->definition);
         int16_t cx;
         int16_t cy;
 
@@ -604,7 +605,7 @@ uint8_t UiEventHandlers::event_4a3510(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_4a3540(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     widget_instance *list = widget->parent;
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[list->definition & halo::k_slot_mask].data;
+    uint8_t *definition = halo::interface::tag_data<uint8_t>(list->definition);
     int32_t rows = *(int32_t *)(definition + 0x3e0);
     int32_t first_visible = *(int16_t *)((uint8_t *)list + 0x3e);
     int32_t committed = *(int16_t *)&((struct widget_instance *)list)->text;

@@ -4,6 +4,7 @@
  */
 
 #include "win32.h"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -841,7 +842,7 @@ uint8_t UiEventHandlers::event_4a0860(widget_instance *widget, int16_t *event, u
 
         ((uint8_t *)widget->list_items)[i] = (uint8_t)i;
         if (strings != halo::k_dword_none) {
-            uint8_t *list = (uint8_t *)halo::cache::globals().tag_instances[strings & halo::k_slot_mask].data;
+            uint8_t *list = halo::interface::tag_data<uint8_t>(strings);
 
             if (i < *(int32_t *)list) {
                 uint8_t *element = *(uint8_t **)(list + 4) + i * 0x14;

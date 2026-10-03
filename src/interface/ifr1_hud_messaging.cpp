@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_messaging.hpp"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
@@ -162,7 +163,7 @@ void HudMessaging::display_checkpoint_message(uint8_t is_begin)
         const uint16_t *text = empty_wide_string_pointer;
         int32_t string_list_tag_id = *(int32_t *)&hud_globals->item_message_text.tag_id;
         if (string_list_tag_id != -1) {
-            int32_t *string_list_tag_data = (int32_t *)halo::cache::globals().tag_instances[string_list_tag_id & halo::k_slot_mask].data;
+            int32_t *string_list_tag_data = halo::interface::tag_data<int32_t>(string_list_tag_id);
             if (string_list_tag_data != 0 && message_index > -1 && message_index < *string_list_tag_data) {
                 text = halo::text::text_string_list_get_string((datum_index)string_list_tag_id, message_index);
             }
@@ -207,7 +208,7 @@ uint16_t * HudMessaging::get_message_string(int32_t message_index)
     int32_t string_list_tag_id = *(int32_t *)&hud_globals->item_message_text.tag_id;
 
     if (string_list_tag_id != -1) {
-        int32_t *string_list_tag_data = (int32_t *)halo::cache::globals().tag_instances[string_list_tag_id & halo::k_slot_mask].data;
+        int32_t *string_list_tag_data = halo::interface::tag_data<int32_t>(string_list_tag_id);
         if (string_list_tag_data != 0 && message_index > -1 && message_index < *string_list_tag_data) {
             return halo::text::text_string_list_get_string((datum_index)string_list_tag_id, (int16_t)message_index);
         }
@@ -468,7 +469,7 @@ void HudMessaging::set_help_text(int16_t message_index)
         return;
     }
     hud_messaging->help_text =
-        (HUDMessageTextMessage *)((HUDMessageText *)halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data)->messages.pointer +
+        (HUDMessageTextMessage *)(halo::interface::tag_data<HUDMessageText>(tag_id))->messages.pointer +
         message_index;
 }
 
@@ -527,7 +528,7 @@ void HudMessaging::set_objective_text(int16_t message_index)
     if (tag_id == (datum_index)-1) {
         return;
     }
-    messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data;
+    messages_tag = halo::interface::tag_data<HUDMessageText>(tag_id);
     message = (HUDMessageTextMessage *)messages_tag->messages.pointer + message_index;
     if (message->panel_count != 1) {
         return;
@@ -561,7 +562,7 @@ void HudMessaging::set_player_message(int16_t message_index, int16_t local_playe
     }
     record = &hud_messaging->players[local_player_index];
     if (message_index != -1) {
-        HUDMessageText *messages = (HUDMessageText *)halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data;
+        HUDMessageText *messages = halo::interface::tag_data<HUDMessageText>(tag_id);
         if ((int32_t)message_index < (int32_t)messages->messages.count) {
             record->message = (HUDMessageTextMessage *)messages->messages.pointer + message_index;
             record->argument_is_string = 0;

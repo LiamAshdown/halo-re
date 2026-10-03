@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_main.hpp"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -293,7 +294,7 @@ void InterfaceMain::set_profile_name(widget_instance *widget, const uint16_t *na
     widget->text = buffer;
     if (buffer != (void *)0) {
         if (tag_id != (datum_index)-1) {
-            UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data;
+            UnicodeStringList *list = halo::interface::tag_data<UnicodeStringList>(tag_id);
 
             if (list->strings.count > 7) {
                 UnicodeStringListString *strings = (UnicodeStringListString *)list->strings.pointer;

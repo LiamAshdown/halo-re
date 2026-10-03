@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -151,7 +152,7 @@ void UiDraw::draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect)
         ? (GlobalsRasterizerData *)0
         : (GlobalsRasterizerData *)global_globals->rasterizer_data.pointer;
     default_2d_tag = *(datum_index *)&rasterizer_data->default_2d.tag_id;
-    default_2d_bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_2d_tag & halo::k_slot_mask].data;
+    default_2d_bitmap = halo::interface::tag_data<Bitmap>(default_2d_tag);
     default_2d_bitmap_data = (BitmapData *)default_2d_bitmap->bitmap_data.pointer;
 
     v[0].x = (float)(int32_t)rect->left;  v[0].y = (float)(int32_t)rect->top;

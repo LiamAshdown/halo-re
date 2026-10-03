@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -141,7 +142,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
 
         entry_name = missing_string_text;
         if (string_list_tag != (datum_index)-1) {
-            UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[string_list_tag & halo::k_slot_mask].data;
+            UnicodeStringList *list = halo::interface::tag_data<UnicodeStringList>(string_list_tag);
 
             if (i >= 0 && i < (int32_t)list->strings.count) {
                 UnicodeStringListString *strings = (UnicodeStringListString *)list->strings.pointer;

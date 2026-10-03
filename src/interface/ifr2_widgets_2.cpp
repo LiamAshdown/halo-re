@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_widgets.hpp"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -33,7 +34,7 @@ namespace halo::interface {
  */
 widget_instance * WidgetView::find_at_point(int32_t cursor_x, int32_t cursor_y, int32_t offset_xy)
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & halo::k_slot_mask].data;
+    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
     widget_instance *first_child = widget->first_child;
     uint8_t eligible =
         (widget->hidden == 0 &&
@@ -84,7 +85,7 @@ widget_instance * WidgetView::find_at_point(int32_t cursor_x, int32_t cursor_y, 
  */
 uint8_t WidgetView::point_in_bounds()
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & halo::k_slot_mask].data;
+    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
     Rectangle2D rect = tag->bounds;
     int16_t x_sum = 0;
     int16_t y_sum = 0;
@@ -161,7 +162,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
 
         for (arrow = 0; arrow < 2; arrow++) {
             datum_index bitmap_tag = *(datum_index *)(t + (arrow == 0 ? 0x160 : 0x170));
-            uint8_t *bitmap_tag_data = (uint8_t *)halo::cache::globals().tag_instances[bitmap_tag & halo::k_slot_mask].data;
+            uint8_t *bitmap_tag_data = halo::interface::tag_data<uint8_t>(bitmap_tag);
             int16_t frame = (int16_t)(arrow == 0 ? scroll_dir_up : scroll_dir_down);
             int32_t bitmap;
 
@@ -292,7 +293,7 @@ void WidgetList::adjust_rect_for_scroll_arrows(Rectangle2D *rect)
     if (widget->widget_type != 2  ) {
         return;
     }
-    tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & halo::k_slot_mask].data;
+    tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
     if (tag->child_widgets.count >= 2) {
         return;
     }

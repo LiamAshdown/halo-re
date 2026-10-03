@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_motion_sensor.hpp"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
@@ -79,8 +80,7 @@ void HudMotionSensor::update(void)
 
             if (local_player_index != -1 && local_player_index < 1 &&
                 halo::game::globals().local_player_globals->local_players[local_player_index] != (datum_index)-1) {
-                unit_index = ((player *)((uint8_t *)halo::game::globals().player_data->data +
-                                         (halo::game::globals().local_player_globals->local_players[local_player_index] & halo::k_slot_mask) * 0x200))->unit;
+                unit_index = (halo::interface::player_record(halo::game::globals().local_player_globals->local_players[local_player_index]))->unit;
             }
             local_players[k] = local_player_index;
             cameras[local_player_index].x = 0.0f;
@@ -120,7 +120,7 @@ void HudMotionSensor::update(void)
                 continue;
             }
             {
-                real_point3d position = *(real_point3d *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data + 0xa0);
+                real_point3d position = *(real_point3d *)(halo::interface::object_record(object_index) + 0xa0);
 
                 full_players = 0;
                 for (k = 0; k < count; k++) {
@@ -134,7 +134,7 @@ void HudMotionSensor::update(void)
                     }
                     player_index = halo::game::globals().local_player_globals->local_players[index];
                     if (player_index == (datum_index)-1 ||
-                        ((player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & halo::k_slot_mask) * 0x200))->unit == (datum_index)-1) {
+                        (halo::interface::player_record(player_index))->unit == (datum_index)-1) {
                         continue;
                     }
                     if (blip_counts[index] >= 0x10) {

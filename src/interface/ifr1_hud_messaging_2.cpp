@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_messaging.hpp"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include <string.h>
 #include "halo/memory/api.hpp"
@@ -72,7 +73,7 @@ void HudMessaging::receive_item_message(void **message)
     }
 
     halo::interface::hud_add_item_message(p->local_player_index, payload.item_definition, payload.kind, payload.count);
-    item_tag = (int16_t *)halo::cache::globals().tag_instances[payload.item_definition & halo::k_slot_mask].data;
+    item_tag = halo::interface::tag_data<int16_t>(payload.item_definition);
     if (item_tag[0] == 3) {
         switch (*(int16_t *)((uint8_t *)item_tag + 0x308)) {
         case 2:

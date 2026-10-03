@@ -1,4 +1,5 @@
 #include "win32.h"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
@@ -103,7 +104,7 @@ void MenuListView::update()
                 uint16_t *source = missing_string_text;
 
                 if (tag != (datum_index)-1) {
-                    UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag & halo::k_slot_mask].data;
+                    UnicodeStringList *list = halo::interface::tag_data<UnicodeStringList>(tag);
 
                     if (list->strings.count > 0x13) {
                         UnicodeStringListString *strings = (UnicodeStringListString *)list->strings.pointer;

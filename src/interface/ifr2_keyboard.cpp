@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_keyboard.hpp"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -167,7 +168,7 @@ uint8_t VirtualKeyboard::close()
  */
 void VirtualKeyboard::draw_text(Rectangle2D *bounds)
 {
-    const uint8_t *font_data = (const uint8_t *)halo::cache::globals().tag_instances[virtual_keyboard.small_ui_tag & halo::k_slot_mask].data;
+    const uint8_t *font_data = halo::interface::tag_data<const uint8_t>(virtual_keyboard.small_ui_tag);
 
     hud_text_draw_font_tag_id = virtual_keyboard.small_ui_tag;
     hud_text_draw_color_a = 1.0f;
@@ -245,7 +246,7 @@ int32_t VirtualKeyboard::initialize()
 
     strings_tag = halo::cache::tag_lookup(halo::fourcc('v', 'c', 'k', 'y')  , (char *)"ui\\english");
     if (strings_tag != halo::k_dword_none) {
-        virtual_keyboard.strings_tag_data = halo::cache::globals().tag_instances[strings_tag & halo::k_slot_mask].data;
+        virtual_keyboard.strings_tag_data = halo::interface::tag_data<void>(strings_tag);
         virtual_keyboard.caret = 0;
         virtual_keyboard.unknown_0a = 0;
         virtual_keyboard.maximum_length = 0;
@@ -406,7 +407,7 @@ finish:
             if (ch < 0x20 || ch == 0xff) {
                 continue;
             }
-            font = (uint8_t *)halo::cache::globals().tag_instances[virtual_keyboard.small_ui_tag & halo::k_slot_mask].data;
+            font = halo::interface::tag_data<uint8_t>(virtual_keyboard.small_ui_tag);
             character_map = *(int32_t **)(font + 0x34) + (ch >> 8) * 3;
             if (character_map[0] <= 0) {
                 goto rejected;
@@ -503,7 +504,7 @@ void VirtualKeyboard::render()
 
     string_list = *(const datum_index *)((const uint8_t *)virtual_keyboard.strings_tag_data + 0x2c);
     if (string_list != (datum_index)-1) {
-        UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[string_list & halo::k_slot_mask].data;
+        UnicodeStringList *list = halo::interface::tag_data<UnicodeStringList>(string_list);
 
         if (list->strings.count > 0xe) {
             UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer + 0xe;

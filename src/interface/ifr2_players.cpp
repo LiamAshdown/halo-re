@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_players.hpp"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -165,8 +166,7 @@ int32_t LocalPlayers::index_for_unit(datum_index unit_index)
         if (halo::game::globals().local_player_globals->local_players[i] == (datum_index)halo::k_dword_none) {
             continue;
         }
-        record = (player *)((char *)halo::game::globals().player_data->data +
-                             (halo::game::globals().local_player_globals->local_players[i] & halo::k_slot_mask) * sizeof(player));
+        record = halo::interface::player_record(halo::game::globals().local_player_globals->local_players[i]);
         if (record->unit == unit_index) {
             return i;
         }
@@ -192,8 +192,7 @@ int32_t LocalPlayers::index_for_weapon(datum_index weapon_index)
         if (halo::game::globals().local_player_globals->local_players[i] == (datum_index)halo::k_dword_none) {
             continue;
         }
-        record = (player *)((char *)halo::game::globals().player_data->data +
-                             (halo::game::globals().local_player_globals->local_players[i] & halo::k_slot_mask) * sizeof(player));
+        record = halo::interface::player_record(halo::game::globals().local_player_globals->local_players[i]);
         if (record->unit == (datum_index)halo::k_dword_none) {
             continue;
         }
@@ -972,7 +971,7 @@ uint8_t LocalPlayers::get_first_person_marker_transform(datum_index object_index
         return 0;
     }
 
-    p = (player *)((uint8_t *)halo::game::globals().player_data->data + (controlling_player & halo::k_slot_mask) * sizeof(player));
+    p = halo::interface::player_record(controlling_player);
     local_player = p->local_player_index;
     if (local_player == -1 || local_player != current_local_player_index) {
         return 0;

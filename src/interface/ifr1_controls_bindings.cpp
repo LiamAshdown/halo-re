@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_controls_bindings.hpp"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/tag_groups.hpp"
 #include <string.h>
@@ -518,9 +519,9 @@ void ControlsBindings::build_device_label_table(void)
     controls_device_label_count = 0;
 
     if (tag_id != (datum_index)-1) {
-        int32_t *reflexive = *(int32_t **)&halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data;
-        if (*(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data) > 0) {
-            uint32_t *item = (uint32_t *)((int32_t *)halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data)[1];
+        int32_t *reflexive = halo::interface::tag_data<int32_t>(tag_id);
+        if (*(int32_t *)(halo::interface::tag_data<uint8_t>(tag_id)) > 0) {
+            uint32_t *item = (uint32_t *)(halo::interface::tag_data<int32_t>(tag_id))[1];
             uint32_t count = item[0];
             (void)reflexive;
             if ((int32_t)count > 0) {

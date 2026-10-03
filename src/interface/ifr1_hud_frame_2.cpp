@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_frame.hpp"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include <wchar.h>
@@ -21,24 +22,24 @@ extern uint8_t *cinematic_globals_ptr;
 
 static uint8_t *object_get(datum_index object_index)
 {
-    return (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
+    return halo::interface::object_record(object_index);
 }
 
 static uint8_t *object_tag_data(datum_index object_index)
 {
-    return (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object_get(object_index) & halo::k_slot_mask].data;
+    return halo::interface::tag_data<uint8_t>(*(datum_index *)object_get(object_index));
 }
 
 static const int16_t *weapon_hud_messaging(const uint8_t *weapon_object)
 {
     datum_index weapon_tag = *(const datum_index *)weapon_object;
-    datum_index hud = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[weapon_tag & halo::k_slot_mask].data + 0x48c);
+    datum_index hud = *(datum_index *)(halo::interface::tag_data<uint8_t>(weapon_tag) + 0x48c);
     const int16_t *messaging;
 
     if (hud == (datum_index)-1) {
         return 0;
     }
-    messaging = (const int16_t *)((uint8_t *)halo::cache::globals().tag_instances[hud & halo::k_slot_mask].data + 0x13c);
+    messaging = (const int16_t *)(halo::interface::tag_data<uint8_t>(hud) + 0x13c);
     return (*messaging == -1) ? 0 : messaging;
 }
 
@@ -53,7 +54,7 @@ namespace halo::interface {
  */
 void HudFrame::update_interaction_prompt(datum_index player_index)
 {
-    player *p = (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & halo::k_slot_mask) * sizeof(player));
+    player *p = halo::interface::player_record(player_index);
     int16_t local = current_local_player_index;
     int16_t target_message;
 
@@ -249,7 +250,7 @@ void HudFrame::update_player(void)
     }
 
     {
-        player *local_player = (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & halo::k_slot_mask) * sizeof(player));
+        player *local_player = halo::interface::player_record(player_index);
 
         if ((current_game_engine == 0 || ((motion_sensor_override_value & 2) != 0 && halo::game::globals().teams_enabled != 0)) &&
             cinematic_globals_ptr[9] == 0) {

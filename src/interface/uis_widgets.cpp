@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "tags.h"
 #include "memory.h"
@@ -101,7 +102,7 @@ void UiWidgets::widget_text_from_hud_objective(widget_instance *widget)
     if (entry == 0) {
         return;
     }
-    text_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x5a0) & halo::k_slot_mask].data;
+    text_tag = halo::interface::tag_data<uint8_t>(*(uint32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x5a0));
     text = (uint16_t *)(*(uint8_t **)(text_tag + 0xc) + (uint32_t)*(uint16_t *)(entry + 0x20) * 2);
     if (text == 0 || *text == 0) {
         return;
