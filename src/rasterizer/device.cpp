@@ -632,7 +632,7 @@ void rasterizer_end_frame(void)
 
         stride = halo::rasterizer::d3dx::fvf_vertex_size(halo::d3d9::k_fvf_xyzrhw_diffuse_tex1);
         render_device().set_pixel_shader(0);
-        render_device().set_texture(0, (void *)rasterizer_render_targets[1].texture);
+        render_device().set_texture(0, rasterizer_render_targets[1].texture);
         rasterizer_set_sampler_state(0, halo::d3d9::ss::address_u, 3);
         rasterizer_set_sampler_state(0, halo::d3d9::ss::address_v, 3);
         rasterizer_set_sampler_state(0, halo::d3d9::ss::mag_filter, 1);

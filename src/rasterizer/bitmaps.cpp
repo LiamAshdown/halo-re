@@ -682,7 +682,7 @@ void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap)
             return;
         }
 
-        hresult = render_device().texture_lock_rect((void *)bitmap->hardware_texture, (uint32_t)level, &locked, 0, 0);
+        hresult = render_device().texture_lock_rect(bitmap->hardware_texture, (uint32_t)level, &locked, 0, 0);
 
         if (hresult < 0 || locked.bits == 0) {
             ok = 0;
@@ -705,7 +705,7 @@ void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap)
             memcpy((void *)locked.bits, source, level_size);
         }
 
-        hresult = render_device().texture_unlock_rect((void *)bitmap->hardware_texture, (uint32_t)level);
+        hresult = render_device().texture_unlock_rect(bitmap->hardware_texture, (uint32_t)level);
         if (hresult < 0) {
             ok = 0;
         }
@@ -752,7 +752,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap)
     max_level = ((int8_t)(rasterizer_caps.texture_caps >> 8) < 0) ? bitmap->mipmap_count : 0;
 
     for (level = 0; ok && level <= max_level; level++) {
-        if (render_device().volume_texture_lock_box((void *)bitmap->hardware_texture, (uint32_t)level, &locked, 0, 0) < 0 ||
+        if (render_device().volume_texture_lock_box(bitmap->hardware_texture, (uint32_t)level, &locked, 0, 0) < 0 ||
             locked.bits == 0) {
             ok = 0;
             continue;
@@ -770,7 +770,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap)
             source += slice_bytes;
             dest += locked.slice_pitch;
         }
-        if (render_device().volume_texture_unlock_box((void *)bitmap->hardware_texture, (uint32_t)level) < 0) {
+        if (render_device().volume_texture_unlock_box(bitmap->hardware_texture, (uint32_t)level) < 0) {
             ok = 0;
         }
     }
@@ -810,7 +810,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap)
 
     for (level = 0; ok && level <= max_level; level++) {
         for (face = 0; ok && face < 6; face++) {
-            if (render_device().cube_texture_lock_rect((void *)bitmap->hardware_texture, (uint32_t)rasterizer_cube_face_to_d3d_face[face], (uint32_t)level, &locked, 0, 0) < 0 ||
+            if (render_device().cube_texture_lock_rect(bitmap->hardware_texture, (uint32_t)rasterizer_cube_face_to_d3d_face[face], (uint32_t)level, &locked, 0, 0) < 0 ||
                 locked.bits == 0) {
                 ok = 0;
                 continue;
@@ -832,7 +832,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap)
                     dest += locked.pitch;
                 }
             }
-            if (render_device().cube_texture_unlock_rect((void *)bitmap->hardware_texture, (uint32_t)rasterizer_cube_face_to_d3d_face[face], (uint32_t)level) < 0) {
+            if (render_device().cube_texture_unlock_rect(bitmap->hardware_texture, (uint32_t)rasterizer_cube_face_to_d3d_face[face], (uint32_t)level) < 0) {
                 ok = 0;
             }
         }
@@ -898,7 +898,7 @@ void rasterizer_render_target_bind_effect_texture(int16_t target_index, rasteriz
         texture = (void *)(uintptr_t)rasterizer_render_targets[target_index].texture;
     }
 
-    render_device().effect_set_texture((void *)(uintptr_t)effect_slot->effect, effect_slot->texture_handles[handle_index], texture);
+    render_device().effect_set_texture(effect_slot->effect, effect_slot->texture_handles[handle_index], texture);
 }
 
 }  // namespace rasterizer_render_target_bind_effect_texture_impl

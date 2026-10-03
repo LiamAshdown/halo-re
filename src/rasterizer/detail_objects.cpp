@@ -202,10 +202,10 @@ void rasterizer_detail_objects_draw(const rasterizer_detail_object_batches *list
 
         render_device().set_vertex_shader_constant_f(0x13, &type_constants[0][0], (uint32_t)type_count);
         render_device().set_vertex_shader_constant_f(0x1d, &sprite_constants[0][0], (uint32_t)sprite_count);
-        render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[_rasterizer_vertex_type_detail_object].declaration);
+        render_device().set_vertex_declaration(rasterizer_vertex_declarations[_rasterizer_vertex_type_detail_object].declaration);
         render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                 rasterizer_vertex_declarations[_rasterizer_vertex_type_detail_object].usage) & 0x10);
-        render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[3 + collection->collection_type].shader);
+        render_device().set_vertex_shader(rasterizer_vertex_shaders[3 + collection->collection_type].shader);
 
         for (draw_index = 0; draw_index < batch->draw_count; draw_index++) {
             const rasterizer_detail_object_draw *draw = &((const rasterizer_detail_object_draw *)batch->draws)[draw_index];

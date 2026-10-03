@@ -847,7 +847,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
             int16_t vertex_type;
 
             vertex_type = (int16_t)transparent_geometry_group_get_vertex_type_reference(group);
-            render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[vertex_type].declaration);
+            render_device().set_vertex_declaration(rasterizer_vertex_declarations[vertex_type].declaration);
 
             rasterizer_set_render_state(halo::d3d9::rs::cull_mode, (~(uint32_t)*(uint16_t *)((const uint8_t *)shader + 0x28) & 2) | 1);
             rasterizer_set_render_state(halo::d3d9::rs::color_write_enable, 7);
@@ -863,13 +863,13 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
             rasterizer_set_sampler_state(0, halo::d3d9::ss::mag_filter, 2);
             rasterizer_set_sampler_state(0, halo::d3d9::ss::min_filter, 2);
             rasterizer_set_sampler_state(0, halo::d3d9::ss::mip_filter, 2);
-            render_device().set_texture(2, (void *)rasterizer_render_targets[2].texture);
+            render_device().set_texture(2, rasterizer_render_targets[2].texture);
             rasterizer_set_sampler_state(2, halo::d3d9::ss::address_u, 3);
             rasterizer_set_sampler_state(2, halo::d3d9::ss::address_v, 3);
             rasterizer_set_sampler_state(2, halo::d3d9::ss::mag_filter, 2);
             rasterizer_set_sampler_state(2, halo::d3d9::ss::min_filter, 2);
             rasterizer_set_sampler_state(2, halo::d3d9::ss::mip_filter, 1);
-            render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[30].shader);
+            render_device().set_vertex_shader(rasterizer_vertex_shaders[30].shader);
 
             half_height = (float)(rasterizer_window.camera.viewport_bounds.bottom - rasterizer_window.camera.viewport_bounds.top) * 0.5f;
 

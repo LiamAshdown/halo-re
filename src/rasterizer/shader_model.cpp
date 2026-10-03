@@ -1405,13 +1405,13 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
         }
     }
     if (ok) {
-        render_device().effect_begin((void *)(uintptr_t)slot->effect, &passes, 3);
+        render_device().effect_begin(slot->effect, &passes, 3);
         for (pass = 0; pass < passes; pass++) {
-            render_device().effect_pass((void *)(uintptr_t)slot->effect, pass);
+            render_device().effect_pass(slot->effect, pass);
             rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, vertex_buffer, primitive_count, 0,
                                                       dynamic_vertex_slot);
         }
-        render_device().effect_end((void *)(uintptr_t)slot->effect);
+        render_device().effect_end(slot->effect);
 
         if ((smodel(shader)->shader_model_flags & 2) && cull) {
 
@@ -1434,9 +1434,9 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
                                               (float)rasterizer_time.time);
             detail_constants[2][2] = model->translucency;
             render_device().set_vertex_shader_constant_f(10, &detail_constants[0][0], 3);
-            render_device().effect_begin((void *)(uintptr_t)slot->effect, &passes, 3);
+            render_device().effect_begin(slot->effect, &passes, 3);
             for (pass = 0; pass < passes; pass++) {
-                render_device().effect_pass((void *)(uintptr_t)slot->effect, pass);
+                render_device().effect_pass(slot->effect, pass);
                 set_render_state(halo::d3d9::rs::cull_mode, 2);
 
                 if (index_buffer != NULL) {
@@ -1452,7 +1452,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
                     rasterizer_dynamic_index_cache_draw(dynamic_index_slot, 0, primitive_count, dynamic_vertex_slot);
                 }
             }
-            render_device().effect_end((void *)(uintptr_t)slot->effect);
+            render_device().effect_end(slot->effect);
         }
     }
 
@@ -1515,7 +1515,7 @@ rasterizer_effect_slot * rasterizer_shader_model_select_technique(const ShaderMo
     if (slot->effect == 0) {
         return NULL;
     }
-    if (render_device().effect_set_technique((void *)(uintptr_t)slot->effect, technique) < 0) {
+    if (render_device().effect_set_technique(slot->effect, technique) < 0) {
         return NULL;
     }
     return slot;

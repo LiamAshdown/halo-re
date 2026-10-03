@@ -148,10 +148,10 @@ void rasterizer_glass_diffuse_draw(transparent_geometry_group *group)
     render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, 1);
 
     pass_index = 0;
-    render_device().effect_begin((void *)rasterizer_effects[109].effect, &pass_index, 3);
-    render_device().effect_pass((void *)rasterizer_effects[109].effect, (uint32_t)has_lightmap);
+    render_device().effect_begin(rasterizer_effects[109].effect, &pass_index, 3);
+    render_device().effect_pass(rasterizer_effects[109].effect, (uint32_t)has_lightmap);
     rasterizer_transparent_geometry_group_draw_vertices(group, (int32_t)has_lightmap);
-    render_device().effect_end((void *)rasterizer_effects[109].effect);
+    render_device().effect_end(rasterizer_effects[109].effect);
 }
 
 namespace rasterizer_glass_diffuse_draw_fixed_function_impl {
@@ -217,12 +217,12 @@ void rasterizer_glass_diffuse_draw_fixed_function(transparent_geometry_group *gr
     render_device().set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
     render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, 1);
 
-    render_device().effect_begin((void *)rasterizer_effects[109].effect, &pass_count, 3);
+    render_device().effect_begin(rasterizer_effects[109].effect, &pass_count, 3);
     for (pass = 0; pass < pass_count; pass++) {
-        render_device().effect_pass((void *)rasterizer_effects[109].effect, pass);
+        render_device().effect_pass(rasterizer_effects[109].effect, pass);
         rasterizer_transparent_geometry_group_draw_vertices(group, group->lightmap_bitmap != 0);
     }
-    render_device().effect_end((void *)rasterizer_effects[109].effect);
+    render_device().effect_end(rasterizer_effects[109].effect);
 }
 
 }  // namespace rasterizer_glass_diffuse_draw_fixed_function_impl
@@ -382,8 +382,8 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
     }
 
     specular_mask_pass = (glass->shader_transparent_glass_flags >> 3) & 1;
-    render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[vertex_type].declaration);
-    render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[shader_variant + shader_base].shader);
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[vertex_type].declaration);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[shader_variant + shader_base].shader);
     if (effect_slot->effect == 0) {
         return;
     }
@@ -487,7 +487,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
         }
 
         if (reflection_kind == 2) {
-            render_device().effect_set_texture(effect, effect_slot->texture_handles[3], (void *)rasterizer_render_targets[2].texture);
+            render_device().effect_set_texture(effect, effect_slot->texture_handles[3], rasterizer_render_targets[2].texture);
             rasterizer_set_sampler_state(3, halo::d3d9::ss::address_u, 3);
             rasterizer_set_sampler_state(3, halo::d3d9::ss::address_v, 3);
             rasterizer_set_sampler_state(3, halo::d3d9::ss::mag_filter, 2);
@@ -2180,11 +2180,11 @@ void rasterizer_water_ripple_draw(rasterizer_vertex_buffer *vertex_buffer, const
         return;
     }
 
-    if (render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[vertex_buffer->type].declaration) < 0) {
+    if (render_device().set_vertex_declaration(rasterizer_vertex_declarations[vertex_buffer->type].declaration) < 0) {
         succeeded = 0;
     }
     permutation = halo::shaders::shader_view(const_cast<Shader *>(shader)).vertex_shader_permutation();
-    if (render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[11 + permutation].shader) < 0 ||
+    if (render_device().set_vertex_shader(rasterizer_vertex_shaders[11 + permutation].shader) < 0 ||
         !succeeded) {
         return;
     }

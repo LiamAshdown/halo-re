@@ -727,9 +727,9 @@ void rasterizer_render_target_capture_frame(void)
         render_device().set_vertex_declaration((void *)declaration->declaration);
         render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                     declaration->usage) & 0x10);
-        render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[35].shader);
+        render_device().set_vertex_shader(rasterizer_vertex_shaders[35].shader);
         render_device().set_pixel_shader(0);
-        render_device().set_texture(0, (void *)rasterizer_render_targets[1].texture);
+        render_device().set_texture(0, rasterizer_render_targets[1].texture);
         rasterizer_set_sampler_state(0, halo::d3d9::ss::address_u, 3);
         rasterizer_set_sampler_state(0, halo::d3d9::ss::address_v, 3);
         rasterizer_set_sampler_state(0, halo::d3d9::ss::mag_filter, 2);
@@ -861,7 +861,7 @@ uint8_t rasterizer_render_target_initialize(void)
         if (render_device().get_render_target(0, &rasterizer_render_targets[1].surface) < 0) {
             ok = 0;
         }
-        if (render_device().surface_get_desc((void *)(uintptr_t)rasterizer_render_targets[1].surface, &desc) < 0) {
+        if (render_device().surface_get_desc(rasterizer_render_targets[1].surface, &desc) < 0) {
             ok = 0;
         }
         rasterizer_render_targets[1].format = desc.format;
@@ -871,7 +871,7 @@ uint8_t rasterizer_render_target_initialize(void)
         if (render_device().get_render_target(0, &rasterizer_render_targets[0].surface) < 0) {
             ok = 0;
         }
-        if (render_device().surface_get_desc((void *)(uintptr_t)rasterizer_render_targets[0].surface, &desc) < 0) {
+        if (render_device().surface_get_desc(rasterizer_render_targets[0].surface, &desc) < 0) {
             ok = 0;
         }
         rasterizer_render_targets[0].format = desc.format;

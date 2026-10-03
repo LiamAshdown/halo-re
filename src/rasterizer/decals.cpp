@@ -471,14 +471,14 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
             if (render_device().set_vertex_shader_constant_f(10, constants, 1) < 0) {
                 succeeded = 0;
             }
-            if (render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[_rasterizer_vertex_type_decal].declaration) < 0) {
+            if (render_device().set_vertex_declaration(rasterizer_vertex_declarations[_rasterizer_vertex_type_decal].declaration) < 0) {
                 succeeded = 0;
             }
             if (render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                         rasterizer_vertex_declarations[_rasterizer_vertex_type_decal].usage) & 0x10) < 0) {
                 succeeded = 0;
             }
-            if (render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[2].shader) < 0) {
+            if (render_device().set_vertex_shader(rasterizer_vertex_shaders[2].shader) < 0) {
                 succeeded = 0;
             }
             if (render_device().set_pixel_shader(0) < 0) {

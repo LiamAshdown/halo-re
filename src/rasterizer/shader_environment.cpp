@@ -646,8 +646,8 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
         return;
     }
 
-    render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[0].declaration);
-    render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[effect_slot->vertex_shader_index].shader);
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[0].declaration);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[effect_slot->vertex_shader_index].shader);
 
     normalization_tag = *(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id;
     bump_map_tag = *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
@@ -686,7 +686,7 @@ void rasterizer_shader_environment_dynamic_mirror_draw(const ShaderEnvironment *
         chimera__rasterizer_set_texture_direct_d3dx(normalization_tag, 1, 0, effect_slot);
     }
 
-    render_device().effect_set_texture(effect, effect_slot->texture_handles[3], (void *)rasterizer_render_targets[2].texture);
+    render_device().effect_set_texture(effect, effect_slot->texture_handles[3], rasterizer_render_targets[2].texture);
 
     constants[0] = *(float *)&((struct ShaderEnvironment *)raw)->bump_map_scale_xy;
     constants[1] = *(const float *)(raw + 0x13c);
@@ -965,8 +965,8 @@ void rasterizer_shader_environment_lightmap_specular_draw(const ShaderEnvironmen
     }
     specular_exponent = (specular_flags & 1) != 0 ? 4.0f : 2.0f;
 
-    render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[2].declaration);
-    render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[effect_slot->vertex_shader_index].shader);
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[2].declaration);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[effect_slot->vertex_shader_index].shader);
 
     bump_map_tag = *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
     bump_bitmap = 0;
@@ -1121,8 +1121,8 @@ void rasterizer_shader_environment_projected_light_draw(const ShaderEnvironment 
     }
     specular_exponent = (raw[0x27c] & 1) != 0 ? 4.0f : 2.0f;
 
-    render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[0].declaration);
-    render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[effect_slot->vertex_shader_index + rasterizer_projected_light_shader_variant].shader);
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[0].declaration);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[effect_slot->vertex_shader_index + rasterizer_projected_light_shader_variant].shader);
     render_device().set_vertex_shader_constant_f(0xd, (const float *)&rasterizer_projected_light, 5);
 
     rasterizer_bind_bump_map(*(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id, frame, effect_slot);
@@ -1260,8 +1260,8 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
         return;
     }
 
-    render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[0].declaration);
-    render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[effect_slot->vertex_shader_index].shader);
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[0].declaration);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[effect_slot->vertex_shader_index].shader);
 
     bump_map_tag = *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
     bump_bitmap = 0;
@@ -1432,8 +1432,8 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
         return;
     }
 
-    render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[2].declaration);
-    render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[13].shader);
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[2].declaration);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[13].shader);
 
     bump_map_tag = (raw[0x28] & 2) != 0 ? 0xffffffff : *(uint32_t *)&((struct ShaderEnvironment *)raw)->bump_map.tag_id;
     bump_bitmap = 0;
@@ -1498,8 +1498,8 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
     constants[11] = 0.0f;
     halo::shaders::shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, const_cast<ShaderEnvironment *>(shader));
     render_device().set_vertex_shader_constant_f(0xa, constants, 3);
-    render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[2].declaration);
-    render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[13].shader);
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[2].declaration);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[13].shader);
 
     primary = self_illumination_animation(raw, 0x1b4);
     secondary = self_illumination_animation(raw, 0x1f0);
@@ -1830,8 +1830,8 @@ void rasterizer_shader_environment_technique_draw(rasterizer_vertex_buffer *vert
     scale[2] = scale[0];
     scale[3] = scale[0];
     render_device().set_pixel_shader_constant_f(1, scale, 1);
-    render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[2].declaration);
-    render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[effect_slot->vertex_shader_index].shader);
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[2].declaration);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[effect_slot->vertex_shader_index].shader);
 
     render_device().effect_begin(effect, &pass_count, 3);
     for (pass = 0; pass < pass_count; pass++) {

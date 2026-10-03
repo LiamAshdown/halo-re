@@ -92,10 +92,10 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
     color[3] = 1.0f;
     render_device().set_pixel_shader_constant_f(1, color, 1);
 
-    render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[0].declaration);
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[0].declaration);
     render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                                    rasterizer_vertex_declarations[0].usage) & 0x10);
-    render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[9].shader);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[9].shader);
 
     render_device().effect_begin(effect, &pass_count, 3);
     for (pass = 0; pass < pass_count; pass++) {
