@@ -143,7 +143,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
             hit->plane.normal.i * velocity->i;
         
         angle_score = ((angular_noise - -angular_noise) * ((real)((halo::math::globals().random_seed_global >> k_random_high_shift) & 0xffff) * 1.5259022e-05f) +
-            -angular_noise) + (halo::math::vector3d_angle_between_4cd4f0((real_vector3d *)&hit->plane.normal, (real_vector3d *)velocity) - 1.5707964f);
+            -angular_noise) + (halo::math::vector3d_angle_between_4cd4f0(*(real_vector3d *)&hit->plane.normal, *velocity) - 1.5707964f);
         
     }
 
@@ -271,7 +271,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         
         real pre_length;
         if (response->velocity_noise != 0.0f &&
-            (pre_length = halo::math::vector3d_normalize_with_length(velocity)) != 0.0f) {
+            (pre_length = halo::math::vector3d_normalize_with_length(*velocity)) != 0.0f) {
             real scale = (real)((halo::math::globals().random_seed_global = advance_random_seed(halo::math::globals().random_seed_global), halo::math::globals().random_seed_global) >> k_random_high_shift) *
                 1.5259022e-05f * (response->velocity_noise - -response->velocity_noise) +
                 -response->velocity_noise + pre_length;

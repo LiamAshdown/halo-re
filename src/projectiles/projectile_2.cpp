@@ -197,7 +197,7 @@ int ProjectileHandle::update()
             to_target.i = target.x - self->base.position.x;
             to_target.j = target.y - self->base.position.y;
             to_target.k = target.z - self->base.position.z;
-            halo::math::vector3d_cross_product(&axis, &to_target, velocity);
+            halo::math::vector3d_cross_product(axis, to_target, *velocity);
             if (to_target.k * velocity->k + to_target.j * velocity->j + to_target.i * velocity->i > 0.0f &&
                 halo::math::vector3d_normalize_with_length(axis) > 0.0f) {
                 halo::math::vector3d_rotate_about_axis(vel, axis, (real)sin(turn), (real)cos(turn));
@@ -341,7 +341,7 @@ int ProjectileHandle::update()
                     to_listener.i = center->x - self->base.position.x;
                     to_listener.j = center->y - self->base.position.y;
                     to_listener.k = center->z - self->base.position.z;
-                    halo::math::vector3d_project_onto_axis(&projected, &moved, &to_listener, &perpendicular);
+                    halo::math::vector3d_project_onto_axis(projected, moved, to_listener, perpendicular);
                     along = projected.k * moved.k + projected.j * moved.j + projected.i * moved.i;
                     if (!(along < 0.0f) && halo::math::vector3d_magnitude_squared(moved) > along &&
                         radius * radius > halo::math::vector3d_magnitude_squared(perpendicular)) {
@@ -378,17 +378,17 @@ int ProjectileHandle::update()
                     halo::math::vector3d_normalize_with_length(*up);
                 }
             }
-            halo::math::vector3d_rotate_about_axis(up, forward, self->projectile.rotation_sine, self->projectile.rotation_cosine);
+            halo::math::vector3d_rotate_about_axis(*up, *forward, self->projectile.rotation_sine, self->projectile.rotation_cosine);
         } else if (self->projectile.flags & to_bits(projectile_flag::rotation_valid)) {
             real_vector3d *axis = &self->projectile.rotation_axis;
             real_vector3d side;
 
-            halo::math::vector3d_rotate_about_axis(forward, axis, self->projectile.rotation_sine, self->projectile.rotation_cosine);
-            halo::math::vector3d_rotate_about_axis(up, axis, self->projectile.rotation_sine, self->projectile.rotation_cosine);
-            halo::math::vector3d_normalize_with_length(forward);
-            halo::math::vector3d_cross_product(&side, forward, up);
-            halo::math::vector3d_cross_product(up, &side, forward);
-            halo::math::vector3d_normalize_with_length(up);
+            halo::math::vector3d_rotate_about_axis(*forward, *axis, self->projectile.rotation_sine, self->projectile.rotation_cosine);
+            halo::math::vector3d_rotate_about_axis(*up, *axis, self->projectile.rotation_sine, self->projectile.rotation_cosine);
+            halo::math::vector3d_normalize_with_length(*forward);
+            halo::math::vector3d_cross_product(side, *forward, *up);
+            halo::math::vector3d_cross_product(*up, side, *forward);
+            halo::math::vector3d_normalize_with_length(*up);
         }
 
         

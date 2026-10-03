@@ -1468,7 +1468,6 @@ void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uin
 int32_t ServerBrowser::open(network_ui_widget *root)
 {
     uint8_t &network_join_target_address = reinterpret_cast<uint8_t &>(::network_join_target_address);
-    int32_t (*const tag_lookup)(const char *path) = reinterpret_cast<int32_t (*)(const char *path)>(&::tag_lookup);
     uint16_t * (*const text_string_list_get_string)(int32_t tag_index, int32_t string_index) = reinterpret_cast<uint16_t * (*)(int32_t tag_index, int32_t string_index)>(&::text_string_list_get_string);
     void (*const server_list_reset)(void) = reinterpret_cast<void (*)(void)>(&::server_list_reset);
     void (*const join_game_server_browser_tick)(network_ui_widget *root) = reinterpret_cast<void (*)(network_ui_widget *root)>(&::join_game_server_browser_tick);
@@ -1507,8 +1506,8 @@ int32_t ServerBrowser::open(network_ui_widget *root)
     }
     if (browser_state::ticker_message[0] == 0) {
         browser_state::ticker_message[0] = 0;
-        tag_index = halo::cache::tag_lookup(
-            "ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
+        tag_index = halo::cache::tag_lookup(0x75737472,
+            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
         if (tag_index != -1) {
             source = text_string_list_get_string(tag_index, 0);
             wcsncpy(browser_state::ticker_message, (const wchar_t *)source, 0xff);
