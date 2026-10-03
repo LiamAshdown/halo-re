@@ -27,6 +27,10 @@ extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed);
 extern void text_set_render_context(datum_index font, ColorARGB *color, int16_t style, int16_t justification, uint32_t flags);
 extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
+void cutscene_start(void);
+void cutscene_stop(void);
+void cutscene_title_queue(int16_t title_index, float delay_seconds);
+void chimera__letterbox(void);
 }
 
 namespace halo::cutscene {

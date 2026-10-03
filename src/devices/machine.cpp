@@ -15,6 +15,13 @@ extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_refere
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
 extern void device_change_power_state(float fallback_value, uint32_t object_id);
 extern void device_control_activate(uint32_t object_id);
+uint8_t machine_create(datum_index object_index);
+void machine_place(datum_index object_index, uint8_t *placement);
+void device_machine_melee_attacked(uint32_t object_index);
+uint32_t device_machine_update(uint32_t object_index);
+void control_place(datum_index object_index, uint8_t *placement);
+void device_control_touched(uint32_t object_index);
+void light_fixture_place(datum_index object_index, uint8_t *placement);
 }
 
 namespace {
@@ -35,8 +42,8 @@ namespace halo::devices {
 namespace {
 
 /**
- * object_type_definition machine (0x0069bcc0) field +0x28 (create); the object type dispatch
- * (object_type_definitions_*) calls it cdecl with the object handle.
+ * Original function machine_create; the author notes are in
+ * docs/original/devices/machine_create.c.txt.
  *
  * @address 0x44b020
  */
@@ -73,8 +80,8 @@ void MachineHandle::place(uint8_t *placement)
 }
 
 /**
- * types/devices.h device_machine_flags (_device_machine_opened_by_melee_attack_bit, bit 3 of
- * type_flags at object+0x214), device_data (position_group at object+0x204).
+ * Original function device_machine_melee_attacked; the author notes are in
+ * docs/original/devices/device_machine_melee_attacked.c.txt.
  *
  * Register convention in the original: object index in ECX (in_ECX).
  *
@@ -95,10 +102,8 @@ void MachineHandle::melee_attacked()
 }
 
 /**
- * types/devices.h device_machine_data (ticks_since_fully_open 0x218, last_elevator_position
- * 0x21c), device_data (flags 0x1f4, power_group/power 0x1f8/0x1fc, position_group/position
- * 0x204/0x208, type_flags 0x214); types/tags.h DeviceMachine (machine_type 0x290,
- * machine_flags 0x292, elevator_node.
+ * Original function device_machine_update; the author notes are in
+ * docs/original/devices/device_machine_update.c.txt.
  *
  * Register convention in the original: object index is already a plain, genuinely-stack
  * parameter in Ghidra's own output (`device_machine_update(uint param_1)`); no unresolved

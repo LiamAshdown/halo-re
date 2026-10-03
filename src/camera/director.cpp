@@ -47,8 +47,8 @@ namespace halo::camera {
 namespace {
 
 /**
- * camera_update calls it first every tick with ESI = its stack camera_input and pushes the
- * local player index; the pov procedure then receives that same record.
+ * Original function director_build_camera_input; the author notes are in
+ * docs/original/camera/director_build_camera_input.c.txt.
  *
  * @address 0x445f90
  */
@@ -109,7 +109,8 @@ uint8_t DirectorHandle::build_camera_input(camera_input *input)
 }
 
 /**
- * camera_update calls it for director_globals.mode 0 and 1 (following / orbiting).
+ * Original function director_choose_gameplay_camera; the author notes are in
+ * docs/original/camera/director_choose_gameplay_camera.c.txt.
  *
  * @address 0x445dc0
  */
@@ -186,8 +187,8 @@ void DirectorHandle::choose_gameplay_camera(uint8_t reset)
 }
 
 /**
- * camera_update calls it for director_globals.mode 2 ("flying" in the name table at
- * 0x00686a10).
+ * Original function director_set_flying_camera; the author notes are in
+ * docs/original/camera/director_set_flying_camera.c.txt.
  *
  * @address 0x445f40
  */
@@ -206,10 +207,8 @@ void DirectorHandle::set_flying_camera(uint8_t force)
 }
 
 /**
- * reads the local player's unit from player_control_globals (+0x10 + i*0x40), asks
- * camera_get_seat_camera_state (0x445b20, ECX = unit, stack = &state) whether the seat wants a
- * third person camera, and flips director.pov_proc between the first person (0x446d60) and
- * third person (0x447370) procedures.
+ * Original function director_update_seat_camera; the author notes are in
+ * docs/original/camera/director_update_seat_camera.c.txt.
  *
  * @address 0x445c00
  */
@@ -263,10 +262,8 @@ switched:
 }
 
 /**
- * matches types/camera.h director_camera_type exactly, including the documented quirk ("A
- * first person procedure with a transition still running keeps the previous value"): when the
- * active pov is first person but its cached field_of_view is still 0 (a transition just
- * started and hasn't sampled a real.
+ * Original function camera_get_type_for_player; the author notes are in
+ * docs/original/camera/camera_get_type_for_player.c.txt.
  *
  * Register convention in the original: local player index in CX (in_CX); no stack parameters.
  *
@@ -293,10 +290,8 @@ int16_t DirectorHandle::get_type_for_player()
 }
 
 /**
- * multiplies director.look_scale by pow(1.3, zoom) and clamps it to 0.01..50, then runs the
- * four camera_input_axis_definition rows (.data 0x00686a28, stride 0x1c) against the four
- * director.axes states (+0xc8, stride 0xc): exponential damping of the velocity by (1 -
- * clamp(dt * 5, 0, 1)), a push of dt.
+ * Original function camera_input_axes_update; the author notes are in
+ * docs/original/camera/camera_input_axes_update.c.txt.
  *
  * @address 0x446170
  */
@@ -367,8 +362,8 @@ void DirectorHandle::input_axes_update(uint32_t key_bits, float zoom)
 }
 
 /**
- * entry 13 (the last) of game_state_after_load_procs (.data 0x0069e7e0, types/saved_games.h
- * 0x0069e7b4[13]).
+ * Original function director_game_state_loaded; the author notes are in
+ * docs/original/camera/director_game_state_loaded.c.txt.
  *
  * Register convention in the original: none; cdecl, no arguments.
  *

@@ -37,6 +37,7 @@ extern void projectile_send_detonation(datum_index projectile_index);
 extern void projectile_detonate(uint32_t object_index, char first_collision, real remaining_tick_fraction);
 extern void object_delete_unparented(uint32_t object_index);
 extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings);
+int projectile_update(uint32_t projectile_index);
 }
 
 namespace {
@@ -62,7 +63,8 @@ namespace {
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define F(p, o) (*(float *)((p) + (o)))
 /**
- * Implements projectile_update.
+ * Original function projectile_update; the author notes are in
+ * docs/original/projectiles/projectile_update.c.txt.
  *
  * @address 0x4bdc00
  */

@@ -10,6 +10,8 @@ extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *s
 extern data_array *object_data;
 extern void *network_object_index_cache;
 extern void network_index_cache_remove(void *globals, uint32_t object_index);
+void projectile_send_attach(datum_index projectile_index, datum_index parent_object_index, int16_t marker_index);
+void projectile_send_detonation(datum_index projectile_index);
 }
 
 namespace halo::projectiles {

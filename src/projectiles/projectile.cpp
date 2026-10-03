@@ -38,6 +38,14 @@ extern void ai_accumulate_repeated_event(datum_index object_index, real_point3d 
 extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind, char **labels, void *position_block, void *direction_block, real fade_in, real fade_out, int32_t color, int32_t tint_source, int32_t force_create);
 extern void *game_time;
 extern int32_t k_projectile_minimum_age_ticks;
+uint8_t projectile_new(uint32_t object_index);
+uint8_t projectile_collision_test(uint32_t object_index, real_point3d *target, void *out_record);
+void projectile_detonate(uint32_t object_index, char first_collision, real remaining_tick_fraction);
+uint8_t projectile_force_detonate(uint32_t object_index);
+uint8_t projectile_is_old_enough(uint32_t object_index);
+void projectile_notify_object_deleted(uint32_t object_index, datum_index dying_object_index);
+uint8_t object_type_definition_return_false(void);
+uint8_t object_type_definition_return_true(void);
 }
 
 namespace halo::projectiles {
@@ -210,9 +218,8 @@ void ProjectileHandle::update_function_values()
 }
 
 /**
- * types/projectiles.h projectile_data.deceleration_delay/_rate/deceleration/
- * deceleration_end_range (0x254/0x258/0x25c/0x260); types/tags.h Projectile.air_damage_range
- * (0x1d0), .water_damage_range (0x1dc), .initial_velocity (0x1e4).
+ * Original function projectile_compute_deceleration; the author notes are in
+ * docs/original/projectiles/projectile_compute_deceleration.c.txt.
  *
  * Register convention in the original: object index in EAX (in_EAX).
  *
@@ -279,9 +286,8 @@ void ProjectileHandle::compute_rotation()
 }
 
 /**
- * types/projectiles.h k_projectile_collision_mask_point (0x1000e9),
- * k_projectile_collision_mask_radius (0x89), collision_result (the caller's 0x50-byte output
- * buffer, here just an opaque out-pointer); types/projectiles.h projectile_data.
+ * Original function projectile_collision_test; the author notes are in
+ * docs/original/projectiles/projectile_collision_test.c.txt.
  *
  * Register convention in the original: object index in EAX (in_EAX); the swept-to point
  * (real_point3d *) in EDI (unaff_EDI); the caller's collision_result output buffer is Ghidra's

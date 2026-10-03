@@ -53,7 +53,8 @@ uint8_t CameraMath::is_valid(float value)
 }
 
 /**
- * a Newton forward-difference cubic through four uniformly-spaced samples (value0 at
+ * Original function scalar_catmull_rom_interpolate; the author notes are in
+ * docs/original/camera/scalar_catmull_rom_interpolate.c.txt.
  *
  * Register convention in the original: __cdecl, all seven parameters on the stack.
  *
@@ -76,7 +77,8 @@ double CameraMath::scalar_catmull_rom(float value0, float value1, float value2, 
 }
 
 /**
- * three calls to scalar_catmull_rom_interpolate (0x447000), one per component; callers
+ * Original function vector3d_catmull_rom_interpolate; the author notes are in
+ * docs/original/camera/vector3d_catmull_rom_interpolate.c.txt.
  *
  * Register convention in the original: source1 in EBX (unaff_EBX), source3 in ESI (unaff_ESI),
  * source2 in EDI.
@@ -99,7 +101,8 @@ void CameraMath::vector3d_catmull_rom_interpolate(Vector3D *source1, Vector3D *s
 }
 
 /**
- * types/camera.h calls this "the up vector from forward" (its five call sites all pass
+ * Original function vector3d_compute_up_from_forward; the author notes are in
+ * docs/original/camera/vector3d_compute_up_from_forward.c.txt.
  *
  * Register convention in the original: ESI -> forward (unaff_ESI), EDI -> up (unaff_EDI); no
  * stack parameters.
@@ -134,7 +137,8 @@ void CameraMath::compute_up_from_forward(Vector3D *forward, Vector3D *up)
 }
 
 /**
- * types/camera.h calls this and real_is_valid / real_approximately_equal "observer
+ * Original function vector3d_is_unit_length; the author notes are in
+ * docs/original/camera/vector3d_is_unit_length.c.txt.
  *
  * Register convention in the original: vector pointer in EAX (in_EAX); no stack parameters.
  *
@@ -155,7 +159,8 @@ uint8_t CameraMath::is_unit_length(Vector3D *v)
 }
 
 /**
- * types/camera.h's observer_parameter_derivatives.rotation comment ("0x448880 applies
+ * Original function vector3d_rotate_basis_by_axis_angle; the author notes are in
+ * docs/original/camera/vector3d_rotate_basis_by_axis_angle.c.txt.
  *
  * Register convention in the original: axis_angle vector in EAX (in_EAX); forward and up on
  * the stack (Ghidra.

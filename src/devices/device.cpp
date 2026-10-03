@@ -22,6 +22,19 @@ extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t ele
 extern void data_delete_all(data_array *array);
 extern void device_groups_initialize(void);
 extern Scenario *global_scenario;
+void device_new(uint32_t object_index, device_placement_data *placement);
+uint8_t device_create(datum_index object_index);
+void device_delete(datum_index object_index);
+void device_blend_animations(datum_index object_index, real_orientation *orientations);
+int device_can_change_position(uint32_t object_index);
+void device_change_power_state(float fallback_value, uint32_t object_id);
+void device_compute_function_values(uint32_t object_index);
+uint8_t device_frontfacing(uint32_t device_index, real_vector3d *forward);
+uint8_t device_update_change_values(uint32_t object_index);
+void device_group_set_value_immediate(uint16_t group_index, float value);
+void device_groups_allocate(void);
+void device_groups_clear_disposing_flag(void);
+void device_groups_dispose(void);
 }
 
 namespace {
@@ -37,7 +50,8 @@ namespace halo::devices {
 namespace {
 
 /**
- * types/devices.h device_placement_data (power_group/position_group/flags),
+ * Original function device_new; the author notes are in
+ * docs/original/devices/device_new.c.txt.
  *
  * Register convention in the original: object index in EAX (in_EAX), placement pointer in EDI
  * (unaff_EDI).
@@ -90,8 +104,8 @@ void DeviceHandle::construct(device_placement_data *placement)
 }
 
 /**
- * object_type_definition device (0x0069bbf8) field +0x28 (create); the object type dispatch
- * (object_type_definitions_*) calls it cdecl with the object handle.
+ * Original function device_create; the author notes are in
+ * docs/original/devices/device_create.c.txt.
  *
  * @address 0x44b670
  */
@@ -108,8 +122,8 @@ uint8_t DeviceHandle::create()
 }
 
 /**
- * object_type_definition device (0x0069bbf8) field +0x30 (delete); the object type dispatch
- * (object_type_definitions_*) calls it cdecl with the object handle.
+ * Original function device_delete; the author notes are in
+ * docs/original/devices/device_delete.c.txt.
  *
  * @address 0x44b6b0
  */
@@ -130,9 +144,8 @@ void DeviceHandle::destroy()
 }
 
 /**
- * the device object_type_definition (0x0069bbf8) +0x48 slot 0x0069bc40 holds 0x44bc20; object
- * node orientation building calls it through object_type_definitions_notify_two_args_0x48 with
- * the object and the orientation buffer.
+ * Original function device_blend_animations; the author notes are in
+ * docs/original/devices/device_blend_animations.c.txt.
  *
  * @address 0x44bc20
  */
@@ -187,7 +200,8 @@ void DeviceHandle::blend_animations(real_orientation *orientations)
 }
 
 /**
- * types/devices.h device_group (flags at +0x02), device_group_flags
+ * Original function device_can_change_position; the author notes are in
+ * docs/original/devices/device_can_change_position.c.txt.
  *
  * Register convention in the original: object index in EAX (in_EAX).
  *
@@ -280,10 +294,8 @@ void DeviceHandle::change_power_state(float fallback_value)
 }
 
 /**
- * types/tags.h DeviceIn (the six selector values switched on, already documented in that exact
- * order in types/tags.h's own comment), Device (device_a_in..device_d_in 0x198,
- * inverse_power_transition_time 0x278, inverse_position_transition_time 0x288,
- * delay_time_ticks 0x28c); types/devices.h.
+ * Original function device_compute_function_values; the author notes are in
+ * docs/original/devices/device_compute_function_values.c.txt.
  *
  * Register convention in the original: object index is already a plain, genuinely-stack
  * parameter; Ghidra's own `FUN_0044ba10(short *param_1)` reuses that one parameter register as
@@ -368,7 +380,8 @@ void DeviceHandle::compute_function_values()
 }
 
 /**
- * types/devices.h device_control_flags (_device_control_usable_from_both_sides_bit);
+ * Original function device_frontfacing; the author notes are in
+ * docs/original/devices/device_frontfacing.c.txt.
  *
  * Register convention in the original: device object index in ESI (unaff_ESI), a caller-owned
  * forward-vector.
@@ -399,7 +412,8 @@ uint8_t DeviceHandle::frontfacing(real_vector3d *forward)
 }
 
 /**
- * types/devices.h device_constants (k_device_state_change_tag_effect 0x65666665,
+ * Original function device_play_state_change_effect; the author notes are in
+ * docs/original/devices/device_play_state_change_effect.c.txt.
  *
  * Register convention in the original: tag id in ECX (in_ECX), packed as a TagID {index;id}
  * the way every.
@@ -431,10 +445,8 @@ void DeviceHandle::play_state_change_effect(TagID tag_id)
 }
 
 /**
- * types/devices.h device_data (flags, power/power_change/power_group,
- * position/position_change/position_group, delay_ticks), device_group (value at +0x04);
- * types/tags.h Device (inverse_power_acceleration_time 0x274, inverse_power_transition_time
- * 0x278, inverse_depowered_position_acceleration_time.
+ * Original function device_update_change_values; the author notes are in
+ * docs/original/devices/device_update_change_values.c.txt.
  *
  * Register convention in the original: object index is already a plain, genuinely-stack
  * parameter (`device_update_change_values(uint param_1)`); no unresolved registers appear.
@@ -523,7 +535,8 @@ uint8_t DeviceHandle::update_change_values()
 }
 
 /**
- * types/devices.h device_group (flags at +0x02, value at +0x04), device_group_flags
+ * Original function device_group_set_value; the author notes are in
+ * docs/original/devices/device_group_set_value.c.txt.
  *
  * Register convention in the original: group index in ESI (unaff_SI), value as the sole
  * recognized stack.
@@ -589,7 +602,8 @@ uint8_t DeviceGroupHandle::set_value(float value)
 }
 
 /**
- * types/devices.h device_group (value at +0x04), device_data (flags,
+ * Original function device_group_set_value_immediate; the author notes are in
+ * docs/original/devices/device_group_set_value_immediate.c.txt.
  *
  * Register convention in the original: group index in ESI (unaff_SI), value as the sole
  * recognized stack.
@@ -637,9 +651,8 @@ void DeviceGroupHandle::set_value_immediate(float value)
 }
 
 /**
- * stored in a callback table in halo.exe's data and never made a Ghidra function; written by
- * tools/gen_pool_callbacks.py because its bytes (objdump 0x44b620..0x44b63f) match the pool
- * initialize idiom exactly.
+ * Original function device_groups_allocate; the author notes are in
+ * docs/original/devices/device_groups_allocate.c.txt.
  *
  * @address 0x44b620
  */
@@ -649,9 +662,8 @@ void DeviceGroupPool::allocate()
 }
 
 /**
- * stored in a callback table in halo.exe's data and never made a Ghidra function; written by
- * tools/gen_pool_callbacks.py because its bytes (objdump 0x44b660..0x44b66a) match the clear-
- * disposing-flag idiom exactly.
+ * Original function device_groups_clear_disposing_flag; the author notes are in
+ * docs/original/devices/device_groups_clear_disposing_flag.c.txt.
  *
  * @address 0x44b660
  */
@@ -661,9 +673,8 @@ void DeviceGroupPool::clear_disposing_flag()
 }
 
 /**
- * stored in a callback table in halo.exe's data and never made a Ghidra function; written by
- * tools/gen_pool_callbacks.py because its bytes (objdump 0x44b640..0x44b656) match the pool
- * dispose idiom exactly.
+ * Original function device_groups_dispose; the author notes are in
+ * docs/original/devices/device_groups_dispose.c.txt.
  *
  * @address 0x44b640
  */
@@ -675,7 +686,8 @@ void DeviceGroupPool::dispose()
 }
 
 /**
- * types/tags.h Scenario (device_groups: count 0x288, pointer 0x28c, stride 0x34),
+ * Original function device_groups_initialize; the author notes are in
+ * docs/original/devices/device_groups_initialize.c.txt.
  *
  * Register convention in the original: none; takes no parameters (Ghidra's own
  * `device_groups_initialize(void)`).

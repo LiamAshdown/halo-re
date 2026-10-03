@@ -19,15 +19,17 @@ extern void unit_apply_control_block(uint32_t unit_index, const unit_control_dat
 extern char hs_object_hierarchy_test(datum_index object_index);
 extern void object_delete(datum_index object_index);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
+uint8_t recorded_animation_start(datum_index unit_index, int16_t scenario_animation_index, uint16_t extra_flags);
+int16_t recorded_animation_find_by_name(const char *name, Scenario *scenario);
+void recorded_animations_update(void);
 }
 
 namespace halo::cutscene {
 namespace {
 
 /**
- * types/cutscene.h recorded_animation struct comment: "Created by 0x44a930 (EAX unit, CX
- * Scenario.recorded_animations index, stack extra flags), ticked by 0x44aa90, searched by
- * 0x44acc0 / 0x44ad20." and the module header's account of the whole address run.
+ * Original function recorded_animation_start; the author notes are in
+ * docs/original/cutscene/recorded_animation_start.c.txt.
  *
  * Register convention in the original: unit_index in EAX (in_EAX), scenario
  * recorded_animations index in CX (in_CX, 16-bit); one plain stack argument, extra_flags (a
@@ -103,8 +105,8 @@ uint8_t RecordedAnimationPlayer::start(int16_t scenario_animation_index, uint16_
 }
 
 /**
- * types/cutscene.h recorded_animation struct ("searched by 0x44acc0 / 0x44ad20") and
- * out/phase4/devices_types_notes.md "Suggested names: ...
+ * Original function recorded_animation_object_is_playing; the author notes are in
+ * docs/original/cutscene/recorded_animation_object_is_playing.c.txt.
  *
  * Register convention in the original: ESI = unit_index (unaff_ESI), never modified by this
  * function.
@@ -138,8 +140,8 @@ uint8_t RecordedAnimationPlayer::is_playing()
 }
 
 /**
- * types/cutscene.h recorded_animation struct ("searched by 0x44acc0 / 0x44ad20") and
- * out/phase4/devices_types_notes.md "Suggested names: ...
+ * Original function recorded_animation_find_by_object; the author notes are in
+ * docs/original/cutscene/recorded_animation_find_by_object.c.txt.
  *
  * Register convention in the original: `objdump -d -M intel --start-address=0x44ad20 --stop-
  * address=0x44ad80 bin/halo.exe`: EBX = unit_index to search for (unaff_EBX); one plain stack
@@ -174,7 +176,8 @@ recorded_animation * RecordedAnimationPlayer::find_by_object(datum_index *out_in
 }
 
 /**
- * out/phase4/cutscene_types_notes.md "0x449f80: recorded_animation_find_by_name
+ * Original function recorded_animation_find_by_name; the author notes are in
+ * docs/original/cutscene/recorded_animation_find_by_name.c.txt.
  *
  * Register convention in the original: EBX = name (in_EBX), ESI = scenario (in_ESI); blam-cc:
  * (EBX, ESI) ->.

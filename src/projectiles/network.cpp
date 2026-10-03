@@ -27,16 +27,21 @@ extern void network_index_cache_remove(void *globals, uint32_t object_index);
 extern void projectile_detonate(uint32_t object_index, char first_collision, real remaining_tick_fraction);
 extern void projectile_request_state(datum_index projectile_index, int16_t requested_state);
 extern void object_delete(uint32_t object_index);
+void projectile_apply_network_update(datum_index projectile_index, uint32_t *update_record);
+int32_t projectile_build_network_update(uint32_t projectile_index, uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type);
+void projectile_network_baseline_take(uint32_t object_index);
+int32_t projectile_send_creation(uint32_t projectile_index);
+void projectile_attach_apply(void *incoming_record);
+void projectile_create_from_network(void *incoming_record);
+void projectile_detonation_message_apply(void *incoming_record);
 }
 
 namespace halo::projectiles {
 namespace {
 
 /**
- * exact structural analog of src/items/weapon_apply_network_update.c (0x4c6070), one register-
- * only field group instead of weapon's (also carries ammo/age); types/projectiles.h
- * projectile_network_update_header (object_hash 0x00, baseline_index 0x04, sequence 0x05,
- * is_delta 0x06) and.
+ * Original function projectile_apply_network_update; the author notes are in
+ * docs/original/projectiles/projectile_apply_network_update.c.txt.
  *
  * Register convention in the original: item/projectile index in the first parameter; the
  * incoming update record pointer in the second.
@@ -238,10 +243,8 @@ void ProjectileNetwork::request_state(int16_t requested_state)
 }
 
 /**
- * exact structural analog of src/items/equipment_build_creation_message.c (0x4bbc90);
- * types/projectiles.h projectile_creation_message (every field below matches its layout
- * exactly -- this function is the struct's own derivation) and projectile_data.network_state
- * (0x27c), .network_baseline_index.
+ * Original function projectile_send_creation; the author notes are in
+ * docs/original/projectiles/projectile_send_creation.c.txt.
  *
  * Register convention in the original: none -- Ghidra recovered a single stack parameter, the
  * projectile index.

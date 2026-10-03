@@ -53,7 +53,8 @@ namespace halo::camera {
 namespace {
 
 /**
- * out/phase4/camera_types_notes.md's proposed name; confirmed instruction-by-instruction
+ * Original function observer_advance; the author notes are in
+ * docs/original/camera/observer_advance.c.txt.
  *
  * Register convention in the original: local player index in DI (unaff_DI); no other
  * parameters.
@@ -89,7 +90,8 @@ void ObserverHandle::advance()
 }
 
 /**
- * out/phase4/camera_types_notes.md's proposed name and its own field-by-field citation
+ * Original function observer_commit; the author notes are in
+ * docs/original/camera/observer_commit.c.txt.
  *
  * Register convention in the original: local player index in AX (in_AX); no other parameters.
  *
@@ -200,7 +202,8 @@ void ObserverHandle::commit()
 }
 
 /**
- * out/phase4/camera_types_notes.md ("observer_set_command (0x447ab0) copies it into
+ * Original function observer_set_command; the author notes are in
+ * docs/original/camera/observer_set_command.c.txt.
  *
  * Register convention in the original: local player index in DX (in_DX); no other parameters.
  *
@@ -245,7 +248,8 @@ void ObserverHandle::set_command()
 }
 
 /**
- * out/phase4/camera_types_notes.md's proposed name; field offsets (+0x008
+ * Original function observer_compute_spline_coefficients; the author notes are in
+ * docs/original/camera/observer_compute_spline_coefficients.c.txt.
  *
  * Register convention in the original: local player index in DX (in_DX); no other parameters.
  *
@@ -310,7 +314,8 @@ void ObserverHandle::compute_spline_coefficients()
 }
 
 /**
- * out/phase4/camera_types_notes.md's proposed name and its "0x448210 evaluates
+ * Original function observer_evaluate_spline_acceleration; the author notes are in
+ * docs/original/camera/observer_evaluate_spline_acceleration.c.txt.
  *
  * Register convention in the original: local player index in AX (in_AX); no other parameters.
  *
@@ -370,7 +375,8 @@ void ObserverHandle::evaluate_spline_acceleration()
 }
 
 /**
- * out/phase4/camera_types_notes.md's proposed name and its "value = t*c1+...+c0"
+ * Original function observer_evaluate_spline_value_and_orthonormalize; the author notes are in
+ * docs/original/camera/observer_evaluate_spline_value_and_orthonormalize.c.txt.
  *
  * Register convention in the original: local player index in AX (in_AX); no other parameters.
  *
@@ -488,7 +494,8 @@ void ObserverHandle::evaluate_spline_value_and_orthonormalize()
 }
 
 /**
- * out/phase4/camera_types_notes.md's proposed name and its "value = t*c1+...+c0"
+ * Original function observer_evaluate_spline_velocity; the author notes are in
+ * docs/original/camera/observer_evaluate_spline_velocity.c.txt.
  *
  * Register convention in the original: local player index in AX (in_AX); no other parameters.
  *
@@ -551,7 +558,8 @@ void ObserverHandle::evaluate_spline_velocity()
 }
 
 /**
- * out/phase4/camera_types_notes.md ("camera_get_globals_for_player: observer_get_camera");
+ * Original function observer_get_camera; the author notes are in
+ * docs/original/camera/observer_get_camera.c.txt.
  *
  * Register convention in the original: player index in CX (in_CX); no stack parameters.
  *
@@ -568,8 +576,8 @@ observer_camera * ObserverHandle::get_camera()
 }
 
 /**
- * out/phase4/camera_types_notes.md "0x447870: observer initialize thunk (mov edx,0x6ac65c; jmp
- * 0x447740)".
+ * Original function observer_initialize; the author notes are in
+ * docs/original/camera/observer_initialize.c.txt.
  *
  * Register convention in the original: none; cdecl, no arguments (tail call into observer_new
  * with EDX).
@@ -582,7 +590,8 @@ void ObserverSystem::initialize()
 }
 
 /**
- * out/phase4/camera_types_notes.md ("observer_new (0x447740, EDX = this) writes
+ * Original function observer_new; the author notes are in
+ * docs/original/camera/observer_new.c.txt.
  *
  * Register convention in the original: observer * in EDX (in_EDX); no stack parameters.
  *
@@ -676,7 +685,8 @@ void ObserverSystem::update(float dt, uint8_t add_bob)
 }
 
 /**
- * out/phase4/camera_types_notes.md "0x447a60: observer update location".
+ * Original function observer_update_location; the author notes are in
+ * docs/original/camera/observer_update_location.c.txt.
  *
  * Register convention in the original: none; cdecl, no arguments.
  *
@@ -701,7 +711,8 @@ void ObserverSystem::update_location()
 }
 
 /**
- * out/phase4/camera_types_notes.md's proposed name ("observer collision pushout");
+ * Original function observer_avoid_collision; the author notes are in
+ * docs/original/camera/observer_avoid_collision.c.txt.
  *
  * Register convention in the original: forward in EAX (in_EAX); position, up, distance and
  * radius_scale on the.
@@ -857,7 +868,8 @@ mark_clear:
 }
 
 /**
- * out/phase4/camera_types_notes.md's proposed name ("single ray"); confirmed against
+ * Original function observer_collision_test_ray; the author notes are in
+ * docs/original/camera/observer_collision_test_ray.c.txt.
  *
  * @address 0x449170
  */
@@ -879,7 +891,8 @@ uint8_t ObserverSystem::collision_test_ray(real_point3d *origin, uint8_t use_alt
 }
 
 /**
- * out/phase4/camera_types_notes.md's proposed name and its own citation of this
+ * Original function observer_compute_remaining_offset; the author notes are in
+ * docs/original/camera/observer_compute_remaining_offset.c.txt.
  *
  * Register convention in the original: target in EAX (in_EAX), current in ECX (in_ECX), output
  * in EDX (in_EDX);.
