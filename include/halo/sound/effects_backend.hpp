@@ -14,10 +14,13 @@ namespace halo::sound {
  */
 class EffectsBackend {
 public:
+    /** Releases the property sets the backend holds, restoring the listener defaults first where the backend changed them. */
     virtual void shutdown(sound_effect_object * this_object) = 0;
 
+    /** Probes the first channel's 3D buffer for the backend's property sets and records which properties are supported. Returns nonzero when the backend is usable. */
     virtual int32_t initialize(sound_effect_object * this_object, directsound_channel * channel, int32_t unused) = 0;
 
+    /** Acquires the property set of one channel's 3D buffer. Returns 1 on success. */
     virtual int32_t initialize_channel(sound_effect_object * this_object, int32_t channel_index) = 0;
 
     /**
@@ -36,12 +39,16 @@ public:
      */
     virtual int32_t channel_supported(sound_effect_object * this_object);
 
+    /** Applies the channel's obstruction and occlusion to its EAX properties. */
     virtual void apply_channel(sound_effect_object * this_object, int32_t channel_index) = 0;
 
+    /** Selects one of the preset EAX environments for the listener. */
     virtual void set_environment_index(sound_effect_object * this_object, int32_t environment) = 0;
 
+    /** Converts a SoundEnvironment to EAX listener properties and commits them. */
     virtual void apply_listener(sound_effect_object * this_object, const SoundEnvironment * environment) = 0;
 
+    /** Sets the listener's room gain from a linear gain. */
     virtual void set_room_gain(sound_effect_object * this_object, float gain) = 0;
 
 protected:
