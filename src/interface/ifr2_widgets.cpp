@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_widgets.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "sound.h"
 #include <string.h>
@@ -66,7 +67,6 @@ extern float override_color_00879f40;
 extern float override_color_00879f44;
 extern float override_color_00879f48;
 extern float override_color_00879f4c;
-extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t sequence, int16_t frame);
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
 extern uint8_t widget_instance_is_top_of_stack(widget_instance *widget);
 extern void widget_instance_render_text_box(widget_instance *widget, UIWidgetDefinition *tag, Rectangle2D *dest, int32_t offset_xy, uint32_t flags);
@@ -1563,8 +1563,8 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
     }
 
     if (widget->state != 0) {
-        int32_t bitmap_data = bitmap_group_sequence_get_bitmap_data(
-            *(datum_index *)&((struct UIWidgetDefinition *)tag)->background_bitmap.tag_id, 0, widget->background_bitmap_frame);
+        int32_t bitmap_data = reinterpret_cast<int32_t>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(
+            *(datum_index *)&((struct UIWidgetDefinition *)tag)->background_bitmap.tag_id, 0, widget->background_bitmap_frame));
 
         if (bitmap_data != 0) {
             float alpha = scale;

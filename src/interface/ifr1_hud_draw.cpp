@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_draw.hpp"
+#include "halo/bitmaps/api.hpp"
 #include <string.h>
 #include "halo/cache/api.hpp"
 
@@ -38,8 +39,6 @@ extern data_array *object_data;
 extern data_array *player_data;
 extern player_control_globals *player_control_globals_ptr;
 extern float hud_multitexture_effector_counter;
-extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
-extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
 extern uint8_t hud_player_weapon_ammo_state(const player *p, weapon_hud_ammo_state *out);
 extern void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *vertices);
 extern Globals *global_globals;
@@ -424,9 +423,9 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
     state.map_scales[0].x = 1.0f;
     state.meter_parameters = 0;
     state.single_local_player = local_player_globals->local_player_count == 1;
-    state.maps[0] = bitmap_group_sequence_get_bitmap_data(*(const datum_index *)&overlay->primary.tag_id, 0, 0);
-    state.maps[1] = bitmap_group_sequence_get_bitmap_data(*(const datum_index *)&overlay->secondary.tag_id, 0, 0);
-    state.maps[2] = bitmap_group_sequence_get_bitmap_data(*(const datum_index *)&overlay->tertiary.tag_id, 0, 0);
+    state.maps[0] = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(*(const datum_index *)&overlay->primary.tag_id, 0, 0);
+    state.maps[1] = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(*(const datum_index *)&overlay->secondary.tag_id, 0, 0);
+    state.maps[2] = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(*(const datum_index *)&overlay->tertiary.tag_id, 0, 0);
 
     for (i = 0; i < 3; i++) {
         const BitmapData *map = state.maps[i];
@@ -523,7 +522,7 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
                 t = 1.0f;
             }
             output = (1.0f - t) * effector->out_bounds[0] + t * effector->out_bounds[1];
-            color_interpolate((ColorRGB *)&effector->tint_color_upper_bound, (ColorRGB *)&effector->tint_color_lower_bound, &tint, 0, t);
+            halo::bitmaps::color_interpolate((ColorRGB *)&effector->tint_color_upper_bound, (ColorRGB *)&effector->tint_color_lower_bound, &tint, static_cast<color_interpolation_flags>(0), t);
         } else {
             output = effector->out_bounds[0];
             tint = effector->tint_color_lower_bound;
@@ -594,7 +593,7 @@ void HudDraw::number(void *unused, uint16_t *anchor, const hud_number_placement 
     digits = (HUDNumber *)halo::cache::globals().tag_instances[digits_tag & 0xffff].data;
     pen.digits_bitmap = *(datum_index *)&digits->digits_bitmap.tag_id;
     digits_bitmap_data = (uint8_t *)halo::cache::globals().tag_instances[pen.digits_bitmap & 0xffff].data;
-    bitmap = bitmap_group_sequence_get_bitmap_data(pen.digits_bitmap, 0, 0);
+    bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(pen.digits_bitmap, 0, 0);
     thousands = (value > 999);
     if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
         return;
@@ -814,7 +813,7 @@ void HudDraw::static_element(int16_t local_player_index, uint16_t *anchor, const
 
     tag_id = *(const datum_index *)&element->interface_bitmap.tag_id;
     bitmap_tag = (Bitmap *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
-    bitmap = bitmap_group_sequence_get_bitmap_data(tag_id, 0, (int16_t)element->sequence_index);
+    bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(tag_id, 0, (int16_t)element->sequence_index);
     if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
         return;
     }

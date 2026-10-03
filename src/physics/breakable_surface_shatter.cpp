@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/bitmaps/api.hpp"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
@@ -26,7 +27,6 @@ extern "C" { extern uint8_t *global_structure_bsp; }
 extern "C" { extern Globals *global_globals; }
 extern "C" { extern const real_point3d *global_origin3d_pointer; }
 extern "C" { extern void particle_new(particle_creation_data *creation_data); }
-extern "C" { extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, color_interpolation_flags flags, float t); }
 extern "C" { extern datum_index halo::sound::sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index, sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint); }
 extern "C" { extern double sqrt(double x); }
 extern "C" { extern double fabs(double x); }
@@ -379,7 +379,7 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                             F(particles, 0x24);
                         creation.scale = (F(particles, 0x38) - F(particles, 0x34)) * shatter_random_fraction() +
                             F(particles, 0x34);
-                        color_interpolate((ColorRGB *)(particles + 0x58), (ColorRGB *)(particles + 0x48),
+                        halo::bitmaps::color_interpolate((ColorRGB *)(particles + 0x58), (ColorRGB *)(particles + 0x48),
                             (ColorRGB *)((uint8_t *)&creation + 0x50),
                             (color_interpolation_flags)(I32(particles, 0x10) & 3), shatter_random_fraction());
                         alpha = (F(particles, 0x54) - F(particles, 0x44)) * shatter_random_fraction() + F(particles, 0x44);

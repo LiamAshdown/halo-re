@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_main.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "crt.h"
 #include <string.h>
 #include <ctype.h>
@@ -15,7 +16,6 @@ extern "C" {
 extern datum_index ui_cursor_bitmap;
 extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
-extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t sequence, int16_t frame);
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern int32_t game_state_cursor;
@@ -75,7 +75,7 @@ void InterfaceMain::draw_cursor()
     rect.left = (int16_t)ui_cursor_x;
 
     if (ui_cursor_bitmap != (datum_index)-1) {
-        bitmap_data = bitmap_group_sequence_get_bitmap_data(ui_cursor_bitmap, 0, 0);
+        bitmap_data = reinterpret_cast<int32_t>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(ui_cursor_bitmap, 0, 0));
         if (bitmap_data != 0) {
             rect.bottom = (int16_t)(ui_cursor_y + 0x20);
             rect.right = (int16_t)(ui_cursor_x + 0x20);

@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -10,7 +11,6 @@ extern uint8_t particle_spawn_debug_mode;
 extern data_array *object_data;
 extern uint8_t *first_person_weapon_interfaces;
 extern const real_point3d *global_origin3d_pointer;
-extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
 }
 
 namespace halo::effects {
@@ -272,8 +272,8 @@ void effect_view::spawn_particles()
                     }
                 }
                 flags = *(uint32_t *)(pt + 0x64);
-                color_interpolate((ColorRGB *)(pt + 0xc4), (ColorRGB *)(pt + 0xb4),
-                    (ColorRGB *)&record.color.red, (flags >> 3) & 3, frac);
+                halo::bitmaps::color_interpolate((ColorRGB *)(pt + 0xc4), (ColorRGB *)(pt + 0xb4),
+                    (ColorRGB *)&record.color.red, static_cast<color_interpolation_flags>((flags >> 3) & 3), frac);
                 record.color.alpha = (1.0f - frac) * *(real *)(pt + 0xb0) + frac * *(real *)(pt + 0xc0);
                 if ((flags & 4) != 0) {
                     record.color.red *= self->color.red;

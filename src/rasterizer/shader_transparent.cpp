@@ -5,13 +5,13 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "halo/shaders/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 
 extern "C" {
 
-extern BitmapData *bitmap_group_get_bitmap_data(uint32_t bitmap_tag_id, int16_t index);
 extern double floor(double x);
 extern double pow(double base, double exponent);
 extern double sin(double x);
@@ -398,7 +398,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
             int32_t count = (int32_t)bitmap->bitmap_data.count;
 
             if (count > 0) {
-                bump_bitmap = bitmap_group_get_bitmap_data(bump_map_tag,
+                bump_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(bump_map_tag,
                                                            (int16_t)((int32_t)(int16_t)group->shader_permutation % count));
                 if (*(int16_t *)&((struct BitmapData *)bump_bitmap)->type != 0) {
                     bump_bitmap = 0;

@@ -5,6 +5,7 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "tables.h"
+#include "halo/bitmaps/api.hpp"
 #include "code_refs.hpp"
 #include "halo/items/api.hpp"
 #include "halo/sound/api.hpp"
@@ -1204,7 +1205,7 @@ uint32_t hs_enum_definitions_006853f8[1391] = {
     /* +0x0c00 */ 0, 0x2, 0x3, (uint32_t)"pixels offset*", 0, 0x28, 0, 0x4,
     /* +0x0c20 */ 0x28, 0, 0x4, 0x28, 0, 0x4, 0x28, 0,
     /* +0x0c40 */ 0x8, 0x2c, 0, 0, (uint32_t)"bitmap_data_block", 0, 0x800, 0x30,
-    /* +0x0c60 */ 0, (uint32_t)&hs_enum_definitions_006853f8[740], 0, (uint32_t)object_type_definition_return_true, 0, (uint32_t)bitmap_data_block_delete_element, 0, 0,
+    /* +0x0c60 */ 0, (uint32_t)&hs_enum_definitions_006853f8[740], 0, (uint32_t)object_type_definition_return_true, 0, (uint32_t)&halo::bitmaps::bitmap_data_block_delete_element, 0, 0,
     /* +0x0c80 */ 0x2, (uint32_t)"bitmap index*", 0, 0x28, 0, 0x2, 0x28, 0,
     /* +0x0ca0 */ 0x4, 0xe, (uint32_t)"left*", 0, 0xe, (uint32_t)"right*", 0, 0xe,
     /* +0x0cc0 */ (uint32_t)"top*", 0, 0xe, (uint32_t)"bottom*", 0, 0x10, (uint32_t)"registration point*", 0,
@@ -1234,7 +1235,7 @@ uint32_t hs_enum_definitions_006853f8[1391] = {
     /* +0x0fc0 */ 0x2, 0x22, (uint32_t)"sequences*", (uint32_t)&hs_enum_definitions_006853f8[856], 0x22, (uint32_t)"bitmaps*", (uint32_t)&hs_enum_definitions_006853f8[788], 0x2c,
     /* +0x0fe0 */ 0, 0, (uint32_t)"bitmap", 0, 0x1, 0x6c, 0, (uint32_t)&hs_enum_definitions_006853f8[922],
     /* +0x1000 */ 0, 0, 0, 0, 0, 0, (uint32_t)"bitmap", 0x8,
-    /* +0x1020 */ 0x6269746d, 0xffffffffu, 0x7, (uint32_t)bitmap_group_postprocess, (uint32_t)&hs_enum_definitions_006853f8[1018], 0, 0, 0,
+    /* +0x1020 */ 0x6269746d, 0xffffffffu, 0x7, (uint32_t)&halo::bitmaps::bitmap_group_postprocess, (uint32_t)&hs_enum_definitions_006853f8[1018], 0, 0, 0,
     /* +0x1040 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x1060 */ 0, 0, 0, 0, 0, 0, 0xff7a19ccu, 0xff7e19ccu,
     /* +0x1080 */ 0xff8019ccu, 0xff8119ccu, 0xff8519ccu, 0xff742fe2u, 0xff7a2fe2u, 0xff7e2fe2u, 0xff802fe2u, 0xff812fe2u,

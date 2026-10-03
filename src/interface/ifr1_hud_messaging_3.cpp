@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_messaging.hpp"
+#include "halo/bitmaps/api.hpp"
 #include <string.h>
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
@@ -35,7 +36,6 @@ extern const uint16_t hud_text_no_button_icon[];
 extern int32_t __ftol(double x);
 extern double pow(double base, double exponent);
 extern uint8_t game_engine_local_player_score_is_nonpositive(datum_index player_index);
-extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed);
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, float scale,
                                                  const int16_t *offset, int16_t *out, int32_t selector);
@@ -163,7 +163,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             packed_color = hud_meter_flash_color_blend(
                 (const hud_flash_parameters *)&globals->objective_default_color,
                 hud_messaging->objective_text_ticks - globals->objective_uptime_ticks - globals->objective_fade_ticks + now);
-            color_argb_int_to_real(&color, packed_color);
+            halo::bitmaps::color_argb_int_to_real(&color, packed_color);
             fraction = (float)hud_messaging->objective_text_ticks / (float)globals->objective_fade_ticks;
             if (fraction > 1.0f) {
                 fraction = 1.0f;
@@ -180,7 +180,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             } else {
                 packed_color = *(uint32_t *)&hud_globals_tag_data->hud_help_default_color;
             }
-            color_argb_int_to_real(&color, packed_color);
+            halo::bitmaps::color_argb_int_to_real(&color, packed_color);
         } else {
             color = parameters->icon_color;
             packed_color = color_pack_argb_from_real(&color);

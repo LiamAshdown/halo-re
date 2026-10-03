@@ -5,13 +5,13 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "halo/shaders/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 
 extern "C" {
 
-extern BitmapData *bitmap_group_get_bitmap_data(uint32_t bitmap_tag_id, int16_t index);
 extern uint32_t color_rgb_float_to_int(const ColorRGB *color);
 
 }  // extern "C"
@@ -53,7 +53,7 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
         int32_t count = (int32_t)bitmap->bitmap_data.count;
 
         if (count > 0) {
-            bump_bitmap = bitmap_group_get_bitmap_data(bump_map_tag, (int16_t)((int32_t)frame % count));
+            bump_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(bump_map_tag, (int16_t)((int32_t)frame % count));
             if (*(int16_t *)&((struct BitmapData *)bump_bitmap)->type != 0) {
                 bump_bitmap = 0;
             }

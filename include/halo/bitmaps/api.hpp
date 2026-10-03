@@ -1,15 +1,28 @@
 /**
- * @file include/halo/bitmaps/bitmaps_c_api.h
- * The C ABI of the bitmaps module: every original function with its original signature and C linkage.
- * Defined in src/bitmaps/bitmaps_c_api.cpp; documented on the halo::bitmaps C++ API.
+ * @file include/halo/bitmaps/api.hpp
+ * Functions of the bitmaps module that other modules and the data tables call (namespace halo::bitmaps). The record types are
+ * forward-declared, so the header is light enough for every caller and for the data tables.
  */
 #pragma once
 
-#include "halo/bitmaps/bitmaps.hpp"
+#include <stdarg.h>
+#include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct BitmapData;
+struct ColorARGB;
+struct ColorARGBInt;
+struct ColorRGB;
+struct TagReflexive;
+struct dxt3_block;
+struct dxt5_block;
+struct dxt_color_block;
+struct file_reference_record;
+struct real_hsv_color;
+enum color_interpolation_flags : int;
+typedef int16_t BitmapDataType_t;
+typedef uint32_t datum_index;
+
+namespace halo::bitmaps {
 
 int32_t bitmap_data_calculate_mip_depth(BitmapData *bitmap, int32_t level);
 uint32_t bitmap_data_calculate_mip_dimension(BitmapData *bitmap, int32_t level);
@@ -40,6 +53,4 @@ void dxt1_decode_block_texel(ColorARGBInt *out, dxt_color_block *block, int32_t 
 void dxt3_decode_alpha_texel(int32_t x, int32_t y, ColorARGBInt *texel_out, dxt3_block *block);
 void dxt5_decode_alpha_texel(dxt5_block *block, ColorARGBInt *texel_out, int32_t x, int32_t y);
 
-#ifdef __cplusplus
 }
-#endif

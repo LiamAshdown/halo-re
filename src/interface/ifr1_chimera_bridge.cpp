@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_chimera_bridge.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
@@ -22,8 +23,6 @@ extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t network_join_error_reason;
 extern uint32_t time_query_performance_counter_ms(void);
-extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t sequence,
-                                                     int16_t frame);
 extern uint32_t color_argb_scale_alpha(uint32_t packed_color, float scale);
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
                                 int16_t *clip_rect, uint32_t vertex_color);
@@ -148,7 +147,7 @@ void ChimeraBridge::do_show_loading_screen(void)
         return;
     }
 
-    bitmap_data = bitmap_group_sequence_get_bitmap_data(background, 0, 0);
+    bitmap_data = reinterpret_cast<int32_t>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(background, 0, 0));
     packed_color = color_argb_scale_alpha(0xffffffff, alpha);
     text_color.alpha = alpha;
     text_color.red = 1.0f;

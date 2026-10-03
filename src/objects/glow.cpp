@@ -1,4 +1,5 @@
 #include "halo/objects/glow.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "game.h"
 #include "rasterizer.h"
 #include "render.h"
@@ -9,7 +10,6 @@
 
 extern "C" {
 extern int32_t __ftol(double);
-extern uint8_t *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag_index, int16_t frame_index, int16_t sequence_index);
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
 extern void build_sprites_end(build_sprite_data *data);
 extern double cos(double x);
@@ -149,7 +149,7 @@ datum_index halo::objects::GlowSystem::create(datum_index glow_tag)
     if (*(int16_t *)bitmap == 3) {
         uint8_t *sequence = *(uint8_t **)(bitmap + 0x58);
         uint8_t *sprite = *(uint8_t **)(sequence + 0x38);
-        uint8_t *bitmap_data = bitmap_group_sequence_get_bitmap_data(bitmap_tag, *(int16_t *)sprite, 0);
+        uint8_t *bitmap_data = reinterpret_cast<uint8_t *>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(bitmap_tag, *(int16_t *)sprite, 0));
 
         *(datum_index *)(self + 0x224) = glow_tag;
         *(int16_t *)(self + 0x24c) = *(int16_t *)(tag + 0x20);

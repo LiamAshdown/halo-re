@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_keyboard.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "crt.h"
 #include <string.h>
 #include <wchar.h>
@@ -24,7 +25,6 @@ extern float hud_text_draw_color_a;
 extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
-extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
 extern void text_measure_string_extents(Rectangle2D *origin, Rectangle2D *cursor, Rectangle2D *out, const uint16_t *text);
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0, int32_t unknown_1, const uint16_t *text);
@@ -188,7 +188,7 @@ void VirtualKeyboard::draw_text(Rectangle2D *bounds)
     hud_text_draw_unknown_4730 = 0;
 
     if (virtual_keyboard.opened == 1) {
-        BitmapData *white = bitmap_group_sequence_get_bitmap_data(virtual_keyboard.white_bitmap, 0, 0);
+        BitmapData *white = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(virtual_keyboard.white_bitmap, 0, 0);
 
         if (white != 0) {
             Rectangle2D cursor;
@@ -209,7 +209,7 @@ void VirtualKeyboard::draw_text(Rectangle2D *bounds)
         int16_t advance_before_caret = 0;
         int16_t total_advance = 0;
         const uint16_t *cursor = virtual_keyboard.destination;
-        BitmapData *white = bitmap_group_sequence_get_bitmap_data(virtual_keyboard.white_bitmap, 0, 0);
+        BitmapData *white = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(virtual_keyboard.white_bitmap, 0, 0);
 
         if (white != 0) {
             Rectangle2D caret;
@@ -489,7 +489,7 @@ void VirtualKeyboard::render()
     Rectangle2D rect;
 
     if (background != (datum_index)-1) {
-        BitmapData *bitmap = bitmap_group_sequence_get_bitmap_data(background, 0, 0);
+        BitmapData *bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(background, 0, 0);
 
         rect.top = 0;
         rect.left = 0;

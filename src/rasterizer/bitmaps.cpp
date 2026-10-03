@@ -5,24 +5,14 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 
 extern "C" {
 
-extern uint32_t bitmap_data_calculate_mip_level_pixel_count(BitmapData *bitmap, int32_t mip_level);
-extern BitmapData *bitmap_group_get_bitmap_data(uint32_t bitmap_tag_id, int16_t index);
 extern int32_t fistp_round(float x);
-extern void dxt1_decode_block_texel(void *out, void *block, int32_t x, int32_t y);
-extern void dxt3_decode_alpha_texel(int32_t x, int32_t y, void *texel_out, void *block);
-extern void dxt5_decode_alpha_texel(void *block, void *texel_out, int32_t x, int32_t y);
 extern long lrint(double x);
-extern void *bitmap_data_get_pixel_address(BitmapData *bitmap, int32_t mip_level);
-extern uint32_t bitmap_data_calculate_mip_dimension(BitmapData *bitmap, int32_t mip_level);
-extern uint32_t bitmap_data_calculate_mip_level_byte_size(BitmapData *bitmap, int32_t mip_level);
-extern uint32_t bitmap_data_calculate_mip_row_byte_size(BitmapData *bitmap, int32_t mip_level);
-extern int16_t bitmap_data_calculate_mip_depth(BitmapData *bitmap, int32_t mip_level);
-extern void *bitmap_data_get_cube_map_pixel_address(BitmapData *bitmap, int32_t mip_level, int16_t x, int16_t y, int16_t face);
 
 }  // extern "C"
 
@@ -145,7 +135,7 @@ int32_t bitmap_compute_texture_data_size(BitmapData *bitmap)
         level = 0;
         shift = 0;
         do {
-            level_bytes = (int32_t)bitmap_data_calculate_mip_level_pixel_count(bitmap, level);
+            level_bytes = (int32_t)halo::bitmaps::bitmap_data_calculate_mip_level_pixel_count(bitmap, level);
             level_bytes = level_bytes * bits_per_pixel;
             level_bytes = (level_bytes + ((level_bytes >> 0x1f) & 7)) >> 3;
 
@@ -215,7 +205,7 @@ static BitmapData *rasterizer_tag_bitmap(uint32_t bitmap_tag_id, int16_t bitmap_
         return 0;
     }
     *resolved = 1;
-    return bitmap_group_get_bitmap_data(bitmap_tag_id, (int16_t)((int32_t)frame % count));
+    return halo::bitmaps::bitmap_group_get_bitmap_data(bitmap_tag_id, (int16_t)((int32_t)frame % count));
 }
 
 /**
@@ -578,9 +568,9 @@ int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_
         x &= 3;
         y &= 3;
         switch (format) {
-        case 0xe: dxt1_decode_block_texel(&texel, block, x, y); break;
-        case 0xf: dxt3_decode_alpha_texel(x, y, &texel, block); break;
-        case 0x10: dxt5_decode_alpha_texel(block, &texel, x, y); break;
+        case 0xe: halo::bitmaps::dxt1_decode_block_texel(reinterpret_cast<ColorARGBInt *>(&texel), reinterpret_cast<dxt_color_block *>(block), x, y); break;
+        case 0xf: halo::bitmaps::dxt3_decode_alpha_texel(x, y, reinterpret_cast<ColorARGBInt *>(&texel), reinterpret_cast<dxt3_block *>(block)); break;
+        case 0x10: halo::bitmaps::dxt5_decode_alpha_texel(reinterpret_cast<dxt5_block *>(block), reinterpret_cast<ColorARGBInt *>(&texel), x, y); break;
         default: break;
         }
     } else {
@@ -696,11 +686,11 @@ void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap)
             break;
         }
 
-        source = (uint8_t *)bitmap_data_get_pixel_address(bitmap, source_mip);
+        source = (uint8_t *)halo::bitmaps::bitmap_data_get_pixel_address(bitmap, source_mip);
 
         if ((bitmap->flags & 2) == 0) {
-            rows = bitmap_data_calculate_mip_dimension(bitmap, source_mip);
-            row_size = bitmap_data_calculate_mip_row_byte_size(bitmap, source_mip);
+            rows = halo::bitmaps::bitmap_data_calculate_mip_dimension(bitmap, source_mip);
+            row_size = halo::bitmaps::bitmap_data_calculate_mip_row_byte_size(bitmap, source_mip);
             dest = (uint8_t *)locked.bits;
             for (row = 0; row < rows; row++) {
                 memcpy(dest, source, row_size);
@@ -708,7 +698,7 @@ void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap)
                 dest = dest + locked.pitch;
             }
         } else {
-            level_size = bitmap_data_calculate_mip_level_byte_size(bitmap, source_mip);
+            level_size = halo::bitmaps::bitmap_data_calculate_mip_level_byte_size(bitmap, source_mip);
             memcpy((void *)locked.bits, source, level_size);
         }
 
@@ -764,12 +754,12 @@ void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap)
             ok = 0;
             continue;
         }
-        source = (uint8_t *)bitmap_data_get_pixel_address(bitmap, level);
-        depth = bitmap_data_calculate_mip_depth(bitmap, level);
+        source = (uint8_t *)halo::bitmaps::bitmap_data_get_pixel_address(bitmap, level);
+        depth = halo::bitmaps::bitmap_data_calculate_mip_depth(bitmap, level);
         dest = (uint8_t *)locked.bits;
         for (slice = 0; slice < depth; slice++) {
 
-            level_bytes = (int32_t)bitmap_data_calculate_mip_level_pixel_count(bitmap, level) *
+            level_bytes = (int32_t)halo::bitmaps::bitmap_data_calculate_mip_level_pixel_count(bitmap, level) *
                           bitmap_format_bits_per_pixel[bitmap->format];
             level_bytes = level_bytes / 8;
             slice_bytes = level_bytes / depth;
@@ -823,16 +813,16 @@ void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap)
                 continue;
             }
             dest = (uint8_t *)locked.bits;
-            source = (uint8_t *)bitmap_data_get_cube_map_pixel_address(bitmap, level, 0, 0, face);
+            source = (uint8_t *)halo::bitmaps::bitmap_data_get_cube_map_pixel_address(bitmap, level, 0, 0, face);
             if ((bitmap->flags & 2) != 0) {
 
-                bytes = (int32_t)bitmap_data_calculate_mip_level_pixel_count(bitmap, level) *
+                bytes = (int32_t)halo::bitmaps::bitmap_data_calculate_mip_level_pixel_count(bitmap, level) *
                         bitmap_format_bits_per_pixel[bitmap->format];
                 bytes = bytes / 8;
                 memcpy(dest, source, bytes / 6);
             } else {
-                rows = (int16_t)bitmap_data_calculate_mip_dimension(bitmap, level);
-                row_size = bitmap_data_calculate_mip_row_byte_size(bitmap, level);
+                rows = (int16_t)halo::bitmaps::bitmap_data_calculate_mip_dimension(bitmap, level);
+                row_size = halo::bitmaps::bitmap_data_calculate_mip_row_byte_size(bitmap, level);
                 for (row = 0; row < rows; row++) {
                     memcpy(dest, source, row_size);
                     source += row_size;

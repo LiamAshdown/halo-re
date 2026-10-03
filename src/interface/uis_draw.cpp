@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/bitmaps/api.hpp"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -29,7 +30,6 @@ extern double fsin(double x);
 extern double fcos(double x);
 extern int32_t ui_network_wait_start_time;
 extern datum_index trouble_brewing_bitmap_tag;
-extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
                                 int16_t *clip_rect, uint32_t vertex_color);
@@ -53,7 +53,6 @@ extern void text_measure_string_extents(Rectangle2D *origin, Rectangle2D *cursor
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text);
 extern void ui_widget_draw_prompt_span(const uint16_t *text, Rectangle2D *cursor, Rectangle2D *origin);
-extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed);
 extern void ui_button_prompt_draw_icon(HUDGlobalsButtonIcon *icon);
 }
 
@@ -392,7 +391,7 @@ void UiDraw::draw_trouble_brewing_indicator(void)
         trouble_brewing_bitmap_tag = halo::cache::tag_lookup(0x6269746d ,
                                                  (char *)"ui\\shell\\bitmaps\\trouble_brewing");
         if (trouble_brewing_bitmap_tag != (datum_index)-1) {
-            BitmapData *bitmap_data = bitmap_group_sequence_get_bitmap_data(trouble_brewing_bitmap_tag, 0, 0);
+            BitmapData *bitmap_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(trouble_brewing_bitmap_tag, 0, 0);
 
             if (bitmap_data != 0) {
                 ui_draw_screen_quad(0, (int16_t *)&rect, (int32_t)bitmap_data, 0, 0xffffffff);
@@ -494,7 +493,7 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
                 ColorARGB text_color;
                 uint32_t packed_color;
 
-                color_argb_int_to_real(&icon_color, *(uint32_t *)&icon->override_icon_color);
+                halo::bitmaps::color_argb_int_to_real(&icon_color, *(uint32_t *)&icon->override_icon_color);
                 icon->flags = (HUDInterfaceMessagingFlags)(saved_flags & 0xfd);
                 if (prompt_icon_override_table[token] != 0) {
                     icon->flags = (HUDInterfaceMessagingFlags)(icon->flags & 0xfb);

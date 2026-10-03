@@ -126,8 +126,6 @@ extern void biped_placement_offset_centered_pill();
 extern void biped_reset_state();
 extern void biped_update();
 extern void biped_update_scale_function_inputs();
-extern void bitmap_data_block_delete_element();
-extern void bitmap_group_postprocess();
 extern void config_compute_uma_video_memory();
 extern void config_set_decal_slope_z_bias();
 extern void config_set_decal_z_bias();

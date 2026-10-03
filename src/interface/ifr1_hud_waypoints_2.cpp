@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_waypoints.hpp"
+#include "halo/bitmaps/api.hpp"
 #include <string.h>
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -18,7 +19,6 @@ extern int32_t object_get_node_local_transform(datum_index object_index, char *m
                                                 object_marker *marker, uint32_t flags);
 extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *view_point,
                                               const void *frustum, const void *camera);
-extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
 extern void ui_draw_rotated_screen_quad(int16_t *origin, int32_t source_record, float *corner_uvs,
                                         float scale, float rotation_radians, float alpha_fraction);
 }
@@ -55,7 +55,7 @@ void HudWaypoints::draw_one(datum_index player_index)
     interface_bitmaps = (global_globals->interface_bitmaps.count != 0)
         ? (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer
         : (GlobalsInterfaceBitmaps *)0;
-    bitmap = bitmap_group_sequence_get_bitmap_data(
+    bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(
         *(datum_index *)&interface_bitmaps->multiplayer_hud_bitmap.tag_id, 0, 0);
     if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
         return;

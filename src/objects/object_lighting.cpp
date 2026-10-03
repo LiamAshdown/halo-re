@@ -1,4 +1,5 @@
 #include "halo/objects/object_lighting.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "structures.h"
 #include "rasterizer.h"
 #include <stdint.h>
@@ -7,7 +8,6 @@
 #include "halo/structures/api.hpp"
 
 extern "C" {
-extern BitmapData *bitmap_group_get_bitmap_data(datum_index bitmap_tag_index, int16_t bitmap_data_index);
 extern real_vector3d *default_axis_b;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern data_array *light_data;
@@ -96,7 +96,7 @@ void halo::objects::ObjectLighting::sample_total_lighting_at_point(real_point3d 
         material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
 
         if (*(int32_t *)&bsp->lightmaps_bitmap.tag_id != -1 && (int16_t)lightmap->bitmap != -1) {
-            BitmapData *bitmap = bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
+            BitmapData *bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
                 (int16_t)lightmap->bitmap);
             uint16_t *triangle =
                 (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
@@ -210,11 +210,11 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
         return;
     }
 
-    lightmap_bitmap = bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
+    lightmap_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
         (int16_t)lightmap->bitmap);
     base_map = *(datum_index *)(shader + 0x94);
     base_map_tag = (uint8_t *)halo::cache::globals().tag_instances[base_map & 0xffff].data;
-    base_map_bitmap = bitmap_group_get_bitmap_data(base_map,
+    base_map_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(base_map,
         (int16_t)((int32_t)(int16_t)material->shader_permutation % *(int32_t *)(base_map_tag + 0x60)));
 
     if (lightmap_bitmap != 0 && object_lightmap_texture_ready(lightmap_bitmap, wait_for_textures) != 0) {

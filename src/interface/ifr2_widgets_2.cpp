@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_widgets.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "halo/memory/api.hpp"
 #include <wchar.h>
 #include "halo/cache/api.hpp"
@@ -18,7 +19,6 @@ extern heap *widget_memory_pool;
 extern uint8_t widget_instance_point_in_bounds(widget_instance *widget);
 extern float widget_instance_get_cumulative_scale(widget_instance *widget);
 extern void widget_instance_render(widget_instance *widget, Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, int32_t flag2);
-extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t sequence, int16_t frame);
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
 extern uint16_t *text_string_list_get_string(datum_index string_list_tag, int16_t index);
 extern const uint16_t *ui_search_replace_function_call(int16_t function, widget_instance *widget);
@@ -179,7 +179,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
                 (arrow == 0 ? cursor_side <= 0 : cursor_side > 0)) {
                 frame = (int16_t)(frame + 2);
             }
-            bitmap = bitmap_group_sequence_get_bitmap_data(bitmap_tag, 0, frame);
+            bitmap = reinterpret_cast<int32_t>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(bitmap_tag, 0, frame));
             if (bitmap != 0) {
                 Rectangle2D rect = *(Rectangle2D *)(t + (arrow == 0 ? 0x174 : 0x17c));
                 float alpha = scale * 255.0f;

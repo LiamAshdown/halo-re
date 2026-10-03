@@ -1,4 +1,5 @@
 #include "halo/objects/object_update.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "game.h"
 #include "models.h"
 #include "halo/math/api.hpp"
@@ -10,7 +11,6 @@ extern void animation_get_frame_orientations(ModelAnimationsAnimation *animation
 extern void animation_overlay_frame_orientations_weighted(ModelAnimationsAnimation *animation, int16_t frame, float weight, real_orientation *out_orientations);
 extern void animation_overlay_interpolated_frame_orientations(ModelAnimationsAnimation *animation, float frame, real_orientation *out_orientations);
 extern double atan2(double y, double x);
-extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
 extern double fabs(double x);
 extern float fabsf(float x);
 extern double floor(double x);
@@ -628,7 +628,7 @@ void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
                 if (weight <= *(float *)permutation) {
                     float t = (float)fmod(fabs(position[1]) + (double)i * (double)0.71210998f, 1.0);
 
-                    color_interpolate((ColorRGB *)(permutation + 0x10), (ColorRGB *)(permutation + 4), working, 1, t);
+                    halo::bitmaps::color_interpolate((ColorRGB *)(permutation + 0x10), (ColorRGB *)(permutation + 4), working, static_cast<color_interpolation_flags>(1), t);
                     break;
                 }
             }
@@ -783,8 +783,8 @@ void halo::objects::ObjectUpdater::update_change_colors()
             if (tag_color->scale_by != 0) {
                 float t = *(float *)((uint8_t *)obj + 0x120 + tag_color->scale_by * 4);
 
-                color_interpolate((ColorRGB *)((uint8_t *)tag_color + 0x14), (ColorRGB *)((uint8_t *)tag_color + 8), out,
-                    *(uint32_t *)&((struct ObjectChangeColors *)tag_color)->flags, t);
+                halo::bitmaps::color_interpolate((ColorRGB *)((uint8_t *)tag_color + 0x14), (ColorRGB *)((uint8_t *)tag_color + 8), out,
+                    static_cast<color_interpolation_flags>(*(uint32_t *)&((struct ObjectChangeColors *)tag_color)->flags), t);
             }
             if (tag_color->darken_by != 0) {
                 float scale = *(float *)((uint8_t *)obj + 0x120 + tag_color->darken_by * 4);

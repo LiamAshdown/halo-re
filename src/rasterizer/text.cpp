@@ -5,14 +5,13 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "halo/cache/api.hpp"
 
 extern "C" {
 
 extern void text_wrap_and_draw_wide(void *glyph_callback, void *dest_rect, uint32_t position_or_color1, void *clip_rect, uint32_t position_or_color2, const int16_t *text);
 extern void text_wrap_and_draw_narrow(void *glyph_callback, void *dest_rect, uint32_t position_or_color1, void *clip_rect, uint32_t position_or_color2, const char *text);
-extern uint16_t *bitmap_data_get_row_address(BitmapData *bitmap, int32_t mip_level, int32_t x, int32_t y);
-extern uint32_t bitmap_data_calculate_pixel_data_size(BitmapData *bitmap);
 
 }  // extern "C"
 
@@ -255,7 +254,7 @@ void font_glyph_cache_allocate_and_upload(Font *font, FontCharacter *character)
     pixels = (uint8_t *)(font->pixels.pointer + character->pixels_offset);
     for (row = 0; row < character->bitmap_height + 2; row++) {
         atlas = (BitmapData *)g_font_glyph_cache.atlas;
-        texel = bitmap_data_get_row_address(atlas, 0, (uint16_t)entry->x, (uint16_t)(entry->y + row));
+        texel = static_cast<uint16_t *>(halo::bitmaps::bitmap_data_get_row_address(atlas, 0, (uint16_t)entry->x, (uint16_t)(entry->y + row)));
         for (column = 0; column < character->bitmap_width + 2; column++) {
             if (row < 1 || row > character->bitmap_height ||
                 column < 1 || column > character->bitmap_width) {
@@ -565,7 +564,7 @@ int32_t text_font_system_initialize(void)
         *(uint16_t *)(atlas + 0x14) = 0;
         *(uint16_t *)(atlas + 0x0e) = 0x41;
 
-        pixel_data_size = bitmap_data_calculate_pixel_data_size((BitmapData *)atlas);
+        pixel_data_size = halo::bitmaps::bitmap_data_calculate_pixel_data_size((BitmapData *)atlas);
         pixels = GlobalAlloc(0, pixel_data_size);
         *(uint32_t *)(atlas + 0x2c) = (uint32_t)pixels;
 

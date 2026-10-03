@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -20,7 +21,6 @@ extern double sqrt(double x);
 extern double fabs(double x);
 extern double cos(double x);
 extern double sin(double x);
-extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
 extern datum_index decal_new(datum_index requested_handle, int16_t cluster_index, int16_t layer, datum_index insert_before, uint8_t object_attached);
 extern void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out);
 extern void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator *accumulator, int32_t surface_index, uint8_t is_first_surface, real radius, int16_t decal_type, int32_t *surface_queue, uint16_t *surface_queue_count, int32_t *fallback_queue, uint16_t *fallback_queue_count);
@@ -565,8 +565,8 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
                 definition->intensity[0];
             real fraction = decal_place_random_fraction();
 
-            color_interpolate(&definition->color_upper_bounds, &definition->color_lower_bounds, &color,
-                (uint32_t)((*(const uint8_t *)&definition->flags >> 1) & 3), fraction);
+            halo::bitmaps::color_interpolate(&definition->color_upper_bounds, &definition->color_lower_bounds, &color,
+                static_cast<color_interpolation_flags>((uint32_t)((*(const uint8_t *)&definition->flags >> 1) & 3)), fraction);
             self->color = ((uint32_t)lrint((double)color.blue * 255.0) & 0xff) |
                 (((uint32_t)lrint((double)color.green * 255.0) & 0xff) << 8) |
                 (((uint32_t)lrint((double)color.red * 255.0) & 0xff) << 16) |

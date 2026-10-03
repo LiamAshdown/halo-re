@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_waypoints.hpp"
+#include "halo/bitmaps/api.hpp"
 #include <string.h>
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -25,7 +26,6 @@ extern int32_t ui_real_to_int_truncate(float value);
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
 extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *point, void *frustum,
                                                     void *camera);
-extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed);
 extern uint32_t color_rgb_float_to_int(const float *rgb);
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                            void **out_data, int32_t *out_offset);
@@ -344,7 +344,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
     } else {
         alpha = (uint8_t)-(int8_t)ui_real_to_int_truncate(arrow->opacity);
     }
-    color_rgb_int_to_real(&color, *(const uint32_t *)&arrow->color);
+    halo::bitmaps::color_rgb_int_to_real(&color, *(const uint32_t *)&arrow->color);
     color.red = hud_clamp01(1.0f - arrow->translucency) * color.red;
     color.green = hud_clamp01(1.0f - arrow->translucency) * color.green;
     color.blue = hud_clamp01(1.0f - arrow->translucency) * color.blue;

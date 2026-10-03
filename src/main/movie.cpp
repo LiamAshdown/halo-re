@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/bitmaps/api.hpp"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
@@ -26,7 +27,6 @@ extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); }
 extern "C" { extern void path_append_component(char *destination, const char *component); }
 extern "C" { extern void path_remove_last_component(uint8_t *path); }
-extern "C" { extern char * targa_export(BitmapData *bitmap, file_reference_record *destination); }
 namespace halo::main {
 
 /**
@@ -59,7 +59,7 @@ void MoviePlayer::capture_frame_export(void)
         path_append_component(request.path, path);
         request.flags = request.flags | 1;
 
-        targa_export(movie_frame_bitmap, &request);
+        halo::bitmaps::targa_export(movie_frame_bitmap, &request);
     }
 }
 

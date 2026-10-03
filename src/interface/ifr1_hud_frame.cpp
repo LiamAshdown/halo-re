@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_frame.hpp"
+#include "halo/bitmaps/api.hpp"
 #include <string.h>
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -51,7 +52,6 @@ extern uint8_t game_engine_scores_tracked_individually(void);
 extern float *game_engine_get_player_color(uint32_t player_index, float *out_rgb);
 extern TagID unit_get_hud_interface_tag_id(Unit *unit_tag, uint8_t use_second);
 extern TagID unit_get_seat_hud_interface_tag_id(Unit *unit_tag, int16_t seat_index, uint8_t use_second);
-extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
 extern uint32_t color_rgb_float_to_int(const float *rgb);
 extern void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, float scale,
                                                  const int16_t *offset, int16_t *out, int32_t selector);
@@ -795,9 +795,9 @@ void HudFrame::render_unit_interface(player *p)
                 icon_scales[0] = icon_scale[engine];
                 icon_scales[1] = icon_scale[engine];
             }
-            icon = bitmap_group_sequence_get_bitmap_data(hud_team_icon_bitmap, 0, 0);
+            icon = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(hud_team_icon_bitmap, 0, 0);
             hud_team_background_bitmap = halo::cache::tag_lookup(0x6269746d, (char *)"ui\\shell\\bitmaps\\team_background");
-            background = bitmap_group_sequence_get_bitmap_data(hud_team_background_bitmap, 0, 0);
+            background = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(hud_team_background_bitmap, 0, 0);
             if (icon != 0 && background != 0) {
                 background_position.x = 0x1bd;
                 background_position.y = 6;

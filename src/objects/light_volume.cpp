@@ -1,4 +1,5 @@
 #include "halo/objects/light_volume.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "bitmaps.h"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -11,7 +12,6 @@ extern float camera_forward_y;
 extern float camera_forward_z;
 extern float camera_position_y;
 extern float camera_position_z;
-extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, color_interpolation_flags flags, float t);
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern float curve_apply_exponent(float value, float exponent);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
@@ -299,7 +299,7 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
             point.y = forward->j * along + origin->y;
             point.z = forward->k * along + origin->z;
             color_t = curve_apply_exponent(t, *(float *)(frame + 0x88));
-            color_interpolate((ColorRGB *)(frame + 0x7c), (ColorRGB *)(frame + 0x6c), (ColorRGB *)&color.red,
+            halo::bitmaps::color_interpolate((ColorRGB *)(frame + 0x7c), (ColorRGB *)(frame + 0x6c), (ColorRGB *)&color.red,
                 (color_interpolation_flags)(tag[0x22] & 3), color_t);
             color.alpha = ((1.0f - alpha_t) * *(float *)(frame + 0x68) + alpha_t * *(float *)(frame + 0x78)) *
                 brightness;

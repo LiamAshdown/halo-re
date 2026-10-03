@@ -1,4 +1,5 @@
 #include "halo/ai/actor_props.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -98,7 +99,6 @@ extern data_array *object_data;
 extern int16_t network_game_mode;
 extern object_type_definition *object_type_definitions[12];
 
-extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
 
 extern void object_initialize_shield_stun_thresholds(uint32_t object_index, float *override_max_body_vitality,
     float *override_max_shield_vitality);
@@ -165,7 +165,7 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
             ColorRGB *working = (ColorRGB *)(unit + 0x188 + i * 0xc);
 
             halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
-            color_interpolate((ColorRGB *)(change_color + 0xc), (ColorRGB *)change_color, working, 1,
+            halo::bitmaps::color_interpolate((ColorRGB *)(change_color + 0xc), (ColorRGB *)change_color, working, static_cast<color_interpolation_flags>(1),
                 (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f);
             *(ColorRGB *)(unit + 0x1b8 + i * 0xc) = *working;
         }

@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_meters.hpp"
+#include "halo/bitmaps/api.hpp"
 #include <string.h>
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -6,10 +7,7 @@
 extern "C" {
 extern int32_t ui_real_to_int_truncate(float value);
 extern uint32_t color_rgb_float_to_int(const float *rgb);
-extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed);
-extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
-extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
 extern void hud_draw_bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs,
                                     void *meter_parameters, BitmapData *bitmap, uint16_t *anchor,
                                     float scale, float rotation, uint32_t color, uint8_t split_screen);
@@ -17,7 +15,6 @@ extern double cos(double x);
 extern double sqrt(double x);
 extern double fmod(double x, double y);
 extern game_time_globals *game_time;
-extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed);
 extern int32_t bitmap_group_sequence_get_bitmap_offset(datum_index bitmap_tag, int16_t sequence_index,
                                                          int16_t frame_index);
 extern data_array *player_data;
@@ -58,7 +55,7 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
 {
     datum_index bitmap_tag = *(datum_index *)&meter->meter_bitmap.tag_id;
     uint8_t *bitmap_tag_data = (uint8_t *)halo::cache::globals().tag_instances[bitmap_tag & 0xffff].data;
-    BitmapData *bitmap = bitmap_group_sequence_get_bitmap_data(bitmap_tag, 0, (int16_t)meter->sequence_index);
+    BitmapData *bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(bitmap_tag, 0, (int16_t)meter->sequence_index);
     const uint8_t *sprite_rect = 0;
     uint8_t is_sprite_bitmap;
     int32_t alpha_a;
@@ -107,7 +104,7 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
                 t = 1.0f;
             }
         }
-        color_rgb_int_to_real(&flash, *(uint32_t *)&meter->flash_color);
+        halo::bitmaps::color_rgb_int_to_real(&flash, *(uint32_t *)&meter->flash_color);
         flash.red *= t;
         flash.green *= t;
         flash.blue *= t;
@@ -118,9 +115,9 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
         ColorRGB minimum, maximum, blended;
         uint32_t alpha = (uint32_t)(int16_t)alpha_a << 24;
         float t = (meter->flags & 0x10) ? 1.0f - fraction_2 : fraction_2;
-        color_rgb_int_to_real(&minimum, *(uint32_t *)&meter->color_at_meter_minimum);
-        color_rgb_int_to_real(&maximum, *(uint32_t *)&meter->color_at_meter_maximum);
-        color_interpolate(&maximum, &minimum, &blended, 0, t);
+        halo::bitmaps::color_rgb_int_to_real(&minimum, *(uint32_t *)&meter->color_at_meter_minimum);
+        halo::bitmaps::color_rgb_int_to_real(&maximum, *(uint32_t *)&meter->color_at_meter_maximum);
+        halo::bitmaps::color_interpolate(&maximum, &minimum, &blended, static_cast<color_interpolation_flags>(0), t);
         block.primary = color_rgb_float_to_int((const float *)&blended) | alpha;
         block.secondary = color_rgb_float_to_int((const float *)&blended);
         block.tint = alpha;
@@ -213,14 +210,14 @@ uint32_t HudMeters::flash_color_blend(const hud_flash_parameters *flash, int32_t
     float flash_time;
 
     if (flash->flash_period == 0.0f || flash->flash_length == 0.0f) {
-        color_argb_int_to_real(&default_color, *(uint32_t *)&flash->default_color);
+        halo::bitmaps::color_argb_int_to_real(&default_color, *(uint32_t *)&flash->default_color);
         return color_pack_argb_from_real(&default_color);
     }
 
     cycle_time = (float)fmod((float)(game_time->game_time - start_time) * (1.0f / 30.0f),
                              flash->flash_period);
-    color_argb_int_to_real(&default_color, *(uint32_t *)&flash->default_color);
-    color_argb_int_to_real(&flashing_color, *(uint32_t *)&flash->flashing_color);
+    halo::bitmaps::color_argb_int_to_real(&default_color, *(uint32_t *)&flash->default_color);
+    halo::bitmaps::color_argb_int_to_real(&flashing_color, *(uint32_t *)&flash->flashing_color);
 
     if ((float)flash->number_of_flashes * (flash->flash_delay + flash->flash_length) <= cycle_time) {
         return color_pack_argb_from_real(&default_color);
@@ -291,7 +288,7 @@ void HudMeters::resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_in
 
                 *out_data = (BitmapData *)bitmap->bitmap_data.pointer + (int16_t)sprite->bitmap_index;
             } else {
-                *out_data = bitmap_group_sequence_get_bitmap_data(bitmap_tag, (int16_t)frame, sequence);
+                *out_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(bitmap_tag, (int16_t)frame, sequence);
             }
         }
     }

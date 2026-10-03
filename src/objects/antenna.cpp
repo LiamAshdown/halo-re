@@ -1,4 +1,5 @@
 #include "halo/objects/antenna.hpp"
+#include "halo/bitmaps/api.hpp"
 #include "rasterizer.h"
 #include "render.h"
 #include <stdint.h>
@@ -14,7 +15,6 @@ extern data_array *antenna_data;
 extern void antenna_render_geometry(Antenna *antenna_tag, antenna *ant);
 extern uint8_t antenna_sprite_shader[];
 extern void antenna_update_physics(antenna *ant, Antenna *antenna_tag, float dt);
-extern void *bitmap_group_get_bitmap_data(void);
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
 extern void build_sprites_end(build_sprite_data *data);
 extern double cos(double x);
@@ -129,7 +129,7 @@ datum_index halo::objects::AntennaSystem::create(datum_index antenna_tag)
                         BitmapGroupSequence *sequence = (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer + sequence_index;
                         if (sequence->sprites.count != 0) {
                             BitmapGroupSprite *sprite = (BitmapGroupSprite *)sequence->sprites.pointer;
-                            void *bitmap_data = bitmap_group_get_bitmap_data();
+                            void *bitmap_data = halo::bitmaps::bitmap_group_get_bitmap_data(tag->bitmaps.tag_id.index, sprite->bitmap_index);
                             if (bitmap_data != 0) {
 
                                 float width = (float)*(int16_t *)((uint8_t *)bitmap_data + 4);
