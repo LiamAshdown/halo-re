@@ -1098,7 +1098,8 @@ not_ready_check_retry:
 
 check_keep_trying:
     if (keep_trying == 0) {
-        goto report_not_trying;
+        *out_keep_trying = 0;
+        return ready;
     }
 
 report_keep_trying:
@@ -1107,7 +1108,6 @@ report_keep_trying:
         return ready;
     }
 
-report_not_trying:
     *out_keep_trying = 0;
     return ready;
 

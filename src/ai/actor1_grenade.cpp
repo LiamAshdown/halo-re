@@ -52,7 +52,7 @@ void halo::ai::grenade_ops::attempt_grenade_throw()
             } else if (!(chance <= 0.6f)) {
                 chance = 0.6f;
             }
-            if (a->berserking || (a->firing_target_type > 0 && *(float *)((uint8_t *)a + 0x648) < 3.0f)) {
+            if (a->berserking || (a->firing_target_type > 0 && a->target_aim_range < 3.0f)) {
                 float boosted = chance * 4.0f;
 
                 if (!(boosted <= 0.6f)) {
@@ -303,7 +303,7 @@ uint32_t halo::ai::grenade_ops::commit_grenade_toss(real_point3d *point, uint32_
     *(real_point3d *)&a->grenade_impact_point.x = *point;
     a->grenade_target_prop_index = object_handle;
     a->grenade_throw_direction = direction;
-    *(uint32_t *)((uint8_t *)a + 0x6b8) = exclude_object_index;
+    a->grenade_exclude_object_index = exclude_object_index;
     a->grenade_throw_speed = speed;
     a->grenade_high_arc[0] = 0;
     return 1;
@@ -468,7 +468,7 @@ uint8_t halo::ai::grenade_ops::evaluate_grenade_target_position()
     Unit *unit_tag;
     Actor *actor_tag;
     prop *p;
-    float *facing = (float *)((uint8_t *)a + 0x174);
+    float *facing = &a->facing.i;
 
     if (a->active_unit_index != k_datum_index_none || a->secondary_action != -1) {
         return 0;
@@ -554,8 +554,8 @@ uint8_t halo::ai::grenade_ops::find_grenade_landing_spot(real_point3d *out_point
         if (target_prop->enemy != 0 && target_prop->dead == 0) {
             int16_t kind = target_prop->state;
             if ((1 < kind && kind < 4) || kind == 4) {
-                float min_range = *(float *)((uint8_t *)variant + 0x194);
-                float max_range = *(float *)((uint8_t *)variant + 0x198);
+                float min_range = variant->grenade_ranges[0];
+                float max_range = variant->grenade_ranges[1];
                 if (min_range < target_prop->distance && target_prop->distance < max_range) {
                     *out_point = target_prop->last_known_position;
                     result = 1;

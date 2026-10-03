@@ -192,7 +192,7 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
     }
     for (a = halo::ai::actor_iterator_next(&iterator); a != 0; a = halo::ai::actor_iterator_next(&iterator)) {
         datum_index actor_index = iterator.actor_index;
-        int16_t actor_cluster = *(int16_t *)((uint8_t *)a + 0x148);
+        int16_t actor_cluster = a->location.cluster_index;
         datum_index prop_index;
         prop *p;
 
@@ -825,7 +825,7 @@ static uint8_t ai_bsp_actor_should_carry(struct actor *actor)
         for (prop_index = actor->first_prop; prop_index != k_datum_index_none;) {
             prop *p = halo::ai::prop_at(prop_index);
 
-            prop_index = *(datum_index *)((uint8_t *)p + 8);
+            prop_index = p->next_in_actor;
             if (p->is_parented != 0 && (p->visual_perception >= 2 || p->distance < 3.0f)) {
                 carry = 1;
             }

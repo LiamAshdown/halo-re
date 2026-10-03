@@ -510,7 +510,7 @@ uint8_t halo::ai::obey_mode::process()
     halo::ai::actor_swarm_for_each_component(actor_index, 0, (actor_swarm_member_callback)halo::ai::actor_squad_action_list_process,
         (uint32_t)&still_running, (uint16_t *)mode_data);
     if (still_running && mode_data->finished == 0) {
-        uint8_t *list = (uint8_t *)halo::scenario::globals().scenario->command_lists.pointer + *(int16_t *)mode_data * 0x60;
+        uint8_t *list = (uint8_t *)halo::scenario::globals().scenario->command_lists.pointer + mode_data->command_list_index * 0x60;
         int mark = 1;
 
         if ((list[0x20] & 0x10) && actor->airborne != 0) {
@@ -804,8 +804,8 @@ uint8_t halo::ai::search_mode::process()
         } else {
             real_point3d in_view;
 
-            halo::units::unit_add_marker_relative_offset(act->unit_index, 1, (float *)((uint8_t *)act + 0xb0), 0, 0, &in_view);
-            act->mode_data.search.reachable = (uint8_t)(halo::ai::actor_evaluate_engagement_reachability(*(int16_t *)((uint8_t *)act + 0x148), act->mode_data.search.target_cluster,
+            halo::units::unit_add_marker_relative_offset(act->unit_index, 1, &act->mode_data.alert.position.z, 0, 0, &in_view);
+            act->mode_data.search.reachable = (uint8_t)(halo::ai::actor_evaluate_engagement_reachability(act->location.cluster_index, act->mode_data.search.target_cluster,
                                                                          &in_view, &act->aim_origin, 0, 0, -1,
                                                                          (uint8_t)(act->active_unit_index !=
                                                                                    k_datum_index_none)) == 0);

@@ -343,7 +343,7 @@ uint8_t ActorView::try_grenade_evasion(uint8_t allow_pain_reaction, uint8_t use_
     int16_t grade;
     int32_t now;
 
-    if (!act->needs_new_path || !(*(float *)((uint8_t *)act + 0x1bc) <= ((Actor *)actor_tag)->hide_shield_fraction)) {
+    if (!act->needs_new_path || !(act->shield_vitality <= ((Actor *)actor_tag)->hide_shield_fraction)) {
         return 0;
     }
     grade = actor_mode_definitions[act->mode].combat_grade;

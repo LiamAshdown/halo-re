@@ -145,7 +145,7 @@ void ActorView::type_elite_update()
         if (act->mode_data.guard.ambush_active && !act->mode_data.guard.ambush_triggered && !act->mode_data.guard.ambush_retreat) {
             float limit = act->combat_status >= 4 ? ((Actor *)actor_tag)->attack_shield_fraction : ((Actor *)actor_tag)->pursue_shield_fraction;
 
-            if (limit > *(float *)((uint8_t *)act + 0x1bc)) {
+            if (limit > act->shield_vitality) {
                 act->mode_data.guard.ambush_active = 1;
                 act->mode_data.flee.panic = 30;
             } else {
@@ -1139,7 +1139,7 @@ void ActorView::type_jackal_update()
         if (act->mode_data.guard.ambush_active && !act->mode_data.guard.ambush_triggered && !act->mode_data.guard.ambush_retreat) {
             float limit = act->combat_status >= 4 ? ((Actor *)actor_tag)->attack_shield_fraction : ((Actor *)actor_tag)->pursue_shield_fraction;
 
-            if (limit > *(float *)((uint8_t *)act + 0x1bc)) {
+            if (limit > act->shield_vitality) {
                 act->mode_data.guard.ambush_active = 1;
                 act->mode_data.flee.panic = 30;
             } else {

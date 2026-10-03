@@ -786,7 +786,8 @@ uint8_t ReferenceView::parse(char *reference_string, Scenario *scenario, uint32_
                     int32_t platoon_index =
                         halo::ai::encounter_definition_find_platoon_index_by_name(encounter_definition, slash + 1);
                     if (platoon_index == -1) {
-                        goto done;
+                        *out_packed_reference = packed;
+                        return packed != halo::k_dword_none;
                     }
                     high = ((uint32_t)platoon_index & 0xff) | 0x4000;
                 }
@@ -795,7 +796,6 @@ uint8_t ReferenceView::parse(char *reference_string, Scenario *scenario, uint32_
         }
     }
 
-done:
     *out_packed_reference = packed;
     return packed != halo::k_dword_none;
 }
@@ -1175,7 +1175,7 @@ void ReferenceView::spawn_starting_location_object(datum_index unit_index, uint3
 
                 if (actor_definition_tag != (datum_index)k_datum_index_none) {
                     Actor *actor_tag_data = halo::ai::tag_data<Actor>(actor_definition_tag);
-                    uint32_t actor_tag_flags = *(uint32_t *)actor_tag_data;
+                    uint32_t actor_tag_flags = actor_tag_data->flags;
                     char reuse_existing = (char)((actor_tag_flags >> 0x1a) & 1); // Actor.flags bit 26, "swarm"
                     char start_active =
                         (char)((encounter_definition->flags >> 4) & 1); // ScenarioEncounterFlags bit 4, "initially_braindead"

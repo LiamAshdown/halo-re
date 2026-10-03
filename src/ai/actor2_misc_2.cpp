@@ -154,7 +154,7 @@ void ActorView::refresh_combat_context()
     self->flying = (uint8_t)((actor_tag->flags >> 21) & 1);
 
     if (parent != 0 && parent->base.type == 1) {
-        Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)parent);
+        Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(parent->base.definition_tag);
         uint32_t vehicle_flags;
 
         self->vehicle_gunner = 0;

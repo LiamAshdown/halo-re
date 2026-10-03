@@ -191,8 +191,8 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
             }
         }
     }
-    if (*(uint32_t *)variant & 0x30) {
-        if (*(uint32_t *)variant & 0x20) {
+    if (variant->flags & 0x30) {
+        if (variant->flags & 0x20) {
             ((unit_object *)unit)->unit.flags |= 0x20;
         }
         ((unit_object *)unit)->unit.flags |= 0x10;
@@ -574,8 +574,8 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
         uint8_t extra[0x30];
         uint8_t have_axis = 0;
 
-        axis.i = -*(float *)((uint8_t *)act + 0x2bc);
-        axis.j = -*(float *)((uint8_t *)act + 0x2c0);
+        axis.i = -act->danger_velocity.i;
+        axis.j = -act->danger_velocity.j;
         length = (float)sqrt(axis.j * axis.j + axis.i * axis.i);
         if (fabs(length) >= 9.999999747378752e-05) {
             float inverse = 1.0f / length;
@@ -819,12 +819,12 @@ datum_index halo::ai::prop_ops::find_or_allocate_prop(uint32_t object_index, cha
         result = halo::memory::datum_new(halo::ai::globals().prop_data);
     } else {
         prop *p = halo::ai::prop_at(result);
-        int16_t salt = *(int16_t *)p;
+        int16_t salt = p->identifier;
 
         halo::ai::actor_replace_object_reference(actor_index, halo::k_dword_none, result);
         halo::ai::actor_unlink_prop(actor_index, result);
         memset(p, 0, 0x138);
-        *(int16_t *)p = salt;
+        p->identifier = salt;
     }
     halo::ai::actor_init_prop_from_object(object_index, actor_index, result);
     return result;

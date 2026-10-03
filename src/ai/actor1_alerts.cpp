@@ -424,11 +424,13 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
 
         result = 0;
         if (actor->swarm != 0) {
-            goto done;
+            ((struct actor_combat_consideration *)record)->mode = mode;
+            return result;
         }
         unit = (uint8_t *)halo::ai::object_at(actor->unit_index);
         if ((unit[0x106] & 0x80) != 0 || actor->target_unit_index == k_datum_index_none) {
-            goto done;
+            ((struct actor_combat_consideration *)record)->mode = mode;
+            return result;
         }
         target = halo::ai::prop_at(actor->target_unit_index);
         if (actor_tag->melee_leap_range[1] == 0.0f || actor_tag->melee_leap_chance == 0.0f) {
@@ -448,9 +450,10 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
         }
         if (!halo::units::unit_get_weapon_marker_indices(actor->unit_index, leap, (uint32_t)&dx_to_key_frame,
                 (uint32_t)&dx_total, &frame_count, &key_frame)) {
-            goto done;
+            ((struct actor_combat_consideration *)record)->mode = mode;
+            return result;
         }
-        if ((*(uint32_t *)actor_tag & 0x8000000) != 0) {
+        if ((actor_tag->flags & 0x8000000) != 0) {
             ((struct actor_combat_consideration *)record)->position_index = frame_count;
             ((struct actor_combat_consideration *)record)->distance_delta = 0.0f;
             record[0x30] = 1;
@@ -473,13 +476,13 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
                 result = 1;
             }
         }
-        goto done;
+        ((struct actor_combat_consideration *)record)->mode = mode;
+        return result;
     }
-    if (mode == 0 && (*(uint32_t *)actor_tag & 0x20000) != 0 && actor->combat_status >= 5 && actor->berserking == 0) {
+    if (mode == 0 && (actor_tag->flags & 0x20000) != 0 && actor->combat_status >= 5 && actor->berserking == 0) {
         mode = 1;
     }
 
-done:
     ((struct actor_combat_consideration *)record)->mode = mode;
     return result;
 }
@@ -513,13 +516,13 @@ uint8_t halo::ai::alert_ops::escalate_apply(int16_t threshold)
     actor *act = halo::ai::actor_at(actor_index);
     uint8_t result = 0;
 
-    if (*(int16_t *)((uint8_t *)act + 0x310) >= threshold && !act->berserking) {
+    if (act->escalation_level >= threshold && !act->berserking) {
         halo::ai::actor_set_combat_alert_flag(actor_index, 1);
         if (act->combat_status >= 4) {
             result = (uint8_t)halo::ai::actor_evaluate_combat_state_transition(actor_index);
         }
     }
-    *(int16_t *)((uint8_t *)act + 0x310) = 0;
+    act->escalation_level = 0;
     return result;
 }
 
@@ -556,8 +559,8 @@ uint8_t halo::ai::alert_ops::escalate_check_leader_flag()
     if ((actor_tag->flags & 0x80000) == 0 || act->platoon_defending || act->combat_status < 5) {
         return 0;
     }
-    if (*(int16_t *)((uint8_t *)act + 0x310) <= 1) {
-        *(int16_t *)((uint8_t *)act + 0x310) = 1;
+    if (act->escalation_level <= 1) {
+        act->escalation_level = 1;
     }
     return 1;
 }
@@ -597,8 +600,8 @@ uint8_t halo::ai::alert_ops::escalate_check_shield_damage()
         !(act->body_vitality < ((Actor *)actor_tag)->berserk_damage_threshold)) {
         return 0;
     }
-    if (*(int16_t *)((uint8_t *)act + 0x310) <= 3) {
-        *(int16_t *)((uint8_t *)act + 0x310) = 3;
+    if (act->escalation_level <= 3) {
+        act->escalation_level = 3;
     }
     act->unknown_2e8[4] = 0;
     return 1;
@@ -642,8 +645,8 @@ uint8_t halo::ai::alert_ops::escalate_check_target_close()
           *(float *)(TAG_DATA(act->actor_definition_tag) + 0x3a0))) {
         return 0;
     }
-    if (*(int16_t *)((uint8_t *)act + 0x310) <= 2) {
-        *(int16_t *)((uint8_t *)act + 0x310) = 2;
+    if (act->escalation_level <= 2) {
+        act->escalation_level = 2;
     }
     return 1;
 }
@@ -693,8 +696,8 @@ uint8_t halo::ai::alert_ops::escalate_check_weapon_range()
     if (!((float)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f < ((Actor *)actor_tag)->berserk_grenade_chance)) {
         return 0;
     }
-    if (*(int16_t *)((uint8_t *)act + 0x310) <= 4) {
-        *(int16_t *)((uint8_t *)act + 0x310) = 4;
+    if (act->escalation_level <= 4) {
+        act->escalation_level = 4;
     }
     return 1;
 }

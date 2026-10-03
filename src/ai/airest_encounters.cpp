@@ -75,8 +75,8 @@ int32_t EncounterView::record_recent_zone(int16_t zone_id)
 {
     datum_index encounter_index = handle;
     encounter *enc = &((encounter *)halo::ai::globals().encounter_data->data)[encounter_index & halo::k_slot_mask];
-    int16_t *count = (int16_t *)((uint8_t *)enc + 0x20);
-    int16_t *entries = (int16_t *)((uint8_t *)enc + 0x22);
+    int16_t *count = &enc->activation_link_count;
+    int16_t *entries = enc->activation_link;
     int16_t i;
 
     for (i = 0; i < *count; i++) {
@@ -2903,8 +2903,8 @@ uint32_t EncounterView::squad_spawn_reinforcement(int16_t squad_index)
 
             halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
             {
-                float lo = *(float *)((uint8_t *)encounter_definition + 0x2c);
-                float hi = *(float *)((uint8_t *)encounter_definition + 0x30);
+                float lo = encounter_definition->respawn_delay[0];
+                float hi = encounter_definition->respawn_delay[1];
                 float r = (float)((uint32_t)halo::math::globals().random_seed_global >> 0x10) * k_random_scale_65536;
 
                 randomized = (r * (hi - lo) + lo) * ticks_per_second;
@@ -2913,8 +2913,8 @@ uint32_t EncounterView::squad_spawn_reinforcement(int16_t squad_index)
 
             halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
             {
-                float lo = *(float *)((uint8_t *)squad_definition + 0x8c);
-                float hi = *(float *)((uint8_t *)squad_definition + 0x90);
+                float lo = squad_definition->respawn_delay[0];
+                float hi = squad_definition->respawn_delay[1];
                 float r = (float)((uint32_t)halo::math::globals().random_seed_global >> 0x10) * k_random_scale_65536;
 
                 randomized = (r * (hi - lo) + lo) * ticks_per_second;

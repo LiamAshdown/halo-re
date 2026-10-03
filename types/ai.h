@@ -822,10 +822,10 @@ typedef struct actor {
     int16_t crouch_ticks;             // 0x35a tick counter (crouch timer / facing-change ticks)
     uint8_t crouch_cover_flags[4];    // 0x35c crouch_state neighbour flags
     int16_t incoming_fire_ticks;      // 0x360 countdown: crouch_state; actor_movement_update tests >= 1
-    uint8_t crouch_check_active;      // 0x362 crouch_state is deciding; cleared when the target is close
-    uint8_t crouch_state;             // 0x363 the crouch decision crouch_state returns
-    int16_t crouch_state_ticks;       // 0x364 counted down to a new crouch decision
-    int16_t crouch_state_delay;       // 0x366 counted down to the next decision attempt (30 after a decision)
+    uint8_t charge_trigger_active;    // 0x362 evaluate_custom_charge_trigger is running; cleared on every early exit
+    uint8_t charge_trigger_decision;  // 0x363 the decision evaluate_custom_charge_trigger returns
+    int16_t charge_trigger_ticks;     // 0x364 counted down to a new charge decision
+    int16_t charge_trigger_delay;     // 0x366 counted down to the next decision attempt (30 after a decision)
     int16_t evasion_delay_ticks;      // 0x368 evasion_delay_time * 30 set by grenade reactions, must be 0 to retry;
                                       //    crouch_state counts it down
     uint8_t unknown_36a[2];           // 0x36a

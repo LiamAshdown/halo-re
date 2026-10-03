@@ -69,7 +69,7 @@ uint8_t halo::ai::charge_mode::process()
     ActorVariant *definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
     actor_mode_charge_data *md = &act->mode_data.charge;
     prop *target = 0;
-    uint32_t actor_flags = *(uint32_t *)actor_tag;
+    uint32_t actor_flags = actor_tag->flags;
     int16_t kind;
     float threshold;
     int32_t now;
@@ -1325,7 +1325,7 @@ void halo::ai::guard_mode::update()
             if (distance_squared < radius * radius) {
                 halo::ai::actor_movement_action_stop(actor_index);
             } else {
-                halo::ai::actor_movement_set_destination_point((real_point3d *)((uint8_t *)act + 0xc4), actor_index, act->mode_data.guard.guard_point_surface, -1);
+                halo::ai::actor_movement_set_destination_point(&act->mode_data.guard.guard_point, actor_index, act->mode_data.guard.guard_point_surface, -1);
             }
             in_place = (uint8_t)(distance_squared < 9.0f);
             break;
@@ -1375,9 +1375,9 @@ void halo::ai::guard_mode::update()
         act->flee_source.code = 2;
         act->wants_to_fire = 1;
         act->forced_aim_valid = 1;
-        *(float *)((uint8_t *)act + 0x460) = halo::math::globals().global_up3d_pointer->i * 0.05f + *(float *)((uint8_t *)act + 0xc4);
-        *(float *)((uint8_t *)act + 0x464) = halo::math::globals().global_up3d_pointer->j * 0.05f + *(float *)((uint8_t *)act + 0xc8);
-        *(float *)((uint8_t *)act + 0x468) = halo::math::globals().global_up3d_pointer->k * 0.05f + *(float *)((uint8_t *)act + 0xcc);
+        act->forced_aim_point.x = halo::math::globals().global_up3d_pointer->i * 0.05f + act->mode_data.flee.target_position.y;
+        act->forced_aim_point.y = halo::math::globals().global_up3d_pointer->j * 0.05f + act->mode_data.flee.target_position.z;
+        act->forced_aim_point.z = halo::math::globals().global_up3d_pointer->k * 0.05f + act->mode_data.guard.guard_point.z;
     } else if (act->mode_data.guard.guard_target != k_datum_index_none) {
         act->flee_reason = 5;
         act->flee_source.code = 1;

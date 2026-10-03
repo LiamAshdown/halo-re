@@ -890,21 +890,22 @@ char Parser::parse_real(datum_index node_index) const
     c = *p;
     for (;;) {
         if (c == '\0') {
-            goto convert;
+            node->data.real_value = (float)atof(halo::hs::globals().compiled_source + node->source_offset);
+            return valid;
         }
         if (!isdigit((unsigned char)c)) {
             if ((has_dot != 0) || (*p != '.')) {
                 halo::hs::globals().compile_error = (char *)"this is not a valid real number.";
                 halo::hs::globals().compile_error_offset = node->source_offset;
                 valid = 0;
-                goto convert;
+                node->data.real_value = (float)atof(halo::hs::globals().compiled_source + node->source_offset);
+                return valid;
             }
             has_dot = 1;
         }
         c = p[1];
         p = p + 1;
     }
-convert:
     node->data.real_value = (float)atof(halo::hs::globals().compiled_source + node->source_offset);
     return valid;
 }
@@ -1244,7 +1245,8 @@ char Parser::parse_two_object_arguments(int16_t function_index, datum_index node
     if (ok != 0) {
         type = (halo::hs::syntax_node_at(arguments[1]))->type;
         if (((0x1f < type) && (type < 0x25)) || ((5 < type) && (type < 9))) {
-            goto second_pass;
+            ok = halo::hs::hs_parse(arguments[0], type);
+            return ok != 0;
         }
     }
     if (halo::hs::globals().compile_error != 0) {
@@ -1256,7 +1258,6 @@ char Parser::parse_two_object_arguments(int16_t function_index, datum_index node
     }
     type = _hs_type_real;
     arguments[0] = arguments[1];
-second_pass:
     ok = halo::hs::hs_parse(arguments[0], type);
     return ok != 0;
 }

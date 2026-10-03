@@ -55,7 +55,7 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
     }
 
     self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    flags = *(uint32_t *)actor_tag;
+    flags = actor_tag->flags;
 
     self->actor_variant_tag = actor_variant_tag;
     self->swarm = (uint8_t)(flags >> 0x1a) & 1;
@@ -230,7 +230,7 @@ datum_index ActorOps::new_and_attach_to_unit(char reuse_existing, datum_index un
         if ((encounter_or_none & 0xffff0000) == 0) {
             encounter *enc = halo::ai::encounter_at(encounter_or_none);
 
-            encounter_or_none = ((uint32_t)(int32_t)*(int16_t *)enc << 0x10) | (encounter_or_none & halo::k_slot_mask);
+            encounter_or_none = ((uint32_t)(int32_t)enc->identifier << 0x10) | (encounter_or_none & halo::k_slot_mask);
         }
         halo::ai::encounter_add_actor(squad_index, actor_index, encounter_or_none, 0);
     }
@@ -251,7 +251,7 @@ datum_index ActorOps::new_and_attach_to_unit(char reuse_existing, datum_index un
     self->command_list_run_immediately = 0;
     self->command_list_delay = 2;
     self->pending_command_list = unknown_90;
-    if (self->swarm != ((uint8_t *)actor_type_procs[*(int16_t *)((uint8_t *)self + 4)])[0xd]) {
+    if (self->swarm != ((uint8_t *)actor_type_procs[self->type])[0xd]) {
         halo::ai::actor_delete(actor_index, 0);
         return k_datum_index_none;
     }
@@ -543,8 +543,8 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
 
     case 9:
         if (mode == 6) {
-            if (*(int16_t *)((uint8_t *)act + 0xc0) != 3) {
-                ((uint8_t *)act)[0xaa] = 1;
+            if (act->mode_data.guard.stage != 3) {
+                act->mode_data.flee.engage = 1;
             }
             break;
         }

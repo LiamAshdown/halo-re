@@ -287,7 +287,7 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
         if (candidate->distance_from_actor < 6.0f) {
             halo::units::unit_add_marker_relative_offset(self->unit_index, 1, (float *)candidate->position, 0, 0, &marker_point);
             candidate->request_result = (int16_t)halo::ai::actor_evaluate_engagement_reachability(
-                *(int16_t *)((uint8_t *)self + 0x148), *(int16_t *)((uint8_t *)candidate->position + 0xe),
+                self->location.cluster_index, *(int16_t *)((uint8_t *)candidate->position + 0xe),
                 &marker_point, &self->aim_origin, 0, 0, halo::k_dword_none,
                 self->active_unit_index != (datum_index)halo::k_dword_none);
             return;

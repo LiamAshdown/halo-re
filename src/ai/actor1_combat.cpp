@@ -571,8 +571,8 @@ void halo::ai::combat_ops::clear_target_state()
     datum_index actor_index = datum;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
 
-    *(int16_t *)((uint8_t *)self + 0x148) = -1;
-    *(uint32_t *)((uint8_t *)self + 0x144) = halo::k_dword_none;
+    self->location.cluster_index = -1;
+    self->location.leaf_index = halo::k_dword_none;
     self->pathfinding_surface_index = halo::k_dword_none;
     self->search_surface_index = halo::k_dword_none;
 
@@ -813,58 +813,72 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     int16_t variant_mode;
 
     if (!halo::units::unit_is_in_busy_animation_state(unit_index) && self->movement_action_complete == 0) {
-        goto return_true;
+        self->charge_trigger_active = 0;
+        return 1;
     }
     if (self->awareness_level < 3) {
-        goto return_true;
+        self->charge_trigger_active = 0;
+        return 1;
     }
     if (self->combat_status < 5) {
-        goto return_false;
+        self->charge_trigger_active = 0;
+        return 0;
     }
     unit = (const uint8_t *)halo::ai::object_at(unit_index);
     if (self->target_unit_index != halo::k_dword_none) {
         target = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data + (self->target_unit_index & halo::k_slot_mask) * k_prop_size);
     }
     if (unit[0x2a3] == 0x17 && self->berserking == 0) {
-        goto return_true;
+        self->charge_trigger_active = 0;
+        return 1;
     }
     if (target != 0 && target->distance > *(const float *)(def + 0x74)) {
-        goto return_false;
+        self->charge_trigger_active = 0;
+        return 0;
     }
     if (self->berserking != 0 && target != 0 &&
         target->distance > *(const float *)(def + 0x16c)) {
-        goto return_false;
+        self->charge_trigger_active = 0;
+        return 0;
     }
     if ((int8_t)unit[0x106] < 0) {
-        goto return_true;
+        self->charge_trigger_active = 0;
+        return 1;
     }
     if (self->berserking != 0) {
-        goto return_false;
+        self->charge_trigger_active = 0;
+        return 0;
     }
     if (self->mode == 10 &&
         (self->mode_data.charge.stage == 2 || self->mode_data.charge.stage == 3)) {
-        goto return_false;
+        self->charge_trigger_active = 0;
+        return 0;
     }
     if (!halo::ai::actor_has_unshielded_threat_weapon(actor_index)) {
-        goto return_false;
+        self->charge_trigger_active = 0;
+        return 0;
     }
     if (self->in_water != 0) {
-        goto return_false;
+        self->charge_trigger_active = 0;
+        return 0;
     }
     variant_mode = ((struct ActorVariant *)variant)->movement_type;
     if (variant_mode == 0) {
-        goto return_false;
+        self->charge_trigger_active = 0;
+        return 0;
     }
     if (variant_mode == 1) {
-        goto return_true;
+        self->charge_trigger_active = 0;
+        return 1;
     }
     if (target != 0 && !(target->distance >= *(const float *)(def + 0xa0))) {
-        goto return_true;
+        self->charge_trigger_active = 0;
+        return 1;
     }
 
-    if (self->crouch_check_active != 0) {
-        if (*(int16_t *)((uint8_t *)self + 0x366) > 0) {
-            *(int16_t *)((uint8_t *)self + 0x366) -= 1;
+    if (self->charge_trigger_active != 0) {
+        if (self->charge_trigger_delay > 0) {
+            self->charge_trigger_delay -= 1;
         } else if ((variant[0] & 8) != 0 && (int8_t)self->tally.group_c_total > 0) {
 
             prop *axis_prop = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data +
@@ -894,7 +908,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                     continue;
                 }
                 other = (actor *)((const uint8_t *)halo::ai::globals().actor_data->data + (owner & halo::k_slot_mask) * k_actor_size);
-                if (other->crouch_check_active == 0) {
+                if (other->charge_trigger_active == 0) {
                     continue;
                 }
                 dot = (other->body_position.z - self->body_position.z) * axis_prop->direction.z +
@@ -909,7 +923,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                 }
             }
 
-            if (self->crouch_state != 0) {
+            if (self->charge_trigger_decision != 0) {
                 if ((int16_t)behind == 0 && (int16_t)ahead > (int16_t)level) {
                     decision = 0;
                     goto apply_decision;
@@ -918,12 +932,12 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                 goto flip_decision;
             }
         }
-        *(int16_t *)((uint8_t *)self + 0x364) -= 1;
-        if (*(int16_t *)((uint8_t *)self + 0x364) != 0) {
-            return self->crouch_state;
+        self->charge_trigger_ticks -= 1;
+        if (self->charge_trigger_ticks != 0) {
+            return self->charge_trigger_decision;
         }
     flip_decision:
-        decision = (self->crouch_state == 0);
+        decision = (self->charge_trigger_decision == 0);
     } else {
         float chance = ((ActorVariant *)variant)->initial_crouch_chance;
         float roll;
@@ -962,7 +976,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         }
 
         halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
-        self->crouch_check_active = 1;
+        self->charge_trigger_active = 1;
         roll = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
         decision = (roll >= chance) ? 0 : 1;
     }
@@ -971,7 +985,7 @@ apply_decision:
     {
         float ticks;
 
-        self->crouch_state = decision;
+        self->charge_trigger_decision = decision;
         if (decision != 0) {
             ticks = halo::math::random_real_range(*(const float *)(variant + 0x54), *(const float *)(variant + 0x58));
         } else {
@@ -981,18 +995,11 @@ apply_decision:
         if (!(ticks > 31.0f)) {
             ticks = 31.0f;
         }
-        *(int16_t *)((uint8_t *)self + 0x364) = (int16_t)(int32_t)ticks;
-        *(int16_t *)((uint8_t *)self + 0x366) = 0x1e;
+        self->charge_trigger_ticks = (int16_t)(int32_t)ticks;
+        self->charge_trigger_delay = 0x1e;
     }
-    return self->crouch_state;
+    return self->charge_trigger_decision;
 
-return_true:
-    self->crouch_check_active = 0;
-    return 1;
-
-return_false:
-    self->crouch_check_active = 0;
-    return 0;
 }
 
 namespace halo::ai {
