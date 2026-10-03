@@ -4,6 +4,7 @@
 #include "halo/items/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/units/flags.hpp"
 
 namespace halo::ai {
 
@@ -121,7 +122,7 @@ void ActorView::update_firing_state()
         if (grenade != -1 && *(int8_t *)(OBJECT_DATA(D(a, 0x18)) + 0x31e + grenade) == 0) {
             unit_set_grenade_type_and_count_delta(D(a, 0x18), grenade, 1);
         }
-        ((actor *)a)->control_flags |= 0x2000;
+        ((actor *)a)->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::grenade);
         ai_communication_broadcast(9, D(a, 0x18), k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
         goto idle;
     }
@@ -427,9 +428,9 @@ dispatch:
     }
     actor_set_override_target(actor_index, enable, *(datum_index *)&value);
     if (secondary_flag) {
-        ((actor *)a)->control_flags |= 0x1000;
+        ((actor *)a)->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::secondary_trigger);
     } else {
-        ((actor *)a)->control_flags &= ~0x1000u;
+        ((actor *)a)->control_flags &= ~halo::units::to_bits(halo::units::unit_control_flag::secondary_trigger);
     }
 }
 

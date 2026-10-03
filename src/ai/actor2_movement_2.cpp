@@ -4,6 +4,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/tags/flags.hpp"
+#include "halo/units/flags.hpp"
 
 namespace halo::ai {
 
@@ -733,9 +734,9 @@ void ActorView::movement_update()
     }
     a->crouching = movement_mode;
     if (movement_mode != 0) {
-        a->control_flags |= 1u;
+        a->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::crouch);
     } else {
-        a->control_flags &= ~1u;
+        a->control_flags &= ~halo::units::to_bits(halo::units::unit_control_flag::crouch);
     }
 
     if (a->secondary_action == -1 &&
@@ -765,7 +766,7 @@ void ActorView::movement_update()
     }
 
     if (vehicle_stuck) {
-        a->control_flags |= 2u;
+        a->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::jump);
     } else if (a->airborne != 0 || a->active_unit_index != (datum_index)k_datum_index_none) {
         a->jump_velocity_request[0] = 0;
     } else if (actor_action_has_queued_secondary(actor_index) == 0 && a->jump_requested != 0) {

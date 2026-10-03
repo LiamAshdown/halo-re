@@ -6,6 +6,7 @@
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/tags/flags.hpp"
+#include "halo/units/flags.hpp"
 
 namespace halo::ai {
 
@@ -1535,9 +1536,9 @@ void ActorView::update_look_target()
     ULT_V3(a + 0x708) = ULT_V3(cache_b);
     ULT_V3(a + 0x714) = ULT_V3(cache_c);
     if (a[0x591] != 0) {
-        ((actor *)a)->control_flags |= 0x20;
+        ((actor *)a)->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::exact_facing);
     } else {
-        ((actor *)a)->control_flags &= ~0x20u;
+        ((actor *)a)->control_flags &= ~halo::units::to_bits(halo::units::unit_control_flag::exact_facing);
     }
 
     aim_speed_zero = 1;
