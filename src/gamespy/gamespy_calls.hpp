@@ -89,7 +89,6 @@ void qr2_shutdown(void *object);
 void qr2_think(void *object);
 int32_t ghttpGetEx(void *path, int32_t a2, int32_t a3, int32_t a4, int32_t a5, int32_t a6, int32_t a7, void *progress_callback, void *complete_callback, int32_t a8);
 int32_t ghttpSaveEx(void *url, void *filename, void *headers, void *post, int32_t throttle, int32_t blocking, void *progress_callback, void *complete_callback, void *param);
-int32_t ptCheckForPatch(int32_t request_type, char *version, uint32_t dist_id, void *callback, int32_t a5, int32_t a6);
 int32_t ServerBrowserUpdate(void *engine, int32_t flag, int32_t unused_a, void *buffer, int32_t buffer_length, int32_t unused_b);
 void *ServerBrowserNew(const char *queryForGamename, const char *queryFromGamename, const char *queryFromKey, int32_t queryFromVersion, int32_t maxConcurrentUpdates, int32_t queryVersion, void *callback, void *instance);
 }
