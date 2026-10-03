@@ -7,11 +7,11 @@
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
 extern game_engine_definition *current_game_engine;
-extern int16_t network_game_mode;
 extern uint8_t *global_structure_collision_bsp;
 extern real_vector3d *global_origin3d_pointer;
 extern real_vector3d *global_down3d_pointer;
@@ -203,7 +203,7 @@ uint8_t item_ref::update()
             object_marker marker;
             real_vector3d side;
 
-            if (network_game_mode == 0 && (((item_object *)obj)->base.flags & 0x20) &&
+            if (halo::networking::globals().game_mode == 0 && (((item_object *)obj)->base.flags & 0x20) &&
                 (int16_t)halo::objects::object_get_node_local_transform(item_index, s_ground_point_marker, &marker, 1)) {
                 real_matrix4x3 frame = marker.node_transform;
 

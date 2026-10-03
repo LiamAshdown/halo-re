@@ -6,13 +6,13 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern real_vector3d *global_down3d_pointer;
 extern real_point3d *global_origin3d_pointer;
 extern char *projectile_effect_coordinate_system_names[5];
 extern ProjectileMaterialResponse projectile_default_material_response;
-extern int16_t network_game_mode;
 extern datum_index effect_new_on_object_with_node_table(datum_index creator_object_index, datum_index definition_index, datum_index object_index, uint16_t node_index, uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale, real b_scale, const void *color, const void *tint_source);
 extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind, char **labels, void *position_block, void *direction_block, real fade_in, real fade_out, int32_t color, int32_t tint_source, int32_t force_create);
 extern void breakable_surface_apply_damage(damage_data *request, uint32_t packed_leaf_and_flags, int32_t surface_index);
@@ -378,7 +378,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
 
     if (hit->type == _collision_result_type_object) {
         object *target = halo::objects::object_try_and_get(hit->object_index, _object_mask_all);
-        if (network_game_mode != 0 && target != 0 && target->type == _object_type_biped &&
+        if (halo::networking::globals().game_mode != 0 && target != 0 && target->type == _object_type_biped &&
             (target->vitality_flags & _object_health_frozen_bit) != 0) {
             return;
         }

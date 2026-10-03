@@ -20,13 +20,10 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
-extern network_server_globals *network_server;
 extern uint8_t *network_client;
-extern char network_player_entry_validate(void *entry);
-extern int32_t network_game_record_message_send(void *client, const uint32_t *source);
-extern char network_game_settings_ack_send(uint8_t *client, int16_t template_row);
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
 extern widget_history_node *ui_widget_history[3];
@@ -103,7 +100,7 @@ static int32_t list_item_id(int16_t index)
  */
 uint8_t UiEventHandlers::event_49dbc0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *game = network_server != 0 ? (uint8_t *)network_server + 8
+    uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
                   : network_client != 0 ? network_client + 0xb14 : 0;
     int16_t key;
     int32_t i;
@@ -118,13 +115,13 @@ uint8_t UiEventHandlers::event_49dbc0(widget_instance *widget, int16_t *event, u
     for (i = 0; i < 0x10; i++) {
         uint8_t *entry = game + 0x1a2 + i * 0x20;
 
-        if (network_player_entry_validate(entry) != 0 && (int16_t)(int8_t)entry[0x1c] == key &&
+        if (halo::networking::network_player_entry_validate((network_player_entry *)entry) != 0 && (int16_t)(int8_t)entry[0x1c] == key &&
             (int16_t)(int8_t)entry[0x1d] == event[1]) {
             uint32_t copy[8];
 
             memcpy(copy, entry, sizeof(copy));
             ((uint8_t *)copy)[0x1e] = (uint8_t)(((uint8_t *)copy)[0x1e] == 0);
-            network_game_record_message_send(network_client, copy);
+            halo::networking::network_game_record_message_send((network_client_globals *)network_client, copy);
             return 1;
         }
     }
@@ -152,7 +149,7 @@ uint8_t UiEventHandlers::event_49dca0(widget_instance *widget, int16_t *event, u
     if (*state != 2) {
         return 1;
     }
-    game = network_server != 0 ? (uint8_t *)network_server + 8 : network_client != 0 ? network_client + 0xb14 : 0;
+    game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8 : network_client != 0 ? network_client + 0xb14 : 0;
     if (network_client != 0 && *(int16_t *)network_client != -1) {
         int16_t key = *(int16_t *)network_client;
         int16_t i;
@@ -160,13 +157,13 @@ uint8_t UiEventHandlers::event_49dca0(widget_instance *widget, int16_t *event, u
         for (i = 0; i < 0x10; i++) {
             uint8_t *entry = game + i * 0x20 + 0x1a2;
 
-            if (network_player_entry_validate(entry) != 0 && (int16_t)(int8_t)entry[0x1c] == key &&
+            if (halo::networking::network_player_entry_validate((network_player_entry *)entry) != 0 && (int16_t)(int8_t)entry[0x1c] == key &&
                 (int16_t)(int8_t)entry[0x1d] == event[1]) {
                 return 1;
             }
         }
     }
-    network_game_settings_ack_send(client, (int16_t)(uint16_t)event[1]);
+    halo::networking::network_game_settings_ack_send(client, (int16_t)(uint16_t)event[1]);
     return 1;
 }
 

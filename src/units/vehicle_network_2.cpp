@@ -2,12 +2,11 @@
 #include "win32.h"
 #include "halo/cseries/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern network_id_table *object_network_id_table;
-extern uint8_t network_client_vehicle_ack_enabled;
-extern int32_t message_delta_encode_message(void *buffer, int32_t bit_budget, int32_t flag, int32_t message_type, void *changed, void *items, void *types, int32_t count, char force_changed);
 extern int64_t __allmul(int32_t a_low, int32_t a_high, int32_t b_low, int32_t b_high);
 extern int32_t __alldiv(int64_t a, int32_t b_low, int32_t b_high);
 }
@@ -61,7 +60,7 @@ int32_t VehicleView::encode_network_update(void *buffer, int32_t bit_budget, int
     int32_t result;
 
     if (UnitView(vehicle_index).any_flagged_seat_occupied() && full_update != 0 &&
-        network_client_vehicle_ack_enabled) {
+        halo::networking::globals().client_vehicle_ack_enabled) {
         return 0;
     }
 
@@ -101,13 +100,13 @@ int32_t VehicleView::encode_network_update(void *buffer, int32_t bit_budget, int
         slots[0] = &vehicle->network_delta_sequence;
         slots[1] = &baseline;
         slots[2] = &header;
-        result = message_delta_encode_message(buffer, bit_budget, 1, message_type,
-            &slots[2], &slots[1], &slots[0], 1, 0);
+        result = halo::networking::message_delta_encode_message((int32_t)buffer, bit_budget, 1, message_type,
+            (int32_t)(&slots[2]), &slots[1], (int32_t)(&slots[0]), 1, 0);
     } else {
         slots[1] = &header;
         slots[2] = &vehicle->network_delta_sequence;
-        result = message_delta_encode_message(buffer, bit_budget, 0, message_type,
-            &slots[1], &slots[2], 0, 1, 0);
+        result = halo::networking::message_delta_encode_message((int32_t)buffer, bit_budget, 0, message_type,
+            (int32_t)(&slots[1]), &slots[2], 0, 1, 0);
     }
 
     vehicle->collision_update_pending = 0;

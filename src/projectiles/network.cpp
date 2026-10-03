@@ -4,20 +4,15 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern real projectile_network_update_position_tolerance;
-extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination, int32_t changed_offset, uint8_t force);
-extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern network_id_table *object_network_id_table;
-extern int message_delta_encode_message(int flag, int message_type, int changed_offset, void **items, int type_offset, int count, char force_changed);
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern network_id_table *machine_table;
-extern int32_t network_index_cache_find_or_allocate_slot(uint32_t key);
 extern void *network_object_index_cache;
-extern void network_index_cache_insert_if_free(void *pooled_node_globals, datum_index object_index, int32_t object_hash);
-extern void network_index_cache_remove(void *globals, uint32_t object_index);
+extern uint8_t network_message_scratch[0x7ff8];
 }
 
 namespace halo::projectiles {
@@ -42,7 +37,7 @@ void ProjectileNetwork::apply_update(uint32_t *update_record)
 
     obj = halo::objects::object_try_and_get(projectile_index, _object_mask_projectile);
     if (obj == 0) {
-        message_delta_decode_compound_field_staged(update_record);
+        halo::networking::message_delta_decode_compound_field_staged((void **)update_record);
         return;
     }
     proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
@@ -52,7 +47,7 @@ void ProjectileNetwork::apply_update(uint32_t *update_record)
         (header->baseline_index != proj->network_baseline_index ||
          (header->sequence <= proj->network_sequence &&
           (int)((uint32_t)(header->sequence - proj->network_sequence) + 0xff) > k_projectile_network_stale_window))) {
-        message_delta_decode_compound_field_staged(update_record);
+        halo::networking::message_delta_decode_compound_field_staged((void **)update_record);
         return;
     }
 
@@ -61,8 +56,8 @@ void ProjectileNetwork::apply_update(uint32_t *update_record)
 
     {
         uint8_t accept = (*(int32_t *)update_record[0] == 1)
-                             ? message_delta_decode_compound_field_forced(update_record, &decoded, (int32_t)&proj->network_state, 0)
-                             : message_delta_decode_compound_field(update_record, &decoded);
+                             ? halo::networking::message_delta_decode_compound_field_forced((void **)update_record, &decoded, (int32_t)&proj->network_state, 0)
+                             : halo::networking::message_delta_decode_compound_field((void **)update_record, &decoded);
         if (accept != 0) {
             proj->network_sequence = header->sequence;
             obj->flags |= _object_took_network_update_bit;
@@ -162,7 +157,7 @@ int32_t ProjectileNetwork::build_update(uint32_t unused_arg2, uint32_t unused_ar
             type_offset = &net_ptr;
         }
 
-        result = message_delta_encode_message(is_full_snapshot, message_type,
+        result = halo::networking::message_delta_encode_message((int32_t)unused_arg2, (int32_t)unused_arg3, is_full_snapshot, message_type,
             (int)&header_ptr, items_array, (int)type_offset, 1, 0);
     }
 
@@ -261,7 +256,7 @@ int32_t ProjectileNetwork::send_creation()
         }
     }
     if (projectile_hash == -1) {
-        projectile_hash = network_index_cache_find_or_allocate_slot(projectile_index); 
+        projectile_hash = halo::networking::network_index_cache_find_or_allocate_slot((uint8_t *)&network_object_index_cache, projectile_index); 
     }
 
     message.definition_tag = obj->definition_tag;
@@ -281,7 +276,7 @@ int32_t ProjectileNetwork::send_creation()
     }
 
     message_ptr = &message;
-    return message_delta_encode_message(0, k_message_projectile_creation, 0, &message_ptr, 0, 1, 0);  
+    return halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, k_message_projectile_creation, 0, &message_ptr, 0, 1, 0);  
 }
 
 /**
@@ -301,10 +296,10 @@ void ProjectileNetwork::attach_apply(void *incoming_record)
     object *self, *parent;
 
     if (*(int32_t *)*(int32_t **)incoming_record != 0) {
-        message_delta_decode_compound_field_staged(incoming_record);
+        halo::networking::message_delta_decode_compound_field_staged((void **)incoming_record);
         return;
     }
-    if (message_delta_decode_compound_field(incoming_record, &decoded) == 0) {
+    if (halo::networking::message_delta_decode_compound_field((void **)incoming_record, &decoded) == 0) {
         return;
     }
 
@@ -397,10 +392,10 @@ void ProjectileNetwork::create_from_network(void *incoming_record)
 
     
     if (*(int32_t *)*(int32_t **)incoming_record != 0) {
-        message_delta_decode_compound_field_staged(incoming_record);
+        halo::networking::message_delta_decode_compound_field_staged((void **)incoming_record);
         return;
     }
-    if (message_delta_decode_compound_field(incoming_record, &decoded) != 1) { 
+    if (halo::networking::message_delta_decode_compound_field((void **)incoming_record, &decoded) != 1) { 
         return;
     }
 
@@ -439,7 +434,7 @@ void ProjectileNetwork::create_from_network(void *incoming_record)
         return;
     }
 
-    network_index_cache_insert_if_free(&network_object_index_cache, new_object_index, decoded.object_hash);
+    halo::networking::network_index_cache_insert_if_free((uint8_t *)&network_object_index_cache, decoded.object_hash, new_object_index);
 
     obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(new_object_index)].data;
     proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
@@ -476,10 +471,10 @@ void ProjectileNetwork::detonation_message_apply(void *incoming_record)
 
     
     if (*(int32_t *)*(int32_t **)incoming_record != 0) {
-        message_delta_decode_compound_field_staged(incoming_record);
+        halo::networking::message_delta_decode_compound_field_staged((void **)incoming_record);
         return;
     }
-    if (message_delta_decode_compound_field(incoming_record, &decoded) == 0 || decoded.object_hash == 0) {
+    if (halo::networking::message_delta_decode_compound_field((void **)incoming_record, &decoded) == 0 || decoded.object_hash == 0) {
         return;
     }
 
@@ -489,7 +484,7 @@ void ProjectileNetwork::detonation_message_apply(void *incoming_record)
     }
 
     if ((((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(projectile_index)].flags & _object_header_delete_pending_bit) == 0) {
-        network_index_cache_remove(&network_object_index_cache, projectile_index); 
+        halo::networking::network_index_cache_remove((uint8_t *)&network_object_index_cache, projectile_index); 
     }
 
     obj = halo::objects::object_try_and_get(projectile_index, _object_mask_projectile);

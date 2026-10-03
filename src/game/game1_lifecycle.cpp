@@ -20,6 +20,7 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -49,12 +50,10 @@ extern uint8_t game_state_persistent_storage_created;
 extern void hs_dispose_dynamic_globals(void);
 extern void widget_close_all(void);
 extern void objects_dispose(void);
-extern void network_shutdown(void);
 extern uint8_t ai_scan_for_recent_combat_activity(uint32_t param);
 extern void player_respawn(datum_index player_handle);
 extern uint8_t player_attach_unit_to_parent(datum_index player_handle, datum_index parent_object,
                              void *local_offset);
-extern int16_t network_game_mode;
 extern game_engine_state game_engine_state_value;
 extern uint8_t *network_server;
 extern float game_engine_end_game_timer;
@@ -177,7 +176,7 @@ void Lifecycle::dispose(void)
     CloseHandle(game_state_persistent_storage);
     game_state_persistent_storage_created = 0;
 
-    network_shutdown();
+    halo::networking::network_shutdown();
 }
 
 /**
@@ -303,7 +302,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
  */
 void Lifecycle::begin_end_game_sequence(void)
 {
-    if (network_game_mode == 2 && game_engine_state_value == _game_engine_state_not_started) {
+    if (halo::networking::globals().game_mode == 2 && game_engine_state_value == _game_engine_state_not_started) {
         *((uint8_t *)network_server + 0xa0f) = 1;
         game_engine_state_value = _game_engine_state_ending;
         game_engine_end_game_timer = 7.0f;

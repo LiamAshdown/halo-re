@@ -12,6 +12,7 @@
 #include "halo/networking/net2_master_server.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern void * negotiatorList;
@@ -20,9 +21,6 @@ extern network_mutex_record * server_list_mutex;
 extern network_thread_record * server_list_thread;
 extern uint32_t master_server_request_flags;
 extern int32_t master_server_last_result;
-extern int32_t mutex_create(network_mutex_record **out_handle);
-extern int32_t network_thread_create(uint8_t flags, void *start_address, void *parameter,
-                                       network_thread_record **out_handle);
 extern void * master_server_query_engine;
 extern int32_t server_browser_query_elapsed_ms;
 extern int32_t ServerBrowserState(void *engine);
@@ -31,8 +29,6 @@ extern server_list_globals server_list;
 extern uint8_t server_browser_require_valid_entry;
 extern uint32_t network_session_start_game_type;
 extern int32_t server_browser_selected_index;
-extern server_list_globals * server_list_mutex_try_lock(uint32_t timeout_ms);
-extern void server_list_reset(void);
 extern void ServerBrowserHalt(void *engine);
 extern int32_t ServerBrowserThink(void *engine);
 extern void ServerBrowserClear(void *engine);
@@ -44,20 +40,9 @@ extern const char * qr2_registered_key_list[255];
 extern uint8_t server_browser_join_requested;
 extern char network_session_start_host_name[];
 extern char network_session_start_map_name[];
-extern void network_channel_gap_4ba660(void *sb, uint32_t reason, void *server, void *instance);
 extern void * ServerBrowserNew(const char *queryForGamename, const char *queryFromGamename, const char *queryFromKey,
     int32_t queryFromVersion, int32_t maxConcurrentUpdates, int32_t queryVersion, void *callback, void *instance);
 extern void ServerBrowserFree(void *sb);
-int32_t gamespy_array_length(void *array);
-void * gamespy_array_nth(void *array, int32_t index);
-void gamespy_think_all(void);
-int32_t master_server_connection_start(void);
-void master_server_connection_wait_thread(void);
-void master_server_ensure_list_connection(void);
-void master_server_list_refresh_request(void);
-void master_server_process_pending_requests(void);
-void qr2_register_key(int32_t keyid, const char *key);
-uint32_t __stdcall sig__setup_master_server_connection_sig(void *parameter);
 }
 
 
@@ -80,8 +65,8 @@ void MasterServerConnection::think_all(void)
     if (negotiatorList == 0) {
         return;
     }
-    for (i = gamespy_array_length(negotiatorList) - 1; i >= 0; i--) {
-        NegotiateThink(gamespy_array_nth(negotiatorList, i));
+    for (i = halo::networking::gamespy_array_length(negotiatorList) - 1; i >= 0; i--) {
+        NegotiateThink(halo::networking::gamespy_array_nth(negotiatorList, i));
     }
 }
 
@@ -93,9 +78,9 @@ int32_t MasterServerConnection::connection_start(void)
 
     master_server_request_flags = 0;
     master_server_last_result = 0;
-    mutex_ok = mutex_create(&server_list_mutex);
+    mutex_ok = halo::networking::mutex_create(&server_list_mutex);
     if (mutex_ok != 0) {
-        thread_ok = network_thread_create(0, (void *)sig__setup_master_server_connection_sig, 0,
+        thread_ok = halo::networking::network_thread_create(0, (void *)halo::networking::sig__setup_master_server_connection_sig, 0,
                                            (network_thread_record **)&server_list_thread);
         mutex_slot = server_list_mutex;
         if (thread_ok != 0) {
@@ -153,7 +138,7 @@ void MasterServerConnection::ensure_list_connection(void)
         if (state != 2 && state != 1) {
             connect_result = ServerBrowserCount(master_server_query_engine);
             if (connect_result < 1) {
-                master_server_list_refresh_request();
+                halo::networking::master_server_list_refresh_request();
                 return;
             }
             browser_state::refresh_in_flight = 1;
@@ -212,7 +197,7 @@ void MasterServerConnection::process_pending_requests(void)
                             i = i + 1;
                         } while (i < server_list.result_count);
                     }
-                    server_list_reset();
+                    halo::networking::server_list_reset((uint8_t *)&server_list);
                 }
                 if (server_list_thread != 0) {
                     ReleaseMutex(server_list_mutex->handle);
@@ -226,7 +211,7 @@ void MasterServerConnection::process_pending_requests(void)
                 (wait_result = WaitForSingleObject(server_list_mutex->handle, 100),
                  wait_result == 0) || wait_result == 0x80) {
                 ServerBrowserClear(master_server_query_engine);
-                server_list_reset();
+                halo::networking::server_list_reset((uint8_t *)&server_list);
                 if (server_list_thread != 0) {
                     ReleaseMutex(server_list_mutex->handle);
                 }
@@ -242,7 +227,7 @@ void MasterServerConnection::process_pending_requests(void)
         }
         index = server_browser_selected_index;
         if ((flags & 0x20) != 0 && server_browser_selected_index != -1) {
-            server_list_globals *locked = server_list_mutex_try_lock(100);
+            server_list_globals *locked = halo::networking::server_list_mutex_try_lock(100);
             if (locked == 0) {
                 master_server_request_flags = master_server_request_flags | 0x20;
             } else {
@@ -271,11 +256,11 @@ uint32_t __stdcall MasterServerConnection::setup_master_server_connection_sig(vo
     (void)parameter;
     server_browser_join_requested = 1;
     master_server_query_engine = ServerBrowserNew(network_session_start_host_name, network_session_start_host_name,
-        network_session_start_map_name, 0, 10, 1, (void *)network_channel_gap_4ba660, 0);
+        network_session_start_map_name, 0, 10, 1, (void *)halo::networking::network_channel_gap_4ba660, 0);
     if ((master_server_request_flags & 2) == 0) {
         do {
             if (master_server_last_result == 0) {
-                master_server_process_pending_requests();
+                halo::networking::master_server_process_pending_requests();
             }
             Sleep(10);
         } while ((master_server_request_flags & 2) == 0);
@@ -287,7 +272,7 @@ uint32_t __stdcall MasterServerConnection::setup_master_server_connection_sig(vo
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 int32_t gamespy_array_length(void *array)
 {
     return halo::networking::MasterServerConnection::array_length(array);

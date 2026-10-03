@@ -2,12 +2,12 @@
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
 extern game_time_globals *game_time;
 extern data_array *player_data;
-extern int16_t network_game_mode;
 extern game_variant game_engine_variant;
 extern void game_engine_player_profile_cache_sync_all(datum_index player_handle);
 extern void game_engine_broadcast_kill_feed_or_direct(datum_index recipient_or_all, int32_t broadcast_enabled, char broadcast, int32_t hash_key, datum_index subject);
@@ -29,19 +29,14 @@ extern char game_engine_announce_time_remaining(void);
 extern void game_engine_begin_end_game_sequence(void);
 extern void game_engine_end_game_sequence_stage2(void);
 extern void game_engine_send_end_game_notification(uint32_t reason);
-extern void network_server_advance_connect_state(network_server_globals *server);
-extern network_server_globals *network_server;
 extern int32_t sv_tk_cooldown_ticks;
 extern char k_empty_string[];
 extern uint8_t player_profile_cache_initialized;
 extern player_profile player_profile_cache[16];
 extern uint8_t network_message_scratch[0x7ff8];
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern uint8_t shared_hud_text_draw_state;
 extern uint8_t game_engine_teams_enabled_flag;
 extern uint8_t network_client[];
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
 extern void game_engine_gather_team_score_totals(uint32_t out_count[2], uint32_t out_score[2], int32_t filter_value);
 }
 
@@ -75,7 +70,7 @@ void EngineMatch::send_message(datum_index target, uint32_t message_type, datum_
             chimera__multiplayer_message(buffer);
         }
     }
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         game_engine_notify_kill_event(target, target, message_type, victim);
     }
 }
@@ -162,7 +157,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
         v->respawn_timer = 9000;
     }
 
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         game_engine_player_profile_cache_sync_all((datum_index)0xffffffff);
     }
 
@@ -235,10 +230,10 @@ void EngineMatch::tick(void)
     game_engine_cleanup_dropped_objects();
     game_engine_update_item_scale_and_pickup();
 
-    if (network_game_mode == 2 || network_game_mode == 0) {
+    if (halo::networking::globals().game_mode == 2 || halo::networking::globals().game_mode == 0) {
         game_engine_update_netgame_equipment(0);
     }
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         game_engine_player_profile_cache_sync_all((datum_index)0xffffffff);
     }
 
@@ -323,10 +318,10 @@ void EngineMatch::tick(void)
         }
 
         game_engine_end_game_timer = game_engine_end_game_timer - 0.033333335f;
-        if (game_engine_end_game_timer <= 0.0f && network_game_mode == 2) {
+        if (game_engine_end_game_timer <= 0.0f && halo::networking::globals().game_mode == 2) {
             game_engine_end_game_sequence_stage2();
             game_engine_send_end_game_notification(2);
-            network_server_advance_connect_state(network_server);
+            halo::networking::network_server_advance_connect_state(halo::networking::globals().server);
         }
     }
 }
@@ -373,9 +368,9 @@ void EngineMatch::send_end_game_notification(uint32_t reason)
     payload = reason;
     payload_ptr = &payload;
 
-    encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x16, 0, &payload_ptr, 0, 1, 0);
+    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x16, 0, &payload_ptr, 0, 1, 0);
     if (encoded_size > 0) {
-        network_session_broadcast_to_flagged(encoded_size, network_server, 1, network_message_scratch, 1, 0, 0, 3);
+        halo::networking::network_session_broadcast_to_flagged(encoded_size, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
     }
 }
 
@@ -391,9 +386,9 @@ void EngineMatch::send_round_reset_message(void)
     uint8_t *payload = &payload_value;
     int32_t encoded_bits;
 
-    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x17, 0, (void **)&payload, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x17, 0, (void **)&payload, 0, 1, 0);
     if (encoded_bits > 0) {
-        network_session_broadcast_to_flagged(encoded_bits, network_server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
+        halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
     }
 }
 
@@ -439,14 +434,14 @@ void EngineMatch::send_team_allegiance_message(char broadcast)
     fields_ptr[0] = &record;
     fields_ptr[1] = 0;
 
-    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x1a, 0, fields_ptr, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x1a, 0, fields_ptr, 0, 1, 0);
     if (encoded_bits > 0) {
         uint8_t *session = *(uint8_t **)(network_client + 0xadc);
 
         if ((*(uint8_t *)(session + 0xa8c) & 1) == 0 &&
             (encoded_bits + 1 <= (*(int32_t *)(session + 0x24) -
                 *(int32_t *)(session + 0x1c) * 8 - *(int32_t *)(session + 0x20)) + 1 ||
-             network_channel_stream_flush((network_channel_stream *)((uint8_t *)session + 0x10), (network_channel *)session, 1) != 0)) {
+             halo::networking::network_channel_stream_flush((network_channel_stream *)((uint8_t *)session + 0x10), (network_channel *)session, 1) != 0)) {
 
             *(int32_t *)(session + 0xa80) = *(int32_t *)(session + 0xa80) + encoded_bits + 1;
             { uint32_t item_flag = 1; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), &item_flag, 1); }

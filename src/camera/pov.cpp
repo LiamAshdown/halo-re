@@ -8,6 +8,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern player_control_globals *player_control_globals_ptr;
@@ -29,7 +30,6 @@ extern game_engine_definition *current_game_engine;
 extern double cos(double x);
 extern double sin(double x);
 extern camera_script_globals camera_script;
-extern int16_t network_game_mode;
 extern real_point3d *global_zero_vector3d_pointer;
 extern void animation_get_root_node_matrix(real_matrix4x3 *out, int16_t frame, ModelAnimationsAnimation *animation, GBXModel *model);
 extern int32_t __ftol(double x);
@@ -647,7 +647,7 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
 
     default_position = *(Point3D *)global_zero_vector3d_pointer;
 
-    time_scale = (network_game_mode == 1 || network_game_mode == 2) ? 1.0f : game_time->speed;
+    time_scale = (halo::networking::globals().game_mode == 1 || halo::networking::globals().game_mode == 2) ? 1.0f : game_time->speed;
 
     command->flags = 8; 
     if (game_time->paused) {

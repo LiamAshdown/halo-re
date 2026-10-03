@@ -6,16 +6,10 @@
 #include <wchar.h>
 #include "halo/networking/net2_message_delta_string.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern uint8_t message_delta_item_count_bits[];
-int32_t message_delta_blob_compute_size(message_delta_field_type *field_type);
-int32_t message_delta_string_compute_size(message_delta_field_type *field_type);
-int32_t message_delta_string_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_string_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_wide_string_compute_size(message_delta_field_type *field_type);
-int32_t message_delta_wide_string_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
-int32_t message_delta_wide_string_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream);
 }
 
 
@@ -115,7 +109,7 @@ int32_t StringFieldCodec::wide_string_encode(message_delta_field_type *field_typ
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 int32_t message_delta_blob_compute_size(message_delta_field_type *field_type)
 {
     return halo::networking::StringFieldCodec::blob_compute_size(field_type);

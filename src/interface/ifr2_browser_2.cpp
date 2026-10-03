@@ -2,6 +2,7 @@
 #include "halo/interface/engine_state.hpp"
 #include "halo/interface/ifr2_browser.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/networking/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -30,11 +31,7 @@ extern uint8_t server_browser_allow_full;
 extern uint8_t server_browser_filter_gametype;
 extern uint8_t server_browser_filter_teamplay;
 extern uint8_t server_browser_filter_ping_limit_index;
-extern void master_server_connection_wait_thread(void);
 extern void ServerBrowserFree(void *sb);
-extern void server_list_reset(uint8_t *entry);
-extern void ticker_text_buffer_reset(void *self);
-extern uint32_t autopatch_download_pool_shutdown(void);
 extern void saved_item_select(int32_t item);
 extern uint8_t saved_item_has_unsaved_changes(void);
 extern uint8_t player_profile_save(void);
@@ -59,14 +56,14 @@ uint8_t ClosedHandler::handle(widget_instance *widget, int16_t *event, uint8_t *
     (void)out_handled;
     if (server_browser_initialized) {
         if (server_list_thread != 0) {
-            master_server_connection_wait_thread();
+            halo::networking::master_server_connection_wait_thread();
         } else {
             ServerBrowserFree(master_server_query_engine);
             master_server_query_engine = 0;
         }
     }
     server_browser_initialized = 0;
-    server_list_reset(0);
+    halo::networking::server_list_reset(0);
     if (server_list != 0) {
         GlobalFree(server_list);
     }
@@ -74,9 +71,9 @@ uint8_t ClosedHandler::handle(widget_instance *widget, int16_t *event, uint8_t *
     server_list_block_used = 0;
     server_list_block_capacity = 0;
     server_browser_query_elapsed_ms = 0;
-    ticker_text_buffer_reset(server_browser_player_ticker);
-    ticker_text_buffer_reset(server_browser_variant_ticker);
-    autopatch_download_pool_shutdown();
+    halo::networking::ticker_text_buffer_reset((ticker_text_buffer *)server_browser_player_ticker);
+    halo::networking::ticker_text_buffer_reset((ticker_text_buffer *)server_browser_variant_ticker);
+    halo::networking::autopatch_download_pool_shutdown();
     profile = halo::saved_games::globals().player_profile_slots_handle;
     state::autopatch_active_slot = -1;
     if (profile == -1) {

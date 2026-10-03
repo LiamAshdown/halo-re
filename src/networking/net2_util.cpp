@@ -15,23 +15,12 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include "halo/networking/net2_util.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
-extern uint8_t server_browser_server_passes_filter(void *server_record);
 extern int32_t network_mutex_name_counter;
-extern network_mutex_record * network_mutex_slot_allocate(void);
 extern int32_t snprintf(char *buffer, uint32_t count, const char *format, ...);
 extern uint8_t default_time_unit_table[];
-int32_t dynamic_pointer_array_add_unique(void *value, server_list_globals *array);
-int32_t dynamic_pointer_array_find_index(server_list_globals *array, void *value);
-void dynamic_pointer_array_remove_at(int32_t index, server_list_globals *array);
-void format_local_time_and_date(char *date_dest, int32_t max_len, int32_t time_value, char *time_dest);
-void format_time_and_date_strings(char *date_dest, struct tm *time_value, int32_t max_len,
-    char *time_dest);
-int32_t mutex_create(network_mutex_record **out_handle);
-int32_t parse_time_duration_string(char *string, char default_unit, uint8_t *unit_table);
-uint8_t string_is_numeric(char *string);
-void string_trim_whitespace(char **string_ptr);
 }
 
 
@@ -41,7 +30,7 @@ int32_t NetworkUtil::add_unique(void *value, server_list_globals *array)
 {
     int32_t index;
 
-    if (!server_browser_server_passes_filter(value)) {
+    if (!halo::networking::server_browser_server_passes_filter(value)) {
         return 0;
     }
 
@@ -132,7 +121,7 @@ void NetworkUtil::local_time_and_date(char *date_dest, int32_t max_len, int32_t 
         zero_tm.tm_isdst = 0;
         tm_now = &zero_tm;
     }
-    format_time_and_date_strings(date_dest, tm_now, max_len, time_dest);
+    halo::networking::format_time_and_date_strings(date_dest, tm_now, max_len, time_dest);
 }
 
 void NetworkUtil::time_and_date_strings(char *date_dest, struct tm *time_value, int32_t max_len,
@@ -153,7 +142,7 @@ int32_t NetworkUtil::create(network_mutex_record **out_handle)
     network_mutex_record *slot;
     int32_t name_index;
 
-    slot = network_mutex_slot_allocate();
+    slot = halo::networking::network_mutex_slot_allocate();
     name_index = network_mutex_name_counter;
     if (slot == 0) {
         *out_handle = 0;
@@ -257,7 +246,7 @@ void NetworkUtil::trim_whitespace(char **string_ptr)
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 int32_t dynamic_pointer_array_add_unique(void *value, server_list_globals *array)
 {
     return halo::networking::NetworkUtil::add_unique(value, array);

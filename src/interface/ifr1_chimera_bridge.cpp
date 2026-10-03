@@ -9,6 +9,7 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern progress_screen_state join_ui_state;
@@ -19,14 +20,11 @@ extern int32_t interface_loading_screen_progress;
 extern uint16_t progress_screen_text[0x20];
 extern uint16_t progress_screen_subtext[0x20];
 extern uint8_t chimera_loading_screen_cleanup_gate;
-extern int16_t network_game_mode;
 extern uint8_t chat_state_00719a7a;
 extern uint8_t chat_state_00719a9a;
 extern uint8_t chat_state_00719a79;
-extern uint8_t network_host_handoff_requested;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t split_screen_quit_prompt_armed;
-extern uint8_t network_join_error_reason;
 extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t sequence,
                                                      int16_t frame);
 extern uint32_t color_argb_scale_alpha(uint32_t packed_color, float scale);
@@ -40,7 +38,6 @@ extern uint8_t main_menu_reload_pending;
 extern uint8_t ui_input_batch_mode;
 extern uint8_t loading_thread_result;
 extern loading_thread_record *loading_thread;
-extern int16_t network_join_error_code;
 extern datum_index cached_saved_game_something;
 extern void player_profile_check_storage_and_defaults(void);
 extern void widget_close_all(void);
@@ -112,7 +109,7 @@ void ChimeraBridge::do_show_loading_screen(void)
             chat_state_00719a7a = 0;
             chat_state_00719a9a = 0;
             chat_state_00719a79 = 0;
-            network_host_handoff_requested = 1;
+            halo::networking::globals().host_handoff_requested = 1;
             chat_close();
             return;
         case 3:
@@ -120,7 +117,7 @@ void ChimeraBridge::do_show_loading_screen(void)
             chat_state_00719a7a = 0;
             chat_state_00719a9a = 0;
             chat_state_00719a79 = 0;
-            network_join_error_reason = 0;
+            halo::networking::globals().join_error_reason = 0;
             split_screen_quit_prompt_armed = 1;
             return;
         case 4:
@@ -128,7 +125,7 @@ void ChimeraBridge::do_show_loading_screen(void)
                 NNCancel(interface_loading_screen_request_id);
                 interface_loading_screen_request_id = (datum_index)-1;
                 split_screen_quit_prompt_string = 0xffff;
-                network_join_error_reason = 0;
+                halo::networking::globals().join_error_reason = 0;
                 split_screen_quit_prompt_armed = 1;
             }
             break;
@@ -189,7 +186,7 @@ void ChimeraBridge::do_show_loading_screen(void)
         break;
     case 8:
         halo::text::string_format_wide_va(text_buffer,
-                              halo::text::text_string_list_get_string(strings, (network_game_mode == 2) ? 6 : 5),
+                              halo::text::text_string_list_get_string(strings, (halo::networking::globals().game_mode == 2) ? 6 : 5),
                               progress_screen_subtext);
         halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text_buffer);
         break;
@@ -243,9 +240,9 @@ void ChimeraBridge::load_main_menu(void)
     widget_close_all();
     chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\main_menu", (datum_index)-1, (widget_instance *)0, 0xffff,
                             (datum_index)-1, (datum_index)-1, -1);
-    if (network_join_error_code != -1) {
-        display_error(network_join_error_code, -1, 1, 0);
-        network_join_error_code = -1;
+    if (halo::networking::globals().join_error_code != -1) {
+        display_error(halo::networking::globals().join_error_code, -1, 1, 0);
+        halo::networking::globals().join_error_code = -1;
     }
     if (halo::main::globals().menu_music_pending == 0) {
         main_menu_play_title_music();

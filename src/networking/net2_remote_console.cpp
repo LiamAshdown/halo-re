@@ -13,27 +13,19 @@
 #include "halo/networking/net2_remote_console.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern int16_t network_join_error_code;
 extern int32_t interface_loading_screen_progress;
 extern int32_t join_ui_state;
-extern char * network_address_to_string(s_network_address *addr);
-extern int16_t network_channel_attempt_connect(int32_t a, int32_t b);
 extern void console_printf_verbose(const char *text);
-extern int32_t network_connection_endpoint_set(const uint32_t *source, network_client_globals *connection);
 extern void * rcon_out_channel_key;
 extern uint8_t network_message_scratch[0x7ff8];
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern uint8_t network_session_send_to_machine(int32_t machine_index, void *key, int32_t size,
-    int32_t reliable, int32_t d, int32_t e, int32_t message_kind);
-extern void string_trim_whitespace(char **string_ptr);
 extern void chimera__console_out(ColorARGB *color, char *format, ...);
 extern int16_t network_game_mode;
 extern void * global_white_argb;
 extern network_client_globals * network_client;
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
 extern char registry_halo_version_buffer[0x40];
 extern double sin(double x);
 extern double cos(double x);
@@ -53,22 +45,6 @@ extern void update_server_dispose(void);
 extern void update_client_stage_entry(void);
 extern void ui_network_wait_timeout_check(void);
 extern void ui_network_wait_timeout_start(void);
-extern void network_game_client_apply_position_update(void *record, uint8_t history_byte, uint32_t *values, network_client_globals *client);
-extern network_machine * network_machine_find_by_id(network_server_globals *server, int32_t machine_id);
-extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask,
-    const char *format, ...);
-extern char player_update_history_add(void *update_history, uint32_t *values);
-extern void * message_delta_encode_single_value(void *definition, void *dest, uint32_t *values, uint8_t *history_byte,
-    int32_t max_bits, int32_t flags, int32_t unknown);
-int8_t chimera__on_connect(const uint32_t *target_address, network_client_globals *client,
-                            const uint32_t *session_info);
-void chimera__rcon_out(char *text, int32_t unused_machine_id);
-void console_command_bool_get_set(uint32_t argument_count, uint8_t *value, char **arguments, const char *name);
-void rcon(int32_t argument_count, char **arguments);
-void rcon_send_request(char *command, char *password);
-uint32_t registry_get_dist_id(void);
-char * registry_get_halo_version(void);
-char update_server_send_update(uint32_t *tick_count, char frame_time_overflow);
 }
 
 typedef struct rcon_request_record {
@@ -89,7 +65,7 @@ int8_t RemoteConsole::on_connect(const uint32_t *target_address, network_client_
     int16_t registration_result;
     int32_t i;
 
-    network_address_to_string((s_network_address *)target_address);
+    halo::networking::network_address_to_string((s_network_address *)target_address);
     client->unknown_ec4 = 1;
     attempt = &client->connect_attempt;
     attempt->unknown_00 = 0;
@@ -106,8 +82,8 @@ int8_t RemoteConsole::on_connect(const uint32_t *target_address, network_client_
 
     endpoint_probe = client->channel;
     if (endpoint_probe->endpoint != 0) {
-        network_address_to_string(&(&client->connection)->address);
-        registration_result = network_channel_attempt_connect(0x96640, 1);
+        halo::networking::network_address_to_string(&(&client->connection)->address);
+        registration_result = halo::networking::network_channel_attempt_connect(&(&client->connection)->address, (network_receive_queue *)client->channel, 0x96640, 1);
         if (registration_result != 0) {
             goto retry_limit_check;
         }
@@ -142,7 +118,7 @@ int8_t RemoteConsole::on_connect(const uint32_t *target_address, network_client_
         interface_loading_screen_progress = 0;
         join_ui_state = 5;
         if (endpoint->address.size == k_network_address_size_ipv4) {
-            network_connection_endpoint_set(target_address, client);
+            halo::networking::network_connection_endpoint_set(target_address, client);
         }
         return 1;
     }
@@ -163,9 +139,9 @@ void RemoteConsole::rcon_out(char *text, int32_t unused_machine_id)
     buf[0x50] = 0;
     fields[0] = buf;
     fields[1] = 0;
-    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x37, 0, fields, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x37, 0, fields, 0, 1, 0);
     if (0 < encoded_bits) {
-        network_session_send_to_machine(1, rcon_out_channel_key, encoded_bits, 1, 0, 0, 9);
+        halo::networking::network_session_send_to_machine(unused_machine_id, network_server, 1, network_message_scratch, encoded_bits, 1, 0, 0, 9);
     }
 }
 
@@ -186,7 +162,7 @@ void RemoteConsole::bool_get_set(uint32_t argument_count, uint8_t *value, char *
             buffer[0xff] = 0;
             halo::cseries::string_to_lowercase(buffer);
             cursor = buffer;
-            string_trim_whitespace(&cursor);
+            halo::networking::string_trim_whitespace(&cursor);
             if (strncmp(buffer, "0", 2) == 0 || strncmp(buffer, "false", 6) == 0) {
                 *value = 0;
                 goto report;
@@ -245,14 +221,11 @@ void RemoteConsole::rcon(int32_t argument_count, char **arguments)
             strcat(command, "\"");
         }
     }
-    rcon_send_request(command, password);
+    halo::networking::rcon_send_request(command, password);
 }
 
 void RemoteConsole::run_rcon_send_request(char *command, char *password)
 {
-    int32_t (*const message_delta_encode_message)(int32_t buffer, int32_t bit_budget, int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed) = reinterpret_cast<int32_t (*)(int32_t buffer, int32_t bit_budget, int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed)>(&::message_delta_encode_message);
     rcon_request_record record;
     void *items[2];
     int32_t encoded_bits;
@@ -269,7 +242,7 @@ void RemoteConsole::run_rcon_send_request(char *command, char *password)
     strcpy(record.command, command);
     items[0] = &record;
     items[1] = 0;
-    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x36, 0, items, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x36, 0, items, 0, 1, 0);
     if (encoded_bits > 0) {
         network_channel *channel = network_client->channel;
         bit_stream *stream = (bit_stream *)((uint8_t *)channel + 0x10);
@@ -277,7 +250,7 @@ void RemoteConsole::run_rcon_send_request(char *command, char *password)
             channel->outgoing.stream.byte_cursor * 8 - channel->outgoing.stream.bit_cursor + 1;
 
         if ((channel->flags & 1) == 0 &&
-            (encoded_bits + 1 <= free_bits || network_channel_stream_flush((network_channel_stream *)((uint8_t *)channel + 0x10), (network_channel *)channel, 1) != 0)) {
+            (encoded_bits + 1 <= free_bits || halo::networking::network_channel_stream_flush((network_channel_stream *)((uint8_t *)channel + 0x10), (network_channel *)channel, 1) != 0)) {
             uint32_t item_flag = 1;
 
             channel->send_budget = channel->send_budget + encoded_bits + 1;
@@ -350,6 +323,8 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
     data_iterator iterator;
     void *it;
     int32_t max_bits;
+    datum_index unit_index = k_datum_index_none;
+    int32_t history_update_id = 0;
 
     result = 1;
     if (network_client == 0) {
@@ -367,18 +342,21 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
         memcpy(control, update_client_staged, sizeof(control));
         history_byte = 0;
         if ((int32_t)tick_count > 0 && frame_time_overflow == 0) {
-            checksum = player_data;
-            (void)checksum;
-            iterator.data = 0; iterator.next_index = 0; iterator.index = 0;
+            iterator.data = (data_array *)(uintptr_t)player_data;
+            iterator.next_index = 0;
+            iterator.index = k_datum_index_none;
             iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
             it = halo::memory::data_iterator_next(&iterator);
-            while (it != 0) {
-
-                break;
+            while (it != 0 && ((player *)it)->local_player_index == -1) {
+                it = halo::memory::data_iterator_next(&iterator);
+            }
+            if (it != 0) {
+                unit_index = ((player *)it)->unit;
             }
         }
         if (network_game_mode == 1) {
-            flush_ok = player_update_history_add(network_client->update_history, tick_count);
+            flush_ok = halo::networking::player_update_history_add(unit_index, (player_update_history *)network_client->update_history, (int32_t)(uintptr_t)tick_count,
+                *(player_action *)control, &history_update_id);
             if (flush_ok != 1) {
                 update_client_stage_entry();
                 ui_network_wait_timeout_start();
@@ -395,8 +373,8 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
         history_byte = update_server_history_index;
 
         if (network_game_mode == 1) {
-            encoded = message_delta_encode_single_value(message_delta_definition_table, record, control,
-                (uint8_t *)&history_byte, 0x7ff8, 0xd, 0);
+            encoded = (void *)(uintptr_t)halo::networking::message_delta_encode_single_value(0xd, &history_byte, record,
+                (uint8_t *)network_client + 0xf14, (int32_t)network_message_scratch, 0x7ff8, 1);
             if (update_server_pending_flush == 1) {
                 halo::cseries::time_query_performance_counter_ms();
             }
@@ -407,7 +385,7 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
                 max_bits = (channel->outgoing.stream.last_bit - channel->outgoing.stream.byte_cursor * 8) -
                            channel->outgoing.stream.bit_cursor + 1;
                 if (max_bits < (int32_t)(uintptr_t)encoded + 1) {
-                    flush_ok = network_channel_stream_flush(&channel->outgoing, channel, 1);
+                    flush_ok = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
                     if (flush_ok == 0) {
                         goto after_channel_check;
                     }
@@ -422,20 +400,20 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
                                                   (int32_t)(uintptr_t)encoded);
                     channel->outgoing.empty = 0;
                 }
-                flush_ok = network_channel_stream_flush(&channel->outgoing, channel, 1);
+                flush_ok = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
             } else {
                 flush_ok = 1;
             }
         after_channel_check:
             result = flush_ok;
             if (flush_ok != 0) {
-                player_update_history_log_write(1, 0, "[%d]: Sent update [%d], [%d] ticks.\n",
+                halo::networking::player_update_history_log_write(1, 0, "[%d]: Sent update [%d], [%d] ticks.\n",
                     game_time->game_time, (int32_t)history_byte, (int32_t)(uintptr_t)tick_count);
 
             }
         } else {
-            network_machine *machine = network_machine_find_by_id(network_server, player_id);
-            network_game_client_apply_position_update(machine, control[0], tick_count, network_client);
+            network_machine *machine = halo::networking::network_machine_find_by_id(network_server, player_id);
+            halo::networking::network_game_client_apply_position_update((uint8_t *)machine, control, tick_count, network_client);
         }
         memcpy(record, control, sizeof(record) < sizeof(control) ? sizeof(record) : sizeof(control));
         if (history_byte == 0) {
@@ -454,7 +432,7 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 int8_t chimera__on_connect(const uint32_t *target_address, network_client_globals *client,
                             const uint32_t *session_info)
 {

@@ -9,133 +9,68 @@
 #include "halo/cseries/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
-extern uint16_t *network_message_read_sized_buffer(uint16_t *buffer, int32_t capacity, bit_stream *stream);
-extern uint32_t network_game_process_incoming_message(int32_t length, network_machine *machine, uint16_t *record, network_server_globals *server);
-extern char network_client_drain_queued_updates(network_server_globals *server, network_machine *machine, bit_stream *stream);
 extern uint8_t network_incoming_message_scratch[0x510];
-extern int32_t network_channel_incoming_read_item(network_channel *channel, uint8_t *destination, int32_t *out_bit_offset, int32_t *out_remaining_bits, s_network_address *out_address, int32_t max_item_bits);
-extern char network_channel_dispatch_bitstream_unit(network_server_globals *server, uint32_t unit, bit_stream *stream, network_machine *machine);
 typedef struct network_item_stream {
     bit_stream stream;
     uint32_t bit_count;
 } network_item_stream;
 
-extern char network_player_entry_validate(network_player_entry *entry);
 extern uint8_t network_message_scratch[0x7ff8];
-extern void message_delta_parameters_protocol_send_update(void);
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1, void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6);
 extern network_server_globals *network_server;
 extern uint16_t network_challenge_packet_block[];
-extern uint16_t *network_message_block_build(uint16_t *dest, uint32_t *buffer, uint8_t flags, uint32_t length);
 extern network_client_globals *network_client;
 extern player_profile player_profile_cache[16];
 extern int32_t player_profile_cache_count;
-extern char network_player_join_finalize(void);
-extern char network_channel_key_open(void);
-extern uint32_t player_data_iterator_advance(uint8_t slot_index);
 extern void player_update_queue_create(player_update_queue *queue);
 extern data_array *update_client_queues;
 extern data_array *update_server_queues;
 extern void game_engine_player_new_life(uint32_t player_datum);
 extern int32_t game_engine_player_profile_cache_find(void);
-extern void network_game_server_handoff_object_ownership(int32_t *object_count_passthrough, network_server_globals *server, network_machine *machine);
-extern void network_object_release_ownership_claim(uint8_t slot_index);
 extern data_packet_group network_game_messages_group;
-extern void network_game_server_handle_client_join(int32_t *object_count_passthrough, network_server_globals *server, network_machine *machine, uint8_t bl_passthrough);
-extern char network_server_build_full_game_info_packet(network_machine *machine);
 extern data_array *player_data;
 extern game_engine_definition *current_game_engine;
-extern void network_game_broadcast_team_object_updates(int32_t *object_count, uint32_t param_1, int32_t *bytes_sent);
 extern int32_t game_engine_notify_object_value_event(int32_t team);
-extern void build_player_full_resync_update(int32_t machine_id);
 extern void game_engine_capture_player_profile(int32_t value);
 extern void game_engine_send_unit_weapon_loadout(void *machine, int32_t team, int32_t machine_id);
 typedef void (*network_join_complete_callback)(int32_t unused, int32_t machine_id);
-extern network_server_globals *network_game_server_host_new(void);
 extern int32_t network_console_connection_id;
 extern uint8_t network_session_active2;
 extern void *network_session_host_object;
 extern int32_t network_session_host_state;
 extern void gcd_disconnect_all(int32_t connection_id);
-extern void message_delta_parameters_protocol_dump_to_config_file(void);
-extern void network_stats_summary_log_write(void);
-extern uint16_t *network_prepare_challenge_packet(int32_t message_type, void *payload);
-extern char network_channel_service(network_channel *channel, int32_t timeout_ms, network_channel **out_new_child);
-extern void network_channel_delete(network_channel *channel);
-extern void network_session_host_update(void);
 extern void gcd_shutdown(void);
 extern void qr2_shutdown(void *object);
-extern int32_t network_session_reject_pending_connection_callback(void *unused, int32_t reject_code);
 extern network_server_globals network_server_storage;
 extern int32_t network_scenario_round_counter_a;
 extern uint8_t network_scenario_round_counter_b;
 extern int16_t pending_difficulty;
-extern void network_channels_open(void);
-extern network_channel *network_channel_new(uint32_t flags);
-extern void network_game_session_reset(network_game_session *session);
-extern void network_game_server_host_dispose(network_server_globals *host);
-extern char network_game_session_reset_defaults(void);
-extern void * network_session_host_start(int32_t user_data);
-extern void message_delta_protocol_initialize(void);
-extern void network_stats_summary_log_open(void);
 extern void update_server_push_player_tick_history(void);
 extern void game_engine_tick(void);
-extern char network_game_session_finalize_and_add_player(network_player_entry *entry, network_server_globals *server, network_machine *machine);
-extern uint32_t network_game_broadcast_state_snapshot(const uint32_t *record, network_server_globals *server);
 extern uint8_t game_engine_team_is_leading(uint32_t requested_team);
-extern void network_game_generate_unique_random_name(void);
-extern char network_player_name_collision_check(void);
-extern void network_player_assign_random_color(void);
-extern uint32_t network_player_entry_add(network_player_entry *entry, network_game_session *session);
 extern game_variant game_engine_pending_variant;
 extern char variant_defaults_source[];
-extern int16_t network_channel_get_remote_address(s_network_address *address, network_receive_queue *queue);
 typedef struct rcon_request_decode {
     char password[20];
     char command[64];
 } rcon_request_decode;
 extern char sv_rcon_password_value[9];
-extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
-extern void message_delta_decode_compound_field_staged(void *decode_context);
-extern void chimera__rcon_out(char *text, int32_t machine_id);
 extern void *global_white_argb;
 extern void chimera__console_out(ColorARGB *color, char *format, ...);
-extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, uint32_t status_bit, void *data, uint32_t bits, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority);
 extern int16_t network_join_error_code;
 extern uint8_t network_host_handoff_requested;
 extern void chat_close(void);
-extern void network_machine_timer_start(network_machine *machine, int32_t duration_ms);
 extern int32_t network_server_status_last_print_ms;
-extern void sv_status(void);
 extern int32_t network_pending_connection_count;
 extern network_pending_connection network_pending_connections[30];
-extern char network_channel_queue_message(void *data, void *out_status, int32_t one, uint32_t param_3, uint32_t param_4, uint32_t param_6);
-extern uint32_t network_game_settings_broadcast_send(uint32_t round, uint32_t *record);
-extern void network_machine_check_build_version(const char *remote_version, network_machine *machine);
-extern void network_client_connection_handshake_tick(int16_t state, network_server_globals *owner);
-extern void network_channel_reliable_pool_store(network_channel *channel, uint16_t *packet, uint8_t *reliable_flag, int32_t priority);
-extern uint32_t network_game_broadcast_player_set_changed(network_server_globals *session);
-extern uint8_t network_player_entry_update(network_player_entry *incoming, network_game_session *session);
 extern void *message_delta_definition_table;
 extern int16_t network_game_mode;
 extern uint8_t network_server_host_valid;
 extern uint32_t split_screen_quit_prompt_string;
 extern uint32_t network_join_error_reason;
-extern void network_client_globals_dispose(void);
-extern char network_host_update_tick(network_server_globals *host);
-extern int32_t network_channel_remove_child(network_channel *parent, network_channel *child);
-extern char network_server_count_machines_and_resolve_address(network_server_globals *host, network_channel *new_child);
-extern void network_map_cycle_list_broadcast(void);
-extern char network_server_service_machines_tick(network_server_globals *host);
-extern char network_server_heartbeat_tick(network_server_globals *host);
-extern char network_server_status_periodic_print(network_server_globals *host);
-extern char network_server_resend_challenge_periodic(network_server_globals *host);
-extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address);
 extern uint32_t network_local_address;
-extern uint8_t network_session_host_reject_or_cleanup_client(const char *response, const char *challenge, uint32_t ip, int32_t local_id);
 extern char network_build_string[];
 }
 
@@ -155,13 +90,13 @@ char ServerView::dispatch_bitstream_unit(uint32_t unit, bit_stream *stream, netw
     uint16_t buffer[0x800];
 
     if (unit == 1) {
-        return network_client_drain_queued_updates(server, machine, stream);
+        return halo::networking::network_client_drain_queued_updates(server, machine, stream);
     }
     if (unit == 0) {
-        uint16_t *record = network_message_read_sized_buffer(buffer, 0xfff, stream);
+        uint16_t *record = halo::networking::network_message_read_sized_buffer(buffer, 0xfff, stream);
 
         if (record != 0) {
-            return (char)network_game_process_incoming_message(*record >> 4, machine, record, server);
+            return (char)halo::networking::network_game_process_incoming_message(*record >> 4, machine, record, server);
         }
     }
     return 0;
@@ -202,7 +137,7 @@ char ServerView::drain_bitstream(network_machine *machine)
         if (available == 0) {
             return 1;
         }
-        result = (char)network_channel_incoming_read_item(channel, network_incoming_message_scratch, &bit_offset,
+        result = (char)halo::networking::network_channel_incoming_read_item(channel, network_incoming_message_scratch, &bit_offset,
                                                           &bit_count, (s_network_address *)sender, 0x80000);
         if (result == 0) {
             return 0;
@@ -233,7 +168,7 @@ char ServerView::drain_bitstream(network_machine *machine)
                     s.stream.byte_cursor = next >> 3;
                     s.stream.bit_cursor = next & 7;
                 }
-                result = network_channel_dispatch_bitstream_unit(server, item_flag, &s.stream, machine);
+                result = halo::networking::network_channel_dispatch_bitstream_unit(server, item_flag, &s.stream, machine);
             } while (result == 1);
         }
         if (result == 0) {
@@ -270,7 +205,7 @@ uint32_t ServerView::all_machines_have_player()
             for (i = 0; i < 16; i = i + 1) {
                 char valid;
 
-                valid = network_player_entry_validate(entry);
+                valid = halo::networking::network_player_entry_validate(entry);
                 if (valid != 0 && entry->machine_index == (int8_t)machine_id) {
                     found = 1;
                 }
@@ -309,7 +244,7 @@ uint32_t ServerView::any_team_empty()
         char valid;
         int8_t team;
 
-        valid = network_player_entry_validate(entry);
+        valid = halo::networking::network_player_entry_validate(entry);
         if (valid != 0) {
             team = entry->team_index;
             if (team >= 0 && team < 2) {
@@ -341,11 +276,11 @@ uint32_t ServerView::broadcast_player_set_changed(uint8_t *param_1)
     int32_t encoded_bits;
     void *record;
 
-    message_delta_parameters_protocol_send_update();
+    halo::networking::message_delta_parameters_protocol_send_update();
     record = param_1 + 8;
-    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, &record, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, &record, 0, 1, 0);
     if (0 < encoded_bits) {
-        network_session_broadcast_to_all(network_server, 1, network_message_scratch, 1, 0, 1, 3);
+        halo::networking::network_session_broadcast_to_all(network_server, 1, network_message_scratch, 1, 0, 1, 3);
     }
     return 0 < encoded_bits;
 }
@@ -372,9 +307,9 @@ uint32_t ServerView::broadcast_state_snapshot(const uint32_t *record)
     }
     capacity = 0x600;
     if (halo::memory::data_packet_group_encode_packet(&network_game_messages_group, buffer, payload, &capacity, 0x17, 1) != 0) {
-        encoded = network_message_block_build(network_challenge_packet_block, (uint32_t *)buffer, 3, (uint32_t)capacity);
+        encoded = halo::networking::network_message_block_build(network_challenge_packet_block, (uint32_t *)buffer, 3, (uint32_t)capacity);
         if (encoded != 0) {
-            return network_session_broadcast_to_all(server, 0, encoded, 1, 0, 1, 3);
+            return halo::networking::network_session_broadcast_to_all(server, 0, encoded, 1, 0, 1, 3);
         }
     }
     return 0;
@@ -456,7 +391,7 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
     entry = server->session.players;
     remaining = 16;
     for (;;) {
-        valid = network_player_entry_validate(entry);
+        valid = halo::networking::network_player_entry_validate(entry);
         handled = 0;
         if (valid != 0) {
             scan = server->session.players;
@@ -466,14 +401,14 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
                     scan->machine_player_index == entry->machine_player_index) {
                     if ((int16_t)entry->machine_index == machine->machine_id) {
                         if ((server->flags >> 2 & 1) == 0) {
-                            ok = network_player_join_finalize();
+                            ok = halo::networking::network_player_join_finalize(network_client, entry);
                         } else {
                             ok = 0;
-                            if (network_player_entry_validate(entry) != 0 && server->state == 1) {
+                            if (halo::networking::network_player_entry_validate(entry) != 0 && server->state == 1) {
 
-                                ok = network_channel_key_open();
+                                ok = halo::networking::network_channel_key_open(entry);
                                 if (ok != 0) {
-                                    uint32_t slot_handle = player_data_iterator_advance((uint8_t)entry->slot_index);
+                                    uint32_t slot_handle = halo::networking::player_data_iterator_advance((uint8_t)entry->slot_index);
                                     datum_index queue_handle;
 
                                     halo::memory::datum_new_at_index_with_salt((datum_index)slot_handle, update_client_queues);
@@ -484,7 +419,7 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
                         }
                         if (ok != 0) {
                             machine->player_joined = 1;
-                            player_datum = player_data_iterator_advance((uint8_t)entry->slot_index) ;
+                            player_datum = halo::networking::player_data_iterator_advance((uint8_t)entry->slot_index) ;
                             game_engine_player_new_life(player_datum);
                             if (game_engine_player_profile_cache_find() != -1) {
                                 handled = 1;
@@ -510,8 +445,8 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
             } while (i < 16);
         }
         if (handled) {
-            network_game_server_handoff_object_ownership(object_count_passthrough, server, machine);
-            network_object_release_ownership_claim(bl_passthrough);
+            halo::networking::network_game_server_handoff_object_ownership(object_count_passthrough, server, machine);
+            halo::networking::network_object_release_ownership_claim(bl_passthrough);
         }
         entry = entry + 1;
         remaining = remaining - 1;
@@ -545,10 +480,10 @@ uint32_t ServerView::handle_info_request(network_machine *machine, uint8_t *reco
     }
     connection = machine != 0 ? *(uint8_t **)machine : 0;
     if ((connection != 0 && connection[0xa98] != 0) || *((uint8_t *)server + 0xa0f) == 0) {
-        network_game_server_handle_client_join(0 , server, machine, 1);
+        halo::networking::network_game_server_handle_client_join(0 , server, machine, 1);
         return 1;
     }
-    return (uint8_t)network_server_build_full_game_info_packet(machine);
+    return (uint8_t)halo::networking::network_server_build_full_game_info_packet(machine);
 }
 
 /**
@@ -582,8 +517,8 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
 
     bytes_sent = 0;
     machine_id = (int32_t)machine->machine_id;
-    network_game_broadcast_team_object_updates(object_count_passthrough, 0, &bytes_sent);
-    network_game_broadcast_team_object_updates(object_count_passthrough, 0, &bytes_sent);
+    halo::networking::network_game_broadcast_team_object_updates(object_count_passthrough, 0, &bytes_sent);
+    halo::networking::network_game_broadcast_team_object_updates(object_count_passthrough, 0, &bytes_sent);
 
     entry = server->session.players;
     remaining = 16;
@@ -592,7 +527,7 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
 
         do_transfer = 0;
         owner = 0;
-        if (network_player_entry_validate(entry) != 0) {
+        if (halo::networking::network_player_entry_validate(entry) != 0) {
             key_machine_index = entry->machine_index;
             scan = server->session.players;
             i = 0;
@@ -618,7 +553,7 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
 
         if (do_transfer && owner != 0 && (owner->flags & 0x04) != 0) {
 
-            datum = player_data_iterator_advance((uint8_t)entry->slot_index) ;
+            datum = halo::networking::player_data_iterator_advance((uint8_t)entry->slot_index) ;
             if (datum != 0xffffffff) {
                 player_index = (int16_t)datum;
                 if (player_index >= 0 && player_index < player_data->maximum_count) {
@@ -629,7 +564,7 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
                             team = plr->team;
                             unit = plr->unit;
                             game_engine_notify_object_value_event(team);
-                            build_player_full_resync_update(machine_id);
+                            halo::networking::build_player_full_resync_update(machine_id);
                             if (game_engine_player_profile_cache_find() != -1) {
                                 game_engine_capture_player_profile(0);
                             }
@@ -671,7 +606,7 @@ int32_t ServerView::host_create()
     network_server_globals *host;
     uint32_t salt;
 
-    host = network_game_server_host_new();
+    host = (network_server_globals *)halo::networking::network_game_server_host_new();
     network_server = host;
     if (host != 0) {
         halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
@@ -705,15 +640,15 @@ void ServerView::host_dispose()
 
     gcd_disconnect_all(network_console_connection_id);
     if (((*(uint8_t *)((uint8_t *)host + 6) >> 2) & 1) != 0) {
-        message_delta_parameters_protocol_dump_to_config_file();
-        network_stats_summary_log_write();
+        halo::networking::message_delta_parameters_protocol_dump_to_config_file();
+        halo::networking::network_stats_summary_log_write();
     }
     if ((host->state == 0 || host->state == 2)) {
         message_type = (host->state == 2) ? 0x22 : 0x0b;
 
-        challenge_packet = (int32_t)network_prepare_challenge_packet(message_type, challenge_payload);
+        challenge_packet = (int32_t)halo::networking::network_prepare_challenge_packet(message_type, challenge_payload);
         if (challenge_packet != 0) {
-            network_session_broadcast_to_all(network_server, 0, (void *)(uintptr_t)challenge_packet,
+            halo::networking::network_session_broadcast_to_all(network_server, 0, (void *)(uintptr_t)challenge_packet,
                 1, 0, 1, 3);
         }
     }
@@ -721,11 +656,11 @@ void ServerView::host_dispose()
         machine = &host->machines[i];
         if (machine->machine_id != -1 && (machine->channel->flags & k_network_channel_dead) == 0) {
 
-            network_channel_service(machine->channel, 15000, 0);
+            halo::networking::network_channel_service(machine->channel, 15000, 0);
         }
     }
     if (host->listen_channel != 0) {
-        network_channel_delete(host->listen_channel);
+        halo::networking::network_channel_delete(host->listen_channel);
     }
     memset(host, 0, sizeof(*host));
     network_session_active2 = 0;
@@ -733,7 +668,7 @@ void ServerView::host_dispose()
         if (network_session_host_state != 2) {
             network_session_host_state = 2;
         }
-        network_session_host_update();
+        halo::networking::network_session_host_update();
         network_console_connection_id = -1;
         gcd_shutdown();
         qr2_shutdown(network_session_host_object);
@@ -765,13 +700,13 @@ void * ServerView::host_new()
     network_scenario_round_counter_b = 0;
     host->full_state_broadcast_pending = 0;
     host->game_over = 0;
-    network_channels_open();
-    host->listen_channel = network_channel_new(k_network_channel_listening);
+    halo::networking::network_channels_open();
+    host->listen_channel = halo::networking::network_channel_new(k_network_channel_listening);
     if (host->listen_channel != 0) {
         host->flags = host->flags | 2;
         host->state = 0;
-        network_game_session_reset(&host->session);
-        host->session.message_callback = (void *)network_session_reject_pending_connection_callback;
+        halo::networking::network_game_session_reset(&host->session);
+        host->session.message_callback = (void *)halo::networking::network_session_reject_pending_connection_callback;
         host->session.difficulty = pending_difficulty;
         *(int32_t *)((uint8_t *)host + 0x3b0) = -1;
         for (i = 0; i < 16; i++) {
@@ -799,17 +734,17 @@ void * ServerView::host_new()
         host->join_finalize_pending = 0;
         *(int32_t *)((uint8_t *)host + 0x3b0) = *(int32_t *)((uint8_t *)host + 0x3b0) + 1;
         *(uint32_t *)&host->handshake_state = 0;
-        if (network_game_session_reset_defaults() != 0) {
-            network_session_host_start(0);
+        if (halo::networking::network_game_session_reset_defaults(host) != 0) {
+            halo::networking::network_session_host_start(0);
             goto done;
         }
     }
-    network_game_server_host_dispose(host);
+    halo::networking::network_game_server_host_dispose(host);
     host = 0;
 done:
     if (host != 0 && ((*((uint8_t *)host + 6) >> 2) & 1) != 0) {
-        message_delta_protocol_initialize();
-        network_stats_summary_log_open();
+        halo::networking::message_delta_protocol_initialize();
+        halo::networking::network_stats_summary_log_open();
     }
     return host;
 }
@@ -858,9 +793,9 @@ void ServerView::per_frame_tick(int16_t update_count)
 
                 network_player_entry *entry = &server->pending_join_entry;
 
-                ok = network_game_session_finalize_and_add_player(entry, server, machine);
+                ok = halo::networking::network_game_session_finalize_and_add_player(entry, server, machine);
                 if (ok != 0) {
-                    network_game_broadcast_state_snapshot((const uint32_t *)entry, server);
+                    halo::networking::network_game_broadcast_state_snapshot((const uint32_t *)entry, server);
                 }
             }
             server->join_finalize_pending = 0;
@@ -906,19 +841,19 @@ uint32_t ServerView::session_finalize_and_add_player(network_player_entry *entry
         entry->team_index = (int8_t)game_engine_team_is_leading(0xffffffff);
     }
     if (entry->name[0] == L'\0') {
-        network_game_generate_unique_random_name();
+        halo::networking::network_game_generate_unique_random_name((network_game_session *)server, (wchar_t *)entry->name);
     }
     hit = wcsstr((wchar_t *)entry->name, reserved);
     if (hit != 0 || (hit = wcsstr((wchar_t *)entry->name, reserved + 2), hit != 0)) {
-        network_game_generate_unique_random_name();
+        halo::networking::network_game_generate_unique_random_name((network_game_session *)server, (wchar_t *)entry->name);
     }
-    if (network_player_name_collision_check() == 0) {
-        network_game_generate_unique_random_name();
+    if (halo::networking::network_player_name_collision_check((network_game_session *)server, (uint16_t *)entry->name) == 0) {
+        halo::networking::network_game_generate_unique_random_name((network_game_session *)server, (wchar_t *)entry->name);
     }
     if (entry->color_index == -1) {
-        network_player_assign_random_color();
+        halo::networking::network_player_assign_random_color((network_game_session *)server, entry);
     }
-    return network_player_entry_add(entry, &server->session);
+    return halo::networking::network_player_entry_add(&server->session, entry);
 }
 
 /**
@@ -995,9 +930,9 @@ void ServerView::advance_connect_state()
     if (*(int16_t *)((uint8_t *)server + 4) == 1) {
         *(int16_t *)((uint8_t *)server + 4) = 2;
 
-        challenge_packet = (int32_t)network_prepare_challenge_packet(0x19, challenge_payload);
+        challenge_packet = (int32_t)halo::networking::network_prepare_challenge_packet(0x19, challenge_payload);
         if (challenge_packet != 0) {
-            network_session_broadcast_to_all(server, 0, (void *)(uintptr_t)challenge_packet,
+            halo::networking::network_session_broadcast_to_all(server, 0, (void *)(uintptr_t)challenge_packet,
                 1, 0, 1, 3);
         }
     }
@@ -1073,7 +1008,7 @@ uint32_t ServerView::count_machines_and_resolve_address(uint32_t eax_passthrough
             }
         }
         if (*connection != 0) {
-            network_channel_get_remote_address(address_out, *connection);
+            halo::networking::network_channel_get_remote_address(address_out, *connection);
         }
         eax_passthrough = 0;
     }
@@ -1094,37 +1029,37 @@ void ServerView::handle_rcon_request(network_player_entry *client, void *message
     rcon_request_decode decode;
 
     if (*(int32_t *)*(int32_t *)message != 0) {
-        message_delta_decode_compound_field_staged(message);
+        halo::networking::message_delta_decode_compound_field_staged((void **)message);
         chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring meaningless rcon_request message from client #%d", machine_id);
         return;
     }
     memset(&decode, 0, sizeof(decode));
-    if (message_delta_decode_compound_field(message, &decode) == 0) {
+    if (halo::networking::message_delta_decode_compound_field((void **)message, &decode) == 0) {
         chimera__console_out((ColorARGB *)global_white_argb, (char *)"Could not decode rcon message from client #%d", machine_id);
         return;
     }
     if (sv_rcon_password_value[0] == 0) {
-        chimera__rcon_out((char *)"rcon command ignored (rcon is disabled)", machine_id);
+        halo::networking::chimera__rcon_out((char *)"rcon command ignored (rcon is disabled)", machine_id);
         chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (rcon is disabled)", machine_id);
         return;
     }
     if (strcmp(sv_rcon_password_value, decode.password) != 0) {
-        chimera__rcon_out((char *)"rcon command ignored (bad password)", machine_id);
+        halo::networking::chimera__rcon_out((char *)"rcon command ignored (bad password)", machine_id);
         chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (bad password)", machine_id);
         return;
     }
     if (decode.command[0] == 0) {
-        chimera__rcon_out((char *)"rcon command ignored (empty)", machine_id);
+        halo::networking::chimera__rcon_out((char *)"rcon command ignored (empty)", machine_id);
         chimera__console_out((ColorARGB *)global_white_argb, (char *)"Ignoring rcon request from client #%d (empty command)", machine_id);
         return;
     }
     halo::main::console_process_rcon_command(machine_id, decode.command);
     {
-        chimera__rcon_out((char *)"rcon command finished", machine_id);
+        halo::networking::chimera__rcon_out((char *)"rcon command finished", machine_id);
         chimera__console_out((ColorARGB *)global_white_argb, (char *)"Successfully executed rcon command from client #%d.", machine_id + 1);
         return;
     }
-    chimera__rcon_out((char *)"rcon command failed", machine_id);
+    halo::networking::chimera__rcon_out((char *)"rcon command failed", machine_id);
     chimera__console_out((ColorARGB *)global_white_argb, (char *)"Failure executing rcon command from client #%d.", machine_id);
 }
 
@@ -1152,12 +1087,12 @@ uint8_t ServerView::notify_or_resend_challenge(int16_t reason, network_machine *
         chat_close();
         return 1;
     }
-    packet = network_prepare_challenge_packet(6, &payload);
-    if (packet == 0 || network_session_send_to_machine(machine->machine_id, server, 0, packet, (uint32_t)(*packet >> 4) << 3,
+    packet = halo::networking::network_prepare_challenge_packet(6, &payload);
+    if (packet == 0 || halo::networking::network_session_send_to_machine(machine->machine_id, server, 0, packet, (uint32_t)(*packet >> 4) << 3,
                                                         1, 1, 0, 3) == 0) {
         ok = 0;
     }
-    network_machine_timer_start(machine, 1000);
+    halo::networking::network_machine_timer_start(machine, 1000);
     return ok;
 }
 
@@ -1215,7 +1150,7 @@ uint32_t ServerView::status_periodic_print()
         QueryPerformanceCounter((LARGE_INTEGER *)&counter);
         now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
         if ((uint32_t)(now_ms - network_server_status_last_print_ms) > 15000) {
-            sv_status();
+            halo::networking::sv_status();
             network_server_status_last_print_ms = now_ms;
         }
     }
@@ -1290,7 +1225,7 @@ char ServerView::broadcast_to_all(int32_t param_1, void *data, int32_t param_3, 
             char sent;
 
             status = (uint8_t)(param_1 != 0);
-            sent = network_channel_queue_message(data, &status, 1, param_3, param_4, param_6);
+            sent = halo::networking::network_channel_queue_message(channel, (uint32_t)(uintptr_t)data, (uint32_t)(uintptr_t)&status, 1, param_3, param_4, param_6);
             if (sent == 0) {
                 ok = 0;
             }
@@ -1319,7 +1254,7 @@ uint32_t ServerMessageHandlers::client_map_data(uint8_t *record, int32_t length)
     uint8_t *s = (uint8_t *)server;
 
     if (*(int16_t *)(s + 4) == 1 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 5) != 0 && s[0x9f8] == 0 &&
-        network_player_entry_validate((network_player_entry *)body) != 0) {
+        halo::networking::network_player_entry_validate((network_player_entry *)body) != 0) {
         memcpy(s + 0x9d8, body, sizeof(body));
         s[0x9f8] = 1;
     }
@@ -1344,7 +1279,7 @@ uint32_t ServerMessageHandlers::client_retry_schedule(network_machine *machine, 
     uint16_t version_used;
 
     if (*(int16_t *)((uint8_t *)server + 4) == 1 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 5) != 0) {
-        network_machine_timer_start(machine, 0);
+        halo::networking::network_machine_timer_start(machine, 0);
     }
     return 1;
 }
@@ -1367,7 +1302,7 @@ uint32_t ServerMessageHandlers::client_settings_relay(uint8_t *record, int32_t l
     uint16_t version_used;
 
     if (*(int16_t *)((uint8_t *)server + 4) == 1 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 5) != 0) {
-        return network_game_settings_broadcast_send((uint32_t)server, body);
+        return halo::networking::network_game_settings_broadcast_send((uint32_t)server, body);
     }
     return 1;
 }
@@ -1391,7 +1326,7 @@ uint32_t ServerMessageHandlers::build_version(network_machine *machine, uint8_t 
     uint16_t version_used;
 
     if (*(int16_t *)((uint8_t *)server + 4) == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 3) != 0) {
-        network_machine_check_build_version(body, machine);
+        halo::networking::network_machine_check_build_version(body, machine);
     }
     return 1;
 }
@@ -1411,7 +1346,7 @@ uint32_t ServerMessageHandlers::handshake_forward(uint8_t *record, int32_t lengt
     uint16_t version_used;
 
     if (*(int16_t *)((uint8_t *)server + 4) == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 3) != 0) {
-        network_client_connection_handshake_tick((int16_t)body[0], server);
+        halo::networking::network_client_connection_handshake_tick((int16_t)body[0], server);
     }
     return 1;
 }
@@ -1467,11 +1402,11 @@ uint32_t ServerMessageHandlers::keepalive(network_channel **channel, int32_t *re
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     payload.echoed_value = *record;
     payload.timestamp_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
-    packet = network_prepare_challenge_packet(3, &payload);
+    packet = halo::networking::network_prepare_challenge_packet(3, &payload);
     if (packet != 0) {
         uint8_t reliable_flag = 0;
         if ((chan->flags & 1) == 0) {
-            network_channel_reliable_pool_store(chan, packet, &reliable_flag, 1);
+            halo::networking::network_channel_reliable_pool_store(chan, (uint8_t *)packet, &reliable_flag, 1, 1, (uint32_t)(*(uint16_t *)packet >> 4) << 3);
         }
         return 1;
     }
@@ -1492,10 +1427,10 @@ uint32_t ServerMessageHandlers::ping_timestamp(int32_t **message)
     uint8_t decode_scratch[5];
 
     if (**message != 0) {
-        message_delta_decode_compound_field_staged(message);
+        halo::networking::message_delta_decode_compound_field_staged((void **)message);
         return 1;
     }
-    if (message_delta_decode_compound_field(message, decode_scratch) == 1) {
+    if (halo::networking::message_delta_decode_compound_field((void **)message, decode_scratch) == 1) {
         player = (uint8_t *)halo::memory::datum_get((datum_index)decode_scratch[0], player_data);
         if (player != 0) {
             int32_t stored_time = *(int32_t *)((uint8_t *)server + 0x9c0);
@@ -1522,7 +1457,7 @@ uint32_t ServerMessageHandlers::player_count_broadcast(uint8_t *record, int32_t 
     int16_t state = *(int16_t *)((uint8_t *)server + 4);
 
     if ((state == 0 || state == 1) && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 3) != 0) {
-        network_game_broadcast_player_set_changed(server);
+        halo::networking::network_game_broadcast_player_set_changed((uint8_t *)server);
     }
     return 1;
 }
@@ -1544,8 +1479,8 @@ uint32_t ServerMessageHandlers::player_entry_update(uint8_t *record, int32_t len
     uint16_t version_used;
 
     if (*(int16_t *)((uint8_t *)server + 4) == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 3) != 0 &&
-        network_player_entry_update((network_player_entry *)body, (network_game_session *)((uint8_t *)server + 8)) != 0) {
-        network_game_broadcast_player_set_changed(server);
+        halo::networking::network_player_entry_update((network_player_entry *)body, (network_game_session *)((uint8_t *)server + 8)) != 0) {
+        halo::networking::network_game_broadcast_player_set_changed((uint8_t *)server);
     }
     return 1;
 }
@@ -1568,7 +1503,7 @@ uint32_t ServerMessageHandlers::retry_schedule(network_machine *machine, uint8_t
     uint16_t version_used;
 
     if (*(int16_t *)((uint8_t *)server + 4) == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 3) != 0) {
-        network_machine_timer_start(machine, 0);
+        halo::networking::network_machine_timer_start(machine, 0);
     }
     return 1;
 }
@@ -1589,7 +1524,7 @@ uint32_t ServerMessageHandlers::settings_relay(uint8_t *record, int32_t length)
     uint16_t version_used;
 
     if (*(int16_t *)((uint8_t *)server + 4) == 0 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 3) != 0) {
-        return network_game_settings_broadcast_send((uint32_t)server, body);
+        return halo::networking::network_game_settings_broadcast_send((uint32_t)server, body);
     }
     return 1;
 }
@@ -1612,7 +1547,7 @@ uint32_t ServerMessageHandlers::settings_relay_role2(uint8_t *record, int32_t le
     uint16_t version_used;
 
     if (*(int16_t *)((uint8_t *)server + 4) == 2 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 7) != 0) {
-        return network_game_settings_broadcast_send((uint32_t)server, body);
+        return halo::networking::network_game_settings_broadcast_send((uint32_t)server, body);
     }
     return 1;
 }
@@ -1639,7 +1574,7 @@ void HostServerView::round_reset()
     host->new_server_pending = 0;
     host->join_finalize_pending = 0;
     *(int32_t *)((uint8_t *)host + 0x3b0) = *(int32_t *)((uint8_t *)host + 0x3b0) + 1;
-    network_game_session_reset_defaults();
+    halo::networking::network_game_session_reset_defaults(host);
 }
 
 /**
@@ -1661,18 +1596,18 @@ int32_t HostServerView::send_scenario_announcement()
 
     result = 1;
     if (host->scenario_announced == 0) {
-        message_delta_parameters_protocol_send_update();
+        halo::networking::message_delta_parameters_protocol_send_update();
         payload = (uint8_t *)host + 8;
-        encode_result = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, &payload, 0, 1, 0);
+        encode_result = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x21, 0, &payload, 0, 1, 0);
         if (encode_result > 0) {
-            network_session_broadcast_to_all(network_server, 1, &message_delta_definition_table, 1, 0, 1, 3);
+            halo::networking::network_session_broadcast_to_all(network_server, 1, &message_delta_definition_table, 1, 0, 1, 3);
         }
         result = encode_result > 0;
         if (encode_result > 0) {
 
-            challenge_packet = (int32_t)network_prepare_challenge_packet(0x0a, challenge_payload);
+            challenge_packet = (int32_t)halo::networking::network_prepare_challenge_packet(0x0a, challenge_payload);
             if (challenge_packet != 0) {
-                if (network_session_broadcast_to_all(network_server, 0, (void *)(uint32_t)challenge_packet, 1, 0, 1, 3) != 0) {
+                if (halo::networking::network_session_broadcast_to_all(network_server, 0, (void *)(uint32_t)challenge_packet, 1, 0, 1, 3) != 0) {
                     host->scenario_announced = 1;
                     result = 1;
                 }
@@ -1701,7 +1636,7 @@ int32_t HostServerView::shutdown_or_defer()
     if (network_server != 0) {
         if (network_host_handoff_requested != 1 || ((network_server->flags >> 2) & 1) == 0) {
 
-            return network_host_update_tick(network_server);
+            return halo::networking::network_host_update_tick(network_server);
         }
         network_game_mode = 0;
         halo::main::main_menu_music_stop();
@@ -1716,9 +1651,9 @@ int32_t HostServerView::shutdown_or_defer()
             halo::main::chimera__load_ui_map(1);
         }
         session->map_loaded = 0;
-        network_client_globals_dispose();
+        halo::networking::network_client_globals_dispose();
         if (network_server != 0) {
-            network_game_server_host_dispose(network_server);
+            halo::networking::network_game_server_host_dispose(network_server);
             network_server = 0;
             network_server_host_valid = 0;
         }
@@ -1751,39 +1686,39 @@ char HostServerView::update_tick()
     service_result = 1;
     if ((host->flags >> 1) & 1) {
         new_child = 0;
-        service_result = network_channel_service(host->listen_channel, 0, &new_child);
+        service_result = halo::networking::network_channel_service(host->listen_channel, 0, &new_child);
         if (service_result == 1) {
             proceed = 1;
             if (new_child != 0) {
-                service_result = network_server_count_machines_and_resolve_address(host, new_child);
+                service_result = halo::networking::network_server_count_machines_and_resolve_address(0, &sender.address, host, (network_receive_queue **)new_child);
                 if (service_result == 1) {
-                    network_channel_remote_address_or_default(new_child, &sender);
+                    halo::networking::network_channel_remote_address_or_default(new_child, &sender);
                     proceed = 1;
                 } else {
-                    proceed = (char)network_channel_remove_child(host->listen_channel, new_child);
+                    proceed = (char)halo::networking::network_channel_remove_child(host->listen_channel, new_child);
                 }
             }
             service_result = 0;
             if (proceed != 0) {
                 now_ms = halo::cseries::time_query_performance_counter_ms();
                 if ((uint32_t)((int32_t)host->last_stamp_ms + 3000) < now_ms) {
-                    network_map_cycle_list_broadcast();
+                    halo::networking::network_map_cycle_list_broadcast();
                     host->last_stamp_ms = now_ms;
                 }
-                service_result = network_server_service_machines_tick(host);
+                service_result = halo::networking::network_server_service_machines_tick(host);
                 if (service_result == 0) {
                     return 0;
                 }
                 if (host->state == 0) {
-                    return network_server_heartbeat_tick(host);
+                    return halo::networking::network_server_heartbeat_tick(host);
                 }
                 if (host->state != 1) {
                     if (host->state != 2) {
                         return 0;
                     }
-                    return network_server_resend_challenge_periodic(host);
+                    return halo::networking::network_server_resend_challenge_periodic(host);
                 }
-                return network_server_status_periodic_print(host);
+                return halo::networking::network_server_status_periodic_print(host);
             }
         }
     }
@@ -1803,12 +1738,12 @@ uint8_t MachineView::reset_state(const char *response)
     network_resolved_address address;
     uint32_t ip;
 
-    network_channel_remote_address_or_default(machine != 0 ? machine->channel : 0, &address);
+    halo::networking::network_channel_remote_address_or_default(machine != 0 ? machine->channel : 0, &address);
     ip = *(uint32_t *)&address;
     if (ip == 0x7f000001) {
         ip = network_local_address;
     }
-    return network_session_host_reject_or_cleanup_client(response, (const char *)machine + 0x52, ip,
+    return halo::networking::network_session_host_reject_or_cleanup_client(response, (const char *)machine + 0x52, ip,
         *(int32_t *)((uint8_t *)machine + 0x5c));
 }
 
@@ -1855,7 +1790,7 @@ int32_t MachineView::reset()
     network_machine *machine = self;
     network_resolved_address sender;
 
-    network_channel_remote_address_or_default(machine->channel, &sender);
+    halo::networking::network_channel_remote_address_or_default(machine->channel, &sender);
     machine->flags = machine->flags | k_network_machine_pending;
     machine->disconnect_timer_active = 0;
     machine->timer_14 = 0;

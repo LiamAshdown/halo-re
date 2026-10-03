@@ -14,6 +14,7 @@
 #include "halo/devices/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern double sqrt(double x);
@@ -22,9 +23,6 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t event9_target;
 extern network_id_table *object_network_id_table;
 extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern network_server_globals *network_server;
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern char *unit_base_animation_state_names[6];
@@ -299,9 +297,9 @@ void halo::units::unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t u
     item.weapon_hash = weapon_hash;
     item.event_byte = event_byte;
     items[0] = &item;
-    encoded_len = message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0x1b, 0, items, 0, 1, 0);
+    encoded_len = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0x1b, 0, items, 0, 1, 0);
     if (0 < encoded_len) {
-        network_session_broadcast_to_flagged(encoded_len, network_server, 1, network_message_scratch, 1, 0, 0, 3);
+        halo::networking::network_session_broadcast_to_flagged(encoded_len, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
     }
     return;
 }

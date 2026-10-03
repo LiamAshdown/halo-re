@@ -6,6 +6,7 @@
 #include "halo/items/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 #ifdef __cplusplus
 #define CTF_CUSTOM_WAYPOINT_ZERO custom_waypoint{}
@@ -14,7 +15,6 @@
 #endif
 
 extern "C" {
-extern int16_t network_game_mode;
 extern game_variant game_engine_variant;
 extern int32_t ctf_flag_auto_return_ticks;
 extern uint8_t ctf_single_flag_mode;
@@ -39,8 +39,6 @@ extern void custom_waypoint_register(datum_index owner, int16_t slot, real_point
 extern int16_t hud_waypoint_arrow_find(void);
 extern game_engine_definition *current_game_engine;
 extern uint8_t network_message_scratch[0x7ff8];
-extern network_server_globals *network_server;
-extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data, int32_t param_3, int32_t param_4, int32_t force, int32_t param_6);
 }
 
 namespace halo::game {
@@ -59,7 +57,7 @@ void CtfEngine::flag_tick(uint32_t flag_handle, object *flag_obj)
     real_point3d item_position;
     uint8_t position_valid;
 
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         if (game_engine_variant.engine.ctf.single_flag_time > 0) {
             if (ctf_flag_auto_return_ticks > 0) {
                 ctf_flag_auto_return_ticks--;
@@ -315,7 +313,7 @@ void NetgameRules::broadcast_object_type_changes()
     uint8_t changed;
     int encode_result;
 
-    if (network_game_mode != 2 || network_server->state != 1) {
+    if (halo::networking::globals().game_mode != 2 || halo::networking::globals().server->state != 1) {
         return;
     }
 
@@ -335,7 +333,7 @@ void NetgameRules::broadcast_object_type_changes()
 
             encode_result = halo::objects::object_type_override_call_0x6c(iterator.handle, network_message_scratch, 0x7ff8, changed == 0);
             if (0 < encode_result) {
-                network_session_broadcast_to_flagged(network_server, 1, network_message_scratch, changed != 0, 0, 0, 3);
+                halo::networking::network_session_broadcast_to_flagged(encode_result, halo::networking::globals().server, 1, network_message_scratch, changed != 0, 0, 0, 3);
             }
             halo::objects::object_type_override_call_0x7c(iterator.handle);
         }

@@ -8,8 +8,28 @@
 #include "halo/networking/net1_decode.hpp"
 #include "halo/networking/net1_session.hpp"
 #include "halo/networking/net1_timer.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
+extern network_server_globals *network_server;
+extern network_client_globals *network_client;
+extern int16_t network_game_mode;
+extern uint8_t network_host_handoff_requested;
+extern uint8_t network_server_host_valid;
+extern int16_t network_join_error_code;
+extern uint8_t network_join_error_reason;
+extern uint8_t network_disconnect_timeout_flag;
+extern uint8_t network_client_vehicle_ack_enabled;
+extern uint32_t network_game_socket_port;
+}
+
+namespace halo::networking {
+
+Globals &globals()
+{
+    static Globals instance{::network_server, ::network_client, ::network_game_mode, ::network_host_handoff_requested, ::network_server_host_valid, ::network_join_error_code, ::network_join_error_reason, ::network_disconnect_timeout_flag, ::network_client_vehicle_ack_enabled, ::network_game_socket_port};
+    return instance;
+}
 
 /**
  * C entry point for halo::networking::AddressText::parse_port; forwards to the C++ implementation unchanged.
@@ -2750,9 +2770,9 @@ uint32_t network_game_process_incoming_message(int32_t length, network_machine *
  *
  * @address 0x4e40f0
  */
-void network_game_start_new_server_from_profile(uint32_t param_1)
+uint8_t network_game_start_new_server_from_profile(uint32_t param_1)
 {
-    halo::networking::GameRuntime::start_new_server_from_profile(param_1);
+    return halo::networking::GameRuntime::start_new_server_from_profile(param_1);
 }
 
 /**

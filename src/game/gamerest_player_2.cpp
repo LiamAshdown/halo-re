@@ -12,15 +12,14 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern player_globals *local_player_globals;
 extern game_engine_definition *current_game_engine;
-extern int16_t network_game_mode;
 extern Globals *global_globals;
 extern uint8_t network_message_scratch;
-extern network_server_globals *network_server;
 extern void local_player_set_controlled_unit(datum_index new_unit, int16_t local_player_index);
 extern int16_t player_pick_random_starting_location(datum_index player_handle);
 extern ScenarioPlayerStartingLocation *game_get_player_starting_location(int16_t index);
@@ -29,7 +28,6 @@ extern void object_placement_data_set_change_colors(real *color, object_placemen
 extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index);
 extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_index unit_handle, uint8_t reset_stats);
 extern void game_engine_apply_player_grenade_counts(uint32_t player_index);
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server_globals *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
 extern void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index player_handle, int32_t value, int32_t machine_index);
 extern double cos(double x);
 extern double sin(double x);
@@ -51,7 +49,6 @@ extern uint8_t *hud_unit_meters;
 extern void game_set_local_player(datum_index player_handle, int16_t local_player_index);
 extern data_array *update_server_queues;
 extern const real_point3d *global_origin3d_pointer;
-extern uint8_t network_client_vehicle_ack_enabled;
 extern int32_t server_maximum_queued_client_updates;
 extern int32_t server_maximum_pending_client_update_ticks;
 extern uint8_t player_update_queue_pop_current(player_update_record *out, player_update_queue *queue);
@@ -59,7 +56,6 @@ extern void player_compute_view_forward_vector(datum_index player_handle, real *
 extern uint8_t player_unit_has_parent(datum_index player_handle);
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t global_007102d8;
-extern uint8_t network_join_error_reason;
 extern uint8_t *main_game_globals;
 extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type, datum_index subject, char broadcast);
 extern void player_kill_streak_tick(datum_index player_handle);
@@ -142,7 +138,7 @@ void PlayerView::respawn()
         }
     }
 
-    if (network_game_mode == 2 || network_game_mode == 0) {
+    if (halo::networking::globals().game_mode == 2 || halo::networking::globals().game_mode == 0) {
         int16_t location_index = PlayerView(player_index).pick_random_starting_location();
         datum_index unit_tag;
         ScenarioPlayerStartingLocation *location;
@@ -204,7 +200,7 @@ void PlayerView::respawn()
                 LocalPlayerUnit(((player *)p)->unit).apply_starting_profile(0, 1);
             }
         }
-        if (network_game_mode == 2) {
+        if (halo::networking::globals().game_mode == 2) {
             int32_t team = ((player *)p)->team;
             int32_t encoded_bits;
 
@@ -213,7 +209,7 @@ void PlayerView::respawn()
             halo::objects::object_type_override_call_0x68(new_unit);
             encoded_bits = halo::units::unit_build_network_update(new_unit, (int32_t)&network_message_scratch, 0x7ff8);
             if (encoded_bits > 0) {
-                network_session_broadcast_to_flagged(encoded_bits, (network_server_globals *)network_server,
+                halo::networking::network_session_broadcast_to_flagged(encoded_bits, (network_server_globals *)halo::networking::globals().server,
                     1, &network_message_scratch, 1, 0, 0, 3);
             }
             *(uint32_t *)(p + 0x68) = 0;
@@ -551,7 +547,7 @@ void Players::server_catchup_on_client_updates()
                 halo::units::unit_apply_control_block(plr->unit, &control, source_id);
             }
 
-            if (PlayerView(player_iter.index).unit_has_parent() && network_client_vehicle_ack_enabled != 0) {
+            if (PlayerView(player_iter.index).unit_has_parent() && halo::networking::globals().client_vehicle_ack_enabled != 0) {
                 halo::objects::object_update(unit_obj->parent_object);
             } else {
                 halo::units::unit_update(plr->unit);
@@ -615,7 +611,7 @@ void StructureBsp::switch_structure_bsp()
             } else if (plr->unit != (datum_index)-1) {
                 object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data;
                 if ((*((uint8_t *)unit_obj + 0x106) & 0x20) == 0) {
-                    if (network_game_mode == 2) {
+                    if (halo::networking::globals().game_mode == 2) {
 
                         chimera__kill_feed(player_handle, 0x1f, (uint32_t)0xffffffff, 1, 0);
                     }
@@ -675,7 +671,7 @@ void StructureBsp::switch_structure_bsp()
         plr->interaction_object = (datum_index)-1;
         plr->interaction_type = 0;
 
-        if (network_game_mode == 1) {
+        if (halo::networking::globals().game_mode == 1) {
             player_update_nearby_interactions_secondary(player_handle);
         } else {
             player_update_nearby_interactions_primary(player_handle);
@@ -699,7 +695,7 @@ void StructureBsp::switch_structure_bsp()
             global_007102d8 = 0;
         }
     } else if (current_game_engine == 0 && global_007102d8 == 0) {
-        network_join_error_reason = 0;
+        halo::networking::globals().join_error_reason = 0;
         halo::main::globals().main_globals.lost_map = 1;
         global_007102d8 = 1;
     }

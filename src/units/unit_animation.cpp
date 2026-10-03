@@ -20,6 +20,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern halo::units::ai_update_stagger_state *ai_update_stagger;
@@ -35,7 +36,6 @@ extern real_vector3d *global_down3d_pointer;
 extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
 extern void ai_communication_record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id);
 extern void console_print_va(const char *format, ...);
-extern int16_t network_game_mode;
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern real_point3d *global_zero_vector3d_pointer;
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
@@ -1196,7 +1196,7 @@ uint8_t halo::units::unit_try_start_seat_exit_animation(uint8_t force_flag, uint
     if (self == 0) {
         return 0;
     }
-    if (network_game_mode == 1 && force_flag != 1) {
+    if (halo::networking::globals().game_mode == 1 && force_flag != 1) {
         return 0;
     }
     vehicle_index = ((unit_object *)self)->base.parent_object;

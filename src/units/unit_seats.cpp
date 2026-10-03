@@ -17,25 +17,20 @@
 #include "halo/cache/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
 extern data_array *player_data;
-extern int16_t network_game_mode;
 extern game_time_globals *game_time;
-extern network_client_globals *network_client;
-extern void player_update_history_free_all(void *history);
 extern uint8_t biped_detach_from_flipped_vehicle;
 extern uint8_t unit_updates_suppressed;
 extern real_point3d *global_origin3d_pointer;
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
 extern uint8_t *object_network_id_table;
-extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
-extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern uint8_t network_object_index_cache[];
-extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
 extern double sqrt(double x);
 extern uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, datum_index actor_index, uint8_t flag_pursue);
 extern char *unit_base_animation_state_names[6];
@@ -286,7 +281,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
             *(int32_t *)(empty + 0x5ac) = game_time->game_time;
         }
     }
-    if (network_game_mode == 1) {
+    if (halo::networking::globals().game_mode == 1) {
         uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
@@ -305,7 +300,7 @@ static void biped_free_local_player_history(uint8_t *self)
     int16_t salt = (int16_t)(player_index >> 16);
     uint8_t *player;
 
-    if (network_game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
+    if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
         index >= player_data->maximum_count) {
         return;
     }
@@ -313,8 +308,8 @@ static void biped_free_local_player_history(uint8_t *self)
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }
-    if (network_client != 0) {
-        player_update_history_free_all(*(void **)&network_client->update_history);
+    if (halo::networking::globals().client != 0) {
+        halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
     }
 }
 
@@ -341,7 +336,7 @@ void UnitView::detach_and_enter_named_seat(uint32_t target_parent_index, char *s
         return;
     }
     if (((unit_object *)obj)->base.parent_object != k_datum_index_none && ((unit_object *)obj)->unit.vehicle_seat_index != -1 &&
-        network_game_mode != 1) {
+        halo::networking::globals().game_mode != 1) {
         if (((unit_object *)obj)->base.parent_object != k_datum_index_none && ((unit_object *)obj)->unit.vehicle_seat_index != -1) {
             biped_detach_from_seat(unit_index, ((unit_object *)obj)->base.parent_object);
         }
@@ -480,7 +475,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
             *(int32_t *)(empty + 0x5ac) = game_time->game_time;
         }
     }
-    if (network_game_mode == 1) {
+    if (halo::networking::globals().game_mode == 1) {
         uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
@@ -499,7 +494,7 @@ static void biped_free_local_player_history(uint8_t *self)
     int16_t salt = (int16_t)(player_index >> 16);
     uint8_t *player;
 
-    if (network_game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
+    if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
         index >= player_data->maximum_count) {
         return;
     }
@@ -507,8 +502,8 @@ static void biped_free_local_player_history(uint8_t *self)
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }
-    if (network_client != 0) {
-        player_update_history_free_all(*(void **)&network_client->update_history);
+    if (halo::networking::globals().client != 0) {
+        halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
     }
 }
 
@@ -525,7 +520,7 @@ void UnitView::detach_from_seat(uint8_t suppress_trigger, uint8_t require_client
     uint32_t unit_index = datum_handle;
     uint8_t *obj;
 
-    if (network_game_mode == 1 && require_client_flag != 1) {
+    if (halo::networking::globals().game_mode == 1 && require_client_flag != 1) {
         return;
     }
     obj = OBJECT_DATA(unit_index);
@@ -639,10 +634,10 @@ void halo::units::unit_dispatch_seat_exit_message(int32_t *message)
     int32_t unit_index;
 
     if (*(int32_t *)*message != 0) {
-        message_delta_decode_compound_field_staged(message);
+        halo::networking::message_delta_decode_compound_field_staged((void **)message);
         return;
     }
-    if (message_delta_decode_compound_field(message, &decoded) == 0 || decoded.unit_key == 0) {
+    if (halo::networking::message_delta_decode_compound_field((void **)message, &decoded) == 0 || decoded.unit_key == 0) {
         return;
     }
     unit_index = (*(int32_t **)(object_network_id_table + 0x28))[decoded.unit_key];
@@ -822,7 +817,7 @@ void halo::units::unit_exit_vehicle_seat(uint32_t player_index)
             object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
             obj->network_role = 3;
             if ((((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].flags & 8) == 0) {
-                network_index_cache_remove(network_object_index_cache, (int32_t)unit_index);
+                halo::networking::network_index_cache_remove(network_object_index_cache, (int32_t)unit_index);
             }
         }
     }
@@ -1507,7 +1502,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
             *(int32_t *)(empty + 0x5ac) = game_time->game_time;
         }
     }
-    if (network_game_mode == 1) {
+    if (halo::networking::globals().game_mode == 1) {
         uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
@@ -1526,7 +1521,7 @@ static void biped_free_local_player_history(uint8_t *self)
     int16_t salt = (int16_t)(player_index >> 16);
     uint8_t *player;
 
-    if (network_game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
+    if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
         index >= player_data->maximum_count) {
         return;
     }
@@ -1534,8 +1529,8 @@ static void biped_free_local_player_history(uint8_t *self)
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }
-    if (network_client != 0) {
-        player_update_history_free_all(*(void **)&network_client->update_history);
+    if (halo::networking::globals().client != 0) {
+        halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
     }
 }
 
@@ -1597,7 +1592,7 @@ int16_t halo::units::unit_seat_candidates_from_zone_and_enter(datum_index vehicl
                 continue;
             }
             if (((struct object *)candidate)->parent_object != k_datum_index_none) {
-                if (*(int16_t *)(candidate + 0x2f0) != -1 && network_game_mode != 1) {
+                if (*(int16_t *)(candidate + 0x2f0) != -1 && halo::networking::globals().game_mode != 1) {
                     uint8_t *self = OBJECT_DATA(candidate_index);
 
                     if (((unit_object *)self)->base.parent_object != k_datum_index_none && ((unit_object *)self)->unit.vehicle_seat_index != -1) {
@@ -1919,7 +1914,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
             *(int32_t *)(empty + 0x5ac) = game_time->game_time;
         }
     }
-    if (network_game_mode == 1) {
+    if (halo::networking::globals().game_mode == 1) {
         uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
@@ -1938,7 +1933,7 @@ static void biped_free_local_player_history(uint8_t *self)
     int16_t salt = (int16_t)(player_index >> 16);
     uint8_t *player;
 
-    if (network_game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
+    if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
         index >= player_data->maximum_count) {
         return;
     }
@@ -1946,8 +1941,8 @@ static void biped_free_local_player_history(uint8_t *self)
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }
-    if (network_client != 0) {
-        player_update_history_free_all(*(void **)&network_client->update_history);
+    if (halo::networking::globals().client != 0) {
+        halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
     }
 }
 
@@ -1974,7 +1969,7 @@ void UnitView::try_exit_controlled_seat()
         return;
     }
     self = (uint8_t *)halo::objects::object_try_and_get(unit_index, 3);
-    if (self == 0 || network_game_mode == 1 || ((unit_object *)self)->base.parent_object == k_datum_index_none ||
+    if (self == 0 || halo::networking::globals().game_mode == 1 || ((unit_object *)self)->base.parent_object == k_datum_index_none ||
         ((unit_object *)self)->unit.vehicle_seat_index == -1) {
         return;
     }

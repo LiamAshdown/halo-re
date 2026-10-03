@@ -20,17 +20,15 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
 extern real chimera_contrail_scale;
-extern int16_t network_game_mode;
 extern double floor(double x);
 extern int32_t game_time_force_single_tick;
 extern void game_simulate_tick(uint32_t predict_pass);
 extern void update_run_catchup_ticks(int16_t tick_count);
-extern network_server_globals *network_server;
-extern void network_game_server_per_frame_tick(int16_t update_count, uint8_t *server);
 extern void game_effects_update(float delta_time);
 extern int32_t game_engine_accumulate_simulation_ticks(float elapsed_seconds, char keep_remainder);
 extern game_engine_definition *current_game_engine;
@@ -92,7 +90,7 @@ int32_t SimulationClock::accumulate_simulation_ticks(float elapsed_seconds, char
     double floor_result;
     int32_t tick_count;
 
-    if (network_game_mode == 1 || network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 1 || halo::networking::globals().game_mode == 2) {
         scale = 1.0f;
     } else {
         scale = game_time->speed;
@@ -129,14 +127,14 @@ void SimulationClock::advance_simulation_ticks(float delta_time)
         tick_count = 1;
     }
 
-    if (network_game_mode == 0) {
+    if (halo::networking::globals().game_mode == 0) {
         if (!game_time->active) {
             game_time->ticks_this_frame = 0;
             return;
         }
         update_run_catchup_ticks((int16_t)tick_count);
-    } else if (network_game_mode == 2) {
-        network_game_server_per_frame_tick((int16_t)tick_count, (uint8_t *)network_server);
+    } else if (halo::networking::globals().game_mode == 2) {
+        halo::networking::network_game_server_per_frame_tick((int16_t)tick_count, (network_server_globals *)((uint8_t *)halo::networking::globals().server));
     }
 
     for (i = tick_count; i > 0; i--) {
@@ -146,7 +144,7 @@ void SimulationClock::advance_simulation_ticks(float delta_time)
     }
     game_time->ticks_this_frame = (int16_t)tick_count;
 
-    if (network_game_mode != 1 && network_game_mode != 2) {
+    if (halo::networking::globals().game_mode != 1 && halo::networking::globals().game_mode != 2) {
         game_effects_update(game_time->speed * delta_time);
     } else {
         game_effects_update(delta_time * 1.0f);
@@ -192,7 +190,7 @@ int32_t SimulationClock::announce_time_remaining(void)
     if (current_game_engine == (game_engine_definition *)0) {
         return 0;
     }
-    if (network_game_mode != 2) {
+    if (halo::networking::globals().game_mode != 2) {
         return 0;
     }
     ready = game_engine_players_ready_for_bsp_switch_strict();
@@ -362,7 +360,7 @@ int32_t SimulationClock::get_time_remaining(void)
  */
 float SimulationClock::get_time_scale(void)
 {
-    if (network_game_mode != 1 && network_game_mode != 2) {
+    if (halo::networking::globals().game_mode != 1 && halo::networking::globals().game_mode != 2) {
         return game_time->speed;
     }
     return 1.0f;
@@ -382,7 +380,7 @@ void SimulationClock::init_tick_record_for_mode(void)
     game_time_unknown_49 = 1;
     game_time_unknown_48 = 0;
 
-    switch (network_game_mode) {
+    switch (halo::networking::globals().game_mode) {
     case 0:
     case 2:
         update_server_dispose();

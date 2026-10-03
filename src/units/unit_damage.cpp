@@ -18,12 +18,11 @@
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
-extern int16_t network_game_mode;
 extern game_time_globals *game_time;
-extern network_client_globals *network_client;
 extern game_engine_definition *current_game_engine;
 extern uint8_t is_dedicated_server_flag;
 extern Globals *global_globals;
@@ -31,8 +30,6 @@ extern uint8_t network_object_index_cache[];
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern int32_t actor_reassign_vehicle_seat(datum_index vehicle_object_index, datum_index self_object_index, int32_t seat_selector);
 extern void actor_react_to_threat_event(datum_index self_object_index, datum_index other_object_index, int32_t event_kind, real magnitude, uint32_t extra_param, uint8_t suppress_vehicle_relay);
-extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
-extern void player_update_history_free_all(void *history);
 extern uint8_t unit_updates_suppressed;
 extern int32_t player_index_from_unit_index(uint32_t unit_index);
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
@@ -134,7 +131,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
             *(int32_t *)(empty + 0x5ac) = game_time->game_time;
         }
     }
-    if (network_game_mode == 1) {
+    if (halo::networking::globals().game_mode == 1) {
         uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
@@ -153,7 +150,7 @@ static void biped_free_local_player_history(uint8_t *self)
     int16_t salt = (int16_t)(player_index >> 16);
     uint8_t *player;
 
-    if (network_game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
+    if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
         index >= player_data->maximum_count) {
         return;
     }
@@ -161,8 +158,8 @@ static void biped_free_local_player_history(uint8_t *self)
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }
-    if (network_client != 0) {
-        player_update_history_free_all(*(void **)&network_client->update_history);
+    if (halo::networking::globals().client != 0) {
+        halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
     }
 }
 
@@ -237,7 +234,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
             goto stunned;
         }
         self = (uint8_t *)halo::objects::object_try_and_get(unit_index, 3);
-        if (self == 0 || network_game_mode == 1 ||
+        if (self == 0 || halo::networking::globals().game_mode == 1 ||
             (vehicle_index = ((unit_object *)self)->base.parent_object) == k_datum_index_none ||
             ((unit_object *)self)->unit.vehicle_seat_index == -1) {
             goto record_check;
@@ -422,7 +419,7 @@ local_reactions:
             record.unit = unit_index;
             ::halo::units::unit_broadcast_state_change_event(record);
             if ((OBJECT_HEADER(unit_index).flags & 8) == 0) {
-                network_index_cache_remove(network_object_index_cache, (int32_t)unit_index);
+                halo::networking::network_index_cache_remove(network_object_index_cache, (int32_t)unit_index);
             }
             ((unit_object *)obj)->base.network_role = 3;
         }

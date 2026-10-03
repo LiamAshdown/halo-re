@@ -134,6 +134,8 @@ for f in glob.glob("standalone/data/*.cpp"):
     if s2 != s:
         tab_changed[f] = s2
 used |= tab_used
+if os.environ.get('API_ALL'):
+    used = set(names)
 print(f"used: {len(used)} of {len(names)}; unused: {sorted(set(names) - used)}")
 
 keep = [all_funcs[n] for n in names if n in used]

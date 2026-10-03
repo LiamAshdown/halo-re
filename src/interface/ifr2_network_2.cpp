@@ -1,31 +1,21 @@
 #include "halo/interface/ifr2_network.hpp"
 #include "halo/main/api.hpp"
+#include "halo/networking/api.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
 extern "C" {
-extern network_server_globals *network_server;
-extern uint8_t network_server_host_valid;
-extern int16_t network_game_mode;
 extern game_variant game_variant_saved_default;
 extern uint8_t game_variant_saved_default_valid;
-extern uint8_t network_disconnect_timeout_flag;
-extern network_client_globals *network_client;
-extern uint8_t network_host_handoff_requested;
 extern int32_t game_variant_history_current;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t split_screen_quit_prompt_armed;
-extern uint8_t network_join_error_reason;
 extern void widget_close_all(void);
-extern void network_game_server_host_dispose(void *host);
-extern void network_client_globals_dispose(void);
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection);
 extern void game_engine_ensure_variant_history_has_entry(void);
-extern uint8_t network_game_server_host_create(void);
-extern void *network_session_create(void);
 extern void game_engine_apply_current_custom_variant(void);
 extern void game_engine_sync_variant_defaults(void);
 }
@@ -46,13 +36,13 @@ void NetworkSetup::game_host_start(char *map_name, char *variant_name, uint8_t d
     game_variant variant;
 
     widget_close_all();
-    if (network_server != (void *)0) {
-        network_game_server_host_dispose(network_server);
-        network_server = (network_server_globals *)((void *)0);
-        network_server_host_valid = 0;
+    if (halo::networking::globals().server != (void *)0) {
+        halo::networking::network_game_server_host_dispose(halo::networking::globals().server);
+        halo::networking::globals().server = (network_server_globals *)((void *)0);
+        halo::networking::globals().server_host_valid = 0;
     }
-    network_client_globals_dispose();
-    network_game_mode = 0;
+    halo::networking::network_client_globals_dispose();
+    halo::networking::globals().game_mode = 0;
     halo::main::main_queue_map_change_by_name_or_clear(map_name);
 
     game_engine_get_variant_by_name(variant_name, &variant);
@@ -65,28 +55,28 @@ void NetworkSetup::game_host_start(char *map_name, char *variant_name, uint8_t d
         (datum_index)0xffffffff, -1);
     if (widget != (widget_instance *)0) {
         game_engine_ensure_variant_history_has_entry();
-        network_disconnect_timeout_flag = disconnect_timeout_flag;
-        if (network_game_server_host_create() != 0) {
-            network_client = (network_client_globals *)(network_session_create());
-            if (network_client != (void *)0) {
-                network_host_handoff_requested = 0;
+        halo::networking::globals().disconnect_timeout_flag = disconnect_timeout_flag;
+        if (halo::networking::network_game_server_host_create() != 0) {
+            halo::networking::globals().client = (network_client_globals *)(halo::networking::network_session_create());
+            if (halo::networking::globals().client != (void *)0) {
+                halo::networking::globals().host_handoff_requested = 0;
                 game_variant_history_current = -1;
                 game_engine_apply_current_custom_variant();
                 game_engine_sync_variant_defaults();
-                network_game_mode = 2;
+                halo::networking::globals().game_mode = 2;
                 return;
             }
         }
-        if (network_server != (void *)0) {
-            network_game_server_host_dispose(network_server);
-            network_server = (network_server_globals *)((void *)0);
-            network_server_host_valid = 0;
+        if (halo::networking::globals().server != (void *)0) {
+            halo::networking::network_game_server_host_dispose(halo::networking::globals().server);
+            halo::networking::globals().server = (network_server_globals *)((void *)0);
+            halo::networking::globals().server_host_valid = 0;
         }
-        network_client_globals_dispose();
-        network_disconnect_timeout_flag = 0;
+        halo::networking::network_client_globals_dispose();
+        halo::networking::globals().disconnect_timeout_flag = 0;
     }
     split_screen_quit_prompt_string = 0xffff;
-    network_join_error_reason = 0;
+    halo::networking::globals().join_error_reason = 0;
     split_screen_quit_prompt_armed = 1;
 }
 

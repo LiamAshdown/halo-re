@@ -21,6 +21,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern int16_t local_player_count;
@@ -53,7 +54,6 @@ extern int32_t map_list_count;
 extern void widget_play_sound_effect(int16_t effect_id);
 extern uint8_t save_in_progress_00719010;
 extern int32_t cached_profile_slot;
-extern int16_t network_game_mode;
 extern uint8_t network_wait_flag_00719739;
 extern char last_profile_name[];
 extern void saved_game_delete_files(void);
@@ -372,7 +372,7 @@ uint32_t UiGameSetup::restart_saved_game(void)
         return 0;
     }
     halo::saved_games::saved_game_delete_files(last_profile_name);
-    network_game_mode = 0;
+    halo::networking::globals().game_mode = 0;
     network_wait_flag_00719739 = 1;
     if (cached_profile_slot != halo::saved_games::globals().player_profile_slots_handle) {
         if (halo::saved_games::globals().player_profile_slots_handle != -1) {

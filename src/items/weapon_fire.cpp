@@ -3,10 +3,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern uint8_t weapon_infinite_ammo;
-extern int16_t network_game_mode;
 extern game_engine_definition *current_game_engine;
 extern uint8_t weapon_bottomless_clip;
 extern uint8_t weapon_client_side_projectiles;
@@ -246,14 +246,14 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
             int32_t role;
             int32_t create_locally = 1;
 
-            if (network_game_mode == 1) {
+            if (halo::networking::globals().game_mode == 1) {
                 if ((tag_trigger->flags & 0x2000) != 0 && weapon_client_side_projectiles == 1) {
                     role = 3;
                 } else {
                     create_locally = 0;
                     role = 0;
                 }
-            } else if (network_game_mode == 2 && ((tag_trigger->flags & 0x2000) == 0 || weapon_client_side_projectiles != 1)) {
+            } else if (halo::networking::globals().game_mode == 2 && ((tag_trigger->flags & 0x2000) == 0 || weapon_client_side_projectiles != 1)) {
                 role = 0;
             } else {
                 role = 3;

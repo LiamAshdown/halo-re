@@ -1,6 +1,7 @@
 #include "halo/networking/net1_client.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern data_packet_group network_game_messages_group;
@@ -8,19 +9,14 @@ extern uint8_t network_statistics_logging_enabled;
 extern void *network_summary_log_file;
 extern char network_build_string[];
 extern int16_t network_game_mode;
-extern char network_game_scenario_load_request(network_game_session *session);
 extern data_array *player_data;
 extern player_globals *local_player_globals;
-extern int32_t player_data_iterator_advance(int16_t step_count);
-extern char network_player_entry_validate(void);
 extern uint16_t network_challenge_packet_block;
 extern uint32_t network_broadcast_body[];
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
 extern void widget_close_all(void);
 extern void game_engine_init_tick_record_for_mode(void);
 extern void game_engine_reset_all_players(void);
 extern network_server_globals *network_server;
-extern void network_host_full_state_broadcast(network_server_globals *server);
 extern int32_t join_ui_state;
 extern int32_t interface_loading_screen_address_b;
 extern int32_t interface_loading_screen_address_a;
@@ -69,7 +65,7 @@ int32_t ConnectionView::finalize_join(uint16_t *connection)
     if (network_game_mode == 2) {
         *((uint8_t *)connection + 0xec0) = 1;
     } else {
-        ok = network_game_scenario_load_request((network_game_session *)((uint8_t *)connection + 0xb14));
+        ok = halo::networking::network_game_scenario_load_request((network_game_session *)((uint8_t *)connection + 0xb14));
         if (ok != 1) {
             goto tail;
         }
@@ -92,7 +88,7 @@ int32_t ConnectionView::finalize_join(uint16_t *connection)
     goto after_search;
 
     while (1) {
-        uVar8 = (uint32_t)player_data_iterator_advance((int8_t)*((uint8_t *)puVar7 + 0xcd5));
+        uVar8 = (uint32_t)halo::networking::player_data_iterator_advance((int8_t)*((uint8_t *)puVar7 + 0xcd5));
         sVar9 = (int16_t)(int8_t)*((uint8_t *)puVar7 + 0xcd3);
         if (-1 < (int8_t)*((uint8_t *)puVar7 + 0xcd3) && sVar9 < 1) {
             puVar2 = (uint32_t *)&local_player_globals->local_players[sVar9];
@@ -112,7 +108,7 @@ int32_t ConnectionView::finalize_join(uint16_t *connection)
             break;
         }
 have_machine:
-        ok = network_player_entry_validate();
+        ok = halo::networking::network_player_entry_validate((network_player_entry *)((uint8_t *)puVar7 + 0xcb6));
         if (ok == 0) {
             break;
         }
@@ -152,7 +148,7 @@ after_search:
         if ((*(uint8_t *)(iVar6 + 0xa8c) & 1) == 0) {
             if ((((*(int32_t *)(iVar6 + 0x24) + *(int32_t *)(iVar6 + 0x1c) * -8) -
                   *(int32_t *)(iVar6 + 0x20)) + 1 < iVar12 + 1) &&
-                (ok = network_channel_stream_flush((network_channel_stream *)(iVar6 + 0x10), (network_channel *)iVar6, 1), ok == 0)) {
+                (ok = halo::networking::network_channel_stream_flush((network_channel_stream *)(iVar6 + 0x10), (network_channel *)iVar6, 1), ok == 0)) {
                 goto tail;
             }
             {
@@ -175,7 +171,7 @@ after_search:
         game_engine_init_tick_record_for_mode();
         game_engine_reset_all_players();
         if (network_game_mode == 2 && ((*(uint8_t *)((uint8_t *)network_server + 6) >> 2 & 1) == 0)) {
-            network_host_full_state_broadcast(network_server);
+            halo::networking::network_host_full_state_broadcast(network_server);
         }
         if (join_ui_state != 0) {
             int32_t now2 = halo::cseries::time_query_performance_counter_ms();

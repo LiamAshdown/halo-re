@@ -6,6 +6,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/networking/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -13,11 +14,9 @@
 
 extern "C" {
 extern void *server_list_entries_006b380c[9];
-extern network_client_globals *network_client;
 extern heap *widget_memory_pool;
 extern uint16_t missing_string_text[];
 extern uint16_t chat_local_prompt_string[];
-extern uint8_t network_game_search_entry_is_fresh(const uint8_t *entry);
 }
 
 namespace halo::interface {
@@ -27,7 +26,7 @@ namespace halo::interface {
  */
 void MenuListView::update()
 {
-    uint8_t *client = (uint8_t *)network_client;
+    uint8_t *client = (uint8_t *)halo::networking::globals().client;
     int32_t count = 0;
     int32_t i;
     widget_instance *row;
@@ -50,7 +49,7 @@ void MenuListView::update()
         uint8_t *entry = client + 4;
 
         for (i = 0; i < 9; i++) {
-            if (network_game_search_entry_is_fresh(entry) != 0 && *(int16_t *)(entry + 0x12a) == 1 && entry[300] != 0) {
+            if (halo::networking::network_game_search_entry_is_fresh((network_game_search_entry *)entry) != 0 && *(int16_t *)(entry + 0x12a) == 1 && entry[300] != 0) {
                 server_list_entries_006b380c[count] = entry;
                 count++;
             }

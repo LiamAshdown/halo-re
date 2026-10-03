@@ -19,25 +19,18 @@
 #include "halo/networking/server_command.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern int16_t network_game_mode;
 extern char sv_ban_penalty_arg_buffer[];
 extern network_server_globals * network_server;
-extern int32_t parse_time_duration_string(char *string, char default_unit, uint8_t *unit_table);
-extern network_machine * network_machine_find_by_id(network_server_globals *server, int16_t machine_id);
-extern uint8_t network_server_notify_or_resend_challenge(int16_t reason, network_machine *machine, network_server_globals *server);
-extern uint8_t network_banlist_add_ban(int32_t identity_lookup_key, int32_t duration_override_seconds,
-    network_player_entry *target_player);
 extern void * global_white_argb;
 extern void * console_message_default_color;
 extern void chimera__console_out(ColorARGB *color, char *format, ...);
 extern int32_t sv_ban_penalty_seconds[4];
 extern char network_banlist_full_path[0x104];
 extern char profile_directory[0x105];
-extern void network_banlist_load(void);
-extern uint8_t string_is_numeric(char *string);
-extern uint8_t network_player_entry_validate(network_player_entry *entry);
 extern int32_t sv_friendly_fire_mode;
 extern game_engine_definition * current_game_engine;
 extern int32_t game_variant_history_current;
@@ -49,7 +42,6 @@ extern uint32_t game_engine_variant_add_to_history(char *name, game_variant *opt
 extern void widget_close_all(void);
 extern void game_engine_begin_end_game_sequence(void);
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
-extern char network_game_start_new_server_from_profile(uint32_t param_1);
 extern game_engine_state game_engine_state_value;
 extern void game_engine_reset_round_objects(void);
 extern void game_engine_send_round_reset_message(void);
@@ -57,11 +49,8 @@ extern void game_engine_player_profile_cache_sync_all(int32_t commit);
 extern int32_t sv_maxplayers_value;
 extern uint16_t network_server_name[64];
 extern uint8_t network_server_name_is_default;
-extern uint8_t network_name_string_is_valid_for_mode(char *name, void *dest, int32_t mode);
-extern void network_password_field_set(void);
 extern uint16_t network_server_password[9];
 extern uint8_t network_server_password_is_default;
-extern void network_server_password_set(const wchar_t *source, network_server_globals *server);
 extern data_array * player_data;
 extern wchar_t k_empty_string[];
 extern char network_team_color_name_red[];
@@ -70,33 +59,12 @@ extern void * console_color_00685214;
 extern void * console_color_00686af8;
 extern char sv_rcon_password_value[9];
 extern uint8_t network_single_flag_force_reset_value;
-extern void console_command_bool_get_set(uint32_t argument_count, uint8_t *value, char **arguments,
-    const char *name);
 extern char network_build_string[];
 extern int32_t players_active_count(int32_t maximum_players);
 extern int32_t sv_timelimit_minutes;
 extern int32_t sv_tk_cooldown_ticks;
 extern char sv_tk_grace_arg_buffer[];
 extern int32_t sv_tk_grace_ticks;
-void sv_ban(uint32_t argument_count, int32_t *arguments);
-void sv_ban_penalty(uint32_t argument_count, int32_t *arguments);
-void sv_banlist_file(uint32_t argument_count, int32_t *arguments);
-network_player_entry * sv_find_client_by_name_or_index(char *name_or_index);
-void sv_friendly_fire(uint32_t argument_count, int32_t *arguments);
-void sv_kick(char *name_or_index);
-void sv_map(uint32_t argument_count, uint16_t **arguments);
-void sv_map_reset(void);
-void sv_maxplayers(uint32_t argument_count, int32_t *arguments);
-void sv_name(uint32_t argument_count, char **arguments);
-void sv_password(uint32_t argument_count, char **arguments);
-void sv_players(void);
-uint32_t sv_players_find_by_team_index_desired(int8_t team_index_desired);
-void sv_rcon_password(uint32_t argument_count, int32_t *arguments);
-void sv_single_flag_force_reset(uint32_t argument_count, char **arguments);
-void sv_status(void);
-void sv_timelimit(uint32_t argument_count, int32_t *arguments);
-void sv_tk_cooldown(uint32_t argument_count, int32_t *arguments);
-void sv_tk_grace(uint32_t argument_count, int32_t *arguments);
 }
 
 static player *sv_players_resolve_player(uint32_t handle)
@@ -132,21 +100,21 @@ void ServerCommands::ban(uint32_t argument_count, int32_t *arguments)
     }
     if (0 < (int32_t)argument_count && (int32_t)argument_count < 3) {
         if (argument_count == 2) {
-            duration = parse_time_duration_string((char *)arguments[1], 'm', (uint8_t *)sv_ban_penalty_arg_buffer);
+            duration = halo::networking::parse_time_duration_string((char *)arguments[1], 'm', (uint8_t *)sv_ban_penalty_arg_buffer);
             if (duration == -1) {
                 chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_ban for more information.");
                 return;
             }
         }
-        player = sv_find_client_by_name_or_index((char *)arguments[0]);
+        player = halo::networking::sv_find_client_by_name_or_index((char *)arguments[0]);
         if (player != 0) {
-            machine = network_machine_find_by_id(network_server, player->machine_index);
+            machine = halo::networking::network_machine_find_by_id(network_server, player->machine_index);
             if (machine != 0 && machine->channel != 0 && machine->channel->connected != 0) {
                 chimera__console_out((ColorARGB *)console_message_default_color, (char *)"sv_ban:  Can't ban a local client!");
                 return;
             }
-            network_banlist_add_ban(machine->gcd_user_id, duration, player);
-            network_server_notify_or_resend_challenge(6, machine, network_server);
+            halo::networking::network_banlist_add_ban(machine->gcd_user_id, duration, player);
+            halo::networking::network_server_notify_or_resend_challenge(6, machine, network_server);
         }
         return;
     }
@@ -208,7 +176,7 @@ void ServerCommands::ban_penalty(uint32_t argument_count, int32_t *arguments)
         saved[3] = sv_ban_penalty_seconds[3];
         i = 0;
         do {
-            int32_t value = parse_time_duration_string((char *)arguments[i], 'm', (uint8_t *)sv_ban_penalty_arg_buffer);
+            int32_t value = halo::networking::parse_time_duration_string((char *)arguments[i], 'm', (uint8_t *)sv_ban_penalty_arg_buffer);
             if (value == 0) {
                 sv_ban_penalty_seconds[i] = -1;
                 break;
@@ -254,7 +222,7 @@ void ServerCommands::banlist_file(uint32_t argument_count, int32_t *arguments)
             }
             strcpy(network_banlist_full_path, suffix);
             sprintf(network_banlist_full_path, "%s\\banned%s.txt", profile_directory, suffix);
-            network_banlist_load();
+            halo::networking::network_banlist_load();
             goto report;
         }
     }
@@ -267,13 +235,13 @@ network_player_entry * ServerCommands::find_client_by_name_or_index(char *name_o
     network_game_session *session = &network_server->session;
     int32_t i;
 
-    if (string_is_numeric(name_or_index) == 0) {
+    if (halo::networking::string_is_numeric(name_or_index) == 0) {
         uint16_t wide_name[13];
 
         halo::text::string_convert_ascii_to_unicode(wide_name, 0x1a, name_or_index);
         for (i = 0; i < 0x10; i = i + 1) {
             network_player_entry *entry = &session->players[i];
-            if (network_player_entry_validate(entry) != 0 && wcscmp((const wchar_t *)wide_name, (const wchar_t *)entry->name) == 0) {
+            if (halo::networking::network_player_entry_validate(entry) != 0 && wcscmp((const wchar_t *)wide_name, (const wchar_t *)entry->name) == 0) {
                 return entry;
             }
         }
@@ -285,7 +253,7 @@ network_player_entry * ServerCommands::find_client_by_name_or_index(char *name_o
         }
         for (i = 0; i < 0x10; i = i + 1) {
             network_player_entry *entry = &session->players[i];
-            if (network_player_entry_validate(entry) != 0 && entry->slot_index == index) {
+            if (halo::networking::network_player_entry_validate(entry) != 0 && entry->slot_index == index) {
                 return entry;
             }
         }
@@ -349,14 +317,14 @@ void ServerCommands::kick(char *name_or_index)
         chimera__console_out((ColorARGB *)console_message_default_color, (char *)"sv_kick is a server-only function!");
         return;
     }
-    player = sv_find_client_by_name_or_index(name_or_index);
+    player = halo::networking::sv_find_client_by_name_or_index(name_or_index);
     if (player != 0) {
-        machine = network_machine_find_by_id(network_server, player->machine_index);
+        machine = halo::networking::network_machine_find_by_id(network_server, player->machine_index);
         if (machine != 0 && machine->channel != 0 && machine->channel->connected != 0) {
             chimera__console_out((ColorARGB *)global_white_argb, (char *)"sv_kick:  Can't kick a local client!");
             return;
         }
-        network_server_notify_or_resend_challenge(7, machine, network_server);
+        halo::networking::network_server_notify_or_resend_challenge(7, machine, network_server);
     }
 }
 
@@ -384,7 +352,7 @@ void ServerCommands::map(uint32_t argument_count, uint16_t **arguments)
         game_engine_get_variant_by_name(0, &new_variant);
         memcpy(&game_variant_saved_default, &new_variant, sizeof(game_variant));
         game_variant_saved_default_valid = 1;
-        if (network_game_start_new_server_from_profile(0) == 0) {
+        if (halo::networking::network_game_start_new_server_from_profile(0) == 0) {
             return;
         }
         halo::main::console_deactivate();
@@ -454,12 +422,12 @@ void ServerCommands::name(uint32_t argument_count, char **arguments)
         if (length != 0 && (uint32_t)length < 0x40) {
             wchar_t *result = reinterpret_cast<wchar_t *>(halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(scratch), 0x80, name));
             if (result == scratch) {
-                if (network_name_string_is_valid_for_mode(name, scratch, 3) != 0) {
+                if (halo::networking::network_name_string_is_valid_for_mode(name, scratch, 3) != 0) {
                     network_server_globals *server = network_server;
                     wcsncpy((wchar_t *)network_server_name, (const wchar_t *)scratch, 0x3f);
                     network_server_name_is_default = 0;
                     if (server != 0) {
-                        network_password_field_set();
+                        halo::networking::network_password_field_set((uint8_t *)server, (wchar_t *)scratch);
                     }
                     goto report;
                 }
@@ -491,14 +459,14 @@ void ServerCommands::password(uint32_t argument_count, char **arguments)
             if (result == scratch) {
                 uint8_t ok = 1;
                 if (text[0] != '\0') {
-                    ok = network_name_string_is_valid_for_mode(text, scratch, 0);
+                    ok = halo::networking::network_name_string_is_valid_for_mode(text, scratch, 0);
                 }
                 if (ok != 0) {
                     network_server_globals *server = network_server;
                     wcsncpy((wchar_t *)network_server_password, (const wchar_t *)scratch, 8);
                     network_server_password_is_default = 0;
                     if (server != 0) {
-                        network_server_password_set(scratch, server);
+                        halo::networking::network_server_password_set(scratch, server);
                     }
                     goto report;
                 }
@@ -513,7 +481,6 @@ void ServerCommands::password(uint32_t argument_count, char **arguments)
 
 void ServerCommands::players(void)
 {
-    char (*const network_player_entry_validate)(network_player_entry *entry) = reinterpret_cast<char (*)(network_player_entry *entry)>(&::network_player_entry_validate);
     char line[256];
     uint16_t score_text[256];
     char ascii_name[16];
@@ -532,8 +499,8 @@ void ServerCommands::players(void)
     entry = network_server->session.players;
     remaining = 16;
     do {
-        if (network_player_entry_validate(entry) != 0) {
-            uint32_t found = sv_players_find_by_team_index_desired(entry->slot_index);
+        if (halo::networking::network_player_entry_validate(entry) != 0) {
+            uint32_t found = halo::networking::sv_players_find_by_team_index_desired(entry->slot_index);
             player *p = 0;
             int32_t ping;
             int32_t tk_num;
@@ -626,7 +593,7 @@ void ServerCommands::single_flag_force_reset(uint32_t argument_count, char **arg
     uint8_t old_value = network_single_flag_force_reset_value;
     uint8_t new_value = old_value;
 
-    console_command_bool_get_set(argument_count, &new_value, arguments, "sv_single_flag_force_reset");
+    halo::networking::console_command_bool_get_set(argument_count, &new_value, arguments, "sv_single_flag_force_reset");
 
     if (new_value != old_value && current_game_engine != 0) {
         chimera__console_out((ColorARGB *)0, (char *)"Game in progress...  Changes will apply to the next game.");
@@ -704,7 +671,7 @@ void ServerCommands::tk_cooldown(uint32_t argument_count, int32_t *arguments)
             return;
         }
         {
-            int32_t seconds = parse_time_duration_string((char *)arguments[0], 's', (uint8_t *)sv_tk_grace_arg_buffer);
+            int32_t seconds = halo::networking::parse_time_duration_string((char *)arguments[0], 's', (uint8_t *)sv_tk_grace_arg_buffer);
             if (seconds < 0) {
                 chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_tk_cooldown for more information.");
                 return;
@@ -723,7 +690,7 @@ void ServerCommands::tk_grace(uint32_t argument_count, int32_t *arguments)
             return;
         }
         {
-            int32_t seconds = parse_time_duration_string((char *)arguments[0], 's', (uint8_t *)sv_tk_grace_arg_buffer);
+            int32_t seconds = halo::networking::parse_time_duration_string((char *)arguments[0], 's', (uint8_t *)sv_tk_grace_arg_buffer);
             if (seconds < 0) {
                 chimera__console_out((ColorARGB *)0, (char *)"Incorrect usage. Type help sv_tk_grace for more information.");
                 return;
@@ -848,7 +815,7 @@ const ServerCommand *ServerCommandRegistry::find(const char *command_name)
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 void sv_ban(uint32_t argument_count, int32_t *arguments)
 {
     halo::networking::ServerCommandRegistry::get(halo::networking::ServerCommandId::ban).execute(argument_count, arguments);

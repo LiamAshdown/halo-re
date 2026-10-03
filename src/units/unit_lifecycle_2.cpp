@@ -13,17 +13,15 @@
 #include "halo/cache/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern data_array *actor_data;
-extern int16_t network_game_mode;
 extern game_time_globals *game_time;
-extern network_client_globals *network_client;
 extern void player_reset_after_unit_change(uint32_t player_index);
 extern void actor_attempt_grenade_throw(datum_index actor_index);
 extern void actor_release_from_cluster_or_delete(datum_index actor_index, datum_index unit_index);
-extern void player_update_history_free_all(void *history);
 }
 
 namespace halo::units {
@@ -116,7 +114,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
             *(int32_t *)(empty + 0x5ac) = game_time->game_time;
         }
     }
-    if (network_game_mode == 1) {
+    if (halo::networking::globals().game_mode == 1) {
         uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
@@ -135,7 +133,7 @@ static void biped_free_local_player_history(uint8_t *self)
     int16_t salt = (int16_t)(player_index >> 16);
     uint8_t *player;
 
-    if (network_game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
+    if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
         index >= player_data->maximum_count) {
         return;
     }
@@ -143,8 +141,8 @@ static void biped_free_local_player_history(uint8_t *self)
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }
-    if (network_client != 0) {
-        player_update_history_free_all(*(void **)&network_client->update_history);
+    if (halo::networking::globals().client != 0) {
+        halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
     }
 }
 
@@ -212,7 +210,7 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
     if (((unit_object *)obj)->base.parent_object != k_datum_index_none) {
         if (((unit_object *)obj)->unit.vehicle_seat_index == -1) {
             UnitView(unit_index).detach_reposition_and_nudge();
-        } else if (network_game_mode != 1) {
+        } else if (halo::networking::globals().game_mode != 1) {
             uint8_t *me = OBJECT_DATA(unit_index);
 
             if (((struct object *)me)->parent_object != k_datum_index_none && ((struct unit_object *)me)->unit.vehicle_seat_index != -1) {

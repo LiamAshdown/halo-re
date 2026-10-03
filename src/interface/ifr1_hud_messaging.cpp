@@ -9,6 +9,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern hud_messaging_globals *hud_messaging;
@@ -34,18 +35,9 @@ extern data_array *player_data;
 extern void *global_zero_vector3d_pointer;
 extern int16_t item_type_to_message_stage(int16_t item_type_code);
 extern int16_t item_type_to_animation_stage(int16_t message_stage);
-extern int16_t network_game_mode;
-extern network_server_globals *network_server;
 extern uint8_t network_message_scratch[0x7ff8];
 extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind,
                                  int16_t count);
-extern int32_t message_delta_encode_message(void *buffer, int32_t buffer_size, int32_t flag, int32_t message_type,
-                                            int32_t changed_offset, void **items, int32_t type_offset,
-                                            int32_t count, char force_changed);
-extern network_machine *network_machine_find_by_id(network_server_globals *server, int16_t machine_id);
-extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, int32_t unknown_0,
-                                               void *data, int32_t bits, int32_t reliable, int32_t unknown_a,
-                                               int32_t unknown_b, int32_t priority);
 extern hud_globals_flags *hud_flags;
 }
 
@@ -420,7 +412,7 @@ void HudMessaging::post_item_message(int16_t count, int32_t source, uint8_t kind
     int32_t bits;
     network_machine *machine;
 
-    if (network_game_mode == 0) {
+    if (halo::networking::globals().game_mode == 0) {
         hud_add_item_message(local_player_index, source, kind, count);
         return;
     }
@@ -429,13 +421,13 @@ void HudMessaging::post_item_message(int16_t count, int32_t source, uint8_t kind
     items[0] = &payload;
     payload.kind = kind;
     items[1] = 0;
-    bits = message_delta_encode_message(network_message_scratch, 0x7ff8, 0, 6, 0, items, 0, 1, 0);
+    bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 6, 0, items, 0, 1, 0);
     if (bits <= 0) {
         return;
     }
-    machine = network_machine_find_by_id(network_server, (int16_t)machine_id);
+    machine = halo::networking::network_machine_find_by_id(halo::networking::globals().server, (int16_t)machine_id);
     if (machine != 0 && machine->machine_id != -1) {
-        network_session_send_to_machine(machine->machine_id, network_server, 1, network_message_scratch, bits, 1, 0,
+        halo::networking::network_session_send_to_machine(machine->machine_id, halo::networking::globals().server, 1, network_message_scratch, bits, 1, 0,
                                         1, 3);
     }
 }

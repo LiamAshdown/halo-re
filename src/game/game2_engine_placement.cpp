@@ -9,6 +9,7 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 typedef struct netgame_equipment_spawn_message {
     int32_t object_hash;
@@ -30,10 +31,7 @@ extern uint32_t game_engine_resolve_multiplayer_placement(uint32_t handle);
 extern Globals *global_globals;
 extern int32_t game_engine_unknown_aa00;
 extern uint8_t game_engine_map_table_value;
-extern uint8_t message_delta_decode_compound_field(void *event, void *out_values);
-extern void message_delta_decode_compound_field_staged(void *event);
 extern uint8_t network_object_index_cache[];
-extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key);
 extern double fcos(double radians);
 extern double fsin(double radians);
 extern game_time_globals *game_time;
@@ -42,7 +40,6 @@ extern int32_t tag_reflexive_pick_weighted_random_index(datum_index tag_id);
 extern void game_engine_dispatch_item_pickup_event(int32_t machine_id, int32_t picked_tag, int32_t param_2);
 extern int32_t teleport_message_cooldown;
 extern wchar_t empty_string;
-extern network_client_globals *network_client;
 extern int16_t teleport_flash_type;
 extern uint32_t teleport_flash_maximum_intensity;
 extern uint32_t teleport_flash_alpha;
@@ -57,7 +54,6 @@ extern int32_t game_engine_find_one_valid_starting_location(int16_t type, int16_
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
 extern int16_t unit_get_local_player_weapon_index(datum_index unit_index);
 extern void chimera__hud_message(int16_t local_player_index, wchar_t *text);
-extern void player_update_history_free_all(void *queue);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
 extern void game_engine_scan_netgame_flags_noop(int16_t needle);
 extern void game_engine_notify_item_expired(datum_index object_index);
@@ -496,10 +492,10 @@ void EnginePlacement::spawn_or_replay_netgame_equipment(int32_t *message)
     datum_index new_object;
 
     if (*(int32_t *)*(int32_t **)message != 0) {
-        message_delta_decode_compound_field_staged(message);
+        halo::networking::message_delta_decode_compound_field_staged((void **)message);
         return;
     }
-    if (message_delta_decode_compound_field(message, &decoded) == 0) {
+    if (halo::networking::message_delta_decode_compound_field((void **)message, &decoded) == 0) {
         return;
     }
 
@@ -520,7 +516,7 @@ void EnginePlacement::spawn_or_replay_netgame_equipment(int32_t *message)
     if (new_object != (datum_index)0xffffffff) {
         object *obj = ((object_header *)halo::objects::globals().object_data->data)[new_object & 0xffff].data;
 
-        network_index_cache_insert_if_free(network_object_index_cache, decoded.object_hash, (int32_t)new_object);
+        halo::networking::network_index_cache_insert_if_free(network_object_index_cache, decoded.object_hash, (int32_t)new_object);
         halo::objects::object_list_membership_set(new_object, 0);
         if ((*(uint8_t *)equipment & 1) != 0) {
             obj->flags = obj->flags | 0x20;
@@ -777,8 +773,8 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
                     &unit_object->position, 1.0f, 0.0f);
 
                 if ((unit_object->network_role == 1 || unit_object->network_role == 2) &&
-                    p->local_player_index != -1 && network_client != 0) {
-                    player_update_history_free_all(*(void **)&network_client->update_history);
+                    p->local_player_index != -1 && halo::networking::globals().client != 0) {
+                    halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
                     return;
                 }
             }

@@ -19,6 +19,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
@@ -32,11 +33,9 @@ extern uint8_t *global_scenario;
 extern const real_vector3d *global_white_color;
 extern uint8_t network_action_apply_active;
 extern int32_t network_client;
-extern int16_t network_game_mode;
 extern char network_log_path_format[];
 extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern int32_t network_server;
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern data_array *object_data;
 extern object_globals *object_globals_pointer;
 extern memory_pool *object_memory_pool;
@@ -74,7 +73,7 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
         joining = 1;
     } else {
         halo::input::control_binding_table_initialize();
-        if (network_game_mode == 2) {
+        if (halo::networking::globals().game_mode == 2) {
             object_type_definition *vehicle = object_type_definitions[_object_type_vehicle];
             int32_t size = vehicle->scenario_placement_size;
             TagReflexive *placements = (TagReflexive *)(scenario + vehicle->scenario_placement_offset);
@@ -107,7 +106,7 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
         int32_t size;
         int16_t i;
 
-        if (network_game_mode == 1 && type == _object_type_vehicle) {
+        if (halo::networking::globals().game_mode == 1 && type == _object_type_vehicle) {
             continue;
         }
         if (((1 << type) & 0x240) != 0) {
@@ -281,7 +280,7 @@ datum_index halo::objects::ObjectFactory::create(object_placement_data *placemen
 {
     uint32_t role = 3;
 
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         Object *definition = (Object *)halo::cache::globals().tag_instances[(uint16_t)placement->definition_tag].data;
         if (object_type_definitions[definition->object_type]->network_delta_message_type != -1) {
             role = 0;
@@ -460,14 +459,14 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     }
 
     if (network_action_apply_active == 0 && active) {
-        if (network_game_mode == 2 && obj->network_role == 0) {
+        if (halo::networking::globals().game_mode == 2 && obj->network_role == 0) {
             int32_t override_count;
             halo::objects::object_type_override_call_0x68(new_index);
             override_count = halo::objects::object_type_override_get_0x64(new_index, network_message_scratch,
                                                            sizeof network_message_scratch);
             if (override_count > 0) {
 
-                network_session_broadcast_to_flagged(override_count, network_server__as_object_new_with_datum_role_control, 1, network_message_scratch,
+                halo::networking::network_session_broadcast_to_flagged(override_count, network_server__as_object_new_with_datum_role_control, 1, network_message_scratch,
                     1, 0, 0, 3);
             }
         }

@@ -19,11 +19,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern network_id_table *machine_table;
-extern uint8_t message_delta_decode_compound_field(void *event, void *out_values);
-extern void message_delta_decode_compound_field_staged(void *event);
 extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle);
 extern uint8_t game_engine_attribute_enabled;
 extern game_time_globals *game_time;
@@ -57,10 +56,10 @@ uint8_t KillFeed::apply_kill_streak_message(int32_t **envelope)
     struct { int32_t machine_id; uint8_t unknown_04[4]; int16_t slot; int16_t amount; } decoded;
 
     if (**envelope != 0) {
-        message_delta_decode_compound_field_staged(envelope);
+        halo::networking::message_delta_decode_compound_field_staged((void **)envelope);
         return 0;
     }
-    if (message_delta_decode_compound_field(envelope, &decoded) == 0) {
+    if (halo::networking::message_delta_decode_compound_field((void **)envelope, &decoded) == 0) {
         return 0;
     }
 
@@ -641,7 +640,7 @@ void KillFeed::handle_kill_feed_network_event(int32_t **message)
     int32_t decoded[3];
 
     if (**message == 0) {
-        if (message_delta_decode_compound_field(message, decoded) != 0) {
+        if (halo::networking::message_delta_decode_compound_field((void **)message, decoded) != 0) {
             datum_index killer = (datum_index)0xffffffff;
             if (decoded[0] != 0) {
                 killer = *(datum_index *)(*(uint8_t **)&machine_table->handles + decoded[0] * 4);
@@ -651,7 +650,7 @@ void KillFeed::handle_kill_feed_network_event(int32_t **message)
             return;
         }
     } else {
-        message_delta_decode_compound_field_staged(message);
+        halo::networking::message_delta_decode_compound_field_staged((void **)message);
     }
 }
 

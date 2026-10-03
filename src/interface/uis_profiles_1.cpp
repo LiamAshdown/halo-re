@@ -19,6 +19,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern int32_t profile_slot_lookup_cache_00692ac8;
@@ -46,7 +47,6 @@ extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t split_screen_quit_prompt_armed;
-extern uint8_t network_join_error_reason;
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 extern void saved_item_select(int32_t selection_id);
 extern void widget_play_sound_effect(int16_t effect_id);
@@ -200,7 +200,7 @@ uint32_t UiProfiles::new_profile_name_entry_commit(void)
 
 fail:
     split_screen_quit_prompt_string = 0xffff;
-    network_join_error_reason = 0;
+    halo::networking::globals().join_error_reason = 0;
     split_screen_quit_prompt_armed = 1;
     if (quit_confirm_error_string_index == -1) {
         quit_confirm_error_string_index = 0x25;

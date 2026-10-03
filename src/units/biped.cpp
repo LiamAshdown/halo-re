@@ -16,6 +16,7 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern uint8_t *cinematic_globals_ptr;
@@ -25,7 +26,6 @@ extern double fsin(double x);
 extern game_time_globals *game_time;
 extern Globals *global_globals;
 extern real_vector3d *global_down3d_pointer;
-extern int16_t network_game_mode;
 extern uint32_t k_default_resting_plane[4];
 extern uint8_t collision_bsp_surface_test_point_side_2d(ModelCollisionGeometryBSP *bsp, real_point2d *point, int32_t surface_index, int16_t axis, uint8_t sign);
 extern uint32_t collision_bsp_surface_closest_edge_point_2d(ModelCollisionGeometryBSP *bsp, int32_t surface_index, uint16_t axis, uint8_t sign, real_point2d *point, real_point2d *out_point);
@@ -33,7 +33,6 @@ extern real_point3d *collision_bsp_surface_solve_third_axis(ModelCollisionGeomet
 extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
 extern int32_t k_biped_minimum_age_ticks;
 extern data_array *player_data;
-extern network_client_globals *network_client;
 extern uint8_t biped_detach_from_flipped_vehicle;
 extern real_point3d *global_origin3d_pointer;
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
@@ -41,7 +40,6 @@ extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action
 extern uint32_t weapon_prevents_melee_attack(datum_index item_index);
 extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index, int16_t category, int16_t mode);
 extern void weapon_reset_triggers(datum_index item_index);
-extern void player_update_history_free_all(void *history);
 extern double sqrt(double x);
 extern void actor_squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_object_index, datum_index other_object_index);
 extern int32_t unit_get_local_player_weapon_index(datum_index unit);
@@ -238,7 +236,7 @@ uint8_t BipedView::create()
     ::halo::units::unit_update_up_vector((Biped *)definition, (::object *)object);
     ((struct biped_object *)object)->biped.last_ground_object_ticks = 0;
     ((struct biped_object *)object)->biped.last_ground_object_index = -1;
-    if (network_game_mode == 1 || network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 1 || halo::networking::globals().game_mode == 2) {
         ((struct biped_object *)object)->biped.unknown_526 = 0;
         ((struct biped_object *)object)->biped.network_update_sequence = 0;
         ((struct biped_object *)object)->biped.network_delta_sequence = 0;
@@ -472,7 +470,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
             *(int32_t *)(empty + 0x5ac) = game_time->game_time;
         }
     }
-    if (network_game_mode == 1) {
+    if (halo::networking::globals().game_mode == 1) {
         uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)self)->unit.controlling_player, player_data);
 
         if (player != 0 && ((struct player *)player)->local_player_index == -1) {
@@ -491,7 +489,7 @@ static void biped_free_local_player_history(uint8_t *self)
     int16_t salt = (int16_t)(player_index >> 16);
     uint8_t *player;
 
-    if (network_game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
+    if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
         index >= player_data->maximum_count) {
         return;
     }
@@ -499,8 +497,8 @@ static void biped_free_local_player_history(uint8_t *self)
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }
-    if (network_client != 0) {
-        player_update_history_free_all(*(void **)&network_client->update_history);
+    if (halo::networking::globals().client != 0) {
+        halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
     }
 }
 
@@ -535,7 +533,7 @@ uint8_t BipedView::update()
             goto tail;
         }
         UnitView(object_index).evaluate_flee_reaction();
-        if (test_flag(((struct unit_object *)obj)->unit.control_flags, units::unit_control_flag::action) && network_game_mode != 1) {
+        if (test_flag(((struct unit_object *)obj)->unit.control_flags, units::unit_control_flag::action) && halo::networking::globals().game_mode != 1) {
             uint8_t *self = (uint8_t *)halo::objects::object_try_and_get(object_index, 3);
             datum_index vehicle_index;
 
@@ -579,7 +577,7 @@ uint8_t BipedView::update()
             }
         }
         if (biped_detach_from_flipped_vehicle && ((struct object *)parent)->up.k < 0.0f && test_flag(((struct object *)parent)->flags, objects::object_flag::unknown_2) &&
-            network_game_mode != 1) {
+            halo::networking::globals().game_mode != 1) {
             uint8_t *self = OBJECT_DATA(object_index);
             datum_index vehicle_index = ((unit_object *)self)->base.parent_object;
 

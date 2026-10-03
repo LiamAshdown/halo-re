@@ -8,6 +8,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/render/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -17,7 +18,6 @@ extern int16_t director_camera_mode;
 extern datum_index director_camera_target;
 extern float camera_script_time_remaining;
 extern uint16_t split_screen_quit_prompt_string;
-extern uint8_t network_join_error_reason;
 extern void cinematic_screen_effect_set_convolution(int16_t convolution_type, int16_t extra_passes, float radius_lower_bound, float radius_upper_bound, float duration);
 extern void cinematic_screen_effect_set_filter(float light_enhancement_lower, float light_enhancement_upper, float desaturation_lower, float desaturation_upper, uint8_t is_additive, float duration);
 extern uint8_t *cinematic_screen_effect_state;
@@ -175,7 +175,7 @@ const ScriptCommandGroup &CameraCommands::commands()
 void CinematicCommands::cinematic_abort(int16_t function_index, uint32_t thread_index, char first)
 {
     split_screen_quit_prompt_string = halo::k_word_none;
-    network_join_error_reason = 0;
+    halo::networking::globals().join_error_reason = 0;
     halo::main::fields::revert_map_if_allowed = 1;
     hs_thread_return(0, thread_index);
 }

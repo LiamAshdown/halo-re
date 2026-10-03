@@ -18,6 +18,7 @@
 #include "halo/main/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/networking/api.hpp"
 
 static_assert(sizeof(data_array) == halo::saved_games::k_game_state_block_header_size);
 static_assert(sizeof(memory_pool) == halo::saved_games::k_game_state_block_header_size);
@@ -54,7 +55,6 @@ extern char *strcpy(char *dest, const char *source);
 extern uint32_t strlen(const char *str);
 extern void *memset(void *dest, int32_t value, uint32_t count);
 extern uint16_t split_screen_quit_prompt_string;
-extern uint8_t network_join_error_reason;
 extern game_state_proc game_state_before_save_proc;
 extern uint8_t game_state_write_is_checkpoint;
 extern void *memcpy(void *dest, const void *src, uint32_t count);
@@ -373,7 +373,7 @@ void perform_revert(void)
 {
     if (game_state_revert_available == 0 && halo::hs::fields::recover_saved_games_hack == 0) {
         split_screen_quit_prompt_string = k_word_none;
-        network_join_error_reason = 0;
+        halo::networking::globals().join_error_reason = 0;
         halo::main::fields::reset_map = 1;
         halo::main::fields::lost_map = 0;
         return;

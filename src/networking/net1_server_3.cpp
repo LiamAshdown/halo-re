@@ -2,22 +2,13 @@
 #include <string.h>
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern data_packet_group network_game_messages_group;
 extern network_client_globals *network_client;
-extern void *network_prepare_challenge_packet(void);
-extern void network_timer_advance(network_timer_pair *timer);
-extern void network_machine_timer_start(network_machine *machine, int32_t duration_ms);
-extern char network_host_send_scenario_announcement(network_server_globals *server);
-extern char network_game_all_machines_have_player(network_server_globals *server);
-extern char network_game_any_team_empty(network_server_globals *server);
-extern char network_game_server_load_scenario(void);
-extern uint8_t network_server_any_machine_awaiting_flag(network_server_globals *server);
-extern char network_session_broadcast_to_all(network_server_globals *server, int32_t param_1, void *data, int32_t param_3, int32_t param_4, char force, int32_t param_6);
 extern uint16_t network_challenge_packet_block;
 extern uint8_t network_broadcast_body[1536];
-extern char network_session_send_to_machine(int32_t a, void *packet, int32_t byte_count, int32_t b, int32_t c, int32_t d, int32_t e);
 }
 
 namespace halo::networking {
@@ -51,7 +42,7 @@ uint8_t ServerView::heartbeat_tick()
 
             machine = &server->machines[i];
             if (machine->channel != 0 && (machine->channel->flags & 0x10) == 0) {
-                network_machine_timer_start(machine, 0);
+                halo::networking::network_machine_timer_start(machine, 0);
             }
         }
 
@@ -60,8 +51,8 @@ uint8_t ServerView::heartbeat_tick()
             char team_empty;
             char restarting;
 
-            have_players = network_game_all_machines_have_player(server);
-            team_empty = have_players != 0 ? network_game_any_team_empty(server) : 0;
+            have_players = halo::networking::network_game_all_machines_have_player(server);
+            team_empty = have_players != 0 ? halo::networking::network_game_any_team_empty(server) : 0;
             if (have_players == 0 || team_empty != 0) {
                 restarting = 0;
                 timer->remaining_ms = 0;
@@ -70,11 +61,11 @@ uint8_t ServerView::heartbeat_tick()
                 *(uint8_t *)(base + 0x9d4) = 0;
             } else {
                 restarting = 1;
-                network_timer_advance(timer);
+                halo::networking::network_timer_advance(timer);
                 if (timer->remaining_ms == 0 &&
-                    network_server_any_machine_awaiting_flag(server) != 0 &&
+                    halo::networking::network_server_any_machine_awaiting_flag(server) != 0 &&
                     *(uint8_t *)(base + 0x9d5) == 0) {
-                    result = network_host_send_scenario_announcement(server);
+                    result = halo::networking::network_host_send_scenario_announcement(server);
                     goto scenario_check;
                 }
                 if ((uint32_t)(now_ms - *(int32_t *)(base + 0x9d0)) < 0x3e9) {
@@ -83,21 +74,25 @@ uint8_t ServerView::heartbeat_tick()
             }
             *(uint8_t *)(base + 0x9d6) = 0;
             if (restarting) {
-                network_timer_advance(timer);
+                halo::networking::network_timer_advance(timer);
             }
             {
                 void *packet;
 
-                packet = network_prepare_challenge_packet();
-                if (packet != 0 && network_session_broadcast_to_all(server, 0, packet, 1, 0, 1, 3) != 0) {
+                uint16_t countdown_seconds = restarting ? (uint16_t)(timer->remaining_ms / 1000) : 0xffff;
+
+                packet = halo::networking::network_prepare_challenge_packet(9, &countdown_seconds);
+                if (packet != 0 && halo::networking::network_session_broadcast_to_all(server, 0, packet, 1, 0, 1, 3) != 0) {
                     *(int32_t *)(base + 0x9d0) = now_ms;
                 }
             }
         } else if (*(int32_t *)(base + 0x9bc) + 5000 < now_ms) {
             void *packet;
 
-            packet = network_prepare_challenge_packet();
-            network_session_broadcast_to_all(server, 0, packet, 1, 0, 1, 3);
+            uint16_t empty_payload = 0;
+
+            packet = halo::networking::network_prepare_challenge_packet(0xc, &empty_payload);
+            halo::networking::network_session_broadcast_to_all(server, 0, packet, 1, 0, 1, 3);
             *(int32_t *)(base + 0x9bc) = now_ms;
         }
     } else if (*(int32_t *)(base + 0x9c4) != 0) {
@@ -113,7 +108,7 @@ uint8_t ServerView::heartbeat_tick()
 
                 flags = *(uint16_t *)((uint8_t *)&server->machines[i] + 0xe);
                 if ((flags & 1) != 0 && (flags & 4) == 0) {
-                    network_machine_timer_start(&server->machines[i], 0);
+                    halo::networking::network_machine_timer_start(&server->machines[i], 0);
                 }
             }
             has_client = (network_client != 0);
@@ -125,7 +120,7 @@ uint8_t ServerView::heartbeat_tick()
 
 scenario_check:
     if (*(uint8_t *)(base + 0x9fa) == 1) {
-        if (network_game_server_load_scenario() == 1) {
+        if (halo::networking::network_game_server_load_scenario() == 1) {
             server->state = 1;
         }
         *(uint8_t *)(base + 0x9fa) = 0;
@@ -153,8 +148,10 @@ uint32_t ServerView::resend_challenge_periodic()
     if (*last_sent + 5000u < now_ms) {
         void *packet;
 
-        packet = network_prepare_challenge_packet();
-        network_session_broadcast_to_all(server, 0, packet, 1, 0, 1, 3);
+        uint16_t empty_payload = 0;
+
+        packet = halo::networking::network_prepare_challenge_packet(0xd, &empty_payload);
+        halo::networking::network_session_broadcast_to_all(server, 0, packet, 1, 0, 1, 3);
         *last_sent = now_ms;
     }
     return 1;
@@ -197,7 +194,7 @@ void HostServerView::full_state_broadcast()
                     network_challenge_packet_block = ((int16_t)capacity + 2) * 0x10 | 0xc;
                     memcpy(network_broadcast_body, encode_buffer, (uint32_t)capacity & 0xffff);
                     byte_count = (uint32_t)(network_challenge_packet_block >> 4) << 3;
-                    if (network_session_send_to_machine(0, &network_challenge_packet_block, byte_count, 1, 0, 0, 3) != 0) {
+                    if (halo::networking::network_session_send_to_machine(machine->machine_id, host, 0, &network_challenge_packet_block, byte_count, 1, 0, 0, 3) != 0) {
                         timestamp = timestamp + 100;
                     }
                 }

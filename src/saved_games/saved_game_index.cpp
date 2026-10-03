@@ -22,6 +22,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern char savegames_directory[0x100];
@@ -67,7 +68,6 @@ extern char last_multiplayer_map_path[0x100];
 extern uint8_t default_player_profile_initialized;
 extern variant_write_request variant_write_request_state;
 extern int16_t default_game_variant_count;
-extern int32_t mutex_create(network_mutex_record **out_handle);
 extern uint16_t saved_game_display_name_buffer[0x80];
 extern network_thread_record *variant_write_thread;
 extern int16_t savegame_index_write_count;
@@ -719,9 +719,9 @@ void files_initialize(void)
     savegame_index_dirty = 1;
     saved_game_files_mutex = 0;
     savegame_index_mutex = 0;
-    mutex1_ok = mutex_create(&saved_game_files_mutex);
+    mutex1_ok = halo::networking::mutex_create(&saved_game_files_mutex);
     if (mutex1_ok != 0) {
-        mutex2_ok = mutex_create(&savegame_index_mutex);
+        mutex2_ok = halo::networking::mutex_create(&savegame_index_mutex);
         saved_game_files_initialized = 1;
         if (mutex2_ok != 0) {
             goto default_profile;

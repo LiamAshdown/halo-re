@@ -15,29 +15,21 @@
 #include "halo/networking/net2_player_update_build.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern int32_t network_ack_resend_interval_ms;
 extern game_time_globals * game_time;
 extern uint8_t network_message_scratch[0x7ff8];
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern void network_player_update_history_log_write(const char *format, ...);
 extern network_id_table * object_network_id_table;
 extern int32_t network_vehicle_ack_resend_interval_ms;
 extern data_array * player_data;
 extern void * machine_table;
-extern uint8_t network_session_send_to_machine(int32_t machine_id, void *data, int32_t bits,
-    int32_t reliable, int32_t unknown_a, int32_t unknown_b, int32_t priority);
 extern double sin(double x);
 extern double cos(double x);
 extern uint8_t network_broadcast_event_feed_mode;
 extern int32_t network_action_resend_interval_ms;
 extern int32_t network_action_resend_interval_ms_alt;
-extern network_machine * network_machine_find_by_id(network_server_globals *server,
-    int32_t machine_id);
-extern void network_event_feed_queue_append(uint8_t *queue, uint32_t *key,
-    uint32_t *payload);
 extern int32_t network_transform_resend_interval_ms;
 extern int32_t network_vehicle_transform_resend_interval_ms_alt;
 extern int32_t network_attachment_transform_resend_interval_ms_alt;
@@ -45,26 +37,7 @@ extern network_server_globals * network_server;
 extern uint8_t player_unit_has_parent(datum_index player_handle);
 extern double atan2(double y, double x);
 extern double sqrt(double x);
-extern void player_update_history_log_printf_filtered(player *target_player, int32_t category,
-    const char *format, ...);
 extern uint8_t circular_queue_push(circular_queue *queue, void *record);
-extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask,
-    const char *format, ...);
-int32_t build_local_player_position_update(uint8_t *out_changed, player *plr);
-int32_t build_local_player_vehicle_update(uint8_t *out_changed, player *plr);
-void build_player_full_resync_update(uint32_t player_index);
-void build_remote_player_action_update(uint32_t player_index, uint32_t network_key,
-    uint8_t update_id_byte, player_action control);
-void build_remote_player_transform_update(uint32_t player_index, player_action *control,
-    int32_t network_key);
-void build_remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t update_id,
-    uint8_t flags, char is_full, player_action *control, int32_t network_key);
-void build_remote_player_vehicle_update(uint8_t *cache, uint8_t update_id, uint8_t flags,
-    char is_full, player_action *control, int32_t network_key);
-void handle_remote_player_action_update(remote_player_action_state *control_source,
-    remote_player_update_header *header, uint8_t is_baseline);
-uint8_t is_local_player_update_in_order(int32_t current_update_id, int32_t new_update_id);
-uint8_t is_remote_player_update_in_order(player *plr, uint8_t new_update_id, int32_t update_id);
 }
 
 
@@ -92,7 +65,7 @@ int32_t PlayerUpdateBuilder::local_player_position_update(uint8_t *out_changed, 
             *(int32_t *)(plr_bytes + 0xf0) + network_ack_resend_interval_ms <=
                 game_time->game_time) {
             ack_ptr = &ack;
-            encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x23, 0, &ack_ptr, 0, 1, '\0');
+            encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x23, 0, &ack_ptr, 0, 1, '\0');
             *out_changed = 0;
             next_id = (*(uint32_t *)(plr_bytes + 0xe8) + 1) & 0x8000001f;
             if ((int32_t)next_id < 0) {
@@ -100,7 +73,7 @@ int32_t PlayerUpdateBuilder::local_player_position_update(uint8_t *out_changed, 
             }
             logged_id = ack.baseline_id;
             *(uint32_t *)(plr_bytes + 0xe8) = next_id;
-            network_player_update_history_log_write("[%d]: [%d]:\t Acked [%d]\n", GetTickCount(),
+            halo::networking::network_player_update_history_log_write("[%d]: [%d]:\t Acked [%d]\n", GetTickCount(),
                 game_time->game_time, logged_id);
             *(int32_t *)(plr_bytes + 0xec) = *(int32_t *)(plr_bytes + 0xf4);
             *(int32_t *)(plr_bytes + 0xf0) = game_time->game_time;
@@ -155,7 +128,7 @@ int32_t PlayerUpdateBuilder::local_player_vehicle_update(uint8_t *out_changed, p
         return 0;
     }
     ack_ptr = &ack;
-    encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x24, 0, &ack_ptr, 0, 1, '\0');
+    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x24, 0, &ack_ptr, 0, 1, '\0');
     *out_changed = 0;
     next_id = (*(uint32_t *)(plr_bytes + 0xe8) + 1) & 0x8000001f;
     if ((int32_t)next_id < 0) {
@@ -163,7 +136,7 @@ int32_t PlayerUpdateBuilder::local_player_vehicle_update(uint8_t *out_changed, p
     }
     logged_id = ack.baseline_id;
     *(uint32_t *)(plr_bytes + 0xe8) = next_id;
-    network_player_update_history_log_write("[%d]: [%d]:\t Acked vehicle [%d]\n", GetTickCount(),
+    halo::networking::network_player_update_history_log_write("[%d]: [%d]:\t Acked vehicle [%d]\n", GetTickCount(),
         game_time->game_time, logged_id);
     *(int32_t *)(plr_bytes + 0xec) = *(int32_t *)(plr_bytes + 0xf4);
     *(int32_t *)(plr_bytes + 0xf0) = game_time->game_time;
@@ -199,9 +172,9 @@ void PlayerUpdateBuilder::player_full_resync_update(uint32_t player_index)
     }
     items_ptr = staged12;
     previous_ptr = &network_hash;
-    encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x25, (int32_t)&previous_ptr,
+    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x25, (int32_t)&previous_ptr,
         &items_ptr, 0, 1, '\0');
-    network_session_send_to_machine(1, network_message_scratch, encoded_size, 1, 0, 0, 1);
+    halo::networking::network_session_send_to_machine((int32_t)player_index, network_server, 1, network_message_scratch, encoded_size, 1, 0, 0, 1);
 
     header.update_id = *(uint8_t *)(cache + 0x16c);
     header.baseline_id = 0;
@@ -217,9 +190,9 @@ void PlayerUpdateBuilder::player_full_resync_update(uint32_t player_index)
     body[2] = *(int32_t *)(cache + 0x178);
     items_ptr = body;
     previous_ptr = &network_hash;
-    encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x27, (int32_t)&previous_ptr,
+    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x27, (int32_t)&previous_ptr,
         &items_ptr, 0, 1, '\0');
-    network_session_send_to_machine(1, network_message_scratch, encoded_size, 1, 0, 0, 1);
+    halo::networking::network_session_send_to_machine((int32_t)player_index, network_server, 1, network_message_scratch, encoded_size, 1, 0, 0, 1);
 
     header.update_id = *(uint8_t *)(cache + 0x16c);
     header.baseline_id = 0;
@@ -235,9 +208,9 @@ void PlayerUpdateBuilder::player_full_resync_update(uint32_t player_index)
     }
     items_ptr = staged16;
     previous_ptr = &network_hash;
-    encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x28, (int32_t)&previous_ptr,
+    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x28, (int32_t)&previous_ptr,
         &items_ptr, 0, 1, '\0');
-    network_session_send_to_machine(1, network_message_scratch, encoded_size, 1, 0, 0, 1);
+    halo::networking::network_session_send_to_machine((int32_t)player_index, network_server, 1, network_message_scratch, encoded_size, 1, 0, 0, 1);
 }
 
 void PlayerUpdateBuilder::remote_player_action_update(uint32_t player_index, uint32_t network_key,
@@ -321,12 +294,12 @@ encode:
                 items_ptr = (void *)(cache + 0x130);
                 previous_ptr = &network_hash;
                 previous_offset = 0;
-                encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, skip_delta, 0x25,
+                encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, skip_delta, 0x25,
                     (int32_t)&previous_ptr, &items_ptr, previous_offset, 1, skip_delta);
             } else {
                 items_ptr = staged;
                 previous_ptr = &network_hash;
-                encoded_size = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, skip_delta, 0x25,
+                encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, skip_delta, 0x25,
                     (int32_t)&items_ptr, &previous_ptr, 0, 1, skip_delta);
             }
             if (0 < encoded_size) {
@@ -338,11 +311,11 @@ encode:
                 while (candidate != 0) {
 
                     if (candidate->local_player_index == -1) {
-                        machine = network_machine_find_by_id(0, 0);
+                        machine = halo::networking::network_machine_find_by_id(0, 0);
                         if (machine != 0 &&
                             ((*(uint16_t *)((uint8_t *)machine + 0xe) >> 1 & 1) != 0) &&
                             ((*(uint16_t *)((uint8_t *)machine + 0xe) >> 2 & 1) != 0)) {
-                            network_session_send_to_machine(1, 0, encoded_size, is_full, 0, 0, 1);
+                            halo::networking::network_session_send_to_machine(machine->machine_id, network_server, 1, network_message_scratch, encoded_size, is_full, 0, 0, 1);
                         }
                     }
                     candidate = (player *)halo::memory::data_iterator_next(&iter);
@@ -350,19 +323,13 @@ encode:
             }
         }
     } else if (is_full) {
-        network_event_feed_queue_append((uint8_t *)staged, 0, 0);
+        halo::networking::network_event_feed_queue_append((uint8_t *)staged, 0, 0);
     }
 }
 
 void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, player_action *control,
     int32_t network_key)
 {
-    int32_t (*const build_remote_player_vehicle_update)(uint8_t *cache, uint8_t update_id,
-    uint8_t flags, char is_full, player_action *control, int32_t network_key) = reinterpret_cast<int32_t (*)(uint8_t *cache, uint8_t update_id,
-    uint8_t flags, char is_full, player_action *control, int32_t network_key)>(&::build_remote_player_vehicle_update);
-    int32_t (*const build_remote_player_vehicle_attachment_update)(uint8_t *cache, uint8_t update_id,
-    uint8_t flags, char is_full, player_action *control, int32_t network_key) = reinterpret_cast<int32_t (*)(uint8_t *cache, uint8_t update_id,
-    uint8_t flags, char is_full, player_action *control, int32_t network_key)>(&::build_remote_player_vehicle_attachment_update);
     uint8_t *plr;
     uint8_t *cache;
     int32_t update_id;
@@ -396,7 +363,7 @@ void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, 
                 } else {
                     is_full = 1;
                 }
-                encoded_size = build_remote_player_vehicle_update(cache, 0, is_full, is_full,
+                encoded_size = halo::networking::build_remote_player_vehicle_update(cache, 0, is_full, is_full,
                     control, network_key);
             } else {
                 if (player_unit_has_parent(*(datum_index *)(plr + 0x34)) != 1) {
@@ -413,7 +380,7 @@ void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, 
                 } else {
                     is_full = 1;
                 }
-                encoded_size = build_remote_player_vehicle_attachment_update(cache, 0, is_full,
+                encoded_size = halo::networking::build_remote_player_vehicle_attachment_update(cache, 0, is_full,
                     is_full, control, network_key);
             }
 
@@ -433,7 +400,7 @@ void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, 
                                     i * 0x60);
                                 if (((*(uint16_t *)((uint8_t *)machine + 0xe) >> 1 & 1) != 0) &&
                                     ((*(uint16_t *)((uint8_t *)machine + 0xe) >> 2 & 1) != 0)) {
-                                    network_session_send_to_machine(1, 0, encoded_size, 1, 0, 0, 1);
+                                    halo::networking::network_session_send_to_machine(machine->machine_id, network_server, 1, network_message_scratch, encoded_size, 1, 0, 0, 1);
                                 }
                                 break;
                             }
@@ -453,12 +420,13 @@ void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, 
     }
 
 fallback:
-    build_remote_player_action_update(player_index, network_key, 0, *control);
+    halo::networking::build_remote_player_action_update(player_index, network_key, 0, *control);
 }
 
-void PlayerUpdateBuilder::remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t update_id,
+int32_t PlayerUpdateBuilder::remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t update_id,
     uint8_t flags, char is_full, player_action *control, int32_t network_key)
 {
+    int32_t encoded_size;
     int32_t network_hash;
     uint32_t staged[12];
     uint8_t staged_update_id;
@@ -530,14 +498,14 @@ void PlayerUpdateBuilder::remote_player_vehicle_attachment_update(uint8_t *cache
         *(uint8_t *)(cache + 300) = (uint8_t)next_id;
         previous_ptr = &network_hash;
         items_ptr = staged;
-        message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x2a, (int32_t)&previous_ptr, &items_ptr, 0, 1, '\0');
+        encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x2a, (int32_t)&previous_ptr, &items_ptr, 0, 1, '\0');
         for (i = 0; i < 16; i = i + 1) {
             *(uint32_t *)(cache + 0x188 + i * 4) = vehicle_state[i];
         }
         *(int32_t *)(cache + 0x180) = game_time->game_time;
         *(uint32_t *)(cache + 0x184) = staged_update_id;
         *(int32_t *)(cache + 0x17c) = game_time->game_time;
-        return;
+        return encoded_size;
     }
 
     for (i = 0; i < 12; i = i + 1) {
@@ -545,15 +513,17 @@ void PlayerUpdateBuilder::remote_player_vehicle_attachment_update(uint8_t *cache
     }
     items_ptr = staged;
     previous_ptr = previous_state;
-    message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x2a, (int32_t)&previous_ptr, &items_ptr,
+    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x2a, (int32_t)&previous_ptr, &items_ptr,
         (int32_t)vehicle_state, 1, '\x01');
     *(int32_t *)(cache + 0x120) = game_time->game_time;
     *(int32_t *)(cache + 0x17c) = game_time->game_time;
+    return encoded_size;
 }
 
-void PlayerUpdateBuilder::remote_player_vehicle_update(uint8_t *cache, uint8_t update_id, uint8_t flags,
+int32_t PlayerUpdateBuilder::remote_player_vehicle_update(uint8_t *cache, uint8_t update_id, uint8_t flags,
     char is_full, player_action *control, int32_t network_key)
 {
+    int32_t encoded_size;
     int32_t network_hash;
     uint32_t staged[27];
     uint8_t staged_update_id;
@@ -602,14 +572,14 @@ void PlayerUpdateBuilder::remote_player_vehicle_update(uint8_t *cache, uint8_t u
         *(uint8_t *)(cache + 300) = (uint8_t)next_id;
         previous_ptr = &network_hash;
         items_ptr = staged;
-        message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x29, (int32_t)&previous_ptr, &items_ptr, 0, 1, '\0');
+        encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x29, (int32_t)&previous_ptr, &items_ptr, 0, 1, '\0');
         *(uint32_t *)(cache + 0x170) = staged[12];
         *(uint32_t *)(cache + 0x174) = staged[13];
         *(uint32_t *)(cache + 0x178) = staged[14];
         *(int32_t *)(cache + 0x168) = game_time->game_time;
         *(uint32_t *)(cache + 0x16c) = staged_update_id;
         *(int32_t *)(cache + 0x164) = game_time->game_time;
-        return;
+        return encoded_size;
     }
 
     for (i = 0; i < 12; i = i + 1) {
@@ -620,10 +590,11 @@ void PlayerUpdateBuilder::remote_player_vehicle_update(uint8_t *cache, uint8_t u
     previous_state[14] = *(int32_t *)(cache + 0x178);
     items_ptr = staged;
     previous_ptr = previous_state;
-    message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x29, (int32_t)&previous_ptr, &items_ptr,
+    encoded_size = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x29, (int32_t)&previous_ptr, &items_ptr,
         (int32_t)&previous_state, 1, '\x01');
     *(int32_t *)(cache + 0x120) = game_time->game_time;
     *(int32_t *)(cache + 0x164) = game_time->game_time;
+    return encoded_size;
 }
 
 void PlayerUpdateBuilder::handle_remote_player_action_update(remote_player_action_state *control_source,
@@ -663,7 +634,7 @@ void PlayerUpdateBuilder::handle_remote_player_action_update(remote_player_actio
 
         baseline_id = header->baseline_id;
         if ((uint32_t)baseline_id != candidate->baseline_update_id) {
-            player_update_history_log_printf_filtered(candidate, 2,
+            halo::networking::player_update_history_log_printf_filtered(candidate, 2,
                 "[%d]: Threw away remote player action update with base baseline, [%d] != [%d].",
                 game_time->game_time, baseline_id, candidate->baseline_update_id);
             return;
@@ -689,7 +660,7 @@ void PlayerUpdateBuilder::handle_remote_player_action_update(remote_player_actio
         control_source->pitch = (float)atan2(z, sqrt(x * x + y * y));
 
         control_source->unknown_20 = (uint16_t)stride_offset;
-        player_update_history_log_printf_filtered(candidate, 2, "Received action [%d]", action_index);
+        halo::networking::player_update_history_log_printf_filtered(candidate, 2, "Received action [%d]", action_index);
 
         if (candidate->last_update_id != -1) {
             uint32_t record[11];
@@ -700,7 +671,7 @@ void PlayerUpdateBuilder::handle_remote_player_action_update(remote_player_actio
             record[2] = first_byte;
             memcpy(&record[3], &control_source->unknown_04, sizeof(uint32_t) * 8);
             if (!circular_queue_push((circular_queue *)&candidate->update_history, record)) {
-                player_update_history_log_printf_filtered(candidate, 2,
+                halo::networking::player_update_history_log_printf_filtered(candidate, 2,
                     "[%d]: Remote player action_queue overflow.\n",
                     game_time->game_time);
             }
@@ -714,13 +685,13 @@ uint8_t PlayerUpdateBuilder::is_local_player_update_in_order(int32_t current_upd
     if (current_update_id != -1) {
         if (current_update_id < new_update_id) {
             if (0xf < new_update_id - current_update_id) {
-                player_update_history_log_write(1, 0,
+                halo::networking::player_update_history_log_write(1, 0,
                     "[%d]a: Threw away local player ack [%d] (%d).\n",
                     game_time->game_time);
                 return 0;
             }
         } else if (0xf < (new_update_id - current_update_id) + 0x20) {
-            player_update_history_log_write(1, 0,
+            halo::networking::player_update_history_log_write(1, 0,
                 "[%d]b: Threw away local player ack [%d] (%d).\n",
                 game_time->game_time);
             return 0;
@@ -731,9 +702,6 @@ uint8_t PlayerUpdateBuilder::is_local_player_update_in_order(int32_t current_upd
 
 uint8_t PlayerUpdateBuilder::is_remote_player_update_in_order(player *plr, uint8_t new_update_id, int32_t update_id)
 {
-    void (*const player_update_history_log_printf_filtered)(player *target_player, int32_t unused_arg,
-    const char *format, ...) = reinterpret_cast<void (*)(player *target_player, int32_t unused_arg,
-    const char *format, ...)>(&::player_update_history_log_printf_filtered);
     int32_t previous_id;
     int32_t delta;
     uint8_t new_id_byte;
@@ -746,13 +714,13 @@ uint8_t PlayerUpdateBuilder::is_remote_player_update_in_order(player *plr, uint8
     delta = new_id_byte - previous_id;
     if (previous_id < new_id_byte) {
         if (3 < delta) {
-            player_update_history_log_printf_filtered(plr, 1,
+            halo::networking::player_update_history_log_printf_filtered(plr, 1,
                 "[%d]a: Threw away remote player position update [%d] (%d), previous ack [%d] (%d).\n",
                 game_time->game_time, update_id, plr->last_position_update_id, (int32_t)new_id_byte, previous_id);
             return 0;
         }
     } else if (3 < delta + 8) {
-        player_update_history_log_printf_filtered(plr, 1,
+        halo::networking::player_update_history_log_printf_filtered(plr, 1,
             "[%d]b: Threw away remote player position update [%d] (%d), previous ack [%d] (%d).\n",
             game_time->game_time, update_id, plr->last_position_update_id, (int32_t)new_id_byte, previous_id);
         return 0;
@@ -762,7 +730,7 @@ uint8_t PlayerUpdateBuilder::is_remote_player_update_in_order(player *plr, uint8
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 int32_t build_local_player_position_update(uint8_t *out_changed, player *plr)
 {
     return halo::networking::PlayerUpdateBuilder::local_player_position_update(out_changed, plr);
@@ -790,16 +758,16 @@ void build_remote_player_transform_update(uint32_t player_index, player_action *
     halo::networking::PlayerUpdateBuilder::remote_player_transform_update(player_index, control, network_key);
 }
 
-void build_remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t update_id,
+int32_t build_remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t update_id,
     uint8_t flags, char is_full, player_action *control, int32_t network_key)
 {
-    halo::networking::PlayerUpdateBuilder::remote_player_vehicle_attachment_update(cache, update_id, flags, is_full, control, network_key);
+    return halo::networking::PlayerUpdateBuilder::remote_player_vehicle_attachment_update(cache, update_id, flags, is_full, control, network_key);
 }
 
-void build_remote_player_vehicle_update(uint8_t *cache, uint8_t update_id, uint8_t flags,
+int32_t build_remote_player_vehicle_update(uint8_t *cache, uint8_t update_id, uint8_t flags,
     char is_full, player_action *control, int32_t network_key)
 {
-    halo::networking::PlayerUpdateBuilder::remote_player_vehicle_update(cache, update_id, flags, is_full, control, network_key);
+    return halo::networking::PlayerUpdateBuilder::remote_player_vehicle_update(cache, update_id, flags, is_full, control, network_key);
 }
 
 void handle_remote_player_action_update(remote_player_action_state *control_source,

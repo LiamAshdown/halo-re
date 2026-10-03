@@ -4,18 +4,13 @@
 #include <string.h>
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
+extern uint8_t network_object_index_cache[];
 extern int32_t network_buffer_pair_pool;
 extern int32_t network_buffer_pair_pool_count;
 extern network_buffer_pair *network_buffer_pair_pool_data;
-extern network_channel_list *network_channel_list_new(int16_t requested_capacity);
-extern int32_t network_channel_list_add(network_receive_queue *entry, network_channel_list *list);
-extern network_receive_queue *network_receive_queue_new(void);
-extern uint32_t network_listen_start(network_receive_queue *queue);
-extern void network_channel_delete(network_channel *channel);
-extern void network_channel_record_timestamp(network_channel *channel);
-extern void network_channel_stream_init(network_channel_stream *stream);
 extern int32_t network_game_socket;
 extern int32_t network_query_socket;
 extern void gt2CloseSocket(int32_t socket);
@@ -28,32 +23,18 @@ extern int32_t gt2CreateSocket(int32_t *socket_out, uint8_t address_buffer[24], 
 extern void gt2SetSendDump(int32_t socket, void *callback);
 extern void gt2SetReceiveDump(int32_t socket, void *callback);
 extern void gt2SetUnrecognizedMessageCallback(int32_t socket, void *callback);
-extern void network_channel_gap_441020(void);
-extern void network_channel_gap_441040(void);
-extern void network_channel_gap_441060(void);
-extern void network_channel_gap_4410b0(void);
-extern void network_channel_gap_441200(void);
 extern network_handle_registry_slot network_handle_registry[64];
 extern network_mutex_record network_mutex_table[k_network_mutex_table_count];
-extern void network_channels_open(void);
-extern void network_handle_registry_close_all(void);
 extern network_thread_record network_thread_table[k_network_thread_table_count];
 extern int32_t gt2GetConnectionState(int32_t socket);
-extern uint32_t gamespy_array_length(int32_t object);
 extern uint16_t gt2GetRemotePort(int32_t object);
 extern uint32_t gt2GetLocalIP(int32_t socket);
 extern uint16_t gt2GetLocalPort(int32_t socket);
 extern void gt2SetSocketData(int32_t socket, void *data);
 extern int32_t gt2Listen(int32_t socket, void *callback);
-extern void network_listen_connection_request_handler(int32_t listen_handle, int32_t reply_socket, uint32_t remote_address, uint32_t remote_port_raw, int32_t transport_handle, uint32_t *payload, uint32_t payload_length);
 extern void gt2CloseConnectionHard(int32_t socket);
 extern void gt2SetConnectionData(int32_t socket, network_receive_queue *queue);
-extern void network_connection_stats_end(int32_t connection_id, int16_t connection_key);
-extern void network_receive_queue_close_socket(network_receive_queue *queue);
 extern void *gt2GetConnectionData(void *connection);
-extern int16_t network_channel_get_remote_address(s_network_address *address, network_receive_queue *queue);
-extern char *network_address_to_string(s_network_address *addr);
-extern void network_connection_stats_record_packet(void *gamespy_connection, int32_t payload_length, uint8_t is_sent, uint8_t is_reliable, uint8_t is_resend);
 extern int16_t network_join_error_code;
 extern uint8_t network_host_handoff_requested;
 extern void chat_close(void);
@@ -72,48 +53,21 @@ extern int32_t server_browser_selected_index;
 extern int32_t server_browser_last_click_ms;
 extern int32_t SBServerHasBasicKeys(void *server);
 extern int32_t SBServerHasFullKeys(void *server);
-extern server_list_globals *server_list_mutex_try_lock(uint32_t timeout_ms);
-extern int32_t dynamic_pointer_array_add_unique(void *value, server_list_globals *array);
-extern void server_list_mutex_unlock(server_list_globals **list_slot);
-extern int32_t dynamic_pointer_array_find_index(server_list_globals *array, void *value);
-extern void dynamic_pointer_array_remove_at(int32_t index, server_list_globals *array);
-extern void server_browser_ui_refresh(void);
-extern void network_receive_queue_free(network_receive_queue *queue);
-extern int32_t network_channel_list_remove(network_receive_queue *entry, network_channel_list *list);
 extern int32_t network_bit_chunk_size;
 extern int32_t network_pending_connection_count;
-extern int32_t network_channel_list_mark_readable(network_channel_list *list);
-extern network_receive_queue *network_listen_accept_pending_connection(void);
-extern uint32_t network_listen_reject_pending_connection(int32_t reject_code);
-extern network_channel *network_channel_new_child(network_receive_queue *endpoint);
-extern char network_channel_transmit(network_channel *channel);
-extern int32_t network_server_validate_join_request(network_receive_queue *listen_endpoint);
-extern void network_channel_reliable_pool_store(network_channel *channel, uint8_t *body_data, uint8_t *header_data, int32_t priority, uint32_t header_bits, uint32_t body_bits);
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
-extern int32_t network_channel_reliable_pool_ensure_capacity(network_channel *channel, int32_t body_capacity_needed, int32_t header_capacity_needed);
 extern int32_t network_rate_override;
 extern int32_t network_rate_table[];
 extern uint8_t network_channel_service_backoff_bypass;
 extern game_time_globals *game_time;
 extern int16_t network_game_mode;
-extern void network_channel_scan_retransmit_timeouts(network_channel *channel);
-extern char network_channel_listen_service(network_channel *channel, network_channel **out_new_child);
 extern network_server_globals *network_server;
 extern uint8_t network_disconnect_timeout_flag;
-extern uint8_t network_channel_key_resolve_target(network_player_entry *entry);
 extern datum_index player_new_local(datum_index requested_handle, uint32_t machine_index, int16_t local_player_index, uint16_t *identifier_record);
 extern int32_t player_new_network(int32_t machine_index, int16_t machine_player_index);
-extern void network_index_cache_find_or_allocate_slot(int32_t index);
 extern network_client_globals *network_client;
-extern char network_player_entry_validate(network_player_entry *entry);
-extern void message_delta_decode_compound_field_staged(void *decode_context);
-extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
-extern char network_game_settings_packet_receive(void *scratch);
 extern int32_t gt2Send(int32_t socket, uint8_t *buffer, int32_t byte_count, int32_t mode);
 extern network_pending_connection network_pending_connections[k_network_pending_connection_count];
-extern void network_channel_gap_441f30(void);
 extern int32_t gt2Accept(int32_t reply_socket, network_listen_accept_config *config);
-extern void network_channel_receive_callback(void *handle, uint8_t *data, int32_t length);
 extern void gt2Reject(int32_t socket, void *buffer, int32_t length);
 extern void gt2GetSocketData(int32_t listen_handle);
 }
@@ -205,19 +159,19 @@ network_channel * ChannelFactory::create_channel(uint32_t flags)
         }
         channel->listening = 1;
         channel->child_busy = 0;
-        channel->listen_list = network_channel_list_new(0);
+        channel->listen_list = halo::networking::network_channel_list_new(0);
         if (channel->listen_list == 0) {
-            network_channel_delete(channel);
+            halo::networking::network_channel_delete(channel);
             return 0;
         }
     }
-    network_channel_record_timestamp(channel);
+    halo::networking::network_channel_record_timestamp(channel);
     channel->flags = flags;
-    channel->endpoint = network_receive_queue_new();
+    channel->endpoint = halo::networking::network_receive_queue_new();
     if (channel->endpoint != 0 &&
         ((flags & k_network_channel_listening) == 0 ||
-         (network_listen_start(channel->endpoint) == 0 &&
-          network_channel_list_add(channel->endpoint, channel->listen_list) == 0))) {
+         (halo::networking::network_listen_start(channel->endpoint) == 0 &&
+          halo::networking::network_channel_list_add(channel->endpoint, channel->listen_list) == 0))) {
         channel->incoming = halo::memory::circular_buffer_new((char *)"transport-incoming", 0);
         if (channel->incoming != 0) {
             goto primed;
@@ -230,12 +184,12 @@ primed:
     channel->send_budget = 0xe0;
     channel->rate_index = 0;
     channel->budget_base_tick = GetTickCount();
-    network_channel_stream_init(&channel->outgoing);
-    network_channel_stream_init(&channel->retransmit);
+    halo::networking::network_channel_stream_init(&channel->outgoing);
+    halo::networking::network_channel_stream_init(&channel->retransmit);
     if (ok) {
         return channel;
     }
-    network_channel_delete(channel);
+    halo::networking::network_channel_delete(channel);
     return 0;
 }
 
@@ -257,16 +211,16 @@ network_channel * ChannelFactory::create_child(network_receive_queue *endpoint)
         channel->endpoint = endpoint;
         channel->flags = k_network_channel_transmit_pending;
         channel->incoming = halo::memory::circular_buffer_new((char *)"transport-incoming", 0);
-        network_channel_record_timestamp(channel);
+        halo::networking::network_channel_record_timestamp(channel);
         channel->reliable_count = 0;
         channel->reliable = 0;
         channel->send_budget = 0xe0;
         channel->rate_index = 0;
         channel->budget_base_tick = GetTickCount();
-        network_channel_stream_init(&channel->outgoing);
-        network_channel_stream_init(&channel->retransmit);
+        halo::networking::network_channel_stream_init(&channel->outgoing);
+        halo::networking::network_channel_stream_init(&channel->retransmit);
         if (channel->incoming == 0) {
-            network_channel_delete(channel);
+            halo::networking::network_channel_delete(channel);
             return 0;
         }
     }
@@ -316,11 +270,11 @@ void ChannelFactory::open_all()
 
     if (network_game_socket == 0) {
         result = gt2CreateSocket(&network_game_socket, game_address_buf, 0, 0,
-                                     network_channel_gap_441060);
+                                     halo::networking::network_channel_gap_441060);
         if (result == 0) {
-            gt2SetSendDump(network_game_socket, network_channel_gap_441020);
-            gt2SetReceiveDump(network_game_socket, network_channel_gap_441040);
-            gt2SetUnrecognizedMessageCallback(network_game_socket, network_channel_gap_4410b0);
+            gt2SetSendDump(network_game_socket, halo::networking::network_channel_gap_441020);
+            gt2SetReceiveDump(network_game_socket, halo::networking::network_channel_gap_441040);
+            gt2SetUnrecognizedMessageCallback(network_game_socket, halo::networking::network_channel_gap_4410b0);
         } else {
             network_channels_open_ok = 0;
         }
@@ -328,20 +282,20 @@ void ChannelFactory::open_all()
 
     if (network_query_socket == 0 && network_channels_open_ok == 1) {
         result = gt2CreateSocket(&network_query_socket, query_address_buf, 0, 0,
-                                     network_channel_gap_441060);
+                                     halo::networking::network_channel_gap_441060);
         if (result != 0) {
             game_cport = 0;
             gt2AddressToString(swapped_address, 0, query_address_buf);
             result = gt2CreateSocket(&network_query_socket, query_address_buf, 0, 0,
-                                         network_channel_gap_441060);
+                                         halo::networking::network_channel_gap_441060);
             if (result != 0) {
                 network_channels_open_ok = 0;
                 return;
             }
         }
-        gt2SetSendDump(network_query_socket, network_channel_gap_441020);
-        gt2SetReceiveDump(network_query_socket, network_channel_gap_441040);
-        gt2SetUnrecognizedMessageCallback(network_query_socket, network_channel_gap_441200);
+        gt2SetSendDump(network_query_socket, halo::networking::network_channel_gap_441020);
+        gt2SetReceiveDump(network_query_socket, halo::networking::network_channel_gap_441040);
+        gt2SetUnrecognizedMessageCallback(network_query_socket, halo::networking::network_channel_gap_441200);
     }
 }
 
@@ -403,8 +357,8 @@ network_receive_queue * ChannelFactory::create_receive_queue()
     network_receive_queue *queue;
     circular_buffer *buffer;
 
-    network_channels_open();
-    network_handle_registry_close_all();
+    halo::networking::network_channels_open();
+    halo::networking::network_handle_registry_close_all();
     queue = (network_receive_queue *)GlobalAlloc(0, 0x1c);
     if (queue != 0) {
         queue->socket = 0;
@@ -496,10 +450,10 @@ int16_t ReceiveQueueView::get_remote_address(s_network_address *address)
     if (queue->socket != 0) {
         state = gt2GetConnectionState(queue->socket);
         if (state == 1) {
-            byte0 = gamespy_array_length(queue->socket);
-            byte1 = gamespy_array_length(queue->socket);
-            byte2 = gamespy_array_length(queue->socket);
-            byte3 = gamespy_array_length(queue->socket);
+            byte0 = halo::networking::gamespy_array_length((void *)queue->socket);
+            byte1 = halo::networking::gamespy_array_length((void *)queue->socket);
+            byte2 = halo::networking::gamespy_array_length((void *)queue->socket);
+            byte3 = halo::networking::gamespy_array_length((void *)queue->socket);
             address->ipv4 = ((byte0 & 0xff0000 | byte1 >> 0x10) >> 8) |
                             ((byte2 << 0x10 | byte3 & 0xff00) << 8);
             address->port = gt2GetRemotePort(queue->socket);
@@ -545,7 +499,7 @@ uint32_t ReceiveQueueView::start()
     queue->data_ready = 1;
     gt2SetSocketData(network_game_socket, queue);
     queue->flags = queue->flags | 2;
-    result = gt2Listen(network_game_socket, (void *)network_listen_connection_request_handler);
+    result = gt2Listen(network_game_socket, (void *)halo::networking::network_listen_connection_request_handler);
     queue->last_error = 0;
     return result & 0xffff0000;
 }
@@ -589,16 +543,16 @@ void ReceiveQueueView::release()
 {
     network_receive_queue *queue = self;
     if (queue != 0 && queue->socket != 0) {
-        int32_t connection_id = (int32_t)gamespy_array_length(queue->socket);
+        int32_t connection_id = (int32_t)halo::networking::gamespy_array_length((void *)queue->socket);
         int16_t connection_key = (int16_t)gt2GetRemotePort(queue->socket);
-        network_connection_stats_end(connection_id, connection_key);
+        halo::networking::network_connection_stats_end(connection_id, connection_key);
         gt2SetConnectionData(queue->socket, 0);
     }
-    network_receive_queue_close_socket(queue);
+    halo::networking::network_receive_queue_close_socket(queue);
     GlobalFree(queue->incoming);
     queue->incoming = 0;
     GlobalFree(queue);
-    network_handle_registry_close_all();
+    halo::networking::network_handle_registry_close_all();
 }
 
 /**
@@ -620,8 +574,8 @@ void ChannelCallbacks::on_connected(void *connection, int32_t result, const uint
     if (queue == 0) {
         return;
     }
-    network_channel_get_remote_address(&address, queue);
-    network_address_to_string(&address);
+    halo::networking::network_channel_get_remote_address(&address, queue);
+    halo::networking::network_address_to_string(&address);
     if (result == 0) {
         queue->last_error = 0;
         queue->flags |= 0x31;
@@ -640,12 +594,12 @@ void ChannelCallbacks::on_connected(void *connection, int32_t result, const uint
         queue->reject_reason = reason;
         queue->connection_failed = 1;
         queue->last_error = -0x18;
-        network_receive_queue_close_socket(queue);
+        halo::networking::network_receive_queue_close_socket(queue);
         queue->flags |= 0x40;
         return;
     }
     queue->last_error = -0x10;
-    network_receive_queue_close_socket(queue);
+    halo::networking::network_receive_queue_close_socket(queue);
     if (result == 6) {
         queue->flags |= 0x80;
     }
@@ -665,7 +619,7 @@ void ChannelCallbacks::on_receive_dump(void *socket, void *connection, uint32_t 
     (void)port;
     (void)reset;
     (void)message;
-    network_connection_stats_record_packet(connection, length, 1, (uint8_t)reliable, (uint8_t)resend);
+    halo::networking::network_connection_stats_record_packet(connection, length, 1, (uint8_t)reliable, (uint8_t)resend);
 }
 
 /**
@@ -681,7 +635,7 @@ void ChannelCallbacks::on_send_dump(void *socket, void *connection, uint32_t ip,
     (void)port;
     (void)reset;
     (void)message;
-    network_connection_stats_record_packet(connection, length, 0, 0, 0);
+    halo::networking::network_connection_stats_record_packet(connection, length, 0, 0, 0);
 }
 
 /**
@@ -800,7 +754,7 @@ void ChannelCallbacks::on_connection_error(void *connection)
 
     if (queue != 0) {
         queue[0x05] = 1;
-        network_receive_queue_close_socket((network_receive_queue *)queue);
+        halo::networking::network_receive_queue_close_socket((network_receive_queue *)queue);
         queue[0x0c] |= 0x40;
     }
 }
@@ -831,27 +785,27 @@ void ChannelCallbacks::on_server_browser_list(void *sb, uint32_t reason, void *s
         }
 
     case 1:
-        list = server_list_mutex_try_lock(100);
+        list = halo::networking::server_list_mutex_try_lock(100);
         if (list != 0) {
-            dynamic_pointer_array_add_unique(server, list);
-            server_list_mutex_unlock(&list);
+            halo::networking::dynamic_pointer_array_add_unique(server, list);
+            halo::networking::server_list_mutex_unlock(&list);
         }
         return;
     case 2:
     case 3:
-        list = server_list_mutex_try_lock(100);
+        list = halo::networking::server_list_mutex_try_lock(100);
         if (list != 0) {
-            int32_t index = dynamic_pointer_array_find_index(list, server);
+            int32_t index = halo::networking::dynamic_pointer_array_find_index(list, server);
 
             if (index != -1) {
-                dynamic_pointer_array_remove_at(index, list);
+                halo::networking::dynamic_pointer_array_remove_at(index, list);
                 if (index == server_browser_selected_index) {
                     server_browser_selected_index = -1;
                     server_browser_last_click_ms = 0;
-                    server_browser_ui_refresh();
+                    halo::networking::server_browser_ui_refresh();
                 }
             }
-            server_list_mutex_unlock(&list);
+            halo::networking::server_list_mutex_unlock(&list);
         }
         return;
     default:
@@ -884,7 +838,7 @@ void ChannelView::destroy()
         return;
     }
     if (channel->endpoint != 0) {
-        network_receive_queue_free(channel->endpoint);
+        halo::networking::network_receive_queue_free(channel->endpoint);
     }
     if (channel->incoming != 0) {
         GlobalFree(channel->incoming);
@@ -893,9 +847,9 @@ void ChannelView::destroy()
         for (i = 0; i < 16; i++) {
             if (channel->children[i] != 0) {
                 if (channel->listen_list != 0) {
-                    network_channel_list_remove(channel->children[i]->endpoint, channel->listen_list);
+                    halo::networking::network_channel_list_remove(channel->children[i]->endpoint, channel->listen_list);
                 }
-                network_channel_delete(channel->children[i]);
+                halo::networking::network_channel_delete(channel->children[i]);
             }
         }
         if (channel->listen_list != 0) {
@@ -993,7 +947,7 @@ int32_t ChannelView::incoming_read_item(uint8_t *destination, int32_t *out_bit_o
             if (item_length <= available2) {
                 halo::memory::circular_buffer_read(destination, item_length, 1, incoming);
                 if (out_address != 0) {
-                    if (network_channel_get_remote_address(out_address, channel->endpoint) != 0) {
+                    if (halo::networking::network_channel_get_remote_address(out_address, channel->endpoint) != 0) {
                         out_address->ipv4 = 0;
                         out_address->ipv6_1 = 0;
                         out_address->ipv6_2 = 0;
@@ -1040,7 +994,7 @@ char ChannelView::listen_service(network_channel **out_new_child)
 
     *out_new_child = 0;
     result = 1;
-    mark_result = network_channel_list_mark_readable(channel->listen_list);
+    mark_result = halo::networking::network_channel_list_mark_readable(channel->listen_list);
     if (mark_result != 0) {
         if (mark_result == -0xd) {
             return 1;
@@ -1084,11 +1038,11 @@ char ChannelView::listen_service(network_channel **out_new_child)
                 if (channel->listening == 0) {
                     reject_code = 2;
                 } else {
-                    reject_code = network_server_validate_join_request(channel->endpoint);
+                    reject_code = halo::networking::network_server_validate_join_request((network_server_globals *)channel->endpoint);
                     if (reject_code == 0) {
-                        entry = network_listen_accept_pending_connection();
+                        entry = halo::networking::network_listen_accept_pending_connection();
                         if (entry != 0) {
-                            new_child = network_channel_new_child(entry);
+                            new_child = halo::networking::network_channel_new_child(entry);
                             if (new_child != 0) {
                                 for (i = 0; i < 0x10; i++) {
                                     if (channel->children[i] == 0) {
@@ -1097,7 +1051,7 @@ char ChannelView::listen_service(network_channel **out_new_child)
                                         new_child->parent = channel;
                                         new_child->connected = 0;
                                         if (channel->child_busy == 0) {
-                                            network_channel_get_remote_address(&remote_address, new_child->endpoint);
+                                            halo::networking::network_channel_get_remote_address(&remote_address, new_child->endpoint);
                                             if (new_child->endpoint->last_error == 0 &&
                                                 (remote_address.ipv4 == 0x7f000001 ||
                                                  remote_address.ipv4 == network_local_address)) {
@@ -1118,16 +1072,16 @@ char ChannelView::listen_service(network_channel **out_new_child)
                 reject_code = 6;
             }
             if (channel->accept_callback == 0) {
-                network_listen_reject_pending_connection(reject_code);
+                halo::networking::network_listen_reject_pending_connection(reject_code);
             } else {
                 ((network_channel_accept_callback)(void *)(uint32_t)channel->accept_callback)(entry);
             }
         } else {
             for (i = 0; i < 0x10; i++) {
                 if (channel->children[i] != 0 && channel->children[i]->endpoint == entry) {
-                    result = network_channel_transmit(channel->children[i]);
+                    result = halo::networking::network_channel_transmit(channel->children[i]);
                     if (result == 0) {
-                        network_channel_list_remove(channel->children[i]->endpoint, channel->listen_list);
+                        halo::networking::network_channel_list_remove(channel->children[i]->endpoint, channel->listen_list);
                         channel->children[i]->flags = channel->children[i]->flags | k_network_channel_dead;
                         result = 1;
                     }
@@ -1166,7 +1120,7 @@ char ChannelView::queue_message(uint32_t header_value, uint32_t body_value, int3
         free_bits = (channel->outgoing.stream.last_bit - channel->outgoing.stream.byte_cursor * 8) -
                     channel->outgoing.stream.bit_cursor + 1;
         if (free_bits < body_bit_count + header_bit_count) {
-            result = network_channel_stream_flush(&channel->outgoing, channel, 1);
+            result = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
             if (result == 0) {
                 return 0;
             }
@@ -1179,10 +1133,10 @@ char ChannelView::queue_message(uint32_t header_value, uint32_t body_value, int3
         if (flush_after != 1) {
             return result;
         }
-        result = network_channel_stream_flush(&channel->outgoing, channel, 1);
+        result = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
         return result;
     }
-    network_channel_reliable_pool_store(channel, (uint8_t *)&body_value, (uint8_t *)&header_value,
+    halo::networking::network_channel_reliable_pool_store(channel, (uint8_t *)&body_value, (uint8_t *)&header_value,
         0, header_bit_count, body_bit_count);
     return 1;
 }
@@ -1289,7 +1243,7 @@ void ChannelView::reliable_pool_store(uint8_t *body_data, uint8_t *header_data, 
 
     header_bytes = (header_bits >> 3) + ((header_bits & 7) != 0);
     body_bytes = (body_bits >> 3) + ((body_bits & 7) != 0);
-    index = network_channel_reliable_pool_ensure_capacity(channel, body_bytes, header_bytes);
+    index = halo::networking::network_channel_reliable_pool_ensure_capacity(channel, body_bytes, header_bytes);
     slot = &channel->reliable[index];
     slot->priority = priority;
     slot->header_bits = header_bits;
@@ -1327,7 +1281,7 @@ void ChannelView::remote_address_or_default(network_resolved_address *out_addres
     queue = channel->endpoint;
     if (queue == 0) {
         use_default = 1;
-    } else if (network_channel_get_remote_address(&out_address->address, queue) != 0) {
+    } else if (halo::networking::network_channel_get_remote_address(&out_address->address, queue) != 0) {
         use_default = 1;
     }
     if (use_default) {
@@ -1362,12 +1316,12 @@ int32_t ChannelView::remove_child(network_channel *child)
         }
     }
     if (child->endpoint != 0) {
-        network_channel_list_remove(parent->children[i]->endpoint, parent->listen_list);
+        halo::networking::network_channel_list_remove(parent->children[i]->endpoint, parent->listen_list);
     }
     if (parent->children[i]->connected == 1) {
         parent->child_busy = 0;
     }
-    network_channel_delete(parent->children[i]);
+    halo::networking::network_channel_delete(parent->children[i]);
     parent->children[i] = 0;
     return 1;
 }
@@ -1413,7 +1367,7 @@ void ChannelView::scan_retransmit_timeouts()
                                      channel->retransmit.stream.byte_cursor * 8) -
                                     channel->retransmit.stream.bit_cursor + 1;
                         if (message_bits <= free_bits ||
-                            network_channel_stream_flush(&channel->retransmit, channel, 0) != 0) {
+                            halo::networking::network_channel_stream_flush(&channel->retransmit, channel, 0) != 0) {
                             halo::memory::bit_stream_write_bits_chunked(&channel->retransmit.stream, (const uint32_t *)slot->header, slot->header_bits);
                             channel->retransmit.empty = 0;
                             halo::memory::bit_stream_write_bits_chunked(&channel->retransmit.stream, (const uint32_t *)slot->body, slot->body_bits);
@@ -1475,20 +1429,20 @@ char ChannelView::service(int32_t timeout_ms, network_channel **out_new_child)
     }
     channel->last_activity_ms = now_ms;
 after_timestamp:
-    network_channel_scan_retransmit_timeouts(channel);
+    halo::networking::network_channel_scan_retransmit_timeouts(channel);
 
     if (channel->outgoing.empty == 0) {
-        network_channel_stream_flush(&channel->outgoing, channel, 1);
+        halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
     }
     if (channel->retransmit.empty == 0) {
-        network_channel_stream_flush(&channel->retransmit, channel, 0);
+        halo::networking::network_channel_stream_flush(&channel->retransmit, channel, 0);
     }
     channel->send_budget = 0xe0;
     if (channel->flags & k_network_channel_listening) {
-        return network_channel_listen_service(channel, out_new_child);
+        return halo::networking::network_channel_listen_service(channel, out_new_child);
     }
     if (channel->flags & (k_network_channel_client | k_network_channel_transmit_pending)) {
-        return network_channel_transmit(channel);
+        return halo::networking::network_channel_transmit(channel);
     }
     return 1;
 }
@@ -1511,9 +1465,9 @@ int32_t ChannelView::service_close_if_disconnected()
     if ((flags & (k_network_channel_client | k_network_channel_transmit_pending)) != 0 &&
         channel->endpoint != 0 && (channel->endpoint->flags & 1) != 0) {
         if (flags & (k_network_channel_client | k_network_channel_transmit_pending)) {
-            network_channel_transmit(channel);
+            halo::networking::network_channel_transmit(channel);
         }
-        network_receive_queue_close_socket(channel->endpoint);
+        halo::networking::network_receive_queue_close_socket(channel->endpoint);
     }
     return 1;
 }
@@ -1552,10 +1506,10 @@ char ChannelView::service_light(int32_t timeout_ms, network_channel **out_new_ch
     channel->last_activity_ms = now_ms;
 after_timestamp:
     if (channel->flags & k_network_channel_listening) {
-        return network_channel_listen_service(channel, out_new_child);
+        return halo::networking::network_channel_listen_service(channel, out_new_child);
     }
     if (channel->flags & (k_network_channel_client | k_network_channel_transmit_pending)) {
-        return network_channel_transmit(channel);
+        return halo::networking::network_channel_transmit(channel);
     }
     return 1;
 }
@@ -1575,12 +1529,12 @@ int32_t ChannelView::service_retransmit_only()
     large_integer counter;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    network_channel_scan_retransmit_timeouts(channel);
+    halo::networking::network_channel_scan_retransmit_timeouts(channel);
     if (channel->outgoing.empty == 0) {
-        network_channel_stream_flush(&channel->outgoing, channel, 1);
+        halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
     }
     if (channel->retransmit.empty == 0) {
-        network_channel_stream_flush(&channel->retransmit, channel, 0);
+        halo::networking::network_channel_stream_flush(&channel->retransmit, channel, 0);
     }
     channel->send_budget = 0xe0;
     return 1;
@@ -1640,7 +1594,7 @@ char ChannelView::transmit()
     done = 1;
     free_space = destination->capacity - transmit_circular_buffer_used(destination) - 1;
 
-    network_channel_get_remote_address(&remote_address, channel->endpoint);
+    halo::networking::network_channel_get_remote_address(&remote_address, channel->endpoint);
 
     for (;;) {
         queue = channel->endpoint;
@@ -1725,7 +1679,7 @@ int32_t ChannelKeys::close(network_player_entry *entry, datum_index requested_ha
 {
     int16_t key;
 
-    if (network_channel_key_resolve_target(entry) == 0) {
+    if (halo::networking::network_channel_key_resolve_target(entry) == 0) {
         key = -1;
     } else {
         key = entry->machine_player_index;
@@ -1751,7 +1705,7 @@ int32_t ChannelKeys::open(network_player_entry *entry)
     int16_t key;
     int32_t index;
 
-    if (network_channel_key_resolve_target(entry) == 0) {
+    if (halo::networking::network_channel_key_resolve_target(entry) == 0) {
         key = -1;
     } else {
         key = entry->machine_player_index;
@@ -1759,7 +1713,7 @@ int32_t ChannelKeys::open(network_player_entry *entry)
     index = player_new_network(entry->machine_index, key);
     if (index != -1) {
         entry->slot_index = (int8_t)index;
-        network_index_cache_find_or_allocate_slot(index);
+        halo::networking::network_index_cache_find_or_allocate_slot(network_object_index_cache, index);
         return 1;
     }
     return 0;
@@ -1772,7 +1726,7 @@ int32_t ChannelKeys::open(network_player_entry *entry)
  */
 uint8_t ChannelKeys::resolve_target(network_player_entry *entry)
 {
-    if (entry == 0 || network_player_entry_validate(entry) == 0) {
+    if (entry == 0 || halo::networking::network_player_entry_validate(entry) == 0) {
         if (network_game_mode != 3) {
             return 1;
         }
@@ -1799,13 +1753,13 @@ int32_t ChannelKeys::send_state(network_client_globals *client, int32_t **entry)
     uint8_t scratch[0x3ba];
 
     if (network_game_mode == 2 || (client->state != 2 && client->state != 3)) {
-        message_delta_decode_compound_field_staged(entry);
+        halo::networking::message_delta_decode_compound_field_staged((void **)entry);
         return 0;
     }
     if (**entry == 0) {
         memset(scratch, 0, sizeof(scratch));
-        if (message_delta_decode_compound_field(entry, scratch) != 0) {
-            if (network_game_settings_packet_receive(scratch) != 0) {
+        if (halo::networking::message_delta_decode_compound_field((void **)entry, scratch) != 0) {
+            if (halo::networking::network_game_settings_packet_receive(client, (const uint32_t *)scratch) != 0) {
                 return 1;
             }
             return 0;
@@ -2071,18 +2025,18 @@ network_receive_queue * ListenerCallbacks::accept_pending_connection()
     if (0 < network_pending_connection_count) {
         entry = &network_pending_connections[network_pending_connection_count - 1];
         config.result = 0;
-        config.receive_callback = (void *)network_channel_receive_callback;
-        config.error_callback = (void *)network_channel_gap_441f30;
+        config.receive_callback = (void *)halo::networking::network_channel_receive_callback;
+        config.error_callback = (void *)halo::networking::network_channel_gap_441f30;
         config.connect_callback = (void *)halo::cseries::function_do_nothing;
         accepted = gt2Accept(entry->reply_socket, &config);
         if (accepted == 1) {
-            queue = network_receive_queue_new();
+            queue = halo::networking::network_receive_queue_new();
             if (queue != 0) {
                 queue->socket = entry->reply_socket;
                 gt2SetConnectionData(entry->reply_socket, queue);
                 queue->flags = queue->flags | 1;
-                network_channel_get_remote_address(&remote_address, queue);
-                network_address_to_string(&remote_address);
+                halo::networking::network_channel_get_remote_address(&remote_address, queue);
+                halo::networking::network_address_to_string(&remote_address);
             }
         }
         network_pending_connection_count = network_pending_connection_count - 1;

@@ -1,5 +1,6 @@
 #include "halo/interface/ifr2_browser.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/networking/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -9,10 +10,6 @@ extern "C" {
 extern uint8_t server_browser_filter_panel_mode;
 extern void widget_play_sound_effect(int16_t effect_id);
 extern void widget_instance_close_and_restore_previous(widget_instance *widget);
-extern void master_server_list_refresh_request(void);
-extern void master_server_ensure_list_connection(void);
-extern void server_browser_filter_panel_set_mode(void *panel, uint8_t internet_mode);
-extern void server_browser_latch_join_target(void);
 extern uint8_t server_browser_allow_empty;
 extern uint8_t server_browser_allow_full;
 extern uint8_t server_browser_filter_ping_limit_index;
@@ -27,11 +24,6 @@ extern uint8_t server_browser_skip_reselect;
 extern uint8_t server_browser_player_list_ready;
 extern uint32_t master_server_request_flags;
 extern uint8_t server_browser_player_ticker[0x1c];
-extern void server_list_scroll_page_up(uint8_t jump_to_top);
-extern void server_list_scroll_page_down(uint8_t jump_to_bottom);
-extern uint32_t server_list_result_count_get(void);
-extern void join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t string_index);
-extern void ticker_text_buffer_append(uint16_t *text, int32_t reset_column, void *self);
 }
 
 namespace halo::interface {
@@ -113,13 +105,13 @@ uint8_t ButtonHandler::handle(widget_instance *widget, int16_t *event, uint8_t *
     (void)event;
     (void)out_handled;
     if (widget == refresh) {
-        master_server_list_refresh_request();
+        halo::networking::master_server_list_refresh_request();
     } else if (widget == reconnect) {
-        master_server_ensure_list_connection();
+        halo::networking::master_server_ensure_list_connection();
     } else if (widget == filters) {
-        server_browser_filter_panel_set_mode(parent->parent->parent, 1);
+        halo::networking::server_browser_filter_panel_set_mode((network_ui_widget *)parent->parent->parent, 1);
     } else if (widget == join) {
-        server_browser_latch_join_target();
+        halo::networking::server_browser_latch_join_target();
     } else {
         return 0;
     }
@@ -232,14 +224,14 @@ uint8_t ListRowHandler::handle(widget_instance *widget, int16_t *event, uint8_t 
         return 1;
     }
     if (widget == page_up) {
-        server_list_scroll_page_up(0);
+        halo::networking::server_list_scroll_page_up(0);
         return 1;
     }
     if (widget == page_down) {
-        server_list_scroll_page_down(0);
+        halo::networking::server_list_scroll_page_down(0);
         return 1;
     }
-    count = server_list_result_count_get();
+    count = halo::networking::server_list_result_count_get();
     if (count == 0) {
         return 1;
     }
@@ -256,16 +248,16 @@ uint8_t ListRowHandler::handle(widget_instance *widget, int16_t *event, uint8_t 
     server_browser_selected_index = server_list_scroll_offset + i;
     if (old_selection == server_browser_selected_index && server_browser_last_click_ms != 0 &&
         now - server_browser_last_click_ms < 250) {
-        server_browser_latch_join_target();
+        halo::networking::server_browser_latch_join_target();
         server_browser_last_click_ms = now;
         return 1;
     }
     {
         uint16_t text[0x40];
 
-        join_game_ticker_string_copy(text, 0x40, 3);
-        ticker_text_buffer_append(0, 0, server_browser_player_ticker);
-        ticker_text_buffer_append(text, 0, server_browser_player_ticker);
+        halo::networking::join_game_ticker_string_copy(text, 0x40, 3);
+        halo::networking::ticker_text_buffer_append(0, 0, (ticker_text_buffer *)server_browser_player_ticker);
+        halo::networking::ticker_text_buffer_append((wchar_t *)text, 0, (ticker_text_buffer *)server_browser_player_ticker);
     }
     server_browser_last_click_ms = now;
     server_browser_player_list_ready = 0;

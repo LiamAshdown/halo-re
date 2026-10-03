@@ -8,6 +8,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 namespace c_actor_allocate_paired_prop {
 extern "C" {
@@ -100,7 +101,6 @@ extern "C" datum_index actor_allocate_paired_prop_with_kind(datum_index actor_in
 
 namespace c_actor_apply_unit_definition_properties {
 extern "C" {
-extern int16_t network_game_mode;
 extern object_type_definition *object_type_definitions[12];
 
 
@@ -117,7 +117,7 @@ static datum_index actor_create_unit_item(datum_index definition_tag, datum_inde
     uint32_t role = 3;
 
     halo::objects::object_placement_data_initialize(&placement, definition_tag, unit_index);
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         int16_t type = *(int16_t *)halo::cache::globals().tag_instances[placement.definition_tag & halo::k_slot_mask].data;
 
         if (object_type_definitions[type]->network_delta_message_type != -1) {

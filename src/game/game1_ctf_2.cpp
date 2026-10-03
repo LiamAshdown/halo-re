@@ -19,27 +19,17 @@
 #include "halo/items/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern ctf_globals ctf_globals_live;
 extern game_variant game_engine_variant;
 extern int32_t ctf_team_flag_touch_count[2];
-extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
-extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state, uint8_t *changed_flags,
-    int32_t changed_offset, int32_t destination_offset);
 extern int32_t ctf_touch_counts_network[3];
 extern uint8_t ctf_active_team;
 extern int32_t ctf_flag_auto_return_ticks;
 extern uint8_t custom_waypoints[];
 extern uint8_t network_message_scratch[0x7ff8];
-extern network_server_globals *network_server;
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit,
-    void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
-extern uint8_t network_session_send_to_machine(int32_t machine_id, void *server, uint32_t status_bit, void *data,
-    uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority);
-extern int16_t network_game_mode;
 extern datum_index ctf_team_flag_object[2];
 extern void game_engine_ctf_reset_team_return_credit(uint32_t object_index);
 extern uint8_t ctf_team_return_credit_active[2];
@@ -138,7 +128,7 @@ void Ctf::skip_unchanged_message(message_delta_decode_state *state)
 uint8_t Ctf::read_changed(void **context, void *changed_base, void *destination)
 {
     message_delta_decode_state *state = (message_delta_decode_state *)context[0];
-    int32_t bits = message_delta_read_changed_subfields(state, (uint8_t *)(context + 1), (int32_t)changed_base, (int32_t)destination);
+    int32_t bits = halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)(context + 1), (int32_t)changed_base, (int32_t)destination);
 
     state->bits_read += bits;
     if (bits != 0) {
@@ -164,7 +154,7 @@ void Ctf::profile_post_update(void **context)
         ctf_touch_counts_network[0] = 0;
         ctf_touch_counts_network[1] = 0;
         ctf_touch_counts_network[2] = 0;
-        changed = message_delta_decode_compound_field(context, ctf_touch_counts_network);
+        changed = halo::networking::message_delta_decode_compound_field(context, ctf_touch_counts_network);
     } else {
         int32_t local[3];
 
@@ -204,7 +194,7 @@ void Ctf::profiles_updated(int32_t mode, int32_t machine_index)
     extra[0] = &ticks;
     if (mode == 0) {
         items[0] = ctf_touch_counts_network;
-        bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x11, (int32_t)extra, items, 0, 1, 0);
+        bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x11, (int32_t)extra, items, 0, 1, 0);
     } else {
         int32_t live[3];
         void *baseline[1];
@@ -215,7 +205,7 @@ void Ctf::profiles_updated(int32_t mode, int32_t machine_index)
         items[0] = live;
         items[1] = (void *)ticks;
         baseline[0] = ctf_touch_counts_network;
-        bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x11, (int32_t)extra, items,
+        bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 1, 0x11, (int32_t)extra, items,
             (int32_t)baseline, 1, 0);
         ctf_touch_counts_network[0] = live[0];
         ctf_touch_counts_network[1] = live[1];
@@ -225,9 +215,9 @@ void Ctf::profiles_updated(int32_t mode, int32_t machine_index)
         return;
     }
     if (machine_index == -1) {
-        network_session_broadcast_to_flagged(bits, network_server, 1, network_message_scratch, 1, 0, 0, 3);
+        halo::networking::network_session_broadcast_to_flagged(bits, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
     } else {
-        network_session_send_to_machine(machine_index, network_server, 1, network_message_scratch, bits, 1, 0, 0, 3);
+        halo::networking::network_session_send_to_machine(machine_index, halo::networking::globals().server, 1, network_message_scratch, bits, 1, 0, 0, 3);
     }
 }
 
@@ -238,7 +228,7 @@ void Ctf::profiles_updated(int32_t mode, int32_t machine_index)
  */
 void Ctf::reset_objects(void)
 {
-    if (network_game_mode != 2) {
+    if (halo::networking::globals().game_mode != 2) {
         return;
     }
     if (ctf_team_flag_object[0] != 0xffffffff) {
@@ -271,7 +261,7 @@ void Ctf::return_all_flags(void)
     ScenarioNetgameFlags *flags;
     int32_t i;
 
-    if (network_game_mode != 2) {
+    if (halo::networking::globals().game_mode != 2) {
         return;
     }
 
@@ -358,11 +348,11 @@ void Ctf::unknown_48(void)
 {
     int32_t limit = ctf_flag_capture_limit_006b0ea0;
 
-    if (network_game_mode != 2) {
+    if (halo::networking::globals().game_mode != 2) {
         return;
     }
     if ((ctf_team_flag_touch_count[0] >= limit || ctf_team_flag_touch_count[1] >= limit) && game_engine_state_value == 0) {
-        network_server->game_over = 1;
+        halo::networking::globals().server->game_over = 1;
         game_engine_state_value = 1;
         game_engine_end_game_timer = 7.0f;
         game_engine_queue_multiplayer_sound(1, 0xffffffff, 0);
@@ -399,7 +389,7 @@ uint8_t Ctf::unknown_60(datum_index unit_index, datum_index item_index)
     datum_index player = player_index_from_unit_index(unit_index);
     uint8_t *weapon;
 
-    if (player == 0xffffffff || item_index == 0xffffffff || network_game_mode != 2) {
+    if (player == 0xffffffff || item_index == 0xffffffff || halo::networking::globals().game_mode != 2) {
         return 1;
     }
     weapon = (uint8_t *)halo::objects::object_try_and_get(item_index, 4);
@@ -428,7 +418,7 @@ void Ctf::update(datum_index player_index)
     if (unit_has_must_be_readied_weapon(player_index) != 0) {
         unit_reset_gauge_if_flagged(player_index);
     }
-    if (network_game_mode != 2) {
+    if (halo::networking::globals().game_mode != 2) {
         return;
     }
     unit_index = ((struct player *)player)->unit;

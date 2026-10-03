@@ -5,11 +5,11 @@
 #include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern char hs_evaluate_variadic_arguments(uint32_t thread_index, int32_t value, uint32_t *out_count, int32_t **out_values);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern void game_variant_list_matching_substring(uint32_t argument_count, int32_t *arguments);
 extern void hs_autocomplete_scan_globals(TagReflexive *table, int16_t name_offset, int32_t stride);
 extern int16_t hs_autocomplete_maximum_count;
 extern char *hs_autocomplete_prefix;
@@ -60,7 +60,7 @@ void ScriptAutocomplete::game_variant_list_matching_substring_evaluate(int16_t f
     arguments = 0;
     ready = hs_evaluate_variadic_arguments(thread, first, &argument_count, &arguments);
     if (ready != 0) {
-        game_variant_list_matching_substring(argument_count, arguments);
+        halo::networking::game_variant_list_matching_substring(argument_count, (char **)arguments);
         hs_thread_return(0, thread);
     }
 }

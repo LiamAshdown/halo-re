@@ -1,5 +1,6 @@
 #include "halo/game/game2_engine_match.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -10,15 +11,10 @@ extern uint8_t game_engine_unknown_1cfc;
 extern uint8_t network_message_scratch[0x7ff8];
 extern void game_engine_player_round_reset(void);
 extern void chat_queue_team_message(int32_t color, int32_t message_id);
-extern uint8_t message_delta_decode_compound_field(void *event, void *out_values);
-extern void message_delta_decode_compound_field_staged(void *event);
 extern uint8_t game_engine_team_close_game_check(int32_t side, int32_t filter_value);
 extern uint8_t game_engine_team_is_leading(int32_t filter_value);
 extern uint8_t player_customization_slot_set(uint8_t *base, uint8_t new_value, uint32_t key);
 extern void player_set_team_by_color(uint8_t new_team, int8_t target_team_index_desired);
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern network_server_globals *network_server;
-extern char network_session_broadcast_to_flagged(void *server, int32_t param_1, void *data, int32_t param_3, int32_t param_4, int32_t force, int32_t param_6);
 }
 
 namespace halo::game {
@@ -35,18 +31,18 @@ void EngineMatch::update_lead_change_state(void **envelope, uint8_t *message)
     uint8_t color, side_selector;
 
     if (*(int32_t *)*envelope != 0 || current_game_engine == 0 || !game_engine_teams_enabled_flag) {
-        message_delta_decode_compound_field_staged(envelope);
+        halo::networking::message_delta_decode_compound_field_staged(envelope);
         return;
     }
 
-    if (!message_delta_decode_compound_field(envelope, out_pair)) {
+    if (!halo::networking::message_delta_decode_compound_field(envelope, out_pair)) {
         return;
     }
     color = out_pair[0];
     side_selector = out_pair[1];
 
     if (color > 0xf ||
-        (int16_t)*(int8_t *)((uint8_t *)network_server + (uint32_t)color * 0x20 + 0x1c6) != *(int16_t *)(message + 0xc)) {
+        (int16_t)*(int8_t *)((uint8_t *)halo::networking::globals().server + (uint32_t)color * 0x20 + 0x1c6) != *(int16_t *)(message + 0xc)) {
         chat_queue_team_message(color, 0x91);
         return;
     }
@@ -95,13 +91,14 @@ void EngineMatch::update_lead_change_state(void **envelope, uint8_t *message)
             }
         }
 
+        int32_t encoded_bits;
         {
             uint8_t local_team_byte = color;
             uint8_t *fields_ptr = &local_team_byte;
 
-            message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x1a, 0, (void **)&fields_ptr, 0, 1, 0);
+            encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x1a, 0, (void **)&fields_ptr, 0, 1, 0);
         }
-        network_session_broadcast_to_flagged(network_server, 1, network_message_scratch, 1, 0, 1, 3);
+        halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 1, 3);
     }
 }
 

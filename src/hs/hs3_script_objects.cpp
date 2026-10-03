@@ -11,18 +11,17 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern char ai_marker_name_a[];
 extern data_array *player_data;
-extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern uint8_t *network_client;
 extern double cos(double x);
 extern double sin(double x);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_object, void *local_offset);
-extern void player_update_history_free_all(void *history);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
 extern uint32_t player_index_from_unit_index(datum_index object_index);
 extern uint8_t hs_object_angle_predicate_helper(datum_index object_index, datum_index viewer_unit, float angle_degrees);
@@ -113,7 +112,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
             }
         }
         unit = OBJ(object_index);
-        if (network_game_mode == 1) {
+        if (halo::networking::globals().game_mode == 1) {
             uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)unit)->unit.controlling_player, player_data);
             if (player != 0 && ((struct player *)player)->local_player_index == -1) {
                 *(uint32_t *)&((struct player *)player)->position_updates.read_index = 0;
@@ -129,7 +128,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
             halo::units::unit_dispatch_scripted_event_9(1, (int32_t)object_index);
             unit = OBJ(object_index);
         }
-        if (network_game_mode == 1) {
+        if (halo::networking::globals().game_mode == 1) {
             datum_index player_index = ((unit_object *)unit)->unit.controlling_player;
             int16_t index = (int16_t)player_index;
             int16_t salt = (int16_t)(player_index >> 16);
@@ -138,7 +137,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
                 int16_t identifier = *(int16_t *)player;
                 if (identifier != 0 && (salt == 0 || identifier == salt) && ((struct player *)player)->local_player_index != -1 &&
                     network_client != 0) {
-                    player_update_history_free_all(*(void **)(network_client + 0xf48));
+                    halo::networking::player_update_history_free_all((player_update_history *)(*(void **)(network_client + 0xf48)));
                 }
             }
         }
@@ -215,7 +214,7 @@ void ScriptObjects::object_detach_and_place_at_location(int16_t location_index, 
     if (detach_from_parent && *(datum_index *)(placed + 0x11c) != k_datum_index_none) {
         if (halo::objects::object_try_and_get(object_index, 3) == 0) {
             halo::objects::object_snap_to_parent_marker_and_detach(object_index);
-        } else if (network_game_mode != 1) {
+        } else if (halo::networking::globals().game_mode != 1) {
             hs_unit_leave_seat(object_index);
         }
     }

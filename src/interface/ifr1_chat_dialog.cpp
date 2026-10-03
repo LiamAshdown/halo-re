@@ -7,6 +7,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern uint8_t chat_dialog_open;
@@ -24,8 +25,6 @@ extern chat_gui_release_fn chat_gui_release;
 extern uint8_t chat_gui_active;
 extern data_array *player_data;
 extern wchar_t empty_string;
-extern uint8_t message_delta_decode_compound_field(void *event, chat_incoming_record *out_record);
-extern void message_delta_decode_compound_field_staged(void *event);
 extern int32_t shell_load_localized_string(int32_t id, char *out_buffer);
 extern void chimera__multiplayer_message(const wchar_t *text);
 extern uint8_t chat_hotkey_all;
@@ -39,10 +38,6 @@ extern int32_t chat_default_team_channel(void);
 extern void chimera__chat_out(uint8_t team_index);
 extern void chat_close(void);
 extern uint8_t network_message_scratch[0x7ff8];
-extern network_client_globals *network_client;
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
 }
 
 static const wchar_t *chat_prefix_format(int16_t string_index)
@@ -223,14 +218,14 @@ void ChatDialog::dispatch_incoming(void *event)
     const ChatLineSource *source;
 
     if (*(int32_t *)*(void **)event != 0) {
-        message_delta_decode_compound_field_staged(event);
+        halo::networking::message_delta_decode_compound_field_staged((void **)event);
         return;
     }
 
     record.kind = 0;
     record.player_index = 0xff;
     record.text = (uint16_t *)text;
-    if (!message_delta_decode_compound_field(event, &record)) {
+    if (!halo::networking::message_delta_decode_compound_field((void **)event, &record)) {
         return;
     }
 
@@ -313,15 +308,15 @@ void ChatDialog::submit_input(void)
  */
 void ChatDialog::out(uint8_t channel)
 {
-    int32_t encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xf, 0, (void **)&channel, 0, 1, 0);
+    int32_t encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xf, 0, (void **)&channel, 0, 1, 0);
 
     if (encoded_bits > 0) {
-        uint8_t *session = *(uint8_t **)((uint8_t *)network_client + 0xadc);
+        uint8_t *session = *(uint8_t **)((uint8_t *)halo::networking::globals().client + 0xadc);
 
         if ((session[0xa8c] & 1) == 0 &&
             (encoded_bits + 1 <= (*(int32_t *)(session + 0x24) + *(int32_t *)(session + 0x1c) * -8) -
                                       *(int32_t *)(session + 0x20) + 1 ||
-             network_channel_stream_flush((network_channel_stream *)((uint8_t *)session + 0x10), (network_channel *)session, 1) != 0)) {
+             halo::networking::network_channel_stream_flush((network_channel_stream *)((uint8_t *)session + 0x10), (network_channel *)session, 1) != 0)) {
             *(int32_t *)(session + 0xa80) = *(int32_t *)(session + 0xa80) + encoded_bits + 1;
             { uint32_t item_flag = 1; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), &item_flag, 1); }
             session[0x2c] = 0;

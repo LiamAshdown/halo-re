@@ -5,13 +5,13 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/main/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first);
-extern void player_update_history_log_set_name_filter(char *name);
 extern uint8_t ui_widget_show_path_flag;
 extern data_array *hs_thread_data;
 extern data_array *hs_syntax_data;
@@ -81,7 +81,7 @@ void ScriptCommands::evaluate_track_remote_player_position_updates(int16_t funct
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        player_update_history_log_set_name_filter((char *)arguments[0]);
+        halo::networking::player_update_history_log_set_name_filter((char *)arguments[0]);
         hs_thread_return(0, thread_index);
     }
 }

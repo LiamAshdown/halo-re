@@ -95,11 +95,11 @@ public:
     static uint8_t encode_prepare_item(uint8_t *ctx);
 
     /**
-     * Builds a message-delta message carrying a single value: the one-element items array points at `value` itself, and the field is reported "changed" (changed_offset = &value) whenever value is non-zero.
+     * Builds a message-delta message carrying a single item into `buffer` (bit_budget bits): the one-element items array holds `item`, the baseline slots hold `changed_value` (reported "changed" only when non-null) and `type_value`; force_changed arrives in dl.
      *
      * @address 0x4ec450
      */
-    static int32_t encode_single_value(int32_t message_type, int32_t value, int32_t type_value, char force_changed);
+    static int32_t encode_single_value(int32_t message_type, void *changed_value, void *item, void *type_value, int32_t buffer, int32_t bit_budget, char force_changed);
 
     /**
      * Walks a message type's field-binding list, calling each field type's callback (the same slot message_delta_field_bindings_lazy_init calls) with the field type pointer, until every entry has been visited or an all-zero sentinel entry is reached.

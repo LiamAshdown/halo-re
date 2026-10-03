@@ -6,6 +6,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 static const int8_t k_unit_exit_seat_request[2] = {0x14, 0};
 
@@ -15,7 +16,6 @@ extern data_array *player_data;
 extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t *out, uint32_t message_type, datum_index subject, size_t buffer_size);
 extern void chimera__multiplayer_message(wchar_t *text);
 extern game_variant game_engine_variant;
-extern int16_t network_game_mode;
 extern int32_t game_engine_auto_team_counter;
 extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type, datum_index subject, char broadcast);
 extern game_engine_state game_engine_state_value;
@@ -32,8 +32,6 @@ extern real look_pitch_rate_setting[k_maximum_local_players];
 extern real look_yaw_rate_setting[k_maximum_local_players];
 extern player_profile player_profile_cache[16];
 extern player_globals *local_player_globals;
-extern network_client_globals *network_client;
-extern void player_update_history_free_all(void *queue);
 extern uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object, real_point3d *point);
 extern int16_t game_engine_recent_location_count;
 extern int16_t game_engine_recent_location_table[];
@@ -105,7 +103,7 @@ uint8_t EnginePlayers::player_has_respawn_priority(uint32_t player_index)
 
     if (game_engine_variant.odd_man_out != 0 && self->unit == (datum_index)0xffffffff) {
         result = 1;
-        if (network_game_mode == 1) {
+        if (halo::networking::globals().game_mode == 1) {
             return self->odd_man_out;
         }
         if (self->deaths < 1) {
@@ -183,12 +181,12 @@ void EnginePlayers::player_new_life(uint32_t player_handle)
         return;
     }
 
-    if (network_game_mode != 1) {
+    if (halo::networking::globals().game_mode != 1) {
         if (game_engine_variant.teams == 0) {
             p->team_index = p->team_index_desired;
             p->team = (int32_t)p->team_index_desired;
             game_engine_auto_team_counter = game_engine_auto_team_counter + 1;
-        } else if (network_game_mode == 1 || network_game_mode == 2) {
+        } else if (halo::networking::globals().game_mode == 1 || halo::networking::globals().game_mode == 2) {
             team = (int32_t)p->team_index % 2;
             p->team = team;
         } else {
@@ -678,7 +676,7 @@ void EnginePlayers::reset_player_profile_stats(void)
  */
 void EnginePlayers::reset_respawns_and_cleanup_bipeds(void)
 {
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         data_iterator player_iter;
         uint32_t unused_checksum;
         player *p;
@@ -791,7 +789,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
         object *current_parent_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_handle & 0xffff].data;
         if (target_obj->parent_object != (datum_index)-1 &&
             target_obj->parent_object != current_parent_obj->parent_object &&
-            network_game_mode != 1) {
+            halo::networking::globals().game_mode != 1) {
             object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_handle & 0xffff].data;
             unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
             datum_index driver = unit->driver_unit_index;
@@ -882,7 +880,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                     }
                 }
 
-                if (network_game_mode == 1) {
+                if (halo::networking::globals().game_mode == 1) {
                     void *datum = halo::memory::datum_get(unit_handle, halo::objects::globals().object_data);
                     if (datum != (void *)0 && *(int16_t *)((uint8_t *)datum + 2) == -1) {
                         circular_queue *cq1 = (circular_queue *)((uint8_t *)datum + 0x170);
@@ -899,7 +897,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                 halo::units::unit_dispatch_scripted_event_9(1, (int32_t)unit_handle);
             }
 
-            if (network_game_mode == 1) {
+            if (halo::networking::globals().game_mode == 1) {
                 datum_index controlling_player = unit->controlling_player;
                 if (controlling_player != (datum_index)-1) {
                     int16_t index = (int16_t)controlling_player;
@@ -907,8 +905,8 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                         player *plr = (player *)((uint8_t *)player_data->data + (uint32_t)(uint16_t)index * player_data->size);
                         int16_t salt = (int16_t)(controlling_player >> 16);
                         if (plr->identifier != 0 && (salt == 0 || plr->identifier == salt) &&
-                            plr->local_player_index == -1 && network_client != 0) {
-                            player_update_history_free_all(*(void **)&network_client->update_history);
+                            plr->local_player_index == -1 && halo::networking::globals().client != 0) {
+                            halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
                         }
                     }
                 }

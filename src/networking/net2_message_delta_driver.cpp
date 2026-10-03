@@ -10,6 +10,7 @@
 #include "halo/networking/net2_message_delta_driver.hpp"
 #include "halo/networking/field_codec.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern message_delta_definition * message_delta_definitions[56];
@@ -20,26 +21,6 @@ extern int32_t message_delta_parameters_protocol_sequence;
 extern uint8_t message_delta_parameters_sending;
 extern message_delta_field_type_vtable message_delta_field_type_table[];
 extern uint8_t message_delta_unknown_table_0069a304[28][0x18];
-extern void message_delta_parameters_protocol_reload_from_config_file(void);
-int32_t message_delta_decode_begin(message_delta_decode_state *state, bit_stream *stream);
-int32_t message_delta_decode_field_changed_flags(void **context);
-int32_t message_delta_decode_message_header(bit_stream *stream, message_delta_decode_state *state);
-int32_t message_delta_decode_static_fields(int32_t message_type, bit_stream *stream, int32_t offset);
-void message_delta_definitions_invoke_field_bindings(void);
-void message_delta_definitions_teardown_field_bindings(void);
-uint8_t message_delta_encode_all_fields(uint8_t *ctx, int32_t static_base, int32_t item, int32_t type_base);
-uint8_t message_delta_encode_field(int32_t changed_offset, uint8_t *ctx, int32_t field_index, int32_t type_offset);
-int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
-                                      int32_t changed_offset, void **items, int32_t type_offset, int32_t count,
-                                      char force_changed);
-uint8_t message_delta_encode_message_header(uint8_t *ctx);
-uint8_t message_delta_encode_prepare_item(uint8_t *ctx);
-int32_t message_delta_encode_single_value(int32_t message_type, int32_t value, int32_t type_value, char force_changed);
-void message_delta_field_bindings_invoke(message_delta_static_fields *list);
-uint8_t message_delta_field_bindings_lazy_init(message_delta_static_fields *list);
-void message_delta_field_bindings_teardown(message_delta_static_fields *list);
-void message_delta_field_layout_compute_size(message_delta_definition *definition);
-void message_delta_protocol_initialize(void);
 }
 
 typedef int32_t (*message_delta_field_decode_fn)(void *field_type, int32_t changed, int32_t offset, bit_stream *stream);
@@ -54,7 +35,7 @@ int32_t DeltaMessageDriver::decode_begin(message_delta_decode_state *state, bit_
     uint32_t target;
 
     initial_offset = (int32_t)(stream->bit_cursor + stream->byte_cursor * 8) - (int32_t)stream->first_bit;
-    header_bits = message_delta_decode_message_header(stream, state);
+    header_bits = halo::networking::message_delta_decode_message_header(stream, state);
     if (0 < header_bits) {
         state->bits_read = header_bits;
         state->start_bit_offset = initial_offset;
@@ -120,7 +101,7 @@ int32_t DeltaMessageDriver::decode_field_changed_flags(void **context)
     }
 
     if (ok && 0 < definition->statics->count) {
-        int32_t static_bits = message_delta_decode_static_fields(
+        int32_t static_bits = halo::networking::message_delta_decode_static_fields(
             state->message_type, stream, (int32_t)(int32_t)context[0x11]);
         if (static_bits < 1) {
             ok = 0;
@@ -248,8 +229,8 @@ void DeltaMessageDriver::definitions_invoke_field_bindings(void)
 
     for (i = 0; i < k_network_message_definition_count; i++) {
         definition = message_delta_definitions[i];
-        message_delta_field_bindings_invoke(definition->statics);
-        message_delta_field_bindings_invoke((message_delta_static_fields *)&definition->field_count);
+        halo::networking::message_delta_field_bindings_invoke(definition->statics);
+        halo::networking::message_delta_field_bindings_invoke((message_delta_static_fields *)&definition->field_count);
     }
 }
 
@@ -260,8 +241,8 @@ void DeltaMessageDriver::definitions_teardown_field_bindings(void)
 
     for (i = 0; i < k_network_message_definition_count; i++) {
         definition = message_delta_definitions[i];
-        message_delta_field_bindings_teardown(definition->statics);
-        message_delta_field_bindings_teardown((message_delta_static_fields *)&definition->field_count);
+        halo::networking::message_delta_field_bindings_teardown(definition->statics);
+        halo::networking::message_delta_field_bindings_teardown((message_delta_static_fields *)&definition->field_count);
         definition->initialized = 0;
     }
 }
@@ -302,7 +283,7 @@ uint8_t DeltaMessageDriver::encode_all_fields(uint8_t *ctx, int32_t static_base,
     }
     ok = (uint8_t)(CTXD(8) != 1);
     for (i = 0; i < field_count; i++) {
-        uint8_t changed = message_delta_encode_field(type_base, ctx, i, item);
+        uint8_t changed = halo::networking::message_delta_encode_field(type_base, ctx, i, item);
         if (CTXD(8) == 1) {
             ok = (ok || changed) ? 1 : 0;
         } else {
@@ -370,7 +351,7 @@ int32_t DeltaMessageDriver::encode_message(int32_t extra_eax, int32_t extra_edx,
     CTXD(0x34) = header_bits;
     CTXD(0x3c) = header_bits;
     ctx[0] = 1;
-    message_delta_encode_message_header(ctx);
+    halo::networking::message_delta_encode_message_header(ctx);
 
     if (0 < count) {
         void **cursor = items;
@@ -382,8 +363,8 @@ int32_t DeltaMessageDriver::encode_message(int32_t extra_eax, int32_t extra_edx,
             int32_t type = (flag == 0) ? 0
                 : *(int32_t *)((uint8_t *)cursor + (type_offset - (int32_t)items));
 
-            message_delta_encode_prepare_item(ctx);
-            message_delta_encode_all_fields(ctx, baseline, (int32_t)item, type);
+            halo::networking::message_delta_encode_prepare_item(ctx);
+            halo::networking::message_delta_encode_all_fields(ctx, baseline, (int32_t)item, type);
             if (0 < CTXD(0x44) || force_changed != 0) {
                 int32_t bits = CTXD(0x44) + CTXD(0x40);
                 CTXD(0x14) = CTXD(0x14) + bits;
@@ -481,24 +462,17 @@ uint8_t DeltaMessageDriver::encode_prepare_item(uint8_t *ctx)
     return 1;
 }
 
-int32_t DeltaMessageDriver::encode_single_value(int32_t message_type, int32_t value, int32_t type_value, char force_changed)
+int32_t DeltaMessageDriver::encode_single_value(int32_t message_type, void *changed_value, void *item, void *type_value,
+                                                int32_t buffer, int32_t bit_budget, char force_changed)
 {
-    int32_t (*const message_delta_encode_message)(int32_t flag, int32_t message_type, int32_t changed_offset,
-                                             void **items, int32_t type_offset, int32_t count,
-                                             char force_changed) = reinterpret_cast<int32_t (*)(int32_t flag, int32_t message_type, int32_t changed_offset,
-                                             void **items, int32_t type_offset, int32_t count,
-                                             char force_changed)>(&::message_delta_encode_message);
-    struct {
-        int32_t value;
-        int32_t type_value;
-    } item;
+    void *changed_slot = changed_value;
+    void *type_slot = type_value;
     void *items[1];
 
-    item.value = value;
-    item.type_value = type_value;
-    items[0] = &item;
-    return message_delta_encode_message(1, message_type, value != 0 ? (int32_t)(int32_t)&item : 0,
-                                         items, (int32_t)(int32_t)&item.type_value, 1, force_changed);
+    items[0] = item;
+    return halo::networking::message_delta_encode_message(buffer, bit_budget, 1, message_type,
+                                         changed_value != 0 ? (int32_t)(int32_t)&changed_slot : 0,
+                                         items, (int32_t)(int32_t)&type_slot, 1, force_changed);
 }
 
 void DeltaMessageDriver::field_bindings_invoke(message_delta_static_fields *list)
@@ -595,8 +569,8 @@ void DeltaMessageDriver::field_layout_compute_size(message_delta_definition *def
     int32_t header_and_static_bits;
     int32_t item_bits;
 
-    message_delta_field_bindings_lazy_init(definition->statics);
-    message_delta_field_bindings_lazy_init((message_delta_static_fields *)&definition->field_count);
+    halo::networking::message_delta_field_bindings_lazy_init(definition->statics);
+    halo::networking::message_delta_field_bindings_lazy_init((message_delta_static_fields *)&definition->field_count);
 
     fields_bit_sum = 0;
     for (i = 0; i < definition->field_count; i++) {
@@ -635,19 +609,19 @@ void DeltaMessageDriver::protocol_initialize(void)
     int32_t i;
 
     if (message_delta_parameters_enabled == 1) {
-        message_delta_parameters_protocol_reload_from_config_file();
+        halo::networking::message_delta_parameters_protocol_reload_from_config_file();
     }
     for (i = 0; i < 28; i++) {
         message_delta_unknown_table_0069a304[i][0] = 1;
     }
     for (i = 0; i < k_network_message_definition_count; i++) {
-        message_delta_field_layout_compute_size(message_delta_definitions[i]);
+        halo::networking::message_delta_field_layout_compute_size(message_delta_definitions[i]);
     }
 }
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 int32_t message_delta_decode_begin(message_delta_decode_state *state, bit_stream *stream)
 {
     return halo::networking::DeltaMessageDriver::decode_begin(state, stream);
@@ -705,9 +679,9 @@ uint8_t message_delta_encode_prepare_item(uint8_t *ctx)
     return halo::networking::DeltaMessageDriver::encode_prepare_item(ctx);
 }
 
-int32_t message_delta_encode_single_value(int32_t message_type, int32_t value, int32_t type_value, char force_changed)
+int32_t message_delta_encode_single_value(int32_t message_type, void *changed_value, void *item, void *type_value, int32_t buffer, int32_t bit_budget, char force_changed)
 {
-    return halo::networking::DeltaMessageDriver::encode_single_value(message_type, value, type_value, force_changed);
+    return halo::networking::DeltaMessageDriver::encode_single_value(message_type, changed_value, item, type_value, buffer, bit_budget, force_changed);
 }
 
 void message_delta_field_bindings_invoke(message_delta_static_fields *list)

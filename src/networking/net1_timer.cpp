@@ -1,8 +1,8 @@
 #include "halo/networking/net1_timer.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
-extern void network_timer_advance(network_timer_pair *timer);
 }
 
 namespace halo::networking {
@@ -45,7 +45,7 @@ void TimerView::advance()
 void TimerView::decrement_floored(int32_t decrement)
 {
     network_timer_pair *timer = self;
-    network_timer_advance(timer);
+    halo::networking::network_timer_advance(timer);
     if (decrement < timer->remaining_ms) {
         timer->remaining_ms = timer->remaining_ms - decrement;
         return;
@@ -66,7 +66,7 @@ void TimerView::increment_clamped(int32_t upper_bound, int32_t increment)
     network_timer_pair *timer = self;
     int32_t sum;
 
-    network_timer_advance(timer);
+    halo::networking::network_timer_advance(timer);
     sum = timer->remaining_ms + increment;
     if (sum < increment) {
         timer->remaining_ms = upper_bound;

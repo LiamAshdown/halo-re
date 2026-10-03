@@ -7,9 +7,9 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
-extern int16_t network_game_mode;
 extern double sqrt(double x);
 extern double fsin(double x);
 extern double fcos(double x);
@@ -141,7 +141,7 @@ uint8_t ProjectileHandle::construct()
 
     obj->flags |= _object_definition_flag0_bit | _object_connected_to_map_bit;
 
-    if (network_game_mode == 1 || network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 1 || halo::networking::globals().game_mode == 2) {
         proj->network_state_valid = 0;
         proj->network_baseline_index = 0;
         proj->network_sequence = 0;

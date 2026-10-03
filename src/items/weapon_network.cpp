@@ -2,20 +2,15 @@
 #include "halo/math/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern network_id_table *object_network_id_table;
-extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
-extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern real weapon_network_update_position_tolerance;
 extern double sqrt(double x);
-extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination, int32_t changed_offset, uint8_t force);
 extern network_id_table *machine_table;
 extern uint8_t network_object_index_cache[];
-extern int32_t network_index_cache_find_or_allocate_slot(uint8_t *container, int32_t key);
-extern int message_delta_encode_message(int flag, int message_type, int changed_offset, void **items, int type_offset, int count, char force_changed);
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
-extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key);
 int32_t halo::items::weapon_add_ammunition(void **message_record);
 void halo::items::weapon_apply_ammo_correction(void **message_record);
 void halo::items::weapon_apply_ammo_correction_and_resync(void **message_record);
@@ -45,9 +40,9 @@ int32_t weapon_ref::add_ammunition(void **message_record)
     int16_t *rounds_unloaded;
 
     if (*(int32_t *)*message_record != 0) {
-        return message_delta_decode_compound_field_staged(message_record);
+        return halo::networking::message_delta_decode_compound_field_staged(message_record);
     }
-    if ((int8_t)message_delta_decode_compound_field(message_record, &decoded) == 0) {
+    if ((int8_t)halo::networking::message_delta_decode_compound_field(message_record, &decoded) == 0) {
         return 0;
     }
 
@@ -82,10 +77,10 @@ void weapon_ref::apply_ammo_correction(void **message_record)
     datum_index item_index;
 
     if (*(int32_t *)*message_record != 0) {
-        message_delta_decode_compound_field_staged(message_record);
+        halo::networking::message_delta_decode_compound_field_staged(message_record);
         return;
     }
-    if ((int8_t)message_delta_decode_compound_field(message_record, &decoded) == 0) {
+    if ((int8_t)halo::networking::message_delta_decode_compound_field(message_record, &decoded) == 0) {
         return;
     }
 
@@ -123,10 +118,10 @@ void weapon_ref::apply_ammo_correction_and_resync(void **message_record)
     datum_index item_index;
 
     if (*(int32_t *)*message_record != 0) {
-        message_delta_decode_compound_field_staged(message_record);
+        halo::networking::message_delta_decode_compound_field_staged(message_record);
         return;
     }
-    if ((int8_t)message_delta_decode_compound_field(message_record, &decoded) == 0) {
+    if ((int8_t)halo::networking::message_delta_decode_compound_field(message_record, &decoded) == 0) {
         return;
     }
 
@@ -168,7 +163,7 @@ void weapon_ref::apply_network_update(uint32_t *update_record)
 
     item_obj = halo::objects::object_try_and_get(item_index, _object_mask_weapon);
     if (item_obj == 0) {
-        message_delta_decode_compound_field_staged(update_record);
+        halo::networking::message_delta_decode_compound_field_staged((void **)update_record);
         return;
     }
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
@@ -178,16 +173,16 @@ void weapon_ref::apply_network_update(uint32_t *update_record)
         (header->baseline_index != wd->network_baseline_index ||
          (header->sequence <= wd->network_sequence &&
           (int)((uint32_t)(header->sequence - wd->network_sequence) + 0xff) > 0x1d))) {
-        message_delta_decode_compound_field_staged(update_record);
+        halo::networking::message_delta_decode_compound_field_staged((void **)update_record);
         return;
     }
 
     snapshot = wd->network_state;
 
     if (*(int32_t *)update_record[0] == 1) {
-        accept = message_delta_decode_compound_field_forced(update_record, &snapshot, (int32_t)&wd->network_state, 0);
+        accept = halo::networking::message_delta_decode_compound_field_forced((void **)update_record, &snapshot, (int32_t)&wd->network_state, 0);
     } else {
-        accept = message_delta_decode_compound_field(update_record, &snapshot);
+        accept = halo::networking::message_delta_decode_compound_field((void **)update_record, &snapshot);
     }
 
     if (accept != 0) {
@@ -263,7 +258,7 @@ void weapon_ref::build_creation_message(uint32_t unused_param_2, uint32_t unused
         if (owner_hash == -1) owner_hash = 0;
     }
     if (object_hash == -1) {
-        object_hash = network_index_cache_find_or_allocate_slot(network_object_index_cache, (int32_t)item_index);
+        object_hash = halo::networking::network_index_cache_find_or_allocate_slot(network_object_index_cache, (int32_t)item_index);
     }
 
     message.definition_tag = item_obj->definition_tag;
@@ -285,7 +280,7 @@ void weapon_ref::build_creation_message(uint32_t unused_param_2, uint32_t unused
 
     items[0] = &message;
     items[1] = 0;
-    message_delta_encode_message(0, k_message_weapon_creation, 0, items, 0, 1, 0);
+    halo::networking::message_delta_encode_message((int32_t)unused_param_2, (int32_t)unused_param_3, 0, k_message_weapon_creation, 0, items, 0, 1, 0);
 }
 
 /**
@@ -357,7 +352,7 @@ int32_t weapon_ref::build_network_update(uint32_t unused_arg2, uint32_t unused_a
             type_offset = &net_ptr;
         }
 
-        result = message_delta_encode_message(is_full_snapshot, message_type,
+        result = halo::networking::message_delta_encode_message((int32_t)unused_arg2, (int32_t)unused_arg3, is_full_snapshot, message_type,
             (int)&header_ptr, items_array, (int)type_offset, 1, 0);
     }
 
@@ -393,10 +388,10 @@ void weapon_ref::create_from_creation_message(void *incoming_record)
     int32_t i;
 
     if (*(int32_t *)*(int32_t **)incoming_record != 0) {
-        message_delta_decode_compound_field_staged(incoming_record);
+        halo::networking::message_delta_decode_compound_field_staged((void **)incoming_record);
         return;
     }
-    if (message_delta_decode_compound_field(incoming_record, &decoded) != 1) {
+    if (halo::networking::message_delta_decode_compound_field((void **)incoming_record, &decoded) != 1) {
         return;
     }
 
@@ -433,7 +428,7 @@ void weapon_ref::create_from_creation_message(void *incoming_record)
         return;
     }
 
-    network_index_cache_insert_if_free(network_object_index_cache, decoded.object_hash, (int32_t)new_object_index);
+    halo::networking::network_index_cache_insert_if_free(network_object_index_cache, decoded.object_hash, (int32_t)new_object_index);
 
     obj = ((object_header *)halo::objects::globals().object_data->data)[new_object_index & 0xffff].data;
     wd = (weapon_data *)((uint8_t *)obj + k_item_extension_offset);
@@ -499,10 +494,10 @@ void weapon_ref::predict_ammo(void **message_record)
     datum_index item_index;
 
     if (*(int32_t *)*message_record != 0) {
-        message_delta_decode_compound_field_staged(message_record);
+        halo::networking::message_delta_decode_compound_field_staged(message_record);
         return;
     }
-    if ((int8_t)message_delta_decode_compound_field(message_record, &decoded) == 0) {
+    if ((int8_t)halo::networking::message_delta_decode_compound_field(message_record, &decoded) == 0) {
         return;
     }
 

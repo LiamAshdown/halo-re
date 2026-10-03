@@ -19,6 +19,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern int32_t autopatch_update_check_state;
@@ -48,29 +49,8 @@ extern void ghttpSetProxy(void *proxy_settings);
 extern uint8_t ai_update_stagger[11];
 extern uint8_t autopatch_temp_name_flag;
 extern int32_t autopatch_update_file_id;
-extern char * registry_get_halo_version(void);
-extern uint32_t registry_get_dist_id(void);
 extern int32_t ptCheckForPatch(int32_t request_type, char *version, uint32_t dist_id,
                              void *callback, int32_t a5, int32_t a6);
-int32_t autopatch_check_for_update_start(void);
-void autopatch_current_version_string_get(char *out);
-uint32_t autopatch_download_complete_callback(int32_t request_id, int32_t error, uint8_t *data, uint32_t size);
-uint8_t autopatch_download_get_result(void **out_data, int32_t *out_size, int32_t slot_index);
-uint8_t autopatch_download_pool_initialize(void);
-uint32_t autopatch_download_pool_shutdown(void);
-int32_t autopatch_download_pool_tick(void);
-void autopatch_download_progress_callback(int32_t request, int32_t state, const char *buffer, int32_t buffer_length,
-    int32_t bytes_received, int32_t total_size, void *param);
-int32_t autopatch_download_start(void *path, int32_t local_file);
-uint32_t autopatch_download_worker_thread(void);
-char * autopatch_get_proxy_settings(void);
-uint8_t autopatch_launch_updater(void);
-uint32_t __stdcall autopatch_proxy_initialize(void *parameter);
-char * autopatch_temp_name_generate(void);
-void autopatch_version_check_completed(int32_t available, int32_t mandatory, const char *version_name, int32_t file_id,
-    const char *download_url, void *param);
-uint32_t autopatch_version_check_request(void);
-uint32_t autopatch_version_string_is_outdated(char *version);
 }
 
 typedef struct internet_proxy_info {       
@@ -146,7 +126,7 @@ int32_t AutopatchUpdater::check_for_update_start(void)
             }
         }
 
-        thread = CreateThread(0, 0x10400, (LPTHREAD_START_ROUTINE)autopatch_version_check_request, 0, 0, (LPDWORD)&thread_id);
+        thread = CreateThread(0, 0x10400, (LPTHREAD_START_ROUTINE)halo::networking::autopatch_version_check_request, 0, 0, (LPDWORD)&thread_id);
         if (thread != (void *)0xffffffff) {
             autopatch_update_check_state = 1;
             CloseHandle(thread);
@@ -256,7 +236,7 @@ uint8_t AutopatchUpdater::download_pool_initialize(void)
                 thread_slot = &network_thread_table[i];
                 thread_slot->handle = 0;
                 network_thread_table[i].in_use = 1;
-                thread_slot->handle = CreateThread(0, 0x4000, (LPTHREAD_START_ROUTINE)autopatch_download_worker_thread,
+                thread_slot->handle = CreateThread(0, 0x4000, (LPTHREAD_START_ROUTINE)halo::networking::autopatch_download_worker_thread,
                                                     0, 4, (LPDWORD)&thread_id);
                 autopatch_download_thread = thread_slot;
                 if (thread_slot->handle != 0) {
@@ -386,13 +366,13 @@ int32_t AutopatchUpdater::download_start(void *path, int32_t local_file)
 
     autopatch_download_slots[slot_index].state = k_autopatch_download_active;
     if (local_file == 0) {
-        request_id = ghttpGetEx(path, 0, 0, 0, 0, 0, 0, (void *)autopatch_download_progress_callback,
-                                   (void *)autopatch_download_complete_callback, 0);
+        request_id = ghttpGetEx(path, 0, 0, 0, 0, 0, 0, (void *)halo::networking::autopatch_download_progress_callback,
+                                   (void *)halo::networking::autopatch_download_complete_callback, 0);
         autopatch_download_slots[slot_index].local_file = 0;
     } else {
 
-        request_id = ghttpSaveEx(path, (void *)local_file, 0, 0, 0, 0, (void *)autopatch_download_progress_callback,
-                                  (void *)autopatch_download_complete_callback, 0);
+        request_id = ghttpSaveEx(path, (void *)local_file, 0, 0, 0, 0, (void *)halo::networking::autopatch_download_progress_callback,
+                                  (void *)halo::networking::autopatch_download_complete_callback, 0);
         autopatch_download_slots[slot_index].local_file = 1;
     }
     autopatch_download_slots[slot_index].request_id = request_id;
@@ -414,7 +394,7 @@ uint32_t AutopatchUpdater::download_worker_thread(void)
 
     do {
         Sleep(active_count < 1 ? 1000 : 0x14);
-        active_count = autopatch_download_pool_tick();
+        active_count = halo::networking::autopatch_download_pool_tick();
     } while (autopatch_download_active_count == 0);
     autopatch_download_active_count = 0;
     return 0;
@@ -633,9 +613,8 @@ uint8_t AutopatchUpdater::launch_updater(void)
 
 uint32_t __stdcall AutopatchUpdater::proxy_initialize(void *parameter)
 {
-    void * (*const autopatch_get_proxy_settings)(void) = reinterpret_cast<void * (*)(void)>(&::autopatch_get_proxy_settings);
     (void)parameter;
-    void *settings = autopatch_get_proxy_settings();
+    void *settings = halo::networking::autopatch_get_proxy_settings();
     ghttpSetProxy(settings);
     autopatch_proxy_ready = 1;
     return 0;
@@ -678,16 +657,15 @@ void AutopatchUpdater::version_check_completed(int32_t available, int32_t mandat
 
 uint32_t AutopatchUpdater::version_check_request(void)
 {
-    void (*const autopatch_version_check_completed)(void) = reinterpret_cast<void (*)(void)>(&::autopatch_version_check_completed);
-    char *version = registry_get_halo_version();
-    uint32_t dist_id = registry_get_dist_id();
+    char *version = halo::networking::registry_get_halo_version();
+    uint32_t dist_id = halo::networking::registry_get_dist_id();
 
     while (autopatch_proxy_ready != 1) {
         Sleep(0);
     }
 
     if (version[0] == 0 ||
-        ptCheckForPatch(0x281b, version, dist_id, (void *)autopatch_version_check_completed, 1, 0) == 0) {
+        ptCheckForPatch(0x281b, version, dist_id, (void *)halo::networking::autopatch_version_check_completed, 1, 0) == 0) {
         autopatch_update_check_state = 0;
     }
     return 0;
@@ -709,7 +687,7 @@ uint32_t AutopatchUpdater::version_string_is_outdated(char *version)
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 int32_t autopatch_check_for_update_start(void)
 {
     return halo::networking::AutopatchUpdater::check_for_update_start();

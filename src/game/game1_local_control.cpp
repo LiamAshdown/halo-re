@@ -23,6 +23,7 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 #define k_degrees_to_radians 0.017453292f
 #define k_seconds_per_tick   0.033333335f
@@ -34,7 +35,6 @@ extern data_array *player_data;
 extern player_control_globals *player_control_globals_ptr;
 extern game_time_globals *game_time;
 extern Globals *global_globals;
-extern int16_t network_game_mode;
 extern local_player_input_state local_player_input_states[k_maximum_local_players];
 extern real look_yaw_rate_setting[k_maximum_local_players];
 extern real look_pitch_rate_setting[k_maximum_local_players];
@@ -56,7 +56,6 @@ extern double atan2(double y, double x);
 extern uint8_t game_engine_input_source_flag;
 extern uint8_t *cinematic_globals_ptr;
 extern uint16_t split_screen_quit_prompt_string;
-extern uint8_t network_join_error_reason;
 extern real weapon_clamp_zoom_fov(datum_index item_index, int16_t zoom_level, real base_fov);
 }
 
@@ -122,7 +121,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     player_information = (GlobalsPlayerInformation *)global_globals->player_information.pointer;
     input = &local_player_input_states[plr->local_player_index];
 
-    if (network_game_mode != 0) {
+    if (halo::networking::globals().game_mode != 0) {
         input->throttle_x = control_axis_sign(input->throttle_x);
         input->throttle_y = control_axis_sign(input->throttle_y);
     }
@@ -352,7 +351,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
         out->action = input->buttons[0x02];
     }
 
-    if (network_game_mode == 1 && (out->control_flags & 0x800u) != 0 &&
+    if (halo::networking::globals().game_mode == 1 && (out->control_flags & 0x800u) != 0 &&
         plr->unit != (datum_index)-1) {
         unit_data *unit = (unit_data *)((uint8_t *)
             ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data + k_unit_data_offset);
@@ -438,7 +437,7 @@ void LocalControl::digitize_control_input(player_control_input *input)
     if ((input->melee != 0 || local_player_input_states[0].buttons[halo::game::fields::k_input_action_accept] != 0) && halo::saved_games::globals().game_state_write_in_progress == 0 &&
         *(int8_t *)(cinematic_globals_ptr + 10) != 0) {
         split_screen_quit_prompt_string = 0xffff;
-        network_join_error_reason = 0;
+        halo::networking::globals().join_error_reason = 0;
         halo::main::globals().main_globals.revert_map_if_allowed = 1;
     }
 

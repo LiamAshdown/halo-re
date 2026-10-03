@@ -8,19 +8,13 @@
 #include "halo/memory/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern uint8_t *object_network_id_table;
 extern data_array *player_data;
 extern uint8_t network_object_index_cache[];
-extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
-extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
-extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination, int32_t changed_offset, uint8_t force);
 extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern network_server_globals *network_server;
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 }
 
 namespace halo::units {
@@ -59,10 +53,10 @@ void halo::units::unit_apply_network_control_update(unit_network_control_packet 
     uint8_t *unit;
 
     if (*packet->kind_ptr != 0) {
-        message_delta_decode_compound_field_staged(packet);
+        halo::networking::message_delta_decode_compound_field_staged((void **)packet);
         return;
     }
-    if (message_delta_decode_compound_field(packet, &message) == 0 || message.unit_key == 0) {
+    if (halo::networking::message_delta_decode_compound_field((void **)packet, &message) == 0 || message.unit_key == 0) {
         return;
     }
     unit_index = (uint32_t)(*(int32_t **)(object_network_id_table + 0x28))[message.unit_key];
@@ -93,7 +87,7 @@ void halo::units::unit_apply_network_control_update(unit_network_control_packet 
         ((unit_object *)unit)->base.network_role = 3;
     }
     if ((((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].flags & 8) == 0) {
-        network_index_cache_remove(network_object_index_cache, (int32_t)unit_index);
+        halo::networking::network_index_cache_remove(network_object_index_cache, (int32_t)unit_index);
     }
 }
 
@@ -126,7 +120,7 @@ void UnitView::apply_network_health_update(void *message)
     real shield;
 
     if (unit == 0) {
-        message_delta_decode_compound_field_staged(message);
+        halo::networking::message_delta_decode_compound_field_staged((void **)message);
         return;
     }
     guard = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
@@ -137,15 +131,15 @@ void UnitView::apply_network_health_update(void *message)
         int32_t current = unit[0x528];
 
         if (record[4] != unit[0x527] || (incoming <= current && incoming - current + 0xff >= 0x1e)) {
-            message_delta_decode_compound_field_staged(message);
+            halo::networking::message_delta_decode_compound_field_staged((void **)message);
             return;
         }
     }
     memcpy(&block, unit + 0x52c, sizeof(block));
     if (reliable) {
-        accepted = message_delta_decode_compound_field_forced(message, &block, (int32_t)(unit + 0x52c), 0);
+        accepted = halo::networking::message_delta_decode_compound_field_forced((void **)message, &block, (int32_t)(unit + 0x52c), 0);
     } else {
-        accepted = message_delta_decode_compound_field(message, &block);
+        accepted = halo::networking::message_delta_decode_compound_field((void **)message, &block);
     }
     if (!accepted) {
         return;
@@ -191,9 +185,9 @@ void halo::units::unit_broadcast_state_change_event(unit_state_change_record rec
     record.unit = (datum_index)resolved;
     items[0] = &record;
     items[1] = 0;
-    sent = message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0xc, 0, items, 0, 1, 0);
+    sent = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0xc, 0, items, 0, 1, 0);
     if (sent > 0) {
-        network_session_broadcast_to_flagged(sent, network_server, 1, network_message_scratch, 1, 0, 0, 3);
+        halo::networking::network_session_broadcast_to_flagged(sent, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
     }
 }
 

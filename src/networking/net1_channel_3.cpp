@@ -1,9 +1,9 @@
 #include "halo/networking/net1_channel.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern void *gt2GetConnectionData(void *gamespy_connection);
-extern uint32_t gamespy_array_length(int32_t object);
 extern uint16_t gt2GetRemotePort(int32_t object);
 extern void gt2AddressToString(uint32_t address, uint16_t port, void *out_address);
 }
@@ -30,7 +30,7 @@ void ChannelCallbacks::on_receive(void *handle, uint8_t *data, int32_t length)
     queue = (network_receive_queue *)gt2GetConnectionData(handle);
     if (queue != 0) {
         if ((queue->flags & 1) == 0) {
-            address = gamespy_array_length((int32_t)handle);
+            address = halo::networking::gamespy_array_length((void *)((int32_t)handle));
             port = gt2GetRemotePort((int32_t)handle);
             gt2AddressToString(address, port, address_buf);
         } else if (0 < length) {

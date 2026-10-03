@@ -57,7 +57,7 @@ public:
      *
      * @address 0x4e86f0
      */
-    static void remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t update_id,
+    static int32_t remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t update_id,
     uint8_t flags, char is_full, player_action *control, int32_t network_key);
 
     /**
@@ -65,7 +65,7 @@ public:
      *
      * @address 0x4e84d0
      */
-    static void remote_player_vehicle_update(uint8_t *cache, uint8_t update_id, uint8_t flags,
+    static int32_t remote_player_vehicle_update(uint8_t *cache, uint8_t update_id, uint8_t flags,
     char is_full, player_action *control, int32_t network_key);
 
     /**

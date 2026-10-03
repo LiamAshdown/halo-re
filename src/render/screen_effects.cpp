@@ -26,6 +26,7 @@
 #include "halo/text/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/networking/api.hpp"
 
 static_assert(offsetof(Bitmap, bitmap_data) + offsetof(TagReflexive, pointer) == halo::render::k_bitmap_data_pointer_offset);
 
@@ -56,7 +57,6 @@ extern int64_t frame_statistics_unknown_d0;
 extern int64_t frame_statistics_unknown_d8;
 extern Rectangle2D game_screen_rect;
 extern int16_t text_tab_stops[6];
-extern void network_bandwidth_graph_update(void);
 extern Rectangle2D game_window_top_left;
 extern int32_t frame_graph_window_width;
 extern int32_t frame_graph_window_height;
@@ -624,7 +624,7 @@ void draw(void)
     halo::render::rasterizer_frame_statistics_graph_init();
     halo::render::fg_add_sample(0, (float)sample);
     halo::render::fg_render((uint8_t)frame_graph_render_graph, (uint8_t)frame_graph_render_infos);
-    network_bandwidth_graph_update();
+    halo::networking::network_bandwidth_graph_update();
 
     if (!halo::rasterizer::fields::rasterizer_fps) {
         return;

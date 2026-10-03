@@ -19,6 +19,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/networking/api.hpp"
 
 static void copy_profile_block(saved_player_profile *destination, const saved_player_profile *source, size_t first_offset, size_t end_offset)
 {
@@ -28,8 +29,6 @@ static void copy_profile_block(saved_player_profile *destination, const saved_pl
 extern "C" {
 extern network_thread_record *variant_write_thread;
 extern variant_write_request variant_write_request_state;
-extern int32_t network_thread_create(uint8_t flags, void *start_address, void *parameter,
-    network_thread_record **out_handle);
 extern network_mutex_record *saved_game_files_mutex;
 extern uint32_t player_color_table[k_player_color_count];
 extern network_thread_record *player_profile_thread;
@@ -603,7 +602,7 @@ void write_request_start(int32_t handle, game_variant *variant)
     }
     variant_write_request_state.handle = handle;
     variant_write_request_state.variant = *variant;
-    network_thread_create(0, (void *)halo::saved_games::game_variant_write_thread_proc, &variant_write_request_state,
+    halo::networking::network_thread_create(0, (void *)halo::saved_games::game_variant_write_thread_proc, &variant_write_request_state,
         &variant_write_thread);
 }
 

@@ -20,6 +20,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -42,8 +43,6 @@ extern int32_t scoreboard_entry_compare(const scoreboard_entry *a,
 extern uint32_t game_engine_build_scoreboard_sort_key(uint32_t player_index, int32_t score);
 extern int32_t game_engine_bucket_scores[16];
 extern int32_t game_engine_bucket_scores_extra[16];
-extern int16_t network_game_mode;
-extern network_server_globals *network_server;
 extern float game_engine_end_game_timer;
 extern uint8_t multiplayer_sound_enabled[];
 extern Globals *global_globals;
@@ -61,10 +60,6 @@ extern void widget_close(void *widget);
 extern void widget_pool_list_free_all(void);
 extern int32_t game_engine_get_multiplayer_sound_duration_ticks(int32_t sound_index);
 extern uint8_t network_message_scratch[0x7ff8];
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data,
-    int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern int32_t players_active_count(void);
 extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_handle);
 extern real *default_color_a;
@@ -398,8 +393,8 @@ void Scoreboard::check_bucket_scores_and_end_round(void)
 
     for (bucket = 0; bucket < 16; bucket++) {
         if (game_engine_bucket_scores[bucket] >= game_engine_variant.score_limit &&
-            network_game_mode == 2 && game_engine_state_value == 0) {
-            network_server->game_over = 1;
+            halo::networking::globals().game_mode == 2 && game_engine_state_value == 0) {
+            halo::networking::globals().server->game_over = 1;
             game_engine_state_value = _game_engine_state_ending;
             game_engine_end_game_timer = 7.0f;
 
@@ -453,9 +448,9 @@ void Scoreboard::check_bucket_scores_and_end_round(void)
             {
                 uint8_t payload = 1;
                 uint8_t *payload_ptr = &payload;
-                int32_t encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x16, 0, (void **)&payload_ptr, 0, 1, 0);
+                int32_t encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0x16, 0, (void **)&payload_ptr, 0, 1, 0);
                 if (encoded_bits > 0) {
-                    network_session_broadcast_to_flagged(encoded_bits, network_server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
+                    halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, &shared_hud_text_draw_state, 1, 0, 0, 3);
                 }
             }
         }
@@ -606,7 +601,7 @@ uint8_t Scoreboard::find_first_eligible_player_on_team(int32_t team)
  */
 void Scoreboard::find_player_by_name(char *source_name)
 {
-    if (network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 2) {
         wchar_t name[1024];
         data_iterator iter;
         void *element;

@@ -4,15 +4,13 @@
 #include "halo/sound/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern void unit_invalidate_local_player_zoom_level(void);
 extern network_id_table *object_network_id_table;
 extern network_id_table *machine_table;
 extern uint8_t network_object_index_cache[];
-extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
-extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key);
 }
 
 namespace halo::units {
@@ -75,10 +73,10 @@ void halo::units::unit_spawn_with_starting_weapons(void *command_record)
     int32_t i;
 
     if (*(int32_t *)*(int32_t **)command_record != 0) {
-        message_delta_decode_compound_field_staged(command_record);
+        halo::networking::message_delta_decode_compound_field_staged((void **)command_record);
         return;
     }
-    if (message_delta_decode_compound_field(command_record, &message) != 1) {
+    if (halo::networking::message_delta_decode_compound_field((void **)command_record, &message) != 1) {
         return;
     }
     halo::math::vector3d_cross_product(side, message.up, message.forward);
@@ -103,7 +101,7 @@ void halo::units::unit_spawn_with_starting_weapons(void *command_record)
     if (vehicle_index == k_datum_index_none) {
         return;
     }
-    network_index_cache_insert_if_free(network_object_index_cache, message.network_key, (int32_t)vehicle_index);
+    halo::networking::network_index_cache_insert_if_free(network_object_index_cache, message.network_key, (int32_t)vehicle_index);
     vehicle = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(vehicle_index)].data;
     memcpy(vehicle + 0x52c, &message.position, 12);
     memcpy(vehicle + 0x538, &message.velocity, 12);

@@ -4,6 +4,7 @@
 #include "units.h"
 #include "cutscene.h"
 #include "halo/cutscene/api.hpp"
+#include "halo/networking/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,7 +13,6 @@ extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern void player_update_history_play_local_player(int32_t target_update_id);
 extern uint8_t playback_requested_00719768;
 #ifdef __cplusplus
 }
@@ -33,7 +33,7 @@ void RecordingCommands::evaluate_play_update_history(int16_t function_index, uin
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        player_update_history_play_local_player(arguments[0]);
+        halo::networking::player_update_history_play_local_player(arguments[0]);
         hs_thread_return(0, thread_index);
     }
 }

@@ -23,6 +23,7 @@
 #include "halo/main/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value);
@@ -41,13 +42,7 @@ extern Globals *global_globals;
 extern real_vector3d *global_origin3d_pointer;
 extern void hud_unit_meter_apply_predictive_damage(datum_index player_index, float damage);
 extern player_globals *local_player_globals;
-extern int8_t message_delta_decode_compound_field(void *globals, void *out_value);
-extern uint8_t message_delta_decode_compound_field_staged(void **context);
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern int16_t network_game_mode;
 extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
-extern network_server_globals *network_server;
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern data_array *object_data;
 extern network_id_table *object_network_id_table;
 extern int32_t object_sound_event_last_tick;
@@ -604,11 +599,11 @@ void halo::objects::DamageSystem::apply_shield_charge_and_notify(void **message)
     int8_t notify;
 
     if (*(int32_t *)*message != 0) {
-        message_delta_decode_compound_field_staged(0);
+        halo::networking::message_delta_decode_compound_field_staged(0);
         return;
     }
 
-    if (message_delta_decode_compound_field(message, &network_id) == 0) {
+    if (halo::networking::message_delta_decode_compound_field(message, &network_id) == 0) {
         return;
     }
 
@@ -838,7 +833,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
             }
             player_index = ((unit_object *)unit)->unit.controlling_player;
             if (player_index != k_datum_index_none) {
-                switch (network_game_mode) {
+                switch (halo::networking::globals().game_mode) {
                 case 0:
                     halo::effects::player_effect_mark_damage_direction(player_index, dd, &dd->direction, dd->random_blend, amount);
                     break;
@@ -861,9 +856,9 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
             } else if (halo::hs::fields::reflexive_damage_effects) {
                 datum_index first_local = local_player_globals->local_players[0];
 
-                if (network_game_mode == 0) {
+                if (halo::networking::globals().game_mode == 0) {
                     halo::effects::player_effect_mark_damage_direction(first_local, dd, &dd->direction, dd->random_blend, amount);
-                } else if (network_game_mode == 2) {
+                } else if (halo::networking::globals().game_mode == 2) {
                     halo::effects::player_effect_send_network_update(first_local, &dd->direction, dd, dd->random_blend, amount);
                 }
             }
@@ -1367,8 +1362,8 @@ void halo::objects::DamageSystem::queue_pickup_denied_event(void *param_1, int32
     {
         void *items[1];
         items[0] = &block;
-        network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0x31, 0,
-                                             items, 0, 1, 0), network_server, 1, network_message_scratch, 0, 0, 0, 3);
+        halo::networking::network_session_broadcast_to_flagged(halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0x31, 0,
+                                             items, 0, 1, 0), halo::networking::globals().server, 1, network_message_scratch, 0, 0, 0, 3);
     }
 }
 
@@ -1385,11 +1380,11 @@ void halo::objects::DamageSystem::apply_linked_impulse(void **message)
     float impulse_scale, direction_i, direction_j, direction_k;
 
     if (*(int32_t *)*message != 0) {
-        message_delta_decode_compound_field_staged(0);
+        halo::networking::message_delta_decode_compound_field_staged(0);
         return;
     }
 
-    if (message_delta_decode_compound_field(message, &network_id) != 0 && network_id != 0 &&
+    if (halo::networking::message_delta_decode_compound_field(message, &network_id) != 0 && network_id != 0 &&
         ((int32_t *)object_network_id_table->handles)[network_id] != -1) {
         real_vector3d impulse;
 

@@ -7,16 +7,13 @@
 #include "halo/cseries/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern network_id_table *object_network_id_table;
 extern network_id_table *machine_table;
 extern uint8_t network_object_index_cache[];
-extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
-extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key);
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
-extern int32_t message_delta_encode_message(void *buffer, int32_t bit_budget, int32_t flag, int32_t message_type, void *changed, void *items, void *types, int32_t count, char force_changed);
 extern int64_t __allmul(int32_t a_low, int32_t a_high, int32_t b_low, int32_t b_high);
 extern int32_t __alldiv(int64_t a, int32_t b_low, int32_t b_high);
 }
@@ -68,10 +65,10 @@ void halo::units::unit_network_create_update_apply(void *incoming_record)
     uint8_t *biped;
 
     if (*(int32_t *)*(int32_t **)incoming_record != 0) {
-        message_delta_decode_compound_field_staged(incoming_record);
+        halo::networking::message_delta_decode_compound_field_staged((void **)incoming_record);
         return;
     }
-    if (message_delta_decode_compound_field(incoming_record, &message) != 1) {
+    if (halo::networking::message_delta_decode_compound_field((void **)incoming_record, &message) != 1) {
         return;
     }
     halo::math::vector3d_cross_product(side, message.up, message.forward);
@@ -98,7 +95,7 @@ void halo::units::unit_network_create_update_apply(void *incoming_record)
     if (biped_index == k_datum_index_none) {
         return;
     }
-    network_index_cache_insert_if_free(network_object_index_cache, message.network_key, (int32_t)biped_index);
+    halo::networking::network_index_cache_insert_if_free(network_object_index_cache, message.network_key, (int32_t)biped_index);
     biped = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(biped_index)].data;
     *(uint32_t *)&((biped_object *)biped)->biped.network_body_vitality = message.body_vitality;
     ((biped_object *)biped)->biped.network_shield_vitality = message.shield_vitality;
@@ -202,13 +199,13 @@ int32_t UnitView::submit_periodic_network_update(void *buffer, int32_t bit_budge
         slots[0] = &biped->network_grenade_counts;
         slots[1] = &baseline;
         slots[2] = &header;
-        result = message_delta_encode_message(buffer, bit_budget, 1, message_type,
-            &slots[2], &slots[1], &slots[0], 1, 0);
+        result = halo::networking::message_delta_encode_message((int32_t)buffer, bit_budget, 1, message_type,
+            (int32_t)(&slots[2]), &slots[1], (int32_t)(&slots[0]), 1, 0);
     } else {
         slots[1] = &header;
         slots[2] = &biped->network_grenade_counts;
-        result = message_delta_encode_message(buffer, bit_budget, 0, message_type,
-            &slots[1], &slots[2], 0, 1, 0);
+        result = halo::networking::message_delta_encode_message((int32_t)buffer, bit_budget, 0, message_type,
+            (int32_t)(&slots[1]), &slots[2], 0, 1, 0);
     }
 
     if (result > 0) {

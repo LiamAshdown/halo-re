@@ -7,6 +7,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern real k_weapon_zoom_fov_maximum;
@@ -16,7 +17,6 @@ extern double pow(double x, double y);
 extern game_time_globals *game_time;
 extern int32_t k_weapon_minimum_age_ticks;
 extern game_engine_definition *current_game_engine;
-extern int16_t network_game_mode;
 extern uint8_t weapon_bottomless_clip;
 extern const real_point3d *global_zero_vector3d_pointer;
 extern void weapon_reset_triggers(datum_index item_index);
@@ -454,7 +454,7 @@ void weapon_ref::magazine_reload_tick(int16_t magazine_index)
         halo::items::weapon_trigger_begin_reload(item_index, magazine_index, 0);
         return;
     }
-    if (item_obj->network_role == 0 && network_game_mode == 2) {
+    if (item_obj->network_role == 0 && halo::networking::globals().game_mode == 2) {
         halo::items::weapon_notify_reload_step(item_index, magazine_index);
     }
     item_obj->flags = item_obj->flags | _object_changed_bit;
@@ -565,7 +565,7 @@ uint8_t weapon_ref::create()
         }
     }
 
-    if (network_game_mode == 1 || network_game_mode == 2) {
+    if (halo::networking::globals().game_mode == 1 || halo::networking::globals().game_mode == 2) {
         wd->network_state_valid = 0;
         wd->network_baseline_index = 0;
         wd->network_sequence = 0;

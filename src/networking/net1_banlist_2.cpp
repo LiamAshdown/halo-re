@@ -1,11 +1,11 @@
 #include "halo/networking/net1_banlist.hpp"
 #include <stdio.h>
 #include <time.h>
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern growable_array ban_list;
 extern char network_summary_log_mode_string[];
-extern char *network_log_path_resolve(char *requested_path);
 extern char network_banlist_full_path[];
 }
 
@@ -30,7 +30,7 @@ void Banlist::save()
     char date_buf[31];
     time_t expiry;
 
-    file = (FILE *)fopen(network_log_path_resolve(network_banlist_full_path),
+    file = (FILE *)fopen(halo::networking::network_log_path_resolve(network_banlist_full_path),
                                  network_summary_log_mode_string);
     if (file != 0) {
         fprintf(file, "# Name, CD key hash, ban count, ban end date\r\n");

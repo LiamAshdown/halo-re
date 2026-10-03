@@ -16,49 +16,21 @@
 #include "halo/memory/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern data_array * player_data;
 extern game_time_globals * game_time;
-extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
-extern void message_delta_decode_compound_field_staged(void *decode_context);
-extern uint8_t is_local_player_update_in_order(int32_t current_update_id, int32_t new_update_id);
-extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask,
-    const char *format, ...);
-extern void player_update_history_play_for_update_index(void *update_history, int32_t update_id);
 extern void * object_network_id_table;
 extern network_client_globals * network_client;
 extern datum_index players_find_local_owned_unclear(void);
-extern void player_update_history_play(uint8_t flag, uint32_t control_ec, void *update_history,
-    datum_index unit, float x, float y, float z, void *control_ptr);
 extern network_id_table * machine_table;
-extern int32_t message_delta_read_changed_subfields(message_delta_decode_state *state,
-    void *field_bindings, const void *previous, void *destination);
-extern void handle_remote_player_action_update(remote_player_action_state *control_source,
-    remote_player_update_header *header, uint8_t is_baseline);
-extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination, int32_t force_changed);
-extern uint8_t is_remote_player_update_in_order(player *target_player, uint8_t control_sequence,
-    int32_t update_id);
-extern int32_t player_update_queue_offset_from_head(player *target_player, int32_t update_id);
 extern uint8_t position_update_queue_push(circular_queue *queue, real x, real y, real z,
     int32_t tick, int32_t sequence);
 extern int32_t circular_queue_count(circular_queue *queue);
 extern void unit_snap_position_if_far(real_point3d *new_position, object *obj,
     datum_index unit_index);
-extern void player_update_history_log_printf_filtered(player *target_player, int32_t category,
-    const char *format, ...);
 extern uint8_t circular_queue_push(circular_queue *queue, void *source);
-void player_update_client_local_player_update_from_network(int32_t *decode_context);
-void player_update_client_local_player_vehicle_update_from_network(int32_t *decode_context);
-void player_update_client_remote_player_action_update_from_network(int32_t **decode_context);
-void player_update_client_remote_player_position_delta_from_network(int32_t **decode_context);
-void player_update_client_remote_player_position_update_from_network(datum_index player_index,
-    int32_t update_id, int32_t control_sequence, real x, real y, real z);
-void player_update_client_remote_player_total_biped_update_from_network(int32_t **decode_context);
-void player_update_client_remote_player_total_vehicle_update_from_network(int32_t **decode_context);
-void player_update_client_remote_player_vehicle_position_delta_from_network(int32_t **decode_context);
-void player_update_client_remote_player_vehicle_update_from_network(datum_index player_index,
-    int32_t update_id, int32_t control_sequence, vehicle_update_body vehicle);
 }
 
 
@@ -75,10 +47,10 @@ void PlayerUpdateClient::local_player_update_from_network(int32_t *decode_contex
     record_ctx = (int32_t *)(uintptr_t)decode_context[0];
     mode = record_ctx[0];
     if (mode != 0) {
-        message_delta_decode_compound_field_staged(decode_context);
+        halo::networking::message_delta_decode_compound_field_staged((void **)decode_context);
         return;
     }
-    if (message_delta_decode_compound_field(decode_context, &ack) != 1) {
+    if (halo::networking::message_delta_decode_compound_field((void **)decode_context, &ack) != 1) {
         return;
     }
     iter.data = player_data;
@@ -95,17 +67,17 @@ void PlayerUpdateClient::local_player_update_from_network(int32_t *decode_contex
             return;
         }
     }
-    if (is_local_player_update_in_order(candidate->last_update_id, ack.update_id) != 1) {
+    if (halo::networking::is_local_player_update_in_order(candidate->last_update_id, ack.update_id) != 1) {
         return;
     }
-    player_update_history_log_write(1, 0, "[%d]: Received ack for update [%d].\n",
+    halo::networking::player_update_history_log_write(1, 0, "[%d]: Received ack for update [%d].\n",
         game_time->game_time, ack.baseline_id);
     candidate->last_update_id = ack.update_id;
     candidate->baseline_update_id = ack.baseline_id;
     candidate->unknown_f0 = *(int32_t *)&ack.position.x;
     candidate->unknown_f4 = *(int32_t *)&ack.position.y;
     candidate->unknown_f8 = *(int32_t *)&ack.position.z;
-    player_update_history_play_for_update_index(0, 0);
+    halo::networking::player_update_history_play_for_update_index(iter.index);
 }
 
 void PlayerUpdateClient::local_player_vehicle_update_from_network(int32_t *decode_context)
@@ -120,10 +92,10 @@ void PlayerUpdateClient::local_player_vehicle_update_from_network(int32_t *decod
     record_ctx = (int32_t *)(uintptr_t)decode_context[0];
     mode = record_ctx[0];
     if (mode != 0) {
-        message_delta_decode_compound_field_staged(decode_context);
+        halo::networking::message_delta_decode_compound_field_staged((void **)decode_context);
         return;
     }
-    if (message_delta_decode_compound_field(decode_context, &ack) != 1) {
+    if (halo::networking::message_delta_decode_compound_field((void **)decode_context, &ack) != 1) {
         return;
     }
     if (ack.vehicle.parent_or_tag != 0) {
@@ -143,20 +115,20 @@ void PlayerUpdateClient::local_player_vehicle_update_from_network(int32_t *decod
     if (candidate == 0) {
         return;
     }
-    if (is_local_player_update_in_order(candidate->last_update_id, ack.update_id) == 1) {
-        player_update_history_log_write(1, 0, "[%d]: Received vehicle ack for update [%d].\n",
+    if (halo::networking::is_local_player_update_in_order(candidate->last_update_id, ack.update_id) == 1) {
+        halo::networking::player_update_history_log_write(1, 0, "[%d]: Received vehicle ack for update [%d].\n",
             game_time->game_time, ack.baseline_id);
         candidate->last_update_id = ack.update_id;
         candidate->baseline_update_id = ack.baseline_id;
         candidate->unknown_f0 = *(int32_t *)&ack.vehicle.position.x;
         candidate->unknown_f4 = *(int32_t *)&ack.vehicle.position.y;
         candidate->unknown_f8 = *(int32_t *)&ack.vehicle.position.z;
-        player_update_history_play(1, candidate->baseline_update_id,
-            network_client->update_history, candidate->unit,
+        halo::networking::player_update_history_play(1, candidate->baseline_update_id,
+            (player_update_history *)network_client->update_history, candidate->unit,
             ack.vehicle.position.x, ack.vehicle.position.y, ack.vehicle.position.z, &ack);
         return;
     }
-    player_update_history_log_write(1, 0,
+    halo::networking::player_update_history_log_write(1, 0,
         "[%d]: Threw away local player vehicle ack [%d] (%d), previous ack [%d] (%d).\n",
         game_time->game_time, ack.baseline_id,
         candidate->baseline_update_id, ack.update_id, candidate->last_update_id);
@@ -200,18 +172,18 @@ void PlayerUpdateClient::remote_player_action_update_from_network(int32_t **deco
             const void *control_record = &candidate->unknown_f0;
 
             memcpy(&staged, control_record, sizeof(staged));
-            state->bits_read += message_delta_read_changed_subfields(state, decode_context + 1,
-                control_record, &staged);
+            state->bits_read += halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)(decode_context + 1),
+                (int32_t)control_record, (int32_t)&staged);
             state->changed = 1;
-            handle_remote_player_action_update(&staged, header, 0);
+            halo::networking::handle_remote_player_action_update(&staged, header, 0);
             return;
         }
-        if (message_delta_decode_compound_field(decode_context, &staged) == 1) {
-            handle_remote_player_action_update(&staged, header, 1);
+        if (halo::networking::message_delta_decode_compound_field((void **)decode_context, &staged) == 1) {
+            halo::networking::handle_remote_player_action_update(&staged, header, 1);
         }
         return;
     }
-    message_delta_decode_compound_field_staged(decode_context);
+    halo::networking::message_delta_decode_compound_field_staged((void **)decode_context);
 }
 
 void PlayerUpdateClient::remote_player_position_delta_from_network(int32_t **decode_context)
@@ -243,13 +215,13 @@ void PlayerUpdateClient::remote_player_position_delta_from_network(int32_t **dec
         }
     }
     if (candidate == 0) {
-        message_delta_decode_compound_field_staged(decode_context);
+        halo::networking::message_delta_decode_compound_field_staged((void **)decode_context);
         return;
     }
 
     state = (message_delta_decode_state *)decode_context[0];
     if (state->incremental == 0) {
-        if (message_delta_decode_compound_field(decode_context, &position) != 1) {
+        if (halo::networking::message_delta_decode_compound_field((void **)decode_context, &position) != 1) {
             return;
         }
         *(real *)&candidate->position_baseline_x = position.x;
@@ -259,11 +231,11 @@ void PlayerUpdateClient::remote_player_position_delta_from_network(int32_t **dec
         position.x = *(real *)&candidate->position_baseline_x;
         position.y = *(real *)&candidate->position_baseline_y;
         position.z = *(real *)&candidate->position_baseline_z;
-        if (message_delta_decode_compound_field_forced(decode_context, &position, 0) != 1) {
+        if (halo::networking::message_delta_decode_compound_field_forced((void **)decode_context, &position, (int32_t)&candidate->position_baseline_x, 0) != 1) {
             return;
         }
     }
-    player_update_client_remote_player_position_update_from_network(
+    halo::networking::player_update_client_remote_player_position_update_from_network(
         remapped_index, header->update_id, header->baseline_id,
         position.x, position.y, position.z);
 }
@@ -290,7 +262,7 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
         return;
     }
 
-    if (is_remote_player_update_in_order(target, (uint8_t)control_sequence, update_id) != 1) {
+    if (halo::networking::is_remote_player_update_in_order(target, (uint8_t)control_sequence, update_id) != 1) {
         return;
     }
 
@@ -303,7 +275,7 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
             on_update_id = (int32_t)oldest->field0;
         }
 
-        distance = player_update_queue_offset_from_head(target, update_id);
+        distance = halo::networking::player_update_queue_offset_from_head(target, update_id);
         if (distance >= 0 && distance < 0x20) {
             int32_t position_count;
             int32_t action_count;
@@ -312,7 +284,7 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
 
             if (position_update_queue_push(&target->position_updates, x, y, z, update_id,
                     distance) == 0) {
-                player_update_history_log_printf_filtered(target, 1,
+                halo::networking::player_update_history_log_printf_filtered(target, 1,
                     "[%d]: Remote player position_queue overflow.\n",
                     game_time->game_time);
             }
@@ -337,7 +309,7 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
                 action_count = 0;
             }
 
-            player_update_history_log_printf_filtered(target, 1,
+            halo::networking::player_update_history_log_printf_filtered(target, 1,
                 "Received pos update [%d], on [%d] (%d). [%d] actions, [%d] positions",
                 update_id, on_update_id, distance, action_count, position_count);
             target->position_update_ignored_count = 0;
@@ -350,7 +322,7 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
                 int32_t position_count = circular_queue_count(&target->position_updates);
                 int32_t action_count = circular_queue_count(&target->update_history.queue);
 
-                player_update_history_log_printf_filtered(target, 1,
+                halo::networking::player_update_history_log_printf_filtered(target, 1,
                     "Received pos update [%d], on [%d] (%d). [%d] actions, [%d] positions "
                     "***Ignoring [%d (%d)] ",
                     update_id, on_update_id, distance, action_count, position_count,
@@ -360,7 +332,7 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
                 int32_t position_count = circular_queue_count(&target->position_updates);
                 int32_t action_count = circular_queue_count(&target->update_history.queue);
 
-                player_update_history_log_printf_filtered(target, 1,
+                halo::networking::player_update_history_log_printf_filtered(target, 1,
                     "Received pos update [%d], on [%d] (%d). [%d] actions, [%d] positions "
                     "***Applying immediately",
                     update_id, on_update_id, distance, action_count, position_count);
@@ -378,11 +350,11 @@ void PlayerUpdateClient::remote_player_position_update_from_network(datum_index 
                         new_position.z = z;
                         snap_distance = halo::math::vector3d_distance(new_position, unit->position);
                         if (snap_distance <= 1.0f) {
-                            player_update_history_log_printf_filtered(target, 1,
+                            halo::networking::player_update_history_log_printf_filtered(target, 1,
                                 "Apply immediately saved by tolerance [%f] (%f)",
                                 (double)snap_distance, 1.0);
                         } else {
-                            player_update_history_log_printf_filtered(target, 1,
+                            halo::networking::player_update_history_log_printf_filtered(target, 1,
                                 "Apply immediately dist: [%f] (%f)",
                                 (double)snap_distance, 1.0);
                             unit_snap_position_if_far(&new_position, unit, target->unit);
@@ -432,7 +404,7 @@ void PlayerUpdateClient::remote_player_total_biped_update_from_network(int32_t *
     }
 
     if (candidate == 0 || candidate->local_player_index != -1) {
-        message_delta_decode_compound_field_staged(decode_context);
+        halo::networking::message_delta_decode_compound_field_staged((void **)decode_context);
         return;
     }
 
@@ -441,7 +413,7 @@ void PlayerUpdateClient::remote_player_total_biped_update_from_network(int32_t *
         uint8_t decoded_ok;
 
         memset(&decoded, 0, sizeof(decoded));
-        decoded_ok = message_delta_decode_compound_field(decode_context, &decoded);
+        decoded_ok = halo::networking::message_delta_decode_compound_field((void **)decode_context, &decoded);
         if (decoded_ok == 1) {
             *(real *)&candidate->position_baseline_x = decoded.position.x;
             *(real *)&candidate->position_baseline_y = decoded.position.y;
@@ -458,17 +430,17 @@ void PlayerUpdateClient::remote_player_total_biped_update_from_network(int32_t *
         previous.position.y = *(real *)&candidate->position_baseline_y;
         previous.position.z = *(real *)&candidate->position_baseline_z;
         decoded = previous;
-        state->bits_read += message_delta_read_changed_subfields(state, decode_context + 1,
-            &previous, &decoded);
+        state->bits_read += halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)(decode_context + 1),
+            (int32_t)&previous, (int32_t)&decoded);
         state->changed = 1;
         is_baseline = 0;
         mode = "incremental";
     }
 
-    player_update_history_log_printf_filtered(candidate, 3,
+    halo::networking::player_update_history_log_printf_filtered(candidate, 3,
         "Received %s total biped update [%d].", mode, header->update_id);
-    handle_remote_player_action_update(&decoded.action, header, is_baseline);
-    player_update_client_remote_player_position_update_from_network(
+    halo::networking::handle_remote_player_action_update(&decoded.action, header, is_baseline);
+    halo::networking::player_update_client_remote_player_position_update_from_network(
         header->player_index, header->update_id, header->control_sequence,
         decoded.position.x, decoded.position.y, decoded.position.z);
 }
@@ -508,7 +480,7 @@ void PlayerUpdateClient::remote_player_total_vehicle_update_from_network(int32_t
         }
     }
     if (candidate == 0 || candidate->local_player_index != -1) {
-        message_delta_decode_compound_field_staged(decode_context);
+        halo::networking::message_delta_decode_compound_field_staged((void **)decode_context);
         return;
     }
 
@@ -517,7 +489,7 @@ void PlayerUpdateClient::remote_player_total_vehicle_update_from_network(int32_t
         uint8_t decoded_ok;
 
         memset(&decoded, 0, sizeof(decoded));
-        decoded_ok = message_delta_decode_compound_field(decode_context, &decoded);
+        decoded_ok = halo::networking::message_delta_decode_compound_field((void **)decode_context, &decoded);
         if (decoded_ok == 1) {
             real_vector3d temp;
 
@@ -536,17 +508,17 @@ void PlayerUpdateClient::remote_player_total_vehicle_update_from_network(int32_t
         memcpy(&previous.action, &candidate->unknown_f0, sizeof(previous.action));
         memcpy(&previous.vehicle, &candidate->vehicle_baseline, sizeof(previous.vehicle));
         decoded = previous;
-        state->bits_read += message_delta_read_changed_subfields(state, decode_context + 1,
-            &previous, &decoded);
+        state->bits_read += halo::networking::message_delta_read_changed_subfields(state, (uint8_t *)(decode_context + 1),
+            (int32_t)&previous, (int32_t)&decoded);
         state->changed = 1;
         is_baseline = 0;
         mode = "incremental";
     }
 
-    player_update_history_log_printf_filtered(candidate, 3,
+    halo::networking::player_update_history_log_printf_filtered(candidate, 3,
         "Received %s total vehicle update [%d].", mode, header->update_id);
-    handle_remote_player_action_update(&decoded.action, header, is_baseline);
-    player_update_client_remote_player_vehicle_update_from_network(
+    halo::networking::handle_remote_player_action_update(&decoded.action, header, is_baseline);
+    halo::networking::player_update_client_remote_player_vehicle_update_from_network(
         header->player_index, header->update_id, header->control_sequence, decoded.vehicle);
 }
 
@@ -581,7 +553,7 @@ void PlayerUpdateClient::remote_player_vehicle_position_delta_from_network(int32
         }
     }
     if (candidate == 0) {
-        message_delta_decode_compound_field_staged(decode_context);
+        halo::networking::message_delta_decode_compound_field_staged((void **)decode_context);
         return;
     }
 
@@ -589,7 +561,7 @@ void PlayerUpdateClient::remote_player_vehicle_position_delta_from_network(int32
     if (state->incremental == 0) {
         real_vector3d temp;
 
-        if (message_delta_decode_compound_field(decode_context, &decoded) != 1) {
+        if (halo::networking::message_delta_decode_compound_field((void **)decode_context, &decoded) != 1) {
             return;
         }
         halo::math::vector3d_cross_product(temp, decoded.up, decoded.forward);
@@ -599,12 +571,12 @@ void PlayerUpdateClient::remote_player_vehicle_position_delta_from_network(int32
         memcpy(&candidate->vehicle_baseline, &decoded, sizeof(decoded));
     } else {
         memcpy(&decoded, &candidate->vehicle_baseline, sizeof(decoded));
-        if (message_delta_decode_compound_field_forced(decode_context, &decoded, 0) != 1) {
+        if (halo::networking::message_delta_decode_compound_field_forced((void **)decode_context, &decoded, (int32_t)&candidate->vehicle_baseline, 0) != 1) {
             return;
         }
     }
 
-    player_update_client_remote_player_vehicle_update_from_network(
+    halo::networking::player_update_client_remote_player_vehicle_update_from_network(
         remapped_index, header->update_id, header->baseline_id, decoded);
 }
 
@@ -648,7 +620,7 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
     halo::math::vector3d_normalize_with_length(vehicle.forward);
     halo::math::vector3d_normalize_with_length(vehicle.up);
 
-    if (is_remote_player_update_in_order(target, (uint8_t)control_sequence, update_id) != 1) {
+    if (halo::networking::is_remote_player_update_in_order(target, (uint8_t)control_sequence, update_id) != 1) {
         return;
     }
 
@@ -661,7 +633,7 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
             on_update_id = (int32_t)oldest->field0;
         }
 
-        distance = player_update_queue_offset_from_head(target, update_id);
+        distance = halo::networking::player_update_queue_offset_from_head(target, update_id);
         if (distance >= 0 && distance < 0x20) {
             vehicle_update_record record;
             int32_t vehicle_count;
@@ -673,7 +645,7 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
             record.sequence = distance;
             record.body = vehicle;
             if (circular_queue_push(&target->vehicle_updates, &record) == 0) {
-                player_update_history_log_printf_filtered(target, 1,
+                halo::networking::player_update_history_log_printf_filtered(target, 1,
                     "[%d]: Remote player vehicle_update_queue overflow.\n",
                     game_time->game_time);
             }
@@ -698,7 +670,7 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
                 action_count = 0;
             }
 
-            player_update_history_log_printf_filtered(target, 1,
+            halo::networking::player_update_history_log_printf_filtered(target, 1,
                 "Received vehicle_update update [%d], on [%d] (%d). [%d] actions, "
                 "[%d] vehicle updates",
                 update_id, on_update_id, distance, action_count, vehicle_count);
@@ -713,7 +685,7 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
                 int32_t position_count = circular_queue_count(&target->position_updates);
                 int32_t action_count = circular_queue_count(&target->update_history.queue);
 
-                player_update_history_log_printf_filtered(target, 1,
+                halo::networking::player_update_history_log_printf_filtered(target, 1,
                     "Received pos update [%d], on [%d] (%d). [%d] actions, [%d] positions "
                     "***Ignoring [%d (%d)] ",
                     update_id, on_update_id, distance, action_count, position_count,
@@ -723,7 +695,7 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
                 int32_t vehicle_count = circular_queue_count(&target->vehicle_updates);
                 int32_t action_count = circular_queue_count(&target->update_history.queue);
 
-                player_update_history_log_printf_filtered(target, 1,
+                halo::networking::player_update_history_log_printf_filtered(target, 1,
                     "Received pos update [%d], on [%d] (%d). [%d] actions, [%d] positions "
                     "***Applying immediately",
                     update_id, on_update_id, distance, action_count, vehicle_count);
@@ -753,7 +725,7 @@ void PlayerUpdateClient::remote_player_vehicle_update_from_network(datum_index p
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 void player_update_client_local_player_update_from_network(int32_t *decode_context)
 {
     halo::networking::PlayerUpdateClient::local_player_update_from_network(decode_context);

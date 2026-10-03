@@ -8,13 +8,9 @@
 #include "game.h"
 #include "networking.h"
 #include "halo/networking/server_sort.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
-void server_list_scroll_clamp(server_list_globals *results);
-int32_t server_list_compare_by_gametype(const void *a, const void *b);
-int32_t server_list_compare_by_hostname(const void *a, const void *b);
-int32_t server_list_compare_by_ping_then_hostname(void **a, void **b);
-int32_t server_list_compare_by_players(const void *a, const void *b);
 }
 
 namespace halo::networking {
@@ -24,7 +20,7 @@ namespace halo::networking {
  */
 server_browser_sort_comparator PingThenHostnameSort::comparator() const
 {
-    return reinterpret_cast<server_browser_sort_comparator>(&::server_list_compare_by_ping_then_hostname);
+    return reinterpret_cast<server_browser_sort_comparator>(&server_list_compare_by_ping_then_hostname);
 }
 
 /**
@@ -32,7 +28,7 @@ server_browser_sort_comparator PingThenHostnameSort::comparator() const
  */
 server_browser_sort_comparator GametypeSort::comparator() const
 {
-    return &::server_list_compare_by_gametype;
+    return &server_list_compare_by_gametype;
 }
 
 /**
@@ -40,7 +36,7 @@ server_browser_sort_comparator GametypeSort::comparator() const
  */
 server_browser_sort_comparator PlayersSort::comparator() const
 {
-    return &::server_list_compare_by_players;
+    return &server_list_compare_by_players;
 }
 
 /**
@@ -48,7 +44,7 @@ server_browser_sort_comparator PlayersSort::comparator() const
  */
 server_browser_sort_comparator HostnameSort::comparator() const
 {
-    return &::server_list_compare_by_hostname;
+    return &server_list_compare_by_hostname;
 }
 
 /**
@@ -56,7 +52,7 @@ server_browser_sort_comparator HostnameSort::comparator() const
  */
 server_browser_sort_comparator ScrollClampSort::comparator() const
 {
-    return reinterpret_cast<server_browser_sort_comparator>(&::server_list_scroll_clamp);
+    return reinterpret_cast<server_browser_sort_comparator>(&server_list_scroll_clamp);
 }
 
 namespace {

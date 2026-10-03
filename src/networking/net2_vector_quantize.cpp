@@ -5,24 +5,16 @@
 #include "message_delta_codec.h"
 #include "halo/networking/net2_vector_quantize.hpp"
 #include "halo/math/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);
 extern uint8_t message_delta_vector3d_mode;
-extern uint32_t message_delta_quantize_float_to_int(uint32_t max_level, real value, real minimum, real maximum);
 extern double acos(double x);
 extern double atan(double x);
 extern int _isnan(double x);
-void digital_throttle_decode_vector(real *out, uint32_t code);
-int32_t digital_throttle_encode_vector(real_vector3d vector);
-void vector3d_from_yaw_pitch(real_vector3d *out_direction, real yaw, real pitch);
-void vector3d_lerp_by_mode_denominator(vector3d_lerp_table *table, real_vector3d *out_point,
-    int32_t *ratios);
-void vector3d_quantize(int32_t *out_indices, int32_t *descriptor, real *point);
-void vector3d_to_angles(real *out, real_vector3d vector);
-uint8_t waypoint_table_quantize_initialize(message_delta_field_type *field_type);
 }
 
 static real unsigned_int_to_float(int32_t value)
@@ -133,9 +125,9 @@ void VectorQuantizer::quantize(int32_t *out_indices, int32_t *descriptor, real *
     real minimum = *(real *)&descriptor[0];
     real maximum = *(real *)&descriptor[1];
 
-    out_indices[0] = (int32_t)message_delta_quantize_float_to_int(levels, point[0], minimum, maximum);
-    out_indices[1] = (int32_t)message_delta_quantize_float_to_int(levels, point[1], minimum, maximum);
-    out_indices[2] = (int32_t)message_delta_quantize_float_to_int(levels, point[2], minimum, maximum);
+    out_indices[0] = (int32_t)halo::networking::message_delta_quantize_float_to_int(levels, point[0], minimum, maximum);
+    out_indices[1] = (int32_t)halo::networking::message_delta_quantize_float_to_int(levels, point[1], minimum, maximum);
+    out_indices[2] = (int32_t)halo::networking::message_delta_quantize_float_to_int(levels, point[2], minimum, maximum);
 }
 
 void VectorQuantizer::to_angles(real *out, real_vector3d vector)
@@ -172,14 +164,14 @@ uint8_t VectorQuantizer::quantize_initialize(message_delta_field_type *field_typ
         if (_isnan(point[0]) || _isnan(point[1]) || _isnan(point[2])) {
             return 0;
         }
-        vector3d_quantize(descriptor + 0x67 + i * 3, descriptor, point);
+        halo::networking::vector3d_quantize(descriptor + 0x67 + i * 3, descriptor, point);
     }
     return 1;
 }
 
 }  // namespace halo::networking
 
-extern "C" {
+namespace halo::networking {
 void digital_throttle_decode_vector(real *out, uint32_t code)
 {
     halo::networking::VectorQuantizer::decode_vector(out, code);

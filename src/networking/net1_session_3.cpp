@@ -3,6 +3,7 @@
 #include <string.h>
 #include <wchar.h>
 #include "units.h"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern void *current_game_engine;
@@ -18,15 +19,8 @@ extern uint8_t network_session_host_closing;
 extern uint8_t game_engine_variant[];
 extern uint8_t motion_sensor_override_value;
 extern int32_t game_engine_variant_score_limit;
-extern void autopatch_current_version_string_get(char *out);
-extern char *server_browser_custom_options_pack(void *options);
-extern uint32_t server_browser_gametype1_flags_pack(void *options);
-extern uint32_t server_browser_gametype2_flags_pack(uint8_t *flags);
-extern uint32_t server_browser_gametype3_flags_pack(void *options);
-extern uint32_t server_browser_gametype5_flags_pack(int32_t *values);
 extern int32_t players_active_count(void);
 extern uint8_t game_engine_get_teams_enabled(void);
-extern int32_t network_server_password_is_set(void *server);
 }
 
 namespace halo::networking {
@@ -114,7 +108,7 @@ void HostSession::qr2_server_key(int32_t key_id, void *buffer, void *user_data)
         }
         return;
     case 3:
-        autopatch_current_version_string_get(network_qr2_text);
+        halo::networking::autopatch_current_version_string_get(network_qr2_text);
         qr2_buffer_add(buffer, network_qr2_text);
         return;
     case 5: {
@@ -153,21 +147,21 @@ void HostSession::qr2_server_key(int32_t key_id, void *buffer, void *user_data)
         qr2_buffer_add_int(buffer, game_engine_variant_score_limit);
         return;
     case 19:
-        qr2_buffer_add_int(buffer, network_server_password_is_set(server) != 0);
+        qr2_buffer_add_int(buffer, halo::networking::network_server_password_is_set((network_server_globals *)server) != 0);
         return;
     case 0x33:
         qr2_buffer_add_int(buffer, (server[6] >> 2) & 1);
         return;
     case 0x34:
-        qr2_buffer_add(buffer, server_browser_custom_options_pack(game_engine_variant + 0x34));
+        qr2_buffer_add(buffer, halo::networking::server_browser_custom_options_pack((server_browser_custom_options *)(game_engine_variant + 0x34)));
         return;
     case 0x35:
         switch (game_type) {
-        case 1: qr2_buffer_add_int(buffer, (int32_t)server_browser_gametype1_flags_pack(options)); return;
-        case 2: qr2_buffer_add_int(buffer, (int32_t)server_browser_gametype2_flags_pack(options)); return;
-        case 3: qr2_buffer_add_int(buffer, (int32_t)server_browser_gametype3_flags_pack(options)); return;
+        case 1: qr2_buffer_add_int(buffer, (int32_t)halo::networking::server_browser_gametype1_flags_pack((server_browser_gametype1_options *)options)); return;
+        case 2: qr2_buffer_add_int(buffer, (int32_t)halo::networking::server_browser_gametype2_flags_pack(options)); return;
+        case 3: qr2_buffer_add_int(buffer, (int32_t)halo::networking::server_browser_gametype3_flags_pack((server_browser_gametype3_options *)options)); return;
         case 4: qr2_buffer_add_int(buffer, (options[0] != 0 ? 8 : 0) | 4); return;
-        case 5: qr2_buffer_add_int(buffer, (int32_t)server_browser_gametype5_flags_pack((int32_t *)options)); return;
+        case 5: qr2_buffer_add_int(buffer, (int32_t)halo::networking::server_browser_gametype5_flags_pack((int32_t *)options)); return;
         }
         break;
     case 0x36:

@@ -7,22 +7,12 @@
 #include "halo/input/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/networking/api.hpp"
 
 extern "C" {
 extern uint8_t network_message_scratch[0x7ff8];
 extern data_array *player_data;
-extern network_server_globals *network_server;
 extern const uint16_t chat_local_prompt_string[];
-extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
-    int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
-extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
-extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
-extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern int32_t network_object_owner_team_index_desired(void *obj);
-extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, uint32_t status_bit,
-    void *data, uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority);
-extern char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server_globals *server, int32_t status_bit,
-    void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
 extern datum_index player_get_vehicle(datum_index player_index);
 extern uint8_t chat_dialog_open;
 extern int32_t chat_scope_active;
@@ -80,7 +70,7 @@ void ChatDialog::queue_team_message(int32_t team_index)
 
     halo::text::string_format_wide_va(reinterpret_cast<uint16_t *>(formatted), chat_local_prompt_string);
 
-    encoded_bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xf, 0, &fields, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xf, 0, &fields, 0, 1, 0);
     if (encoded_bits <= 0) {
         return;
     }
@@ -96,16 +86,16 @@ void ChatDialog::queue_team_message(int32_t team_index)
             if (*((int8_t *)entry + 0x64) != -1) {
                 int32_t machine_index = *((int8_t *)entry + 0x64);
                 int32_t i;
-                int16_t *slot_table = (int16_t *)((uint8_t *)network_server + 0x3c4);
+                int16_t *slot_table = (int16_t *)((uint8_t *)halo::networking::globals().server + 0x3c4);
                 for (i = 0; i < 0x10; i = i + 1) {
                     if (slot_table[i * 0x30] == machine_index) {
-                        uint8_t **session_ptr = (uint8_t **)((uint8_t *)network_server + 0x3b8 + i * 0x60);
+                        uint8_t **session_ptr = (uint8_t **)((uint8_t *)halo::networking::globals().server + 0x3b8 + i * 0x60);
                         uint8_t *session = *session_ptr;
                         if (session != 0 && (session[0xa8c] & 1) == 0 &&
                             (encoded_bits + 1 <= (*(int32_t *)(session + 0x24) +
                                                    *(int32_t *)(session + 0x1c) * -8) -
                                                       *(int32_t *)(session + 0x20) + 1 ||
-                             network_channel_stream_flush((network_channel_stream *)((uint8_t *)session + 0x10), (network_channel *)session, 1) != 0)) {
+                             halo::networking::network_channel_stream_flush((network_channel_stream *)((uint8_t *)session + 0x10), (network_channel *)session, 1) != 0)) {
                             *(int32_t *)(session + 0xa80) = *(int32_t *)(session + 0xa80) + encoded_bits + 1;
                             { uint32_t item_flag = 1; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), &item_flag, 1); }
                             session[0x2c] = 0;
@@ -142,16 +132,16 @@ void ChatDialog::server_relay_incoming_message(void **context, void *machine)
     uint8_t *entry;
 
     if (*(int32_t *)context[0] != 0) {
-        message_delta_decode_compound_field_staged(context);
+        halo::networking::message_delta_decode_compound_field_staged(context);
         return;
     }
     message.scope = 0;
     message.sender = 0xff;
     message.text = text;
-    if (message_delta_decode_compound_field(context, &message) == 0) {
+    if (halo::networking::message_delta_decode_compound_field(context, &message) == 0) {
         return;
     }
-    sender = network_object_owner_team_index_desired(machine);
+    sender = halo::networking::network_object_owner_team_index_desired((object *)machine);
     if (sender == -1) {
         return;
     }
@@ -159,9 +149,9 @@ void ChatDialog::server_relay_incoming_message(void **context, void *machine)
     item = &message;
     zero_24 = 0;
     (void)zero_24;
-    bits = message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xf, 0, &item, 0, 1, 0);
+    bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xf, 0, &item, 0, 1, 0);
     if (message.scope == 0) {
-        network_session_broadcast_to_flagged(bits, network_server, 1, network_message_scratch, 1, 0, 1, 3);
+        halo::networking::network_session_broadcast_to_flagged(bits, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 1, 3);
     } else if (message.scope == 1) {
         uint8_t *sender_player = (uint8_t *)halo::memory::datum_get((datum_index)message.sender, player_data);
 
@@ -171,7 +161,7 @@ void ChatDialog::server_relay_incoming_message(void **context, void *machine)
         chat_relay_iterator_begin(&iterator);
         while ((entry = (uint8_t *)halo::memory::data_iterator_next(&iterator)) != 0) {
             if (*(int32_t *)(entry + 0x20) == ((struct player *)sender_player)->team && *(int8_t *)(entry + 0x64) != -1) {
-                network_session_send_to_machine(*(int8_t *)(entry + 0x64), network_server, 1, network_message_scratch,
+                halo::networking::network_session_send_to_machine(*(int8_t *)(entry + 0x64), halo::networking::globals().server, 1, network_message_scratch,
                                                 (uint32_t)bits, 1, 0, 1, 3);
             }
         }
@@ -186,7 +176,7 @@ void ChatDialog::server_relay_incoming_message(void **context, void *machine)
             uint8_t *unit = (uint8_t *)halo::objects::object_try_and_get(*(datum_index *)(entry + 0x34), 3);
 
             if (unit != 0 && ((unit_object *)unit)->base.parent_object == vehicle && *(int8_t *)(entry + 0x64) != -1) {
-                network_session_send_to_machine(*(int8_t *)(entry + 0x64), network_server, 1, network_message_scratch,
+                halo::networking::network_session_send_to_machine(*(int8_t *)(entry + 0x64), halo::networking::globals().server, 1, network_message_scratch,
                                                 (uint32_t)bits, 1, 0, 1, 3);
             }
         }
