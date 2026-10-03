@@ -69,3 +69,8 @@ static_assert(offsetof(saved_player_profile, flags) == 0x11c && offsetof(saved_p
               offsetof(saved_player_profile, connection_type) == 0xfc0 && offsetof(saved_player_profile, join_server_address) == 0xfc2 &&
               offsetof(saved_player_profile, server_port) == 0x1002 && offsetof(saved_player_profile, gamepads) == 0x1108 &&
               offsetof(saved_player_profile, server_browser_ping_limit) == 0xc8a, "saved_player_profile fields");
+static_assert(offsetof(ModelAnimations, first_person_weapons.count) == 0x48 && offsetof(ModelAnimations, animations.pointer) == 0x78 &&
+              offsetof(ModelAnimationsAnimationGraphFirstPersonWeaponAnimations, animations.count) == 0x10 &&
+              sizeof(ModelAnimationsAnimation) == 0xb4 && offsetof(ModelAnimationsAnimation, frame_count) == 0x22,
+              "ModelAnimations first person weapon blocks");
+static_assert(offsetof(Bitmap, bitmap_data.pointer) == 0x64, "Bitmap data block");

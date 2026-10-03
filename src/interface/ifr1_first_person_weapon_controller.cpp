@@ -22,6 +22,7 @@
 #include "tags.h"
 #include "tags.h"
 #include "halo/interface/flags.hpp"
+#include "halo/interface/layout_checks.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -167,12 +168,11 @@ void FirstPersonWeaponController::interface_initialize()
     int16_t current_weapon_slot;
     datum_index weapon_index;
     struct object *weapon_object;
-    char *weapon_tag_data;
-    char *hud_interface_tag_data;
-    int32_t *node_array_block;
+    Weapon *weapon_tag_data;
+    ModelAnimations *animation_graph;
+    ModelAnimationsAnimationGraphFirstPersonWeaponAnimations *node_array_block;
     int16_t marker_node_index;
     uint8_t weapon_hud_matched;
-    uint32_t weapon_tag_ref;
     uint32_t hud_interface_tag_ref;
 
     fp->weapon_index = (datum_index)halo::k_dword_none;
@@ -201,31 +201,29 @@ void FirstPersonWeaponController::interface_initialize()
     }
 
     weapon_object = halo::interface::object_record<struct object>(weapon_index);
-    weapon_tag_ref = *(uint32_t *)weapon_object;
-    weapon_tag_data = (char *)halo::cache::globals().tag_instances[(uint16_t)weapon_tag_ref].data;
-    if (halo::interface::tag_handle(((struct Weapon *)weapon_tag_data)->first_person_model.tag_id) == halo::k_dword_none) {
+    weapon_tag_data = halo::interface::tag_data<Weapon>(weapon_object->definition_tag);
+    if (halo::interface::tag_handle(weapon_tag_data->first_person_model.tag_id) == halo::k_dword_none) {
         halo::interface::first_person_weapon_interface_tick_reset(local_player_index);
         return;
     }
 
-    hud_interface_tag_ref = halo::interface::tag_handle(((struct Weapon *)weapon_tag_data)->first_person_animations.tag_id);
-    hud_interface_tag_data = (char *)halo::cache::globals().tag_instances[(uint16_t)hud_interface_tag_ref].data;
-    if (*(int32_t *)(hud_interface_tag_data + 0x48) == 0) {
+    hud_interface_tag_ref = halo::interface::tag_handle(weapon_tag_data->first_person_animations.tag_id);
+    animation_graph = halo::interface::tag_data<ModelAnimations>(hud_interface_tag_ref);
+    if (animation_graph->first_person_weapons.count == 0) {
         halo::interface::first_person_weapon_interface_tick_reset(local_player_index);
         return;
     }
-    node_array_block = *(int32_t **)(hud_interface_tag_data + 0x4c);
+    node_array_block = halo::interface::reflexive_elements<ModelAnimationsAnimationGraphFirstPersonWeaponAnimations>(animation_graph->first_person_weapons);
     if (node_array_block == nullptr) {
         halo::interface::first_person_weapon_interface_tick_reset(local_player_index);
         return;
     }
 
     fp->animation_index = -1;
-    if (node_array_block[4] > 4) {
-        marker_node_index = *(int16_t *)(*(int32_t *)((char *)node_array_block + 0x14) + 8);
+    if ((int32_t)node_array_block->animations.count > 4) {
+        marker_node_index = halo::interface::reflexive_elements<int16_t>(node_array_block->animations)[4];
         if (marker_node_index != -1 &&
-            *(int16_t *)(*(char **)(hud_interface_tag_data + 0x78) + 0x22 +
-                          (int32_t)marker_node_index * 0xb4) >= 9) {
+            (int16_t)halo::interface::reflexive_elements<ModelAnimationsAnimation>(animation_graph->animations)[marker_node_index].frame_count >= 9) {
             fp->animation_index = marker_node_index;
         }
     }
@@ -239,7 +237,7 @@ void FirstPersonWeaponController::interface_initialize()
         }
     }
     weapon_hud_matched = halo::interface::hud_meter_find_matching_elements(hud_interface_tag_ref,
-        halo::interface::tag_handle(((struct Weapon *)weapon_tag_data)->first_person_model.tag_id), fp->weapon_hud_element);
+        halo::interface::tag_handle(weapon_tag_data->first_person_model.tag_id), fp->weapon_hud_element);
     fp->weapon_hud_valid = weapon_hud_matched;
 
     if (weapon_hud_matched != 0 && fp->device_hud_valid != 0) {
@@ -308,9 +306,8 @@ void FirstPersonWeaponController::interface_tick_reset()
 
     if (fp->weapon_index != (datum_index)halo::k_dword_none) {
         struct object *weapon_object = halo::interface::object_record<struct object>(fp->weapon_index);
-        char *weapon_tag_data =
-            (char *)halo::cache::globals().tag_instances[(uint16_t)(*(uint32_t *)weapon_object)].data;
-        halo::cache::predicted_resource_list_touch(&((Weapon *)weapon_tag_data)->more_predicted_resources);
+        Weapon *weapon_tag_data = halo::interface::tag_data<Weapon>(weapon_object->definition_tag);
+        halo::cache::predicted_resource_list_touch(&weapon_tag_data->more_predicted_resources);
     }
     fp->shutdown_countdown = 0x1e;
 }
@@ -453,8 +450,8 @@ void FirstPersonWeaponController::set_state(uint8_t force_pose_snapshot, int16_t
     int16_t animation_stage;
     int16_t blend_gap;
     Weapon *item_tag_data;
-    uint8_t *hud_tag_data;
-    uint8_t *block_a_base;
+    ModelAnimations *hud_tag_data;
+    ModelAnimationsAnimationGraphFirstPersonWeaponAnimations *block_a_base;
     int32_t block_a_count;
 
     fp = &first_person_weapon_interfaces[local_player_index];
@@ -506,7 +503,7 @@ void FirstPersonWeaponController::set_state(uint8_t force_pose_snapshot, int16_t
     }
 
     weapon_obj = halo::interface::object_record(fp->weapon_index);
-    item_tag_data = halo::interface::tag_data<Weapon>(*(uint32_t *)weapon_obj);
+    item_tag_data = halo::interface::tag_data<Weapon>(((struct object *)weapon_obj)->definition_tag);
     if (static_cast<int16_t>(item_tag_data->weapon_type) == 3 && new_state == 3 &&
         (((struct weapon_object *)weapon_obj)->weapon.flags & 1) == 0) {
         new_state = 0;
@@ -534,19 +531,19 @@ void FirstPersonWeaponController::set_state(uint8_t force_pose_snapshot, int16_t
         return;
     }
 
-    hud_tag_data = halo::interface::tag_data<uint8_t>(halo::interface::tag_handle(item_tag_data->first_person_animations.tag_id));
-    block_a_count = *(int32_t *)(hud_tag_data + 0x48);
+    hud_tag_data = halo::interface::tag_data<ModelAnimations>(halo::interface::tag_handle(item_tag_data->first_person_animations.tag_id));
+    block_a_count = (int32_t)hud_tag_data->first_person_weapons.count;
     if (block_a_count == 0) {
         return;
     }
-    block_a_base = *(uint8_t **)(hud_tag_data + 0x4c);
+    block_a_base = halo::interface::reflexive_elements<ModelAnimationsAnimationGraphFirstPersonWeaponAnimations>(hud_tag_data->first_person_weapons);
     if (block_a_base == 0) {
         return;
     }
-    if (animation_stage < 0 || animation_stage >= *(int32_t *)(block_a_base + 0x10)) {
+    if (animation_stage < 0 || animation_stage >= (int32_t)block_a_base->animations.count) {
         return;
     }
-    animation_stage = *(int16_t *)(*(uint8_t **)(block_a_base + 0x14) + animation_stage * 2);
+    animation_stage = halo::interface::reflexive_elements<int16_t>(block_a_base->animations)[animation_stage];
     if (animation_stage == -1) {
         return;
     }
@@ -584,8 +581,8 @@ void FirstPersonWeaponController::snapshot_pose(int16_t blend_gap)
     fp = &first_person_weapon_interfaces[local_player_index];
 
     weapon_obj = halo::interface::object_record(fp->weapon_index);
-    item_tag_data = halo::interface::tag_data<Weapon>(*(uint32_t *)weapon_obj);
-    graph = (ModelAnimations *)halo::interface::tag_data<uint8_t>(halo::interface::tag_handle(item_tag_data->first_person_animations.tag_id));
+    item_tag_data = halo::interface::tag_data<Weapon>(((struct object *)weapon_obj)->definition_tag);
+    graph = halo::interface::tag_data<ModelAnimations>(halo::interface::tag_handle(item_tag_data->first_person_animations.tag_id));
     dword_count = (int32_t)(((uint32_t)graph->nodes.count << 5) >> 2);
 
     src = (uint32_t *)fp->animation_control;
@@ -704,7 +701,7 @@ void FirstPersonWeaponController::update_lighting(void)
 
     unit_obj = halo::interface::object_record<object>(unit_handle);
     weapon_obj = halo::interface::object_record<object>(fp->weapon_index);
-    weapon_tag_data = (char *)halo::cache::globals().tag_instances[(uint16_t)weapon_obj->definition_tag].data;
+    weapon_tag_data = (char *)halo::interface::tag_data<Weapon>(weapon_obj->definition_tag);
     if (halo::interface::tag_handle(((struct Weapon *)weapon_tag_data)->first_person_animations.tag_id) == halo::k_dword_none) {
         return;
     }
@@ -793,7 +790,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
                                                 : halo::interface::tag_handle(effect->mask_fullscreen.tag_id);
         if (mask != (datum_index)-1) {
             parameters.mask_bitmap_data =
-                *(uint32_t *)(halo::interface::tag_data<uint8_t>(mask) + 0x64);
+                halo::interface::tag_data<Bitmap>(mask)->bitmap_data.pointer;
             parameters.night_vision_masked = (uint8_t)((effect->even_more_flags >> 2) & 1);
             parameters.desaturation_masked = (uint8_t)((effect->desaturation_flags >> 3) & 1);
         }
