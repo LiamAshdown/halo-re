@@ -1,0 +1,11 @@
+# Runs both math difftest executables and fails unless their outputs are byte-for-byte identical.
+execute_process(COMMAND "${REF}" "${OUT}/reference.txt" RESULT_VARIABLE r1)
+execute_process(COMMAND "${NEW}" "${OUT}/converted.txt" RESULT_VARIABLE r2)
+if(NOT r1 EQUAL 0 OR NOT r2 EQUAL 0)
+    message(FATAL_ERROR "difftest run failed: reference ${r1}, converted ${r2}")
+endif()
+execute_process(COMMAND "${CMAKE_COMMAND}" -E compare_files "${OUT}/reference.txt" "${OUT}/converted.txt" RESULT_VARIABLE same)
+if(NOT same EQUAL 0)
+    message(FATAL_ERROR "math difftest: outputs differ (${OUT}/reference.txt vs converted.txt)")
+endif()
+message(STATUS "math difftest: outputs identical")

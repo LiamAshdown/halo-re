@@ -46,23 +46,72 @@ typedef float real;
 typedef struct real_vector2d {
     float i;                   // 0x00
     float j;                   // 0x04
+#ifdef __cplusplus   /* C++ only: member functions and hidden-friend operators; no data, layout unchanged */
+    /** Dot product, i*o.i + j*o.j. */
+    constexpr real dot(const real_vector2d &o) const { return i * o.i + j * o.j; }
+    /** Normalises in place (vector2d_normalize_with_length); returns the old length, or 0 for a near-zero vector. */
+    real normalize();
+    /** Componentwise arithmetic, one float operation per component as written. */
+    friend constexpr real_vector2d operator+(const real_vector2d &a, const real_vector2d &b) { return {a.i + b.i, a.j + b.j}; }
+    friend constexpr real_vector2d operator-(const real_vector2d &a, const real_vector2d &b) { return {a.i - b.i, a.j - b.j}; }
+    friend constexpr real_vector2d operator-(const real_vector2d &v) { return {-v.i, -v.j}; }
+    friend constexpr real_vector2d operator*(const real_vector2d &v, real s) { return {v.i * s, v.j * s}; }
+    friend constexpr real_vector2d operator*(real s, const real_vector2d &v) { return {s * v.i, s * v.j}; }
+#endif
 } real_vector2d;               // size 0x08
 
 typedef struct real_point2d {
     float x;                   // 0x00
     float y;                   // 0x04
+#ifdef __cplusplus   /* C++ only: member functions and hidden-friend operators; no data, layout unchanged */
+    /** Componentwise arithmetic, one float operation per component as written. */
+    friend constexpr real_vector2d operator-(const real_point2d &a, const real_point2d &b) { return {a.x - b.x, a.y - b.y}; }
+    friend constexpr real_point2d operator+(const real_point2d &p, const real_vector2d &v) { return {p.x + v.i, p.y + v.j}; }
+#endif
 } real_point2d;                // size 0x08
 
 typedef struct real_vector3d {
     float i;                   // 0x00
     float j;                   // 0x04
     float k;                   // 0x08
+#ifdef __cplusplus   /* C++ only: member functions and hidden-friend operators; no data, layout unchanged */
+    /** Dot product, (i*o.i + j*o.j) + k*o.k. */
+    constexpr real dot(const real_vector3d &o) const { return i * o.i + j * o.j + k * o.k; }
+    /** Cross product this x o, each component one product minus another. */
+    constexpr real_vector3d cross(const real_vector3d &o) const { return {j * o.k - k * o.j, k * o.i - i * o.k, i * o.j - j * o.i}; }
+    /** Squared length (vector3d_magnitude_squared, the same sum as dot(*this)). */
+    constexpr real magnitude_squared() const { return dot(*this); }
+    /** Length (vector3d_length). */
+    real magnitude() const;
+    /** Normalises in place (vector3d_normalize_with_length); returns the old length, or 0 for a near-zero vector. */
+    real normalize();
+    /** Componentwise arithmetic, one float operation per component as written. */
+    friend constexpr real_vector3d operator+(const real_vector3d &a, const real_vector3d &b) { return {a.i + b.i, a.j + b.j, a.k + b.k}; }
+    friend constexpr real_vector3d operator-(const real_vector3d &a, const real_vector3d &b) { return {a.i - b.i, a.j - b.j, a.k - b.k}; }
+    friend constexpr real_vector3d operator-(const real_vector3d &v) { return {-v.i, -v.j, -v.k}; }
+    friend constexpr real_vector3d operator*(const real_vector3d &v, real s) { return {v.i * s, v.j * s, v.k * s}; }
+    friend constexpr real_vector3d operator*(real s, const real_vector3d &v) { return {s * v.i, s * v.j, s * v.k}; }
+    friend constexpr real_vector3d &operator+=(real_vector3d &a, const real_vector3d &b) { a.i += b.i; a.j += b.j; a.k += b.k; return a; }
+    friend constexpr real_vector3d &operator-=(real_vector3d &a, const real_vector3d &b) { a.i -= b.i; a.j -= b.j; a.k -= b.k; return a; }
+    friend constexpr real_vector3d &operator*=(real_vector3d &v, real s) { v.i *= s; v.j *= s; v.k *= s; return v; }
+#endif
 } real_vector3d;               // size 0x0c
 
 typedef struct real_point3d {
     float x;                   // 0x00
     float y;                   // 0x04
     float z;                   // 0x08
+#ifdef __cplusplus   /* C++ only: member functions and hidden-friend operators; no data, layout unchanged */
+    /** Distance to another point (vector3d_distance). */
+    real distance_to(const real_point3d &o) const;
+    /** Squared distance to another point (vector3d_distance_squared). */
+    real distance_squared_to(const real_point3d &o) const;
+    /** Componentwise arithmetic, one float operation per component as written. */
+    friend constexpr real_point3d operator+(const real_point3d &p, const real_vector3d &v) { return {p.x + v.i, p.y + v.j, p.z + v.k}; }
+    friend constexpr real_point3d operator-(const real_point3d &p, const real_vector3d &v) { return {p.x - v.i, p.y - v.j, p.z - v.k}; }
+    friend constexpr real_vector3d operator-(const real_point3d &a, const real_point3d &b) { return {a.x - b.x, a.y - b.y, a.z - b.z}; }
+    friend constexpr real_point3d &operator+=(real_point3d &p, const real_vector3d &v) { p.x += v.i; p.y += v.j; p.z += v.k; return p; }
+#endif
 } real_point3d;                // size 0x0c
 
 // polygon2d_clip_to_plane @0x4caff0 evaluates (p.x*pl[0] + p.y*pl[1]) - pl[2],
@@ -85,6 +134,12 @@ typedef struct real_plane2d {
 typedef struct real_plane3d {
     real_vector3d normal;      // 0x00
     float d;                   // 0x0c distance along the normal
+#ifdef __cplusplus   /* C++ only: member functions and hidden-friend operators; no data, layout unchanged */
+    /** Signed distance of a point from the plane: normal.dot(point) - d, summed x, y, z. */
+    constexpr real distance_to(const real_point3d &p) const { return normal.i * p.x + normal.j * p.y + normal.k * p.z - d; }
+    /** The plane facing the other way (plane3d_negate). */
+    real_plane3d negated() const;
+#endif
 } real_plane3d;                // size 0x10
 
 // bounded_ramp_profile: a three-phase (accelerate / coast / decelerate) motion profile bounded by
@@ -111,6 +166,18 @@ typedef struct real_quaternion {
     float j;                   // 0x04
     float k;                   // 0x08
     float w;                   // 0x0c scalar part
+#ifdef __cplusplus   /* C++ only: member functions and hidden-friend operators; no data, layout unchanged */
+    /** Normalises in place; a zero quaternion becomes the identity (quaternion_normalize). */
+    void normalize();
+    /** Rotates a vector by this quaternion (quaternion_rotate_vector). */
+    real_vector3d rotate(const real_vector3d &v) const;
+    /** The rotation as a matrix4x3 with scale 1 and no translation (matrix4x3_from_quaternion). */
+    struct real_matrix4x3 to_matrix() const;
+    /** The identity rotation (0, 0, 0, 1). */
+    static constexpr real_quaternion identity() { return {0.0f, 0.0f, 0.0f, 1.0f}; }
+    /** Hamilton product a*b (quaternion_multiply(b, a)). */
+    friend real_quaternion operator*(const real_quaternion &a, const real_quaternion &b);
+#endif
 } real_quaternion;             // size 0x10
 
 typedef struct real_euler_angles2d {
@@ -154,6 +221,14 @@ typedef struct real_matrix3x3 {
     real_vector3d forward;     // 0x00
     real_vector3d left;        // 0x0c
     real_vector3d up;          // 0x18
+#ifdef __cplusplus   /* C++ only: member functions and hidden-friend operators; no data, layout unchanged */
+    /** The transposed matrix (matrix3x3_transpose). */
+    real_matrix3x3 transposed() const;
+    /** The identity basis. */
+    static constexpr real_matrix3x3 identity() { return {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}}; }
+    /** Product a*b (matrix3x3_multiply). */
+    friend real_matrix3x3 operator*(const real_matrix3x3 &a, const real_matrix3x3 &b);
+#endif
 } real_matrix3x3;              // size 0x24
 
 // ---------------------------------------------------------------------------
@@ -176,6 +251,39 @@ typedef struct real_matrix4x3 {
     real_vector3d left;        // 0x10
     real_vector3d up;          // 0x1c
     real_point3d position;     // 0x28
+#ifdef __cplusplus   /* C++ only: member functions and hidden-friend operators; no data, layout unchanged */
+    /** Scale, rotate and translate a point (matrix4x3_transform_point). */
+    real_point3d transform_point(const real_point3d &p) const;
+    /** Scale and rotate a vector (matrix4x3_transform_vector). */
+    real_vector3d transform_vector(const real_vector3d &v) const;
+    /** Rotate a direction (matrix4x3_transform_normal). */
+    real_vector3d transform_normal(const real_vector3d &n) const;
+    /** Transform a plane (matrix4x3_transform_plane). */
+    real_plane3d transform_plane(const real_plane3d &p) const;
+    /** World point to local space (matrix4x3_inverse_transform_point). */
+    real_point3d inverse_transform_point(const real_point3d &p) const;
+    /** World vector to local space (matrix4x3_inverse_transform_vector). */
+    real_vector3d inverse_transform_vector(const real_vector3d &v) const;
+    /** World direction to local space (matrix4x3_inverse_transform_normal). */
+    real_vector3d inverse_transform_normal(const real_vector3d &n) const;
+    /** The inverse transform (matrix4x3_inverse); all zeros when scale is 0. */
+    real_matrix4x3 inverse() const;
+    /** The rotation as a quaternion (quaternion_from_matrix4x3). */
+    real_quaternion to_quaternion() const;
+    /** Scale 1, identity rotation, no translation. */
+    static constexpr real_matrix4x3 identity()
+    {
+        return {1.0f, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}};
+    }
+    /** Rotation from yaw, pitch and roll (matrix4x3_from_euler_angles). */
+    static real_matrix4x3 from_euler_angles(real yaw, real pitch, real roll);
+    /** Rotation about a unit axis by the angle with the given sine and cosine (matrix4x3_from_axis_angle). */
+    static real_matrix4x3 from_axis_angle(const real_vector3d &axis, real sin_angle, real cos_angle);
+    /** Basis from forward and up, left = cross(up, forward), at `position` (matrix4x3_from_forward_up_position). */
+    static real_matrix4x3 from_forward_up(const real_vector3d &forward, const real_vector3d &up, const real_point3d &position);
+    /** Composition a*b: b applied first (matrix4x3_multiply). */
+    friend real_matrix4x3 operator*(const real_matrix4x3 &a, const real_matrix4x3 &b);
+#endif
 } real_matrix4x3;              // size 0x34
 
 // ---------------------------------------------------------------------------

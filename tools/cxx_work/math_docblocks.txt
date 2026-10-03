@@ -1,0 +1,127 @@
+# Docblock summaries for the math module (tools/cxx_convert_module.py). One `name | text` per function; the register
+# convention line and the @address tag are added from the original file's notes. The full author notes are in
+# docs/original/math/<name>.c.txt.
+bit_vector_or | Bitwise-ORs bit array `a` into `b`, word by word, writing the result to `dst`; `bit_count` is rounded up to whole 32-bit words.
+bounded_ramp_profile_build | Builds a three-phase (accelerate / coast / decelerate) motion profile that brings a position error and velocity to rest within max_velocity and max_acceleration. Recurses once with negated inputs when the error points the other way.
+bounded_ramp_profile_evaluate | Advances a ramp profile by `time` from (start_position, start_velocity), writing the reached position and velocity. Returns nonzero once `time` runs past every phase; a profile already in its dead zone returns that flag unchanged.
+bounded_ramp_profile_synchronize | When both profiles are live, stretches the coast phase of the one that finishes sooner so both last the same total time.
+color_real_to_argb_pack | Packs an alpha and an r,g,b float triple (each 0..1) into a 0xAARRGGBB dword, rounding each channel*255 to nearest; only the low 8 bits of each colour channel are kept.
+cubic_interpolate_divided_difference | Evaluates Newton's divided-difference cubic through the four samples (x0,y0)..(x3,y3) at `x`, in double precision.
+decal_plane_solve_third_axis | Writes the two known coordinates of a point into the surviving axes of k_projection_axes and solves the dominant axis from the plane equation (0 when the plane is edge-on). Only the low byte of component_sign and the low 16 bits of dominant_axis are used. Returns `out`.
+euler_angles_to_basis_vectors | Builds the rotation for (yaw, pitch, roll) and returns its forward and up rows.
+float_compare_ascending | qsort comparator on a leading float: -1, 1 or 0 (also 0 when either is NaN).
+lerp_find_threshold_byte | Returns the largest byte b with lerp(lo, hi, b/255) <= threshold, starting from the truncated inverse lerp and stepping down; byte 255 maps to exactly `hi`.
+math_initialize | Builds the sphere direction table and the periodic function tables, then installs the matrix4x3_multiply variant for the CPU (SSE, then 3DNow!) unless -noSSE is on the command line or safe_mode is set.
+matrix3x3_from_forward_up | Builds a 3x3 basis: forward and up as given, left = cross(up, forward).
+matrix3x3_inverse_transform_vector | Multiplies `v` by the 3x3 basis columns (forward*i + left*j + up*k); `out` may alias `v`.
+matrix3x3_multiply | out = a * b for 3x3 rotation matrices; `out` may alias either operand.
+matrix3x3_transpose | Transposes a 3x3 matrix; `out` may alias `in`.
+matrix4x3_extract_forward_up_position | Copies the forward row, up row and position out of a matrix4x3.
+matrix4x3_from_axis_angle | Builds a rotation matrix4x3 (scale 1, no translation) from a unit axis and the sine and cosine of the angle (Rodrigues).
+matrix4x3_from_euler_angles | Builds a rotation matrix4x3 (scale 1, no translation) from yaw, pitch and roll.
+matrix4x3_from_forward_up | Builds a matrix4x3 with scale 1, no translation, the given forward and up rows and left = cross(up, forward).
+matrix4x3_from_forward_up_position | matrix4x3_from_forward_up, then sets the translation to `position`.
+matrix4x3_from_quaternion | Converts a quaternion to the rotation of a matrix4x3 (scale 1, no translation); a zero quaternion gives the zero rotation.
+matrix4x3_inverse | Inverts a uniform-scale rigid transform; `out` may alias `in`. A matrix with scale 0 inverts to all zeros.
+matrix4x3_inverse_transform_normal | Rotates a direction into the matrix's local space (transposed rotation only, no scale or translation).
+matrix4x3_inverse_transform_point | Transforms a world point into the matrix's local space without building the inverse; a matrix with scale 0 gives the origin.
+matrix4x3_inverse_transform_vector | Transforms a vector into the matrix's local space: divides out the scale, then applies the transposed rotation.
+matrix4x3_multiply | out = a * b (scalar build, the default matrix4x3_multiply_procedure); `out` may alias either operand.
+matrix4x3_multiply_3dnow | The 3DNow! build of matrix4x3_multiply, as scalar code with the packed routine's per-component summation order; `out` may alias either operand.
+matrix4x3_multiply_sse | The SSE build of matrix4x3_multiply; computes the scalar product (see matrix4x3_multiply).
+matrix4x3_transform_normal | Rotates a direction by the matrix (no scale, no translation).
+matrix4x3_transform_plane | Transforms a plane: rotates the normal and moves the distance by the scaled plane distance and the translation.
+matrix4x3_transform_point | Transforms a point: scale (skipped when exactly 1), rotate, translate.
+matrix4x3_transform_vector | Transforms a vector by scale (skipped when exactly 1) and rotation, without translation.
+object_sort_by_flag_then_distance | qsort comparator for ai_nearby_actor_candidate: records whose is_type_9 byte is clear sort first, then by ascending distance_squared.
+path_find_closest_point_on_segment | Writes the lerped point when the projection parameter of `point` lies in [0,1] (or is NaN), else `segment_end`. The parameter is computed from start - point, so it is the negated textbook value.
+periodic_function_build_noise_table | Fills 1024 floats with a normalised cumulative noise curve used to warp the phase of the variable-period waves; advances random_seed_global.
+periodic_function_build_table | Builds one 1024-byte periodic function table: samples the wave at 1024 phases and quantises it to 0..255, rescaled to its own min/max except for the two slide waves.
+periodic_function_build_transition_table | Builds one 1024-byte transition (easing) table: entry i = curve(i/1023) * 255, clamped to 0..255.
+periodic_function_evaluate | Samples periodic function `type` at `time` (seconds; 25.6 samples per unit), lerping two neighbouring table entries. Type 0 is always 1; every type reads 0 before the tables exist.
+periodic_function_tables_free | Frees the periodic and transition tables if they were built.
+periodic_function_tables_init | Allocates and builds the twelve periodic and six transition tables, seeding random_seed_global to 0x20f3f660 first so the tables are reproducible.
+plane2d_from_points | Builds the 2D line through `a` and `b` (normal (a.y-b.y, b.x-a.x), normalised; d = normal . b). Returns `out_plane`, or NULL with d = 0 when the points are closer than 0.0001.
+plane3d_from_point_and_normal | Builds the plane with the given normal through `point`.
+plane3d_intersect_pair_to_line | Intersects two planes: writes the line direction cross(p1.normal, p2.normal) and a point on the line. Returns 0 (only the direction written) when the planes are parallel.
+plane3d_intersect_three | Writes the intersection point of three planes; returns 0 when the normals are degenerate (|det| < 0.0001).
+plane3d_negate | out = -in for all four plane components.
+point3d_add_scaled | out = base + scale * direction.
+point3d_distance_squared_to_segment | Squared distance from `point` to the segment start + t*direction, t clamped to [0,1].
+point3d_project_onto_line | Projects `point` onto the infinite line through `line_origin` along `direction`; `out_result` may alias `point`.
+point3d_within_horizontal_cone | Horizontal (x,y only) cone test: true when normalize(to_point.xy) . reference.xy is strictly greater than the threshold. `reference` is used as given (not normalised); a near-zero or NaN length fails.
+point3d_within_radius | Nonzero when `a` lies within `radius` of `b` (squared comparison).
+polygon2d_clip_to_plane | Sutherland-Hodgman clip of a 2D polygon against one line, dropping near-duplicate vertices. Returns the vertex count, 0 when everything is clipped, or -1 on output overflow (the input is then copied through). `in` may alias `out`; edge_bitmask and clipped_flag may be NULL.
+polygon2d_clip_to_planes | Clips a polygon against every edge of a convex clip polygon (each edge built from consecutive clip points), double-buffering between edges. Returns the final count or -1 on overflow.
+polygon2d_convex_hull_build | Gift-wraps the convex hull of a point set into `hull` (indices); returns the hull size, or 0 unless the points are in general position.
+polygon2d_point_inside_margin | True when `point` is inside the convex polygon or outside each edge by less than `margin`, measured as the raw edge cross product.
+polygon2d_point_inside_tolerance | True when `point` is inside the convex polygon or within `tolerance` (true distance) outside every edge.
+polygon2d_points_classify | Classifies a point set: -1 empty, 0 all coincident, 1 collinear, 2 general position.
+polygon3d_clip_to_plane | Sutherland-Hodgman clip of a 3D polygon against one plane; same contract as polygon2d_clip_to_plane, plus keep_coplanar choosing whether a polygon lying in the plane is kept.
+quaternion_from_matrix3x3 | Extracts the rotation quaternion of a 3x3 matrix (largest-diagonal method). Returns `out`.
+quaternion_from_matrix4x3 | Extracts the rotation quaternion of a matrix4x3 (largest-diagonal method).
+quaternion_lerp | Componentwise lerp from `b` (t = 0) to `a` (t = 1), negating the weight of `a` when dot(a, b) < 0 so it takes the shorter path. The result is not normalised.
+quaternion_multiply | out = b * a (Hamilton product).
+quaternion_normalize | Normalises a quaternion in place; a zero quaternion becomes the identity.
+quaternion_rotate_vector | Rotates `v` by the quaternion `q`.
+quaternion_to_axis_angle | Converts a quaternion to a unit axis and an angle in radians.
+random_int_range | Advances random_seed_global and returns an integer in [min, max).
+random_range_real | Advances effect_random_seed (the non-deterministic stream) and returns a float in [minimum, maximum).
+random_real | Advances random_seed_global and returns a float in [0, 1).
+random_real_range | Advances random_seed_global and returns a float in [min, max).
+random_real_range_seeded | Advances the caller's seed and returns a float in [min, max).
+random_seed_generate | Returns rand() XOR two QueryPerformanceCounter readings scaled by performance_frequency: a non-reproducible seed.
+ray2d_intersect_circle_distance | Intersects a 2D ray with a circle; on a hit writes the distance to the near intersection (0 when the origin is inside) and returns 1. Only rays pointing toward the centre hit.
+ray_intersect_sphere_distance | Returns the ray parameter of the first intersection with the sphere (in units of `direction`), 0 when the origin is inside, 3.4028235e38 on a miss.
+ray_intersects_cylinder | Intersects a ray with a vertical cylinder of the given height and radius standing on `center`; on a hit writes the hit point and parameter.
+ray_intersects_sphere | Intersects a ray with a sphere; on a hit writes the surface normal and ray parameter.
+ray_intersects_sphere_test | True when the ray (or segment) from `origin` along `direction` passes within `radius` of `center`.
+real_inverse_lerp_clamped | Returns where `value` lies between ref_k0 (0) and ref_k1 (1), clamped to [0, 1]; the references may be in either order.
+real_lerp_clamped | *out = clamp(lerp(a, b, t), 0, 1).
+real_matrix4x3_rotation_from_forward | Builds `left` and `up` orthonormal to `forward` from world up, falling back to world forward when `forward` is parallel to world up.
+real_matrix4x3_rotation_is_orthonormal | True when forward, left and up are unit length and mutually perpendicular.
+real_matrix4x3_rotation_rebuild_orthonormal | Re-orthonormalises left and up against forward, replacing any vector that normalises to zero by its world axis.
+real_seek_toward_clamped | Moves `value` toward `target` with bounded acceleration and speed, optionally wrapping around [range_min, range_max], and clamps the result to the range. Returns 1 when it snapped onto the target this step.
+segment3d_distance_squared_to_segment | Squared distance between two segments given as start + direction.
+segment3d_within_radius_of_segment | Nonzero when two segments (start + direction) come within `radius` of each other.
+sphere_mesh_build_face | Subdivides one octahedron face into rows of points and run-length triangle strips, sharing edge points through the edge cache.
+sphere_mesh_generate | Builds a subdivided octahedron projected onto the unit sphere (GlobalAlloc'd header, points and indices).
+sphere_mesh_get_edge_point | Returns the point index at `position` along the edge between two base vertices, creating and caching it on first use.
+sphere_mesh_get_face_point | Returns the point index at (row, col) inside a face, creating and caching it on first use.
+sphere_mesh_interpolate_vertex | Creates point `new_index` by lerping between two existing points and projecting onto the unit sphere.
+sphere_point_table_init | Seeds effect_random_seed and builds sphere_point_table: the 1026 points of a 16-subdivision sphere mesh.
+transition_function_evaluate | Samples transition table `type` at `phase` in [0,1], lerping two neighbouring entries; reads 0 before the tables exist.
+triangle_point_barycentric_2d | Projects a triangle and a point onto the triangle's dominant plane and writes the barycentric (u, v) of the point. Returns 0 when the point is off the plane or outside the triangle.
+uint32_log2_floor | Index of the highest set bit (0 for 0 and 1).
+vector2d_angle_between | Signed angle in radians from `a` to `b` (acos of the clamped dot product, sign of the 2D cross product).
+vector2d_normalize | Normalises a 2D vector in place; a zero vector is left unchanged.
+vector2d_normalize_with_length | Normalises a 2D vector in place and returns its length; a vector shorter than 0.0001 is left unchanged and 0 returned.
+vector2d_tangent_edge_directions | Rotates `direction` by +-asin(min(extent/distance, 1)) into the two tangent directions and writes distance * cos(angle).
+vector3d_angle_between_4cd4f0 | Angle in radians between two vectors of any length, from the clamped double-angle cosine 2*dot^2/(|a|^2|b|^2) - 1, halved and mirrored for a negative dot; 0 when either is zero.
+vector3d_angle_between_4cd5e0 | Angle in radians between two unit vectors: acos of the clamped dot product, exactly 0 when they are equal.
+vector3d_barycentric_interpolate | out = (v2 - v0)*w2 + (v1 - v0)*w1 + v0.
+vector3d_build_perpendicular | Writes a vector perpendicular to `dir` by dropping its smallest-magnitude component and swapping and negating the other two.
+vector3d_cross_product | Writes b x a (note the order) in the original FPU term order; `out` may alias an input only as the original allows.
+vector3d_cross_product_length | Length of the cross product of `a` and `b`.
+vector3d_cubic_interpolate | Interpolates each component through four control points at the four parameter values with cubic_interpolate_divided_difference.
+vector3d_delta_toward_gravity_biased_clamp_length | out_delta = target - origin with gravity added to z, clamped to a length blended between max_length_aligned and max_length_default by how well the delta aligns with `target`.
+vector3d_distance | Distance between two points.
+vector3d_distance_squared | Squared distance between two points.
+vector3d_length | Length of a vector.
+vector3d_lerp | out = t*a + (1-t)*b.
+vector3d_magnitude_squared | Squared length of a vector.
+vector3d_major_axis_index | Index (0, 1, 2) of the component with the largest magnitude.
+vector3d_normalize | Normalises a vector in place; a zero vector is left unchanged.
+vector3d_normalize_with_length | Normalises a vector in place and returns its length; a vector shorter than 0.0001 is left unchanged and 0 returned.
+vector3d_positive_modulo | Componentwise fmod by `period`, shifted into [0, period) for negative components.
+vector3d_project_onto_axis | Splits `v` into its part along `axis` and the remainder; a zero axis gives a zero parallel part and `perp_out` = `v`.
+vector3d_project_onto_unit_axis | Splits `v` into its part along the unit `axis` and the remainder; either output may be NULL.
+vector3d_projection_band_test | Tests whether the segment between two points, projected along `axis`, stays within the radius / distance / angle band.
+vector3d_randomize_direction | Rotates `direction` by a random angle in [lo, hi) about a random perpendicular axis taken from sphere_point_table, advancing `seed`. Returns `out`.
+vector3d_rotate_about_axis | Rotates `v` in place about a unit axis by the angle with the given sine and cosine.
+vector3d_rotate_about_axis_perpendicular | Rotates `v` in place about an axis perpendicular to it by the angle with the given sine and cosine.
+vector3d_rotate_pair_in_plane | Rotates two orthogonal vectors together in their own plane by the angle with the given sine and cosine.
+vector3d_rotate_toward | Rotates `source` toward `target` by the given angle into `out` and returns 1; when `source` is already within that angle, copies `target` and returns 0.
+vector3d_rotate_toward_bounded | Bounded angular servo: turns `current` toward `target` within the azimuth/elevation limits in bounds[4], carrying `velocity` between calls with bounded speed and acceleration. A non-NULL `transform` gives the local space the limits apply in.
+vector3d_rotate_toward_with_acceleration | Angular servo: turns `direction` toward `target_direction`, carrying `angular_velocity` between calls, with maximum speed and acceleration per tick.
+vector3d_scalar_triple_product | a . (b x c).
