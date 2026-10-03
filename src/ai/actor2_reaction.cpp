@@ -6,6 +6,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/tags/flags.hpp"
 
 namespace halo::ai {
 
@@ -1363,7 +1364,7 @@ void TargetView::scan_ally_death_panic_reaction(datum_index actor_index)
     Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data);
     prop *target = &((prop *)prop_data->data)[target_prop_index & halo::k_slot_mask];
 
-    if (target->enemy == 0 && (actor_tag->more_flags & 0x20) != 0  &&
+    if (target->enemy == 0 && halo::has(static_cast<halo::tags::actor_more_tag_flag>(actor_tag->more_flags), halo::tags::actor_more_tag_flag::panic_in_groups)  &&
         self->panic_cooldown_time < (int32_t)game_time->game_time) {
         float chance = actor_tag->friend_killed_panic_chance;
 
@@ -1448,7 +1449,7 @@ void TargetView::scan_backup_and_panic_reaction(datum_index actor_index)
                 float chance = actor_tag->friend_killed_panic_chance;
                 int roll_ok;
 
-                if ((actor_tag->more_flags & 0x20) != 0  &&
+                if (halo::has(static_cast<halo::tags::actor_more_tag_flag>(actor_tag->more_flags), halo::tags::actor_more_tag_flag::panic_in_groups)  &&
                     self->panic_cooldown_time < (int32_t)game_time->game_time &&
                     actor_scale_value_by_ally_exposure(actor_index, &chance)) {
                     roll_ok = 1;

@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/tags/flags.hpp"
 
 namespace halo::ai {
 
@@ -599,7 +600,7 @@ void ActorView::movement_update()
         } else {
             clear_recognition = 1;
             if (movement_style == 2 &&
-                ((movement_mode == 0 && (actor_def->flags & 0x4000) == 0) ||
+                ((movement_mode == 0 && !halo::has(static_cast<halo::tags::actor_tag_flag>(actor_def->flags), halo::tags::actor_tag_flag::standing_must_move_forward)) ||
                  (movement_mode != 0 && (int8_t)(actor_def->flags >> 8) >= 0))) {
             } else {
                 a->forced_aim = 0;
@@ -607,7 +608,7 @@ void ActorView::movement_update()
             if (movement_style == 4) {
                 face_along_heading = 1;
             }
-            if ((actor_def->flags & 0x200000) != 0) {
+            if (halo::has(static_cast<halo::tags::actor_tag_flag>(actor_def->flags), halo::tags::actor_tag_flag::flying)) {
                 avoid_threshold = actor_def->free_flying_sidestep * actor_def->free_flying_sidestep;
                 sidestep_mode = 1;
                 want_avoid_check = 1;
@@ -723,11 +724,11 @@ void ActorView::movement_update()
         actor_clear_recognition_history(actor_index, 1);
     }
 
-    if (a->moving != 0 && (actor_def->flags & 0x10000000) != 0) {
+    if (a->moving != 0 && halo::has(static_cast<halo::tags::actor_tag_flag>(actor_def->flags), halo::tags::actor_tag_flag::cannot_move_while_crouching)) {
         movement_mode = 0;
     }
     actor_base[0x58f] = 0;
-    if (movement_mode != 0 && (actor_def->flags & 0x20000000) != 0) {
+    if (movement_mode != 0 && halo::has(static_cast<halo::tags::actor_tag_flag>(actor_def->flags), halo::tags::actor_tag_flag::fixed_crouch_facing)) {
         actor_base[0x58f] = 1;
     }
     a->crouching = movement_mode;

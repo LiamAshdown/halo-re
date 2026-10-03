@@ -5,6 +5,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/tags/flags.hpp"
 
 namespace halo::ai {
 
@@ -567,13 +568,13 @@ void ActorView::update_crouch_state()
         }
     }
 
-    if (self->berserking == 0 && (actor_definition->flags & 0x800) == 0) {
+    if (self->berserking == 0 && !halo::has(static_cast<halo::tags::actor_tag_flag>(actor_definition->flags), halo::tags::actor_tag_flag::always_charge_at_enemies)) {
         self->always_charge = 0;
     } else {
         self->always_charge = 1;
     }
     if (self->active_unit_index == (datum_index)k_datum_index_none) {
-        if ((actor_definition->flags & 0x1000000) != 0 && self->defending == 0) {
+        if (halo::has(static_cast<halo::tags::actor_tag_flag>(actor_definition->flags), halo::tags::actor_tag_flag::always_charge_in_attacking_mode) && self->defending == 0) {
             self->always_charge = 1;
         }
     } else {
@@ -733,7 +734,7 @@ void ActorView::update_crouch_state()
             break;
         }
 
-        if ((actor_definition->flags & 0x40000000u) != 0) {
+        if (halo::has(static_cast<halo::tags::actor_tag_flag>(actor_definition->flags), halo::tags::actor_tag_flag::crouch_when_in_line_of_fire)) {
             if (*flag_35c != 0) {
                 want_crouch = 1;
             } else if (*flag_35e != 0) {

@@ -5,6 +5,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/tags/flags.hpp"
 
 namespace c_actor_claim_firing_position {
 extern "C" {
@@ -310,7 +311,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
     query->hazard_count_kind_2 = 0;
     {
         uint8_t gather_hazards = 0;
-        if ((actor_definition->flags & 0x80000000u) != 0  && self->combat_status > 2 &&
+        if (halo::has(static_cast<halo::tags::actor_tag_flag>(actor_definition->flags), halo::tags::actor_tag_flag::avoid_friends_line_of_fire)  && self->combat_status > 2 &&
             (int8_t)self->tally.group_a_total > 0) {
             gather_hazards = 1;
         }
@@ -524,7 +525,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
             request.avoid_radius = query->avoid_radius;
             request.avoid_weight = query->avoid_weight;
             request.have_avoid_sphere = 1;
-        } else if (self->danger_type > 0 && (actor_definition->more_flags & 0x10) == 0 ) {
+        } else if (self->danger_type > 0 && !halo::has(static_cast<halo::tags::actor_more_tag_flag>(actor_definition->more_flags), halo::tags::actor_more_tag_flag::pathfinding_ignores_danger) ) {
             request.avoid_position = self->flee_from_point;
             request.avoid_radius = self->danger_object_radius;
             request.avoid_object_index = self->danger_object_index;

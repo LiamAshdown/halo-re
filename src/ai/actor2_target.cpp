@@ -6,6 +6,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/tags/flags.hpp"
 
 namespace halo::ai {
 
@@ -1640,7 +1641,7 @@ after_engage:
 
     if (p->enemy && 2 <= p->state && p->state < 4 &&
         ((actor_has_unshielded_threat_weapon(actor_index) != 0 && p->distance < self->maximum_firing_distance) ||
-         ((actor_def->flags & 0x08000000u) != 0 && p->distance < actor_def->melee_fudge_factor))) {
+         (halo::has(static_cast<halo::tags::actor_tag_flag>(actor_def->flags), halo::tags::actor_tag_flag::suicidal_melee_attack) && p->distance < actor_def->melee_fudge_factor))) {
         actor_target_mark_engaged(target_prop_index, actor_index, 0);
     }
 
