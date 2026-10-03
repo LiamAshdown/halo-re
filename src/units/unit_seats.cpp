@@ -288,7 +288,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     ((unit_object *)self)->unit.vehicle_seat_index = -1;
-    self[0x2a7] = 2;
+    ((struct unit_object *)self)->unit.base_animation_state = 2;
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index) {
         ((unit_object *)vehicle)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -482,7 +482,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     ((unit_object *)self)->unit.vehicle_seat_index = -1;
-    self[0x2a7] = 2;
+    ((struct unit_object *)self)->unit.base_animation_state = 2;
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index) {
         ((unit_object *)vehicle)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -627,7 +627,7 @@ void UnitView::detach_reposition_and_nudge()
     object_set_cluster_and_parent(unit_index, 0);
     clear_flag(((unit_object *)self)->unit.flags, units::unit_flag::detached);
     clear_flag(((unit_object *)self)->base.flags, objects::object_flag::at_rest);
-    self[0x474] = 1;
+    ((struct unit_object *)self)->unit.network_update_forced = 1;
     ((unit_object *)self)->base.velocity.i = push.i + ((unit_object *)self)->base.velocity.i;
     ((unit_object *)self)->base.velocity.j = push.j + ((unit_object *)self)->base.velocity.j;
     ((unit_object *)self)->base.velocity.k = push.k + ((unit_object *)self)->base.velocity.k;
@@ -778,7 +778,7 @@ uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uin
         ((struct object *)reloaded)->animation_graph = *(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id;
         ((struct object *)reloaded)->animation_index = animation;
         ((struct object *)reloaded)->animation_frame = 0;
-        unit[0x2a3] = 0x1a;
+        ((struct unit_object *)unit)->unit.animation_state = 0x1a;
         object_offset_node_translation(unit_index, &delta);
         object_recalculate_bounding_radius_recursive(unit_index);
     }
@@ -1509,7 +1509,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     ((unit_object *)self)->unit.vehicle_seat_index = -1;
-    self[0x2a7] = 2;
+    ((struct unit_object *)self)->unit.base_animation_state = 2;
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index) {
         ((unit_object *)vehicle)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -1921,7 +1921,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     ((unit_object *)self)->unit.vehicle_seat_index = -1;
-    self[0x2a7] = 2;
+    ((struct unit_object *)self)->unit.base_animation_state = 2;
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index) {
         ((unit_object *)vehicle)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -2040,7 +2040,7 @@ void UnitView::try_exit_controlled_seat()
                     OBJECT_HEADER(unit_index).flags |= 2;
                 }
             }
-            self[0x2a3] = 0x1b;
+            ((struct unit_object *)self)->unit.animation_state = 0x1b;
             actor_notify_weapon_pickup_once(unit_index);
             if (((unit_object *)self)->base.network_role == 0) {
                 ::halo::units::unit_dispatch_scripted_event_9(0, (int32_t)unit_index);

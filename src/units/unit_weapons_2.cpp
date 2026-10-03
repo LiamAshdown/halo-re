@@ -120,7 +120,7 @@ void unit_spawn_with_starting_weapons(void *command_record)
     memcpy(vehicle + 0x8c, vehicle + 0x544, 12);
     memcpy(vehicle + 0x74, vehicle + 0x550, 12);
     memcpy(vehicle + 0x80, vehicle + 0x55c, 12);
-    vehicle[0x475] = 1;
+    ((struct unit_object *)vehicle)->unit.unknown_475 = 1;
     keys = (int32_t *)object_network_id_table->handles;
     for (i = 0; i < 4; i++) {
         int32_t weapon = message.weapon_keys[i] != 0 ? keys[message.weapon_keys[i]] : -1;

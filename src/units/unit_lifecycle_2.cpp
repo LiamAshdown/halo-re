@@ -98,7 +98,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     ((unit_object *)self)->unit.vehicle_seat_index = -1;
-    self[0x2a7] = 2;
+    ((struct unit_object *)self)->unit.base_animation_state = 2;
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index) {
         ((unit_object *)vehicle)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -245,9 +245,9 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
     }
     ((struct unit_object *)obj)->unit.overlays[1].animation_index = -1;
     ((struct unit_object *)obj)->unit.overlays[0].animation_index = -1;
-    obj[0x289] = 0;
+    ((struct unit_object *)obj)->unit.melee_state = 0;
     if ((uint8_t)((struct unit_object *)obj)->unit.throwing_grenade_state == 1) {
-        obj[0x28d] = 0;
+        ((struct unit_object *)obj)->unit.throwing_grenade_state = 0;
     }
 }
 #undef OBJECT_DATA

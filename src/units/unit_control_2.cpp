@@ -82,8 +82,8 @@ void UnitView::update_aiming_overlay_angles(void *output)
         animation_overlay_frame_orientations(animations + ((struct unit_object *)unit)->unit.overlays[2].animation_index * 0xb4,
             (int16_t)(uint16_t)((struct unit_object *)unit)->unit.overlays[2].frame, output);
     }
-    unit[0x2b6] = 0;
-    unit[0x2b7] = 0;
+    ((struct unit_object *)unit)->unit.aiming_bounds_valid = 0;
+    ((struct unit_object *)unit)->unit.looking_bounds_valid = 0;
     if ((*(uint32_t *)&((struct Unit *)unit_tag)->unit_flags & 0x800) || (uint8_t)((struct unit_object *)unit)->unit.animation_definition_index == 0xff) {
         return;
     }
@@ -137,7 +137,7 @@ void UnitView::update_aiming_overlay_angles(void *output)
         uint8_t *screen = *(uint8_t **)(block + 0x5c) + (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_weapon_index * 0xbc + 0x60;
 
         aiming_angles_in_unit_frame(unit_index, (real_vector3d *)&((struct unit_object *)unit)->unit.aiming_vector, &aim_yaw, &aim_pitch);
-        unit[0x2b6] = 1;
+        ((struct unit_object *)unit)->unit.aiming_bounds_valid = 1;
         aiming_screen_limits(screen, (float *)&((struct unit_object *)unit)->unit.aiming_bounds);
         animation_aiming_screen_blend(animations + ((unit_object *)unit)->unit.aiming_animation_index * 0xb4, screen, aim_yaw, aim_pitch, output);
     }
@@ -151,7 +151,7 @@ void UnitView::update_aiming_overlay_angles(void *output)
         float look_pitch;
 
         aiming_angles_in_unit_frame(unit_index, (real_vector3d *)&((struct unit_object *)unit)->unit.looking_vector, &look_yaw, &look_pitch);
-        unit[0x2b7] = 1;
+        ((struct unit_object *)unit)->unit.looking_bounds_valid = 1;
         look_yaw -= aim_yaw;
         look_pitch -= aim_pitch;
         aiming_screen_limits(screen, (float *)&((struct unit_object *)unit)->unit.looking_bounds);

@@ -72,7 +72,7 @@ void unit_apply_network_control_update(unit_network_control_packet *packet)
     throttle = message.no_throttle == 1 ? (const real_vector2d *)0 : &message.throttle;
     unit = (uint8_t *)object_try_and_get(unit_index, 3);
     if (unit != 0) {
-        unit[0x106] |= 4;
+        set_flag(((struct object *)unit)->vitality_flags, objects::vitality_flag::health_frozen);
         ((unit_object *)unit)->base.body_vitality = 0.0f;
         ((unit_object *)unit)->base.shield_vitality = 0.0f;
     }
@@ -167,7 +167,7 @@ void UnitView::apply_network_health_update(void *message)
     *(real *)(unit + 0x548) = shield;
     *(uint32_t *)(unit + 0x54c) = block.shield_stunned;
     ((unit_object *)unit)->base.shield_stun_ticks = (uint8_t)block.shield_stunned == 1;
-    unit[0x475] = 1;
+    ((struct unit_object *)unit)->unit.unknown_475 = 1;
     unit[0x53c] = 1;
 }
 

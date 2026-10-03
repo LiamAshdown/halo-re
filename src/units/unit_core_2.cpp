@@ -172,9 +172,9 @@ uint8_t UnitView::update()
                 }
             }
             if (test_flag(((unit_object *)obj)->unit.control_flags, units::unit_control_flag::reload | units::unit_control_flag::primary_trigger | units::unit_control_flag::secondary_trigger | units::unit_control_flag::grenade | units::unit_control_flag::exchange_weapon)) {
-                obj[0x322] = 0;
+                ((struct unit_object *)obj)->unit.weapon_control_idle_ticks = 0;
             } else if ((int8_t)(uint8_t)((struct unit_object *)obj)->unit.weapon_control_idle_ticks < 0x7f) {
-                obj[0x322]++;
+                ((struct unit_object *)obj)->unit.weapon_control_idle_ticks++;
             }
         }
         if (!unit_updates_suppressed) {
@@ -217,7 +217,7 @@ uint8_t UnitView::update()
             if (((struct unit_object *)obj)->unit.stun_ticks > 0 && --((struct unit_object *)obj)->unit.stun_ticks == 0) {
                 *(int32_t *)&((struct unit_object *)obj)->unit.stun = 0;
             }
-            if ((int8_t)(uint8_t)((struct unit_object *)obj)->unit.delayed_weapon_drop_ticks > 0 && --obj[0x28c] == 0) {
+            if ((int8_t)(uint8_t)((struct unit_object *)obj)->unit.delayed_weapon_drop_ticks > 0 && --((struct unit_object *)obj)->unit.delayed_weapon_drop_ticks == 0) {
                 UnitView(unit_index).drop_current_weapon(1);
                 if (unit_updates_suppressed) {
                     goto controls;
@@ -260,7 +260,7 @@ controls:
                 int16_t grenade = UnitView(unit_index).find_next_grenade_type_with_count((int16_t)(int8_t)(uint8_t)((struct unit_object *)obj)->unit.desired_grenade_index, 0);
 
                 if (grenade != -1) {
-                    obj[0x31c] = (uint8_t)grenade;
+                    ((struct unit_object *)obj)->unit.current_grenade_index = (uint8_t)grenade;
                 }
             }
             if (weapon_bottomless_clip && ((unit_object *)obj)->unit.controlling_player != k_datum_index_none) {
@@ -272,11 +272,11 @@ controls:
                     }
                 }
                 if ((uint8_t)((struct unit_object *)obj)->unit.desired_grenade_index == 0xff) {
-                    obj[0x31d] = 0;
+                    ((struct unit_object *)obj)->unit.desired_grenade_index = 0;
                 }
             }
             if ((uint8_t)((struct unit_object *)obj)->unit.desired_zoom_level != (uint8_t)((struct unit_object *)obj)->unit.zoom_level) {
-                obj[0x320] = (uint8_t)((struct unit_object *)obj)->unit.desired_zoom_level;
+                ((struct unit_object *)obj)->unit.zoom_level = (uint8_t)((struct unit_object *)obj)->unit.desired_zoom_level;
                 if ((uint8_t)((struct unit_object *)obj)->unit.zoom_level == 0xff) {
                     *(int32_t *)&((struct unit_object *)obj)->unit.integrated_night_vision_power = 0;
                 }
@@ -338,7 +338,7 @@ controls:
                     change = 1.0f;
                 }
             }
-            obj[0x323] = (uint8_t)(int32_t)(change * 255.0f);
+            ((struct unit_object *)obj)->unit.aiming_change = (uint8_t)(int32_t)(change * 255.0f);
         }
         rate = speed_scale * ((Unit *)tag)->looking_velocity_maximum * 0.033333335f;
         acceleration = speed_scale * ((Unit *)tag)->looking_acceleration_maximum * 0.0011111111f;
@@ -382,7 +382,7 @@ controls:
                 break;
             case 3:
                 if ((uint8_t)((struct unit_object *)obj)->unit.animation_state != 0x21 && !throwing) {
-                    obj[0x28d] = 0;
+                    ((struct unit_object *)obj)->unit.throwing_grenade_state = 0;
                 }
                 break;
             default:
@@ -488,7 +488,7 @@ controls:
         if (unit_updates_suppressed) {
             goto done;
         }
-        if (--obj[0x28b] == 0) {
+        if (--((struct unit_object *)obj)->unit.flaming_ticks == 0) {
             UnitView(unit_index).update_autoaim_interaction();
             if (unit_updates_suppressed) {
                 goto done;

@@ -1126,9 +1126,9 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
             UnitView(unit_index).release_thrown_grenade(1);
         }
         object_copy_default_node_transforms(unit_index, 3);
-        OBJECT_U8(obj, 0x2a3) = (uint8_t)new_state;
+        ((struct unit_object *)obj)->unit.animation_state = (uint8_t)new_state;
         UnitView(unit_index).set_custom_animation(graph_tag, animation);
-        OBJECT_U8(obj, 0x298) |= 1;
+        set_flag(((struct unit_object *)obj)->unit.animation_state_flags, units::unit_animation_state_flag::action_active);
         if (forced) {
             uint8_t keep_still = suppress_shield_check || allow_death_reaction;
 
@@ -1140,13 +1140,13 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
                 }
             }
             if (keep_still) {
-                OBJECT_U8(obj, 0x28c) = 0;
+                ((struct unit_object *)obj)->unit.delayed_weapon_drop_ticks = 0;
             } else {
                 int16_t frames = *(int16_t *)(animation_data + 0x22);
                 int8_t ticks = (int8_t)random_int_range((int16_t)(frames >> 2),
                     (int16_t)((frames >> 1) + (frames >> 2)));
 
-                OBJECT_U8(obj, 0x28c) = (uint8_t)(ticks > 1 ? ticks : 1);
+                ((struct unit_object *)obj)->unit.delayed_weapon_drop_ticks = (uint8_t)(ticks > 1 ? ticks : 1);
             }
         }
         if ((int16_t)facing != 0 &&
@@ -1156,7 +1156,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         }
         if (forced) {
             if ((int16_t)facing == 3) {
-                OBJECT_U8(obj, 0x298) |= 8;
+                set_flag(((struct unit_object *)obj)->unit.animation_state_flags, units::unit_animation_state_flag::unknown_8);
             } else {
                 OBJECT_U8(obj, 0x298) &= 0xf7;
             }

@@ -101,7 +101,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     ((unit_object *)self)->unit.vehicle_seat_index = -1;
-    self[0x2a7] = 2;
+    ((struct unit_object *)self)->unit.base_animation_state = 2;
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index) {
         ((unit_object *)vehicle)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -254,7 +254,7 @@ int16_t UnitView::detach_child_at_named_seat(char *seat_marker_name)
                         OBJECT_HEADER(child_index).flags |= 2;
                     }
                 }
-                self[0x2a3] = 0x1b;
+                ((struct unit_object *)self)->unit.animation_state = 0x1b;
                 actor_notify_weapon_pickup_once(child_index);
                 if (((unit_object *)self)->base.network_role == 0) {
                     ::halo::units::unit_dispatch_scripted_event_9(0, (int32_t)child_index);

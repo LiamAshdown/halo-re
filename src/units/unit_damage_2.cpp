@@ -207,7 +207,7 @@ void UnitView::melee_attack_scan()
             object_apply_damage(&dd, unit_index, -1, -1, -1, 0);
         }
     }
-    obj[0x289] = 0;
+    ((struct unit_object *)obj)->unit.melee_state = 0;
 }
 #undef OBJECT_DATA
 #undef TAG_DATA

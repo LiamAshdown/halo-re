@@ -130,7 +130,7 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
     }
     ((struct object *)vehicle)->network_position_valid = 1;
     ((struct object *)vehicle)->network_velocity_valid = 1;
-    vehicle[0x475] = 1;
+    ((struct unit_object *)vehicle)->unit.unknown_475 = 1;
     memcpy(vehicle + 0x56c, &baseline, sizeof(baseline));
 }
 

@@ -1009,9 +1009,9 @@ uint8_t UnitView::start_user_animation(datum_index graph_tag, const char *animat
     if (interpolate) {
         object_copy_default_node_transforms(unit_index, 6);
     }
-    unit[0x2a3] = 0x1c;
+    ((struct unit_object *)unit)->unit.animation_state = 0x1c;
     UnitView(unit_index).set_custom_animation(graph_tag, animation);
-    unit[0x298] |= 1;
+    set_flag(((struct unit_object *)unit)->unit.animation_state_flags, units::unit_animation_state_flag::action_active);
     object_recalculate_bounding_radius_recursive(unit_index);
     return 1;
 }
@@ -1135,7 +1135,7 @@ uint8_t UnitView::try_set_animation_state(int16_t new_state)
     } else if (changed) {
         object_copy_default_node_transforms(unit_index, transform_count);
     }
-    unit[0x2a3] = (uint8_t)new_state;
+    ((struct unit_object *)unit)->unit.animation_state = (uint8_t)new_state;
     return 1;
 }
 
@@ -1182,8 +1182,8 @@ uint8_t UnitView::try_start_scripted_action_animation(int16_t command, const rea
     ((struct object *)object)->animation_graph = *(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id;
     ((struct object *)object)->animation_index = animation;
     ((struct object *)object)->animation_frame = 0;
-    unit[0x298] |= 1;
-    unit[0x2a3] = 0x1d;
+    set_flag(((struct unit_object *)unit)->unit.animation_state_flags, units::unit_animation_state_flag::action_active);
+    ((struct unit_object *)unit)->unit.animation_state = 0x1d;
     if (direction != 0 && ((unit_object *)unit)->base.type == 0 && ((unit_object *)unit)->base.parent_object == k_datum_index_none) {
         UnitView(unit_index).set_throw_aim_direction(direction);
     }
@@ -1246,7 +1246,7 @@ uint8_t unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_ind
             ((object_header *)object_data->data)[halo::datum_slot(unit_index)].flags |= 2;
         }
     }
-    self[0x2a3] = 0x1b;
+    ((struct unit_object *)self)->unit.animation_state = 0x1b;
     actor_notify_weapon_pickup_once(unit_index);
     if (((unit_object *)self)->base.network_role == 0) {
         ::halo::units::unit_dispatch_scripted_event_9(0, (int32_t)unit_index);
@@ -1352,7 +1352,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
                 if (((unit_object *)unit)->base.type == 0) {
                     UnitView(unit_index).reset_ground_adjust_state();
                 }
-                unit[0x298] |= 4;
+                set_flag(((struct unit_object *)unit)->unit.animation_state_flags, units::unit_animation_state_flag::unknown_4);
                 ((unit_object *)unit)->base.animation_frame -= 1;
                 break;
             }
@@ -1415,7 +1415,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
     if (((struct unit_object *)unit)->unit.overlays[1].animation_index != -1) {
         advance = ::halo::units::unit_reset_light_effect((animation_state *)&((struct unit_object *)unit)->unit.overlays[1], *(uint32_t *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id, unit_index);
         if ((advance == 2 || advance == 4) && ((int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_state < 3 || (int8_t)(uint8_t)((struct unit_object *)unit)->unit.animation_state > 4)) {
-            unit[0x2a5] = 0;
+            ((struct unit_object *)unit)->unit.overlay_animation_state = 0;
             ((struct unit_object *)unit)->unit.overlays[1].animation_index = -1;
         }
     }
@@ -1492,7 +1492,7 @@ void UnitView::update_animation_timers()
             }
             ai_communication_gate_line_played(((unit_object *)obj)->unit.current_speech.priority, (ai_communication_record *)&((struct unit_object *)obj)->unit.current_speech.unknown_10,
                 unit_index);
-            obj[0x3f4] = 1;
+            ((struct unit_object *)obj)->unit.speech_started = 1;
         }
         count_down(obj + 0x3fc);
         if (((unit_object *)obj)->unit.speech_duration_ticks > 0) {
@@ -1507,7 +1507,7 @@ void UnitView::update_animation_timers()
         if ((uint8_t)((struct unit_object *)obj)->unit.speech_finished == 0) {
             ai_communication_play_event_line(unit_index, (int16_t)*(uint16_t *)&((unit_object *)obj)->unit.current_speech.scream_type, 0, k_datum_index_none,
                 (uint32_t *)&((struct unit_object *)obj)->unit.current_speech.unknown_10);
-            obj[0x3f6] = 1;
+            ((struct unit_object *)obj)->unit.speech_finished = 1;
         }
         count_down(obj + 0x3fe);
         if (((unit_object *)obj)->unit.speech_tail_ticks == 0) {
@@ -1517,7 +1517,7 @@ void UnitView::update_animation_timers()
 tail:
     if (((unit_object *)obj)->unit.speech_lipsync_ticks == 0 && (uint8_t)((struct unit_object *)obj)->unit.speech_lipsync_stopped == 0) {
         ai_propagate_communication_reaction(unit_index, (ai_communication_order *)&((struct unit_object *)obj)->unit.current_speech.unknown_10);
-        obj[0x3f5] = 1;
+        ((struct unit_object *)obj)->unit.speech_lipsync_stopped = 1;
     }
     if (((unit_object *)obj)->unit.current_speech.priority > 0 && ((unit_object *)obj)->unit.speech_duration_ticks == 0 && ((unit_object *)obj)->unit.speech_tail_ticks == 0) {
         ((unit_object *)obj)->unit.current_speech.priority = 0;

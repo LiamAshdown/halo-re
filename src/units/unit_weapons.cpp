@@ -1305,7 +1305,7 @@ void UnitView::release_thrown_grenade(uint8_t early)
     }
     grenade = ((unit_object *)unit)->unit.throwing_grenade_projectile;
     if (grenade == k_datum_index_none) {
-        unit[0x28d] = 3;
+        ((struct unit_object *)unit)->unit.throwing_grenade_state = 3;
         return;
     }
     object_snap_to_parent_marker_and_detach(grenade);
@@ -1369,7 +1369,7 @@ void UnitView::release_thrown_grenade(uint8_t early)
         delta.k = velocity.k - ((struct object *)object)->velocity.k;
         object_apply_impulse_and_spin(grenade, &delta);
         ((unit_object *)unit)->unit.throwing_grenade_projectile = k_datum_index_none;
-        unit[0x28d] = 3;
+        ((struct unit_object *)unit)->unit.throwing_grenade_state = 3;
         UnitView(object_index).get_camera_position(&camera);
         if (!object_reposition_to_spawn_location(grenade, &camera, k_datum_index_none)) {
             object_delete(grenade);
@@ -1635,17 +1635,17 @@ uint8_t UnitView::try_ready_weapon(uint8_t forced, const real_vector2d *directio
         return 0;
     }
     if (*(uint32_t *)&((struct Unit *)unit_tag)->unit_flags & 0x100) {
-        unit[0x2a3] = 0x19;
+        ((struct unit_object *)unit)->unit.animation_state = 0x19;
     }
     if (direction != 0) {
         UnitView(unit_index).set_throw_aim_direction(direction);
     }
     if (forced) {
-        unit[0x289] = 4;
-        unit[0x28a] = 0;
+        ((struct unit_object *)unit)->unit.melee_state = 4;
+        ((struct unit_object *)unit)->unit.melee_damage_countdown = 0;
         return 1;
     }
-    unit[0x289] = 1;
+    ((struct unit_object *)unit)->unit.melee_state = 1;
     return 1;
 }
 

@@ -40,8 +40,8 @@ void UnitView::validate_and_clear_weapon_switch()
             }
         }
     }
-    obj[0x320] = 0xff;
-    obj[0x321] = 0xff;
+    ((struct unit_object *)obj)->unit.zoom_level = 0xff;
+    ((struct unit_object *)obj)->unit.desired_zoom_level = 0xff;
     ((struct unit_object *)obj)->unit.integrated_night_vision_power = 0.0f;
     unit_invalidate_local_player_zoom_level(unit_index);
 }

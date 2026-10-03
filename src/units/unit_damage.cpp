@@ -133,7 +133,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     ((unit_object *)self)->unit.vehicle_seat_index = -1;
-    self[0x2a7] = 2;
+    ((struct unit_object *)self)->unit.base_animation_state = 2;
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index) {
         ((unit_object *)vehicle)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -244,7 +244,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
             ((unit_object *)obj)->base.recent_body_damage > ((struct Unit *)unit_tag)->feign_death_threshold) {
             float ticks = (random_real_range(0.0f, 1.0f) + ((struct Unit *)unit_tag)->feign_death_time) * 30.0f;
 
-            obj[0x106] |= 4;
+            set_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen);
             knocked_down = 1;
             if (1.0f > ticks) {
                 ticks = 1.0f;
@@ -307,7 +307,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
                 clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
                 OBJECT_HEADER(unit_index).flags |= 2;
             }
-            self[0x2a3] = 0x1b;
+            ((struct unit_object *)self)->unit.animation_state = 0x1b;
             actor_notify_weapon_pickup_once(unit_index);
             if (((unit_object *)self)->base.network_role == 0) {
                 ::halo::units::unit_dispatch_scripted_event_9(0, (int32_t)unit_index);
@@ -697,13 +697,13 @@ void UnitView::melee_lunge_damage_tick()
         dd.origin = hit_point;
         dd.direction = *(real_vector3d *)&((unit_object *)obj)->base.forward.i;
         dd.flags |= 2;
-        obj[0x28a] = 10;
+        ((struct unit_object *)obj)->unit.melee_damage_countdown = 10;
         object_apply_damage(&dd, ((unit_object *)obj)->base.parent_object, record.node_index, record.region_index,
             *(int16_t *)((uint8_t *)&record + 0x1a), (uint32_t)(uintptr_t)&plane);
     } else {
         object_apply_damage(&dd, ((unit_object *)obj)->base.parent_object, -1, -1, -1, 0);
     }
-    obj[0x28a]--;
+    ((struct unit_object *)obj)->unit.melee_damage_countdown--;
 }
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot((h))].data)

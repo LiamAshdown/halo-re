@@ -236,19 +236,19 @@ uint8_t BipedView::create()
     for (i = 0; i < 4; i++) {
         ((uint32_t *)&((struct biped_object *)object)->biped.ground_normal)[i] = k_default_resting_plane[i];
     }
-    object[0x504] = 0x7f;
-    *(int32_t *)(object + 0x4d8) = -1;
-    *(int32_t *)(object + 0x4dc) = -1;
+    ((struct biped_object *)object)->biped.jump_ticks = 0x7f;
+    ((struct biped_object *)object)->biped.ground_surface_index = -1;
+    ((struct biped_object *)object)->biped.cached_ground_surface_index = -1;
     object_get_position((real_point3d *)&((struct biped_object *)object)->biped.cached_ground_point, object_index);
-    *(int32_t *)(object + 0x4f0) = -1;
+    ((struct biped_object *)object)->biped.last_ground_surface_index = -1;
     ((struct biped_object *)object)->biped.cached_ground_point_tick = -1;
-    *(int32_t *)(object + 0x4f4) = -1;
+    ((struct biped_object *)object)->biped.melee_target_index = -1;
     if ((definition[0x2f4] & 0x40) != 0) {
         UnitView(object_index).find_nearest_valid_surface_plane();
     }
     ::halo::units::unit_update_up_vector((Biped *)definition, (::object *)object);
-    object[0x4d3] = 0;
-    *(int32_t *)(object + 0x4d4) = -1;
+    ((struct biped_object *)object)->biped.last_ground_object_ticks = 0;
+    ((struct biped_object *)object)->biped.last_ground_object_index = -1;
     if (network_game_mode == 1 || network_game_mode == 2) {
         ((struct biped_object *)object)->biped.unknown_526 = 0;
         ((struct biped_object *)object)->biped.network_update_sequence = 0;
@@ -457,7 +457,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     ((unit_object *)self)->unit.vehicle_seat_index = -1;
-    self[0x2a7] = 2;
+    ((struct unit_object *)self)->unit.base_animation_state = 2;
     if (((unit_object *)vehicle)->unit.driver_unit_index == object_index) {
         ((unit_object *)vehicle)->unit.driver_unit_index = k_datum_index_none;
     }
@@ -580,7 +580,7 @@ uint8_t BipedView::update()
                                 OBJECT_HEADER(object_index).flags |= 2;
                             }
                         }
-                        self[0x2a3] = 0x1b;
+                        ((struct unit_object *)self)->unit.animation_state = 0x1b;
                         actor_notify_weapon_pickup_once(object_index);
                         if (((unit_object *)self)->base.network_role == 0) {
                             ::halo::units::unit_dispatch_scripted_event_9(0, (int32_t)object_index);
@@ -614,13 +614,13 @@ uint8_t BipedView::update()
     }
     switch ((uint8_t)((struct unit_object *)obj)->unit.animation_state) {
     case 0: case 2: case 3:
-        obj[0x4d2] = 0;
+        ((struct biped_object *)obj)->biped.movement_state = 0;
         break;
     case 4: case 5: case 6: case 7:
-        obj[0x4d2] = 1;
+        ((struct biped_object *)obj)->biped.movement_state = 1;
         break;
     default:
-        obj[0x4d2] = 2;
+        ((struct biped_object *)obj)->biped.movement_state = 2;
         break;
     }
     {
@@ -632,17 +632,17 @@ uint8_t BipedView::update()
     }
     if (test_flag(((struct biped_object *)obj)->biped.flags, units::biped_flag::airborne)) {
         if ((int8_t)(uint8_t)((struct biped_object *)obj)->biped.airborne_ticks < 0x7f) {
-            obj[0x501]++;
+            ((struct biped_object *)obj)->biped.airborne_ticks++;
         }
     } else {
-        obj[0x501] = 0;
+        ((struct biped_object *)obj)->biped.airborne_ticks = 0;
     }
     if (test_flag(((struct biped_object *)obj)->biped.flags, units::biped_flag::jumping)) {
         if ((int8_t)(uint8_t)((struct biped_object *)obj)->biped.slipping_ticks < 0x7f) {
-            obj[0x502]++;
+            ((struct biped_object *)obj)->biped.slipping_ticks++;
         }
     } else {
-        obj[0x502] = 0;
+        ((struct biped_object *)obj)->biped.slipping_ticks = 0;
     }
     state[1] = (int8_t)((uint8_t)((struct unit_object *)obj)->unit.control_flags & 1);
     state[0] = 0;
@@ -676,9 +676,9 @@ uint8_t BipedView::update()
                 weapon_action_notify_for_unit(object_index, 4);
                 total = (int8_t)weapon_get_first_person_animation_time(weapon, 0xd, 0, -1);
                 quarter = (int8_t)(total >> 2);
-                obj[0x505] = (uint8_t)(total - quarter);
+                ((struct biped_object *)obj)->biped.melee_ticks = (uint8_t)(total - quarter);
                 tail_time = (int8_t)weapon_get_first_person_animation_time(weapon, 0xd, 1, -1);
-                obj[0x506] = (uint8_t)(total - quarter - tail_time);
+                ((struct biped_object *)obj)->biped.melee_inflict_tick = (uint8_t)(total - quarter - tail_time);
                 if (unit_updates_suppressed) {
                     goto tail;
                 }
@@ -688,7 +688,7 @@ uint8_t BipedView::update()
         if ((uint8_t)((struct biped_object *)obj)->biped.melee_ticks == (uint8_t)((struct biped_object *)obj)->biped.melee_inflict_tick) {
             UnitView(object_index).melee_attack_scan();
         }
-        obj[0x505]--;
+        ((struct biped_object *)obj)->biped.melee_ticks--;
         if (unit_updates_suppressed) {
             goto tail;
         }
@@ -759,8 +759,8 @@ void biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table
         fraction = 1.0f;
     }
     ((struct biped_object *)biped)->biped.landing_type = phase;
-    biped[0x4d0] = 0;
-    biped[0x4d1] = (uint8_t)(int32_t)(value * fraction);
+    ((struct biped_object *)biped)->biped.landing_ticks = 0;
+    ((struct biped_object *)biped)->biped.landing_duration_ticks = (uint8_t)(int32_t)(value * fraction);
 }
 
 /**

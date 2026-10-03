@@ -70,7 +70,7 @@ uint8_t VehicleView::create()
         ((struct vehicle_object *)object)->vehicle.network_update_sequence = 0;
         ((struct object *)object)->network_state_009 = 0;
     }
-    *(uint32_t *)(object + 0x5ac) = (uint32_t)game_time->game_time;
+    ((struct vehicle_object *)object)->vehicle.network_update_tick = (uint32_t)game_time->game_time;
     for (i = 0; i < 3; i++) {
         ((uint32_t *)&((struct vehicle_object *)object)->vehicle.unknown_5b2[2])[i] = ((uint32_t *)&((struct object *)object)->position)[i];
     }
@@ -180,16 +180,16 @@ uint32_t VehicleView::update()
         float speed = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
 
         if (control & 1) {
-            obj[0x4cc] |= 4;
+            set_flag(((struct vehicle_object *)obj)->vehicle.flags, units::vehicle_flag::has_ground_contact);
         } else {
-            obj[0x4cc] &= ~4;
+            clear_flag(((struct vehicle_object *)obj)->vehicle.flags, units::vehicle_flag::has_ground_contact);
         }
         if ((control & 2) ||
             ((((struct Vehicle *)tag)->vehicle_flags & 0x10) &&
              ((throttle > 0.0f && speed < 0.0f) || (throttle < 0.0f && speed > 0.0f)))) {
-            obj[0x4cc] |= 8;
+            set_flag(((struct vehicle_object *)obj)->vehicle.flags, units::vehicle_flag::hovering);
         } else {
-            obj[0x4cc] &= ~8;
+            clear_flag(((struct vehicle_object *)obj)->vehicle.flags, units::vehicle_flag::hovering);
         }
 
         a.i = forward->k * up->j - up->k * forward->j;
@@ -371,9 +371,9 @@ uint32_t VehicleView::update()
         if (over_blur != ((uint8_t)((struct vehicle_object *)obj)->vehicle.flags & 1)) {
             object_set_permutation_by_name(object_index, s_blur_permutation, -1, (char)over_blur);
             if (over_blur) {
-                obj[0x4cc] |= 1;
+                set_flag(((struct vehicle_object *)obj)->vehicle.flags, units::vehicle_flag::over_blur_speed);
             } else {
-                obj[0x4cc] &= ~1;
+                clear_flag(((struct vehicle_object *)obj)->vehicle.flags, units::vehicle_flag::over_blur_speed);
             }
         }
     }
