@@ -155,7 +155,7 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
     }
 
     if (halo::rasterizer::fields::models_enabled != 0) {
-        if ((int8_t)context->flags < 0 && mode == 0) {
+        if ((context->flags & _model_draw_frustum_z_bit) != 0 && mode == 0) {
             rasterizer_set_shader_stage_config(1);
             chimera__rasterizer_set_frustum_z_func(rasterizer_frustum_z_values[0], rasterizer_frustum_z_values[1]);
         }
@@ -169,7 +169,7 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
             if (context->group_parameters.mode == 2) {
                 rasterizer_active_model_mode = 2;
             } else {
-                chimera__rasterizer_set_model_skinning((uint8_t)(~(context->flags >> 8) & 1),
+                chimera__rasterizer_set_model_skinning((uint8_t)((context->flags & _model_draw_node_parts_bit) == 0),
                                                         (rasterizer_node_matrices *)&context->node_matrices);
                 rasterizer_prepare_lighting_constants(&context->lighting);
                 rasterizer_active_model_mode = 0;
@@ -178,8 +178,8 @@ void rasterizer_model_draw_prepare_states(rasterizer_model_draw_context *context
             rasterizer_active_model_mode = 1;
         }
 
-        if (rasterizer_window.fog.planar_mode == 0 || (context->flags & 4) != 0 ||
-            ((context->flags & 0x40) != 0 &&
+        if (rasterizer_window.fog.planar_mode == 0 || (context->flags & _model_draw_flag_4_bit) != 0 ||
+            ((context->flags & _model_draw_flag_40_bit) != 0 &&
              !((rasterizer_window.camera.position.x * rasterizer_window.fog.plane.normal.i +
                 rasterizer_window.camera.position.y * rasterizer_window.fog.plane.normal.j +
                 rasterizer_window.camera.position.z * rasterizer_window.fog.plane.normal.k) -
@@ -279,7 +279,7 @@ void rasterizer_model_draw_restore_states(void)
         return;
     }
 
-    if ((int8_t)context->flags < 0 && halo::rasterizer::fields::model_draw_mode == 0) {
+    if ((context->flags & _model_draw_frustum_z_bit) != 0 && halo::rasterizer::fields::model_draw_mode == 0) {
         rasterizer_set_shader_stage_config(2);
         chimera__rasterizer_set_frustum_z_func(0.0f, 0.0f);
     }
@@ -767,7 +767,7 @@ void rasterizer_shader_model_draw_fixed_function(Shader *shader, int16_t frame, 
     int16_t source;
     int i, j;
 
-    if (context->flags & 8) {
+    if (context->flags & _model_draw_flag_8_bit) {
         set_render_state(halo::d3d9::rs::z_enable, 0);
     } else {
         set_render_state(halo::d3d9::rs::z_enable, 1);
@@ -957,7 +957,7 @@ void rasterizer_shader_model_draw_limited(Shader *shader, int16_t frame, rasteri
     uint32_t factor;
     int i, j;
 
-    if (context->flags & 8) {
+    if (context->flags & _model_draw_flag_8_bit) {
         set_render_state(halo::d3d9::rs::z_enable, 0);
     } else {
         set_render_state(halo::d3d9::rs::z_enable, 1);
@@ -1146,7 +1146,7 @@ void rasterizer_shader_model_draw_pixel_shader(Shader *shader, int16_t frame, ra
         reflection = 1.0f;
     }
 
-    if (context->flags & 8) {
+    if (context->flags & _model_draw_flag_8_bit) {
         set_render_state(halo::d3d9::rs::z_enable, 0);
     } else {
         if (!rasterizer_camouflage_fade_active) {
@@ -1283,7 +1283,7 @@ void rasterizer_shader_model_draw_pixel_shader(Shader *shader, int16_t frame, ra
 
             fog_add = animated;
         }
-    } else if (!(context->flags & 4)) {
+    } else if (!(context->flags & _model_draw_flag_4_bit)) {
         const render_fog *fog = &rasterizer_window.fog;
         float height = clamp01((fog->plane.normal.i * rasterizer_window.camera.position.x +
                                 fog->plane.normal.k * rasterizer_window.camera.position.z +

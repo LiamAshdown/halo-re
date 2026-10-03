@@ -929,7 +929,7 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
     }
 
     stage = (int16_t)(int32_t)shader->maps.count;
-    if (!((group->flags & 0x10) && shader->framebuffer_blend_function == 0)) {
+    if (!((group->flags & _group_flag_10_bit) && shader->framebuffer_blend_function == 0)) {
         {
             int16_t fade_source = shader->framebuffer_fade_source;
             int i;
@@ -1268,7 +1268,7 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
     }
 
     stage = (int16_t)map_count;
-    if (!((group->flags & 0x10) && shader->framebuffer_blend_function == 0)) {
+    if (!((group->flags & _group_flag_10_bit) && shader->framebuffer_blend_function == 0)) {
         {
             int16_t fade_source = shader->framebuffer_fade_source;
             int i;
@@ -1813,7 +1813,7 @@ void rasterizer_water_draw_fixed_function(transparent_geometry_group *group)
     if (effect != 0) {
         set_render_state(halo::d3d9::rs::cull_mode, 1);
         set_render_state(halo::d3d9::rs::color_write_enable, 7);
-        set_render_state(halo::d3d9::rs::alpha_blend_enable, (~(group->flags >> 4)) & 1);
+        set_render_state(halo::d3d9::rs::alpha_blend_enable, (group->flags & _group_flag_10_bit) == 0);
         set_render_state(halo::d3d9::rs::src_blend, (water->water_flags & k_water_base_map_alpha_modulates_reflection) ? 7 : 2);
         set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::one);
         set_render_state(halo::d3d9::rs::blend_op, 1);
@@ -1999,7 +1999,7 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
 
         set_render_state(halo::d3d9::rs::cull_mode, 1);
         set_render_state(halo::d3d9::rs::color_write_enable, 7);
-        set_render_state(halo::d3d9::rs::alpha_blend_enable, (~(group->flags >> 4)) & 1);
+        set_render_state(halo::d3d9::rs::alpha_blend_enable, (group->flags & _group_flag_10_bit) == 0);
         set_render_state(halo::d3d9::rs::src_blend, (water->water_flags & k_water_base_map_alpha_modulates_reflection) ? 7 : 2);
         set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::one);
         set_render_state(halo::d3d9::rs::blend_op, 1);

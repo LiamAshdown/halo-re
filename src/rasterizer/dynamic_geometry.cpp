@@ -700,7 +700,7 @@ namespace rasterizer_geometry_part_draw_impl {
  */
 void rasterizer_geometry_part_draw(transparent_geometry_group *group)
 {
-    if ((group->flags & 2) == 0) {
+    if ((group->flags & _group_immediate_bit) == 0) {
         rasterizer_node_matrices nodes;
 
         if (group->node_matrices != 0 && group->node_count != 0) {
@@ -710,7 +710,7 @@ void rasterizer_geometry_part_draw(transparent_geometry_group *group)
             nodes.matrices = (uint32_t)(uintptr_t)k_render_identity_matrix_ptr;
             nodes.node_count = 1;
         }
-        chimera__rasterizer_set_model_skinning((uint8_t)(~(uint8_t)(group->flags >> 8) & 1), &nodes);
+        chimera__rasterizer_set_model_skinning((uint8_t)((group->flags & _group_node_parts_bit) == 0), &nodes);
         if (group->flags & _group_node_parts_bit) {
             chimera__rasterizer_set_up_node_parts(group->node_part_count, group->node_part_indices);
         }
@@ -718,7 +718,7 @@ void rasterizer_geometry_part_draw(transparent_geometry_group *group)
             rasterizer_prepare_lighting_constants(group->lighting);
         }
     }
-    if ((int8_t)group->flags < 0 && group->parameters.mode == 1) {
+    if ((group->flags & _group_sort_first_bit) != 0 && group->parameters.mode == 1) {
         chimera__rasterizer_set_frustum_z_func(rasterizer_frustum_z_values[0], rasterizer_frustum_z_values[1]);
     }
     if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
@@ -731,7 +731,7 @@ void rasterizer_geometry_part_draw(transparent_geometry_group *group)
         render_device().set_vertex_shader(rasterizer_depth_prepass_vertex_shader);
         rasterizer_transparent_geometry_group_draw_vertices(group, 0);
     }
-    if ((int8_t)group->flags < 0 && group->parameters.mode == 1) {
+    if ((group->flags & _group_sort_first_bit) != 0 && group->parameters.mode == 1) {
         chimera__rasterizer_set_frustum_z_func(0.0f, 0.0f);
     }
 }

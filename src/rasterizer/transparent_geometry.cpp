@@ -90,9 +90,9 @@ transparent_geometry_group * rasterizer_transparent_geometry_group_build(transpa
     flags = context->flags;
     if (test_immediate) {
         if (halo::shaders::shader_view(tag).is_decal()) {
-            flags |= 3;
+            flags |= _group_flag_0_bit | _group_immediate_bit;
         }
-        if (flags & 2) {
+        if (flags & _group_immediate_bit) {
             group = &transparent_geometry_group_environment_immediate;
             group->sorted_index = -1;
             use_immediate_group = true;
@@ -160,7 +160,7 @@ transparent_geometry_group * rasterizer_transparent_geometry_group_build(transpa
     }
     group->first_person = model_render_first_person;
 
-    if (flags & 2) {
+    if (flags & _group_immediate_bit) {
 
         group->node_matrices = context->node_matrices;
         group->node_count = context->node_count;
@@ -266,7 +266,7 @@ static void set_group_skinning(const transparent_geometry_group *flags_group,
         nodes.matrices = (uint32_t)(uintptr_t)k_render_identity_matrix_ptr;
         nodes.node_count = 1;
     }
-    chimera__rasterizer_set_model_skinning((uint8_t)(~(uint8_t)(flags_group->flags >> 8) & 1), &nodes);
+    chimera__rasterizer_set_model_skinning((uint8_t)((flags_group->flags & _group_node_parts_bit) == 0), &nodes);
 }
 
 static int16_t shader_type_of(const Shader *shader)
@@ -290,7 +290,7 @@ static void draw_particle_effect_shader(transparent_geometry_group *group, const
         has_texture_animation = 1;
     }
     effect_index = halo::test_flag(fx->flags, halo::tags::particle_shader_tag_flag::nonlinear_tint) ? k_particle_effect_nonlinear_tint : k_particle_effect_linear_tint;
-    if ((group->flags & 4) == 0) {
+    if ((group->flags & _group_flag_4_bit) == 0) {
         switch (fx->framebuffer_blend_function) {
         case 0: effect_index += 2; break;
         case 1: case 5: effect_index += 4; break;
@@ -334,7 +334,7 @@ static void draw_particle_effect_shader(transparent_geometry_group *group, const
             texture_matrix[i][j] = (i == j && i < 2) ? 1.0f : 0.0f;
         }
     }
-    if (group->flags & 0x20) {
+    if (group->flags & _group_flag_20_bit) {
 
         const real_matrix4x3 *view_to_world = &rasterizer_window.frustum.view_to_world;
         const real_point3d *camera = &rasterizer_window.camera.position;
@@ -627,7 +627,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
 
     if (rasterizer_transparent_decals_enabled()) {
 
-        if ((group->flags & 2) == 0 && group->parameters.mode == 1) {
+        if ((group->flags & _group_immediate_bit) == 0 && group->parameters.mode == 1) {
             key = group->sort_key;
             shader = group->shader;
             if (key != transparent_geometry_group_last_drawn_key && shader != NULL &&
@@ -648,7 +648,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
         }
     }
 
-    if ((group->flags & 2) == 0 && rasterizer_window.type == 1 && !attached) {
+    if ((group->flags & _group_immediate_bit) == 0 && rasterizer_window.type == 1 && !attached) {
         shader = group->shader;
         if (console_debug_toggle_689422) {
             if (shader != NULL && shader_type_of(shader) == 4 && group->parameters.mode == 1 &&
@@ -660,7 +660,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
         }
     }
 
-    immediate = group->flags & 2;
+    immediate = group->flags & _group_immediate_bit;
     if (immediate == 0 && rasterizer_window.type == 1 && group->parameters.mode == 1) {
         shader = group->shader;
         if (shader != NULL && shader_type_of(shader) == 4 && !attached) {
@@ -692,7 +692,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
                 rasterizer_prepare_lighting_constants(group->lighting);
             }
         }
-        if (group->flags & 8) {
+        if (group->flags & _group_flag_8_bit) {
             if (rasterizer_window.type == 1) {
                 chimera__rasterizer_set_frustum_z_func(k_decal_frustum_z_near, k_decal_frustum_z_far);
             }
@@ -709,7 +709,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
         }
 
         for (pass = 0; pass < 2; pass++) {
-            if ((int8_t)group->flags < 0) {
+            if ((group->flags & _group_sort_first_bit) != 0) {
 
                 if (group->parameters.mode == 1) {
                     if (pass > 0) {
@@ -766,10 +766,10 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
             }
         }
 
-        if ((group->flags & 8) && rasterizer_window.type == 1) {
+        if ((group->flags & _group_flag_8_bit) && rasterizer_window.type == 1) {
             chimera__rasterizer_set_frustum_z_func(0.0f, 0.0f);
         }
-        if ((int8_t)group->flags < 0 && group->parameters.mode == 1) {
+        if ((group->flags & _group_sort_first_bit) != 0 && group->parameters.mode == 1) {
             chimera__rasterizer_set_frustum_z_func(0.0f, 0.0f);
         }
         rasterizer_clear_decal_zbias();
@@ -840,7 +840,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
     }
     amount = group->parameters.blend_factor;
     shader = group->shader;
-    if ((int8_t)group->flags < 0) {
+    if ((group->flags & _group_sort_first_bit) != 0) {
         chimera__rasterizer_set_frustum_z_func(rasterizer_frustum_z_values[0], rasterizer_frustum_z_values[1]);
     }
 
@@ -986,7 +986,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
         rasterizer_camouflage_fade_active = 0;
     }
 
-    if ((int8_t)group->flags < 0) {
+    if ((group->flags & _group_sort_first_bit) != 0) {
         chimera__rasterizer_set_frustum_z_func(0.0f, 0.0f);
     }
 }
@@ -1064,13 +1064,13 @@ void rasterizer_transparent_geometry_group_new(Shader *shader, int16_t shader_pe
     dz = world_position->z - rasterizer_window.camera.position.z;
 
     if (tint != 0) {
-        flags = flags | 1;
+        flags = flags | _group_flag_0_bit;
     }
     if (halo::shaders::shader_view(shader).is_decal() != 0) {
-        flags = flags | 7;
+        flags = flags | _group_flag_0_bit | _group_immediate_bit | _group_flag_4_bit;
     }
 
-    if ((flags & 2) == 0) {
+    if ((flags & _group_immediate_bit) == 0) {
         group = 0;
         if (transparent_geometry_group_count < k_rasterizer_maximum_transparent_groups) {
             group = &transparent_geometry_groups[transparent_geometry_group_count];
@@ -1131,13 +1131,13 @@ void rasterizer_transparent_geometry_group_new(Shader *shader, int16_t shader_pe
         halo::rasterizer::fields::transparent_group_created = 1;
     }
     if (shader->shader_type == 8 && halo::test_flag(shader_cast<ShaderTransparentWater>(shader)->water_flags, halo::tags::shader_transparent_water_tag_flag::draw_before_fog)) {
-        group->flags = group->flags | 2;
+        group->flags = group->flags | _group_immediate_bit;
         rasterizer_transparent_geometry_group_draw(group, 0);
         transparent_geometry_group_set_drawn_bit(group, 1);
         group->flags = group->flags & ~static_cast<uint32_t>(_group_immediate_bit);
         return;
     }
-    if ((flags & 2) != 0) {
+    if ((flags & _group_immediate_bit) != 0) {
         rasterizer_transparent_geometry_group_draw(group, 0);
     }
 }
@@ -1284,12 +1284,12 @@ int transparent_geometry_group_compare(int16_t *a, int16_t *b)
             if (shader_b != (Shader *)0 && shader_b->shader_type == 8) {
                 return 1;
             }
-            if ((ga->flags & 0x80) == 0) {
-                if ((gb->flags & 0x80) != 0) {
+            if ((ga->flags & _group_sort_first_bit) == 0) {
+                if ((gb->flags & _group_sort_first_bit) != 0) {
                     return -1;
                 }
             } else {
-                if ((gb->flags & 0x80) == 0) {
+                if ((gb->flags & _group_sort_first_bit) == 0) {
                     return 1;
                 }
             }
@@ -1366,7 +1366,7 @@ void transparent_geometry_group_draw_all(uint8_t resort)
             }
         }
 
-        if ((int8_t)group->flags < 0 && applied_frustum_z == 0) {
+        if ((group->flags & _group_sort_first_bit) != 0 && applied_frustum_z == 0) {
             rasterizer_set_shader_stage_config(0);
             chimera__rasterizer_set_frustum_z_func(rasterizer_frustum_z_values[0], rasterizer_frustum_z_values[1]);
             applied_frustum_z = 1;
