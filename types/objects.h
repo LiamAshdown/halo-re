@@ -907,14 +907,19 @@ typedef struct flag {
 // ---------------------------------------------------------------------------
 typedef struct glow_particle {
     int16_t identifier;             // 0x00 datum salt
-    int16_t unknown_02;             // 0x02
+    int16_t segment_index;          // 0x02 marker (trailing particles) or chain segment (glow_particle_reposition) the particle sits on
     datum_index handle;             // 0x04 the allocator writes the handle back into the record
-    uint8_t unknown_08[0x20];       // 0x08
+    float angle;                    // 0x08 random angle in [0, 2 pi) glow_particle_reposition rotates the offset by
+    float alpha;                    // 0x0c initialised to 1.0
+    float color[3];                 // 0x10 interpolated between the two tag colour bounds
+    float distance;                 // 0x1c distance from the marker line, random between the tag distance bounds
+    float rate;                     // 0x20 t advance per tick (trailing: lifetime in ticks)
+    float scaled_rate;              // 0x24 rate scaled by the remaining fraction while the particle fades
     float t;                        // 0x28 position along the marker chain, advanced by dt and
                                     //      clamped or ping-ponged per the tag loop mode
-    uint8_t unknown_2c[0x0c];       // 0x2c
-    float base_color[3];            // 0x38 randomized between the two tag colour bounds
-    float render_color[3];          // 0x44 base_color faded by the remaining lifetime
+    real_point3d position;          // 0x2c current position of a trailing particle (starts at the marker 0 position)
+    float base_velocity[3];         // 0x38 initial velocity direction scaled by the tag trailing particle velocity
+    float velocity[3];              // 0x44 base_velocity faded by the remaining lifetime; position advances along it
     int16_t age;                    // 0x50 ticks elapsed
     int16_t lifetime;               // 0x52 ticks total
     uint32_t flags;                 // 0x54 bit 0 is the alternating trailing-particle flag
@@ -942,6 +947,8 @@ typedef struct glow {
     int16_t unknown_24e;            // 0x24e
     glow_particle *first_particle;  // 0x250
     glow_particle *last_particle;   // 0x254
+    int16_t spawn_timer;            // 0x258 ticks until the next trailing particle is spawned
+    uint8_t unknown_25a[2];         // 0x25a pads the record to the 0x25c the data_array allocates
 } glow;                             // size at least 0x258. UNRESOLVED: the data_array is
                                     // created outside this module, so the stride is not
                                     // proven here.

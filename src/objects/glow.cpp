@@ -109,10 +109,10 @@ static void *datum_try_get(data_array *array, datum_index index)
 datum_index halo::objects::GlowSystem::create(datum_index glow_tag)
 {
     datum_index index;
-    uint8_t *self;
-    uint8_t *tag;
+    glow *self;
+    Glow *tag;
     datum_index bitmap_tag;
-    uint8_t *bitmap;
+    Bitmap *bitmap;
 
     if (glow_tag == k_datum_index_none) {
         return k_datum_index_none;
@@ -121,19 +121,19 @@ datum_index halo::objects::GlowSystem::create(datum_index glow_tag)
     if (index == k_datum_index_none) {
         return index;
     }
-    self = (uint8_t *)datum_try_get(glow_data, index);
-    tag = halo::objects::tag_record_bytes(glow_tag);
-    bitmap_tag = *(datum_index *)(tag + 0x150);
-    bitmap = halo::objects::tag_record_bytes(bitmap_tag);
+    self = reinterpret_cast<glow *>(datum_try_get(glow_data, index));
+    tag = halo::objects::tag_as<Glow>(glow_tag);
+    bitmap_tag = halo::objects::tag_handle(tag->texture);
+    bitmap = halo::objects::tag_as<Bitmap>(bitmap_tag);
     if (*(int16_t *)bitmap == 3) {
-        uint8_t *sequence = *(uint8_t **)(bitmap + 0x58);
-        uint8_t *sprite = *(uint8_t **)(sequence + 0x38);
-        uint8_t *bitmap_data = reinterpret_cast<uint8_t *>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(bitmap_tag, *(int16_t *)sprite, 0));
+        BitmapGroupSequence *sequence = halo::objects::block_elements<BitmapGroupSequence>(bitmap->bitmap_group_sequence);
+        BitmapGroupSprite *sprite = halo::objects::block_elements<BitmapGroupSprite>(sequence->sprites);
+        BitmapData *bitmap_data = reinterpret_cast<BitmapData *>(reinterpret_cast<uint8_t *>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(bitmap_tag, *(int16_t *)sprite, 0)));
 
-        *(datum_index *)(self + 0x224) = glow_tag;
-        *(int16_t *)(self + 0x24c) = *(int16_t *)(tag + 0x20);
-        *(int16_t *)(self + 0x228) = (int16_t)(int32_t)(((double)*(float *)(sprite + 0xc) - *(float *)(sprite + 8)) *
-            (double)*(int16_t *)(bitmap_data + 4));
+        self->definition_tag = glow_tag;
+        self->spawn_count = tag->number_of_particles;
+        self->particle_count = (int16_t)(int32_t)(((double)sprite->right - sprite->left) *
+            (double)bitmap_data->width);
     }
     return index;
 }
@@ -148,13 +148,13 @@ datum_index halo::objects::GlowSystem::create(datum_index glow_tag)
 void halo::objects::GlowSystem::destroy(datum_index glow_index)
 {
     glow *self = (glow *)datum_try_get(glow_data, glow_index);
-    uint8_t *particle = (uint8_t *)self->first_particle;
+    glow_particle *particle = reinterpret_cast<glow_particle *>(self->first_particle);
 
     while (particle != 0) {
-        uint8_t *next = *(uint8_t **)(particle + 0x5c);
+        glow_particle *next = reinterpret_cast<glow_particle *>(particle->next);
 
-        halo::memory::datum_delete(glow_particle_data, *(datum_index *)(particle + 4));
-        particle = next;
+        halo::memory::datum_delete(glow_particle_data, particle->handle);
+        particle = reinterpret_cast<glow_particle *>(next);
     }
     halo::memory::datum_delete(glow_data, glow_index);
 }
@@ -186,12 +186,12 @@ void halo::objects::GlowSystem::render_dispatch(uint32_t object_index, datum_ind
     }
 
     {
-        void *glow_tag_data = halo::cache::globals().tag_instances[halo::datum_slot(entry->definition_tag)].data;
+        Glow *glow_tag_data = halo::objects::tag_as<Glow>(entry->definition_tag);
 
         object_marker marker;
 
         halo::objects::glow_update(object_index, entry);
-        halo::objects::object_get_node_local_transform(object_index, (char *)glow_tag_data, &marker, 1);
+        halo::objects::object_get_node_local_transform(object_index, glow_tag_data->attachment_marker.string, &marker, 1);
         halo::objects::glow_render(glow_handle);
     }
 }
@@ -208,7 +208,7 @@ void halo::objects::GlowSystem::render_dispatch(uint32_t object_index, datum_ind
 void halo::objects::GlowView::update(uint32_t object_index)
 {
     glow *entry = self;
-    void *glow_tag_data = halo::cache::globals().tag_instances[halo::datum_slot(entry->definition_tag)].data;
+    Glow *glow_tag_data = halo::objects::tag_as<Glow>(entry->definition_tag);
 
     if (glow_tag_data == 0) {
         return;
@@ -216,7 +216,7 @@ void halo::objects::GlowView::update(uint32_t object_index)
 
     {
         int16_t marker_count = (int16_t)halo::objects::object_get_node_local_transform(
-            object_index, (char *)glow_tag_data, (object_marker *)((uint8_t *)entry + 8), 5);
+            object_index, glow_tag_data->attachment_marker.string, entry->markers, 5);
         entry->marker_count = marker_count;
 
         if (entry->disabled == 0) {
@@ -226,14 +226,14 @@ void halo::objects::GlowView::update(uint32_t object_index)
                 int16_t i;
 
                 for (i = 0; i < marker_count; i++) {
-                    object_marker *mi = (object_marker *)((uint8_t *)entry + 8 + i * 0x6c);
+                    object_marker *mi = &entry->markers[i];
                     int16_t best = -1;
                     float best_score = 0.0f;
                     int16_t j;
 
                     for (j = 0; j < marker_count; j++) {
                         if (i != j) {
-                            object_marker *mj = (object_marker *)((uint8_t *)entry + 8 + j * 0x6c);
+                            object_marker *mj = &entry->markers[j];
                             real_vector3d d;
                             float score;
 
@@ -279,10 +279,8 @@ void halo::objects::GlowView::update(uint32_t object_index)
                 if (marker_count != 1 && marker_count - 1 >= 0) {
                     int32_t idx = 0;
                     do {
-                        object_marker *a = (object_marker *)((uint8_t *)entry + 8 +
-                            entry->marker_order[idx] * 0x6c);
-                        object_marker *b = (object_marker *)((uint8_t *)entry + 8 +
-                            entry->marker_order[idx + 1] * 0x6c);
+                        object_marker *a = &entry->markers[entry->marker_order[idx]];
+                        object_marker *b = &entry->markers[entry->marker_order[idx + 1]];
                         float dx = b->node_transform.position.x - a->node_transform.position.x;
                         float dy = b->node_transform.position.y - a->node_transform.position.y;
                         float dz = b->node_transform.position.z - a->node_transform.position.z;
@@ -295,38 +293,38 @@ void halo::objects::GlowView::update(uint32_t object_index)
                 }
 
                 halo::objects::glow_chain_build(entry);
-                *(int16_t *)((uint8_t *)entry + 600) = 0;
+                entry->spawn_timer = 0;
 
                 entry->disabled = 1;
                 return;
             }
         } else if (marker_count > 1) {
 
-            float rotation_rate = *(float *)((uint8_t *)glow_tag_data + 100);
+            float rotation_rate = glow_tag_data->effect_rotational_velocity;
             float translation_rate;
             float driver = 0.0f;
 
-            if (((struct Glow *)glow_tag_data)->attachment_1 != -1) {
-                int8_t ok = halo::objects::object_function_get_value(object_index, (int16_t)((struct Glow *)glow_tag_data)->attachment_1, &driver);
+            if (glow_tag_data->attachment_1 != -1) {
+                int8_t ok = halo::objects::object_function_get_value(object_index, (int16_t)glow_tag_data->attachment_1, &driver);
                 driver = ok ? driver : 0.0f;
-                rotation_rate = ((((struct Glow *)glow_tag_data)->effect_rot_vel_mul_high -
-                                  ((struct Glow *)glow_tag_data)->effect_rot_vel_mul_low) * driver +
-                                 ((struct Glow *)glow_tag_data)->effect_rot_vel_mul_low);
+                rotation_rate = ((glow_tag_data->effect_rot_vel_mul_high -
+                                  glow_tag_data->effect_rot_vel_mul_low) * driver +
+                                 glow_tag_data->effect_rot_vel_mul_low);
             }
-            translation_rate = ((struct Glow *)glow_tag_data)->effect_translational_velocity;
-            if (((struct Glow *)glow_tag_data)->attachment_2 != -1) {
-                int8_t ok = halo::objects::object_function_get_value(object_index, (int16_t)((struct Glow *)glow_tag_data)->attachment_2, &driver);
+            translation_rate = glow_tag_data->effect_translational_velocity;
+            if (glow_tag_data->attachment_2 != -1) {
+                int8_t ok = halo::objects::object_function_get_value(object_index, (int16_t)glow_tag_data->attachment_2, &driver);
                 if (!ok) driver = 0.0f;
-                translation_rate = ((((struct Glow *)glow_tag_data)->effect_trans_vel_mul_high -
-                                     ((struct Glow *)glow_tag_data)->effect_trans_vel_mul_low) * driver +
-                                    ((struct Glow *)glow_tag_data)->effect_trans_vel_mul_low) * translation_rate;
+                translation_rate = ((glow_tag_data->effect_trans_vel_mul_high -
+                                     glow_tag_data->effect_trans_vel_mul_low) * driver +
+                                    glow_tag_data->effect_trans_vel_mul_low) * translation_rate;
             }
             driver = rotation_rate / translation_rate;
             (void)driver;
         }
     }
 
-    *(int16_t *)((uint8_t *)entry + 600) = (int16_t)(*(int16_t *)((uint8_t *)entry + 600) +
+    entry->spawn_timer = (int16_t)(entry->spawn_timer +
         halo::game::globals().game_time->ticks_this_frame);
 
     if (entry->marker_count > 1) {
@@ -335,10 +333,10 @@ void halo::objects::GlowView::update(uint32_t object_index)
         for (p = entry->first_particle; p != 0; p = *(glow_particle **)&((struct glow_particle *)p)->next) {
             if (((uint8_t)p->flags & 2) == 0) {
 
-                halo::objects::glow_particle_advance_time(object_index, entry, (uint8_t *)p,
-                                            halo::render::globals().time_since_frame * *(float *)((uint8_t *)p));
+                halo::objects::glow_particle_advance_time(object_index, entry, p,
+                                            halo::render::globals().time_since_frame * halo::raw_at<float>(p, 0));
                 halo::objects::glow_particle_compute_position(object_index, entry, p);
-                *(uint32_t *)((uint8_t *)p + 0x24) = *(uint32_t *)((uint8_t *)p + 0x20);
+                p->scaled_rate = p->rate;
             }
         }
 
@@ -352,16 +350,16 @@ void halo::objects::GlowView::update(uint32_t object_index)
                 *age = (int16_t)(*age + halo::game::globals().game_time->ticks_this_frame);
                 halo::objects::glow_particle_compute_fade(entry, p);
 
-                if (test_flag(((struct Glow *)glow_tag_data)->glow_flags, tags::glow_tag_flag::trailing_particles_shrink_over_time)) {
+                if (test_flag(glow_tag_data->glow_flags, tags::glow_tag_flag::trailing_particles_shrink_over_time)) {
                     float fraction = 1.0f - (float)*age / (float)*lifetime;
                     if (fraction < 0.0f) fraction = 0.0f;
-                    *(float *)((uint8_t *)p + 0x24) = fraction * *(float *)((uint8_t *)p + 0x20);
+                    p->scaled_rate = fraction * p->rate;
                 }
                 halo::objects::glow_particle_compute_color(entry, p);
 
-                *(float *)((uint8_t *)p + 0x2c) += halo::render::globals().time_since_frame * p->render_color[0];
-                *(float *)((uint8_t *)p + 0x30) += halo::render::globals().time_since_frame * p->render_color[1];
-                *(float *)((uint8_t *)p + 0x34) += halo::render::globals().time_since_frame * p->render_color[2];
+                p->position.x += halo::render::globals().time_since_frame * p->velocity[0];
+                p->position.y += halo::render::globals().time_since_frame * p->velocity[1];
+                p->position.z += halo::render::globals().time_since_frame * p->velocity[2];
 
                 if (*lifetime < *age) {
                     glow_particle *prev = *(glow_particle **)&((struct glow_particle *)p)->previous;
@@ -383,13 +381,13 @@ void halo::objects::GlowView::update(uint32_t object_index)
         }
     }
 
-    if (((struct Glow *)glow_tag_data)->particle_generation_freq > 0.01f &&
+    if (glow_tag_data->particle_generation_freq > 0.01f &&
         halo::game::globals().game_time->ticks_this_frame != 0) {
-        float threshold = 30.0f / ((struct Glow *)glow_tag_data)->particle_generation_freq;
+        float threshold = 30.0f / glow_tag_data->particle_generation_freq;
         int16_t timer;
 
         if (threshold < 1.0f) threshold = 1.0f;
-        timer = *(int16_t *)((uint8_t *)entry + 600);
+        timer = entry->spawn_timer;
 
         while (threshold < (float)timer) {
             glow_particle *spawned = halo::objects::glow_particle_spawn(entry);
@@ -399,13 +397,13 @@ void halo::objects::GlowView::update(uint32_t object_index)
             if (entry->last_particle == 0) {
                 entry->first_particle = spawned;
             } else {
-                *(glow_particle **)((uint8_t *)entry->last_particle + 0x5c) = spawned;
-                *(glow_particle **)&((struct glow_particle *)spawned)->previous = entry->last_particle;
+                entry->last_particle->next = spawned;
+                spawned->previous = entry->last_particle;
             }
             entry->last_particle = spawned;
 
             timer = (int16_t)(timer - halo::x87::__ftol((double)threshold));
-            *(int16_t *)((uint8_t *)entry + 600) = timer;
+            entry->spawn_timer = timer;
         }
     }
 }
@@ -418,9 +416,9 @@ void halo::objects::GlowView::update(uint32_t object_index)
 void halo::objects::GlowParticleView::compute_fade(glow *entry)
 {
     glow_particle *particle = self;
-    uint8_t *tag = halo::objects::tag_record_bytes(entry->definition_tag);
+    Glow *tag = halo::objects::tag_as<Glow>(entry->definition_tag);
 
-    if (!test_flag(((struct Glow *)tag)->glow_flags, tags::glow_tag_flag::trailing_particles_fade_over_time)) {
+    if (!test_flag(tag->glow_flags, tags::glow_tag_flag::trailing_particles_fade_over_time)) {
         particle->fade = 1.0f;
         return;
     }
@@ -449,21 +447,21 @@ void halo::objects::GlowParticleView::compute_fade(glow *entry)
 void halo::objects::GlowParticleView::compute_color(glow *entry)
 {
     glow_particle *particle = self;
-    uint8_t *tag = halo::objects::tag_record_bytes(entry->definition_tag);
+    Glow *tag = halo::objects::tag_as<Glow>(entry->definition_tag);
 
-    if (test_flag(((struct Glow *)tag)->glow_flags, tags::glow_tag_flag::trailing_particles_slow_over_time)) {
+    if (test_flag(tag->glow_flags, tags::glow_tag_flag::trailing_particles_slow_over_time)) {
         float fade = 1.0f - (float)particle->age / (float)particle->lifetime;
         if (fade < 0.0f) {
             fade = 0.0f;
         }
-        particle->render_color[0] = fade * particle->base_color[0];
-        particle->render_color[1] = fade * particle->base_color[1];
-        particle->render_color[2] = fade * particle->base_color[2];
+        particle->velocity[0] = fade * particle->base_velocity[0];
+        particle->velocity[1] = fade * particle->base_velocity[1];
+        particle->velocity[2] = fade * particle->base_velocity[2];
         return;
     }
-    particle->render_color[0] = particle->base_color[0];
-    particle->render_color[1] = particle->base_color[1];
-    particle->render_color[2] = particle->base_color[2];
+    particle->velocity[0] = particle->base_velocity[0];
+    particle->velocity[1] = particle->base_velocity[1];
+    particle->velocity[2] = particle->base_velocity[2];
 }
 
 /**
@@ -474,37 +472,37 @@ void halo::objects::GlowParticleView::compute_color(glow *entry)
 void halo::objects::GlowParticleView::compute_position(uint32_t object_index, glow *entry)
 {
     glow_particle *particle = self;
-    uint8_t *tag = halo::objects::tag_record_bytes(entry->definition_tag);
-    int16_t attachment = ((struct Glow *)tag)->attachment_5;
-    uint8_t *p = (uint8_t *)particle;
+    Glow *tag = halo::objects::tag_as<Glow>(entry->definition_tag);
+    int16_t attachment = tag->attachment_5;
+    glow_particle *p = reinterpret_cast<glow_particle *>(particle);
 
     if (attachment != -1) {
         object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-        float driver = *(float *)((uint8_t *)obj + 0x134 + attachment * 4);
+        float driver = obj->function_out_values[attachment];
 
         if (((1 << (attachment & 0x1f)) & ((struct object *)obj)->function_valid_flags) == 0) {
             driver = 0.0f;
         }
 
-        *(float *)(p + 0x10) = (((struct Glow *)tag)->color_bound_1.red - ((struct Glow *)tag)->color_bound_0.red) * driver + ((struct Glow *)tag)->color_bound_0.red;
-        *(float *)(p + 0x14) = (((struct Glow *)tag)->color_bound_1.green - ((struct Glow *)tag)->color_bound_0.green) * driver + ((struct Glow *)tag)->color_bound_0.green;
-        *(uint32_t *)(p + 0xc) = 0x3f800000;
-        *(float *)(p + 0x18) = (((struct Glow *)tag)->color_bound_1.blue - ((struct Glow *)tag)->color_bound_0.blue) * driver + ((struct Glow *)tag)->color_bound_0.blue;
+        p->color[0] = (tag->color_bound_1.red - tag->color_bound_0.red) * driver + tag->color_bound_0.red;
+        p->color[1] = (tag->color_bound_1.green - tag->color_bound_0.green) * driver + tag->color_bound_0.green;
+        p->alpha = 1.0f;
+        p->color[2] = (tag->color_bound_1.blue - tag->color_bound_0.blue) * driver + tag->color_bound_0.blue;
     }
 
-    if (test_flag(((struct Glow *)tag)->glow_flags, tags::glow_tag_flag::modify_particle_color_in_range)) {
-        float t = ((struct glow_particle *)p)->t;
-        float rate = ((struct Glow *)tag)->color_rate_of_change;
+    if (test_flag(tag->glow_flags, tags::glow_tag_flag::modify_particle_color_in_range)) {
+        float t = p->t;
+        float rate = tag->color_rate_of_change;
 
-        *(float *)(p + 0x10) = (((struct Glow *)tag)->color_bound_1.red - ((struct Glow *)tag)->color_bound_0.red) * rate * t + ((struct Glow *)tag)->color_bound_0.red;
-        *(float *)(p + 0x14) = (((struct Glow *)tag)->color_bound_1.green - ((struct Glow *)tag)->color_bound_0.green) * rate * t + ((struct Glow *)tag)->color_bound_0.green;
-        *(uint32_t *)(p + 0xc) = 0x3f800000;
-        *(float *)(p + 0x18) = (((struct Glow *)tag)->color_bound_1.blue - ((struct Glow *)tag)->color_bound_0.blue) * rate * t + ((struct Glow *)tag)->color_bound_0.blue;
+        p->color[0] = (tag->color_bound_1.red - tag->color_bound_0.red) * rate * t + tag->color_bound_0.red;
+        p->color[1] = (tag->color_bound_1.green - tag->color_bound_0.green) * rate * t + tag->color_bound_0.green;
+        p->alpha = 1.0f;
+        p->color[2] = (tag->color_bound_1.blue - tag->color_bound_0.blue) * rate * t + tag->color_bound_0.blue;
     }
 
     {
-        float t = ((struct glow_particle *)p)->t / entry->total_length;
-        float half_span = ((struct Glow *)tag)->fading_percentage_of_glow * 0.5f;
+        float t = p->t / entry->total_length;
+        float half_span = tag->fading_percentage_of_glow * 0.5f;
         float fade;
 
         if (t >= half_span) {
@@ -522,7 +520,7 @@ void halo::objects::GlowParticleView::compute_position(uint32_t object_index, gl
         } else if (fade > 1.0f) {
             fade = 1.0f;
         }
-        ((struct glow_particle *)p)->fade = fade;
+        p->fade = fade;
     }
 }
 
@@ -531,26 +529,26 @@ void halo::objects::GlowParticleView::compute_position(uint32_t object_index, gl
  *
  * @address 0x004fd650
  */
-void halo::objects::GlowView::particle_advance_time(uint32_t object_index, uint8_t *particle, float rate)
+void halo::objects::GlowView::particle_advance_time(uint32_t object_index, glow_particle *particle, float rate)
 {
     glow *entry = self;
-    uint8_t *tag = halo::objects::tag_record_bytes(entry->definition_tag);
-    int16_t attachment = ((struct Glow *)tag)->attachment_3;
-    int16_t loop_mode = ((struct Glow *)tag)->boundary_effect;
-    uint32_t flags = *(uint32_t *)(particle + 0x54);
-    float *t = (float *)(particle + 0x28);
+    Glow *tag = halo::objects::tag_as<Glow>(entry->definition_tag);
+    int16_t attachment = tag->attachment_3;
+    int16_t loop_mode = tag->boundary_effect;
+    uint32_t flags = particle->flags;
+    float *t = (float *)(reinterpret_cast<uint8_t *>(particle) + 0x28);
 
     if (attachment != -1) {
         object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-        float driver = *(float *)((uint8_t *)obj + 0x134 + attachment * 4);
+        float driver = obj->function_out_values[attachment];
 
         if (((1 << (attachment & 0x1f)) & ((struct object *)obj)->function_valid_flags) == 0) {
             driver = 0.0f;
         }
-        *(float *)(particle + 0x1c) =
-            (((struct Glow *)tag)->max_distance_particle_to_object - ((struct Glow *)tag)->min_distance_particle_to_object) *
-            ((((struct Glow *)tag)->distance_to_object_mul_high - ((struct Glow *)tag)->distance_to_object_mul_low) * driver + ((struct Glow *)tag)->distance_to_object_mul_low) +
-            ((struct Glow *)tag)->min_distance_particle_to_object;
+        particle->distance =
+            (tag->max_distance_particle_to_object - tag->min_distance_particle_to_object) *
+            ((tag->distance_to_object_mul_high - tag->distance_to_object_mul_low) * driver + tag->distance_to_object_mul_low) +
+            tag->min_distance_particle_to_object;
     }
 
     if ((flags & 1) == 0) {
@@ -563,7 +561,7 @@ void halo::objects::GlowView::particle_advance_time(uint32_t object_index, uint8
                 do {
                     *t = *t - entry->total_length;
                 } while (entry->total_length < *t);
-                *(uint32_t *)(particle + 0x54) = flags | 1;
+                particle->flags = flags | 1;
                 *t = entry->total_length - *t;
                 halo::objects::glow_particle_reposition(entry, particle, rate);
                 return;
@@ -587,7 +585,7 @@ void halo::objects::GlowView::particle_advance_time(uint32_t object_index, uint8
                     wrapped = entry->total_length + *t;
                     *t = wrapped;
                 } while (*t < 0.0f);
-                *(uint32_t *)(particle + 0x54) = flags & ~1U;
+                particle->flags = flags & ~1U;
                 *t = entry->total_length - wrapped;
             }
         } else if (loop_mode == 1 && rate < 0.0f) {
@@ -613,7 +611,7 @@ void halo::objects::GlowView::particle_advance_time(uint32_t object_index, uint8
 void halo::objects::GlowView::chain_build()
 {
     glow *entry = self;
-    uint8_t *tag = halo::objects::tag_record_bytes(entry->definition_tag);
+    Glow *tag = halo::objects::tag_as<Glow>(entry->definition_tag);
     int32_t i = 0;
     int alternate = 1;
     glow_particle *prev = 0;
@@ -624,10 +622,10 @@ void halo::objects::GlowView::chain_build()
             return;
         }
 
-        if (test_flag(((struct Glow *)tag)->glow_flags, tags::glow_tag_flag::particles_move_backwards)) {
+        if (test_flag(tag->glow_flags, tags::glow_tag_flag::particles_move_backwards)) {
             ((struct glow_particle *)p)->flags |= 1;
         }
-        if (test_flag(((struct Glow *)tag)->glow_flags, tags::glow_tag_flag::partices_move_in_both_directions)) {
+        if (test_flag(tag->glow_flags, tags::glow_tag_flag::partices_move_in_both_directions)) {
             uint32_t flags = ((struct glow_particle *)p)->flags;
             if (alternate) {
                 flags &= ~1U;
@@ -669,34 +667,34 @@ static float glow_next_random_unit(void)
 glow_particle * halo::objects::GlowView::particle_new(int16_t index, int16_t count)
 {
     glow *entry = self;
-    uint8_t *tag = halo::objects::tag_record_bytes(entry->definition_tag);
+    Glow *tag = halo::objects::tag_as<Glow>(entry->definition_tag);
     glow_particle *p = halo::objects::glow_particle_datum_new();
 
     if (p != 0) {
-        uint8_t *pb = (uint8_t *)p;
+        glow_particle *pb = reinterpret_cast<glow_particle *>(p);
 
-        if (((struct Glow *)tag)->attachment_3 == -1) {
-            *(float *)(pb + 0x1c) = (((struct Glow *)tag)->max_distance_particle_to_object - ((struct Glow *)tag)->min_distance_particle_to_object) *
-                                     glow_next_random_unit() + ((struct Glow *)tag)->min_distance_particle_to_object;
+        if (tag->attachment_3 == -1) {
+            pb->distance = (tag->max_distance_particle_to_object - tag->min_distance_particle_to_object) *
+                                     glow_next_random_unit() + tag->min_distance_particle_to_object;
         }
-        if (((struct Glow *)tag)->attachment_4 == -1) {
-            float v = ((struct Glow *)tag)->particle_size_bounds[0] +
-                      (((struct Glow *)tag)->particle_size_bounds[1] - ((struct Glow *)tag)->particle_size_bounds[0]) * glow_next_random_unit();
-            *(float *)(pb + 0x20) = v / (float)entry->particle_count;
+        if (tag->attachment_4 == -1) {
+            float v = tag->particle_size_bounds[0] +
+                      (tag->particle_size_bounds[1] - tag->particle_size_bounds[0]) * glow_next_random_unit();
+            pb->rate = v / (float)entry->particle_count;
         }
-        if (((struct Glow *)tag)->attachment_5 == -1 && !test_flag(((struct Glow *)tag)->glow_flags, tags::glow_tag_flag::modify_particle_color_in_range)) {
+        if (tag->attachment_5 == -1 && !test_flag(tag->glow_flags, tags::glow_tag_flag::modify_particle_color_in_range)) {
             float t = glow_next_random_unit();
-            *(uint32_t *)(pb + 0xc) = 0x3f800000;
-            *(float *)(pb + 0x10) = (((struct Glow *)tag)->color_bound_1.red - ((struct Glow *)tag)->color_bound_0.red) * t + ((struct Glow *)tag)->color_bound_0.red;
-            *(float *)(pb + 0x14) = (((struct Glow *)tag)->color_bound_1.green - ((struct Glow *)tag)->color_bound_0.green) * t + ((struct Glow *)tag)->color_bound_0.green;
-            *(float *)(pb + 0x18) = (((struct Glow *)tag)->color_bound_1.blue - ((struct Glow *)tag)->color_bound_0.blue) * t + ((struct Glow *)tag)->color_bound_0.blue;
+            pb->alpha = 1.0f;
+            pb->color[0] = (tag->color_bound_1.red - tag->color_bound_0.red) * t + tag->color_bound_0.red;
+            pb->color[1] = (tag->color_bound_1.green - tag->color_bound_0.green) * t + tag->color_bound_0.green;
+            pb->color[2] = (tag->color_bound_1.blue - tag->color_bound_0.blue) * t + tag->color_bound_0.blue;
         }
-        if (((struct Glow *)tag)->normal_particle_distribution == 0) {
-            ((struct glow_particle *)pb)->t = glow_next_random_unit() * entry->total_length;
-            *(float *)(pb + 8) = glow_next_random_unit() * 6.2831855f;
-        } else if (((struct Glow *)tag)->normal_particle_distribution == 1) {
-            ((struct glow_particle *)pb)->t = ((float)index / (float)count) * entry->total_length;
-            *(float *)(pb + 8) = glow_next_random_unit() * 6.2831855f;
+        if (tag->normal_particle_distribution == 0) {
+            pb->t = glow_next_random_unit() * entry->total_length;
+            pb->angle = glow_next_random_unit() * 6.2831855f;
+        } else if (tag->normal_particle_distribution == 1) {
+            pb->t = ((float)index / (float)count) * entry->total_length;
+            pb->angle = glow_next_random_unit() * 6.2831855f;
         }
     }
     return p;
@@ -713,67 +711,67 @@ glow_particle * halo::objects::GlowView::particle_new(int16_t index, int16_t cou
 glow_particle * halo::objects::GlowView::particle_spawn()
 {
     glow *entry = self;
-    uint8_t *tag = halo::objects::tag_record_bytes(entry->definition_tag);
+    Glow *tag = halo::objects::tag_as<Glow>(entry->definition_tag);
     glow_particle *p = halo::objects::glow_particle_datum_new();
 
     if (p != 0) {
-        uint8_t *pb = (uint8_t *)p;
+        glow_particle *pb = reinterpret_cast<glow_particle *>(p);
         float size;
 
         if (entry->marker_count < 2) {
-            *(float *)(pb + 0x2c) = entry->markers[0].node_transform.position.x;
-            *(float *)(pb + 0x30) = entry->markers[0].node_transform.position.y;
-            *(float *)(pb + 0x34) = entry->markers[0].node_transform.position.z;
+            pb->position.x = entry->markers[0].node_transform.position.x;
+            pb->position.y = entry->markers[0].node_transform.position.y;
+            pb->position.z = entry->markers[0].node_transform.position.z;
         } else {
-            float lo = ((struct Glow *)tag)->trailing_particle_minimum_t * entry->total_length;
-            float hi = ((struct Glow *)tag)->trailing_particle_maximum_t * entry->total_length;
-            ((struct glow_particle *)pb)->t = (hi - lo) * glow_next_random_unit() + lo;
+            float lo = tag->trailing_particle_minimum_t * entry->total_length;
+            float hi = tag->trailing_particle_maximum_t * entry->total_length;
+            pb->t = (hi - lo) * glow_next_random_unit() + lo;
             halo::objects::glow_particle_reposition(entry, pb, 0.0f);
         }
 
         {
-            int16_t velocity_mode = ((struct Glow *)tag)->trailing_particle_distribution;
+            int16_t velocity_mode = tag->trailing_particle_distribution;
             if (velocity_mode == 0) {
-                ((struct glow_particle *)pb)->base_color[0] = 0.0f;
-                ((struct glow_particle *)pb)->base_color[1] = 0.0f;
-                ((struct glow_particle *)pb)->base_color[2] = 1.0f;
+                pb->base_velocity[0] = 0.0f;
+                pb->base_velocity[1] = 0.0f;
+                pb->base_velocity[2] = 1.0f;
             } else if (velocity_mode == 1) {
-                uint8_t *marker = (uint8_t *)entry + ((struct glow_particle *)pb)->unknown_02 * 0x6c + 0x5c;
-                ((struct glow_particle *)pb)->base_color[0] = *(float *)marker;
-                ((struct glow_particle *)pb)->base_color[1] = *(float *)(marker + 4);
-                ((struct glow_particle *)pb)->base_color[2] = *(float *)(marker + 8);
+                const real_vector3d &marker_up = entry->markers[pb->segment_index].node_transform.up;
+                pb->base_velocity[0] = marker_up.i;
+                pb->base_velocity[1] = marker_up.j;
+                pb->base_velocity[2] = marker_up.k;
             } else if (velocity_mode == 2) {
                 real_vector3d v;
                 v.i = glow_next_random_unit() * 2.0f - 1.0f;
                 v.j = glow_next_random_unit() * 2.0f - 1.0f;
                 v.k = glow_next_random_unit() * 2.0f - 1.0f;
                 halo::math::vector3d_normalize_with_length(v);
-                ((struct glow_particle *)pb)->base_color[0] = v.i;
-                ((struct glow_particle *)pb)->base_color[1] = v.j;
-                ((struct glow_particle *)pb)->base_color[2] = v.k;
+                pb->base_velocity[0] = v.i;
+                pb->base_velocity[1] = v.j;
+                pb->base_velocity[2] = v.k;
             }
         }
 
         {
-            float speed = ((struct Glow *)tag)->velocity_of_trailing_particles * 0.033333335f;
-            ((struct glow_particle *)pb)->base_color[0] *= speed;
-            ((struct glow_particle *)pb)->base_color[1] *= speed;
-            ((struct glow_particle *)pb)->base_color[2] *= speed;
+            float speed = tag->velocity_of_trailing_particles * 0.033333335f;
+            pb->base_velocity[0] *= speed;
+            pb->base_velocity[1] *= speed;
+            pb->base_velocity[2] *= speed;
         }
 
-        size = ((struct Glow *)tag)->particle_size_bounds[0] +
-               (((struct Glow *)tag)->particle_size_bounds[1] - ((struct Glow *)tag)->particle_size_bounds[0]) * glow_next_random_unit();
-        *(float *)(pb + 0x20) = size / (float)entry->particle_count;
+        size = tag->particle_size_bounds[0] +
+               (tag->particle_size_bounds[1] - tag->particle_size_bounds[0]) * glow_next_random_unit();
+        pb->rate = size / (float)entry->particle_count;
 
-        ((struct glow_particle *)pb)->lifetime = (int16_t)halo::x87::__ftol((double)*(float *)(pb + 0x20));
+        pb->lifetime = (int16_t)halo::x87::__ftol((double)pb->rate);
 
         {
             float t = glow_next_random_unit();
-            *(uint32_t *)(pb + 0xc) = 0x3f800000;
-            *(float *)(pb + 0x10) = (((struct Glow *)tag)->color_bound_1.red - ((struct Glow *)tag)->color_bound_0.red) * t + ((struct Glow *)tag)->color_bound_0.red;
-            *(float *)(pb + 0x14) = (((struct Glow *)tag)->color_bound_1.green - ((struct Glow *)tag)->color_bound_0.green) * t + ((struct Glow *)tag)->color_bound_0.green;
-            ((struct glow_particle *)pb)->flags = ((struct glow_particle *)pb)->flags | 2;
-            *(float *)(pb + 0x18) = (((struct Glow *)tag)->color_bound_1.blue - ((struct Glow *)tag)->color_bound_0.blue) * t + ((struct Glow *)tag)->color_bound_0.blue;
+            pb->alpha = 1.0f;
+            pb->color[0] = (tag->color_bound_1.red - tag->color_bound_0.red) * t + tag->color_bound_0.red;
+            pb->color[1] = (tag->color_bound_1.green - tag->color_bound_0.green) * t + tag->color_bound_0.green;
+            pb->flags = pb->flags | 2;
+            pb->color[2] = (tag->color_bound_1.blue - tag->color_bound_0.blue) * t + tag->color_bound_0.blue;
         }
     }
     return p;
@@ -817,12 +815,12 @@ glow_particle * halo::objects::GlowSystem::particle_datum_new()
  *
  * @address 0x004fde40
  */
-void halo::objects::GlowView::particle_reposition(uint8_t *particle, float phase_rate)
+void halo::objects::GlowView::particle_reposition(glow_particle *particle, float phase_rate)
 {
     glow *entry = self;
-    uint8_t *e = (uint8_t *)entry;
-    float t = *(float *)(particle + 0x28);
-    int16_t segment_count = *(int16_t *)(e + 4) - 1;
+    glow *e = reinterpret_cast<glow *>(entry);
+    float t = particle->t;
+    int16_t segment_count = e->marker_count - 1;
     int16_t seg = 0;
     int32_t idx;
 
@@ -835,27 +833,27 @@ void halo::objects::GlowView::particle_reposition(uint8_t *particle, float phase
     } else {
         idx = 0;
         do {
-            float lo = *(float *)(e + 0x238 + idx * 4);
-            if (lo != t && lo < t && t < *(float *)(e + 0x23c + idx * 4)) break;
+            float lo = e->cumulative_length[idx];
+            if (lo != t && lo < t && t < e->cumulative_length[idx + 1]) break;
             seg = seg + 1;
             idx = seg;
         } while (idx < segment_count);
         if (seg < 0) idx = 0;
     }
     seg = (int16_t)idx;
-    *(int16_t *)(particle + 2) = seg;
+    particle->segment_index = seg;
 
-    {
-        int16_t marker_count = *(int16_t *)(e + 4);
+    [&]() {
+        int16_t marker_count = e->marker_count;
 
         if (marker_count == 2) {
-            c0[0].x = ((struct glow *)e)->markers[0].node_transform.position.x; c0[0].y = ((struct glow *)e)->markers[0].node_transform.position.y; c0[0].z = ((struct glow *)e)->markers[0].node_transform.position.z;
+            c0[0].x = e->markers[0].node_transform.position.x; c0[0].y = e->markers[0].node_transform.position.y; c0[0].z = e->markers[0].node_transform.position.z;
             {
-                float ex = ((struct glow *)e)->markers[1].node_transform.position.x, ey = ((struct glow *)e)->markers[1].node_transform.position.y, ez = ((struct glow *)e)->markers[1].node_transform.position.z;
-                c1[0].x = ((struct glow *)e)->markers[0].node_transform.up.i; c1[0].y = ((struct glow *)e)->markers[0].node_transform.up.j; c1[0].z = *(float *)(e + 100);
+                float ex = e->markers[1].node_transform.position.x, ey = e->markers[1].node_transform.position.y, ez = e->markers[1].node_transform.position.z;
+                c1[0].x = e->markers[0].node_transform.up.i; c1[0].y = e->markers[0].node_transform.up.j; c1[0].z = e->markers[0].node_transform.up.k;
                 {
-                    float fx = *(float *)(e + 200), fy = ((struct glow *)e)->markers[1].node_transform.up.j, fz = ((struct glow *)e)->markers[1].node_transform.up.k;
-                    t0 = ((struct glow *)e)->cumulative_length[0]; t1 = ((struct glow *)e)->cumulative_length[1];
+                    float fx = e->markers[1].node_transform.up.i, fy = e->markers[1].node_transform.up.j, fz = e->markers[1].node_transform.up.k;
+                    t0 = e->cumulative_length[0]; t1 = e->cumulative_length[1];
 
                     c0[1].x = (ex - c0[0].x) * 0.25f + c0[0].x;
                     c0[1].y = (ey - c0[0].y) * 0.25f + c0[0].y;
@@ -878,7 +876,7 @@ void halo::objects::GlowView::particle_reposition(uint8_t *particle, float phase
                     t3 = (t1 - t0) * 0.75f + t0;
                 }
             }
-            goto evaluate;
+            return;
         }
 
         if (marker_count != 3) {
@@ -891,8 +889,8 @@ void halo::objects::GlowView::particle_reposition(uint8_t *particle, float phase
             } else {
                 idx2 = 0;
                 do {
-                    float lo = *(float *)(e + 0x238 + idx2 * 4);
-                    float hi = *(float *)(e + 0x23c + idx2 * 4);
+                    float lo = e->cumulative_length[idx2];
+                    float hi = e->cumulative_length[idx2 + 1];
                     if (lo != t && lo < t && hi != t && t < hi) break;
                     s2 = s2 + 1;
                     idx2 = s2;
@@ -912,58 +910,55 @@ void halo::objects::GlowView::particle_reposition(uint8_t *particle, float phase
                 idx2 = lo16;
             }
 
-            t0 = *(float *)(e + 0x238 + idx2 * 4);
-            t1 = *(float *)(e + 0x238 + idx2 * 4 + 4);
-            t2 = *(float *)(e + 0x238 + idx2 * 4 + 8);
-            t3 = *(float *)(e + 0x238 + idx2 * 4 + 0xc);
+            t0 = e->cumulative_length[idx2];
+            t1 = e->cumulative_length[idx2 + 1];
+            t2 = e->cumulative_length[idx2 + 2];
+            t3 = e->cumulative_length[idx2 + 3];
 
             {
-                int16_t *order = (int16_t *)(e + 0x22a + idx2 * 2);
-                int32_t byte_off = 0;
+                int16_t *order = &e->marker_order[idx2];
                 int32_t k;
 
                 for (k = 0; k < 4; k++) {
-                    uint8_t *m = e + order[k] * 0x6c;
-                    float fx = *(float *)(m + 0x60), fy = *(float *)(m + 0x4c);
-                    float fz = *(float *)(m + 0x48), fw = *(float *)(m + 100);
-                    float ux = *(float *)(m + 0x68), uy = *(float *)(m + 0x6c), uz = *(float *)(m + 0x70);
-                    float lx = *(float *)(m + 0x5c), ly = *(float *)(m + 0x60), lzv = *(float *)(m + 100);
+                    const real_matrix4x3 &n = e->markers[order[k]].node_transform;
+                    float fx = n.up.j, fy = n.forward.k;
+                    float fz = n.forward.j, fw = n.up.k;
+                    float ux = n.position.x, uy = n.position.y, uz = n.position.z;
+                    float lx = n.up.i, ly = n.up.j, lzv = n.up.k;
                     float b0 = fx * fy - fz * fw;
 
-                    *(float *)((uint8_t *)c0 + byte_off) = ux;
-                    *(float *)((uint8_t *)c0 + byte_off + 4) = uy;
-                    *(float *)((uint8_t *)c0 + byte_off + 8) = uz;
-                    *(float *)((uint8_t *)c1 + byte_off) = lx;
-                    *(float *)((uint8_t *)c1 + byte_off + 4) = ly;
-                    *(float *)((uint8_t *)c1 + byte_off + 8) = lzv;
+                    c0[k].x = ux;
+                    c0[k].y = uy;
+                    c0[k].z = uz;
+                    c1[k].x = lx;
+                    c1[k].y = ly;
+                    c1[k].z = lzv;
 
                     {
-                        float a2 = *(float *)(m + 0x44) * *(float *)(m + 100) -
-                                   lx * *(float *)(m + 0x4c);
-                        float a3 = *(float *)(m + 0x48) * lx - *(float *)(m + 0x44) * *(float *)(m + 0x60);
-                        *(float *)((uint8_t *)c2 + byte_off) = b0;
-                        *(float *)((uint8_t *)c2 + byte_off + 4) = a2;
-                        *(float *)((uint8_t *)c2 + byte_off + 8) = a3;
+                        float a2 = n.forward.i * n.up.k - lx * n.forward.k;
+                        float a3 = n.forward.j * lx - n.forward.i * n.up.j;
+                        c2[k].x = b0;
+                        c2[k].y = a2;
+                        c2[k].z = a3;
                     }
 
-                    byte_off += 0xc;
                 }
             }
-            goto evaluate;
+            return;
         }
 
-        c0[0].x = ((struct glow *)e)->markers[0].node_transform.position.x; c0[0].y = ((struct glow *)e)->markers[0].node_transform.position.y; c0[0].z = ((struct glow *)e)->markers[0].node_transform.position.z;
+        c0[0].x = e->markers[0].node_transform.position.x; c0[0].y = e->markers[0].node_transform.position.y; c0[0].z = e->markers[0].node_transform.position.z;
         {
-            float ex = ((struct glow *)e)->markers[2].node_transform.position.x, ey = ((struct glow *)e)->markers[2].node_transform.position.y, ez = ((struct glow *)e)->markers[2].node_transform.position.z;
-            c1[0].x = ((struct glow *)e)->markers[0].node_transform.up.i; c1[0].y = ((struct glow *)e)->markers[0].node_transform.up.j; c1[0].z = *(float *)(e + 100);
+            float ex = e->markers[2].node_transform.position.x, ey = e->markers[2].node_transform.position.y, ez = e->markers[2].node_transform.position.z;
+            c1[0].x = e->markers[0].node_transform.up.i; c1[0].y = e->markers[0].node_transform.up.j; c1[0].z = e->markers[0].node_transform.up.k;
             {
-                float fx = ((struct glow *)e)->markers[2].node_transform.up.i, fy = ((struct glow *)e)->markers[2].node_transform.up.j, fz = ((struct glow *)e)->markers[2].node_transform.up.k;
-                t0 = ((struct glow *)e)->cumulative_length[0]; t1 = ((struct glow *)e)->cumulative_length[2];
+                float fx = e->markers[2].node_transform.up.i, fy = e->markers[2].node_transform.up.j, fz = e->markers[2].node_transform.up.k;
+                t0 = e->cumulative_length[0]; t1 = e->cumulative_length[2];
 
                 if (seg == 0) {
-                    c0[1].x = ((struct glow *)e)->markers[1].node_transform.position.x; c0[1].y = ((struct glow *)e)->markers[1].node_transform.position.y; c0[1].z = ((struct glow *)e)->markers[1].node_transform.position.z;
-                    c1[1].x = *(float *)(e + 200); c1[1].y = ((struct glow *)e)->markers[1].node_transform.up.j; c1[1].z = ((struct glow *)e)->markers[1].node_transform.up.k;
-                    t2 = ((struct glow *)e)->cumulative_length[1];
+                    c0[1].x = e->markers[1].node_transform.position.x; c0[1].y = e->markers[1].node_transform.position.y; c0[1].z = e->markers[1].node_transform.position.z;
+                    c1[1].x = e->markers[1].node_transform.up.i; c1[1].y = e->markers[1].node_transform.up.j; c1[1].z = e->markers[1].node_transform.up.k;
+                    t2 = e->cumulative_length[1];
                     c2[0].x = (ex - c0[1].x) * 0.5f + c0[1].x;
                     c2[0].y = (ey - c0[1].y) * 0.5f + c0[1].y;
                     c2[0].z = (ez - c0[1].z) * 0.5f + c0[1].y;
@@ -974,53 +969,51 @@ void halo::objects::GlowView::particle_reposition(uint8_t *particle, float phase
                         c2[1].z = a8 * 0.5f + c1[1].y;
                     }
                     t3 = (t1 - t2) * 0.5f + t2;
-                    goto evaluate;
+                    return;
                 }
                 if (seg != 1) {
-                    goto evaluate;
+                    return;
                 }
-                c2[0].x = ((struct glow *)e)->markers[1].node_transform.position.x; c2[0].y = ((struct glow *)e)->markers[1].node_transform.position.y; c2[0].z = ((struct glow *)e)->markers[1].node_transform.position.z;
-                t2 = *(float *)(e + 200);
+                c2[0].x = e->markers[1].node_transform.position.x; c2[0].y = e->markers[1].node_transform.position.y; c2[0].z = e->markers[1].node_transform.position.z;
+                t2 = e->markers[1].node_transform.up.i;
                 c0[1].x = (c2[0].x - c0[0].x) * 0.5f + c0[0].x;
                 c0[1].y = (c2[0].y - c0[0].y) * 0.5f + c0[0].y;
                 c0[1].z = (c2[0].z - c0[0].z) * 0.5f + c0[0].y;
                 {
-                    float local_54 = ((struct glow *)e)->markers[1].node_transform.up.k;
+                    float local_54 = e->markers[1].node_transform.up.k;
                     float a8 = local_54 - c1[0].z;
                     c1[1].x = (t2 - c1[0].x) * 0.5f + c1[0].x;
-                    c1[1].y = (((struct glow *)e)->markers[1].node_transform.up.j - c1[0].y) * 0.5f + c1[0].y;
+                    c1[1].y = (e->markers[1].node_transform.up.j - c1[0].y) * 0.5f + c1[0].y;
                     c1[1].z = a8 * 0.5f + c1[0].y;
                 }
-                t3 = (((struct glow *)e)->cumulative_length[1] - t0) * 0.5f;
+                t3 = (e->cumulative_length[1] - t0) * 0.5f;
                 t3 = t3 + t0;
             }
         }
-    }
-
-evaluate:
+    }();
 
     {
         auto interpolate = [&](void *out, real_point3d *control) {
             halo::math::vector3d_cubic_interpolate(*(real_vector3d *)out, *(real_vector3d *)&control[0], *(real_vector3d *)&control[1],
                                                    *(real_vector3d *)&control[2], *(real_vector3d *)&control[3], t0, t1, t2, t3,
-                                                   *(float *)(particle + 0x28));
+                                                   particle->t);
         };
 
-        interpolate(particle + 0x2c, c0);
+        interpolate(&particle->position, c0);
         interpolate(&out1, c1);
         interpolate(&out2, c2);
     }
 
     {
-        double angle = (double)phase_rate * (double)(*(float *)(particle + 0x28)) +
-                        (double)(*(float *)(particle + 8));
+        double angle = (double)phase_rate * (double)(particle->t) +
+                        (double)(particle->angle);
         double s = halo::libm::sin(angle);
         double c = halo::libm::cos(angle);
-        float scale = *(float *)(particle + 0x1c);
+        float scale = particle->distance;
 
-        *(float *)(particle + 0x2c) = (float)((out1.x * s + out2.x * c) * scale) + *(float *)(particle + 0x2c);
-        *(float *)(particle + 0x30) = (float)((out1.y * s + out2.y * c) * scale) + *(float *)(particle + 0x30);
-        *(float *)(particle + 0x34) = (float)((out1.z * s + out2.z * c) * scale) + *(float *)(particle + 0x34);
+        particle->position.x = (float)((out1.x * s + out2.x * c) * scale) + particle->position.x;
+        particle->position.y = (float)((out1.y * s + out2.y * c) * scale) + particle->position.y;
+        particle->position.z = (float)((out1.z * s + out2.z * c) * scale) + particle->position.z;
     }
 }
 
@@ -1033,16 +1026,16 @@ evaluate:
  */
 void halo::objects::GlowSystem::render(datum_index glow_handle)
 {
-    uint8_t *entry = 0;
+    glow *entry = 0;
     build_sprite_data data;
-    uint8_t *particle;
+    glow_particle *particle;
     int16_t index = (int16_t)glow_handle;
     int16_t salt = (int16_t)(glow_handle >> 16);
 
     if (index >= 0 && index < glow_data->last_index) {
-        uint8_t *candidate = (uint8_t *)glow_data->data + glow_data->size * index;
+        glow *candidate = reinterpret_cast<glow *>(static_cast<uint8_t *>(glow_data->data) + glow_data->size * index);
 
-        if (*(int16_t *)candidate != 0 && (salt == 0 || salt == *(int16_t *)candidate)) {
+        if (candidate->identifier != 0 && (salt == 0 || salt == candidate->identifier)) {
             entry = candidate;
         }
     }
@@ -1051,17 +1044,16 @@ void halo::objects::GlowSystem::render(datum_index glow_handle)
         return;
     }
     memset(&data, 0, sizeof(data));
-    data.bitmap_group_index = *(datum_index *)(halo::objects::tag_record_bytes(*(datum_index *)(entry + 0x224)) + 0x150);
-    data.maximum_sprite_count = *(int16_t *)(entry + 0x24c);
+    data.bitmap_group_index = halo::objects::tag_handle(halo::objects::tag_as<Glow>(entry->definition_tag)->texture);
+    data.maximum_sprite_count = entry->spawn_count;
     data.shader = (uint32_t)glow_sprite_shader;
     data.sprite_count = 0;
     data.flags = 4;
     data.centroid = *global_zero_vector3d_pointer;
     data.group_count = 0;
-    for (particle = *(uint8_t **)(entry + 0x250); particle != 0; particle = *(uint8_t **)(particle + 0x5c)) {
-        halo::render::build_sprite(&data, 0, 0, 0, (real_point3d *)(particle + 0x2c),
-                     (real_vector3d *)(entry + *(int16_t *)(particle + 0x2) * 0x6c + 0x44), 0.0f,
-                     *(float *)(particle + 0x24), (ColorARGB *)(particle + 0xc), *(float *)(particle + 0x58), 0);
+    for (particle = entry->first_particle; particle != 0; particle = particle->next) {
+        halo::render::build_sprite(&data, 0, 0, 0, &particle->position, &entry->markers[particle->segment_index].node_transform.forward, 0.0f,
+                     particle->scaled_rate, reinterpret_cast<ColorARGB *>(&particle->alpha), particle->fade, 0);
     }
     halo::render::build_sprites_end(&data);
 }

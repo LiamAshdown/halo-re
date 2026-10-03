@@ -2378,7 +2378,7 @@ void glow_particle_compute_position(uint32_t object_index, glow *entry, glow_par
  *
  * @address 0x004fd650
  */
-void glow_particle_advance_time(uint32_t object_index, glow *entry, uint8_t *particle, float rate)
+void glow_particle_advance_time(uint32_t object_index, glow *entry, glow_particle *particle, float rate)
 {
     halo::objects::GlowView(entry).particle_advance_time(object_index, particle, rate);
 }
@@ -2428,7 +2428,7 @@ glow_particle * glow_particle_datum_new()
  *
  * @address 0x004fde40
  */
-void glow_particle_reposition(glow *entry, uint8_t *particle, float phase_rate)
+void glow_particle_reposition(glow *entry, glow_particle *particle, float phase_rate)
 {
     halo::objects::GlowView(entry).particle_reposition(particle, phase_rate);
 }
