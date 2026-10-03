@@ -19,7 +19,7 @@ fails, revert the latest merges one by one until it is green and log the offende
 | a18f610ee74d844a2 | saved_games, render (relaunched after stale-base stop) | done | pending (branch worktree-agent-a18f610ee74d844a2, commit d61c3c75) |
 | a828a5b449c367e7c | units | done | yes (9a6e0ae8; check units 410 base, 0 missing, 263 new halo:: symbols; UnitView/BipedView/VehicleView; no UnitTypeBehavior registry) |
 | a8e2e4a6addbda413 | objects | done | pending (commit 0f5ac3b4; 328 base, 0 missing, 0 extra) |
-| a9d9f7699c4305c1b | sound | running | no |
+| a9d9f7699c4305c1b | sound | done | pending (commit 24145f56; 225 base 0 missing 0 extra; AudioDevice/EaxBackend interfaces; 2 small behaviour changes: channel_set_parameters 3 args, sound_initialize via audio_device()) |
 | a1b3c49331e6b7427 (Opus) | math pilot (+ glm); writes docs/CPP_CONVENTIONS_MATH_PILOT.md | running | no |
 
 ## Wave 2 queue (large modules split by file list; start when wave 1 slots free up; brief = docs/AGENT_BRIEF_TEMPLATE.md)
@@ -40,3 +40,5 @@ Launched: ai_actor_1 = a816627a3d7da40e7, ai_actor_2 = ab96a7b6b4db18803
 
 - Pending merges after integration build 1 finishes (in this order, run the module symbol checks after each): a18f610ee74d844a2 (saved_games, render), a8e2e4a6addbda413 (objects), a8c68560df27ca293 (structures, scenario, bitmaps, models, text, shaders), a816627a3d7da40e7 (ai_actor_1: commit cd6044c0, ai check 793 base 0 missing 0 extra). Then run integration build #2.
 - Wave 2 launched: ai_rest = a3286720ac0c33a33, hs_1 = ac1b96a5f35fa3abd, hs_2 = a19b5ccfa208639bd, hs_3 = a86799ccf54aaf388 (worktrees fast-forwarded by the lead). When fast-forwarding an agent worktree, first delete the untracked files the agent copied (docs/CPP_CONVENTIONS.md, tools/check_module_symbols.py) or git refuses.
+
+- Also pending after build 1: a9d9f7699c4305c1b (sound). Watch the audio path in the smoke test.
