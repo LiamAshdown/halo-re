@@ -13,6 +13,7 @@
 #include "game.h"
 #include "objects.h"
 #include "units.h"
+#include "networking.h"
 #include <stdint.h>
 
 #include "halo/game/game1_lifecycle.hpp"
@@ -483,40 +484,36 @@ void Lifecycle::maybe_render_post_game(void)
  */
 int32_t Lifecycle::multiplayer_ui_state_id(void)
 {
-    uint8_t *record;
+    network_game_session *record;
 
     if (network_server != (uint8_t *)0) {
-        record = network_server + 8;
+        record = &((network_server_globals *)network_server)->session;
     } else if (network_client != (uint8_t *)0) {
-        record = network_client + 0xb14;
+        record = &((network_client_globals *)network_client)->session;
     } else {
         return 8;
     }
 
-    if (record == (uint8_t *)0) {
-        return 8;
-    }
-
-    switch (*(int32_t *)(record + 0x134)) {
+    switch (record->variant.game_engine_index) {
     case 1:
-        if (*(uint8_t *)(record + 0x180) == 1) {
-            return 0x1d - (*(int32_t *)(record + 0x184) != 0);
+        if (record->variant.engine.ctf.assault == 1) {
+            return 0x1d - (record->variant.engine.ctf.single_flag_time != 0);
         }
-        return (-(int32_t)(*(int32_t *)(record + 0x184) != 0) & 0x1b) + 3;
+        return (-(int32_t)(record->variant.engine.ctf.single_flag_time != 0) & 0x1b) + 3;
     case 2:
         return 4;
     case 3:
-        if (*(int32_t *)(record + 400) == 1) {
+        if (record->variant.engine.oddball.ball_type == 1) {
             return 0x1f;
         }
-        if (*(int32_t *)(record + 400) != 2) {
+        if (record->variant.engine.oddball.ball_type != 2) {
             return 5;
         }
         return 0x20;
     case 4:
         return 6;
     case 5:
-        if (*(int32_t *)(record + 0x180) != 2) {
+        if (record->variant.engine.race.race_type != 2) {
             return 7;
         }
         return 0x21;
