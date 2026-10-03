@@ -382,6 +382,14 @@ uint32_t GameRuntime::settings_broadcast_send(network_server_globals *server, co
 uint8_t GameRuntime::start_new_server_with_name_and_password(uint32_t unused, uint16_t *name, uint16_t *password)
 {
     uint8_t ok;
+    auto tear_down_partial_state = []() {
+        if (network_server != 0) {
+            halo::networking::network_game_server_host_dispose(network_server);
+            network_server = 0;
+            network_server_host_valid = 0;
+        }
+        halo::networking::network_client_globals_dispose();
+    };
 
     if (network_server != 0) {
         halo::networking::network_game_server_host_dispose(network_server);
@@ -396,7 +404,8 @@ uint8_t GameRuntime::start_new_server_with_name_and_password(uint32_t unused, ui
     network_session_host_flags_byte = network_game_info_packet_flag;
     halo::networking::network_channels_open();
     if (network_channels_open_ok == 0) {
-        goto fail;
+        tear_down_partial_state();
+        return 0;
     }
     message_delta_vector3d_mode = (network_game_info_packet_flag == 1);
     ok = halo::networking::network_game_server_host_create();
@@ -405,7 +414,8 @@ uint8_t GameRuntime::start_new_server_with_name_and_password(uint32_t unused, ui
             network_client = halo::networking::network_session_create();
             ok = 0;
             if (network_client == 0) {
-                goto fail_or_dispose;
+                tear_down_partial_state();
+                return 0;
             }
             network_host_handoff_requested = 0;
             *(int32_t *)((uint8_t *)network_client + 0xf4c) = 4;
@@ -419,13 +429,7 @@ uint8_t GameRuntime::start_new_server_with_name_and_password(uint32_t unused, ui
         interface_loading_screen_request_id = -1;
         ok = halo::game::game_engine_ensure_variant_history_has_entry();
         if (ok == 0) {
-        fail:
-            if (network_server != 0) {
-                halo::networking::network_game_server_host_dispose(network_server);
-                network_server = 0;
-                network_server_host_valid = 0;
-            }
-            halo::networking::network_client_globals_dispose();
+            tear_down_partial_state();
             return 0;
         }
         halo::game::globals().variant_history_current = -1;
@@ -434,11 +438,9 @@ uint8_t GameRuntime::start_new_server_with_name_and_password(uint32_t unused, ui
         network_game_mode = halo::networking::k_game_mode_host;
         halo::networking::network_host_round_reset(network_server);
         network_disconnect_timeout_flag = 1;
-    } else {
-    fail_or_dispose:
-        if (ok == 0) {
-            goto fail;
-        }
+    } else if (ok == 0) {
+        tear_down_partial_state();
+        return 0;
     }
     if (network_server == 0) {
         halo::networking::network_client_globals_dispose();

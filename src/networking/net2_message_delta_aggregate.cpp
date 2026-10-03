@@ -521,19 +521,9 @@ int32_t AggregateFieldCodec::float_array_encode(message_delta_field_type *field_
         if (0 < descriptor->count) {
             for (index = 0; index < descriptor->count; index = index + 1) {
                 remaining_width = 0x20;
-                while (0x1f < remaining_width) {
-                    if (halo::memory::bit_stream_write_bits(0x20, *(uint32_t *)&cursor[index], stream) == 0) {
-                        goto accumulate;
-                    }
-                    remaining_width = remaining_width - 0x20;
-                    if (remaining_width < 1) {
-                        goto accumulate;
-                    }
-                }
-                if (halo::memory::bit_stream_write_bits(remaining_width, *(uint32_t *)&cursor[index], stream) != 0) {
+                if (halo::memory::bit_stream_write_bits(0x20, *(uint32_t *)&cursor[index], stream) != 0) {
                     remaining_width = 0;
                 }
-            accumulate:
                 total_bits = total_bits + (0x20 - remaining_width);
             }
         }
