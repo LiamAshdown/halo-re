@@ -5,6 +5,7 @@
 #include "interface.h"
 #include "halo/sound/api.hpp"
 #include "halo/shell/messages.hpp"
+#include "halo/shell/standalone.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/main/vars.hpp"
@@ -90,6 +91,15 @@ void FatalError::load_text(uint32_t resource_id, uint32_t help_text_or_id, int32
 }
 
 /**
+ * Formats the setting name under which the player's answer to this error on this graphics device is
+ * remembered.
+ */
+void FatalError::make_remembered_name(char *name, uint32_t resource_id)
+{
+    sprintf(name, "%s %s (0x%04x):%d", graphics_vendor_name, graphics_device_name, graphics_device_id, resource_id);
+}
+
+/**
  * Stops the services that would still be running when the process is about to end: window procedure
  * bypass, gamma ramp, deferred windowed operations, sound and the Keystone library. Faults are ignored.
  */
@@ -115,6 +125,9 @@ void FatalError::shut_down_engine_services()
 int32_t FatalError::show(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal)
 {
     char message[k_shell_fatal_error_text_length + 160];
+    char registry_value_name[256];
+    char remembered_answer[16];
+    uint32_t remembered_size;
     int32_t answer;
     int32_t result;
 
@@ -129,9 +142,22 @@ int32_t FatalError::show(uint32_t resource_id, uint32_t help_text_or_id, int32_t
         halo::rasterizer::globals().shader_file_name = 0;
     }
 
+    if (is_fatal == 0) {
+        make_remembered_name(registry_value_name, resource_id);
+        remembered_size = sizeof(remembered_answer);
+        remembered_answer[0] = 0;
+        SettingsStore::current().read_value(SettingsScope::user, registry_value_name, 0, remembered_answer, &remembered_size);
+        if (remembered_answer[0] == 'y') {
+            result = remembered_answer[1] - '0';
+            safe_mode = result;
+            return result;
+        }
+    }
+
+    halo::shell::standalone_log("error message id=0x%x fatal=%d: %s", resource_id, is_fatal, fatal_error_text);
     strcpy(message, fatal_error_text);
     if (is_fatal == 0) {
-        strcat(message, "\n\nYes: continue anyway\nNo: restart in safe mode\nCancel: quit");
+        strcat(message, "\n\nYes: continue (and do not ask again on this graphics device)\nNo: restart in safe mode\nCancel: quit");
     }
 
     ShowCursor(1);
@@ -146,6 +172,12 @@ int32_t FatalError::show(uint32_t resource_id, uint32_t help_text_or_id, int32_t
     }
 
     result = (answer == halo::win32::k_id_no) ? 1 : 0;
+    if (result == 0 && is_fatal == 0) {
+        remembered_answer[0] = 'y';
+        remembered_answer[1] = '0';
+        remembered_answer[2] = 0;
+        SettingsStore::current().write_string(SettingsScope::user, registry_value_name, remembered_answer, 3);
+    }
     if (result != 0) {
         safe_mode = 1;
     }
