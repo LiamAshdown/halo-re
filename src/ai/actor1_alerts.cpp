@@ -43,7 +43,7 @@ uint8_t halo::ai::alert_ops::alert_from_damage()
     struct actor *actor = halo::ai::actor_at(actor_index);
     uint32_t source = halo::k_dword_none;
 
-    if (B(0x1b5) == 0) {
+    if (actor->unknown_1b4[1] == 0) {
         return 0;
     }
     if (actor->unit_index != halo::k_dword_none) {
@@ -285,7 +285,7 @@ uint8_t halo::ai::alert_ops::alert_from_squad_attack()
     struct actor *actor = halo::ai::actor_at(actor_index);
     uint8_t *definition;
 
-    if (B(0x2ec) == 0) {
+    if (actor->unknown_2e8[4] == 0) {
         return 0;
     }
     definition = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data;
@@ -298,7 +298,7 @@ uint8_t halo::ai::alert_ops::alert_from_squad_attack()
     if (actor->pending_panic_type <= 1) {
         actor->pending_panic_type = 1;
     }
-    B(0x2ec) = 0;
+    actor->unknown_2e8[4] = 0;
     return 1;
 }
 
@@ -517,7 +517,7 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
         }
         if (halo::ai::actor_movement_set_destination_near_target(actor->target_unit_index, actor_index, wait)) {
             halo::ai::actor_movement_actions_cancel(actor_index);
-            if (halo::ai::actor_grenade_trace_from_source(actor_index, (real_point3d *)((uint8_t *)target + 0xc8))) {
+            if (halo::ai::actor_grenade_trace_from_source(actor_index, &target->center_of_mass)) {
                 result = 1;
             }
         }
@@ -653,14 +653,14 @@ uint8_t halo::ai::alert_ops::escalate_check_shield_damage()
     actor *act = halo::ai::actor_at(actor_index);
     uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
 
-    if (!((uint8_t *)act)[0x2ec] || !(act->recent_body_damage > ((Actor *)actor_tag)->berserk_damage_amount) ||
+    if (!act->unknown_2e8[4] || !(act->recent_body_damage > ((Actor *)actor_tag)->berserk_damage_amount) ||
         !(act->body_vitality < ((Actor *)actor_tag)->berserk_damage_threshold)) {
         return 0;
     }
     if (*(int16_t *)((uint8_t *)act + 0x310) <= 3) {
         *(int16_t *)((uint8_t *)act + 0x310) = 3;
     }
-    ((uint8_t *)act)[0x2ec] = 0;
+    act->unknown_2e8[4] = 0;
     return 1;
 }
 
@@ -993,7 +993,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                 if (!(vehicle_range + vehicle_range > distance)) {
                     goto consider_zero;
                 }
-                if (a->facing.k * *(float *)((uint8_t *)p + 0xe8) + a->facing.j * *(float *)((uint8_t *)p + 0xe4) +
+                if (a->facing.k * p->direction.z + a->facing.j * p->direction.y +
                         *(float *)((uint8_t *)p + 0xe0) * a->facing.i >= 0.5f) {
                     goto consider_zero;
                 }
