@@ -779,7 +779,7 @@ uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_in
             return 1;
         }
         if (act->firing_target_type != 2 ||
-            !(halo::math::vector3d_distance_squared(*(real_point3d *)((uint8_t *)act + 0x610), *(real_point3d *)(aim_state + 0x38)) < 0.25f)) {
+            !(halo::math::vector3d_distance_squared(*&act->firing_target_free_point, *(real_point3d *)(aim_state + 0x38)) < 0.25f)) {
             int16_t ticks = (int16_t)(int32_t)(*(float *)(TAG_DATA(act->actor_variant_tag) + 0x84) * 30.0f);
 
             *(int16_t *)(state + 0x2) = ticks > 0x3c ? ticks : 0x3c;

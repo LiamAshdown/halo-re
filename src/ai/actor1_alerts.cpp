@@ -793,7 +793,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
             uint8_t engaged = p->seen || (p->shooting && (int8_t)p->distance_class <= 1);
 
             if (!engaged && actor_tag->stalking_discovery_time > 0.0f &&
-                !(*(int16_t *)((uint8_t *)a + 0xc2) < (int16_t)(int32_t)(actor_tag->stalking_discovery_time * 30.0f) )) {
+                !(a->mode_data.charge.weak_target_ticks < (int16_t)(int32_t)(actor_tag->stalking_discovery_time * 30.0f) )) {
                 engaged = 1;
             }
             if (engaged) {
@@ -884,10 +884,10 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
     }
     mode = a->mode;
     if (mode == 0xa) {
-        int16_t state = *(int16_t *)((uint8_t *)a + 0xa0);
+        int16_t state = a->mode_data.charge.stage;
 
         if (state == 2 || state == 3) {
-            if (!((uint8_t *)a)[0xa3] && !((uint8_t *)a)[0xa4] && !((uint8_t *)a)[0xc5]) {
+            if (!a->mode_data.flee.unknown_07 && !a->mode_data.charge.done && !a->mode_data.charge.approach_failed) {
                 fallback = 1;
                 goto consider_zero;
             }
@@ -898,7 +898,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
             goto guard;
         }
         if (state == 4 || state == 5) {
-            if (((uint8_t *)a)[0xc5] || a->vehicle_driving_type <= 1) {
+            if (a->mode_data.charge.approach_failed || a->vehicle_driving_type <= 1) {
                 hold = 1;
                 goto decide;
             }

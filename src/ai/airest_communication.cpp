@@ -190,7 +190,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
     datum_index look_object = 4;
     int32_t side;
     int32_t row_index;
-    uint8_t *row;
+    ai_communication_line_definition *row;
 
     if ((int16_t)reason == -1) {
         reason = 0;
@@ -405,16 +405,16 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
     if ((int16_t)row_index == -1) {
         return;
     }
-    row = ai_communication_lines + (int16_t)row_index * 0x28;
-    if (*(int16_t *)row != event) {
+    row = (ai_communication_line_definition *)(ai_communication_lines + (int16_t)row_index * 0x28);
+    if (row->event_id != event) {
         return;
     }
 
-    for (; *(int16_t *)row == event; row += 0x28, row_index++) {
-        int16_t line_class = *(int16_t *)(row + 0x2);
+    for (; row->event_id == event; ++row, row_index++) {
+        int16_t line_class = row->class_index;
         uint32_t class_word;
         uint32_t class_priority;
-        int16_t selector = *(int16_t *)(row + 0x8);
+        int16_t selector = row->participant_selector;
         datum_index speaker_unit = k_datum_index_none;
         datum_index speaker_actor = k_datum_index_none;
         actor *speaker = 0;
@@ -441,24 +441,24 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
 
         other_team_or_class = (other_team_or_class & 0xffff0000u) | (uint16_t)line_class;
         class_word = other_team_or_class;
-        if (*(int16_t *)(row + 0x1c) != -1 && !buckets[*(int16_t *)(row + 0x1c)]) {
+        if (row->required_kind != -1 && !buckets[row->required_kind]) {
             continue;
         }
-        if (halo::game::globals().game_time->game_time < halo::ai::globals().communication_quiet_until_tick && line_class < 6 && !(row[0x18] & 0x40)) {
+        if (halo::game::globals().game_time->game_time < halo::ai::globals().communication_quiet_until_tick && line_class < 6 && !(row->flags & 0x40)) {
             continue;
         }
-        if (*(int16_t *)(row + 0x1e) != -1 && !gates[*(int16_t *)(row + 0x1e)]) {
+        if (row->relationship_gate != -1 && !gates[row->relationship_gate]) {
             continue;
         }
-        if (*(uint16_t *)(row + 0x20) != halo::k_word_none &&
-            (unit_index == k_datum_index_none || !(uint16_t)(*(uint16_t *)(row + 0x20) & unit_class))) {
+        if (row->source_type_mask != halo::k_word_none &&
+            (unit_index == k_datum_index_none || !(uint16_t)(row->source_type_mask & unit_class))) {
             continue;
         }
-        if (*(uint16_t *)(row + 0x22) != halo::k_word_none &&
-            (object_a == k_datum_index_none || !(uint16_t)(*(uint16_t *)(row + 0x22) & other_class))) {
+        if (row->target_type_mask != halo::k_word_none &&
+            (object_a == k_datum_index_none || !(uint16_t)(row->target_type_mask & other_class))) {
             continue;
         }
-        if (*(int16_t *)(row + 0x24) != -1 && *(int16_t *)(row + 0x24) != (int16_t)object_b) {
+        if (row->required_seat != -1 && row->required_seat != (int16_t)object_b) {
             continue;
         }
         class_priority = *(uint16_t *)((uint8_t *)ai_communication_class_priority + line_class * 2);
@@ -485,15 +485,15 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             addressed = object_a;
             if (selector == 2) {
                 if (may_search) {
-                    uint8_t flags = (uint8_t)(broadcast_line_flags(row[0x18]) | 0x10);
+                    uint8_t flags = (uint8_t)(broadcast_line_flags(row->flags) | 0x10);
 
                     if (unit_encounter_index != k_datum_index_none) {
                         cached_speaker = halo::ai::ai_communication_select_speaker_in_reference(10.0f, event, class_word,
-                            class_priority, *(uint16_t *)(row + 0x4), *(int16_t *)(row + 0x6), flags,
+                            class_priority, static_cast<uint16_t>(row->table_arg_a), row->table_arg_b, flags,
                             unit_encounter_index & halo::k_slot_mask, unit_index, object_a);
                     } else {
                         cached_speaker = halo::ai::ai_communication_select_speaker_by_team(1, unit_index, object_a, 10.0f, event,
-                            class_word, class_priority, *(uint16_t *)(row + 0x4), *(int16_t *)(row + 0x6), flags,
+                            class_word, class_priority, static_cast<uint16_t>(row->table_arg_a), row->table_arg_b, flags,
                             (int16_t)unit_team);
                     }
                     may_search = 0;
@@ -502,8 +502,8 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             } else {
                 if (may_search_team) {
                     cached_team_speaker = halo::ai::ai_communication_select_speaker_by_team(2, unit_index, object_a, 12.0f, event,
-                        class_word, class_priority, *(uint16_t *)(row + 0x4), *(int16_t *)(row + 0x6),
-                        broadcast_line_flags(row[0x18]), (int16_t)unit_team);
+                        class_word, class_priority, static_cast<uint16_t>(row->table_arg_a), row->table_arg_b,
+                        broadcast_line_flags(row->flags), (int16_t)unit_team);
                     may_search_team = 0;
                 }
                 found = cached_team_speaker;
@@ -529,7 +529,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                 reject = 1;
             } else if (*(datum_index *)(object + 0x218) == k_datum_index_none &&
                        *(datum_index *)(object + 0x1f4) == k_datum_index_none) {
-                if (row[0x18] & 8) {
+                if (row->flags & 8) {
                     no_actor_speaker = 1;
                 } else {
                     reject = 1;
@@ -548,7 +548,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             continue;
         }
         if (no_actor_speaker) {
-            target = halo::ai::ai_select_communication_target(speaker_unit, addressed, *(int16_t *)(row + 0x4),
+            target = halo::ai::ai_select_communication_target(speaker_unit, addressed, row->table_arg_a,
                                                     (int16_t)object_b, &weight);
             if (speaker_unit == unit_index) {
                 may_search = 0;
@@ -558,7 +558,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                 continue;
             }
         }
-        if (*(int16_t *)(row + 0x1a) != -1 && capability != 0 && !capability[*(int16_t *)(row + 0x1a)]) {
+        if (row->capability_index != -1 && capability != 0 && !capability[row->capability_index]) {
             continue;
         }
 
@@ -617,19 +617,19 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             delay += 30;
         }
         {
-            float tail = (row[0x18] & 4) ? 0.0f
+            float tail = (row->flags & 4) ? 0.0f
                                          : ai_communication_class_tail_seconds[(int16_t)class_word] * 30.0f;
 
             delay += recent_value;
             lipsync = (uint16_t)(int32_t)tail + recent_value;
         }
 
-        switch (*(int16_t *)(row + 0xc)) {
+        switch (row->look_target_selector) {
         case 1:
         case 2:
         case 3: {
-            datum_index looked = *(int16_t *)(row + 0xc) == 1 ? unit_index
-                               : (*(int16_t *)(row + 0xc) == 2 ? speaker_unit : addressed);
+            datum_index looked = row->look_target_selector == 1 ? unit_index
+                               : (row->look_target_selector == 2 ? speaker_unit : addressed);
 
             if (looked != k_datum_index_none) {
                 look_kind = 1;
@@ -652,22 +652,22 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         default:
             break;
         look_marker_default:
-            look_marker = *(int16_t *)(row + 0xe);
+            look_marker = row->look_marker_selector;
             if (look_marker == -1 || look_marker == 1) {
                 look_marker = ai_communication_class_look_marker[(int16_t)class_word];
             }
             break;
         }
-        follow_up = *(int16_t *)(row + 0xa);
+        follow_up = row->fallback_order;
         if (follow_up == -1 || follow_up == 1) {
             follow_up = ai_communication_class_follow_up[(int16_t)class_word];
         }
 
-        dialogue_index = *(int16_t *)(row + 0x4);
+        dialogue_index = row->table_arg_a;
         if (!no_actor_speaker) {
             uint32_t unused = 0;
 
-            check_result = halo::units::unit_animation_change_priority_check(speaker_unit, (uint8_t)(row[0x18] & 1),
+            check_result = halo::units::unit_animation_change_priority_check(speaker_unit, (uint8_t)(row->flags & 1),
                                                                 (int16_t)class_priority, 1, &unused,
                                                                 &dialogue_index, &chain);
             if ((int16_t)check_result == 1) {
@@ -676,8 +676,8 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             if ((int16_t)check_result == 0) {
                 continue;
             }
-            if (*(int16_t *)(row + 0x6) != -1 &&
-                halo::units::unit_scripted_action_animation_exists(speaker_unit, *(int16_t *)(row + 0x6))) {
+            if (row->table_arg_b != -1 &&
+                halo::units::unit_scripted_action_animation_exists(speaker_unit, row->table_arg_b)) {
                 if (speaker_actor == k_datum_index_none) {
                     animation_factor = 2.0f;
                 } else {
@@ -691,7 +691,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             }
         }
 
-        score = animation_factor * *(float *)(row + 0x10) * check_factor * proximity * weight * recency;
+        score = animation_factor * row->probability * check_factor * proximity * weight * recency;
         if (!(score > 0.0f)) {
             continue;
         }
@@ -706,7 +706,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             c->score = score;
             c->speaker_unit = speaker_unit;
             c->speaker_actor = speaker_actor;
-            c->animation = *(int16_t *)(row + 0x6);
+            c->animation = row->table_arg_b;
             c->other_object = addressed;
             c->target = target;
             c->priority = (int16_t)class_priority;
@@ -719,7 +719,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             c->look_object = look_object;
             c->lipsync_ticks = (int16_t)lipsync;
             c->follow_up = follow_up;
-            c->broadcast = (uint8_t)((row[0x18] >> 1) & 1);
+            c->broadcast = (uint8_t)((row->flags >> 1) & 1);
             if (c->broadcast) {
                 any_broadcast = 1;
             }

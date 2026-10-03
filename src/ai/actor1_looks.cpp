@@ -459,7 +459,7 @@ int32_t halo::ai::look_ops::look_get_wait_ticks(int16_t mode, uint32_t flags, fl
     float fraction;
     float ticks;
     uint32_t rng;
-    void *weapon_definition;
+    Weapon *weapon_definition;
     int32_t result;
 
     switch (mode) {
@@ -493,10 +493,10 @@ int32_t halo::ai::look_ops::look_get_wait_ticks(int16_t mode, uint32_t flags, fl
         datum_index weapon = halo::ai::actor_get_threat_weapon_object_index(actor_index);
 
         weapon_definition = weapon == k_datum_index_none ? 0 :
-            halo::cache::globals().tag_instances[*(datum_index *)halo::ai::object_at(weapon) & halo::k_slot_mask].data;
+            halo::ai::tag_data<Weapon>(halo::ai::object_at(weapon)->definition_tag);
     }
-    if (weapon_definition != 0 && 0.0f < *(float *)((uint8_t *)weapon_definition + 0x410)) {
-        fraction = fraction * *(float *)((uint8_t *)weapon_definition + 0x410);
+    if (weapon_definition != 0 && 0.0f < weapon_definition->looking_time_modifier) {
+        fraction = fraction * weapon_definition->looking_time_modifier;
     }
 
     if ((uint8_t)flags != 0) {
