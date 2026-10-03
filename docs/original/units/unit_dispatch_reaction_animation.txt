@@ -1,0 +1,32 @@
+// unit_dispatch_reaction_animation  (Ghidra: FUN_005614a0)
+// address 0x5614a0, size 355 bytes
+// name confidence: 0.3   rewrite confidence: 0.85
+// REWRITTEN from objdump 0x5614a0..0x561602. Ghidra split the function at its jump table (0x561604) and the draft
+//   called the table entries, which are labels inside this function. ESI = unit, stack: reaction code 0..5, which
+//   picks a scream / vocalization index (0: 0xa; 1: 0x27 or 0xb at random; 2: 0xb; 3: 0xc; 4: 0xd; 5: 0xb7).
+//   With a dialogue tag (+0x384) whose entry for it (+0x1c + index * 16) has a sound, the speech priority check
+//   (0x560d00: EAX unit, DL 1, stack priority 9, 0, 0, &index, &sound) decides; a positive result commits a
+//   speech {priority 9, index, sound, tail 7 ticks, the rest -1} (0x560f20: EAX unit, ECX speech, DX result).
+//   Returns whether one was committed.
+// blam-cc: ESI -> unit_index, stack -> reaction_code
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x008603b0 | extern data_array *object_data;
+  // 0x0087bc14 | extern tag_instance *tag_instances;
+  // 0x00719cd0 | extern uint32_t random_seed_global;
+  // 0x560d00, EAX, DL, stack | int32_t *chain_value);
+  // 0x560f20, EAX, ECX, DX | extern int32_t unit_commit_speech(uint32_t unit_index, const unit_speech *source, int16_t mode);
+  // 0x5614c2: the table has six entries | return 0;
+
+#if 0
+Original Ghidra decompilation (0x5614a0):
+
+void FUN_005614a0(short param_1)
+
+{
+                    /* WARNING: Could not recover jumptable at 0x005614c2. Too many branches */
+                    /* WARNING: Treating indirect jump as call */
+  (*(code *)(&PTR_LAB_00561604)[param_1])();
+  return;
+}
+#endif

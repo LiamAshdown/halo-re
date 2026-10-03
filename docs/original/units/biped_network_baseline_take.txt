@@ -1,0 +1,11 @@
+// biped_network_baseline_take  (not a Ghidra function; the biped object type definition's +0x68 "take a network
+//   baseline" hook; no C existed, so it trapped as unlisted_55b3d0)
+// address 0x55b3d0, size 108 bytes
+// name confidence: 0.7   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x55b3d0..0x55b43b: for a live biped (object_try_and_get mask 1) bumps the baseline
+//   index (+0x527), snapshots +0xe0 into +0x530 and +0xe4 / 3 into +0x534, the unit word +0x31e into +0x52c and
+//   (+0x104 > 0) into +0x538, marks the state valid (+0x526 = 1) and resets the sequence (+0x528 = 0).
+// blam-cc: stack -> object_index (cdecl)
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x4f6ec0, ECX object, stack mask | extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);

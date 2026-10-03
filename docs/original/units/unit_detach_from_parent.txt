@@ -1,0 +1,59 @@
+// unit_detach_from_parent  (Ghidra: already named unit_detach_from_parent)
+// address 0x570140, size 98 bytes
+// name confidence: 0.6 (functions.md summary matches)
+// rewrite confidence: 1.0 (FRAGMENT: 0x570140 is the tail of unit_process_melee_special_interaction 0x56ff40, whose C holds this logic; nothing calls or jumps here) -- zero recorded callers and every input arriving as an "unaff_"
+//   register are the signature of a shared tail block Ghidra split out of a larger function
+//   rather than a real call target; unaff_EBX (the object base) cannot be resolved here.
+// evidence: types/objects.h object.flags (0x010); types/units.h unit_data.flags (0x204, bit
+//   0x8000 = _unit_flag_detached); callees vector3d_cross_product, object_set_position_and_relink,
+//   object_attach_to_object (all established elsewhere in this module), unit_try_ready_weapon (sets
+//   melee_state per other files' evidence, called here as a "reset" with (1,0)).
+// register convention: UNRESOLVED (unaff_EBX must come from the caller this block was split
+//   from).
+//   // blam-cc: EBX -> obj, EDI -> unit_index
+// FIXED (register inputs, objdump): EBX carries obj (read at 0x570170, mov ebp,[ebx+0x10],
+// which is exactly the object->flags this rewrite already models -- it was previously faked as
+// a literal null pointer instead of a real parameter, a live null-dereference bug). EDI carries
+// unit_index (read at 0x570158, the call to object_set_position_and_relink, whose own file
+// documents EDI -> object_index there; the same EDI is pushed again at 0x570169 as
+// object_attach_to_object's child_index stack argument). Both are genuine live-in registers of
+// this shared tail block; the several other values this function reads from large, unexplained
+// [esp+N] offsets (cross_out/cross_ecx_operand/cross_stack_operand/reposition_target,
+// object_attach_to_object's parent_index/marker_word) are locals of the larger function this
+// block was split from, not stack parameters of a real callable function, and are left exactly
+// as the prior rewrite modeled them -- see the UNSURE notes below and in the header.
+// UNSURE: reproduced as literally as possible; the object.flags |= 0x20 and
+//   unit_data.flags |= 0x8000 writes and the unit_try_ready_weapon(1, 0) call are the only parts with
+//   unambiguous meaning regardless of which object unaff_EBX names.
+
+Original comment above the definition:
+// Detaches the unit from its current parent/attachment object.
+// blam-cc: EBX -> obj, EDI -> unit_index
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x4052c0, UNSURE args here | real_vector3d *stack_operand);
+  // 0x4f5350 | bsp_leaf_reference *location);
+  // 0x4f6440 | uint32_t marker_word);
+  // 0x569a20, EDI, stack | extern uint8_t unit_try_ready_weapon(uint32_t unit_index, uint8_t forced, const void *direction);
+  // UNSURE: real arguments not recoverable | object_attach_to_object(unit_index, unit_index, 0);
+  // FIXED: EDI = the unit (0x570192) | unit_try_ready_weapon(unit_index, 1, 0);
+
+#if 0
+Original Ghidra decompilation (0x570140):
+
+void unit_detach_from_parent(void)
+
+{
+  int unaff_EBX;
+  undefined4 in_stack_00000024;
+  undefined4 in_stack_0000003c;
+
+  vector3d_cross_product();
+  object_set_position_and_relink(in_stack_0000003c);
+  object_attach_to_object(in_stack_00000024);
+  *(uint *)(unaff_EBX + 0x10) = *(uint *)(unaff_EBX + 0x10) | 0x20;
+  *(uint *)(unaff_EBX + 0x204) = *(uint *)(unaff_EBX + 0x204) | 0x8000;
+  FUN_00569a20(1,0);
+  return;
+}
+#endif

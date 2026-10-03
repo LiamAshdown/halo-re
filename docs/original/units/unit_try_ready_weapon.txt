@@ -1,0 +1,70 @@
+// unit_try_ready_weapon  (Ghidra: FUN_00569a20)
+// address 0x569a20, size 238 bytes, name confidence 0.35, rewrite confidence 0.85
+// REWRITTEN from objdump 0x569a20..0x569b0d: this starts a melee. The draft always asked for animation state 0x19
+//   and called unit_set_throw_aim_direction without its direction; the original:
+//   - picks the state: 0x20 for a forced (param) melee, 0x29 when already in 0x28, else 0x1e, or 0x1f for an
+//     airborne biped (object +0xb4 type 0 and biped +0x4cc bit 0);
+//   - proceeds when unit_try_set_animation_state takes it or the melee is forced; a unit tag with flag 0x100
+//     (+0x17c) resets the state to 0x19; a non-null direction (ECX at 0x569ad2) aims it;
+//   - melee_state (+0x289) becomes 4 with the damage countdown (+0x28a) cleared when forced, else 1.
+// blam-cc: EDI -> unit_index, stack -> forced, direction
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x008603b0 | extern data_array *object_data;
+  // 0x0087bc14 | extern tag_instance *tag_instances;
+  // 0x565f90 | extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state);
+  // 0x5704d0, EAX, ECX | extern void unit_set_throw_aim_direction(uint32_t object_index, const real_vector2d *direction_xy);
+  // 0x17..0x29 jump table (0x569b18 / 0x569bac): only 0x1c, 0x24, 0x25, 0x26 and 0x28 inside that range let it proceed. | 
+
+#if 0
+Original Ghidra decompilation (0x569a20):
+
+undefined1 FUN_00569a20(char param_1,int param_2)
+
+{
+  uint *puVar1;
+  int iVar2;
+  char cVar3;
+  undefined1 uVar4;
+  uint unaff_EDI;
+
+  puVar1 = *(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 + (unaff_EDI & 0xffff) * 0xc);
+  iVar2 = *(int *)((*puVar1 & 0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+  uVar4 = 0;
+  switch(*(undefined1 *)((int)puVar1 + 0x2a3)) {
+  case 0x17:
+  case 0x18:
+  case 0x19:
+  case 0x1a:
+  case 0x1b:
+  case 0x1d:
+  case 0x1e:
+  case 0x1f:
+  case 0x20:
+  case 0x21:
+  case 0x22:
+  case 0x23:
+  case 0x27:
+  case 0x29:
+    break;
+  default:
+    cVar3 = unit_try_set_animation_state();
+    if ((cVar3 != '\0') || (param_1 != '\0')) {
+      if ((*(uint *)(iVar2 + 0x17c) & 0x100) != 0) {
+        *(undefined1 *)((int)puVar1 + 0x2a3) = 0x19;
+      }
+      if (param_2 != 0) {
+        FUN_005704d0();
+      }
+      if (param_1 != '\0') {
+        *(undefined1 *)((int)puVar1 + 0x289) = 4;
+        *(undefined1 *)((int)puVar1 + 0x28a) = 0;
+        return 1;
+      }
+      *(undefined1 *)((int)puVar1 + 0x289) = 1;
+      uVar4 = 1;
+    }
+  }
+  return uVar4;
+}
+#endif
