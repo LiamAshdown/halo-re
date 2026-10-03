@@ -205,7 +205,7 @@ void particle_system_view::advance_type_state(particle_system_type_state *state,
     state->next_state_index = next;
 
     if (next < 0 || (int32_t)type->states.count <= next) {
-        if (particle_type_has(type, particle_type_flag::type_states_loop) && system->object_index != (datum_index)0xffffffff &&
+        if (particle_type_has(type, particle_type_flag::type_states_loop) && system->object_index != k_datum_index_none &&
             0 < (int32_t)type->states.count) {
             if (!particle_type_has(type, particle_type_flag::type_states_ping_pong)) {
                 state->next_state_index = 0;
@@ -253,7 +253,7 @@ void particle_system_ref::destroy()
     for (i = 0; i < (int32_t)definition->particle_types.count; i++) {
         datum_index particle_handle = system->type_states[i].first_particle;
 
-        while (particle_handle != (datum_index)0xffffffff) {
+        while (particle_handle != k_datum_index_none) {
             particle_system_particle *particle =
                 &((particle_system_particle *)particle_system_particle_data->data)[particle_handle & halo::k_slot_mask];
             datum_index next = particle->next_particle;
@@ -273,17 +273,17 @@ void particle_system_ref::destroy()
  */
 datum_index particle_system_ref::new_at_point(uint32_t definition_index, real_point3d *position, real_vector3d *velocity, ColorARGB *color, float scale)
 {
-    datum_index handle = (datum_index)0xffffffff;
+    datum_index handle = k_datum_index_none;
 
     if (particle_systems_enabled != 0) {
         handle = halo::memory::datum_new(particle_system_data);
-        if (handle != (datum_index)0xffffffff) {
+        if (handle != k_datum_index_none) {
             particle_system *system =
                 &((particle_system *)particle_system_data->data)[handle & halo::k_slot_mask];
             real_vector3d incident_scratch;
 
             system->definition_index = definition_index;
-            system->object_index = (datum_index)0xffffffff;
+            system->object_index = k_datum_index_none;
             system->position = *position;
             system->velocity = *velocity;
             system->color = *color;
@@ -295,7 +295,7 @@ datum_index particle_system_ref::new_at_point(uint32_t definition_index, real_po
 
             if (!halo::effects::particle_system_new_type_states(handle)) {
                 halo::memory::datum_delete(particle_system_data, handle);
-                return (datum_index)0xffffffff;
+                return k_datum_index_none;
             }
         }
     }
@@ -309,11 +309,11 @@ datum_index particle_system_ref::new_at_point(uint32_t definition_index, real_po
  */
 datum_index particle_system_ref::new_on_marker(uint32_t definition_index, uint32_t object_index, int16_t attachment_index)
 {
-    datum_index handle = (datum_index)0xffffffff;
+    datum_index handle = k_datum_index_none;
 
     if (particle_systems_enabled != 0) {
         handle = halo::memory::datum_new(particle_system_data);
-        if (handle != (datum_index)0xffffffff) {
+        if (handle != k_datum_index_none) {
             object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
             Object *object_definition = (Object *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
             ObjectAttachment *attachment = (ObjectAttachment *)object_definition->attachments.pointer + attachment_index;
@@ -356,7 +356,7 @@ datum_index particle_system_ref::new_on_marker(uint32_t definition_index, uint32
 
             if (!halo::effects::particle_system_new_type_states(handle)) {
                 halo::memory::datum_delete(particle_system_data, handle);
-                return (datum_index)0xffffffff;
+                return k_datum_index_none;
             }
         }
     }
@@ -401,7 +401,7 @@ uint8_t particle_system_ref::new_type_states()
                 state->next_state_index = -1;
                 state->ping_pong_forward = 1;
                 state->particle_count = 0;
-                state->first_particle = (datum_index)0xffffffff;
+                state->first_particle = k_datum_index_none;
 
                 if (0 < (int32_t)type->states.count) {
                     float duration = halo::math::random_real_range_seeded(halo::math::globals().effect_random_seed,
@@ -867,7 +867,7 @@ void particle_system_ref::delete_all()
     if (systems != (data_array *)0 && systems->valid != 0) {
         datum_index handle = halo::memory::datum_next(-1, systems);
 
-        while (handle != (datum_index)0xffffffff) {
+        while (handle != k_datum_index_none) {
             halo::effects::particle_system_delete(handle);
             handle = halo::memory::datum_next((int16_t)handle, systems);
         }
@@ -914,7 +914,7 @@ void particle_system_ref::update_all(float delta_time)
     data_array *systems = particle_system_data;
     datum_index handle = halo::memory::datum_next(-1, systems);
 
-    while (handle != (datum_index)0xffffffff) {
+    while (handle != k_datum_index_none) {
         halo::effects::particle_system_update(delta_time, handle);
         handle = halo::memory::datum_next((int16_t)handle, systems);
     }

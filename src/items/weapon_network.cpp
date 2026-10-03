@@ -43,7 +43,7 @@ int32_t weapon_ref::add_ammunition(void **message_record)
         return 0;
     }
 
-    item_index = (datum_index)0xffffffff;
+    item_index = k_datum_index_none;
     if (decoded.object_hash != 0) {
         item_index = object_network_id_table->handles[decoded.object_hash];
     }
@@ -81,7 +81,7 @@ void weapon_ref::apply_ammo_correction(void **message_record)
         return;
     }
 
-    item_index = (datum_index)0xffffffff;
+    item_index = k_datum_index_none;
     if (decoded.object_hash != 0) {
         item_index = object_network_id_table->handles[decoded.object_hash];
     }
@@ -122,7 +122,7 @@ void weapon_ref::apply_ammo_correction_and_resync(void **message_record)
         return;
     }
 
-    item_index = (datum_index)0xffffffff;
+    item_index = k_datum_index_none;
     if (decoded.object_hash != 0) {
         item_index = object_network_id_table->handles[decoded.object_hash];
     }
@@ -243,7 +243,7 @@ void weapon_ref::build_creation_message(uint32_t unused_param_2, uint32_t unused
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
     wd = (weapon_data *)((uint8_t *)item_obj + k_item_extension_offset);
 
-    if (item_index != (datum_index)0xffffffff) {
+    if (item_index != k_datum_index_none) {
         object_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, item_index);
     }
     if (item_obj->creator_object != (uint32_t)0xffffffff) {
@@ -498,7 +498,7 @@ void weapon_ref::predict_ammo(void **message_record)
         return;
     }
 
-    item_index = (datum_index)0xffffffff;
+    item_index = k_datum_index_none;
     if (decoded.object_hash != 0) {
         item_index = object_network_id_table->handles[decoded.object_hash];
     }

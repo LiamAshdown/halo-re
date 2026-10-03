@@ -23,7 +23,7 @@ uint32_t item_ref::any_detonating()
     iterator.type_mask = _object_mask_item;
     iterator.flags_mask = _object_header_active_bit;
     iterator.index = 0;
-    iterator.handle = (datum_index)0xffffffff;
+    iterator.handle = k_datum_index_none;
 
     obj = halo::objects::object_iterator_next(&iterator);
     while (obj != 0) {
@@ -93,7 +93,7 @@ void item_ref::set_holder(datum_index holder_index)
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[item_index & halo::k_slot_mask].data;
     item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
 
-    if (holder_index == (datum_index)0xffffffff) {
+    if (holder_index == k_datum_index_none) {
         item->flags &= ~(uint32_t)(_item_in_inventory_bit | _item_held_by_player_bit);
         return;
     }
@@ -105,7 +105,7 @@ void item_ref::set_holder(datum_index holder_index)
 
         item->flags = (original_flags & ~(uint32_t)_item_unknown_40_bit) | _item_in_inventory_bit;
 
-        if (holder_unit->controlling_player == (datum_index)0xffffffff) {
+        if (holder_unit->controlling_player == k_datum_index_none) {
             item->flags = (original_flags & ~(uint32_t)(_item_held_by_player_bit | _item_unknown_40_bit))
                 | _item_in_inventory_bit;
         } else {

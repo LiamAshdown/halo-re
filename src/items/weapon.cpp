@@ -128,7 +128,7 @@ int16_t weapon_ref::get_first_person_animation_time(int16_t animation_index, int
     weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
     graph_tag_id = *(datum_index *)&weapon_tag->first_person_animations.tag_id;
 
-    if (graph_tag_id != (datum_index)0xffffffff) {
+    if (graph_tag_id != k_datum_index_none) {
         ModelAnimations *graph = (ModelAnimations *)halo::cache::globals().tag_instances[(uint16_t)graph_tag_id].data;
 
         if (graph->first_person_weapons.count != 0) {
@@ -179,7 +179,7 @@ char * weapon_ref::get_label()
     object *item_obj;
     Weapon *weapon_tag;
 
-    if (item_index == (datum_index)0xffffffff) {
+    if (item_index == k_datum_index_none) {
         return k_empty_string;
     }
 
@@ -625,14 +625,14 @@ uint32_t weapon_ref::play_trigger_tag_effect(datum_index tag_id, real scale_a, r
     real a_scale = scale_a;
     real b_scale = scale_b;
 
-    if (tag_id == (datum_index)0xffffffff) {
+    if (tag_id == k_datum_index_none) {
         return 0xffffffff;
     }
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    if ((item_obj->flags & _object_no_collision_bit) != 0 && item_obj->parent_object != (datum_index)0xffffffff) {
+    if ((item_obj->flags & _object_no_collision_bit) != 0 && item_obj->parent_object != k_datum_index_none) {
         attach_to = item_obj->parent_object;
     }
-    if (item_obj->parent_object != (datum_index)0xffffffff &&
+    if (item_obj->parent_object != k_datum_index_none &&
         halo::objects::object_try_and_get(item_obj->parent_object, _object_mask_unit) != 0) {
         creator = item_obj->parent_object;
     }
@@ -662,7 +662,7 @@ uint32_t weapon_ref::prevents_grenade_throwing()
     Weapon *weapon_tag;
     int8_t state;
 
-    if (item_index == (datum_index)0xffffffff) {
+    if (item_index == k_datum_index_none) {
         return 1;
     }
 
@@ -691,7 +691,7 @@ uint32_t weapon_ref::prevents_melee_attack()
     Weapon *weapon_tag;
     int8_t effect_state;
 
-    if (item_index == (datum_index)0xffffffff) {
+    if (item_index == k_datum_index_none) {
         return 1;
     }
 
@@ -962,7 +962,7 @@ int32_t weapon_ref::set_state(int16_t new_state, int8_t force)
         Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data;
         datum_index graph_tag_id = *(datum_index *)&weapon_tag->base.base.animation_graph.tag_id;
 
-        if (graph_tag_id != (datum_index)0xffffffff) {
+        if (graph_tag_id != k_datum_index_none) {
             ModelAnimations *graph = (ModelAnimations *)halo::cache::globals().tag_instances[(uint16_t)graph_tag_id].data;
             if (graph->weapons.count != 0) {
                 ModelAnimationsAnimationGraphWeaponAnimations *weapon_anims =
@@ -997,9 +997,9 @@ int32_t weapon_ref::set_state(int16_t new_state, int8_t force)
     }
     {
         datum_index parent = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data->parent_object;
-        datum_index unit_index = (datum_index)0xffffffff;
+        datum_index unit_index = k_datum_index_none;
 
-        if (parent != (datum_index)0xffffffff && halo::objects::object_try_and_get(parent, _object_mask_unit) != 0) {
+        if (parent != k_datum_index_none && halo::objects::object_try_and_get(parent, _object_mask_unit) != 0) {
             unit_index = parent;
         }
         if (halo::objects::object_try_and_get(unit_index, _object_mask_unit) != 0) {
@@ -1050,15 +1050,15 @@ uint32_t weapon_ref::stop_object_effect(datum_index tag_id)
     datum_index item_index = datum;
     object *item_obj;
 
-    if (tag_id == (datum_index)0xffffffff) {
+    if (tag_id == k_datum_index_none) {
         return 0xffffffff;
     }
 
     item_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data;
-    if ((item_obj->flags & _object_no_collision_bit) != 0 && item_obj->parent_object != (datum_index)0xffffffff) {
+    if ((item_obj->flags & _object_no_collision_bit) != 0 && item_obj->parent_object != k_datum_index_none) {
         item_index = item_obj->parent_object;
     }
-    if (item_index != (datum_index)0xffffffff) {
+    if (item_index != k_datum_index_none) {
         return halo::effects::effect_new_at_texture_coordinate(tag_id, item_index, -1, -1, -1);
     }
     return 0xffffffff;
@@ -1112,7 +1112,7 @@ uint32_t weapon_ref::transfer_ammunition(datum_index source_item_index, int16_t 
                     }
                     if (moved > 0) {
                         *source_rounds_unloaded = *source_rounds_unloaded - moved;
-                        if (*(datum_index *)&target_tag->pickup_sound.tag_id != (datum_index)0xffffffff &&
+                        if (*(datum_index *)&target_tag->pickup_sound.tag_id != k_datum_index_none &&
                             requesting_player_index != -1) {
                             halo::sound::sound_start_unspatialized(*(datum_index *)&target_tag->pickup_sound.tag_id, 1.0f);
                         }

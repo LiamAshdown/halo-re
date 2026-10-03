@@ -30,7 +30,7 @@ void particle_system_ref::update(float delta_time)
     int32_t type_index;
     int32_t types_alive = 0;
 
-    if (self->object_index != (datum_index)0xffffffff) {
+    if (self->object_index != k_datum_index_none) {
         object *obj = ((object_header *)halo::objects::globals().object_data->data)[self->object_index & halo::k_slot_mask].data;
         float function_value;
 
@@ -281,7 +281,7 @@ void particle_system_ref::update(float delta_time)
     }
 
     self->flags &= ~(uint32_t)_particle_system_in_update_bit;
-    if (types_alive == 0 && self->object_index == (datum_index)0xffffffff) {
+    if (types_alive == 0 && self->object_index == k_datum_index_none) {
         halo::effects::particle_system_delete(handle);
     }
 }

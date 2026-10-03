@@ -135,7 +135,7 @@ effect_location_marker * effect_view::next(datum_index *marker, int32_t mode)
     effect * self = record;
     effect_location_marker *entry;
 
-    if (*marker == (datum_index)0xffffffff) {
+    if (*marker == k_datum_index_none) {
         return (effect_location_marker *)0;
     }
 

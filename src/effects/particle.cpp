@@ -221,12 +221,12 @@ void particle_ref::create(particle_creation_data *creation_data)
     int16_t cluster = -1;
     uint32_t visible;
 
-    if (creation_data->definition_index == (datum_index)0xffffffff) {
+    if (creation_data->definition_index == k_datum_index_none) {
         return;
     }
     tag = (Particle *)halo::cache::globals().tag_instances[(uint16_t)creation_data->definition_index].data;
 
-    if (creation_data->object_index == (datum_index)0xffffffff) {
+    if (creation_data->object_index == k_datum_index_none) {
         position = creation_data->position;
     } else if (creation_data->first_person == 0) {
         object *obj = ((object_header *)halo::objects::globals().object_data->data)[creation_data->object_index & halo::k_slot_mask].data;
@@ -255,7 +255,7 @@ void particle_ref::create(particle_creation_data *creation_data)
     {
         datum_index handle = halo::memory::datum_new(particle_data);
 
-        if (handle != (datum_index)0xffffffff) {
+        if (handle != k_datum_index_none) {
             particle *self = &((particle *)particle_data->data)[handle & halo::k_slot_mask];
             real speed;
 
@@ -303,7 +303,7 @@ void particle_ref::create(particle_creation_data *creation_data)
             self->velocity = creation_data->velocity;
             self->rotation = creation_data->rotation;
 
-            if (self->object_index == (datum_index)0xffffffff) {
+            if (self->object_index == k_datum_index_none) {
                 real radius = halo::effects::particle_current_radius(handle);
                 PointPhysics *physics = (PointPhysics *)halo::cache::globals().tag_instances[tag->physics.tag_id.index].data;
                 real fold = radius * physics->mass_scale * radius * radius;

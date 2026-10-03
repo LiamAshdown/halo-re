@@ -22,7 +22,7 @@ static uint32_t weapon_blur_target(uint32_t item_index)
 {
     uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[item_index & halo::k_slot_mask].data;
 
-    if ((((object *)obj)->flags & 1) && ((object *)obj)->parent_object != (datum_index)0xffffffff) {
+    if ((((object *)obj)->flags & 1) && ((object *)obj)->parent_object != k_datum_index_none) {
         return ((object *)obj)->parent_object;
     }
     return item_index;
@@ -54,7 +54,7 @@ int32_t weapon_ref::update()
         return 1;
     }
 
-    if (*(datum_index *)&weapon_tag->base.base.animation_graph.tag_id != (datum_index)0xffffffff &&
+    if (*(datum_index *)&weapon_tag->base.base.animation_graph.tag_id != k_datum_index_none &&
         item_obj->animation_index != -1) {
         int16_t kind = (int16_t)halo::models::animation_state_advance(*(datum_index *)&weapon_tag->base.base.animation_graph.tag_id,
                                                         (animation_state *)((uint8_t *)item_obj + 0xd0), 0,
@@ -66,19 +66,19 @@ int32_t weapon_ref::update()
         }
     }
 
-    if ((weapon_tag->weapon_flags & 0x400) != 0 && item_obj->parent_object == (datum_index)0xffffffff) {
+    if ((weapon_tag->weapon_flags & 0x400) != 0 && item_obj->parent_object == k_datum_index_none) {
         halo::items::item_detonation_timer_start(item_index);
     }
 
     if (wd->ready_timer > 0.0f) {
         int skip_decrement = 0;
-        if (item_obj->parent_object == (datum_index)0xffffffff) {
+        if (item_obj->parent_object == k_datum_index_none) {
             skip_decrement = 0;
         } else {
             object *holder = halo::objects::object_try_and_get(item_obj->parent_object, _object_mask_unit);
             if (holder == 0) {
                 skip_decrement = 0;
-            } else if (holder->definition_tag == (datum_index)0xffffffff) {
+            } else if (holder->definition_tag == k_datum_index_none) {
                 skip_decrement = 0;
             } else {
                 Unit *holder_tag = (Unit *)halo::cache::globals().tag_instances[(uint16_t)holder->definition_tag].data;
@@ -128,7 +128,7 @@ int32_t weapon_ref::update()
 
         if ((wd->flags & 1) != 0 && wd->heat < weapon_tag->heat_recovery_threshold) {
             wd->flags = wd->flags & ~(uint32_t)3;
-            if (wd->overheat_effect_handle != (datum_index)0xffffffff) {
+            if (wd->overheat_effect_handle != k_datum_index_none) {
                 halo::effects::effect_stop(wd->overheat_effect_handle, 1);
             }
         }
@@ -222,7 +222,7 @@ int32_t weapon_ref::update()
                 pulled[local_trigger_index] = wd->primary_trigger > 0.05f;
                 is_pulled = pulled[local_trigger_index];
             }
-            if ((tag_trigger->flags & 0x40) != 0 && item_obj->parent_object == (datum_index)0xffffffff) {
+            if ((tag_trigger->flags & 0x40) != 0 && item_obj->parent_object == k_datum_index_none) {
                 pulled[local_trigger_index] = 1;
                 is_pulled = 1;
             }
@@ -264,7 +264,7 @@ int32_t weapon_ref::update()
             switch (trigger->effect_state) {
             case 0: {
                 int32_t ready = 1;
-                if ((wd->control_flags & 0x10) == 0 && item_obj->parent_object != (datum_index)0xffffffff &&
+                if ((wd->control_flags & 0x10) == 0 && item_obj->parent_object != k_datum_index_none &&
                     tag_trigger->magazine != (uint16_t)-1) {
                     int16_t magazine_index = tag_trigger->magazine;
                     int16_t rounds_loaded = wd->magazines[magazine_index].rounds_loaded;
@@ -313,9 +313,9 @@ int32_t weapon_ref::update()
                         trigger->effect_state = 0;
                         trigger->effect_state_ticks = 0;
                     }
-                    if (trigger->effect_handle != (datum_index)0xffffffff) {
+                    if (trigger->effect_handle != k_datum_index_none) {
                         halo::effects::effect_stop(trigger->effect_handle, 1);
-                        trigger->effect_handle = (datum_index)0xffffffff;
+                        trigger->effect_handle = k_datum_index_none;
                     }
                 }
                 break;
@@ -346,7 +346,7 @@ int32_t weapon_ref::update()
                 }
                 break;
             case 5:
-                if (is_pulled == 0 || wd->tracked_object_index == (datum_index)0xffffffff) {
+                if (is_pulled == 0 || wd->tracked_object_index == k_datum_index_none) {
                     halo::items::weapon_trigger_reset_tracking(item_index, local_trigger_index);
                 }
                 break;

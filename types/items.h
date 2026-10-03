@@ -403,7 +403,8 @@ typedef struct weapon_trigger_state {
     int16_t firing_effect_rounds;    // 0x0c rounds left before the firing effect is re-picked,
                                      //      seeded from the effect record int16 at +0x10 and
                                      //      decremented by weapon_fire_trigger
-    int16_t unknown_0e;              // 0x0e never read or written by this module
+    int16_t projectiles_since_tracer;// 0x0e trigger_create_projectiles counts shots since the last tracer; compared
+                                     //      against the tag projectiles_between_contrails
     float firing_rate;               // 0x10 0..1 spin-up. Climbs by the tag trigger
                                      //      firing_acceleration_rate (0xf8) while pulled and
                                      //      falls by firing_deceleration_rate (0xfc);

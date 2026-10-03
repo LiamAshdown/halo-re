@@ -53,14 +53,14 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
     tag_trigger = (WeaponTrigger *)weapon_tag->triggers.pointer + trigger_index;
     trigger = &wd->triggers[trigger_index];
 
-    holder_index = (datum_index)0xffffffff;
-    if (item_obj->parent_object != (datum_index)0xffffffff &&
+    holder_index = k_datum_index_none;
+    if (item_obj->parent_object != k_datum_index_none &&
         halo::objects::object_try_and_get(item_obj->parent_object, _object_mask_unit) != 0) {
         holder_index = item_obj->parent_object;
     }
 
-    selected_damage_tag = (datum_index)0xffffffff;
-    selected_effect_tag = (datum_index)0xffffffff;
+    selected_damage_tag = k_datum_index_none;
+    selected_effect_tag = k_datum_index_none;
     effect_scale_a = 0.0f;
     effect_scale_b = 0.0f;
     misfire_chance = 0.0f;
@@ -188,7 +188,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
         if ((id->flags & _item_held_by_player_bit) != 0 && halo::game::globals().current_engine != 0) {
             datum_index player = halo::game::player_index_from_unit_index(holder_index);
 
-            if (player != (datum_index)0xffffffff) {
+            if (player != k_datum_index_none) {
                 halo::game::unit_update_active_camouflage_depower(player);
             }
         }
@@ -259,7 +259,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
             }
         }
 
-        if (holder_index != (datum_index)0xffffffff && selected_damage_tag != (datum_index)0xffffffff) {
+        if (holder_index != k_datum_index_none && selected_damage_tag != k_datum_index_none) {
             object *holder_obj = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)holder_index].data;
             uint8_t *holder_bytes = (uint8_t *)holder_obj;
             damage_data dd;
@@ -271,8 +271,8 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
             }
             dd.damage_effect_tag = selected_damage_tag;
             dd.flags = dd.flags | 8;
-            dd.responsible_player = (datum_index)0xffffffff;
-            dd.responsible_object = (datum_index)0xffffffff;
+            dd.responsible_player = k_datum_index_none;
+            dd.responsible_object = k_datum_index_none;
             dd.team_index = -1;
             dd.material_type = -1;
             dd.unknown_1a = -1;
