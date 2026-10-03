@@ -1,5 +1,6 @@
 #include "halo/networking/net1_server.hpp"
 #include "halo/networking/message_decode.hpp"
+#include "halo/game/records.hpp"
 #include "halo/networking/record_layout.hpp"
 #include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
@@ -332,16 +333,14 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
     char ok;
     int32_t i;
     int32_t remaining;
-    int32_t *field_9c4;
-    uint8_t *unknown_9bc_base;
+    uint32_t *field_9c4;
     uint32_t player_datum;
     int32_t profile_index;
     player_profile *profile;
     int32_t j;
 
     machine->flags |= k_network_machine_join_handled;
-    unknown_9bc_base = (uint8_t *)server;
-    field_9c4 = (int32_t *)(unknown_9bc_base + 0x9c4);
+    field_9c4 = &server->first_join_ms;
 
     if (server->state != 1) {
         char all_processed_or_invalid;
@@ -538,7 +537,7 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
             if (datum != halo::k_dword_none) {
                 player_index = (int16_t)datum;
                 if (player_index >= 0 && player_index < halo::game::globals().player_data->maximum_count) {
-                    plr = (player *)((uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * player_index);
+                    plr = halo::game::player_at(player_index);
                     if (plr->identifier != 0) {
                         salt = (int16_t)(datum >> 16);
                         if (salt == 0 || plr->identifier == salt) {
@@ -567,8 +566,8 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
         remaining = remaining - 1;
         if (remaining == 0) {
             if (halo::game::globals().current_engine != 0 &&
-                *(void **)((uint8_t *)halo::game::globals().current_engine + 0x90) != 0) {
-                ((network_join_complete_callback)(*(void **)((uint8_t *)halo::game::globals().current_engine + 0x90)))(0, machine_id);
+                halo::game::globals().current_engine->profiles_updated != 0) {
+                ((network_join_complete_callback)halo::game::globals().current_engine->profiles_updated)(0, machine_id);
             }
             return;
         }
@@ -716,7 +715,7 @@ void * ServerView::host_new()
         host->new_server_pending = 0;
         host->join_finalize_pending = 0;
         host->session.session_counter = host->session.session_counter + 1;
-        *(uint32_t *)&host->handshake_state = 0;
+        memset(&host->handshake_state, 0, sizeof(uint32_t));
         if (halo::networking::network_game_session_reset_defaults(host) != 0) {
             halo::networking::network_session_host_start(0);
             started = true;
@@ -762,7 +761,7 @@ void ServerView::per_frame_tick(int16_t update_count)
             int8_t saved_machine_id;
             network_machine *machine;
 
-            saved_machine_id = *((int8_t *)server + 0x9f4);
+            saved_machine_id = server->pending_join_entry.machine_index;
             i = 0;
             while (server->machines[i].machine_id != (int16_t)saved_machine_id) {
                 i = i + 1;
@@ -1486,7 +1485,7 @@ uint32_t ServerMessageHandlers::player_entry_update(network_message_record *reco
     uint32_t body[8];
 
     if (server->state == 0 && halo::networking::decode_message_body(record->body, length, body, 3) != 0 &&
-        halo::networking::network_player_entry_update((network_player_entry *)body, (network_game_session *)((uint8_t *)server + 8)) != 0) {
+        halo::networking::network_player_entry_update((network_player_entry *)body, &server->session) != 0) {
         halo::networking::network_game_broadcast_player_set_changed((uint8_t *)server);
     }
     return 1;
@@ -1567,7 +1566,7 @@ void HostServerView::round_reset()
     host->handshake_timer.remaining_ms = 0;
     host->handshake_timer.last_tick_ms = 0;
     host->unknown_9d0 = 0;
-    *(uint32_t *)&host->handshake_state = 0;
+    memset(&host->handshake_state, 0, sizeof(uint32_t));
     host->update_tick = 0;
     host->first_join_ms = 0;
     host->scenario_announced = 0;
@@ -1597,7 +1596,7 @@ int32_t HostServerView::send_scenario_announcement()
     result = 1;
     if (host->scenario_announced == 0) {
         halo::networking::message_delta_parameters_protocol_send_update();
-        payload = (uint8_t *)host + 8;
+        payload = &host->session;
         encode_result = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, halo::networking::message_id(halo::networking::delta_message::player_set_changed), 0, &payload, 0, 1, 0);
         if (encode_result > 0) {
             halo::networking::network_session_broadcast_to_all(network_server, 1, &message_delta_definition_table, 1, 0, 1, 3);
