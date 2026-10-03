@@ -115,7 +115,7 @@ uint8_t ActorView::seek_vehicle_to_board()
                     continue;
                 }
             }
-            if (type_mask > 0 && (type_mask & (1 << ((uint8_t *)act)[0x4])) == 0) {
+            if (type_mask > 0 && (type_mask & (1 << (uint8_t)act->type)) == 0) {
                 continue;
             }
             if (filter_count > 0) {
