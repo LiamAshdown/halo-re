@@ -274,7 +274,7 @@ void flag_render_callback(datum_index object_index, datum_index flag_index, uint
 void flags_update(float dt);
 void flag_cloth_update(flag *entry, Flag *tag, float dt);
 void flag_pole_get_marker_positions(flag *entry, bsp_leaf_reference *node_ref, real_point3d *marker_positions, uint8_t *row_table, int16_t *row_start_scratch, int16_t *column_marker_index, Flag *tag);
-void flag_render(uint32_t *entry, uint32_t *submission_block, Flag *tag, uint8_t *second_geometry);
+void flag_render(Flag *tag, flag *entry, const render_lighting *lighting, const uint32_t *animation);
 void glow_initialize();
 void glow_dispose();
 void glow_clear_disposing_flag();

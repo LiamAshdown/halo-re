@@ -88,14 +88,16 @@ public:
     static void update(float dt);
 
     /**
-     * Builds the flag's cloth mesh (vertex normals and index list) and submits it to the rasterizer. Unreferenced in
-     * the retail binary; kept as a close transliteration with a guessed signature.
+     * Builds the triangle mesh of one flag's cloth grid (vertices with normals and texture coordinates, triangles
+     * from the per-cell split codes) in the dynamic vertex and index caches and draws it with the flag's red or
+     * blue shader.
      *
-     * Original register convention: not observable, because the retail binary never calls this function.
+     * Original register convention: EAX -> tag; stack -> entry, lighting, animation (the two change-colour and
+     * function-value table pointers); cdecl caller cleanup.
      *
      * @address 0x004fc350
      */
-    static void render(uint32_t *entry, uint32_t *submission_block, Flag *tag, uint8_t *second_geometry);
+    static void render(Flag *tag, flag *entry, const render_lighting *lighting, const uint32_t *animation);
 };
 
 /**

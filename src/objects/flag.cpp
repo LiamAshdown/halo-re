@@ -17,8 +17,18 @@
 #include "halo/core/x87.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/units/api.hpp"
+#include "rasterizer.h"
+#include "halo/rasterizer/globals.hpp"
+#include "halo/rasterizer/render_device.hpp"
+#include "halo/rasterizer/vars.hpp"
+#include "halo/render/d3d9.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
 
-static auto &flag_render_device_slot = halo::link::ref<void *const>(halo::objects::vars().flag_render_device_slot);
+static auto &rasterizer_dynamic_vertex_slots = halo::link::ref<rasterizer_dynamic_vertex_slot [k_rasterizer_dynamic_vertex_slots]>(halo::game::vars().rasterizer_dynamic_vertex_slots);
+static auto &rasterizer_dynamic_vertex_caches = halo::link::ref<rasterizer_dynamic_vertex_cache [k_rasterizer_vertex_type_count]>(halo::rasterizer::vars().rasterizer_dynamic_vertex_caches);
+static auto &rasterizer_vertex_buffer_slots = halo::link::ref<rasterizer_vertex_buffer_slot [k_rasterizer_vertex_buffer_slots]>(halo::rasterizer::vars().rasterizer_vertex_buffer_slots);
+static auto &k_render_identity_matrix_ptr = halo::link::ref<void *>(halo::effects::vars().k_render_identity_matrix_ptr);
 static auto &flag_data = halo::link::ref<data_array *>(halo::objects::vars().flag_data);
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
@@ -288,7 +298,7 @@ void halo::objects::FlagSystem::render_callback(datum_index object_index, datum_
     }
     *(int16_t *)(self + 6) = 0;
     if (self[2] == 0) {
-        halo::objects::flag_render((uint32_t *)self, (uint32_t *)arg3, tag, (uint8_t *)arg4);
+        halo::objects::flag_render(tag, (flag *)self, (const render_lighting *)(uintptr_t)arg3, (const uint32_t *)(uintptr_t)arg4);
     }
 }
 
@@ -648,159 +658,227 @@ void halo::objects::FlagView::pole_get_marker_positions(bsp_leaf_reference *node
     entry->previous_marker_position = marker_positions[0];
 }
 
+namespace {
+
 /**
- * Builds the flag's cloth mesh (vertex normals and index list) and submits it to the rasterizer. Unreferenced in the
- * retail binary; kept as a close transliteration with a guessed signature.
+ * One 0x44-byte vertex of the uncompressed model vertex type (rasterizer vertex type 4), as written by the
+ * flag cloth mesh builder. The binormal and tangent are left untouched in the dynamic vertex cache.
+ */
+struct flag_cloth_vertex {
+    real_point3d position;
+    real_vector3d normal;
+    real_vector3d binormal;
+    real_vector3d tangent;
+    float u;
+    float v;
+    int16_t node_index[2];
+    float node_weight[2];
+};
+static_assert(sizeof(flag_cloth_vertex) == 0x44, "flag cloth vertex must match the model_uncompressed vertex layout");
+
+enum class flag_cell_split : int16_t {
+    both_diagonals = 0,
+    none = 1,
+    first_triangle_lower_left = 2,
+    first_triangle_lower_right = 3,
+    first_triangle_upper_left = 4,
+    first_triangle_upper_right = 5,
+};
+
+typedef int32_t (__stdcall *flag_d3d_unlock_fn)(void *self);
+
+}  // namespace
+
+/**
+ * Builds the triangle mesh of one flag's cloth grid and draws it with the flag's red or blue shader. Every grid
+ * point becomes a model vertex whose normal is the normalized cross product of the grid edges toward the next
+ * column and the next row (the last column and row reuse their neighbours' edges), with texture coordinates
+ * running 0..1 across the grid; each cell then emits zero, one or two triangles according to its split code.
  *
- * Original register convention: not observable, because the retail binary never calls this function.
+ * The mesh is written into the dynamic vertex and index caches, which are unlocked before the draw. The shader
+ * is drawn through a model draw context that carries the supplied lighting and change colours, with the centre
+ * of the four corner points as the sort position of the transparent shader types. The red shader is used unless
+ * the owning object has a non-zero owner team, and the blue one is also the fallback when the chosen shader tag
+ * is missing.
  *
  * @address 0x004fc350
  */
-void halo::objects::FlagSystem::render(uint32_t *entry, uint32_t *submission_block, Flag *tag,
-    uint8_t *second_geometry)
+void halo::objects::FlagSystem::render(Flag *tag, flag *entry, const render_lighting *lighting,
+    const uint32_t *animation)
 {
-    int16_t width = ((struct Flag *)tag)->width;
-    int16_t height = ((struct Flag *)tag)->height;
-    int32_t model_context;
-    void *normal_buffer;
-    void *index_buffer;
-    int16_t col, row;
+    object *owner = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(entry->object_index)].data;
+    datum_index shader_index = *(datum_index *)(owner->owner_team != 0 ? &tag->blue_flag_shader.tag_id : &tag->red_flag_shader.tag_id);
+    int16_t width = tag->width;
+    int16_t height = tag->height;
+    int32_t triangle_total;
+    int32_t index_slot;
+    int32_t vertex_slot;
+    flag_cloth_vertex *vertices;
+    uint16_t *indices;
+    float inverse_width;
+    float inverse_height;
+    int16_t vertex_number = 0;
     int16_t triangle_count = 0;
-    int16_t index_count = 0;
-    float inv_width_minus1 = 1.0f / (float)(width - 1);
-    float inv_height_minus1 = 1.0f / (float)(height - 1);
+    int16_t column;
+    int16_t row;
 
-    model_context = halo::rasterizer::rasterizer_dynamic_index_cache_reserve(0);
-    if (model_context == -1 || halo::rasterizer::rasterizer_dynamic_vertex_cache_reserve(0, 0) == -1) {
+    if (shader_index == k_datum_index_none) {
+        shader_index = *(datum_index *)&tag->blue_flag_shader.tag_id;
+    }
+
+    triangle_total = (int16_t)((uint16_t)(height * 2 - 2) * (uint16_t)(width - 1));
+    halo::rasterizer::globals().vertex_buffer_lock_state = 0xb;
+    index_slot = halo::rasterizer::rasterizer_dynamic_index_cache_reserve(triangle_total);
+    vertex_slot = halo::rasterizer::rasterizer_dynamic_vertex_cache_reserve(_rasterizer_vertex_type_model_uncompressed,
+        (int32_t)height * (int32_t)width);
+    if (index_slot == -1 || vertex_slot == -1) {
+        halo::rasterizer::globals().vertex_buffer_lock_state = 0;
         return;
     }
-    normal_buffer = halo::rasterizer::rasterizer_dynamic_vertex_cache_lock(0);
-    index_buffer = halo::render::rasterizer_dynamic_index_slot_lock(0);
 
-    for (col = 0; col < width; col++) {
+    vertices = (flag_cloth_vertex *)halo::rasterizer::rasterizer_dynamic_vertex_cache_lock(vertex_slot);
+    indices = (uint16_t *)halo::render::rasterizer_dynamic_index_slot_lock(index_slot);
+    inverse_width = 1.0f / (float)(width - 1);
+    inverse_height = 1.0f / (float)(height - 1);
+
+    for (column = 0; column < width; column++) {
         for (row = 0; row < height; row++) {
-            int16_t col_clamped = (col >= width - 1) ? col - 1 : col;
-            int16_t row_clamped = (row >= height - 1) ? row - 1 : row;
-            int32_t base_index = col_clamped * height + row_clamped;
-            uint32_t *next_row_vertex = entry + ((col_clamped + 1) * height + row_clamped) * 6 + 7;
-            uint32_t *base_vertex = entry + base_index * 6 + 7;
-            float ex_x = *(float *)next_row_vertex - *(float *)(entry + base_index * 6 + 7);
-            float ex_y = ((float *)next_row_vertex)[1] - *(float *)(entry + base_index * 6 + 8);
-            float ex_z = ((float *)next_row_vertex)[2] - *(float *)(entry + base_index * 6 + 9);
-            float ey_x = *(float *)(entry + base_index * 6 + 0xd) - *(float *)(entry + base_index * 6 + 7);
-            float ey_y = *(float *)(entry + base_index * 6 + 0xe) - *(float *)(entry + base_index * 6 + 8);
-            float ey_z = *(float *)(entry + base_index * 6 + 0xf) - *(float *)(entry + base_index * 6 + 9);
-            uint32_t *out = (uint32_t *)((uint8_t *)normal_buffer + triangle_count * 0x44);
-            float nx = ey_z * ex_y - ey_y * ex_z;
-            float ny = ey_y * ex_x - ey_z * ex_x;
-            float nz = ey_x * ex_x - ey_y * ex_x;
+            int16_t edge_column = (column >= width - 1) ? (int16_t)(column - 1) : column;
+            int16_t edge_row = (row >= height - 1) ? (int16_t)(row - 1) : row;
+            const real_point3d &origin = entry->vertices[edge_column * height + edge_row].position;
+            const real_point3d &next_column = entry->vertices[(edge_column + 1) * height + edge_row].position;
+            const real_point3d &next_row = entry->vertices[edge_column * height + edge_row + 1].position;
+            real_vector3d column_edge = {next_column.x - origin.x, next_column.y - origin.y, next_column.z - origin.z};
+            real_vector3d row_edge = {next_row.x - origin.x, next_row.y - origin.y, next_row.z - origin.z};
+            flag_cloth_vertex *out = &vertices[vertex_number];
 
-            float len;
+            out->normal.i = column_edge.j * row_edge.k - column_edge.k * row_edge.j;
+            out->normal.j = column_edge.k * row_edge.i - column_edge.i * row_edge.k;
+            out->normal.k = column_edge.i * row_edge.j - column_edge.j * row_edge.i;
+            halo::math::vector3d_normalize_with_length(out->normal);
 
-            ((float *)out)[3] = nx;
-            ((float *)out)[4] = ny;
-            ((float *)out)[5] = nz;
-            len = (float)halo::libm::sqrt(nz * nz + ny * ny + nx * nx);
-            if (len >= 0.0001f || len <= -0.0001f) {
-                float inv = 1.0f / len;
-                ((float *)out)[3] = inv * nx;
-                ((float *)out)[4] = inv * ny;
-                ((float *)out)[5] = inv * nz;
-            }
-
-            *(float *)out = *(float *)base_vertex;
-            ((float *)out)[1] = ((float *)base_vertex)[1];
-            ((float *)out)[2] = ((float *)base_vertex)[2];
-            ((float *)out)[0xc] = (float)col * inv_width_minus1;
-            ((float *)out)[0xd] = (float)row * inv_height_minus1;
-            *(int16_t *)(out + 0xe) = 0;
-            *(int16_t *)((uint8_t *)out + 0x3a) = 0;
-            out[0xf] = 0x3f000000;
-            out[0x10] = 0x3f000000;
-
-            triangle_count = triangle_count + 1;
+            out->position = entry->vertices[column * height + row].position;
+            out->u = (float)column * inverse_width;
+            out->v = (float)row * inverse_height;
+            out->node_index[0] = 0;
+            out->node_index[1] = 0;
+            out->node_weight[0] = 0.5f;
+            out->node_weight[1] = 0.5f;
+            vertex_number++;
         }
     }
 
-    col = 0;
-    row = 0;
-    if (width != 1 && width - 1 >= 0) {
-        int32_t r;
-        for (r = 0; r < width - 1; r++) {
-            int32_t c;
-            for (c = 0; c < height - 1; c++) {
-                uint16_t split = *(uint16_t *)((uint8_t *)entry + (r * (height - 1) + c) * 2 + 0x1534);
-                int16_t *tri;
+    for (column = 0; column < width - 1; column++) {
+        for (row = 0; row < height - 1; row++) {
+            flag_cell_split split = (flag_cell_split)entry->cell_split_codes[column * (height - 1) + row];
+            uint16_t corner_a = (uint16_t)(height * column + row);
+            uint16_t corner_b = (uint16_t)(height * column + row + 1);
+            uint16_t corner_c = (uint16_t)(height * (column + 1) + row);
+            uint16_t corner_d = (uint16_t)(height * (column + 1) + row + 1);
+            uint16_t *triangle = indices + triangle_count * 3;
 
-                switch (split) {
-                case 0:
-                    tri = (int16_t *)((uint8_t *)index_buffer + index_count * 6);
-                    tri[0] = height * row + col;
-                    tri[1] = height * (row + 1) + col;
-                    index_count++;
-                    tri[2] = height * row + 1 + col;
-                    tri = (int16_t *)((uint8_t *)index_buffer + index_count * 6);
-                    tri[0] = height * row + 1 + col;
-                    tri[1] = height * (row + 1) + col;
-                    tri[2] = height * (row + 1) + 1 + col;
-                    index_count++;
-                    col++;
-                    continue;
-                case 2:
-                    tri = (int16_t *)((uint8_t *)index_buffer + index_count * 6);
-                    tri[0] = height * row + col;
-                    tri[1] = height * row + 1 + col;
-                    tri[2] = (row + 1) * height + col;
-                    break;
-                case 3:
-                    tri = (int16_t *)((uint8_t *)index_buffer + index_count * 6);
-                    tri[0] = height * row + col;
-                    tri[1] = height * row + 1 + col;
-                    tri[2] = (row + 1) * height + 1 + col;
-                    break;
-                case 4:
-                    tri = (int16_t *)((uint8_t *)index_buffer + index_count * 6);
-                    tri[0] = height * row + col;
-                    tri[1] = height * (row + 1) + 1 + col;
-                    tri[2] = (row + 1) * height;
-                    break;
-                case 5:
-                    tri = (int16_t *)((uint8_t *)index_buffer + index_count * 6);
-                    tri[0] = height * row + 1 + col;
-                    tri[1] = height * (row + 1) + 1 + col;
-                    tri[2] = (row + 1) * height;
-                    break;
-                default:
-                    col++;
-                    continue;
-                }
-                index_count++;
-                col++;
+            switch (split) {
+            case flag_cell_split::both_diagonals:
+                triangle[0] = corner_a;
+                triangle[1] = corner_c;
+                triangle[2] = corner_b;
+                triangle[3] = corner_b;
+                triangle[4] = corner_c;
+                triangle[5] = corner_d;
+                triangle_count += 2;
+                break;
+            case flag_cell_split::first_triangle_lower_left:
+                triangle[0] = corner_a;
+                triangle[1] = corner_b;
+                triangle[2] = corner_c;
+                triangle_count++;
+                break;
+            case flag_cell_split::first_triangle_lower_right:
+                triangle[0] = corner_a;
+                triangle[1] = corner_b;
+                triangle[2] = corner_d;
+                triangle_count++;
+                break;
+            case flag_cell_split::first_triangle_upper_left:
+                triangle[0] = corner_a;
+                triangle[1] = corner_d;
+                triangle[2] = corner_c;
+                triangle_count++;
+                break;
+            case flag_cell_split::first_triangle_upper_right:
+                triangle[0] = corner_b;
+                triangle[1] = corner_d;
+                triangle[2] = corner_c;
+                triangle_count++;
+                break;
+            default:
+                break;
             }
-            row++;
-            col = 0;
         }
     }
 
     {
-        void ***device = (void ***)flag_render_device_slot;
-        (*(void (__stdcall **)(void *))((uint8_t *)(*device)[0] + 0x30 * 0))(device);
+        rasterizer_dynamic_vertex_slot &slot = rasterizer_dynamic_vertex_slots[vertex_slot];
+        int32_t buffer_handle = rasterizer_dynamic_vertex_caches[slot.vertex_type].buffer_handle;
+
+        halo::rasterizer::render_device().buffer_unlock(halo::rasterizer::globals().dynamic_index_buffer);
+        if (buffer_handle != 0) {
+            halo::rasterizer::render_device().buffer_unlock(
+                (void *)(uintptr_t)rasterizer_vertex_buffer_slots[buffer_handle - 1].hardware_buffer);
+        }
     }
 
     {
-        Flag *fallback_tag = (Flag *)halo::cache::globals().tag_instances[  0].data;
-        int32_t stride = height;
-        float *v0 = (float *)(second_geometry + 4 + stride * 0x18);
-        float *v1 = (float *)(second_geometry + 0x1c + stride * (width - 1) * 0x18);
-        float *v2 = (float *)(second_geometry + 4 + width * stride * 0x18);
-        float cx = (v2[0] + v0[0] + v1[0] + *(float *)(second_geometry + 0x1c)) * 0.25f;
-        float cy = (v2[1] + v0[1] + v1[1] + *(float *)(second_geometry + 0x20)) * 0.25f;
-        float cz = (v2[2] + v0[2] + v1[2] + *(float *)(second_geometry + 0x24)) * 0.25f;
+        Shader *shader = (Shader *)halo::cache::globals().tag_instances[halo::datum_slot(shader_index)].data;
+        const flag_vertex *grid = entry->vertices;
+        const flag_vertex &far_corner = grid[width * height - 1];
+        const flag_vertex &column_corner = grid[height * (width - 1)];
+        const flag_vertex &row_corner = grid[height - 1];
+        const flag_vertex &near_corner = grid[0];
+        real_point3d center;
+        rasterizer_model_draw_context context;
+        uint32_t *context_words = (uint32_t *)&context;
+        size_t word;
 
-        (void)fallback_tag;
-        halo::rasterizer::rasterizer_model_draw_prepare_states(0, 0);
-        halo::rasterizer::rasterizer_shader_environment_draw_dispatch(0, 0, 0, 0, row - 1, index_count, 0);
+        center.x = (far_corner.position.x + row_corner.position.x + column_corner.position.x + near_corner.position.x) * 0.25f;
+        center.y = (far_corner.position.y + row_corner.position.y + column_corner.position.y + near_corner.position.y) * 0.25f;
+        center.z = (far_corner.position.z + row_corner.position.z + column_corner.position.z + near_corner.position.z) * 0.25f;
 
+        for (word = 0; word < sizeof(context) / sizeof(uint32_t); word++) {
+            context_words[word] = 0;
+        }
+        context.object_index = 1;
+        context.node_matrices = (uint32_t)(uintptr_t)k_render_identity_matrix_ptr;
+        context.node_count = 1;
+        context.lighting = *lighting;
+        context.change_colors = animation[0];
+        context.function_values = animation[1];
+        context.center = center;
+        context.base_map_u_scale = 1.0f;
+        context.base_map_v_scale = 1.0f;
+
+        if (halo::rasterizer::fields::models_enabled != 0) {
+            halo::rasterizer::globals().render_states_dirty = 1;
+            halo::rasterizer::fields::sky_pass_active = 0;
+            if ((uint32_t)halo::rasterizer::globals().device_version < halo::d3d9::k_pixel_shader_version_1_1) {
+                halo::rasterizer::render_device().set_render_state((uint32_t)halo::d3d9::render_state::lighting, 1);
+            }
+        }
+
+        halo::rasterizer::rasterizer_model_draw_prepare_states(&context, 0);
+        if (shader->shader_type == 1 || (4 < shader->shader_type && shader->shader_type < 0xc)) {
+            halo::rasterizer::rasterizer_transparent_geometry_group_build(nullptr, (uint8_t *)shader, 0, nullptr,
+                index_slot, triangle_count, nullptr, vertex_slot, &center);
+        } else {
+            halo::rasterizer::rasterizer_shader_environment_draw_dispatch(vertex_slot, (uint8_t *)shader, 0, nullptr,
+                index_slot, triangle_count, nullptr);
+        }
         halo::rasterizer::rasterizer_model_draw_restore_states();
+
+        if (halo::rasterizer::fields::models_enabled != 0 &&
+            (uint32_t)halo::rasterizer::globals().device_version < halo::d3d9::k_pixel_shader_version_1_1) {
+            halo::rasterizer::render_device().set_render_state((uint32_t)halo::d3d9::render_state::lighting, 0);
+        }
     }
+    halo::rasterizer::globals().vertex_buffer_lock_state = 0;
 }
