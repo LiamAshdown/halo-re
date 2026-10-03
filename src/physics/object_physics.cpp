@@ -3,6 +3,7 @@
  */
 
 #include "halo/core/slot_mask.hpp"
+#include "halo/physics/layout.hpp"
 #include "halo/core/datum.hpp"
 #include "tags.h"
 #include "halo/scenario/api.hpp"
@@ -32,6 +33,12 @@
 #include "halo/core/libm.hpp"
 #include "halo/ai/api.hpp"
 
+
+namespace {
+
+constexpr int32_t k_seat_exit_grace_ticks = 90;
+
+}  // namespace
 
 namespace halo::physics {
 
@@ -199,7 +206,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
 
     hit_recorded = 0;
     {
-        uint8_t recovered = halo::physics::physics_point_find_clear_position(0x20c3a0, contact_point,
+        uint8_t recovered = halo::physics::physics_point_find_clear_position(k_clear_position_collision_mask, contact_point,
             sample[1] + sample[1], sample[0], sample[1], candidate_object_index,
             &recovered_position);
         if (recovered) {
@@ -207,9 +214,9 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
 
             halo::objects::object_set_position_and_relink(&recovered_position, candidate_object_index, 0);
 
-            if (*self_object_index == *(uint32_t *)((uint8_t *)candidate_obj + 0x32c) &&
+            if (*self_object_index == ((unit_object *)candidate_obj)->unit.last_parent_object_index &&
                 halo::game::globals().game_time->game_time <=
-                    (int32_t)(*(uint32_t *)((uint8_t *)candidate_obj + 0x330) + 0x5a)) {
+                    (int32_t)(((unit_object *)candidate_obj)->unit.last_seat_change_tick + k_seat_exit_grace_ticks)) {
                 return 1;
             }
             if (relative_speed <= 0.06666667f) {
@@ -224,12 +231,12 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
     }
 
     {
-        uint8_t *collision_damage_tag = *(uint8_t **)((uint8_t *)global_globals + 0x18c);
-        int32_t impact_damage_tag_id = *(int32_t *)(collision_damage_tag + 0x68);
+        GlobalsFallingDamage *collision_damage_tag = (GlobalsFallingDamage *)global_globals->falling_damage.pointer;
+        int32_t impact_damage_tag_id = *(int32_t *)&collision_damage_tag->vehicle_collision_damage.tag_id;
         int32_t breakable_damage_tag_id;
 
         if (impact_damage_tag_id != -1) {
-            uint32_t driver = *(uint32_t *)((uint8_t *)self_obj + 0x324);
+            uint32_t driver = ((unit_object *)self_obj)->unit.driver_unit_index;
             uint32_t responsible = *self_object_index;
             object *responsible_obj = self_obj;
 
@@ -260,7 +267,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
             halo::objects::object_apply_damage(&dd, candidate_object_index, -1, -1, -1, 0);
         }
 
-        breakable_damage_tag_id = *(int32_t *)(collision_damage_tag + 0x58);
+        breakable_damage_tag_id = *(int32_t *)&collision_damage_tag->vehicle_killed_unit_damage.tag_id;
         if (breakable_damage_tag_id != -1) {
             void *candidate_tag = halo::cache::globals().tag_instances[candidate_obj->definition_tag & halo::k_slot_mask].data;
 
@@ -372,7 +379,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
 
         mp->leaf_index = halo::physics::bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&mp->position_x);
         mp->cluster_index = (mp->leaf_index == -1) ? -1 :
-            ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[mp->leaf_index & 0x7fffffff].cluster;
+            ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[mp->leaf_index & halo::k_leaf_index_mask].cluster;
 
         offset.i = mp->position_x - obj->position.x;
         offset.j = mp->position_y - obj->position.y;
@@ -392,7 +399,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
         mp->velocity_k = velocity.k;
 
         halo::physics::object_physics_mass_point_resolve_ground_contact(context->object_index, mp, mp_def);
-        mp->water_depth = halo::scenario::location_view((bsp_leaf_reference *)((uint8_t *)mp + 0x34)).water_surface_distance((real_point3d *)&mp->position_x);
+        mp->water_depth = halo::scenario::location_view((bsp_leaf_reference *)&mp->leaf_index).water_surface_distance((real_point3d *)&mp->position_x);
 
         if (0.0f < mp->ground_depth) {
             GlobalsMaterial *material;
@@ -447,7 +454,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
                 mp->ground_friction_force[1] = friction_magnitude * mp->tangential_velocity_j;
                 mp->ground_friction_force[2] = friction_magnitude * mp->tangential_velocity_k;
 
-                if (powered_def != 0 && (powered_def->flags & 0x01) != 0 && powered_state->ground_friction != 0.0f) {
+                if (powered_def != 0 && powered_has(powered_def->flags, powered_mass_point_flag::ground_friction) && powered_state->ground_friction != 0.0f) {
                     float lean = halo::math::real_inverse_lerp_clamped(mp->resting_plane_k, ground_normal_k0, ground_normal_k1);
                     float alignment = mp->up_k * mp->resting_plane_k + mp->up_j * mp->resting_plane_j +
                         mp->resting_plane_i * mp->up_i;
@@ -495,7 +502,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
                 mp->buoyancy_force_k = buoyancy;
             }
 
-            if (powered_def == 0 || (powered_def->flags & 0x02) == 0 || powered_state->water_friction == 0.0f) {
+            if (powered_def == 0 || !powered_has(powered_def->flags, powered_mass_point_flag::water_friction) || powered_state->water_friction == 0.0f) {
                 float d = -(mp_def->mass * definition->water_friction);
                 mp->water_friction_force[0] = d * mp->velocity_i;
                 mp->water_friction_force[1] = d * mp->velocity_j;
@@ -515,7 +522,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
                 (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
 
             if (powered_def != 0) {
-                if ((powered_def->flags & 0x08) != 0 && powered_state->water_lift != 0.0f) {
+                if (powered_has(powered_def->flags, powered_mass_point_flag::water_lift) && powered_state->water_lift != 0.0f) {
                     float lift = (float)halo::libm::fabs((double)(mp->forward_k * mp->velocity_k +
                         mp->forward_j * mp->velocity_j + mp->velocity_i * mp->forward_i)) *
                         powered_state->water_lift * definition->mass * water_fade;
@@ -526,7 +533,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
             }
         }
 
-        if (powered_def != 0 && (powered_def->flags & 0x04) != 0 && powered_state->air_friction != 0.0f) {
+        if (powered_def != 0 && powered_has(powered_def->flags, powered_mass_point_flag::air_friction) && powered_state->air_friction != 0.0f) {
             float neg = -powered_state->air_friction;
             float t1 = neg * mp->forward_j + mp->velocity_j;
             float t2 = neg * mp->forward_k + mp->velocity_k;
@@ -545,7 +552,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
             mp_def->friction_perpendicular_scale, mp->air_friction_force,
                 (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
 
-        if (powered_def != 0 && (powered_def->flags & 0x10) != 0 && powered_state->air_lift != 0.0f) {
+        if (powered_def != 0 && powered_has(powered_def->flags, powered_mass_point_flag::air_lift) && powered_state->air_lift != 0.0f) {
             float lift = (float)halo::libm::fabs((double)(mp->forward_k * mp->velocity_k + mp->forward_j * mp->velocity_j +
                 mp->forward_i * mp->velocity_i)) * definition->mass * powered_state->air_lift;
             mp->powered_force_i += lift * mp->up_i;
@@ -565,13 +572,13 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
             (mp->flags | _mass_point_water_contact_bit);
 
         if (powered_def != 0) {
-            if ((powered_def->flags & 0x20) != 0) {
+            if (powered_has(powered_def->flags, powered_mass_point_flag::thrust)) {
                 float thrust = powered_state->thrust * definition->mass;
                 mp->powered_force_i += thrust * mp->forward_i;
                 mp->powered_force_j += thrust * mp->forward_j;
                 mp->powered_force_k += thrust * mp->forward_k;
             }
-            if ((powered_def->flags & 0x40) != 0) {
+            if (powered_has(powered_def->flags, powered_mass_point_flag::antigrav)) {
                 real_vector3d delta;
                 collision_result result;
                 float probe_length = powered_def->antigrav_height + mp_def->radius;
@@ -580,7 +587,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
                 delta.j = probe_length * global_down3d_pointer->j;
                 delta.k = probe_length * global_down3d_pointer->k;
 
-                if (halo::physics::collision_test_movement_segment(0xc0a0, (real_point3d *)&mp->position_x, &delta,
+                if (halo::physics::collision_test_movement_segment(k_mass_point_collision_mask, (real_point3d *)&mp->position_x, &delta,
                         context->object_index, &result)) {
                     float clearance = probe_length * result.t - mp_def->radius;
                     float lean = halo::math::real_inverse_lerp_clamped(mp->up_k, powered_def->antigrav_normal_k0,
@@ -639,7 +646,7 @@ uint8_t ObjectPhysics::context_build(uint32_t object_index, object_physics_conte
 {
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     void *object_tag_data = halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
-    int32_t physics_tag_id = *(int32_t *)((uint8_t *)object_tag_data + 0x8c);
+    int32_t physics_tag_id = *(int32_t *)&((Object *)object_tag_data)->physics.tag_id;
     void *physics_definition;
 
     if (physics_tag_id == -1) {
@@ -657,9 +664,9 @@ uint8_t ObjectPhysics::context_build(uint32_t object_index, object_physics_conte
                            *((const real_vector3d *)&out_context->up_i));
     {
         real_point3d point;
-        point.x = -*(float *)((uint8_t *)physics_definition + 0x0c);
-        point.y = -*(float *)((uint8_t *)physics_definition + 0x10);
-        point.z = -*(float *)((uint8_t *)physics_definition + 0x14);
+        point.x = -((Physics *)physics_definition)->center_of_mass.x;
+        point.y = -((Physics *)physics_definition)->center_of_mass.y;
+        point.z = -((Physics *)physics_definition)->center_of_mass.z;
         halo::math::matrix4x3_transform_point(point, point, *((real_matrix4x3 *)&out_context->scale));
         out_context->position_x = point.x;
         out_context->position_y = point.y;
@@ -712,7 +719,7 @@ void ObjectPhysics::handle_nearby_object_impacts(uint32_t object_index)
         object_header *header = &((object_header *)halo::objects::globals().object_data->data)[candidate_index & halo::k_slot_mask];
 
         if (header->type == 0) {
-            if ((*(uint16_t *)((uint8_t *)header->data + 0x106) & 4) == 0) {
+            if ((header->data->vitality_flags & _object_health_frozen_bit) == 0) {
                 halo::physics::object_physics_check_impact_damage((uint32_t *)&self_collision_context, candidate_index);
             }
         } else if (header->type == 1 && candidate_index != object_index) {
@@ -776,7 +783,7 @@ void ObjectPhysics::integrate_and_test_at_rest(object_physics_context *context, 
         real_matrix3x3 step1_transposed;
         real_matrix3x3 world_inverse_inertia;
         real_matrix3x3 *inverse_inertia_local =
-            (real_matrix3x3 *)((uint8_t *)definition->inertial_matrix_and_inverse.pointer + 0x24);
+            (real_matrix3x3 *)&((PhysicsInertialMatrix *)definition->inertial_matrix_and_inverse.pointer)[1].matrix;
 
         halo::math::matrix3x3_from_forward_up(self->up, self->forward, orientation);
         halo::math::matrix3x3_multiply(&step1, &orientation, inverse_inertia_local);
@@ -853,7 +860,7 @@ void ObjectPhysics::integrate_and_test_at_rest(object_physics_context *context, 
                     delta.j = world_position.y - point_state->position_y;
                     delta.k = world_position.z - point_state->position_z;
 
-                    if (halo::physics::collision_test_movement_segment(0xc0a1, (real_point3d *)&point_state->position_x, &delta,
+                    if (halo::physics::collision_test_movement_segment(k_mass_point_sweep_collision_mask, (real_point3d *)&point_state->position_x, &delta,
                             context->object_index, &candidate) != 0) {
                         hit_mask |= 1u << (i & 0x1f);
                         if (any_hit == 0 || candidate.t < best_result.t) {
@@ -932,15 +939,15 @@ void ObjectPhysics::integrate_and_test_at_rest(object_physics_context *context, 
             self->flags &= ~_object_at_rest_bit;
         }
 
-        self->flags = (ground_contact_count >= 1) ? (self->flags | 0x02u) : (self->flags & ~0x02u);
-        self->flags = (water_contact_count >= 1) ? (self->flags | 0x04u) : (self->flags & ~0x04u);
-        self->flags = (water_contact_count >= 1) ? (self->flags | 0x08u) : (self->flags & ~0x08u);
+        self->flags = (ground_contact_count >= 1) ? (self->flags | to_bits(object_contact_flag::ground_contact)) : (self->flags & ~to_bits(object_contact_flag::ground_contact));
+        self->flags = (water_contact_count >= 1) ? (self->flags | to_bits(object_contact_flag::water_contact)) : (self->flags & ~to_bits(object_contact_flag::water_contact));
+        self->flags = (water_contact_count >= 1) ? (self->flags | to_bits(object_contact_flag::water_contact_2)) : (self->flags & ~to_bits(object_contact_flag::water_contact_2));
 
         if (water_contact_count != count) {
-            self->flags &= ~0x10u;
+            self->flags &= ~to_bits(object_contact_flag::fully_submerged);
             return;
         }
-        self->flags |= 0x10u;
+        self->flags |= to_bits(object_contact_flag::fully_submerged);
     }
 }
 
@@ -952,7 +959,7 @@ namespace halo::physics {
 /**
  * Seeds mass_point's resting plane to k_default_resting_plane and computes its ground_depth
  * against that default plane, then runs a sphere query (physics_model_build_from_sphere_query,
- * flags 0xc0a0: structure BSP + nearby objects) around mass_point->position at definition->radius.
+ * flags k_mass_point_collision_mask: structure BSP + nearby objects) around mass_point->position at definition->radius.
  * If that finds anything and a point test against the resulting model (physics_shape_test_point) also hits,
  * overwrites resting_plane/ground_depth/material_type from the contact, updates
  * _mass_point_on_ground_surface_bit (see UNSURE above), and depletes the hit object's shield
@@ -976,7 +983,7 @@ void ObjectPhysics::mass_point_resolve_ground_contact(uint32_t exclude_object_in
           mass_point->resting_plane_j * mass_point->position_y +
           mass_point->resting_plane_k * mass_point->position_z) - mass_point->resting_plane_d);
 
-    if (halo::physics::physics_model_build_from_sphere_query(0xc0a0, (real_point3d *)&mass_point->position_x,
+    if (halo::physics::physics_model_build_from_sphere_query(k_mass_point_collision_mask, (real_point3d *)&mass_point->position_x,
             definition->radius, 0.0f, definition->radius, exclude_object_index, &model)) {
         if (halo::physics::physics_shape_test_point(&model, (real_point3d *)&mass_point->position_x, &contact)) {
             uint8_t is_scenery;
@@ -1350,11 +1357,11 @@ void ObjectPhysics::tick(uint32_t object_index, powered_mass_point_state *powere
         int16_t i;
 
         for (i = 0; (int32_t)i < (int32_t)physics->powered_mass_points.count; i++) {
-            uint8_t *state = (uint8_t *)powered_states + i * 0x60;
-            float *m = (float *)(state + 0x2c);
+            powered_mass_point_state *state = &powered_states[i];
+            float *m = &state->matrix_scale;
             float t;
 
-            halo::math::matrix4x3_from_quaternion(*(real_quaternion *)(state + 0x1c), *(real_matrix4x3 *)m);
+            halo::math::matrix4x3_from_quaternion(*(real_quaternion *)state->unknown_1c, *(real_matrix4x3 *)m);
             t = m[2]; m[2] = m[4]; m[4] = t;
             t = m[3]; m[3] = m[7]; m[7] = t;
             t = m[6]; m[6] = m[8]; m[8] = t;
@@ -1362,13 +1369,17 @@ void ObjectPhysics::tick(uint32_t object_index, powered_mass_point_state *powere
     }
     halo::physics::object_physics_compute_mass_point_forces(&context, powered_states, mass_points, &force, &torque);
     obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
-    force.i += *(float *)(obj + 0x508);
-    force.j += *(float *)(obj + 0x50c);
-    force.k += *(float *)(obj + 0x510);
-    torque.i += *(float *)(obj + 0x514);
-    torque.j += *(float *)(obj + 0x518);
-    torque.k += *(float *)(obj + 0x51c);
-    memset(obj + 0x508, 0, 0x18);
+    {
+        vehicle_data *vehicle = (vehicle_data *)(obj + k_unit_object_size);
+
+        force.i += vehicle->accumulated_force.i;
+        force.j += vehicle->accumulated_force.j;
+        force.k += vehicle->accumulated_force.k;
+        torque.i += vehicle->accumulated_torque.i;
+        torque.j += vehicle->accumulated_torque.j;
+        torque.k += vehicle->accumulated_torque.k;
+        memset(&vehicle->accumulated_force, 0, sizeof(vehicle->accumulated_force) + sizeof(vehicle->accumulated_torque));
+    }
     if (extra_force != 0) {
         force.i += extra_force->i;
         force.j += extra_force->j;
