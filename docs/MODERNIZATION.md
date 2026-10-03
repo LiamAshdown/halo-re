@@ -1,0 +1,65 @@
+# Modernisation loop: standing orders (read this first every tick)
+
+The user's directive, verbatim intent: a 5-minute loop that NEVER STOPS and NEVER ASKS QUESTIONS. Decide, act, log. Targets:
+
+1. Remove `extern "C"` and the extern declarations of methods/functions between modules.
+2. Use OOP; where a service locator is the right shape, use it (singletons for engine-wide services).
+3. Use modern design patterns; there must be no raw C code left.
+4. Use enum flags (`enum class` with a bit-flag operator header) instead of magic numbers and strings.
+5. Methods that were never reversed: reverse them and implement them.
+
+## Hard rules (never violate)
+
+- NEVER start `halo_rebuilt.exe` or any smoke test (user order). Verification is: the CMake build links, `tools/check_module_symbols.py`
+  where it still applies, `tools/modernization_census.py` does not get worse, the stale-address scans stay clean.
+- Work on branch `master` of this checkout; commit locally with small commits (end the message with
+  `Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>`). Do not push, do not force, do not delete user files.
+- Agents work in worktrees under `.claude/worktrees` from the current master HEAD; the loop merges their branches into master,
+  runs the build, and removes the worktree and branch afterwards. Never leave master with a failing build: if a merge breaks the build, fix it
+  at once or `git revert` it.
+- Behaviour must not change except where a "reverse and implement" task requires it. Keep arithmetic order, float semantics and
+  random-draw order.
+- Comments: method docblocks only (one or two short paragraphs, `@address` tag), no inline commentary.
+- No exceptions, no RTTI in engine code (project decision); no third-party libs except those named in docs/CPP_ARCHITECTURE.md.
+
+## Measuring progress
+
+`python tools/modernization_census.py` prints per module: `extern_c`, `extern_decl`, `shims`, `hex_literals`, `raw_casts`, `macros`, `gotos` and a
+`score` (lower is better). Baseline at the start of the loop (2026-10-03): total score 32,319, shims 3,791, extern "C" 3,988, extern decls 13,067,
+magic hex literals 12,133, raw casts 14,598. Each tick records the new total in the log below. Pick work from the highest-score modules, but
+respect the dependency order: a module's C entry points (shims in `<module>_c_api.cpp`) can only go once its callers and the data tables
+(`standalone/data/*.c`, `tables.c`) stop using the C names.
+
+## The technical path (do these in order; each step builds green before the next)
+
+A. **C++-ify the standalone layer.** `standalone/*.c`, `standalone/data/*.c` and `standalone/generated/*.c` become `.cpp` (namespaces, `constexpr`
+   tables, no `halo_code_` aliases). Drop `standalone/generated/code_entries.c`, the `cp_trap_*` stubs and `image_bindings.c`: function pointers in tables name
+   the real C++ functions (`&halo::<module>::...`) or `nullptr` for functions that are not part of the game (CRT/D3DX/GameSpy leftovers); the loader's
+   "jump into original code" diagnostic goes away with them.
+B. **Per module M (bottom-up by dependency; math, memory, cseries, cache, ... last: ai, game, interface):**
+   1. public header `include/halo/M/api.hpp` (or the existing class headers) declares every function other modules call, in `namespace halo::M`;
+   2. every other module `#include`s that header and calls the C++ API; its local `extern ...;` declarations of M's functions are deleted;
+   3. the tables that point at M's functions use the C++ names; the shims in `M_c_api.cpp` are deleted; `extern "C"` disappears from M's files;
+   4. globals M owns become members of one service object (`halo::M::Globals` or a service singleton reached through `halo::services::...`),
+      not loose variables declared `extern` in many files;
+   5. record/state classes get real member functions; dispatch tables become interfaces + registries (the registries that exist beside the old
+      tables become the only dispatch);
+   6. magic numbers: field offsets (`*(uint32_t *)(p + 0x1c)`) become named struct members (`types/*.h` or new headers); flags become
+      `enum class` with `halo/core/flags.hpp` operators; string literals that act as identifiers become enums or constants.
+C. **Reversing**: find unreversed code (`grep -rn "UNSURE\|FUN_[0-9a-f]\{6\}\|not implemented\|TODO\|stub" src include`, names starting `FUN_`/`unknown_`/
+   `DAT_`, `cp_trap_*` stubs for functions that are actually part of the game). Use `bin/halo.exe`, `out/functions.json` and the Ghidra project (read-only)
+   for disassembly; rewrite the function in readable C++, name it and its fields, and add it. Never commit retail bytes.
+
+## Agent roles (spawn with the Agent tool, subagent general-purpose, model sonnet, isolation worktree; at most 4 at a time)
+
+- `API` agent: step B for one module (the module name and its caller list are in the task).
+- `FLAGS` agent: step B.6 for one module.
+- `REVERSE` agent: step C for one module or one family of functions.
+- `STANDALONE` agent: step A.
+
+Use docs/MODERNIZATION_BRIEF.md as the brief template. After spawning, fast-forward the worktree to master yourself
+(`git -C .claude/worktrees/agent-<id> merge --ff-only master`; if the agent already created the two lead-owned files, delete them first).
+
+## Log (append one line per tick: time, census total, what changed, what is running)
+
+- 2026-10-03: loop created. Census total 32,319. Image removal done (standalone/data/tables.c), build 11 green.
