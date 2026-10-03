@@ -862,7 +862,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         goto return_true;
     }
 
-    if (self->unknown_362[0] != 0) {
+    if (self->crouch_check_active != 0) {
         if (*(int16_t *)((uint8_t *)self + 0x366) > 0) {
             *(int16_t *)((uint8_t *)self + 0x366) -= 1;
         } else if ((variant[0] & 8) != 0 && (int8_t)self->tally.group_c_total > 0) {
@@ -894,7 +894,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                     continue;
                 }
                 other = (actor *)((const uint8_t *)halo::ai::globals().actor_data->data + (owner & halo::k_slot_mask) * k_actor_size);
-                if (other->unknown_362[0] == 0) {
+                if (other->crouch_check_active == 0) {
                     continue;
                 }
                 dot = (other->body_position.z - self->body_position.z) * axis_prop->direction.z +
@@ -909,7 +909,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                 }
             }
 
-            if (self->unknown_362[1] != 0) {
+            if (self->crouch_state != 0) {
                 if ((int16_t)behind == 0 && (int16_t)ahead > (int16_t)level) {
                     decision = 0;
                     goto apply_decision;
@@ -920,10 +920,10 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         }
         *(int16_t *)((uint8_t *)self + 0x364) -= 1;
         if (*(int16_t *)((uint8_t *)self + 0x364) != 0) {
-            return self->unknown_362[1];
+            return self->crouch_state;
         }
     flip_decision:
-        decision = (self->unknown_362[1] == 0);
+        decision = (self->crouch_state == 0);
     } else {
         float chance = ((ActorVariant *)variant)->initial_crouch_chance;
         float roll;
@@ -962,7 +962,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         }
 
         halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
-        self->unknown_362[0] = 1;
+        self->crouch_check_active = 1;
         roll = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
         decision = (roll >= chance) ? 0 : 1;
     }
@@ -971,7 +971,7 @@ apply_decision:
     {
         float ticks;
 
-        self->unknown_362[1] = decision;
+        self->crouch_state = decision;
         if (decision != 0) {
             ticks = halo::math::random_real_range(*(const float *)(variant + 0x54), *(const float *)(variant + 0x58));
         } else {
@@ -984,14 +984,14 @@ apply_decision:
         *(int16_t *)((uint8_t *)self + 0x364) = (int16_t)(int32_t)ticks;
         *(int16_t *)((uint8_t *)self + 0x366) = 0x1e;
     }
-    return self->unknown_362[1];
+    return self->crouch_state;
 
 return_true:
-    self->unknown_362[0] = 0;
+    self->crouch_check_active = 0;
     return 1;
 
 return_false:
-    self->unknown_362[0] = 0;
+    self->crouch_check_active = 0;
     return 0;
 }
 

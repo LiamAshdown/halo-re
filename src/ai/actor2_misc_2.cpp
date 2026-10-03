@@ -149,7 +149,7 @@ void ActorView::refresh_combat_context()
 
         halo::objects::object_get_node_local_transform((int32_t)self->unit_index, ai_marker_name_b, &marker, 1);
         head = marker.node_transform.position;
-        self->in_water = halo::scenario::scenario_location_get_water_and_weather(&head, (bsp_leaf_reference *)((uint8_t *)self + 0x144), 0);
+        self->in_water = halo::scenario::scenario_location_get_water_and_weather(&head, &self->location, 0);
     }
     self->flying = (uint8_t)((actor_tag->flags >> 21) & 1);
 

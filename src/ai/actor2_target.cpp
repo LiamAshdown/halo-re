@@ -728,7 +728,7 @@ void ActorView::target_scan_potential_targets()
     row_dwords = (halo::scenario::globals().structure_bsp->clusters.count + 0x1f) >> 5;
 
     if (!self->swarm) {
-        int16_t cluster_ref = *(int16_t *)&self->unknown_138[0x148 - 0x138];
+        int16_t cluster_ref = self->location.cluster_index;
         if (cluster_ref != -1) {
             pvs_bitmap = (uint32_t *)((uint8_t *)halo::scenario::globals().structure_bsp->cluster_data.pointer +
                                        row_dwords * cluster_ref * 4);

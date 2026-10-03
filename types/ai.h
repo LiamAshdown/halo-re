@@ -61,6 +61,7 @@
 // are therefore not defined here, are listed in out/phase4/ai_types_notes.md.
 
 #include <stddef.h> // offsetof
+#include "objects.h" // bsp_leaf_reference (actor.location)
 #pragma pack(push, 1)
 typedef unsigned char uint8_t; typedef signed char int8_t; typedef unsigned short uint16_t; typedef short int16_t;
 typedef unsigned int uint32_t; typedef int int32_t;
@@ -641,7 +642,9 @@ typedef struct actor {
                                       //   measures the aim target against it
     real_point3d body_position;       // 0x12c the position every range and scoring routine uses; read by
                                       //   0x4112b0, 0x411bf0, 0x412ba0, 0x4180c0 and the avoidance sampler
-    uint8_t unknown_138[0x20];        // 0x138
+    uint8_t unknown_138[12];          // 0x138
+    bsp_leaf_reference location;      // 0x144 bsp leaf and cluster of the actor's head position; refreshed by actor_refresh_combat_context
+    uint8_t unknown_14c[12];          // 0x14c
     datum_index active_unit_index;    // 0x158 preferred unit object for movement; 0x4193d0 falls back to unit_index
     uint8_t airborne;                 // 0x15c actor_refresh_combat_context 0x4297a0: biped airborne_ticks
                                       //    (unit+0x501) >= 6, on foot only; movement/firing/obey code skip while set
@@ -787,7 +790,7 @@ typedef struct actor {
     uint32_t pending_panic_prop_index; // 0x30c prop paired with pending_panic_type (source fled from); written with
                                        //    it by 0x4233d0/0x423220/actor_alert_from_*, swapped by
                                        //    actor_replace_object_reference
-    uint8_t unknown_310[2];           // 0x310
+    int16_t escalation_level;         // 0x310 the escalation level the alert flow raised; escalate_apply compares it with its threshold and clears it
     int16_t search_priority;          // 0x312 0x421af0 keeps only the highest-priority search position
     uint8_t search_position_valid;    // 0x314 the highest-priority search request supplied a position
     uint8_t unknown_315[3];           // 0x315
@@ -819,7 +822,10 @@ typedef struct actor {
     int16_t crouch_ticks;             // 0x35a tick counter (crouch timer / facing-change ticks)
     uint8_t crouch_cover_flags[4];    // 0x35c crouch_state neighbour flags
     int16_t incoming_fire_ticks;      // 0x360 countdown: crouch_state; actor_movement_update tests >= 1
-    uint8_t unknown_362[6];           // 0x362
+    uint8_t crouch_check_active;      // 0x362 crouch_state is deciding; cleared when the target is close
+    uint8_t crouch_state;             // 0x363 the crouch decision crouch_state returns
+    int16_t crouch_state_ticks;       // 0x364 counted down to a new crouch decision
+    int16_t crouch_state_delay;       // 0x366 counted down to the next decision attempt (30 after a decision)
     int16_t evasion_delay_ticks;      // 0x368 evasion_delay_time * 30 set by grenade reactions, must be 0 to retry;
                                       //    crouch_state counts it down
     uint8_t unknown_36a[2];           // 0x36a

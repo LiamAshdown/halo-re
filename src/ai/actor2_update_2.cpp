@@ -165,7 +165,7 @@ void ActorView::update_firing_state()
             a->unknown_620[1] = 0;
             a->unknown_620[4] = 0;
             if (a->firing_target_ticks % 10 == 0) {
-                W(a, 0x626) = (int16_t)halo::ai::actor_evaluate_engagement_reachability(W(a, 0x148), -1,
+                W(a, 0x626) = (int16_t)halo::ai::actor_evaluate_engagement_reachability(a->location.cluster_index, -1,
                     &a->firing_target_point, &a->aim_origin, 0, 0, k_datum_index_none,
                     (uint8_t)(a->active_unit_index != k_datum_index_none));
             }
