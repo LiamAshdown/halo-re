@@ -322,7 +322,7 @@ uint8_t UnitView::new_()
         return 0;
     }
 
-    unit->unknown_475 = 0;
+    unit->network_update_applied = 0;
     unit->control_update_id = -1;
     unit->equipment_object_index = (datum_index)-1;
     unit->weapons[0] = (datum_index)-1;

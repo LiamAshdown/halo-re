@@ -376,7 +376,7 @@ typedef struct object {
     real_vector3d angular_velocity; // 0x08c object_get_root_object_velocities, second output
     int32_t location_leaf_index;    // 0x098 object_set_cluster_and_parent
     int16_t location_cluster_index; // 0x09c -1 at create; mirrored into object_header 0x04
-    int16_t unknown_09e;            // 0x09e
+    int16_t location_reserved;      // 0x09e padding word of the bsp_leaf_reference; item_set_holder clears it with the cluster
     real_point3d bounding_center;   // 0x0a0 the object_find_in_sphere sphere centre and the
                                     //       damage line-of-sight target point
     float bounding_radius;          // 0x0ac written by every bounding-radius variant

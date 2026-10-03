@@ -626,16 +626,16 @@ typedef struct actor {
     // 0x350..0x36b block; actor_new zeroes 0x1a dwords starting here, i.e. 0x350..0x3b7. Member types agree between
     // actor_update_crouch_state, actor_update_facing_change_timer, actor_update_grenade_and_morale_reactions and
     // actor_movement_update; the ROLE of 0x358/0x35a is contested (crouch state + crouch timer vs facing-change
-    // pending flag + ticks) so those stay unknown_*. 0x35c..0x35f flags only used by crouch_state.
-    float unknown_350;                // 0x350 crouch_state: threat level (single user)
+    // pending flag + ticks) so those are named after the first user. 0x35c..0x35f flags only used by crouch_state.
+    float threat_level;               // 0x350 crouch_state: threat level (single user)
     float danger_meter;               // 0x354 smoothed threat level (crouch_state) / danger meter reset to 0 by
                                       //    grenade reactions / smoothing clamp (facing_change_timer)
-    uint8_t unknown_358;              // 0x358 byte flag; crouching (crouch_state) vs pending flag (facing timer);
+    uint8_t crouch_active;            // 0x358 byte flag; crouching (crouch_state) vs pending flag (facing timer);
                                       //    also copied to 0x426/0x427 by fight/charge/avoid mode updates
     uint8_t unknown_359;              // 0x359
-    int16_t unknown_35a;              // 0x35a tick counter (crouch timer / facing-change ticks)
-    uint8_t unknown_35c[4];           // 0x35c crouch_state neighbour flags
-    int16_t unknown_360;              // 0x360 countdown: crouch_state; actor_movement_update tests >= 1
+    int16_t crouch_ticks;             // 0x35a tick counter (crouch timer / facing-change ticks)
+    uint8_t crouch_cover_flags[4];    // 0x35c crouch_state neighbour flags
+    int16_t incoming_fire_ticks;      // 0x360 countdown: crouch_state; actor_movement_update tests >= 1
     uint8_t unknown_362[6];           // 0x362
     int16_t evasion_delay_ticks;      // 0x368 evasion_delay_time * 30 set by grenade reactions, must be 0 to retry;
                                       //    crouch_state counts it down

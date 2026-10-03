@@ -129,7 +129,7 @@ void item_ref::set_holder(datum_index holder_index)
         item->flags &= ~(uint32_t)(_item_at_rest_on_structure_bit | _item_does_not_accelerate_bit);
         obj->location_leaf_index = -1;
         obj->location_cluster_index = -1;
-        obj->unknown_09e = -1;
+        obj->location_reserved = -1;
 
         if (obj->network_role == 0) {
             obj->flags |= _object_changed_bit;
