@@ -80,7 +80,7 @@ const uint16_t *King::place_text(datum_index recipient)
  */
 uint8_t King::build_message_text(datum_index recipient, int32_t message_type, datum_index subject, wchar_t *text, uint32_t count)
 {
-    uint8_t *player = (uint8_t *)halo::memory::datum_get(subject, player_data);
+    ::player *player = (::player *)halo::memory::datum_get(subject, player_data);
     int32_t seconds;
 
     switch (message_type) {
@@ -91,7 +91,7 @@ uint8_t King::build_message_text(datum_index recipient, int32_t message_type, da
         {
             const uint16_t *place = place_text(recipient);
 
-            seconds = king_bucket_credit_ticks[((struct player *)player)->team] / 30;
+            seconds = king_bucket_credit_ticks[player->team] / 30;
             halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0x9b), place, seconds);
         }
         return 1;
@@ -100,8 +100,8 @@ uint8_t King::build_message_text(datum_index recipient, int32_t message_type, da
         if (player == 0) {
             return 0;
         }
-        seconds = king_bucket_credit_ticks[((struct player *)player)->team] / 30;
-        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x21 ? 0x9c : 0x9d), player + 4, seconds);
+        seconds = king_bucket_credit_ticks[player->team] / 30;
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x21 ? 0x9c : 0x9d), player->name, seconds);
         return 1;
     default:
         return 0;

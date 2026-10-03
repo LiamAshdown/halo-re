@@ -193,13 +193,13 @@ uint8_t Ctf::build_message_text(datum_index recipient, int32_t message_type, dat
     case 0x21:
     case 0x22:
     case 0x23: {
-        uint8_t *player = (uint8_t *)halo::memory::datum_get(recipient, player_data);
+        ::player *player = (::player *)halo::memory::datum_get(recipient, player_data);
         int32_t team;
 
         if (player == 0) {
             return 0;
         }
-        team = ((struct player *)player)->team;
+        team = player->team;
         halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text((int16_t)(0x8d + message_type - 0x21)),
             ctf_team_flag_touch_count[team], ctf_team_flag_touch_count[(team + 1) % 2]);
         return 1;
@@ -754,10 +754,10 @@ uint8_t Ctf::player_flag_tick(uint32_t flag_handle, uint32_t player_index)
  */
 void Ctf::player_round_reset(datum_index player_index)
 {
-    uint8_t *player = (uint8_t *)halo::memory::datum_get(player_index, player_data);
+    ::player *player = (::player *)halo::memory::datum_get(player_index, player_data);
 
     if (player != 0) {
-        ((struct player *)player)->objective_score = 0;
+        player->objective_score = 0;
     }
 }
 

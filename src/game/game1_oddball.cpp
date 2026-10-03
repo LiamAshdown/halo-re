@@ -55,7 +55,7 @@ const uint16_t *Oddball::place_text(datum_index recipient)
  */
 uint8_t Oddball::build_message_text(datum_index recipient, int32_t message_type, datum_index subject, wchar_t *text, uint32_t count)
 {
-    uint8_t *player;
+    ::player *player;
 
     switch (message_type) {
     case 0x20: wcsncpy(text, (const wchar_t *)game_text(0xa2), count); return 1;
@@ -64,23 +64,23 @@ uint8_t Oddball::build_message_text(datum_index recipient, int32_t message_type,
     case 0x24: wcsncpy(text, (const wchar_t *)game_text(0xa0), count); return 1;
     case 0x22:
     case 0x25:
-        player = (uint8_t *)halo::memory::datum_get(subject, player_data);
+        player = (::player *)halo::memory::datum_get(subject, player_data);
         if (player == 0) {
             return 0;
         }
-        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x22 ? 0xa4 : 0xa1), player + 4);
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x22 ? 0xa4 : 0xa1), player->name);
         return 1;
     case 0x27:
     case 0x28:
-        player = (uint8_t *)halo::memory::datum_get(subject, player_data);
+        player = (::player *)halo::memory::datum_get(subject, player_data);
         if (player == 0) {
             return 0;
         }
-        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x27 ? 0xa6 : 0xa5), player + 4,
-            king_alt_team_score[((struct player *)player)->team] / 30);
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x27 ? 0xa6 : 0xa5), player->name,
+            king_alt_team_score[player->team] / 30);
         return 1;
     case 0x29:
-        player = (uint8_t *)halo::memory::datum_get(subject, player_data);
+        player = (::player *)halo::memory::datum_get(subject, player_data);
         if (halo::memory::datum_get(recipient, player_data) == 0 || player == 0) {
             return 0;
         }
@@ -88,7 +88,7 @@ uint8_t Oddball::build_message_text(datum_index recipient, int32_t message_type,
             const uint16_t *place = place_text(recipient);
 
             halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0x9b), place,
-                king_alt_team_score[((struct player *)player)->team] / 30);
+                king_alt_team_score[player->team] / 30);
         }
         return 1;
     default:

@@ -191,7 +191,7 @@ const uint16_t * RaceEngine::place_text(datum_index recipient)
  */
 uint8_t RaceEngine::build_message_text(datum_index recipient, int32_t message_type, datum_index subject, wchar_t *text, uint32_t count)
 {
-    uint8_t *player;
+    ::player *player;
 
     if (message_type == 0x23) {
         wcsncpy(text, (const wchar_t *)game_text(0xa7), count);
@@ -200,52 +200,52 @@ uint8_t RaceEngine::build_message_text(datum_index recipient, int32_t message_ty
     if (message_type < 0x16 || message_type > 0x26 || (message_type > 0x16 && message_type < 0x20)) {
         return 0;
     }
-    player = (uint8_t *)halo::memory::datum_get(subject, player_data);
+    player = (::player *)halo::memory::datum_get(subject, player_data);
     if (player == 0) {
         return 0;
     }
     switch (message_type) {
     case 0x24:
     case 0x25:
-        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x24 ? 0xa8 : 0xa9), player + 4);
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x24 ? 0xa8 : 0xa9), player->name);
         return 1;
     case 0x20:
-        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xaa), (int32_t)((struct player *)player)->objective_time_words.race_laps,
-            (double)((float)((struct player *)player)->objective_time_words.low * 0.033333335f));
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xaa), (int32_t)player->objective_time_words.race_laps,
+            (double)((float)player->objective_time_words.low * 0.033333335f));
         return 1;
     case 0x21:
     case 0x22:
-        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x21 ? 0xab : 0xac), player + 4,
-            (int32_t)((struct player *)player)->objective_time_words.race_laps);
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(message_type == 0x21 ? 0xab : 0xac), player->name,
+            (int32_t)player->objective_time_words.race_laps);
         return 1;
     case 0x26:
         halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xad),
-            (double)((float)((struct player *)player)->objective_score * 0.033333335f));
+            (double)((float)player->objective_score * 0.033333335f));
         return 1;
     default:
         if (halo::memory::datum_get(recipient, player_data) == 0) {
             return 0;
         }
         if (game_engine_variant.engine.race.race_type == 2) {
-            if (((struct player *)player)->objective_time_words.race_laps == 1) {
+            if (player->objective_time_words.race_laps == 1) {
                 const uint16_t *format = game_text(0xae);
 
                 halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, format, place_text(recipient));
             } else {
                 const uint16_t *format = game_text(0xaf);
 
-                halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, format, place_text(recipient), (int32_t)((struct player *)player)->objective_time_words.race_laps);
+                halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, format, place_text(recipient), (int32_t)player->objective_time_words.race_laps);
             }
             return 1;
         }
-        if (((struct player *)player)->objective_time_words.race_laps + 1 > game_engine_variant.score_limit) {
+        if (player->objective_time_words.race_laps + 1 > game_engine_variant.score_limit) {
             const uint16_t *format = game_text(0xb0);
 
             halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, format, place_text(recipient));
         } else {
             const uint16_t *format = game_text(0xb1);
 
-            halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, format, place_text(recipient), ((struct player *)player)->objective_time_words.race_laps + 1,
+            halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, format, place_text(recipient), player->objective_time_words.race_laps + 1,
                 game_engine_variant.score_limit);
         }
         return 1;
@@ -365,14 +365,14 @@ uint32_t RaceEngine::is_winner(datum_index player)
  */
 void RaceEngine::player_changed_object(datum_index player_index)
 {
-    uint8_t *player;
+    ::player *player;
 
     if (halo::networking::globals().game_mode != halo::networking::k_game_mode_host) {
         return;
     }
-    player = (uint8_t *)halo::memory::datum_get(player_index, player_data);
+    player = (::player *)halo::memory::datum_get(player_index, player_data);
     if (player != 0 && game_engine_variant.engine.race.team_scoring == 2) {
-        game_engine_bucket_scores_extra[((struct player *)player)->team] += ((struct player *)player)->objective_time_words.race_laps;
+        game_engine_bucket_scores_extra[player->team] += player->objective_time_words.race_laps;
     }
     halo::game::game_engine_check_bucket_scores_and_end_round();
 }
