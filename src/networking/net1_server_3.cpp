@@ -34,7 +34,7 @@ uint8_t ServerView::heartbeat_tick()
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     result = 1;
 
-    if (*(uint8_t *)(base + 0x9f9) == 0) {
+    if (server->scenario_announced == 0) {
         int32_t i;
 
         for (i = 0; i < 16; i = i + 1) {
@@ -46,7 +46,7 @@ uint8_t ServerView::heartbeat_tick()
             }
         }
 
-        if (*(uint8_t *)(base + 0x9d4) == 1) {
+        if (server->handshake_state == 1) {
             char have_players;
             char team_empty;
             char restarting;
@@ -58,21 +58,21 @@ uint8_t ServerView::heartbeat_tick()
                 timer->remaining_ms = 0;
                 timer->last_tick_ms = 0;
                 *(int32_t *)(base + 0x9d0) = 0;
-                *(uint8_t *)(base + 0x9d4) = 0;
+                server->handshake_state = 0;
             } else {
                 restarting = 1;
                 halo::networking::network_timer_advance(timer);
                 if (timer->remaining_ms == 0 &&
                     halo::networking::network_server_any_machine_awaiting_flag(server) != 0 &&
-                    *(uint8_t *)(base + 0x9d5) == 0) {
+                    server->handshake_blocked == 0) {
                     result = halo::networking::network_host_send_scenario_announcement(server);
                     goto scenario_check;
                 }
-                if ((uint32_t)(now_ms - *(int32_t *)(base + 0x9d0)) < 0x3e9) {
+                if ((uint32_t)(now_ms - static_cast<int32_t>(server->unknown_9d0)) < 0x3e9) {
                     goto scenario_check;
                 }
             }
-            *(uint8_t *)(base + 0x9d6) = 0;
+            server->handshake_flag = 0;
             if (restarting) {
                 halo::networking::network_timer_advance(timer);
             }
@@ -86,7 +86,7 @@ uint8_t ServerView::heartbeat_tick()
                     *(int32_t *)(base + 0x9d0) = now_ms;
                 }
             }
-        } else if (*(int32_t *)(base + 0x9bc) + 5000 < now_ms) {
+        } else if (static_cast<int32_t>(server->last_challenge_sent_ms) + 5000 < now_ms) {
             void *packet;
 
             uint16_t empty_payload = 0;
@@ -95,11 +95,11 @@ uint8_t ServerView::heartbeat_tick()
             halo::networking::network_session_broadcast_to_all(server, 0, packet, 1, 0, 1, 3);
             *(int32_t *)(base + 0x9bc) = now_ms;
         }
-    } else if (*(int32_t *)(base + 0x9c4) != 0) {
+    } else if (static_cast<int32_t>(server->first_join_ms) != 0) {
         int32_t now2;
 
         now2 = halo::cseries::time_query_performance_counter_ms();
-        if ((uint32_t)(now2 - *(int32_t *)(base + 0x9c4)) > 59999) {
+        if ((uint32_t)(now2 - static_cast<int32_t>(server->first_join_ms)) > 59999) {
             int32_t i;
             char has_client;
 
@@ -119,11 +119,11 @@ uint8_t ServerView::heartbeat_tick()
     }
 
 scenario_check:
-    if (*(uint8_t *)(base + 0x9fa) == 1) {
+    if (server->new_server_pending == 1) {
         if (halo::networking::network_game_server_load_scenario() == 1) {
             server->state = 1;
         }
-        *(uint8_t *)(base + 0x9fa) = 0;
+        server->new_server_pending = 0;
     }
     return result;
 }

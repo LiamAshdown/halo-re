@@ -1301,10 +1301,10 @@ uint32_t ServerMessageHandlers::client_map_data(uint8_t *record, int32_t length)
     uint16_t version_used;
     uint8_t *s = (uint8_t *)server;
 
-    if (*(int16_t *)(s + 4) == 1 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 5) != 0 && s[0x9f8] == 0 &&
+    if (server->state == 1 && halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body, record + 2, &out_type, &version_used, 5) != 0 && server->join_finalize_pending == 0 &&
         halo::networking::network_player_entry_validate((network_player_entry *)body) != 0) {
         memcpy(s + 0x9d8, body, sizeof(body));
-        s[0x9f8] = 1;
+        server->join_finalize_pending = 1;
     }
     return 1;
 }

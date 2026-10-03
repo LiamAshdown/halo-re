@@ -419,10 +419,10 @@ compare_done:
     }
     *(uint16_t *)zero_fill = 0;
 
-    *(uint32_t *)(frame + 0x00) = *(uint32_t *)((uint8_t *)client + 0xb02);
-    *(uint32_t *)(frame + 0x04) = *(uint32_t *)((uint8_t *)client + 0xb06);
-    *(uint32_t *)(frame + 0x08) = *(uint32_t *)((uint8_t *)client + 0xb0a);
-    *(uint32_t *)(frame + 0x0c) = *(uint32_t *)((uint8_t *)client + 0xb0e);
+    *(uint32_t *)(frame + 0x00) = client->connect_attempt.session_info[5];
+    *(uint32_t *)(frame + 0x04) = client->connect_attempt.session_info[6];
+    *(uint32_t *)(frame + 0x08) = client->connect_attempt.session_info[7];
+    *(uint32_t *)(frame + 0x0c) = client->connect_attempt.session_info[8];
     *(uint8_t *)&client->pad_ee2 = 0;
     wcsncpy((wchar_t *)(frame + 0x10), (const wchar_t *)((uint8_t *)client + 0xaf0), 8);
     frame[0x6b] = *((uint8_t *)client + 0xf4c);
