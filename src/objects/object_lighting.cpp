@@ -1,4 +1,5 @@
 #include "halo/objects/record_access.hpp"
+#include <string.h>
 #include "halo/objects/object_lighting.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
@@ -17,6 +18,8 @@
 #include "halo/core/libm.hpp"
 #include "halo/game/api.hpp"
 
+static_assert(offsetof(ShaderEnvironment, base_map) + offsetof(TagDependency, tag_id) == 0x94, "environment shader base map");
+static_assert(offsetof(Bitmap, bitmap_data) == 0x60 && sizeof(light) == 0x7c, "bitmap data block, light record");
 static auto &default_axis_b = halo::link::ref<real_vector3d *>(halo::game::vars().default_axis_b);
 static auto &light_data = halo::link::ref<data_array *>(halo::objects::vars().light_data);
 static auto &light_frame_counter = halo::link::ref<int32_t>(halo::objects::vars().light_frame_counter);
@@ -50,9 +53,9 @@ real halo::objects::ObjectLighting::sum_attached_light_luminance()
             obj->attachment_handles[i] != k_datum_index_none) {
             light *l = &((light *)light_data->data)[obj->attachment_handles[i] & 0xffff];
 
-            total = (*(float *)((uint8_t *)l + 0x1c) * 0.114f +
-                     *(float *)((uint8_t *)l + 0x18) * 0.587f +
-                     *(float *)((uint8_t *)l + 0x14) * 0.299f) + total;
+            total = (l->color.blue * 0.114f +
+                     l->color.green * 0.587f +
+                     l->color.red * 0.299f) + total;
         }
     }
 
@@ -97,8 +100,7 @@ void halo::objects::ObjectLighting::sample_total_lighting_at_point(real_point3d 
         if ((int32_t)halo::objects::tag_handle(bsp->lightmaps_bitmap) != -1 && (int16_t)lightmap->bitmap != -1) {
             BitmapData *bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(halo::objects::tag_handle(bsp->lightmaps_bitmap),
                 (int16_t)lightmap->bitmap);
-            uint16_t *triangle =
-                (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
+            uint16_t *triangle = &halo::objects::block_element<ScenarioStructureBSPSurface>(bsp->surfaces, surface_index).vertex0_index;
 
             if (halo::cache::texture_cache_get(bitmap, 0, 0) != 0) {
                 halo::structures::bsp_lightmap_sample_vertex_color(bitmap, weight_1, weight_2, (ColorRGB *)color, material, triangle);
@@ -116,16 +118,16 @@ void halo::objects::ObjectLighting::sample_total_lighting_at_point(real_point3d 
         light_frame_counter++;
         light_render_unknown_7c0 = 1;
         halo::objects::object_lights_gather_nearest(location->cluster_index, k_datum_index_none, point, 0.0f, indices, scores,
-            (uint32_t)(uintptr_t)weights, &count, 2);
+            weights, &count, 2);
         light_render_unknown_7c0 = 0;
 
         for (i = 0; i < count; i++) {
-            uint8_t *entry = (uint8_t *)light_data->data + halo::datum_slot(indices[i]) * 0x7c;
+            light &entry = reinterpret_cast<light *>(light_data->data)[halo::datum_slot(indices[i])];
 
-            if (*(entry + 2) & _light_always_visible_bit) {
-                color->i += *(float *)(entry + 0x14) * weights[i];
-                color->j += *(float *)(entry + 0x18) * weights[i];
-                color->k += *(float *)(entry + 0x1c) * weights[i];
+            if (entry.flags & _light_always_visible_bit) {
+                color->i += entry.color.red * weights[i];
+                color->j += entry.color.green * weights[i];
+                color->k += entry.color.blue * weights[i];
             }
         }
     }
@@ -183,7 +185,6 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
     ScenarioStructureBSPLightmap *lightmap;
     ScenarioStructureBSPMaterial *material;
     Shader *shader;
-    uint8_t *base_map_tag;
     datum_index base_map;
     BitmapData *lightmap_bitmap;
     BitmapData *base_map_bitmap;
@@ -202,22 +203,21 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
     material = (ScenarioStructureBSPMaterial *)(uintptr_t)lightmap->materials.pointer + material_index;
     shader = halo::objects::tag_as<Shader>(halo::objects::tag_handle(material->shader));
 
-    if (*(int16_t *)&shader->shader_type != 3 ||
+    if (shader->shader_type != 3 ||
         (int32_t)halo::objects::tag_handle(bsp->lightmaps_bitmap) == -1 ||
-        halo::raw_at<int32_t>(shader, 0x94) == -1 ||
+        (int32_t)halo::objects::tag_handle(reinterpret_cast<ShaderEnvironment *>(shader)->base_map) == -1 ||
         (int16_t)lightmap->bitmap == -1) {
         return;
     }
 
     lightmap_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(halo::objects::tag_handle(bsp->lightmaps_bitmap),
         (int16_t)lightmap->bitmap);
-    base_map = halo::raw_at<datum_index>(shader, 0x94);
-    base_map_tag = halo::objects::tag_record_bytes(base_map);
+    base_map = halo::objects::tag_handle(reinterpret_cast<ShaderEnvironment *>(shader)->base_map);
     base_map_bitmap = halo::bitmaps::bitmap_group_get_bitmap_data(base_map,
-        (int16_t)((int32_t)(int16_t)material->shader_permutation % *(int32_t *)(base_map_tag + 0x60)));
+        (int16_t)((int32_t)(int16_t)material->shader_permutation % static_cast<int32_t>(halo::objects::tag_as<Bitmap>(base_map)->bitmap_data.count)));
 
     if (lightmap_bitmap != 0 && object_lightmap_texture_ready(lightmap_bitmap, wait_for_textures) != 0) {
-        triangle = (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
+        triangle = &halo::objects::block_element<ScenarioStructureBSPSurface>(bsp->surfaces, surface_index).vertex0_index;
         halo::structures::bsp_lightmap_sample_vertex_color(lightmap_bitmap, weight_1, weight_2, (ColorRGB *)lightmap_color,
             material, triangle);
         lightmap_color->i += 0.1f;
@@ -236,7 +236,7 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
 
     if (base_map_bitmap != 0 && object_lightmap_texture_ready(base_map_bitmap, wait_for_textures) != 0) {
         if (triangle == 0) {
-            triangle = (uint16_t *)((ScenarioStructureBSPSurface *)(uintptr_t)bsp->surfaces.pointer + surface_index);
+            triangle = &halo::objects::block_element<ScenarioStructureBSPSurface>(bsp->surfaces, surface_index).vertex0_index;
         }
         halo::structures::bsp_material_sample_base_map_color(base_map_bitmap, weight_1, weight_2, (ColorRGB *)base_map_color,
             material, triangle);
@@ -244,20 +244,79 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
 }
 
 namespace {
-static int object_ambient_sample_slot_is_averaged(int index)
+
+/** Adds the slots of `b` that the ambient sampling averages: both colours, both distant lights, the reflection tint and the shadow. */
+static void accumulate_averaged_lighting(render_lighting &a, const render_lighting &b)
 {
-    return index != 3 && (index < 0x10 || index > 0x12);
+    a.ambient_color.red += b.ambient_color.red;
+    a.ambient_color.green += b.ambient_color.green;
+    a.ambient_color.blue += b.ambient_color.blue;
+    for (int i = 0; i < 2; i++) {
+        a.distant_lights[i].color.red += b.distant_lights[i].color.red;
+        a.distant_lights[i].color.green += b.distant_lights[i].color.green;
+        a.distant_lights[i].color.blue += b.distant_lights[i].color.blue;
+        a.distant_lights[i].direction.i += b.distant_lights[i].direction.i;
+        a.distant_lights[i].direction.j += b.distant_lights[i].direction.j;
+        a.distant_lights[i].direction.k += b.distant_lights[i].direction.k;
+    }
+    a.reflection_tint.alpha += b.reflection_tint.alpha;
+    a.reflection_tint.red += b.reflection_tint.red;
+    a.reflection_tint.green += b.reflection_tint.green;
+    a.reflection_tint.blue += b.reflection_tint.blue;
+    a.shadow_vector.i += b.shadow_vector.i;
+    a.shadow_vector.j += b.shadow_vector.j;
+    a.shadow_vector.k += b.shadow_vector.k;
+    a.shadow_color.red += b.shadow_color.red;
+    a.shadow_color.green += b.shadow_color.green;
+    a.shadow_color.blue += b.shadow_color.blue;
 }
+
+/** Scales the summed slots by `scale` and renormalises the two distant light directions and the shadow vector. */
+static void scale_averaged_lighting(render_lighting &s, float scale)
+{
+    s.ambient_color.red *= scale;
+    s.ambient_color.green *= scale;
+    s.ambient_color.blue *= scale;
+    s.reflection_tint.alpha *= scale;
+    s.reflection_tint.red *= scale;
+    s.reflection_tint.green *= scale;
+    s.reflection_tint.blue *= scale;
+
+    s.distant_lights[0].color.red *= scale;
+    s.distant_lights[0].color.green *= scale;
+    s.distant_lights[0].color.blue *= scale;
+    s.distant_lights[0].direction.i *= scale;
+    s.distant_lights[0].direction.j *= scale;
+    s.distant_lights[0].direction.k *= scale;
+    halo::math::vector3d_normalize_with_length(s.distant_lights[0].direction);
+
+    s.distant_lights[1].color.red *= scale;
+    s.distant_lights[1].color.green *= scale;
+    s.distant_lights[1].color.blue *= scale;
+    s.distant_lights[1].direction.i *= scale;
+    s.distant_lights[1].direction.j *= scale;
+    s.distant_lights[1].direction.k *= scale;
+    halo::math::vector3d_normalize_with_length(s.distant_lights[1].direction);
+
+    s.shadow_color.red *= scale;
+    s.shadow_color.green *= scale;
+    s.shadow_color.blue *= scale;
+    s.shadow_vector.i *= scale;
+    s.shadow_vector.j *= scale;
+    s.shadow_vector.k *= scale;
+    halo::math::vector3d_normalize_with_length(s.shadow_vector);
+}
+
 }
 
 /**
- * Samples the ambient lighting around an object into the sample array.
+ * Samples the ambient lighting around an object into the sample record.
  *
  * Original register convention: EAX -> object_index, stack -> sample.
  *
  * @address 0x004f20b0
  */
-void halo::objects::ObjectLighting::sample_ambient_lighting(float *sample)
+void halo::objects::ObjectLighting::sample_ambient_lighting(render_lighting *sample)
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
@@ -266,22 +325,19 @@ void halo::objects::ObjectLighting::sample_ambient_lighting(float *sample)
     char center_ok;
     int16_t successes;
     uint16_t offset_index;
-    int i;
 
-    if ((*((uint8_t *)object_tag + 2) & 4) != 0) {
+    if ((object_tag->flags & 4) != 0) {
         flags |= 4;
     }
 
-    center_ok = halo::structures::object_lighting_sample_point(flags, &obj->bounding_center, (render_lighting *)sample);
+    center_ok = halo::structures::object_lighting_sample_point(flags, &obj->bounding_center, sample);
 
     if (!test_flag(obj->flags, objects::object_flag::unknown_4000)) {
-        float probe[29];
+        render_lighting probe;
 
         if (center_ok == 0) {
-            for (i = 0; i < 29; i++) {
-                sample[i] = 0.0f;
-            }
-            *(int16_t *)(sample + 3) = 2;
+            memset(sample, 0, sizeof(*sample));
+            sample->distant_light_count = 2;
             successes = 0;
         } else {
             successes = 1;
@@ -297,39 +353,20 @@ void halo::objects::ObjectLighting::sample_ambient_lighting(float *sample)
             corner.y = ((offset_index & 2) == 0 ? -0.70710677f : 0.70710677f) * obj->bounding_radius +
                        obj->bounding_center.y;
 
-            ok = halo::structures::object_lighting_sample_point(flags, &corner, (render_lighting *)probe);
+            ok = halo::structures::object_lighting_sample_point(flags, &corner, &probe);
             if (ok != 0) {
                 successes = successes + 1;
-                for (i = 0; i < 29; i++) {
-                    if (object_ambient_sample_slot_is_averaged(i)) {
-                        sample[i] += probe[i];
-                    }
-                }
+                accumulate_averaged_lighting(*sample, probe);
             }
         }
 
         if (successes > 1) {
-            float scale = 1.0f / (float)(int)successes;
-
-            sample[0] *= scale; sample[1] *= scale; sample[2] *= scale;
-            for (i = 0x13; i <= 0x16; i++) sample[i] *= scale;
-            for (i = 4; i <= 9; i++) sample[i] *= scale;
-            halo::math::vector3d_normalize_with_length(*(real_vector3d *)(sample + 7));
-
-            for (i = 0x0a; i <= 0x0f; i++) sample[i] *= scale;
-            halo::math::vector3d_normalize_with_length(*(real_vector3d *)(sample + 0x0d));
-
-            for (i = 0x1a; i <= 0x1c; i++) sample[i] *= scale;
-            for (i = 0x17; i <= 0x19; i++) sample[i] *= scale;
-            halo::math::vector3d_normalize_with_length(*(real_vector3d *)(sample + 0x17));
+            scale_averaged_lighting(*sample, 1.0f / (float)(int)successes);
             return;
         }
 
         if (successes == 0) {
-
-            for (i = 0; i < 29; i++) {
-                sample[i] = probe[i];
-            }
+            *sample = probe;
         }
     }
 }
@@ -339,39 +376,40 @@ void halo::objects::ObjectLighting::sample_ambient_lighting(float *sample)
  *
  * @address 0x004f2430
  */
-void halo::objects::ObjectLighting::gather_light_list(uint8_t *out)
+void halo::objects::ObjectLighting::gather_light_list(render_lighting *out)
 {
     datum_index object_index = handle;
-    uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
-    real_point3d center = ((struct object *)object)->bounding_center;
-    float radius = ((struct object *)object)->bounding_radius;
-    int16_t *count = (int16_t *)(out + 0x40);
-    uint32_t cursor[2];
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    real_point3d center = obj->bounding_center;
+    float radius = obj->bounding_radius;
+    int16_t *count = &out->point_light_count;
+    uint32_t *indices = reinterpret_cast<uint32_t *>(out->point_light_indices);
+    object_placement_cursor cursor;
     float intensities[2];
-    uint32_t falloffs[2];
+    float falloffs[2];
     int16_t cluster;
     int16_t i;
 
     *count = 0;
     light_frame_counter = light_frame_counter + 1;
     light_render_unknown_7c0 = 1;
-    cluster = halo::objects::object_get_root_parent_placement(object_index, (object_placement_cursor *)cursor);
+    cluster = halo::objects::object_get_root_parent_placement(object_index, &cursor);
     while (cluster != -1) {
-        halo::objects::object_lights_gather_nearest(cluster, object_index, &center, radius, (uint32_t *)(out + 0x44), intensities,
-                                     (uint32_t)falloffs, count, 2);
-        if (cursor[1] == k_datum_index_none) {
+        halo::objects::object_lights_gather_nearest(cluster, object_index, &center, radius, indices, intensities,
+                                     falloffs, count, 2);
+        if (cursor.next_reference == k_datum_index_none) {
             cluster = -1;
         } else {
-            data_array *references = *(data_array **)((uint8_t *)cursor[0] + 8);
-            uint8_t *element = (uint8_t *)references->data + halo::datum_slot(cursor[1]) * 0xc;
-            cursor[1] = *(uint32_t *)(element + 8);
-            cluster = *(int16_t *)(element + 4);
+            data_array *references = reinterpret_cast<data_array *>(cursor.cluster_globals[2]);
+            object_cluster_reference &reference = reinterpret_cast<object_cluster_reference *>(references->data)[halo::datum_slot(cursor.next_reference)];
+
+            cursor.next_reference = reference.next_reference;
+            cluster = static_cast<int16_t>(reference.object_index);
         }
     }
     light_render_unknown_7c0 = 0;
     for (i = 0; i < *count; i++) {
-        uint32_t *slot = (uint32_t *)(out + 0x44) + i;
-        *slot = *(uint32_t *)((uint8_t *)light_data->data + halo::datum_slot(*slot) * 0x7c + 8);
+        indices[i] = reinterpret_cast<light *>(light_data->data)[halo::datum_slot(indices[i])].queue_slot;
     }
 }
 

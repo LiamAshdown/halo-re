@@ -5,6 +5,7 @@
 #include "win32.h"
 #include "halo/networking/game_mode.hpp"
 #include "halo/game/records.hpp"
+#include "halo/rasterizer/render_device.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
 #include "tags.h"
@@ -71,7 +72,12 @@ static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::var
 static auto &game_engine_map_table_value = halo::link::ref<uint8_t>(halo::game::vars().game_engine_map_table_value);
 static auto &server_end_game_requested = halo::link::ref<uint8_t>(halo::game::vars().g_006f1d25);
 static auto &network_build_string = halo::link::ref<char []>(halo::networking::vars().network_build_string);
-static auto &map_per_map_table = halo::link::ref<uint8_t []>(halo::game::vars().map_per_map_table);
+struct MapGameTableEntry {
+    uint8_t game_engine_value;
+    uint8_t unknown_01[11];
+};
+static_assert(sizeof(MapGameTableEntry) == 12, "per-map game engine table stride (retail reads a byte at stride 12)");
+static auto &map_per_map_table = halo::link::ref<MapGameTableEntry [0x13]>(halo::game::vars().map_per_map_table);
 static auto &network_session_host_state = halo::link::ref<uint8_t>(halo::networking::vars().network_session_host_state);
 static auto &multiplayer_sound_queue = halo::link::ref<multiplayer_sound_request [5]>(halo::game::vars().multiplayer_sound_queue);
 static auto &multiplayer_sound_queue_count = halo::link::ref<int32_t>(halo::game::vars().multiplayer_sound_queue_count);
@@ -109,7 +115,7 @@ void Lifecycle::dispose(void)
     sound_class_gains = 0;
 
     if (current_game_engine != (game_engine_definition *)0) {
-        if (current_game_engine->dispose != (void *)0) {
+        if (current_game_engine->dispose != nullptr) {
             ((void (*)(void))current_game_engine->dispose)();
         }
         current_game_engine = (game_engine_definition *)0;
@@ -120,10 +126,10 @@ void Lifecycle::dispose(void)
         player_profile_cache_initialized = 0;
     }
 
-    if (weather_particle_data != (void *)0) {
+    if (weather_particle_data != nullptr) {
         memset(weather_particle_data, 0, 14 * sizeof(uint32_t));
         GlobalFree(weather_particle_data);
-        weather_particle_data = (void *)0;
+        weather_particle_data = nullptr;
     }
     effect_data = 0;
     effect_location_data = 0;
@@ -135,9 +141,9 @@ void Lifecycle::dispose(void)
     local_player_globals = (player_globals *)0;
     halo::effects::globals().decal_data = (data_array *)0;
 
-    if (rasterizer_device != 0 && rasterizer_decal_vertex_cache != (void **)0) {
-        ((void (__stdcall *)(void **))(*(void ***)((uint8_t *)*rasterizer_decal_vertex_cache + 8)))(rasterizer_decal_vertex_cache);
-        rasterizer_decal_vertex_cache = (void **)0;
+    if (rasterizer_device != 0 && rasterizer_decal_vertex_cache != nullptr) {
+        halo::rasterizer::render_device().release(rasterizer_decal_vertex_cache);
+        rasterizer_decal_vertex_cache = nullptr;
     }
     object_render_state_cache = 0;
     halo::objects::objects_dispose();
@@ -403,7 +409,7 @@ void Lifecycle::initialize_for_new_game(void)
         map_index = halo::interface::map_list_find_known_map_index(network_build_string);
         game_engine_map_table_value = 0;
         if (map_index < 0x13) {
-            game_engine_map_table_value = map_per_map_table[map_index * 12];
+            game_engine_map_table_value = map_per_map_table[map_index].game_engine_value;
         }
         halo::game::game_engine_validate_scenario_placements_noop();
 
@@ -420,7 +426,7 @@ void Lifecycle::initialize_for_new_game(void)
         multiplayer_sound_queue_count = 1;
         game_engine_ctf_reset_ticks = 0;
 
-        if (current_game_engine->initialize_for_new_game != (void *)0) {
+        if (current_game_engine->initialize_for_new_game != nullptr) {
             initialize_result =
                 ((uint8_t (*)(void))current_game_engine->initialize_for_new_game)();
             if (initialize_result == 0) {
@@ -474,7 +480,7 @@ int32_t Lifecycle::multiplayer_ui_state_id(void)
 
     if (network_server != (network_server_globals *)0) {
         record = &network_server->session;
-    } else if (network_client != (uint8_t *)0) {
+    } else if (network_client != nullptr) {
         record = &((network_client_globals *)network_client)->session;
     } else {
         return 8;

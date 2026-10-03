@@ -52,7 +52,7 @@ void LocalPlayerUnit::apply_starting_profile(int16_t starting_profile_index, uin
     }
 
     if (profile->primary_weapon.tag_id.index != halo::k_word_none || profile->primary_weapon.tag_id.id != halo::k_word_none) {
-        weapon_object = halo::game::player_spawn_starting_profile_weapon(&profile->primary_weapon, unit_handle);
+        weapon_object = halo::game::player_spawn_starting_profile_weapon(&profile->primary_weapon, profile->primary_rounds_loaded, profile->primary_rounds_reserved, unit_handle);
         if (weapon_object != (datum_index)-1) {
             if (halo::units::unit_pickup_weapon((int16_t)(reset_stats != 0), weapon_object, unit_handle) == 0) {
                 halo::objects::object_delete(weapon_object);
@@ -61,7 +61,7 @@ void LocalPlayerUnit::apply_starting_profile(int16_t starting_profile_index, uin
     }
 
     if (profile->secondary_weapon.tag_id.index != halo::k_word_none || profile->secondary_weapon.tag_id.id != halo::k_word_none) {
-        weapon_object = halo::game::player_spawn_starting_profile_weapon(&profile->secondary_weapon, unit_handle);
+        weapon_object = halo::game::player_spawn_starting_profile_weapon(&profile->secondary_weapon, profile->secondary_rounds_loaded, profile->secondary_rounds_reserved, unit_handle);
         if (weapon_object != (datum_index)-1) {
             if (halo::units::unit_pickup_weapon(0, weapon_object, unit_handle) == 0) {
                 halo::objects::object_delete(weapon_object);

@@ -3,6 +3,8 @@
 #include "halo/game/records.hpp"
 #include "halo/game/multiplayer_game_text.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/tag_block.hpp"
+#include "bitmaps.h"
 #include "halo/text/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/networking/api.hpp"
@@ -87,7 +89,7 @@ void EngineHud::post_rasterize_post_game(void)
         return;
     }
 
-    hud_text_draw_font_tag_id = *(uint32_t *)&((HUDGlobals *)hud_globals_tag_data)->fullscreen_font.tag_id;
+    hud_text_draw_font_tag_id = halo::tag_id_bits<uint32_t>(((HUDGlobals *)hud_globals_tag_data)->fullscreen_font.tag_id);
     post_game_set_text_color(color_normal);
     hud_text_draw_color_or_flags = 0xffffu;
     halo::text::globals().hud_text_draw_column = 0;
@@ -103,7 +105,7 @@ void EngineHud::post_rasterize_post_game(void)
     rect.bottom = 0x1e0;
     rect.right = 0x280;
     if (quad_tag != 0 && (int32_t)quad_tag->bitmap_data.count > 0 && quad_tag->bitmap_data.pointer != 0) {
-        halo::interface::ui_draw_screen_quad((int16_t *)&rect, (int16_t *)&rect, (int32_t)quad_tag->bitmap_data.pointer, 0, halo::k_dword_none);
+        halo::interface::ui_draw_screen_quad(&rect, &rect, halo::tag_block_elements<BitmapData>(quad_tag->bitmap_data), nullptr, halo::k_dword_none);
     }
 
     if (game_engine_variant.teams != 0) {
@@ -127,7 +129,7 @@ void EngineHud::post_rasterize_post_game(void)
             int32_t team = order[i];
 
             ((void (*)(int32_t, wchar_t *))current_game_engine->build_team_score_text)(team, score_text);
-            halo::text::string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)team_name[team], score_text);
+            halo::text::string_format_wide_va_bounded(0x100, line, team_name[team], score_text);
             line[0xff] = 0;
             halo::game::hud_draw_scoreboard_row_text((int16_t)(i + 4), line, 0);
         }
@@ -139,7 +141,7 @@ void EngineHud::post_rasterize_post_game(void)
     col_d = multiplayer_game_text_string(halo::game::mp_text::k_scoreboard_column_d);
     col_e = multiplayer_game_text_string(halo::game::mp_text::k_scoreboard_column_e);
     ((void (*)(wchar_t *))current_game_engine->build_score_header_text)(score_text);
-    halo::text::string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)(L"\t%s\t%s\t%s\t%s\t%s\t%s"), col_a, col_b, score_text, col_c, col_d, col_e);
+    halo::text::string_format_wide_va_bounded(0x100, line, (L"\t%s\t%s\t%s\t%s\t%s\t%s"), col_a, col_b, score_text, col_c, col_d, col_e);
     post_game_set_tab_stops(tab_a, tab_b, tab_c);
     line[0xff] = 0;
     halo::game::hud_draw_scoreboard_row_text(7, line, 0);
@@ -160,7 +162,7 @@ void EngineHud::post_rasterize_post_game(void)
             place_index = 0xf;
         }
         place_text = multiplayer_game_text_string((int16_t)(place_index + 0x24));
-        halo::text::string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)(L" \t%s"), place_text);
+        halo::text::string_format_wide_va_bounded(0x100, line, (L" \t%s"), place_text);
         line[0xff] = 0;
         halo::game::hud_draw_scoreboard_row_text((int16_t)row, line, 0);
 
@@ -175,7 +177,7 @@ void EngineHud::post_rasterize_post_game(void)
             }
             post_game_set_text_color(color_team[team]);
         }
-        halo::text::string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)(L" \t \t%s"), p->name);
+        halo::text::string_format_wide_va_bounded(0x100, line, (L" \t \t%s"), p->name);
         line[0xff] = 0;
         halo::game::hud_draw_scoreboard_row_text((int16_t)row, line, 0);
 
@@ -184,7 +186,7 @@ void EngineHud::post_rasterize_post_game(void)
             post_game_set_text_color(color_best);
         }
         ((void (*)(datum_index, wchar_t *))current_game_engine->build_player_text)(player_handle, score_text);
-        halo::text::string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)(L" \t \t \t%s"), score_text);
+        halo::text::string_format_wide_va_bounded(0x100, line, (L" \t \t \t%s"), score_text);
         line[0xff] = 0;
         halo::game::hud_draw_scoreboard_row_text((int16_t)row, line, 0);
 
@@ -192,7 +194,7 @@ void EngineHud::post_rasterize_post_game(void)
         if (halo::game::game_engine_get_scoreboard_place(player_handle, 2, 0) == 0) {
             post_game_set_text_color(color_best);
         }
-        halo::text::string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)(L" \t \t \t \t%d"), (int32_t)p->kills);
+        halo::text::string_format_wide_va_bounded(0x100, line, (L" \t \t \t \t%d"), (int32_t)p->kills);
         line[0xff] = 0;
         halo::game::hud_draw_scoreboard_row_text((int16_t)row, line, 0);
 
@@ -200,7 +202,7 @@ void EngineHud::post_rasterize_post_game(void)
         if (halo::game::game_engine_get_scoreboard_place(player_handle, 3, 0) == 0) {
             post_game_set_text_color(color_best);
         }
-        halo::text::string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)(L" \t \t \t \t \t%d"), (int32_t)p->assists);
+        halo::text::string_format_wide_va_bounded(0x100, line, (L" \t \t \t \t \t%d"), (int32_t)p->assists);
         line[0xff] = 0;
         halo::game::hud_draw_scoreboard_row_text((int16_t)row, line, 0);
 
@@ -208,7 +210,7 @@ void EngineHud::post_rasterize_post_game(void)
         if (halo::game::game_engine_get_scoreboard_place(player_handle, 4, 0) == 0) {
             post_game_set_text_color(color_best);
         }
-        halo::text::string_format_wide_va_bounded(0x100, (uint16_t *)line, (const uint16_t *)(L" \t \t \t \t \t \t%d"), (int32_t)p->deaths);
+        halo::text::string_format_wide_va_bounded(0x100, line, (L" \t \t \t \t \t \t%d"), (int32_t)p->deaths);
         line[0xff] = 0;
         halo::game::hud_draw_scoreboard_row_text((int16_t)row, line, 0);
 

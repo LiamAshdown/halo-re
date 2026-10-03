@@ -51,7 +51,7 @@ public:
     explicit constexpr ConnectionView(network_client_globals *record) : self(record) {}
 
     int32_t endpoint_set(const uint32_t *source);
-    static int32_t finalize_join(uint16_t *connection);
+    static int32_t finalize_join(network_client_globals *client);
     uint8_t initiate(const uint32_t *target, const uint32_t *session_info, const uint32_t *connect_address);
     void retransmit_if_overdue(const uint32_t *sender_address, uint32_t deadline_ms, int32_t remote_time);
     void send_keepalive();

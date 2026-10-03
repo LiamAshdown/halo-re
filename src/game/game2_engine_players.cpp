@@ -4,6 +4,9 @@
 #include "halo/game/constants.hpp"
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
+#include "halo/core/tag_block.hpp"
+#include "models.h"
+#include "halo/objects/record_access.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
@@ -86,7 +89,7 @@ void EnginePlayers::player_changed_object(uint32_t param)
         p = (player *)halo::memory::data_iterator_next(&iterator);
     }
 
-    if (current_game_engine->player_changed_object != (void *)0) {
+    if (current_game_engine->player_changed_object != nullptr) {
         ((void (*)(uint32_t))current_game_engine->player_changed_object)(param);
     }
 }
@@ -213,7 +216,7 @@ void EnginePlayers::player_new_life(uint32_t player_handle)
         }
     }
 
-    if (current_game_engine->player_new_life != (void *)0) {
+    if (current_game_engine->player_new_life != nullptr) {
         ((void (*)(uint32_t))current_game_engine->player_new_life)(player_handle);
     }
 }
@@ -594,12 +597,12 @@ void EnginePlayers::reset_all_players(void)
     iterator.index = k_datum_index_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     entry = halo::memory::data_iterator_next(&iterator);
-    while (entry != (void *)0) {
+    while (entry != nullptr) {
         halo::game::game_engine_player_new_life(iterator.index);
         entry = halo::memory::data_iterator_next(&iterator);
     }
 
-    if (current_game_engine != (game_engine_definition *)0 && current_game_engine->reset_round != (void *)0) {
+    if (current_game_engine != (game_engine_definition *)0 && current_game_engine->reset_round != nullptr) {
         ((void (*)(void))current_game_engine->reset_round)();
     }
 }
@@ -772,7 +775,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
 
     if (local_player_globals->bsp_switch_trigger_volume_index == -1 ||
         (unit_handle != (datum_index)-1 &&
-         halo::scenario::scenario_query::trigger_volume_contains_point(*(int16_t *)(*(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x3a0) + local_player_globals->bsp_switch_trigger_volume_index * 8), (real_point3d *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_handle & halo::k_datum_slot_mask) * 0xc + 8) + 0xa0))
+         halo::scenario::scenario_query::trigger_volume_contains_point(static_cast<int16_t>(halo::tag_block_at<ScenarioBSPSwitchTriggerVolume>(halo::scenario::globals().scenario->bsp_switch_trigger_volumes, local_player_globals->bsp_switch_trigger_volume_index).trigger_volume), &halo::game::object_at(unit_handle)->bounding_center)
              != 0)) {
         skip_trigger_check = 0;
     } else {
@@ -796,17 +799,16 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                 real_matrix4x3 local_transform;
                 real_matrix4x3 result_transform;
                 Unit *unit_tag;
-                Vehicle *unit_as_vehicle_tag;
+                Model *model_tag;
 
                 halo::objects::object_get_node_local_transform(
-                    driver, (char *)((int32_t)((uint8_t *)driver_tag->seats.pointer + 0x24 +
-                                       unit->vehicle_seat_index * 0x11c)),
+                    driver, halo::tag_block_at<UnitSeat>(driver_tag->seats, unit->vehicle_seat_index).marker_name.string,
                     (object_marker *)&local_transform, 1);
 
                 unit_tag = (Unit *)halo::game::tag_data_at(unit_obj->definition_tag);
-                unit_as_vehicle_tag = (Vehicle *)halo::game::tag_data_at(unit_tag->base.model.tag_id.index);
+                model_tag = reinterpret_cast<Model *>(halo::game::tag_data_at(unit_tag->base.model.tag_id.index));
                 {
-                    uint8_t *unknown_block = (uint8_t *)unit_as_vehicle_tag + 0xbc;
+                    ModelNode *model_nodes = halo::tag_block_elements<ModelNode>(model_tag->nodes);
 
                     if (driver_unit->driver_unit_index == unit_handle &&
                         driver_unit->animation_state != 0x25 && unit_obj->parent_object != (datum_index)-1) {
@@ -824,19 +826,19 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
 
                     halo::objects::object_snap_to_parent_marker_and_detach(unit_handle);
                     halo::objects::object_set_position_and_orientation(unit_handle, 0, 0, 0);
-                    halo::math::matrix4x3_multiply(&local_transform, (real_matrix4x3 *)(unknown_block + 0xac),
+                    halo::math::matrix4x3_multiply(&local_transform, reinterpret_cast<real_matrix4x3 *>(&model_nodes->scale),
                                         &result_transform);
                     unit_obj->forward = result_transform.forward;
                     unit_obj->up = result_transform.up;
 
                     {
-                        uint8_t *unit_tag_data = (uint8_t *)halo::game::tag_data_at(unit_obj->definition_tag);
+                        uint8_t *unit_tag_data = halo::game::tag_data_at(unit_obj->definition_tag);
                         if (halo::tag_id_bits<int32_t>(reinterpret_cast<Unit *>(unit_tag_data)->base.model.tag_id) != -1) {
                             if ((unit_obj->flags & 1) != 0) {
                                 halo::objects::object_for_each_light_attachment(0, 1, 0);
                             }
                             if (halo::tag_id_bits<int32_t>(reinterpret_cast<Unit *>(unit_tag_data)->base.model.tag_id) != -1) {
-                                object_header *unit_header = &((object_header *)halo::objects::globals().object_data->data)[unit_handle & halo::k_datum_slot_mask];
+                                object_header *unit_header = &halo::game::object_header_at(unit_handle);
                                 unit_obj->flags = unit_obj->flags & ~1u;
                                 unit_header->flags = unit_header->flags | 2;
                             }
@@ -858,8 +860,8 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                 halo::units::unit_update_animation_state_machine(unit_handle, k_unit_exit_seat_request);
 
                 {
-                    uint8_t *marker_ptr = (uint8_t *)unit_obj + unit_obj->node_function_values.offset + 0x10;
-                    memcpy(marker_ptr, &result_transform.forward, sizeof(result_transform.forward));
+                    real_point3d &translation = halo::objects::object_block<real_orientation>(*unit_obj, unit_obj->node_function_values)[0].translation;
+                    memcpy(&translation, &result_transform.forward, sizeof(result_transform.forward));
                 }
 
                 if (unit_obj->type == _object_type_biped) {
@@ -875,14 +877,12 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                 }
 
                 if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client) {
-                    void *datum = halo::memory::datum_get(unit_handle, halo::objects::globals().object_data);
-                    if (datum != (void *)0 && *(int16_t *)((uint8_t *)datum + 2) == -1) {
-                        circular_queue *cq1 = (circular_queue *)((uint8_t *)datum + 0x170);
-                        circular_queue *cq2 = (circular_queue *)((uint8_t *)datum + 0x1d0);
-                        cq1->read_index = 0;
-                        cq1->write_index = 0;
-                        cq2->read_index = 0;
-                        cq2->write_index = 0;
+                    player *client_player = static_cast<player *>(halo::memory::datum_get(unit_handle, halo::objects::globals().object_data));
+                    if (client_player != nullptr && client_player->local_player_index == -1) {
+                        client_player->position_updates.read_index = 0;
+                        client_player->position_updates.write_index = 0;
+                        client_player->vehicle_updates.read_index = 0;
+                        client_player->vehicle_updates.write_index = 0;
                     }
                 }
             }

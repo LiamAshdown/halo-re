@@ -822,7 +822,7 @@ void halo::objects::LightSystem::refresh_transforms()
  */
 void halo::objects::LightSystem::gather_nearest(int16_t cluster_index, uint32_t self_object_index,
     real_point3d *probe_point, float search_margin, uint32_t *out_indices, float *out_intensities,
-    uint32_t out_falloffs, int16_t *count, int16_t max_count)
+    float *out_falloffs, int16_t *count, int16_t max_count)
 {
     datum_index next_ref = light_cluster_first[cluster_index];
     uint32_t chain_index;
@@ -889,7 +889,7 @@ void halo::objects::LightSystem::gather_nearest(int16_t cluster_index, uint32_t 
                         if (slot < max_count) {
                             out_indices[slot] = chain_index;
                             out_intensities[slot] = luminance;
-                            *(float *)((uint8_t *)out_falloffs + slot * 4) = attenuation;
+                            out_falloffs[slot] = attenuation;
                         }
                     }
                 }

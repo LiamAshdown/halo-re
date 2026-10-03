@@ -1,5 +1,7 @@
 #include "halo/networking/game_mode.hpp"
 #include "halo/units/animation_states.hpp"
+#include "halo/core/bit_cast.hpp"
+#include "halo/objects/scenario_placement.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
@@ -43,9 +45,10 @@ static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai:
 static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
 static auto &global_structure_collision_bsp = halo::link::ref<void *>(halo::physics::vars().global_structure_collision_bsp);
 static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_down3d_pointer);
-static auto &global_scenario = halo::link::ref<uint8_t *>(halo::hs::vars().global_scenario);
+static_assert(offsetof(Scenario, netgame_flags) + offsetof(TagReflexive, pointer) == 0x37c && sizeof(ScenarioNetgameFlags) == 0x94, "netgame flag table");
+static auto &global_scenario = halo::link::ref<Scenario *>(halo::hs::vars().global_scenario);
 static auto &control_binding_device_type = halo::link::ref<int32_t>(halo::units::vars().control_binding_device_type);
-static auto &object_type_definitions_ex = halo::link::ref<uint8_t *>(halo::units::vars().object_type_definitions_ex);
+static auto &object_type_definitions_ex = halo::link::ref<object_type_definition *>(halo::units::vars().object_type_definitions_ex);
 static auto &s_stand = halo::link::ref<char *>(halo::units::vars().s_stand);
 
 namespace halo::units {
@@ -136,10 +139,10 @@ uint8_t UnitView::clamp_direction_to_aim_or_look_bounds(real_vector3d *world_dir
 
     if (use_aiming_bounds) {
         valid = (uint8_t)unit->unit.aiming_bounds_valid;
-        bounds = (float *)&unit->unit.aiming_bounds;
+        bounds = unit->unit.aiming_bounds;
     } else {
         valid = (uint8_t)unit->unit.looking_bounds_valid;
-        bounds = (float *)&unit->unit.looking_bounds;
+        bounds = unit->unit.looking_bounds;
     }
     if (!valid) {
         return 0;
@@ -288,14 +291,14 @@ void UnitView::get_look_origin_and_direction(uint32_t *out_autoaim_width, real_v
             out_direction->i = global_origin3d_pointer->x;
             out_direction->j = global_origin3d_pointer->y;
             out_direction->k = global_origin3d_pointer->z;
-            *out_autoaim_width = *(uint32_t *)&tag->autoaim_width;
+            *out_autoaim_width = halo::bit_cast<uint32_t>(tag->autoaim_width);
             return;
         }
         *out_origin = pelvis->position;
         out_direction->i = head->position.x - pelvis->position.x;
         out_direction->j = head->position.y - pelvis->position.y;
         out_direction->k = head->position.z - pelvis->position.z;
-        *out_autoaim_width = *(uint32_t *)&tag->autoaim_width;
+        *out_autoaim_width = halo::bit_cast<uint32_t>(tag->autoaim_width);
         return;
     }
 
@@ -308,7 +311,7 @@ void UnitView::get_look_origin_and_direction(uint32_t *out_autoaim_width, real_v
         out_direction->j = pill_height * halo::math::globals().global_up3d_pointer->j;
         out_direction->k = pill_height * halo::math::globals().global_up3d_pointer->k;
     }
-    *out_autoaim_width = *(uint32_t *)&tag->autoaim_width;
+    *out_autoaim_width = halo::bit_cast<uint32_t>(tag->autoaim_width);
 }
 
 /**
@@ -498,7 +501,7 @@ uint32_t halo::units::unit_predict_movement_delta(real_vector3d *out_position_de
                 object *copy = &working_copy.base;
                 unit_data *copy_unit = &working_copy.unit;
                 biped_data *copy_biped = &working_copy.biped;
-                uint8_t output_flags[2] = {0, 0};
+                int8_t output_flags[2] = {0, 0};
                 float t;
 
                 memcpy(&working_copy, obj, sizeof(working_copy));
@@ -543,10 +546,10 @@ uint32_t halo::units::unit_predict_movement_delta(real_vector3d *out_position_de
                 copy_biped->slipping_ticks = (copy_biped->flags & 2) ?
                     ((copy_biped->slipping_ticks < 0x7f) ? copy_biped->slipping_ticks + 1 : copy_biped->slipping_ticks) : 0;
 
-                output_flags[1] = (uint8_t)(copy_unit->control_flags & 1);
+                output_flags[1] = static_cast<int8_t>(copy_unit->control_flags & 1);
                 output_flags[0] = 0;
 
-                BipedView(unit_index).integrate_movement(&working_copy.base, (int8_t *)output_flags);
+                BipedView(unit_index).integrate_movement(&working_copy.base, output_flags);
 
                 t = time_fraction * 29.999998f;
                 if (t > 1.0f) t = 1.0f;
@@ -741,17 +744,17 @@ void UnitView::set_facing_from_index_table()
         real_point3d *spawn_position;
 
         if (control_binding_device_type == 5) {
-            uint8_t *entry = *(uint8_t **)(global_scenario + 0x37c) + facing_index * 0x94;
+            ScenarioNetgameFlags &flag = halo::objects::block_element<ScenarioNetgameFlags>(global_scenario->netgame_flags, facing_index);
 
-            spawn_position = (real_point3d *)entry;
-            angle = *(float *)(entry + 0xc);
+            spawn_position = reinterpret_cast<real_point3d *>(&flag.position);
+            angle = flag.facing;
         } else {
-            int16_t stride = *(int16_t *)(object_type_definitions_ex + 0xe);
-            int16_t base_field_offset = *(int16_t *)(object_type_definitions_ex + 10);
-            uint8_t *base = *(uint8_t **)(global_scenario + 4 + base_field_offset);
+            const TagReflexive &placements = *reinterpret_cast<const TagReflexive *>(
+                reinterpret_cast<const uint8_t *>(global_scenario) + object_type_definitions_ex->scenario_placement_offset);
+            halo::objects::scenario_placement_header &placement = halo::objects::placement_at(placements, facing_index, object_type_definitions_ex->scenario_placement_size);
 
-            spawn_position = (real_point3d *)(base + facing_index * stride + 0x8);
-            angle = *(float *)((uint8_t *)spawn_position + 0xc);
+            spawn_position = reinterpret_cast<real_point3d *>(&placement.position);
+            angle = placement.rotation.yaw;
         }
 
         forward.i = (float)halo::libm::cos((double)angle);
@@ -775,9 +778,9 @@ void UnitView::set_facing_from_index_table()
  *
  * @address 0x565ca0
  */
-uint8_t halo::units::unit_state_allows_control(const uint8_t *animation_block)
+uint8_t halo::units::unit_state_allows_control(const unit_data &unit)
 {
-    switch (animation_state_id((int8_t)animation_block[0xb])) {
+    switch (animation_state_id(unit.animation_state)) {
     case unit_animation_state_id::unknown_01:
     case unit_animation_state_id::turn_in_place_a:
     case unit_animation_state_id::turn_in_place_b:
@@ -1077,7 +1080,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         allowed = 1;
     } else {
         stance_class = 1;
-        allowed = ::halo::units::unit_animation_state_is_compatible(reinterpret_cast<uint8_t *>(obj) + 0x298, new_state) ? 1 : 0;
+        allowed = ::halo::units::unit_animation_state_is_compatible(obj->unit, new_state) ? 1 : 0;
     }
     if ((uint8_t)obj->unit.animation_state == animation_state_value(unit_animation_state_id::unknown_17) && obj->base.animation_frame > unit_tag->hard_ping_interrupt_ticks) {
         allowed = 1;

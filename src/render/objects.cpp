@@ -474,8 +474,8 @@ render_lighting *get_cached_render_lighting(datum_index object_index, real level
         return &((cached_object_render_state *)object_render_state_cache->data)[(uint16_t)cache_index].lighting;
     }
 
-    halo::objects::object_sample_ambient_lighting(object_index, (float *)&render_uncached_object_lighting);
-    halo::objects::object_gather_light_list(object_index, (uint8_t *)&render_uncached_object_lighting);
+    halo::objects::object_sample_ambient_lighting(object_index, &render_uncached_object_lighting);
+    halo::objects::object_gather_light_list(object_index, &render_uncached_object_lighting);
     return &render_uncached_object_lighting;
 }
 
@@ -577,13 +577,13 @@ void render_state_refresh(datum_index cache_index, datum_index object_index, rea
 
     if (full_sample || overdue) {
         entry->object_index = object_index;
-        halo::objects::object_sample_ambient_lighting(object_index, (float *)(&entry->desired_lighting));
+        halo::objects::object_sample_ambient_lighting(object_index, &entry->desired_lighting);
         entry->level_of_detail_pixels = level_of_detail_pixels;
         entry->last_sample_frame = render_frame_index;
     }
 
     if (full_sample || windows_elapsed > 0) {
-        halo::objects::object_gather_light_list(object_index, (uint8_t *)(&entry->desired_lighting));
+        halo::objects::object_gather_light_list(object_index, &entry->desired_lighting);
         if (full_sample) {
             entry->lighting = entry->desired_lighting;
             entry->last_update_window = render_window_count;

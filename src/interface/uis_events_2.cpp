@@ -162,7 +162,7 @@ uint8_t UiEventHandlers::event_49dca0(widget_instance *widget, int16_t *event, u
             }
         }
     }
-    halo::networking::network_game_settings_ack_send((uint8_t *)client, (int16_t)(uint16_t)event[1]);
+    halo::networking::network_game_settings_ack_send(client, (int16_t)(uint16_t)event[1]);
     return 1;
 }
 

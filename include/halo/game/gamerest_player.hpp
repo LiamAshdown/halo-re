@@ -115,7 +115,7 @@ public:
     static void remove_player(datum_index player_handle);
     static datum_index index_from_unit_index(datum_index unit_index);
     static void set_team_by_color(uint8_t new_team, int8_t target_team_index_desired);
-    static datum_index spawn_starting_profile_weapon(TagDependency *weapon_dependency, uint32_t role);
+    static datum_index spawn_starting_profile_weapon(TagDependency *weapon_dependency, int16_t rounds_loaded, int16_t rounds_reserved, uint32_t role);
     static int32_t active_count();
     static uint8_t any_pending_seat_or_respawn();
     static uint8_t any_with_local_player_index(int16_t local_player_index);

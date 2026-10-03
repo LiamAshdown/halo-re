@@ -154,7 +154,7 @@ public:
      * @address 0x004f2df0
      */
     static void gather_nearest(int16_t cluster_index, uint32_t self_object_index, real_point3d *probe_point,
-    float search_margin, uint32_t *out_indices, float *out_intensities, uint32_t out_falloffs, int16_t *count,
+    float search_margin, uint32_t *out_indices, float *out_intensities, float *out_falloffs, int16_t *count,
     int16_t max_count);
 
     /**

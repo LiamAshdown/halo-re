@@ -937,7 +937,7 @@ uint32_t unit_get_tag_flag_bit7(uint32_t unit_index)
  *
  * @address 0x5642c0
  */
-uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternate, uint32_t out_dx_to_key_frame, uint32_t out_dx_total, int16_t *out_frame_count, int16_t *out_key_frame_index)
+uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternate, float *out_dx_to_key_frame, float *out_dx_total, int16_t *out_frame_count, int16_t *out_key_frame_index)
 {
     return halo::units::UnitView(unit_index).get_weapon_marker_indices(use_alternate, out_dx_to_key_frame, out_dx_total, out_frame_count, out_key_frame_index);
 }

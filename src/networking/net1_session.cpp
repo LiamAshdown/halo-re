@@ -293,9 +293,8 @@ int32_t GameRuntime::is_active()
  *
  * @address 0x4d9f50
  */
-char GameRuntime::settings_ack_send(uint8_t *client_bytes, int16_t template_row)
+char GameRuntime::settings_ack_send(network_client_globals *client, int16_t template_row)
 {
-    network_client_globals *client = (network_client_globals *)client_bytes;
     settings_ack_frame frame;
     int32_t mode;
     uint16_t *challenge;

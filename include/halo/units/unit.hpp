@@ -10,6 +10,8 @@
 #include "models.h"
 #include "halo/core/datum.hpp"
 
+struct message_delta_context;
+
 namespace halo::units {
 
 struct ai_update_stagger_state {
@@ -179,7 +181,7 @@ public:
     int8_t get_current_grenade_index();
     const char *get_current_weapon_label();
     int32_t get_grenade_count(int16_t grenade_type);
-    uint8_t get_weapon_marker_indices(uint8_t use_alternate, uint32_t out_dx_to_key_frame, uint32_t out_dx_total, int16_t *out_frame_count, int16_t *out_key_frame_index);
+    uint8_t get_weapon_marker_indices(uint8_t use_alternate, float *out_dx_to_key_frame, float *out_dx_total, int16_t *out_frame_count, int16_t *out_key_frame_index);
     datum_index get_weapon_object_index(int16_t slot_index);
     uint8_t has_weapon_of_type(int32_t weapon_group_tag);
     void notify_weapon_removed();
@@ -274,17 +276,17 @@ void biped_build_update_delta_unit_grenade_count_mod1(uint32_t flags, object *ob
 void unit_ai_update_stagger_allocate(void);
 void unit_ai_update_stagger_reset(void);
 void unit_animation_set_state(void);
-uint8_t unit_animation_state_allows_parent_ik(uint8_t *animation_block);
-uint8_t unit_animation_state_allows_weapon_ik(uint8_t *animation_block);
+uint8_t unit_animation_state_allows_parent_ik(const unit_data &unit);
+uint8_t unit_animation_state_allows_weapon_ik(const unit_data &unit);
 int32_t unit_animation_state_from_seat_type(int16_t animation_state);
-uint8_t unit_animation_state_is_compatible(const uint8_t *animation_block, int16_t requested_state);
+uint8_t unit_animation_state_is_compatible(const unit_data &unit, int16_t requested_state);
 int16_t unit_base_animation_state_from_name(const char *name);
 int32_t unit_map_action_command_to_animation_state(int16_t command, int16_t *out_priority);
 uint8_t unit_state_is_scripted_animation(unit_data *unit);
 uint8_t unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_index);
 uint8_t unit_point_within_look_cone(float cone_angle, uint32_t unit_index, real_point3d *world_point);
 uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vector3d *out_forward_delta, real_vector3d *out_up_delta, float time_fraction);
-uint8_t unit_state_allows_control(const uint8_t *animation_block);
+uint8_t unit_state_allows_control(const unit_data &unit);
 void unit_update_up_vector(Biped *biped_tag, object *obj);
 void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index);
 void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key);
@@ -304,7 +306,7 @@ void unit_network_create_update_apply(void *incoming_record);
 uint8_t unit_any_dying_or_seat_transition(void);
 void unit_detach_from_parent(object *obj, uint32_t unit_index, real_vector3d *cross_out, real_vector3d *cross_ecx_operand, real_vector3d *cross_stack_operand, real_point3d *reposition_target);
 void unit_detach_if_flag_clear(uint8_t skip_flag, uint32_t unit_index, uint8_t suppress_trigger, uint8_t require_client_flag, uint8_t fire_trigger_event);
-void unit_dispatch_seat_exit_message(int32_t *message);
+void unit_dispatch_seat_exit_message(message_delta_context *context);
 uint32_t unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t seat_index, uint32_t unit_index);
 void unit_exit_seat_end(void);
 void unit_exit_vehicle_seat(uint32_t player_index);
@@ -321,7 +323,7 @@ void unit_inventory_get_weapon(void);
 uint8_t unit_lacks_weapon_type_of(uint32_t reference_object_index, uint32_t unit_index);
 uint8_t unit_local_player_weapon_flag_check(void);
 uint8_t unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_index, uint32_t unit_index);
-void unit_scripting_set_or_drop_weapon(int32_t *message);
+void unit_scripting_set_or_drop_weapon(message_delta_context *context);
 void unit_spawn_with_starting_weapons(void *command_record);
 void unit_throw_grenade_release(void);
 uint8_t unit_try_give_grenade(uint32_t tag_source_index, uint32_t unit_index);
@@ -365,10 +367,10 @@ void unit_ai_update_stagger_reset(void);
 uint8_t unit_all_seats_unoccupied(uint32_t unit_index);
 int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_communication_hold_tick, int16_t *dialogue_index, int32_t *chain_value);
 void unit_animation_set_state(void);
-uint8_t unit_animation_state_allows_parent_ik(uint8_t *animation_block);
-uint8_t unit_animation_state_allows_weapon_ik(uint8_t *animation_block);
+uint8_t unit_animation_state_allows_parent_ik(const unit_data &unit);
+uint8_t unit_animation_state_allows_weapon_ik(const unit_data &unit);
 int32_t unit_animation_state_from_seat_type(int16_t animation_state);
-uint8_t unit_animation_state_is_compatible(const uint8_t *animation_block, int16_t requested_state);
+uint8_t unit_animation_state_is_compatible(const unit_data &unit, int16_t requested_state);
 uint8_t unit_any_dying_or_seat_transition(void);
 uint8_t unit_any_flagged_seat_occupied(uint32_t unit_index);
 void unit_apply_control_block(uint32_t unit_index, const unit_control_data *control, int32_t source_id);
@@ -409,7 +411,7 @@ void unit_dialogue_determine_variant(uint32_t object_index);
 uint8_t unit_dispatch_reaction_animation(int32_t unit_index, int16_t reaction_code);
 void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index);
 void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key);
-void unit_dispatch_seat_exit_message(int32_t *message);
+void unit_dispatch_seat_exit_message(message_delta_context *context);
 void unit_dispatch_seat_overlay_command(uint32_t unit_index, int16_t command);
 uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force);
 void unit_drop_grenades(uint32_t unit_index);
@@ -454,7 +456,7 @@ TagID unit_get_seat_hud_interface_tag_id(Unit *unit_tag, int16_t seat_index, uin
 char * unit_get_seat_or_state_name(uint32_t unit_index);
 void unit_get_secondary_eye_marker_position(uint32_t object_index, real_point3d *out);
 uint32_t unit_get_tag_flag_bit7(uint32_t unit_index);
-uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternate, uint32_t out_dx_to_key_frame, uint32_t out_dx_total, int16_t *out_frame_count, int16_t *out_key_frame_index);
+uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternate, float *out_dx_to_key_frame, float *out_dx_total, int16_t *out_frame_count, int16_t *out_key_frame_index);
 datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
 uint8_t unit_has_child_of_type5(uint32_t unit_index);
 uint8_t unit_has_weapon_of_type(uint32_t unit_index, int32_t weapon_group_tag);
@@ -510,7 +512,7 @@ void unit_rotate_basis_about_axis(uint32_t object_index);
 void unit_sample_camera_shake_from_velocity(uint32_t unit_index);
 uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t command);
 void unit_scripting_set_emotion_animation(uint32_t unit_index, const char *emotion_name);
-void unit_scripting_set_or_drop_weapon(int32_t *message);
+void unit_scripting_set_or_drop_weapon(message_delta_context *context);
 int16_t unit_seat_candidates_from_zone_and_enter(datum_index vehicle_index, char *seat_name, datum_index object_list);
 uint8_t unit_seat_flag_bit10(uint32_t unit_index, int16_t seat_index);
 uint8_t unit_seat_flag_bit2(uint32_t unit_index, int16_t seat_index);
@@ -529,7 +531,7 @@ void unit_spawn_with_starting_weapons(void *command_record);
 void unit_start_seat_overlay_animation_a(uint32_t unit_index, int16_t command);
 void unit_start_seat_overlay_animation_b(uint32_t unit_index, int16_t command);
 uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name, uint8_t interpolate);
-uint8_t unit_state_allows_control(const uint8_t *animation_block);
+uint8_t unit_state_allows_control(const unit_data &unit);
 uint8_t unit_state_is_scripted_animation(unit_data *unit);
 int32_t unit_submit_periodic_network_update(datum_index object_index, void *buffer, int32_t bit_budget, int32_t update_type);
 int32_t unit_test_placement_candidate(uint32_t unit_index, const real_vector3d *direction, real_vector3d *out_normal, float distance, real_point3d *out_position);

@@ -171,7 +171,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
     col_d = multiplayer_game_text_string(halo::game::mp_text::k_scoreboard_column_d);
     col_e = multiplayer_game_text_string(halo::game::mp_text::k_scoreboard_column_e);
     ((void (*)(wchar_t *))current_game_engine->build_score_header_text)(header_names_buf);
-    halo::text::string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(L"\t%s\t%s\t%s\t%s\t%s\t%s\t%s"), col_a, col_b, header_names_buf,
+    halo::text::string_format_wide_va(row_buffer, (L"\t%s\t%s\t%s\t%s\t%s\t%s\t%s"), col_a, col_b, header_names_buf,
                           col_c, col_d, col_e, L"Ping");
     halo::game::hud_draw_world_relative_text(&params_header, 1, row_buffer, 0);
 
@@ -231,8 +231,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
                     int16_t unit_salt = (int16_t)((uint32_t)p->unit >> 16);
 
                     if (unit_index >= 0 && unit_index < halo::objects::globals().object_data->maximum_count) {
-                        object_header *unit_header = (object_header *)((uint8_t *)halo::objects::globals().object_data->data +
-                                                                        (int32_t)halo::objects::globals().object_data->size * unit_index);
+                        object_header *unit_header = &halo::game::object_header_at(static_cast<uint32_t>(unit_index));
 
                         if (unit_header->identifier != 0 && (unit_salt == 0 || unit_header->identifier == unit_salt) &&
                             (((1u << (unit_header->type & 0x1f)) & 3) != 0) && unit_header->data != 0) {
@@ -242,7 +241,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
                 }
 
                 place_text = halo::game::game_engine_get_default_multiplayer_string(&visible[i]);
-                halo::text::string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(starred ? L"*\t%s\t%s\t%s\t%d\t%d\t%d\t%d"
+                halo::text::string_format_wide_va(row_buffer, (starred ? L"*\t%s\t%s\t%s\t%d\t%d\t%d\t%d"
                                                           : L"\t%s\t%s\t%s\t%d\t%d\t%d\t%d"),
                                       place_text, p->name, status_text,
                                       visible[i].key_1, visible[i].key_3, visible[i].key_2,
@@ -281,7 +280,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
             } else {
                 word = multiplayer_game_text_string(halo::game::mp_text::k_team_label_b);
             }
-            halo::text::string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(L"%s (%s)"), prompt, word);
+            halo::text::string_format_wide_va(row_buffer, (L"%s (%s)"), prompt, word);
 
             prompt_rect.top = 0x1b8;
             prompt_rect.left = 0xa;
@@ -322,7 +321,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
             address_text = halo::networking::network_address_to_string(&address);
         }
 
-        if (address_text != (char *)0) {
+        if (address_text != nullptr) {
             wchar_t *label = multiplayer_game_text_string(halo::game::mp_text::k_server_address_label);
             wchar_t address_wide[0x100];
             Rectangle2D address_rect;
@@ -338,9 +337,9 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
             address_wide[len] = 0;
 
             if ((uint16_t)port != 0) {
-                halo::text::string_format_wide_va_bounded(0x200, (uint16_t *)row_buffer, (const uint16_t *)(L"%s%s:%u"), label, address_wide, (uint32_t)(uint16_t)port);
+                halo::text::string_format_wide_va_bounded(0x200, row_buffer, (L"%s%s:%u"), label, address_wide, (uint32_t)(uint16_t)port);
             } else {
-                halo::text::string_format_wide_va_bounded(0x200, (uint16_t *)row_buffer, (const uint16_t *)(L"%s%s"), label, address_wide);
+                halo::text::string_format_wide_va_bounded(0x200, row_buffer, (L"%s%s"), label, address_wide);
             }
 
             address_rect.top = 0x1cc;

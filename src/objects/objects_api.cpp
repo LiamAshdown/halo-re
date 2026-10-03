@@ -546,7 +546,7 @@ void object_sample_ambient_lightmap_point(real_point3d *point, real_vector3d *li
  *
  * @address 0x004f20b0
  */
-void object_sample_ambient_lighting(uint32_t object_index, float *sample)
+void object_sample_ambient_lighting(uint32_t object_index, render_lighting *sample)
 {
     halo::objects::ObjectLighting(object_index).sample_ambient_lighting(sample);
 }
@@ -556,7 +556,7 @@ void object_sample_ambient_lighting(uint32_t object_index, float *sample)
  *
  * @address 0x004f2430
  */
-void object_gather_light_list(datum_index object_index, uint8_t *out)
+void object_gather_light_list(datum_index object_index, render_lighting *out)
 {
     halo::objects::ObjectLighting(object_index).gather_light_list(out);
 }
@@ -608,7 +608,7 @@ void object_lights_refresh_transforms()
  */
 void object_lights_gather_nearest(int16_t cluster_index, uint32_t self_object_index,
     real_point3d *probe_point, float search_margin, uint32_t *out_indices, float *out_intensities,
-    uint32_t out_falloffs, int16_t *count, int16_t max_count)
+    float *out_falloffs, int16_t *count, int16_t max_count)
 {
     halo::objects::LightSystem::gather_nearest(cluster_index, self_object_index, probe_point, search_margin, out_indices, out_intensities, out_falloffs, count, max_count);
 }

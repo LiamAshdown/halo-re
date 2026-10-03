@@ -345,7 +345,7 @@ void NetworkSetup::clear_player_ready_flags()
     }
 
     if (local_ready_flags[0] != 0) {
-        halo::networking::network_game_settings_ack_send((uint8_t *)client, 0);
+        halo::networking::network_game_settings_ack_send(client, 0);
     }
 }
 

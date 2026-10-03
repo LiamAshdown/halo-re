@@ -1,4 +1,5 @@
 #include "halo/networking/net1_channel.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/core/cstring.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/datum.hpp"
@@ -385,7 +386,7 @@ network_receive_queue * ChannelFactory::create_receive_queue()
             buffer->name = halo::mutable_literal("received_data_queue");
             buffer->signature = 0x63697263;
             buffer->capacity = 0x10001;
-            buffer->data = (uint8_t *)buffer + 0x18;
+            buffer->data = reinterpret_cast<uint8_t *>(buffer + 1);
         }
         queue->incoming = buffer;
         queue->unknown_14 = halo::k_dword_none;
@@ -747,12 +748,12 @@ int32_t ChannelCallbacks::on_query_socket_unrecognized(void *socket, uint32_t ip
  */
 void ChannelCallbacks::on_connection_error(void *connection)
 {
-    uint8_t *queue = (uint8_t *)gt2GetConnectionData(connection);
+    network_receive_queue *queue = static_cast<network_receive_queue *>(gt2GetConnectionData(connection));
 
     if (queue != 0) {
-        queue[0x05] = 1;
-        halo::networking::network_receive_queue_close_socket((network_receive_queue *)queue);
-        queue[0x0c] |= 0x40;
+        queue->connection_failed = 1;
+        halo::networking::network_receive_queue_close_socket(queue);
+        queue->flags |= 0x40;
     }
 }
 
@@ -952,7 +953,7 @@ int32_t ChannelView::incoming_read_item(uint8_t *destination, int32_t *out_bit_o
                         out_address->size = k_network_address_size_ipv4;
                         out_address->port = 0;
 
-                        *(uint32_t *)((uint8_t *)out_address + 0x14) = 0;
+                        reinterpret_cast<network_resolved_address *>(out_address)->unknown_14 = 0;
                     }
                 }
                 *out_bit_offset = chunk_size;
@@ -1210,8 +1211,8 @@ int32_t ChannelView::reliable_pool_ensure_capacity(int32_t body_capacity_needed,
             body_cap = 100;
         }
         slot->body_capacity = body_cap;
-        slot->body = (uint8_t *)GlobalAlloc(0, slot->body_capacity);
-        slot->header = (uint8_t *)GlobalAlloc(0, slot->header_capacity);
+        slot->body = static_cast<uint8_t *>(GlobalAlloc(0, slot->body_capacity));
+        slot->header = static_cast<uint8_t *>(GlobalAlloc(0, slot->header_capacity));
     }
     channel->reliable_count = channel->reliable_count + 10;
     return old_count;
@@ -1735,8 +1736,8 @@ uint8_t ChannelKeys::resolve_target(network_player_entry *entry)
         return entry->machine_index == 0;
     }
     if ((network_server == 0 || ((network_server->flags >> 2) & 1) == 0) &&
-        (*(int32_t *)network_client != -1 &&
-         (int32_t)*(int32_t *)network_client == (int32_t)entry->machine_index)) {
+        (static_cast<int16_t>(network_client->machine_index) != -1 &&
+         static_cast<int16_t>(network_client->machine_index) == static_cast<int32_t>(entry->machine_index))) {
         return 1;
     }
     return 0;
@@ -1750,17 +1751,17 @@ uint8_t ChannelKeys::resolve_target(network_player_entry *entry)
  *
  * @address 0x4de950
  */
-int32_t ChannelKeys::send_state(network_client_globals *client, int32_t **entry)
+int32_t ChannelKeys::send_state(network_client_globals *client, message_delta_context *context)
 {
     uint8_t scratch[0x3ba];
 
     if (network_game_mode == halo::networking::k_game_mode_host || (client->state != 2 && client->state != 3)) {
-        halo::networking::message_delta_decode_compound_field_staged((void **)entry);
+        halo::networking::message_delta_decode_compound_field_staged(halo::networking::raw_context(context));
         return 0;
     }
-    if (**entry == 0) {
+    if (context->state->incremental == 0) {
         memset(scratch, 0, sizeof(scratch));
-        if (halo::networking::message_delta_decode_compound_field((void **)entry, scratch) != 0) {
+        if (halo::networking::message_delta_decode_compound_field(halo::networking::raw_context(context), scratch) != 0) {
             if (halo::networking::network_game_settings_packet_receive(client, (const uint32_t *)scratch) != 0) {
                 return 1;
             }
@@ -1953,7 +1954,7 @@ char ChannelStreamView::flush(network_channel *channel, char mode)
                     break;
                 }
                 send_mode = mode != 0;
-                byte_count = gt2Send(channel->endpoint->socket, (uint8_t *)stream + 0x1d,
+                byte_count = gt2Send(channel->endpoint->socket, stream->data,
                     byte_count, send_mode);
                 if (byte_count > 0) {
                     success = 1;
@@ -1994,7 +1995,7 @@ void ChannelStreamView::init()
         network_bit_chunk_size = 0xb;
     }
     stream->stream.unknown_00 = 0;
-    stream->stream.data = (uint8_t *)stream + 0x1d;
+    stream->stream.data = stream->data;
     stream->stream.first_bit = 0;
     stream->stream.byte_cursor = 0;
     stream->stream.bit_cursor = 0;
