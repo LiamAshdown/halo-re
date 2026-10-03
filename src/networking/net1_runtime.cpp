@@ -503,7 +503,7 @@ uint8_t NetworkRuntime::name_string_is_valid_for_mode(char *name, void *characte
 void NetworkRuntime::password_field_set(network_server_globals *server, wchar_t *source)
 {
     static_assert(offsetof(network_server_globals, session) == 8, "retail writes the wide string at server+8");
-    static_assert(offsetof(network_game_session, unknown_07e) == 0x7e, "terminator at server+0x86");
+    static_assert(offsetof(network_game_session, unknown_07e) == 0x7e, "terminator word of the copied name");
     wcsncpy(reinterpret_cast<wchar_t *>(&server->session), source, 0x3f);
     server->session.unknown_07e = 0;
 }
