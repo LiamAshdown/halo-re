@@ -1,0 +1,1615 @@
+#include "halo/ai/airest_reference.hpp"
+
+#include <string.h>
+#include <stdint.h>
+
+extern "C" {
+extern encounter_platoon_state *encounter_platoon_states;
+extern data_array *encounter_data;
+extern void ai_reference_expand_to_platoon_range(uint32_t packed_reference, ai_reference_platoon_range *out_range);
+extern void encounter_spawn_squads(uint32_t encounter_index, int32_t platoon_filter, int32_t squad_filter);
+extern ai_globals *ai_globals_ptr;
+extern Scenario *global_scenario;
+extern void ai_reference_actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor);
+extern data_array *actor_data;
+extern data_array *object_data;
+extern data_array *object_list_header_data;
+extern datum_index datum_new(data_array *array);
+extern void object_list_reference_add(datum_index header_index, datum_index object_index);
+extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator);
+extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator);
+extern void actor_movement_action_cancel(datum_index actor_index);
+extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters);
+extern void encounters_recompute_dirty(void);
+extern const real_vector3d *global_down3d_pointer;
+extern int32_t unit_test_placement_candidate(uint32_t unit_index, const real_vector3d *direction, real_vector3d *out_normal, float distance, real_point3d *out_position);
+extern int16_t squad_pick_random_starting_location(datum_index encounter_index, int16_t squad_index);
+extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
+extern void object_reset_velocity_and_wake(datum_index object_index);
+extern void actor_movement_action_stop(datum_index actor_index);
+extern double fcos(double angle);
+extern double fsin(double angle);
+extern int32_t actor_squad_action_status_broadcast(uint32_t actor_index, int16_t command_list_index, int16_t *record);
+extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data);
+extern void ai_reference_squad_iterator_new(uint32_t packed_reference, ai_reference_squad_iterator *out_iterator);
+extern encounter_squad_state *ai_reference_squad_iterator_next(ai_reference_squad_iterator *iterator);
+extern void encounter_squad_clear_spawn_delay(datum_index encounter_index, int16_t squad_index);
+extern encounter_squad_state *encounter_squad_states;
+extern void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback, uint32_t callback_extra, uint16_t *caller_record);
+extern void actor_obey_member_advance(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, void *component_record, int32_t secondary_record, uint32_t callback_extra);
+extern int32_t ai_actor_get_activity_stage(datum_index actor_index);
+extern void actor_mark_units_and_release(uint8_t use_alternate_flag, datum_index actor_index, uint8_t suppress_release);
+extern void ai_release_actors_filtered(datum_index encounter_index, int32_t platoon_index, int32_t squad_index, uint8_t is_dead);
+extern int32_t scenario_find_encounter_index_by_name(Scenario *scenario, char *name);
+extern int32_t encounter_definition_find_squad_index_by_name(ScenarioEncounter *encounter_definition, char *name);
+extern int32_t encounter_definition_find_platoon_index_by_name(ScenarioEncounter *encounter_definition, char *name);
+extern tag_instance *tag_instances;
+extern float k_real_zero;
+extern float k_real_one;
+extern uint32_t random_seed_global;
+extern void actor_clear_perceived_props(datum_index actor_index);
+extern void actor_dispatch_perception_reset(datum_index actor_index);
+extern void actor_set_units_active(datum_index actor_index, uint8_t dormant);
+extern uint32_t encounter_squad_spawn_reinforcement(datum_index encounter_index, int16_t squad_index);
+extern data_array *player_data;
+extern void *data_iterator_next(data_iterator *iterator);
+extern void ai_reference_respawn_member(uint32_t packed_reference, datum_index unit_index);
+extern void encounter_activate(datum_index encounter_index);
+extern datum_index actor_find_or_create_shared_prop(datum_index unit_index, datum_index actor_index, int32_t flag_a, int32_t flag_b);
+extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index, int16_t grenade_type);
+extern void actor_set_combat_alert_flag(datum_index actor_index, uint8_t new_flag);
+extern datum_index actor_new_and_attach_to_unit(char reuse_existing, datum_index unit_index, datum_index actor_variant_tag, uint32_t encounter_or_none, int16_t squad_index, char ignore_squad, datum_index exclude_actor, char start_active, uint16_t unknown_60, int16_t unknown_62, uint16_t unknown_90, uint8_t unknown_68);
+extern int16_t network_game_mode;
+extern game_time_globals *game_time;
+extern network_client_globals *network_client;
+extern void actor_notify_weapon_pickup_once(datum_index object_index);
+extern void *datum_get(datum_index handle, data_array *array);
+extern void matrix4x3_multiply(real_matrix4x3 *a, real_matrix4x3 *b, real_matrix4x3 *out);
+extern void player_update_history_free_all(void *history);
+extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
+extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
+extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
+extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
+extern void unit_reset_orientation_and_find_position(uint32_t object_index, uint32_t vehicle_index);
+extern uint16_t unit_update_animation_state_machine(uint32_t unit_index, const int8_t *request);
+extern uint8_t unit_state_is_scripted_animation(unit_data *unit);
+extern uint8_t unit_try_set_animation_state(uint32_t unit_index, int16_t new_state);
+extern uint8_t unit_all_seats_unoccupied(uint32_t unit_index);
+extern void unit_notify_weapon_removed(int32_t object_index);
+extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key);
+extern void unit_recompute_seat_occupants(uint32_t unit_index);
+extern void unit_pick_and_ready_next_weapon(uint32_t unit_index);
+extern int16_t animation_choose_random_permutation(datum_index animation_graph_tag, int16_t first_animation, int32_t stream);
+extern void unit_set_custom_animation(uint32_t object_index, datum_index graph, int16_t animation_index);
+extern actor_mode_definition actor_mode_definitions[16];
+extern void actor_process_order_request(datum_index actor_index, uint32_t order);
+}
+
+namespace halo::ai {
+
+/**
+ * Behaviour of ai platoon range clear unknown 00, moved unchanged from the original free function.
+ *
+ * @address 0x433200
+ */
+void ReferenceView::clear_unknown_00()
+{
+    uint32_t packed_reference = handle;
+    ai_reference_platoon_range range;
+
+    if (packed_reference == (uint32_t)k_datum_index_none) {
+        return;
+    }
+
+    ai_reference_expand_to_platoon_range(packed_reference, &range);
+
+    while (range.encounter_index != -1 && range.platoon_start <= range.platoon_end) {
+        encounter *enc = &((encounter *)encounter_data->data)[range.encounter_index & 0xffff];
+        encounter_platoon_state *state =
+            &encounter_platoon_states[(int16_t)(enc->first_platoon + (int16_t)range.platoon_start)];
+        range.platoon_start = range.platoon_start + 1;
+        if (state == 0) {
+            return;
+        }
+        state->defending = 0;
+    }
+}
+
+/**
+ * Behaviour of ai platoon range has available, moved unchanged from the original free function.
+ *
+ * @address 0x433180
+ */
+uint8_t ReferenceView::has_available()
+{
+    uint32_t packed_reference = handle;
+    ai_reference_platoon_range range;
+
+    if (packed_reference == (uint32_t)k_datum_index_none) {
+        return 0;
+    }
+
+    ai_reference_expand_to_platoon_range(packed_reference, &range);
+
+    for (;;) {
+        encounter *enc;
+        encounter_platoon_state *state;
+
+        if (range.encounter_index == -1 || range.platoon_end < range.platoon_start) {
+            return 0;
+        }
+
+        enc = &((encounter *)encounter_data->data)[range.encounter_index & 0xffff];
+        state = &encounter_platoon_states[(int16_t)(enc->first_platoon + (int16_t)range.platoon_start)];
+        range.platoon_start = range.platoon_start + 1;
+        if (state == 0) {
+            return 0;
+        }
+        if (state->defending == 0) {
+            return 1;
+        }
+    }
+}
+
+/**
+ * Behaviour of ai platoon range set unknown 00, moved unchanged from the original free function.
+ *
+ * @address 0x433270
+ */
+void ReferenceView::set_unknown_00()
+{
+    uint32_t packed_reference = handle;
+    ai_reference_platoon_range range;
+
+    if (packed_reference == (uint32_t)k_datum_index_none) {
+        return;
+    }
+
+    ai_reference_expand_to_platoon_range(packed_reference, &range);
+
+    while (range.encounter_index != -1 && range.platoon_start <= range.platoon_end) {
+        encounter *enc = &((encounter *)encounter_data->data)[range.encounter_index & 0xffff];
+        encounter_platoon_state *state =
+            &encounter_platoon_states[(int16_t)(enc->first_platoon + (int16_t)range.platoon_start)];
+        range.platoon_start = range.platoon_start + 1;
+        if (state == 0) {
+            return;
+        }
+        state->defending = 1;
+    }
+}
+
+/**
+ * Behaviour of ai platoon range set unknown 01, moved unchanged from the original free function.
+ *
+ * @address 0x4332e0
+ */
+void ReferenceView::set_unknown_01()
+{
+    uint32_t packed_reference = handle;
+    ai_reference_platoon_range range;
+
+    if (packed_reference == (uint32_t)k_datum_index_none) {
+        return;
+    }
+
+    ai_reference_expand_to_platoon_range(packed_reference, &range);
+
+    while (range.encounter_index != -1 && range.platoon_start <= range.platoon_end) {
+        encounter *enc = &((encounter *)encounter_data->data)[range.encounter_index & 0xffff];
+        encounter_platoon_state *state =
+            &encounter_platoon_states[(int16_t)(enc->first_platoon + (int16_t)range.platoon_start)];
+        range.platoon_start = range.platoon_start + 1;
+        if (state == 0) {
+            return;
+        }
+        state->maneuvering = 1;
+    }
+}
+
+/**
+ * Behaviour of ai platoon range set unknown 02, moved unchanged from the original free function.
+ *
+ * @address 0x433350
+ */
+void ReferenceView::set_unknown_02(char flag)
+{
+    uint32_t packed_reference = handle;
+    ai_reference_platoon_range range;
+    uint8_t value = (flag == 0) ? 1 : 0;
+
+    if (packed_reference == (uint32_t)k_datum_index_none) {
+        return;
+    }
+
+    ai_reference_expand_to_platoon_range(packed_reference, &range);
+
+    while (range.encounter_index != -1 && range.platoon_start <= range.platoon_end) {
+        encounter *enc = &((encounter *)encounter_data->data)[range.encounter_index & 0xffff];
+        encounter_platoon_state *state =
+            &encounter_platoon_states[(int16_t)(enc->first_platoon + (int16_t)range.platoon_start)];
+        range.platoon_start = range.platoon_start + 1;
+        if (state == 0) {
+            return;
+        }
+        state->maneuver_disabled = value;
+    }
+}
+
+/**
+ * Behaviour of ai reference activate squads, moved unchanged from the original free function.
+ *
+ * @address 0x432b80
+ */
+void ReferenceView::activate_squads()
+{
+    uint32_t packed_reference = handle;
+    if (packed_reference != (uint32_t)k_datum_index_none) {
+        int32_t squad_filter = (packed_reference >> 0x1e == 2) ? (int32_t)(int8_t)(packed_reference >> 0x10) : -1;
+
+        if (packed_reference >> 0x1e == 1) {
+            encounter_spawn_squads(packed_reference & 0xffff, (int32_t)(int8_t)(packed_reference >> 0x10),
+                                               squad_filter);
+            return;
+        }
+        encounter_spawn_squads(packed_reference & 0xffff, -1, squad_filter);
+    }
+}
+
+/**
+ * Behaviour of ai reference actor iterator init cursor, moved unchanged from the original free function.
+ *
+ * @address 0x4369f0
+ */
+void ReferenceView::actor_iterator_init_cursor(int32_t encounter_index, datum_index *cursor)
+{
+    if (ai_globals_ptr->actors_valid == 0) {
+        return;
+    }
+
+    cursor[0] = (datum_index)encounter_index;
+    cursor[1] = (datum_index)k_datum_index_none;
+
+    if (encounter_index == -1) {
+        cursor[2] = ai_globals_ptr->first_encounterless_actor;
+        return;
+    }
+
+    cursor[2] = ((encounter *)encounter_data->data)[(uint32_t)encounter_index & 0xffff].first_actor;
+}
+
+/**
+ * Sets the encounter index to none (which ai_reference_actor_iterator_init_cursor then reads as "walk the
+ * global unassigned-actor list") on any validation failure or unrecognized reference kind.
+ *
+ * @address 0x432650
+ */
+void ReferenceView::actor_iterator_new(ai_reference_actor_iterator *out_iterator)
+{
+    uint32_t packed_reference = handle;
+    int32_t encounter_index = (int32_t)(packed_reference & 0xffff);
+    int32_t *field0 = (int32_t *)(out_iterator->unknown_00 + 0x00);
+    int32_t *squad_filter = (int32_t *)(out_iterator->unknown_00 + 0x04);
+    int32_t *platoon_filter = (int32_t *)(out_iterator->unknown_00 + 0x08);
+
+    *field0 = encounter_index;
+
+    if (global_scenario == 0 || ai_globals_ptr->actors_valid == 0 ||
+        encounter_index >= global_scenario->encounters.count) {
+        *field0 = -1;
+        return;
+    }
+
+    {
+        uint32_t kind = packed_reference >> 0x1e;
+        *platoon_filter = -1;
+        *squad_filter = -1;
+
+        if (kind != 0) {
+            if (kind == 1) {
+                *platoon_filter = (int8_t)(packed_reference >> 0x10);
+            } else if (kind == 2) {
+                *squad_filter = (int8_t)(packed_reference >> 0x10);
+            } else {
+                *field0 = -1;
+                return;
+            }
+        }
+    }
+
+    ai_reference_actor_iterator_init_cursor(encounter_index, (datum_index *)((uint8_t *)out_iterator + 0xc));
+}
+
+/**
+ * Behaviour of ai reference actor iterator next, moved unchanged from the original free function.
+ *
+ * @address 0x4326d0
+ */
+actor * ReferenceView::actor_iterator_next(ai_reference_actor_iterator *iterator)
+{
+    int32_t *squad_filter = (int32_t *)(iterator->unknown_00 + 0x04);
+    int32_t *platoon_filter = (int32_t *)(iterator->unknown_00 + 0x08);
+    actor *base = (actor *)actor_data->data;
+
+    for (;;) {
+        datum_index next;
+        actor *candidate;
+
+        if (ai_globals_ptr->actors_valid == 0) {
+            return 0;
+        }
+
+        next = *(datum_index *)iterator->unknown_14;
+        iterator->actor_index = next;
+        if (next == (datum_index)k_datum_index_none) {
+            return 0;
+        }
+
+        candidate = &base[next & 0xffff];
+        *(datum_index *)iterator->unknown_14 = candidate->next_in_encounter;
+
+        if (*squad_filter == -1 || *squad_filter == candidate->squad_index) {
+            if (*platoon_filter == -1 || *platoon_filter == candidate->platoon_index) {
+                return candidate;
+            }
+        }
+    }
+}
+
+/**
+ * Returns the new list's header handle, or none if the reference is none or the header allocation failed.
+ *
+ * @address 0x432740
+ */
+datum_index ReferenceView::build_object_list()
+{
+    uint32_t packed_reference = handle;
+    datum_index header_index = (datum_index)k_datum_index_none;
+
+    if (packed_reference != (uint32_t)k_datum_index_none) {
+        header_index = datum_new(object_list_header_data);
+        if (header_index != (datum_index)k_datum_index_none) {
+            object_list_header *header =
+                (object_list_header *)((uint8_t *)object_list_header_data->data + (header_index & 0xffff) * 0x0c);
+            ai_reference_actor_iterator iterator;
+            actor *a;
+
+            header->count = 0;
+            header->first_reference = (datum_index)k_datum_index_none;
+
+            ai_reference_actor_iterator_new(packed_reference, &iterator);
+            a = ai_reference_actor_iterator_next(&iterator);
+            while (a != 0) {
+                datum_index passenger;
+
+                if (a->unit_index != (datum_index)k_datum_index_none) {
+                    object_list_reference_add(header_index, a->unit_index);
+                }
+
+                passenger = a->cluster_unit_index;
+                while (passenger != (datum_index)k_datum_index_none) {
+                    object_header *passenger_header = &((object_header *)object_data->data)[passenger & 0xffff];
+                    object_list_reference_add(header_index, passenger);
+                    passenger = *(datum_index *)((uint8_t *)passenger_header->data + 0x1fc);
+                }
+
+                a = ai_reference_actor_iterator_next(&iterator);
+            }
+        }
+    }
+
+    return header_index;
+}
+
+/**
+ * Behaviour of ai reference clear search target, moved unchanged from the original free function.
+ *
+ * @address 0x434c80
+ */
+void ReferenceView::clear_search_target()
+{
+    uint32_t packed_reference = handle;
+    ai_reference_actor_iterator iterator;
+    actor *a;
+
+    ai_reference_actor_iterator_new(packed_reference, &iterator);
+    a = ai_reference_actor_iterator_next(&iterator);
+    while (a != 0) {
+        a->try_to_fight_type = 0;
+        a = ai_reference_actor_iterator_next(&iterator);
+    }
+}
+
+/**
+ * Behaviour of ai reference detach actors from encounters, moved unchanged from the original free
+ * function.
+ *
+ * @address 0x4351c0
+ */
+void ReferenceView::detach_actors_from_encounters()
+{
+    uint32_t packed_reference = handle;
+    ai_reference_actor_iterator iterator;
+    actor *a;
+    actor *self;
+
+    if (packed_reference == 0xffffffff) {
+        return;
+    }
+
+    ai_reference_actor_iterator_new(packed_reference, &iterator);
+    a = ai_reference_actor_iterator_next(&iterator);
+    while (a != 0) {
+        actor_movement_action_cancel(iterator.actor_index);
+        encounter_remove_actor(iterator.actor_index, 0);
+        if (ai_globals_ptr->actors_valid != 0) {
+            self = &((actor *)actor_data->data)[iterator.actor_index & 0xffff];
+            self->next_in_encounter = ai_globals_ptr->first_encounterless_actor;
+            ai_globals_ptr->first_encounterless_actor = iterator.actor_index;
+            self->encounterless = 1;
+            *(uint16_t *)&self->activation_delay[0] =
+                (uint16_t)(-(uint16_t)(self->active != 0) & 0x5a);
+            actor_movement_action_cancel(iterator.actor_index);
+        }
+        a = ai_reference_actor_iterator_next(&iterator);
+    }
+    encounters_recompute_dirty();
+}
+
+/**
+ * Behaviour of ai reference expand to platoon range, moved unchanged from the original free function.
+ *
+ * @address 0x432420
+ */
+void ReferenceView::expand_to_platoon_range(ai_reference_platoon_range *out_range)
+{
+    uint32_t packed_reference = handle;
+    uint32_t encounter_index = packed_reference & 0xffff;
+    ScenarioEncounter *encounter_definition;
+    uint32_t kind;
+    uint32_t platoon_index;
+
+    out_range->encounter_index = (int32_t)encounter_index;
+
+    if (global_scenario == 0 || ai_globals_ptr->actors_valid == 0 ||
+        (int32_t)global_scenario->encounters.count <= (int32_t)encounter_index) {
+        goto fail;
+    }
+
+    encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)[encounter_index];
+    kind = packed_reference >> 0x1e;
+
+    if (kind == 0) {
+        out_range->platoon_start = 0;
+        out_range->platoon_end = encounter_definition->platoons.count - 1;
+        return;
+    }
+    if (kind > 2) {
+        goto fail;
+    }
+
+    platoon_index = (packed_reference >> 0x10) & 0xff;
+    if (kind == 2) {
+        if ((int32_t)platoon_index < encounter_definition->squads.count) {
+            ScenarioSquad *squad = &((ScenarioSquad *)encounter_definition->squads.pointer)[platoon_index];
+            platoon_index = squad->platoon;
+        } else {
+            out_range->platoon_start = -1;
+            goto validate;
+        }
+    }
+    out_range->platoon_start = (int32_t)platoon_index;
+
+validate:
+    platoon_index = out_range->platoon_start;
+    if ((int32_t)platoon_index >= 0 && (int32_t)platoon_index < encounter_definition->platoons.count) {
+        out_range->platoon_end = platoon_index;
+        return;
+    }
+
+fail:
+    out_range->encounter_index = -1;
+}
+
+/**
+ * Behaviour of ai reference face starting location, moved unchanged from the original free function.
+ *
+ * @address 0x4349d0
+ */
+void ReferenceView::face_starting_location(uint8_t idle_only)
+{
+    uint32_t packed_reference = handle;
+    ai_reference_actor_iterator iterator;
+    actor *a;
+    ScenarioEncounter *definition;
+    ScenarioSquad *squads;
+    int16_t squad_index;
+    int16_t location_index;
+    float facing;
+    real_vector3d forward;
+
+    ai_reference_actor_iterator_new(packed_reference, &iterator);
+    a = ai_reference_actor_iterator_next(&iterator);
+    while (a != 0) {
+        if (a->unit_index != (datum_index)k_datum_index_none &&
+            (idle_only == 0 ||
+             (a->active_unit_index == (datum_index)k_datum_index_none &&
+              unit_test_placement_candidate(a->unit_index, global_down3d_pointer, 0, 2.0f, 0) == -1)) &&
+            a->encounter_index != (datum_index)k_datum_index_none) {
+
+            squad_index = a->squad_index;
+            definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+                [a->encounter_index & 0xffff];
+            squads = (ScenarioSquad *)definition->squads.pointer;
+
+            location_index = squad_pick_random_starting_location(a->encounter_index, squad_index);
+            if (location_index != -1) {
+                facing = ((ScenarioActorStartingLocation *)
+                    squads[squad_index].starting_locations.pointer)[location_index].facing;
+                forward.k = 0.0f;
+                forward.i = (float)fcos((double)facing);
+                forward.j = (float)fsin((double)facing);
+                object_set_position_and_orientation(a->unit_index, &forward, 0, 0);
+                object_reset_velocity_and_wake(a->unit_index);
+                actor_movement_action_stop(iterator.actor_index);
+            }
+        }
+        a = ai_reference_actor_iterator_next(&iterator);
+    }
+}
+
+/**
+ * Behaviour of ai reference flee if ready, moved unchanged from the original free function.
+ *
+ * @address 0x434d90
+ */
+void ReferenceView::flee_if_ready(uint32_t readiness_param)
+{
+    uint32_t packed_reference = handle;
+    ai_reference_actor_iterator iterator;
+    actor *a;
+
+    ai_reference_actor_iterator_new(packed_reference, &iterator);
+    a = ai_reference_actor_iterator_next(&iterator);
+    while (a != 0) {
+        uint8_t mode_data[0x84];
+
+        if (actor_squad_action_status_broadcast(iterator.actor_index, (int16_t)readiness_param,
+                (int16_t *)mode_data) != 0) {
+            actor_set_mode(iterator.actor_index, _actor_mode_flee, mode_data);
+        }
+        a = ai_reference_actor_iterator_next(&iterator);
+    }
+}
+
+/**
+ * Behaviour of ai reference for each squad, moved unchanged from the original free function.
+ *
+ * @address 0x432f50
+ */
+void ReferenceView::for_each_squad()
+{
+    uint32_t packed_reference = handle;
+    if (packed_reference != (uint32_t)k_datum_index_none) {
+        ai_reference_squad_iterator iterator;
+        encounter_squad_state *state;
+
+        ai_reference_squad_iterator_new(packed_reference, &iterator);
+        state = ai_reference_squad_iterator_next(&iterator);
+        while (state != 0) {
+            encounter_squad_clear_spawn_delay((datum_index)iterator.encounter_index, (int16_t)iterator.cursor);
+            state = ai_reference_squad_iterator_next(&iterator);
+        }
+    }
+}
+
+/**
+ * Returns 0, and leaves the out-parameters at their default (0 / untouched), for a reference this function
+ * cannot resolve.
+ *
+ * @address 0x432f90
+ */
+uint32_t ReferenceView::get_stat_pair(int16_t stat_kind, int32_t *out_member_count, uint32_t *out_extra)
+{
+    uint32_t packed_reference = handle;
+    uint32_t extra = 0;
+    uint32_t result = 0;
+    int32_t member_count = 0;
+
+    if (packed_reference != (uint32_t)k_datum_index_none) {
+        uint32_t kind = packed_reference >> 0x1e;
+        uint32_t encounter_index = packed_reference & 0xffff;
+
+        if (kind == 0) {
+            if ((int32_t)encounter_index < global_scenario->encounters.count) {
+                encounter *enc = &((encounter *)encounter_data->data)[encounter_index];
+                if (stat_kind == 0) {
+                    result = (uint32_t)enc->living_count;
+                } else if (stat_kind == 1) {
+                    result = (uint32_t)enc->swarm_count;
+                } else {
+                    int32_t diff = (int32_t)enc->living_count - (int32_t)enc->swarm_count;
+                    result = (uint32_t)(diff & ~(diff >> 31));
+                }
+                member_count = enc->member_count;
+                extra = *(uint32_t *)&enc->average_vitality;
+            }
+        } else if (kind == 1) {
+            if ((int32_t)encounter_index < global_scenario->encounters.count) {
+                encounter *enc = &((encounter *)encounter_data->data)[encounter_index];
+                int16_t platoon_sub_index = (int8_t)(packed_reference >> 0x10);
+                if (platoon_sub_index < enc->platoon_count) {
+                    encounter_platoon_state *state =
+                        &encounter_platoon_states[enc->first_platoon + platoon_sub_index];
+                    if (stat_kind == 0) {
+                        result = (uint32_t)state->living_count;
+                        extra = *(uint32_t *)&state->average_vitality;
+                        member_count = state->member_count;
+                    } else if (stat_kind == 1) {
+                        result = (uint32_t)state->swarm_count;
+                        extra = *(uint32_t *)&state->average_vitality;
+                        member_count = state->member_count;
+                    } else {
+                        int32_t diff;
+                        extra = *(uint32_t *)&state->average_vitality;
+                        member_count = state->member_count;
+                        diff = (int32_t)state->living_count - (int32_t)state->swarm_count;
+                        result = (uint32_t)(diff & ~(diff >> 31));
+                    }
+                }
+            }
+        } else if ((int32_t)encounter_index < global_scenario->encounters.count) {
+            encounter *enc = &((encounter *)encounter_data->data)[encounter_index];
+            int16_t squad_sub_index = (int8_t)(packed_reference >> 0x10);
+            if (squad_sub_index < enc->squad_count) {
+                encounter_squad_state *state = &encounter_squad_states[enc->first_squad + squad_sub_index];
+                if (stat_kind == 0) {
+                    result = (uint32_t)state->living_count;
+                    extra = (uint32_t)state->average_vitality;
+                    member_count = state->member_count;
+                } else if (stat_kind == 1) {
+                    result = (uint32_t)state->swarm_count;
+                    extra = (uint32_t)state->average_vitality;
+                    member_count = state->member_count;
+                } else {
+                    int32_t diff;
+                    extra = (uint32_t)state->average_vitality;
+                    member_count = state->member_count;
+                    diff = (int32_t)state->living_count - (int32_t)state->swarm_count;
+                    result = (uint32_t)(diff & ~(diff >> 31));
+                }
+            }
+        }
+    }
+
+    if (out_member_count != 0) {
+        *out_member_count = member_count;
+    }
+    if (out_extra != 0) {
+        *out_extra = extra;
+    }
+    return result;
+}
+
+/**
+ * Behaviour of ai reference invoke squad callback 406f80, moved unchanged from the original free function.
+ *
+ * @address 0x434e60
+ */
+void ReferenceView::invoke_squad_callback_406f80()
+{
+    uint32_t packed_reference = handle;
+    ai_reference_actor_iterator iterator;
+    actor *a;
+
+    ai_reference_actor_iterator_new(packed_reference, &iterator);
+    a = ai_reference_actor_iterator_next(&iterator);
+    while (a != 0) {
+        actor_swarm_for_each_component(iterator.actor_index, 0, (actor_swarm_member_callback)actor_obey_member_advance, 0,
+            (uint16_t *)((uint8_t *)actor_data->data + (iterator.actor_index & 0xffff) * 0x724 + 0x9c));
+        a = ai_reference_actor_iterator_next(&iterator);
+    }
+}
+
+/**
+ * Behaviour of ai reference mark squads unknown 11, moved unchanged from the original free function.
+ *
+ * @address 0x432f10
+ */
+void ReferenceView::mark_squads_unknown_11()
+{
+    uint32_t packed_reference = handle;
+    if (packed_reference != (uint32_t)k_datum_index_none) {
+        ai_reference_squad_iterator iterator;
+        encounter_squad_state *state;
+
+        ai_reference_squad_iterator_new(packed_reference, &iterator);
+        state = ai_reference_squad_iterator_next(&iterator);
+        while (state != 0) {
+            state->timer_started = 1;
+            state = ai_reference_squad_iterator_next(&iterator);
+        }
+    }
+}
+
+/**
+ * Behaviour of ai reference max activity stage, moved unchanged from the original free function.
+ *
+ * @address 0x435700
+ */
+int16_t ReferenceView::max_activity_stage()
+{
+    uint32_t packed_reference = handle;
+    ai_reference_actor_iterator iterator;
+    actor *a;
+    int16_t best = 0;
+
+    ai_reference_actor_iterator_new(packed_reference, &iterator);
+    a = ai_reference_actor_iterator_next(&iterator);
+    while (a != 0) {
+        int16_t stage = (int16_t)ai_actor_get_activity_stage(iterator.actor_index);
+        if (best <= stage) {
+            best = stage;
+        }
+        a = ai_reference_actor_iterator_next(&iterator);
+    }
+    return best;
+}
+
+/**
+ * Behaviour of ai reference notify actors, moved unchanged from the original free function.
+ *
+ * @address 0x432bd0
+ */
+void ReferenceView::notify_actors(uint8_t flag)
+{
+    uint32_t packed_reference = handle;
+    if (packed_reference != (uint32_t)k_datum_index_none) {
+        ai_reference_actor_iterator iterator;
+        actor *a;
+
+        ai_reference_actor_iterator_new(packed_reference, &iterator);
+        a = ai_reference_actor_iterator_next(&iterator);
+        while (a != 0) {
+            actor_mark_units_and_release(flag, iterator.actor_index, 0);
+            a = ai_reference_actor_iterator_next(&iterator);
+        }
+    }
+}
+
+/**
+ * A packed ai reference is the encounter in the low word, the kind in the top two bits and the sub-index
+ * in bits 16..23: kind 1 = platoon, kind 2 = squad.
+ *
+ * @address 0x432c20
+ */
+void ReferenceView::notify_squad_index()
+{
+    uint32_t packed_reference = handle;
+    if (packed_reference != (uint32_t)k_datum_index_none) {
+        uint32_t kind = packed_reference >> 0x1e;
+        int32_t sub_index = (int32_t)((packed_reference >> 0x10) & 0xff);
+        int32_t squad_index = (kind == 2) ? sub_index : -1;
+        int32_t platoon_index = (kind == 1) ? sub_index : -1;
+
+        ai_release_actors_filtered((datum_index)(packed_reference & 0xffff), platoon_index, squad_index, 0);
+    }
+}
+
+/**
+ * Returns whether the reference resolved to something other than "none"/unresolved.
+ *
+ * @address 0x432320
+ */
+uint8_t ReferenceView::parse(char *reference_string, Scenario *scenario, uint32_t *out_packed_reference)
+{
+    uint32_t packed = 0xffffffff;
+    char *slash;
+
+    if (_stricmp(reference_string, "none") == 0) {
+        *out_packed_reference = 0xffffffff;
+        return 1;
+    }
+
+    slash = strrchr(reference_string, '/');
+    if (slash == 0) {
+        int32_t encounter_index = scenario_find_encounter_index_by_name(scenario, reference_string);
+        if (encounter_index != -1) {
+            packed = (uint32_t)encounter_index & 0xffff;
+        }
+    } else {
+        int32_t name_length = (int32_t)(slash - reference_string);
+        if (name_length < 0x20) {
+            char encounter_name[32];
+            int32_t encounter_index;
+
+            strncpy(encounter_name, reference_string, name_length);
+            encounter_name[name_length] = '\0';
+
+            encounter_index = scenario_find_encounter_index_by_name(scenario, encounter_name);
+            if (encounter_index != -1) {
+                ScenarioEncounter *encounter_definition =
+                    &((ScenarioEncounter *)scenario->encounters.pointer)[encounter_index];
+                int32_t squad_index = encounter_definition_find_squad_index_by_name(encounter_definition, slash + 1);
+                uint32_t high;
+
+                if (squad_index != -1) {
+                    high = ((uint32_t)squad_index & 0xff) | 0xffff8000;
+                } else {
+                    int32_t platoon_index =
+                        encounter_definition_find_platoon_index_by_name(encounter_definition, slash + 1);
+                    if (platoon_index == -1) {
+                        goto done;
+                    }
+                    high = ((uint32_t)platoon_index & 0xff) | 0x4000;
+                }
+                packed = (high << 0x10) | ((uint32_t)encounter_index & 0xffff);
+            }
+        }
+    }
+
+done:
+    *out_packed_reference = packed;
+    return packed != 0xffffffff;
+}
+
+/**
+ * Behaviour of ai reference refill grenades, moved unchanged from the original free function.
+ *
+ * @address 0x434af0
+ */
+void ReferenceView::refill_grenades()
+{
+    uint32_t packed_reference = handle;
+    ai_reference_actor_iterator iterator;
+    actor *a;
+    uint8_t *variant_data;
+    uint8_t *unit;
+    int32_t rolled;
+    int16_t current;
+    int16_t grenade_type;
+
+    ai_reference_actor_iterator_new(packed_reference, &iterator);
+    a = ai_reference_actor_iterator_next(&iterator);
+    while (a != 0) {
+        if (a->unit_index != (datum_index)k_datum_index_none) {
+            variant_data = (uint8_t *)tag_instances[a->actor_variant_tag & 0xffff].data;
+            unit = (uint8_t *)((object_header *)object_data->data)[a->unit_index & 0xffff].data;
+
+            ((unit_object *)unit)->base.body_vitality = (((unit_object *)unit)->base.maximum_body_vitality <= 0.0f) ? k_real_zero : k_real_one;
+            ((unit_object *)unit)->base.shield_vitality = (((unit_object *)unit)->base.maximum_shield_vitality <= 0.0f) ? k_real_zero : k_real_one;
+
+            if (*(int16_t *)(variant_data + 0x180) != -1) {
+                random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+                rolled = (int32_t)((uint32_t)(((int32_t)(int16_t)(*(int16_t *)(variant_data + 0x1d2) + 1) -
+                                     (int32_t)(int16_t)*(uint16_t *)(variant_data + 0x1d0)) *
+                                    (int32_t)(random_seed_global >> 0x10)) >> 0x10) +
+                         (int32_t)*(uint16_t *)(variant_data + 0x1d0);
+
+                unit = (uint8_t *)((object_header *)object_data->data)
+                    [a->unit_index & 0xffff].data;
+                current = (int16_t)((unit_object *)unit)->unit.current_grenade_index;
+                if (current == -1) {
+                    current = 0;
+                } else {
+                    current = (int16_t)*(int8_t *)(unit + 0x31e + current);
+                }
+
+                if (current < (int16_t)rolled) {
+                    grenade_type = *(int16_t *)(variant_data + 0x180);
+                    unit = (uint8_t *)((object_header *)object_data->data)
+                        [a->unit_index & 0xffff].data;
+                    *(int8_t *)(unit + 0x31e + grenade_type) =
+                        (int8_t)(*(int8_t *)(unit + 0x31e + grenade_type) +
+                                 ((int8_t)rolled - (int8_t)current));
+                    *(uint8_t *)&((unit_object *)unit)->unit.desired_grenade_index = (uint8_t)grenade_type;
+                    *(uint8_t *)&((unit_object *)unit)->unit.current_grenade_index = (uint8_t)grenade_type;
+                }
+            }
+        }
+        a = ai_reference_actor_iterator_next(&iterator);
+    }
+}
+
+/**
+ * Behaviour of ai reference reset or wake awareness, moved unchanged from the original free function.
+ *
+ * @address 0x434500
+ */
+void ReferenceView::reset_or_wake_awareness(char flag)
+{
+    uint32_t packed_reference = handle;
+    ai_reference_actor_iterator iterator;
+    actor *a;
+
+    ai_reference_actor_iterator_new(packed_reference, &iterator);
+    a = ai_reference_actor_iterator_next(&iterator);
+    while (a != 0) {
+        if (flag == 0) {
+            if (a->awareness_level == 0) {
+                a->awareness_level = 2;
+            }
+        } else {
+            a->awareness_level = 0;
+            a->mode = 0;
+            actor_clear_perceived_props(iterator.actor_index);
+            actor_dispatch_perception_reset(iterator.actor_index);
+            actor_set_units_active(iterator.actor_index, 0);
+        }
+        a = ai_reference_actor_iterator_next(&iterator);
+    }
+}
+
+/**
+ * Behaviour of ai reference resolve squad datum, moved unchanged from the original free function.
+ *
+ * @address 0x432c80
+ */
+int32_t ReferenceView::resolve_squad_datum()
+{
+    uint32_t packed_reference = handle;
+    int32_t fallback = (int32_t)ai_globals_ptr;
+
+    if (ai_globals_ptr->actors_valid != 0 && packed_reference != (uint32_t)k_datum_index_none) {
+        if (packed_reference >> 0x1e == 2) {
+            return (int32_t)encounter_squad_spawn_reinforcement(packed_reference & 0xffff,
+                (int16_t)((packed_reference >> 0x10) & 0xff));
+        }
+        if (packed_reference >> 0x1e == 1) {
+            ScenarioEncounter *encounter_definition =
+                &((ScenarioEncounter *)global_scenario->encounters.pointer)[packed_reference & 0xffff];
+            int32_t squad_count = encounter_definition->squads.count;
+
+            if (squad_count <= 0) {
+                return (int32_t)((packed_reference & 0xffff) * sizeof(ScenarioEncounter));
+            }
+            if (squad_count > 0) {
+                ScenarioSquad *squads = (ScenarioSquad *)encounter_definition->squads.pointer;
+                int32_t squad_index = 0;
+                do {
+                    if ((int32_t)squads[squad_index].platoon == (int32_t)((packed_reference >> 0x10) & 0xff)) {
+                        if ((int16_t)squad_index == -1) {
+                            return squad_index;
+                        }
+                        return (int32_t)encounter_squad_spawn_reinforcement(packed_reference & 0xffff,
+                            (int16_t)squad_index);
+                    }
+                    squad_index = squad_index + 1;
+                } while (squad_index < squad_count);
+                return (int32_t)squads;
+            }
+        }
+    }
+    return fallback;
+}
+
+/**
+ * Behaviour of ai reference respawn all players, moved unchanged from the original free function.
+ *
+ * @address 0x432d90
+ */
+void ReferenceView::respawn_all_players()
+{
+    uint32_t packed_reference = handle;
+    if (packed_reference != (uint32_t)k_datum_index_none) {
+        data_iterator iterator;
+        player *p;
+
+        iterator.data = player_data;
+        iterator.next_index = 0;
+        iterator.index = (datum_index)k_datum_index_none;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+
+        p = (player *)data_iterator_next(&iterator);
+        while (p != 0) {
+            ai_reference_respawn_member(packed_reference, p->unit);
+            p = (player *)data_iterator_next(&iterator);
+        }
+    }
+}
+
+/**
+ * Behaviour of ai reference respawn member, moved unchanged from the original free function.
+ *
+ * @address 0x432df0
+ */
+void ReferenceView::respawn_member(datum_index unit_index)
+{
+    uint32_t packed_reference = handle;
+    if (packed_reference != (uint32_t)k_datum_index_none && unit_index != (datum_index)k_datum_index_none) {
+        ai_reference_actor_iterator iterator;
+        actor *a;
+
+        ai_reference_actor_iterator_new(packed_reference, &iterator);
+        a = ai_reference_actor_iterator_next(&iterator);
+        while (a != 0) {
+            datum_index respawned;
+
+            if (a->encounter_index != (datum_index)k_datum_index_none) {
+                encounter *enc = &((encounter *)encounter_data->data)[a->encounter_index & 0xffff];
+                *(int16_t *)&enc->activation_delay = 0x96;
+                encounter_activate(a->encounter_index);
+            }
+
+            respawned = actor_find_or_create_shared_prop(unit_index, iterator.actor_index, 1, 0);
+            if (respawned != (datum_index)k_datum_index_none) {
+                actor_squad_react_to_grenade(iterator.actor_index, respawned, 3);
+            }
+
+            a = ai_reference_actor_iterator_next(&iterator);
+        }
+    }
+}
+
+/**
+ * Behaviour of ai reference respawn placed members, moved unchanged from the original free function.
+ *
+ * @address 0x432d30
+ */
+void ReferenceView::respawn_placed_members(uint32_t respawn_reference)
+{
+    uint32_t packed_reference = handle;
+    if (respawn_reference != (uint32_t)k_datum_index_none && packed_reference != (uint32_t)k_datum_index_none) {
+        ai_reference_actor_iterator iterator;
+        actor *a;
+
+        ai_reference_actor_iterator_new(packed_reference, &iterator);
+        a = ai_reference_actor_iterator_next(&iterator);
+        while (a != 0) {
+            datum_index unit_index = a->unit_index;
+            if (unit_index == (datum_index)k_datum_index_none) {
+                unit_index = a->cluster_unit_index;
+            }
+            if (unit_index != (datum_index)k_datum_index_none) {
+                ai_reference_respawn_member(respawn_reference, unit_index);
+            }
+            a = ai_reference_actor_iterator_next(&iterator);
+        }
+    }
+}
+
+/**
+ * Behaviour of ai reference set combat alert flag, moved unchanged from the original free function.
+ *
+ * @address 0x435af0
+ */
+void ReferenceView::set_combat_alert_flag(uint8_t new_flag)
+{
+    uint32_t packed_reference = handle;
+    if (packed_reference != (uint32_t)k_datum_index_none) {
+        ai_reference_actor_iterator iterator;
+        actor *a;
+
+        ai_reference_actor_iterator_new(packed_reference, &iterator);
+        a = ai_reference_actor_iterator_next(&iterator);
+        while (a != 0) {
+            actor_set_combat_alert_flag(iterator.actor_index, new_flag);
+            a = ai_reference_actor_iterator_next(&iterator);
+        }
+    }
+}
+
+/**
+ * Behaviour of ai reference set search target area, moved unchanged from the original free function.
+ *
+ * @address 0x434d00
+ */
+void ReferenceView::set_search_target_area()
+{
+    uint32_t packed_reference = handle;
+    ai_reference_actor_iterator iterator;
+    actor *a;
+
+    ai_reference_actor_iterator_new(packed_reference, &iterator);
+    a = ai_reference_actor_iterator_next(&iterator);
+    while (a != 0) {
+        a->try_to_fight_type = 2;
+        a = ai_reference_actor_iterator_next(&iterator);
+    }
+}
+
+/**
+ * Behaviour of ai reference set search target point, moved unchanged from the original free function.
+ *
+ * @address 0x434cc0
+ */
+void ReferenceView::set_search_target_point(uint32_t reference_value)
+{
+    uint32_t packed_reference = handle;
+    ai_reference_actor_iterator iterator;
+    actor *a;
+
+    ai_reference_actor_iterator_new(packed_reference, &iterator);
+    a = ai_reference_actor_iterator_next(&iterator);
+    while (a != 0) {
+        a->try_to_fight_type = 1;
+        a->try_to_fight_reference = reference_value;
+        a = ai_reference_actor_iterator_next(&iterator);
+    }
+}
+
+/**
+ * Behaviour of ai reference set squads unknown 14, moved unchanged from the original free function.
+ *
+ * @address 0x435bc0
+ */
+void ReferenceView::set_squads_unknown_14(char flag)
+{
+    uint32_t packed_reference = handle;
+    ai_reference_squad_iterator iterator;
+    encounter_squad_state *state;
+    uint8_t value = (flag == 0);
+
+    ai_reference_squad_iterator_new(packed_reference, &iterator);
+    state = ai_reference_squad_iterator_next(&iterator);
+    while (state != 0) {
+        state->dormancy_disabled = value;
+        state = ai_reference_squad_iterator_next(&iterator);
+    }
+}
+
+/**
+ * Behaviour of ai reference set unknown 1cb, moved unchanged from the original free function.
+ *
+ * @address 0x434d40
+ */
+void ReferenceView::set_unknown_1cb(char flag)
+{
+    uint32_t packed_reference = handle;
+    ai_reference_actor_iterator iterator;
+    actor *a;
+    uint8_t value = (flag == 0);
+
+    ai_reference_actor_iterator_new(packed_reference, &iterator);
+    a = ai_reference_actor_iterator_next(&iterator);
+    while (a != 0) {
+        a->charge_disallowed = value;
+        a = ai_reference_actor_iterator_next(&iterator);
+    }
+}
+
+/**
+ * Does nothing if the AI globals, the reference or the resolved squad/actor-variant/actor tag chain is not
+ * valid.
+ *
+ * @address 0x4328c0
+ */
+void ReferenceView::spawn_starting_location_object(datum_index unit_index, uint32_t packed_reference)
+{
+    uint32_t encounter_index;
+    ScenarioEncounter *encounter_definition;
+    uint32_t squad_index;
+    uint32_t kind;
+
+    if (ai_globals_ptr->actors_valid == 0 || packed_reference == (uint32_t)k_datum_index_none ||
+        unit_index == (datum_index)k_datum_index_none) {
+        return;
+    }
+
+    encounter_index = packed_reference & 0xffff;
+    if ((int32_t)encounter_index >= global_scenario->encounters.count) {
+        return;
+    }
+    encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)[encounter_index];
+
+    squad_index = 0;
+    kind = packed_reference >> 0x1e;
+    if (kind == 2) {
+        uint32_t requested = (packed_reference >> 0x10) & 0xff;
+        squad_index = requested; // requested is always 0..255, so the original's "< 0" guard never fires
+    } else if (kind == 1) {
+        uint32_t target_platoon = (packed_reference >> 0x10) & 0xff;
+        uint32_t candidate = 0;
+        if (encounter_definition->squads.count > 0) {
+            ScenarioSquad *squads = (ScenarioSquad *)encounter_definition->squads.pointer;
+            do {
+                if (squads[candidate].platoon == target_platoon) {
+                    squad_index = candidate;
+                    break;
+                }
+                candidate = candidate + 1;
+            } while (candidate < (uint32_t)encounter_definition->squads.count);
+        }
+    }
+
+    if ((int32_t)squad_index < encounter_definition->squads.count) {
+        ScenarioSquad *squad = &((ScenarioSquad *)encounter_definition->squads.pointer)[squad_index];
+        int16_t actor_palette_index = (int16_t)squad->actor_type;
+
+        if (actor_palette_index != -1) {
+            TagDependency *actor_palette_entry =
+                &((TagDependency *)global_scenario->actor_palette.pointer)[actor_palette_index];
+            datum_index actor_variant_tag = *(datum_index *)&actor_palette_entry->tag_id;
+
+            if (actor_variant_tag != (datum_index)k_datum_index_none) {
+                uint8_t *actor_variant_data =
+                    (uint8_t *)tag_instances[actor_variant_tag & 0xffff].data;
+                datum_index actor_definition_tag = *(datum_index *)(actor_variant_data + 0x10);
+
+                if (actor_definition_tag != (datum_index)k_datum_index_none) {
+                    uint8_t *actor_tag_data = (uint8_t *)tag_instances[actor_definition_tag & 0xffff].data;
+                    uint32_t actor_tag_flags = *(uint32_t *)actor_tag_data;
+                    char reuse_existing = (char)((actor_tag_flags >> 0x1a) & 1); // Actor.flags bit 26, "swarm"
+                    char start_active =
+                        (char)((encounter_definition->flags >> 4) & 1); // ScenarioEncounterFlags bit 4, "initially_braindead"
+
+                    actor_new_and_attach_to_unit(reuse_existing, unit_index, actor_variant_tag, encounter_index,
+                        (int16_t)squad_index, 0, (datum_index)k_datum_index_none, start_active,
+                        (uint16_t)squad->initial_state, (int16_t)squad->return_state, 0xffff, 0);
+                    encounters_recompute_dirty();
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Behaviour of ai reference squad iterator new, moved unchanged from the original free function.
+ *
+ * @address 0x4324f0
+ */
+void ReferenceView::squad_iterator_new(ai_reference_squad_iterator *out_iterator)
+{
+    uint32_t packed_reference = handle;
+    uint32_t encounter_index = packed_reference & 0xffff;
+    ScenarioEncounter *encounter_definition;
+    uint32_t kind;
+
+    out_iterator->encounter_index = (int32_t)encounter_index;
+
+    if (global_scenario == 0 || ai_globals_ptr->actors_valid == 0 ||
+        (int32_t)global_scenario->encounters.count <= (int32_t)encounter_index) {
+        goto fail;
+    }
+
+    encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)[encounter_index];
+    kind = packed_reference >> 0x1e;
+
+    if (kind < 2) {
+        out_iterator->cursor = -1;
+        out_iterator->squad_start = 0;
+        out_iterator->squad_end = encounter_definition->squads.count - 1;
+        if (kind != 0) {
+            out_iterator->platoon_filter = (int8_t)(packed_reference >> 0x10);
+            return;
+        }
+    } else {
+        uint32_t squad_index = (int8_t)(packed_reference >> 0x10);
+        if (kind != 2 || (int32_t)squad_index >= encounter_definition->squads.count) {
+            goto fail;
+        }
+        out_iterator->cursor = -1;
+        out_iterator->squad_end = (int32_t)squad_index;
+        out_iterator->squad_start = (int32_t)squad_index;
+    }
+    out_iterator->platoon_filter = -1;
+    return;
+
+fail:
+    out_iterator->encounter_index = -1;
+}
+
+/**
+ * Behaviour of ai reference squad iterator next, moved unchanged from the original free function.
+ *
+ * @address 0x4325b0
+ */
+encounter_squad_state * ReferenceView::squad_iterator_next(ai_reference_squad_iterator *iterator)
+{
+    encounter *enc;
+    ScenarioEncounter *encounter_definition;
+    ScenarioSquad *squads;
+
+    if (iterator->encounter_index == -1) {
+        return 0;
+    }
+
+    enc = &((encounter *)encounter_data->data)[iterator->encounter_index & 0xffff];
+    encounter_definition =
+        &((ScenarioEncounter *)global_scenario->encounters.pointer)[iterator->encounter_index & 0xffff];
+    squads = (ScenarioSquad *)encounter_definition->squads.pointer;
+
+    if (iterator->squad_start > iterator->squad_end) {
+        return 0;
+    }
+
+    for (;;) {
+        iterator->cursor = iterator->squad_start;
+        iterator->squad_start = iterator->squad_start + 1;
+        if (iterator->platoon_filter == -1 || squads[iterator->cursor].platoon == iterator->platoon_filter) {
+            break;
+        }
+        if (iterator->squad_end < iterator->squad_start) {
+            return 0;
+        }
+    }
+
+    return &encounter_squad_states[enc->first_squad + iterator->cursor];
+}
+
+/**
+ * Behaviour of ai reference squad set unknown 10, moved unchanged from the original free function.
+ *
+ * @address 0x435ab0
+ */
+void ReferenceView::squad_set_unknown_10(uint8_t value)
+{
+    uint32_t packed_reference = handle;
+    if (packed_reference != (uint32_t)k_datum_index_none) {
+        ai_reference_squad_iterator iterator;
+        encounter_squad_state *state;
+
+        ai_reference_squad_iterator_new(packed_reference, &iterator);
+        state = ai_reference_squad_iterator_next(&iterator);
+        while (state != 0) {
+            state->automatic_migration = value;
+            state = ai_reference_squad_iterator_next(&iterator);
+        }
+    }
+}
+
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
+#define TAG_DATA(t) ((uint8_t *)tag_instances[(t) & 0xffff].data)
+namespace {
+
+static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
+{
+    uint8_t *self = OBJECT_DATA(object_index);
+    uint8_t *vehicle = OBJECT_DATA(vehicle_index);
+    uint8_t *nodes = self + ((struct object *)self)->nodes.offset;
+    uint8_t *seat = *(uint8_t **)(TAG_DATA(*(datum_index *)vehicle) + 0x2e8) + *(int16_t *)(self + 0x2f0) * 0x11c;
+    uint8_t *model_nodes;
+    object_marker marker;
+    real_point3d offset;
+    real_point3d default_translation;
+    real_point3d position;
+    real_matrix4x3 basis;
+
+    object_get_node_local_transform(vehicle_index, (char *)(seat + 0x24), &marker, 1);
+    offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
+    offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
+    offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
+    model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
+    default_translation = *(real_point3d *)(model_nodes + 0x28);
+    if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index && vehicle[0x2a3] != 0x25 &&
+        ((struct object *)self)->parent_object != k_datum_index_none) {
+        unit_try_set_animation_state(((struct object *)self)->parent_object, 0x25);
+    }
+    *(datum_index *)(self + 0x32c) = vehicle_index;
+    *(int32_t *)(self + 0x330) = game_time->game_time;
+    if (*(datum_index *)(self + 0x324) == object_index) {
+        *(datum_index *)(self + 0x324) = k_datum_index_none;
+    }
+    if (*(datum_index *)(self + 0x328) == object_index) {
+        *(datum_index *)(self + 0x328) = k_datum_index_none;
+    }
+    object_snap_to_parent_marker_and_detach(object_index);
+    position.x = offset.x + ((struct object *)self)->position.x;
+    position.y = offset.y + ((struct object *)self)->position.y;
+    position.z = offset.z + ((struct object *)self)->position.z - default_translation.z;
+    object_set_position_and_orientation(object_index, 0, 0, &position);
+    {
+        uint8_t *reloaded = OBJECT_DATA(object_index);
+
+        matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
+            (real_matrix4x3 *)(model_nodes + 0x68), &basis);
+    }
+    *(real_vector3d *)&((struct object *)self)->forward.i = basis.forward;
+    *(real_vector3d *)&((struct object *)self)->up.i = basis.up;
+    {
+        uint8_t *object = OBJECT_DATA(object_index);
+        uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
+
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (object[0x10] & 1) != 0) {
+            object_for_each_light_attachment(object_index, 0, 1);
+        }
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
+            ((struct object *)object)->flags &= ~1u;
+            OBJECT_HEADER(object_index).flags |= 2;
+        }
+    }
+    *(int16_t *)(self + 0x2f0) = -1;
+    self[0x2a7] = 2;
+    if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index) {
+        ((vehicle_object *)vehicle)->unit.driver_unit_index = k_datum_index_none;
+    }
+    if (((vehicle_object *)vehicle)->unit.gunner_unit_index == object_index) {
+        ((vehicle_object *)vehicle)->unit.gunner_unit_index = k_datum_index_none;
+    }
+    unit_recompute_seat_occupants(vehicle_index);
+    unit_pick_and_ready_next_weapon(object_index);
+    {
+        int8_t request[2] = { 0x14, 0 };
+
+        unit_update_animation_state_machine(object_index, request);
+    }
+    *(real_point3d *)(self + ((struct object *)self)->node_function_values.offset + 0x10) = default_translation;
+    if (((struct object *)self)->type == 0) {
+        unit_reset_orientation_and_find_position(object_index, vehicle_index); // EDI = the seat parent
+    }
+    object_recalculate_bounding_radius_recursive(object_index);
+    if (unit_all_seats_unoccupied(vehicle_index) == 1) {
+        uint8_t *empty = (uint8_t *)object_try_and_get(vehicle_index, 2);
+
+        if (empty != 0) {
+            *(int32_t *)(empty + 0x5ac) = game_time->game_time;
+        }
+    }
+    if (network_game_mode == 1) {
+        uint8_t *player = (uint8_t *)datum_get(*(datum_index *)(self + 0x218), player_data);
+
+        if (player != 0 && ((struct player *)player)->local_player_index == -1) {
+            ((struct player *)player)->position_updates.read_index = 0;
+            ((struct player *)player)->position_updates.write_index = 0;
+            ((struct player *)player)->vehicle_updates.read_index = 0;
+            ((struct player *)player)->vehicle_updates.write_index = 0;
+        }
+    }
+}
+
+static void biped_free_local_player_history(uint8_t *self)
+{
+    datum_index player_index = *(datum_index *)(self + 0x218);
+    int16_t index = (int16_t)player_index;
+    int16_t salt = (int16_t)(player_index >> 16);
+    uint8_t *player;
+
+    if (network_game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
+        index >= *(int16_t *)((uint8_t *)player_data + 0x20)) {
+        return;
+    }
+    player = (uint8_t *)player_data->data + *(int16_t *)((uint8_t *)player_data + 0x22) * index;
+    if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
+        return;
+    }
+    if (network_client != 0) {
+        player_update_history_free_all(*(void **)&network_client->update_history);
+    }
+}
+
+}
+
+/**
+ * Behaviour of ai reference units exit vehicles, moved unchanged from the original free function.
+ *
+ * @address 0x433ea0
+ */
+void ReferenceView::units_exit_vehicles()
+{
+    uint32_t packed_reference = handle;
+    ai_reference_actor_iterator iterator;
+    actor *actor_record;
+
+    ai_reference_actor_iterator_new(packed_reference, &iterator);
+    for (actor_record = ai_reference_actor_iterator_next(&iterator); actor_record != 0;
+         actor_record = ai_reference_actor_iterator_next(&iterator)) {
+        datum_index unit_index = ((struct actor *)actor_record)->unit_index;
+        int16_t index = (int16_t)unit_index;
+        int16_t salt = (int16_t)(unit_index >> 16);
+        uint8_t *header;
+        uint8_t *self;
+        datum_index vehicle_index;
+
+        if (((struct actor *)actor_record)->active_unit_index == k_datum_index_none ||
+            unit_index == k_datum_index_none || index < 0 || index >= object_data->maximum_count) {
+            continue;
+        }
+        header = (uint8_t *)object_data->data + object_data->size * index;
+        if (*(int16_t *)header == 0 || (salt != 0 && *(int16_t *)header != salt) ||
+            ((1u << (header[3] & 0x1f)) & 3) == 0) {
+            continue;
+        }
+        self = *(uint8_t **)(header + 0x8);
+        if (self == 0 || network_game_mode == 1 ||
+            (vehicle_index = ((struct object *)self)->parent_object) == k_datum_index_none ||
+            *(int16_t *)(self + 0x2f0) == -1) {
+            continue;
+        }
+        if (((struct object *)self)->type == 1) {
+            uint8_t *me = OBJECT_DATA(unit_index);
+
+            if (((struct object *)me)->parent_object != k_datum_index_none && *(int16_t *)(me + 0x2f0) != -1) {
+                biped_detach_from_seat(unit_index, ((struct object *)me)->parent_object);
+            }
+            biped_free_local_player_history(me);
+        } else if (!unit_state_is_scripted_animation((unit_data *)(self + k_unit_data_offset))) {
+            uint8_t *self_tag = TAG_DATA(*(datum_index *)self);
+            datum_index graph = *(datum_index *)(self_tag + 0x44);
+            uint8_t *seat_block = *(uint8_t **)(TAG_DATA(graph) + 0x10) + (int8_t)self[0x2a0] * 0x64;
+
+            if (*(int32_t *)(seat_block + 0x40) > 8 && (*(int16_t **)(seat_block + 0x44))[8] != -1) {
+                int16_t exit_animation = (*(int16_t **)(seat_block + 0x44))[8];
+                uint8_t *object;
+                uint8_t *object_tag;
+
+                if (*(datum_index *)(OBJECT_DATA(vehicle_index) + 0x324) == unit_index) {
+                    unit_notify_weapon_removed((int32_t)vehicle_index);
+                }
+                unit_set_custom_animation(unit_index, *(datum_index *)(self_tag + 0x44),
+                    animation_choose_random_permutation(graph, exit_animation, 1));
+                object = OBJECT_DATA(unit_index);
+                object_tag = TAG_DATA(*(datum_index *)object);
+                if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
+                    if ((object[0x10] & 1) != 0) {
+                        object_for_each_light_attachment(unit_index, 0, 1);
+                    }
+                    if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
+                        ((struct object *)object)->flags &= ~1u;
+                        OBJECT_HEADER(unit_index).flags |= 2;
+                    }
+                }
+                self[0x2a3] = 0x1b;
+                actor_notify_weapon_pickup_once(unit_index);
+                if (((struct object *)self)->network_role == 0) {
+                    unit_dispatch_scripted_event_9(0, (int32_t)unit_index);
+                }
+            }
+        }
+    }
+}
+
+#undef OBJECT_DATA
+#undef OBJECT_HEADER
+#undef TAG_DATA
+
+/**
+ * Behaviour of squad members assign team and request order, moved unchanged from the original free
+ * function.
+ *
+ * @address 0x435590
+ */
+void ReferenceView::assign_team_and_request_order(int16_t value)
+{
+    uint32_t packed_reference = handle;
+    ai_reference_actor_iterator iterator;
+    actor *a;
+    int16_t grade;
+
+    if (value < 0 || 0xc <= value) {
+        return;
+    }
+
+    ai_reference_actor_iterator_new(packed_reference, &iterator);
+    a = ai_reference_actor_iterator_next(&iterator);
+    while (a != 0) {
+        grade = actor_mode_definitions[
+            ((actor *)actor_data->data)[iterator.actor_index & 0xffff].mode].combat_grade;
+        a->standing_order_request = value;
+        if (a->combat_status == 0 && (grade == 0 || grade == 1 || grade == 2)) {
+            actor_process_order_request(iterator.actor_index, 0xffffffff);
+        }
+        a = ai_reference_actor_iterator_next(&iterator);
+    }
+}
+
+static inline uint8_t actor_process_order_request__squad_members_request_order(uint32_t actor_index, uint16_t order_code)
+{
+    return reinterpret_cast<uint8_t (*)(uint32_t, uint16_t)>(&::actor_process_order_request)(actor_index, order_code);
+}
+#define actor_process_order_request actor_process_order_request__squad_members_request_order
+/**
+ * Behaviour of squad members request order, moved unchanged from the original free function.
+ *
+ * @address 0x435630
+ */
+void ReferenceView::request_order(int16_t order_code)
+{
+    uint32_t packed_reference = handle;
+    if (order_code >= 0 && order_code < 0xc) {
+        ai_reference_actor_iterator iterator;
+        actor *a;
+
+        ai_reference_actor_iterator_new(packed_reference, &iterator);
+        a = ai_reference_actor_iterator_next(&iterator);
+        while (a != 0) {
+            actor_process_order_request(iterator.actor_index, (uint16_t)order_code);
+            a = ai_reference_actor_iterator_next(&iterator);
+        }
+    }
+}
+
+#undef actor_process_order_request
+
+}
