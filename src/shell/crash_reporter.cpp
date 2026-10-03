@@ -1,4 +1,5 @@
 #include "halo/shell/diagnostics.hpp"
+#include "halo/shell/layout.hpp"
 #include "interface.h"
 
 extern "C" {
@@ -134,7 +135,7 @@ void WatsonCrashReporter::show_gathering_dialog(CrashSession *session)
     win32_msg message;
 
     __try {
-        session->template_memory = GlobalAlloc(0x40, k_crash_dialog_template_allocation);
+        session->template_memory = GlobalAlloc(k_gmem_zeroinit, k_crash_dialog_template_allocation);
         dialog_template = (crash_dialog_template *)GlobalLock(session->template_memory);
         dialog_template->style = 0x80c800c0;
         dialog_template->item_count = 1;
@@ -194,7 +195,7 @@ void WatsonCrashReporter::create_shared_block(CrashSession *session)
     if (session->mapping == 0) {
         report_fault_and_exit(session->exception_pointers);
     }
-    session->shared = (dw_shared_memory *)MapViewOfFile(session->mapping, 6, 0, 0, 0);
+    session->shared = (dw_shared_memory *)MapViewOfFile(session->mapping, k_file_map_read_write, 0, 0, 0);
     if (session->shared == 0) {
         report_fault_and_exit(session->exception_pointers);
     }
@@ -204,7 +205,7 @@ void WatsonCrashReporter::create_shared_block(CrashSession *session)
     session->event_alive = CreateEventA((LPSECURITY_ATTRIBUTES)&attributes, 0, 0, 0);
     session->mutex = CreateMutexA((LPSECURITY_ATTRIBUTES)&attributes, 0, 0);
     if (!DuplicateHandle(GetCurrentProcess(), GetCurrentProcess(), GetCurrentProcess(),
-                         (LPHANDLE)&session->shared->process, 0x1f0fff, 1, 0)) {
+                         (LPHANDLE)&session->shared->process, k_process_all_access, 1, 0)) {
         report_fault_and_exit(session->exception_pointers);
     }
     if (session->event_alive == 0 || session->event_done == 0 || session->mutex == 0) {
@@ -255,10 +256,10 @@ void WatsonCrashReporter::run_dxdiag(CrashSession *session)
         GetTempPathA(sizeof(temp_path), temp_path);
         strcat(temp_path, "dxdiag.txt");
         wsprintfA(dxdiag_command, "dxdiag.exe /whql:off /t %s", temp_path);
-        if (CreateProcessA(0, dxdiag_command, 0, 0, 0, 0x4000020, 0, 0, (LPSTARTUPINFOA)&startup_info,
+        if (CreateProcessA(0, dxdiag_command, 0, 0, 0, k_create_default_error_mode | k_normal_priority_class, 0, 0, (LPSTARTUPINFOA)&startup_info,
                            (LPPROCESS_INFORMATION)&process_information)) {
             priority_class = GetPriorityClass(GetCurrentProcess());
-            SetPriorityClass(GetCurrentProcess(), 0x40);
+            SetPriorityClass(GetCurrentProcess(), k_idle_priority_class);
             do {
                 wait_result = MsgWaitForMultipleObjects(1, (void **)&process_information.process, 0, k_dw_dxdiag_timeout,
                                                         0xff);
@@ -269,12 +270,12 @@ void WatsonCrashReporter::run_dxdiag(CrashSession *session)
                     strcpy(session->file_list, temp_path);
                 }
                 while (PeekMessageA((LPMSG)&wait_message, (HWND)session->dialog, 0, 0, 1)) {
-                    if (wait_message.message == 0x111) {
-                        wait_result = 0x102;
+                    if (wait_message.message == k_wm_command) {
+                        wait_result = win32::k_wait_timeout;
                     }
                     DispatchMessageA((const MSG *)&wait_message);
                 }
-            } while (wait_result != 0 && wait_result != 0x102);
+            } while (wait_result != win32::k_wait_object_0 && wait_result != win32::k_wait_timeout);
             SetPriorityClass(GetCurrentProcess(), priority_class);
             CloseHandle((void *)process_information.process);
             CloseHandle((void *)process_information.thread);
@@ -347,7 +348,7 @@ int32_t WatsonCrashReporter::run_watson(CrashSession *session)
     process_information.thread_id = 0;
     wsprintfA(watson_command, ".\\Watson\\dw15.exe -x -s %u", (uint32_t)session->mapping);
     __try {
-        if (!CreateProcessA(0, watson_command, 0, 0, 1, 0x4000020, 0, 0, (LPSTARTUPINFOA)&startup_info,
+        if (!CreateProcessA(0, watson_command, 0, 0, 1, k_create_default_error_mode | k_normal_priority_class, 0, 0, (LPSTARTUPINFOA)&startup_info,
                             (LPPROCESS_INFORMATION)&process_information)) {
             report_fault_and_exit(session->exception_pointers);
         }
@@ -359,11 +360,11 @@ int32_t WatsonCrashReporter::run_watson(CrashSession *session)
                 continue;
             }
             wait_result = WaitForSingleObject(session->mutex, k_dw_mutex_timeout);
-            if (wait_result == 0x102) {
+            if (wait_result == win32::k_wait_timeout) {
                 keep_waiting = 0;
                 continue;
             }
-            if (wait_result == 0x80) {
+            if (wait_result == win32::k_wait_abandoned) {
                 keep_waiting = 0;
                 ReleaseMutex(session->mutex);
                 continue;

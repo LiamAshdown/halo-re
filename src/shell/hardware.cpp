@@ -1,4 +1,5 @@
 #include "halo/shell/hardware.hpp"
+#include "halo/shell/layout.hpp"
 #include "halo/shell/diagnostics.hpp"
 #include "halo/shell/system.hpp"
 #include <dsound.h>
@@ -42,14 +43,14 @@ void read_time_stamp_counter(large_integer *result)
  */
 uint32_t round_video_memory(uint32_t bytes)
 {
-    if (bytes <= 0x1000000) {
+    if (bytes <= k_video_memory_16mb) {
         return (bytes + 0x7fffff) & 0xff800000;
     }
-    if (bytes <= 0x4000000) {
+    if (bytes <= k_video_memory_64mb) {
         return (bytes + 0x1ffffff) & 0xfe000000;
     }
-    if (bytes > 0x80000000) {
-        return 0x80000000;
+    if (bytes > k_video_memory_2gb) {
+        return k_video_memory_2gb;
     }
     return (bytes + 0x3ffffff) & 0xfc000000;
 }
@@ -116,7 +117,7 @@ void Win32HardwareProbe::measure_cpu_speed()
     process = GetCurrentProcess();
     thread_priority = GetThreadPriority(thread);
     priority_class = GetPriorityClass(process);
-    SetPriorityClass(process, 0x100);
+    SetPriorityClass(process, k_realtime_priority_class);
     SetThreadPriority(thread, 15);
     Sleep(100);
     QueryPerformanceFrequency((LARGE_INTEGER *)&frequency);
@@ -220,18 +221,18 @@ void Win32HardwareProbe::detect_display_adapters()
 
     direct_draw_create_ex = (direct_draw_create_ex_fn)ddraw.symbol("DirectDrawCreateEx");
     if (direct_draw_create_ex == 0) {
-        FatalError::show(0x79, (uint32_t)((const char *)0x7a), 1);
+        FatalError::show(k_string_display_unsupported, k_help_file_directx, 1);
     }
     direct_draw_enumerate_ex = (direct_draw_enumerate_ex_fn)ddraw.symbol("DirectDrawEnumerateExA");
     if (direct_draw_enumerate_ex == 0) {
-        FatalError::show(0x79, (uint32_t)((const char *)0x7a), 1);
+        FatalError::show(k_string_display_unsupported, k_help_file_directx, 1);
     }
     direct_draw_enumerate_ex((void *)enumerate_display_adapter, 0, 1);
 
     for (adapter_index = 0; adapter_index < display_adapter_count; adapter_index++) {
         if (direct_draw_create_ex(adapter_index != 0 ? display_adapters[adapter_index].guid : 0, &direct_draw,
                                   iid_direct_draw7, 0) < 0) {
-            FatalError::show(0x79, (uint32_t)((const char *)0x7a), 1);
+            FatalError::show(k_string_display_unsupported, k_help_file_directx, 1);
         }
         direct_draw->vtable->set_cooperative_level(direct_draw, 0, 8);
 
@@ -239,23 +240,23 @@ void Win32HardwareProbe::detect_display_adapters()
         caps.caps3 = 0;
         caps.caps4 = 0;
         total_memory = 0;
-        caps.caps = 0x4200;
-        smallest = 0xffffffff;
+        caps.caps = k_ddscaps_primary_video_memory;
+        smallest = k_dword_none;
         direct_draw->vtable->get_available_vid_mem(direct_draw, &caps, &total_memory, &free_memory);
-        if (total_memory > 0 && total_memory < 0xffffffff) {
+        if (total_memory > 0 && total_memory < k_dword_none) {
             smallest = total_memory;
         }
-        caps.caps = 0x10007000;
-        direct_draw->vtable->get_available_vid_mem(direct_draw, &caps, &total_memory, &free_memory);
-        if (total_memory > 0 && total_memory < smallest) {
-            smallest = total_memory;
-        }
-        caps.caps = 0x10005000;
+        caps.caps = k_ddscaps_local_texture_3d_device;
         direct_draw->vtable->get_available_vid_mem(direct_draw, &caps, &total_memory, &free_memory);
         if (total_memory > 0 && total_memory < smallest) {
             smallest = total_memory;
         }
-        caps.caps = 0x10004040;
+        caps.caps = k_ddscaps_local_texture;
+        direct_draw->vtable->get_available_vid_mem(direct_draw, &caps, &total_memory, &free_memory);
+        if (total_memory > 0 && total_memory < smallest) {
+            smallest = total_memory;
+        }
+        caps.caps = k_ddscaps_local_offscreen_plain;
         direct_draw->vtable->get_available_vid_mem(direct_draw, &caps, &total_memory, &free_memory);
         if (total_memory > 0 && total_memory < smallest) {
             smallest = total_memory;

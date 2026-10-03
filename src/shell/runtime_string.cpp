@@ -1,4 +1,5 @@
 #include "halo/shell/runtime.hpp"
+#include "halo/shell/layout.hpp"
 
 extern "C" {
 extern char hwreq_open_error_text[];
@@ -39,11 +40,11 @@ msvc_std_string *StdString::assign_substr(const msvc_std_string *right, uint32_t
         available = count;
     }
     if (self == right) {
-        erase(pos + available, 0xffffffff);
+        erase(pos + available, k_string_npos);
         erase(0, pos);
         return self;
     }
-    if (available > 0xfffffffe) {
+    if (available > k_string_npos - 1) {
         StdThrow::string_too_long();
     }
     if (self->capacity < available) {
@@ -80,7 +81,7 @@ msvc_std_string *StdString::assign_n(const char *source, uint32_t count)
     if (source >= data && data + self->size > source) {
         return assign_substr(self, (uint32_t)(source - data), count);
     }
-    if (count > 0xfffffffe) {
+    if (count > k_string_npos - 1) {
         StdThrow::string_too_long();
     }
     if (self->capacity < count) {
@@ -127,7 +128,7 @@ int32_t StdString::compare(uint32_t n1, uint32_t pos, const char *s, uint32_t n2
         const char *lhs;
         compare_count = (n2 <= n1) ? n2 : n1;
 
-        lhs = (self->capacity < 0x10) ? self->buffer.inline_buffer : (const char *)self->buffer.heap_buffer;
+        lhs = (self->capacity < k_string_inline_capacity + 1) ? self->buffer.inline_buffer : (const char *)self->buffer.heap_buffer;
         lhs += pos;
 
         {
@@ -182,13 +183,13 @@ msvc_std_string *StdString::erase(uint32_t pos, uint32_t count)
         return self;
     }
 
-    buffer = (self->capacity > 0xf) ? (char *)self->buffer.heap_buffer : self->buffer.inline_buffer;
+    buffer = (self->capacity > k_string_inline_capacity) ? (char *)self->buffer.heap_buffer : self->buffer.inline_buffer;
     memmove(buffer + pos, buffer + pos + count, remaining - count);
 
     new_size = self->size - count;
     self->size = new_size;
 
-    buffer = (self->capacity > 0xf) ? (char *)self->buffer.heap_buffer : self->buffer.inline_buffer;
+    buffer = (self->capacity > k_string_inline_capacity) ? (char *)self->buffer.heap_buffer : self->buffer.inline_buffer;
     buffer[new_size] = 0;
     return self;
 }
@@ -201,14 +202,14 @@ msvc_std_string *StdString::erase(uint32_t pos, uint32_t count)
  */
 void StdString::grow_reserve(uint32_t new_capacity, uint32_t preserve_count)
 {
-    uint32_t capacity = new_capacity | 0xf;
+    uint32_t capacity = new_capacity | k_string_inline_capacity;
     char *new_buffer;
     char *terminator;
 
-    if (capacity != 0xffffffff) {
+    if (capacity != k_string_npos) {
         uint32_t current_capacity = self->capacity;
         uint32_t half = current_capacity >> 1;
-        if (capacity / 3 < half && current_capacity <= (0xfffffffe - half)) {
+        if (capacity / 3 < half && current_capacity <= (k_string_npos - 1 - half)) {
             capacity = half + current_capacity;
         }
     } else {
@@ -218,14 +219,14 @@ void StdString::grow_reserve(uint32_t new_capacity, uint32_t preserve_count)
     new_buffer = (char *)malloc(capacity + 1);
 
     if (preserve_count != 0) {
-        const char *old_buffer = (self->capacity < 0x10) ? self->buffer.inline_buffer : (const char *)self->buffer.heap_buffer;
+        const char *old_buffer = (self->capacity < k_string_inline_capacity + 1) ? self->buffer.inline_buffer : (const char *)self->buffer.heap_buffer;
         uint32_t i;
         for (i = 0; i < preserve_count; i++) {
             new_buffer[i] = old_buffer[i];
         }
     }
 
-    if (self->capacity > 0xf) {
+    if (self->capacity > k_string_inline_capacity) {
         free((void *)self->buffer.heap_buffer);
     }
 
@@ -234,7 +235,7 @@ void StdString::grow_reserve(uint32_t new_capacity, uint32_t preserve_count)
     self->capacity = capacity;
     self->size = preserve_count;
 
-    terminator = (capacity >= 0x10) ? new_buffer : self->buffer.inline_buffer;
+    terminator = (capacity >= k_string_inline_capacity + 1) ? new_buffer : self->buffer.inline_buffer;
     terminator[preserve_count] = 0;
 }
 
@@ -247,7 +248,7 @@ msvc_std_string *StdString::construct_cstr(const char *source)
 {
     const char *end = source;
 
-    self->capacity = 0xf;
+    self->capacity = k_string_inline_capacity;
     self->size = 0;
     self->buffer.inline_buffer[0] = 0;
     while (*end) {
@@ -264,10 +265,10 @@ msvc_std_string *StdString::construct_cstr(const char *source)
  */
 void StdString::destroy()
 {
-    if (self->capacity >= 0x10) {
+    if (self->capacity >= k_string_inline_capacity + 1) {
         free((void *)self->buffer.heap_buffer);
     }
-    self->capacity = 0xf;
+    self->capacity = k_string_inline_capacity;
     self->size = 0;
     self->buffer.inline_buffer[0] = 0;
 }
@@ -293,7 +294,7 @@ msvc_std_string *StdString::assign_cstr(const char *s)
  */
 uint8_t StdString::less_than(const msvc_std_string *other)
 {
-    const char *other_data = (other->capacity < 0x10) ? other->buffer.inline_buffer : (const char *)other->buffer.heap_buffer;
+    const char *other_data = (other->capacity < k_string_inline_capacity + 1) ? other->buffer.inline_buffer : (const char *)other->buffer.heap_buffer;
     return compare(self->size, 0, other_data, other->size) < 0;
 }
 
@@ -304,15 +305,15 @@ uint8_t StdString::less_than(const msvc_std_string *other)
  */
 hwreq_string_pair *StringPair::construct(const msvc_std_string *first_source, const msvc_std_string *second_source)
 {
-    self->first.capacity = 0xf;
+    self->first.capacity = k_string_inline_capacity;
     self->first.size = 0;
     self->first.buffer.inline_buffer[0] = 0;
-    StdString(&self->first).assign_substr(first_source, 0, 0xffffffff);
+    StdString(&self->first).assign_substr(first_source, 0, k_string_npos);
 
-    self->second.capacity = 0xf;
+    self->second.capacity = k_string_inline_capacity;
     self->second.size = 0;
     self->second.buffer.inline_buffer[0] = 0;
-    StdString(&self->second).assign_substr(second_source, 0, 0xffffffff);
+    StdString(&self->second).assign_substr(second_source, 0, k_string_npos);
 
     return self;
 }
@@ -324,15 +325,15 @@ hwreq_string_pair *StringPair::construct(const msvc_std_string *first_source, co
  */
 hwreq_string_pair *StringPair::copy_construct(const hwreq_string_pair *source)
 {
-    self->first.capacity = 0xf;
+    self->first.capacity = k_string_inline_capacity;
     self->first.size = 0;
     self->first.buffer.inline_buffer[0] = 0;
-    StdString(&self->first).assign_substr(&source->first, 0, 0xffffffff);
+    StdString(&self->first).assign_substr(&source->first, 0, k_string_npos);
 
-    self->second.capacity = 0xf;
+    self->second.capacity = k_string_inline_capacity;
     self->second.size = 0;
     self->second.buffer.inline_buffer[0] = 0;
-    StdString(&self->second).assign_substr(&source->second, 0, 0xffffffff);
+    StdString(&self->second).assign_substr(&source->second, 0, k_string_npos);
 
     return self;
 }
@@ -370,8 +371,8 @@ hwreq_string_pair *StringPair::copy_backward(hwreq_string_pair *first, hwreq_str
     while (last != first) {
         last--;
         dest_end--;
-        StdString(&dest_end->first).assign_substr(&last->first, 0, 0xffffffff);
-        StdString(&dest_end->second).assign_substr(&last->second, 0, 0xffffffff);
+        StdString(&dest_end->first).assign_substr(&last->first, 0, k_string_npos);
+        StdString(&dest_end->second).assign_substr(&last->second, 0, k_string_npos);
     }
     return dest_end;
 }
@@ -397,8 +398,8 @@ void StringPair::destroy_range(hwreq_string_pair *first, hwreq_string_pair *last
 void StringPair::fill_range(hwreq_string_pair *first, hwreq_string_pair *last, const hwreq_string_pair *value)
 {
     while (first != last) {
-        StdString(&first->first).assign_substr(&value->first, 0, 0xffffffff);
-        StdString(&first->second).assign_substr(&value->second, 0, 0xffffffff);
+        StdString(&first->first).assign_substr(&value->first, 0, k_string_npos);
+        StdString(&first->second).assign_substr(&value->second, 0, k_string_npos);
         first = (hwreq_string_pair *)((uint8_t *)first + 0x38);
     }
 }
