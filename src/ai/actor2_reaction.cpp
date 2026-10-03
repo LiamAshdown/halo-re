@@ -1,0 +1,1509 @@
+#include "halo/ai/actor_view.hpp"
+
+namespace halo::ai {
+
+namespace actor_notify_squad_and_flag_danger_local {
+extern "C" {
+extern data_array *actor_data;
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
+}
+}
+
+/**
+ * If the actor controls a unit, broadcasts a "retreat/regroup" squad event (0x17, or 0x16 when alternate_event
+ * is set). If raise_danger_flag is set and no higher-priority danger slot (unknown_308) is already claimed,
+ * claims danger code 6 with no payload object.
+ *
+ * @address 0x423600
+ */
+void ActorView::notify_squad_and_flag_danger(uint8_t alternate_event, uint8_t raise_danger_flag)
+{
+    using namespace actor_notify_squad_and_flag_danger_local;
+    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+
+    if (self->unit_index != (datum_index)k_datum_index_none) {
+        ai_communication_broadcast(0x17 - (alternate_event != 0), self->unit_index,
+                                   (datum_index)k_datum_index_none, (datum_index)k_datum_index_none,
+                                   (datum_index)k_datum_index_none, (datum_index)k_datum_index_none, 0);
+    }
+
+    if (raise_danger_flag != 0 && self->pending_panic_type < 6) {
+        self->pending_panic_type = 6;
+        self->pending_panic_prop_index = 0xffffffff;
+    }
+}
+
+namespace actor_notify_squad_of_threat_direction_local {
+extern "C" {
+extern data_array *actor_data;
+extern tag_instance *tag_instances;
+extern real vector3d_normalize_with_length(real_vector3d *v);
+extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
+extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
+                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
+                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
+                                        uint8_t unknown_348);
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
+}
+}
+
+/**
+ * If the actor controls a unit and event_kind is 2, broadcasts a category-0xb squad event with grenade_type_code
+ * (0/1/2) remapped to a descending severity code (3/2/1). Either way, if the actor controls a unit, records a
+ * look-at point toward `point` (at priority 4, only when event_kind is 2 and the ac
+ *
+ * @address 0x4234f0
+ */
+void ActorOps::notify_squad_of_threat_direction(const real_point3d *point, datum_index actor_index, int16_t event_kind, int16_t grenade_type_code)
+{
+    using namespace actor_notify_squad_of_threat_direction_local;
+    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+    datum_index unit_index = self->unit_index;
+
+    if (unit_index == (datum_index)k_datum_index_none) {
+        return;
+    }
+
+    if (event_kind == 2) {
+        int32_t severity = -1;
+        if (grenade_type_code == 0) severity = 3;
+        else if (grenade_type_code == 1) severity = 2;
+        else if (grenade_type_code == 2) severity = 1;
+        ai_communication_broadcast(0xb, unit_index, (datum_index)k_datum_index_none, severity,
+                                   (datum_index)k_datum_index_none, (datum_index)k_datum_index_none, 0);
+    }
+
+    {
+        real_vector3d direction;
+        float length;
+
+        direction.i = point->x - self->aim_origin.x;
+        direction.j = point->y - self->aim_origin.y;
+        direction.k = point->z - self->aim_origin.z;
+        length = vector3d_normalize_with_length(&direction);
+
+        if (self->awareness_level < 3 && length < actor_tag->surprise_distance && event_kind == 2) {
+            actor_record_look_at_point(actor_index, (const uint32_t *)&direction, 4, 0xffffffff);
+        }
+        actor_queue_search_position(actor_index, 0, 4, &direction, 0xffffffff, 0, 0, 0xffffffff, 0, 0);
+    }
+}
+
+namespace actor_notify_target_engaged_local {
+extern "C" {
+extern data_array *prop_data;
+extern data_array *actor_data;
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
+}
+}
+
+/**
+ * 0x42d340, not yet rewritten (this module). If the target prop is not a vault, the notifying actor still
+ * controls a unit, and the target prop is itself a unit, broadcasts an "engaged" chatter event (5, or 4 when
+ * alternate_event is set) naming the actor's unit and the target's object.
+ *
+ * @address 0x4220c0
+ */
+void TargetView::notify_target_engaged(datum_index actor_index, uint8_t alternate_event)
+{
+    using namespace actor_notify_target_engaged_local;
+    prop *target = &((prop *)prop_data->data)[target_prop_index & 0xffff];
+    actor *notifier = &((actor *)actor_data->data)[actor_index & 0xffff];
+    datum_index unit_index;
+
+    if (target->dead == 0) {
+        unit_index = notifier->unit_index;
+        if (unit_index != (datum_index)k_datum_index_none && target->enemy != 0) {
+            ai_communication_broadcast(5 - (alternate_event != 0), unit_index, target->object_index, 3,
+                                       (datum_index)k_datum_index_none, (datum_index)k_datum_index_none, 0);
+        }
+    }
+}
+
+namespace actor_notify_weapon_pickup_once_local {
+extern "C" {
+extern data_array *object_data;
+extern data_array *actor_data;
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
+}
+}
+
+/**
+ * If object_index's controlling actor has not yet been notified of a weapon pickup event afterward.
+ *
+ * @address 0x42c370
+ */
+void ActorOps::notify_weapon_pickup_once(datum_index object_index)
+{
+    using namespace actor_notify_weapon_pickup_once_local;
+    object *obj;
+    unit_data *unit;
+    datum_index actor_index;
+    actor *a;
+
+    obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
+    actor_index = unit->actor_index;
+    if (actor_index != (datum_index)k_datum_index_none) {
+        a = &((actor *)actor_data->data)[actor_index & 0xffff];
+        if (a->vehicle_exit_forced == 0) {
+            ai_communication_broadcast(0x25, (datum_index)k_datum_index_none,
+                                        (datum_index)k_datum_index_none, 0,
+                                        (datum_index)k_datum_index_none,
+                                        (datum_index)k_datum_index_none, 0);
+        }
+        a->vehicle_exit_forced = 0;
+    }
+}
+
+namespace actor_pick_dialogue_variant_a_local {
+extern "C" {
+extern uint32_t random_seed_global;
+extern int32_t __ftol(double x);
+extern float k_real_one;
+extern float k_random_scale_65536;
+extern float actor_dialogue_variant_offset_1a;
+extern float actor_dialogue_variant_scale_2a;
+extern float actor_dialogue_variant_offset_2a;
+extern float k_real_point_six;
+extern float actor_dialogue_variant_offset_3a;
+extern float ticks_per_second;
+}
+}
+
+/**
+ * Rolls the shared PRNG for categories 1-3 (each with its own scale/offset, category 1 having no extra scale
+ * factor), or falls back to a fixed default value for anything else, then converts the result to a tick count
+ * clamped to [0, 255].
+ *
+ * @address 0x424aa0
+ */
+int32_t ActorOps::pick_dialogue_variant_a(int16_t category)
+{
+    using namespace actor_pick_dialogue_variant_a_local;
+    float value = k_real_one;
+    int32_t ticks;
+
+    if (category == 1) {
+        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+        value = (float)(int32_t)(random_seed_global >> 0x10) * k_random_scale_65536
+              + actor_dialogue_variant_offset_1a;
+    } else if (category == 2) {
+        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+        value = (float)(int32_t)(random_seed_global >> 0x10) * k_random_scale_65536 * actor_dialogue_variant_scale_2a
+              + actor_dialogue_variant_offset_2a;
+    } else if (category == 3) {
+        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+        value = (float)(int32_t)(random_seed_global >> 0x10) * k_random_scale_65536 * k_real_point_six
+              + actor_dialogue_variant_offset_3a;
+    }
+
+    ticks = __ftol((double)(value * ticks_per_second));
+    if (ticks > 0xff) {
+        return 0xff;
+    }
+    return ticks;
+}
+
+namespace actor_pick_dialogue_variant_b_local {
+extern "C" {
+extern uint32_t random_seed_global;
+extern int32_t __ftol(double x);
+extern float k_real_one;
+extern float k_random_scale_65536;
+extern float actor_dialogue_variant_scale_1b;
+extern float actor_dialogue_variant_scale_23b;
+extern float k_real_point_six;
+extern float ticks_per_second;
+}
+}
+
+/**
+ * Rolls the shared PRNG for category 1 (scaled by actor_dialogue_variant_scale_1b, offset by the same constant
+ * the default case uses directly) or for categories 2-3 (a different scale/offset pair), otherwise falls back to
+ * the fixed default value, then converts to a tick count clamped to [0, 255].
+ *
+ * @address 0x424b80
+ */
+int32_t ActorOps::pick_dialogue_variant_b(int16_t category)
+{
+    using namespace actor_pick_dialogue_variant_b_local;
+    float value = k_real_one;
+    int32_t ticks;
+
+    if (category == 1) {
+        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+        value = (float)(int32_t)(random_seed_global >> 0x10) * k_random_scale_65536 * actor_dialogue_variant_scale_1b
+              + k_real_one;
+    } else if (category > 1 && category <= 3) {
+        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+        value = (float)(int32_t)(random_seed_global >> 0x10) * k_random_scale_65536 * actor_dialogue_variant_scale_23b
+              + k_real_point_six;
+    }
+
+    ticks = __ftol((double)(value * ticks_per_second));
+    if (ticks > 0xff) {
+        return 0xff;
+    }
+    return ticks;
+}
+
+namespace actor_play_first_valid_vocalization_local {
+extern "C" {
+extern data_array *actor_data;
+extern uint8_t unit_seat_index_is_valid(uint32_t other_object_index, uint32_t unit_index, int16_t seat_index);
+extern int16_t unit_find_seats_matching_name_and_flags(uint32_t unit_index, char *name_filter, uint16_t flag_selector,
+                                                       int16_t *out_indices, int16_t max_indices);
+extern uint8_t actor_build_order_investigate_encounter_point(uint32_t vehicle_index, uint32_t actor_index, int16_t seat_index,
+                                                             uint8_t *order);
+extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data);
+}
+}
+
+/**
+ * Actor AI behaviour: play first valid vocalization.
+ *
+ * @address 0x40e260
+ */
+uint8_t ActorOps::play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index, char *seat_name, int16_t seat_flags, int16_t count)
+{
+    using namespace actor_play_first_valid_vocalization_local;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    int16_t local_list[16];
+    uint8_t order[k_actor_mode_data_size];
+    int16_t i;
+
+    if (seat_list == 0) {
+        seat_list = local_list;
+        count = unit_find_seats_matching_name_and_flags(vehicle_index, seat_name, (uint16_t)seat_flags, local_list, 16);
+    }
+    for (i = 0; i < count; i++) {
+        int16_t seat = seat_list[i];
+
+        if (seat == -1 || !unit_seat_index_is_valid(((actor *)act)->unit_index, vehicle_index, seat)) {
+            continue;
+        }
+        if (actor_build_order_investigate_encounter_point(vehicle_index, actor_index, seat, order)) {
+            actor_set_mode(actor_index, 9, order);
+            seat_list[i] = -1;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+namespace actor_push_recognition_entry_local {
+extern "C" {
+extern data_array *actor_data;
+extern Scenario *global_scenario;
+}
+}
+
+/**
+ * Records that the actor has just recognized something at one of its encounter firing positions. The current
+ * ring slot takes the type byte and the position index, the cursor wraps modulo 4, and the latched
+ * recognition_position is refreshed from the scenario firing position itself. A firing_position_in
+ *
+ * @address 0x4141a0
+ */
+void ActorView::push_recognition_entry(int16_t firing_position_index, uint8_t type)
+{
+    using namespace actor_push_recognition_entry_local;
+    actor *self;
+    ScenarioEncounter *encounter_definition;
+    ScenarioFiringPosition *firing_positions;
+    int16_t cursor;
+
+    if (firing_position_index == -1) {
+        return;
+    }
+
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+
+    cursor = self->recognition_cursor;
+    self->recognition[cursor].type = type;
+    self->recognition[cursor].firing_position_index = firing_position_index;
+    self->recognition_cursor = (int16_t)((cursor + 1) % 4);
+
+    encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+                               [self->encounter_index & 0xffff];
+    firing_positions = (ScenarioFiringPosition *)encounter_definition->firing_positions.pointer;
+
+    self->recognition_valid = 1;
+    self->recognition_type = type;
+    self->recognition_position.x = firing_positions[firing_position_index].position.x;
+    self->recognition_position.y = firing_positions[firing_position_index].position.y;
+    self->recognition_position.z = firing_positions[firing_position_index].position.z;
+}
+
+namespace actor_queue_directional_reaction_event_local {
+extern "C" {
+extern double sqrt(double x);
+extern data_array *actor_data;
+extern data_array *prop_data;
+extern tag_instance *tag_instances;
+extern real random_real_range(real min, real max);
+extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
+extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
+                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
+                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
+                                        uint8_t unknown_348);
+extern void * datum_get(datum_index handle, data_array *array);
+extern int16_t actor_dialogue_variant_table_b[];
+}
+}
+
+/**
+ * Queues category-3 combat dialogue and a matching look-at/search-position update, driven either by an explicit
+ * unit prop (when it is a unit) or, failing that, a supplied direction vector normalized in place. Bails out
+ * with no effect if neither source is usable, or if the actor is not alert enough / h
+ *
+ * @address 0x422270
+ */
+void ActorOps::queue_directional_reaction_event(const real_vector3d *direction, datum_index target_prop_index, datum_index actor_index)
+{
+    using namespace actor_queue_directional_reaction_event_local;
+    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    prop *target = 0;
+    real_vector3d normalized;
+    int have_direction = 0;
+    const void *look_source = 0;
+    int16_t kind;
+    uint32_t payload;
+    Actor *actor_tag;
+    float wait_scale;
+    float min_scale, max_scale;
+    int32_t ticks;
+
+    if (target_prop_index != (datum_index)k_datum_index_none) {
+        target = &((prop *)prop_data->data)[target_prop_index & 0xffff];
+    } else if (direction != 0) {
+        float mag2 = direction->k * direction->k + direction->j * direction->j + direction->i * direction->i;
+        if (mag2 > 0.25f) {
+            float inv = -1.0f / (float)sqrt((double)mag2);
+            normalized.i = inv * direction->i;
+            normalized.j = inv * direction->j;
+            normalized.k = inv * direction->k;
+            have_direction = 1;
+            look_source = &normalized;
+        }
+    }
+    if (target != 0) {
+        look_source = &target->direction;
+    }
+
+    self->unknown_2e8[4] = 1;
+
+    if ((target == 0 || target->enemy != 0) && self->awareness_level < 3) {
+        actor_record_look_at_point(actor_index, (const uint32_t *)look_source, 5, target_prop_index);
+        actor_queue_search_position(actor_index, 0, 5, (real_vector3d *)look_source,
+                                    0xffffffff, 0, 90, target_prop_index, 150, 0);
+    }
+
+    if (target_prop_index != (datum_index)k_datum_index_none) {
+        kind = 1;
+        payload = target_prop_index;
+    } else {
+        if (!have_direction) {
+            return;
+        }
+        kind = 4;
+        payload = 0;
+    }
+
+    actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+
+    if (self->awareness_level > 1 && self->vocalization_line < 12 &&
+        (self->mode != 11 || self->mode_data.raw[3] != 0) &&
+        (kind != 1 || datum_get(payload, prop_data) != 0)) {
+        wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 5.0f : 2.5f;
+
+        if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
+            min_scale = (actor_tag->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_tag->event_look_time_modifier[0];
+            max_scale = (actor_tag->event_look_time_modifier[1] <= 2.0f) ? actor_tag->event_look_time_modifier[1] : 2.0f;
+            wait_scale = random_real_range(min_scale, max_scale) * wait_scale;
+        }
+
+        ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
+        if (ticks > 0x7fff) {
+            ticks = 0x7fff;
+        }
+
+        self->vocalization_state = (int16_t)ticks;
+        self->vocalization_variant = actor_dialogue_variant_table_b[self->combat_status >= 4];
+        self->vocalization_line = 11;
+        if (target_prop_index != (datum_index)k_datum_index_none) {
+            self->vocalization_unknown_54c = target_prop_index;
+            self->vocalization_unknown_550 = 0;
+            self->vocalization_unknown_554 = 0;
+        } else {
+            memcpy(&self->vocalization_unknown_54c, &normalized, sizeof(real_vector3d));
+        }
+    }
+}
+
+namespace actor_queue_point_reaction_dialogue_local {
+extern "C" {
+extern data_array *actor_data;
+extern tag_instance *tag_instances;
+extern real random_real_range(real min, real max);
+extern int16_t actor_dialogue_variant_table_g[];
+}
+}
+
+/**
+ * If the actor's awareness level is not exactly 1, and it is alert enough / hasn't queued too many vocalizations
+ * / isn't mid-vocalization itself / hasn't recently had a category-1 event, queues category-1 dialogue with a
+ * randomized duration (scaled by vitality grade and the Actor tag's event_look_time
+ *
+ * @address 0x422780
+ */
+void ActorOps::queue_point_reaction_dialogue(const real_point3d *point, datum_index actor_index)
+{
+    using namespace actor_queue_point_reaction_dialogue_local;
+    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+
+    if (self->awareness_level != 1) {
+        Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+
+        if (self->awareness_level > 1 && self->vocalization_line < 2 &&
+            (self->mode != 11 || self->mode_data.raw[3] != 0) &&
+            self->vocalization_unknown_3e8 < 7) {
+            float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 2.6f : 1.3f;
+
+            if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
+                float min_scale = (actor_tag->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_tag->event_look_time_modifier[0];
+                float max_scale = (actor_tag->event_look_time_modifier[1] <= 2.0f) ? actor_tag->event_look_time_modifier[1] : 2.0f;
+                wait_scale = random_real_range(min_scale, max_scale) * wait_scale;
+            }
+
+            {
+                int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
+                if (ticks > 0x7fff) {
+                    ticks = 0x7fff;
+                }
+
+                self->vocalization_variant = actor_dialogue_variant_table_g[self->combat_status >= 4];
+                self->vocalization_line = 1;
+                self->vocalization_state = (int16_t)ticks;
+                self->vocalization_unknown_54c = 3;
+                self->vocalization_unknown_550 = *(uint32_t *)&point->x;
+                self->vocalization_unknown_554 = *(uint32_t *)&point->y;
+                self->vocalization_unknown_558 = *(uint32_t *)&point->z;
+            }
+        }
+    }
+}
+
+namespace actor_queue_recognized_target_dialogue_local {
+extern "C" {
+extern data_array *actor_data;
+extern tag_instance *tag_instances;
+extern game_time_globals *game_time;
+extern data_array *prop_data;
+extern real random_real_range(real min, real max);
+extern void * datum_get(datum_index handle, data_array *array);
+extern int16_t actor_dialogue_variant_table_c[];
+}
+}
+
+/**
+ * Validates the target prop via datum_get and, if it is a unit (or a vault the actor is alert enough to notice),
+ * refreshes its re-notice timer as actor_queue_sighted_target_ dialogue does, then queues category-5 dialogue
+ * with a randomized duration derived the same way, storing the raw target handle as
+ *
+ * @address 0x422550
+ */
+void ActorView::queue_recognized_target_dialogue(datum_index target_prop_index)
+{
+    using namespace actor_queue_recognized_target_dialogue_local;
+    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+
+    if (self->awareness_level > 1 && self->vocalization_line < 6 &&
+        (self->mode != 11 || self->mode_data.raw[3] != 0)) {
+        int16_t recent = self->vocalization_unknown_3e8;
+        prop *target = (prop *)datum_get(target_prop_index, prop_data);
+
+        if (target != 0) {
+            if ((target->enemy == 0 && target->dead == 0) ||
+                (target->dead != 0 && self->awareness_level > 2)) {
+                if (recent > 6) {
+                    return;
+                }
+                if (target->is_parented == 0 && target->last_attention_time != -1 &&
+                    (int32_t)game_time->game_time < target->last_attention_time + 600) {
+                    return;
+                }
+                target->last_attention_time = (int32_t)game_time->game_time;
+                target->interest_satisfied = (target->interest_satisfied <= target->interest)
+                                          ? target->interest
+                                          : target->interest_satisfied;
+            }
+
+            {
+                float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 1.4f : 0.7f;
+
+                if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
+                    float min_scale = (actor_tag->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_tag->event_look_time_modifier[0];
+                    float max_scale = (actor_tag->event_look_time_modifier[1] <= 2.0f) ? actor_tag->event_look_time_modifier[1] : 2.0f;
+                    wait_scale = random_real_range(min_scale, max_scale) * wait_scale;
+                }
+
+                int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
+                if (ticks > 0x7fff) {
+                    ticks = 0x7fff;
+                }
+
+                self->vocalization_state = (int16_t)ticks;
+                self->vocalization_variant = actor_dialogue_variant_table_c[self->combat_status >= 4];
+                self->vocalization_line = 5;
+                self->vocalization_unknown_54c = 1;
+                self->vocalization_unknown_550 = target_prop_index;
+                self->vocalization_unknown_554 = 0;
+                self->vocalization_unknown_558 = 0;
+            }
+        }
+    }
+}
+
+namespace actor_queue_search_and_relay_perception_local {
+extern "C" {
+extern data_array *prop_data;
+extern data_array *actor_data;
+extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
+                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
+                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
+                                        uint8_t unknown_348);
+extern void actor_record_perception_event(datum_index actor_index, int16_t event, int32_t data);
+}
+}
+
+/**
+ * Queues a priority-1 velocity-only search request from the prop, as actor_queue_velocity_search_from_prop does
+ * at priority 6, then forwards the prop's owning actor's running perception priority (if positive) as a new
+ * perception event on this actor.
+ *
+ * @address 0x4221f0
+ */
+void ActorOps::queue_search_and_relay_perception(datum_index prop_index, datum_index actor_index)
+{
+    using namespace actor_queue_search_and_relay_perception_local;
+    prop *p = &((prop *)prop_data->data)[prop_index & 0xffff];
+    datum_index owner_index;
+
+    actor_queue_search_position(actor_index, 0, 1, (real_vector3d *)&p->direction,
+                                0xffffffff, 0, 90, prop_index, 150, 0);
+
+    owner_index = p->owner_actor_index;
+    if (owner_index != (datum_index)k_datum_index_none) {
+        actor *owner = &((actor *)actor_data->data)[owner_index & 0xffff];
+        if (owner->suspicion_status > 0) {
+            actor_record_perception_event(actor_index, owner->suspicion_status, 0x1c2);
+        }
+    }
+}
+
+namespace actor_queue_search_position_local {
+extern "C" {
+extern data_array *actor_data;
+}
+}
+
+/**
+ * stack -> unknown_324, unknown_328, unknown_33c, unknown_340, unknown_344, unknown_348 Records a candidate
+ * 'investigate/search' position for the actor if its priority is at least as high as any currently queued one,
+ * replacing the stored position and/or velocity (each optional) and the caller-supplied
+ *
+ * @address 0x421af0
+ */
+void ActorView::queue_search_position(real_point3d *position, int16_t priority, real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328, uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344, uint8_t unknown_348)
+{
+    using namespace actor_queue_search_position_local;
+    actor *self;
+
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+
+    if (self->awareness_level < 3 && self->search_priority <= priority) {
+        self->search_priority = priority;
+
+        if (position == (real_point3d *)0) {
+            self->search_unknown_314 = 0;
+        } else {
+            self->search_unknown_314 = 1;
+            self->search_unknown_318 = ((uint32_t *)position)[0];
+            self->search_unknown_31c = ((uint32_t *)position)[1];
+            self->search_unknown_320 = ((uint32_t *)position)[2];
+            self->search_unknown_324 = unknown_324;
+            self->search_unknown_328 = unknown_328;
+        }
+
+        if (velocity == (real_vector3d *)0) {
+            self->search_unknown_32c = 0;
+        } else {
+            self->search_unknown_32c = 1;
+            self->search_unknown_330 = ((uint32_t *)velocity)[0];
+            *(uint32_t *)&self->unknown_334 = ((uint32_t *)velocity)[1];
+            self->search_unknown_338 = ((uint32_t *)velocity)[2];
+        }
+
+        self->search_unknown_340 = unknown_340;
+        self->search_unknown_344 = unknown_344;
+        self->search_unknown_348 = unknown_348;
+        self->search_unknown_33c = unknown_33c;
+    }
+}
+
+namespace actor_queue_secondary_action_local {
+extern "C" {
+extern data_array *actor_data;
+extern void actor_set_units_active(datum_index actor_index, uint8_t dormant);
+extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
+}
+}
+
+/**
+ * Actor AI behaviour: queue secondary action.
+ *
+ * @address 0x417a60
+ */
+uint8_t ActorView::queue_secondary_action(int16_t action, uint32_t payload[2])
+{
+    using namespace actor_queue_secondary_action_local;
+    actor *self;
+
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    actor_set_units_active(actor_index, 0);
+
+    if (self->secondary_action != (int16_t)-1) {
+        return 0;
+    }
+    if (self->unit_index != (datum_index)k_datum_index_none && unit_is_in_busy_animation_state(self->unit_index)) {
+        return 0;
+    }
+
+    self->secondary_action = action;
+    *(uint32_t *)&self->unknown_41a[2] = payload[0];
+    *(uint32_t *)&self->unknown_41a[6] = payload[1];
+    return 1;
+}
+
+namespace actor_queue_sighted_target_dialogue_local {
+extern "C" {
+extern data_array *actor_data;
+extern data_array *prop_data;
+extern data_array *object_data;
+extern tag_instance *tag_instances;
+extern game_time_globals *game_time;
+extern uint8_t ai_debug_gate_87abc6;
+extern real random_real_range(real min, real max);
+extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
+extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
+                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
+                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
+                                        uint8_t unknown_348);
+extern void * datum_get(datum_index handle, data_array *array);
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
+extern int16_t actor_dialogue_variant_table_a[];
+}
+}
+
+/**
+ * The main "did I just notice/see this target" handler: if the target prop is not a vault, queues category-4
+ * "sighted" dialogue with a randomized duration (scaled by the actor's vitality grade and the Actor tag's
+ * event_look_time_modifier range), throttled by a per-target re-notice cooldown of 600 tick
+ *
+ * @address 0x421c20
+ */
+void ActorView::queue_sighted_target_dialogue(datum_index target_prop_index, uint8_t already_noticed)
+{
+    using namespace actor_queue_sighted_target_dialogue_local;
+    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    prop *target = &((prop *)prop_data->data)[target_prop_index & 0xffff];
+    Actor *actor_tag;
+    prop *validated;
+
+    if (target->dead != 0) {
+        goto broadcast_check;
+    }
+
+    actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+
+    if (self->awareness_level > 1 && self->vocalization_line < 5 &&
+        (self->mode != 11 || self->mode_data.raw[3] != 0)) {
+        int16_t recent = self->vocalization_unknown_3e8;
+
+        validated = (prop *)datum_get(target_prop_index, prop_data);
+        if (validated != 0) {
+            if ((validated->enemy == 0 && validated->dead == 0) ||
+                (validated->dead != 0 && self->awareness_level > 2)) {
+                if (recent <= 6) {
+                    if (validated->is_parented == 0 && validated->last_attention_time != -1 &&
+                        (int32_t)game_time->game_time >= validated->last_attention_time + 600) {
+                        validated->last_attention_time = (int32_t)game_time->game_time;
+                        validated->interest_satisfied = (validated->interest_satisfied <= validated->interest)
+                                                     ? validated->interest
+                                                     : validated->interest_satisfied;
+                    }
+                }
+            }
+            if (recent <= 6) {
+                float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 1.8f : 0.9f;
+
+                if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
+                    float min_scale = (actor_tag->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_tag->event_look_time_modifier[0];
+                    float max_scale = (actor_tag->event_look_time_modifier[1] <= 2.0f) ? actor_tag->event_look_time_modifier[1] : 2.0f;
+                    wait_scale = random_real_range(min_scale, max_scale) * wait_scale;
+                }
+
+                int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
+                if (ticks > 0x7fff) {
+                    ticks = 0x7fff;
+                }
+
+                self->vocalization_line = 4;
+                self->vocalization_state = (int16_t)ticks;
+                self->vocalization_unknown_54c = 1;
+                self->vocalization_variant = actor_dialogue_variant_table_a[self->combat_status >= 4];
+                self->vocalization_unknown_550 = target_prop_index;
+                self->vocalization_unknown_554 = 0;
+                self->vocalization_unknown_558 = 0;
+            }
+        }
+    }
+
+    if (target->enemy != 0) {
+        float facing_dot = target->direction.z * self->facing.k
+                          + target->direction.y * self->facing.j
+                          + target->direction.x * self->facing.i;
+        int outside_cone = facing_dot < 0.5f;
+        int priority = 0;
+
+        if (self->combat_status == 0) {
+            already_noticed = 0;
+            if (self->awareness_level < 3 && target->shooting != 0 &&
+                target->distance < actor_tag->surprise_distance && priority < 4) {
+                priority = 3;
+            }
+            goto shared_check;
+        } else if (self->combat_status < 5 || outside_cone) {
+            if (already_noticed == 0) {
+                goto shared_check;
+            }
+            goto notify_unit;
+        } else {
+            already_noticed = 1;
+            goto notify_unit;
+        }
+
+    shared_check:
+        if (target->shooting == 0 || !(target->distance < actor_tag->surprise_distance)) {
+            if (priority == 0) goto notify_unit;
+        } else if (outside_cone) {
+            if (priority > 7) goto notify_unit;
+        } else if (priority > 6) {
+            goto notify_unit;
+        }
+
+        actor_record_look_at_point(actor_index, (const uint32_t *)&target->direction, (int16_t)priority, target_prop_index);
+
+    notify_unit:
+        if (self->combat_status < 3 && already_noticed == 0 &&
+            target->visual_perception < 2 && self->unit_index != (datum_index)k_datum_index_none) {
+            ai_communication_broadcast(6, self->unit_index, target->object_index, 3,
+                                       (datum_index)k_datum_index_none, (datum_index)k_datum_index_none, 0);
+        }
+    }
+
+broadcast_check:
+    if (target->is_parented != 0 && target->enemy != 0 && target->dead == 0 &&
+        self->type != 15 && ai_debug_gate_87abc6 != 0) {
+        if (self->swarm == 0) {
+            datum_index unit_index = self->unit_index;
+            object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+            ((uint8_t *)header->data + 0x106)[0] |= 0x20;
+        } else {
+            datum_index cluster_index = self->cluster_unit_index;
+            while (cluster_index != (datum_index)k_datum_index_none) {
+                object_header *header = &((object_header *)object_data->data)[cluster_index & 0xffff];
+                struct object *unit_object = header->data;
+                ((struct object *)unit_object)->vitality_flags |= 0x20;
+                cluster_index = *(datum_index *)((uint8_t *)unit_object + 0x1fc);
+            }
+        }
+    }
+}
+
+namespace actor_queue_velocity_search_from_prop_local {
+extern "C" {
+extern data_array *prop_data;
+extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
+                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
+                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
+                                        uint8_t unknown_348);
+}
+}
+
+/**
+ * Queues a priority-6 search request for the actor carrying no explicit position but a velocity vector taken
+ * from the prop's scratch field, a 90-tick duration, a 150 secondary duration, and the raw prop handle threaded
+ * through unknown_340.
+ *
+ * @address 0x4221b0
+ */
+void ActorOps::queue_velocity_search_from_prop(datum_index prop_index, datum_index actor_index)
+{
+    using namespace actor_queue_velocity_search_from_prop_local;
+    prop *p = &((prop *)prop_data->data)[prop_index & 0xffff];
+
+    actor_queue_search_position(actor_index, 0, 6, (real_vector3d *)&p->direction,
+                                0xffffffff, 0, 90, prop_index, 150, 0);
+}
+
+namespace actor_react_to_flee_point_local {
+extern "C" {
+extern data_array *actor_data;
+extern tag_instance *tag_instances;
+extern data_array *object_data;
+extern double fabs(double x);
+extern real random_real_range(real min, real max);
+extern real vector3d_normalize_with_length(real_vector3d *v);
+extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
+extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
+                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
+                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
+                                        uint8_t unknown_348);
+extern void actor_record_perception_event(datum_index actor_index, int16_t event, int32_t data);
+extern int8_t teams_are_enemies(int16_t a, int16_t b);
+extern int16_t actor_dialogue_variant_table_e[];
+}
+}
+
+/**
+ * Computes a look direction toward `point` (relative to aim origin, falling back to facing when degenerate) and,
+ * if alert enough and within surprise range, records a look-at point toward it at priority 4, then
+ * unconditionally queues a matching priority-3 search position. If flee_source_object is valid
+ *
+ * @address 0x422c00
+ */
+void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point3d *point)
+{
+    using namespace actor_react_to_flee_point_local;
+    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+    real_vector3d direction;
+    float length;
+
+    direction.i = point->x - self->aim_origin.x;
+    direction.j = point->y - self->aim_origin.y;
+    direction.k = point->z - self->aim_origin.z;
+    length = vector3d_normalize_with_length(&direction);
+    if ((float)fabs((double)length) < 0.0001f) {
+        direction = self->facing;
+    }
+
+    if (self->awareness_level < 3 && length < actor_tag->surprise_distance) {
+        actor_record_look_at_point(actor_index, (const uint32_t *)&direction, 4, 0xffffffff);
+    }
+    actor_queue_search_position(actor_index, 0, 3, &direction, 0xffffffff, 0, 90, 0xffffffff, 0, 0);
+
+    if (flee_source_object != -1) {
+        object *source = ((object_header *)object_data->data)[flee_source_object & 0xffff].data;
+        if (teams_are_enemies(source->owner_team , self->team) != 0) {
+            actor_record_perception_event(actor_index, 2, 0x384);
+        }
+    }
+
+    if (self->awareness_level > 1 && self->vocalization_line < 7 &&
+        (self->mode != 11 || self->mode_data.raw[3] != 0)) {
+        float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 1.8f : 0.9f;
+
+        if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
+            float min_scale = (actor_tag->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_tag->event_look_time_modifier[0];
+            float max_scale = (actor_tag->event_look_time_modifier[1] <= 2.0f) ? actor_tag->event_look_time_modifier[1] : 2.0f;
+            wait_scale = random_real_range(min_scale, max_scale) * wait_scale;
+        }
+
+        {
+            int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
+            if (ticks > 0x7fff) {
+                ticks = 0x7fff;
+            }
+
+            self->vocalization_state = (int16_t)ticks;
+            self->vocalization_line = 6;
+            self->vocalization_variant = actor_dialogue_variant_table_e[self->combat_status >= 4];
+            self->vocalization_unknown_54c = 3;
+            self->vocalization_unknown_550 = *(uint32_t *)&point->x;
+            self->vocalization_unknown_554 = *(uint32_t *)&point->y;
+            self->vocalization_unknown_558 = *(uint32_t *)&point->z;
+        }
+    }
+}
+
+namespace actor_react_to_registered_danger_local {
+extern "C" {
+extern data_array *actor_data;
+extern tag_instance *tag_instances;
+extern double fabs(double x);
+extern real random_real_range(real min, real max);
+extern real vector3d_normalize_with_length(real_vector3d *v);
+extern void actor_record_look_at_point(datum_index actor_index, const uint32_t *point, int16_t priority, uint32_t data);
+extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
+                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
+                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
+                                        uint8_t unknown_348);
+extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
+extern int16_t actor_dialogue_variant_table_d[];
+}
+}
+
+/**
+ * If the actor already has a matching, still-live danger registered against danger_object_index, just
+ * re-broadcasts a category-10 "danger" squad event; otherwise computes a look direction toward `point` (relative
+ * to the actor's aim origin, falling back to its current facing when degenerate) and, if al
+ *
+ * @address 0x422930
+ */
+void ActorOps::react_to_registered_danger(const real_point3d *point, datum_index actor_index, int32_t danger_object_index)
+{
+    using namespace actor_react_to_registered_danger_local;
+    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+    real_vector3d direction;
+
+    if (self->danger_type >= 1 && self->danger_object_index == danger_object_index && self->danger_unknown_284 >= 1) {
+        ai_communication_broadcast(10, self->unit_index, (datum_index)k_datum_index_none, (datum_index)k_datum_index_none,
+                                   (datum_index)k_datum_index_none, (datum_index)k_datum_index_none, 0);
+    } else {
+        float length;
+
+        direction.i = point->x - self->aim_origin.x;
+        direction.j = point->y - self->aim_origin.y;
+        direction.k = point->z - self->aim_origin.z;
+        length = vector3d_normalize_with_length(&direction);
+        if ((float)fabs((double)length) < 0.0001f) {
+            direction = self->facing;
+        }
+
+        if (self->awareness_level < 3 && length < actor_tag->surprise_distance) {
+            actor_record_look_at_point(actor_index, (const uint32_t *)&direction, 2, 0xffffffff);
+        }
+        actor_queue_search_position(actor_index, 0, 3, &direction, 0xffffffff, 0, 90, 0xffffffff, 0, 0);
+    }
+
+    if (self->awareness_level > 1 && self->vocalization_line < 4 &&
+        (self->mode != 11 || self->mode_data.raw[3] != 0) && self->vocalization_unknown_3e8 < 7) {
+        float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 1.8f : 0.9f;
+
+        if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
+            float min_scale = (actor_tag->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_tag->event_look_time_modifier[0];
+            float max_scale = (actor_tag->event_look_time_modifier[1] <= 2.0f) ? actor_tag->event_look_time_modifier[1] : 2.0f;
+            wait_scale = random_real_range(min_scale, max_scale) * wait_scale;
+        }
+
+        {
+            int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
+            if (ticks > 0x7fff) {
+                ticks = 0x7fff;
+            }
+
+            self->vocalization_variant = actor_dialogue_variant_table_d[self->combat_status >= 4];
+            self->vocalization_state = (int16_t)ticks;
+            self->vocalization_line = 3;
+            self->vocalization_unknown_54c = 3;
+            self->vocalization_unknown_550 = *(uint32_t *)&point->x;
+            self->vocalization_unknown_554 = *(uint32_t *)&point->y;
+            self->vocalization_unknown_558 = *(uint32_t *)&point->z;
+        }
+    }
+}
+
+namespace actor_react_to_seen_target_local {
+extern "C" {
+extern data_array *actor_data;
+extern data_array *prop_data;
+extern data_array *object_data;
+extern tag_instance *tag_instances;
+extern game_time_globals *game_time;
+extern data_array *player_data;
+extern real random_real_range(real min, real max);
+extern void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority,
+                                        real_vector3d *velocity, uint32_t unknown_324, uint32_t unknown_328,
+                                        uint32_t unknown_33c, uint32_t unknown_340, uint32_t unknown_344,
+                                        uint8_t unknown_348);
+extern void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index actor_index);
+extern void * datum_get(datum_index handle, data_array *array);
+extern int8_t teams_are_enemies(int16_t a, int16_t b);
+extern uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_index,
+    datum_index owner_reference, datum_index pair_reference);
+extern void actor_forward_target_object_reference(datum_index actor_index, uint32_t param);
+extern int16_t actor_dialogue_variant_table_f[];
+}
+}
+
+/**
+ * If the target prop is not itself a unit, relays perception/search state to it the underlying object, either
+ * notifies a hostile controlling player's presence or, for an AI-controlled unit whose actor is alert enough,
+ * forwards to actor_forward_target_object_reference. If the target prop IS a unit, ins
+ *
+ * @address 0x422ec0
+ */
+void ActorView::react_to_seen_target(datum_index target_prop_index)
+{
+    using namespace actor_react_to_seen_target_local;
+    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    Actor *actor_tag;
+    prop *target = &((prop *)prop_data->data)[target_prop_index & 0xffff];
+
+    if (target->enemy == 0) {
+        object *tracked = ((object_header *)object_data->data)[target->object_index & 0xffff].data;
+        unit_data *unit = (unit_data *)((uint8_t *)tracked + k_unit_data_offset);
+
+        actor_queue_search_and_relay_perception(target_prop_index, actor_index);
+
+        if (unit->controlling_player != (datum_index)k_datum_index_none) {
+            uint8_t *player = (uint8_t *)player_data->data + (unit->controlling_player & 0xffff) * 0x200;
+            int32_t unknown_40 = *(int32_t *)&((struct player *)player)->observer_target;
+            int32_t unknown_44 = ((struct player *)player)->observer_state;
+
+            if (unknown_40 != -1 && (int32_t)game_time->game_time <= unknown_44 + 0x5a) {
+                object *player_unit = ((object_header *)object_data->data)[unknown_40 & 0xffff].data;
+                if (teams_are_enemies(player_unit->owner_team , self->team) != 0) {
+                    actor_target_data_acquire(actor_index, (datum_index)unknown_40, k_datum_index_none, k_datum_index_none);
+                }
+            }
+        } else if (unit->actor_index != (datum_index)k_datum_index_none) {
+            actor *controller = &((actor *)actor_data->data)[unit->actor_index & 0xffff];
+            if (controller->combat_status >= 4) {
+                actor_forward_target_object_reference(unit->actor_index, actor_index);
+            }
+        }
+    } else {
+        actor_queue_search_position(actor_index, 0, 6, (real_vector3d *)&target->direction,
+                                    0xffffffff, 0, 90, target_prop_index, 150, 0);
+    }
+
+    actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+
+    if (self->awareness_level > 1 && self->vocalization_line < 8 &&
+        (self->mode != 11 || self->mode_data.raw[3] != 0)) {
+        int16_t recent = self->vocalization_unknown_3e8;
+
+        prop *validated = (prop *)datum_get(target_prop_index, prop_data);
+        if (validated != 0) {
+            if ((validated->enemy == 0 && validated->dead == 0) ||
+                (validated->dead != 0 && self->awareness_level > 2)) {
+                if (recent > 6) {
+                    return;
+                }
+                if (validated->is_parented == 0 && validated->last_attention_time != -1 &&
+                    (int32_t)game_time->game_time < validated->last_attention_time + 600) {
+                    return;
+                }
+                validated->last_attention_time = (int32_t)game_time->game_time;
+                validated->interest_satisfied = (validated->interest_satisfied <= validated->interest)
+                                             ? validated->interest
+                                             : validated->interest_satisfied;
+            }
+
+            {
+                float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 1.8f : 0.9f;
+
+                if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
+                    float min_scale = (actor_tag->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_tag->event_look_time_modifier[0];
+                    float max_scale = (actor_tag->event_look_time_modifier[1] <= 2.0f) ? actor_tag->event_look_time_modifier[1] : 2.0f;
+                    wait_scale = random_real_range(min_scale, max_scale) * wait_scale;
+                }
+
+                int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
+                if (ticks > 0x7fff) {
+                    ticks = 0x7fff;
+                }
+
+                self->vocalization_state = (int16_t)ticks;
+                self->vocalization_variant = actor_dialogue_variant_table_f[self->combat_status >= 4];
+                self->vocalization_line = 7;
+                self->vocalization_unknown_54c = 1;
+                self->vocalization_unknown_550 = target_prop_index;
+                self->vocalization_unknown_554 = 0;
+                self->vocalization_unknown_558 = 0;
+            }
+        }
+    }
+}
+
+namespace actor_record_look_at_point_local {
+extern "C" {
+extern data_array *actor_data;
+}
+}
+
+/**
+ * Registers a new look-at point of interest for the actor if `priority` outranks whatever is currently recorded
+ * at actor.look_at_priority. `point`, when non-NULL, is copied verbatim (three dwords) into the trailing fields
+ * and the "point present" flag is set to 1; when NULL, only that flag is cleared t
+ *
+ * @address 0x421bc0
+ */
+void ActorView::record_look_at_point(const uint32_t *point, int16_t priority, uint32_t data)
+{
+    using namespace actor_record_look_at_point_local;
+    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+
+    if (self->look_at_priority < priority) {
+        self->look_at_priority = priority;
+        self->look_at_unknown_2f4 = data;
+        if (point == 0) {
+            *(uint8_t *)&self->look_at_unknown_2f8 = 0;
+            return;
+        }
+        *(uint8_t *)&self->look_at_unknown_2f8 = 1;
+        memcpy(&self->look_at_unknown_2fc, &point[0], sizeof(uint32_t));
+        memcpy(&self->look_at_unknown_300, &point[1], sizeof(uint32_t));
+        memcpy(&self->look_at_unknown_304, &point[2], sizeof(uint32_t));
+    }
+}
+
+namespace actor_record_perception_event_local {
+extern "C" {
+extern data_array *actor_data;
+}
+}
+
+/**
+ * Records a pending perception event for the actor to be picked up by actor_update_awareness_level: a
+ * higher-priority event replaces the current one outright, an equal-priority event keeps the larger of the two
+ * data values, and a lower-priority event is dropped.
+ *
+ * @address 0x422070
+ */
+void ActorView::record_perception_event(int16_t event, int32_t data)
+{
+    using namespace actor_record_perception_event_local;
+    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+
+    if (self->perception_event < event) {
+        self->perception_event = event;
+        self->perception_event_data = data;
+    } else if (self->perception_event == event) {
+        if (self->perception_event_data <= data) {
+            self->perception_event_data = data;
+        }
+    }
+}
+
+namespace actor_scan_allies_for_backup_request_local {
+extern "C" {
+extern data_array *actor_data;
+extern data_array *prop_data;
+extern tag_instance *tag_instances;
+extern game_time_globals *game_time;
+extern real random_real_range(real min, real max);
+extern uint8_t actor_target_get_backup_priority(datum_index target_prop_index);
+extern int16_t ai_group_bucket_find_or_add(void *buckets, int32_t key, int16_t *count,
+                                           int16_t capacity);
+extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
+}
+}
+
+/**
+ * ai_group_bucket_entry now lives in types/ai.h (folded from this file). Per-tick scan of every prop (perceived
+ * object) this actor is tracking. For each one that belongs to (is owned by) another actor and looks like a live
+ * target, checks whether that owning ally currently has an outstanding "call for
+ *
+ * @address 0x420ec0
+ */
+void ActorView::scan_allies_for_backup_request()
+{
+    using namespace actor_scan_allies_for_backup_request_local;
+    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    Actor *actor_def = (Actor *)tag_instances[self->actor_definition_tag & 0xffff].data;
+    prop *props = (prop *)prop_data->data;
+
+    ai_group_bucket_entry buckets[16];
+    int16_t bucket_count = 0;
+
+    datum_index next = self->first_prop;
+    datum_index current;
+
+    while (current = next, current != k_datum_index_none) {
+        prop *p = &props[current & 0xffff];
+        uint8_t priority;
+
+        next = p->next_in_actor;
+        priority = actor_target_get_backup_priority(current);
+
+        if (priority > 0) {
+            int16_t idx = ai_group_bucket_find_or_add(buckets, (int32_t)p->object_index,
+                                                       &bucket_count, 16);
+            if (idx != -1) {
+                if (buckets[idx].priority < (int16_t)priority) {
+                    buckets[idx].prop_index = (int32_t)current;
+                    buckets[idx].key = (int32_t)p->object_index;
+                    buckets[idx].prop = p;
+                    buckets[idx].priority = (int16_t)priority;
+                }
+            }
+        } else if (2 <= p->state && p->state <= 3 && !p->enemy &&
+                   p->owner_actor_index != k_datum_index_none && p->distance < 8.0f) {
+            actor *owner = &((actor *)actor_data->data)[p->owner_actor_index & 0xffff];
+
+            if (owner->retreat_timer != 0 && owner->retreat_prop_index != k_datum_index_none &&
+                (self->retreat_end_time == k_datum_index_none ||
+                 owner->retreat_start_time >= self->retreat_end_time)) {
+                prop *requested = &props[owner->retreat_prop_index & 0xffff];
+                datum_index own_prop_index = actor_find_prop_for_object(requested->object_index, actor_index);
+
+                if (own_prop_index != k_datum_index_none) {
+                    prop *own_prop = &props[own_prop_index & 0xffff];
+
+                    if (2 <= own_prop->state && own_prop->state <= 3 && own_prop->engaged) {
+                        int16_t idx = ai_group_bucket_find_or_add(
+                            buckets, (int32_t)requested->object_index, &bucket_count, 16);
+                        if (idx != -1) {
+                            float dist_sq = requested->distance * requested->distance;
+
+                            buckets[idx].retreating_friend_count++;
+                            if (dist_sq < buckets[idx].nearest_friend_distance_squared) {
+                                buckets[idx].nearest_friend_distance_squared = dist_sq;
+                                buckets[idx].nearest_friend_actor_index = (int32_t)p->owner_actor_index;
+                            }
+                            if (buckets[idx].prop_index == k_datum_index_none) {
+                                buckets[idx].prop_index = (int32_t)own_prop_index;
+                                buckets[idx].key = (int32_t)own_prop->object_index;
+                                buckets[idx].prop = own_prop;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (bucket_count > 0) {
+        int16_t i;
+        for (i = 0; i < bucket_count; i++) {
+            ai_group_bucket_entry *b = &buckets[i];
+            prop *claimant = b->prop;
+            int16_t trigger = actor_def->unreachable_danger_trigger;
+            uint8_t flagged = 0;
+
+            if (claimant->is_vehicle_gunner != 0 || claimant->is_vehicle_driver != 0) {
+                trigger = actor_def->vehicle_danger_trigger;
+            }
+            if (claimant->is_parented) {
+                int16_t player_trigger = actor_def->player_danger_trigger;
+                if (player_trigger > 0 && trigger > player_trigger) {
+                    trigger = player_trigger;
+                }
+            }
+
+            if (trigger > 0 && b->priority >= trigger) {
+                if (!claimant->is_parented) {
+                    claimant->shots_fired = 0x16;
+                } else {
+                    flagged = 1;
+                }
+            } else if (claimant->is_parented) {
+                claimant->shots_fired = 0x16;
+            }
+
+            if (claimant->shots_fired > 0) {
+                if (claimant->shots_hit == 0) {
+                    claimant->shots_unknown_ae = (int16_t)(random_real_range(
+                        actor_def->danger_trigger_time[0], actor_def->danger_trigger_time[1]) *
+                        30.0f);
+                }
+                claimant->shots_fired--;
+                claimant->shots_hit++;
+            }
+
+            if (claimant->sighted_ticks >= 0x2d ||b->priority >= 4) {
+                if (claimant->shots_unknown_ae > 0 &&
+                    claimant->shots_hit >= claimant->shots_unknown_ae) {
+                    if (b->priority < 7) b->priority = 7;
+                }
+                if (flagged) {
+                    if (b->priority < 8) b->priority = 8;
+                }
+                if (actor_def->friends_killed_trigger > 0 &&
+                    claimant->friends_killed >= actor_def->friends_killed_trigger) {
+                    if (b->priority < 9) b->priority = 9;
+                }
+                if (actor_def->friends_retreating_trigger > 0 &&
+                    b->retreating_friend_count >= actor_def->friends_retreating_trigger) {
+                    if (b->priority < 6) b->priority = 6;
+                }
+            }
+        }
+    }
+
+    if (self->retreat_timer > 0) {
+        self->retreat_timer--;
+        if (self->retreat_timer == 0) {
+            self->retreat_end_time = game_time->game_time;
+        }
+        return;
+    }
+
+    {
+        int16_t best_priority = 5;
+        int32_t best_prop = k_datum_index_none;
+        int16_t i;
+
+        for (i = 0; i < bucket_count; i++) {
+            if (buckets[i].priority > best_priority &&
+                buckets[i].prop_index != k_datum_index_none) {
+                best_priority = buckets[i].priority;
+                best_prop = buckets[i].prop_index;
+            }
+        }
+
+        if (best_prop != k_datum_index_none) {
+            self->retreat_timer = (int16_t)(random_real_range(
+                actor_def->retreat_time[0], actor_def->retreat_time[1]) * 30.0f);
+            self->retreat_prop_index = (datum_index)best_prop;
+            self->retreat_start_time = game_time->game_time;
+        }
+    }
+}
+
+namespace actor_scan_ally_death_panic_reaction_local {
+extern "C" {
+extern data_array *actor_data;
+extern data_array *prop_data;
+extern tag_instance *tag_instances;
+extern game_time_globals *game_time;
+extern real random_real(void);
+extern uint8_t actor_scale_value_by_ally_exposure(datum_index actor_index, float *value);
+extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
+}
+}
+
+/**
+ * If the target prop is not a unit, the actor's tag allows group panic, and the actor's own panic cooldown
+ * (unknown_39c) has elapsed, rolls (and exposure-scales) a chance against Actor.friend_killed_panic_chance; when
+ * it succeeds and no higher-priority danger is already claimed, claims danger code 2 f
+ *
+ * @address 0x4233d0
+ */
+void TargetView::scan_ally_death_panic_reaction(datum_index actor_index)
+{
+    using namespace actor_scan_ally_death_panic_reaction_local;
+    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+    prop *target = &((prop *)prop_data->data)[target_prop_index & 0xffff];
+
+    if (target->enemy == 0 && (actor_tag->more_flags & 0x20) != 0  &&
+        self->panic_cooldown_time < (int32_t)game_time->game_time) {
+        float chance = actor_tag->friend_killed_panic_chance;
+
+        if (!actor_scale_value_by_ally_exposure(actor_index, &chance) && !(random_real() < chance)) {
+            return;
+        }
+
+        if (self->pending_panic_type < 3) {
+            datum_index owner_actor_index = target->owner_actor_index;
+            uint32_t payload = self->target_unit_index;
+
+            if (owner_actor_index != (datum_index)k_datum_index_none) {
+                actor *owner = &((actor *)actor_data->data)[owner_actor_index & 0xffff];
+                if (owner->mode == _actor_mode_death) {
+                    uint32_t killer_prop = *(uint32_t *)&owner->mode_data.raw[0x1c];
+                    if (killer_prop != (uint32_t)k_datum_index_none) {
+                        prop *killer = &((prop *)prop_data->data)[killer_prop & 0xffff];
+                        payload = actor_find_prop_for_object(killer->object_index, actor_index);
+                    }
+                }
+
+                self->pending_panic_type = 2;
+                self->pending_panic_prop_index = payload;
+            }
+        }
+    }
+}
+
+namespace actor_scan_backup_and_panic_reaction_local {
+extern "C" {
+extern data_array *actor_data;
+extern data_array *prop_data;
+extern tag_instance *tag_instances;
+extern uint32_t random_seed_global;
+extern game_time_globals *game_time;
+extern real random_real(void);
+extern datum_index actor_get_relevant_squad_member_target(uint32_t unused_param, datum_index member_prop_index, char require_is_unit);
+extern uint8_t actor_scale_value_by_ally_exposure(datum_index actor_index, float *value);
+}
+}
+
+/**
+ * Per-perception-tick reaction for a non-unit target prop: marks the actor "has scanned a prop this cycle"
+ * (unknown_8d), and if the target's owning actor type matches this actor's Actor.leader_type, randomly rolls (a
+ * global PRNG advance) against Actor.leader_killed_panic_chance to raise danger code 8
+ *
+ * @address 0x423220
+ */
+void TargetView::scan_backup_and_panic_reaction(datum_index actor_index)
+{
+    using namespace actor_scan_backup_and_panic_reaction_local;
+    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    prop *target = &((prop *)prop_data->data)[target_prop_index & 0xffff];
+    Actor *actor_tag = (Actor *)(tag_instances[self->actor_definition_tag & 0xffff].data);
+    datum_index relevant;
+
+    self->witnessed_death = 1;
+
+    if (target->enemy != 0) {
+        return;
+    }
+
+    relevant = actor_get_relevant_squad_member_target(actor_index, target_prop_index, 1);
+
+    if (target->actor_type == actor_tag->leader_type && self->pending_panic_type < 8) {
+        random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
+        if ((float)(random_seed_global >> 0x10) * 1.5259022e-05f < actor_tag->leader_killed_panic_chance) {
+            self->pending_panic_type = 8;
+            self->pending_panic_prop_index = relevant;
+        }
+    }
+
+    if (target->distance >= 8.0f) {
+        return;
+    }
+    if (relevant == (datum_index)k_datum_index_none) {
+        return;
+    }
+
+    {
+        prop *ally = &((prop *)prop_data->data)[relevant & 0xffff];
+
+        if (ally->enemy != 0) {
+            if (ally->visual_perception > 0 && (int8_t)ally->aiming_at_actor_class <= 2) {
+                float chance = actor_tag->friend_killed_panic_chance;
+                int roll_ok;
+
+                if ((actor_tag->more_flags & 0x20) != 0  &&
+                    self->panic_cooldown_time < (int32_t)game_time->game_time &&
+                    actor_scale_value_by_ally_exposure(actor_index, &chance)) {
+                    roll_ok = 1;
+                } else {
+                    roll_ok = random_real() < chance;
+                }
+
+                if (roll_ok && self->pending_panic_type < 3) {
+                    self->pending_panic_type = 3;
+                    self->pending_panic_prop_index = relevant;
+                }
+            }
+
+            if (ally->engaged != 0) {
+                ally->friends_killed = ally->friends_killed + 1;
+                ally->friends_killed_timer = 0x2ee;
+            }
+        }
+    }
+}
+
+}
