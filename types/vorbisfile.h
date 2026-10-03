@@ -1,3 +1,4 @@
+#pragma once
 /* vorbisfile.h -- the Ogg Vorbis file functions the game calls, from vorbisfile.dll in the Halo folder (Xiph.org;
    not built here). cdecl, plain export names; standalone/libs/vorbisfile.def gives the import library and the
    standalone link delay-loads the DLL. The OggVorbis_File state is carried as an opaque buffer by the sound code, and

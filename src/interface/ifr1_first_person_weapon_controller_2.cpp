@@ -13,6 +13,9 @@
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "interface.h"
+#include "units.h"
+#include "items.h"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -286,7 +289,7 @@ void FirstPersonWeaponController::update_animation_controls()
         ModelAnimationsAnimation *animation_block;
         ModelAnimationsAnimationGraphFirstPersonWeaponAnimations *list;
         int16_t *list_entries;
-        void *animation_control = fp_raw + 0x8c;
+        void *animation_control = ((struct first_person_weapon_interface *)fp_raw)->animation_control;
         int16_t index;
 
         if (animations->first_person_weapons.count != 0 &&
@@ -354,14 +357,14 @@ void FirstPersonWeaponController::update_animation_controls()
 
             if (fp->blend_end > 0) {
                 halo::models::model_nodes_blend_transforms(reinterpret_cast<real_orientation *>(animation_control), (int16_t)animations->nodes.count,
-                                             reinterpret_cast<real_orientation *>(fp_raw + 0x88c), (uint16_t)fp->blend_start,
+                                             reinterpret_cast<real_orientation *>(((struct first_person_weapon_interface *)fp_raw)->previous_pose), (uint16_t)fp->blend_start,
                                              (uint16_t)fp->blend_end);
             }
         }
 
         halo::models::animation_graph_nodes_build_matrices(
             *(datum_index *)&weapon_tag->first_person_animations.tag_id, &render_camera_global,
-            reinterpret_cast<real_matrix4x3 *>(fp_raw + 0x108c), reinterpret_cast<real_orientation *>(fp_raw + 0x8c), &camera_forward_x, &camera_up);
+            reinterpret_cast<real_matrix4x3 *>(((struct first_person_weapon_interface *)fp_raw)->node_matrices), reinterpret_cast<real_orientation *>(((struct first_person_weapon_interface *)fp_raw)->animation_control), &camera_forward_x, &camera_up);
     }
 }
 

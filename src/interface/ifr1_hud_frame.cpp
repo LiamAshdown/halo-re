@@ -15,6 +15,9 @@
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "tags.h"
+#include "units.h"
+#include "objects.h"
 
 extern "C" {
 extern HUDGlobals *hud_globals_tag_data;
@@ -269,11 +272,11 @@ void HudFrame::draw_weapon_interface(player *p)
         if (parent == (datum_index)-1 || seat == -1) {
             no_weapon = 1;
         } else {
-            uint8_t *parent_object = halo::interface::object_record(parent);
+            struct unit_object *parent_object = halo::interface::object_record<struct unit_object>(parent);
             uint8_t *seats = *(uint8_t **)(halo::interface::tag_data<uint8_t>(*(datum_index *)parent_object) + 0x2e8);
 
             if ((seats[seat * 0x11c] & 8) != 0) {
-                weapon = halo::units::unit_get_weapon_object_index(parent, ((struct unit_object *)parent_object)->unit.current_weapon_index);
+                weapon = halo::units::unit_get_weapon_object_index(parent, parent_object->unit.current_weapon_index);
                 if (weapon == (datum_index)-1) {
                     no_weapon = 1;
                 }
@@ -294,7 +297,7 @@ void HudFrame::draw_weapon_interface(player *p)
         }
     } else if (no_weapon && halo::units::unit_count_deployed_weapons(p->unit) == 0) {
         memset(&ammo, 0, sizeof(ammo));
-        halo::interface::hud_weapon_crosshairs_draw(*(datum_index *)((uint8_t *)hud_globals_tag_data + 0x2cc), p, &ammo);
+        halo::interface::hud_weapon_crosshairs_draw(halo::interface::tag_handle(hud_globals_tag_data->default_weapon_hud.tag_id), p, &ammo);
     }
 
     halo::interface::hud_draw_grenade_interface(p->local_player_index, p->unit);
@@ -325,7 +328,7 @@ uint8_t HudFrame::player_weapon_ammo_state(const player *p, weapon_hud_ammo_stat
     if (weapon == (datum_index)-1) {
         datum_index parent;
         int16_t seat;
-        uint8_t *parent_object;
+        struct unit_object *parent_object;
         uint8_t *seats;
 
         unit = halo::interface::object_record(p->unit);
@@ -337,14 +340,14 @@ uint8_t HudFrame::player_weapon_ammo_state(const player *p, weapon_hud_ammo_stat
         if (seat == -1) {
             return 0;
         }
-        parent_object = halo::interface::object_record(parent);
+        parent_object = halo::interface::object_record<struct unit_object>(parent);
         seats = *(uint8_t **)(halo::interface::tag_data<uint8_t>(*(datum_index *)parent_object) + 0x2e8);
         if ((seats[seat * 0x11c] & 8) == 0) {
             return 0;
         }
         parent = ((unit_object *)unit)->base.parent_object;
-        parent_object = halo::interface::object_record(parent);
-        weapon = halo::units::unit_get_weapon_object_index(parent, ((struct unit_object *)parent_object)->unit.current_weapon_index);
+        parent_object = halo::interface::object_record<struct unit_object>(parent);
+        weapon = halo::units::unit_get_weapon_object_index(parent, parent_object->unit.current_weapon_index);
         if (weapon == (datum_index)-1) {
             return 0;
         }
@@ -421,7 +424,7 @@ void HudFrame::render_unit_interface(player *p)
 
         parent = ((struct unit_object *)unit_object)->base.parent_object;
         if (parent != (datum_index)-1 && ((struct unit_object *)unit_object)->unit.vehicle_seat_index != -1) {
-            uint8_t *parent_object = halo::interface::object_record(parent);
+            struct unit_object *parent_object = halo::interface::object_record<struct unit_object>(parent);
             Unit *parent_tag = halo::interface::tag_data<Unit>(*(datum_index *)parent_object);
             uint8_t split = halo::game::globals().local_player_globals->local_player_count > 1;
             TagID parent_hud = halo::units::unit_get_hud_interface_tag_id(parent_tag, split);
@@ -437,11 +440,11 @@ void HudFrame::render_unit_interface(player *p)
                 }
                 for (child = ((object *)parent_object)->first_child_object; child != (datum_index)-1 && (uint32_t)count < 18;) {
                     uint8_t *child_data = halo::interface::object_record(child);
-                    uint8_t *child_object = (uint8_t *)halo::objects::object_try_and_get(child, 3);
+                    struct unit_object *child_object = (struct unit_object *)halo::objects::object_try_and_get(child, 3);
 
                     if (child_object != 0 && ((struct object *)child_object)->parent_object == parent &&
-                        ((struct unit_object *)child_object)->unit.vehicle_seat_index != -1) {
-                        TagID seat_hud = halo::units::unit_get_seat_hud_interface_tag_id(parent_tag, ((struct unit_object *)child_object)->unit.vehicle_seat_index,
+                        child_object->unit.vehicle_seat_index != -1) {
+                        TagID seat_hud = halo::units::unit_get_seat_hud_interface_tag_id(parent_tag, child_object->unit.vehicle_seat_index,
                                                                             split);
                         objects[count] = child;
                         hud_tags[count] = *(datum_index *)&seat_hud;
@@ -654,7 +657,7 @@ void HudFrame::render_unit_interface(player *p)
                     continue;
                 }
                 if ((overlay->flags & 1) != 0) {
-                    *(uint32_t *)&overlay->default_color = halo::interface::color_rgb_float_to_int((const float *)(object + 0x188)) | 0xff000000;
+                    *(uint32_t *)&overlay->default_color = halo::interface::color_rgb_float_to_int((const float *)(((struct object *)object)->unknown_188)) | 0xff000000;
                 }
                 halo::interface::hud_draw_static_element(local_player_index, (uint16_t *)&hud->auxiliary_overlay_anchor,
                                         (const hud_static_element_placement *)overlay, flags, -1);

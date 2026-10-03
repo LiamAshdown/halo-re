@@ -32,6 +32,11 @@ inline T *tag_data(uint32_t tag_handle) {
     return static_cast<T *>(halo::cache::globals().tag_instances[tag_handle & halo::k_slot_mask].data);
 }
 
+/** The datum handle a loaded tag reference stores: the index in the low half and the identifier in the high half. */
+inline uint32_t tag_handle(const TagID &id) {
+    return (static_cast<uint32_t>(id.id) << 16) | id.index;
+}
+
 /** The player record a player datum handle designates. */
 inline player *player_record(uint32_t player_handle) {
     return reinterpret_cast<player *>(static_cast<uint8_t *>(halo::game::globals().player_data->data) +

@@ -1,3 +1,4 @@
+#pragma once
 // Blam models module (halo.exe 1.0.10 retail, 0x4d4810..0x4d7850, 29 Ghidra functions).
 // Despite the name, most of this range is the animation sampler: it reads a ModelAnimations
 // tag (types/tags.h) and produces one real_orientation per node. The rest is the node

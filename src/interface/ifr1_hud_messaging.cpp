@@ -15,6 +15,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "tags.h"
 
 extern "C" {
 extern hud_messaging_globals *hud_messaging;
@@ -310,7 +311,7 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
     object_header *header;
     uint8_t *object_base;
     uint32_t tag_index;
-    uint8_t *item_tag_data;
+    Weapon *item_tag_data;
     int32_t hud_tag_ref;
     uint32_t hud_tag_index;
     uint8_t *hud_tag_data;
@@ -338,9 +339,9 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
     object_base = (uint8_t *)header->data;
 
     tag_index = *(uint32_t *)object_base & halo::k_slot_mask;
-    item_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances + tag_index * 0x20 + 0x14);
+    item_tag_data = (Weapon *)*(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances + tag_index * 0x20 + 0x14);
 
-    hud_tag_ref = *(int32_t *)(item_tag_data + 0x478);
+    hud_tag_ref = static_cast<int32_t>(halo::interface::tag_handle(item_tag_data->first_person_animations.tag_id));
     if (hud_tag_ref == -1) {
         return;
     }

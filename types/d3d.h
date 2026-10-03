@@ -1,3 +1,4 @@
+#pragma once
 /* d3d.h -- Direct3D 9 and D3DX from the DirectX SDK (June 2010) headers, for the few source files that call D3DX
    functions directly (the rest of the rasterizer reaches Direct3D through vtables). tools/msvc_build.py puts the
    SDK's Include folder on the include path; the standalone link takes the functions from d3dx9.lib. */

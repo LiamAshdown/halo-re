@@ -1,3 +1,4 @@
+#pragma once
 // Blam camera module (halo.exe 1.0.10 retail, 0x444c00..0x449170, 55 Ghidra functions).
 // Three layers of the Blam camera share this range, and the header follows them:
 //

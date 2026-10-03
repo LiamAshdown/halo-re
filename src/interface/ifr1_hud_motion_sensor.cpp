@@ -5,6 +5,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "tags.h"
 
 extern "C" {
 extern motion_sensor_globals *motion_sensor;
@@ -146,7 +147,7 @@ void HudMotionSensor::update(void)
                         float dx = position.x - cameras[index].x;
                         float dy = position.y - cameras[index].y;
                         float dz = position.z - cameras[index].z;
-                        float range = *(float *)((uint8_t *)hud_globals_tag_data + 0x2d0);
+                        float range = hud_globals_tag_data->motion_sensor_range;
                         if (range * range < dz * dz + dy * dy + dx * dx) {
                             continue;
                         }

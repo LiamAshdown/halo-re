@@ -1,3 +1,4 @@
+#pragma once
 /* win32.h -- the Windows API, from the Windows SDK headers.
 
    Every source file that calls Windows includes this first, instead of declaring the functions it uses itself: the

@@ -14,6 +14,9 @@
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "tags.h"
+#include "units.h"
+#include "game.h"
 
 #ifdef interface
 #undef interface
@@ -974,7 +977,7 @@ void WeaponHud::state_update()
                     weapon_hud_ammo_state ammo;
 
                     memset(&ammo, 0, sizeof(ammo));
-                    halo::interface::hud_weapon_interface_meters_evaluate(*(datum_index *)((uint8_t *)hud_globals_tag_data + 0x2cc),
+                    halo::interface::hud_weapon_interface_meters_evaluate(halo::interface::tag_handle(hud_globals_tag_data->default_weapon_hud.tag_id),
                                                          local_player_index, -1, &ammo);
                 }
                 hud_weapon_state->players[local_player_index].weapon = weapon;
@@ -1104,7 +1107,7 @@ int32_t WeaponHud::weapon_hud_interface(float *out_intensity)
                     return (int32_t)hud_interface;
                 }
                 if (halo::units::unit_count_deployed_weapons(unit_handle) == 0) {
-                    result = *(int32_t *)((uint8_t *)hud_globals_tag_data + 0x2cc);
+                    result = static_cast<int32_t>(halo::interface::tag_handle(hud_globals_tag_data->default_weapon_hud.tag_id));
                 }
             }
         }
@@ -1170,7 +1173,7 @@ uint8_t MotionSensor::object_is_detected(datum_index unit_index)
               ? 0 : 1;
 
     speed_sq = velocity.i * velocity.i + velocity.j * velocity.j + velocity.k * velocity.k;
-    threshold = *(float *)((uint8_t *)hud_globals_tag_data + 0x2d4);
+    threshold = hud_globals_tag_data->motion_sensor_velocity_sensitivity;
 
     if (!(speed_sq < threshold)) {
         return visible ? 1 : 0;
@@ -1194,7 +1197,7 @@ void MotionSensor::plot_blip(const float *position, uint8_t type, const motion_s
     float cosine = cosf(-frame->viewer_facing);
     float u = y * cosine + x * sine;
     float v = x * cosine - y * sine;
-    float range = *(float *)((uint8_t *)hud_globals_tag_data + 0x2d0);
+    float range = hud_globals_tag_data->motion_sensor_range;
     float distance;
     float pulled;
     float point[2];
@@ -1236,8 +1239,8 @@ void MotionSensor::render(uint8_t splitscreen, const int16_t *screen_center, int
             return;
         }
     }
-    range = *(float *)((uint8_t *)hud_globals_tag_data + 0x2d0);
-    pixels_per_unit = *(float *)((uint8_t *)hud_globals_tag_data + 0x2d8) / range;
+    range = hud_globals_tag_data->motion_sensor_range;
+    pixels_per_unit = hud_globals_tag_data->motion_sensor_scale / range;
     motion_sensor_render_local_player = local_player_index;
     motion_sensor_render_icon_scale = 0.75f;
     if (splitscreen == 0) {
@@ -1320,7 +1323,7 @@ void MotionSensor::update_for_player()
     datum_index unit_index;
     real_point3d camera;
     float waypoints[0x10][2];
-    float range = *(float *)((uint8_t *)hud_globals_tag_data + 0x2d0);
+    float range = hud_globals_tag_data->motion_sensor_range;
     uint8_t removed;
     int32_t i;
 

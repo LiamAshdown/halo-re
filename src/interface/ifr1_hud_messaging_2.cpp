@@ -9,6 +9,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "tags.h"
 
 extern "C" {
 extern uint8_t *hud_messaging;
@@ -94,7 +95,7 @@ void HudMessaging::receive_item_message(void **message)
         }
         sound = *(datum_index *)((uint8_t *)item_tag + 0x31c);
     } else if (item_tag[0] == 2 && item_tag != 0) {
-        sound = *(datum_index *)((uint8_t *)item_tag + 0x49c);
+        sound = halo::interface::tag_handle(((struct Weapon *)item_tag)->pickup_sound.tag_id);
     } else {
         return;
     }

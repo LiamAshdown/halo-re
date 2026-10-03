@@ -1,3 +1,4 @@
+#pragma once
 // Blam sound module (halo.exe 1.0.10 retail, 0x543a30..0x5514d0, 134 Ghidra functions).
 // Four layers live in this address range, each with its own records:
 //

@@ -1,3 +1,4 @@
+#pragma once
 // Blam text module (halo.exe 1.0.10 retail, 0x5561b0..0x5579d2, 22 Ghidra functions).
 // The bitmap-font text layout and draw engine: a global draw state (font, style,
 // justification, flags, colour, tab stops, indents), a word-wrap loop that measures

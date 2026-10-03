@@ -1,3 +1,4 @@
+#pragma once
 // Blam render module (halo.exe 1.0.10 retail, 0x50ba80..0x512e80 plus the stray 0x6b4c00 entry,
 // 78 Ghidra functions).
 // This is the scene driver that sits between main and the rasterizer: the per window loop
