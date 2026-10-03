@@ -4,6 +4,7 @@
  */
 
 #include "tags.h"
+#include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "memory.h"
@@ -107,8 +108,8 @@ void UiGameDataInputs::input_4a3b70(widget_instance *widget)
             network_game_option_a_00719210 = halo::networking::globals().game_socket_port;
         } else {
             network_game_option_a_00719210 = (uint32_t)_wtoi((const wchar_t *)network_host_number_text_0071921c);
-            if (network_game_option_a_00719210 > 0xffff) {
-                network_game_option_a_00719210 = 0xffff;
+            if (network_game_option_a_00719210 > halo::k_word_none) {
+                network_game_option_a_00719210 = halo::k_word_none;
             }
         }
     } else if (network_host_number_field_00719218 == 2) {
@@ -116,8 +117,8 @@ void UiGameDataInputs::input_4a3b70(widget_instance *widget)
             network_game_option_b_00719214 = 0;
         } else {
             network_game_option_b_00719214 = (uint32_t)_wtoi((const wchar_t *)network_host_number_text_0071921c);
-            if (network_game_option_b_00719214 > 0xffff) {
-                network_game_option_b_00719214 = 0xffff;
+            if (network_game_option_b_00719214 > halo::k_word_none) {
+                network_game_option_b_00719214 = halo::k_word_none;
             }
         }
     }
@@ -145,7 +146,7 @@ void UiGameDataInputs::input_4a4c70(widget_instance *widget)
         for (; child != 0 && child != widget->focused_child; child = child->next_sibling) {
             index++;
         }
-        if ((uint16_t)index == 0xffff) {
+        if ((uint16_t)index == halo::k_word_none) {
             return;
         }
     }

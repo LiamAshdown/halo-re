@@ -3,6 +3,9 @@
  */
 
 #include "crt.h"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "win32.h"
@@ -119,7 +122,7 @@ int16_t UiDraw::button_prompt_index_from_string(uint16_t *text)
     } while (index < 0x28);
 
     if (index == 0x28) {
-        return 0xffff;
+        return halo::k_word_none;
     }
     return index;
 }
@@ -148,7 +151,7 @@ void UiDraw::draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect)
         ? (GlobalsRasterizerData *)0
         : (GlobalsRasterizerData *)global_globals->rasterizer_data.pointer;
     default_2d_tag = *(datum_index *)&rasterizer_data->default_2d.tag_id;
-    default_2d_bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_2d_tag & 0xffff].data;
+    default_2d_bitmap = (Bitmap *)halo::cache::globals().tag_instances[default_2d_tag & halo::k_slot_mask].data;
     default_2d_bitmap_data = (BitmapData *)default_2d_bitmap->bitmap_data.pointer;
 
     v[0].x = (float)(int32_t)rect->left;  v[0].y = (float)(int32_t)rect->top;
@@ -377,13 +380,13 @@ void UiDraw::draw_trouble_brewing_indicator(void)
         rect.left = 0x236;
         rect.bottom = 0x1d6;
         rect.right = 0x276;
-        trouble_brewing_bitmap_tag = halo::cache::tag_lookup(0x6269746d ,
+        trouble_brewing_bitmap_tag = halo::cache::tag_lookup(halo::fourcc('b', 'i', 't', 'm') ,
                                                  (char *)"ui\\shell\\bitmaps\\trouble_brewing");
         if (trouble_brewing_bitmap_tag != (datum_index)-1) {
             BitmapData *bitmap_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(trouble_brewing_bitmap_tag, 0, 0);
 
             if (bitmap_data != 0) {
-                halo::interface::ui_draw_screen_quad(0, (int16_t *)&rect, (int32_t)bitmap_data, 0, 0xffffffff);
+                halo::interface::ui_draw_screen_quad(0, (int16_t *)&rect, (int32_t)bitmap_data, 0, halo::k_dword_none);
                 return;
             }
         }
@@ -405,7 +408,7 @@ uint8_t UiDraw::string_has_button_prompt_token(uint16_t *text)
 
     while (text != (uint16_t *)0 && (percent = (uint16_t *)wcschr((const wchar_t *)text, L'%')) != (uint16_t *)0) {
         text = percent + 1;
-        if (halo::interface::ui_button_prompt_index_from_string(text) != 0xffff) {
+        if (halo::interface::ui_button_prompt_index_from_string(text) != halo::k_word_none) {
             return 1;
         }
     }

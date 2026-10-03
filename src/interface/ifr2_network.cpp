@@ -1,4 +1,7 @@
 #include "halo/interface/ifr2_network.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
 #include "crt.h"
 #include <string.h>
@@ -146,7 +149,7 @@ void MenuListView::refresh_3wide()
 void MenuListView::update_item(const uint16_t *record)
 {
     datum_index variant_strings_tag =
-        halo::cache::tag_lookup(0x75737472  , (char *)"ui\\shell\\strings\\game_variant_descriptions");
+        halo::cache::tag_lookup(halo::groups::unicode_string_list  , (char *)"ui\\shell\\strings\\game_variant_descriptions");
     widget_instance *name_widget = widget->first_child;
     widget_instance *desc_widget = name_widget->next_sibling;
     widget_instance *icon_widget = desc_widget->next_sibling;
@@ -168,12 +171,12 @@ void MenuListView::update_item(const uint16_t *record)
             desc_widget->text = desc_buf;
             if (desc_buf != (uint16_t *)0) {
                 datum_index labels_tag = halo::cache::tag_lookup(
-                    0x75737472  ,
+                    halo::groups::unicode_string_list  ,
                     (char *)"ui\\shell\\main_menu\\player_profiles_select\\profile_description_labels");
 
                 desc_buf[0] = 0;
                 if (labels_tag != (datum_index)-1) {
-                    UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[labels_tag & 0xffff].data;
+                    UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[labels_tag & halo::k_slot_mask].data;
                     const uint16_t *source = missing_string_text;
 
                     if (list->strings.count > 5) {
@@ -409,7 +412,7 @@ uint32_t MenuListView::choice_handler()
             if (halo::game::globals().state == 0) {
                 halo::game::game_engine_reset_round_objects();
                 halo::game::game_engine_send_round_reset_message();
-                halo::game::game_engine_player_profile_cache_sync_all(0, (void *)0xffffffff);
+                halo::game::game_engine_player_profile_cache_sync_all(0, (void *)halo::k_dword_none);
             } else {
                 halo::interface::chimera__console_out((ColorARGB *)0, (char *)"Cannot restart the map when the game is over.");
             }

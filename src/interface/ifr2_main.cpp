@@ -1,4 +1,7 @@
 #include "halo/interface/ifr2_main.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "crt.h"
@@ -176,7 +179,7 @@ void InterfaceMain::update_for_resolution_change(int32_t new_cursor_x, int32_t n
 void InterfaceMain::on_shown(int32_t fade_milliseconds)
 {
     if (halo::main::globals().menu_music_pending == 1) {
-        datum_index sound_tag = halo::cache::tag_lookup(0x6c736e64  , (char *)"sound\\music\\title1\\title1");
+        datum_index sound_tag = halo::cache::tag_lookup(halo::fourcc('l', 's', 'n', 'd')  , (char *)"sound\\music\\title1\\title1");
 
         if (sound_tag != (datum_index)-1) {
             halo::sound::sound_looping_stop(sound_tag);
@@ -203,7 +206,7 @@ void InterfaceMain::play_title_music()
     datum_index sound_tag;
 
     if (halo::main::globals().menu_music_pending == 0 && main_menu_music_datum == 0) {
-        sound_tag = halo::cache::tag_lookup(0x6c736e64  , (char *)"sound\\music\\title1\\title1");
+        sound_tag = halo::cache::tag_lookup(halo::fourcc('l', 's', 'n', 'd')  , (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
             halo::sound::sound_looping_start(sound_tag, -1, 1.0f);
             halo::main::globals().menu_music_pending = 1;
@@ -255,7 +258,7 @@ void MapList::get_friendly_level_name(wchar_t *destination, char *map_path, int3
     wchar_t *source;
     char *filename;
 
-    map_list_tag = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\mp_map_list");
+    map_list_tag = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\main_menu\\mp_map_list");
     index = halo::interface::map_list_find_known_map_index(map_path);
     if (-1 < index && index < 0x13 && index != -1) {
 
@@ -283,14 +286,14 @@ void MapList::get_friendly_level_name(wchar_t *destination, char *map_path, int3
  */
 void InterfaceMain::set_profile_name(widget_instance *widget, const uint16_t *name_source)
 {
-    datum_index tag_id = halo::cache::tag_lookup(0x75737472  , (char *)"ui\\shell\\strings\\common_button_captions");
+    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list  , (char *)"ui\\shell\\strings\\common_button_captions");
     uint16_t *suffix = missing_string_text;
     void *buffer = halo::memory::heap_reallocate(widget->text, 0x80, widget_memory_pool);
 
     widget->text = buffer;
     if (buffer != (void *)0) {
         if (tag_id != (datum_index)-1) {
-            UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+            UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data;
 
             if (list->strings.count > 7) {
                 UnicodeStringListString *strings = (UnicodeStringListString *)list->strings.pointer;
@@ -346,10 +349,10 @@ void InterfaceMain::initialize_terminal()
     halo::main::globals().terminal_messages->valid = 1;
     halo::memory::data_delete_all(halo::main::globals().terminal_messages);
     halo::main::globals().console_active = (terminal_console *)0;
-    halo::main::globals().console_message_head = (datum_index)0xffffffff;
-    halo::main::globals().console_message_tail = (datum_index)0xffffffff;
+    halo::main::globals().console_message_head = (datum_index)halo::k_dword_none;
+    halo::main::globals().console_message_tail = (datum_index)halo::k_dword_none;
     halo::main::globals().console_caret_blink_time = 0;
-    halo::main::globals().console_rcon_handle = (int32_t)0xffffffff;
+    halo::main::globals().console_rcon_handle = (int32_t)halo::k_dword_none;
 }
 
 } // namespace halo::interface

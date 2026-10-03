@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_color_math.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/cache/api.hpp"
 
 extern "C" {
@@ -68,7 +69,7 @@ void ColorMath::cyclic_color(int16_t table_index, int16_t color_index, ColorARGB
     out->green = 1.0f;
     out->blue = 1.0f;
 
-    if (dependency->tag_id.index != 0xffff || dependency->tag_id.id != 0xffff) {
+    if (dependency->tag_id.index != halo::k_word_none || dependency->tag_id.id != halo::k_word_none) {
         color_table = (ColorTable *)halo::cache::globals().tag_instances[dependency->tag_id.index].data;
         if (color_table->colors.count != 0) {
             ColorTableColor *entry =

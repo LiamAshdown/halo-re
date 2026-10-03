@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/core/datum.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -191,7 +192,7 @@ uint32_t UiProfiles::new_profile_name_entry_commit(void)
     }
 
 fail:
-    split_screen_quit_prompt_string = 0xffff;
+    split_screen_quit_prompt_string = halo::k_word_none;
     halo::networking::globals().join_error_reason = 0;
     split_screen_quit_prompt_armed = 1;
     if (quit_confirm_error_string_index == -1) {
@@ -342,7 +343,7 @@ uint8_t UiProfiles::profile_list_apply_selection(widget_instance *widget, int16_
     if (entry_id > -1) {
         if (quit_confirm_error_string_index == -1) {
             quit_confirm_error_string_index = 0x1f;
-            quit_confirm_error_unknown_ae = 0xffff;
+            quit_confirm_error_unknown_ae = halo::k_word_none;
             quit_confirm_error_modal = 1;
             quit_confirm_error_is_error = 0;
         }

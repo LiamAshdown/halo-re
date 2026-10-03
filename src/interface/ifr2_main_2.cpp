@@ -1,4 +1,6 @@
 #include "win32.h"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/interface/ifr2_main.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "saved_games.h"
@@ -86,7 +88,7 @@ void InterfaceMain::handle_quit_request()
         if (halo::networking::globals().join_error_code == -1) {
             halo::networking::globals().join_error_code = 0x23;
         }
-        split_screen_quit_prompt_string = 0xffff;
+        split_screen_quit_prompt_string = halo::k_word_none;
         halo::networking::globals().join_error_reason = 0;
         split_screen_quit_prompt_armed = 1;
         ui_force_quit = 0;
@@ -150,7 +152,7 @@ void InterfaceMain::tick()
 
                 root = widget;
                 if (widget != (widget_instance *)0) {
-                    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
+                    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & halo::k_slot_mask].data;
                     int32_t scratch_i;
                     uint8_t looped = 0;
 
@@ -244,7 +246,7 @@ shared_tail:
                     halo::interface::widget_instance_verify_stack_chain(hit) == 0) {
                     widget_instance *parent = hit->parent;
                     UIWidgetDefinition *parent_tag =
-                        (UIWidgetDefinition *)halo::cache::globals().tag_instances[parent->definition & 0xffff].data;
+                        (UIWidgetDefinition *)halo::cache::globals().tag_instances[parent->definition & halo::k_slot_mask].data;
 
                     if (parent->focused_child != hit) {
                         halo::interface::widget_play_sound_effect(1);

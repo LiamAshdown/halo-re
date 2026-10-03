@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_blip_classifier.hpp"
+#include "halo/core/slot_mask.hpp"
 #include <string.h>
 #include "halo/cache/api.hpp"
 #include "halo/objects/api.hpp"
@@ -7,7 +8,7 @@
 
 static player *blip_player(datum_index player_index)
 {
-    return (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * 0x200);
+    return (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & halo::k_slot_mask) * 0x200);
 }
 
 namespace halo::interface {
@@ -37,7 +38,7 @@ uint8_t BlipClassifier::type_get(int16_t local_player_index, datum_index object_
     if (halo::objects::object_try_and_get(object_index, 3) == 0) {
         return _blip_type_enemy_special;
     }
-    object_data_ptr = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+    object_data_ptr = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     if (halo::objects::object_try_and_get(object_index, 2) != 0) {
         datum_index occupant = *(datum_index *)(object_data_ptr + 0x328);
 
@@ -45,11 +46,11 @@ uint8_t BlipClassifier::type_get(int16_t local_player_index, datum_index object_
             occupant = *(datum_index *)(object_data_ptr + 0x324);
         }
         if (occupant != (datum_index)-1) {
-            uint8_t *occupant_data = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[occupant & 0xffff].data;
+            uint8_t *occupant_data = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[occupant & halo::k_slot_mask].data;
             return (uint8_t)((halo::game::teams_are_enemies((int16_t)viewer_team, ((object *)occupant_data)->owner_team) != 0) + 3);
         }
         {
-            uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object_data_ptr & 0xffff].data;
+            uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object_data_ptr & halo::k_slot_mask].data;
             if (*(int32_t *)(vehicle_tag + 0x2e4) > 1 &&
                 strncmp(*(char **)(vehicle_tag + 0x2e8) + 4, "c_dropship", 10) == 0) {
                 return _blip_type_vehicle_special;

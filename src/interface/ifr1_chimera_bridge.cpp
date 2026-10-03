@@ -1,4 +1,7 @@
 #include "halo/interface/ifr1_chimera_bridge.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/memory/api.hpp"
@@ -98,7 +101,7 @@ void ChimeraBridge::do_show_loading_screen(void)
             halo::interface::chat_close();
             return;
         case 3:
-            split_screen_quit_prompt_string = 0xffff;
+            split_screen_quit_prompt_string = halo::k_word_none;
             chat_state_00719a7a = 0;
             chat_state_00719a9a = 0;
             chat_state_00719a79 = 0;
@@ -109,7 +112,7 @@ void ChimeraBridge::do_show_loading_screen(void)
             if (interface_loading_screen_request_id != (datum_index)-1) {
                 NNCancel(interface_loading_screen_request_id);
                 interface_loading_screen_request_id = (datum_index)-1;
-                split_screen_quit_prompt_string = 0xffff;
+                split_screen_quit_prompt_string = halo::k_word_none;
                 halo::networking::globals().join_error_reason = 0;
                 split_screen_quit_prompt_armed = 1;
             }
@@ -119,15 +122,15 @@ void ChimeraBridge::do_show_loading_screen(void)
         }
     }
 
-    font = halo::cache::tag_lookup(0x666f6e74, (char *)"ui\\large_ui");
-    background = halo::cache::tag_lookup(0x6269746d, (char *)"ui\\shell\\bitmaps\\background");
-    strings = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\loading");
+    font = halo::cache::tag_lookup(halo::fourcc('f', 'o', 'n', 't'), (char *)"ui\\large_ui");
+    background = halo::cache::tag_lookup(halo::fourcc('b', 'i', 't', 'm'), (char *)"ui\\shell\\bitmaps\\background");
+    strings = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\strings\\loading");
     if (font == (datum_index)-1 || background == (datum_index)-1 || strings == (datum_index)-1) {
         return;
     }
 
     bitmap_data = reinterpret_cast<int32_t>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(background, 0, 0));
-    packed_color = halo::interface::color_argb_scale_alpha(0xffffffff, alpha);
+    packed_color = halo::interface::color_argb_scale_alpha(halo::k_dword_none, alpha);
     text_color.alpha = alpha;
     text_color.red = 1.0f;
     text_color.green = 1.0f;
@@ -223,7 +226,7 @@ void ChimeraBridge::load_main_menu(void)
     }
     halo::input::input_queue_sample_time_update();
     halo::interface::widget_close_all();
-    halo::interface::chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\main_menu", (datum_index)-1, (widget_instance *)0, 0xffff,
+    halo::interface::chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\main_menu", (datum_index)-1, (widget_instance *)0, halo::k_word_none,
                             (datum_index)-1, (datum_index)-1, -1);
     if (halo::networking::globals().join_error_code != -1) {
         halo::interface::display_error(halo::networking::globals().join_error_code, -1, 1, 0);
@@ -252,10 +255,10 @@ void ChimeraBridge::load_main_menu(void)
 widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection)
 {
     widget_instance *widget = (widget_instance *)0;
-    int16_t slot = (controller_index == 0xffff) ? 0 : (int16_t)controller_index;
+    int16_t slot = (controller_index == halo::k_word_none) ? 0 : (int16_t)controller_index;
     UIWidgetDefinition *tag;
 
-    ui_cursor_bitmap = halo::cache::tag_lookup(0x6269746d, (char *)"ui\\shell\\bitmaps\\cursor");
+    ui_cursor_bitmap = halo::cache::tag_lookup(halo::fourcc('b', 'i', 't', 'm'), (char *)"ui\\shell\\bitmaps\\cursor");
     ui_widget_opened = 1;
 
     if (tag_index == (datum_index)-1) {
@@ -264,7 +267,7 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
             return (widget_instance *)0;
         }
     }
-    tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[tag_index & 0xffff].data;
+    tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[tag_index & halo::k_slot_mask].data;
     widget = (widget_instance *)halo::memory::heap_allocate(sizeof(widget_instance), widget_memory_pool);
     if (widget == (widget_instance *)0) {
         return (widget_instance *)0;
@@ -281,7 +284,7 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
         ui_root_widget[slot] = widget;
 
         if (history_definition != (datum_index)-1) {
-            uint8_t *history_tag_data = (uint8_t *)halo::cache::globals().tag_instances[history_definition & 0xffff].data;
+            uint8_t *history_tag_data = (uint8_t *)halo::cache::globals().tag_instances[history_definition & halo::k_slot_mask].data;
 
             if ((*(uint32_t *)(history_tag_data + 0x2c) & 0x4000) == 0) {
                 widget_history_node history_template;
@@ -295,13 +298,13 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
         }
     }
 
-    if (controller_index == 0xffff) {
+    if (controller_index == halo::k_word_none) {
         switch (*(int16_t *)&((struct UIWidgetDefinition *)tag)->controller_index) {
         case 0: controller_index = 0; break;
         case 1: controller_index = 1; break;
         case 2: controller_index = 2; break;
         case 3: controller_index = 3; break;
-        case 4: controller_index = 0xffff; break;
+        case 4: controller_index = halo::k_word_none; break;
         default: break;
         }
     }
@@ -319,7 +322,7 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
 void ChimeraBridge::main_menu_music(uint8_t finalize_render_frame)
 {
     if (halo::main::globals().menu_music_pending == 1) {
-        datum_index sound_tag = halo::cache::tag_lookup(0x6c736e64, (char *)"sound\\music\\title1\\title1");
+        datum_index sound_tag = halo::cache::tag_lookup(halo::fourcc('l', 's', 'n', 'd'), (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
             halo::sound::sound_looping_stop(sound_tag);
         }

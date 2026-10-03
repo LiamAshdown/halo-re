@@ -1,4 +1,6 @@
 #include "halo/interface/ifr1_hud_text_queue.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include <wchar.h>
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -29,7 +31,7 @@ namespace halo::interface {
  */
 uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
 {
-    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & 0xffff].data;
+    UIWidgetDefinition *tag = (UIWidgetDefinition *)halo::cache::globals().tag_instances[widget->definition & halo::k_slot_mask].data;
     UnicodeStringList *strings =
         (UnicodeStringList *)halo::cache::globals().tag_instances[tag->text_label_unicode_strings_list.tag_id.index].data;
     int32_t string_count = strings->strings.count;
@@ -82,7 +84,7 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
                 message_index = 0;
             }
 
-            if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id != 0xffffffff) {
+            if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id != halo::k_dword_none) {
                 UnicodeStringList *list =
                     (UnicodeStringList *)halo::cache::globals().tag_instances[tag->text_label_unicode_strings_list.tag_id.index].data;
 

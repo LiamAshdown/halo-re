@@ -4,6 +4,9 @@
  */
 
 #include "win32.h"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -830,15 +833,15 @@ uint8_t UiEventHandlers::event_4a0860(widget_instance *widget, int16_t *event, u
     if (indices == 0) {
         return 1;
     }
-    strings = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\color_edit\\colors_list");
+    strings = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\color_edit\\colors_list");
     for (i = 0; i < 0x12; i++) {
         uint16_t *text = missing_string_text;
         uint8_t is_default;
         uint32_t index;
 
         ((uint8_t *)widget->list_items)[i] = (uint8_t)i;
-        if (strings != 0xffffffff) {
-            uint8_t *list = (uint8_t *)halo::cache::globals().tag_instances[strings & 0xffff].data;
+        if (strings != halo::k_dword_none) {
+            uint8_t *list = (uint8_t *)halo::cache::globals().tag_instances[strings & halo::k_slot_mask].data;
 
             if (i < *(int32_t *)list) {
                 uint8_t *element = *(uint8_t **)(list + 4) + i * 0x14;
@@ -852,7 +855,7 @@ uint8_t UiEventHandlers::event_4a0860(widget_instance *widget, int16_t *event, u
         }
         is_default = (uint8_t)(i == widget->selection_index);
         index = halo::memory::growable_array_add_element(&ui_lists[0]);
-        if (index != 0xffffffff) {
+        if (index != halo::k_dword_none) {
             ui_list_item *item = (ui_list_item *)ui_lists[0].data + index;
             uint16_t *copy;
 

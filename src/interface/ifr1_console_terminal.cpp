@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_console_terminal.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/interface/engine_state.hpp"
 #include <stdarg.h>
 #include <string.h>
@@ -63,7 +64,7 @@ void ConsoleTerminal::out(ColorARGB *color, char *format, va_list args)
     }
 
     message_handle = halo::interface::console_message_new();
-    if (message_handle == (datum_index)0xffffffff) {
+    if (message_handle == (datum_index)halo::k_dword_none) {
         return;
     }
 
@@ -261,7 +262,7 @@ void ConsoleTerminal::draw_overlay(void)
         hud_text_draw_color_r = halo::main::globals().console_active->color.red;
         hud_text_draw_color_g = halo::main::globals().console_active->color.green;
         hud_text_draw_color_b = halo::main::globals().console_active->color.blue;
-        hud_text_draw_color_or_flags = 0xffff;
+        hud_text_draw_color_or_flags = halo::k_word_none;
         halo::text::globals().hud_text_draw_column = 0;
         halo::text::globals().hud_text_draw_unknown_4730 = 0;
 
@@ -288,7 +289,7 @@ void ConsoleTerminal::draw_overlay(void)
     if (console_show_messages != 0) {
         y = 0x1e0 - line_height;
         message_handle = halo::main::globals().console_message_head;
-        while (message_handle != (datum_index)0xffffffff && y != line_height && y - line_height >= 0) {
+        while (message_handle != (datum_index)halo::k_dword_none && y != line_height && y - line_height >= 0) {
             message = (console_message *)((char *)halo::main::globals().terminal_messages->data +
                                            (uint16_t)message_handle * sizeof(console_message));
             hud_text_draw_color_r = message->color.red;
@@ -307,7 +308,7 @@ void ConsoleTerminal::draw_overlay(void)
                 text_tab_stops = 0x014000a0;
                 hud_text_draw_box_field_474e = 0x000001d6;
             }
-            hud_text_draw_color_or_flags = 0xffff;
+            hud_text_draw_color_or_flags = halo::k_word_none;
             halo::text::globals().hud_text_draw_column = 0;
             halo::text::globals().hud_text_draw_unknown_4730 = 0;
             hud_text_draw_font_tag_id = font_terminal_id;
@@ -342,13 +343,13 @@ void ConsoleTerminal::message_delete(datum_index message)
                                   (uint16_t)message * sizeof(console_message));
     next = record->next;
     previous = record->previous;
-    if (next == (datum_index)0xffffffff) {
+    if (next == (datum_index)halo::k_dword_none) {
         halo::main::globals().console_message_tail = previous;
     } else {
         ((console_message *)((char *)halo::main::globals().terminal_messages->data +
                               (uint16_t)next * sizeof(console_message)))->previous = previous;
     }
-    if (previous != (datum_index)0xffffffff) {
+    if (previous != (datum_index)halo::k_dword_none) {
         ((console_message *)((char *)halo::main::globals().terminal_messages->data +
                               (uint16_t)previous * sizeof(console_message)))->next = next;
         halo::memory::datum_delete(halo::main::globals().terminal_messages, message);
@@ -371,7 +372,7 @@ void ConsoleTerminal::message_expire_old(void)
     console_message *record;
 
     current = halo::main::globals().console_message_head;
-    while (current != (datum_index)0xffffffff) {
+    while (current != (datum_index)halo::k_dword_none) {
         record = (console_message *)((char *)halo::main::globals().terminal_messages->data +
                                       (uint16_t)current * sizeof(console_message));
         next = record->next;
@@ -403,9 +404,9 @@ datum_index ConsoleTerminal::message_new(void)
     record = (console_message *)((char *)halo::main::globals().terminal_messages->data +
                                   (uint16_t)new_message * sizeof(console_message));
     record->next = halo::main::globals().console_message_head;
-    record->previous = (datum_index)0xffffffff;
+    record->previous = (datum_index)halo::k_dword_none;
     halo::main::globals().console_message_head = new_message;
-    if (old_head != (datum_index)0xffffffff) {
+    if (old_head != (datum_index)halo::k_dword_none) {
         ((console_message *)((char *)halo::main::globals().terminal_messages->data +
                               (uint16_t)old_head * sizeof(console_message)))->previous =
             new_message;
@@ -485,7 +486,7 @@ void ConsoleTerminal::printf_verbose(ColorARGB *color, char *format, va_list arg
     }
 
     message_handle = halo::interface::console_message_new();
-    if (message_handle == (datum_index)0xffffffff) {
+    if (message_handle == (datum_index)halo::k_dword_none) {
         return;
     }
 

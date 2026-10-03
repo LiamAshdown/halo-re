@@ -1,4 +1,6 @@
 #include "halo/interface/ifr1_controls_bindings.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/tag_groups.hpp"
 #include <string.h>
 #include <wchar.h>
 #include "halo/memory/api.hpp"
@@ -504,7 +506,7 @@ void ControlsBindings::binding_rows_toggle_device_mode(widget_instance *widget, 
 void ControlsBindings::build_device_label_table(void)
 {
     uint8_t *profile = ((selected_saved_item & 0xf) != 0) ? (uint8_t *)0 : saved_item_working_copy;
-    datum_index tag_id = halo::cache::tag_lookup(0x75737472,
+    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_device_labels");
     int i;
     const uint16_t *tag_supplied_label = (const uint16_t *)L"<missing string>";
@@ -516,9 +518,9 @@ void ControlsBindings::build_device_label_table(void)
     controls_device_label_count = 0;
 
     if (tag_id != (datum_index)-1) {
-        int32_t *reflexive = *(int32_t **)&halo::cache::globals().tag_instances[tag_id & 0xffff].data;
-        if (*(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[tag_id & 0xffff].data) > 0) {
-            uint32_t *item = (uint32_t *)((int32_t *)halo::cache::globals().tag_instances[tag_id & 0xffff].data)[1];
+        int32_t *reflexive = *(int32_t **)&halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data;
+        if (*(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data) > 0) {
+            uint32_t *item = (uint32_t *)((int32_t *)halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data)[1];
             uint32_t count = item[0];
             (void)reflexive;
             if ((int32_t)count > 0) {

@@ -1,4 +1,6 @@
 #include "halo/interface/ifr1_hud_frame.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include <wchar.h>
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
@@ -19,24 +21,24 @@ extern uint8_t *cinematic_globals_ptr;
 
 static uint8_t *object_get(datum_index object_index)
 {
-    return (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+    return (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
 }
 
 static uint8_t *object_tag_data(datum_index object_index)
 {
-    return (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object_get(object_index) & 0xffff].data;
+    return (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object_get(object_index) & halo::k_slot_mask].data;
 }
 
 static const int16_t *weapon_hud_messaging(const uint8_t *weapon_object)
 {
     datum_index weapon_tag = *(const datum_index *)weapon_object;
-    datum_index hud = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[weapon_tag & 0xffff].data + 0x48c);
+    datum_index hud = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[weapon_tag & halo::k_slot_mask].data + 0x48c);
     const int16_t *messaging;
 
     if (hud == (datum_index)-1) {
         return 0;
     }
-    messaging = (const int16_t *)((uint8_t *)halo::cache::globals().tag_instances[hud & 0xffff].data + 0x13c);
+    messaging = (const int16_t *)((uint8_t *)halo::cache::globals().tag_instances[hud & halo::k_slot_mask].data + 0x13c);
     return (*messaging == -1) ? 0 : messaging;
 }
 
@@ -51,7 +53,7 @@ namespace halo::interface {
  */
 void HudFrame::update_interaction_prompt(datum_index player_index)
 {
-    player *p = (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & halo::k_slot_mask) * sizeof(player));
     int16_t local = current_local_player_index;
     int16_t target_message;
 
@@ -122,7 +124,7 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
 
     case 10: {
         uint16_t vehicle_string = *(uint16_t *)(object_get(p->interaction_object) + 0x218);
-        if (vehicle_string != 0xffff) {
+        if (vehicle_string != halo::k_word_none) {
             halo::interface::hud_set_player_message(3, (uint16_t)local);
             halo::interface::hud_set_message_string_argument(local, 0, (int16_t)vehicle_string, 1);
         } else {
@@ -247,7 +249,7 @@ void HudFrame::update_player(void)
     }
 
     {
-        player *local_player = (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * sizeof(player));
+        player *local_player = (player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & halo::k_slot_mask) * sizeof(player));
 
         if ((current_game_engine == 0 || ((motion_sensor_override_value & 2) != 0 && halo::game::globals().teams_enabled != 0)) &&
             cinematic_globals_ptr[9] == 0) {

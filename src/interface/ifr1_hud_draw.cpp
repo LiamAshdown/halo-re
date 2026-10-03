@@ -1,4 +1,6 @@
 #include "halo/interface/ifr1_hud_draw.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include <string.h>
@@ -363,7 +365,7 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
     cosine = cosf(rotation);
 
     halo::interface::hud_player_weapon_ammo_state(
-        (const player *)((uint8_t *)halo::game::globals().player_data->data + (hud_local_player_index_to_player(local_player_index) & 0xffff) * 0x200),
+        (const player *)((uint8_t *)halo::game::globals().player_data->data + (hud_local_player_index_to_player(local_player_index) & halo::k_slot_mask) * 0x200),
         &ammo);
 
     x = 0.0f;
@@ -452,9 +454,9 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
             const float *aim;
 
             if (player_index != (datum_index)-1) {
-                unit_index = ((player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * 0x200))->unit;
+                unit_index = ((player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & halo::k_slot_mask) * 0x200))->unit;
             }
-            aim = (const float *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data + 0x23c);
+            aim = (const float *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data + 0x23c);
             value = atan2f(aim[2], sqrtf(aim[0] * aim[0] + aim[1] * aim[1]));
             break;
         }
@@ -560,9 +562,9 @@ void HudDraw::number(void *unused, uint16_t *anchor, const hud_number_placement 
     if (digits_tag == (datum_index)-1) {
         return;
     }
-    digits = (HUDNumber *)halo::cache::globals().tag_instances[digits_tag & 0xffff].data;
+    digits = (HUDNumber *)halo::cache::globals().tag_instances[digits_tag & halo::k_slot_mask].data;
     pen.digits_bitmap = *(datum_index *)&digits->digits_bitmap.tag_id;
-    digits_bitmap_data = (uint8_t *)halo::cache::globals().tag_instances[pen.digits_bitmap & 0xffff].data;
+    digits_bitmap_data = (uint8_t *)halo::cache::globals().tag_instances[pen.digits_bitmap & halo::k_slot_mask].data;
     bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(pen.digits_bitmap, 0, 0);
     thousands = (value > 999);
     if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
@@ -687,7 +689,7 @@ void HudDraw::overlays(uint16_t *anchor, const hud_overlay_list *list, uint32_t 
         if ((overlay_flags & 2) != 0 || (type_mask & (uint32_t)(int32_t)(int16_t)overlay->type) == 0) {
             continue;
         }
-        sequence = (const BitmapGroupSequence *)((Bitmap *)halo::cache::globals().tag_instances[tag_id & 0xffff].data)
+        sequence = (const BitmapGroupSequence *)((Bitmap *)halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data)
                        ->bitmap_group_sequence.pointer + (int16_t)overlay->sequence_index;
 
         if ((overlay_flags & 1) != 0 && (draw_flags & 1) != 0) {
@@ -782,15 +784,15 @@ void HudDraw::static_element(int16_t local_player_index, uint16_t *anchor, const
     int16_t i;
 
     tag_id = *(const datum_index *)&element->interface_bitmap.tag_id;
-    bitmap_tag = (Bitmap *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+    bitmap_tag = (Bitmap *)halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data;
     bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(tag_id, 0, (int16_t)element->sequence_index);
     if (halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
         return;
     }
 
     uv = 0;
-    if (tag_id != (datum_index)-1 && element->sequence_index != 0xffff) {
-        Bitmap *tag = (Bitmap *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+    if (tag_id != (datum_index)-1 && element->sequence_index != halo::k_word_none) {
+        Bitmap *tag = (Bitmap *)halo::cache::globals().tag_instances[tag_id & halo::k_slot_mask].data;
         if ((int32_t)(int16_t)element->sequence_index < (int32_t)tag->bitmap_group_sequence.count) {
             BitmapGroupSequence *sequence =
                 (BitmapGroupSequence *)tag->bitmap_group_sequence.pointer + (int16_t)element->sequence_index;

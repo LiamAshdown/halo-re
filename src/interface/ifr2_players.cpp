@@ -1,4 +1,7 @@
 #include "halo/interface/ifr2_players.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
 #include "crt.h"
 #include <string.h>
@@ -109,7 +112,7 @@ void LocalPlayers::state_reset()
 
     fp = &first_person_weapon_interfaces[0];
     memset(fp, 0, sizeof(*fp));
-    fp->unit_index = (datum_index)0xffffffff;
+    fp->unit_index = (datum_index)halo::k_dword_none;
     fp->frame_sound_index = -1;
     fp->frame_sound_state = -1;
 
@@ -121,7 +124,7 @@ void LocalPlayers::state_reset()
     hud_text_draw_color_r = global_white_argb->red;
     hud_text_draw_color_g = global_white_argb->green;
     hud_text_draw_color_b = global_white_argb->blue;
-    hud_text_draw_color_or_flags = 0xffff;
+    hud_text_draw_color_or_flags = halo::k_word_none;
     halo::text::globals().hud_text_draw_column = 0;
     halo::text::globals().hud_text_draw_unknown_4730 = 0;
 }
@@ -159,11 +162,11 @@ int32_t LocalPlayers::index_for_unit(datum_index unit_index)
     player *record;
 
     for (i = 0; i < 1; i++) {
-        if (halo::game::globals().local_player_globals->local_players[i] == (datum_index)0xffffffff) {
+        if (halo::game::globals().local_player_globals->local_players[i] == (datum_index)halo::k_dword_none) {
             continue;
         }
         record = (player *)((char *)halo::game::globals().player_data->data +
-                             (halo::game::globals().local_player_globals->local_players[i] & 0xffff) * sizeof(player));
+                             (halo::game::globals().local_player_globals->local_players[i] & halo::k_slot_mask) * sizeof(player));
         if (record->unit == unit_index) {
             return i;
         }
@@ -186,15 +189,15 @@ int32_t LocalPlayers::index_for_weapon(datum_index weapon_index)
     int16_t slot;
 
     for (i = 0; i < 1; i++) {
-        if (halo::game::globals().local_player_globals->local_players[i] == (datum_index)0xffffffff) {
+        if (halo::game::globals().local_player_globals->local_players[i] == (datum_index)halo::k_dword_none) {
             continue;
         }
         record = (player *)((char *)halo::game::globals().player_data->data +
-                             (halo::game::globals().local_player_globals->local_players[i] & 0xffff) * sizeof(player));
-        if (record->unit == (datum_index)0xffffffff) {
+                             (halo::game::globals().local_player_globals->local_players[i] & halo::k_slot_mask) * sizeof(player));
+        if (record->unit == (datum_index)halo::k_dword_none) {
             continue;
         }
-        header = &((object_header *)halo::objects::globals().object_data->data)[record->unit & 0xffff];
+        header = &((object_header *)halo::objects::globals().object_data->data)[record->unit & halo::k_slot_mask];
         u = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
         slot = u->current_weapon_index;
         if (slot != -1 && weapon_index == u->weapons[slot]) {
@@ -319,7 +322,7 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                     return;
                 }
                 if (flags & 1) {
-                    datum_index names = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\strings\\default_player_profile_names");
+                    datum_index names = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\strings\\default_player_profile_names");
                     const uint16_t *source = empty_string;
                     if (names != (datum_index)-1) {
                         source = halo::text::text_string_list_get_string(names, (int16_t)(flags >> 8));
@@ -340,16 +343,16 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                     datum_index joysticks;
                     datum_index buttons;
                     if (*(const uint8_t *)(profile + 0x11c) & 1) {
-                        joysticks = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\joystick_set_defaults_descriptions");
-                        buttons = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\button_set_long_descriptions");
+                        joysticks = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\main_menu\\player_profiles_select\\joystick_set_defaults_descriptions");
+                        buttons = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\main_menu\\player_profiles_select\\button_set_long_descriptions");
                         if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
                             ((uint16_t *)description_row->text)[0] = 0;
                             ((uint16_t *)description_row->text)[0xff] = 0;
                             return;
                         }
                     } else {
-                        joysticks = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\joystick_set_short_descriptions");
-                        buttons = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\player_profiles_select\\button_set_short_descriptions");
+                        joysticks = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\main_menu\\player_profiles_select\\joystick_set_short_descriptions");
+                        buttons = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\main_menu\\player_profiles_select\\button_set_short_descriptions");
                         if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
                             ((uint16_t *)description_row->text)[0xff] = 0;
                             return;
@@ -569,7 +572,7 @@ void PlayerProfiles::details_widget_refresh(widget_instance *widget, const uint8
 
         if ((flags & 1) != 0) {
             datum_index names_tag =
-                halo::cache::tag_lookup(0x75737472  , (char *)"ui\\shell\\strings\\default_player_profile_names");
+                halo::cache::tag_lookup(halo::groups::unicode_string_list  , (char *)"ui\\shell\\strings\\default_player_profile_names");
             const uint16_t *source = names_tag != (datum_index)-1
                 ? halo::text::text_string_list_get_string(names_tag, (int16_t)(flags >> 8))
                 : hud_text_unknown;
@@ -958,18 +961,18 @@ uint8_t LocalPlayers::get_first_person_marker_transform(datum_index object_index
     object_marker marker;
     int16_t result;
 
-    header = &((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff];
+    header = &((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask];
     obj = header->data;
 
-    parent_header = &((object_header *)halo::objects::globals().object_data->data)[obj->parent_object & 0xffff];
+    parent_header = &((object_header *)halo::objects::globals().object_data->data)[obj->parent_object & halo::k_slot_mask];
     parent_unit = (unit_data *)((uint8_t *)parent_header->data + k_unit_data_offset);
     controlling_player = parent_unit->controlling_player;
 
-    if (controlling_player == (datum_index)0xffffffff) {
+    if (controlling_player == (datum_index)halo::k_dword_none) {
         return 0;
     }
 
-    p = (player *)((uint8_t *)halo::game::globals().player_data->data + (controlling_player & 0xffff) * sizeof(player));
+    p = (player *)((uint8_t *)halo::game::globals().player_data->data + (controlling_player & halo::k_slot_mask) * sizeof(player));
     local_player = p->local_player_index;
     if (local_player == -1 || local_player != current_local_player_index) {
         return 0;

@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_chat_dialog.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
 #include <string.h>
 #include <stdint.h>
@@ -37,7 +38,7 @@ extern uint8_t network_message_scratch[0x7ff8];
 
 static const wchar_t *chat_prefix_format(int16_t string_index)
 {
-    datum_index tag = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+    datum_index tag = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
     if (tag == (datum_index)-1) {
         return &empty_string;
     }

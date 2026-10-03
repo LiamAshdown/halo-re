@@ -4,6 +4,7 @@
  */
 
 #include "crt.h"
+#include "halo/core/datum.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "halo/main/main_globals_fields.hpp"
 #include "win32.h"
@@ -166,7 +167,7 @@ uint8_t UiEventHandlers::event_49d100(widget_instance *widget, int16_t *event, u
 {
     halo::networking::globals().join_error_reason = 0;
     halo::main::fields::lost_map = 0;
-    split_screen_quit_prompt_string = 0xffff;
+    split_screen_quit_prompt_string = halo::k_word_none;
     halo::main::fields::revert_map = 1;
     return 1;
 }
@@ -180,7 +181,7 @@ uint8_t UiEventHandlers::event_49d120(widget_instance *widget, int16_t *event, u
 {
     halo::networking::globals().join_error_reason = 0;
     halo::main::fields::lost_map = 0;
-    split_screen_quit_prompt_string = 0xffff;
+    split_screen_quit_prompt_string = halo::k_word_none;
     halo::interface::state::round_reset_pending = 1;
     return 1;
 }
@@ -192,7 +193,7 @@ uint8_t UiEventHandlers::event_49d120(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49d140(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    split_screen_quit_prompt_string = 0xffff;
+    split_screen_quit_prompt_string = halo::k_word_none;
     halo::networking::globals().join_error_reason = 0;
     split_screen_quit_prompt_armed = 1;
     return 1;
@@ -431,7 +432,7 @@ uint8_t UiEventHandlers::event_49d5f0(widget_instance *widget, int16_t *event, u
         halo::interface::map_list_get_friendly_level_name((wchar_t *)name, *(char **)(map_list + i * 0xc), 0x100);
         is_default = (uint8_t)(i == widget->selection_index);
         index = halo::memory::growable_array_add_element(&ui_lists[0]);
-        if (index != 0xffffffff) {
+        if (index != halo::k_dword_none) {
             ui_list_item *item = (ui_list_item *)ui_lists[0].data + index;
             uint16_t *copy;
 

@@ -1,4 +1,6 @@
 #include "halo/interface/ifr1_hud_messaging.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include <string.h>
@@ -44,7 +46,7 @@ static void hud_messaging_set_text_state(datum_index font, const ColorARGB *colo
     hud_text_draw_color_r = color->red;
     hud_text_draw_color_g = color->green;
     hud_text_draw_color_b = color->blue;
-    hud_text_draw_color_or_flags = 0xffff;
+    hud_text_draw_color_or_flags = halo::k_word_none;
     halo::text::globals().hud_text_draw_column = 0;
     halo::text::globals().hud_text_draw_unknown_4730 = 0;
 }
@@ -118,7 +120,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
     }
     halo::interface::hud_anchor_offset_to_screen_position((uint16_t *)&parameters->anchor, split_screen, 0.0f,
                                          &parameters->anchor_offset.x, &origin.x, 0);
-    font_tag = (Font *)halo::cache::globals().tag_instances[font & 0xffff].data;
+    font_tag = (Font *)halo::cache::globals().tag_instances[font & halo::k_slot_mask].data;
     y = origin.y;
     if (split_screen) {
         line_height = (uint16_t)(font_tag->leading_height + font_tag->ascending_height);
@@ -179,14 +181,14 @@ void HudMessaging::messaging_update(int16_t local_player_index)
 
         if (objective_shown) {
             int32_t remaining = hud_messaging->objective_text_ticks - halo::game::globals().game_time->ticks_this_frame;
-            messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id & 0xffff].data;
+            messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id & halo::k_slot_mask].data;
             message = hud_messaging->objective_text;
             hud_messaging->objective_text_ticks = (int16_t)(remaining > 0 ? remaining : 0);
         } else if (help_shown) {
-            messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id & 0xffff].data;
+            messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id & halo::k_slot_mask].data;
             message = hud_messaging->help_text;
         } else if (record->message != 0) {
-            messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&hud_globals_tag_data->hud_messages.tag_id & 0xffff].data;
+            messages_tag = (HUDMessageText *)halo::cache::globals().tag_instances[*(datum_index *)&hud_globals_tag_data->hud_messages.tag_id & halo::k_slot_mask].data;
             message = record->message;
         } else if (record->action_text[0] != 0) {
             halo::interface::hud_draw_message_text_span(&cursor, &line, record->action_text, 1);
@@ -227,7 +229,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                         uint8_t *reference = (uint8_t *)&record->arguments[argument];
                         uint16_t string_index = *(uint16_t *)reference;
 
-                        if (string_index == 0xffff) {
+                        if (string_index == halo::k_word_none) {
                             halo::interface::hud_draw_message_text_span(&cursor, &line, hud_text_unknown, 0);
                         } else if (reference[2] != 0) {
                             halo::interface::hud_draw_message_text_span(&cursor, &line,
@@ -305,11 +307,11 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             } else {
                 plural = slot->source_kind;
             }
-            item = (Item *)halo::cache::globals().tag_instances[slot->source & 0xffff].data;
+            item = (Item *)halo::cache::globals().tag_instances[slot->source & halo::k_slot_mask].data;
             string_index = (int16_t)((int8_t)plural + item->pickup_text_index);
             text = empty_wide_string_pointer;
             if (strings != (datum_index)-1) {
-                int32_t *string_list = (int32_t *)halo::cache::globals().tag_instances[strings & 0xffff].data;
+                int32_t *string_list = (int32_t *)halo::cache::globals().tag_instances[strings & halo::k_slot_mask].data;
                 if (string_list != 0 && string_index >= 0 && string_index < string_list[0]) {
                     text = halo::text::text_string_list_get_string(strings, (int16_t)string_index);
                 }

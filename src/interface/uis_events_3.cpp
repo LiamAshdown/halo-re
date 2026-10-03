@@ -4,6 +4,8 @@
  */
 
 #include "crt.h"
+#include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "tags.h"
 #include "memory.h"
@@ -254,7 +256,7 @@ uint8_t UiEventHandlers::event_4a1310(widget_instance *widget, int16_t *event, u
     halo::saved_games::saved_game_allocate_new_slot(name);
     if (name[0] != 0) {
         handle = halo::saved_games::saved_game_create_custom_variant((uint32_t)(uint16_t)widget->controller_index, name);
-        if (handle != 0xffffffff) {
+        if (handle != halo::k_dword_none) {
             halo::interface::saved_item_select((int32_t)handle);
             if ((selected_saved_item & 0xf) == 1) {
                 int32_t id = halo::interface::ui_list_get_id(*(int16_t *)&((struct widget_instance *)list)->text);
@@ -306,7 +308,7 @@ uint8_t UiEventHandlers::event_4a1480(widget_instance *widget, int16_t *event, u
     halo::saved_games::saved_game_allocate_new_slot(name);
     if (name[0] != 0) {
         handle = halo::saved_games::saved_game_create_default_profile(name);
-        if (handle != 0xffffffff) {
+        if (handle != halo::k_dword_none) {
             uint8_t *profile;
 
             halo::interface::saved_item_select((int32_t)handle);
@@ -607,9 +609,9 @@ uint8_t UiEventHandlers::event_4a1b60(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_4a1bf0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     if (halo::main::globals().menu_music_pending == 1) {
-        datum_index music = halo::cache::tag_lookup(0x6c736e64, (char *)"sound\\music\\title1\\title1");
+        datum_index music = halo::cache::tag_lookup(halo::fourcc('l', 's', 'n', 'd'), (char *)"sound\\music\\title1\\title1");
 
-        if (music != 0xffffffff) {
+        if (music != halo::k_dword_none) {
             halo::sound::sound_looping_stop(music);
         }
         halo::main::globals().menu_music_pending = 0;

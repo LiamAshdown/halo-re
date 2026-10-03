@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_error_dialogs.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/networking/api.hpp"
@@ -113,7 +114,7 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
         state::screen_fade_progress = -1.0f;
     }
 
-    slot = (int16_t)(((uint16_t)player_index == 0xffff) ? 0 : (uint16_t)player_index);
+    slot = (int16_t)(((uint16_t)player_index == halo::k_word_none) ? 0 : (uint16_t)player_index);
     root = ui_root_widget[slot];
     if (root == (widget_instance *)0) {
         history_source = (datum_index)-1;

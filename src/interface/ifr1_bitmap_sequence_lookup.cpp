@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_bitmap_sequence_lookup.hpp"
+#include "halo/core/slot_mask.hpp"
 #include "halo/cache/api.hpp"
 
 
@@ -19,7 +20,7 @@ int32_t BitmapSequenceLookup::get_bitmap_offset(datum_index bitmap_tag, int16_t 
     }
 
     {
-        Bitmap *tag_data = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag & 0xffff].data;
+        Bitmap *tag_data = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag & halo::k_slot_mask].data;
         if (sequence_index < (int32_t)tag_data->bitmap_group_sequence.count) {
             BitmapGroupSequence *sequence =
                 (BitmapGroupSequence *)tag_data->bitmap_group_sequence.pointer + sequence_index;

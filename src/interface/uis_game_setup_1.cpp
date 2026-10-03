@@ -3,6 +3,9 @@
  */
 
 #include "crt.h"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
 #include "win32.h"
 #include "tags.h"
@@ -82,7 +85,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
         return 1;
     }
 
-    string_list_tag = halo::cache::tag_lookup(0x75737472 , (char *)"ui\\shell\\main_menu\\map_list_oneline");
+    string_list_tag = halo::cache::tag_lookup(halo::groups::unicode_string_list , (char *)"ui\\shell\\main_menu\\map_list_oneline");
     memset(level_select_entries, 0, sizeof(level_select_entries));
 
     if (halo::saved_games::globals().player_profile_slots_handle != cached_saved_game_something) {
@@ -138,7 +141,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
 
         entry_name = missing_string_text;
         if (string_list_tag != (datum_index)-1) {
-            UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[string_list_tag & 0xffff].data;
+            UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[string_list_tag & halo::k_slot_mask].data;
 
             if (i >= 0 && i < (int32_t)list->strings.count) {
                 UnicodeStringListString *strings = (UnicodeStringListString *)list->strings.pointer;
@@ -202,7 +205,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
         if (last_level_widget_selection_00692afc == -1) {
             if (quit_confirm_error_string_index == -1) {
                 quit_confirm_error_string_index = 0x27;
-                quit_confirm_error_unknown_ae = 0xffff;
+                quit_confirm_error_unknown_ae = halo::k_word_none;
                 quit_confirm_error_modal = 1;
                 quit_confirm_error_is_error = 0;
             }

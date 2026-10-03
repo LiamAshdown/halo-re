@@ -1,4 +1,7 @@
 #include "halo/interface/ifr1_checkpoint_list_rows.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
 #include <string.h>
 #include <wchar.h>
@@ -32,7 +35,7 @@ namespace halo::interface {
  */
 uint8_t CheckpointListRows::add_row(int32_t index, const char *name, int32_t level_index, int32_t difficulty, int32_t game_time, const void *time, void *user_data)
 {
-    datum_index strings = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\map_list_short");
+    datum_index strings = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\main_menu\\map_list_short");
     uint8_t record[0x68];
     char text[0x10];
     uint16_t wide[0x100];
@@ -62,8 +65,8 @@ uint8_t CheckpointListRows::add_row(int32_t index, const char *name, int32_t lev
     game_time -= minutes * 1800;
     seconds = game_time / 30;
 
-    if (strings != 0xffffffff) {
-        uint8_t *list = (uint8_t *)halo::cache::globals().tag_instances[strings & 0xffff].data;
+    if (strings != halo::k_dword_none) {
+        uint8_t *list = (uint8_t *)halo::cache::globals().tag_instances[strings & halo::k_slot_mask].data;
         int16_t level = (int16_t)level_index;
 
         if (level >= 0 && level < *(int32_t *)list) {

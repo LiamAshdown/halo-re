@@ -1,4 +1,6 @@
 #include "halo/interface/ifr1_chat_dialog.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
 #include <stdint.h>
 #include <wchar.h>
@@ -42,7 +44,7 @@ static void chat_relay_iterator_begin(data_iterator *iterator)
 {
     iterator->data = halo::game::globals().player_data;
     iterator->next_index = 0;
-    iterator->index = (datum_index)0xffffffff;
+    iterator->index = (datum_index)halo::k_dword_none;
     iterator->signature = (uint32_t)(uintptr_t)halo::game::globals().player_data ^ k_data_iterator_signature;
 }
 
@@ -168,7 +170,7 @@ void ChatDialog::server_relay_incoming_message(void **context, void *machine)
     } else if (message.scope == 2) {
         datum_index vehicle = halo::interface::player_get_vehicle((datum_index)message.sender);
 
-        if (vehicle == (datum_index)0xffffffff) {
+        if (vehicle == (datum_index)halo::k_dword_none) {
             return;
         }
         chat_relay_iterator_begin(&iterator);
@@ -205,7 +207,7 @@ void ChatDialog::open(int32_t chat_scope)
     if (chat_scope == 0) {
 all_scope:
         {
-            datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+            datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
             prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                        : (const void *)halo::text::text_string_list_get_string(tag_id, 0xb8);
             chat_scope_active = 0;
@@ -223,7 +225,7 @@ all_scope:
             int32_t unit_index = halo::interface::chat_default_team_channel();
             int32_t player_index = halo::interface::player_get_vehicle((datum_index)unit_index);
             if (player_index != -1) {
-                datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+                datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
                 prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                            : (const void *)halo::text::text_string_list_get_string(tag_id, 0xba);
                 chat_scope_active = 2;
@@ -234,7 +236,7 @@ team_scope:
         {
             datum_index tag_id;
             chat_scope_active = 1;
-            tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+            tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
             prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                        : (const void *)halo::text::text_string_list_get_string(tag_id, 0xb9);
             if (chat_scope_active == -1) {

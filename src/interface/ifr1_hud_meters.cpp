@@ -1,4 +1,6 @@
 #include "halo/interface/ifr1_hud_meters.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/bitmaps/api.hpp"
 #include <string.h>
 #include "halo/math/api.hpp"
@@ -43,7 +45,7 @@ namespace halo::interface {
 void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t flags, float fraction, float fraction_2, const hud_meter_placement *meter)
 {
     datum_index bitmap_tag = *(datum_index *)&meter->meter_bitmap.tag_id;
-    uint8_t *bitmap_tag_data = (uint8_t *)halo::cache::globals().tag_instances[bitmap_tag & 0xffff].data;
+    uint8_t *bitmap_tag_data = (uint8_t *)halo::cache::globals().tag_instances[bitmap_tag & halo::k_slot_mask].data;
     BitmapData *bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(bitmap_tag, 0, (int16_t)meter->sequence_index);
     const uint8_t *sprite_rect = 0;
     uint8_t is_sprite_bitmap;
@@ -57,8 +59,8 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
         return;
     }
 
-    if (bitmap_tag != (datum_index)-1 && meter->sequence_index != 0xffff) {
-        uint8_t *bitmap_definition = (uint8_t *)halo::cache::globals().tag_instances[bitmap_tag & 0xffff].data;
+    if (bitmap_tag != (datum_index)-1 && meter->sequence_index != halo::k_word_none) {
+        uint8_t *bitmap_definition = (uint8_t *)halo::cache::globals().tag_instances[bitmap_tag & halo::k_slot_mask].data;
         int16_t sequence = (int16_t)meter->sequence_index;
         if (sequence < *(int32_t *)(bitmap_definition + 0x54)) {
             uint8_t *sequence_entry = *(uint8_t **)(bitmap_definition + 0x58) + sequence * 0x40;
@@ -264,7 +266,7 @@ void HudMeters::resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_in
     int32_t frame = frame_index;
 
     if (bitmap_tag != (datum_index)-1) {
-        Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag & 0xffff].data;
+        Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag & halo::k_slot_mask].data;
         int16_t sequence = (int16_t)sequence_index;
 
         if (sequence < (int32_t)bitmap->bitmap_group_sequence.count) {
@@ -356,10 +358,10 @@ void HudMeters::unit_meters_update_for_player(int16_t local_player_index)
     if (local_player_index != -1 && local_player_index < 1) {
         player_index = halo::game::globals().local_player_globals->local_players[local_player_index];
         if (player_index != (datum_index)-1) {
-            datum_index unit_index = ((player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * 0x200))->unit;
+            datum_index unit_index = ((player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & halo::k_slot_mask) * 0x200))->unit;
 
             if (unit_index != (datum_index)-1) {
-                uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
+                uint8_t *unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
                 hud_unit_meter_state *state = &hud_unit_meters->players[local_player_index];
                 float shield = ((unit_object *)unit)->base.shield_vitality;
 
@@ -403,7 +405,7 @@ void HudMeters::unit_meters_update_for_player(int16_t local_player_index)
     if (halo::cutscene::globals().cinematic_globals->in_progress != 0 && local_player_index != -1 && local_player_index < 1) {
         player_index = halo::game::globals().local_player_globals->local_players[local_player_index];
         if (player_index != (datum_index)-1) {
-            halo::interface::hud_unit_sounds_update((player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & 0xffff) * 0x200),
+            halo::interface::hud_unit_sounds_update((player *)((uint8_t *)halo::game::globals().player_data->data + (player_index & halo::k_slot_mask) * 0x200),
                                    hud_flags->hud_enabled);
         }
     }

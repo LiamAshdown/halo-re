@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_network.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/main/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
@@ -53,8 +54,8 @@ void NetworkSetup::game_host_start(char *map_name, char *variant_name, uint8_t d
 
     widget = halo::interface::chimera__load_ui_widget(
         (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\connected\\pregame\\connected_pregame_screen",
-        (datum_index)0xffffffff, (widget_instance *)0, 0xffff, (datum_index)0xffffffff,
-        (datum_index)0xffffffff, -1);
+        (datum_index)halo::k_dword_none, (widget_instance *)0, halo::k_word_none, (datum_index)halo::k_dword_none,
+        (datum_index)halo::k_dword_none, -1);
     if (widget != (widget_instance *)0) {
         halo::game::game_engine_ensure_variant_history_has_entry();
         halo::networking::globals().disconnect_timeout_flag = disconnect_timeout_flag;
@@ -77,7 +78,7 @@ void NetworkSetup::game_host_start(char *map_name, char *variant_name, uint8_t d
         halo::networking::network_client_globals_dispose();
         halo::networking::globals().disconnect_timeout_flag = 0;
     }
-    split_screen_quit_prompt_string = 0xffff;
+    split_screen_quit_prompt_string = halo::k_word_none;
     halo::networking::globals().join_error_reason = 0;
     split_screen_quit_prompt_armed = 1;
 }

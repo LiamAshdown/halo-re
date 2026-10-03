@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_first_person_weapon_controller.hpp"
+#include "halo/core/slot_mask.hpp"
 #include "halo/models/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -34,7 +35,7 @@ extern float zoom_static_tint_b;
 
 static object *object_get(datum_index object_index)
 {
-    return *(object **)((char *)halo::objects::globals().object_data->data + 8 + (object_index & 0xffff) * 0xc);
+    return *(object **)((char *)halo::objects::globals().object_data->data + 8 + (object_index & halo::k_slot_mask) * 0xc);
 }
 
 static ModelAnimationsAnimationGraphFirstPersonWeaponAnimations *first_person_weapon_list(
@@ -86,9 +87,9 @@ void FirstPersonWeaponController::update()
     if (fp->unit_index != (datum_index)-1 && fp->weapon_index != (datum_index)-1) {
         object *weapon_obj = object_get(fp->weapon_index);
         object *unit_obj = object_get(fp->unit_index);
-        Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
+        Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & halo::k_slot_mask].data;
         datum_index animation_graph = *(datum_index *)&weapon_tag->first_person_animations.tag_id;
-        ModelAnimations *animations = (ModelAnimations *)halo::cache::globals().tag_instances[animation_graph & 0xffff].data;
+        ModelAnimations *animations = (ModelAnimations *)halo::cache::globals().tag_instances[animation_graph & halo::k_slot_mask].data;
         ModelAnimationsAnimationGraphFirstPersonWeaponAnimations *list;
         uint32_t *weapon_flags = (uint32_t *)((uint8_t *)weapon_obj + 0x22c);
         datum_index frame_sound;
@@ -276,8 +277,8 @@ void FirstPersonWeaponController::update_animation_controls()
 
     {
         object *weapon_obj = *(object **)((char *)halo::objects::globals().object_data->data + 8 +
-                                          (fp->weapon_index & 0xffff) * 0xc);
-        Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
+                                          (fp->weapon_index & halo::k_slot_mask) * 0xc);
+        Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & halo::k_slot_mask].data;
         void *model = halo::cache::globals().tag_instances[weapon_tag->first_person_model.tag_id.index].data;
         ModelAnimations *animations =
             (ModelAnimations *)halo::cache::globals().tag_instances[weapon_tag->first_person_animations.tag_id.index].data;
@@ -391,11 +392,11 @@ void FirstPersonWeaponController::update_zoom_static_tint(uint8_t enabled)
     if (hud_interface == -1) {
         return;
     }
-    if ((int32_t)((WeaponHUDInterface *)halo::cache::globals().tag_instances[hud_interface & 0xffff].data)->screen_effect.count <= 0) {
+    if ((int32_t)((WeaponHUDInterface *)halo::cache::globals().tag_instances[hud_interface & halo::k_slot_mask].data)->screen_effect.count <= 0) {
         return;
     }
     effect = (WeaponHUDInterfaceScreenEffect *)
-        ((WeaponHUDInterface *)halo::cache::globals().tag_instances[hud_interface & 0xffff].data)->screen_effect.pointer;
+        ((WeaponHUDInterface *)halo::cache::globals().tag_instances[hud_interface & halo::k_slot_mask].data)->screen_effect.pointer;
 
     if ((int16_t)halo::game::local_player_get_zoom_level(current_local_player_index) == -1 &&
         (effect->mask_flags & 1) != 0) {

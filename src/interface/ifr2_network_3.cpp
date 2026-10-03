@@ -1,4 +1,6 @@
 #include "win32.h"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
 #include "halo/interface/ifr2_network.hpp"
 #include "crt.h"
@@ -97,11 +99,11 @@ void MenuListView::update()
                 wcsncpy((wchar_t *)buf, (const wchar_t *)((const uint16_t *)(entry + 0x1c)), 0xf);
                 ((uint16_t *)row->text)[0xf] = 0;
             } else {
-                datum_index tag = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
+                datum_index tag = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
                 uint16_t *source = missing_string_text;
 
                 if (tag != (datum_index)-1) {
-                    UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag & 0xffff].data;
+                    UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag & halo::k_slot_mask].data;
 
                     if (list->strings.count > 0x13) {
                         UnicodeStringListString *strings = (UnicodeStringListString *)list->strings.pointer;
