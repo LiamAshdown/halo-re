@@ -1114,8 +1114,7 @@ uint8_t ConversationView::resolve_participants(uint8_t *out_keep_trying)
         variant = (int16_t)participants[i].variant_numbers[variant_slots[i]];
         if (*(int16_t *)((uint8_t *)unit_object + 0xbe) != variant) {
             *(int16_t *)((uint8_t *)unit_object + 0xbe) = variant;
-            *(uint32_t *)((uint8_t *)unit_object + 0x204) =
-                *(uint32_t *)((uint8_t *)unit_object + 0x204) & 0xfffffeffu;
+            halo::units::unit_data_of(unit_object)->flags &= 0xfffffeffu;
         }
     }
     instance->active = 1;

@@ -20,6 +20,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/cache/globals.hpp"
 #include "halo/core/slot_mask.hpp"
+#include "halo/units/records.hpp"
 
 namespace halo::ai {
 
@@ -81,6 +82,15 @@ inline object_header &object_header_at(uint32_t handle)
 
 static_assert(sizeof(unit_speech) == 0x30);
 static_assert(offsetof(unit_speech, unknown_10) == 0x10);
+static_assert(offsetof(Scenario, encounters) == 0x42c);
+static_assert(sizeof(ScenarioEncounter) == 0xb0 && offsetof(ScenarioEncounter, flags) == 0x20 && offsetof(ScenarioEncounter, squads) == 0x80);
+static_assert(sizeof(ScenarioSquad) == 0xe8);
+static_assert(sizeof(UnitSeat) == 0x11c);
+static_assert(offsetof(Weapon, minimum_target_range) == 0x40c);
+static_assert(offsetof(Vehicle, vehicle_flags) == 0x2f0);
+static_assert(sizeof(ModelAnimationsAnimationGraphUnitSeat) == 0x64 && offsetof(ModelAnimationsAnimationGraphUnitSeat, animations) == 0x40);
+static_assert(offsetof(ModelAnimations, units) == 0xc);
+static_assert(offsetof(Object, animation_graph) == 0x38);
 
 /** Returns the communication record that fills the second half of a unit_speech (offsets 0x10..0x2f). */
 inline ai_communication_target_result &speech_target(unit_speech &speech)

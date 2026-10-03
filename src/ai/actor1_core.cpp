@@ -1000,10 +1000,10 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
 
     unit->swarm_actor_index = actor_index;
     unit->swarm_next_unit_index = self->cluster_unit_index;
-    *(uint32_t *)((uint8_t *)unit_object + 0x200) = halo::k_dword_none;
+    unit->swarm_previous_unit_index = halo::k_dword_none;
     if (self->cluster_unit_index != (datum_index)k_datum_index_none) {
         object *head_object = halo::ai::object_at(self->cluster_unit_index);
-        *(uint32_t *)((uint8_t *)head_object + 0x200) = unit_index;
+        halo::units::unit_data_of(head_object)->swarm_previous_unit_index = unit_index;
     }
     self->cluster_unit_index = unit_index;
 

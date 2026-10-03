@@ -87,10 +87,11 @@ void halo::ai::grenade_ops::attempt_grenade_throw()
 
     roll = (real)(int32_t)actor_death_random_16() * 1.5259022e-05f;
     unit = halo::ai::object_bytes(a->unit_index);
-    weapon = ((unit_object *)unit)->unit.current_weapon_index != -1 ? *(datum_index *)(unit + 0x2f8 + ((unit_object *)unit)->unit.current_weapon_index * 4)
+    weapon = ((unit_object *)unit)->unit.current_weapon_index != -1 ? ((unit_object *)unit)->unit.weapons[((unit_object *)unit)->unit.current_weapon_index]
                                               : k_datum_index_none;
     if (!halo::ai::globals().state->grenades_enabled || roll < variant->don_t_drop_grenades_chance) {
-        *(int16_t *)(unit + 0x31e) = 0;
+        ((unit_object *)unit)->unit.grenade_counts[0] = 0;
+        ((unit_object *)unit)->unit.grenade_counts[1] = 0;
     }
     if (weapon != k_datum_index_none) {
         float lo = variant->drop_weapon_loaded[0];

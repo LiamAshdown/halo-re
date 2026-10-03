@@ -94,7 +94,8 @@ namespace c_actor_died_unit_grenade_count_mod {
 void halo::ai::grenade_ops::died_unit_grenade_count_mod(object *unit_object, const uint8_t *actor_tag_data, datum_index weapon_object_index, datum_index actor_index, datum_index encounter_index)
 {
     using namespace c_actor_died_unit_grenade_count_mod;
-    *(int16_t *)((uint8_t *)unit_object + 0x31e) = 0;
+    halo::units::unit_data_of(unit_object)->grenade_counts[0] = 0;
+    halo::units::unit_data_of(unit_object)->grenade_counts[1] = 0;
 
     if (weapon_object_index != (datum_index)k_datum_index_none) {
         float min_fraction = *(const float *)(actor_tag_data + 0x1d8);

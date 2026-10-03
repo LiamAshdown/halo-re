@@ -300,14 +300,14 @@ void halo::ai::combat_ops::choose_best_target()
         if (p->state > 1 && p->state < 4 && p->dead == 0) {
             if (p->enemy == 0) {
                 tracked_object = halo::ai::object_at(p->object_index);
-                owning_actor_index = *(datum_index *)((uint8_t *)tracked_object + 0x1f4);
+                owning_actor_index = halo::units::unit_data_of(tracked_object)->actor_index;
                 target_actor = (actor *)0;
                 if (owning_actor_index != (datum_index)k_datum_index_none) {
                     target_actor = (actor *)((uint8_t *)halo::ai::globals().actor_data->data +
                                              (owning_actor_index & halo::k_slot_mask) * sizeof(actor));
                 }
 
-                if (*(int32_t *)((uint8_t *)tracked_object + 0x218) != -1) {
+                if ((int32_t)halo::units::unit_data_of(tracked_object)->controlling_player != -1) {
                     actor_type_slot = 6;
                 } else if (target_actor == (actor *)0) {
                     actor_type_slot = 14;
@@ -1135,7 +1135,7 @@ void halo::ai::combat_ops::get_aim_from_position(uint32_t out_position[3])
         unit_index = self->active_unit_index;
         hdr = (object_header *)halo::objects::globals().object_data->data + (unit_index & halo::k_slot_mask);
         unit_obj = hdr->data;
-        if ((*(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[unit_obj->definition_tag & halo::k_slot_mask].data + 0x2f0) & 0x100) != 0) {
+        if ((halo::ai::tag_data<Vehicle>(unit_obj->definition_tag)->vehicle_flags & 0x100) != 0) {
             out_position[0] = halo::bit_cast<uint32_t>(unit_obj->forward.i);
             out_position[1] = halo::bit_cast<uint32_t>(unit_obj->forward.j);
             out_position[2] = halo::bit_cast<uint32_t>(unit_obj->forward.k);
@@ -1145,9 +1145,9 @@ void halo::ai::combat_ops::get_aim_from_position(uint32_t out_position[3])
 
     hdr = (object_header *)halo::objects::globals().object_data->data + (unit_index & halo::k_slot_mask);
     unit_obj = hdr->data;
-    out_position[0] = *(uint32_t *)((uint8_t *)unit_obj + 0x23c);
-    out_position[1] = *(uint32_t *)((uint8_t *)unit_obj + 0x240);
-    out_position[2] = *(uint32_t *)((uint8_t *)unit_obj + 0x244);
+    out_position[0] = halo::bit_cast<uint32_t>(halo::units::unit_data_of(unit_obj)->aiming_vector.i);
+    out_position[1] = halo::bit_cast<uint32_t>(halo::units::unit_data_of(unit_obj)->aiming_vector.j);
+    out_position[2] = halo::bit_cast<uint32_t>(halo::units::unit_data_of(unit_obj)->aiming_vector.k);
 
     halo::units::unit_clamp_direction_to_aim_or_look_bounds(unit_index, (real_vector3d *)out_position, 1);
 }

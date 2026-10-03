@@ -1418,10 +1418,10 @@ void AiObjects::set_squad_reference(datum_index object_index, uint32_t packed_re
             out_squad = squad_index;
             out_encounter = encounter_index;
             if (encounter_index != -1 && (int16_t)squad_index != -1 &&
-                *(int16_t *)((uint8_t *)obj + 0x334) != -1) {
+                halo::units::unit_data_of(obj)->encounter_index != -1) {
                 datum_index cursor[3];
 
-                halo::ai::ai_reference_actor_iterator_init_cursor((int32_t)*(int16_t *)((uint8_t *)obj + 0x334), cursor);
+                halo::ai::ai_reference_actor_iterator_init_cursor((int32_t)halo::units::unit_data_of(obj)->encounter_index, cursor);
                 actor_index = cursor[2];
                 while (halo::ai::globals().state->actors_valid != 0 &&
                        actor_index != (datum_index)k_datum_index_none) {
@@ -1437,8 +1437,8 @@ void AiObjects::set_squad_reference(datum_index object_index, uint32_t packed_re
         }
     }();
 
-    *(int16_t *)((uint8_t *)obj + 0x334) = out_encounter;
-    *(int16_t *)((uint8_t *)obj + 0x336) = (int16_t)out_squad;
+    halo::units::unit_data_of(obj)->encounter_index = out_encounter;
+    halo::units::unit_data_of(obj)->squad_index = (int16_t)out_squad;
 }
 
 /**
