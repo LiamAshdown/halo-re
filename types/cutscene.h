@@ -1,3 +1,4 @@
+#pragma once
 // Blam cutscene module (halo.exe 1.0.10 retail, 0x449590..0x44a790, 15 Ghidra functions).
 // Three things share this address run, and the header follows them:
 //

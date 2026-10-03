@@ -13,6 +13,9 @@
 
 namespace halo::math {
 
+/** Seed of the random stream the periodic function tables are generated from. */
+inline constexpr uint32_t k_periodic_function_noise_seed = 0x20f3f660;
+
 namespace {
 
 /** A wave whose value is the same at every phase (one, zero). */
@@ -178,7 +181,7 @@ void periodic_function_tables_init()
     uint8_t *table;
 
     globals().periodic_functions_initialized = 1;
-    globals().random_seed_global = 0x20f3f660;
+    globals().random_seed_global = k_periodic_function_noise_seed;
 
     for (i = 0; i < k_periodic_function_count; i++) {
         table = (uint8_t *)GlobalAlloc(0, k_periodic_function_table_size);
@@ -281,11 +284,11 @@ real transition_function_evaluate(transition_function_type type, real phase)
     x = (double)(clamped * 1023.0f);
     frac_part = (real)fmod(x, 1.0);
     index = (int16_t)(int32_t)lrint(x - 0.5);
-    if (index != 0x3ff) {
+    if (index != k_periodic_function_table_mask) {
         return (real)table->samples[index + 1] * 0.003921569f * frac_part +
                (1.0f - frac_part) * (real)table->samples[index] * 0.003921569f;
     }
-    return (real)table->samples[0x3ff] * 0.003921569f;
+    return (real)table->samples[k_periodic_function_table_mask] * 0.003921569f;
 }
 
 void periodic_function_build_noise_table(real *table)

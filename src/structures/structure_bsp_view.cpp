@@ -44,7 +44,7 @@ void structure_bsp_view::expand_visible_clusters_by_plane()
                     material->compressed_vertices.pointer;
 
             int32_t run_end = consumed + surface_count;
-            while (consumed < run_end && globals().visible_surface_count < 0x4000) {
+            while (consumed < run_end && globals().visible_surface_count < k_maximum_visible_surfaces) {
                 int32_t surface_index = *cursor;
                 int32_t word = surface_index >> 5;
                 uint32_t mask = 1u << (surface_index & 0x1f);
@@ -81,7 +81,7 @@ void structure_bsp_view::expand_visible_clusters_by_subcluster()
     ScenarioStructureBSPCluster *clusters = (ScenarioStructureBSPCluster *)self->clusters.pointer;
 
     for (int16_t i = 0; i < globals().visible_cluster_count; i++) {
-        if (globals().visible_surface_count > 0x3fff) {
+        if (globals().visible_surface_count >= k_maximum_visible_surfaces) {
             return;
         }
         ScenarioStructureBSPCluster *cluster = &clusters[globals().visible_clusters[i].cluster_index];
@@ -93,7 +93,7 @@ void structure_bsp_view::expand_visible_clusters_by_subcluster()
         }
 
         for (int32_t j = 0; j < (int32_t)cluster->subclusters.count; j++) {
-            if (globals().visible_surface_count > 0x3fff) {
+            if (globals().visible_surface_count >= k_maximum_visible_surfaces) {
                 break;
             }
             ScenarioStructureBSPSubcluster *subcluster =
@@ -109,7 +109,7 @@ void structure_bsp_view::expand_visible_clusters_by_subcluster()
                 if ((globals().surface_visible_bits[word] & mask) != 0) {
                     continue;
                 }
-                if (globals().visible_surface_count > 0x3fff) {
+                if (globals().visible_surface_count >= k_maximum_visible_surfaces) {
                     break;
                 }
                 globals().surface_visible_bits[word] |= mask;

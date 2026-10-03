@@ -1,3 +1,4 @@
+#pragma once
 // Blam shaders module (halo.exe 1.0.10 retail, 0x53fd60..0x540295, 7 Ghidra functions).
 // The runtime helpers the rasterizer asks of shader tag data, plus the numeric countdown timer
 // that numeric transparent_chicago shaders display:

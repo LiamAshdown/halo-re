@@ -13,6 +13,9 @@
 
 namespace halo::structures {
 
+/** Bytes of game state reserved for each of the two object/cluster reference pools. */
+inline constexpr int32_t k_cluster_reference_pool_bytes = 0x800;
+
 void cluster_flood::camera_portal_flood_recursive(int16_t cluster_index, polygon2d *view_polygon)
 {
     ScenarioStructureBSPCluster *cluster =
@@ -290,18 +293,18 @@ void cluster_references::partition_new(cluster_reference_group *out, char *name)
     uint8_t *region;
 
     region = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
-    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x800;
-    size = 0x800;
+    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + k_cluster_reference_pool_bytes;
+    size = k_cluster_reference_pool_bytes;
     halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     out->cluster_first = (datum_index *)region;
 
     sprintf(format_buffer, "cluster %s", name);
     sprintf(pool_name, "%s reference", format_buffer);
-    out->cluster_object_references = halo::saved_games::game_state_new(pool_name, 0x800, sizeof(object_cluster_reference));
+    out->cluster_object_references = halo::saved_games::game_state_new(pool_name, k_cluster_reference_pool_bytes, sizeof(object_cluster_reference));
 
     sprintf(format_buffer, "%s cluster", name);
     sprintf(pool_name, "%s reference", format_buffer);
-    out->object_cluster_references = halo::saved_games::game_state_new(pool_name, 0x800, sizeof(object_cluster_reference));
+    out->object_cluster_references = halo::saved_games::game_state_new(pool_name, k_cluster_reference_pool_bytes, sizeof(object_cluster_reference));
 }
 
 void cluster_references::add_within_radius(uint32_t light_or_object_handle, datum_index *placement_slot, real_point3d *position, float radius, bsp_leaf_reference *leaf_and_cluster, cluster_reference_group *cluster_list)

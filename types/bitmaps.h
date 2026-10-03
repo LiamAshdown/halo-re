@@ -1,3 +1,4 @@
+#pragma once
 // Blam bitmaps module (halo.exe 1.0.10 retail, 0x43f030..0x440347, 27 Ghidra functions).
 // Bitmap group post-processing after a map load, bitmap_data lookup by index and by
 // sequence/frame, mip level size and pixel address arithmetic for 2D, 3D and cube map

@@ -1,3 +1,4 @@
+#pragma once
 // Blam saved_games module (halo.exe 1.0.10 retail, 0x537f70..0x556170, 116 functions).
 // Four layers live in this range:
 //   - game_state: the 0x440000-byte game-state arena (game_state_new / game_state_new_pool

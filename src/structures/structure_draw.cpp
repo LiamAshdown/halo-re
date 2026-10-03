@@ -17,6 +17,9 @@
 
 namespace halo::structures {
 
+/** D3DPS_VERSION(1, 1): devices reporting an older pixel shader version need the fixed-function fallback. */
+inline constexpr uint32_t k_pixel_shader_version_1_1 = 0xffff0101u;
+
 int32_t structure_draw::build_visible_surface_geometry(int32_t *visible_surface_indices, uint32_t *surface_bits, int16_t visible_surface_count)
 {
     void (__stdcall **vtable)(void *);
@@ -244,7 +247,7 @@ void structure_draw::picked_polygon_draw(void)
 
     structure_draw::leaf_faces_for_each(globals().picked_surfaces_geometry, (structure_lightmap_begin_callback)structure_picked_polygon_lightmap_begin, (structure_material_callback)structure_picked_polygon_material, (structure_lightmap_end_callback)halo::cseries::function_do_nothing, (structure_transparent_material_callback)0, globals().visible_surface_indices, (int16_t)globals().visible_surface_count);
 
-    if (halo::rasterizer::globals().device_version < 0xffff0101) {
+    if (halo::rasterizer::globals().device_version < k_pixel_shader_version_1_1) {
         void **device = (void **)halo::rasterizer::globals().device;
         (*(void (__stdcall **)(void *, int32_t, int32_t))((uint8_t *)device + 0xe4))(device, 0x89, 0);
     }

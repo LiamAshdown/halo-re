@@ -1,3 +1,4 @@
+#pragma once
 // Blam ai module (halo.exe 1.0.10 retail, 0x401090..0x43ecf0, 519 functions).
 // The actor layer: one actor record per AI-controlled unit, the runtime encounter /
 // squad / platoon bookkeeping built from the scenario encounter blocks, the prop records

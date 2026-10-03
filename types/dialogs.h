@@ -1,3 +1,4 @@
+#pragma once
 // Blam "dialogs" module (halo.exe 1.0.10 retail, 0x57e1f0..0x57e590, 3 Ghidra functions plus
 // one code entry Ghidra has no function for). Two small Win32 helpers:
 //   - dialog_box_show_localized 0x57e1f0: DialogBox by resource name or id, trying the
