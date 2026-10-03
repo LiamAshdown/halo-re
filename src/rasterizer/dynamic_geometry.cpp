@@ -25,8 +25,7 @@ namespace halo::rasterizer {
 void chimera__rasterizer_dispose_free_memory(void)
 {
     if (rasterizer_misc_vertex_buffer != (void *)0) {
-        void **vtable = *(void ***)rasterizer_misc_vertex_buffer;
-        ((void (__stdcall *)(void *))vtable[2])(rasterizer_misc_vertex_buffer);
+        render_device().release(rasterizer_misc_vertex_buffer);
         rasterizer_misc_vertex_buffer = (void *)0;
     }
     if (transparent_geometry_groups != (transparent_geometry_group *)0) {
@@ -47,19 +46,10 @@ void chimera__rasterizer_dispose_free_memory(void)
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
-typedef int32_t (__stdcall *d3d_get_desc_fn)(void *self, void *desc);
 
-typedef int32_t (__stdcall *d3d_set_pointer_fn)(void *self, void *object);
 
-typedef int32_t (__stdcall *d3d_set_stream_source_fn)(void *self, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
 
-typedef int32_t (__stdcall *d3d_draw_indexed_primitive_fn)(void *self, uint32_t type, int32_t base_vertex, uint32_t min_index,
-                                                 uint32_t vertex_count, uint32_t start_index, uint32_t primitive_count);
 
-static void **device_vtable(void)
-{
-    return *(void ***)rasterizer_device;
-}
 
 /**
  * Direct3D 9 back end function chimera__rasterizer_draw_dynamic_triangles_static_vertices. The original author
@@ -87,41 +77,30 @@ void chimera__rasterizer_draw_dynamic_triangles_static_vertices(int32_t primitiv
         chunk = primitive_count > k_rasterizer_draw_chunk_size ? k_rasterizer_draw_chunk_size : primitive_count;
 
         hardware_buffer = (void *)vertex_buffer->hardware_buffer;
-        ((d3d_get_desc_fn)(*(void ***)hardware_buffer)[0x34 / 4])(hardware_buffer, vertex_desc);
-        ((d3d_get_desc_fn)(*(void ***)rasterizer_dynamic_index_buffer)[0x34 / 4])(rasterizer_dynamic_index_buffer, index_desc);
+        render_device().buffer_get_desc(hardware_buffer, vertex_desc);
+        render_device().buffer_get_desc(rasterizer_dynamic_index_buffer, index_desc);
 
-        ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device,
-                                                   ((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
+        render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                     rasterizer_vertex_declarations[vertex_buffer->type].usage) & 0x10);
-        ((d3d_set_stream_source_fn)device_vtable()[0x190 / 4])(rasterizer_device, 0, hardware_buffer, 0, stride);
-        ((d3d_set_pointer_fn)device_vtable()[0x1a0 / 4])(rasterizer_device, rasterizer_dynamic_index_buffer);
+        render_device().set_stream_source(0, hardware_buffer, 0, stride);
+        render_device().set_indices(rasterizer_dynamic_index_buffer);
         {
-            int32_t debug_hr = ((d3d_draw_indexed_primitive_fn)device_vtable()[0x148 / 4])(rasterizer_device, 4, 0, 0, (uint32_t)vertex_buffer->count,
-                                                                    (uint32_t)((slot->first_index + first_primitive) * 3),
-                                                                    (uint32_t)chunk);
+            int32_t debug_hr = render_device().draw_indexed_primitive(4, 0, 0, (uint32_t)vertex_buffer->count, (uint32_t)((slot->first_index + first_primitive) * 3), (uint32_t)chunk);
             debug_fp_draw_state_note("st1", debug_hr, 0, (uint32_t)vertex_buffer->count, (uint32_t)chunk);
         }
         first_primitive += chunk;
         primitive_count -= chunk;
     }
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 }
 
 namespace chimera__rasterizer_draw_dynamic_triangles_static_vertices2_impl {
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
-typedef int32_t (__stdcall *d3d_set_pointer_fn)(void *self, void *object);
 
-typedef int32_t (__stdcall *d3d_set_stream_source_fn)(void *self, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
 
-typedef int32_t (__stdcall *d3d_draw_indexed_primitive_fn)(void *self, uint32_t type, int32_t base_vertex, uint32_t min_index,
-                                                 uint32_t vertex_count, uint32_t start_index, uint32_t primitive_count);
 
-static void **device_vtable(void)
-{
-    return *(void ***)rasterizer_device;
-}
 
 /**
  * Direct3D 9 back end function chimera__rasterizer_draw_dynamic_triangles_static_vertices2. The original
@@ -150,25 +129,21 @@ void chimera__rasterizer_draw_dynamic_triangles_static_vertices2(int32_t primiti
         second_stride = (uint32_t)(int32_t)rasterizer_vertex_sizes[second_stream->type];
         chunk = primitive_count > k_rasterizer_draw_chunk_size ? k_rasterizer_draw_chunk_size : primitive_count;
 
-        ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device,
-                                                   ((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
+        render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                     rasterizer_vertex_declarations[vertex_buffer->type].usage) & 0x10);
-        ((d3d_set_stream_source_fn)device_vtable()[0x190 / 4])(rasterizer_device, 0, (void *)vertex_buffer->hardware_buffer, 0, stride);
+        render_device().set_stream_source(0, (void *)vertex_buffer->hardware_buffer, 0, stride);
         if (config_safe_mode == 0 && rasterizer_caps.max_streams > 1) {
-            ((d3d_set_stream_source_fn)device_vtable()[0x190 / 4])(rasterizer_device, 1, (void *)second_stream->hardware_buffer, 0,
-                                                                   second_stride);
+            render_device().set_stream_source(1, (void *)second_stream->hardware_buffer, 0, second_stride);
         }
-        ((d3d_set_pointer_fn)device_vtable()[0x1a0 / 4])(rasterizer_device, rasterizer_dynamic_index_buffer);
+        render_device().set_indices(rasterizer_dynamic_index_buffer);
         {
-            int32_t debug_hr = ((d3d_draw_indexed_primitive_fn)device_vtable()[0x148 / 4])(rasterizer_device, 4, 0, 0, (uint32_t)vertex_buffer->count,
-                                                                    (uint32_t)((slot->first_index + first_primitive) * 3),
-                                                                    (uint32_t)chunk);
+            int32_t debug_hr = render_device().draw_indexed_primitive(4, 0, 0, (uint32_t)vertex_buffer->count, (uint32_t)((slot->first_index + first_primitive) * 3), (uint32_t)chunk);
             debug_fp_draw_state_note("st2", debug_hr, 0, (uint32_t)vertex_buffer->count, (uint32_t)chunk);
         }
         first_primitive += chunk;
         primitive_count -= chunk;
     }
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 }
 
 }  // namespace chimera__rasterizer_draw_dynamic_triangles_static_vertices2_impl
@@ -202,17 +177,9 @@ namespace rasterizer_dynamic_geometry_chain_draw_impl {
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
-typedef int32_t (__stdcall *d3d_set_pointer_fn)(void *self, void *object);
 
-typedef int32_t (__stdcall *d3d_set_stream_source_fn)(void *self, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
 
-typedef int32_t (__stdcall *d3d_draw_indexed_primitive_fn)(void *self, uint32_t type, int32_t base_vertex, uint32_t min_index,
-                                                 uint32_t vertex_count, uint32_t start_index, uint32_t primitive_count);
 
-static void **device_vtable(void)
-{
-    return *(void ***)rasterizer_device;
-}
 
 /**
  * Direct3D 9 back end function rasterizer_dynamic_geometry_chain_draw. The original author notes are in
@@ -236,15 +203,13 @@ void rasterizer_dynamic_geometry_chain_draw(int32_t primitive_count, rasterizer_
         stride = (uint32_t)(int32_t)rasterizer_vertex_sizes[vertex_buffer->type];
         chunk = primitive_count > k_rasterizer_draw_chunk_size ? k_rasterizer_draw_chunk_size : primitive_count;
 
-        ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, ((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
+        render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                                        rasterizer_vertex_declarations[vertex_buffer->type].usage) & 0x10);
-        ((d3d_set_stream_source_fn)device_vtable()[0x190 / 4])(rasterizer_device, 0, (void *)vertex_buffer->hardware_buffer, 0, stride);
-        ((d3d_set_pointer_fn)device_vtable()[0x1a0 / 4])(rasterizer_device, (void *)index_buffer->hardware_buffer);
+        render_device().set_stream_source(0, (void *)vertex_buffer->hardware_buffer, 0, stride);
+        render_device().set_indices((void *)index_buffer->hardware_buffer);
         {
             debug_fp_pre_draw();
-            int32_t debug_hr = ((d3d_draw_indexed_primitive_fn)device_vtable()[0x148 / 4])(rasterizer_device,
-                                                                    rasterizer_triangle_buffer_primitive_types[index_buffer->type],
-                                                                    0, 0, (uint32_t)vertex_buffer->count, start_index, (uint32_t)chunk);
+            int32_t debug_hr = render_device().draw_indexed_primitive(rasterizer_triangle_buffer_primitive_types[index_buffer->type], 0, 0, (uint32_t)vertex_buffer->count, start_index, (uint32_t)chunk);
             debug_fp_draw_state_note("chn", debug_hr, 0, (uint32_t)vertex_buffer->count, (uint32_t)chunk);
         }
         primitive_count -= chunk;
@@ -259,7 +224,7 @@ void rasterizer_dynamic_geometry_chain_draw(int32_t primitive_count, rasterizer_
             break;
         }
     }
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 }
 
 }  // namespace rasterizer_dynamic_geometry_chain_draw_impl
@@ -335,17 +300,9 @@ namespace rasterizer_dynamic_index_cache_draw_impl {
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
-typedef int32_t (__stdcall *d3d_set_pointer_fn)(void *self, void *object);
 
-typedef int32_t (__stdcall *d3d_set_stream_source_fn)(void *self, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
 
-typedef int32_t (__stdcall *d3d_draw_indexed_primitive_fn)(void *self, uint32_t type, int32_t base_vertex, uint32_t min_index,
-                                                 uint32_t vertex_count, uint32_t start_index, uint32_t primitive_count);
 
-static void **device_vtable(void)
-{
-    return *(void ***)rasterizer_device;
-}
 
 /**
  * Direct3D 9 back end function rasterizer_dynamic_index_cache_draw. The original author notes are in
@@ -373,23 +330,20 @@ void rasterizer_dynamic_index_cache_draw(int32_t dynamic_index_slot, int32_t fir
         stride = (uint32_t)(int32_t)rasterizer_vertex_sizes[type];
         chunk = primitive_count > k_rasterizer_draw_chunk_size ? k_rasterizer_draw_chunk_size : primitive_count;
 
-        ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, ((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
+        render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                                        rasterizer_vertex_declarations[type].usage) & 0x10);
         handle = rasterizer_dynamic_vertex_caches[type].buffer_handle;
         buffer = handle == 0 ? 0 : (void *)rasterizer_vertex_buffer_slots[handle - 1].hardware_buffer;
-        ((d3d_set_stream_source_fn)device_vtable()[0x190 / 4])(rasterizer_device, 0, buffer, 0, stride);
-        ((d3d_set_pointer_fn)device_vtable()[0x1a0 / 4])(rasterizer_device, rasterizer_dynamic_index_buffer);
+        render_device().set_stream_source(0, buffer, 0, stride);
+        render_device().set_indices(rasterizer_dynamic_index_buffer);
         {
-            int32_t debug_hr = ((d3d_draw_indexed_primitive_fn)device_vtable()[0x148 / 4])(rasterizer_device, 4, vertex_slot->first_vertex, 0,
-                                                                    (uint32_t)vertex_slot->vertex_count,
-                                                                    (uint32_t)((index_slot->first_index + first_primitive) * 3),
-                                                                    (uint32_t)chunk);
+            int32_t debug_hr = render_device().draw_indexed_primitive(4, vertex_slot->first_vertex, 0, (uint32_t)vertex_slot->vertex_count, (uint32_t)((index_slot->first_index + first_primitive) * 3), (uint32_t)chunk);
             debug_fp_draw_state_note("idc", debug_hr, 0, (uint32_t)vertex_slot->vertex_count, (uint32_t)chunk);
         }
         first_primitive += chunk;
         primitive_count -= chunk;
     }
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 }
 
 }  // namespace rasterizer_dynamic_index_cache_draw_impl
@@ -573,18 +527,12 @@ int32_t rasterizer_dynamic_vertex_cache_reserve(int16_t vertex_type, int32_t cou
 
 namespace rasterizer_dynamic_vertex_draw_impl {
 
-typedef int32_t (__stdcall *d3d_call0_fn)(void *self);
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-typedef int32_t (__stdcall *d3d_set_stream_source_fn)(void *self, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
 
-static void **device_vtable(void)
-{
-    return *(void ***)rasterizer_device;
-}
 
 /**
  * Direct3D 9 back end function rasterizer_dynamic_vertex_draw. The original author notes are in
@@ -632,7 +580,7 @@ void rasterizer_dynamic_vertex_draw(int32_t first_primitive, int32_t primitive_c
                 quad[4] = (uint16_t)(base + 2);
                 quad[5] = (uint16_t)(base + 3);
             }
-            ((d3d_call0_fn)(*(void ***)rasterizer_dynamic_index_buffer)[0x30 / 4])(rasterizer_dynamic_index_buffer);
+            render_device().buffer_unlock(rasterizer_dynamic_index_buffer);
             rasterizer_dynamic_index_cache_draw(index_slot, 0, triangle_count, dynamic_vertex_slot);
             return;
         }
@@ -647,21 +595,19 @@ void rasterizer_dynamic_vertex_draw(int32_t first_primitive, int32_t primitive_c
         stride = (uint32_t)(int32_t)rasterizer_vertex_sizes[type];
         chunk = primitive_count > k_rasterizer_draw_chunk_size ? k_rasterizer_draw_chunk_size : primitive_count;
 
-        ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, ((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
+        render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                                        rasterizer_vertex_declarations[type].usage) & 0x10);
         handle = rasterizer_dynamic_vertex_caches[type].buffer_handle;
         buffer = handle == 0 ? 0 : (void *)rasterizer_vertex_buffer_slots[handle - 1].hardware_buffer;
-        ((d3d_set_stream_source_fn)device_vtable()[0x190 / 4])(rasterizer_device, 0, buffer, 0, stride);
+        render_device().set_stream_source(0, buffer, 0, stride);
         {
-            int32_t debug_hr = ((d3d_call3_fn)device_vtable()[0x144 / 4])(rasterizer_device, primitive_type,
-                                                   (uint32_t)(primitive_kind * first_primitive + vertex_slot->first_vertex),
-                                                   (uint32_t)chunk);
+            int32_t debug_hr = render_device().draw_primitive(primitive_type, (uint32_t)(primitive_kind * first_primitive + vertex_slot->first_vertex), (uint32_t)chunk);
             debug_fp_draw_state_note("vd", debug_hr, 0, 0, (uint32_t)chunk);
         }
         primitive_count -= chunk;
         first_primitive += chunk;
     }
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 }
 
 }  // namespace rasterizer_dynamic_vertex_draw_impl
@@ -670,17 +616,9 @@ namespace rasterizer_dynamic_vertex_draw_indexed_impl {
 
 typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
-typedef int32_t (__stdcall *d3d_set_pointer_fn)(void *self, void *object);
 
-typedef int32_t (__stdcall *d3d_set_stream_source_fn)(void *self, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
 
-typedef int32_t (__stdcall *d3d_draw_indexed_primitive_fn)(void *self, uint32_t type, int32_t base_vertex, uint32_t min_index,
-                                                 uint32_t vertex_count, uint32_t start_index, uint32_t primitive_count);
 
-static void **device_vtable(void)
-{
-    return *(void ***)rasterizer_device;
-}
 
 /**
  * Direct3D 9 back end function rasterizer_dynamic_vertex_draw_indexed. The original author notes are in
@@ -708,17 +646,14 @@ void rasterizer_dynamic_vertex_draw_indexed(rasterizer_index_buffer *index_buffe
         stride = (uint32_t)(int32_t)rasterizer_vertex_sizes[type];
         chunk = primitive_count > k_rasterizer_draw_chunk_size ? k_rasterizer_draw_chunk_size : primitive_count;
 
-        ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, ((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
+        render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                                        rasterizer_vertex_declarations[type].usage) & 0x10);
         handle = rasterizer_dynamic_vertex_caches[type].buffer_handle;
         buffer = handle == 0 ? 0 : (void *)rasterizer_vertex_buffer_slots[handle - 1].hardware_buffer;
-        ((d3d_set_stream_source_fn)device_vtable()[0x190 / 4])(rasterizer_device, 0, buffer, 0, stride);
-        ((d3d_set_pointer_fn)device_vtable()[0x1a0 / 4])(rasterizer_device, (void *)index_buffer->hardware_buffer);
+        render_device().set_stream_source(0, buffer, 0, stride);
+        render_device().set_indices((void *)index_buffer->hardware_buffer);
         {
-            int32_t debug_hr = ((d3d_draw_indexed_primitive_fn)device_vtable()[0x148 / 4])(rasterizer_device,
-                                                                    rasterizer_triangle_buffer_primitive_types[index_buffer->type],
-                                                                    vertex_slot->first_vertex, 0, (uint32_t)vertex_slot->vertex_count,
-                                                                    start_index, (uint32_t)chunk);
+            int32_t debug_hr = render_device().draw_indexed_primitive(rasterizer_triangle_buffer_primitive_types[index_buffer->type], vertex_slot->first_vertex, 0, (uint32_t)vertex_slot->vertex_count, start_index, (uint32_t)chunk);
             debug_fp_draw_state_note("vdi", debug_hr, 0, (uint32_t)vertex_slot->vertex_count, (uint32_t)chunk);
         }
         primitive_count -= chunk;
@@ -733,7 +668,7 @@ void rasterizer_dynamic_vertex_draw_indexed(rasterizer_index_buffer *index_buffe
             break;
         }
     }
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 }
 
 }  // namespace rasterizer_dynamic_vertex_draw_indexed_impl
@@ -804,22 +739,19 @@ typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 void rasterizer_geometry_draw_fixed_function(uint32_t flags, int32_t dynamic_vertex_slot, rasterizer_vertex_buffer *vertex_buffer, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count)
 {
     if (flags & 0x200) {
-        ((d3d_call1_fn)(*(void ***)rasterizer_device)[0x170 / 4])(rasterizer_device, 0);
-        ((d3d_call1_fn)(*(void ***)rasterizer_device)[0x15c / 4])(rasterizer_device,
-                                                                  rasterizer_vertex_declarations[14].declaration);
+        render_device().set_vertex_shader(0);
+        render_device().set_vertex_declaration(rasterizer_vertex_declarations[14].declaration);
         rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, vertex_buffer, primitive_count, 0,
                                                   dynamic_vertex_slot);
     } else {
         rasterizer_vertex_buffer processed = *vertex_buffer;
 
-        ((d3d_call1_fn)(*(void ***)rasterizer_device)[0x170 / 4])(rasterizer_device, rasterizer_vertex_shaders[27].shader);
-        ((d3d_call1_fn)(*(void ***)rasterizer_device)[0x15c / 4])(rasterizer_device,
-                                                                  rasterizer_vertex_declarations[4].declaration);
+        render_device().set_vertex_shader(rasterizer_vertex_shaders[27].shader);
+        render_device().set_vertex_declaration(rasterizer_vertex_declarations[4].declaration);
         processed.hardware_buffer = index_buffer != NULL ? rasterizer_dynamic_vertex_process_and_get_handle(vertex_buffer) : 0;
         processed.type = _rasterizer_vertex_type_model_processed;
-        ((d3d_call1_fn)(*(void ***)rasterizer_device)[0x170 / 4])(rasterizer_device, 0);
-        ((d3d_call1_fn)(*(void ***)rasterizer_device)[0x15c / 4])(rasterizer_device,
-                                                                  rasterizer_vertex_declarations[15].declaration);
+        render_device().set_vertex_shader(0);
+        render_device().set_vertex_declaration(rasterizer_vertex_declarations[15].declaration);
         rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, &processed, primitive_count, 0,
                                                   dynamic_vertex_slot);
     }
@@ -866,9 +798,8 @@ void rasterizer_geometry_part_draw(transparent_geometry_group *group)
                                                 (rasterizer_index_buffer *)(uintptr_t)group->index_buffer,
                                                 group->dynamic_index_slot, group->primitive_count);
     } else {
-        ((d3d_call1_fn)(*(void ***)rasterizer_device)[0x15c / 4])(rasterizer_device,
-                                                                  rasterizer_vertex_declarations[4].declaration);
-        ((d3d_call1_fn)(*(void ***)rasterizer_device)[0x170 / 4])(rasterizer_device, rasterizer_depth_prepass_vertex_shader);
+        render_device().set_vertex_declaration(rasterizer_vertex_declarations[4].declaration);
+        render_device().set_vertex_shader(rasterizer_depth_prepass_vertex_shader);
         rasterizer_transparent_geometry_group_draw_vertices(group, 0);
     }
     if ((int8_t)group->flags < 0 && group->parameters.mode == 1) {

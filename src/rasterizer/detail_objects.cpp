@@ -14,8 +14,6 @@ extern int16_t render_local_view_count(void);
 
 namespace halo::rasterizer {
 
-typedef int32_t (__stdcall *d3d_create_vertex_buffer_fn)(void *device, uint32_t length, uint32_t usage, uint32_t fvf,
-                                               uint32_t pool, void **out_buffer, void *shared_handle);
 
 /**
  * Direct3D 9 back end function rasterizer_detail_object_vertex_buffer_create. The original author notes are in
@@ -29,9 +27,7 @@ uint8_t rasterizer_detail_object_vertex_buffer_create(void)
     uint32_t usage = (rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                      rasterizer_vertex_declarations[_rasterizer_vertex_type_detail_object].usage | 0x200;
     uint32_t pool = (usage & 0x10) != 0 || (usage & 0x200) != 0 ? 2 : 1;
-    void **vtable = *(void ***)rasterizer_device;
-    int32_t hr = ((d3d_create_vertex_buffer_fn)vtable[0x68 / 4])(rasterizer_device, 0x78000, usage, 0, pool,
-                                                                  &buffer, 0);
+    int32_t hr = render_device().create_vertex_buffer(0x78000, usage, 0, pool, &buffer, 0);
 
     rasterizer_detail_object_vertex_buffer = hr < 0 ? 0 : buffer;
     return (uint8_t)(rasterizer_detail_object_vertex_buffer != 0);
@@ -39,34 +35,25 @@ uint8_t rasterizer_detail_object_vertex_buffer_create(void)
 
 namespace rasterizer_detail_objects_begin_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
-typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
 
-typedef int32_t (__stdcall *d3d_set_stream_source_fn)(void *self, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
 
-static void **device_vtable(void)
-{
-    return *(void ***)rasterizer_device;
-}
 
 static void rasterizer_set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 static void rasterizer_set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x10c / 4])(rasterizer_device, stage, type, value);
+    render_device().set_texture_stage_state(stage, type, value);
 }
 
 static void rasterizer_set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x114 / 4])(rasterizer_device, sampler, type, value);
+    render_device().set_sampler_state(sampler, type, value);
 }
 
 /**
@@ -124,10 +111,10 @@ void rasterizer_detail_objects_begin(void)
     constants[21] = 0.0f;
     constants[22] = 0.5f;
     constants[23] = 1.0f;
-    ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xd, constants, 6);
+    render_device().set_vertex_shader_constant_f(0xd, constants, 6);
 
-    ((d3d_set_stream_source_fn)device_vtable()[0x190 / 4])(rasterizer_device, 0, rasterizer_detail_object_vertex_buffer, 0, 0x14);
-    ((d3d_call1_fn)device_vtable()[0x1ac / 4])(rasterizer_device, 0);
+    render_device().set_stream_source(0, rasterizer_detail_object_vertex_buffer, 0, 0x14);
+    render_device().set_pixel_shader(0);
     rasterizer_set_texture_stage_state(0, 1, 4);
     rasterizer_set_texture_stage_state(0, 2, 2);
     rasterizer_set_texture_stage_state(0, 3, 0);
@@ -142,18 +129,10 @@ void rasterizer_detail_objects_begin(void)
 
 namespace rasterizer_detail_objects_draw_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
-typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-typedef int32_t (__stdcall *d3d_set_pointer_fn)(void *self, void *object);
 
-typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
 
-static void **device_vtable(void)
-{
-    return *(void ***)rasterizer_device;
-}
 
 /**
  * Direct3D 9 back end function rasterizer_detail_objects_draw. The original author notes are in
@@ -220,23 +199,19 @@ void rasterizer_detail_objects_draw(const rasterizer_detail_object_batches *list
             }
         }
 
-        ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0x13, &type_constants[0][0], (uint32_t)type_count);
-        ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0x1d, &sprite_constants[0][0], (uint32_t)sprite_count);
-        ((d3d_set_pointer_fn)device_vtable()[0x15c / 4])(
-            rasterizer_device, (void *)rasterizer_vertex_declarations[_rasterizer_vertex_type_detail_object].declaration);
-        ((d3d_call1_fn)device_vtable()[0x134 / 4])(
-            rasterizer_device, ((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
+        render_device().set_vertex_shader_constant_f(0x13, &type_constants[0][0], (uint32_t)type_count);
+        render_device().set_vertex_shader_constant_f(0x1d, &sprite_constants[0][0], (uint32_t)sprite_count);
+        render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[_rasterizer_vertex_type_detail_object].declaration);
+        render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                 rasterizer_vertex_declarations[_rasterizer_vertex_type_detail_object].usage) & 0x10);
-        ((d3d_set_pointer_fn)device_vtable()[0x170 / 4])(
-            rasterizer_device, (void *)rasterizer_vertex_shaders[3 + collection->collection_type].shader);
+        render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[3 + collection->collection_type].shader);
 
         for (draw_index = 0; draw_index < batch->draw_count; draw_index++) {
             const rasterizer_detail_object_draw *draw = &((const rasterizer_detail_object_draw *)batch->draws)[draw_index];
 
-            ((d3d_call3_fn)device_vtable()[0x144 / 4])(rasterizer_device, 4, (uint32_t)draw->first_vertex,
-                                                       (uint32_t)(draw->quad_count * 2));
+            render_device().draw_primitive(4, (uint32_t)draw->first_vertex, (uint32_t)(draw->quad_count * 2));
         }
-        ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+        render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
     }
 }
 
@@ -298,9 +273,7 @@ void rasterizer_detail_objects_expand_quad_vertices(int32_t quad_count, uint32_t
 
 namespace rasterizer_detail_objects_vertex_buffer_fill_impl {
 
-typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
 
-typedef int32_t (__stdcall *d3d_unlock_fn)(void *self);
 
 /**
  * Direct3D 9 back end function rasterizer_detail_objects_vertex_buffer_fill. The original author notes are in
@@ -320,7 +293,7 @@ void rasterizer_detail_objects_vertex_buffer_fill(rasterizer_detail_object_batch
 
     scenario = global_scenario;
     buffer = rasterizer_detail_object_vertex_buffer;
-    if (((d3d_lock_fn)(*(void ***)buffer)[0x2c / 4])(buffer, 0, 0x78000, (void **)&vertices, 0) >= 0 && vertices != 0) {
+    if (render_device().buffer_lock(buffer, 0, 0x78000, (void **)&vertices, 0) >= 0 && vertices != 0) {
         uint8_t *detail_objects = *(uint32_t *)((uint8_t *)global_structure_bsp + 0x24c) != 0
                                       ? (uint8_t *)*(uint32_t *)((uint8_t *)global_structure_bsp + 0x250) : (uint8_t *)0;
         const uint8_t *instances = (const uint8_t *)*(uint32_t *)(detail_objects + 0x10);
@@ -358,7 +331,7 @@ void rasterizer_detail_objects_vertex_buffer_fill(rasterizer_detail_object_batch
             }
         }
     }
-    ((d3d_unlock_fn)(*(void ***)rasterizer_detail_object_vertex_buffer)[0x30 / 4])(rasterizer_detail_object_vertex_buffer);
+    render_device().buffer_unlock(rasterizer_detail_object_vertex_buffer);
 }
 
 }  // namespace rasterizer_detail_objects_vertex_buffer_fill_impl

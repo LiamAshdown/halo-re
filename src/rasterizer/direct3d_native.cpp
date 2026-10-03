@@ -15,12 +15,10 @@ extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_
 
 namespace halo::rasterizer {
 
-typedef int32_t (__stdcall *d3dx_get_by_name_fn)(void *effect, void *parent, const char *name);
 
 static uint32_t get_param(void *effect, const char *name)
 {
-    void **vt = *(void ***)effect;
-    return (uint32_t)((d3dx_get_by_name_fn)vt[0x24 / 4])(effect, 0, name);
+    return (uint32_t)render_device().effect_get_parameter_by_name(effect, 0, name);
 }
 
 /**
@@ -285,18 +283,12 @@ uint8_t rasterizer_dx9_vertex_declarations_create(void)
 
 namespace rasterizer_render_loading_screen_impl {
 
-typedef int32_t (__stdcall *d3d_create_offscreen_surface_fn)(void *device, uint32_t width, uint32_t height,
-                                                     uint32_t format, uint32_t pool, void **out_surface,
-                                                     uint32_t shared_handle);
 
-typedef int32_t (__stdcall *d3d_device_call2_fn)(void *device, uint32_t a, void *b);
 
-typedef int32_t (__stdcall *d3d_device_call5_fn)(void *device, uint32_t a, uint32_t b, void *c, uint32_t d, uint32_t e);
 
 typedef int32_t (__stdcall *d3d_device_call6_fn)(void *device, uint32_t a, uint32_t b, uint32_t c, uint32_t d,
                                         uint32_t color, uint32_t e);
 
-typedef int32_t (__stdcall *d3d_release_fn)(void *object);
 
 /**
  * Loads and presents a loading/splash screen resource (mode == 1), falling back to clearing the screen white
@@ -319,28 +311,26 @@ void rasterizer_render_loading_screen(int32_t mode)
             return;
         }
         vtable = *(void ***)rasterizer_device;
-        hr = ((d3d_create_offscreen_surface_fn)vtable[0x90 / 4])(rasterizer_device, 0x280, 0x1e0,
-            0x16  , 0  , &splash, 0);
+        hr = render_device().create_offscreen_plain_surface(0x280, 0x1e0, 0x16, 0, &splash, 0);
         if (hr >= 0) {
             hr = D3DXLoadSurfaceFromResourceA((LPDIRECT3DSURFACE9)splash, 0, 0, (HMODULE)shell_module_handle, MAKEINTRESOURCEA(0x86), 0,
                                               0xffffffff  , 0, 0);
             if (hr >= 0) {
                 vtable = *(void ***)rasterizer_device;
-                ((d3d_device_call2_fn)vtable[0x98 / 4])(rasterizer_device, 0, &render_target);
+                render_device().get_render_target(0, &render_target);
 
                 vtable = *(void ***)rasterizer_device;
-                ((d3d_device_call5_fn)vtable[0x88 / 4])(rasterizer_device, (uint32_t)splash, 0, render_target, 0,
-                                                        0  );
+                render_device().stretch_rect((uint32_t)splash, 0, render_target, 0, 0);
                 rasterizer_capture_and_present((const int16_t *)0, (BitmapData *)0);
 
                 vtable = *(void ***)rasterizer_device;
-                ((d3d_device_call5_fn)vtable[0x88 / 4])(rasterizer_device, (uint32_t)splash, 0, render_target, 0, 0);
+                render_device().stretch_rect((uint32_t)splash, 0, render_target, 0, 0);
 
                 vtable = *(void ***)render_target;
-                ((d3d_release_fn)vtable[2])(render_target);
+                render_device().release(render_target);
             }
             vtable = *(void ***)splash;
-            ((d3d_release_fn)vtable[2])(splash);
+            render_device().release(splash);
             if (hr >= 0) {
                 return;
             }

@@ -55,9 +55,7 @@ void chimera__rasterizer_set_framebuffer_blend_function(int16_t mode)
 
 namespace chimera__rasterizer_set_frustum_z_func_impl {
 
-typedef int32_t (__stdcall *d3d_set_transform_fn)(void *device, uint32_t state, const float *matrix);
 
-typedef int32_t (__stdcall *d3d_set_vertex_shader_constant_fn)(void *device, uint32_t reg, const void *data, uint32_t count);
 
 #undef RW
 #define RW(address) (*(const float *)((const uint8_t *)&rasterizer_window + ((address) - 0x7c1220)))
@@ -79,7 +77,6 @@ void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far)
     const float *projection = &RW(0x7c13c0);
     float constants[6][4];
     float rows_1b[2][4];
-    void **vtable;
     int32_t i, j;
 
     render_camera_projection_zrange_push_pop_set(&rasterizer_window.frustum, *(float *)&z_near, *(float *)&z_far);
@@ -103,23 +100,18 @@ void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far)
             view4[j * 4 + 2] = view[j * 3 + 2];
             view4[j * 4 + 3] = j == 3 ? 1.0f : 0.0f;
         }
-        vtable = *(void ***)rasterizer_device;
-        ((d3d_set_transform_fn)vtable[0xb0 / 4])(rasterizer_device, 0x100, identity);
-        vtable = *(void ***)rasterizer_device;
-        ((d3d_set_transform_fn)vtable[0xb0 / 4])(rasterizer_device, 2, view4);
-        vtable = *(void ***)rasterizer_device;
-        ((d3d_set_transform_fn)vtable[0xb0 / 4])(rasterizer_device, 3, projection);
+        render_device().set_transform(0x100, identity);
+        render_device().set_transform(2, view4);
+        render_device().set_transform(3, projection);
     }
 
     constants[4][0] = RW(0x7c1228); constants[4][1] = RW(0x7c122c); constants[4][2] = RW(0x7c1230); constants[4][3] = 2.0f;
     constants[5][0] = RW(0x7c1234); constants[5][1] = RW(0x7c1238); constants[5][2] = RW(0x7c123c); constants[5][3] = 0.5f;
-    vtable = *(void ***)rasterizer_device;
-    ((d3d_set_vertex_shader_constant_fn)vtable[0x178 / 4])(rasterizer_device, 0, constants, 6);
+    render_device().set_vertex_shader_constant_f(0, constants, 6);
 
     rows_1b[0][0] = RW(0x7c12c4); rows_1b[0][1] = RW(0x7c12c8); rows_1b[0][2] = RW(0x7c12cc); rows_1b[0][3] = 1.0f;
     rows_1b[1][0] = RW(0x7c12d0); rows_1b[1][1] = RW(0x7c12d4); rows_1b[1][2] = RW(0x7c12d8); rows_1b[1][3] = 3.0f;
-    vtable = *(void ***)rasterizer_device;
-    ((d3d_set_vertex_shader_constant_fn)vtable[0x178 / 4])(rasterizer_device, 0x1b, rows_1b, 2);
+    render_device().set_vertex_shader_constant_f(0x1b, rows_1b, 2);
 }
 #undef RW
 #undef RW
@@ -165,7 +157,6 @@ void display_mode_get_current(rasterizer_display_mode *out)
  */
 void rasterizer_begin_frame(rasterizer_window_parameters *source)
 {
-    void **vtable;
     int i;
 
     rasterizer_window = *source;
@@ -204,8 +195,7 @@ void rasterizer_begin_frame(rasterizer_window_parameters *source)
 
     chimera__rasterizer_set_frustum_z_func(0xbf800000, 0xbf800000);
 
-    vtable = *(void ***)rasterizer_device;
-    ((d3d_set_render_state_fn)vtable[0xe4 / 4])(rasterizer_device, 8, 3 - (uint32_t)(console_debug_toggle_6893e6 != 0));
+    render_device().set_render_state(8, 3 - (uint32_t)(console_debug_toggle_6893e6 != 0));
 }
 
 /**
@@ -267,18 +257,11 @@ void rasterizer_build_present_parameters(d3d_present_parameters *dest, rasterize
 
 namespace rasterizer_capture_and_present_impl {
 
-typedef int32_t (__stdcall *d3d_get_back_buffer_fn)(void *self, uint32_t swap_chain, uint32_t index, uint32_t type, void **out_surface);
 
-typedef int32_t (__stdcall *d3d_get_desc_fn)(void *surface, d3d_surface_desc *desc);
 
-typedef int32_t (__stdcall *d3d_lock_rect_fn)(void *surface, d3d_locked_rect *locked, const void *rect, uint32_t flags);
 
-typedef int32_t (__stdcall *d3d_unlock_rect_fn)(void *surface);
 
-typedef uint32_t (__stdcall *com_release_fn)(void *self);
 
-typedef int32_t (__stdcall *d3d_present_fn)(void *self, const void *source_rect, const void *dest_rect, void *window,
-                                  const void *dirty_region);
 
 static void **vtable_of(void *object) { return *(void ***)object; }
 
@@ -301,17 +284,17 @@ void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap)
     }
     if (config_disable_buffering != 0) {
         surface = NULL;
-        if (((d3d_get_back_buffer_fn)vtable_of(rasterizer_device)[0x48 / 4])(rasterizer_device, 0, 0, 0, &surface) < 0) {
+        if (render_device().get_back_buffer(0, 0, 0, &surface) < 0) {
             ok = 0;
         }
-        if (((d3d_get_desc_fn)vtable_of(surface)[0x30 / 4])(surface, &desc) < 0 || !ok ||
-            ((d3d_lock_rect_fn)vtable_of(surface)[0x34 / 4])(surface, &locked, NULL, 0x10) < 0) {
+        if (render_device().surface_get_desc(surface, &desc) < 0 || !ok ||
+            render_device().surface_lock_rect(surface, &locked, NULL, 0x10) < 0) {
             ok = 0;
         } else if (locked.bits != 0 &&
-                   ((d3d_unlock_rect_fn)vtable_of(surface)[0x38 / 4])(surface) < 0) {
+                   render_device().surface_unlock_rect(surface) < 0) {
             ok = 0;
         }
-        ((com_release_fn)vtable_of(surface)[2])(surface);
+        render_device().release(surface);
     }
     if (screenshots != 0 && bitmap != NULL && *(uint32_t *)&((struct BitmapData *)bitmap)->pixel_base != 0) {
         int16_t top = (int16_t)(game_window_top_left & 0xffff);
@@ -331,11 +314,11 @@ void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap)
         if ((bitmap->format == 0xb || bitmap->format == 0xa) && bitmap->mipmap_count == 0 &&
             left >= 0 && top >= 0 && right <= (int16_t)bitmap->width && bottom <= (int16_t)bitmap->height) {
             surface = NULL;
-            if (((d3d_get_back_buffer_fn)vtable_of(rasterizer_device)[0x48 / 4])(rasterizer_device, 0, 0, 0, &surface) < 0) {
+            if (render_device().get_back_buffer(0, 0, 0, &surface) < 0) {
                 ok = 0;
             }
-            if (((d3d_get_desc_fn)vtable_of(surface)[0x30 / 4])(surface, &desc) >= 0 && ok &&
-                ((d3d_lock_rect_fn)vtable_of(surface)[0x34 / 4])(surface, &locked, NULL, 0x10) >= 0 &&
+            if (render_device().surface_get_desc(surface, &desc) >= 0 && ok &&
+                render_device().surface_lock_rect(surface, &locked, NULL, 0x10) >= 0 &&
                 locked.bits != 0) {
                 int16_t rows = (int16_t)((game_window_bottom_right & 0xffff) - (game_window_top_left & 0xffff));
                 int32_t row_bytes = (int32_t)bitmap_format_bits_per_pixel[bitmap->format] *
@@ -348,13 +331,13 @@ void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap)
 
                     memcpy(destination, source, (size_t)row_bytes);
                 }
-                ((d3d_unlock_rect_fn)vtable_of(surface)[0x38 / 4])(surface);
+                render_device().surface_unlock_rect(surface);
             }
-            ((com_release_fn)vtable_of(surface)[2])(surface);
+            render_device().release(surface);
         }
     }
 
-    hr = ((d3d_present_fn)vtable_of(rasterizer_device)[0x44 / 4])(rasterizer_device, NULL, NULL, NULL, NULL);
+    hr = render_device().present(NULL, NULL, NULL, NULL);
     if (hr == (int32_t)0x88760868 || hr == (int32_t)0x88760827) {
         rasterizer_device_lost = 1;
     } else if (hr == 0) {
@@ -442,17 +425,11 @@ uint32_t rasterizer_create_game_window(int32_t height, int32_t width)
 
 namespace rasterizer_device_reset_impl {
 
-typedef int32_t (__stdcall *d3d_set_software_vertex_processing_fn)(void *device, int32_t software);
 
-typedef int32_t (__stdcall *d3d_set_texture_fn)(void *device, uint32_t stage, void *texture);
 
-typedef int32_t (__stdcall *d3d_set_shader_fn)(void *device, void *shader);
 
-typedef int32_t (__stdcall *d3d_reset_fn)(void *device, void *present_params);
 
-typedef int32_t (__stdcall *d3d_set_viewport_fn)(void *device, const void *viewport);
 
-typedef int32_t (__stdcall *d3d_release_fn)(void *object);
 
 typedef struct d3d_viewport9 {
     uint32_t x, y, width, height;
@@ -470,29 +447,24 @@ typedef struct d3d_viewport9 {
  */
 uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters)
 {
-    void **vtable;
     uint32_t i;
     int32_t hr;
     uint8_t ok;
     d3d_viewport9 viewport;
 
-    vtable = *(void ***)rasterizer_device;
-    ((d3d_set_software_vertex_processing_fn)vtable[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
     for (i = 0; i < rasterizer_caps.max_simultaneous_textures; i++) {
-        vtable = *(void ***)rasterizer_device;
-        ((d3d_set_texture_fn)vtable[0x104 / 4])(rasterizer_device, i, 0);
+        render_device().set_texture(i, 0);
     }
-    vtable = *(void ***)rasterizer_device;
-    ((d3d_set_shader_fn)vtable[0x170 / 4])(rasterizer_device, 0);
-    vtable = *(void ***)rasterizer_device;
-    ((d3d_set_shader_fn)vtable[0x1ac / 4])(rasterizer_device, 0);
+    render_device().set_vertex_shader(0);
+    render_device().set_pixel_shader(0);
 
     rasterizer_ksml_ui_shutdown();
 
     for (i = 0; i < (uint32_t)rasterizer_vertex_buffer_slot_high_water; i++) {
         void *buffer = (void *)rasterizer_vertex_buffer_slots[i].hardware_buffer;
         if (buffer != 0) {
-            ((d3d_release_fn)(*(void ***)buffer)[2])(buffer);
+            render_device().release(buffer);
             rasterizer_vertex_buffer_slots[i].hardware_buffer = 0;
         }
     }
@@ -500,7 +472,7 @@ uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters)
     for (i = 0; i < k_rasterizer_vertex_type_count; i++) {
         void *declaration = (void *)rasterizer_vertex_declarations[i].declaration;
         if (declaration != 0) {
-            ((d3d_release_fn)(*(void ***)declaration)[2])(declaration);
+            render_device().release(declaration);
         }
     }
     for (i = 0; i < k_rasterizer_vertex_type_count; i++) {
@@ -511,7 +483,7 @@ uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters)
     for (i = 0; i < k_rasterizer_vertex_shaders; i++) {
         void *shader = (void *)rasterizer_vertex_shaders[i].shader;
         if (shader != 0) {
-            ((d3d_release_fn)(*(void ***)shader)[2])(shader);
+            render_device().release(shader);
             rasterizer_vertex_shaders[i].shader = 0;
         }
     }
@@ -519,13 +491,12 @@ uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters)
     for (i = 0; i < k_lens_flare_occlusion_queries; i++) {
         void *query = lens_flare_occlusion_queries[i];
         if (query != 0) {
-            ((d3d_release_fn)(*(void ***)query)[2])(query);
+            render_device().release(query);
             lens_flare_occlusion_queries[i] = 0;
         }
     }
 
-    vtable = *(void ***)rasterizer_device;
-    hr = ((d3d_reset_fn)vtable[0x40 / 4])(rasterizer_device, present_parameters);
+    hr = render_device().reset(present_parameters);
     if (hr < 0 || rasterizer_device == 0) {
         if (hr == (int32_t)0x88760827) {
             shell_display_fatal_error_dialog(0x81, 0x82, 1);
@@ -542,8 +513,7 @@ uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters)
     viewport.height = ((uint32_t *)present_parameters)[1];
     viewport.min_z = 0.0f;
     viewport.max_z = 1.0f;
-    vtable = *(void ***)rasterizer_device;
-    ok = ((d3d_set_viewport_fn)vtable[0xbc / 4])(rasterizer_device, &viewport) >= 0;
+    ok = render_device().set_viewport(&viewport) >= 0;
     rasterizer_pending_clear = 0;
     rasterizer_set_default_render_states();
     rasterizer_render_loading_screen(1);
@@ -598,49 +568,32 @@ uint8_t rasterizer_display_mode_differs(rasterizer_display_mode *requested)
 
 namespace rasterizer_end_frame_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
-typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-typedef int32_t (__stdcall *d3d_set_render_target_fn)(void *self, uint32_t index, void *surface);
 
-typedef int32_t (__stdcall *d3d_get_desc_fn)(void *self, void *desc);
 
-typedef int32_t (__stdcall *d3d_set_viewport_fn)(void *self, const void *viewport);
 
-typedef int32_t (__stdcall *d3d_set_texture_fn)(void *self, uint32_t stage, void *texture);
 
-typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
 
-typedef int32_t (__stdcall *d3d_set_stream_source_fn)(void *self, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
 
-typedef int32_t (__stdcall *d3d_set_indices_fn)(void *self, void *index_buffer);
 
-typedef int32_t (__stdcall *d3d_draw_indexed_primitive_fn)(void *self, uint32_t type, int32_t base_vertex, uint32_t min_index,
-                                                 uint32_t vertex_count, uint32_t start_index, uint32_t primitive_count);
 
-typedef int32_t (__stdcall *d3d_call0_fn)(void *self);
 
-static void **device_vtable(void)
-{
-    return *(void ***)rasterizer_device;
-}
 
 static void rasterizer_set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 static void rasterizer_set_sampler_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x114 / 4])(rasterizer_device, stage, type, value);
+    render_device().set_sampler_state(stage, type, value);
 }
 
 static void rasterizer_set_texture_stage_state(uint32_t sampler, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x10c / 4])(rasterizer_device, sampler, type, value);
+    render_device().set_texture_stage_state(sampler, type, value);
 }
 
 static void rasterizer_set_quad_vertex(rasterizer_screen_vertex *vertex, float x, float y, float u, float v)
@@ -673,25 +626,24 @@ void rasterizer_end_frame(void)
         rasterizer_screen_vertex *vertices = 0;
         uint32_t stride;
 
-        ((d3d_set_render_target_fn)device_vtable()[0x94 / 4])(rasterizer_device, 0, back_buffer);
+        render_device().set_render_target(0, back_buffer);
         rasterizer_active_render_target = 0;
-        ((d3d_get_desc_fn)(*(void ***)back_buffer)[0x30 / 4])(back_buffer, &desc);
+        render_device().surface_get_desc(back_buffer, &desc);
         viewport.x = 0;
         viewport.y = 0;
         viewport.width = desc.width;
         viewport.height = desc.height;
         viewport.min_z = 0.0f;
         viewport.max_z = 1.0f;
-        ((d3d_set_viewport_fn)device_vtable()[0xbc / 4])(rasterizer_device, &viewport);
+        render_device().set_viewport(&viewport);
 
         if (console_debug_toggle_6893e6 != 0) {
             rasterizer_set_render_state(8, 3);
         }
 
         stride = D3DXGetFVFVertexSize(0x144);
-        ((d3d_call1_fn)device_vtable()[0x1ac / 4])(rasterizer_device, 0);
-        ((d3d_set_texture_fn)device_vtable()[0x104 / 4])(rasterizer_device, 0,
-                                                         (void *)rasterizer_render_targets[1].texture);
+        render_device().set_pixel_shader(0);
+        render_device().set_texture(0, (void *)rasterizer_render_targets[1].texture);
         rasterizer_set_sampler_state(0, 1, 3);
         rasterizer_set_sampler_state(0, 2, 3);
         rasterizer_set_sampler_state(0, 5, 1);
@@ -713,7 +665,7 @@ void rasterizer_end_frame(void)
         if (rasterizer_render_target_vertex_buffer != 0) {
             void *buffer = rasterizer_render_target_vertex_buffer;
 
-            ((d3d_lock_fn)(*(void ***)buffer)[0x2c / 4])(buffer, 0, stride * 4, (void **)&vertices, 0x2000);
+            render_device().buffer_lock(buffer, 0, stride * 4, (void **)&vertices, 0x2000);
             if (vertices != 0) {
                 float right = (float)width - 0.5f;
                 float bottom = (float)height - 0.5f;
@@ -729,15 +681,14 @@ void rasterizer_end_frame(void)
                     vertices[3].v *= (float)height;
                 }
 
-                ((d3d_call1_fn)device_vtable()[0x170 / 4])(rasterizer_device, 0);
-                ((d3d_call1_fn)device_vtable()[0x164 / 4])(rasterizer_device, 0x144);
-                ((d3d_call0_fn)(*(void ***)buffer)[0x30 / 4])(buffer);
-                ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
-                ((d3d_set_stream_source_fn)device_vtable()[0x190 / 4])(rasterizer_device, 0,
-                                                                       rasterizer_render_target_vertex_buffer, 0, stride);
-                ((d3d_set_indices_fn)device_vtable()[0x1a0 / 4])(rasterizer_device, rasterizer_render_target_index_buffer);
-                ((d3d_draw_indexed_primitive_fn)device_vtable()[0x148 / 4])(rasterizer_device, 6, 0, 0, 4, 0, 2);
-                ((d3d_call1_fn)device_vtable()[0x164 / 4])(rasterizer_device, 0);
+                render_device().set_vertex_shader(0);
+                render_device().set_fvf(0x144);
+                render_device().buffer_unlock(buffer);
+                render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
+                render_device().set_stream_source(0, rasterizer_render_target_vertex_buffer, 0, stride);
+                render_device().set_indices(rasterizer_render_target_index_buffer);
+                render_device().draw_indexed_primitive(6, 0, 0, 4, 0, 2);
+                render_device().set_fvf(0);
             }
         }
 
@@ -756,7 +707,7 @@ void rasterizer_end_frame(void)
         ui_draw_filled_rectangle(0xb0202020, &chat_bar);
     }
 
-    if (((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing) < 0) {
+    if (render_device().set_software_vertex_processing(rasterizer_software_vertex_processing) < 0) {
         succeeded = 0;
     }
     rasterizer_set_render_state(0x13, 5);
@@ -768,10 +719,10 @@ void rasterizer_end_frame(void)
         rasterizer_ui_render_failed = 1;
     }
 
-    if (((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing) < 0) {
+    if (render_device().set_software_vertex_processing(rasterizer_software_vertex_processing) < 0) {
         succeeded = 0;
     }
-    if (((d3d_call0_fn)device_vtable()[0xa8 / 4])(rasterizer_device) >= 0 && succeeded != 0) {
+    if (render_device().end_scene() >= 0 && succeeded != 0) {
         rasterizer_in_scene = 0;
     }
 }
@@ -802,19 +753,11 @@ int32_t rasterizer_get_refresh_rate(int32_t requested_rate)
 
 namespace rasterizer_initialize_direct3d_impl {
 
-typedef uint32_t (__stdcall *d3d_get_adapter_count_fn)(void *self);
 
-typedef int32_t (__stdcall *d3d_get_adapter_display_mode_fn)(void *self, uint32_t adapter, d3d_display_mode *mode);
 
-typedef int32_t (__stdcall *d3d_check_device_format_fn)(void *self, uint32_t adapter, uint32_t device_type, uint32_t adapter_format,
-                                              uint32_t usage, uint32_t resource_type, uint32_t check_format);
 
-typedef int32_t (__stdcall *d3d_get_device_caps_fn)(void *self, uint32_t adapter, uint32_t device_type, d3d_caps9 *caps);
 
-typedef int32_t (__stdcall *d3d_create_device_fn)(void *self, uint32_t adapter, uint32_t device_type, void *focus_window,
-                                        uint32_t behavior_flags, d3d_present_parameters *parameters, void **device);
 
-typedef int32_t (__stdcall *d3d_set_viewport_fn)(void *self, const d3d_viewport *viewport);
 
 typedef int32_t (__cdecl *nvcpl_get_data_int_fn)(int32_t data_type, int32_t *value);
 
@@ -832,10 +775,6 @@ static int command_line_has_switch(const char *name)
     return 0;
 }
 
-static void **direct3d_vtable(void)
-{
-    return *(void ***)rasterizer_direct3d;
-}
 
 static void rasterizer_fpu_reset_control_word(uint16_t control_word)
 {
@@ -898,7 +837,7 @@ uint8_t rasterizer_initialize_direct3d(void)
             return 0;
         }
     }
-    adapter_count = ((d3d_get_adapter_count_fn)direct3d_vtable()[0x10 / 4])(rasterizer_direct3d);
+    adapter_count = render_device().get_adapter_count(rasterizer_direct3d);
     if (adapter_count < 1) {
         return 0;
     }
@@ -933,8 +872,7 @@ uint8_t rasterizer_initialize_direct3d(void)
         }
 
         rasterizer_device_type = command_line_has_switch("-useref") ? 2 : 1;
-        ((d3d_get_device_caps_fn)direct3d_vtable()[0x38 / 4])(rasterizer_direct3d, adapter, rasterizer_device_type,
-                                                              &rasterizer_caps);
+        render_device().get_device_caps(rasterizer_direct3d, adapter, rasterizer_device_type, &rasterizer_caps);
         error = shell_parse_config_txt(adapter, rasterizer_direct3d);
         if (error != 0) {
             shell_display_fatal_error_dialog(0xffffffff, (uint32_t)error, 0);
@@ -1047,8 +985,7 @@ uint8_t rasterizer_initialize_direct3d(void)
         }
         ReleaseDC(GetDesktopWindow(), (HDC)hdc);
 
-        if (((d3d_get_adapter_display_mode_fn)direct3d_vtable()[0x20 / 4])(rasterizer_direct3d, adapter,
-                                                                            &desktop_mode) < 0) {
+        if (render_device().get_adapter_display_mode(rasterizer_direct3d, adapter, &desktop_mode) < 0) {
             adapter_usable = 0;
             goto finish;
         }
@@ -1086,10 +1023,7 @@ uint8_t rasterizer_initialize_direct3d(void)
                                  (checkfpu != 0 ? 2 : 0) +
                                  (rasterizer_window_requested != 0 ? 4 : 0);
 
-                if (((d3d_create_device_fn)direct3d_vtable()[0x40 / 4])(rasterizer_direct3d, adapter,
-                                                                        rasterizer_device_type, hwnd, flags,
-                                                                        &rasterizer_present_parameters,
-                                                                        &rasterizer_device) >= 0) {
+                if (render_device().create_device(rasterizer_direct3d, adapter, rasterizer_device_type, hwnd, flags, &rasterizer_present_parameters, &rasterizer_device) >= 0) {
                     rasterizer_software_vertex_processing = (uint8_t)(behavior_flags[i] & 0x20);
                     goto device_created;
                 }
@@ -1127,8 +1061,7 @@ finish:
     d3d_adapter = adapter;
     rasterizer_maximum_skinning_nodes = 0x3f;
 
-    if (((d3d_check_device_format_fn)direct3d_vtable()[0x28 / 4])(rasterizer_direct3d, adapter, rasterizer_device_type,
-                                                                  0x16, 1, 1, 0x15) < 0) {
+    if (render_device().check_device_format(rasterizer_direct3d, adapter, rasterizer_device_type, 0x16, 1, 1, 0x15) < 0) {
         rasterizer_caps_flag_68a = 1;
     }
     if (rasterizer_fullscreen != 0 && rasterizer_device != 0) {
@@ -1195,7 +1128,7 @@ finish:
     viewport.height = (uint32_t)mode.height;
     viewport.min_z = 0.0f;
     viewport.max_z = 1.0f;
-    if (((d3d_set_viewport_fn)(*(void ***)rasterizer_device)[0xbc / 4])(rasterizer_device, &viewport) < 0) {
+    if (render_device().set_viewport(&viewport) < 0) {
         succeeded = 0;
     }
     rasterizer_frame_started = 1;
@@ -1259,7 +1192,6 @@ uint8_t rasterizer_parse_vidmode_commandline(int32_t *width_out, int32_t *height
 
 namespace rasterizer_reset_device_if_needed_impl {
 
-typedef int32_t (__stdcall *d3d_call0_fn)(void *device);
 
 /**
  * Resets pre-ps_1_1 debug toggles, resets the D3D device if it was flagged lost, and reports whether the
@@ -1271,7 +1203,6 @@ uint8_t rasterizer_reset_device_if_needed(void)
 {
     uint8_t usable = 1;
     int32_t hr;
-    void **vtable;
 
     if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
         unknown_006893f6 = 0;
@@ -1297,8 +1228,7 @@ uint8_t rasterizer_reset_device_if_needed(void)
         }
     }
 
-    vtable = *(void ***)rasterizer_device;
-    hr = ((d3d_call0_fn)vtable[0xa4 / 4])(rasterizer_device);
+    hr = render_device().begin_scene();
     if (hr < 0) {
         return 0;
     }
@@ -1423,9 +1353,7 @@ set_vertex_buffer_slot:
 
 namespace rasterizer_service_deferred_windowed_ops_impl {
 
-typedef int32_t (__stdcall *d3d_call0_fn)(void *device);
 
-typedef int32_t (__stdcall *d3d_call4_fn)(void *device, uint32_t a, uint32_t b, uint32_t c, uint32_t d);
 
 /**
  * While windowed and the device exists: performs a deferred present/update (+0xa8) if flagged, and a deferred
@@ -1435,19 +1363,16 @@ typedef int32_t (__stdcall *d3d_call4_fn)(void *device, uint32_t a, uint32_t b, 
  */
 void rasterizer_service_deferred_windowed_ops(void)
 {
-    void **vtable;
 
     if (rasterizer_fullscreen == 0 || rasterizer_device == (void *)0) {
         return;
     }
     if (rasterizer_in_scene != 0) {
-        vtable = *(void ***)rasterizer_device;
-        ((d3d_call0_fn)vtable[0xa8 / 4])(rasterizer_device);
+        render_device().end_scene();
         rasterizer_in_scene = 0;
     }
     if (rasterizer_pending_clear != 0) {
-        vtable = *(void ***)rasterizer_device;
-        ((d3d_call4_fn)vtable[0x44 / 4])(rasterizer_device, 0, 0, 0, 0);
+        render_device().present(0, 0, 0, 0);
         rasterizer_pending_clear = (rasterizer_pending_clear == 0);
     }
 }
@@ -1462,8 +1387,7 @@ typedef int32_t (__stdcall *d3d_set_texture_stage_state_fn)(void *device, uint32
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    void **vtable = *(void ***)rasterizer_device;
-    ((d3d_set_render_state_fn)vtable[0xe4 / 4])(rasterizer_device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 static void set_render_states(const uint32_t pairs[][2], int count)
@@ -1563,7 +1487,7 @@ void rasterizer_shutdown(void)
 
     if (rasterizer_device != (void *)0 && rasterizer_detail_object_vertex_buffer != (void *)0) {
         vtable = *(void ***)rasterizer_detail_object_vertex_buffer;
-        ((void (__stdcall *)(void *))vtable[2])(rasterizer_detail_object_vertex_buffer);
+        render_device().release(rasterizer_detail_object_vertex_buffer);
         rasterizer_detail_object_vertex_buffer = (void *)0;
     }
 
@@ -1573,7 +1497,7 @@ void rasterizer_shutdown(void)
     for (i = 0; i < 0x400; i++) {
         if (lens_flare_occlusion_queries[i] != (void *)0) {
             vtable = *(void ***)lens_flare_occlusion_queries[i];
-            ((void (__stdcall *)(void *))vtable[2])(lens_flare_occlusion_queries[i]);
+            render_device().release(lens_flare_occlusion_queries[i]);
             lens_flare_occlusion_queries[i] = (void *)0;
         }
     }
@@ -1595,20 +1519,20 @@ void rasterizer_shutdown(void)
     for (i = 0; i < 4; i++) {
         if (rasterizer_capture_surfaces[i] != (void *)0) {
             vtable = *(void ***)rasterizer_capture_surfaces[i];
-            ((void (__stdcall *)(void *))vtable[2])(rasterizer_capture_surfaces[i]);
+            render_device().release(rasterizer_capture_surfaces[i]);
             rasterizer_capture_surfaces[i] = (void *)0;
         }
     }
 
     if (rasterizer_device != (void *)0) {
         vtable = *(void ***)rasterizer_device;
-        ((void (__stdcall *)(void *))vtable[2])(rasterizer_device);
+        render_device().release(rasterizer_device);
     }
     rasterizer_device = (void *)0;
 
     if (rasterizer_direct3d != (void *)0) {
         vtable = *(void ***)rasterizer_direct3d;
-        ((void (__stdcall *)(void *))vtable[2])(rasterizer_direct3d);
+        render_device().release(rasterizer_direct3d);
     }
     rasterizer_direct3d = (void *)0;
 }

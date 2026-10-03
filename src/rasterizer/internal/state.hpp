@@ -25,6 +25,7 @@
 #include "game.h"
 #include <stdio.h>
 #include "bitmaps.h"
+#include "halo/rasterizer/render_device.hpp"
 
 extern "C" {
 

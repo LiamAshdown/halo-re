@@ -28,10 +28,10 @@ void chimera__transparent_decal_zbias(void)
 {
 
     if ((rasterizer_caps.raster_caps & 0x4000000) != 0) {
-        ((d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, 0xc3, config_transparent_decal_z_bias);
+        render_device().set_render_state(0xc3, config_transparent_decal_z_bias);
     }
     if ((rasterizer_caps.raster_caps & 0x2000000) != 0) {
-        ((d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, 0xaf, config_transparent_decal_slope_z_bias);
+        render_device().set_render_state(0xaf, config_transparent_decal_slope_z_bias);
     }
 }
 
@@ -128,10 +128,10 @@ void rasterizer_apply_decal_zbias(void)
 {
 
     if ((rasterizer_caps.raster_caps & 0x4000000) != 0) {
-        ((d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, 0xc3, config_decal_z_bias);
+        render_device().set_render_state(0xc3, config_decal_z_bias);
     }
     if ((rasterizer_caps.raster_caps & 0x2000000) != 0) {
-        ((d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, 0xaf, config_decal_slope_z_bias);
+        render_device().set_render_state(0xaf, config_decal_slope_z_bias);
     }
 }
 
@@ -145,17 +145,15 @@ void rasterizer_clear_decal_zbias(void)
 {
 
     if ((rasterizer_caps.raster_caps & 0x4000000) != 0) {
-        ((d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, 0xc3, 0);
+        render_device().set_render_state(0xc3, 0);
     }
     if ((rasterizer_caps.raster_caps & 0x2000000) != 0) {
-        ((d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, 0xaf, 0);
+        render_device().set_render_state(0xaf, 0);
     }
 }
 
 namespace rasterizer_decal_index_buffer_initialize_impl {
 
-typedef int32_t (__stdcall *d3d_create_index_buffer_fn)(void *device, uint32_t length, uint32_t usage, uint32_t format,
-                                                uint32_t pool, void **out_buffer, uint32_t shared_handle);
 
 /**
  * Creates the shared dynamic index buffer (0x30000 bytes of D3DFMT_INDEX16, write-only | dynamic, software
@@ -168,13 +166,10 @@ typedef int32_t (__stdcall *d3d_create_index_buffer_fn)(void *device, uint32_t l
 uint8_t rasterizer_decal_index_buffer_initialize(void)
 {
     uint32_t usage = (rasterizer_software_vertex_processing != 0 ? 0x10u : 0u) | 0x208;
-    void **vtable = *(void ***)rasterizer_device;
     uint8_t ok = 1;
     int32_t type;
 
-    if (((d3d_create_index_buffer_fn)vtable[0x6c / 4])(rasterizer_device, 0x30000, usage, 0x65  ,
-                                                       2  , &rasterizer_dynamic_index_buffer,
-                                                       0) < 0) {
+    if (render_device().create_index_buffer(0x30000, usage, 0x65, 2, &rasterizer_dynamic_index_buffer, 0) < 0) {
         ok = 0;
     }
     if (rasterizer_dynamic_index_buffer == (void *)0 || !ok) {
@@ -214,7 +209,6 @@ typedef int32_t (__stdcall *d3d_set_sampler_state_fn)(void *device, uint32_t sam
 
 typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 
-typedef int32_t (__stdcall *d3d_set_stream_source_fn)(void *device, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
 
 /**
  * Direct3D 9 back end function rasterizer_decal_pass_begin. The original author notes are in
@@ -299,14 +293,13 @@ void rasterizer_decal_pass_begin(int16_t stage)
 
 stream_source:
     vtable = *(void ***)rasterizer_device;
-    ((d3d_set_stream_source_fn)vtable[400 / 4])(rasterizer_device, 0, rasterizer_decal_vertex_cache, 0, 0x10);
+    render_device().set_stream_source(0, rasterizer_decal_vertex_cache, 0, 0x10);
 }
 
 }  // namespace rasterizer_decal_pass_begin_impl
 
 namespace rasterizer_decal_vertex_cache_lock_impl {
 
-typedef int32_t (__stdcall *d3d_lock_fn)(void *self, uint32_t offset, uint32_t size, void **data, uint32_t flags);
 
 /**
  * Direct3D 9 back end function rasterizer_decal_vertex_cache_lock. The original author notes are in
@@ -329,7 +322,7 @@ void * rasterizer_decal_vertex_cache_lock(uint32_t decal_index, int32_t byte_cou
 
     rasterizer_vertex_buffer_lock_state = 5;
     size = (int32_t)(long long)((double)byte_count * 1.5);
-    if (((d3d_lock_fn)(*(void ***)buffer)[0x2c / 4])(buffer, (uint32_t)(int32_t)(long long)((double)offset * 1.5), (uint32_t)size, &data, 0) < 0) {
+    if (render_device().buffer_lock(buffer, (uint32_t)(int32_t)(long long)((double)offset * 1.5), (uint32_t)size, &data, 0) < 0) {
         succeeded = 0;
     }
     rasterizer_vertex_buffer_lock_state = 4;
@@ -353,29 +346,22 @@ int rasterizer_decal_zbias_active(void)
 
 namespace rasterizer_decals_draw_cluster_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-typedef int32_t (__stdcall *d3d_set_pointer_fn)(void *self, void *object);
 
-typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
 
-static void **device_vtable(void)
-{
-    return *(void ***)rasterizer_device;
-}
 
 static void rasterizer_set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 static void rasterizer_set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x10c / 4])(rasterizer_device, stage, type, value);
+    render_device().set_texture_stage_state(stage, type, value);
 }
 
 /**
@@ -502,30 +488,26 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
             constants[1] = (float)((double)((color >> 8) & 0xff) * (1.0 / 255.0));
             constants[2] = (float)((double)(color & 0xff) * (1.0 / 255.0));
             constants[3] = (float)((double)(uint32_t)(0xff - alpha) * (1.0 / 255.0));
-            if (((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 10, constants, 1) < 0) {
+            if (render_device().set_vertex_shader_constant_f(10, constants, 1) < 0) {
                 succeeded = 0;
             }
-            if (((d3d_set_pointer_fn)device_vtable()[0x15c / 4])(
-                    rasterizer_device, (void *)rasterizer_vertex_declarations[_rasterizer_vertex_type_decal].declaration) < 0) {
+            if (render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[_rasterizer_vertex_type_decal].declaration) < 0) {
                 succeeded = 0;
             }
-            if (((d3d_call1_fn)device_vtable()[0x134 / 4])(
-                    rasterizer_device, ((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
+            if (render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                         rasterizer_vertex_declarations[_rasterizer_vertex_type_decal].usage) & 0x10) < 0) {
                 succeeded = 0;
             }
-            if (((d3d_set_pointer_fn)device_vtable()[0x170 / 4])(rasterizer_device,
-                                                                 (void *)rasterizer_vertex_shaders[2].shader) < 0) {
+            if (render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[2].shader) < 0) {
                 succeeded = 0;
             }
-            if (((d3d_set_pointer_fn)device_vtable()[0x1ac / 4])(rasterizer_device, 0) < 0) {
+            if (render_device().set_pixel_shader(0) < 0) {
                 succeeded = 0;
             }
-            if (((d3d_call3_fn)device_vtable()[0x144 / 4])(rasterizer_device, 4, (uint32_t)first_vertex,
-                                                           (uint32_t)primitive_count) < 0) {
+            if (render_device().draw_primitive(4, (uint32_t)first_vertex, (uint32_t)primitive_count) < 0) {
                 succeeded = 0;
             }
-            if (((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing) < 0) {
+            if (render_device().set_software_vertex_processing(rasterizer_software_vertex_processing) < 0) {
                 succeeded = 0;
             }
         }
@@ -537,8 +519,6 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
 
 namespace rasterizer_decals_initialize_impl {
 
-typedef int32_t (__stdcall *d3d_create_vertex_buffer_fn)(void *device, uint32_t length, uint32_t usage, uint32_t fvf,
-                                                 uint32_t pool, void **out_buffer, void *shared_handle);
 
 /**
  * 0x4d1750, blam-cc: EBX -> name, stack -> the rest
@@ -553,8 +533,7 @@ void rasterizer_decals_initialize(void)
     uint32_t pool = (usage & 0x10) != 0 || (usage & 0x200) != 0 ? 2 : 1;
     uint32_t region_size = 0xe07c;
     uint8_t *block;
-    void **vtable = *(void ***)rasterizer_device;
-    int32_t hr = ((d3d_create_vertex_buffer_fn)vtable[0x68 / 4])(rasterizer_device, 0x3c000, usage, 0, pool, &buffer, 0);
+    int32_t hr = render_device().create_vertex_buffer(0x3c000, usage, 0, pool, &buffer, 0);
 
     rasterizer_decal_vertex_cache = hr < 0 ? 0 : buffer;
 

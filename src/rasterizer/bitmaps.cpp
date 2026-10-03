@@ -319,7 +319,6 @@ uint8_t color_channel_real_to_byte(float channel)
     return (uint8_t)fistp_round(channel * 255.0f);
 }
 
-typedef int32_t (__stdcall *d3d_set_texture_fn)(void *device, uint32_t stage, void *texture);
 
 /**
  * Direct3D 9 back end function rasterizer_bind_texture_d3d9. The original author notes are in
@@ -331,15 +330,12 @@ typedef int32_t (__stdcall *d3d_set_texture_fn)(void *device, uint32_t stage, vo
  */
 uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap)
 {
-    void **vtable;
 
     if (bitmap == 0) {
         return 0;
     }
     texture_cache_get(bitmap, 1, 1);
-    vtable = *(void ***)rasterizer_device;
-    if (((d3d_set_texture_fn)vtable[0x104 / 4])(rasterizer_device, (uint32_t)(int32_t)stage,
-                                                  *(void **)&((struct BitmapData *)bitmap)->hardware_texture) < 0) {
+    if (render_device().set_texture((uint32_t)(int32_t)stage, *(void **)&((struct BitmapData *)bitmap)->hardware_texture) < 0) {
         return 0;
     }
     return 1;
@@ -347,7 +343,6 @@ uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap)
 
 namespace rasterizer_bind_texture_d3dx_impl {
 
-typedef int32_t (__stdcall *d3dx_set_texture_fn)(void *effect, uint32_t handle, void *texture);
 
 /**
  * Direct3D 9 back end function rasterizer_bind_texture_d3dx. The original author notes are in
@@ -366,8 +361,7 @@ uint8_t rasterizer_bind_texture_d3dx(int16_t stage, BitmapData *bitmap, rasteriz
     }
     texture_cache_get(bitmap, 1, 1);
     effect = (void *)effect_slot->effect;
-    ((d3dx_set_texture_fn)(*(void ***)effect)[0xd0 / 4])(effect, effect_slot->texture_handles[stage],
-                                                          *(void **)&((struct BitmapData *)bitmap)->hardware_texture);
+    render_device().effect_set_texture(effect, effect_slot->texture_handles[stage], *(void **)&((struct BitmapData *)bitmap)->hardware_texture);
     return 1;
 }
 
@@ -747,9 +741,7 @@ typedef struct d3d_locked_box {
     void *bits;
 } d3d_locked_box;
 
-typedef int32_t (__stdcall *d3d_lock_box_fn)(void *self, uint32_t level, d3d_locked_box *out_box, const void *box, uint32_t flags);
 
-typedef int32_t (__stdcall *d3d_unlock_box_fn)(void *self, uint32_t level);
 
 /**
  * REWRITTEN (objdump 0x524270..0x5243b7, 2026-09-25): this uploads a VOLUME (3D) texture, one depth slice at a
@@ -781,7 +773,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap)
 
     for (level = 0; ok && level <= max_level; level++) {
         vtable = *(void ***)(void *)bitmap->hardware_texture;
-        if (((d3d_lock_box_fn)vtable[0x4c / 4])((void *)bitmap->hardware_texture, (uint32_t)level, &locked, 0, 0) < 0 ||
+        if (render_device().volume_texture_lock_box((void *)bitmap->hardware_texture, (uint32_t)level, &locked, 0, 0) < 0 ||
             locked.bits == 0) {
             ok = 0;
             continue;
@@ -800,7 +792,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap)
             dest += locked.slice_pitch;
         }
         vtable = *(void ***)(void *)bitmap->hardware_texture;
-        if (((d3d_unlock_box_fn)vtable[0x50 / 4])((void *)bitmap->hardware_texture, (uint32_t)level) < 0) {
+        if (render_device().volume_texture_unlock_box((void *)bitmap->hardware_texture, (uint32_t)level) < 0) {
             ok = 0;
         }
     }
@@ -844,8 +836,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap)
     for (level = 0; ok && level <= max_level; level++) {
         for (face = 0; ok && face < 6; face++) {
             vtable = *(void ***)(void *)bitmap->hardware_texture;
-            if (((d3d_lock_rect_fn)vtable[0x4c / 4])((void *)bitmap->hardware_texture,
-                    (uint32_t)rasterizer_cube_face_to_d3d_face[face], (uint32_t)level, &locked, 0, 0) < 0 ||
+            if (render_device().cube_texture_lock_rect((void *)bitmap->hardware_texture, (uint32_t)rasterizer_cube_face_to_d3d_face[face], (uint32_t)level, &locked, 0, 0) < 0 ||
                 locked.bits == 0) {
                 ok = 0;
                 continue;
@@ -868,8 +859,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap)
                 }
             }
             vtable = *(void ***)(void *)bitmap->hardware_texture;
-            if (((d3d_unlock_rect_fn)vtable[0x50 / 4])((void *)bitmap->hardware_texture,
-                    (uint32_t)rasterizer_cube_face_to_d3d_face[face], (uint32_t)level) < 0) {
+            if (render_device().cube_texture_unlock_rect((void *)bitmap->hardware_texture, (uint32_t)rasterizer_cube_face_to_d3d_face[face], (uint32_t)level) < 0) {
                 ok = 0;
             }
         }
@@ -927,7 +917,6 @@ void rasterizer_force_bilinear_filtering(void)
 
 namespace rasterizer_render_target_bind_effect_texture_impl {
 
-typedef int32_t (__stdcall *d3dx_effect_settexture_fn)(void *effect, uint32_t handle, void *texture);
 
 /**
  * Binds a render-target texture to one of an effect's named texture handles instead of a raw device sampler
@@ -947,8 +936,7 @@ void rasterizer_render_target_bind_effect_texture(int16_t target_index, rasteriz
     }
 
     effect_vtable = *(void ***)(uintptr_t)effect_slot->effect;
-    ((d3dx_effect_settexture_fn)effect_vtable[0xd0 / 4])((void *)(uintptr_t)effect_slot->effect,
-        effect_slot->texture_handles[handle_index], texture);
+    render_device().effect_set_texture((void *)(uintptr_t)effect_slot->effect, effect_slot->texture_handles[handle_index], texture);
 }
 
 }  // namespace rasterizer_render_target_bind_effect_texture_impl
@@ -963,14 +951,12 @@ void rasterizer_render_target_bind_effect_texture(int16_t target_index, rasteriz
 void * rasterizer_render_target_bind_texture_stage(int16_t target_index, int16_t stage)
 {
     void *texture = 0;
-    void **vtable;
 
     if (target_index < 9 && target_index > -1) {
         texture = (void *)(uintptr_t)rasterizer_render_targets[target_index].texture;
     }
 
-    vtable = *(void ***)rasterizer_device;
-    ((d3d_set_texture_fn)vtable[0x104 / 4])(rasterizer_device, stage, texture);
+    render_device().set_texture(stage, texture);
     return texture;
 }
 
@@ -1031,11 +1017,8 @@ uint8_t rasterizer_resolve_and_cache_submap_c(uint32_t bitmap_tag_id, int16_t bi
 
 namespace rasterizer_unbind_stream_and_textures_impl {
 
-typedef int32_t (__stdcall *d3d_set_texture_fn)(void *device, int32_t stage, void *texture);
 
-typedef int32_t (__stdcall *d3d_set_stream_source_fn)(void *device, uint32_t stream, void *buffer, uint32_t offset, uint32_t stride);
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *device, uint32_t a);
 
 /**
  * Unbinds texture stages 0 and 1, clears the current stream source, and clears the current vertex
@@ -1045,19 +1028,15 @@ typedef int32_t (__stdcall *d3d_call1_fn)(void *device, uint32_t a);
  */
 void rasterizer_unbind_stream_and_textures(void)
 {
-    void **vtable;
     int32_t stage;
 
     for (stage = 0; stage < 2; stage++) {
-        vtable = *(void ***)rasterizer_device;
-        ((d3d_set_texture_fn)vtable[0x104 / 4])(rasterizer_device, stage, (void *)0);
+        render_device().set_texture(stage, (void *)0);
     }
 
-    vtable = *(void ***)rasterizer_device;
-    ((d3d_set_stream_source_fn)vtable[400 / 4])(rasterizer_device, 0, (void *)0, 0, 0);
+    render_device().set_stream_source(0, (void *)0, 0, 0);
 
-    vtable = *(void ***)rasterizer_device;
-    ((d3d_call1_fn)vtable[0x1a0 / 4])(rasterizer_device, 0);
+    render_device().set_indices(0);
 }
 
 }  // namespace rasterizer_unbind_stream_and_textures_impl

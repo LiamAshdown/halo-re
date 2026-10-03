@@ -22,22 +22,12 @@ extern void plane3d_from_point_and_normal(real_plane3d *plane, const real_vector
 
 namespace halo::rasterizer {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
-typedef int32_t (__stdcall *d3d_set_pointer_fn)(void *self, void *object);
 
-typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
 
-typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
 
-typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
-typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
-static void **device_vtable(void)
-{
-    return *(void ***)rasterizer_device;
-}
 
 /**
  * Direct3D 9 back end function rasterizer_light_cone_draw. The original author notes are in
@@ -103,26 +93,26 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
     constants[10] = 0.0f;
     constants[11] = 0.0f;
     shader_environment_texture_scrolling_evaluate(&constants[7], &constants[11], rasterizer_time.time, shader);
-    ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xa, constants, 3);
+    render_device().set_vertex_shader_constant_f(0xa, constants, 3);
 
     color[0] = *(float *)&((struct ShaderEnvironment *)raw)->material_color;
     color[1] = *(const float *)(raw + 0x110);
     color[2] = *(const float *)(raw + 0x114);
     color[3] = 1.0f;
-    ((d3d_set_constant_f_fn)device_vtable()[0x1b4 / 4])(rasterizer_device, 1, color, 1);
+    render_device().set_pixel_shader_constant_f(1, color, 1);
 
-    ((d3d_set_pointer_fn)device_vtable()[0x15c / 4])(rasterizer_device, (void *)rasterizer_vertex_declarations[0].declaration);
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, ((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
+    render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[0].declaration);
+    render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                                    rasterizer_vertex_declarations[0].usage) & 0x10);
-    ((d3d_set_pointer_fn)device_vtable()[0x170 / 4])(rasterizer_device, (void *)rasterizer_vertex_shaders[9].shader);
+    render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[9].shader);
 
-    ((d3dx_effect_begin_fn)(*(void ***)effect)[0x100 / 4])(effect, &pass_count, 3);
+    render_device().effect_begin(effect, &pass_count, 3);
     for (pass = 0; pass < pass_count; pass++) {
-        ((d3dx_effect_pass_fn)(*(void ***)effect)[0x104 / 4])(effect, pass);
+        render_device().effect_pass(effect, pass);
         chimera__rasterizer_draw_dynamic_triangles_static_vertices(primitive_count, (rasterizer_vertex_buffer *)vertex_buffer, dynamic_index_slot, first_primitive);
     }
-    ((d3dx_effect_end_fn)(*(void ***)effect)[0x108 / 4])(effect);
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().effect_end(effect);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 }
 
 namespace rasterizer_light_cone_set_orientation_constants_impl {
@@ -294,9 +284,7 @@ void rasterizer_light_cone_set_texture_stage_states(void)
 
 namespace rasterizer_light_disable_all_impl {
 
-typedef int32_t (__stdcall *d3d_set_material_fn)(void *device, const void *material);
 
-typedef int32_t (__stdcall *d3d_light_enable_fn)(void *device, uint32_t index, int32_t enable);
 
 /**
  * Resets the default material and disables every fixed-function Direct3D light, for the pre-pixel-shader
@@ -307,19 +295,16 @@ typedef int32_t (__stdcall *d3d_light_enable_fn)(void *device, uint32_t index, i
 void rasterizer_light_disable_all(void)
 {
     uint32_t i;
-    void **vtable;
 
     if (rasterizer_caps.pixel_shader_version < 0xffff0101 && rasterizer_caps.max_active_lights != 0) {
-        vtable = *(void ***)rasterizer_device;
-        ((d3d_set_material_fn)vtable[0xc4 / 4])(rasterizer_device, rasterizer_default_material);
+        render_device().set_material(rasterizer_default_material);
 
         rasterizer_fixed_function_light_count = 0;
 
         i = 0;
         if (rasterizer_caps.max_active_lights != 0) {
             do {
-                vtable = *(void ***)rasterizer_device;
-                ((d3d_light_enable_fn)vtable[0xd4 / 4])(rasterizer_device, i, 0);
+                render_device().light_enable(i, 0);
                 i = i + 1;
             } while (i < rasterizer_caps.max_active_lights);
         }
@@ -330,9 +315,7 @@ void rasterizer_light_disable_all(void)
 
 namespace rasterizer_light_set_impl {
 
-typedef int32_t (__stdcall *d3d_set_light_fn)(void *device, uint32_t index, const float *light);
 
-typedef int32_t (__stdcall *d3d_light_enable_fn)(void *device, uint32_t index, int32_t enable);
 
 #undef D3DLIGHT_POINT
 #define D3DLIGHT_POINT 1
@@ -351,7 +334,6 @@ void rasterizer_light_set(rasterizer_light *light)
     uint32_t index;
     float d3dlight[26];
 
-    void **vtable;
 
     index = rasterizer_fixed_function_light_count;
     if (rasterizer_caps.pixel_shader_version < 0xffff0101 && rasterizer_caps.max_active_lights != 0 &&
@@ -406,9 +388,8 @@ void rasterizer_light_set(rasterizer_light *light)
 
         d3dlight[0x4c / 4] = light->radius;
 
-        vtable = *(void ***)rasterizer_device;
-        ((d3d_set_light_fn)vtable[0xcc / 4])(rasterizer_device, index, d3dlight);
-        ((d3d_light_enable_fn)vtable[0xd4 / 4])(rasterizer_device, rasterizer_fixed_function_light_count, 1);
+        render_device().set_light(index, d3dlight);
+        render_device().light_enable(rasterizer_fixed_function_light_count, 1);
         rasterizer_fixed_function_light_count = rasterizer_fixed_function_light_count + 1;
     }
 }
@@ -464,7 +445,6 @@ namespace rasterizer_prepare_lighting_constants_impl {
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
-typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
 
 typedef struct lighting_constant_block {
     rasterizer_point_light_constants point_lights[2];
@@ -544,10 +524,9 @@ void rasterizer_prepare_lighting_constants(render_lighting *lighting)
         uint32_t green = (uint32_t)(int32_t)(clamp01(zoom_static_tint_r.green + boost + ambient_green) * 255.0f);
         uint32_t blue = (uint32_t)(int32_t)(clamp01(zoom_static_tint_r.blue + boost + ambient_blue) * 255.0f);
 
-        ((d3d_call2_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(
-            rasterizer_device, 0x8b, (((red & 0xff) << 8 | (green & 0xff)) << 8) | (blue & 0xff));
+        render_device().set_render_state(0x8b, (((red & 0xff) << 8 | (green & 0xff)) << 8) | (blue & 0xff));
     }
-    ((d3d_set_constant_f_fn)(*(void ***)rasterizer_device)[0x178 / 4])(rasterizer_device, 0xf, (const float *)&block, 0xb);
+    render_device().set_vertex_shader_constant_f(0xf, (const float *)&block, 0xb);
 }
 
 }  // namespace rasterizer_prepare_lighting_constants_impl
@@ -670,14 +649,11 @@ void rasterizer_projected_light_constants_build_cube_map(int32_t light_index)
 
 namespace rasterizer_set_fog_constants_impl {
 
-typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 
-typedef int32_t (__stdcall *d3d_set_vertex_shader_constant_f_fn)(void *device, uint32_t start_register, const float *data, uint32_t vector4f_count);
 
 static void rasterizer_set_render_state(uint32_t state, uint32_t value)
 {
-    void **vtable = *(void ***)rasterizer_device;
-    ((d3d_set_render_state_fn)vtable[0xe4 / 4])(rasterizer_device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 static float real_pin_unit(float value)
@@ -714,7 +690,6 @@ void rasterizer_set_fog_constants(const render_fog *fog)
     float camera_depth;
     float planar_distance_scale;
     float planar_depth_scale;
-    void **vtable;
 
     *window_fog = *fog;
 
@@ -778,8 +753,7 @@ void rasterizer_set_fog_constants(const render_fog *fog)
     constants[14] = real_pin_unit(window_fog->planar_maximum_density);
     constants[15] = 3.0f;
 
-    vtable = *(void ***)rasterizer_device;
-    ((d3d_set_vertex_shader_constant_f_fn)vtable[0x178 / 4])(rasterizer_device, 6, constants, 4);
+    render_device().set_vertex_shader_constant_f(6, constants, 4);
 
     rasterizer_fog_enabled = console_debug_toggle_6893fc;
     rasterizer_set_render_state(0x1c, rasterizer_fog_enabled);
@@ -801,7 +775,6 @@ void rasterizer_set_fog_constants(const render_fog *fog)
 
 namespace rasterizer_set_shader_stage_config_impl {
 
-typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 
 /**
  * Applies a cached, mode-dependent bundle of texture stage render states, doing nothing if `mode` already
@@ -824,7 +797,7 @@ void rasterizer_set_shader_stage_config(int16_t mode)
         return;
     }
 
-    #define set_render_state(device, state, value)         ((d3d_set_render_state_fn)(*(void ***)rasterizer_device)[0xe4 / 4])(rasterizer_device, (state), (value))
+    #define set_render_state(device, state, value)         render_device().set_render_state((state), (value))
 
     switch (mode) {
     case 0:
@@ -896,9 +869,7 @@ done:
 
 namespace rasterizer_shader_technique_for_name_impl {
 
-typedef int32_t (__stdcall *d3dx_get_by_name_fn)(void *effect, const char *name);
 
-typedef int32_t (__stdcall *d3dx_validate_technique_fn)(void *effect, void *technique);
 
 /**
  * VERIFIED against disassembly 0x530120..0x5301ae (2026-09-30): version split (0x7c118c =
@@ -910,7 +881,6 @@ typedef int32_t (__stdcall *d3dx_validate_technique_fn)(void *effect, void *tech
  */
 void * rasterizer_shader_technique_for_name(void *effect, const char *name)
 {
-    void **vt = *(void ***)effect;
     char full_name[128];
     void *technique = 0;
     int32_t major, minor;
@@ -921,9 +891,9 @@ void * rasterizer_shader_technique_for_name(void *effect, const char *name)
     for (; !found && major >= 0; major--, minor = 9) {
         for (; !found && minor >= 0; minor--) {
             sprintf(full_name, "%s_ps_%d_%d", name, major, minor);
-            technique = (void *)(uintptr_t)((d3dx_get_by_name_fn)vt[0x34 / 4])(effect, full_name);
+            technique = (void *)(uintptr_t)render_device().effect_get_technique_by_name(effect, full_name);
             if (technique != 0) {
-                int32_t hr = ((d3dx_validate_technique_fn)vt[0xf4 / 4])(effect, technique);
+                int32_t hr = render_device().effect_validate_technique(effect, technique);
                 found = hr >= 0;
             }
         }

@@ -352,36 +352,29 @@ void rasterizer_gamma_brightness_to_exponent(rasterizer_gamma_settings *settings
 
 namespace rasterizer_motion_sensor_begin_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
 
-typedef int32_t (__stdcall *d3d_get_desc_fn)(void *surface, d3d_surface_desc *desc);
 
-typedef int32_t (__stdcall *d3d_set_viewport_fn)(void *self, const d3d_viewport *viewport);
 
-typedef int32_t (__stdcall *d3d_clear_fn)(void *self, uint32_t count, const void *rects, uint32_t flags, uint32_t color,
-                                float z, uint32_t stencil);
 
-static void **device_vtable(void) { return *(void ***)rasterizer_device; }
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x10c / 4])(rasterizer_device, stage, type, value);
+    render_device().set_texture_stage_state(stage, type, value);
 }
 
 static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x114 / 4])(rasterizer_device, sampler, type, value);
+    render_device().set_sampler_state(sampler, type, value);
 }
 
 static BitmapData *first_bitmap_data(uint32_t tag_id)
@@ -430,17 +423,17 @@ void rasterizer_motion_sensor_begin(void)
 
     surface = (void *)(uintptr_t)rasterizer_render_targets[5].surface;
     rasterizer_motion_sensor_ready = 1;
-    ((d3d_call2_fn)device_vtable()[0x94 / 4])(rasterizer_device, 0, (uint32_t)(uintptr_t)surface);
+    render_device().set_render_target(0, (uint32_t)(uintptr_t)surface);
     rasterizer_active_render_target = 5;
-    ((d3d_get_desc_fn)(*(void ***)surface)[0x30 / 4])(surface, &desc);
+    render_device().surface_get_desc(surface, &desc);
     viewport.x = 0;
     viewport.y = 0;
     viewport.width = desc.width;
     viewport.height = desc.height;
     viewport.min_z = 0.0f;
     viewport.max_z = 1.0f;
-    ((d3d_set_viewport_fn)device_vtable()[0xbc / 4])(rasterizer_device, &viewport);
-    ((d3d_clear_fn)device_vtable()[0xac / 4])(rasterizer_device, 0, NULL, 1, 0, 1.0f, 0);
+    render_device().set_viewport(&viewport);
+    render_device().clear(0, NULL, 1, 0, 1.0f, 0);
 
     rasterizer_bind_texture_d3d9(0, blip_bitmap);
     set_sampler_state(0, 1, 3);
@@ -457,14 +450,12 @@ void rasterizer_motion_sensor_begin(void)
     set_render_state(0x0f, 0);
     set_render_state(0x07, 0);
     set_render_state(0x1c, 0);
-    ((d3d_call1_fn)device_vtable()[0x15c / 4])(rasterizer_device,
-                                               rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
 
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device,
-                                               ((rasterizer_software_vertex_processing ? 0x10 : 0) |
+    render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing ? 0x10 : 0) |
                                                 rasterizer_vertex_declarations[6].usage) & 0x10);
-    ((d3d_call1_fn)device_vtable()[0x170 / 4])(rasterizer_device, rasterizer_vertex_shaders[35].shader);
-    ((d3d_call1_fn)device_vtable()[0x1ac / 4])(rasterizer_device, 0);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[35].shader);
+    render_device().set_pixel_shader(0);
 
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
@@ -475,7 +466,7 @@ void rasterizer_motion_sensor_begin(void)
     constants[4][1] = 1.0f;
     constants[4][2] = 0.0f;
     constants[4][3] = 1.0f;
-    ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xd, &constants[0][0], 5);
+    render_device().set_vertex_shader_constant_f(0xd, &constants[0][0], 5);
     set_texture_stage_state(0, 1, 4);
     set_texture_stage_state(0, 2, 2);
     set_texture_stage_state(0, 3, 0);
@@ -490,7 +481,6 @@ void rasterizer_motion_sensor_begin(void)
 
 namespace rasterizer_motion_sensor_blip_draw_impl {
 
-typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t type, uint32_t count, const void *data, uint32_t stride);
 
 /**
  * Draws one blip as a two triangle fan quad of half size size/16 around (x, y) * -1/32, with the color scaled
@@ -537,45 +527,39 @@ void rasterizer_motion_sensor_blip_draw(const float *position, const float *colo
         vertices[i].z = 0.0f;
         vertices[i].color = packed;
     }
-    ((d3d_draw_primitive_up_fn)(*(void ***)rasterizer_device)[0x14c / 4])(rasterizer_device, 6, 2, vertices,
-                                                                          sizeof(rasterizer_dynamic_screen_vertex));
+    render_device().draw_primitive_up(6, 2, vertices, sizeof(rasterizer_dynamic_screen_vertex));
 }
 
 }  // namespace rasterizer_motion_sensor_blip_draw_impl
 
 namespace rasterizer_motion_sensor_end_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
 
-typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t type, uint32_t count, const void *data, uint32_t stride);
 
-static void **device_vtable(void) { return *(void ***)rasterizer_device; }
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x10c / 4])(rasterizer_device, stage, type, value);
+    render_device().set_texture_stage_state(stage, type, value);
 }
 
 static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x114 / 4])(rasterizer_device, sampler, type, value);
+    render_device().set_sampler_state(sampler, type, value);
 }
 
 static void draw_fan(const rasterizer_dynamic_screen_vertex *vertices)
 {
-    ((d3d_draw_primitive_up_fn)device_vtable()[0x14c / 4])(rasterizer_device, 6, 2, vertices,
-                                                           sizeof(rasterizer_dynamic_screen_vertex));
+    render_device().draw_primitive_up(6, 2, vertices, sizeof(rasterizer_dynamic_screen_vertex));
 }
 
 static void set_vertex(rasterizer_dynamic_screen_vertex *vertex, float x, float y, uint32_t color, float u, float v)
@@ -647,8 +631,7 @@ void rasterizer_motion_sensor_end(const float *position, float sweep)
     set_render_state(0x0f, 0);
     set_render_state(0x07, 0);
     set_render_state(0x1c, 0);
-    ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xd,
-                                                        &rasterizer_identity_vertex_constants[0][0], 5);
+    render_device().set_vertex_shader_constant_f(0xd, &rasterizer_identity_vertex_constants[0][0], 5);
     set_texture_stage_state(0, 1, 4);
     set_texture_stage_state(0, 2, 2);
     set_texture_stage_state(0, 3, 0);
@@ -687,7 +670,7 @@ void rasterizer_motion_sensor_end(const float *position, float sweep)
     draw_fan(vertices);
 
     rasterizer_render_target_set_active(rasterizer_window.type, 0, 0);
-    ((d3d_call2_fn)device_vtable()[0x104 / 4])(rasterizer_device, 0, rasterizer_render_targets[5].texture);
+    render_device().set_texture(0, rasterizer_render_targets[5].texture);
     set_sampler_state(0, 1, 3);
     set_sampler_state(0, 2, 3);
     set_sampler_state(0, 5, 2);
@@ -708,21 +691,20 @@ void rasterizer_motion_sensor_end(const float *position, float sweep)
     constants[2][0] = 0.0f;           constants[2][1] = 0.0f;           constants[2][2] = 0.0f; constants[2][3] = 0.5f;
     constants[3][0] = 0.0f;           constants[3][1] = 0.0f;           constants[3][2] = 0.0f; constants[3][3] = 1.0f;
     constants[4][0] = 1.0f;           constants[4][1] = 1.0f;           constants[4][2] = 0.0f; constants[4][3] = 1.0f;
-    ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xd, &constants[0][0], 5);
+    render_device().set_vertex_shader_constant_f(0xd, &constants[0][0], 5);
     half_size = (local_player_globals->local_player_count > 1) ? 32.0f : 42.0f;
     set_vertex(&vertices[0], position[0] - half_size, position[1] - half_size, 0xffffffff, 0.0f, 0.0f);
     set_vertex(&vertices[1], position[0] + half_size, position[1] - half_size, 0xffffffff, 1.0f, 0.0f);
     set_vertex(&vertices[2], position[0] + half_size, position[1] + half_size, 0xffffffff, 1.0f, 1.0f);
     set_vertex(&vertices[3], position[0] - half_size, position[1] + half_size, 0xffffffff, 0.0f, 1.0f);
     draw_fan(vertices);
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 }
 
 }  // namespace rasterizer_motion_sensor_end_impl
 
 namespace rasterizer_screen_effect_compute_uv_transform_impl {
 
-typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
 
 static void texel_size(const BitmapData *bitmap, float *u, float *v)
 {
@@ -881,7 +863,7 @@ void rasterizer_screen_effect_compute_uv_transform(uint32_t width, uint32_t heig
         m[3][1] = c_scale_v;
         m[3][3] = c_offset_v;
     }
-    ((d3d_set_constant_f_fn)(*(void ***)rasterizer_device)[0x178 / 4])(rasterizer_device, 0xd, &m[0][0], 8);
+    render_device().set_vertex_shader_constant_f(0xd, &m[0][0], 8);
 }
 
 }  // namespace rasterizer_screen_effect_compute_uv_transform_impl
@@ -922,13 +904,11 @@ uint8_t rasterizer_screen_effect_init_shaders(void)
 
 namespace rasterizer_screen_effect_render_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t type, uint32_t count, const void *data, uint32_t stride);
 
 typedef int32_t (__stdcall *d3dx_effect_set_vector_fn)(void *effect, uint32_t handle, const float *vector);
 
@@ -940,16 +920,15 @@ typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
 typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
-static void **device_vtable(void) { return *(void ***)rasterizer_device; }
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x114 / 4])(rasterizer_device, sampler, type, value);
+    render_device().set_sampler_state(sampler, type, value);
 }
 
 static void set_sampler_states(uint32_t sampler, uint32_t address, uint32_t filter, uint32_t mip_filter)
@@ -965,8 +944,7 @@ static void *screen_effect(void) { return (void *)(uintptr_t)rasterizer_effects[
 
 static void draw_screen_quad(void)
 {
-    ((d3d_draw_primitive_up_fn)device_vtable()[0x14c / 4])(rasterizer_device, 6, 2, rasterizer_screen_effect_quad,
-                                                           sizeof(rasterizer_dynamic_screen_vertex));
+    render_device().draw_primitive_up(6, 2, rasterizer_screen_effect_quad, sizeof(rasterizer_dynamic_screen_vertex));
 }
 
 static void set_technique(uint32_t technique)
@@ -1053,15 +1031,13 @@ void rasterizer_screen_effect_render(weapon_screen_effect_parameters *input)
     rasterizer_screen_effect_quad[1].z = 0.0f;
     rasterizer_screen_effect_quad[0].z = 0.0f;
     if (screen_effect() == NULL) {
-        ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+        render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
         return;
     }
-    ((d3d_call1_fn)device_vtable()[0x15c / 4])(rasterizer_device,
-                                               rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device,
-                                               ((rasterizer_software_vertex_processing ? 0x10 : 0) |
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
+    render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing ? 0x10 : 0) |
                                                 rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].usage) & 0x10);
-    ((d3d_call1_fn)device_vtable()[0x170 / 4])(rasterizer_device, rasterizer_vertex_shaders[0].shader);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[0].shader);
 
     for (pass = 0; pass < pass_count; pass++) {
         if (pass_count == 1) {
@@ -1219,42 +1195,38 @@ void rasterizer_screen_effect_render(weapon_screen_effect_parameters *input)
         ((d3dx_effect_end_fn)(*(void ***)screen_effect())[0x108 / 4])(screen_effect());
     }
     rasterizer_render_target_set_active(rasterizer_window.type, 0, 0);
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 }
 
 }  // namespace rasterizer_screen_effect_render_impl
 
 namespace rasterizer_screen_effect_render_fixed_function_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-typedef int32_t (__stdcall *d3d_set_transform_fn)(void *self, uint32_t state, const float *matrix);
 
-typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t type, uint32_t count, const void *data, uint32_t stride);
 
-static void **device_vtable(void) { return *(void ***)rasterizer_device; }
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x10c / 4])(rasterizer_device, stage, type, value);
+    render_device().set_texture_stage_state(stage, type, value);
 }
 
 static void set_sampler_states(uint32_t sampler, uint32_t address, uint32_t filter, uint32_t mip_filter)
 {
-    ((d3d_call3_fn)device_vtable()[0x114 / 4])(rasterizer_device, sampler, 1, address);
-    ((d3d_call3_fn)device_vtable()[0x114 / 4])(rasterizer_device, sampler, 2, address);
-    ((d3d_call3_fn)device_vtable()[0x114 / 4])(rasterizer_device, sampler, 5, filter);
-    ((d3d_call3_fn)device_vtable()[0x114 / 4])(rasterizer_device, sampler, 6, filter);
-    ((d3d_call3_fn)device_vtable()[0x114 / 4])(rasterizer_device, sampler, 7, mip_filter);
+    render_device().set_sampler_state(sampler, 1, address);
+    render_device().set_sampler_state(sampler, 2, address);
+    render_device().set_sampler_state(sampler, 5, filter);
+    render_device().set_sampler_state(sampler, 6, filter);
+    render_device().set_sampler_state(sampler, 7, mip_filter);
 }
 
 static void set_blend(uint32_t source, uint32_t destination)
@@ -1267,8 +1239,7 @@ static void set_blend(uint32_t source, uint32_t destination)
 
 static void draw_screen_quad(void)
 {
-    ((d3d_draw_primitive_up_fn)device_vtable()[0x14c / 4])(rasterizer_device, 6, 2, rasterizer_screen_effect_quad,
-                                                           sizeof(rasterizer_dynamic_screen_vertex));
+    render_device().draw_primitive_up(6, 2, rasterizer_screen_effect_quad, sizeof(rasterizer_dynamic_screen_vertex));
 }
 
 /**
@@ -1299,19 +1270,17 @@ void rasterizer_screen_effect_render_fixed_function(weapon_screen_effect_paramet
     width = rasterizer_window.camera.viewport_bounds.right - rasterizer_window.camera.viewport_bounds.left;
     height = rasterizer_window.camera.viewport_bounds.bottom - rasterizer_window.camera.viewport_bounds.top;
 
-    ((d3d_call1_fn)device_vtable()[0x1ac / 4])(rasterizer_device, 0);
+    render_device().set_pixel_shader(0);
     set_render_state(0x16, 1);
     set_render_state(0xa8, 7);
     set_render_state(0x1b, 0);
     set_render_state(0x0f, 0);
     set_render_state(0x07, 0);
     set_render_state(0x1c, 0);
-    ((d3d_call1_fn)device_vtable()[0x15c / 4])(rasterizer_device,
-                                               rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device,
-                                               ((rasterizer_software_vertex_processing ? 0x10 : 0) |
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
+    render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing ? 0x10 : 0) |
                                                 rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].usage) & 0x10);
-    ((d3d_call1_fn)device_vtable()[0x170 / 4])(rasterizer_device, rasterizer_vertex_shaders[0].shader);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[0].shader);
 
     for (i = 0; i < 4; i++) {
         rasterizer_screen_effect_quad[i].z = 0.0f;
@@ -1367,9 +1336,9 @@ void rasterizer_screen_effect_render_fixed_function(weapon_screen_effect_paramet
             set_blend(9, 1);
             draw_screen_quad();
             set_texture_stage_state(0, 0x18, 0);
-            ((d3d_set_transform_fn)device_vtable()[0xb0 / 4])(rasterizer_device, 0x10, &identity[0][0]);
+            render_device().set_transform(0x10, &identity[0][0]);
             set_texture_stage_state(1, 0x18, 0);
-            ((d3d_set_transform_fn)device_vtable()[0xb0 / 4])(rasterizer_device, 0x11, &identity[0][0]);
+            render_device().set_transform(0x11, &identity[0][0]);
         }
     } else if (p->mask_bitmap_data != 0) {
         BitmapData *mask = (BitmapData *)(uintptr_t)p->mask_bitmap_data;
@@ -1414,7 +1383,7 @@ void rasterizer_screen_effect_render_fixed_function(weapon_screen_effect_paramet
             draw_screen_quad();
         }
     }
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 }
 
 }  // namespace rasterizer_screen_effect_render_fixed_function_impl
@@ -1457,18 +1426,13 @@ int rasterizer_screen_flash_init_shaders(void)
 
 namespace rasterizer_screen_flash_render_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-typedef int32_t (__stdcall *d3d_setconst_fn)(void *self, uint32_t reg, const float *data, uint32_t count);
 
-typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t primitive_type, uint32_t primitive_count,
-                                            const void *data, uint32_t stride);
 
-typedef int32_t (__stdcall *d3dx_effect_settechnique_fn)(void *effect, void *technique);
 
 typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *pass_count, uint32_t flags);
 
@@ -1476,14 +1440,10 @@ typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
 typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
-static void **device_vtable(void)
-{
-    return *(void ***)rasterizer_device;
-}
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 static uint32_t pack_argb_bytes(float alpha, float red, float green, float blue)
@@ -1518,7 +1478,6 @@ void rasterizer_screen_flash_render(void)
     uint32_t current_color;
     uint32_t inverted_color;
     void *effect;
-    void **effect_vt;
     void *technique;
     int16_t width, height;
     float constants[5][4];
@@ -1545,7 +1504,7 @@ void rasterizer_screen_flash_render(void)
     effect = rasterizer_screen_flash_effect;
     if (effect == 0) {
 
-        ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+        render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
         return;
     }
     {
@@ -1554,7 +1513,6 @@ void rasterizer_screen_flash_render(void)
         set_render_state(0x1b, 1);
         set_render_state(0x1c, 0);
 
-        effect_vt = *(void ***)effect;
         switch (flash->type) {
         case 1:
             set_render_state(0x13, 2);
@@ -1562,7 +1520,7 @@ void rasterizer_screen_flash_render(void)
             set_render_state(0xab, 1);
             set_render_state(0x3c, current_color);
             technique = screen_flash_techniques[0];
-            ((d3dx_effect_settechnique_fn)effect_vt[0xec / 4])(effect, technique);
+            render_device().effect_set_technique(effect, technique);
             break;
 
         case 2:
@@ -1571,7 +1529,7 @@ void rasterizer_screen_flash_render(void)
             set_render_state(0xab, 3);
             set_render_state(0x3c, current_color);
             technique = screen_flash_techniques[1];
-            ((d3dx_effect_settechnique_fn)effect_vt[0xec / 4])(effect, technique);
+            render_device().effect_set_technique(effect, technique);
             break;
 
         case 3:
@@ -1596,7 +1554,7 @@ void rasterizer_screen_flash_render(void)
                 set_render_state(0x3c, current_color);
                 technique = screen_flash_techniques[2];
             }
-            ((d3dx_effect_settechnique_fn)effect_vt[0xec / 4])(effect, technique);
+            render_device().effect_set_technique(effect, technique);
             break;
 
         case 4:
@@ -1621,7 +1579,7 @@ void rasterizer_screen_flash_render(void)
             }
             set_render_state(0x3c, current_color);
             technique = screen_flash_techniques[3];
-            ((d3dx_effect_settechnique_fn)effect_vt[0xec / 4])(effect, technique);
+            render_device().effect_set_technique(effect, technique);
             break;
 
         case 5:
@@ -1637,7 +1595,7 @@ void rasterizer_screen_flash_render(void)
             }
             set_render_state(0x3c, current_color);
             technique = screen_flash_techniques[4];
-            ((d3dx_effect_settechnique_fn)effect_vt[0xec / 4])(effect, technique);
+            render_device().effect_set_technique(effect, technique);
             break;
 
         case 6:
@@ -1655,7 +1613,7 @@ void rasterizer_screen_flash_render(void)
                 }
                 set_render_state(0x3c, inverted_color);
                 technique = screen_flash_techniques[5];
-                ((d3dx_effect_settechnique_fn)effect_vt[0xec / 4])(effect, technique);
+                render_device().effect_set_technique(effect, technique);
             }
             break;
         }
@@ -1664,16 +1622,14 @@ void rasterizer_screen_flash_render(void)
     set_render_state(0xf, 0);
     set_render_state(0x7, 0);
 
-    ((d3d_call1_fn)device_vtable()[0x15c / 4])(rasterizer_device,
-        rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
 
     {
         uint32_t usage = rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].usage;
-        ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device,
-            (rasterizer_software_vertex_processing != 0 ? 0x10u : 0u) | (usage & 0x10));
+        render_device().set_software_vertex_processing((rasterizer_software_vertex_processing != 0 ? 0x10u : 0u) | (usage & 0x10));
     }
 
-    ((d3d_call1_fn)device_vtable()[0x170 / 4])(rasterizer_device, rasterizer_vertex_shaders[35].shader);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[35].shader);
 
     width = (int16_t)(rasterizer_window.camera.viewport_bounds.right - rasterizer_window.camera.viewport_bounds.left);
     height = (int16_t)(rasterizer_window.camera.viewport_bounds.bottom - rasterizer_window.camera.viewport_bounds.top);
@@ -1701,7 +1657,7 @@ void rasterizer_screen_flash_render(void)
         constants[4][2] = 0.0f;
         constants[4][3] = 1.0f;
     }
-    ((d3d_setconst_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xd, &constants[0][0], 5);
+    render_device().set_vertex_shader_constant_f(0xd, &constants[0][0], 5);
 
     width = (int16_t)(rasterizer_window.camera.viewport_bounds.right - rasterizer_window.camera.viewport_bounds.left);
     height = (int16_t)(rasterizer_window.camera.viewport_bounds.bottom - rasterizer_window.camera.viewport_bounds.top);
@@ -1725,36 +1681,32 @@ void rasterizer_screen_flash_render(void)
     ps_constants[1][2] = (1.0f - color.blue) * intensity;
     ps_constants[1][3] = color.alpha * intensity;
     if (rasterizer_caps.pixel_shader_version > 0xffff0100) {
-        ((d3d_setconst_fn)device_vtable()[0x1b4 / 4])(rasterizer_device, 0, &ps_constants[0][0], 2);
+        render_device().set_pixel_shader_constant_f(0, &ps_constants[0][0], 2);
     }
 
     effect = rasterizer_screen_flash_effect;
-    effect_vt = *(void ***)effect;
     pass_count = 0;
-    ((d3dx_effect_begin_fn)effect_vt[0x100 / 4])(effect, &pass_count, 3);
+    render_device().effect_begin(effect, &pass_count, 3);
     for (pass = 0; pass < pass_count; pass++) {
-        ((d3dx_effect_pass_fn)effect_vt[0x104 / 4])(effect, 0);
+        render_device().effect_pass(effect, 0);
 
-        ((d3d_draw_primitive_up_fn)device_vtable()[0x14c / 4])(rasterizer_device, 6, 2, &vs_quad[0][0], 0x18);
+        render_device().draw_primitive_up(6, 2, &vs_quad[0][0], 0x18);
     }
-    ((d3dx_effect_end_fn)effect_vt[0x108 / 4])(effect);
+    render_device().effect_end(effect);
 
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 }
 
 }  // namespace rasterizer_screen_flash_render_impl
 
 namespace rasterizer_sun_glow_blur_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
 
-typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t type, uint32_t count, const void *data, uint32_t stride);
 
 typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
 
@@ -1762,11 +1714,10 @@ typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
 typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
-static void **device_vtable(void) { return *(void ***)rasterizer_device; }
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 static void set_quad_vertex(int i, float x, float y, float u, float v)
@@ -1802,13 +1753,11 @@ int16_t rasterizer_sun_glow_blur(int16_t first, int16_t second, int16_t passes)
     set_render_state(0x0f, 0);
     set_render_state(0x07, 0);
     set_render_state(0x1c, 0);
-    ((d3d_call1_fn)device_vtable()[0x15c / 4])(rasterizer_device,
-                                               rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device,
-                                               ((rasterizer_software_vertex_processing ? 0x10 : 0) |
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
+    render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing ? 0x10 : 0) |
                                                 rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].usage) & 0x10);
-    ((d3d_call1_fn)device_vtable()[0x170 / 4])(rasterizer_device, rasterizer_vertex_shaders[0].shader);
-    ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xd, &rasterizer_sun_glow_blur_offsets[0][0], 8);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[0].shader);
+    render_device().set_vertex_shader_constant_f(0xd, &rasterizer_sun_glow_blur_offsets[0][0], 8);
 
     for (pass = 0; pass < passes; pass++) {
         int16_t source = (pass & 1) ? second : first;
@@ -1820,8 +1769,8 @@ int16_t rasterizer_sun_glow_blur(int16_t first, int16_t second, int16_t passes)
         for (stage = 0; stage < 4; stage++) {
             uint32_t texture = (source < 9 && source >= 0) ? rasterizer_render_targets[source].texture : 0;
 
-            ((d3d_call2_fn)device_vtable()[0x104 / 4])(rasterizer_device, stage, texture);
-            ((d3d_call3_fn)device_vtable()[0x114 / 4])(rasterizer_device, stage, 7, 1);
+            render_device().set_texture(stage, texture);
+            render_device().set_sampler_state(stage, 7, 1);
         }
         rasterizer_render_target_set_active(destination, 0, 0);
         set_quad_vertex(0, -1.015625f, 1.015625f, 0.0f, 0.0f);
@@ -1829,18 +1778,17 @@ int16_t rasterizer_sun_glow_blur(int16_t first, int16_t second, int16_t passes)
         set_quad_vertex(2, 0.984375f, -0.984375f, 1.0f, 1.0f);
         set_quad_vertex(3, -1.015625f, -0.984375f, 0.0f, 1.0f);
         weight[0] = weight[1] = weight[2] = weight[3] = (pass > 0) ? 0.5f : 1.0f;
-        ((d3d_set_constant_f_fn)device_vtable()[0x1b4 / 4])(rasterizer_device, 0, weight, 1);
+        render_device().set_pixel_shader_constant_f(0, weight, 1);
         effect = (void *)(uintptr_t)rasterizer_effects[76].effect;
-        ((d3dx_effect_begin_fn)(*(void ***)effect)[0x100 / 4])(effect, &effect_passes, 3);
+        render_device().effect_begin(effect, &effect_passes, 3);
         effect = (void *)(uintptr_t)rasterizer_effects[76].effect;
-        ((d3dx_effect_pass_fn)(*(void ***)effect)[0x104 / 4])(effect, 1);
-        ((d3d_draw_primitive_up_fn)device_vtable()[0x14c / 4])(rasterizer_device, 6, 2, rasterizer_shadow_screen_quad,
-                                                               sizeof(rasterizer_dynamic_screen_vertex));
+        render_device().effect_pass(effect, 1);
+        render_device().draw_primitive_up(6, 2, rasterizer_shadow_screen_quad, sizeof(rasterizer_dynamic_screen_vertex));
         effect = (void *)(uintptr_t)rasterizer_effects[76].effect;
-        ((d3dx_effect_end_fn)(*(void ***)effect)[0x108 / 4])(effect);
+        render_device().effect_end(effect);
     }
     rasterizer_render_target_set_active(rasterizer_window.type, 0, 0);
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
     return (passes & 1) ? second : first;
 }
 
@@ -1848,15 +1796,12 @@ int16_t rasterizer_sun_glow_blur(int16_t first, int16_t second, int16_t passes)
 
 namespace rasterizer_sun_glow_capture_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
 
-typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t type, uint32_t count, const void *data, uint32_t stride);
 
 typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
 
@@ -1864,11 +1809,10 @@ typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
 typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
-static void **device_vtable(void) { return *(void ***)rasterizer_device; }
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 static void set_quad_vertex(int i, float x, float y, float u, float v)
@@ -1894,8 +1838,8 @@ void rasterizer_sun_glow_capture(const float *rect, int16_t target_index)
     void *effect;
     int i, j;
 
-    ((d3d_call2_fn)device_vtable()[0x104 / 4])(rasterizer_device, 0, rasterizer_render_targets[1].texture);
-    ((d3d_call3_fn)device_vtable()[0x114 / 4])(rasterizer_device, 0, 7, 1);
+    render_device().set_texture(0, rasterizer_render_targets[1].texture);
+    render_device().set_sampler_state(0, 7, 1);
     chimera__rasterizer_set_texture_direct_d3d9(*(uint32_t *)((uint8_t *)rasterizer_globals_data + 0x6c), 1, 0);
     set_render_state(0x16, 3);
     set_render_state(0xa8, 0xf);
@@ -1903,12 +1847,10 @@ void rasterizer_sun_glow_capture(const float *rect, int16_t target_index)
     set_render_state(0x0f, 0);
     set_render_state(0x07, 0);
     set_render_state(0x1c, 0);
-    ((d3d_call1_fn)device_vtable()[0x15c / 4])(rasterizer_device,
-                                               rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device,
-                                               ((rasterizer_software_vertex_processing ? 0x10 : 0) |
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
+    render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing ? 0x10 : 0) |
                                                 rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].usage) & 0x10);
-    ((d3d_call1_fn)device_vtable()[0x170 / 4])(rasterizer_device, rasterizer_vertex_shaders[0].shader);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[0].shader);
 
     width = (float)(int16_t)(rasterizer_window.camera.viewport_bounds.right - rasterizer_window.camera.viewport_bounds.left);
     height = (float)(int16_t)(rasterizer_window.camera.viewport_bounds.bottom - rasterizer_window.camera.viewport_bounds.top);
@@ -1930,7 +1872,7 @@ void rasterizer_sun_glow_capture(const float *rect, int16_t target_index)
         constants[1][1] = height * constants[1][1];
         constants[1][3] = height * constants[1][3];
     }
-    ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xd, &constants[0][0], 8);
+    render_device().set_vertex_shader_constant_f(0xd, &constants[0][0], 8);
     rasterizer_render_target_set_active(target_index, 0, 0);
 
     effect = (void *)(uintptr_t)rasterizer_effects[76].effect;
@@ -1941,16 +1883,15 @@ void rasterizer_sun_glow_capture(const float *rect, int16_t target_index)
         set_quad_vertex(1, 0.984375f, 1.015625f, 1.0f, 0.0f);
         set_quad_vertex(2, 0.984375f, -0.984375f, 1.0f, 1.0f);
         set_quad_vertex(3, -1.015625f, -0.984375f, 0.0f, 1.0f);
-        ((d3dx_effect_begin_fn)(*(void ***)effect)[0x100 / 4])(effect, &passes, 3);
+        render_device().effect_begin(effect, &passes, 3);
         effect = (void *)(uintptr_t)rasterizer_effects[76].effect;
-        ((d3dx_effect_pass_fn)(*(void ***)effect)[0x104 / 4])(effect, 0);
-        ((d3d_draw_primitive_up_fn)device_vtable()[0x14c / 4])(rasterizer_device, 6, 2, rasterizer_shadow_screen_quad,
-                                                               sizeof(rasterizer_dynamic_screen_vertex));
+        render_device().effect_pass(effect, 0);
+        render_device().draw_primitive_up(6, 2, rasterizer_shadow_screen_quad, sizeof(rasterizer_dynamic_screen_vertex));
         effect = (void *)(uintptr_t)rasterizer_effects[76].effect;
-        ((d3dx_effect_end_fn)(*(void ***)effect)[0x108 / 4])(effect);
+        render_device().effect_end(effect);
     }
     rasterizer_render_target_set_active(rasterizer_window.type, 0, 0);
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 }
 
 }  // namespace rasterizer_sun_glow_capture_impl
@@ -2023,15 +1964,12 @@ uint8_t rasterizer_sun_glow_project_point(real_point3d *point, float radius, flo
 
 namespace rasterizer_sun_glow_render_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
 
-typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t type, uint32_t count, const void *data, uint32_t stride);
 
 typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
 
@@ -2039,21 +1977,20 @@ typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
 typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
-static void **device_vtable(void) { return *(void ***)rasterizer_device; }
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x10c / 4])(rasterizer_device, stage, type, value);
+    render_device().set_texture_stage_state(stage, type, value);
 }
 
 static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x114 / 4])(rasterizer_device, sampler, type, value);
+    render_device().set_sampler_state(sampler, type, value);
 }
 
 static void set_clamped_linear_sampler(uint32_t sampler)
@@ -2067,8 +2004,7 @@ static void set_clamped_linear_sampler(uint32_t sampler)
 
 static void draw_quad(void)
 {
-    ((d3d_draw_primitive_up_fn)device_vtable()[0x14c / 4])(rasterizer_device, 6, 2, rasterizer_shadow_screen_quad,
-                                                           sizeof(rasterizer_dynamic_screen_vertex));
+    render_device().draw_primitive_up(6, 2, rasterizer_shadow_screen_quad, sizeof(rasterizer_dynamic_screen_vertex));
 }
 
 static void set_quad_position(float left, float top, float right, float bottom, float z)
@@ -2131,16 +2067,15 @@ static void set_screen_constants(float c15_z, float c15_w, float c16_w, float c1
     constants[4][1] = c17_y;
     constants[4][2] = 0.0f;
     constants[4][3] = 1.0f;
-    ((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xd, &constants[0][0], 5);
+    render_device().set_vertex_shader_constant_f(0xd, &constants[0][0], 5);
 }
 
 static void set_screen_vertex_states(void)
 {
-    ((d3d_call1_fn)device_vtable()[0x15c / 4])(rasterizer_device, rasterizer_vertex_declarations[6].declaration);
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device,
-                                               ((rasterizer_software_vertex_processing ? 0x10 : 0) |
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[6].declaration);
+    render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing ? 0x10 : 0) |
                                                 rasterizer_vertex_declarations[6].usage) & 0x10);
-    ((d3d_call1_fn)device_vtable()[0x170 / 4])(rasterizer_device, rasterizer_vertex_shaders[24].shader);
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[24].shader);
 }
 
 /**
@@ -2189,7 +2124,7 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
     point.y = direction.j * radius + instance->position.y;
     point.z = direction.k * radius + instance->position.z;
     if (!rasterizer_sun_glow_project_point(&point, radius, screen, &scale)) {
-        ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+        render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
         return;
     }
     screen[0] = (float)floor(screen[0] + 0.5f);
@@ -2203,7 +2138,7 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
     set_clamped_linear_sampler(2);
     set_clamped_linear_sampler(3);
     set_screen_vertex_states();
-    ((d3d_call1_fn)device_vtable()[0x1ac / 4])(rasterizer_device, 0);
+    render_device().set_pixel_shader(0);
 
     set_render_state(0x16, 3);
     set_render_state(0xa8, 8);
@@ -2270,34 +2205,30 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
             set_quad_color_and_uv((alpha << 24) | 0x00ffffff);
             set_quad_position(rect[0] - grow, rect[2] - grow, rect[1] + grow, rect[3] + grow, 0.0f);
             effect = (void *)(uintptr_t)rasterizer_effects[77].effect;
-            ((d3dx_effect_begin_fn)(*(void ***)effect)[0x100 / 4])(effect, &passes, 3);
+            render_device().effect_begin(effect, &passes, 3);
             for (pass = 0; pass < passes; pass++) {
                 effect = (void *)(uintptr_t)rasterizer_effects[77].effect;
-                ((d3dx_effect_pass_fn)(*(void ***)effect)[0x104 / 4])(effect, pass);
+                render_device().effect_pass(effect, pass);
                 draw_quad();
             }
             effect = (void *)(uintptr_t)rasterizer_effects[77].effect;
-            ((d3dx_effect_end_fn)(*(void ***)effect)[0x108 / 4])(effect);
+            render_device().effect_end(effect);
         }
     }
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 }
 
 }  // namespace rasterizer_sun_glow_render_impl
 
 namespace rasterizer_ui_quad_draw_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-typedef int32_t (__stdcall *d3d_set_constant_f_fn)(void *self, uint32_t start_register, const float *data, uint32_t count);
 
-typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t type, uint32_t count, const void *data, uint32_t stride);
 
-typedef int32_t (__stdcall *d3dx_effect_set_texture_fn)(void *effect, uint32_t handle, uint32_t texture);
 
 typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *passes, uint32_t flags);
 
@@ -2305,32 +2236,30 @@ typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
 typedef int32_t (__stdcall *d3dx_effect_end_fn)(void *effect);
 
-static void **device_vtable(void) { return *(void ***)rasterizer_device; }
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x10c / 4])(rasterizer_device, stage, type, value);
+    render_device().set_texture_stage_state(stage, type, value);
 }
 
 static void set_sampler_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x114 / 4])(rasterizer_device, stage, type, value);
+    render_device().set_sampler_state(stage, type, value);
 }
 
 static void set_texture(uint32_t stage, uint32_t texture)
 {
-    ((d3d_call2_fn)device_vtable()[0x104 / 4])(rasterizer_device, stage, texture);
+    render_device().set_texture(stage, texture);
 }
 
 static void draw_quad(const hud_quad_vertex *vertices)
 {
-    ((d3d_draw_primitive_up_fn)device_vtable()[0x14c / 4])(rasterizer_device, 6, 2, vertices,
-                                                           sizeof(hud_quad_vertex));
+    render_device().draw_primitive_up(6, 2, vertices, sizeof(hud_quad_vertex));
 }
 
 static uint32_t pack_argb(float alpha, float red, float green, float blue)
@@ -2371,16 +2300,14 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
     set_render_state(0x07, 0);
     set_render_state(0x1c, 0);
     chimera__rasterizer_set_framebuffer_blend_function(state->framebuffer_blend_function);
-    if (((d3d_call1_fn)device_vtable()[0x15c / 4])(rasterizer_device,
-            rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration) < 0) {
+    if (render_device().set_vertex_declaration(rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration) < 0) {
         ok = 0;
     }
-    if (((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device,
-            ((rasterizer_software_vertex_processing ? 0x10 : 0) |
+    if (render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing ? 0x10 : 0) |
              rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].usage) & 0x10) < 0) {
         ok = 0;
     }
-    if (((d3d_call1_fn)device_vtable()[0x170 / 4])(rasterizer_device, rasterizer_vertex_shaders[36].shader) < 0) {
+    if (render_device().set_vertex_shader(rasterizer_vertex_shaders[36].shader) < 0) {
         ok = 0;
     }
 
@@ -2424,10 +2351,10 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
     maps[5][1] = state->map_scales[2].y;
     maps[5][2] = 0.0f;
     maps[5][3] = 0.0f;
-    if (((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xd, &screen[0][0], 5) < 0) {
+    if (render_device().set_vertex_shader_constant_f(0xd, &screen[0][0], 5) < 0) {
         ok = 0;
     }
-    if (((d3d_set_constant_f_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0x12, &maps[0][0], 6) < 0) {
+    if (render_device().set_vertex_shader_constant_f(0x12, &maps[0][0], 6) < 0) {
         ok = 0;
     }
 
@@ -2449,7 +2376,7 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
             texture_cache_get(state->maps[stage], 1, 1);
             set_texture(stage, *(const uint32_t *)((const uint8_t *)state->maps[stage] + 0x28));
         }
-        ((d3d_call1_fn)device_vtable()[0x1ac / 4])(rasterizer_device, 0);
+        render_device().set_pixel_shader(0);
         set_render_state(0x0f, 1);
         set_render_state(0x19, 4);
         set_render_state(0x18, ((const uint8_t *)meter)[3]);
@@ -2478,7 +2405,7 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
         set_texture_stage_state(1, 1, 1);
         set_texture_stage_state(1, 4, 1);
         draw_quad(vertices);
-        ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+        render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
         return;
     }
 
@@ -2506,13 +2433,13 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
             set_texture_stage_state(1, 5, 1);
             set_texture_stage_state(2, 1, 1);
             set_texture_stage_state(2, 4, 1);
-            ((d3d_call1_fn)device_vtable()[0x1ac / 4])(rasterizer_device, 0);
+            render_device().set_pixel_shader(0);
             draw_quad(vertices);
-            ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+            render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
             return;
         }
         if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
-            ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+            render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
             return;
         }
         {
@@ -2558,22 +2485,21 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
 
         for (stage = 0; stage < 3 && state->maps[stage] != NULL; stage++) {
             texture_cache_get(state->maps[stage], 1, 1);
-            ((d3dx_effect_set_texture_fn)(*(void ***)effect)[0xd0 / 4])(
-                effect, slot->texture_handles[stage], *(const uint32_t *)((const uint8_t *)state->maps[stage] + 0x28));
+            render_device().effect_set_texture(effect, slot->texture_handles[stage], *(const uint32_t *)((const uint8_t *)state->maps[stage] + 0x28));
         }
         if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
             set_render_state(0x3c, pack_argb(pixel[0][3], pixel[0][0], pixel[0][1], pixel[0][2]));
         } else {
-            ((d3d_set_constant_f_fn)device_vtable()[0x1b4 / 4])(rasterizer_device, 0, &pixel[0][0], 6);
+            render_device().set_pixel_shader_constant_f(0, &pixel[0][0], 6);
         }
-        ((d3dx_effect_begin_fn)(*(void ***)effect)[0x100 / 4])(effect, &passes, 3);
+        render_device().effect_begin(effect, &passes, 3);
         for (pass = 0; pass < passes; pass++) {
-            ((d3dx_effect_pass_fn)(*(void ***)effect)[0x104 / 4])(effect, pass);
+            render_device().effect_pass(effect, pass);
             draw_quad(vertices);
         }
-        ((d3dx_effect_end_fn)(*(void ***)effect)[0x108 / 4])(effect);
+        render_device().effect_end(effect);
     }
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 }
 
 }  // namespace rasterizer_ui_quad_draw_impl

@@ -395,8 +395,7 @@ void lens_flare_render_all(void)
     }
     rasterizer_effect_pool_scratch = 0;
     {
-        void **device_vtable = *(void ***)rasterizer_device;
-        ((void (__stdcall *)(void *, int32_t))device_vtable[0x164 / 4])(rasterizer_device, 0);
+        render_device().set_fvf(0);
     }
 
     if (rasterizer_caps_flag_68a == 0 && unknown_00689426 != 0) {
@@ -556,8 +555,6 @@ uint8_t rasterizer_lens_flare_batch_apply_material(lens_flare_batch_key *key)
     return ok;
 }
 
-typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t primitive_type, uint32_t primitive_count,
-                                            const void *data, uint32_t stride);
 
 /**
  * Draws and clears one batched vertex-quad slot of the screen-space sprite (lens-flare/decal) rendering
@@ -571,9 +568,7 @@ void rasterizer_lens_flare_batch_draw_slot(int32_t batch_index)
 
     if (batch->vertex_count != 0) {
         if (rasterizer_lens_flare_batch_apply_material(&batch->key) != 0) {
-            void **vt = *(void ***)rasterizer_device;
-            ((d3d_draw_primitive_up_fn)vt[0x14c / 4])(rasterizer_device, 4, (uint32_t)batch->vertex_count / 3,
-                                                      batch->vertices, 0x20);
+            render_device().draw_primitive_up(4, (uint32_t)batch->vertex_count / 3, batch->vertices, 0x20);
         }
     }
     batch->last_used = 0;
@@ -637,31 +632,25 @@ void rasterizer_lens_flare_batch_flush_all(void)
 
 namespace rasterizer_lens_flare_batching_select_mode_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
-typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-typedef int32_t (__stdcall *d3dx_effect_begin_fn)(void *effect, uint32_t *pass_count, uint32_t flags);
 
-typedef int32_t (__stdcall *d3dx_effect_pass_fn)(void *effect, uint32_t pass);
 
-static void **device_vtable(void) { return *(void ***)rasterizer_device; }
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x10c / 4])(rasterizer_device, stage, type, value);
+    render_device().set_texture_stage_state(stage, type, value);
 }
 
 static void set_sampler_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x114 / 4])(rasterizer_device, stage, type, value);
+    render_device().set_sampler_state(stage, type, value);
 }
 
 /**
@@ -690,9 +679,9 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
         set_texture_stage_state(1, 1, 1);
         set_texture_stage_state(1, 4, 1);
 
-        ((d3d_call1_fn)device_vtable()[0x170 / 4])(rasterizer_device, 0);
-        ((d3d_call1_fn)device_vtable()[0x1ac / 4])(rasterizer_device, 0);
-        ((d3d_call1_fn)device_vtable()[0x164 / 4])(rasterizer_device, 0x144);
+        render_device().set_vertex_shader(0);
+        render_device().set_pixel_shader(0);
+        render_device().set_fvf(0x144);
         return;
     }
     if (mode != 5) {
@@ -719,10 +708,10 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
     if (unknown_0069da10 != 0) {
         void **effect_vt = *(void ***)unknown_0069da10;
         uint32_t pass_count = 0;
-        ((d3dx_effect_begin_fn)effect_vt[0x100 / 4])(unknown_0069da10, &pass_count, 3);
+        render_device().effect_begin(unknown_0069da10, &pass_count, 3);
 
         effect_vt = *(void ***)(*(void **)rasterizer_effect_pool_scratch);
-        ((d3dx_effect_pass_fn)effect_vt[0x104 / 4])(*(void **)rasterizer_effect_pool_scratch, 0);
+        render_device().effect_pass(*(void **)rasterizer_effect_pool_scratch, 0);
     } else {
         set_texture_stage_state(0, 1, 4);
         set_texture_stage_state(0, 2, 2);
@@ -731,7 +720,7 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
         set_texture_stage_state(0, 5, 0);
         set_texture_stage_state(1, 1, 1);
         set_texture_stage_state(1, 4, 1);
-        ((d3d_call1_fn)device_vtable()[0x1ac / 4])(rasterizer_device, 0);
+        render_device().set_pixel_shader(0);
     }
 
     {
@@ -742,8 +731,8 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
     set_sampler_state(0, 5, 2);
     set_sampler_state(0, 6, 2);
     set_sampler_state(0, 7, 2);
-    ((d3d_call1_fn)device_vtable()[0x170 / 4])(rasterizer_device, 0);
-    ((d3d_call1_fn)device_vtable()[0x164 / 4])(rasterizer_device, 0x1c4);
+    render_device().set_vertex_shader(0);
+    render_device().set_fvf(0x1c4);
 
     rasterizer_set_shader_stage_config(0);
 
@@ -914,10 +903,7 @@ void rasterizer_lens_flare_occlusion_sample_add(void *procedure, const real_poin
 
 namespace rasterizer_lens_flare_occlusion_test_issue_impl {
 
-typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *self, uint32_t primitive_type, uint32_t primitive_count,
-                                            const void *data, uint32_t stride);
 
-typedef int32_t (__stdcall *d3d_query_issue_fn)(void *query, uint32_t flags);
 
 static int16_t floor_clamped(float value)
 {
@@ -984,15 +970,14 @@ int32_t rasterizer_lens_flare_occlusion_test_issue(int32_t slot_index, const rea
         void *query = lens_flare_occlusion_queries[slot_index];
         rasterizer_screen_vertex quad[4];
 
-        ((d3d_query_issue_fn)(*(void ***)query)[0x18 / 4])(query, 2);
+        render_device().query_issue(query, 2);
         set_vertex(&quad[0], x0, y0, screen[2], inverse_w, 0.0f, 0.0f);
         set_vertex(&quad[1], x1, y0, screen[2], inverse_w, 1.0f, 0.0f);
         set_vertex(&quad[2], x1, y1, screen[2], inverse_w, 1.0f, 1.0f);
         set_vertex(&quad[3], x0, y1, screen[2], inverse_w, 0.0f, 1.0f);
-        ((d3d_draw_primitive_up_fn)(*(void ***)rasterizer_device)[0x14c / 4])(rasterizer_device, 6, 2, quad,
-                                                                            sizeof(rasterizer_screen_vertex));
+        render_device().draw_primitive_up(6, 2, quad, sizeof(rasterizer_screen_vertex));
         query = lens_flare_occlusion_queries[slot_index];
-        ((d3d_query_issue_fn)(*(void ***)query)[0x18 / 4])(query, 1);
+        render_device().query_issue(query, 1);
     }
     return area;
 }

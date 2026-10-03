@@ -308,34 +308,29 @@ void font_glyph_cache_clear_all(void)
     }
 }
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
-typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-typedef int32_t (__stdcall *d3d_setconst_fn)(void *self, uint32_t reg, const float *data, uint32_t count);
 
-static void **device_vtable(void) { return *(void ***)rasterizer_device; }
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
-    ((d3d_call2_fn)device_vtable()[0xe4 / 4])(rasterizer_device, state, value);
+    render_device().set_render_state(state, value);
 }
 
 static void set_texture(uint32_t stage, uint32_t texture)
 {
-    ((d3d_call2_fn)device_vtable()[0x104 / 4])(rasterizer_device, stage, texture);
+    render_device().set_texture(stage, texture);
 }
 
 static void set_sampler_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x114 / 4])(rasterizer_device, stage, type, value);
+    render_device().set_sampler_state(stage, type, value);
 }
 
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
-    ((d3d_call3_fn)device_vtable()[0x10c / 4])(rasterizer_device, stage, type, value);
+    render_device().set_texture_stage_state(stage, type, value);
 }
 
 /**
@@ -374,16 +369,14 @@ void rasterizer_draw_text_begin(ui_quad_render_state *state)
         set_render_state(8, 3);
     }
 
-    ((d3d_call1_fn)device_vtable()[0x15c / 4])(rasterizer_device,
-        rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
-    ((d3d_call1_fn)device_vtable()[0x134 / 4])(rasterizer_device,
-        (rasterizer_software_vertex_processing != 0 ? 0x10u : 0u) | (rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].usage & 0x10));
-    ((d3d_call1_fn)device_vtable()[0x170 / 4])(rasterizer_device, rasterizer_vertex_shaders[35].shader);
-    ((d3d_call1_fn)device_vtable()[0x1ac / 4])(rasterizer_device, 0);
+    render_device().set_vertex_declaration(rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
+    render_device().set_software_vertex_processing((rasterizer_software_vertex_processing != 0 ? 0x10u : 0u) | (rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].usage & 0x10));
+    render_device().set_vertex_shader(rasterizer_vertex_shaders[35].shader);
+    render_device().set_pixel_shader(0);
 
     rasterizer_ui_text_constants[16] = *(float *)(context + 0x40);
     rasterizer_ui_text_constants[17] = *(float *)(context + 0x44);
-    ((d3d_setconst_fn)device_vtable()[0x178 / 4])(rasterizer_device, 0xd, rasterizer_ui_text_constants, 5);
+    render_device().set_vertex_shader_constant_f(0xd, rasterizer_ui_text_constants, 5);
 
     for (part = 0; part < 3; part++) {
         void *part_texture = *(void **)(context + 0xc + part * 4);
@@ -417,9 +410,7 @@ void rasterizer_draw_text_begin(ui_quad_render_state *state)
 
 namespace rasterizer_draw_text_end_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 /**
  * Direct3D 9 back end function rasterizer_draw_text_end. The original author notes are in
@@ -429,12 +420,11 @@ typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
  */
 void rasterizer_draw_text_end(void)
 {
-    void **vt = *(void ***)rasterizer_device;
 
     if (console_debug_toggle_6893e6 != 0) {
-        ((d3d_call2_fn)vt[0xe4 / 4])(rasterizer_device, 8, 2);
+        render_device().set_render_state(8, 2);
     }
-    ((d3d_call1_fn)vt[0x134 / 4])(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 }
 
 }  // namespace rasterizer_draw_text_end_impl
@@ -496,8 +486,6 @@ typedef struct text_glyph_vertex {
     float u, v;
 } text_glyph_vertex;
 
-typedef int32_t (__stdcall *d3d_draw_primitive_up_fn)(void *device, uint32_t type, uint32_t primitive_count,
-    const void *vertices, uint32_t stride);
 
 /**
  * Direct3D 9 back end function text_draw_glyph_callback. The original author notes are in
@@ -538,9 +526,7 @@ void text_draw_glyph_callback(void *state, void *font, uint8_t *character, uint3
             vertices[i].color = pass_color;
         }
         if (text_rendering_enabled && (*(int16_t *)&rasterizer_window) == 1) {
-            void **vtable = *(void ***)rasterizer_device;
-            ((d3d_draw_primitive_up_fn)vtable[0x14c / 4])(rasterizer_device, 6  , 2, vertices,
-                                                          sizeof(text_glyph_vertex));
+            render_device().draw_primitive_up(6, 2, vertices, sizeof(text_glyph_vertex));
         }
         offset = 0.0f;
     }
