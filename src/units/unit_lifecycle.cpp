@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/units/records.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/hs/script_globals.hpp"
@@ -59,7 +60,7 @@ void UnitView::apply_scale_change(unit_scale_request *request)
     }
     if ((request->flags & 1) != 0) {
         UnitView(unit_index).update_stance_and_jump(1, 0, 0, 0, 0, 0.0f, -1, 0, 1);
-        if (unit->animation_state == 0x19) {
+        if (unit->animation_state == animation_state_value(unit_animation_state_id::ready_weapon)) {
             UnitView(unit_index).drop_inventory_weapons_except_current();
             unit->grenade_counts[0] = 0;
             unit->grenade_counts[1] = 0;
@@ -346,7 +347,7 @@ uint8_t UnitView::new_()
     unit->overlays[0].animation_index = -1;
     unit->overlays[1].animation_index = -1;
     unit->overlays[2].animation_index = -1;
-    unit->base_animation_state = 2;
+    unit->base_animation_state = _unit_base_animation_state_stand;
     unit->overlay_animation_index = -1;
     unit->emotion_animation_frame = -1;
     unit->emotion_animation_index = -1;
@@ -675,7 +676,7 @@ uint32_t UnitView::snap_to_min_ground_height()
         actor_index = obj->unit.actor_index;
     }
     if (actor_index != k_datum_index_none) {
-        uint8_t skip_clamp = ((uint8_t)obj->unit.animation_state == 0x27 || (uint8_t)obj->unit.animation_state == 0x28) ? 1 : 0;
+        uint8_t skip_clamp = ((uint8_t)obj->unit.animation_state == animation_state_value(unit_animation_state_id::unknown_27) || (uint8_t)obj->unit.animation_state == animation_state_value(unit_animation_state_id::unknown_28)) ? 1 : 0;
 
         result = halo::ai::actor_get_requested_velocity(skip_clamp, actor_index, &velocity, object_index, jump_speed);
         if (!result) {

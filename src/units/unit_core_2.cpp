@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/game/records.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/units/unit.hpp"
@@ -145,7 +146,7 @@ uint8_t UnitView::update()
 
                 obj->base.owner_team = d->base.owner_team;
                 riding = 1;
-                if (d->unit.controlling_player != k_datum_index_none || ((uint8_t)d->unit.animation_state != 0x1b && (uint8_t)d->unit.animation_state != 0x1a)) {
+                if (d->unit.controlling_player != k_datum_index_none || ((uint8_t)d->unit.animation_state != animation_state_value(unit_animation_state_id::seat_exit) && (uint8_t)d->unit.animation_state != animation_state_value(unit_animation_state_id::seat_enter))) {
                     obj->unit.control_flags |= d->unit.control_flags & 0x3f;
                     *(real_vector3d *)&obj->unit.desired_facing_vector.i = d->unit.desired_facing_vector;
                     *(real_point3d *)&obj->unit.throttle.i = halo::raw_at<real_point3d>(d, 0x278);
@@ -157,7 +158,7 @@ uint8_t UnitView::update()
                 if (!riding) {
                     obj->base.owner_team = g->base.owner_team;
                 }
-                if (g->unit.controlling_player != k_datum_index_none || ((uint8_t)g->unit.animation_state != 0x1b && (uint8_t)g->unit.animation_state != 0x1a)) {
+                if (g->unit.controlling_player != k_datum_index_none || ((uint8_t)g->unit.animation_state != animation_state_value(unit_animation_state_id::seat_exit) && (uint8_t)g->unit.animation_state != animation_state_value(unit_animation_state_id::seat_enter))) {
                     *(real_vector3d *)&obj->unit.desired_aiming_vector.i = g->unit.desired_aiming_vector;
                     *(real_vector3d *)&obj->unit.desired_looking_vector.i = g->unit.desired_aiming_vector;
                     obj->unit.control_flags |= g->unit.control_flags & 0x7c00;
@@ -366,12 +367,12 @@ uint8_t UnitView::update()
                 break;
             case 2:
                 (obj->unit.throwing_grenade_counter)++;
-                if ((uint8_t)obj->unit.animation_state != 0x21) {
+                if ((uint8_t)obj->unit.animation_state != animation_state_value(unit_animation_state_id::throwing_grenade)) {
                     UnitView(unit_index).release_thrown_grenade(1);
                 }
                 break;
             case 3:
-                if ((uint8_t)obj->unit.animation_state != 0x21 && !throwing) {
+                if ((uint8_t)obj->unit.animation_state != animation_state_value(unit_animation_state_id::throwing_grenade) && !throwing) {
                     obj->unit.throwing_grenade_state = 0;
                 }
                 break;

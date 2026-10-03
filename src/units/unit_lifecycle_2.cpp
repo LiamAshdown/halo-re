@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/core/lcg.hpp"
@@ -47,9 +48,9 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
     model_nodes = *(uint8_t **)(halo::objects::tag_record_bytes(halo::objects::tag_handle(halo::objects::tag_as<Unit>(*(datum_index *)self)->base.model)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
-    if (vehicle->unit.driver_unit_index == object_index && (uint8_t)vehicle->unit.animation_state != 0x25 &&
+    if (vehicle->unit.driver_unit_index == object_index && (uint8_t)vehicle->unit.animation_state != animation_state_value(unit_animation_state_id::unknown_25) &&
         self->base.parent_object != k_datum_index_none) {
-        halo::units::UnitView(self->base.parent_object).try_set_animation_state(0x25);
+        halo::units::UnitView(self->base.parent_object).try_set_animation_state(animation_state_value(unit_animation_state_id::unknown_25));
     }
     self->unit.last_parent_object_index = vehicle_index;
     self->unit.last_seat_change_tick = halo::game::globals().game_time->game_time;
@@ -85,7 +86,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     self->unit.vehicle_seat_index = -1;
-    self->unit.base_animation_state = 2;
+    self->unit.base_animation_state = _unit_base_animation_state_stand;
     if (vehicle->unit.driver_unit_index == object_index) {
         vehicle->unit.driver_unit_index = k_datum_index_none;
     }

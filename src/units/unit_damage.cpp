@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/game/records.hpp"
 #include "halo/units/records.hpp"
 #include "halo/objects/record_access.hpp"
@@ -63,9 +64,9 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
     model_nodes = *(uint8_t **)(halo::objects::tag_record_bytes(halo::objects::tag_handle(halo::objects::tag_as<Unit>(*(datum_index *)self)->base.model)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
-    if (vehicle->unit.driver_unit_index == object_index && (uint8_t)vehicle->unit.animation_state != 0x25 &&
+    if (vehicle->unit.driver_unit_index == object_index && (uint8_t)vehicle->unit.animation_state != animation_state_value(unit_animation_state_id::unknown_25) &&
         self->base.parent_object != k_datum_index_none) {
-        halo::units::UnitView(self->base.parent_object).try_set_animation_state(0x25);
+        halo::units::UnitView(self->base.parent_object).try_set_animation_state(animation_state_value(unit_animation_state_id::unknown_25));
     }
     self->unit.last_parent_object_index = vehicle_index;
     self->unit.last_seat_change_tick = halo::game::globals().game_time->game_time;
@@ -101,7 +102,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     self->unit.vehicle_seat_index = -1;
-    self->unit.base_animation_state = 2;
+    self->unit.base_animation_state = _unit_base_animation_state_stand;
     if (vehicle->unit.driver_unit_index == object_index) {
         vehicle->unit.driver_unit_index = k_datum_index_none;
     }
@@ -277,7 +278,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
                     clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
                     halo::objects::object_header_of(unit_index).flags |= 2;
                 }
-                self->unit.animation_state = 0x1b;
+                self->unit.animation_state = animation_state_value(unit_animation_state_id::seat_exit);
                 halo::ai::actor_notify_weapon_pickup_once(unit_index);
                 if (self->base.network_role == 0) {
                     ::halo::units::unit_dispatch_scripted_event_9(0, (int32_t)unit_index);

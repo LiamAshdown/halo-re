@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/units/records.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/hs/script_globals.hpp"
@@ -91,7 +92,7 @@ void BipedView::apply_idle_fidget(uint8_t *state_out)
     if (BipedView(object_index).is_idle_eligible()) {
         already_idle = 1;
         if (test_flag(tag->biped_flags, tags::biped_tag_flag::rotate_while_airborne)) {
-            if (unit->animation_state != 0x1f && unit->animation_state != 0x29) {
+            if (unit->animation_state != animation_state_value(unit_animation_state_id::unknown_1f) && unit->animation_state != animation_state_value(unit_animation_state_id::unknown_29)) {
                 float magnitude = (float)halo::math::random_real_range(0.05235988, 0.08726646);
                 real_vector3d impulse_dir;
 
@@ -146,7 +147,7 @@ void BipedView::check_evade_reaction()
 
     if (!test_flag(obj->vitality_flags, objects::vitality_flag::health_frozen) && !test_flag(tag->biped_flags, tags::biped_tag_flag::flying | tags::biped_tag_flag::immune_to_falling_damage) &&
         !test_flag(unit->flags, units::unit_flag::unknown_1000) && unit->actor_index != k_datum_index_none &&
-        unit->animation_state != 0x1d && (int8_t)biped->airborne_ticks > 0x1e &&
+        unit->animation_state != animation_state_value(unit_animation_state_id::scripted_action) && (int8_t)biped->airborne_ticks > 0x1e &&
         (biped->last_falling_reaction_tick == -1 ||
          (int32_t)(biped->last_falling_reaction_tick + 0xf) < halo::game::globals().game_time->game_time)) {
         void *table = halo::objects::block_elements<GlobalsFallingDamage>(global_globals->falling_damage);
@@ -395,9 +396,9 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
     model_nodes = *(uint8_t **)(halo::objects::tag_record_bytes(halo::objects::tag_handle(halo::objects::tag_as<Unit>(*(datum_index *)self)->base.model)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
-    if (vehicle->unit.driver_unit_index == object_index && (uint8_t)vehicle->unit.animation_state != 0x25 &&
+    if (vehicle->unit.driver_unit_index == object_index && (uint8_t)vehicle->unit.animation_state != animation_state_value(unit_animation_state_id::unknown_25) &&
         self->base.parent_object != k_datum_index_none) {
-        halo::units::UnitView(self->base.parent_object).try_set_animation_state(0x25);
+        halo::units::UnitView(self->base.parent_object).try_set_animation_state(animation_state_value(unit_animation_state_id::unknown_25));
     }
     self->unit.last_parent_object_index = vehicle_index;
     self->unit.last_seat_change_tick = halo::game::globals().game_time->game_time;
@@ -433,7 +434,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
     self->unit.vehicle_seat_index = -1;
-    self->unit.base_animation_state = 2;
+    self->unit.base_animation_state = _unit_base_animation_state_stand;
     if (vehicle->unit.driver_unit_index == object_index) {
         vehicle->unit.driver_unit_index = k_datum_index_none;
     }
@@ -568,7 +569,7 @@ uint8_t BipedView::update()
                                 halo::objects::object_header_of(object_index).flags |= 2;
                             }
                         }
-                        self->unit.animation_state = 0x1b;
+                        self->unit.animation_state = animation_state_value(unit_animation_state_id::seat_exit);
                         halo::ai::actor_notify_weapon_pickup_once(object_index);
                         if (self->base.network_role == 0) {
                             ::halo::units::unit_dispatch_scripted_event_9(0, (int32_t)object_index);
@@ -600,11 +601,16 @@ uint8_t BipedView::update()
             *(real_vector3d *)&((unit_object *)obj)->unit.desired_facing_vector.i = *halo::math::globals().global_forward3d_pointer;
         }
     }
-    switch ((uint8_t)((struct unit_object *)obj)->unit.animation_state) {
-    case 0: case 2: case 3:
+    switch (animation_state_id((uint8_t)((struct unit_object *)obj)->unit.animation_state)) {
+    case unit_animation_state_id::idle:
+    case unit_animation_state_id::turn_in_place_a:
+    case unit_animation_state_id::turn_in_place_b:
         ((struct biped_object *)obj)->biped.movement_state = 0;
         break;
-    case 4: case 5: case 6: case 7:
+    case unit_animation_state_id::move_front:
+    case unit_animation_state_id::move_back:
+    case unit_animation_state_id::move_left:
+    case unit_animation_state_id::move_right:
         ((struct biped_object *)obj)->biped.movement_state = 1;
         break;
     default:
@@ -763,7 +769,7 @@ void BipedView::update_idle_basis(uint8_t *state_out)
     }
 
     if ((int8_t)biped->airborne_ticks > 2 && !test_flag(tag->biped_flags, tags::biped_tag_flag::has_no_dying_airborne)) {
-        if (unit->animation_state == 0x18) {
+        if (unit->animation_state == animation_state_value(unit_animation_state_id::unknown_18)) {
             UnitView(object_index).rotate_basis_about_axis();
         }
         state_out[0] = 0x18;
@@ -771,7 +777,7 @@ void BipedView::update_idle_basis(uint8_t *state_out)
         return;
     }
 
-    if (unit->animation_state == 0x18) {
+    if (unit->animation_state == animation_state_value(unit_animation_state_id::unknown_18)) {
         biped->bank_angle = 0.0f;
         ::halo::units::unit_update_up_vector((Biped *)tag, (::object *)obj);
     }

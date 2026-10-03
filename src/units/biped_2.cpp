@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/game/records.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/units/records.hpp"
@@ -574,7 +575,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
                     if ((before.i * obj->up.i + before.k * obj->up.k + before.j * obj->up.j) *
                             (after.i * obj->up.i + after.k * obj->up.k + after.j * obj->up.j) <= 0.0f) {
                         new_forward = unit->desired_facing_vector;
-                        UnitView(object_index).try_set_animation_state(0);
+                        UnitView(object_index).try_set_animation_state(animation_state_value(unit_animation_state_id::idle));
                     }
                 }
 

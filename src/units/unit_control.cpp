@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/units/records.hpp"
 #include "halo/units/unit.hpp"
@@ -511,11 +512,16 @@ uint32_t halo::units::unit_predict_movement_delta(real_vector3d *out_position_de
                     }
                 }
 
-                switch (copy_unit->animation_state) {
-                case 0: case 2: case 3:
+                switch (animation_state_id(copy_unit->animation_state)) {
+                case unit_animation_state_id::idle:
+                case unit_animation_state_id::turn_in_place_a:
+                case unit_animation_state_id::turn_in_place_b:
                     copy_biped->movement_state = 0;
                     break;
-                case 4: case 5: case 6: case 7:
+                case unit_animation_state_id::move_front:
+                case unit_animation_state_id::move_back:
+                case unit_animation_state_id::move_left:
+                case unit_animation_state_id::move_right:
                     copy_biped->movement_state = 1;
                     break;
                 default:
@@ -769,10 +775,22 @@ void UnitView::set_facing_from_index_table()
  */
 uint8_t halo::units::unit_state_allows_control(const uint8_t *animation_block)
 {
-    switch ((int8_t)animation_block[0xb]) {
-    case 1: case 2: case 3:
-    case 0x17: case 0x1a: case 0x1b: case 0x1c: case 0x1d: case 0x1e: case 0x1f:
-    case 0x21: case 0x22: case 0x23: case 0x27: case 0x29:
+    switch (animation_state_id((int8_t)animation_block[0xb])) {
+    case unit_animation_state_id::unknown_01:
+    case unit_animation_state_id::turn_in_place_a:
+    case unit_animation_state_id::turn_in_place_b:
+    case unit_animation_state_id::unknown_17:
+    case unit_animation_state_id::seat_enter:
+    case unit_animation_state_id::seat_exit:
+    case unit_animation_state_id::custom_animation:
+    case unit_animation_state_id::scripted_action:
+    case unit_animation_state_id::unknown_1e:
+    case unit_animation_state_id::unknown_1f:
+    case unit_animation_state_id::throwing_grenade:
+    case unit_animation_state_id::unknown_22:
+    case unit_animation_state_id::unknown_23:
+    case unit_animation_state_id::unknown_27:
+    case unit_animation_state_id::unknown_29:
         return 0;
     default:
         return 1;
@@ -1060,7 +1078,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         stance_class = 1;
         allowed = ::halo::units::unit_animation_state_is_compatible(reinterpret_cast<uint8_t *>(obj) + 0x298, new_state) ? 1 : 0;
     }
-    if ((uint8_t)obj->unit.animation_state == 0x17 && obj->base.animation_frame > unit_tag->hard_ping_interrupt_ticks) {
+    if ((uint8_t)obj->unit.animation_state == animation_state_value(unit_animation_state_id::unknown_17) && obj->base.animation_frame > unit_tag->hard_ping_interrupt_ticks) {
         allowed = 1;
     }
     if (!forced) {
@@ -1077,10 +1095,10 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
     if (forced) {
         UnitView(unit_index).set_or_test_seat_and_weapon_label(s_stand, UnitView(unit_index).get_current_weapon_label(), 1);
     }
-    if (new_state == 0x19 && obj->base.type == 0 && test_flag(halo::units::biped_data_of(obj)->flags, units::biped_flag::airborne) &&
+    if (new_state == animation_state_value(unit_animation_state_id::ready_weapon) && obj->base.type == 0 && test_flag(halo::units::biped_data_of(obj)->flags, units::biped_flag::airborne) &&
         !test_flag(reinterpret_cast<const Biped *>(unit_tag)->biped_flags, tags::biped_tag_flag::has_no_dying_airborne)) {
-        new_state = 0x18;
-        if (UnitView(unit_index).try_set_animation_state(0x18)) {
+        new_state = animation_state_value(unit_animation_state_id::unknown_18);
+        if (UnitView(unit_index).try_set_animation_state(animation_state_value(unit_animation_state_id::unknown_18))) {
             animation_started = true;
         }
     }
@@ -1099,7 +1117,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
         } else {
             ModelAnimationsAnimation *animation_data = reinterpret_cast<ModelAnimationsAnimation *>(&halo::objects::block_element<ModelAnimationsAnimation>(graph->animations, animation));
 
-            if ((uint8_t)obj->unit.animation_state == 0x21) {
+            if ((uint8_t)obj->unit.animation_state == animation_state_value(unit_animation_state_id::throwing_grenade)) {
                 UnitView(unit_index).release_thrown_grenade(1);
             }
             halo::objects::object_copy_default_node_transforms(unit_index, 3);

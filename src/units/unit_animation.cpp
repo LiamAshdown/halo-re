@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/units/records.hpp"
 #include "halo/objects/record_access.hpp"
 #include <string.h>
@@ -206,14 +207,33 @@ uint8_t halo::units::unit_animation_state_allows_weapon_ik(uint8_t *animation_bl
  */
 int32_t halo::units::unit_animation_state_from_seat_type(int16_t animation_state)
 {
-    switch (animation_state) {
-    case 0: case 2: case 3:
-    case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16:
-    case 0x25: case 0x26:
-        return 0x19;
-    case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 0xb: case 0xc: case 0xd:
-    case 0xe: case 0xf:
-        return 0x1a;
+    switch (animation_state_id(animation_state)) {
+    case unit_animation_state_id::idle:
+    case unit_animation_state_id::turn_in_place_a:
+    case unit_animation_state_id::turn_in_place_b:
+    case unit_animation_state_id::unknown_10:
+    case unit_animation_state_id::unknown_11:
+    case unit_animation_state_id::unknown_12:
+    case unit_animation_state_id::unknown_13:
+    case unit_animation_state_id::unknown_14:
+    case unit_animation_state_id::soft_landing:
+    case unit_animation_state_id::hard_landing:
+    case unit_animation_state_id::unknown_25:
+    case unit_animation_state_id::unknown_26:
+        return animation_state_value(unit_animation_state_id::ready_weapon);
+    case unit_animation_state_id::move_front:
+    case unit_animation_state_id::move_back:
+    case unit_animation_state_id::move_left:
+    case unit_animation_state_id::move_right:
+    case unit_animation_state_id::hurt_move_front:
+    case unit_animation_state_id::hurt_move_back:
+    case unit_animation_state_id::hurt_move_left:
+    case unit_animation_state_id::hurt_move_right:
+    case unit_animation_state_id::unknown_0c:
+    case unit_animation_state_id::unknown_0d:
+    case unit_animation_state_id::unknown_0e:
+    case unit_animation_state_id::unknown_0f:
+        return animation_state_value(unit_animation_state_id::seat_enter);
     default:
         return -1;
     }
@@ -228,29 +248,29 @@ int32_t halo::units::unit_animation_state_from_seat_type(int16_t animation_state
  */
 uint8_t halo::units::unit_animation_state_is_compatible(const uint8_t *animation_block, int16_t requested_state)
 {
-    switch ((int8_t)animation_block[0xb]) {
-    case 2:
-    case 3:
-    case 0x25:
-    case 0x26:
+    switch (animation_state_id((int8_t)animation_block[0xb])) {
+    case unit_animation_state_id::turn_in_place_a:
+    case unit_animation_state_id::turn_in_place_b:
+    case unit_animation_state_id::unknown_25:
+    case unit_animation_state_id::unknown_26:
         return requested_state != 0;
-    case 0x17:
-    case 0x1a:
-    case 0x1b:
-    case 0x1c:
+    case unit_animation_state_id::unknown_17:
+    case unit_animation_state_id::seat_enter:
+    case unit_animation_state_id::seat_exit:
+    case unit_animation_state_id::custom_animation:
         return 0;
-    case 0x18:
-    case 0x19:
-        return (0x17 < requested_state) && (requested_state < 0x1a);
-    case 0x1d:
-    case 0x1e:
-    case 0x1f:
-    case 0x21:
-    case 0x22:
-    case 0x23:
-    case 0x27:
-    case 0x29:
-        return requested_state == 0x17;
+    case unit_animation_state_id::unknown_18:
+    case unit_animation_state_id::ready_weapon:
+        return (animation_state_value(unit_animation_state_id::unknown_17) < requested_state) && (requested_state < animation_state_value(unit_animation_state_id::seat_enter));
+    case unit_animation_state_id::scripted_action:
+    case unit_animation_state_id::unknown_1e:
+    case unit_animation_state_id::unknown_1f:
+    case unit_animation_state_id::throwing_grenade:
+    case unit_animation_state_id::unknown_22:
+    case unit_animation_state_id::unknown_23:
+    case unit_animation_state_id::unknown_27:
+    case unit_animation_state_id::unknown_29:
+        return requested_state == animation_state_value(unit_animation_state_id::unknown_17);
     default:
         return 1;
     }
@@ -478,7 +498,7 @@ void UnitView::evaluate_flee_reaction()
     void *parent_tag = halo::cache::globals().tag_instances[halo::datum_slot(parent->definition_tag)].data;
 
     if (test_flag(((struct Unit *)parent_tag)->unit_flags, tags::unit_tag_flag::causes_passenger_dialogue) &&
-        unit->actor_index != k_datum_index_none && unit->animation_state != 0x1d &&
+        unit->actor_index != k_datum_index_none && unit->animation_state != animation_state_value(unit_animation_state_id::scripted_action) &&
         (int8_t)unit->weapon_control_idle_ticks > 0x78 && *(uint8_t *)((uint8_t *)parent + 0x4d0) > 0x1e &&
         (biped->last_falling_reaction_tick == -1 ||
          (int32_t)(biped->last_falling_reaction_tick + 0xf) < halo::game::globals().game_time->game_time)) {
@@ -604,12 +624,7 @@ uint8_t UnitView::is_in_busy_animation_state()
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = halo::units::unit_data_of(unit_obj);
 
-    switch (unit->animation_state) {
-    case 0x17: case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1d: case 0x1e: case 0x1f:
-    case 0x20: case 0x21: case 0x22: case 0x23: case 0x27: case 0x29:
-        return 1;
-    }
-    return 0;
+    return is_scripted_animation_state(animation_state_id(unit->animation_state)) ? 1 : 0;
 }
 
 /**
@@ -624,20 +639,20 @@ int32_t halo::units::unit_map_action_command_to_animation_state(int16_t command,
 {
     int32_t state = -1;
     switch (command) {
-    case 0: state = 0x1d; break;
-    case 1: state = 0x20; break;
-    case 2: state = 0x21; break;
-    case 3: state = 0x22; break;
-    case 4: state = 0x1b; break;
-    case 5: state = 0x1c; break;
-    case 6: state = 0x1e; break;
-    case 7: state = 0x1f; break;
-    case 8: state = 4; break;
-    case 9: state = 5; break;
-    case 10: state = 6; break;
-    case 0xb: state = 7; break;
-    case 0xc: state = 0x28; break;
-    case 0xd: state = 0x29; break;
+    case 0: state = animation_state_value(unit_animation_state_id::scripted_action); break;
+    case 1: state = animation_state_value(unit_animation_state_id::unknown_20); break;
+    case 2: state = animation_state_value(unit_animation_state_id::throwing_grenade); break;
+    case 3: state = animation_state_value(unit_animation_state_id::unknown_22); break;
+    case 4: state = animation_state_value(unit_animation_state_id::seat_exit); break;
+    case 5: state = animation_state_value(unit_animation_state_id::custom_animation); break;
+    case 6: state = animation_state_value(unit_animation_state_id::unknown_1e); break;
+    case 7: state = animation_state_value(unit_animation_state_id::unknown_1f); break;
+    case 8: state = animation_state_value(unit_animation_state_id::move_front); break;
+    case 9: state = animation_state_value(unit_animation_state_id::move_back); break;
+    case 10: state = animation_state_value(unit_animation_state_id::move_left); break;
+    case 0xb: state = animation_state_value(unit_animation_state_id::move_right); break;
+    case 0xc: state = animation_state_value(unit_animation_state_id::unknown_28); break;
+    case 0xd: state = animation_state_value(unit_animation_state_id::unknown_29); break;
     }
     if (out_priority != (int16_t *)0) {
         switch (command) {
@@ -893,12 +908,8 @@ void UnitView::start_seat_overlay_animation_b(int16_t command)
         return;
     }
 
-    switch (unit->animation_state) {
-    case 0x17: case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1d: case 0x1e: case 0x1f:
-    case 0x20: case 0x21: case 0x22: case 0x23: case 0x27: case 0x29:
+    if (is_scripted_animation_state(animation_state_id(unit->animation_state))) {
         return;
-    default:
-        break;
     }
 
     Object *obj_tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
@@ -962,7 +973,7 @@ uint8_t UnitView::start_user_animation(datum_index graph_tag, const char *animat
     if (*(int16_t *)(record + 0x20) != 0) {
         return 0;
     }
-    if ((uint8_t)unit->unit.animation_state == 0x1c && unit->base.animation_index != -1) {
+    if ((uint8_t)unit->unit.animation_state == animation_state_value(unit_animation_state_id::custom_animation) && unit->base.animation_index != -1) {
         uint8_t *current = animations + unit->base.animation_index * 0xb4;
 
         if (*(int16_t *)(current + 0x42) == *(int16_t *)(record + 0x42)) {
@@ -981,7 +992,7 @@ uint8_t UnitView::start_user_animation(datum_index graph_tag, const char *animat
     if (interpolate) {
         halo::objects::object_copy_default_node_transforms(unit_index, 6);
     }
-    unit->unit.animation_state = 0x1c;
+    unit->unit.animation_state = animation_state_value(unit_animation_state_id::custom_animation);
     UnitView(unit_index).set_custom_animation(graph_tag, animation);
     set_flag(unit->unit.animation_state_flags, units::unit_animation_state_flag::action_active);
     halo::objects::object_recalculate_bounding_radius_recursive(unit_index);
@@ -997,14 +1008,10 @@ uint8_t UnitView::start_user_animation(datum_index graph_tag, const char *animat
  */
 uint8_t halo::units::unit_state_is_scripted_animation(unit_data *unit)
 {
-    switch (unit->animation_state) {
-    case 0x17: case 0x18: case 0x19: case 0x1a: case 0x1b:
-    case 0x1d: case 0x1e: case 0x1f: case 0x20: case 0x21: case 0x22: case 0x23:
-    case 0x27: case 0x29:
+    if (is_scripted_animation_state(animation_state_id(unit->animation_state))) {
         return 1;
-    default:
-        return 0;
     }
+    return 0;
 }
 
 namespace unit_try_set_animation_state_local {
@@ -1053,7 +1060,7 @@ uint8_t UnitView::try_set_animation_state(int16_t new_state)
     if (no_state || (current_state = (int8_t)(uint8_t)unit->unit.animation_state) != new_state) {
         int16_t animation = -1;
 
-        if ((uint8_t)unit->unit.animation_state == 0x21) {
+        if ((uint8_t)unit->unit.animation_state == animation_state_value(unit_animation_state_id::throwing_grenade)) {
             UnitView(unit_index).release_thrown_grenade(1);
         }
         if ((uint16_t)new_state < 0x2c && state_animations[new_state][0] == 1) {
@@ -1062,8 +1069,13 @@ uint8_t UnitView::try_set_animation_state(int16_t new_state)
             animation = block_animation(unit_block, 0x40, state_animations[new_state][1]);
         }
         if (animation == -1) {
-            switch (new_state) {
-            case 0x1e: case 0x1f: case 0x20: case 0x21: case 0x27: case 0x29:
+            switch (animation_state_id(new_state)) {
+            case unit_animation_state_id::unknown_1e:
+            case unit_animation_state_id::unknown_1f:
+            case unit_animation_state_id::unknown_20:
+            case unit_animation_state_id::throwing_grenade:
+            case unit_animation_state_id::unknown_27:
+            case unit_animation_state_id::unknown_29:
                 return 0;
             default:
                 break;
@@ -1155,7 +1167,7 @@ uint8_t UnitView::try_start_scripted_action_animation(int16_t command, const rea
     ((struct object *)object)->animation_index = animation;
     ((struct object *)object)->animation_frame = 0;
     set_flag(unit->unit.animation_state_flags, units::unit_animation_state_flag::action_active);
-    unit->unit.animation_state = 0x1d;
+    unit->unit.animation_state = animation_state_value(unit_animation_state_id::scripted_action);
     if (direction != 0 && unit->base.type == 0 && unit->base.parent_object == k_datum_index_none) {
         UnitView(unit_index).set_throw_aim_direction(direction);
     }
@@ -1216,7 +1228,7 @@ uint8_t halo::units::unit_try_start_seat_exit_animation(uint8_t force_flag, uint
             ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].flags |= 2;
         }
     }
-    self->unit.animation_state = 0x1b;
+    self->unit.animation_state = animation_state_value(unit_animation_state_id::seat_exit);
     halo::ai::actor_notify_weapon_pickup_once(unit_index);
     if (self->base.network_role == 0) {
         ::halo::units::unit_dispatch_scripted_event_9(0, (int32_t)unit_index);
@@ -1285,11 +1297,13 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
     if (unit->base.animation_index != -1) {
         advance = ::halo::units::unit_reset_light_effect((animation_state *)&unit->base.animation_index, unit->base.animation_graph, unit_index);
         if (advance == 1) {
-            switch ((int8_t)(uint8_t)unit->unit.animation_state) {
-            case 0x1e: case 0x1f: case 0x29:
+            switch (animation_state_id((int8_t)(uint8_t)unit->unit.animation_state)) {
+            case unit_animation_state_id::unknown_1e:
+            case unit_animation_state_id::unknown_1f:
+            case unit_animation_state_id::unknown_29:
                 UnitView(unit_index).cause_melee_damage(0, k_datum_index_none, -1, -1, -1, 0);
                 break;
-            case 0x21:
+            case unit_animation_state_id::throwing_grenade:
                 UnitView(unit_index).release_thrown_grenade(0);
                 break;
             default:
@@ -1507,15 +1521,15 @@ void UnitView::update_footstep_and_idle_triggers()
     int32_t is_turning = 0;
     int32_t is_moving_fast = 0;
 
-    switch (unit->animation_state) {
-    case 2:
-    case 3:
+    switch (animation_state_id(unit->animation_state)) {
+    case unit_animation_state_id::turn_in_place_a:
+    case unit_animation_state_id::turn_in_place_b:
         is_turning = 1;
         break;
-    case 4:
-    case 5:
-    case 6:
-    case 7:
+    case unit_animation_state_id::move_front:
+    case unit_animation_state_id::move_back:
+    case unit_animation_state_id::move_left:
+    case unit_animation_state_id::move_right:
         if (0.25f < unit->throttle.k * unit->throttle.k + unit->throttle.j * unit->throttle.j +
                         unit->throttle.i * unit->throttle.i) {
             is_moving_fast = 1;
@@ -1538,9 +1552,9 @@ void UnitView::update_footstep_and_idle_triggers()
         } else if (is_moving_fast &&
                    (anim->left_foot_frame_index != 0 || anim->right_foot_frame_index != 0)) {
             if ((uint16_t)obj->animation_frame == (uint16_t)(uint8_t)anim->left_foot_frame_index) {
-                UnitView(unit_index).fire_animation_sound_trigger(unit->base_animation_state == 2, 0);
+                UnitView(unit_index).fire_animation_sound_trigger(unit->base_animation_state == _unit_base_animation_state_stand, 0);
             } else if ((uint16_t)obj->animation_frame == (uint16_t)(uint8_t)anim->right_foot_frame_index) {
-                UnitView(unit_index).fire_animation_sound_trigger(unit->base_animation_state == 2, 1);
+                UnitView(unit_index).fire_animation_sound_trigger(unit->base_animation_state == _unit_base_animation_state_stand, 1);
             }
         }
     }

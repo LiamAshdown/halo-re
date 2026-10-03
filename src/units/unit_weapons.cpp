@@ -1,3 +1,4 @@
+#include "halo/units/animation_states.hpp"
 #include "halo/game/records.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/units/records.hpp"
@@ -134,54 +135,51 @@ uint8_t UnitView::begin_throw_grenade(const real_vector2d *direction)
         return 0;
     }
 
-    switch (unit->animation_state) {
-    case 0x17: case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1d: case 0x1e: case 0x1f:
-    case 0x20: case 0x21: case 0x22: case 0x23: case 0x27: case 0x29:
+    if (is_scripted_animation_state(animation_state_id(unit->animation_state))) {
         return 0;
-    default:
-        if (halo::items::weapon_prevents_grenade_throwing(current_weapon)   != 0) {
-            return 0;
-        }
-        if (current_weapon != k_datum_index_none) {
-            halo::items::weapon_reset_triggers(current_weapon);
-        }
-        object *biped_check = halo::objects::object_try_and_get(unit_index, _object_mask_biped);
-        if (biped_check != (object *)0) {
-            *((uint8_t *)biped_check + 0x505) = 0;
-        }
-        unit->replacement_animation_state = 0;
-        unit->overlays[0].animation_index = -1;
-
-        if (UnitView(unit_index).try_set_animation_state(0x21) == 0) {
-            return 0;
-        }
-
-        unit->throwing_grenade_state = 1;
-        unit->throwing_grenade_counter = 0;
-        ModelAnimations *graph = halo::objects::tag_as<ModelAnimations>(unit_tag->base.animation_graph.tag_id.index);
-        ModelAnimationsAnimation *animations = (ModelAnimationsAnimation *)(halo::objects::block_elements<ModelAnimationsAnimation>(graph->animations));
-        unit->throwing_grenade_duration = (animations[unit_obj->animation_index].key_frame_index - unit_obj->animation_frame) + 1;
-
-        if (direction != 0) {
-            UnitView(unit_index).set_throw_aim_direction(direction);
-        } else {
-            real_vector2d aim;
-
-            aim.i = ((struct unit_object *)unit_obj)->unit.aiming_vector.i;
-            aim.j = ((struct unit_object *)unit_obj)->unit.aiming_vector.j;
-            if (0.0f < halo::math::vector2d_normalize_with_length(aim)) {
-                UnitView(unit_index).set_throw_aim_direction(&aim);
-            }
-        }
-        halo::interface::weapon_action_notify_for_unit(unit_index, 0x11);
-        halo::game::unit_invalidate_local_player_zoom_level(unit_index);
-        GlobalsGrenade *grenade_table_entry = &halo::objects::block_element<GlobalsGrenade>(global_globals->grenades, (int8_t)grenade_type);
-        if (halo::objects::tag_handle(grenade_table_entry->throwing_effect) != -1) {
-            halo::effects::effect_new_on_object(unit_index, halo::objects::tag_handle(grenade_table_entry->throwing_effect), unit_index, -1,
-                0.0f, 0.0f, 0, 0);
-        }
-        return 1;
     }
+    if (halo::items::weapon_prevents_grenade_throwing(current_weapon)   != 0) {
+        return 0;
+    }
+    if (current_weapon != k_datum_index_none) {
+        halo::items::weapon_reset_triggers(current_weapon);
+    }
+    object *biped_check = halo::objects::object_try_and_get(unit_index, _object_mask_biped);
+    if (biped_check != (object *)0) {
+        *((uint8_t *)biped_check + 0x505) = 0;
+    }
+    unit->replacement_animation_state = 0;
+    unit->overlays[0].animation_index = -1;
+
+    if (UnitView(unit_index).try_set_animation_state(animation_state_value(unit_animation_state_id::throwing_grenade)) == 0) {
+        return 0;
+    }
+
+    unit->throwing_grenade_state = 1;
+    unit->throwing_grenade_counter = 0;
+    ModelAnimations *graph = halo::objects::tag_as<ModelAnimations>(unit_tag->base.animation_graph.tag_id.index);
+    ModelAnimationsAnimation *animations = (ModelAnimationsAnimation *)(halo::objects::block_elements<ModelAnimationsAnimation>(graph->animations));
+    unit->throwing_grenade_duration = (animations[unit_obj->animation_index].key_frame_index - unit_obj->animation_frame) + 1;
+
+    if (direction != 0) {
+        UnitView(unit_index).set_throw_aim_direction(direction);
+    } else {
+        real_vector2d aim;
+
+        aim.i = ((struct unit_object *)unit_obj)->unit.aiming_vector.i;
+        aim.j = ((struct unit_object *)unit_obj)->unit.aiming_vector.j;
+        if (0.0f < halo::math::vector2d_normalize_with_length(aim)) {
+            UnitView(unit_index).set_throw_aim_direction(&aim);
+        }
+    }
+    halo::interface::weapon_action_notify_for_unit(unit_index, 0x11);
+    halo::game::unit_invalidate_local_player_zoom_level(unit_index);
+    GlobalsGrenade *grenade_table_entry = &halo::objects::block_element<GlobalsGrenade>(global_globals->grenades, (int8_t)grenade_type);
+    if (halo::objects::tag_handle(grenade_table_entry->throwing_effect) != -1) {
+        halo::effects::effect_new_on_object(unit_index, halo::objects::tag_handle(grenade_table_entry->throwing_effect), unit_index, -1,
+            0.0f, 0.0f, 0, 0);
+    }
+    return 1;
 }
 
 /**
@@ -982,7 +980,7 @@ void UnitView::notify_weapon_removed()
 {
     int32_t object_index = datum_handle;
     if (object_index != -1) {
-        UnitView((uint32_t)object_index).try_set_animation_state(0x25);
+        UnitView((uint32_t)object_index).try_set_animation_state(animation_state_value(unit_animation_state_id::unknown_25));
     }
 }
 
@@ -997,7 +995,7 @@ void UnitView::notify_weapon_removed_dup()
 {
     int32_t object_index = datum_handle;
     if (object_index != -1) {
-        UnitView((uint32_t)object_index).try_set_animation_state(0x26);
+        UnitView((uint32_t)object_index).try_set_animation_state(animation_state_value(unit_animation_state_id::unknown_26));
     }
 }
 
@@ -1041,7 +1039,7 @@ uint8_t halo::units::unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_ind
         }
         if (UnitView(unit_index).set_or_test_seat_and_weapon_label(seat_name, weapon_label, 0) == 0) {
             object *check = halo::objects::object_try_and_get(unit_index, _object_mask_unit);
-            if ((check != (object *)0) && ((halo::units::unit_data_of(check))->animation_state == 0x1b)) {
+            if ((check != (object *)0) && ((halo::units::unit_data_of(check))->animation_state == animation_state_value(unit_animation_state_id::seat_exit))) {
                 UnitView(unit_index).detach_from_seat(1, 1, 0);
             }
         }
@@ -1542,13 +1540,10 @@ namespace unit_try_ready_weapon_local {
 
 static int unit_animation_state_allows_melee(int8_t state)
 {
-    switch (state) {
-    case 0x17: case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1d: case 0x1e: case 0x1f:
-    case 0x20: case 0x21: case 0x22: case 0x23: case 0x27: case 0x29:
+    if (is_scripted_animation_state(animation_state_id(state))) {
         return 0;
-    default:
-        return 1;
     }
+    return 1;
 }
 
 }
@@ -1575,9 +1570,9 @@ uint8_t UnitView::try_ready_weapon(uint8_t forced, const real_vector2d *directio
         airborne = test_flag(halo::units::biped_data_of(unit)->flags, units::biped_flag::airborne);
     }
     if (forced) {
-        new_state = 0x20;
+        new_state = animation_state_value(unit_animation_state_id::unknown_20);
     } else if (state == 0x28) {
-        new_state = 0x29;
+        new_state = animation_state_value(unit_animation_state_id::unknown_29);
     } else {
         new_state = (int16_t)(0x1e + (airborne != 0));
     }
@@ -1585,7 +1580,7 @@ uint8_t UnitView::try_ready_weapon(uint8_t forced, const real_vector2d *directio
         return 0;
     }
     if (test_flag(unit_tag->unit_flags, tags::unit_tag_flag::melee_attack_is_fatal)) {
-        unit->unit.animation_state = 0x19;
+        unit->unit.animation_state = animation_state_value(unit_animation_state_id::ready_weapon);
     }
     if (direction != 0) {
         UnitView(unit_index).set_throw_aim_direction(direction);
@@ -1603,13 +1598,10 @@ namespace unit_try_ready_weapon_variant_local {
 
 static int unit_animation_state_allows_melee(int8_t state)
 {
-    switch (state) {
-    case 0x17: case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1d: case 0x1e: case 0x1f:
-    case 0x20: case 0x21: case 0x22: case 0x23: case 0x27: case 0x29:
+    if (is_scripted_animation_state(animation_state_id(state))) {
         return 0;
-    default:
-        return 1;
     }
+    return 1;
 }
 
 }
@@ -1631,7 +1623,7 @@ uint8_t UnitView::try_ready_weapon_variant(const real_vector2d *direction)
     if (unit->base.type == 0 && test_flag(halo::units::biped_data_of(unit)->flags, units::biped_flag::airborne)) {
         return 0;
     }
-    if (!UnitView(unit_index).try_set_animation_state(0x27)) {
+    if (!UnitView(unit_index).try_set_animation_state(animation_state_value(unit_animation_state_id::unknown_27))) {
         return 0;
     }
     if (direction != 0) {

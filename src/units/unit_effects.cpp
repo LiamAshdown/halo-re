@@ -126,7 +126,7 @@ void UnitView::compute_marker_offset_position(real_vector3d *reference_direction
         fraction = biped->crouch_fraction;
         if (!test_flag(biped->flags, units::biped_flag::airborne) && fraction > 0.0f && fraction < 1.0f) {
             float step = halo::game::globals().game_time->leftover_time * 29.999998f * tag->crouch_camera_velocity;
-            if (unit->base_animation_state == 3) {
+            if (unit->base_animation_state == _unit_base_animation_state_crouch) {
                 fraction += step;
             } else {
                 fraction -= step;
