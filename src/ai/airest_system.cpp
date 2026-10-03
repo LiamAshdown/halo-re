@@ -341,7 +341,7 @@ int16_t AiSystem::count_actors_in_mode9_group(int32_t group_id)
     halo::ai::actor_iterator_new(&iterator, 0);
     a = halo::ai::actor_iterator_next(&iterator);
     while (a != 0) {
-        if (a->mode == _actor_mode_vocalize && *(int32_t *)a->mode_data.raw == group_id) {
+        if (a->mode == halo::ai::actor_mode::vehicle && a->mode_data.vehicle.vehicle_index == group_id) {
             count = count + 1;
         }
         a = halo::ai::actor_iterator_next(&iterator);
@@ -1049,7 +1049,7 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
                     }
                 }
 
-                bool too_far = hard_difficulty != 0 && a->firing_state == 0 && a->mode != _actor_mode_vehicle &&
+                bool too_far = hard_difficulty != 0 && a->firing_state == 0 && a->mode != halo::ai::actor_mode::charge &&
                                15.0f < p->distance;
 
                 if (!too_far && !skip_close_check) {

@@ -106,18 +106,8 @@ typedef enum ai_constants {
     k_actor_movement_maximum_obstacles = 0x400 // actor_movement_collect_obstacle_candidates
 } ai_constants;
 
-// The mode index in actor.mode selects a row of the 0x38-stride definition table at
-// 0x00655254. The mode numbers below are the ones the decompiled module tests directly;
-// nothing in the module carries mode names, so the rest are left out rather than guessed.
-typedef enum actor_mode {
-    _actor_mode_none = 0,                 // actor_run_mode_transition_loop forces this
-                                          //   when the machine will not settle in 10 passes
-    _actor_mode_death = 4,                // 0x40dd50 transitions here once on death
-    _actor_mode_vocalize = 9,             // 0x40e260 plays a line through this mode
-    _actor_mode_vehicle = 10,             // 0x429430 counts boredom faster in this mode
-    _actor_mode_flee = 11,                // 0x434d90 / 0x434df0 switch members to it
-    _actor_mode_conversation = 12         // squad_despawn only clears actor+0x9c in it
-} actor_mode;
+// The mode index in actor.mode selects a row of the 0x38-stride definition table at 0x00655254; the mode names are halo::ai::actor_mode
+// in halo/ai/modes.hpp.
 
 // actor_order_code_is_grenade_throw @0x404340 is the only place the module states an
 // order-code range outright.

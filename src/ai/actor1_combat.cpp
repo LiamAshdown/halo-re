@@ -34,7 +34,7 @@ uint8_t halo::ai::combat_ops::check_burst_length_exceeded()
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     uint8_t result = self->combat_status > 6;
 
-    if (result && self->mode == _actor_mode_death && *(int16_t *)&self->mode_data.raw[0xc] > 0) {
+    if (result && self->mode == halo::ai::actor_mode::flee && self->mode_data.flee.panic > 0) {
         result = 0;
     }
     return result;
@@ -281,7 +281,7 @@ void halo::ai::combat_ops::choose_best_target()
     best = (datum_index)k_datum_index_none;
 
     suppress_close_bonus = 0;
-    if (self->berserking != 0 || self->mode == 10) {
+    if (self->berserking != 0 || self->mode == halo::ai::actor_mode::charge) {
         suppress_close_bonus = 1;
     }
 
@@ -628,10 +628,10 @@ float halo::ai::combat_ops::compute_accuracy_scale()
         scale = *(float *)((uint8_t *)tag_data + 0x384);
     }
 
-    if (self->mode == 11 && self->mode_data.raw[0x54] != 0) {
-        scale = *(float *)&self->mode_data.raw[0x58];
+    if (self->mode == halo::ai::actor_mode::obey && self->mode_data.obey.aim.unknown_28 != 0) {
+        scale = self->mode_data.obey.aim.unknown_2c;
     }
-    if (self->mode == 9) {
+    if (self->mode == halo::ai::actor_mode::vehicle) {
         return 0.7f;
     }
     if (!(scale > 0.2f)) {
@@ -862,7 +862,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         self->charge_trigger_active = 0;
         return 0;
     }
-    if (self->mode == 10 &&
+    if (self->mode == halo::ai::actor_mode::charge &&
         (self->mode_data.charge.stage == 2 || self->mode_data.charge.stage == 3)) {
         self->charge_trigger_active = 0;
         return 0;

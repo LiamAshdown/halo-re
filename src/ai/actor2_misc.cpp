@@ -520,7 +520,7 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
     case 1:
         if (act->awareness_level != 1) {
             act->awareness_level = 1;
-            halo::ai::actor_set_mode(actor_index, 1, 0);
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::sleep, 0);
             return 1;
         }
         break;
@@ -530,7 +530,7 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
             break;
         }
         if (halo::ai::actor_build_order_return_to_anchor(actor_index, (actor_order *)order)) {
-            halo::ai::actor_set_mode(actor_index, 6, order);
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::guard, order);
             return 1;
         }
         break;
@@ -543,7 +543,7 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
             break;
         }
         if (halo::ai::actor_build_order_guard(actor_index, (actor_order *)order, 0)) {
-            halo::ai::actor_set_mode(actor_index, 6, order);
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::guard, order);
             return 1;
         }
         break;
@@ -559,7 +559,7 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
             break;
         }
         if (halo::ai::actor_build_order_return_to_anchor(actor_index, (actor_order *)order)) {
-            halo::ai::actor_set_mode(actor_index, 6, order);
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::guard, order);
             return 1;
         }
         break;
@@ -579,17 +579,17 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
             if (act->swarm == 0) {
                 halo::ai::actor_check_melee_target_reachable(actor_index, reinterpret_cast<actor_mode_flee_data *>(order));
                 if (((struct actor_order *)order)->parameter != -1) {
-                    halo::ai::actor_set_mode(actor_index, 4, order);
+                    halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::flee, order);
                     return 1;
                 }
                 order[0xe] = 0;
             }
         }
-        if (act->mode == 6) {
+        if (act->mode == halo::ai::actor_mode::guard) {
             break;
         }
         if (halo::ai::actor_build_order_return_to_anchor(actor_index, (actor_order *)order)) {
-            halo::ai::actor_set_mode(actor_index, 6, order);
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::guard, order);
             return 1;
         }
         break;
@@ -599,7 +599,7 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
             break;
         }
         if (halo::ai::actor_build_order_default(actor_index, order_code_mode_data_expect[code], (actor_order *)order, -1)) {
-            halo::ai::actor_set_mode(actor_index, 2, order);
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::alert, order);
             return 1;
         }
         break;
@@ -608,9 +608,9 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
         break;
     }
 
-    if (act->mode == 0 &&
+    if (act->mode == halo::ai::actor_mode::none &&
         halo::ai::actor_build_order_default(actor_index, 0, (actor_order *)order, -1)) {
-        halo::ai::actor_set_mode(actor_index, 2, order);
+        halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::alert, order);
         return 1;
     }
     return 0;
@@ -638,7 +638,7 @@ uint8_t ActorView::process_pending_command_list()
         return 0;
     }
     if (halo::ai::actor_squad_action_status_broadcast(actor_index, (int16_t)actor->pending_command_list, &mode_data.obey) != 0) {
-        halo::ai::actor_set_mode(actor_index, 0xb, &mode_data);
+        halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::obey, &mode_data);
         started = 1;
     }
     actor->command_list_run_immediately = 0;
@@ -1298,7 +1298,7 @@ int32_t ActorView::report_command_status()
 {
     using namespace actor_report_command_status_local;
     actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    uint8_t *already_reported = (uint8_t *)a->mode_data.raw + (0xa2 - 0x9c);
+    uint8_t *already_reported = &a->mode_data.guard.unknown_06;
     uint32_t event_code = 0;
 
     if (*already_reported != 0) {
@@ -1324,7 +1324,7 @@ int32_t ActorView::report_command_status()
     }
 
     {
-        datum_index target_prop_index = *(datum_index *)((uint8_t *)a->mode_data.raw + (0xd8 - 0x9c));
+        datum_index target_prop_index = a->mode_data.guard.guard_target;
         datum_index target_object = (datum_index)k_datum_index_none;
         int32_t target_state = -1;
 
@@ -1657,7 +1657,7 @@ uint8_t ActorView::scale_value_by_ally_exposure(float *value)
             ally = halo::ai::actor_at(target->owner_actor_index);
 
             if (ally->pending_panic_type < 1 &&
-                (ally->mode != 4 || ally->mode_data.flee.panic < 1)) {
+                (ally->mode != halo::ai::actor_mode::flee || ally->mode_data.flee.panic < 1)) {
                 if (target->owner_stalled != 0) {
                     exposed_count++;
                 }
@@ -2719,8 +2719,8 @@ uint8_t ActorView::wants_reload_or_swap()
         }
     }
 
-    if (a->mode == _actor_mode_flee) {
-        if (a->mode_data.raw[0x9e - 0x9c] == 0 && a->mode_data.raw[0xa1 - 0x9c] == 0) {
+    if (a->mode == halo::ai::actor_mode::obey) {
+        if (a->mode_data.obey.allow_initiative == 0 && a->mode_data.obey.finished == 0) {
             return 1;
         }
     }

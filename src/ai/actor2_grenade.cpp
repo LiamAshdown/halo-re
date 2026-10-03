@@ -172,7 +172,7 @@ void ActorView::schedule_grenade_throw()
     if (!(a->awareness_level > 1) || a->vocalization_line > 8) {
         return;
     }
-    if (a->mode == 0xb && !a->mode_data.obey.allow_look) {
+    if (a->mode == halo::ai::actor_mode::obey && !a->mode_data.obey.allow_look) {
         return;
     }
     if (*(int16_t *)request == 1 && halo::memory::datum_get(*(datum_index *)(request + 0x4), halo::ai::globals().prop_data) == 0) {
@@ -436,7 +436,7 @@ char ActorView::update_grenade_and_morale_reactions()
             }
         }
     }
-    if (act->mode == 10 && (act->mode_data.charge.stage == 2 || act->mode_data.charge.stage == 3)) {
+    if (act->mode == halo::ai::actor_mode::charge && (act->mode_data.charge.stage == 2 || act->mode_data.charge.stage == 3)) {
         may_target = 0;
     }
     if (result) {
@@ -584,9 +584,9 @@ uint8_t ActorOps::validate_grenade_ally_candidate(datum_index candidate_actor, u
     }
 
     if (candidate != (actor *)0 && 1 < candidate->combat_status && candidate->combat_status < 4 &&
-        (candidate->mode == 7 || candidate->mode == 5 ||
-         (caller_type_flag == 0 && candidate->mode == 8) ||
-         (candidate->mode == 6 && candidate->mode_data.raw[8] == 0 && 0 < *(int16_t *)&candidate->mode_data.raw[0]))) {
+        (candidate->mode == halo::ai::actor_mode::search || candidate->mode == halo::ai::actor_mode::uncover ||
+         (caller_type_flag == 0 && candidate->mode == halo::ai::actor_mode::wait) ||
+         (candidate->mode == halo::ai::actor_mode::guard && candidate->mode_data.guard.ambush_active == 0 && 0 < candidate->mode_data.guard.countdown_00))) {
         type_entry = (actor_type_table_entry *)actor_type_procs[candidate->type];
         if (type_entry->swarm != caller_type_flag) {
             return 1;

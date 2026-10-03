@@ -288,7 +288,7 @@ uint8_t halo::ai::alert_ops::check_pain_reaction(uint32_t resolved_target, uint8
 
     if (halo::ai::actor_build_order_grenade_or_melee(resolved_target, use_alt_base, actor_index, order_code,
             0, 0, order_buffer) != 0) {
-        halo::ai::actor_set_mode(actor_index, 4, order_buffer);
+        halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::flee, order_buffer);
         return 1;
     }
     return 0;
@@ -319,11 +319,11 @@ uint8_t halo::ai::alert_ops::combat_status_should_hold(int16_t threshold_a, int1
 
     self = halo::ai::actor_at(actor_index);
 
-    if (self->mode_data.raw[8] != 0) {
+    if (self->mode_data.guard.ambush_active != 0) {
         return (uint8_t)(threshold_b <= self->combat_status);
     }
-    if (0 < *(int16_t *)&self->mode_data.raw[0] && self->combat_status < threshold_a &&
-        (self->post_combat_action < 1 || self->mode_data.raw[5] != 0)) {
+    if (0 < self->mode_data.guard.countdown_00 && self->combat_status < threshold_a &&
+        (self->post_combat_action < 1 || self->mode_data.guard.command_pending != 0)) {
         return 0;
     }
     return 1;
@@ -356,20 +356,20 @@ uint8_t halo::ai::alert_ops::conditional_state_transition_check()
 
     self = halo::ai::actor_at(actor_index);
 
-    if (self->mode != _actor_mode_vehicle) {
+    if (self->mode != halo::ai::actor_mode::charge) {
         return 0;
     }
-    sub_state = *(int16_t *)&self->mode_data.raw[4];
+    sub_state = self->mode_data.charge.stage;
     if (sub_state == 2 || sub_state == 3) {
-        if (self->mode_data.raw[7] != 0 || self->mode_data.raw[8] != 0) {
+        if (self->mode_data.charge.strike_finished != 0 || self->mode_data.charge.done != 0) {
             return halo::ai::actor_evaluate_combat_state_transition(actor_index);
         }
-        flag = self->mode_data.raw[0x29];
+        flag = self->mode_data.charge.approach_failed;
     } else {
         if (sub_state != 4 && sub_state != 5) {
             return 0;
         }
-        flag = self->mode_data.raw[0x29];
+        flag = self->mode_data.charge.approach_failed;
     }
     if (flag == 0) {
         return 0;
@@ -714,7 +714,7 @@ uint8_t halo::ai::alert_ops::escalate_to_guard_or_combat()
     }
     actor->awareness_level = 3;
     if (halo::ai::actor_build_guard_mode_data(actor_index, record)) {
-        halo::ai::actor_set_mode(actor_index, 6, record);
+        halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::guard, record);
     } else {
         halo::ai::actor_evaluate_combat_state_transition(actor_index);
     }
@@ -763,7 +763,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
         p = halo::ai::prop_at(a->target_unit_index);
         distance = p->distance;
 
-        if (a->mode == 0xa && a->mode_data.charge.stage == 1) {
+        if (a->mode == halo::ai::actor_mode::charge && a->mode_data.charge.stage == 1) {
             uint8_t engaged = p->seen || (p->shooting && (int8_t)p->distance_class <= 1);
 
             if (!engaged && actor_tag->stalking_discovery_time > 0.0f &&
@@ -784,7 +784,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
 
         if (!(halo::ai::actor_has_unshielded_threat_weapon(actor_index) &&
               (p->relationship_object_index != k_datum_index_none || p->swarm_owned)) &&
-            !(a->mode == 0xa && (a->mode_data.charge.stage == 2 || a->mode_data.charge.stage == 3)) &&
+            !(a->mode == halo::ai::actor_mode::charge && (a->mode_data.charge.stage == 2 || a->mode_data.charge.stage == 3)) &&
             !changed && !a->swarm && a->active_unit_index == k_datum_index_none &&
             a->firing_state != 2) {
             int32_t now = game_time->game_time;
@@ -817,14 +817,14 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                     halo::ai::actor_has_unshielded_threat_weapon(actor_index);
                     a->search_wait_time = now;
                     if (halo::ai::actor_consider_combat_mode(actor_index, 2, &consideration)) {
-                        halo::ai::actor_set_mode(actor_index, 0xa, &consideration);
+                        halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::charge, &consideration);
                         changed = 1;
                     }
                 }
             }
         }
 
-        if (a->mode != 0xa && !a->charge_disallowed) {
+        if (a->mode != halo::ai::actor_mode::charge && !a->charge_disallowed) {
             int16_t seat_kind = a->vehicle_driving_type;
 
             if (changed) {
@@ -842,7 +842,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                 if (ready && seat_kind == 4 && distance > definition->melee_range &&
                     p->obstruction == 0 &&
                     halo::ai::actor_consider_combat_mode(actor_index, 4, &consideration)) {
-                    halo::ai::actor_set_mode(actor_index, 0xa, &consideration);
+                    halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::charge, &consideration);
                     return 1;
                 }
             }
@@ -858,11 +858,11 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
     }
     mode = a->mode;
     auto guard = [&]() -> char {
-        if (a->mode == 3) {
+        if (a->mode == halo::ai::actor_mode::fight) {
             return changed;
         }
         *(uint32_t *)&consideration = 0;
-        halo::ai::actor_set_mode(actor_index, 3, &consideration);
+        halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::fight, &consideration);
         return 1;
     };
     auto settle = [&]() -> char {
@@ -873,14 +873,14 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
     };
     auto consider = [&]() -> char {
         if (halo::ai::actor_consider_combat_mode(actor_index, 0, &consideration)) {
-            halo::ai::actor_set_mode(actor_index, 0xa, &consideration);
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::charge, &consideration);
             changed = 1;
             return settle();
         }
         return guard();
     };
     auto consider_zero = [&]() -> char {
-        if (mode == 0xa) {
+        if (mode == halo::ai::actor_mode::charge) {
             return settle();
         }
         return consider();
@@ -894,7 +894,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
         }
         return consider_zero();
     };
-    if (mode == 0xa) {
+    if (mode == halo::ai::actor_mode::charge) {
         int16_t state = a->mode_data.charge.stage;
 
         if (state == 2 || state == 3) {

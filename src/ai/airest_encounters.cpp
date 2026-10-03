@@ -1423,16 +1423,16 @@ void EncounterView::evaluate_support_needs(datum_index self_actor_index, int16_t
         actor_index = a->next_in_encounter;
 
         if (not_self != 0 && a->grenade_ally_phase_flag == phase) {
-            if (a->mode == 5) {
-                if (*(int16_t *)(a->mode_data.raw + 8) == 0) {
+            if (a->mode == halo::ai::actor_mode::uncover) {
+                if (a->mode_data.uncover.stage == 0) {
                     if (a->combat_status < 3) {
                         mode5_count = mode5_count + 1;
                     }
                 } else {
                     engaged_count = engaged_count + 1;
                 }
-            } else if (a->mode == 7) {
-                if (*(int16_t *)(a->mode_data.raw + 8) != 0) {
+            } else if (a->mode == halo::ai::actor_mode::search) {
+                if (a->mode_data.search.stage != 0) {
                     engaged_count = engaged_count + 1;
                 } else {
                     mode7_count = mode7_count + 1;
@@ -1564,7 +1564,7 @@ void EncounterView::gather_occupied_clusters(uint32_t *out_clusters, uint8_t rec
                         }
                         zone_mask = zone_mask | extra;
                     }
-                    if (a->mode == 6 || a->mode == 4) {
+                    if (a->mode == halo::ai::actor_mode::guard || a->mode == halo::ai::actor_mode::flee) {
                         extra = 0;
                         if (a->encounter_index != (datum_index)k_datum_index_none) {
                             squad = &((ScenarioSquad *)
@@ -1574,7 +1574,7 @@ void EncounterView::gather_occupied_clusters(uint32_t *out_clusters, uint8_t rec
                                 (int16_t)((-(uint16_t)(a->defending != 0) & 3) + 2) * 4);
                         }
                         zone_mask = zone_mask | extra;
-                    } else if (a->mode == 3 || a->mode == 5) {
+                    } else if (a->mode == halo::ai::actor_mode::fight || a->mode == halo::ai::actor_mode::uncover) {
                         zone_mask = zone_mask | halo::ai::actor_get_firing_position_group_mask(current, 0, 0);
                     }
                 } else if (a->awareness_level == 2 && *(int16_t *)(a->mode_data.raw + 0) != 0) {
@@ -2031,7 +2031,7 @@ void EncounterView::recompute_morale()
         enc->combat_count = enc->combat_count + (int16_t)((uint16_t)counts * weight);
 
         engaged = (uint8_t)(6 < a->combat_status);
-        if (engaged != 0 && a->mode == 4 && 0 < *(int16_t *)(a->mode_data.raw + 0x0c)) {
+        if (engaged != 0 && a->mode == halo::ai::actor_mode::flee && 0 < a->mode_data.flee.panic) {
             engaged = 0;
         }
         enc->average_vitality = sample + enc->average_vitality;

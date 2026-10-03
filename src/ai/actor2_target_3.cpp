@@ -368,7 +368,7 @@ void ActorView::target_relationship_think()
             }
 
             if (target_prop_index == self->retreat_prop_index ||
-                (self->mode == 4 && *(uint32_t *)&self->mode_data.raw[0x1c] == target_prop_index)) {
+                (self->mode == halo::ai::actor_mode::flee && self->mode_data.flee.reference == target_prop_index)) {
                 penalty = 0;
             } else if (target_prop_index == self->target_unit_index) {
                 penalty = (target->noticed_c != 0) ? 1 : 0;

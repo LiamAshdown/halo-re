@@ -629,7 +629,7 @@ uint8_t halo::ai::order_builder::search_object(uint32_t vehicle_index, uint32_t 
     memset(data, 0, sizeof(*data));
     data->alert_range_min = radius_a;
     data->alert_range_max = radius_b;
-    if (act->active_unit_index != k_datum_index_none || act->swarm != 0 || act->mode == 9) {
+    if (act->active_unit_index != k_datum_index_none || act->swarm != 0 || act->mode == halo::ai::actor_mode::vehicle) {
         return 0;
     }
     if (!halo::ai::actor_is_within_alert_range(0, radius_a, radius_b, 0, 0, actor_index, vehicle_index)) {
@@ -744,18 +744,14 @@ int32_t halo::ai::order_builder::wait_byte(uint8_t byte_a, uint32_t *order)
 {
     using namespace c_actor_build_order_wait_byte;
     uint32_t actor_index = datum;
-    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    uint32_t *body = order;
-    int32_t i;
+    actor *a = halo::ai::actor_at(actor_index);
+    auto *data = reinterpret_cast<actor_mode_uncover_data *>(order);
 
-    for (i = 0xd; i != 0; i--) {
-        *body = 0;
-        body++;
-    }
+    memset(data, 0, sizeof(*data));
 
     if (a->order_committed == 0 && a->swarm == 0) {
-        *(int16_t *)(order + 2) = 0;
-        *((uint8_t *)order + 3) = byte_a;
+        data->stage = 0;
+        data->unknown_03 = byte_a;
         return 1;
     }
     return 0;

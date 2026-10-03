@@ -116,7 +116,7 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
 
     urgent = (uint8_t)(self->flee_reason > 6);
 
-    if ((line < 13 && self->mode == _actor_mode_flee && self->mode_data.raw[3] == 0) ||
+    if ((line < 13 && self->mode == halo::ai::actor_mode::obey && self->mode_data.obey.allow_look == 0) ||
         (urgent != 0 && line < 4)) {
         return 0;
     }
@@ -315,13 +315,13 @@ uint32_t halo::ai::look_ops::flee_look_away()
 
     self = halo::ai::actor_at(actor_index);
     result = 0;
-    if (self->mode == _actor_mode_death && self->mode_data.raw[0xab - 0x9c] != 0) {
+    if (self->mode == halo::ai::actor_mode::flee && self->mode_data.flee.finished != 0) {
 
         uint8_t order[0x84];
 
         memset(order, 0, sizeof(order));
         halo::ai::actor_build_order_look(actor_index, (actor_order *)order, (actor_look_request *)((uint8_t *)self + 0x9c));
-        halo::ai::actor_set_mode(actor_index, 6, order);
+        halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::guard, order);
         result = 1;
     }
     return result;

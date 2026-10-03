@@ -266,7 +266,7 @@ uint8_t ActorOps::play_first_valid_vocalization(int16_t *seat_list, datum_index 
             continue;
         }
         if (halo::ai::actor_build_order_investigate_encounter_point(vehicle_index, actor_index, seat, order)) {
-            halo::ai::actor_set_mode(actor_index, 9, order);
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::vehicle, order);
             seat_list[i] = -1;
             return 1;
         }
@@ -379,7 +379,7 @@ void ActorOps::queue_directional_reaction_event(const real_vector3d *direction, 
     actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     if (self->awareness_level > 1 && self->vocalization_line < 12 &&
-        (self->mode != 11 || self->mode_data.raw[3] != 0) &&
+        (self->mode != halo::ai::actor_mode::obey || self->mode_data.obey.allow_look != 0) &&
         (kind != 1 || halo::memory::datum_get(payload, halo::ai::globals().prop_data) != 0)) {
         wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 5.0f : 2.5f;
 
@@ -427,7 +427,7 @@ void ActorOps::queue_point_reaction_dialogue(const real_point3d *point, datum_in
         Actor *actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
         if (self->awareness_level > 1 && self->vocalization_line < 2 &&
-            (self->mode != 11 || self->mode_data.raw[3] != 0) &&
+            (self->mode != halo::ai::actor_mode::obey || self->mode_data.obey.allow_look != 0) &&
             self->flee_reason < 7) {
             float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 2.6f : 1.3f;
 
@@ -472,7 +472,7 @@ void ActorView::queue_recognized_target_dialogue(datum_index target_prop_index)
     Actor *actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     if (self->awareness_level > 1 && self->vocalization_line < 6 &&
-        (self->mode != 11 || self->mode_data.raw[3] != 0)) {
+        (self->mode != halo::ai::actor_mode::obey || self->mode_data.obey.allow_look != 0)) {
         int16_t recent = self->flee_reason;
         prop *target = (prop *)halo::memory::datum_get(target_prop_index, halo::ai::globals().prop_data);
 
@@ -641,7 +641,7 @@ void ActorView::queue_sighted_target_dialogue(datum_index target_prop_index, uin
         actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
         if (self->awareness_level > 1 && self->vocalization_line < 5 &&
-            (self->mode != 11 || self->mode_data.raw[3] != 0)) {
+            (self->mode != halo::ai::actor_mode::obey || self->mode_data.obey.allow_look != 0)) {
             int16_t recent = self->flee_reason;
 
             validated = (prop *)halo::memory::datum_get(target_prop_index, halo::ai::globals().prop_data);
@@ -806,7 +806,7 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
     }
 
     if (self->awareness_level > 1 && self->vocalization_line < 7 &&
-        (self->mode != 11 || self->mode_data.raw[3] != 0)) {
+        (self->mode != halo::ai::actor_mode::obey || self->mode_data.obey.allow_look != 0)) {
         float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 1.8f : 0.9f;
 
         if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
@@ -869,7 +869,7 @@ void ActorOps::react_to_registered_danger(const real_point3d *point, datum_index
     }
 
     if (self->awareness_level > 1 && self->vocalization_line < 4 &&
-        (self->mode != 11 || self->mode_data.raw[3] != 0) && self->flee_reason < 7) {
+        (self->mode != halo::ai::actor_mode::obey || self->mode_data.obey.allow_look != 0) && self->flee_reason < 7) {
         float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 1.8f : 0.9f;
 
         if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
@@ -944,7 +944,7 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
     actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     if (self->awareness_level > 1 && self->vocalization_line < 8 &&
-        (self->mode != 11 || self->mode_data.raw[3] != 0)) {
+        (self->mode != halo::ai::actor_mode::obey || self->mode_data.obey.allow_look != 0)) {
         int16_t recent = self->flee_reason;
 
         prop *validated = (prop *)halo::memory::datum_get(target_prop_index, halo::ai::globals().prop_data);
@@ -1240,8 +1240,8 @@ void TargetView::scan_ally_death_panic_reaction(datum_index actor_index)
 
             if (owner_actor_index != (datum_index)k_datum_index_none) {
                 actor *owner = &((actor *)halo::ai::globals().actor_data->data)[owner_actor_index & halo::k_slot_mask];
-                if (owner->mode == _actor_mode_death) {
-                    uint32_t killer_prop = *(uint32_t *)&owner->mode_data.raw[0x1c];
+                if (owner->mode == halo::ai::actor_mode::flee) {
+                    uint32_t killer_prop = owner->mode_data.flee.reference;
                     if (killer_prop != (uint32_t)k_datum_index_none) {
                         prop *killer = &((prop *)halo::ai::globals().prop_data->data)[killer_prop & halo::k_slot_mask];
                         payload = halo::ai::actor_find_prop_for_object(killer->object_index, actor_index);

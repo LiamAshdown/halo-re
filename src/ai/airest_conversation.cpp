@@ -179,8 +179,8 @@ void Conversations::clear_object_references(datum_index object_index, uint8_t fo
                         referenced = 1;
                     }
                     if (force_full_scan != 0) {
-                        if (a->mode == 12 && *(int32_t *)(a->mode_data.raw + 0x0c) == (int32_t)object_index) {
-                            *(int32_t *)(a->mode_data.raw + 0x0c) = -1;
+                        if (a->mode == halo::ai::actor_mode::converse && a->mode_data.converse.partner_unit == object_index) {
+                            a->mode_data.converse.partner_unit = (datum_index)k_datum_index_none;
                         }
                         if (a->conversation_participant == object_index) {
                             a->conversation_participant = (datum_index)k_datum_index_none;
@@ -272,7 +272,7 @@ uint8_t ConversationView::current_line_is_ready()
                         continue;
                     }
                     a = halo::ai::actor_at(actor_index);
-                    if (a->mode == 0xc && a->mode_data.converse.partner_unit != k_datum_index_none &&
+                    if (a->mode == halo::ai::actor_mode::converse && a->mode_data.converse.partner_unit != k_datum_index_none &&
                         !a->mode_data.converse.arrived && !a->mode_data.converse.finished) {
                         blocked = 1;
                     }
@@ -1107,7 +1107,7 @@ uint8_t ConversationView::resolve_participants(uint8_t *out_keep_trying)
             ai_conversation_range_lookup mode_data;
 
             if (halo::ai::ai_conversation_get_run_to_player_range(&mode_data, conversation_index) != 0) {
-                halo::ai::actor_set_mode(instance->participant_actor[i], _actor_mode_conversation, &mode_data);
+                halo::ai::actor_set_mode(instance->participant_actor[i], halo::ai::actor_mode::converse, &mode_data);
             }
         }
         variant = (int16_t)participants[i].variant_numbers[variant_slots[i]];
@@ -1164,8 +1164,8 @@ void ConversationView::stop(uint8_t reason_a, uint8_t reason_b)
             actor *a = &((actor *)halo::ai::globals().actor_data->data)[instance->participant_actor[i] & halo::k_slot_mask];
             a->conversation_index = (datum_index)k_datum_index_none;
             a->conversation_participant = (datum_index)k_datum_index_none;
-            if (a->mode == 12) {
-                *(int32_t *)a->mode_data.raw = -1;
+            if (a->mode == halo::ai::actor_mode::converse) {
+                a->mode_data.converse.conversation = (datum_index)k_datum_index_none;
             }
         }
     }

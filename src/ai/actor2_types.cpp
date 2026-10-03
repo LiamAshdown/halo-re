@@ -32,7 +32,7 @@ void ActorView::type_crew_update()
     using namespace actor_type_crew_update_local;
     struct actor *actor = halo::ai::actor_at(actor_index);
 
-    if (actor->mode == 0 && actor->awareness_level != 0) {
+    if (actor->mode == halo::ai::actor_mode::none && actor->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -116,7 +116,7 @@ void ActorView::type_elite_update()
     actor *act = halo::ai::actor_at(actor_index);
     uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[act->actor_definition_tag & halo::k_slot_mask].data;
 
-    if (act->mode == 0 && act->awareness_level != 0) {
+    if (act->mode == halo::ai::actor_mode::none && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -215,7 +215,7 @@ void ActorView::type_engineer_update()
     using namespace actor_type_engineer_update_local;
     actor *act = halo::ai::actor_at(actor_index);
 
-    if (act->mode == 0 && act->awareness_level != 0) {
+    if (act->mode == halo::ai::actor_mode::none && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -292,7 +292,7 @@ void ActorView::type_flood_carrier_update()
     using namespace actor_type_flood_carrier_update_local;
     actor *act = halo::ai::actor_at(actor_index);
 
-    if (act->mode == 0 && act->awareness_level != 0) {
+    if (act->mode == halo::ai::actor_mode::none && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -352,7 +352,7 @@ void ActorView::type_flood_update()
     using namespace actor_type_flood_update_local;
     actor *act = halo::ai::actor_at(actor_index);
 
-    if (act->mode == 0 && act->awareness_level != 0) {
+    if (act->mode == halo::ai::actor_mode::none && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -418,7 +418,7 @@ void ActorView::type_grunt_update()
     uint8_t may_broadcast = (uint8_t)((int8_t)act->tally.group_a_by_actor_type[0] > 0);
     uint8_t panics = (uint8_t)((int8_t)act->tally.group_c_by_actor_type[0] > 0);
 
-    if (act->mode == 0 && act->awareness_level != 0) {
+    if (act->mode == halo::ai::actor_mode::none && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -509,7 +509,7 @@ void ActorView::type_hunter_update()
     using namespace actor_type_hunter_update_local;
     actor *act = halo::ai::actor_at(actor_index);
 
-    if (act->mode == 0 && act->awareness_level != 0) {
+    if (act->mode == halo::ai::actor_mode::none && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -587,7 +587,7 @@ void ActorView::type_infection_swarm_update()
 
     if (swarm->component_pick_delay > 0) {
         swarm->component_pick_delay--;
-    } else if (actor->mode == 7 || actor->mode == 10) {
+    } else if (actor->mode == halo::ai::actor_mode::search || actor->mode == halo::ai::actor_mode::charge) {
         float delay = ((float)(int32_t)swarm_random_next() * 1.5259022e-05f);
         int16_t count = swarm->component_count;
 
@@ -704,7 +704,7 @@ void ActorView::type_infection_swarm_update()
         case 11:
             speed = 3;
             behaviour = 3;
-            if (actor->mode == 11 && has(static_cast<swarm_component_flag>(component->flags), swarm_component_flag::active)) {
+            if (actor->mode == halo::ai::actor_mode::obey && has(static_cast<swarm_component_flag>(component->flags), swarm_component_flag::active)) {
                 behaviour = 6;
             } else if (component->leap_target_index != (uint32_t)k_datum_index_none) {
                 behaviour = (int16_t)((component->infection.detach_delay != 0) + 4);
@@ -1046,7 +1046,7 @@ void ActorView::type_infection_update()
     using namespace actor_type_infection_update_local;
     actor *act = halo::ai::actor_at(actor_index);
 
-    if (act->mode == 0 && act->awareness_level != 0) {
+    if (act->mode == halo::ai::actor_mode::none && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -1101,7 +1101,7 @@ void ActorView::type_jackal_update()
     actor *act = halo::ai::actor_at(actor_index);
     uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[act->actor_definition_tag & halo::k_slot_mask].data;
 
-    if (act->mode == 0 && act->awareness_level != 0) {
+    if (act->mode == halo::ai::actor_mode::none && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -1190,7 +1190,7 @@ void ActorView::type_marine_update()
     using namespace actor_type_marine_update_local;
     actor *act = halo::ai::actor_at(actor_index);
 
-    if (act->mode == 0 && act->awareness_level != 0) {
+    if (act->mode == halo::ai::actor_mode::none && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -1274,7 +1274,7 @@ void ActorView::type_mounted_weapon_update()
     using namespace actor_type_mounted_weapon_update_local;
     actor *act = halo::ai::actor_at(actor_index);
 
-    if (act->mode == 0 && act->awareness_level != 0) {
+    if (act->mode == halo::ai::actor_mode::none && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);
@@ -1320,7 +1320,7 @@ void ActorView::type_sentinel_update()
     using namespace actor_type_sentinel_update_local;
     actor *act = halo::ai::actor_at(actor_index);
 
-    if (act->mode == 0 && act->awareness_level != 0) {
+    if (act->mode == halo::ai::actor_mode::none && act->awareness_level != 0) {
         halo::ai::actor_process_order_request(actor_index, halo::k_word_none);
     }
     halo::ai::actor_process_pending_command_list(actor_index);

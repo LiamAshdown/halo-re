@@ -516,7 +516,7 @@ int16_t ObjectListView::max_flee_grade()
             if (unit->actor_index == (datum_index)k_datum_index_none) {
                 if (unit->swarm_actor_index != (datum_index)k_datum_index_none) {
                     a = &((actor *)halo::ai::globals().actor_data->data)[unit->swarm_actor_index & halo::k_slot_mask];
-                    if (a->mode == _actor_mode_flee &&
+                    if (a->mode == halo::ai::actor_mode::obey &&
                         a->swarm_index != (datum_index)k_datum_index_none) {
                         sw = &((swarm *)halo::ai::globals().swarm_data->data)[a->swarm_index & halo::k_slot_mask];
                         component_count = sw->component_count;
@@ -544,13 +544,13 @@ int16_t ObjectListView::max_flee_grade()
                 }
             } else {
                 a = &((actor *)halo::ai::globals().actor_data->data)[unit->actor_index & halo::k_slot_mask];
-                if (a->mode == _actor_mode_flee) {
+                if (a->mode == halo::ai::actor_mode::obey) {
                     command_list = &((ScenarioCommandList *)halo::scenario::globals().scenario->command_lists.pointer)
-                        [*(int16_t *)(a->mode_data.raw + 0x00)];
-                    command_index = (int32_t)(uint32_t)a->mode_data.raw[8];
+                        [a->mode_data.obey.command_list_index];
+                    command_index = (int32_t)(uint32_t)a->mode_data.obey.action.command_index;
                     if (command_index < command_list->commands.count &&
                         (uint8_t *)command_list->commands.pointer + command_index * 0x20 != 0) {
-                        grade = (uint32_t)((((uint8_t)~a->mode_data.raw[0x0c] & 0x10) | 0x20) >> 4);
+                        grade = (uint32_t)((((uint8_t)~a->mode_data.obey.action.flags & 0x10) | 0x20) >> 4);
                     } else {
                         grade = 1;
                     }
@@ -1050,7 +1050,7 @@ void AiObjects::object_process_nearby_actors(uint32_t ai_reference, datum_index 
                     ai_nearby_actor_candidate *c = &candidates[candidate_count];
                     c->actor_index = iterator.actor_index;
                     c->distance_squared = dz * dz + dx * dx + dy * dy;
-                    c->is_type_9 = (a->mode == 9);
+                    c->is_type_9 = (a->mode == halo::ai::actor_mode::vehicle);
                     candidate_count = candidate_count + 1;
                 }
                 a = halo::ai::ai_reference_actor_iterator_next(&iterator);
@@ -1293,7 +1293,7 @@ void AiUnitView::flee_if_ready(uint32_t readiness_param)
         if (unit->actor_index != (datum_index)k_datum_index_none &&
             (uint8_t)halo::ai::actor_squad_action_status_broadcast(unit->actor_index, (int16_t)readiness_param,
                 &mode_data.obey) != 0) {
-            halo::ai::actor_set_mode(unit->actor_index, _actor_mode_flee, &mode_data);
+            halo::ai::actor_set_mode(unit->actor_index, halo::ai::actor_mode::obey, &mode_data);
         }
     }
 }

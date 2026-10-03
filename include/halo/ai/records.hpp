@@ -14,6 +14,7 @@
 #include "units.h"
 #include "ai.h"
 #include "halo/ai/api.hpp"
+#include "halo/ai/modes.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cache/globals.hpp"

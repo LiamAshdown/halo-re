@@ -160,7 +160,7 @@ uint8_t ActorView::seek_vehicle_to_board()
         }
     }
     if (halo::ai::actor_build_order_search_object(best_vehicle, actor_index, radius_a, radius_b, order)) {
-        halo::ai::actor_set_mode(actor_index, 9, order);
+        halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::vehicle, order);
         return 1;
     }
     return 0;

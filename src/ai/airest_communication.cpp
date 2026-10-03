@@ -541,7 +541,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
             if (speaker->awareness_level == 0) {
                 continue;
             }
-            if (speaker->mode == 0xb && speaker->mode_data.flee.use_last_seen_position == 0) {
+            if (speaker->mode == halo::ai::actor_mode::obey && speaker->mode_data.obey.allow_communication == 0) {
                 continue;
             }
         }
@@ -1748,10 +1748,10 @@ uint8_t DialogueCondition_42f560::test(datum_index object_index, uint32_t param_
         return 0;
     }
     actor = halo::ai::actor_at(actor_index);
-    if (actor->mode == 5) {
+    if (actor->mode == halo::ai::actor_mode::uncover) {
         return (uint8_t)(*(int16_t *)((uint8_t *)actor + 0xa4) == 1);
     }
-    return (uint8_t)(actor->mode == 7);
+    return (uint8_t)(actor->mode == halo::ai::actor_mode::search);
 }
 
 }
@@ -1809,7 +1809,7 @@ uint8_t DialogueCondition_42f650::test(datum_index object_index, uint32_t param_
     struct actor *actor = halo::ai::actor_at(actor_index);
     uint8_t result = (uint8_t)(actor->combat_status >= 7);
 
-    if (result && actor->mode == 4 && actor->mode_data.flee.panic > 0) {
+    if (result && actor->mode == halo::ai::actor_mode::flee && actor->mode_data.flee.panic > 0) {
         result = 0;
     }
     return result;
@@ -1841,7 +1841,7 @@ uint8_t DialogueCondition_42f690::test(datum_index object_index, uint32_t param_
     if (actor->combat_status < 7) {
         return 0;
     }
-    if (actor->mode == 4 && actor->mode_data.flee.panic > 0) {
+    if (actor->mode == halo::ai::actor_mode::flee && actor->mode_data.flee.panic > 0) {
         return 0;
     }
     return 1;
@@ -1934,7 +1934,7 @@ uint8_t DialogueCondition_42f7f0::test(datum_index object_index, uint32_t param_
     if (actor->combat_status < 7) {
         return 0;
     }
-    if (actor->mode == 4 && actor->mode_data.flee.panic > 0) {
+    if (actor->mode == halo::ai::actor_mode::flee && actor->mode_data.flee.panic > 0) {
         return 0;
     }
     return (uint8_t)(actor->type == 0);

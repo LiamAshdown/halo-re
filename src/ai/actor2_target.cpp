@@ -1612,8 +1612,8 @@ uint8_t ActorOps::targets_share_descriptor(datum_index actor_a, datum_index acto
     self_a = halo::ai::actor_at(actor_a);
     self_b = halo::ai::actor_at(actor_b);
 
-    desc_a = (self_a->mode == 7 || self_a->mode == 5) ? (int16_t *)&self_a->mode_data.raw[8] : (int16_t *)0;
-    desc_b = (self_b->mode == 7 || self_b->mode == 5) ? (int16_t *)&self_b->mode_data.raw[8] : (int16_t *)0;
+    desc_a = (self_a->mode == halo::ai::actor_mode::search || self_a->mode == halo::ai::actor_mode::uncover) ? &self_a->mode_data.search.stage : (int16_t *)0;
+    desc_b = (self_b->mode == halo::ai::actor_mode::search || self_b->mode == halo::ai::actor_mode::uncover) ? &self_b->mode_data.search.stage : (int16_t *)0;
 
     if (desc_a == (int16_t *)0 || desc_b == (int16_t *)0) {
         return 0;

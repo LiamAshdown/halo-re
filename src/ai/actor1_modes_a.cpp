@@ -525,7 +525,7 @@ uint8_t halo::ai::obey_mode::process()
             mode_data->finished = 1;
         }
     }
-    return (uint8_t)(actor->mode == 0xb && mode_data->finished != 0);
+    return (uint8_t)(actor->mode == halo::ai::actor_mode::obey && mode_data->finished != 0);
 }
 
 namespace halo::ai {

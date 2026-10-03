@@ -364,7 +364,7 @@ void ActorView::run_mode_transition_loop()
         }
     }
 
-    halo::ai::actor_set_mode(actor_index, 0, 0);
+    halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::none, 0);
 }
 
 namespace actor_set_mode_local {
@@ -445,23 +445,23 @@ uint8_t ActorView::update_special_mode()
     self = halo::ai::actor_at(actor_index);
     mode = self->mode;
 
-    if (mode == 5) {
-        if (self->mode_data.raw[1] == 0) {
+    if (mode == halo::ai::actor_mode::uncover) {
+        if (self->mode_data.uncover.done == 0) {
             return 0;
         }
-        if (*(int16_t *)&self->mode_data.raw[8] == 0) {
+        if (self->mode_data.uncover.stage == 0) {
             halo::ai::actor_set_target_alert_stage1(self->target_unit_index, actor_index);
         }
-    } else if (mode == 7) {
-        if (self->mode_data.raw[0] == 0) {
+    } else if (mode == halo::ai::actor_mode::search) {
+        if (self->mode_data.search.finished == 0) {
             return 0;
         }
-        if (*(int16_t *)&self->mode_data.raw[8] == 0) {
+        if (self->mode_data.search.stage == 0) {
             halo::ai::actor_set_target_alert_stage2(self->target_unit_index, actor_index);
             return halo::ai::actor_update_melee_combat_action(actor_index);
         }
-    } else if (mode == 8) {
-        if (self->mode_data.raw[0] == 0) {
+    } else if (mode == halo::ai::actor_mode::wait) {
+        if (self->mode_data.wait.finished == 0) {
             return 0;
         }
         halo::ai::actor_set_target_alert_stage3(self->target_unit_index, actor_index);

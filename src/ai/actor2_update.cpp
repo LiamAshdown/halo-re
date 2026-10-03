@@ -406,7 +406,7 @@ uint8_t ActorView::update_combat_behavior(uint8_t param_1, uint8_t param_2)
             break;
         }
         if (self->combat_status < 5) {
-            if (self->combat_status < 2 && self->mode != 2 &&
+            if (self->combat_status < 2 && self->mode != halo::ai::actor_mode::alert &&
                 (self->combat_status != 0 || (self->stood_down == 0 && self->post_combat_action < 1))) {
                 break;
             }
@@ -425,10 +425,10 @@ uint8_t ActorView::update_combat_behavior(uint8_t param_1, uint8_t param_2)
                 }
                 target_prop = halo::ai::prop_at(self->target_unit_index);
                 if (self->target_unit_index == self->pursuit_target_prop_index &&
-                    (target_prop->noticed_a != 0 || (self->mode == 5 && *(int16_t *)(self->mode_data.raw + 8) == 0)) &&
+                    (target_prop->noticed_a != 0 || (self->mode == halo::ai::actor_mode::uncover && self->mode_data.uncover.stage == 0)) &&
                     (target_prop->noticed_b != 0 ||
-                     ((self->mode == 5 && *(int16_t *)(self->mode_data.raw + 8) == 0) ||
-                      (self->mode == 7 && *(int16_t *)(self->mode_data.raw + 8) == 0)))) {
+                     ((self->mode == halo::ai::actor_mode::uncover && self->mode_data.uncover.stage == 0) ||
+                      (self->mode == halo::ai::actor_mode::search && self->mode_data.search.stage == 0)))) {
                     action = next_action::use_default;
                 }
             }
@@ -917,7 +917,7 @@ uint8_t ActorView::update_danger_avoidance()
             uint32_t mode_data[0x21];
 
             mode_data[0] = 0;
-            halo::ai::actor_set_mode(actor_index, 0xd, mode_data);
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::avoid, mode_data);
             result = 1;
         }
     }
@@ -1010,8 +1010,8 @@ void ActorView::update_idle_stagger()
 {
     using namespace actor_update_idle_stagger_local;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    int16_t vehicle_substate = *(int16_t *)&self->mode_data.raw[4];
-    int fast = self->mode == _actor_mode_vehicle &&
+    int16_t vehicle_substate = self->mode_data.charge.stage;
+    int fast = self->mode == halo::ai::actor_mode::charge &&
                (vehicle_substate == 2 || vehicle_substate == 3 || vehicle_substate == 4 || vehicle_substate == 5);
 
     self->idle_counter = self->idle_counter + (fast ? 3 : 1);
@@ -1526,7 +1526,7 @@ uint8_t ActorView::update_melee_combat_action()
 
             halo::ai::actor_set_target_alert_stage3(a->target_unit_index, actor_index);
             halo::ai::actor_build_order_guard(actor_index, (actor_order *)order, guard_at);
-            halo::ai::actor_set_mode(actor_index, 6, order);
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::guard, order);
         }
         return 1;
     };
@@ -1541,11 +1541,11 @@ uint8_t ActorView::update_melee_combat_action()
     }
     if (a->order_committed || searching || regroup) {
         if (searching) {
-            if (a->mode == 6 && a->mode_data.guard.command_pending) {
+            if (a->mode == halo::ai::actor_mode::guard && a->mode_data.guard.command_pending) {
                 return 1;
             }
             if (halo::ai::actor_build_order_search_wait(actor_index, (actor_order *)order)) {
-                halo::ai::actor_set_mode(actor_index, 6, order);
+                halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::guard, order);
                 return 1;
             }
         }
@@ -1614,12 +1614,12 @@ uint8_t ActorView::update_melee_combat_action()
             a->unknown_3bd[0] = 0;
         }
         if (advance && halo::ai::actor_build_order_wait_byte(actor_index, retreat, (uint32_t *)order)) {
-            halo::ai::actor_set_mode(actor_index, 5, order);
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::uncover, order);
             return 1;
         }
         halo::ai::actor_set_target_alert_stage1(a->target_unit_index, actor_index);
         if (retreat && halo::ai::actor_build_order_flee(actor_index, a->always_charge, (uint32_t *)order)) {
-            halo::ai::actor_set_mode(actor_index, 7, order);
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::search, order);
             return 1;
         }
         halo::ai::actor_set_target_alert_stage2(a->target_unit_index, actor_index);
@@ -1637,13 +1637,13 @@ uint8_t ActorView::update_melee_combat_action()
             a->search_firing_positions = 1;
             if (a->swarm) {
                 if (move_ok && halo::ai::actor_build_order_minimal_stop(actor_index, (uint32_t *)order)) {
-                    halo::ai::actor_set_mode(actor_index, 7, order);
+                    halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::search, order);
                     return actor_combat_commit_position(actor_index, a, target, position);
                 }
             } else {
                 int16_t limit;
 
-                if (a->mode == 5 && move_ok && a->mode_data.uncover.stage == 1) {
+                if (a->mode == halo::ai::actor_mode::uncover && move_ok && a->mode_data.uncover.stage == 1) {
                     position = a->mode_data.uncover.firing_position;
                     have_position = 1;
                 }
@@ -1679,13 +1679,13 @@ uint8_t ActorView::update_melee_combat_action()
                     }
                     if (!no_position && !have_position &&
                         halo::ai::actor_build_order_face_seat_marker(actor_index, position, (uint32_t *)order)) {
-                        halo::ai::actor_set_mode(actor_index, 5, order);
+                        halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::uncover, order);
                         return actor_combat_commit_position(actor_index, a, target, position);
                     }
                 }
                 if (!no_position && move_ok &&
                     halo::ai::actor_build_order_face_seat_marker_committed(actor_index, position, hold, (uint32_t *)order)) {
-                    halo::ai::actor_set_mode(actor_index, 7, order);
+                    halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::search, order);
                     return actor_combat_commit_position(actor_index, a, target, position);
                 }
             }
@@ -1696,7 +1696,7 @@ uint8_t ActorView::update_melee_combat_action()
                                        k_datum_index_none, 0);
         }
         if (!a->swarm && wait_ok && halo::ai::actor_build_order_random_wait(actor_index, reposition, (uint32_t *)order)) {
-            halo::ai::actor_set_mode(actor_index, 8, order);
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::wait, order);
             return 1;
         }
     }
@@ -1929,7 +1929,7 @@ uint8_t ActorView::update_squad_link_state()
             uint8_t movement_done = self->movement_action_complete;
             if (movement_done != 0) {
                 if (self->active_movement.type == 3) {
-                    if (self->mode == 6 && enc != 0 && enc->follow_target_type == 1) {
+                    if (self->mode == halo::ai::actor_mode::guard && enc != 0 && enc->follow_target_type == 1) {
                         return 1;
                     }
                 } else if (self->active_movement.type == 5) {

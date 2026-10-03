@@ -442,10 +442,10 @@ uint8_t halo::ai::movement_ops::check_vehicle_mode_timeout()
     datum_index actor_index = datum;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
 
-    if (self->mode == _actor_mode_vehicle &&
-        *(int16_t *)&self->mode_data.raw[4] == 3 &&
-        self->mode_data.raw[0xb] != 0) {
-        int32_t deadline = *(int32_t *)&self->mode_data.raw[0x10] + 0x1e;
+    if (self->mode == halo::ai::actor_mode::charge &&
+        self->mode_data.charge.stage == 3 &&
+        self->mode_data.charge.jump_started != 0) {
+        int32_t deadline = self->mode_data.charge.stage_start_time + 0x1e;
         return (int32_t)halo::game::globals().game_time->game_time <= deadline;
     }
     return 0;
@@ -749,7 +749,7 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
         if (prop->enemy == 0 && other_index != k_datum_index_none) {
             actor *other = actor_try_get(other_index);
 
-            if (other != 0 && other->mode == 9 && other->mode_data.vehicle.vehicle_index == vehicle_index &&
+            if (other != 0 && other->mode == halo::ai::actor_mode::vehicle && other->mode_data.vehicle.vehicle_index == vehicle_index &&
                 other->mode_data.vehicle.seat_index == seat_index) {
                 float dx = *(float *)((uint8_t *)other + 0xcc) - other->body_position.x;
                 float dy = *(float *)((uint8_t *)other + 0xd0) - other->body_position.y;
@@ -934,13 +934,13 @@ uint8_t halo::ai::movement_ops::gate_jump_traversal(int16_t threshold, char allo
         return result;
     }
 
-    if (a->mode == 4) {
-        int16_t climb = *(int16_t *)(a->mode_data.raw + (0xa8 - 0x9c));
+    if (a->mode == halo::ai::actor_mode::flee) {
+        int16_t climb = a->mode_data.flee.panic;
         if (climb > 0) {
             if (climb <= a->pending_panic_type) {
                 climb = a->pending_panic_type;
             }
-            *(int16_t *)(a->mode_data.raw + (0xa8 - 0x9c)) = climb;
+            a->mode_data.flee.panic = climb;
             a->pending_panic_type = 0;
             return 0;
         }
@@ -1032,7 +1032,7 @@ uint8_t halo::ai::movement_ops::get_requested_velocity(uint8_t skip_clamp, datum
             return 1;
         }
         if (self->jump_velocity_request.valid != 0) {
-            if (self->mode == 10 && *(int16_t *)&self->mode_data.raw[4] == 3) {
+            if (self->mode == halo::ai::actor_mode::charge && self->mode_data.charge.stage == 3) {
                 skip_clamp = 1;
             }
             out_velocity->j = self->jump_velocity_request.direction.j *

@@ -523,7 +523,7 @@ void ReferenceView::flee_if_ready(uint32_t readiness_param)
 
         if (halo::ai::actor_squad_action_status_broadcast(iterator.actor_index, (int16_t)readiness_param,
                 &mode_data.obey) != 0) {
-            halo::ai::actor_set_mode(iterator.actor_index, _actor_mode_flee, &mode_data);
+            halo::ai::actor_set_mode(iterator.actor_index, halo::ai::actor_mode::obey, &mode_data);
         }
         a = halo::ai::ai_reference_actor_iterator_next(&iterator);
     }
