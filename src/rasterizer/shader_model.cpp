@@ -1402,64 +1402,60 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
         override_constants[1][3] = rasterizer_model_ambient_reflection_tint[3];
         if (render_device().set_vertex_shader_constant_f(0xd, &override_constants[0][0], 2) < 0) {
             ok = 0;
-            goto done;
         }
     }
-    if (!ok) {
-        goto done;
-    }
-
-    render_device().effect_begin((void *)(uintptr_t)slot->effect, &passes, 3);
-    for (pass = 0; pass < passes; pass++) {
-        render_device().effect_pass((void *)(uintptr_t)slot->effect, pass);
-        rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, vertex_buffer, primitive_count, 0,
-                                                  dynamic_vertex_slot);
-    }
-    render_device().effect_end((void *)(uintptr_t)slot->effect);
-
-    if ((smodel(shader)->shader_model_flags & 2) && cull) {
-
-        context = rasterizer_active_model_context;
-        detail_constants[0][0] = model->detail_map_scale;
-        detail_constants[0][1] = model->detail_map_v_scale * model->detail_map_scale;
-        detail_constants[0][2] = 1.0f;
-        detail_constants[0][3] = -1.0f;
-        detail_constants[1][0] = 1.0f;
-        detail_constants[1][1] = 0.0f;
-        detail_constants[1][2] = 0.0f;
-        detail_constants[1][3] = 0.0f;
-        detail_constants[2][0] = 0.0f;
-        detail_constants[2][1] = 1.0f;
-        detail_constants[2][2] = 0.0f;
-        detail_constants[2][3] = 0.0f;
-        halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(&context->change_colors), reinterpret_cast<shader_texture_animation *>(shader + 0xfc), detail_constants[1], detail_constants[2],
-                                          context->base_map_u_scale * model->map_u_scale,
-                                          context->base_map_v_scale * model->map_v_scale, 0.0f, 0.0f, 0.0f,
-                                          (float)rasterizer_time.time);
-        detail_constants[2][2] = model->translucency;
-        render_device().set_vertex_shader_constant_f(10, &detail_constants[0][0], 3);
+    if (ok) {
         render_device().effect_begin((void *)(uintptr_t)slot->effect, &passes, 3);
         for (pass = 0; pass < passes; pass++) {
             render_device().effect_pass((void *)(uintptr_t)slot->effect, pass);
-            set_render_state(halo::d3d9::rs::cull_mode, 2);
-
-            if (index_buffer != NULL) {
-                if (vertex_buffer != NULL) {
-                    rasterizer_dynamic_geometry_chain_draw(primitive_count, vertex_buffer, index_buffer);
-                } else {
-                    rasterizer_dynamic_vertex_draw_indexed(index_buffer, primitive_count, dynamic_vertex_slot);
-                }
-            } else if (vertex_buffer != NULL) {
-                chimera__rasterizer_draw_dynamic_triangles_static_vertices(primitive_count, (rasterizer_vertex_buffer *)vertex_buffer,
-                                                                           dynamic_index_slot, 0);
-            } else {
-                rasterizer_dynamic_index_cache_draw(dynamic_index_slot, 0, primitive_count, dynamic_vertex_slot);
-            }
+            rasterizer_dynamic_geometry_draw_dispatch(index_buffer, dynamic_index_slot, vertex_buffer, primitive_count, 0,
+                                                      dynamic_vertex_slot);
         }
         render_device().effect_end((void *)(uintptr_t)slot->effect);
+
+        if ((smodel(shader)->shader_model_flags & 2) && cull) {
+
+            context = rasterizer_active_model_context;
+            detail_constants[0][0] = model->detail_map_scale;
+            detail_constants[0][1] = model->detail_map_v_scale * model->detail_map_scale;
+            detail_constants[0][2] = 1.0f;
+            detail_constants[0][3] = -1.0f;
+            detail_constants[1][0] = 1.0f;
+            detail_constants[1][1] = 0.0f;
+            detail_constants[1][2] = 0.0f;
+            detail_constants[1][3] = 0.0f;
+            detail_constants[2][0] = 0.0f;
+            detail_constants[2][1] = 1.0f;
+            detail_constants[2][2] = 0.0f;
+            detail_constants[2][3] = 0.0f;
+            halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(&context->change_colors), reinterpret_cast<shader_texture_animation *>(shader + 0xfc), detail_constants[1], detail_constants[2],
+                                              context->base_map_u_scale * model->map_u_scale,
+                                              context->base_map_v_scale * model->map_v_scale, 0.0f, 0.0f, 0.0f,
+                                              (float)rasterizer_time.time);
+            detail_constants[2][2] = model->translucency;
+            render_device().set_vertex_shader_constant_f(10, &detail_constants[0][0], 3);
+            render_device().effect_begin((void *)(uintptr_t)slot->effect, &passes, 3);
+            for (pass = 0; pass < passes; pass++) {
+                render_device().effect_pass((void *)(uintptr_t)slot->effect, pass);
+                set_render_state(halo::d3d9::rs::cull_mode, 2);
+
+                if (index_buffer != NULL) {
+                    if (vertex_buffer != NULL) {
+                        rasterizer_dynamic_geometry_chain_draw(primitive_count, vertex_buffer, index_buffer);
+                    } else {
+                        rasterizer_dynamic_vertex_draw_indexed(index_buffer, primitive_count, dynamic_vertex_slot);
+                    }
+                } else if (vertex_buffer != NULL) {
+                    chimera__rasterizer_draw_dynamic_triangles_static_vertices(primitive_count, (rasterizer_vertex_buffer *)vertex_buffer,
+                                                                               dynamic_index_slot, 0);
+                } else {
+                    rasterizer_dynamic_index_cache_draw(dynamic_index_slot, 0, primitive_count, dynamic_vertex_slot);
+                }
+            }
+            render_device().effect_end((void *)(uintptr_t)slot->effect);
+        }
     }
 
-done:
     if (rasterizer_caps.raster_caps & 0x04000000) {
         set_render_state(halo::d3d9::rs::depth_bias, 0);
     }

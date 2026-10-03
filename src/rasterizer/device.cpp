@@ -784,6 +784,7 @@ uint8_t rasterizer_initialize_direct3d(void)
     d3d_viewport viewport;
     uint32_t behavior_flags[4];
     uint8_t adapter_usable = 1;
+    bool adapter_chosen = false;
     uint32_t requested_adapter = 0;
     int32_t attempt;
     uint32_t adapter_count;
@@ -850,7 +851,7 @@ uint8_t rasterizer_initialize_direct3d(void)
             adapter = requested_adapter - 1;
         } else {
             if ((uint32_t)attempt >= adapter_count) {
-                goto finish;
+                break;
             }
             adapter = (uint32_t)attempt;
         }
@@ -968,7 +969,7 @@ uint8_t rasterizer_initialize_direct3d(void)
 
         if (render_device().get_adapter_display_mode(rasterizer_direct3d, adapter, &desktop_mode) < 0) {
             adapter_usable = 0;
-            goto finish;
+            break;
         }
         if (rasterizer_fullscreen != 0) {
             SetWindowLongA((HWND)hwnd, GWL_STYLE, (int32_t)(WS_POPUP | WS_VISIBLE | WS_SYSMENU));
@@ -991,6 +992,8 @@ uint8_t rasterizer_initialize_direct3d(void)
 
         rasterizer_build_present_parameters(&rasterizer_present_parameters, &mode);
         behavior_flags[3] = halo::d3d9::k_create_software_vertex_processing;
+        bool device_created = false;
+
         for (;;) {
             uint8_t no_pixel_shaders = (uint8_t)(rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1);
 
@@ -1006,8 +1009,12 @@ uint8_t rasterizer_initialize_direct3d(void)
 
                 if (render_device().create_device(rasterizer_direct3d, adapter, rasterizer_device_type, hwnd, flags, &rasterizer_present_parameters, &rasterizer_device) >= 0) {
                     rasterizer_software_vertex_processing = (uint8_t)(behavior_flags[i] & halo::d3d9::k_create_software_vertex_processing);
-                    goto device_created;
+                    device_created = true;
+                    break;
                 }
+            }
+            if (device_created) {
+                break;
             }
             if (video_force_mode_flag != 0) {
                 video_force_mode_flag = (uint8_t)(mode.refresh_rate == 0);
@@ -1018,20 +1025,21 @@ uint8_t rasterizer_initialize_direct3d(void)
             rasterizer_build_present_parameters(&rasterizer_present_parameters, &mode);
         }
 
-    device_created:
         if (checkfpu != 0) {
             rasterizer_fpu_reset_control_word(k_fpu_control_word);
         }
         if ((adapter_usable != 0 && rasterizer_device != 0) || adapter_count <= 1) {
+            adapter_chosen = true;
             break;
         }
         adapter_usable = 1;
     }
 
-    rasterizer_desktop_display_mode = desktop_mode;
-    rasterizer_resize_game_window(mode.height, mode.width);
+    if (adapter_chosen) {
+        rasterizer_desktop_display_mode = desktop_mode;
+        rasterizer_resize_game_window(mode.height, mode.width);
+    }
 
-finish:
     if (rasterizer_device == 0 || adapter_usable == 0) {
         rasterizer_device = 0;
         halo::shell::shell_display_fatal_error_dialog(0x81, 0x82, 1);
