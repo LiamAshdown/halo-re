@@ -145,12 +145,8 @@ void RemoteConsole::bool_get_set(uint32_t argument_count, uint8_t *value, char *
 {
     char buffer[256];
     char *cursor;
+    bool report = (argument_count == 0);
 
-    if (argument_count == 0) {
-    report:
-        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("%s: %u"), name, *value);
-        return;
-    }
     if (argument_count == 1) {
         char *text = arguments[0];
         if (text[0] != '\0') {
@@ -161,13 +157,16 @@ void RemoteConsole::bool_get_set(uint32_t argument_count, uint8_t *value, char *
             halo::networking::string_trim_whitespace(&cursor);
             if (strncmp(buffer, "0", 2) == 0 || strncmp(buffer, "false", 6) == 0) {
                 *value = 0;
-                goto report;
-            }
-            if (strncmp(buffer, "1", 2) == 0 || strncmp(buffer, "true", 5) == 0) {
+                report = true;
+            } else if (strncmp(buffer, "1", 2) == 0 || strncmp(buffer, "true", 5) == 0) {
                 *value = 1;
-                goto report;
+                report = true;
             }
         }
+    }
+    if (report) {
+        halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("%s: %u"), name, *value);
+        return;
     }
     halo::interface::chimera__console_out((ColorARGB *)0, halo::mutable_literal("Incorrect usage. Type help %s for more information."), name);
 }
@@ -306,6 +305,7 @@ char RemoteConsole::send_update(int32_t tick_count, char frame_time_overflow)
     char result = 1;
     int32_t now_ms;
     uint8_t sent_update = 0;
+    bool proceed = true;
 
     if (network_client == 0) {
         network_game_mode = halo::networking::k_game_mode_local;
@@ -364,59 +364,60 @@ char RemoteConsole::send_update(int32_t tick_count, char frame_time_overflow)
                     fallback.zoom_level = network_client->last_update_sent.zoom_level;
                     halo::game::update_client_stage_entry((uint32_t *)&fallback);
                     halo::interface::ui_network_wait_timeout_start();
-                    goto note_pending_flush;
+                    proceed = false;
                 }
             } else {
                 history_byte = update_server_history_index;
                 update_server_history_index = (update_server_history_index + 1) & 0x3f;
             }
 
-            {
-                double cos_pitch = halo::libm::cos((double)control.desired_pitch);
+            if (proceed) {
+                {
+                    double cos_pitch = halo::libm::cos((double)control.desired_pitch);
 
-                record.tick_count = (uint8_t)tick_count;
-                record.update_id = position_packet.update_id;
-                record.control_flags = control.control_flags;
-                record.yaw = control.desired_yaw;
-                record.pitch = control.desired_pitch;
-                record.aim_direction[0] = (float)(halo::libm::cos((double)control.desired_yaw) * cos_pitch);
-                record.aim_direction[1] = (float)(halo::libm::sin((double)control.desired_yaw) * cos_pitch);
-                record.aim_direction[2] = (float)halo::libm::sin((double)control.desired_pitch);
-                record.throttle_x = control.throttle_x;
-                record.throttle_y = control.throttle_y;
-                record.primary_trigger = control.primary_trigger;
-                record.weapon_index = control.weapon_index;
-                record.grenade_index = control.grenade_index;
-                record.zoom_level = control.zoom_level;
-            }
+                    record.tick_count = (uint8_t)tick_count;
+                    record.update_id = position_packet.update_id;
+                    record.control_flags = control.control_flags;
+                    record.yaw = control.desired_yaw;
+                    record.pitch = control.desired_pitch;
+                    record.aim_direction[0] = (float)(halo::libm::cos((double)control.desired_yaw) * cos_pitch);
+                    record.aim_direction[1] = (float)(halo::libm::sin((double)control.desired_yaw) * cos_pitch);
+                    record.aim_direction[2] = (float)halo::libm::sin((double)control.desired_pitch);
+                    record.throttle_x = control.throttle_x;
+                    record.throttle_y = control.throttle_y;
+                    record.primary_trigger = control.primary_trigger;
+                    record.weapon_index = control.weapon_index;
+                    record.grenade_index = control.grenade_index;
+                    record.zoom_level = control.zoom_level;
+                }
 
-            if (network_game_mode == halo::networking::k_game_mode_client) {
-                int32_t encoded_bits = halo::networking::message_delta_encode_single_value(0xd, &history_byte, &record,
-                    &network_client->last_update_sent, (int32_t)network_message_scratch, halo::k_network_message_scratch_size, 1);
-                network_channel *channel = network_client->channel;
+                if (network_game_mode == halo::networking::k_game_mode_client) {
+                    int32_t encoded_bits = halo::networking::message_delta_encode_single_value(0xd, &history_byte, &record,
+                        &network_client->last_update_sent, (int32_t)network_message_scratch, halo::k_network_message_scratch_size, 1);
+                    network_channel *channel = network_client->channel;
 
-                sent_update = 1;
-                update_server_pending_flush = 0;
-                if ((channel->flags & k_network_channel_listening) != 0) {
-                    result = 1;
+                    sent_update = 1;
+                    update_server_pending_flush = 0;
+                    if ((channel->flags & k_network_channel_listening) != 0) {
+                        result = 1;
+                    } else {
+                        result = stage_channel_item(channel, network_message_scratch, encoded_bits) &&
+                            halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
+                    }
+                    if (result != 0) {
+                        halo::networking::player_update_history_log_write(8, 0, "[%d]: Sent update [%d], [%d] ticks.\n",
+                            halo::game::globals().game_time->game_time, (int32_t)history_byte, tick_count);
+                    }
                 } else {
-                    result = stage_channel_item(channel, network_message_scratch, encoded_bits) &&
-                        halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
+                    halo::networking::network_game_client_apply_position_update(
+                        halo::networking::network_machine_find_by_id(network_server, (int8_t)local_player->machine_index),
+                        (const client_position_packet *)&position_packet, tick_count, history_byte);
                 }
-                if (result != 0) {
-                    halo::networking::player_update_history_log_write(8, 0, "[%d]: Sent update [%d], [%d] ticks.\n",
-                        halo::game::globals().game_time->game_time, (int32_t)history_byte, tick_count);
-                }
-            } else {
-                halo::networking::network_game_client_apply_position_update(
-                    halo::networking::network_machine_find_by_id(network_server, (int8_t)local_player->machine_index),
-                    (const client_position_packet *)&position_packet, tick_count, history_byte);
+                network_client->last_update_sent = record;
             }
-            network_client->last_update_sent = record;
         }
     }
 
-note_pending_flush:
     if (sent_update == 0) {
         if (update_server_pending_flush == 0) {
             update_server_last_log_ms = halo::cseries::time_query_performance_counter_ms();
