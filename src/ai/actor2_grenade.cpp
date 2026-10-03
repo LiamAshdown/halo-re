@@ -93,34 +93,34 @@ uint8_t ActorView::request_path_with_grenade_arc()
     uint8_t path_ok = 0;
     int16_t selected;
 
-    if (actor->needs_new_path == 0 || actor->order_committed != 0 || ((uint8_t *)actor)[0x9d] != 0) {
+    if (actor->needs_new_path == 0 || actor->order_committed != 0 || actor->mode_data.uncover.done != 0) {
         return 0;
     }
     memset(&query, 0, sizeof(query));
     memset(&candidate, 0, sizeof(candidate));
     query.goal_kind = 3;
-    if (*(int16_t *)((uint8_t *)actor + 0xa4) == 1) {
+    if (actor->mode_data.uncover.stage == 1) {
         query.have_explicit_target = 1;
-        query.explicit_target_position = *(real_point3d *)((uint8_t *)actor + 0xb0);
-        query.explicit_target_object = *(uint32_t *)((uint8_t *)actor + 0xac);
-        query.explicit_target_cluster_index = *(int16_t *)((uint8_t *)actor + 0xa8);
+        query.explicit_target_position = actor->mode_data.uncover.position;
+        query.explicit_target_object = actor->mode_data.uncover.target_object;
+        query.explicit_target_cluster_index = actor->mode_data.uncover.target_cluster;
     } else {
-        query.use_last_seen_position = ((uint8_t *)actor)[0xa0];
+        query.use_last_seen_position = actor->mode_data.uncover.use_last_seen_position;
     }
     selected = halo::ai::actor_select_firing_position(actor_index, &query, &candidate, &previous_owner, &path_context, &path_ok);
     actor = halo::ai::actor_at(actor_index);
     if (selected != -1) {
-        if (*(int16_t *)((uint8_t *)actor + 0xa4) == 0) {
+        if (actor->mode_data.uncover.stage == 0) {
             if (candidate.request_result != 0 && candidate.request_result != 1) {
-                ((uint8_t *)actor)[0xa0] = 1;
+                actor->mode_data.uncover.use_last_seen_position = 1;
             }
         } else if (candidate.request_result == 0 && halo::ai::actor_compute_accuracy_scale(actor_index) > candidate.distance_from_actor) {
-            ((uint8_t *)actor)[0xbc] = 1;
+            actor->mode_data.uncover.target_reached = 1;
         }
     }
     if (halo::ai::actor_claim_firing_position(actor_index, previous_owner, &path_context, selected, path_ok) == -1) {
         actor = halo::ai::actor_at(actor_index);
-        ((uint8_t *)actor)[0x9e] = 1;
+        actor->mode_data.uncover.unknown_02 = 1;
     }
     return 0;
 }
