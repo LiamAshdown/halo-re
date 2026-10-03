@@ -85,15 +85,15 @@ void halo::ai::prop_ops::danger_update_reaction()
         actor->danger_distance = (float)sqrt((double)(dz * dz + dy * dy + dx * dx));
     }
     A_F(0x2c8) = A_F(0x2bc) * 45.0f + position->x;
-    A_F(0x2cc) = A_F(0x2c0) * 45.0f + position->y;
-    A_F(0x2d0) = A_F(0x2c4) * 45.0f + position->z;
+    actor->danger_segment_end.y = A_F(0x2c0) * 45.0f + position->y;
+    actor->danger_segment_end.z = A_F(0x2c4) * 45.0f + position->z;
     A_F(0x2dc) = (A_F(0x2c8) + position->x) * 0.5f;
-    A_F(0x2e0) = (position->y + A_F(0x2cc)) * 0.5f;
-    A_F(0x2e4) = (position->z + A_F(0x2d0)) * 0.5f;
+    actor->danger_center.y = (position->y + actor->danger_segment_end.y) * 0.5f;
+    actor->danger_center.z = (position->z + actor->danger_segment_end.z) * 0.5f;
     {
         float dx = position->x - A_F(0x2dc);
-        float dy = position->y - A_F(0x2e0);
-        float dz = position->z - A_F(0x2e4);
+        float dy = position->y - actor->danger_center.y;
+        float dz = position->z - actor->danger_center.z;
 
         actor->danger_radius = (float)sqrt((double)(dz * dz + dy * dy + dx * dx)) + actor->danger_object_radius;
     }
