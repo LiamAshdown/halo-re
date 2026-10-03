@@ -20,9 +20,9 @@ public:
     static uint32_t broadcast_player_set_changed(uint8_t *param_1);
     uint32_t broadcast_state_snapshot(const uint32_t *record);
     void handle_client_join(int32_t *object_count_passthrough, network_machine *machine, uint8_t bl_passthrough);
-    uint32_t handle_info_request(network_machine *machine, uint8_t *record, int32_t length);
-    char handle_join_confirm(network_machine *machine, uint8_t *buffer, int32_t length);
-    char handle_join_password(network_machine *machine, uint8_t *buffer, int32_t length);
+    uint32_t handle_info_request(network_machine *machine, network_message_record *record, int32_t length);
+    char handle_join_confirm(network_machine *machine, network_message_record *buffer, int32_t length);
+    char handle_join_password(network_machine *machine, network_message_record *buffer, int32_t length);
     void handoff_object_ownership(int32_t *object_count_passthrough, network_machine *machine);
     static int32_t host_create();
     void host_dispose();
@@ -67,19 +67,19 @@ public:
     explicit constexpr ServerMessageHandlers(network_server_globals *record) : self(record) {}
 
     uint32_t client_game_settings_updated();
-    uint32_t client_map_data(uint8_t *record, int32_t length);
-    uint32_t client_retry_schedule(network_machine *machine, uint8_t *record, int32_t length);
-    uint32_t client_settings_relay(uint8_t *record, int32_t length);
-    uint32_t build_version(network_machine *machine, uint8_t *record, int32_t length);
-    uint32_t handshake_forward(uint8_t *record, int32_t length);
-    uint32_t join_finalize_ack_role2(network_machine *machine, uint8_t *record, int32_t length);
+    uint32_t client_map_data(network_message_record *record, int32_t length);
+    uint32_t client_retry_schedule(network_machine *machine, network_message_record *record, int32_t length);
+    uint32_t client_settings_relay(network_message_record *record, int32_t length);
+    uint32_t build_version(network_machine *machine, network_message_record *record, int32_t length);
+    uint32_t handshake_forward(network_message_record *record, int32_t length);
+    uint32_t join_finalize_ack_role2(network_machine *machine, network_message_record *record, int32_t length);
     static uint32_t keepalive(network_channel **channel, int32_t *record);
     uint32_t ping_timestamp(int32_t **message);
-    uint32_t player_count_broadcast(uint8_t *record, int32_t length);
-    uint32_t player_entry_update(uint8_t *record, int32_t length);
-    uint32_t retry_schedule(network_machine *machine, uint8_t *record, int32_t length);
-    uint32_t settings_relay(uint8_t *record, int32_t length);
-    uint32_t settings_relay_role2(uint8_t *record, int32_t length);
+    uint32_t player_count_broadcast(network_message_record *record, int32_t length);
+    uint32_t player_entry_update(network_message_record *record, int32_t length);
+    uint32_t retry_schedule(network_machine *machine, network_message_record *record, int32_t length);
+    uint32_t settings_relay(network_message_record *record, int32_t length);
+    uint32_t settings_relay_role2(network_message_record *record, int32_t length);
 };
 
 /**

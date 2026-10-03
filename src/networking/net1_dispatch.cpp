@@ -214,7 +214,7 @@ constexpr const ClientStateHandler *k_client_states[] = {
     &k_join_handshake_state, &k_join_retry_state, &k_lobby_state, &k_in_game_state, &k_channel_service_state,
 };
 
-using ServerHandleFn = uint32_t (*)(network_server_globals *server, network_machine *machine, uint8_t *bytes, int32_t length);
+using ServerHandleFn = uint32_t (*)(network_server_globals *server, network_machine *machine, network_message_record *bytes, int32_t length);
 
 class ServerFunctionHandler final : public ServerMessageHandler {
 public:
@@ -222,7 +222,7 @@ public:
 
     explicit constexpr ServerFunctionHandler(ServerHandleFn fn) : handle_fn(fn) {}
 
-    uint32_t handle(network_server_globals *server, network_machine *machine, uint8_t *bytes, int32_t length) const override
+    uint32_t handle(network_server_globals *server, network_machine *machine, network_message_record *bytes, int32_t length) const override
     {
         return handle_fn(server, machine, bytes, length);
     }
@@ -230,7 +230,7 @@ public:
 
 class KeepaliveHandler final : public ServerMessageHandler {
 public:
-    uint32_t handle(network_server_globals *server, network_machine *machine, uint8_t *bytes, int32_t length) const override
+    uint32_t handle(network_server_globals *server, network_machine *machine, network_message_record *bytes, int32_t length) const override
     {
         (void)server;
         if (network_disconnect_timeout_flag != 0) {
@@ -239,7 +239,7 @@ public:
             uint16_t version_used;
 
             if (halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body,
-                                                bytes + 2, &out_type, &version_used, 0) != 0) {
+                                                bytes->body, &out_type, &version_used, 0) != 0) {
                 ServerMessageHandlers::keepalive((network_channel **)machine, body);
             }
         }
@@ -249,7 +249,7 @@ public:
 
 class PositionUpdateHandler final : public ServerMessageHandler {
 public:
-    uint32_t handle(network_server_globals *server, network_machine *machine, uint8_t *bytes, int32_t length) const override
+    uint32_t handle(network_server_globals *server, network_machine *machine, network_message_record *bytes, int32_t length) const override
     {
         if (server->state == 1) {
             client_position_packet packet;
@@ -257,7 +257,7 @@ public:
             uint16_t version_used;
 
             if (halo::memory::data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, &packet,
-                                                bytes + 2, &out_type, &version_used, 5) != 0) {
+                                                bytes->body, &out_type, &version_used, 5) != 0) {
                 GameRuntime::client_apply_position_update(machine, &packet, -1, 0);
             }
         }
@@ -265,72 +265,72 @@ public:
     }
 };
 
-uint32_t serve_join_password(network_server_globals *s, network_machine *m, uint8_t *b, int32_t n)
+uint32_t serve_join_password(network_server_globals *s, network_machine *m, network_message_record *b, int32_t n)
 {
     return (uint8_t)ServerView(s).handle_join_password(m, b, n);
 }
 
-uint32_t serve_join_confirm(network_server_globals *s, network_machine *m, uint8_t *b, int32_t n)
+uint32_t serve_join_confirm(network_server_globals *s, network_machine *m, network_message_record *b, int32_t n)
 {
     return (uint8_t)ServerView(s).handle_join_confirm(m, b, n);
 }
 
-uint32_t serve_settings_relay(network_server_globals *s, network_machine *, uint8_t *b, int32_t n)
+uint32_t serve_settings_relay(network_server_globals *s, network_machine *, network_message_record *b, int32_t n)
 {
     return (uint8_t)ServerMessageHandlers(s).settings_relay(b, n);
 }
 
-uint32_t serve_player_count_broadcast(network_server_globals *s, network_machine *, uint8_t *b, int32_t n)
+uint32_t serve_player_count_broadcast(network_server_globals *s, network_machine *, network_message_record *b, int32_t n)
 {
     return (uint8_t)ServerMessageHandlers(s).player_count_broadcast(b, n);
 }
 
-uint32_t serve_player_entry_update(network_server_globals *s, network_machine *, uint8_t *b, int32_t n)
+uint32_t serve_player_entry_update(network_server_globals *s, network_machine *, network_message_record *b, int32_t n)
 {
     return (uint8_t)ServerMessageHandlers(s).player_entry_update(b, n);
 }
 
-uint32_t serve_handshake_forward(network_server_globals *s, network_machine *, uint8_t *b, int32_t n)
+uint32_t serve_handshake_forward(network_server_globals *s, network_machine *, network_message_record *b, int32_t n)
 {
     return (uint8_t)ServerMessageHandlers(s).handshake_forward(b, n);
 }
 
-uint32_t serve_retry_schedule(network_server_globals *s, network_machine *m, uint8_t *b, int32_t n)
+uint32_t serve_retry_schedule(network_server_globals *s, network_machine *m, network_message_record *b, int32_t n)
 {
     return (uint8_t)ServerMessageHandlers(s).retry_schedule(m, b, n);
 }
 
-uint32_t serve_build_version(network_server_globals *s, network_machine *m, uint8_t *b, int32_t n)
+uint32_t serve_build_version(network_server_globals *s, network_machine *m, network_message_record *b, int32_t n)
 {
     return (uint8_t)ServerMessageHandlers(s).build_version(m, b, n);
 }
 
-uint32_t serve_info_request(network_server_globals *s, network_machine *m, uint8_t *b, int32_t n)
+uint32_t serve_info_request(network_server_globals *s, network_machine *m, network_message_record *b, int32_t n)
 {
     return (uint8_t)ServerView(s).handle_info_request(m, b, n);
 }
 
-uint32_t serve_map_data(network_server_globals *s, network_machine *, uint8_t *b, int32_t n)
+uint32_t serve_map_data(network_server_globals *s, network_machine *, network_message_record *b, int32_t n)
 {
     return (uint8_t)ServerMessageHandlers(s).client_map_data(b, n);
 }
 
-uint32_t serve_client_settings_relay(network_server_globals *s, network_machine *, uint8_t *b, int32_t n)
+uint32_t serve_client_settings_relay(network_server_globals *s, network_machine *, network_message_record *b, int32_t n)
 {
     return (uint8_t)ServerMessageHandlers(s).client_settings_relay(b, n);
 }
 
-uint32_t serve_client_retry_schedule(network_server_globals *s, network_machine *m, uint8_t *b, int32_t n)
+uint32_t serve_client_retry_schedule(network_server_globals *s, network_machine *m, network_message_record *b, int32_t n)
 {
     return (uint8_t)ServerMessageHandlers(s).client_retry_schedule(m, b, n);
 }
 
-uint32_t serve_settings_relay_role2(network_server_globals *s, network_machine *, uint8_t *b, int32_t n)
+uint32_t serve_settings_relay_role2(network_server_globals *s, network_machine *, network_message_record *b, int32_t n)
 {
     return (uint8_t)ServerMessageHandlers(s).settings_relay_role2(b, n);
 }
 
-uint32_t serve_join_finalize_ack_role2(network_server_globals *s, network_machine *m, uint8_t *b, int32_t n)
+uint32_t serve_join_finalize_ack_role2(network_server_globals *s, network_machine *m, network_message_record *b, int32_t n)
 {
     return (uint8_t)ServerMessageHandlers(s).join_finalize_ack_role2(m, b, n);
 }

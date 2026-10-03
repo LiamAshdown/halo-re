@@ -59,7 +59,7 @@ public:
  */
 class ServerMessageHandler {
 public:
-    virtual uint32_t handle(network_server_globals *server, network_machine *machine, uint8_t *bytes, int32_t length) const = 0;
+    virtual uint32_t handle(network_server_globals *server, network_machine *machine, network_message_record *bytes, int32_t length) const = 0;
 
 protected:
     ~ServerMessageHandler() = default;

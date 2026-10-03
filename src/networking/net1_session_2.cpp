@@ -38,7 +38,6 @@ namespace halo::networking {
  */
 uint32_t GameRuntime::process_incoming_message(int32_t length, network_machine *machine, uint16_t *record, network_server_globals *server)
 {
-    uint8_t *bytes = (uint8_t *)record;
     uint8_t type_byte;
     uint8_t machine_flags;
     const ServerMessageHandler *handler;
@@ -46,7 +45,7 @@ uint32_t GameRuntime::process_incoming_message(int32_t length, network_machine *
     if ((*record & 3) != 0 || ((*record >> 2) & 3) != 3) {
         return 1;
     }
-    type_byte = bytes[(int16_t)length - 1];
+    type_byte = ((uint8_t *)record)[(int16_t)length - 1];
     machine_flags = *((uint8_t *)machine + 0xe);
     if (((machine_flags >> 1) & 1) == 0 && type_byte != 0x0e && !(((machine_flags >> 4) & 1) != 0 && type_byte == 1)) {
         return 1;
@@ -55,7 +54,7 @@ uint32_t GameRuntime::process_incoming_message(int32_t length, network_machine *
     if (handler == nullptr) {
         return 1;
     }
-    return handler->handle(server, machine, bytes, length);
+    return handler->handle(server, machine, reinterpret_cast<network_message_record *>(record), length);
 }
 
 /**
