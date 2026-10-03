@@ -1,0 +1,217 @@
+Original file: src/interface/first_person_weapon_update.c (converted into halo::interface::FirstPersonWeaponController::update)
+
+// first_person_weapon_update  (Ghidra: first_person_weapon_update, already named)
+// address 0x493150, size 1510 bytes
+// name confidence: 0.5   rewrite confidence: 0.6
+// evidence: types/interface.h first_person_weapon_interface names this address directly;
+// out/phase4/interface_functions.md "Main per-frame update for a local player's first-person
+// weapon: advances state, idle animation selection, aim-sway smoothing, and interface timers.";
+// reuses first_person_weapon_update_state.c (0x492d20), first_person_weapon_snapshot_pose.c
+// (0x4930b0), first_person_weapon_interface_tick_reset.c (0x4942e0), first_person_weapon_
+// set_state.c (0x492e60); src/math/real_seek_toward_clamped.c for 0x4cf360's registers.
+// register convention: local_player_index is the one stack parameter.
+// Review pass (phase 4): rebuilt from the disassembly (0x493150..0x493735); the first rewrite
+// had the seek calls writing to scratch, guessed set_state values and the wrong tag.
+//  - The tag read through weapon tag +0x478 is Weapon.first_person_animations.tag_id, so the
+//    tag data is ModelAnimations: +0x48/+0x4c is first_person_weapons, whose element +0x10/+0x14
+//    is the int16 animation-index list (entry 3 moving, entry 15 overcharged jitter), and
+//    +0x78 is the animations block (stride 0xb4, frame_count at +0x22).
+//  - animation_state_advance advances an {int16 animation, int16 frame} pair: EAX = animation graph tag,
+//    ESI = the pair, EBX = optional out for the frame sound tag (0x4d4918), one stack dword.
+//    It returns 0 to 4; 2 means the last frame of a non-looping animation. The Ghidra local_10
+//    is that sound out-parameter.
+//  - The new_state values in AX for 0x492e60 are 0x16 (weapon flag 2), 0 (weapon flag 1 clear,
+//    and leaving state 5) and 5 (idle fidget); snapshot_pose gets DX = 6.
+//  - The four sway seeks are value/velocity pairs 0x30/0x38, 0x34/0x3c (targets unit throttle
+//    x and y), 0x40/0x48, 0x44/0x4c (targets the clamped aim deltas), and 0x28/0x2c always
+//    seeks to 0. The idle timing reads Globals.player_information (+0x174 is its pointer, not
+//    player_control): first_person_idle_time[2] at +0x9c and first_person_skip_fraction at +0xa4.
+//  - FUN_00628cca is the CRT _CIfmod (x in ST1, y in ST0), 0x6391b4 is __ftol.
+// UNSURE: sound_start_at_object_marker (sound start on an object: ESI = object, ECX and EAX the two constant
+// origin pointers at 0x6966f8 and 0x696718, then sound tag, marker -1, gain 1.0 and a flag) is
+// foreign; modelled with the register arguments as leading parameters.
+
+#if 0
+Original Ghidra decompilation (0x493150):
+
+void first_person_weapon_update(undefined4 param_1)
+
+{
+  undefined2 *puVar1;
+  uint *puVar2;
+  char cVar3;
+  short sVar4;
+  undefined2 uVar5;
+  int iVar6;
+  undefined4 uVar7;
+  int iVar8;
+  int iVar9;
+  int iVar10;
+  bool bVar11;
+  float10 fVar12;
+  int local_10;
+  float local_c;
+  float local_8;
+
+  iVar10 = (short)param_1 * 0x1ea0 + DAT_006b2d98;
+  if ((*(int *)(iVar10 + 8) != -1) && (iVar6 = object_try_and_get(4), iVar6 == 0)) {
+    *(undefined4 *)(iVar10 + 8) = 0xffffffff;
+  }
+  if ((*(uint *)(iVar10 + 4) != 0xffffffff) && (*(uint *)(iVar10 + 8) != 0xffffffff)) {
+    puVar2 = *(uint **)(*(int *)(DAT_008603b0 + 0x34) + 8 + (*(uint *)(iVar10 + 8) & 0xffff) * 0xc);
+    iVar6 = *(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 + (*(uint *)(iVar10 + 4) & 0xffff) * 0xc);
+    iVar8 = *(int *)((*(uint *)(*(int *)((*puVar2 & 0xffff) * 0x20 + 0x14 + DAT_0087bc14) + 0x478) &
+                     0xffff) * 0x20 + 0x14 + DAT_0087bc14);
+    if ((*(short *)(iVar10 + 0xc) == 3) || (*(short *)(iVar10 + 0xc) == 1)) {
+      if ((puVar2[0x8b] & 2) != 0) {
+        first_person_weapon_set_state(param_1,1);
+      }
+      if ((puVar2[0x8b] & 1) == 0) {
+        first_person_weapon_set_state(param_1,1);
+      }
+    }
+    sVar4 = FUN_004d48d0(0);
+    if ((sVar4 != 1) && (sVar4 == 2)) {
+      FUN_00492d20();
+    }
+    if ((local_10 != -1) && (sVar4 = camera_get_type_for_player(), sVar4 == 0)) {
+      uVar7 = FUN_00543ce0(local_10,0xffffffff,0x3f800000,(short)param_1 != -1);
+      *(undefined4 *)(iVar10 + 0x1e98) = uVar7;
+      *(undefined2 *)(iVar10 + 0x1e9c) = *(undefined2 *)(iVar10 + 0xc);
+    }
+    bVar11 = 0.1 < SQRT(*(float *)(iVar6 + 0x280) * *(float *)(iVar6 + 0x280) +
+                        *(float *)(iVar6 + 0x27c) * *(float *)(iVar6 + 0x27c) +
+                        *(float *)(iVar6 + 0x278) * *(float *)(iVar6 + 0x278));
+    if ((*(short *)(*(int *)(*(int *)(DAT_008603b0 + 0x34) + 8 +
+                            (*(uint *)(iVar10 + 4) & 0xffff) * 0xc) + 0xb4) == 0) &&
+       (cVar3 = FUN_0055e8e0(), cVar3 != '\0')) {
+      bVar11 = false;
+    }
+    puVar1 = (undefined2 *)(iVar10 + 0x1a);
+    if (*(short *)(iVar10 + 0x1a) == -1) {
+      if (bVar11) {
+        if (*(int *)(iVar8 + 0x48) == 0) {
+          iVar9 = 0;
+        }
+        else {
+          iVar9 = *(int *)(iVar8 + 0x4c);
+        }
+        *(undefined2 *)(iVar10 + 0x1c) = 0;
+        if (*(int *)(iVar9 + 0x10) < 4) {
+          *puVar1 = 0xffff;
+        }
+        else {
+          *puVar1 = *(undefined2 *)(*(int *)(iVar9 + 0x14) + 6);
+        }
+      }
+    }
+    else {
+      FUN_004d48d0(0);
+      if (!bVar11) {
+        if (*(short *)(iVar10 + 0xc) == 0) {
+          FUN_004930b0();
+        }
+        *puVar1 = 0xffff;
+      }
+    }
+    if (*(short *)(iVar10 + 0x20) == -1) {
+      if (*(short *)(iVar10 + 0xc) == 4) {
+        if (*(int *)(iVar8 + 0x48) == 0) {
+          iVar8 = 0;
+        }
+        else {
+          iVar8 = *(int *)(iVar8 + 0x4c);
+        }
+        *(undefined4 *)(iVar10 + 0x24) = 0;
+        if (*(int *)(iVar8 + 0x10) < 0x10) {
+          *(undefined2 *)(iVar10 + 0x20) = 0xffff;
+        }
+        else {
+          *(undefined2 *)(iVar10 + 0x20) = *(undefined2 *)(*(int *)(iVar8 + 0x14) + 0x1e);
+        }
+      }
+    }
+    else if (*(short *)(iVar10 + 0xc) == 4) {
+      fVar12 = (float10)FUN_00628cca();
+      *(float *)(iVar10 + 0x24) = (float)fVar12;
+    }
+    else {
+      *(undefined2 *)(iVar10 + 0x20) = 0xffff;
+    }
+    if (*(char *)(iVar10 + 0x50) != '\0') {
+      real_seek_toward_clamped
+                (*(undefined4 *)(iVar6 + 0x278),0x3da3d70a,0x3f000000,0xbf800000,0x3f800000);
+      real_seek_toward_clamped
+                (*(undefined4 *)(iVar6 + 0x27c),0x3da3d70a,0x3f000000,0xbf800000,0x3f800000);
+      local_c = angle_delta_wrapped(*(float *)(iVar10 + 0x68),*(float *)(iVar10 + 0x60));
+      local_c = local_c * 30.0;
+      local_8 = angle_delta_wrapped(*(float *)(iVar10 + 0x6c),*(float *)(iVar10 + 100));
+      local_8 = local_8 * -30.0;
+      if (-1.0 <= local_c) {
+        if (1.0 < local_c) {
+          local_c = 1.0;
+        }
+      }
+      else {
+        local_c = -1.0;
+      }
+      if (-1.0 <= local_8) {
+        if (1.0 < local_8) {
+          local_8 = 1.0;
+        }
+      }
+      else {
+        local_8 = -1.0;
+      }
+      real_seek_toward_clamped(local_c,0x3cf5c28f,0x3e4ccccd,0xbf800000,0x3f800000);
+      real_seek_toward_clamped(local_8,0x3cf5c28f,0x3e4ccccd,0xbf800000,0x3f800000);
+    }
+    real_seek_toward_clamped(0,0x3c23d70a,0x3e4ccccd,0,0x3f800000);
+    if (*(float *)(iVar10 + 0x28) == 1.0) {
+      *(undefined4 *)(iVar10 + 0x2c) = 0;
+    }
+    if ((0 < *(short *)(iVar10 + 0x8a)) &&
+       (*(short *)(iVar10 + 0x88) = *(short *)(iVar10 + 0x88) + 1,
+       *(short *)(iVar10 + 0x8a) <= *(short *)(iVar10 + 0x88))) {
+      *(undefined2 *)(iVar10 + 0x8a) = 0;
+    }
+    iVar6 = (short)param_1 * 0x40;
+    if (((*(float *)(DAT_006b145c + 0x3c + iVar6) == 0.0) &&
+        ((((short)param_1 == -1 || (*(short *)(DAT_006b145c + iVar6 + 0x34) == -1)) &&
+         (*(float *)(iVar10 + 0x28) == 0.0)))) &&
+       ((((*(float *)(iVar10 + 0x30) == 0.0 && (*(float *)(iVar10 + 0x34) == 0.0)) &&
+         (*(float *)(iVar10 + 0x40) == 0.0)) && (*(float *)(iVar10 + 0x44) == 0.0)))) {
+      if (*(short *)(iVar10 + 0xc) == 0) {
+        iVar6 = *(int *)(DAT_00746fa0 + 0x174);
+        if (*(short *)(iVar10 + 0xe) == 0) {
+          random_range_real(*(float *)(iVar6 + 0x9c),*(float *)(iVar6 + 0xa0));
+          uVar5 = __ftol();
+          *(undefined2 *)(iVar10 + 0xe) = uVar5;
+        }
+        *(short *)(iVar10 + 0x10) = *(short *)(iVar10 + 0x10) + 1;
+        if (*(short *)(iVar10 + 0xe) < *(short *)(iVar10 + 0x10)) {
+          *(undefined2 *)(iVar10 + 0xe) = 0;
+          fVar12 = (float10)effect_random_fraction();
+          if ((float10)*(float *)(iVar6 + 0xa4) <= fVar12) {
+            first_person_weapon_set_state(param_1,1);
+          }
+        }
+      }
+      else {
+        *(undefined2 *)(iVar10 + 0x10) = 0;
+      }
+    }
+    else {
+      *(undefined2 *)(iVar10 + 0x10) = 0;
+      if (*(short *)(iVar10 + 0xc) == 5) {
+        first_person_weapon_set_state(param_1,1);
+      }
+    }
+  }
+  *(short *)(iVar10 + 0x12) = *(short *)(iVar10 + 0x12) + -1;
+  if (*(short *)(iVar10 + 0x12) < 1) {
+    FUN_004942e0();
+  }
+  return;
+}
+#endif

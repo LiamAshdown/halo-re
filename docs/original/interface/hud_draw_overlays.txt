@@ -1,0 +1,60 @@
+Original file: src/interface/hud_draw_overlays.c (converted into halo::interface::HudDraw::overlays)
+
+// hud_draw_overlays  (Ghidra: FUN_004ac950, renamed in the phase-4 review)
+// address 0x4ac950, size 372 bytes
+// name confidence: 0.55 (chosen)   rewrite confidence: 0.8
+// evidence: rewritten from objdump 0x4ac950..0x4acac3 in the phase-4 review. Argument 2 is a
+// WeaponHUDInterfaceOverlayElement viewed from +0x24 (bitmap tag id +0x0c, overlays block
+// +0x10/+0x14, stride 0x88), now hud_overlay_list in types/interface.h. Per overlay: skipped
+// when flags bit 1 is set or type & type_mask is 0; flashing color and an animated frame
+// (((game_time - start) / frame_rate) / 30 % sprite count) only when overlay flags bit 0 and
+// draw flags bit 0 are both set; hud_meter_resolve_bitmap_frame gives the bitmap data and the
+// sprite uv; drawn through 0x4acad0 at scale 1.0 with normalized uvs. The first rewrite passed
+// NULL to texture_cache_get and 0x4acad0, lost the frame and the flash start time.
+// register convention: plain cdecl, six stack arguments.
+
+#if 0
+Original Ghidra decompilation (0x4ac950):
+
+void FUN_004ac950(undefined4 param_1,int param_2,uint param_3,undefined4 param_4,byte param_5,
+                 undefined4 param_6)
+
+{
+  uint uVar1;
+  int iVar2;
+  int iVar3;
+  int local_14;
+  int local_10;
+  undefined4 local_c;
+  undefined4 local_8;
+  int local_4;
+
+  local_4 = 0;
+  if (0 < *(int *)(param_2 + 0x10)) {
+    local_14 = 0;
+    do {
+      uVar1 = *(uint *)(*(int *)(param_2 + 0x14) + 0x4c + local_14);
+      iVar3 = *(int *)(param_2 + 0x14) + local_14;
+      if (((uVar1 & 2) == 0) && ((param_3 & (int)*(short *)(iVar3 + 0x4a)) != 0)) {
+        if (((uVar1 & 1) == 0) || ((param_5 & 1) == 0)) {
+          local_c = *(undefined4 *)(iVar3 + 0x24);
+        }
+        else {
+          local_c = FUN_004ab980();
+        }
+        local_10 = 0;
+        local_8 = 0;
+        FUN_004ab8d0(*(undefined4 *)(param_2 + 0xc),*(undefined2 *)(iVar3 + 0x48),&local_10,&local_8
+                    );
+        iVar3 = local_10;
+        if ((local_10 != 0) && (iVar2 = FUN_00444550(0,1), iVar2 != 0)) {
+          FUN_004acad0(0,iVar3,param_1,0x3f800000,0,local_c,param_6);
+        }
+      }
+      local_4 = local_4 + 1;
+      local_14 = local_14 + 0x88;
+    } while (local_4 < *(int *)(param_2 + 0x10));
+  }
+  return;
+}
+#endif

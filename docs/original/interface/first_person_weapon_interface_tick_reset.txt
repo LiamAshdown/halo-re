@@ -1,0 +1,30 @@
+Original file: src/interface/first_person_weapon_interface_tick_reset.c (converted into halo::interface::FirstPersonWeaponController::interface_tick_reset)
+
+// first_person_weapon_interface_tick_reset  (Ghidra: FUN_004942e0, unnamed)
+// address 0x4942e0, size 90 bytes
+// name confidence: 0.35   rewrite confidence: 0.85 (VERIFIED 2026-09-27 static loop against objdump 0x4942e0..0x494339; offsets probed)
+// evidence: out/phase4/interface_functions.md "Tears down/resets a local player's first-person
+// weapon interface state and reseeds its interface timer."; types/interface.h
+// first_person_weapon_interface::shutdown_countdown ("reseeded to 0x1e by 0x4942e0") is an exact
+// match for this function's final store.
+// register convention: local player index in AX (in_AX). // blam-cc: AX -> local_player_index
+// Resolution chain (0x4942fb..0x494326): interface +8 weapon_index -> object -> definition tag data -> +0x4e4 (Weapon.more_predicted_resources),
+// passed to predicted_resource_list_touch in ESI.
+
+#if 0
+Original Ghidra decompilation (0x4942e0):
+
+void FUN_004942e0(void)
+
+{
+  short in_AX;
+  int iVar1;
+
+  iVar1 = in_AX * 0x1ea0 + DAT_006b2d98;
+  if (*(int *)(in_AX * 0x1ea0 + 8 + DAT_006b2d98) != -1) {
+    predicted_resource_list_touch();
+  }
+  *(undefined2 *)(iVar1 + 0x12) = 0x1e;
+  return;
+}
+#endif

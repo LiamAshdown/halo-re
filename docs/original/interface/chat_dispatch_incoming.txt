@@ -1,0 +1,62 @@
+Original file: src/interface/chat_dispatch_incoming.c (converted into halo::interface::ChatDialog::dispatch_incoming)
+
+// chat_dispatch_incoming  (Ghidra: FUN_004aaf70, renamed)
+// address 0x4aaf70, size 502 bytes
+// name confidence: 0.45 (chosen)   rewrite confidence: 0.6
+// evidence: same validate/reject shape as the game_engine_apply_*_message handlers in src/game/
+// (message_delta_decode_compound_field decodes EAX event into the ECX record, message_delta_decode_compound_field_staged is the rejection path); the
+// decoded record is turned into a line for chimera__multiplayer_message @0x4ab4b0.
+// Rewritten in the phase-4 review from objdump -d 0x4aaf70..0x4ab166: Ghidra removed 21 blocks
+// as unreachable (it lost the AL result of message_delta_decode_compound_field), so its body below is only the gate.
+// Frame: record at esp+0x0c {int32 kind, uint8 player (0xff none), pad, wchar_t *text}, text
+// buffer 0x100 wide chars at +0x518, line buffer 0x200 wide chars at +0x118, short line 0x80 wide
+// chars at +0x18.
+// Kinds: 0 player message, string 0xbb of ui\multiplayer_game_text as the prefix format;
+// 1 and 2 team / vehicle message, string 0xbc; any other kind with a player prints the raw text;
+// kind 4 without a player is a localized string id (decimal text, _wtol) loaded with
+// shell_load_localized_string and widened through L"%S"; kind 3 without a player prints the
+// text as is.
+// UNSURE: message_delta_decode_compound_field/message_delta_decode_compound_field_staged identity is inherited from src/game/; the length computed by
+// wcslen after the prefix format is discarded in the binary as well.
+// register convention: event in EAX.
+//   // blam-cc: event -> EAX
+
+#if 0
+Original Ghidra decompilation (0x4aaf70):
+
+/* WARNING: Removing unreachable block (ram,0x004aafbe) */
+/* WARNING: Removing unreachable block (ram,0x004aafd6) */
+/* WARNING: Removing unreachable block (ram,0x004aafec) */
+/* WARNING: Removing unreachable block (ram,0x004aafee) */
+/* WARNING: Removing unreachable block (ram,0x004ab04c) */
+/* WARNING: Removing unreachable block (ram,0x004ab071) */
+/* WARNING: Removing unreachable block (ram,0x004ab063) */
+/* WARNING: Removing unreachable block (ram,0x004ab076) */
+/* WARNING: Removing unreachable block (ram,0x004ab143) */
+/* WARNING: Removing unreachable block (ram,0x004ab0cc) */
+/* WARNING: Removing unreachable block (ram,0x004ab0e8) */
+/* WARNING: Removing unreachable block (ram,0x004ab0ea) */
+/* WARNING: Removing unreachable block (ram,0x004ab10b) */
+/* WARNING: Removing unreachable block (ram,0x004aaff8) */
+/* WARNING: Removing unreachable block (ram,0x004aaffe) */
+/* WARNING: Removing unreachable block (ram,0x004ab007) */
+/* WARNING: Removing unreachable block (ram,0x004ab02c) */
+/* WARNING: Removing unreachable block (ram,0x004ab01e) */
+/* WARNING: Removing unreachable block (ram,0x004ab031) */
+/* WARNING: Removing unreachable block (ram,0x004ab08f) */
+/* WARNING: Removing unreachable block (ram,0x004ab097) */
+
+void FUN_004aaf70(void)
+
+{
+  undefined4 *in_EAX;
+
+  if (*(int *)*in_EAX == 0) {
+    FUN_004ec590();
+  }
+  else {
+    FUN_004ec670();
+  }
+  return;
+}
+#endif

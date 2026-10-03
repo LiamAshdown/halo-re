@@ -1,0 +1,22 @@
+Original file: src/interface/color_argb_scale_alpha.c (converted into halo::interface::ColorMath::argb_scale_alpha)
+
+// color_argb_scale_alpha  (Ghidra: color_argb_scale_alpha, already named)
+// address 0x497970, size 52 bytes
+// name confidence: 0.55   rewrite confidence: 0.7
+// evidence: matches the given name exactly -- keeps a packed 0xAARRGGBB color's RGB bits and
+// rescales its alpha byte by a float factor.
+// register convention: packed color in EAX (in_EAX, unresolved register read), scale factor as
+// the recognized stack parameter.
+// blam-cc: EAX -> packed_color, stack -> scale
+
+#if 0
+Original Ghidra decompilation (0x497970):
+
+uint color_argb_scale_alpha(float param_1)
+
+{
+  uint in_EAX;
+
+  return in_EAX & 0xffffff | (int)ROUND((float)(in_EAX >> 0x18) * param_1) << 0x18;
+}
+#endif

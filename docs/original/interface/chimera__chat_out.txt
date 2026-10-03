@@ -1,0 +1,60 @@
+Original file: src/interface/chimera__chat_out.c (converted into halo::interface::ChatDialog::out)
+
+// chimera__chat_out  (Ghidra: chimera__chat_out, already named)
+// address 0x4aab00, size 197 bytes
+// name confidence: 0.55 (existing Ghidra name)   rewrite confidence: 0.15
+// evidence: matches the given name and cc (__cdecl); reuses message_delta_encode_message and
+// network_message_scratch (0x00871de0), both established in src/effects/
+// player_effect_send_network_update.c; bit_stream_write_bits_chunked established in
+// src/memory/.
+// UNSURE: this is one of the least-confident rewrites in this pass. Ghidra's own output carries
+// a "globals starting with '_' overlap smaller symbols at the same address" warning, and the
+// pseudocode writes a "_channel" global at three different sizes that do not correspond to any
+// real, consistently-typed symbol; this is almost certainly Ghidra mis-labeling reuses of the
+// `channel` parameter's own stack slot, not a second variable, so it is transcribed here as
+// plain locals instead. The network-session struct fields reached through
+// `*(int*)(DAT_0071c2d8+0xadc)` (offsets 0x1c, 0x20, 0x24, 0x2c, 0xa80, 0xa8c) are kept as raw
+// offsets; no networking struct was brought into scope for this rewrite, and
+// message_delta_encode_message's own "fields" argument here is a bare `&channel` (a single
+// byte), unlike its struct-pointer usage in the established caller.
+// register convention: __cdecl, channel as the recognized parameter.
+
+// FIXED 2026-09-28 (send-path audit, from the disassembly): network_channel_stream_flush takes the channel's
+// stream (ESI, channel +0x10), the channel and the mode (the C passed the channel as the stream). The two
+// bit_stream_write_bits_chunked calls write into
+// the channel's outgoing bit stream (channel +0x10, EAX): first the 1-bit item flag (1: a game action) from a local, then
+// the encoded bits from network_message_scratch 0x871de0; the C passed placeholders or dropped the arguments.
+
+#if 0
+Original Ghidra decompilation (0x4aab00):
+
+void __cdecl chimera__chat_out(char channel)
+
+{
+  int iVar1;
+  char cVar2;
+  int iVar3;
+  undefined3 uStack00000005;
+  undefined1 local_c [4];
+  char local_8;
+
+  local_8 = channel;
+  _channel = local_c;
+  iVar3 = message_delta_encode_message(0,0xf,0,(void **)&channel,0,1,'\0');
+  if (0 < iVar3) {
+    iVar1 = *(int *)(DAT_0071c2d8 + 0xadc);
+    _channel = (undefined1 *)CONCAT31(uStack00000005,1);
+    if (((*(byte *)(iVar1 + 0xa8c) & 1) == 0) &&
+       ((iVar3 + 1 <=
+         ((*(int *)(iVar1 + 0x24) + *(int *)(iVar1 + 0x1c) * -8) - *(int *)(iVar1 + 0x20)) + 1 ||
+        (cVar2 = FUN_004ddb60(iVar1,1), cVar2 != '\0')))) {
+      *(int *)(iVar1 + 0xa80) = *(int *)(iVar1 + 0xa80) + iVar3 + 1;
+      bit_stream_write_bits_chunked(1);
+      *(undefined1 *)(iVar1 + 0x2c) = 0;
+      bit_stream_write_bits_chunked(iVar3);
+      *(undefined1 *)(iVar1 + 0x2c) = 0;
+    }
+  }
+  return;
+}
+#endif

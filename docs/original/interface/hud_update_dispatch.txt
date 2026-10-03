@@ -1,0 +1,30 @@
+Original file: src/interface/hud_update_dispatch.c (converted into halo::interface::HudFrame::update_dispatch)
+
+// hud_update_dispatch  (Ghidra: FUN_004a9990, renamed)
+// address 0x4a9990, size 93 bytes
+// name confidence: 0.3 (chosen)   rewrite confidence: 0.85 (VERIFIED 2026-09-28 against objdump 0x4a9990..0x4a99ec.)
+// evidence: phase-4 summary "Per-frame HUD update dispatcher that drives the motion sensor,
+// meters, and messaging sub-systems"; types/interface.h hud_messaging_globals::next_sequence
+// (offset 0x465 matches exactly).
+// UNSURE: all four callees (0x4b1740, 0x4b0110, 0x4af320, 0x4afee0) and the four globals
+// gating the last call are out of this module's assigned range and were not analyzed; declared
+// with best-guess (void) signatures, calls preserved exactly as compiled.
+// register convention: no parameters.
+
+#if 0
+Original Ghidra decompilation (0x4a9990):
+
+void FUN_004a9990(void)
+
+{
+  FUN_004b1740();
+  FUN_004b0110();
+  FUN_004af320();
+  *(undefined1 *)(DAT_006b3a40 + 0x465) = 0;
+  if ((((DAT_006f1d20 != 0) && (1 < DAT_0087aa10)) && (DAT_0087aa10 < 4)) &&
+     (*(int *)(DAT_0087a478 + 4) != -1)) {
+    FUN_004afee0(0);
+  }
+  return;
+}
+#endif

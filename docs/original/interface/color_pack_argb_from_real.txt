@@ -1,0 +1,19 @@
+Original file: src/interface/color_pack_argb_from_real.c (converted into halo::interface::ColorMath::pack_argb_from_real)
+
+// color_pack_argb_from_real  (Ghidra: color_pack_argb_from_real, already named)
+// address 0x497900, size 99 bytes, cc=__cdecl
+// name confidence: 0.8   rewrite confidence: 0.9
+// evidence: Ghidra already resolved the cdecl signature and name; packs a {a,r,g,b} float
+// ColorARGB (tags.h) into a 0xAARRGGBB uint32_t, rounding each channel to the nearest byte.
+// register convention: cdecl, color pointer as the recognized stack parameter.
+
+#if 0
+Original Ghidra decompilation (0x497900):
+
+uint __cdecl color_pack_argb_from_real(float *color)
+
+{
+  return (int)ROUND(color[3] * 255.0) | (int)ROUND(color[2] * 255.0) << 8 |
+         (int)ROUND(color[1] * 255.0) << 0x10 | (int)ROUND(*color * 255.0) << 0x18;
+}
+#endif

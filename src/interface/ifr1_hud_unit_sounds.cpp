@@ -1,0 +1,160 @@
+#include "halo/interface/ifr1_hud_unit_sounds.hpp"
+
+extern "C" {
+extern data_array *game_looping_sound_data;
+extern datum_index datum_new(data_array *array);
+extern void sound_impulse_fade_out(int32_t sound_handle);
+extern int32_t sound_play_new(datum_index sound_tag, void *parameters, int32_t unknown_0, int32_t unknown_1,
+                            void *callback_data, int32_t unknown_3, int32_t unknown_4);
+extern tag_instance *tag_instances;
+extern player_globals *local_player_globals;
+extern hud_unit_meter_globals *hud_unit_meters;
+extern cinematic_globals *cinematic_globals_ptr;
+extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
+extern datum_index local_player_to_player_index(int16_t local_player_index);
+extern uint8_t game_engine_object_flag_bit3_clear(datum_index player_index);
+extern void hud_unit_sounds_play(uint32_t active_mask, const TagReflexive *sounds, int32_t *handles,
+                                 uint16_t *playing);
+}
+
+namespace halo::interface {
+
+/**
+ * Original engine function hud_unit_sounds_play; the author notes are in
+ * docs/original/interface/hud_unit_sounds_play.txt.
+ *
+ * @address 0x4afd30
+ */
+void HudUnitSounds::play(uint32_t active_mask, const TagReflexive *sounds, int32_t *handles, uint16_t *playing)
+{
+    int16_t i;
+
+    for (i = 0; (int32_t)i < (int32_t)sounds->count; i++) {
+        const UnitHUDInterfaceHUDSound *sound = (const UnitHUDInterfaceHUDSound *)sounds->pointer + i;
+        uint8_t is_looping = sound->sound.tag_fourcc == 0x6c736e64;
+
+        if ((active_mask & *(const uint32_t *)&sound->latched_to) != 0) {
+            if (is_looping) {
+                if (handles[i] == -1) {
+                    datum_index tag = *(const datum_index *)&sound->sound.tag_id;
+                    datum_index handle = (datum_index)-1;
+
+                    if (tag != (datum_index)-1) {
+                        handle = datum_new(game_looping_sound_data);
+                        if (handle != (datum_index)-1) {
+                            uint8_t *element = (uint8_t *)game_looping_sound_data->data + (handle & 0xffff) * 0x34;
+                            *(int32_t *)&((game_looping_sound *)element)->object_index = -1;
+                            ((game_looping_sound *)element)->definition_index = tag;
+                            ((game_looping_sound *)element)->state = 2;
+                            *(int32_t *)&((game_looping_sound *)element)->flags = 0;
+                            ((game_looping_sound *)element)->function_index = -1;
+                            ((game_looping_sound *)element)->last_update = -1;
+                            ((game_looping_sound *)element)->flags |= 1;
+                            ((game_looping_sound *)element)->scale = sound->scale;
+                        }
+                    }
+                    handles[i] = (int32_t)handle;
+                }
+            } else if (handles[i] == -1 || (*playing & (1u << i)) == 0) {
+                hud_sound_start_parameters parameters;
+
+                if (handles[i] != -1) {
+                    sound_impulse_fade_out(handles[i]);
+                }
+                parameters.unknown_00 = 0;
+                parameters.scale = sound->scale;
+                parameters.gain = 1.0f;
+                handles[i] = sound_play_new(*(const datum_index *)&sound->sound.tag_id, &parameters, -1, 0, 0, 0, 0);
+            }
+            *playing |= (uint16_t)(1u << i);
+        } else if (handles[i] != -1) {
+            if (is_looping) {
+                uint8_t *element = (uint8_t *)game_looping_sound_data->data + (handles[i] & 0xffff) * 0x34;
+                ((game_looping_sound *)element)->flags |= 2;
+            }
+            handles[i] = -1;
+            *playing &= (uint16_t)~(1u << i);
+        }
+    }
+}
+
+/**
+ * Original engine function hud_unit_sounds_update; the author notes are in
+ * docs/original/interface/hud_unit_sounds_update.txt.
+ * blam-cc: player -> EAX
+ *
+ * @address 0x4afee0
+ */
+void HudUnitSounds::update(player *p, uint8_t hud_enabled)
+{
+    hud_unit_meter_state *state = &hud_unit_meters->players[p->local_player_index];
+    datum_index unit_index = p->unit;
+    uint8_t *unit;
+    Unit *unit_tag;
+    UnitHUDInterface *hud;
+    int32_t choice;
+    int32_t last;
+    datum_index hud_tag;
+    uint32_t mask;
+
+    if (unit_index == (datum_index)-1) {
+        unit_index = state->last_unit;
+    }
+    unit = (uint8_t *)object_try_and_get(unit_index, 3);
+    if (unit == 0) {
+        return;
+    }
+    unit_tag = (Unit *)tag_instances[*(datum_index *)unit & 0xffff].data;
+    choice = (int16_t)(local_player_globals->local_player_count > 1);
+    last = (int32_t)((struct Unit *)unit_tag)->new_hud_interfaces.count - 1;
+    if (choice > last) {
+        choice = last;
+    }
+    if ((int16_t)choice < 0) {
+        return;
+    }
+    hud_tag = *(datum_index *)(*(uint8_t **)&((struct Unit *)unit_tag)->new_hud_interfaces.pointer + (int16_t)choice * 0x30 + 0xc);
+    if (hud_tag == (datum_index)-1) {
+        return;
+    }
+    hud = (UnitHUDInterface *)tag_instances[hud_tag & 0xffff].data;
+
+    mask = 0;
+    if ((unit[0x10] & 4) != 0 || !(((unit_object *)unit)->base.body_vitality > 0.0f)) {
+        state->last_unit = (datum_index)-1;
+    } else if (hud_enabled != 0 && cinematic_globals_ptr->in_progress == 0) {
+        float shield = ((unit_object *)unit)->base.shield_vitality;
+        float health = ((unit_object *)unit)->base.body_vitality;
+
+        if (state->displayed_shield != -1.0f && game_engine_object_flag_bit3_clear(local_player_to_player_index(p->local_player_index)) != 0 &&
+            (hud_unit_meters->flags & 4) == 0) {
+            mask = (((unit_object *)unit)->base.vitality_flags >> 12) & 1;
+            if (state->displayed_shield > shield) {
+                mask |= 2;
+            }
+            if (shield < 0.25f && shield > 0.0f) {
+                mask |= 4;
+            }
+            if (shield == 0.0f) {
+                mask |= 8;
+            }
+        }
+        if ((hud_unit_meters->flags & 1) == 0) {
+            if (health < 0.25f) {
+                mask |= 0x10;
+            }
+            if ((unit[0x106] & 4) != 0) {
+                mask |= 0x20;
+            }
+            if (state->displayed_health > health && state->displayed_health - health < 0.1875f) {
+                mask |= 0x40;
+            }
+            if (!(state->displayed_health - health < 0.1875f)) {
+                mask |= 0x80;
+            }
+        }
+    }
+    hud_unit_sounds_play(mask, &hud->sounds, state->sound_handles, &state->sounds_playing);
+}
+
+}

@@ -1,0 +1,33 @@
+Original file: src/interface/chat_default_team_channel.c (converted into halo::interface::ChatDialog::default_team_channel)
+
+// chat_default_team_channel  (Ghidra: FUN_004ab1e0, renamed)
+// address 0x4ab1e0, size 87 bytes
+// name confidence: 0.35 (chosen)   rewrite confidence: 0.3
+// evidence: phase-4 summary "Returns the team index of the first active player found, used as
+// the default chat channel"; types/game.h player::local_player_index (offset 0x02, "-1 unless
+// this player is driven locally") and player::team_index_desired (offset 0x67).
+// UNSURE: no iterator setup is visible in the decompilation (Ghidra shows the loop starting
+// cold at `data_iterator_next()`); player_data is used here as the scanned array since the two
+// fields read (local_player_index, team_index_desired) both match the player struct exactly.
+// register convention: no parameters.
+// reconciled: R16 data_iterator is 0x10 bytes (int16 next_index, +0x0c signature = data ^ 'iter'); the inline constructor now stores the signature like the original
+
+#if 0
+Original Ghidra decompilation (0x4ab1e0):
+
+int FUN_004ab1e0(void)
+
+{
+  int iVar1;
+
+  iVar1 = data_iterator_next();
+  while( true ) {
+    if (iVar1 == 0) {
+      return -1;
+    }
+    if (*(short *)(iVar1 + 2) != -1) break;
+    iVar1 = data_iterator_next();
+  }
+  return (int)*(char *)(iVar1 + 0x67);
+}
+#endif

@@ -1,0 +1,53 @@
+Original file: src/interface/chat_submit_input.c (converted into halo::interface::ChatDialog::submit_input)
+
+// chat_submit_input  (Ghidra: chat_submit_input, already named)
+// address 0x4aa9b0, size 210 bytes
+// name confidence: 0.5 (existing Ghidra name)   rewrite confidence: 0.5
+// evidence: matches the given name and cc; strings "oEditbox", "text"; shares the embedded GUI
+// library table with chimera__chat_open.c/chat_close.c.
+// register convention: __cdecl, no parameters.
+
+#if 0
+Original Ghidra decompilation (0x4aa9b0):
+
+void __cdecl chat_submit_input(void)
+
+{
+  int iVar1;
+  int iVar2;
+  int iVar3;
+  uint uVar4;
+  wchar_t *_Source;
+  size_t _Count;
+  wchar_t awStack_200 [256];
+
+  if (DAT_006b3858 != '\0') {
+    iVar1 = chat_default_team_channel();
+    if (iVar1 != -1) {
+      _Source = (wchar_t *)0x0;
+      iVar2 = (*DAT_00721eb8)(DAT_00721ea4,PTR_PTR_0069c698);
+      if (iVar2 != 0) {
+        iVar3 = (*DAT_00721ecc)(iVar2,L"oEditbox");
+        if (iVar3 != 0) {
+          _Source = (wchar_t *)(*DAT_00721ee0)(iVar3,L"text");
+        }
+        (*DAT_00721ec8)(iVar2);
+        if ((_Source != (wchar_t *)0x0) && (*_Source != L'\0')) {
+          uVar4 = FUN_00625b7a(_Source);
+          if (uVar4 < 0xff) {
+            _Count = FUN_00625b7a(_Source);
+          }
+          else {
+            _Count = 0xfe;
+          }
+          _wcsncpy(awStack_200,_Source,_Count);
+          awStack_200[_Count] = L'\0';
+          chimera__chat_out((char)iVar1);
+        }
+      }
+    }
+    chat_close();
+  }
+  return;
+}
+#endif

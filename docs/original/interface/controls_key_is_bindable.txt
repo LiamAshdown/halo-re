@@ -1,0 +1,34 @@
+Original file: src/interface/controls_key_is_bindable.c (converted into halo::interface::ControlsBindings::key_is_bindable)
+
+// controls_key_is_bindable  (Ghidra: FUN_004b43c0, still unnamed there; named here)
+// address 0x4b43c0, size 26 bytes
+// name confidence: 0.5   rewrite confidence: 0.95
+// phase-4 review: verified against objdump 0x4b43c0..0x4b43d9; renamed from
+// controls_action_is_reserved (EDX is a keyboard control and the result is 1 when it is NOT
+// in the nine entry reserved key table at 0x0065c15c, so the old name read inverted).
+// evidence: out/phase4/interface_functions.md "Checks whether a given action/id value is
+// present in the reserved-values table used by the controls-binding UI."
+// register convention: action value in EDX (in_EDX, unresolved register).
+//   // blam-cc: action -> EDX
+// UNSURE: the reserved-value table at 0x0065c15c (9 int32 entries, ending at 0x0065c180) has
+// no established meaning; it is declared as a raw array here.
+
+#if 0
+Original Ghidra decompilation (0x4b43c0):
+
+undefined1 FUN_004b43c0(void)
+
+{
+  int *piVar1;
+  int in_EDX;
+
+  piVar1 = &DAT_0065c15c;
+  do {
+    if (*piVar1 == in_EDX) {
+      return 0;
+    }
+    piVar1 = piVar1 + 1;
+  } while ((int)piVar1 < 0x65c180);
+  return 1;
+}
+#endif
