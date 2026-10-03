@@ -1065,11 +1065,11 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
         if (test_flag(flags, units::biped_movement_solver_flag::unknown_40)) {
             model_flags = 0;
         } else if (test_flag(flags, units::biped_movement_solver_flag::dead)) {
-            model_flags = 0xc0a0;
+            model_flags = k_dead_unit_collision_flags;
         } else if (test_flag(flags, units::biped_movement_solver_flag::passes_through_bipeds)) {
-            model_flags = 0xc2a0;
+            model_flags = k_pass_through_bipeds_collision_flags;
         } else {
-            model_flags = 0x20c3a0;
+            model_flags = k_unit_collision_flags;
         }
         a = *(real_vector3d *)&solve->start_position;
         delta = solve->result_velocity;
@@ -1379,7 +1379,7 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
                 Biped *tag = halo::objects::tag_as<Biped>(obj->definition_tag);
                 if ((tag->biped_flags & 0x18) == 0) {
                     float half_height = tag->standing_collision_height * 0.5f;
-                    uint32_t query_flags = test_flag(flags, units::biped_movement_solver_flag::dead) ? 0xc0a0 : 0x20c3a0;
+                    uint32_t query_flags = test_flag(flags, units::biped_movement_solver_flag::dead) ? k_dead_unit_collision_flags : k_unit_collision_flags;
                     real_point3d center;
 
                     center.x = solve->result_position.x;

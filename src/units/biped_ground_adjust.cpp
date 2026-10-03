@@ -59,8 +59,8 @@ void BipedView::ground_adjust_apply_node_rotations(real_matrix4x3 *nodes, real_p
         if (i == 0) {
             continue;
         }
-        parent_index = halo::raw_at<int16_t>(graph_nodes, i * 0x40 + 0x24);
-        if (reinterpret_cast<uint8_t *>(graph_nodes)[parent_index * 0x40 + 0x28] & 4) {
+        parent_index = (int16_t)graph_nodes[i].parent_node_index;
+        if (test_flag(graph_nodes[parent_index].node_joint_flags, tags::model_animations_animation_graph_node_tag_flag::no_movement)) {
             continue;
         }
         saved.i = saved_positions[i].x - saved_positions[parent_index].x;
@@ -141,7 +141,7 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
         return;
     }
 
-    halo::physics::physics_model_build_from_sphere_query(0xc0a8, (real_point3d *)&((struct object *)obj)->position, ((unit_object *)obj)->base.bounding_radius + 0.0625f,
+    halo::physics::physics_model_build_from_sphere_query(k_ground_adjust_query_flags, (real_point3d *)&((struct object *)obj)->position, ((unit_object *)obj)->base.bounding_radius + 0.0625f,
         0.0f, tolerance, object_index, &ground_adjust_physics_model);
 
     success_bits[0] = 0;
@@ -240,7 +240,7 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                 {
                     GBXModel *model = halo::objects::tag_as<GBXModel>(halo::objects::tag_handle(object_tag->model));
 
-                    rest_length = *(float *)(&halo::objects::block_element<ModelNode>(model->nodes, node_index).node_distance_from_parent);
+                    rest_length = halo::objects::block_element<ModelNode>(model->nodes, node_index).node_distance_from_parent;
                 }
                 {
                     float dx = parent->x - self->x;
@@ -317,9 +317,9 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
     Object *object_tag = halo::objects::tag_as<Object>(*(datum_index *)obj);
     ModelAnimations *graph = halo::objects::tag_as<ModelAnimations>(halo::objects::tag_handle(object_tag->animation_graph));
     ModelAnimationsAnimationGraphNode *graph_nodes = halo::objects::block_elements<ModelAnimationsAnimationGraphNode>(graph->nodes);
-    uint8_t *self_node = reinterpret_cast<uint8_t *>(graph_nodes) + node_index * 0x40;
-    int16_t parent_index = *(int16_t *)(self_node + 0x24);
-    uint8_t *parent_node = reinterpret_cast<uint8_t *>(graph_nodes) + parent_index * 0x40;
+    ModelAnimationsAnimationGraphNode *self_node = &graph_nodes[node_index];
+    int16_t parent_index = self_node->parent_node_index;
+    ModelAnimationsAnimationGraphNode *parent_node = &graph_nodes[parent_index];
     float tolerance = graph->limp_body_node_radius;
     char updated = 0;
 
@@ -327,7 +327,7 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
         tolerance = 0.03f;
     }
 
-    if (parent_index != 0 && (parent_node[0x28] & 4) == 0) {
+    if (parent_index != 0 && !test_flag(parent_node->node_joint_flags, tags::model_animations_animation_graph_node_tag_flag::no_movement)) {
         real_matrix4x3 *parent_matrix = &nodes[parent_index];
         real_point3d *parent_position = &parent_matrix->position;
         real_point3d *self_position = &nodes[node_index].position;
@@ -350,19 +350,19 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
 
         if (!biped_ground_adjust_is_one(cosine)) {
             float angle = (float)halo::libm::acos((double)cosine);
-            float *base = (float *)(parent_node + 0x2c);
+            float *base = &parent_node->base_vector.i;
             real_matrix4x3 parent_inverse;
             real_matrix4x3 grandparent_inverse;
             real_vector3d local_axis;
             real_vector3d local_forward;
 
             halo::math::matrix4x3_inverse(&parent_inverse, *parent_matrix);
-            halo::math::matrix4x3_inverse(&grandparent_inverse, nodes[*(int16_t *)(parent_node + 0x24)]);
+            halo::math::matrix4x3_inverse(&grandparent_inverse, nodes[parent_node->parent_node_index]);
             halo::math::matrix4x3_transform_vector(local_axis, axis, parent_inverse);
             local_forward = parent_matrix->forward;
             halo::math::matrix4x3_transform_vector(local_forward, local_forward, grandparent_inverse);
 
-            if (parent_node[0x28] & 2) {
+            if (test_flag(parent_node->node_joint_flags, tags::model_animations_animation_graph_node_tag_flag::hinge)) {
                 real_vector3d up = parent_matrix->up;
                 real_plane3d plane;
                 real_point3d projected;
@@ -395,7 +395,7 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
                 halo::math::vector3d_rotate_about_axis(local_forward, local_axis, (real)halo::libm::sin((double)angle), cosine);
                 alignment = local_forward.j * base[1] + local_forward.k * base[2] + local_forward.i * base[0];
                 if (!biped_ground_adjust_is_one(alignment) &&
-                    *(float *)(parent_node + 0x38) > (float)halo::libm::fabs(halo::libm::acos((double)alignment)) &&
+                    parent_node->vector_range > (float)halo::libm::fabs(halo::libm::acos((double)alignment)) &&
                     own_position->z > reference_position->z) {
                     biped_ground_adjust_mark(success_bits, node_index);
                     *own_position = *reference_position;
@@ -405,7 +405,7 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
         }
     }
 
-    if ((parent_node[0x28] & 4) == 0 && updated) {
+    if (!test_flag(parent_node->node_joint_flags, tags::model_animations_animation_graph_node_tag_flag::no_movement) && updated) {
         return updated;
     }
     if ((success_bits[parent_index >> 5] & (1u << (parent_index & 0x1f))) == 0) {

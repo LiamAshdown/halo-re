@@ -198,7 +198,7 @@ uint32_t halo::units::unit_find_placement_position(uint32_t anchor_object, uint3
     }
     unit = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(anchor_object));
     tag = halo::objects::tag_record_bytes(*(datum_index *)unit);
-    flags = (*(uint32_t *)(tag + 0x2f4) & 0x20) ? 0xc2a0 : 0x20c3a0;
+    flags = (*(uint32_t *)(tag + 0x2f4) & 0x20) ? k_pass_through_bipeds_collision_flags : k_unit_collision_flags;
     if (reference_direction != 0) {
         base = *(real_point3d *)reference_direction;
         ::halo::units::unit_get_crouch_height_offset(&scratch, anchor_object, &pill_height, &pill_radius);

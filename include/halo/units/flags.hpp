@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include "halo/core/flags.hpp"
+#include "halo/core/collision_flags.hpp"
 #include "halo/core/flag_bits.hpp"
 
 namespace halo::units {
@@ -223,6 +224,25 @@ enum class vehicle_flag : uint16_t {
     unknown_4000 = 1u << 14,
     unknown_8000 = 1u << 15,
 };
+
+
+/** What a dead unit's movement query collides with: structure bsp, nearby objects, scenery and machines (0xc0a0). */
+inline constexpr uint32_t k_dead_unit_collision_flags =
+    halo::to_bits(halo::collision_test_flag::structure_bsp | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::object_scenery |
+                  halo::collision_test_flag::object_machine);
+
+/** The movement query of a unit that passes through bipeds: the dead set plus vehicles (0xc2a0). */
+inline constexpr uint32_t k_pass_through_bipeds_collision_flags =
+    k_dead_unit_collision_flags | halo::to_bits(halo::collision_test_flag::object_vehicle);
+
+/** The movement query of an ordinary unit: bipeds as well (0x20c3a0, the top bit is not named yet). */
+inline constexpr uint32_t k_unit_collision_flags =
+    k_pass_through_bipeds_collision_flags | halo::to_bits(halo::collision_test_flag::object_biped | halo::collision_test_flag::unknown_200000);
+
+/** The sphere query that gathers the ground a biped adjusts to: the dead set that ignores invisible surfaces (0xc0a8). */
+inline constexpr uint32_t k_ground_adjust_query_flags = k_dead_unit_collision_flags | halo::to_bits(halo::collision_test_flag::ignore_invisible);
+
+static_assert(k_dead_unit_collision_flags == 0xc0a0 && k_pass_through_bipeds_collision_flags == 0xc2a0 && k_unit_collision_flags == 0x20c3a0 && k_ground_adjust_query_flags == 0xc0a8);
 
 }  // namespace halo::units
 
