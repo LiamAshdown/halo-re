@@ -259,7 +259,7 @@ void object_hash_set_flag_bit3(uint32_t key)
  * @address 0x004ef2a0
  */
 void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32_t node_index, void *plane,
-    uint8_t *geometry, uint8_t *material, uint8_t *effect_block, damage_data *dd, uint32_t *notify_flags,
+    ModelCollisionGeometry *geometry, ModelCollisionGeometryMaterial *material, DamageEffect *effect_block, damage_data *dd, uint32_t *notify_flags,
     float *body_damage_out, float *material_multiplier_out, float damage, uint8_t is_local)
 {
     halo::objects::ObjectDamage(target_index).apply_body_damage(region_index, node_index, plane, geometry, material, effect_block, dd, notify_flags, body_damage_out, material_multiplier_out, damage, is_local);
@@ -270,8 +270,8 @@ void object_apply_body_damage(uint32_t target_index, int32_t region_index, int32
  *
  * @address 0x004ef820
  */
-void object_apply_shield_damage(uint32_t target_index, uint8_t *geometry, uint8_t *material,
-    uint8_t *effect_block, uint32_t *notify_flags, float *shield_damage_out, float *remaining_damage,
+void object_apply_shield_damage(uint32_t target_index, ModelCollisionGeometry *geometry, ModelCollisionGeometryMaterial *material,
+    DamageEffect *effect_block, uint32_t *notify_flags, float *shield_damage_out, float *remaining_damage,
     uint8_t is_local, uint8_t apply_state, object_shield_impulse_result *record)
 {
     halo::objects::ObjectDamage(target_index).apply_shield_damage(geometry, material, effect_block, notify_flags, shield_damage_out, remaining_damage, is_local, apply_state, record);

@@ -15,6 +15,9 @@
 #include "halo/core/datum.hpp"
 #include "halo/objects/flags.hpp"
 struct Antenna;
+struct DamageEffect;
+struct ModelCollisionGeometry;
+struct ModelCollisionGeometryMaterial;
 struct ColorRGB;
 struct Flag;
 struct GBXModel;

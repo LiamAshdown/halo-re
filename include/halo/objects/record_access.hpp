@@ -8,6 +8,7 @@
 #include <cstdint>
 #include "halo/core/datum.hpp"
 #include "halo/core/bit_cast.hpp"
+#include "halo/core/raw_access.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -41,6 +42,20 @@ template <typename T>
 inline T *tag_as(uint32_t tag_handle)
 {
     return reinterpret_cast<T *>(tag_record_bytes(tag_handle));
+}
+
+/** The elements of a tag block (reflexive), viewed as the element struct T. */
+template <typename T>
+inline T *block_elements(const TagReflexive &block)
+{
+    return reinterpret_cast<T *>(static_cast<uintptr_t>(block.pointer));
+}
+
+/** Element `index` of a tag block. */
+template <typename T>
+inline T &block_element(const TagReflexive &block, int32_t index)
+{
+    return block_elements<T>(block)[index];
 }
 
 /** The datum handle stored in the tag id of a tag reference. */
