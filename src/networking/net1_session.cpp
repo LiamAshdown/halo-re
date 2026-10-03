@@ -1,4 +1,5 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/networking/announcement.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
@@ -964,8 +965,10 @@ uint8_t SearchEntryView::entry_is_fresh()
  *
  * @address 0x4da7d0
  */
-int32_t SearchEntryView::results_add_or_update(const uint8_t *announcement)
+int32_t SearchEntryView::results_add_or_update(const uint8_t *announcement_bytes)
 {
+    const network_game_announcement *announcement = reinterpret_cast<const network_game_announcement *>(announcement_bytes);
+    const announcement_flags flags = static_cast<announcement_flags>(announcement->flags);
     network_game_search_entry *results = self;
     large_integer counter;
     int32_t now_ms;
@@ -976,7 +979,7 @@ int32_t SearchEntryView::results_add_or_update(const uint8_t *announcement)
     const wchar_t *name_source;
 
     joinable = 1;
-    if ((*(announcement + 0x15e) & 2) == 0 || *(const int16_t *)(announcement + 0x156) > 0xf) {
+    if (!has(flags, announcement_flags::joinable) || announcement->player_count > 0xf) {
         joinable = 0;
     }
 
@@ -995,7 +998,7 @@ int32_t SearchEntryView::results_add_or_update(const uint8_t *announcement)
 
     slot = -1;
     for (i = 0; i < 9; i = i + 1) {
-        if (*(const uint32_t *)announcement == results[i].identity[0]) {
+        if (announcement->identity[0] == results[i].identity[0]) {
             slot = i;
             break;
         }
@@ -1028,37 +1031,37 @@ int32_t SearchEntryView::results_add_or_update(const uint8_t *announcement)
 
     entry = &results[slot];
     entry->in_use = 1;
-    entry->identity[0] = *(const uint32_t *)(announcement + 0x00);
-    entry->identity[1] = *(const uint32_t *)(announcement + 0x04);
-    entry->identity[2] = *(const uint32_t *)(announcement + 0x08);
-    entry->identity[3] = *(const uint32_t *)(announcement + 0x0c);
-    entry->identity[4] = *(const uint32_t *)(announcement + 0x10);
-    entry->identity[5] = *(const uint32_t *)(announcement + 0x14);
+    entry->identity[0] = announcement->identity[0];
+    entry->identity[1] = announcement->identity[1];
+    entry->identity[2] = announcement->identity[2];
+    entry->identity[3] = announcement->identity[3];
+    entry->identity[4] = announcement->identity[4];
+    entry->identity[5] = announcement->identity[5];
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     entry->received_ms = now_ms;
 
-    entry->unknown_12a = *(const int16_t *)(announcement + 0x1c);
-    name_source = (const wchar_t *)(announcement + 0x1e);
+    entry->unknown_12a = announcement->unknown_01c;
+    name_source = reinterpret_cast<const wchar_t *>(announcement->name);
     if (*name_source == L'\0') {
         name_source = L"???";
     }
     wcsncpy((wchar_t *)entry->name, name_source, 0x3f);
     entry->name[63] = 0;
 
-    entry->game_engine_index = *(const int16_t *)(announcement + 0x154);
+    entry->game_engine_index = announcement->game_engine_index;
     for (i = 0; i < 0x21; i = i + 1) {
-        entry->info[i] = *(const uint32_t *)(announcement + 0xd0 + i * 4);
+        entry->info[i] = announcement->info[i];
     }
-    entry->player_count = *(const int16_t *)(announcement + 0x156);
-    entry->unknown_124 = *(const int16_t *)(announcement + 0x158);
-    entry->unknown_126 = *(const int16_t *)(announcement + 0x15a);
-    entry->unknown_128 = *(const int16_t *)(announcement + 0x15c);
+    entry->player_count = announcement->player_count;
+    entry->unknown_124 = announcement->unknown_158;
+    entry->unknown_126 = announcement->unknown_15a;
+    entry->unknown_128 = announcement->unknown_15c;
     entry->joinable = joinable;
-    entry->stats_logging = (*(announcement + 0x15e) >> 2) & 1;
+    entry->stats_logging = has(flags, announcement_flags::stats_logging) ? 1 : 0;
 
-    if (entry->game_engine_index == _game_engine_oddball && (*(announcement + 0x15e) & 8) != 0) {
+    if (entry->game_engine_index == _game_engine_oddball && has(flags, announcement_flags::oddball_marker)) {
         entry->unknown_12f = 1;
         return 1;
     }

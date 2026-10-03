@@ -735,6 +735,23 @@ typedef struct network_game_search_entry {
     uint8_t unknown_12f;       // 0x12f set when engine 3 and announcement flag bit3
 } network_game_search_entry;   // size 0x130
 
+// network_game_announcement (0x160 bytes read): the host's broadcast that network_game_search_entry
+// results_add_or_update (0x4da7d0) copies into the search results. Only the fields it reads are named.
+typedef struct network_game_announcement {
+    uint32_t identity[6];      // 0x000 the host identity, copied verbatim into the search entry
+    uint8_t unknown_018[4];    // 0x018
+    int16_t unknown_01c;       // 0x01c
+    uint16_t name[89];         // 0x01e host name, UTF-16
+    uint32_t info[33];         // 0x0d0 lifted into network_game_search_entry::info
+    int16_t game_engine_index; // 0x154
+    int16_t player_count;      // 0x156
+    int16_t unknown_158;       // 0x158
+    int16_t unknown_15a;       // 0x15a
+    int16_t unknown_15c;       // 0x15c
+    uint8_t flags;             // 0x15e network_game_announcement_flags
+    uint8_t pad_15f;           // 0x15f
+} network_game_announcement;   // size 0x160
+
 // ---------------------------------------------------------------------------
 // player update history  (0x4e6b50 add, 0x4e6f20 free all, 0x4e6f60 find and
 // prune, 0x4e6ff0 play, 0x4e6b10 destroy)
