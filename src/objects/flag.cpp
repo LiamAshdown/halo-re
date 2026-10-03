@@ -24,6 +24,8 @@
 #include "halo/render/d3d9.hpp"
 #include "halo/effects/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/effects/api.hpp"
+#include "halo/game/api.hpp"
 
 static auto &rasterizer_dynamic_vertex_slots = halo::link::ref<rasterizer_dynamic_vertex_slot [k_rasterizer_dynamic_vertex_slots]>(halo::game::vars().rasterizer_dynamic_vertex_slots);
 static auto &rasterizer_dynamic_vertex_caches = halo::link::ref<rasterizer_dynamic_vertex_cache [k_rasterizer_vertex_type_count]>(halo::rasterizer::vars().rasterizer_dynamic_vertex_caches);
