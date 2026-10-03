@@ -3,6 +3,7 @@
 #include "halo/cseries/api.hpp"
 
 extern "C" {
+extern data_packet_group network_game_messages_group;
 extern uint8_t network_statistics_logging_enabled;
 extern void *network_summary_log_file;
 extern char network_build_string[];
@@ -23,17 +24,6 @@ extern void network_host_full_state_broadcast(network_server_globals *server);
 extern int32_t join_ui_state;
 extern int32_t interface_loading_screen_address_b;
 extern int32_t interface_loading_screen_address_a;
-}
-
-/**
- * Calls halo::memory::data_packet_group_encode_packet with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static int32_t data_packet_group_encode_packet_unresolved(uint8_t *buffer, uint32_t *capacity, int32_t packet_type, int32_t version)
-{
-    using call_t = int32_t (*)(uint8_t *buffer, uint32_t *capacity, int32_t packet_type, int32_t version);
-    return reinterpret_cast<call_t>(&halo::memory::data_packet_group_encode_packet)(buffer, capacity, packet_type, version);
 }
 
 namespace halo::networking {
@@ -60,7 +50,8 @@ int32_t ConnectionView::finalize_join(uint16_t *connection)
     large_integer counter;
     int32_t now_ms;
     uint8_t encode_buffer[1540];
-    uint32_t capacity;
+    int16_t capacity;
+    uint32_t payload;
     int32_t i;
 
     if (halo::cseries::globals().debug_log_level > 2 && network_statistics_logging_enabled != 0 &&
@@ -133,8 +124,9 @@ after_search:
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
     *(int32_t *)(iVar6 + 4) = now_ms;
 
+    payload = 0;
     capacity = 0x600;
-    ok = (char)data_packet_group_encode_packet_unresolved(encode_buffer, &capacity, 0x1a, 1);
+    ok = (char)halo::memory::data_packet_group_encode_packet(&network_game_messages_group, encode_buffer, &payload, &capacity, 0x1a, 1);
     if (ok != 0) {
         uint32_t *src, *dst8;
         uint8_t *src_b, *dst_b;

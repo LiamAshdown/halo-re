@@ -14,6 +14,7 @@ constexpr uint32_t fourcc(char a, char b, char c, char d) noexcept {
 namespace groups {
 inline constexpr uint32_t globals = fourcc('m', 'a', 't', 'g');
 inline constexpr uint32_t unicode_string_list = fourcc('u', 's', 't', 'r');
+inline constexpr uint32_t font = fourcc('f', 'o', 'n', 't');
 inline constexpr uint32_t contrail = fourcc('c', 'o', 'n', 't');
 inline constexpr uint32_t effect = fourcc('e', 'f', 'f', 'e');
 inline constexpr uint32_t sound = fourcc('s', 'n', 'd', '!');

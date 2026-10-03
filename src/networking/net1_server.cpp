@@ -20,38 +20,6 @@ typedef struct network_item_stream {
     uint32_t bit_count;
 } network_item_stream;
 
-/**
- * Calls halo::memory::data_packet_group_encode_packet with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static int32_t data_packet_group_encode_packet_unresolved(uint8_t *buffer, int32_t *capacity, int32_t packet_type, int32_t version)
-{
-    using call_t = int32_t (*)(uint8_t *buffer, int32_t *capacity, int32_t packet_type, int32_t version);
-    return reinterpret_cast<call_t>(&halo::memory::data_packet_group_encode_packet)(buffer, capacity, packet_type, version);
-}
-
-/**
- * Calls halo::memory::datum_new_at_index_with_salt with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static void datum_new_at_index_with_salt_unresolved(void)
-{
-    using call_t = void (*)();
-    return reinterpret_cast<call_t>(&halo::memory::datum_new_at_index_with_salt)();
-}
-
-/**
- * Calls halo::memory::datum_get with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static void * datum_get_unresolved(void)
-{
-    using call_t = void * (*)();
-    return reinterpret_cast<call_t>(&halo::memory::datum_get)();
-}
 extern char network_player_entry_validate(network_player_entry *entry);
 extern uint8_t network_message_scratch[0x7ff8];
 extern void message_delta_parameters_protocol_send_update(void);
@@ -66,7 +34,9 @@ extern int32_t player_profile_cache_count;
 extern char network_player_join_finalize(void);
 extern char network_channel_key_open(void);
 extern uint32_t player_data_iterator_advance(uint8_t slot_index);
-extern void player_update_queue_create(void);
+extern void player_update_queue_create(player_update_queue *queue);
+extern data_array *update_client_queues;
+extern data_array *update_server_queues;
 extern void game_engine_player_new_life(uint32_t player_datum);
 extern int32_t game_engine_player_profile_cache_find(void);
 extern void network_game_server_handoff_object_ownership(int32_t *object_count_passthrough, network_server_globals *server, network_machine *machine);
@@ -393,17 +363,18 @@ uint32_t ServerView::broadcast_player_set_changed(uint8_t *param_1)
 uint32_t ServerView::broadcast_state_snapshot(const uint32_t *record)
 {
     network_server_globals *server = self;
-    uint32_t buffer[8];
-    int32_t capacity;
+    uint32_t payload[8];
+    uint8_t buffer[0x600];
+    int16_t capacity;
     int32_t i;
     uint16_t *encoded;
 
     for (i = 0; i < 8; i = i + 1) {
-        buffer[i] = record[i];
+        payload[i] = record[i];
     }
     capacity = 0x600;
-    if (data_packet_group_encode_packet_unresolved((uint8_t *)buffer, &capacity, 0x17, 1) != 0) {
-        encoded = network_message_block_build(network_challenge_packet_block, buffer, 3, (uint32_t)capacity);
+    if (halo::memory::data_packet_group_encode_packet(&network_game_messages_group, buffer, payload, &capacity, 0x17, 1) != 0) {
+        encoded = network_message_block_build(network_challenge_packet_block, (uint32_t *)buffer, 3, (uint32_t)capacity);
         if (encoded != 0) {
             return network_session_broadcast_to_all(server, 0, encoded, 1, 0, 1, 3);
         }
@@ -504,10 +475,12 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
 
                                 ok = network_channel_key_open();
                                 if (ok != 0) {
-                                    player_data_iterator_advance((uint8_t)entry->slot_index) ;
-                                    datum_new_at_index_with_salt_unresolved();
-                                    datum_new_at_index_with_salt_unresolved();
-                                    player_update_queue_create();
+                                    uint32_t slot_handle = player_data_iterator_advance((uint8_t)entry->slot_index);
+                                    datum_index queue_handle;
+
+                                    halo::memory::datum_new_at_index_with_salt((datum_index)slot_handle, update_client_queues);
+                                    queue_handle = halo::memory::datum_new_at_index_with_salt((datum_index)slot_handle, update_server_queues);
+                                    player_update_queue_create(&((update_server_queue *)update_server_queues->data)[queue_handle & 0xffff].queue);
                                 }
                             }
                         }
@@ -1524,7 +1497,7 @@ uint32_t ServerMessageHandlers::ping_timestamp(int32_t **message)
         return 1;
     }
     if (message_delta_decode_compound_field(message, decode_scratch) == 1) {
-        player = (uint8_t *)datum_get_unresolved();
+        player = (uint8_t *)halo::memory::datum_get((datum_index)decode_scratch[0], player_data);
         if (player != 0) {
             int32_t stored_time = *(int32_t *)((uint8_t *)server + 0x9c0);
             int32_t now = halo::cseries::time_query_performance_counter_ms();

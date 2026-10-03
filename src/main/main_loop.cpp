@@ -70,17 +70,6 @@ void MainLoop::engine_flush_pending_simulation_ticks(void)
     main_globals_data.skip_ticks = 0;
 }
 
-/**
- * Calls halo::cache::cache_file_download_status_get with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static int16_t cache_file_download_status_get_unresolved(float *progress_out)
-{
-    using call_t = int16_t (*)(float *progress_out);
-    return reinterpret_cast<call_t>(&halo::cache::cache_file_download_status_get)(progress_out);
-}
-
 }
 
 extern "C" { extern main_frame_rate_average frame_rate_average_data; }
@@ -493,7 +482,7 @@ void MainLoop::loop(void)
         }
         if (main_globals_data.cache_file_open_pending != 0) {
             if (halo::cache::globals().map_download_in_progress != 0) {
-                if (cache_file_download_status_get_unresolved(&progress) == 1) {
+                if (halo::cache::cache_file_download_status_get(&progress, 0) == 1) {
                     halo::cache::cache_file_download_finish();
                 }
                 if (halo::cache::globals().map_download_in_progress != 0) {

@@ -276,9 +276,9 @@ inline int32_t data_packet_group_decode_packet(int16_t *remaining_length, data_p
     return halo::memory::view(group)->decode_packet(remaining_length, decoded_body, buffer, out_type, out_version_used, expected_class);
 }
 
-inline int32_t data_packet_group_encode_packet(int16_t version, struct_definition *definition, uint8_t *version_byte_dest, byte_stream *output, uint8_t *buffer, int16_t *cursor, data_packet_group *group, void *source, int16_t *out_wrote_version_byte, uint8_t packet_type)
+inline int32_t data_packet_group_encode_packet(data_packet_group *group, uint8_t *buffer, void *source, int16_t *length_inout, int16_t type, int16_t version)
 {
-    return halo::memory::view(group)->encode_packet(version, definition, version_byte_dest, output, buffer, cursor, source, out_wrote_version_byte, packet_type);
+    return halo::memory::view(group)->encode_packet(buffer, source, length_inout, type, version);
 }
 
 inline uint8_t data_packet_group_decode_packet_body(uint8_t *buffer, struct_definition *definition, int16_t remaining_length, void *dest, uint16_t *out_version_used, int16_t *out_bytes_consumed)
@@ -286,9 +286,9 @@ inline uint8_t data_packet_group_decode_packet_body(uint8_t *buffer, struct_defi
     return halo::memory::view(definition)->decode_packet_body(buffer, remaining_length, dest, out_version_used, out_bytes_consumed);
 }
 
-inline int32_t data_packet_group_encode_packet_body(int16_t version, struct_definition *definition, uint8_t *version_byte_dest, byte_stream *output, void *source, int16_t *out_wrote_version_byte, int16_t capacity_check)
+inline int32_t data_packet_group_encode_packet_body(struct_definition *definition, uint8_t *buffer, void *source, int16_t *out_length, int16_t capacity, int16_t version)
 {
-    return halo::memory::view(definition)->encode_packet_body(version, version_byte_dest, output, source, out_wrote_version_byte, capacity_check);
+    return halo::memory::view(definition)->encode_packet_body(buffer, source, out_length, capacity, version);
 }
 
 }  // namespace halo::memory

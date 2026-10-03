@@ -163,7 +163,7 @@ struct struct_definition_view : ::struct_definition {
     void decode(byte_stream *input, int16_t version, void *dest_instance, int16_t *out_dest_size, struct_definition_field *fields, int16_t *out_field_count);
     void encode(byte_stream *output, int16_t version, void *source, int16_t *out_source_size, struct_definition_field *fields, int16_t *out_field_count);
     uint8_t decode_packet_body(uint8_t *buffer, int16_t remaining_length, void *dest, uint16_t *out_version_used, int16_t *out_bytes_consumed);
-    int32_t encode_packet_body(int16_t version, uint8_t *version_byte_dest, byte_stream *output, void *source, int16_t *out_wrote_version_byte, int16_t capacity_check);
+    int32_t encode_packet_body(uint8_t *buffer, void *source, int16_t *out_length, int16_t capacity, int16_t version);
 };
 
 inline struct_definition_view *view(::struct_definition *record) { return static_cast<struct_definition_view *>(record); }
@@ -176,7 +176,7 @@ struct data_packet_group_view : ::data_packet_group {
     void compute_sizes();
     int32_t append_packet_header(uint8_t *buffer, int16_t *cursor, uint8_t header_byte);
     int32_t decode_packet(int16_t *remaining_length, void *decoded_body, uint8_t *buffer, int16_t *out_type, uint16_t *out_version_used, int16_t expected_class);
-    int32_t encode_packet(int16_t version, struct_definition *definition, uint8_t *version_byte_dest, byte_stream *output, uint8_t *buffer, int16_t *cursor, void *source, int16_t *out_wrote_version_byte, uint8_t packet_type);
+    int32_t encode_packet(uint8_t *buffer, void *source, int16_t *length_inout, int16_t type, int16_t version);
 };
 
 inline data_packet_group_view *view(::data_packet_group *record) { return static_cast<data_packet_group_view *>(record); }

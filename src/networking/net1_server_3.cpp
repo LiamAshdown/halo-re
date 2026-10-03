@@ -4,6 +4,7 @@
 #include "halo/cseries/api.hpp"
 
 extern "C" {
+extern data_packet_group network_game_messages_group;
 extern network_client_globals *network_client;
 extern void *network_prepare_challenge_packet(void);
 extern void network_timer_advance(network_timer_pair *timer);
@@ -17,17 +18,6 @@ extern char network_session_broadcast_to_all(network_server_globals *server, int
 extern uint16_t network_challenge_packet_block;
 extern uint8_t network_broadcast_body[1536];
 extern char network_session_send_to_machine(int32_t a, void *packet, int32_t byte_count, int32_t b, int32_t c, int32_t d, int32_t e);
-}
-
-/**
- * Calls halo::memory::data_packet_group_encode_packet with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static int32_t data_packet_group_encode_packet_unresolved(uint8_t *buffer, int32_t *capacity, int32_t packet_type, int32_t version)
-{
-    using call_t = int32_t (*)(uint8_t *buffer, int32_t *capacity, int32_t packet_type, int32_t version);
-    return reinterpret_cast<call_t>(&halo::memory::data_packet_group_encode_packet)(buffer, capacity, packet_type, version);
 }
 
 namespace halo::networking {
@@ -187,8 +177,8 @@ void HostServerView::full_state_broadcast()
     int32_t i;
     network_machine *machine;
     uint8_t encode_buffer[0x600];
-    int32_t capacity;
-    int32_t tick;
+    int16_t capacity;
+    uint32_t payload[2];
     char encode_ok;
     uint32_t byte_count;
 
@@ -199,10 +189,10 @@ void HostServerView::full_state_broadcast()
         for (i = 0; i < 16; i++) {
             machine = &host->machines[i];
             if ((machine->flags & 2) != 0 || (machine->flags & 0x10) != 0) {
-                tick = timestamp;
+                payload[0] = 0;
+                payload[1] = (uint32_t)timestamp;
                 capacity = 0x600;
-                encode_ok = (char)data_packet_group_encode_packet_unresolved(encode_buffer, &capacity, 0x21, 1);
-                (void)tick;
+                encode_ok = (char)halo::memory::data_packet_group_encode_packet(&network_game_messages_group, encode_buffer, payload, &capacity, 0x21, 1);
                 if (encode_ok != 0) {
                     network_challenge_packet_block = ((int16_t)capacity + 2) * 0x10 | 0xc;
                     memcpy(network_broadcast_body, encode_buffer, (uint32_t)capacity & 0xffff);
