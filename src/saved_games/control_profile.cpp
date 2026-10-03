@@ -155,12 +155,12 @@ uint8_t halo::saved_games::ControlBinding::find_binding_for_action(const char *a
         int32_t i;
 
         i = binding->input_index;
-        if (i >= k_control_keyboard_key_count) {
+        if (i > k_control_keyboard_key_count - 1) {
             return 0;
         }
         while (control_keyboard_scan_table[i] != action_index) {
             i = i + 1;
-            if (i >= k_control_keyboard_key_count) {
+            if (i > k_control_keyboard_key_count - 1) {
                 return 0;
             }
         }

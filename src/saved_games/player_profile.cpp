@@ -486,7 +486,7 @@ uint8_t halo::saved_games::PlayerProfile::set_default_video_options(uint8_t allo
     profile->gamma = (int8_t)gamma;
 
     if (safe_mode != 0 || rasterizer_device_version < k_pixel_shader_version_1_1 ||
-        cpu_speed <= k_fast_machine_cpu_speed_mhz || physical_memory <= k_fast_machine_physical_memory_mb || video_memory <= k_fast_machine_video_memory_bytes) {
+        cpu_speed < k_fast_machine_cpu_speed_mhz + 1 || physical_memory < k_fast_machine_physical_memory_mb + 1 || video_memory < k_fast_machine_video_memory_bytes + 1) {
         profile->specular = 0;
         profile->shadows = 0;
         profile->decals = 0;
