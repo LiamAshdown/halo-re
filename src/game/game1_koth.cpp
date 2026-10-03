@@ -861,6 +861,57 @@ void Koth::reset_hill_marker_history(void)
     }
 }
 
+#pragma pack(push, 1)
+/** One 0x44-byte vertex of the hill marker quad as the dynamic vertex cache holds it. */
+struct hill_marker_vertex {
+    real_point3d position;       // 0x00
+    real_vector3d normal;        // 0x0c
+    real_vector3d tangent;       // 0x18
+    uint32_t unknown_24[5];      // 0x24
+    uint16_t unknown_38;         // 0x38
+    uint16_t unknown_3a;         // 0x3a
+    uint32_t center_bits[2];     // 0x3c both k_float_half_bits (0.5f)
+};
+static_assert(sizeof(hill_marker_vertex) == 0x44);
+
+/** The 0x74-byte shading block of the marker draw record, copied verbatim from the position override. */
+struct hill_marker_shading {
+    real_vector3d tint;          // 0x00
+    uint16_t unknown_0c;         // 0x0c
+    uint8_t unknown_0e[0x42 - 0x0e];
+    uint16_t unknown_42;         // 0x42
+    uint16_t unknown_44;         // 0x44
+    ColorARGB color;             // 0x46
+    real_vector3d axis;          // 0x56
+    uint32_t unknown_62;         // 0x62
+    uint32_t scale_bits;         // 0x66 1.0f in the default block
+    uint32_t unknown_6a;         // 0x6a
+    uint8_t unknown_6e[0x74 - 0x6e];
+};
+static_assert(sizeof(hill_marker_shading) == 0x74);
+
+/** The 0xd8-byte draw record Koth::submit_hill_marker_geometry fills in for the marker model draw. */
+struct hill_marker_draw_record {
+    uint32_t unknown_00;         // 0x00
+    uint32_t unknown_04;         // 0x04 set to 1
+    uint16_t unknown_08;         // 0x08 set to 1
+    void *matrix;                // 0x0a k_render_identity_matrix_ptr
+    hill_marker_shading shading; // 0x0e
+    uint8_t unknown_82[0x98 - 0x82];
+    float center[3];             // 0x98 the centroid of the four vertices
+    uint8_t unknown_a4[0xc8 - 0xa4];
+    void *position_table;        // 0xc8 the orientation override's first word, else the hill marker positions
+    void *state_table;           // 0xcc the orientation override's second word, else the hill marker states
+    uint32_t param_4;            // 0xd0
+    uint32_t param_5;            // 0xd4
+};
+#pragma pack(pop)
+static_assert(sizeof(hill_marker_draw_record) == 0xd8);
+static_assert(offsetof(hill_marker_draw_record, shading) == 0x0e);
+static_assert(offsetof(hill_marker_draw_record, center) == 0x98);
+static_assert(offsetof(hill_marker_draw_record, position_table) == 0xc8);
+static_assert(offsetof(hill_marker_draw_record, param_5) == 0xd4);
+
 /**
  * Assembles and submits a small render/decal geometry batch (positions, colors, default hill-marker placement)
  * to draw the moving King-of-the-Hill marker.
@@ -884,54 +935,28 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
     local_f0 = fVar5;
     iVar6 = halo::rasterizer::rasterizer_dynamic_vertex_cache_reserve(0, 0);
     if (fVar5 == fVar5 && iVar6 != -1) {
-        uint8_t *dest_block;
+        uint16_t *dest_block;
         int32_t base;
-        int32_t offset;
-        float *src;
-        uint32_t *dst;
-        int32_t count;
+        hill_marker_vertex *vertices;
+        const hill_marker_vertex *source = (const hill_marker_vertex *)vertex_source;
         int32_t tag_data;
         int32_t i;
 
         base = (int32_t)halo::rasterizer::rasterizer_dynamic_vertex_cache_lock(iVar6);
-        dest_block = (uint8_t *)halo::render::rasterizer_dynamic_index_slot_lock(0);
-        offset = (int32_t)vertex_source - base;
-        src = vertex_source + 9;
-        dst = (uint32_t *)(base + 0xc);
-        count = 4;
-        do {
-            dst[-3] = ((uint32_t *)src)[-9];
-            dst[-2] = ((uint32_t *)src)[-8];
-            dst[-1] = ((uint32_t *)src)[-7];
-            {
-                uint32_t *from = (uint32_t *)(offset + (int32_t)dst);
-                dst[0] = from[0];
-                dst[1] = from[1];
-                dst[2] = from[2];
-            }
-            dst[3] = ((uint32_t *)src)[-3];
-            dst[4] = ((uint32_t *)src)[-2];
-            dst[5] = ((uint32_t *)src)[-1];
-            dst[6] = ((uint32_t *)src)[0];
-            dst[7] = ((uint32_t *)src)[1];
-            dst[8] = ((uint32_t *)src)[2];
-            dst[9] = ((uint32_t *)src)[3];
-            dst[10] = ((uint32_t *)src)[4];
-            *(uint16_t *)(dst + 0xb) = *(uint16_t *)(src + 5);
-            *(uint16_t *)((uint8_t *)dst + 0x2e) = *(uint16_t *)((uint8_t *)src + 0x16);
-            dst[0xc] = halo::game::k_float_half_bits;
-            dst[0xd] = halo::game::k_float_half_bits;
-            src = src + 0x11;
-            dst = dst + 0x11;
-            count--;
-        } while (count != 0);
+        dest_block = (uint16_t *)halo::render::rasterizer_dynamic_index_slot_lock(0);
+        vertices = (hill_marker_vertex *)base;
+        for (i = 0; i < 4; i++) {
+            memcpy(&vertices[i], &source[i], offsetof(hill_marker_vertex, center_bits));
+            vertices[i].center_bits[0] = halo::game::k_float_half_bits;
+            vertices[i].center_bits[1] = halo::game::k_float_half_bits;
+        }
 
-        *(uint16_t *)dest_block = 0;
-        *(uint16_t *)(dest_block + 2) = 1;
-        *(uint16_t *)(dest_block + 4) = 2;
-        *(uint16_t *)(dest_block + 6) = 2;
-        *(uint16_t *)(dest_block + 8) = 3;
-        *(uint16_t *)(dest_block + 10) = 0;
+        dest_block[0] = 0;
+        dest_block[1] = 1;
+        dest_block[2] = 2;
+        dest_block[3] = 2;
+        dest_block[4] = 3;
+        dest_block[5] = 0;
 
         ((void (__stdcall *)(void **))(*(void ***)((uint8_t *)*rasterizer_dynamic_index_buffer + 0x30)))(rasterizer_dynamic_index_buffer);
 
@@ -944,55 +969,49 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
         }
 
         tag_data = *(int32_t *)((uint8_t *)halo::game::tag_data_at(tag_handle_as_uint) + 0);
-        local_f0 = (vertex_source[0x33] + vertex_source[0x22] + vertex_source[0x11] + vertex_source[0]) * 0.25f;
-        fStack_ec = (vertex_source[0x34] + vertex_source[0x23] + vertex_source[0x12] + vertex_source[1]) * 0.25f;
+        local_f0 = (source[3].position.x + source[2].position.x + source[1].position.x + source[0].position.x) * 0.25f;
+        fStack_ec = (source[3].position.y + source[2].position.y + source[1].position.y + source[0].position.y) * 0.25f;
         {
-            float fVar1 = vertex_source[0x35];
-            float fVar2 = vertex_source[0x24];
-            float fVar3 = vertex_source[0x13];
-            float fVar4 = vertex_source[2];
+            float fVar1 = source[3].position.z;
+            float fVar2 = source[2].position.z;
+            float fVar3 = source[1].position.z;
+            float fVar4 = source[0].position.z;
             fStack_e8 = (fVar1 + fVar2 + fVar3 + fVar4) * 0.25f;
         }
 
         {
-            uint8_t record[0xd8];
-            for (i = 0; i < (int32_t)sizeof(record); i++) record[i] = 0;
+            hill_marker_draw_record record;
+            memset(&record, 0, sizeof(record));
 
-            *(uint32_t *)(record + 4) = 1;
-            *(uint16_t *)(record + 8) = 1;
-            *(void **)(record + 0xa) = k_render_identity_matrix_ptr;
+            record.unknown_04 = 1;
+            record.unknown_08 = 1;
+            record.matrix = k_render_identity_matrix_ptr;
 
             if (position_override == (uint32_t *)0) {
-                *(real_vector3d *)(record + 0xe) = *global_white_color;
-                *(uint16_t *)(record + 0x1a) = 0;
-                *(uint16_t *)(record + 0x50) = 0;
-                for (i = 0; i < 16; i++) {
-                    (record + 0x54)[i] = ((const uint8_t *)global_white_argb)[i];
-                }
-                *(real_vector3d *)(record + 0x64) = default_axis_b;
-                *(uint32_t *)(record + 0x70) = 0;
-                *(uint32_t *)(record + 0x74) = 0x3f800000;
-                *(uint32_t *)(record + 0x78) = 0;
+                record.shading.tint = *global_white_color;
+                record.shading.unknown_0c = 0;
+                record.shading.unknown_42 = 0;
+                record.shading.color = *global_white_argb;
+                record.shading.axis = default_axis_b;
+                record.shading.unknown_62 = 0;
+                record.shading.scale_bits = 0x3f800000;
+                record.shading.unknown_6a = 0;
             } else {
-                uint32_t *dstp = (uint32_t *)(record + 0xe);
-                uint32_t *srcp = position_override;
-                for (i = 0; i < 0x1d; i++) {
-                    dstp[i] = srcp[i];
-                }
+                memcpy(&record.shading, position_override, sizeof(record.shading));
             }
 
             if (orientation_override == (uint32_t *)0) {
-                *(void **)(record + 0xc8) = &king_hill_markers.position[0];
-                *(void **)(record + 0xcc) = &king_hill_markers.state[0];
+                record.position_table = &king_hill_markers.position[0];
+                record.state_table = &king_hill_markers.state[0];
             } else {
-                *(void **)(record + 0xc8) = (void *)orientation_override[0];
-                *(void **)(record + 0xcc) = (void *)orientation_override[1];
+                record.position_table = (void *)orientation_override[0];
+                record.state_table = (void *)orientation_override[1];
             }
-            *(uint32_t *)(record + 0xd0) = param_4;
-            *(uint32_t *)(record + 0xd4) = param_5;
-            *(float *)(record + 0x98) = local_f0;
-            *(float *)(record + 0x9c) = fStack_ec;
-            *(float *)(record + 0xa0) = fStack_e8;
+            record.param_4 = param_4;
+            record.param_5 = param_5;
+            record.center[0] = local_f0;
+            record.center[1] = fStack_ec;
+            record.center[2] = fStack_e8;
 
             if (halo::rasterizer::fields::models_enabled != 0) {
                 rasterizer_render_states_dirty = 1;
