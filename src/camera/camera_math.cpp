@@ -1,16 +1,10 @@
 #include "halo/camera/camera_math.hpp"
 #include "halo/math/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
-extern double scalar_catmull_rom_interpolate(float value0, float value1, float value2, float value3, float time0, float dt, float time);
 extern double fsin(double angle);
 extern double fcos(double angle);
-uint8_t real_approximately_equal(float a, float b);
-uint8_t real_is_valid(float value);
-void vector3d_catmull_rom_interpolate(Vector3D *source1, Vector3D *source3, Vector3D *source2, Vector3D *out, Vector3D *source0, float time0, float dt, float time);
-void vector3d_compute_up_from_forward(Vector3D *forward, Vector3D *up);
-uint8_t vector3d_is_unit_length(Vector3D *v);
-void vector3d_rotate_basis_by_axis_angle(Vector3D *axis_angle, Vector3D *forward, Vector3D *up);
 }
 
 namespace halo::camera {
@@ -87,13 +81,13 @@ void CameraMath::vector3d_catmull_rom_interpolate(Vector3D *source1, Vector3D *s
 {
     double component;
 
-    component = scalar_catmull_rom_interpolate(source0->i, source1->i, source2->i, source3->i,
+    component = halo::camera::scalar_catmull_rom_interpolate(source0->i, source1->i, source2->i, source3->i,
         time0, dt, time);
     out->i = (float)component;
-    component = scalar_catmull_rom_interpolate(source0->j, source1->j, source2->j, source3->j,
+    component = halo::camera::scalar_catmull_rom_interpolate(source0->j, source1->j, source2->j, source3->j,
         time0, dt, time);
     out->j = (float)component;
-    component = scalar_catmull_rom_interpolate(source0->k, source1->k, source2->k, source3->k,
+    component = halo::camera::scalar_catmull_rom_interpolate(source0->k, source1->k, source2->k, source3->k,
         time0, dt, time);
     out->k = (float)component;
 }
@@ -182,7 +176,7 @@ void CameraMath::rotate_basis_by_axis_angle(Vector3D *axis_angle, Vector3D *forw
 
 }
 
-extern "C" {
+namespace halo::camera {
 
 uint8_t real_approximately_equal(float a, float b)
 {

@@ -4,6 +4,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -11,7 +12,6 @@ extern int32_t local_player_index_for_unit(datum_index unit_index);
 extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name,
                                                       object_marker *out, uint32_t name_arg);
 extern void *object_try_and_get(datum_index object_index, uint32_t mask);
-extern int16_t camera_get_type_for_player(int16_t player_index);
 extern int32_t local_player_index_for_weapon(datum_index weapon_index);
 extern int16_t model_markers_get_by_name(datum_index model_tag_id, const char *name, uint8_t *region_permutations,
     int16_t *node_remap, real_matrix4x3 *node_matrices, uint8_t mirrored, object_marker *out, int16_t maximum);
@@ -154,7 +154,7 @@ uint32_t FirstPersonWeaponController::get_marker_data(datum_index weapon_index, 
         return 0;
     }
 
-    camera_type = camera_get_type_for_player((int16_t)local_player);
+    camera_type = halo::camera::camera_get_type_for_player((int16_t)local_player);
     if (camera_type != 0) {
         return 0;
     }
@@ -663,7 +663,7 @@ void FirstPersonWeaponController::update_active_state(void)
         return;
     }
 
-    camera_type = camera_get_type_for_player(current_local_player_index);
+    camera_type = halo::camera::camera_get_type_for_player(current_local_player_index);
     if (camera_type == 0) {
         zoom_level = (int16_t)local_player_get_zoom_level(current_local_player_index);
         attach = 1;

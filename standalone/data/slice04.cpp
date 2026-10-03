@@ -7,6 +7,7 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "code_refs.hpp"
+#include "halo/camera/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/sound/api.hpp"
@@ -209,11 +210,11 @@ void * game_state_revert_proc = &halo::sound::game_sound_revert_scripting_sounds
 /* 0x0069e7b4 size 52: game_state_after_load_procs */
 void * game_state_after_load_procs[13] = {
     scenario_structure_bsp_switch_after_load, &halo::sound::sound_stop_all,
-    &halo::sound::game_sound_reconcile_scripting_state, observer_initialize,
+    &halo::sound::game_sound_reconcile_scripting_state, &halo::camera::observer_initialize,
     update_queues_revert, decal_geometry_cache_restore_procs,
     function_do_nothing, function_do_nothing,
     halo::structures::detail_objects_invalidate, game_state_after_load_restore_time,
-    players_rebind_local_player_after_load, director_game_state_loaded,
+    players_rebind_local_player_after_load, &halo::camera::director_game_state_loaded,
     hud_messaging_clear_after_load,
 };
 
@@ -265,7 +266,7 @@ void * structure_bsp_activate_procedures[13] = {
     ai_unassigned_actors_attach_to_structure_bsp, halo::effects::effects_refresh_structure_locations,
     halo::effects::particles_refresh_structure_locations, halo::effects::particle_system_resolve_local_players,
     halo::effects::contrail_refresh_lightmap, halo::effects::decal_rehash_object_decals,
-    halo::structures::structure_runtime_decals_mark_dirty, observer_update_location,
+    halo::structures::structure_runtime_decals_mark_dirty, &halo::camera::observer_update_location,
     players_structure_bsp_switch_regroup, halo::sound::sounds_refresh_structure_locations,
     scenario_objects_place_for_structure_bsp_on_activate,
 };

@@ -7,6 +7,7 @@
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "tables.h"
 #include "code_refs.hpp"
+#include "halo/camera/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/sound/api.hpp"
 #include <stdint.h>
@@ -466,15 +467,15 @@ uint32_t flying_camera_attached_object = 0xffffffffu;
 void *flying_camera_render_frame = (void *)&render_frame_index;
 /* 0x00686aa8 */
 void *flying_camera_update_procs[2] = {
-    (void *)flying_camera_update,
-    (void *)orbiting_camera_update
+    (void *)&halo::camera::flying_camera_update,
+    (void *)&halo::camera::orbiting_camera_update
 };
 /* 0x00686ab0 */
 void *flying_camera_transition_procs[4] = {
     0,
     0,
-    (void *)flying_camera_enter_flying,
-    (void *)flying_camera_enter_orbiting
+    (void *)&halo::camera::flying_camera_enter_flying,
+    (void *)&halo::camera::flying_camera_enter_orbiting
 };
 /* 0x00686ae0 */
 int16_t observer_parameter_float_counts[5] = { 3, 3, 1, 1, 6 };

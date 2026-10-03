@@ -1,6 +1,7 @@
 #include "halo/camera/director.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/input/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern void *mouse_device;
@@ -9,29 +10,12 @@ extern mouse_state mouse_neutral_state;
 extern uint8_t director_camera_switching;
 extern director_globals camera_director_globals;
 extern director directors[1];
-extern void camera_input_axes_update(int16_t local_player_index, uint32_t key_bits, float zoom);
-extern void camera_first_person_compute_pov(director_camera_data *data, camera_input *input, observer_command *command);
-extern void camera_third_person_compute_pov(director_camera_data *data, camera_input *input, observer_command *command);
 extern uint8_t *hs_camera_control_pointer;
 extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern player_control_globals *player_control_globals_ptr;
-extern void director_update_seat_camera(int16_t local_player_index, uint8_t force);
-extern int16_t camera_get_seat_camera_state(datum_index unit, int16_t *out_state);
-extern dead_camera_data *dead_camera_new(dead_camera_data *self, int16_t local_player_index, datum_index unit);
-extern void camera_track_compute_pov(director_camera_data *data, camera_input *input, observer_command *command);
-extern void flying_camera_initialize(editor_camera_data *data, int16_t local_player_index);
-extern void flying_camera_compute_pov(director_camera_data *data, camera_input *input, observer_command *command);
-extern void camera_debug_compute_pov(director_camera_data *data, camera_input *input, observer_command *command);
 extern camera_input_axis_definition camera_input_axes[4];
 extern double pow(double base, double exponent);
-extern void camera_initialize(void);
-extern void camera_control(uint8_t enable);
-uint8_t director_build_camera_input(int16_t local_player_index, camera_input *input);
-void director_choose_gameplay_camera(int16_t local_player_index, uint8_t reset);
-void director_set_flying_camera(int16_t local_player_index, uint8_t force);
-int16_t camera_get_type_for_player(int16_t local_player_index);
-void director_game_state_loaded(void);
 }
 
 namespace {
@@ -77,8 +61,8 @@ uint8_t DirectorHandle::build_camera_input(camera_input *input)
     mouse = halo::input::globals().suppressed ? &mouse_neutral_state : &live_mouse_state;
     result = (halo::input::input_get_key_state(_input_key_backspace) == 1);
 
-    if (director->pov_proc == camera_first_person_compute_pov ||
-        director->pov_proc == camera_third_person_compute_pov ||
+    if (director->pov_proc == halo::camera::camera_first_person_compute_pov ||
+        director->pov_proc == halo::camera::camera_third_person_compute_pov ||
         mouse->button_frames[1] == 0) {
         return result;
     }
@@ -92,7 +76,7 @@ uint8_t DirectorHandle::build_camera_input(camera_input *input)
     if (halo::input::input_get_key_state(0x23)) key_bits |= 0x40; else key_bits &= ~0x40u;
     if (halo::input::input_get_key_state(0x31)) key_bits |= 0x80; else key_bits &= ~0x80u;
 
-    camera_input_axes_update(local_player_index, key_bits, (float)mouse->wheel);
+    halo::camera::camera_input_axes_update(local_player_index, key_bits, (float)mouse->wheel);
 
     input->yaw_delta = (float)mouse->x * -0.0031415927f;   
     input->pitch_delta = (float)mouse->y * 0.0031415927f;  
@@ -124,7 +108,7 @@ void DirectorHandle::choose_gameplay_camera(uint8_t reset)
 
     if (reset) {
         director->data.first_person.field_of_view = 0.0f;
-        director->pov_proc = camera_first_person_compute_pov;
+        director->pov_proc = halo::camera::camera_first_person_compute_pov;
         director->look_scale = 1.0f;
         director->unknown_c0 = 0;
         return;
@@ -143,19 +127,19 @@ void DirectorHandle::choose_gameplay_camera(uint8_t reset)
         return;
     }
 
-    director_update_seat_camera(local_player_index, 0);
+    halo::camera::director_update_seat_camera(local_player_index, 0);
 
     if (player_is_dead) {
-        if (director->pov_proc != camera_track_compute_pov) {
-            dead_camera_new(&director->data.dead, local_player_index, k_datum_index_none);
+        if (director->pov_proc != halo::camera::camera_track_compute_pov) {
+            halo::camera::dead_camera_new(&director->data.dead, local_player_index, k_datum_index_none);
             director->unknown_c0 = 0;
-            director->pov_proc = camera_track_compute_pov;
+            director->pov_proc = halo::camera::camera_track_compute_pov;
             director->look_scale = 1.0f;
             director->transition_time = 1.0f;
         }
-    } else if (director->pov_proc == camera_track_compute_pov) {
+    } else if (director->pov_proc == halo::camera::camera_track_compute_pov) {
         int16_t seat_camera_state;
-        int16_t third_person = camera_get_seat_camera_state(
+        int16_t third_person = halo::camera::camera_get_seat_camera_state(
             player_control_globals_ptr->local_players[local_player_index].unit, &seat_camera_state);
 
         if (third_person == 1) {
@@ -172,12 +156,12 @@ void DirectorHandle::choose_gameplay_camera(uint8_t reset)
             third->yaw_offset = 0.0f;
             third->distance_scale = 1.0f;
             director->look_scale = 1.0f;
-            director->pov_proc = camera_third_person_compute_pov;
+            director->pov_proc = halo::camera::camera_third_person_compute_pov;
             director->unknown_c0 = 0;
             director->seat_camera_state = seat_camera_state;
         } else {
             director->data.first_person.field_of_view = 0.0f;
-            director->pov_proc = camera_first_person_compute_pov;
+            director->pov_proc = halo::camera::camera_first_person_compute_pov;
             director->look_scale = 1.0f;
             director->unknown_c0 = 0;
             director->seat_camera_state = seat_camera_state;
@@ -197,9 +181,9 @@ void DirectorHandle::set_flying_camera(uint8_t force)
 
     director *director = &directors[local_player_index];
 
-    if (force || director->pov_proc != flying_camera_compute_pov) {
-        flying_camera_initialize(&director->data.editor, local_player_index);
-        director->pov_proc = flying_camera_compute_pov;
+    if (force || director->pov_proc != halo::camera::flying_camera_compute_pov) {
+        halo::camera::flying_camera_initialize(&director->data.editor, local_player_index);
+        director->pov_proc = halo::camera::flying_camera_compute_pov;
         director->look_scale = 1.0f;
         director->unknown_c0 = 0;
     }
@@ -217,7 +201,7 @@ void DirectorHandle::update_seat_camera(uint8_t force)
 
     director *director = &directors[local_player_index];
     int16_t seat_camera_state;
-    int16_t third_person = camera_get_seat_camera_state(
+    int16_t third_person = halo::camera::camera_get_seat_camera_state(
         player_control_globals_ptr->local_players[local_player_index].unit, &seat_camera_state);
 
     if (!force && director->seat_camera_state == seat_camera_state) {
@@ -225,7 +209,7 @@ void DirectorHandle::update_seat_camera(uint8_t force)
     }
 
     if (third_person == 1) {
-        if (force || director->pov_proc == camera_first_person_compute_pov) {
+        if (force || director->pov_proc == halo::camera::camera_first_person_compute_pov) {
             third_person_camera_data *third = &director->data.third_person;
 
             third->unit = k_datum_index_none;
@@ -238,13 +222,13 @@ void DirectorHandle::update_seat_camera(uint8_t force)
             third->pitch_offset = 0.0f;
             third->yaw_offset = 0.0f;
             third->distance_scale = 1.0f;
-            director->pov_proc = camera_third_person_compute_pov;
+            director->pov_proc = halo::camera::camera_third_person_compute_pov;
             goto switched;
         }
     } else {
-        if (force || director->pov_proc == camera_third_person_compute_pov) {
+        if (force || director->pov_proc == halo::camera::camera_third_person_compute_pov) {
             director->data.first_person.field_of_view = 0.0f;
-            director->pov_proc = camera_first_person_compute_pov;
+            director->pov_proc = halo::camera::camera_first_person_compute_pov;
             goto switched;
         }
     }
@@ -274,14 +258,14 @@ int16_t DirectorHandle::get_type_for_player()
 
     director *d = &directors[local_player_index];
 
-    if (d->pov_proc == camera_first_person_compute_pov) {
+    if (d->pov_proc == halo::camera::camera_first_person_compute_pov) {
         if (d->transition_time == 0.0f) { 
             d->camera_type = _director_camera_type_first_person;
         }
-    } else if (d->pov_proc == camera_third_person_compute_pov) {
+    } else if (d->pov_proc == halo::camera::camera_third_person_compute_pov) {
         d->camera_type = _director_camera_type_third_person;
     } else {
-        d->camera_type = (d->pov_proc != camera_debug_compute_pov) ? _director_camera_type_other
+        d->camera_type = (d->pov_proc != halo::camera::camera_debug_compute_pov) ? _director_camera_type_other
                                                                     : _director_camera_type_scripted;
     }
 
@@ -370,13 +354,13 @@ void DirectorHandle::input_axes_update(uint32_t key_bits, float zoom)
  */
 void DirectorEvents::game_state_loaded()
 {
-    camera_initialize();
-    camera_control(*hs_camera_control_pointer);
+    halo::camera::camera_initialize();
+    halo::camera::camera_control(*hs_camera_control_pointer);
 }
 
 }
 
-extern "C" {
+namespace halo::camera {
 
 uint8_t director_build_camera_input(int16_t local_player_index, camera_input *input)
 {

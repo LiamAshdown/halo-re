@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -11,7 +12,6 @@ extern player_control_globals *player_control_globals_ptr;
 extern Globals *global_globals;
 extern void *global_zero_vector3d_pointer;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern int16_t camera_get_type_for_player(int16_t player_index);
 extern uint8_t biped_is_idle_eligible(datum_index unit_index);
 extern int16_t animation_state_advance(datum_index animation_graph, int16_t *animation_state,
                             datum_index *out_frame_sound, int32_t unknown);
@@ -136,7 +136,7 @@ void FirstPersonWeaponController::update()
             first_person_weapon_update_state(local_player_index);
         }
 
-        if (frame_sound != (datum_index)-1 && camera_get_type_for_player(local_player_index) == 0) {
+        if (frame_sound != (datum_index)-1 && halo::camera::camera_get_type_for_player(local_player_index) == 0) {
             fp->frame_sound_index = halo::sound::sound_start_at_object_marker(fp->weapon_index, (Point3D *)global_zero_vector3d_pointer,
                                             (Vector3D *)halo::math::globals().global_forward3d_pointer, frame_sound, -1, 1.0f,
                                             local_player_index != -1);

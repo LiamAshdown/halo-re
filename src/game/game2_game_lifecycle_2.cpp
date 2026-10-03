@@ -7,6 +7,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/camera/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -59,8 +60,6 @@ extern Scenario *global_scenario;
 extern uint8_t *object_globals_pointer;
 extern void ai_reset_for_new_map(void);
 extern void encounters_spawn_initial(void);
-extern void camera_initialize(void);
-extern void observer_new(observer *observer_this);
 extern observer observers[];
 extern void team_pair_table_init_defaults(void);
 extern void game_engine_load_from_variant(const game_variant *variant);
@@ -269,8 +268,8 @@ void GameLifecycle::start_new_map(void)
     halo::effects::globals().decal_data->valid = 1;
     halo::memory::data_delete_all(halo::effects::globals().decal_data);
 
-    camera_initialize();
-    observer_new(&observers[0]);
+    halo::camera::camera_initialize();
+    halo::camera::observer_new(&observers[0]);
 
     halo::effects::globals().contrail_data->valid = 1;
     halo::memory::data_delete_all(halo::effects::globals().contrail_data);

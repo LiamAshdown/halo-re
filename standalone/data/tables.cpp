@@ -6,6 +6,7 @@
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "tables.h"
 #include "code_refs.hpp"
+#include "halo/camera/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/devices/api.hpp"
 #include "halo/items/api.hpp"
@@ -1636,7 +1637,7 @@ uint32_t message_delta_definitions_006961c0[248] = {
 uint32_t message_delta_definitions_00697e90[27] = {
     /* +0x0000 */ 0x34, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0xffffffffu, 0x1, 0, (uint32_t)&multiplayer_sound_enabled_00687020[0],
     /* +0x0020 */ 0x1, 0xffffffffu, (uint32_t)&table_006873f8[0], 0, 0, 0, 0, 0,
-    /* +0x0040 */ 0, 0, 0x3, 0x88b8, 0x222e0, 0x111700, (uint32_t)director_update_seat_camera, 0x88b800,
+    /* +0x0040 */ 0, 0, 0x3, 0x88b8, 0x222e0, 0x111700, (uint32_t)&halo::camera::director_update_seat_camera, 0x88b800,
     /* +0x0060 */ 0x6, 0, 0,
 };
 

@@ -1,7 +1,7 @@
 #include "halo/game/gamerest_camera.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
-extern int16_t camera_get_type_for_player(int16_t local_player_index);
 extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern observer observers[1];
@@ -27,7 +27,7 @@ namespace halo::game {
  */
 uint32_t CameraObserver::get_target_id(datum_index *out_id, int16_t local_player_slot)
 {
-    int16_t camera_type = camera_get_type_for_player(local_player_slot);
+    int16_t camera_type = halo::camera::camera_get_type_for_player(local_player_slot);
     datum_index player_index;
     uint8_t *player_record;
     uint32_t exclude_object;

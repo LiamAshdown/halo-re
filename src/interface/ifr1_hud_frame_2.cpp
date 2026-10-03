@@ -2,6 +2,7 @@
 #include <wchar.h>
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -28,7 +29,6 @@ extern uint8_t motion_sensor_override_value;
 extern uint8_t game_engine_teams_enabled_flag;
 extern uint8_t *cinematic_globals_ptr;
 extern game_time_globals *game_time;
-extern int16_t camera_get_type_for_player(int16_t local_player_index);
 extern void hud_draw_weapon_interface(player *p);
 extern void hud_update_interaction_prompt(datum_index player_index);
 extern void hud_unit_sounds_update(player *p, uint8_t hud_enabled);
@@ -263,7 +263,7 @@ void HudFrame::update_player(void)
     } else {
         player_index = local_player_globals->local_players[local_player_index];
     }
-    camera_type = camera_get_type_for_player(local_player_index);
+    camera_type = halo::camera::camera_get_type_for_player(local_player_index);
 
     if (player_index == (datum_index)-1) {
         return;

@@ -22,6 +22,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -40,7 +41,6 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t console_debug_toggle_6893ec;
 extern uint32_t rasterizer_device_version;
 extern void *rasterizer_device;
-extern int16_t camera_get_type_for_player(int16_t local_player_index);
 extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern render_fog render_fog_state;
@@ -795,7 +795,7 @@ int16_t local_player_gunner_seat_visible(int16_t local_player_index)
     UnitSeat *seats;
     int16_t seat_index;
 
-    if (camera_get_type_for_player(local_player_index) == 0) {
+    if (halo::camera::camera_get_type_for_player(local_player_index) == 0) {
         return 1;
     }
 
@@ -875,7 +875,7 @@ uint8_t _is_camera_unit(datum_index object)
         }
     }
 
-    if (local_unit == object && ((int16_t (*)(int16_t player_index))camera_get_type_for_player)(local_player_index) == 0) {
+    if (local_unit == object && ((int16_t (*)(int16_t player_index))halo::camera::camera_get_type_for_player)(local_player_index) == 0) {
         return 1;
     }
     if (camera_script != 0 && director_camera_mode == 2 && director_camera_target == object) {

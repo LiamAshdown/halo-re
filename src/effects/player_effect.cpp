@@ -5,6 +5,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -22,7 +23,6 @@ extern double atan2(double y, double x);
 extern double fabs(double x);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index local_player_to_player_index(int16_t local_player_index);
-extern observer_camera *observer_get_camera(int16_t player_index);
 extern void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *out);
 extern network_id_table *object_network_id_table;
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
@@ -322,7 +322,7 @@ void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_
             player_effect_reentry_count--;
             return;
         }
-        camera = observer_get_camera(local_player_index);
+        camera = halo::camera::observer_get_camera(local_player_index);
         if (camera == 0) {
             player_effect_reentry_count--;
             return;

@@ -3,45 +3,29 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern observer observers[1];
 extern float observer_dt;
-extern void observer_compute_remaining_offset(float *target, float *current, float *out);
-extern void observer_compute_spline_coefficients(int16_t local_player_index);
-extern void observer_evaluate_spline_acceleration(int16_t local_player_index);
-extern void observer_evaluate_spline_velocity(int16_t local_player_index);
-extern void observer_evaluate_spline_value_and_orthonormalize(int16_t local_player_index);
 extern ScenarioStructureBSP *global_structure_bsp;
 extern double sqrt(double x);
 extern double fabs(double x);
 extern float scenario_location_water_surface_distance(bsp_leaf_reference *location, real_point3d *point);
-extern void observer_avoid_collision(real_vector3d *forward, real_point3d *position, real_vector3d *up, float *distance, float radius_scale);
 extern int16_t observer_derivative_float_counts[5];
 extern float observer_channel_acceleration_limit[5];
 extern int16_t observer_parameter_float_counts[5];
-extern void vector3d_rotate_basis_by_axis_angle(Vector3D *axis_angle, Vector3D *forward, Vector3D *up);
-extern void observer_new(observer *self);
 extern const real_point3d *global_origin3d_pointer;
 extern real_point3d *global_zero_vector3d_pointer;
 extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern game_time_globals *game_time;
 extern director directors[1];
-extern void camera_first_person_compute_pov(director_camera_data *data, camera_input *input, observer_command *command);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void observer_set_command(int16_t local_player_index);
-extern void observer_advance(int16_t local_player_index);
-extern void observer_commit(int16_t local_player_index);
 extern uint32_t unit_predict_movement_delta(real_vector3d *out_position_delta, real_vector3d *out_forward_delta, real_vector3d *out_up_delta, float time_fraction);
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
-extern uint8_t observer_collision_test_ray(real_point3d *origin, uint8_t use_alternate_mask, real_point3d *target, float *out_fraction);
 extern double atan2(double y, double x);
 extern void (*matrix4x3_multiply_ptr)(void *a, void *b, void *out);
-observer_camera *observer_get_camera(int16_t player_index);
-void observer_initialize(void);
-void observer_update(float dt, uint8_t add_bob);
-void observer_update_location(void);
 }
 
 namespace halo::camera {
@@ -66,12 +50,12 @@ void ObserverHandle::advance()
         return;
     }
 
-    observer_compute_remaining_offset((float *)&o->current_command.parameters,
+    halo::camera::observer_compute_remaining_offset((float *)&o->current_command.parameters,
         (float *)&o->parameters, (float *)&o->remaining_offset);
-    observer_compute_spline_coefficients(local_player_index);
-    observer_evaluate_spline_acceleration(local_player_index);
-    observer_evaluate_spline_velocity(local_player_index);
-    observer_evaluate_spline_value_and_orthonormalize(local_player_index);
+    halo::camera::observer_compute_spline_coefficients(local_player_index);
+    halo::camera::observer_evaluate_spline_acceleration(local_player_index);
+    halo::camera::observer_evaluate_spline_velocity(local_player_index);
+    halo::camera::observer_evaluate_spline_value_and_orthonormalize(local_player_index);
 
     for (i = 0; i < k_observer_parameter_count; i++) {
         float t = o->current_command.channel_times[i] - observer_dt;
@@ -147,7 +131,7 @@ void ObserverHandle::commit()
     position.z = position.z + o->parameters.focus_offset.k;
 
     if ((o->current_command.flags & _observer_command_no_collision_bit) == 0 && distance != 0.0f) {
-        observer_avoid_collision((real_vector3d *)&o->parameters.forward, &position,
+        halo::camera::observer_avoid_collision((real_vector3d *)&o->parameters.forward, &position,
             (real_vector3d *)&o->parameters.up, &distance, 0.02f);
     }
 
@@ -426,7 +410,7 @@ void ObserverHandle::evaluate_spline_value_and_orthonormalize()
                 }
             } else {
                 
-                vector3d_rotate_basis_by_axis_angle((Vector3D *)value,
+                halo::camera::vector3d_rotate_basis_by_axis_angle((Vector3D *)value,
                     (Vector3D *)&o->parameters.forward, (Vector3D *)&o->parameters.up);
             }
         } else {
@@ -580,7 +564,7 @@ observer_camera * ObserverHandle::get_camera()
  */
 void ObserverSystem::initialize()
 {
-    observer_new(&observers[0]);
+    halo::camera::observer_new(&observers[0]);
 }
 
 /**
@@ -645,11 +629,11 @@ void ObserverSystem::update(float dt, uint8_t add_bob)
 
     time_fraction = game_time->leftover_time;
     observers[0].updated = 1;
-    observer_set_command(0);
+    halo::camera::observer_set_command(0);
     if (observer_dt != 0.0f) {
-        observer_advance(0);
+        halo::camera::observer_advance(0);
     }
-    observer_commit(0);
+    halo::camera::observer_commit(0);
 
     if (!add_bob) {
         return;
@@ -665,7 +649,7 @@ void ObserverSystem::update(float dt, uint8_t add_bob)
         }
     }
 
-    if (directors[0].pov_proc != camera_first_person_compute_pov ||
+    if (directors[0].pov_proc != halo::camera::camera_first_person_compute_pov ||
         !(directors[0].transition_time <= 0.0f)) {
         return;
     }
@@ -742,7 +726,7 @@ void ObserverSystem::avoid_collision(real_vector3d *forward, real_point3d *posit
     pullback_point.y = position->y - probe_length * forward->j;
     pullback_point.z = position->z - probe_length * forward->k;
 
-    observer_collision_test_ray(position, use_alternate_mask, &pullback_point,
+    halo::camera::observer_collision_test_ray(position, use_alternate_mask, &pullback_point,
         &unobstructed_fraction);
 
     {
@@ -946,7 +930,7 @@ void ObserverSystem::compute_remaining_offset(float *target, float *current, flo
 
 }
 
-extern "C" {
+namespace halo::camera {
 
 void observer_advance(int16_t local_player_index)
 {

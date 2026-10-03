@@ -4,6 +4,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern int16_t weather_particle_system_count;
@@ -12,7 +13,6 @@ extern ScenarioStructureBSP *global_structure_bsp;
 extern const real_point3d *global_origin3d_pointer;
 extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point);
 extern ambient_noise_grid ambient_noise;
-extern void vector3d_catmull_rom_interpolate(real_vector3d *source1, real_vector3d *source3, real_vector3d *source2, real_vector3d *out, real_vector3d *source0, float time0, float dt, float time);
 extern int32_t weather_frame_counter;
 }
 
@@ -130,11 +130,11 @@ void ambient_color::randomize()
             float time = (float)column * 0.125f + (float)row;
 
             for (band = 0; band < k_ambient_noise_bands; band++) {
-                vector3d_catmull_rom_interpolate(&ambient_noise.entries[band][row][0],
-                                                 &ambient_noise.entries[band][after_next][0],
-                                                 &ambient_noise.entries[band][next][0],
-                                                 &ambient_noise.entries[band][row][column],
-                                                 &ambient_noise.entries[band][previous][0],
+                halo::camera::vector3d_catmull_rom_interpolate((Vector3D *)(&ambient_noise.entries[band][row][0]),
+                                                 (Vector3D *)(&ambient_noise.entries[band][after_next][0]),
+                                                 (Vector3D *)(&ambient_noise.entries[band][next][0]),
+                                                 (Vector3D *)(&ambient_noise.entries[band][row][column]),
+                                                 (Vector3D *)(&ambient_noise.entries[band][previous][0]),
                                                  (float)(row - 1), 1.0f, time);
             }
         }

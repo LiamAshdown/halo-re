@@ -8,6 +8,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -37,7 +38,6 @@ extern void object_set_position_and_recalculate(real_point3d *position, uint32_t
 extern uint8_t DAT_00689471;
 extern uint8_t object_nudge_position_by_velocity(uint32_t object_index, real_point3d *out);
 extern double sqrt(double x);
-extern uint8_t real_is_valid(float value);
 extern real_point3d *global_origin3d_pointer;
 extern Globals *global_globals;
 extern uint8_t cheat_super_jump;
@@ -602,8 +602,8 @@ void UnitView::recalculate_position()
         midpoint.y = (previous.y + nudged.y) * 0.5f;
         midpoint.z = (previous.z + nudged.z) * 0.5f;
         if (!_isnan((double)midpoint.x) && coordinate_in_range(midpoint.x) &&
-            real_is_valid(midpoint.y) && coordinate_in_range(midpoint.y) &&
-            real_is_valid(midpoint.z) && coordinate_in_range(midpoint.z)) {
+            halo::camera::real_is_valid(midpoint.y) && coordinate_in_range(midpoint.y) &&
+            halo::camera::real_is_valid(midpoint.z) && coordinate_in_range(midpoint.z)) {
             target = &midpoint;
         }
     }

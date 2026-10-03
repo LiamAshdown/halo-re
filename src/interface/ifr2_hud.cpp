@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/camera/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -50,7 +51,6 @@ extern int16_t unit_count_deployed_weapons(datum_index unit_index);
 extern void hud_weapon_interface_meters_evaluate(datum_index hud_interface_tag_id, int16_t local_player_index, int32_t weapon_or_vehicle_index, void *state_ptr);
 extern int16_t current_local_player_index;
 extern hud_globals_flags *hud_flags;
-extern int16_t camera_get_type_for_player(int16_t player_index);
 extern datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
 extern uint8_t blip_type_get(int16_t local_player_index, datum_index object_index);
 extern game_engine_definition *current_game_engine;
@@ -1106,7 +1106,7 @@ int32_t WeaponHud::weapon_hud_interface(float *out_intensity)
     if (player_handle != (datum_index)-1) {
         player *player_record = (player *)((char *)player_data->data +
                                            (player_handle & 0xffff) * 0x200);
-        int16_t camera_type = camera_get_type_for_player(current_local_player_index);
+        int16_t camera_type = halo::camera::camera_get_type_for_player(current_local_player_index);
 
         if (hud_flags != (hud_globals_flags *)0 && hud_flags->hud_enabled != 0 &&
             camera_type != 3 && camera_type != 2 && player_record->unit != (datum_index)-1) {
@@ -1271,7 +1271,7 @@ void MotionSensor::render(uint8_t splitscreen, const int16_t *screen_center, int
     int32_t k;
 
     {
-        int16_t camera_type = camera_get_type_for_player(local_player_index);
+        int16_t camera_type = halo::camera::camera_get_type_for_player(local_player_index);
         if (camera_type == 3 || camera_type == 2) {
             return;
         }

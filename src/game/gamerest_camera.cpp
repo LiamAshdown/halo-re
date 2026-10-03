@@ -4,6 +4,7 @@
 #include "halo/structures/api.hpp"
 #include <stdlib.h>
 #include "halo/physics/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -18,7 +19,6 @@ extern double sin(double x);
 extern double cos(double x);
 extern int16_t object_collect_in_clusters(uint32_t search_mask, int16_t cluster_count, int16_t *cluster_indices, int16_t max_output, datum_index *out_objects);
 extern uint16_t camera_observer_collect_target_candidates(observer_target_cone *cone, datum_index start_object, real_point3d *observer_position, real_vector3d *facing, real max_distance, real sin_max_angle, real cos_max_angle, datum_index exclude_object, int16_t observer_team, int16_t capacity, observer_target_candidate *out);
-extern int16_t camera_get_type_for_player(int16_t local_player_index);
 extern player_globals *local_player_globals;
 extern player_control_globals *player_control_globals_ptr;
 extern observer observers[1];
@@ -202,7 +202,7 @@ uint32_t CameraObserver::get_target_angles(real *out_weight_primary, real *out_w
     real_vector3d target_velocity;
     real dx, dy, dz, h2, h;
 
-    camera_type = camera_get_type_for_player(local_player_slot);
+    camera_type = halo::camera::camera_get_type_for_player(local_player_slot);
     *out_weight_primary = 0.0f;
     *out_weight_secondary = 0.0f;
     out_yaw_pitch[1] = 0.0f;

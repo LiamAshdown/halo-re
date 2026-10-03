@@ -22,6 +22,7 @@
 #include "halo/main/level.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" { int campaign_level_find_index_for_path(char *path); }
 extern "C" { void credits_load_directly_for_endgame(void); }
@@ -122,8 +123,6 @@ extern "C" { extern uint8_t *main_game_globals; }
 extern "C" { extern void cache_file_switch_map_by_path(char *path, uint8_t apply_state); }
 extern "C" { extern void game_stop_current_map(void); }
 extern "C" { extern void game_unload_map(void); }
-extern "C" { extern void camera_debug_start(int16_t camera_point_index, int16_t ticks, datum_index relative_object); }
-extern "C" { extern void camera_debug_compute_pov(director_camera_data *data, camera_input *input, observer_command *command); }
 namespace halo::main {
 
 /**
@@ -166,12 +165,12 @@ void LevelControl::chimera__load_ui_map(char play_title_music)
     game_scenario_session_begin(&request);
 
     *hs_camera_control_pointer = 1;
-    directors[0].pov_proc = camera_debug_compute_pov;
+    directors[0].pov_proc = halo::camera::camera_debug_compute_pov;
     directors[0].look_scale = 1.0f;
     directors[0].unknown_c0 = 0;
     camera_script.camera_control = 1;
     camera_script.changed = 1;
-    camera_debug_start(0, 0, (datum_index)-1);
+    halo::camera::camera_debug_start(0, 0, (datum_index)-1);
 
     ui_split_screen = 1;
     main_globals_data.unknown_06b = 1;

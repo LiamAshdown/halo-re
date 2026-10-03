@@ -1,6 +1,7 @@
 #include "halo/hs/hs1_system_commands.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -18,8 +19,6 @@ extern uint8_t network_game_client_connect_to_address_async(char *address, char 
 extern uint8_t main_globals_byte_00719752;
 extern uint8_t main_globals_byte_00719753;
 extern uint8_t main_globals_byte_00719751;
-extern void camera_debug_load_from_file(void);
-extern void camera_debug_save_to_file(void);
 }
 
 namespace halo::hs {
@@ -161,7 +160,7 @@ void SystemCommands::crash(int16_t function_index, uint32_t thread_index, char f
  */
 void SystemCommands::debug_camera_load(int16_t function_index, uint32_t thread_index, char first)
 {
-    camera_debug_load_from_file();
+    halo::camera::camera_debug_load_from_file();
     hs_thread_return(0, thread_index);
 }
 
@@ -172,7 +171,7 @@ void SystemCommands::debug_camera_load(int16_t function_index, uint32_t thread_i
  */
 void SystemCommands::debug_camera_save(int16_t function_index, uint32_t thread_index, char first)
 {
-    camera_debug_save_to_file();
+    halo::camera::camera_debug_save_to_file();
     hs_thread_return(0, thread_index);
 }
 

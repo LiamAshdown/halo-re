@@ -1,14 +1,12 @@
 #include "halo/hs/hs1_camera_commands.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern void camera_control(uint8_t enable);
-extern void camera_debug_start(int16_t camera_point_index, int16_t ticks, datum_index relative_object);
-extern void camera_script_set_animation(datum_index animation_tag, char *name);
 extern int16_t director_camera_mode;
 extern uint8_t unknown_006869d1;
 extern datum_index director_camera_target;
@@ -37,7 +35,7 @@ void CameraCommands::run_camera_control(int16_t function_index, uint32_t thread_
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    camera_control(*(uint8_t *)&arguments[0]);
+    halo::camera::camera_control(*(uint8_t *)&arguments[0]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -54,7 +52,7 @@ void CameraCommands::camera_set(int16_t function_index, uint32_t thread_index, c
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        camera_debug_start(*(int16_t *)&arguments[0], *(int16_t *)&arguments[1], k_datum_index_none);
+        halo::camera::camera_debug_start(*(int16_t *)&arguments[0], *(int16_t *)&arguments[1], k_datum_index_none);
         hs_thread_return(0, thread_index);
     }
 }
@@ -71,7 +69,7 @@ void CameraCommands::camera_set_animation(int16_t function_index, uint32_t threa
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        camera_script_set_animation((datum_index)arguments[0], (char *)arguments[1]);
+        halo::camera::camera_script_set_animation((datum_index)arguments[0], (char *)arguments[1]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -130,7 +128,7 @@ void CameraCommands::camera_set_relative(int16_t function_index, uint32_t thread
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    camera_debug_start(*(int16_t *)&arguments[0], *(int16_t *)&arguments[1], (datum_index)arguments[2]);
+    halo::camera::camera_debug_start(*(int16_t *)&arguments[0], *(int16_t *)&arguments[1], (datum_index)arguments[2]);
     hs_thread_return(0, thread_index);
     }
 }

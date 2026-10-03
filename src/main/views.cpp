@@ -28,6 +28,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" { void render_view_camera_fill(observer_camera *observer, render_view *view); }
 extern "C" { void screenshot_render(render_view *views); }
@@ -246,7 +247,6 @@ void RenderViews::pregame_view_initialize(void)
 
 extern "C" { extern game_time_globals *game_time; }
 extern "C" { extern console_globals console_globals_data; }
-extern "C" { extern int16_t camera_get_type_for_player(int16_t local_player_index); }
 namespace halo::main {
 
 /**
@@ -288,7 +288,7 @@ void RenderViews::view_camera_fill(observer_camera *observer, render_view *view)
 
         if (view->local_player_index != -1 && console_globals_data.active == 0 &&
             game_time->paused == 0) {
-            if (camera_get_type_for_player(view->local_player_index) != 3) {
+            if (halo::camera::camera_get_type_for_player(view->local_player_index) != 3) {
                 real_matrix4x3 shake_matrix;
                 real_matrix4x3 orientation;
 

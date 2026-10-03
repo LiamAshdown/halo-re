@@ -28,6 +28,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" { void game_engine_flush_pending_simulation_ticks(void); }
 extern "C" { uint32_t game_frame_rate_average_update(void); }
@@ -304,9 +305,6 @@ extern "C" { extern void game_engine_update_local_player_control(int16_t local_p
 extern "C" { extern uint8_t chat_poll_hotkeys(void); }
 extern "C" { extern char update_server_send_update(int32_t ticks, uint8_t frame_time_overflow); }
 extern "C" { extern void player_update_history_log_write(uint32_t category_flags, int32_t use_filtered_mask, const char *format, ...); }
-extern "C" { extern void camera_update(float dt); }
-extern "C" { extern uint8_t camera_is_local_player_default_first_person(void); }
-extern "C" { extern void observer_update(float dt, uint8_t add_bob); }
 extern "C" { extern void game_engine_update_end_game_sequence(float delta_time); }
 extern "C" { extern void main_save_map_private(void); }
 extern "C" { extern void timedemo_benchmark_update(void); }
@@ -691,9 +689,9 @@ void MainLoop::loop(void)
                  main_globals_data.time_is_running != 0)) {
                 render_frame = 1;
             }
-            camera_update((float)main_globals_data.time_is_running * main_globals_data.frame_delta_time);
-            add_bob = camera_is_local_player_default_first_person();
-            observer_update((float)main_globals_data.time_is_running * main_globals_data.frame_delta_time,
+            halo::camera::camera_update((float)main_globals_data.time_is_running * main_globals_data.frame_delta_time);
+            add_bob = halo::camera::camera_is_local_player_default_first_person();
+            halo::camera::observer_update((float)main_globals_data.time_is_running * main_globals_data.frame_delta_time,
                 add_bob);
             game_engine_update_end_game_sequence(
                 (float)main_globals_data.time_is_running * main_globals_data.frame_delta_time);

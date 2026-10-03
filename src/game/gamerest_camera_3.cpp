@@ -2,6 +2,7 @@
 #include <string.h>
 #include "halo/math/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -10,9 +11,6 @@ extern game_time_globals *game_time;
 extern uint32_t unit_noop_569670(uint32_t object_index);
 extern char camera_observer_find_best_target(real_point3d *observer_position, observer_target_cone *cone, real_vector3d *facing, datum_index exclude_object, int16_t team, void *out);
 extern uint8_t unit_get_current_weapon_autoaim_cone(datum_index unit_index, int16_t require_zoomed, real *out);
-extern int16_t camera_get_seat_camera_state(datum_index unit, int16_t *out_state);
-extern void first_person_camera_deterministic(Point3D *out_position, datum_index unit, Vector3D *out_direction);
-extern void first_person_camera_apply_weapon_offset(real_point3d *position, datum_index unit, real_vector3d *aiming_direction);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, void *result);
 extern double sqrt(double x);
 extern double sin(double x);
@@ -59,10 +57,10 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
         real_vector3d probe_delta;
 
         unit = ((struct player *)player)->unit;
-        if (camera_get_seat_camera_state(unit, &seat_state) == 0) {
-            first_person_camera_deterministic((Point3D *)&camera_position, unit, (Vector3D *)&camera_direction);
+        if (halo::camera::camera_get_seat_camera_state(unit, &seat_state) == 0) {
+            halo::camera::first_person_camera_deterministic((Point3D *)&camera_position, unit, (Vector3D *)&camera_direction);
         } else {
-            first_person_camera_apply_weapon_offset(&camera_position, unit, &camera_direction);
+            halo::camera::first_person_camera_apply_weapon_offset(&camera_position, unit, &camera_direction);
         }
 
         target_direction = *fallback_facing;

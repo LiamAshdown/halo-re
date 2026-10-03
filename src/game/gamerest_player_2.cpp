@@ -7,6 +7,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -38,7 +39,6 @@ extern void object_type_override_call_0x68(uint32_t object_index);
 extern int32_t unit_build_network_update(uint32_t object_index, int32_t buffer, int32_t bit_budget);
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server_globals *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
 extern void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index player_handle, int32_t value, int32_t machine_index);
-extern void observer_new(observer *observer_this);
 extern double cos(double x);
 extern double sin(double x);
 extern real_vector3d *reference_axis_006696728;
@@ -242,7 +242,7 @@ reset_player_state:
     *(uint16_t *)&((player *)p)->interaction_type = 0;
     ((player *)p)->interaction_object = k_datum_index_none;
     if (((player *)p)->local_player_index != -1) {
-        observer_new(&observers[((player *)p)->local_player_index]);
+        halo::camera::observer_new(&observers[((player *)p)->local_player_index]);
     }
 }
 

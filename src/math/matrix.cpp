@@ -10,12 +10,11 @@
 
 #include "tags.h"
 #include "memory.h"
+#include "halo/camera/api.hpp"
 
 extern "C" {
 extern double cos(double x);
 extern double sin(double x);
-extern uint8_t vector3d_is_unit_length(real_vector3d *v);
-extern uint8_t real_approximately_equal(real a, real b);
 }
 
 namespace halo::math {
@@ -304,15 +303,15 @@ void euler_angles_to_basis_vectors(const real_euler_angles3d &angles, real_vecto
 
 uint8_t real_matrix4x3_rotation_is_orthonormal(real_vector3d *forward, real_vector3d *left, real_vector3d *up)
 {
-    if (!vector3d_is_unit_length(forward)) return 0;
-    if (!vector3d_is_unit_length(left)) return 0;
-    if (!vector3d_is_unit_length(up)) return 0;
+    if (!halo::camera::vector3d_is_unit_length((Vector3D *)forward)) return 0;
+    if (!halo::camera::vector3d_is_unit_length((Vector3D *)left)) return 0;
+    if (!halo::camera::vector3d_is_unit_length((Vector3D *)up)) return 0;
 
-    if (!real_approximately_equal(forward->i * left->i + forward->j * left->j + forward->k * left->k, 0.0f))
+    if (!halo::camera::real_approximately_equal(forward->i * left->i + forward->j * left->j + forward->k * left->k, 0.0f))
         return 0;
-    if (!real_approximately_equal(forward->i * up->i + forward->j * up->j + forward->k * up->k, 0.0f))
+    if (!halo::camera::real_approximately_equal(forward->i * up->i + forward->j * up->j + forward->k * up->k, 0.0f))
         return 0;
-    if (!real_approximately_equal(left->i * up->i + left->j * up->j + left->k * up->k, 0.0f))
+    if (!halo::camera::real_approximately_equal(left->i * up->i + left->j * up->j + left->k * up->k, 0.0f))
         return 0;
 
     return 1;
