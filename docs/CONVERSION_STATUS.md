@@ -11,7 +11,7 @@ fails, revert the latest merges one by one until it is green and log the offende
 ## Wave 1 (whole modules, Sonnet unless noted)
 | agent id | modules | status | merged |
 |---|---|---|---|
-| a58adc644eb7b93a4 | memory, cseries, cache | running | no |
+| a58adc644eb7b93a4 | memory, cseries, cache | done | pending (commit bbe6378f; 3 checks 0 missing/0 extra; view structs, no registries) |
 | a8c68560df27ca293 | structures, scenario, bitmaps, models, text, shaders | done | pending (all 6 checks 0 missing/0 extra; text uses a Strategy) |
 | a690688f77ce90677 | camera, cutscene, devices, dialogs, projectiles | done | yes (e92165ab; all 5 checks 0 missing/0 extra; handle classes, no registry because dispatch tables are fixed data in standalone/data) |
 | a30d258f6c14fe84c | input, main, physics | done | yes (f1a0498d; checks 0 missing/0 extra; static-function service classes) |
@@ -42,3 +42,4 @@ Launched: ai_actor_1 = a816627a3d7da40e7, ai_actor_2 = ab96a7b6b4db18803
 - Wave 2 launched: ai_rest = a3286720ac0c33a33, hs_1 = ac1b96a5f35fa3abd, hs_2 = a19b5ccfa208639bd, hs_3 = a86799ccf54aaf388 (worktrees fast-forwarded by the lead). When fast-forwarding an agent worktree, first delete the untracked files the agent copied (docs/CPP_CONVENTIONS.md, tools/check_module_symbols.py) or git refuses.
 
 - Also pending after build 1: a9d9f7699c4305c1b (sound). Watch the audio path in the smoke test.
+- Wave 2 batch 2 launched: game_game_1 = adf15f46e5ca3f177, game_game_2 = a8e668d413881d3cf, game_rest = ad3b932c3cbff9f0b, interface_ui = a484a43168222aa00. Pending merges now also include a58adc644eb7b93a4 (memory, cseries, cache).
