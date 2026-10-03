@@ -2524,6 +2524,12 @@ typedef struct actor_firing_positions {
 } actor_firing_positions;         // size 0x38
 
 
+// One cell of the per-line history tables of the communication and conversation lines (game state, row * 2 + category).
+typedef struct ai_line_history {
+    int32_t last_tick;           // 0x00 game tick the line was last spoken in this category, -1 never
+    int32_t cooldown_until_tick; // 0x04 game tick before which the line may not repeat, -1 none
+} ai_line_history;               // size 0x08
+
 // The block actor_fill_unit_position_context @0x41b930 fills for its callers.
 typedef struct actor_unit_position_context {
     real_point3d local_transform_position; // 0x00 UNSURE

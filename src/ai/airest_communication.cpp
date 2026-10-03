@@ -35,13 +35,12 @@ static auto &ai_communication_class_follow_up = halo::link::ref<int16_t []>(halo
 static auto &ai_communication_class_look_marker = halo::link::ref<int16_t []>(halo::ai::vars().ai_communication_class_look_marker);
 static auto &ai_communication_class_no_actor_class = halo::link::ref<int16_t []>(halo::ai::vars().ai_communication_class_no_actor_class);
 static auto &ai_communication_selector_delay_seconds = halo::link::ref<float []>(halo::ai::vars().ai_communication_selector_delay_seconds);
-static auto &communication_line_base = halo::link::ref<uint8_t *>(halo::ai::vars().communication_line_base);
-static auto &communication_line_word = reinterpret_cast<int32_t &>(communication_line_base);
+static auto &communication_line_history = halo::link::ref<ai_line_history *>(halo::ai::vars().communication_line_base);
 static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
 static auto &communication_line_count = halo::link::ref<int16_t>(halo::ai::vars().communication_line_count);
 static auto &conversation_line_count = halo::link::ref<int16_t>(halo::ai::vars().conversation_line_count);
-static auto &conversation_line_base = halo::link::ref<int32_t>(halo::ai::vars().conversation_line_base);
+static auto &conversation_line_history = halo::link::ref<ai_line_history *>(halo::ai::vars().conversation_line_base);
 static auto &ai_communication_event_definitions = halo::link::ref<ai_communication_event_definition []>(halo::ai::vars().ai_communication_event_definitions);
 static inline uint8_t *ai_communication_event_definition_bytes()
 {
@@ -587,19 +586,18 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                     }
                     recent_value = (uint16_t)((int16_t *)recent_ticks)[index];
                     if ((int16_t)class_word < 7) {
-                        int32_t *history = (int32_t *)(communication_line_base +
-                                                       ((int16_t)row_index * 2 + type_side) * 8);
+                        ai_line_history *history = &communication_line_history[(int16_t)row_index * 2 + type_side];
 
-                        if (history[0] != -1) {
-                            recency = (float)(now - history[0]) * 0.0011111111f;
+                        if (history->last_tick != -1) {
+                            recency = (float)(now - history->last_tick) * 0.0011111111f;
                             if (!(recency >= 0.0f)) {
                                 recency = 0.0f;
                             } else if (!(recency <= 1.0f)) {
                                 recency = 1.0f;
                             }
                         }
-                        if (history[1] != -1) {
-                            int32_t wait = history[1] - now;
+                        if (history->cooldown_until_tick != -1) {
+                            int32_t wait = history->cooldown_until_tick - now;
 
                             if (near) {
                                 wait += 30;
@@ -887,9 +885,9 @@ void AiCommunication::initialize()
         communication_line_count = communication_line_count + 1;
     } while (line->event_id != -1);
 
-    if (communication_line_word == 0) {
+    if (communication_line_history == 0) {
         int32_t allocation_size = (int32_t)communication_line_count * 0x10;
-        communication_line_word = (int32_t)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
+        communication_line_history = (ai_line_history *)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
         halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + allocation_size;
         halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&allocation_size, 4);
     }
@@ -900,9 +898,9 @@ void AiCommunication::initialize()
         conversation_line_count = conversation_line_count + 1;
     } while (event_row->event_id != -1);
 
-    if (conversation_line_base == 0) {
+    if (conversation_line_history == 0) {
         int32_t allocation_size = (int32_t)conversation_line_count * 0x10;
-        conversation_line_base = (int32_t)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
+        conversation_line_history = (ai_line_history *)(halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor);
         halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + allocation_size;
         halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&allocation_size, 4);
     }
@@ -1424,7 +1422,7 @@ void AiCommunication::record_line_played(datum_index object_index, int16_t tier,
     int32_t decay;
     int32_t stamp;
     int32_t category;
-    int32_t *entry;
+    ai_line_history *entry;
     int32_t *slot;
 
     obj = (unit_object *)halo::ai::object_at(object_index);
@@ -1470,19 +1468,19 @@ void AiCommunication::record_line_played(datum_index object_index, int16_t tier,
     if (communication_line_id != -1) {
         float delay = DAT_00655ab4[communication_line_id * 0x28 / 4];
 
-        entry = (int32_t *)(communication_line_word + (category + communication_line_id * 2) * 8);
-        entry[0] = current_tick;
+        entry = &communication_line_history[category + communication_line_id * 2];
+        entry->last_tick = current_tick;
         if (delay > 0.0f) {
-            entry[1] = (int32_t)(delay * 30.0f + (float)stamp);
+            entry->cooldown_until_tick = (int32_t)(delay * 30.0f + (float)stamp);
         }
     }
     if (conversation_line_id != -1) {
         float delay = DAT_00656b24[conversation_line_id * 0x24 / 4];
 
-        entry = (int32_t *)(conversation_line_base + (category + conversation_line_id * 2) * 8);
-        entry[0] = current_tick;
+        entry = &conversation_line_history[category + conversation_line_id * 2];
+        entry->last_tick = current_tick;
         if (delay > 0.0f) {
-            entry[1] = (int32_t)(delay * 30.0f + (float)stamp);
+            entry->cooldown_until_tick = (int32_t)(delay * 30.0f + (float)stamp);
         }
     }
 }
@@ -1497,7 +1495,7 @@ void AiCommunication::reset()
 {
     int32_t i;
     int32_t entry_count;
-    int32_t *entries;
+    ai_line_history *entries;
     uint8_t *element;
 
     halo::ai::globals().state->dialogue_triggers_enabled = 1;
@@ -1506,18 +1504,18 @@ void AiCommunication::reset()
         halo::ai::globals().state->loudest_line_tick[i][1] = 0;
     }
 
-    entries = (int32_t *)communication_line_word;
+    entries = communication_line_history;
     entry_count = communication_line_count * 2;
     for (i = 0; i < entry_count; i++) {
-        entries[i * 2] = -1;
-        entries[i * 2 + 1] = -1;
+        entries[i].last_tick = -1;
+        entries[i].cooldown_until_tick = -1;
     }
 
-    entries = (int32_t *)conversation_line_base;
+    entries = conversation_line_history;
     entry_count = conversation_line_count * 2;
     for (i = 0; i < entry_count; i++) {
-        entries[i * 2] = -1;
-        entries[i * 2 + 1] = -1;
+        entries[i].last_tick = -1;
+        entries[i].cooldown_until_tick = -1;
     }
 
     halo::ai::globals().state->conversation_event_count = 0;
@@ -2081,7 +2079,7 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
     uint32_t search_kind;
     unit_object *vehicle_obj;
     int16_t comm_kind;
-    int32_t *timestamp_pair;
+    ai_line_history *timestamp_pair;
     int32_t now;
 
     result = -1;
@@ -2123,10 +2121,9 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
                             int16_t comm_index = (int16_t)halo::ai::actor_classify_communication_object_type((datum_index)result);
                             if (comm_index != -1) {
                                 now = halo::game::globals().game_time->game_time;
-                                timestamp_pair = (int32_t *)(conversation_line_base +
-                                    (comm_index + index * 2) * 8);
-                                if (timestamp_pair[0] != -1) {
-                                    weight = (float)(now - timestamp_pair[0]) * 0.0011111111f;
+                                timestamp_pair = &conversation_line_history[comm_index + index * 2];
+                                if (timestamp_pair->last_tick != -1) {
+                                    weight = (float)(now - timestamp_pair->last_tick) * 0.0011111111f;
                                     if (0.0f <= weight) {
                                         if (1.0f < weight) {
                                             weight = 1.0f;
@@ -2135,8 +2132,8 @@ int32_t AiCommunication::select_communication_target(uint32_t param_a, uint32_t 
                                         weight = 0.0f;
                                     }
                                 }
-                                if (timestamp_pair[1] != -1 && timestamp_pair[1] != now &&
-                                    -1 < timestamp_pair[1] - now) {
+                                if (timestamp_pair->cooldown_until_tick != -1 && timestamp_pair->cooldown_until_tick != now &&
+                                    -1 < timestamp_pair->cooldown_until_tick - now) {
                                     result = -1;
                                 }
                             }
