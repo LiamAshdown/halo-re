@@ -16,13 +16,6 @@ namespace halo::networking {
 class AutopatchUpdater {
 public:
     /**
-     * One-time entry point that kicks off the background thread which checks bungie.net for a game update: if the update-config directory is writable, deletes any stale "currentupdate.cfg" first, then starts the version-check thread.
-     *
-     * @address 0x577240
-     */
-    static int32_t check_for_update_start(void);
-
-    /**
      * Writes the hardcoded current game build version string ("01.00.10.0621") into out (a 14-byte buffer, including the NUL).
      *
      * @address 0x578190
@@ -106,21 +99,6 @@ public:
      * @address 0x575fa0
      */
     static char * temp_name_generate(void);
-
-    /**
-     * Original engine function `autopatch_version_check_completed`.
-     *
-     * @address 0x5777d0
-     */
-    static void version_check_completed(int32_t available, int32_t mandatory, const char *version_name, int32_t file_id,
-    const char *download_url, void *param);
-
-    /**
-     * Thread that waits for proxy setup and then sends the current game version and distribution id to check for an update; clears the "check succeeded" flag if the version string is empty or the request could not be sent.
-     *
-     * @address 0x5771e0
-     */
-    static uint32_t version_check_request(void);
 
     /**
      * Returns 1 if version exactly matches either the current build string ("01.00.10.0621") or the minimum baseline ("01.00.08.0616"), 0 for any other string -- so, despite the name, this reads as a "recognized version" check rather than a true outdated/not-outdated comparison.

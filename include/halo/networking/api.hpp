@@ -85,7 +85,6 @@ struct Globals {
 
 Globals &globals();
 
-int32_t autopatch_check_for_update_start(void);
 void autopatch_current_version_string_get(char *out);
 uint32_t autopatch_download_complete_callback(int32_t request_id, int32_t error, uint8_t *data, uint32_t size);
 uint8_t autopatch_download_get_result(void **out_data, int32_t *out_size, int32_t slot_index);
@@ -98,8 +97,6 @@ uint32_t autopatch_download_worker_thread(void);
 char * autopatch_get_proxy_settings(void);
 uint32_t __stdcall autopatch_proxy_initialize(void *parameter);
 char * autopatch_temp_name_generate(void);
-void autopatch_version_check_completed(int32_t available, int32_t mandatory, const char *version_name, int32_t file_id, const char *download_url, void *param);
-uint32_t autopatch_version_check_request(void);
 uint32_t autopatch_version_string_is_outdated(char *version);
 uint8_t ban_list_check_and_reject_player(char *key);
 ban_list_entry * ban_list_find_by_name(char *key);

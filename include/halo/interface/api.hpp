@@ -91,7 +91,6 @@ struct Globals {
 Globals &globals();
 
 uint32_t audio_options_apply_from_profile(widget_instance *widget);
-void autopatch_status_widget_update(widget_instance *record);
 int32_t bitmap_group_sequence_get_bitmap_offset(datum_index bitmap_tag, int16_t sequence_index, int16_t frame_index);
 uint8_t blip_type_get(int16_t local_player_index, datum_index object_index);
 void chat_close(void);

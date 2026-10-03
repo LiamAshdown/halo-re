@@ -72,9 +72,6 @@ network_thread_record *autopatch_download_thread;  // 0x007227c4
 uint8_t autopatch_download_active_count;  // 0x007227c8
 char autopatch_proxy_server[0x100];  // 0x007227d0
 uint8_t autopatch_proxy_ready;  // 0x007228d0
-int32_t autopatch_update_file_id;  // 0x007228d4
-char autopatch_update_url[0x100];  // 0x007228d8
-char autopatch_update_version[64];  // 0x007229d8
 int32_t network_session_host_state;  // 0x00722a18
 uint8_t network_session_host_closing;  // 0x00722a1c
 void *network_session_host_object;  // 0x00722a20
@@ -275,9 +272,6 @@ HALO_SZ_CHECK(autopatch_download_thread, 4);
 HALO_SZ_CHECK(autopatch_download_active_count, 8);
 HALO_SZ_CHECK(autopatch_proxy_server, 256);
 HALO_SZ_CHECK(autopatch_proxy_ready, 4);
-HALO_SZ_CHECK(autopatch_update_file_id, 4);
-HALO_SZ_CHECK(autopatch_update_url, 256);
-HALO_SZ_CHECK(autopatch_update_version, 64);
 HALO_SZ_CHECK(network_session_host_state, 4);
 HALO_SZ_CHECK(network_session_host_closing, 4);
 HALO_SZ_CHECK(network_session_host_object, 4);

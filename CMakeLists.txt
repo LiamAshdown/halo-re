@@ -73,7 +73,6 @@ set(SUPPORT_SOURCES
     "${SA}/bridges.cpp")
 add_executable(halo_rebuilt WIN32 ${SUPPORT_SOURCES}
     $<TARGET_OBJECTS:halo_game> $<TARGET_OBJECTS:halo_data>)
-add_dependencies(halo_rebuilt third_party_import_libs)
 target_compile_options(halo_rebuilt PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++20> $<$<COMPILE_LANGUAGE:CXX>:/permissive-> $<$<COMPILE_LANGUAGE:CXX>:/GR->)
 
 set_source_files_properties(${SUPPORT_SOURCES} PROPERTIES COMPILE_OPTIONS "/O2;/GS-")

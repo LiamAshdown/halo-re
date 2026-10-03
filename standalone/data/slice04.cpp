@@ -536,8 +536,6 @@ int32_t network_console_connection_id = -1;
 /* 0x0069fe00 size 1: network_session_host_flags_byte */
 uint8_t network_session_host_flags_byte = 0x1;
 
-/* 0x0069fe04 size 4: autopatch_update_check_state */
-int32_t autopatch_update_check_state = -1;
 
 /* 0x0069fe3c size 4: config_maximum_resolution */
 int32_t config_maximum_resolution = 4096;

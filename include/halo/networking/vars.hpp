@@ -27,10 +27,6 @@ struct Vars {
     void *autopatch_proxy_ready;
     void *autopatch_proxy_server;
     void *autopatch_temp_name_flag;
-    void *autopatch_update_check_state;
-    void *autopatch_update_file_id;
-    void *autopatch_update_url;
-    void *autopatch_update_version;
     void *ban_list;
     void *console_color_00685214;
     void *console_color_00686af8;
