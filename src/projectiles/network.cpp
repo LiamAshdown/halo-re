@@ -1,4 +1,5 @@
 #include "halo/projectiles/network.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -233,7 +234,7 @@ void ProjectileNetwork::request_state(int16_t requested_state)
 {
     datum_index projectile_index = (datum_index)handle;
 
-    object *obj = ((object_header *)object_data->data)[projectile_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(projectile_index)].data;
     projectile_data *pd = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
 
     if (pd->state < requested_state) {
@@ -254,23 +255,23 @@ int32_t ProjectileNetwork::send_creation()
 {
     uint32_t projectile_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[projectile_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(projectile_index)].data;
     int32_t projectile_hash = 0;
     int32_t creating_object_hash = 0;
     int32_t owner_hash = 0;
     projectile_creation_message message;
     void *message_ptr;
 
-    if (projectile_index != 0xffffffff) {
+    if (projectile_index != halo::k_dword_none) {
         projectile_hash = hash_table_get(&object_network_id_table->id_to_index, projectile_index);
     }
-    if (obj->creator_object != 0xffffffff) {
+    if (obj->creator_object != halo::k_dword_none) {
         creating_object_hash = hash_table_get(&object_network_id_table->id_to_index, obj->creator_object);
         if (creating_object_hash == -1) {
             creating_object_hash = 0;
         }
     }
-    if (obj->owner_linkage != 0xffffffff) {
+    if (obj->owner_linkage != halo::k_dword_none) {
         owner_hash = hash_table_get(&machine_table->id_to_index, obj->owner_linkage);
         if (owner_hash == -1) {
             owner_hash = 0;
@@ -289,9 +290,9 @@ int32_t ProjectileNetwork::send_creation()
     message.forward = obj->forward;
     message.up = obj->up;
     message.angular_velocity = obj->angular_velocity;
-    message.baseline_index = *((uint8_t *)obj + 0x27a); 
+    message.baseline_index = ((projectile_object *)obj)->projectile.network_baseline_index; 
     {
-        projectile_network_state *net = (projectile_network_state *)((uint8_t *)obj + 0x27c);
+        projectile_network_state *net = &((projectile_object *)obj)->projectile.network_state;
         message.position = net->position;
         message.velocity = net->velocity;
     }
@@ -324,11 +325,11 @@ void ProjectileNetwork::attach_apply(void *incoming_record)
         return;
     }
 
-    projectile_handle = (datum_index)0xffffffff;
+    projectile_handle = (datum_index)k_datum_index_none;
     if (decoded.object_hash != 0) {
         projectile_handle = object_network_id_table->handles[decoded.object_hash];
     }
-    parent_handle = (datum_index)0xffffffff;
+    parent_handle = (datum_index)k_datum_index_none;
     if (decoded.parent_hash != 0) {
         parent_handle = object_network_id_table->handles[decoded.parent_hash];
     }
@@ -339,15 +340,15 @@ void ProjectileNetwork::attach_apply(void *incoming_record)
     }
 
     {
-        Projectile *tag = (Projectile *)tag_instances[self->definition_tag & 0xffff].data;
+        Projectile *tag = (Projectile *)tag_instances[halo::datum_slot(self->definition_tag)].data;
         projectile_data *self_pd = (projectile_data *)((uint8_t *)self + k_projectile_data_offset);
 
         if ((tag->projectile_flags & _projectile_definition_has_super_combining_explosion_bit) != 0) {
-            parent = ((object_header *)object_data->data)[parent_handle & 0xffff].data;
+            parent = ((object_header *)object_data->data)[halo::datum_slot(parent_handle)].data;
             datum_index sibling_index = parent->first_child_object;
             int16_t sibling_count = 0;
-            while (sibling_index != (datum_index)0xffffffff) {
-                object *sibling = ((object_header *)object_data->data)[sibling_index & 0xffff].data;
+            while (sibling_index != (datum_index)k_datum_index_none) {
+                object *sibling = ((object_header *)object_data->data)[halo::datum_slot(sibling_index)].data;
                 projectile_data *sibling_pd = (projectile_data *)((uint8_t *)sibling + k_projectile_data_offset);
                 if (sibling->definition_tag == self->definition_tag &&
                     (sibling_pd->flags & _projectile_super_detonation_counted_bit) == 0) {
@@ -427,11 +428,11 @@ void ProjectileNetwork::create_from_network(void *incoming_record)
     vector3d_normalize_with_length(&forward);
     vector3d_normalize_with_length(&up);
 
-    role_material = 0xffffffff;
+    role_material = halo::k_dword_none;
     if (decoded.creating_object_hash != 0) {
         role_material = ((uint32_t *)object_network_id_table->handles)[decoded.creating_object_hash];
     }
-    owner_material = 0xffffffff;
+    owner_material = halo::k_dword_none;
     if (decoded.owner_hash != 0) {
         owner_material = ((uint32_t *)machine_table->handles)[decoded.owner_hash];
     }
@@ -457,7 +458,7 @@ void ProjectileNetwork::create_from_network(void *incoming_record)
 
     network_index_cache_insert_if_free(&network_object_index_cache, new_object_index, decoded.object_hash);
 
-    obj = ((object_header *)object_data->data)[new_object_index & 0xffff].data;
+    obj = ((object_header *)object_data->data)[halo::datum_slot(new_object_index)].data;
     proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
 
     proj->network_state.position = decoded.position;
@@ -500,11 +501,11 @@ void ProjectileNetwork::detonation_message_apply(void *incoming_record)
     }
 
     projectile_index = object_network_id_table->handles[decoded.object_hash];
-    if (projectile_index == (datum_index)0xffffffff) {
+    if (projectile_index == (datum_index)k_datum_index_none) {
         return;
     }
 
-    if ((((object_header *)object_data->data)[projectile_index & 0xffff].flags & _object_header_delete_pending_bit) == 0) {
+    if ((((object_header *)object_data->data)[halo::datum_slot(projectile_index)].flags & _object_header_delete_pending_bit) == 0) {
         network_index_cache_remove(&network_object_index_cache, projectile_index); 
     }
 

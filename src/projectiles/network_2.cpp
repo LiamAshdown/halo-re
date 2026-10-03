@@ -1,8 +1,9 @@
 #include "halo/projectiles/network.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern network_id_table *object_network_id_table;
-extern uint8_t network_message_scratch[0x7ff8];
+extern uint8_t network_message_scratch[halo::projectiles::k_network_message_scratch_size];
 extern int32_t hash_table_get(hash_table *table, uint32_t key);
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern network_server_globals *network_server;
@@ -36,14 +37,14 @@ void ProjectileNetwork::send_attach(datum_index parent_object_index, int16_t mar
     void *items[1];
 
     message.object_hash = 0;
-    if (projectile_index != (datum_index)0xffffffff) {
+    if (projectile_index != (datum_index)k_datum_index_none) {
         message.object_hash = hash_table_get(&object_network_id_table->id_to_index, projectile_index);
         if (message.object_hash == -1) {
             message.object_hash = 0;
         }
     }
     message.parent_hash = 0;
-    if (parent_object_index != (datum_index)0xffffffff) {
+    if (parent_object_index != (datum_index)k_datum_index_none) {
         message.parent_hash = hash_table_get(&object_network_id_table->id_to_index, parent_object_index);
         if (message.parent_hash == -1) {
             message.parent_hash = 0;
@@ -52,7 +53,7 @@ void ProjectileNetwork::send_attach(datum_index parent_object_index, int16_t mar
     message.parent_marker_index = marker_index;
 
     items[0] = &message;
-    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, k_message_projectile_attach, 0, items, 0, 1, 0), network_server, 1, network_message_scratch, 1, 0, 0, 3);
+    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, halo::projectiles::k_network_message_scratch_size, 0, k_message_projectile_attach, 0, items, 0, 1, 0), network_server, 1, network_message_scratch, 1, 0, 0, 3);
 }
 
 /**
@@ -68,21 +69,21 @@ void ProjectileNetwork::send_detonation()
 {
     datum_index projectile_index = (datum_index)handle;
 
-    object *obj = ((object_header *)object_data->data)[projectile_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(projectile_index)].data;
     projectile_detonation_message message;
     void *items[1];
 
     message.object_hash = 0;
-    if (projectile_index != (datum_index)0xffffffff) {
+    if (projectile_index != (datum_index)k_datum_index_none) {
         message.object_hash = hash_table_get(&object_network_id_table->id_to_index, projectile_index);
     }
     message.position = obj->position;
 
     items[0] = &message;
-    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, k_message_projectile_detonation, 0, items, 0, 1, 0), network_server, 1, network_message_scratch, 1, 0, 0, 3);
+    network_session_broadcast_to_flagged(message_delta_encode_message((int32_t)network_message_scratch, halo::projectiles::k_network_message_scratch_size, 0, k_message_projectile_detonation, 0, items, 0, 1, 0), network_server, 1, network_message_scratch, 1, 0, 0, 3);
 
     obj->network_role = 3;
-    if ((((object_header *)object_data->data)[projectile_index & 0xffff].flags & _object_header_delete_pending_bit) == 0) {
+    if ((((object_header *)object_data->data)[halo::datum_slot(projectile_index)].flags & _object_header_delete_pending_bit) == 0) {
         network_index_cache_remove(&network_object_index_cache, projectile_index); 
     }
 }

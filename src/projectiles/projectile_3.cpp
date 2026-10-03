@@ -1,4 +1,5 @@
 #include "halo/projectiles/projectile.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -49,8 +50,8 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
 {
     datum_index projectile_index = (datum_index)handle;
 
-    object *obj = ((object_header *)object_data->data)[projectile_index & 0xffff].data;
-    Projectile *tag = (Projectile *)tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(projectile_index)].data;
+    Projectile *tag = (Projectile *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     projectile_data *pd = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
 
     int16_t new_material_index = hit->material_type; 
@@ -135,18 +136,18 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
     
     
     {
-        uint32_t seed_step = random_seed_global * 0x19660d + 0x3c6ef35f;
+        uint32_t seed_step = advance_random_seed(random_seed_global);
         real angular_noise = response->angular_noise;
-        random_seed_global = seed_step * 0x19660d + 0x3c6ef35f;
+        random_seed_global = advance_random_seed(seed_step);
         
         
         
         
-        alignment_score = ((((real)(seed_step >> 0x10) * 1.5259022e-05f) * response->velocity_noise +
+        alignment_score = ((((real)(seed_step >> k_random_high_shift) * 1.5259022e-05f) * response->velocity_noise +
             -response->velocity_noise) - hit->plane.normal.k * velocity->k) - hit->plane.normal.j * velocity->j -
             hit->plane.normal.i * velocity->i;
         
-        angle_score = ((angular_noise - -angular_noise) * ((real)((random_seed_global >> 0x10) & 0xffff) * 1.5259022e-05f) +
+        angle_score = ((angular_noise - -angular_noise) * ((real)((random_seed_global >> k_random_high_shift) & 0xffff) * 1.5259022e-05f) +
             -angular_noise) + (vector3d_angle_between_4cd4f0((real_vector3d *)&hit->plane.normal, (real_vector3d *)velocity) - 1.5707964f);
         
     }
@@ -162,7 +163,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
           alignment_score > response->potential_and[1])) ||
         ((response->potential_flags & 1) != 0 && 
          (hit->type != _collision_result_type_object || object_try_and_get(hit->object_index, _object_mask_unit) == 0)) ||
-        ((real)((random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f, random_seed_global) >> 0x10) *
+        ((real)((random_seed_global = advance_random_seed(random_seed_global), random_seed_global) >> k_random_high_shift) *
              1.5259022e-05f < response->potential_skip_fraction)) {
         response_type = (ProjectileResponse)response->default_response;
         response_effect_tag = *(uint32_t *)&response->default_effect.tag_id;
@@ -184,8 +185,8 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         }
         breakable_surface_damage.damage_effect_tag = *(datum_index *)&tag->impact_damage.tag_id;
         breakable_surface_damage.flags |= 0x08;
-        breakable_surface_damage.responsible_player = (datum_index)0xffffffff;
-        breakable_surface_damage.responsible_object = (datum_index)0xffffffff;
+        breakable_surface_damage.responsible_player = (datum_index)k_datum_index_none;
+        breakable_surface_damage.responsible_object = (datum_index)k_datum_index_none;
         breakable_surface_damage.team_index = -1;
         breakable_surface_damage.location_cluster_index = -1;
         breakable_surface_damage.material_type = -1;
@@ -276,7 +277,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         real pre_length;
         if (response->velocity_noise != 0.0f &&
             (pre_length = vector3d_normalize_with_length(velocity)) != 0.0f) {
-            real scale = (real)((random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f, random_seed_global) >> 0x10) *
+            real scale = (real)((random_seed_global = advance_random_seed(random_seed_global), random_seed_global) >> k_random_high_shift) *
                 1.5259022e-05f * (response->velocity_noise - -response->velocity_noise) +
                 -response->velocity_noise + pre_length;
             velocity->i *= scale;
@@ -396,11 +397,11 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
             return;
         }
         if ((tag->projectile_flags & _projectile_definition_has_super_combining_explosion_bit) != 0) {
-            object *parent = ((object_header *)object_data->data)[hit->object_index & 0xffff].data;
+            object *parent = ((object_header *)object_data->data)[halo::datum_slot(hit->object_index)].data;
             datum_index sibling_index = parent->first_child_object;
             int16_t sibling_count = 0;
-            while (sibling_index != (datum_index)0xffffffff) {
-                object *sibling = ((object_header *)object_data->data)[sibling_index & 0xffff].data;
+            while (sibling_index != (datum_index)k_datum_index_none) {
+                object *sibling = ((object_header *)object_data->data)[halo::datum_slot(sibling_index)].data;
                 projectile_data *sibling_pd = (projectile_data *)((uint8_t *)sibling + k_projectile_data_offset);
                 if (sibling->definition_tag == obj->definition_tag &&
                     (sibling_pd->flags & _projectile_super_detonation_counted_bit) == 0) {
@@ -439,7 +440,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
             pd->detonation_timer_rate = 1.0f / (t * 30.0f);
         }
     } else if ((tag->projectile_flags & _projectile_definition_random_attached_detonation_time_bit) != 0) {
-        real t = (real)((random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f, random_seed_global) >> 0x10) *
+        real t = (real)((random_seed_global = advance_random_seed(random_seed_global), random_seed_global) >> k_random_high_shift) *
             1.5259022e-05f * (tag->timer[1] - tag->timer[0]) + tag->timer[0];
         if (1.0f <= t * 30.0f) {
             pd->detonation_timer_rate = 1.0f / (t * 30.0f);
@@ -452,7 +453,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
     if (obj->network_role != 0) {
         return;
     }
-    if (((object_header *)object_data->data)[hit->object_index & 0xffff].data->network_role != 0) {
+    if (((object_header *)object_data->data)[halo::datum_slot(hit->object_index)].data->network_role != 0) {
         return;
     }
     projectile_send_attach(projectile_index, hit->object_index, hit->node_index);
