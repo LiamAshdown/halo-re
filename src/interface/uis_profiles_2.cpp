@@ -13,12 +13,12 @@
 #include "halo/interface/uis_profiles.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern uint16_t new_profile_name_buffer_006b37f4[0xc];
-extern int16_t new_profile_name_entry_player_00692b00;
-extern uint8_t new_profile_name_flag_0071916e;
-}
+static auto &new_profile_name_buffer_006b37f4 = halo::link::ref<uint16_t [0xc]>(halo::ui::vars().new_profile_name_buffer_006b37f4);
+static auto &new_profile_name_entry_player_00692b00 = halo::link::ref<int16_t>(halo::ui::vars().new_profile_name_entry_player_00692b00);
+static auto &new_profile_name_flag_0071916e = halo::link::ref<uint8_t>(halo::ui::vars().new_profile_name_flag_0071916e);
 
 namespace halo::ui {
 

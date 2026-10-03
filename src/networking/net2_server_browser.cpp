@@ -31,81 +31,98 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/camera/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &playlist_profiles_need_defaults = halo::link::ref<uint8_t>(halo::ui::vars().playlist_profiles_need_defaults);
 extern "C" {
-extern uint8_t playlist_profiles_need_defaults;
 extern void playlist_profile_create_default_profiles_on_disk(void);
 extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_ids, int32_t flag);
 extern uint8_t saved_game_get_variant(int32_t saved_game_id, uint16_t *out_name);
-extern void * console_color_00685214;
-extern void * actor_mode_default_look_weights;
-extern void * server_browser_join_target;
-extern uint8_t server_browser_join_target_has_password;
-extern uint16_t network_join_target_address[128];
-extern int32_t mouse_device;
-extern int32_t mouse_neutral_state[3];
-extern int32_t live_mouse_state[3];
-extern void * master_server_query_engine;
-extern network_thread_record * server_list_thread;
-extern uint8_t server_browser_query_pending;
-extern int32_t server_list_scroll_offset;
-extern int32_t server_browser_selected_index;
-extern uint8_t server_browser_player_list_ready;
-extern int32_t server_browser_last_click_ms;
-extern network_mutex_record * server_list_mutex;
-extern uint8_t server_browser_join_requested;
-extern int32_t master_server_last_result;
-extern uint32_t master_server_request_flags;
-extern int32_t master_server_connection_last_tick_ms;
-extern autopatch_download_slot autopatch_download_slots[k_network_autopatch_download_slots];
-extern uint8_t server_browser_require_valid_entry;
-extern int32_t server_browser_total_players;
-extern char k_empty_string[];
-extern wchar_t empty_string[];
+}
+static auto &console_color_00685214 = halo::link::ref<void *>(halo::networking::vars().console_color_00685214);
+static auto &actor_mode_default_look_weights = halo::link::ref<void *>(halo::networking::vars().actor_mode_default_look_weights);
+static auto &server_browser_join_target = halo::link::ref<void *>(halo::networking::vars().server_browser_join_target);
+static auto &server_browser_join_target_has_password = halo::link::ref<uint8_t>(halo::networking::vars().server_browser_join_target_has_password);
+static auto &network_join_target_address = halo::link::ref<uint16_t [128]>(halo::networking::vars().network_join_target_address);
+static auto &mouse_device = halo::link::ref<int32_t>(halo::camera::vars().mouse_device);
+static auto &mouse_neutral_state = halo::link::ref<int32_t [3]>(halo::camera::vars().mouse_neutral_state);
+static auto &live_mouse_state = halo::link::ref<int32_t [3]>(halo::camera::vars().live_mouse_state);
+static auto &master_server_query_engine = halo::link::ref<void *>(halo::networking::vars().master_server_query_engine);
+static auto &server_list_thread = halo::link::ref<network_thread_record *>(halo::networking::vars().server_list_thread);
+static auto &server_browser_query_pending = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_query_pending);
+static auto &server_list_scroll_offset = halo::link::ref<int32_t>(halo::ui::vars().server_list_scroll_offset);
+static auto &server_browser_selected_index = halo::link::ref<int32_t>(halo::networking::vars().server_browser_selected_index);
+static auto &server_browser_player_list_ready = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_player_list_ready);
+static auto &server_browser_last_click_ms = halo::link::ref<int32_t>(halo::networking::vars().server_browser_last_click_ms);
+static auto &server_list_mutex = halo::link::ref<network_mutex_record *>(halo::networking::vars().server_list_mutex);
+static auto &server_browser_join_requested = halo::link::ref<uint8_t>(halo::networking::vars().server_browser_join_requested);
+static auto &master_server_last_result = halo::link::ref<int32_t>(halo::networking::vars().master_server_last_result);
+static auto &master_server_request_flags = halo::link::ref<uint32_t>(halo::networking::vars().master_server_request_flags);
+static auto &master_server_connection_last_tick_ms = halo::link::ref<int32_t>(halo::networking::vars().master_server_connection_last_tick_ms);
+static auto &autopatch_download_slots = halo::link::ref<autopatch_download_slot [k_network_autopatch_download_slots]>(halo::networking::vars().autopatch_download_slots);
+static auto &server_browser_require_valid_entry = halo::link::ref<uint8_t>(halo::networking::vars().server_browser_require_valid_entry);
+static auto &server_browser_total_players = halo::link::ref<int32_t>(halo::networking::vars().server_browser_total_players);
+static auto &k_empty_string = halo::link::ref<char []>(halo::networking::vars().k_empty_string);
+static auto &empty_string = halo::link::ref<wchar_t []>(halo::game::vars().empty_string);
+extern "C" {
 extern void widget_close_all(void);
 extern uint8_t input_get_key_state(int16_t key_index);
 extern void widget_play_sound_effect(int16_t effect_id);
 extern int32_t SBServerHasFullKeys(void *entry);
 extern int32_t ServerBrowserState(void *engine);
-extern ticker_text_buffer server_browser_player_ticker;
-extern ticker_text_buffer server_browser_variant_ticker;
-extern wchar_t string_widen_scratch[0x400];
-extern char server_browser_custom_options_text[];
+}
+static auto &server_browser_player_ticker = halo::link::ref<ticker_text_buffer>(halo::ui::vars().server_browser_player_ticker);
+static auto &server_browser_variant_ticker = halo::link::ref<ticker_text_buffer>(halo::ui::vars().server_browser_variant_ticker);
+static auto &string_widen_scratch = halo::link::ref<wchar_t [0x400]>(halo::networking::vars().string_widen_scratch);
+static auto &server_browser_custom_options_text = halo::link::ref<char []>(halo::networking::vars().server_browser_custom_options_text);
+extern "C" {
 extern int32_t sprintf(char *buffer, const char *format, ...);
 extern int32_t sscanf(const char *buffer, const char *format, ...);
-extern uint8_t server_browser_sort_column;
-extern uint8_t server_browser_sort_ascending;
-extern uint8_t server_browser_allow_password;
-extern uint8_t server_browser_filter_dedicated_only;
-extern uint8_t server_browser_filter_classic_only;
-extern uint8_t server_browser_allow_empty;
-extern uint8_t server_browser_allow_full;
-extern uint8_t server_browser_filter_allow_unknown_map;
-extern uint8_t server_browser_filter_gametype;
-extern uint8_t server_browser_filter_teamplay;
-extern uint8_t server_browser_filter_ping_limit_index;
-extern uint8_t server_browser_filter_panel_mode;
-extern int32_t server_browser_query_elapsed_ms;
-extern server_list_globals server_list;
-extern int32_t network_host_edit_field_00719410;
+}
+static auto &server_browser_sort_column = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_sort_column);
+static auto &server_browser_sort_ascending = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_sort_ascending);
+static auto &server_browser_allow_password = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_allow_password);
+static auto &server_browser_filter_dedicated_only = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_dedicated_only);
+static auto &server_browser_filter_classic_only = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_classic_only);
+static auto &server_browser_allow_empty = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_allow_empty);
+static auto &server_browser_allow_full = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_allow_full);
+static auto &server_browser_filter_allow_unknown_map = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_allow_unknown_map);
+static auto &server_browser_filter_gametype = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_gametype);
+static auto &server_browser_filter_teamplay = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_teamplay);
+static auto &server_browser_filter_ping_limit_index = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_ping_limit_index);
+static auto &server_browser_filter_panel_mode = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_panel_mode);
+static auto &server_browser_query_elapsed_ms = halo::link::ref<int32_t>(halo::networking::vars().server_browser_query_elapsed_ms);
+static auto &server_list = halo::link::ref<server_list_globals>(halo::networking::vars().server_list);
+static auto &network_host_edit_field_00719410 = halo::link::ref<int32_t>(halo::ui::vars().network_host_edit_field_00719410);
+extern "C" {
 extern int32_t SBServerGetBoolValue(void *entry, const char *key, int32_t default_value);
 extern char * SBServerGetStringValue(void *entry, const char *key, const char *default_value);
 extern int32_t SBServerGetIntValue(void *entry, const char *key, int32_t default_value);
 extern int32_t SBServerGetPing(void *entry);
-extern const wchar_t PTR_s_parameter_handles_0063fff0_0x35_006607a0[];
-extern uint8_t server_browser_initialized;
-extern uint8_t network_session_start_host_name[];
-extern uint8_t network_session_start_map_name[];
-extern uint8_t profile_globals_block[];
+}
+static auto &PTR_s_parameter_handles_0063fff0_0x35_006607a0 = halo::link::ref<const wchar_t []>(halo::networking::vars().PTR_s_parameter_handles_0063fff0_0x35_006607a0);
+static auto &server_browser_initialized = halo::link::ref<uint8_t>(halo::networking::vars().server_browser_initialized);
+static auto &network_session_start_host_name = halo::link::ref<uint8_t []>(halo::networking::vars().network_session_start_host_name);
+static auto &network_session_start_map_name = halo::link::ref<uint8_t []>(halo::networking::vars().network_session_start_map_name);
+static auto &profile_globals_block = halo::link::ref<uint8_t []>(halo::ui::vars().profile_globals_block);
+extern "C" {
 extern void * ServerBrowserNew(void *a, void *b, void *c, int32_t d, int32_t e, int32_t f,
                            void *callback, int32_t h);
-extern wchar_t hud_text_unbound[];
+}
+static auto &hud_text_unbound = halo::link::ref<wchar_t []>(halo::ui::vars().hud_text_unbound);
+extern "C" {
 extern char * SBServerGetPlayerStringValue(void *entry, int32_t index, const char *key, const char *default_value);
 extern int32_t ServerBrowserGetServer(void *query_engine, int32_t index);
 extern int32_t ServerBrowserCount(void *engine);
 extern int32_t SBServerHasBasicKeys(int32_t record);
-extern uint8_t server_browser_skip_reselect;
-extern int32_t server_browser_ping_limits[];
+}
+static auto &server_browser_skip_reselect = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_skip_reselect);
+static auto &server_browser_ping_limits = halo::link::ref<int32_t []>(halo::networking::vars().server_browser_ping_limits);
+extern "C" {
 extern int32_t map_list_find_known_map_index(const char *mapname);
 
 }

@@ -5,30 +5,32 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
-extern "C" { extern rasterizer_vertex_declaration rasterizer_vertex_declarations[k_rasterizer_vertex_type_count]; }
-extern "C" { extern rasterizer_vertex_shader rasterizer_vertex_shaders[k_rasterizer_vertex_shaders]; }
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/networking/vars.hpp"
+static auto &rasterizer_vertex_declarations = halo::link::ref<rasterizer_vertex_declaration [k_rasterizer_vertex_type_count]>(halo::networking::vars().rasterizer_vertex_declarations);
+static auto &rasterizer_vertex_shaders = halo::link::ref<rasterizer_vertex_shader [k_rasterizer_vertex_shaders]>(halo::networking::vars().rasterizer_vertex_shaders);
 
 namespace {
 constexpr int k_screen_vertex_shader = 35;
 }
 
-extern "C" {
-extern const char *network_bandwidth_direction_label_table[2];
-extern network_bandwidth_graph network_bandwidth_graph_globals;
-extern uint32_t network_bandwidth_graph_default_interval_ms;
-extern uint8_t network_bandwidth_overlay_enabled;
-extern network_screen_point game_window_top_left;
-extern network_screen_point game_window_bottom_right;
-extern const char *network_bandwidth_units_label_table[2];
-extern network_screen_point network_stats_overlay_text_rect_min;
-extern network_screen_point network_stats_overlay_text_rect_max;
-extern float hud_text_draw_color_a;
-extern float hud_text_draw_color_r;
-extern float hud_text_draw_color_g;
-extern float hud_text_draw_color_b;
-extern uint16_t hud_text_draw_background_mode;
-extern const char decimal_format_string[];
-}
+static auto &network_bandwidth_direction_label_table = halo::link::ref<const char *[2]>(halo::networking::vars().network_bandwidth_direction_label_table);
+static auto &network_bandwidth_graph_globals = halo::link::ref<network_bandwidth_graph>(halo::main::vars().network_bandwidth_graph_globals);
+static auto &network_bandwidth_graph_default_interval_ms = halo::link::ref<uint32_t>(halo::main::vars().network_bandwidth_graph_default_interval_ms);
+static auto &network_bandwidth_overlay_enabled = halo::link::ref<uint8_t>(halo::networking::vars().network_bandwidth_overlay_enabled);
+static auto &game_window_top_left = halo::link::ref<network_screen_point>(halo::main::vars().game_window_top_left);
+static auto &game_window_bottom_right = halo::link::ref<network_screen_point>(halo::networking::vars().game_window_bottom_right);
+static auto &network_bandwidth_units_label_table = halo::link::ref<const char *[2]>(halo::networking::vars().network_bandwidth_units_label_table);
+static auto &network_stats_overlay_text_rect_min = halo::link::ref<network_screen_point>(halo::networking::vars().network_stats_overlay_text_rect_min);
+static auto &network_stats_overlay_text_rect_max = halo::link::ref<network_screen_point>(halo::networking::vars().network_stats_overlay_text_rect_max);
+static auto &hud_text_draw_color_a = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_a);
+static auto &hud_text_draw_color_r = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_r);
+static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_g);
+static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
+static auto &hud_text_draw_background_mode = halo::link::ref<uint16_t>(halo::networking::vars().hud_text_draw_background_mode);
+static auto &decimal_format_string = halo::link::ref<const char []>(halo::networking::vars().decimal_format_string);
 
 namespace halo::networking {
 

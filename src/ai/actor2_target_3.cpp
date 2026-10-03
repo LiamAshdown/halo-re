@@ -6,12 +6,14 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 namespace halo::ai {
 
 namespace actor_target_relationship_think_local {
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern game_time_globals *game_time;
 extern int8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 static const uint8_t k_relationship_recheck_case[4][4] = {
     { 0, 0, 1, 3 },

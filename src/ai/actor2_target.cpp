@@ -14,6 +14,9 @@
 #include "halo/scenario/scenario.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/units/vars.hpp"
 
 namespace halo::ai {
 
@@ -97,11 +100,9 @@ uint8_t ActorView::target_data_acquire(datum_index object_index, datum_index own
 #undef PROP
 
 namespace actor_target_data_refresh_local {
-extern "C" {
-extern game_time_globals *game_time;
-extern char ai_marker_name_a[];
-extern char ai_marker_name_b[];
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
+static auto &ai_marker_name_b = halo::link::ref<char []>(halo::ai::vars().ai_marker_name_b);
 }
 
 /**
@@ -590,9 +591,7 @@ uint8_t ActorView::target_is_visible_or_object_count_ok(int16_t kind)
 }
 
 namespace actor_target_mark_engaged_local {
-extern "C" {
-extern game_time_globals *game_time;
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 /**
@@ -1150,8 +1149,8 @@ namespace actor_target_update_tracking_speed_local {
 extern "C" {
 extern double sqrt(double x);
 static float sqrtf_(float x) { return (float)sqrt((double)x); }
-extern game_time_globals *game_time;
 }
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 /**

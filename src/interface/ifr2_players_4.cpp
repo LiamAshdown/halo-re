@@ -2,16 +2,16 @@
 #include <string.h>
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
-extern "C" {
-extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
-extern int32_t ui_list_current;
-extern growable_array ui_lists[3];
-}
+static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
+static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
+static auto &ui_lists = halo::link::ref<growable_array [3]>(halo::ui::vars().ui_lists);
 
 namespace halo::interface {
 

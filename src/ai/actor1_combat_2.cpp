@@ -9,15 +9,16 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/scenario/scenario.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 namespace c_actor_evaluate_engagement_reachability {
 extern "C" {
 extern double sqrt(double x);
 
 
-extern const real_vector3d *global_down3d_pointer;
-
 }
+static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_down3d_pointer);
 }
 
 

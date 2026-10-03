@@ -18,15 +18,17 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
 
-extern "C" {
-extern game_time_globals *game_time;
-extern uint8_t ui_split_screen;
-extern int32_t ui_pause_pending_count_00718fa0;
-extern uint8_t chat_dialog_open;
-extern widget_instance *ui_root_widget[1];
-extern uint8_t widget_memory_pool_valid;
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &ui_split_screen = halo::link::ref<uint8_t>(halo::ui::vars().ui_split_screen);
+static auto &ui_pause_pending_count_00718fa0 = halo::link::ref<int32_t>(halo::main::vars().ui_pause_pending_count_00718fa0);
+static auto &chat_dialog_open = halo::link::ref<uint8_t>(halo::ui::vars().chat_dialog_open);
+static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
+static auto &widget_memory_pool_valid = halo::link::ref<uint8_t>(halo::ui::vars().widget_memory_pool_valid);
 
 namespace halo::ui {
 

@@ -13,6 +13,9 @@
 #include "halo/hs/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/networking/vars.hpp"
 
 namespace halo::ai {
 
@@ -114,8 +117,10 @@ namespace actor_squad_action_execute_local {
 extern "C" {
 extern double fcos(double x);
 extern double fsin(double x);
-extern data_array *player_data;
-extern const char k_empty_string[];
+}
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &k_empty_string = halo::link::ref<const char []>(halo::networking::vars().k_empty_string);
+extern "C" {
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }

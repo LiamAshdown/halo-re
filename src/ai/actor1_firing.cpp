@@ -10,6 +10,8 @@
 #include "halo/units/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/cseries/cseries.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 namespace c_actor_claim_firing_position {
 }
@@ -70,11 +72,10 @@ int16_t actor_claim_firing_position(datum_index actor_index, datum_index previou
 }
 
 namespace c_actor_find_best_firing_position {
+static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &qsort_candidate_count = halo::link::ref<int16_t>(halo::ai::vars().qsort_candidate_count);
+static auto &qsort_candidate_base = halo::link::ref<actor_firing_position_candidate *>(halo::ai::vars().qsort_candidate_base);
 extern "C" {
-extern const real_vector3d *global_origin3d_pointer;
-
-extern int16_t qsort_candidate_count;
-extern actor_firing_position_candidate *qsort_candidate_base;
 
 extern double sqrt(double x);
 
@@ -658,9 +659,7 @@ uint32_t actor_find_best_firing_position(datum_index actor_index, actor_firing_p
 }
 
 namespace c_actor_firing_position_compare {
-extern "C" {
-extern actor_firing_position_candidate *qsort_candidate_base;
-}
+static auto &qsort_candidate_base = halo::link::ref<actor_firing_position_candidate *>(halo::ai::vars().qsort_candidate_base);
 }
 
 
@@ -834,9 +833,7 @@ uint8_t actor_firing_position_near_point(datum_index actor_index, real_point3d *
 }
 
 namespace c_actor_firing_position_probe_reject_rules {
-extern "C" {
-extern actor_firing_position_rule actor_firing_position_reject_rules[6];
-}
+static auto &actor_firing_position_reject_rules = halo::link::ref<actor_firing_position_rule [6]>(halo::ai::vars().actor_firing_position_reject_rules);
 }
 
 
@@ -881,9 +878,7 @@ uint8_t actor_firing_position_probe_reject_rules(actor_firing_position_query *qu
 }
 
 namespace c_actor_firing_position_run_reject_rules {
-extern "C" {
-extern actor_firing_position_rule actor_firing_position_reject_rules[6];
-}
+static auto &actor_firing_position_reject_rules = halo::link::ref<actor_firing_position_rule [6]>(halo::ai::vars().actor_firing_position_reject_rules);
 }
 
 
@@ -927,9 +922,7 @@ uint8_t actor_firing_position_run_reject_rules(datum_index actor_index, actor_fi
 }
 
 namespace c_actor_firing_position_run_score_rules {
-extern "C" {
-extern actor_firing_position_rule actor_firing_position_score_rules[7];
-}
+static auto &actor_firing_position_score_rules = halo::link::ref<actor_firing_position_rule [7]>(halo::ai::vars().actor_firing_position_score_rules);
 }
 
 

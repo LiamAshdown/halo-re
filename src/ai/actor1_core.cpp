@@ -10,6 +10,8 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 namespace c_actor_action_has_queued_secondary {
 }
@@ -164,9 +166,7 @@ void actor_attach_to_unit(datum_index actor_index, datum_index unit_index)
 }
 
 namespace c_actor_classify_communication_object_type {
-extern "C" {
-extern void *actor_type_procs[16];
-}
+static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
 }
 
 
@@ -488,9 +488,7 @@ void actor_dispatch_squad_order(datum_index prop_index, const actor_squad_order_
 }
 
 namespace c_actor_dispatch_type_vtable_0x10 {
-extern "C" {
-extern void *actor_type_procs[16];
-}
+static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
 }
 
 
@@ -520,9 +518,7 @@ void actor_dispatch_type_vtable_0x10(datum_index actor_index)
 }
 
 namespace c_actor_dispatch_type_vtable_0x18 {
-extern "C" {
-extern void *actor_type_procs[16];
-}
+static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
 }
 
 
@@ -550,9 +546,7 @@ void actor_dispatch_type_vtable_0x18(datum_index actor_index)
 }
 
 namespace c_actor_dispatch_type_vtable_0x1c {
-extern "C" {
-extern void *actor_type_procs[16];
-}
+static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
 }
 
 
@@ -693,9 +687,7 @@ void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor
 }
 
 namespace c_actor_get_current_mode_combat_grade {
-extern "C" {
-extern actor_mode_definition actor_mode_definitions[16];
-}
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 }
 
 
@@ -851,9 +843,7 @@ uint8_t actor_handle_death(datum_index actor_index, uint8_t param_2, uint8_t par
 }
 
 namespace c_actor_invoke_type_handler {
-extern "C" {
-extern actor_mode_definition actor_mode_definitions[16];
-}
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 }
 
 

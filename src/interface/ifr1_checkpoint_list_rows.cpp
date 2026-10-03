@@ -8,10 +8,10 @@
 #include <wchar.h>
 #include "halo/cache/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern uint16_t missing_string_text[];
-}
+static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
 
 static void widen(uint16_t *out, const char *in)
 {

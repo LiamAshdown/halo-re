@@ -3,19 +3,20 @@
 #include "halo/cseries/api.hpp"
 #include "halo/text/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern Globals *global_globals;
-extern uint16_t hud_text_draw_color_or_flags;
-extern int32_t hud_text_draw_font_tag_id;
-extern float hud_text_draw_color_a;
-extern float hud_text_draw_color_r;
-extern float hud_text_draw_color_g;
-extern float hud_text_draw_color_b;
-extern growable_array hud_text_message_queue;
-extern uint16_t empty_string[];
-extern int32_t hud_text_message_time_base;
-}
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &hud_text_draw_color_or_flags = halo::link::ref<uint16_t>(halo::ui::vars().hud_text_draw_color_or_flags);
+static auto &hud_text_draw_font_tag_id = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_font_tag_id);
+static auto &hud_text_draw_color_a = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_a);
+static auto &hud_text_draw_color_r = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_r);
+static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_g);
+static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
+static auto &hud_text_message_queue = halo::link::ref<growable_array>(halo::ui::vars().hud_text_message_queue);
+static auto &empty_string = halo::link::ref<uint16_t []>(halo::game::vars().empty_string);
+static auto &hud_text_message_time_base = halo::link::ref<int32_t>(halo::ui::vars().hud_text_message_time_base);
 
 namespace halo::interface {
 

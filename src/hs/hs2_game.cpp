@@ -20,17 +20,20 @@
 #include "halo/main/vars.hpp"
 #include "halo/saved_games/vars.hpp"
 #include "halo/shell/vars.hpp"
+#include "halo/hs/vars.hpp"
 
 extern "C" {
 extern void network_client_rejoin_check(int8_t machine_player_index);
-extern uint8_t main_globals_byte_0071973d;
-extern uint8_t main_globals_byte_0071973e;
-extern int32_t main_globals_dword_00719740;
-extern int32_t main_globals_dword_00719744;
-extern int16_t main_globals_word_0071974c;
-extern int16_t main_globals_word_0071976e;
-extern uint8_t main_globals_byte_0071976c;
-extern uint8_t main_globals_byte_0071974e;
+}
+static auto &main_globals_byte_0071973d = halo::link::ref<uint8_t>(halo::hs::vars().main_globals_byte_0071973d);
+static auto &main_globals_byte_0071973e = halo::link::ref<uint8_t>(halo::hs::vars().main_globals_byte_0071973e);
+static auto &main_globals_dword_00719740 = halo::link::ref<int32_t>(halo::hs::vars().main_globals_dword_00719740);
+static auto &main_globals_dword_00719744 = halo::link::ref<int32_t>(halo::hs::vars().main_globals_dword_00719744);
+static auto &main_globals_word_0071974c = halo::link::ref<int16_t>(halo::hs::vars().main_globals_word_0071974c);
+static auto &main_globals_word_0071976e = halo::link::ref<int16_t>(halo::hs::vars().main_globals_word_0071976e);
+static auto &main_globals_byte_0071976c = halo::link::ref<uint8_t>(halo::hs::vars().main_globals_byte_0071976c);
+static auto &main_globals_byte_0071974e = halo::link::ref<uint8_t>(halo::hs::vars().main_globals_byte_0071974e);
+extern "C" {
 extern void rcon(int32_t argument_count, char **arguments);
 extern void player_update_queue_flush_by_name(char *name);
 }

@@ -9,6 +9,9 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
 #ifdef __cplusplus
 #define CTF_CUSTOM_WAYPOINT_ZERO custom_waypoint{}
@@ -16,23 +19,21 @@
 #define CTF_CUSTOM_WAYPOINT_ZERO (custom_waypoint){0}
 #endif
 
-extern "C" {
-extern game_variant game_engine_variant;
-extern int32_t ctf_flag_auto_return_ticks;
-extern uint8_t ctf_single_flag_mode;
-extern data_array *player_data;
-extern object_type_definition *object_type_definitions[k_maximum_object_types];
-extern player_globals *local_player_globals;
-extern uint8_t ctf_active_team;
-extern game_time_globals *game_time;
-extern real_point3d *ctf_team_flag_stand_position[2];
-extern uint8_t ctf_team_return_credit_active[2];
-extern int32_t ctf_team_return_credit_ticks[2];
-extern datum_index ctf_team_flag_object[2];
-extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
-extern game_engine_definition *current_game_engine;
-extern uint8_t network_message_scratch[0x7ff8];
-}
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &ctf_flag_auto_return_ticks = halo::link::ref<int32_t>(halo::game::vars().ctf_flag_auto_return_ticks);
+static auto &ctf_single_flag_mode = halo::link::ref<uint8_t>(halo::game::vars().ctf_single_flag_mode);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &ctf_active_team = halo::link::ref<uint8_t>(halo::game::vars().ctf_active_team);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &ctf_team_flag_stand_position = halo::link::ref<real_point3d *[2]>(halo::game::vars().ctf_team_flag_stand_position);
+static auto &ctf_team_return_credit_active = halo::link::ref<uint8_t [2]>(halo::game::vars().ctf_team_return_credit_active);
+static auto &ctf_team_return_credit_ticks = halo::link::ref<int32_t [2]>(halo::game::vars().ctf_team_return_credit_ticks);
+static auto &ctf_team_flag_object = halo::link::ref<datum_index [2]>(halo::game::vars().ctf_team_flag_object);
+static auto &custom_waypoints = halo::link::ref<custom_waypoint [k_maximum_custom_waypoints]>(halo::game::vars().custom_waypoints);
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 
 namespace halo::game {
 

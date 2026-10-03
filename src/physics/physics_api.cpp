@@ -30,7 +30,6 @@
 
 static auto &global_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_collision_bsp);
 static auto &global_structure_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_structure_collision_bsp);
-static auto &k_physics_gravity = halo::link::ref<float>(halo::physics::vars().k_physics_gravity);
 static auto &sphere_point_table = halo::link::ref<real_point3d *>(halo::physics::vars().sphere_point_table);
 static auto &sphere_point_table_count = halo::link::ref<int16_t>(halo::physics::vars().sphere_point_table_count);
 static auto &collideable_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().collideable_cluster_first);
@@ -42,7 +41,7 @@ namespace halo::physics {
 
 Globals &globals()
 {
-    static Globals instance{::global_collision_bsp, ::global_structure_collision_bsp, ::k_physics_gravity, ::sphere_point_table, ::sphere_point_table_count, ::collideable_cluster_first, ::collideable_object_references, ::object_cluster_stamp, ::breakable_surface_state};
+    static Globals instance{::global_collision_bsp, ::global_structure_collision_bsp, k_physics_gravity, ::sphere_point_table, ::sphere_point_table_count, ::collideable_cluster_first, ::collideable_object_references, ::object_cluster_stamp, ::breakable_surface_state};
     return instance;
 }
 

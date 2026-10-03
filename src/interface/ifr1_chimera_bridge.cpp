@@ -23,36 +23,43 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &join_ui_state = halo::link::ref<progress_screen_state>(halo::networking::vars().join_ui_state);
+static auto &interface_loading_screen_address_b = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_b);
+static auto &interface_loading_screen_address_a = halo::link::ref<uint32_t>(halo::main::vars().interface_loading_screen_address_a);
+static auto &interface_loading_screen_request_id = halo::link::ref<datum_index>(halo::networking::vars().interface_loading_screen_request_id);
+static auto &interface_loading_screen_progress = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_progress);
+static auto &progress_screen_text = halo::link::ref<uint16_t [0x20]>(halo::main::vars().progress_screen_text);
+static auto &progress_screen_subtext = halo::link::ref<uint16_t [0x20]>(halo::main::vars().progress_screen_subtext);
+static auto &chimera_loading_screen_cleanup_gate = halo::link::ref<uint8_t>(halo::game::vars().chimera_loading_screen_cleanup_gate);
+static auto &chat_state_00719a7a = halo::link::ref<uint8_t>(halo::ui::vars().chat_state_00719a7a);
+static auto &chat_state_00719a9a = halo::link::ref<uint8_t>(halo::ui::vars().chat_state_00719a9a);
+static auto &chat_state_00719a79 = halo::link::ref<uint8_t>(halo::ui::vars().chat_state_00719a79);
+static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
+static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
 extern "C" {
-extern progress_screen_state join_ui_state;
-extern int32_t interface_loading_screen_address_b;
-extern uint32_t interface_loading_screen_address_a;
-extern datum_index interface_loading_screen_request_id;
-extern int32_t interface_loading_screen_progress;
-extern uint16_t progress_screen_text[0x20];
-extern uint16_t progress_screen_subtext[0x20];
-extern uint8_t chimera_loading_screen_cleanup_gate;
-extern uint8_t chat_state_00719a7a;
-extern uint8_t chat_state_00719a9a;
-extern uint8_t chat_state_00719a79;
-extern uint16_t split_screen_quit_prompt_string;
-extern uint8_t split_screen_quit_prompt_armed;
 extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t sequence,
                                                      int16_t frame);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text);
 extern void NNCancel(datum_index tag);
-extern uint8_t main_menu_reload_pending;
-extern uint8_t ui_input_batch_mode;
-extern uint8_t loading_thread_result;
-extern loading_thread_record *loading_thread;
-extern datum_index cached_saved_game_something;
-extern datum_index ui_cursor_bitmap;
-extern uint8_t ui_widget_opened;
-extern heap *widget_memory_pool;
-extern widget_instance *ui_root_widget[1];
-extern widget_history_node *ui_widget_history[3];
+}
+static auto &main_menu_reload_pending = halo::link::ref<uint8_t>(halo::ui::vars().main_menu_reload_pending);
+static auto &ui_input_batch_mode = halo::link::ref<uint8_t>(halo::ui::vars().ui_input_batch_mode);
+static auto &loading_thread_result = halo::link::ref<uint8_t>(halo::ui::vars().loading_thread_result);
+static auto &loading_thread = halo::link::ref<loading_thread_record *>(halo::ui::vars().loading_thread);
+static auto &cached_saved_game_something = halo::link::ref<datum_index>(halo::ui::vars().cached_saved_game_something);
+static auto &ui_cursor_bitmap = halo::link::ref<datum_index>(halo::ui::vars().ui_cursor_bitmap);
+static auto &ui_widget_opened = halo::link::ref<uint8_t>(halo::ui::vars().ui_widget_opened);
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
+static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
+static auto &ui_widget_history = halo::link::ref<widget_history_node *[3]>(halo::ui::vars().ui_widget_history);
+extern "C" {
 extern void sound_looping_stop(datum_index sound_tag);
 extern void sound_stop_all(void);
 }

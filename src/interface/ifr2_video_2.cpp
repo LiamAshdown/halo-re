@@ -9,23 +9,24 @@
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
-extern "C" {
-extern uint8_t video_force_mode_flag;
-extern int32_t os_platform;
-extern int32_t os_platform_refresh_default;
-extern video_resolution video_resolutions[0x20];
-extern int32_t video_resolution_count;
-extern uint32_t rasterizer_device;
-extern uint32_t rasterizer_device_version;
-extern uint32_t rasterizer_capability_007c10e4;
-extern int32_t video_gamma_setting;
-extern heap *widget_memory_pool;
-}
+static auto &video_force_mode_flag = halo::link::ref<uint8_t>(halo::ui::vars().video_force_mode_flag);
+static auto &os_platform = halo::link::ref<int32_t>(halo::ui::vars().os_platform);
+static auto &os_platform_refresh_default = halo::link::ref<int32_t>(halo::ui::vars().os_platform_refresh_default);
+static auto &video_resolutions = halo::link::ref<video_resolution [0x20]>(halo::ui::vars().video_resolutions);
+static auto &video_resolution_count = halo::link::ref<int32_t>(halo::ui::vars().video_resolution_count);
+static auto &rasterizer_device = halo::link::ref<uint32_t>(halo::game::vars().rasterizer_device);
+static auto &rasterizer_device_version = halo::link::ref<uint32_t>(halo::ui::vars().rasterizer_device_version);
+static auto &rasterizer_capability_007c10e4 = halo::link::ref<uint32_t>(halo::ui::vars().rasterizer_capability_007c10e4);
+static auto &video_gamma_setting = halo::link::ref<int32_t>(halo::ui::vars().video_gamma_setting);
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
 
 namespace halo::interface {
 

@@ -17,13 +17,14 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
-extern "C" {
-extern game_time_globals *game_time;
-extern game_variant game_engine_variant;
-extern game_engine_definition *current_game_engine;
-extern data_array *player_data;
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 
 namespace halo::game::engine1 {
 

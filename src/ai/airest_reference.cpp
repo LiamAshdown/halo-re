@@ -16,17 +16,22 @@
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
+static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_down3d_pointer);
 extern "C" {
-extern const real_vector3d *global_down3d_pointer;
 extern double fcos(double angle);
 extern double fsin(double angle);
-extern float k_real_zero;
-extern float k_real_one;
-extern data_array *player_data;
-extern void player_update_history_free_all(void *history);
-extern actor_mode_definition actor_mode_definitions[16];
 }
+static auto &k_real_zero = halo::link::ref<float>(halo::ai::vars().k_real_zero);
+static auto &k_real_one = halo::link::ref<float>(halo::ai::vars().k_real_one);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+extern "C" {
+extern void player_update_history_free_all(void *history);
+}
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 
 namespace halo::ai {
 

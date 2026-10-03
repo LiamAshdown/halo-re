@@ -7,18 +7,22 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
+static auto &network_game_info_packet_flag = halo::link::ref<uint8_t>(halo::ui::vars().network_game_info_packet_flag);
+static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
+static auto &network_scenario_round_counter_a = halo::link::ref<int32_t>(halo::game::vars().network_scenario_round_counter_a);
+static auto &network_scenario_round_counter_b = halo::link::ref<int32_t>(halo::game::vars().network_scenario_round_counter_b);
+static auto &network_statistics_logging_enabled = halo::link::ref<uint8_t>(halo::networking::vars().network_statistics_logging_enabled);
+static auto &network_summary_log_file = halo::link::ref<FILE *>(halo::networking::vars().network_summary_log_file);
+static auto &network_build_string = halo::link::ref<char []>(halo::networking::vars().network_build_string);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &network_challenge_packet_block = halo::link::ref<uint16_t []>(halo::networking::vars().network_challenge_packet_block);
 extern "C" {
-extern data_packet_group network_game_messages_group;
-extern uint8_t network_game_info_packet_flag;
-extern network_server_globals *network_server;
-extern int32_t network_scenario_round_counter_a;
-extern int32_t network_scenario_round_counter_b;
-extern uint8_t network_statistics_logging_enabled;
-extern FILE *network_summary_log_file;
-extern char network_build_string[];
-extern data_array *player_data;
-extern uint16_t network_challenge_packet_block[];
 typedef struct network_game_info_record {
     char short_name[7];
     uint8_t nul;
@@ -29,19 +33,23 @@ typedef struct network_game_info_record {
     uint8_t scratch[0x600];
 } network_game_info_record;
 
-extern network_client_globals *network_client;
-extern int32_t network_console_connection_id;
-extern uint8_t network_message_scratch[0x7ff8];
+}
+static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
+static auto &network_console_connection_id = halo::link::ref<int32_t>(halo::networking::vars().network_console_connection_id);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+extern "C" {
 extern void gcd_disconnect_user(int32_t id, int32_t value);
 extern void gcd_disconnect_all(int32_t id);
-extern player_globals *local_player_globals;
-extern void *variant_defaults_source;
-extern uint8_t game_engine_pending_variant[0x98];
-extern int32_t join_ui_state;
-extern int32_t ui_root_widget;
-extern int32_t ui_widget_history;
-extern uint8_t ui_pause_depth;
-extern uint8_t controls_input_capture_buffer[0x280];
+}
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &variant_defaults_source = halo::link::ref<void *>(halo::networking::vars().variant_defaults_source);
+static auto &game_engine_pending_variant = halo::link::ref<uint8_t [0x98]>(halo::game::vars().game_engine_pending_variant);
+static auto &join_ui_state = halo::link::ref<int32_t>(halo::networking::vars().join_ui_state);
+static auto &ui_root_widget = halo::link::ref<int32_t>(halo::ui::vars().ui_root_widget);
+static auto &ui_widget_history = halo::link::ref<int32_t>(halo::ui::vars().ui_widget_history);
+static auto &ui_pause_depth = halo::link::ref<uint8_t>(halo::ui::vars().ui_pause_depth);
+static auto &controls_input_capture_buffer = halo::link::ref<uint8_t [0x280]>(halo::ui::vars().controls_input_capture_buffer);
+extern "C" {
 extern void game_engine_apply_current_custom_variant(void);
 extern void game_engine_sync_variant_defaults(void);
 extern void widget_close(int32_t widget);

@@ -12,6 +12,10 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/units/vars.hpp"
 
 typedef struct netgame_equipment_spawn_message {
     int32_t object_hash;
@@ -20,29 +24,33 @@ typedef struct netgame_equipment_spawn_message {
     int16_t pad_0a;
 } netgame_equipment_spawn_message;
 
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 extern "C" {
-extern data_array *player_data;
 extern double sqrt(double x);
 extern double pow(double base, double exponent);
-extern game_engine_definition *current_game_engine;
-extern game_variant game_engine_variant;
-extern Globals *global_globals;
-extern int32_t game_engine_unknown_aa00;
-extern uint8_t game_engine_map_table_value;
-extern uint8_t network_object_index_cache[];
+}
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &game_engine_unknown_aa00 = halo::link::ref<int32_t>(halo::game::vars().game_engine_unknown_aa00);
+static auto &game_engine_map_table_value = halo::link::ref<uint8_t>(halo::game::vars().game_engine_map_table_value);
+static auto &network_object_index_cache = halo::link::ref<uint8_t []>(halo::units::vars().network_object_index_cache);
+extern "C" {
 extern double fcos(double radians);
 extern double fsin(double radians);
-extern game_time_globals *game_time;
-extern int32_t teleport_message_cooldown;
-extern wchar_t empty_string;
-extern int16_t teleport_flash_type;
-extern uint32_t teleport_flash_maximum_intensity;
-extern uint32_t teleport_flash_alpha;
-extern uint32_t teleport_flash_red;
-extern uint32_t teleport_flash_green;
-extern uint32_t teleport_flash_blue;
-extern uint32_t teleport_flash_duration;
-extern int16_t teleport_flash_fade_function;
+}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &teleport_message_cooldown = halo::link::ref<int32_t>(halo::game::vars().teleport_message_cooldown);
+static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
+static auto &teleport_flash_type = halo::link::ref<int16_t>(halo::game::vars().teleport_flash_type);
+static auto &teleport_flash_maximum_intensity = halo::link::ref<uint32_t>(halo::game::vars().teleport_flash_maximum_intensity);
+static auto &teleport_flash_alpha = halo::link::ref<uint32_t>(halo::game::vars().teleport_flash_alpha);
+static auto &teleport_flash_red = halo::link::ref<uint32_t>(halo::game::vars().teleport_flash_red);
+static auto &teleport_flash_green = halo::link::ref<uint32_t>(halo::game::vars().teleport_flash_green);
+static auto &teleport_flash_blue = halo::link::ref<uint32_t>(halo::game::vars().teleport_flash_blue);
+static auto &teleport_flash_duration = halo::link::ref<uint32_t>(halo::game::vars().teleport_flash_duration);
+static auto &teleport_flash_fade_function = halo::link::ref<int16_t>(halo::game::vars().teleport_flash_fade_function);
+extern "C" {
 extern double atan2(double y, double x);
 extern int game_engine_find_valid_starting_locations(real_point3d *origin, float max_horizontal_dist, float max_height_delta, int16_t team, int16_t type, int32_t max_results, int32_t *results);
 extern int32_t game_engine_find_one_valid_starting_location(int16_t type, int16_t team, real_point3d *origin, float max_horizontal_dist, float max_height_delta);
@@ -52,8 +60,8 @@ extern void chimera__hud_message(int16_t local_player_index, wchar_t *text);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
 extern void game_engine_scan_netgame_flags_noop(int16_t needle);
 extern void game_engine_notify_item_expired(datum_index object_index);
-extern int32_t game_engine_round_reset_tick;
 }
+static auto &game_engine_round_reset_tick = halo::link::ref<int32_t>(halo::game::vars().game_engine_round_reset_tick);
 
 namespace halo::game {
 

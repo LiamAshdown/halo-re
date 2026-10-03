@@ -10,6 +10,8 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 namespace c_actor_mode_alert_movement_cancelled {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
@@ -523,9 +525,7 @@ void actor_mode_obey_exit(uint32_t actor_index)
 }
 
 namespace c_actor_mode_obey_process {
-extern "C" {
-extern game_time_globals *game_time;
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 
@@ -598,8 +598,8 @@ void actor_mode_obey_tick_members(uint32_t actor_index)
 }
 
 namespace c_actor_mode_obey_update {
+static auto &global_forward2d_pointer = halo::link::ref<real_vector2d *>(halo::ai::vars().global_forward2d_pointer);
 extern "C" {
-extern real_vector2d *global_forward2d_pointer;
 
 
 #define B(o) (((uint8_t *)actor)[(o)])

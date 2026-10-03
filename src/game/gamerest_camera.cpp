@@ -9,18 +9,22 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 extern "C" {
-extern data_array *player_data;
 extern double sin(double x);
 extern double cos(double x);
-extern player_globals *local_player_globals;
-extern player_control_globals *player_control_globals_ptr;
+}
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &player_control_globals_ptr = halo::link::ref<player_control_globals *>(halo::game::vars().player_control_globals_ptr);
+extern "C" {
 extern double atan2(double y, double x);
 extern double sqrt(double x);
 extern double acos(double x);
-extern Globals *global_globals;
 }
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 
 namespace halo::game {
 

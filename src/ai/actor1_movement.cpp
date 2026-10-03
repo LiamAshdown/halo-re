@@ -11,11 +11,15 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/physics/vars.hpp"
+#include "halo/units/vars.hpp"
 
 namespace c_actor_avoid_obstacle_and_project {
+static auto &global_structure_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_structure_collision_bsp);
+static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_down3d_pointer);
 extern "C" {
-extern ModelCollisionGeometryBSP *global_structure_collision_bsp;
-extern const real_vector3d *global_down3d_pointer;
 
 
 extern double sqrt(double x);
@@ -190,17 +194,16 @@ extern "C" {
 extern double cos(double x);
 extern double sin(double x);
 
-extern float actor_avoidance_samples_a[16][7];
-extern float actor_avoidance_circle[8][3];
-extern float actor_avoidance_samples_b[9][7];
-
-extern const float actor_avoidance_b_radius[9];
-extern const float actor_avoidance_b_elevation[9];
-extern const float actor_avoidance_b_bearing[9];
-extern const float actor_avoidance_a_bearing[8];
-extern const float actor_avoidance_a_radius[2];
-extern const float actor_avoidance_a_elevation[2];
 }
+static auto &actor_avoidance_samples_a = halo::link::ref<float [16][7]>(halo::ai::vars().actor_avoidance_samples_a);
+static auto &actor_avoidance_circle = halo::link::ref<float [8][3]>(halo::ai::vars().actor_avoidance_circle);
+static auto &actor_avoidance_samples_b = halo::link::ref<float [9][7]>(halo::ai::vars().actor_avoidance_samples_b);
+static auto &actor_avoidance_b_radius = halo::link::ref<const float [9]>(halo::ai::vars().actor_avoidance_b_radius);
+static auto &actor_avoidance_b_elevation = halo::link::ref<const float [9]>(halo::ai::vars().actor_avoidance_b_elevation);
+static auto &actor_avoidance_b_bearing = halo::link::ref<const float [9]>(halo::ai::vars().actor_avoidance_b_bearing);
+static auto &actor_avoidance_a_bearing = halo::link::ref<const float [8]>(halo::ai::vars().actor_avoidance_a_bearing);
+static auto &actor_avoidance_a_radius = halo::link::ref<const float [2]>(halo::ai::vars().actor_avoidance_a_radius);
+static auto &actor_avoidance_a_elevation = halo::link::ref<const float [2]>(halo::ai::vars().actor_avoidance_a_elevation);
 }
 
 
@@ -334,12 +337,8 @@ uint8_t actor_avoidance_interpolate_sample(const real_vector3d *direction, const
 }
 
 namespace c_actor_check_step_obstruction {
-extern "C" {
-extern const real_vector3d *global_down3d_pointer;
-
-
-extern int32_t global_structure_collision_bsp;
-}
+static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_down3d_pointer);
+static auto &global_structure_collision_bsp = halo::link::ref<int32_t>(halo::physics::vars().global_structure_collision_bsp);
 }
 
 
@@ -436,9 +435,7 @@ uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *dir
 }
 
 namespace c_actor_check_vehicle_mode_timeout {
-extern "C" {
-extern game_time_globals *game_time;
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 
@@ -471,8 +468,8 @@ uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index)
 }
 
 namespace c_actor_compute_swarm_avoidance_offset {
+static auto &global_forward2d_pointer = halo::link::ref<const real_vector2d *>(halo::ai::vars().global_forward2d_pointer);
 extern "C" {
-extern const real_vector2d *global_forward2d_pointer;
 
 extern double sqrt(double x);
 }
@@ -827,8 +824,8 @@ uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_
 #undef TAG_DATA
 
 namespace c_actor_fill_unit_position_context {
+static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
 extern "C" {
-extern char ai_marker_name_a[];
 
 
 static uint8_t *object_get(datum_index object_index)
@@ -937,11 +934,7 @@ int16_t actor_find_best_search_node(datum_index actor_index, datum_index vehicle
 }
 
 namespace c_actor_gate_jump_traversal {
-extern "C" {
-extern game_time_globals *game_time;
-
-
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 
@@ -998,9 +991,7 @@ uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char 
 }
 
 namespace c_actor_get_cached_wander_position {
-extern "C" {
-extern actor_mode_definition actor_mode_definitions[16];
-}
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 }
 
 

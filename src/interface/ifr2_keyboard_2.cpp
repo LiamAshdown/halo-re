@@ -3,8 +3,10 @@
 #include "halo/interface/engine_state.hpp"
 #include "saved_games.h"
 #include "input.h"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" input_event_queue input_event_queue_active;
+static auto &input_event_queue_active = halo::link::ref<input_event_queue>(halo::ui::vars().input_event_queue_active);
 #include "crt.h"
 #include <wchar.h>
 #include <string.h>
@@ -17,13 +19,11 @@ extern "C" input_event_queue input_event_queue_active;
 #undef interface
 #endif
 
-extern "C" {
-extern virtual_keyboard_globals virtual_keyboard;
-extern uint8_t controls_input_capture_flags;
-extern void **keyboard_device;
-extern uint8_t key_frames[0x6d];
-extern uint8_t key_release_pending[0x6d];
-}
+static auto &virtual_keyboard = halo::link::ref<virtual_keyboard_globals>(halo::ui::vars().virtual_keyboard);
+static auto &controls_input_capture_flags = halo::link::ref<uint8_t>(halo::ui::vars().controls_input_capture_flags);
+static auto &keyboard_device = halo::link::ref<void **>(halo::ui::vars().keyboard_device);
+static auto &key_frames = halo::link::ref<uint8_t [0x6d]>(halo::ui::vars().key_frames);
+static auto &key_release_pending = halo::link::ref<uint8_t [0x6d]>(halo::ui::vars().key_release_pending);
 
 namespace halo::interface {
 

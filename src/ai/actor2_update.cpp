@@ -13,13 +13,13 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 namespace halo::ai {
 
 namespace actor_update_activation_state_local {
-extern "C" {
-extern actor_mode_definition actor_mode_definitions[16];
-}
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 }
 
 /**
@@ -296,9 +296,7 @@ void ActorView::update_aim_wander()
 }
 
 namespace actor_update_awareness_level_local {
-extern "C" {
-extern int16_t actor_combat_status_min_grade[];
-}
+static auto &actor_combat_status_min_grade = halo::link::ref<int16_t []>(halo::ai::vars().actor_combat_status_min_grade);
 }
 
 /**
@@ -376,9 +374,7 @@ have_streaks:
 }
 
 namespace actor_update_combat_behavior_local {
-extern "C" {
-extern actor_mode_definition actor_mode_definitions[16];
-}
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 }
 
 /**
@@ -731,8 +727,8 @@ void ActorView::update_crouch_state()
 }
 
 namespace actor_update_danger_avoidance_local {
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 extern "C" {
-extern actor_mode_definition actor_mode_definitions[16];
 #define B(o) (((uint8_t *)actor)[(o)])
 #define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
 #define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
@@ -1039,8 +1035,8 @@ void ActorView::update_idle_stagger()
 }
 
 namespace actor_update_look_target_local {
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 extern "C" {
-extern actor_mode_definition actor_mode_definitions[16];
 extern double cos(double x);
 extern double fabs(double x);
 #define ULT_V3(p) (*(real_point3d *)(p))
@@ -1479,9 +1475,9 @@ void ActorView::update_look_target()
 #undef ULT_V3
 
 namespace actor_update_melee_combat_action_local {
+static auto &actor_type_procs = halo::link::ref<uint8_t *[]>(halo::ai::vars().actor_type_procs);
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 extern "C" {
-extern uint8_t *actor_type_procs[];
-extern actor_mode_definition actor_mode_definitions[16];
 #define W(p, o) (*(int16_t *)((uint8_t *)(p) + (o)))
 #define D(p, o) (*(datum_index *)((uint8_t *)(p) + (o)))
 static uint8_t actor_combat_commit_position(datum_index actor_index, actor *a, prop *target, int16_t position)
@@ -1870,9 +1866,7 @@ uint8_t ActorView::update_path_if_needed()
 }
 
 namespace actor_update_squad_link_state_local {
-extern "C" {
-extern actor_mode_definition actor_mode_definitions[16];
-}
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 }
 
 /**

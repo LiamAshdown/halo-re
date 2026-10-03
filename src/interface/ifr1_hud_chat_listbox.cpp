@@ -3,22 +3,23 @@
 #include <string.h>
 #include "halo/cseries/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern int32_t hud_chat_message_count;
-extern int32_t hud_chat_message_expiry[8];
-extern void *chat_gui_root_handle;
-extern chat_gui_find_object_fn chat_gui_find_object;
-extern void *chat_listbox_gui_find_object_arg;
-extern chat_gui_find_child_fn chat_gui_find_child;
-extern chat_gui_set_property_int_fn chat_gui_set_property_int;
-extern chat_gui_finalize_fn chat_gui_finalize;
-extern chat_gui_release_fn chat_gui_release;
-extern uint8_t hud_chat_listbox_visible;
-extern int32_t game_engine_state_value;
-extern float game_engine_nameplate_fade_opacity_array;
-extern chat_gui_set_state_fn chat_gui_set_state;
-}
+static auto &hud_chat_message_count = halo::link::ref<int32_t>(halo::ui::vars().hud_chat_message_count);
+static auto &hud_chat_message_expiry = halo::link::ref<int32_t [8]>(halo::ui::vars().hud_chat_message_expiry);
+static auto &chat_gui_root_handle = halo::link::ref<void *>(halo::ui::vars().chat_gui_root_handle);
+static auto &chat_gui_find_object = halo::link::ref<chat_gui_find_object_fn>(halo::ui::vars().chat_gui_find_object);
+static auto &chat_listbox_gui_find_object_arg = halo::link::ref<void *>(halo::ui::vars().chat_listbox_gui_find_object_arg);
+static auto &chat_gui_find_child = halo::link::ref<chat_gui_find_child_fn>(halo::ui::vars().chat_gui_find_child);
+static auto &chat_gui_set_property_int = halo::link::ref<chat_gui_set_property_int_fn>(halo::ui::vars().chat_gui_set_property_int);
+static auto &chat_gui_finalize = halo::link::ref<chat_gui_finalize_fn>(halo::ui::vars().chat_gui_finalize);
+static auto &chat_gui_release = halo::link::ref<chat_gui_release_fn>(halo::ui::vars().chat_gui_release);
+static auto &hud_chat_listbox_visible = halo::link::ref<uint8_t>(halo::ui::vars().hud_chat_listbox_visible);
+static auto &game_engine_state_value = halo::link::ref<int32_t>(halo::game::vars().game_engine_state_value);
+static auto &game_engine_nameplate_fade_opacity_array = halo::link::ref<float>(halo::game::vars().game_engine_nameplate_fade_opacity_array);
+static auto &chat_gui_set_state = halo::link::ref<chat_gui_set_state_fn>(halo::ui::vars().chat_gui_set_state);
 
 namespace halo::interface {
 

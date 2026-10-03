@@ -3,12 +3,15 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
+static auto &team_pair_data = halo::link::ref<team_pair_globals *>(halo::ai::vars().team_pair_data);
 extern "C" {
-extern team_pair_globals *team_pair_data;
 extern void __cdecl standalone_log(const char *format, ...);
-extern game_engine_definition *current_game_engine;
 }
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 
 namespace halo::game {
 

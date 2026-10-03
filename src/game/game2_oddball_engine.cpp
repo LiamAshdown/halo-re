@@ -5,27 +5,30 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &king_alt_team_score = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_team_score);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &king_alt_player_score = halo::link::ref<int32_t []>(halo::game::vars().king_alt_player_score);
+static auto &king_alt_score_target = halo::link::ref<int32_t>(halo::game::vars().king_alt_score_target);
+static auto &king_alt_team_scores_network = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_team_scores_network);
+static auto &oddball_ball_timers_006b11cc = halo::link::ref<int32_t [16]>(halo::game::vars().oddball_ball_timers_006b11cc);
+static auto &king_hill_occupant_last_tick = halo::link::ref<int32_t [16]>(halo::game::vars().king_hill_occupant_last_tick);
+static auto &king_hill_occupant_table = halo::link::ref<uint32_t [16]>(halo::game::vars().king_hill_occupant_table);
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_teams_enabled_flag);
+static auto &king_alt_team_scores_network2 = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_team_scores_network2);
+static auto &king_alt_player_scores_network = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_player_scores_network);
+static auto &king_alt_scores_network_tail = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_scores_network_tail);
 extern "C" {
-extern game_variant game_engine_variant;
-extern int32_t king_alt_team_score[16];
-extern data_array *player_data;
-extern int32_t king_alt_player_score[];
-extern int32_t king_alt_score_target;
-extern int32_t king_alt_team_scores_network[16];
-extern int32_t oddball_ball_timers_006b11cc[16];
-extern int32_t king_hill_occupant_last_tick[16];
-extern uint32_t king_hill_occupant_table[16];
-extern game_engine_definition *current_game_engine;
-extern uint8_t game_engine_teams_enabled_flag;
-extern int32_t king_alt_team_scores_network2[16];
-extern int32_t king_alt_player_scores_network[16];
-extern int32_t king_alt_scores_network_tail[16];
 extern void qr2_buffer_add(void *buffer, const char *value);
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
-extern uint8_t custom_waypoints[];
-extern game_time_globals *game_time;
 }
+static auto &custom_waypoints = halo::link::ref<uint8_t []>(halo::game::vars().custom_waypoints);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 
 namespace halo::game {
 

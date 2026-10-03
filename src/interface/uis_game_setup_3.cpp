@@ -19,19 +19,19 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern int32_t ui_list_current;
-extern growable_array ui_lists[3];
-extern uint8_t profile_globals_block[0x60a4];
-extern int32_t cached_profile_slot;
-extern char last_profile_name[];
-extern campaign_level_entry known_campaign_levels_00692acc[10];
-extern uint8_t split_screen_quit_prompt_armed;
-extern uint8_t selected_level_active_00719878;
-extern uint8_t selected_level_pending_00719778;
-extern uint8_t network_wait_flag_00719739;
-}
+static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
+static auto &ui_lists = halo::link::ref<growable_array [3]>(halo::ui::vars().ui_lists);
+static auto &profile_globals_block = halo::link::ref<uint8_t [0x60a4]>(halo::ui::vars().profile_globals_block);
+static auto &cached_profile_slot = halo::link::ref<int32_t>(halo::ui::vars().cached_profile_slot);
+static auto &last_profile_name = halo::link::ref<char []>(halo::ui::vars().last_profile_name);
+static auto &known_campaign_levels_00692acc = halo::link::ref<campaign_level_entry [10]>(halo::ui::vars().known_campaign_levels_00692acc);
+static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
+static auto &selected_level_active_00719878 = halo::link::ref<uint8_t>(halo::ui::vars().selected_level_active_00719878);
+static auto &selected_level_pending_00719778 = halo::link::ref<uint8_t>(halo::ui::vars().selected_level_pending_00719778);
+static auto &network_wait_flag_00719739 = halo::link::ref<uint8_t>(halo::ui::vars().network_wait_flag_00719739);
 
 namespace halo::ui {
 

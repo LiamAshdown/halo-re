@@ -9,6 +9,9 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/units/vars.hpp"
 
 namespace halo::ai {
 
@@ -70,11 +73,10 @@ int32_t ActorOps::reassign_vehicle_seat(datum_index vehicle_object_index, datum_
 }
 
 namespace actor_refresh_combat_context_local {
+static auto &team_pair_data = halo::link::ref<uint8_t *>(halo::ai::vars().team_pair_data);
+static auto &global_zero_vector3d_pointer = halo::link::ref<const real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
+static auto &ai_marker_name_b = halo::link::ref<char []>(halo::ai::vars().ai_marker_name_b);
 extern "C" {
-extern game_engine_definition *current_game_engine;
-extern uint8_t *team_pair_data;
-extern const real_point3d *global_zero_vector3d_pointer;
-extern char ai_marker_name_b[];
 #define A_U8(offset) (*(uint8_t *)((uint8_t *)self + (offset)))
 #define A_I16(offset) (*(int16_t *)((uint8_t *)self + (offset)))
 #define A_I32(offset) (*(int32_t *)((uint8_t *)self + (offset)))
@@ -304,9 +306,7 @@ void ActorView::refresh_combat_context()
 #undef A_I32
 
 namespace actor_reset_queued_look_vector_local {
-extern "C" {
-extern const real_vector3d *global_origin3d_pointer;
-}
+static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 }
 
 /**

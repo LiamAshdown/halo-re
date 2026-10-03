@@ -8,12 +8,13 @@
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern int16_t local_player_count;
-extern int32_t cached_profile_slot;
-extern char last_profile_name[];
-}
+static auto &local_player_count = halo::link::ref<int16_t>(halo::game::vars().local_player_count);
+static auto &cached_profile_slot = halo::link::ref<int32_t>(halo::ui::vars().cached_profile_slot);
+static auto &last_profile_name = halo::link::ref<char []>(halo::ui::vars().last_profile_name);
 
 namespace halo::game {
 

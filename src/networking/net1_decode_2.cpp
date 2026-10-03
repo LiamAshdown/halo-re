@@ -1,12 +1,12 @@
 #include "halo/networking/net1_decode.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 
-extern "C" {
-extern data_packet_group network_game_messages_group;
-extern int16_t network_game_mode;
-extern uint32_t message_delta_vector3d_mode;
-}
+static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
+static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);
+static auto &message_delta_vector3d_mode = halo::link::ref<uint32_t>(halo::networking::vars().message_delta_vector3d_mode);
 
 namespace halo::networking {
 

@@ -13,9 +13,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/hs/vars.hpp"
 
-extern "C" {
-extern int16_t hs_type_sizes[];
-}
+static auto &hs_type_sizes = halo::link::ref<int16_t []>(halo::hs::vars().hs_type_sizes);
 static auto &hs_thread_data = halo::link::ref<data_array *>(halo::hs::vars().hs_thread_data);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 

@@ -10,15 +10,16 @@
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern int16_t current_local_player_index;
-extern hud_messaging_globals *hud_messaging;
-extern hud_globals_flags *hud_flags;
-extern uint8_t current_game_engine;
-extern uint8_t motion_sensor_override_value;
-extern uint8_t *cinematic_globals_ptr;
-}
+static auto &current_local_player_index = halo::link::ref<int16_t>(halo::ui::vars().current_local_player_index);
+static auto &hud_messaging = halo::link::ref<hud_messaging_globals *>(halo::ui::vars().hud_messaging);
+static auto &hud_flags = halo::link::ref<hud_globals_flags *>(halo::ui::vars().hud_flags);
+static auto &current_game_engine = halo::link::ref<uint8_t>(halo::game::vars().current_game_engine);
+static auto &motion_sensor_override_value = halo::link::ref<uint8_t>(halo::ui::vars().motion_sensor_override_value);
+static auto &cinematic_globals_ptr = halo::link::ref<uint8_t *>(halo::game::vars().cinematic_globals_ptr);
 
 static unit_object *unit_get(datum_index object_index)
 {

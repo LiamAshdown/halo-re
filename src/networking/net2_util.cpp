@@ -16,12 +16,14 @@
 #include <stdlib.h>
 #include "halo/networking/net2_util.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &network_mutex_name_counter = halo::link::ref<int32_t>(halo::networking::vars().network_mutex_name_counter);
 extern "C" {
-extern int32_t network_mutex_name_counter;
 extern int32_t snprintf(char *buffer, uint32_t count, const char *format, ...);
-extern uint8_t default_time_unit_table[];
 }
+static auto &default_time_unit_table = halo::link::ref<uint8_t []>(halo::networking::vars().default_time_unit_table);
 
 
 namespace halo::networking {

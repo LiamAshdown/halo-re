@@ -17,21 +17,28 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
 extern "C" {
 extern double fabs(double x);
-extern game_time_globals *game_time;
-extern uint8_t *actor_type_procs[];
-extern int16_t ai_vocalization_line_table[4];
-extern float ticks_per_second;
-extern int32_t __ftol(double value);
-extern team_pair_globals *team_pair_data;
-extern data_array *player_data;
-extern void *ai_actor_mode_dispatch_table;
-extern double sqrt(double x);
-extern float k_random_scale_65536;
-extern player_globals *local_player_globals;
 }
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &actor_type_procs = halo::link::ref<uint8_t *[]>(halo::ai::vars().actor_type_procs);
+static auto &ai_vocalization_line_table = halo::link::ref<int16_t [4]>(halo::ai::vars().ai_vocalization_line_table);
+static auto &ticks_per_second = halo::link::ref<float>(halo::ai::vars().ticks_per_second);
+extern "C" {
+extern int32_t __ftol(double value);
+}
+static auto &team_pair_data = halo::link::ref<team_pair_globals *>(halo::ai::vars().team_pair_data);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &ai_actor_mode_dispatch_table = halo::link::ref<void *>(halo::ai::vars().ai_actor_mode_dispatch_table);
+extern "C" {
+extern double sqrt(double x);
+}
+static auto &k_random_scale_65536 = halo::link::ref<float>(halo::ai::vars().k_random_scale_65536);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 
 namespace halo::ai {
 

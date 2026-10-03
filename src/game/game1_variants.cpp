@@ -19,46 +19,52 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 
 typedef game_variant *(*game_engine_variant_defaults_fn)(game_variant *out);
 typedef void (*profile_post_update_proc)(uint32_t arg_edx, uint32_t arg_ecx);
 
+static auto &game_variant_history_count = halo::link::ref<uint32_t>(halo::game::vars().game_variant_history_count);
+static auto &game_variant_history_current = halo::link::ref<int32_t>(halo::ui::vars().game_variant_history_current);
+static auto &game_variant_history = halo::link::ref<game_variant_history_entry *>(halo::game::vars().game_variant_history);
+static auto &variant_defaults_source = halo::link::ref<char [0x40]>(halo::networking::vars().variant_defaults_source);
+static auto &game_engine_pending_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_pending_variant);
+static auto &sv_friendly_fire_mode = halo::link::ref<int32_t>(halo::game::vars().sv_friendly_fire_mode);
+static auto &sv_timelimit_minutes = halo::link::ref<int32_t>(halo::game::vars().sv_timelimit_minutes);
+static auto &player_profile_cache = halo::link::ref<player_profile [16]>(halo::game::vars().player_profile_cache);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 extern "C" {
-extern uint32_t game_variant_history_count;
-extern int32_t game_variant_history_current;
-extern game_variant_history_entry *game_variant_history;
-extern char variant_defaults_source[0x40];
-extern game_variant game_engine_pending_variant;
-extern int32_t sv_friendly_fire_mode;
-extern int32_t sv_timelimit_minutes;
-extern player_profile player_profile_cache[16];
-extern game_variant game_engine_variant;
-extern data_array *player_data;
 extern int32_t game_engine_player_profile_cache_find(datum_index player_handle);
-extern int32_t *machine_table;
-extern game_variant game_engine_active_variant;
-extern uint8_t *network_server;
-extern uint8_t game_variant_saved_default_valid;
-extern game_variant game_variant_saved_default;
-extern char network_build_string[];
-extern uint32_t game_variant_history_capacity;
-extern uint8_t playlist_profiles_need_defaults;
+}
+static auto &machine_table = halo::link::ref<int32_t *>(halo::game::vars().machine_table);
+static auto &game_engine_active_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_active_variant);
+static auto &network_server = halo::link::ref<uint8_t *>(halo::networking::vars().network_server);
+static auto &game_variant_saved_default_valid = halo::link::ref<uint8_t>(halo::game::vars().game_variant_saved_default_valid);
+static auto &game_variant_saved_default = halo::link::ref<game_variant>(halo::ui::vars().game_variant_saved_default);
+static auto &network_build_string = halo::link::ref<char []>(halo::networking::vars().network_build_string);
+static auto &game_variant_history_capacity = halo::link::ref<uint32_t>(halo::game::vars().game_variant_history_capacity);
+static auto &playlist_profiles_need_defaults = halo::link::ref<uint8_t>(halo::ui::vars().playlist_profiles_need_defaults);
+extern "C" {
 extern void playlist_profile_create_default_profiles_on_disk(void);
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
     uint16_t *capacity_and_count);
 extern uint8_t saved_game_get_variant(int32_t slot, game_variant *out);
-extern game_engine_definition *current_game_engine;
-extern uint32_t game_engine_unknown_aa00;
-extern int32_t game_engine_auto_team_counter;
-extern float game_engine_end_game_timer;
-extern float game_engine_post_game_fade;
-extern game_engine_state game_engine_state_value;
-extern float game_engine_nameplate_fade_opacity_array[];
-extern uint8_t game_engine_dedicated_idle;
-extern float game_engine_dedicated_idle_timer;
-extern int32_t game_engine_round_reset_tick;
-extern game_engine_definition *game_engine_definitions[7];
 }
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &game_engine_unknown_aa00 = halo::link::ref<uint32_t>(halo::game::vars().game_engine_unknown_aa00);
+static auto &game_engine_auto_team_counter = halo::link::ref<int32_t>(halo::game::vars().game_engine_auto_team_counter);
+static auto &game_engine_end_game_timer = halo::link::ref<float>(halo::game::vars().game_engine_end_game_timer);
+static auto &game_engine_post_game_fade = halo::link::ref<float>(halo::game::vars().game_engine_post_game_fade);
+static auto &game_engine_state_value = halo::link::ref<game_engine_state>(halo::game::vars().game_engine_state_value);
+static auto &game_engine_nameplate_fade_opacity_array = halo::link::ref<float []>(halo::game::vars().game_engine_nameplate_fade_opacity_array);
+static auto &game_engine_dedicated_idle = halo::link::ref<uint8_t>(halo::game::vars().game_engine_dedicated_idle);
+static auto &game_engine_dedicated_idle_timer = halo::link::ref<float>(halo::game::vars().game_engine_dedicated_idle_timer);
+static auto &game_engine_round_reset_tick = halo::link::ref<int32_t>(halo::game::vars().game_engine_round_reset_tick);
+static auto &game_engine_definitions = halo::link::ref<game_engine_definition *[7]>(halo::game::vars().game_engine_definitions);
 
 namespace halo::game::engine1 {
 

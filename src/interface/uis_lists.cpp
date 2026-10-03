@@ -27,19 +27,21 @@
 #include "halo/hs/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/flags.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &ui_list_has_default = halo::link::ref<uint8_t>(halo::ui::vars().ui_list_has_default);
+static auto &ui_lists = halo::link::ref<growable_array [3]>(halo::ui::vars().ui_lists);
+static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
+static auto &map_list = halo::link::ref<map_list_entry *>(halo::ui::vars().map_list);
+static auto &map_list_count = halo::link::ref<int32_t>(halo::ui::vars().map_list_count);
+static auto &ui_widget_opened = halo::link::ref<uint8_t>(halo::ui::vars().ui_widget_opened);
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
+static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
+static auto &ui_event_function_table = halo::link::ref<void *[0xbe]>(halo::ui::vars().ui_event_function_table);
+static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
+static auto &ui_widget_history = halo::link::ref<widget_history_node *[3]>(halo::ui::vars().ui_widget_history);
 extern "C" {
-extern uint8_t ui_list_has_default;
-extern growable_array ui_lists[3];
-extern int32_t ui_list_current;
-extern map_list_entry *map_list;
-extern int32_t map_list_count;
-extern uint8_t ui_widget_opened;
-extern heap *widget_memory_pool;
-extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
-extern void *ui_event_function_table[0xbe];
-extern widget_instance *ui_root_widget[1];
-extern widget_history_node *ui_widget_history[3];
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index,
     widget_instance *parent, uint16_t controller_index, datum_index history_definition,
     datum_index history_list_definition, int16_t history_selection);

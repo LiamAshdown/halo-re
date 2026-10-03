@@ -11,12 +11,16 @@
 #include "networking.h"
 #include "objects.h"
 #include <string.h>
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 #ifdef __cplusplus
 extern "C" { /* HALO_CXX_LINKAGE */
 #endif
 
-extern message_delta_field_type_vtable message_delta_field_type_table[28]; // 0x0069a2f0
-extern uint8_t message_delta_item_count_bits[];                             // 0x0065d51f, [n] = bits for 0..n-1
+}
+inline auto &message_delta_field_type_table = halo::link::ref<message_delta_field_type_vtable [28]>(halo::networking::vars().message_delta_field_type_table);
+inline auto &message_delta_item_count_bits = halo::link::ref<uint8_t []>(halo::networking::vars().message_delta_item_count_bits);
+extern "C" {
 
  // 0x4cf8f0
       // 0x4cf950

@@ -19,26 +19,29 @@
 #include "units.h"
 #include "objects.h"
 #include "halo/interface/flags.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
+static auto &render_viewport_top = halo::link::ref<int16_t>(halo::ui::vars().render_viewport_top);
+static auto &hud_damage_indicator_screen_center_x = halo::link::ref<float>(halo::ui::vars().hud_damage_indicator_screen_center_x);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &hud_weapon_state = halo::link::ref<hud_weapon_interface_state *>(halo::ui::vars().hud_weapon_state);
+static auto &hud_unit_meters = halo::link::ref<hud_unit_meter_globals *>(halo::ui::vars().hud_unit_meters);
+static auto &current_local_player_index = halo::link::ref<int16_t>(halo::ui::vars().current_local_player_index);
+static auto &hud_overshield_layer_count = halo::link::ref<int32_t>(halo::ui::vars().hud_overshield_layer_count);
+static auto &hud_team_icon_bitmap = halo::link::ref<datum_index>(halo::ui::vars().hud_team_icon_bitmap);
+static auto &hud_team_background_bitmap = halo::link::ref<datum_index>(halo::ui::vars().hud_team_background_bitmap);
 extern "C" {
-extern HUDGlobals *hud_globals_tag_data;
-extern int16_t render_viewport_top;
-extern float hud_damage_indicator_screen_center_x;
-extern Globals *global_globals;
-extern hud_weapon_interface_state *hud_weapon_state;
-extern hud_unit_meter_globals *hud_unit_meters;
-extern int16_t current_local_player_index;
-extern int32_t hud_overshield_layer_count;
-extern datum_index hud_team_icon_bitmap;
-extern datum_index hud_team_background_bitmap;
 extern long lrint(double x);
-extern hud_globals_flags *hud_flags;
-extern hud_messaging_globals *hud_messaging;
-extern hud_waypoint_state *hud_waypoints;
-extern motion_sensor_globals *motion_sensor;
-extern HUDGlobals *hud_messaging_parameters;
-extern int32_t game_engine_state_value;
 }
+static auto &hud_flags = halo::link::ref<hud_globals_flags *>(halo::ui::vars().hud_flags);
+static auto &hud_messaging = halo::link::ref<hud_messaging_globals *>(halo::ui::vars().hud_messaging);
+static auto &hud_waypoints = halo::link::ref<hud_waypoint_state *>(halo::ui::vars().hud_waypoints);
+static auto &motion_sensor = halo::link::ref<motion_sensor_globals *>(halo::ui::vars().motion_sensor);
+static auto &hud_messaging_parameters = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_messaging_parameters);
+static auto &game_engine_state_value = halo::link::ref<int32_t>(halo::game::vars().game_engine_state_value);
 
 static int32_t hud_alpha_round(float value)
 {

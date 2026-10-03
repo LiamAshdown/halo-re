@@ -4,8 +4,10 @@
  */
 
 #include "halo/rasterizer/render_device.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
-extern "C" void *rasterizer_device;
+static auto &rasterizer_device = halo::link::ref<void *>(halo::game::vars().rasterizer_device);
 
 namespace halo::rasterizer {
 

@@ -23,37 +23,43 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &game_engine_state_value = halo::link::ref<game_engine_state>(halo::game::vars().game_engine_state_value);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
+static auto &missing_string_text = halo::link::ref<wchar_t []>(halo::ui::vars().missing_string_text);
 extern "C" {
-extern data_array *player_data;
-extern game_engine_definition *current_game_engine;
-extern game_engine_state game_engine_state_value;
-extern game_variant game_engine_variant;
-extern wchar_t empty_string;
-extern wchar_t missing_string_text[];
 extern void qsort(void *base, uint32_t count, uint32_t size,
     uint32_t (*compare)(const void *, const void *));
-extern int32_t game_engine_bucket_scores[16];
-extern int32_t game_engine_bucket_scores_extra[16];
-extern float game_engine_end_game_timer;
-extern uint8_t multiplayer_sound_enabled[];
-extern Globals *global_globals;
-extern int32_t multiplayer_sound_queue_count;
-extern multiplayer_sound_request multiplayer_sound_queue[k_maximum_queued_multiplayer_sounds];
-extern uint8_t shared_hud_text_draw_state;
-extern void *ui_root_widget;
-extern void *ui_widget_history;
-extern uint8_t ui_pause_depth;
-extern uint8_t controls_input_capture_buffer[0xa0 * 4];
-extern uint8_t network_message_scratch[0x7ff8];
+}
+static auto &game_engine_bucket_scores = halo::link::ref<int32_t [16]>(halo::game::vars().game_engine_bucket_scores);
+static auto &game_engine_bucket_scores_extra = halo::link::ref<int32_t [16]>(halo::game::vars().game_engine_bucket_scores_extra);
+static auto &game_engine_end_game_timer = halo::link::ref<float>(halo::game::vars().game_engine_end_game_timer);
+static auto &multiplayer_sound_enabled = halo::link::ref<uint8_t []>(halo::game::vars().multiplayer_sound_enabled);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &multiplayer_sound_queue_count = halo::link::ref<int32_t>(halo::game::vars().multiplayer_sound_queue_count);
+static auto &multiplayer_sound_queue = halo::link::ref<multiplayer_sound_request [k_maximum_queued_multiplayer_sounds]>(halo::game::vars().multiplayer_sound_queue);
+static auto &shared_hud_text_draw_state = halo::link::ref<uint8_t>(halo::game::vars().shared_hud_text_draw_state);
+static auto &ui_root_widget = halo::link::ref<void *>(halo::ui::vars().ui_root_widget);
+static auto &ui_widget_history = halo::link::ref<void *>(halo::ui::vars().ui_widget_history);
+static auto &ui_pause_depth = halo::link::ref<uint8_t>(halo::ui::vars().ui_pause_depth);
+static auto &controls_input_capture_buffer = halo::link::ref<uint8_t [0xa0 * 4]>(halo::ui::vars().controls_input_capture_buffer);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+extern "C" {
 extern int32_t players_active_count(void);
 extern uint8_t game_engine_player_has_respawn_priority(uint32_t player_handle);
-extern real *default_color_a;
-extern real *default_color_b;
-extern int32_t game_engine_unknown_aa00;
-extern int16_t light_count_enabled;
-extern float game_engine_nameplate_fade_opacity_array[1];
 }
+static auto &default_color_a = halo::link::ref<real *>(halo::game::vars().default_color_a);
+static auto &default_color_b = halo::link::ref<real *>(halo::game::vars().default_color_b);
+static auto &game_engine_unknown_aa00 = halo::link::ref<int32_t>(halo::game::vars().game_engine_unknown_aa00);
+static auto &light_count_enabled = halo::link::ref<int16_t>(halo::effects::vars().light_count_enabled);
+static auto &game_engine_nameplate_fade_opacity_array = halo::link::ref<float [1]>(halo::game::vars().game_engine_nameplate_fade_opacity_array);
 
 namespace halo::game::engine1 {
 

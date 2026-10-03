@@ -7,13 +7,19 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/rasterizer/vars.hpp"
 
+static auto &rasterizer_window = halo::link::ref<uint8_t []>(halo::rasterizer::vars().rasterizer_window);
 extern "C" {
-extern uint8_t rasterizer_window[];
 extern void __cdecl standalone_log(const char *format, ...);
-extern first_person_weapon_interface *first_person_weapon_interfaces;
-extern team_pair_globals *team_pair_data;
-extern real_point3d camera_position;
+}
+static auto &first_person_weapon_interfaces = halo::link::ref<first_person_weapon_interface *>(halo::ui::vars().first_person_weapon_interfaces);
+static auto &team_pair_data = halo::link::ref<team_pair_globals *>(halo::ai::vars().team_pair_data);
+static auto &camera_position = halo::link::ref<real_point3d>(halo::ui::vars().camera_position);
+extern "C" {
 
 int32_t debug_fp_state_armed;
 }

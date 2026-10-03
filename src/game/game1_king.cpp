@@ -19,34 +19,39 @@
 #include "halo/main/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &king_bucket_credit_ticks = halo::link::ref<int32_t [16]>(halo::game::vars().king_bucket_credit_ticks);
+static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
+static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
+static auto &king_team_hill_seconds_network = halo::link::ref<int32_t [16]>(halo::game::vars().king_team_hill_seconds_network);
+static auto &game_engine_recent_location_count = halo::link::ref<int16_t>(halo::game::vars().game_engine_recent_location_count);
+static auto &game_engine_recent_location_table = halo::link::ref<int16_t []>(halo::game::vars().game_engine_recent_location_table);
+static auto &king_starting_location_type = halo::link::ref<int32_t>(halo::game::vars().king_starting_location_type);
+static auto &king_hill_move_ticks_006b1068 = halo::link::ref<int32_t>(halo::game::vars().king_hill_move_ticks_006b1068);
+static auto &king_hill_index_006b1058 = halo::link::ref<int32_t>(halo::game::vars().king_hill_index_006b1058);
+static auto &king_hill_state_globals = halo::link::ref<int32_t>(halo::game::vars().king_hill_state_globals);
 extern "C" {
-extern data_array *player_data;
-extern int32_t king_bucket_credit_ticks[16];
-extern wchar_t empty_string;
-extern uint16_t missing_string_text[];
-extern int32_t king_team_hill_seconds_network[16];
-extern int16_t game_engine_recent_location_count;
-extern int16_t game_engine_recent_location_table[];
-extern int32_t king_starting_location_type;
-extern int32_t king_hill_move_ticks_006b1068;
-extern int32_t king_hill_index_006b1058;
-extern int32_t king_hill_state_globals;
 extern void game_engine_koth_build_hill_boundary(void);
 extern void game_engine_koth_reset_hill_marker_history(void);
-extern game_engine_definition *current_game_engine;
-extern uint8_t game_engine_teams_enabled_flag;
-extern int32_t king_bucket_last_credit_tick[16];
-extern int32_t king_hill_broadcast_overrun_value;
+}
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_teams_enabled_flag);
+static auto &king_bucket_last_credit_tick = halo::link::ref<int32_t [16]>(halo::game::vars().king_bucket_last_credit_tick);
+static auto &king_hill_broadcast_overrun_value = halo::link::ref<int32_t>(halo::game::vars().king_hill_broadcast_overrun_value);
+extern "C" {
 extern void qr2_buffer_add(void *buffer, const char *value);
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
-extern uint8_t king_hill_player_in_hill[16];
-extern int32_t king_hill_state_006b1054;
-extern game_variant game_engine_variant;
-extern int32_t game_engine_state_value;
-extern int32_t king_starting_location_count;
-extern real_point3d king_hill_boundary_center;
 }
+static auto &king_hill_player_in_hill = halo::link::ref<uint8_t [16]>(halo::game::vars().king_hill_player_in_hill);
+static auto &king_hill_state_006b1054 = halo::link::ref<int32_t>(halo::game::vars().king_hill_state_006b1054);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &game_engine_state_value = halo::link::ref<int32_t>(halo::game::vars().game_engine_state_value);
+static auto &king_starting_location_count = halo::link::ref<int32_t>(halo::game::vars().king_starting_location_count);
+static auto &king_hill_boundary_center = halo::link::ref<real_point3d>(halo::game::vars().king_hill_boundary_center);
 
 namespace halo::game::engine1 {
 

@@ -17,13 +17,13 @@
 #include "halo/scenario/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
-extern "C" {
-extern data_array *player_data;
-extern game_engine_definition *current_game_engine;
-extern game_variant game_engine_variant;
-extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
-}
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &custom_waypoints = halo::link::ref<custom_waypoint [k_maximum_custom_waypoints]>(halo::game::vars().custom_waypoints);
 
 namespace halo::game::engine1 {
 

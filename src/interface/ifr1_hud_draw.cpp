@@ -11,20 +11,25 @@
 #include "halo/text/text.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
 extern "C" {
 extern int32_t ROUND(float x);
-extern uint32_t render_viewport_top;
-extern HUDGlobals *hud_globals_tag_data;
+}
+static auto &render_viewport_top = halo::link::ref<uint32_t>(halo::ui::vars().render_viewport_top);
+static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
+extern "C" {
 extern int32_t __ftol(double x);
 extern float sinf(float x);
 extern float cosf(float x);
 extern float sqrtf(float x);
 extern float atan2f(float y, float x);
 extern long lrint(double x);
-extern float hud_multitexture_effector_counter;
-extern Globals *global_globals;
 }
+static auto &hud_multitexture_effector_counter = halo::link::ref<float>(halo::ui::vars().hud_multitexture_effector_counter);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 
 static datum_index hud_local_player_index_to_player(int16_t local_player_index)
 {

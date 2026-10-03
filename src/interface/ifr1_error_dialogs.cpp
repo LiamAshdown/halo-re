@@ -5,14 +5,14 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern ui_pending_error ui_pending_errors[4];
-extern uint8_t ui_split_screen;
-extern uint8_t network_wait_flag_00719739;
-extern widget_instance *ui_root_widget[1];
-extern int16_t ui_pause_depth;
-}
+static auto &ui_pending_errors = halo::link::ref<ui_pending_error [4]>(halo::ui::vars().ui_pending_errors);
+static auto &ui_split_screen = halo::link::ref<uint8_t>(halo::ui::vars().ui_split_screen);
+static auto &network_wait_flag_00719739 = halo::link::ref<uint8_t>(halo::ui::vars().network_wait_flag_00719739);
+static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
+static auto &ui_pause_depth = halo::link::ref<int16_t>(halo::ui::vars().ui_pause_depth);
 
 namespace halo::interface {
 

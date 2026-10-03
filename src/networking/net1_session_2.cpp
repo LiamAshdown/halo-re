@@ -9,13 +9,17 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &profile_globals_block = halo::link::ref<uint32_t [0x7ff]>(halo::ui::vars().profile_globals_block);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);
+static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
+static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
 extern "C" {
-extern uint32_t profile_globals_block[0x7ff];
-extern data_array *player_data;
-extern int16_t network_game_mode;
-extern network_server_globals *network_server;
-extern network_client_globals *network_client;
 extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id);
 }
 

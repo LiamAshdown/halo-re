@@ -18,24 +18,32 @@
 #include "units.h"
 #include "items.h"
 #include "halo/interface/flags.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/render/vars.hpp"
+#include "halo/units/vars.hpp"
 
+static auto &first_person_weapon_interfaces = halo::link::ref<first_person_weapon_interface *>(halo::ui::vars().first_person_weapon_interfaces);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &global_zero_vector3d_pointer = halo::link::ref<void *>(halo::units::vars().global_zero_vector3d_pointer);
 extern "C" {
-extern first_person_weapon_interface *first_person_weapon_interfaces;
-extern Globals *global_globals;
-extern void *global_zero_vector3d_pointer;
 extern float effect_random_fraction(void);
 extern double fmod(double x, double y);
 extern double sqrt(double x);
 extern int32_t __ftol(double x);
-extern real_point3d render_camera_global;
-extern real_vector3d camera_forward_x;
-extern real_vector3d camera_up;
-extern double fpatan(double y, double x);
-extern int16_t current_local_player_index;
-extern float zoom_static_tint_r;
-extern float zoom_static_tint_g;
-extern float zoom_static_tint_b;
 }
+static auto &render_camera_global = halo::link::ref<real_point3d>(halo::render::vars().render_camera_global);
+static auto &camera_forward_x = halo::link::ref<real_vector3d>(halo::effects::vars().camera_forward_x);
+static auto &camera_up = halo::link::ref<real_vector3d>(halo::ui::vars().camera_up);
+extern "C" {
+extern double fpatan(double y, double x);
+}
+static auto &current_local_player_index = halo::link::ref<int16_t>(halo::ui::vars().current_local_player_index);
+static auto &zoom_static_tint_r = halo::link::ref<float>(halo::ui::vars().zoom_static_tint_r);
+static auto &zoom_static_tint_g = halo::link::ref<float>(halo::ui::vars().zoom_static_tint_g);
+static auto &zoom_static_tint_b = halo::link::ref<float>(halo::ui::vars().zoom_static_tint_b);
 
 #define FP_FLOAT(fp, offset) (*(float *)((uint8_t *)(fp) + (offset)))
 

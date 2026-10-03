@@ -1,9 +1,9 @@
 #include "halo/game/game2_engines.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
-extern "C" {
-extern uint32_t ctf_globals_live;
-}
+static auto &ctf_globals_live = halo::link::ref<uint32_t>(halo::game::vars().ctf_globals_live);
 
 namespace halo::game {
 

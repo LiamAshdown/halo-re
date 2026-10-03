@@ -11,6 +11,9 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
 namespace c_actor_attempt_grenade_throw {
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
@@ -122,11 +125,7 @@ void actor_attempt_grenade_throw(datum_index actor_index)
 #undef OBJECT_DATA
 
 namespace c_actor_can_throw_grenade_at_target {
-extern "C" {
-extern game_time_globals *game_time;
-
-
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 
@@ -194,10 +193,7 @@ uint8_t actor_can_throw_grenade_at_target(datum_index actor_index)
 }
 
 namespace c_actor_check_grenade_facing_and_commit {
-extern "C" {
-extern game_time_globals *game_time;
-
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 
@@ -386,8 +382,8 @@ uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point
 }
 
 namespace c_actor_consider_grenade_throw {
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern game_time_globals *game_time;
 
 extern real weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
 }
@@ -763,10 +759,7 @@ int16_t actor_gather_nearby_grenade_targets(datum_index source_actor_index, int1
 }
 
 namespace c_actor_get_grenade_launch_velocity {
-extern "C" {
-extern ::Globals *global_globals;
-
-}
+static auto &global_globals = halo::link::ref<::Globals *>(halo::game::vars().global_globals);
 }
 
 

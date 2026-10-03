@@ -16,27 +16,34 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
+static auto &interface_loading_screen_progress = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_progress);
+static auto &join_ui_state = halo::link::ref<int32_t>(halo::networking::vars().join_ui_state);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 extern "C" {
-extern int16_t network_join_error_code;
-extern int32_t interface_loading_screen_progress;
-extern int32_t join_ui_state;
-extern uint8_t network_message_scratch[0x7ff8];
 extern void chimera__console_out(ColorARGB *color, char *format, ...);
-extern int16_t network_game_mode;
-extern void * global_white_argb;
-extern network_client_globals * network_client;
-extern char registry_halo_version_buffer[0x40];
+}
+static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);
+static auto &global_white_argb = halo::link::ref<void *>(halo::networking::vars().global_white_argb);
+static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
+static auto &registry_halo_version_buffer = halo::link::ref<char [0x40]>(halo::networking::vars().registry_halo_version_buffer);
+extern "C" {
 extern double sin(double x);
 extern double cos(double x);
-extern player_globals * local_player_globals;
-extern uint32_t update_client_staged[8];
-extern data_array * player_data;
-extern uint8_t update_server_pending_flush;
-extern uint8_t update_server_history_index;
-extern network_server_globals * network_server;
-extern int32_t update_server_last_log_ms;
-extern int32_t update_server_last_tick_ms;
+}
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &update_client_staged = halo::link::ref<uint32_t [8]>(halo::game::vars().update_client_staged);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &update_server_pending_flush = halo::link::ref<uint8_t>(halo::networking::vars().update_server_pending_flush);
+static auto &update_server_history_index = halo::link::ref<uint8_t>(halo::networking::vars().update_server_history_index);
+static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
+static auto &update_server_last_log_ms = halo::link::ref<int32_t>(halo::networking::vars().update_server_last_log_ms);
+static auto &update_server_last_tick_ms = halo::link::ref<int32_t>(halo::networking::vars().update_server_last_tick_ms);
+extern "C" {
 extern void update_server_new(void);
 extern void update_queues_dispose(void);
 extern void update_server_dispose(void);

@@ -12,12 +12,12 @@
 
 #include "halo/interface/uis_tab_groups.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern uint8_t ui_split_screen;
-extern int32_t input_device_count;
-extern uint8_t profile_globals_block[0x60a4];
-}
+static auto &ui_split_screen = halo::link::ref<uint8_t>(halo::ui::vars().ui_split_screen);
+static auto &input_device_count = halo::link::ref<int32_t>(halo::ui::vars().input_device_count);
+static auto &profile_globals_block = halo::link::ref<uint8_t [0x60a4]>(halo::ui::vars().profile_globals_block);
 
 namespace halo::ui {
 

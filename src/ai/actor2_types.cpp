@@ -9,6 +9,8 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 namespace halo::ai {
 
@@ -561,9 +563,9 @@ void ActorView::type_hunter_update()
 #undef ACTOR
 
 namespace actor_type_infection_swarm_update_local {
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 extern "C" {
-extern game_time_globals *game_time;
-extern const real_point3d *global_origin3d_pointer;
 extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);

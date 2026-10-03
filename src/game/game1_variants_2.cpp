@@ -11,13 +11,13 @@
 #include "halo/game/game1_variants.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
-extern "C" {
-extern player_profile player_profile_cache[16];
-extern data_array *player_data;
-extern game_variant game_engine_variant;
-extern uint8_t *machine_table;
-}
+static auto &player_profile_cache = halo::link::ref<player_profile [16]>(halo::game::vars().player_profile_cache);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &machine_table = halo::link::ref<uint8_t *>(halo::game::vars().machine_table);
 
 namespace halo::game::engine1 {
 

@@ -8,13 +8,13 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 namespace halo::ai {
 
 namespace actor_movement_action_cancel_local {
-extern "C" {
-extern actor_mode_definition actor_mode_definitions[16];
-}
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 }
 
 /**
@@ -435,8 +435,8 @@ void ActorView::movement_advance_waypoint()
 }
 
 namespace actor_movement_apply_steering_local {
+static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 extern "C" {
-extern const real_vector3d *global_origin3d_pointer;
 extern double acos(double x);
 extern double sqrt(double x);
 extern double sin(double x);
@@ -720,9 +720,7 @@ uint8_t ActorView::movement_check_arrival()
 }
 
 namespace actor_movement_choose_strafe_axis_local {
-extern "C" {
-extern const real_vector3d *global_origin3d_pointer;
-}
+static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 }
 
 /**
@@ -1205,9 +1203,7 @@ uint8_t ActorOps::movement_set_destination_point(real_point3d *destination, datu
 }
 
 namespace actor_movement_test_obstacle_ray_local {
-extern "C" {
-extern const real_vector3d *global_origin3d_pointer;
-}
+static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 }
 
 /**

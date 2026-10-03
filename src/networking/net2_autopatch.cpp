@@ -20,17 +20,20 @@
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/units/vars.hpp"
 
+static auto &autopatch_update_check_state = halo::link::ref<int32_t>(halo::networking::vars().autopatch_update_check_state);
+static auto &autopatch_download_slots = halo::link::ref<autopatch_download_slot [2]>(halo::networking::vars().autopatch_download_slots);
+static auto &network_mutex_table = halo::link::ref<network_mutex_record [k_network_mutex_table_count]>(halo::networking::vars().network_mutex_table);
+static auto &network_mutex_name_counter = halo::link::ref<int32_t>(halo::networking::vars().network_mutex_name_counter);
+static auto &network_thread_table = halo::link::ref<network_thread_record [k_network_thread_table_count]>(halo::networking::vars().network_thread_table);
+static auto &autopatch_download_mutex = halo::link::ref<network_mutex_record *>(halo::networking::vars().autopatch_download_mutex);
+static auto &autopatch_download_thread = halo::link::ref<network_thread_record *>(halo::networking::vars().autopatch_download_thread);
+static auto &autopatch_download_pool_stop = halo::link::ref<uint8_t>(halo::networking::vars().autopatch_download_pool_stop);
+static auto &autopatch_download_active_count = halo::link::ref<uint8_t>(halo::networking::vars().autopatch_download_active_count);
 extern "C" {
-extern int32_t autopatch_update_check_state;
-extern autopatch_download_slot autopatch_download_slots[2];
-extern network_mutex_record network_mutex_table[k_network_mutex_table_count];
-extern int32_t network_mutex_name_counter;
-extern network_thread_record network_thread_table[k_network_thread_table_count];
-extern network_mutex_record * autopatch_download_mutex;
-extern network_thread_record * autopatch_download_thread;
-extern uint8_t autopatch_download_pool_stop;
-extern uint8_t autopatch_download_active_count;
 extern void ghttpStartup(void);
 extern int32_t _snprintf(char *buffer, uint32_t count, const char *format, ...);
 extern int32_t ghttpCleanup(void);
@@ -40,14 +43,18 @@ extern int32_t ghttpGetEx(void *path, int32_t a2, int32_t a3, int32_t a4, int32_
                              int32_t a7, void *progress_callback, void *complete_callback, int32_t a8);
 extern int32_t ghttpSaveEx(void *url, void *filename, void *headers, void *post, int32_t throttle, int32_t blocking,
                              void *progress_callback, void *complete_callback, void *param);
-extern char autopatch_proxy_server[0x100];
-extern char autopatch_update_url[0x100];
-extern char autopatch_update_version[0x100];
-extern uint8_t autopatch_proxy_ready;
+}
+static auto &autopatch_proxy_server = halo::link::ref<char [0x100]>(halo::networking::vars().autopatch_proxy_server);
+static auto &autopatch_update_url = halo::link::ref<char [0x100]>(halo::networking::vars().autopatch_update_url);
+static auto &autopatch_update_version = halo::link::ref<char [0x100]>(halo::networking::vars().autopatch_update_version);
+static auto &autopatch_proxy_ready = halo::link::ref<uint8_t>(halo::networking::vars().autopatch_proxy_ready);
+extern "C" {
 extern void ghttpSetProxy(void *proxy_settings);
-extern uint8_t ai_update_stagger[11];
-extern uint8_t autopatch_temp_name_flag;
-extern int32_t autopatch_update_file_id;
+}
+static auto &ai_update_stagger = halo::link::ref<uint8_t [11]>(halo::units::vars().ai_update_stagger);
+static auto &autopatch_temp_name_flag = halo::link::ref<uint8_t>(halo::networking::vars().autopatch_temp_name_flag);
+static auto &autopatch_update_file_id = halo::link::ref<int32_t>(halo::networking::vars().autopatch_update_file_id);
+extern "C" {
 extern int32_t ptCheckForPatch(int32_t request_type, char *version, uint32_t dist_id,
                              void *callback, int32_t a5, int32_t a6);
 }

@@ -4,16 +4,17 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
+static auto &game_variant_history_current = halo::link::ref<int32_t>(halo::ui::vars().game_variant_history_current);
+static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
+static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
 extern "C" {
-extern game_variant game_variant_saved_default;
-extern int32_t game_variant_history_current;
-extern uint16_t split_screen_quit_prompt_string;
-extern uint8_t split_screen_quit_prompt_armed;
 extern void widget_close_all(void);
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
 extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection);

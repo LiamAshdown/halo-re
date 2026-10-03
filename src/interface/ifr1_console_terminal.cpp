@@ -19,36 +19,41 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &console_echo_prefix = halo::link::ref<char []>(halo::ui::vars().console_echo_prefix);
+static auto &console_rcon_out_reentrant_guard = halo::link::ref<uint8_t>(halo::ui::vars().console_rcon_out_reentrant_guard);
+static auto &console_output_handle = halo::link::ref<void *>(halo::ui::vars().console_output_handle);
 extern "C" {
-extern char console_echo_prefix[];
-extern uint8_t console_rcon_out_reentrant_guard;
-extern void *console_output_handle;
 extern void console_clear_bottom_line(int32_t clear_all);
 extern void console_draw_input_line(void);
 extern void string_replace_all_in_place(char *buffer, char *search, char *replacement);
-extern char console_window_title[0x20];
-extern Globals *global_globals;
-extern uint8_t console_caret_visible;
-extern uint8_t console_show_messages;
-extern uint16_t hud_text_draw_color_or_flags;
-extern int32_t hud_text_draw_font_tag_id;
-extern float hud_text_draw_color_a;
-extern float hud_text_draw_color_r;
-extern float hud_text_draw_color_g;
-extern float hud_text_draw_color_b;
-extern uint32_t text_tab_stops;
-extern uint32_t hud_text_draw_box_field_474e;
-extern int16_t render_viewport_top[6];
-extern uint32_t strlen(const char *s);
-extern void *console_input_handle;
-extern uint8_t controls_input_capture_flags;
-extern int16_t key_event_read_index;
-extern int16_t key_event_count;
-extern ui_key_event key_events[];
-extern char console_last_line[0x100];
-extern int32_t console_last_cursor_column;
 }
+static auto &console_window_title = halo::link::ref<char [0x20]>(halo::ui::vars().console_window_title);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &console_caret_visible = halo::link::ref<uint8_t>(halo::ui::vars().console_caret_visible);
+static auto &console_show_messages = halo::link::ref<uint8_t>(halo::ui::vars().console_show_messages);
+static auto &hud_text_draw_color_or_flags = halo::link::ref<uint16_t>(halo::ui::vars().hud_text_draw_color_or_flags);
+static auto &hud_text_draw_font_tag_id = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_font_tag_id);
+static auto &hud_text_draw_color_a = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_a);
+static auto &hud_text_draw_color_r = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_r);
+static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_g);
+static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
+static auto &text_tab_stops = halo::link::ref<uint32_t>(halo::game::vars().text_tab_stops);
+static auto &hud_text_draw_box_field_474e = halo::link::ref<uint32_t>(halo::game::vars().hud_text_draw_box_field_474e);
+static auto &render_viewport_top = halo::link::ref<int16_t [6]>(halo::ui::vars().render_viewport_top);
+extern "C" {
+extern uint32_t strlen(const char *s);
+}
+static auto &console_input_handle = halo::link::ref<void *>(halo::ui::vars().console_input_handle);
+static auto &controls_input_capture_flags = halo::link::ref<uint8_t>(halo::ui::vars().controls_input_capture_flags);
+static auto &key_event_read_index = halo::link::ref<int16_t>(halo::ui::vars().key_event_read_index);
+static auto &key_event_count = halo::link::ref<int16_t>(halo::ui::vars().key_event_count);
+static auto &key_events = halo::link::ref<ui_key_event []>(halo::ui::vars().key_events);
+static auto &console_last_line = halo::link::ref<char [0x100]>(halo::ui::vars().console_last_line);
+static auto &console_last_cursor_column = halo::link::ref<int32_t>(halo::ui::vars().console_last_cursor_column);
 
 namespace halo::interface {
 

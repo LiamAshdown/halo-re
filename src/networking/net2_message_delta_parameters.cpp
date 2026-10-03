@@ -12,24 +12,30 @@
 #include <string.h>
 #include "halo/networking/net2_message_delta_parameters.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/hs/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
+static auto &message_delta_parameters_enabled = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_enabled);
+static auto &message_delta_unknown_table_0069a304 = halo::link::ref<uint8_t [28][0x18]>(halo::networking::vars().message_delta_unknown_table_0069a304);
+static auto &message_delta_config_text_buffer = halo::link::ref<char []>(halo::hs::vars().message_delta_config_text_buffer);
+static auto &message_delta_config_write_mode_string = halo::link::ref<char []>(halo::networking::vars().message_delta_config_write_mode_string);
+static auto &message_delta_parameter_count = halo::link::ref<int32_t>(halo::networking::vars().message_delta_parameter_count);
+static auto &message_delta_parameters = halo::link::ref<message_delta_parameter []>(halo::networking::vars().message_delta_parameters);
 extern "C" {
-extern network_server_globals *network_server;
-extern uint8_t message_delta_parameters_enabled;
-extern uint8_t message_delta_unknown_table_0069a304[28][0x18];
-extern char message_delta_config_text_buffer[];
-extern char message_delta_config_write_mode_string[];
-extern int32_t message_delta_parameter_count;
-extern message_delta_parameter message_delta_parameters[];
 extern int32_t sprintf(char *buffer, const char *format, ...);
-extern char message_delta_config_value_delimiters[];
-extern int32_t sscanf(const char *buffer, const char *format, ...);
-extern int32_t message_delta_parameters_protocol_sequence;
-extern char message_delta_config_mode_string[];
-extern uint8_t message_delta_parameters_sending;
-extern uint8_t message_delta_parameters_protocol_broadcast_target[];
-extern uint8_t network_message_scratch[0x7ff8];
 }
+static auto &message_delta_config_value_delimiters = halo::link::ref<char []>(halo::networking::vars().message_delta_config_value_delimiters);
+extern "C" {
+extern int32_t sscanf(const char *buffer, const char *format, ...);
+}
+static auto &message_delta_parameters_protocol_sequence = halo::link::ref<int32_t>(halo::networking::vars().message_delta_parameters_protocol_sequence);
+static auto &message_delta_config_mode_string = halo::link::ref<char []>(halo::networking::vars().message_delta_config_mode_string);
+static auto &message_delta_parameters_sending = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_sending);
+static auto &message_delta_parameters_protocol_broadcast_target = halo::link::ref<uint8_t []>(halo::networking::vars().message_delta_parameters_protocol_broadcast_target);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 
 
 namespace halo::networking {

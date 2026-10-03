@@ -3,16 +3,16 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
-extern "C" {
-extern uint8_t video_gamma_current;
-extern video_resolution video_resolutions[0x20];
-extern int32_t video_resolution_count;
-}
+static auto &video_gamma_current = halo::link::ref<uint8_t>(halo::ui::vars().video_gamma_current);
+static auto &video_resolutions = halo::link::ref<video_resolution [0x20]>(halo::ui::vars().video_resolutions);
+static auto &video_resolution_count = halo::link::ref<int32_t>(halo::ui::vars().video_resolution_count);
 
 namespace halo::interface {
 

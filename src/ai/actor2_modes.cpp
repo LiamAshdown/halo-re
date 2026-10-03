@@ -7,6 +7,8 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 namespace halo::ai {
 
@@ -149,8 +151,8 @@ void ActorView::mode_uncover_update()
 #undef PROP
 
 namespace actor_mode_vehicle_enter_local {
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern game_time_globals *game_time;
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
@@ -211,8 +213,8 @@ namespace actor_mode_wait_process_local {
 extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-extern game_time_globals *game_time;
 }
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 /**

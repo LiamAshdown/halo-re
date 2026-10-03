@@ -19,19 +19,25 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
 extern "C" {
 extern int32_t game_engine_get_current_tick(void);
 extern void team_pair_override_add(int16_t index_a, uint8_t unknown_08, int16_t index_b, uint8_t unknown_09, int16_t threshold, int16_t timer_reset, uint8_t unknown_0c);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
-extern char prop_array_name[];
+}
+static auto &prop_array_name = halo::link::ref<char []>(halo::ai::vars().prop_array_name);
+extern "C" {
 extern void team_pair_override_clear_flag(int16_t index_b, int16_t index_a);
-extern float k_random_scale_65536;
-extern uint8_t *team_pair_data;
-extern player_globals *local_player_globals;
-extern actor_mode_definition actor_mode_definitions[16];
-extern game_time_globals *game_time;
-extern float k_physics_gravity;
+}
+static auto &k_random_scale_65536 = halo::link::ref<float>(halo::ai::vars().k_random_scale_65536);
+static auto &team_pair_data = halo::link::ref<uint8_t *>(halo::ai::vars().team_pair_data);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+extern "C" {
 extern double sqrt(double x);
 }
 

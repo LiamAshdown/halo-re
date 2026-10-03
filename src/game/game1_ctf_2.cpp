@@ -22,28 +22,28 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
-extern "C" {
-extern ctf_globals ctf_globals_live;
-extern game_variant game_engine_variant;
-extern int32_t ctf_team_flag_touch_count[2];
-extern int32_t ctf_touch_counts_network[3];
-extern uint8_t ctf_active_team;
-extern int32_t ctf_flag_auto_return_ticks;
-extern uint8_t custom_waypoints[];
-extern uint8_t network_message_scratch[0x7ff8];
-extern datum_index ctf_team_flag_object[2];
-extern uint8_t ctf_team_return_credit_active[2];
-extern int32_t ctf_team_return_credit_ticks[2];
-extern int32_t ctf_notify_throttle_tick;
-extern int32_t ctf_neutral_flag_id;
-extern uint32_t ctf_team_captured_flags_mask[];
-extern int32_t game_engine_state_value;
-extern float game_engine_end_game_timer;
-extern int32_t ctf_flag_capture_limit_006b0ea0;
-extern data_array *player_data;
-extern game_engine_definition *current_game_engine;
-}
+static auto &ctf_globals_live = halo::link::ref<ctf_globals>(halo::game::vars().ctf_globals_live);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &ctf_team_flag_touch_count = halo::link::ref<int32_t [2]>(halo::game::vars().ctf_team_flag_touch_count);
+static auto &ctf_touch_counts_network = halo::link::ref<int32_t [3]>(halo::game::vars().ctf_touch_counts_network);
+static auto &ctf_active_team = halo::link::ref<uint8_t>(halo::game::vars().ctf_active_team);
+static auto &ctf_flag_auto_return_ticks = halo::link::ref<int32_t>(halo::game::vars().ctf_flag_auto_return_ticks);
+static auto &custom_waypoints = halo::link::ref<uint8_t []>(halo::game::vars().custom_waypoints);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+static auto &ctf_team_flag_object = halo::link::ref<datum_index [2]>(halo::game::vars().ctf_team_flag_object);
+static auto &ctf_team_return_credit_active = halo::link::ref<uint8_t [2]>(halo::game::vars().ctf_team_return_credit_active);
+static auto &ctf_team_return_credit_ticks = halo::link::ref<int32_t [2]>(halo::game::vars().ctf_team_return_credit_ticks);
+static auto &ctf_notify_throttle_tick = halo::link::ref<int32_t>(halo::game::vars().ctf_notify_throttle_tick);
+static auto &ctf_neutral_flag_id = halo::link::ref<int32_t>(halo::game::vars().ctf_neutral_flag_id);
+static auto &ctf_team_captured_flags_mask = halo::link::ref<uint32_t []>(halo::game::vars().ctf_team_captured_flags_mask);
+static auto &game_engine_state_value = halo::link::ref<int32_t>(halo::game::vars().game_engine_state_value);
+static auto &game_engine_end_game_timer = halo::link::ref<float>(halo::game::vars().game_engine_end_game_timer);
+static auto &ctf_flag_capture_limit_006b0ea0 = halo::link::ref<int32_t>(halo::game::vars().ctf_flag_capture_limit_006b0ea0);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 
 namespace halo::game::engine1 {
 

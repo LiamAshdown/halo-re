@@ -15,9 +15,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/hs/vars.hpp"
 
-extern "C" {
-extern int16_t magic_seat_animation_state_0069fde0;
-}
+static auto &magic_seat_animation_state_0069fde0 = halo::link::ref<int16_t>(halo::hs::vars().magic_seat_animation_state_0069fde0);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &hs_object_type_masks = halo::link::ref<int16_t []>(halo::hs::vars().hs_object_type_masks);
 

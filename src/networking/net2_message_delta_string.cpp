@@ -7,10 +7,9 @@
 #include "halo/networking/net2_message_delta_string.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 
-extern "C" {
-extern uint8_t message_delta_item_count_bits[];
-}
 
 
 namespace halo::networking {

@@ -9,16 +9,21 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/units/vars.hpp"
 
 #define k_uninitialized_fill 0xfafafafau
 
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &ui_split_screen = halo::link::ref<uint8_t>(halo::ui::vars().ui_split_screen);
+static auto &global_00719750 = halo::link::ref<uint8_t>(halo::game::vars().global_00719750);
+static auto &global_00719772 = halo::link::ref<int16_t>(halo::game::vars().global_00719772);
 extern "C" {
-extern player_globals *local_player_globals;
-extern data_array *player_data;
-extern game_engine_definition *current_game_engine;
-extern uint8_t ui_split_screen;
-extern uint8_t global_00719750;
-extern int16_t global_00719772;
 extern uint32_t update_client_distribute_staged_entry(uint8_t *out);
 extern uint8_t player_update_queue_pop_current(player_update_record *out, player_update_queue *queue);
 extern void player_apply_first_position_update(uint32_t field0, player *plr);
@@ -32,28 +37,30 @@ extern void game_engine_build_visible_cluster_bitmask(void *out_bitmask, uint32_
 extern uint32_t update_client_queue_apply_tick(player_action *out_actions, client_update_carry *out_carry);
 extern uint8_t player_execute_pending_interaction(datum_index player_handle);
 extern uint8_t player_execute_weapon_drop_interaction(datum_index player_handle);
-extern game_time_globals *game_time;
-extern uint8_t network_message_scratch[0x7ff8];
-extern network_id_table *object_network_id_table;
-extern uint8_t shared_hud_text_draw_state;
-extern uint8_t *machine_table;
-extern player_control_globals *player_control_globals_ptr;
-extern Globals *global_globals;
-extern uint8_t *cinematic_globals_ptr;
-extern uint8_t local_player_input_frozen[];
-extern uint8_t local_player_look_frozen[];
-extern uint32_t update_client_staged[8];
-extern int32_t update_client_staged_count;
-extern int32_t update_client_unknown_ec4;
+}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
+static auto &shared_hud_text_draw_state = halo::link::ref<uint8_t>(halo::game::vars().shared_hud_text_draw_state);
+static auto &machine_table = halo::link::ref<uint8_t *>(halo::game::vars().machine_table);
+static auto &player_control_globals_ptr = halo::link::ref<player_control_globals *>(halo::game::vars().player_control_globals_ptr);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &cinematic_globals_ptr = halo::link::ref<uint8_t *>(halo::game::vars().cinematic_globals_ptr);
+static auto &local_player_input_frozen = halo::link::ref<uint8_t []>(halo::game::vars().local_player_input_frozen);
+static auto &local_player_look_frozen = halo::link::ref<uint8_t []>(halo::game::vars().local_player_look_frozen);
+static auto &update_client_staged = halo::link::ref<uint32_t [8]>(halo::game::vars().update_client_staged);
+static auto &update_client_staged_count = halo::link::ref<int32_t>(halo::game::vars().update_client_staged_count);
+static auto &update_client_unknown_ec4 = halo::link::ref<int32_t>(halo::game::vars().update_client_unknown_ec4);
+extern "C" {
 extern double atan2(double y, double x);
 extern double cos(double x);
 extern double sin(double x);
 extern double sqrt(double x);
 extern double fabs(double x);
-extern player_profile player_profile_cache[16];
-extern int32_t player_profile_cache_count;
-extern object_type_definition *object_type_definitions[k_maximum_object_types];
 }
+static auto &player_profile_cache = halo::link::ref<player_profile [16]>(halo::game::vars().player_profile_cache);
+static auto &player_profile_cache_count = halo::link::ref<int32_t>(halo::game::vars().player_profile_cache_count);
+static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
 
 namespace halo::game {
 

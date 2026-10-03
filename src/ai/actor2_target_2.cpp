@@ -7,12 +7,14 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/physics/vars.hpp"
 
 namespace halo::ai {
 
 namespace actor_target_evaluate_squad_link_local {
+static auto &object_cluster_stamp = halo::link::ref<int32_t>(halo::physics::vars().object_cluster_stamp);
 extern "C" {
-extern int32_t object_cluster_stamp;
 extern double sqrt(double x);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 #define OBJ(i) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(i) & halo::k_slot_mask].data)

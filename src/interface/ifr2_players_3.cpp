@@ -7,16 +7,17 @@
 #include "halo/main/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
-extern "C" {
-extern uint8_t profile_globals_block[];
-extern const uint16_t empty_string[];
-extern const uint16_t missing_string_text[];
-}
+static auto &profile_globals_block = halo::link::ref<uint8_t []>(halo::ui::vars().profile_globals_block);
+static auto &empty_string = halo::link::ref<const uint16_t []>(halo::game::vars().empty_string);
+static auto &missing_string_text = halo::link::ref<const uint16_t []>(halo::ui::vars().missing_string_text);
 
 namespace halo::interface {
 

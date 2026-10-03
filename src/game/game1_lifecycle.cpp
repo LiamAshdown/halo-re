@@ -25,56 +25,62 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &player_profile_cache_initialized = halo::link::ref<uint8_t>(halo::game::vars().player_profile_cache_initialized);
+static auto &player_profile_cache = halo::link::ref<player_profile [16]>(halo::game::vars().player_profile_cache);
+static auto &weather_particle_data = halo::link::ref<void *>(halo::game::vars().weather_particle_data);
+static auto &effect_data = halo::link::ref<uint32_t>(halo::effects::vars().effect_data);
+static auto &effect_location_data = halo::link::ref<uint32_t>(halo::effects::vars().effect_location_data);
+static auto &particle_data = halo::link::ref<uint32_t>(halo::effects::vars().particle_data);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &team_data = halo::link::ref<data_array *>(halo::game::vars().team_data);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &widget_memory_pool = halo::link::ref<uint8_t *>(halo::ui::vars().widget_memory_pool);
+static auto &ui_root_widget = halo::link::ref<uint32_t [13]>(halo::ui::vars().ui_root_widget);
+static auto &sound_class_gains = halo::link::ref<uint32_t>(halo::game::vars().sound_class_gains);
+static auto &rasterizer_device = halo::link::ref<uint32_t>(halo::game::vars().rasterizer_device);
+static auto &rasterizer_decal_vertex_cache = halo::link::ref<void **>(halo::effects::vars().rasterizer_decal_vertex_cache);
+static auto &object_render_state_cache = halo::link::ref<uint32_t>(halo::game::vars().object_render_state_cache);
+static auto &terminal_messages = halo::link::ref<uint32_t *>(halo::main::vars().terminal_messages);
+static auto &game_state_write_buffer = halo::link::ref<void *>(halo::game::vars().game_state_write_buffer);
+static auto &input_event_queue_active = halo::link::ref<uint32_t [0x43]>(halo::ui::vars().input_event_queue_active);
+static auto &input_globals = halo::link::ref<uint32_t [0x97c]>(halo::main::vars().input_globals);
+static auto &profile_globals_block = halo::link::ref<uint32_t [0x1829]>(halo::ui::vars().profile_globals_block);
+static auto &game_state_write_buffer_allocated = halo::link::ref<uint8_t>(halo::game::vars().game_state_write_buffer_allocated);
+static auto &game_state_persistent_storage = halo::link::ref<void *>(halo::game::vars().game_state_persistent_storage);
+static auto &game_state_persistent_storage_created = halo::link::ref<uint8_t>(halo::game::vars().game_state_persistent_storage_created);
 extern "C" {
-extern game_engine_definition *current_game_engine;
-extern uint8_t player_profile_cache_initialized;
-extern player_profile player_profile_cache[16];
-extern void *weather_particle_data;
-extern uint32_t effect_data;
-extern uint32_t effect_location_data;
-extern uint32_t particle_data;
-extern data_array *player_data;
-extern data_array *team_data;
-extern player_globals *local_player_globals;
-extern uint8_t *widget_memory_pool;
-extern uint32_t ui_root_widget[13];
-extern uint32_t sound_class_gains;
-extern uint32_t rasterizer_device;
-extern void **rasterizer_decal_vertex_cache;
-extern uint32_t object_render_state_cache;
-extern uint32_t *terminal_messages;
-extern void *game_state_write_buffer;
-extern uint32_t input_event_queue_active[0x43];
-extern uint32_t input_globals[0x97c];
-extern uint32_t profile_globals_block[0x1829];
-extern uint8_t game_state_write_buffer_allocated;
-extern void *game_state_persistent_storage;
-extern uint8_t game_state_persistent_storage_created;
 extern void widget_close_all(void);
 extern void objects_dispose(void);
 extern void network_shutdown(void);
 extern void player_respawn(datum_index player_handle);
 extern uint8_t player_attach_unit_to_parent(datum_index player_handle, datum_index parent_object,
                              void *local_offset);
-extern game_engine_state game_engine_state_value;
-extern uint8_t *network_server;
-extern float game_engine_end_game_timer;
-extern float game_engine_post_game_fade;
-extern uint8_t game_engine_dedicated_idle;
-extern float game_engine_dedicated_idle_timer;
-extern game_variant game_engine_variant;
-extern int32_t game_engine_map_table_value;
-extern "C" char network_build_string[];
-extern uint8_t map_per_map_table[];
-extern uint8_t network_session_host_state;
-extern multiplayer_sound_request multiplayer_sound_queue[5];
-extern int32_t multiplayer_sound_queue_count;
-extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
-extern int32_t game_engine_auto_team_counter;
-extern int32_t game_engine_ctf_reset_ticks;
-extern uint8_t *network_client;
 }
+static auto &game_engine_state_value = halo::link::ref<game_engine_state>(halo::game::vars().game_engine_state_value);
+static auto &network_server = halo::link::ref<uint8_t *>(halo::networking::vars().network_server);
+static auto &game_engine_end_game_timer = halo::link::ref<float>(halo::game::vars().game_engine_end_game_timer);
+static auto &game_engine_post_game_fade = halo::link::ref<float>(halo::game::vars().game_engine_post_game_fade);
+static auto &game_engine_dedicated_idle = halo::link::ref<uint8_t>(halo::game::vars().game_engine_dedicated_idle);
+static auto &game_engine_dedicated_idle_timer = halo::link::ref<float>(halo::game::vars().game_engine_dedicated_idle_timer);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &game_engine_map_table_value = halo::link::ref<int32_t>(halo::game::vars().game_engine_map_table_value);
+static auto &network_build_string = halo::link::ref<char []>(halo::networking::vars().network_build_string);
+static auto &map_per_map_table = halo::link::ref<uint8_t []>(halo::game::vars().map_per_map_table);
+static auto &network_session_host_state = halo::link::ref<uint8_t>(halo::networking::vars().network_session_host_state);
+static auto &multiplayer_sound_queue = halo::link::ref<multiplayer_sound_request [5]>(halo::game::vars().multiplayer_sound_queue);
+static auto &multiplayer_sound_queue_count = halo::link::ref<int32_t>(halo::game::vars().multiplayer_sound_queue_count);
+static auto &custom_waypoints = halo::link::ref<custom_waypoint [k_maximum_custom_waypoints]>(halo::game::vars().custom_waypoints);
+static auto &game_engine_auto_team_counter = halo::link::ref<int32_t>(halo::game::vars().game_engine_auto_team_counter);
+static auto &game_engine_ctf_reset_ticks = halo::link::ref<int32_t>(halo::game::vars().game_engine_ctf_reset_ticks);
+static auto &network_client = halo::link::ref<uint8_t *>(halo::networking::vars().network_client);
 
 namespace halo::game::engine1 {
 

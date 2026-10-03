@@ -5,19 +5,25 @@
 #include "units.h"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &current_game_engine = halo::link::ref<void *>(halo::game::vars().current_game_engine);
 extern "C" {
-extern void *current_game_engine;
 extern void qr2_buffer_add(void *buffer, const char *value);
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
 typedef struct data_array data_array;
-extern uint8_t *player_data;
-extern uint8_t *network_server;
-extern char network_qr2_text[0x100];
-extern uint8_t network_session_host_closing;
-extern uint8_t game_engine_variant[];
-extern uint8_t motion_sensor_override_value;
-extern int32_t game_engine_variant_score_limit;
+}
+static auto &player_data = halo::link::ref<uint8_t *>(halo::game::vars().player_data);
+static auto &network_server = halo::link::ref<uint8_t *>(halo::networking::vars().network_server);
+static auto &network_qr2_text = halo::link::ref<char [0x100]>(halo::networking::vars().network_qr2_text);
+static auto &network_session_host_closing = halo::link::ref<uint8_t>(halo::networking::vars().network_session_host_closing);
+static auto &game_engine_variant = halo::link::ref<uint8_t []>(halo::game::vars().game_engine_variant);
+static auto &motion_sensor_override_value = halo::link::ref<uint8_t>(halo::ui::vars().motion_sensor_override_value);
+static auto &game_engine_variant_score_limit = halo::link::ref<int32_t>(halo::networking::vars().game_engine_variant_score_limit);
+extern "C" {
 extern int32_t players_active_count(void);
 extern uint8_t game_engine_get_teams_enabled(void);
 }

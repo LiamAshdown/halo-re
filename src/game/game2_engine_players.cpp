@@ -10,26 +10,29 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
 static const int8_t k_unit_exit_seat_request[2] = {0x14, 0};
 
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &game_engine_auto_team_counter = halo::link::ref<int32_t>(halo::game::vars().game_engine_auto_team_counter);
+static auto &game_engine_state_value = halo::link::ref<game_engine_state>(halo::game::vars().game_engine_state_value);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &player_control_globals_ptr = halo::link::ref<player_control_globals *>(halo::game::vars().player_control_globals_ptr);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &look_pitch_rate_setting = halo::link::ref<real [k_maximum_local_players]>(halo::game::vars().look_pitch_rate_setting);
+static auto &look_yaw_rate_setting = halo::link::ref<real [k_maximum_local_players]>(halo::game::vars().look_yaw_rate_setting);
+static auto &player_profile_cache = halo::link::ref<player_profile [16]>(halo::game::vars().player_profile_cache);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 extern "C" {
-extern game_engine_definition *current_game_engine;
-extern data_array *player_data;
-extern game_variant game_engine_variant;
-extern int32_t game_engine_auto_team_counter;
-extern game_engine_state game_engine_state_value;
-extern game_time_globals *game_time;
-extern player_control_globals *player_control_globals_ptr;
-extern Globals *global_globals;
-extern real look_pitch_rate_setting[k_maximum_local_players];
-extern real look_yaw_rate_setting[k_maximum_local_players];
-extern player_profile player_profile_cache[16];
-extern player_globals *local_player_globals;
 extern uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object, real_point3d *point);
-extern int16_t game_engine_recent_location_count;
-extern int16_t game_engine_recent_location_table[];
 }
+static auto &game_engine_recent_location_count = halo::link::ref<int16_t>(halo::game::vars().game_engine_recent_location_count);
+static auto &game_engine_recent_location_table = halo::link::ref<int16_t []>(halo::game::vars().game_engine_recent_location_table);
 
 namespace halo::game {
 

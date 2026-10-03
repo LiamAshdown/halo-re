@@ -13,6 +13,9 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
 namespace halo::ai {
 
@@ -171,8 +174,8 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
 }
 
 namespace actor_new_and_attach_to_unit_local {
+static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
 extern "C" {
-extern void *actor_type_procs[16];
 #define ACTOR_AT(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 }
 }
@@ -272,8 +275,8 @@ attach:
 #undef ACTOR_AT
 
 namespace actor_place_new_unit_local {
+static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
 extern "C" {
-extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern double cos(double x);
 extern double sin(double x);
 #define TAG_DATA(h) ((uint8_t *)halo::cache::globals().tag_instances[(h) & halo::k_slot_mask].data)
@@ -486,10 +489,8 @@ uint8_t ActorView::probe_step_direction(float step_distance, real_vector2d *dire
 }
 
 namespace actor_process_order_request_local {
-extern "C" {
-extern game_time_globals *game_time;
-extern int16_t order_code_mode_data_expect[12];
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &order_code_mode_data_expect = halo::link::ref<int16_t [12]>(halo::ai::vars().order_code_mode_data_expect);
 }
 
 /**
@@ -663,10 +664,9 @@ uint8_t ActorView::process_pending_command_list()
 #undef F
 
 namespace actor_process_vehicle_seat_exit_local {
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern data_array *player_data;
-extern game_time_globals *game_time;
-extern network_client_globals *network_client;
 extern void player_update_history_free_all(void *history);
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask])
@@ -1224,9 +1224,7 @@ void ActorView::remove_from_unit_cluster(datum_index unit_index)
 }
 
 namespace actor_replace_object_reference_local {
-extern "C" {
-extern actor_mode_definition actor_mode_definitions[16];
-}
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 }
 
 /**
@@ -1488,9 +1486,7 @@ void ActorView::reseed_movement_pause_timer()
 }
 
 namespace actor_reset_perception_scratch_local {
-extern "C" {
-extern const real_vector3d *global_origin3d_pointer;
-}
+static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 }
 
 /**
@@ -1890,8 +1886,8 @@ after_prop_walk:
 }
 
 namespace actor_select_facing_target_prop_local {
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern game_time_globals *game_time;
 extern double cos(double x);
 }
 }
@@ -2323,9 +2319,7 @@ uint8_t ActorView::should_hold_position(uint8_t *definition)
 }
 
 namespace actor_snapshot_orientation_local {
-extern "C" {
-extern const real_vector3d *global_origin3d_pointer;
-}
+static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 }
 
 /**
@@ -2462,9 +2456,7 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
 }
 
 namespace actor_start_search_timer_local {
-extern "C" {
-extern game_time_globals *game_time;
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 /**
@@ -2552,7 +2544,9 @@ typedef struct actor_dodge_entry {
     int16_t direction;
     float bias;
 } actor_dodge_entry;
-extern const actor_dodge_entry actor_dodge_table[];
+}
+static auto &actor_dodge_table = halo::link::ref<const actor_dodge_entry []>(halo::ai::vars().actor_dodge_table);
+extern "C" {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 }
@@ -2631,9 +2625,7 @@ uint8_t ActorOps::take_danger_escape(real_vector3d *path_delta, datum_index acto
 #undef ACTOR
 
 namespace actor_toggle_active_state_local {
-extern "C" {
-extern game_time_globals *game_time;
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 /**
@@ -2751,8 +2743,8 @@ void ActorView::unlink_unit()
 }
 
 namespace actor_vehicle_not_recently_left_local {
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern game_time_globals *game_time;
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)

@@ -21,11 +21,14 @@
 #include "halo/networking/vars.hpp"
 #include "halo/objects/vars.hpp"
 #include "halo/rasterizer/vars.hpp"
+#include "halo/hs/vars.hpp"
 
 
 extern "C" {
 extern void chimera__console_out(void *color, const char *format, ...);
-extern void (*hs_type_inspectors[])(int16_t type, int32_t value, char *buffer);
+}
+static auto &hs_type_inspectors = halo::link::ref<void (*[])(int16_t type, int32_t value, char *buffer)>(halo::hs::vars().hs_type_inspectors);
+extern "C" {
 extern void message_delta_metrics_dump(char *suffix);
 }
 static auto &network_bandwidth_graph_globals = halo::link::ref<uint8_t []>(halo::main::vars().network_bandwidth_graph_globals);

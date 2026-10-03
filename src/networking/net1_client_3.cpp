@@ -4,25 +4,29 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
+static auto &network_statistics_logging_enabled = halo::link::ref<uint8_t>(halo::networking::vars().network_statistics_logging_enabled);
+static auto &network_summary_log_file = halo::link::ref<void *>(halo::networking::vars().network_summary_log_file);
+static auto &network_build_string = halo::link::ref<char []>(halo::networking::vars().network_build_string);
+static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &network_challenge_packet_block = halo::link::ref<uint16_t>(halo::networking::vars().network_challenge_packet_block);
+static auto &network_broadcast_body = halo::link::ref<uint32_t []>(halo::networking::vars().network_broadcast_body);
 extern "C" {
-extern data_packet_group network_game_messages_group;
-extern uint8_t network_statistics_logging_enabled;
-extern void *network_summary_log_file;
-extern char network_build_string[];
-extern int16_t network_game_mode;
-extern data_array *player_data;
-extern player_globals *local_player_globals;
-extern uint16_t network_challenge_packet_block;
-extern uint32_t network_broadcast_body[];
 extern void widget_close_all(void);
 extern void game_engine_init_tick_record_for_mode(void);
 extern void game_engine_reset_all_players(void);
-extern network_server_globals *network_server;
-extern int32_t join_ui_state;
-extern int32_t interface_loading_screen_address_b;
-extern int32_t interface_loading_screen_address_a;
 }
+static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
+static auto &join_ui_state = halo::link::ref<int32_t>(halo::networking::vars().join_ui_state);
+static auto &interface_loading_screen_address_b = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_b);
+static auto &interface_loading_screen_address_a = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_a);
 
 namespace halo::networking {
 

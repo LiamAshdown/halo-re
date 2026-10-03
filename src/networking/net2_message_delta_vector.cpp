@@ -7,19 +7,23 @@
 #include "halo/networking/net2_message_delta_vector.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 
 extern "C" {
 extern double sqrt(double x);
-extern real message_delta_vector3d_delta_epsilon;
-extern real message_delta_vector3d_delta_range;
-extern uint8_t message_delta_vector3d_mode;
-extern uint32_t message_delta_vector3d_delta_bits;
-extern uint32_t message_delta_vector3d_absolute_bits_mode0;
-extern uint32_t message_delta_vector3d_absolute_bits_mode1;
-extern double floor(double x);
-extern uint8_t message_delta_parameters_enabled;
-extern uint32_t message_delta_unary_ones[];
 }
+static auto &message_delta_vector3d_delta_epsilon = halo::link::ref<real>(halo::networking::vars().message_delta_vector3d_delta_epsilon);
+static auto &message_delta_vector3d_delta_range = halo::link::ref<real>(halo::networking::vars().message_delta_vector3d_delta_range);
+static auto &message_delta_vector3d_mode = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_vector3d_mode);
+static auto &message_delta_vector3d_delta_bits = halo::link::ref<uint32_t>(halo::networking::vars().message_delta_vector3d_delta_bits);
+static auto &message_delta_vector3d_absolute_bits_mode0 = halo::link::ref<uint32_t>(halo::networking::vars().message_delta_vector3d_absolute_bits_mode0);
+static auto &message_delta_vector3d_absolute_bits_mode1 = halo::link::ref<uint32_t>(halo::networking::vars().message_delta_vector3d_absolute_bits_mode1);
+extern "C" {
+extern double floor(double x);
+}
+static auto &message_delta_parameters_enabled = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_enabled);
+static auto &message_delta_unary_ones = halo::link::ref<uint32_t []>(halo::networking::vars().message_delta_unary_ones);
 
 static int32_t write_zero_bit(bit_stream *stream)
 {

@@ -7,20 +7,22 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &network_console_connection_id = halo::link::ref<int32_t>(halo::networking::vars().network_console_connection_id);
+static auto &sv_ban_penalty_seconds = halo::link::ref<int32_t [4]>(halo::networking::vars().sv_ban_penalty_seconds);
 extern "C" {
-extern int32_t network_console_connection_id;
-extern int32_t sv_ban_penalty_seconds[4];
 extern char *gcd_getkeyhash(int32_t connection_id, int32_t identity_lookup_key);
 extern void chimera__console_out(ColorARGB *color, char *format, ...);
-extern char network_banlist_full_path[0x104];
-extern char network_ban_file_read_mode_string[];
-extern char network_ban_indefinite_marker[];
-extern growable_array ban_list;
-extern void *console_color_00685214;
-extern void *actor_mode_default_look_weights;
-extern network_server_globals *network_server;
 }
+static auto &network_banlist_full_path = halo::link::ref<char [0x104]>(halo::networking::vars().network_banlist_full_path);
+static auto &network_ban_file_read_mode_string = halo::link::ref<char []>(halo::networking::vars().network_ban_file_read_mode_string);
+static auto &network_ban_indefinite_marker = halo::link::ref<char []>(halo::networking::vars().network_ban_indefinite_marker);
+static auto &ban_list = halo::link::ref<growable_array>(halo::networking::vars().ban_list);
+static auto &console_color_00685214 = halo::link::ref<void *>(halo::networking::vars().console_color_00685214);
+static auto &actor_mode_default_look_weights = halo::link::ref<void *>(halo::networking::vars().actor_mode_default_look_weights);
+static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 
 namespace halo::networking {
 

@@ -25,28 +25,34 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
 #define k_degrees_to_radians 0.017453292f
 #define k_seconds_per_tick   0.033333335f
 #define k_look_epsilon       9.999999747378752e-05f
 
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &player_control_globals_ptr = halo::link::ref<player_control_globals *>(halo::game::vars().player_control_globals_ptr);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &local_player_input_states = halo::link::ref<local_player_input_state [k_maximum_local_players]>(halo::game::vars().local_player_input_states);
+static auto &look_yaw_rate_setting = halo::link::ref<real [k_maximum_local_players]>(halo::game::vars().look_yaw_rate_setting);
+static auto &look_pitch_rate_setting = halo::link::ref<real [k_maximum_local_players]>(halo::game::vars().look_pitch_rate_setting);
+static auto &look_aim_assist_enabled = halo::link::ref<uint8_t>(halo::game::vars().look_aim_assist_enabled);
+static auto &look_rate_doubler_zoom_inverts = halo::link::ref<uint8_t>(halo::game::vars().look_rate_doubler_zoom_inverts);
+static auto &look_rate_doubler_enabled = halo::link::ref<uint8_t>(halo::game::vars().look_rate_doubler_enabled);
 extern "C" {
-extern player_globals *local_player_globals;
-extern data_array *player_data;
-extern player_control_globals *player_control_globals_ptr;
-extern game_time_globals *game_time;
-extern Globals *global_globals;
-extern local_player_input_state local_player_input_states[k_maximum_local_players];
-extern real look_yaw_rate_setting[k_maximum_local_players];
-extern real look_pitch_rate_setting[k_maximum_local_players];
-extern uint8_t look_aim_assist_enabled;
-extern uint8_t look_rate_doubler_zoom_inverts;
-extern uint8_t look_rate_doubler_enabled;
 extern double sqrt(double x);
 extern double atan2(double y, double x);
-extern uint8_t game_engine_input_source_flag;
-extern uint8_t *cinematic_globals_ptr;
-extern uint16_t split_screen_quit_prompt_string;
+}
+static auto &game_engine_input_source_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_input_source_flag);
+static auto &cinematic_globals_ptr = halo::link::ref<uint8_t *>(halo::game::vars().cinematic_globals_ptr);
+static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
+extern "C" {
 extern real weapon_clamp_zoom_fov(datum_index item_index, int16_t zoom_level, real base_fov);
 }
 

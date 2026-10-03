@@ -27,60 +27,69 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
-extern "C" { extern uint8_t rasterizer_render_states_dirty; }
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/rasterizer/vars.hpp"
+static auto &rasterizer_render_states_dirty = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_render_states_dirty);
 
+static auto &hill_pulse_fade_done = halo::link::ref<uint8_t>(halo::game::vars().hill_pulse_fade_done);
+static auto &hill_pulse_grow_done = halo::link::ref<uint8_t>(halo::game::vars().hill_pulse_grow_done);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_teams_enabled_flag);
+static auto &king_alt_player_score = halo::link::ref<int32_t []>(halo::game::vars().king_alt_player_score);
+static auto &king_alt_team_score = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_team_score);
+static auto &king_alt_score_target = halo::link::ref<int32_t>(halo::game::vars().king_alt_score_target);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &king_hill_occupant_table = halo::link::ref<uint32_t [16]>(halo::game::vars().king_hill_occupant_table);
+static auto &king_hill_occupant_last_tick = halo::link::ref<int32_t [16]>(halo::game::vars().king_hill_occupant_last_tick);
+static auto &king_hill_idle_timeout = halo::link::ref<int32_t>(halo::game::vars().king_hill_idle_timeout);
 extern "C" {
-extern uint8_t hill_pulse_fade_done;
-extern uint8_t hill_pulse_grow_done;
-extern data_array *player_data;
-extern game_engine_definition *current_game_engine;
-extern uint8_t game_engine_teams_enabled_flag;
-extern int32_t king_alt_player_score[];
-extern int32_t king_alt_team_score[16];
-extern int32_t king_alt_score_target;
-extern game_time_globals *game_time;
-extern game_variant game_engine_variant;
-extern uint32_t king_hill_occupant_table[16];
-extern int32_t king_hill_occupant_last_tick[16];
-extern int32_t king_hill_idle_timeout;
 extern uint8_t weapon_must_be_readied(void);
-extern uint8_t shared_hud_text_draw_state;
-extern int32_t king_team_hill_seconds_network[16];
-extern int32_t king_bucket_credit_ticks[16];
-extern int32_t king_hill_broadcast_overrun_value;
-extern uint8_t network_message_scratch[0x7ff8];
-extern int32_t king_alt_team_scores_network[16];
-extern int32_t king_alt_player_scores_network[16];
-extern int32_t king_alt_team_scores_network2[16];
-extern int32_t king_alt_scores_network_tail[16];
-extern int32_t king_starting_location_type;
-extern int32_t king_starting_location_count;
-extern real_point3d king_hill_boundary_points[12];
-extern uint32_t king_hill_boundary_extra[12][2];
-extern float king_hill_boundary_min_z;
-extern float king_hill_boundary_max_z;
-extern real_point3d king_hill_boundary_center;
-extern Globals *global_globals;
+}
+static auto &shared_hud_text_draw_state = halo::link::ref<uint8_t>(halo::game::vars().shared_hud_text_draw_state);
+static auto &king_team_hill_seconds_network = halo::link::ref<int32_t [16]>(halo::game::vars().king_team_hill_seconds_network);
+static auto &king_bucket_credit_ticks = halo::link::ref<int32_t [16]>(halo::game::vars().king_bucket_credit_ticks);
+static auto &king_hill_broadcast_overrun_value = halo::link::ref<int32_t>(halo::game::vars().king_hill_broadcast_overrun_value);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+static auto &king_alt_team_scores_network = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_team_scores_network);
+static auto &king_alt_player_scores_network = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_player_scores_network);
+static auto &king_alt_team_scores_network2 = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_team_scores_network2);
+static auto &king_alt_scores_network_tail = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_scores_network_tail);
+static auto &king_starting_location_type = halo::link::ref<int32_t>(halo::game::vars().king_starting_location_type);
+static auto &king_starting_location_count = halo::link::ref<int32_t>(halo::game::vars().king_starting_location_count);
+static auto &king_hill_boundary_points = halo::link::ref<real_point3d [12]>(halo::game::vars().king_hill_boundary_points);
+static auto &king_hill_boundary_extra = halo::link::ref<uint32_t [12][2]>(halo::game::vars().king_hill_boundary_extra);
+static auto &king_hill_boundary_min_z = halo::link::ref<float>(halo::game::vars().king_hill_boundary_min_z);
+static auto &king_hill_boundary_max_z = halo::link::ref<float>(halo::game::vars().king_hill_boundary_max_z);
+static auto &king_hill_boundary_center = halo::link::ref<real_point3d>(halo::game::vars().king_hill_boundary_center);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+extern "C" {
 extern double sqrt(double x);
 extern double fabs(double x);
 extern double floor(double x);
-extern game_engine_state game_engine_state_value;
-extern uint8_t king_hill_player_in_hill[16];
-extern int32_t king_bucket_last_credit_tick[16];
-extern const real_vector3d *global_white_color;
-extern king_hill_marker_history king_hill_markers;
-extern void **rasterizer_dynamic_index_buffer;
-extern int16_t rasterizer_dynamic_vertex_slots[];
-extern int32_t render_unknown_d98f0[];
-extern uint8_t render_unknown_7bf04c[];
-extern void *k_render_identity_matrix_ptr;
-extern const ColorARGB *global_white_argb;
-extern real_vector3d default_axis_b;
-extern uint32_t rasterizer_device_version;
-extern void **rasterizer_device;
-extern uint8_t king_hill_single_occupant_flag;
-extern king_globals king_hill_state_globals;
 }
+static auto &game_engine_state_value = halo::link::ref<game_engine_state>(halo::game::vars().game_engine_state_value);
+static auto &king_hill_player_in_hill = halo::link::ref<uint8_t [16]>(halo::game::vars().king_hill_player_in_hill);
+static auto &king_bucket_last_credit_tick = halo::link::ref<int32_t [16]>(halo::game::vars().king_bucket_last_credit_tick);
+static auto &global_white_color = halo::link::ref<const real_vector3d *>(halo::effects::vars().global_white_color);
+static auto &king_hill_markers = halo::link::ref<king_hill_marker_history>(halo::game::vars().king_hill_markers);
+static auto &rasterizer_dynamic_index_buffer = halo::link::ref<void **>(halo::rasterizer::vars().rasterizer_dynamic_index_buffer);
+static auto &rasterizer_dynamic_vertex_slots = halo::link::ref<int16_t []>(halo::game::vars().rasterizer_dynamic_vertex_slots);
+static auto &render_unknown_d98f0 = halo::link::ref<int32_t []>(halo::game::vars().render_unknown_d98f0);
+static auto &render_unknown_7bf04c = halo::link::ref<uint8_t []>(halo::game::vars().render_unknown_7bf04c);
+static auto &k_render_identity_matrix_ptr = halo::link::ref<void *>(halo::effects::vars().k_render_identity_matrix_ptr);
+static auto &global_white_argb = halo::link::ref<const ColorARGB *>(halo::networking::vars().global_white_argb);
+static auto &default_axis_b = halo::link::ref<real_vector3d>(halo::game::vars().default_axis_b);
+static auto &rasterizer_device_version = halo::link::ref<uint32_t>(halo::ui::vars().rasterizer_device_version);
+static auto &rasterizer_device = halo::link::ref<void **>(halo::game::vars().rasterizer_device);
+static auto &king_hill_single_occupant_flag = halo::link::ref<uint8_t>(halo::game::vars().king_hill_single_occupant_flag);
+static auto &king_hill_state_globals = halo::link::ref<king_globals>(halo::game::vars().king_hill_state_globals);
 
 namespace halo::game::engine1 {
 

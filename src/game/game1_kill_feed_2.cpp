@@ -12,13 +12,14 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/networking/vars.hpp"
 
-extern "C" {
-extern data_array *player_data;
-extern uint8_t *network_server;
-extern uint8_t network_message_scratch[0x7ff8];
-extern uint8_t *machine_table;
-}
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &network_server = halo::link::ref<uint8_t *>(halo::networking::vars().network_server);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+static auto &machine_table = halo::link::ref<uint8_t *>(halo::game::vars().machine_table);
 
 namespace halo::game::engine1 {
 

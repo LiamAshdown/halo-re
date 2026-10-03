@@ -32,44 +32,46 @@
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
 #include "saved_games.h"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &pending_difficulty = halo::link::ref<int16_t>(halo::ui::vars().pending_difficulty);
 extern "C" {
-extern int16_t pending_difficulty;
 extern void widget_play_sound_effect(int16_t effect_id);
 extern uint32_t ui_restart_saved_game(void);
-extern uint8_t ui_restoring_previous_widget;
-extern char *campaign_level_paths[];
-extern uint8_t network_wait_flag_00719739;
-extern growable_array ui_lists[3];
-extern int32_t ui_list_current;
-extern uint8_t ui_list_has_default;
-extern char pending_delete_saved_game_name_00718fd0[];
-extern uint8_t autopatch_status_state_00719234;
-extern uint16_t network_host_name_field_00719238[32];
-extern uint16_t network_host_subname_007191f0[9];
-extern int32_t network_host_edit_field_00719410;
-extern int32_t controls_capture_row;
-extern uint8_t controls_menu_list_mode;
-extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
-extern uint8_t input_controls_live_006b3a48[0x890];
-extern uint8_t ui_flag_00719444;
-extern int32_t controls_device_label_count;
-extern uint8_t controls_device_labels[];
-extern uint8_t controls_input_capture_flags;
-extern uint8_t controls_input_capture_buffer[0xa0 * 4];
-extern int32_t controls_selected_device;
-extern uint8_t controls_device_sensitivity_a[];
-extern uint8_t controls_device_sensitivity_b[];
-extern uint8_t ui_flag_007196d1;
-extern uint8_t ui_flag_007196d2;
-extern int32_t video_resolution_count;
-extern video_resolution video_resolutions[0x20];
-extern int32_t video_gamma_setting;
-extern rasterizer_display_mode ui_video_requested_display_mode_006b7010;
-extern d3d_display_mode rasterizer_desktop_display_mode;
-extern float sound_master_gain;
 }
+static auto &ui_restoring_previous_widget = halo::link::ref<uint8_t>(halo::ui::vars().ui_restoring_previous_widget);
+static auto &campaign_level_paths = halo::link::ref<char *[]>(halo::ui::vars().campaign_level_paths);
+static auto &network_wait_flag_00719739 = halo::link::ref<uint8_t>(halo::ui::vars().network_wait_flag_00719739);
+static auto &ui_lists = halo::link::ref<growable_array [3]>(halo::ui::vars().ui_lists);
+static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
+static auto &ui_list_has_default = halo::link::ref<uint8_t>(halo::ui::vars().ui_list_has_default);
+static auto &pending_delete_saved_game_name_00718fd0 = halo::link::ref<char []>(halo::ui::vars().pending_delete_saved_game_name_00718fd0);
+static auto &autopatch_status_state_00719234 = halo::link::ref<uint8_t>(halo::ui::vars().autopatch_status_state_00719234);
+static auto &network_host_name_field_00719238 = halo::link::ref<uint16_t [32]>(halo::ui::vars().network_host_name_field_00719238);
+static auto &network_host_subname_007191f0 = halo::link::ref<uint16_t [9]>(halo::ui::vars().network_host_subname_007191f0);
+static auto &network_host_edit_field_00719410 = halo::link::ref<int32_t>(halo::ui::vars().network_host_edit_field_00719410);
+static auto &controls_capture_row = halo::link::ref<int32_t>(halo::ui::vars().controls_capture_row);
+static auto &controls_menu_list_mode = halo::link::ref<uint8_t>(halo::ui::vars().controls_menu_list_mode);
+static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
+static auto &saved_item_working_copy = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().saved_item_working_copy);
+static auto &input_controls_live_006b3a48 = halo::link::ref<uint8_t [0x890]>(halo::ui::vars().input_controls_live_006b3a48);
+static auto &ui_flag_00719444 = halo::link::ref<uint8_t>(halo::ui::vars().ui_flag_00719444);
+static auto &controls_device_label_count = halo::link::ref<int32_t>(halo::ui::vars().controls_device_label_count);
+static auto &controls_device_labels = halo::link::ref<uint8_t []>(halo::ui::vars().controls_device_labels);
+static auto &controls_input_capture_flags = halo::link::ref<uint8_t>(halo::ui::vars().controls_input_capture_flags);
+static auto &controls_input_capture_buffer = halo::link::ref<uint8_t [0xa0 * 4]>(halo::ui::vars().controls_input_capture_buffer);
+static auto &controls_selected_device = halo::link::ref<int32_t>(halo::ui::vars().controls_selected_device);
+static auto &controls_device_sensitivity_a = halo::link::ref<uint8_t []>(halo::ui::vars().controls_device_sensitivity_a);
+static auto &controls_device_sensitivity_b = halo::link::ref<uint8_t []>(halo::ui::vars().controls_device_sensitivity_b);
+static auto &ui_flag_007196d1 = halo::link::ref<uint8_t>(halo::ui::vars().ui_flag_007196d1);
+static auto &ui_flag_007196d2 = halo::link::ref<uint8_t>(halo::ui::vars().ui_flag_007196d2);
+static auto &video_resolution_count = halo::link::ref<int32_t>(halo::ui::vars().video_resolution_count);
+static auto &video_resolutions = halo::link::ref<video_resolution [0x20]>(halo::ui::vars().video_resolutions);
+static auto &video_gamma_setting = halo::link::ref<int32_t>(halo::ui::vars().video_gamma_setting);
+static auto &ui_video_requested_display_mode_006b7010 = halo::link::ref<rasterizer_display_mode>(halo::ui::vars().ui_video_requested_display_mode_006b7010);
+static auto &rasterizer_desktop_display_mode = halo::link::ref<d3d_display_mode>(halo::ui::vars().rasterizer_desktop_display_mode);
+static auto &sound_master_gain = halo::link::ref<float>(halo::ui::vars().sound_master_gain);
 
 namespace halo::ui {
 

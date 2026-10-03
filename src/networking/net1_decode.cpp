@@ -14,10 +14,15 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/objects/vars.hpp"
 
+static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);
+static auto &network_action_apply_active = halo::link::ref<uint8_t>(halo::objects::vars().network_action_apply_active);
 extern "C" {
-extern int16_t network_game_mode;
-extern uint8_t network_action_apply_active;
 extern void hud_receive_item_message(void **context);
 extern void game_engine_apply_player_join_message(void **context);
 extern void game_engine_apply_player_spawn_loadout_message(void **context);
@@ -32,22 +37,32 @@ extern void game_engine_handle_kill_feed_network_event(void **context);
 extern void game_engine_handle_sound_status_event(void **context);
 extern void game_engine_client_apply_team_assignment(void **context);
 extern void game_engine_spawn_or_replay_netgame_equipment(void **context);
-extern uint8_t network_incoming_message_scratch[0x510];
+}
+static auto &network_incoming_message_scratch = halo::link::ref<uint8_t [0x510]>(halo::networking::vars().network_incoming_message_scratch);
+extern "C" {
 typedef struct network_item_stream {
     bit_stream stream;
     uint32_t bit_count;
 } network_item_stream;
-extern int32_t join_ui_state;
-extern int32_t interface_loading_screen_request_id;
-extern void *shell_product_id;
-extern uint8_t profile_globals_block[0x1ffc];
+}
+static auto &join_ui_state = halo::link::ref<int32_t>(halo::networking::vars().join_ui_state);
+static auto &interface_loading_screen_request_id = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_request_id);
+static auto &shell_product_id = halo::link::ref<void *>(halo::networking::vars().shell_product_id);
+static auto &profile_globals_block = halo::link::ref<uint8_t [0x1ffc]>(halo::ui::vars().profile_globals_block);
+extern "C" {
 extern void gcd_compute_response(void *a, void *request, uint8_t *out);
-extern network_server_globals *network_server;
-extern game_time_globals *game_time;
+}
+static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+extern "C" {
 extern void update_client_advance_read_cursor(void *payload);
-extern data_packet_group network_game_messages_group;
+}
+static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
+extern "C" {
 typedef int32_t (*network_game_message_handler_proc)(network_client_globals *client, const void *record, int32_t record_length, const uint32_t *sender);
-extern uint8_t network_host_handoff_requested;
+}
+static auto &network_host_handoff_requested = halo::link::ref<uint8_t>(halo::networking::vars().network_host_handoff_requested);
+extern "C" {
 extern void chat_close(void);
 }
 

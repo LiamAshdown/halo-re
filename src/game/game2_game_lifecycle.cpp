@@ -23,23 +23,28 @@
 #include "halo/input/ui_events.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/physics/vars.hpp"
+#include "halo/saved_games/vars.hpp"
 
+static auto &game_state_cursor = halo::link::ref<int32_t>(halo::saved_games::vars().game_state_cursor);
+static auto &game_state_base = halo::link::ref<uint8_t *>(halo::saved_games::vars().game_state_base);
+static auto &game_state_crc = halo::link::ref<uint32_t>(halo::saved_games::vars().game_state_crc);
+static auto &main_game_globals = halo::link::ref<void *>(halo::game::vars().main_game_globals);
+static auto &game_engine_active_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_active_variant);
+static auto &object_render_state_cache = halo::link::ref<data_array *>(halo::game::vars().object_render_state_cache);
+static auto &breakable_surface_state = halo::link::ref<breakable_surface_globals *>(halo::physics::vars().breakable_surface_state);
+static auto &particle_data = halo::link::ref<data_array *>(halo::effects::vars().particle_data);
+static auto &effect_data = halo::link::ref<data_array *>(halo::effects::vars().effect_data);
+static auto &effect_location_data = halo::link::ref<data_array *>(halo::effects::vars().effect_location_data);
+static auto &weather_particle_data = halo::link::ref<data_array *>(halo::game::vars().weather_particle_data);
+static auto &particle_system_data = halo::link::ref<void *>(halo::effects::vars().particle_system_data);
+static auto &sound_class_gains = halo::link::ref<void *>(halo::game::vars().sound_class_gains);
+static auto &recorded_animations = halo::link::ref<void *>(halo::game::vars().recorded_animations);
+static auto &cinematic_globals_ptr = halo::link::ref<uint32_t *>(halo::game::vars().cinematic_globals_ptr);
 extern "C" {
-extern int32_t game_state_cursor;
-extern uint8_t *game_state_base;
-extern uint32_t game_state_crc;
-extern void *main_game_globals;
-extern game_variant game_engine_active_variant;
-extern data_array *object_render_state_cache;
-extern breakable_surface_globals *breakable_surface_state;
-extern data_array *particle_data;
-extern data_array *effect_data;
-extern data_array *effect_location_data;
-extern data_array *weather_particle_data;
-extern void *particle_system_data;
-extern void *sound_class_gains;
-extern void *recorded_animations;
-extern uint32_t *cinematic_globals_ptr;
 extern void team_pair_table_allocate(void);
 extern void game_engine_load_from_variant(const game_variant *variant);
 extern void game_engine_allocate_tick_record(void);
@@ -50,10 +55,10 @@ extern void widget_memory_pool_initialize(void);
 extern void objects_initialize(void);
 extern void game_sound_initialize(void);
 extern uint8_t players_any_without_unit(void);
-extern uint8_t debug_print_safety_checks;
-extern player_globals *local_player_globals;
-extern data_array *player_data;
 }
+static auto &debug_print_safety_checks = halo::link::ref<uint8_t>(halo::game::vars().debug_print_safety_checks);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 
 namespace halo::game {
 

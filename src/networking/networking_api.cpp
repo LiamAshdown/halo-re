@@ -9,19 +9,19 @@
 #include "halo/networking/net1_session.hpp"
 #include "halo/networking/net1_timer.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 
-extern "C" {
-extern network_server_globals *network_server;
-extern network_client_globals *network_client;
-extern int16_t network_game_mode;
-extern uint8_t network_host_handoff_requested;
-extern uint8_t network_server_host_valid;
-extern int16_t network_join_error_code;
-extern uint8_t network_join_error_reason;
-extern uint8_t network_disconnect_timeout_flag;
-extern uint8_t network_client_vehicle_ack_enabled;
-extern uint32_t network_game_socket_port;
-}
+static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
+static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
+static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);
+static auto &network_host_handoff_requested = halo::link::ref<uint8_t>(halo::networking::vars().network_host_handoff_requested);
+static auto &network_server_host_valid = halo::link::ref<uint8_t>(halo::networking::vars().network_server_host_valid);
+static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
+static auto &network_join_error_reason = halo::link::ref<uint8_t>(halo::networking::vars().network_join_error_reason);
+static auto &network_disconnect_timeout_flag = halo::link::ref<uint8_t>(halo::networking::vars().network_disconnect_timeout_flag);
+static auto &network_client_vehicle_ack_enabled = halo::link::ref<uint8_t>(halo::networking::vars().network_client_vehicle_ack_enabled);
+static auto &network_game_socket_port = halo::link::ref<uint32_t>(halo::networking::vars().network_game_socket_port);
 
 namespace halo::networking {
 

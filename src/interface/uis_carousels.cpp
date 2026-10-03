@@ -14,15 +14,15 @@
 #include "halo/interface/uis_carousels.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
-extern level_select_entry level_select_entries[10];
-extern int8_t level_select_flags_0071916a;
-extern uint8_t level_select_flags_0071916b;
-extern map_list_entry *map_list;
-extern variant_carousel_slot variant_carousel_slots[3];
-}
+static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
+static auto &level_select_entries = halo::link::ref<level_select_entry [10]>(halo::ui::vars().level_select_entries);
+static auto &level_select_flags_0071916a = halo::link::ref<int8_t>(halo::ui::vars().level_select_flags_0071916a);
+static auto &level_select_flags_0071916b = halo::link::ref<uint8_t>(halo::ui::vars().level_select_flags_0071916b);
+static auto &map_list = halo::link::ref<map_list_entry *>(halo::ui::vars().map_list);
+static auto &variant_carousel_slots = halo::link::ref<variant_carousel_slot [3]>(halo::ui::vars().variant_carousel_slots);
 
 namespace halo::ui {
 

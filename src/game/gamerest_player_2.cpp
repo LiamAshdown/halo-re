@@ -16,13 +16,17 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &network_message_scratch = halo::link::ref<uint8_t>(halo::game::vars().network_message_scratch);
 extern "C" {
-extern data_array *player_data;
-extern player_globals *local_player_globals;
-extern game_engine_definition *current_game_engine;
-extern Globals *global_globals;
-extern uint8_t network_message_scratch;
 extern ScenarioPlayerStartingLocation *game_get_player_starting_location(int16_t index);
 extern real *game_engine_get_player_color(uint32_t player_index, real *out_rgb);
 extern void object_placement_data_set_change_colors(real *color, object_placement_data *placement);
@@ -31,25 +35,31 @@ extern void game_engine_apply_player_grenade_counts(uint32_t player_index);
 extern void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index player_handle, int32_t value, int32_t machine_index);
 extern double cos(double x);
 extern double sin(double x);
-extern real_vector3d *reference_axis_006696728;
-extern real_vector3d *global_down3d_pointer;
+}
+static auto &reference_axis_006696728 = halo::link::ref<real_vector3d *>(halo::game::vars().reference_axis_006696728);
+static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);
+extern "C" {
 extern double fcos(double radians);
 extern double fsin(double radians);
-extern float k_random_scale_65536;
-extern double sqrt_pow_exponent;
+}
+static auto &k_random_scale_65536 = halo::link::ref<float>(halo::ai::vars().k_random_scale_65536);
+static auto &sqrt_pow_exponent = halo::link::ref<double>(halo::game::vars().sqrt_pow_exponent);
+extern "C" {
 extern double pow(double base, double exponent);
-extern int16_t profile_slot_id[];
-extern int16_t local_player_count;
-extern uint8_t *player_control_globals_ptr;
-extern uint8_t *hud_weapon_state;
-extern uint8_t *hud_unit_meters;
-extern data_array *update_server_queues;
-extern const real_point3d *global_origin3d_pointer;
-extern int32_t server_maximum_queued_client_updates;
-extern int32_t server_maximum_pending_client_update_ticks;
-extern uint16_t split_screen_quit_prompt_string;
-extern uint8_t global_007102d8;
-extern uint8_t *main_game_globals;
+}
+static auto &profile_slot_id = halo::link::ref<int16_t []>(halo::ui::vars().profile_slot_id);
+static auto &local_player_count = halo::link::ref<int16_t>(halo::game::vars().local_player_count);
+static auto &player_control_globals_ptr = halo::link::ref<uint8_t *>(halo::game::vars().player_control_globals_ptr);
+static auto &hud_weapon_state = halo::link::ref<uint8_t *>(halo::ui::vars().hud_weapon_state);
+static auto &hud_unit_meters = halo::link::ref<uint8_t *>(halo::ui::vars().hud_unit_meters);
+static auto &update_server_queues = halo::link::ref<data_array *>(halo::game::vars().update_server_queues);
+static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &server_maximum_queued_client_updates = halo::link::ref<int32_t>(halo::game::vars().server_maximum_queued_client_updates);
+static auto &server_maximum_pending_client_update_ticks = halo::link::ref<int32_t>(halo::game::vars().server_maximum_pending_client_update_ticks);
+static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
+static auto &global_007102d8 = halo::link::ref<uint8_t>(halo::game::vars().global_007102d8);
+static auto &main_game_globals = halo::link::ref<uint8_t *>(halo::game::vars().main_game_globals);
+extern "C" {
 extern void console_print_va(const char *format, ...);
 }
 

@@ -10,12 +10,14 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
 namespace halo::ai {
 
 namespace actor_update_firing_state_local {
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 extern "C" {
-extern player_globals *local_player_globals;
 extern int32_t fistp_round(float x);
 extern float halo::game::weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
 #define F(p, o) (*(float *)((uint8_t *)(p) + (o)))

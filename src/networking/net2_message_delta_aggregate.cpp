@@ -8,10 +8,10 @@
 #include "halo/networking/field_codec.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 
-extern "C" {
-extern message_delta_definition * message_delta_definitions[56];
-}
+static auto &message_delta_definitions = halo::link::ref<message_delta_definition * [56]>(halo::networking::vars().message_delta_definitions);
 
 typedef int32_t (*message_delta_field_decode_fn)(void *field_type, int32_t changed, int32_t offset, bit_stream *stream);
 

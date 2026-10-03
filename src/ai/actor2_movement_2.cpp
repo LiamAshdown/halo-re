@@ -9,22 +9,25 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/physics/vars.hpp"
 
 namespace halo::ai {
 
 namespace actor_movement_choose_avoidance_direction_local {
+static auto &global_structure_bsp = halo::link::ref<uint32_t>(halo::ai::vars().global_structure_bsp);
+static auto &global_structure_collision_bsp = halo::link::ref<uint32_t>(halo::physics::vars().global_structure_collision_bsp);
+static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 extern "C" {
-extern uint32_t global_structure_bsp;
-extern uint32_t global_structure_collision_bsp;
-extern const real_vector3d *global_origin3d_pointer;
 extern double sqrt(double x);
 extern double fabs(double x);
-extern float actor_avoidance_samples_a[16][7];
-extern float actor_avoidance_circle[8][3];
-extern float actor_avoidance_samples_b[9][7];
-extern const float actor_avoidance_near_weights[9][8];
-extern const float actor_avoidance_ray_weights[2];
 }
+static auto &actor_avoidance_samples_a = halo::link::ref<float [16][7]>(halo::ai::vars().actor_avoidance_samples_a);
+static auto &actor_avoidance_circle = halo::link::ref<float [8][3]>(halo::ai::vars().actor_avoidance_circle);
+static auto &actor_avoidance_samples_b = halo::link::ref<float [9][7]>(halo::ai::vars().actor_avoidance_samples_b);
+static auto &actor_avoidance_near_weights = halo::link::ref<const float [9][8]>(halo::ai::vars().actor_avoidance_near_weights);
+static auto &actor_avoidance_ray_weights = halo::link::ref<const float [2]>(halo::ai::vars().actor_avoidance_ray_weights);
 }
 
 /**
@@ -388,9 +391,9 @@ done:
 }
 
 namespace actor_movement_update_local {
+static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
+static auto &global_forward2d_pointer = halo::link::ref<const real_vector2d *>(halo::ai::vars().global_forward2d_pointer);
 extern "C" {
-extern const real_vector3d *global_origin3d_pointer;
-extern const real_vector2d *global_forward2d_pointer;
 extern double sin(double x);
 extern double cos(double x);
 extern double sqrt(double x);

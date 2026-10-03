@@ -6,34 +6,41 @@
 #include "halo/cseries/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &network_disconnect_timeout_flag = halo::link::ref<uint8_t>(halo::networking::vars().network_disconnect_timeout_flag);
+static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
+static auto &network_host_handoff_requested = halo::link::ref<uint8_t>(halo::networking::vars().network_host_handoff_requested);
 extern "C" {
-extern uint8_t network_disconnect_timeout_flag;
-extern network_client_globals *network_client;
-extern uint8_t network_host_handoff_requested;
 extern void chat_close(void);
-extern network_server_globals *network_server;
-extern uint8_t network_disconnect_notice_shown;
-extern uint8_t local_player_globals[8];
-extern uint32_t network_game_socket_port;
-extern int32_t progress_screen_text;
-extern uint8_t network_session_active;
-extern data_packet_group network_game_messages_group;
-extern uint16_t network_challenge_packet_block[];
-extern uint8_t server_browser_join_target_has_password;
-extern uint16_t network_join_target_address[128];
-extern uint16_t empty_string;
-extern int16_t network_join_error_code;
-extern int32_t network_join_error_reason;
-extern uint8_t split_screen_quit_prompt_string[4];
+}
+static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
+static auto &network_disconnect_notice_shown = halo::link::ref<uint8_t>(halo::networking::vars().network_disconnect_notice_shown);
+static auto &local_player_globals = halo::link::ref<uint8_t [8]>(halo::game::vars().local_player_globals);
+static auto &network_game_socket_port = halo::link::ref<uint32_t>(halo::networking::vars().network_game_socket_port);
+static auto &progress_screen_text = halo::link::ref<int32_t>(halo::main::vars().progress_screen_text);
+static auto &network_session_active = halo::link::ref<uint8_t>(halo::networking::vars().network_session_active);
+static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
+static auto &network_challenge_packet_block = halo::link::ref<uint16_t []>(halo::networking::vars().network_challenge_packet_block);
+static auto &server_browser_join_target_has_password = halo::link::ref<uint8_t>(halo::networking::vars().server_browser_join_target_has_password);
+static auto &network_join_target_address = halo::link::ref<uint16_t [128]>(halo::networking::vars().network_join_target_address);
+static auto &empty_string = halo::link::ref<uint16_t>(halo::game::vars().empty_string);
+static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
+static auto &network_join_error_reason = halo::link::ref<int32_t>(halo::networking::vars().network_join_error_reason);
+static auto &split_screen_quit_prompt_string = halo::link::ref<uint8_t [4]>(halo::ui::vars().split_screen_quit_prompt_string);
+extern "C" {
 extern uint32_t gt2NetworkToHostShort(int16_t value);
 extern void gt2AddressToString(uint32_t address, uint16_t port, void *out_address);
-extern int32_t interface_loading_screen_progress;
-extern int32_t join_ui_state;
-extern int16_t network_game_mode;
-extern int32_t interface_loading_screen_request_id;
-extern const char network_ellipsis_dots[];
 }
+static auto &interface_loading_screen_progress = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_progress);
+static auto &join_ui_state = halo::link::ref<int32_t>(halo::networking::vars().join_ui_state);
+static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);
+static auto &interface_loading_screen_request_id = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_request_id);
+static auto &network_ellipsis_dots = halo::link::ref<const char []>(halo::networking::vars().network_ellipsis_dots);
 
 namespace halo::networking {
 

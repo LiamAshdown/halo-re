@@ -22,37 +22,41 @@
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/core/link.hpp"
+#include "halo/camera/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &chat_window_default_x = halo::link::ref<int32_t>(halo::ui::vars().chat_window_default_x);
+static auto &chat_window_default_y = halo::link::ref<int32_t>(halo::ui::vars().chat_window_default_y);
+static auto &chat_window_default_width = halo::link::ref<int32_t>(halo::ui::vars().chat_window_default_width);
+static auto &chat_window_default_height = halo::link::ref<int32_t>(halo::ui::vars().chat_window_default_height);
+static auto &chat_listbox_x = halo::link::ref<int32_t>(halo::ui::vars().chat_listbox_x);
+static auto &chat_listbox_y = halo::link::ref<int32_t>(halo::ui::vars().chat_listbox_y);
+static auto &chat_listbox_width = halo::link::ref<int32_t>(halo::ui::vars().chat_listbox_width);
+static auto &chat_listbox_height = halo::link::ref<int32_t>(halo::ui::vars().chat_listbox_height);
+static auto &chat_dialog_open = halo::link::ref<int32_t>(halo::ui::vars().chat_dialog_open);
+static auto &chat_scope_active = halo::link::ref<int32_t>(halo::ui::vars().chat_scope_active);
+static auto &ui_use_os_cursor = halo::link::ref<uint8_t>(halo::ui::vars().ui_use_os_cursor);
+static auto &previous_mouse_x = halo::link::ref<int32_t>(halo::ui::vars().previous_mouse_x);
+static auto &previous_mouse_y = halo::link::ref<int32_t>(halo::ui::vars().previous_mouse_y);
+static auto &ui_cursor_x = halo::link::ref<int32_t>(halo::ui::vars().ui_cursor_x);
+static auto &ui_cursor_y = halo::link::ref<int32_t>(halo::ui::vars().ui_cursor_y);
+static auto &mouse_device = halo::link::ref<int32_t>(halo::camera::vars().mouse_device);
+static auto &mouse_neutral_state = halo::link::ref<int32_t [2]>(halo::camera::vars().mouse_neutral_state);
+static auto &live_mouse_state = halo::link::ref<int32_t [2]>(halo::camera::vars().live_mouse_state);
+static auto &cursor_sensitivity_x = halo::link::ref<float>(halo::ui::vars().cursor_sensitivity_x);
+static auto &cursor_sensitivity_y = halo::link::ref<float>(halo::ui::vars().cursor_sensitivity_y);
+static auto &cursor_sensitivity_curve_scale = halo::link::ref<double>(halo::ui::vars().cursor_sensitivity_curve_scale);
+static auto &cursor_sensitivity_curve_bias = halo::link::ref<double>(halo::ui::vars().cursor_sensitivity_curve_bias);
 extern "C" {
-extern int32_t chat_window_default_x;
-extern int32_t chat_window_default_y;
-extern int32_t chat_window_default_width;
-extern int32_t chat_window_default_height;
-extern int32_t chat_listbox_x;
-extern int32_t chat_listbox_y;
-extern int32_t chat_listbox_width;
-extern int32_t chat_listbox_height;
-extern int32_t chat_dialog_open;
-extern int32_t chat_scope_active;
-extern uint8_t ui_use_os_cursor;
-extern int32_t previous_mouse_x;
-extern int32_t previous_mouse_y;
-extern int32_t ui_cursor_x;
-extern int32_t ui_cursor_y;
-extern int32_t mouse_device;
-extern int32_t mouse_neutral_state[2];
-extern int32_t live_mouse_state[2];
-extern float cursor_sensitivity_x;
-extern float cursor_sensitivity_y;
-extern double cursor_sensitivity_curve_scale;
-extern double cursor_sensitivity_curve_bias;
 extern int32_t __ftol(double x);
-extern uint8_t widget_memory_pool_valid;
-extern widget_instance *ui_root_widget[1];
-extern float ui_saved_color[3];
-extern const ColorARGB *global_white_argb;
-extern int32_t network_disabled_flag;
 }
+static auto &widget_memory_pool_valid = halo::link::ref<uint8_t>(halo::ui::vars().widget_memory_pool_valid);
+static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
+static auto &ui_saved_color = halo::link::ref<float [3]>(halo::ui::vars().ui_saved_color);
+static auto &global_white_argb = halo::link::ref<const ColorARGB *>(halo::networking::vars().global_white_argb);
+static auto &network_disabled_flag = halo::link::ref<int32_t>(halo::ui::vars().network_disabled_flag);
 
 namespace halo::ui {
 

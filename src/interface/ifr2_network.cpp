@@ -16,31 +16,37 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
+static auto &game_variant_history_current = halo::link::ref<int32_t>(halo::ui::vars().game_variant_history_current);
 extern "C" {
-extern int32_t game_variant_history_current;
 extern void game_engine_sync_variant_defaults(void);
 extern uint8_t game_engine_ensure_variant_history_has_entry(void);
 extern void game_engine_apply_current_custom_variant(void);
 extern void network_game_setup_teardown(void);
-extern variant_carousel_slot variant_carousel_slots[3];
-extern uint8_t profile_globals_block[0x60a4];
-extern heap *widget_memory_pool;
-extern uint16_t missing_string_text[];
-extern uint8_t default_profile_data[k_saved_player_profile_size];
-extern char k_empty_string[];
+}
+static auto &variant_carousel_slots = halo::link::ref<variant_carousel_slot [3]>(halo::ui::vars().variant_carousel_slots);
+static auto &profile_globals_block = halo::link::ref<uint8_t [0x60a4]>(halo::ui::vars().profile_globals_block);
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
+static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
+static auto &default_profile_data = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().default_profile_data);
+static auto &k_empty_string = halo::link::ref<char []>(halo::networking::vars().k_empty_string);
+extern "C" {
 extern uint8_t command_line_check_flag(const char *flag, const char **out_value);
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only, uint16_t *capacity_and_count);
 extern uint8_t player_profile_get(int32_t slot, void *out_profile);
-extern uint8_t local_team_00714dd8;
-extern uint8_t player_profile_cache_initialized;
-extern player_profile player_profile_cache[16];
-extern game_variant game_engine_active_variant;
 }
+static auto &local_team_00714dd8 = halo::link::ref<uint8_t>(halo::ui::vars().local_team_00714dd8);
+static auto &player_profile_cache_initialized = halo::link::ref<uint8_t>(halo::game::vars().player_profile_cache_initialized);
+static auto &player_profile_cache = halo::link::ref<player_profile [16]>(halo::game::vars().player_profile_cache);
+static auto &game_engine_active_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_active_variant);
 
 namespace halo::interface {
 

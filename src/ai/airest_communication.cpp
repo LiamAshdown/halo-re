@@ -15,37 +15,41 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/units/vars.hpp"
 
+static auto &global_structure_bsp = halo::link::ref<uint8_t *>(halo::ai::vars().global_structure_bsp);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &actor_type_procs = halo::link::ref<uint8_t *[]>(halo::ai::vars().actor_type_procs);
+static auto &team_pair_data = halo::link::ref<uint8_t *>(halo::ai::vars().team_pair_data);
+static auto &conversation_index_lookup = halo::link::ref<int16_t []>(halo::ai::vars().conversation_index_lookup);
+static auto &ai_communication_lines = halo::link::ref<uint8_t []>(halo::ai::vars().ai_communication_lines);
+static auto &ai_communication_direction_table = halo::link::ref<float []>(halo::ai::vars().ai_communication_direction_table);
+static auto &ai_communication_class_priority = halo::link::ref<int16_t []>(halo::ai::vars().ai_communication_class_priority);
+static auto &ai_communication_class_tail_seconds = halo::link::ref<float []>(halo::ai::vars().ai_communication_class_tail_seconds);
+static auto &ai_communication_class_follow_up = halo::link::ref<int16_t []>(halo::ai::vars().ai_communication_class_follow_up);
+static auto &ai_communication_class_look_marker = halo::link::ref<int16_t []>(halo::ai::vars().ai_communication_class_look_marker);
+static auto &ai_communication_class_no_actor_class = halo::link::ref<int16_t []>(halo::ai::vars().ai_communication_class_no_actor_class);
+static auto &ai_communication_selector_delay_seconds = halo::link::ref<float []>(halo::ai::vars().ai_communication_selector_delay_seconds);
+static auto &communication_line_base = halo::link::ref<uint8_t *>(halo::ai::vars().communication_line_base);
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
+static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
 extern "C" {
-extern uint8_t *global_structure_bsp;
-extern game_time_globals *game_time;
-extern uint8_t *actor_type_procs[];
-extern uint8_t *team_pair_data;
-extern int16_t conversation_index_lookup[];
-extern uint8_t ai_communication_lines[];
-extern float ai_communication_direction_table[];
-extern int16_t ai_communication_class_priority[];
-extern float ai_communication_class_tail_seconds[];
-extern int16_t ai_communication_class_follow_up[];
-extern int16_t ai_communication_class_look_marker[];
-extern int16_t ai_communication_class_no_actor_class[];
-extern float ai_communication_selector_delay_seconds[];
-extern uint8_t *communication_line_base;
-extern actor_mode_definition actor_mode_definitions[16];
-extern char ai_marker_name_a[];
 extern double sqrt(double x);
 extern double fabs(double x);
 extern uint32_t team_pair_override_adjust_counter(int16_t index_a, int16_t index_b, int16_t delta_selector, uint8_t *out_flag);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
-extern int16_t communication_line_count;
-extern int16_t conversation_line_count;
-extern int32_t conversation_line_base;
-extern ai_communication_event_definition ai_communication_event_definitions[];
-extern float ai_communication_class_repeat_delay[];
-extern data_array *player_data;
-extern real DAT_00655ab4[];
-extern real DAT_00656b24[];
 }
+static auto &communication_line_count = halo::link::ref<int16_t>(halo::ai::vars().communication_line_count);
+static auto &conversation_line_count = halo::link::ref<int16_t>(halo::ai::vars().conversation_line_count);
+static auto &conversation_line_base = halo::link::ref<int32_t>(halo::ai::vars().conversation_line_base);
+static auto &ai_communication_event_definitions = halo::link::ref<ai_communication_event_definition []>(halo::ai::vars().ai_communication_event_definitions);
+static auto &ai_communication_class_repeat_delay = halo::link::ref<float []>(halo::ai::vars().ai_communication_class_repeat_delay);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &DAT_00655ab4 = halo::link::ref<real []>(halo::ai::vars().DAT_00655ab4);
+static auto &DAT_00656b24 = halo::link::ref<real []>(halo::ai::vars().DAT_00656b24);
 
 namespace halo::ai {
 

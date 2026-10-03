@@ -4,17 +4,20 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &game_engine_state_value = halo::link::ref<game_engine_state>(halo::game::vars().game_engine_state_value);
+static auto &game_engine_end_game_timer = halo::link::ref<float>(halo::game::vars().game_engine_end_game_timer);
+static auto &game_engine_post_game_fade = halo::link::ref<float>(halo::game::vars().game_engine_post_game_fade);
+static auto &game_engine_dedicated_idle = halo::link::ref<uint8_t>(halo::game::vars().game_engine_dedicated_idle);
+static auto &game_engine_dedicated_idle_timer = halo::link::ref<float>(halo::game::vars().game_engine_dedicated_idle_timer);
+static auto &network_server = halo::link::ref<uint8_t *>(halo::networking::vars().network_server);
+static auto &local_player_input_states = halo::link::ref<local_player_input_state [k_maximum_local_players]>(halo::game::vars().local_player_input_states);
+static auto &chimera_loading_screen_cleanup_gate = halo::link::ref<uint8_t>(halo::game::vars().chimera_loading_screen_cleanup_gate);
 extern "C" {
-extern game_engine_definition *current_game_engine;
-extern game_engine_state game_engine_state_value;
-extern float game_engine_end_game_timer;
-extern float game_engine_post_game_fade;
-extern uint8_t game_engine_dedicated_idle;
-extern float game_engine_dedicated_idle_timer;
-extern uint8_t *network_server;
-extern local_player_input_state local_player_input_states[k_maximum_local_players];
-extern uint8_t chimera_loading_screen_cleanup_gate;
 extern void game_engine_end_game_sequence_stage3(void);
 extern void game_engine_send_end_game_notification(uint32_t reason);
 extern void chimera__console_out(ColorARGB *color, char *format, ...);

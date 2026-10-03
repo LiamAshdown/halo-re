@@ -14,6 +14,9 @@
 #include "halo/hs/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
 namespace halo::ai {
 
@@ -150,15 +153,15 @@ void ActorOps::notify_weapon_pickup_once(datum_index object_index)
 namespace actor_pick_dialogue_variant_a_local {
 extern "C" {
 extern int32_t __ftol(double x);
-extern float k_real_one;
-extern float k_random_scale_65536;
-extern float actor_dialogue_variant_offset_1a;
-extern float actor_dialogue_variant_scale_2a;
-extern float actor_dialogue_variant_offset_2a;
-extern float k_real_point_six;
-extern float actor_dialogue_variant_offset_3a;
-extern float ticks_per_second;
 }
+static auto &k_real_one = halo::link::ref<float>(halo::ai::vars().k_real_one);
+static auto &k_random_scale_65536 = halo::link::ref<float>(halo::ai::vars().k_random_scale_65536);
+static auto &actor_dialogue_variant_offset_1a = halo::link::ref<float>(halo::ai::vars().actor_dialogue_variant_offset_1a);
+static auto &actor_dialogue_variant_scale_2a = halo::link::ref<float>(halo::ai::vars().actor_dialogue_variant_scale_2a);
+static auto &actor_dialogue_variant_offset_2a = halo::link::ref<float>(halo::ai::vars().actor_dialogue_variant_offset_2a);
+static auto &k_real_point_six = halo::link::ref<float>(halo::ai::vars().k_real_point_six);
+static auto &actor_dialogue_variant_offset_3a = halo::link::ref<float>(halo::ai::vars().actor_dialogue_variant_offset_3a);
+static auto &ticks_per_second = halo::link::ref<float>(halo::ai::vars().ticks_per_second);
 }
 
 /**
@@ -198,13 +201,13 @@ int32_t ActorOps::pick_dialogue_variant_a(int16_t category)
 namespace actor_pick_dialogue_variant_b_local {
 extern "C" {
 extern int32_t __ftol(double x);
-extern float k_real_one;
-extern float k_random_scale_65536;
-extern float actor_dialogue_variant_scale_1b;
-extern float actor_dialogue_variant_scale_23b;
-extern float k_real_point_six;
-extern float ticks_per_second;
 }
+static auto &k_real_one = halo::link::ref<float>(halo::ai::vars().k_real_one);
+static auto &k_random_scale_65536 = halo::link::ref<float>(halo::ai::vars().k_random_scale_65536);
+static auto &actor_dialogue_variant_scale_1b = halo::link::ref<float>(halo::ai::vars().actor_dialogue_variant_scale_1b);
+static auto &actor_dialogue_variant_scale_23b = halo::link::ref<float>(halo::ai::vars().actor_dialogue_variant_scale_23b);
+static auto &k_real_point_six = halo::link::ref<float>(halo::ai::vars().k_real_point_six);
+static auto &ticks_per_second = halo::link::ref<float>(halo::ai::vars().ticks_per_second);
 }
 
 /**
@@ -315,8 +318,8 @@ void ActorView::push_recognition_entry(int16_t firing_position_index, uint8_t ty
 namespace actor_queue_directional_reaction_event_local {
 extern "C" {
 extern double sqrt(double x);
-extern int16_t actor_dialogue_variant_table_b[];
 }
+static auto &actor_dialogue_variant_table_b = halo::link::ref<int16_t []>(halo::ai::vars().actor_dialogue_variant_table_b);
 }
 
 /**
@@ -409,9 +412,7 @@ void ActorOps::queue_directional_reaction_event(const real_vector3d *direction, 
 }
 
 namespace actor_queue_point_reaction_dialogue_local {
-extern "C" {
-extern int16_t actor_dialogue_variant_table_g[];
-}
+static auto &actor_dialogue_variant_table_g = halo::link::ref<int16_t []>(halo::ai::vars().actor_dialogue_variant_table_g);
 }
 
 /**
@@ -457,10 +458,8 @@ void ActorOps::queue_point_reaction_dialogue(const real_point3d *point, datum_in
 }
 
 namespace actor_queue_recognized_target_dialogue_local {
-extern "C" {
-extern game_time_globals *game_time;
-extern int16_t actor_dialogue_variant_table_c[];
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &actor_dialogue_variant_table_c = halo::link::ref<int16_t []>(halo::ai::vars().actor_dialogue_variant_table_c);
 }
 
 /**
@@ -624,10 +623,8 @@ uint8_t ActorView::queue_secondary_action(int16_t action, uint32_t payload[2])
 }
 
 namespace actor_queue_sighted_target_dialogue_local {
-extern "C" {
-extern game_time_globals *game_time;
-extern int16_t actor_dialogue_variant_table_a[];
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &actor_dialogue_variant_table_a = halo::link::ref<int16_t []>(halo::ai::vars().actor_dialogue_variant_table_a);
 }
 
 /**
@@ -779,8 +776,8 @@ namespace actor_react_to_flee_point_local {
 extern "C" {
 extern double fabs(double x);
 extern int8_t teams_are_enemies(int16_t a, int16_t b);
-extern int16_t actor_dialogue_variant_table_e[];
 }
+static auto &actor_dialogue_variant_table_e = halo::link::ref<int16_t []>(halo::ai::vars().actor_dialogue_variant_table_e);
 }
 
 /**
@@ -846,8 +843,8 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
 namespace actor_react_to_registered_danger_local {
 extern "C" {
 extern double fabs(double x);
-extern int16_t actor_dialogue_variant_table_d[];
 }
+static auto &actor_dialogue_variant_table_d = halo::link::ref<int16_t []>(halo::ai::vars().actor_dialogue_variant_table_d);
 }
 
 /**
@@ -910,12 +907,12 @@ void ActorOps::react_to_registered_danger(const real_point3d *point, datum_index
 }
 
 namespace actor_react_to_seen_target_local {
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 extern "C" {
-extern game_time_globals *game_time;
-extern data_array *player_data;
 extern int8_t teams_are_enemies(int16_t a, int16_t b);
-extern int16_t actor_dialogue_variant_table_f[];
 }
+static auto &actor_dialogue_variant_table_f = halo::link::ref<int16_t []>(halo::ai::vars().actor_dialogue_variant_table_f);
 }
 
 /**
@@ -1062,9 +1059,7 @@ void ActorView::record_perception_event(int16_t event, int32_t data)
 }
 
 namespace actor_scan_allies_for_backup_request_local {
-extern "C" {
-extern game_time_globals *game_time;
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 /**
@@ -1230,9 +1225,7 @@ void ActorView::scan_allies_for_backup_request()
 }
 
 namespace actor_scan_ally_death_panic_reaction_local {
-extern "C" {
-extern game_time_globals *game_time;
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 /**
@@ -1279,9 +1272,7 @@ void TargetView::scan_ally_death_panic_reaction(datum_index actor_index)
 }
 
 namespace actor_scan_backup_and_panic_reaction_local {
-extern "C" {
-extern game_time_globals *game_time;
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 /**

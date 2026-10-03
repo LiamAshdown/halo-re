@@ -2,12 +2,12 @@
 #include <stdio.h>
 #include <time.h>
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 
-extern "C" {
-extern growable_array ban_list;
-extern char network_summary_log_mode_string[];
-extern char network_banlist_full_path[];
-}
+static auto &ban_list = halo::link::ref<growable_array>(halo::networking::vars().ban_list);
+static auto &network_summary_log_mode_string = halo::link::ref<char []>(halo::networking::vars().network_summary_log_mode_string);
+static auto &network_banlist_full_path = halo::link::ref<char []>(halo::networking::vars().network_banlist_full_path);
 
 namespace halo::networking {
 

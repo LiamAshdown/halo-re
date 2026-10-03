@@ -22,26 +22,32 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/units/vars.hpp"
 
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 extern "C" {
-extern game_engine_definition *current_game_engine;
 extern void game_engine_reset_respawns_and_cleanup_bipeds(void);
 extern void game_engine_cleanup_stray_items(void);
 extern void game_engine_cleanup_stray_projectiles(void);
-extern data_array *player_data;
-extern Globals *global_globals;
-extern int32_t game_engine_unknown_aa00;
-extern game_variant game_engine_variant;
-extern network_id_table *machine_table;
-extern network_id_table *object_network_id_table;
-extern uint8_t game_engine_teams_enabled_flag;
-extern uint8_t *network_client;
-extern uint8_t network_object_index_cache[];
-extern uint8_t network_message_scratch[0x7ff8];
-extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
-extern int32_t multiplayer_sound_queue_count;
-extern multiplayer_sound_request multiplayer_sound_queue[k_maximum_queued_multiplayer_sounds];
 }
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &game_engine_unknown_aa00 = halo::link::ref<int32_t>(halo::game::vars().game_engine_unknown_aa00);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
+static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
+static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_teams_enabled_flag);
+static auto &network_client = halo::link::ref<uint8_t *>(halo::networking::vars().network_client);
+static auto &network_object_index_cache = halo::link::ref<uint8_t []>(halo::units::vars().network_object_index_cache);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+extern "C" {
+extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
+}
+static auto &multiplayer_sound_queue_count = halo::link::ref<int32_t>(halo::game::vars().multiplayer_sound_queue_count);
+static auto &multiplayer_sound_queue = halo::link::ref<multiplayer_sound_request [k_maximum_queued_multiplayer_sounds]>(halo::game::vars().multiplayer_sound_queue);
 
 namespace halo::game::engine1 {
 

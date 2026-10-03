@@ -11,13 +11,13 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
 namespace c_actor_apply_queued_look_to_unit {
-extern "C" {
-extern player_globals *local_player_globals;
-extern const uint8_t actor_control_animation_state_table[];
-
-}
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &actor_control_animation_state_table = halo::link::ref<const uint8_t []>(halo::ai::vars().actor_control_animation_state_table);
 }
 
 
@@ -77,13 +77,9 @@ void actor_apply_queued_look_to_unit(datum_index actor_index)
 }
 
 namespace c_actor_begin_vocalization {
-extern "C" {
-extern game_time_globals *game_time;
-
-extern float actor_vocalization_duration[14];
-extern int16_t actor_vocalization_variant[14][2];
-
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &actor_vocalization_duration = halo::link::ref<float [14]>(halo::ai::vars().actor_vocalization_duration);
+static auto &actor_vocalization_variant = halo::link::ref<int16_t [14][2]>(halo::ai::vars().actor_vocalization_variant);
 }
 
 
@@ -694,9 +690,7 @@ void actor_look_randomize_direction(datum_index actor_index, float *deviation_ta
 }
 
 namespace c_actor_lookup_small_table_entry {
-extern "C" {
-extern int16_t actor_lookup_table_006555a8[12];
-}
+static auto &actor_lookup_table_006555a8 = halo::link::ref<int16_t [12]>(halo::ai::vars().actor_lookup_table_006555a8);
 }
 
 

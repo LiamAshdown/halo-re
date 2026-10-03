@@ -9,17 +9,21 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/text/text.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
+static auto &ui_cursor_x = halo::link::ref<int32_t>(halo::ui::vars().ui_cursor_x);
+static auto &ui_cursor_y = halo::link::ref<int32_t>(halo::ui::vars().ui_cursor_y);
 extern "C" {
-extern int32_t ui_cursor_x;
-extern int32_t ui_cursor_y;
 extern double sin(double x);
-extern int32_t ui_time_milliseconds;
-extern heap *widget_memory_pool;
+}
+static auto &ui_time_milliseconds = halo::link::ref<int32_t>(halo::ui::vars().ui_time_milliseconds);
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
+extern "C" {
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0, int32_t unknown_1, const uint16_t *text);
 }
 

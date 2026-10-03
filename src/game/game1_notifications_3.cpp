@@ -14,13 +14,14 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/units/vars.hpp"
 
-extern "C" {
-extern uint8_t shared_hud_text_draw_state;
-extern uint8_t *machine_table;
-extern uint8_t network_message_scratch[0x7ff8];
-extern network_id_table *object_network_id_table;
-}
+static auto &shared_hud_text_draw_state = halo::link::ref<uint8_t>(halo::game::vars().shared_hud_text_draw_state);
+static auto &machine_table = halo::link::ref<uint8_t *>(halo::game::vars().machine_table);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 
 namespace halo::game::engine1 {
 

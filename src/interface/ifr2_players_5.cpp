@@ -4,21 +4,23 @@
 #include "halo/main/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/saved_games/vars.hpp"
+#include "halo/shell/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
-extern "C" {
-extern uint8_t profile_globals_block[0x60a4];
-extern int16_t profile_slot_id[];
-extern int32_t selected_saved_item;
-extern uint8_t default_profile_data[k_saved_player_profile_size];
-extern uint8_t savegame_index_dirty;
-extern char last_profile_name[];
-extern int32_t cached_profile_slot;
-extern int32_t safe_mode;
-}
+static auto &profile_globals_block = halo::link::ref<uint8_t [0x60a4]>(halo::ui::vars().profile_globals_block);
+static auto &profile_slot_id = halo::link::ref<int16_t []>(halo::ui::vars().profile_slot_id);
+static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
+static auto &default_profile_data = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().default_profile_data);
+static auto &savegame_index_dirty = halo::link::ref<uint8_t>(halo::saved_games::vars().savegame_index_dirty);
+static auto &last_profile_name = halo::link::ref<char []>(halo::ui::vars().last_profile_name);
+static auto &cached_profile_slot = halo::link::ref<int32_t>(halo::ui::vars().cached_profile_slot);
+static auto &safe_mode = halo::link::ref<int32_t>(halo::shell::vars().safe_mode);
 
 namespace halo::interface {
 

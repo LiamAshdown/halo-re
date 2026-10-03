@@ -1,12 +1,12 @@
 #include "halo/game/gamerest_savegame.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
-extern "C" {
-extern char saved_game_root_path[];
-extern file_reference_record savegame_index_file;
-extern network_mutex_record *savegame_index_mutex;
-}
+static auto &saved_game_root_path = halo::link::ref<char []>(halo::game::vars().saved_game_root_path);
+static auto &savegame_index_file = halo::link::ref<file_reference_record>(halo::game::vars().savegame_index_file);
+static auto &savegame_index_mutex = halo::link::ref<network_mutex_record *>(halo::game::vars().savegame_index_mutex);
 
 namespace halo::game {
 

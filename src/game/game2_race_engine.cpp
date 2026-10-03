@@ -6,28 +6,33 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &race_used_locations = halo::link::ref<int32_t [8]>(halo::game::vars().race_used_locations);
+static auto &race_used_location_count = halo::link::ref<int32_t>(halo::game::vars().race_used_location_count);
+static auto &race_vehicle_counts = halo::link::ref<uint32_t [4]>(halo::game::vars().race_vehicle_counts);
 extern "C" {
-extern data_array *player_data;
-extern game_variant game_engine_variant;
-extern Globals *global_globals;
-extern int32_t race_used_locations[8];
-extern int32_t race_used_location_count;
-extern uint32_t race_vehicle_counts[4];
 extern double cos(double x);
 extern double sin(double x);
-extern wchar_t empty_string;
-extern int32_t game_engine_bucket_scores[16];
-extern uint32_t ctf_team_captured_flags_mask[];
-extern game_engine_definition *current_game_engine;
-extern uint8_t game_engine_teams_enabled_flag;
-extern int32_t game_engine_bucket_scores_extra[16];
-extern game_time_globals *game_time;
-extern uint8_t ctf_globals_live[];
-extern uint8_t ctf_globals_network[];
-extern void qr2_buffer_add_int(void *buffer, int32_t value);
-extern int32_t game_engine_state_value;
 }
+static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
+static auto &game_engine_bucket_scores = halo::link::ref<int32_t [16]>(halo::game::vars().game_engine_bucket_scores);
+static auto &ctf_team_captured_flags_mask = halo::link::ref<uint32_t []>(halo::game::vars().ctf_team_captured_flags_mask);
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_teams_enabled_flag);
+static auto &game_engine_bucket_scores_extra = halo::link::ref<int32_t [16]>(halo::game::vars().game_engine_bucket_scores_extra);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &ctf_globals_live = halo::link::ref<uint8_t []>(halo::game::vars().ctf_globals_live);
+static auto &ctf_globals_network = halo::link::ref<uint8_t []>(halo::game::vars().ctf_globals_network);
+extern "C" {
+extern void qr2_buffer_add_int(void *buffer, int32_t value);
+}
+static auto &game_engine_state_value = halo::link::ref<int32_t>(halo::game::vars().game_engine_state_value);
 
 namespace halo::game {
 

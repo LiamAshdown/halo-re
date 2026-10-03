@@ -5,34 +5,37 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
+static auto &server_browser_initialized = halo::link::ref<uint8_t>(halo::networking::vars().server_browser_initialized);
+static auto &server_list_thread = halo::link::ref<void *>(halo::networking::vars().server_list_thread);
+static auto &master_server_query_engine = halo::link::ref<void *>(halo::networking::vars().master_server_query_engine);
+static auto &server_list = halo::link::ref<void *>(halo::networking::vars().server_list);
+static auto &server_list_block_used = halo::link::ref<int32_t>(halo::ui::vars().server_list_block_used);
+static auto &server_list_block_capacity = halo::link::ref<int32_t>(halo::ui::vars().server_list_block_capacity);
+static auto &server_browser_query_elapsed_ms = halo::link::ref<int32_t>(halo::networking::vars().server_browser_query_elapsed_ms);
+static auto &server_browser_player_ticker = halo::link::ref<uint8_t [0x1c]>(halo::ui::vars().server_browser_player_ticker);
+static auto &server_browser_variant_ticker = halo::link::ref<uint8_t [0x1c]>(halo::ui::vars().server_browser_variant_ticker);
+static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
+static auto &saved_item_working_copy = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().saved_item_working_copy);
+static auto &server_browser_sort_column = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_sort_column);
+static auto &server_browser_sort_ascending = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_sort_ascending);
+static auto &server_browser_allow_password = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_allow_password);
+static auto &server_browser_filter_dedicated_only = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_dedicated_only);
+static auto &server_browser_filter_classic_only = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_classic_only);
+static auto &server_browser_filter_allow_unknown_map = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_allow_unknown_map);
+static auto &server_browser_allow_empty = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_allow_empty);
+static auto &server_browser_allow_full = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_allow_full);
+static auto &server_browser_filter_gametype = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_gametype);
+static auto &server_browser_filter_teamplay = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_teamplay);
+static auto &server_browser_filter_ping_limit_index = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_ping_limit_index);
 extern "C" {
-extern uint8_t server_browser_initialized;
-extern void *server_list_thread;
-extern void *master_server_query_engine;
-extern void *server_list;
-extern int32_t server_list_block_used;
-extern int32_t server_list_block_capacity;
-extern int32_t server_browser_query_elapsed_ms;
-extern uint8_t server_browser_player_ticker[0x1c];
-extern uint8_t server_browser_variant_ticker[0x1c];
-extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
-extern uint8_t server_browser_sort_column;
-extern uint8_t server_browser_sort_ascending;
-extern uint8_t server_browser_allow_password;
-extern uint8_t server_browser_filter_dedicated_only;
-extern uint8_t server_browser_filter_classic_only;
-extern uint8_t server_browser_filter_allow_unknown_map;
-extern uint8_t server_browser_allow_empty;
-extern uint8_t server_browser_allow_full;
-extern uint8_t server_browser_filter_gametype;
-extern uint8_t server_browser_filter_teamplay;
-extern uint8_t server_browser_filter_ping_limit_index;
 extern void ServerBrowserFree(void *sb);
 extern void saved_item_select(int32_t item);
 extern uint8_t saved_item_has_unsaved_changes(void);

@@ -4,27 +4,28 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern game_engine_definition *current_game_engine;
-extern void *hud_globals_tag_data;
-extern uint32_t hud_text_draw_font_tag_id;
-extern uint32_t hud_text_draw_color_a;
-extern uint32_t hud_text_draw_color_r;
-extern uint32_t hud_text_draw_color_g;
-extern uint32_t hud_text_draw_color_b;
-extern uint16_t hud_text_draw_color_or_flags;
-extern uint32_t text_tab_stops;
-extern uint32_t hud_text_draw_box_field_474e;
-extern uint32_t hud_text_draw_tabstop_c;
-extern Globals *global_globals;
-extern game_variant game_engine_variant;
-extern data_array *player_data;
-extern uint32_t render_viewport_top;
-extern uint32_t screen_safe_area_right;
-extern uint32_t screen_safe_area_bottom;
-extern float game_engine_post_game_fade;
-}
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &hud_globals_tag_data = halo::link::ref<void *>(halo::ui::vars().hud_globals_tag_data);
+static auto &hud_text_draw_font_tag_id = halo::link::ref<uint32_t>(halo::ui::vars().hud_text_draw_font_tag_id);
+static auto &hud_text_draw_color_a = halo::link::ref<uint32_t>(halo::ui::vars().hud_text_draw_color_a);
+static auto &hud_text_draw_color_r = halo::link::ref<uint32_t>(halo::ui::vars().hud_text_draw_color_r);
+static auto &hud_text_draw_color_g = halo::link::ref<uint32_t>(halo::ui::vars().hud_text_draw_color_g);
+static auto &hud_text_draw_color_b = halo::link::ref<uint32_t>(halo::ui::vars().hud_text_draw_color_b);
+static auto &hud_text_draw_color_or_flags = halo::link::ref<uint16_t>(halo::ui::vars().hud_text_draw_color_or_flags);
+static auto &text_tab_stops = halo::link::ref<uint32_t>(halo::game::vars().text_tab_stops);
+static auto &hud_text_draw_box_field_474e = halo::link::ref<uint32_t>(halo::game::vars().hud_text_draw_box_field_474e);
+static auto &hud_text_draw_tabstop_c = halo::link::ref<uint32_t>(halo::game::vars().hud_text_draw_tabstop_c);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &render_viewport_top = halo::link::ref<uint32_t>(halo::ui::vars().render_viewport_top);
+static auto &screen_safe_area_right = halo::link::ref<uint32_t>(halo::game::vars().screen_safe_area_right);
+static auto &screen_safe_area_bottom = halo::link::ref<uint32_t>(halo::game::vars().screen_safe_area_bottom);
+static auto &game_engine_post_game_fade = halo::link::ref<float>(halo::game::vars().game_engine_post_game_fade);
 
 namespace halo::game {
 

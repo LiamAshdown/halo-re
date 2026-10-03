@@ -10,6 +10,8 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 namespace c_actor_alert_from_damage {
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
@@ -430,10 +432,7 @@ uint8_t actor_conditional_state_transition_check(datum_index actor_index)
 }
 
 namespace c_actor_consider_combat_mode {
-extern "C" {
-extern game_time_globals *game_time;
-
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 
@@ -541,8 +540,8 @@ uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consideration_m
 }
 
 namespace c_actor_escalate_apply {
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
@@ -587,8 +586,8 @@ uint8_t actor_escalate_apply(datum_index actor_index, int16_t threshold)
 #undef TAG_DATA
 
 namespace c_actor_escalate_check_leader_flag {
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
@@ -631,8 +630,8 @@ uint8_t actor_escalate_check_leader_flag(datum_index actor_index)
 #undef TAG_DATA
 
 namespace c_actor_escalate_check_shield_damage {
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
@@ -677,8 +676,8 @@ uint8_t actor_escalate_check_shield_damage(datum_index actor_index)
 #undef TAG_DATA
 
 namespace c_actor_escalate_check_target_close {
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
@@ -724,8 +723,8 @@ uint8_t actor_escalate_check_target_close(datum_index actor_index)
 #undef TAG_DATA
 
 namespace c_actor_escalate_check_weapon_range {
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern game_time_globals *game_time;
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
@@ -826,8 +825,8 @@ uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index)
 #undef W
 
 namespace c_actor_evaluate_combat_state_transition {
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern game_time_globals *game_time;
 
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 

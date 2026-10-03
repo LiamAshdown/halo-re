@@ -6,8 +6,10 @@
 #include "halo/interface/engine_state.hpp"
 #include "saved_games.h"
 #include "input.h"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" input_event_queue input_event_queue_active;
+static auto &input_event_queue_active = halo::link::ref<input_event_queue>(halo::ui::vars().input_event_queue_active);
 #include "crt.h"
 #include <string.h>
 #include <ctype.h>
@@ -29,28 +31,28 @@ extern "C" input_event_queue input_event_queue_active;
 #undef interface
 #endif
 
+static auto &ui_force_quit = halo::link::ref<uint8_t>(halo::ui::vars().ui_force_quit);
+static auto &ui_split_screen = halo::link::ref<uint8_t>(halo::ui::vars().ui_split_screen);
+static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
+static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
+static auto &quit_confirm_error_string_index = halo::link::ref<int16_t>(halo::ui::vars().quit_confirm_error_string_index);
+static auto &quit_confirm_error_unknown_ae = halo::link::ref<int16_t>(halo::ui::vars().quit_confirm_error_unknown_ae);
+static auto &quit_confirm_error_modal = halo::link::ref<uint8_t>(halo::ui::vars().quit_confirm_error_modal);
+static auto &quit_confirm_error_is_error = halo::link::ref<uint8_t>(halo::ui::vars().quit_confirm_error_is_error);
+static auto &ui_time_milliseconds = halo::link::ref<int32_t>(halo::ui::vars().ui_time_milliseconds);
+static auto &loading_thread = halo::link::ref<loading_thread_record *>(halo::ui::vars().loading_thread);
+static auto &loading_thread_result = halo::link::ref<int16_t>(halo::ui::vars().loading_thread_result);
+static auto &ui_input_batch_mode = halo::link::ref<uint8_t>(halo::ui::vars().ui_input_batch_mode);
+static auto &virtual_keyboard = halo::link::ref<uint8_t>(halo::ui::vars().virtual_keyboard);
+static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
+static auto &ui_widget_history = halo::link::ref<widget_history_node *[3]>(halo::ui::vars().ui_widget_history);
+static auto &ui_pending_error_alternate = halo::link::ref<ui_pending_error>(halo::ui::vars().ui_pending_error_alternate);
+static auto &ui_cursor_changed = halo::link::ref<uint8_t>(halo::ui::vars().ui_cursor_changed);
+static auto &ui_widget_opened = halo::link::ref<uint8_t>(halo::ui::vars().ui_widget_opened);
+static auto &ui_cursor_x = halo::link::ref<int32_t>(halo::ui::vars().ui_cursor_x);
+static auto &ui_cursor_y = halo::link::ref<int32_t>(halo::ui::vars().ui_cursor_y);
+static auto &controls_input_capture_flags = halo::link::ref<uint8_t>(halo::ui::vars().controls_input_capture_flags);
 extern "C" {
-extern uint8_t ui_force_quit;
-extern uint8_t ui_split_screen;
-extern uint16_t split_screen_quit_prompt_string;
-extern uint8_t split_screen_quit_prompt_armed;
-extern int16_t quit_confirm_error_string_index;
-extern int16_t quit_confirm_error_unknown_ae;
-extern uint8_t quit_confirm_error_modal;
-extern uint8_t quit_confirm_error_is_error;
-extern int32_t ui_time_milliseconds;
-extern loading_thread_record *loading_thread;
-extern int16_t loading_thread_result;
-extern uint8_t ui_input_batch_mode;
-extern uint8_t virtual_keyboard;
-extern widget_instance *ui_root_widget[1];
-extern widget_history_node *ui_widget_history[3];
-extern ui_pending_error ui_pending_error_alternate;
-extern uint8_t ui_cursor_changed;
-extern uint8_t ui_widget_opened;
-extern int32_t ui_cursor_x;
-extern int32_t ui_cursor_y;
-extern uint8_t controls_input_capture_flags;
 extern void display_error(int16_t error_string_index, int32_t unknown, uint8_t modal, uint8_t is_error);
 extern uint8_t ui_check_for_pause_game(void);
 extern void virtual_keyboard_process_input(void);
@@ -63,12 +65,12 @@ extern uint8_t widget_instance_verify_stack_chain(widget_instance *node);
 extern void widget_play_sound_effect(int16_t effect_id);
 extern void widget_list_scroll_window(int32_t out[3], widget_instance *widget);
 extern int32_t widget_get_sibling_index(widget_instance *widget);
-extern map_list_entry *map_list;
-extern int32_t map_list_count;
-extern int32_t map_list_capacity;
-extern uint8_t product_id_read;
-extern uint32_t cached_product_id;
 }
+static auto &map_list = halo::link::ref<map_list_entry *>(halo::ui::vars().map_list);
+static auto &map_list_count = halo::link::ref<int32_t>(halo::ui::vars().map_list_count);
+static auto &map_list_capacity = halo::link::ref<int32_t>(halo::ui::vars().map_list_capacity);
+static auto &product_id_read = halo::link::ref<uint8_t>(halo::ui::vars().product_id_read);
+static auto &cached_product_id = halo::link::ref<uint32_t>(halo::ui::vars().cached_product_id);
 
 #define HKEY_LOCAL_MACHINE ((HKEY)0x80000002)
 #define KEY_QUERY_VALUE 0x0001

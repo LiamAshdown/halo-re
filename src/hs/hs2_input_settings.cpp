@@ -11,11 +11,10 @@
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
+#include "halo/hs/vars.hpp"
 
 
-extern "C" {
-extern uint8_t player_control_look_rates_0070facc[];
-}
+static auto &player_control_look_rates_0070facc = halo::link::ref<uint8_t []>(halo::hs::vars().player_control_look_rates_0070facc);
 static auto &input_globals = halo::link::ref<uint8_t []>(halo::main::vars().input_globals);
 static auto &profile_globals_block = halo::link::ref<uint8_t [0x60a4]>(halo::ui::vars().profile_globals_block);
 

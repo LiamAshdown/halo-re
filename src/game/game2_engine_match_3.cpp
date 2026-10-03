@@ -3,14 +3,17 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_teams_enabled_flag);
+static auto &network_client = halo::link::ref<uint8_t *>(halo::networking::vars().network_client);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &game_engine_unknown_1cfc = halo::link::ref<uint8_t>(halo::game::vars().game_engine_unknown_1cfc);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 extern "C" {
-extern game_engine_definition *current_game_engine;
-extern uint8_t game_engine_teams_enabled_flag;
-extern uint8_t *network_client;
-extern data_array *player_data;
-extern uint8_t game_engine_unknown_1cfc;
-extern uint8_t network_message_scratch[0x7ff8];
 extern void game_engine_player_round_reset(void);
 extern void chat_queue_team_message(int32_t color, int32_t message_id);
 extern uint8_t game_engine_team_close_game_check(int32_t side, int32_t filter_value);

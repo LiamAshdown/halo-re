@@ -3,15 +3,17 @@
 #include "halo/shell/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &autopatch_status_active_00719235 = halo::link::ref<uint8_t>(halo::ui::vars().autopatch_status_active_00719235);
+static auto &autopatch_status_flag_00692b11 = halo::link::ref<uint8_t>(halo::ui::vars().autopatch_status_flag_00692b11);
+static auto &autopatch_status_state_00719234 = halo::link::ref<uint8_t>(halo::ui::vars().autopatch_status_state_00719234);
+static auto &quit_confirm_error_string_index = halo::link::ref<int16_t>(halo::ui::vars().quit_confirm_error_string_index);
+static auto &quit_confirm_error_unknown_ae = halo::link::ref<int16_t>(halo::ui::vars().quit_confirm_error_unknown_ae);
+static auto &quit_confirm_error_modal = halo::link::ref<uint8_t>(halo::ui::vars().quit_confirm_error_modal);
+static auto &quit_confirm_error_is_error = halo::link::ref<uint8_t>(halo::ui::vars().quit_confirm_error_is_error);
 extern "C" {
-extern uint8_t autopatch_status_active_00719235;
-extern uint8_t autopatch_status_flag_00692b11;
-extern uint8_t autopatch_status_state_00719234;
-extern int16_t quit_confirm_error_string_index;
-extern int16_t quit_confirm_error_unknown_ae;
-extern uint8_t quit_confirm_error_modal;
-extern uint8_t quit_confirm_error_is_error;
 extern void widget_instance_close_and_restore_previous(widget_instance *widget);
 }
 

@@ -19,60 +19,66 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/shell/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
+static auto &first_person_weapon_interfaces = halo::link::ref<first_person_weapon_interface *>(halo::ui::vars().first_person_weapon_interfaces);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &global_white_argb = halo::link::ref<const ColorARGB *>(halo::networking::vars().global_white_argb);
+static auto &hud_text_draw_color_or_flags = halo::link::ref<uint16_t>(halo::ui::vars().hud_text_draw_color_or_flags);
+static auto &hud_text_draw_font_tag_id = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_font_tag_id);
+static auto &hud_text_draw_color_a = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_a);
+static auto &hud_text_draw_color_r = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_r);
+static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_g);
+static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
+static auto &profile_slot_id = halo::link::ref<int16_t []>(halo::ui::vars().profile_slot_id);
+static auto &player_help_name_a10 = halo::link::ref<char []>(halo::ui::vars().player_help_name_a10);
+static auto &player_help_name_a30 = halo::link::ref<char []>(halo::ui::vars().player_help_name_a30);
+static auto &player_help_name_a50 = halo::link::ref<char []>(halo::ui::vars().player_help_name_a50);
+static auto &player_help_name_b30 = halo::link::ref<char []>(halo::ui::vars().player_help_name_b30);
+static auto &player_help_name_b40 = halo::link::ref<char []>(halo::ui::vars().player_help_name_b40);
+static auto &player_help_name_c10 = halo::link::ref<char []>(halo::ui::vars().player_help_name_c10);
+static auto &player_help_name_c20 = halo::link::ref<char []>(halo::ui::vars().player_help_name_c20);
+static auto &player_help_name_c40 = halo::link::ref<char []>(halo::ui::vars().player_help_name_c40);
+static auto &player_help_name_d20 = halo::link::ref<char []>(halo::ui::vars().player_help_name_d20);
+static auto &player_help_name_d40 = halo::link::ref<char []>(halo::ui::vars().player_help_name_d40);
+static auto &profile_carousel_slots = halo::link::ref<profile_carousel_slot [3]>(halo::ui::vars().profile_carousel_slots);
+static auto &joystick_set_separator_0065f010 = halo::link::ref<char []>(halo::ui::vars().joystick_set_separator_0065f010);
+static auto &empty_string = halo::link::ref<uint16_t []>(halo::game::vars().empty_string);
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
+static auto &safe_mode = halo::link::ref<int32_t>(halo::shell::vars().safe_mode);
+static auto &directsound_initialized = halo::link::ref<uint8_t>(halo::ui::vars().directsound_initialized);
+static auto &directsound_eax_available = halo::link::ref<uint8_t>(halo::ui::vars().directsound_eax_available);
+static auto &sound_permutation_limit = halo::link::ref<uint16_t>(halo::ui::vars().sound_permutation_limit);
+static auto &loading_thread_result = halo::link::ref<uint8_t>(halo::ui::vars().loading_thread_result);
+static auto &playlist_profiles_need_defaults = halo::link::ref<uint8_t>(halo::ui::vars().playlist_profiles_need_defaults);
+static auto &last_profile_name = halo::link::ref<char []>(halo::ui::vars().last_profile_name);
+static auto &cached_profile_slot = halo::link::ref<int32_t>(halo::ui::vars().cached_profile_slot);
+static auto &hud_text_unknown = halo::link::ref<uint16_t []>(halo::ui::vars().hud_text_unknown);
+static auto &profile_globals_block = halo::link::ref<uint8_t []>(halo::ui::vars().profile_globals_block);
+static auto &port_overridden = halo::link::ref<uint8_t>(halo::ui::vars().port_overridden);
+static auto &game_cport = halo::link::ref<uint32_t>(halo::ui::vars().game_cport);
+static auto &network_session_start_game_type = halo::link::ref<uint32_t>(halo::networking::vars().network_session_start_game_type);
 extern "C" {
-extern first_person_weapon_interface *first_person_weapon_interfaces;
-extern Globals *global_globals;
-extern const ColorARGB *global_white_argb;
-extern uint16_t hud_text_draw_color_or_flags;
-extern int32_t hud_text_draw_font_tag_id;
-extern float hud_text_draw_color_a;
-extern float hud_text_draw_color_r;
-extern float hud_text_draw_color_g;
-extern float hud_text_draw_color_b;
-extern int16_t profile_slot_id[];
-extern char player_help_name_a10[];
-extern char player_help_name_a30[];
-extern char player_help_name_a50[];
-extern char player_help_name_b30[];
-extern char player_help_name_b40[];
-extern char player_help_name_c10[];
-extern char player_help_name_c20[];
-extern char player_help_name_c40[];
-extern char player_help_name_d20[];
-extern char player_help_name_d40[];
-extern profile_carousel_slot profile_carousel_slots[3];
-extern char joystick_set_separator_0065f010[];
-extern uint16_t empty_string[];
-extern heap *widget_memory_pool;
-extern int32_t safe_mode;
-extern uint8_t directsound_initialized;
-extern uint8_t directsound_eax_available;
-extern uint16_t sound_permutation_limit;
-extern uint8_t loading_thread_result;
-extern uint8_t playlist_profiles_need_defaults;
-extern char last_profile_name[];
-extern int32_t cached_profile_slot;
-extern uint16_t hud_text_unknown[];
-extern uint8_t profile_globals_block[];
-extern uint8_t port_overridden;
-extern uint32_t game_cport;
-extern uint32_t network_session_start_game_type;
 extern void player_profile_refresh_settings_cache(int16_t player_index);
 extern uint8_t player_profile_apply_video_options(uint8_t *settings);
 extern void player_profile_apply_audio_options(uint8_t *settings);
-extern player_control_settings input_globals[];
-extern int32_t selected_saved_item;
-extern uint8_t saved_item_disk_copy[k_saved_player_profile_size];
-extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
-extern virtual_keyboard_globals virtual_keyboard;
-extern uint8_t default_profile_data[k_saved_player_profile_size];
-extern int16_t current_local_player_index;
 }
+static auto &input_globals = halo::link::ref<player_control_settings []>(halo::main::vars().input_globals);
+static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
+static auto &saved_item_disk_copy = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().saved_item_disk_copy);
+static auto &saved_item_working_copy = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().saved_item_working_copy);
+static auto &virtual_keyboard = halo::link::ref<virtual_keyboard_globals>(halo::ui::vars().virtual_keyboard);
+static auto &default_profile_data = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().default_profile_data);
+static auto &current_local_player_index = halo::link::ref<int16_t>(halo::ui::vars().current_local_player_index);
 
 namespace halo::interface {
 

@@ -12,6 +12,9 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
 namespace c_actor_allocate_paired_prop {
 }
@@ -93,8 +96,8 @@ datum_index actor_allocate_paired_prop_with_kind(datum_index actor_index, datum_
 }
 
 namespace c_actor_apply_unit_definition_properties {
+static auto &object_type_definitions = halo::link::ref<object_type_definition *[12]>(halo::game::vars().object_type_definitions);
 extern "C" {
-extern object_type_definition *object_type_definitions[12];
 
 
 static uint8_t *object_get(datum_index object_index)
@@ -279,9 +282,7 @@ void actor_clear_recognition_history(datum_index actor_index, uint8_t keep_when_
 }
 
 namespace c_actor_copy_prop_and_reset {
-extern "C" {
-extern real_point3d *global_origin3d_pointer;
-}
+static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 }
 
 
@@ -524,8 +525,8 @@ uint8_t actor_danger_register_stationary_object(const float *reference, datum_in
 }
 
 namespace c_actor_find_danger_escape {
+static auto &global_forward2d_pointer = halo::link::ref<const real_vector2d *>(halo::ai::vars().global_forward2d_pointer);
 extern "C" {
-extern const real_vector2d *global_forward2d_pointer;
 
 extern double sqrt(double x);
 extern double fabs(double x);
@@ -1011,10 +1012,7 @@ datum_index actor_get_target_prop_object_index(datum_index actor_index)
 }
 
 namespace c_actor_init_prop_from_object {
-extern "C" {
-extern game_time_globals *game_time;
-
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 

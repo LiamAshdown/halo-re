@@ -21,22 +21,22 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
-extern int32_t ui_list_current;
-extern growable_array ui_lists[3];
-extern char known_campaign_levels_00692acc[];
-extern uint8_t pending_difficulty;
-extern uint8_t split_screen_quit_prompt_armed;
-extern uint8_t selected_level_active_00719878;
-extern uint8_t selected_level_pending_00719778;
-extern uint8_t network_wait_flag_00719739;
-extern int16_t profile_slot_id[];
-extern int16_t game_variant_saved_default;
-extern int32_t cached_profile_slot;
-extern char last_profile_name[];
-}
+static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
+static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
+static auto &ui_lists = halo::link::ref<growable_array [3]>(halo::ui::vars().ui_lists);
+static auto &known_campaign_levels_00692acc = halo::link::ref<char []>(halo::ui::vars().known_campaign_levels_00692acc);
+static auto &pending_difficulty = halo::link::ref<uint8_t>(halo::ui::vars().pending_difficulty);
+static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
+static auto &selected_level_active_00719878 = halo::link::ref<uint8_t>(halo::ui::vars().selected_level_active_00719878);
+static auto &selected_level_pending_00719778 = halo::link::ref<uint8_t>(halo::ui::vars().selected_level_pending_00719778);
+static auto &network_wait_flag_00719739 = halo::link::ref<uint8_t>(halo::ui::vars().network_wait_flag_00719739);
+static auto &profile_slot_id = halo::link::ref<int16_t []>(halo::ui::vars().profile_slot_id);
+static auto &game_variant_saved_default = halo::link::ref<int16_t>(halo::ui::vars().game_variant_saved_default);
+static auto &cached_profile_slot = halo::link::ref<int32_t>(halo::ui::vars().cached_profile_slot);
+static auto &last_profile_name = halo::link::ref<char []>(halo::ui::vars().last_profile_name);
 
 namespace halo::ui {
 

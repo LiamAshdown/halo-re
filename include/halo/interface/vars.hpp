@@ -5,7 +5,6 @@
  */
 #pragma once
 
-
 namespace halo::ui {
 
 /** Address table of the engine variables owned by the interface module. */

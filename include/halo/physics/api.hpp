@@ -6,6 +6,8 @@
 #pragma once
 
 #include <stdint.h>
+#include "halo/core/link.hpp"
+#include "halo/physics/vars.hpp"
 
 struct breakable_surface_globals;
 struct data_array;
@@ -68,7 +70,7 @@ struct Globals {
 
 Globals &globals();
 
-extern "C" float k_physics_gravity;
+inline auto &k_physics_gravity = halo::link::ref<float>(halo::physics::vars().k_physics_gravity);
 
 void breakable_surface_apply_damage(damage_data *damage, int32_t surface_index, int32_t collision_surface_index);
 void breakable_surface_damage_in_blast_radius(damage_data *damage);

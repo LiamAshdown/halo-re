@@ -11,6 +11,9 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
 namespace halo::ai {
 
@@ -28,10 +31,8 @@ int32_t ActorOps::order_code_is_grenade_throw(int16_t order_code)
 }
 
 namespace actor_recompute_grenade_eligibility_local {
-extern "C" {
-extern float k_random_scale_65536;
-extern float ticks_per_second;
-}
+static auto &k_random_scale_65536 = halo::link::ref<float>(halo::ai::vars().k_random_scale_65536);
+static auto &ticks_per_second = halo::link::ref<float>(halo::ai::vars().ticks_per_second);
 }
 
 /**
@@ -194,9 +195,7 @@ void ActorView::schedule_grenade_throw()
 }
 
 namespace actor_should_throw_grenade_local {
-extern "C" {
-extern game_time_globals *game_time;
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 /**
@@ -242,8 +241,8 @@ uint8_t ActorView::should_throw_grenade(char force)
 }
 
 namespace actor_solve_grenade_lob_local {
+static auto &global_globals = halo::link::ref<::Globals *>(halo::game::vars().global_globals);
 extern "C" {
-extern ::Globals *global_globals;
 extern double sqrt(double x);
 }
 }
@@ -323,13 +322,13 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
 }
 
 namespace actor_try_grenade_evasion_local {
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern game_time_globals *game_time;
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-extern actor_mode_definition actor_mode_definitions[16];
 }
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 }
 
 /**
@@ -375,8 +374,8 @@ uint8_t ActorView::try_grenade_evasion(uint8_t allow_pain_reaction, uint8_t use_
 #undef PROP
 
 namespace actor_update_grenade_and_morale_reactions_local {
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern game_time_globals *game_time;
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
@@ -528,8 +527,8 @@ void ActorView::update_grenade_eligibility_state()
 }
 
 namespace actor_update_grenade_throw_decision_local {
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern game_time_globals *game_time;
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
@@ -578,9 +577,7 @@ uint8_t ActorView::update_grenade_throw_decision()
 #undef PROP
 
 namespace actor_validate_grenade_ally_candidate_local {
-extern "C" {
-extern void *actor_type_procs[16];
-}
+static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
 }
 
 /**

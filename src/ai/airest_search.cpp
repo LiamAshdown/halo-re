@@ -9,12 +9,14 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 extern "C" {
 extern double sqrt(double x);
 extern double fabs(double x);
-extern real_point2d *ai_default_2d_direction;
 }
+static auto &ai_default_2d_direction = halo::link::ref<real_point2d *>(halo::ai::vars().ai_default_2d_direction);
 
 namespace halo::ai {
 

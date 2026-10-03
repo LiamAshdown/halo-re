@@ -5,15 +5,19 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &game_engine_state_value = halo::link::ref<game_engine_state>(halo::game::vars().game_engine_state_value);
+static auto &game_engine_end_game_timer = halo::link::ref<float>(halo::game::vars().game_engine_end_game_timer);
+static auto &game_engine_unknown_aa00 = halo::link::ref<uint32_t>(halo::game::vars().game_engine_unknown_aa00);
 extern "C" {
-extern game_engine_definition *current_game_engine;
-extern game_time_globals *game_time;
-extern data_array *player_data;
-extern game_variant game_engine_variant;
-extern game_engine_state game_engine_state_value;
-extern float game_engine_end_game_timer;
-extern uint32_t game_engine_unknown_aa00;
 extern void game_engine_multiplayer_sound_queue_tick(void);
 extern void game_engine_cleanup_dropped_objects(void);
 extern void game_engine_update_item_scale_and_pickup(void);
@@ -25,14 +29,16 @@ extern char game_engine_announce_time_remaining(void);
 extern void game_engine_begin_end_game_sequence(void);
 extern void game_engine_end_game_sequence_stage2(void);
 extern void game_engine_send_end_game_notification(uint32_t reason);
-extern int32_t sv_tk_cooldown_ticks;
-extern char k_empty_string[];
-extern uint8_t player_profile_cache_initialized;
-extern player_profile player_profile_cache[16];
-extern uint8_t network_message_scratch[0x7ff8];
-extern uint8_t shared_hud_text_draw_state;
-extern uint8_t game_engine_teams_enabled_flag;
-extern uint8_t network_client[];
+}
+static auto &sv_tk_cooldown_ticks = halo::link::ref<int32_t>(halo::game::vars().sv_tk_cooldown_ticks);
+static auto &k_empty_string = halo::link::ref<char []>(halo::networking::vars().k_empty_string);
+static auto &player_profile_cache_initialized = halo::link::ref<uint8_t>(halo::game::vars().player_profile_cache_initialized);
+static auto &player_profile_cache = halo::link::ref<player_profile [16]>(halo::game::vars().player_profile_cache);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+static auto &shared_hud_text_draw_state = halo::link::ref<uint8_t>(halo::game::vars().shared_hud_text_draw_state);
+static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_teams_enabled_flag);
+static auto &network_client = halo::link::ref<uint8_t []>(halo::networking::vars().network_client);
+extern "C" {
 extern void game_engine_gather_team_score_totals(uint32_t out_count[2], uint32_t out_score[2], int32_t filter_value);
 }
 

@@ -10,14 +10,16 @@
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
 extern "C" {
 extern double cos(double x);
 extern double sqrt(double x);
 extern double fmod(double x, double y);
-extern hud_unit_meter_globals *hud_unit_meters;
-extern hud_globals_flags *hud_flags;
 }
+static auto &hud_unit_meters = halo::link::ref<hud_unit_meter_globals *>(halo::ui::vars().hud_unit_meters);
+static auto &hud_flags = halo::link::ref<hud_globals_flags *>(halo::ui::vars().hud_flags);
 
 static int32_t hud_meter_alpha(const hud_meter_placement *meter, uint8_t value)
 {

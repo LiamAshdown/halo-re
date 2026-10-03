@@ -2,20 +2,24 @@
 #include "halo/cseries/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &network_query_socket = halo::link::ref<int32_t>(halo::networking::vars().network_query_socket);
+static auto &network_game_socket = halo::link::ref<int32_t>(halo::networking::vars().network_game_socket);
+static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
+static auto &network_host_handoff_requested = halo::link::ref<uint8_t>(halo::networking::vars().network_host_handoff_requested);
 extern "C" {
-extern int32_t network_query_socket;
-extern int32_t network_game_socket;
-extern int16_t network_join_error_code;
-extern uint8_t network_host_handoff_requested;
 extern void chat_close(void);
 extern int gt2NetworkToHostInt(unsigned int value);
 extern char *gt2AddressToString(unsigned int ip, unsigned short port, char *string);
 extern int gt2Connect(void *socket, void **connection_out, const char *remote_address, const unsigned char *message, int len, unsigned long timeout, const void *callbacks, int blocking);
 extern void gt2SetConnectionData(void *connection, void *data);
-extern int32_t network_connect_timeout_ms;
-extern int32_t network_pending_connection_count;
-extern network_pending_connection network_pending_connections[k_network_pending_connection_count];
+}
+static auto &network_connect_timeout_ms = halo::link::ref<int32_t>(halo::networking::vars().network_connect_timeout_ms);
+static auto &network_pending_connection_count = halo::link::ref<int32_t>(halo::networking::vars().network_pending_connection_count);
+static auto &network_pending_connections = halo::link::ref<network_pending_connection [k_network_pending_connection_count]>(halo::networking::vars().network_pending_connections);
+extern "C" {
 extern void gt2Reject(void *connection, const unsigned char *message, int len);
 }
 

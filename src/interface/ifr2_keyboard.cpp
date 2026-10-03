@@ -15,31 +15,33 @@
 #include "halo/text/text.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
+static auto &virtual_keyboard = halo::link::ref<virtual_keyboard_globals>(halo::ui::vars().virtual_keyboard);
+static auto &virtual_keyboard_blacklist_charset = halo::link::ref<uint8_t *>(halo::ui::vars().virtual_keyboard_blacklist_charset);
+static auto &controls_input_capture_flags = halo::link::ref<uint8_t>(halo::ui::vars().controls_input_capture_flags);
+static auto &keyboard_device = halo::link::ref<void **>(halo::ui::vars().keyboard_device);
+static auto &key_frames = halo::link::ref<uint8_t [0x6d]>(halo::ui::vars().key_frames);
+static auto &key_release_pending = halo::link::ref<uint8_t [0x6d]>(halo::ui::vars().key_release_pending);
+static auto &hud_text_draw_font_tag_id = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_font_tag_id);
+static auto &hud_text_draw_color_or_flags = halo::link::ref<uint16_t>(halo::ui::vars().hud_text_draw_color_or_flags);
+static auto &hud_text_draw_color_a = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_a);
+static auto &hud_text_draw_color_r = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_r);
+static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_g);
+static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
 extern "C" {
-extern virtual_keyboard_globals virtual_keyboard;
-extern uint8_t *virtual_keyboard_blacklist_charset;
-extern uint8_t controls_input_capture_flags;
-extern void **keyboard_device;
-extern uint8_t key_frames[0x6d];
-extern uint8_t key_release_pending[0x6d];
-extern int32_t hud_text_draw_font_tag_id;
-extern uint16_t hud_text_draw_color_or_flags;
-extern float hud_text_draw_color_a;
-extern float hud_text_draw_color_r;
-extern float hud_text_draw_color_g;
-extern float hud_text_draw_color_b;
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
-extern int16_t key_event_read_index;
-extern int16_t key_event_count;
-extern ui_key_event key_events[];
-extern uint16_t fortune_easter_egg_text[];
-extern uint16_t missing_string_text[];
 }
+static auto &key_event_read_index = halo::link::ref<int16_t>(halo::ui::vars().key_event_read_index);
+static auto &key_event_count = halo::link::ref<int16_t>(halo::ui::vars().key_event_count);
+static auto &key_events = halo::link::ref<ui_key_event []>(halo::ui::vars().key_events);
+static auto &fortune_easter_egg_text = halo::link::ref<uint16_t []>(halo::ui::vars().fortune_easter_egg_text);
+static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
 
 #define WCTYPE_SPACE 0x0008
 

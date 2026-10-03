@@ -16,53 +16,65 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &network_connection_stats = halo::link::ref<network_connection_statistics [k_network_connection_stats_count]>(halo::networking::vars().network_connection_stats);
+static auto &network_statistics_logging_enabled = halo::link::ref<uint8_t>(halo::networking::vars().network_statistics_logging_enabled);
+static auto &network_connection_log_needs_open = halo::link::ref<uint8_t>(halo::networking::vars().network_connection_log_needs_open);
+static auto &network_connection_stats_log_file = halo::link::ref<void *>(halo::networking::vars().network_connection_stats_log_file);
+static auto &network_connection_log_last_row_ms = halo::link::ref<int32_t>(halo::networking::vars().network_connection_log_last_row_ms);
+static auto &network_connection_log_start_ms = halo::link::ref<int32_t>(halo::networking::vars().network_connection_log_start_ms);
+static auto &network_connection_stats_count = halo::link::ref<int32_t>(halo::networking::vars().network_connection_stats_count);
+static auto &network_summary_stats = halo::link::ref<network_summary_statistics>(halo::networking::vars().network_summary_stats);
+static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
+static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
+static auto &network_summary_log_mode_string = halo::link::ref<char []>(halo::networking::vars().network_summary_log_mode_string);
 extern "C" {
-extern network_connection_statistics network_connection_stats[k_network_connection_stats_count];
-extern uint8_t network_statistics_logging_enabled;
-extern uint8_t network_connection_log_needs_open;
-extern void *network_connection_stats_log_file;
-extern int32_t network_connection_log_last_row_ms;
-extern int32_t network_connection_log_start_ms;
-extern int32_t network_connection_stats_count;
-extern network_summary_statistics network_summary_stats;
-extern network_client_globals *network_client;
-extern network_server_globals *network_server;
-extern char network_summary_log_mode_string[];
 extern void *gt2GetConnectionData(void *gamespy_connection);
 extern uint16_t gt2GetRemotePort(int32_t object);
-extern uint8_t network_disabled_flag;
-extern int16_t network_join_error_code;
-extern int32_t network_join_error_reason;
-extern uint8_t split_screen_quit_prompt_string[4];
-extern data_packet_group network_game_messages_group;
-extern uint8_t network_hostname_ready;
-extern uint8_t network_winsock_initialized;
-extern uint32_t network_local_address;
-extern uint32_t network_resolved_local_address;
-extern int32_t network_initialized_at_ms;
-extern char network_local_hostname_buffer[0x100];
-extern uint8_t network_log_path_buffer[0x104];
-extern char network_log_path_format[];
+}
+static auto &network_disabled_flag = halo::link::ref<uint8_t>(halo::ui::vars().network_disabled_flag);
+static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
+static auto &network_join_error_reason = halo::link::ref<int32_t>(halo::networking::vars().network_join_error_reason);
+static auto &split_screen_quit_prompt_string = halo::link::ref<uint8_t [4]>(halo::ui::vars().split_screen_quit_prompt_string);
+static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
+static auto &network_hostname_ready = halo::link::ref<uint8_t>(halo::networking::vars().network_hostname_ready);
+static auto &network_winsock_initialized = halo::link::ref<uint8_t>(halo::networking::vars().network_winsock_initialized);
+static auto &network_local_address = halo::link::ref<uint32_t>(halo::networking::vars().network_local_address);
+static auto &network_resolved_local_address = halo::link::ref<uint32_t>(halo::ui::vars().network_resolved_local_address);
+static auto &network_initialized_at_ms = halo::link::ref<int32_t>(halo::networking::vars().network_initialized_at_ms);
+static auto &network_local_hostname_buffer = halo::link::ref<char [0x100]>(halo::networking::vars().network_local_hostname_buffer);
+static auto &network_log_path_buffer = halo::link::ref<uint8_t [0x104]>(halo::networking::vars().network_log_path_buffer);
+static auto &network_log_path_format = halo::link::ref<char []>(halo::networking::vars().network_log_path_format);
+extern "C" {
 extern int32_t security_check_write_access(void);
 extern uint8_t virtual_keyboard_character_is_legal(uint8_t ch, void *character);
 extern uint8_t ui_wide_string_has_non_whitespace(void);
-extern uint16_t network_challenge_packet_block[];
-extern uint8_t network_random_seeded;
+}
+static auto &network_challenge_packet_block = halo::link::ref<uint16_t []>(halo::networking::vars().network_challenge_packet_block);
+static auto &network_random_seeded = halo::link::ref<uint8_t>(halo::networking::vars().network_random_seeded);
+extern "C" {
 extern int32_t __ftol(int32_t value);
-extern int32_t network_query_socket;
-extern int32_t network_game_socket;
-extern void *network_summary_log_file;
+}
+static auto &network_query_socket = halo::link::ref<int32_t>(halo::networking::vars().network_query_socket);
+static auto &network_game_socket = halo::link::ref<int32_t>(halo::networking::vars().network_game_socket);
+static auto &network_summary_log_file = halo::link::ref<void *>(halo::networking::vars().network_summary_log_file);
+extern "C" {
 extern void gt2CloseSocket(int32_t socket);
 extern void gt2AddressToString(uint32_t address, uint16_t port, void *out_address);
-extern int32_t network_high_res_clock_ms;
-extern uint8_t network_update_unknown_869bf;
-extern void gt2Think(int32_t socket);
-extern data_array *player_data;
-extern void *machine_table;
-extern uint8_t network_message_scratch[0x7ff8];
-extern uint8_t network_summary_log_needs_open;
 }
+static auto &network_high_res_clock_ms = halo::link::ref<int32_t>(halo::networking::vars().network_high_res_clock_ms);
+static auto &network_update_unknown_869bf = halo::link::ref<uint8_t>(halo::networking::vars().network_update_unknown_869bf);
+extern "C" {
+extern void gt2Think(int32_t socket);
+}
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &machine_table = halo::link::ref<void *>(halo::game::vars().machine_table);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+static auto &network_summary_log_needs_open = halo::link::ref<uint8_t>(halo::networking::vars().network_summary_log_needs_open);
 
 namespace halo::networking {
 

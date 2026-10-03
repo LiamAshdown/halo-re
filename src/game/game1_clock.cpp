@@ -23,23 +23,28 @@
 #include "halo/shaders/shaders.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &chimera_contrail_scale = halo::link::ref<real>(halo::game::vars().chimera_contrail_scale);
 extern "C" {
-extern game_time_globals *game_time;
-extern real chimera_contrail_scale;
 extern double floor(double x);
-extern int32_t game_time_force_single_tick;
+}
+static auto &game_time_force_single_tick = halo::link::ref<int32_t>(halo::game::vars().game_time_force_single_tick);
+extern "C" {
 extern void game_simulate_tick(uint32_t predict_pass);
 extern void update_run_catchup_ticks(int16_t tick_count);
 extern void game_effects_update(float delta_time);
 extern int32_t game_engine_accumulate_simulation_ticks(float elapsed_seconds, char keep_remainder);
-extern game_engine_definition *current_game_engine;
-extern data_array *player_data;
-extern game_variant game_engine_variant;
-extern int32_t game_engine_round_reset_tick;
-extern uint8_t game_time_unknown_49;
-extern int32_t game_time_unknown_48;
 }
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &game_engine_round_reset_tick = halo::link::ref<int32_t>(halo::game::vars().game_engine_round_reset_tick);
+static auto &game_time_unknown_49 = halo::link::ref<uint8_t>(halo::game::vars().game_time_unknown_49);
+static auto &game_time_unknown_48 = halo::link::ref<int32_t>(halo::game::vars().game_time_unknown_48);
 
 namespace halo::game::engine1 {
 

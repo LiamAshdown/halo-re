@@ -3,12 +3,12 @@
 #include "halo/camera/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
-extern "C" {
-extern player_globals *local_player_globals;
-extern data_array *player_data;
-extern void *player_control_globals_ptr;
-}
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &player_control_globals_ptr = halo::link::ref<void *>(halo::game::vars().player_control_globals_ptr);
 
 namespace halo::game {
 

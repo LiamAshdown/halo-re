@@ -33,25 +33,30 @@
 #include "halo/input/ui_events.hpp"
 #include "halo/text/text.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &ui_button_caption = halo::link::ref<uint16_t *[0x28]>(halo::ui::vars().ui_button_caption);
 extern "C" {
-extern Globals *global_globals;
-extern uint16_t *ui_button_caption[0x28];
 extern double fsin(double x);
 extern double fcos(double x);
-extern int32_t ui_network_wait_start_time;
-extern datum_index trouble_brewing_bitmap_tag;
-extern uint16_t formatted_prompt_scratch[0x100];
-extern uint16_t prompt_percent_text[];
-extern uint16_t hud_text_quote[];
-extern uint16_t hud_text_unbound[];
-extern int8_t prompt_key_token_table[];
-extern uint8_t prompt_icon_override_table[0x12];
-extern float hud_text_draw_color_a;
-extern float hud_text_draw_color_r;
-extern float hud_text_draw_color_g;
-extern float hud_text_draw_color_b;
-extern HUDGlobals *hud_globals_tag_data;
+}
+static auto &ui_network_wait_start_time = halo::link::ref<int32_t>(halo::ui::vars().ui_network_wait_start_time);
+static auto &trouble_brewing_bitmap_tag = halo::link::ref<datum_index>(halo::ui::vars().trouble_brewing_bitmap_tag);
+static auto &formatted_prompt_scratch = halo::link::ref<uint16_t [0x100]>(halo::ui::vars().formatted_prompt_scratch);
+static auto &prompt_percent_text = halo::link::ref<uint16_t []>(halo::ui::vars().prompt_percent_text);
+static auto &hud_text_quote = halo::link::ref<uint16_t []>(halo::ui::vars().hud_text_quote);
+static auto &hud_text_unbound = halo::link::ref<uint16_t []>(halo::ui::vars().hud_text_unbound);
+static auto &prompt_key_token_table = halo::link::ref<int8_t []>(halo::ui::vars().prompt_key_token_table);
+static auto &prompt_icon_override_table = halo::link::ref<uint8_t [0x12]>(halo::ui::vars().prompt_icon_override_table);
+static auto &hud_text_draw_color_a = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_a);
+static auto &hud_text_draw_color_r = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_r);
+static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_g);
+static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
+static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
+extern "C" {
 extern int32_t __ftol(double x);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text);

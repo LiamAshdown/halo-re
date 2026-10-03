@@ -16,41 +16,45 @@
 #include "halo/main/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/networking/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
+static auto &ui_cursor_bitmap = halo::link::ref<datum_index>(halo::ui::vars().ui_cursor_bitmap);
+static auto &ui_cursor_x = halo::link::ref<int32_t>(halo::ui::vars().ui_cursor_x);
+static auto &ui_cursor_y = halo::link::ref<int32_t>(halo::ui::vars().ui_cursor_y);
+static auto &first_person_weapon_interfaces = halo::link::ref<first_person_weapon_interface *>(halo::ui::vars().first_person_weapon_interfaces);
+static auto &interface_loading_screen_address_b = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_b);
+static auto &interface_loading_screen_address_a = halo::link::ref<uint32_t>(halo::main::vars().interface_loading_screen_address_a);
+static auto &join_ui_state = halo::link::ref<progress_screen_state>(halo::networking::vars().join_ui_state);
+static auto &interface_loading_screen_progress = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_progress);
+static auto &progress_screen_text = halo::link::ref<uint16_t [0x20]>(halo::main::vars().progress_screen_text);
+static auto &progress_screen_subtext = halo::link::ref<uint16_t [0x20]>(halo::main::vars().progress_screen_subtext);
+static auto &interface_loading_screen_request_id = halo::link::ref<datum_index>(halo::networking::vars().interface_loading_screen_request_id);
+static auto &ui_cursor_changed = halo::link::ref<uint8_t>(halo::ui::vars().ui_cursor_changed);
+static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
+static auto &ui_time_milliseconds = halo::link::ref<int32_t>(halo::ui::vars().ui_time_milliseconds);
+static auto &ui_widget_history = halo::link::ref<widget_history_node *[3]>(halo::ui::vars().ui_widget_history);
 extern "C" {
-extern datum_index ui_cursor_bitmap;
-extern int32_t ui_cursor_x;
-extern int32_t ui_cursor_y;
-extern first_person_weapon_interface *first_person_weapon_interfaces;
-extern int32_t interface_loading_screen_address_b;
-extern uint32_t interface_loading_screen_address_a;
-extern progress_screen_state join_ui_state;
-extern int32_t interface_loading_screen_progress;
-extern uint16_t progress_screen_text[0x20];
-extern uint16_t progress_screen_subtext[0x20];
-extern datum_index interface_loading_screen_request_id;
-extern uint8_t ui_cursor_changed;
-extern widget_instance *ui_root_widget[1];
-extern int32_t ui_time_milliseconds;
-extern widget_history_node *ui_widget_history[3];
 extern void sound_looping_stop(datum_index sound_tag);
-extern int32_t main_menu_music_datum;
-extern map_list_entry *map_list;
-extern int32_t map_list_count;
-extern heap *widget_memory_pool;
-extern uint16_t missing_string_text[];
-extern data_array *terminal_messages;
-extern uint8_t terminal_initialized;
-extern terminal_console *console_active;
-extern datum_index console_message_head;
-extern datum_index console_message_tail;
-extern int32_t console_caret_blink_time;
-extern int32_t console_rcon_handle;
 }
+static auto &main_menu_music_datum = halo::link::ref<int32_t>(halo::ui::vars().main_menu_music_datum);
+static auto &map_list = halo::link::ref<map_list_entry *>(halo::ui::vars().map_list);
+static auto &map_list_count = halo::link::ref<int32_t>(halo::ui::vars().map_list_count);
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
+static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
+static auto &terminal_messages = halo::link::ref<data_array *>(halo::main::vars().terminal_messages);
+static auto &terminal_initialized = halo::link::ref<uint8_t>(halo::main::vars().terminal_initialized);
+static auto &console_active = halo::link::ref<terminal_console *>(halo::main::vars().console_active);
+static auto &console_message_head = halo::link::ref<datum_index>(halo::main::vars().console_message_head);
+static auto &console_message_tail = halo::link::ref<datum_index>(halo::main::vars().console_message_tail);
+static auto &console_caret_blink_time = halo::link::ref<int32_t>(halo::ui::vars().console_caret_blink_time);
+static auto &console_rcon_handle = halo::link::ref<int32_t>(halo::main::vars().console_rcon_handle);
 
 namespace halo::interface {
 

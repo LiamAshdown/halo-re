@@ -27,23 +27,24 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 
-extern "C" {
-extern uint8_t *network_client;
-extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
-extern widget_history_node *ui_widget_history[3];
-extern heap *widget_memory_pool;
-extern growable_array ui_lists[3];
-extern int32_t ui_list_current;
-extern uint8_t ui_list_has_default;
-extern uint16_t missing_string_text[];
-extern int32_t profile_slot_lookup_cache_00692ac8;
-extern int16_t quit_confirm_error_string_index;
-extern int16_t quit_confirm_error_unknown_ae;
-extern uint8_t quit_confirm_error_modal;
-extern uint8_t quit_confirm_error_is_error;
-}
+static auto &network_client = halo::link::ref<uint8_t *>(halo::networking::vars().network_client);
+static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
+static auto &saved_item_working_copy = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().saved_item_working_copy);
+static auto &ui_widget_history = halo::link::ref<widget_history_node *[3]>(halo::ui::vars().ui_widget_history);
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
+static auto &ui_lists = halo::link::ref<growable_array [3]>(halo::ui::vars().ui_lists);
+static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
+static auto &ui_list_has_default = halo::link::ref<uint8_t>(halo::ui::vars().ui_list_has_default);
+static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
+static auto &profile_slot_lookup_cache_00692ac8 = halo::link::ref<int32_t>(halo::ui::vars().profile_slot_lookup_cache_00692ac8);
+static auto &quit_confirm_error_string_index = halo::link::ref<int16_t>(halo::ui::vars().quit_confirm_error_string_index);
+static auto &quit_confirm_error_unknown_ae = halo::link::ref<int16_t>(halo::ui::vars().quit_confirm_error_unknown_ae);
+static auto &quit_confirm_error_modal = halo::link::ref<uint8_t>(halo::ui::vars().quit_confirm_error_modal);
+static auto &quit_confirm_error_is_error = halo::link::ref<uint8_t>(halo::ui::vars().quit_confirm_error_is_error);
 
 namespace halo::ui {
 

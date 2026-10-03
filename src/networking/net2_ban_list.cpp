@@ -14,10 +14,10 @@
 #include "halo/memory/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 
-extern "C" {
-extern growable_array ban_list;
-}
+static auto &ban_list = halo::link::ref<growable_array>(halo::networking::vars().ban_list);
 
 
 namespace halo::networking {

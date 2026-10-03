@@ -10,18 +10,18 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern int32_t hud_text_message_time_base;
-extern growable_array hud_text_message_queue;
-extern int32_t hud_text_message_cycle_state_00719230;
-extern ColorARGB *hud_text_message_hold_color;
-extern ColorARGB *hud_text_message_normal_color;
-extern int32_t hud_text_draw_font_tag_id;
-extern uint32_t hud_text_draw_color_or_flags;
-extern int32_t hud_text_draw_unknown_4730;
-extern uint16_t missing_string_text[];
-}
+static auto &hud_text_message_time_base = halo::link::ref<int32_t>(halo::ui::vars().hud_text_message_time_base);
+static auto &hud_text_message_queue = halo::link::ref<growable_array>(halo::ui::vars().hud_text_message_queue);
+static auto &hud_text_message_cycle_state_00719230 = halo::link::ref<int32_t>(halo::ui::vars().hud_text_message_cycle_state_00719230);
+static auto &hud_text_message_hold_color = halo::link::ref<ColorARGB *>(halo::ui::vars().hud_text_message_hold_color);
+static auto &hud_text_message_normal_color = halo::link::ref<ColorARGB *>(halo::ui::vars().hud_text_message_normal_color);
+static auto &hud_text_draw_font_tag_id = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_font_tag_id);
+static auto &hud_text_draw_color_or_flags = halo::link::ref<uint32_t>(halo::ui::vars().hud_text_draw_color_or_flags);
+static auto &hud_text_draw_unknown_4730 = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_unknown_4730);
+static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
 
 namespace halo::interface {
 

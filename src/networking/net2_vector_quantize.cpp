@@ -6,12 +6,16 @@
 #include "halo/networking/net2_vector_quantize.hpp"
 #include "halo/math/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 
 extern "C" {
 extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);
-extern uint8_t message_delta_vector3d_mode;
+}
+static auto &message_delta_vector3d_mode = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_vector3d_mode);
+extern "C" {
 extern double acos(double x);
 extern double atan(double x);
 extern int _isnan(double x);

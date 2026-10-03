@@ -22,19 +22,24 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/saved_games/vars.hpp"
 
+static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);
+static auto &sv_ban_penalty_arg_buffer = halo::link::ref<char []>(halo::networking::vars().sv_ban_penalty_arg_buffer);
+static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
+static auto &global_white_argb = halo::link::ref<void *>(halo::networking::vars().global_white_argb);
+static auto &console_message_default_color = halo::link::ref<void *>(halo::networking::vars().console_message_default_color);
+static auto &sv_ban_penalty_seconds = halo::link::ref<int32_t [4]>(halo::networking::vars().sv_ban_penalty_seconds);
+static auto &network_banlist_full_path = halo::link::ref<char [0x104]>(halo::networking::vars().network_banlist_full_path);
+static auto &profile_directory = halo::link::ref<char [0x105]>(halo::saved_games::vars().profile_directory);
+static auto &sv_friendly_fire_mode = halo::link::ref<int32_t>(halo::game::vars().sv_friendly_fire_mode);
+static auto &game_variant_saved_default = halo::link::ref<game_variant>(halo::ui::vars().game_variant_saved_default);
+static auto &game_variant_saved_default_valid = halo::link::ref<uint8_t>(halo::game::vars().game_variant_saved_default_valid);
 extern "C" {
-extern int16_t network_game_mode;
-extern char sv_ban_penalty_arg_buffer[];
-extern network_server_globals * network_server;
-extern void * global_white_argb;
-extern void * console_message_default_color;
-extern int32_t sv_ban_penalty_seconds[4];
-extern char network_banlist_full_path[0x104];
-extern char profile_directory[0x105];
-extern int32_t sv_friendly_fire_mode;
-extern game_variant game_variant_saved_default;
-extern uint8_t game_variant_saved_default_valid;
 extern char game_engine_is_map_and_variant_valid(void);
 extern void game_engine_free_custom_variant_cache(void);
 extern uint32_t game_engine_variant_add_to_history(char *name, game_variant *options, char *path);
@@ -44,25 +49,25 @@ extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *o
 extern void game_engine_reset_round_objects(void);
 extern void game_engine_send_round_reset_message(void);
 extern void game_engine_player_profile_cache_sync_all(int32_t commit);
-extern int32_t sv_maxplayers_value;
-extern uint16_t network_server_name[64];
-extern uint8_t network_server_name_is_default;
-extern uint16_t network_server_password[9];
-extern uint8_t network_server_password_is_default;
-extern data_array * player_data;
-extern wchar_t k_empty_string[];
-extern char network_team_color_name_red[];
-extern char network_team_color_name_blue[];
-extern void * console_color_00685214;
-extern void * console_color_00686af8;
-extern char sv_rcon_password_value[9];
-extern uint8_t network_single_flag_force_reset_value;
-extern char network_build_string[];
-extern int32_t sv_timelimit_minutes;
-extern int32_t sv_tk_cooldown_ticks;
-extern char sv_tk_grace_arg_buffer[];
-extern int32_t sv_tk_grace_ticks;
 }
+static auto &sv_maxplayers_value = halo::link::ref<int32_t>(halo::ui::vars().sv_maxplayers_value);
+static auto &network_server_name = halo::link::ref<uint16_t [64]>(halo::networking::vars().network_server_name);
+static auto &network_server_name_is_default = halo::link::ref<uint8_t>(halo::networking::vars().network_server_name_is_default);
+static auto &network_server_password = halo::link::ref<uint16_t [9]>(halo::networking::vars().network_server_password);
+static auto &network_server_password_is_default = halo::link::ref<uint8_t>(halo::networking::vars().network_server_password_is_default);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &k_empty_string = halo::link::ref<wchar_t []>(halo::networking::vars().k_empty_string);
+static auto &network_team_color_name_red = halo::link::ref<char []>(halo::networking::vars().network_team_color_name_red);
+static auto &network_team_color_name_blue = halo::link::ref<char []>(halo::networking::vars().network_team_color_name_blue);
+static auto &console_color_00685214 = halo::link::ref<void *>(halo::networking::vars().console_color_00685214);
+static auto &console_color_00686af8 = halo::link::ref<void *>(halo::networking::vars().console_color_00686af8);
+static auto &sv_rcon_password_value = halo::link::ref<char [9]>(halo::networking::vars().sv_rcon_password_value);
+static auto &network_single_flag_force_reset_value = halo::link::ref<uint8_t>(halo::game::vars().network_single_flag_force_reset_value);
+static auto &network_build_string = halo::link::ref<char []>(halo::networking::vars().network_build_string);
+static auto &sv_timelimit_minutes = halo::link::ref<int32_t>(halo::game::vars().sv_timelimit_minutes);
+static auto &sv_tk_cooldown_ticks = halo::link::ref<int32_t>(halo::game::vars().sv_tk_cooldown_ticks);
+static auto &sv_tk_grace_arg_buffer = halo::link::ref<char []>(halo::networking::vars().sv_tk_grace_arg_buffer);
+static auto &sv_tk_grace_ticks = halo::link::ref<int32_t>(halo::game::vars().sv_tk_grace_ticks);
 
 static player *sv_players_resolve_player(uint32_t handle)
 {

@@ -27,18 +27,21 @@
 #include "halo/input/ui_events.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
+static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
 extern "C" {
-extern network_id_table *machine_table;
 extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle);
-extern uint8_t game_engine_attribute_enabled;
-extern game_time_globals *game_time;
-extern data_array *player_data;
-extern game_engine_definition *current_game_engine;
-extern team_pair_globals *team_pair_data;
-extern wchar_t empty_string;
-extern player_globals *local_player_globals;
 }
+static auto &game_engine_attribute_enabled = halo::link::ref<uint8_t>(halo::game::vars().game_engine_attribute_enabled);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &team_pair_data = halo::link::ref<team_pair_globals *>(halo::ai::vars().team_pair_data);
+static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 
 namespace halo::game::engine1 {
 

@@ -17,21 +17,24 @@
 #include "halo/interface/uis_strings.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
 #define WCTYPE_SPACE 0x0008
 
 extern "C" {
 extern long lrintf(float x);
-extern uint16_t empty_string[];
-extern uint16_t ui_player_number_text[2];
-extern uint16_t ui_product_id_text[];
-extern uint16_t ui_format_narrow_string[];
-extern uint16_t ui_version_text[];
-extern char ui_version_string[];
-extern void *ui_replace_function_table[4];
-extern uint16_t ui_invalid_replacement_text[];
-extern heap *widget_memory_pool;
 }
+static auto &empty_string = halo::link::ref<uint16_t []>(halo::game::vars().empty_string);
+static auto &ui_player_number_text = halo::link::ref<uint16_t [2]>(halo::ui::vars().ui_player_number_text);
+static auto &ui_product_id_text = halo::link::ref<uint16_t []>(halo::ui::vars().ui_product_id_text);
+static auto &ui_format_narrow_string = halo::link::ref<uint16_t []>(halo::ui::vars().ui_format_narrow_string);
+static auto &ui_version_text = halo::link::ref<uint16_t []>(halo::ui::vars().ui_version_text);
+static auto &ui_version_string = halo::link::ref<char []>(halo::ui::vars().ui_version_string);
+static auto &ui_replace_function_table = halo::link::ref<void *[4]>(halo::ui::vars().ui_replace_function_table);
+static auto &ui_invalid_replacement_text = halo::link::ref<uint16_t []>(halo::ui::vars().ui_invalid_replacement_text);
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
 
 namespace halo::ui {
 

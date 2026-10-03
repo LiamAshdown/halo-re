@@ -6,12 +6,14 @@
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
 #include "tags.h"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &motion_sensor = halo::link::ref<motion_sensor_globals *>(halo::ui::vars().motion_sensor);
+static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
+static auto &motion_sensor_sweep = halo::link::ref<float>(halo::ui::vars().motion_sensor_sweep);
+static auto &motion_sensor_sweep_scale = halo::link::ref<float>(halo::ui::vars().motion_sensor_sweep_scale);
 extern "C" {
-extern motion_sensor_globals *motion_sensor;
-extern HUDGlobals *hud_globals_tag_data;
-extern float motion_sensor_sweep;
-extern float motion_sensor_sweep_scale;
 extern double fmod(double x, double y);
 }
 

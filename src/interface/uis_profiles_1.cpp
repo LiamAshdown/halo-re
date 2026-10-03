@@ -22,35 +22,37 @@
 #include "halo/main/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &profile_slot_lookup_cache_00692ac8 = halo::link::ref<int32_t>(halo::ui::vars().profile_slot_lookup_cache_00692ac8);
+static auto &profile_carousel_slots = halo::link::ref<profile_carousel_slot [3]>(halo::ui::vars().profile_carousel_slots);
+static auto &ui_lists = halo::link::ref<growable_array [3]>(halo::ui::vars().ui_lists);
+static auto &last_profile_name = halo::link::ref<char []>(halo::ui::vars().last_profile_name);
+static auto &cached_profile_slot = halo::link::ref<int32_t>(halo::ui::vars().cached_profile_slot);
+static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
+static auto &ui_list_has_default = halo::link::ref<uint8_t>(halo::ui::vars().ui_list_has_default);
+static auto &default_profile_data = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().default_profile_data);
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
+static auto &new_profile_name_entry_player_00692b00 = halo::link::ref<int16_t>(halo::ui::vars().new_profile_name_entry_player_00692b00);
+static auto &virtual_keyboard = halo::link::ref<virtual_keyboard_globals>(halo::ui::vars().virtual_keyboard);
+static auto &new_profile_name_buffer_006b37f4 = halo::link::ref<uint16_t [0xb]>(halo::ui::vars().new_profile_name_buffer_006b37f4);
+static auto &profile_slot_id = halo::link::ref<int16_t []>(halo::ui::vars().profile_slot_id);
+static auto &new_profile_name_terminator_006b380a = halo::link::ref<uint8_t>(halo::ui::vars().new_profile_name_terminator_006b380a);
+static auto &new_profile_name_flag_0071916e = halo::link::ref<uint8_t>(halo::ui::vars().new_profile_name_flag_0071916e);
+static auto &network_wait_flag_00719739 = halo::link::ref<uint8_t>(halo::ui::vars().network_wait_flag_00719739);
+static auto &quit_confirm_error_string_index = halo::link::ref<int16_t>(halo::ui::vars().quit_confirm_error_string_index);
+static auto &quit_confirm_error_unknown_ae = halo::link::ref<int16_t>(halo::ui::vars().quit_confirm_error_unknown_ae);
+static auto &quit_confirm_error_modal = halo::link::ref<uint8_t>(halo::ui::vars().quit_confirm_error_modal);
+static auto &quit_confirm_error_is_error = halo::link::ref<uint8_t>(halo::ui::vars().quit_confirm_error_is_error);
+static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
+static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
 extern "C" {
-extern int32_t profile_slot_lookup_cache_00692ac8;
-extern profile_carousel_slot profile_carousel_slots[3];
-extern growable_array ui_lists[3];
-extern char last_profile_name[];
-extern int32_t cached_profile_slot;
-extern int32_t ui_list_current;
-extern uint8_t ui_list_has_default;
-extern uint8_t default_profile_data[k_saved_player_profile_size];
-extern heap *widget_memory_pool;
-extern int16_t new_profile_name_entry_player_00692b00;
-extern virtual_keyboard_globals virtual_keyboard;
-extern uint16_t new_profile_name_buffer_006b37f4[0xb];
-extern int16_t profile_slot_id[];
-extern uint8_t new_profile_name_terminator_006b380a;
-extern uint8_t new_profile_name_flag_0071916e;
-extern uint8_t network_wait_flag_00719739;
-extern int16_t quit_confirm_error_string_index;
-extern int16_t quit_confirm_error_unknown_ae;
-extern uint8_t quit_confirm_error_modal;
-extern uint8_t quit_confirm_error_is_error;
-extern uint16_t split_screen_quit_prompt_string;
-extern uint8_t split_screen_quit_prompt_armed;
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 extern void saved_item_select(int32_t selection_id);
 extern void widget_play_sound_effect(int16_t effect_id);
-extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
 }
+static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
 
 namespace halo::ui {
 

@@ -18,13 +18,21 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/cutscene/vars.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/objects/vars.hpp"
+#include "halo/physics/vars.hpp"
+#include "halo/units/vars.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
+static auto &ai_update_stagger = halo::link::ref<ai_update_stagger_state *>(halo::units::vars().ai_update_stagger);
+static auto &network_scenario_round_counter_a = halo::link::ref<int32_t>(halo::game::vars().network_scenario_round_counter_a);
+static auto &network_scenario_round_counter_b = halo::link::ref<int32_t>(halo::game::vars().network_scenario_round_counter_b);
 extern "C" {
-extern ai_update_stagger_state *ai_update_stagger;
-extern int32_t network_scenario_round_counter_a;
-extern int32_t network_scenario_round_counter_b;
 extern void game_engine_flag_local_player_units(void);
 extern void team_pair_overrides_tick(void);
 extern void game_engine_tick(void);
@@ -37,28 +45,30 @@ extern void players_client_catchup_on_server_updates(void);
 extern void first_person_weapon_interface_tick(void);
 extern void hud_update_dispatch(void);
 extern void network_server_broadcast_object_type_changes(void);
-extern game_engine_definition *current_game_engine;
-extern uint8_t player_profile_cache_initialized;
-extern uint32_t player_profile_cache[0xc0];
-extern game_variant game_engine_active_variant;
-extern game_time_globals *game_time;
-extern uint32_t unknown_00746280_block[0x343];
-extern uint32_t k_default_sound_environment[0x12];
-extern data_array *object_render_state_cache;
-extern void *decal_grid_block;
-extern void *particle_system_data;
-extern void *sound_class_gains;
-extern int32_t weather_instances;
-extern int32_t weather_instance_count;
-extern data_array *weather_particle_data;
-extern real k_air_density;
-extern real k_water_density;
-extern uint32_t game_engine_attribute_enabled;
-extern uint32_t *player_effect_globals_pointer;
-extern void *recorded_animations;
-extern uint32_t cinematic_saved_music_gain;
-extern uint32_t *cinematic_globals_ptr;
-extern uint8_t *object_globals_pointer;
+}
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &player_profile_cache_initialized = halo::link::ref<uint8_t>(halo::game::vars().player_profile_cache_initialized);
+static auto &player_profile_cache = halo::link::ref<uint32_t [0xc0]>(halo::game::vars().player_profile_cache);
+static auto &game_engine_active_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_active_variant);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &unknown_00746280_block = halo::link::ref<uint32_t [0x343]>(halo::game::vars().unknown_00746280_block);
+static auto &k_default_sound_environment = halo::link::ref<uint32_t [0x12]>(halo::game::vars().k_default_sound_environment);
+static auto &object_render_state_cache = halo::link::ref<data_array *>(halo::game::vars().object_render_state_cache);
+static auto &decal_grid_block = halo::link::ref<void *>(halo::effects::vars().decal_grid_block);
+static auto &particle_system_data = halo::link::ref<void *>(halo::effects::vars().particle_system_data);
+static auto &sound_class_gains = halo::link::ref<void *>(halo::game::vars().sound_class_gains);
+static auto &weather_instances = halo::link::ref<int32_t>(halo::effects::vars().weather_instances);
+static auto &weather_instance_count = halo::link::ref<int32_t>(halo::effects::vars().weather_instance_count);
+static auto &weather_particle_data = halo::link::ref<data_array *>(halo::game::vars().weather_particle_data);
+static auto &k_air_density = halo::link::ref<real>(halo::game::vars().k_air_density);
+static auto &k_water_density = halo::link::ref<real>(halo::game::vars().k_water_density);
+static auto &game_engine_attribute_enabled = halo::link::ref<uint32_t>(halo::game::vars().game_engine_attribute_enabled);
+static auto &player_effect_globals_pointer = halo::link::ref<uint32_t *>(halo::effects::vars().player_effect_globals_pointer);
+static auto &recorded_animations = halo::link::ref<void *>(halo::game::vars().recorded_animations);
+static auto &cinematic_saved_music_gain = halo::link::ref<uint32_t>(halo::cutscene::vars().cinematic_saved_music_gain);
+static auto &cinematic_globals_ptr = halo::link::ref<uint32_t *>(halo::game::vars().cinematic_globals_ptr);
+static auto &object_globals_pointer = halo::link::ref<uint8_t *>(halo::objects::vars().object_globals_pointer);
+extern "C" {
 extern void team_pair_table_init_defaults(void);
 extern void game_engine_load_from_variant(const game_variant *variant);
 extern void game_engine_initialize_for_new_game(void);
@@ -69,19 +79,21 @@ extern void interface_local_player_state_reset(void);
 extern void scenario_objects_place(Scenario *scenario);
 extern void objects_reset(void);
 extern void breakable_surfaces_reset(void);
-extern uint32_t rasterizer_globals_data;
-extern data_array *player_data;
-extern data_array *team_data;
-extern uint32_t text_localization_strings;
+}
+static auto &rasterizer_globals_data = halo::link::ref<uint32_t>(halo::game::vars().rasterizer_globals_data);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &team_data = halo::link::ref<data_array *>(halo::game::vars().team_data);
+static auto &text_localization_strings = halo::link::ref<uint32_t>(halo::game::vars().text_localization_strings);
+extern "C" {
 extern void update_queues_dispose(void);
 extern void objects_flush_dirty_state(void);
-extern uint32_t global_scenario_index;
-extern uint16_t global_structure_bsp_index;
-extern void *global_structure_bsp;
-extern void *global_structure_collision_bsp;
-extern void *global_collision_bsp;
-extern Globals *global_globals;
 }
+static auto &global_scenario_index = halo::link::ref<uint32_t>(halo::game::vars().global_scenario_index);
+static auto &global_structure_bsp_index = halo::link::ref<uint16_t>(halo::game::vars().global_structure_bsp_index);
+static auto &global_structure_bsp = halo::link::ref<void *>(halo::ai::vars().global_structure_bsp);
+static auto &global_structure_collision_bsp = halo::link::ref<void *>(halo::physics::vars().global_structure_collision_bsp);
+static auto &global_collision_bsp = halo::link::ref<void *>(halo::physics::vars().global_collision_bsp);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 
 namespace halo::game {
 

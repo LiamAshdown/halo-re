@@ -8,6 +8,8 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 namespace halo::ai {
 
@@ -67,9 +69,7 @@ uint8_t ActorView::reject_firing_position_by_perception(actor_firing_position_qu
 }
 
 namespace actor_reject_firing_position_by_pursuit_local {
-extern "C" {
-extern game_time_globals *game_time;
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 /**
@@ -886,9 +886,7 @@ void ActorView::score_firing_positions_near_target(actor_firing_position_query *
 }
 
 namespace actor_select_firing_position_local {
-extern "C" {
-extern const real_vector3d *global_origin3d_pointer;
-}
+static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 }
 
 /**
@@ -981,9 +979,7 @@ int16_t ActorView::select_firing_position(actor_firing_position_query *query, ac
 }
 
 namespace actor_select_move_position_local {
-extern "C" {
-extern game_time_globals *game_time;
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
 /**

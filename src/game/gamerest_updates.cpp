@@ -6,34 +6,37 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
+static auto &update_client_unknown_ea0 = halo::link::ref<int32_t>(halo::game::vars().update_client_unknown_ea0);
+static auto &update_client_queues = halo::link::ref<data_array *>(halo::game::vars().update_client_queues);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &update_client_staged = halo::link::ref<uint32_t [8]>(halo::game::vars().update_client_staged);
+static auto &update_client_unknown_ec8 = halo::link::ref<uint32_t>(halo::game::vars().update_client_unknown_ec8);
+static auto &update_client_unknown_ec4 = halo::link::ref<int32_t>(halo::game::vars().update_client_unknown_ec4);
+static auto &update_client_base_tick = halo::link::ref<int32_t>(halo::game::vars().update_client_base_tick);
+static auto &update_client_initialized = halo::link::ref<uint8_t>(halo::game::vars().update_client_initialized);
+static auto &update_client_history = halo::link::ref<update_record [128]>(halo::game::vars().update_client_history);
+static auto &update_client_write_cursor = halo::link::ref<int32_t>(halo::game::vars().update_client_write_cursor);
+static auto &update_client_unknown_ea8 = halo::link::ref<uint32_t>(halo::game::vars().update_client_unknown_ea8);
+static auto &update_client_unknown_eac = halo::link::ref<uint32_t>(halo::game::vars().update_client_unknown_eac);
+static auto &update_server_queues = halo::link::ref<data_array *>(halo::game::vars().update_server_queues);
+static auto &update_server_initialized = halo::link::ref<uint8_t>(halo::game::vars().update_server_initialized);
+static auto &update_server_tick = halo::link::ref<int32_t>(halo::game::vars().update_server_tick);
+static auto &update_server_history = halo::link::ref<update_record [32]>(halo::game::vars().update_server_history);
+static auto &machine_to_player = halo::link::ref<datum_index [16]>(halo::game::vars().machine_to_player);
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &update_client_unknown_102d4 = halo::link::ref<int32_t>(halo::game::vars().update_client_unknown_102d4);
+static auto &wait_tick_counter = halo::link::ref<int32_t>(halo::game::vars().wait_tick_counter);
+static auto &local_player_name_filter = halo::link::ref<uint16_t []>(halo::game::vars().local_player_name_filter);
 extern "C" {
-extern int32_t update_client_unknown_ea0;
-extern data_array *update_client_queues;
-extern data_array *player_data;
-extern uint32_t update_client_staged[8];
-extern uint32_t update_client_unknown_ec8;
-extern int32_t update_client_unknown_ec4;
-extern int32_t update_client_base_tick;
-extern uint8_t update_client_initialized;
-extern update_record update_client_history[128];
-extern int32_t update_client_write_cursor;
-extern uint32_t update_client_unknown_ea8;
-extern uint32_t update_client_unknown_eac;
-extern data_array *update_server_queues;
-extern uint8_t update_server_initialized;
-extern int32_t update_server_tick;
-extern update_record update_server_history[32];
-extern datum_index machine_to_player[16];
-extern game_time_globals *game_time;
-extern int32_t update_client_unknown_102d4;
-extern int32_t wait_tick_counter;
-extern uint16_t local_player_name_filter[];
 extern uint8_t position_update_queue_find_and_remove(circular_queue *queue, int32_t target_tick, real_point3d *out);
 extern void unit_snap_position_if_far(real_point3d *new_position, object *obj);
 extern double sqrt(double x);
-extern int32_t vehicle_wait_tick_counter;
 }
+static auto &vehicle_wait_tick_counter = halo::link::ref<int32_t>(halo::game::vars().vehicle_wait_tick_counter);
 
 namespace halo::game {
 

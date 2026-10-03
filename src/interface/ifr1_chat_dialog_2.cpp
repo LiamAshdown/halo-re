@@ -19,26 +19,29 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &chat_local_prompt_string = halo::link::ref<const uint16_t []>(halo::ui::vars().chat_local_prompt_string);
 extern "C" {
-extern uint8_t network_message_scratch[0x7ff8];
-extern data_array *player_data;
-extern const uint16_t chat_local_prompt_string[];
 extern datum_index player_get_vehicle(datum_index player_index);
-extern uint8_t chat_dialog_open;
-extern int32_t chat_scope_active;
-extern wchar_t empty_string;
-extern void *chat_gui_root_handle;
-extern chat_gui_find_object_fn chat_gui_find_object;
-extern void *chat_gui_find_object_arg;
-extern chat_gui_find_child_fn chat_gui_find_child;
-extern chat_gui_set_focus_fn chat_gui_set_focus;
-extern chat_gui_set_property_string_fn keystone_control_set_attribute;
-extern chat_gui_set_property_int_fn chat_gui_set_property_int;
-extern chat_gui_set_state_fn chat_gui_set_state;
-extern chat_gui_release_fn chat_gui_release;
-extern uint8_t chat_gui_active;
 }
+static auto &chat_dialog_open = halo::link::ref<uint8_t>(halo::ui::vars().chat_dialog_open);
+static auto &chat_scope_active = halo::link::ref<int32_t>(halo::ui::vars().chat_scope_active);
+static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
+static auto &chat_gui_root_handle = halo::link::ref<void *>(halo::ui::vars().chat_gui_root_handle);
+static auto &chat_gui_find_object = halo::link::ref<chat_gui_find_object_fn>(halo::ui::vars().chat_gui_find_object);
+static auto &chat_gui_find_object_arg = halo::link::ref<void *>(halo::ui::vars().chat_gui_find_object_arg);
+static auto &chat_gui_find_child = halo::link::ref<chat_gui_find_child_fn>(halo::ui::vars().chat_gui_find_child);
+static auto &chat_gui_set_focus = halo::link::ref<chat_gui_set_focus_fn>(halo::ui::vars().chat_gui_set_focus);
+static auto &keystone_control_set_attribute = halo::link::ref<chat_gui_set_property_string_fn>(halo::ui::vars().keystone_control_set_attribute);
+static auto &chat_gui_set_property_int = halo::link::ref<chat_gui_set_property_int_fn>(halo::ui::vars().chat_gui_set_property_int);
+static auto &chat_gui_set_state = halo::link::ref<chat_gui_set_state_fn>(halo::ui::vars().chat_gui_set_state);
+static auto &chat_gui_release = halo::link::ref<chat_gui_release_fn>(halo::ui::vars().chat_gui_release);
+static auto &chat_gui_active = halo::link::ref<uint8_t>(halo::ui::vars().chat_gui_active);
 
 typedef struct chat_relay_message {
     int32_t scope;

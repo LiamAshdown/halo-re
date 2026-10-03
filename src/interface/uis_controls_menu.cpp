@@ -18,16 +18,16 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern uint8_t profile_globals_block[0x60a4];
-extern heap *widget_memory_pool;
-extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
-extern int32_t profile_slot_lookup_cache_00692ac8;
-extern uint8_t directsound_initialized;
-extern uint8_t directsound_eax_available;
-}
+static auto &profile_globals_block = halo::link::ref<uint8_t [0x60a4]>(halo::ui::vars().profile_globals_block);
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
+static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
+static auto &saved_item_working_copy = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().saved_item_working_copy);
+static auto &profile_slot_lookup_cache_00692ac8 = halo::link::ref<int32_t>(halo::ui::vars().profile_slot_lookup_cache_00692ac8);
+static auto &directsound_initialized = halo::link::ref<uint8_t>(halo::ui::vars().directsound_initialized);
+static auto &directsound_eax_available = halo::link::ref<uint8_t>(halo::ui::vars().directsound_eax_available);
 
 namespace halo::ui {
 

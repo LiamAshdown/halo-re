@@ -17,20 +17,20 @@
 #include "halo/interface/uis_network_menu.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
-extern map_list_entry *map_list;
-extern uint8_t save_in_progress_00719010;
-extern int32_t quality_selection_00692b04;
-extern int32_t resolution_selection_00719204;
-extern uint16_t network_host_name_00719170[0x40];
-extern uint16_t network_host_subname_007191f0[9];
-extern int32_t resolution_row_count_table_0065bfb4[5];
-extern int32_t resolution_index_table_0065bf74[];
-extern int32_t sv_maxplayers_value;
-extern uint8_t network_game_info_packet_flag;
-}
+static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
+static auto &map_list = halo::link::ref<map_list_entry *>(halo::ui::vars().map_list);
+static auto &save_in_progress_00719010 = halo::link::ref<uint8_t>(halo::ui::vars().save_in_progress_00719010);
+static auto &quality_selection_00692b04 = halo::link::ref<int32_t>(halo::ui::vars().quality_selection_00692b04);
+static auto &resolution_selection_00719204 = halo::link::ref<int32_t>(halo::ui::vars().resolution_selection_00719204);
+static auto &network_host_name_00719170 = halo::link::ref<uint16_t [0x40]>(halo::ui::vars().network_host_name_00719170);
+static auto &network_host_subname_007191f0 = halo::link::ref<uint16_t [9]>(halo::ui::vars().network_host_subname_007191f0);
+static auto &resolution_row_count_table_0065bfb4 = halo::link::ref<int32_t [5]>(halo::ui::vars().resolution_row_count_table_0065bfb4);
+static auto &resolution_index_table_0065bf74 = halo::link::ref<int32_t []>(halo::ui::vars().resolution_index_table_0065bf74);
+static auto &sv_maxplayers_value = halo::link::ref<int32_t>(halo::ui::vars().sv_maxplayers_value);
+static auto &network_game_info_packet_flag = halo::link::ref<uint8_t>(halo::ui::vars().network_game_info_packet_flag);
 
 namespace halo::ui {
 

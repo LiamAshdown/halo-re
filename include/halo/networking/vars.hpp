@@ -122,6 +122,7 @@ struct Vars {
     void *network_high_res_clock_ms;
     void *network_host_handoff_requested;
     void *network_hostname_ready;
+    void *network_incoming_message_scratch;
     void *network_initialized_at_ms;
     void *network_join_error_code;
     void *network_join_error_reason;

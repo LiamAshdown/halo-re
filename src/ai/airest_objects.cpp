@@ -13,11 +13,11 @@
 #include "halo/hs/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
-extern "C" {
-extern game_time_globals *game_time;
-extern uint8_t *actor_type_procs[];
-}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &actor_type_procs = halo::link::ref<uint8_t *[]>(halo::ai::vars().actor_type_procs);
 
 namespace halo::ai {
 

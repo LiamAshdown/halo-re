@@ -9,15 +9,20 @@
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/render/vars.hpp"
+#include "halo/units/vars.hpp"
 
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
+static auto &render_frustum_global = halo::link::ref<uint8_t []>(halo::render::vars().render_frustum_global);
+static auto &render_camera_global = halo::link::ref<uint8_t []>(halo::render::vars().render_camera_global);
+static auto &render_viewport_top = halo::link::ref<int16_t>(halo::ui::vars().render_viewport_top);
+static auto &waypoint_fade_near = halo::link::ref<float>(halo::ui::vars().waypoint_fade_near);
+static auto &waypoint_fade_far = halo::link::ref<float>(halo::ui::vars().waypoint_fade_far);
 extern "C" {
-extern Globals *global_globals;
-extern char ai_marker_name_a[];
-extern uint8_t render_frustum_global[];
-extern uint8_t render_camera_global[];
-extern int16_t render_viewport_top;
-extern float waypoint_fade_near;
-extern float waypoint_fade_far;
 extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *view_point,
                                               const void *frustum, const void *camera);
 }

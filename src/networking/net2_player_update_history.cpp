@@ -22,18 +22,22 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &local_player_name_filter = halo::link::ref<uint16_t [0x400]>(halo::game::vars().local_player_name_filter);
+static auto &player_update_log_categories_default = halo::link::ref<uint32_t>(halo::networking::vars().player_update_log_categories_default);
+static auto &player_update_log_categories_filtered = halo::link::ref<uint32_t>(halo::networking::vars().player_update_log_categories_filtered);
+static auto &player_update_log_flags = halo::link::ref<uint8_t>(halo::main::vars().player_update_log_flags);
+static auto &player_update_history_log_path = halo::link::ref<char *>(halo::networking::vars().player_update_history_log_path);
+static auto &player_update_log_file_mode_string = halo::link::ref<char []>(halo::networking::vars().player_update_log_file_mode_string);
 extern "C" {
-extern uint16_t local_player_name_filter[0x400];
-extern uint32_t player_update_log_categories_default;
-extern uint32_t player_update_log_categories_filtered;
-extern uint8_t player_update_log_flags;
-extern char * player_update_history_log_path;
-extern char player_update_log_file_mode_string[];
 extern double sqrt(double x);
-extern network_client_globals * network_client;
-extern network_id_table * machine_table;
 }
+static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
+static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
 
 
 namespace halo::networking {

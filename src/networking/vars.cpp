@@ -124,6 +124,7 @@ const Vars &vars()
         network_high_res_clock_ms,
         network_host_handoff_requested,
         network_hostname_ready,
+        network_incoming_message_scratch,
         network_initialized_at_ms,
         network_join_error_code,
         network_join_error_reason,

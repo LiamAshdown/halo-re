@@ -14,60 +14,79 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/main/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
+static auto &network_host_handoff_requested = halo::link::ref<uint8_t>(halo::networking::vars().network_host_handoff_requested);
+static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);
+static auto &profile_globals_block = halo::link::ref<uint8_t [0x1ffc]>(halo::ui::vars().profile_globals_block);
 extern "C" {
-extern uint8_t network_message_scratch[0x7ff8];
-extern network_client_globals *network_client;
-extern uint8_t network_host_handoff_requested;
-extern int16_t network_game_mode;
-extern uint8_t profile_globals_block[0x1ffc];
 extern uint32_t chat_close(void);
-extern datum_index machine_to_player[16];
-extern uint8_t network_stats_enabled_gate;
-extern main_globals main_globals_data;
-extern int32_t network_connect_timeout_ms;
+}
+static auto &machine_to_player = halo::link::ref<datum_index [16]>(halo::game::vars().machine_to_player);
+static auto &network_stats_enabled_gate = halo::link::ref<uint8_t>(halo::networking::vars().network_stats_enabled_gate);
+static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
+static auto &network_connect_timeout_ms = halo::link::ref<int32_t>(halo::networking::vars().network_connect_timeout_ms);
+extern "C" {
 extern void chat_server_relay_incoming_message(void **context, network_machine *machine);
 extern void game_engine_update_lead_change_state(void **envelope, uint8_t *message);
-extern uint8_t network_session_active;
-extern char network_log_path_format[];
-extern void *global_white_argb;
+}
+static auto &network_session_active = halo::link::ref<uint8_t>(halo::networking::vars().network_session_active);
+static auto &network_log_path_format = halo::link::ref<char []>(halo::networking::vars().network_log_path_format);
+static auto &global_white_argb = halo::link::ref<void *>(halo::networking::vars().global_white_argb);
+extern "C" {
 extern void chimera__console_out(ColorARGB *color, char *format, ...);
-extern network_server_globals *network_server;
-extern player_globals *local_player_globals;
-extern uint8_t network_channel_table_default_flag;
-extern uint8_t network_client_vehicle_ack_enabled;
+}
+static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &network_channel_table_default_flag = halo::link::ref<uint8_t>(halo::networking::vars().network_channel_table_default_flag);
+static auto &network_client_vehicle_ack_enabled = halo::link::ref<uint8_t>(halo::networking::vars().network_client_vehicle_ack_enabled);
+extern "C" {
 extern uint8_t player_unit_has_parent(datum_index player_handle);
-extern uint8_t network_server_host_valid;
-extern uint32_t split_screen_quit_prompt_string;
-extern uint32_t network_join_error_reason;
-extern uint8_t network_disconnect_timeout_flag;
+}
+static auto &network_server_host_valid = halo::link::ref<uint8_t>(halo::networking::vars().network_server_host_valid);
+static auto &split_screen_quit_prompt_string = halo::link::ref<uint32_t>(halo::ui::vars().split_screen_quit_prompt_string);
+static auto &network_join_error_reason = halo::link::ref<uint32_t>(halo::networking::vars().network_join_error_reason);
+static auto &network_disconnect_timeout_flag = halo::link::ref<uint8_t>(halo::networking::vars().network_disconnect_timeout_flag);
+extern "C" {
 extern void ui_network_wait_timeout_start(void);
-extern int16_t network_join_error_code;
-extern uint8_t network_ping_debug_log_enabled;
-extern uint32_t network_ping_debug_last_sample;
-extern data_packet_group network_game_messages_group;
-extern uint16_t network_challenge_packet_block[];
+}
+static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
+static auto &network_ping_debug_log_enabled = halo::link::ref<uint8_t>(halo::networking::vars().network_ping_debug_log_enabled);
+static auto &network_ping_debug_last_sample = halo::link::ref<uint32_t>(halo::networking::vars().network_ping_debug_last_sample);
+static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
+static auto &network_challenge_packet_block = halo::link::ref<uint16_t []>(halo::networking::vars().network_challenge_packet_block);
+extern "C" {
 extern void game_set_local_player(datum_index player_handle, int16_t local_player_index);
 extern void update_server_queue_create_entry(datum_index requested_handle);
-extern data_array *update_client_queues;
-extern network_client_globals network_client_storage;
-extern int32_t network_game_socket_port;
-extern char network_build_string[];
+}
+static auto &update_client_queues = halo::link::ref<data_array *>(halo::game::vars().update_client_queues);
+static auto &network_client_storage = halo::link::ref<network_client_globals>(halo::networking::vars().network_client_storage);
+static auto &network_game_socket_port = halo::link::ref<int32_t>(halo::networking::vars().network_game_socket_port);
+static auto &network_build_string = halo::link::ref<char []>(halo::networking::vars().network_build_string);
+extern "C" {
 extern void console_printf_verbose(const char *text);
-extern int32_t interface_loading_screen_progress;
-extern int32_t join_ui_state;
-extern int32_t interface_loading_screen_request_id;
-extern uint32_t network_local_address;
-extern void *server_browser_join_target;
-extern void *master_server_query_engine;
-extern uint16_t network_join_target_address[128];
-extern uint8_t server_browser_join_target_has_password;
-extern int32_t network_game_socket;
-extern uint8_t network_channels_open_ok;
-extern int32_t interface_loading_screen_address_a;
-extern int32_t interface_loading_screen_address_b;
-extern int32_t progress_screen_text;
-extern int32_t progress_screen_subtext;
+}
+static auto &interface_loading_screen_progress = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_progress);
+static auto &join_ui_state = halo::link::ref<int32_t>(halo::networking::vars().join_ui_state);
+static auto &interface_loading_screen_request_id = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_request_id);
+static auto &network_local_address = halo::link::ref<uint32_t>(halo::networking::vars().network_local_address);
+static auto &server_browser_join_target = halo::link::ref<void *>(halo::networking::vars().server_browser_join_target);
+static auto &master_server_query_engine = halo::link::ref<void *>(halo::networking::vars().master_server_query_engine);
+static auto &network_join_target_address = halo::link::ref<uint16_t [128]>(halo::networking::vars().network_join_target_address);
+static auto &server_browser_join_target_has_password = halo::link::ref<uint8_t>(halo::networking::vars().server_browser_join_target_has_password);
+static auto &network_game_socket = halo::link::ref<int32_t>(halo::networking::vars().network_game_socket);
+static auto &network_channels_open_ok = halo::link::ref<uint8_t>(halo::networking::vars().network_channels_open_ok);
+static auto &interface_loading_screen_address_a = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_a);
+static auto &interface_loading_screen_address_b = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_b);
+static auto &progress_screen_text = halo::link::ref<int32_t>(halo::main::vars().progress_screen_text);
+static auto &progress_screen_subtext = halo::link::ref<int32_t>(halo::main::vars().progress_screen_subtext);
+extern "C" {
 extern uint32_t SBServerGetPublicQueryPort(int32_t handle);
 extern char *SBServerGetPublicAddress(int32_t handle);
 extern uint32_t SBServerGetPrivateQueryPort(int32_t handle);

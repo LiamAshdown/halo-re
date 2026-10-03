@@ -5,12 +5,15 @@
 #include "halo/cache/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &hud_messaging = halo::link::ref<hud_messaging_globals *>(halo::ui::vars().hud_messaging);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
+static auto &current_local_player_index = halo::link::ref<int16_t>(halo::ui::vars().current_local_player_index);
 extern "C" {
-extern hud_messaging_globals *hud_messaging;
-extern Globals *global_globals;
-extern HUDGlobals *hud_globals_tag_data;
-extern int16_t current_local_player_index;
 extern int32_t __ftol(double x);
 }
 

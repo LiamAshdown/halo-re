@@ -15,14 +15,14 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
-extern "C" {
-extern data_array *player_data;
-extern int32_t king_alt_team_score[16];
-extern wchar_t empty_string;
-extern game_variant game_engine_variant;
-extern int32_t king_alt_player_score[];
-}
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &king_alt_team_score = halo::link::ref<int32_t [16]>(halo::game::vars().king_alt_team_score);
+static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &king_alt_player_score = halo::link::ref<int32_t []>(halo::game::vars().king_alt_player_score);
 
 namespace halo::game::engine1 {
 

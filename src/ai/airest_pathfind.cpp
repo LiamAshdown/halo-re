@@ -7,15 +7,21 @@
 #include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/physics/vars.hpp"
+#include "halo/units/vars.hpp"
 
 extern "C" {
 extern double sqrt(double x);
 extern double fabs(double x);
-extern real_point3d *global_origin3d_pointer;
-extern int32_t __ftol(double x);
-extern uint8_t *breakable_surface_state;
-extern real_point3d *global_zero_vector3d_pointer;
 }
+static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
+extern "C" {
+extern int32_t __ftol(double x);
+}
+static auto &breakable_surface_state = halo::link::ref<uint8_t *>(halo::physics::vars().breakable_surface_state);
+static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 
 namespace halo::ai {
 

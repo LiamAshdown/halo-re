@@ -22,27 +22,30 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/flags.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &hud_messaging_parameters = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_messaging_parameters);
+static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
+static auto &hud_messaging = halo::link::ref<hud_messaging_globals *>(halo::ui::vars().hud_messaging);
+static auto &hud_flags = halo::link::ref<hud_globals_flags *>(halo::ui::vars().hud_flags);
+static auto &current_local_player_index = halo::link::ref<int16_t>(halo::ui::vars().current_local_player_index);
+static auto &hud_splitscreen_message_raise = halo::link::ref<int32_t>(halo::ui::vars().hud_splitscreen_message_raise);
+static auto &screen_safe_area_right = halo::link::ref<Rectangle2D>(halo::game::vars().screen_safe_area_right);
+static auto &hud_message_button_icon_table = halo::link::ref<int8_t [0x1d]>(halo::ui::vars().hud_message_button_icon_table);
+static auto &empty_wide_string_pointer = halo::link::ref<const uint16_t *>(halo::ui::vars().empty_wide_string_pointer);
+static auto &hud_text_draw_font_tag_id = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_font_tag_id);
+static auto &hud_text_draw_color_or_flags = halo::link::ref<uint16_t>(halo::ui::vars().hud_text_draw_color_or_flags);
+static auto &hud_text_draw_color_a = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_a);
+static auto &hud_text_draw_color_r = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_r);
+static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_g);
+static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
+static auto &hud_text_quote = halo::link::ref<const uint16_t []>(halo::ui::vars().hud_text_quote);
+static auto &hud_text_unbound = halo::link::ref<const uint16_t []>(halo::ui::vars().hud_text_unbound);
+static auto &hud_text_unknown = halo::link::ref<const uint16_t []>(halo::ui::vars().hud_text_unknown);
+static auto &hud_text_no_button_icon = halo::link::ref<const uint16_t []>(halo::ui::vars().hud_text_no_button_icon);
 extern "C" {
-extern HUDGlobals *hud_messaging_parameters;
-extern HUDGlobals *hud_globals_tag_data;
-extern hud_messaging_globals *hud_messaging;
-extern hud_globals_flags *hud_flags;
-extern int16_t current_local_player_index;
-extern int32_t hud_splitscreen_message_raise;
-extern Rectangle2D screen_safe_area_right;
-extern int8_t hud_message_button_icon_table[0x1d];
-extern const uint16_t *empty_wide_string_pointer;
-extern int32_t hud_text_draw_font_tag_id;
-extern uint16_t hud_text_draw_color_or_flags;
-extern float hud_text_draw_color_a;
-extern float hud_text_draw_color_r;
-extern float hud_text_draw_color_g;
-extern float hud_text_draw_color_b;
-extern const uint16_t hud_text_quote[];
-extern const uint16_t hud_text_unbound[];
-extern const uint16_t hud_text_unknown[];
-extern const uint16_t hud_text_no_button_icon[];
 extern int32_t __ftol(double x);
 extern double pow(double base, double exponent);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,

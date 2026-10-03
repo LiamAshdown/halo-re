@@ -10,34 +10,41 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
+static auto &hud_messaging_parameters = halo::link::ref<uint8_t *>(halo::ui::vars().hud_messaging_parameters);
+static auto &global_white_argb = halo::link::ref<const ColorARGB *>(halo::networking::vars().global_white_argb);
+static auto &scoreboard_server_address_raw = halo::link::ref<uint32_t>(halo::game::vars().scoreboard_server_address_raw);
+static auto &scoreboard_server_port = halo::link::ref<uint32_t>(halo::game::vars().scoreboard_server_port);
+static auto &hud_text_draw_color_r = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_r);
+static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_g);
+static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
+static auto &hud_text_draw_color_a = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_a);
+static auto &hud_text_draw_color_or_flags = halo::link::ref<uint16_t>(halo::ui::vars().hud_text_draw_color_or_flags);
+static auto &hud_text_draw_font_tag_id = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_font_tag_id);
 extern "C" {
-extern game_engine_definition *current_game_engine;
-extern game_variant game_engine_variant;
-extern data_array *player_data;
-extern player_globals *local_player_globals;
-extern wchar_t empty_string;
-extern uint8_t *hud_messaging_parameters;
-extern const ColorARGB *global_white_argb;
-extern uint32_t scoreboard_server_address_raw;
-extern uint32_t scoreboard_server_port;
-extern float hud_text_draw_color_r;
-extern float hud_text_draw_color_g;
-extern float hud_text_draw_color_b;
-extern float hud_text_draw_color_a;
-extern uint16_t hud_text_draw_color_or_flags;
-extern int32_t hud_text_draw_font_tag_id;
 extern uint16_t unit_find_weapon_index_by_flag(uint32_t unit_index, uint8_t flag_bit);
-extern game_time_globals *game_time;
-extern Globals *global_globals;
+}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+extern "C" {
 extern void game_engine_queue_status_sound_message(int32_t sound_index, datum_index recipient_player);
 extern datum_index sound_start_unspatialized(datum_index definition_index, float scale);
-extern uint8_t multiplayer_sound_enabled[];
-extern int32_t multiplayer_sound_queue_count;
-extern multiplayer_sound_request multiplayer_sound_queue[k_maximum_queued_multiplayer_sounds];
-extern uint8_t network_message_scratch[0x7ff8];
-extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
 }
+static auto &multiplayer_sound_enabled = halo::link::ref<uint8_t []>(halo::game::vars().multiplayer_sound_enabled);
+static auto &multiplayer_sound_queue_count = halo::link::ref<int32_t>(halo::game::vars().multiplayer_sound_queue_count);
+static auto &multiplayer_sound_queue = halo::link::ref<multiplayer_sound_request [k_maximum_queued_multiplayer_sounds]>(halo::game::vars().multiplayer_sound_queue);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+static auto &custom_waypoints = halo::link::ref<custom_waypoint [k_maximum_custom_waypoints]>(halo::game::vars().custom_waypoints);
 
 namespace halo::game {
 

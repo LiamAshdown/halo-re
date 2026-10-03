@@ -4,9 +4,11 @@
 #include <string.h>
 #include <stdio.h>
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &network_address_string = halo::link::ref<char [0x100]>(halo::networking::vars().network_address_string);
 extern "C" {
-extern char network_address_string[0x100];
 extern int32_t snprintf(char *buffer, uint32_t count, const char *format, ...);
 }
 

@@ -9,15 +9,16 @@
 #include "halo/memory/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 
+static auto &item_placement_bits_x = halo::link::ref<uint32_t>(halo::networking::vars().item_placement_bits_x);
+static auto &item_placement_bits_y = halo::link::ref<uint32_t>(halo::networking::vars().item_placement_bits_y);
+static auto &item_placement_bits_z = halo::link::ref<uint32_t>(halo::networking::vars().item_placement_bits_z);
 extern "C" {
-extern uint8_t message_delta_item_count_bits[];
-extern uint32_t item_placement_bits_x;
-extern uint32_t item_placement_bits_y;
-extern uint32_t item_placement_bits_z;
 extern double floor(double x);
-extern uint8_t message_delta_parameters_enabled;
 }
+static auto &message_delta_parameters_enabled = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_enabled);
 
 
 namespace halo::networking {

@@ -17,22 +17,28 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/networking/vars.hpp"
+#include "halo/units/vars.hpp"
 
+static auto &network_ack_resend_interval_ms = halo::link::ref<int32_t>(halo::networking::vars().network_ack_resend_interval_ms);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
+static auto &network_vehicle_ack_resend_interval_ms = halo::link::ref<int32_t>(halo::networking::vars().network_vehicle_ack_resend_interval_ms);
+static auto &machine_table = halo::link::ref<void *>(halo::game::vars().machine_table);
 extern "C" {
-extern int32_t network_ack_resend_interval_ms;
-extern uint8_t network_message_scratch[0x7ff8];
-extern network_id_table * object_network_id_table;
-extern int32_t network_vehicle_ack_resend_interval_ms;
-extern void * machine_table;
 extern double sin(double x);
 extern double cos(double x);
-extern uint8_t network_broadcast_event_feed_mode;
-extern int32_t network_action_resend_interval_ms;
-extern int32_t network_action_resend_interval_ms_alt;
-extern int32_t network_transform_resend_interval_ms;
-extern int32_t network_vehicle_transform_resend_interval_ms_alt;
-extern int32_t network_attachment_transform_resend_interval_ms_alt;
-extern network_server_globals * network_server;
+}
+static auto &network_broadcast_event_feed_mode = halo::link::ref<uint8_t>(halo::networking::vars().network_broadcast_event_feed_mode);
+static auto &network_action_resend_interval_ms = halo::link::ref<int32_t>(halo::networking::vars().network_action_resend_interval_ms);
+static auto &network_action_resend_interval_ms_alt = halo::link::ref<int32_t>(halo::networking::vars().network_action_resend_interval_ms_alt);
+static auto &network_transform_resend_interval_ms = halo::link::ref<int32_t>(halo::networking::vars().network_transform_resend_interval_ms);
+static auto &network_vehicle_transform_resend_interval_ms_alt = halo::link::ref<int32_t>(halo::networking::vars().network_vehicle_transform_resend_interval_ms_alt);
+static auto &network_attachment_transform_resend_interval_ms_alt = halo::link::ref<int32_t>(halo::networking::vars().network_attachment_transform_resend_interval_ms_alt);
+static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
+extern "C" {
 extern double atan2(double y, double x);
 extern double sqrt(double x);
 extern uint8_t circular_queue_push(circular_queue *queue, void *record);

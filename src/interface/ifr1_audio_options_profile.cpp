@@ -1,11 +1,11 @@
 #include "halo/interface/ifr1_audio_options_profile.hpp"
 #include "halo/sound/api.hpp"
 #include "saved_games.h"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
-}
+static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
+static auto &saved_item_working_copy = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().saved_item_working_copy);
 
 static widget_instance *find_row_control(widget_instance *row)
 {

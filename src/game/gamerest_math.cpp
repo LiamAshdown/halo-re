@@ -5,16 +5,23 @@
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
 extern "C" {
 extern double sqrt(double x);
-extern double response_curve_scale_limit;
+}
+static auto &response_curve_scale_limit = halo::link::ref<double>(halo::game::vars().response_curve_scale_limit);
+extern "C" {
 extern double fabs(double x);
-extern Globals *global_globals;
-extern game_engine_definition *current_game_engine;
-extern team_pair_globals *team_pair_data;
-extern void *main_game_globals;
-extern int16_t weapon_zoom_index_substitutions[];
+}
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &team_pair_data = halo::link::ref<team_pair_globals *>(halo::ai::vars().team_pair_data);
+static auto &main_game_globals = halo::link::ref<void *>(halo::game::vars().main_game_globals);
+static auto &weapon_zoom_index_substitutions = halo::link::ref<int16_t []>(halo::game::vars().weapon_zoom_index_substitutions);
+extern "C" {
 extern int32_t __ftol(void);
 }
 

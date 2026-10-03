@@ -9,6 +9,10 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 
 namespace c_actor_mode_charge_enter {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
@@ -626,9 +630,9 @@ extern "C" {
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
-extern const float *hud_text_message_normal_color;
-extern const float *actor_mode_default_look_weights;
 }
+static auto &hud_text_message_normal_color = halo::link::ref<const float *>(halo::ui::vars().hud_text_message_normal_color);
+static auto &actor_mode_default_look_weights = halo::link::ref<const float *>(halo::networking::vars().actor_mode_default_look_weights);
 }
 
 
@@ -1070,11 +1074,11 @@ extern "C" {
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
-extern const float *actor_mode_guard_look_weights_idle;
-extern const float *actor_mode_guard_look_weights_a6;
-extern const float *actor_mode_guard_look_weights_a5;
-extern const float *actor_mode_guard_look_weights_ambush;
 }
+static auto &actor_mode_guard_look_weights_idle = halo::link::ref<const float *>(halo::ai::vars().actor_mode_guard_look_weights_idle);
+static auto &actor_mode_guard_look_weights_a6 = halo::link::ref<const float *>(halo::ai::vars().actor_mode_guard_look_weights_a6);
+static auto &actor_mode_guard_look_weights_a5 = halo::link::ref<const float *>(halo::ai::vars().actor_mode_guard_look_weights_a5);
+static auto &actor_mode_guard_look_weights_ambush = halo::link::ref<const float *>(halo::ai::vars().actor_mode_guard_look_weights_ambush);
 }
 
 
@@ -1506,9 +1510,9 @@ extern "C" {
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
-extern const float *actor_mode_uncover_look_weights_active;
-extern const float *hud_text_message_hold_color;
 }
+static auto &actor_mode_uncover_look_weights_active = halo::link::ref<const float *>(halo::ai::vars().actor_mode_uncover_look_weights_active);
+static auto &hud_text_message_hold_color = halo::link::ref<const float *>(halo::ui::vars().hud_text_message_hold_color);
 }
 
 

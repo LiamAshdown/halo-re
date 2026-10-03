@@ -11,16 +11,16 @@
 #include "halo/networking/field_codec.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 
-extern "C" {
-extern message_delta_definition * message_delta_definitions[56];
-extern uint8_t message_delta_field_changed_flags[0x40];
-extern uint8_t message_delta_item_count_bits[];
-extern uint8_t message_delta_parameters_enabled;
-extern int32_t message_delta_parameters_protocol_sequence;
-extern uint8_t message_delta_parameters_sending;
-extern uint8_t message_delta_unknown_table_0069a304[28][0x18];
-}
+static auto &message_delta_definitions = halo::link::ref<message_delta_definition * [56]>(halo::networking::vars().message_delta_definitions);
+static auto &message_delta_field_changed_flags = halo::link::ref<uint8_t [0x40]>(halo::networking::vars().message_delta_field_changed_flags);
+static auto &message_delta_item_count_bits = halo::link::ref<uint8_t []>(halo::networking::vars().message_delta_item_count_bits);
+static auto &message_delta_parameters_enabled = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_enabled);
+static auto &message_delta_parameters_protocol_sequence = halo::link::ref<int32_t>(halo::networking::vars().message_delta_parameters_protocol_sequence);
+static auto &message_delta_parameters_sending = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_sending);
+static auto &message_delta_unknown_table_0069a304 = halo::link::ref<uint8_t [28][0x18]>(halo::networking::vars().message_delta_unknown_table_0069a304);
 
 typedef int32_t (*message_delta_field_decode_fn)(void *field_type, int32_t changed, int32_t offset, bit_stream *stream);
 typedef int32_t (*message_delta_field_encode_fn)(void *field_type, int32_t changed, int32_t offset, void *stream_or_ctx);

@@ -4,11 +4,11 @@
 #include "halo/networking/net1_server.hpp"
 #include "halo/networking/net1_session.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/networking/vars.hpp"
 
-extern "C" {
-extern data_packet_group network_game_messages_group;
-extern uint8_t network_disconnect_timeout_flag;
-}
+static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
+static auto &network_disconnect_timeout_flag = halo::link::ref<uint8_t>(halo::networking::vars().network_disconnect_timeout_flag);
 
 namespace halo::networking {
 

@@ -9,14 +9,16 @@
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &game_looping_sound_data = halo::link::ref<data_array *>(halo::ui::vars().game_looping_sound_data);
 extern "C" {
-extern data_array *game_looping_sound_data;
 extern void sound_impulse_fade_out(int32_t sound_handle);
 extern int32_t sound_play_new(datum_index sound_tag, void *parameters, int32_t unknown_0, int32_t unknown_1,
                             void *callback_data, int32_t unknown_3, int32_t unknown_4);
-extern hud_unit_meter_globals *hud_unit_meters;
 }
+static auto &hud_unit_meters = halo::link::ref<hud_unit_meter_globals *>(halo::ui::vars().hud_unit_meters);
 
 namespace halo::interface {
 

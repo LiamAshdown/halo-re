@@ -16,17 +16,18 @@
 #include "halo/text/text.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 
-extern "C" {
-extern void * hud_text_draw_font_tag_id;
-extern uint16_t hud_text_draw_color_or_flags;
-extern uint16_t hud_text_draw_column;
-extern float hud_text_draw_color_a;
-extern float hud_text_draw_color_r;
-extern float hud_text_draw_color_g;
-extern float hud_text_draw_color_b;
-extern int32_t hud_text_draw_unknown_4730;
-}
+static auto &hud_text_draw_font_tag_id = halo::link::ref<void *>(halo::ui::vars().hud_text_draw_font_tag_id);
+static auto &hud_text_draw_color_or_flags = halo::link::ref<uint16_t>(halo::ui::vars().hud_text_draw_color_or_flags);
+static auto &hud_text_draw_column = halo::link::ref<uint16_t>(halo::networking::vars().hud_text_draw_column);
+static auto &hud_text_draw_color_a = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_a);
+static auto &hud_text_draw_color_r = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_r);
+static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_g);
+static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
+static auto &hud_text_draw_unknown_4730 = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_unknown_4730);
 
 
 namespace halo::networking {

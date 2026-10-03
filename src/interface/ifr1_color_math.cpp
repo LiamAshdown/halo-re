@@ -1,11 +1,13 @@
 #include "halo/interface/ifr1_color_math.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
 extern "C" {
 extern int32_t ROUND(float x);
-extern Globals *global_globals;
 }
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 
 namespace halo::interface {
 

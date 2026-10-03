@@ -2,30 +2,33 @@
 #include "halo/cseries/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/networking/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
+static auto &server_browser_filter_panel_mode = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_panel_mode);
 extern "C" {
-extern uint8_t server_browser_filter_panel_mode;
 extern void widget_play_sound_effect(int16_t effect_id);
 extern void widget_instance_close_and_restore_previous(widget_instance *widget);
-extern uint8_t server_browser_allow_empty;
-extern uint8_t server_browser_allow_full;
-extern uint8_t server_browser_filter_ping_limit_index;
-extern uint8_t server_browser_filter_gametype;
-extern uint8_t server_browser_filter_teamplay;
-extern uint8_t server_browser_filter_allow_unknown_map;
-extern uint8_t server_browser_query_pending;
-extern int32_t server_browser_selected_index;
-extern int32_t server_list_scroll_offset;
-extern int32_t server_browser_last_click_ms;
-extern uint8_t server_browser_skip_reselect;
-extern uint8_t server_browser_player_list_ready;
-extern uint32_t master_server_request_flags;
-extern uint8_t server_browser_player_ticker[0x1c];
 }
+static auto &server_browser_allow_empty = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_allow_empty);
+static auto &server_browser_allow_full = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_allow_full);
+static auto &server_browser_filter_ping_limit_index = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_ping_limit_index);
+static auto &server_browser_filter_gametype = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_gametype);
+static auto &server_browser_filter_teamplay = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_teamplay);
+static auto &server_browser_filter_allow_unknown_map = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_filter_allow_unknown_map);
+static auto &server_browser_query_pending = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_query_pending);
+static auto &server_browser_selected_index = halo::link::ref<int32_t>(halo::networking::vars().server_browser_selected_index);
+static auto &server_list_scroll_offset = halo::link::ref<int32_t>(halo::ui::vars().server_list_scroll_offset);
+static auto &server_browser_last_click_ms = halo::link::ref<int32_t>(halo::networking::vars().server_browser_last_click_ms);
+static auto &server_browser_skip_reselect = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_skip_reselect);
+static auto &server_browser_player_list_ready = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_player_list_ready);
+static auto &master_server_request_flags = halo::link::ref<uint32_t>(halo::networking::vars().master_server_request_flags);
+static auto &server_browser_player_ticker = halo::link::ref<uint8_t [0x1c]>(halo::ui::vars().server_browser_player_ticker);
 
 namespace halo::interface {
 

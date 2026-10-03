@@ -1,19 +1,19 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
-extern "C" {
-extern data_array *actor_data;
-extern data_array *prop_data;
-extern data_array *encounter_data;
-extern data_array *swarm_data;
-extern data_array *swarm_component_data;
-extern data_array *ai_conversation_data;
-extern data_array *ai_pursuit_data;
-extern ai_globals *ai_globals_ptr;
-extern encounter_squad_state *encounter_squad_states;
-extern encounter_platoon_state *encounter_platoon_states;
-extern int32_t ai_communication_quiet_until_tick;
-}
+static auto &actor_data = halo::link::ref<data_array *>(halo::ai::vars().actor_data);
+static auto &prop_data = halo::link::ref<data_array *>(halo::ai::vars().prop_data);
+static auto &encounter_data = halo::link::ref<data_array *>(halo::ai::vars().encounter_data);
+static auto &swarm_data = halo::link::ref<data_array *>(halo::ai::vars().swarm_data);
+static auto &swarm_component_data = halo::link::ref<data_array *>(halo::ai::vars().swarm_component_data);
+static auto &ai_conversation_data = halo::link::ref<data_array *>(halo::ai::vars().ai_conversation_data);
+static auto &ai_pursuit_data = halo::link::ref<data_array *>(halo::ai::vars().ai_pursuit_data);
+static auto &ai_globals_ptr = halo::link::ref<ai_globals *>(halo::ai::vars().ai_globals_ptr);
+static auto &encounter_squad_states = halo::link::ref<encounter_squad_state *>(halo::ai::vars().encounter_squad_states);
+static auto &encounter_platoon_states = halo::link::ref<encounter_platoon_state *>(halo::ai::vars().encounter_platoon_states);
+static auto &ai_communication_quiet_until_tick = halo::link::ref<int32_t>(halo::ai::vars().ai_communication_quiet_until_tick);
 
 namespace halo::ai {
 

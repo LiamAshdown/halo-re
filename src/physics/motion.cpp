@@ -262,7 +262,6 @@ void PhysicsMotion::interpolate(PointPhysics *out, const PointPhysics *from, con
 
 }
 
-static auto &k_physics_gravity = halo::link::ref<float>(halo::physics::vars().k_physics_gravity);
 static auto &k_water_density = halo::link::ref<float>(halo::game::vars().k_water_density);
 static auto &k_air_density = halo::link::ref<float>(halo::game::vars().k_air_density);
 namespace halo::physics {

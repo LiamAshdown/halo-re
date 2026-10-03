@@ -5,26 +5,30 @@
 #include "halo/objects/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
+static auto &game_engine_teams_enabled_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_teams_enabled_flag);
+static auto &slayer_team_score = halo::link::ref<int32_t [16]>(halo::game::vars().slayer_team_score);
+static auto &slayer_player_score = halo::link::ref<int32_t [16]>(halo::game::vars().slayer_player_score);
+static auto &slayer_unknown_0087a4a0 = halo::link::ref<int32_t [16]>(halo::game::vars().slayer_unknown_0087a4a0);
+static auto &slayer_unknown_0087a4e0 = halo::link::ref<int32_t [16]>(halo::game::vars().slayer_unknown_0087a4e0);
+static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
 extern "C" {
-extern data_array *player_data;
-extern game_variant game_engine_variant;
-extern uint8_t game_engine_teams_enabled_flag;
-extern int32_t slayer_team_score[16];
-extern int32_t slayer_player_score[16];
-extern int32_t slayer_unknown_0087a4a0[16];
-extern int32_t slayer_unknown_0087a4e0[16];
-extern wchar_t empty_string;
 extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode);
 extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank);
 extern void game_engine_animate_hill_pulse_icons(datum_index fading_player, datum_index growing_player);
 extern void game_engine_player_select_random_target(datum_index player_or_all);
-extern game_engine_definition *current_game_engine;
-extern uint8_t network_message_scratch[0x7ff8];
+}
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+extern "C" {
 extern uint32_t players_get_active_by_index(int32_t index);
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
-extern uint8_t custom_waypoints[];
 }
+static auto &custom_waypoints = halo::link::ref<uint8_t []>(halo::game::vars().custom_waypoints);
 
 namespace halo::game {
 

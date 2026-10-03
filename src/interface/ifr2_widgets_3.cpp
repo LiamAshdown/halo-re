@@ -5,19 +5,21 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/text/text.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
+static auto &ui_time_milliseconds = halo::link::ref<int32_t>(halo::ui::vars().ui_time_milliseconds);
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
 extern "C" {
-extern int32_t ui_time_milliseconds;
-extern heap *widget_memory_pool;
 extern double cos(double x);
-extern void *ui_replace_function_table[4];
-extern uint16_t ui_invalid_replacement_text[];
-extern uint16_t ui_out_of_memory_text[];
 }
+static auto &ui_replace_function_table = halo::link::ref<void *[4]>(halo::ui::vars().ui_replace_function_table);
+static auto &ui_invalid_replacement_text = halo::link::ref<uint16_t []>(halo::ui::vars().ui_invalid_replacement_text);
+static auto &ui_out_of_memory_text = halo::link::ref<uint16_t []>(halo::ui::vars().ui_out_of_memory_text);
 
 namespace halo::interface {
 

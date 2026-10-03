@@ -119,6 +119,7 @@ extern char network_handle_registry[];
 extern char network_high_res_clock_ms[];
 extern char network_host_handoff_requested[];
 extern char network_hostname_ready[];
+extern char network_incoming_message_scratch[];
 extern char network_initialized_at_ms[];
 extern char network_join_error_code[];
 extern char network_join_error_reason[];

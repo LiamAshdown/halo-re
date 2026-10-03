@@ -15,15 +15,20 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
+#include "halo/game/vars.hpp"
 
+static auto &ticks_per_second = halo::link::ref<float>(halo::ai::vars().ticks_per_second);
 extern "C" {
-extern float ticks_per_second;
 extern int32_t __ftol(double x);
-extern game_time_globals *game_time;
+}
+static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+extern "C" {
 extern double sqrt(double x);
 extern int8_t teams_are_enemies(int16_t a, int16_t b);
-extern data_array *player_data;
 }
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 
 namespace halo::ai {
 

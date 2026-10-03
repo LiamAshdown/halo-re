@@ -11,6 +11,8 @@
 #include "halo/ai/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/link.hpp"
+#include "halo/ai/vars.hpp"
 
 namespace c_actor_check_burst_length_exceeded {
 }
@@ -143,9 +145,6 @@ void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order)
 }
 
 namespace c_actor_check_vehicle_target_available {
-extern "C" {
-
-}
 }
 
 
@@ -553,9 +552,7 @@ void actor_choose_random_point_near(real_point3d *inout_point, float radius)
 }
 
 namespace c_actor_clear_target_state {
-extern "C" {
-extern actor_mode_definition actor_mode_definitions[16];
-}
+static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 }
 
 

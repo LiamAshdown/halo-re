@@ -8,13 +8,17 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 extern "C" {
-extern Globals *global_globals;
-extern data_array *player_data;
-extern player_globals *local_player_globals;
 extern uint32_t cheat_get_target_object_index(void);
-extern void *object_type_definitions[12];
+}
+static auto &object_type_definitions = halo::link::ref<void *[12]>(halo::game::vars().object_type_definitions);
+extern "C" {
 extern double atan2(double y, double x);
 extern double sin(double x);
 extern double cos(double x);

@@ -9,33 +9,40 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 extern "C" {
-extern data_array *player_data;
 extern double pow(double base, double exponent);
-extern Globals *global_globals;
-extern int32_t hud_text_draw_font_tag_id;
-extern uint16_t hud_text_draw_color_or_flags;
-extern float hud_text_draw_color_a;
-extern float hud_text_draw_color_r;
-extern float hud_text_draw_color_g;
-extern float hud_text_draw_color_b;
+}
+static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
+static auto &hud_text_draw_font_tag_id = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_font_tag_id);
+static auto &hud_text_draw_color_or_flags = halo::link::ref<uint16_t>(halo::ui::vars().hud_text_draw_color_or_flags);
+static auto &hud_text_draw_color_a = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_a);
+static auto &hud_text_draw_color_r = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_r);
+static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_g);
+static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
+extern "C" {
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
-extern player_control_globals *player_control_globals_ptr;
-extern uint8_t local_player_hud_status_table[];
-extern float game_engine_nameplate_fade_opacity_array[];
-extern player_globals *local_player_globals;
-extern game_engine_definition *current_game_engine;
-extern game_engine_state game_engine_state_value;
-extern uint32_t render_viewport_top;
-extern uint32_t screen_safe_area_right;
-extern uint32_t screen_safe_area_bottom;
-extern uint32_t text_tab_stops;
-extern uint32_t hud_text_draw_box_field_474e;
-extern uint32_t hud_text_draw_tabstop_c;
-extern int16_t hud_text_draw_box_field_4756;
-extern uint8_t debug_print_enabled_flag;
-extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
+}
+static auto &player_control_globals_ptr = halo::link::ref<player_control_globals *>(halo::game::vars().player_control_globals_ptr);
+static auto &local_player_hud_status_table = halo::link::ref<uint8_t []>(halo::game::vars().local_player_hud_status_table);
+static auto &game_engine_nameplate_fade_opacity_array = halo::link::ref<float []>(halo::game::vars().game_engine_nameplate_fade_opacity_array);
+static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
+static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
+static auto &game_engine_state_value = halo::link::ref<game_engine_state>(halo::game::vars().game_engine_state_value);
+static auto &render_viewport_top = halo::link::ref<uint32_t>(halo::ui::vars().render_viewport_top);
+static auto &screen_safe_area_right = halo::link::ref<uint32_t>(halo::game::vars().screen_safe_area_right);
+static auto &screen_safe_area_bottom = halo::link::ref<uint32_t>(halo::game::vars().screen_safe_area_bottom);
+static auto &text_tab_stops = halo::link::ref<uint32_t>(halo::game::vars().text_tab_stops);
+static auto &hud_text_draw_box_field_474e = halo::link::ref<uint32_t>(halo::game::vars().hud_text_draw_box_field_474e);
+static auto &hud_text_draw_tabstop_c = halo::link::ref<uint32_t>(halo::game::vars().hud_text_draw_tabstop_c);
+static auto &hud_text_draw_box_field_4756 = halo::link::ref<int16_t>(halo::game::vars().hud_text_draw_box_field_4756);
+static auto &debug_print_enabled_flag = halo::link::ref<uint8_t>(halo::game::vars().debug_print_enabled_flag);
+static auto &custom_waypoints = halo::link::ref<custom_waypoint [k_maximum_custom_waypoints]>(halo::game::vars().custom_waypoints);
+extern "C" {
 extern uint8_t game_engine_ctf_unit_is_flag_holder(player *p);
 extern int16_t hud_waypoint_arrow_find(const char *name);
 extern uint8_t game_engine_build_kill_feed_message_text(datum_index recipient, wchar_t *out, uint32_t message_type, datum_index subject, size_t buffer_size);
@@ -43,10 +50,10 @@ extern void game_engine_notify_kill_event(uint32_t player_index, int32_t hash_ke
 extern void chimera__multiplayer_message(wchar_t *text);
 extern void chimera__hud_message(int16_t local_player_index, wchar_t *text);
 extern wchar_t *unicode_string_list_get_string(char *path, int16_t index);
-extern wchar_t ticker_field_separator[];
-extern wchar_t missing_string_text[];
-extern wchar_t unicode_string_list_scratch_buffer;
 }
+static auto &ticker_field_separator = halo::link::ref<wchar_t []>(halo::game::vars().ticker_field_separator);
+static auto &missing_string_text = halo::link::ref<wchar_t []>(halo::ui::vars().missing_string_text);
+static auto &unicode_string_list_scratch_buffer = halo::link::ref<wchar_t>(halo::game::vars().unicode_string_list_scratch_buffer);
 
 namespace halo::game {
 

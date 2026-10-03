@@ -2,12 +2,14 @@
 #include <stdint.h>
 #include "halo/memory/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
 
+static auto &update_server_tick = halo::link::ref<int32_t>(halo::game::vars().update_server_tick);
 extern "C" {
-extern int32_t update_server_tick;
 extern uint32_t update_server_history[32 * (0x308 / 4)];
-extern data_array *update_server_queues;
 }
+static auto &update_server_queues = halo::link::ref<data_array *>(halo::game::vars().update_server_queues);
 
 namespace halo::game {
 

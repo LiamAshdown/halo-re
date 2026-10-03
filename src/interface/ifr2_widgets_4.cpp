@@ -3,19 +3,19 @@
 #include "halo/interface/ifr2_widgets.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
-extern "C" {
-extern heap *widget_memory_pool;
-extern uint8_t widget_memory_pool_valid;
-extern widget_instance *ui_root_widget[1];
-extern int16_t quit_confirm_error_string_index;
-extern ui_pending_error ui_pending_error_alternate;
-extern ui_pending_error ui_pending_errors[4];
-}
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
+static auto &widget_memory_pool_valid = halo::link::ref<uint8_t>(halo::ui::vars().widget_memory_pool_valid);
+static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
+static auto &quit_confirm_error_string_index = halo::link::ref<int16_t>(halo::ui::vars().quit_confirm_error_string_index);
+static auto &ui_pending_error_alternate = halo::link::ref<ui_pending_error>(halo::ui::vars().ui_pending_error_alternate);
+static auto &ui_pending_errors = halo::link::ref<ui_pending_error [4]>(halo::ui::vars().ui_pending_errors);
 
 namespace halo::interface {
 

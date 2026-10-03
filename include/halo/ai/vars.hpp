@@ -43,6 +43,11 @@ struct Vars {
     void *actor_firing_position_score_rules;
     void *actor_lookup_table_006555a8;
     void *actor_mode_definitions;
+    void *actor_mode_guard_look_weights_a5;
+    void *actor_mode_guard_look_weights_a6;
+    void *actor_mode_guard_look_weights_ambush;
+    void *actor_mode_guard_look_weights_idle;
+    void *actor_mode_uncover_look_weights_active;
     void *actor_type_procs;
     void *actor_vocalization_duration;
     void *actor_vocalization_variant;

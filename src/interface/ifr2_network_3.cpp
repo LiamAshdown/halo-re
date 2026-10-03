@@ -11,17 +11,17 @@
 #include "halo/cseries/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
-extern "C" {
-extern void *server_list_entries_006b380c[9];
-extern heap *widget_memory_pool;
-extern uint16_t missing_string_text[];
-extern uint16_t chat_local_prompt_string[];
-}
+static auto &server_list_entries_006b380c = halo::link::ref<void *[9]>(halo::ui::vars().server_list_entries_006b380c);
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
+static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
+static auto &chat_local_prompt_string = halo::link::ref<uint16_t []>(halo::ui::vars().chat_local_prompt_string);
 
 namespace halo::interface {
 

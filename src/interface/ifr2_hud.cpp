@@ -18,37 +18,42 @@
 #include "units.h"
 #include "game.h"
 #include "halo/interface/flags.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
 #ifdef interface
 #undef interface
 #endif
 
+static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
+static auto &hud_waypoints = halo::link::ref<hud_waypoint_state *>(halo::ui::vars().hud_waypoints);
+static auto &custom_waypoints = halo::link::ref<custom_waypoint [k_maximum_custom_waypoints]>(halo::game::vars().custom_waypoints);
+static auto &hud_weapon_state = halo::link::ref<hud_weapon_interface_state *>(halo::ui::vars().hud_weapon_state);
+static auto &render_viewport_top = halo::link::ref<int16_t>(halo::ui::vars().render_viewport_top);
 extern "C" {
-extern HUDGlobals *hud_globals_tag_data;
-extern hud_waypoint_state *hud_waypoints;
-extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
-extern hud_weapon_interface_state *hud_weapon_state;
-extern int16_t render_viewport_top;
 extern long lrint(double x);
 extern float sqrtf(float x);
 extern double pow(double base, double exponent);
 extern double fmod(double x, double y);
 extern int32_t __ftol(double x);
-extern int16_t current_local_player_index;
-extern hud_globals_flags *hud_flags;
-extern uint8_t motion_sensor_override_value;
-extern uint8_t motion_sensor_force_moving;
-extern float motion_sensor_blip_subtype_size[3];
-extern ColorRGB motion_sensor_blip_colors[6];
+}
+static auto &current_local_player_index = halo::link::ref<int16_t>(halo::ui::vars().current_local_player_index);
+static auto &hud_flags = halo::link::ref<hud_globals_flags *>(halo::ui::vars().hud_flags);
+static auto &motion_sensor_override_value = halo::link::ref<uint8_t>(halo::ui::vars().motion_sensor_override_value);
+static auto &motion_sensor_force_moving = halo::link::ref<uint8_t>(halo::ui::vars().motion_sensor_force_moving);
+static auto &motion_sensor_blip_subtype_size = halo::link::ref<float [3]>(halo::ui::vars().motion_sensor_blip_subtype_size);
+static auto &motion_sensor_blip_colors = halo::link::ref<ColorRGB [6]>(halo::ui::vars().motion_sensor_blip_colors);
+extern "C" {
 extern float sinf(float x);
 extern float cosf(float x);
 extern double sin(double x);
-extern motion_sensor_globals *motion_sensor;
-extern int16_t motion_sensor_render_local_player;
-extern float motion_sensor_render_icon_scale;
-extern float motion_sensor_render_center[2];
-extern float motion_sensor_sweep;
 }
+static auto &motion_sensor = halo::link::ref<motion_sensor_globals *>(halo::ui::vars().motion_sensor);
+static auto &motion_sensor_render_local_player = halo::link::ref<int16_t>(halo::ui::vars().motion_sensor_render_local_player);
+static auto &motion_sensor_render_icon_scale = halo::link::ref<float>(halo::ui::vars().motion_sensor_render_icon_scale);
+static auto &motion_sensor_render_center = halo::link::ref<float [2]>(halo::ui::vars().motion_sensor_render_center);
+static auto &motion_sensor_sweep = halo::link::ref<float>(halo::ui::vars().motion_sensor_sweep);
 
 namespace halo::interface {
 

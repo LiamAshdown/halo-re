@@ -3,13 +3,14 @@
 #include "main.h"
 #include "halo/main/api.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/core/link.hpp"
+#include "halo/game/vars.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern game_variant game_engine_pending_variant;
-extern game_variant game_engine_active_variant;
-extern int32_t cached_network_engine_index;
-extern uint16_t split_screen_quit_prompt_string;
-}
+static auto &game_engine_pending_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_pending_variant);
+static auto &game_engine_active_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_active_variant);
+static auto &cached_network_engine_index = halo::link::ref<int32_t>(halo::game::vars().cached_network_engine_index);
+static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
 
 namespace halo::game {
 

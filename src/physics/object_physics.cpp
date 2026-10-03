@@ -303,7 +303,6 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
 extern "C" { extern double fabs(double x); }
 static auto &global_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_collision_bsp);
 static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);
-static auto &k_physics_gravity = halo::link::ref<float>(halo::physics::vars().k_physics_gravity);
 static auto &material_table_warning_issued = halo::link::ref<uint8_t>(halo::physics::vars().material_table_warning_issued);
 static auto &material_table_bad_index = halo::link::ref<int32_t>(halo::physics::vars().material_table_bad_index);
 static auto &material_table_fallback = halo::link::ref<uint8_t [0x374]>(halo::physics::vars().material_table_fallback);

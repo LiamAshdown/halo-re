@@ -11,21 +11,23 @@
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
 #include "saved_games.h"
-extern "C" { extern uint32_t config_disable_specular; }
+#include "halo/core/link.hpp"
+#include "halo/effects/vars.hpp"
+#include "halo/interface/vars.hpp"
+#include "halo/shell/vars.hpp"
+static auto &config_disable_specular = halo::link::ref<uint32_t>(halo::shell::vars().config_disable_specular);
 
 #ifdef interface
 #undef interface
 #endif
 
-extern "C" {
-extern int32_t safe_mode;
-extern int16_t renderer_texture_quality;
-extern uint8_t rasterizer_desktop_display_mode[];
-extern uint32_t rasterizer_device_version;
-extern uint32_t rasterizer_capability_007c10e4;
-extern int16_t light_count_enabled;
-extern uint8_t particle_systems_enabled;
-}
+static auto &safe_mode = halo::link::ref<int32_t>(halo::shell::vars().safe_mode);
+static auto &renderer_texture_quality = halo::link::ref<int16_t>(halo::ui::vars().renderer_texture_quality);
+static auto &rasterizer_desktop_display_mode = halo::link::ref<uint8_t []>(halo::ui::vars().rasterizer_desktop_display_mode);
+static auto &rasterizer_device_version = halo::link::ref<uint32_t>(halo::ui::vars().rasterizer_device_version);
+static auto &rasterizer_capability_007c10e4 = halo::link::ref<uint32_t>(halo::ui::vars().rasterizer_capability_007c10e4);
+static auto &light_count_enabled = halo::link::ref<int16_t>(halo::effects::vars().light_count_enabled);
+static auto &particle_systems_enabled = halo::link::ref<uint8_t>(halo::effects::vars().particle_systems_enabled);
 
 typedef int32_t (__stdcall *d3d_get_display_mode_fn)(void *device, uint32_t swap_chain, void *mode);
 

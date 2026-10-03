@@ -16,31 +16,31 @@
 #include "halo/input/ui_events.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
-extern "C" {
-extern uint8_t controls_row_device_mask_table[];
-extern uint16_t controls_action_name_buffer[];
-extern const uint16_t hud_text_unbound[];
-extern uint8_t controls_menu_list_mode;
-extern int32_t selected_saved_item;
-extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
-extern uint8_t control_keyboard_scan_table[0xda];
-extern uint32_t control_mouse_button_scan_table[7];
-extern uint32_t input_default_profile_guid[4];
-extern uint8_t controls_action_table[][0x18];
-extern int32_t controls_current_binding_table[][3];
-extern controls_device_label controls_device_labels[0x10];
-extern heap *widget_memory_pool;
-extern int32_t controls_capture_row;
-extern int32_t controls_selected_device;
-extern uint8_t controls_input_capture_flags;
-extern int16_t controls_captured_binding[6];
-extern uint32_t controls_input_capture_buffer[0xa0];
-extern uint8_t controls_device_sensitivity_a[];
-extern uint8_t controls_device_sensitivity_b[];
-extern int32_t controls_device_label_count;
-extern int32_t controls_reserved_action_table[9];
-}
+static auto &controls_row_device_mask_table = halo::link::ref<uint8_t []>(halo::ui::vars().controls_row_device_mask_table);
+static auto &controls_action_name_buffer = halo::link::ref<uint16_t []>(halo::ui::vars().controls_action_name_buffer);
+static auto &hud_text_unbound = halo::link::ref<const uint16_t []>(halo::ui::vars().hud_text_unbound);
+static auto &controls_menu_list_mode = halo::link::ref<uint8_t>(halo::ui::vars().controls_menu_list_mode);
+static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
+static auto &saved_item_working_copy = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().saved_item_working_copy);
+static auto &control_keyboard_scan_table = halo::link::ref<uint8_t [0xda]>(halo::ui::vars().control_keyboard_scan_table);
+static auto &control_mouse_button_scan_table = halo::link::ref<uint32_t [7]>(halo::ui::vars().control_mouse_button_scan_table);
+static auto &input_default_profile_guid = halo::link::ref<uint32_t [4]>(halo::ui::vars().input_default_profile_guid);
+static auto &controls_action_table = halo::link::ref<uint8_t [][0x18]>(halo::ui::vars().controls_action_table);
+static auto &controls_current_binding_table = halo::link::ref<int32_t [][3]>(halo::ui::vars().controls_current_binding_table);
+static auto &controls_device_labels = halo::link::ref<controls_device_label [0x10]>(halo::ui::vars().controls_device_labels);
+static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
+static auto &controls_capture_row = halo::link::ref<int32_t>(halo::ui::vars().controls_capture_row);
+static auto &controls_selected_device = halo::link::ref<int32_t>(halo::ui::vars().controls_selected_device);
+static auto &controls_input_capture_flags = halo::link::ref<uint8_t>(halo::ui::vars().controls_input_capture_flags);
+static auto &controls_captured_binding = halo::link::ref<int16_t [6]>(halo::ui::vars().controls_captured_binding);
+static auto &controls_input_capture_buffer = halo::link::ref<uint32_t [0xa0]>(halo::ui::vars().controls_input_capture_buffer);
+static auto &controls_device_sensitivity_a = halo::link::ref<uint8_t []>(halo::ui::vars().controls_device_sensitivity_a);
+static auto &controls_device_sensitivity_b = halo::link::ref<uint8_t []>(halo::ui::vars().controls_device_sensitivity_b);
+static auto &controls_device_label_count = halo::link::ref<int32_t>(halo::ui::vars().controls_device_label_count);
+static auto &controls_reserved_action_table = halo::link::ref<int32_t [9]>(halo::ui::vars().controls_reserved_action_table);
 
 static widget_instance *controls_find_child_of_type(widget_instance *child, int16_t type)
 {

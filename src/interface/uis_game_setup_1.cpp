@@ -29,34 +29,36 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/core/link.hpp"
+#include "halo/interface/vars.hpp"
 
+static auto &level_select_current_path_00719068 = halo::link::ref<char [0x106]>(halo::ui::vars().level_select_current_path_00719068);
+static auto &level_select_entries = halo::link::ref<level_select_entry [10]>(halo::ui::vars().level_select_entries);
+static auto &cached_saved_game_something = halo::link::ref<int32_t>(halo::ui::vars().cached_saved_game_something);
+static auto &level_select_flags_0071916a = halo::link::ref<uint8_t>(halo::ui::vars().level_select_flags_0071916a);
+static auto &level_select_flags_0071916b = halo::link::ref<uint8_t>(halo::ui::vars().level_select_flags_0071916b);
+static auto &level_select_flags_0071916c = halo::link::ref<uint8_t>(halo::ui::vars().level_select_flags_0071916c);
+static auto &profile_globals_block = halo::link::ref<uint8_t [0x60a4]>(halo::ui::vars().profile_globals_block);
+static auto &known_solo_level_index_00712f00 = halo::link::ref<int16_t>(halo::ui::vars().known_solo_level_index_00712f00);
+static auto &ui_lists = halo::link::ref<growable_array [3]>(halo::ui::vars().ui_lists);
+static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
+static auto &ui_list_has_default = halo::link::ref<uint8_t>(halo::ui::vars().ui_list_has_default);
+static auto &known_campaign_levels_00692acc = halo::link::ref<campaign_level_entry [10]>(halo::ui::vars().known_campaign_levels_00692acc);
+static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
+static auto &level_select_frame_00719168 = halo::link::ref<int16_t>(halo::ui::vars().level_select_frame_00719168);
+static auto &last_level_widget_selection_00692afc = halo::link::ref<int32_t>(halo::ui::vars().last_level_widget_selection_00692afc);
+static auto &quit_confirm_error_string_index = halo::link::ref<int16_t>(halo::ui::vars().quit_confirm_error_string_index);
+static auto &quit_confirm_error_unknown_ae = halo::link::ref<int16_t>(halo::ui::vars().quit_confirm_error_unknown_ae);
+static auto &quit_confirm_error_modal = halo::link::ref<uint8_t>(halo::ui::vars().quit_confirm_error_modal);
+static auto &quit_confirm_error_is_error = halo::link::ref<uint8_t>(halo::ui::vars().quit_confirm_error_is_error);
+static auto &coop_profile_globals_block_00714ddc = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().coop_profile_globals_block_00714ddc);
+static auto &map_list = halo::link::ref<map_list_entry *>(halo::ui::vars().map_list);
+static auto &map_list_count = halo::link::ref<int32_t>(halo::ui::vars().map_list_count);
+static auto &save_in_progress_00719010 = halo::link::ref<uint8_t>(halo::ui::vars().save_in_progress_00719010);
+static auto &cached_profile_slot = halo::link::ref<int32_t>(halo::ui::vars().cached_profile_slot);
+static auto &network_wait_flag_00719739 = halo::link::ref<uint8_t>(halo::ui::vars().network_wait_flag_00719739);
+static auto &last_profile_name = halo::link::ref<char []>(halo::ui::vars().last_profile_name);
 extern "C" {
-extern char level_select_current_path_00719068[0x106];
-extern level_select_entry level_select_entries[10];
-extern int32_t cached_saved_game_something;
-extern uint8_t level_select_flags_0071916a;
-extern uint8_t level_select_flags_0071916b;
-extern uint8_t level_select_flags_0071916c;
-extern uint8_t profile_globals_block[0x60a4];
-extern int16_t known_solo_level_index_00712f00;
-extern growable_array ui_lists[3];
-extern int32_t ui_list_current;
-extern uint8_t ui_list_has_default;
-extern campaign_level_entry known_campaign_levels_00692acc[10];
-extern uint16_t missing_string_text[];
-extern int16_t level_select_frame_00719168;
-extern int32_t last_level_widget_selection_00692afc;
-extern int16_t quit_confirm_error_string_index;
-extern int16_t quit_confirm_error_unknown_ae;
-extern uint8_t quit_confirm_error_modal;
-extern uint8_t quit_confirm_error_is_error;
-extern uint8_t coop_profile_globals_block_00714ddc[k_saved_player_profile_size];
-extern map_list_entry *map_list;
-extern int32_t map_list_count;
-extern uint8_t save_in_progress_00719010;
-extern int32_t cached_profile_slot;
-extern uint8_t network_wait_flag_00719739;
-extern char last_profile_name[];
 extern void saved_game_delete_files(void);
 extern uint8_t saved_game_get_directory_by_handle(int32_t slot, char *out_name);
 extern void saved_game_last_profile_clear(char *name);
