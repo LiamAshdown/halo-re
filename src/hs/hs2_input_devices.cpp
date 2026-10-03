@@ -1,0 +1,147 @@
+#include "halo/hs/hs2_commands.hpp"
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern hs_function_definition *hs_function_definitions[k_hs_function_count];
+extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
+    int16_t *expected_types, char first);
+extern void hs_thread_return(int32_t value, uint32_t thread_index);
+extern int32_t input_device_count;
+extern uint8_t input_device_to_slot[];
+extern int32_t joystick_slot_devices[];
+extern void test_input_device_defaults_find(char *device_id_ansi);
+extern void input_device_list_print(void);
+#ifdef __cplusplus
+}
+#endif
+
+namespace halo::hs {
+
+/**
+ * Evaluate handler of hs function "input_activate_joy"; the body is the original handler moved unchanged into the command
+ * group class.
+ *
+ * @address 0x481890
+ */
+void InputDeviceCommands::evaluate_input_activate_joy(int16_t function_index, uint32_t thread_index, char first)
+{
+    hs_function_definition *definition = hs_function_definitions[function_index];
+    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+        (int16_t *)definition->parameters, first);
+
+    if (arguments != 0) {
+    int32_t joystick = *(int16_t *)&arguments[0];
+    int32_t player = *(int16_t *)&arguments[1];
+    uint8_t bound = 0;
+
+    if (joystick < input_device_count && *(int32_t *)(input_device_to_slot + joystick * 0x240) == -1 &&
+        joystick_slot_devices[player] == -1) {
+        *(int32_t *)(input_device_to_slot + joystick * 0x240) = player;
+        joystick_slot_devices[player] = joystick;
+        bound = 1;
+    }
+    hs_thread_return((int32_t)bound, thread_index);
+    }
+}
+
+/**
+ * Evaluate handler of hs function "input_find_default"; the body is the original handler moved unchanged into the command
+ * group class.
+ *
+ * @address 0x4819f0
+ */
+void InputDeviceCommands::evaluate_input_find_default(int16_t function_index, uint32_t thread_index, char first)
+{
+    hs_function_definition *definition = hs_function_definitions[function_index];
+    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+        (int16_t *)definition->parameters, first);
+
+    if (arguments != 0) {
+        test_input_device_defaults_find((char *)arguments[0]);
+        hs_thread_return(0, thread_index);
+    }
+}
+
+/**
+ * Evaluate handler of hs function "input_find_joystick"; the body is the original handler moved unchanged into the command
+ * group class.
+ *
+ * @address 0x481990
+ */
+void InputDeviceCommands::evaluate_input_find_joystick(int16_t function_index, uint32_t thread_index, char first)
+{
+    hs_function_definition *definition = hs_function_definitions[function_index];
+    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+        (int16_t *)definition->parameters, first);
+
+    if (arguments != 0) {
+        hs_thread_return((int32_t)(uint16_t)(-1), thread_index);
+    }
+}
+
+/**
+ * Evaluate handler of hs function "input_get_joy_count"; the body is the original handler moved unchanged into the command
+ * group class.
+ *
+ * @address 0x4817f0
+ */
+void InputDeviceCommands::evaluate_input_get_joy_count(int16_t function_index, uint32_t thread_index, char first)
+{
+    hs_thread_return((int32_t)(uint16_t)input_device_count, thread_index);
+}
+
+/**
+ * Evaluate handler of hs function "input_is_joy_active"; the body is the original handler moved unchanged into the command
+ * group class.
+ *
+ * @address 0x481820
+ */
+void InputDeviceCommands::evaluate_input_is_joy_active(int16_t function_index, uint32_t thread_index, char first)
+{
+    hs_function_definition *definition = hs_function_definitions[function_index];
+    int32_t *arguments = hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
+        (int16_t *)definition->parameters, first);
+
+    if (arguments != 0) {
+        int32_t device = (int16_t)arguments[0];
+        uint8_t active = 0;
+
+        if (device < input_device_count) {
+            active = (uint8_t)(*(int32_t *)(input_device_to_slot + device * 0x240) != -1);
+        }
+        hs_thread_return((int32_t)(uint8_t)(active), thread_index);
+    }
+}
+
+/**
+ * Evaluate handler of hs function "input_show_joystick_info"; the body is the original handler moved unchanged into the command
+ * group class.
+ *
+ * @address 0x4819e0
+ */
+void InputDeviceCommands::evaluate_input_show_joystick_info(int16_t function_index, uint32_t thread_index, char first)
+{
+    input_device_list_print();
+    hs_thread_return(0, thread_index);
+}
+
+/**
+ * Table of the hs functions handled by InputDeviceCommands, in source order.
+ */
+EvaluateCommandTable InputDeviceCommands::commands() noexcept
+{
+    static constexpr EvaluateFn k_commands[] = {
+        &InputDeviceCommands::evaluate_input_activate_joy,
+        &InputDeviceCommands::evaluate_input_deactivate_joy,
+        &InputDeviceCommands::evaluate_input_find_default,
+        &InputDeviceCommands::evaluate_input_find_joystick,
+        &InputDeviceCommands::evaluate_input_get_joy_count,
+        &InputDeviceCommands::evaluate_input_is_joy_active,
+        &InputDeviceCommands::evaluate_input_show_joystick_info,
+    };
+    return {k_commands, static_cast<uint32_t>(sizeof(k_commands) / sizeof(k_commands[0]))};
+}
+
+}
