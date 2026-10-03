@@ -1,3 +1,5 @@
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/ai/actor_modes.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -516,7 +518,7 @@ uint8_t halo::ai::obey_mode::process()
         if ((list[0x20] & 0x10) && actor->airborne != 0) {
             Actor *actor_tag = halo::ai::tag_data<Actor>(actor->actor_definition_tag);
 
-            if ((actor_tag->flags & 0x200000) == 0) {
+            if (!halo::ai::flag_set(actor_tag->flags, halo::tags::actor_tag_flag::flying)) {
                 mark = 0;
             }
         }

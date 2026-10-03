@@ -1,3 +1,5 @@
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -404,7 +406,7 @@ char ActorView::update_grenade_and_morale_reactions()
                 if (halo::ai::actor_handle_death(actor_index, 0, 1)) {
                     return 1;
                 }
-                if ((actor_tag->flags & 0x400000) != 0 &&
+                if (halo::ai::flag_set(actor_tag->flags, halo::tags::actor_tag_flag::panicked_by_unopposable_enemy) &&
                     halo::ai::actor_check_pain_reaction(act->retreat_prop_index, 0, 5, actor_index)) {
                     return 1;
                 }
@@ -432,7 +434,7 @@ char ActorView::update_grenade_and_morale_reactions()
     }
     may_evade = 1;
     may_target = 1;
-    if (act->crouch_active != 0 && (actor_tag->flags & 0x20) != 0) {
+    if (act->crouch_active != 0 && halo::ai::flag_set(actor_tag->flags, halo::tags::actor_tag_flag::try_to_stay_still_when_crouched)) {
         datum_index target = act->target_unit_index;
 
         may_evade = 0;

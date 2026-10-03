@@ -1,3 +1,5 @@
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_alerts.hpp"
 #include "halo/math/api.hpp"
@@ -453,7 +455,7 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
             ((struct actor_combat_consideration *)record)->mode = mode;
             return result;
         }
-        if ((actor_tag->flags & 0x8000000) != 0) {
+        if (halo::ai::flag_set(actor_tag->flags, halo::tags::actor_tag_flag::suicidal_melee_attack)) {
             ((struct actor_combat_consideration *)record)->position_index = frame_count;
             ((struct actor_combat_consideration *)record)->distance_delta = 0.0f;
             record[0x30] = 1;
@@ -479,7 +481,7 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
         ((struct actor_combat_consideration *)record)->mode = mode;
         return result;
     }
-    if (mode == 0 && (actor_tag->flags & 0x20000) != 0 && actor->combat_status >= 5 && actor->berserking == 0) {
+    if (mode == 0 && halo::ai::flag_set(actor_tag->flags, halo::tags::actor_tag_flag::use_stalking_behavior) && actor->combat_status >= 5 && actor->berserking == 0) {
         mode = 1;
     }
 
@@ -555,7 +557,7 @@ uint8_t halo::ai::alert_ops::escalate_check_leader_flag()
     actor *act = halo::ai::actor_at(actor_index);
     Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
 
-    if ((actor_tag->flags & 0x80000) == 0 || act->platoon_defending || act->combat_status < 5) {
+    if (!halo::ai::flag_set(actor_tag->flags, halo::tags::actor_tag_flag::always_berserk_in_attacking_mode) || act->platoon_defending || act->combat_status < 5) {
         return 0;
     }
     if (act->escalation_level <= 1) {
@@ -818,7 +820,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
             float range;
             int16_t difficulty = (int16_t)(uint16_t)halo::main::globals().game_globals->difficulty;
 
-            if (!halo::ai::actor_has_unshielded_threat_weapon(actor_index) && !(actor_tag->flags & 0x20000)) {
+            if (!halo::ai::actor_has_unshielded_threat_weapon(actor_index) && !halo::ai::flag_set(actor_tag->flags, halo::tags::actor_tag_flag::use_stalking_behavior)) {
                 wide = 1;
             }
             base_delay = a->berserking ? 0.0f : actor_tag->melee_attack_delay;
@@ -877,7 +879,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
 
     fallback = (a->always_charge && !a->charge_disallowed) ? 1 : 0;
     hold = 0;
-    if (!a->charge_disallowed && !halo::ai::actor_has_unshielded_threat_weapon(actor_index) && (actor_tag->flags & 0x1000000)) {
+    if (!a->charge_disallowed && !halo::ai::actor_has_unshielded_threat_weapon(actor_index) && halo::ai::flag_set(actor_tag->flags, halo::tags::actor_tag_flag::always_charge_in_attacking_mode)) {
         fallback = 1;
     }
     mode = a->mode;

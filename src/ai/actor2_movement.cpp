@@ -1,3 +1,5 @@
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
@@ -995,7 +997,7 @@ void ActorView::movement_get_stopping_distances(float *out_accelerate_stop_dista
                 speed = unit_object->velocity.i * unit_object->forward.i +
                         unit_object->velocity.j * unit_object->forward.j +
                         unit_object->velocity.k * unit_object->forward.k;
-                if ((biped_definition->biped_flags & 4) != 0) {
+                if (halo::ai::flag_set(biped_definition->biped_flags, halo::tags::biped_tag_flag::flying)) {
                     top_speed = biped_definition->max_velocity * 0.033333335f;
                     acceleration = biped_definition->acceleration * 0.033333335f;
                     deceleration = biped_definition->deceleration * 0.033333335f;

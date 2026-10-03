@@ -1,3 +1,5 @@
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/ai/airest_encounters.hpp"
 
 #include <stdint.h>
@@ -1721,7 +1723,7 @@ void Encounters::create(int16_t *squad_cursor, ScenarioEncounter *definition, in
             squad_definition = &((ScenarioSquad *)definition->squads.pointer)[squad_index];
 
             squad_state->timer_started = 0;
-            if ((squad_definition->flags & 8) == 0) {
+            if (!halo::ai::flag_set(squad_definition->flags, halo::tags::scenario_squad_tag_flag::no_timer_delay_forever)) {
                 squad_state->squad_delay_ticks = (int16_t)__ftol(
                     (double)(squad_definition->squad_delay_time * ticks_per_second));
             } else {
@@ -2251,7 +2253,7 @@ have_targets:
         ScenarioSquad *squad_definition = (ScenarioSquad *)encounter_definition->squads.pointer;
 
         do {
-            if ((squad_definition->flags & 0x20) != 0) {
+            if (halo::ai::flag_set(squad_definition->flags, halo::tags::scenario_squad_tag_flag::automatic_migration)) {
                 encounter_squad_state *squad_state = &halo::ai::globals().squad_states[(int16_t)(self->first_squad + squad_index)];
                 uint32_t bit = 1u << (bit_index & 0x1f);
                 int16_t word = bit_index >> 5;
@@ -2767,7 +2769,7 @@ void EncounterView::squad_clear_spawn_delay(int16_t squad_index)
     squad_state = &halo::ai::globals().squad_states[(int16_t)(self->first_squad + squad_index)];
     squad_state->squad_delay_ticks = 0;
 
-    if ((squad_definition->flags & 0x10) != 0) {
+    if (halo::ai::flag_set(squad_definition->flags, halo::tags::scenario_squad_tag_flag::magic_sight_after_timer)) {
         halo::ai::ai_reference_respawn_all_players(((uint32_t)(((uint16_t)squad_index & 0xff) | 0x8000) << 16) |
                                          (encounter_index & halo::k_slot_mask));
     }

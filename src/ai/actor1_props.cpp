@@ -1,3 +1,5 @@
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/ai/actor_props.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/math/api.hpp"
@@ -192,7 +194,7 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         }
     }
     if (variant->flags & 0x30) {
-        if (variant->flags & 0x20) {
+        if (halo::ai::flag_set(variant->flags, halo::tags::actor_variant_tag_flag::super_active_camouflage)) {
             ((unit_object *)unit)->unit.flags |= 0x20;
         }
         ((unit_object *)unit)->unit.flags |= 0x10;
@@ -555,7 +557,7 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
 
     if (step > 0.0f) {
         Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
-        float sideways = (actor_tag->flags & 0x2000000) ? 8.0f : 0.0f;
+        float sideways = halo::ai::flag_set(actor_tag->flags, halo::tags::actor_tag_flag::dive_off_ledges) ? 8.0f : 0.0f;
         float length;
         real_vector3d path;
         real_vector3d left;

@@ -1,3 +1,5 @@
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -43,7 +45,7 @@ uint8_t ActorView::seek_vehicle_to_board()
         return 0;
     }
     act->last_vehicle_search_time = static_cast<uint32_t>(now);
-    if (actor_tag->flags & 0x1000) {
+    if (halo::ai::flag_set(actor_tag->flags, halo::tags::actor_tag_flag::gets_in_vehicles_with_player)) {
         datum_index prop_index = act->first_prop;
 
         while (prop_index != k_datum_index_none) {

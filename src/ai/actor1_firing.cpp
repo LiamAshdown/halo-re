@@ -1,3 +1,4 @@
+#include "halo/ai/flags.hpp"
 #include "halo/ai/actor_firing.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -288,7 +289,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
             (int8_t)self->tally.group_a_total > 0) {
             gather_hazards = 1;
         }
-        if ((actor_definition->more_flags & 1) != 0  && self->combat_status > 2) {
+        if (halo::ai::flag_set(actor_definition->more_flags, halo::tags::actor_more_tag_flag::avoid_all_enemy_attack_vectors)  && self->combat_status > 2) {
             gather_hazards = 1;
         }
 
@@ -321,7 +322,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
                     }
                     if (pr->enemy != 0 &&
                         ((pr->engaged != 0 && (pr->is_parented != 0 || pr->shooting != 0)) ||
-                         (actor_definition->more_flags & 1) != 0 )) {
+                         halo::ai::flag_set(actor_definition->more_flags, halo::tags::actor_more_tag_flag::avoid_all_enemy_attack_vectors) )) {
                         actor_firing_position_hazard *h = &query->hazards[query->hazard_count];
                         h->kind = 2;
                         h->position = pr->last_known_position;

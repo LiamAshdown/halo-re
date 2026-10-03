@@ -1,3 +1,5 @@
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/ai/actor_grenade.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -485,7 +487,7 @@ uint8_t halo::ai::grenade_ops::evaluate_grenade_target_position()
         return 0;
     }
     actor_tag = halo::ai::tag_data<Actor>(a->actor_definition_tag);
-    if (actor_tag->flags & 0x200000) {
+    if (halo::ai::flag_set(actor_tag->flags, halo::tags::actor_tag_flag::flying)) {
         float dot = p->direction.z * facing[2] + p->direction.y * facing[1] + p->direction.x * facing[0];
 
         if (!(dot > 0.4f)) {

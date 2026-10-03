@@ -1,3 +1,5 @@
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/scenario/api.hpp"
@@ -278,7 +280,7 @@ void ActorView::refresh_combat_context()
         object *vehicle = (object *)object_get((int32_t)self->active_unit_index);
         Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(vehicle->definition_tag);
 
-        if (vehicle_tag->vehicle_flags & 0x100) {
+        if (halo::ai::flag_set(vehicle_tag->vehicle_flags, halo::tags::vehicle_tag_flag::ai_weapon_cannot_rotate)) {
             halo::units::unit_get_forward_vector_or_marker_normal((int32_t)self->unit_index, &self->unit_aiming_vector);
         } else {
             *(real_vector3d *)&self->unit_aiming_vector.i = *(real_vector3d *)&((vehicle_object *)vehicle)->unit.aiming_vector.i;

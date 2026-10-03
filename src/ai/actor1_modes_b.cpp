@@ -1,3 +1,5 @@
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_modes.hpp"
 #include "halo/math/api.hpp"
@@ -126,14 +128,14 @@ uint8_t halo::ai::charge_mode::process()
             }
         } else {
 
-            kind = (int16_t)((actor_flags & 0x20000) && act->combat_status >= 5 && !act->berserking);
+            kind = (int16_t)(halo::ai::flag_set(actor_flags, halo::tags::actor_tag_flag::use_stalking_behavior) && act->combat_status >= 5 && !act->berserking);
             md->stage = kind;
             if (kind == 1) {
                 int16_t target_kind = ((struct actor *)target)->original_squad_index;
                 uint8_t weak = (uint8_t)((target_kind == 0 || target_kind == 1) && (int8_t)(uint8_t)target->aiming_at_actor_class <= 2);
 
                 md->target_weak = weak;
-                md->close_in = (uint8_t)!(weak && (actor_flags & 0x40000));
+                md->close_in = (uint8_t)!(weak && halo::ai::flag_set(actor_flags, halo::tags::actor_tag_flag::stalking_freeze_if_exposed));
                 if (weak) {
                     md->weak_target_ticks += 1;
                 }
@@ -431,7 +433,7 @@ void halo::ai::charge_mode::update()
     if (act->mode_data.charge.stage == 1) {
         act->crouch_decision[0] = (uint8_t)(act->mode_data.charge.stand == 0);
         act->crouch_decision[1] = (uint8_t)(act->mode_data.charge.stand == 0);
-    } else if (!act->crouch_hold && (actor_flags & 0x10000)) {
+    } else if (!act->crouch_hold && halo::ai::flag_set(actor_flags, halo::tags::actor_tag_flag::defensive_crouch_while_charging)) {
         act->crouch_decision[0] = act->crouch_active;
         act->crouch_decision[1] = act->crouch_active;
     } else {
@@ -451,7 +453,7 @@ void halo::ai::charge_mode::update()
         act->mode_data.charge.stage_start_time = halo::game::globals().game_time->game_time;
         act->mode_data.charge.stage_ticks = 0;
     }
-    if (actor_flags & 0x100000) {
+    if (halo::ai::flag_set(actor_flags, halo::tags::actor_tag_flag::berserking_uses_panicked_movement)) {
         if (act->berserking || act->mode_data.charge.stage == 2 || act->mode_data.charge.stage == 3) {
             act->crouch_hold = (uint8_t)(act->mode_data.charge.close_in && !act->crouch_decision[1]);
         }
@@ -1289,7 +1291,7 @@ void halo::ai::guard_mode::update()
     Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     uint32_t actor_flags = actor_tag->flags;
 
-    if ((actor_flags & 0x40) && act->combat_status == 0) {
+    if (halo::ai::flag_set(actor_flags, halo::tags::actor_tag_flag::crouch_when_not_in_combat) && act->combat_status == 0) {
         act->crouch_decision[0] = 1;
         act->crouch_decision[1] = 1;
     } else {
@@ -1297,7 +1299,7 @@ void halo::ai::guard_mode::update()
         if (act->mode_data.guard.ambush_active) {
             act->crouch_decision[0] = act->mode_data.guard.ambush_retreat ? (uint8_t)((actor_flags >> 23) & 1) : 1;
         } else {
-            act->crouch_decision[0] = (uint8_t)((actor_flags & 0x80) && act->combat_status > 0);
+            act->crouch_decision[0] = (uint8_t)(halo::ai::flag_set(actor_flags, halo::tags::actor_tag_flag::crouch_when_guarding) && act->combat_status > 0);
         }
     }
     act->crouch_hold = 0;

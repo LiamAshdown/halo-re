@@ -1,3 +1,5 @@
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/ai/airest_system.hpp"
 
 #include <string.h>
@@ -1056,7 +1058,7 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
                 linked_unit_tag = halo::ai::tag_data<Unit>(linked_object->definition_tag);
 
                 skip_close_check = 0;
-                if ((linked_unit_tag->unit_flags & 0x80000) != 0) { // "inconsequential"
+                if (halo::ai::flag_set(linked_unit_tag->unit_flags, halo::tags::unit_tag_flag::inconsequential)) { // "inconsequential"
                     if (4.0f < p->distance) {
                         skip_close_check = 1;
                     }
