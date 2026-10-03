@@ -15,6 +15,8 @@ static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo:
 static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
 static auto &network_object_index_cache = halo::link::ref<uint8_t []>(halo::units::vars().network_object_index_cache);
 
+namespace halo::units {
+
 namespace unit_spawn_with_starting_weapons_local {
 
 typedef struct vehicle_network_create_message {
