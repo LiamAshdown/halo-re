@@ -52,6 +52,12 @@ order of side effects, replacing CRT/math calls with different library functions
 glm: use for matrix/vector math in new rendering, camera and backend code; in simulation code only where the output is
 proven bit-identical.
 
+### Linkage of the C++ API
+New C++ symbols in `namespace halo::<module>` are allowed (the symbol check accepts mangled `?...@halo@@` additions); the
+original C names must all still exist, and no other new symbol may appear. Classes may therefore live in a normal
+namespace, be defined in cohesive .cpp files and be used by other modules. (items/effects were converted earlier with
+anonymous namespaces to satisfy the stricter first version of the check; that is fine but not required.)
+
 ## 3. Naming and style
 
 snake_case for functions, variables, namespaces and engine types (original names stay greppable); PascalCase for new

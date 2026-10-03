@@ -9,7 +9,8 @@ as the set of external symbols its objects define does not change (C linkage shi
   python tools/check_module_symbols.py check <module> [module ...]
         compiles src/<module>/*.c *.cpp with the project's flags into a scratch dir and compares the defined external
         symbols with symbols/exports/<module>.txt; prints missing and extra symbols; exit code 1 on any difference
-Symbols are the decorated names dumpbin prints (_name, _name@8, ?mangled@@...). Duplicated definitions across files are
+Symbols are the decorated names dumpbin prints (_name, _name@8, ?mangled@@...). Symbols the converted code adds in namespace halo:: (mangled `?...@halo@@...`) are allowed; any other added symbol is an error.
+Duplicated definitions across files are
 not detected here (the link does that)."""
 import glob, os, re, subprocess, sys, tempfile
 from concurrent.futures import ThreadPoolExecutor
@@ -93,9 +94,12 @@ def check(mods):
                     syms |= s
         for src, err in errors:
             print("%s: does not compile: %s" % (os.path.relpath(src, ROOT), "; ".join(err)[:200]))
-        missing, extra = sorted(base - syms), sorted(syms - base)
-        print("%s: %d baseline symbols, %d now, %d missing, %d extra, %d files failing" %
-              (m, len(base), len(syms), len(missing), len(extra), len(errors)))
+        missing = sorted(base - syms)
+        new = syms - base
+        mangled = sorted(s for s in new if s.startswith("?") and "@halo@@" in s)   # new C++ API in namespace halo::
+        extra = sorted(new - set(mangled))
+        print("%s: %d baseline symbols, %d now, %d missing, %d extra, %d new halo:: C++ symbols (allowed), %d files failing" %
+              (m, len(base), len(syms), len(missing), len(extra), len(mangled), len(errors)))
         for s in missing[:40]:
             print("   missing", s)
         for s in extra[:40]:
