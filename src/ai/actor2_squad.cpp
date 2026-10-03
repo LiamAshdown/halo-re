@@ -884,7 +884,7 @@ void ActorView::squad_action_list_process(uint32_t check_object_index, int16_t c
     uint8_t next_action_index;
 
     if ((state->flags & 2) != 0) {
-        goto finish;
+        return;
     }
 
     have_current_entry = state->command_index < (int32_t)list->commands.count;
@@ -907,7 +907,6 @@ void ActorView::squad_action_list_process(uint32_t check_object_index, int16_t c
         have_current_entry = halo::ai::actor_squad_action_execute(aim_state, actor_index, check_object_index, command_list_index, state);
     } while ((state->flags & 4) == 0);
 
-finish:
     if ((state->flags & 2) == 0) {
         *finished_flag = 0;
     }

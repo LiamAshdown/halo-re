@@ -94,6 +94,9 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
         target_actor = halo::ai::actor_at(target_actor_index);
     }
 
+    bool add_direct = false;
+    bool check_radius = false;
+
     if (!controlled) {
         if (target_actor != 0 && (target_actor->active == 0 || target_actor->keep_unit_alive != 0)) {
             return;
@@ -105,7 +108,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
             datum_index encounter_index = self->encounter_index;
 
             if (encounter_index == k_datum_index_none) {
-                goto check_radius;
+                check_radius = true;
             } else {
                 struct encounter *encounter = halo::ai::encounter_at(encounter_index);
                 uint8_t *target_unit = OBJ(target);
@@ -128,9 +131,8 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
                     return;
                 }
                 if (!calm) {
-                    goto check_radius;
-                }
-                if (!(distance_squared < 225.0f)) {
+                    check_radius = true;
+                } else if (!(distance_squared < 225.0f)) {
                     return;
                 }
             }
@@ -148,12 +150,9 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
                 return;
             }
             list = list_friend;
-            goto add;
+            add_direct = true;
         }
-        goto add_by_team;
-
-check_radius:
-        if (!(radius > 0.0f)) {
+        if (!add_direct && check_radius && !(radius > 0.0f)) {
             float limit;
 
             if (enemies && since_fired > 0x96) {
@@ -172,9 +171,9 @@ check_radius:
         }
     }
 
-add_by_team:
-    list = enemies ? list_enemy : list_friend;
-add:
+    if (!add_direct) {
+        list = enemies ? list_enemy : list_friend;
+    }
     if (far_flag) {
         squad_link_add_far(list, target, distance_squared);
         return;

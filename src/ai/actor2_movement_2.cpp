@@ -61,6 +61,10 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
     float delta;
     float scale;
     int16_t *best_saved = &act->avoidance_last_direction;
+    auto publish = [&]() {
+        *out_direction = result;
+        *out_scale = out;
+    };
     int16_t *hold = &act->avoidance_turn_around_ticks;
     int16_t held;
 
@@ -317,7 +321,8 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
             }
             out = t > scale ? t : scale;
             *best_saved = best;
-            goto done;
+            publish();
+            return;
         }
     }
 
@@ -327,7 +332,10 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
         float length;
 
         if (!(closeness > 0.0f)) {
-            goto reset;
+            out = 0.0f;
+            *best_saved = -1;
+            publish();
+            return;
         }
         c = (real_vector3d *)actor_avoidance_circle[best];
         result = *zero;
@@ -354,7 +362,8 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
         }
         out = scale;
         *best_saved = best;
-        goto done;
+        publish();
+        return;
     }
     if (delta > 1.3f) {
         real_vector3d *c = (real_vector3d *)actor_avoidance_circle[best];
@@ -377,15 +386,13 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
             result.i = context.forward.i * w;
             result.j = context.forward.j * w;
             result.k = context.forward.k * w;
-            goto done;
+            publish();
+            return;
         }
     }
-reset:
     out = 0.0f;
     *best_saved = -1;
-done:
-    *out_direction = result;
-    *out_scale = out;
+    publish();
 }
 
 namespace actor_movement_update_local {
