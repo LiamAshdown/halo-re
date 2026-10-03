@@ -1134,7 +1134,6 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
     float dx, dy, dz, distance_squared, distance, score, facing;
     uint32_t walk, previous;
     int16_t self_cluster, player_cluster;
-    int32_t bitmap_row_dwords;
     object *player_object;
     uint8_t trace_scratch[96];
 
@@ -1186,10 +1185,7 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
                         player_cluster = ((object_header *)halo::objects::globals().object_data->data)
                                                           [previous & halo::k_slot_mask].data->location_cluster_index;
                         if (self_cluster != -1 && player_cluster != -1) {
-                        bitmap_row_dwords = (int32_t)(global_structure_bsp_typed->clusters.count + 0x1f) >> 5;
-                        if ((((uint32_t *)(uintptr_t)global_structure_bsp_typed->cluster_data.pointer)
-                                 [bitmap_row_dwords * (int32_t)self_cluster +
-                                  ((int32_t)player_cluster >> 5)] &
+                        if ((halo::ai::cluster_visibility_row(global_structure_bsp_typed, self_cluster)[(int32_t)player_cluster >> 5] &
                              (1u << ((uint8_t)player_cluster & 0x1f))) == 0) {
                             continue;
                         }

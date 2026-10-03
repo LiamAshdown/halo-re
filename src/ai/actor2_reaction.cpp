@@ -921,9 +921,9 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
         halo::ai::actor_queue_search_and_relay_perception(target_prop_index, actor_index);
 
         if (unit->controlling_player != (datum_index)k_datum_index_none) {
-            uint8_t *player = (uint8_t *)halo::game::globals().player_data->data + (unit->controlling_player & halo::k_slot_mask) * 0x200;
-            int32_t unknown_40 = static_cast<int32_t>(((struct player *)player)->observer_target);
-            int32_t unknown_44 = ((struct player *)player)->observer_state;
+            struct player *player = &((struct player *)halo::game::globals().player_data->data)[unit->controlling_player & halo::k_slot_mask];
+            int32_t unknown_40 = static_cast<int32_t>(player->observer_target);
+            int32_t unknown_44 = player->observer_state;
 
             if (unknown_40 != -1 && (int32_t)halo::game::globals().game_time->game_time <= unknown_44 + 0x5a) {
                 object *player_unit = halo::ai::object_at(unknown_40);

@@ -271,15 +271,15 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
             }
             if (look_prop == k_datum_index_none) {
                 data_iterator players;
-                uint8_t *player;
+                struct player *player;
                 float best = 3.4028235e38f;
 
                 players.data = halo::game::globals().player_data;
                 players.next_index = 0;
                 players.index = k_datum_index_none;
                 players.signature = (uint32_t)(uintptr_t)halo::game::globals().player_data ^ halo::ai::k_iterator_signature_key;
-                for (player = (uint8_t *)halo::memory::data_iterator_next(&players); player != 0; player = (uint8_t *)halo::memory::data_iterator_next(&players)) {
-                    datum_index player_unit = ((struct player *)player)->unit;
+                for (player = (struct player *)halo::memory::data_iterator_next(&players); player != 0; player = (struct player *)halo::memory::data_iterator_next(&players)) {
+                    datum_index player_unit = player->unit;
 
                     if (player_unit != k_datum_index_none) {
                         real_point3d eye;

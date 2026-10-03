@@ -120,6 +120,14 @@ static_assert(sizeof(ModelAnimationsAnimationGraphUnitSeat) == 0x64 && offsetof(
 static_assert(offsetof(ModelAnimations, units) == 0xc);
 static_assert(offsetof(Object, animation_graph) == 0x38);
 
+/** The visibility bit row of `cluster` in the structure bsp's cluster data: one bit per cluster, rows of (cluster count + 31) / 32 words. */
+inline uint32_t *cluster_visibility_row(const ScenarioStructureBSP *bsp, int32_t cluster)
+{
+    int32_t row_words = (static_cast<int32_t>(bsp->clusters.count) + 0x1f) >> 5;
+
+    return reinterpret_cast<uint32_t *>(static_cast<uintptr_t>(bsp->cluster_data.pointer)) + row_words * cluster;
+}
+
 /** The structure bsp a path search or obstacle search context traces in (the contexts store its address in a 32 bit field). */
 inline ScenarioStructureBSP *structure_bsp_of(const path_find_context &context)
 {

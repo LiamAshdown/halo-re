@@ -720,8 +720,7 @@ void ActorView::target_scan_potential_targets()
     if (!self->swarm) {
         int16_t cluster_ref = self->location.cluster_index;
         if (cluster_ref != -1) {
-            pvs_bitmap = (uint32_t *)((uint8_t *)halo::scenario::globals().structure_bsp->cluster_data.pointer +
-                                       row_dwords * cluster_ref * 4);
+            pvs_bitmap = halo::ai::cluster_visibility_row(halo::scenario::globals().structure_bsp, cluster_ref);
         }
     } else {
         swarm *sw = &((swarm *)halo::ai::globals().swarm_data->data)[self->swarm_index & halo::k_slot_mask];
@@ -738,8 +737,7 @@ void ActorView::target_scan_potential_targets()
             if (cluster != -1) {
                 int32_t j;
                 for (j = row_dwords - 1; j >= 0; j--) {
-                    swarm_pvs[j] |= *(uint32_t *)((uint8_t *)halo::scenario::globals().structure_bsp->cluster_data.pointer +
-                                                   row_dwords * cluster * 4 + j * 4);
+                    swarm_pvs[j] |= halo::ai::cluster_visibility_row(halo::scenario::globals().structure_bsp, cluster)[j];
                 }
                 any = 1;
             }
