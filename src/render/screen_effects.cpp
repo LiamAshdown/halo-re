@@ -73,7 +73,7 @@ static auto &frame_statistics_dropped = halo::link::ref<uint8_t [60]>(halo::rend
 static auto &frame_statistics_count = halo::link::ref<int16_t>(halo::render::vars().frame_statistics_count);
 static auto &lens_flare_current_key = halo::link::ref<lens_flare_batch_key>(halo::rasterizer::vars().lens_flare_current_key);
 static auto &lens_flare_vertex_specular = halo::link::ref<uint32_t>(halo::rasterizer::vars().lens_flare_vertex_specular);
-static auto &rasterizer_frustum_z_values = halo::link::ref<uint32_t [2]>(halo::rasterizer::vars().rasterizer_frustum_z_values);
+static auto &rasterizer_frustum_z_values = halo::link::ref<float [2]>(halo::rasterizer::vars().rasterizer_frustum_z_values);
 
 /**
  * Returns the clamped 0..1 progress of the current game time between start_time and end_time, or 1 when they are equal.
@@ -867,11 +867,11 @@ void cinematic_screen_effect_update(rasterizer_frame_time *time_source)
     if (halo::rasterizer::globals().default_z_far == 0.0f) {
         halo::rasterizer::globals().default_z_far = 1024.0f;
     }
-    if (*(float *)&rasterizer_frustum_z_values[0] == 0.0f) {
-        *(float *)&rasterizer_frustum_z_values[0] = 0.01171875f;
+    if (rasterizer_frustum_z_values[0] == 0.0f) {
+        rasterizer_frustum_z_values[0] = 0.01171875f;
     }
-    if (*(float *)&rasterizer_frustum_z_values[1] == 0.0f) {
-        *(float *)&rasterizer_frustum_z_values[1] = 1024.0f;
+    if (rasterizer_frustum_z_values[1] == 0.0f) {
+        rasterizer_frustum_z_values[1] = 1024.0f;
     }
     halo::rasterizer::chimera__cinematic_screen_effect(time_source);
 }

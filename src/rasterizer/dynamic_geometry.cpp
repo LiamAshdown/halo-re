@@ -731,7 +731,7 @@ void rasterizer_geometry_part_draw(transparent_geometry_group *group)
         rasterizer_transparent_geometry_group_draw_vertices(group, 0);
     }
     if ((int8_t)group->flags < 0 && group->parameters.mode == 1) {
-        chimera__rasterizer_set_frustum_z_func(0, 0);
+        chimera__rasterizer_set_frustum_z_func(0.0f, 0.0f);
     }
 }
 

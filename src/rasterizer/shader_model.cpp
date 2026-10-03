@@ -281,7 +281,7 @@ void rasterizer_model_draw_restore_states(void)
 
     if ((int8_t)context->flags < 0 && halo::rasterizer::fields::model_draw_mode == 0) {
         rasterizer_set_shader_stage_config(2);
-        chimera__rasterizer_set_frustum_z_func(0, 0);
+        chimera__rasterizer_set_frustum_z_func(0.0f, 0.0f);
     }
 
     if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1 && (context->flags & _model_draw_fixed_function_fog_bit) != 0) {

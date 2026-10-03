@@ -694,7 +694,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
         }
         if (group->flags & 8) {
             if (rasterizer_window.type == 1) {
-                chimera__rasterizer_set_frustum_z_func(halo::bit_cast<uint32_t>(k_decal_frustum_z_near), halo::bit_cast<uint32_t>(k_decal_frustum_z_far));
+                chimera__rasterizer_set_frustum_z_func(k_decal_frustum_z_near, k_decal_frustum_z_far);
             }
             set_render_state(halo::d3d9::rs::z_enable, 0);
         } else {
@@ -767,10 +767,10 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
         }
 
         if ((group->flags & 8) && rasterizer_window.type == 1) {
-            chimera__rasterizer_set_frustum_z_func(0, 0);
+            chimera__rasterizer_set_frustum_z_func(0.0f, 0.0f);
         }
         if ((int8_t)group->flags < 0 && group->parameters.mode == 1) {
-            chimera__rasterizer_set_frustum_z_func(0, 0);
+            chimera__rasterizer_set_frustum_z_func(0.0f, 0.0f);
         }
         rasterizer_clear_decal_zbias();
     }
@@ -987,7 +987,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
     }
 
     if ((int8_t)group->flags < 0) {
-        chimera__rasterizer_set_frustum_z_func(0, 0);
+        chimera__rasterizer_set_frustum_z_func(0.0f, 0.0f);
     }
 }
 
@@ -1378,7 +1378,7 @@ void transparent_geometry_group_draw_all(uint8_t resort)
     } while (cursor < transparent_geometry_group_count);
 
     if (applied_frustum_z != 0) {
-        chimera__rasterizer_set_frustum_z_func(0, 0);
+        chimera__rasterizer_set_frustum_z_func(0.0f, 0.0f);
     }
 }
 

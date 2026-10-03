@@ -225,7 +225,7 @@ void lens_flare_render_all(void)
         return;
     }
     if (lens_flare_occlusion_queries_supported != 1) {
-        chimera__rasterizer_set_frustum_z_func(halo::bit_cast<uint32_t>(k_lens_flare_frustum_z_near), halo::bit_cast<uint32_t>(k_lens_flare_frustum_z_far));
+        chimera__rasterizer_set_frustum_z_func(k_lens_flare_frustum_z_near, k_lens_flare_frustum_z_far);
     }
     rasterizer_lens_flare_batching_select_mode(5, 0);
 
@@ -396,7 +396,7 @@ void lens_flare_render_all(void)
 
     rasterizer_set_shader_stage_config(0);
     if (lens_flare_occlusion_queries_supported != 1) {
-        chimera__rasterizer_set_frustum_z_func(0, 0);
+        chimera__rasterizer_set_frustum_z_func(0.0f, 0.0f);
     }
     rasterizer_lens_flare_batch_flush_all();
 

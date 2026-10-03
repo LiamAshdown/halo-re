@@ -82,7 +82,7 @@ namespace chimera__rasterizer_set_frustum_z_func_impl {
  *
  * @address 0x518f40
  */
-void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far)
+void chimera__rasterizer_set_frustum_z_func(float z_near, float z_far)
 {
     const float *view = &rasterizer_window.frustum.world_to_view.forward.i;
     const float *projection = &rasterizer_window.frustum.projection[0][0];
@@ -90,7 +90,7 @@ void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far)
     float rows_1b[2][4];
     int32_t i, j;
 
-    halo::render::render_camera_projection_zrange_push_pop_set(&rasterizer_window.frustum, halo::bit_cast<float>(z_near), halo::bit_cast<float>(z_far));
+    halo::render::render_camera_projection_zrange_push_pop_set(&rasterizer_window.frustum, z_near, z_far);
 
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {
@@ -205,7 +205,7 @@ void rasterizer_begin_frame(rasterizer_window_parameters *source)
         }
     }
 
-    chimera__rasterizer_set_frustum_z_func(k_float_bits_minus_one, k_float_bits_minus_one);
+    chimera__rasterizer_set_frustum_z_func(-1.0f, -1.0f);
 
     render_device().set_render_state(halo::d3d9::rs::fill_mode, 3 - (uint32_t)(halo::rasterizer::fields::rasterizer_wireframe != 0));
 }

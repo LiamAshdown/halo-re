@@ -198,7 +198,7 @@ using rasterizer_geometry_draw_fixed_function_impl::rasterizer_geometry_draw_fix
 namespace rasterizer_geometry_part_draw_impl { void rasterizer_geometry_part_draw(transparent_geometry_group *group); }
 using rasterizer_geometry_part_draw_impl::rasterizer_geometry_part_draw;
 void chimera__rasterizer_set_framebuffer_blend_function(int16_t mode);
-namespace chimera__rasterizer_set_frustum_z_func_impl { void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far); }
+namespace chimera__rasterizer_set_frustum_z_func_impl { void chimera__rasterizer_set_frustum_z_func(float z_near, float z_far); }
 using chimera__rasterizer_set_frustum_z_func_impl::chimera__rasterizer_set_frustum_z_func;
 void display_mode_get_current(rasterizer_display_mode *out);
 void rasterizer_begin_frame(rasterizer_window_parameters *source);
