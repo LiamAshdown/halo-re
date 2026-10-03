@@ -73,7 +73,7 @@ extern uint32_t connect_address;
 extern void main_loop(void);
 extern void network_session_host_start_info_set(char *game_name, char *secret_key, char *ip_address, int32_t port);
 
-extern large_integer performance_frequency;
+
 extern char profile_directory[0x105];
 extern uint8_t console_debug_flag_0;
 extern uint8_t error_file_enabled;
@@ -119,7 +119,7 @@ uint8_t EngineLifecycle::initialize()
     uint32_t startup_ok;
 
     timeBeginPeriod(1);
-    QueryPerformanceFrequency((LARGE_INTEGER *)&performance_frequency);
+    QueryPerformanceFrequency((LARGE_INTEGER *)&halo::cseries::globals().performance_frequency);
 
     for (i = 0; i < 0x105; i++) {
         profile_directory[i] = 0;

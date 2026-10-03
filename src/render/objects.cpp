@@ -14,6 +14,7 @@
 #include "cutscene.h"
 #include "shaders.h"
 #include "render.h"
+#include "camera.h"
 #include <stdint.h>
 #include "halo/render/render.hpp"
 #include "halo/math/api.hpp"
@@ -47,9 +48,6 @@ extern data_array *player_data;
 extern render_fog render_fog_state;
 extern int8_t widget_list_has_flag(datum_index first_widget);
 extern int16_t current_local_player_index;
-extern uint8_t camera_script;
-extern int16_t director_camera_mode;
-extern datum_index director_camera_target;
 extern render_camera render_camera_global;
 extern uint8_t render_debug_objects;
 extern void object_type_definitions_notify_0x5c(uint32_t object_index);
@@ -879,7 +877,7 @@ uint8_t _is_camera_unit(datum_index object)
     if (local_unit == object && ((int16_t (*)(int16_t player_index))halo::camera::camera_get_type_for_player)(local_player_index) == 0) {
         return 1;
     }
-    if (camera_script != 0 && director_camera_mode == 2 && director_camera_target == object) {
+    if (halo::camera::globals().camera_script.camera_control != 0 && halo::camera::globals().camera_script.mode == 2 && halo::camera::globals().camera_script.object == object) {
         return 1;
     }
     return 0;

@@ -1,4 +1,5 @@
 #include "halo/hs/hs1_camera_commands.hpp"
+#include "camera.h"
 #include "halo/sound/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/camera/api.hpp"
@@ -8,9 +9,6 @@ extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern int16_t director_camera_mode;
-extern uint8_t unknown_006869d1;
-extern datum_index director_camera_target;
 extern float camera_script_time_remaining;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t network_join_error_reason;
@@ -85,9 +83,9 @@ void CameraCommands::camera_set_dead(int16_t function_index, uint32_t thread_ind
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != 0xffffffff) {
-            director_camera_mode = 3;
-            unknown_006869d1 = 1;
-            director_camera_target = (datum_index)arguments[0];
+            halo::camera::globals().camera_script.mode = 3;
+            halo::camera::globals().camera_script.changed = 1;
+            halo::camera::globals().camera_script.object = (datum_index)arguments[0];
         }
         hs_thread_return(0, thread_index);
     }
@@ -106,9 +104,9 @@ void CameraCommands::camera_set_first_person(int16_t function_index, uint32_t th
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != 0xffffffff) {
-            director_camera_mode = 2;
-            unknown_006869d1 = 1;
-            director_camera_target = (datum_index)arguments[0];
+            halo::camera::globals().camera_script.mode = 2;
+            halo::camera::globals().camera_script.changed = 1;
+            halo::camera::globals().camera_script.object = (datum_index)arguments[0];
         }
         hs_thread_return(0, thread_index);
     }

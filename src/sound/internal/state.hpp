@@ -12,6 +12,7 @@
 #include <string.h>
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern data_array *game_looping_sound_data;
@@ -23,7 +24,7 @@ extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
 extern SoundEnvironment sound_environment;
 extern uint32_t sound_cluster_audible_bitmap[k_sound_cluster_bitmap_words];
-extern int64_t performance_frequency;
+
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_get_root_location(int32_t *out, uint32_t object_index);
 extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker, uint32_t flags);

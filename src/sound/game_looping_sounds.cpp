@@ -19,7 +19,7 @@ int32_t game_sound_update_now_ms(void)
 {
     large_integer counter;
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    return (int32_t)((counter.quad_part * 1000) / performance_frequency);
+    return (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 }
 
 }  // namespace
