@@ -18,7 +18,7 @@ static void widen(uint16_t *out, const char *in)
 {
     int32_t length = (int32_t)strlen(in);
 
-    if (length * 2 + 2 > 0x200) {
+    if (length * 2 + 2 > halo::interface::k_long_text_chars) {
         length = 0xff;
     }
     out[length] = 0;
@@ -51,12 +51,12 @@ uint8_t CheckpointListRows::add_row(int32_t index, const char *name, int32_t lev
     *(int32_t *)(record + 0x04) = difficulty;
     strcpy((char *)(record + 0x48), name);
 
-    GetTimeFormatA(0x400, 0xc, (const SYSTEMTIME *)time, 0, text, 0x10);
+    GetTimeFormatA(halo::interface::k_locale_user_default, halo::interface::k_time_format_hours_minutes_24, (const SYSTEMTIME *)time, 0, text, 0x10);
     widen(wide, text);
     wide[12] = 0;
     wcscpy((wchar_t *)(record + 0x08), (const wchar_t *)wide);
     wcscat((wchar_t *)(record + 0x08), L"|n");
-    GetDateFormatA(0x400, 1, (const SYSTEMTIME *)time, 0, text, 0x10);
+    GetDateFormatA(halo::interface::k_locale_user_default, halo::interface::k_date_format_short, (const SYSTEMTIME *)time, 0, text, 0x10);
     widen(wide, text);
     wide[12] = 0;
     wcscat((wchar_t *)(record + 0x08), (const wchar_t *)wide);

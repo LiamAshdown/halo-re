@@ -37,7 +37,7 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
     UnicodeStringList *strings =
         (UnicodeStringList *)halo::cache::globals().tag_instances[tag->text_label_unicode_strings_list.tag_id.index].data;
     int32_t string_count = strings->strings.count;
-    int32_t bottom = 0x1ae;
+    int32_t bottom = halo::interface::k_base_screen_height - 50;
     int32_t message_index = -1;
     large_integer counter;
     int32_t now_ms;
@@ -65,7 +65,7 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
                     i--;
                 }
             }
-            if (bottom > 0x1ae) {
+            if (bottom > halo::interface::k_base_screen_height - 50) {
                 goto draw;
             }
         }
@@ -102,7 +102,7 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
                 }
             }
             bottom += halo::interface::hud_text_message_queue_add(text, bottom, message_index);
-        } while (bottom <= 0x1ae);
+        } while (bottom <= halo::interface::k_base_screen_height - 50);
     }
 
 draw:
@@ -113,7 +113,7 @@ draw:
 
         clip.top = 0x32;
         clip.left = 0;
-        clip.bottom = 0x1ae;
+        clip.bottom = halo::interface::k_base_screen_height - 50;
         clip.right = halo::interface::k_base_screen_width;
         dest.left = 0;
         dest.right = halo::interface::k_base_screen_width;
@@ -125,7 +125,7 @@ draw:
             dest.top = (int16_t)entry->start_time;
             hud_text_draw_font_tag_id = *(int32_t *)&((struct UIWidgetDefinition *)tag)->text_font.tag_id;
             halo::text::globals().hud_text_draw_color_a = *color;
-            hud_text_draw_color_or_flags = 0x0002ffff;
+            hud_text_draw_color_or_flags = halo::k_word_none | (2u << 16);
             hud_text_draw_unknown_4730 = 0;
             halo::rasterizer::chimera__draw_16_bit_text(&clip, (int32_t *)&dest, 0, 0, (const int16_t *)entry->text);
         }

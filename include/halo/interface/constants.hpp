@@ -50,6 +50,23 @@ inline constexpr int32_t k_chat_property_select_range = 0x201;
 /** Age in milliseconds after which a LAN server list entry no longer counts as live. */
 inline constexpr int32_t k_server_entry_stale_ms = 6000;
 
+/** Win32 values the interface passes straight to the platform: the user default locale, the 24 hour hours-and-minutes time format, the short date format, and the key message ids. */
+inline constexpr uint32_t k_locale_user_default = 0x400;
+inline constexpr uint32_t k_time_format_hours_minutes_24 = 0xc;
+inline constexpr uint32_t k_date_format_short = 1;
+inline constexpr uint32_t k_wm_keydown = 0x100;
+inline constexpr uint32_t k_wm_char = 0x102;
+
+/** Console line buffer sizes, and the tab stops and box width the console echo lines are drawn with. */
+inline constexpr int k_console_line_chars = 260;
+inline constexpr int k_console_input_line_chars = 286;
+inline constexpr uint32_t k_console_echo_tab_stops = 0x014000a0;
+inline constexpr uint32_t k_console_echo_box_width = 0x1d6;
+
+/** Mask of the frame number bits of a bitmap sequence frame index, and the signature the object iterator walk records carry. */
+inline constexpr uint32_t k_frame_index_mask = 0x7fff;
+inline constexpr uint32_t k_object_walk_signature = 0x86868686;
+
 /** Alpha byte of a fully opaque packed ARGB colour. */
 inline constexpr uint32_t k_argb_alpha_opaque = 0xff000000;
 

@@ -11,6 +11,7 @@
 #include "halo/text/text.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern int32_t ROUND(float x);
@@ -82,13 +83,13 @@ void HudDraw::anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_sca
 
     if ((int16_t)anchor_value < 4) {
         x = (float)((((anchor_value & 1) == 0) ? 1 : -1) * (int32_t)offset[0]) * scale +
-            (float)((((anchor_value & 1) != 0) ? 0x270 : 0) + 8);
+            (float)((((anchor_value & 1) != 0) ? halo::interface::k_base_screen_width - 16 : 0) + 8);
         y = (float)((((anchor_value & 2) == 0) ? 1 : -1) * (int32_t)offset[1]) * scale +
-            (float)((((anchor_value & 2) != 0) ? 0x1d8 : 0) + 8);
+            (float)((((anchor_value & 2) != 0) ? halo::interface::k_base_screen_height - 8 : 0) + 8);
     } else {
         int16_t offset_x = (int16_t)(render_viewport_top >> 16);
         int16_t offset_y = (int16_t)render_viewport_top;
-        x = (float)(int32_t)offset[0] * scale + (float)(0x140 - offset_x);
+        x = (float)(int32_t)offset[0] * scale + (float)(halo::interface::k_base_screen_width / 2 - offset_x);
         y = (float)(int32_t)offset[1] * scale + (float)(0xf0 - offset_y);
     }
 
@@ -453,13 +454,13 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
         case 0: {
             datum_index player_index = hud_local_player_index_to_player(local_player_index);
             datum_index unit_index = (datum_index)-1;
-            const float *aim;
+            const real_vector3d *aim;
 
             if (player_index != (datum_index)-1) {
                 unit_index = (halo::interface::player_record(player_index))->unit;
             }
-            aim = (const float *)(halo::interface::object_record(unit_index) + 0x23c);
-            value = atan2f(aim[2], sqrtf(aim[0] * aim[0] + aim[1] * aim[1]));
+            aim = &halo::interface::object_record<unit_object>(unit_index)->unit.aiming_vector;
+            value = atan2f(aim->k, sqrtf(aim->i * aim->i + aim->j * aim->j));
             break;
         }
         case 1:

@@ -11,6 +11,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/flags.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern hud_waypoint_state *hud_waypoints;
@@ -287,7 +288,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
 
     halo::math::matrix4x3_transform_point(point, point, halo::render::globals().camera_world_to_view);
     if (visibility != 1 && halo::render::render_project_world_point_to_screen(&screen, &point, (render_frustum *)render_frustum_global, (render_camera *)render_camera_global) != 0) {
-        x = screen.x - (float)(halo::render::globals().viewport_left + 0x140);
+        x = screen.x - (float)(halo::render::globals().viewport_left + halo::interface::k_base_screen_width / 2);
         y = screen.y - (float)(render_viewport_top + 0xf0);
     } else {
         x = point.x;

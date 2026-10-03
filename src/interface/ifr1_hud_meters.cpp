@@ -275,7 +275,7 @@ void HudMeters::resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_in
             BitmapGroupSequence *group = (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer + sequence;
             int32_t sprite_count = (int32_t)group->sprites.count;
 
-            frame &= 0x7fff;
+            frame &= halo::interface::k_frame_index_mask;
             if (sprite_count != 0) {
                 BitmapGroupSprite *sprite = (BitmapGroupSprite *)group->sprites.pointer + (int16_t)frame % sprite_count;
 

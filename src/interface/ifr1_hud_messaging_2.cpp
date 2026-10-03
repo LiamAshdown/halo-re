@@ -10,6 +10,7 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "tags.h"
+#include "halo/interface/flags.hpp"
 
 extern "C" {
 extern uint8_t *hud_messaging;
@@ -50,6 +51,7 @@ void HudMessaging::receive_item_message(void **message)
     data_iterator iterator;
     player *p;
     int16_t *item_tag;
+    Equipment *equipment_tag;
     datum_index sound;
 
     if (*(int32_t *)*message != 0) {
@@ -76,24 +78,25 @@ void HudMessaging::receive_item_message(void **message)
     halo::interface::hud_add_item_message(p->local_player_index, payload.item_definition, payload.kind, payload.count);
     item_tag = halo::interface::tag_data<int16_t>(payload.item_definition);
     if (item_tag[0] == 3) {
-        switch (*(int16_t *)((uint8_t *)item_tag + 0x308)) {
-        case 2:
+        equipment_tag = (Equipment *)item_tag;
+        switch (equipment_tag->powerup_type) {
+        case equipmentpoweruptype_over_shield:
             halo::game::player_trigger_shield_recharge_effect(iterator.index);
             if (halo::networking::globals().game_mode == 1) {
                 object *unit = halo::objects::object_try_and_get(p->unit, 1);
                 if (unit != 0) {
-                    *((uint8_t *)unit + 0x106) |= 0x10;
+                    unit->vitality_flags |= (uint16_t)halo::to_bits(halo::objects::vitality_flag::shield_recharging);
                 }
             }
             break;
-        case 3:
+        case equipmentpoweruptype_active_camouflage:
             halo::game::player_trigger_kill_streak_effect(iterator.index);
             break;
-        case 5:
+        case equipmentpoweruptype_health:
             halo::game::player_trigger_full_health_effect(iterator.index);
             break;
         }
-        sound = *(datum_index *)((uint8_t *)item_tag + 0x31c);
+        sound = *(datum_index *)&equipment_tag->pickup_sound.tag_id;
     } else if (item_tag[0] == 2 && item_tag != 0) {
         sound = halo::interface::tag_handle(((struct Weapon *)item_tag)->pickup_sound.tag_id);
     } else {

@@ -11,6 +11,7 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/flags.hpp"
 
 extern "C" {
 extern int16_t current_local_player_index;

@@ -99,7 +99,7 @@ void ConsoleTerminal::out(ColorARGB *color, char *format, va_list args)
  */
 void ConsoleTerminal::out_copy(char *text)
 {
-    char line[0x104];
+    char line[halo::interface::k_console_line_chars];
     uint32_t chars_written;
     uint32_t length;
 
@@ -110,7 +110,7 @@ void ConsoleTerminal::out_copy(char *text)
     }
     if (halo::main::globals().console_win32_attached != 0) {
         line[0] = '\0';
-        strncpy(line, text, 0x100);
+        strncpy(line, text, halo::interface::k_text_buffer_chars);
         halo::interface::string_replace_all_in_place(line, console_echo_prefix, state::console_tab_text);
         halo::interface::string_replace_all_in_place(line, state::console_newline_escape, state::console_newline_text);
         length = strlen(line);
@@ -202,14 +202,14 @@ void ConsoleTerminal::close(terminal_console *console)
  */
 void ConsoleTerminal::draw_input_line(void)
 {
-    char line[0x11e];
+    char line[halo::interface::k_console_input_line_chars];
     win32_console_screen_buffer_info info;
     win32_coord bottom_left;
     uint32_t written;
     uint32_t length;
 
     if (halo::main::globals().console_win32_attached != 0 && halo::main::globals().console_active != (terminal_console *)0) {
-        _snprintf(line, 0x11e, "%s %s", console_window_title, halo::main::globals().console_active->input);
+        _snprintf(line, halo::interface::k_console_input_line_chars, "%s %s", console_window_title, halo::main::globals().console_active->input);
         strcpy(line + strlen(console_window_title), halo::main::globals().console_active->input);
         if (GetConsoleScreenBufferInfo(console_output_handle, &info) != 0) {
             bottom_left.X = 0;
@@ -312,8 +312,8 @@ void ConsoleTerminal::draw_overlay(void)
             y = y - line_height;
             if (message->is_command_echo != 0) {
                 halo::text::globals().hud_text_draw_background_mode = 3;
-                text_tab_stops = 0x014000a0;
-                hud_text_draw_box_field_474e = 0x000001d6;
+                text_tab_stops = halo::interface::k_console_echo_tab_stops;
+                hud_text_draw_box_field_474e = halo::interface::k_console_echo_box_width;
             }
             hud_text_draw_color_or_flags = halo::k_word_none;
             halo::text::globals().hud_text_draw_column = 0;
@@ -538,8 +538,8 @@ void ConsoleTerminal::process_input_events(void)
         if (ReadConsoleInputA(console_input_handle, (PINPUT_RECORD)&record, 1, (LPDWORD)&events_read) != 0 &&
             record.EventType == 1) {
             if (record.KeyEvent.bKeyDown != 0) {
-                halo::input::DirectInput::record_windows_key_message(record.KeyEvent.wVirtualKeyCode, 0x100);
-                halo::input::DirectInput::record_windows_key_message(record.KeyEvent.uChar, 0x102);
+                halo::input::DirectInput::record_windows_key_message(record.KeyEvent.wVirtualKeyCode, halo::interface::k_wm_keydown);
+                halo::input::DirectInput::record_windows_key_message(record.KeyEvent.uChar, halo::interface::k_wm_char);
             }
         }
     }

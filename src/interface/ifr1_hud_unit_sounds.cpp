@@ -9,6 +9,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/flags.hpp"
 
 extern "C" {
 extern data_array *game_looping_sound_data;
@@ -144,7 +145,7 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
             if (health < 0.25f) {
                 mask |= 0x10;
             }
-            if ((unit[0x106] & 4) != 0) {
+            if (halo::interface::has_bit(((object *)unit)->vitality_flags, halo::objects::vitality_flag::health_frozen)) {
                 mask |= 0x20;
             }
             if (state->displayed_health > health && state->displayed_health - health < 0.1875f) {
