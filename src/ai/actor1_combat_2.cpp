@@ -16,10 +16,6 @@ extern double sqrt(double x);
 
 extern const real_vector3d *global_down3d_pointer;
 
-extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta,
-    uint32_t exclude_object, void *result);
-extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target,
-    uint32_t flags, uint32_t exclude_object_index, void *result);
 }
 }
 

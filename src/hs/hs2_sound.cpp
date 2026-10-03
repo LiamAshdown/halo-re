@@ -19,8 +19,6 @@ extern float sound_effects_gain;
 extern float *hs_sound_get_gain_reference(char *name);
 extern float sound_master_gain;
 extern int16_t sound_supplementary_buffers_00746122;
-extern void sound_impulse_start(datum_index object_index, datum_index definition_index, float scale);
-extern void sound_impulse_fade_out(datum_index sound_index);
 extern game_time_globals *game_time;
 #ifdef __cplusplus
 }

@@ -41,7 +41,6 @@ extern int32_t conversation_line_base;
 extern ai_communication_event_definition ai_communication_event_definitions[];
 extern float ai_communication_class_repeat_delay[];
 extern data_array *player_data;
-extern int8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 extern real DAT_00655ab4[];
 extern real DAT_00656b24[];
 extern game_engine_definition *current_game_engine;

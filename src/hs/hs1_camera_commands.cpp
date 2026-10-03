@@ -18,8 +18,6 @@ extern datum_index director_camera_target;
 extern float camera_script_time_remaining;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t network_join_error_reason;
-extern void cinematic_screen_effect_set_convolution(int16_t convolution_type, int16_t extra_passes, float radius_lower_bound, float radius_upper_bound, float duration);
-extern void cinematic_screen_effect_set_filter(float light_enhancement_lower, float light_enhancement_upper, float desaturation_lower, float desaturation_upper, uint8_t is_additive, float duration);
 extern uint8_t *cinematic_screen_effect_state;
 extern game_time_globals *game_time;
 }

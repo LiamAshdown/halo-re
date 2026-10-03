@@ -907,8 +907,6 @@ uint8_t actor_grenade_behavior_kind_allowed(datum_index actor_index, int16_t kin
 
 namespace c_actor_grenade_parabolic_path_clear {
 extern "C" {
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta,
-                             uint32_t exclude_object, void *scratch);
 }
 }
 

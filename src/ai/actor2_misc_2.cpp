@@ -73,8 +73,6 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t *team_pair_data;
 extern const real_point3d *global_zero_vector3d_pointer;
 extern char ai_marker_name_b[];
-extern uint8_t halo::scenario::scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
-    int16_t *weather_index_out);
 #define A_U8(offset) (*(uint8_t *)(self + (offset)))
 #define A_I16(offset) (*(int16_t *)(self + (offset)))
 #define A_I32(offset) (*(int32_t *)(self + (offset)))

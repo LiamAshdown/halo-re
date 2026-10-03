@@ -522,7 +522,6 @@ extern double cos(double x);
 extern double sin(double x);
 extern double sqrt(double x);
 
-extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 }
 }
 

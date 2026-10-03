@@ -670,9 +670,6 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
 
 namespace actor_squad_action_is_complete_local {
 extern "C" {
-extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
-extern uint32_t unit_get_biped_specific_value(uint32_t object_index);
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }

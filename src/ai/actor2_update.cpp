@@ -81,7 +81,6 @@ extern double fsin(double x);
 extern double ftan(double x);
 extern int32_t fistp_round(float x);
 extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
-extern float weapon_trigger_get_average_damage(datum_index weapon_tag_id, float *out_max_rate_of_fire);
 static float aim_wander_random_fraction(void)
 {
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);

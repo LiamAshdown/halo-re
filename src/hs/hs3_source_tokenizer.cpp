@@ -23,15 +23,6 @@ typedef struct rebuild_file_reference {
 rebuild_file_reference;
 
 extern "C" {
-extern uint8_t file_reference_exists(rebuild_file_reference *ref);
-extern void file_enumerate_start(uint32_t flags, rebuild_file_reference *ref);
-extern uint8_t file_enumerate_find_next(rebuild_file_reference *out_entry, uint32_t *out_write_time);
-extern void path_append_component(char *destination, const char *component);
-extern void path_remove_last_component(char *path);
-extern void path_build_full(char *source, char *destination, int16_t location);
-extern void path_split_components(char **dir_start_out, char *path, char **ext_fallback_out,
-    char **name_end_out, char **ext_start_out, uint8_t split_extension);
-extern int32_t file_reference_compare_full_path(const void *a, const void *b);
 extern char *hs_compiled_source;
 extern int32_t hs_compiled_source_length;
 extern void hs_tokenize_primitive(char **cursor, datum_index node_index);

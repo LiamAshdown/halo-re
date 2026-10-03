@@ -100,8 +100,6 @@ extern "C" {
 extern game_time_globals *game_time;
 extern char ai_marker_name_a[];
 extern char ai_marker_name_b[];
-extern uint8_t halo::scenario::scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
-    int16_t *weather_index_out);
 }
 }
 

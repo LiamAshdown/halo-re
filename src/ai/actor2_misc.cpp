@@ -671,7 +671,6 @@ extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern network_client_globals *network_client;
 extern void player_update_history_free_all(void *history);
-extern void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key);
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
 #define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask])
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
