@@ -141,41 +141,32 @@ void GameRuntime::broadcast_team_object_updates(int32_t *object_count, uint32_t 
 }
 
 /**
- * Applies one position/orientation delta record from `packet` onto `object`, but only if the
- * packet's tick is not older than the last one recorded in `state`, its delta-item count is 0
- * or 1, and `state`'s machine-index slot resolves (through machine_to_player and player_data)
- * to a player that currently has a live unit.
+ * Queues the control record carried by `packet` for the machine's player on the host. The packet is
+ * dropped when its update id (low 31 bits) is older than the last one accepted from the machine, when
+ * it claims more than one action, or when the machine has no player with a live unit. On success the
+ * action goes to update_server_queue_push_history, the accepted id is stored in the machine, and
+ * the player's pending interaction mask (unknown_11c) takes the action's control flags & 0x4d0.
  *
  * @address 0x4dff70
  */
-void GameRuntime::client_apply_position_update(uint8_t *state, uint32_t *packet, void *tick_count, void *object)
+void GameRuntime::client_apply_position_update(network_machine *machine, const client_position_packet *packet,
+    int32_t tick_count, uint32_t history_byte)
 {
-    int16_t delta_count;
-    uint32_t delta[16];
-    int32_t i;
-    uint32_t *src;
+    uint32_t action[8] = {};
     datum_index player_datum;
     player *plr;
 
-    if (*(uint32_t *)(state + 4) > (*packet & 0x7fffffff)) {
+    if (machine->last_update_id > (packet->update_id & 0x7fffffff)) {
         return;
     }
-    delta_count = *(int16_t *)((uint8_t *)packet + 6);
-    if (delta_count < 0 || delta_count >= 2) {
+    if (packet->action_count < 0 || packet->action_count > 1) {
         return;
     }
-
-    for (i = 0; i < 8; i = i + 1) {
-        delta[i] = 0;
-    }
-    if (delta_count > 0) {
-        src = packet + 2;
-        for (i = 0; i < 8; i = i + 1) {
-            delta[i] = src[i];
-        }
+    if (packet->action_count > 0) {
+        memcpy(action, packet->action, sizeof(action));
     }
 
-    player_datum = machine_to_player[*(uint16_t *)(state + 0xc)];
+    player_datum = machine_to_player[(uint16_t)machine->machine_id];
     if (player_datum == (datum_index)0xffffffff) {
         return;
     }
@@ -184,62 +175,67 @@ void GameRuntime::client_apply_position_update(uint8_t *state, uint32_t *packet,
         return;
     }
 
-    update_server_queue_push_history(*(int16_t *)(state + 0xc), (int32_t)tick_count, delta,
-        (uint32_t)object);
-    *(uint32_t *)(state + 4) = *packet & 0x7fffffff;
-    for (i = 0; i < 8; i = i + 1) {
-        delta[8 + i] = delta[i];
-    }
+    update_server_queue_push_history(machine->machine_id, tick_count, action, history_byte);
+    machine->last_update_id = packet->update_id & 0x7fffffff;
     plr = (player *)halo::memory::datum_get(player_datum, player_data);
     if (plr != 0) {
-        plr->unknown_11c = delta[8] & 0x4d0;
+        plr->unknown_11c = action[0] & 0x4d0;
     }
 }
 
 /**
- * Stages `machine`'s connect_state, dispatches the message record by its type (either merges
- * changed sub-fields or takes the AggregateFieldCodec::decode_compound_field path), restores connect_state, and -- if the
- * staged copy's first byte is set -- checks connection quality and, on success, applies the
- * position/orientation update and logs it.
+ * Handles a message 0x0d (client update) decoded from a machine's queued updates. The record is decoded
+ * against the machine's previous one (either by merging the changed sub-fields or from scratch) and stored
+ * back; when it covers at least one tick and the connection-quality check passes, the control it carries is
+ * turned into a one-action position packet and applied through client_apply_position_update, together with
+ * the history byte that came in front of the record. Non-host machines get an "update received" log line.
  *
  * @address 0x4e0280
  */
 void GameRuntime::client_apply_received_update(network_machine *machine, uint32_t server, void **message)
 {
-    uint8_t staged[0x34];
-    uint8_t staged2[0x34];
-    int32_t *msg;
-    int32_t delta_bits;
+    client_update_record update = machine->last_update;
+    message_delta_decode_state *state = (message_delta_decode_state *)message[0];
+    uint8_t history_byte;
 
     (void)server;
-    memcpy(staged, machine->connect_state, 0x34);
+    if (state->incremental == 1) {
+        int32_t delta_bits = halo::networking::message_delta_read_changed_subfields(state,
+            (uint8_t *)(message + 1), (int32_t)&machine->last_update, (int32_t)&update);
 
-    msg = (int32_t *)*message;
-    if (*msg == 1) {
-
-        delta_bits = halo::networking::message_delta_read_changed_subfields((message_delta_decode_state *)msg,
-            (uint8_t *)(message + 1), (int32_t)machine->connect_state, (int32_t)staged);
-        msg[3] = msg[3] + delta_bits;
-        *((uint8_t *)msg + 0x1d) = 1;
+        state->bits_read = state->bits_read + delta_bits;
+        state->changed = 1;
     } else {
-
-        halo::networking::message_delta_decode_compound_field(message, staged);
+        halo::networking::message_delta_decode_compound_field(message, &update);
+    }
+    machine->last_update = update;
+    if (update.tick_count == 0) {
+        return;
+    }
+    if (halo::networking::network_client_check_connection_quality(machine->machine_id, update) != 1) {
+        return;
     }
 
-    memcpy(machine->connect_state, staged, 0x34);
+    {
+        client_position_packet packet = {};
+        player_action *action = (player_action *)packet.action;
 
-    if (staged[0] != 0) {
-        char quality_ok;
-
-        memcpy(staged2, staged, 0x34);
-        quality_ok = halo::networking::network_client_check_connection_quality((uint32_t)(int32_t)machine->machine_id, staged2[0]);
-        if (quality_ok == 1) {
-            halo::networking::network_game_client_apply_position_update(staged2, (uint32_t *)msg, 0, 0);
-            if (*(int16_t *)(machine->connect_state + 0xc) != 0) {
-                GetTickCount();
-                halo::networking::network_player_update_history_log_write("[%d]: [%d]:\t Received update [%d] for [%d] ticks.\n");
-            }
-        }
+        history_byte = *(uint8_t *)message[0x11];
+        packet.action_count = 1;
+        action->control_flags = update.control_flags;
+        action->desired_yaw = update.yaw;
+        action->desired_pitch = update.pitch;
+        action->throttle_x = update.throttle_x;
+        action->throttle_y = update.throttle_y;
+        action->primary_trigger = update.primary_trigger;
+        action->weapon_index = update.weapon_index;
+        action->grenade_index = update.grenade_index;
+        action->zoom_level = update.zoom_level;
+        halo::networking::network_game_client_apply_position_update(machine, &packet, update.tick_count, history_byte);
+    }
+    if (machine->machine_id != 0) {
+        halo::networking::network_player_update_history_log_write("[%d]: [%d]:\t Received update [%d] for [%d] ticks.\n",
+            GetTickCount(), game_time->game_time, (int32_t)history_byte, (int32_t)update.tick_count);
     }
 }
 
@@ -368,35 +364,28 @@ char GameRuntime::settings_ack_send(uint8_t *client, int16_t template_row)
 }
 
 /**
- * out/phase4/networking_functions.md: "Packages a 32-byte game-settings record
- * together with the current tick, encodes and broadcasts it as message type 0x18, and records
- * the send via network_object_record_last_sender." Follows the same data_packet_group_encode_packet /
- * network_message_block_build / network_session_broadcast_to_all broadcast idiom as network_prepare_challenge_packet.c and
- * network_game_server_host_dispose.c's challenge-packet send.
+ * Broadcasts `entry` (a session player row, with the tick the row is removed at appended) as message 0x18 to
+ * every machine and stamps the row's player with that removal tick through network_object_record_last_sender.
+ * Returns 1 when the packet was built and sent, 0 otherwise.
  *
  * @address 0x4df0e0
  */
-uint32_t GameRuntime::settings_broadcast_send(uint32_t round, uint32_t *record)
+uint32_t GameRuntime::settings_broadcast_send(network_server_globals *server, const network_player_entry *entry)
 {
     uint8_t buffer[0x600];
-    int16_t capacity;
+    int16_t capacity = 0x600;
     uint32_t payload[9];
-    int32_t i;
-    int32_t send_result;
+    uint32_t quit_tick = (uint32_t)(game_time->game_time + 0x21);
 
-    for (i = 0; i < 8; i++) {
-        payload[i] = record[i];
-    }
-    payload[8] = (uint32_t)(game_time->game_time + 0x21);
-    capacity = 0x600;
+    memcpy(payload, entry, 8 * sizeof(uint32_t));
+    payload[8] = quit_tick;
     if (halo::memory::data_packet_group_encode_packet(&network_game_messages_group, buffer, payload, &capacity, 0x18, 1) != 0) {
+        uint16_t *message = halo::networking::network_message_block_build(network_challenge_packet_block,
+            (uint32_t *)buffer, 3, (uint32_t)capacity);
 
-        send_result = (int32_t)halo::networking::network_message_block_build(network_challenge_packet_block,
-                                                           (uint32_t *)buffer, 3, (uint32_t)capacity);
-        if (send_result != 0) {
-            halo::networking::network_session_broadcast_to_all(network_server, 0, (void *)(uintptr_t)send_result,
-                1, 0, 0, 3);
-            halo::networking::network_object_record_last_sender((int8_t)((uint8_t *)record)[0x1f], (int16_t)round, network_server);
+        if (message != 0) {
+            halo::networking::network_session_broadcast_to_all(server, 0, message, 1, 0, 0, 3);
+            halo::networking::network_object_record_last_sender(entry->slot_index, (int32_t)quit_tick, server);
             return 1;
         }
     }

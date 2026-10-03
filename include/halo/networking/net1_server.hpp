@@ -34,7 +34,7 @@ public:
     int32_t session_reset_defaults();
     uint32_t clear_flag_by_id(int32_t machine_id);
     network_machine * find_by_id(int32_t machine_id);
-    uint32_t record_last_sender(int32_t sender, int16_t step_count);
+    uint32_t record_last_sender(int32_t player_index, int32_t quit_tick);
     void advance_connect_state();
     uint8_t any_machine_awaiting_flag();
     static char build_full_game_info_packet(network_machine *machine);

@@ -455,11 +455,15 @@ uint8_t UiNetworkMenu::server_list_connect_selected(widget_instance *widget, int
             if (*(int16_t *)(entry + 0x12a) == 1 && *(uint32_t *)entry != 0 &&
                 *(int16_t *)(entry + 0x12) != 0) {
                 uint32_t session_info[9] = {0};
+                s_network_address connect_address = {};
                 int32_t connected;
 
-                halo::networking::network_debug_fill_canary_buffer(session_info);
+                connect_address.ipv4 = *(uint32_t *)entry;
+                connect_address.size = *(int16_t *)(entry + 0x10);
+                connect_address.port = *(uint16_t *)(entry + 0x12);
+                halo::networking::network_debug_fill_canary_buffer(&session_info[5]);
                 connected = halo::networking::network_connection_initiate(halo::networking::globals().client, (const uint32_t *)entry,
-                                                         session_info);
+                                                         session_info, (const uint32_t *)&connect_address);
                 if ((uint8_t)connected == 0) {
                     halo::networking::globals().host_handoff_requested = 1;
                     chat_close();
