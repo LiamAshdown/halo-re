@@ -1,5 +1,5 @@
 /**
- * @file include/halo/objects/tag_layout.hpp
+ * @file include/halo/tags/objects_layout.hpp
  * Compile-time proof that the objects tag-definition members the engine code names sit at the retail offsets it used to hard-code.
  */
 #pragma once

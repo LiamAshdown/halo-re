@@ -1,5 +1,5 @@
 /**
- * @file include/halo/units/tag_layout.hpp
+ * @file include/halo/tags/units_layout.hpp
  * Compile-time proof that the units tag-definition members the engine code names sit at the retail offsets it used to hard-code.
  */
 #pragma once
