@@ -1,4 +1,5 @@
 #include "halo/game/api.hpp"
+#include "halo/game/record_layout.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;

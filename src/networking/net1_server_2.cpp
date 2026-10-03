@@ -415,8 +415,8 @@ not_timed_out:
 
                     machine->flags = 0;
                     machine->unknown_0f = 0;
-                    *(int32_t *)((uint8_t *)machine + 0x52) = 0;
-                    *(int32_t *)((uint8_t *)machine + 0x56) = 0;
+                    machine->unknown_52 = 0;
+                    machine->unknown_56 = 0;
                     if (machine->gcd_user_id == -1) {
                         gcd_disconnect_all(network_console_connection_id);
                     } else {
@@ -655,7 +655,7 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
         if (halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1) {
             struct player *local_player = (struct player *)halo::memory::datum_get(halo::game::globals().local_player_globals->local_players[0], halo::game::globals().player_data);
             if (local_player != 0) {
-                network_client->team_index = *(int32_t *)((uint8_t *)local_player + 0x20);
+                network_client->team_index = local_player->team;
             }
         }
     } else {
@@ -666,11 +666,11 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
     }
 
     *(int32_t *)((uint8_t *)host + 0x3b0) = *(int32_t *)((uint8_t *)host + 0x3b0) + 1;
-    *(int32_t *)((uint8_t *)host + 0x9b8) = 0;
+    host->update_tick = 0;
     *(int32_t *)((uint8_t *)host + 0x9c4) = 0;
     host->scenario_announced = 0;
     host->new_server_pending = 0;
-    *(uint8_t *)((uint8_t *)host + 0x9f8) = 0;
+    host->join_finalize_pending = 0;
 
     for (i = 0; i < 16; i++) {
         machine = &host->machines[i];
@@ -707,8 +707,8 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
     strncpy((char *)host + 0x8c, (char *)variant_defaults_source, 0x3f);
     *(uint8_t *)((uint8_t *)host + 0xcb) = 0;
     host->state = host->state | 1;
-    *(uint16_t *)((uint8_t *)host + 0x86) = 0;
-    *(int32_t *)((uint8_t *)host + 0x88) = 0;
+    host->session.unknown_07e = 0;
+    host->session.unknown_080 = 0;
     host->listen_channel->listening = 1;
 
     if (ui_root_widget != 0) {

@@ -55,7 +55,7 @@ wchar_t * OddballEngine::build_team_score_text(int32_t team, wchar_t *buffer)
 int32_t OddballEngine::get_score(datum_index player, int32_t team_mode)
 {
     if (team_mode == 1) {
-        return king_alt_team_score[*(int32_t *)(((uint8_t *)player_data->data + ((player) & halo::k_datum_slot_mask) * 0x200) + 0x20)];
+        return king_alt_team_score[((::player *)(((uint8_t *)player_data->data + ((player) & halo::k_datum_slot_mask) * 0x200)))->team];
     }
     return king_alt_player_score[player & halo::k_datum_slot_mask];
 }
@@ -216,7 +216,7 @@ void OddballEngine::player_new_life(datum_index player_index)
     }
     king_alt_player_score[player_index & halo::k_datum_slot_mask] = 0;
     if (current_game_engine == 0 || game_engine_teams_enabled_flag == 0) {
-        king_alt_team_score[*(int32_t *)(((uint8_t *)player_data->data + ((player_index) & halo::k_datum_slot_mask) * 0x200) + 0x20)] = 0;
+        king_alt_team_score[((::player *)(((uint8_t *)player_data->data + ((player_index) & halo::k_datum_slot_mask) * 0x200)))->team] = 0;
     }
 }
 
@@ -446,7 +446,7 @@ void OddballEngine::unknown_48(void)
             memset(waypoint, 0, 0x20);
             continue;
         }
-        unit_index = *(datum_index *)(((uint8_t *)player_data->data + ((carrier) & halo::k_datum_slot_mask) * 0x200) + 0x34);
+        unit_index = ((::player *)(((uint8_t *)player_data->data + ((carrier) & halo::k_datum_slot_mask) * 0x200)))->unit;
         if (unit_index == halo::k_dword_none) {
             continue;
         }

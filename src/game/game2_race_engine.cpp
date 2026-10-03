@@ -102,7 +102,7 @@ datum_index RaceEngine::race_pick_vehicle_tag(int32_t index)
  */
 void RaceEngine::race_spawn_next_vehicle(datum_index player_index)
 {
-    datum_index unit_index = *(datum_index *)(((uint8_t *)player_data->data + ((player_index) & halo::k_datum_slot_mask) * 0x200) + 0x34);
+    datum_index unit_index = ((::player *)(((uint8_t *)player_data->data + ((player_index) & halo::k_datum_slot_mask) * 0x200)))->unit;
     uint8_t *unit = 0;
     int32_t count = race_used_location_count;
     int32_t location_index;
@@ -149,8 +149,8 @@ void RaceEngine::race_spawn_next_vehicle(datum_index player_index)
  */
 uint8_t RaceEngine::allow_grenade_counts(datum_index player_index)
 {
-    if (halo::networking::globals().game_mode == 2 && *(int16_t *)(((uint8_t *)player_data->data + ((player_index) & halo::k_datum_slot_mask) * 0x200) + 0xae) == 0 &&
-        race_used_location_count < *(int16_t *)((uint8_t *)player_data + 0x30)) {
+    if (halo::networking::globals().game_mode == 2 && ((::player *)(((uint8_t *)player_data->data + ((player_index) & halo::k_datum_slot_mask) * 0x200)))->deaths == 0 &&
+        race_used_location_count < player_data->actual_count) {
         race_spawn_next_vehicle(player_index);
     }
     return 1;
@@ -304,9 +304,9 @@ int32_t RaceEngine::get_score(datum_index player, int32_t team_mode)
     int32_t i;
 
     if (team_mode == 1) {
-        return game_engine_bucket_scores[*(int32_t *)(p + 0x20)];
+        return game_engine_bucket_scores[((::player *)p)->team];
     }
-    mask = ctf_team_captured_flags_mask[*(int32_t *)(p + 0x20)];
+    mask = ctf_team_captured_flags_mask[((::player *)p)->team];
     for (i = 0; i < 0x20; i++) {
         if ((mask & (1u << i)) != 0) {
             bits++;
@@ -342,7 +342,7 @@ uint32_t RaceEngine::is_winner(datum_index player)
     capacity[0] = halo::game::game_engine_team_has_scoring_capacity(0);
     capacity[1] = halo::game::game_engine_team_has_scoring_capacity(1);
     if (capacity[0] != capacity[1]) {
-        return (uint32_t)(capacity[*(int32_t *)(((uint8_t *)player_data->data + ((player) & halo::k_datum_slot_mask) * 0x200) + 0x20)] != 0);
+        return (uint32_t)(capacity[((::player *)(((uint8_t *)player_data->data + ((player) & halo::k_datum_slot_mask) * 0x200)))->team] != 0);
     }
     if (capacity[0] == 0) {
         return halo::k_dword_none;
@@ -378,7 +378,7 @@ void RaceEngine::player_changed_object(datum_index player_index)
  */
 void RaceEngine::player_new_life(datum_index player)
 {
-    *(int32_t *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200) + 0x88) = game_time->game_time;
+    ((::player *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200)))->slayer_target = game_time->game_time;
     ctf_team_captured_flags_mask[player & halo::k_datum_slot_mask] = 0;
     if (halo::networking::globals().game_mode == 2) {
         halo::game::game_engine_check_bucket_scores_and_end_round();
@@ -401,8 +401,8 @@ void RaceEngine::player_round_reset(datum_index player_index, uint8_t team_flag)
     if (halo::networking::globals().game_mode != 2) {
         return;
     }
-    if (player_index != halo::k_dword_none && index >= 0 && index < *(int16_t *)((uint8_t *)player_data + 0x20)) {
-        uint8_t *player = (uint8_t *)player_data->data + index * *(int16_t *)((uint8_t *)player_data + 0x22);
+    if (player_index != halo::k_dword_none && index >= 0 && index < player_data->maximum_count) {
+        uint8_t *player = (uint8_t *)player_data->data + index * player_data->size;
         int16_t player_salt = *(int16_t *)player;
 
         if (player_salt != 0 && (salt == 0 || player_salt == salt)) {
