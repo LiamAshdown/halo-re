@@ -33,7 +33,7 @@ public:
     void clear_ground_adjust_dirty();
     void reset_ground_adjust_state();
 
-    int32_t animation_change_priority_check(uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index, int32_t *chain_value);
+    int32_t animation_change_priority_check(uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_communication_hold_tick, int16_t *dialogue_index, int32_t *chain_value);
     uint8_t choose_combat_reaction_animation(const datum_index *reaction_source, uint8_t is_scripted, uint8_t allow_second_tier, float distance_bias);
     uint8_t dispatch_reaction_animation(int16_t reaction_code);
     void evaluate_flee_reaction();
@@ -367,7 +367,7 @@ void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *
 void unit_ai_update_stagger_allocate(void);
 void unit_ai_update_stagger_reset(void);
 uint8_t unit_all_seats_unoccupied(uint32_t unit_index);
-int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_unknown_3f0, int16_t *dialogue_index, int32_t *chain_value);
+int32_t unit_animation_change_priority_check(uint32_t unit_index, uint8_t follow_fallback, int16_t requested_priority, uint8_t allow_repeat, uint32_t *out_communication_hold_tick, int16_t *dialogue_index, int32_t *chain_value);
 void unit_animation_set_state(void);
 uint8_t unit_animation_state_allows_parent_ik(uint8_t *animation_block);
 uint8_t unit_animation_state_allows_weapon_ik(uint8_t *animation_block);
