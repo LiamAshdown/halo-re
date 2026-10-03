@@ -9,6 +9,7 @@
 #include "halo/rasterizer/globals.hpp"
 #include "halo/rasterizer/tag_access.hpp"
 #include "internal/shader_access.hpp"
+#include "halo/core/bit_cast.hpp"
 #include "internal/state.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/shaders/api.hpp"
@@ -416,7 +417,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
         rasterizer_set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
         rasterizer_set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::one);
         rasterizer_set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
-        rasterizer_set_render_state(halo::d3d9::rs::texture_factor, 0x3c7f7f7f);
+        rasterizer_set_render_state(halo::d3d9::rs::texture_factor, halo::d3d9::color_argb(0x3c, 0x7f, 0x7f, 0x7f));
         rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::add);
         rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
         rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::tfactor);
@@ -558,7 +559,7 @@ void rasterizer_glass_reflection_draw_fixed_function(transparent_geometry_group 
     render_device().set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
     render_device().set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::one);
     render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
-    render_device().set_render_state(halo::d3d9::rs::texture_factor, 0x3cffffff);
+    render_device().set_render_state(halo::d3d9::rs::texture_factor, halo::d3d9::color_argb(0x3c, 0xff, 0xff, 0xff));
 
     render_device().set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
     render_device().set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
@@ -829,7 +830,7 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
         if (shader->extra_flags & k_extra_flag_numeric_countdown_timer) {
             frame = halo::shaders::numeric_countdown_timer::get_digit((int16_t)group->shader_permutation);
         } else {
-            const float *function_values = *(const float **)(uintptr_t)(group->lighting_extra + 4);
+            const float *function_values = animation_function_values(group->lighting_extra);
             int32_t limit = (int16_t)shader->numeric_counter_limit;
             int value_index = (base != 8) ? 0 : 3;
             int16_t value;
@@ -946,7 +947,7 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
                 fade_constants[2][2] = fade < 0.0f ? 0.0f : (fade > 1.0f ? 1.0f : fade);
             }
             if (fade_source > 0 && group->lighting_extra != 0) {
-                const float *function_values = *(const float **)(uintptr_t)(group->lighting_extra + 4);
+                const float *function_values = animation_function_values(group->lighting_extra);
 
                 if (function_values != NULL) {
                     const float *value = &function_values[fade_source - 1];
@@ -998,7 +999,7 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
         case 2:
             stage = (int16_t)(rasterizer_caps.max_simultaneous_textures > 2 ? map_count
                                                                            : (map_count - 1 > 1 ? map_count - 1 : 1));
-            set_render_state(halo::d3d9::rs::texture_factor, 0x7f7f7f7f);
+            set_render_state(halo::d3d9::rs::texture_factor, halo::d3d9::color_argb(0x7f, 0x7f, 0x7f, 0x7f));
             tss(stage, halo::d3d9::ts::color_op, halo::d3d9::top::lerp);
             tss(stage, 2, fade_argument);
             tss(stage, halo::d3d9::ts::color_arg2, halo::d3d9::ta::current);
@@ -1162,7 +1163,7 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
         if (shader->extra_flags & k_extra_flag_numeric_countdown_timer) {
             frame = halo::shaders::numeric_countdown_timer::get_digit((int16_t)group->shader_permutation);
         } else {
-            const float *function_values = *(const float **)(uintptr_t)(group->lighting_extra + 4);
+            const float *function_values = animation_function_values(group->lighting_extra);
             int32_t limit = (int16_t)shader->numeric_counter_limit;
             int value_index = (base != 8) ? 0 : 3;
             int16_t value;
@@ -1285,7 +1286,7 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
                 fade_constants[2][2] = fade < 0.0f ? 0.0f : (fade > 1.0f ? 1.0f : fade);
             }
             if (fade_source > 0 && group->lighting_extra != 0) {
-                const float *function_values = *(const float **)(uintptr_t)(group->lighting_extra + 4);
+                const float *function_values = animation_function_values(group->lighting_extra);
 
                 if (function_values != NULL) {
                     const float *value = &function_values[fade_source - 1];
@@ -1336,7 +1337,7 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
         case 2:
             stage = (int16_t)(rasterizer_caps.max_simultaneous_textures > 2 ? map_count
                                                                            : (map_count - 1 > 1 ? map_count - 1 : 1));
-            set_render_state(halo::d3d9::rs::texture_factor, 0x7f7f7f7f);
+            set_render_state(halo::d3d9::rs::texture_factor, halo::d3d9::color_argb(0x7f, 0x7f, 0x7f, 0x7f));
             tss(stage, halo::d3d9::ts::color_op, halo::d3d9::top::lerp);
             tss(stage, 2, fade_argument);
             tss(stage, halo::d3d9::ts::color_arg2, halo::d3d9::ta::current);
@@ -1432,7 +1433,7 @@ uint8_t rasterizer_shader_transparent_chicago_extended_set_texture_stages(const 
     }
     for (map_index = 0; map_index < count; map_index++) {
         const ShaderTransparentChicagoMap *map = maps[map_index];
-        uint32_t replicate = (*(const uint8_t *)&map->flags & 2) << 4;
+        uint32_t replicate = (static_cast<uint8_t>(map->flags) & 2) << 4;
 
         if (map_index == count - 1) {
             set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
@@ -1484,7 +1485,7 @@ uint8_t rasterizer_shader_transparent_chicago_set_texture_stages(const ShaderTra
     for (map_index = 0; map_index < (int32_t)shader->maps.count; map_index++) {
         const ShaderTransparentChicagoMap *map =
             (const ShaderTransparentChicagoMap *)(uintptr_t)shader->maps.pointer + map_index;
-        uint32_t replicate = (*(const uint8_t *)&map->flags & 2) << 4;
+        uint32_t replicate = (static_cast<uint8_t>(map->flags) & 2) << 4;
 
         if (map_index == (int32_t)shader->maps.count - 1) {
             set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
@@ -1759,7 +1760,7 @@ void rasterizer_water_draw_fixed_function(transparent_geometry_group *group)
         render_device().set_vertex_declaration(declaration);
         render_device().set_vertex_shader(0);
         render_device().set_pixel_shader(0);
-        set_render_state(halo::d3d9::rs::texture_factor, 0xffffffff);
+        set_render_state(halo::d3d9::rs::texture_factor, halo::d3d9::k_color_white);
         set_texture_stage_state = halo::d3d9::device_function<d3d_call3_fn>(rasterizer_device, halo::d3d9::device_method::set_texture_stage_state);
         set_texture_stage_state(rasterizer_device, 0, 1, 2);
         set_texture_stage_state(rasterizer_device, 0, 2, 3);
@@ -1932,7 +1933,7 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
         render_device().set_vertex_declaration(declaration);
         render_device().set_vertex_shader(rasterizer_vertex_shaders[60 + shader_index].shader);
         render_device().set_pixel_shader(0);
-        set_render_state(halo::d3d9::rs::texture_factor, 0xffffffff);
+        set_render_state(halo::d3d9::rs::texture_factor, halo::d3d9::k_color_white);
         set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
         set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::tfactor);
         set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
@@ -2282,7 +2283,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
 
         memcpy(rasterizer_water_ripple_quad, quad, sizeof quad);
         for (k = 0; k < 4; k++) {
-            *(uint32_t *)&rasterizer_water_ripple_quad[k][3] = 0xffffffff;
+            rasterizer_water_ripple_quad[k][3] = halo::bit_cast<float>(halo::d3d9::k_color_white);
         }
 
         set_render_state(halo::d3d9::rs::cull_mode, 3);
@@ -2354,7 +2355,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
             if (water->ripple_mipmap_levels > 1) {
                 float fraction = (float)(int32_t)pass_index / (float)(int32_t)(water->ripple_mipmap_levels - 1);
                 float alpha = fraction * water->ripple_mipmap_fade_factor;
-                uint32_t packed = ((uint32_t)halo::libm::lrint((double)alpha * 255.0) << 24) | 0x8080ff;
+                uint32_t packed = halo::d3d9::color_argb((uint32_t)halo::libm::lrint((double)alpha * 255.0), 0x80, 0x80, 0xff);
 
                 pixel_constants[12] = (float)(int32_t)((packed >> 16) & 0xff) * 0.003921569f;
                 pixel_constants[13] = (float)(int32_t)((packed >> 8) & 0xff) * 0.003921569f;
@@ -2379,8 +2380,8 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
                 viewport[1] = 0;
                 viewport[2] = desc[6];
                 viewport[3] = desc[7];
-                *(float *)&viewport[4] = 0.0f;
-                *(float *)&viewport[5] = 1.0f;
+                viewport[4] = halo::bit_cast<uint32_t>(0.0f);
+                viewport[5] = halo::bit_cast<uint32_t>(1.0f);
                 render_device().set_viewport((uint32_t)viewport);
             }
 
