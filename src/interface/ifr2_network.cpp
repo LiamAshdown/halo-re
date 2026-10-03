@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_network.hpp"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
@@ -155,7 +156,7 @@ static constexpr size_t k_record_team_play_byte = 0x34;
 void MenuListView::update_item(const uint16_t *record)
 {
     datum_index variant_strings_tag =
-        halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\strings\\game_variant_descriptions");
+        halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::game_variant_descriptions);
     widget_instance *name_widget = widget->first_child;
     widget_instance *desc_widget = name_widget->next_sibling;
     widget_instance *icon_widget = desc_widget->next_sibling;
@@ -178,7 +179,7 @@ void MenuListView::update_item(const uint16_t *record)
             if (desc_buf != nullptr) {
                 datum_index labels_tag = halo::interface::lookup_tag(
                     halo::groups::unicode_string_list,
-                    "ui\\shell\\main_menu\\player_profiles_select\\profile_description_labels");
+                    halo::tag_paths::profile_description_labels);
 
                 desc_buf[0] = 0;
                 if (labels_tag != (datum_index)-1) {

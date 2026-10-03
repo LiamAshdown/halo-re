@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_error_dialogs.hpp"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "halo/cutscene/api.hpp"
@@ -82,26 +83,26 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
     switch (player_count) {
     case 0:
     case 1:
-        tag_path = (modal == 0) ? "ui\\shell\\error\\error_nonmodal_fullscreen"
-                                 : "ui\\shell\\error\\error_modal_fullscreen";
+        tag_path = (modal == 0) ? halo::tag_paths::error_nonmodal_fullscreen
+                                 : halo::tag_paths::error_modal_fullscreen;
         break;
     case 2:
-        tag_path = (modal == 0) ? "ui\\shell\\error\\error_nonmodal_halfscreen"
-                                 : "ui\\shell\\error\\error_modal_halfscreen";
+        tag_path = (modal == 0) ? halo::tag_paths::error_nonmodal_halfscreen
+                                 : halo::tag_paths::error_modal_halfscreen;
         break;
     case 3:
         if (!half_screen) {
-            tag_path = (modal == 0) ? "ui\\shell\\error\\error_nonmodal_qtrscreen"
-                                     : "ui\\shell\\error\\error_modal_qtrscreen";
+            tag_path = (modal == 0) ? halo::tag_paths::error_nonmodal_qtrscreen
+                                     : halo::tag_paths::error_modal_qtrscreen;
         } else if (modal == 0) {
-            tag_path = "ui\\shell\\error\\error_nonmodal_halfscreen";
+            tag_path = halo::tag_paths::error_nonmodal_halfscreen;
         } else {
-            tag_path = "ui\\shell\\error\\error_modal_halfscreen";
+            tag_path = halo::tag_paths::error_modal_halfscreen;
         }
         break;
     case 4:
-        tag_path = (modal == 0) ? "ui\\shell\\error\\error_nonmodal_qtrscreen"
-                                 : "ui\\shell\\error\\error_modal_qtrscreen";
+        tag_path = (modal == 0) ? halo::tag_paths::error_nonmodal_qtrscreen
+                                 : halo::tag_paths::error_modal_qtrscreen;
         break;
     default:
         return;

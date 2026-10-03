@@ -1,4 +1,5 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/core/cstring.hpp"
 #include "halo/networking/announcement.hpp"
 #include "halo/networking/game_mode.hpp"
@@ -248,7 +249,7 @@ wchar_t * GameRuntime::get_random_player_name()
     uint32_t tag_id;
     void *definition;
 
-    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::mutable_literal("ui\\random_player_names"));
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::mutable_literal(halo::tag_paths::random_player_names));
     if (tag_id != halo::k_dword_none) {
         definition = *(void **)((uint8_t *)halo::cache::globals().tag_instances + (tag_id & halo::k_datum_slot_mask) * 0x20 + 0x14);
         if (definition != 0 && *(int32_t *)definition != 0) {

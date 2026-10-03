@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_players.hpp"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
@@ -262,25 +263,25 @@ void LocalPlayers::help_screen_select_by_name(int16_t value)
     }
 
     if (strstr(name, player_help_name_a10) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_a10";
+        tag_path = halo::tag_paths::player_help_screen_a10;
     } else if (strstr(name, player_help_name_a30) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_a30";
+        tag_path = halo::tag_paths::player_help_screen_a30;
     } else if (strstr(name, player_help_name_a50) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_a50";
+        tag_path = halo::tag_paths::player_help_screen_a50;
     } else if (strstr(name, player_help_name_b30) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_b30";
+        tag_path = halo::tag_paths::player_help_screen_b30;
     } else if (strstr(name, player_help_name_b40) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_b40";
+        tag_path = halo::tag_paths::player_help_screen_b40;
     } else if (strstr(name, player_help_name_c10) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_c10";
+        tag_path = halo::tag_paths::player_help_screen_c10;
     } else if (strstr(name, player_help_name_c20) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_c20";
+        tag_path = halo::tag_paths::player_help_screen_c20;
     } else if (strstr(name, player_help_name_c40) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_c40";
+        tag_path = halo::tag_paths::player_help_screen_c40;
     } else if (strstr(name, player_help_name_d20) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_d20";
+        tag_path = halo::tag_paths::player_help_screen_d20;
     } else if (strstr(name, player_help_name_d40) != 0) {
-        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_d40";
+        tag_path = halo::tag_paths::player_help_screen_d40;
     } else {
         return;
     }
@@ -327,7 +328,7 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                     return;
                 }
                 if (flags & 1) {
-                    datum_index names = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\strings\\default_player_profile_names");
+                    datum_index names = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::default_player_profile_names);
                     const uint16_t *source = empty_string;
                     if (names != (datum_index)-1) {
                         source = halo::text::text_string_list_get_string(names, (int16_t)(flags >> 8));
@@ -348,16 +349,16 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                     datum_index joysticks;
                     datum_index buttons;
                     if (halo::interface::has_bit(flags, halo::interface::profile_flag::builtin)) {
-                        joysticks = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\player_profiles_select\\joystick_set_defaults_descriptions");
-                        buttons = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\player_profiles_select\\button_set_long_descriptions");
+                        joysticks = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::joystick_set_defaults_descriptions);
+                        buttons = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::button_set_long_descriptions);
                         if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
                             (halo::interface::widget_text(description_row))[0] = 0;
                             (halo::interface::widget_text(description_row))[0xff] = 0;
                             return;
                         }
                     } else {
-                        joysticks = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\player_profiles_select\\joystick_set_short_descriptions");
-                        buttons = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\player_profiles_select\\button_set_short_descriptions");
+                        joysticks = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::joystick_set_short_descriptions);
+                        buttons = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::button_set_short_descriptions);
                         if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
                             (halo::interface::widget_text(description_row))[0xff] = 0;
                             return;
@@ -577,7 +578,7 @@ void PlayerProfiles::details_widget_refresh(widget_instance *widget, const uint8
 
         if ((flags & 1) != 0) {
             datum_index names_tag =
-                halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\strings\\default_player_profile_names");
+                halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::default_player_profile_names);
             const uint16_t *source = names_tag != (datum_index)-1
                 ? halo::text::text_string_list_get_string(names_tag, (int16_t)(flags >> 8))
                 : hud_text_unknown;

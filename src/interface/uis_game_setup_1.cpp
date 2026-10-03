@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
@@ -86,7 +87,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
         return 1;
     }
 
-    string_list_tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\map_list_oneline");
+    string_list_tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::map_list_oneline);
     memset(level_select_entries, 0, sizeof(level_select_entries));
 
     if (halo::saved_games::globals().player_profile_slots_handle != cached_saved_game_something) {

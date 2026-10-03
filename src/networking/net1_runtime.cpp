@@ -1,4 +1,5 @@
 #include "halo/networking/net1_runtime.hpp"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/core/cstring.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
@@ -445,7 +446,7 @@ uint8_t NetworkRuntime::name_string_is_valid_for_mode(char *name, void *characte
     int32_t len;
     int32_t i;
 
-    datum_index small_ui_font = halo::cache::tag_lookup(halo::groups::font, halo::mutable_literal("ui\\small_ui"));
+    datum_index small_ui_font = halo::cache::tag_lookup(halo::groups::font, halo::mutable_literal(halo::tag_paths::small_ui));
     len = strlen(name);
     if (mode == 3) {
         ok = *name != 0;

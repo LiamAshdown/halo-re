@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_chat_dialog.hpp"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -209,7 +210,7 @@ void ChatDialog::open(int32_t chat_scope)
     }
 
     auto scope_prompt = [](int32_t string_index) -> const void * {
-        datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\multiplayer_game_text");
+        datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
         return (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                            : (const void *)halo::text::text_string_list_get_string(tag_id, string_index);
     };

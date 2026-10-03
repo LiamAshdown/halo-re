@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_controls_bindings.hpp"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -514,7 +515,7 @@ void ControlsBindings::binding_rows_toggle_device_mode(widget_instance *widget, 
 void ControlsBindings::build_device_label_table(void)
 {
     saved_player_profile *profile = ((selected_saved_item & 0xf) != 0) ? nullptr : &saved_item_working_copy;
-    datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_device_labels");
+    datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::controls_device_labels);
     int i;
     const uint16_t *tag_supplied_label = halo::interface::wide(L"<missing string>");
 

@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "memory.h"
 #include "math.h"
@@ -80,20 +81,20 @@ uint32_t UiScreens::check_for_pause_game(void)
         }
         switch (player_count) {
         case 1:
-            tag_path = "ui\\shell\\multiplayer_game\\pause_game\\1p_pause_game";
+            tag_path = halo::tag_paths::_1p_pause_game;
             break;
         case 2:
-            tag_path = "ui\\shell\\multiplayer_game\\pause_game\\2p_pause_game";
+            tag_path = halo::tag_paths::_2p_pause_game;
             break;
         case 3:
             if (!single_player_at_start) {
-                tag_path = "ui\\shell\\multiplayer_game\\pause_game\\4p_pause_game";
+                tag_path = halo::tag_paths::_4p_pause_game;
             } else {
-                tag_path = "ui\\shell\\multiplayer_game\\pause_game\\2p_pause_game";
+                tag_path = halo::tag_paths::_2p_pause_game;
             }
             break;
         case 4:
-            tag_path = "ui\\shell\\multiplayer_game\\pause_game\\4p_pause_game";
+            tag_path = halo::tag_paths::_4p_pause_game;
             break;
         default:
             return 0;
@@ -103,25 +104,25 @@ uint32_t UiScreens::check_for_pause_game(void)
             if (widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0) {
                 return 0;
             }
-            tag_path = "ui\\shell\\solo_game\\pause_game\\pause_game";
+            tag_path = halo::tag_paths::pause_game;
         } else if (player_count > 1) {
             if (player_count == 2) {
                 if (ui_root_widget[0] != (widget_instance *)0 ||
                     halo::game::globals().game_time->paused != 0) {
                     return 0;
                 }
-                tag_path = "ui\\shell\\solo_game\\pause_game\\pause_game_split_screen";
+                tag_path = halo::tag_paths::pause_game_split_screen;
             } else {
                 if (widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0) {
                     return 0;
                 }
-                tag_path = "ui\\shell\\solo_game\\pause_game\\pause_game";
+                tag_path = halo::tag_paths::pause_game;
             }
         } else {
             if (ui_root_widget[0] != (widget_instance *)0) {
                 return 0;
             }
-            tag_path = "ui\\shell\\solo_game\\pause_game\\pause_game";
+            tag_path = halo::tag_paths::pause_game;
         }
     }
 

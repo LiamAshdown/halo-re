@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/text/api.hpp"
 #include "win32.h"
 #include "tags.h"
@@ -479,7 +480,7 @@ uint8_t UiNetworkMenu::server_list_connect_selected(widget_instance *widget, int
                     widget_instance *opened;
 
                     opened = halo::interface::chimera__load_ui_widget(
-                        "ui\\shell\\main_menu\\multiplayer_type_select\\connected\\pregame\\connected_pregame_screen",
+                        halo::tag_paths::connected_pregame_screen,
                         (datum_index)-1, (widget_instance *)0, (uint16_t)-1,
                         *(datum_index *)page, parent_definition, (int16_t)sibling);
                     if (opened != (widget_instance *)0) {

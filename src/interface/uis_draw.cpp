@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
@@ -389,7 +390,7 @@ void UiDraw::draw_trouble_brewing_indicator(void)
         rect.left = halo::interface::k_base_screen_width - 74;
         rect.bottom = halo::interface::k_base_screen_height - 10;
         rect.right = halo::interface::k_base_screen_width - 10;
-        trouble_brewing_bitmap_tag = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), "ui\\shell\\bitmaps\\trouble_brewing");
+        trouble_brewing_bitmap_tag = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), halo::tag_paths::trouble_brewing);
         if (trouble_brewing_bitmap_tag != (datum_index)-1) {
             BitmapData *bitmap_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(trouble_brewing_bitmap_tag, 0, 0);
 

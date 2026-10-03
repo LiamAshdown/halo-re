@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_chat_dialog.hpp"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/constants.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/text/api.hpp"
@@ -42,7 +43,7 @@ static auto &network_message_scratch = halo::link::ref<uint8_t [halo::interface:
 
 static const wchar_t *chat_prefix_format(int16_t string_index)
 {
-    datum_index tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\multiplayer_game_text");
+    datum_index tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
     if (tag == (datum_index)-1) {
         return &empty_string;
     }
