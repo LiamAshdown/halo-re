@@ -1,0 +1,17 @@
+// hs_evaluate_ai_set_team  (not a Ghidra function; the evaluate handler of hs function 242 "ai_set_team" (ai, team -> void))
+// address 0x47e740, size 67 bytes
+// name confidence: 0.9   rewrite confidence: 0.85
+// evidence: the function record's evaluate slot (+0x0c); only reachable through it, so no C meant
+//   unlisted_47e740 trapped.
+// WRITTEN 2026-09-28 from objdump 0x47e740..0x47e782: encounter_set_team (0x435b30) with the ai and the team;
+//   returns 0.
+// blam-cc: stack -> function_index, thread_index, first (cdecl)
+
+Original comment above the definition:
+// 0x435b30, blam-cc: EAX, CX
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x00688b58 | extern hs_function_definition *hs_function_definitions[k_hs_function_count];
+  // 0x48a850 | int16_t *expected_types, char first);
+  // 0x48a640, blam-cc: EAX value, ECX thread | extern void hs_thread_return(int32_t value, uint32_t thread_index);
+  // 0x435b30, blam-cc: EAX, CX | extern void encounter_set_team(datum_index encounter_index, int16_t team);

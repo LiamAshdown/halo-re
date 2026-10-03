@@ -1,0 +1,18 @@
+// hs_evaluate_ai_command_list_advance_by_unit  (not a Ghidra function; the evaluate handler of hs function 211 "ai_command_list_advance_by_unit" (unit -> void))
+// address 0x47de80, size 123 bytes
+// name confidence: 0.9   rewrite confidence: 0.85
+// evidence: the function record's evaluate slot (+0x0c); only reachable through it, so no C meant
+//   unlisted_47de80 trapped.
+// WRITTEN 2026-09-28 from objdump 0x47de80..0x47defa: for a live unit (object_try_and_get mask 3): steps the swarm
+//   components of its actor (+0x1f4) or, without one, of +0x1f8 (0x407240). Returns 0.
+// blam-cc: stack -> function_index, thread_index, first (cdecl)
+
+Original comment above the definition:
+// 0x407240, blam-cc: EAX
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x00688b58 | extern hs_function_definition *hs_function_definitions[k_hs_function_count];
+  // 0x48a850 | int16_t *expected_types, char first);
+  // 0x48a640, blam-cc: EAX value, ECX thread | extern void hs_thread_return(int32_t value, uint32_t thread_index);
+  // 0x4f6ec0, blam-cc: ECX, stack | extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
+  // 0x407240, blam-cc: EAX | extern void actor_swarm_for_each_component_thunk(uint32_t actor_index);

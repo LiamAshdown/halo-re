@@ -1,0 +1,8 @@
+// hs_cast_short_to_boolean  (not a Ghidra function; an hs type cast reached only through the cast table)
+// address 0x48aad0, size 18 bytes
+// name confidence: 0.6  rewrite confidence: 0.95
+// evidence: hs_thread_return / hs_coerce_value call dword [ecx*4+0x68bc10] with the value pushed; this is
+//   table 0x68bc10 entry 252 (to boolean from short).
+// objdump 0x48aad0..0x48aae1: cmp WORD [esp+4],0 / sete al into the argument's low byte; the upper bytes are
+//   returned unchanged.
+// blam-cc: stack -> value (cdecl)

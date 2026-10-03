@@ -1,0 +1,17 @@
+// hs_evaluate_ai_living_fraction  (not a Ghidra function; the evaluate handler of hs "ai_living_fraction" (ai -> real))
+// address 0x47e9b0, size 141 bytes
+// name confidence: 0.9  rewrite confidence: 0.9
+// evidence: hs_function_definitions 0x688b58[i] evaluate (+0xc) 0x47e9b0, only reachable through that pointer.
+//   Campaign track: 18 uses across the campaign scripts (not a10); it had no C and would have trapped
+//   (unlisted callback).
+// objdump 0x47e9b0: stat kind 0 (EDI) with the member total out; living / total (fild / fidiv), 0.0 when the total is not positive.
+// blam-cc: stack -> function_index, thread_index, first (cdecl)
+
+Original comment above the definition:
+// 0x432f90, stack (reference, out, extra), EDI kind
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x00688b58 | extern hs_function_definition *hs_function_definitions[k_hs_function_count];
+  // 0x48a850 | int16_t *expected_types, char first);
+  // 0x48a640 | extern void hs_thread_return(int32_t value, uint32_t thread_index);
+  // 0x432f90, stack (reference, out, extra), EDI kind | uint32_t *out_extra);
