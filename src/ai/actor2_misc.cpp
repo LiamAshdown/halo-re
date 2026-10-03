@@ -10,6 +10,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/ai/records.hpp"
 
 namespace halo::ai {
 
@@ -183,7 +184,7 @@ datum_index ActorOps::new_and_attach_to_unit(char reuse_existing, datum_index un
 {
     using namespace actor_new_and_attach_to_unit_local;
     datum_index actor_index = k_datum_index_none;
-    uint8_t *self;
+    struct actor *self;
 
     if (unit_index == k_datum_index_none || actor_variant_tag == k_datum_index_none) {
         return k_datum_index_none;
@@ -196,13 +197,13 @@ datum_index ActorOps::new_and_attach_to_unit(char reuse_existing, datum_index un
         halo::ai::ai_reference_actor_iterator_init_cursor((int32_t)encounter_or_none, cursor);
         candidate = cursor[2];
         while (halo::ai::globals().state->actors_valid != 0 && candidate != k_datum_index_none) {
-            uint8_t *actor = ACTOR_AT(candidate);
+            struct actor *actor = halo::ai::actor_at(candidate);
 
             actor_index = candidate;
-            candidate = ((struct actor *)actor)->next_in_encounter;
-            if (actor[6] == 0 || actor_index == exclude_actor || ((struct actor *)actor)->cluster_count >= 0x10 ||
-                ((struct actor *)actor)->actor_variant_tag != actor_variant_tag ||
-                (ignore_squad == 0 && ((struct actor *)actor)->squad_index != squad_index)) {
+            candidate = actor->next_in_encounter;
+            if (actor->swarm == 0 || actor_index == exclude_actor || actor->cluster_count >= 0x10 ||
+                actor->actor_variant_tag != actor_variant_tag ||
+                (ignore_squad == 0 && actor->squad_index != squad_index)) {
                 continue;
             }
             goto attach;
@@ -219,35 +220,35 @@ datum_index ActorOps::new_and_attach_to_unit(char reuse_existing, datum_index un
     if (actor_index == k_datum_index_none) {
         return k_datum_index_none;
     }
-    self = ACTOR_AT(actor_index);
+    self = halo::ai::actor_at(actor_index);
     if (encounter_or_none == (uint32_t)k_datum_index_none) {
         halo::ai::ai_actor_link_to_unassigned_list(actor_index);
     } else {
         if ((encounter_or_none & 0xffff0000) == 0) {
-            uint8_t *enc = (uint8_t *)halo::ai::globals().encounter_data->data + (encounter_or_none & halo::k_slot_mask) * k_encounter_size;
+            encounter *enc = halo::ai::encounter_at(encounter_or_none);
 
             encounter_or_none = ((uint32_t)(int32_t)*(int16_t *)enc << 0x10) | (encounter_or_none & halo::k_slot_mask);
         }
         halo::ai::encounter_add_actor(squad_index, actor_index, encounter_or_none, 0);
     }
     if (start_active == 0) {
-        *(int16_t *)(self + 0x6a) = 2;
+        self->awareness_level = 2;
     } else {
-        *(int16_t *)(self + 0x6a) = 0;
-        if (self[8] != 0) {
+        self->awareness_level = 0;
+        if (self->active != 0) {
             halo::ai::actor_set_units_active(actor_index, 0);
         }
     }
-    *(uint16_t *)(self + 0x60) = unknown_60;
-    *(int16_t *)(self + 0x62) = unknown_62;
+    *(uint16_t *)((uint8_t *)self + 0x60) = unknown_60;
+    self->standing_order_request = unknown_62;
     if (unknown_62 == -1 || unknown_62 == 0) {
-        *(int16_t *)(self + 0x62) = (int16_t)halo::ai::actor_lookup_small_table_entry((int16_t)unknown_60);
+        self->standing_order_request = (int16_t)halo::ai::actor_lookup_small_table_entry((int16_t)unknown_60);
     }
-    self[0x68] = unknown_68;
-    self[0x8e] = 0;
-    *(int16_t *)(self + 0x92) = 2;
-    *(uint16_t *)(self + 0x90) = unknown_90;
-    if (self[6] != ((uint8_t *)actor_type_procs[*(int16_t *)(self + 4)])[0xd]) {
+    self->sequence_id = unknown_68;
+    self->command_list_run_immediately = 0;
+    self->command_list_delay = 2;
+    *(uint16_t *)((uint8_t *)self + 0x90) = unknown_90;
+    if (self->swarm != ((uint8_t *)actor_type_procs[*(int16_t *)((uint8_t *)self + 4)])[0xd]) {
         halo::ai::actor_delete(actor_index, 0);
         return k_datum_index_none;
     }
@@ -498,21 +499,21 @@ extern int16_t order_code_mode_data_expect[12];
 uint8_t ActorView::process_order_request(uint16_t order_code)
 {
     using namespace actor_process_order_request_local;
-    uint8_t *act = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
-    int16_t mode = ((actor *)act)->mode;
+    actor *act = halo::ai::actor_at(actor_index);
+    int16_t mode = act->mode;
     uint8_t order[k_actor_mode_data_size];
     int16_t code = (int16_t)order_code;
 
-    if (code == -1 && ((struct actor *)act)->last_order_request_time != -1 && ((struct actor *)act)->last_order_request_time + 0x2d >= game_time->game_time) {
+    if (code == -1 && act->last_order_request_time != -1 && act->last_order_request_time + 0x2d >= game_time->game_time) {
         return 0;
     }
-    ((struct actor *)act)->last_order_request_time = game_time->game_time;
+    act->last_order_request_time = game_time->game_time;
     if (code == -1) {
-        code = ((struct actor *)act)->pending_order_request;
+        code = act->pending_order_request;
         if (code != -1) {
-            ((struct actor *)act)->pending_order_request = -1;
+            act->pending_order_request = -1;
         } else {
-            code = ((struct actor *)act)->standing_order_request;
+            code = act->standing_order_request;
             if (code == -1) {
                 code = 0;
             }
@@ -521,15 +522,15 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
 
     switch (code) {
     case 1:
-        if (((actor *)act)->awareness_level != 1) {
-            ((actor *)act)->awareness_level = 1;
+        if (act->awareness_level != 1) {
+            act->awareness_level = 1;
             halo::ai::actor_set_mode(actor_index, 1, 0);
             return 1;
         }
         break;
 
     case 8:
-        if (mode == 6 && *(int16_t *)(act + 0xc0) == 1) {
+        if (mode == 6 && *(int16_t *)((uint8_t *)act + 0xc0) == 1) {
             break;
         }
         if (halo::ai::actor_build_order_return_to_anchor(actor_index, (actor_order *)order)) {
@@ -540,8 +541,8 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
 
     case 9:
         if (mode == 6) {
-            if (*(int16_t *)(act + 0xc0) != 3) {
-                act[0xaa] = 1;
+            if (*(int16_t *)((uint8_t *)act + 0xc0) != 3) {
+                ((uint8_t *)act)[0xaa] = 1;
             }
             break;
         }
@@ -555,9 +556,9 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
         if (halo::ai::actor_get_current_mode_combat_grade(actor_index) == 3) {
             break;
         }
-        ((actor *)act)->awareness_level = 3;
-        ((struct actor *)act)->minimum_combat_status = 2;
-        ((struct actor *)act)->combat_status = 2;
+        act->awareness_level = 3;
+        act->minimum_combat_status = 2;
+        act->combat_status = 2;
         if (halo::ai::actor_update_melee_combat_action(actor_index)) {
             break;
         }
@@ -571,7 +572,7 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
         if (mode == 4) {
             break;
         }
-        if (act[0x160] == 0) {
+        if (act->order_committed == 0) {
             memset(order, 0, 0x30);
             ((struct actor_order *)order)->parameter = -1;
             *(int32_t *)(order + 0x1c) = -1;
@@ -579,7 +580,7 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
             ((struct actor_order *)order)->order_code = 0xb4;
             order[0x4] = 0;
             order[0x5] = 0;
-            if (act[0x6] == 0) {
+            if (act->swarm == 0) {
                 halo::ai::actor_check_melee_target_reachable(actor_index, (int16_t *)order);
                 if (((struct actor_order *)order)->parameter != -1) {
                     halo::ai::actor_set_mode(actor_index, 4, order);
@@ -588,7 +589,7 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
                 order[0xe] = 0;
             }
         }
-        if (((actor *)act)->mode == 6) {
+        if (act->mode == 6) {
             break;
         }
         if (halo::ai::actor_build_order_return_to_anchor(actor_index, (actor_order *)order)) {
@@ -598,7 +599,7 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
         break;
 
     case 0: case 2: case 3: case 4: case 5: case 6: case 7:
-        if (mode == 2 && *(int16_t *)&((struct actor *)act)->mode_data == order_code_mode_data_expect[code]) {
+        if (mode == 2 && *(int16_t *)&act->mode_data == order_code_mode_data_expect[code]) {
             break;
         }
         if (halo::ai::actor_build_order_default(actor_index, order_code_mode_data_expect[code], (actor_order *)order, -1)) {
@@ -611,7 +612,7 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
         break;
     }
 
-    if (((actor *)act)->mode == 0 &&
+    if (act->mode == 0 &&
         halo::ai::actor_build_order_default(actor_index, 0, (actor_order *)order, -1)) {
         halo::ai::actor_set_mode(actor_index, 2, order);
         return 1;
@@ -621,10 +622,10 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
 
 namespace actor_process_pending_command_list_local {
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (actor[(o)])
-#define W(o) (*(int16_t *)(actor + (o)))
-#define D(o) (*(uint32_t *)(actor + (o)))
-#define F(o) (*(float *)(actor + (o)))
+#define B(o) (((uint8_t *)actor)[(o)])
+#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
+#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
+#define F(o) (*(float *)((uint8_t *)actor + (o)))
 }
 
 /**
@@ -635,22 +636,22 @@ namespace actor_process_pending_command_list_local {
 uint8_t ActorView::process_pending_command_list()
 {
     using namespace actor_process_pending_command_list_local;
-    uint8_t *actor = ACTOR(actor_index);
+    struct actor *actor = halo::ai::actor_at(actor_index);
     uint8_t started = 0;
     int16_t record[0x42];
 
-    if (W(0x90) == -1) {
+    if (actor->pending_command_list == -1) {
         return 0;
     }
-    if (B(0x8e) == 0 && (W(0x6a) == 0 || halo::ai::actor_wants_reload_or_swap(actor_index))) {
+    if (actor->command_list_run_immediately == 0 && (actor->awareness_level == 0 || halo::ai::actor_wants_reload_or_swap(actor_index))) {
         return 0;
     }
-    if (halo::ai::actor_squad_action_status_broadcast(actor_index, (int16_t)W(0x90), record) != 0) {
+    if (halo::ai::actor_squad_action_status_broadcast(actor_index, (int16_t)actor->pending_command_list, record) != 0) {
         halo::ai::actor_set_mode(actor_index, 0xb, record);
         started = 1;
     }
-    B(0x8e) = 0;
-    W(0x90) = -1;
+    actor->command_list_run_immediately = 0;
+    actor->pending_command_list = -1;
     return started;
 }
 
@@ -794,8 +795,8 @@ static void biped_free_local_player_history(uint8_t *self)
 uint8_t ActorView::process_vehicle_seat_exit()
 {
     using namespace actor_process_vehicle_seat_exit_local;
-    uint8_t *act = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
-    datum_index driving = ((actor *)act)->active_unit_index;
+    actor *act = halo::ai::actor_at(actor_index);
+    datum_index driving = act->active_unit_index;
     uint8_t wanted = 0;
     uint8_t forced = 0;
     uint8_t result = 0;
@@ -803,36 +804,36 @@ uint8_t ActorView::process_vehicle_seat_exit()
     uint8_t *rider;
 
     if (driving == k_datum_index_none) {
-        act[0x2ed] = 0;
+        act->vehicle_eviction = 0;
         return 0;
     }
     {
-        datum_index prop_index = ((actor *)act)->first_prop;
+        datum_index prop_index = act->first_prop;
 
         while (prop_index != k_datum_index_none) {
-            uint8_t *p = (uint8_t *)halo::ai::globals().prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size;
-            int16_t kind = ((prop *)p)->state;
+            prop *p = halo::ai::prop_at(prop_index);
+            int16_t kind = p->state;
 
-            prop_index = ((prop *)p)->next_in_actor;
-            if (kind >= 2 && kind <= 3 && p[0x12e] && p[0x60] && *(datum_index *)&((prop *)p)->relationship_object_index == driving) {
+            prop_index = p->next_in_actor;
+            if (kind >= 2 && kind <= 3 && p->is_parented && p->enemy && *(datum_index *)&p->relationship_object_index == driving) {
                 wanted = 1;
                 forced = 1;
                 break;
             }
         }
     }
-    if (act[0x2ed]) {
+    if (act->vehicle_eviction) {
         wanted = 1;
     }
-    if (act[0x160] && (*(datum_index *)&((struct actor *)act)->stuck_projectile_index != k_datum_index_none ||
-                       (((actor *)act)->danger_type == 2 && act[0x28a]))) {
+    if (act->order_committed && (*(datum_index *)&act->stuck_projectile_index != k_datum_index_none ||
+                       (act->danger_type == 2 && act->danger_is_own))) {
         forced = 1;
     } else if (!wanted) {
-        act[0x2ed] = 0;
+        act->vehicle_eviction = 0;
         return 0;
     }
-    act[0x38c] = forced;
-    rider_index = ((actor *)act)->unit_index;
+    act->vehicle_exit_forced = forced;
+    rider_index = act->unit_index;
     rider = (uint8_t *)halo::objects::object_try_and_get(rider_index, 3);
     if (rider != 0 && network_game_mode != 1 && *(datum_index *)(rider + 0x11c) != k_datum_index_none &&
         *(int16_t *)(rider + 0x2f0) != -1) {
@@ -878,15 +879,15 @@ uint8_t ActorView::process_vehicle_seat_exit()
                     if (*(int32_t *)(rider + 0x4) == 0) {
                         halo::units::unit_dispatch_scripted_event_9(0, (int32_t)rider_index);
                     }
-                    ((struct actor *)act)->exited_vehicle_index = ((actor *)act)->active_unit_index;
-                    *(int32_t *)&((struct actor *)act)->exited_vehicle_reentry_time = game_time->game_time + 180;
+                    act->exited_vehicle_index = act->active_unit_index;
+                    *(int32_t *)&act->exited_vehicle_reentry_time = game_time->game_time + 180;
                     result = 1;
                 }
             }
         }
     }
-    act[0x38c] = 0;
-    act[0x2ed] = 0;
+    act->vehicle_exit_forced = 0;
+    act->vehicle_eviction = 0;
     return result;
 }
 
@@ -971,10 +972,10 @@ void ActorView::propagate_unit_field(int16_t value)
 
 namespace actor_raise_timer_5f6_local {
 #define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (actor[(o)])
-#define W(o) (*(int16_t *)(actor + (o)))
-#define D(o) (*(uint32_t *)(actor + (o)))
-#define F(o) (*(float *)(actor + (o)))
+#define B(o) (((uint8_t *)actor)[(o)])
+#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
+#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
+#define F(o) (*(float *)((uint8_t *)actor + (o)))
 }
 
 /**
@@ -985,12 +986,12 @@ namespace actor_raise_timer_5f6_local {
 void ActorView::raise_timer_5f6(int32_t ticks)
 {
     using namespace actor_raise_timer_5f6_local;
-    uint8_t *actor = ACTOR(actor_index);
+    struct actor *actor = halo::ai::actor_at(actor_index);
 
-    if ((int32_t)W(0x5f6) > ticks) {
-        W(0x5f6) = W(0x5f6);
+    if ((int32_t)actor->firing_delay_timer > ticks) {
+        actor->firing_delay_timer = actor->firing_delay_timer;
     } else {
-        W(0x5f6) = (int16_t)ticks;
+        actor->firing_delay_timer = (int16_t)ticks;
     }
 }
 
@@ -1394,27 +1395,27 @@ namespace actor_request_move_and_face_local {
 uint8_t ActorView::request_move_and_face()
 {
     using namespace actor_request_move_and_face_local;
-    uint8_t *actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & halo::k_slot_mask].data;
+    struct actor *actor = halo::ai::actor_at(actor_index);
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data;
 
-    if (actor[6] != 0) {
-        *(int16_t *)(actor + 0xc0) = 1;
+    if (actor->swarm != 0) {
+        *(int16_t *)((uint8_t *)actor + 0xc0) = 1;
         return 0;
     }
-    if (actor[0x160] != 0) {
-        *(int16_t *)(actor + 0xc0) = 1;
-        actor[0xaa] = 1;
+    if (actor->order_committed != 0) {
+        *(int16_t *)((uint8_t *)actor + 0xc0) = 1;
+        ((uint8_t *)actor)[0xaa] = 1;
         return 0;
     }
-    if (*(int16_t *)(actor + 0xc0) == 3 && ((struct actor *)actor)->firing_position_index == -1) {
-        *(int16_t *)(actor + 0xc0) = 0;
-        actor[0xaa] = 1;
+    if (*(int16_t *)((uint8_t *)actor + 0xc0) == 3 && actor->firing_position_index == -1) {
+        *(int16_t *)((uint8_t *)actor + 0xc0) = 0;
+        ((uint8_t *)actor)[0xaa] = 1;
     }
-    if (actor[0x4c] == 0 || actor[0xaa] == 0) {
+    if (actor->needs_new_path == 0 || ((uint8_t *)actor)[0xaa] == 0) {
         return 0;
     }
-    if (*(int16_t *)(actor + 0xc0) == 3 && ((struct actor *)actor)->firing_position_index != -1) {
-        halo::ai::actor_push_recognition_entry(actor_index, ((struct actor *)actor)->firing_position_index, 0);
+    if (*(int16_t *)((uint8_t *)actor + 0xc0) == 3 && actor->firing_position_index != -1) {
+        halo::ai::actor_push_recognition_entry(actor_index, actor->firing_position_index, 0);
     }
     {
         static actor_firing_position_query query;
@@ -1433,17 +1434,17 @@ uint8_t ActorView::request_move_and_face()
         found = (int16_t)halo::ai::actor_find_best_firing_position(actor_index, &query, &candidate, &previous_owner,
             &path_context, &path_ok);
         claimed = halo::ai::actor_claim_firing_position(actor_index, previous_owner, &path_context, found, path_ok);
-        actor = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
-        actor[0xaa] = 0;
-        actor[0xb0] = 0;
+        actor = halo::ai::actor_at(actor_index);
+        ((uint8_t *)actor)[0xaa] = 0;
+        ((uint8_t *)actor)[0xb0] = 0;
         if (claimed == -1) {
-            *(int16_t *)(actor + 0xc0) = 1;
+            *(int16_t *)((uint8_t *)actor + 0xc0) = 1;
         } else {
-            *(int16_t *)(actor + 0xc0) = 3;
-            *(int16_t *)(actor + 0xc4) = claimed;
+            *(int16_t *)((uint8_t *)actor + 0xc0) = 3;
+            *(int16_t *)((uint8_t *)actor + 0xc4) = claimed;
         }
     }
-    *(int16_t *)&((struct actor *)actor)->mode_data = (int16_t)(int32_t)(halo::math::random_real_range(*(float *)(actor_tag + 0x3b8),
+    *(int16_t *)&actor->mode_data = (int16_t)(int32_t)(halo::math::random_real_range(*(float *)(actor_tag + 0x3b8),
         *(float *)(actor_tag + 0x3bc)) * 30.0f);
     return 0;
 }
@@ -2564,7 +2565,7 @@ extern const actor_dodge_entry actor_dodge_table[];
 uint8_t ActorOps::take_danger_escape(real_vector3d *path_delta, datum_index actor_index, uint32_t escape, uint32_t extra, float distance)
 {
     using namespace actor_take_danger_escape_local;
-    uint8_t *act = ACTOR(actor_index);
+    actor *act = halo::ai::actor_at(actor_index);
     uint16_t direction_kind = (uint16_t)escape;
     float step_distance = *(float *)&extra;
     uint8_t probe_flag;
@@ -2581,7 +2582,7 @@ uint8_t ActorOps::take_danger_escape(real_vector3d *path_delta, datum_index acto
     float payload[2];
     uint8_t queued;
 
-    if (((actor *)act)->active_unit_index != k_datum_index_none) {
+    if (act->active_unit_index != k_datum_index_none) {
         return 0;
     }
     if (!halo::ai::actor_probe_step_direction(actor_index, step_distance, (real_vector2d *)path_delta, &direction_kind, distance,
@@ -2595,8 +2596,8 @@ uint8_t ActorOps::take_danger_escape(real_vector3d *path_delta, datum_index acto
     case 3: a = path_delta->i; b = path_delta->j; break;
     default: b = probe_extra[1]; break;
     }
-    fx = ((actor *)act)->facing.i;
-    fy = ((actor *)act)->facing.j;
+    fx = act->facing.i;
+    fy = act->facing.j;
     scores[2] = b * fy + a * fx;
     scores[0] = fx * b - fy * a;
     scores[3] = -scores[2];
@@ -2604,7 +2605,7 @@ uint8_t ActorOps::take_danger_escape(real_vector3d *path_delta, datum_index acto
     for (i = 0; actor_dodge_table[i].action != -1; i++) {
         float value = scores[actor_dodge_table[i].direction] + actor_dodge_table[i].bias;
 
-        if (value > best && halo::units::unit_scripted_action_animation_exists(((actor *)act)->unit_index, actor_dodge_table[i].action)) {
+        if (value > best && halo::units::unit_scripted_action_animation_exists(act->unit_index, actor_dodge_table[i].action)) {
             best = value;
             best_direction = actor_dodge_table[i].direction;
             best_action = actor_dodge_table[i].action;
@@ -2622,7 +2623,7 @@ uint8_t ActorOps::take_danger_escape(real_vector3d *path_delta, datum_index acto
     }
     queued = halo::ai::actor_queue_secondary_action(actor_index, best_action, (uint32_t *)payload);
     if (queued) {
-        halo::ai::ai_communication_broadcast(0x2c, ((actor *)act)->unit_index, -1, -1, -1, -1, 0);
+        halo::ai::ai_communication_broadcast(0x2c, act->unit_index, -1, -1, -1, -1, 0);
     }
     return queued;
 }
@@ -2766,12 +2767,12 @@ extern game_time_globals *game_time;
 uint8_t ActorView::vehicle_not_recently_left(datum_index vehicle_index)
 {
     using namespace actor_vehicle_not_recently_left_local;
-    uint8_t *act = ACTOR(actor_index);
+    actor *act = halo::ai::actor_at(actor_index);
 
-    if (vehicle_index != ((struct actor *)act)->exited_vehicle_index) {
+    if (vehicle_index != act->exited_vehicle_index) {
         return 1;
     }
-    return (uint8_t)(game_time->game_time >= *(int32_t *)&((struct actor *)act)->exited_vehicle_reentry_time);
+    return (uint8_t)(game_time->game_time >= *(int32_t *)&act->exited_vehicle_reentry_time);
 }
 
 #undef ACTOR
