@@ -28,18 +28,7 @@ static auto &network_index_cache_table = halo::link::ref<void *const>(halo::game
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 static auto &main_game_globals = halo::link::ref<uint8_t *>(halo::game::vars().main_game_globals);
-extern "C" {
-extern void player_trigger_shield_recharge_effect(uint32_t player_index);
-extern void player_trigger_full_health_effect(uint32_t player_index);
-extern uint8_t player_add_kill_streak(int32_t slot, int16_t amount, uint32_t player_handle);
-extern void player_trigger_kill_streak_effect(uint32_t player_index);
-}
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-extern "C" {
-extern uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object, real_point3d *point);
-extern void player_apply_pickup_effect(uint32_t player_index, uint32_t pickup_object);
-extern void unit_invalidate_local_player_zoom_level(datum_index unit);
-}
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &global_origin3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &player_placement_ring = halo::link::ref<real_point3d [9]>(halo::game::vars().player_placement_ring);
@@ -77,9 +66,6 @@ static auto &player_profile_cache_count = halo::link::ref<int32_t>(halo::game::v
 static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
 static auto &catchup_backlog_threshold = halo::link::ref<int32_t>(halo::game::vars().catchup_backlog_threshold);
 static auto &catchup_time_threshold = halo::link::ref<int32_t>(halo::game::vars().catchup_time_threshold);
-extern "C" {
-extern uint8_t player_unit_has_parent(datum_index player_handle);
-}
 static auto &team_data = halo::link::ref<data_array *>(halo::game::vars().team_data);
 static auto &camera_point = halo::link::ref<float []>(halo::game::vars().camera_point);
 static auto &camera_position_y_table = halo::link::ref<float []>(halo::game::vars().camera_position_y_table);

@@ -21,10 +21,6 @@ static auto &camera_forward_x = halo::link::ref<real_vector3d>(halo::effects::va
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &render_frustum_global = halo::link::ref<render_frustum>(halo::render::vars().render_frustum_global);
 
-extern "C" {
-extern datum_index weather_particle_new(int16_t instance_index, int16_t type_index);
-extern void weather_instance_update(int16_t instance_index);
-}
 static auto &weather_instances = halo::link::ref<weather_instance [1]>(halo::effects::vars().weather_instances);
 static auto &weather_instance_count = halo::link::ref<int32_t>(halo::effects::vars().weather_instance_count);
 static auto &weather_particle_data = halo::link::ref<data_array *>(halo::game::vars().weather_particle_data);

@@ -12,11 +12,6 @@
 #include "halo/core/link.hpp"
 #include "halo/effects/vars.hpp"
 
-extern "C" {
-extern void contrail_next_sequence(contrail *self);
-extern void contrail_age_points(datum_index contrail_handle, real delta_time);
-extern void contrail_delete(datum_index contrail_index);
-}
 static auto &contrail_data = halo::link::ref<data_array *>(halo::effects::vars().contrail_data);
 static auto &contrail_point_data = halo::link::ref<data_array *>(halo::effects::vars().contrail_point_data);
 

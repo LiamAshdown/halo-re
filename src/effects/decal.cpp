@@ -15,9 +15,6 @@
 #include "halo/physics/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
-extern void decal_link(int16_t cluster_index, datum_index decal_index, int16_t layer);
-}
 static auto &decal_data = halo::link::ref<data_array *>(halo::effects::vars().decal_data);
 static auto &decal_grid_block = halo::link::ref<decal_grid *>(halo::effects::vars().decal_grid_block);
 static auto &rasterizer_decal_vertex_cache_handle = halo::link::ref<cache *>(halo::effects::vars().rasterizer_decal_vertex_cache_handle);

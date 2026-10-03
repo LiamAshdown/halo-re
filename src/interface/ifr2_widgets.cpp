@@ -33,10 +33,6 @@ static auto &ui_event_function_table = halo::link::ref<void *[0xbe]>(halo::ui::v
 static auto &ui_pause_depth = halo::link::ref<int16_t>(halo::ui::vars().ui_pause_depth);
 static auto &ui_split_screen = halo::link::ref<uint8_t>(halo::ui::vars().ui_split_screen);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-extern "C" {
-extern void widget_close(widget_instance *widget);
-extern widget_instance *widget_reopen_as_root_with_history(widget_instance *widget, datum_index open_tag);
-}
 static auto &ui_widget_history = halo::link::ref<widget_history_node *[3]>(halo::ui::vars().ui_widget_history);
 static auto &controls_capture_row = halo::link::ref<int32_t>(halo::ui::vars().controls_capture_row);
 static auto &controls_input_capture_flags = halo::link::ref<uint8_t>(halo::ui::vars().controls_input_capture_flags);

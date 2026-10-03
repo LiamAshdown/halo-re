@@ -20,10 +20,6 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 
-extern "C" {
-extern void player_effect_apply_continuous_damage(uint32_t tag_reference, int16_t local_player_index, float distance);
-extern void player_effect_mark_damage_direction(datum_index player_index, const damage_data *dd, const real_vector3d *direction, float random_blend, float damage_amount);
-}
 static auto &player_effect_globals_pointer = halo::link::ref<player_effect_globals *>(halo::effects::vars().player_effect_globals_pointer);
 static auto &global_white_argb = halo::link::ref<const ColorARGB *>(halo::networking::vars().global_white_argb);
 static auto &screen_flash_pass = halo::link::ref<int16_t [8]>(halo::effects::vars().screen_flash_pass);

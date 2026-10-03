@@ -15,7 +15,6 @@
 #include "halo/core/libm.hpp"
 
 extern "C" {
-extern void weapon_trigger_barrel_spread_offset(real_vector3d *v, real_vector3d *axis, uint16_t barrel_index, int16_t distribution_function, real distribution_angle, uint32_t flags);
 void halo::items::trigger_create_projectiles(uint32_t item_index, int16_t trigger_index, uint32_t role);
 void halo::items::weapon_trigger_become_charged(datum_index item_index, int16_t trigger_index);
 void halo::items::weapon_trigger_begin_reload(datum_index item_index, int16_t magazine_index, int8_t is_client_predicted);

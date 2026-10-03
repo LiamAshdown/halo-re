@@ -18,13 +18,6 @@
 #include "halo/core/libm.hpp"
 
 extern "C" {
-extern uint8_t particle_advance_frame(datum_index particle_handle);
-extern uint8_t particle_next_sequence(datum_index particle_handle);
-extern void particle_impact_response_dispatch(particle *self, tag_group fourcc, datum_index definition_index, real intensity);
-extern real particle_current_radius(datum_index particle_handle);
-extern void particle_impact(datum_index particle_handle);
-extern uint8_t particle_advance_animation(datum_index particle_handle, real delta_time);
-extern uint8_t particle_update_motion(datum_index particle_handle, real delta_time);
 void particle_new(particle_creation_data *creation_data);
 void particles_delete_by_first_person_weapon(uint8_t first_person_weapon_index);
 void particles_refresh_structure_locations();

@@ -14,7 +14,6 @@
 #include "halo/core/x87.hpp"
 
 extern "C" {
-extern void item_compute_rotation(uint32_t object_index);
 void halo::items::item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer);
 void halo::items::item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal, real_point3d *point);
 uint8_t halo::items::item_get_effective_position(datum_index object_index, real_point3d *out_position);

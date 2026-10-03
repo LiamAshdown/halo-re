@@ -67,10 +67,6 @@ static auto &profile_globals_block = halo::link::ref<uint8_t []>(halo::ui::vars(
 static auto &port_overridden = halo::link::ref<uint8_t>(halo::ui::vars().port_overridden);
 static auto &game_cport = halo::link::ref<uint32_t>(halo::ui::vars().game_cport);
 static auto &network_session_start_game_type = halo::link::ref<uint32_t>(halo::networking::vars().network_session_start_game_type);
-extern "C" {
-extern void player_profile_refresh_settings_cache(int16_t player_index);
-extern void player_profile_apply_audio_options(uint8_t *settings);
-}
 static auto &input_globals = halo::link::ref<player_control_settings []>(halo::main::vars().input_globals);
 static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
 static auto &saved_item_disk_copy = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().saved_item_disk_copy);
