@@ -417,5 +417,5 @@ The one-function-per-file `.c` sources were merged into topic files (`camera_fru
 `objects.cpp`, `screen_effects.cpp`, `particle_sort.cpp`, `window.cpp`, `frame.cpp`). Operations on the module's own
 records are member functions of the view classes in `include/halo/render/render.hpp` (`SpriteBuilder`,
 `CinematicScreenEffect`, `FrameStatistics`, `ObjectRenderData`); the rest are namespace functions in
-`halo::render::<family>`. `render_c_api.cpp` holds the `extern "C"` shims with the original names. The old author
+`halo::render::<family>`. Callers reach them through `include/halo/render/api.hpp`. The old author
 notes and decompile blocks are in `docs/original/render/`.

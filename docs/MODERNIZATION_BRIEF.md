@@ -7,9 +7,8 @@ files under include/halo/ and src/.
 ROLE: {{ROLE}}   MODULE / SCOPE: {{SCOPE}}
 
 Rules that apply to every role
-- Never run the game or any smoke test. Verify with a build of just what you touched: compile your files with the project flags (use
-  `python tools/check_module_symbols.py check <module>` for the compile gate where the symbol sets still apply; when your task removes C symbols on
-  purpose, update `symbols/exports/<module>.txt` accordingly in the same commit) and, for cross-module changes, a full
+- Never run the game or any smoke test. Verify with a build of just what you touched: compile your files with the project flags and, for cross-module changes,
+  a full
   `cmake --build build/<your own dir> --config Release --parallel` in your worktree (configure it first with
   `cmake -S . -B build/<dir> -G "Visual Studio 17 2022" -A Win32 -DHALO_REGENERATE=OFF`). The build must link.
 - Behaviour does not change (arithmetic order, float semantics, random draws, evaluation order) except when you implement a previously unreversed
@@ -23,8 +22,7 @@ Rules that apply to every role
 
 Role details
 - API: for your module, give every function other modules call a C++ declaration in `include/halo/<module>/api.hpp` (namespace halo::<module>), make all
-  callers include it and call it, delete the callers' local `extern ...;` declarations of that module, delete the module's `extern "C"` shims and
-  `extern "C"` blocks, and update the tables in standalone/data (they are C++ files by now, or convert them) to reference the C++ functions. Where a
+  callers include it and call it, delete the callers' local `extern ...;` declarations of that module, and update the tables in standalone/data to reference the C++ functions. Where a
   caller declared a different signature than the definition, fix the call site (cast or adapt) instead of keeping the mismatch. Global variables
   owned by the module move into one service object (`halo::<module>::Globals`, reached through an accessor) and the `extern` declarations of them
   elsewhere are replaced by the accessor.

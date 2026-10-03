@@ -1,8 +1,8 @@
 # C++ conversion status ledger (maintained by the lead / overnight loop)
 
 Integration branch: `cxx-phase1` (never `master`; nothing is pushed or merged to master without the user).
-Agent branches are `worktree-agent-<id>`. Baseline symbol sets: `symbols/exports/<module>.txt`.
-Process per finished agent: merge its branch into cxx-phase1, run `python tools/check_module_symbols.py check <its modules>`;
+Agent branches are `worktree-agent-<id>`. The C-symbol baselines and `tools/check_module_symbols.py` were removed; the gate is a green full build.
+Process per finished agent: merge its branch into cxx-phase1 and build;
 if it fails, `git reset --hard` to the commit before the merge and log it below. After a group of merges, run the full
 build (hide bin/halo.exe and out/functions.* first, restore after), smoke-test the exe for 2 minutes and read
 build/cxx/Release/halo_standalone.log (no EXCEPTION / MISSING FUNCTION; DIAG lines appear). If the build or smoke test
