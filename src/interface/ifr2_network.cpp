@@ -16,6 +16,7 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/interface/constants.hpp"
 
 #ifdef interface
 #undef interface
@@ -28,7 +29,7 @@ extern uint8_t game_engine_ensure_variant_history_has_entry(void);
 extern void game_engine_apply_current_custom_variant(void);
 extern void network_game_setup_teardown(void);
 extern variant_carousel_slot variant_carousel_slots[3];
-extern uint8_t profile_globals_block[0x60a4];
+extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
 extern heap *widget_memory_pool;
 extern uint16_t missing_string_text[];
 extern uint8_t default_profile_data[k_saved_player_profile_size];
@@ -63,13 +64,16 @@ uint8_t NetworkSetup::host_session_start()
         halo::game::game_engine_ensure_variant_history_has_entry();
         ok = halo::networking::network_game_server_host_create();
         if (ok == 1) {
-            int32_t *raw = (int32_t *)halo::networking::globals().server;
+            network_server_globals *server = halo::networking::globals().server;
 
-            raw[0x272] = 0;
-            raw[0x273] = 0;
-            raw[0x274] = 0;
-            raw[0x275] = 0;
-            *((uint8_t *)raw + 0x9d5) = 1;
+            server->handshake_timer.remaining_ms = 0;
+            server->handshake_timer.last_tick_ms = 0;
+            server->unknown_9d0 = 0;
+            server->handshake_state = 0;
+            server->handshake_blocked = 0;
+            server->handshake_flag = 0;
+            server->pad_9d7 = 0;
+            server->handshake_blocked = 1;
             game_variant_history_current = -1;
             halo::game::game_engine_apply_current_custom_variant();
             halo::game::game_engine_sync_variant_defaults();
@@ -136,10 +140,10 @@ void MenuListView::refresh_3wide()
     }
 
     if (widget->extended_description != 0) {
-        uint8_t profile_copy[0x7ff * 4];
+        saved_player_profile profile_copy;
 
-        memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-        halo::interface::set_profile_name(widget->extended_description, (const uint16_t *)(profile_copy + 2));
+        memcpy(&profile_copy, &profile_globals_block[0].profile, sizeof(profile_copy));
+        halo::interface::set_profile_name(widget->extended_description, profile_copy.name);
     }
 }
 
@@ -159,7 +163,7 @@ void MenuListView::update_item(const uint16_t *record)
     icon_widget->hidden = 0;
 
     if (record == nullptr) {
-        uint16_t *name_buf = (uint16_t *)halo::memory::heap_reallocate(name_widget->text, 0x100, widget_memory_pool);
+        uint16_t *name_buf = (uint16_t *)halo::memory::heap_reallocate(name_widget->text, halo::interface::k_name_text_bytes, widget_memory_pool);
 
         name_widget->text = name_buf;
         if (name_buf != nullptr) {
@@ -168,7 +172,7 @@ void MenuListView::update_item(const uint16_t *record)
         desc_widget->background_bitmap_frame = 5;
 
         {
-            uint16_t *desc_buf = (uint16_t *)halo::memory::heap_reallocate(desc_widget->text, 0x200, widget_memory_pool);
+            uint16_t *desc_buf = (uint16_t *)halo::memory::heap_reallocate(desc_widget->text, halo::interface::k_description_text_bytes, widget_memory_pool);
 
             desc_widget->text = desc_buf;
             if (desc_buf != nullptr) {
@@ -200,7 +204,7 @@ void MenuListView::update_item(const uint16_t *record)
     }
 
     {
-        uint16_t *name_buf = (uint16_t *)halo::memory::heap_reallocate(name_widget->text, 0x100, widget_memory_pool);
+        uint16_t *name_buf = (uint16_t *)halo::memory::heap_reallocate(name_widget->text, halo::interface::k_name_text_bytes, widget_memory_pool);
 
         name_widget->text = name_buf;
         if (name_buf != nullptr) {
@@ -210,7 +214,7 @@ void MenuListView::update_item(const uint16_t *record)
     }
     desc_widget->background_bitmap_frame = 5;
     {
-        uint16_t *desc_buf = (uint16_t *)halo::memory::heap_reallocate(desc_widget->text, 0x200, widget_memory_pool);
+        uint16_t *desc_buf = (uint16_t *)halo::memory::heap_reallocate(desc_widget->text, halo::interface::k_description_text_bytes, widget_memory_pool);
 
         desc_widget->text = desc_buf;
         if (desc_buf != nullptr) {
@@ -301,9 +305,9 @@ uint8_t NetworkSetup::autojoin_from_command_line()
  */
 void NetworkSetup::clear_player_ready_flags()
 {
-    int16_t *client = (int16_t *)halo::networking::globals().client;
-    int16_t *status;
-    int16_t *player;
+    network_client_globals *client = halo::networking::globals().client;
+    network_server_globals *server = halo::networking::globals().server;
+    network_player_entry *player;
     uint8_t local_ready_flags[16];
     int32_t i;
 
@@ -311,41 +315,34 @@ void NetworkSetup::clear_player_ready_flags()
         return;
     }
 
-    status = client + 0x76d;
-    if (client[0x76d] == 1) {
+    if (client->state == 1) {
         halo::cseries::time_query_performance_counter_ms();
     }
 
-    if (*status != 2) {
+    if (client->state != 2) {
         return;
     }
 
-    if (halo::networking::globals().server == (network_server_globals *)0) {
-        player = (client == nullptr) ? nullptr : client + 0x58a;
-    } else {
-        player = (int16_t *)((uint8_t *)halo::networking::globals().server + 8);
-    }
+    player = server == nullptr ? client->session.players : server->session.players;
     local_ready_flags[0] = local_team_00714dd8;
-    player = player + 0xd1;
 
     for (i = 0x10; i != 0; i--) {
-        if (halo::networking::network_player_entry_validate((network_player_entry *)player) != 0) {
-            if (player == nullptr || halo::networking::network_player_entry_validate((network_player_entry *)player) == 0) {
-                if (halo::networking::globals().game_mode != 3 || *((int8_t *)player + 0x1c) == 0) {
+        if (halo::networking::network_player_entry_validate(player) != 0) {
+            if (player == nullptr || halo::networking::network_player_entry_validate(player) == 0) {
+                if (halo::networking::globals().game_mode != 3 || player->machine_index == 0) {
                     goto clear_flag;
                 }
-            } else if ((halo::networking::globals().server == (network_server_globals *)0 ||
-                        (((*((uint8_t *)halo::networking::globals().server + 6) >> 2) & 1) == 0)) &&
-                       *client != -1 && *client == (int16_t)*((int8_t *)player + 0x1c)) {
+            } else if ((server == nullptr || (((server->flags >> 2) & 1) == 0)) &&
+                       (int16_t)client->machine_index != -1 && (int16_t)client->machine_index == (int16_t)player->machine_index) {
             clear_flag:
-                local_ready_flags[*((int8_t *)player + 0x1d)] = 0;
+                local_ready_flags[player->machine_player_index] = 0;
             }
         }
-        player = player + 0x10;
+        player++;
     }
 
     if (local_ready_flags[0] != 0) {
-        halo::networking::network_game_settings_ack_send((uint8_t *)halo::networking::globals().client, 0);
+        halo::networking::network_game_settings_ack_send((uint8_t *)client, 0);
     }
 }
 
@@ -385,13 +382,16 @@ void NetworkSetup::game_setup_teardown()
 uint32_t NetworkSetup::server_reset_game_stats()
 {
     if (halo::networking::globals().server != (network_server_globals *)0) {
-        uint8_t *raw = (uint8_t *)halo::networking::globals().server;
+        network_server_globals *server = halo::networking::globals().server;
 
-        *(int32_t *)(raw + 0x9c8) = 0;
-        *(int32_t *)(raw + 0x9cc) = 0;
-        *(int32_t *)(raw + 0x9d0) = 0;
-        *(int32_t *)(raw + 0x9d4) = 0;
-        raw[0x9d5] = 1;
+        server->handshake_timer.remaining_ms = 0;
+        server->handshake_timer.last_tick_ms = 0;
+        server->unknown_9d0 = 0;
+        server->handshake_state = 0;
+        server->handshake_blocked = 0;
+        server->handshake_flag = 0;
+        server->pad_9d7 = 0;
+        server->handshake_blocked = 1;
     }
     return ((uint32_t)halo::networking::globals().server << 8) | 1;
 }

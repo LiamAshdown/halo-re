@@ -32,12 +32,12 @@
 #include "halo/input/ui_events.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/net_session.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
 
 extern "C" {
-extern uint8_t *network_client;
 extern uint8_t input_event_queue_active;
 extern int32_t ui_cursor_x;
 extern int32_t ui_cursor_y;
@@ -138,12 +138,13 @@ static void row_clicked(widget_instance *list, int32_t row, int32_t old_committe
  */
 uint8_t UiEventHandlers::event_4a1740(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    int16_t *state;
+    uint16_t *state;
+    network_client_globals *client = halo::networking::globals().client;
 
-    if (widget->item_count != 0 || network_client == 0) {
+    if (widget->item_count != 0 || client == 0) {
         return 0;
     }
-    state = (int16_t *)(network_client + 0xeda);
+    state = &client->state;
     if (*state == 1) {
         halo::cseries::time_query_performance_counter_ms();
     }

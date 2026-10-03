@@ -28,9 +28,9 @@
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/net_session.hpp"
 
 extern "C" {
-extern uint8_t *network_client;
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[k_saved_player_profile_size];
 extern widget_history_node *ui_widget_history[3];
@@ -99,28 +99,28 @@ static int32_t list_item_id(int16_t index)
  */
 uint8_t UiEventHandlers::event_49dbc0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
-                  : network_client != 0 ? network_client + halo::interface::k_client_game_offset : 0;
+    network_game_session *game = halo::interface::current_game_session();
     int16_t key;
     int32_t i;
 
-    if (game == 0 || game[0x138] != 1 || network_client == 0) {
+    network_client_globals *client = halo::networking::globals().client;
+
+    if (game == 0 || game->variant.teams != 1 || client == 0) {
         return 1;
     }
-    key = *(int16_t *)network_client;
+    key = (int16_t)client->machine_index;
     if (key == -1) {
         return 1;
     }
     for (i = 0; i < 0x10; i++) {
-        uint8_t *entry = game + 0x1a2 + i * 0x20;
+        network_player_entry *entry = &game->players[i];
 
-        if (halo::networking::network_player_entry_validate((network_player_entry *)entry) != 0 && (int16_t)(int8_t)entry[0x1c] == key &&
-            (int16_t)(int8_t)entry[0x1d] == event[1]) {
-            uint32_t copy[8];
+        if (halo::networking::network_player_entry_validate(entry) != 0 && (int16_t)entry->machine_index == key &&
+            (int16_t)entry->machine_player_index == event[1]) {
+            network_player_entry copy = *entry;
 
-            memcpy(copy, entry, sizeof(copy));
-            ((uint8_t *)copy)[0x1e] = (uint8_t)(((uint8_t *)copy)[0x1e] == 0);
-            halo::networking::network_game_record_message_send((network_client_globals *)network_client, copy);
+            copy.team_index = (int8_t)(copy.team_index == 0);
+            halo::networking::network_game_record_message_send(client, (uint32_t *)&copy);
             return 1;
         }
     }
@@ -134,35 +134,35 @@ uint8_t UiEventHandlers::event_49dbc0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49dca0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *client = network_client;
-    int16_t *state;
-    uint8_t *game;
+    network_client_globals *client = halo::networking::globals().client;
+    uint16_t *state;
+    network_game_session *game;
 
     if (client == 0) {
         return 1;
     }
-    state = (int16_t *)(client + 0xeda);
+    state = &client->state;
     if (*state == 1) {
         halo::cseries::time_query_performance_counter_ms();
     }
     if (*state != 2) {
         return 1;
     }
-    game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8 : network_client != 0 ? network_client + halo::interface::k_client_game_offset : 0;
-    if (network_client != 0 && *(int16_t *)network_client != -1) {
-        int16_t key = *(int16_t *)network_client;
+    game = halo::interface::current_game_session();
+    if ((int16_t)client->machine_index != -1) {
+        int16_t key = (int16_t)client->machine_index;
         int16_t i;
 
         for (i = 0; i < 0x10; i++) {
-            uint8_t *entry = game + i * 0x20 + 0x1a2;
+            network_player_entry *entry = &game->players[i];
 
-            if (halo::networking::network_player_entry_validate((network_player_entry *)entry) != 0 && (int16_t)(int8_t)entry[0x1c] == key &&
-                (int16_t)(int8_t)entry[0x1d] == event[1]) {
+            if (halo::networking::network_player_entry_validate(entry) != 0 && (int16_t)entry->machine_index == key &&
+                (int16_t)entry->machine_player_index == event[1]) {
                 return 1;
             }
         }
     }
-    halo::networking::network_game_settings_ack_send(client, (int16_t)(uint16_t)event[1]);
+    halo::networking::network_game_settings_ack_send((uint8_t *)client, (int16_t)(uint16_t)event[1]);
     return 1;
 }
 
