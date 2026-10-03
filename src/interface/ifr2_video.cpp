@@ -22,7 +22,7 @@ uint8_t VideoOptions::video_mode_memory_limit_applies(void)
 {
     int32_t i;
 
-    if (halo::shell::globals().maximum_resolution == 0x1000) {
+    if (halo::shell::globals().maximum_resolution == 4096) {
         return 1;
     }
     for (i = 0; i < halo::shell::globals().argc; i++) {
@@ -57,13 +57,13 @@ void VideoOptions::display_modes_enumerate(uint32_t format)
             continue;
         }
         if (video_mode_memory_limit_applies()) {
-            if (video_memory <= 0x2000000 && mode.width > 0x400) {
+            if (video_memory <= (32u << 20) && mode.width > 1024) {
                 continue;
             }
-            if (video_memory <= 0x4000000 && mode.width > 0x500) {
+            if (video_memory <= (64u << 20) && mode.width > 1280) {
                 continue;
             }
-            if (video_memory <= 0x8000000 && mode.width > 0x640) {
+            if (video_memory <= (128u << 20) && mode.width > 1600) {
                 continue;
             }
         }
@@ -72,11 +72,11 @@ void VideoOptions::display_modes_enumerate(uint32_t format)
                 continue;
             }
         }
-        if (mode.width > halo::shell::globals().maximum_resolution || mode.width < halo::interface::k_base_screen_width || mode.height < halo::interface::k_base_screen_height || mode.width > 0x12c0 ||
-            mode.height > 0xe10 || mode.refresh_rate > 0x78) {
+        if (mode.width > halo::shell::globals().maximum_resolution || mode.width < halo::interface::k_base_screen_width || mode.height < halo::interface::k_base_screen_height || mode.width > 4800 ||
+            mode.height > 3600 || mode.refresh_rate > 120) {
             continue;
         }
-        if ((mode.width == 0x2d0 || mode.width == 0x350) && (mode.height == 0x240 || mode.height == halo::interface::k_base_screen_height)) {
+        if ((mode.width == 720 || mode.width == 848) && (mode.height == 576 || mode.height == halo::interface::k_base_screen_height)) {
             continue;
         }
         halo::interface::video_resolution_add((int32_t)mode.height, (int32_t)mode.width, (int32_t)mode.refresh_rate);

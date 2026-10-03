@@ -42,7 +42,7 @@ public:
 
     static void crosshairs_draw(datum_index hud_tag, const player *p, const weapon_hud_ammo_state *ammo);
     static void draw_elements(datum_index hud_tag, int16_t local_player_index, const Weapon *weapon_tag, const weapon_hud_ammo_state *ammo, const uint16_t *parent_state_flags, const uint16_t *parent_overlay_types, const int16_t *parent_numbers);
-    static void meters_evaluate(datum_index hud_interface_tag_id, int16_t local_player_index, int32_t weapon_or_vehicle_index, void *state_ptr);
+    static void meters_evaluate(datum_index hud_interface_tag_id, int16_t local_player_index, int32_t weapon_or_vehicle_index, const weapon_hud_ammo_state *state_ptr);
     static void state_update();
     static int16_t animation_stage(int16_t message_stage);
     static int16_t message_stage(int16_t item_type_code);

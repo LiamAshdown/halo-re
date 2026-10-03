@@ -32,6 +32,7 @@
 #include "halo/input/ui_events.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/net_session.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
@@ -70,6 +71,9 @@ static auto &network_host_number_field_00719218 = halo::link::ref<int32_t>(halo:
 static auto &network_host_number_text_0071921c = halo::link::ref<uint16_t [0x10]>(halo::ui::vars().network_host_number_text_0071921c);
 static auto &hud_text_message_queue = halo::link::ref<growable_array>(halo::ui::vars().hud_text_message_queue);
 static auto &hud_text_message_cycle_state_00719230 = halo::link::ref<int32_t>(halo::ui::vars().hud_text_message_cycle_state_00719230);
+#include "halo/interface/flags.hpp"
+#include "halo/interface/wide_text.hpp"
+#include "halo/interface/ui_event.hpp"
 
 namespace halo::ui {
 
@@ -118,7 +122,7 @@ static int32_t list_item_id(int16_t index)
 static void row_clicked(widget_instance *list, int32_t row, int32_t old_committed, uint8_t double_click)
 {
     halo::interface::widget_play_sound_effect(2);
-    *(int16_t *)&((struct widget_instance *)list)->text = (int16_t)row;
+    halo::interface::widget_list_committed(list) = (int16_t)row;
     if (double_click && old_committed == row) {
         ui_input_event queued;
 
@@ -137,12 +141,13 @@ static void row_clicked(widget_instance *list, int32_t row, int32_t old_committe
  */
 uint8_t UiEventHandlers::event_4a1740(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    int16_t *state;
+    uint16_t *state;
+    network_client_globals *client = halo::networking::globals().client;
 
-    if (widget->item_count != 0 || network_client == 0) {
+    if (widget->item_count != 0 || client == 0) {
         return 0;
     }
-    state = (int16_t *)(network_client + 0xeda);
+    state = &client->state;
     if (*state == 1) {
         halo::cseries::time_query_performance_counter_ms();
     }
@@ -280,7 +285,7 @@ uint8_t UiEventHandlers::event_4a1dc0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a2190(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    const uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
+    const saved_player_profile *profile = (selected_saved_item & 0xf) == 0 ? (const saved_player_profile *)saved_item_working_copy : nullptr;
 
     if (profile == 0) {
         return 0;
@@ -318,7 +323,7 @@ uint8_t UiEventHandlers::event_4a21c0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a2490(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    const uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
+    const saved_player_profile *profile = (selected_saved_item & 0xf) == 0 ? (const saved_player_profile *)saved_item_working_copy : nullptr;
 
     if (profile == 0) {
         return 0;
@@ -366,13 +371,13 @@ uint8_t UiEventHandlers::event_4a24c0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a2950(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t profile[k_saved_player_profile_size];
+    saved_player_profile profile;
     uint8_t ok;
 
-    memset(profile, 0, sizeof(profile));
-    ok = halo::saved_games::player_profile_set_default_audio_options((saved_player_profile *)profile);
+    memset(&profile, 0, sizeof(profile));
+    ok = halo::saved_games::player_profile_set_default_audio_options(&profile);
     if (ok != 0) {
-        halo::interface::ui_controls_populate_input_row(widget->parent->parent, profile);
+        halo::interface::ui_controls_populate_input_row(widget->parent->parent, &profile);
         halo::interface::widget_play_sound_effect(2);
     }
     return ok;
@@ -385,8 +390,8 @@ uint8_t UiEventHandlers::event_4a2950(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a2a00(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t profile[k_saved_player_profile_size];
-    int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)widget)->text);
+    saved_player_profile profile;
+    int32_t id = list_item_id(halo::interface::widget_list_committed(widget));
     int32_t item;
 
     profile_slot_lookup_cache_00692ac8 = -1;
@@ -395,10 +400,10 @@ uint8_t UiEventHandlers::event_4a2a00(widget_instance *widget, int16_t *event, u
         return 0;
     }
     if (item < 0) {
-        if (halo::saved_games::player_profile_get(item, (saved_player_profile *)profile) == 0) {
+        if (halo::saved_games::player_profile_get(item, &profile) == 0) {
             return 0;
         }
-        halo::interface::player_profile_load(0, profile, item);
+        halo::interface::player_profile_load(0, &profile, item);
         return 1;
     }
     if (quit_confirm_error_string_index == -1) {
@@ -490,7 +495,7 @@ uint8_t UiEventHandlers::event_4a3000(widget_instance *widget, int16_t *event, u
         child->scale = 1.0f;
     } else {
         child->hidden = 1;
-        *(uint32_t *)&child->scale = 0x3eaa7efa;
+        child->scale = halo::interface::k_widget_default_scale;
     }
     return 1;
 }
@@ -510,7 +515,7 @@ uint8_t UiEventHandlers::event_4a3050(widget_instance *widget, int16_t *event, u
         child->scale = 1.0f;
     } else {
         child->hidden = 1;
-        *(uint32_t *)&child->scale = 0x3eaa7efa;
+        child->scale = halo::interface::k_widget_default_scale;
         child->parent->focused_child = child->parent->first_child->next_sibling;
     }
     for (i = 0; i < 2; i++) {
@@ -520,7 +525,7 @@ uint8_t UiEventHandlers::event_4a3050(widget_instance *widget, int16_t *event, u
             child->scale = 1.0f;
         } else {
             child->hidden = 1;
-            *(uint32_t *)&child->scale = 0x3eaa7efa;
+            child->scale = halo::interface::k_widget_default_scale;
         }
     }
     return 1;
@@ -570,8 +575,8 @@ uint8_t UiEventHandlers::event_4a33a0(widget_instance *widget, int16_t *event, u
     halo::interface::state::vehicle_options_respawn_time = (uint32_t)time;
     halo::interface::ui_controls_populate_bind_rows(widget, ((struct game_variant *)variant)->red_vehicle_set);
     first = widget->first_child;
-    first_list_child(first)->selection_index = (int16_t)(time == 0x384 ? 1 : time == 0x708 ? 2 : time == 0xa8c ? 3 :
-        time == 0xe10 ? 4 : time == 0x1518 ? 5 : time == 0x2328 ? 6 : 0);
+    first_list_child(first)->selection_index = (int16_t)(time == 30 * halo::interface::k_ticks_per_second ? 1 : time == 1 * halo::interface::k_ticks_per_minute ? 2 : time == 90 * halo::interface::k_ticks_per_second ? 3 :
+        time == 2 * halo::interface::k_ticks_per_minute ? 4 : time == 3 * halo::interface::k_ticks_per_minute ? 5 : time == 5 * halo::interface::k_ticks_per_minute ? 6 : 0);
     second = first->next_sibling;
     second_list = first_list_child(second);
     if (variant_teams_enabled_0071920c != 0) {
@@ -613,8 +618,8 @@ uint8_t UiEventHandlers::event_4a3540(widget_instance *widget, int16_t *event, u
     widget_instance *list = widget->parent;
     uint8_t *definition = halo::interface::tag_data<uint8_t>(list->definition);
     int32_t rows = (int32_t)((struct UIWidgetDefinition *)definition)->child_widgets.count;
-    int32_t first_visible = *(int16_t *)((uint8_t *)list + 0x3e);
-    int32_t committed = *(int16_t *)&((struct widget_instance *)list)->text;
+    int32_t first_visible = halo::interface::widget_list_first_visible(list);
+    int32_t committed = halo::interface::widget_list_committed(list);
     widget_instance *child = list->first_child;
     uint8_t header = (uint8_t)(child != 0 && child->first_child != 0 && child->first_child->widget_type == uiwidgettype_spinner_list);
     uint8_t double_click = 0;
@@ -623,14 +628,14 @@ uint8_t UiEventHandlers::event_4a3540(widget_instance *widget, int16_t *event, u
     int32_t row;
     int32_t position;
 
-    if (event[0] == 3 && (((uint8_t *)event)[4] == 0 || ((uint8_t *)event)[4] == 0xc) &&
+    if (event[0] == 3 && (halo::interface::event_code(event) == 0 || halo::interface::event_code(event) == 0xc) &&
         halo::cseries::time_query_performance_counter_ms() - (uint32_t)widget->creation_time > 0xfa) {
         double_click = 1;
     }
     if (header) {
         rows--;
     }
-    fits = (uint8_t)((*(uint8_t *)(definition + 0x150) & 8) != 0 || (int32_t)list->item_count <= rows - 1);
+    fits = (uint8_t)(halo::interface::has_bit(((UIWidgetDefinition *)definition)->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_single_preview_no_scroll) || (int32_t)list->item_count <= rows - 1);
     shown = rows - (fits ? 1 : 3);
     if (shown > (int32_t)list->item_count) {
         shown = list->item_count;
@@ -656,7 +661,7 @@ uint8_t UiEventHandlers::event_4a3540(widget_instance *widget, int16_t *event, u
         if (first_visible < 0) {
             first_visible = 0;
         }
-        *(int16_t *)((uint8_t *)list + 0x3e) = (int16_t)first_visible;
+        halo::interface::widget_list_first_visible(list) = (int16_t)first_visible;
         halo::interface::widget_play_sound_effect(2);
         return 1;
     }
@@ -666,7 +671,7 @@ uint8_t UiEventHandlers::event_4a3540(widget_instance *widget, int16_t *event, u
         if (last >= (int32_t)list->item_count - shown) {
             last = (int32_t)list->item_count - shown;
         }
-        *(int16_t *)((uint8_t *)list + 0x3e) = (int16_t)last;
+        halo::interface::widget_list_first_visible(list) = (int16_t)last;
         halo::interface::widget_play_sound_effect(2);
         return 1;
     }
@@ -692,7 +697,7 @@ uint8_t UiEventHandlers::event_4a3790(widget_instance *widget, int16_t *event, u
     first_list_child(group)->selection_index = (int16_t)(((struct game_variant *)variant)->friendly_fire <= 3 ? ((struct game_variant *)variant)->friendly_fire : 1);
     group = group->next_sibling;
     time = ((struct game_variant *)variant)->betrayal_penalty;
-    first_list_child(group)->selection_index = (int16_t)(time == 0x96 ? 1 : time == 0x12c ? 2 : time == 0x1c2 ? 3 : 0);
+    first_list_child(group)->selection_index = (int16_t)(time == 5 * halo::interface::k_ticks_per_second ? 1 : time == 10 * halo::interface::k_ticks_per_second ? 2 : time == 15 * halo::interface::k_ticks_per_second ? 3 : 0);
     first_list_child(group->next_sibling)->selection_index = (int16_t)(((struct game_variant *)variant)->team_autobalance != 0);
     return 1;
 }
@@ -717,13 +722,13 @@ uint8_t UiEventHandlers::event_4a3870(widget_instance *widget, int16_t *event, u
     group = group->next_sibling;
     switch (first_list_child(group)->selection_index) {
     case 1:
-        ((struct game_variant *)variant)->betrayal_penalty = 0x96;
+        ((struct game_variant *)variant)->betrayal_penalty = 5 * halo::interface::k_ticks_per_second;
         break;
     case 2:
-        ((struct game_variant *)variant)->betrayal_penalty = 0x12c;
+        ((struct game_variant *)variant)->betrayal_penalty = 10 * halo::interface::k_ticks_per_second;
         break;
     case 3:
-        ((struct game_variant *)variant)->betrayal_penalty = 0x1c2;
+        ((struct game_variant *)variant)->betrayal_penalty = 15 * halo::interface::k_ticks_per_second;
         break;
     default:
         ((struct game_variant *)variant)->betrayal_penalty = 0;
@@ -740,7 +745,7 @@ uint8_t UiEventHandlers::event_4a3870(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a39c0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    const uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
+    const saved_player_profile *profile = (selected_saved_item & 0xf) == 0 ? (const saved_player_profile *)saved_item_working_copy : nullptr;
 
     return halo::interface::ui_network_game_options_populate(widget, profile);
 }
@@ -782,7 +787,7 @@ uint8_t UiEventHandlers::event_4a3a70(widget_instance *widget, int16_t *event, u
     uint8_t result = 0;
 
     if (second->parent->focused_child == second) {
-        halo::text::string_format_wide_va(network_host_number_text_0071921c, (const uint16_t *)L"%d", network_game_option_a_00719210);
+        halo::text::string_format_wide_va(network_host_number_text_0071921c, halo::interface::wide(L"%d"), network_game_option_a_00719210);
         if (halo::interface::virtual_keyboard_open(network_host_number_text_0071921c, 0x10, 0xd) != 0) {
             network_host_edit_field_00719410 = 4;
             network_host_number_field_00719218 = 1;
@@ -791,7 +796,7 @@ uint8_t UiEventHandlers::event_4a3a70(widget_instance *widget, int16_t *event, u
     }
     third = second->next_sibling;
     if (result == 0 && third->parent->focused_child == third) {
-        halo::text::string_format_wide_va(network_host_number_text_0071921c, (const uint16_t *)L"%d", network_game_option_b_00719214);
+        halo::text::string_format_wide_va(network_host_number_text_0071921c, halo::interface::wide(L"%d"), network_game_option_b_00719214);
         if (halo::interface::virtual_keyboard_open(network_host_number_text_0071921c, 0x10, 0xd) != 0) {
             network_host_edit_field_00719410 = 5;
             network_host_number_field_00719218 = 2;

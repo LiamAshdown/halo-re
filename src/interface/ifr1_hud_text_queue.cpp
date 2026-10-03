@@ -7,6 +7,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/records.hpp"
 
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &hud_text_draw_color_or_flags = halo::link::ref<uint16_t>(halo::ui::vars().hud_text_draw_color_or_flags);
@@ -41,7 +42,7 @@ void HudTextQueue::draw_configure(int16_t font_table_index, uint16_t color_or_fl
                              ? (GlobalsInterfaceBitmaps *)0
                              : (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer;
     dependency = (TagDependency *)((char *)interface_bitmaps + font_table_index * 0x10);
-    hud_text_draw_font_tag_id = *(int32_t *)&dependency->tag_id;
+    hud_text_draw_font_tag_id = halo::interface::tag_handle(dependency->tag_id);
 
     hud_text_draw_color_a = color.alpha;
     hud_text_draw_color_r = color.red;

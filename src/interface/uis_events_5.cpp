@@ -68,6 +68,9 @@ static auto &video_gamma_setting = halo::link::ref<int32_t>(halo::ui::vars().vid
 static auto &ui_video_requested_display_mode_006b7010 = halo::link::ref<rasterizer_display_mode>(halo::ui::vars().ui_video_requested_display_mode_006b7010);
 static auto &rasterizer_desktop_display_mode = halo::link::ref<d3d_display_mode>(halo::ui::vars().rasterizer_desktop_display_mode);
 static auto &sound_master_gain = halo::link::ref<float>(halo::ui::vars().sound_master_gain);
+#include "halo/interface/constants.hpp"
+#include "halo/interface/wide_text.hpp"
+#include "halo/interface/com_object.hpp"
 
 namespace halo::ui {
 
@@ -80,7 +83,7 @@ static void show(widget_instance *child, uint8_t visible)
         child->scale = 1.0f;
         child->hidden = 0;
     } else {
-        *(uint32_t *)&child->scale = 0x3eaa7efa;
+        child->scale = halo::interface::k_widget_default_scale;
         child->hidden = 1;
     }
 }
@@ -124,7 +127,7 @@ uint8_t UiEventHandlers::event_4a4110(widget_instance *widget, int16_t *event, u
 {
     widget_instance *parent = widget->parent;
     widget_instance *child = parent->first_child;
-    int16_t *committed = (int16_t *)((uint8_t *)parent + 0x3c);
+    int16_t *committed = &halo::interface::widget_list_committed(parent);
     int32_t i;
 
     for (i = 0; child != widget; i++) {
@@ -242,7 +245,7 @@ uint8_t UiEventHandlers::event_4a4570(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a4580(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *data = (uint8_t *)list_item_data(*(int16_t *)&((struct widget_instance *)widget)->text);
+    uint8_t *data = (uint8_t *)list_item_data(halo::interface::widget_list_committed(widget));
 
     sprintf(pending_delete_saved_game_name_00718fd0, "checkpoints\\%s", (char *)(data + 0x48));
     return 1;
@@ -268,7 +271,7 @@ uint8_t UiEventHandlers::event_4a45d0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a45f0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *data = (uint8_t *)list_item_data(*(int16_t *)&((struct widget_instance *)widget)->text);
+    uint8_t *data = (uint8_t *)list_item_data(halo::interface::widget_list_committed(widget));
     char name[0x40];
 
     sprintf(name, "checkpoints\\%s", (char *)(data + 0x48));
@@ -325,8 +328,8 @@ uint8_t UiEventHandlers::event_4b4980(widget_instance *widget, int16_t *event, u
 {
     widget_instance *second = widget->first_child->next_sibling;
     widget_instance *third = second->next_sibling;
-    uint8_t *live = input_controls_live_006b3a48;
-    uint8_t *profile;
+    controls_edit_buffer *live = &input_controls_live_006b3a48;
+    saved_player_profile *profile;
     widget_instance *list;
 
     controls_capture_row = -1;
@@ -339,17 +342,17 @@ uint8_t UiEventHandlers::event_4b4980(widget_instance *widget, int16_t *event, u
     if ((selected_saved_item & 0xf) != 0) {
         return 0;
     }
-    profile = saved_item_working_copy;
-    memcpy(live + 0x220, ((struct saved_player_profile *)profile)->keyboard_bindings, 0xda);
-    memcpy(live + 0x10, ((struct saved_player_profile *)profile)->mouse_button_bindings, 0x10);
-    memcpy(live + 0x880, profile + 0x21e, 0xc);
-    memcpy(live + 0x380, profile + 0x22a, 0x100);
-    memcpy(live + 0x0, profile + 0x32a, 0x10);
-    memcpy(live + 0x20, profile + 0x33a, 0x200);
-    memcpy(live + 0x480, profile + 0x53a, 0x400);
+    profile = &saved_item_working_copy;
+    memcpy(live->keyboard, profile->keyboard_bindings, sizeof(live->keyboard));
+    memcpy(live->mouse_button, profile->mouse_button_bindings, sizeof(live->mouse_button));
+    memcpy(live->mouse_axis, profile->mouse_axis_bindings, sizeof(live->mouse_axis));
+    memcpy(live->gamepad_button, profile->gamepad_button_bindings, sizeof(live->gamepad_button));
+    memcpy(live->gamepad_action_button, profile->gamepad_action_buttons, sizeof(live->gamepad_action_button));
+    memcpy(live->gamepad_axis, profile->gamepad_axis_bindings, sizeof(live->gamepad_axis));
+    memcpy(live->gamepad_pov, profile->gamepad_pov_bindings, sizeof(live->gamepad_pov));
     ui_flag_00719444 = 0;
-    memcpy(live + 0x2fc, ((struct saved_player_profile *)profile)->gamepad_rate_a, 4);
-    memcpy(live + 0x88c, ((struct saved_player_profile *)profile)->gamepad_rate_b, 4);
+    memcpy(live->gamepad_rate_a, profile->gamepad_rate_a, sizeof(live->gamepad_rate_a));
+    memcpy(live->gamepad_rate_b, profile->gamepad_rate_b, sizeof(live->gamepad_rate_b));
     halo::interface::controls_build_device_label_table();
     list = second->first_child->first_child->next_sibling;
     list->selection_index = 0;
@@ -366,21 +369,21 @@ uint8_t UiEventHandlers::event_4b4980(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4b4af0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    const uint8_t *live = input_controls_live_006b3a48;
+    const controls_edit_buffer *live = &input_controls_live_006b3a48;
     widget_instance *list;
 
     if (ui_flag_00719444 == 0 && (selected_saved_item & 0xf) == 0) {
-        uint8_t *profile = saved_item_working_copy;
+        saved_player_profile *profile = &saved_item_working_copy;
 
-        memcpy(((struct saved_player_profile *)profile)->keyboard_bindings, live + 0x220, 0xda);
-        memcpy(((struct saved_player_profile *)profile)->mouse_button_bindings, live + 0x10, 0x10);
-        memcpy(profile + 0x21e, live + 0x880, 0xc);
-        memcpy(profile + 0x22a, live + 0x380, 0x100);
-        memcpy(profile + 0x32a, live + 0x0, 0x10);
-        memcpy(profile + 0x33a, live + 0x20, 0x200);
-        memcpy(profile + 0x53a, live + 0x480, 0x400);
-        memcpy(((struct saved_player_profile *)profile)->gamepad_rate_a, live + 0x2fc, 4);
-        memcpy(((struct saved_player_profile *)profile)->gamepad_rate_b, live + 0x88c, 4);
+        memcpy(profile->keyboard_bindings, live->keyboard, sizeof(live->keyboard));
+        memcpy(profile->mouse_button_bindings, live->mouse_button, sizeof(live->mouse_button));
+        memcpy(profile->mouse_axis_bindings, live->mouse_axis, sizeof(live->mouse_axis));
+        memcpy(profile->gamepad_button_bindings, live->gamepad_button, sizeof(live->gamepad_button));
+        memcpy(profile->gamepad_action_buttons, live->gamepad_action_button, sizeof(live->gamepad_action_button));
+        memcpy(profile->gamepad_axis_bindings, live->gamepad_axis, sizeof(live->gamepad_axis));
+        memcpy(profile->gamepad_pov_bindings, live->gamepad_pov, sizeof(live->gamepad_pov));
+        memcpy(profile->gamepad_rate_a, live->gamepad_rate_a, sizeof(live->gamepad_rate_a));
+        memcpy(profile->gamepad_rate_b, live->gamepad_rate_b, sizeof(live->gamepad_rate_b));
     }
     list = widget->first_child->next_sibling->first_child->first_child->next_sibling;
     list->item_count = 0;
@@ -521,7 +524,7 @@ uint8_t UiEventHandlers::event_4bb290(widget_instance *widget, int16_t *event, u
     if ((selected_saved_item & 0xf) != 0) {
         return 0;
     }
-    halo::interface::video_options_menu_populate((uint8_t *)widget, saved_item_working_copy);
+    halo::interface::video_options_menu_populate(widget, &saved_item_working_copy);
     return 1;
 }
 
@@ -535,9 +538,9 @@ uint8_t UiEventHandlers::event_4bb300(widget_instance *widget, int16_t *event, u
     widget_instance *first = widget->first_child;
 
     if (ui_flag_007196d1 == 0) {
-        uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
+        saved_player_profile *profile = (selected_saved_item & 0xf) == 0 ? &saved_item_working_copy : nullptr;
 
-        halo::rasterizer::globals().gamma_exponent = profile[0xa76];
+        halo::rasterizer::globals().gamma_exponent = profile->gamma;
         halo::rasterizer::chimera__gamma();
     }
     first->first_child->next_sibling->list_items = 0;
@@ -552,7 +555,7 @@ uint8_t UiEventHandlers::event_4bb300(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4bb360(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
+    saved_player_profile *profile = (selected_saved_item & 0xf) == 0 ? &saved_item_working_copy : nullptr;
     widget_instance *screen = widget->parent->parent;
     uint8_t result = 1;
 
@@ -566,31 +569,31 @@ uint8_t UiEventHandlers::event_4bb360(widget_instance *widget, int16_t *event, u
         if (resolution < 0 || resolution >= video_resolution_count) {
             resolution = 0;
         }
-        *(uint16_t *)(profile + 0xa68) = (uint16_t)video_resolutions[resolution].width;
-        *(uint16_t *)(profile + 0xa6a) = (uint16_t)video_resolutions[resolution].height;
+        profile->screen_width = (uint16_t)video_resolutions[resolution].width;
+        profile->screen_height = (uint16_t)video_resolutions[resolution].height;
         group = group->next_sibling;
         refresh = first_list_child(group)->selection_index;
         if (refresh < 0 || (uint32_t)refresh >= video_resolutions[resolution].refresh_rate_count) {
             refresh = 0;
         }
-        *(uint16_t *)(profile + 0xa6c) = (uint16_t)video_resolutions[resolution].refresh_rates[refresh];
+        profile->refresh_rate = (uint16_t)video_resolutions[resolution].refresh_rates[refresh];
         group = group->next_sibling;
-        ((struct saved_player_profile *)profile)->frame_rate_mode = clamp_selection(group, 2);
+        profile->frame_rate_mode = clamp_selection(group, 2);
         group = group->next_sibling;
-        ((struct saved_player_profile *)profile)->specular = (uint8_t)(first_list_child(group)->selection_index != 0);
+        profile->specular = (uint8_t)(first_list_child(group)->selection_index != 0);
         group = group->next_sibling;
-        ((struct saved_player_profile *)profile)->shadows = (uint8_t)(first_list_child(group)->selection_index != 0);
+        profile->shadows = (uint8_t)(first_list_child(group)->selection_index != 0);
         group = group->next_sibling;
-        ((struct saved_player_profile *)profile)->decals = (uint8_t)(first_list_child(group)->selection_index != 0);
+        profile->decals = (uint8_t)(first_list_child(group)->selection_index != 0);
         group = group->next_sibling;
-        ((struct saved_player_profile *)profile)->particles = clamp_selection(group, 2);
+        profile->particles = clamp_selection(group, 2);
         group = group->next_sibling;
-        ((struct saved_player_profile *)profile)->texture_quality = clamp_selection(group, 2);
-        profile[0xa76] = (uint8_t)video_gamma_setting;
-        mode.width = ((struct saved_player_profile *)profile)->screen_width;
-        mode.height = ((struct saved_player_profile *)profile)->screen_height;
-        mode.refresh_rate = ((struct saved_player_profile *)profile)->refresh_rate;
-        mode.vsync = (uint8_t)(((struct saved_player_profile *)profile)->frame_rate_mode != 0);
+        profile->texture_quality = clamp_selection(group, 2);
+        profile->gamma = (uint8_t)video_gamma_setting;
+        mode.width = profile->screen_width;
+        mode.height = profile->screen_height;
+        mode.refresh_rate = profile->refresh_rate;
+        mode.vsync = (uint8_t)(profile->frame_rate_mode != 0);
         result = halo::rasterizer::rasterizer_display_mode_differs(&mode);
         if (result == 0) {
             halo::interface::widget_instance_close_and_restore_previous(screen);
@@ -612,14 +615,14 @@ uint8_t UiEventHandlers::event_4bb7e0(widget_instance *widget, int16_t *event, u
     int32_t changed = -1;
 
     if ((selected_saved_item & 0xf) == 0) {
-        uint8_t *profile = saved_item_working_copy;
+        saved_player_profile *profile = &saved_item_working_copy;
         float gain = sound_master_gain;
         rasterizer_display_mode mode;
 
-        mode.width = ((struct saved_player_profile *)profile)->screen_width;
-        mode.height = ((struct saved_player_profile *)profile)->screen_height;
-        mode.refresh_rate = ((struct saved_player_profile *)profile)->refresh_rate;
-        mode.vsync = (uint8_t)(((struct saved_player_profile *)profile)->frame_rate_mode != 0);
+        mode.width = profile->screen_width;
+        mode.height = profile->screen_height;
+        mode.refresh_rate = profile->refresh_rate;
+        mode.vsync = (uint8_t)(profile->frame_rate_mode != 0);
         halo::rasterizer::display_mode_get_current(&ui_video_requested_display_mode_006b7010);
         halo::sound::sound_set_master_gain(0.05f);
         changed = 0;
@@ -628,7 +631,7 @@ uint8_t UiEventHandlers::event_4bb7e0(widget_instance *widget, int16_t *event, u
 
             halo::rasterizer::rasterizer_build_present_parameters(&parameters, &mode);
             halo::rasterizer::rasterizer_device_reset(&parameters);
-            ((int32_t (__stdcall *)(void *, uint32_t, void *))(*(void ***)halo::rasterizer::globals().device)[0x20 / 4])(halo::rasterizer::globals().device, 0,
+            ((int32_t (__stdcall *)(void *, uint32_t, void *))(halo::interface::com_vtable(halo::rasterizer::globals().device))[0x20 / 4])(halo::rasterizer::globals().device, 0,
                 &rasterizer_desktop_display_mode);
             changed = 1;
             halo::rasterizer::rasterizer_resize_game_window(mode.height, mode.width);
@@ -642,7 +645,7 @@ uint8_t UiEventHandlers::event_4bb7e0(widget_instance *widget, int16_t *event, u
         if (halo::game::globals().time_force_single_tick != 0) {
             halo::interface::state::frame_rate_limiter_enabled = 0;
         } else {
-            halo::interface::state::frame_rate_limiter_enabled = (uint8_t)(saved_item_working_copy[0xa6f] == 2);
+            halo::interface::state::frame_rate_limiter_enabled = (uint8_t)(saved_item_working_copy.frame_rate_mode == 2);
         }
         return 1;
     }
@@ -667,23 +670,23 @@ uint8_t UiEventHandlers::event_4bb7e0(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_4bb970(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     float gain;
-    uint8_t *profile;
+    saved_player_profile *profile;
 
     if (ui_flag_007196d2 != 0) {
         return 1;
     }
     gain = sound_master_gain;
-    profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
-    *(uint16_t *)(profile + 0xa68) = (uint16_t)ui_video_requested_display_mode_006b7010.width;
-    *(uint16_t *)(profile + 0xa6c) = (uint16_t)ui_video_requested_display_mode_006b7010.refresh_rate;
-    *(uint16_t *)(profile + 0xa6a) = (uint16_t)ui_video_requested_display_mode_006b7010.height;
+    profile = (selected_saved_item & 0xf) == 0 ? &saved_item_working_copy : nullptr;
+    profile->screen_width = (uint16_t)ui_video_requested_display_mode_006b7010.width;
+    profile->refresh_rate = (uint16_t)ui_video_requested_display_mode_006b7010.refresh_rate;
+    profile->screen_height = (uint16_t)ui_video_requested_display_mode_006b7010.height;
     if (ui_video_requested_display_mode_006b7010.vsync != 0) {
-        ((struct saved_player_profile *)profile)->frame_rate_mode = (uint8_t)((halo::interface::state::frame_rate_limiter_enabled != 0) + 1);
+        profile->frame_rate_mode = (uint8_t)((halo::interface::state::frame_rate_limiter_enabled != 0) + 1);
     }
     if (halo::game::globals().time_force_single_tick != 0) {
         halo::interface::state::frame_rate_limiter_enabled = 0;
     } else {
-        halo::interface::state::frame_rate_limiter_enabled = (uint8_t)(((struct saved_player_profile *)profile)->frame_rate_mode == 2);
+        halo::interface::state::frame_rate_limiter_enabled = (uint8_t)(profile->frame_rate_mode == 2);
     }
     halo::sound::sound_set_master_gain(0.05f);
     if (halo::rasterizer::rasterizer_display_mode_differs(&ui_video_requested_display_mode_006b7010) != 0) {
@@ -691,7 +694,7 @@ uint8_t UiEventHandlers::event_4bb970(widget_instance *widget, int16_t *event, u
 
         halo::rasterizer::rasterizer_build_present_parameters(&parameters, &ui_video_requested_display_mode_006b7010);
         halo::rasterizer::rasterizer_device_reset(&parameters);
-        ((int32_t (__stdcall *)(void *, uint32_t, void *))(*(void ***)halo::rasterizer::globals().device)[0x20 / 4])(halo::rasterizer::globals().device, 0,
+        ((int32_t (__stdcall *)(void *, uint32_t, void *))(halo::interface::com_vtable(halo::rasterizer::globals().device))[0x20 / 4])(halo::rasterizer::globals().device, 0,
             &rasterizer_desktop_display_mode);
         halo::rasterizer::rasterizer_resize_game_window(ui_video_requested_display_mode_006b7010.height, ui_video_requested_display_mode_006b7010.width);
         halo::rasterizer::globals().needs_reset = 0;

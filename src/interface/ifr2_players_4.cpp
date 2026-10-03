@@ -4,6 +4,7 @@
 #include "saved_games.h"
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/interface/wide_text.hpp"
 
 #ifdef interface
 #undef interface
@@ -24,7 +25,7 @@ namespace halo::interface {
  */
 void PlayerProfiles::select_list_widget_build(widget_instance *widget)
 {
-    uint8_t profile_record[k_saved_player_profile_size];
+    saved_player_profile profile_record;
     int32_t combo_index;
     widget_instance *row;
     widget_instance *target;
@@ -32,10 +33,10 @@ void PlayerProfiles::select_list_widget_build(widget_instance *widget)
 
     halo::interface::ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)halo::interface::ui_list_default_item_format));
 
-    memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
-    halo::interface::set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
+    profile_record = profile_globals_block[0].profile;
+    halo::interface::set_profile_name(widget->extended_description->first_child, profile_record.name);
 
-    combo_index = *(int16_t *)&((struct widget_instance *)widget)->text;
+    combo_index = halo::interface::widget_list_committed(widget);
     if (combo_index < 0 || (uint16_t)widget->item_count <= combo_index) {
         widget_instance *a = widget->extended_description->first_child->next_sibling->first_child;
         widget_instance *b = a->next_sibling;

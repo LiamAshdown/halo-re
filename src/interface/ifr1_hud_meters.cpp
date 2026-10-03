@@ -13,6 +13,9 @@
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/interface/constants.hpp"
+#include "halo/interface/color_bits.hpp"
+#include "halo/interface/layout_checks.hpp"
 
 static auto &hud_unit_meters = halo::link::ref<hud_unit_meter_globals *>(halo::ui::vars().hud_unit_meters);
 static auto &hud_flags = halo::link::ref<hud_globals_flags *>(halo::ui::vars().hud_flags);
@@ -43,10 +46,10 @@ namespace halo::interface {
  */
 void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t flags, float fraction, float fraction_2, const hud_meter_placement *meter)
 {
-    datum_index bitmap_tag = *(datum_index *)&meter->meter_bitmap.tag_id;
-    uint8_t *bitmap_tag_data = halo::interface::tag_data<uint8_t>(bitmap_tag);
+    datum_index bitmap_tag = halo::interface::tag_handle(meter->meter_bitmap.tag_id);
+    Bitmap *bitmap_tag_data = halo::interface::tag_data<Bitmap>(bitmap_tag);
     BitmapData *bitmap = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(bitmap_tag, 0, (int16_t)meter->sequence_index);
-    const uint8_t *sprite_rect = 0;
+    const float *sprite_rect = 0;
     uint8_t is_sprite_bitmap;
     int32_t alpha_a;
     int32_t alpha_b;
@@ -59,17 +62,17 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
     }
 
     if (bitmap_tag != (datum_index)-1 && meter->sequence_index != halo::k_word_none) {
-        uint8_t *bitmap_definition = halo::interface::tag_data<uint8_t>(bitmap_tag);
+        Bitmap *bitmap_definition = bitmap_tag_data;
         int16_t sequence = (int16_t)meter->sequence_index;
-        if (sequence < *(int32_t *)(bitmap_definition + 0x54)) {
-            uint8_t *sequence_entry = *(uint8_t **)(bitmap_definition + 0x58) + sequence * 0x40;
-            int32_t sprite_count = *(int32_t *)(sequence_entry + 0x34);
+        if (sequence < (int32_t)bitmap_definition->bitmap_group_sequence.count) {
+            BitmapGroupSequence *sequence_entry = halo::interface::reflexive_elements<BitmapGroupSequence>(bitmap_definition->bitmap_group_sequence) + sequence;
+            int32_t sprite_count = (int32_t)sequence_entry->sprites.count;
             if (sprite_count != 0) {
-                sprite_rect = *(uint8_t **)(sequence_entry + 0x38) + (0 % sprite_count) * 0x20 + 8;
+                sprite_rect = &(halo::interface::reflexive_elements<BitmapGroupSprite>(sequence_entry->sprites) + (0 % sprite_count))->left;
             }
         }
     }
-    is_sprite_bitmap = (*(int16_t *)bitmap_tag_data == 4);
+    is_sprite_bitmap = ((int16_t)bitmap_tag_data->type == 4);
 
     alpha_a = hud_meter_alpha(meter, value_a);
     alpha_b = hud_meter_alpha(meter, value_b);
@@ -94,13 +97,13 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
                 t = 1.0f;
             }
         }
-        halo::bitmaps::color_rgb_int_to_real(&flash, *(uint32_t *)&meter->flash_color);
+        halo::bitmaps::color_rgb_int_to_real(&flash, halo::interface::color_bits(meter->flash_color));
         flash.red *= t;
         flash.green *= t;
         flash.blue *= t;
-        block.primary = (*(uint32_t *)&meter->color_at_meter_minimum & 0xffffff) | ((uint32_t)(int16_t)alpha_a << 24);
-        block.secondary = *(uint32_t *)&meter->color_at_meter_maximum & 0xffffff;
-        block.tint = (halo::interface::color_rgb_float_to_int((const float *)&flash) & 0xffffff) | ((uint32_t)(int16_t)alpha_b << 24);
+        block.primary = (*(uint32_t *)&meter->color_at_meter_minimum & halo::interface::k_rgb_mask) | ((uint32_t)(int16_t)alpha_a << 24);
+        block.secondary = *(uint32_t *)&meter->color_at_meter_maximum & halo::interface::k_rgb_mask;
+        block.tint = (halo::interface::color_rgb_float_to_int((const float *)&flash) & halo::interface::k_rgb_mask) | ((uint32_t)(int16_t)alpha_b << 24);
     } else if ((flags & 1) && (meter->flags & 2)) {
         ColorRGB minimum, maximum, blended;
         uint32_t alpha = (uint32_t)(int16_t)alpha_a << 24;
@@ -113,7 +116,7 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
         block.tint = alpha;
     } else {
         uint32_t rgb = *(uint32_t *)(((flags & 1) == 0) ? &meter->color_at_meter_minimum
-                                                         : &meter->color_at_meter_maximum) & 0xffffff;
+                                                         : &meter->color_at_meter_maximum) & halo::interface::k_rgb_mask;
         uint32_t alpha = (uint32_t)(int16_t)alpha_a << 24;
         block.primary = rgb | alpha;
         block.tint = alpha;
@@ -121,9 +124,9 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
     }
 
     {
-        uint32_t empty = *(uint32_t *)&meter->empty_color;
+        uint32_t empty = halo::interface::color_bits(meter->empty_color);
         float inverse_opacity = 1.0f - meter->opacity;
-        block.empty = ((uint32_t)(-1 - (int32_t)(empty >> 24)) << 24) | (empty & 0xffffff);
+        block.empty = ((uint32_t)(-1 - (int32_t)(empty >> 24)) << 24) | (empty & halo::interface::k_rgb_mask);
         gray.alpha = meter->translucency;
         gray.red = inverse_opacity;
         gray.green = inverse_opacity;
@@ -134,7 +137,7 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
     block.flag_10 = 0;
     block.flag_11 = 1;
 
-    halo::interface::hud_draw_bitmap_element((const float *)sprite_rect, (const hud_element_placement *)meter, is_sprite_bitmap,
+    halo::interface::hud_draw_bitmap_element(sprite_rect, (const hud_element_placement *)meter, is_sprite_bitmap,
                             &block, bitmap, (uint16_t *)dest, alpha_scale, 0.0f, 0xffffffffu,
                             (uint8_t)((flags >> 2) & 1));
 }
@@ -152,26 +155,26 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
  */
 uint8_t HudMeters::find_matching_elements(uint32_t source_tag_ref, uint32_t target_tag_ref, int16_t *out)
 {
-    char *target_data = (char *)halo::cache::globals().tag_instances[(uint16_t)target_tag_ref].data;
-    char *source_data = (char *)halo::cache::globals().tag_instances[(uint16_t)source_tag_ref].data;
+    GBXModel *target_data = halo::interface::tag_data<GBXModel>(target_tag_ref);
+    ModelAnimations *source_data = halo::interface::tag_data<ModelAnimations>(source_tag_ref);
     uint8_t all_matched = 1;
-    int32_t target_count = *(int32_t *)(target_data + 0xb8);
+    int32_t target_count = (int32_t)target_data->nodes.count;
     int32_t target_index;
-    int32_t source_count = *(int32_t *)(source_data + 0x68);
-    char *source_names = *(char **)(source_data + 0x6c);
-    char *target_names = *(char **)(target_data + 0xbc);
+    int32_t source_count = (int32_t)source_data->nodes.count;
+    ModelAnimationsAnimationGraphNode *source_nodes = halo::interface::reflexive_elements<ModelAnimationsAnimationGraphNode>(source_data->nodes);
+    ModelNode *target_nodes = halo::interface::reflexive_elements<ModelNode>(target_data->nodes);
 
     if (target_count <= 0) {
         return 1;
     }
 
     for (target_index = 0; target_index < target_count; target_index++) {
-        char *target_name = target_names + target_index * 0x9c;
+        const char *target_name = target_nodes[target_index].name.string;
         int16_t source_index;
         uint8_t found = 0;
 
         for (source_index = 0; source_index < source_count; source_index++) {
-            char *source_name = source_names + source_index * 0x40;
+            const char *source_name = source_nodes[source_index].name.string;
             if (strcmp(source_name, target_name) == 0) {
                 found = 1;
                 break;
@@ -200,14 +203,14 @@ uint32_t HudMeters::flash_color_blend(const hud_flash_parameters *flash, int32_t
     float flash_time;
 
     if (flash->flash_period == 0.0f || flash->flash_length == 0.0f) {
-        halo::bitmaps::color_argb_int_to_real(&default_color, *(uint32_t *)&flash->default_color);
+        halo::bitmaps::color_argb_int_to_real(&default_color, halo::interface::color_bits(flash->default_color));
         return halo::interface::color_pack_argb_from_real(&default_color);
     }
 
     cycle_time = (float)halo::libm::fmod((float)(halo::game::globals().game_time->game_time - start_time) * (1.0f / 30.0f),
                              flash->flash_period);
-    halo::bitmaps::color_argb_int_to_real(&default_color, *(uint32_t *)&flash->default_color);
-    halo::bitmaps::color_argb_int_to_real(&flashing_color, *(uint32_t *)&flash->flashing_color);
+    halo::bitmaps::color_argb_int_to_real(&default_color, halo::interface::color_bits(flash->default_color));
+    halo::bitmaps::color_argb_int_to_real(&flashing_color, halo::interface::color_bits(flash->flashing_color));
 
     if ((float)flash->number_of_flashes * (flash->flash_delay + flash->flash_length) <= cycle_time) {
         return halo::interface::color_pack_argb_from_real(&default_color);
@@ -244,8 +247,7 @@ uint32_t HudMeters::flash_color_blend(const hud_flash_parameters *flash, int32_t
  */
 void HudMeters::permute_node_records(uint8_t *dest, uint8_t *source, uint32_t target_tag_ref, int16_t *lookup)
 {
-    char *target_data = (char *)halo::cache::globals().tag_instances[(uint16_t)target_tag_ref].data;
-    int32_t count = *(int32_t *)(target_data + 0xb8);
+    int32_t count = (int32_t)halo::interface::tag_data<GBXModel>(target_tag_ref)->nodes.count;
     int32_t i;
 
     for (i = 0; i < count; i++) {
@@ -272,7 +274,7 @@ void HudMeters::resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_in
             BitmapGroupSequence *group = (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer + sequence;
             int32_t sprite_count = (int32_t)group->sprites.count;
 
-            frame &= 0x7fff;
+            frame &= halo::interface::k_frame_index_mask;
             if (sprite_count != 0) {
                 BitmapGroupSprite *sprite = (BitmapGroupSprite *)group->sprites.pointer + (int16_t)frame % sprite_count;
 
@@ -310,7 +312,7 @@ void HudMeters::unit_meter_apply_predictive_damage(datum_index player_index, flo
     if (index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    p = (player *)((uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * index);
+    p = halo::interface::player_record(index);
     if (p->identifier == 0) {
         return;
     }

@@ -11,6 +11,7 @@
 #include "halo/core/flags.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
 
 namespace halo::interface {
 
@@ -24,4 +25,19 @@ constexpr bool has_bit(V value, E bit) noexcept {
     return (static_cast<U>(value) & halo::to_bits(bit)) == halo::to_bits(bit);
 }
 
+/** saved_player_profile::flags (and the same low bits of game_variant::variant_flags). */
+enum class profile_flag : uint16_t {
+    none = 0,
+    builtin = 0x1,
+    device_generated = 0x2,
+    end_credits_reached = 0x4,
+};
+
+/** The flag word of a ui_widget_definition tag. */
+using widget_flag = halo::tags::ui_widget_definition_tag_flag;
+
 }  // namespace halo::interface
+
+namespace halo {
+template <> struct enable_bit_flags<interface::profile_flag> : std::true_type {};
+}  // namespace halo

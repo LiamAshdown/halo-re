@@ -1,4 +1,5 @@
 #pragma once
+#include <stddef.h>
 // Blam interface module (halo.exe 1.0.10 retail, 0x44c290..0x4c9c80, 376 functions).
 // Menu/widget system, developer console, HUD runtime state, motion sensor, virtual
 // keyboard, video mode table and the small UI-owned lists. Offsets in comments are
@@ -384,7 +385,12 @@ typedef struct first_person_weapon_interface {
     int16_t weapon_hud_element[0x40]; // 0x1d8e match table filled by 0x493f00
     uint8_t device_hud_valid;         // 0x1e0e second hud_meter_find_matching_element result
     uint8_t pad_1e0f;                 // 0x1e0f
-    int16_t device_hud_element[0x44]; // 0x1e10 second match table
+    int16_t device_hud_element[0x40]; // 0x1e10 second match table
+    uint8_t device_magazine_empty;    // 0x1e90 1 when the reload animation started on an empty magazine
+    uint8_t pad_1e91;                 // 0x1e91
+    int16_t device_reload_rounds;     // 0x1e92 rounds the reload will add, clamped to the reserve
+    int16_t device_reload_marker;     // 0x1e94 -1 none, 0 reload not allowed, 1 single round, 2 magazine reload
+    int16_t unknown_1e96;             // 0x1e96
     int32_t frame_sound_index;        // 0x1e98 0x493150 = sound_start_at_object_marker(weapon, frame sound from
                                       //    animation_state_advance); 0x492e60 sound_impulse_fade_out(it) on forced
                                       //    state change
@@ -392,6 +398,8 @@ typedef struct first_person_weapon_interface {
                                       //    the fade when it is 1; reset -1 with the sound
     int16_t unknown_1e9e;             // 0x1e9e
 } first_person_weapon_interface;      // size 0x1ea0
+static_assert(sizeof(first_person_weapon_interface) == 0x1ea0, "first_person_weapon_interface layout");
+static_assert(offsetof(first_person_weapon_interface, device_reload_marker) == 0x1e94, "first_person_weapon_interface layout");
 
 // ---------------------------------------------------------------------------
 // hud_message_slot  (chimera__hud_message @0x4ae180, hud_add_item_message @0x4ae400,
@@ -795,6 +803,30 @@ typedef struct player_control_settings {
     uint8_t look_inverted_driving;     // 0x859 profile+0x131; negates look_y in a driver seat
     uint8_t pad_85a[2];                // 0x85a always zero
 } player_control_settings;     // size 0x85c
+
+// ---------------------------------------------------------------------------
+// controls_edit_buffer  (input_controls_live_006b3a48, 0x890 bytes)
+// The working copy of the binding tables the controls menu edits: the open handler 0x4b4a30
+// copies the tables out of the selected saved_player_profile into it and the close handler
+// 0x4b4af0 copies them back. The members are the same tables as player_control_settings and
+// saved_player_profile hold, for four gamepads, in a different order.
+// ---------------------------------------------------------------------------
+typedef struct controls_edit_buffer {
+    int16_t gamepad_action_button[4][2];  // 0x000 saved_player_profile::gamepad_action_buttons
+    int16_t mouse_button[8];              // 0x010 saved_player_profile::mouse_button_bindings
+    int16_t gamepad_axis[4][0x20][2];     // 0x020 saved_player_profile::gamepad_axis_bindings
+    int16_t keyboard[0x6d];               // 0x220 saved_player_profile::keyboard_bindings
+    uint8_t pad_2fa[2];                   // 0x2fa
+    uint8_t gamepad_rate_a[4];            // 0x2fc saved_player_profile::gamepad_rate_a
+    uint8_t unknown_300[0x80];            // 0x300
+    int16_t gamepad_button[4][0x20];      // 0x380 saved_player_profile::gamepad_button_bindings
+    int16_t gamepad_pov[4][0x10][8];      // 0x480 saved_player_profile::gamepad_pov_bindings
+    int16_t mouse_axis[3][2];             // 0x880 saved_player_profile::mouse_axis_bindings
+    uint8_t gamepad_rate_b[4];            // 0x88c saved_player_profile::gamepad_rate_b
+} controls_edit_buffer;                   // size 0x890
+static_assert(sizeof(controls_edit_buffer) == 0x890, "controls_edit_buffer layout");
+static_assert(offsetof(controls_edit_buffer, gamepad_pov) == 0x480, "controls_edit_buffer layout");
+static_assert(offsetof(controls_edit_buffer, gamepad_rate_b) == 0x88c, "controls_edit_buffer layout");
 
 // ---------------------------------------------------------------------------
 // loading_thread_record  (interface_tick @0x497e80, chimera__load_main_menu @0x4989f0)

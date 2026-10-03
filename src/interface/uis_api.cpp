@@ -74,7 +74,7 @@ ColorARGB * ui_get_saved_pulse_color(ColorARGB *out)
     return halo::ui::UiScreens::get_saved_pulse_color(out);
 }
 
-void ui_handler_4a68f0(uint8_t *widget)
+void ui_handler_4a68f0(widget_instance *widget)
 {
     halo::ui::UiScreens::handler_4a68f0(widget);
 }
@@ -205,10 +205,17 @@ void ui_draw_rotated_screen_quad(int16_t *origin, int32_t source_record, float *
     halo::ui::UiDraw::draw_rotated_screen_quad(origin, source_record, corner_uvs, scale, rotation_radians, alpha_fraction);
 }
 
-void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
-                          int16_t *clip_rect, uint32_t vertex_color)
+void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color)
 {
-    halo::ui::UiDraw::draw_screen_quad(source_rect, dest_rect, bitmap_data, clip_rect, vertex_color);
+    ui_draw_screen_quad(reinterpret_cast<const Rectangle2D *>(source_rect), reinterpret_cast<const Rectangle2D *>(dest_rect),
+                        reinterpret_cast<const BitmapData *>(static_cast<uintptr_t>(bitmap_data)),
+                        reinterpret_cast<const Rectangle2D *>(clip_rect), vertex_color);
+}
+
+void ui_draw_screen_quad(const Rectangle2D *source_rect, const Rectangle2D *dest_rect, const BitmapData *bitmap,
+                          const Rectangle2D *clip_rect, uint32_t vertex_color)
+{
+    halo::ui::UiDraw::draw_screen_quad(source_rect, dest_rect, bitmap, clip_rect, vertex_color);
 }
 
 void ui_draw_trouble_brewing_indicator(void)
@@ -281,17 +288,17 @@ void ui_controls_populate_bind_rows(widget_instance *widget, uint32_t packed)
     halo::ui::UiControlsMenu::controls_populate_bind_rows(widget, packed);
 }
 
-void ui_controls_populate_input_row(widget_instance *widget, const uint8_t *profile_record)
+void ui_controls_populate_input_row(widget_instance *widget, const saved_player_profile *profile_record)
 {
     halo::ui::UiControlsMenu::controls_populate_input_row(widget, profile_record);
 }
 
-void ui_controls_populate_sensitivity_row(widget_instance *widget, const uint8_t *profile_record)
+void ui_controls_populate_sensitivity_row(widget_instance *widget, const saved_player_profile *profile_record)
 {
     halo::ui::UiControlsMenu::controls_populate_sensitivity_row(widget, profile_record);
 }
 
-uint32_t ui_controls_sensitivity_row_refresh(widget_instance *widget, const uint8_t *profile_record)
+uint32_t ui_controls_sensitivity_row_refresh(widget_instance *widget, const saved_player_profile *profile_record)
 {
     return halo::ui::UiControlsMenu::controls_sensitivity_row_refresh(widget, profile_record);
 }
@@ -1123,12 +1130,12 @@ uint8_t ui_network_client_connect_and_save(void)
     return halo::ui::UiNetworkMenu::network_client_connect_and_save();
 }
 
-uint8_t ui_network_game_options_populate(widget_instance *widget, const uint8_t *options_record)
+uint8_t ui_network_game_options_populate(widget_instance *widget, const saved_player_profile *options_record)
 {
     return halo::ui::UiNetworkMenu::network_game_options_populate(widget, options_record);
 }
 
-void ui_network_game_options_refresh(widget_instance *widget, const uint8_t *options_record)
+void ui_network_game_options_refresh(widget_instance *widget, const saved_player_profile *options_record)
 {
     halo::ui::UiNetworkMenu::network_game_options_refresh(widget, options_record);
 }

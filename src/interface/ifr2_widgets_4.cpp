@@ -5,6 +5,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/interface/constants.hpp"
 
 #ifdef interface
 #undef interface
@@ -38,10 +39,10 @@ void WidgetLifecycle::memory_pool_initialize()
     int32_t i;
     uint8_t *clear_cursor;
 
-    allocation = GlobalAlloc(0, 0x20000);
+    allocation = GlobalAlloc(0, halo::interface::k_widget_heap_bytes);
     if (allocation != nullptr) {
         widget_memory_pool->base = (uint8_t *)allocation;
-        widget_memory_pool->size = 0x20000;
+        widget_memory_pool->size = halo::interface::k_widget_heap_bytes;
     }
 
     base = widget_memory_pool->base;

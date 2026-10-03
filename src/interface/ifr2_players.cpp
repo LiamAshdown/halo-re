@@ -26,6 +26,10 @@
 #include "halo/networking/vars.hpp"
 #include "halo/shell/vars.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/interface/constants.hpp"
+#include "halo/interface/flags.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 #ifdef interface
 #undef interface
@@ -124,7 +128,7 @@ void LocalPlayers::state_reset()
     interface_bitmaps = (global_globals->interface_bitmaps.count == 0)
                              ? (GlobalsInterfaceBitmaps *)0
                              : (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer;
-    hud_text_draw_font_tag_id = *(int32_t *)&interface_bitmaps->font_terminal.tag_id;
+    hud_text_draw_font_tag_id = halo::interface::tag_handle(interface_bitmaps->font_terminal.tag_id);
     hud_text_draw_color_a = global_white_argb->alpha;
     hud_text_draw_color_r = global_white_argb->red;
     hud_text_draw_color_g = global_white_argb->green;
@@ -188,7 +192,6 @@ int32_t LocalPlayers::index_for_weapon(datum_index weapon_index)
 {
     int32_t i;
     player *record;
-    object_header *header;
     unit_data *u;
     int16_t slot;
 
@@ -200,8 +203,7 @@ int32_t LocalPlayers::index_for_weapon(datum_index weapon_index)
         if (record->unit == (datum_index)halo::k_dword_none) {
             continue;
         }
-        header = &((object_header *)halo::objects::globals().object_data->data)[record->unit & halo::k_slot_mask];
-        u = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
+        u = &halo::interface::object_record<unit_object>(record->unit)->unit;
         slot = u->current_weapon_index;
         if (slot != -1 && weapon_index == u->weapons[slot]) {
             return i;
@@ -225,7 +227,7 @@ datum_index LocalPlayers::get_vehicle(datum_index player_index)
     if (player_index == (datum_index)-1 || index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return (datum_index)-1;
     }
-    p = (player *)((uint8_t *)halo::game::globals().player_data->data + (int32_t)halo::game::globals().player_data->size * index);
+    p = halo::interface::player_record(index);
     if (p->identifier == 0 || (salt != 0 && p->identifier != salt)) {
         return (datum_index)-1;
     }
@@ -247,7 +249,7 @@ void LocalPlayers::help_screen_select_by_name(int16_t value)
 {
     char name[256];
     char *p;
-    char *tag_path;
+    const char *tag_path;
     widget_instance *dialog;
 
     if (halo::scenario::globals().scenario_index == (datum_index)-1) {
@@ -260,25 +262,25 @@ void LocalPlayers::help_screen_select_by_name(int16_t value)
     }
 
     if (strstr(name, player_help_name_a10) != 0) {
-        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_a10";
+        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_a10";
     } else if (strstr(name, player_help_name_a30) != 0) {
-        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_a30";
+        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_a30";
     } else if (strstr(name, player_help_name_a50) != 0) {
-        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_a50";
+        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_a50";
     } else if (strstr(name, player_help_name_b30) != 0) {
-        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_b30";
+        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_b30";
     } else if (strstr(name, player_help_name_b40) != 0) {
-        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_b40";
+        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_b40";
     } else if (strstr(name, player_help_name_c10) != 0) {
-        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_c10";
+        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_c10";
     } else if (strstr(name, player_help_name_c20) != 0) {
-        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_c20";
+        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_c20";
     } else if (strstr(name, player_help_name_c40) != 0) {
-        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_c40";
+        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_c40";
     } else if (strstr(name, player_help_name_d20) != 0) {
-        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_d20";
+        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_d20";
     } else if (strstr(name, player_help_name_d40) != 0) {
-        tag_path = (char *)"ui\\shell\\solo_game\\player_help\\player_help_screen_d40";
+        tag_path = "ui\\shell\\solo_game\\player_help\\player_help_screen_d40";
     } else {
         return;
     }
@@ -315,10 +317,10 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
             for (slot = 0; slot < 3 && profile_carousel_slots[slot].profile_id != profile_id; slot++) {
             }
             if (slot < 3) {
-                const uint8_t *profile = profile_carousel_slots[slot].profile;
-                uint16_t flags = ((struct saved_player_profile *)profile)->flags;
-                int16_t color = ((struct saved_player_profile *)profile)->player_color;
-                uint16_t *name = (uint16_t *)halo::memory::heap_reallocate(widget->list_render_data, 0x18, widget_memory_pool);
+                const saved_player_profile *profile = (const saved_player_profile *)profile_carousel_slots[slot].profile;
+                uint16_t flags = profile->flags;
+                int16_t color = profile->player_color;
+                uint16_t *name = halo::interface::widget_pool_resize_text(widget->list_render_data, 0x18);
 
                 widget->list_render_data = name;
                 if (name == 0) {
@@ -332,55 +334,55 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                     }
                     wcsncpy((wchar_t *)name, (const wchar_t *)source, 0xb);
                 } else {
-                    wcsncpy((wchar_t *)name, (const wchar_t *)((const uint16_t *)(profile + 2)), 0xb);
+                    wcsncpy((wchar_t *)name, (const wchar_t *)profile->name, 0xb);
                 }
                 name[0xb] = 0;
 
                 name_row->background_bitmap_frame = (color < 0) ? 0 : (color > 0x11) ? 0x11 : color;
 
-                description_row->text = halo::memory::heap_reallocate(description_row->text, 0x200, widget_memory_pool);
+                description_row->text = halo::memory::heap_reallocate(description_row->text, halo::interface::k_description_text_bytes, widget_memory_pool);
                 if (description_row->text == 0) {
                     return;
                 }
                 {
                     datum_index joysticks;
                     datum_index buttons;
-                    if (*(const uint8_t *)(profile + 0x11c) & 1) {
+                    if (halo::interface::has_bit(flags, halo::interface::profile_flag::builtin)) {
                         joysticks = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\player_profiles_select\\joystick_set_defaults_descriptions");
                         buttons = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\player_profiles_select\\button_set_long_descriptions");
                         if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
-                            ((uint16_t *)description_row->text)[0] = 0;
-                            ((uint16_t *)description_row->text)[0xff] = 0;
+                            (halo::interface::widget_text(description_row))[0] = 0;
+                            (halo::interface::widget_text(description_row))[0xff] = 0;
                             return;
                         }
                     } else {
                         joysticks = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\player_profiles_select\\joystick_set_short_descriptions");
                         buttons = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\player_profiles_select\\button_set_short_descriptions");
                         if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
-                            ((uint16_t *)description_row->text)[0xff] = 0;
+                            (halo::interface::widget_text(description_row))[0xff] = 0;
                             return;
                         }
                     }
                     {
-                        uint16_t *joystick_text = halo::text::text_string_list_get_string(joysticks, ((struct saved_player_profile *)profile)->joystick_set);
-                        uint16_t *button_text = halo::text::text_string_list_get_string(buttons, ((struct saved_player_profile *)profile)->button_set);
+                        uint16_t *joystick_text = halo::text::text_string_list_get_string(joysticks, profile->joystick_set);
+                        uint16_t *button_text = halo::text::text_string_list_get_string(buttons, profile->button_set);
                         halo::text::string_format_wide_va_bounded(0xff, reinterpret_cast<uint16_t *>((wchar_t *)description_row->text), reinterpret_cast<const uint16_t *>(L"%s%hs%s"),
                                                       joystick_text, joystick_set_separator_0065f010, button_text);
                     }
-                    ((uint16_t *)description_row->text)[0xff] = 0;
+                    (halo::interface::widget_text(description_row))[0xff] = 0;
                 }
                 return;
             }
         }
 
         if (widget->item_count == 0) {
-            uint16_t *text = (uint16_t *)halo::memory::heap_reallocate(widget->list_render_data, 4, widget_memory_pool);
+            uint16_t *text = halo::interface::widget_pool_resize_text(widget->list_render_data, 4);
             widget->list_render_data = text;
             if (text != 0) {
                 text[0] = 0;
             }
             name_row->background_bitmap_frame = 0;
-            text = (uint16_t *)halo::memory::heap_reallocate(description_row->text, 4, widget_memory_pool);
+            text = halo::interface::widget_pool_resize_text(description_row->text, 4);
             description_row->text = text;
             if (text != 0) {
                 text[0] = 0;
@@ -413,23 +415,23 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
  *
  * @address 0x4957d0
  */
-void PlayerProfiles::apply_audio_options(uint8_t *settings)
+void PlayerProfiles::apply_audio_options(saved_player_profile *settings)
 {
     float gain;
     int32_t environment_enabled;
 
     if (safe_mode != 0) {
-        ((struct saved_player_profile *)settings)->master_volume = 10;
-        ((struct saved_player_profile *)settings)->effects_volume = 10;
-        ((struct saved_player_profile *)settings)->music_volume = 6;
-        ((struct saved_player_profile *)settings)->hardware_acceleration = 0;
-        ((struct saved_player_profile *)settings)->eax_enabled = 0;
-        ((struct saved_player_profile *)settings)->sound_quality = 0;
-        ((struct saved_player_profile *)settings)->unknown_b7e = 0;
-        ((struct saved_player_profile *)settings)->sound_variety = 0;
+        settings->master_volume = 10;
+        settings->effects_volume = 10;
+        settings->music_volume = 6;
+        settings->hardware_acceleration = 0;
+        settings->eax_enabled = 0;
+        settings->sound_quality = 0;
+        settings->unknown_b7e = 0;
+        settings->sound_variety = 0;
     }
 
-    gain = (float)((struct saved_player_profile *)settings)->master_volume * 0.1f;
+    gain = (float)settings->master_volume * 0.1f;
     if (gain < 0.0f) {
         gain = 0.0f;
     } else if (gain > 1.0f) {
@@ -437,7 +439,7 @@ void PlayerProfiles::apply_audio_options(uint8_t *settings)
     }
     halo::sound::sound_set_master_gain(gain);
 
-    gain = (float)((struct saved_player_profile *)settings)->effects_volume * 0.1f;
+    gain = (float)settings->effects_volume * 0.1f;
     if (gain < 0.0f) {
         gain = 0.0f;
     } else if (gain > 1.0f) {
@@ -445,7 +447,7 @@ void PlayerProfiles::apply_audio_options(uint8_t *settings)
     }
     halo::sound::sound_set_effects_gain(gain);
 
-    gain = (float)((struct saved_player_profile *)settings)->music_volume * 0.1f;
+    gain = (float)settings->music_volume * 0.1f;
     if (gain < 0.0f) {
         gain = 0.0f;
     } else if (gain > 1.0f) {
@@ -453,14 +455,14 @@ void PlayerProfiles::apply_audio_options(uint8_t *settings)
     }
     halo::sound::sound_set_music_gain(gain);
 
-    sound_permutation_limit = ((struct saved_player_profile *)settings)->sound_variety;
+    sound_permutation_limit = settings->sound_variety;
     if (directsound_initialized == 0 || directsound_eax_available == 0 ||
-        ((struct saved_player_profile *)settings)->eax_enabled == 0) {
+        settings->eax_enabled == 0) {
         environment_enabled = 0;
     } else {
         environment_enabled = 1;
     }
-    halo::sound::sound_driver_set_quality(environment_enabled, ((struct saved_player_profile *)settings)->hardware_acceleration == 1, ((struct saved_player_profile *)settings)->sound_quality);
+    halo::sound::sound_driver_set_quality(environment_enabled, settings->hardware_acceleration == 1, settings->sound_quality);
 }
 
 /**
@@ -580,11 +582,11 @@ void PlayerProfiles::details_widget_refresh(widget_instance *widget, const uint8
                 ? halo::text::text_string_list_get_string(names_tag, (int16_t)(flags >> 8))
                 : hud_text_unknown;
 
-            wcsncpy((wchar_t *)((uint16_t *)a->text), (const wchar_t *)source, 0xb);
+            wcsncpy((wchar_t *)(halo::interface::widget_text(a)), (const wchar_t *)source, 0xb);
         } else {
-            wcsncpy((wchar_t *)((uint16_t *)a->text), (const wchar_t *)((const uint16_t *)(profile_record + 2)), 0xb);
+            wcsncpy((wchar_t *)(halo::interface::widget_text(a)), (const wchar_t *)((const saved_player_profile *)profile_record)->name, 0xb);
         }
-        ((uint16_t *)a->text)[0xb] = 0;
+        (halo::interface::widget_text(a))[0xb] = 0;
     }
 
     sensitivity = ((struct saved_player_profile *)profile_record)->player_color;
@@ -595,7 +597,7 @@ void PlayerProfiles::details_widget_refresh(widget_instance *widget, const uint8
     }
     b->background_bitmap_frame = sensitivity;
 
-    if ((profile_record[0x11c] & 1) != 0) {
+    if (halo::interface::has_bit(((struct saved_player_profile *)profile_record)->flags, halo::interface::profile_flag::builtin)) {
         f->state = 0;
         h->state = 0;
         return;
@@ -650,7 +652,7 @@ uint8_t PlayerProfiles::get_flag_by_id(int16_t id)
         }
     }
     if (slot != -1) {
-        return profile_globals_block[slot * 0x2004 + 0x132];
+        return profile_globals_block[slot].profile.auto_center_look;
     }
     return 0;
 }
@@ -666,30 +668,23 @@ uint8_t PlayerProfiles::get_flag_by_id(int16_t id)
  */
 void PlayerProfiles::load(int16_t player_index, void *source_profile, int32_t profile_id)
 {
-    uint8_t *record;
-    uint32_t *dst_words;
-    uint32_t *src_words;
-    uint32_t i;
+    saved_player_profile_slot *slot = &profile_globals_block[player_index];
+    saved_player_profile *record = &slot->profile;
 
-    record = profile_globals_block + (int32_t)player_index * 0x2004;
-    *(int32_t *)(record + k_saved_player_profile_size) = profile_id;
-    dst_words = (uint32_t *)record;
-    src_words = (uint32_t *)source_profile;
-    for (i = 0x7ff; i != 0; i--) {
-        *dst_words++ = *src_words++;
-    }
+    slot->handle = profile_id;
+    memcpy(record, source_profile, k_saved_player_profile_size);
 
     halo::interface::player_profile_refresh_settings_cache(player_index);
-    halo::saved_games::control_profile_reestablish_device_slot_mappings((saved_player_profile *)record);
+    halo::saved_games::control_profile_reestablish_device_slot_mappings(record);
     halo::interface::player_profile_apply_video_options(record);
     halo::interface::player_profile_apply_audio_options(record);
 
     if (halo::game::globals().current_engine == nullptr && port_overridden == 0 &&
-        (halo::networking::globals().game_socket_port != ((struct saved_player_profile *)record)->server_port ||
-         game_cport != ((struct saved_player_profile *)record)->client_port)) {
+        (halo::networking::globals().game_socket_port != record->server_port ||
+         game_cport != record->client_port)) {
         halo::networking::network_channels_close();
-        halo::networking::globals().game_socket_port = ((struct saved_player_profile *)record)->server_port;
-        game_cport = ((struct saved_player_profile *)record)->client_port;
+        halo::networking::globals().game_socket_port = record->server_port;
+        game_cport = record->client_port;
         halo::networking::network_channels_open();
         network_session_start_game_type = halo::networking::globals().game_socket_port;
     }
@@ -716,14 +711,14 @@ void PlayerProfiles::load(int16_t player_index, void *source_profile, int32_t pr
 void PlayerProfiles::refresh_settings_cache(int16_t player_index)
 {
     player_control_settings settings;
-    uint8_t *profile = profile_globals_block + (int32_t)player_index * 0x2004;
+    saved_player_profile *profile = &profile_globals_block[player_index].profile;
     int32_t slider;
     int32_t dest_slot;
     int32_t i;
 
     memset(&settings, 0, sizeof(settings));
 
-    slider = (int32_t)((struct saved_player_profile *)profile)->look_sensitivity - 1;
+    slider = (int32_t)profile->look_sensitivity - 1;
     if (slider < 0) {
         slider = 0;
     } else if (slider > 9) {
@@ -732,26 +727,26 @@ void PlayerProfiles::refresh_settings_cache(int16_t player_index)
     settings.look_rate_80 = k_table_80[slider];
     settings.look_rate_40 = k_table_40[slider];
 
-    memcpy(settings.keyboard, ((struct saved_player_profile *)profile)->keyboard_bindings, sizeof(settings.keyboard));
-    memcpy(settings.mouse_button, ((struct saved_player_profile *)profile)->mouse_button_bindings, sizeof(settings.mouse_button) + sizeof(settings.mouse_axis));
-    memcpy(settings.gamepad_button, profile + 0x22a, sizeof(settings.gamepad_button));
-    memcpy(settings.gamepad_action_button, profile + 0x32a, sizeof(settings.gamepad_action_button));
-    memcpy(settings.gamepad_axis, profile + 0x33a, sizeof(settings.gamepad_axis));
-    memcpy(settings.gamepad_pov, profile + 0x53a, sizeof(settings.gamepad_pov));
-    memcpy(&settings.forward_rate, profile + 0x93c, 6 * sizeof(float));
+    memcpy(settings.keyboard, profile->keyboard_bindings, sizeof(settings.keyboard));
+    memcpy(settings.mouse_button, profile->mouse_button_bindings, sizeof(settings.mouse_button) + sizeof(settings.mouse_axis));
+    memcpy(settings.gamepad_button, profile->gamepad_button_bindings, sizeof(settings.gamepad_button));
+    memcpy(settings.gamepad_action_button, profile->gamepad_action_buttons, sizeof(settings.gamepad_action_button));
+    memcpy(settings.gamepad_axis, profile->gamepad_axis_bindings, sizeof(settings.gamepad_axis));
+    memcpy(settings.gamepad_pov, profile->gamepad_pov_bindings, sizeof(settings.gamepad_pov));
+    memcpy(&settings.forward_rate, &profile->forward_rate, 6 * sizeof(float));
 
-    settings.mouse_look_x_sensitivity = k_table_01[slider_index(((struct saved_player_profile *)profile)->mouse_look_x_sensitivity)];
-    settings.mouse_look_y_sensitivity = k_table_01[slider_index(((struct saved_player_profile *)profile)->mouse_look_y_sensitivity)];
+    settings.mouse_look_x_sensitivity = k_table_01[slider_index(profile->mouse_look_x_sensitivity)];
+    settings.mouse_look_y_sensitivity = k_table_01[slider_index(profile->mouse_look_y_sensitivity)];
 
-    memcpy(&settings.gamepad_axis_scale_x, profile + 0x960, 2 * sizeof(float));
+    memcpy(&settings.gamepad_axis_scale_x, &profile->gamepad_axis_scale_x, 2 * sizeof(float));
 
     for (i = 0; i < 4; i++) {
-        settings.gamepad_rate_80[i] = k_table_80[slider_index(profile[0x956 + i])];
-        settings.gamepad_rate_40[i] = k_table_40[slider_index(profile[0x95a + i])];
+        settings.gamepad_rate_80[i] = k_table_80[slider_index(profile->gamepad_rate_a[i])];
+        settings.gamepad_rate_40[i] = k_table_40[slider_index(profile->gamepad_rate_b[i])];
     }
 
-    settings.look_inverted = ((struct saved_player_profile *)profile)->look_inverted;
-    settings.look_inverted_driving = ((struct saved_player_profile *)profile)->look_inverted_driving;
+    settings.look_inverted = profile->look_inverted;
+    settings.look_inverted_driving = profile->look_inverted_driving;
 
     dest_slot = profile_slot_id[player_index];
     if (profile_slot_id[player_index] == -1) {
@@ -770,7 +765,7 @@ void PlayerProfiles::refresh_settings_cache(int16_t player_index)
  */
 uint8_t PlayerProfiles::save()
 {
-    char name[0x100];
+    char name[halo::interface::k_text_buffer_chars];
     int32_t item;
     int32_t new_slot;
     uint8_t result;
@@ -787,7 +782,7 @@ uint8_t PlayerProfiles::save()
         halo::interface::player_profile_load(0, saved_item_working_copy, selected_saved_item);
         result = 1;
     } else if ((item & 0xf) == 1) {
-        if ((item & 0x40000000) == 0) {
+        if ((item & halo::interface::k_saved_item_builtin_marker) == 0) {
             if (item != -1) {
                 halo::game::game_variant_sanitize_options((game_variant *)saved_item_working_copy);
                 halo::saved_games::game_variant_write_request_start(item, (game_variant *)saved_item_working_copy);
@@ -798,7 +793,7 @@ uint8_t PlayerProfiles::save()
             result = 1;
         } else if (wcsncmp((wchar_t *)saved_item_working_copy, (wchar_t *)saved_item_disk_copy,
                            0x18) != 0) {
-            ((game_variant *)saved_item_working_copy)->variant_flags &= 0xfffe;
+            ((game_variant *)saved_item_working_copy)->variant_flags &= ~1u;
             new_slot = halo::saved_games::saved_game_create_custom_variant(0, (uint16_t *)saved_item_working_copy);
             if (new_slot != -1) {
                 halo::game::game_variant_sanitize_options((game_variant *)saved_item_working_copy);
@@ -937,7 +932,7 @@ void SavedItem::select(int32_t item)
         }
         if (halo::saved_games::saved_game_get_variant(item, (game_variant *)saved_item_disk_copy) != 0) {
             memcpy(saved_item_working_copy, saved_item_disk_copy, sizeof(game_variant));
-            ((game_variant *)saved_item_working_copy)->flags &= 0xfffffe7f;
+            ((game_variant *)saved_item_working_copy)->flags &= ~0x180u;
             selected_saved_item = item;
         }
     }
@@ -968,7 +963,7 @@ uint8_t LocalPlayers::get_first_person_marker_transform(datum_index object_index
     obj = header->data;
 
     parent_header = &((object_header *)halo::objects::globals().object_data->data)[obj->parent_object & halo::k_slot_mask];
-    parent_unit = (unit_data *)((uint8_t *)parent_header->data + k_unit_data_offset);
+    parent_unit = &((unit_object *)parent_header->data)->unit;
     controlling_player = parent_unit->controlling_player;
 
     if (controlling_player == (datum_index)halo::k_dword_none) {
@@ -1036,7 +1031,7 @@ void player_profile_1wide_list_update(widget_instance *widget)
     halo::interface::PlayerProfiles::one_wide_list_update(widget);
 }
 
-void player_profile_apply_audio_options(uint8_t *settings)
+void player_profile_apply_audio_options(saved_player_profile *settings)
 {
     halo::interface::PlayerProfiles::apply_audio_options(settings);
 }

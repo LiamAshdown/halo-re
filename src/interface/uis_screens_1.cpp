@@ -209,13 +209,13 @@ void UiScreens::error_modal_update(void)
             bar.left = 0;
             bar.bottom = 0xf1;
             bar.right = halo::interface::k_base_screen_width;
-            halo::interface::ui_draw_filled_rectangle(0xff000000, &bar);
+            halo::interface::ui_draw_filled_rectangle(halo::interface::k_argb_alpha_opaque, &bar);
             if (player_count_field > 2) {
                 bar.top = (player_count_field == 3) ? 0xf0 : 0;
-                bar.left = 0x13f;
+                bar.left = halo::interface::k_base_screen_width / 2 - 1;
                 bar.bottom = halo::interface::k_base_screen_height;
-                bar.right = 0x141;
-                halo::interface::ui_draw_filled_rectangle(0xff000000, &bar);
+                bar.right = halo::interface::k_base_screen_width / 2 + 1;
+                halo::interface::ui_draw_filled_rectangle(halo::interface::k_argb_alpha_opaque, &bar);
             }
         }
     }
@@ -257,19 +257,19 @@ ColorARGB * UiScreens::get_saved_pulse_color(ColorARGB *out)
  *
  * @address 0x4a68f0
  */
-void UiScreens::handler_4a68f0(uint8_t *widget)
+void UiScreens::handler_4a68f0(widget_instance *widget)
 {
-    uint8_t *child = *(uint8_t **)(widget + 0x4c);
-    uint8_t *record;
+    widget_instance *child = widget->extended_description;
+    widget_instance *record;
 
-    ((struct widget_instance *)child)->background_bitmap_frame = *(int16_t *)(widget + 0x40);
-    if (((struct widget_instance *)child)->background_bitmap_frame < 0) {
-        ((struct widget_instance *)child)->background_bitmap_frame = 0;
+    child->background_bitmap_frame = widget->selection_index;
+    if (child->background_bitmap_frame < 0) {
+        child->background_bitmap_frame = 0;
     }
     if (network_disabled_flag != 0) {
-        record = *(uint8_t **)(*(uint8_t **)(widget + 0x34) + 0x2c);
-        record[0x12] = 1;
-        *(uint32_t *)(record + 0x24) = 0x3eaa7efa;
+        record = widget->first_child->next_sibling;
+        record->hidden = 1;
+        record->scale = halo::interface::k_widget_default_scale;
     }
 }
 

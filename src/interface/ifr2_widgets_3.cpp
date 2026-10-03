@@ -8,6 +8,11 @@
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/interface/flags.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/interface/records.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 #ifdef interface
 #undef interface
@@ -34,7 +39,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
     uint8_t *t = (uint8_t *)tag;
     int32_t i;
 
-    if (*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id != 0xffffffffu) {
+    if (halo::interface::tag_handle(tag->text_label_unicode_strings_list.tag_id) != halo::k_dword_none) {
         int16_t index = widget->selection_index;
         uint16_t *src;
         uint32_t byte_len;
@@ -43,9 +48,9 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
         if (index == -1) {
             index = *(int16_t *)&((struct UIWidgetDefinition *)t)->string_list_index;
         }
-        src = halo::text::text_string_list_get_string(*(datum_index *)&tag->text_label_unicode_strings_list.tag_id, index);
+        src = halo::text::text_string_list_get_string(halo::interface::tag_handle(tag->text_label_unicode_strings_list.tag_id), index);
         byte_len = wcslen((const wchar_t *)src) * 2;
-        buf = (uint16_t *)halo::memory::heap_reallocate(widget->text, byte_len + 2, widget_memory_pool);
+        buf = halo::interface::widget_pool_resize_text(widget->text, byte_len + 2);
         widget->text = buf;
         if (buf == nullptr) {
             widget->text = ui_out_of_memory_text;
@@ -60,7 +65,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
         }
     }
 
-    if (widget->text == nullptr || *(uint16_t *)widget->text == 0) {
+    if (widget->text == nullptr || *halo::interface::widget_text(widget) == 0) {
         return;
     }
 
@@ -82,7 +87,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
         }
     }
 
-    if (*(uint32_t *)&tag->text_font.tag_id == 0xffffffffu) {
+    if (halo::interface::tag_handle(tag->text_font.tag_id) == halo::k_dword_none) {
         return;
     }
     if (tag->justification < 0 || tag->justification >= 3) {
@@ -120,7 +125,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
             }
             color.alpha = color.alpha * scale;
         }
-        if (w[0x54] != 0 || (t[0x11e] & 4) != 0) {
+        if (*(uint8_t *)&((struct widget_instance *)w)->selection_direction != 0 || halo::interface::has_bit(((struct UIWidgetDefinition *)t)->flags_1, halo::tags::ui_widget_definition_flags1_tag_flag::flashing)) {
             double time = (double)ui_time_milliseconds;
 
             if (ui_time_milliseconds < 0) {
@@ -129,12 +134,12 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
             color.alpha = (float)((halo::libm::cos(time * 0.003) + 1.5) * 0.4 * (double)color.alpha);
         }
 
-        halo::text::text_context::set_render_context(*(datum_index *)&tag->text_font.tag_id, &color, -1, tag->justification, 0);
-        if (halo::interface::ui_string_has_button_prompt_token((uint16_t *)widget->text) == 0) {
-            halo::rasterizer::chimera__draw_16_bit_text(&rects[1], (int32_t *)(&rects[0]), 0, 0, (const int16_t *)((uint16_t *)widget->text));
+        halo::text::text_context::set_render_context(halo::interface::tag_handle(tag->text_font.tag_id), &color, -1, tag->justification, 0);
+        if (halo::interface::ui_string_has_button_prompt_token(halo::interface::widget_text(widget)) == 0) {
+            halo::interface::draw_text16(&rects[1], &rects[0], halo::interface::widget_text(widget));
             return;
         }
-        halo::interface::ui_widget_draw_formatted_prompt_string(&rects[0], 0, (uint16_t *)widget->text);
+        halo::interface::ui_widget_draw_formatted_prompt_string(&rects[0], 0, halo::interface::widget_text(widget));
     }
 }
 

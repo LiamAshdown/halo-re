@@ -17,6 +17,9 @@ static auto &controls_available_gamepad_count = halo::link::ref<int32_t>(halo::u
 static auto &input_device_count = halo::link::ref<int32_t>(halo::ui::vars().input_device_count);
 static auto &input_devices = halo::link::ref<uint8_t []>(halo::ui::vars().input_devices);
 static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
+#include "input.h"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 static void controls_gamepad_row_set_disabled(widget_instance *row)
 {
@@ -45,23 +48,23 @@ namespace halo::interface {
  */
 uint8_t GamepadBindings::bindings_restore(void)
 {
-    uint8_t saved_profile[k_saved_player_profile_size];
+    saved_player_profile saved_profile;
     int32_t i;
 
     if ((selected_saved_item & 0xf) != 0) {
         return 0;
     }
-    memcpy(saved_profile, saved_item_working_copy, sizeof(saved_profile));
-    halo::saved_games::control_profile_clear_device_slot_mappings((saved_player_profile *)saved_item_working_copy);
+    saved_profile = saved_item_working_copy;
+    halo::saved_games::control_profile_clear_device_slot_mappings(&saved_item_working_copy);
     for (i = 0; i < 4; i++) {
-        halo::saved_games::control_profile_reset_slot((saved_player_profile *)saved_item_working_copy, i);
+        halo::saved_games::control_profile_reset_slot(&saved_item_working_copy, i);
     }
     for (i = 0; i < controls_assigned_gamepad_count; i++) {
-        if (halo::saved_games::control_profile_find_or_create_gamepad_slot(&controls_assigned_gamepads[i], (saved_player_profile *)saved_item_working_copy) != 0) {
-            halo::saved_games::control_profile_copy_gamepad_bindings_by_key(&controls_assigned_gamepads[i], (saved_player_profile *)saved_item_working_copy, (saved_player_profile *)saved_profile);
+        if (halo::saved_games::control_profile_find_or_create_gamepad_slot(&controls_assigned_gamepads[i], &saved_item_working_copy) != 0) {
+            halo::saved_games::control_profile_copy_gamepad_bindings_by_key(&controls_assigned_gamepads[i], &saved_item_working_copy, &saved_profile);
         }
     }
-    halo::saved_games::control_profile_reestablish_device_slot_mappings((saved_player_profile *)saved_item_working_copy);
+    halo::saved_games::control_profile_reestablish_device_slot_mappings(&saved_item_working_copy);
     return 1;
 }
 
@@ -167,7 +170,7 @@ uint8_t GamepadBindings::list_remove(const controls_gamepad_record *entry, contr
  */
 uint8_t GamepadBindings::lists_load(widget_instance *screen)
 {
-    uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : nullptr;
+    saved_player_profile *profile = (selected_saved_item & 0xf) == 0 ? &saved_item_working_copy : nullptr;
     widget_instance *nodes[17];
     controls_gamepad_record entry;
     uint8_t have_entry = 0;
@@ -186,7 +189,7 @@ uint8_t GamepadBindings::lists_load(widget_instance *screen)
     count = (int16_t)input_device_count;
     for (i = 0; i < count; i++) {
         if ((int16_t)i < input_device_count) {
-            memcpy(&entry, input_devices + (int16_t)i * 0x240, sizeof(entry));
+            memcpy(&entry, &input_devices[(int16_t)i], sizeof(entry));
             have_entry = 1;
         } else if (!have_entry) {
             continue;
@@ -195,7 +198,7 @@ uint8_t GamepadBindings::lists_load(widget_instance *screen)
     }
 
     for (i = 0; i < 4; i++) {
-        const controls_gamepad_record *saved = (const controls_gamepad_record *)(profile + 0x1108) + i;
+        const controls_gamepad_record *saved = &profile->gamepads[i];
 
         if (*(const uint16_t *)saved == 0) {
             continue;
@@ -238,7 +241,7 @@ void GamepadBindings::lists_refresh(widget_instance *screen)
     nodes[0]->hidden = controls_assigned_gamepad_count == 0;
     for (i = 0; i < 4; i++) {
         widget_instance *text = nodes[1 + i]->first_child;
-        uint16_t *buffer = (uint16_t *)halo::memory::heap_reallocate(text->text, 0x80, widget_memory_pool);
+        uint16_t *buffer = halo::interface::widget_pool_resize_text(text->text, 0x80);
 
         text->text = buffer;
         if (buffer == 0) {
@@ -246,12 +249,12 @@ void GamepadBindings::lists_refresh(widget_instance *screen)
         }
         if (i < controls_assigned_gamepad_count) {
             wcsncpy((wchar_t *)buffer, (const wchar_t *)&controls_assigned_gamepads[i], 0x3f);
-            ((uint16_t *)text->text)[0x3f] = 0;
+            (halo::interface::widget_text(text))[0x3f] = 0;
             text->parent->hidden = 0;
             text->parent->scale = 1.0f;
         } else {
             wcsncpy((wchar_t *)buffer, (const wchar_t *)dashes_text, 0x3f);
-            ((uint16_t *)text->text)[0x3f] = 0;
+            (halo::interface::widget_text(text))[0x3f] = 0;
             controls_gamepad_row_set_disabled(text->parent);
         }
     }
@@ -259,7 +262,7 @@ void GamepadBindings::lists_refresh(widget_instance *screen)
     nodes[5]->hidden = controls_available_gamepad_count == 0;
     for (i = 0; i < 8; i++) {
         widget_instance *text = nodes[6 + i]->first_child;
-        uint16_t *buffer = (uint16_t *)halo::memory::heap_reallocate(text->text, 0x80, widget_memory_pool);
+        uint16_t *buffer = halo::interface::widget_pool_resize_text(text->text, 0x80);
 
         text->text = buffer;
         if (buffer == 0) {
@@ -267,7 +270,7 @@ void GamepadBindings::lists_refresh(widget_instance *screen)
         }
         if (i < controls_available_gamepad_count) {
             wcsncpy((wchar_t *)buffer, (const wchar_t *)&controls_available_gamepads[i], 0x3f);
-            ((uint16_t *)text->text)[0x3f] = 0;
+            (halo::interface::widget_text(text))[0x3f] = 0;
             if (controls_assigned_gamepad_count != 4) {
                 text->parent->hidden = 0;
                 text->parent->scale = 1.0f;
@@ -275,7 +278,7 @@ void GamepadBindings::lists_refresh(widget_instance *screen)
             }
         } else {
             wcsncpy((wchar_t *)buffer, (const wchar_t *)empty_text, 0x3f);
-            ((uint16_t *)text->text)[0x3f] = 0;
+            (halo::interface::widget_text(text))[0x3f] = 0;
         }
         controls_gamepad_row_set_disabled(text->parent);
     }

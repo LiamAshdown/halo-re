@@ -9,7 +9,7 @@ namespace halo::interface {
  *
  * @address 0x4ab690
  */
-void hud_anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_scale, float scale, const int16_t *offset, int16_t *out, int32_t selector)
+void hud_anchor_offset_to_screen_position(const void *anchor, uint8_t has_scale, float scale, const int16_t *offset, int16_t *out, int32_t selector)
 {
     halo::interface::HudDraw::anchor_offset_to_screen_position(anchor, has_scale, scale, offset, out, selector);
 }
@@ -42,7 +42,7 @@ void hud_draw_bitmap_at(const float *uv, BitmapData *bitmap, uint8_t pixel_uvs, 
  *
  * @address 0x4acad0
  */
-void hud_draw_bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs, void *meter_parameters, BitmapData *bitmap, uint16_t *anchor, float scale, float rotation, uint32_t color, uint8_t split_screen)
+void hud_draw_bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs, void *meter_parameters, BitmapData *bitmap, const void *anchor, float scale, float rotation, uint32_t color, uint8_t split_screen)
 {
     halo::interface::HudDraw::bitmap_element(uv, placement, pixel_uvs, meter_parameters, bitmap, anchor, scale, rotation, color, split_screen);
 }
@@ -85,7 +85,7 @@ void hud_draw_multitexture_overlay(const float *scale, const HUDInterfaceMultite
  *
  * @address 0x4ac0b0
  */
-void hud_draw_number(void *unused, uint16_t *anchor, const hud_number_placement *placement, int16_t value, int16_t fraction, uint32_t flags, int32_t flash_start_time, float scale)
+void hud_draw_number(void *unused, const void *anchor, const hud_number_placement *placement, int16_t value, int16_t fraction, uint32_t flags, int32_t flash_start_time, float scale)
 {
     halo::interface::HudDraw::number(unused, anchor, placement, value, fraction, flags, flash_start_time, scale);
 }
@@ -95,7 +95,7 @@ void hud_draw_number(void *unused, uint16_t *anchor, const hud_number_placement 
  *
  * @address 0x4ac950
  */
-void hud_draw_overlays(uint16_t *anchor, const hud_overlay_list *list, uint32_t type_mask, int32_t flash_start_time, uint32_t draw_flags, uint8_t split_screen)
+void hud_draw_overlays(const void *anchor, const hud_overlay_list *list, uint32_t type_mask, int32_t flash_start_time, uint32_t draw_flags, uint8_t split_screen)
 {
     halo::interface::HudDraw::overlays(anchor, list, type_mask, flash_start_time, draw_flags, split_screen);
 }
@@ -116,7 +116,7 @@ void hud_draw_rotated_bitmap_quad(const Point2DInt *screen_position, const float
  *
  * @address 0x4ac6f0
  */
-void hud_draw_static_element(int16_t local_player_index, uint16_t *anchor, const hud_static_element_placement *element, uint32_t draw_flags, int32_t flash_start_time)
+void hud_draw_static_element(int16_t local_player_index, const void *anchor, const hud_static_element_placement *element, uint32_t draw_flags, int32_t flash_start_time)
 {
     halo::interface::HudDraw::static_element(local_player_index, anchor, element, draw_flags, flash_start_time);
 }

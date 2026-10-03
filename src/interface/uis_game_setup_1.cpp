@@ -58,6 +58,8 @@ static auto &save_in_progress_00719010 = halo::link::ref<uint8_t>(halo::ui::vars
 static auto &cached_profile_slot = halo::link::ref<int32_t>(halo::ui::vars().cached_profile_slot);
 static auto &network_wait_flag_00719739 = halo::link::ref<uint8_t>(halo::ui::vars().network_wait_flag_00719739);
 static auto &last_profile_name = halo::link::ref<char []>(halo::ui::vars().last_profile_name);
+#include "halo/interface/constants.hpp"
+#include "halo/interface/wide_text.hpp"
 
 namespace halo::ui {
 
@@ -73,7 +75,7 @@ namespace halo::ui {
 uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *param_2, void *param_3)
 {
     datum_index string_list_tag;
-    uint8_t profile_copy[0x2000];
+    saved_player_profile profile_copy;
     int16_t scan_type = 0;
     int16_t scan_level = 0;
     int32_t i;
@@ -94,10 +96,8 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
         cached_saved_game_something = halo::saved_games::globals().player_profile_slots_handle;
     }
 
-    memcpy(profile_copy, profile_globals_block, sizeof(profile_copy) < sizeof(profile_globals_block)
-                                                     ? sizeof(profile_copy)
-                                                     : sizeof(profile_globals_block));
-    halo::saved_games::player_profile_scan_campaign_progress(&scan_type, (saved_player_profile *)profile_copy, &scan_level);
+    profile_copy = profile_globals_block[0].profile;
+    halo::saved_games::player_profile_scan_campaign_progress(&scan_type, &profile_copy, &scan_level);
 
     ui_lists[0].element_size = 0x10;
     ui_lists[1].element_size = 0x10;
@@ -129,8 +129,8 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
 
         level_select_entries[i].path = known_campaign_levels_00692acc[i].path;
 
-        if (profile_copy[0x11e + i] != 0 || i == scan_level + 1 || i == 0) {
-            uint32_t flags = (uint32_t)(uint8_t)profile_copy[0x11e + i];
+        if (profile_copy.campaign_progress[i] != 0 || i == scan_level + 1 || i == 0) {
+            uint32_t flags = (uint32_t)(uint8_t)profile_copy.campaign_progress[i];
 
             level_select_entries[i].flag_bit1 = (uint8_t)((flags >> 1) & 1);
             level_select_entries[i].valid = 1;
@@ -148,7 +148,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
 
                 if ((int32_t)size > 0) {
                     entry_name = (uint16_t *)strings[i].string.pointer;
-                    *(uint16_t *)((uint8_t *)entry_name + ((size & 0xfffffffe) - 2)) = 0;
+                    *(uint16_t *)((uint8_t *)entry_name + ((size & ~1u) - 2)) = 0;
                 }
             }
         }
@@ -171,10 +171,10 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
         i = i + 1;
     } while (i < 10);
 
-    *(int16_t *)&((struct widget_instance *)widget)->text = widget->selection_index;
+    halo::interface::widget_list_committed(widget) = widget->selection_index;
     widget->list_items = level_select_entries;
     widget->item_count = 10;
-    *(int16_t *)((uint8_t *)widget + 0x3e) = -1;
+    halo::interface::widget_list_first_visible(widget) = -1;
 
     if (level_select_flags_0071916b == 1) {
         level_select_frame_00719168 = 0;
@@ -224,8 +224,8 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
  */
 void UiGameSetup::build_level_select_list_coop(widget_instance *widget, void *param_2, void *param_3)
 {
-    uint8_t profile_copy_a[0x2000];
-    uint8_t profile_copy_b[0x2000];
+    saved_player_profile profile_copy_a;
+    saved_player_profile profile_copy_b;
     int16_t level_a = 0, type_a = 0;
     int16_t level_b = 0, type_b = 0;
     int32_t i;
@@ -235,19 +235,14 @@ void UiGameSetup::build_level_select_list_coop(widget_instance *widget, void *pa
 
     memset(level_select_entries, 0, sizeof(level_select_entries));
 
-    memcpy(profile_copy_a, profile_globals_block,
-           sizeof(profile_copy_a) < sizeof(profile_globals_block) ? sizeof(profile_copy_a)
-                                                                    : sizeof(profile_globals_block));
-    halo::saved_games::player_profile_scan_campaign_progress(&type_a, (saved_player_profile *)profile_copy_a, &level_a);
-    memcpy(profile_copy_b, coop_profile_globals_block_00714ddc,
-           sizeof(profile_copy_b) < sizeof(coop_profile_globals_block_00714ddc)
-               ? sizeof(profile_copy_b)
-               : sizeof(coop_profile_globals_block_00714ddc));
-    halo::saved_games::player_profile_scan_campaign_progress(&type_b, (saved_player_profile *)profile_copy_b, &level_b);
+    profile_copy_a = profile_globals_block[0].profile;
+    halo::saved_games::player_profile_scan_campaign_progress(&type_a, &profile_copy_a, &level_a);
+    profile_copy_b = coop_profile_globals_block_00714ddc;
+    halo::saved_games::player_profile_scan_campaign_progress(&type_b, &profile_copy_b, &level_b);
 
     for (i = 0; i < 10; i++) {
-        uint8_t flag_a = profile_copy_a[0x11e + i];
-        uint8_t flag_b = profile_copy_b[0x11e + i];
+        uint8_t flag_a = profile_copy_a.campaign_progress[i];
+        uint8_t flag_b = profile_copy_b.campaign_progress[i];
 
         level_select_entries[i].path = known_campaign_levels_00692acc[i].path;
         if (flag_a != 0 || i == level_a + 1 || flag_b != 0 || i == level_b + 1 || i == 0) {
@@ -287,7 +282,7 @@ void UiGameSetup::game_variant_flag_list_widget_build(widget_instance *widget)
 
     halo::interface::ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)halo::interface::ui_list_default_item_format));
 
-    combo_index = *(int16_t *)&((struct widget_instance *)widget)->text;
+    combo_index = halo::interface::widget_list_committed(widget);
     if (combo_index > -1 && combo_index < ui_lists[ui_list_current].count) {
         ui_list_item *entry = (ui_list_item *)ui_lists[ui_list_current].data + combo_index;
         variant_data = entry->data;
@@ -326,7 +321,7 @@ void UiGameSetup::game_variant_flag_list_widget_build(widget_instance *widget)
  */
 uint8_t UiGameSetup::map_select_confirm_choice(widget_instance *widget)
 {
-    int32_t selection = *(int16_t *)&((struct widget_instance *)widget)->text;
+    int32_t selection = halo::interface::widget_list_committed(widget);
     int32_t count = map_list_count;
     int32_t map_index = -1;
     char *path;

@@ -51,7 +51,7 @@ void PlayerProfiles::save_495fb0(uint8_t flag)
                 length = *(uint32_t *)(block + 0x14);
                 if ((int32_t)length > 0) {
                     text = *(const uint16_t **)(block + 0x20);
-                    *(int16_t *)(*(int32_t *)(block + 0x20) - 2 + (length & 0xfffffffe)) = 0;
+                    *(int16_t *)(*(int32_t *)(block + 0x20) - 2 + (length & ~1u)) = 0;
                 }
             }
         }

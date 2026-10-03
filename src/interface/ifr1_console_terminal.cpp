@@ -47,6 +47,14 @@ static auto &key_event_count = halo::link::ref<int16_t>(halo::ui::vars().key_eve
 static auto &key_events = halo::link::ref<ui_key_event []>(halo::ui::vars().key_events);
 static auto &console_last_line = halo::link::ref<char [0x100]>(halo::ui::vars().console_last_line);
 static auto &console_last_cursor_column = halo::link::ref<int32_t>(halo::ui::vars().console_last_cursor_column);
+#include "halo/interface/records.hpp"
+#include "halo/interface/wide_text.hpp"
+
+static console_message *console_message_at(datum_index handle)
+{
+    return reinterpret_cast<console_message *>(static_cast<uint8_t *>(halo::main::globals().terminal_messages->data) +
+                                               (uint16_t)handle * sizeof(console_message));
+}
 
 namespace halo::interface {
 
@@ -58,7 +66,7 @@ namespace halo::interface {
  *
  * @address 0x496b50
  */
-void ConsoleTerminal::out(ColorARGB *color, char *format, va_list args)
+void ConsoleTerminal::out(ColorARGB *color, const char *format, va_list args)
 {
     static const ColorARGB k_default_color = { 1.0f, 0.7f, 0.7f, 0.7f };
     datum_index message_handle;
@@ -73,8 +81,7 @@ void ConsoleTerminal::out(ColorARGB *color, char *format, va_list args)
         return;
     }
 
-    message = (console_message *)((char *)halo::main::globals().terminal_messages->data +
-                                   (uint16_t)message_handle * sizeof(console_message));
+    message = console_message_at(message_handle);
     message->age = 0;
     if (color == (ColorARGB *)0) {
         color = (ColorARGB *)&k_default_color;
@@ -97,7 +104,7 @@ void ConsoleTerminal::out(ColorARGB *color, char *format, va_list args)
  */
 void ConsoleTerminal::out_copy(char *text)
 {
-    char line[0x104];
+    char line[halo::interface::k_console_line_chars];
     uint32_t chars_written;
     uint32_t length;
 
@@ -108,7 +115,7 @@ void ConsoleTerminal::out_copy(char *text)
     }
     if (halo::main::globals().console_win32_attached != 0) {
         line[0] = '\0';
-        strncpy(line, text, 0x100);
+        strncpy(line, text, halo::interface::k_text_buffer_chars);
         halo::interface::string_replace_all_in_place(line, console_echo_prefix, state::console_tab_text);
         halo::interface::string_replace_all_in_place(line, state::console_newline_escape, state::console_newline_text);
         length = strlen(line);
@@ -200,14 +207,14 @@ void ConsoleTerminal::close(terminal_console *console)
  */
 void ConsoleTerminal::draw_input_line(void)
 {
-    char line[0x11e];
+    char line[halo::interface::k_console_input_line_chars];
     win32_console_screen_buffer_info info;
     win32_coord bottom_left;
     uint32_t written;
     uint32_t length;
 
     if (halo::main::globals().console_win32_attached != 0 && halo::main::globals().console_active != (terminal_console *)0) {
-        _snprintf(line, 0x11e, "%s %s", console_window_title, halo::main::globals().console_active->input);
+        _snprintf(line, halo::interface::k_console_input_line_chars, "%s %s", console_window_title, halo::main::globals().console_active->input);
         strcpy(line + strlen(console_window_title), halo::main::globals().console_active->input);
         if (GetConsoleScreenBufferInfo(console_output_handle, &info) != 0) {
             bottom_left.X = 0;
@@ -248,7 +255,7 @@ void ConsoleTerminal::draw_overlay(void)
     interface_bitmaps = (global_globals->interface_bitmaps.count == 0)
                              ? (GlobalsInterfaceBitmaps *)0
                              : (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer;
-    font_terminal_id = *(int32_t *)&interface_bitmaps->font_terminal.tag_id;
+    font_terminal_id = halo::interface::tag_handle(interface_bitmaps->font_terminal.tag_id);
 
     if (halo::main::globals().terminal_initialized == 0) {
         return;
@@ -287,7 +294,7 @@ void ConsoleTerminal::draw_overlay(void)
             rect.left = (int16_t)(render_viewport_top[5] - render_viewport_top[1]);
             rect.bottom = (int16_t)(halo::interface::k_base_screen_height - render_viewport_top[0]);
             rect.right = (int16_t)(halo::interface::k_base_screen_width - render_viewport_top[1]);
-            halo::rasterizer::chimera__draw_8_bit_text(0, (int32_t *)&rect, 0, 0, line);
+            halo::interface::draw_text8(0, &rect, line);
         }
     }
 
@@ -295,8 +302,7 @@ void ConsoleTerminal::draw_overlay(void)
         y = halo::interface::k_base_screen_height - line_height;
         message_handle = halo::main::globals().console_message_head;
         while (message_handle != (datum_index)halo::k_dword_none && y != line_height && y - line_height >= 0) {
-            message = (console_message *)((char *)halo::main::globals().terminal_messages->data +
-                                           (uint16_t)message_handle * sizeof(console_message));
+            message = console_message_at(message_handle);
             hud_text_draw_color_r = message->color.red;
             hud_text_draw_color_g = message->color.green;
             hud_text_draw_color_b = message->color.blue;
@@ -310,8 +316,8 @@ void ConsoleTerminal::draw_overlay(void)
             y = y - line_height;
             if (message->is_command_echo != 0) {
                 halo::text::globals().hud_text_draw_background_mode = 3;
-                text_tab_stops = 0x014000a0;
-                hud_text_draw_box_field_474e = 0x000001d6;
+                text_tab_stops = halo::interface::k_console_echo_tab_stops;
+                hud_text_draw_box_field_474e = halo::interface::k_console_echo_box_width;
             }
             hud_text_draw_color_or_flags = halo::k_word_none;
             halo::text::globals().hud_text_draw_column = 0;
@@ -324,7 +330,7 @@ void ConsoleTerminal::draw_overlay(void)
                 rect.left = (int16_t)(render_viewport_top[5] - render_viewport_top[1]);
                 rect.bottom = (int16_t)(y + line_height - render_viewport_top[0]);
                 rect.right = (int16_t)(halo::interface::k_base_screen_width - render_viewport_top[1]);
-                halo::rasterizer::chimera__draw_8_bit_text(0, (int32_t *)&rect, 0, 0, message->text);
+                halo::interface::draw_text8(0, &rect, message->text);
             }
             halo::text::globals().hud_text_draw_background_mode = 0;
             message_handle = message->next;
@@ -344,19 +350,16 @@ void ConsoleTerminal::message_delete(datum_index message)
     datum_index next;
     datum_index previous;
 
-    record = (console_message *)((char *)halo::main::globals().terminal_messages->data +
-                                  (uint16_t)message * sizeof(console_message));
+    record = console_message_at(message);
     next = record->next;
     previous = record->previous;
     if (next == (datum_index)halo::k_dword_none) {
         halo::main::globals().console_message_tail = previous;
     } else {
-        ((console_message *)((char *)halo::main::globals().terminal_messages->data +
-                              (uint16_t)next * sizeof(console_message)))->previous = previous;
+        (console_message_at(next))->previous = previous;
     }
     if (previous != (datum_index)halo::k_dword_none) {
-        ((console_message *)((char *)halo::main::globals().terminal_messages->data +
-                              (uint16_t)previous * sizeof(console_message)))->next = next;
+        (console_message_at(previous))->next = next;
         halo::memory::datum_delete(halo::main::globals().terminal_messages, message);
         return;
     }
@@ -378,8 +381,7 @@ void ConsoleTerminal::message_expire_old(void)
 
     current = halo::main::globals().console_message_head;
     while (current != (datum_index)halo::k_dword_none) {
-        record = (console_message *)((char *)halo::main::globals().terminal_messages->data +
-                                      (uint16_t)current * sizeof(console_message));
+        record = console_message_at(current);
         next = record->next;
         record->age = record->age + 1;
         if (record->age > 0x96) {
@@ -406,14 +408,12 @@ datum_index ConsoleTerminal::message_new(void)
     }
     new_message = halo::memory::datum_new(halo::main::globals().terminal_messages);
     old_head = halo::main::globals().console_message_head;
-    record = (console_message *)((char *)halo::main::globals().terminal_messages->data +
-                                  (uint16_t)new_message * sizeof(console_message));
+    record = console_message_at(new_message);
     record->next = halo::main::globals().console_message_head;
     record->previous = (datum_index)halo::k_dword_none;
     halo::main::globals().console_message_head = new_message;
     if (old_head != (datum_index)halo::k_dword_none) {
-        ((console_message *)((char *)halo::main::globals().terminal_messages->data +
-                              (uint16_t)old_head * sizeof(console_message)))->previous =
+        (console_message_at(old_head))->previous =
             new_message;
     } else {
         halo::main::globals().console_message_tail = new_message;
@@ -495,8 +495,7 @@ void ConsoleTerminal::printf_verbose(ColorARGB *color, char *format, va_list arg
         return;
     }
 
-    message = (console_message *)((char *)halo::main::globals().terminal_messages->data +
-                                   (uint16_t)message_handle * sizeof(console_message));
+    message = console_message_at(message_handle);
     message->age = 0;
     if (color == (ColorARGB *)0) {
         color = (ColorARGB *)&k_default_color;
@@ -536,8 +535,8 @@ void ConsoleTerminal::process_input_events(void)
         if (ReadConsoleInputA(console_input_handle, (PINPUT_RECORD)&record, 1, (LPDWORD)&events_read) != 0 &&
             record.EventType == 1) {
             if (record.KeyEvent.bKeyDown != 0) {
-                halo::input::DirectInput::record_windows_key_message(record.KeyEvent.wVirtualKeyCode, 0x100);
-                halo::input::DirectInput::record_windows_key_message(record.KeyEvent.uChar, 0x102);
+                halo::input::DirectInput::record_windows_key_message(record.KeyEvent.wVirtualKeyCode, halo::interface::k_wm_keydown);
+                halo::input::DirectInput::record_windows_key_message(record.KeyEvent.uChar, halo::interface::k_wm_char);
             }
         }
     }

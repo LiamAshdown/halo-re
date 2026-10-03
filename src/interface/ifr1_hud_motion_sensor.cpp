@@ -9,6 +9,8 @@
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/interface/constants.hpp"
+#include "halo/interface/flags.hpp"
 
 static auto &motion_sensor = halo::link::ref<motion_sensor_globals *>(halo::ui::vars().motion_sensor);
 static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
@@ -102,26 +104,26 @@ void HudMotionSensor::update(void)
         walk.iterator.flags_mask = 1;
         walk.iterator.index = 0;
         walk.iterator.handle = (datum_index)-1;
-        walk.signature = 0x86868686;
+        walk.signature = halo::interface::k_object_walk_signature;
         while (halo::objects::object_iterator_next(&walk.iterator) != 0 && !all_full) {
             datum_index object_index = walk.iterator.handle;
-            uint8_t *header = 0;
+            object_header *header = 0;
             int16_t full_players;
 
             if (object_index != (datum_index)-1 && (int16_t)object_index >= 0 &&
                 (int16_t)object_index < halo::objects::globals().object_data->maximum_count) {
-                uint8_t *candidate = (uint8_t *)halo::objects::globals().object_data->data + (int16_t)object_index * halo::objects::globals().object_data->size;
+                object_header *candidate = (object_header *)((uint8_t *)halo::objects::globals().object_data->data + (int16_t)object_index * halo::objects::globals().object_data->size);
                 int16_t salt = (int16_t)((uint32_t)object_index >> 16);
-                if (*(int16_t *)candidate != 0 && (salt == 0 || *(int16_t *)candidate == salt)) {
+                if (candidate->identifier != 0 && (salt == 0 || candidate->identifier == salt)) {
                     header = candidate;
                 }
             }
-            if (header == 0 || ((1u << (header[3] & 0x1f)) & 3) == 0 || *(uint8_t **)(header + 8) == 0 ||
-                ((*(uint8_t **)(header + 8))[0x106] & 4) != 0 || halo::interface::motion_sensor_object_is_detected(object_index) == 0) {
+            if (header == 0 || ((1u << (header->type & 0x1f)) & 3) == 0 || header->data == 0 ||
+                halo::interface::has_bit(header->data->vitality_flags, halo::objects::vitality_flag::health_frozen) || halo::interface::motion_sensor_object_is_detected(object_index) == 0) {
                 continue;
             }
             {
-                real_point3d position = *(real_point3d *)(halo::interface::object_record(object_index) + 0xa0);
+                real_point3d position = halo::interface::object_record<object>(object_index)->bounding_center;
 
                 full_players = 0;
                 for (k = 0; k < count; k++) {

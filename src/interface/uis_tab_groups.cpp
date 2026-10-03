@@ -8,6 +8,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "saved_games.h"
 #include <string.h>
 
 #include "halo/interface/uis_tab_groups.hpp"
@@ -194,10 +195,10 @@ sync_visibility:
     }
 
     {
-        uint8_t profile_copy[0x2000];
+        saved_player_profile profile_copy;
 
-        memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-        halo::interface::set_profile_name(widget, (const uint16_t *)(profile_copy + 2));
+        profile_copy = profile_globals_block[0].profile;
+        halo::interface::set_profile_name(widget, profile_copy.name);
     }
 }
 

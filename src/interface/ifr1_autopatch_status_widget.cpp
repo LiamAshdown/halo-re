@@ -23,9 +23,9 @@ namespace halo::interface {
  *
  * @address 0x4a4880
  */
-void AutopatchStatusWidget::widget_update(uint8_t *record)
+void AutopatchStatusWidget::widget_update(widget_instance *record)
 {
-    widget_instance *control = *(widget_instance **)(record + 0x34);
+    widget_instance *control = record->first_child;
     widget_instance *row = control->next_sibling->next_sibling->first_child;
 
     if (autopatch_status_active_00719235 != 0) {
@@ -42,17 +42,17 @@ void AutopatchStatusWidget::widget_update(uint8_t *record)
         row->hidden = 1;
         row->scale = 0.333f;
         if (first_time) {
-            *(int32_t *)(record + 0x18) = halo::cseries::time_query_performance_counter_ms();
+            record->creation_time = halo::cseries::time_query_performance_counter_ms();
             autopatch_status_active_00719235 = 1;
-            *(int32_t *)(record + 0x20) = 300;
-            *(int32_t *)(record + 0x1c) = 300;
+            record->milliseconds_auto_close_fade = 300;
+            record->milliseconds_to_auto_close = 300;
             autopatch_status_flag_00692b11 = 0;
             return;
         }
-        *(int32_t *)(record + 0x18) = halo::cseries::time_query_performance_counter_ms();
+        record->creation_time = halo::cseries::time_query_performance_counter_ms();
         autopatch_status_active_00719235 = 1;
-        *(int32_t *)(record + 0x20) = 500;
-        *(int32_t *)(record + 0x1c) = 0x2ee;
+        record->milliseconds_auto_close_fade = 500;
+        record->milliseconds_to_auto_close = 750;
         autopatch_status_flag_00692b11 = 0;
         return;
     }

@@ -63,6 +63,9 @@ static auto &level_select_frame_00719168 = halo::link::ref<int16_t>(halo::ui::va
 static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
 static auto &ui_event_byte_0071975b = halo::link::ref<uint8_t>(halo::ui::vars().ui_event_byte_0071975b);
 static auto &input_event_queue_active = halo::link::ref<uint8_t>(halo::ui::vars().input_event_queue_active);
+#include "halo/interface/constants.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 namespace halo::ui {
 
@@ -151,7 +154,7 @@ uint8_t UiEventHandlers::event_4a10f0(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_4a1180(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     widget_instance *list = widget->first_child->next_sibling;
-    int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)list)->text);
+    int32_t id = list_item_id(halo::interface::widget_list_committed(list));
 
     if (id != -1) {
         profile_slot_lookup_cache_00692ac8 = ((int32_t *)list->list_items)[id];
@@ -170,7 +173,7 @@ uint8_t UiEventHandlers::event_4a1180(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a11e0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)widget)->text);
+    int32_t id = list_item_id(halo::interface::widget_list_committed(widget));
     int32_t item = ((int32_t *)widget->list_items)[id];
 
     profile_slot_lookup_cache_00692ac8 = item;
@@ -178,7 +181,7 @@ uint8_t UiEventHandlers::event_4a11e0(widget_instance *widget, int16_t *event, u
         halo::interface::widget_play_sound_effect(4);
         return 0;
     }
-    if ((item & 0x40000000) == 0) {
+    if ((item & halo::interface::k_saved_item_builtin_marker) == 0) {
         return 1;
     }
     halo::interface::widget_play_sound_effect(4);
@@ -201,7 +204,7 @@ uint8_t UiEventHandlers::event_4a1280(widget_instance *widget, int16_t *event, u
     int32_t handle = profile_slot_lookup_cache_00692ac8;
     int32_t current;
 
-    if ((handle & 0x40000000) != 0 || (handle & 0xf) != 0) {
+    if ((handle & halo::interface::k_saved_item_builtin_marker) != 0 || (handle & 0xf) != 0) {
         return 0;
     }
     current = halo::saved_games::globals().player_profile_slots_handle;
@@ -254,7 +257,7 @@ uint8_t UiEventHandlers::event_4a1310(widget_instance *widget, int16_t *event, u
 {
     widget_instance *list = widget->parent->parent;
     uint16_t name[0x80];
-    uint8_t scratch[0x100];
+    uint8_t scratch[halo::interface::k_text_buffer_chars];
     uint32_t handle;
 
     halo::saved_games::saved_game_allocate_new_slot(name);
@@ -263,7 +266,7 @@ uint8_t UiEventHandlers::event_4a1310(widget_instance *widget, int16_t *event, u
         if (handle != halo::k_dword_none) {
             halo::interface::saved_item_select((int32_t)handle);
             if ((selected_saved_item & 0xf) == 1) {
-                int32_t id = halo::interface::ui_list_get_id(*(int16_t *)&((struct widget_instance *)list)->text);
+                int32_t id = halo::interface::ui_list_get_id(halo::interface::widget_list_committed(list));
                 const void *source;
                 uint8_t opened;
 
@@ -272,7 +275,7 @@ uint8_t UiEventHandlers::event_4a1310(widget_instance *widget, int16_t *event, u
                 *(uint16_t *)(saved_item_working_copy + 0x94) = 0;
                 wcsncpy((wchar_t *)saved_item_working_copy, (const wchar_t *)name, 0x17);
                 *(uint16_t *)(saved_item_working_copy + 0x2e) = 0;
-                *(uint32_t *)(saved_item_working_copy + 0x38) &= 0xfffffe7f;
+                ((game_variant *)saved_item_working_copy)->flags &= ~0x180u;
                 opened = halo::interface::virtual_keyboard_open((uint16_t *)saved_item_working_copy, 0x30, 9);
                 if (opened == 1) {
                     network_host_edit_field_00719410 = 2;
@@ -349,18 +352,18 @@ uint8_t UiEventHandlers::event_4a1480(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a1570(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *client = (uint8_t *)halo::networking::globals().client;
+    network_client_globals *client = halo::networking::globals().client;
     int32_t i;
 
     if (client == 0) {
         return 1;
     }
     for (i = 0; i < 0x10; i++) {
-        uint8_t *entry = client + 0xcb6 + i * 0x20;
+        network_player_entry *entry = &client->session.players[i];
 
-        if (halo::networking::network_player_entry_validate((network_player_entry *)entry) != 0 && (int16_t)(int8_t)entry[0x1c] == *(int16_t *)client &&
-            (int16_t)(int8_t)entry[0x1d] == event[1]) {
-            halo::networking::network_staged_message_commit((network_client_globals *)client, 1);
+        if (halo::networking::network_player_entry_validate(entry) != 0 && (int16_t)entry->machine_index == (int16_t)client->machine_index &&
+            (int16_t)entry->machine_player_index == event[1]) {
+            halo::networking::network_staged_message_commit(client, 1);
             return 1;
         }
     }
@@ -374,18 +377,18 @@ uint8_t UiEventHandlers::event_4a1570(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a15e0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *client = (uint8_t *)halo::networking::globals().client;
+    network_client_globals *client = halo::networking::globals().client;
     int32_t i;
 
     if (client == 0) {
         return 1;
     }
     for (i = 0; i < 0x10; i++) {
-        uint8_t *entry = client + 0xcb6 + i * 0x20;
+        network_player_entry *entry = &client->session.players[i];
 
-        if (halo::networking::network_player_entry_validate((network_player_entry *)entry) != 0 && (int16_t)(int8_t)entry[0x1c] == *(int16_t *)client &&
-            (int16_t)(int8_t)entry[0x1d] == event[1]) {
-            halo::networking::network_staged_message_commit((network_client_globals *)client, 0);
+        if (halo::networking::network_player_entry_validate(entry) != 0 && (int16_t)entry->machine_index == (int16_t)client->machine_index &&
+            (int16_t)entry->machine_player_index == event[1]) {
+            halo::networking::network_staged_message_commit(client, 0);
             return 1;
         }
     }
@@ -399,11 +402,11 @@ uint8_t UiEventHandlers::event_4a15e0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a1650(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *server = (uint8_t *)halo::networking::globals().server;
+    network_server_globals *server = halo::networking::globals().server;
 
     if (server != 0) {
-        *(uint16_t *)(server + 6) |= 1;
-        (*(uint8_t **)server)[0xae0] = 1;
+        server->flags |= 1;
+        server->listen_channel->listening = 1;
     }
     return 1;
 }
@@ -416,7 +419,7 @@ uint8_t UiEventHandlers::event_4a1650(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_4a16a0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     if (halo::networking::globals().server != 0) {
-        ((uint8_t *)halo::networking::globals().server)[0x9d5] = 0;
+        halo::networking::globals().server->handshake_blocked = 0;
     }
     return 1;
 }
@@ -478,33 +481,33 @@ uint8_t UiEventHandlers::event_4a1700(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a1790(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *client = (uint8_t *)halo::networking::globals().client;
-    uint8_t *found = 0;
+    network_client_globals *client = halo::networking::globals().client;
+    network_player_entry *found = 0;
     int32_t count = 0;
     int16_t key;
     int32_t i;
-    int16_t *state;
+    uint16_t *state;
 
     if (client == 0) {
         return 1;
     }
-    state = (int16_t *)(client + 0xeda);
+    state = &client->state;
     if (*state == 1) {
         halo::cseries::time_query_performance_counter_ms();
     }
     if (*state != 2) {
         return 1;
     }
-    key = halo::networking::globals().client != 0 ? *(int16_t *)halo::networking::globals().client : -1;
+    key = halo::networking::globals().client != 0 ? (int16_t)client->machine_index : -1;
     if (key == -1) {
         return 1;
     }
     for (i = 0; i < 0x10; i++) {
-        uint8_t *entry = client + 0xcb6 + i * 0x20;
+        network_player_entry *entry = &client->session.players[i];
 
-        if (halo::networking::network_player_entry_validate((network_player_entry *)entry) != 0 && (int16_t)(int8_t)entry[0x1c] == key) {
+        if (halo::networking::network_player_entry_validate(entry) != 0 && (int16_t)entry->machine_index == key) {
             count++;
-            if ((int16_t)(int8_t)entry[0x1d] == event[1]) {
+            if ((int16_t)entry->machine_player_index == event[1]) {
                 found = entry;
             }
         }
@@ -513,8 +516,8 @@ uint8_t UiEventHandlers::event_4a1790(widget_instance *widget, int16_t *event, u
         return 1;
     }
     if (found != 0) {
-        halo::networking::network_session_info_packet_send((const uint32_t *)found, (network_client_globals *)client);
-        local_team_00714dd8[(int8_t)found[0x1d] * 0x2004] = 0;
+        halo::networking::network_session_info_packet_send((const uint32_t *)found, client);
+        local_team_00714dd8[(int8_t)found->machine_player_index * sizeof(saved_player_profile_slot)] = 0;
     }
     if (count != 1) {
         return 0;
@@ -571,13 +574,8 @@ uint8_t UiEventHandlers::event_4a1b00(widget_instance *widget, int16_t *event, u
     }
     node = ui_widget_history[controller];
     if (node != 0) {
-        heap_block *block = (heap_block *)((uint8_t *)node - 0x10);
-        uint32_t size = block->size & 0x7fffffff;
-
         ui_widget_history[controller] = node->next;
-        halo::memory::heap_unlink_block(block, widget_memory_pool);
-        widget_memory_pool->bytes_allocated -= (int32_t)size;
-        widget_memory_pool->allocation_count -= 1;
+        halo::interface::widget_pool_free(node);
     }
     return 1;
 }
@@ -601,7 +599,7 @@ uint8_t UiEventHandlers::event_4a1b60(widget_instance *widget, int16_t *event, u
     }
     widget->selection_index = selection;
     widget->focused_child = child;
-    *(int16_t *)&((struct widget_instance *)widget)->text = widget->selection_index;
+    halo::interface::widget_list_committed(widget) = widget->selection_index;
     return 1;
 }
 

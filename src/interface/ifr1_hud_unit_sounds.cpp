@@ -11,6 +11,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/interface/flags.hpp"
 
 static auto &game_looping_sound_data = halo::link::ref<data_array *>(halo::ui::vars().game_looping_sound_data);
 static auto &hud_unit_meters = halo::link::ref<hud_unit_meter_globals *>(halo::ui::vars().hud_unit_meters);
@@ -111,7 +112,7 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
     if ((int16_t)choice < 0) {
         return;
     }
-    hud_tag = *(datum_index *)(*(uint8_t **)&((struct Unit *)unit_tag)->new_hud_interfaces.pointer + (int16_t)choice * 0x30 + 0xc);
+    hud_tag = halo::interface::tag_handle(halo::interface::reflexive_elements<UnitUnitHudInterface>(((struct Unit *)unit_tag)->new_hud_interfaces)[(int16_t)choice].hud.tag_id);
     if (hud_tag == (datum_index)-1) {
         return;
     }
@@ -141,7 +142,7 @@ void HudUnitSounds::update(player *p, uint8_t hud_enabled)
             if (health < 0.25f) {
                 mask |= 0x10;
             }
-            if ((unit[0x106] & 4) != 0) {
+            if (halo::interface::has_bit(((object *)unit)->vitality_flags, halo::objects::vitality_flag::health_frozen)) {
                 mask |= 0x20;
             }
             if (state->displayed_health > health && state->displayed_health - health < 0.1875f) {

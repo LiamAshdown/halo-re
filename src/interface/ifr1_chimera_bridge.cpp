@@ -30,6 +30,8 @@
 #include "halo/networking/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/flags.hpp"
+#include "halo/interface/wide_text.hpp"
 
 static auto &join_ui_state = halo::link::ref<progress_screen_state>(halo::networking::vars().join_ui_state);
 static auto &interface_loading_screen_address_b = halo::link::ref<int32_t>(halo::main::vars().interface_loading_screen_address_b);
@@ -66,11 +68,11 @@ void ChimeraBridge::do_show_loading_screen(void)
 {
     float alpha;
     datum_index font, background, strings;
-    int32_t bitmap_data;
+    BitmapData *bitmap_data;
     uint32_t packed_color;
     ColorARGB text_color;
     Rectangle2D bounds;
-    uint16_t text_buffer[0x200];
+    uint16_t text_buffer[halo::interface::k_long_text_chars];
 
     if (join_ui_state == 0) {
         return;
@@ -80,10 +82,10 @@ void ChimeraBridge::do_show_loading_screen(void)
         interface_loading_screen_address_b = (int32_t)halo::cseries::time_query_performance_counter_ms();
     }
 
-    if (interface_loading_screen_address_a != 0xffffffffu) {
+    if (interface_loading_screen_address_a != halo::k_dword_none) {
         uint32_t now = halo::cseries::time_query_performance_counter_ms();
         if (now >= interface_loading_screen_address_a) {
-            interface_loading_screen_address_a = 0xffffffffu;
+            interface_loading_screen_address_a = halo::k_dword_none;
             interface_loading_screen_address_b = -1;
             interface_loading_screen_request_id = (datum_index)-1;
             join_ui_state = (progress_screen_state)0;
@@ -136,7 +138,7 @@ void ChimeraBridge::do_show_loading_screen(void)
         return;
     }
 
-    bitmap_data = reinterpret_cast<int32_t>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(background, 0, 0));
+    bitmap_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(background, 0, 0);
     packed_color = halo::interface::color_argb_scale_alpha(halo::k_dword_none, alpha);
     text_color.alpha = alpha;
     text_color.red = 1.0f;
@@ -147,61 +149,61 @@ void ChimeraBridge::do_show_loading_screen(void)
     bounds.bottom = halo::interface::k_base_screen_height;
     bounds.right = halo::interface::k_base_screen_width;
     if (bitmap_data != 0) {
-        halo::interface::ui_draw_screen_quad((int16_t *)&bounds, (int16_t *)&bounds, bitmap_data, nullptr,
+        halo::interface::ui_draw_screen_quad(&bounds, &bounds, bitmap_data, nullptr,
                             packed_color);
     }
     halo::text::text_context::set_render_context(font, &text_color, -1, 2, 0);
 
     bounds.left = 0;
-    bounds.top = 0x19a;
+    bounds.top = halo::interface::k_base_screen_height - 70;
     bounds.right = halo::interface::k_base_screen_width;
-    bounds.bottom = 0x1ae;
+    bounds.bottom = halo::interface::k_base_screen_height - 50;
     switch (join_ui_state) {
     case 2:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 1));
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)text_buffer);
+        halo::interface::draw_text16(0, &bounds, text_buffer);
         break;
     case 3:
     case 5:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 2), progress_screen_text);
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)text_buffer);
+        halo::interface::draw_text16(0, &bounds, text_buffer);
         break;
     case 4:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 0), progress_screen_text);
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)text_buffer);
+        halo::interface::draw_text16(0, &bounds, text_buffer);
         break;
     case 6:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 3), progress_screen_text,
                               interface_loading_screen_progress);
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text_buffer);
+        halo::interface::draw_text16(0, &bounds, text_buffer);
         break;
     case 7:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 4));
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)text_buffer);
+        halo::interface::draw_text16(0, &bounds, text_buffer);
         break;
     case 8:
         halo::text::string_format_wide_va(text_buffer,
                               halo::text::text_string_list_get_string(strings, (halo::networking::globals().game_mode == 2) ? 6 : 5),
                               progress_screen_subtext);
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text_buffer);
+        halo::interface::draw_text16(0, &bounds, text_buffer);
         break;
     case 9:
         halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 8), progress_screen_subtext);
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)text_buffer);
+        halo::interface::draw_text16(0, &bounds, text_buffer);
         break;
     default:
         break;
     }
 
-    bounds.top = 0x1ae;
-    bounds.bottom = 0x1c2;
+    bounds.top = halo::interface::k_base_screen_height - 50;
+    bounds.bottom = halo::interface::k_base_screen_height - 30;
     switch (join_ui_state) {
     case 2: case 3: case 4: case 5: case 6: case 7: case 9:
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)(halo::text::text_string_list_get_string(strings, 7)));
+        halo::interface::draw_text16(0, &bounds, halo::text::text_string_list_get_string(strings, 7));
     case 8:
-        bounds.top = 0x1cc;
+        bounds.top = halo::interface::k_base_screen_height - 20;
         bounds.bottom = halo::interface::k_base_screen_height;
-        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&bounds), 0, 0, (const int16_t *)(halo::text::text_string_list_get_string(strings, 9)));
+        halo::interface::draw_text16(0, &bounds, halo::text::text_string_list_get_string(strings, 9));
         break;
     default:
         break;
@@ -233,7 +235,7 @@ void ChimeraBridge::load_main_menu(void)
     }
     halo::input::UiEvents::queue_sample_time_update();
     halo::interface::widget_close_all();
-    halo::interface::chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\main_menu", (datum_index)-1, (widget_instance *)0, halo::k_word_none,
+    halo::interface::chimera__load_ui_widget("ui\\shell\\main_menu\\main_menu", (datum_index)-1, (widget_instance *)0, halo::k_word_none,
                             (datum_index)-1, (datum_index)-1, -1);
     if (halo::networking::globals().join_error_code != -1) {
         halo::interface::display_error(halo::networking::globals().join_error_code, -1, 1, 0);
@@ -259,7 +261,7 @@ void ChimeraBridge::load_main_menu(void)
  *
  * @address 0x497a70
  */
-widget_instance * ChimeraBridge::load_ui_widget(const char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection)
+widget_instance * ChimeraBridge::load_ui_widget(const const char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection)
 {
     widget_instance *widget = (widget_instance *)0;
     int16_t slot = (controller_index == halo::k_word_none) ? 0 : (int16_t)controller_index;
@@ -291,9 +293,9 @@ widget_instance * ChimeraBridge::load_ui_widget(const char *tag_path, datum_inde
         ui_root_widget[slot] = widget;
 
         if (history_definition != (datum_index)-1) {
-            uint8_t *history_tag_data = halo::interface::tag_data<uint8_t>(history_definition);
+            UIWidgetDefinition *history_tag_data = halo::interface::tag_data<UIWidgetDefinition>(history_definition);
 
-            if ((*(uint32_t *)(history_tag_data + 0x2c) & 0x4000) == 0) {
+            if (!halo::interface::has_bit(history_tag_data->flags, halo::interface::widget_flag::don_t_push_history)) {
                 widget_history_node history_template;
 
                 history_template.definition = history_definition;

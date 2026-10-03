@@ -21,6 +21,10 @@
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/networking/api.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
+#include "halo/interface/game_state_block.hpp"
+#include "halo/interface/layout_checks.hpp"
 
 #ifdef interface
 #undef interface
@@ -67,23 +71,23 @@ namespace halo::interface {
 void InterfaceMain::draw_cursor()
 {
     Rectangle2D rect;
-    int32_t bitmap_data;
+    BitmapData *bitmap_data;
 
     rect.top = (int16_t)ui_cursor_y;
     rect.left = (int16_t)ui_cursor_x;
 
     if (ui_cursor_bitmap != (datum_index)-1) {
-        bitmap_data = reinterpret_cast<int32_t>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(ui_cursor_bitmap, 0, 0));
+        bitmap_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(ui_cursor_bitmap, 0, 0);
         if (bitmap_data != 0) {
             rect.bottom = (int16_t)(ui_cursor_y + 0x20);
             rect.right = (int16_t)(ui_cursor_x + 0x20);
-            halo::interface::ui_draw_screen_quad(nullptr, (int16_t *)&rect, bitmap_data, nullptr, 0xffffffffu);
+            halo::interface::ui_draw_screen_quad(nullptr, &rect, bitmap_data, nullptr, halo::k_dword_none);
             return;
         }
     }
     rect.bottom = (int16_t)(ui_cursor_y + 0x10);
     rect.right = (int16_t)(ui_cursor_x + 0x10);
-    halo::interface::ui_draw_filled_rectangle(0x80ff0000, &rect);
+    halo::interface::ui_draw_filled_rectangle(halo::interface::k_missing_bitmap_color, &rect);
 }
 
 /**
@@ -94,16 +98,10 @@ void InterfaceMain::draw_cursor()
  */
 void InterfaceMain::globals_allocate()
 {
-    int32_t block;
-    int32_t size = 0x1ea0;
-
     halo::interface::terminal_initialize();
     halo::interface::hud_state_allocate();
 
-    block = halo::saved_games::globals().game_state_cursor + (int32_t)halo::saved_games::globals().game_state_base;
-    halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + 0x1ea0;
-    halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
-    first_person_weapon_interfaces = (first_person_weapon_interface *)block;
+    first_person_weapon_interfaces = halo::interface::game_state_allocate_block<first_person_weapon_interface>();
 }
 
 /**
@@ -159,7 +157,7 @@ void InterfaceMain::update_for_resolution_change(int32_t new_cursor_x, int32_t n
         ui_cursor_x = 0;
     } else {
         ui_cursor_x = halo::interface::k_base_screen_width;
-        if (new_cursor_x < 0x281) {
+        if (new_cursor_x < halo::interface::k_base_screen_width + 1) {
             ui_cursor_x = new_cursor_x;
         }
     }
@@ -169,7 +167,7 @@ void InterfaceMain::update_for_resolution_change(int32_t new_cursor_x, int32_t n
         return;
     }
     ui_cursor_y = halo::interface::k_base_screen_height;
-    if (new_cursor_y < 0x1e1) {
+    if (new_cursor_y < halo::interface::k_base_screen_height + 1) {
         ui_cursor_y = new_cursor_y;
     }
 }
@@ -226,11 +224,11 @@ void InterfaceMain::play_title_music()
  */
 int32_t MapList::find_known_map_index(char *map_path)
 {
-    char local_path[0x103];
+    char local_path[halo::interface::k_map_path_chars];
     char *cursor;
     int32_t index;
 
-    strncpy(local_path, map_path, 0x103);
+    strncpy(local_path, map_path, halo::interface::k_map_path_chars);
     for (cursor = local_path; *cursor != '\0'; cursor++) {
         *cursor = (char)tolower((uint8_t)*cursor);
     }
@@ -306,12 +304,12 @@ void InterfaceMain::set_profile_name(widget_instance *widget, const uint16_t *na
                 if ((int32_t)size > 0) {
                     suffix = (uint16_t *)strings[7].string.pointer;
 
-                    *(uint16_t *)((uint8_t *)suffix + ((size & 0xfffffffe) - 2)) = 0;
+                    *(uint16_t *)((uint8_t *)suffix + ((size & ~1u) - 2)) = 0;
                 }
             }
         }
-        halo::text::string_format_wide_va_bounded(0x3f, (uint16_t *)((wchar_t *)buffer), (const uint16_t *)L"%s %s", suffix, name_source);
-        ((uint16_t *)widget->text)[0x3f] = 0;
+        halo::text::string_format_wide_va_bounded(0x3f, (uint16_t *)((wchar_t *)buffer), halo::interface::wide(L"%s %s"), suffix, name_source);
+        (halo::interface::widget_text(widget))[0x3f] = 0;
     }
 }
 

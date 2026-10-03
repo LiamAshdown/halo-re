@@ -54,6 +54,7 @@ public:
     static void submit_input(void);
     static void open(int32_t chat_scope);
     static void out(uint8_t channel);
+    static void queue_on_channel(network_channel *channel, int32_t encoded_bits);
 };
 
 }

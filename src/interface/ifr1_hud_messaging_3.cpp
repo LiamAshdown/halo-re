@@ -27,6 +27,8 @@
 #include "halo/interface/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/interface/wide_text.hpp"
+#include "halo/interface/color_bits.hpp"
 
 static auto &hud_messaging_parameters = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_messaging_parameters);
 static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
@@ -122,12 +124,12 @@ void HudMessaging::messaging_update(int16_t local_player_index)
 
     parameters = hud_messaging_parameters;
     split_screen = halo::game::globals().local_player_globals->local_player_count > 1;
-    font = *(datum_index *)&parameters->fullscreen_font.tag_id;
+    font = halo::interface::tag_handle(parameters->fullscreen_font.tag_id);
     if (halo::game::globals().local_player_globals->local_player_count > 1 &&
-        *(datum_index *)&parameters->splitscreen_font.tag_id != (datum_index)-1) {
-        font = *(datum_index *)&parameters->splitscreen_font.tag_id;
+        halo::interface::tag_handle(parameters->splitscreen_font.tag_id) != (datum_index)-1) {
+        font = halo::interface::tag_handle(parameters->splitscreen_font.tag_id);
     }
-    halo::interface::hud_anchor_offset_to_screen_position((uint16_t *)&parameters->anchor, split_screen, 0.0f,
+    halo::interface::hud_anchor_offset_to_screen_position(&parameters->anchor, split_screen, 0.0f,
                                          &parameters->anchor_offset.x, &origin.x, 0);
     font_tag = halo::interface::tag_data<Font>(font);
     y = origin.y;
@@ -171,9 +173,9 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                     (const hud_flash_parameters *)&hud_globals_tag_data->hud_help_default_color,
                     hud_messaging->help_text_flash_start_time);
             } else if (halo::interface::has_bit(hud_globals_tag_data->hud_help_flash_flags, halo::tags::hud_interface_flash_tag_flag::reverse_default_flashing_colors)) {
-                packed_color = *(uint32_t *)&hud_globals_tag_data->hud_help_flashing_color;
+                packed_color = halo::interface::color_bits(hud_globals_tag_data->hud_help_flashing_color);
             } else {
-                packed_color = *(uint32_t *)&hud_globals_tag_data->hud_help_default_color;
+                packed_color = halo::interface::color_bits(hud_globals_tag_data->hud_help_default_color);
             }
             halo::bitmaps::color_codec::argb_int_to_real(&color, packed_color);
         } else {
@@ -197,7 +199,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             messages_tag = halo::interface::tag_data<HUDMessageText>(*(datum_index *)&halo::scenario::globals().scenario->hud_messages.tag_id);
             message = hud_messaging->help_text;
         } else if (record->message != 0) {
-            messages_tag = halo::interface::tag_data<HUDMessageText>(*(datum_index *)&hud_globals_tag_data->hud_messages.tag_id);
+            messages_tag = halo::interface::tag_data<HUDMessageText>(halo::interface::tag_handle(hud_globals_tag_data->hud_messages.tag_id));
             message = record->message;
         } else if (record->action_text[0] != 0) {
             halo::interface::hud_draw_message_text_span(&cursor, &line, record->action_text, 1);
@@ -218,7 +220,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                     halo::text::text_context::measure_string_extents(&line, &cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
                     cursor.left = (int16_t)(cursor.left - 3);
                     bounds.left = line.left;
-                    halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
+                    halo::interface::draw_text16(0, &bounds, text);
                     line.top = cursor.top;
                     text_offset = (uint16_t)(text_offset + data);
                 } else if (data <= 0x11) {
@@ -246,7 +248,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                                                             (int16_t)string_index), 0);
                         } else {
                             halo::interface::hud_draw_message_text_span(&cursor, &line,
-                                halo::text::text_string_list_get_string(*(datum_index *)&hud_globals_tag_data->alternate_icon_text.tag_id,
+                                halo::text::text_string_list_get_string(halo::interface::tag_handle(hud_globals_tag_data->alternate_icon_text.tag_id),
                                                             (int16_t)string_index), 0);
                         }
                     } else if (record->arguments[argument] != 0) {
@@ -303,13 +305,13 @@ void HudMessaging::messaging_update(int16_t local_player_index)
         hud_messaging_set_text_state(font, &color);
 
         if (slot->source == -1) {
-            halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&cursor, 0, 0, (const int16_t *)slot->text);
+            halo::interface::draw_text16(0, &cursor, slot->text);
         } else {
             Item *item;
             const uint16_t *text;
             uint8_t plural;
             int32_t string_index;
-            datum_index strings = *(datum_index *)&hud_globals_tag_data->item_message_text.tag_id;
+            datum_index strings = halo::interface::tag_handle(hud_globals_tag_data->item_message_text.tag_id);
 
             if (slot->source_kind == 0xff) {
                 plural = slot->count > 1;
@@ -332,9 +334,9 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                     value_scale = 1;
                 }
                 halo::text::string_format_wide_va(reinterpret_cast<uint16_t *>(formatted), reinterpret_cast<const uint16_t *>((const wchar_t *)text), slot->count / value_scale);
-                halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)(&cursor), 0, 0, (const int16_t *)((const uint16_t *)formatted));
+                halo::interface::draw_text16(0, &cursor, (const uint16_t *)formatted);
             } else {
-                halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&cursor, 0, 0, (const int16_t *)text);
+                halo::interface::draw_text16(0, &cursor, text);
             }
         }
 

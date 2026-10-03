@@ -14,6 +14,7 @@ static auto &input_event_queue_active = halo::link::ref<input_event_queue>(halo:
 #include "halo/cseries/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/records.hpp"
+#include "halo/interface/com_object.hpp"
 
 #ifdef interface
 #undef interface
@@ -68,7 +69,7 @@ uint8_t VirtualKeyboard::open(uint16_t *destination, uint16_t maximum_length, in
 
     if (keyboard_device != 0) {
         int32_t minus_one = -1;
-        void **vtable = *(void ***)keyboard_device;
+        void **vtable = halo::interface::com_vtable(keyboard_device);
         ((directinput_set_property_fn)vtable[0x28 / 4])(keyboard_device, 0x14, 0, &minus_one, 0);
         memset(key_release_pending, 0, sizeof(key_release_pending));
         memset(key_frames, 0, sizeof(key_frames));

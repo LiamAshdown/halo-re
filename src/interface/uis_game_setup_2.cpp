@@ -23,6 +23,7 @@
 #include "halo/game/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/interface/wide_text.hpp"
 
 static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
 static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
@@ -48,16 +49,16 @@ namespace halo::ui {
  */
 void UiGameSetup::game_variant_list_widget_build(widget_instance *widget)
 {
-    uint8_t profile_record[k_saved_player_profile_size];
+    saved_player_profile profile_record;
     int16_t combo_index;
     const uint16_t *variant_description = 0;
 
     halo::interface::ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)halo::interface::ui_list_default_item_format));
 
-    memcpy(profile_record, &profile_globals_block[0].profile, sizeof(profile_record));
-    halo::interface::set_profile_name(widget->extended_description->first_child, (const uint16_t *)(profile_record + 2));
+    profile_record = profile_globals_block[0].profile;
+    halo::interface::set_profile_name(widget->extended_description->first_child, profile_record.name);
 
-    combo_index = *(int16_t *)&((struct widget_instance *)widget)->text;
+    combo_index = halo::interface::widget_list_committed(widget);
     if (combo_index > -1 && combo_index < ui_lists[ui_list_current].count) {
         ui_list_item *entry = (ui_list_item *)ui_lists[ui_list_current].data + combo_index;
         variant_description = (const uint16_t *)entry->data;
@@ -75,7 +76,7 @@ void UiGameSetup::game_variant_list_widget_build(widget_instance *widget)
  */
 uint32_t UiGameSetup::start_campaign_from_level_one(void *widget, int16_t *event)
 {
-    int16_t requested_index = *(int16_t *)((uint8_t *)event + 2);
+    int16_t requested_index = event[1];
     int16_t i;
 
     (void)widget;

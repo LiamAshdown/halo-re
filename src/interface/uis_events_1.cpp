@@ -57,6 +57,9 @@ static auto &game_variant_saved_default = halo::link::ref<uint8_t [0x98]>(halo::
 static auto &saved_item_working_copy = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().saved_item_working_copy);
 static auto &network_host_edit_field_00719410 = halo::link::ref<int32_t>(halo::ui::vars().network_host_edit_field_00719410);
 static auto &ui_widget_history = halo::link::ref<widget_history_node *[3]>(halo::ui::vars().ui_widget_history);
+#include "halo/interface/constants.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 #ifdef interface
 #undef interface
@@ -96,13 +99,8 @@ static void widget_history_pop(int16_t controller)
     }
     node = ui_widget_history[controller];
     if (node != 0) {
-        heap_block *block = (heap_block *)((uint8_t *)node - 0x10);
-        uint32_t size = block->size & 0x7fffffff;
-
         ui_widget_history[controller] = node->next;
-        halo::memory::heap_unlink_block(block, widget_memory_pool);
-        widget_memory_pool->bytes_allocated -= (int32_t)size;
-        widget_memory_pool->allocation_count -= 1;
+        halo::interface::widget_pool_free(node);
     }
 }
 
@@ -129,7 +127,7 @@ uint8_t UiEventHandlers::event_49cdd0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49cfa0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    int16_t selection = *(int16_t *)((uint8_t *)widget->parent->parent + 0x3c);
+    int16_t selection = halo::interface::widget_list_committed(widget->parent->parent);
 
     if (selection < 4) {
         if (selection >= 0) {
@@ -391,8 +389,8 @@ uint8_t UiEventHandlers::event_49d5d0(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_49d5f0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     int32_t count = map_list_count;
-    char last_map[0x104];
-    uint16_t name[0x100];
+    char last_map[halo::interface::k_level_select_path_chars];
+    uint16_t name[halo::interface::k_text_buffer_chars];
     int32_t i;
 
     widget->list_items = map_list;
@@ -400,7 +398,7 @@ uint8_t UiEventHandlers::event_49d5f0(widget_instance *widget, int16_t *event, u
     if (halo::saved_games::saved_game_last_mp_map_read((uint8_t *)last_map) != 0) {
         widget->selection_index = 0;
         if (count > 0) {
-            while (_stricmp(last_map, *(char **)(map_list + widget->selection_index * 0xc)) != 0) {
+            while (_stricmp(last_map, map_list[widget->selection_index].path) != 0) {
                 widget->selection_index++;
                 if (widget->selection_index >= count) {
                     break;
@@ -411,8 +409,8 @@ uint8_t UiEventHandlers::event_49d5f0(widget_instance *widget, int16_t *event, u
             widget->selection_index = 0;
         }
     }
-    *(int16_t *)&((struct widget_instance *)widget)->text = widget->selection_index;
-    *(int16_t *)((uint8_t *)widget + 0x3e) = -1;
+    halo::interface::widget_list_committed(widget) = widget->selection_index;
+    halo::interface::widget_list_first_visible(widget) = -1;
     for (i = 0; i < 3; i++) {
         ui_lists[i].element_size = 0x10;
         ui_lists[i].count = 0;
@@ -424,7 +422,7 @@ uint8_t UiEventHandlers::event_49d5f0(widget_instance *widget, int16_t *event, u
         uint8_t is_default;
         uint32_t index;
 
-        halo::interface::map_list_get_friendly_level_name((wchar_t *)name, *(char **)(map_list + i * 0xc), 0x100);
+        halo::interface::map_list_get_friendly_level_name((wchar_t *)name, map_list[i].path, halo::interface::k_text_buffer_chars);
         is_default = (uint8_t)(i == widget->selection_index);
         index = halo::memory::growable_array_add_element(&ui_lists[0]);
         if (index != halo::k_dword_none) {
@@ -470,13 +468,13 @@ uint8_t UiEventHandlers::event_49d8b0(widget_instance *widget, int16_t *event, u
     int32_t *handles;
     uint16_t count = 0x64;
     int32_t last = -1;
-    char last_name[0x100];
+    char last_name[halo::interface::k_text_buffer_chars];
     uint32_t variant[0x26];
     int32_t i;
 
     profile_slot_lookup_cache_00692ac8 = -1;
     memset(variant_carousel_slots, 0xff, sizeof(variant_carousel_slots));
-    handles = (int32_t *)halo::memory::heap_reallocate(widget->list_items, 0x190, widget_memory_pool);
+    handles = (int32_t *)halo::memory::heap_reallocate(widget->list_items, halo::interface::k_playlist_handle_bytes, widget_memory_pool);
     widget->list_items = handles;
     if (handles != 0) {
         if (playlist_profiles_need_defaults == 1) {
@@ -517,14 +515,14 @@ uint8_t UiEventHandlers::event_49d8b0(widget_instance *widget, int16_t *event, u
                 if (grouped) {
                     uint32_t flags = variant[0x38 / 4];
 
-                    group = (flags & 0x100) != 0 ? 0 : (flags & 0x80) != 0 ? 1 : 2;
+                    group = (flags & halo::interface::k_variant_default_bit) != 0 ? 0 : (flags & 0x80) != 0 ? 1 : 2;
                 }
                 halo::interface::ui_list_add_entry(group, (const uint16_t *)variant, i, variant, 0x98, (uint8_t)(last == handles[i]));
             }
         }
     }
-    *(int16_t *)&((struct widget_instance *)widget)->text = widget->selection_index;
-    *(int16_t *)((uint8_t *)widget + 0x3e) = -1;
+    halo::interface::widget_list_committed(widget) = widget->selection_index;
+    halo::interface::widget_list_first_visible(widget) = -1;
     return 1;
 }
 
@@ -536,8 +534,8 @@ uint8_t UiEventHandlers::event_49d8b0(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_49dab0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     uint32_t variant[0x26];
-    char directory[0x100];
-    int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)widget)->text);
+    char directory[halo::interface::k_text_buffer_chars];
+    int32_t id = list_item_id(halo::interface::widget_list_committed(widget));
     int32_t item = ((int32_t *)widget->list_items)[id];
 
     if (item == -1 || item >= 0) {
@@ -574,7 +572,7 @@ uint8_t UiEventHandlers::event_49dab0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49e170(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)widget)->text);
+    int32_t id = list_item_id(halo::interface::widget_list_committed(widget));
     int32_t item;
 
     profile_slot_lookup_cache_00692ac8 = -1;
@@ -674,9 +672,9 @@ uint8_t UiEventHandlers::event_49e2c0(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_49e300(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     uint8_t *variant = (selected_saved_item & 0xf) == 1 ? saved_item_working_copy : 0;
-    static const int32_t delays[] = {0, 0x708, 0xe10, 0x1518, 0x2328, 0x4650};
+    static const int32_t delays[] = {0, 1 * halo::interface::k_ticks_per_minute, 2 * halo::interface::k_ticks_per_minute, 3 * halo::interface::k_ticks_per_minute, 5 * halo::interface::k_ticks_per_minute, 10 * halo::interface::k_ticks_per_minute};
     static const int32_t lives[] = {1, 3, 5, 10, 15};
-    static const int32_t times[] = {0, 0x4650, 0x6978, 0x8ca0, 0xafc8, 0xd2f0, 0x13c68};
+    static const int32_t times[] = {0, 10 * halo::interface::k_ticks_per_minute, 15 * halo::interface::k_ticks_per_minute, 20 * halo::interface::k_ticks_per_minute, 25 * halo::interface::k_ticks_per_minute, 30 * halo::interface::k_ticks_per_minute, 45 * halo::interface::k_ticks_per_minute};
     widget_instance *parent = widget->parent->parent;
     widget_instance *group;
     int16_t selection;
@@ -726,7 +724,7 @@ uint8_t UiEventHandlers::event_49e5d0(widget_instance *widget, int16_t *event, u
 {
     uint8_t *variant = (selected_saved_item & 0xf) == 1 ? saved_item_working_copy : 0;
     static const int32_t lives[] = {1, 2, 5, 10, 15};
-    static const int32_t times[] = {0, 0x4650, 0x6978, 0x8ca0, 0xafc8, 0xd2f0, 0x13c68};
+    static const int32_t times[] = {0, 10 * halo::interface::k_ticks_per_minute, 15 * halo::interface::k_ticks_per_minute, 20 * halo::interface::k_ticks_per_minute, 25 * halo::interface::k_ticks_per_minute, 30 * halo::interface::k_ticks_per_minute, 45 * halo::interface::k_ticks_per_minute};
     widget_instance *parent = widget->parent->parent;
     widget_instance *group;
     int16_t selection;

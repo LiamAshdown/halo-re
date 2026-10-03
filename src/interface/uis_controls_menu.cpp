@@ -28,6 +28,9 @@ static auto &saved_item_working_copy = halo::link::ref<uint8_t [k_saved_player_p
 static auto &profile_slot_lookup_cache_00692ac8 = halo::link::ref<int32_t>(halo::ui::vars().profile_slot_lookup_cache_00692ac8);
 static auto &directsound_initialized = halo::link::ref<uint8_t>(halo::ui::vars().directsound_initialized);
 static auto &directsound_eax_available = halo::link::ref<uint8_t>(halo::ui::vars().directsound_eax_available);
+#include "halo/interface/constants.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 namespace halo::ui {
 
@@ -65,7 +68,7 @@ static widget_instance *find_row_control_until(widget_instance *row, widget_inst
  */
 void UiControlsMenu::controls_4wide_selector_refresh(widget_instance *widget)
 {
-    int16_t selection = *(int16_t *)&((struct widget_instance *)widget)->text;
+    int16_t selection = halo::interface::widget_list_committed(widget);
     widget_instance *display = widget->extended_description->first_child;
     widget_instance *cursor;
     int16_t i;
@@ -76,10 +79,10 @@ void UiControlsMenu::controls_4wide_selector_refresh(widget_instance *widget)
     }
 
     {
-        uint8_t profile_copy[0x2000];
+        saved_player_profile profile_copy;
 
-        memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-        halo::interface::set_profile_name(widget, (const uint16_t *)(profile_copy + 2));
+        profile_copy = profile_globals_block[0].profile;
+        halo::interface::set_profile_name(widget, profile_copy.name);
     }
 
     cursor = widget->first_child;
@@ -97,13 +100,7 @@ void UiControlsMenu::controls_4wide_selector_refresh(widget_instance *widget)
 uint32_t UiControlsMenu::controls_options_free_list(widget_instance *widget)
 {
     if (widget->list_items != nullptr) {
-        heap_block *block = (heap_block *)((uint8_t *)widget->list_items - 0x10);
-        uint32_t size = block->size;
-
-        halo::memory::heap_unlink_block(block, widget_memory_pool);
-        widget_memory_pool->bytes_allocated =
-            widget_memory_pool->bytes_allocated - (int32_t)(size & 0x7fffffff);
-        widget_memory_pool->allocation_count = widget_memory_pool->allocation_count - 1;
+        halo::interface::widget_pool_free(widget->list_items);
         widget->list_items = nullptr;
     }
     halo::interface::ui_list_free_all();
@@ -118,7 +115,7 @@ uint32_t UiControlsMenu::controls_options_free_list(widget_instance *widget)
  */
 uint32_t UiControlsMenu::controls_options_populate_from_profile(widget_instance *widget)
 {
-    uint8_t *record;
+    const game_variant *record;
     widget_instance *row;
     widget_instance *control;
     int32_t field;
@@ -126,21 +123,21 @@ uint32_t UiControlsMenu::controls_options_populate_from_profile(widget_instance 
     if ((selected_saved_item & 0xf) != 1) {
         return 0;
     }
-    record = saved_item_working_copy;
+    record = &saved_item_working_copy;
 
     row = widget->first_child;
     control = find_row_control(row);
-    field = *(int32_t *)(record + 0x80);
+    field = record->engine.race.team_scoring;
     control->selection_index = (field == 1 || field == 2) ? (int16_t)field : 0;
 
     row = row->next_sibling;
     control = find_row_control(row);
-    field = *(int32_t *)(record + 0x7c);
+    field = record->engine.race.race_type;
     control->selection_index = (field == 1 || field == 2) ? (int16_t)field : 0;
 
     row = row->next_sibling;
     control = find_row_control(row);
-    switch (*(int32_t *)(record + 0x58)) {
+    switch (record->score_limit) {
     case 3: control->selection_index = 1; break;
     case 5: control->selection_index = 2; break;
     case 10: control->selection_index = 3; break;
@@ -151,11 +148,11 @@ uint32_t UiControlsMenu::controls_options_populate_from_profile(widget_instance 
 
     row = row->next_sibling;
     control = find_row_control(row);
-    control->selection_index = (record[0x34] == 0) ? 1 : 0;
+    control->selection_index = (record->teams == 0) ? 1 : 0;
 
     row = row->next_sibling;
     control = find_row_control(row);
-    field = *(int32_t *)(record + 0x78);
+    field = record->time_limit;
     switch (field) {
     case 18000: control->selection_index = 1; return 1;
     case 27000: control->selection_index = 2; return 1;
@@ -178,10 +175,10 @@ uint8_t UiControlsMenu::controls_options_reload_profile(void)
     profile_slot_lookup_cache_00692ac8 = -1;
     if ((selected_saved_item & 0xf) == 0) {
         if (halo::saved_games::globals().player_profile_slots_handle != -1) {
-            uint8_t profile_copy[k_saved_player_profile_size];
+            saved_player_profile profile_copy;
 
-            memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-            halo::interface::player_profile_load(0, profile_copy, halo::saved_games::globals().player_profile_slots_handle);
+            profile_copy = profile_globals_block[0].profile;
+            halo::interface::player_profile_load(0, &profile_copy, halo::saved_games::globals().player_profile_slots_handle);
         }
         selected_saved_item = -1;
     }
@@ -229,24 +226,24 @@ void UiControlsMenu::controls_populate_bind_rows(widget_instance *widget, uint32
  *
  * @address 0x4a22e0
  */
-void UiControlsMenu::controls_populate_input_row(widget_instance *widget, const uint8_t *profile_record)
+void UiControlsMenu::controls_populate_input_row(widget_instance *widget, const saved_player_profile *profile_record)
 {
     widget_instance *row = widget->first_child;
     widget_instance *control;
     uint8_t value;
 
     control = find_row_control(row);
-    value = profile_record[0xb78];
+    value = profile_record->master_volume;
     control->selection_index = (value < 0xb) ? value : 10;
 
     row = row->next_sibling;
     control = find_row_control(row);
-    value = profile_record[0xb79];
+    value = profile_record->effects_volume;
     control->selection_index = (value < 0xb) ? value : 10;
 
     row = row->next_sibling;
     control = find_row_control(row);
-    value = profile_record[0xb7a];
+    value = profile_record->music_volume;
     control->selection_index = (value < 0xb) ? value : 10;
 
     row = row->next_sibling;
@@ -256,25 +253,25 @@ void UiControlsMenu::controls_populate_input_row(widget_instance *widget, const 
         row->scale = 0.333f;
         control->selection_index = 0;
     } else {
-        control->selection_index = (profile_record[0xb7c] != 0) ? 1 : 0;
+        control->selection_index = (profile_record->eax_enabled != 0) ? 1 : 0;
         row->hidden = 0;
         row->scale = 1.0f;
     }
 
     row = row->next_sibling;
     control = find_row_control(row);
-    value = profile_record[0xb7d];
+    value = profile_record->sound_quality;
     control->selection_index = (value < 3) ? value : 2;
 
     row = row->next_sibling;
     control = find_row_control(row);
     control->selection_index =
-        (profile_record[0xb7b] != 0 && directsound_initialized != 0 && directsound_eax_available != 0)
+        (profile_record->hardware_acceleration != 0 && directsound_initialized != 0 && directsound_eax_available != 0)
             ? 1 : 0;
 
     row = row->next_sibling;
     control = find_row_control(row);
-    value = profile_record[0xb7f];
+    value = profile_record->sound_variety;
     control->selection_index = (value > 2) ? 2 : value;
 }
 
@@ -287,7 +284,7 @@ void UiControlsMenu::controls_populate_input_row(widget_instance *widget, const 
  *
  * @address 0x4a20f0
  */
-void UiControlsMenu::controls_populate_sensitivity_row(widget_instance *widget, const uint8_t *profile_record)
+void UiControlsMenu::controls_populate_sensitivity_row(widget_instance *widget, const saved_player_profile *profile_record)
 {
     widget_instance *row = widget->first_child;
     widget_instance *control;
@@ -296,21 +293,21 @@ void UiControlsMenu::controls_populate_sensitivity_row(widget_instance *widget, 
     for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != uiwidgettype_spinner_list;
          control = control->next_sibling) {
     }
-    value = profile_record[0x954];
+    value = profile_record->mouse_look_x_sensitivity;
     control->selection_index = (value == 0 || value > 10) ? 0 : (int16_t)(value - 1);
 
     row = row->next_sibling;
     for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != uiwidgettype_spinner_list;
          control = control->next_sibling) {
     }
-    value = profile_record[0x955];
+    value = profile_record->mouse_look_y_sensitivity;
     control->selection_index = (value == 0 || value > 10) ? 0 : (int16_t)(value - 1);
 
     row = row->next_sibling;
     for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != uiwidgettype_spinner_list;
          control = control->next_sibling) {
     }
-    control->selection_index = (profile_record[0x12f] != 0) ? 1 : 0;
+    control->selection_index = (profile_record->look_inverted != 0) ? 1 : 0;
 }
 
 /**
@@ -319,7 +316,7 @@ void UiControlsMenu::controls_populate_sensitivity_row(widget_instance *widget, 
  *
  * @address 0x4a2270
  */
-uint32_t UiControlsMenu::controls_sensitivity_row_refresh(widget_instance *widget, const uint8_t *profile_record)
+uint32_t UiControlsMenu::controls_sensitivity_row_refresh(widget_instance *widget, const saved_player_profile *profile_record)
 {
     halo::interface::ui_controls_populate_sensitivity_row(widget, profile_record);
     halo::interface::widget_play_sound_effect(0);

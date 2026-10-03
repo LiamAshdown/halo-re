@@ -9,6 +9,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "halo/interface/constants.hpp"
 
 #ifdef interface
 #undef interface
@@ -49,7 +50,7 @@ const ClosedHandler k_closed_event;
 uint8_t ClosedHandler::handle(widget_instance *widget, int16_t *event, uint8_t *out_handled) const
 {
     int32_t profile;
-    uint8_t *working;
+    saved_player_profile *working;
 
     (void)widget;
     (void)event;
@@ -80,18 +81,18 @@ uint8_t ClosedHandler::handle(widget_instance *widget, int16_t *event, uint8_t *
         return 1;
     }
     halo::interface::saved_item_select(profile);
-    working = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
-    working[0xc81] = server_browser_sort_ascending;
-    working[0xc80] = server_browser_sort_column;
-    working[0xc82] = server_browser_allow_password;
-    working[0xc83] = server_browser_filter_dedicated_only;
-    working[0xc84] = server_browser_filter_classic_only;
-    working[0xc85] = server_browser_filter_allow_unknown_map;
-    working[0xc86] = server_browser_allow_empty;
-    working[0xc87] = server_browser_allow_full;
-    working[0xc88] = server_browser_filter_gametype;
-    working[0xc89] = server_browser_filter_teamplay;
-    working[0xc8a] = server_browser_filter_ping_limit_index;
+    working = (selected_saved_item & 0xf) == 0 ? &saved_item_working_copy : 0;
+    working->server_browser_sort_ascending = server_browser_sort_ascending;
+    working->server_browser_sort_column = server_browser_sort_column;
+    working->server_browser_allow_password = server_browser_allow_password;
+    working->server_browser_dedicated_only = server_browser_filter_dedicated_only;
+    working->server_browser_classic_only = server_browser_filter_classic_only;
+    working->server_browser_allow_unknown_map = server_browser_filter_allow_unknown_map;
+    working->server_browser_allow_empty = server_browser_allow_empty;
+    working->server_browser_allow_full = server_browser_allow_full;
+    working->server_browser_game_type = server_browser_filter_gametype;
+    working->server_browser_team_play = server_browser_filter_teamplay;
+    working->server_browser_ping_limit = server_browser_filter_ping_limit_index;
     if (halo::interface::saved_item_has_unsaved_changes()) {
         halo::interface::player_profile_save();
         return 1;

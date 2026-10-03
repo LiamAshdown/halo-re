@@ -23,6 +23,8 @@
 #include "halo/interface/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/ui_event.hpp"
 
 #ifdef interface
 #undef interface
@@ -76,20 +78,13 @@ uint8_t WidgetView::widget_is_focus_candidate(widget_instance *candidate)
 void WidgetLifecycle::pop(widget_history_node *out, widget_history_node **head)
 {
     widget_history_node *node = *head;
-    heap_block *block;
-    uint32_t size;
-
     out->definition = node->definition;
     out->list_definition = node->list_definition;
     out->selection = node->selection;
     out->controller_index = node->controller_index;
     *head = node->next;
 
-    block = (heap_block *)((uint8_t *)node - 0x10);
-    size = block->size;
-    halo::memory::heap_unlink_block(block, widget_memory_pool);
-    widget_memory_pool->bytes_allocated = widget_memory_pool->bytes_allocated - (int32_t)(size & 0x7fffffff);
-    widget_memory_pool->allocation_count = widget_memory_pool->allocation_count - 1;
+    halo::interface::widget_pool_free(node);
 }
 
 /**
@@ -125,6 +120,7 @@ void WidgetLifecycle::prepend(widget_history_node *template_record, widget_histo
 void WidgetLifecycle::close()
 {
     uint8_t *self = (uint8_t *)widget;
+    static_assert(offsetof(UIWidgetDefinition, event_handlers) == 0x54 && sizeof(ChildWidgetReference) == 0x50, "UIWidgetDefinition block layout");
 
     if (widget->closing != 0) {
         return;
@@ -132,20 +128,19 @@ void WidgetLifecycle::close()
     widget->closing = 1;
 
     if (widget->controller_index != -1 && widget->parent == (widget_instance *)0) {
-        uint8_t *entry = (uint8_t *)halo::game::globals().player_control + (int16_t)widget->controller_index * 0x40 + 0x10;
+        local_player_control *entry = &halo::game::globals().player_control->local_players[0] + (int16_t)widget->controller_index;
 
-        *(uint16_t *)(entry + 8) |= 0xfff;
-        *(uint16_t *)(entry + 10) |= 0xfff;
+        entry->suppressed_buttons |= halo::interface::k_menu_button_mask;
+        entry->suppressed_until_released |= halo::interface::k_menu_button_mask;
     }
 
     {
-        void *tag_data = halo::interface::tag_data<void>(widget->definition);
-        TagReflexive *event_handlers = (TagReflexive *)((uint8_t *)tag_data + 0x54);
+        UIWidgetDefinition *definition = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
+        TagReflexive *event_handlers = &definition->event_handlers;
         int32_t i;
 
         for (i = 0; i < (int32_t)event_handlers->count; i++) {
-            EventHandlerReference *handler =
-                (EventHandlerReference *)((uint8_t *)event_handlers->pointer + i * sizeof(EventHandlerReference));
+            EventHandlerReference *handler = halo::interface::reflexive_elements<EventHandlerReference>(*event_handlers) + i;
 
             if (handler->event_type == uieventtype_deleted && (int8_t)handler->flags < 0) {
                 uint16_t function = (uint16_t)handler->function;
@@ -155,8 +150,8 @@ void WidgetLifecycle::close()
                     uint8_t handled = 0;
 
                     if (fn(widget, nullptr, &handled) == 1 && halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::open_widget) &&
-                        *(uint32_t *)&handler->widget_tag.tag_id != halo::k_dword_none) {
-                        halo::interface::widget_reopen_as_root_with_history(widget, *(datum_index *)&handler->widget_tag.tag_id);
+                        halo::interface::tag_handle(handler->widget_tag.tag_id) != halo::k_dword_none) {
+                        halo::interface::widget_reopen_as_root_with_history(widget, halo::interface::tag_handle(handler->widget_tag.tag_id));
                     }
                 }
             }
@@ -242,7 +237,7 @@ void WidgetLifecycle::close()
             pool->blocks[slot] = (heap_block *)0;
             pool->next_free_slot = (pool->first_block != (heap_block *)0) ? slot : 0;
             pool->allocation_count = pool->allocation_count - 1;
-            pool->bytes_allocated = pool->bytes_allocated - (int32_t)(size & 0x7fffffff);
+            pool->bytes_allocated = pool->bytes_allocated - (int32_t)(size & halo::interface::k_pool_block_size_mask);
         }
     }
 
@@ -253,7 +248,7 @@ void WidgetLifecycle::close()
 
 /**
  * Closes the (single) root widget, frees its go-back history list, resets ui_pause_depth to 0, and, when
- * controls_capture_row is armed, clears a 0x290 byte controls-related block.
+ * controls_capture_row is armed, clears the controls input capture buffer.
  *
  * @address 0x498650
  */
@@ -270,7 +265,7 @@ void WidgetLifecycle::close_all()
     ui_pause_depth = 0;
     if (controls_capture_row != -1) {
         controls_input_capture_flags = controls_input_capture_flags & 0xf7;
-        for (i = 0; i < 0x290; i++) {
+        for (i = 0; i < halo::interface::k_controls_capture_buffer_size; i++) {
             controls_input_capture_buffer[i] = 0;
         }
         controls_capture_row = -1;
@@ -311,7 +306,7 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
 
     if (halo::interface::has_bit(tag->flags_2, halo::tags::ui_widget_definition_flags2_tag_flag::list_items_from_string_list_tag)) {
         UnicodeStringList *list =
-            halo::interface::tag_data<UnicodeStringList>(*(uint32_t *)&tag->text_label_unicode_strings_list.tag_id);
+            halo::interface::tag_data<UnicodeStringList>(halo::interface::tag_handle(tag->text_label_unicode_strings_list.tag_id));
 
         widget_creating_children = 1;
         for (i = 0; i < list->strings.count; i++) {
@@ -340,11 +335,11 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
     }
 
     if (tag->child_widgets.count > 0) {
-        uint8_t *entries = (uint8_t *)tag->child_widgets.pointer;
+        ChildWidgetReference *entries = halo::interface::reflexive_elements<ChildWidgetReference>(tag->child_widgets);
 
         for (i = 0; i < tag->child_widgets.count; i++) {
-            ChildWidgetReference *entry = (ChildWidgetReference *)(entries + i * 0x50);
-            datum_index child_tag_index = *(uint32_t *)&entry->widget_tag.tag_id;
+            ChildWidgetReference *entry = entries + i;
+            datum_index child_tag_index = halo::interface::tag_handle(entry->widget_tag.tag_id);
 
             if (child_tag_index != (datum_index)-1) {
                 uint16_t controller = widget->controller_index;
@@ -377,9 +372,9 @@ uint8_t WidgetLifecycle::create_children_from_tag(UIWidgetDefinition *tag)
     }
 
     if ((widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) &&
-        *(uint32_t *)&tag->extended_description_widget.tag_id != 0xffffffffu) {
+        halo::interface::tag_handle(tag->extended_description_widget.tag_id) != halo::k_dword_none) {
         widget_instance *desc = halo::interface::chimera__load_ui_widget(
-            nullptr, *(uint32_t *)&tag->extended_description_widget.tag_id, widget,
+            nullptr, halo::interface::tag_handle(tag->extended_description_widget.tag_id), widget,
             widget->controller_index, (datum_index)-1, (datum_index)-1, -1);
 
         widget->extended_description = desc;
@@ -470,7 +465,7 @@ uint32_t WidgetList::cyclable_list_nudge()
         if (new_index == widget->selection_index) {
             goto play_and_return;
         }
-        ((struct widget_instance *)widget)->scroll_blink = (int16_t)0xfffc;
+        ((struct widget_instance *)widget)->scroll_blink = -halo::interface::k_scroll_blink_ticks;
         ((struct widget_instance *)widget)->selection_direction = -1;
     } else {
         if (side != 1) {
@@ -483,7 +478,7 @@ uint32_t WidgetList::cyclable_list_nudge()
         if (new_index == widget->selection_index) {
             goto play_and_return;
         }
-        ((struct widget_instance *)widget)->scroll_blink = 4;
+        ((struct widget_instance *)widget)->scroll_blink = halo::interface::k_scroll_blink_ticks;
         ((struct widget_instance *)widget)->selection_direction = 1;
     }
     widget->selection_index = (int16_t)new_index;
@@ -561,18 +556,18 @@ void WidgetRender::draw_fullscreen_region(int16_t controller_index)
 void WidgetRender::draw_split_screen_region(Rectangle2D *viewport, int16_t controller_index)
 {
 
-    uint8_t table[0x4c] = {0};
+    Point2DInt offsets[19] = {};
     int32_t clamped_controller;
     int32_t i;
 
-    *(int16_t *)(table + 0x22) = 0xf0;
-    *(int16_t *)(table + 0x32) = 0xf0;
-    *(int16_t *)(table + 0x34) = 0x140;
-    *(int16_t *)(table + 0x36) = 0xf0;
-    *(int16_t *)(table + 0x40) = 0x140;
-    *(int16_t *)(table + 0x46) = 0xf0;
-    *(int16_t *)(table + 0x48) = 0x140;
-    *(int16_t *)(table + 0x4a) = 0xf0;
+    offsets[8].y = k_base_screen_height / 2;
+    offsets[12].y = k_base_screen_height / 2;
+    offsets[13].x = k_base_screen_width / 2;
+    offsets[13].y = k_base_screen_height / 2;
+    offsets[16].x = k_base_screen_width / 2;
+    offsets[17].y = k_base_screen_height / 2;
+    offsets[18].x = k_base_screen_width / 2;
+    offsets[18].y = k_base_screen_height / 2;
 
     if (virtual_keyboard.active != 0) {
         return;
@@ -593,8 +588,8 @@ void WidgetRender::draw_split_screen_region(Rectangle2D *viewport, int16_t contr
             (widget->is_error_dialog != 1 &&
              ((widget->controller_index == -1 && i == 0) || widget->controller_index == clamped_controller))) {
             Rectangle2D dest;
-            int32_t byte_offset = 4 * (clamped_controller + 4 * halo::game::globals().local_player_globals->local_player_count);
-            int32_t offset_xy = *(int32_t *)(table + byte_offset);
+            int32_t offset_index = clamped_controller + 4 * halo::game::globals().local_player_globals->local_player_count;
+            int32_t offset_xy = *(int32_t *)&offsets[offset_index];
 
             dest.top = 0;
             dest.left = 0;
@@ -869,8 +864,8 @@ void WidgetLifecycle::initialize_from_tag(datum_index tag_index, widget_instance
         widget->selection_index = -1;
         widget->list_render_data = nullptr;
     }
-    if (*(uint32_t *)&tag->background_bitmap.tag_id != 0xffffffffu) {
-        tag_instance *bg = &halo::cache::globals().tag_instances[*(uint32_t *)&tag->background_bitmap.tag_id & halo::k_slot_mask];
+    if (halo::interface::tag_handle(tag->background_bitmap.tag_id) != halo::k_dword_none) {
+        tag_instance *bg = &halo::cache::globals().tag_instances[halo::interface::tag_handle(tag->background_bitmap.tag_id) & halo::k_slot_mask];
         Bitmap *bitmap = (Bitmap *)bg->data;
         BitmapGroupSequence *seq = (BitmapGroupSequence *)bitmap->bitmap_group_sequence.pointer;
 
@@ -1026,17 +1021,17 @@ void WidgetView::handle_input_event(UIWidgetDefinition *tag, int16_t *event, uin
     }
 after_close_check:
 
-    if (controller_matches && handled == 0 && event[0] == 3 && *((int8_t *)event + 5) == 1) {
+    if (controller_matches && handled == 0 && event[0] == 3 && halo::interface::event_state(event) == 1) {
         int8_t code = (int8_t)event[2];
         uint8_t found = 0;
 
         if (code == '\r') {
             if (tag->event_handlers.count > 0) {
-                int16_t *entry = (int16_t *)(tag->event_handlers.pointer + 4);
+                EventHandlerReference *entry = halo::interface::reflexive_elements<EventHandlerReference>(tag->event_handlers);
                 int32_t i;
 
-                for (i = 0; i < tag->event_handlers.count; i++, entry += 0x24) {
-                    if (*entry == 0xd) {
+                for (i = 0; i < tag->event_handlers.count; i++, entry++) {
+                    if (entry->event_type == 0xd) {
                         found = 1;
                         break;
                     }
@@ -1044,11 +1039,11 @@ after_close_check:
             }
         } else if (code == 1) {
             if (tag->event_handlers.count > 0) {
-                int16_t *entry = (int16_t *)(tag->event_handlers.pointer + 4);
+                EventHandlerReference *entry = halo::interface::reflexive_elements<EventHandlerReference>(tag->event_handlers);
                 int32_t i;
 
-                for (i = 0; i < tag->event_handlers.count; i++, entry += 0x24) {
-                    if (*entry == 1) {
+                for (i = 0; i < tag->event_handlers.count; i++, entry++) {
+                    if (entry->event_type == 1) {
                         found = 1;
                         break;
                     }
@@ -1113,7 +1108,7 @@ after_close_check:
                 goto dispatch_to_children;
             }
             if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_up_down_tabs_thru_children) && widget->focused_child != (widget_instance *)0 && handled == 0) {
-                if (event[0] == 3 && *((int8_t *)event + 5) == 1) {
+                if (event[0] == 3 && halo::interface::event_state(event) == 1) {
                     int8_t code = (int8_t)event[2];
 
                     if (code == '\b') {
@@ -1125,8 +1120,8 @@ after_close_check:
                     halo::interface::widget_focus_next_child(widget);
                     goto tab_commit;
                 } else if (event[0] == 1) {
-                    if (event[3] != (int16_t)0x8000) {
-                        if (event[3] == 0x7fff) {
+                    if (event[3] != halo::interface::k_event_argument_unset) {
+                        if (event[3] == halo::interface::k_action_none) {
                             goto tab_forward;
                         }
                         goto dpad_lr_nav;
@@ -1149,7 +1144,7 @@ after_close_check:
 
         dpad_lr_nav:
             if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_left_right_tabs_thru_children) && widget->focused_child != (widget_instance *)0 && handled == 0) {
-                if (event[0] == 3 && *((int8_t *)event + 5) == 1) {
+                if (event[0] == 3 && halo::interface::event_state(event) == 1) {
                     int8_t code = (int8_t)event[2];
 
                     if (code == '\n') {
@@ -1161,11 +1156,11 @@ after_close_check:
                         goto tab_commit;
                     }
                 } else if (event[0] == 1) {
-                    if (event[2] == (int16_t)0x8000) {
+                    if (event[2] == halo::interface::k_event_argument_unset) {
                         halo::interface::widget_focus_previous_child(widget);
                         goto tab_commit;
                     }
-                    if (event[2] == 0x7fff) {
+                    if (event[2] == halo::interface::k_action_none) {
                         halo::interface::widget_focus_next_child(widget);
                         goto tab_commit;
                     }
@@ -1174,7 +1169,7 @@ after_close_check:
         dpad_lr_nav_done:
             if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_up_down_tabs_thru_list_items) && (widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) &&
                 list_nav_done == 0 && handled == 0) {
-                if (event[0] == 3 && *((int8_t *)event + 5) == 1) {
+                if (event[0] == 3 && halo::interface::event_state(event) == 1) {
                     int8_t code = (int8_t)event[2];
 
                     if (code == '\b') {
@@ -1189,11 +1184,11 @@ after_close_check:
                     }
                     list_nav_done = 1;
                 } else if (event[0] == 1) {
-                    if (event[3] == (int16_t)0x8000) {
+                    if (event[3] == halo::interface::k_event_argument_unset) {
                         halo::interface::widget_list_select_next(widget);
                         if (sound_effect == 0) sound_effect = 1;
                         list_nav_done = 1;
-                    } else if (event[3] == 0x7fff) {
+                    } else if (event[3] == halo::interface::k_action_none) {
                         halo::interface::widget_list_select_previous(widget);
                         if (sound_effect == 0) sound_effect = 1;
                         list_nav_done = 1;
@@ -1203,7 +1198,7 @@ after_close_check:
         dpad_ud_nav:
             if (halo::interface::has_bit(tag->flags, halo::tags::ui_widget_definition_tag_flag::dpad_left_right_tabs_thru_list_items) && (widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list) &&
                 list_nav_done == 0 && handled == 0) {
-                if (event[0] == 3 && *((int8_t *)event + 5) == 1) {
+                if (event[0] == 3 && halo::interface::event_state(event) == 1) {
                     int8_t code = (int8_t)event[2];
 
                     if (code == '\n') {
@@ -1216,11 +1211,11 @@ after_close_check:
                     if (sound_effect == 0) sound_effect = 1;
                     list_nav_done = 1;
                 } else if (event[0] == 1) {
-                    if (event[2] == (int16_t)0x8000) {
+                    if (event[2] == halo::interface::k_event_argument_unset) {
                         halo::interface::widget_list_select_previous(widget);
                         if (sound_effect == 0) sound_effect = 1;
                         list_nav_done = 1;
-                    } else if (event[2] == 0x7fff) {
+                    } else if (event[2] == halo::interface::k_action_none) {
                         halo::interface::widget_list_select_next(widget);
                         if (sound_effect == 0) sound_effect = 1;
                         list_nav_done = 1;
@@ -1235,8 +1230,7 @@ after_close_check:
 dispatch_to_children:
 
     if (controller_matches && tag->event_handlers.count > 0) {
-        int16_t *entry_base = (int16_t *)tag->event_handlers.pointer;
-        int32_t offset = 0;
+        EventHandlerReference *entry_base = halo::interface::reflexive_elements<EventHandlerReference>(tag->event_handlers);
 
         handler_scan_count = 0;
         while (handler_scan_count < tag->event_handlers.count) {
@@ -1244,36 +1238,36 @@ dispatch_to_children:
                 break;
             }
             {
-                uint8_t *entry = (uint8_t *)entry_base + offset;
-                int16_t event_type = *(int16_t *)(entry + 4);
+                EventHandlerReference *entry = entry_base + handler_scan_count;
+                int16_t event_type = entry->event_type;
                 uint8_t match = 0;
 
                 switch (event[0]) {
                 case 1:
                     switch (event_type) {
-                    case 0x10: match = (event[3] == 0x7fff); break;
-                    case 0x11: match = (event[3] == (int16_t)0x8000); break;
-                    case 0x12: match = (event[2] == (int16_t)0x8000); break;
-                    case 0x13: match = (event[2] == 0x7fff); break;
+                    case 0x10: match = (event[3] == halo::interface::k_action_none); break;
+                    case 0x11: match = (event[3] == halo::interface::k_event_argument_unset); break;
+                    case 0x12: match = (event[2] == halo::interface::k_event_argument_unset); break;
+                    case 0x13: match = (event[2] == halo::interface::k_action_none); break;
                     default: goto scan_next;
                     }
                     break;
                 case 2:
                     switch (event_type) {
-                    case 0x14: match = (event[3] == 0x7fff); break;
-                    case 0x15: match = (event[3] == (int16_t)0x8000); break;
-                    case 0x16: match = (event[2] == (int16_t)0x8000); break;
-                    case 0x17: match = (event[2] == 0x7fff); break;
+                    case 0x14: match = (event[3] == halo::interface::k_action_none); break;
+                    case 0x15: match = (event[3] == halo::interface::k_event_argument_unset); break;
+                    case 0x16: match = (event[2] == halo::interface::k_event_argument_unset); break;
+                    case 0x17: match = (event[2] == halo::interface::k_action_none); break;
                     default: goto scan_next;
                     }
                     break;
                 case 3:
                     if (event_type == (uint16_t)(uint8_t)event[2]) {
-                        match = (*((int8_t *)event + 5) == 1);
+                        match = (halo::interface::event_state(event) == 1);
                     }
                     break;
                 case 4:
-                    if (*((int8_t *)event + 5) == 1 && halo::interface::widget_instance_point_in_bounds(widget) != 0) {
+                    if (halo::interface::event_state(event) == 1 && halo::interface::widget_instance_point_in_bounds(widget) != 0) {
                         switch (event_type) {
                         case 0x1c: match = ((int8_t)event[2] == 0); break;
                         case 0x1d: match = ((int8_t)event[2] == 1); break;
@@ -1291,21 +1285,21 @@ dispatch_to_children:
                 }
                 if (match) {
                     list_nav_done = 1;
-                    halo::interface::ui_widget_list_item_activate(widget, tag, event, (EventHandlerReference *)entry, &handled);
+                    halo::interface::ui_widget_list_item_activate(widget, tag, event, entry, &handled);
                 }
             }
         scan_next:
             handler_scan_count = handler_scan_count + 1;
-            offset = offset + 0x48;
         }
     }
 
     {
         uint32_t flags = tag->flags;
 
-        if (((flags & 0x400) != 0 || list_nav_done == 0) && ((flags & 1) != 0 || (flags & 0x100) != 0) &&
+        if ((has_bit(flags, widget_flag::pass_handled_events_to_all_children) || list_nav_done == 0) &&
+            (has_bit(flags, widget_flag::pass_unhandled_events_to_focused_child) || has_bit(flags, widget_flag::pass_unhandled_events_to_all_children)) &&
             handled == 0) {
-            if ((flags & 0x100) == 0) {
+            if (!has_bit(flags, widget_flag::pass_unhandled_events_to_all_children)) {
                 widget_instance *child = widget->focused_child;
 
                 if (child != (widget_instance *)0 &&
@@ -1519,10 +1513,10 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
                 (uint16_t)((int16_t)offset_xy + widget->local_x);
 
     if (tag->game_data_inputs.count > 0) {
-        uint8_t *entry = (uint8_t *)tag->game_data_inputs.pointer;
+        GameDataInputReference *entry = halo::interface::reflexive_elements<GameDataInputReference>(tag->game_data_inputs);
 
-        for (i = 0; i < tag->game_data_inputs.count; i++, entry += 0x24) {
-            int16_t function_id = *(int16_t *)entry;
+        for (i = 0; i < tag->game_data_inputs.count; i++, entry++) {
+            int16_t function_id = entry->function;
 
             if (function_id >= 0 && function_id < 0x3b) {
                 ((ui_game_data_input_function)game_data_input_function_table[function_id])(widget);
@@ -1531,8 +1525,8 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
     }
 
     if (widget->state != 0) {
-        int32_t bitmap_data = reinterpret_cast<int32_t>(halo::bitmaps::bitmap_group_sequence_get_bitmap_data(
-            *(datum_index *)&((struct UIWidgetDefinition *)tag)->background_bitmap.tag_id, 0, widget->background_bitmap_frame));
+        BitmapData *bitmap_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(
+            halo::interface::tag_handle(((struct UIWidgetDefinition *)tag)->background_bitmap.tag_id), 0, widget->background_bitmap_frame);
 
         if (bitmap_data != 0) {
             float alpha = scale;
@@ -1566,8 +1560,8 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
                 alpha = (float)((halo::libm::cos(t * 0.003) + 1.0) * 0.5 * (double)alpha);
             }
 
-            halo::interface::ui_draw_screen_quad((int16_t *)&bounds, (int16_t *)&bounds, bitmap_data, (int16_t *)clip_arg,
-                                 (uint32_t)((int32_t)(alpha * 255.0f + 0.5f) << 24) | 0xffffffu);
+            halo::interface::ui_draw_screen_quad(&bounds, &bounds, bitmap_data, clip_arg,
+                                 (uint32_t)((int32_t)(alpha * 255.0f + 0.5f) << 24) | halo::interface::k_rgb_mask);
             if ((int8_t)flag2 != 0) {
                 override_color_00879f40 = 0.0f;
                 override_color_00879f44 = 0.0f;
@@ -1600,7 +1594,7 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
         widget_instance *child;
 
         for (child = widget->first_child; child != (widget_instance *)0; child = child->next_sibling) {
-            uint32_t child_flag1 = (flag1 & 0xffffff00) | (child == widget->focused_child);
+            uint32_t child_flag1 = (flag1 & ~0xffu) | (child == widget->focused_child);
             int32_t child_flag2;
 
             if (child == widget->focused_child && (widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list)) {
@@ -1614,15 +1608,15 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
 
 post_render:
     if (tag->event_handlers.count > 0) {
-        uint8_t *entry = (uint8_t *)tag->event_handlers.pointer;
+        EventHandlerReference *entry = halo::interface::reflexive_elements<EventHandlerReference>(tag->event_handlers);
 
-        for (i = 0; i < tag->event_handlers.count; i++, entry += 0x48) {
-            if (*(int16_t *)(entry + 4) == 0x21) {
+        for (i = 0; i < tag->event_handlers.count; i++, entry++) {
+            if (entry->event_type == 0x21) {
                 int16_t event[4] = {0, 0, 0, 0};
                 uint8_t handled;
 
                 event[1] = widget->controller_index;
-                halo::interface::ui_widget_list_item_activate(widget, tag, event, (EventHandlerReference *)entry, &handled);
+                halo::interface::ui_widget_list_item_activate(widget, tag, event, entry, &handled);
             }
         }
     }
@@ -1854,7 +1848,7 @@ uint8_t WidgetList::select_next()
                     halo::interface::widget_instance_relink_focus(widget, focused->next_sibling);
                     widget->selection_index = next_index;
                     widget->selection_direction = 1;
-                    widget->scroll_blink = 0xf;
+                    widget->scroll_blink = halo::interface::k_scroll_blink_long;
                     return 1;
                 }
             }
@@ -1892,7 +1886,7 @@ uint8_t WidgetList::select_next()
             }
             widget->selection_direction = 1;
             widget->selection_index = index;
-            widget->scroll_blink = 0xf;
+            widget->scroll_blink = halo::interface::k_scroll_blink_long;
             return 1;
         }
     }
@@ -1901,13 +1895,13 @@ uint8_t WidgetList::select_next()
     if ((uint16_t)widget->selection_index == (uint16_t)widget->item_count) {
         widget->selection_direction = 1;
         widget->selection_index = 0;
-        widget->scroll_blink = 0xf;
+        widget->scroll_blink = halo::interface::k_scroll_blink_long;
         return 1;
     }
 
 commit:
     widget->selection_direction = 1;
-    widget->scroll_blink = 0xf;
+    widget->scroll_blink = halo::interface::k_scroll_blink_long;
     return 1;
 }
 
@@ -1937,7 +1931,7 @@ uint8_t WidgetList::select_previous()
             }
             halo::interface::widget_relink_focus_by_tag_id(widget, child->definition);
             widget->selection_index = prev_index;
-            widget->scroll_blink = (int16_t)0xfff1;
+            widget->scroll_blink = -halo::interface::k_scroll_blink_long;
             widget->selection_direction = halo::k_word_none;
             return 1;
         }
@@ -1948,7 +1942,7 @@ uint8_t WidgetList::select_previous()
                 halo::interface::widget_instance_relink_focus(widget, widget->focused_child->previous_sibling);
             }
             widget->selection_index = prev_index;
-            widget->scroll_blink = (int16_t)0xfff1;
+            widget->scroll_blink = -halo::interface::k_scroll_blink_long;
             widget->selection_direction = halo::k_word_none;
             return 1;
         }
@@ -1959,7 +1953,7 @@ uint8_t WidgetList::select_previous()
         widget->selection_index = widget->selection_index - 1;
         if (widget->selection_index < 0) {
             widget->selection_index = widget->item_count - 1;
-            widget->scroll_blink = (int16_t)0xfff1;
+            widget->scroll_blink = -halo::interface::k_scroll_blink_long;
             widget->selection_direction = halo::k_word_none;
             return 1;
         }
@@ -2051,7 +2045,7 @@ uint8_t WidgetList::select_previous()
     }
 
 commit:
-    widget->scroll_blink = (int16_t)0xfff1;
+    widget->scroll_blink = -halo::interface::k_scroll_blink_long;
     widget->selection_direction = halo::k_word_none;
     return 1;
 }
@@ -2138,7 +2132,7 @@ void WidgetLifecycle::pool_list_free_all(widget_history_node **head)
         }
         pool->blocks[slot] = (heap_block *)0;
         pool->next_free_slot = (pool->first_block != (heap_block *)0) ? slot : 0;
-        pool->bytes_allocated = pool->bytes_allocated - (int32_t)(size & 0x7fffffff);
+        pool->bytes_allocated = pool->bytes_allocated - (int32_t)(size & halo::interface::k_pool_block_size_mask);
         pool->allocation_count = pool->allocation_count - 1;
 
         node = *head;

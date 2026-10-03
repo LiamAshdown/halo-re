@@ -22,8 +22,8 @@
 #include "halo/interface/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/widget_pool.hpp"
 
-#define WCTYPE_SPACE 0x0008
 
 static auto &empty_string = halo::link::ref<uint16_t []>(halo::game::vars().empty_string);
 static auto &ui_player_number_text = halo::link::ref<uint16_t [2]>(halo::ui::vars().ui_player_number_text);
@@ -167,9 +167,8 @@ int32_t UiStrings::string_replace_all(wchar_t *search, uint16_t *replacement, wc
             match = wcsstr(match + search_length, search);
         } while (match != (wchar_t *)0);
 
-        base = (wchar_t *)halo::memory::heap_reallocate(original,
-                                          ((replacement_length - search_length) * count + total_length) * 2,
-                                          widget_memory_pool);
+        base = (wchar_t *)halo::interface::widget_pool_resize_text(original,
+                                          ((replacement_length - search_length) * count + total_length) * 2);
         if (base == (wchar_t *)0) {
             return -1;
         }
@@ -244,7 +243,7 @@ uint8_t UiStrings::wide_string_has_non_whitespace(const uint16_t *text)
 {
     uint16_t ch = *text;
     while (ch != 0) {
-        if (!iswctype(ch, WCTYPE_SPACE)) {
+        if (!iswctype(ch, _SPACE)) {
             return 1;
         }
         text = text + 1;

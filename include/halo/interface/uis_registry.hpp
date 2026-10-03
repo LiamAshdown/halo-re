@@ -26,18 +26,16 @@ using GameDataInputFn = void (*)(widget_instance *widget);
 
 /**
  * One registered widget event handler: its slot in ui_event_function_table (-1 when the original is not
- * table-registered), its original code address and the behaviour itself.
+ * table-registered) and the behaviour itself.
  */
 struct WidgetEventEntry {
     int16_t table_index;
-    uint32_t address;
     WidgetEventFn handler;
 };
 
 /** One registered game-data input function, keyed like WidgetEventEntry. */
 struct GameDataInputEntry {
     int16_t table_index;
-    uint32_t address;
     GameDataInputFn handler;
 };
 
@@ -49,7 +47,6 @@ class WidgetEventRegistry {
 public:
     [[nodiscard]] static EntryRange<WidgetEventEntry> entries() noexcept;
     [[nodiscard]] static const WidgetEventEntry *find_by_table_index(int16_t table_index) noexcept;
-    [[nodiscard]] static const WidgetEventEntry *find_by_address(uint32_t address) noexcept;
     static uint8_t dispatch(int16_t table_index, widget_instance *widget, int16_t *event, uint8_t *out_handled);
 };
 
@@ -58,7 +55,6 @@ class GameDataInputRegistry {
 public:
     [[nodiscard]] static EntryRange<GameDataInputEntry> entries() noexcept;
     [[nodiscard]] static const GameDataInputEntry *find_by_table_index(int16_t table_index) noexcept;
-    [[nodiscard]] static const GameDataInputEntry *find_by_address(uint32_t address) noexcept;
     static bool dispatch(int16_t table_index, widget_instance *widget);
 };
 

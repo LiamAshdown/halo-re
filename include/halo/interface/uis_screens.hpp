@@ -17,7 +17,7 @@ struct UiScreens {
     static void error_modal_update(void);
     static ColorRGB * get_saved_color(ColorRGB *out);
     static ColorARGB * get_saved_pulse_color(ColorARGB *out);
-    static void handler_4a68f0(uint8_t *widget);
+    static void handler_4a68f0(widget_instance *widget);
 };
 
 }

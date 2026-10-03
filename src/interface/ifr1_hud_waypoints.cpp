@@ -17,6 +17,8 @@
 #include "halo/render/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/interface/constants.hpp"
+#include "halo/interface/color_bits.hpp"
 
 static auto &hud_waypoints = halo::link::ref<hud_waypoint_state *>(halo::ui::vars().hud_waypoints);
 static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
@@ -283,7 +285,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
 
     halo::math::matrix4x3_transform_point(point, point, halo::render::globals().camera_world_to_view);
     if (visibility != 1 && halo::render::render_project_world_point_to_screen(&screen, &point, (render_frustum *)render_frustum_global, (render_camera *)render_camera_global) != 0) {
-        x = screen.x - (float)(halo::render::globals().viewport_left + 0x140);
+        x = screen.x - (float)(halo::render::globals().viewport_left + halo::interface::k_base_screen_width / 2);
         y = screen.y - (float)(render_viewport_top + 0xf0);
     } else {
         x = point.x;
@@ -314,7 +316,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
 
     bitmap = 0;
     uv_offset = 0;
-    halo::interface::hud_meter_resolve_bitmap_frame(*(datum_index *)&globals->arrow_bitmap.tag_id,
+    halo::interface::hud_meter_resolve_bitmap_frame(halo::interface::tag_handle(globals->arrow_bitmap.tag_id),
                                    (int16_t)(&arrow->on_screen_sequence_index)[visibility], 0, (void **)&bitmap,
                                    &uv_offset);
     if (bitmap == 0 || halo::cache::texture_cache_get(bitmap, 0, 1) == 0) {
@@ -358,9 +360,9 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
         memset(anchor, 0, sizeof(anchor));
         memset(&placement, 0, sizeof(placement));
         packed = halo::interface::color_rgb_float_to_int(&color.red) | ((uint32_t)alpha << 24);
-        *(uint32_t *)&placement.flash.default_color = packed;
+        halo::interface::set_color_bits(placement.flash.default_color, packed);
         packed = halo::interface::color_rgb_float_to_int(&color.red) | ((uint32_t)alpha << 24);
-        *(uint32_t *)&placement.flash.flashing_color = packed;
+        halo::interface::set_color_bits(placement.flash.flashing_color, packed);
         placement.maximum_number_of_digits = 3;
         placement.number_of_fractional_digits = 1;
         placement.flags = 5;

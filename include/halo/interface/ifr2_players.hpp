@@ -42,8 +42,8 @@ public:
     PlayerProfiles() = delete;
 
     static void one_wide_list_update(widget_instance *widget);
-    static void apply_audio_options(uint8_t *settings);
-    static uint8_t apply_video_options(uint8_t *settings);
+    static void apply_audio_options(saved_player_profile *profile);
+    static uint8_t apply_video_options(saved_player_profile *profile);
     static void auto_select();
     static int32_t check_storage_and_defaults();
     static void details_widget_refresh(widget_instance *widget, const uint8_t *profile_record);

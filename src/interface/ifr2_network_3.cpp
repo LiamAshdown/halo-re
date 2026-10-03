@@ -13,6 +13,9 @@
 #include "halo/interface/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/interface/constants.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 #ifdef interface
 #undef interface
@@ -30,7 +33,7 @@ namespace halo::interface {
  */
 void MenuListView::update()
 {
-    uint8_t *client = (uint8_t *)halo::networking::globals().client;
+    network_client_globals *client = halo::networking::globals().client;
     int32_t count = 0;
     int32_t i;
     widget_instance *row;
@@ -50,34 +53,34 @@ void MenuListView::update()
     }
 
     {
-        uint8_t *entry = client + 4;
+        network_game_search_entry *entry = client->search_entries;
 
         for (i = 0; i < 9; i++) {
-            if (halo::networking::network_game_search_entry_is_fresh((network_game_search_entry *)entry) != 0 && *(int16_t *)(entry + 0x12a) == 1 && entry[300] != 0) {
+            if (halo::networking::network_game_search_entry_is_fresh(entry) != 0 && entry->unknown_12a == 1 && entry->joinable != 0) {
                 server_list_entries_006b380c[count] = entry;
                 count++;
             }
-            entry += 0x130;
+            entry++;
         }
     }
 
     {
-        int32_t *entry = (int32_t *)(client + 0x1c);
+        network_game_search_entry *entry = client->search_entries;
 
         for (i = 0; i < 9; i++) {
-            if (*((int8_t *)entry + 0x115) != 0) {
+            if (entry->in_use != 0) {
                 large_integer counter;
                 int32_t now_ms;
 
                 QueryPerformanceCounter((LARGE_INTEGER *)&counter);
                 now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
-                if (now_ms - *entry <= 0x1770 && *(int16_t *)((uint8_t *)entry + 0x112) == 1 &&
-                    *((int8_t *)entry + 0x45 * 4) == 0) {
-                    server_list_entries_006b380c[count] = (uint8_t *)entry - 0x18;
+                if (now_ms - entry->received_ms <= halo::interface::k_server_entry_stale_ms && entry->unknown_12a == 1 &&
+                    entry->joinable == 0) {
+                    server_list_entries_006b380c[count] = entry;
                     count++;
                 }
             }
-            entry += 0x4c;
+            entry++;
         }
     }
 
@@ -91,14 +94,14 @@ void MenuListView::update()
 
     row = widget->first_child;
     for (i = 0; row != (widget_instance *)0 && i < count; i++) {
-        uint16_t *buf = (uint16_t *)halo::memory::heap_reallocate(row->text, 0x20, widget_memory_pool);
-        uint8_t *entry = (uint8_t *)server_list_entries_006b380c[i];
+        uint16_t *buf = halo::interface::widget_pool_resize_text(row->text, 0x20);
+        network_game_search_entry *entry = server_list_entries_006b380c[i];
 
         row->text = buf;
         if (buf != nullptr) {
-            if (entry[300] == 1) {
-                wcsncpy((wchar_t *)buf, (const wchar_t *)((const uint16_t *)(entry + 0x1c)), 0xf);
-                ((uint16_t *)row->text)[0xf] = 0;
+            if (entry->joinable == 1) {
+                wcsncpy((wchar_t *)buf, (const wchar_t *)entry->name, 0xf);
+                (halo::interface::widget_text(row))[0xf] = 0;
             } else {
                 datum_index tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\multiplayer_game_text");
                 uint16_t *source = missing_string_text;
@@ -112,12 +115,12 @@ void MenuListView::update()
 
                         if ((int32_t)size > 0) {
                             source = (uint16_t *)strings[0x13].string.pointer;
-                            *(uint16_t *)((uint8_t *)source + ((size & 0xfffffffe) - 2)) = 0;
+                            *(uint16_t *)((uint8_t *)source + ((size & ~1u) - 2)) = 0;
                         }
                     }
                 }
-                halo::text::string_format_wide_va_bounded(0xf, reinterpret_cast<uint16_t *>((wchar_t *)buf), reinterpret_cast<const uint16_t *>(L"%s %s"), source, entry + 0x1c);
-                ((uint16_t *)row->text)[0xf] = 0;
+                halo::text::string_format_wide_va_bounded(0xf, reinterpret_cast<uint16_t *>((wchar_t *)buf), reinterpret_cast<const uint16_t *>(L"%s %s"), source, entry->name);
+                (halo::interface::widget_text(row))[0xf] = 0;
             }
         }
         row = row->next_sibling;
@@ -152,13 +155,13 @@ void MenuListView::update()
             r6->selection_index = 1;
             r7->selection_index = 1;
             {
-                uint16_t *b = (uint16_t *)halo::memory::heap_reallocate(r8->text, 8, widget_memory_pool);
+                uint16_t *b = halo::interface::widget_pool_resize_text(r8->text, 8);
 
                 r8->text = b;
                 if (b != nullptr) b[0] = 0;
             }
             {
-                uint16_t *b = (uint16_t *)halo::memory::heap_reallocate(r9->text, 8, widget_memory_pool);
+                uint16_t *b = halo::interface::widget_pool_resize_text(r9->text, 8);
 
                 r9->text = b;
                 if (b != nullptr) b[0] = 0;
@@ -167,9 +170,9 @@ void MenuListView::update()
             r3->selection_index = (uint32_t)(now_ms - widget->creation_time) > 999;
             r3->hidden = 1;
         } else {
-            uint8_t *sel = (uint8_t *)server_list_entries_006b380c[widget->selection_index];
-            int16_t kind = *(int16_t *)(sel + 0x120);
-            const char *map_name = (const char *)(sel + 0xa0);
+            network_game_search_entry *sel = server_list_entries_006b380c[widget->selection_index];
+            int16_t kind = sel->game_engine_index;
+            const char *map_name = (const char *)&sel->info[1];
             int16_t map_index;
 
             switch (kind) {
@@ -197,7 +200,7 @@ void MenuListView::update()
             else map_index = 0x13;
             r2->background_bitmap_frame = map_index;
 
-            r4->selection_index = (sel[300] != 1) + 0x14;
+            r4->selection_index = (sel->joinable != 1) + 0x14;
             r5->selection_index = r2->background_bitmap_frame;
 
             switch (kind) {
@@ -208,33 +211,33 @@ void MenuListView::update()
             case 5: r6->selection_index = 7; break;
             default: r6->selection_index = 8; break;
             }
-            r7->selection_index = (sel[0x12e] != 1) + 0xc;
+            r7->selection_index = (sel->stats_logging != 1) + 0xc;
 
             {
-                uint16_t *b = (uint16_t *)halo::memory::heap_reallocate(r8->text, 8, widget_memory_pool);
+                uint16_t *b = halo::interface::widget_pool_resize_text(r8->text, 8);
 
                 r8->text = b;
                 if (b != nullptr) {
                     halo::text::string_format_wide_va_bounded(3, reinterpret_cast<uint16_t *>((wchar_t *)b), reinterpret_cast<const uint16_t *>((const wchar_t *)chat_local_prompt_string),
-                                                   (int32_t)*(uint16_t *)(sel + 0x124));
-                    ((uint16_t *)r8->text)[3] = 0;
+                                                   (int32_t)(uint16_t)sel->unknown_124);
+                    (halo::interface::widget_text(r8))[3] = 0;
                 }
             }
             {
-                uint16_t *b = (uint16_t *)halo::memory::heap_reallocate(r9->text, 8, widget_memory_pool);
+                uint16_t *b = halo::interface::widget_pool_resize_text(r9->text, 8);
 
                 r9->text = b;
                 if (b != nullptr) {
                     halo::text::string_format_wide_va_bounded(3, reinterpret_cast<uint16_t *>((wchar_t *)b), reinterpret_cast<const uint16_t *>((const wchar_t *)chat_local_prompt_string),
-                                                   (int32_t)*(int16_t *)(sel + 0x128));
-                    ((uint16_t *)r9->text)[3] = 0;
+                                                   (int32_t)sel->unknown_128);
+                    (halo::interface::widget_text(r9))[3] = 0;
                 }
             }
 
             switch (kind) {
             case 1: r10->selection_index = 0x16; break;
             case 2: r10->selection_index = 0x18; break;
-            case 3: r10->selection_index = 0x18 - (sel[0x12f] != 1); break;
+            case 3: r10->selection_index = 0x18 - (sel->unknown_12f != 1); break;
             case 4: r10->selection_index = 0x17; break;
             case 5: r10->selection_index = 0x19; break;
             default: r10->selection_index = 1; break;

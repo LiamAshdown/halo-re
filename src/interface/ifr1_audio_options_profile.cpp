@@ -51,31 +51,31 @@ namespace halo::interface {
  */
 uint32_t AudioOptionsProfile::apply_from_profile(widget_instance *widget)
 {
-    const uint8_t *record;
+    const saved_player_profile *record;
     widget_instance *row;
     widget_instance *control;
 
     if ((selected_saved_item & 0xf) != 0) {
         return 0;
     }
-    record = saved_item_working_copy;
+    record = &saved_item_working_copy;
 
     row = widget->first_child;
     control = find_row_control(row);
-    if (clamp_slider(control->selection_index) != record[0xb78]) {
-        apply_gain(halo::sound::sound_set_master_gain, record[0xb78]);
+    if (clamp_slider(control->selection_index) != record->master_volume) {
+        apply_gain(halo::sound::sound_set_master_gain, record->master_volume);
     }
 
     row = row->next_sibling;
     control = find_row_control(row);
-    if (clamp_slider(control->selection_index) != record[0xb79]) {
-        apply_gain(halo::sound::sound_set_effects_gain, record[0xb79]);
+    if (clamp_slider(control->selection_index) != record->effects_volume) {
+        apply_gain(halo::sound::sound_set_effects_gain, record->effects_volume);
     }
 
     row = row->next_sibling;
     control = find_row_control(row);
-    if (clamp_slider(control->selection_index) != record[0xb7a]) {
-        apply_gain(halo::sound::sound_set_music_gain, record[0xb7a]);
+    if (clamp_slider(control->selection_index) != record->music_volume) {
+        apply_gain(halo::sound::sound_set_music_gain, record->music_volume);
     }
     return 1;
 }

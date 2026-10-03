@@ -7,6 +7,8 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/constants.hpp"
+#include "halo/interface/wide_text.hpp"
 
 static auto &hud_chat_message_count = halo::link::ref<int32_t>(halo::ui::vars().hud_chat_message_count);
 static auto &hud_chat_message_expiry = halo::link::ref<int32_t [8]>(halo::ui::vars().hud_chat_message_expiry);
@@ -35,10 +37,10 @@ void HudChatListbox::clear(void)
     if (chat_gui_find_object != 0) {
         void *gui_object = chat_gui_find_object(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
         if (gui_object != 0) {
-            void *listbox = chat_gui_find_child(gui_object, (const uint16_t *)L"oListbox");
+            void *listbox = chat_gui_find_child(gui_object, halo::interface::wide(L"oListbox"));
             if (listbox != 0) {
                 while (hud_chat_message_count != 0 &&
-                       (int32_t)chat_gui_set_property_int(listbox, 0x182, 0, 0) > 0) {
+                       (int32_t)chat_gui_set_property_int(listbox, halo::interface::k_chat_property_remove_item, 0, 0) > 0) {
                     hud_chat_message_count = hud_chat_message_count - 1;
                 }
                 chat_gui_finalize(gui_object);
@@ -70,10 +72,10 @@ uint32_t HudChatListbox::remove_oldest(void)
     if (hud_chat_message_count > 0 && chat_gui_find_object != 0) {
         void *gui_object = chat_gui_find_object(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
         if (gui_object != 0) {
-            void *listbox = chat_gui_find_child(gui_object, (const uint16_t *)L"oListbox");
+            void *listbox = chat_gui_find_child(gui_object, halo::interface::wide(L"oListbox"));
             if (listbox != 0) {
-                result = chat_gui_set_property_int(listbox, 0x182, 0, 0);
-                chat_gui_set_property_int(listbox, 0x115, 2, 0);
+                result = chat_gui_set_property_int(listbox, halo::interface::k_chat_property_remove_item, 0, 0);
+                chat_gui_set_property_int(listbox, halo::interface::k_chat_property_scroll, 2, 0);
                 chat_gui_finalize(gui_object);
             }
             chat_gui_release(gui_object);

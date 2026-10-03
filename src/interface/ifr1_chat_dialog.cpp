@@ -36,6 +36,9 @@ static auto &chat_hotkey_vehicle = halo::link::ref<uint8_t>(halo::ui::vars().cha
 static auto &chat_gui_find_child = halo::link::ref<chat_gui_find_child_fn>(halo::ui::vars().chat_gui_find_child);
 static auto &keystone_control_get_attribute = halo::link::ref<chat_gui_get_property_string_fn>(halo::ui::vars().keystone_control_get_attribute);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+#include "halo/interface/constants.hpp"
+#include "halo/interface/wide_text.hpp"
+#include "halo/interface/com_object.hpp"
 
 static const wchar_t *chat_prefix_format(int16_t string_index)
 {
@@ -68,7 +71,7 @@ void ChatDialog::close(void)
 
     if (keyboard_device != 0) {
         int32_t minus_one = -1;
-        void **vtable = *(void ***)keyboard_device;
+        void **vtable = halo::interface::com_vtable(keyboard_device);
         ((directinput_set_property_fn)vtable[0x28 / 4])(keyboard_device, 0x14, 0, &minus_one, 0);
         memset(key_release_pending, 0, sizeof(key_release_pending));
         memset(key_frames, 0, sizeof(key_frames));
@@ -136,7 +139,7 @@ bool PlayerChatSource::accepts(const chat_incoming_record &record) const
 
 void PlayerChatSource::deliver(const chat_incoming_record &record, wchar_t *text) const
 {
-    wchar_t line[0x200];
+    wchar_t line[halo::interface::k_long_text_chars];
     player *sender = (player *)halo::memory::datum_get((datum_index)record.player_index, halo::game::globals().player_data);
 
     if (sender == 0) {
@@ -162,14 +165,14 @@ bool LocalizedChatSource::accepts(const chat_incoming_record &record) const
 void LocalizedChatSource::deliver(const chat_incoming_record &record, wchar_t *) const
 {
     wchar_t short_line[0x80];
-    char localized[0x400];
+    char localized[halo::interface::k_hint_text_chars];
     int32_t string_id = (int32_t)_wtol((const wchar_t *)record.text);
 
     memset(short_line, 0, sizeof(short_line));
     if (halo::shell::shell_load_localized_string(sizeof(localized), halo::shell::globals().module_handle, localized, string_id) == 0) {
         return;
     }
-    halo::text::string_format_wide_va_bounded(0x7f, (uint16_t *)short_line, (const uint16_t *)L"%S", localized);
+    halo::text::string_format_wide_va_bounded(0x7f, (uint16_t *)short_line, halo::interface::wide(L"%S"), localized);
     short_line[0x7f] = 0;
     halo::interface::chimera__multiplayer_message(short_line);
 }
@@ -211,7 +214,7 @@ const ChatLineSource *ChatLineSource::select(const chat_incoming_record &record)
 void ChatDialog::dispatch_incoming(void *event)
 {
     chat_incoming_record record;
-    wchar_t text[0x100];
+    wchar_t text[halo::interface::k_text_buffer_chars];
     const ChatLineSource *source;
 
     if (*(int32_t *)*(void **)event != 0) {
@@ -277,9 +280,9 @@ void ChatDialog::submit_input(void)
             const wchar_t *text = 0;
             void *gui_object = chat_gui_find_object(chat_gui_root_handle, chat_gui_find_object_arg);
             if (gui_object != 0) {
-                void *editbox = chat_gui_find_child(gui_object, (const uint16_t *)L"oEditbox");
+                void *editbox = chat_gui_find_child(gui_object, halo::interface::wide(L"oEditbox"));
                 if (editbox != 0) {
-                    text = (const wchar_t *)(keystone_control_get_attribute(editbox, (const uint16_t *)L"text"));
+                    text = (const wchar_t *)(keystone_control_get_attribute(editbox, halo::interface::wide(L"text")));
                 }
                 chat_gui_release(gui_object);
 
@@ -298,6 +301,29 @@ void ChatDialog::submit_input(void)
 }
 
 /**
+ * Appends the chat message staged in network_message_scratch (encoded_bits long) to the channel's outgoing stream when the
+ * channel is not a listener and the stream has room for it or can be flushed to make room.
+ *
+ * @address 0x4aab00
+ */
+void ChatDialog::queue_on_channel(network_channel *channel, int32_t encoded_bits)
+{
+    bit_stream *stream = &channel->outgoing.stream;
+
+    if ((channel->flags & k_network_channel_listening) == 0 &&
+        (encoded_bits + 1 <= ((int32_t)stream->last_bit + (int32_t)stream->byte_cursor * -8) - (int32_t)stream->bit_cursor + 1 ||
+         halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1) != 0)) {
+        uint32_t item_flag = 1;
+
+        channel->send_budget = channel->send_budget + encoded_bits + 1;
+        halo::memory::bit_stream_write_bits_chunked(stream, &item_flag, 1);
+        channel->outgoing.empty = 0;
+        halo::memory::bit_stream_write_bits_chunked(stream, (const uint32_t *)(network_message_scratch), encoded_bits);
+        channel->outgoing.empty = 0;
+    }
+}
+
+/**
  * Encodes a chat text message (type 0xf) for the given channel and, if the session's outgoing buffer has room
  * (or can be flushed to make room), queues its length and payload bits for network transmission.
  *
@@ -305,21 +331,10 @@ void ChatDialog::submit_input(void)
  */
 void ChatDialog::out(uint8_t channel)
 {
-    int32_t encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xf, 0, (void **)&channel, 0, 1, 0);
+    int32_t encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::interface::k_network_message_scratch_size, 0, 0xf, 0, (void **)&channel, 0, 1, 0);
 
     if (encoded_bits > 0) {
-        uint8_t *session = *(uint8_t **)((uint8_t *)halo::networking::globals().client + 0xadc);
-
-        if ((session[0xa8c] & 1) == 0 &&
-            (encoded_bits + 1 <= (*(int32_t *)(session + 0x24) + *(int32_t *)(session + 0x1c) * -8) -
-                                      *(int32_t *)(session + 0x20) + 1 ||
-             halo::networking::network_channel_stream_flush((network_channel_stream *)((uint8_t *)session + 0x10), (network_channel *)session, 1) != 0)) {
-            *(int32_t *)(session + 0xa80) = *(int32_t *)(session + 0xa80) + encoded_bits + 1;
-            { uint32_t item_flag = 1; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), &item_flag, 1); }
-            session[0x2c] = 0;
-            halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)session + 0x10), (const uint32_t *)(network_message_scratch), encoded_bits);
-            session[0x2c] = 0;
-        }
+        queue_on_channel(halo::networking::globals().client->channel, encoded_bits);
     }
 }
 

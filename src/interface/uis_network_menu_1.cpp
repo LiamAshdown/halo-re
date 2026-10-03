@@ -21,37 +21,46 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
-#include "halo/core/link.hpp"
-#include "halo/interface/vars.hpp"
-#include "halo/networking/vars.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
-static auto &ui_list_current = halo::link::ref<int32_t>(halo::ui::vars().ui_list_current);
-static auto &ui_lists = halo::link::ref<growable_array [3]>(halo::ui::vars().ui_lists);
-static auto &profile_globals_block = halo::link::ref<uint8_t [0x60a4]>(halo::ui::vars().profile_globals_block);
-static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
-static auto &network_host_name_field_00719238 = halo::link::ref<uint16_t [32]>(halo::ui::vars().network_host_name_field_00719238);
-static auto &network_host_subname_007191f0 = halo::link::ref<uint16_t [9]>(halo::ui::vars().network_host_subname_007191f0);
-static auto &selected_saved_item = halo::link::ref<int32_t>(halo::ui::vars().selected_saved_item);
-static auto &saved_item_working_copy = halo::link::ref<uint8_t [k_saved_player_profile_size]>(halo::ui::vars().saved_item_working_copy);
-static auto &network_game_option_a_00719210 = halo::link::ref<uint32_t>(halo::ui::vars().network_game_option_a_00719210);
-static auto &network_game_option_b_00719214 = halo::link::ref<uint32_t>(halo::ui::vars().network_game_option_b_00719214);
-static auto &network_host_name_00719170 = halo::link::ref<uint16_t [144]>(halo::ui::vars().network_host_name_00719170);
-static auto &quality_selection_00692b04 = halo::link::ref<int32_t>(halo::ui::vars().quality_selection_00692b04);
-static auto &resolution_row_count_table_0065bfb4 = halo::link::ref<int32_t [5][1]>(halo::ui::vars().resolution_row_count_table_0065bfb4);
-static auto &resolution_selection_00719204 = halo::link::ref<int32_t>(halo::ui::vars().resolution_selection_00719204);
-static auto &resolution_index_table_0065bf74 = halo::link::ref<int32_t []>(halo::ui::vars().resolution_index_table_0065bf74);
-static auto &sv_maxplayers_value = halo::link::ref<uint32_t>(halo::ui::vars().sv_maxplayers_value);
-static auto &network_resolved_local_address = halo::link::ref<uint32_t>(halo::ui::vars().network_resolved_local_address);
-static auto &ip_port_format_string_0066a564 = halo::link::ref<uint16_t []>(halo::ui::vars().ip_port_format_string_0066a564);
-static auto &network_host_name_flag_00719276 = halo::link::ref<uint8_t>(halo::ui::vars().network_host_name_flag_00719276);
-static auto &ui_network_wait_active = halo::link::ref<uint8_t>(halo::ui::vars().ui_network_wait_active);
-static auto &ui_network_wait_start_time = halo::link::ref<int32_t>(halo::ui::vars().ui_network_wait_start_time);
-static auto &ui_network_wait_timed_out = halo::link::ref<uint8_t>(halo::ui::vars().ui_network_wait_timed_out);
-static auto &autopatch_status_state_00719234 = halo::link::ref<uint8_t>(halo::ui::vars().autopatch_status_state_00719234);
-static auto &autopatch_status_active_00719235 = halo::link::ref<uint8_t>(halo::ui::vars().autopatch_status_active_00719235);
-static auto &ui_server_option_flag_00692b10 = halo::link::ref<uint8_t>(halo::ui::vars().ui_server_option_flag_00692b10);
-static auto &network_game_info_packet_flag = halo::link::ref<uint8_t>(halo::ui::vars().network_game_info_packet_flag);
-static auto &server_browser_require_valid_entry = halo::link::ref<uint8_t>(halo::networking::vars().server_browser_require_valid_entry);
+extern "C" {
+extern int32_t ui_list_current;
+extern growable_array ui_lists[3];
+extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
+extern heap *widget_memory_pool;
+extern uint16_t network_host_name_field_00719238[32];
+extern uint16_t network_host_subname_007191f0[9];
+extern int32_t selected_saved_item;
+extern saved_player_profile saved_item_working_copy;
+extern uint8_t network_game_client_connect_to_address_async(char *name, char *address);
+extern uint32_t network_game_option_a_00719210;
+extern uint32_t network_game_option_b_00719214;
+extern uint16_t network_host_name_00719170[144];
+extern int32_t quality_selection_00692b04;
+extern int32_t resolution_row_count_table_0065bfb4[5][1];
+extern int32_t resolution_selection_00719204;
+extern int32_t resolution_index_table_0065bf74[];
+extern uint32_t sv_maxplayers_value;
+extern uint32_t network_resolved_local_address;
+extern uint16_t local_port_006869b6;
+extern uint16_t ip_port_format_string_0066a564[];
+extern uint8_t network_host_name_flag_00719276;
+extern uint8_t ui_network_wait_active;
+extern int32_t ui_network_wait_start_time;
+extern uint8_t ui_network_wait_timed_out;
+extern void *widget_instance_find_root(widget_instance *widget);
+extern int32_t widget_get_sibling_index(widget_instance *widget);
+extern void chat_close(void);
+extern widget_instance *chimera__load_ui_widget(const char *tag_path, datum_index tag_index,
+    widget_instance *parent, uint16_t controller_index, datum_index history_definition,
+    datum_index history_list_definition, int16_t history_selection);
+extern uint8_t autopatch_status_state_00719234;
+extern uint8_t autopatch_status_active_00719235;
+extern uint8_t ui_server_option_flag_00692b10;
+extern uint8_t network_game_info_packet_flag;
+extern uint8_t server_browser_require_valid_entry;
+}
 
 namespace halo::ui {
 
@@ -70,10 +79,10 @@ void UiNetworkMenu::network_adapter_details_refresh(widget_instance *widget)
     halo::interface::ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)halo::interface::ui_list_default_item_format));
 
     {
-        uint8_t profile_copy[0x2000];
+        saved_player_profile profile_copy;
 
-        memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-        halo::interface::set_profile_name(widget, (const uint16_t *)(profile_copy + 2));
+        profile_copy = profile_globals_block[0].profile;
+        halo::interface::set_profile_name(widget, profile_copy.name);
     }
 
     row = widget->extended_description->first_child->next_sibling;
@@ -113,8 +122,8 @@ void UiNetworkMenu::network_adapter_details_refresh(widget_instance *widget)
 
         c3->text = halo::memory::heap_reallocate(c3->text, 0x40, widget_memory_pool);
         if (c3->text != nullptr) {
-            wcsncpy((wchar_t *)((uint16_t *)c3->text), (const wchar_t *)(blob + 4), 0x1f);
-            ((uint16_t *)c3->text)[0x1f] = 0;
+            wcsncpy((wchar_t *)(halo::interface::widget_text(c3)), (const wchar_t *)(blob + 4), 0x1f);
+            (halo::interface::widget_text(c3))[0x1f] = 0;
         }
     }
 }
@@ -140,9 +149,9 @@ uint8_t UiNetworkMenu::network_client_connect_and_save(void)
 
     halo::interface::saved_item_select(halo::saved_games::globals().player_profile_slots_handle);
     {
-        uint8_t *record = ((selected_saved_item & 0xf) == 0) ? saved_item_working_copy : nullptr;
+        saved_player_profile *record = ((selected_saved_item & 0xf) == 0) ? &saved_item_working_copy : nullptr;
         wcslen((const wchar_t *)network_host_name_field_00719238);
-        wcscpy((wchar_t *)((uint16_t *)(record + 0xfc2)), (const wchar_t *)network_host_name_field_00719238);
+        wcscpy((wchar_t *)record->join_server_address, (const wchar_t *)network_host_name_field_00719238);
     }
     if (halo::interface::saved_item_has_unsaved_changes() != 0) {
         halo::interface::player_profile_save();
@@ -160,7 +169,7 @@ uint8_t UiNetworkMenu::network_client_connect_and_save(void)
  *
  * @address 0x4a3960
  */
-uint8_t UiNetworkMenu::network_game_options_populate(widget_instance *widget, const uint8_t *options_record)
+uint8_t UiNetworkMenu::network_game_options_populate(widget_instance *widget, const saved_player_profile *options_record)
 {
     widget_instance *control;
     uint8_t value;
@@ -173,10 +182,10 @@ uint8_t UiNetworkMenu::network_game_options_populate(widget_instance *widget, co
          control != (widget_instance *)0 && control->widget_type != uiwidgettype_spinner_list;
          control = control->next_sibling) {
     }
-    value = options_record[0xfc0];
+    value = options_record->connection_type;
     control->selection_index = (value < 5) ? value : 4;
-    network_game_option_a_00719210 = *(const uint16_t *)(options_record + 0x1002);
-    network_game_option_b_00719214 = *(const uint16_t *)(options_record + 0x1004);
+    network_game_option_a_00719210 = options_record->server_port;
+    network_game_option_b_00719214 = options_record->client_port;
     return 1;
 }
 
@@ -185,9 +194,9 @@ uint8_t UiNetworkMenu::network_game_options_populate(widget_instance *widget, co
  *
  * @address 0x4a3b30
  */
-void UiNetworkMenu::network_game_options_refresh(widget_instance *widget, const uint8_t *options_record)
+void UiNetworkMenu::network_game_options_refresh(widget_instance *widget, const saved_player_profile *options_record)
 {
-    halo::saved_games::player_profile_set_default_server_options((saved_player_profile *)profile_globals_block);
+    halo::saved_games::player_profile_set_default_server_options(&profile_globals_block[0].profile);
     halo::interface::widget_play_sound_effect(0);
     halo::interface::ui_network_game_options_populate(widget, options_record);
 }
@@ -209,11 +218,11 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
     int32_t resolution_index;
     widget_instance *ip_control;
 
-    buffer = (uint16_t *)halo::memory::heap_reallocate(control->text, 0x80, widget_memory_pool);
+    buffer = halo::interface::widget_pool_resize_text(control->text, 0x80);
     control->text = buffer;
     if (buffer != nullptr) {
         wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_name_00719170, 0x3f);
-        ((uint16_t *)control->text)[0x3f] = 0;
+        (halo::interface::widget_text(control))[0x3f] = 0;
     }
     if (row->parent->focused_child == row) {
         tab_index = 0;
@@ -221,11 +230,11 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
 
     row = row->next_sibling;
     control = row->first_child->next_sibling;
-    buffer = (uint16_t *)halo::memory::heap_reallocate(control->text, 0x12, widget_memory_pool);
+    buffer = halo::interface::widget_pool_resize_text(control->text, 0x12);
     control->text = buffer;
     if (buffer != nullptr) {
         wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_subname_007191f0, 8);
-        ((uint16_t *)control->text)[8] = 0;
+        (halo::interface::widget_text(control))[8] = 0;
     }
     if (row->parent->focused_child == row) {
         tab_index = 1;
@@ -288,7 +297,7 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
         halo::text::string_format_wide_va_bounded(
             0x1f - address_length, reinterpret_cast<uint16_t *>(ip_control->text) + address_length,
             reinterpret_cast<const uint16_t *>(ip_port_format_string_0066a564), halo::networking::globals().game_socket_port);
-        ((uint16_t *)ip_control->text)[0x1f] = 0;
+        (halo::interface::widget_text(ip_control))[0x1f] = 0;
     }
 
     if (tab_index == -1) {
@@ -299,10 +308,10 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
     }
 
     {
-        uint8_t profile_copy[0x2000];
+        saved_player_profile profile_copy;
 
-        memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-        halo::interface::set_profile_name(widget, (const uint16_t *)(profile_copy + 2));
+        profile_copy = profile_globals_block[0].profile;
+        halo::interface::set_profile_name(widget, profile_copy.name);
     }
 }
 
@@ -319,11 +328,11 @@ void UiNetworkMenu::network_name_fields_refresh(widget_instance *widget)
     int32_t tab_index = -1;
     uint16_t *buffer;
 
-    buffer = (uint16_t *)halo::memory::heap_reallocate(control->text, 0x40, widget_memory_pool);
+    buffer = halo::interface::widget_pool_resize_text(control->text, 0x40);
     control->text = buffer;
     if (buffer != nullptr) {
         wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_name_field_00719238, 0x1f);
-        ((uint16_t *)control->text)[0x1f] = 0;
+        (halo::interface::widget_text(control))[0x1f] = 0;
     }
     if (row->parent->focused_child == row) {
         tab_index = 0;
@@ -331,11 +340,11 @@ void UiNetworkMenu::network_name_fields_refresh(widget_instance *widget)
 
     row = row->next_sibling;
     control = row->first_child->next_sibling;
-    buffer = (uint16_t *)halo::memory::heap_reallocate(control->text, 0x12, widget_memory_pool);
+    buffer = halo::interface::widget_pool_resize_text(control->text, 0x12);
     control->text = buffer;
     if (buffer != nullptr) {
         wcsncpy((wchar_t *)buffer, (const wchar_t *)network_host_subname_007191f0, 8);
-        ((uint16_t *)control->text)[8] = 0;
+        (halo::interface::widget_text(control))[8] = 0;
     }
 
     if (row->parent->focused_child == row) {
@@ -349,10 +358,10 @@ void UiNetworkMenu::network_name_fields_refresh(widget_instance *widget)
     }
 
     {
-        uint8_t profile_copy[k_saved_player_profile_size];
+        saved_player_profile profile_copy;
 
-        memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
-        halo::interface::set_profile_name(tab_group->first_child->next_sibling, (const uint16_t *)(profile_copy + 2));
+        profile_copy = profile_globals_block[0].profile;
+        halo::interface::set_profile_name(tab_group->first_child->next_sibling, profile_copy.name);
     }
 }
 
@@ -366,11 +375,11 @@ uint32_t UiNetworkMenu::network_name_fields_reset(void)
     uint16_t unused_name_source[2077];
 
     if (halo::saved_games::globals().player_profile_slots_handle == -1) {
-        halo::saved_games::player_profile_set_default_server_options((saved_player_profile *)profile_globals_block);
+        halo::saved_games::player_profile_set_default_server_options(&profile_globals_block[0].profile);
     } else {
-        uint8_t profile_copy[0x2000];
+        saved_player_profile profile_copy;
 
-        memcpy(profile_copy, profile_globals_block, sizeof(profile_copy));
+        profile_copy = profile_globals_block[0].profile;
     }
 
     wcsncpy((wchar_t *)network_host_name_field_00719238, (const wchar_t *)unused_name_source, 0x1f);
@@ -435,21 +444,22 @@ uint8_t UiNetworkMenu::server_list_connect_selected(widget_instance *widget, int
     if (widget->focused_child != (widget_instance *)0 && widget->selection_index >= 0 &&
         widget->selection_index < (int16_t)widget->item_count && widget->list_items != nullptr &&
         widget->item_count != 0) {
-        uint8_t **entries = (uint8_t **)widget->list_items;
-        uint8_t *entry = entries[widget->selection_index];
+        network_game_search_entry **entries = (network_game_search_entry **)widget->list_items;
+        network_game_search_entry *entry = entries[widget->selection_index];
+        const s_network_address *entry_address = (const s_network_address *)entry->identity;
 
-        if (entry[0x12c] == 1) {
-            if (*(int16_t *)(entry + 0x12a) == 1 && *(uint32_t *)entry != 0 &&
-                *(int16_t *)(entry + 0x12) != 0) {
+        if (entry->joinable == 1) {
+            if (entry->unknown_12a == 1 && entry_address->ipv4 != 0 &&
+                entry_address->port != 0) {
                 uint32_t session_info[9] = {0};
                 s_network_address connect_address = {};
                 int32_t connected;
 
-                connect_address.ipv4 = *(uint32_t *)entry;
-                connect_address.size = *(int16_t *)(entry + 0x10);
-                connect_address.port = *(uint16_t *)(entry + 0x12);
+                connect_address.ipv4 = entry_address->ipv4;
+                connect_address.size = entry_address->size;
+                connect_address.port = entry_address->port;
                 halo::networking::network_debug_fill_canary_buffer(&session_info[5]);
-                connected = halo::networking::network_connection_initiate(halo::networking::globals().client, (const uint32_t *)entry,
+                connected = halo::networking::network_connection_initiate(halo::networking::globals().client, entry->identity,
                                                          session_info, (const uint32_t *)&connect_address);
                 if ((uint8_t)connected == 0) {
                     halo::networking::globals().host_handoff_requested = 1;
@@ -466,7 +476,7 @@ uint8_t UiNetworkMenu::server_list_connect_selected(widget_instance *widget, int
                     widget_instance *opened;
 
                     opened = halo::interface::chimera__load_ui_widget(
-                        (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\connected\\pregame\\connected_pregame_screen",
+                        "ui\\shell\\main_menu\\multiplayer_type_select\\connected\\pregame\\connected_pregame_screen",
                         (datum_index)-1, (widget_instance *)0, (uint16_t)-1,
                         *(datum_index *)page, parent_definition, (int16_t)sibling);
                     if (opened != (widget_instance *)0) {

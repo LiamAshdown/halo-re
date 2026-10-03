@@ -32,6 +32,7 @@ static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui:
 static auto &selected_level_active_00719878 = halo::link::ref<uint8_t>(halo::ui::vars().selected_level_active_00719878);
 static auto &selected_level_pending_00719778 = halo::link::ref<uint8_t>(halo::ui::vars().selected_level_pending_00719778);
 static auto &network_wait_flag_00719739 = halo::link::ref<uint8_t>(halo::ui::vars().network_wait_flag_00719739);
+#include "halo/interface/wide_text.hpp"
 
 namespace halo::ui {
 
@@ -40,13 +41,13 @@ namespace {
 /** Local helper shared by the handlers of this file. */
 static uint8_t level_unlocked_for(int16_t player, int32_t level_id)
 {
-    uint8_t profile_copy[k_saved_player_profile_size];
+    saved_player_profile profile_copy;
     int16_t type;
     int16_t last_level;
 
-    memcpy(profile_copy, profile_globals_block + player * 0x2004, sizeof(profile_copy));
-    halo::saved_games::player_profile_scan_campaign_progress(&type, (saved_player_profile *)profile_copy, &last_level);
-    return profile_copy[0x11e + level_id] != 0 || level_id == last_level + 1 || level_id == 0;
+    profile_copy = profile_globals_block[player].profile;
+    halo::saved_games::player_profile_scan_campaign_progress(&type, &profile_copy, &last_level);
+    return profile_copy.campaign_progress[level_id] != 0 || level_id == last_level + 1 || level_id == 0;
 }
 
 }
@@ -58,7 +59,7 @@ static uint8_t level_unlocked_for(int16_t player, int32_t level_id)
  */
 uint8_t UiGameSetup::level_select_confirm_choice(widget_instance *widget)
 {
-    int16_t list_index = *(int16_t *)&((struct widget_instance *)widget)->text;
+    int16_t list_index = halo::interface::widget_list_committed(widget);
     int32_t level_id = -1;
     uint8_t unlocked = 0;
     growable_array *list = &ui_lists[ui_list_current];

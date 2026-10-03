@@ -5,6 +5,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/core/x87.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/constants.hpp"
 
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 
@@ -18,7 +19,7 @@ namespace halo::interface {
  */
 uint32_t ColorMath::argb_scale_alpha(uint32_t packed_color, float scale)
 {
-    return (packed_color & 0xffffff) | (uint32_t)halo::x87::ROUND((float)(packed_color >> 0x18) * scale) << 0x18;
+    return (packed_color & halo::interface::k_rgb_mask) | (uint32_t)halo::x87::ROUND((float)(packed_color >> 0x18) * scale) << 0x18;
 }
 
 /**

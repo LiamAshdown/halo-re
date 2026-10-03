@@ -16,27 +16,30 @@
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
 #include "tags.h"
-#include "halo/core/link.hpp"
-#include "halo/game/vars.hpp"
-#include "halo/interface/vars.hpp"
-#include "halo/units/vars.hpp"
-#include "halo/units/api.hpp"
+#include "halo/interface/constants.hpp"
+#include "halo/interface/wide_text.hpp"
 
-static auto &hud_messaging = halo::link::ref<hud_messaging_globals *>(halo::ui::vars().hud_messaging);
-static auto &hud_chat_message_count = halo::link::ref<int32_t>(halo::ui::vars().hud_chat_message_count);
-static auto &hud_chat_message_expiry = halo::link::ref<int32_t [8]>(halo::ui::vars().hud_chat_message_expiry);
-static auto &chat_gui_root_handle = halo::link::ref<void *>(halo::ui::vars().chat_gui_root_handle);
-static auto &chat_gui_find_object = halo::link::ref<chat_gui_find_object_fn>(halo::ui::vars().chat_gui_find_object);
-static auto &chat_listbox_gui_find_object_arg = halo::link::ref<void *>(halo::ui::vars().chat_listbox_gui_find_object_arg);
-static auto &chat_gui_find_child = halo::link::ref<chat_gui_find_child_fn>(halo::ui::vars().chat_gui_find_child);
-static auto &chat_gui_set_property_int = halo::link::ref<chat_gui_set_property_int_fn>(halo::ui::vars().chat_gui_set_property_int);
-static auto &chat_gui_finalize = halo::link::ref<chat_gui_finalize_fn>(halo::ui::vars().chat_gui_finalize);
-static auto &chat_gui_release = halo::link::ref<chat_gui_release_fn>(halo::ui::vars().chat_gui_release);
-static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
-static auto &empty_wide_string_pointer = halo::link::ref<uint16_t *>(halo::ui::vars().empty_wide_string_pointer);
-static auto &global_zero_vector3d_pointer = halo::link::ref<void *>(halo::units::vars().global_zero_vector3d_pointer);
-static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
-static auto &hud_flags = halo::link::ref<hud_globals_flags *>(halo::ui::vars().hud_flags);
+extern "C" {
+extern hud_messaging_globals *hud_messaging;
+extern int32_t hud_chat_message_count;
+extern int32_t hud_chat_message_expiry[8];
+extern void *chat_gui_root_handle;
+extern chat_gui_find_object_fn chat_gui_find_object;
+extern void *chat_listbox_gui_find_object_arg;
+extern chat_gui_find_child_fn chat_gui_find_child;
+extern chat_gui_set_property_int_fn chat_gui_set_property_int;
+extern chat_gui_finalize_fn chat_gui_finalize;
+extern chat_gui_release_fn chat_gui_release;
+extern HUDGlobals *hud_globals_tag_data;
+extern uint16_t *empty_wide_string_pointer;
+extern void *global_zero_vector3d_pointer;
+extern int16_t item_type_to_message_stage(int16_t item_type_code);
+extern int16_t item_type_to_animation_stage(int16_t message_stage);
+extern uint8_t network_message_scratch[halo::interface::k_network_message_scratch_size];
+extern void hud_add_item_message(int16_t local_player_index, int32_t source, uint8_t source_kind,
+                                 int16_t count);
+extern hud_globals_flags *hud_flags;
+}
 
 namespace halo::interface {
 
@@ -51,7 +54,7 @@ void HudMessaging::hud_message(int16_t local_player_index, const wchar_t *text)
 {
     if (local_player_index != -1) {
         hud_player_messaging_state *player_record =
-            (hud_player_messaging_state *)((uint8_t *)hud_messaging + local_player_index * 0x460);
+            &hud_messaging->players[0] + local_player_index;
         hud_message_slot *slot = halo::interface::hud_message_find_slot(-1, player_record, 0);
 
         wcsncpy((wchar_t *)slot->text, text, 0x3f);
@@ -83,10 +86,10 @@ void HudMessaging::multiplayer_message(const wchar_t *text)
     if (chat_gui_find_object != 0) {
         void *gui_object = chat_gui_find_object(chat_gui_root_handle, chat_listbox_gui_find_object_arg);
         if (gui_object != 0) {
-            void *listbox = chat_gui_find_child(gui_object, (const uint16_t *)L"oListbox");
+            void *listbox = chat_gui_find_child(gui_object, halo::interface::wide(L"oListbox"));
             if (listbox != 0) {
-                chat_gui_set_property_int(listbox, 0x180, 0, text);
-                chat_gui_set_property_int(listbox, 0x115, 2, 0);
+                chat_gui_set_property_int(listbox, halo::interface::k_chat_property_add_item, 0, text);
+                chat_gui_set_property_int(listbox, halo::interface::k_chat_property_scroll, 2, 0);
                 chat_gui_finalize(gui_object);
             }
             chat_gui_release(gui_object);
@@ -148,7 +151,7 @@ void HudMessaging::display_checkpoint_message(uint8_t is_begin)
     }
 
     if (is_begin) {
-        int32_t sound_tag_id = *(int32_t *)&hud_globals->checkpoint_sound.tag_id;
+        int32_t sound_tag_id = halo::interface::tag_handle(hud_globals->checkpoint_sound.tag_id);
         if (sound_tag_id != -1) {
             hud_sound_start_parameters parameters;
 
@@ -161,7 +164,7 @@ void HudMessaging::display_checkpoint_message(uint8_t is_begin)
 
     if (message_index != -1 && halo::game::globals().local_player_globals->local_players[0] != (datum_index)-1) {
         const uint16_t *text = empty_wide_string_pointer;
-        int32_t string_list_tag_id = *(int32_t *)&hud_globals->item_message_text.tag_id;
+        int32_t string_list_tag_id = halo::interface::tag_handle(hud_globals->item_message_text.tag_id);
         if (string_list_tag_id != -1) {
             int32_t *string_list_tag_data = halo::interface::tag_data<int32_t>(string_list_tag_id);
             if (string_list_tag_data != 0 && message_index > -1 && message_index < *string_list_tag_data) {
@@ -205,7 +208,7 @@ void HudMessaging::display_loading_message(uint8_t is_begin)
 uint16_t * HudMessaging::get_message_string(int32_t message_index)
 {
     HUDGlobals *hud_globals = (HUDGlobals *)hud_globals_tag_data;
-    int32_t string_list_tag_id = *(int32_t *)&hud_globals->item_message_text.tag_id;
+    int32_t string_list_tag_id = halo::interface::tag_handle(hud_globals->item_message_text.tag_id);
 
     if (string_list_tag_id != -1) {
         int32_t *string_list_tag_data = halo::interface::tag_data<int32_t>(string_list_tag_id);
@@ -272,7 +275,7 @@ int32_t HudMessaging::message_compare(const void *a, const void *b)
 hud_message_slot * HudMessaging::message_find_slot(int32_t source, hud_player_messaging_state *record, uint8_t source_kind)
 {
     hud_message_slot *candidate = 0;
-    int32_t oldest_time = 0x7fffffff;
+    int32_t oldest_time = INT32_MAX;
     int16_t oldest = 0;
     uint16_t i;
 
@@ -307,25 +310,20 @@ hud_message_slot * HudMessaging::message_find_slot(int32_t source, hud_player_me
  */
 void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code)
 {
-    object_header *header;
-    uint8_t *object_base;
-    uint32_t tag_index;
+    object *item_object;
     Weapon *item_tag_data;
     int32_t hud_tag_ref;
-    uint32_t hud_tag_index;
-    uint8_t *hud_tag_data;
-    uint8_t *block_a_base;
+    ModelAnimations *hud_tag_data;
+    ModelAnimationsAnimationGraphFirstPersonWeaponAnimations *block_a_base;
     int32_t block_a_count;
     int16_t message_stage;
     int16_t animation_stage;
     int16_t table_entry;
-    uint8_t *block_c_base;
     int16_t sub_entry;
-    uint8_t *block_d_base;
     int32_t message_index;
     datum_index carried_object;
     uint8_t has_carried_object;
-    void *carried_record;
+    player *carried_record;
 
     if (object_or_slot_index == halo::k_dword_none || item_type_code == -1) {
         return;
@@ -334,11 +332,9 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
         return;
     }
 
-    header = &((object_header *)halo::objects::globals().object_data->data)[object_or_slot_index & halo::k_slot_mask];
-    object_base = (uint8_t *)header->data;
+    item_object = halo::interface::object_record<object>(object_or_slot_index);
 
-    tag_index = *(uint32_t *)object_base & halo::k_slot_mask;
-    item_tag_data = (Weapon *)*(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances + tag_index * 0x20 + 0x14);
+    item_tag_data = halo::interface::tag_data<Weapon>(item_object->definition_tag);
 
     hud_tag_ref = static_cast<int32_t>(halo::interface::tag_handle(item_tag_data->first_person_animations.tag_id));
     if (hud_tag_ref == -1) {
@@ -354,40 +350,37 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
         return;
     }
 
-    hud_tag_index = (uint32_t)hud_tag_ref & halo::k_slot_mask;
-    hud_tag_data = *(uint8_t **)((uint8_t *)halo::cache::globals().tag_instances + hud_tag_index * 0x20 + 0x14);
+    hud_tag_data = halo::interface::tag_data<ModelAnimations>((uint32_t)hud_tag_ref);
 
-    block_a_count = *(int32_t *)(hud_tag_data + 0x48);
-    block_a_base = (block_a_count != 0) ? *(uint8_t **)(hud_tag_data + 0x4c) : nullptr;
+    block_a_count = (int32_t)hud_tag_data->first_person_weapons.count;
+    block_a_base = (block_a_count != 0) ? halo::interface::reflexive_elements<ModelAnimationsAnimationGraphFirstPersonWeaponAnimations>(hud_tag_data->first_person_weapons) : nullptr;
 
     if (animation_stage < 0) {
         return;
     }
-    if (animation_stage >= *(int32_t *)(block_a_base + 0x10)) {
+    if (animation_stage >= (int32_t)block_a_base->animations.count) {
         return;
     }
-    table_entry = *(int16_t *)(*(uint8_t **)(block_a_base + 0x14) + animation_stage * 2);
+    table_entry = halo::interface::reflexive_elements<int16_t>(block_a_base->animations)[animation_stage];
     if (table_entry == -1) {
         return;
     }
 
-    block_c_base = *(uint8_t **)(hud_tag_data + 0x78);
-    sub_entry = *(int16_t *)(block_c_base + (int32_t)table_entry * 0xb4 + 0x3c);
+    sub_entry = (int16_t)halo::interface::reflexive_elements<ModelAnimationsAnimation>(hud_tag_data->animations)[table_entry].sound;
     if (sub_entry == -1) {
         return;
     }
 
-    block_d_base = *(uint8_t **)(hud_tag_data + 0x58);
-    message_index = *(int32_t *)(block_d_base + (int32_t)sub_entry * 0x14 + 0xc);
+    message_index = (int32_t)halo::interface::tag_handle(halo::interface::reflexive_elements<ModelAnimationsAnimationGraphSoundReference>(hud_tag_data->sound_references)[sub_entry].sound.tag_id);
     if (message_index == -1) {
         return;
     }
 
-    carried_object = *(datum_index *)(object_base + 0xc0);
+    carried_object = item_object->owner_linkage;
     has_carried_object = 0;
     if (carried_object != (datum_index)halo::k_dword_none) {
-        carried_record = halo::memory::datum_get(carried_object, halo::game::globals().player_data);
-        if (carried_record != 0 && *(int16_t *)((uint8_t *)carried_record + 2) != -1) {
+        carried_record = (player *)halo::memory::datum_get(carried_object, halo::game::globals().player_data);
+        if (carried_record != 0 && carried_record->local_player_index != -1) {
             has_carried_object = 1;
         }
     }
@@ -418,7 +411,7 @@ void HudMessaging::post_item_message(int16_t count, int32_t source, uint8_t kind
     items[0] = &payload;
     payload.kind = kind;
     items[1] = 0;
-    bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 6, 0, items, 0, 1, 0);
+    bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::interface::k_network_message_scratch_size, 0, 6, 0, items, 0, 1, 0);
     if (bits <= 0) {
         return;
     }
@@ -556,7 +549,7 @@ void HudMessaging::set_player_message(int16_t message_index, int16_t local_playe
     if (hud_flags->help_text_shown != 0) {
         return;
     }
-    tag_id = *(datum_index *)&hud_globals_tag_data->hud_messages.tag_id;
+    tag_id = halo::interface::tag_handle(hud_globals_tag_data->hud_messages.tag_id);
     if (tag_id == (datum_index)-1) {
         return;
     }

@@ -22,6 +22,8 @@
 #include "halo/interface/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 static auto &profile_slot_id = halo::link::ref<int16_t []>(halo::ui::vars().profile_slot_id);
 static auto &profile_globals_block = halo::link::ref<saved_player_profile_slot [k_maximum_local_player_profiles]>(halo::ui::vars().profile_globals_block);
@@ -55,7 +57,7 @@ void UiWidgets::widget_sync_profile_status_flag(widget_instance *widget)
 
     status = 0;
     if (slot != -1) {
-        status = ((uint8_t *)&profile_globals_block[slot])[0x12f];
+        status = profile_globals_block[slot].profile.look_inverted;
     }
     widget->selection_index = (status != 0);
 }
@@ -81,8 +83,8 @@ void UiWidgets::widget_text_ensure_and_refresh(widget_instance *widget)
         }
     }
     if (widget->text != nullptr) {
-        wcsncpy((wchar_t *)((uint16_t *)widget->text), (const wchar_t *)global_text_field_00719278, 0x3f);
-        ((uint16_t *)widget->text)[0x3f] = 0;
+        wcsncpy((wchar_t *)(halo::interface::widget_text(widget)), (const wchar_t *)global_text_field_00719278, 0x3f);
+        (halo::interface::widget_text(widget))[0x3f] = 0;
     }
 }
 
@@ -94,8 +96,8 @@ void UiWidgets::widget_text_ensure_and_refresh(widget_instance *widget)
  */
 void UiWidgets::widget_text_from_hud_objective(widget_instance *widget)
 {
-    uint8_t *entry = *(uint8_t **)&hud_messaging->objective_text;
-    uint8_t *text_tag;
+    HUDMessageTextMessage *entry = hud_messaging->objective_text;
+    HUDMessageText *text_tag;
     uint16_t *text;
     int32_t length;
     uint16_t *buffer;
@@ -103,8 +105,8 @@ void UiWidgets::widget_text_from_hud_objective(widget_instance *widget)
     if (entry == 0) {
         return;
     }
-    text_tag = halo::interface::tag_data<uint8_t>(*(uint32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x5a0));
-    text = (uint16_t *)(*(uint8_t **)(text_tag + 0xc) + (uint32_t)*(uint16_t *)(entry + 0x20) * 2);
+    text_tag = halo::interface::tag_data<HUDMessageText>(*(uint32_t *)&halo::scenario::globals().scenario->hud_messages.tag_id);
+    text = (uint16_t *)((uint8_t *)text_tag->text_data.pointer + (uint32_t)entry->start_index_into_text_blob * 2);
     if (text == 0 || *text == 0) {
         return;
     }
@@ -112,7 +114,7 @@ void UiWidgets::widget_text_from_hud_objective(widget_instance *widget)
     if (length <= 0) {
         return;
     }
-    buffer = (uint16_t *)halo::memory::heap_reallocate(widget->text, (uint16_t)(length * 2 + 2), widget_memory_pool);
+    buffer = halo::interface::widget_pool_resize_text(widget->text, (uint16_t)(length * 2 + 2));
     widget->text = buffer;
     if (buffer == 0) {
         return;
