@@ -440,7 +440,6 @@ void ActorView::movement_advance_waypoint()
 
 namespace actor_movement_apply_steering_local {
 static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 
 /**
@@ -452,7 +451,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
 {
     using namespace actor_movement_apply_steering_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     real_vector3d *facing = &act->facing;
     float max_turn_cos = 0.8660254f;
     int16_t chosen_axis = -1;
@@ -466,7 +465,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
     float desired_length_squared;
     float turn_limit = throttle_maximum;
 
-    if (act->unknown_42a) {
+    if (act->force_turn) {
         act->turn_required = 1;
     }
     if (cached_axis >= 0 && cached_axis <= 3) {
@@ -684,7 +683,6 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
     *out_heading = heading;
 }
 
-#undef TAG_DATA
 
 namespace actor_movement_check_arrival_local {
 }

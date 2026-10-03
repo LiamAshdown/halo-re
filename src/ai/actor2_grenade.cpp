@@ -172,7 +172,7 @@ void ActorView::schedule_grenade_throw()
     if (!(a->awareness_level > 1) || a->vocalization_line > 8) {
         return;
     }
-    if (a->mode == 0xb && !a->mode_data.obey.allow_look) {
+    if (a->mode == halo::ai::actor_mode::obey && !a->mode_data.obey.allow_look) {
         return;
     }
     if (*(int16_t *)request == 1 && halo::memory::datum_get(*(datum_index *)(request + 0x4), halo::ai::globals().prop_data) == 0) {
@@ -192,7 +192,7 @@ void ActorView::schedule_grenade_throw()
     a->vocalization_state = (int16_t)ticks;
     a->vocalization_line = 8;
     a->vocalization_variant = 5;
-    memcpy((uint8_t *)a + 0x54c, request, 0x10);
+    memcpy(&a->vocalization_source, request, 0x10);
 }
 
 namespace actor_should_throw_grenade_local {
@@ -322,7 +322,6 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
 namespace actor_try_grenade_evasion_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition[16]>(halo::ai::vars().actor_mode_definitions);
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 
 /**
@@ -334,7 +333,7 @@ uint8_t ActorView::try_grenade_evasion(uint8_t allow_pain_reaction, uint8_t use_
 {
     using namespace actor_try_grenade_evasion_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     int16_t grade;
     int32_t now;
 
@@ -363,11 +362,9 @@ uint8_t ActorView::try_grenade_evasion(uint8_t allow_pain_reaction, uint8_t use_
     return 0;
 }
 
-#undef TAG_DATA
 
 namespace actor_update_grenade_and_morale_reactions_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 
 /**
@@ -379,7 +376,7 @@ char ActorView::update_grenade_and_morale_reactions()
 {
     using namespace actor_update_grenade_and_morale_reactions_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *variant = TAG_DATA(act->actor_variant_tag);
+    ActorVariant *variant = halo::ai::tag_data<ActorVariant>(act->actor_variant_tag);
     Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     int32_t now = game_time->game_time;
     char result = 0;
@@ -437,7 +434,7 @@ char ActorView::update_grenade_and_morale_reactions()
             }
         }
     }
-    if (act->mode == 10 && (act->mode_data.charge.stage == 2 || act->mode_data.charge.stage == 3)) {
+    if (act->mode == halo::ai::actor_mode::charge && (act->mode_data.charge.stage == 2 || act->mode_data.charge.stage == 3)) {
         may_target = 0;
     }
     if (result) {
@@ -462,7 +459,6 @@ char ActorView::update_grenade_and_morale_reactions()
     return result;
 }
 
-#undef TAG_DATA
 
 namespace actor_update_grenade_eligibility_state_local {
 }
@@ -479,7 +475,6 @@ void ActorView::update_grenade_eligibility_state()
     using namespace actor_update_grenade_eligibility_state_local;
     actor *self;
     uint8_t eligible;
-    uint32_t buffer[12];
     int16_t out_a;
     int32_t out_b;
     int16_t result;
@@ -502,15 +497,14 @@ void ActorView::update_grenade_eligibility_state()
             out_b = -1;
             result = (int16_t)halo::units::unit_animation_change_priority_check(self->unit_index, 1, 1, 0, 0, &out_a, &out_b);
             if (0 < result) {
-                int i;
-                for (i = 0; i < 12; i++) {
-                    buffer[i] = 0;
-                }
-                *(int16_t *)((uint8_t *)buffer + 2) = (int16_t)out_a;
-                *((uint32_t *)((uint8_t *)buffer + 4)) = out_b;
-                *(int16_t *)buffer = 1;
-                halo::ai::ai_communication_target_result_reset((ai_communication_target_result *)((uint8_t *)buffer + 0x10));
-                halo::units::unit_commit_speech(self->unit_index, (const unit_speech *)buffer, result);
+                unit_speech speech;
+
+                memset(&speech, 0, sizeof(speech));
+                speech.scream_type = (int16_t)out_a;
+                speech.sound_tag = (datum_index)out_b;
+                speech.priority = 1;
+                halo::ai::ai_communication_target_result_reset(&halo::ai::speech_target(speech));
+                halo::units::unit_commit_speech(self->unit_index, &speech, result);
             }
         }
     }
@@ -518,8 +512,6 @@ void ActorView::update_grenade_eligibility_state()
 
 namespace actor_update_grenade_throw_decision_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 
 /**
@@ -531,7 +523,7 @@ uint8_t ActorView::update_grenade_throw_decision()
 {
     using namespace actor_update_grenade_throw_decision_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *variant = TAG_DATA(act->actor_variant_tag);
+    ActorVariant *variant = halo::ai::tag_data<ActorVariant>(act->actor_variant_tag);
     int16_t mode = act->mode;
     uint8_t result = 0;
 
@@ -559,7 +551,6 @@ uint8_t ActorView::update_grenade_throw_decision()
     return result;
 }
 
-#undef TAG_DATA
 
 namespace actor_validate_grenade_ally_candidate_local {
 static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
@@ -589,9 +580,9 @@ uint8_t ActorOps::validate_grenade_ally_candidate(datum_index candidate_actor, u
     }
 
     if (candidate != (actor *)0 && 1 < candidate->combat_status && candidate->combat_status < 4 &&
-        (candidate->mode == 7 || candidate->mode == 5 ||
-         (caller_type_flag == 0 && candidate->mode == 8) ||
-         (candidate->mode == 6 && candidate->mode_data.raw[8] == 0 && 0 < *(int16_t *)&candidate->mode_data.raw[0]))) {
+        (candidate->mode == halo::ai::actor_mode::search || candidate->mode == halo::ai::actor_mode::uncover ||
+         (caller_type_flag == 0 && candidate->mode == halo::ai::actor_mode::wait) ||
+         (candidate->mode == halo::ai::actor_mode::guard && candidate->mode_data.guard.ambush_active == 0 && 0 < candidate->mode_data.guard.countdown_00))) {
         type_entry = (actor_type_table_entry *)actor_type_procs[candidate->type];
         if (type_entry->swarm != caller_type_flag) {
             return 1;

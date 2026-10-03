@@ -24,7 +24,6 @@ static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo
 
 
 
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 }
 
 
@@ -39,7 +38,7 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
     using namespace c_actor_avoid_obstacle_and_project;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    object *vehicle = (object *)OBJECT_DATA(vehicle_index);
+    object *vehicle = (object *)halo::ai::object_bytes(vehicle_index);
     Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(vehicle->definition_tag);
     real_point3d point = *entry;
     uint8_t near_line = in_out_near_line != 0 ? *in_out_near_line : 0;
@@ -48,6 +47,7 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
     real_vector3d delta;
 
     if ((static_cast<uint8_t>(vehicle_tag->base.unit_flags) & 0x10) == 0) {
+        [&]() {
         real_point3d center = *(real_point3d *)&((vehicle_object *)vehicle)->base.bounding_center.x;
         float radius = ((vehicle_object *)vehicle)->base.bounding_radius;
         float ax = act->body_position.x;
@@ -103,7 +103,7 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
             float ratio;
 
             if (!(length_squared > 0.0f)) {
-                goto project;
+                return;
             }
             ratio = (to_target.j * to_center.j + to_target.i * to_center.i) / length_squared;
             if (ratio > 0.0f && ratio <= 1.2f) {
@@ -115,14 +115,14 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
                 }
             } else {
                 if (near_line) {
-                    goto project;
+                    return;
                 }
                 away.i = -from_target.i;
                 away.j = -from_target.j;
             }
         }
         if (!(halo::math::vector2d_normalize_with_length(away) > 0.0f)) {
-            goto project;
+            return;
         }
         point.x = away.i * (radius * 1.1f) + center.x;
         point.y = away.j * (radius * 1.1f) + center.y;
@@ -135,7 +135,7 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
             real_vector3d side;
 
             if (!(distance_squared > 0.0001f) || !(distance_squared <= 4.0f)) {
-                goto project;
+                return;
             }
             distance = (float)halo::libm::sqrt(distance_squared);
             side.i = -from_target.j;
@@ -146,15 +146,15 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
             }
             side.k = 0.0f;
             if (!(halo::math::vector2d_normalize_with_length(*((real_vector2d *)&side)) > 0.0f)) {
-                goto project;
+                return;
             }
             distance = 2.0f - distance;
             point.x = side.i * distance + point.x;
             point.y = side.j * distance + point.y;
             point.z = side.k * distance + point.z;
         }
+        }();
     }
-project:
     if (in_out_near_line != 0) {
         *in_out_near_line = near_line;
     }
@@ -182,7 +182,6 @@ uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index ve
 }
 }
 
-#undef OBJECT_DATA
 
 namespace c_actor_avoidance_build_direction_tables {
 static auto &actor_avoidance_samples_a = halo::link::ref<float [16][7]>(halo::ai::vars().actor_avoidance_samples_a);
@@ -353,6 +352,7 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
 
     if (self->flying == 0) {
         uint8_t trace_ok;
+        bool trace_done = false;
 
         step_point.x = step_distance * direction->i + self->body_position.x;
         step_point.y = step_distance * direction->j + self->body_position.y;
@@ -367,10 +367,11 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
 
                 float dz = *(float *)((uint8_t *)extra_param + 0xc) - self->body_position.z;
                 if (dz <= step_distance * 0.5f && (step_up != 0.0f || step_distance * -0.5f <= dz)) {
-                    goto done;
+                    trace_done = true;
                 }
             }
         }
+        if (!trace_done) {
         obstructed = 0;
         if (0.0f < step_up) {
             real_point3d mid;
@@ -409,8 +410,8 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
                 }
             }
         }
+        }
     }
-done:
     if (out_flag != 0) {
         *out_flag = used_point_check;
     }
@@ -441,10 +442,10 @@ uint8_t halo::ai::movement_ops::check_vehicle_mode_timeout()
     datum_index actor_index = datum;
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
 
-    if (self->mode == _actor_mode_vehicle &&
-        *(int16_t *)&self->mode_data.raw[4] == 3 &&
-        self->mode_data.raw[0xb] != 0) {
-        int32_t deadline = *(int32_t *)&self->mode_data.raw[0x10] + 0x1e;
+    if (self->mode == halo::ai::actor_mode::charge &&
+        self->mode_data.charge.stage == 3 &&
+        self->mode_data.charge.jump_started != 0) {
+        int32_t deadline = self->mode_data.charge.stage_start_time + 0x1e;
         return (int32_t)halo::game::globals().game_time->game_time <= deadline;
     }
     return 0;
@@ -669,7 +670,6 @@ void actor_delete_swarm(datum_index actor_index)
 namespace c_actor_evaluate_search_node {
 
 
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 
 static actor *actor_try_get(datum_index handle)
 {
@@ -719,7 +719,7 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
     if (halo::units::unit_is_seat_occupied((int32_t)vehicle_index, seat_index)) {
         return 0;
     }
-    if ((TAG_DATA(act->actor_definition_tag)[0x4] & 8) && !halo::units::unit_seat_flag_bit10(vehicle_index, seat_index)) {
+    if ((halo::ai::tag_bytes(act->actor_definition_tag)[0x4] & 8) && !halo::units::unit_seat_flag_bit10(vehicle_index, seat_index)) {
         return 0;
     }
     if (!halo::units::unit_find_weapon_marker_transform(act->unit_index, vehicle_index, seat_index, &entry, &seat,
@@ -749,10 +749,10 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
         if (prop->enemy == 0 && other_index != k_datum_index_none) {
             actor *other = actor_try_get(other_index);
 
-            if (other != 0 && other->mode == 9 && other->mode_data.vehicle.vehicle_index == vehicle_index &&
+            if (other != 0 && other->mode == halo::ai::actor_mode::vehicle && other->mode_data.vehicle.vehicle_index == vehicle_index &&
                 other->mode_data.vehicle.seat_index == seat_index) {
-                float dx = *(float *)((uint8_t *)other + 0xcc) - other->body_position.x;
-                float dy = *(float *)((uint8_t *)other + 0xd0) - other->body_position.y;
+                float dx = other->mode_data.vehicle.path_destination.x - other->body_position.x;
+                float dy = other->mode_data.vehicle.path_destination.y - other->body_position.y;
 
                 if (distance * distance > dy * dy + dx * dx) {
                     return 0;
@@ -802,7 +802,6 @@ uint8_t actor_evaluate_search_node(datum_index actor_index, datum_index vehicle_
 }
 }
 
-#undef TAG_DATA
 
 namespace c_actor_fill_unit_position_context {
 static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
@@ -935,13 +934,13 @@ uint8_t halo::ai::movement_ops::gate_jump_traversal(int16_t threshold, char allo
         return result;
     }
 
-    if (a->mode == 4) {
-        int16_t climb = *(int16_t *)(a->mode_data.raw + (0xa8 - 0x9c));
+    if (a->mode == halo::ai::actor_mode::flee) {
+        int16_t climb = a->mode_data.flee.panic;
         if (climb > 0) {
             if (climb <= a->pending_panic_type) {
                 climb = a->pending_panic_type;
             }
-            *(int16_t *)(a->mode_data.raw + (0xa8 - 0x9c)) = climb;
+            a->mode_data.flee.panic = climb;
             a->pending_panic_type = 0;
             return 0;
         }
@@ -1033,7 +1032,7 @@ uint8_t halo::ai::movement_ops::get_requested_velocity(uint8_t skip_clamp, datum
             return 1;
         }
         if (self->jump_velocity_request.valid != 0) {
-            if (self->mode == 10 && *(int16_t *)&self->mode_data.raw[4] == 3) {
+            if (self->mode == halo::ai::actor_mode::charge && self->mode_data.charge.stage == 3) {
                 skip_clamp = 1;
             }
             out_velocity->j = self->jump_velocity_request.direction.j *

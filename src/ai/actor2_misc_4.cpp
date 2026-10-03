@@ -16,9 +16,6 @@ namespace halo::ai {
 
 namespace actor_seek_vehicle_to_board_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 static auto &ai_globals_ptr = halo::link::ref<uint8_t *>(halo::ai::vars().ai_globals_ptr);
 }
 
@@ -163,7 +160,7 @@ uint8_t ActorView::seek_vehicle_to_board()
         }
     }
     if (halo::ai::actor_build_order_search_object(best_vehicle, actor_index, radius_a, radius_b, order)) {
-        halo::ai::actor_set_mode(actor_index, 9, order);
+        halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::vehicle, order);
         return 1;
     }
     return 0;

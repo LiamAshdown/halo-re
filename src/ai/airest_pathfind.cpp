@@ -18,6 +18,7 @@
 
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &breakable_surface_state = halo::link::ref<uint8_t *>(halo::physics::vars().breakable_surface_state);
+static auto &breakable_surface_state_typed = reinterpret_cast<breakable_surface_globals *&>(breakable_surface_state);
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 
 namespace halo::ai {
@@ -1243,11 +1244,57 @@ uint8_t PathFindGeometry::test_segment_unobstructed(void *map, real_point3d *poi
     return 1;
 }
 
-#define SURFACE(bsp, i) (*(uint8_t **)((bsp) + 0x40) + (i) * 12)
-#define EDGE(bsp, i) (*(uint8_t **)((bsp) + 0x4c) + (i) * 0x18)
-#define VERTEX(bsp, i) ((float *)(*(uint8_t **)((bsp) + 0x58) + (i) * 16))
-#define SURFACE_PLANE(bsp, i) \
-    ((real_plane3d *)(*(uint8_t **)((bsp) + 0x10) + (*(uint32_t *)SURFACE(bsp, i) & 0x7fffffff) * 16))
+namespace {
+
+static_assert(offsetof(ModelCollisionGeometryBSP, planes) == 0x0c);
+static_assert(offsetof(ModelCollisionGeometryBSP, surfaces) == 0x3c);
+static_assert(offsetof(ModelCollisionGeometryBSP, edges) == 0x48);
+static_assert(offsetof(ModelCollisionGeometryBSP, vertices) == 0x54);
+static_assert(sizeof(ModelCollisionGeometryBSPSurface) == 12);
+static_assert(sizeof(ModelCollisionGeometryBSPEdge) == 0x18);
+static_assert(sizeof(ModelCollisionGeometryBSPVertex) == 16);
+
+/** Word indices into a collision bsp edge record viewed as int32_t[6]. */
+enum bsp_edge_word : int32_t {
+    k_edge_start_vertex = 0,
+    k_edge_end_vertex = 1,
+    k_edge_forward_edge = 2,
+    k_edge_reverse_edge = 3,
+    k_edge_left_surface = 4,
+    k_edge_right_surface = 5,
+};
+
+constexpr uint32_t k_bsp_plane_index_mask = 0x7fffffff;
+
+template <typename T>
+inline T *bsp_reflexive_at(const TagReflexive &reflexive, int32_t index)
+{
+    return reinterpret_cast<T *>(static_cast<uintptr_t>(reflexive.pointer)) + index;
+}
+
+inline ModelCollisionGeometryBSPSurface *bsp_surface(const void *bsp, int32_t index)
+{
+    return bsp_reflexive_at<ModelCollisionGeometryBSPSurface>(static_cast<const ModelCollisionGeometryBSP *>(bsp)->surfaces, index);
+}
+
+inline int32_t *bsp_edge(const void *bsp, int32_t index)
+{
+    return reinterpret_cast<int32_t *>(bsp_reflexive_at<ModelCollisionGeometryBSPEdge>(static_cast<const ModelCollisionGeometryBSP *>(bsp)->edges, index));
+}
+
+inline float *bsp_vertex(const void *bsp, int32_t index)
+{
+    return reinterpret_cast<float *>(bsp_reflexive_at<ModelCollisionGeometryBSPVertex>(static_cast<const ModelCollisionGeometryBSP *>(bsp)->vertices, index));
+}
+
+inline real_plane3d *bsp_surface_plane(const void *bsp, int32_t surface_index)
+{
+    return reinterpret_cast<real_plane3d *>(bsp_reflexive_at<ModelCollisionGeometryBSPPlane>(
+        static_cast<const ModelCollisionGeometryBSP *>(bsp)->planes, static_cast<int32_t>(bsp_surface(bsp, surface_index)->plane & k_bsp_plane_index_mask)));
+}
+
+}
+
 /**
  * Behaviour of path find trace bsp boundary, moved unchanged from the original free function.
  *
@@ -1264,8 +1311,8 @@ uint8_t PathFindGeometry::trace_bsp_boundary(void *map, uint8_t ignore_permissio
     int32_t surface = start_surface;
 
     for (;;) {
-        uint8_t *record = SURFACE(bsp, surface);
-        int32_t edge_index = *(int32_t *)(record + 4);
+        ModelCollisionGeometryBSPSurface *record = bsp_surface(bsp, surface);
+        int32_t edge_index = static_cast<int32_t>(record->first_edge);
         real_point3d centroid = *global_zero_vector3d_pointer;
         int32_t vertex_count = 0;
         uint8_t outside = 0;
@@ -1273,11 +1320,11 @@ uint8_t PathFindGeometry::trace_bsp_boundary(void *map, uint8_t ignore_permissio
         int32_t next_surface = -1;
 
         do {
-            uint8_t *edge = EDGE(bsp, edge_index);
-            uint8_t side = (uint8_t)(surface == *(int32_t *)(edge + 0x14));
-            float *va = VERTEX(bsp, *(int32_t *)(edge + (side ? 0 : 1) * 4));
-            float *vb = VERTEX(bsp, *(int32_t *)(edge + side * 4));
-            int32_t other = *(int32_t *)(edge + 0x10 + (side ? 0 : 1) * 4);
+            int32_t *edge = bsp_edge(bsp, edge_index);
+            uint8_t side = (uint8_t)(surface == edge[k_edge_right_surface]);
+            float *va = bsp_vertex(bsp, edge[side ? k_edge_start_vertex : k_edge_end_vertex]);
+            float *vb = bsp_vertex(bsp, edge[side ? k_edge_end_vertex : k_edge_start_vertex]);
+            int32_t other = edge[side ? k_edge_left_surface : k_edge_right_surface];
             float ex = vb[0] - va[0];
             float ey = vb[1] - va[1];
             float px = end->x - va[0];
@@ -1301,7 +1348,7 @@ uint8_t PathFindGeometry::trace_bsp_boundary(void *map, uint8_t ignore_permissio
                     uint8_t passable = (uint8_t)((flags >> 6) & 1);
 
                     if (!ignore_permission && passable && (flags & 0x80) != 0) {
-                        uint32_t bit = SURFACE(bsp, other)[9];
+                        uint32_t bit = static_cast<uint8_t>(bsp_surface(bsp, other)->breakable_surface);
 
                         passable = (uint8_t)((broken[bit >> 5] & (1u << (bit & 0x1f))) != 0);
                     }
@@ -1316,7 +1363,7 @@ uint8_t PathFindGeometry::trace_bsp_boundary(void *map, uint8_t ignore_permissio
 
                         hit.x = dx * t + start->x;
                         hit.y = dy * t + start->y;
-                        halo::math::decal_plane_solve_third_axis(&out_result->position, 1, 2, SURFACE_PLANE(bsp, surface), hit);
+                        halo::math::decal_plane_solve_third_axis(&out_result->position, 1, 2, bsp_surface_plane(bsp, surface), hit);
                         out_result->edge_a = surface;
                         out_result->edge_b = edge_index;
                         out_result->found = 1;
@@ -1325,8 +1372,8 @@ uint8_t PathFindGeometry::trace_bsp_boundary(void *map, uint8_t ignore_permissio
                     }
                 }
             }
-            edge_index = *(int32_t *)(edge + 8 + side * 4);
-        } while (edge_index != *(int32_t *)(record + 4));
+            edge_index = edge[side ? k_edge_reverse_edge : k_edge_forward_edge];
+        } while (edge_index != static_cast<int32_t>(record->first_edge));
 
         if (next_surface != -1) {
             surface = next_surface;
@@ -1342,7 +1389,7 @@ uint8_t PathFindGeometry::trace_bsp_boundary(void *map, uint8_t ignore_permissio
                 out_result->fraction = 0.0f;
                 return 1;
             }
-            halo::math::decal_plane_solve_third_axis(&out_result->position, 1, 2, SURFACE_PLANE(bsp, surface), *(real_point2d *)end);
+            halo::math::decal_plane_solve_third_axis(&out_result->position, 1, 2, bsp_surface_plane(bsp, surface), *(real_point2d *)end);
             out_result->edge_a = surface;
             out_result->edge_b = -1;
             out_result->found = 0;
@@ -1362,7 +1409,7 @@ uint8_t PathFindGeometry::trace_bsp_boundary(void *map, uint8_t ignore_permissio
                 continue;
             }
         }
-        halo::math::decal_plane_solve_third_axis(&out_result->position, 1, 2, SURFACE_PLANE(bsp, start_surface),
+        halo::math::decal_plane_solve_third_axis(&out_result->position, 1, 2, bsp_surface_plane(bsp, start_surface),
             *(real_point2d *)start);
         out_result->edge_a = -1;
         out_result->edge_b = -1;
@@ -1372,23 +1419,16 @@ uint8_t PathFindGeometry::trace_bsp_boundary(void *map, uint8_t ignore_permissio
     }
 }
 
-#undef SURFACE
-#undef EDGE
-#undef VERTEX
-#undef SURFACE_PLANE
-
-#define EDGE(bsp, i) ((int32_t *)(*(uint8_t **)((bsp) + 0x4c) + (i) * 0x18))
-#define VERTEX(bsp, i) ((float *)(*(uint8_t **)((bsp) + 0x58) + (i) * 16))
 namespace {
 
-static uint8_t path_find_surface_passable(uint8_t *bsp, uint8_t *walkable, uint32_t *broken, int32_t surface,
+static uint8_t path_find_surface_passable(const void *bsp, uint8_t *walkable, uint32_t *broken, int32_t surface,
     uint8_t ignore_permission)
 {
     uint8_t flags = walkable[surface];
     uint8_t passable = (uint8_t)((flags >> 6) & 1);
 
     if (!ignore_permission && passable && (flags & 0x80) != 0) {
-        uint32_t bit = (*(uint8_t **)(bsp + 0x40))[surface * 12 + 9];
+        uint32_t bit = static_cast<uint8_t>(bsp_surface(bsp, surface)->breakable_surface);
 
         passable = (uint8_t)((broken[bit >> 5] & (1u << (bit & 0x1f))) != 0);
     }
@@ -1410,12 +1450,12 @@ uint8_t PathFindGeometry::trace_cluster_boundary(void *map, int32_t edge_index, 
     int32_t first_pivot = -1;
     int32_t previous = -1;
     int32_t current = edge_index;
-    int32_t *edge = EDGE(bsp, current);
+    int32_t *edge = bsp_edge(bsp, current);
 
     for (;;) {
-        uint8_t first_passable = path_find_surface_passable(bsp, walkable, broken, edge[4], ignore_permission);
-        float *v1 = VERTEX(bsp, edge[first_passable]);
-        float *v2 = VERTEX(bsp, edge[!first_passable]);
+        uint8_t first_passable = path_find_surface_passable(bsp, walkable, broken, edge[k_edge_left_surface], ignore_permission);
+        float *v1 = bsp_vertex(bsp, edge[first_passable]);
+        float *v2 = bsp_vertex(bsp, edge[!first_passable]);
         float ex = v2[0] - v1[0];
         float ey = v2[1] - v1[1];
         float length = (float)halo::libm::sqrt(ey * ey + ex * ex);
@@ -1448,10 +1488,10 @@ uint8_t PathFindGeometry::trace_cluster_boundary(void *map, int32_t edge_index, 
         if (first_pivot == -1) {
             turn = 1;
         }
-        pivot = ((uint8_t)(turn != first_passable) != side) ? edge[0] : edge[1];
+        pivot = ((uint8_t)(turn != first_passable) != side) ? edge[k_edge_start_vertex] : edge[k_edge_end_vertex];
         if (pivot == previous) {
-            out_point->x = VERTEX(bsp, pivot)[0];
-            out_point->y = VERTEX(bsp, pivot)[1];
+            out_point->x = bsp_vertex(bsp, pivot)[0];
+            out_point->y = bsp_vertex(bsp, pivot)[1];
             return 1;
         }
         if (pivot == first_pivot) {
@@ -1463,13 +1503,13 @@ uint8_t PathFindGeometry::trace_cluster_boundary(void *map, int32_t edge_index, 
 
         rotation_start = current;
         for (;;) {
-            int32_t index = (pivot == edge[1]) ? 0 : 1;
+            int32_t index = (pivot == edge[k_edge_end_vertex]) ? 0 : 1;
 
-            if (path_find_surface_passable(bsp, walkable, broken, edge[4 + index], ignore_permission) == side) {
+            if (path_find_surface_passable(bsp, walkable, broken, edge[k_edge_left_surface + index], ignore_permission) == side) {
                 break;
             }
-            current = edge[2 + index];
-            edge = EDGE(bsp, current);
+            current = edge[k_edge_forward_edge + index];
+            edge = bsp_edge(bsp, current);
             if (current == rotation_start) {
                 return 0;
             }
@@ -1478,10 +1518,7 @@ uint8_t PathFindGeometry::trace_cluster_boundary(void *map, int32_t edge_index, 
     }
 }
 
-#undef EDGE
-#undef VERTEX
 
-#define breakable_surface_state (*reinterpret_cast<breakable_surface_globals * *>(&breakable_surface_state))
 namespace {
 
 static uint8_t path_find_surface_passable_2(const uint8_t *surface_permissions, uint8_t ignore_permission,
@@ -1513,7 +1550,7 @@ uint8_t PathFindGeometry::trace_cluster_boundary_from_vertex(void *context, uint
 {
     ModelCollisionGeometryBSP *bsp = *(ModelCollisionGeometryBSP **)((uint8_t *)context + 0xb4);
     uint8_t *surface_permissions = *(uint8_t **)((uint8_t *)context + 0x1e8);
-    uint32_t *intact_row = breakable_surface_state->active[halo::scenario::globals().structure_bsp_index];
+    uint32_t *intact_row = breakable_surface_state_typed->active[halo::scenario::globals().structure_bsp_index];
     int32_t surface_index = start_index;
     collision_bsp_boundary_clip clip;
 
@@ -1555,7 +1592,6 @@ uint8_t PathFindGeometry::trace_cluster_boundary_from_vertex(void *context, uint
     return 0;
 }
 
-#undef breakable_surface_state
 
 /**
  * Behaviour of path find validate and record goal, moved unchanged from the original free function.

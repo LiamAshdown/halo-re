@@ -54,8 +54,6 @@ void actor_mode_charge_enter(datum_index actor_index)
 
 namespace c_actor_mode_charge_process {
 
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 
 }
 
@@ -72,7 +70,7 @@ uint8_t halo::ai::charge_mode::process()
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
     Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
-    uint8_t *variant = TAG_DATA(act->actor_variant_tag);
+    ActorVariant *variant = halo::ai::tag_data<ActorVariant>(act->actor_variant_tag);
     ActorVariant *definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
     actor_mode_charge_data *md = &act->mode_data.charge;
     prop *target = 0;
@@ -284,7 +282,6 @@ uint8_t halo::ai::charge_mode::process()
                 md->jump_solved = 0;
                 md->turning_to_face = 1;
                 strike = 0;
-                goto strike_done;
             }
         }
         if (strike) {
@@ -301,7 +298,6 @@ uint8_t halo::ai::charge_mode::process()
                 md->strike_started = 1;
             }
         }
-    strike_done:;
     }
 
     now = halo::game::globals().game_time->game_time;
@@ -322,6 +318,7 @@ uint8_t halo::ai::charge_mode::process()
     threshold = halo::ai::actor_get_consideration_wait_threshold(actor_index, md->stage, (actor_combat_consideration *)md);
     md->wait_threshold = threshold;
     if (!act->swarm && act->needs_new_path) {
+        bool approached = false;
         md->approach_failed = 0;
         if (!md->strike_started && !md->jump_started && !md->jump_solved && md->close_in) {
             float radius = md->stage == 3 ? 4.0f : 1.5f;
@@ -331,16 +328,18 @@ uint8_t halo::ai::charge_mode::process()
             }
             if (halo::ai::actor_movement_set_destination_near_target(act->target_unit_index, actor_index, radius)) {
                 halo::ai::actor_movement_actions_cancel(actor_index);
-                goto approach_done;
+                approached = true;
+            } else {
+                md->approach_failed = 1;
+                md->close_in = 0;
             }
-            md->approach_failed = 1;
-            md->close_in = 0;
         }
-        halo::ai::actor_movement_action_stop(actor_index);
-    approach_done:
+        if (!approached) {
+            halo::ai::actor_movement_action_stop(actor_index);
+        }
         if (act->target_combat_status >= 7) {
             datum_index target_index = act->target_unit_index;
-            uint8_t far_away = (uint8_t)(((struct prop *)PROP(target_index))->distance > md->wait_threshold);
+            uint8_t far_away = (uint8_t)(((struct prop *)halo::ai::prop_bytes(target_index))->distance > md->wait_threshold);
             uint8_t engaged = 0;
             int16_t current = md->stage;
 
@@ -371,8 +370,6 @@ uint8_t actor_mode_charge_process(datum_index actor_index)
 }
 }
 
-#undef PROP
-#undef TAG_DATA
 
 namespace c_actor_mode_charge_tick {
 }
@@ -463,7 +460,7 @@ void halo::ai::charge_mode::update()
     }
     act->unknown_424[0] = 0;
     act->unknown_424[1] = 0;
-    act->unknown_42a = 1;
+    act->force_turn = 1;
     act->wants_to_fire = (uint8_t)(act->mode_data.charge.stage != 1);
 }
 
@@ -582,7 +579,6 @@ void actor_mode_flee_enter(datum_index actor_index)
 
 
 namespace c_actor_mode_flee_exit {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
 }
 
@@ -597,7 +593,7 @@ void halo::ai::flee_mode::exit()
 {
     using namespace c_actor_mode_flee_exit;
     datum_index actor_index = datum;
-    datum_index unit_index = ((struct actor *)ACTOR(actor_index))->unit_index;
+    datum_index unit_index = ((struct actor *)halo::ai::actor_bytes(actor_index))->unit_index;
 
     if (unit_index != k_datum_index_none) {
         unit_object *obj = (unit_object *)halo::ai::object_at(unit_index);
@@ -613,7 +609,6 @@ void actor_mode_flee_exit(datum_index actor_index)
 }
 }
 
-#undef ACTOR
 
 namespace c_actor_mode_flee_get_look_weights {
 
@@ -680,7 +675,6 @@ void actor_mode_flee_movement_cancelled(datum_index actor_index)
 
 namespace c_actor_mode_flee_process {
 
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 
 }
 
@@ -741,12 +735,12 @@ uint8_t halo::ai::flee_mode::process()
             }
             break;
         case 11:
-            if (!act->unknown_1b4[0]) {
+            if (!act->enemy_child_attached) {
                 mode_data->finished = 1;
             }
             break;
         case 12:
-            if (!act->unknown_1b4[1]) {
+            if (!act->on_fire) {
                 mode_data->finished = 1;
             }
             break;
@@ -802,7 +796,7 @@ uint8_t halo::ai::flee_mode::process()
                     datum_index source_object = k_datum_index_none;
 
                     if (mode_data->reference != k_datum_index_none) {
-                        source_object = ((struct prop *)PROP(mode_data->reference))->object_index;
+                        source_object = ((struct prop *)halo::ai::prop_bytes(mode_data->reference))->object_index;
                     }
                     if (!announced) {
                         halo::ai::ai_communication_broadcast(0x1f + (kind == 8), unit_index, source_object, -1, -1, 4, 0);
@@ -825,7 +819,6 @@ uint8_t actor_mode_flee_process(datum_index actor_index)
 }
 }
 
-#undef PROP
 
 namespace c_actor_mode_flee_replace_reference {
 }
@@ -899,7 +892,6 @@ void actor_mode_flee_tick(datum_index actor_index)
 
 
 namespace c_actor_mode_flee_update {
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 
 }
 
@@ -923,7 +915,7 @@ void halo::ai::flee_mode::update()
         act->flee_reason = 6;
         act->flee_source.code = 0;
         act->unknown_455[1] = 1;
-    } else if (target != k_datum_index_none && ((struct prop *)PROP(target))->visual_perception > 0) {
+    } else if (target != k_datum_index_none && ((struct prop *)halo::ai::prop_bytes(target))->visual_perception > 0) {
         act->flee_reason = 7;
         act->flee_source.code = 2;
         act->wants_to_fire = 1;
@@ -971,7 +963,6 @@ void actor_mode_flee_update(datum_index actor_index)
 }
 }
 
-#undef PROP
 
 namespace c_actor_mode_guard_enter {
 

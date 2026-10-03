@@ -26,7 +26,6 @@
 namespace halo::ai {
 
 namespace actor_target_data_acquire_local {
-#define PROP(h) (halo::ai::prop_at((h)))
 }
 
 /**
@@ -47,13 +46,13 @@ uint8_t ActorView::target_data_acquire(datum_index object_index, datum_index own
     if (resolved == k_datum_index_none) {
         return 1;
     }
-    target = PROP(resolved);
+    target = halo::ai::prop_at(resolved);
     current = resolved;
     if (target->state >= 2 && target->state <= 3) {
         result = 0;
     } else if (target->pair_index != k_datum_index_none) {
         datum_index pair = target->pair_index;
-        prop *paired = PROP(pair);
+        prop *paired = halo::ai::prop_at(pair);
         uint8_t fresh = 0;
 
         if (pair_reference != k_datum_index_none) {
@@ -67,14 +66,14 @@ uint8_t ActorView::target_data_acquire(datum_index object_index, datum_index own
         halo::ai::actor_target_data_refresh(actor_index, pair, scratch, (char)fresh, 1);
         halo::ai::actor_target_update_tracking_speed(actor_index, pair, scratch);
         current = pair;
-        target = PROP(pair);
+        target = halo::ai::prop_at(pair);
     } else {
         datum_index created;
 
         if (pair_reference != k_datum_index_none) {
             created = halo::ai::actor_allocate_paired_prop_with_kind(actor_index, resolved, pair_reference);
             if (created != k_datum_index_none) {
-                prop *copy = PROP(created);
+                prop *copy = halo::ai::prop_at(created);
 
                 copy->object_index = target->object_index;
                 copy->owner_actor_index = target->owner_actor_index;
@@ -88,11 +87,11 @@ uint8_t ActorView::target_data_acquire(datum_index object_index, datum_index own
             return 0;
         }
         current = created;
-        target = PROP(created);
+        target = halo::ai::prop_at(created);
     }
 
     if (owner_reference == k_datum_index_none ||
-        (pair_reference != k_datum_index_none && PROP(pair_reference)->visual_perception >= 2)) {
+        (pair_reference != k_datum_index_none && halo::ai::prop_at(pair_reference)->visual_perception >= 2)) {
         target->has_current_information = 1;
         target->information_age = 0;
         target->information_source_actor = owner_reference;
@@ -102,7 +101,6 @@ uint8_t ActorView::target_data_acquire(datum_index object_index, datum_index own
     return result;
 }
 
-#undef PROP
 
 namespace actor_target_data_refresh_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
@@ -142,11 +140,11 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
     object_index = target->object_index;
     unit_obj = halo::ai::object_at(object_index);
 
+    bool skip_refresh = false;
     if (force == 0 && 3 < target->state && target->state < 6) {
         if (target->dead_confirmed != 0) {
-            goto after_reassign;
-        }
-        {
+            skip_refresh = true;
+        } else {
             if ((!halo::ai::flag_set(unit_obj->vitality_flags, halo::objects::vitality_flag::health_frozen) || *(int16_t *)((uint8_t *)unit_obj + 0x420) != 0) ||
                 (target->perception_level != 0 || 0.010000001f <= halo::math::vector3d_magnitude_squared(unit_obj->velocity))) {
                 is_eligible = 0;
@@ -157,85 +155,87 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
             if ((self->target_unit_index == target_prop_index &&
                  (target->noticed_a == 0 || target->noticed_b == 0)) ||
                 is_eligible == 0) {
-                goto after_reassign;
+                skip_refresh = true;
+            } else {
+                target->dead_confirmed = 1;
+                target->dead = 1;
             }
-            target->dead_confirmed = 1;
-            target->dead = 1;
         }
     }
 
-    if (((target->swarm_owned != 0 && target->owner_actor_index != k_datum_index_none) && allow_reassign != 0) &&
-        target->swarm_reassign_time + 0x5a <= halo::game::globals().game_time->game_time) {
-        target->swarm_reassign_time = halo::game::globals().game_time->game_time;
-        reassigned = halo::ai::object_find_nearest_squad_member(target->owner_actor_index, (void *)&self->aim_origin, object_index, 0);
-        if (reassigned != object_index) {
-            target->object_index = reassigned;
-            unit_obj = halo::ai::object_at(reassigned);
-            if (target->state < 4 || 5 < target->state) {
-                if (target->pair_index != k_datum_index_none) {
+    if (!skip_refresh) {
+        if (((target->swarm_owned != 0 && target->owner_actor_index != k_datum_index_none) && allow_reassign != 0) &&
+            target->swarm_reassign_time + 0x5a <= halo::game::globals().game_time->game_time) {
+            target->swarm_reassign_time = halo::game::globals().game_time->game_time;
+            reassigned = halo::ai::object_find_nearest_squad_member(target->owner_actor_index, (void *)&self->aim_origin, object_index, 0);
+            if (reassigned != object_index) {
+                target->object_index = reassigned;
+                unit_obj = halo::ai::object_at(reassigned);
+                if (target->state < 4 || 5 < target->state) {
+                    if (target->pair_index != k_datum_index_none) {
+                        (halo::ai::prop_at(target->pair_index))->object_index = reassigned;
+                    }
+                } else {
                     (halo::ai::prop_at(target->pair_index))->object_index = reassigned;
                 }
-            } else {
-                (halo::ai::prop_at(target->pair_index))->object_index = reassigned;
             }
+        }
+
+        halo::objects::object_get_node_local_transform(target->object_index, ai_marker_name_a, &marker, 1);
+        target->head_position = marker.node_transform.position;
+
+        halo::objects::object_get_position(&target->last_known_position, target->object_index);
+
+        halo::objects::object_get_node_local_transform(target->object_index, ai_marker_name_b, &marker, 1);
+        target->center_of_mass = marker.node_transform.position;
+        *(real_vector3d *)&target->velocity = unit_obj->velocity;
+        target->pathfinding_surface_index = -1;
+
+        reassigned = halo::objects::object_get_root_object_index(target->object_index);
+        parent_obj = halo::ai::object_at(reassigned);
+        target->location.leaf_index = parent_obj->location_leaf_index;
+        target->location.cluster_index = parent_obj->location_cluster_index;
+        target->location.unknown_06 = parent_obj->location_reserved;
+
+        target->in_water = halo::scenario::scenario_location_get_water_and_weather(&target->center_of_mass, &target->location, 0);
+        target->relationship_object_index = -1;
+        target->is_vehicle_gunner = 0;
+        target->is_vehicle_driver = 0;
+        target->parent_object_index = halo::k_dword_none;
+
+        parent_index = unit_obj->parent_object;
+        if (parent_index != k_datum_index_none) {
+            parent_obj = halo::ai::object_at(parent_index);
+            if (parent_obj->type == 1) {
+                target->relationship_object_index = parent_index;
+                if (*(int32_t *)((uint8_t *)parent_obj + 0x328) == (int32_t)target->object_index ||
+                    target->actor_type == 0xf) {
+                    target->is_vehicle_gunner = 1;
+                } else {
+                    target->is_vehicle_gunner = 0;
+                }
+                if (*(int32_t *)((uint8_t *)parent_obj + 0x324) == (int32_t)target->object_index &&
+                    halo::units::unit_get_tag_flag_bit7(parent_index) != 0) {
+                    target->is_vehicle_driver = 1;
+                } else {
+                    target->is_vehicle_driver = 0;
+                }
+            } else if ((1 << (parent_obj->type & 0x1f) & 3) != 0) {
+                target->parent_object_index = parent_index;
+            }
+        }
+
+        target->child_unit_count = 0;
+        child_index = unit_obj->first_child_object;
+        while (child_index != k_datum_index_none) {
+            child_obj = halo::ai::object_at(child_index);
+            if ((1 << (child_obj->type & 0x1f) & 3) != 0) {
+                target->child_unit_count = target->child_unit_count + 1;
+            }
+            child_index = child_obj->next_object;
         }
     }
 
-    halo::objects::object_get_node_local_transform(target->object_index, ai_marker_name_a, &marker, 1);
-    target->head_position = marker.node_transform.position;
-
-    halo::objects::object_get_position(&target->last_known_position, target->object_index);
-
-    halo::objects::object_get_node_local_transform(target->object_index, ai_marker_name_b, &marker, 1);
-    target->center_of_mass = marker.node_transform.position;
-    *(real_vector3d *)&target->velocity = unit_obj->velocity;
-    target->pathfinding_surface_index = -1;
-
-    reassigned = halo::objects::object_get_root_object_index(target->object_index);
-    parent_obj = halo::ai::object_at(reassigned);
-    target->location.leaf_index = parent_obj->location_leaf_index;
-    target->location.cluster_index = parent_obj->location_cluster_index;
-    target->location.unknown_06 = parent_obj->location_reserved;
-
-    target->in_water = halo::scenario::scenario_location_get_water_and_weather(&target->center_of_mass, &target->location, 0);
-    target->relationship_object_index = -1;
-    target->is_vehicle_gunner = 0;
-    target->is_vehicle_driver = 0;
-    target->parent_object_index = halo::k_dword_none;
-
-    parent_index = unit_obj->parent_object;
-    if (parent_index != k_datum_index_none) {
-        parent_obj = halo::ai::object_at(parent_index);
-        if (parent_obj->type == 1) {
-            target->relationship_object_index = parent_index;
-            if (*(int32_t *)((uint8_t *)parent_obj + 0x328) == (int32_t)target->object_index ||
-                target->actor_type == 0xf) {
-                target->is_vehicle_gunner = 1;
-            } else {
-                target->is_vehicle_gunner = 0;
-            }
-            if (*(int32_t *)((uint8_t *)parent_obj + 0x324) == (int32_t)target->object_index &&
-                halo::units::unit_get_tag_flag_bit7(parent_index) != 0) {
-                target->is_vehicle_driver = 1;
-            } else {
-                target->is_vehicle_driver = 0;
-            }
-        } else if ((1 << (parent_obj->type & 0x1f) & 3) != 0) {
-            target->parent_object_index = parent_index;
-        }
-    }
-
-    target->child_unit_count = 0;
-    child_index = unit_obj->first_child_object;
-    while (child_index != k_datum_index_none) {
-        child_obj = halo::ai::object_at(child_index);
-        if ((1 << (child_obj->type & 0x1f) & 3) != 0) {
-            target->child_unit_count = target->child_unit_count + 1;
-        }
-        child_index = child_obj->next_object;
-    }
-
-after_reassign:
     halo::ai::actor_get_firing_positions(actor_index, (uint32_t *)reference, &target->last_known_position);
 
     target->direction.x = target->last_known_position.x - *(float *)((uint8_t *)reference + 0xc);
@@ -770,86 +770,95 @@ void ActorView::target_scan_potential_targets()
 
             unit_bucket = 0;
 
-            if (p->is_parented) {
-                accept = 1;
-            } else if (owner != (actor *)0 && !(owner->active != 0 && owner->keep_unit_alive == 0)) {
-                accept = 0;
-            } else if (p->in_use != 0 || 0 < p->retain_timer) {
-                accept = 1;
-            } else if (1600.0f < dist_sq) {
-                accept = 0;
-            } else if (!p->dead) {
-                if (!p->enemy) {
-                    accept = dist_sq < 225.0f;
-                    if (3 < self->combat_status) {
-                        unit_bucket = 1;
-                        goto merged;
-                    }
-                    if (self->grenade_ally_phase_flag == 0) {
-                        threshold_bits = (uint16_t)(dist_sq < 16.0f) << 8 |
-                                          (uint16_t)(dist_sq == 16.0f) << 0xe;
-                        goto shared_threshold;
-                    }
-                    unit_bucket = 0;
-                } else {
-                    threshold_bits = (uint16_t)(dist_sq < 36.0f) << 8 |
-                                      (uint16_t)(dist_sq == 36.0f) << 0xe;
+            auto decide = [&]() {
+                if (p->is_parented) {
                     accept = 1;
-shared_threshold:
-                    unit_bucket = 1;
-                    if (threshold_bits == 0) goto merged;
-                    unit_bucket = 0;
-                }
-            } else {
-                datum_index encounter_idx = self->encounter_index;
-                accept = 1;
-                if (encounter_idx != k_datum_index_none) {
-                    encounter *enc = &((encounter *)halo::ai::globals().encounter_data->data)[encounter_idx & halo::k_slot_mask];
-                    int32_t gate = (enc->last_idle_time <= self->found_body_time) ? self->found_body_time
-                                                                           : enc->last_idle_time;
-                    if (gate != -1) {
-                        object_header *ohdr = (object_header *)halo::objects::globals().object_data->data + (p->object_index & halo::k_slot_mask);
-                        unit_data *u = (unit_data *)((uint8_t *)ohdr->data + k_unit_data_offset);
-                        int32_t last_seen = u->death_time;
-                        if (last_seen == -1 || last_seen < gate) {
+                } else if (owner != (actor *)0 && !(owner->active != 0 && owner->keep_unit_alive == 0)) {
+                    accept = 0;
+                } else if (p->in_use != 0 || 0 < p->retain_timer) {
+                    accept = 1;
+                } else if (1600.0f < dist_sq) {
+                    accept = 0;
+                } else if (!p->dead) {
+                    bool shared_threshold = false;
+                    if (!p->enemy) {
+                        accept = dist_sq < 225.0f;
+                        if (3 < self->combat_status) {
+                            unit_bucket = 1;
+                            return;
+                        }
+                        if (self->grenade_ally_phase_flag == 0) {
+                            threshold_bits = (uint16_t)(dist_sq < 16.0f) << 8 |
+                                              (uint16_t)(dist_sq == 16.0f) << 0xe;
+                            shared_threshold = true;
+                        } else {
+                            unit_bucket = 0;
+                        }
+                    } else {
+                        threshold_bits = (uint16_t)(dist_sq < 36.0f) << 8 |
+                                          (uint16_t)(dist_sq == 36.0f) << 0xe;
+                        accept = 1;
+                        shared_threshold = true;
+                    }
+                    if (shared_threshold) {
+                        unit_bucket = 1;
+                        if (threshold_bits == 0) {
+                            return;
+                        }
+                        unit_bucket = 0;
+                    }
+                } else {
+                    datum_index encounter_idx = self->encounter_index;
+                    accept = 1;
+                    if (encounter_idx != k_datum_index_none) {
+                        encounter *enc = &((encounter *)halo::ai::globals().encounter_data->data)[encounter_idx & halo::k_slot_mask];
+                        int32_t gate = (enc->last_idle_time <= self->found_body_time) ? self->found_body_time
+                                                                               : enc->last_idle_time;
+                        if (gate != -1) {
+                            object_header *ohdr = (object_header *)halo::objects::globals().object_data->data + (p->object_index & halo::k_slot_mask);
+                            unit_data *u = (unit_data *)((uint8_t *)ohdr->data + k_unit_data_offset);
+                            int32_t last_seen = u->death_time;
+                            if (last_seen == -1 || last_seen < gate) {
+                                accept = 0;
+                            }
+                        }
+                        if (enc->engaged == 0 && enc->has_live_target == 0 && enc->stood_down == 0) {
+                            if (!accept) {
+                                return;
+                            }
+                            if (dist_sq < 225.0f) {
+                                accept = 1;
+                                return;
+                            }
+                            accept = 0;
+                            return;
+                        }
+                    }
+                    if (p->danger_radius <= 0.0f) {
+                        if (!p->enemy || p->dead_ticks < 0x97) {
+                            int16_t grade;
+                            grade = halo::ai::actor_get_current_mode_combat_grade(actor_index);
+                            if (grade < 2) {
+                                float grade_threshold = 16.0f;
+                                if (!p->enemy && self->awareness_level < 3) {
+                                    grade_threshold = 64.0f;
+                                }
+                                if (dist_sq < grade_threshold) {
+                                    accept = 1;
+                                    return;
+                                }
+                            }
+                            accept = 0;
+                        } else {
                             accept = 0;
                         }
-                    }
-                    if (!(enc->engaged == 0 && enc->has_live_target == 0 && enc->stood_down == 0)) {
-                        goto encounter_gate_open;
-                    }
-                    if (!accept) goto merged;
-                    if (dist_sq < 225.0f) {
-                        accept = 1;
-                        goto merged;
-                    }
-                    goto not_accepted;
-                }
-encounter_gate_open:
-                if (p->danger_radius <= 0.0f) {
-                    if (!p->enemy || p->dead_ticks < 0x97) {
-                        int16_t grade;
-                        grade = halo::ai::actor_get_current_mode_combat_grade(actor_index);
-                        if (grade < 2) {
-                            float grade_threshold = 16.0f;
-                            if (!p->enemy && self->awareness_level < 3) {
-                                grade_threshold = 64.0f;
-                            }
-                            if (dist_sq < grade_threshold) {
-                                accept = 1;
-                                goto merged;
-                            }
-                        }
-not_accepted:
-                        accept = 0;
                     } else {
-                        accept = 0;
+                        accept = 1;
                     }
-                } else {
-                    accept = 1;
                 }
-            }
-merged:
+            };
+            decide();
+
             if (accept && pvs_bitmap != 0) {
                 accept = 0;
                 {
@@ -991,28 +1000,35 @@ merged:
         int16_t i = 0;
         int16_t bound = list_a.entry_count;
 
-        if (list_a.seen_count < 4) {
+        bool evict = list_a.seen_count >= 4;
+
+        if (!evict) {
             qsort(list_a.entries, list_a.entry_count, sizeof(ai_target_candidate),
                    (int32_t (*)(const void *, const void *))halo::ai::ai_target_distance_qsort_compare);
             if (list_a.entry_count > 0) {
                 do {
+                    bool counted = true;
+
                     if (list_a.entries[i].prop_index == k_datum_index_none) {
                         datum_index new_prop = halo::ai::actor_find_or_allocate_prop(actor_index, list_a.entries[i].object_index, 1);
-                        if (new_prop != k_datum_index_none) {
+                        counted = new_prop != k_datum_index_none;
+                        if (counted) {
                             halo::ai::actor_target_data_refresh(actor_index, new_prop, swarm_pvs, 0, 0);
-                            goto list_a_counted;
                         }
-                    } else {
-list_a_counted:
+                    }
+                    if (counted) {
                         list_a.seen_count++;
                         bound = list_a.entry_count;
-                        if (3 < list_a.seen_count) goto list_a_evict;
+                        if (3 < list_a.seen_count) {
+                            evict = true;
+                            break;
+                        }
                     }
                     i++;
                 } while (i < list_a.entry_count);
             }
-        } else {
-list_a_evict:
+        }
+        if (evict) {
             if (i < bound) {
                 do {
                     if (list_a.entries[i].prop_index != k_datum_index_none) {
@@ -1040,34 +1056,35 @@ list_a_evict:
 
         if (cap < 5) cap = 4;
 
-        if (combined < cap) {
+        bool evict = !(combined < cap);
+
+        if (!evict) {
             qsort(list_b.entries, list_b.entry_count, sizeof(ai_target_candidate),
                    (int32_t (*)(const void *, const void *))halo::ai::ai_target_distance_qsort_compare);
             if (list_b.entry_count > 0) {
                 do {
+                    bool counted = true;
+
                     if (list_b.entries[i].prop_index == k_datum_index_none) {
                         datum_index new_prop = halo::ai::actor_find_or_allocate_prop(actor_index, list_b.entries[i].object_index, 0);
-                        if (new_prop != k_datum_index_none) {
+                        counted = new_prop != k_datum_index_none;
+                        if (counted) {
                             halo::ai::actor_target_data_refresh(actor_index, new_prop, swarm_pvs, 0, 0);
-                            goto list_b_counted;
                         }
-                    } else {
-list_b_counted:
+                    }
+                    if (counted) {
                         list_b.seen_count++;
                         combined++;
-                        if (cap <= combined) goto list_b_evict;
+                        if (cap <= combined) {
+                            evict = true;
+                            break;
+                        }
                     }
                     i++;
                 } while (i < list_b.entry_count);
-                halo::objects::globals().object_globals->collecting_in_clusters = 0;
-                return;
             }
-        } else {
-list_b_evict:
-            if (list_b.entry_count <= i) {
-                halo::objects::globals().object_globals->collecting_in_clusters = 0;
-                return;
-            }
+        }
+        if (evict && i < list_b.entry_count) {
             do {
                 if (list_b.entries[i].prop_index != k_datum_index_none) {
                     prop *existing = &props[list_b.entries[i].prop_index & halo::k_slot_mask];
@@ -1372,13 +1389,13 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, void
                 uint16_t priority_class = halo::ai::actor_target_get_priority_class(actor_index, target_prop_index);
                 result = halo::ai::actor_dispatch_look_handler_by_posture(p->obstruction, actor_index, scratch, (void *)((uint8_t *)p + 0x104),
                                        rate_flag, 1, priority_class);
-                if (result > 1) goto after_engage;
             }
-            p->perception_level = result;
-            p->visual_perception = result;
-            p->obstruction = 0;
+            if (result <= 1) {
+                p->perception_level = result;
+                p->visual_perception = result;
+                p->obstruction = 0;
+            }
         }
-after_engage:
         if (!p->disregarded) {
             uint8_t did_track = 0;
             if (!p->camouflaged) {
@@ -1595,8 +1612,8 @@ uint8_t ActorOps::targets_share_descriptor(datum_index actor_a, datum_index acto
     self_a = halo::ai::actor_at(actor_a);
     self_b = halo::ai::actor_at(actor_b);
 
-    desc_a = (self_a->mode == 7 || self_a->mode == 5) ? (int16_t *)&self_a->mode_data.raw[8] : (int16_t *)0;
-    desc_b = (self_b->mode == 7 || self_b->mode == 5) ? (int16_t *)&self_b->mode_data.raw[8] : (int16_t *)0;
+    desc_a = (self_a->mode == halo::ai::actor_mode::search || self_a->mode == halo::ai::actor_mode::uncover) ? &self_a->mode_data.search.stage : (int16_t *)0;
+    desc_b = (self_b->mode == halo::ai::actor_mode::search || self_b->mode == halo::ai::actor_mode::uncover) ? &self_b->mode_data.search.stage : (int16_t *)0;
 
     if (desc_a == (int16_t *)0 || desc_b == (int16_t *)0) {
         return 0;

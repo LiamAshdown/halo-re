@@ -279,7 +279,6 @@ void actor_mode_avoid_update(datum_index actor_index)
 
 
 namespace c_actor_mode_converse_exit {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 
 }
 
@@ -294,7 +293,7 @@ void halo::ai::converse_mode::exit()
 {
     using namespace c_actor_mode_converse_exit;
     datum_index actor_index = datum;
-    datum_index conversation = ((struct actor *)ACTOR(actor_index))->conversation_index;
+    datum_index conversation = ((struct actor *)halo::ai::actor_bytes(actor_index))->conversation_index;
 
     if (conversation != k_datum_index_none) {
         halo::ai::ai_conversation_stop(conversation, 0, 0);
@@ -308,7 +307,6 @@ void actor_mode_converse_exit(datum_index actor_index)
 }
 }
 
-#undef ACTOR
 
 namespace c_actor_mode_converse_process {
 
@@ -527,7 +525,7 @@ uint8_t halo::ai::obey_mode::process()
             mode_data->finished = 1;
         }
     }
-    return (uint8_t)(actor->mode == 0xb && mode_data->finished != 0);
+    return (uint8_t)(actor->mode == halo::ai::actor_mode::obey && mode_data->finished != 0);
 }
 
 namespace halo::ai {
@@ -566,18 +564,6 @@ void actor_mode_obey_tick_members(uint32_t actor_index)
 namespace c_actor_mode_obey_update {
 static auto &global_forward2d_pointer = halo::link::ref<real_vector2d *>(halo::ai::vars().global_forward2d_pointer);
 
-
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
-
-static void copy12(struct actor *actor, int to, int from)
-{
-    D(to) = D(from);
-    D(to + 4) = D(from + 4);
-    D(to + 8) = D(from + 8);
-}
 }
 
 
@@ -943,12 +929,12 @@ void halo::ai::search_mode::tick()
         return;
     }
     if (act->mode_data.search.stage == 0) {
-        if (act->unknown_3bd[0]) {
+        if (act->target_lost_reported) {
             return;
         }
         if (act->mode_data.search.finished || act->mode_data.search.remaining_ticks + 90 < act->mode_data.search.duration_ticks) {
             halo::ai::ai_communication_broadcast(0xd, unit_index, halo::ai::actor_get_target_prop_object_index(actor_index), -1, -1, -1, 0);
-            act->unknown_3bd[0] = 1;
+            act->target_lost_reported = 1;
         }
     } else if (act->mode_data.search.remaining_ticks == 0) {
         halo::ai::ai_communication_broadcast(0x12, unit_index, halo::ai::actor_get_target_prop_object_index(actor_index), -1, -1, -1, 0);

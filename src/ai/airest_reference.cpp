@@ -421,7 +421,8 @@ void ReferenceView::expand_to_platoon_range(ai_reference_platoon_range *out_rang
 
     if (halo::scenario::globals().scenario == 0 || halo::ai::globals().state->actors_valid == 0 ||
         (int32_t)halo::scenario::globals().scenario->encounters.count <= (int32_t)encounter_index) {
-        goto fail;
+        out_range->encounter_index = -1;
+        return;
     }
 
     encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[encounter_index];
@@ -433,29 +434,27 @@ void ReferenceView::expand_to_platoon_range(ai_reference_platoon_range *out_rang
         return;
     }
     if (kind > 2) {
-        goto fail;
+        out_range->encounter_index = -1;
+        return;
     }
 
     platoon_index = (packed_reference >> 0x10) & 0xff;
-    if (kind == 2) {
-        if ((int32_t)platoon_index < encounter_definition->squads.count) {
+    if (kind == 2 && (int32_t)platoon_index >= encounter_definition->squads.count) {
+        out_range->platoon_start = -1;
+    } else {
+        if (kind == 2) {
             ScenarioSquad *squad = &((ScenarioSquad *)encounter_definition->squads.pointer)[platoon_index];
             platoon_index = squad->platoon;
-        } else {
-            out_range->platoon_start = -1;
-            goto validate;
         }
+        out_range->platoon_start = (int32_t)platoon_index;
     }
-    out_range->platoon_start = (int32_t)platoon_index;
 
-validate:
     platoon_index = out_range->platoon_start;
     if ((int32_t)platoon_index >= 0 && (int32_t)platoon_index < encounter_definition->platoons.count) {
         out_range->platoon_end = platoon_index;
         return;
     }
 
-fail:
     out_range->encounter_index = -1;
 }
 
@@ -524,7 +523,7 @@ void ReferenceView::flee_if_ready(uint32_t readiness_param)
 
         if (halo::ai::actor_squad_action_status_broadcast(iterator.actor_index, (int16_t)readiness_param,
                 &mode_data.obey) != 0) {
-            halo::ai::actor_set_mode(iterator.actor_index, _actor_mode_flee, &mode_data);
+            halo::ai::actor_set_mode(iterator.actor_index, halo::ai::actor_mode::obey, &mode_data);
         }
         a = halo::ai::ai_reference_actor_iterator_next(&iterator);
     }
@@ -811,7 +810,7 @@ void ReferenceView::refill_grenades()
     uint32_t packed_reference = handle;
     ai_reference_actor_iterator iterator;
     actor *a;
-    uint8_t *variant_data;
+    ActorVariant *variant_data;
     uint8_t *unit;
     int32_t rolled;
     int16_t current;
@@ -821,18 +820,18 @@ void ReferenceView::refill_grenades()
     a = halo::ai::ai_reference_actor_iterator_next(&iterator);
     while (a != 0) {
         if (a->unit_index != (datum_index)k_datum_index_none) {
-            variant_data = (uint8_t *)halo::cache::globals().tag_instances[a->actor_variant_tag & halo::k_slot_mask].data;
+            variant_data = halo::ai::tag_data<ActorVariant>(a->actor_variant_tag);
             unit = (uint8_t *)halo::ai::object_at(a->unit_index);
 
             ((unit_object *)unit)->base.body_vitality = (((unit_object *)unit)->base.maximum_body_vitality <= 0.0f) ? k_real_zero : k_real_one;
             ((unit_object *)unit)->base.shield_vitality = (((unit_object *)unit)->base.maximum_shield_vitality <= 0.0f) ? k_real_zero : k_real_one;
 
-            if (*(int16_t *)(variant_data + 0x180) != -1) {
+            if (variant_data->grenade_type != -1) {
                 halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
-                rolled = (int32_t)((uint32_t)(((int32_t)(int16_t)(*(int16_t *)(variant_data + 0x1d2) + 1) -
-                                     (int32_t)(int16_t)*(uint16_t *)(variant_data + 0x1d0)) *
+                rolled = (int32_t)((uint32_t)(((int32_t)(int16_t)(variant_data->grenade_count[1] + 1) -
+                                     (int32_t)(int16_t)variant_data->grenade_count[0]) *
                                     (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10) +
-                         (int32_t)*(uint16_t *)(variant_data + 0x1d0);
+                         (int32_t)(uint16_t)variant_data->grenade_count[0];
 
                 unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)
                     [a->unit_index & halo::k_slot_mask].data;
@@ -844,7 +843,7 @@ void ReferenceView::refill_grenades()
                 }
 
                 if (current < (int16_t)rolled) {
-                    grenade_type = *(int16_t *)(variant_data + 0x180);
+                    grenade_type = variant_data->grenade_type;
                     unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)
                         [a->unit_index & halo::k_slot_mask].data;
                     *(int8_t *)(unit + 0x31e + grenade_type) =
@@ -1170,9 +1169,8 @@ void ReferenceView::spawn_starting_location_object(datum_index unit_index, uint3
             datum_index actor_variant_tag = *(datum_index *)&actor_palette_entry->tag_id;
 
             if (actor_variant_tag != (datum_index)k_datum_index_none) {
-                uint8_t *actor_variant_data =
-                    (uint8_t *)halo::cache::globals().tag_instances[actor_variant_tag & halo::k_slot_mask].data;
-                datum_index actor_definition_tag = *(datum_index *)(actor_variant_data + 0x10);
+                ActorVariant *actor_variant_data = reinterpret_cast<ActorVariant *>(halo::cache::globals().tag_instances[actor_variant_tag & halo::k_slot_mask].data);
+                datum_index actor_definition_tag = *(datum_index *)&actor_variant_data->actor_definition.tag_id;
 
                 if (actor_definition_tag != (datum_index)k_datum_index_none) {
                     Actor *actor_tag_data = halo::ai::tag_data<Actor>(actor_definition_tag);
@@ -1207,7 +1205,8 @@ void ReferenceView::squad_iterator_new(ai_reference_squad_iterator *out_iterator
 
     if (halo::scenario::globals().scenario == 0 || halo::ai::globals().state->actors_valid == 0 ||
         (int32_t)halo::scenario::globals().scenario->encounters.count <= (int32_t)encounter_index) {
-        goto fail;
+        out_iterator->encounter_index = -1;
+        return;
     }
 
     encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[encounter_index];
@@ -1224,17 +1223,14 @@ void ReferenceView::squad_iterator_new(ai_reference_squad_iterator *out_iterator
     } else {
         uint32_t squad_index = (int8_t)(packed_reference >> 0x10);
         if (kind != 2 || (int32_t)squad_index >= encounter_definition->squads.count) {
-            goto fail;
+            out_iterator->encounter_index = -1;
+            return;
         }
         out_iterator->cursor = -1;
         out_iterator->squad_end = (int32_t)squad_index;
         out_iterator->squad_start = (int32_t)squad_index;
     }
     out_iterator->platoon_filter = -1;
-    return;
-
-fail:
-    out_iterator->encounter_index = -1;
 }
 
 /**
@@ -1296,17 +1292,14 @@ void ReferenceView::squad_set_automatic_migration(uint8_t value)
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
-#define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask])
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 namespace {
 
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
 {
-    uint8_t *self = OBJECT_DATA(object_index);
-    unit_object *vehicle = (unit_object *)OBJECT_DATA(vehicle_index);
+    uint8_t *self = halo::ai::object_bytes(object_index);
+    unit_object *vehicle = (unit_object *)halo::ai::object_bytes(vehicle_index);
     uint8_t *nodes = self + ((struct object *)self)->nodes.offset;
-    uint8_t *seat = *(uint8_t **)(TAG_DATA(vehicle->base.definition_tag) + 0x2e8) + *(int16_t *)(self + 0x2f0) * 0x11c;
+    uint8_t *seat = *(uint8_t **)(halo::ai::tag_bytes(vehicle->base.definition_tag) + 0x2e8) + *(int16_t *)(self + 0x2f0) * 0x11c;
     uint8_t *model_nodes;
     object_marker marker;
     real_point3d offset;
@@ -1318,7 +1311,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.x = *(float *)(nodes + 0x28) - marker.node_transform.position.x;
     offset.y = *(float *)(nodes + 0x2c) - marker.node_transform.position.y;
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
-    model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
+    model_nodes = *(uint8_t **)(halo::ai::tag_bytes(*(datum_index *)(halo::ai::tag_bytes(*(datum_index *)self) + 0x34)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
     if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index && vehicle->unit.animation_state != 0x25 &&
         ((struct object *)self)->parent_object != k_datum_index_none) {
@@ -1338,7 +1331,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     position.z = offset.z + ((struct object *)self)->position.z - default_translation.z;
     halo::objects::object_set_position_and_orientation(object_index, 0, 0, &position);
     {
-        uint8_t *reloaded = OBJECT_DATA(object_index);
+        uint8_t *reloaded = halo::ai::object_bytes(object_index);
 
         halo::math::matrix4x3_multiply((real_matrix4x3 *)(reloaded + ((struct object *)reloaded)->nodes.offset),
             (real_matrix4x3 *)(model_nodes + 0x68), &basis);
@@ -1346,15 +1339,15 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     *(real_vector3d *)&((struct object *)self)->forward.i = basis.forward;
     *(real_vector3d *)&((struct object *)self)->up.i = basis.up;
     {
-        unit_object *object = (unit_object *)OBJECT_DATA(object_index);
-        uint8_t *object_tag = TAG_DATA(object->base.definition_tag);
+        unit_object *object = (unit_object *)halo::ai::object_bytes(object_index);
+        uint8_t *object_tag = halo::ai::tag_bytes(object->base.definition_tag);
 
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (static_cast<uint8_t>(object->base.flags) & 1) != 0) {
             halo::objects::object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
             ((struct object *)object)->flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
-            OBJECT_HEADER(object_index).flags |= 2;
+            halo::ai::object_header_at(object_index).flags |= 2;
         }
     }
     *(int16_t *)(self + 0x2f0) = -1;
@@ -1455,36 +1448,36 @@ void ReferenceView::units_exit_vehicles()
             continue;
         }
         if (((struct object *)self)->type == 1) {
-            uint8_t *me = OBJECT_DATA(unit_index);
+            uint8_t *me = halo::ai::object_bytes(unit_index);
 
             if (((struct object *)me)->parent_object != k_datum_index_none && *(int16_t *)(me + 0x2f0) != -1) {
                 biped_detach_from_seat(unit_index, ((struct object *)me)->parent_object);
             }
             biped_free_local_player_history(me);
         } else if (!halo::units::unit_state_is_scripted_animation((unit_data *)(self + k_unit_data_offset))) {
-            uint8_t *self_tag = TAG_DATA(*(datum_index *)self);
+            uint8_t *self_tag = halo::ai::tag_bytes(*(datum_index *)self);
             datum_index graph = *(datum_index *)(self_tag + 0x44);
-            uint8_t *seat_block = *(uint8_t **)(TAG_DATA(graph) + 0x10) + (int8_t)self[0x2a0] * 0x64;
+            uint8_t *seat_block = *(uint8_t **)(halo::ai::tag_bytes(graph) + 0x10) + (int8_t)self[0x2a0] * 0x64;
 
             if (*(int32_t *)(seat_block + 0x40) > 8 && (*(int16_t **)(seat_block + 0x44))[8] != -1) {
                 int16_t exit_animation = (*(int16_t **)(seat_block + 0x44))[8];
                 unit_object *object;
                 uint8_t *object_tag;
 
-                if (*(datum_index *)(OBJECT_DATA(vehicle_index) + 0x324) == unit_index) {
+                if (*(datum_index *)(halo::ai::object_bytes(vehicle_index) + 0x324) == unit_index) {
                     halo::units::unit_notify_weapon_removed((int32_t)vehicle_index);
                 }
                 halo::units::unit_set_custom_animation(unit_index, *(datum_index *)(self_tag + 0x44),
                     halo::models::animation_choose_random_permutation(graph, exit_animation, static_cast<animation_random_stream>(1)));
-                object = (unit_object *)OBJECT_DATA(unit_index);
-                object_tag = TAG_DATA(object->base.definition_tag);
+                object = (unit_object *)halo::ai::object_bytes(unit_index);
+                object_tag = halo::ai::tag_bytes(object->base.definition_tag);
                 if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
                     if ((static_cast<uint8_t>(object->base.flags) & 1) != 0) {
                         halo::objects::object_for_each_light_attachment(unit_index, 0, 1);
                     }
                     if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
                         ((struct object *)object)->flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
-                        OBJECT_HEADER(unit_index).flags |= 2;
+                        halo::ai::object_header_at(unit_index).flags |= 2;
                     }
                 }
                 self[0x2a3] = 0x1b;
@@ -1497,9 +1490,6 @@ void ReferenceView::units_exit_vehicles()
     }
 }
 
-#undef OBJECT_DATA
-#undef OBJECT_HEADER
-#undef TAG_DATA
 
 /**
  * Behaviour of squad members assign team and request order, moved unchanged from the original free

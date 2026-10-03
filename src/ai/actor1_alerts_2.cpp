@@ -78,9 +78,9 @@ int32_t halo::ai::alert_ops::investigate_disturbance_update()
                     }
                 } else if (act->needs_new_path != 0) {
                     if (halo::ai::actor_avoid_obstacle_and_project(actor_index, act->mode_data.vehicle.vehicle_index, &entry, &hint,
-                                                         (uint8_t *)act + 0xa3, (real_point3d *)((uint8_t *)act + 0xcc),
-                                                         (int32_t *)((uint8_t *)act + 0xe4)) &&
-                        halo::ai::actor_movement_set_destination_point((real_point3d *)((uint8_t *)act + 0xcc), actor_index,
+                                                         &act->mode_data.vehicle.near_line, &act->mode_data.vehicle.path_destination,
+                                                         &act->mode_data.vehicle.path_surface) &&
+                        halo::ai::actor_movement_set_destination_point(&act->mode_data.vehicle.path_destination, actor_index,
                                                              act->mode_data.vehicle.path_surface, act->mode_data.vehicle.vehicle_index)) {
                         act->mode_data.vehicle.path_failures = 0;
                     } else {

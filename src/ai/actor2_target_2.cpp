@@ -15,7 +15,6 @@ namespace halo::ai {
 
 namespace actor_target_evaluate_squad_link_local {
 static auto &object_cluster_stamp = halo::link::ref<int32_t>(halo::physics::vars().object_cluster_stamp);
-#define OBJ(i) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(i) & halo::k_slot_mask].data)
 static void squad_link_add_far(uint8_t *list, datum_index object_index, float distance_squared)
 {
     int16_t count = *(int16_t *)(list + 2);
@@ -58,7 +57,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
         if (target == k_datum_index_none) {
             return;
         }
-        unit = (unit_object *)OBJ(target);
+        unit = (unit_object *)halo::ai::object_bytes(target);
         halo::objects::object_get_position(&position, target);
     } else {
         target_actor_index = object->unit.actor_index;
@@ -94,6 +93,9 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
         target_actor = halo::ai::actor_at(target_actor_index);
     }
 
+    bool add_direct = false;
+    bool check_radius = false;
+
     if (!controlled) {
         if (target_actor != 0 && (target_actor->active == 0 || target_actor->keep_unit_alive != 0)) {
             return;
@@ -105,10 +107,10 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
             datum_index encounter_index = self->encounter_index;
 
             if (encounter_index == k_datum_index_none) {
-                goto check_radius;
+                check_radius = true;
             } else {
                 struct encounter *encounter = halo::ai::encounter_at(encounter_index);
-                uint8_t *target_unit = OBJ(target);
+                uint8_t *target_unit = halo::ai::object_bytes(target);
                 int32_t reference = encounter->last_idle_time;
                 uint8_t counts = 1;
                 uint8_t calm;
@@ -128,9 +130,8 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
                     return;
                 }
                 if (!calm) {
-                    goto check_radius;
-                }
-                if (!(distance_squared < 225.0f)) {
+                    check_radius = true;
+                } else if (!(distance_squared < 225.0f)) {
                     return;
                 }
             }
@@ -148,12 +149,9 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
                 return;
             }
             list = list_friend;
-            goto add;
+            add_direct = true;
         }
-        goto add_by_team;
-
-check_radius:
-        if (!(radius > 0.0f)) {
+        if (!add_direct && check_radius && !(radius > 0.0f)) {
             float limit;
 
             if (enemies && since_fired > 0x96) {
@@ -172,9 +170,9 @@ check_radius:
         }
     }
 
-add_by_team:
-    list = enemies ? list_enemy : list_friend;
-add:
+    if (!add_direct) {
+        list = enemies ? list_enemy : list_friend;
+    }
     if (far_flag) {
         squad_link_add_far(list, target, distance_squared);
         return;
@@ -263,7 +261,7 @@ void ActorView::target_evaluate_squad_link(datum_index object_index, int16_t *ca
     actor *self = halo::ai::actor_at(actor_index);
 
     while (object_index != k_datum_index_none) {
-        unit_object *object = (unit_object *)OBJ(object_index);
+        unit_object *object = (unit_object *)halo::ai::object_bytes(object_index);
 
         if (((struct object *)object)->cluster_stamp != halo::physics::globals().object_cluster_stamp) {
             ((struct object *)object)->cluster_stamp = halo::physics::globals().object_cluster_stamp;
@@ -291,7 +289,6 @@ void ActorView::target_evaluate_squad_link(datum_index object_index, int16_t *ca
     }
 }
 
-#undef OBJ
 
 namespace actor_target_is_close_and_recognized_local {
 }

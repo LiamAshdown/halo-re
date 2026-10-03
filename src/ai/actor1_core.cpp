@@ -230,7 +230,7 @@ uint8_t halo::ai::actor_ref::command_list_permits_escalation()
     }
 
     conv = halo::ai::conversation_at(self->conversation_index);
-    definition = (ScenarioAIConversation *)((TagReflexive *)((uint8_t *)halo::scenario::globals().scenario + 0x468))->pointer;
+    definition = (ScenarioAIConversation *)halo::scenario::globals().scenario->ai_conversations.pointer;
     definition = definition + conv->definition_index;
     flags = definition->flags;
 
@@ -825,7 +825,7 @@ uint8_t halo::ai::actor_ref::handle_death(uint8_t param_2, uint8_t param_3)
     if (self->swarm == 0) {
         halo::ai::actor_check_melee_target_reachable(actor_index, reinterpret_cast<actor_mode_flee_data *>(local_data));
         if (*(int16_t *)(local_data + 8) != -1) {
-            halo::ai::actor_set_mode(actor_index, 4, local_data);
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::flee, local_data);
             return 1;
         }
     }

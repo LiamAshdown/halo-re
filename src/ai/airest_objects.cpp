@@ -51,7 +51,7 @@ int32_t AiActorView::get_activity_stage()
     if (a->target_combat_status < 10) {
         return 4;
     }
-    if (*((uint8_t *)a + 0x454) != 0 || *((uint8_t *)a + 0x45c) != 0) {
+    if (a->wants_to_fire != 0 || a->throw_grenade != 0) {
         return 6;
     }
     return 5;
@@ -506,11 +506,17 @@ int16_t ObjectListView::max_flee_grade()
             obj = entry->data;
             unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
             grade = 0;
+            bool keep_grade = false;
+            auto recently_hurt = [&]() {
+                if (a->command_list_finished_time != -1 && tick <= a->command_list_finished_time + 0x96) {
+                    grade = 1;
+                }
+            };
 
             if (unit->actor_index == (datum_index)k_datum_index_none) {
                 if (unit->swarm_actor_index != (datum_index)k_datum_index_none) {
                     a = &((actor *)halo::ai::globals().actor_data->data)[unit->swarm_actor_index & halo::k_slot_mask];
-                    if (a->mode == _actor_mode_flee &&
+                    if (a->mode == halo::ai::actor_mode::obey &&
                         a->swarm_index != (datum_index)k_datum_index_none) {
                         sw = &((swarm *)halo::ai::globals().swarm_data->data)[a->swarm_index & halo::k_slot_mask];
                         component_count = sw->component_count;
@@ -529,34 +535,31 @@ int16_t ObjectListView::max_flee_grade()
                             grade = (uint32_t)(uint16_t)halo::ai::ai_actor_type_get_morale_grade(*(int16_t *)&a->mode_data,
                                 (uint8_t *)&((swarm_component *)halo::ai::globals().swarm_component_data->data)
                                     [sw->component_index[component_index] & halo::k_slot_mask] + 0x1c);
-                            goto have_grade;
+                            keep_grade = (int16_t)grade != 0;
                         }
                     }
-                    goto recently_hurt;
+                    if (!keep_grade) {
+                        recently_hurt();
+                    }
                 }
             } else {
                 a = &((actor *)halo::ai::globals().actor_data->data)[unit->actor_index & halo::k_slot_mask];
-                if (a->mode == _actor_mode_flee) {
+                if (a->mode == halo::ai::actor_mode::obey) {
                     command_list = &((ScenarioCommandList *)halo::scenario::globals().scenario->command_lists.pointer)
-                        [*(int16_t *)(a->mode_data.raw + 0x00)];
-                    command_index = (int32_t)(uint32_t)a->mode_data.raw[8];
+                        [a->mode_data.obey.command_list_index];
+                    command_index = (int32_t)(uint32_t)a->mode_data.obey.action.command_index;
                     if (command_index < command_list->commands.count &&
                         (uint8_t *)command_list->commands.pointer + command_index * 0x20 != 0) {
-                        grade = (uint32_t)((((uint8_t)~a->mode_data.raw[0x0c] & 0x10) | 0x20) >> 4);
+                        grade = (uint32_t)((((uint8_t)~a->mode_data.obey.action.flags & 0x10) | 0x20) >> 4);
                     } else {
                         grade = 1;
                     }
-have_grade:
-                    if ((int16_t)grade != 0) {
-                        goto keep_best;
-                    }
+                    keep_grade = (int16_t)grade != 0;
                 }
-recently_hurt:
-                if (a->command_list_finished_time != -1 && tick <= a->command_list_finished_time + 0x96) {
-                    grade = 1;
+                if (!keep_grade) {
+                    recently_hurt();
                 }
             }
-keep_best:
             if ((int16_t)best <= (int16_t)grade) {
                 best = grade;
             }
@@ -1047,7 +1050,7 @@ void AiObjects::object_process_nearby_actors(uint32_t ai_reference, datum_index 
                     ai_nearby_actor_candidate *c = &candidates[candidate_count];
                     c->actor_index = iterator.actor_index;
                     c->distance_squared = dz * dz + dx * dx + dy * dy;
-                    c->is_type_9 = (a->mode == 9);
+                    c->is_type_9 = (a->mode == halo::ai::actor_mode::vehicle);
                     candidate_count = candidate_count + 1;
                 }
                 a = halo::ai::ai_reference_actor_iterator_next(&iterator);
@@ -1124,23 +1127,23 @@ uint8_t AiObjects::pursuit_note_object(datum_index object_index, datum_index enc
 
         for (i = 0; i < k_ai_pursuit_object_count; i++) {
             if (pursuit->object_index[i] == object_index) {
-                goto stamp;
+                break;
             }
         }
 
-        pursuit->object_index[pursuit->cursor] = object_index;
-        pursuit->count = pursuit->count + 1;
-        pursuit->cursor = (int16_t)((pursuit->cursor + 1) % k_ai_pursuit_object_count);
-        added = 1;
+        if (i >= k_ai_pursuit_object_count) {
+            pursuit->object_index[pursuit->cursor] = object_index;
+            pursuit->count = pursuit->count + 1;
+            pursuit->cursor = (int16_t)((pursuit->cursor + 1) % k_ai_pursuit_object_count);
+            added = 1;
+        }
 
-    stamp:
         pursuit->last_tick = halo::game::globals().game_time->game_time;
     }
 
     return added;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 /**
  * Behaviour of ai refresh unit stimulus and alert, moved unchanged from the original free function.
  *
@@ -1154,7 +1157,7 @@ void AiObjects::refresh_unit_stimulus_and_alert(datum_index object_index, int16_
     if (!halo::ai::globals().state->actors_valid || object_index == k_datum_index_none || priority <= 0) {
         return;
     }
-    obj = (unit_object *)OBJECT_DATA(object_index);
+    obj = (unit_object *)halo::ai::object_bytes(object_index);
     now = halo::game::globals().game_time->game_time;
     if (!(stimulus_value > obj->unit.ai_stimulus_type) && !(now > static_cast<int32_t>(obj->unit.ai_stimulus_tick) + 0x1e)) {
         return;
@@ -1165,7 +1168,7 @@ void AiObjects::refresh_unit_stimulus_and_alert(datum_index object_index, int16_
         datum_index child;
 
         for (child = ((object *)obj)->first_child_object; child != k_datum_index_none;) {
-            uint8_t *c = OBJECT_DATA(child);
+            uint8_t *c = halo::ai::object_bytes(child);
 
             if (((struct object *)c)->type == 0) {
                 halo::ai::ai_alert_actors_in_grenade_radius(child, stimulus_value, priority);
@@ -1177,7 +1180,6 @@ void AiObjects::refresh_unit_stimulus_and_alert(datum_index object_index, int16_
     }
 }
 
-#undef OBJECT_DATA
 
 /**
  * Behaviour of ai unit clear actor vocalization, moved unchanged from the original free function.
@@ -1248,7 +1250,7 @@ void AiObjects::create_actor(datum_index actor_variant_tag, datum_index unit_ind
     a->pending_command_list = -1;
     a->sequence_id = 0;
 
-    if (*((uint8_t *)a + 0x6) != actor_type_procs[a->type][0xd]) {
+    if (a->swarm != actor_type_procs[a->type][0xd]) {
         halo::ai::actor_delete(actor_index, 0);
         return;
     }
@@ -1291,7 +1293,7 @@ void AiUnitView::flee_if_ready(uint32_t readiness_param)
         if (unit->actor_index != (datum_index)k_datum_index_none &&
             (uint8_t)halo::ai::actor_squad_action_status_broadcast(unit->actor_index, (int16_t)readiness_param,
                 &mode_data.obey) != 0) {
-            halo::ai::actor_set_mode(unit->actor_index, _actor_mode_flee, &mode_data);
+            halo::ai::actor_set_mode(unit->actor_index, halo::ai::actor_mode::obey, &mode_data);
         }
     }
 }
@@ -1377,63 +1379,64 @@ void AiObjects::set_squad_reference(datum_index object_index, uint32_t packed_re
     out_squad = halo::k_word_none;
 
     encounter_index = (int16_t)packed_reference;
-    if (packed_reference == halo::k_dword_none || encounter_index < 0 ||
-        halo::scenario::globals().scenario->encounters.count <= (int32_t)encounter_index) {
-        goto store;
-    }
+    [&]() {
+        if (packed_reference == halo::k_dword_none || encounter_index < 0 ||
+            halo::scenario::globals().scenario->encounters.count <= (int32_t)encounter_index) {
+            return;
+        }
 
-    definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[encounter_index];
-    squad_index = 0;
-
-    if (packed_reference >> 0x1e == 1) {
-        squad_count = definition->squads.count;
+        definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[encounter_index];
         squad_index = 0;
-        if (0 < squad_count) {
-            i = 0;
-            do {
-                if (((ScenarioSquad *)definition->squads.pointer)[i].platoon ==
-                    (uint16_t)(uint8_t)(packed_reference >> 0x10)) {
-                    break;
-                }
-                squad_index = squad_index + 1;
-                i = (int32_t)(int16_t)squad_index;
-            } while (i < squad_count);
-        }
-        if ((int16_t)squad_index >= squad_count) {
+
+        if (packed_reference >> 0x1e == 1) {
+            squad_count = definition->squads.count;
             squad_index = 0;
-        } else if ((int16_t)squad_index < 0) {
-            goto store;
+            if (0 < squad_count) {
+                i = 0;
+                do {
+                    if (((ScenarioSquad *)definition->squads.pointer)[i].platoon ==
+                        (uint16_t)(uint8_t)(packed_reference >> 0x10)) {
+                        break;
+                    }
+                    squad_index = squad_index + 1;
+                    i = (int32_t)(int16_t)squad_index;
+                } while (i < squad_count);
+            }
+            if ((int16_t)squad_index >= squad_count) {
+                squad_index = 0;
+            } else if ((int16_t)squad_index < 0) {
+                return;
+            }
+        } else if (packed_reference >> 0x1e == 2) {
+            squad_index = (uint32_t)(uint8_t)(packed_reference >> 0x10);
+            if ((int16_t)squad_index < 0) {
+                return;
+            }
         }
-    } else if (packed_reference >> 0x1e == 2) {
-        squad_index = (uint32_t)(uint8_t)(packed_reference >> 0x10);
-        if ((int16_t)squad_index < 0) {
-            goto store;
-        }
-    }
 
-    if ((int32_t)(int16_t)squad_index < definition->squads.count) {
-        out_squad = squad_index;
-        out_encounter = encounter_index;
-        if (encounter_index != -1 && (int16_t)squad_index != -1 &&
-            *(int16_t *)((uint8_t *)obj + 0x334) != -1) {
-            datum_index cursor[3];
+        if ((int32_t)(int16_t)squad_index < definition->squads.count) {
+            out_squad = squad_index;
+            out_encounter = encounter_index;
+            if (encounter_index != -1 && (int16_t)squad_index != -1 &&
+                *(int16_t *)((uint8_t *)obj + 0x334) != -1) {
+                datum_index cursor[3];
 
-            halo::ai::ai_reference_actor_iterator_init_cursor((int32_t)*(int16_t *)((uint8_t *)obj + 0x334), cursor);
-            actor_index = cursor[2];
-            while (halo::ai::globals().state->actors_valid != 0 &&
-                   actor_index != (datum_index)k_datum_index_none) {
-                datum_index current = actor_index;
-                a = &((actor *)halo::ai::globals().actor_data->data)[current & halo::k_slot_mask];
-                actor_index = a->next_in_encounter;
-                if (a->active_unit_index == object_index) {
-                    halo::ai::actor_reset_squad_link_for_type_change(current, (datum_index)(int32_t)encounter_index,
-                        (int16_t)squad_index);
+                halo::ai::ai_reference_actor_iterator_init_cursor((int32_t)*(int16_t *)((uint8_t *)obj + 0x334), cursor);
+                actor_index = cursor[2];
+                while (halo::ai::globals().state->actors_valid != 0 &&
+                       actor_index != (datum_index)k_datum_index_none) {
+                    datum_index current = actor_index;
+                    a = &((actor *)halo::ai::globals().actor_data->data)[current & halo::k_slot_mask];
+                    actor_index = a->next_in_encounter;
+                    if (a->active_unit_index == object_index) {
+                        halo::ai::actor_reset_squad_link_for_type_change(current, (datum_index)(int32_t)encounter_index,
+                            (int16_t)squad_index);
+                    }
                 }
             }
         }
-    }
+    }();
 
-store:
     *(int16_t *)((uint8_t *)obj + 0x334) = out_encounter;
     *(int16_t *)((uint8_t *)obj + 0x336) = (int16_t)out_squad;
 }

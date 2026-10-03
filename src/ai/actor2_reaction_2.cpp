@@ -11,11 +11,6 @@
 namespace halo::ai {
 
 namespace actor_react_to_disturbance_local {
-#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
 }
 
 /**
@@ -66,7 +61,7 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
     if (definition->surprise_delay_time > 0.0f) {
         halo::ai::actor_raise_timer_5f6(actor_index, (int32_t)(definition->surprise_delay_time * 30.0f));
     }
-    actor->unknown_2f0[0] = 1;
+    actor->surprise_pending = 1;
     if (actor->look_at_reference != halo::k_dword_none) {
         halo::ai::actor_consider_target_candidate(actor_index, actor->look_at_reference);
     }
@@ -114,14 +109,12 @@ void ActorOps::react_to_threat_event(datum_index self_object_index, datum_index 
                 if (relationship_object_index == (datum_index)k_datum_index_none) {
                     relationship_object_index = other_object_index;
                 }
-                if (relationship_object_index == (datum_index)k_datum_index_none) {
-                    goto no_relationship_object;
-                }
             }
-            relationship_obj = halo::ai::object_at(relationship_object_index);
+            if (relationship_object_index != (datum_index)k_datum_index_none) {
+                relationship_obj = halo::ai::object_at(relationship_object_index);
+            }
         }
     }
-no_relationship_object:
 
     if (suppress_vehicle_relay == 0 && (int16_t)event_kind != 1) {
         actor_object_index = ((unit_data *)((uint8_t *)self_obj + k_unit_data_offset))->actor_index;
@@ -138,18 +131,20 @@ no_relationship_object:
         reason = (halo::game::teams_are_enemies(relationship_obj->owner_team, self_obj->owner_team) != 0) + 2;
     }
 
+    bool broadcast = true;
+
     if (suppress_vehicle_relay == 0 && reason == 2) {
         reason = 2;
         event_code = 3;
+    } else if (magnitude < 0.3f) {
+        broadcast = false;
     } else {
-        if (magnitude < 0.3f) {
-            goto skip_broadcast;
-        }
         event_code = 2;
     }
-    halo::ai::ai_communication_broadcast(event_code, self_object_index, relationship_object_index, reason,
-                                event_kind, (datum_index)k_datum_index_none, 0);
-skip_broadcast:
+    if (broadcast) {
+        halo::ai::ai_communication_broadcast(event_code, self_object_index, relationship_object_index, reason,
+                                    event_kind, (datum_index)k_datum_index_none, 0);
+    }
     if (relationship_obj != 0) {
         halo::game::team_pair_override_refresh(self_obj->owner_team,
                                    relationship_obj->owner_team);

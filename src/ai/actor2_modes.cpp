@@ -13,7 +13,6 @@
 namespace halo::ai {
 
 namespace actor_mode_uncover_tick_local {
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 
 /**
@@ -62,7 +61,7 @@ void ActorView::mode_uncover_tick()
     kind = act->mode_data.uncover.stage;
     if (kind == 0) {
         if (act->target_unit_index != k_datum_index_none) {
-            target_visible = (uint8_t)(((struct prop *)PROP(act->target_unit_index))->visual_perception > 0);
+            target_visible = (uint8_t)(((struct prop *)halo::ai::prop_bytes(act->target_unit_index))->visual_perception > 0);
             keep_going = (uint8_t)!(target_visible && act->target_combat_status < 5);
         }
     } else {
@@ -84,7 +83,6 @@ void ActorView::mode_uncover_tick()
     act->mode_data.uncover.done = done;
 }
 
-#undef PROP
 
 namespace actor_mode_uncover_update_local {
 }
@@ -142,7 +140,6 @@ void ActorView::mode_uncover_update()
 
 namespace actor_mode_vehicle_enter_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -177,7 +174,7 @@ void ActorView::mode_vehicle_update()
     if (act->mode_data.vehicle.entry_reached) {
         act->flee_reason = 4;
         act->flee_source.code = 4;
-        *(real_vector3d *)((uint8_t *)act + 0x3f0) = act->mode_data.vehicle.entry_direction;
+        *reinterpret_cast<real_vector3d *>(&act->flee_source.payload.point) = act->mode_data.vehicle.entry_direction;
     } else if (act->movement_action_complete) {
         act->flee_reason = 3;
         act->flee_source.code = 0;
@@ -195,8 +192,6 @@ void ActorView::mode_vehicle_update()
 
 
 namespace actor_mode_wait_process_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }
 
@@ -229,25 +224,22 @@ uint8_t ActorView::mode_wait_process()
             prop *ally = halo::ai::prop_at(act->nearby_friend_prop_index);
             float distance = ally->distance;
             uint8_t follow;
+            bool decided = false;
 
             if (act->mode_data.wait.unknown_02 && !act->mode_data.wait.unknown_04) {
                 follow = 1;
             } else if (ally->visual_perception < 2 || !(distance < 8.0f)) {
                 follow = 0;
-                goto decided;
+                decided = true;
             } else {
                 follow = act->mode_data.wait.unknown_04 == 0;
             }
-            if (follow && distance > 3.5f) {
-                act->mode_data.wait.following_friend = 1;
-                act->mode_data.wait.finished = 0;
-            } else {
-                act->mode_data.wait.following_friend = 0;
+            if (!decided) {
+                act->mode_data.wait.following_friend = (follow && distance > 3.5f) ? 1 : 0;
                 act->mode_data.wait.finished = 0;
             }
         }
     }
-decided:
     if (act->swarm) {
         return act->mode_data.wait.finished;
     }
@@ -372,7 +364,7 @@ void ActorView::run_mode_transition_loop()
         }
     }
 
-    halo::ai::actor_set_mode(actor_index, 0, 0);
+    halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::none, 0);
 }
 
 namespace actor_set_mode_local {
@@ -453,23 +445,23 @@ uint8_t ActorView::update_special_mode()
     self = halo::ai::actor_at(actor_index);
     mode = self->mode;
 
-    if (mode == 5) {
-        if (self->mode_data.raw[1] == 0) {
+    if (mode == halo::ai::actor_mode::uncover) {
+        if (self->mode_data.uncover.done == 0) {
             return 0;
         }
-        if (*(int16_t *)&self->mode_data.raw[8] == 0) {
+        if (self->mode_data.uncover.stage == 0) {
             halo::ai::actor_set_target_alert_stage1(self->target_unit_index, actor_index);
         }
-    } else if (mode == 7) {
-        if (self->mode_data.raw[0] == 0) {
+    } else if (mode == halo::ai::actor_mode::search) {
+        if (self->mode_data.search.finished == 0) {
             return 0;
         }
-        if (*(int16_t *)&self->mode_data.raw[8] == 0) {
+        if (self->mode_data.search.stage == 0) {
             halo::ai::actor_set_target_alert_stage2(self->target_unit_index, actor_index);
             return halo::ai::actor_update_melee_combat_action(actor_index);
         }
-    } else if (mode == 8) {
-        if (self->mode_data.raw[0] == 0) {
+    } else if (mode == halo::ai::actor_mode::wait) {
+        if (self->mode_data.wait.finished == 0) {
             return 0;
         }
         halo::ai::actor_set_target_alert_stage3(self->target_unit_index, actor_index);

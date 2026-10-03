@@ -153,8 +153,8 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
 
     if (query->have_explicit_target == 0) {
         prop_index = (datum_index)halo::k_dword_none;
-        if (self->mode == 4 && *(uint32_t *)&self->mode_data.raw[0x1c] != halo::k_dword_none) {
-            prop_index = *(datum_index *)&self->mode_data.raw[0x1c];
+        if (self->mode == halo::ai::actor_mode::flee && self->mode_data.flee.reference != (datum_index)halo::k_dword_none) {
+            prop_index = self->mode_data.flee.reference;
         } else {
             prop_index = (datum_index)self->target_unit_index;
         }

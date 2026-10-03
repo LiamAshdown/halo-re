@@ -62,7 +62,7 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
     halo::units::unit_apply_control_block(actor->unit_index, &control, -1);
     if (actor->control_animation_impulse != -1) {
         halo::units::unit_try_start_scripted_action_animation(actor->unit_index, actor->control_animation_impulse,
-            (const real_vector2d *)((uint8_t *)actor + 0x6f0));
+            reinterpret_cast<const real_vector2d *>(&actor->unknown_6ee[2]));
     }
     if (actor->persistent_control_ticks > 0) {
         unit_object *object = (unit_object *)halo::ai::object_at(actor->unit_index);
@@ -116,7 +116,7 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
 
     urgent = (uint8_t)(self->flee_reason > 6);
 
-    if ((line < 13 && self->mode == _actor_mode_flee && self->mode_data.raw[3] == 0) ||
+    if ((line < 13 && self->mode == halo::ai::actor_mode::obey && self->mode_data.obey.allow_look == 0) ||
         (urgent != 0 && line < 4)) {
         return 0;
     }
@@ -315,13 +315,13 @@ uint32_t halo::ai::look_ops::flee_look_away()
 
     self = halo::ai::actor_at(actor_index);
     result = 0;
-    if (self->mode == _actor_mode_death && self->mode_data.raw[0xab - 0x9c] != 0) {
+    if (self->mode == halo::ai::actor_mode::flee && self->mode_data.flee.finished != 0) {
 
         uint8_t order[0x84];
 
         memset(order, 0, sizeof(order));
-        halo::ai::actor_build_order_look(actor_index, (actor_order *)order, (actor_look_request *)((uint8_t *)self + 0x9c));
-        halo::ai::actor_set_mode(actor_index, 6, order);
+        halo::ai::actor_build_order_look(actor_index, (actor_order *)order, reinterpret_cast<actor_look_request *>(&self->mode_data));
+        halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::guard, order);
         result = 1;
     }
     return result;
@@ -623,7 +623,7 @@ void halo::ai::look_ops::look_randomize_direction(float *deviation_table, real_v
     out_in_front = 0;
     self->idle_minor_active = 0;
 
-    if (!halo::ai::actor_select_facing_target_prop(actor_index, 0, 0, (actor_recognition_scan_result *)((uint8_t *)self + 0x57c),
+    if (!halo::ai::actor_select_facing_target_prop(actor_index, 0, 0, reinterpret_cast<actor_recognition_scan_result *>(&self->idle_look_direction_type),
             (uint8_t *)&out_in_front)) {
         yaw_max = (definition->maximum_looking_deviation.yaw <= definition->idle_looking_range.yaw)
                       ? definition->maximum_looking_deviation.yaw

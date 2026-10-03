@@ -44,7 +44,7 @@ uint8_t halo::ai::alert_ops::alert_from_damage()
     struct actor *actor = halo::ai::actor_at(actor_index);
     uint32_t source = halo::k_dword_none;
 
-    if (actor->unknown_1b4[1] == 0) {
+    if (actor->on_fire == 0) {
         return 0;
     }
     if (actor->unit_index != halo::k_dword_none) {
@@ -104,11 +104,11 @@ uint8_t halo::ai::alert_ops::alert_from_disturbance()
     datum_index actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
 
-    if (actor->unknown_2f0[0] == 0 || (*(uint32_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data & 0x400) == 0) {
+    if (actor->surprise_pending == 0 || (*(uint32_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data & 0x400) == 0) {
         return 0;
     }
     actor_raise_alert(actor, 7, actor->look_at_reference);
-    actor->unknown_2f0[0] = 0;
+    actor->surprise_pending = 0;
     return 1;
 }
 
@@ -136,7 +136,7 @@ uint8_t halo::ai::alert_ops::alert_from_flag_1b4()
     datum_index actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
 
-    if (actor->unknown_1b4[0] == 0) {
+    if (actor->enemy_child_attached == 0) {
         return 0;
     }
     if (actor->pending_panic_type <= 0xb) {
@@ -246,7 +246,7 @@ uint8_t halo::ai::alert_ops::alert_from_squad_attack()
     struct actor *actor = halo::ai::actor_at(actor_index);
     Actor *definition;
 
-    if (actor->unknown_2e8[4] == 0) {
+    if (actor->attack_pending == 0) {
         return 0;
     }
     definition = halo::ai::tag_data<Actor>(actor->actor_definition_tag);
@@ -259,7 +259,7 @@ uint8_t halo::ai::alert_ops::alert_from_squad_attack()
     if (actor->pending_panic_type <= 1) {
         actor->pending_panic_type = 1;
     }
-    actor->unknown_2e8[4] = 0;
+    actor->attack_pending = 0;
     return 1;
 }
 
@@ -288,7 +288,7 @@ uint8_t halo::ai::alert_ops::check_pain_reaction(uint32_t resolved_target, uint8
 
     if (halo::ai::actor_build_order_grenade_or_melee(resolved_target, use_alt_base, actor_index, order_code,
             0, 0, order_buffer) != 0) {
-        halo::ai::actor_set_mode(actor_index, 4, order_buffer);
+        halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::flee, order_buffer);
         return 1;
     }
     return 0;
@@ -319,11 +319,11 @@ uint8_t halo::ai::alert_ops::combat_status_should_hold(int16_t threshold_a, int1
 
     self = halo::ai::actor_at(actor_index);
 
-    if (self->mode_data.raw[8] != 0) {
+    if (self->mode_data.guard.ambush_active != 0) {
         return (uint8_t)(threshold_b <= self->combat_status);
     }
-    if (0 < *(int16_t *)&self->mode_data.raw[0] && self->combat_status < threshold_a &&
-        (self->post_combat_action < 1 || self->mode_data.raw[5] != 0)) {
+    if (0 < self->mode_data.guard.countdown_00 && self->combat_status < threshold_a &&
+        (self->post_combat_action < 1 || self->mode_data.guard.command_pending != 0)) {
         return 0;
     }
     return 1;
@@ -356,20 +356,20 @@ uint8_t halo::ai::alert_ops::conditional_state_transition_check()
 
     self = halo::ai::actor_at(actor_index);
 
-    if (self->mode != _actor_mode_vehicle) {
+    if (self->mode != halo::ai::actor_mode::charge) {
         return 0;
     }
-    sub_state = *(int16_t *)&self->mode_data.raw[4];
+    sub_state = self->mode_data.charge.stage;
     if (sub_state == 2 || sub_state == 3) {
-        if (self->mode_data.raw[7] != 0 || self->mode_data.raw[8] != 0) {
+        if (self->mode_data.charge.strike_finished != 0 || self->mode_data.charge.done != 0) {
             return halo::ai::actor_evaluate_combat_state_transition(actor_index);
         }
-        flag = self->mode_data.raw[0x29];
+        flag = self->mode_data.charge.approach_failed;
     } else {
         if (sub_state != 4 && sub_state != 5) {
             return 0;
         }
-        flag = self->mode_data.raw[0x29];
+        flag = self->mode_data.charge.approach_failed;
     }
     if (flag == 0) {
         return 0;
@@ -572,7 +572,6 @@ uint8_t actor_escalate_check_leader_flag(datum_index actor_index)
 namespace c_actor_escalate_check_shield_damage {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 
 
@@ -587,16 +586,16 @@ uint8_t halo::ai::alert_ops::escalate_check_shield_damage()
     using namespace c_actor_escalate_check_shield_damage;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
 
-    if (!act->unknown_2e8[4] || !(act->recent_body_damage > ((Actor *)actor_tag)->berserk_damage_amount) ||
+    if (!act->attack_pending || !(act->recent_body_damage > ((Actor *)actor_tag)->berserk_damage_amount) ||
         !(act->body_vitality < ((Actor *)actor_tag)->berserk_damage_threshold)) {
         return 0;
     }
     if (act->escalation_level <= 3) {
         act->escalation_level = 3;
     }
-    act->unknown_2e8[4] = 0;
+    act->attack_pending = 0;
     return 1;
 }
 
@@ -607,13 +606,10 @@ uint8_t actor_escalate_check_shield_damage(datum_index actor_index)
 }
 }
 
-#undef TAG_DATA
 
 namespace c_actor_escalate_check_target_close {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 
 
@@ -632,8 +628,8 @@ uint8_t halo::ai::alert_ops::escalate_check_target_close()
     if (act->combat_status < 5) {
         return 0;
     }
-    if (!(((struct prop *)PROP(act->target_unit_index))->distance <
-          *(float *)(TAG_DATA(act->actor_definition_tag) + 0x3a0))) {
+    if (!(((struct prop *)halo::ai::prop_bytes(act->target_unit_index))->distance <
+          *(float *)(halo::ai::tag_bytes(act->actor_definition_tag) + 0x3a0))) {
         return 0;
     }
     if (act->escalation_level <= 2) {
@@ -649,14 +645,10 @@ uint8_t actor_escalate_check_target_close(datum_index actor_index)
 }
 }
 
-#undef PROP
-#undef TAG_DATA
 
 namespace c_actor_escalate_check_weapon_range {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 
 }
 
@@ -672,13 +664,13 @@ uint8_t halo::ai::alert_ops::escalate_check_weapon_range()
     using namespace c_actor_escalate_check_weapon_range;
     datum_index actor_index = datum;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     ActorVariant *definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
 
     if (static_cast<datum_index>(act->stuck_projectile_index) == k_datum_index_none || act->combat_status < 5) {
         return 0;
     }
-    if (!(((struct prop *)PROP(act->target_unit_index))->distance < definition->berserk_firing_ranges[1])) {
+    if (!(((struct prop *)halo::ai::prop_bytes(act->target_unit_index))->distance < definition->berserk_firing_ranges[1])) {
         return 0;
     }
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
@@ -698,8 +690,6 @@ uint8_t actor_escalate_check_weapon_range(datum_index actor_index)
 }
 }
 
-#undef PROP
-#undef TAG_DATA
 
 namespace c_actor_escalate_to_guard_or_combat {
 
@@ -724,7 +714,7 @@ uint8_t halo::ai::alert_ops::escalate_to_guard_or_combat()
     }
     actor->awareness_level = 3;
     if (halo::ai::actor_build_guard_mode_data(actor_index, record)) {
-        halo::ai::actor_set_mode(actor_index, 6, record);
+        halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::guard, record);
     } else {
         halo::ai::actor_evaluate_combat_state_transition(actor_index);
     }
@@ -744,8 +734,6 @@ namespace c_actor_evaluate_combat_state_transition {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 
 
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 }
 
 
@@ -761,7 +749,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
     uint32_t actor_index = datum;
     actor *a = halo::ai::actor_at(actor_index);
     Actor *actor_tag = halo::ai::tag_data<Actor>(a->actor_definition_tag);
-    uint8_t *variant = TAG_DATA(a->actor_variant_tag);
+    ActorVariant *variant = halo::ai::tag_data<ActorVariant>(a->actor_variant_tag);
     ActorVariant *definition = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
     uint8_t changed = 0;
     uint8_t fallback = 0;
@@ -775,7 +763,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
         p = halo::ai::prop_at(a->target_unit_index);
         distance = p->distance;
 
-        if (a->mode == 0xa && a->mode_data.charge.stage == 1) {
+        if (a->mode == halo::ai::actor_mode::charge && a->mode_data.charge.stage == 1) {
             uint8_t engaged = p->seen || (p->shooting && (int8_t)p->distance_class <= 1);
 
             if (!engaged && actor_tag->stalking_discovery_time > 0.0f &&
@@ -796,7 +784,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
 
         if (!(halo::ai::actor_has_unshielded_threat_weapon(actor_index) &&
               (p->relationship_object_index != k_datum_index_none || p->swarm_owned)) &&
-            !(a->mode == 0xa && (a->mode_data.charge.stage == 2 || a->mode_data.charge.stage == 3)) &&
+            !(a->mode == halo::ai::actor_mode::charge && (a->mode_data.charge.stage == 2 || a->mode_data.charge.stage == 3)) &&
             !changed && !a->swarm && a->active_unit_index == k_datum_index_none &&
             a->firing_state != 2) {
             int32_t now = game_time->game_time;
@@ -829,14 +817,14 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                     halo::ai::actor_has_unshielded_threat_weapon(actor_index);
                     a->search_wait_time = now;
                     if (halo::ai::actor_consider_combat_mode(actor_index, 2, &consideration)) {
-                        halo::ai::actor_set_mode(actor_index, 0xa, &consideration);
+                        halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::charge, &consideration);
                         changed = 1;
                     }
                 }
             }
         }
 
-        if (a->mode != 0xa && !a->charge_disallowed) {
+        if (a->mode != halo::ai::actor_mode::charge && !a->charge_disallowed) {
             int16_t seat_kind = a->vehicle_driving_type;
 
             if (changed) {
@@ -846,7 +834,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                 uint8_t ready = 1;
 
                 if (a->last_vehicle_charge_time != -1) {
-                    Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)OBJECT_DATA(a->active_unit_index));
+                    Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)halo::ai::object_bytes(a->active_unit_index));
 
                     ready = (float)game_time->game_time >
                         vehicle_tag->ai_charge_repeat_timeout * 30.0f + (float)a->last_vehicle_charge_time;
@@ -854,7 +842,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
                 if (ready && seat_kind == 4 && distance > definition->melee_range &&
                     p->obstruction == 0 &&
                     halo::ai::actor_consider_combat_mode(actor_index, 4, &consideration)) {
-                    halo::ai::actor_set_mode(actor_index, 0xa, &consideration);
+                    halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::charge, &consideration);
                     return 1;
                 }
             }
@@ -869,80 +857,89 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
         fallback = 1;
     }
     mode = a->mode;
-    if (mode == 0xa) {
+    auto guard = [&]() -> char {
+        if (a->mode == halo::ai::actor_mode::fight) {
+            return changed;
+        }
+        *(uint32_t *)&consideration = 0;
+        halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::fight, &consideration);
+        return 1;
+    };
+    auto settle = [&]() -> char {
+        if (fallback || changed) {
+            return changed;
+        }
+        return guard();
+    };
+    auto consider = [&]() -> char {
+        if (halo::ai::actor_consider_combat_mode(actor_index, 0, &consideration)) {
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::charge, &consideration);
+            changed = 1;
+            return settle();
+        }
+        return guard();
+    };
+    auto consider_zero = [&]() -> char {
+        if (mode == halo::ai::actor_mode::charge) {
+            return settle();
+        }
+        return consider();
+    };
+    auto decide = [&]() -> char {
+        if (!fallback) {
+            return guard();
+        }
+        if (hold) {
+            return consider();
+        }
+        return consider_zero();
+    };
+    if (mode == halo::ai::actor_mode::charge) {
         int16_t state = a->mode_data.charge.stage;
 
         if (state == 2 || state == 3) {
             if (!a->mode_data.flee.unknown_07 && !a->mode_data.charge.done && !a->mode_data.charge.approach_failed) {
                 fallback = 1;
-                goto consider_zero;
+                return consider_zero();
             }
             hold = 1;
-            goto decide;
+            return decide();
         }
         if (a->charge_disallowed) {
-            goto guard;
+            return guard();
         }
         if (state == 4 || state == 5) {
             if (a->mode_data.charge.approach_failed || a->vehicle_driving_type <= 1) {
                 hold = 1;
-                goto decide;
+                return decide();
             }
             fallback = 1;
             if (state != 4) {
-                goto consider_zero;
+                return consider_zero();
             }
             {
-                Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)OBJECT_DATA(a->active_unit_index));
+                Vehicle *vehicle_tag = halo::ai::tag_data<Vehicle>(*(datum_index *)halo::ai::object_bytes(a->active_unit_index));
                 float vehicle_range = vehicle_tag->ai_strafing_abort_range;
 
                 if (a->movement_completed && a->active_movement.type == 5 &&
                     halo::bit_cast<datum_index>(a->active_movement.destination.x) == a->target_unit_index) {
-                    goto guard;
+                    return guard();
                 }
                 if (distance < vehicle_range) {
-                    goto guard;
+                    return guard();
                 }
                 if (!(vehicle_range + vehicle_range > distance)) {
-                    goto consider_zero;
+                    return consider_zero();
                 }
                 if (a->facing.k * p->direction.z + a->facing.j * p->direction.y +
                         p->direction.x * a->facing.i >= 0.5f) {
-                    goto consider_zero;
+                    return consider_zero();
                 }
-                goto guard;
+                return guard();
             }
         }
     }
-decide:
-    if (!fallback) {
-        goto guard;
-    }
-    if (hold) {
-        goto consider;
-    }
-consider_zero:
-    if (mode == 0xa) {
-        goto settle;
-    }
-consider:
-    if (halo::ai::actor_consider_combat_mode(actor_index, 0, &consideration)) {
-        halo::ai::actor_set_mode(actor_index, 0xa, &consideration);
-        changed = 1;
-    } else {
-        goto guard;
-    }
-settle:
-    if (fallback || changed) {
-        return changed;
-    }
-guard:
-    if (a->mode == 3) {
-        return changed;
-    }
-    *(uint32_t *)&consideration = 0;
-    halo::ai::actor_set_mode(actor_index, 3, &consideration);
-    return 1;
+    return decide();
 }
 
 namespace halo::ai {
@@ -952,8 +949,6 @@ char actor_evaluate_combat_state_transition(uint32_t actor_index)
 }
 }
 
-#undef OBJECT_DATA
-#undef TAG_DATA
 
 namespace c_actor_is_within_alert_range {
 }
@@ -971,6 +966,7 @@ uint8_t halo::ai::alert_ops::is_within_alert_range(uint8_t always_in_range, floa
     actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     object *obj = halo::ai::object_at(object_index);
     uint8_t result = 0;
+    bool skip_vitality_gate = false;
 
     if ((obj->vitality_flags & _object_health_frozen_bit) == 0) {
         if (always_in_range == 0) {
@@ -993,14 +989,14 @@ uint8_t halo::ai::alert_ops::is_within_alert_range(uint8_t always_in_range, floa
                     result = 0;
                 }
             }
-            goto check_upright;
+            skip_vitality_gate = true;
+        } else {
+            result = 1;
         }
-        result = 1;
     }
-    if (vitality_only != 0) {
+    if (!skip_vitality_gate && vitality_only != 0) {
         return result;
     }
-check_upright:
     if (obj->up.k < 0.5f) {
         return 0;
     }

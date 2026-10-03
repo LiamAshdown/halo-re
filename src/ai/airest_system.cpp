@@ -130,7 +130,6 @@ void AiSystem::accumulate_repeated_event(int32_t event_type, real_point3d *posit
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 /**
  * Behaviour of ai alert actors in grenade radius, moved unchanged from the original free function.
  *
@@ -138,7 +137,7 @@ void AiSystem::accumulate_repeated_event(int32_t event_type, real_point3d *posit
  */
 void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int16_t stimulus, int16_t gate)
 {
-    uint8_t *source = OBJECT_DATA(source_unit_index);
+    uint8_t *source = halo::ai::object_bytes(source_unit_index);
     uint8_t *location = source + 0x98;
     datum_index owner_actor = *(datum_index *)(source + 0x1f8);
     uint32_t cluster_bits[16];
@@ -153,9 +152,9 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
         owner_actor = *(datum_index *)(source + 0x1f4);
     }
     if (((struct object *)source)->parent_object != k_datum_index_none) {
-        location = OBJECT_DATA(halo::objects::object_get_root_object_index(source_unit_index)) + 0x98;
+        location = halo::ai::object_bytes(halo::objects::object_get_root_object_index(source_unit_index)) + 0x98;
     }
-    cluster_count = *(int32_t *)(halo::scenario::globals().structure_bsp + 0x134);
+    cluster_count = static_cast<int32_t>(halo::scenario::globals().structure_bsp->clusters.count);
     memset(cluster_bits, 0, sizeof(cluster_bits));
     source_cluster = *(int16_t *)(location + 0x4);
     if (source_cluster != -1) {
@@ -167,9 +166,9 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
             if (source_cluster != i) {
                 int32_t lo = source_cluster < i ? source_cluster : i;
                 int32_t hi = source_cluster < i ? i : source_cluster;
-                int32_t row = (uint16_t)(*(uint16_t *)(halo::scenario::globals().structure_bsp + 0x134) - 1) * lo - ((lo + 1) * lo) / 2;
+                int32_t row = (uint16_t)(static_cast<uint16_t>(halo::scenario::globals().structure_bsp->clusters.count) - 1) * lo - ((lo + 1) * lo) / 2;
 
-                pas = (*(uint8_t **)(halo::scenario::globals().structure_bsp + 0x220))[(int16_t)(row + hi - 1)];
+                pas = (reinterpret_cast<uint8_t *>(static_cast<uintptr_t>(halo::scenario::globals().structure_bsp->sound_pas_data.pointer)))[(int16_t)(row + hi - 1)];
             }
             if (!(pas & 0x80) && (float)(int32_t)(pas & 0x7f) * 2.015748f < 40.0f) {
                 cluster_bits[i >> 5] |= 1u << (i & 0x1f);
@@ -214,7 +213,6 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
     }
 }
 
-#undef OBJECT_DATA
 
 /**
  * Behaviour of ai build priority target list, moved unchanged from the original free function.
@@ -343,7 +341,7 @@ int16_t AiSystem::count_actors_in_mode9_group(int32_t group_id)
     halo::ai::actor_iterator_new(&iterator, 0);
     a = halo::ai::actor_iterator_next(&iterator);
     while (a != 0) {
-        if (a->mode == _actor_mode_vocalize && *(int32_t *)a->mode_data.raw == group_id) {
+        if (a->mode == halo::ai::actor_mode::vehicle && a->mode_data.vehicle.vehicle_index == group_id) {
             count = count + 1;
         }
         a = halo::ai::actor_iterator_next(&iterator);
@@ -638,7 +636,6 @@ int16_t AiSystem::pick_weighted_candidate(ai_scored_candidate *table, ai_scored_
     return chosen;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 /**
  * Behaviour of ai process vehicle entry queue, moved unchanged from the original free function.
  *
@@ -650,7 +647,7 @@ void AiSystem::process_vehicle_entry_queue()
 
     for (queue_index = 0; queue_index < halo::ai::globals().state->vehicle_entry_count; queue_index++) {
         datum_index vehicle_index = halo::ai::globals().state->vehicle_entry_queue[queue_index];
-        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)OBJECT_DATA(vehicle_index) & halo::k_slot_mask].data;
+        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)halo::ai::object_bytes(vehicle_index) & halo::k_slot_mask].data;
         int16_t seat_index;
 
         for (seat_index = 0; seat_index < *(int32_t *)(vehicle_tag + 0x2e4); seat_index++) {
@@ -664,11 +661,11 @@ void AiSystem::process_vehicle_entry_queue()
             }
             memset(&request, 0, 0x1c);
             *(int16_t *)((uint8_t *)&request + 0x1a) = -1;
-            vehicle = (object *)OBJECT_DATA(vehicle_index);
+            vehicle = (object *)halo::ai::object_bytes(vehicle_index);
             if (((vehicle_object *)vehicle)->base.parent_object == k_datum_index_none) {
                 request.position = *(real_point3d *)&((vehicle_object *)vehicle)->base.position.x;
             } else {
-                uint8_t *parent = OBJECT_DATA(((vehicle_object *)vehicle)->base.parent_object);
+                uint8_t *parent = halo::ai::object_bytes(((vehicle_object *)vehicle)->base.parent_object);
 
                 halo::math::matrix4x3_transform_point(request.position, *&vehicle->position,
                     *(real_matrix4x3 *)(parent + ((struct object *)parent)->nodes.offset + (int8_t)vehicle->parent_marker_index * 0x34));
@@ -683,7 +680,6 @@ void AiSystem::process_vehicle_entry_queue()
     halo::ai::globals().state->vehicle_entry_count = 0;
 }
 
-#undef OBJECT_DATA
 
 /**
  * Behaviour of ai recompute all relationship flags, moved unchanged from the original free function.
@@ -783,9 +779,6 @@ void AiSystem::reset_all_actors_perception()
     }
 }
 
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define OBJ(h) ((uint8_t *)halo::ai::object_at((h)))
-#define AI_STATE_BYTES (*reinterpret_cast<uint8_t **>(&halo::ai::globals().state))
 namespace {
 
 static uint8_t ai_bsp_actor_should_carry(struct actor *actor)
@@ -849,10 +842,10 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, struct actor *actor)
         datum_index root = unit_index;
         int16_t cluster;
 
-        while (*(datum_index *)(OBJ(root) + 0x11c) != k_datum_index_none) {
-            root = *(datum_index *)(OBJ(root) + 0x11c);
+        while (*(datum_index *)(halo::ai::object_bytes(root) + 0x11c) != k_datum_index_none) {
+            root = *(datum_index *)(halo::ai::object_bytes(root) + 0x11c);
         }
-        cluster = *(int16_t *)(OBJ(root) + 0x9c);
+        cluster = *(int16_t *)(halo::ai::object_bytes(root) + 0x9c);
         if (cluster == -1 ||
             (*(uint32_t *)&halo::game::globals().local_player_globals->cluster_pvs[(cluster >> 5)] & (1u << (cluster & 0x1f))) == 0) {
             hidden_units[hidden++] = unit_index;
@@ -872,7 +865,7 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, struct actor *actor)
         actor = halo::ai::actor_at(actor_index);
         if (halo::ai::actor_new_and_attach_to_unit(1, unit_index, actor->actor_variant_tag, actor->encounter_index,
                 actor->squad_index, 0, actor_index, 0, 2, 0, halo::k_word_none, 0) == k_datum_index_none) {
-            int32_t kind = *(int32_t *)(OBJ(unit_index) + 4);
+            int32_t kind = *(int32_t *)(halo::ai::object_bytes(unit_index) + 4);
 
             if (kind == 0) {
                 halo::objects::object_delete_unparented(unit_index);
@@ -906,7 +899,7 @@ void AiSystem::reset_fire_group_assignments()
             continue;
         }
         next = encounter->first_actor;
-        while (AI_STATE_BYTES[1] != 0 && next != k_datum_index_none) {
+        while (halo::ai::globals().state->actors_valid != 0 && next != k_datum_index_none) {
             struct actor *actor;
             uint8_t carry;
 
@@ -937,14 +930,14 @@ void AiSystem::reset_fire_group_assignments()
                 }
             }
             halo::ai::encounter_remove_actor(actor_index, 0);
-            if (AI_STATE_BYTES[1] == 0) {
+            if (halo::ai::globals().state->actors_valid == 0) {
                 break;
             }
             actor = halo::ai::actor_at(actor_index);
-            actor->next_in_encounter = *(datum_index *)(AI_STATE_BYTES + 8);
-            *(datum_index *)(AI_STATE_BYTES + 8) = actor_index;
+            actor->next_in_encounter = halo::ai::globals().state->first_encounterless_actor;
+            halo::ai::globals().state->first_encounterless_actor = actor_index;
             actor->encounterless = 1;
-            *(int16_t *)((uint8_t *)actor + 0x10) = actor->active != 0 ? 0x5a : 0;
+            actor->activation_delay = actor->active != 0 ? 0x5a : 0;
             halo::ai::actor_movement_action_cancel(actor_index);
         }
         encounter = halo::ai::encounter_at(e);
@@ -952,12 +945,12 @@ void AiSystem::reset_fire_group_assignments()
         halo::ai::encounter_deactivate((datum_index)(int32_t)e);
     }
 
-    for (actor_index = *(datum_index *)(AI_STATE_BYTES + 8); actor_index != k_datum_index_none;) {
-        datum_index following = ((struct actor *)ACTOR(actor_index))->next_in_encounter;
+    for (actor_index = halo::ai::globals().state->first_encounterless_actor; actor_index != k_datum_index_none;) {
+        datum_index following = ((struct actor *)halo::ai::actor_bytes(actor_index))->next_in_encounter;
         datum_index prop_index;
 
         halo::ai::actor_clear_target_state(actor_index);
-        for (prop_index = ((struct actor *)ACTOR(actor_index))->first_prop; prop_index != k_datum_index_none;) {
+        for (prop_index = ((struct actor *)halo::ai::actor_bytes(actor_index))->first_prop; prop_index != k_datum_index_none;) {
             prop *p = halo::ai::prop_at(prop_index);
 
             prop_index = p->next_in_actor;
@@ -969,9 +962,6 @@ void AiSystem::reset_fire_group_assignments()
     }
 }
 
-#undef ACTOR
-#undef OBJ
-#undef AI_STATE_BYTES
 
 /**
  * Behaviour of ai reset for new map, moved unchanged from the original free function.
@@ -1059,13 +1049,10 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
                     }
                 }
 
-                if (hard_difficulty != 0 && a->firing_state == 0 && a->mode != _actor_mode_vehicle) {
-                    if (15.0f < p->distance) {
-                        goto next_prop;
-                    }
-                }
+                bool too_far = hard_difficulty != 0 && a->firing_state == 0 && a->mode != halo::ai::actor_mode::charge &&
+                               15.0f < p->distance;
 
-                if (!skip_close_check) {
+                if (!too_far && !skip_close_check) {
                     kind = p->state;
                     if ((kind < 4 || 5 < kind) && p->last_seen_time != -1 &&
                         current_tick <= p->last_seen_time + 0x5a) {
@@ -1093,7 +1080,6 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
                 }
             }
         }
-next_prop:
         p = (prop *)halo::memory::data_iterator_next(&iterator);
     }
     return 0;
@@ -1334,6 +1320,8 @@ uint8_t ProjectileAim::solve_ballistic_arc(real_point3d *target, real_point3d *o
         }
     }
 
+    bool found_root = false;
+
     if (!((double)chosen_max < shallow_speed_ext)) {
         double a_ext = (double)dzg - (double)chosen_max * (double)chosen_max;
         double disc2_ext;
@@ -1347,15 +1335,16 @@ uint8_t ProjectileAim::solve_ballistic_arc(real_point3d *target, real_point3d *o
             root2 = (real)root2_ext;
             if (root2_ext > 0.0) {
                 t = (real)halo::libm::sqrt((double)root2);
-                goto have_root;
+                found_root = true;
             }
         }
     }
-    used_root = 0;
-    t = shallow_time;
-    chosen_max = (real)shallow_speed_ext;
+    if (!found_root) {
+        used_root = 0;
+        t = shallow_time;
+        chosen_max = (real)shallow_speed_ext;
+    }
 
-have_root:
     inv_t = 1.0 / (double)t;
     dir.i = (real)((double)dx * inv_t);
     dir.j = (real)((double)dy * inv_t);

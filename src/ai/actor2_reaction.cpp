@@ -266,7 +266,7 @@ uint8_t ActorOps::play_first_valid_vocalization(int16_t *seat_list, datum_index 
             continue;
         }
         if (halo::ai::actor_build_order_investigate_encounter_point(vehicle_index, actor_index, seat, order)) {
-            halo::ai::actor_set_mode(actor_index, 9, order);
+            halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::vehicle, order);
             seat_list[i] = -1;
             return 1;
         }
@@ -357,7 +357,7 @@ void ActorOps::queue_directional_reaction_event(const real_vector3d *direction, 
         look_source = &target->direction;
     }
 
-    self->unknown_2e8[4] = 1;
+    self->attack_pending = 1;
 
     if ((target == 0 || target->enemy != 0) && self->awareness_level < 3) {
         halo::ai::actor_record_look_at_point(actor_index, (const uint32_t *)look_source, 5, target_prop_index);
@@ -379,7 +379,7 @@ void ActorOps::queue_directional_reaction_event(const real_vector3d *direction, 
     actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     if (self->awareness_level > 1 && self->vocalization_line < 12 &&
-        (self->mode != 11 || self->mode_data.raw[3] != 0) &&
+        (self->mode != halo::ai::actor_mode::obey || self->mode_data.obey.allow_look != 0) &&
         (kind != 1 || halo::memory::datum_get(payload, halo::ai::globals().prop_data) != 0)) {
         wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 5.0f : 2.5f;
 
@@ -427,7 +427,7 @@ void ActorOps::queue_point_reaction_dialogue(const real_point3d *point, datum_in
         Actor *actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
         if (self->awareness_level > 1 && self->vocalization_line < 2 &&
-            (self->mode != 11 || self->mode_data.raw[3] != 0) &&
+            (self->mode != halo::ai::actor_mode::obey || self->mode_data.obey.allow_look != 0) &&
             self->flee_reason < 7) {
             float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 2.6f : 1.3f;
 
@@ -472,7 +472,7 @@ void ActorView::queue_recognized_target_dialogue(datum_index target_prop_index)
     Actor *actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     if (self->awareness_level > 1 && self->vocalization_line < 6 &&
-        (self->mode != 11 || self->mode_data.raw[3] != 0)) {
+        (self->mode != halo::ai::actor_mode::obey || self->mode_data.obey.allow_look != 0)) {
         int16_t recent = self->flee_reason;
         prop *target = (prop *)halo::memory::datum_get(target_prop_index, halo::ai::globals().prop_data);
 
@@ -637,99 +637,98 @@ void ActorView::queue_sighted_target_dialogue(datum_index target_prop_index, uin
     Actor *actor_tag;
     prop *validated;
 
-    if (target->dead != 0) {
-        goto broadcast_check;
-    }
+    if (target->dead == 0) {
+        actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
-    actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
+        if (self->awareness_level > 1 && self->vocalization_line < 5 &&
+            (self->mode != halo::ai::actor_mode::obey || self->mode_data.obey.allow_look != 0)) {
+            int16_t recent = self->flee_reason;
 
-    if (self->awareness_level > 1 && self->vocalization_line < 5 &&
-        (self->mode != 11 || self->mode_data.raw[3] != 0)) {
-        int16_t recent = self->flee_reason;
-
-        validated = (prop *)halo::memory::datum_get(target_prop_index, halo::ai::globals().prop_data);
-        if (validated != 0) {
-            if ((validated->enemy == 0 && validated->dead == 0) ||
-                (validated->dead != 0 && self->awareness_level > 2)) {
-                if (recent <= 6) {
-                    if (validated->is_parented == 0 && validated->last_attention_time != -1 &&
-                        (int32_t)halo::game::globals().game_time->game_time >= validated->last_attention_time + 600) {
-                        validated->last_attention_time = (int32_t)halo::game::globals().game_time->game_time;
-                        validated->interest_satisfied = (validated->interest_satisfied <= validated->interest)
-                                                     ? validated->interest
-                                                     : validated->interest_satisfied;
+            validated = (prop *)halo::memory::datum_get(target_prop_index, halo::ai::globals().prop_data);
+            if (validated != 0) {
+                if ((validated->enemy == 0 && validated->dead == 0) ||
+                    (validated->dead != 0 && self->awareness_level > 2)) {
+                    if (recent <= 6) {
+                        if (validated->is_parented == 0 && validated->last_attention_time != -1 &&
+                            (int32_t)halo::game::globals().game_time->game_time >= validated->last_attention_time + 600) {
+                            validated->last_attention_time = (int32_t)halo::game::globals().game_time->game_time;
+                            validated->interest_satisfied = (validated->interest_satisfied <= validated->interest)
+                                                         ? validated->interest
+                                                         : validated->interest_satisfied;
+                        }
                     }
                 }
+                if (recent <= 6) {
+                    float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 1.8f : 0.9f;
+
+                    if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
+                        float min_scale = (actor_tag->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_tag->event_look_time_modifier[0];
+                        float max_scale = (actor_tag->event_look_time_modifier[1] <= 2.0f) ? actor_tag->event_look_time_modifier[1] : 2.0f;
+                        wait_scale = halo::math::random_real_range(min_scale, max_scale) * wait_scale;
+                    }
+
+                    int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
+                    if (ticks > INT16_MAX) {
+                        ticks = INT16_MAX;
+                    }
+
+                    self->vocalization_line = 4;
+                    self->vocalization_state = (int16_t)ticks;
+                    self->vocalization_source.code = 1;
+                    self->vocalization_variant = actor_dialogue_variant_table_a[self->combat_status >= 4];
+                    self->vocalization_source.payload.handle = target_prop_index;
+                    self->vocalization_source.payload.point.y = 0.0f;
+                    self->vocalization_source.payload.point.z = 0.0f;
+                }
             }
-            if (recent <= 6) {
-                float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 1.8f : 0.9f;
+        }
 
-                if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
-                    float min_scale = (actor_tag->event_look_time_modifier[0] <= 0.5f) ? 0.5f : actor_tag->event_look_time_modifier[0];
-                    float max_scale = (actor_tag->event_look_time_modifier[1] <= 2.0f) ? actor_tag->event_look_time_modifier[1] : 2.0f;
-                    wait_scale = halo::math::random_real_range(min_scale, max_scale) * wait_scale;
+        if (target->enemy != 0) {
+            float facing_dot = target->direction.z * self->facing.k
+                              + target->direction.y * self->facing.j
+                              + target->direction.x * self->facing.i;
+            int outside_cone = facing_dot < 0.5f;
+            int priority = 0;
+
+            bool check_shared;
+
+            if (self->combat_status == 0) {
+                already_noticed = 0;
+                if (self->awareness_level < 3 && target->shooting != 0 &&
+                    target->distance < actor_tag->surprise_distance && priority < 4) {
+                    priority = 3;
                 }
+                check_shared = true;
+            } else if (self->combat_status < 5 || outside_cone) {
+                check_shared = already_noticed == 0;
+            } else {
+                already_noticed = 1;
+                check_shared = false;
+            }
 
-                int32_t ticks = (int32_t)(wait_scale * 30.0f + 0.5f);
-                if (ticks > INT16_MAX) {
-                    ticks = INT16_MAX;
+            if (check_shared) {
+                bool skip_record;
+
+                if (target->shooting == 0 || !(target->distance < actor_tag->surprise_distance)) {
+                    skip_record = priority == 0;
+                } else if (outside_cone) {
+                    skip_record = priority > 7;
+                } else {
+                    skip_record = priority > 6;
                 }
+                if (!skip_record) {
+                    halo::ai::actor_record_look_at_point(actor_index, (const uint32_t *)&target->direction, (int16_t)priority, target_prop_index);
+                }
+            }
 
-                self->vocalization_line = 4;
-                self->vocalization_state = (int16_t)ticks;
-                self->vocalization_source.code = 1;
-                self->vocalization_variant = actor_dialogue_variant_table_a[self->combat_status >= 4];
-                self->vocalization_source.payload.handle = target_prop_index;
-                self->vocalization_source.payload.point.y = 0.0f;
-                self->vocalization_source.payload.point.z = 0.0f;
+            if (self->combat_status < 3 && already_noticed == 0 &&
+                target->visual_perception < 2 && self->unit_index != (datum_index)k_datum_index_none) {
+                halo::ai::ai_communication_broadcast(6, self->unit_index, target->object_index, 3,
+                                           (datum_index)k_datum_index_none, (datum_index)k_datum_index_none, 0);
             }
         }
     }
 
-    if (target->enemy != 0) {
-        float facing_dot = target->direction.z * self->facing.k
-                          + target->direction.y * self->facing.j
-                          + target->direction.x * self->facing.i;
-        int outside_cone = facing_dot < 0.5f;
-        int priority = 0;
-
-        if (self->combat_status == 0) {
-            already_noticed = 0;
-            if (self->awareness_level < 3 && target->shooting != 0 &&
-                target->distance < actor_tag->surprise_distance && priority < 4) {
-                priority = 3;
-            }
-            goto shared_check;
-        } else if (self->combat_status < 5 || outside_cone) {
-            if (already_noticed == 0) {
-                goto shared_check;
-            }
-            goto notify_unit;
-        } else {
-            already_noticed = 1;
-            goto notify_unit;
-        }
-
-    shared_check:
-        if (target->shooting == 0 || !(target->distance < actor_tag->surprise_distance)) {
-            if (priority == 0) goto notify_unit;
-        } else if (outside_cone) {
-            if (priority > 7) goto notify_unit;
-        } else if (priority > 6) {
-            goto notify_unit;
-        }
-
-        halo::ai::actor_record_look_at_point(actor_index, (const uint32_t *)&target->direction, (int16_t)priority, target_prop_index);
-
-    notify_unit:
-        if (self->combat_status < 3 && already_noticed == 0 &&
-            target->visual_perception < 2 && self->unit_index != (datum_index)k_datum_index_none) {
-            halo::ai::ai_communication_broadcast(6, self->unit_index, target->object_index, 3,
-                                       (datum_index)k_datum_index_none, (datum_index)k_datum_index_none, 0);
-        }
-    }
-
-broadcast_check:
     if (target->is_parented != 0 && target->enemy != 0 && target->dead == 0 &&
         self->type != 15 && halo::hs::fields::medusa != 0) {
         if (self->swarm == 0) {
@@ -807,7 +806,7 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
     }
 
     if (self->awareness_level > 1 && self->vocalization_line < 7 &&
-        (self->mode != 11 || self->mode_data.raw[3] != 0)) {
+        (self->mode != halo::ai::actor_mode::obey || self->mode_data.obey.allow_look != 0)) {
         float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 1.8f : 0.9f;
 
         if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
@@ -870,7 +869,7 @@ void ActorOps::react_to_registered_danger(const real_point3d *point, datum_index
     }
 
     if (self->awareness_level > 1 && self->vocalization_line < 4 &&
-        (self->mode != 11 || self->mode_data.raw[3] != 0) && self->flee_reason < 7) {
+        (self->mode != halo::ai::actor_mode::obey || self->mode_data.obey.allow_look != 0) && self->flee_reason < 7) {
         float wait_scale = (self->awareness_level < 3 || self->combat_status == 0) ? 1.8f : 0.9f;
 
         if (actor_tag->event_look_time_modifier[0] != 0.0f || actor_tag->event_look_time_modifier[1] != 0.0f) {
@@ -945,7 +944,7 @@ void ActorView::react_to_seen_target(datum_index target_prop_index)
     actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     if (self->awareness_level > 1 && self->vocalization_line < 8 &&
-        (self->mode != 11 || self->mode_data.raw[3] != 0)) {
+        (self->mode != halo::ai::actor_mode::obey || self->mode_data.obey.allow_look != 0)) {
         int16_t recent = self->flee_reason;
 
         prop *validated = (prop *)halo::memory::datum_get(target_prop_index, halo::ai::globals().prop_data);
@@ -1241,8 +1240,8 @@ void TargetView::scan_ally_death_panic_reaction(datum_index actor_index)
 
             if (owner_actor_index != (datum_index)k_datum_index_none) {
                 actor *owner = &((actor *)halo::ai::globals().actor_data->data)[owner_actor_index & halo::k_slot_mask];
-                if (owner->mode == _actor_mode_death) {
-                    uint32_t killer_prop = *(uint32_t *)&owner->mode_data.raw[0x1c];
+                if (owner->mode == halo::ai::actor_mode::flee) {
+                    uint32_t killer_prop = owner->mode_data.flee.reference;
                     if (killer_prop != (uint32_t)k_datum_index_none) {
                         prop *killer = &((prop *)halo::ai::globals().prop_data->data)[killer_prop & halo::k_slot_mask];
                         payload = halo::ai::actor_find_prop_for_object(killer->object_index, actor_index);

@@ -179,8 +179,8 @@ void Conversations::clear_object_references(datum_index object_index, uint8_t fo
                         referenced = 1;
                     }
                     if (force_full_scan != 0) {
-                        if (a->mode == 12 && *(int32_t *)(a->mode_data.raw + 0x0c) == (int32_t)object_index) {
-                            *(int32_t *)(a->mode_data.raw + 0x0c) = -1;
+                        if (a->mode == halo::ai::actor_mode::converse && a->mode_data.converse.partner_unit == object_index) {
+                            a->mode_data.converse.partner_unit = (datum_index)k_datum_index_none;
                         }
                         if (a->conversation_participant == object_index) {
                             a->conversation_participant = (datum_index)k_datum_index_none;
@@ -246,7 +246,7 @@ uint8_t ConversationView::current_line_is_ready()
 {
     datum_index instance_handle = handle;
     ai_conversation *inst = halo::ai::conversation_at(instance_handle);
-    ActorVariant *definition = (ActorVariant *)(*(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x46c) + inst->definition_index * 0x74);
+    ActorVariant *definition = (ActorVariant *)(halo::ai::reflexive_data<uint8_t>(halo::scenario::globals().scenario->ai_conversations) + inst->definition_index * 0x74);
 
     if (inst->line_finished) {
         return inst->line_finished;
@@ -272,7 +272,7 @@ uint8_t ConversationView::current_line_is_ready()
                         continue;
                     }
                     a = halo::ai::actor_at(actor_index);
-                    if (a->mode == 0xc && a->mode_data.converse.partner_unit != k_datum_index_none &&
+                    if (a->mode == halo::ai::actor_mode::converse && a->mode_data.converse.partner_unit != k_datum_index_none &&
                         !a->mode_data.converse.arrived && !a->mode_data.converse.finished) {
                         blocked = 1;
                     }
@@ -291,21 +291,22 @@ uint8_t ConversationView::current_line_is_ready()
                     return inst->line_finished;
                 }
                 if (result > 0) {
-                    uint8_t speech[0x30];
+                    unit_speech speech;
+                    ai_communication_target_result &target = halo::ai::speech_target(speech);
 
-                    memset(speech, 0, sizeof(speech));
-                    *(int16_t *)(speech + 0x0) = 6;
-                    *(int16_t *)(speech + 0x2) = -1;
-                    *(datum_index *)(speech + 0x4) = sound;
-                    *(datum_index *)(speech + 0x10) = inst->addressee_unit_index;
-                    *(int16_t *)(speech + 0x14) = -1;
-                    *(int16_t *)(speech + 0x18) = -1;
-                    *(int16_t *)(speech + 0x16) = -1;
-                    *(int16_t *)(speech + 0x1c) = 1;
-                    *(int16_t *)(speech + 0x1e) = 1;
-                    *(datum_index *)(speech + 0x20) = static_cast<datum_index>(inst->speaker_unit_index);
-                    *(int16_t *)(speech + 0x24) = 0;
-                    halo::units::unit_commit_speech(static_cast<datum_index>(inst->speaker_unit_index), (const unit_speech *)speech, result);
+                    memset(&speech, 0, sizeof(speech));
+                    speech.priority = 6;
+                    speech.scream_type = -1;
+                    speech.sound_tag = sound;
+                    target.target = inst->addressee_unit_index;
+                    target.event = -1;
+                    target.row = -1;
+                    target.object_b = -1;
+                    target.look_marker = 1;
+                    target.look_kind = 1;
+                    target.look_object = static_cast<datum_index>(inst->speaker_unit_index);
+                    target.tag_value = 0;
+                    halo::units::unit_commit_speech(static_cast<datum_index>(inst->speaker_unit_index), &speech, result);
                 }
             } else {
                 halo::sound::sound_impulse_start(k_datum_index_none, sound, 1.0f);
@@ -613,10 +614,29 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
     blocked = 0;
     resolved = 0;
 
+    auto commit = [&]() {
+        instance->participant_mask = instance->participant_mask | (1u << ((uint8_t)participant_index & 0x1f));
+        instance->participant_actor[participant_index] = best_actor;
+        *(int16_t *)((uint8_t *)instance + 0x18 + participant_index * 2) = (int16_t)best_variant;
+        if (out_resolved != 0 && best_actor != (datum_index)k_datum_index_none) {
+            *out_resolved = 1;
+        }
+    };
+    auto report = [&]() {
+        if (blocked && out_blocked_by_player != 0) {
+            *out_blocked_by_player = 1;
+        }
+        if (inout_minimum_distance != 0 && best_distance < *inout_minimum_distance) {
+            *inout_minimum_distance = best_distance;
+        }
+        return resolved;
+    };
+
     if (selection_type == 1) {
         best_variant = (best_variant & 0xffff0000u);
         resolved = 1;
-        goto commit;
+        commit();
+        return report();
     }
 
     is_alternate_kind = (uint8_t)(selection_type == 6 || selection_type == 7);
@@ -800,13 +820,15 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
             zero_variant_slot = (uint32_t)k_datum_index_none;
             have_zero_variant = 0;
             chosen_variant = 0;
+            bool variant_matched = false;
             for (i = 0; i < 6; i++) {
                 participant_variant = (int16_t)participant->variant_numbers[i];
                 if (participant_variant != -1) {
                     if (participant_variant == candidate_variant) {
                         score = score + 0.7f;
                         chosen_variant = (uint32_t)i;
-                        goto have_variant;
+                        variant_matched = true;
+                        break;
                     }
                     if (participant_variant == 0) {
                         have_zero_variant = 1;
@@ -817,10 +839,10 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
                     }
                 }
             }
-            if (have_zero_variant) {
+            if (!variant_matched && have_zero_variant) {
                 score = score + 0.7f;
                 chosen_variant = zero_variant_slot;
-            } else {
+            } else if (!variant_matched) {
                 if (variant_candidate_count < 1) {
                     continue;
                 }
@@ -832,7 +854,6 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
                                     (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10)];
                 }
             }
-have_variant:
             if (best_score < score) {
                 best_actor = candidate_index;
                 best_score = score;
@@ -844,32 +865,11 @@ have_variant:
     }
 
     if (resolved != 0) {
-        goto commit;
-    }
-    if ((participant->flags & 2) == 0) {
-        goto report;
-    }
-    if (out_wants_alternate != 0) {
+        commit();
+    } else if ((participant->flags & 2) != 0 && out_wants_alternate != 0) {
         *out_wants_alternate = 1;
     }
-    goto report;
-
-commit:
-    instance->participant_mask = instance->participant_mask | (1u << ((uint8_t)participant_index & 0x1f));
-    instance->participant_actor[participant_index] = best_actor;
-    *(int16_t *)((uint8_t *)instance + 0x18 + participant_index * 2) = (int16_t)best_variant;
-    if (out_resolved != 0 && best_actor != (datum_index)k_datum_index_none) {
-        *out_resolved = 1;
-    }
-
-report:
-    if (blocked && out_blocked_by_player != 0) {
-        *out_blocked_by_player = 1;
-    }
-    if (inout_minimum_distance != 0 && best_distance < *inout_minimum_distance) {
-        *inout_minimum_distance = best_distance;
-    }
-    return resolved;
+    return report();
 }
 
 /**
@@ -912,7 +912,6 @@ uint8_t ConversationView::resolve_participants(uint8_t *out_keep_trying)
     object *unit_object;
     int16_t object_name;
     int16_t variant;
-    uint16_t definition_flags;
 
     instance = halo::ai::conversation_at(conversation_index);
     definition = (ScenarioAIConversation *)((uint8_t *)(uintptr_t)
@@ -981,137 +980,113 @@ uint8_t ConversationView::resolve_participants(uint8_t *out_keep_trying)
         }
     }
 
+    auto finish_with_keep_trying = [&](bool wants_keep_trying) -> uint8_t {
+        *out_keep_trying = (wants_keep_trying && (definition->flags & 0x40) != 0) ? 1 : 0;
+        return ready;
+    };
+
+    bool found_unready = false;
+    bool trying = false;
+
     index = 0;
-    if (0 < (int32_t)definition->participants.count) {
-        i = 0;
-        do {
-            participant_flags = participants[i].flags;
-            if ((participant_flags & 1) == 0 &&
-                (instance->participant_mask & (1u << ((uint8_t)i & 0x1f))) == 0 &&
-                ((participant_flags & 2) == 0 || alternate_resolved == 0) &&
-                ((participant_flags & 4) == 0 || wants_alternate != 0)) {
-                ready = 0;
-                if ((blocked_mask & (1u << ((uint8_t)index & 0x1f))) == 0) {
-                    goto clear_wait;
-                }
-                goto blocked_but_trying;
-            }
-            index = (int16_t)(index + 1);
-            i = (int32_t)index;
-        } while (i < (int32_t)definition->participants.count);
+    for (i = 0; i < (int32_t)definition->participants.count; i = (int32_t)index) {
+        participant_flags = participants[i].flags;
+        if ((participant_flags & 1) == 0 &&
+            (instance->participant_mask & (1u << ((uint8_t)i & 0x1f))) == 0 &&
+            ((participant_flags & 2) == 0 || alternate_resolved == 0) &&
+            ((participant_flags & 4) == 0 || wants_alternate != 0)) {
+            ready = 0;
+            found_unready = true;
+            trying = (blocked_mask & (1u << ((uint8_t)index & 0x1f))) != 0;
+            break;
+        }
+        index = (int16_t)(index + 1);
     }
 
-    if ((definition->flags & 0x40) != 0 && 0.0f < definition->trigger_distance &&
-        any_resolved != 0 && definition->trigger_distance < minimum_distance) {
-blocked_but_trying:
+    if (!found_unready) {
+        trying = (definition->flags & 0x40) != 0 && 0.0f < definition->trigger_distance &&
+                 any_resolved != 0 && definition->trigger_distance < minimum_distance;
+    }
+    if (trying) {
         ready = 0;
         keep_trying = 1;
     }
 
-clear_wait:
     instance->player_unit_index = -1;
     if (ready == 0) {
-        goto check_keep_trying;
+        return finish_with_keep_trying(keep_trying != 0);
     }
 
-    if ((definition->flags & 0x10) == 0) {
-        goto check_looking;
-    }
-
-    if (any_resolved == 0) {
-        ready = 0;
-        goto check_keep_trying;
-    }
-    iterator.data = halo::game::globals().player_data;
-    iterator.next_index = 0;
-    iterator.index = (datum_index)k_datum_index_none;
-    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    best_player_distance = 3.4028235e+38f;
-    player = halo::memory::data_iterator_next(&iterator);
-    while (player != 0) {
-        player_unit = ((struct player *)player)->unit;
-        if (player_unit != (datum_index)k_datum_index_none) {
-            nearest = 3.4028235e+38f;
-            for (j = 0; j < (int32_t)definition->participants.count; j++) {
-                if (instance->participant_actor[j] != (datum_index)k_datum_index_none) {
-                    prop_index = halo::ai::actor_find_prop_for_object(player_unit, instance->participant_actor[j]);
-                    if (prop_index != (datum_index)k_datum_index_none) {
-                        p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data +
-                                     (prop_index & halo::k_slot_mask) * k_prop_size);
-                        if (1 < p->state && p->state < 4 && p->distance < nearest) {
-                            nearest = p->distance;
+    if ((definition->flags & 0x10) != 0) {
+        if (any_resolved == 0) {
+            ready = 0;
+            return finish_with_keep_trying(keep_trying != 0);
+        }
+        iterator.data = halo::game::globals().player_data;
+        iterator.next_index = 0;
+        iterator.index = (datum_index)k_datum_index_none;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+        best_player_distance = 3.4028235e+38f;
+        player = halo::memory::data_iterator_next(&iterator);
+        while (player != 0) {
+            player_unit = ((struct player *)player)->unit;
+            if (player_unit != (datum_index)k_datum_index_none) {
+                nearest = 3.4028235e+38f;
+                for (j = 0; j < (int32_t)definition->participants.count; j++) {
+                    if (instance->participant_actor[j] != (datum_index)k_datum_index_none) {
+                        prop_index = halo::ai::actor_find_prop_for_object(player_unit, instance->participant_actor[j]);
+                        if (prop_index != (datum_index)k_datum_index_none) {
+                            p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data +
+                                         (prop_index & halo::k_slot_mask) * k_prop_size);
+                            if (1 < p->state && p->state < 4 && p->distance < nearest) {
+                                nearest = p->distance;
+                            }
                         }
                     }
                 }
-            }
-            if (nearest < best_player_distance) {
-                best_player_distance = nearest;
-                instance->player_unit_index = (int32_t)player_unit;
-            }
-        }
-        player = halo::memory::data_iterator_next(&iterator);
-    }
-    if (instance->player_unit_index != -1) {
-        goto check_looking;
-    }
-    definition_flags = definition->flags;
-    goto not_ready_check_retry;
-
-check_looking:
-    if ((definition->flags & 0x80) == 0 || any_resolved == 0) {
-        goto apply;
-    }
-    iterator.data = halo::game::globals().player_data;
-    iterator.next_index = 0;
-    iterator.index = (datum_index)k_datum_index_none;
-    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    found_looking = 0;
-    player = halo::memory::data_iterator_next(&iterator);
-    while (player != 0) {
-        if (found_looking != 0) {
-            goto apply;
-        }
-        if (((struct player *)player)->unit != (datum_index)k_datum_index_none) {
-            for (j = 0; j < (int32_t)definition->participants.count; j++) {
-                if (instance->participant_actor[j] != (datum_index)k_datum_index_none &&
-                    halo::units::unit_point_within_look_cone(0.5235988f, ((struct player *)player)->unit,
-                        (real_point3d *)((uint8_t *)halo::ai::globals().actor_data->data +
-                            (instance->participant_actor[j] & halo::k_slot_mask) * k_actor_size + 0x120)) != 0) {
-                    found_looking = 1;
-                    break;
+                if (nearest < best_player_distance) {
+                    best_player_distance = nearest;
+                    instance->player_unit_index = (int32_t)player_unit;
                 }
             }
+            player = halo::memory::data_iterator_next(&iterator);
         }
+        if (instance->player_unit_index == -1) {
+            ready = 0;
+            return finish_with_keep_trying(true);
+        }
+    }
+
+    if ((definition->flags & 0x80) != 0 && any_resolved != 0) {
+        iterator.data = halo::game::globals().player_data;
+        iterator.next_index = 0;
+        iterator.index = (datum_index)k_datum_index_none;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+        found_looking = 0;
         player = halo::memory::data_iterator_next(&iterator);
-    }
-    if (found_looking != 0) {
-        goto apply;
-    }
-    definition_flags = definition->flags;
-
-not_ready_check_retry:
-    ready = 0;
-    if ((definition_flags & 0x40) == 0) {
-        goto check_keep_trying;
-    }
-    goto report_keep_trying;
-
-check_keep_trying:
-    if (keep_trying == 0) {
-        *out_keep_trying = 0;
-        return ready;
-    }
-
-report_keep_trying:
-    if ((definition->flags & 0x40) != 0) {
-        *out_keep_trying = 1;
-        return ready;
+        while (player != 0) {
+            if (found_looking != 0) {
+                break;
+            }
+            if (((struct player *)player)->unit != (datum_index)k_datum_index_none) {
+                for (j = 0; j < (int32_t)definition->participants.count; j++) {
+                    if (instance->participant_actor[j] != (datum_index)k_datum_index_none &&
+                        halo::units::unit_point_within_look_cone(0.5235988f, ((struct player *)player)->unit,
+                            (real_point3d *)((uint8_t *)halo::ai::globals().actor_data->data +
+                                (instance->participant_actor[j] & halo::k_slot_mask) * k_actor_size + 0x120)) != 0) {
+                        found_looking = 1;
+                        break;
+                    }
+                }
+            }
+            player = halo::memory::data_iterator_next(&iterator);
+        }
+        if (found_looking == 0) {
+            ready = 0;
+            return finish_with_keep_trying(true);
+        }
     }
 
-    *out_keep_trying = 0;
-    return ready;
-
-apply:
     for (i = 0; i < (int32_t)definition->participants.count; i++) {
         if ((instance->participant_mask & (1u << ((uint8_t)i & 0x1f))) == 0) {
             continue;
@@ -1133,7 +1108,7 @@ apply:
             ai_conversation_range_lookup mode_data;
 
             if (halo::ai::ai_conversation_get_run_to_player_range(&mode_data, conversation_index) != 0) {
-                halo::ai::actor_set_mode(instance->participant_actor[i], _actor_mode_conversation, &mode_data);
+                halo::ai::actor_set_mode(instance->participant_actor[i], halo::ai::actor_mode::converse, &mode_data);
             }
         }
         variant = (int16_t)participants[i].variant_numbers[variant_slots[i]];
@@ -1190,8 +1165,8 @@ void ConversationView::stop(uint8_t reason_a, uint8_t reason_b)
             actor *a = &((actor *)halo::ai::globals().actor_data->data)[instance->participant_actor[i] & halo::k_slot_mask];
             a->conversation_index = (datum_index)k_datum_index_none;
             a->conversation_participant = (datum_index)k_datum_index_none;
-            if (a->mode == 12) {
-                *(int32_t *)a->mode_data.raw = -1;
+            if (a->mode == halo::ai::actor_mode::converse) {
+                a->mode_data.converse.conversation = (datum_index)k_datum_index_none;
             }
         }
     }
@@ -1241,8 +1216,10 @@ void Conversations::update()
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     for (inst = static_cast<ai_conversation *>(halo::memory::data_iterator_next(&iterator)); inst != 0; inst = static_cast<ai_conversation *>(halo::memory::data_iterator_next(&iterator))) {
         datum_index handle = iterator.index;
-        uint8_t *definition = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x46c) + inst->definition_index * 0x74;
+        uint8_t *definition = halo::ai::reflexive_data<uint8_t>(halo::scenario::globals().scenario->ai_conversations) + inst->definition_index * 0x74;
         int32_t line_count = *(int32_t *)(definition + 0x5c);
+
+        bool skip_lines = false;
 
         if (!inst->active) {
             uint8_t ok = 1;
@@ -1255,11 +1232,11 @@ void Conversations::update()
                     halo::ai::ai_conversation_stop(handle, 1, 0);
                 }
                 if (!inst->active) {
-                    goto finished_check;
+                    skip_lines = true;
                 }
             }
         }
-        if (!inst->finished) {
+        if (!skip_lines && !inst->finished) {
             int16_t line = inst->line_index;
             uint8_t pending = (line >= 0 && (int32_t)line < line_count);
 
@@ -1275,7 +1252,6 @@ void Conversations::update()
                 pending = halo::ai::ai_conversation_activate_next_participant(handle);
             }
         }
-finished_check:
         if (inst->finished) {
             halo::ai::ai_conversation_stop(handle, 0, 1);
             continue;

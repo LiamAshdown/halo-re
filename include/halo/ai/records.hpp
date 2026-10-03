@@ -5,6 +5,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 #include "crt.h"
 #include "tags.h"
 #include "memory.h"
@@ -14,6 +15,7 @@
 #include "units.h"
 #include "ai.h"
 #include "halo/ai/api.hpp"
+#include "halo/ai/modes.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cache/globals.hpp"
@@ -71,6 +73,28 @@ inline object *object_at(uint32_t handle)
     return static_cast<object_header *>(halo::objects::globals().object_data->data)[handle & k_slot_mask].data;
 }
 
+/** Returns the object header (not the object data) of the slot that `handle` indexes in the object data array. */
+inline object_header &object_header_at(uint32_t handle)
+{
+    return static_cast<object_header *>(halo::objects::globals().object_data->data)[handle & k_slot_mask];
+}
+
+static_assert(sizeof(unit_speech) == 0x30);
+static_assert(offsetof(unit_speech, unknown_10) == 0x10);
+
+/** Returns the communication record that fills the second half of a unit_speech (offsets 0x10..0x2f). */
+inline ai_communication_target_result &speech_target(unit_speech &speech)
+{
+    return *reinterpret_cast<ai_communication_target_result *>(reinterpret_cast<uint8_t *>(&speech) + offsetof(unit_speech, unknown_10));
+}
+
+/** Returns the elements a tag reflexive points at, typed as `T` (the reflexive pointer is a 32 bit address in the loaded tag). */
+template <typename T>
+inline T *reflexive_data(const TagReflexive &reflexive)
+{
+    return reinterpret_cast<T *>(static_cast<uintptr_t>(reflexive.pointer));
+}
+
 /** Returns the datum handle of the tag a tag-reference field names. */
 inline datum_index tag_handle(const TagDependency &reference)
 {
@@ -82,6 +106,30 @@ template <typename T>
 inline T *tag_data(uint32_t handle)
 {
     return static_cast<T *>(halo::cache::globals().tag_instances[handle & k_slot_mask].data);
+}
+
+/** Returns the actor record that `handle` indexes as raw bytes, for offset-based field access that has no typed member yet. */
+inline uint8_t *actor_bytes(uint32_t handle)
+{
+    return reinterpret_cast<uint8_t *>(actor_at(handle));
+}
+
+/** Returns the prop record that `handle` indexes as raw bytes. */
+inline uint8_t *prop_bytes(uint32_t handle)
+{
+    return reinterpret_cast<uint8_t *>(prop_at(handle));
+}
+
+/** Returns the object record that `handle` indexes as raw bytes. */
+inline uint8_t *object_bytes(uint32_t handle)
+{
+    return reinterpret_cast<uint8_t *>(object_at(handle));
+}
+
+/** Returns the loaded tag data of the tag that `handle` names as raw bytes. */
+inline uint8_t *tag_bytes(uint32_t handle)
+{
+    return static_cast<uint8_t *>(halo::cache::globals().tag_instances[handle & k_slot_mask].data);
 }
 
 }  // namespace halo::ai

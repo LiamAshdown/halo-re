@@ -446,8 +446,8 @@ void Encounters::merge(uint32_t source_reference, uint32_t target_encounter_inde
         }
         squad = (ScenarioSquad *)(*(uint8_t **)&source_definition->squads.pointer + iterator.cursor * 0xe8);
         palette_index = static_cast<int16_t>(squad->actor_type);
-        if (palette_index >= 0 && (int32_t)palette_index < *(int32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x420)) {
-            uint8_t *entry = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x424) + palette_index * 0x10;
+        if (palette_index >= 0 && (int32_t)palette_index < static_cast<int32_t>(halo::scenario::globals().scenario->actor_palette.count)) {
+            uint8_t *entry = halo::ai::reflexive_data<uint8_t>(halo::scenario::globals().scenario->actor_palette) + palette_index * 0x10;
             datum_index variant_tag = *(datum_index *)(entry + 0xc);
 
             if (variant_tag != (datum_index)k_datum_index_none &&
@@ -1015,6 +1015,8 @@ void EncounterView::choose_vocalizations()
                 if (head_count == 1 && 1 < enc->pre_combat_living_count) {
                     morale_line = 1;
                 } else {
+                    bool morale_decided = false;
+
                     if (1 < head_count) {
                         margin = 2;
                         if (head_count < 3) {
@@ -1022,14 +1024,13 @@ void EncounterView::choose_vocalizations()
                         }
                         if ((int32_t)head_count + margin <= (int32_t)enc->pre_combat_living_count) {
                             morale_line = 4;
-                            goto stamp;
-                        }
-                        if (1 < head_count && (int32_t)enc->pre_combat_living_count - 1 <= (int32_t)head_count) {
+                            morale_decided = true;
+                        } else if (1 < head_count && (int32_t)enc->pre_combat_living_count - 1 <= (int32_t)head_count) {
                             morale_line = 5;
-                            goto stamp;
+                            morale_decided = true;
                         }
                     }
-                    if (0.8f < chosen->body_vitality) {
+                    if (!morale_decided && 0.8f < chosen->body_vitality) {
                         morale_line = 2;
                     }
                 }
@@ -1080,7 +1081,6 @@ void EncounterView::choose_vocalizations()
         }
     }
 
-stamp:
     for (i = 0; i < 2; i = i + 1) {
         if (picked_bucket[i] != -1 && picked[i].handle != (datum_index)k_datum_index_none) {
             a = &((actor *)halo::ai::globals().actor_data->data)[picked[i].handle & halo::k_slot_mask];
@@ -1423,16 +1423,16 @@ void EncounterView::evaluate_support_needs(datum_index self_actor_index, int16_t
         actor_index = a->next_in_encounter;
 
         if (not_self != 0 && a->grenade_ally_phase_flag == phase) {
-            if (a->mode == 5) {
-                if (*(int16_t *)(a->mode_data.raw + 8) == 0) {
+            if (a->mode == halo::ai::actor_mode::uncover) {
+                if (a->mode_data.uncover.stage == 0) {
                     if (a->combat_status < 3) {
                         mode5_count = mode5_count + 1;
                     }
                 } else {
                     engaged_count = engaged_count + 1;
                 }
-            } else if (a->mode == 7) {
-                if (*(int16_t *)(a->mode_data.raw + 8) != 0) {
+            } else if (a->mode == halo::ai::actor_mode::search) {
+                if (a->mode_data.search.stage != 0) {
                     engaged_count = engaged_count + 1;
                 } else {
                     mode7_count = mode7_count + 1;
@@ -1514,7 +1514,7 @@ void EncounterView::gather_occupied_clusters(uint32_t *out_clusters, uint8_t rec
     squad_mask = 0;
 
     fill = out_clusters;
-    for (dword_count = (uint32_t)(((*(int32_t *)((uint8_t *)halo::scenario::globals().structure_bsp + 0x134)) + 0x1f) >> 5);
+    for (dword_count = (uint32_t)((static_cast<int32_t>(halo::scenario::globals().structure_bsp->clusters.count) + 0x1f) >> 5);
          dword_count != 0; dword_count = dword_count - 1) {
         *fill = 0;
         fill = fill + 1;
@@ -1564,7 +1564,7 @@ void EncounterView::gather_occupied_clusters(uint32_t *out_clusters, uint8_t rec
                         }
                         zone_mask = zone_mask | extra;
                     }
-                    if (a->mode == 6 || a->mode == 4) {
+                    if (a->mode == halo::ai::actor_mode::guard || a->mode == halo::ai::actor_mode::flee) {
                         extra = 0;
                         if (a->encounter_index != (datum_index)k_datum_index_none) {
                             squad = &((ScenarioSquad *)
@@ -1574,7 +1574,7 @@ void EncounterView::gather_occupied_clusters(uint32_t *out_clusters, uint8_t rec
                                 (int16_t)((-(uint16_t)(a->defending != 0) & 3) + 2) * 4);
                         }
                         zone_mask = zone_mask | extra;
-                    } else if (a->mode == 3 || a->mode == 5) {
+                    } else if (a->mode == halo::ai::actor_mode::fight || a->mode == halo::ai::actor_mode::uncover) {
                         zone_mask = zone_mask | halo::ai::actor_get_firing_position_group_mask(current, 0, 0);
                     }
                 } else if (a->awareness_level == 2 && *(int16_t *)(a->mode_data.raw + 0) != 0) {
@@ -2031,7 +2031,7 @@ void EncounterView::recompute_morale()
         enc->combat_count = enc->combat_count + (int16_t)((uint16_t)counts * weight);
 
         engaged = (uint8_t)(6 < a->combat_status);
-        if (engaged != 0 && a->mode == 4 && 0 < *(int16_t *)(a->mode_data.raw + 0x0c)) {
+        if (engaged != 0 && a->mode == halo::ai::actor_mode::flee && 0 < a->mode_data.flee.panic) {
             engaged = 0;
         }
         enc->average_vitality = sample + enc->average_vitality;
@@ -2039,6 +2039,8 @@ void EncounterView::recompute_morale()
 
         if (a->target_unit_index != (datum_index)k_datum_index_none) {
             p = &((prop *)halo::ai::globals().prop_data->data)[a->target_unit_index & halo::k_slot_mask];
+            bool skip_live_target = false;
+
             enc->ever_had_target = 1;
             if (a->team < 0 || 9 < a->team || p->team < 0 || 9 < p->team ||
                 (pair = (int16_t)((int32_t)p->team + a->team * 10),
@@ -2059,14 +2061,15 @@ void EncounterView::recompute_morale()
                     counts = p->dead;
                 }
                 if (counts != 0) {
-                    goto tally_vocalization;
+                    skip_live_target = true;
                 }
             } else {
                 enc->engaged = 1;
             }
-            enc->has_live_target = 1;
+            if (!skip_live_target) {
+                enc->has_live_target = 1;
+            }
         }
-tally_vocalization:
         if (0 < a->post_combat_action) {
             any_vocalizing = 1;
         }
@@ -2082,18 +2085,22 @@ tally_vocalization:
         ((enc->has_live_target == 0 && ((int32_t)enc->ticks_since_live_target == -1 || 0x3b < (int32_t)enc->ticks_since_live_target)) ||
          retreat_timer == -1 || 0x1c1 < retreat_timer)) {
         if (enc->stood_down == 0) {
+            bool skip_release = false;
+
             if (enc->post_combat == 0) {
                 if (any_flag_8c != 0 && any_flag_8d != 0) {
                     halo::ai::encounter_choose_vocalizations(encounter_index);
-                    goto normalize;
+                    skip_release = true;
                 }
             } else {
                 enc->post_combat_quiet = (uint8_t)(any_vocalizing == 0);
                 if (enc->post_combat_timer != 0) {
-                    goto normalize;
+                    skip_release = true;
                 }
             }
-            halo::ai::encounter_release_stale_props(encounter_index);
+            if (!skip_release) {
+                halo::ai::encounter_release_stale_props(encounter_index);
+            }
         } else {
             enc->post_combat = 0;
             enc->pre_combat_living_count = enc->living_count;
@@ -2109,7 +2116,6 @@ tally_vocalization:
         enc->post_combat = 0;
     }
 
-normalize:
     if (0 < enc->member_count) {
         sample = enc->average_vitality / (float)(int32_t)enc->member_count - 0.001f;
         if (sample < 0.0f) {
@@ -2206,7 +2212,6 @@ void EncounterView::redistribute_squads_toward_targets()
         }
         targets[0] = cached_target;
         target_count = 1;
-        goto have_targets;
     } else if (target_mode == 3) {
         void *member;
         ai_reference_actor_iterator member_iterator;
@@ -2232,7 +2237,6 @@ void EncounterView::redistribute_squads_toward_targets()
         return;
     }
 
-have_targets:
     squad_considered_mask[0] = 0;
     squad_considered_mask[1] = 0;
     squad_active_mask[0] = 0;
@@ -2695,6 +2699,13 @@ void EncounterView::spawn_squads(int16_t platoon_filter, int16_t squad_filter)
                 actor_type = halo::ai::ai_squad_resolve_actor_type(squad);
                 remaining = (int16_t)spawn_count;
 
+                auto leader_coin_flip = [&]() {
+                    if (actor_type == 7) {
+                        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
+                        leader_chance = 100 + (int32_t)(halo::math::globals().random_seed_global >> 0x1f);
+                    }
+                };
+
                 switch (squad->unique_leader_type) {
                 case 0:
                     enc = &((encounter *)halo::ai::globals().encounter_data->data)[encounter_index & halo::k_slot_mask];
@@ -2707,16 +2718,12 @@ void EncounterView::spawn_squads(int16_t platoon_filter, int16_t squad_filter)
                             break;
                         }
                         if (margin >= 0) {
-                            goto leader_coin_flip;
+                            leader_coin_flip();
                         }
                     }
                     break;
                 case 2:
-leader_coin_flip:
-                    if (actor_type == 7) {
-                        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
-                        leader_chance = 100 + (int32_t)(halo::math::globals().random_seed_global >> 0x1f);
-                    }
+                    leader_coin_flip();
                     break;
                 case 3:
                     if (actor_type == 7) {
@@ -3389,7 +3396,7 @@ void Encounters::update_activation()
                                                visible_clusters);
 
             overlaps = 0;
-            dword_count = (uint32_t)(((*(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp + 0x134)) + 0x1f) >> 5);
+            dword_count = (uint32_t)((static_cast<int16_t>(halo::scenario::globals().structure_bsp->clusters.count) + 0x1f) >> 5);
             i = (int16_t)dword_count - 1;
             if (0 <= i) {
                 uint32_t n = dword_count & halo::k_slot_mask;
@@ -3718,18 +3725,21 @@ datum_index EncounterView::recent_object_get_or_create(int16_t type, int32_t min
     encounter *enc = &((encounter *)halo::ai::globals().encounter_data->data)[encounter_index & halo::k_slot_mask];
     datum_index cursor = enc->first_pursuit;
     uint8_t stale = 0;
+    bool reset = false;
+    bool found = false;
     ai_pursuit *pursuit = 0;
 
     while (cursor != (datum_index)k_datum_index_none) {
         pursuit = &((ai_pursuit *)halo::ai::globals().pursuit_data->data)[cursor & halo::k_slot_mask];
         if (pursuit->type == type) {
             stale = pursuit->last_tick < min_last_tick;
-            goto found;
+            found = true;
+            break;
         }
         cursor = pursuit->next;
     }
 
-    if (create_if_missing != 0) {
+    if (!found && create_if_missing != 0) {
         datum_index new_handle = halo::memory::datum_new(halo::ai::globals().pursuit_data);
         if (new_handle != (datum_index)k_datum_index_none) {
             ai_pursuit *new_pursuit = &((ai_pursuit *)halo::ai::globals().pursuit_data->data)[new_handle & halo::k_slot_mask];
@@ -3738,16 +3748,14 @@ datum_index EncounterView::recent_object_get_or_create(int16_t type, int32_t min
             enc->first_pursuit = new_handle;
             cursor = new_handle;
             pursuit = new_pursuit;
-            goto reset;
+            reset = true;
         }
     }
 
-found:
-    if (!stale) {
+    if (!reset && !stale) {
         return cursor;
     }
 
-reset:
     pursuit->count = 0;
     pursuit->cursor = 0;
     pursuit->last_tick = -1;

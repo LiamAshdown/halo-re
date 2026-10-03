@@ -557,8 +557,6 @@ void ObstacleList::flood_fill_group(float radius, uint32_t *out_bitmask, int16_t
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 /**
  * Behaviour of ai search gather obstacles, moved unchanged from the original free function.
  *
@@ -571,10 +569,10 @@ void ObstacleList::gather_obstacles(real_point3d *center, float radius, real_vec
     int16_t count;
     int16_t f;
 
-    count = halo::objects::object_find_in_sphere(1, 0xc3, OBJECT_DATA(self_object_a) + 0x98, center, radius, found, 0x100);
+    count = halo::objects::object_find_in_sphere(1, 0xc3, halo::ai::object_bytes(self_object_a) + 0x98, center, radius, found, 0x100);
     for (f = 0; f < count; f++) {
         datum_index object_index = found[f];
-        uint8_t *object = OBJECT_DATA(object_index);
+        uint8_t *object = halo::ai::object_bytes(object_index);
         uint8_t *object_tag;
         uint8_t *collision;
         real_matrix4x3 world;
@@ -587,7 +585,7 @@ void ObstacleList::gather_obstacles(real_point3d *center, float radius, real_vec
             continue;
         }
         if (((struct object *)object)->type == 7) {
-            uint16_t machine_flags = *(uint16_t *)(TAG_DATA(*(datum_index *)object) + 0x292);
+            uint16_t machine_flags = *(uint16_t *)(halo::ai::tag_bytes(*(datum_index *)object) + 0x292);
 
             if ((machine_flags & 1) == 0) {
                 continue;
@@ -599,8 +597,8 @@ void ObstacleList::gather_obstacles(real_point3d *center, float radius, real_vec
         if (!halo::math::point3d_within_radius(*(real_point3d *)(object + 0xa0), *center, radius + ((struct object *)object)->bounding_radius)) {
             continue;
         }
-        object_tag = TAG_DATA(*(datum_index *)object);
-        collision = TAG_DATA(*(datum_index *)(object_tag + 0x7c));
+        object_tag = halo::ai::tag_bytes(*(datum_index *)object);
+        collision = halo::ai::tag_bytes(*(datum_index *)(object_tag + 0x7c));
         if ((object_tag[2] & 8) != 0 || *(int32_t *)(collision + 0x280) <= 0) {
             continue;
         }
@@ -616,7 +614,7 @@ void ObstacleList::gather_obstacles(real_point3d *center, float radius, real_vec
             float reach;
             uint16_t flags = 0;
 
-            object = OBJECT_DATA(object_index);
+            object = halo::ai::object_bytes(object_index);
             if (node != -1) {
                 real_matrix4x3 *matrix = (real_matrix4x3 *)(object + ((struct object *)object)->nodes.offset + node * 0x34);
 
@@ -649,8 +647,6 @@ void ObstacleList::gather_obstacles(real_point3d *center, float radius, real_vec
     }
 }
 
-#undef OBJECT_DATA
-#undef TAG_DATA
 
 /**
  * Behaviour of ai search heap sift down, moved unchanged from the original free function.

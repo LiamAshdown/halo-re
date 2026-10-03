@@ -34,7 +34,7 @@ uint8_t halo::ai::combat_ops::check_burst_length_exceeded()
     actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     uint8_t result = self->combat_status > 6;
 
-    if (result && self->mode == _actor_mode_death && *(int16_t *)&self->mode_data.raw[0xc] > 0) {
+    if (result && self->mode == halo::ai::actor_mode::flee && self->mode_data.flee.panic > 0) {
         result = 0;
     }
     return result;
@@ -62,7 +62,7 @@ void halo::ai::combat_ops::check_melee_target_reachable(actor_mode_flee_data *re
     using namespace c_actor_check_melee_target_reachable;
     uint32_t actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data;
+    Actor *actor_tag = reinterpret_cast<Actor *>(halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data);
     static actor_firing_position_query query;
     static path_find_context path_context;
     actor_firing_position_candidate candidate;
@@ -281,7 +281,7 @@ void halo::ai::combat_ops::choose_best_target()
     best = (datum_index)k_datum_index_none;
 
     suppress_close_bonus = 0;
-    if (self->berserking != 0 || self->mode == 10) {
+    if (self->berserking != 0 || self->mode == halo::ai::actor_mode::charge) {
         suppress_close_bonus = 1;
     }
 
@@ -628,10 +628,10 @@ float halo::ai::combat_ops::compute_accuracy_scale()
         scale = *(float *)((uint8_t *)tag_data + 0x384);
     }
 
-    if (self->mode == 11 && self->mode_data.raw[0x54] != 0) {
-        scale = *(float *)&self->mode_data.raw[0x58];
+    if (self->mode == halo::ai::actor_mode::obey && self->mode_data.obey.aim.unknown_28 != 0) {
+        scale = self->mode_data.obey.aim.unknown_2c;
     }
-    if (self->mode == 9) {
+    if (self->mode == halo::ai::actor_mode::vehicle) {
         return 0.7f;
     }
     if (!(scale > 0.2f)) {
@@ -799,12 +799,30 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     using namespace c_actor_evaluate_custom_charge_trigger;
     datum_index actor_index = datum;
     actor *self = halo::ai::actor_at(actor_index);
-    const uint8_t *variant = (const uint8_t *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
-    const uint8_t *def = (const uint8_t *)halo::ai::actor_get_actor_definition(actor_index);
+    const ActorVariant *variant = reinterpret_cast<const ActorVariant *>(halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data);
+    const ActorVariant *def = reinterpret_cast<const ActorVariant *>(halo::ai::actor_get_actor_definition(actor_index));
     uint32_t unit_index = self->unit_index;
     const unit_object *unit;
     prop *target = 0;
     uint8_t decision;
+    auto apply_decision = [&]() -> uint8_t {
+        float ticks;
+
+        self->charge_trigger_decision = decision;
+        if (decision != 0) {
+            ticks = halo::math::random_real_range(variant->crouch_time[0], variant->crouch_time[1]);
+        } else {
+            ticks = halo::math::random_real_range(variant->run_time[0], variant->run_time[1]);
+        }
+        ticks = ticks * 30.0f;
+        if (!(ticks > 31.0f)) {
+            ticks = 31.0f;
+        }
+        self->charge_trigger_ticks = (int16_t)(int32_t)ticks;
+        self->charge_trigger_delay = 0x1e;
+        return self->charge_trigger_decision;
+    };
+    bool flip_decision = false;
     int16_t variant_mode;
 
     if (!halo::units::unit_is_in_busy_animation_state(unit_index) && self->movement_action_complete == 0) {
@@ -827,12 +845,12 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         self->charge_trigger_active = 0;
         return 1;
     }
-    if (target != 0 && target->distance > *(const float *)(def + 0x74)) {
+    if (target != 0 && target->distance > def->maximum_firing_distance) {
         self->charge_trigger_active = 0;
         return 0;
     }
     if (self->berserking != 0 && target != 0 &&
-        target->distance > *(const float *)(def + 0x16c)) {
+        target->distance > def->berserk_firing_ranges[1]) {
         self->charge_trigger_active = 0;
         return 0;
     }
@@ -844,7 +862,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         self->charge_trigger_active = 0;
         return 0;
     }
-    if (self->mode == 10 &&
+    if (self->mode == halo::ai::actor_mode::charge &&
         (self->mode_data.charge.stage == 2 || self->mode_data.charge.stage == 3)) {
         self->charge_trigger_active = 0;
         return 0;
@@ -866,7 +884,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         self->charge_trigger_active = 0;
         return 1;
     }
-    if (target != 0 && !(target->distance >= *(const float *)(def + 0xa0))) {
+    if (target != 0 && !(target->distance >= def->desired_combat_range[1])) {
         self->charge_trigger_active = 0;
         return 1;
     }
@@ -874,7 +892,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     if (self->charge_trigger_active != 0) {
         if (self->charge_trigger_delay > 0) {
             self->charge_trigger_delay -= 1;
-        } else if ((variant[0] & 8) != 0 && (int8_t)self->tally.group_c_total > 0) {
+        } else if ((static_cast<uint8_t>(variant->flags) & 8) != 0 && (int8_t)self->tally.group_c_total > 0) {
 
             prop *axis_prop = (prop *)((const uint8_t *)halo::ai::globals().prop_data->data +
                 (self->target_unit_index & halo::k_slot_mask) * k_prop_size);
@@ -921,17 +939,18 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
             if (self->charge_trigger_decision != 0) {
                 if ((int16_t)behind == 0 && (int16_t)ahead > (int16_t)level) {
                     decision = 0;
-                    goto apply_decision;
+                    return apply_decision();
                 }
             } else if ((int16_t)ahead == 0 && (int16_t)behind > (int16_t)level) {
-                goto flip_decision;
+                flip_decision = true;
             }
         }
-        self->charge_trigger_ticks -= 1;
-        if (self->charge_trigger_ticks != 0) {
-            return self->charge_trigger_decision;
+        if (!flip_decision) {
+            self->charge_trigger_ticks -= 1;
+            if (self->charge_trigger_ticks != 0) {
+                return self->charge_trigger_decision;
+            }
         }
-    flip_decision:
         decision = (self->charge_trigger_decision == 0);
     } else {
         float chance = ((ActorVariant *)variant)->initial_crouch_chance;
@@ -976,24 +995,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         decision = (roll >= chance) ? 0 : 1;
     }
 
-apply_decision:
-    {
-        float ticks;
-
-        self->charge_trigger_decision = decision;
-        if (decision != 0) {
-            ticks = halo::math::random_real_range(*(const float *)(variant + 0x54), *(const float *)(variant + 0x58));
-        } else {
-            ticks = halo::math::random_real_range(*(const float *)(variant + 0x5c), *(const float *)(variant + 0x60));
-        }
-        ticks = ticks * 30.0f;
-        if (!(ticks > 31.0f)) {
-            ticks = 31.0f;
-        }
-        self->charge_trigger_ticks = (int16_t)(int32_t)ticks;
-        self->charge_trigger_delay = 0x1e;
-    }
-    return self->charge_trigger_decision;
+    return apply_decision();
 
 }
 
