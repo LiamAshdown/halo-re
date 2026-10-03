@@ -434,8 +434,9 @@ char * NetworkRuntime::log_path_resolve(char *requested_path)
 
 /**
  * Checks that every character of `name` is renderable in the small UI font and, for mode 3
- * (UNSURE: player-name entry), that the name is non-empty and does not begin with a space or
- * byte 0xa0. For mode 1 (UNSURE: server-name entry), additionally requires UiStrings::wide_string_has_non_whitespace to pass.
+ * (player-name entry), that the name is non-empty and does not begin with a space or
+ * byte 0xa0. For mode 1 (server-name entry), additionally requires ui_wide_string_has_non_whitespace to pass.
+ * Characters are compared as signed bytes like the retail code, so any byte above 0x7f is rejected.
  *
  * @address 0x4e4350
  */
@@ -454,8 +455,8 @@ uint8_t NetworkRuntime::name_string_is_valid_for_mode(char *name, void *characte
         }
     }
     for (i = 0; i < len; i = i + 1) {
-        uint8_t ch = (uint8_t)name[i];
-        if (ch < ' ' || ch == 0xff || halo::text::text_context::get_character_metrics(ch, (Font *)small_ui_font) == 0 || halo::interface::virtual_keyboard_character_is_legal(mode, ch) == 0) {
+        int8_t ch = (int8_t)name[i];
+        if (ch < ' ' || halo::text::text_context::get_character_metrics(ch, (Font *)small_ui_font) == 0 || halo::interface::virtual_keyboard_character_is_legal(mode, ch) == 0) {
             ok = 0;
             break;
         }

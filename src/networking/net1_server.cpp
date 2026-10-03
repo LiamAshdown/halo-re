@@ -1594,8 +1594,7 @@ uint32_t ServerMessageHandlers::settings_relay_role2(uint8_t *record, int32_t le
  * out/phase4/networking_functions.md: "Resets the per-round update counters and
  * completion flags on the object at in_EAX, increments its round counter, and calls network_game_session_reset_defaults
  * to continue setup." Same host offsets (+0x9b8, +0x9bc-region, +0x3b0) as
- * network_game_server_host_new.c; see that file's header for the field-matching evidence and the
- * same "+0x3b0 lands in session.unknown_3a2[10]" UNSURE note.
+ * network_game_server_host_new; +0x3b0 is host->session.session_counter (the session starts at host+8).
  *
  * @address 0x4df640
  */
@@ -1662,8 +1661,7 @@ int32_t HostServerView::send_scenario_announcement()
  * host globals; otherwise defers to network_host_update_tick." session->unknown_3ac (the map-loaded flag)
  * matches types/networking.h's network_game_session exactly when reached through
  * network_server->session or network_client->session directly (unlike
- * network_game_server_host_create.c's host-relative offset, which lands elsewhere -- see that
- * file's UNSURE note).
+ * host-relative offsets, which start 8 bytes before the session).
  *
  * @address 0x4ddd90
  */
@@ -1787,7 +1785,8 @@ uint8_t MachineView::reset_state(const char *response)
 
 /**
  * Sets k_network_machine_version_mismatch on `machine` when `remote_version` matches this
- * build's version string exactly (see the polarity UNSURE note above).
+ * build's version string exactly; the retail code sets the flag on a strcmp result of zero, so the flag name reads
+ * inverted but the polarity is verified against 0x4dff20.
  *
  * @address 0x4dff20
  */

@@ -376,8 +376,8 @@ void NetworkSetup::game_setup_teardown()
 }
 
 /**
- * UNSURE: offsets 0x9c8..0x9d5 fall past types/networking.h's own documented fields of network_server_globals
- * (size 0xa10, so still in range but not individually named there).
+ * Clears the server's handshake timer pair, unknown_9d0 and the handshake state/flag bytes, then sets the handshake-blocked
+ * byte. The retail return value is EAX with only its low byte replaced by 1, so the server pointer's upper three bytes survive.
  *
  * @address 0x4a1670
  */
@@ -395,7 +395,7 @@ uint32_t NetworkSetup::server_reset_game_stats()
         server->pad_9d7 = 0;
         server->handshake_blocked = 1;
     }
-    return ((uint32_t)halo::networking::globals().server << 8) | 1;
+    return ((uint32_t)halo::networking::globals().server & 0xffffff00u) | 1;
 }
 
 /**
