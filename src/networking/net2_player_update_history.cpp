@@ -116,8 +116,8 @@ uint8_t PlayerUpdateHistory::add(datum_index unit_index, player_update_history *
     history->next_update_id = next_id;
 
     unit_obj = halo::game::object_at(unit_index);
-    unit_ext = (unit_data *)((uint8_t *)unit_obj + 0x1f4);
-    biped_ext = (biped_data *)((uint8_t *)unit_obj + 0x4cc);
+    unit_ext = &reinterpret_cast<unit_object *>(unit_obj)->unit;
+    biped_ext = &reinterpret_cast<biped_object *>(unit_obj)->biped;
 
     node->vehicle_object = unit_obj->parent_object;
 
@@ -152,7 +152,7 @@ uint8_t PlayerUpdateHistory::add(datum_index unit_index, player_update_history *
         node->vehicle_state.velocity = vehicle_obj->velocity;
         node->vehicle_state.angular_velocity = vehicle_obj->angular_velocity;
         memcpy(reinterpret_cast<uint8_t *>(&node->vehicle_state) + offsetof(vehicle_state_snapshot, body_024), (uint8_t *)vehicle_obj + 0x04, 0x1f0);
-        vehicle_ext = (unit_data *)((uint8_t *)vehicle_obj + 0x1f4);
+        vehicle_ext = &reinterpret_cast<unit_object *>(vehicle_obj)->unit;
         node->vehicle_state.driver_seat_power = vehicle_ext->driver_seat_power;
         node->vehicle_state.gunner_seat_power = vehicle_ext->gunner_seat_power;
         node->vehicle_state.pad_21c = 0;
@@ -322,8 +322,8 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
         }
     } else if (node != 0) {
         unit_obj = halo::game::object_at(unit_index);
-        unit_ext = (unit_data *)((uint8_t *)unit_obj + 0x1f4);
-        biped_ext = (biped_data *)((uint8_t *)unit_obj + 0x4cc);
+        unit_ext = &reinterpret_cast<unit_object *>(unit_obj)->unit;
+        biped_ext = &reinterpret_cast<biped_object *>(unit_obj)->biped;
         parent_object = unit_obj->parent_object;
 
         if (parent_object != (datum_index)-1) {
@@ -339,9 +339,9 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
                 return (int32_t)vehicle_ack;
             }
             vehicle_obj = halo::game::object_at(parent_object);
-            vehicle_ext = (unit_data *)((uint8_t *)vehicle_obj + 0x1f4);
-            if (((vehicle_data *)((uint8_t *)vehicle_obj + 0x4cc))->collision_update_pending != 0) {
-                ((vehicle_data *)((uint8_t *)vehicle_obj + 0x4cc))->collision_update_pending = 0;
+            vehicle_ext = &reinterpret_cast<unit_object *>(vehicle_obj)->unit;
+            if (reinterpret_cast<vehicle_object *>(vehicle_obj)->vehicle.collision_update_pending != 0) {
+                reinterpret_cast<vehicle_object *>(vehicle_obj)->vehicle.collision_update_pending = 0;
                 return (int32_t)vehicle_obj;
             }
         }
@@ -414,7 +414,7 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
 
         do {
             real_vector3d view_forward;
-            halo::game::player_compute_view_forward_vector(*(datum_index *)((uint8_t *)unit_obj + 0x218), (real *)(node->control + 1), &view_forward);
+            halo::game::player_compute_view_forward_vector(reinterpret_cast<unit_object *>(unit_obj)->unit.controlling_player, (real *)(node->control + 1), &view_forward);
             halo::units::unit_apply_control_block(unit_index, (const unit_control_data *)node->control, -1);
             remaining_ticks = node->tick_count;
             updates_this_call = updates_this_call + 1;

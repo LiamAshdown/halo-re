@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
@@ -384,7 +385,7 @@ void UiDraw::draw_trouble_brewing_indicator(void)
         rect.left = halo::interface::k_base_screen_width - 74;
         rect.bottom = halo::interface::k_base_screen_height - 10;
         rect.right = halo::interface::k_base_screen_width - 10;
-        trouble_brewing_bitmap_tag = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), "ui\\shell\\bitmaps\\trouble_brewing");
+        trouble_brewing_bitmap_tag = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), halo::tag_paths::trouble_brewing);
         if (trouble_brewing_bitmap_tag != (datum_index)-1) {
             BitmapData *bitmap_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(trouble_brewing_bitmap_tag, 0, 0);
 
@@ -455,11 +456,12 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
             draw_span_inline(bounds, &cursor_rect, prompt_percent_text);
         } else {
             cursor = next + wcslen((const wchar_t *)ui_button_caption[token]);
+            bool draw_icon = true;
+
             if (token > 0x11) {
                 if (token > 0x1f) {
-                    goto next_span;
-                }
-                if (token <= 0x1c) {
+                    draw_icon = false;
+                } else if (token <= 0x1c) {
                     uint8_t binding[12];
                     uint16_t key_name[0x40];
 
@@ -471,15 +473,16 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
                     } else {
                         halo::interface::ui_widget_draw_prompt_span(hud_text_unbound, &cursor_rect, bounds);
                     }
-                    goto next_span;
-                }
-                switch (token) {
-                case 0x1d: token = 0xd; break;
-                case 0x1e: token = 0x10; break;
-                case 0x1f: token = 0x11; break;
+                    draw_icon = false;
+                } else {
+                    switch (token) {
+                    case 0x1d: token = 0xd; break;
+                    case 0x1e: token = 0x10; break;
+                    case 0x1f: token = 0x11; break;
+                    }
                 }
             }
-            {
+            if (draw_icon) {
                 HUDGlobalsButtonIcon *icon =
                     (HUDGlobalsButtonIcon *)*(uint8_t **)((uint8_t *)hud_globals_tag_data + 0xc8) + token;
                 HUDInterfaceMessagingFlags saved_flags = icon->flags;
@@ -516,7 +519,6 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
                 icon->width_offset = saved_width;
             }
         }
-    next_span:
         if (cursor == nullptr) {
             halo::text::globals().ui_prompt_clip_x = 0;
             halo::text::globals().ui_prompt_clip_y = 0;

@@ -89,6 +89,7 @@ void UiTabGroups::tab_group_sync_9wide(widget_instance *widget)
     int16_t index = 0;
     widget_instance *cursor;
     int16_t position;
+    bool update_display = true;
 
     if (child != (widget_instance *)0) {
         while (child != widget->focused_child) {
@@ -98,18 +99,15 @@ void UiTabGroups::tab_group_sync_9wide(widget_instance *widget)
                 break;
             }
         }
-        if (index > 8 || index == -1) {
-            goto sync_visibility;
-        }
+        update_display = !(index > 8 || index == -1);
     }
-    {
+    if (update_display) {
         widget_instance *display = widget->extended_description->first_child;
 
         display->selection_index = index;
         display->next_sibling->background_bitmap_frame = (index != 8) ? index : 6;
     }
 
-sync_visibility:
     position = 0;
     for (cursor = widget->first_child; cursor != (widget_instance *)0; cursor = cursor->next_sibling) {
         if (position == 0) {
@@ -146,7 +144,8 @@ void UiTabGroups::tab_group_sync_grouped(widget_instance *widget)
     widget_instance *child = widget->first_child;
     int16_t index = 0;
     widget_instance *display;
-    int16_t group_offset;
+    int16_t group_offset = 0;
+    bool update_selection = true;
     widget_instance *cursor;
     int16_t position;
 
@@ -167,7 +166,7 @@ void UiTabGroups::tab_group_sync_grouped(widget_instance *widget)
     case 3:
         display->background_bitmap_frame = 0;
         group_offset = -1;
-        goto apply;
+        break;
     case 5:
     case 6:
         display->background_bitmap_frame = 0;
@@ -178,14 +177,13 @@ void UiTabGroups::tab_group_sync_grouped(widget_instance *widget)
         group_offset = -2;
         break;
     default:
-        goto sync_visibility;
+        update_selection = false;
+        break;
     }
-apply:
-    if ((int16_t)(index + group_offset) != -1) {
+    if (update_selection && (int16_t)(index + group_offset) != -1) {
         display->next_sibling->selection_index = index + group_offset;
     }
 
-sync_visibility:
     position = 0;
     for (cursor = widget->first_child; cursor != (widget_instance *)0; cursor = cursor->next_sibling) {
         if (position == 0 || position == 4) {

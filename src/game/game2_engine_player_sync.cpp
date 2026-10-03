@@ -180,8 +180,8 @@ void EnginePlayerSync::players_update_client(void)
         plr = (player *)halo::memory::data_iterator_next(&player_iter);
     }
 
-    halo::game::game_engine_build_visible_cluster_bitmask((uint32_t *)((uint8_t *)local_player_globals + 0x58), 1);
-    halo::game::game_engine_build_visible_cluster_bitmask((uint32_t *)((uint8_t *)local_player_globals + 0x18), 0);
+    halo::game::game_engine_build_visible_cluster_bitmask(local_player_globals->cluster_pvs + 0x10, 1);
+    halo::game::game_engine_build_visible_cluster_bitmask(local_player_globals->cluster_pvs, 0);
     local_player_globals->local_player_count = (int16_t)(local_player_globals->local_players[0] != (datum_index)-1);
 }
 
@@ -343,8 +343,8 @@ void EnginePlayerSync::players_update_server(void)
         plr = (player *)halo::memory::data_iterator_next(&player_iter);
     }
 
-    halo::game::game_engine_build_visible_cluster_bitmask((uint32_t *)((uint8_t *)local_player_globals + 0x58), 1);
-    halo::game::game_engine_build_visible_cluster_bitmask((uint32_t *)((uint8_t *)local_player_globals + 0x18), 0);
+    halo::game::game_engine_build_visible_cluster_bitmask(local_player_globals->cluster_pvs + 0x10, 1);
+    halo::game::game_engine_build_visible_cluster_bitmask(local_player_globals->cluster_pvs, 0);
     local_player_globals->local_player_count = (int16_t)(local_player_globals->local_players[0] != (datum_index)-1);
 }
 
@@ -374,25 +374,25 @@ void EnginePlayerSync::server_update_player_positions(void)
     while (plr != (player *)0) {
         if (plr->unit != (datum_index)-1) {
             object *unit_obj = halo::game::object_at(plr->unit);
-            if (*((uint8_t *)unit_obj + 0x4b8) == 1) {
+            if (halo::game::unit_data_of(unit_obj)->control_update_id_valid == 1) {
                 object *position_source;
 
-                *((uint8_t *)unit_obj + 0x4b8) = 0;
-                *(int32_t *)&((struct player *)plr)->unknown_f4 = *(int32_t *)((uint8_t *)unit_obj + 0x4bc);
+                halo::game::unit_data_of(unit_obj)->control_update_id_valid = 0;
+                *(int32_t *)&((struct player *)plr)->unknown_f4 = halo::game::unit_data_of(unit_obj)->control_update_id;
 
                 position_source = unit_obj;
                 if (unit_obj->parent_object != (datum_index)-1) {
                     position_source = halo::game::object_at(unit_obj->parent_object);
                 }
                 *(float *)&((struct player *)plr)->unknown_f8 = position_source->position.x;
-                *(float *)((uint8_t *)plr + 0xfc) = position_source->position.y;
-                *(float *)((uint8_t *)plr + 0x100) = position_source->position.z;
+                *(float *)&plr->unknown_fc = position_source->position.y;
+                *(float *)&plr->unknown_100 = position_source->position.z;
 
                 if (plr->local_player_index == -1) {
                     int32_t value = *(int32_t *)&((struct player *)plr)->unknown_f4;
                     float pos_x = *(float *)&((struct player *)plr)->unknown_f8;
-                    float pos_y = *(float *)((uint8_t *)plr + 0xfc);
-                    float pos_z = *(float *)((uint8_t *)plr + 0x100);
+                    float pos_y = *(float *)&plr->unknown_fc;
+                    float pos_z = *(float *)&plr->unknown_100;
                     unsigned long ticks = GetTickCount();
                     unit_data *unit = halo::game::unit_data_of(unit_obj);
 

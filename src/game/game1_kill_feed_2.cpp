@@ -70,7 +70,7 @@ void KillFeed::notify_kill_event(uint32_t player_index, int32_t hash_key, int32_
 
         {
             uint8_t flags = server->machines[i].flags;
-            if (((flags >> 1) & 1) != 0 && ((flags >> 2) & 1) != 0) {
+            if ((flags & k_network_machine_pending) != 0 && (flags & k_network_machine_join_handled) != 0) {
                 halo::networking::network_session_send_to_machine((int32_t)(int8_t)player_machine_field, server, 1, network_message_scratch,
                                                 (uint32_t)encoded_size, 1, 0, 0, 3);
             }

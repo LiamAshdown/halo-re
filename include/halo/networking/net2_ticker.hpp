@@ -20,7 +20,7 @@ public:
      *
      * @address 0x4b8b40
      */
-    static void advance(uint8_t *widget, ticker_text_buffer *self);
+    static void advance(network_ui_widget *widget, ticker_text_buffer *self);
 
     /**
      * (only used on the NULL path), EDI -> self With text == NULL, (re)allocates the buffer to hold at least 0x20 wide characters, empties it and stores reset_column into start_column. Otherwise grows the buffer (doubling capacity, or seeding it at 0x20 characters) until it can hold the existing text plus the new text plus a NUL, then appends the new text.

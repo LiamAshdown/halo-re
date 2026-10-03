@@ -1004,7 +1004,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
 
             suffix_text = halo::game::unicode_string_list_get_string(
-                halo::mutable_literal("ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\race_edit\\var_race_type"),
+                halo::mutable_literal(halo::tag_paths::var_race_type),
                 (int16_t)engine_extra.race[0]);
             wcscat(line, suffix_text);
             line[255] = 0;
@@ -1015,7 +1015,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
                 halo::tag_paths::join_game_rules_strings, 46);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             suffix_text = halo::game::unicode_string_list_get_string(
-                halo::mutable_literal("ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\playlist_edit\\race_edit\\var_team_scoring"),
+                halo::mutable_literal(halo::tag_paths::var_team_scoring),
                 (int16_t)engine_extra.race[1]);
             wcscat(line, suffix_text);
 
@@ -1116,7 +1116,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
 
             suffix_text = halo::game::unicode_string_list_get_string(
-                halo::mutable_literal("ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\teamplay_options_edit\\var_friendly_fire"),
+                halo::mutable_literal(halo::tag_paths::var_friendly_fire),
                 (int16_t)options.friendly_fire);
             wcscat(line, suffix_text);
             if ((options.friendly_fire == 1 || options.friendly_fire == 3) &&
@@ -1126,7 +1126,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
                     (options.betrayal_penalty == halo::game::seconds_to_ticks(5)) ? 1 : (options.betrayal_penalty == 300) ? 2 : 3;
                 wcscat(line, L" (+");
                 suffix_text = halo::game::unicode_string_list_get_string(
-                    halo::mutable_literal("ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\teamplay_options_edit\\var_friendly_fire_penalty"),
+                    halo::mutable_literal(halo::tag_paths::var_friendly_fire_penalty),
                     penalty_display_index);
                 wcscat(line, suffix_text);
                 wcscat(line, L")");
@@ -1186,7 +1186,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
                 halo::tag_paths::join_game_rules_strings, 14);
             swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
             suffix_text = halo::game::unicode_string_list_get_string(
-                halo::mutable_literal("ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\vehicle_options_edit\\var_vehicles_respawn"),
+                halo::mutable_literal(halo::tag_paths::var_vehicles_respawn),
                 (int16_t)vehicle_respawn_index);
             wcscat(line, suffix_text);
             line[255] = 0;
@@ -1199,7 +1199,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
             halo::tag_paths::join_game_rules_strings, 15);
         swprintf(line, 0xff, L"%s%s ", ticker_field_separator, label_text);
         suffix_text = halo::game::unicode_string_list_get_string(
-            halo::mutable_literal("ui\\shell\\main_menu\\settings_select\\multiplayer_setup\\item_options_edit\\var_weapon_set"),
+            halo::mutable_literal(halo::tag_paths::var_weapon_set),
             (int16_t)options.weapon_set);
         wcscat(line, suffix_text);
         line[255] = 0;

@@ -49,6 +49,8 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
     elapsed = (int32_t)(long long)((double)(uint32_t)(now_ms - hud_text_message_time_base) * (double)0.08f);
 
     if (elapsed != 0) {
+        bool queue_full = false;
+
         hud_text_message_time_base = now_ms;
 
         if (hud_text_message_queue.count > 0) {
@@ -66,19 +68,17 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
                     i--;
                 }
             }
-            if (bottom > halo::interface::k_base_screen_height - 50) {
-                goto draw;
-            }
+            queue_full = bottom > halo::interface::k_base_screen_height - 50;
         }
 
-        do {
+        while (!queue_full) {
             uint16_t *text = missing_string_text;
 
             message_index++;
             if (message_index >= string_count) {
                 if (hud_text_message_cycle_state_00719230 != 0) {
                     if (hud_text_message_queue.count > 0) {
-                        goto draw;
+                        break;
                     }
                     hud_text_message_cycle_state_00719230 = 2;
                     halo::interface::widget_instance_close_and_restore_previous(widget);
@@ -103,10 +103,12 @@ uint32_t HudTextQueue::message_queue_update_and_draw(widget_instance *widget)
                 }
             }
             bottom += halo::interface::hud_text_message_queue_add(text, bottom, message_index);
-        } while (bottom <= halo::interface::k_base_screen_height - 50);
+            if (bottom > halo::interface::k_base_screen_height - 50) {
+                break;
+            }
+        }
     }
 
-draw:
     if (hud_text_message_queue.count > 0) {
         Rectangle2D clip;
         Rectangle2D dest;

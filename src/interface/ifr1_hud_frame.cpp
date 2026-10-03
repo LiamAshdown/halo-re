@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_frame.hpp"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
@@ -727,9 +728,9 @@ void HudFrame::render_unit_interface(player *p)
         if (halo::game::globals().current_engine != 0) {
             static const float full_uv[4] = {0.0f, 1.0f, 0.0f, 1.0f};
             static const char *icon_paths[5] = {
-                "ui\\shell\\bitmaps\\team_icon_ctf", "ui\\shell\\bitmaps\\team_icon_slayer",
-                "ui\\shell\\bitmaps\\team_icon_oddball", "ui\\shell\\bitmaps\\team_icon_king",
-                "ui\\shell\\bitmaps\\team_icon_race"};
+                halo::tag_paths::team_icon_ctf, halo::tag_paths::team_icon_slayer,
+                halo::tag_paths::team_icon_oddball, halo::tag_paths::team_icon_king,
+                halo::tag_paths::team_icon_race};
             static const int16_t icon_x[5] = {456, 457, 456, 458, 453};
             static const int16_t icon_y[5] = {6, 8, 7, 8, 6};
             static const float icon_scale[5] = {0.55f, 0.5f, 0.55f, 0.53f, 0.6f};
@@ -760,7 +761,7 @@ void HudFrame::render_unit_interface(player *p)
                 icon_scales[1] = icon_scale[engine];
             }
             icon = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(hud_team_icon_bitmap, 0, 0);
-            hud_team_background_bitmap = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), "ui\\shell\\bitmaps\\team_background");
+            hud_team_background_bitmap = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), halo::tag_paths::team_background);
             background = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(hud_team_background_bitmap, 0, 0);
             if (icon != 0 && background != 0) {
                 background_position.x = 445;

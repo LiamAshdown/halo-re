@@ -186,7 +186,7 @@ void MasterServerConnection::process_pending_requests(void)
                             i = i + 1;
                         } while (i < server_list.result_count);
                     }
-                    halo::networking::server_list_reset((uint8_t *)&server_list);
+                    halo::networking::server_list_reset(&server_list);
                 }
                 if (server_list_thread != 0) {
                     ReleaseMutex(server_list_mutex->handle);
@@ -200,7 +200,7 @@ void MasterServerConnection::process_pending_requests(void)
                 (wait_result = WaitForSingleObject(server_list_mutex->handle, 100),
                  wait_result == 0) || wait_result == 0x80) {
                 ServerBrowserClear(master_server_query_engine);
-                halo::networking::server_list_reset((uint8_t *)&server_list);
+                halo::networking::server_list_reset(&server_list);
                 if (server_list_thread != 0) {
                     ReleaseMutex(server_list_mutex->handle);
                 }

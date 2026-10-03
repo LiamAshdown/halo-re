@@ -591,7 +591,9 @@ typedef struct player {
     int16_t objective_score;           // 0xc8 per-gametype: ctf flag captures (get_score / build_player_text, ++ at
                                        //    0x468910), oddball kills while carrying, race best lap ticks (0x46dde0
                                        //    keeps the minimum)
-    uint8_t unknown_ca[0xd0 - 0xca];   // 0xca
+    uint8_t unknown_ca[2];             // 0xca
+    int32_t telefrag_ticks;            // 0xcc ticks the unit has blocked a teleporter exit; counts down while telefrag_danger is clear,
+                                       //    the per-player tick warns the player and then kills the blocker at 90
     datum_index quit_tick;             // 0xd0 game time at which game_engine_flag_local_player_units (0x45b590)
                                        //    removes the player (clients: whenever set); -1 none (a time, not a datum)
     uint8_t telefrag_danger;           // 0xd4 set each tick by game_engine_update_teleporter while this player's unit
@@ -697,7 +699,7 @@ typedef struct player_globals {
     uint8_t teleported;                // 0x16 attach_players_to_new_bsp skips the projectile/combat respawn_failure
                                        //    checks while set, clears it on success; OpenSauce
                                        //    players_globals.teleported at 0x16
-    uint8_t unknown_17;                // 0x17
+    uint8_t bsp_switch_state;          // 0x17 high nibble: regroup stage counter; low nibble: local player index being moved
     uint32_t cluster_pvs[0x20];        // 0x18 a bit per structure cluster the local players can see
                                        //      (game_engine_build_visible_cluster_bitmask fills it)
 } player_globals;                      // size 0x98

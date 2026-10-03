@@ -886,7 +886,7 @@ void network_game_server_handle_client_join(int32_t *object_count_passthrough, n
  *
  * @address 0x4e2700
  */
-uint32_t network_game_server_handle_info_request(network_server_globals *server, network_machine *machine, uint8_t *record, int32_t length)
+uint32_t network_game_server_handle_info_request(network_server_globals *server, network_machine *machine, network_message_record *record, int32_t length)
 {
     return halo::networking::ServerView(server).handle_info_request(machine, record, length);
 }
@@ -1116,7 +1116,7 @@ char network_session_broadcast_to_all(network_server_globals *server, int32_t pa
  *
  * @address 0x4e2790
  */
-uint32_t network_game_client_handle_map_data(network_server_globals *server, uint8_t *record, int32_t length)
+uint32_t network_game_client_handle_map_data(network_server_globals *server, network_message_record *record, int32_t length)
 {
     return halo::networking::ServerMessageHandlers(server).client_map_data(record, length);
 }
@@ -1126,7 +1126,7 @@ uint32_t network_game_client_handle_map_data(network_server_globals *server, uin
  *
  * @address 0x4e2870
  */
-uint32_t network_game_client_handle_retry_schedule(network_server_globals *server, network_machine *machine, uint8_t *record, int32_t length)
+uint32_t network_game_client_handle_retry_schedule(network_server_globals *server, network_machine *machine, network_message_record *record, int32_t length)
 {
     return halo::networking::ServerMessageHandlers(server).client_retry_schedule(machine, record, length);
 }
@@ -1136,7 +1136,7 @@ uint32_t network_game_client_handle_retry_schedule(network_server_globals *serve
  *
  * @address 0x4e2810
  */
-uint32_t network_game_client_handle_settings_relay(network_server_globals *server, uint8_t *record, int32_t length)
+uint32_t network_game_client_handle_settings_relay(network_server_globals *server, network_message_record *record, int32_t length)
 {
     return halo::networking::ServerMessageHandlers(server).client_settings_relay(record, length);
 }
@@ -1146,7 +1146,7 @@ uint32_t network_game_client_handle_settings_relay(network_server_globals *serve
  *
  * @address 0x4e2630
  */
-uint32_t network_game_message_handle_build_version(network_server_globals *server, network_machine *machine, uint8_t *record, int32_t length)
+uint32_t network_game_message_handle_build_version(network_server_globals *server, network_machine *machine, network_message_record *record, int32_t length)
 {
     return halo::networking::ServerMessageHandlers(server).build_version(machine, record, length);
 }
@@ -1156,7 +1156,7 @@ uint32_t network_game_message_handle_build_version(network_server_globals *serve
  *
  * @address 0x4e25e0
  */
-uint32_t network_game_message_handle_handshake_forward(network_server_globals *server, uint8_t *record, int32_t length)
+uint32_t network_game_message_handle_handshake_forward(network_server_globals *server, network_message_record *record, int32_t length)
 {
     return halo::networking::ServerMessageHandlers(server).handshake_forward(record, length);
 }
@@ -1166,7 +1166,7 @@ uint32_t network_game_message_handle_handshake_forward(network_server_globals *s
  *
  * @address 0x4e2930
  */
-uint32_t network_game_message_handle_join_finalize_ack_role2(network_server_globals *server, network_machine *machine, uint8_t *record, int32_t length)
+uint32_t network_game_message_handle_join_finalize_ack_role2(network_server_globals *server, network_machine *machine, network_message_record *record, int32_t length)
 {
     return halo::networking::ServerMessageHandlers(server).join_finalize_ack_role2(machine, record, length);
 }
@@ -1196,7 +1196,7 @@ uint32_t network_game_message_handle_ping_timestamp(int32_t **message, network_s
  *
  * @address 0x4e2530
  */
-uint32_t network_game_message_handle_player_count_broadcast(network_server_globals *server, uint8_t *record, int32_t length)
+uint32_t network_game_message_handle_player_count_broadcast(network_server_globals *server, network_message_record *record, int32_t length)
 {
     return halo::networking::ServerMessageHandlers(server).player_count_broadcast(record, length);
 }
@@ -1206,7 +1206,7 @@ uint32_t network_game_message_handle_player_count_broadcast(network_server_globa
  *
  * @address 0x4e2580
  */
-uint32_t network_game_message_handle_player_entry_update(network_server_globals *server, uint8_t *record, int32_t length)
+uint32_t network_game_message_handle_player_entry_update(network_server_globals *server, network_message_record *record, int32_t length)
 {
     return halo::networking::ServerMessageHandlers(server).player_entry_update(record, length);
 }
@@ -1216,7 +1216,7 @@ uint32_t network_game_message_handle_player_entry_update(network_server_globals 
  *
  * @address 0x4e26a0
  */
-uint32_t network_game_message_handle_retry_schedule(network_server_globals *server, network_machine *machine, uint8_t *record, int32_t length)
+uint32_t network_game_message_handle_retry_schedule(network_server_globals *server, network_machine *machine, network_message_record *record, int32_t length)
 {
     return halo::networking::ServerMessageHandlers(server).retry_schedule(machine, record, length);
 }
@@ -1226,7 +1226,7 @@ uint32_t network_game_message_handle_retry_schedule(network_server_globals *serv
  *
  * @address 0x4e24d0
  */
-uint32_t network_game_message_handle_settings_relay(network_server_globals *server, uint8_t *record, int32_t length)
+uint32_t network_game_message_handle_settings_relay(network_server_globals *server, network_message_record *record, int32_t length)
 {
     return halo::networking::ServerMessageHandlers(server).settings_relay(record, length);
 }
@@ -1236,7 +1236,7 @@ uint32_t network_game_message_handle_settings_relay(network_server_globals *serv
  *
  * @address 0x4e28d0
  */
-uint32_t network_game_message_handle_settings_relay_role2(network_server_globals *server, uint8_t *record, int32_t length)
+uint32_t network_game_message_handle_settings_relay_role2(network_server_globals *server, network_message_record *record, int32_t length)
 {
     return halo::networking::ServerMessageHandlers(server).settings_relay_role2(record, length);
 }
@@ -1326,7 +1326,7 @@ void network_machine_timer_start(network_machine *machine, int32_t duration_ms)
  *
  * @address 0x4e2400
  */
-char network_game_server_handle_join_confirm(network_machine *machine, network_server_globals *server, uint8_t *buffer, int32_t length)
+char network_game_server_handle_join_confirm(network_machine *machine, network_server_globals *server, network_message_record *buffer, int32_t length)
 {
     return halo::networking::ServerView(server).handle_join_confirm(machine, buffer, length);
 }
@@ -1336,7 +1336,7 @@ char network_game_server_handle_join_confirm(network_machine *machine, network_s
  *
  * @address 0x4e21d0
  */
-char network_game_server_handle_join_password(network_machine *machine, network_server_globals *server, uint8_t *buffer, int32_t length)
+char network_game_server_handle_join_password(network_machine *machine, network_server_globals *server, network_message_record *buffer, int32_t length)
 {
     return halo::networking::ServerView(server).handle_join_password(machine, buffer, length);
 }

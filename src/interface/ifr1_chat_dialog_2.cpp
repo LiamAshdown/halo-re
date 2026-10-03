@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_chat_dialog.hpp"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -204,51 +205,32 @@ void ChatDialog::open(int32_t chat_scope)
 
     chat_scope_active = -1;
 
-    if (chat_scope == 0) {
-all_scope:
-        {
-            datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\multiplayer_game_text");
-            prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
-                                                       : (const void *)halo::text::text_string_list_get_string(tag_id, 0xb8);
-            chat_scope_active = 0;
-        }
-    } else if (chat_scope == 1) {
-        if (!halo::game::game_engine_get_teams_enabled()) {
-            goto all_scope;
-        }
-        goto team_scope;
-    } else if (chat_scope == 2) {
-        if (!halo::game::game_engine_get_teams_enabled()) {
-            goto all_scope;
-        }
-        {
-            int32_t unit_index = halo::interface::chat_default_team_channel();
-            int32_t player_index = halo::interface::player_get_vehicle((datum_index)unit_index);
-            if (player_index != -1) {
-                datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\multiplayer_game_text");
-                prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
-                                                           : (const void *)halo::text::text_string_list_get_string(tag_id, 0xba);
-                chat_scope_active = 2;
-                goto gui_setup;
-            }
-        }
-team_scope:
-        {
-            datum_index tag_id;
-            chat_scope_active = 1;
-            tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\multiplayer_game_text");
-            prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
-                                                       : (const void *)halo::text::text_string_list_get_string(tag_id, 0xb9);
-            if (chat_scope_active == -1) {
-                return;
-            }
-        }
-    } else {
-        chat_scope_active = -1;
+    if (chat_scope < 0 || chat_scope > 2) {
         return;
     }
 
-gui_setup:
+    auto scope_prompt = [](int32_t string_index) -> const void * {
+        datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
+        return (tag_id == (datum_index)-1) ? (const void *)&empty_string
+                                           : (const void *)halo::text::text_string_list_get_string(tag_id, string_index);
+    };
+
+    if (chat_scope != 0 && !halo::game::game_engine_get_teams_enabled()) {
+        chat_scope = 0;
+    }
+
+    if (chat_scope == 0) {
+        prompt_text = scope_prompt(0xb8);
+        chat_scope_active = 0;
+    } else if (chat_scope == 2 &&
+               halo::interface::player_get_vehicle((datum_index)halo::interface::chat_default_team_channel()) != -1) {
+        prompt_text = scope_prompt(0xba);
+        chat_scope_active = 2;
+    } else {
+        chat_scope_active = 1;
+        prompt_text = scope_prompt(0xb9);
+    }
+
     chat_gui_active = 1;
     gui_object = chat_gui_find_object(chat_gui_root_handle, chat_gui_find_object_arg);
     if (gui_object != 0) {

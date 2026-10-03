@@ -9,3 +9,4 @@
 #include "networking.h"
 #include "objects.h"
 #include <stdarg.h>
+#include "halo/networking/message_record.hpp"

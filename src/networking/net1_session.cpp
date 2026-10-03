@@ -1,4 +1,5 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/core/cstring.hpp"
 #include "halo/networking/announcement.hpp"
 #include "halo/networking/game_mode.hpp"
@@ -248,7 +249,7 @@ wchar_t * GameRuntime::get_random_player_name()
     uint32_t tag_id;
     void *definition;
 
-    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::mutable_literal("ui\\random_player_names"));
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::mutable_literal(halo::tag_paths::random_player_names));
     if (tag_id != halo::k_dword_none) {
         definition = *(void **)((uint8_t *)halo::cache::globals().tag_instances + (tag_id & halo::k_datum_slot_mask) * 0x20 + 0x14);
         if (definition != 0 && *(int32_t *)definition != 0) {
@@ -455,7 +456,7 @@ uint8_t GameRuntime::start_new_server_with_name_and_password(uint32_t unused, ui
         network_server->flags = network_server->flags | 1;
         listen_channel->listening = 1;
 
-        *((uint8_t *)network_server + 0x9d5) = 0;
+        network_server->handshake_blocked = 0;
 
         wcsncpy((wchar_t *)((uint8_t *)network_server + 8), (const wchar_t *)name, 0x3f);
         network_server->session.unknown_07e = 0;

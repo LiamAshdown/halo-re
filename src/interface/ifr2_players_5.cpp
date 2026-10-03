@@ -56,20 +56,21 @@ void PlayerProfiles::subsystem_initialize()
     }
 
     slot_to_load = cached_profile_slot;
+    bool profile_read = false;
     if (slot_to_load == -1) {
         memcpy(profile_data, default_profile_data, sizeof(profile_data));
     } else if (halo::saved_games::player_profile_get(slot_to_load, (saved_player_profile *)profile_data) != 0) {
-        goto have_slot;
+        profile_read = true;
     }
 
-    if ((int16_t)enumerated_count <= 0 || enumerated_slot == -1 ||
-        halo::saved_games::player_profile_get(enumerated_slot, (saved_player_profile *)profile_data) == 0) {
-        halo::saved_games::globals().profile_load_complete = 1;
-        return;
+    if (!profile_read) {
+        if ((int16_t)enumerated_count <= 0 || enumerated_slot == -1 ||
+            halo::saved_games::player_profile_get(enumerated_slot, (saved_player_profile *)profile_data) == 0) {
+            halo::saved_games::globals().profile_load_complete = 1;
+            return;
+        }
+        slot_to_load = enumerated_slot;
     }
-    slot_to_load = enumerated_slot;
-
-have_slot:
     if (slot_to_load != -1) {
         if (safe_mode != 0) {
             halo::saved_games::player_profile_set_default_video_options((saved_player_profile *)profile_data, 0);

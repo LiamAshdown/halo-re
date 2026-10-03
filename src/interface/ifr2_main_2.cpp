@@ -115,119 +115,12 @@ void InterfaceMain::tick()
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     ui_time_milliseconds = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
 
-    if (loading_thread != (loading_thread_record *)0) {
-        uint32_t exit_code;
-        int32_t got_exit_code = GetExitCodeThread(loading_thread->handle, (LPDWORD)&exit_code);
-
-        root = ui_root_widget[0];
-        if (got_exit_code != 0 && exit_code != halo::interface::k_still_active) {
-            CloseHandle(loading_thread->handle);
-            loading_thread->handle = nullptr;
-            loading_thread->unknown_04 = 0;
-            loading_thread = (loading_thread_record *)0;
-            ui_input_batch_mode = 0;
-            if (loading_thread_result == 1) {
-                halo::interface::display_error(0x21, -1, 1, 0);
-                root = ui_root_widget[0];
-            } else if (loading_thread_result == 2) {
-                halo::interface::display_error(0x22, -1, 1, 0);
-                root = ui_root_widget[0];
-            }
-        }
-        goto after_widget_pass;
-    }
-
-    if (virtual_keyboard == 0) {
-        if (ui_pending_error_alternate.error_string_index == -1) {
-            if (quit_confirm_error_string_index == -1) {
-                uint8_t is_paused = halo::interface::ui_check_for_pause_game();
-                widget_instance *widget = ui_root_widget[0];
-
-                root = widget;
-                if (widget != (widget_instance *)0) {
-                    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
-                    int32_t scratch_i;
-                    uint8_t looped = 0;
-
-                    for (scratch_i = 0; scratch_i < 16; scratch_i++) event_scratch[scratch_i] = 0;
-                    root = widget;
-
-                    if (ui_input_batch_mode == 0) {
-                        uint8_t got_event = halo::input::UiEvents::queue_pop_event((ui_input_event *)event_scratch, widget->controller_index);
-
-                        if (got_event != 0) {
-                            looped = 1;
-                            do {
-                                if ((is_paused == 0 &&
-                                     (halo::interface::widget_instance_handle_input_event(widget, tag, (int16_t *)event_scratch, &handled),
-                                      root = ui_root_widget[0], handled == 1)) ||
-                                    widget != root) {
-                                    break;
-                                }
-                                got_event = halo::input::UiEvents::queue_pop_event((ui_input_event *)event_scratch, widget->controller_index);
-                            } while (got_event != 0);
-                        }
-                    }
-                    if (looped == 0 && is_paused == 0) {
-                        *(uint16_t *)(event_scratch + 2) = widget->controller_index;
-                        halo::interface::widget_instance_handle_input_event(widget, tag, (int16_t *)event_scratch, &handled);
-                        root = ui_root_widget[0];
-                    }
-                    handled = 1;
-                    if (root == (widget_instance *)0 && ui_widget_history[0] != (widget_history_node *)0) {
-                        widget_history_node popped;
-
-                        halo::interface::list_node_pop(&popped, &ui_widget_history[0]);
-                        root = ui_root_widget[0];
-                        if (popped.definition != (datum_index)-1) {
-                            widget_instance *reopened = halo::interface::chimera__load_ui_widget(
-                                nullptr, popped.definition, (widget_instance *)0,
-                                (uint16_t)popped.controller_index, (datum_index)-1, (datum_index)-1, -1);
-
-                            root = ui_root_widget[0];
-                            if (reopened != (widget_instance *)0) {
-
-                                halo::interface::widget_instance_select_list_index(reopened, popped.list_definition,
-                                                                   popped.selection);
-                                root = ui_root_widget[0];
-                            }
-                        }
-                    }
-                }
-                if (handled != 0) {
-                    goto shared_tail;
-                }
-            } else {
-
-                int16_t error_string_index = quit_confirm_error_string_index;
-
-                if (ui_split_screen != 0 || halo::networking::network_game_is_active() != 0 ||
-                    halo::game::globals().game_time->game_time > 0x1d) {
-                    halo::interface::display_error(error_string_index, (int32_t)(uint16_t)quit_confirm_error_unknown_ae,
-                                  quit_confirm_error_modal, quit_confirm_error_is_error);
-                    quit_confirm_error_string_index = -1;
-                    root = ui_root_widget[0];
-                }
-            }
-        } else {
-            halo::interface::display_error(ui_pending_error_alternate.error_string_index, -1, 1, 0);
-            ui_pending_error_alternate.error_string_index = -1;
-            root = ui_root_widget[0];
-        }
-    } else {
-        halo::interface::virtual_keyboard_process_input();
-        root = ui_root_widget[0];
-        goto shared_tail;
-    }
-    goto after_widget_pass;
-
-shared_tail:
-    {
+    auto shared_tail = [&]() {
         memset(input_event_queue_active.events, 0, sizeof(input_event_queue_active.events));
         if (ui_cursor_changed != 0 || ui_widget_opened != 0) {
             ui_widget_opened = 0;
             if (root == (widget_instance *)0) {
-                goto after_widget_pass;
+                return;
             }
             {
 
@@ -290,9 +183,110 @@ shared_tail:
                 }
             }
         }
+    };
+
+    if (loading_thread != (loading_thread_record *)0) {
+        uint32_t exit_code;
+        int32_t got_exit_code = GetExitCodeThread(loading_thread->handle, (LPDWORD)&exit_code);
+
+        root = ui_root_widget[0];
+        if (got_exit_code != 0 && exit_code != halo::interface::k_still_active) {
+            CloseHandle(loading_thread->handle);
+            loading_thread->handle = nullptr;
+            loading_thread->unknown_04 = 0;
+            loading_thread = (loading_thread_record *)0;
+            ui_input_batch_mode = 0;
+            if (loading_thread_result == 1) {
+                halo::interface::display_error(0x21, -1, 1, 0);
+                root = ui_root_widget[0];
+            } else if (loading_thread_result == 2) {
+                halo::interface::display_error(0x22, -1, 1, 0);
+                root = ui_root_widget[0];
+            }
+        }
+    } else if (virtual_keyboard == 0) {
+        if (ui_pending_error_alternate.error_string_index == -1) {
+            if (quit_confirm_error_string_index == -1) {
+                uint8_t is_paused = halo::interface::ui_check_for_pause_game();
+                widget_instance *widget = ui_root_widget[0];
+
+                root = widget;
+                if (widget != (widget_instance *)0) {
+                    UIWidgetDefinition *tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);
+                    int32_t scratch_i;
+                    uint8_t looped = 0;
+
+                    for (scratch_i = 0; scratch_i < 16; scratch_i++) event_scratch[scratch_i] = 0;
+                    root = widget;
+
+                    if (ui_input_batch_mode == 0) {
+                        uint8_t got_event = halo::input::UiEvents::queue_pop_event((ui_input_event *)event_scratch, widget->controller_index);
+
+                        if (got_event != 0) {
+                            looped = 1;
+                            do {
+                                if ((is_paused == 0 &&
+                                     (halo::interface::widget_instance_handle_input_event(widget, tag, (int16_t *)event_scratch, &handled),
+                                      root = ui_root_widget[0], handled == 1)) ||
+                                    widget != root) {
+                                    break;
+                                }
+                                got_event = halo::input::UiEvents::queue_pop_event((ui_input_event *)event_scratch, widget->controller_index);
+                            } while (got_event != 0);
+                        }
+                    }
+                    if (looped == 0 && is_paused == 0) {
+                        *(uint16_t *)(event_scratch + 2) = widget->controller_index;
+                        halo::interface::widget_instance_handle_input_event(widget, tag, (int16_t *)event_scratch, &handled);
+                        root = ui_root_widget[0];
+                    }
+                    handled = 1;
+                    if (root == (widget_instance *)0 && ui_widget_history[0] != (widget_history_node *)0) {
+                        widget_history_node popped;
+
+                        halo::interface::list_node_pop(&popped, &ui_widget_history[0]);
+                        root = ui_root_widget[0];
+                        if (popped.definition != (datum_index)-1) {
+                            widget_instance *reopened = halo::interface::chimera__load_ui_widget(
+                                nullptr, popped.definition, (widget_instance *)0,
+                                (uint16_t)popped.controller_index, (datum_index)-1, (datum_index)-1, -1);
+
+                            root = ui_root_widget[0];
+                            if (reopened != (widget_instance *)0) {
+
+                                halo::interface::widget_instance_select_list_index(reopened, popped.list_definition,
+                                                                   popped.selection);
+                                root = ui_root_widget[0];
+                            }
+                        }
+                    }
+                }
+                if (handled != 0) {
+                    shared_tail();
+                }
+            } else {
+
+                int16_t error_string_index = quit_confirm_error_string_index;
+
+                if (ui_split_screen != 0 || halo::networking::network_game_is_active() != 0 ||
+                    halo::game::globals().game_time->game_time > 0x1d) {
+                    halo::interface::display_error(error_string_index, (int32_t)(uint16_t)quit_confirm_error_unknown_ae,
+                                  quit_confirm_error_modal, quit_confirm_error_is_error);
+                    quit_confirm_error_string_index = -1;
+                    root = ui_root_widget[0];
+                }
+            }
+        } else {
+            halo::interface::display_error(ui_pending_error_alternate.error_string_index, -1, 1, 0);
+            ui_pending_error_alternate.error_string_index = -1;
+            root = ui_root_widget[0];
+        }
+    } else {
+        halo::interface::virtual_keyboard_process_input();
+        root = ui_root_widget[0];
+        shared_tail();
     }
 
-after_widget_pass:
     if (root != (widget_instance *)0) {
         if ((controls_input_capture_flags & 2) != 0) {
             return;

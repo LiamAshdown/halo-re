@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_network.hpp"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/main/api.hpp"
 #include "halo/networking/api.hpp"
@@ -45,7 +46,7 @@ void NetworkSetup::game_host_start(char *map_name, char *variant_name, uint8_t d
     halo::game::globals().variant_saved_default_valid = 1;
 
     widget = halo::interface::chimera__load_ui_widget(
-        "ui\\shell\\main_menu\\multiplayer_type_select\\connected\\pregame\\connected_pregame_screen",
+        halo::tag_paths::connected_pregame_screen,
         (datum_index)halo::k_dword_none, (widget_instance *)0, halo::k_word_none, (datum_index)halo::k_dword_none,
         (datum_index)halo::k_dword_none, -1);
     if (widget != (widget_instance *)0) {

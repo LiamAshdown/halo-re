@@ -336,7 +336,7 @@ void FirstPersonWeaponController::process_action(int16_t action_code)
 {
     first_person_weapon_interface *fp;
     uint8_t *fp_raw;
-    int16_t new_state;
+    int16_t new_state = -1;
 
     if (local_player_index == -1) {
         return;
@@ -389,23 +389,20 @@ void FirstPersonWeaponController::process_action(int16_t action_code)
                 marker = ((struct first_person_weapon_interface *)fp_raw)->device_reload_marker;
                 if (marker == -1) {
                     new_state = 0xd;
-                    goto set_state;
                 }
                 if (marker == 0 || marker == 2) {
                     new_state = 0xf;
-                    goto set_state;
                 }
             }
         }
     }
 
-    new_state = halo::interface::item_type_to_message_stage(action_code);
     if (new_state == -1) {
-        goto skip_state_change;
+        new_state = halo::interface::item_type_to_message_stage(action_code);
     }
-set_state:
-    halo::interface::first_person_weapon_set_state(local_player_index, 1, new_state);
-skip_state_change:
+    if (new_state != -1) {
+        halo::interface::first_person_weapon_set_state(local_player_index, 1, new_state);
+    }
     if (action_code == 0xc) {
         fp->blend_end = 0;
     }
@@ -755,6 +752,16 @@ void FirstPersonWeaponController::update_lighting(void)
  */
 void FirstPersonWeaponController::update_screen_effects(void)
 {
+    auto post_hud = []() {
+        halo::interface::hud_update_player();
+        if (halo::game::globals().current_engine != nullptr) {
+            if ((int32_t)halo::game::globals().state > 1) {
+                halo::game::game_engine_post_rasterize_post_game();
+                return;
+            }
+            halo::game::hud_update_teammate_nameplate_fade();
+        }
+    };
     float intensity;
     weapon_screen_effect_parameters parameters;
     int32_t hud_interface;
@@ -775,7 +782,8 @@ void FirstPersonWeaponController::update_screen_effects(void)
         } else {
             halo::rasterizer::rasterizer_screen_effect_render_fixed_function((weapon_screen_effect_parameters *)0);
         }
-        goto post_hud;
+        post_hud();
+        return;
     }
 
     effect = (WeaponHUDInterfaceScreenEffect *)
@@ -847,15 +855,7 @@ void FirstPersonWeaponController::update_screen_effects(void)
         halo::rasterizer::rasterizer_screen_effect_render_fixed_function(&parameters);
     }
 
-post_hud:
-    halo::interface::hud_update_player();
-    if (halo::game::globals().current_engine != nullptr) {
-        if ((int32_t)halo::game::globals().state > 1) {
-            halo::game::game_engine_post_rasterize_post_game();
-            return;
-        }
-        halo::game::hud_update_teammate_nameplate_fade();
-    }
+    post_hud();
 }
 
 /**

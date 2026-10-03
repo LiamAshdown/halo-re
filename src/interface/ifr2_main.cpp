@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_main.hpp"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
@@ -260,7 +261,7 @@ void MapList::get_friendly_level_name(wchar_t *destination, char *map_path, int3
     wchar_t *source;
     char *filename;
 
-    map_list_tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\mp_map_list");
+    map_list_tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::mp_map_list);
     index = halo::interface::map_list_find_known_map_index(map_path);
     if (-1 < index && index < 0x13 && index != -1) {
 
@@ -288,7 +289,7 @@ void MapList::get_friendly_level_name(wchar_t *destination, char *map_path, int3
  */
 void InterfaceMain::set_profile_name(widget_instance *widget, const uint16_t *name_source)
 {
-    datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\strings\\common_button_captions");
+    datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::common_button_captions);
     uint16_t *suffix = missing_string_text;
     void *buffer = halo::memory::heap_reallocate(widget->text, 0x80, widget_memory_pool);
 

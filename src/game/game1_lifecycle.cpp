@@ -237,7 +237,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
                 if (root == unit_handle) {
                     root_obj = halo::objects::object_try_and_get(unit_handle, _object_mask_biped);
                     if (root_obj != (object *)0) {
-                        biped = (biped_data *)((uint8_t *)root_obj + 0x4cc);
+                        biped = &reinterpret_cast<biped_object *>(root_obj)->biped;
                         if ((biped->flags & 1) != 0) {
                             local_player_globals->mode = 3;
                             root = best_root;
@@ -246,7 +246,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
                 } else {
                     root_obj = halo::objects::object_try_and_get(root, _object_mask_vehicle);
                     if (root_obj != (object *)0) {
-                        vehicle = (vehicle_data *)((uint8_t *)root_obj + 0x4cc);
+                        vehicle = &reinterpret_cast<vehicle_object *>(root_obj)->vehicle;
                         if (vehicle->airborne_ticks != 0) {
                             local_player_globals->mode = 3;
                             root = best_root;

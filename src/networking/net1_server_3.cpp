@@ -105,7 +105,7 @@ uint8_t ServerView::heartbeat_tick()
                 uint8_t flags;
 
                 flags = server->machines[i].flags;
-                if ((flags & 1) != 0 && (flags & 4) == 0) {
+                if ((flags & k_network_machine_established) != 0 && (flags & k_network_machine_join_handled) == 0) {
                     halo::networking::network_machine_timer_start(&server->machines[i], 0);
                 }
             }
@@ -141,7 +141,7 @@ uint32_t ServerView::resend_challenge_periodic()
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (uint32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
-    last_sent = (uint32_t *)((uint8_t *)server + 0x9bc);
+    last_sent = &server->last_challenge_sent_ms;
     if (*last_sent + 5000u < now_ms) {
         void *packet;
 

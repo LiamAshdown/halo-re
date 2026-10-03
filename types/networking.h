@@ -523,7 +523,9 @@ typedef char client_position_packet_size[sizeof(client_position_packet) == 0x28 
 typedef enum network_machine_flags {
     k_network_machine_established = 0x01,
     k_network_machine_pending = 0x02,         // set by 0x4df690
-    k_network_machine_version_mismatch = 0x08 // set by 0x4dff20
+    k_network_machine_join_handled = 0x04,    // set by handle_client_join; cleared by the join_finalize_ack_role2 handler
+    k_network_machine_version_mismatch = 0x08, // set by 0x4dff20
+    k_network_machine_password_accepted = 0x10 // set by handle_join_password
 } network_machine_flags;
 
 typedef struct network_machine {
@@ -1317,7 +1319,8 @@ typedef struct autopatch_download_slot {
     void *data;                // 0x08 GlobalAlloc of size bytes, NUL terminated
     int32_t size;              // 0x0c payload length plus the terminator
     uint8_t local_file;        // 0x10 1 when the source was a file, not a URL
-    uint8_t pad_11[3];         // 0x11
+    uint8_t cancelled;         // 0x11 set when the request is abandoned; the completion callback then drops the payload
+    uint8_t pad_12[2];         // 0x12
 } autopatch_download_slot;     // size 0x14
 // global 0x006ef93c: autopatch_download_slot autopatch_download_slots[2]
 // global 0x007227c0: network_mutex_record *autopatch_download_mutex

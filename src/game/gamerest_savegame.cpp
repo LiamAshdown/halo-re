@@ -14,7 +14,7 @@
 
 static auto &user_save_path_default = halo::link::ref<char *>(halo::game::vars().user_save_path_default);
 static auto &saved_game_root_path = halo::link::ref<char []>(halo::game::vars().saved_game_root_path);
-static auto &savegame_index_file = halo::link::ref<file_reference>(halo::game::vars().savegame_index_file);
+static auto &savegame_index_file = halo::link::ref<file_reference_record>(halo::game::vars().savegame_index_file);
 static auto &savegame_index_mutex = halo::link::ref<network_mutex_record *>(halo::game::vars().savegame_index_mutex);
 static auto &user_save_path_keys = halo::link::ref<uint32_t [k_maximum_user_save_paths]>(halo::game::vars().user_save_path_keys);
 static auto &user_save_paths = halo::link::ref<char [k_maximum_user_save_paths][k_user_save_path_slot_stride]>(halo::game::vars().user_save_paths);
@@ -412,11 +412,24 @@ uint32_t SaveGameFiles::slot_handle_pack(uint32_t slot_index, uint32_t type_nibb
 }
 
 /**
+ * Rebinds the shared file reference to the save-game index file under the saved-game root path: the record is zeroed, tagged
+ * with the file-reference signature and the absolute location, and the root path is appended.
+ */
+void SaveGameIndex::bind_index_file(file_reference_record &reference)
+{
+    memset(&reference, 0, sizeof(reference));
+    reference.signature = k_file_reference_signature;
+    reference.location = _file_location_absolute;
+    halo::saved_games::path_append_component(reference.path, saved_game_root_path);
+    reference.flags |= _file_reference_is_file_bit;
+}
+
+/**
  * If the index file has fewer than 999 records, seeks to the end and writes a new record
  * (source elided, same as savegame_index_write_slot), reporting the new record's slot number
  * through `*out_slot_count`. Returns 1 on success, 0 otherwise.
  * FIXED 2026-09-27 (static loop) from objdump 0x53e300..0x53e40d: the first stack argument ([esp+0x14] at 0x53e3be)
- * is the 0x206-byte entry appended at record index size / 0x206 (must be < 999); the draft named it "unused" and
+ * is the k_index_entry_size-byte entry appended at record index size / k_index_entry_size (must be < 999); the draft named it "unused" and
  * called seek / write / close with no arguments, so creating a profile never registered it in the index.
  *
  * @address 0x53e300
@@ -430,34 +443,18 @@ uint8_t SaveGameIndex::append_slot(const void *entry, uint32_t *out_slot_count)
         return 0;
     }
 
-    {
-        uint32_t *raw = (uint32_t *)&savegame_index_file;
-        int32_t i;
-        uint8_t *flags_byte = (uint8_t *)&savegame_index_file + 4;
-        uint16_t *word_at_6 = (uint16_t *)((uint8_t *)&savegame_index_file + 6);
+    bind_index_file(savegame_index_file);
 
-        for (i = 0; i < 0x43; i++) {
-            raw[i] = 0;
-        }
-        raw[0] = 0x66696c6f;
-        *word_at_6 = 2;
-        if ((*flags_byte & 1) != 0) {
-            halo::saved_games::path_remove_last_component((char *)((uint8_t *)&savegame_index_file + 8));
-        }
-        halo::saved_games::path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
-        *flags_byte = *flags_byte | 1;
-    }
-
-    if (halo::saved_games::file_reference_open((file_reference_record *)&savegame_index_file, 2) != 0) {
-        uint32_t size = halo::saved_games::file_reference_get_size((file_reference_record *)&savegame_index_file);
-        if (size / 0x206 < 999) {
-            if (halo::saved_games::file_reference_seek((int32_t)(size / 0x206) * 0x206, (file_reference_record *)&savegame_index_file) != 0 &&
-                halo::saved_games::file_reference_write((file_reference_record *)&savegame_index_file, entry, 0x206) != 0) {
+    if (halo::saved_games::file_reference_open(&savegame_index_file, 2) != 0) {
+        uint32_t size = halo::saved_games::file_reference_get_size(&savegame_index_file);
+        if (size / k_index_entry_size < k_index_slot_limit) {
+            if (halo::saved_games::file_reference_seek((int32_t)(size / k_index_entry_size) * k_index_entry_size, &savegame_index_file) != 0 &&
+                halo::saved_games::file_reference_write(&savegame_index_file, entry, k_index_entry_size) != 0) {
                 result = 1;
-                *out_slot_count = size / 0x206;
+                *out_slot_count = size / k_index_entry_size;
             }
         }
-        if (halo::saved_games::file_reference_close((file_reference_record *)&savegame_index_file) == 0) {
+        if (halo::saved_games::file_reference_close(&savegame_index_file) == 0) {
             result = 0;
         }
     }
@@ -475,24 +472,11 @@ uint8_t SaveGameIndex::append_slot(const void *entry, uint32_t *out_slot_count)
  */
 uint8_t SaveGameIndex::file_exists()
 {
-    uint32_t *raw = (uint32_t *)&savegame_index_file;
-    int32_t i;
-    uint8_t *flags_byte = (uint8_t *)&savegame_index_file + 4;
-    uint16_t *word_at_6 = (uint16_t *)((uint8_t *)&savegame_index_file + 6);
 
-    for (i = 0; i < 0x43; i++) {
-        raw[i] = 0;
-    }
-    raw[0] = 0x66696c6f;
-    *word_at_6 = 2;
-    if ((*flags_byte & 1) != 0) {
-        halo::saved_games::path_remove_last_component((char *)((uint8_t *)&savegame_index_file + 8));
-    }
-    halo::saved_games::path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
-    *flags_byte = *flags_byte | 1;
+    bind_index_file(savegame_index_file);
 
-    if (halo::saved_games::file_reference_open((file_reference_record *)&savegame_index_file, 1) != 0) {
-        halo::saved_games::file_reference_get_size((file_reference_record *)&savegame_index_file);
+    if (halo::saved_games::file_reference_open(&savegame_index_file, 1) != 0) {
+        halo::saved_games::file_reference_get_size(&savegame_index_file);
         return 1;
     }
     return 0;
@@ -500,31 +484,18 @@ uint8_t SaveGameIndex::file_exists()
 
 /**
  * Resets the shared file_reference to the index path and queries its size via file_reference_get_size_by_path,
- * returning size / 0x206 (the number of save-slot records), or 0 if the query fails.
+ * returning size / k_index_entry_size (the number of save-slot records), or 0 if the query fails.
  *
  * @address 0x53e420
  */
 uint32_t SaveGameIndex::get_slot_count()
 {
-    uint32_t *raw = (uint32_t *)&savegame_index_file;
-    int32_t i;
-    uint8_t *flags_byte = (uint8_t *)&savegame_index_file + 4;
-    uint16_t *word_at_6 = (uint16_t *)((uint8_t *)&savegame_index_file + 6);
     uint32_t size;
 
-    for (i = 0; i < 0x43; i++) {
-        raw[i] = 0;
-    }
-    raw[0] = 0x66696c6f;
-    *word_at_6 = 2;
-    if ((*flags_byte & 1) != 0) {
-        halo::saved_games::path_remove_last_component((char *)((uint8_t *)&savegame_index_file + 8));
-    }
-    halo::saved_games::path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
-    *flags_byte = *flags_byte | 1;
+    bind_index_file(savegame_index_file);
 
-    if (halo::saved_games::file_reference_get_size_by_path((file_reference_record *)((void *)&savegame_index_file), &size) != 0) {
-        return size / 0x206;
+    if (halo::saved_games::file_reference_get_size_by_path(&savegame_index_file, &size) != 0) {
+        return size / k_index_entry_size;
     }
     return 0;
 }
@@ -534,7 +505,7 @@ uint32_t SaveGameIndex::get_slot_count()
  * opens it for reading, and -- if it is large enough to contain `slot` -- seeks to that slot's
  * record and reads it. Returns 1 on full success, 0 otherwise; always releases the mutex before
  * returning (unless the initial wait itself failed/timed out).
- * FIXED (objdump 0x53e16e..0x53e1c2): two stack parameters, the slot and the 0x206-byte destination record
+ * FIXED (objdump 0x53e16e..0x53e1c2): two stack parameters, the slot and the k_index_entry_size-byte destination record
  * ([esp+0x14], passed to file_reference_read in ECX); both callers push (slot, &entry).
  *
  * @address 0x53e0e0
@@ -548,35 +519,19 @@ uint8_t SaveGameIndex::read_slot(uint16_t slot, void *out_entry)
         return 0;
     }
 
-    {
-        uint32_t *raw = (uint32_t *)&savegame_index_file;
-        int32_t i;
-        uint8_t *flags_byte = (uint8_t *)&savegame_index_file + 4;
-        uint16_t *word_at_6 = (uint16_t *)((uint8_t *)&savegame_index_file + 6);
+    bind_index_file(savegame_index_file);
 
-        for (i = 0; i < 0x43; i++) {
-            raw[i] = 0;
-        }
-        raw[0] = 0x66696c6f;
-        *word_at_6 = 2;
-        if ((*flags_byte & 1) != 0) {
-            halo::saved_games::path_remove_last_component((char *)((uint8_t *)&savegame_index_file + 8));
-        }
-        halo::saved_games::path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
-        *flags_byte = *flags_byte | 1;
-    }
-
-    if (halo::saved_games::file_reference_open((file_reference_record *)&savegame_index_file, 1) != 0) {
-        uint32_t size = halo::saved_games::file_reference_get_size((file_reference_record *)&savegame_index_file);
-        if ((uint32_t)slot * 0x206 + 0x206 <= size) {
-            if (halo::saved_games::file_reference_seek((int32_t)slot * 0x206, (file_reference_record *)((file_reference *)&savegame_index_file)) != 0) {
+    if (halo::saved_games::file_reference_open(&savegame_index_file, 1) != 0) {
+        uint32_t size = halo::saved_games::file_reference_get_size(&savegame_index_file);
+        if ((uint32_t)slot * k_index_entry_size + k_index_entry_size <= size) {
+            if (halo::saved_games::file_reference_seek((int32_t)slot * k_index_entry_size, &savegame_index_file) != 0) {
                 result = 1;
-                if (halo::saved_games::file_reference_read((file_reference_record *)((file_reference *)&savegame_index_file), out_entry, 0x206) == 0) {
+                if (halo::saved_games::file_reference_read(&savegame_index_file, out_entry, k_index_entry_size) == 0) {
                     result = 0;
                 }
             }
         }
-        if (halo::saved_games::file_reference_close((file_reference_record *)((file_reference *)&savegame_index_file)) == 0) {
+        if (halo::saved_games::file_reference_close(&savegame_index_file) == 0) {
             result = 0;
         }
     }
@@ -589,7 +544,7 @@ uint8_t SaveGameIndex::read_slot(uint16_t slot, void *out_entry)
  * As savegame_index_read_slot, but opens the index file for writing and writes `slot`'s record
  * instead of reading it.
  * FIXED 2026-09-27 (static loop) from objdump 0x53e1f0..0x53e2fa: the second stack argument ([esp+0x14] at
- * 0x53e2ae) is the 0x206-byte index entry written at slot * 0x206; the draft had no entry parameter and called
+ * 0x53e2ae) is the k_index_entry_size-byte index entry written at slot * k_index_entry_size; the draft had no entry parameter and called
  * seek / write / close with no arguments, so a profile rename never reached the index file.
  *
  * @address 0x53e1f0
@@ -603,35 +558,19 @@ uint8_t SaveGameIndex::write_slot(uint16_t slot, const void *entry)
         return 0;
     }
 
-    {
-        uint32_t *raw = (uint32_t *)&savegame_index_file;
-        int32_t i;
-        uint8_t *flags_byte = (uint8_t *)&savegame_index_file + 4;
-        uint16_t *word_at_6 = (uint16_t *)((uint8_t *)&savegame_index_file + 6);
+    bind_index_file(savegame_index_file);
 
-        for (i = 0; i < 0x43; i++) {
-            raw[i] = 0;
-        }
-        raw[0] = 0x66696c6f;
-        *word_at_6 = 2;
-        if ((*flags_byte & 1) != 0) {
-            halo::saved_games::path_remove_last_component((char *)((uint8_t *)&savegame_index_file + 8));
-        }
-        halo::saved_games::path_append_component((char *)&savegame_index_file + 8, saved_game_root_path);
-        *flags_byte = *flags_byte | 1;
-    }
-
-    if (halo::saved_games::file_reference_open((file_reference_record *)&savegame_index_file, 2) != 0) {
-        uint32_t size = halo::saved_games::file_reference_get_size((file_reference_record *)&savegame_index_file);
-        if ((uint32_t)slot * 0x206 + 0x206 <= size) {
-            if (halo::saved_games::file_reference_seek((int32_t)slot * 0x206, (file_reference_record *)&savegame_index_file) != 0) {
+    if (halo::saved_games::file_reference_open(&savegame_index_file, 2) != 0) {
+        uint32_t size = halo::saved_games::file_reference_get_size(&savegame_index_file);
+        if ((uint32_t)slot * k_index_entry_size + k_index_entry_size <= size) {
+            if (halo::saved_games::file_reference_seek((int32_t)slot * k_index_entry_size, &savegame_index_file) != 0) {
                 result = 1;
-                if (halo::saved_games::file_reference_write((file_reference_record *)&savegame_index_file, entry, 0x206) == 0) {
+                if (halo::saved_games::file_reference_write(&savegame_index_file, entry, k_index_entry_size) == 0) {
                     result = 0;
                 }
             }
         }
-        if (halo::saved_games::file_reference_close((file_reference_record *)&savegame_index_file) == 0) {
+        if (halo::saved_games::file_reference_close(&savegame_index_file) == 0) {
             result = 0;
         }
     }

@@ -336,24 +336,28 @@ void UiLists::list_widget_rebuild_rows(widget_instance *widget, ui_list_item_for
         int32_t matched = 1;
         if (ui_list_current == -1) {
             int32_t probe = group_index;
+            bool exhausted = false;
             while (ui_lists[probe].count == 0) {
                 probe = probe + 1;
                 if (probe > 2) {
                     group_index = 0;
                     matched = 0;
-                    goto forced_rebuild;
+                    exhausted = true;
+                    break;
                 }
             }
-            group_index = probe;
+            if (!exhausted) {
+                group_index = probe;
+            }
         } else if (group_changed) {
             while (ui_lists[group_index].count == 0) {
-                if (group_index == ui_list_current) goto matched_current;
+                if (group_index == ui_list_current) break;
                 group_index = group_index + 1;
                 if (group_index > 2) group_index = 0;
             }
         } else {
             while (ui_lists[group_index].count == 0) {
-                if (group_index == ui_list_current) goto matched_current;
+                if (group_index == ui_list_current) break;
                 group_index = group_index - 1;
                 if (group_index < 0) group_index = 2;
             }
@@ -362,12 +366,10 @@ void UiLists::list_widget_rebuild_rows(widget_instance *widget, ui_list_item_for
             matched = 0;
         }
         if (matched) {
-matched_current:
             spinner->selection_index = (int16_t)group_index;
             widget->item_count = (uint16_t)ui_lists[group_index].count;
         } else {
             int32_t default_entry;
-forced_rebuild:
             default_entry = halo::interface::ui_list_find_default(group_index);
             spinner->selection_index = (int16_t)group_index;
             *scroll_start_field = 0;
@@ -418,27 +420,24 @@ forced_rebuild:
 
             row->state = 1;
             if (item_index < item_count) {
+                enum { row_spinner, row_item, row_near_end } kind;
+
                 if (row_slot == 0) {
-                    if (has_embedded_spinner) {
-                        if (widget->focused_child == row) {
-                            item_index = item_index - 1;
-                            row->background_bitmap_frame = 1;
-                            row->focused_child = row->first_child;
-                        } else {
-                            item_index = item_index - 1;
-                            row->background_bitmap_frame = 0;
-                            row->focused_child = 0;
-                        }
-                        goto tail;
-                    }
-                    if (!single_page) goto near_end_row;
-                    goto render_row;
+                    kind = has_embedded_spinner ? row_spinner : (single_page ? row_item : row_near_end);
                 } else {
-                    if ((row_slot != 1) || single_page || !has_embedded_spinner) goto render_row;
-                    goto near_end_row;
+                    kind = ((row_slot != 1) || single_page || !has_embedded_spinner) ? row_item : row_near_end;
                 }
 
-render_row:
+                if (kind == row_spinner) {
+                    item_index = item_index - 1;
+                    if (widget->focused_child == row) {
+                        row->background_bitmap_frame = 1;
+                        row->focused_child = row->first_child;
+                    } else {
+                        row->background_bitmap_frame = 0;
+                        row->focused_child = 0;
+                    }
+                } else if (kind == row_item) {
                 label = row->first_child;
                 label->state = 1;
                 value = label->next_sibling;
@@ -474,16 +473,14 @@ render_row:
                     label->text = item_buffer;
                     if (item_buffer == 0 || !format_item(item_buffer, item_index, widget->list_items)) {
                         row->scale = 0.333f ;
-                        goto row_hidden;
-                    }
-                    if (focused_not_last || item_index == (int16_t)*selected_index_field) {
+                        row->hidden = 1;
+                    } else if (focused_not_last || item_index == (int16_t)*selected_index_field) {
                         row->scale = 1.0f;
                         row->hidden = 0;
                     } else {
                         row->scale = 0.333f ;
                         row->hidden = 0;
                     }
-                    goto tail;
                 } else {
                     label->state = 0;
                     row->background_bitmap_frame = 0;
@@ -504,10 +501,8 @@ render_row:
                             widget->focused_child = row->previous_sibling;
                         }
                     }
-                    goto tail;
                 }
-
-near_end_row:
+                } else {
                 label = row->first_child;
                 value = label->next_sibling;
                 value2 = value->next_sibling;
@@ -526,23 +521,18 @@ near_end_row:
                     row->hidden = 1;
                     row->scale = 0.333f ;
                     if (widget->focused_child == row) {
-                        item_index = item_index - 1;
                         widget->focused_child = row->next_sibling;
-                        goto tail_no_decrement;
                     }
                 } else {
                     row->hidden = 0;
                     row->scale = 1.0f;
                 }
                 item_index = item_index - 1;
-                goto tail_no_decrement;
+                }
             } else {
                 row->state = 0;
-row_hidden:
                 row->hidden = 1;
             }
-tail:
-tail_no_decrement:
             row_slot = row_slot + 1;
             item_index = item_index + 1;
         }
@@ -620,10 +610,9 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
         if (function_id < 0 || function_id > 0xbd ||
             ((ui_event_function)ui_event_function_table[function_id])(widget, event, &handled) == 0) {
             function_failed = 1;
-            goto after_run_function;
         }
     }
-    {
+    if (function_failed == 0) {
         if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::give_focus_to_widget) && handled == 0) {
             if (halo::interface::tag_handle(handler->widget_tag.tag_id) == 0xffffffffu) {
                 ok = 0;
@@ -747,12 +736,10 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
                 }
                 halo::interface::widget_close(target);
                 handled = 1;
-                goto after_close;
             }
             if (close_self_via_root != 0) {
                 halo::interface::widget_close(target);
                 handled = 1;
-                goto after_close;
             }
         } else {
             if (ui_root_widget[0] != (widget_instance *)0) {
@@ -781,13 +768,8 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
             }
             handled = 1;
         }
-        if (ok != 0) {
-            goto after_run_function;
-        }
     }
 
-after_close:
-after_run_function:
     if (halo::interface::has_bit(handler->flags, halo::tags::event_handler_references_tag_flag::try_to_branch_on_failure) && tag->conditional_widgets.count > 0) {
         uint8_t *entries = (uint8_t *)tag->conditional_widgets.pointer;
         int32_t i;

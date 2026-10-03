@@ -83,14 +83,10 @@ uint32_t UiGameSetup::start_campaign_from_level_one(void *widget, int16_t *event
 
     if (halo::game::globals().local_player_count >= 2) {
         i = 0;
-        while (halo::input::globals().joystick_slot_devices[i] == -1 || i == requested_index) {
-            i = i + 1;
-            if (i > 0) {
-                goto report_error;
-            }
-        }
-        if (i == -1) {
-            goto report_error;
+        if (halo::input::globals().joystick_slot_devices[0] == -1 || requested_index == 0) {
+            halo::game::globals().local_player_count = 1;
+            halo::interface::display_error(0x13, -1, 1, 0);
+            return 0;
         }
     } else {
         i = -1;
@@ -117,11 +113,6 @@ uint32_t UiGameSetup::start_campaign_from_level_one(void *widget, int16_t *event
         halo::saved_games::saved_game_last_profile_clear(last_profile_name);
     }
     return 1;
-
-report_error:
-    halo::game::globals().local_player_count = 1;
-    halo::interface::display_error(0x13, -1, 1, 0);
-    return 0;
 }
 
 }

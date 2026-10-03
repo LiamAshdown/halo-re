@@ -1,4 +1,5 @@
 #include "win32.h"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/tag_groups.hpp"
@@ -103,7 +104,7 @@ void MenuListView::update()
                 wcsncpy((wchar_t *)buf, (const wchar_t *)entry->name, 0xf);
                 (halo::interface::widget_text(row))[0xf] = 0;
             } else {
-                datum_index tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\multiplayer_game_text");
+                datum_index tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
                 uint16_t *source = missing_string_text;
 
                 if (tag != (datum_index)-1) {

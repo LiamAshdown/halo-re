@@ -427,8 +427,8 @@ void Players::rebind_local_player_after_load()
     control->desired_zoom_level = -1;
     control->nameplate_target = k_datum_index_none;
     control->autolevelling_active = 0;
-    *(uint32_t *)&control->pitch_maximum = 0x3fbf0243;
-    *(uint32_t *)&control->pitch_minimum = 0xbfbf0243;
+    control->pitch_maximum = 1.49225652f;
+    control->pitch_minimum = -1.49225652f;
     control->suppressed_buttons = 0;
     control->suppressed_until_released = 0;
 
@@ -592,7 +592,7 @@ void StructureBsp::switch_structure_bsp()
 
         {
 
-            int32_t *fade_ticks = (int32_t *)((uint8_t *)plr + 0xcc);
+            int32_t *fade_ticks = &plr->telefrag_ticks;
 
             if (plr->telefrag_danger == 0) {
                 if (*fade_ticks > 0) {
@@ -639,7 +639,7 @@ void StructureBsp::switch_structure_bsp()
                         int16_t destination = (int16_t)entry->destination;
 
                         {
-                            uint8_t *stage_byte = (uint8_t *)local_player_globals + 0x17;
+                            uint8_t *stage_byte = &local_player_globals->bsp_switch_state;
                             uint8_t low = (uint8_t)(*stage_byte & 0xf);
                             *stage_byte = low;
                             *stage_byte = (uint8_t)((((uint8_t)plr->local_player_index ^ low) & 0xf) ^ low);
@@ -672,7 +672,7 @@ void StructureBsp::switch_structure_bsp()
     }
 
     {
-        uint8_t *stage = (uint8_t *)local_player_globals + 0x17;
+        uint8_t *stage = &local_player_globals->bsp_switch_state;
         if ((*stage & 0xf) != 0xf) {
             *stage = (uint8_t)(((*stage & 0xf0) + 0x10) ^ (*stage & 0xf));
             if ((*stage & 0xf0) > 0xc0) {

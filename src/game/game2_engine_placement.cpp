@@ -6,6 +6,8 @@
 #include "halo/game/records.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/core/lcg.hpp"
+#include "halo/core/tag_block.hpp"
+#include "halo/core/bit_cast.hpp"
 #include "halo/text/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -232,7 +234,7 @@ uint32_t EnginePlacement::resolve_multiplayer_placement(uint32_t handle)
 {
     uint8_t *tag_data;
     int32_t weapon_list_count;
-    TagDependency *weapon_list;
+    GlobalsWeapon *weapon_list;
     int32_t index;
     int32_t i;
 
@@ -240,12 +242,12 @@ uint32_t EnginePlacement::resolve_multiplayer_placement(uint32_t handle)
 
     weapon_list_count = (int32_t)global_globals->weapon_list.count;
     weapon_list = (weapon_list_count == 0) ? 0
-        : (TagDependency *)global_globals->weapon_list.pointer;
+        : halo::tag_block_elements<GlobalsWeapon>(global_globals->weapon_list);
 
     index = -1;
     for (i = 0; i < weapon_list_count; i++) {
         index = i;
-        if (handle == *(uint32_t *)((uint8_t *)weapon_list + i * 0x10 + 0xc)) {
+        if (handle == halo::bit_cast<uint32_t>(weapon_list[i].weapon.tag_id)) {
             break;
         }
         index = -1;
@@ -304,7 +306,7 @@ uint32_t EnginePlacement::resolve_multiplayer_placement(uint32_t handle)
     if (index == -1) {
         return halo::k_dword_none;
     }
-    return *(uint32_t *)((uint8_t *)global_globals->weapon_list.pointer + 0xc + index * 0x10);
+    return halo::bit_cast<uint32_t>(halo::tag_block_at<GlobalsWeapon>(global_globals->weapon_list, index).weapon.tag_id);
 }
 
 /**
@@ -318,13 +320,13 @@ uint32_t EnginePlacement::resolve_multiplayer_placement(uint32_t handle)
 int32_t EnginePlacement::resolve_netgame_flag_role(uint32_t handle)
 {
     int32_t weapon_list_count = (int32_t)global_globals->weapon_list.count;
-    TagDependency *weapon_list = (weapon_list_count == 0) ? 0
-        : (TagDependency *)global_globals->weapon_list.pointer;
+    GlobalsWeapon *weapon_list = (weapon_list_count == 0) ? 0
+        : halo::tag_block_elements<GlobalsWeapon>(global_globals->weapon_list);
     int32_t index = -1;
     int32_t i;
 
     for (i = 0; i < weapon_list_count; i++) {
-        if (handle == *(uint32_t *)&weapon_list[i].tag_id) {
+        if (handle == halo::bit_cast<uint32_t>(weapon_list[i].weapon.tag_id)) {
             index = i;
             break;
         }
@@ -435,7 +437,7 @@ int32_t EnginePlacement::resolve_netgame_flag_role(uint32_t handle)
     if (index == -1) {
         return -1;
     }
-    return *(int32_t *)((uint8_t *)global_globals->weapon_list.pointer + 0xc + index * 0x10);
+    return halo::bit_cast<int32_t>(halo::tag_block_at<GlobalsWeapon>(global_globals->weapon_list, index).weapon.tag_id);
 }
 
 /**
@@ -544,10 +546,10 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
             if (equipment->spawn_time != 0) {
                 respawn_interval = equipment->spawn_time * 0x1e;
             } else if (item_collection_tag != (datum_index)halo::k_dword_none) {
-                int16_t permutation_count =
-                    *(int16_t *)((uint8_t *)halo::game::tag_data_at(item_collection_tag) + 0x0c);
-                if (permutation_count != 0) {
-                    respawn_interval = permutation_count * 0x1e;
+                int16_t default_spawn_time =
+                    ((ItemCollection *)halo::game::tag_data_at(item_collection_tag))->default_spawn_time;
+                if (default_spawn_time != 0) {
+                    respawn_interval = default_spawn_time * 0x1e;
                 }
             }
             respawn_interval = respawn_interval + extra;
@@ -692,13 +694,11 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
                     object *blocker = halo::game::object_at(obstruction);
                     if (((1 << blocker->type) & _object_mask_unit) != 0) {
                         datum_index controller =
-                            ((unit_data *)((uint8_t *)blocker +
-                                           k_unit_data_offset))->controlling_player;
+                            reinterpret_cast<::unit_object *>(blocker)->unit.controlling_player;
                         if (controller != (datum_index)halo::k_dword_none) {
                             player *other = halo::game::player_at(controller);
                             other->telefrag_danger = 1;
-                            *(int32_t *)((uint8_t *)other + 0xcc) =
-                                *(int32_t *)((uint8_t *)other + 0xcc) + 1;
+                            other->telefrag_ticks = other->telefrag_ticks + 1;
                         }
                     }
                 }
