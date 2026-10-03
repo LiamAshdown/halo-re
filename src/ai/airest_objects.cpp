@@ -51,7 +51,7 @@ int32_t AiActorView::get_activity_stage()
     if (a->target_combat_status < 10) {
         return 4;
     }
-    if (*((uint8_t *)a + 0x454) != 0 || *((uint8_t *)a + 0x45c) != 0) {
+    if (a->wants_to_fire != 0 || a->throw_grenade != 0) {
         return 6;
     }
     return 5;
@@ -1250,7 +1250,7 @@ void AiObjects::create_actor(datum_index actor_variant_tag, datum_index unit_ind
     a->pending_command_list = -1;
     a->sequence_id = 0;
 
-    if (*((uint8_t *)a + 0x6) != actor_type_procs[a->type][0xd]) {
+    if (a->swarm != actor_type_procs[a->type][0xd]) {
         halo::ai::actor_delete(actor_index, 0);
         return;
     }

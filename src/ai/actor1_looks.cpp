@@ -62,7 +62,7 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
     halo::units::unit_apply_control_block(actor->unit_index, &control, -1);
     if (actor->control_animation_impulse != -1) {
         halo::units::unit_try_start_scripted_action_animation(actor->unit_index, actor->control_animation_impulse,
-            (const real_vector2d *)((uint8_t *)actor + 0x6f0));
+            reinterpret_cast<const real_vector2d *>(&actor->unknown_6ee[2]));
     }
     if (actor->persistent_control_ticks > 0) {
         unit_object *object = (unit_object *)halo::ai::object_at(actor->unit_index);
@@ -320,7 +320,7 @@ uint32_t halo::ai::look_ops::flee_look_away()
         uint8_t order[0x84];
 
         memset(order, 0, sizeof(order));
-        halo::ai::actor_build_order_look(actor_index, (actor_order *)order, (actor_look_request *)((uint8_t *)self + 0x9c));
+        halo::ai::actor_build_order_look(actor_index, (actor_order *)order, reinterpret_cast<actor_look_request *>(&self->mode_data));
         halo::ai::actor_set_mode(actor_index, halo::ai::actor_mode::guard, order);
         result = 1;
     }
@@ -623,7 +623,7 @@ void halo::ai::look_ops::look_randomize_direction(float *deviation_table, real_v
     out_in_front = 0;
     self->idle_minor_active = 0;
 
-    if (!halo::ai::actor_select_facing_target_prop(actor_index, 0, 0, (actor_recognition_scan_result *)((uint8_t *)self + 0x57c),
+    if (!halo::ai::actor_select_facing_target_prop(actor_index, 0, 0, reinterpret_cast<actor_recognition_scan_result *>(&self->idle_look_direction_type),
             (uint8_t *)&out_in_front)) {
         yaw_max = (definition->maximum_looking_deviation.yaw <= definition->idle_looking_range.yaw)
                       ? definition->maximum_looking_deviation.yaw

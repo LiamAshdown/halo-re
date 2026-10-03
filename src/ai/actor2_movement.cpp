@@ -465,7 +465,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
     float desired_length_squared;
     float turn_limit = throttle_maximum;
 
-    if (act->unknown_42a) {
+    if (act->force_turn) {
         act->turn_required = 1;
     }
     if (cached_axis >= 0 && cached_axis <= 3) {

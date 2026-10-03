@@ -1749,7 +1749,7 @@ uint8_t DialogueCondition_42f560::test(datum_index object_index, uint32_t param_
     }
     actor = halo::ai::actor_at(actor_index);
     if (actor->mode == halo::ai::actor_mode::uncover) {
-        return (uint8_t)(*(int16_t *)((uint8_t *)actor + 0xa4) == 1);
+        return (uint8_t)(actor->mode_data.uncover.stage == 1);
     }
     return (uint8_t)(actor->mode == halo::ai::actor_mode::search);
 }

@@ -125,11 +125,11 @@ void ActorView::refresh_combat_context()
             center->y = scale * center->y;
             center->z = scale * center->z;
         }
-        memset((uint8_t *)self + 0x120, 0, 0x2a * 4);
+        memset(&self->aim_origin, 0, 0x2a * 4);
         self->active_unit_index = -1;
         self->pathfinding_surface_index = -1;
         if (self->cluster_unit_index != -1) {
-            halo::ai::actor_fill_unit_position_context((int32_t)self->cluster_unit_index, (actor_unit_position_context *)((uint8_t *)self + 0x120));
+            halo::ai::actor_fill_unit_position_context((int32_t)self->cluster_unit_index, reinterpret_cast<actor_unit_position_context *>(&self->aim_origin));
         }
         return;
     }
@@ -139,7 +139,7 @@ void ActorView::refresh_combat_context()
     if (parent_index != k_datum_index_none) {
         parent = (unit_object *)object_get(parent_index);
     }
-    halo::ai::actor_fill_unit_position_context((int32_t)self->unit_index, (actor_unit_position_context *)((uint8_t *)self + 0x120));
+    halo::ai::actor_fill_unit_position_context((int32_t)self->unit_index, reinterpret_cast<actor_unit_position_context *>(&self->aim_origin));
     {
         object_marker marker;
         real_point3d head;
@@ -199,10 +199,10 @@ void ActorView::refresh_combat_context()
                 }
             }
             if (move) {
-                if (self->unknown_40[0] == 0) {
-                    *(int32_t *)((uint8_t *)self + 0x44) = encounter;
-                    *(int16_t *)((uint8_t *)self + 0x48) = self->squad_index;
-                    self->unknown_40[0] = 1;
+                if (self->squad_link_saved == 0) {
+                    self->saved_encounter_index = encounter;
+                    self->saved_squad_index = self->squad_index;
+                    self->squad_link_saved = 1;
                     if (encounter != k_datum_index_none) {
                         *((uint8_t *)halo::ai::globals().encounter_data->data + (encounter & halo::k_slot_mask) * 0x6c + 0x1e) = 1;
                     }
@@ -215,14 +215,14 @@ void ActorView::refresh_combat_context()
         self->vehicle_driving_type = 0;
         self->order_committed = 0;
         self->vehicle_gunner = 0;
-        if (self->unknown_40[0]) {
-            halo::ai::actor_reset_squad_link_for_type_change(actor_index, *(int32_t *)((uint8_t *)self + 0x44), *(int16_t *)((uint8_t *)self + 0x48));
-            self->unknown_40[0] = 0;
+        if (self->squad_link_saved) {
+            halo::ai::actor_reset_squad_link_for_type_change(actor_index, self->saved_encounter_index, self->saved_squad_index);
+            self->squad_link_saved = 0;
         }
     }
 
-    self->unknown_1b4[1] = static_cast<uint8_t>(unit->unit.flaming_ticks) > 0;
-    self->unknown_1b4[0] = 0;
+    self->on_fire = static_cast<uint8_t>(unit->unit.flaming_ticks) > 0;
+    self->enemy_child_attached = 0;
     self->stuck_projectile_index = -1;
     for (child = unit->base.first_child_object; child != k_datum_index_none;
          child = *(datum_index *)(object_get(child) + 0x114)) {
@@ -244,7 +244,7 @@ void ActorView::refresh_combat_context()
                 enemy = (((uint32_t *)(team_pair_data + 0xa4))[bit >> 5] & (1u << (bit & 0x1f))) == 0;
             }
             if (enemy) {
-                self->unknown_1b4[0] = 1;
+                self->enemy_child_attached = 1;
             }
         } else if (type == 5) {
             if ((int8_t)child_object[0x22c] < 0 || (self->danger_type == 2 && child == self->danger_object_index)) {
@@ -267,7 +267,7 @@ void ActorView::refresh_combat_context()
     halo::units::unit_get_forward_vector_or_marker_normal(self->vehicle_driving_type > 0 ? (int32_t)self->active_unit_index : (int32_t)self->unit_index,
         &self->facing);
     if (self->flying == 0) {
-        if (halo::math::vector2d_normalize_with_length(*(real_vector2d *)((uint8_t *)self + 0x174)) > 0.0f) {
+        if (halo::math::vector2d_normalize_with_length(*reinterpret_cast<real_vector2d *>(&self->facing)) > 0.0f) {
             self->facing.k = 0.0f;
         } else {
             *(real_vector3d *)&self->facing.i = *halo::math::globals().global_forward3d_pointer;
@@ -290,10 +290,10 @@ void ActorView::refresh_combat_context()
     halo::math::vector3d_normalize_with_length(self->looking_left_vector);
     halo::math::vector3d_cross_product(self->looking_up_vector, self->looking_left_vector,
         self->unit_looking_vector);
-    *(int32_t *)((uint8_t *)self + 0x1b8) = halo::bit_cast<int32_t>(unit->base.body_vitality);
-    *(int32_t *)((uint8_t *)self + 0x1bc) = halo::bit_cast<int32_t>(unit->base.shield_vitality);
-    *(int32_t *)((uint8_t *)self + 0x1c0) = halo::bit_cast<int32_t>(unit->base.recent_body_damage);
-    *(int32_t *)((uint8_t *)self + 0x1c4) = halo::bit_cast<int32_t>(unit->base.recent_shield_damage);
+    self->body_vitality = unit->base.body_vitality;
+    self->shield_vitality = unit->base.shield_vitality;
+    self->recent_body_damage = unit->base.recent_body_damage;
+    self->recent_shield_damage = unit->base.recent_shield_damage;
 }
 
 

@@ -357,7 +357,7 @@ void ActorOps::queue_directional_reaction_event(const real_vector3d *direction, 
         look_source = &target->direction;
     }
 
-    self->unknown_2e8[4] = 1;
+    self->attack_pending = 1;
 
     if ((target == 0 || target->enemy != 0) && self->awareness_level < 3) {
         halo::ai::actor_record_look_at_point(actor_index, (const uint32_t *)look_source, 5, target_prop_index);

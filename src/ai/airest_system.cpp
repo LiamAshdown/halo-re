@@ -937,7 +937,7 @@ void AiSystem::reset_fire_group_assignments()
             actor->next_in_encounter = halo::ai::globals().state->first_encounterless_actor;
             halo::ai::globals().state->first_encounterless_actor = actor_index;
             actor->encounterless = 1;
-            *(int16_t *)((uint8_t *)actor + 0x10) = actor->active != 0 ? 0x5a : 0;
+            actor->activation_delay = actor->active != 0 ? 0x5a : 0;
             halo::ai::actor_movement_action_cancel(actor_index);
         }
         encounter = halo::ai::encounter_at(e);

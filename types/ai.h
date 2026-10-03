@@ -566,7 +566,8 @@ typedef struct actor {
                                       //    cluster mask or squad dormancy_disabled; 0x429270 wakes units when 0 (or
                                       //    force_active)
     uint8_t keep_unit_alive;          // 0x13 actor_attach_to_unit marks the unit pending-delete when this is clear
-    uint8_t unknown_14[4];            // 0x14
+    int16_t inactive_ticks;           // 0x14 counted up each tick while the actor is dormant-eligible and cleared when it stops being dormant; past 59 the units are set active
+    uint8_t unknown_16[2];            // 0x16
     datum_index unit_index;           // 0x18 the one unit object this actor controls; the unit points back at 0x1f4
     uint8_t counts_toward_encounter;  // 0x1c actor_unlink_unit decrements encounter+0x1c only when set
     uint8_t unknown_1d;               // 0x1d
@@ -587,7 +588,10 @@ typedef struct actor {
     int16_t squad_index;              // 0x3a index of this actor encounter_squad_state, relative to encounter.first_squad
     int16_t platoon_index;            // 0x3c index of this actor encounter_platoon_state, or -1
     int16_t team;                     // 0x3e kept in sync with object+0xb8 and encounter.team
-    uint8_t unknown_40[10];           // 0x40
+    uint8_t squad_link_saved;         // 0x40 set once the actor was moved to another encounter/squad by the vehicle shuffle; saved_* hold the way back
+    uint8_t unknown_41[3];            // 0x41
+    datum_index saved_encounter_index; // 0x44 the encounter the actor belonged to before the shuffle
+    int16_t saved_squad_index;        // 0x48 ... and its squad
     int16_t idle_counter;             // 0x4a 0x429430 advances it and trips the global update stagger past 15
     uint8_t needs_new_path;           // 0x4c 0x4017b0 issues a fresh path request while set; 0x429430 also writes it
     uint8_t unknown_4d;               // 0x4d
@@ -696,7 +700,9 @@ typedef struct actor {
     int32_t stuck_projectile_index;   // 0x1b0 datum_index (declared int32): 0x4297a0 sets it to an attached
                                       //    projectile child (stuck grenade / the danger projectile); flee panic 9/10
                                       //    ends when none
-    uint8_t unknown_1b4[4];           // 0x1b4
+    uint8_t enemy_child_attached;     // 0x1b4 an enemy-team biped is attached as a child object of the unit (actor_alert_from_flag_1b4)
+    uint8_t on_fire;                  // 0x1b5 the unit's flaming ticks are above zero (actor_alert_from_damage)
+    uint8_t unknown_1b6[2];           // 0x1b6
     float body_vitality;              // 0x1b8 0x4297a0 copies unit body_vitality; berserk_damage_threshold test,
                                       //    crouch/vocalization code
     float shield_vitality;            // 0x1bc 0x4297a0 copies unit shield_vitality;
@@ -769,7 +775,7 @@ typedef struct actor {
     uint8_t danger_reacting;          // 0x287 actor_target_relationship_think sets it when a danger is noticed;
                                       //    actor_find_best_firing_position only reports a danger when set
     uint8_t danger_dive;              // 0x288 dive_from_grenade_chance roll (relationship_think); 0 for own danger
-    uint8_t unknown_289;              // 0x289
+    uint8_t danger_reported;          // 0x289 the danger line was broadcast for the current danger
     uint8_t danger_is_own;            // 0x28a actor_danger_update_reaction 0x41eda0: the danger projectile's parent
                                       //    is this actor's unit; suppresses danger reaction / avoidance (0x41abd0,
                                       //    0x40c040)
@@ -789,12 +795,15 @@ typedef struct actor {
                                       //    only when closer
     float danger_radius;              // 0x2d8 the sphere around danger_center a candidate has to be inside
     real_point3d danger_center;       // 0x2dc
-    uint8_t unknown_2e8[5];           // 0x2e8
+    int16_t danger_countdown;         // 0x2e8 ticks until the registered danger goes off (grenade fuse / animation frames left), -1 unknown
+    uint8_t unknown_2ea[2];           // 0x2ea
+    uint8_t attack_pending;           // 0x2ec set by the look-at request pass; the squad-attack alert and the shield damage escalation consume it
     uint8_t vehicle_eviction;         // 0x2ed player_execute_pending_interaction / unit_find_best_seat_to_enter ->
                                       //    0x42b810 sets it when a friendly player wants the seat;
                                       //    actor_process_vehicle_seat_exit exits (CEA stimulus_vehicle_eviction)
     int16_t look_at_priority;         // 0x2ee 0x421bc0 keeps only the highest-priority look-at point
-    uint8_t unknown_2f0[4];           // 0x2f0
+    uint8_t surprise_pending;         // 0x2f0 set by the surprise reaction; actor_alert_from_disturbance consumes it
+    uint8_t unknown_2f1[3];           // 0x2f1
     datum_index look_at_reference;    // 0x2f4 the datum the highest-priority look-at request carries (swapped by
                                       //    actor_replace_object_reference)
     uint8_t look_at_has_point;        // 0x2f8 the request supplied a point
@@ -916,7 +925,8 @@ typedef struct actor {
                                       //    movement_action_resolve completes a type-3 action at once while set
     uint8_t target_lost;              // 0x3bc actor_should_hold_position sets it when shooting at a prop in state
                                       //    4..5; cleared on new target (0x40cdf0) and by 0x41fbc0(none)
-    uint8_t unknown_3bd[3];           // 0x3bd
+    uint8_t target_lost_reported;     // 0x3bd the target-lost line was broadcast; cleared when the pursuit target changes
+    uint8_t unknown_3be[2];           // 0x3be
     datum_index pursuit_target_prop_index; // 0x3c0 0x40cdf0 resets pursuit_position_count when target_unit_index
                                            //    differs from it and stores the target; actor_update_combat_behavior
                                            //    compares it
@@ -946,7 +956,7 @@ typedef struct actor {
     uint8_t crouch_decision[2];       // 0x426 the crouch decision of the mode update, mirrored into the crouch control flag
     uint8_t crouch_hold;              // 0x428 charge and obey keep a crouch going while it is set
     uint8_t cowering;                 // 0x429 flee: the panic is in the cowering band (9..12)
-    uint8_t unknown_42a;              // 0x42a
+    uint8_t force_turn;               // 0x42a movement forces turn_required while it is set
     uint8_t unknown_42b;              // 0x42b
     int16_t movement_style_override;  // 0x42c control_animation_mode to use; -1 derives it from the awareness level
                                       //    (reset to -1 every update, set by the obey mode update)
@@ -1074,7 +1084,11 @@ typedef struct actor {
         real_point3d idle_look_point;   // 0x580 idle_look_direction_type 4
         datum_index idle_look_prop_index; // 0x580 idle_look_direction_type 1 (replace_object_reference patches it)
     };
-    uint8_t unknown_58c[5];           // 0x58c
+    uint8_t look_claimed;             // 0x58c a vocalization or firing look claimed the look point this tick
+    uint8_t look_side_a;              // 0x58d
+    uint8_t look_side_b;              // 0x58e
+    uint8_t stationary_facing_enabled; // 0x58f
+    uint8_t stationary_facing_held;   // 0x590 the actor holds the stationary facing at stationary_facing_hold
     uint8_t turn_required;            // 0x591 set by 0x415480 when body must turn to its aim and by 0x4180c0 when no
                                       //    step taken; enables oversteer hold 0x594; mirrored to control flags bit
                                       //    0x20 by 0x415480
@@ -1147,7 +1161,13 @@ typedef struct actor {
     int32_t firing_target_ticks;      // 0x61c 0x40e7b0 counts ticks on the same firing target (reset on change);
                                       //    0x40fcb0 compares with new_target_firing_pattern_time; %10 reachability
                                       //    recheck
-    uint8_t unknown_620[8];           // 0x620
+    uint8_t firing_line_clear;        // 0x620 the obstruction test of the firing target is 0 or 1
+    uint8_t firing_target_in_water;   // 0x621 prop.in_water of the firing target
+    uint8_t use_high_arc;             // 0x622 the target is beyond the variant's arc range; passed to weapon_trigger_get_aiming_vector
+    uint8_t fire_blindly;             // 0x623 the actor fires without a clear line (forced aim and a blind-fire range)
+    uint8_t firing_target_hidden;     // 0x624 the firing target's cluster is not visible to the local player
+    uint8_t unknown_625;              // 0x625
+    int16_t firing_target_obstruction; // 0x626 obstruction of the firing target (0 and 1 are clear)
     uint8_t target_in_firing_range;   // 0x628 0x40e7b0 clears each tick, sets once all fire gates pass (range < max
                                       //    firing distance 0x608); look decode code 2 then uses target_aim_vector
                                       //    0x63c

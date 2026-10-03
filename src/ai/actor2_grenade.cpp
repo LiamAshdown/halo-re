@@ -192,7 +192,7 @@ void ActorView::schedule_grenade_throw()
     a->vocalization_state = (int16_t)ticks;
     a->vocalization_line = 8;
     a->vocalization_variant = 5;
-    memcpy((uint8_t *)a + 0x54c, request, 0x10);
+    memcpy(&a->vocalization_source, request, 0x10);
 }
 
 namespace actor_should_throw_grenade_local {

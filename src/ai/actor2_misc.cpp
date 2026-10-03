@@ -1535,7 +1535,7 @@ uint8_t ActorOps::resolve_look_target(real_point3d *preferred_direction, datum_i
 
     if (force_fallback ||
         halo::ai::actor_select_facing_target_prop(actor_index, require_trust, use_aiming_deviation,
-            (actor_recognition_scan_result *)((uint8_t *)self + 0x56c), (uint8_t *)&out_in_front) == 0) {
+            reinterpret_cast<actor_recognition_scan_result *>(&self->idle_major_direction_type), (uint8_t *)&out_in_front) == 0) {
         direction.i = preferred_direction->x;
         direction.j = preferred_direction->y;
         direction.k = preferred_direction->z;
@@ -2135,7 +2135,7 @@ void TargetView::set_target_alert_stage3(datum_index actor_index)
         self = halo::ai::actor_at(actor_index);
         self->pursuit_position_count = 0;
         self->target_lost = 0;
-        self->unknown_3bd[0] = 0;
+        self->target_lost_reported = 0;
         self->minimum_combat_status = 0;
         self->suspicion_status = 0;
         halo::ai::actor_update_awareness_level(actor_index);
@@ -2210,7 +2210,7 @@ void ActorView::set_units_active(uint8_t dormant)
 
         self->keep_unit_alive = dormant;
         if (dormant == 0) {
-            *(int16_t *)((uint8_t *)self + 0x14) = 0;
+            self->inactive_ticks = 0;
         }
     }
 }

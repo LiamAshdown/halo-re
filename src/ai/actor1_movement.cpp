@@ -751,8 +751,8 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
 
             if (other != 0 && other->mode == halo::ai::actor_mode::vehicle && other->mode_data.vehicle.vehicle_index == vehicle_index &&
                 other->mode_data.vehicle.seat_index == seat_index) {
-                float dx = *(float *)((uint8_t *)other + 0xcc) - other->body_position.x;
-                float dy = *(float *)((uint8_t *)other + 0xd0) - other->body_position.y;
+                float dx = other->mode_data.vehicle.path_destination.x - other->body_position.x;
+                float dy = other->mode_data.vehicle.path_destination.y - other->body_position.y;
 
                 if (distance * distance > dy * dy + dx * dx) {
                     return 0;

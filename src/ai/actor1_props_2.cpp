@@ -71,7 +71,7 @@ void halo::ai::prop_ops::danger_update_reaction()
     }
     halo::objects::object_get_position(position, actor->danger_object_index);
     halo::ai::actor_get_firing_positions(actor_index, block, position);
-    *(real_vector3d *)((uint8_t *)actor + 0x2bc) = *(real_vector3d *)&((struct object *)object)->velocity.i;
+    actor->danger_velocity = *(real_vector3d *)&((struct object *)object)->velocity.i;
     {
         float dx = position->x - block_point->x;
         float dy = position->y - block_point->y;
@@ -79,9 +79,9 @@ void halo::ai::prop_ops::danger_update_reaction()
 
         actor->danger_distance = (float)halo::libm::sqrt((double)(dz * dz + dy * dy + dx * dx));
     }
-    actor->danger_segment_end.x = *(float *)((uint8_t *)actor + 0x2bc) * 45.0f + position->x;
-    actor->danger_segment_end.y = *(float *)((uint8_t *)actor + 0x2c0) * 45.0f + position->y;
-    actor->danger_segment_end.z = *(float *)((uint8_t *)actor + 0x2c4) * 45.0f + position->z;
+    actor->danger_segment_end.x = actor->danger_velocity.i * 45.0f + position->x;
+    actor->danger_segment_end.y = actor->danger_velocity.j * 45.0f + position->y;
+    actor->danger_segment_end.z = actor->danger_velocity.k * 45.0f + position->z;
     actor->danger_center.x = (actor->danger_segment_end.x + position->x) * 0.5f;
     actor->danger_center.y = (position->y + actor->danger_segment_end.y) * 0.5f;
     actor->danger_center.z = (position->z + actor->danger_segment_end.z) * 0.5f;
@@ -107,7 +107,7 @@ void halo::ai::prop_ops::danger_update_reaction()
             }
         }
         frames = halo::units::unit_get_animation_frames_remaining(actor->danger_object_index, &state);
-        *(int16_t *)((uint8_t *)actor + 0x2e8) = state == 0x19 ? (int16_t)frames : -1;
+        actor->danger_countdown = state == 0x19 ? (int16_t)frames : -1;
         break;
     }
     case 2: {
@@ -119,9 +119,9 @@ void halo::ai::prop_ops::danger_update_reaction()
             own = 1;
         }
         if (*(float *)(object + 0x240) > 0.0f && *(float *)(object + 0x244) > 0.0f) {
-            *(int16_t *)((uint8_t *)actor + 0x2e8) = (int16_t)halo::x87::fistp_round((1.0f - *(float *)(object + 0x240)) / *(float *)(object + 0x244));
+            actor->danger_countdown = (int16_t)halo::x87::fistp_round((1.0f - *(float *)(object + 0x240)) / *(float *)(object + 0x244));
         } else {
-            *(int16_t *)((uint8_t *)actor + 0x2e8) = -1;
+            actor->danger_countdown = -1;
         }
         if (actor->danger_reaction_delayed != 0 || own) {
             noticed = 1;

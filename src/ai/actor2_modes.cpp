@@ -174,7 +174,7 @@ void ActorView::mode_vehicle_update()
     if (act->mode_data.vehicle.entry_reached) {
         act->flee_reason = 4;
         act->flee_source.code = 4;
-        *(real_vector3d *)((uint8_t *)act + 0x3f0) = act->mode_data.vehicle.entry_direction;
+        *reinterpret_cast<real_vector3d *>(&act->flee_source.payload.point) = act->mode_data.vehicle.entry_direction;
     } else if (act->movement_action_complete) {
         act->flee_reason = 3;
         act->flee_source.code = 0;

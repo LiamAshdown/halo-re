@@ -44,7 +44,7 @@ uint8_t halo::ai::alert_ops::alert_from_damage()
     struct actor *actor = halo::ai::actor_at(actor_index);
     uint32_t source = halo::k_dword_none;
 
-    if (actor->unknown_1b4[1] == 0) {
+    if (actor->on_fire == 0) {
         return 0;
     }
     if (actor->unit_index != halo::k_dword_none) {
@@ -104,11 +104,11 @@ uint8_t halo::ai::alert_ops::alert_from_disturbance()
     datum_index actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
 
-    if (actor->unknown_2f0[0] == 0 || (*(uint32_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data & 0x400) == 0) {
+    if (actor->surprise_pending == 0 || (*(uint32_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data & 0x400) == 0) {
         return 0;
     }
     actor_raise_alert(actor, 7, actor->look_at_reference);
-    actor->unknown_2f0[0] = 0;
+    actor->surprise_pending = 0;
     return 1;
 }
 
@@ -136,7 +136,7 @@ uint8_t halo::ai::alert_ops::alert_from_flag_1b4()
     datum_index actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
 
-    if (actor->unknown_1b4[0] == 0) {
+    if (actor->enemy_child_attached == 0) {
         return 0;
     }
     if (actor->pending_panic_type <= 0xb) {
@@ -246,7 +246,7 @@ uint8_t halo::ai::alert_ops::alert_from_squad_attack()
     struct actor *actor = halo::ai::actor_at(actor_index);
     Actor *definition;
 
-    if (actor->unknown_2e8[4] == 0) {
+    if (actor->attack_pending == 0) {
         return 0;
     }
     definition = halo::ai::tag_data<Actor>(actor->actor_definition_tag);
@@ -259,7 +259,7 @@ uint8_t halo::ai::alert_ops::alert_from_squad_attack()
     if (actor->pending_panic_type <= 1) {
         actor->pending_panic_type = 1;
     }
-    actor->unknown_2e8[4] = 0;
+    actor->attack_pending = 0;
     return 1;
 }
 
@@ -588,14 +588,14 @@ uint8_t halo::ai::alert_ops::escalate_check_shield_damage()
     actor *act = halo::ai::actor_at(actor_index);
     uint8_t *actor_tag = halo::ai::tag_bytes(act->actor_definition_tag);
 
-    if (!act->unknown_2e8[4] || !(act->recent_body_damage > ((Actor *)actor_tag)->berserk_damage_amount) ||
+    if (!act->attack_pending || !(act->recent_body_damage > ((Actor *)actor_tag)->berserk_damage_amount) ||
         !(act->body_vitality < ((Actor *)actor_tag)->berserk_damage_threshold)) {
         return 0;
     }
     if (act->escalation_level <= 3) {
         act->escalation_level = 3;
     }
-    act->unknown_2e8[4] = 0;
+    act->attack_pending = 0;
     return 1;
 }
 

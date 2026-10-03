@@ -460,7 +460,7 @@ void halo::ai::charge_mode::update()
     }
     act->unknown_424[0] = 0;
     act->unknown_424[1] = 0;
-    act->unknown_42a = 1;
+    act->force_turn = 1;
     act->wants_to_fire = (uint8_t)(act->mode_data.charge.stage != 1);
 }
 
@@ -735,12 +735,12 @@ uint8_t halo::ai::flee_mode::process()
             }
             break;
         case 11:
-            if (!act->unknown_1b4[0]) {
+            if (!act->enemy_child_attached) {
                 mode_data->finished = 1;
             }
             break;
         case 12:
-            if (!act->unknown_1b4[1]) {
+            if (!act->on_fire) {
                 mode_data->finished = 1;
             }
             break;

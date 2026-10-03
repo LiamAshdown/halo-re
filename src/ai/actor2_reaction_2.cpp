@@ -61,7 +61,7 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
     if (definition->surprise_delay_time > 0.0f) {
         halo::ai::actor_raise_timer_5f6(actor_index, (int32_t)(definition->surprise_delay_time * 30.0f));
     }
-    actor->unknown_2f0[0] = 1;
+    actor->surprise_pending = 1;
     if (actor->look_at_reference != halo::k_dword_none) {
         halo::ai::actor_consider_target_candidate(actor_index, actor->look_at_reference);
     }

@@ -929,12 +929,12 @@ void halo::ai::search_mode::tick()
         return;
     }
     if (act->mode_data.search.stage == 0) {
-        if (act->unknown_3bd[0]) {
+        if (act->target_lost_reported) {
             return;
         }
         if (act->mode_data.search.finished || act->mode_data.search.remaining_ticks + 90 < act->mode_data.search.duration_ticks) {
             halo::ai::ai_communication_broadcast(0xd, unit_index, halo::ai::actor_get_target_prop_object_index(actor_index), -1, -1, -1, 0);
-            act->unknown_3bd[0] = 1;
+            act->target_lost_reported = 1;
         }
     } else if (act->mode_data.search.remaining_ticks == 0) {
         halo::ai::ai_communication_broadcast(0x12, unit_index, halo::ai::actor_get_target_prop_object_index(actor_index), -1, -1, -1, 0);
