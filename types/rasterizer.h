@@ -744,6 +744,7 @@ typedef struct rasterizer_geometry_group_parameters {
 typedef enum rasterizer_model_draw_flags {
     _model_draw_flag_2_bit = 0x00000002,        // draw immediately through the static group
     _model_draw_flag_4_bit = 0x00000004,        // no planar fog
+    _model_draw_flag_8_bit = 0x00000008,        // depth test disabled (copied to the group)
     _model_draw_flag_40_bit = 0x00000040,       // planar fog only below the plane
     _model_draw_frustum_z_bit = 0x00000080,     // sign bit of the low byte: frustum z override
     _model_draw_node_parts_bit = 0x00000100,    // skinned by node part list

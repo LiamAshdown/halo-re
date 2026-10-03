@@ -177,7 +177,7 @@ void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t 
     if (halo::rasterizer::fields::models_enabled == 0) {
         return;
     }
-    if (((uint8_t *)rasterizer_active_model_context)[0] & 8) {
+    if (rasterizer_active_model_context->flags & _model_draw_flag_8_bit) {
         set_render_state(halo::d3d9::rs::z_enable, 0);
     } else {
         set_render_state(halo::d3d9::rs::z_enable, 1);
@@ -200,12 +200,12 @@ void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t 
         return;
     }
     memset(matrix, 0, sizeof matrix);
-    matrix[0] = *(float *)(((uint8_t *)rasterizer_active_model_context) + 0xc4);
-    matrix[5] = *(float *)(((uint8_t *)rasterizer_active_model_context) + 0xc8);
+    matrix[0] = rasterizer_active_model_context->base_map_u_scale;
+    matrix[5] = rasterizer_active_model_context->base_map_v_scale;
     matrix[15] = 1.0f;
     chimera__rasterizer_set_texture((senv(shader)->shader_environment_flags & 1) ? *(uint32_t *)&senv(shader)->bump_map.tag_id : 0xffffffff, 1, 0, 1, frame);
 
-    if (*(uint32_t *)((uint8_t *)rasterizer_active_model_context) & 0x200) {
+    if (rasterizer_active_model_context->flags & _model_draw_fixed_function_fog_bit) {
         render_device().set_vertex_shader(0);
         render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[14].declaration);
         set_combine_stages(shader, frame, matrix);
@@ -275,7 +275,7 @@ static void environment_set_vector(void *effect, uint32_t handle, float x, float
  */
 void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer, int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot)
 {
-    uint8_t *context;
+    rasterizer_model_draw_context *context;
     float relative[3];
     uint16_t pixel_shader_fog = senv(shader)->shader_environment_flags & 4;
     int16_t vertex_shader;
@@ -294,11 +294,11 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
     if (!halo::rasterizer::fields::models_enabled) {
         return;
     }
-    context = ((uint8_t *)rasterizer_active_model_context);
-    relative[0] = *(float *)(context + 0xb4) - rasterizer_camera_position[0];
-    relative[1] = *(float *)(context + 0xb8) - rasterizer_camera_position[1];
-    relative[2] = *(float *)(context + 0xbc) - rasterizer_camera_position[2];
-    if (context[0] & 8) {
+    context = rasterizer_active_model_context;
+    relative[0] = context->center.x - rasterizer_camera_position[0];
+    relative[1] = context->center.y - rasterizer_camera_position[1];
+    relative[2] = context->center.z - rasterizer_camera_position[2];
+    if (context->flags & _model_draw_flag_8_bit) {
         environment_set_render_state(halo::d3d9::rs::z_enable, 0);
     } else {
         environment_set_render_state(halo::d3d9::rs::z_enable, 1);
@@ -324,11 +324,11 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
         vertex_shader = 0x1c;
     } else if (halo::rasterizer::fields::planar_fog_vertex_shader_active) {
         vertex_shader = 0x19;
-    } else if (*(int16_t *)(context + 0x50) > 0) {
+    } else if (context->lighting.point_light_count > 0) {
         vertex_shader = 0x1a;
     } else if (*(datum_index *)&senv(shader)->reflection_cube_map.tag_id != k_datum_index_none) {
         vertex_shader = 0x1c;
-    } else if (*(int16_t *)(context + 0xc) <= 1) {
+    } else if (context->node_count <= 1) {
         vertex_shader = 0x1d;
     } else {
         vertex_shader = 0x1c;
@@ -348,24 +348,24 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
         &environment_effect_slot);
     rasterizer_resolve_and_cache_submap_b(*(uint32_t *)&senv(shader)->reflection_cube_map.tag_id, 2, 3, 0, frame, &environment_effect_slot);
 
-    a[0] = senv(shader)->perpendicular_brightness * *(float *)(context + 0x5c);
-    a[1] = senv(shader)->perpendicular_color.red * *(float *)(context + 0x60);
-    a[2] = senv(shader)->perpendicular_color.green * *(float *)(context + 0x64);
-    a[3] = senv(shader)->perpendicular_color.blue * *(float *)(context + 0x68);
-    b[0] = senv(shader)->parallel_brightness * *(float *)(context + 0x5c);
-    b[1] = senv(shader)->parallel_color.red * *(float *)(context + 0x60);
-    b[2] = senv(shader)->parallel_color.green * *(float *)(context + 0x64);
-    b[3] = senv(shader)->parallel_color.blue * *(float *)(context + 0x68);
+    a[0] = senv(shader)->perpendicular_brightness * context->lighting.reflection_tint.alpha;
+    a[1] = senv(shader)->perpendicular_color.red * context->lighting.reflection_tint.red;
+    a[2] = senv(shader)->perpendicular_color.green * context->lighting.reflection_tint.green;
+    a[3] = senv(shader)->perpendicular_color.blue * context->lighting.reflection_tint.blue;
+    b[0] = senv(shader)->parallel_brightness * context->lighting.reflection_tint.alpha;
+    b[1] = senv(shader)->parallel_color.red * context->lighting.reflection_tint.red;
+    b[2] = senv(shader)->parallel_color.green * context->lighting.reflection_tint.green;
+    b[3] = senv(shader)->parallel_color.blue * context->lighting.reflection_tint.blue;
     *(uint32_t *)&c10_c12[0] = *(uint32_t *)&senv(shader)->primary_detail_map_scale;
     *(uint32_t *)&c10_c12[1] = *(uint32_t *)&senv(shader)->primary_detail_map_scale;
     c10_c12[2] = 1.0f;
     c10_c12[3] = 1.0f;
-    *(uint32_t *)&c10_c12[4] = *(uint32_t *)(context + 0xc4);
+    *(uint32_t *)&c10_c12[4] = *(uint32_t *)&context->base_map_u_scale;
     c10_c12[5] = 0.0f;
     c10_c12[6] = 0.0f;
     c10_c12[7] = 0.0f;
     c10_c12[8] = 0.0f;
-    *(uint32_t *)&c10_c12[9] = *(uint32_t *)(context + 0xc8);
+    *(uint32_t *)&c10_c12[9] = *(uint32_t *)&context->base_map_v_scale;
     c10_c12[10] = 0.0f;
     c10_c12[11] = 0.0f;
     c13_c14[0] = a[1] - b[1];
@@ -391,7 +391,7 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
     negative[1] = relative[1];
     negative[2] = relative[2];
     add[0] = add[1] = add[2] = 0.0f;
-    if (!rasterizer_fog_enabled || (!pixel_shader_fog && (context[0] & 4))) {
+    if (!rasterizer_fog_enabled || (!pixel_shader_fog && (context->flags & _model_draw_flag_4_bit))) {
         fog[0] = 1.0f;
         fog[1] = fog[2] = fog[3] = 0.0f;
         negative[0] = negative[1] = negative[2] = 0.0f;
@@ -501,7 +501,7 @@ void rasterizer_shader_environment_draw_single_stream(uint8_t *shader, int16_t f
     if (halo::rasterizer::fields::models_enabled == 0) {
         return;
     }
-    if (((uint8_t *)rasterizer_active_model_context)[0] & 8) {
+    if (rasterizer_active_model_context->flags & _model_draw_flag_8_bit) {
         set_render_state(halo::d3d9::rs::z_enable, 0);
     } else {
         set_render_state(halo::d3d9::rs::z_enable, 1);
@@ -520,8 +520,8 @@ void rasterizer_shader_environment_draw_single_stream(uint8_t *shader, int16_t f
     set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled != 0);
 
     memset(matrix, 0, sizeof matrix);
-    matrix[0] = *(float *)(((uint8_t *)rasterizer_active_model_context) + 0xc4);
-    matrix[5] = *(float *)(((uint8_t *)rasterizer_active_model_context) + 0xc8);
+    matrix[0] = rasterizer_active_model_context->base_map_u_scale;
+    matrix[5] = rasterizer_active_model_context->base_map_v_scale;
     matrix[10] = 0.0f;
     matrix[15] = 1.0f;
 
@@ -532,7 +532,7 @@ void rasterizer_shader_environment_draw_single_stream(uint8_t *shader, int16_t f
     set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
     set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
 
-    if (*(uint32_t *)((uint8_t *)rasterizer_active_model_context) & 0x200) {
+    if (rasterizer_active_model_context->flags & _model_draw_fixed_function_fog_bit) {
         render_device().set_vertex_shader(0);
         render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[14].declaration);
         chimera__rasterizer_set_texture(*(uint32_t *)&senv(shader)->base_map.tag_id, 0, 0, 1, frame);
