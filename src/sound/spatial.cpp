@@ -29,10 +29,7 @@ void environment_update(uint32_t *out_environment_ptr, void **out_environment_sl
     ScenarioStructureBSPCluster *cluster_record;
     int16_t fog_id;
 
-    if (*(int32_t *)&local_player_globals->local_players  == -1 || local_player_0_cluster_index == -1) {
-        goto skip_environment_lookup;
-    }
-
+    if (*(int32_t *)&local_player_globals->local_players  != -1 && local_player_0_cluster_index != -1) {
     cluster_record = (ScenarioStructureBSPCluster *)structure_bsp->clusters.pointer + local_player_0_cluster_index;
 
     {
@@ -43,12 +40,12 @@ void environment_update(uint32_t *out_environment_ptr, void **out_environment_sl
         if (region == -1) {
             fog_id = -0x8000;
         } else {
-            uint32_t fog_tag_id = *(uint32_t *)&((ScenarioStructureBSPFogPalette *)structure_bsp->fog_palette.pointer)[region].fog.tag_id;
+            uint32_t fog_tag_id = halo::tag_id_bits(((ScenarioStructureBSPFogPalette *)structure_bsp->fog_palette.pointer)[region].fog.tag_id);
             if (fog_tag_id == halo::k_dword_none) {
                 fog_id = -0x8000;
             } else {
                 Fog *fog_tag = (Fog *)halo::cache::globals().tag_instances[fog_tag_id & halo::k_slot_mask].data;
-                uint32_t env_tag = *(uint32_t *)&fog_tag->sound_environment.tag_id;
+                uint32_t env_tag = halo::tag_id_bits(fog_tag->sound_environment.tag_id);
                 if (env_tag == halo::k_dword_none) {
                     fog_id = -0x8000;
                 } else {
@@ -57,7 +54,7 @@ void environment_update(uint32_t *out_environment_ptr, void **out_environment_sl
                         fog_id = -0x8000;
                     } else {
                         fog_id = env_tag_data->priority;
-                        environment_default = *(uint32_t *)&fog_tag->background_sound.tag_id;
+                        environment_default = halo::tag_id_bits(fog_tag->background_sound.tag_id);
                         is_water = *(uint8_t *)&fog_tag->flags & 1;
                         sound_tag_id = env_tag;
                     }
@@ -69,7 +66,7 @@ void environment_update(uint32_t *out_environment_ptr, void **out_environment_sl
     {
         int16_t sound_environment_index = (int16_t)cluster_record->sound_environment;
         if (sound_environment_index != -1) {
-            uint32_t override_tag = *(uint32_t *)&((ScenarioStructureBSPSoundEnvironmentPalette *)structure_bsp->sound_environment_palette.pointer)[sound_environment_index].sound_environment.tag_id;
+            uint32_t override_tag = halo::tag_id_bits(((ScenarioStructureBSPSoundEnvironmentPalette *)structure_bsp->sound_environment_palette.pointer)[sound_environment_index].sound_environment.tag_id);
             if (override_tag != halo::k_dword_none) {
                 SoundEnvironment *override_data = (SoundEnvironment *)halo::cache::globals().tag_instances[override_tag & halo::k_slot_mask].data;
                 if (fog_id < override_data->priority) {
@@ -79,14 +76,14 @@ void environment_update(uint32_t *out_environment_ptr, void **out_environment_sl
                     if (background_sound_index == -1 || background_sound_index >= (int32_t)structure_bsp->background_sound_palette.count) {
                         environment_default = halo::k_dword_none;
                     } else {
-                        environment_default = *(uint32_t *)&((ScenarioStructureBSPBackgroundSoundPalette *)structure_bsp->background_sound_palette.pointer)[background_sound_index].background_sound.tag_id;
+                        environment_default = halo::tag_id_bits(((ScenarioStructureBSPBackgroundSoundPalette *)structure_bsp->background_sound_palette.pointer)[background_sound_index].background_sound.tag_id);
                     }
                 }
             }
         }
     }
+    }
 
-skip_environment_lookup:
     {
         uint32_t *source;
         SoundEnvironment *dest = &global_scenario_game_globals->sound_environment;
@@ -215,8 +212,7 @@ void update_listener(void)
 
     if (local_player_globals->local_players[0] == halo::k_dword_none) {
         listener->valid = 0;
-        goto push_listener_parameters;
-    }
+    } else {
     listener->valid = 1;
 
     camera = &halo::camera::globals().observers[0].camera;
@@ -230,14 +226,14 @@ void update_listener(void)
 
         if (underwater) {
             if (0 < global_globals->sounds.count) {
-                water_sound_tag = *(datum_index *)&((GlobalsSound *)global_globals->sounds.pointer)[0].sound.tag_id;
+                water_sound_tag = halo::tag_id_bits(((GlobalsSound *)global_globals->sounds.pointer)[0].sound.tag_id);
                 if (water_sound_tag != k_datum_index_none) {
                     instances::play_new(water_sound_tag, &location, k_datum_index_none, (sound_location_proc)0, (void *)0, 0, 1);
                 }
             }
         } else {
             if (1 < global_globals->sounds.count) {
-                water_sound_tag = *(datum_index *)&((GlobalsSound *)global_globals->sounds.pointer)[1].sound.tag_id;
+                water_sound_tag = halo::tag_id_bits(((GlobalsSound *)global_globals->sounds.pointer)[1].sound.tag_id);
                 if (water_sound_tag != k_datum_index_none) {
                     instances::play_new(water_sound_tag, &location, k_datum_index_none, (sound_location_proc)0, (void *)0, 0, 1);
                 }
@@ -253,8 +249,8 @@ void update_listener(void)
 
     halo::math::matrix4x3_inverse_transform_vector(*((real_vector3d *)&listener->velocity), *((real_vector3d *)&camera->velocity),
         *((real_matrix4x3 *)&listener->scale));
+    }
 
-push_listener_parameters:
     params.position = *(Point3D *)global_zero_vector3d_pointer;
     params.forward = *(Vector3D *)halo::math::globals().global_forward3d_pointer;
     params.up = *(Vector3D *)halo::math::globals().global_up3d_pointer;
@@ -319,16 +315,16 @@ void update_range_and_ducking(void)
     no_player_has_a_unit = local_player_globals->no_player_has_a_unit;
     saw_dialog_class = 0;
 
-    sound_handle = halo::memory::datum_next(-1, sound_data);
-    while (sound_handle != halo::k_dword_none) {
-        instance = (sound *)((uint8_t *)sound_data->data + (sound_handle & halo::k_slot_mask) * sizeof(sound));
+    for (sound_handle = halo::memory::datum_next(-1, sound_data); sound_handle != halo::k_dword_none;
+         sound_handle = halo::memory::datum_next((int16_t)sound_handle, sound_data)) {
+        instance = sound_instance(sound_handle);
         definition = (Sound *)halo::cache::globals().tag_instances[instance->definition_index & halo::k_slot_mask].data;
 
         if ((instance->channel_index != -1 && channels::release_detail_buffers(instance->channel_index) == 0 &&
              instance->play_state != _sound_play_loop && instance->play_state != _sound_play_loop_stopping) ||
             (instances::invoke_location_proc(sound_handle) == 0 && !sound_paused)) {
             instances::stop(sound_handle);
-            goto next_sound;
+            continue;
         }
 
         max_distance = definition->maximum_distance;
@@ -361,17 +357,14 @@ void update_range_and_ducking(void)
             if (definition->sound_class == soundclass_scripted_dialog_player) {
                 if (instance->channel_index == -1) {
                     instances::stop(sound_handle);
-                    goto next_sound;
+                    continue;
                 }
                 instances::schedule_gain_fade(0xffffffff, 0, 0.3f, sound_handle);
             } else if (definition->sound_class == soundclass_scripted_dialog_other && instance->channel_index == -1) {
                 instances::stop(sound_handle);
-                goto next_sound;
+                continue;
             }
         }
-
-    next_sound:
-        sound_handle = halo::memory::datum_next((int16_t)sound_handle, sound_data);
     }
 
     if (saw_dialog_class) {

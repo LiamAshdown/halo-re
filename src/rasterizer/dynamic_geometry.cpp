@@ -121,7 +121,7 @@ void chimera__rasterizer_draw_dynamic_triangles_static_vertices2(int32_t primiti
 
         render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                     rasterizer_vertex_declarations[vertex_buffer->type].usage) & 0x10);
-        render_device().set_stream_source(0, (void *)vertex_buffer->hardware_buffer, 0, stride);
+        render_device().set_stream_source(0, vertex_buffer->hardware_buffer, 0, stride);
         if (halo::shell::globals().safe_mode == 0 && rasterizer_caps.max_streams > 1) {
             render_device().set_stream_source(1, (void *)second_stream->hardware_buffer, 0, second_stride);
         }
@@ -190,8 +190,8 @@ void rasterizer_dynamic_geometry_chain_draw(int32_t primitive_count, rasterizer_
 
         render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                                        rasterizer_vertex_declarations[vertex_buffer->type].usage) & 0x10);
-        render_device().set_stream_source(0, (void *)vertex_buffer->hardware_buffer, 0, stride);
-        render_device().set_indices((void *)index_buffer->hardware_buffer);
+        render_device().set_stream_source(0, vertex_buffer->hardware_buffer, 0, stride);
+        render_device().set_indices(index_buffer->hardware_buffer);
         {
             halo::interface::debug_fp_pre_draw();
             int32_t debug_hr = render_device().draw_indexed_primitive(rasterizer_triangle_buffer_primitive_types[index_buffer->type], 0, 0, (uint32_t)vertex_buffer->count, start_index, (uint32_t)chunk);
@@ -603,7 +603,7 @@ void rasterizer_dynamic_vertex_draw_indexed(rasterizer_index_buffer *index_buffe
         handle = rasterizer_dynamic_vertex_caches[type].buffer_handle;
         buffer = handle == 0 ? 0 : (void *)rasterizer_vertex_buffer_slots[handle - 1].hardware_buffer;
         render_device().set_stream_source(0, buffer, 0, stride);
-        render_device().set_indices((void *)index_buffer->hardware_buffer);
+        render_device().set_indices(index_buffer->hardware_buffer);
         {
             int32_t debug_hr = render_device().draw_indexed_primitive(rasterizer_triangle_buffer_primitive_types[index_buffer->type], vertex_slot->first_vertex, 0, (uint32_t)vertex_slot->vertex_count, start_index, (uint32_t)chunk);
             halo::interface::debug_fp_draw_state_note("vdi", debug_hr, 0, (uint32_t)vertex_slot->vertex_count, (uint32_t)chunk);
@@ -646,7 +646,7 @@ uint32_t rasterizer_dynamic_vertex_process_and_get_handle(rasterizer_vertex_buff
     render_device().set_software_vertex_processing((-(uint32_t)(rasterizer_software_vertex_processing != 0) & 0x10) |
         (rasterizer_vertex_declarations[vertex_buffer->type].usage & 0x10));
 
-    render_device().set_stream_source(0, (void *)vertex_buffer->hardware_buffer, 0, (uint32_t)stride);
+    render_device().set_stream_source(0, vertex_buffer->hardware_buffer, 0, (uint32_t)stride);
 
     handle = (uint32_t)rasterizer_vertex_buffer_slots[rasterizer_dynamic_vertex_caches[_rasterizer_vertex_type_model_processed].buffer_handle - 1].hardware_buffer;
 

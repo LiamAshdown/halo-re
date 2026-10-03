@@ -26,8 +26,8 @@ uint32_t HwreqParser::match_keyword(const char *keyword)
     while (*p != '\0') p++;
     length = (uint32_t)(p - keyword);
 
-    if (_strnicmp((char *)self->cursor, keyword, length) == 0) {
-        delimiter = ((char *)self->cursor)[length];
+    if (_strnicmp(text_cursor(), keyword, length) == 0) {
+        delimiter = (text_cursor())[length];
         if (delimiter == '>' || delimiter == '<' || delimiter == '!' || delimiter == '=' ||
             delimiter == ' ' || delimiter == '\r' || delimiter == '\t') {
             return 1;
@@ -44,7 +44,7 @@ uint32_t HwreqParser::match_keyword(const char *keyword)
  */
 int32_t HwreqParser::parse_hex_digit()
 {
-    char *cursor = (char *)self->cursor;
+    char *cursor = text_cursor();
     char c = *cursor;
 
     if (c > '/' && c < ':') {
@@ -73,7 +73,7 @@ uint32_t HwreqParser::parse_hex_id()
     char c;
     int32_t d0, d1, d2, d3;
 
-    c = *(char *)self->cursor;
+    c = *text_cursor();
     if (c >= '0' && c <= '9') {
         d0 = c - '0';
     } else if (c >= 'a' && c <= 'f') {
@@ -128,11 +128,11 @@ int32_t HwreqParser::parse_number()
     int32_t value;
     uint32_t digit_count;
 
-    while (*(char *)self->cursor == ' ' || *(char *)self->cursor == '\t') {
+    while (*text_cursor() == ' ' || *text_cursor() == '\t') {
         self->cursor++;
     }
 
-    cursor = (char *)self->cursor;
+    cursor = text_cursor();
 
     if (*(uint16_t *)cursor == char_pair('0', 'x')) {
         self->cursor = (uint32_t)(cursor + 2);
@@ -145,7 +145,7 @@ int32_t HwreqParser::parse_number()
                     report_error("Number too large");
                     return -1;
                 }
-                c = *(char *)self->cursor;
+                c = *text_cursor();
                 value = value * 0x10 + digit;
                 digit_count++;
                 next_digit = -1;
@@ -160,7 +160,7 @@ int32_t HwreqParser::parse_number()
                     self->cursor++;
                 }
                 if (next_digit == -1) {
-                    while (*(char *)self->cursor == ' ' || *(char *)self->cursor == '\t') {
+                    while (*text_cursor() == ' ' || *text_cursor() == '\t') {
                         self->cursor++;
                     }
                     return value;
@@ -169,12 +169,12 @@ int32_t HwreqParser::parse_number()
             }
         }
     } else if (*cursor > '/' && *cursor < ':' && (digit = parse_hex_digit(), digit != -1)) {
-        c = *(char *)self->cursor;
+        c = *text_cursor();
         while (c > '/' && c < ':') {
             next_digit = parse_hex_digit();
             if (next_digit == -1) break;
             digit = next_digit + digit * 10;
-            c = *(char *)self->cursor;
+            c = *text_cursor();
         }
         skip_whitespace();
         return digit;
@@ -197,12 +197,12 @@ char *HwreqParser::parse_quoted_string()
     char *out;
     char *buffer_end;
 
-    while (*(char *)self->cursor == ' ' || *(char *)self->cursor == '\t') {
+    while (*text_cursor() == ' ' || *text_cursor() == '\t') {
         self->cursor++;
     }
 
-    c = *(char *)self->cursor;
-    cursor = (char *)self->cursor + 1;
+    c = *text_cursor();
+    cursor = text_cursor() + 1;
     self->cursor = (uint32_t)cursor;
     if (c != '"') {
         report_error("Expecting ");
@@ -216,7 +216,7 @@ char *HwreqParser::parse_quoted_string()
     for (;;) {
         if (c == '"') {
             *out = '\0';
-            cursor = (char *)self->cursor + 1;
+            cursor = text_cursor() + 1;
             self->cursor = (uint32_t)cursor;
             while (*cursor == ' ' || *cursor == '\t') {
                 cursor++;
@@ -226,7 +226,7 @@ char *HwreqParser::parse_quoted_string()
         }
         *out = c;
         out++;
-        cursor = (char *)self->cursor + 1;
+        cursor = text_cursor() + 1;
         self->cursor = (uint32_t)cursor;
         if (out > buffer_end) break;
         c = *cursor;
@@ -245,8 +245,8 @@ char *HwreqParser::parse_quoted_string()
 void HwreqParser::skip_line()
 {
     char *p;
-    char *cursor = (char *)self->cursor;
-    char *end = (char *)self->end;
+    char *cursor = text_cursor();
+    char *end = text_end();
 
     do {
         p = cursor;
@@ -270,7 +270,7 @@ void HwreqParser::skip_line()
  */
 void HwreqParser::skip_whitespace()
 {
-    char *cursor = (char *)self->cursor;
+    char *cursor = text_cursor();
     while (*cursor == ' ' || *cursor == '\t') {
         cursor++;
     }

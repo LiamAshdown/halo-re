@@ -5,6 +5,7 @@
  */
 
 #include "halo/render/d3d9.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/shaders/api.hpp"
@@ -67,6 +68,8 @@ transparent_geometry_group * rasterizer_transparent_geometry_group_build(transpa
         return NULL;
     }
 
+    bool use_immediate_group = false;
+
     context = rasterizer_active_model_context;
     flags = context->flags;
     if (test_immediate) {
@@ -76,26 +79,27 @@ transparent_geometry_group * rasterizer_transparent_geometry_group_build(transpa
         if (flags & 2) {
             group = &transparent_geometry_group_environment_immediate;
             group->sorted_index = -1;
-            goto fill;
+            use_immediate_group = true;
         }
     }
-    if (rasterizer_active_model_mode == 1 && shader != NULL && *(int16_t *)&((struct Shader *)shader)->shader_type != 4) {
-        group = transparent_geometry_group_allocate_secondary();
-    } else {
-        group = transparent_geometry_group_allocate();
-        allocated = group;
-    }
-    if (link != NULL) {
-        link->group_index = transparent_geometry_group_index_from_pointer(group);
-        link->previous_group_index = (uint32_t)(uintptr_t)&group->previous_group_index;
-        link->next_group_index = (uint32_t)(uintptr_t)&group->next_group_index;
-    }
-    if (group == NULL) {
-        transparent_geometry_group_overflow_c = 1;
-        return allocated;
+    if (!use_immediate_group) {
+        if (rasterizer_active_model_mode == 1 && shader != NULL && *(int16_t *)&((struct Shader *)shader)->shader_type != 4) {
+            group = transparent_geometry_group_allocate_secondary();
+        } else {
+            group = transparent_geometry_group_allocate();
+            allocated = group;
+        }
+        if (link != NULL) {
+            link->group_index = transparent_geometry_group_index_from_pointer(group);
+            link->previous_group_index = (uint32_t)(uintptr_t)&group->previous_group_index;
+            link->next_group_index = (uint32_t)(uintptr_t)&group->next_group_index;
+        }
+        if (group == NULL) {
+            transparent_geometry_group_overflow_c = 1;
+            return allocated;
+        }
     }
 
-fill:
     group->flags = flags;
     group->object_index = context->object_index;
     if (flags & 0x100) {
@@ -232,12 +236,12 @@ static void set_depth_prepass_states(uint32_t cull_mode, uint32_t texture_factor
     set_render_state(halo::d3d9::rs::z_func, 4);
     set_render_state(halo::d3d9::rs::texture_factor, texture_factor);
     render_device().set_pixel_shader(0);
-    set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 3);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 3);
-    set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::tfactor);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+    set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::tfactor);
+    set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+    set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
 }
 
 static void set_group_skinning(const transparent_geometry_group *flags_group,
@@ -657,113 +661,106 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
 
     if (group->shader == 0) {
         ((transparent_geometry_callback)(uintptr_t)group->index_buffer)(group->first_index, group->primitive_count);
-        goto finish;
-    }
-
-    vertex_type = -1;
-    if (group->vertex_buffer != 0) {
-        vertex_type = *(int16_t *)(uintptr_t)group->vertex_buffer;
-    } else if (group->dynamic_vertex_slot != -1) {
-        vertex_type = rasterizer_dynamic_vertex_slots[group->dynamic_vertex_slot].vertex_type;
-    }
-    if (immediate == 0) {
-        set_group_skinning(group, group);
-        if (group->flags & 0x100) {
-            chimera__rasterizer_set_up_node_parts(group->node_part_count,
-                                                  (uint8_t *)(uintptr_t)group->node_part_indices);
-        }
-        if (group->lighting != 0) {
-            rasterizer_prepare_lighting_constants((render_lighting *)(uintptr_t)group->lighting);
-        }
-    }
-    if (group->flags & 8) {
-        if (rasterizer_window.type == 1) {
-            chimera__rasterizer_set_frustum_z_func(0x3b800000, 0x45800000);
-        }
-        set_render_state(halo::d3d9::rs::z_enable, 0);
     } else {
-        set_render_state(halo::d3d9::rs::z_enable, 1);
-        set_render_state(halo::d3d9::rs::z_write_enable, 0);
-        set_render_state(halo::d3d9::rs::z_func, 4);
-        if (halo::shaders::shader_view(const_cast<Shader *>((const Shader *)((void *)(uintptr_t)group->shader))).is_decal()) {
-            chimera__transparent_decal_zbias();
+        vertex_type = -1;
+        if (group->vertex_buffer != 0) {
+            vertex_type = *(int16_t *)(uintptr_t)group->vertex_buffer;
+        } else if (group->dynamic_vertex_slot != -1) {
+            vertex_type = rasterizer_dynamic_vertex_slots[group->dynamic_vertex_slot].vertex_type;
+        }
+        if (immediate == 0) {
+            set_group_skinning(group, group);
+            if (group->flags & 0x100) {
+                chimera__rasterizer_set_up_node_parts(group->node_part_count,
+                                                      (uint8_t *)(uintptr_t)group->node_part_indices);
+            }
+            if (group->lighting != 0) {
+                rasterizer_prepare_lighting_constants((render_lighting *)(uintptr_t)group->lighting);
+            }
+        }
+        if (group->flags & 8) {
+            if (rasterizer_window.type == 1) {
+                chimera__rasterizer_set_frustum_z_func(0x3b800000, 0x45800000);
+            }
+            set_render_state(halo::d3d9::rs::z_enable, 0);
         } else {
-            rasterizer_clear_decal_zbias();
-        }
-    }
-
-    for (pass = 0; pass < 2; pass++) {
-        if ((int8_t)group->flags < 0) {
-
-            if (group->parameters.mode == 1) {
-                if (pass > 0) {
-                    break;
-                }
-                chimera__rasterizer_set_frustum_z_func(rasterizer_frustum_z_values[0], rasterizer_frustum_z_values[1]);
-            } else if (pass == 0) {
-                shader = (uint8_t *)(uintptr_t)group->shader;
-                if (shader != NULL && shader_type_of(shader) == 1 && (shader[0x28] & 4) != 0) {
-                    continue;
-                }
-                rasterizer_set_shader_stage_config(3);
+            set_render_state(halo::d3d9::rs::z_enable, 1);
+            set_render_state(halo::d3d9::rs::z_write_enable, 0);
+            set_render_state(halo::d3d9::rs::z_func, 4);
+            if (halo::shaders::shader_view(const_cast<Shader *>((const Shader *)((void *)(uintptr_t)group->shader))).is_decal()) {
+                chimera__transparent_decal_zbias();
             } else {
-                rasterizer_set_shader_stage_config(2);
-                set_render_state(halo::d3d9::rs::z_enable, 0);
+                rasterizer_clear_decal_zbias();
             }
-        } else if (pass > 0) {
-            break;
         }
 
-        shader = (uint8_t *)(uintptr_t)group->shader;
-        switch (shader_type_of(shader)) {
-        case 1:
-            draw_particle_effect_shader(group, shader);
-            break;
-        case 4:
-            if (group->parameters.mode == 1) {
-                if (rasterizer_secondary_groups_drawn) {
-                    return;
+        for (pass = 0; pass < 2; pass++) {
+            if ((int8_t)group->flags < 0) {
+
+                if (group->parameters.mode == 1) {
+                    if (pass > 0) {
+                        break;
+                    }
+                    chimera__rasterizer_set_frustum_z_func(rasterizer_frustum_z_values[0], rasterizer_frustum_z_values[1]);
+                } else if (pass == 0) {
+                    shader = (uint8_t *)(uintptr_t)group->shader;
+                    if (shader != NULL && shader_type_of(shader) == 1 && (shader[0x28] & 4) != 0) {
+                        continue;
+                    }
+                    rasterizer_set_shader_stage_config(3);
+                } else {
+                    rasterizer_set_shader_stage_config(2);
+                    set_render_state(halo::d3d9::rs::z_enable, 0);
                 }
-                rasterizer_transparent_geometry_group_draw_active_camouflage(group);
+            } else if (pass > 0) {
+                break;
             }
-            break;
-        case 6:
-            rasterizer_shader_transparent_chicago_draw(group, attached);
-            break;
-        case 7:
-            rasterizer_shader_transparent_chicago_extended_draw(group, attached);
-            break;
-        case 8:
-            ((transparent_geometry_draw_procedure)rasterizer_water_draw_procedure)(group);
-            break;
-        case 9:
-            draw_glass_shader(group, shader);
-            break;
-        case 10:
-            draw_meter_shader(group, shader, vertex_type);
-            break;
-        case 11:
-            rasterizer_shader_transparent_plasma_draw(group);
-            break;
-        default:
-            break;
+
+            shader = (uint8_t *)(uintptr_t)group->shader;
+            switch (shader_type_of(shader)) {
+            case 1:
+                draw_particle_effect_shader(group, shader);
+                break;
+            case 4:
+                if (group->parameters.mode == 1) {
+                    if (rasterizer_secondary_groups_drawn) {
+                        return;
+                    }
+                    rasterizer_transparent_geometry_group_draw_active_camouflage(group);
+                }
+                break;
+            case 6:
+                rasterizer_shader_transparent_chicago_draw(group, attached);
+                break;
+            case 7:
+                rasterizer_shader_transparent_chicago_extended_draw(group, attached);
+                break;
+            case 8:
+                ((transparent_geometry_draw_procedure)rasterizer_water_draw_procedure)(group);
+                break;
+            case 9:
+                draw_glass_shader(group, shader);
+                break;
+            case 10:
+                draw_meter_shader(group, shader, vertex_type);
+                break;
+            case 11:
+                rasterizer_shader_transparent_plasma_draw(group);
+                break;
+            default:
+                break;
+            }
         }
+
+        if ((group->flags & 8) && rasterizer_window.type == 1) {
+            chimera__rasterizer_set_frustum_z_func(0, 0);
+        }
+        if ((int8_t)group->flags < 0 && group->parameters.mode == 1) {
+            chimera__rasterizer_set_frustum_z_func(0, 0);
+        }
+        rasterizer_clear_decal_zbias();
     }
 
-    if ((group->flags & 8) && rasterizer_window.type == 1) {
-        chimera__rasterizer_set_frustum_z_func(0, 0);
-    }
-    if ((int8_t)group->flags < 0 && group->parameters.mode == 1) {
-        chimera__rasterizer_set_frustum_z_func(0, 0);
-    }
-    if (rasterizer_caps.raster_caps & 0x04000000) {
-        set_render_state(halo::d3d9::rs::depth_bias, 0);
-    }
-    if (rasterizer_caps.raster_caps & 0x02000000) {
-        set_render_state(halo::d3d9::rs::slope_scale_depth_bias, 0);
-    }
-
-finish:
     if (!attached) {
         transparent_geometry_group_last_drawn_key = group->sort_key;
     }
@@ -835,7 +832,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
 
     if (rasterizer_caps_flag_688 == 0 && rasterizer_caps_flag_68a == 0 &&
         rasterizer_caps.pixel_shader_version >= halo::d3d9::k_pixel_shader_version_1_1) {
-        void *effect = (void *)rasterizer_effects[105].effect;
+        uint32_t effect = rasterizer_effects[105].effect;
 
         if (effect != 0) {
             const GlobalsRasterizerData *data = rasterizer_globals_data;
@@ -846,7 +843,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
             int16_t vertex_type;
 
             vertex_type = (int16_t)transparent_geometry_group_get_vertex_type_reference(group);
-            render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[vertex_type].declaration);
+            render_device().set_vertex_declaration(rasterizer_vertex_declarations[vertex_type].declaration);
 
             rasterizer_set_render_state(halo::d3d9::rs::cull_mode, (~(uint32_t)*(uint16_t *)((const uint8_t *)shader + 0x28) & 2) | 1);
             rasterizer_set_render_state(halo::d3d9::rs::color_write_enable, 7);
@@ -855,20 +852,20 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
             rasterizer_set_render_state(halo::d3d9::rs::z_func, 4);
             rasterizer_set_render_state(halo::d3d9::rs::fog_enable, 0);
             rasterizer_set_render_state(halo::d3d9::rs::alpha_blend_enable, 0);
-            chimera__rasterizer_set_texture_direct_d3d9(*(const uint32_t *)&data->active_camouflage_distortion.tag_id, 0, 0);
+            chimera__rasterizer_set_texture_direct_d3d9(halo::tag_id_bits(data->active_camouflage_distortion.tag_id), 0, 0);
             rasterizer_set_sampler_state(0, halo::d3d9::ss::address_u, 3);
             rasterizer_set_sampler_state(0, halo::d3d9::ss::address_v, 3);
             rasterizer_set_sampler_state(0, halo::d3d9::ss::address_w, 3);
             rasterizer_set_sampler_state(0, halo::d3d9::ss::mag_filter, 2);
             rasterizer_set_sampler_state(0, halo::d3d9::ss::min_filter, 2);
             rasterizer_set_sampler_state(0, halo::d3d9::ss::mip_filter, 2);
-            render_device().set_texture(2, (void *)rasterizer_render_targets[2].texture);
+            render_device().set_texture(2, rasterizer_render_targets[2].texture);
             rasterizer_set_sampler_state(2, halo::d3d9::ss::address_u, 3);
             rasterizer_set_sampler_state(2, halo::d3d9::ss::address_v, 3);
             rasterizer_set_sampler_state(2, halo::d3d9::ss::mag_filter, 2);
             rasterizer_set_sampler_state(2, halo::d3d9::ss::min_filter, 2);
             rasterizer_set_sampler_state(2, halo::d3d9::ss::mip_filter, 1);
-            render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[30].shader);
+            render_device().set_vertex_shader(rasterizer_vertex_shaders[30].shader);
 
             half_height = (float)(rasterizer_window.camera.viewport_bounds.bottom - rasterizer_window.camera.viewport_bounds.top) * 0.5f;
 

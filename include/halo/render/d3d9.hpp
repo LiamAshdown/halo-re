@@ -245,6 +245,30 @@ inline constexpr uint32_t dest_color = 9;
 inline constexpr uint32_t inv_dest_color = 10;
 }  // namespace blend
 
+/** D3DTEXTUREOP values as plain integers (the stage-state setters take integers). */
+namespace top {
+inline constexpr uint32_t disable = 1;
+inline constexpr uint32_t select_arg1 = 2;
+inline constexpr uint32_t select_arg2 = 3;
+inline constexpr uint32_t modulate = 4;
+inline constexpr uint32_t modulate2x = 5;
+inline constexpr uint32_t modulate4x = 6;
+inline constexpr uint32_t add = 7;
+inline constexpr uint32_t multiply_add = 25;
+inline constexpr uint32_t lerp = 26;
+}  // namespace top
+
+/** D3DTA_* texture argument selectors and modifiers. */
+namespace ta {
+inline constexpr uint32_t diffuse = 0;
+inline constexpr uint32_t current = 1;
+inline constexpr uint32_t texture = 2;
+inline constexpr uint32_t tfactor = 3;
+inline constexpr uint32_t specular = 4;
+inline constexpr uint32_t complement = 0x10;
+inline constexpr uint32_t alpha_replicate = 0x20;
+}  // namespace ta
+
 /** D3DTEXTUREOP values. */
 enum class texture_op : uint32_t {
     disable = 1,
@@ -268,6 +292,7 @@ inline constexpr uint32_t k_pixel_shader_version_1_0 = 0xffff0100;
 inline constexpr uint32_t k_pixel_shader_version_1_1 = 0xffff0101;
 inline constexpr uint32_t k_pixel_shader_version_1_3 = 0xffff0103;
 inline constexpr uint32_t k_pixel_shader_version_1_4 = 0xffff0104;
+inline constexpr uint32_t k_pixel_shader_version_2_0 = 0xffff0200;
 
 /** D3DLIGHTTYPE values. */
 inline constexpr uint32_t k_light_point = 1;
@@ -291,7 +316,28 @@ enum class raster_cap : uint32_t {
     none = 0,
     slope_scale_depth_bias = 0x02000000,
     depth_bias = 0x04000000,
+    anisotropy = 0x00020000,
 };
+
+/** True when the capability bits report any bit of cap. */
+constexpr bool has_raster_cap(uint32_t raster_caps, raster_cap cap) noexcept
+{
+    return (raster_caps & static_cast<uint32_t>(cap)) != 0;
+}
+
+/** D3DPTEXTURECAPS bits. */
+enum class texture_cap : uint32_t {
+    none = 0,
+    cube_map = 0x00000800,
+    volume_map = 0x00002000,
+    mip_cube_map = 0x00010000,
+};
+
+/** True when the capability bits report any bit of cap. */
+constexpr bool has_texture_cap(uint32_t texture_caps, texture_cap cap) noexcept
+{
+    return (texture_caps & static_cast<uint32_t>(cap)) != 0;
+}
 
 /** Index of a method of IDirect3DSurface9. */
 enum class surface_method : uint32_t {
@@ -305,6 +351,35 @@ inline constexpr uint32_t k_format_x8r8g8b8 = 22;
 
 /** D3DERR_DEVICENOTRESET. */
 inline constexpr int32_t k_error_device_not_reset = static_cast<int32_t>(0x88760869);
+
+/** Opaque white as a packed ARGB color. */
+inline constexpr uint32_t k_color_white = 0xffffffffu;
+
+/** D3DFMT_A8R8G8B8 and D3DFMT_D24S8. */
+inline constexpr uint32_t k_format_a8r8g8b8 = 21;
+inline constexpr uint32_t k_format_d24s8 = 75;
+
+/** D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1. */
+inline constexpr uint32_t k_fvf_xyzrhw_diffuse_tex1 = 0x144;
+
+/** D3DERR_DEVICELOST and D3DERR_DRIVERINTERNALERROR. */
+inline constexpr int32_t k_error_device_lost = static_cast<int32_t>(0x88760868);
+inline constexpr int32_t k_error_driver_internal_error = static_cast<int32_t>(0x88760827);
+
+/** D3DPRESENT_INTERVAL_ONE and D3DPRESENT_INTERVAL_IMMEDIATE. */
+inline constexpr uint32_t k_present_interval_one = 1;
+inline constexpr uint32_t k_present_interval_immediate = 0x80000000u;
+
+/** D3D_SDK_VERSION passed to Direct3DCreate9. */
+inline constexpr uint32_t k_sdk_version = 0x1f;
+
+/** D3DCREATE_* behaviour flags. */
+inline constexpr uint32_t k_create_fpu_preserve = 0x02;
+inline constexpr uint32_t k_create_multithreaded = 0x04;
+inline constexpr uint32_t k_create_software_vertex_processing = 0x20;
+inline constexpr uint32_t k_create_hardware_vertex_processing = 0x40;
+inline constexpr uint32_t k_create_mixed_vertex_processing = 0x80;
+inline constexpr uint32_t k_create_disable_driver_management = 0x100;
 
 /** The method table (first dword of a COM object) as an array of function pointers. */
 inline void **method_table(void *com_object) noexcept { return *reinterpret_cast<void ***>(com_object); }

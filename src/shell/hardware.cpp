@@ -22,6 +22,12 @@ static auto &dxdiag_sound_device_child_name = halo::link::ref<const uint16_t []>
 
 #define SOUND_DEVICE_HARDWARE_ID_NFORCE "pci\ven_10de&dev_01b0&subsys_37301462&rev_c2\3&13c0b0c5&0&28"
 
+namespace {
+
+constexpr int k_text_buffer_length = 256;
+
+}  // namespace
+
 namespace halo::shell {
 
 namespace {
@@ -274,7 +280,7 @@ void Win32HardwareProbe::detect_display_adapters()
 void Win32HardwareProbe::read_sound_device(dxdiag_container *device, shell_sound_device *record,
                                            const uint32_t *default_guid, uint32_t device_index, win32_variant *variant)
 {
-    char text[0x100];
+    char text[k_text_buffer_length];
     char *match;
     int32_t version_a, version_b, version_c, version_d;
 

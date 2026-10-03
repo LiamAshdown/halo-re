@@ -10,14 +10,9 @@ namespace halo::sound {
 
 namespace effects {
 
-int32_t detect_mode(int16_t channel_index, directsound_channel *channel)
+static int32_t select_mode(int16_t channel_index, directsound_channel *channel)
 {
-    char mode_name[32];
-    char message[64];
-    int32_t mode;
-    const char *format;
-
-    mode = -1;
+    int32_t mode = -1;
 
     if (directsound_eax_enabled && directsound_eax_available) {
         if (global_sound_effect_object != 0) {
@@ -31,7 +26,7 @@ int32_t detect_mode(int16_t channel_index, directsound_channel *channel)
             if (global_sound_effect_object->vtable->initialize(global_sound_effect_object, channel, channel_index) != 0) {
                 mode = 2;
                 global_sound_effect_object->mode = 2;
-                goto format_message;
+                return mode;
             }
             if (global_sound_effect_object != 0) {
                 global_sound_effect_object->vtable->shutdown(global_sound_effect_object);
@@ -45,7 +40,7 @@ int32_t detect_mode(int16_t channel_index, directsound_channel *channel)
             if (global_sound_effect_object->vtable->initialize(global_sound_effect_object, channel, channel_index) != 0) {
                 mode = 1;
                 global_sound_effect_object->mode = 1;
-                goto format_message;
+                return mode;
             }
             if (global_sound_effect_object != 0) {
                 global_sound_effect_object->vtable->shutdown(global_sound_effect_object);
@@ -59,15 +54,23 @@ int32_t detect_mode(int16_t channel_index, directsound_channel *channel)
             if (global_sound_effect_object->vtable->initialize(global_sound_effect_object, channel, channel_index) != 0) {
                 mode = 0;
                 global_sound_effect_object->supported_properties = 0;
-                goto format_message;
+                return mode;
             }
         }
     }
 
     mode = -1;
     sound_effect_object_state = 2;
+    return mode;
+}
 
-format_message:
+int32_t detect_mode(int16_t channel_index, directsound_channel *channel)
+{
+    char mode_name[32];
+    char message[64];
+    const char *format;
+    int32_t mode = select_mode(channel_index, channel);
+
     switch (mode) {
         case 0:  format = "SOUND_EFFECT_OBJECT_EAX1"; break;
         case 1:  format = "SOUND_EFFECT_OBJECT_EAX2"; break;

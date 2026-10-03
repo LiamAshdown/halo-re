@@ -411,6 +411,8 @@ uint8_t find_next(file_reference_record *out_entry, uint32_t *out_write_time)
     }
 
     for (;;) {
+        bool level_exhausted = false;
+
         if (file_enumeration_handles[depth] == (void *)-1) {
             halo::saved_games::path_build_full(file_enumeration_path, search_path, file_enumeration_pos.location);
             end = search_path;
@@ -431,17 +433,17 @@ uint8_t find_next(file_reference_record *out_entry, uint32_t *out_write_time)
             search_path[0xff] = '\0';
             handle = FindFirstFileA(search_path, (LPWIN32_FIND_DATAA)&file_enumeration_find_data);
             file_enumeration_handles[depth] = handle;
-            if (handle == win32::invalid_handle()) {
-                goto pop_level;
-            }
+            level_exhausted = handle == win32::invalid_handle();
         } else {
             found = FindNextFileA(file_enumeration_handles[depth], (LPWIN32_FIND_DATAA)&file_enumeration_find_data);
-            if (found != 0) {
-                goto have_entry;
+            if (found == 0) {
+                FindClose(file_enumeration_handles[depth]);
+                file_enumeration_handles[depth] = (void *)-1;
+                level_exhausted = true;
             }
-            FindClose(file_enumeration_handles[depth]);
-            file_enumeration_handles[depth] = (void *)-1;
-pop_level:
+        }
+
+        if (level_exhausted) {
             halo::saved_games::path_remove_last_component(file_enumeration_path);
             depth--;
             if (depth < 0) {
@@ -451,7 +453,6 @@ pop_level:
             continue;
         }
 
-have_entry:
         location = file_enumeration_pos.location;
         if ((file_enumeration_find_data.dwFileAttributes & win32::k_file_attribute_directory) == 0) {
             if ((file_enumeration_flags_value & 2) == 0) {

@@ -122,7 +122,7 @@ int32_t StdString::compare(uint32_t n1, uint32_t pos, const char *s, uint32_t n2
         const char *lhs;
         compare_count = (n2 <= n1) ? n2 : n1;
 
-        lhs = (self->capacity < k_string_inline_capacity + 1) ? self->buffer.inline_buffer : (const char *)self->buffer.heap_buffer;
+        lhs = StdString(self).data();
         lhs += pos;
 
         {
@@ -177,13 +177,13 @@ msvc_std_string *StdString::erase(uint32_t pos, uint32_t count)
         return self;
     }
 
-    buffer = (self->capacity > k_string_inline_capacity) ? (char *)self->buffer.heap_buffer : self->buffer.inline_buffer;
+    buffer = StdString(self).data();
     memmove(buffer + pos, buffer + pos + count, remaining - count);
 
     new_size = self->size - count;
     self->size = new_size;
 
-    buffer = (self->capacity > k_string_inline_capacity) ? (char *)self->buffer.heap_buffer : self->buffer.inline_buffer;
+    buffer = StdString(self).data();
     buffer[new_size] = 0;
     return self;
 }
@@ -213,7 +213,7 @@ void StdString::grow_reserve(uint32_t new_capacity, uint32_t preserve_count)
     new_buffer = (char *)malloc(capacity + 1);
 
     if (preserve_count != 0) {
-        const char *old_buffer = (self->capacity < k_string_inline_capacity + 1) ? self->buffer.inline_buffer : (const char *)self->buffer.heap_buffer;
+        const char *old_buffer = StdString(self).data();
         uint32_t i;
         for (i = 0; i < preserve_count; i++) {
             new_buffer[i] = old_buffer[i];
@@ -288,7 +288,7 @@ msvc_std_string *StdString::assign_cstr(const char *s)
  */
 uint8_t StdString::less_than(const msvc_std_string *other)
 {
-    const char *other_data = (other->capacity < k_string_inline_capacity + 1) ? other->buffer.inline_buffer : (const char *)other->buffer.heap_buffer;
+    const char *other_data = StdString(other).data();
     return compare(self->size, 0, other_data, other->size) < 0;
 }
 

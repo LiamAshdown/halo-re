@@ -27,6 +27,7 @@
 #include "halo/sound/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/core/slot_mask.hpp"
 
 
 inline auto &game_looping_sound_data = halo::link::ref<data_array *>(halo::ui::vars().game_looping_sound_data);
@@ -51,6 +52,25 @@ inline auto &sound_class_definitions = halo::link::ref<sound_class_definition [k
 inline auto &looping_sound_data = halo::link::ref<data_array *>(halo::sound::vars().looping_sound_data);
 inline auto &sound_data = halo::link::ref<data_array *>(halo::sound::vars().sound_data);
 inline auto &sound_time = halo::link::ref<int32_t>(halo::sound::vars().sound_time);
+
+/** The sound instance record of a handle in the sounds data array. */
+inline sound *sound_instance(datum_index handle)
+{
+    return (sound *)((uint8_t *)sound_data->data + (handle & halo::k_slot_mask) * sizeof(sound));
+}
+
+/** The looping sound record of a handle in the looping sounds data array. */
+inline looping_sound *looping_sound_state(datum_index handle)
+{
+    return (looping_sound *)((uint8_t *)looping_sound_data->data + (handle & halo::k_slot_mask) * sizeof(looping_sound));
+}
+
+/** The sound cache entry a permutation's samples pointer refers to. */
+inline sound_cache_entry *sound_cache_entry_at(uint32_t samples_pointer)
+{
+    return (sound_cache_entry *)((uint8_t *)halo::cache::globals().sound_cache_entries->data +
+                                 (samples_pointer & halo::k_slot_mask) * sizeof(sound_cache_entry));
+}
 inline auto &sound_initialized = halo::link::ref<uint8_t>(halo::sound::vars().sound_initialized);
 inline auto &sound_enabled = halo::link::ref<uint8_t>(halo::sound::vars().sound_enabled);
 inline auto &sound_disabled = halo::link::ref<uint8_t>(halo::sound::vars().sound_disabled);

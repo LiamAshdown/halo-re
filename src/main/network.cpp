@@ -46,6 +46,7 @@ uint32_t ClientConnection::game_client_connect_by_hostname(char *host_port_strin
     char *colon;
     void *host;
     char *address_text;
+    bool resolved = false;
 
     port = 0;
     colon = strchr(host_port_string, ':');
@@ -66,21 +67,21 @@ uint32_t ClientConnection::game_client_connect_by_hostname(char *host_port_strin
                 sprintf(main_globals_data.connect_address, "%s:%d", address_text, (unsigned int)port);
                 main_globals_data.connect_pending = 1;
             }
-            goto done;
+            resolved = true;
         }
     }
-    halo::main::network_game_client_connect_to_address_async(0, 0);
-    if (ui_split_screen == 1 && ui_root_widget[0] != 0 &&
-        strncmp(ui_root_widget[0]->name, k_main_menu_widget_name, sizeof(k_main_menu_widget_name)) == 0) {
-        goto done;
+    if (!resolved) {
+        halo::main::network_game_client_connect_to_address_async(0, 0);
+        if (!(ui_split_screen == 1 && ui_root_widget[0] != 0 &&
+              strncmp(ui_root_widget[0]->name, k_main_menu_widget_name, sizeof(k_main_menu_widget_name)) == 0)) {
+            if (halo::networking::globals().join_error_code == -1) {
+                halo::networking::globals().join_error_code = k_join_error_connection_failed;
+            }
+            main_globals_data.switch_structure_bsp_index = -1;
+            main_globals_data.save_map = 0;
+            main_globals_data.return_to_main_menu = 1;
+        }
     }
-    if (halo::networking::globals().join_error_code == -1) {
-        halo::networking::globals().join_error_code = k_join_error_connection_failed;
-    }
-    main_globals_data.switch_structure_bsp_index = -1;
-    main_globals_data.save_map = 0;
-    main_globals_data.return_to_main_menu = 1;
-done:
     GlobalFree(host_port_string);
     connect_thread = 0;
     return 0;
@@ -90,6 +91,13 @@ done:
 
 static auto &join_ui_state = halo::link::ref<int32_t>(halo::networking::vars().join_ui_state);
 namespace halo::main {
+
+static uint8_t connect_address_failed()
+{
+    halo::main::network_game_client_connect_to_address_async(0, 0);
+    halo::interface::display_error(k_join_error_connection_failed, -1, 1, 0);
+    return 0;
+}
 
 /**
  * Stages a "connect to address[:port], with optional password" request. With both arguments
@@ -119,7 +127,7 @@ uint8_t ClientConnection::game_client_connect_to_address_async(char *address, ch
     }
 
     if (!halo::networking::network_address_string_is_valid(address)) {
-        goto fail;
+        return connect_address_failed();
     }
 
     strncpy(main_globals_data.connect_password, password, 8);
@@ -127,7 +135,7 @@ uint8_t ClientConnection::game_client_connect_to_address_async(char *address, ch
 
     if (!halo::networking::network_address_string_normalize(address, normalized, &is_any)) {
         if (!halo::networking::network_address_parse_port(address, 0)) {
-            goto fail;
+            return connect_address_failed();
         }
         length = strlen(address) + 1;
         host_copy = (char *)(GlobalAlloc(0, length));
@@ -148,17 +156,12 @@ uint8_t ClientConnection::game_client_connect_to_address_async(char *address, ch
     }
 
     if (is_any != 0) {
-        goto fail;
+        return connect_address_failed();
     }
     main_globals_data.connect_pending = 1;
     strncpy(main_globals_data.connect_address, normalized, k_main_connect_address_length - 1);
     main_globals_data.connect_address[k_main_connect_address_length - 1] = 0;
     return 1;
-
-fail:
-    halo::main::network_game_client_connect_to_address_async(0, 0);
-    halo::interface::display_error(k_join_error_connection_failed, -1, 1, 0);
-    return 0;
 }
 
 }

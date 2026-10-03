@@ -61,7 +61,7 @@ inline auto &unknown_0071d275 = halo::link::ref<uint8_t>(halo::rasterizer::vars(
 inline auto &unknown_0071d276 = halo::link::ref<uint8_t>(halo::rasterizer::vars().unknown_0071d276);
 #endif
 inline auto &decals_for_all_responses = halo::link::ref<uint8_t>(halo::effects::vars().decals_for_all_responses);
-inline auto &rasterizer_decal_vertex_cache_handle = halo::link::ref<uint8_t *>(halo::effects::vars().rasterizer_decal_vertex_cache_handle);
+inline auto &rasterizer_decal_vertex_cache_handle = halo::link::ref<::cache *>(halo::effects::vars().rasterizer_decal_vertex_cache_handle);
 inline auto &text_rendering_enabled = halo::link::ref<uint8_t>(halo::rasterizer::vars().text_rendering_enabled);
 inline auto &rasterizer_window = halo::link::ref<rasterizer_window_parameters>(halo::rasterizer::vars().rasterizer_window);
 inline auto &g_font_glyph_cache = halo::link::ref<font_glyph_cache>(halo::rasterizer::vars().g_font_glyph_cache);

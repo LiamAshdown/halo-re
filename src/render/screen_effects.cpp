@@ -1,4 +1,5 @@
 #include "halo/rasterizer/globals.hpp"
+#include "halo/core/datum.hpp"
 #include "crt.h"
 #include "win32.h"
 #include "tags.h"
@@ -252,10 +253,10 @@ void set_video(int16_t overbright_mode, float noise_intensity)
     if (g == 0) {
         return;
     }
-    if (*(int32_t *)&rasterizer_globals_data->video_scanline_map.tag_id == -1) {
+    if (halo::tag_id_bits<int32_t>(rasterizer_globals_data->video_scanline_map.tag_id) == -1) {
         return;
     }
-    if (*(int32_t *)&rasterizer_globals_data->video_noise_map.tag_id == -1) {
+    if (halo::tag_id_bits<int32_t>(rasterizer_globals_data->video_noise_map.tag_id) == -1) {
         return;
     }
 
@@ -279,13 +280,13 @@ void set_video(int16_t overbright_mode, float noise_intensity)
 
     g->video_enabled = 1;
 
-    scanline_tag = &halo::cache::globals().tag_instances[datum_slot(*(int32_t *)&rasterizer_globals_data->video_scanline_map.tag_id)];
+    scanline_tag = &halo::cache::globals().tag_instances[datum_slot(halo::tag_id_bits<int32_t>(rasterizer_globals_data->video_scanline_map.tag_id))];
     g->video_scanline_map = *(uint32_t *)((uint8_t *)scanline_tag->data + k_bitmap_data_pointer_offset);
 
     g->video_noise_intensity = noise_intensity;
     g->unknown_30 = 1.0f;
 
-    noise_tag = &halo::cache::globals().tag_instances[datum_slot(*(int32_t *)&rasterizer_globals_data->video_noise_map.tag_id)];
+    noise_tag = &halo::cache::globals().tag_instances[datum_slot(halo::tag_id_bits<int32_t>(rasterizer_globals_data->video_noise_map.tag_id))];
     g->video_noise_map = *(uint32_t *)((uint8_t *)noise_tag->data + k_bitmap_data_pointer_offset);
 }
 
@@ -541,7 +542,7 @@ uint8_t lens_flare_set_current_key(int32_t second_bitmap_tag_index, int16_t bitm
 {
     lens_flare_current_key.bitmap_tag_index = bitmap_tag_index;
     if (second_bitmap_tag_index == -1) {
-        second_bitmap_tag_index = *(int32_t *)&rasterizer_globals_data->glow.tag_id;
+        second_bitmap_tag_index = halo::tag_id_bits<int32_t>(rasterizer_globals_data->glow.tag_id);
     }
     lens_flare_current_key.second_bitmap_tag_index = second_bitmap_tag_index;
     lens_flare_current_key.bitmap_index = bitmap_index;

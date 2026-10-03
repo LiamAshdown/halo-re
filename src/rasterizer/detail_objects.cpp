@@ -5,6 +5,8 @@
  */
 
 #include "halo/render/d3d9.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "internal/state.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/main/api.hpp"
@@ -116,14 +118,14 @@ void rasterizer_detail_objects_begin(void)
 
     render_device().set_stream_source(0, rasterizer_detail_object_vertex_buffer, 0, 0x14);
     render_device().set_pixel_shader(0);
-    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
-    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 0);
-    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 4);
-    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
-    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg2, 0);
-    rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-    rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::diffuse);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::modulate);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
+    rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg2, halo::d3d9::ta::diffuse);
+    rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+    rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
 }
 
 }  // namespace rasterizer_detail_objects_begin_impl
@@ -153,9 +155,9 @@ void rasterizer_detail_objects_draw(const rasterizer_detail_object_batches *list
         const rasterizer_detail_object_batch *batch = &((const rasterizer_detail_object_batch *)list->batches)[batch_index];
         const uint8_t *palette = (const uint8_t *)global_scenario->detail_object_collection_palette.pointer;
         uint32_t collection_tag = *(const uint32_t *)(palette + batch->collection_palette_index * 0x30 + 0xc);
-        const DetailObjectCollection *collection = (const DetailObjectCollection *)halo::cache::globals().tag_instances[collection_tag & 0xffff].data;
-        uint32_t sprite_plate_tag = *(const uint32_t *)&collection->sprite_plate.tag_id;
-        const Bitmap *sprite_plate = (const Bitmap *)halo::cache::globals().tag_instances[sprite_plate_tag & 0xffff].data;
+        const DetailObjectCollection *collection = (const DetailObjectCollection *)halo::cache::globals().tag_instances[collection_tag & halo::k_slot_mask].data;
+        uint32_t sprite_plate_tag = halo::tag_id_bits(collection->sprite_plate.tag_id);
+        const Bitmap *sprite_plate = (const Bitmap *)halo::cache::globals().tag_instances[sprite_plate_tag & halo::k_slot_mask].data;
         float type_constants[16][4];
         float sprite_constants[128][4];
         int32_t type_count;
@@ -202,10 +204,10 @@ void rasterizer_detail_objects_draw(const rasterizer_detail_object_batches *list
 
         render_device().set_vertex_shader_constant_f(0x13, &type_constants[0][0], (uint32_t)type_count);
         render_device().set_vertex_shader_constant_f(0x1d, &sprite_constants[0][0], (uint32_t)sprite_count);
-        render_device().set_vertex_declaration((void *)rasterizer_vertex_declarations[_rasterizer_vertex_type_detail_object].declaration);
+        render_device().set_vertex_declaration(rasterizer_vertex_declarations[_rasterizer_vertex_type_detail_object].declaration);
         render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                 rasterizer_vertex_declarations[_rasterizer_vertex_type_detail_object].usage) & 0x10);
-        render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[3 + collection->collection_type].shader);
+        render_device().set_vertex_shader(rasterizer_vertex_shaders[3 + collection->collection_type].shader);
 
         for (draw_index = 0; draw_index < batch->draw_count; draw_index++) {
             const rasterizer_detail_object_draw *draw = &((const rasterizer_detail_object_draw *)batch->draws)[draw_index];
@@ -294,7 +296,7 @@ void rasterizer_detail_objects_vertex_buffer_fill(rasterizer_detail_object_batch
 
     scenario = global_scenario;
     buffer = rasterizer_detail_object_vertex_buffer;
-    if (render_device().buffer_lock(buffer, 0, 0x78000, (void **)&vertices, 0) >= 0 && vertices != 0) {
+    if (render_device().buffer_lock(buffer, 0, 0x78000, &vertices, 0) >= 0 && vertices != 0) {
         uint8_t *detail_objects = *(uint32_t *)((uint8_t *)global_structure_bsp + 0x24c) != 0
                                       ? (uint8_t *)*(uint32_t *)((uint8_t *)global_structure_bsp + 0x250) : (uint8_t *)0;
         const uint8_t *instances = (const uint8_t *)*(uint32_t *)(detail_objects + 0x10);
@@ -308,7 +310,7 @@ void rasterizer_detail_objects_vertex_buffer_fill(rasterizer_detail_object_batch
             const uint8_t *palette = (const uint8_t *)scenario->detail_object_collection_palette.pointer;
             uint32_t collection_tag = *(const uint32_t *)(palette + batch->collection_palette_index * 0x30 + 0xc);
             const DetailObjectCollection *collection =
-                (const DetailObjectCollection *)halo::cache::globals().tag_instances[collection_tag & 0xffff].data;
+                (const DetailObjectCollection *)halo::cache::globals().tag_instances[collection_tag & halo::k_slot_mask].data;
             int16_t draw_index;
 
             for (draw_index = 0; draw_index < batch->draw_count; draw_index++) {

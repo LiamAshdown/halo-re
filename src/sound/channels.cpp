@@ -52,7 +52,7 @@ void assign(void)
 
     sound_handle = halo::memory::datum_next(-1, sound_data);
     while (sound_handle != halo::k_dword_none) {
-        instance = (sound *)((uint8_t *)sound_data->data + (sound_handle & halo::k_slot_mask) * sizeof(sound));
+        instance = sound_instance(sound_handle);
 
         if (instance->start_time <= sound_time) {
             if (instance->channel_index == -1 &&
@@ -99,7 +99,7 @@ void build_candidates(sound_channel_candidate_list *out, datum_index sound_handl
     datum_index other_handle;
     sound *other;
 
-    candidate = (sound *)((uint8_t *)sound_data->data + (sound_handle & halo::k_slot_mask) * sizeof(sound));
+    candidate = sound_instance(sound_handle);
     definition = (Sound *)halo::cache::globals().tag_instances[candidate->definition_index & halo::k_slot_mask].data;
 
     out->tag_match_count = 0;
@@ -110,7 +110,7 @@ void build_candidates(sound_channel_candidate_list *out, datum_index sound_handl
     for (channel_index = 0; channel_index < sound_channel_count; channel_index++) {
         other_handle = sound_channels[channel_index].sound_index;
         if (other_handle != halo::k_dword_none && other_handle != sound_handle) {
-            other = (sound *)((uint8_t *)sound_data->data + (other_handle & halo::k_slot_mask) * sizeof(sound));
+            other = sound_instance(other_handle);
             if (channels::type_flags_match(definition->format, definition->channel_count, definition->sample_rate,
                     sound_channels[channel_index].type_flags, candidate->location.type) &&
                 candidate->definition_index == other->definition_index) {
@@ -132,7 +132,7 @@ int16_t pick_for_instance(datum_index sound_handle)
     sound_channel_candidate_list candidates;
     int16_t channel_index;
 
-    instance = (sound *)((uint8_t *)sound_data->data + (sound_handle & halo::k_slot_mask) * sizeof(sound));
+    instance = sound_instance(sound_handle);
 
     if (instance->channel_index == -1) {
         definition = (Sound *)halo::cache::globals().tag_instances[instance->definition_index & halo::k_slot_mask].data;
@@ -148,8 +148,7 @@ int16_t pick_for_instance(datum_index sound_handle)
         } else {
             for (channel_index = 0; channel_index < sound_channel_count; channel_index++) {
                 if (sound_channels[channel_index].sound_index != halo::k_dword_none) {
-                    sound *other = (sound *)((uint8_t *)sound_data->data +
-                        (sound_channels[channel_index].sound_index & halo::k_slot_mask) * sizeof(sound));
+                    sound *other = sound_instance(sound_channels[channel_index].sound_index);
                     if (other->owner_index == instance->owner_index) {
                         Sound *other_definition = (Sound *)halo::cache::globals().tag_instances[other->definition_index & halo::k_slot_mask].data;
                         if (sound_class_definitions[other_definition->sound_class].dialog != 0) {
@@ -177,7 +176,7 @@ int16_t find_lowest_priority(datum_index sound_handle)
     uint16_t type_flags;
     datum_index best_handle = k_datum_index_none;
 
-    candidate = (sound *)((uint8_t *)sound_data->data + (sound_handle & halo::k_slot_mask) * sizeof(sound));
+    candidate = sound_instance(sound_handle);
     definition = (Sound *)halo::cache::globals().tag_instances[candidate->definition_index & halo::k_slot_mask].data;
     best_channel = -1;
     candidate_distance_squared = spatial::location_distance_squared(candidate->listener_index, &candidate->location);
@@ -196,8 +195,7 @@ int16_t find_lowest_priority(datum_index sound_handle)
             if (channels::compare_priority(sound_channels[channel_index].sound_index, sound_handle, candidate_distance_squared) &&
                 (best_channel == -1 ||
                  channels::compare_priority(sound_channels[channel_index].sound_index, best_handle, best_distance_squared))) {
-                sound *occupant = (sound *)((uint8_t *)sound_data->data +
-                    (sound_channels[channel_index].sound_index & halo::k_slot_mask) * sizeof(sound));
+                sound *occupant = sound_instance(sound_channels[channel_index].sound_index);
                 best_handle = sound_channels[channel_index].sound_index;
                 best_channel = channel_index;
                 best_distance_squared = spatial::location_distance_squared(occupant->listener_index, &occupant->location);
@@ -217,14 +215,13 @@ int16_t pick_replaceable(datum_index sound_handle, int16_t *candidate_channels, 
     sound *occupant;
     float occupant_distance_squared;
 
-    candidate = (sound *)((uint8_t *)sound_data->data + (sound_handle & halo::k_slot_mask) * sizeof(sound));
+    candidate = sound_instance(sound_handle);
     definition = (Sound *)halo::cache::globals().tag_instances[candidate->definition_index & halo::k_slot_mask].data;
     candidate_distance_squared = spatial::location_distance_squared(candidate->listener_index, &candidate->location);
     minimum_replace_time = sound_class_definitions[definition->sound_class].minimum_replace_time;
 
     for (i = 0; i < count; i++) {
-        occupant = (sound *)((uint8_t *)sound_data->data +
-            (sound_channels[candidate_channels[i]].sound_index & halo::k_slot_mask) * sizeof(sound));
+        occupant = sound_instance(sound_channels[candidate_channels[i]].sound_index);
         if (minimum_replace_time <= sound_time - occupant->start_time) {
             occupant_distance_squared = spatial::location_distance_squared(occupant->listener_index, &occupant->location);
             if (candidate_distance_squared - occupant_distance_squared < 1.0f) {
@@ -244,8 +241,8 @@ uint32_t compare_priority(datum_index sound_a, datum_index sound_b, float distan
     int16_t priority_a;
     int16_t priority_b;
 
-    a = (sound *)((uint8_t *)sound_data->data + (sound_a & halo::k_slot_mask) * sizeof(sound));
-    b = (sound *)((uint8_t *)sound_data->data + (sound_b & halo::k_slot_mask) * sizeof(sound));
+    a = sound_instance(sound_a);
+    b = sound_instance(sound_b);
     definition_a = (Sound *)halo::cache::globals().tag_instances[a->definition_index & halo::k_slot_mask].data;
     definition_b = (Sound *)halo::cache::globals().tag_instances[b->definition_index & halo::k_slot_mask].data;
     priority_a = sound_class_definitions[definition_a->sound_class].priority;
@@ -269,8 +266,7 @@ void set_next_permutation(int16_t channel_index, SoundPermutation *permutation, 
 
     if (channel->next_permutation != 0) {
         if (channel->next_permutation->samples_pointer != halo::k_dword_none) {
-            sound_cache_entry *entry = (sound_cache_entry *)((uint8_t *)halo::cache::globals().sound_cache_entries->data +
-                (channel->next_permutation->samples_pointer & halo::k_slot_mask) * sizeof(sound_cache_entry));
+            sound_cache_entry *entry = sound_cache_entry_at(channel->next_permutation->samples_pointer);
             entry->lock_count -= 1;
         }
     }
@@ -292,7 +288,7 @@ void apply_default_parameters(int16_t channel_index, sound_channel_parameters *p
     uint8_t first_person;
 
     if (channel->sound_index != k_datum_index_none) {
-        self = (sound *)((uint8_t *)sound_data->data + (channel->sound_index & halo::k_slot_mask) * sizeof(sound));
+        self = sound_instance(channel->sound_index);
     }
     if (!update) {
         channel->current_pitch = parameters->pitch;
@@ -330,7 +326,7 @@ void apply_eax_parameters(int16_t channel_index, sound_channel_parameters *param
     uint8_t first_person = 0;
 
     if (channel->sound_index != k_datum_index_none) {
-        sound *self = (sound *)((uint8_t *)sound_data->data + (channel->sound_index & halo::k_slot_mask) * sizeof(sound));
+        sound *self = sound_instance(channel->sound_index);
 
         if (self != 0) {
             first_person = self->first_person;
@@ -361,8 +357,7 @@ int16_t release_detail_buffers(int16_t channel_index)
 
     if (channel->next_permutation != 0 && channel_state < 2) {
         if (channel->current_permutation->samples_pointer != halo::k_dword_none) {
-            entry = (sound_cache_entry *)((uint8_t *)halo::cache::globals().sound_cache_entries->data +
-                (channel->current_permutation->samples_pointer & halo::k_slot_mask) * sizeof(sound_cache_entry));
+            entry = sound_cache_entry_at(channel->current_permutation->samples_pointer);
             entry->lock_count -= 1;
         }
         channel->current_permutation = channel->next_permutation;
@@ -375,8 +370,7 @@ int16_t release_detail_buffers(int16_t channel_index)
 
     if (channel->current_permutation != 0 && channel_state < 1) {
         if (channel->current_permutation->samples_pointer != halo::k_dword_none) {
-            entry = (sound_cache_entry *)((uint8_t *)halo::cache::globals().sound_cache_entries->data +
-                (channel->current_permutation->samples_pointer & halo::k_slot_mask) * sizeof(sound_cache_entry));
+            entry = sound_cache_entry_at(channel->current_permutation->samples_pointer);
             entry->lock_count -= 1;
         }
         channel->current_permutation = 0;
@@ -395,16 +389,14 @@ void release_permutations(int16_t channel_index)
     if (channel != 0) {
         if (channel->next_permutation != 0) {
             if (channel->next_permutation->samples_pointer != halo::k_dword_none) {
-                entry = (sound_cache_entry *)((uint8_t *)halo::cache::globals().sound_cache_entries->data +
-                    (channel->next_permutation->samples_pointer & halo::k_slot_mask) * sizeof(sound_cache_entry));
+                entry = sound_cache_entry_at(channel->next_permutation->samples_pointer);
                 entry->lock_count -= 1;
             }
             channel->next_permutation = 0;
         }
         if (channel->current_permutation != 0) {
             if (channel->current_permutation->samples_pointer != halo::k_dword_none) {
-                entry = (sound_cache_entry *)((uint8_t *)halo::cache::globals().sound_cache_entries->data +
-                    (channel->current_permutation->samples_pointer & halo::k_slot_mask) * sizeof(sound_cache_entry));
+                entry = sound_cache_entry_at(channel->current_permutation->samples_pointer);
                 entry->lock_count -= 1;
             }
             channel->current_permutation = 0;

@@ -4,7 +4,10 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include <cstddef>
+#include "halo/core/slot_mask.hpp"
 #include "halo/render/d3d9.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -18,6 +21,23 @@
 
 
 
+
+static_assert(offsetof(LensFlare, cos_falloff_angle) == 0x08, "lens flare cosines");
+static_assert(offsetof(LensFlare, occlusion_radius) == 0x10, "lens flare occlusion radius");
+static_assert(offsetof(LensFlare, near_fade_distance) == 0x18, "lens flare fade distances");
+static_assert(offsetof(LensFlare, bitmap) + offsetof(TagDependency, tag_id) == 0x2c, "lens flare bitmap id");
+static_assert(offsetof(LensFlare, flags) == 0x30, "lens flare flags");
+static_assert(offsetof(LensFlare, rotation_function) == 0x80, "lens flare rotation");
+static_assert(offsetof(LensFlare, horizontal_scale) == 0xa0, "lens flare scale");
+static_assert(offsetof(LensFlare, reflections) == 0xc4, "lens flare reflections");
+static_assert(sizeof(LensFlareReflection) == 0x80, "lens flare reflection size");
+static_assert(offsetof(LensFlareReflection, position) == 0x1c, "reflection position");
+static_assert(offsetof(LensFlareReflection, radius) == 0x28, "reflection radius");
+static_assert(offsetof(LensFlareReflection, brightness) == 0x34, "reflection brightness");
+static_assert(offsetof(LensFlareReflection, tint_color) == 0x40, "reflection tint");
+static_assert(offsetof(LensFlareReflection, color_lower_bound) == 0x50, "reflection lower color");
+static_assert(offsetof(LensFlareReflection, more_flags) == 0x70, "reflection more flags");
+static_assert(offsetof(LensFlareReflection, animation_phase) == 0x78, "reflection phase");
 
 namespace halo::rasterizer {
 
@@ -193,14 +213,13 @@ static float lens_flare_clamp01(float x)
  */
 void lens_flare_render_all(void)
 {
-    uint8_t *window = (uint8_t *)&rasterizer_window;
-    const float *camera = (const float *)(window + 0x08);
-    const float *forward = (const float *)(window + 0x14);
-    const float *axis_a = (const float *)(window + 0xa4);
-    const float *axis_b = (const float *)(window + 0xb0);
+    const float *camera = &rasterizer_window.camera.position.x;
+    const float *forward = &rasterizer_window.camera.forward.i;
+    const float *axis_a = &rasterizer_window.frustum.view_to_world.forward.i;
+    const float *axis_b = &rasterizer_window.frustum.view_to_world.left.i;
     int16_t i;
 
-    if (halo::rasterizer::fields::decals_and_lens_flares_enabled == 0 || *(int16_t *)window != 1 || lens_flare_instance_count <= 0) {
+    if (halo::rasterizer::fields::decals_and_lens_flares_enabled == 0 || rasterizer_window.type != 1 || lens_flare_instance_count <= 0) {
         return;
     }
     if (lens_flare_occlusion_queries_supported != 1) {
@@ -209,11 +228,11 @@ void lens_flare_render_all(void)
     rasterizer_lens_flare_batching_select_mode(5, 0);
 
     for (i = 0; i < lens_flare_instance_count; i++) {
-        uint8_t *instance = (uint8_t *)&lens_flare_instances[i];
-        uint8_t *visibility_byte = lens_flare_get_visibility_byte((lens_flare_instance *)instance);
+        lens_flare_instance *instance = &lens_flare_instances[i];
+        uint8_t *visibility_byte = lens_flare_get_visibility_byte(instance);
         real_vector3d unpacked;
         real_vector3d normal;
-        uint8_t *definition;
+        LensFlare *definition;
         uint8_t alpha;
         real_point3d position;
         real_vector3d d;
@@ -221,20 +240,20 @@ void lens_flare_render_all(void)
         float intensity;
         int16_t j;
 
-        normal = *vector3d_unpack_normal_11_11_10(&unpacked, ((struct lens_flare_instance *)instance)->packed_direction);
-        if ((int16_t)(instance[0x22] & 0x7f) != *(int16_t *)(window + 2)) {
+        normal = *vector3d_unpack_normal_11_11_10(&unpacked, instance->packed_direction);
+        if ((int16_t)(instance->window_flags & _lens_flare_window_index_mask) != rasterizer_window.window_index) {
             continue;
         }
-        definition = *(uint8_t **)instance;
-        if (((struct lens_flare_instance *)instance)->sample_count <= 0) {
+        definition = (LensFlare *)(uintptr_t)instance->definition;
+        if (instance->sample_count <= 0) {
             continue;
         }
-        alpha = instance[0x1b];
-        if (alpha == 0 || *(int32_t *)(definition + 0xc4) <= 0) {
+        alpha = (uint8_t)(instance->color >> 24);
+        if (alpha == 0 || (int32_t)definition->reflections.count <= 0) {
             continue;
         }
 
-        position = *(real_point3d *)&((struct lens_flare_instance *)instance)->position.x;
+        position = instance->position;
         d.i = position.x - camera[0];
         d.j = position.y - camera[1];
         d.k = position.z - camera[2];
@@ -248,13 +267,13 @@ void lens_flare_render_all(void)
 
         visibility = (float)*visibility_byte * 0.003921569f;
         {
-            float near_distance = *(float *)(definition + 0x1c);
-            float far_distance = *(float *)(definition + 0x18);
+            float fade_start = definition->far_fade_distance;
+            float fade_end = definition->near_fade_distance;
 
-            if (!(near_distance > 0.0f)) {
+            if (!(fade_start > 0.0f)) {
                 fade = 1.0f;
             } else {
-                float t = (depth - near_distance) / (far_distance - near_distance);
+                float t = (depth - fade_start) / (fade_end - fade_start);
 
                 if (!(t >= 0.0f)) {
                     fade = 0.0f;
@@ -267,14 +286,14 @@ void lens_flare_render_all(void)
         }
         base = visibility * fade * (float)alpha * 0.003921569f;
 
-        rotation = lens_flare_compute_rotation((lens_flare_instance *)instance, *(int16_t *)(definition + 0x80)) *
-                   *(float *)(definition + 0x84);
+        rotation = lens_flare_compute_rotation(instance, definition->rotation_function) *
+                   definition->rotation_function_scale;
         angle = (float)halo::x87::fpatan((double)(axis_a[2] * d.k + axis_a[1] * d.j + d.i * axis_a[0]),
                               (double)(axis_b[2] * d.k + axis_b[1] * d.j + d.i * axis_b[0])) * 57.29578f;
 
-        span = *(float *)(definition + 0x08) - *(float *)(definition + 0x0c);
+        span = definition->cos_falloff_angle - definition->cos_cutoff_angle;
         inv = (span != 0.0f) ? 1.0f / span : 0.0f;
-        bias = -(inv * *(float *)(definition + 0x0c));
+        bias = -(inv * definition->cos_cutoff_angle);
         halo::math::vector3d_normalize_with_length(d);
         falloff[0] = 1.0f;
         falloff[1] = lens_flare_clamp01(bias - (forward[2] * normal.k + forward[1] * normal.j + normal.i * forward[0]) * inv);
@@ -284,13 +303,13 @@ void lens_flare_render_all(void)
         if (!(base > 0.0f)) {
             continue;
         }
-        intensity = (float)instance[0x23] * 0.003921569f;
+        intensity = (float)instance->intensity * 0.003921569f;
 
-        for (j = 0; j < *(int32_t *)(definition + 0xc4); j++) {
-            uint8_t *reflection = *(uint8_t **)(definition + 0xc8) + (int32_t)j * 0x80;
-            float r34 = *(float *)(reflection + 0x34);
-            float brightness = ((*(float *)(reflection + 0x38) - r34) * intensity + r34) *
-                               falloff[*(int16_t *)(reflection + 0x3c)] * base;
+        for (j = 0; j < (int32_t)definition->reflections.count; j++) {
+            LensFlareReflection *reflection = (LensFlareReflection *)(uintptr_t)definition->reflections.pointer + (int32_t)j;
+            float r34 = reflection->brightness[0];
+            float brightness = ((reflection->brightness[1] - r34) * intensity + r34) *
+                               falloff[reflection->brightness_scaled_by] * base;
             float r28, radius, specular, reflection_rotation, scale[2];
             uint32_t colour;
             real_point3d vertex;
@@ -302,50 +321,50 @@ void lens_flare_render_all(void)
             if (!(brightness > 0.0f)) {
                 continue;
             }
-            r28 = *(float *)(reflection + 0x28);
-            radius = (*(float *)(reflection + 0x2c) - r28) * intensity + r28;
+            r28 = reflection->radius[0];
+            radius = (reflection->radius[1] - r28) * intensity + r28;
 
-            if (*(float *)(reflection + 0x40) == 0.0f && *(float *)(reflection + 0x44) == 0.0f &&
-                *(float *)(reflection + 0x48) == 0.0f && *(float *)(reflection + 0x4c) == 0.0f) {
+            if (reflection->tint_color.alpha == 0.0f && reflection->tint_color.red == 0.0f &&
+                reflection->tint_color.green == 0.0f && reflection->tint_color.blue == 0.0f) {
                 colour = ((uint32_t)color_channel_real_to_byte(brightness) << 24) |
-                         (((struct lens_flare_instance *)instance)->color & 0xffffff);
+                         (instance->color & 0xffffff);
                 specular = 1.0f;
             } else {
                 ColorARGB tint;
 
                 tint.alpha = brightness;
-                tint.red = *(float *)(reflection + 0x44);
-                tint.green = *(float *)(reflection + 0x48);
-                tint.blue = *(float *)(reflection + 0x4c);
-                if (*(int16_t *)(reflection + 0x72) > 1) {
+                tint.red = reflection->tint_color.red;
+                tint.green = reflection->tint_color.green;
+                tint.blue = reflection->tint_color.blue;
+                if (reflection->animation_function > 1) {
                     ColorRGB animated;
                     float t = (float)halo::math::periodic_function_evaluate(
-                        (periodic_function_t)*(int16_t *)(reflection + 0x72),
-                        ((double)*(float *)(reflection + 0x78) + *(double *)&rasterizer_time) /
-                            (double)*(float *)(reflection + 0x74));
+                        (periodic_function_t)reflection->animation_function,
+                        ((double)reflection->animation_phase + *(double *)&rasterizer_time) /
+                            (double)reflection->animation_period);
 
-                    halo::bitmaps::color_interpolate((ColorRGB *)(reflection + 0x64), (ColorRGB *)(reflection + 0x54), &animated,
-                                      static_cast<color_interpolation_flags>(reflection[0x70] & 3), t);
-                    tint.alpha = ((1.0f - t) * *(float *)(reflection + 0x50) + t * *(float *)(reflection + 0x60)) *
+                    halo::bitmaps::color_interpolate((ColorRGB *)&reflection->color_upper_bound.red, (ColorRGB *)&reflection->color_lower_bound.red, &animated,
+                                      static_cast<color_interpolation_flags>(reflection->more_flags & 3), t);
+                    tint.alpha = ((1.0f - t) * reflection->color_lower_bound.alpha + t * reflection->color_upper_bound.alpha) *
                                  tint.alpha;
                     tint.red = tint.red * animated.red;
                     tint.green = tint.green * animated.green;
                     tint.blue = tint.blue * animated.blue;
                 }
                 colour = halo::interface::color_pack_argb_from_real(&tint);
-                specular = *(float *)(reflection + 0x40);
+                specular = reflection->tint_color.alpha;
             }
 
             if (j == 0) {
-                reflection_rotation = rotation + *(float *)(reflection + 0x20);
-                scale[0] = *(float *)(definition + 0xa0);
-                scale[1] = *(float *)(definition + 0xa4);
+                reflection_rotation = rotation + reflection->rotation_offset;
+                scale[0] = definition->horizontal_scale;
+                scale[1] = definition->vertical_scale;
             } else {
-                reflection_rotation = *(float *)(reflection + 0x20);
+                reflection_rotation = reflection->rotation_offset;
                 scale[0] = 1.0f;
                 scale[1] = 1.0f;
             }
-            flags = *(uint16_t *)reflection;
+            flags = reflection->flags;
             if ((flags & 1) != 0) {
                 reflection_rotation = reflection_rotation + angle;
             }
@@ -356,19 +375,19 @@ void lens_flare_render_all(void)
                 radius = radius * depth;
             }
             {
-                float along = *(float *)(reflection + 0x1c);
+                float along = reflection->position;
 
                 vertex.x = off[0] * along + position.x;
                 vertex.y = off[1] * along + position.y;
                 vertex.z = off[2] * along + position.z;
             }
 
-            if (halo::render::rasterizer_lens_flare_set_current_key(*(int32_t *)(definition + 0x2c), 0,
-                                                      (int16_t)*(uint16_t *)(reflection + 0x04)) != 0) {
+            if (halo::render::rasterizer_lens_flare_set_current_key(halo::tag_id_bits<int32_t>(definition->bitmap.tag_id), 0,
+                                                      (int16_t)reflection->bitmap_index) != 0) {
                 break;
             }
             halo::render::rasterizer_lens_flare_set_vertex_specular(specular);
-            halo::rasterizer::fields::lens_flare_batch_mode = ((flags & 8) != 0 && (instance[0x22] & 0x80) != 0) ? 2 : 0;
+            halo::rasterizer::fields::lens_flare_batch_mode = ((flags & 8) != 0 && (instance->window_flags & _lens_flare_window_flag_80_bit) != 0) ? 2 : 0;
             rasterizer_lens_flare_quad_add(scale, colour, &vertex, radius, reflection_rotation * 0.017453292f);
         }
     }
@@ -391,13 +410,13 @@ void lens_flare_render_all(void)
 
     if (rasterizer_caps_flag_68a == 0 && halo::rasterizer::fields::lens_flare_occlusion_enabled != 0) {
         for (i = 0; i < lens_flare_instance_count; i++) {
-            uint8_t *instance = (uint8_t *)&lens_flare_instances[i];
+            lens_flare_instance *instance = &lens_flare_instances[i];
 
-            if (((struct lens_flare_instance *)instance)->sample_count > 0 && (int16_t)(instance[0x22] & 0x7f) == *(int16_t *)(window + 2)) {
-                uint8_t *definition = *(uint8_t **)instance;
+            if (instance->sample_count > 0 && (int16_t)(instance->window_flags & _lens_flare_window_index_mask) == rasterizer_window.window_index) {
+                LensFlare *definition = (LensFlare *)(uintptr_t)instance->definition;
 
-                if (*(uint32_t *)(definition + 0x10) == 0x42480000 || (definition[0x30] & 1) != 0) {
-                    rasterizer_sun_glow_render((lens_flare_instance *)instance);
+                if (definition->occlusion_radius == 50.0f || (definition->flags & 1) != 0) {
+                    rasterizer_sun_glow_render(instance);
                 }
             }
         }
@@ -660,12 +679,12 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
         set_render_state(halo::d3d9::rs::fog_enable, 0);
         set_render_state(halo::d3d9::rs::texture_factor, 0xffff0000);
 
-        set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
-        set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 3);
-        set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-        set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 1);
-        set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+        set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+        set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::tfactor);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::current);
+        set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
 
         render_device().set_vertex_shader(0);
         render_device().set_pixel_shader(0);
@@ -699,13 +718,13 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
 
         render_device().effect_pass(*(void **)rasterizer_effect_pool_scratch, 0);
     } else {
-        set_texture_stage_state(0, halo::d3d9::ts::color_op, 4);
-        set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-        set_texture_stage_state(0, halo::d3d9::ts::color_arg2, 0);
-        set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-        set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 0);
-        set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+        set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::modulate);
+        set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+        set_texture_stage_state(0, halo::d3d9::ts::color_arg2, halo::d3d9::ta::diffuse);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+        set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::diffuse);
+        set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+        set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
         render_device().set_pixel_shader(0);
     }
 
@@ -1133,7 +1152,7 @@ void structure_cluster_add_lens_flares(int16_t cluster_index)
 
         candidate.packed_direction = vector3d_pack_normal_11_11_10(&direction);
         candidate.packed_up = vector3d_pack_normal_11_11_10(&up);
-        candidate.definition = (uint32_t)halo::cache::globals().tag_instances[*(const uint32_t *)(palette + 0xc) & 0xffff].data;
+        candidate.definition = (uint32_t)halo::cache::globals().tag_instances[*(const uint32_t *)(palette + 0xc) & halo::k_slot_mask].data;
         candidate.position.x = marker->position.x;
         candidate.position.y = marker->position.y;
         candidate.position.z = marker->position.z;

@@ -249,16 +249,17 @@ void LevelControl::scenario_session_begin(network_scenario_load_request *request
 
     memcpy(main_game_globals + 8, request, sizeof(network_scenario_load_request));
 
+    bool start_new_map = true;
+
     if (halo::scenario::scenario_load(request->map_name) == 0) {
-        if (*main_game_globals == 0) {
-            goto after_load;
-        }
+        start_new_map = *main_game_globals != 0;
     } else {
         *main_game_globals = 1;
     }
-    halo::game::game_start_new_map();
+    if (start_new_map) {
+        halo::game::game_start_new_map();
+    }
 
-after_load:
     already_initialized = console_debug_flag_0 != 0;
     console_debug_flag_0 = 0;
     console_debug_word_8 = 0;
@@ -400,14 +401,17 @@ void LevelControl::level_transition_update(void)
     }
 
     if (main_globals_data.main_menu_scenario_loaded == 1) {
+        bool fade_pending = true;
+
         if (main_globals_data.level_transition_fade_end_ms == 0) {
             if (main_menu_music_pending != 1) {
-                goto after_fade;
-            }
+                fade_pending = false;
+            } else {
             main_globals_data.level_transition_fade_end_ms = main_globals_data.frame_time_ms + 1000;
             halo::interface::main_menu_on_shown(1000);
             ui_input_batch_mode = 1;
             ui_unknown_718fa8 = 0.0f;
+            }
         } else {
             float remaining = (float)(int32_t)(main_globals_data.level_transition_fade_end_ms -
                                                 main_globals_data.frame_time_ms);
@@ -417,14 +421,13 @@ void LevelControl::level_transition_update(void)
             }
             ui_unknown_718fa8 = 1.0f - remaining * 0.001f;
         }
-        if (main_globals_data.frame_time_ms < main_globals_data.level_transition_fade_end_ms) {
+        if (fade_pending && main_globals_data.frame_time_ms < main_globals_data.level_transition_fade_end_ms) {
             return;
         }
     } else {
         main_globals_data.level_transition_fade_end_ms = 0;
     }
 
-after_fade:
     if (main_globals_data.idle_timeout_reached == 0) {
         ui_unknown_718fa8 = -1.0f;
         halo::main::main_menu_music_stop();

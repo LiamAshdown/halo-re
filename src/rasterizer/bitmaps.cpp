@@ -5,6 +5,8 @@
  */
 
 #include "halo/render/d3d9.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -181,10 +183,10 @@ static BitmapData *rasterizer_default_bitmap(int16_t bitmap_type, int16_t defaul
     uint32_t tag = *(uint32_t *)((uint8_t *)rasterizer_globals_data + bitmap_type * 0x10 + 0xb8);
     Bitmap *bitmap;
 
-    if (tag == 0xffffffff) {
+    if (tag == halo::k_dword_none) {
         return 0;
     }
-    bitmap = (Bitmap *)halo::cache::globals().tag_instances[tag & 0xffff].data;
+    bitmap = (Bitmap *)halo::cache::globals().tag_instances[tag & halo::k_slot_mask].data;
     if (bitmap == 0 || default_index < 0 || default_index >= (int32_t)bitmap->bitmap_data.count) {
         return 0;
     }
@@ -198,10 +200,10 @@ static BitmapData *rasterizer_tag_bitmap(uint32_t bitmap_tag_id, int16_t bitmap_
     int32_t count;
 
     *resolved = 0;
-    if ((halo::rasterizer::fields::bump_mapping_enabled == 0 && default_index == 3) || bitmap_tag_id == 0xffffffff) {
+    if ((halo::rasterizer::fields::bump_mapping_enabled == 0 && default_index == 3) || bitmap_tag_id == halo::k_dword_none) {
         return 0;
     }
-    bitmap = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag_id & 0xffff].data;
+    bitmap = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag_id & halo::k_slot_mask].data;
     count = (int32_t)bitmap->bitmap_data.count;
     if (count <= 0) {
         return 0;
@@ -237,7 +239,7 @@ int16_t * chimera__rasterizer_set_texture(uint32_t bitmap_tag_id, int16_t stage,
 
 static BitmapData *bitmap_group_frame(uint32_t bitmap_tag_id, int16_t frame)
 {
-    Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag_id & 0xffff].data;
+    Bitmap *bitmap = (Bitmap *)halo::cache::globals().tag_instances[bitmap_tag_id & halo::k_slot_mask].data;
     int32_t count = (int32_t)bitmap->bitmap_data.count;
     int16_t index;
 
@@ -263,7 +265,7 @@ uint8_t chimera__rasterizer_set_texture_direct_d3d9(uint32_t bitmap_tag_id, int1
 {
     BitmapData *data;
 
-    if (bitmap_tag_id == 0xffffffff) {
+    if (bitmap_tag_id == halo::k_dword_none) {
         return 0;
     }
     data = bitmap_group_frame(bitmap_tag_id, frame);
@@ -286,7 +288,7 @@ uint8_t chimera__rasterizer_set_texture_direct_d3dx(uint32_t bitmap_tag_id, int1
 {
     BitmapData *data;
 
-    if (bitmap_tag_id == 0xffffffff) {
+    if (bitmap_tag_id == halo::k_dword_none) {
         return 0;
     }
     data = bitmap_group_frame(bitmap_tag_id, frame);
@@ -327,7 +329,7 @@ uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap)
         return 0;
     }
     halo::cache::texture_cache_get(bitmap, 1, 1);
-    if (render_device().set_texture((uint32_t)(int32_t)stage, *(void **)&((struct BitmapData *)bitmap)->hardware_texture) < 0) {
+    if (render_device().set_texture((uint32_t)(int32_t)stage, *&((struct BitmapData *)bitmap)->hardware_texture) < 0) {
         return 0;
     }
     return 1;
@@ -353,7 +355,7 @@ uint8_t rasterizer_bind_texture_d3dx(int16_t stage, BitmapData *bitmap, rasteriz
     }
     halo::cache::texture_cache_get(bitmap, 1, 1);
     effect = (void *)effect_slot->effect;
-    render_device().effect_set_texture(effect, effect_slot->texture_handles[stage], *(void **)&((struct BitmapData *)bitmap)->hardware_texture);
+    render_device().effect_set_texture(effect, effect_slot->texture_handles[stage], *&((struct BitmapData *)bitmap)->hardware_texture);
     return 1;
 }
 
@@ -445,7 +447,7 @@ uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap)
             ok = 0;
         }
     } else if (bitmap->type == 1) {
-        if ((rasterizer_caps.texture_caps & 0x2000) == 0) {
+        if (!halo::d3d9::has_texture_cap(rasterizer_caps.texture_caps, halo::d3d9::texture_cap::volume_map)) {
             bitmap->hardware_texture = 0;
         } else {
             levels = ((int8_t)(rasterizer_caps.texture_caps >> 8) < 0) ? bitmap->mipmap_count + 1 : 1;
@@ -458,10 +460,10 @@ uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap)
             }
         }
     } else if (bitmap->type == 2) {
-        if ((rasterizer_caps.texture_caps & 0x800) == 0) {
+        if (!halo::d3d9::has_texture_cap(rasterizer_caps.texture_caps, halo::d3d9::texture_cap::cube_map)) {
             bitmap->hardware_texture = 0;
         } else {
-            levels = (rasterizer_caps.texture_caps & 0x10000) == 0 ? 1 : bitmap->mipmap_count + 1;
+            levels = !halo::d3d9::has_texture_cap(rasterizer_caps.texture_caps, halo::d3d9::texture_cap::mip_cube_map) ? 1 : bitmap->mipmap_count + 1;
             d3d_create_cube_texture_fn create_cube_texture =
                 (d3d_create_cube_texture_fn)(*(void ***)rasterizer_device)[0x19];
             hresult = create_cube_texture(rasterizer_device, bitmap->width, (uint32_t)levels, 0,
@@ -682,7 +684,7 @@ void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap)
             return;
         }
 
-        hresult = render_device().texture_lock_rect((void *)bitmap->hardware_texture, (uint32_t)level, &locked, 0, 0);
+        hresult = render_device().texture_lock_rect(bitmap->hardware_texture, (uint32_t)level, &locked, 0, 0);
 
         if (hresult < 0 || locked.bits == 0) {
             ok = 0;
@@ -705,7 +707,7 @@ void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap)
             memcpy((void *)locked.bits, source, level_size);
         }
 
-        hresult = render_device().texture_unlock_rect((void *)bitmap->hardware_texture, (uint32_t)level);
+        hresult = render_device().texture_unlock_rect(bitmap->hardware_texture, (uint32_t)level);
         if (hresult < 0) {
             ok = 0;
         }
@@ -752,7 +754,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap)
     max_level = ((int8_t)(rasterizer_caps.texture_caps >> 8) < 0) ? bitmap->mipmap_count : 0;
 
     for (level = 0; ok && level <= max_level; level++) {
-        if (render_device().volume_texture_lock_box((void *)bitmap->hardware_texture, (uint32_t)level, &locked, 0, 0) < 0 ||
+        if (render_device().volume_texture_lock_box(bitmap->hardware_texture, (uint32_t)level, &locked, 0, 0) < 0 ||
             locked.bits == 0) {
             ok = 0;
             continue;
@@ -770,7 +772,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap)
             source += slice_bytes;
             dest += locked.slice_pitch;
         }
-        if (render_device().volume_texture_unlock_box((void *)bitmap->hardware_texture, (uint32_t)level) < 0) {
+        if (render_device().volume_texture_unlock_box(bitmap->hardware_texture, (uint32_t)level) < 0) {
             ok = 0;
         }
     }
@@ -806,11 +808,11 @@ void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap)
     if (rasterizer_device == 0 || *(uint32_t *)&((struct BitmapData *)bitmap)->pixel_base == 0 || bitmap->hardware_texture == 0) {
         return;
     }
-    max_level = (rasterizer_caps.texture_caps & 0x10000) != 0 ? bitmap->mipmap_count : 0;
+    max_level = halo::d3d9::has_texture_cap(rasterizer_caps.texture_caps, halo::d3d9::texture_cap::mip_cube_map) ? bitmap->mipmap_count : 0;
 
     for (level = 0; ok && level <= max_level; level++) {
         for (face = 0; ok && face < 6; face++) {
-            if (render_device().cube_texture_lock_rect((void *)bitmap->hardware_texture, (uint32_t)rasterizer_cube_face_to_d3d_face[face], (uint32_t)level, &locked, 0, 0) < 0 ||
+            if (render_device().cube_texture_lock_rect(bitmap->hardware_texture, (uint32_t)rasterizer_cube_face_to_d3d_face[face], (uint32_t)level, &locked, 0, 0) < 0 ||
                 locked.bits == 0) {
                 ok = 0;
                 continue;
@@ -832,7 +834,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap)
                     dest += locked.pitch;
                 }
             }
-            if (render_device().cube_texture_unlock_rect((void *)bitmap->hardware_texture, (uint32_t)rasterizer_cube_face_to_d3d_face[face], (uint32_t)level) < 0) {
+            if (render_device().cube_texture_unlock_rect(bitmap->hardware_texture, (uint32_t)rasterizer_cube_face_to_d3d_face[face], (uint32_t)level) < 0) {
                 ok = 0;
             }
         }
@@ -898,7 +900,7 @@ void rasterizer_render_target_bind_effect_texture(int16_t target_index, rasteriz
         texture = (void *)(uintptr_t)rasterizer_render_targets[target_index].texture;
     }
 
-    render_device().effect_set_texture((void *)(uintptr_t)effect_slot->effect, effect_slot->texture_handles[handle_index], texture);
+    render_device().effect_set_texture(effect_slot->effect, effect_slot->texture_handles[handle_index], texture);
 }
 
 }  // namespace rasterizer_render_target_bind_effect_texture_impl
@@ -1015,7 +1017,7 @@ uint8_t rasterizer_validate_and_rebind_texture(uint32_t bitmap_tag_id, int16_t s
 {
     BitmapData *data;
 
-    if (bitmap_tag_id == 0xffffffff) {
+    if (bitmap_tag_id == halo::k_dword_none) {
         return 0;
     }
     data = bitmap_group_frame(bitmap_tag_id, frame);

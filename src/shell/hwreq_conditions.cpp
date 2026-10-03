@@ -73,7 +73,7 @@ const char *HwreqParser::evaluate_condition(int32_t kind, uint32_t value)
     int32_t op;
     char c;
 
-    while (*(char *)self->cursor == ' ' || *(char *)self->cursor == '\t') {
+    while (*text_cursor() == ' ' || *text_cursor() == '\t') {
         self->cursor++;
     }
 
@@ -87,7 +87,7 @@ const char *HwreqParser::evaluate_condition(int32_t kind, uint32_t value)
     case char_pair('<', '='): self->cursor += 2; op = k_hwreq_operator_less_equal; break;
     case char_pair('>', '='): self->cursor += 2; op = k_hwreq_operator_greater_equal; break;
     default:
-        c = *(char *)self->cursor;
+        c = *text_cursor();
         if (c == '=') { self->cursor += 1; op = k_hwreq_operator_equal; }
         else if (c == '>') { self->cursor += 1; op = k_hwreq_operator_greater; }
         else if (c == '<') { self->cursor += 1; op = k_hwreq_operator_less; }
@@ -96,7 +96,7 @@ const char *HwreqParser::evaluate_condition(int32_t kind, uint32_t value)
         break;
     }
 
-    while (*(char *)self->cursor == ' ' || *(char *)self->cursor == '\t') {
+    while (*text_cursor() == ' ' || *text_cursor() == '\t') {
         self->cursor++;
     }
 
@@ -117,22 +117,22 @@ const char *HwreqParser::evaluate_condition(int32_t kind, uint32_t value)
         b = parse_hex_id();
         if (b == -1) return "Invalid GUID";
         parsed_guid[0] = (uint32_t)(a * 0x10000 + b);
-        c = *(char *)self->cursor; self->cursor++;
+        c = *text_cursor(); self->cursor++;
         if (c != '-') return "Invalid GUID";
 
         a = parse_hex_id();
         if (a == -1) return "Invalid GUID";
-        c = *(char *)self->cursor; self->cursor++;
+        c = *text_cursor(); self->cursor++;
         if (c != '-') return "Invalid GUID";
         b = parse_hex_id();
         if (b == -1) return "Invalid GUID";
         parsed_guid[1] = (uint32_t)(b * 0x10000 + a);
-        c = *(char *)self->cursor; self->cursor++;
+        c = *text_cursor(); self->cursor++;
         if (c != '-') return "Invalid GUID";
 
         a = parse_hex_id_byteswap();
         if (a == -1) return "Invalid GUID";
-        c = *(char *)self->cursor; self->cursor++;
+        c = *text_cursor(); self->cursor++;
         if (c != '-') return "Invalid GUID";
         b = parse_hex_id_byteswap();
         if (b == -1) return "Invalid GUID";
@@ -162,16 +162,16 @@ const char *HwreqParser::evaluate_condition(int32_t kind, uint32_t value)
         int32_t actual_high;
 
         n0 = parse_number();
-        c = *(char *)self->cursor; self->cursor++;
+        c = *text_cursor(); self->cursor++;
         if (n0 == -1 || c != '.') return "Invalid driver number";
 
         n1 = parse_number();
-        c = *(char *)self->cursor; self->cursor++;
+        c = *text_cursor(); self->cursor++;
         if (c != '.') return "Invalid driver number";
         parsed_high = n1 + n0 * 0x10000;
 
         n2 = parse_number();
-        c = *(char *)self->cursor; self->cursor++;
+        c = *text_cursor(); self->cursor++;
         if (n2 == -1 || c != '.') return "Invalid driver number";
 
         n3 = parse_number();
@@ -252,7 +252,7 @@ const char *HwreqParser::resolve_field()
     uint32_t value;
     const uint8_t *caps_base;
 
-    while (*(char *)self->cursor == ' ' || *(char *)self->cursor == '\t') {
+    while (*text_cursor() == ' ' || *text_cursor() == '\t') {
         self->cursor++;
     }
 

@@ -379,8 +379,8 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
         }
     } else {
         if (type != 1) {
-            saved_type = -1;
-            goto rollback;
+            halo::game::XDeleteSaveGame(name, savegames_directory);
+            return k_datum_index_none;
         }
         _snprintf(entry.path, k_path_maximum_length, "%s%s", directory, k_game_variant_file_name);
         body_size = 0x98;
@@ -710,16 +710,13 @@ void files_initialize(void)
     saved_game_files_mutex = 0;
     savegame_index_mutex = 0;
     mutex1_ok = halo::networking::mutex_create(&saved_game_files_mutex);
-    if (mutex1_ok != 0) {
+    if (mutex1_ok == 0) {
+        saved_game_files_initialized = 0;
+    } else {
         mutex2_ok = halo::networking::mutex_create(&savegame_index_mutex);
-        saved_game_files_initialized = 1;
-        if (mutex2_ok != 0) {
-            goto default_profile;
-        }
+        saved_game_files_initialized = mutex2_ok != 0;
     }
-    saved_game_files_initialized = 0;
 
-default_profile:
     zero_cursor = (uint8_t *)&default_profile_data;
     for (i = k_default_profile_clear_dwords; i != 0; i--) {
         *(uint32_t *)zero_cursor = 0;
@@ -1373,31 +1370,11 @@ void list_rebuild_index(void)
                     }
                     memset(&entry, 0, sizeof(entry));
 
-                    path_len = _snprintf(entry.path, k_path_maximum_length, "%s%s", find_data.save_game_directory, k_player_profile_file_name);
-                    entry_type = -1;
-                    if (path_len < 1) {
-                        goto try_variant;
-                    }
-
-                    memset(&ref, 0, sizeof(ref));
-                    ref.signature = k_file_reference_signature;
-                    ref.location = _file_location_absolute;
-                    if ((ref.flags & _file_reference_is_file_bit) != 0) {
-                        halo::saved_games::path_remove_last_component(ref.path);
-                    }
-                    halo::saved_games::path_append_component(ref.path, entry.path);
-                    ref.flags |= _file_reference_is_file_bit;
-                    exists = halo::saved_games::file_reference_exists(&ref);
-                    if (exists == 0) {
-                        goto try_variant;
-                    }
-                    entry_type = _saved_game_type_player_profile;
-                    body_size = k_saved_player_profile_size;
-                    goto have_candidate;
-
-                try_variant:
-                    path_len = _snprintf(entry.path, k_path_maximum_length, "%s%s", find_data.save_game_directory, k_game_variant_file_name);
-                    if (0 < path_len) {
+                    auto probe_file = [&](const char *file_name) -> bool {
+                        path_len = _snprintf(entry.path, k_path_maximum_length, "%s%s", find_data.save_game_directory, file_name);
+                        if (path_len < 1) {
+                            return false;
+                        }
                         memset(&ref, 0, sizeof(ref));
                         ref.signature = k_file_reference_signature;
                         ref.location = _file_location_absolute;
@@ -1406,47 +1383,54 @@ void list_rebuild_index(void)
                         }
                         halo::saved_games::path_append_component(ref.path, entry.path);
                         ref.flags |= _file_reference_is_file_bit;
-                        exists = halo::saved_games::file_reference_exists(&ref);
-                        if (exists != 0) {
-                            entry_type = _saved_game_type_game_variant;
-                            body_size = sizeof(game_variant);
-                            goto have_candidate;
-                        }
-                    }
-                    halo::text::string_format_wide_va_bounded(0xff, log_scratch,
-                        (const uint16_t *)L"random crap found by XFindNextSaveGame(): display name= '%s' path= '%hs'",
-                        find_data.save_game_name, find_data.find_data.cFileName);
+                        return halo::saved_games::file_reference_exists(&ref) != 0;
+                    };
+                    bool have_candidate = false;
+
                     entry_type = -1;
-                    goto next_entry;
+                    if (probe_file(k_player_profile_file_name)) {
+                        entry_type = _saved_game_type_player_profile;
+                        body_size = k_saved_player_profile_size;
+                        have_candidate = true;
+                    } else if (probe_file(k_game_variant_file_name)) {
+                        entry_type = _saved_game_type_game_variant;
+                        body_size = sizeof(game_variant);
+                        have_candidate = true;
+                    }
+                    if (!have_candidate) {
+                        halo::text::string_format_wide_va_bounded(0xff, log_scratch,
+                            (const uint16_t *)L"random crap found by XFindNextSaveGame(): display name= '%s' path= '%hs'",
+                            find_data.save_game_name, find_data.find_data.cFileName);
+                        entry_type = -1;
+                    } else {
+                        wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)find_data.save_game_name, k_saved_game_display_name_length - 1);
+                        entry.type = entry_type;
 
-                have_candidate:
-                    wcsncpy((wchar_t *)entry.display_name, (const wchar_t *)find_data.save_game_name, k_saved_game_display_name_length - 1);
-                    entry.type = entry_type;
-
-                    opened = halo::saved_games::file_reference_open(&ref, 1);
-                    if (opened != 0) {
-                        read_ok = halo::saved_games::file_reference_read(&ref, body, sizeof(body));
-                        if (read_ok != 0) {
-                            checksum = k_crc32_seed;
-                            halo::memory::crc32_update(&checksum, body, body_size);
-                            if (checksum == *(uint32_t *)(body + body_size)) {
-                                entry.checksum_valid = 1;
+                        opened = halo::saved_games::file_reference_open(&ref, 1);
+                        if (opened != 0) {
+                            read_ok = halo::saved_games::file_reference_read(&ref, body, sizeof(body));
+                            if (read_ok != 0) {
+                                checksum = k_crc32_seed;
+                                halo::memory::crc32_update(&checksum, body, body_size);
+                                if (checksum == *(uint32_t *)(body + body_size)) {
+                                    entry.checksum_valid = 1;
+                                }
                             }
+                            halo::saved_games::file_reference_close(&ref);
                         }
-                        halo::saved_games::file_reference_close(&ref);
-                    }
-                    if (k_maximum_saved_game_entries < savegame_index_write_count) {
-                        break;
-                    }
-                    entry.index = savegame_index_write_count;
-                    savegame_index_write_count = savegame_index_write_count + 1;
-                    write_ok = halo::saved_games::file_reference_write(&savegame_index_file, &entry, sizeof(entry));
-                    if (write_ok == 0) {
-                        break;
-                    }
-                    written_count = written_count + 1;
+                        if (k_maximum_saved_game_entries < savegame_index_write_count) {
+                            break;
+                        }
+                        entry.index = savegame_index_write_count;
+                        savegame_index_write_count = savegame_index_write_count + 1;
+                        write_ok = halo::saved_games::file_reference_write(&savegame_index_file, &entry, sizeof(entry));
+                        if (write_ok == 0) {
+                            break;
+                        }
+                        written_count = written_count + 1;
 
-                next_entry:
+                    }
+
                     find_ok = halo::game::savegame_find_next((win32_find_dataa *)&find_data, find_handle);
                 } while (find_ok != 0);
 

@@ -1,4 +1,5 @@
 #include "halo/shell/system.hpp"
+#include "halo/core/win32_constants.hpp"
 #include "halo/shell/diagnostics.hpp"
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
@@ -15,6 +16,25 @@ static auto &product_id_string = halo::link::ref<char [k_product_id_string_lengt
 static auto &cpu_identification_state = halo::link::ref<int32_t>(halo::shell::vars().cpu_identification_state);
 static auto &cpu_vendor_string = halo::link::ref<char [0x10]>(halo::shell::vars().cpu_vendor_string);
 static auto &cpu_brand_string = halo::link::ref<char [0x30]>(halo::shell::vars().cpu_brand_string);
+
+namespace {
+
+
+constexpr uint32_t k_cpuid_extended_max_leaf = 0x80000000u;
+constexpr uint32_t k_cpuid_extended_features = 0x80000001u;
+constexpr uint32_t k_cpuid_brand_string_first = 0x80000002u;
+constexpr uint32_t k_cpuid_brand_string_last = 0x80000004u;
+constexpr uint32_t k_cpuid_l1_cache_tlb = 0x80000005u;
+constexpr uint32_t k_cpuid_l2_cache_tlb = 0x80000006u;
+constexpr uint32_t k_sha1_digest_length = 20;
+constexpr uint32_t k_machine_digital_product_id_buffer_size = 0x400;
+
+void store_cpuid_word(char *destination, uint32_t offset, uint32_t value)
+{
+    memcpy(destination + offset, &value, sizeof(value));
+}
+
+}  // namespace
 static auto &cpu_signature = halo::link::ref<uint32_t>(halo::shell::vars().cpu_signature);
 static auto &cpu_features = halo::link::ref<uint32_t>(halo::shell::vars().cpu_features);
 static auto &cpu_extended_features = halo::link::ref<uint32_t>(halo::shell::vars().cpu_extended_features);
@@ -312,10 +332,10 @@ uint8_t Sha1::hash(const uint8_t *data, uint32_t length, uint8_t *digest_out)
 
     hash_handle = 0;
     ok = 0;
-    if (CryptCreateHash(crypt_provider, 0x8004, 0, 0, (HCRYPTHASH *)&hash_handle) != 0) {
+    if (CryptCreateHash(crypt_provider, CALG_SHA1, 0, 0, (HCRYPTHASH *)&hash_handle) != 0) {
         if (CryptHashData(hash_handle, data, length, 0) != 0) {
-            digest_length = 0x14;
-            ok = CryptGetHashParam(hash_handle, 2, digest_out, (DWORD *)&digest_length, 0) != 0;
+            digest_length = k_sha1_digest_length;
+            ok = CryptGetHashParam(hash_handle, HP_HASHVAL, digest_out, (DWORD *)&digest_length, 0) != 0;
         }
     }
     if (hash_handle != 0) {
@@ -397,7 +417,7 @@ char *ProductId::build_string()
     int32_t product_id_digits;
 
     product_id_string[0] = 0;
-    data_size = 0x400;
+    data_size = k_machine_digital_product_id_buffer_size;
 
     if (!SettingsStore::current().read_value(SettingsScope::machine, "DigitalProductID", 0, &data, &data_size)) {
         return &k_empty_string;
@@ -410,7 +430,7 @@ char *ProductId::build_string()
 
     product_id_digits = extract_digits(data.product_id);
 
-    if (CryptAcquireContextA((HCRYPTPROV *)&crypt_provider, 0, 0, 1, 0xf0000000) == 0) {
+    if (CryptAcquireContextA((HCRYPTPROV *)&crypt_provider, 0, 0, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT) == 0) {
         return &k_empty_string;
     }
     if (Sha1::hash(data.hashed_key, k_digital_product_id_hashed_bytes, digest) == 0) {
@@ -458,9 +478,9 @@ int32_t Cpu::query_identification()
     }
 
     execute_cpuid(0, &eax, &ebx, &ecx, &edx);
-    *(uint32_t *)(cpu_vendor_string + 0) = ebx;
-    *(uint32_t *)(cpu_vendor_string + 4) = edx;
-    *(uint32_t *)(cpu_vendor_string + 8) = ecx;
+    store_cpuid_word(cpu_vendor_string, 0, ebx);
+    store_cpuid_word(cpu_vendor_string, 4, edx);
+    store_cpuid_word(cpu_vendor_string, 8, ecx);
 
     if (eax == 0) {
         return 1;
@@ -470,46 +490,46 @@ int32_t Cpu::query_identification()
     cpu_signature = eax;
     cpu_features = edx;
 
-    execute_cpuid(0x80000000, &eax, &ebx, &ecx, &edx);
+    execute_cpuid(k_cpuid_extended_max_leaf, &eax, &ebx, &ecx, &edx);
     max_extended_leaf = eax;
-    if (max_extended_leaf <= 0x80000000) {
+    if (max_extended_leaf <= k_cpuid_extended_max_leaf) {
         return 1;
     }
 
-    if (max_extended_leaf > 0x80000004) {
-        if (max_extended_leaf > 0x80000005) {
-            execute_cpuid(0x80000006, &eax, &ebx, &ecx, &edx);
+    if (max_extended_leaf > k_cpuid_brand_string_last) {
+        if (max_extended_leaf > k_cpuid_l1_cache_tlb) {
+            execute_cpuid(k_cpuid_l2_cache_tlb, &eax, &ebx, &ecx, &edx);
             cpu_l2_tlb_large = eax;
             cpu_l2_tlb_4k = ebx;
             cpu_l2_unknown = edx;
             cpu_l2_cache = ecx;
         }
-        execute_cpuid(0x80000005, &eax, &ebx, &ecx, &edx);
+        execute_cpuid(k_cpuid_l1_cache_tlb, &eax, &ebx, &ecx, &edx);
         cpu_l1_tlb_large = eax;
         cpu_l1_tlb_4k = ebx;
         cpu_l1_code_cache = edx;
         cpu_l1_data_cache = ecx;
 
-        execute_cpuid(0x80000002, &eax, &ebx, &ecx, &edx);
-        *(uint32_t *)(cpu_brand_string + 0x00) = eax;
-        *(uint32_t *)(cpu_brand_string + 0x04) = ebx;
-        *(uint32_t *)(cpu_brand_string + 0x08) = ecx;
-        *(uint32_t *)(cpu_brand_string + 0x0c) = edx;
+        execute_cpuid(k_cpuid_brand_string_first, &eax, &ebx, &ecx, &edx);
+        store_cpuid_word(cpu_brand_string, 0, eax);
+        store_cpuid_word(cpu_brand_string, 4, ebx);
+        store_cpuid_word(cpu_brand_string, 8, ecx);
+        store_cpuid_word(cpu_brand_string, 12, edx);
 
-        execute_cpuid(0x80000003, &eax, &ebx, &ecx, &edx);
-        *(uint32_t *)(cpu_brand_string + 0x10) = eax;
-        *(uint32_t *)(cpu_brand_string + 0x14) = ebx;
-        *(uint32_t *)(cpu_brand_string + 0x18) = ecx;
-        *(uint32_t *)(cpu_brand_string + 0x1c) = edx;
+        execute_cpuid(k_cpuid_brand_string_first + 1, &eax, &ebx, &ecx, &edx);
+        store_cpuid_word(cpu_brand_string, 16, eax);
+        store_cpuid_word(cpu_brand_string, 20, ebx);
+        store_cpuid_word(cpu_brand_string, 24, ecx);
+        store_cpuid_word(cpu_brand_string, 28, edx);
 
-        execute_cpuid(0x80000004, &eax, &ebx, &ecx, &edx);
-        *(uint32_t *)(cpu_brand_string + 0x20) = eax;
-        *(uint32_t *)(cpu_brand_string + 0x24) = ebx;
-        *(uint32_t *)(cpu_brand_string + 0x28) = ecx;
-        *(uint32_t *)(cpu_brand_string + 0x2c) = edx;
+        execute_cpuid(k_cpuid_brand_string_last, &eax, &ebx, &ecx, &edx);
+        store_cpuid_word(cpu_brand_string, 32, eax);
+        store_cpuid_word(cpu_brand_string, 36, ebx);
+        store_cpuid_word(cpu_brand_string, 40, ecx);
+        store_cpuid_word(cpu_brand_string, 44, edx);
     }
 
-    execute_cpuid(0x80000001, &eax, &ebx, &ecx, &edx);
+    execute_cpuid(k_cpuid_extended_features, &eax, &ebx, &ecx, &edx);
     cpu_extended_features = edx;
     return 1;
 }
@@ -768,24 +788,24 @@ int32_t WriteAccessCheck::run()
     nt_authority.value[4] = 0;
     nt_authority.value[5] = 5;
 
-    ok = OpenThreadToken(GetCurrentThread(), 10, 1, (PHANDLE)&resources.thread_token);
+    ok = OpenThreadToken(GetCurrentThread(), TOKEN_QUERY | TOKEN_DUPLICATE, 1, (PHANDLE)&resources.thread_token);
     if (ok == 0) {
-        if (GetLastError() == 0x3f0) {
-            ok = OpenProcessToken(GetCurrentProcess(), 10, (PHANDLE)&resources.thread_token);
+        if (GetLastError() == ERROR_NO_TOKEN) {
+            ok = OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_DUPLICATE, (PHANDLE)&resources.thread_token);
         }
     }
 
     if (ok != 0) {
-        ok = DuplicateToken(resources.thread_token, (SECURITY_IMPERSONATION_LEVEL)2, (PHANDLE)&resources.impersonation_token);
+        ok = DuplicateToken(resources.thread_token, SecurityImpersonation, (PHANDLE)&resources.impersonation_token);
         if (ok != 0 &&
-            (ok = AllocateAndInitializeSid((PSID_IDENTIFIER_AUTHORITY)&nt_authority, 2, 0x20, 0x220, 0, 0, 0, 0, 0, 0,
+            (ok = AllocateAndInitializeSid((PSID_IDENTIFIER_AUTHORITY)&nt_authority, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0, 0,
                                            (PSID *)&resources.sid), ok != 0) &&
-            (resources.descriptor = LocalAlloc(0x40, 0x14), resources.descriptor != 0) &&
-            (ok = InitializeSecurityDescriptor(resources.descriptor, 1), ok != 0)) {
+            (resources.descriptor = LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH), resources.descriptor != 0) &&
+            (ok = InitializeSecurityDescriptor(resources.descriptor, SECURITY_DESCRIPTOR_REVISION), ok != 0)) {
             sid_length = GetLengthSid(resources.sid);
             acl_length = sid_length + 0x10;
-            resources.acl = LocalAlloc(0x40, acl_length);
-            if (resources.acl != 0 && (ok = InitializeAcl((PACL)resources.acl, acl_length, 2), ok != 0)) {
+            resources.acl = LocalAlloc(LPTR, acl_length);
+            if (resources.acl != 0 && (ok = InitializeAcl((PACL)resources.acl, acl_length, ACL_REVISION), ok != 0)) {
                 ok = AddAccessAllowedAce((PACL)resources.acl, 2, 3, resources.sid);
                 if (ok != 0 && (ok = SetSecurityDescriptorDacl(resources.descriptor, 1, (PACL)resources.acl, 0), ok != 0)) {
                     SetSecurityDescriptorGroup(resources.descriptor, resources.sid, 0);
@@ -852,7 +872,7 @@ void SingleInstance::check(int32_t mode)
         }
         shell_instance_mutex = CreateMutexA(0, 1, name);
         last_error = GetLastError();
-        if (last_error == 0xb7) {
+        if (last_error == halo::win32::k_error_already_exists) {
             if (shell_instance_mutex != 0) {
                 CloseHandle(shell_instance_mutex);
             }
@@ -862,26 +882,21 @@ void SingleInstance::check(int32_t mode)
         }
     }
 
-    if (last_error != 0xb7) {
-        if (shell_instance_mutex == 0) {
-            goto find_running_instance;
-        }
-        if (shell_instance_index != -1) {
+    if (!(last_error != halo::win32::k_error_already_exists && shell_instance_mutex == 0)) {
+        if (last_error != halo::win32::k_error_already_exists && shell_instance_index != -1) {
             return;
         }
+        release();
     }
 
-    release();
-
-find_running_instance:
     if (mode != k_shell_instance_mode_multiple) {
         window = FindWindowA("Halo", "Halo");
         if (window != 0) {
-            placement.length = 0x2c;
+            placement.length = sizeof(WINDOWPLACEMENT);
             GetWindowPlacement((HWND)window, (WINDOWPLACEMENT *)&placement);
             SetForegroundWindow((HWND)window);
-            if (placement.show_command == 2) {
-                ShowWindow((HWND)window, 9);
+            if (placement.show_command == SW_SHOWMINIMIZED) {
+                ShowWindow((HWND)window, SW_RESTORE);
             }
             _exit(1);
         }

@@ -5,6 +5,7 @@
  */
 
 #include "halo/render/d3d9.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/cseries/api.hpp"
@@ -146,7 +147,7 @@ uint8_t rasterizer_dx9_pixel_shaders_load_all(void)
     if (index < k_rasterizer_pixel_shader_effects) {
         int i;
         for (i = 0; i < k_rasterizer_pixel_shader_effects; i++) {
-            void *effect = (void *)rasterizer_effects[i].effect;
+            uint32_t effect = rasterizer_effects[i].effect;
             if (effect != 0) {
                 render_device().release(effect);
                 rasterizer_effects[i].effect = 0;
@@ -190,7 +191,7 @@ void rasterizer_dx9_pixel_shaders_release(void)
     free_constant_handles(40, 43);
 
     for (i = 0; i < k_rasterizer_pixel_shader_effects; i++) {
-        void *effect = (void *)rasterizer_effects[i].effect;
+        uint32_t effect = rasterizer_effects[i].effect;
         if (effect != 0) {
             render_device().release(effect);
             rasterizer_effects[i].effect = 0;
@@ -568,7 +569,7 @@ uint32_t rasterizer_load_file_and_verify(void **out_buffer, uint32_t *out_size, 
     }
 
     size = GetFileSize(file, (LPDWORD)((uint32_t *)0));
-    if (size == 0xffffffff) {
+    if (size == halo::k_dword_none) {
         CloseHandle(file);
         return 0;
     }
@@ -727,9 +728,9 @@ void rasterizer_render_target_capture_frame(void)
         render_device().set_vertex_declaration((void *)declaration->declaration);
         render_device().set_software_vertex_processing(((rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
                                                     declaration->usage) & 0x10);
-        render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[35].shader);
+        render_device().set_vertex_shader(rasterizer_vertex_shaders[35].shader);
         render_device().set_pixel_shader(0);
-        render_device().set_texture(0, (void *)rasterizer_render_targets[1].texture);
+        render_device().set_texture(0, rasterizer_render_targets[1].texture);
         rasterizer_set_sampler_state(0, halo::d3d9::ss::address_u, 3);
         rasterizer_set_sampler_state(0, halo::d3d9::ss::address_v, 3);
         rasterizer_set_sampler_state(0, halo::d3d9::ss::mag_filter, 2);
@@ -741,12 +742,12 @@ void rasterizer_render_target_capture_frame(void)
         rasterizer_set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
         rasterizer_set_render_state(halo::d3d9::rs::z_enable, 0);
         rasterizer_set_render_state(halo::d3d9::rs::fog_enable, 0);
-        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
-        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
-        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
-        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
-        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
-        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, halo::d3d9::top::select_arg1);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, halo::d3d9::ta::texture);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, halo::d3d9::top::select_arg1);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, halo::d3d9::ta::texture);
+        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, halo::d3d9::top::disable);
+        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, halo::d3d9::top::disable);
 
         width = (float)(int16_t)(rasterizer_window.camera.viewport_bounds.right - rasterizer_window.camera.viewport_bounds.left);
         height = (float)(int16_t)(rasterizer_window.camera.viewport_bounds.bottom - rasterizer_window.camera.viewport_bounds.top);
@@ -861,7 +862,7 @@ uint8_t rasterizer_render_target_initialize(void)
         if (render_device().get_render_target(0, &rasterizer_render_targets[1].surface) < 0) {
             ok = 0;
         }
-        if (render_device().surface_get_desc((void *)(uintptr_t)rasterizer_render_targets[1].surface, &desc) < 0) {
+        if (render_device().surface_get_desc(rasterizer_render_targets[1].surface, &desc) < 0) {
             ok = 0;
         }
         rasterizer_render_targets[1].format = desc.format;
@@ -871,7 +872,7 @@ uint8_t rasterizer_render_target_initialize(void)
         if (render_device().get_render_target(0, &rasterizer_render_targets[0].surface) < 0) {
             ok = 0;
         }
-        if (render_device().surface_get_desc((void *)(uintptr_t)rasterizer_render_targets[0].surface, &desc) < 0) {
+        if (render_device().surface_get_desc(rasterizer_render_targets[0].surface, &desc) < 0) {
             ok = 0;
         }
         rasterizer_render_targets[0].format = desc.format;
@@ -912,7 +913,7 @@ uint8_t rasterizer_render_target_initialize(void)
         return 0;
     }
     indices = NULL;
-    if (render_device().buffer_lock(rasterizer_render_target_index_buffer, 0, 8, (void **)&indices, 0) < 0) {
+    if (render_device().buffer_lock(rasterizer_render_target_index_buffer, 0, 8, &indices, 0) < 0) {
         ok = 0;
     }
     if (indices != NULL) {

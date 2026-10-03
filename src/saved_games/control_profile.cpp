@@ -533,7 +533,8 @@ void fill_default_gamepad_slots(saved_player_profile *profile)
                 if ((int16_t)i < input_device_count) {
                     memcpy(&entry, input_devices + (int16_t)i * sizeof(input_device), sizeof(entry));
                     have_entry = 1;
-pass1_try_add:
+                }
+                if (have_entry != 0) {
                     key = entry.product_guid;
                     tag_index = halo::input::input_device_default_profile_tag_find(key, tag_scratch);
                     if (tag_index != -1) {
@@ -542,8 +543,6 @@ pass1_try_add:
                             used_count = used_count + 1;
                         }
                     }
-                } else if (have_entry != 0) {
-                    goto pass1_try_add;
                 }
                 i = i + 1;
             } while (i < device_count);
@@ -559,13 +558,12 @@ pass1_try_add:
                 if ((int16_t)i < input_device_count) {
                     memcpy(&entry, input_devices + (int16_t)i * sizeof(input_device), sizeof(entry));
                     have_entry = 1;
-pass2_try_add:
+                }
+                if (have_entry != 0) {
                     added = halo::saved_games::control_profile_find_or_create_gamepad_slot(&entry, profile);
                     if (added != 0) {
                         used_count = used_count + 1;
                     }
-                } else if (have_entry != 0) {
-                    goto pass2_try_add;
                 }
                 i = i + 1;
             } while (i < device_count);
