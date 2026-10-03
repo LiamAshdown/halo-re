@@ -1019,7 +1019,7 @@ typedef struct rasterizer_detail_object_batches {
 // FontCharacter.hardware_character_index (+0xc) and the frame stamp 0x0069c694 at +0xe.
 // ---------------------------------------------------------------------------
 typedef struct font_glyph_cache_entry {
-    uint32_t character;             // 0x00 void* FontCharacter tag data, NULL when free
+    struct FontCharacter *character; // 0x00 FontCharacter tag data, NULL when free
     int16_t x;                      // 0x04 atlas position plus the one texel border
     int16_t y;                      // 0x06
 } font_glyph_cache_entry;           // size 0x08
@@ -1032,7 +1032,7 @@ typedef struct font_glyph_cache {
     int16_t cursor_x;               // 0x0006
     int16_t cursor_y;               // 0x0008
     int16_t row_height;             // 0x000a tallest glyph of the current row plus 2
-    uint32_t atlas;                 // 0x000c void* BitmapData (GlobalAlloc 0x30) with pixels at +0x2c
+    struct BitmapData *atlas;       // 0x000c BitmapData (GlobalAlloc 0x30) with pixels at +0x2c
     font_glyph_cache_entry entries[0x200]; // 0x0010
 } font_glyph_cache;                 // size 0x1010
 
