@@ -58,6 +58,8 @@ static float script_source_value(uint16_t source)
     return halo::render::cinematic_screen_effect_get_script_value(source);
 }
 
+static_assert(offsetof(Globals, first_person_interface) == 0x17c, "Globals first person interface block");
+
 namespace halo::interface {
 
 /**
@@ -192,7 +194,7 @@ void FirstPersonWeaponController::interface_initialize()
         halo::interface::first_person_weapon_interface_tick_reset(local_player_index);
         return;
     }
-    weapon_index = *(datum_index *)((char *)unit + 0x2f8 + current_weapon_slot * 4);
+    weapon_index = ((unit_object *)unit)->unit.weapons[current_weapon_slot];
     if (weapon_index == (datum_index)halo::k_dword_none) {
         halo::interface::first_person_weapon_interface_tick_reset(local_player_index);
         return;
@@ -229,7 +231,7 @@ void FirstPersonWeaponController::interface_initialize()
     }
 
     {
-        uint32_t hands_model = *(uint32_t *)(*(int32_t *)((char *)global_globals + 0x180) + 0xc);
+        uint32_t hands_model = *(uint32_t *)&halo::interface::reflexive_elements<GlobalsFirstPersonInterface>(global_globals->first_person_interface)->first_person_hands.tag_id;
 
         if (hands_model != halo::k_dword_none) {
             fp->device_hud_valid = halo::interface::hud_meter_find_matching_elements(hud_interface_tag_ref, hands_model,
@@ -359,17 +361,17 @@ void FirstPersonWeaponController::process_action(int16_t action_code)
     }
 
     if (fp->weapon_index != (datum_index)halo::k_dword_none) {
-        uint8_t *weapon_obj = halo::interface::object_record<uint8_t>(fp->weapon_index);
-        datum_index definition = *(datum_index *)weapon_obj;
+        weapon_object *weapon_obj = halo::interface::object_record<weapon_object>(fp->weapon_index);
+        datum_index definition = weapon_obj->base.definition_tag;
 
         if (definition != (datum_index)halo::k_dword_none) {
             uint8_t *weapon_tag_data = (uint8_t *)halo::cache::globals().tag_instances[(uint16_t)definition].data;
 
             if (static_cast<int16_t>(((struct Weapon *)weapon_tag_data)->weapon_type) == 1 && (action_code == 9 || action_code == 10)) {
-                uint8_t *magazine_def = *(uint8_t **)(weapon_tag_data + 0x4f4);
-                int16_t rounds_loaded = *(int16_t *)(weapon_obj + 0x2b8);
-                int16_t rounds_unloaded = *(int16_t *)(weapon_obj + 0x2b6);
-                int32_t clamped = (int32_t)*(int16_t *)(magazine_def + 10) - (int32_t)rounds_loaded;
+                WeaponMagazine *magazine_def = halo::interface::reflexive_elements<WeaponMagazine>(((struct Weapon *)weapon_tag_data)->magazines);
+                int16_t rounds_loaded = weapon_obj->weapon.magazines[0].rounds_loaded;
+                int16_t rounds_unloaded = weapon_obj->weapon.magazines[0].rounds_unloaded;
+                int32_t clamped = (int32_t)magazine_def->rounds_loaded_maximum - (int32_t)rounds_loaded;
                 int16_t state = fp->state;
                 int16_t marker;
 
@@ -377,14 +379,14 @@ void FirstPersonWeaponController::process_action(int16_t action_code)
                     clamped = rounds_unloaded;
                 }
                 if (state == 0xf || state == 0x16 || state == 0x10 || state == 0x11 || state == 0xd ||
-                    state == 0xe || *(int16_t *)(weapon_obj + 0x2b0) != 0) {
-                    ((struct first_person_weapon_interface *)fp_raw)->device_hud_element[66] = (clamped == 1) ? 1 : -1;
+                    state == 0xe || weapon_obj->weapon.magazines[0].state != 0) {
+                    ((struct first_person_weapon_interface *)fp_raw)->device_reload_marker = (clamped == 1) ? 1 : -1;
                 } else {
-                    ((struct first_person_weapon_interface *)fp_raw)->device_hud_element[65] = (int16_t)clamped;
-                    *(uint8_t *)(fp_raw + 0x1e90) = (uint8_t)(rounds_loaded == 0);
-                    ((struct first_person_weapon_interface *)fp_raw)->device_hud_element[66] = ((int16_t)clamped == 1) ? 2 : 0;
+                    ((struct first_person_weapon_interface *)fp_raw)->device_reload_rounds = (int16_t)clamped;
+                    ((struct first_person_weapon_interface *)fp_raw)->device_magazine_empty = (uint8_t)(rounds_loaded == 0);
+                    ((struct first_person_weapon_interface *)fp_raw)->device_reload_marker = ((int16_t)clamped == 1) ? 2 : 0;
                 }
-                marker = ((struct first_person_weapon_interface *)fp_raw)->device_hud_element[66];
+                marker = ((struct first_person_weapon_interface *)fp_raw)->device_reload_marker;
                 if (marker == -1) {
                     new_state = 0xd;
                     goto set_state;
@@ -459,7 +461,7 @@ void FirstPersonWeaponController::set_state(uint8_t force_pose_snapshot, int16_t
 
     if (fp->weapon_index != (datum_index)halo::k_dword_none) {
         weapon_obj = halo::interface::object_record(fp->weapon_index);
-        if ((*(uint8_t *)(weapon_obj + 0x22c) & 1) != 0) {
+        if ((((weapon_object *)weapon_obj)->weapon.flags & _weapon_overheated_bit) != 0) {
             if (new_state == 0x13) {
                 new_state = 2;
             } else if (new_state == 0x14) {
@@ -711,7 +713,7 @@ void FirstPersonWeaponController::update_lighting(void)
     light_sample = (int32_t)(uintptr_t)halo::render::object_get_cached_render_lighting((datum_index)unit_handle, 3.4028235e+38f);
     light_params.modifier_shader = 0;
 
-    if ((*(uint8_t *)((char *)unit_obj + 0x204) & 0x10) != 0 ||
+    if (halo::interface::has_bit(((struct unit_object *)unit_obj)->unit.flags, halo::units::unit_flag::unknown_10) ||
         ((struct unit_object *)unit_obj)->unit.active_camouflage_power > 0.0f) {
         light_params.unit_37c = ((struct unit_object *)unit_obj)->unit.active_camouflage_power;
         light_params.unit_380 = ((struct unit_object *)unit_obj)->unit.super_active_camouflage_power;
@@ -729,8 +731,8 @@ void FirstPersonWeaponController::update_lighting(void)
 
         halo::interface::hud_meter_permute_node_records(node_scratch, fp->node_matrices, model_tag_ref,
                                         fp->weapon_hud_element);
-        halo::models::render_model(static_cast<TagID>(model_tag_ref), node_scratch, 0, 0, (ColorRGB *)((char *)weapon_obj + 0x1b8),
-                     (float *)((char *)weapon_obj + 0x134), reinterpret_cast<render_lighting *>(light_sample), reinterpret_cast<real_point3d *>(&render_camera_global), 0,
+        halo::models::render_model(static_cast<TagID>(model_tag_ref), node_scratch, 0, 0, weapon_obj->change_colors,
+                     weapon_obj->function_out_values, reinterpret_cast<render_lighting *>(light_sample), reinterpret_cast<real_point3d *>(&render_camera_global), 0,
                      reinterpret_cast<render_model_effect *>(&light_params), fp->weapon_index, 0, 8);
     }
     if (fp->device_hud_valid != 0 &&
@@ -739,8 +741,8 @@ void FirstPersonWeaponController::update_lighting(void)
 
         halo::interface::hud_meter_permute_node_records(node_scratch, fp->node_matrices, model_tag_ref,
                                         fp->device_hud_element);
-        halo::models::render_model(static_cast<TagID>(model_tag_ref), node_scratch, 0, 0, (ColorRGB *)((char *)unit_obj + 0x1b8),
-                     (float *)((char *)unit_obj + 0x134), reinterpret_cast<render_lighting *>(light_sample), reinterpret_cast<real_point3d *>(&render_camera_global), 0,
+        halo::models::render_model(static_cast<TagID>(model_tag_ref), node_scratch, 0, 0, unit_obj->change_colors,
+                     unit_obj->function_out_values, reinterpret_cast<render_lighting *>(light_sample), reinterpret_cast<real_point3d *>(&render_camera_global), 0,
                      reinterpret_cast<render_model_effect *>(&light_params), fp->weapon_index, 0, 8);
     }
 }
@@ -891,7 +893,7 @@ void FirstPersonWeaponController::update_state()
     case 0xd: case 0xe:
         weapon_obj = halo::interface::object_record(fp->weapon_index);
         item_tag_data = halo::interface::tag_data<Weapon>(*(uint32_t *)weapon_obj);
-        device_entry = ((struct first_person_weapon_interface *)fpb)->device_hud_element[66];
+        device_entry = ((struct first_person_weapon_interface *)fpb)->device_reload_marker;
         if (static_cast<int16_t>(item_tag_data->weapon_type) != 1 || device_entry == 0 || device_entry == -1) {
             halo::interface::first_person_weapon_set_state(local_player_index, 0, 0);
             return;
@@ -900,7 +902,7 @@ void FirstPersonWeaponController::update_state()
     case 0xf:
         weapon_obj = halo::interface::object_record(fp->weapon_index);
         item_tag_data = halo::interface::tag_data<Weapon>(*(uint32_t *)weapon_obj);
-        if (static_cast<int16_t>(item_tag_data->weapon_type) != 1 || ((struct first_person_weapon_interface *)fpb)->device_hud_element[66] != 2) {
+        if (static_cast<int16_t>(item_tag_data->weapon_type) != 1 || ((struct first_person_weapon_interface *)fpb)->device_reload_marker != 2) {
             halo::interface::first_person_weapon_set_state(local_player_index, 0, 0);
             return;
         }
@@ -912,7 +914,7 @@ void FirstPersonWeaponController::update_state()
         return;
     }
 
-    flag = *(uint8_t *)(fpb + 0x1e90);
+    flag = ((struct first_person_weapon_interface *)fpb)->device_magazine_empty;
     halo::interface::first_person_weapon_set_state(local_player_index, 0, (flag != 0) ? 0x10 : 0x11);
 }
 

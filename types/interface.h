@@ -385,7 +385,12 @@ typedef struct first_person_weapon_interface {
     int16_t weapon_hud_element[0x40]; // 0x1d8e match table filled by 0x493f00
     uint8_t device_hud_valid;         // 0x1e0e second hud_meter_find_matching_element result
     uint8_t pad_1e0f;                 // 0x1e0f
-    int16_t device_hud_element[0x44]; // 0x1e10 second match table
+    int16_t device_hud_element[0x40]; // 0x1e10 second match table
+    uint8_t device_magazine_empty;    // 0x1e90 1 when the reload animation started on an empty magazine
+    uint8_t pad_1e91;                 // 0x1e91
+    int16_t device_reload_rounds;     // 0x1e92 rounds the reload will add, clamped to the reserve
+    int16_t device_reload_marker;     // 0x1e94 -1 none, 0 reload not allowed, 1 single round, 2 magazine reload
+    int16_t unknown_1e96;             // 0x1e96
     int32_t frame_sound_index;        // 0x1e98 0x493150 = sound_start_at_object_marker(weapon, frame sound from
                                       //    animation_state_advance); 0x492e60 sound_impulse_fade_out(it) on forced
                                       //    state change
@@ -393,6 +398,8 @@ typedef struct first_person_weapon_interface {
                                       //    the fade when it is 1; reset -1 with the sound
     int16_t unknown_1e9e;             // 0x1e9e
 } first_person_weapon_interface;      // size 0x1ea0
+static_assert(sizeof(first_person_weapon_interface) == 0x1ea0, "first_person_weapon_interface layout");
+static_assert(offsetof(first_person_weapon_interface, device_reload_marker) == 0x1e94, "first_person_weapon_interface layout");
 
 // ---------------------------------------------------------------------------
 // hud_message_slot  (chimera__hud_message @0x4ae180, hud_add_item_message @0x4ae400,
