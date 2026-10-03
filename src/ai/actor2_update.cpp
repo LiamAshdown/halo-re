@@ -1529,7 +1529,7 @@ uint8_t ActorView::update_melee_combat_action()
     }
     if (a->order_committed || searching || regroup) {
         if (searching) {
-            if (a->mode == 6 && ((uint8_t *)a)[0xa1]) {
+            if (a->mode == 6 && a->mode_data.guard.command_pending) {
                 return 1;
             }
             if (halo::ai::actor_build_order_search_wait(actor_index, (actor_order *)order)) {
@@ -1630,7 +1630,7 @@ uint8_t ActorView::update_melee_combat_action()
             } else {
                 int16_t limit;
 
-                if (a->mode == 5 && move_ok && W(a, 0xa4) == 1) {
+                if (a->mode == 5 && move_ok && a->mode_data.uncover.stage == 1) {
                     position = W(a, 0xa6);
                     have_position = 1;
                 }
@@ -1692,7 +1692,7 @@ guard:
     }
     {
         int16_t mode = a->mode;
-        int16_t guard_at = ((mode == 7 && !((uint8_t *)a)[0x9d]) || mode == 8) ? 0 : 0x5a;
+        int16_t guard_at = ((mode == 7 && !a->mode_data.search.unknown_01) || mode == 8) ? 0 : 0x5a;
 
         halo::ai::actor_set_target_alert_stage3(a->target_unit_index, actor_index);
         halo::ai::actor_build_order_guard(actor_index, (actor_order *)order, guard_at);
