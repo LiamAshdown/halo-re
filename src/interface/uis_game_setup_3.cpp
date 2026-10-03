@@ -19,6 +19,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern int32_t ui_list_current;
@@ -58,7 +59,7 @@ static uint8_t level_unlocked_for(int16_t player, int32_t level_id)
  */
 uint8_t UiGameSetup::level_select_confirm_choice(widget_instance *widget)
 {
-    int16_t list_index = *(int16_t *)&((struct widget_instance *)widget)->text;
+    int16_t list_index = halo::interface::widget_list_committed(widget);
     int32_t level_id = -1;
     uint8_t unlocked = 0;
     growable_array *list = &ui_lists[ui_list_current];

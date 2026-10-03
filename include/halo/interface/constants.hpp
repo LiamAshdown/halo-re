@@ -21,8 +21,8 @@ inline constexpr uint32_t k_pool_block_size_mask = 0x7fffffff;
 /** Mask of the RGB channels of a packed ARGB colour. */
 inline constexpr uint32_t k_rgb_mask = 0xffffff;
 
-/** Bit pattern of the float scale (about 1/3) every freshly built list row and menu child starts with. */
-inline constexpr uint32_t k_widget_default_scale_bits = 0x3eaa7efa;
+/** The float scale (about 1/3) every freshly built list row and menu child starts with. */
+inline constexpr float k_widget_default_scale = 0.333f;
 
 /** Offset of the client-side game state record inside the network client record. */
 inline constexpr uint32_t k_client_game_offset = 0xb14;

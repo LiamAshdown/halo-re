@@ -30,6 +30,7 @@
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern uint8_t level_select_entries[0x50];
@@ -132,7 +133,7 @@ uint8_t UiEventHandlers::event_49cdd0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49cfa0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    int16_t selection = *(int16_t *)((uint8_t *)widget->parent->parent + 0x3c);
+    int16_t selection = halo::interface::widget_list_committed(widget->parent->parent);
 
     if (selection < 4) {
         if (selection >= 0) {
@@ -414,8 +415,8 @@ uint8_t UiEventHandlers::event_49d5f0(widget_instance *widget, int16_t *event, u
             widget->selection_index = 0;
         }
     }
-    *(int16_t *)&((struct widget_instance *)widget)->text = widget->selection_index;
-    *(int16_t *)((uint8_t *)widget + 0x3e) = -1;
+    halo::interface::widget_list_committed(widget) = widget->selection_index;
+    halo::interface::widget_list_first_visible(widget) = -1;
     for (i = 0; i < 3; i++) {
         ui_lists[i].element_size = 0x10;
         ui_lists[i].count = 0;
@@ -526,8 +527,8 @@ uint8_t UiEventHandlers::event_49d8b0(widget_instance *widget, int16_t *event, u
             }
         }
     }
-    *(int16_t *)&((struct widget_instance *)widget)->text = widget->selection_index;
-    *(int16_t *)((uint8_t *)widget + 0x3e) = -1;
+    halo::interface::widget_list_committed(widget) = widget->selection_index;
+    halo::interface::widget_list_first_visible(widget) = -1;
     return 1;
 }
 
@@ -540,7 +541,7 @@ uint8_t UiEventHandlers::event_49dab0(widget_instance *widget, int16_t *event, u
 {
     uint32_t variant[0x26];
     char directory[halo::interface::k_text_buffer_chars];
-    int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)widget)->text);
+    int32_t id = list_item_id(halo::interface::widget_list_committed(widget));
     int32_t item = ((int32_t *)widget->list_items)[id];
 
     if (item == -1 || item >= 0) {
@@ -577,7 +578,7 @@ uint8_t UiEventHandlers::event_49dab0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_49e170(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)widget)->text);
+    int32_t id = list_item_id(halo::interface::widget_list_committed(widget));
     int32_t item;
 
     profile_slot_lookup_cache_00692ac8 = -1;

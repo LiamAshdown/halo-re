@@ -264,7 +264,7 @@ int32_t UiLists::list_widget_compute_scroll_start(widget_instance *widget)
     UIWidgetDefinition *tag_data;
     int32_t visible_rows;
     int16_t *scroll_start = (int16_t *)((uint8_t *)widget + 0x3e);
-    int16_t *selected_index_field = (int16_t *)((uint8_t *)widget + 0x3c);
+    int16_t *selected_index_field = &halo::interface::widget_list_committed(widget);
     int32_t scroll_start_value;
     int32_t selected_index;
     int32_t window_size;
@@ -321,7 +321,7 @@ void UiLists::list_widget_rebuild_rows(widget_instance *widget, ui_list_item_for
     int32_t visible_rows = (int32_t)tag_data->child_widgets.count;
     widget_instance *first_row = widget->first_child;
     int16_t *scroll_start_field = (int16_t *)((uint8_t *)widget + 0x3e);
-    int16_t *selected_index_field = (int16_t *)((uint8_t *)widget + 0x3c);
+    int16_t *selected_index_field = &halo::interface::widget_list_committed(widget);
     int32_t scroll_start = *scroll_start_field;
     uint8_t has_embedded_spinner;
     uint8_t focused_not_last;
@@ -585,7 +585,7 @@ void UiLists::selection_list_mirror_value_build(widget_instance *widget)
     profile_record = profile_globals_block[0].profile;
     halo::interface::set_profile_name(widget->extended_description->first_child, profile_record.name);
 
-    selected_value = *(int16_t *)&((struct widget_instance *)widget)->text;
+    selected_value = halo::interface::widget_list_committed(widget);
     target = widget->extended_description->first_child->next_sibling->first_child;
     target->selection_index = selected_value;
     target->next_sibling->background_bitmap_frame = selected_value;

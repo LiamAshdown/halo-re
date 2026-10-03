@@ -30,6 +30,7 @@
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern char level_select_current_path_00719068[halo::interface::k_level_select_path_chars];
@@ -173,10 +174,10 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
         i = i + 1;
     } while (i < 10);
 
-    *(int16_t *)&((struct widget_instance *)widget)->text = widget->selection_index;
+    halo::interface::widget_list_committed(widget) = widget->selection_index;
     widget->list_items = level_select_entries;
     widget->item_count = 10;
-    *(int16_t *)((uint8_t *)widget + 0x3e) = -1;
+    halo::interface::widget_list_first_visible(widget) = -1;
 
     if (level_select_flags_0071916b == 1) {
         level_select_frame_00719168 = 0;
@@ -284,7 +285,7 @@ void UiGameSetup::game_variant_flag_list_widget_build(widget_instance *widget)
 
     halo::interface::ui_list_widget_rebuild_rows(widget, (ui_list_item_format_function)((void *)halo::interface::ui_list_default_item_format));
 
-    combo_index = *(int16_t *)&((struct widget_instance *)widget)->text;
+    combo_index = halo::interface::widget_list_committed(widget);
     if (combo_index > -1 && combo_index < ui_lists[ui_list_current].count) {
         ui_list_item *entry = (ui_list_item *)ui_lists[ui_list_current].data + combo_index;
         variant_data = entry->data;
@@ -323,7 +324,7 @@ void UiGameSetup::game_variant_flag_list_widget_build(widget_instance *widget)
  */
 uint8_t UiGameSetup::map_select_confirm_choice(widget_instance *widget)
 {
-    int32_t selection = *(int16_t *)&((struct widget_instance *)widget)->text;
+    int32_t selection = halo::interface::widget_list_committed(widget);
     int32_t count = map_list_count;
     int32_t map_index = -1;
     char *path;

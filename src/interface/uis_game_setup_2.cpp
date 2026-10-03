@@ -21,6 +21,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
@@ -57,7 +58,7 @@ void UiGameSetup::game_variant_list_widget_build(widget_instance *widget)
     profile_record = profile_globals_block[0].profile;
     halo::interface::set_profile_name(widget->extended_description->first_child, profile_record.name);
 
-    combo_index = *(int16_t *)&((struct widget_instance *)widget)->text;
+    combo_index = halo::interface::widget_list_committed(widget);
     if (combo_index > -1 && combo_index < ui_lists[ui_list_current].count) {
         ui_list_item *entry = (ui_list_item *)ui_lists[ui_list_current].data + combo_index;
         variant_description = (const uint16_t *)entry->data;

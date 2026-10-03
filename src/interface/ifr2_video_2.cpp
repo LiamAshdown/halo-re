@@ -105,7 +105,7 @@ void VideoOptions::populate(widget_instance *screen, const saved_player_profile 
     if (os_platform < 3) {
         refresh_field->selection_index = 0;
         refresh_field->parent->hidden = 1;
-        *(uint32_t *)&refresh_field->parent->scale = halo::interface::k_widget_default_scale_bits;
+        refresh_field->parent->scale = halo::interface::k_widget_default_scale;
     } else if (video_force_mode_flag == 0 && halo::rasterizer::globals().fullscreen != 0 && rasterizer_device != 0) {
         refresh_field->selection_index = (int16_t)refresh_index;
         refresh_field->parent->hidden = 0;
@@ -113,7 +113,7 @@ void VideoOptions::populate(widget_instance *screen, const saved_player_profile 
     } else {
         refresh_field->selection_index = (int16_t)refresh_index;
         refresh_field->parent->hidden = 1;
-        *(uint32_t *)&refresh_field->parent->scale = halo::interface::k_widget_default_scale_bits;
+        refresh_field->parent->scale = halo::interface::k_widget_default_scale;
     }
 
     {
@@ -128,7 +128,7 @@ void VideoOptions::populate(widget_instance *screen, const saved_player_profile 
         if (rasterizer_device_version < halo::interface::k_pixel_shader_version_1_1 || halo::shell::globals().disable_specular != 0) {
             node->selection_index = 0;
             base->hidden = 1;
-            *(uint32_t *)&base->scale = halo::interface::k_widget_default_scale_bits;
+            base->scale = halo::interface::k_widget_default_scale;
         } else {
             base->hidden = 0;
             base->scale = 1.0f;
@@ -140,7 +140,7 @@ void VideoOptions::populate(widget_instance *screen, const saved_player_profile 
         if (rasterizer_device_version < halo::interface::k_pixel_shader_version_1_1) {
             node->selection_index = 0;
             base->hidden = 1;
-            *(uint32_t *)&base->scale = halo::interface::k_widget_default_scale_bits;
+            base->scale = halo::interface::k_widget_default_scale;
         } else {
             base->hidden = 0;
             base->scale = 1.0f;
@@ -152,7 +152,7 @@ void VideoOptions::populate(widget_instance *screen, const saved_player_profile 
         if ((rasterizer_capability_007c10e4 & halo::interface::k_decal_capability_mask) == 0) {
             node->selection_index = 0;
             base->hidden = 1;
-            *(uint32_t *)&base->scale = halo::interface::k_widget_default_scale_bits;
+            base->scale = halo::interface::k_widget_default_scale;
         } else {
             base->hidden = 0;
             base->scale = 1.0f;

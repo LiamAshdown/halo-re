@@ -2,6 +2,7 @@
 #include <string.h>
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/interface/wide_text.hpp"
 
 #ifdef interface
 #undef interface
@@ -35,7 +36,7 @@ void PlayerProfiles::select_list_widget_build(widget_instance *widget)
     profile_record = profile_globals_block[0].profile;
     halo::interface::set_profile_name(widget->extended_description->first_child, profile_record.name);
 
-    combo_index = *(int16_t *)&((struct widget_instance *)widget)->text;
+    combo_index = halo::interface::widget_list_committed(widget);
     if (combo_index < 0 || (uint16_t)widget->item_count <= combo_index) {
         widget_instance *a = widget->extended_description->first_child->next_sibling->first_child;
         widget_instance *b = a->next_sibling;

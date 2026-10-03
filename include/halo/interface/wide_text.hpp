@@ -35,4 +35,16 @@ inline void draw_text8(Rectangle2D *clip, Rectangle2D *bounds, const char *text)
     halo::rasterizer::chimera__draw_8_bit_text(clip, reinterpret_cast<int32_t *>(bounds), 0, 0, text);
 }
 
+/**
+ * List widgets reuse the text slot as two words: the committed selection and the first visible item (the slot holds no text for
+ * a list). These accessors name the two words.
+ */
+inline int16_t &widget_list_committed(widget_instance *widget) {
+    return reinterpret_cast<int16_t *>(&widget->text)[0];
+}
+
+inline int16_t &widget_list_first_visible(widget_instance *widget) {
+    return reinterpret_cast<int16_t *>(&widget->text)[1];
+}
+
 }  // namespace halo::interface

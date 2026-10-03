@@ -121,7 +121,7 @@ static int32_t list_item_id(int16_t index)
 static void row_clicked(widget_instance *list, int32_t row, int32_t old_committed, uint8_t double_click)
 {
     halo::interface::widget_play_sound_effect(2);
-    *(int16_t *)&((struct widget_instance *)list)->text = (int16_t)row;
+    halo::interface::widget_list_committed(list) = (int16_t)row;
     if (double_click && old_committed == row) {
         ui_input_event queued;
 
@@ -390,7 +390,7 @@ uint8_t UiEventHandlers::event_4a2950(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_4a2a00(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     saved_player_profile profile;
-    int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)widget)->text);
+    int32_t id = list_item_id(halo::interface::widget_list_committed(widget));
     int32_t item;
 
     profile_slot_lookup_cache_00692ac8 = -1;
@@ -494,7 +494,7 @@ uint8_t UiEventHandlers::event_4a3000(widget_instance *widget, int16_t *event, u
         child->scale = 1.0f;
     } else {
         child->hidden = 1;
-        *(uint32_t *)&child->scale = halo::interface::k_widget_default_scale_bits;
+        child->scale = halo::interface::k_widget_default_scale;
     }
     return 1;
 }
@@ -514,7 +514,7 @@ uint8_t UiEventHandlers::event_4a3050(widget_instance *widget, int16_t *event, u
         child->scale = 1.0f;
     } else {
         child->hidden = 1;
-        *(uint32_t *)&child->scale = halo::interface::k_widget_default_scale_bits;
+        child->scale = halo::interface::k_widget_default_scale;
         child->parent->focused_child = child->parent->first_child->next_sibling;
     }
     for (i = 0; i < 2; i++) {
@@ -524,7 +524,7 @@ uint8_t UiEventHandlers::event_4a3050(widget_instance *widget, int16_t *event, u
             child->scale = 1.0f;
         } else {
             child->hidden = 1;
-            *(uint32_t *)&child->scale = halo::interface::k_widget_default_scale_bits;
+            child->scale = halo::interface::k_widget_default_scale;
         }
     }
     return 1;
@@ -617,8 +617,8 @@ uint8_t UiEventHandlers::event_4a3540(widget_instance *widget, int16_t *event, u
     widget_instance *list = widget->parent;
     uint8_t *definition = halo::interface::tag_data<uint8_t>(list->definition);
     int32_t rows = (int32_t)((struct UIWidgetDefinition *)definition)->child_widgets.count;
-    int32_t first_visible = *(int16_t *)((uint8_t *)list + 0x3e);
-    int32_t committed = *(int16_t *)&((struct widget_instance *)list)->text;
+    int32_t first_visible = halo::interface::widget_list_first_visible(list);
+    int32_t committed = halo::interface::widget_list_committed(list);
     widget_instance *child = list->first_child;
     uint8_t header = (uint8_t)(child != 0 && child->first_child != 0 && child->first_child->widget_type == uiwidgettype_spinner_list);
     uint8_t double_click = 0;
@@ -660,7 +660,7 @@ uint8_t UiEventHandlers::event_4a3540(widget_instance *widget, int16_t *event, u
         if (first_visible < 0) {
             first_visible = 0;
         }
-        *(int16_t *)((uint8_t *)list + 0x3e) = (int16_t)first_visible;
+        halo::interface::widget_list_first_visible(list) = (int16_t)first_visible;
         halo::interface::widget_play_sound_effect(2);
         return 1;
     }
@@ -670,7 +670,7 @@ uint8_t UiEventHandlers::event_4a3540(widget_instance *widget, int16_t *event, u
         if (last >= (int32_t)list->item_count - shown) {
             last = (int32_t)list->item_count - shown;
         }
-        *(int16_t *)((uint8_t *)list + 0x3e) = (int16_t)last;
+        halo::interface::widget_list_first_visible(list) = (int16_t)last;
         halo::interface::widget_play_sound_effect(2);
         return 1;
     }

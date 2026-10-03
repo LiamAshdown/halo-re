@@ -33,6 +33,7 @@
 #include "halo/game/api.hpp"
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern int16_t pending_difficulty;
@@ -83,7 +84,7 @@ static void show(widget_instance *child, uint8_t visible)
         child->scale = 1.0f;
         child->hidden = 0;
     } else {
-        *(uint32_t *)&child->scale = halo::interface::k_widget_default_scale_bits;
+        child->scale = halo::interface::k_widget_default_scale;
         child->hidden = 1;
     }
 }
@@ -127,7 +128,7 @@ uint8_t UiEventHandlers::event_4a4110(widget_instance *widget, int16_t *event, u
 {
     widget_instance *parent = widget->parent;
     widget_instance *child = parent->first_child;
-    int16_t *committed = (int16_t *)((uint8_t *)parent + 0x3c);
+    int16_t *committed = &halo::interface::widget_list_committed(parent);
     int32_t i;
 
     for (i = 0; child != widget; i++) {
@@ -245,7 +246,7 @@ uint8_t UiEventHandlers::event_4a4570(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a4580(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *data = (uint8_t *)list_item_data(*(int16_t *)&((struct widget_instance *)widget)->text);
+    uint8_t *data = (uint8_t *)list_item_data(halo::interface::widget_list_committed(widget));
 
     sprintf(pending_delete_saved_game_name_00718fd0, "checkpoints\\%s", (char *)(data + 0x48));
     return 1;
@@ -271,7 +272,7 @@ uint8_t UiEventHandlers::event_4a45d0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a45f0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t *data = (uint8_t *)list_item_data(*(int16_t *)&((struct widget_instance *)widget)->text);
+    uint8_t *data = (uint8_t *)list_item_data(halo::interface::widget_list_committed(widget));
     char name[0x40];
 
     sprintf(name, "checkpoints\\%s", (char *)(data + 0x48));

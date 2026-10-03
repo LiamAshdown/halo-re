@@ -17,6 +17,7 @@
 #include "halo/interface/uis_network_menu.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
@@ -57,7 +58,7 @@ void UiNetworkMenu::network_adapter_list_widget_build(widget_instance *widget)
     target2 = target1->next_sibling;
     target3 = target2->next_sibling;
 
-    map_id = (int16_t)map_list[*(int16_t *)&((struct widget_instance *)widget)->text].map_id;
+    map_id = (int16_t)map_list[halo::interface::widget_list_committed(widget)].map_id;
     target1->selection_index = map_id;
     target2->background_bitmap_frame = map_id;
     target3->selection_index = map_id;

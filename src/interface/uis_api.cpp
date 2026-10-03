@@ -74,7 +74,7 @@ ColorARGB * ui_get_saved_pulse_color(ColorARGB *out)
     return halo::ui::UiScreens::get_saved_pulse_color(out);
 }
 
-void ui_handler_4a68f0(uint8_t *widget)
+void ui_handler_4a68f0(widget_instance *widget)
 {
     halo::ui::UiScreens::handler_4a68f0(widget);
 }

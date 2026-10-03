@@ -503,7 +503,7 @@ void ui_game_variant_flag_list_widget_build(widget_instance *widget);
 void ui_game_variant_list_widget_build(widget_instance *widget);
 ColorRGB * ui_get_saved_color(ColorRGB *out);
 ColorARGB * ui_get_saved_pulse_color(ColorARGB *out);
-void ui_handler_4a68f0(uint8_t *widget);
+void ui_handler_4a68f0(widget_instance *widget);
 void ui_level_carousel_refresh(widget_instance *widget);
 void ui_level_carousel_row_refresh(widget_instance *widget, int32_t level_index);
 uint8_t ui_level_select_confirm_choice(widget_instance *widget);

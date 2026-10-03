@@ -30,6 +30,7 @@
 #include "halo/interface/constants.hpp"
 #include "halo/interface/net_session.hpp"
 #include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -824,8 +825,8 @@ uint8_t UiEventHandlers::event_4a0860(widget_instance *widget, int16_t *event, u
         colour = (int16_t)(colour < 0 ? 0 : colour > 0x11 ? 0x11 : colour);
         ((struct saved_player_profile *)profile)->player_color = colour;
         widget->selection_index = colour;
-        *(int16_t *)&((struct widget_instance *)widget)->text = ((struct saved_player_profile *)profile)->player_color;
-        *(int16_t *)((uint8_t *)widget + 0x3e) = -1;
+        halo::interface::widget_list_committed(widget) = ((struct saved_player_profile *)profile)->player_color;
+        halo::interface::widget_list_first_visible(widget) = -1;
     }
     indices = (uint8_t *)halo::memory::heap_reallocate(widget->list_items, 0x12, widget_memory_pool);
     widget->list_items = indices;
@@ -881,7 +882,7 @@ uint8_t UiEventHandlers::event_4a0860(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_4a0a80(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     uint8_t *profile = (selected_saved_item & 0xf) == 0 ? saved_item_working_copy : 0;
-    int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)widget)->text);
+    int32_t id = list_item_id(halo::interface::widget_list_committed(widget));
 
     if (profile == 0) {
         return 0;

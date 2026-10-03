@@ -63,7 +63,7 @@ static void set_option_text(widget_instance *row, uint32_t value, uint8_t hidden
     }
     if (hidden) {
         row->hidden = 1;
-        *(uint32_t *)&row->scale = halo::interface::k_widget_default_scale_bits;
+        row->scale = halo::interface::k_widget_default_scale;
     } else {
         row->hidden = 0;
         row->scale = 1.0f;
@@ -626,7 +626,7 @@ void UiGameDataInputs::input_4a73d0(widget_instance *widget)
         widget->scale = 1.0f;
         return;
     }
-    *(uint32_t *)&widget->scale = halo::interface::k_widget_default_scale_bits;
+    widget->scale = halo::interface::k_widget_default_scale;
 }
 
 /**

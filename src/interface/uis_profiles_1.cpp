@@ -24,6 +24,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern int32_t profile_slot_lookup_cache_00692ac8;
@@ -120,8 +121,8 @@ uint32_t UiProfiles::build_profile_list(widget_instance *widget)
         if (widget->selection_index == -1) {
             widget->selection_index = 0;
         }
-        *(int16_t *)&((struct widget_instance *)widget)->text = widget->selection_index;
-        *(int16_t *)((uint8_t *)widget + 0x3e) = -1;
+        halo::interface::widget_list_committed(widget) = widget->selection_index;
+        halo::interface::widget_list_first_visible(widget) = -1;
     }
     return (high_bits << 8) | 1;
 }
@@ -312,7 +313,7 @@ void UiProfiles::profile_details_list_widget_build(widget_instance *widget)
 
     widget->extended_description->first_child->next_sibling->background_bitmap_frame = 0;
     halo::interface::ui_level_carousel_row_refresh(widget->extended_description->first_child->next_sibling,
-                 *(int16_t *)&((struct widget_instance *)widget)->text);
+                 halo::interface::widget_list_committed(widget));
 }
 
 /**

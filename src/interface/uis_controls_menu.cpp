@@ -20,6 +20,7 @@
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
@@ -67,7 +68,7 @@ static widget_instance *find_row_control_until(widget_instance *row, widget_inst
  */
 void UiControlsMenu::controls_4wide_selector_refresh(widget_instance *widget)
 {
-    int16_t selection = *(int16_t *)&((struct widget_instance *)widget)->text;
+    int16_t selection = halo::interface::widget_list_committed(widget);
     widget_instance *display = widget->extended_description->first_child;
     widget_instance *cursor;
     int16_t i;

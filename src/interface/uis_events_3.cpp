@@ -40,6 +40,7 @@
 #include "halo/interface/records.hpp"
 #include "halo/interface/constants.hpp"
 #include "halo/interface/widget_pool.hpp"
+#include "halo/interface/wide_text.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -157,7 +158,7 @@ uint8_t UiEventHandlers::event_4a10f0(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_4a1180(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     widget_instance *list = widget->first_child->next_sibling;
-    int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)list)->text);
+    int32_t id = list_item_id(halo::interface::widget_list_committed(list));
 
     if (id != -1) {
         profile_slot_lookup_cache_00692ac8 = ((int32_t *)list->list_items)[id];
@@ -176,7 +177,7 @@ uint8_t UiEventHandlers::event_4a1180(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a11e0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)widget)->text);
+    int32_t id = list_item_id(halo::interface::widget_list_committed(widget));
     int32_t item = ((int32_t *)widget->list_items)[id];
 
     profile_slot_lookup_cache_00692ac8 = item;
@@ -269,7 +270,7 @@ uint8_t UiEventHandlers::event_4a1310(widget_instance *widget, int16_t *event, u
         if (handle != halo::k_dword_none) {
             halo::interface::saved_item_select((int32_t)handle);
             if ((selected_saved_item & 0xf) == 1) {
-                int32_t id = halo::interface::ui_list_get_id(*(int16_t *)&((struct widget_instance *)list)->text);
+                int32_t id = halo::interface::ui_list_get_id(halo::interface::widget_list_committed(list));
                 const void *source;
                 uint8_t opened;
 
@@ -602,7 +603,7 @@ uint8_t UiEventHandlers::event_4a1b60(widget_instance *widget, int16_t *event, u
     }
     widget->selection_index = selection;
     widget->focused_child = child;
-    *(int16_t *)&((struct widget_instance *)widget)->text = widget->selection_index;
+    halo::interface::widget_list_committed(widget) = widget->selection_index;
     return 1;
 }
 
