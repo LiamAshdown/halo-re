@@ -6,6 +6,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/ai/records.hpp"
 
 namespace halo::ai {
 
@@ -994,7 +995,7 @@ extern game_time_globals *game_time;
 int32_t ActorView::select_move_position(int16_t select_mode, int32_t position_index, uint8_t *direction_flag)
 {
     using namespace actor_select_move_position_local;
-    uint8_t *a = (uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    struct actor *a = halo::ai::actor_at(actor_index);
     uint8_t *squad;
     uint8_t *positions;
     int32_t count;
@@ -1004,14 +1005,14 @@ int32_t ActorView::select_move_position(int16_t select_mode, int32_t position_in
     int16_t i;
     int16_t index;
 
-    if (a[0x160] || select_mode == 0) {
+    if (a->order_committed || select_mode == 0) {
         return -1;
     }
-    if (((actor *)a)->encounter_index == k_datum_index_none) {
+    if (a->encounter_index == k_datum_index_none) {
         return -1;
     }
     squad = *(uint8_t **)(*(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x430) +
-        (((actor *)a)->encounter_index & halo::k_slot_mask) * 0xb0 + 0x84) + ((actor *)a)->squad_index * 0xe8;
+        (a->encounter_index & halo::k_slot_mask) * 0xb0 + 0x84) + a->squad_index * 0xe8;
     if (select_mode == 1 && current != -1) {
         return position_index;
     }
@@ -1027,26 +1028,26 @@ int32_t ActorView::select_move_position(int16_t select_mode, int32_t position_in
         datum_index prop_index;
 
         if (current != -1) {
-            float dx = pos[0] - ((actor *)a)->body_position.x;
-            float dy = pos[1] - ((actor *)a)->body_position.y;
-            float dz = pos[2] - ((actor *)a)->body_position.z;
+            float dx = pos[0] - a->body_position.x;
+            float dy = pos[1] - a->body_position.y;
+            float dz = pos[2] - a->body_position.z;
 
             if (!(dz * dz + dy * dy + dx * dx >= 0.25f)) {
                 eligible = 0;
             }
         }
-        if (((uint8_t *)pos)[0x1e] && ((uint8_t *)pos)[0x1e] != a[0x68]) {
+        if (((uint8_t *)pos)[0x1e] && ((uint8_t *)pos)[0x1e] != a->sequence_id) {
             eligible = 0;
         }
-        for (prop_index = ((actor *)a)->first_prop; prop_index != k_datum_index_none;) {
-            uint8_t *pr = (uint8_t *)halo::ai::globals().prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size;
-            int16_t kind = ((prop *)pr)->state;
+        for (prop_index = a->first_prop; prop_index != k_datum_index_none;) {
+            prop *pr = halo::ai::prop_at(prop_index);
+            int16_t kind = pr->state;
 
-            prop_index = ((prop *)pr)->next_in_actor;
+            prop_index = pr->next_in_actor;
             if (kind >= 2 && kind <= 3) {
-                float dx = pos[0] - ((prop *)pr)->last_known_position.x;
-                float dy = pos[1] - ((prop *)pr)->last_known_position.y;
-                float dz = pos[2] - ((prop *)pr)->last_known_position.z;
+                float dx = pos[0] - pr->last_known_position.x;
+                float dy = pos[1] - pr->last_known_position.y;
+                float dz = pos[2] - pr->last_known_position.z;
 
                 if (!(dz * dz + dy * dy + dx * dx >= 0.25f)) {
                     occupied = 1;
