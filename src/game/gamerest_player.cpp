@@ -34,6 +34,9 @@
 #include "halo/game/vars.hpp"
 #include "halo/core/libm.hpp"
 
+static_assert(offsetof(Biped, collision_radius) == 0x42c, "biped tag collision radius");
+static_assert(offsetof(GlobalsPlayerInformation, coop_respawn_effect) + offsetof(TagDependency, tag_id) == 0xc4, "coop respawn effect id");
+
 static auto &network_index_cache_table = halo::link::ref<void *const>(halo::game::vars().network_index_cache_table);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
@@ -765,7 +768,7 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
                 facing = *(real_vector3d *)&((struct object *)root_object)->forward.i;
             }
         }
-        collision_radius = *(float *)((uint8_t *)halo::game::tag_data_at(*(datum_index *)unit) + 0x42c);
+        collision_radius = ((Biped *)halo::game::tag_data_at(*(datum_index *)unit))->collision_radius;
         facing.k = 0.0f;
         facing.i = -facing.i;
         facing.j = -facing.j;
@@ -845,7 +848,7 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
         halo::game::game_engine_compute_look_angles_from_vector(&facing, ((struct player *)player)->local_player_index);
     }
     {
-        datum_index effect = *(datum_index *)((uint8_t *)global_globals->player_information.pointer + 0xc4);
+        datum_index effect = halo::bit_cast<datum_index>(((GlobalsPlayerInformation *)global_globals->player_information.pointer)->coop_respawn_effect.tag_id);
 
         if (effect != k_datum_index_none) {
             halo::game::game_engine_build_visible_cluster_bitmask((uint32_t *)local_player_globals->cluster_pvs, 0);

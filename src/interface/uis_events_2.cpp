@@ -836,7 +836,7 @@ uint8_t UiEventHandlers::event_4a0860(widget_instance *widget, int16_t *event, u
     if (indices == 0) {
         return 1;
     }
-    strings = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::colors_list);
+    strings = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::profile_color_names);
     for (i = 0; i < 0x12; i++) {
         uint16_t *text = missing_string_text;
         uint8_t is_default;

@@ -132,9 +132,9 @@ void ChimeraBridge::do_show_loading_screen(void)
         }
     }
 
-    font = halo::interface::lookup_tag(halo::fourcc('f', 'o', 'n', 't'), halo::tag_paths::large_ui);
-    background = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), halo::tag_paths::background);
-    strings = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::loading);
+    font = halo::interface::lookup_tag(halo::fourcc('f', 'o', 'n', 't'), halo::tag_paths::large_ui_font);
+    background = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), halo::tag_paths::shell_background_bitmap);
+    strings = halo::interface::lookup_tag(halo::groups::unicode_string_list, halo::tag_paths::loading_strings);
     if (font == (datum_index)-1 || background == (datum_index)-1 || strings == (datum_index)-1) {
         return;
     }
@@ -236,7 +236,7 @@ void ChimeraBridge::load_main_menu(void)
     }
     halo::input::UiEvents::queue_sample_time_update();
     halo::interface::widget_close_all();
-    halo::interface::chimera__load_ui_widget(halo::tag_paths::main_menu, (datum_index)-1, (widget_instance *)0, halo::k_word_none,
+    halo::interface::chimera__load_ui_widget(halo::tag_paths::main_menu_widget, (datum_index)-1, (widget_instance *)0, halo::k_word_none,
                             (datum_index)-1, (datum_index)-1, -1);
     if (halo::networking::globals().join_error_code != -1) {
         halo::interface::display_error(halo::networking::globals().join_error_code, -1, 1, 0);
@@ -268,7 +268,7 @@ widget_instance * ChimeraBridge::load_ui_widget(const const char *tag_path, datu
     int16_t slot = (controller_index == halo::k_word_none) ? 0 : (int16_t)controller_index;
     UIWidgetDefinition *tag;
 
-    ui_cursor_bitmap = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), halo::tag_paths::cursor);
+    ui_cursor_bitmap = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), halo::tag_paths::shell_cursor_bitmap);
     ui_widget_opened = 1;
 
     if (tag_index == (datum_index)-1) {

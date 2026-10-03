@@ -104,7 +104,7 @@ uint32_t UiScreens::check_for_pause_game(void)
             if (widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0) {
                 return 0;
             }
-            tag_path = halo::tag_paths::pause_game;
+            tag_path = halo::tag_paths::solo_pause_game_widget;
         } else if (player_count > 1) {
             if (player_count == 2) {
                 if (ui_root_widget[0] != (widget_instance *)0 ||
@@ -116,13 +116,13 @@ uint32_t UiScreens::check_for_pause_game(void)
                 if (widget_memory_pool_valid != 0 && ui_root_widget[0] != (widget_instance *)0) {
                     return 0;
                 }
-                tag_path = halo::tag_paths::pause_game;
+                tag_path = halo::tag_paths::solo_pause_game_widget;
             }
         } else {
             if (ui_root_widget[0] != (widget_instance *)0) {
                 return 0;
             }
-            tag_path = halo::tag_paths::pause_game;
+            tag_path = halo::tag_paths::solo_pause_game_widget;
         }
     }
 
