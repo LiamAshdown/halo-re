@@ -5,6 +5,7 @@
  */
 
 #include "halo/models/models.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern tag_instance *tag_instances;
@@ -27,7 +28,7 @@ animation_state_advance_result animation_graph::state_advance(uint32_t animation
     int16_t loop_frame_index;
     int16_t clamped_loop_frame;
 
-    graph = (ModelAnimations *)tag_instances[animation_graph_tag_index & 0xffff].data;
+    graph = (ModelAnimations *)tag_instances[halo::datum_slot(animation_graph_tag_index)].data;
     animation = (ModelAnimationsAnimation *)((uint8_t *)graph->animations.pointer +
                                               state->animation_index * (int)sizeof(ModelAnimationsAnimation));
 
@@ -74,7 +75,7 @@ int16_t animation_graph::choose_random_permutation(datum_index animation_graph_t
     real threshold;
     int16_t animation;
 
-    graph = (ModelAnimations *)tag_instances[animation_graph_tag & 0xffff].data;
+    graph = (ModelAnimations *)tag_instances[halo::datum_slot(animation_graph_tag)].data;
     animations = (ModelAnimationsAnimation *)graph->animations.pointer;
 
     if (stream == _animation_random_global) {
@@ -102,7 +103,7 @@ int16_t animation_graph::find_animation_by_name(datum_index animation_graph_tag,
     ModelAnimationsAnimation *animations;
     int16_t i;
 
-    graph = (ModelAnimations *)tag_instances[animation_graph_tag & 0xffff].data;
+    graph = (ModelAnimations *)tag_instances[halo::datum_slot(animation_graph_tag)].data;
     animations = (ModelAnimationsAnimation *)graph->animations.pointer;
 
     for (i = 0; (int32_t)i < graph->animations.count; i++) {
@@ -186,7 +187,7 @@ void animation_graph::nodes_build_matrices(datum_index animation_graph_tag, real
     int16_t queue[k_maximum_nodes_per_model];
     int16_t read_index, write_index;
 
-    graph = (ModelAnimations *)tag_instances[animation_graph_tag & 0xffff].data;
+    graph = (ModelAnimations *)tag_instances[halo::datum_slot(animation_graph_tag)].data;
 
     matrix4x3_from_forward_up(up, forward, &root_parent);
     root_parent.position = *root_position;
@@ -216,11 +217,11 @@ void animation_graph::nodes_build_matrices(datum_index animation_graph_tag, real
 
         matrix4x3_multiply_procedure(parent_matrix, &local_matrix, &out_matrices[node]);
 
-        if (node_def->next_sibling_node_index != 0xffff) {
+        if (node_def->next_sibling_node_index != halo::k_word_none) {
             queue[write_index] = (int16_t)node_def->next_sibling_node_index;
             write_index = write_index + 1;
         }
-        if (node_def->first_child_node_index != 0xffff) {
+        if (node_def->first_child_node_index != halo::k_word_none) {
             queue[write_index] = (int16_t)node_def->first_child_node_index;
             write_index = write_index + 1;
         }

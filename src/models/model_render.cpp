@@ -5,6 +5,7 @@
  */
 
 #include "halo/models/models.hpp"
+#include "halo/models/flags.hpp"
 
 extern "C" {
 extern tag_instance *tag_instances;
@@ -221,8 +222,7 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
     } else {
         for (node = 0; (int32_t)node < model->nodes.count; node++) {
             real_matrix4x3 *given = (real_matrix4x3 *)node_matrices + node;
-            real_matrix4x3 *inverse_bind = (real_matrix4x3 *)((uint8_t *)model->nodes.pointer +
-                                                               node * sizeof(ModelNode) + 0x68);
+            real_matrix4x3 *inverse_bind = (real_matrix4x3 *)&((ModelNode *)model->nodes.pointer)[node].scale;
             matrix4x3_multiply_procedure(given, inverse_bind, &node_matrix_array[node]);
         }
     }
@@ -255,20 +255,20 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
     context.base_map_v_scale = model->base_map_v_scale;
 
     context.flags = 0;
-    if ((model->flags & 4) != 0) {
-        context.flags |= 0x200;
+    if ((model->flags & to_bits(model_tag_flags::ignore_skinning)) != 0) {
+        context.flags |= to_bits(model_draw_flags::ignore_skinning);
     }
     if ((flags & _model_render_flag_1_bit) != 0) {
-        context.flags |= 0x1f;
+        context.flags |= to_bits(model_draw_flags::base);
     }
     if ((flags & _model_render_outside_fog_plane_bit) != 0) {
-        context.flags |= 0x40;
+        context.flags |= to_bits(model_draw_flags::outside_fog_plane);
     }
     if ((flags & _model_render_frustum_z_bit) != 0) {
-        context.flags |= 0x80;
+        context.flags |= to_bits(model_draw_flags::frustum_z);
     }
-    if ((model->flags & 2) != 0) {
-        context.flags |= 0x100;
+    if ((model->flags & to_bits(model_tag_flags::parts_have_local_nodes)) != 0) {
+        context.flags |= to_bits(model_draw_flags::parts_have_local_nodes);
     }
 
     if ((flags & _model_render_immediate_bit) == 0) {

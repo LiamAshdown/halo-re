@@ -204,7 +204,7 @@ void animation_view::node_get_rotation(real frame, int16_t rotation_index, int16
 
     header_base = (uint8_t *)self->frame_data.pointer + self->offset_to_compressed_data;
     header = (animation_compressed_header *)header_base;
-    keyframe_header = ((uint32_t *)(header_base + 0x2c))[rotation_index];
+    keyframe_header = ((uint32_t *)(header_base + sizeof(animation_compressed_header)))[rotation_index];
     count = (int16_t)(keyframe_header & k_animation_keyframe_count_mask);
     defaults = (animation_quaternion48 *)(header_base + header->rotation_defaults);
 
