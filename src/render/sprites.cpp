@@ -774,7 +774,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
         }
         if (c->object_index != k_dword_none) {
             object *o = ((object_header *)object_data->data)[(uint16_t)c->object_index].data;
-            Object *object_definition = (Object *)tag_instances[o->definition_tag & 0xffff].data;
+            Object *object_definition = (Object *)tag_instances[halo::datum_slot(o->definition_tag)].data;
             int16_t change_color = (int16_t)(((ObjectAttachment *)object_definition->attachments.pointer)[c->attachment_index].change_color - 1);
 
             if (change_color != -1) {

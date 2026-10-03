@@ -572,7 +572,7 @@ void save_thread_proc(void)
         game_state_write_in_progress = 1;
         game_state_write_is_checkpoint = 0;
 
-        if (SetFilePointer(game_state_persistent_storage, 0, 0, 0) != 0xffffffff) {
+        if (SetFilePointer(game_state_persistent_storage, 0, 0, 0) != k_datum_index_none) {
             while (0 < remaining) {
                 chunk = remaining;
                 if (k_game_state_write_chunk_size - 1 < remaining) {

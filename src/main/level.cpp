@@ -171,7 +171,7 @@ void LevelControl::chimera__load_ui_map(char play_title_music)
     directors[0].unknown_c0 = 0;
     camera_script.camera_control = 1;
     camera_script.changed = 1;
-    camera_debug_start(0, 0, (datum_index)-1);
+    camera_debug_start(0, 0, k_datum_index_none);
 
     ui_split_screen = 1;
     main_globals_data.unknown_06b = 1;
@@ -209,8 +209,8 @@ void LevelControl::credits_load_directly_for_endgame(void)
     }
     main_menu_return_and_reset();
     main_menu_tag = tag_lookup(k_ui_widget_definition_group, (char *)"ui\\shell\\main_menu\\main_menu");
-    chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\credits_screen", (datum_index)-1,
-                             (widget_instance *)0, (uint16_t)-1, main_menu_tag, (datum_index)-1,
+    chimera__load_ui_widget((char *)"ui\\shell\\main_menu\\credits_screen", k_datum_index_none,
+                             (widget_instance *)0, (uint16_t)-1, main_menu_tag, k_datum_index_none,
                              -1);
     hud_text_message_cycle_state_00719230 = 1;
 }
@@ -674,7 +674,7 @@ void LevelControl::switch_structure_bsp_and_notify(void)
         int16_t local_player_index = -1;
         uint16_t *text;
 
-        if (local_player_globals->local_players[0] != (datum_index)-1) {
+        if (local_player_globals->local_players[0] != k_datum_index_none) {
             local_player_index = 0;
         }
         text = hud_get_message_string(message_id);

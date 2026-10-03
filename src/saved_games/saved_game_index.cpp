@@ -236,8 +236,8 @@ uint32_t create_custom_variant(uint32_t unused, uint16_t *name)
     (void)unused;
 
     handle = saved_game_create_slot(1, name);
-    if (handle == 0xffffffff) {
-        return 0xffffffff;
+    if (handle == k_datum_index_none) {
+        return k_datum_index_none;
     }
 
     opened = saved_game_open_file_by_handle((int32_t)handle, &ref);
@@ -255,13 +255,13 @@ uint32_t create_custom_variant(uint32_t unused, uint16_t *name)
         seeked = file_reference_seek(0, &ref);
         if (seeked == 0 || (written = file_reference_write(&ref, &file, sizeof(file)), written == 0)) {
             saved_game_delete_by_handle((int32_t)handle);
-            handle = 0xffffffff;
+            handle = k_datum_index_none;
         }
         file_reference_close(&ref);
         return handle;
     }
     saved_game_delete_by_handle((int32_t)handle);
-    return 0xffffffff;
+    return k_datum_index_none;
 }
 
 /**
@@ -278,13 +278,13 @@ uint32_t create_default_profile(uint16_t *name)
     saved_player_profile_file file;
 
     handle = saved_game_create_slot(_saved_game_type_player_profile, name);
-    if (handle == 0xffffffff) {
-        return 0xffffffff;
+    if (handle == k_datum_index_none) {
+        return k_datum_index_none;
     }
 
     if (saved_game_open_file_by_handle(handle, &ref) == 0) {
         saved_game_delete_by_handle(handle);
-        return 0xffffffff;
+        return k_datum_index_none;
     }
 
     memset(&file, 0, sizeof(file));
@@ -296,7 +296,7 @@ uint32_t create_default_profile(uint16_t *name)
 
     if (file_reference_seek(0, &ref) == 0 || file_reference_write(&ref, &file, sizeof(file)) == 0) {
         saved_game_delete_by_handle(handle);
-        handle = 0xffffffff;
+        handle = k_datum_index_none;
     }
     file_reference_close(&ref);
     return handle;
@@ -348,25 +348,25 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
         quit_confirm_error_is_error = 0;
     }
     if (storage_status != 0) {
-        return 0xffffffff;
+        return k_datum_index_none;
     }
 
     entry_count = savegame_index_get_slot_count();
     if (k_maximum_saved_game_entries < entry_count) {
         if (quit_confirm_error_string_index != -1) {
-            return 0xffffffff;
+            return k_datum_index_none;
         }
         quit_confirm_error_string_index = k_quit_error_index_full;
         quit_confirm_error_unknown_ae = -1;
         quit_confirm_error_modal = 1;
         quit_confirm_error_is_error = 0;
-        return 0xffffffff;
+        return k_datum_index_none;
     }
 
     memset(directory, 0, sizeof(directory));
     create_result = XCreateSaveGame(name, savegames_directory, 1, directory, k_saved_game_path_length);
     if (create_result != 0) {
-        return 0xffffffff;
+        return k_datum_index_none;
     }
 
     memset(&entry, 0, sizeof(entry));
@@ -404,7 +404,7 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
             ok = file_reference_open(&ref, 2);
             if (ok) {
                 memset(body, 0, sizeof(body));
-                *(uint32_t *)(body + body_size) = 0xffffffff;
+                *(uint32_t *)(body + body_size) = k_datum_index_none;
                 crc32_update((uint32_t *)(body + body_size), body, body_size);
                 ok = file_reference_write(&ref, body, sizeof(body));
                 if (ok) {
@@ -423,7 +423,7 @@ uint32_t create_slot(uint16_t type, uint16_t *name)
 
 rollback:
     XDeleteSaveGame(name, savegames_directory);
-    return 0xffffffff;
+    return k_datum_index_none;
 }
 
 /**

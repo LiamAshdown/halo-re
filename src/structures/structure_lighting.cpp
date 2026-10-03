@@ -5,6 +5,7 @@
  */
 
 #include "halo/structures/structures.hpp"
+#include "halo/core/lcg.hpp"
 
 extern "C" {
 extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias);
@@ -46,12 +47,12 @@ void bsp_lighting::lightmap_sample_vertex_color(BitmapData *bitmap, float weight
         ScenarioStructureBSPMaterialCompressedLightmapVertex *e2 =
             (ScenarioStructureBSPMaterialCompressedLightmapVertex *)base + triangle_vertex_indices[2] + skip;
 
-        u0 = ((float)(int32_t)e0->texture_coordinate_x * 2.0f + 1.0f) * 1.5259022e-05f;
-        v0 = ((float)(int32_t)e0->texture_coordinate_y * 2.0f + 1.0f) * 1.5259022e-05f;
-        u1 = ((float)(int32_t)e1->texture_coordinate_x * 2.0f + 1.0f) * 1.5259022e-05f;
-        v1 = ((float)(int32_t)e1->texture_coordinate_y * 2.0f + 1.0f) * 1.5259022e-05f;
-        u2 = ((float)(int32_t)e2->texture_coordinate_x * 2.0f + 1.0f) * 1.5259022e-05f;
-        v2 = ((float)(int32_t)e2->texture_coordinate_y * 2.0f + 1.0f) * 1.5259022e-05f;
+        u0 = ((float)(int32_t)e0->texture_coordinate_x * 2.0f + 1.0f) * halo::k_unit_word_scale;
+        v0 = ((float)(int32_t)e0->texture_coordinate_y * 2.0f + 1.0f) * halo::k_unit_word_scale;
+        u1 = ((float)(int32_t)e1->texture_coordinate_x * 2.0f + 1.0f) * halo::k_unit_word_scale;
+        v1 = ((float)(int32_t)e1->texture_coordinate_y * 2.0f + 1.0f) * halo::k_unit_word_scale;
+        u2 = ((float)(int32_t)e2->texture_coordinate_x * 2.0f + 1.0f) * halo::k_unit_word_scale;
+        v2 = ((float)(int32_t)e2->texture_coordinate_y * 2.0f + 1.0f) * halo::k_unit_word_scale;
     } else if (material->rendered_vertices_type == vertextype_structure_bsp_uncompressed_rendered_vertices ||
                material->rendered_vertices_type == k_vertex_type_uncompressed_rendered_alias) {
         uint8_t *base = (uint8_t *)material->uncompressed_vertices.pointer + material->rendered_vertices_count * sizeof(ScenarioStructureBSPMaterialUncompressedRenderedVertex);

@@ -108,7 +108,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
                     candidate = 0;
                 } else {
                     candidate = -1;
-                    if (local_player_globals->local_players[0] != (datum_index)-1 &&
+                    if (local_player_globals->local_players[0] != k_datum_index_none &&
                         resolved_local_player_index < 0) {
                         candidate = 0;
                     }

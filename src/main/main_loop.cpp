@@ -162,16 +162,16 @@ void MainLoop::ensure_local_players(void)
 
         for (i = 0; i < local_player_count; i = i + 1) {
             slot = local_player_find_free_slot_index();
-            new_player = player_new_network((datum_index)-1, 0, (int16_t)slot, 0);
+            new_player = player_new_network(k_datum_index_none, 0, (int16_t)slot, 0);
             if (-1 < slot && slot < 1) {
                 old_player = local_player_globals->local_players[slot];
-                if (old_player != (datum_index)-1) {
+                if (old_player != k_datum_index_none) {
                     player *old_p = (player *)((uint8_t *)player_data->data +
                                                 datum_slot(old_player) * sizeof(player));
                     old_p->local_player_index = -1;
                 }
                 local_player_globals->local_players[slot] = new_player;
-                if (new_player != (datum_index)-1) {
+                if (new_player != k_datum_index_none) {
                     player *new_p = (player *)((uint8_t *)player_data->data +
                                                 datum_slot(new_player) * sizeof(player));
                     new_p->local_player_index = (int16_t)slot;
@@ -182,15 +182,15 @@ void MainLoop::ensure_local_players(void)
         datum_index new_player;
         datum_index old_player;
 
-        new_player = player_new_network((datum_index)-1, 0, 0, 0);
+        new_player = player_new_network(k_datum_index_none, 0, 0, 0);
         old_player = local_player_globals->local_players[0];
-        if (old_player != (datum_index)-1) {
+        if (old_player != k_datum_index_none) {
             player *old_p = (player *)((uint8_t *)player_data->data +
                                         datum_slot(old_player) * sizeof(player));
             old_p->local_player_index = -1;
         }
         local_player_globals->local_players[0] = new_player;
-        if (new_player != (datum_index)-1) {
+        if (new_player != k_datum_index_none) {
             player *new_p = (player *)((uint8_t *)player_data->data +
                                         datum_slot(new_player) * sizeof(player));
             new_p->local_player_index = 0;
@@ -657,14 +657,14 @@ void MainLoop::loop(void)
                 player_update_log_flags != 0) {
                 iterator.data = player_data;
                 iterator.next_index = 0;
-                iterator.index = (datum_index)-1;
+                iterator.index = k_datum_index_none;
                 iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
                 while ((local_player = (player *)data_iterator_next(&iterator)) != 0) {
                     if (local_player->local_player_index == -1) {
                         continue;
                     }
                     update_history = (player_update_history *)network_client->update_history;
-                    if (local_player->unit != (datum_index)-1 && update_history != 0 &&
+                    if (local_player->unit != k_datum_index_none && update_history != 0 &&
                         update_history->tail != 0) {
                         unit_header = (object_header *)object_data->data + datum_slot(local_player->unit);
                         unit = (uint8_t *)unit_header->data;
@@ -947,7 +947,7 @@ void MainLoop::menu_music_stop(void)
 {
     if (main_menu_music_pending == 1) {
         datum_index sound_tag = tag_lookup(k_looping_sound_group, (char *)"sound\\music\\title1\\title1");
-        if (sound_tag != (datum_index)-1) {
+        if (sound_tag != k_datum_index_none) {
             sound_looping_stop(sound_tag);
         }
         main_menu_music_pending = 0;
