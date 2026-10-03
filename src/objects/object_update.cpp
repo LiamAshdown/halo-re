@@ -22,6 +22,14 @@
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
 #include "halo/ai/api.hpp"
+namespace {
+/** The function input (selectors 1..4) or output (5..8) value an object function selector names; they are adjacent in the record. */
+float &function_slot(object &record, int16_t selector)
+{
+    return selector <= 4 ? record.function_in_values[selector - 1] : record.function_out_values[selector - 5];
+}
+}
+
 
 static auto &global_origin3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
@@ -158,7 +166,7 @@ uint8_t halo::objects::ObjectUpdater::update()
     halo::objects::object_notify_node_array_if_animated(object_index);
 
     if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
-        uint8_t *at_rest_flag = (uint8_t *)&obj->at_rest;
+        uint8_t *at_rest_flag = &obj->at_rest;
         if ((halo::x87::fabsf(obj->velocity.i - global_origin3d_pointer->i) < 0.0001f) &&
             (halo::x87::fabsf(obj->velocity.j - global_origin3d_pointer->j) < 0.0001f) &&
             (halo::x87::fabsf(obj->velocity.k - global_origin3d_pointer->k) < 0.0001f) &&
@@ -191,43 +199,44 @@ static float clamp_to_one(float value)
 void halo::objects::ObjectUpdater::update_export_functions()
 {
     datum_index object_index = handle;
-    uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
-    uint8_t *definition = halo::objects::tag_record_bytes(*(datum_index *)object);
+    object *object = halo::objects::object_as<struct object>(object_index);
+    Object *definition = halo::objects::tag_as<Object>(object->definition_tag);
+    const int16_t sources[4] = {definition->a_in, definition->b_in, definition->c_in, definition->d_in};
     int32_t i;
 
     for (i = 0; i < 4; i++) {
-        int16_t source = *(int16_t *)(definition + 0x108 + i * 2);
-        float *output = (float *)(object + 0x124 + i * 4);
+        int16_t source = sources[i];
+        float *output = &object->function_in_values[i];
         float value = 0.0f;
 
         if (source == 0) {
             continue;
         }
         switch (source) {
-        case 1: value = ((struct object *)object)->body_vitality; break;
-        case 2: value = clamp_to_one(((struct object *)object)->shield_vitality); break;
-        case 3: value = ((struct object *)object)->current_body_damage; break;
-        case 4: value = ((struct object *)object)->current_shield_damage; break;
+        case 1: value = object->body_vitality; break;
+        case 2: value = clamp_to_one(object->shield_vitality); break;
+        case 3: value = object->current_body_damage; break;
+        case 4: value = object->current_shield_damage; break;
         case 5:
-            if (*(uint32_t *)output == 0x3f800000) {
+            if (*output == 1.0f) {
                 value = halo::math::random_real();
             }
             break;
-        case 18: value = test_flag(((struct object *)object)->vitality_flags, objects::vitality_flag::health_frozen) ? 0.0f : 1.0f; break;
+        case 18: value = test_flag(object->vitality_flags, objects::vitality_flag::health_frozen) ? 0.0f : 1.0f; break;
         case 19: {
-            float *forward = (float *)(object + ((struct object *)object)->nodes.offset + 4);
+            const real_vector3d &forward = halo::objects::object_block<real_matrix4x3>(*object, object->nodes)[0].forward;
 
-            if (!(halo::libm::fabs(forward[2]) < 0.995)) {
+            if (!(halo::libm::fabs(forward.k) < 0.995)) {
                 value = *output;
             } else {
-                float yaw = (float)halo::x87::fpatan(forward[0], forward[1]);
+                float yaw = (float)halo::x87::fpatan(forward.i, forward.j);
                 value = halo::game::angle_delta_wrapped(halo::scenario::globals().scenario->local_north, yaw) * 0.15915494f + 0.5f;
                 value = value >= 0.0f ? clamp_to_one(value) : 0.0f;
             }
             break;
         }
         default:
-            value = (float)object[0x178 + (source - 10)] * 0.0039215689f;
+            value = (float)object->region_vitality[source - 10] * 0.0039215689f;
             break;
         }
         *output = value;
@@ -402,7 +411,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                 (int32_t)((struct object *)obj)->animation_index * 0xb4);
             int16_t frame_count = (int16_t)animation->frame_count;
             uint32_t frame;
-            if (*(int8_t *)(obj + 0x10) < 0 && frame_count > 0) {
+            if (test_flag(((struct object *)obj)->flags, objects::object_flag::unknown_80) && frame_count > 0) {
                 frame = ((uint32_t)halo::game::globals().game_time->game_time + object_index) % (uint32_t)(int32_t)frame_count;
             } else {
                 frame = (uint16_t)((struct object *)obj)->animation_frame;
@@ -505,9 +514,9 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                             base = &parent_copy;
                         }
                         {
-                            uint8_t *parent_object = (uint8_t *)((object_header *)object_data->data)
+                            struct object *parent_object = ((object_header *)object_data->data)
                                 [halo::datum_slot(((struct object *)obj)->parent_object)].data;
-                            if ((*(uint32_t *)(parent_object + 0x10) & 0x1000) != 0) {
+                            if (test_flag(parent_object->flags, objects::object_flag::mirrored_geometry)) {
                                 if (base != &parent_copy) {
                                     parent_copy = *base;
                                     base = &parent_copy;
@@ -574,19 +583,20 @@ void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
     uint32_t object_index = handle;
     uint8_t *obj = halo::objects::object_record_bytes(object_index);
     Object *tag = halo::objects::tag_as<Object>(*(datum_index *)obj);
-    float *position = (float *)&((struct object *)obj)->position;
+    const real_point3d &position = ((struct object *)obj)->position;
     int32_t i;
 
     for (i = 0; i < 4; i++) {
-        ColorRGB *working = (ColorRGB *)(obj + 0x188 + i * 0xc);
-        ColorRGB *final_color = (ColorRGB *)(obj + 0x1b8 + i * 0xc);
+        object &record = *reinterpret_cast<object *>(obj);
+        ColorRGB *working = &reinterpret_cast<ColorRGB *>(record.unknown_188)[i];
+        ColorRGB *final_color = &record.change_colors[i];
 
         *working = colors[i];
         if (i < (int32_t)tag->change_colors.count) {
-            ObjectChangeColors *change_color = reinterpret_cast<ObjectChangeColors *>(*(uint8_t **)&tag->change_colors.pointer + i * 0x2c);
+            ObjectChangeColors *change_color = &halo::objects::block_element<ObjectChangeColors>(tag->change_colors, i);
 
-            double seed = (double)position[2] * (double)744.12415f + (double)position[0] * (double)315.89313f +
-                (double)position[1] * (double)587.12946f + (double)i * (double)431.12894f;
+            double seed = (double)position.z * (double)744.12415f + (double)position.x * (double)315.89313f +
+                (double)position.y * (double)587.12946f + (double)i * (double)431.12894f;
             float weight = (float)halo::libm::fmod(halo::libm::fabs(seed), 1.0);
             int32_t count = (int32_t)change_color->permutations.count;
             int16_t p;
@@ -594,8 +604,8 @@ void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
             for (p = 0; p < count; p++) {
                 ObjectChangeColorsPermutation *permutation = &halo::objects::block_element<ObjectChangeColorsPermutation>(change_color->permutations, p);
 
-                if (weight <= *(float *)permutation) {
-                    float t = (float)halo::libm::fmod(halo::libm::fabs(position[1]) + (double)i * (double)0.71210998f, 1.0);
+                if (weight <= permutation->weight) {
+                    float t = (float)halo::libm::fmod(halo::libm::fabs(position.y) + (double)i * (double)0.71210998f, 1.0);
 
                     halo::bitmaps::color_interpolate((ColorRGB *)&permutation->color_upper_bound, (ColorRGB *)&permutation->color_lower_bound, working, (color_interpolation_flags)1, t);
                     break;
@@ -715,7 +725,7 @@ void halo::objects::ObjectUpdater::refresh_region_permutations()
 
     if (definition->model.tag_id.index != halo::k_word_none) {
         GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[halo::datum_slot(definition->model.tag_id.index)].data;
-        int16_t *cached_group = (int16_t *)((uint8_t *)obj + 0xbe);
+        int16_t *cached_group = &obj->permutation_group;
 
         if ((*cached_group <= 0) || (halo::objects::object_regions_initialize_permutations(object_index, *cached_group, model) == 0)) {
             int16_t new_group;
@@ -745,18 +755,18 @@ void halo::objects::ObjectUpdater::update_change_colors()
         int32_t i;
 
         for (i = 0; i < count; i++) {
-            ObjectChangeColors *tag_color = (ObjectChangeColors *)((uint8_t *)definition->change_colors.pointer + i * 0x2c);
+            ObjectChangeColors *tag_color = &halo::objects::block_element<ObjectChangeColors>(definition->change_colors, i);
             ColorRGB *out = &obj->change_colors[i];
             int c;
 
             if (tag_color->scale_by != 0) {
-                float t = *(float *)((uint8_t *)obj + 0x120 + tag_color->scale_by * 4);
+                float t = function_slot(*obj, tag_color->scale_by);
 
-                halo::bitmaps::color_interpolate((ColorRGB *)&tag_color->color_upper_bound, (ColorRGB *)((uint8_t *)tag_color + 8), out,
-                    (color_interpolation_flags)(*(uint32_t *)&((struct ObjectChangeColors *)tag_color)->flags), t);
+                halo::bitmaps::color_interpolate(&tag_color->color_upper_bound, &tag_color->color_lower_bound, out,
+                    (color_interpolation_flags)tag_color->flags, t);
             }
             if (tag_color->darken_by != 0) {
-                float scale = *(float *)((uint8_t *)obj + 0x120 + tag_color->darken_by * 4);
+                float scale = function_slot(*obj, tag_color->darken_by);
                 out->red *= scale;
                 out->green *= scale;
                 out->blue *= scale;
@@ -777,7 +787,7 @@ void halo::objects::ObjectUpdater::update_change_colors()
 namespace {
 static float function_scale_input(uint8_t *obj, int16_t selector)
 {
-    return *(float *)(obj + 0x120 + selector * 4);
+    return function_slot(*reinterpret_cast<object *>(obj), selector);
 }
 }
 
@@ -798,7 +808,7 @@ void halo::objects::ObjectUpdater::update_functions()
     int16_t i;
 
     for (i = 0; i < (int32_t)definition->functions.count; i++) {
-        ObjectFunction *fn = (ObjectFunction *)((uint8_t *)definition->functions.pointer + i * 0x168);
+        ObjectFunction *fn = &halo::objects::block_element<ObjectFunction>(definition->functions, i);
         float period = fn->inverse_period;
         float value;
         uint8_t valid = 1;
@@ -865,9 +875,9 @@ void halo::objects::ObjectUpdater::update_functions()
             valid = 0;
         }
         if (fn->flags & 2) {
-            value = (float)halo::libm::fmod((double)(value + *(float *)(obj + 0x134 + i * 4)), 1.0);
+            value = (float)halo::libm::fmod((double)(value + reinterpret_cast<object *>(obj)->function_out_values[i]), 1.0);
         }
-        *(float *)(obj + 0x134 + i * 4) = value;
+        reinterpret_cast<object *>(obj)->function_out_values[i] = value;
         if (valid) {
             ((struct object *)obj)->function_valid_flags = (uint8_t)(((struct object *)obj)->function_valid_flags | (1u << i));
         } else {

@@ -405,9 +405,9 @@ uint8_t BipedView::update()
             UnitView(object_index).snap_to_min_ground_height();
         }
         if (test_flag(((struct object *)obj)->vitality_flags, objects::vitality_flag::health_frozen) && test_flag(((struct object *)obj)->flags, objects::object_flag::at_rest)) {
-            (*(int16_t *)&((struct biped_object *)obj)->base.dead_at_rest_ticks)++;
+            ((struct biped_object *)obj)->base.dead_at_rest_ticks++;
         } else {
-            *(int16_t *)&((struct biped_object *)obj)->base.dead_at_rest_ticks = 0;
+            ((struct biped_object *)obj)->base.dead_at_rest_ticks = 0;
         }
         return 1;
     };

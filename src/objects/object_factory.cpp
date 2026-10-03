@@ -414,7 +414,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     obj->owner_team = (int16_t)placement->owner_team;
     obj->owner_linkage = placement->owner_linkage;
     obj->creator_object = placement->role;
-    *(int16_t *)((uint8_t *)obj + 0xbe) = placement->permutation_group;
+    obj->permutation_group = placement->permutation_group;
     obj->forced_shader_permutation = (uint16_t)object_tag->forced_shader_permutation_index;
 
     if (halo::objects::tag_handle(object_tag->model) == k_datum_index_none) {
