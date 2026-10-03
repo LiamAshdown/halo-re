@@ -36,7 +36,7 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
     unit_control_data control;
 
     control.animation_state = (int8_t)actor_control_animation_state_table[actor->control_animation_mode * 2];
-    control.aiming_speed = (int8_t)((uint8_t *)actor)[0x6f8];
+    control.aiming_speed = (int8_t)actor->unknown_6ee[10];
     control.control_flags = *(uint16_t *)&actor->control_flags;
     control.weapon_index = -1;
     control.grenade_index = -1;
