@@ -76,6 +76,7 @@ static_assert(offsetof(ModelNode, parent_node_index) == 0x24);
 static_assert(offsetof(ModelNode, default_translation) == 0x28);
 static_assert(offsetof(ModelNode, scale) == 0x68);
 static_assert(offsetof(GBXModel, nodes) == 0xb8);
+static_assert(offsetof(GBXModel, regions) == 0xc4 && sizeof(ModelRegion) == 0x4c);
 static_assert(offsetof(ObjectChangeColorsPermutation, color_lower_bound) == 0x4);
 static_assert(offsetof(ObjectChangeColorsPermutation, color_upper_bound) == 0x10);
 static_assert(offsetof(ObjectAttachment, marker) == 0x10);
