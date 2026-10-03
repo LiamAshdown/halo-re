@@ -36,6 +36,18 @@ inline hs_thread *thread_at(uint32_t handle)
     return reinterpret_cast<hs_thread *>(static_cast<uint8_t *>(globals().thread_data->data) + (handle & k_slot_mask) * sizeof(hs_thread));
 }
 
+/** Returns the global storage slot at the raw index `index` (builtin globals use their definition index, scenario globals follow them). */
+inline hs_global *global_slot(int32_t index)
+{
+    return &static_cast<hs_global *>(globals().globals_data->data)[index];
+}
+
+/** Returns the global storage slot that `handle` indexes (slot bits only). */
+inline hs_global *global_at(uint32_t handle)
+{
+    return global_slot(static_cast<int32_t>(handle & k_slot_mask));
+}
+
 /** Returns the object list header that `handle` indexes. */
 inline object_list_header *object_list_header_at(uint32_t handle)
 {

@@ -314,7 +314,7 @@ void FlowCommands::evaluate_set(int16_t function_index, uint32_t thread_index, c
         }
         slot = (reference & k_hs_global_builtin_bit) != 0 ? index : index + k_hs_builtin_global_count;
         halo::hs::hs_thread_push(variable->next_node, thread_index,
-            (uint8_t *)halo::hs::globals().globals_data->data + (slot & halo::k_slot_mask) * 8 + 4);
+            &halo::hs::global_at(slot)->value);
         return;
     }
     halo::hs::hs_global_write_value(reference);

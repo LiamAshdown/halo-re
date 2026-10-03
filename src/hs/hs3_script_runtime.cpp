@@ -167,8 +167,7 @@ void ScriptRuntime::scenario_scripts_initialize() const
                    ((reference & k_hs_global_builtin_bit) ? 0 : k_hs_builtin_global_count);
 
             if (-1 < slot && slot < halo::hs::globals().globals_data->maximum_count) {
-                global_slot = (hs_global *)((uint8_t *)halo::hs::globals().globals_data->data +
-                    halo::hs::globals().globals_data->size * slot);
+                global_slot = halo::hs::global_slot(slot);
                 if (global_slot->identifier == 0) {
                     halo::hs::globals().globals_data->actual_count = halo::hs::globals().globals_data->actual_count + 1;
                     if (halo::hs::globals().globals_data->last_index <= slot) {
@@ -183,7 +182,7 @@ void ScriptRuntime::scenario_scripts_initialize() const
             init_thread->stack->size = 0;
 
             halo::hs::hs_thread_push(globals[i].initialization_expression_index, thread_handle,
-                &((hs_global *)halo::hs::globals().globals_data->data)[slot & halo::k_slot_mask].value);
+                &halo::hs::global_at(slot)->value);
             if ((init_thread->flags & 1) != 0) {
                 halo::hs::hs_thread_evaluate_step(thread_handle);
                 if (globals[i].type == 0x17) {
