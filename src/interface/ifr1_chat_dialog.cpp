@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_chat_dialog.hpp"
+#include "halo/text/api.hpp"
 #include <string.h>
 #include <stdint.h>
 #include <wchar.h>
@@ -24,9 +25,6 @@ extern void *shell_module_handle;
 extern wchar_t empty_string;
 extern uint8_t message_delta_decode_compound_field(void *event, chat_incoming_record *out_record);
 extern void message_delta_decode_compound_field_staged(void *event);
-extern wchar_t *text_string_list_get_string(datum_index tag, int16_t index);
-extern wchar_t *string_format_wide_va(wchar_t *dest, const wchar_t *format, ...);
-extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern int32_t shell_load_localized_string(int32_t id, char *out_buffer);
 extern void chimera__multiplayer_message(const wchar_t *text);
 extern console_globals console_globals_data;
@@ -53,7 +51,7 @@ static const wchar_t *chat_prefix_format(int16_t string_index)
     if (tag == (datum_index)-1) {
         return &empty_string;
     }
-    return text_string_list_get_string(tag, string_index);
+    return reinterpret_cast<const wchar_t *>(halo::text::text_string_list_get_string(tag, string_index));
 }
 
 namespace halo::interface {
@@ -154,10 +152,10 @@ void PlayerChatSource::deliver(const chat_incoming_record &record, wchar_t *text
     }
     memset(line, 0, sizeof(line));
     if (record.kind == 0) {
-        string_format_wide_va(line, chat_prefix_format(0xbb), sender->name);
+        halo::text::string_format_wide_va(reinterpret_cast<uint16_t *>(line), reinterpret_cast<const uint16_t *>(chat_prefix_format(0xbb)), sender->name);
         wcslen(line);
     } else if (record.kind > 0 && record.kind <= 2) {
-        string_format_wide_va(line, chat_prefix_format(0xbc), sender->name);
+        halo::text::string_format_wide_va(reinterpret_cast<uint16_t *>(line), reinterpret_cast<const uint16_t *>(chat_prefix_format(0xbc)), sender->name);
         wcslen(line);
     }
     wcscat(line, text);
@@ -179,7 +177,7 @@ void LocalizedChatSource::deliver(const chat_incoming_record &record, wchar_t *)
     if (shell_load_localized_string(string_id, localized) == 0) {
         return;
     }
-    string_format_wide_va_bounded(0x7f, (uint16_t *)short_line, (const uint16_t *)L"%S", localized);
+    halo::text::string_format_wide_va_bounded(0x7f, (uint16_t *)short_line, (const uint16_t *)L"%S", localized);
     short_line[0x7f] = 0;
     chimera__multiplayer_message(short_line);
 }

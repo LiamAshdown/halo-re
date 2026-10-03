@@ -4,6 +4,7 @@
  */
 
 #include "tags.h"
+#include "halo/text/api.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "memory.h"
 #include "math.h"
@@ -29,11 +30,9 @@ extern uint32_t network_game_socket_port;
 extern uint32_t network_game_option_a_00719210;
 extern uint32_t network_game_option_b_00719214;
 extern heap *widget_memory_pool;
-extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 extern void widget_extended_description_sync_selection(widget_instance *widget);
 extern network_server_globals *network_server;
 extern uint8_t *network_client;
-extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern char network_player_entry_validate(void *entry);
 extern void widget_instance_set_state_recursive(widget_instance *widget, uint8_t state);
 extern int32_t selected_saved_item;
@@ -58,7 +57,7 @@ static void set_option_text(widget_instance *row, uint32_t value, uint8_t hidden
     text = (uint16_t *)halo::memory::heap_reallocate(label->text, 0x10, widget_memory_pool);
     label->text = text;
     if (text != 0) {
-        string_format_wide_va(text, (const uint16_t *)L"%d", value);
+        halo::text::string_format_wide_va(text, (const uint16_t *)L"%d", value);
         text[7] = 0;
     }
     if (hidden) {
@@ -200,14 +199,14 @@ void UiGameDataInputs::input_4a5740(widget_instance *widget)
             countdown->state = 0;
         } else if (seconds > 0) {
             if (seconds < 60) {
-                string_format_wide_va_bounded(0xf, text, (const uint16_t *)L"0:%02d", (int32_t)seconds);
+                halo::text::string_format_wide_va_bounded(0xf, text, (const uint16_t *)L"0:%02d", (int32_t)seconds);
             } else if (seconds < 3600) {
-                string_format_wide_va_bounded(0xf, text, (const uint16_t *)L"%02d:%02d", seconds / 60, seconds % 60);
+                halo::text::string_format_wide_va_bounded(0xf, text, (const uint16_t *)L"%02d:%02d", seconds / 60, seconds % 60);
             } else {
                 int32_t hours = seconds / 3600;
                 int32_t minutes = (seconds - hours * 3600) / 60;
 
-                string_format_wide_va_bounded(0xf, text, (const uint16_t *)L"%d:%02d:%02d", hours, minutes,
+                halo::text::string_format_wide_va_bounded(0xf, text, (const uint16_t *)L"%d:%02d:%02d", hours, minutes,
                     seconds - (hours * 60 + minutes) * 60);
             }
         } else if (*(int16_t *)(game + 0x1a0) < 2 || game[0x138] == 1) {
@@ -449,7 +448,7 @@ void UiGameDataInputs::input_4a6e90(widget_instance *widget)
     text = (uint16_t *)halo::memory::heap_reallocate(widget->text, 0x10, widget_memory_pool);
     widget->text = text;
     if (text != 0) {
-        string_format_wide_va_bounded(7, text, (const uint16_t *)L"%d", *(int32_t *)(game + 0x15c));
+        halo::text::string_format_wide_va_bounded(7, text, (const uint16_t *)L"%d", *(int32_t *)(game + 0x15c));
         text[7] = 0;
     }
 }
@@ -566,7 +565,7 @@ void UiGameDataInputs::input_4a7210(widget_instance *widget)
     text = (uint16_t *)halo::memory::heap_reallocate(widget->text, 8, widget_memory_pool);
     widget->text = text;
     if (text != 0) {
-        string_format_wide_va_bounded(3, text, (const uint16_t *)L"%d", (int32_t)*(int16_t *)(game + 0x1a0));
+        halo::text::string_format_wide_va_bounded(3, text, (const uint16_t *)L"%d", (int32_t)*(int16_t *)(game + 0x1a0));
         text[3] = 0;
     }
 }

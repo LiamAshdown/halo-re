@@ -1,4 +1,5 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/text/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 
@@ -11,11 +12,8 @@ extern int32_t slayer_player_score[16];
 extern int32_t slayer_unknown_0087a4a0[16];
 extern int32_t slayer_unknown_0087a4e0[16];
 extern wchar_t empty_string;
-extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index);
-extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern uint32_t game_engine_compare_score_to_others(uint32_t subject, int32_t team_mode);
 extern wchar_t *game_engine_get_multiplayer_text_list(uint32_t rank);
-extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 extern int16_t network_game_mode;
 extern void game_engine_animate_hill_pulse_icons(datum_index fading_player, datum_index growing_player);
 extern void game_engine_player_select_random_target(datum_index player_or_all);
@@ -47,7 +45,7 @@ const uint16_t * SlayerEngine::game_text(int16_t index)
 {
     datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
-    return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : text_string_list_get_string(tag_id, index);
+    return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : halo::text::text_string_list_get_string(tag_id, index);
 }
 
 /**
@@ -90,10 +88,10 @@ uint8_t SlayerEngine::build_message_text(datum_index recipient, int32_t message_
         place = (const uint16_t *)game_engine_get_multiplayer_text_list(game_engine_compare_score_to_others(recipient, 1));
         team = *(int32_t *)(((uint8_t *)player_data->data + ((recipient) & 0xffff) * 0x200) + 0x20);
         if (game_engine_teams_enabled_flag != 0) {
-            string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xb5), place, slayer_player_score[recipient & 0xffff],
+            halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xb5), place, slayer_player_score[recipient & 0xffff],
                 slayer_team_score[team], game_engine_variant.score_limit);
         } else {
-            string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xb6), place, slayer_team_score[team],
+            halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xb6), place, slayer_team_score[team],
                 game_engine_variant.score_limit);
         }
         return 1;
@@ -104,7 +102,7 @@ uint8_t SlayerEngine::build_message_text(datum_index recipient, int32_t message_
         if (player == 0) {
             return 0;
         }
-        string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xb4), player + 4);
+        halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xb4), player + 4);
         return 1;
     }
     return 0;
@@ -117,7 +115,7 @@ uint8_t SlayerEngine::build_message_text(datum_index recipient, int32_t message_
  */
 wchar_t * SlayerEngine::build_player_text(datum_index player, wchar_t *buffer)
 {
-    string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", slayer_player_score[player & 0xffff]);
+    halo::text::string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", slayer_player_score[player & 0xffff]);
     return buffer;
 }
 
@@ -128,7 +126,7 @@ wchar_t * SlayerEngine::build_player_text(datum_index player, wchar_t *buffer)
  */
 wchar_t * SlayerEngine::build_team_score_text(int32_t team, wchar_t *buffer)
 {
-    string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", slayer_team_score[team]);
+    halo::text::string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", slayer_team_score[team]);
     return buffer;
 }
 

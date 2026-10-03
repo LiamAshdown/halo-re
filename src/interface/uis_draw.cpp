@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "win32.h"
 #include "tags.h"
@@ -48,8 +49,6 @@ extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
 extern HUDGlobals *hud_globals_tag_data;
 extern int32_t __ftol(double x);
-extern void text_measure_string_extents(Rectangle2D *origin, Rectangle2D *cursor, Rectangle2D *out_bounds,
-                         const uint16_t *text);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text);
 extern void ui_widget_draw_prompt_span(const uint16_t *text, Rectangle2D *cursor, Rectangle2D *origin);
@@ -68,7 +67,7 @@ static void draw_span_inline(Rectangle2D *origin, Rectangle2D *cursor, const uin
 
     ui_prompt_clip_y = 0;
     ui_prompt_clip_x = (delta < 0) ? 0 : delta;
-    text_measure_string_extents(origin, cursor, &out, text);
+    halo::text::text_measure_string_extents(origin, cursor, &out, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
     cursor->left = (int16_t)(cursor->left - 3);
     out.left = origin->left;
     chimera__draw_16_bit_text((Rectangle2D *)0, &out, 0, 0, text);
@@ -546,7 +545,7 @@ void UiDraw::widget_draw_prompt_span(const uint16_t *text, Rectangle2D *cursor, 
 
     ui_prompt_clip_y = 0;
     ui_prompt_clip_x = (delta < 0) ? 0 : delta;
-    text_measure_string_extents(origin, cursor, &bounds, text);
+    halo::text::text_measure_string_extents(origin, cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
     cursor->left = (int16_t)(cursor->left - 3);
     bounds.left = origin->left;
     chimera__draw_16_bit_text((Rectangle2D *)0, &bounds, 0, 0, text);

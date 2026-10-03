@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/text/api.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -83,7 +84,6 @@ extern void game_engine_variant_defaults_juggernaut(game_variant *out);
 extern game_variant *game_engine_variant_defaults_stalker(game_variant *out);
 extern void game_engine_variant_defaults_crazy_king(game_variant *out);
 extern void game_engine_variant_defaults_assault(game_variant *out);
-extern void string_convert_ascii_to_unicode(wchar_t *out_name, int32_t max_chars);
 extern void playlist_profile_create_default_profiles_on_disk(void);
 extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
     uint16_t *capacity_and_count);
@@ -377,7 +377,7 @@ uint8_t Variants::get_variant_by_name(const char *name, game_variant *out)
         int32_t slot_count = 100;
         uint16_t slot_index;
 
-        string_convert_ascii_to_unicode(requested_name_wide, 0x30);
+        halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(requested_name_wide), 0x30, name);
         if (playlist_profiles_need_defaults == 1) {
             playlist_profile_create_default_profiles_on_disk();
             playlist_profiles_need_defaults = 0;

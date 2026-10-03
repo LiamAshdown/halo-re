@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_placement.hpp"
+#include "halo/text/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -65,7 +66,6 @@ extern void console_print_error_va(uint8_t clear_first, const char *format, ...)
 extern void player_update_history_free_all(void *queue);
 extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out);
-extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
 extern void game_engine_scan_netgame_flags_noop(int16_t needle);
 extern void object_notify_predicted_resources_if_valid(datum_index definition_tag);
@@ -740,7 +740,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
 
                     teleport_message_cooldown = 0x78;
                     text = (tag_id == k_datum_index_none) ? &empty_string
-                        : text_string_list_get_string(tag_id, 0x65);
+                        : reinterpret_cast<wchar_t *>(halo::text::text_string_list_get_string(tag_id, 0x65));
                     chimera__hud_message(unit_get_local_player_weapon_index(p->unit), text);
                     return;
                 }

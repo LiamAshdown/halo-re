@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_messaging.hpp"
+#include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include <string.h>
 #include "halo/cache/api.hpp"
@@ -45,12 +46,8 @@ extern void hud_draw_message_text_span(Rectangle2D *cursor, Rectangle2D *origin,
 extern void hud_draw_message_icon(const hud_messaging_information *information, Rectangle2D *cursor,
                                   uint32_t color);
 extern int32_t hud_message_compare(const void *a, const void *b);
-extern void text_measure_string_extents(Rectangle2D *origin, Rectangle2D *cursor, Rectangle2D *out_bounds,
-                         const uint16_t *text);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text);
-extern uint16_t *text_string_list_get_string(datum_index string_list_tag, int16_t index);
-extern wchar_t *string_format_wide_va(wchar_t *dest, const wchar_t *format, ...);
 }
 
 static void hud_messaging_set_text_state(datum_index font, const ColorARGB *color)
@@ -220,7 +217,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
 
                     ui_prompt_clip_x = (int16_t)(cursor.left - line.left);
                     ui_prompt_clip_y = 0;
-                    text_measure_string_extents(&line, &cursor, &bounds, text);
+                    halo::text::text_measure_string_extents(&line, &cursor, &bounds, reinterpret_cast<void *>(const_cast<uint16_t *>(text)));
                     cursor.left = (int16_t)(cursor.left - 3);
                     bounds.left = line.left;
                     chimera__draw_16_bit_text(0, &bounds, 0, 0, text);
@@ -247,11 +244,11 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                             hud_draw_message_text_span(&cursor, &line, hud_text_unknown, 0);
                         } else if (reference[2] != 0) {
                             hud_draw_message_text_span(&cursor, &line,
-                                text_string_list_get_string(*(datum_index *)&global_scenario->custom_object_names.tag_id,
+                                halo::text::text_string_list_get_string(*(datum_index *)&global_scenario->custom_object_names.tag_id,
                                                             (int16_t)string_index), 0);
                         } else {
                             hud_draw_message_text_span(&cursor, &line,
-                                text_string_list_get_string(*(datum_index *)&hud_globals_tag_data->alternate_icon_text.tag_id,
+                                halo::text::text_string_list_get_string(*(datum_index *)&hud_globals_tag_data->alternate_icon_text.tag_id,
                                                             (int16_t)string_index), 0);
                         }
                     } else if (record->arguments[argument] != 0) {
@@ -327,7 +324,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             if (strings != (datum_index)-1) {
                 int32_t *string_list = (int32_t *)halo::cache::globals().tag_instances[strings & 0xffff].data;
                 if (string_list != 0 && string_index >= 0 && string_index < string_list[0]) {
-                    text = text_string_list_get_string(strings, (int16_t)string_index);
+                    text = halo::text::text_string_list_get_string(strings, (int16_t)string_index);
                 }
             }
             if ((slot->source_kind == 0xff && plural != 0) || slot->count != 0) {
@@ -336,7 +333,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                 if (value_scale <= 1) {
                     value_scale = 1;
                 }
-                string_format_wide_va(formatted, (const wchar_t *)text, slot->count / value_scale);
+                halo::text::string_format_wide_va(reinterpret_cast<uint16_t *>(formatted), reinterpret_cast<const uint16_t *>((const wchar_t *)text), slot->count / value_scale);
                 chimera__draw_16_bit_text(0, &cursor, 0, 0, (const uint16_t *)formatted);
             } else {
                 chimera__draw_16_bit_text(0, &cursor, 0, 0, text);

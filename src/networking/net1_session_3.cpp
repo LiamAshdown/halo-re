@@ -1,4 +1,5 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/text/api.hpp"
 #include <string.h>
 #include <wchar.h>
 #include "units.h"
@@ -11,7 +12,6 @@ extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id);
 typedef struct data_array data_array;
 extern uint8_t *player_data;
 extern uint32_t players_get_active_by_index(int32_t index);
-extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity);
 extern uint8_t *network_server;
 extern char network_qr2_text[0x100];
 extern uint8_t network_session_host_closing;
@@ -60,7 +60,7 @@ void HostSession::dispatch_message(int32_t key_id, int32_t index, void *buffer, 
         uint8_t name[0x40];
 
         memset(name, 0, sizeof(name));
-        qr2_buffer_add(buffer, (const char *)string_convert_unicode_to_ascii(name, (uint16_t *)(player + 4), 0x40));
+        qr2_buffer_add(buffer, (const char *)halo::text::string_convert_unicode_to_ascii(name, (uint16_t *)(player + 4), 0x40));
         return;
     }
     if (key_id == 0x19) {
@@ -110,7 +110,7 @@ void HostSession::qr2_server_key(int32_t key_id, void *buffer, void *user_data)
         if (wcslen((const wchar_t *)(server + 8)) == 0) {
             qr2_buffer_add(buffer, "HALO SERVER");
         } else {
-            qr2_buffer_add(buffer, (const char *)string_convert_unicode_to_ascii((uint8_t *)network_qr2_text, (uint16_t *)(server + 8), 0x100));
+            qr2_buffer_add(buffer, (const char *)halo::text::string_convert_unicode_to_ascii((uint8_t *)network_qr2_text, (uint16_t *)(server + 8), 0x100));
         }
         return;
     case 3:
@@ -131,7 +131,7 @@ void HostSession::qr2_server_key(int32_t key_id, void *buffer, void *user_data)
         return;
     }
     case 7:
-        qr2_buffer_add(buffer, (const char *)string_convert_unicode_to_ascii((uint8_t *)network_qr2_text,
+        qr2_buffer_add(buffer, (const char *)halo::text::string_convert_unicode_to_ascii((uint8_t *)network_qr2_text,
             (uint16_t *)game_engine_variant, 0x100));
         return;
     case 8:

@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_main.hpp"
+#include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "crt.h"
 #include <string.h>
@@ -31,7 +32,6 @@ extern int32_t interface_loading_screen_progress;
 extern uint16_t progress_screen_text[0x20];
 extern uint16_t progress_screen_subtext[0x20];
 extern datum_index interface_loading_screen_request_id;
-extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source);
 extern uint8_t ui_cursor_changed;
 extern uint8_t main_menu_music_pending;
 extern widget_instance *ui_root_widget[1];
@@ -43,10 +43,8 @@ extern int32_t main_menu_music_datum;
 extern map_list_entry *map_list;
 extern int32_t map_list_count;
 extern int32_t map_list_find_known_map_index(char *map_path);
-extern uint16_t *text_string_list_get_string(datum_index tag_id, int16_t index);
 extern heap *widget_memory_pool;
 extern uint16_t missing_string_text[];
-extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern data_array *terminal_messages;
 extern uint8_t terminal_initialized;
 extern terminal_console *console_active;
@@ -135,7 +133,7 @@ void InterfaceMain::loading_screen_set_text(const char *text)
     if (text == (const char *)0) {
         progress_screen_text[0] = 0;
     } else {
-        string_convert_ascii_to_unicode(progress_screen_text, 0x40, text);
+        halo::text::string_convert_ascii_to_unicode(progress_screen_text, 0x40, text);
     }
 }
 
@@ -268,7 +266,7 @@ void MapList::get_friendly_level_name(wchar_t *destination, char *map_path, int3
     index = map_list_find_known_map_index(map_path);
     if (-1 < index && index < 0x13 && index != -1) {
 
-        source = (wchar_t *)text_string_list_get_string(map_list_tag, (int16_t)map_list[index].map_id);
+        source = (wchar_t *)halo::text::text_string_list_get_string(map_list_tag, (int16_t)map_list[index].map_id);
         wcsncpy(destination, source, destination_capacity - 1);
         destination[destination_capacity - 1] = L'\0';
         return;
@@ -276,10 +274,10 @@ void MapList::get_friendly_level_name(wchar_t *destination, char *map_path, int3
 
     filename = strrchr(map_path, '\\');
     if (filename != (char *)0) {
-        string_convert_ascii_to_unicode((uint16_t *)destination, destination_capacity * 2, filename + 1);
+        halo::text::string_convert_ascii_to_unicode((uint16_t *)destination, destination_capacity * 2, filename + 1);
         return;
     }
-    string_convert_ascii_to_unicode((uint16_t *)destination, destination_capacity * 2, map_path);
+    halo::text::string_convert_ascii_to_unicode((uint16_t *)destination, destination_capacity * 2, map_path);
 }
 
 /**
@@ -312,7 +310,7 @@ void InterfaceMain::set_profile_name(widget_instance *widget, const uint16_t *na
                 }
             }
         }
-        string_format_wide_va_bounded(0x3f, (uint16_t *)((wchar_t *)buffer), (const uint16_t *)L"%s %s", suffix, name_source);
+        halo::text::string_format_wide_va_bounded(0x3f, (uint16_t *)((wchar_t *)buffer), (const uint16_t *)L"%s %s", suffix, name_source);
         ((uint16_t *)widget->text)[0x3f] = 0;
     }
 }

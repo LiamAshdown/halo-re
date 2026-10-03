@@ -1,4 +1,5 @@
 #include "halo/game/game2_game_lifecycle.hpp"
+#include "halo/text/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/sound/api.hpp"
@@ -51,7 +52,6 @@ extern uint8_t players_any_pending_seat_or_respawn(void);
 extern uint8_t unit_is_area_clear_of_fast_objects(void);
 extern player_globals *local_player_globals;
 extern data_array *player_data;
-extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 }
 
 namespace halo::game {
@@ -326,12 +326,12 @@ void GameLifecycle::time_format_minutes_seconds(uint32_t ticks, uint32_t count, 
     uint16_t seconds_text[0x40];
 
     if (minutes == 0) {
-        string_format_wide_va_bounded(0x40, minutes_text, (const uint16_t *)L" ");
+        halo::text::string_format_wide_va_bounded(0x40, minutes_text, (const uint16_t *)L" ");
     } else {
-        string_format_wide_va_bounded(0x40, minutes_text, (const uint16_t *)L"%d", minutes);
+        halo::text::string_format_wide_va_bounded(0x40, minutes_text, (const uint16_t *)L"%d", minutes);
     }
-    string_format_wide_va_bounded(0x40, seconds_text, (const uint16_t *)(seconds <= 9 ? L"0%d" : L"%d"), seconds);
-    string_format_wide_va_bounded(count, (uint16_t *)dest, (const uint16_t *)L"%s:%s", minutes_text, seconds_text);
+    halo::text::string_format_wide_va_bounded(0x40, seconds_text, (const uint16_t *)(seconds <= 9 ? L"0%d" : L"%d"), seconds);
+    halo::text::string_format_wide_va_bounded(count, (uint16_t *)dest, (const uint16_t *)L"%s:%s", minutes_text, seconds_text);
 }
 
 /**

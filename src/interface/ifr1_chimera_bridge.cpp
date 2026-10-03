@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_chimera_bridge.hpp"
+#include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -26,10 +27,6 @@ extern uint32_t time_query_performance_counter_ms(void);
 extern uint32_t color_argb_scale_alpha(uint32_t packed_color, float scale);
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data,
                                 int16_t *clip_rect, uint32_t vertex_color);
-extern void text_set_render_context(datum_index font, ColorARGB *color, int32_t flags,
-                                    int32_t justification, int32_t unused);
-extern uint16_t *text_string_list_get_string(datum_index tag_id, int16_t index);
-extern uint16_t *string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text);
 extern void chat_close(void);
@@ -161,7 +158,7 @@ void ChimeraBridge::do_show_loading_screen(void)
         ui_draw_screen_quad((int16_t *)&bounds, (int16_t *)&bounds, bitmap_data, (int16_t *)0,
                             packed_color);
     }
-    text_set_render_context(font, &text_color, -1, 2, 0);
+    halo::text::text_set_render_context(font, &text_color, -1, 2, 0);
 
     bounds.left = 0;
     bounds.top = 0x19a;
@@ -169,35 +166,35 @@ void ChimeraBridge::do_show_loading_screen(void)
     bounds.bottom = 0x1ae;
     switch (join_ui_state) {
     case 2:
-        string_format_wide_va(text_buffer, text_string_list_get_string(strings, 1));
+        halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 1));
         chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
         break;
     case 3:
     case 5:
-        string_format_wide_va(text_buffer, text_string_list_get_string(strings, 2), progress_screen_text);
+        halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 2), progress_screen_text);
         chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
         break;
     case 4:
-        string_format_wide_va(text_buffer, text_string_list_get_string(strings, 0), progress_screen_text);
+        halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 0), progress_screen_text);
         chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
         break;
     case 6:
-        string_format_wide_va(text_buffer, text_string_list_get_string(strings, 3), progress_screen_text,
+        halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 3), progress_screen_text,
                               interface_loading_screen_progress);
         chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
         break;
     case 7:
-        string_format_wide_va(text_buffer, text_string_list_get_string(strings, 4));
+        halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 4));
         chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
         break;
     case 8:
-        string_format_wide_va(text_buffer,
-                              text_string_list_get_string(strings, (network_game_mode == 2) ? 6 : 5),
+        halo::text::string_format_wide_va(text_buffer,
+                              halo::text::text_string_list_get_string(strings, (network_game_mode == 2) ? 6 : 5),
                               progress_screen_subtext);
         chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
         break;
     case 9:
-        string_format_wide_va(text_buffer, text_string_list_get_string(strings, 8), progress_screen_subtext);
+        halo::text::string_format_wide_va(text_buffer, halo::text::text_string_list_get_string(strings, 8), progress_screen_subtext);
         chimera__draw_16_bit_text(0, &bounds, 0, 0, text_buffer);
         break;
     default:
@@ -208,11 +205,11 @@ void ChimeraBridge::do_show_loading_screen(void)
     bounds.bottom = 0x1c2;
     switch (join_ui_state) {
     case 2: case 3: case 4: case 5: case 6: case 7: case 9:
-        chimera__draw_16_bit_text(0, &bounds, 0, 0, text_string_list_get_string(strings, 7));
+        chimera__draw_16_bit_text(0, &bounds, 0, 0, halo::text::text_string_list_get_string(strings, 7));
     case 8:
         bounds.top = 0x1cc;
         bounds.bottom = 0x1e0;
-        chimera__draw_16_bit_text(0, &bounds, 0, 0, text_string_list_get_string(strings, 9));
+        chimera__draw_16_bit_text(0, &bounds, 0, 0, halo::text::text_string_list_get_string(strings, 9));
         break;
     default:
         break;

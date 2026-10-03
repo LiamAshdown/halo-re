@@ -1,4 +1,5 @@
 #include "halo/networking/net1_runtime.hpp"
+#include "halo/text/api.hpp"
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
@@ -48,7 +49,6 @@ extern void network_hostname_thread_proc(char *hostname_buffer);
 extern uint8_t network_log_path_buffer[0x104];
 extern char network_log_path_format[];
 extern int32_t security_check_write_access(void);
-extern int32_t text_get_character_metrics(uint8_t ch);
 extern uint8_t virtual_keyboard_character_is_legal(uint8_t ch, void *character);
 extern uint8_t ui_wide_string_has_non_whitespace(void);
 extern uint16_t *network_message_block_build(uint16_t *buffer, uint32_t *source, uint8_t flags, uint32_t length);
@@ -481,7 +481,8 @@ uint8_t NetworkRuntime::name_string_is_valid_for_mode(char *name, void *characte
     int32_t len;
     int32_t i;
 
-    tag_lookup_unresolved("ui\\small_ui");
+    datum_index small_ui_font_tag = halo::cache::tag_lookup(0x666f6e74, (char *)"ui\\small_ui");
+    Font *small_ui_font = (Font *)halo::cache::globals().tag_instances[small_ui_font_tag & 0xffff].data;
     len = strlen(name);
     if (mode == 3) {
         ok = *name != 0;
@@ -491,7 +492,7 @@ uint8_t NetworkRuntime::name_string_is_valid_for_mode(char *name, void *characte
     }
     for (i = 0; i < len; i = i + 1) {
         uint8_t ch = (uint8_t)name[i];
-        if (ch < ' ' || ch == 0xff || text_get_character_metrics(ch) == 0 || virtual_keyboard_character_is_legal(ch, character) == 0) {
+        if (ch < ' ' || ch == 0xff || halo::text::text_get_character_metrics(ch, small_ui_font) == 0 || virtual_keyboard_character_is_legal(ch, character) == 0) {
             ok = 0;
             break;
         }

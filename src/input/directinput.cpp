@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/text/api.hpp"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
@@ -610,8 +611,6 @@ void DirectInput::directinput_unacquire_devices(void)
 }
 
 extern "C" { extern di_data_format joystick_data_format; }
-extern "C" { extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source); }
-extern "C" { extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...); }
 typedef int32_t (__stdcall *idirectinputdevice8_getcapabilities_proc)(void *self, di_device_caps *caps);
 
 typedef int32_t (__stdcall *idirectinputdevice8_enumobjects_proc)(void *self, void *callback, void *reference,
@@ -662,11 +661,11 @@ int32_t DirectInput::enumerate_gamepad_callback(const di_device_instance *instan
     device->record.product_instance = (uint8_t)halo::input::input_device_count_by_guid((const uint32_t *)&instance->product_guid);
     device->instance_guid = instance->instance_guid;
     device->record.product_guid = instance->product_guid;
-    string_convert_ascii_to_unicode(device->record.name, 0x20a, instance->instance_name);
+    halo::text::string_convert_ascii_to_unicode(device->record.name, 0x20a, instance->instance_name);
     if (device->record.product_instance != 0 && wcslen((const wchar_t *)device->record.name) < 0xfc) {
         uint16_t suffix[8];
 
-        string_format_wide_va(suffix, (const uint16_t *)L" (%d)", device->record.product_instance + 1);
+        halo::text::string_format_wide_va(suffix, (const uint16_t *)L" (%d)", device->record.product_instance + 1);
         wcscat((wchar_t *)device->record.name, (const wchar_t *)suffix);
     }
     device->slot = -1;

@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_hud.hpp"
+#include "halo/text/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -25,9 +26,6 @@ extern uint16_t hud_text_draw_color_or_flags;
 extern int16_t hud_text_draw_column;
 extern uint32_t hud_text_draw_unknown_4730;
 extern int32_t hud_text_draw_font_tag_id;
-extern wchar_t *text_string_list_get_string(datum_index tag_id, int16_t index);
-extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
-extern uint16_t *string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern int32_t select_players_to_display(int32_t mode, int32_t max_count, scoreboard_entry *out);
 extern void game_engine_build_end_game_result_text(datum_index player, wchar_t *out);
@@ -76,7 +74,7 @@ wchar_t * EngineHud::multiplayer_game_text_string(int16_t index)
     if (tag_id == k_datum_index_none) {
         return &empty_string;
     }
-    return text_string_list_get_string(tag_id, index);
+    return reinterpret_cast<wchar_t *>(halo::text::text_string_list_get_string(tag_id, index));
 }
 
 /**
@@ -185,7 +183,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
     col_d = multiplayer_game_text_string(0x46);
     col_e = multiplayer_game_text_string(0x47);
     ((void (*)(wchar_t *))current_game_engine->build_score_header_text)(header_names_buf);
-    string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(L"\t%s\t%s\t%s\t%s\t%s\t%s\t%s"), col_a, col_b, header_names_buf,
+    halo::text::string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(L"\t%s\t%s\t%s\t%s\t%s\t%s\t%s"), col_a, col_b, header_names_buf,
                           col_c, col_d, col_e, L"Ping");
     hud_draw_world_relative_text(&params_header, 1, row_buffer, 0);
 
@@ -257,7 +255,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
                 }
 
                 place_text = game_engine_get_default_multiplayer_string(&visible[i]);
-                string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(starred ? L"*\t%s\t%s\t%s\t%d\t%d\t%d\t%d"
+                halo::text::string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(starred ? L"*\t%s\t%s\t%s\t%d\t%d\t%d\t%d"
                                                           : L"\t%s\t%s\t%s\t%d\t%d\t%d\t%d"),
                                       place_text, p->name, status_text,
                                       visible[i].key_1, visible[i].key_3, visible[i].key_2,
@@ -296,7 +294,7 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
             } else {
                 word = multiplayer_game_text_string(0xd);
             }
-            string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(L"%s (%s)"), prompt, word);
+            halo::text::string_format_wide_va((uint16_t *)row_buffer, (const uint16_t *)(L"%s (%s)"), prompt, word);
 
             prompt_rect.top = 0x1b8;
             prompt_rect.left = 0xa;
@@ -353,9 +351,9 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
             address_wide[len] = 0;
 
             if ((uint16_t)port != 0) {
-                string_format_wide_va_bounded(0x200, (uint16_t *)row_buffer, (const uint16_t *)(L"%s%s:%u"), label, address_wide, (uint32_t)(uint16_t)port);
+                halo::text::string_format_wide_va_bounded(0x200, (uint16_t *)row_buffer, (const uint16_t *)(L"%s%s:%u"), label, address_wide, (uint32_t)(uint16_t)port);
             } else {
-                string_format_wide_va_bounded(0x200, (uint16_t *)row_buffer, (const uint16_t *)(L"%s%s"), label, address_wide);
+                halo::text::string_format_wide_va_bounded(0x200, (uint16_t *)row_buffer, (const uint16_t *)(L"%s%s"), label, address_wide);
             }
 
             address_rect.top = 0x1cc;

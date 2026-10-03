@@ -3,6 +3,7 @@
  * Join-game ticker text buffer.
  */
 #include "tags.h"
+#include "halo/text/api.hpp"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
@@ -23,7 +24,6 @@ extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
 extern int32_t hud_text_draw_unknown_4730;
-extern int32_t text_measure_string_fit_width(int32_t *max_width_inout);
 void ticker_text_buffer_advance(uint8_t *widget, ticker_text_buffer *self);
 void ticker_text_buffer_append(wchar_t *text, int32_t reset_column, ticker_text_buffer *self);
 void ticker_text_buffer_reset(ticker_text_buffer *self);
@@ -58,7 +58,7 @@ void TickerTextBuffer::advance(uint8_t *widget, ticker_text_buffer *self)
     hud_text_draw_column = 0;
     hud_text_draw_unknown_4730 = 0;
 
-    fit_count = text_measure_string_fit_width(max_width);
+    fit_count = halo::text::text_measure_string_fit_width(self->text + self->scroll_cursor, max_width);
     if (fit_count == 0) {
         if (self->scroll_cursor == 0) {
 
@@ -75,7 +75,7 @@ void TickerTextBuffer::advance(uint8_t *widget, ticker_text_buffer *self)
             int32_t tail_length = self->length - self->scroll_cursor;
             int32_t wrap_length;
 
-            max_width[0] = text_measure_string_fit_width(max_width);
+            max_width[0] = halo::text::text_measure_string_fit_width(self->text, max_width);
             display_text = (wchar_t *)halo::memory::heap_reallocate((void *)(uintptr_t)text_row[0xf],
                 (uint32_t)(((tail_length + max_width[0]) * 2 + 2) & 0xffff), widget_memory_pool);
             text_row[0xf] = (uint32_t)(uintptr_t)display_text;

@@ -5,13 +5,12 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/cache/api.hpp"
 
 extern "C" {
 
-extern void text_wrap_and_draw_wide(void *glyph_callback, void *dest_rect, uint32_t position_or_color1, void *clip_rect, uint32_t position_or_color2, const int16_t *text);
-extern void text_wrap_and_draw_narrow(void *glyph_callback, void *dest_rect, uint32_t position_or_color1, void *clip_rect, uint32_t position_or_color2, const char *text);
 
 }  // extern "C"
 
@@ -80,8 +79,8 @@ void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_re
     ((float *)glyph_state)[17] = 1.0f / (float)(int32_t)*(int16_t *)((uint8_t *)atlas + 6);
 
     rasterizer_draw_text_begin((ui_quad_render_state *)glyph_state);
-    text_wrap_and_draw_wide((void *)text_draw_glyph_callback, dest_rect, position_or_color1, clip_rect,
-                 position_or_color2, text);
+    halo::text::text_wrap_and_draw_wide(static_cast<text_glyph_draw_proc>((void *)text_draw_glyph_callback), reinterpret_cast<Rectangle2D *>(dest_rect), reinterpret_cast<Point2DInt *>(position_or_color1), reinterpret_cast<Rectangle2D *>(clip_rect),
+                 position_or_color2, reinterpret_cast<void *>(const_cast<int16_t *>(text)));
     rasterizer_draw_text_end();
 }
 
@@ -147,8 +146,8 @@ void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rec
     ((float *)glyph_state)[17] = 1.0f / (float)(int32_t)*(int16_t *)((uint8_t *)atlas + 6);
 
     rasterizer_draw_text_begin((ui_quad_render_state *)glyph_state);
-    text_wrap_and_draw_narrow((void *)text_draw_glyph_callback, dest_rect, position_or_color1, clip_rect,
-                 position_or_color2, text);
+    halo::text::text_wrap_and_draw_narrow(static_cast<text_glyph_draw_proc>((void *)text_draw_glyph_callback), reinterpret_cast<Rectangle2D *>(dest_rect), reinterpret_cast<Point2DInt *>(position_or_color1), reinterpret_cast<Rectangle2D *>(clip_rect),
+                 position_or_color2, reinterpret_cast<void *>(const_cast<char *>(text)));
     rasterizer_draw_text_end();
 }
 

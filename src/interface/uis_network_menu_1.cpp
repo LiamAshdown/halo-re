@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/text/api.hpp"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -28,7 +29,6 @@ extern uint16_t network_host_subname_007191f0[9];
 extern int32_t saved_player_profile_slots_handle;
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
-extern uint8_t * string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity);
 extern uint8_t network_game_client_connect_to_address_async(char *name, char *address);
 extern void saved_item_select(int32_t profile_index);
 extern uint8_t saved_item_has_unsaved_changes(void);
@@ -48,8 +48,6 @@ extern uint32_t network_resolved_local_address;
 extern uint16_t local_port_006869b6;
 extern uint16_t ip_port_format_string_0066a564[];
 extern uint32_t network_game_socket_port;
-extern void string_convert_ascii_to_unicode(void);
-extern wchar_t *string_format_wide_va_bounded(wchar_t *dest, const wchar_t *format, ...);
 extern uint8_t network_host_name_flag_00719276;
 extern uint8_t ui_network_wait_active;
 extern int32_t ui_network_wait_start_time;
@@ -153,8 +151,8 @@ uint8_t UiNetworkMenu::network_client_connect_and_save(void)
     char port[0xc];
     uint8_t result;
 
-    string_convert_unicode_to_ascii((uint8_t *)name, network_host_name_field_00719238, 0x20);
-    string_convert_unicode_to_ascii((uint8_t *)port, network_host_subname_007191f0, 9);
+    halo::text::string_convert_unicode_to_ascii((uint8_t *)name, network_host_name_field_00719238, 0x20);
+    halo::text::string_convert_unicode_to_ascii((uint8_t *)port, network_host_subname_007191f0, 9);
     result = network_game_client_connect_to_address_async(name, port);
     if (result == 0 || saved_player_profile_slots_handle == -1) {
         return result;
@@ -301,15 +299,15 @@ void UiNetworkMenu::network_host_setup_refresh(widget_instance *widget)
 
         swapped_address.s_addr = swapped;
         text = inet_ntoa(swapped_address);
-        char *end = text + 1;
-
-        while (*text != '\0') {
-            text++;
+        char *scan = text;
+        while (*scan != '\0') {
+            scan++;
         }
-        string_convert_ascii_to_unicode();
-        string_format_wide_va_bounded(
-            (wchar_t *)((uint8_t *)ip_control->text + (int32_t)((text - end)) * 2),
-            (const wchar_t *)ip_port_format_string_0066a564, network_game_socket_port);
+        int32_t address_length = (int32_t)(scan - text);
+        halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(ip_control->text), 0x40, text);
+        halo::text::string_format_wide_va_bounded(
+            0x1f - address_length, reinterpret_cast<uint16_t *>(ip_control->text) + address_length,
+            reinterpret_cast<const uint16_t *>(ip_port_format_string_0066a564), network_game_socket_port);
         ((uint16_t *)ip_control->text)[0x1f] = 0;
     }
 

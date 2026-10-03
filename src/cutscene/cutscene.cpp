@@ -1,4 +1,5 @@
 #include "halo/cutscene/cutscene.hpp"
+#include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/cache/api.hpp"
@@ -24,8 +25,6 @@ extern widget_instance *ui_root_widget[1];
 extern Rectangle2D render_viewport_top;
 extern uint32_t text_shadow_color_argb;
 extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
-extern void text_set_render_context(datum_index font, ColorARGB *color, int16_t style, int16_t justification, uint32_t flags);
-extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
 void cutscene_start(void);
 void cutscene_stop(void);
@@ -274,7 +273,7 @@ void CutsceneDirector::letterbox()
                     if (tint.blue > 0.8f) tint.blue = 0.8f;
                 }
 
-                text_set_render_context(fullscreen_font, &tint, (int16_t)(title->text_style - 1),
+                halo::text::text_set_render_context(fullscreen_font, &tint, (int16_t)(title->text_style - 1),
                     title->justification, title->text_flags);
 
                 shadow_alpha = ROUND((float)title->shadow_color.alpha * fade);
@@ -286,7 +285,7 @@ void CutsceneDirector::letterbox()
                 text_shadow_color_argb =
                     (*(uint32_t *)&title->shadow_color & k_rgb_mask) | ((uint32_t)shadow_alpha << k_alpha_shift);
 
-                help_text = text_string_list_get_string(help_text_list, (int16_t)title->string_index);
+                help_text = halo::text::text_string_list_get_string(help_text_list, (int16_t)title->string_index);
                 dest_rect = (title->text_bounds.right == title->text_bounds.left ||
                              title->text_bounds.bottom == title->text_bounds.top)
                     ? &hud_globals_tag_data->default_chapter_title_bounds

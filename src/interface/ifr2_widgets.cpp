@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_widgets.hpp"
+#include "halo/text/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "sound.h"
@@ -77,11 +78,8 @@ extern uint8_t widget_instance_is_input_eligible(widget_instance *widget);
 extern widget_instance *widget_list_get_child_by_index(widget_instance *list, int32_t index);
 extern void widget_relink_focus_by_tag_id(widget_instance *widget, datum_index child_definition);
 extern void widget_play_sound_effect_tag(datum_index sound_tag);
-extern void text_clamp_byte_length_to_character_boundary(char *string, int16_t *length);
 extern void widget_text_edit_clamp_selection(text_edit_state *state);
 extern uint32_t widget_text_edit_get_selection(text_edit_state *state, int16_t *out_start, int16_t *out_end);
-extern void text_find_character_boundary(char *string, int16_t *offset_in_out);
-extern uint16_t text_get_next_character(char *string, int16_t *offset_in_out);
 extern void widget_instance_set_state_recursive(widget_instance *widget, uint8_t state);
 }
 
@@ -2325,9 +2323,9 @@ void TextEdit::clamp_selection()
         state->selection_anchor = -1;
     }
 
-    text_clamp_byte_length_to_character_boundary(state->text, &state->cursor);
+    halo::text::text_clamp_byte_length_to_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
     if (state->selection_anchor != -1) {
-        text_clamp_byte_length_to_character_boundary(state->text, &state->selection_anchor);
+        halo::text::text_clamp_byte_length_to_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->selection_anchor);
     }
 }
 
@@ -2404,7 +2402,7 @@ void TextEdit::insert_string(char *insert_str)
         }
     }
 
-    text_clamp_byte_length_to_character_boundary(state->text, &state->cursor);
+    halo::text::text_clamp_byte_length_to_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
 }
 
 /**
@@ -2439,7 +2437,7 @@ void TextEdit::process_key(ui_key_event *event)
                 } else {
                     state->cursor = sel_start;
                 }
-                text_clamp_byte_length_to_character_boundary(state->text, &state->cursor);
+                halo::text::text_clamp_byte_length_to_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
                 return;
             }
 
@@ -2448,11 +2446,11 @@ void TextEdit::process_key(ui_key_event *event)
             }
             if (event->key_code == _ui_edit_key_left_arrow) {
                 if (state->cursor > 0) {
-                    text_find_character_boundary(state->text, &state->cursor);
+                    halo::text::text_find_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
                 }
             } else {
                 if ((size_t)state->cursor < strlen(state->text)) {
-                    text_get_next_character(state->text, &state->cursor);
+                    halo::text::text_get_next_character(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
                 }
             }
             if (state->selection_anchor == state->cursor) {
@@ -2468,7 +2466,7 @@ void TextEdit::process_key(ui_key_event *event)
                 state->selection_anchor = -1;
                 state->text[sel_start] = (char)event->character;
                 state->cursor = state->cursor + 1;
-                text_clamp_byte_length_to_character_boundary(state->text, &state->cursor);
+                halo::text::text_clamp_byte_length_to_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
                 return;
             }
             if ((int32_t)strlen(state->text) < (int32_t)state->maximum_length) {
@@ -2477,11 +2475,11 @@ void TextEdit::process_key(ui_key_event *event)
                 memmove(dst + 1, dst, (size_t)(tail_len + 1));
                 state->text[state->cursor] = (char)event->character;
                 state->cursor = state->cursor + 1;
-                text_clamp_byte_length_to_character_boundary(state->text, &state->cursor);
+                halo::text::text_clamp_byte_length_to_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
                 return;
             }
         }
-        text_clamp_byte_length_to_character_boundary(state->text, &state->cursor);
+        halo::text::text_clamp_byte_length_to_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
         return;
     }
 
@@ -2492,17 +2490,17 @@ void TextEdit::process_key(ui_key_event *event)
         memmove(state->text + sel_start, src, (size_t)(tail_len + 1));
         state->cursor = sel_start;
         state->selection_anchor = -1;
-        text_clamp_byte_length_to_character_boundary(state->text, &state->cursor);
+        halo::text::text_clamp_byte_length_to_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
         return;
     }
 
     if (event->key_code == _ui_edit_key_backspace) {
         old_cursor = state->cursor;
         if (old_cursor < 1) {
-            text_clamp_byte_length_to_character_boundary(state->text, &state->cursor);
+            halo::text::text_clamp_byte_length_to_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
             return;
         }
-        text_find_character_boundary(state->text, &state->cursor);
+        halo::text::text_find_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
         src = state->text + old_cursor;
         tail_len = (int32_t)strlen(src);
         dst = state->text + state->cursor;
@@ -2510,18 +2508,18 @@ void TextEdit::process_key(ui_key_event *event)
     } else {
 
         if ((size_t)state->cursor >= strlen(state->text)) {
-            text_clamp_byte_length_to_character_boundary(state->text, &state->cursor);
+            halo::text::text_clamp_byte_length_to_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
             return;
         }
         scratch_offset = state->cursor;
-        text_get_next_character(state->text, &scratch_offset);
+        halo::text::text_get_next_character(reinterpret_cast<uint8_t *>(state->text), &scratch_offset);
         src = state->text + scratch_offset;
         tail_len = (int32_t)strlen(src);
         dst = state->text + state->cursor;
         memmove(dst, src, (size_t)(tail_len + 1));
     }
 
-    text_clamp_byte_length_to_character_boundary(state->text, &state->cursor);
+    halo::text::text_clamp_byte_length_to_character_boundary(reinterpret_cast<uint8_t *>(state->text), &state->cursor);
 }
 
 /**

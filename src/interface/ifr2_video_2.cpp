@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_video.hpp"
+#include "halo/text/api.hpp"
 #include "crt.h"
 #include <wchar.h>
 #include <string.h>
@@ -26,7 +27,6 @@ extern uint32_t video_refresh_rate_find_index(int32_t resolution_index, int32_t 
 extern void os_platform_identify(void);
 extern void chimera__gamma(void);
 extern heap *widget_memory_pool;
-extern uint16_t *string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 extern void widget_play_sound_effect(int16_t effect_id);
 extern void widget_extended_description_sync_selection(widget_instance *screen);
 extern void video_display_modes_enumerate(uint32_t format);
@@ -231,7 +231,7 @@ uint8_t VideoOptions::update(widget_instance *screen)
     text = (uint16_t *)halo::memory::heap_reallocate(refresh->list_render_data, 0x20, widget_memory_pool);
     refresh->list_render_data = text;
     if (text != 0) {
-        string_format_wide_va(text, hz_format, video_resolutions[resolution_index].refresh_rates[refresh_index]);
+        halo::text::string_format_wide_va(text, hz_format, video_resolutions[resolution_index].refresh_rates[refresh_index]);
         ((uint16_t *)refresh->list_render_data)[0xf] = 0;
     }
 

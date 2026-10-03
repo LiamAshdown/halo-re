@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_video.hpp"
+#include "halo/text/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -11,7 +12,6 @@ extern void video_options_menu_populate(widget_instance *screen, uint8_t *settin
 extern void widget_play_sound_effect(int16_t effect_id);
 extern video_resolution video_resolutions[0x20];
 extern int32_t video_resolution_count;
-extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 }
 
 namespace halo::interface {
@@ -61,7 +61,7 @@ void VideoOptions::resolution_add(int32_t height, int32_t width, int32_t refresh
     entry = &video_resolutions[index];
     entry->width = width;
     entry->height = height;
-    string_format_wide_va(entry->name, name_format, width, height);
+    halo::text::string_format_wide_va(entry->name, name_format, width, height);
     entry->name[15] = 0;
     for (j = 0; j < entry->refresh_rate_count; j++) {
         if (entry->refresh_rates[j] == refresh_rate) {

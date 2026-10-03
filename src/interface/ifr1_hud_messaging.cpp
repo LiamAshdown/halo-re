@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_hud_messaging.hpp"
+#include "halo/text/api.hpp"
 #include <wchar.h>
 #include <stdint.h>
 #include "halo/math/api.hpp"
@@ -26,7 +27,6 @@ extern HUDGlobals *hud_globals_tag_data;
 extern player_globals *local_player_globals;
 extern uint16_t *empty_wide_string_pointer;
 extern void chimera__hud_message(int16_t local_player_index, const uint16_t *text);
-extern uint16_t *text_string_list_get_string(datum_index tag_id, int16_t index);
 extern uint16_t *hud_get_message_string(int32_t message_index);
 extern data_array *player_data;
 extern data_array *object_data;
@@ -177,7 +177,7 @@ void HudMessaging::display_checkpoint_message(uint8_t is_begin)
         if (string_list_tag_id != -1) {
             int32_t *string_list_tag_data = (int32_t *)halo::cache::globals().tag_instances[string_list_tag_id & 0xffff].data;
             if (string_list_tag_data != 0 && message_index > -1 && message_index < *string_list_tag_data) {
-                text = text_string_list_get_string((datum_index)string_list_tag_id, message_index);
+                text = halo::text::text_string_list_get_string((datum_index)string_list_tag_id, message_index);
             }
         }
         chimera__hud_message(0, text);
@@ -222,7 +222,7 @@ uint16_t * HudMessaging::get_message_string(int32_t message_index)
     if (string_list_tag_id != -1) {
         int32_t *string_list_tag_data = (int32_t *)halo::cache::globals().tag_instances[string_list_tag_id & 0xffff].data;
         if (string_list_tag_data != 0 && message_index > -1 && message_index < *string_list_tag_data) {
-            return text_string_list_get_string((datum_index)string_list_tag_id, (int16_t)message_index);
+            return halo::text::text_string_list_get_string((datum_index)string_list_tag_id, (int16_t)message_index);
         }
     }
     return empty_wide_string_pointer;

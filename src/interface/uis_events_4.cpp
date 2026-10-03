@@ -4,6 +4,7 @@
  */
 
 #include "win32.h"
+#include "halo/text/api.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "tags.h"
 #include "memory.h"
@@ -66,7 +67,6 @@ extern void ui_controls_populate_bind_rows(widget_instance *widget, uint32_t pac
 extern uint8_t ui_network_game_options_populate(widget_instance *widget, const uint8_t *options_record);
 extern uint32_t network_game_option_a_00719210;
 extern uint32_t network_game_option_b_00719214;
-extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 extern int32_t network_host_number_field_00719218;
 extern uint16_t network_host_number_text_0071921c[0x10];
 extern growable_array hud_text_message_queue;
@@ -785,7 +785,7 @@ uint8_t UiEventHandlers::event_4a3a70(widget_instance *widget, int16_t *event, u
     uint8_t result = 0;
 
     if (second->parent->focused_child == second) {
-        string_format_wide_va(network_host_number_text_0071921c, (const uint16_t *)L"%d", network_game_option_a_00719210);
+        halo::text::string_format_wide_va(network_host_number_text_0071921c, (const uint16_t *)L"%d", network_game_option_a_00719210);
         if (virtual_keyboard_open(network_host_number_text_0071921c, 0x10, 0xd) != 0) {
             network_host_edit_field_00719410 = 4;
             network_host_number_field_00719218 = 1;
@@ -794,7 +794,7 @@ uint8_t UiEventHandlers::event_4a3a70(widget_instance *widget, int16_t *event, u
     }
     third = second->next_sibling;
     if (result == 0 && third->parent->focused_child == third) {
-        string_format_wide_va(network_host_number_text_0071921c, (const uint16_t *)L"%d", network_game_option_b_00719214);
+        halo::text::string_format_wide_va(network_host_number_text_0071921c, (const uint16_t *)L"%d", network_game_option_b_00719214);
         if (virtual_keyboard_open(network_host_number_text_0071921c, 0x10, 0xd) != 0) {
             network_host_edit_field_00719410 = 5;
             network_host_number_field_00719218 = 2;

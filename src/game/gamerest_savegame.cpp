@@ -1,11 +1,10 @@
 #include "halo/game/gamerest_savegame.hpp"
+#include "halo/text/api.hpp"
 #include <wchar.h>
 #include <stdint.h>
 #include "halo/cache/api.hpp"
 
 extern "C" {
-extern uint8_t *string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity);
-extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source);
 extern int32_t user_save_path_register(uint32_t user_id, char *path);
 extern char *user_save_path_default;
 extern char *user_save_path_lookup(uint32_t user_id);
@@ -70,11 +69,11 @@ uint32_t SaveGameFiles::create(const uint16_t *save_game_name, const char *root_
         return 0x57;
     }
 
-    string_convert_unicode_to_ascii((uint8_t *)name, (uint16_t *)save_game_name, 0x80);
+    halo::text::string_convert_unicode_to_ascii((uint8_t *)name, (uint16_t *)save_game_name, 0x80);
     sprintf(slot_dir, "%s\\%s\\", root_path, name);
     sprintf(slot_path, "%s%s", slot_dir, name);
     sprintf(info_line, "Name=%s\n", name);
-    string_convert_ascii_to_unicode((uint16_t *)checkpoint_dir, 0x80, info_line);
+    halo::text::string_convert_ascii_to_unicode((uint16_t *)checkpoint_dir, 0x80, info_line);
 
     sprintf(slot_file_no_slash, "%s\\%s", root_path, name);
 
@@ -172,7 +171,7 @@ uint32_t SaveGameFiles::remove_files(const uint16_t *save_game_name, const char 
         return 0x57;
     }
 
-    string_convert_unicode_to_ascii((uint8_t *)name, (uint16_t *)save_game_name, 0x80);
+    halo::text::string_convert_unicode_to_ascii((uint8_t *)name, (uint16_t *)save_game_name, 0x80);
     sprintf(root_with_slash, "%s\\%s\\", root_path, name);
 
     sprintf(pattern, "%s*.*", root_with_slash);
@@ -299,7 +298,7 @@ int32_t SaveGameFiles::find_first(char *root_path, win32_find_dataa *find_data)
                     } while (find_data->cFileName[i - 1] != '\0');
                 }
 
-                string_convert_ascii_to_unicode((uint16_t *)((uint8_t *)find_data + 0x244), 0x80, find_data->cFileName);
+                halo::text::string_convert_ascii_to_unicode((uint16_t *)((uint8_t *)find_data + 0x244), 0x80, find_data->cFileName);
 
                 {
                     int32_t i = 0;
@@ -371,7 +370,7 @@ uint32_t SaveGameFiles::find_next(win32_find_dataa *find_data, uint32_t handle)
                     } while (find_data->cFileName[i - 1] != '\0');
                 }
 
-                string_convert_ascii_to_unicode((uint16_t *)((uint8_t *)find_data + 0x244), 0x80, find_data->cFileName);
+                halo::text::string_convert_ascii_to_unicode((uint16_t *)((uint8_t *)find_data + 0x244), 0x80, find_data->cFileName);
 
                 {
                     int32_t i = 0;

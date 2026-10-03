@@ -3,6 +3,7 @@
  */
 
 #include "crt.h"
+#include "halo/text/api.hpp"
 #include <string.h>
 #include "tags.h"
 #include "memory.h"
@@ -25,7 +26,6 @@ extern uint16_t ui_player_number_text[2];
 extern uint16_t ui_product_id_text[];
 extern uint16_t ui_format_narrow_string[];
 extern void *registry_get_product_id(void);
-extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 extern uint16_t ui_version_text[];
 extern char ui_version_string[];
 extern void *ui_replace_function_table[4];
@@ -98,7 +98,7 @@ void * UiStrings::replace_player_number(widget_instance *widget)
 void * UiStrings::replace_product_id(widget_instance *widget)
 {
     if (ui_product_id_text[0] == 0) {
-        string_format_wide_va(ui_product_id_text, ui_format_narrow_string, registry_get_product_id());
+        halo::text::string_format_wide_va(ui_product_id_text, ui_format_narrow_string, registry_get_product_id());
     }
     return ui_product_id_text;
 }
@@ -111,7 +111,7 @@ void * UiStrings::replace_product_id(widget_instance *widget)
 void * UiStrings::replace_version(widget_instance *widget)
 {
     if (ui_version_text[0] == 0) {
-        string_format_wide_va(ui_version_text, ui_format_narrow_string, ui_version_string);
+        halo::text::string_format_wide_va(ui_version_text, ui_format_narrow_string, ui_version_string);
     }
     return ui_version_text;
 }

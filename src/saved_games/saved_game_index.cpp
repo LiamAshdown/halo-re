@@ -1,4 +1,5 @@
 #include "crt.h"
+#include "halo/text/api.hpp"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -18,7 +19,6 @@
 extern "C" {
 extern char savegames_directory[0x100];
 extern uint16_t missing_string_text[];
-extern void string_format_wide_va_bounded(uint32_t count, uint16_t *dest, const uint16_t *format, ...);
 extern uint32_t XCreateSaveGame(const uint16_t *save_game_name, const char *root_path, int32_t mode, char *out_path,
     uint32_t out_path_size);
 extern int32_t savegame_find_first(const char *root, void *out_find_data);
@@ -115,7 +115,7 @@ void allocate_new_slot(uint16_t *out_name)
                 }
             }
             next_number = number + 1;
-            string_format_wide_va_bounded(0x7f, out_name, format_string, next_number);
+            halo::text::string_format_wide_va_bounded(0x7f, out_name, format_string, next_number);
             out_name[0x7f] = 0;
             create_result = XCreateSaveGame(out_name, savegames_directory, 3, scratch_path, 0x100);
             if (create_result != 0) {
@@ -1420,7 +1420,7 @@ void list_rebuild_index(void)
                             goto have_candidate;
                         }
                     }
-                    string_format_wide_va_bounded(0xff, log_scratch,
+                    halo::text::string_format_wide_va_bounded(0xff, log_scratch,
                         (const uint16_t *)L"random crap found by XFindNextSaveGame(): display name= '%s' path= '%hs'",
                         find_data.save_game_name, find_data.find_data.cFileName);
                     entry_type = -1;

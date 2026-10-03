@@ -1,10 +1,10 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/text/api.hpp"
 #include "halo/memory/api.hpp"
 
 extern "C" {
 extern game_variant game_engine_variant;
 extern int32_t king_alt_team_score[16];
-extern void string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 extern void game_time_format_minutes_seconds(uint32_t ticks, uint32_t unused, wchar_t *dest);
 extern data_array *player_data;
 extern int32_t king_alt_player_score[];
@@ -48,7 +48,7 @@ wchar_t * OddballEngine::build_team_score_text(int32_t team, wchar_t *buffer)
     int32_t score = king_alt_team_score[team];
 
     if (game_engine_variant.engine.oddball.ball_type == 2) {
-        string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", score);
+        halo::text::string_format_wide_va((uint16_t *)buffer, (const uint16_t *)L"%d", score);
     } else {
         game_time_format_minutes_seconds((uint32_t)score, 0x100, buffer);
     }

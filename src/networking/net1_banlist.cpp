@@ -1,4 +1,5 @@
 #include "halo/networking/net1_banlist.hpp"
+#include "halo/text/api.hpp"
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,7 +9,6 @@ extern "C" {
 extern int32_t network_console_connection_id;
 extern int32_t sv_ban_penalty_seconds[4];
 extern char *gcd_getkeyhash(int32_t connection_id, int32_t identity_lookup_key);
-extern void string_convert_unicode_to_ascii(char *dest, network_player_entry *player, int32_t dest_size);
 extern void network_banlist_load(void);
 extern ban_list_entry *ban_list_get_or_add_entry(char *name, char *cd_key_hash);
 extern void network_banlist_save(void);
@@ -51,7 +51,7 @@ uint8_t Banlist::add_ban(int32_t identity_lookup_key, int32_t duration_override_
     if (cd_key_hash == 0 || *cd_key_hash == 0) {
         return 1;
     }
-    string_convert_unicode_to_ascii(player_name, target_player, 0x18);
+    halo::text::string_convert_unicode_to_ascii(reinterpret_cast<uint8_t *>(player_name), reinterpret_cast<uint16_t *>(target_player), 0x18);
     player_name[0xc] = 0;
     network_banlist_load();
     entry = ban_list_get_or_add_entry(player_name, cd_key_hash);

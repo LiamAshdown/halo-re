@@ -1,4 +1,5 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/text/api.hpp"
 #include "halo/scenario/api.hpp"
 #include <string.h>
 #include <wchar.h>
@@ -27,7 +28,6 @@ extern char network_client_check_connection_quality(void);
 extern void network_game_client_apply_position_update(void *state, uint32_t *packet, void *tick_count, void *object);
 extern void network_player_update_history_log_write(const char *format, ...);
 extern wchar_t empty_string;
-extern wchar_t *text_string_list_get_string(int32_t tag_index, int32_t string_index);
 extern network_client_globals *network_client;
 extern network_server_globals *network_server;
 extern uint32_t profile_globals_block[];
@@ -323,7 +323,7 @@ wchar_t * GameRuntime::get_random_player_name()
         definition = *(void **)((uint8_t *)halo::cache::globals().tag_instances + (tag_id & 0xffff) * 0x20 + 0x14);
         if (definition != 0 && *(int32_t *)definition != 0) {
             halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
-            return text_string_list_get_string((int32_t)tag_id, 0);
+            return reinterpret_cast<wchar_t *>(halo::text::text_string_list_get_string((int32_t)tag_id, 0));
         }
     }
     return &empty_string;

@@ -3,6 +3,7 @@
  * Server console commands.
  */
 #include "tags.h"
+#include "halo/text/api.hpp"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
@@ -35,7 +36,6 @@ extern char network_banlist_full_path[0x104];
 extern char profile_directory[0x105];
 extern void network_banlist_load(void);
 extern uint8_t string_is_numeric(char *string);
-extern uint16_t * string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacity_bytes, const char *source);
 extern uint8_t network_player_entry_validate(network_player_entry *entry);
 extern int32_t sv_friendly_fire_mode;
 extern game_engine_definition * current_game_engine;
@@ -67,7 +67,6 @@ extern data_array * player_data;
 extern wchar_t k_empty_string[];
 extern char network_team_color_name_red[];
 extern char network_team_color_name_blue[];
-extern uint8_t * string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity);
 extern void * console_color_00685214;
 extern void * console_color_00686af8;
 extern char sv_rcon_password_value[9];
@@ -272,7 +271,7 @@ network_player_entry * ServerCommands::find_client_by_name_or_index(char *name_o
     if (string_is_numeric(name_or_index) == 0) {
         uint16_t wide_name[13];
 
-        string_convert_ascii_to_unicode(wide_name, 0x1a, name_or_index);
+        halo::text::string_convert_ascii_to_unicode(wide_name, 0x1a, name_or_index);
         for (i = 0; i < 0x10; i = i + 1) {
             network_player_entry *entry = &session->players[i];
             if (network_player_entry_validate(entry) != 0 && wcscmp((const wchar_t *)wide_name, (const wchar_t *)entry->name) == 0) {
@@ -442,8 +441,7 @@ void ServerCommands::maxplayers(uint32_t argument_count, int32_t *arguments)
 
 void ServerCommands::name(uint32_t argument_count, char **arguments)
 {
-    wchar_t * (*const string_convert_ascii_to_unicode)(void) = reinterpret_cast<wchar_t * (*)(void)>(&::string_convert_ascii_to_unicode);
-    wchar_t scratch[63];
+    wchar_t scratch[64];
 
     if (argument_count == 0) {
     report:
@@ -455,7 +453,7 @@ void ServerCommands::name(uint32_t argument_count, char **arguments)
         int32_t length = (int32_t)strlen(name);
 
         if (length != 0 && (uint32_t)length < 0x40) {
-            wchar_t *result = string_convert_ascii_to_unicode();
+            wchar_t *result = reinterpret_cast<wchar_t *>(halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(scratch), 0x80, name));
             if (result == scratch) {
                 if (network_name_string_is_valid_for_mode(name, scratch, 3) != 0) {
                     network_server_globals *server = network_server;
@@ -478,8 +476,7 @@ usage:
 
 void ServerCommands::password(uint32_t argument_count, char **arguments)
 {
-    wchar_t * (*const string_convert_ascii_to_unicode)(void) = reinterpret_cast<wchar_t * (*)(void)>(&::string_convert_ascii_to_unicode);
-    wchar_t scratch[8];
+    wchar_t scratch[9];
 
     if (argument_count == 0) {
     report:
@@ -491,7 +488,7 @@ void ServerCommands::password(uint32_t argument_count, char **arguments)
         int32_t length = (int32_t)strlen(text);
 
         if ((uint32_t)length < 9) {
-            wchar_t *result = string_convert_ascii_to_unicode();
+            wchar_t *result = reinterpret_cast<wchar_t *>(halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(scratch), 0x12, text));
             if (result == scratch) {
                 uint8_t ok = 1;
                 if (text[0] != '\0') {
@@ -557,7 +554,7 @@ void ServerCommands::players(void)
             }
 
             ascii_name[0] = 0;
-            string_convert_unicode_to_ascii((uint8_t *)ascii_name, entry->name, 0xc);
+            halo::text::string_convert_unicode_to_ascii((uint8_t *)ascii_name, entry->name, 0xc);
 
             if (p == 0) {
                 ping = 0;

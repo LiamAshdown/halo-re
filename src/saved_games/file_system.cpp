@@ -1,4 +1,5 @@
 #include "crt.h"
+#include "halo/text/api.hpp"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -17,8 +18,6 @@ extern void *file_enumeration_handles[8];
 extern char file_enumeration_path[0x100];
 extern win32_find_dataa file_enumeration_find_data;
 extern char file_root_template[4];
-extern int16_t text_find_character_boundary(char *path, int16_t *remaining_length);
-extern uint8_t text_char_is_double_byte(const char *at);
 }
 
 /**
@@ -695,12 +694,12 @@ void remove_last_component(char *path)
         if (remaining == 0) {
             break;
         }
-        ch = text_find_character_boundary(path, &remaining);
+        ch = halo::text::text_find_character_boundary(reinterpret_cast<uint8_t *>(path), &remaining);
         last_backslash_pos = remaining;
     } while (ch != '\\');
 
     at = path + last_backslash_pos;
-    is_double_byte = text_char_is_double_byte(at);
+    is_double_byte = halo::text::text_char_is_double_byte(reinterpret_cast<uint8_t *>(at));
     if (!is_double_byte) {
         final_char = (uint16_t)(uint8_t)*at;
         final_width = 1;
@@ -734,7 +733,7 @@ void split_components(char **dir_start_out, char *path, char **ext_fallback_out,
     *ext_fallback_out = end;
     *ext_start_out = end;
     while (length != 0) {
-        uint16_t character = ((uint16_t (*)(uint8_t *string, int16_t *length_inout))text_find_character_boundary)((uint8_t *)path, &length);
+        uint16_t character = halo::text::text_find_character_boundary((uint8_t *)path, &length);
 
         if (character == '.') {
             if (split_extension && **ext_fallback_out == 0 && **ext_start_out == 0) {
