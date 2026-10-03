@@ -286,7 +286,7 @@ void HwreqParser::skip_whitespace()
 void HwreqParser::report_error(const char *message)
 {
     char context[k_hwreq_error_context_length + 4];
-    char formatted[0x100];
+    char formatted[k_hwreq_message_size];
     const char *line;
     int32_t n;
     int32_t length;
@@ -314,7 +314,7 @@ void HwreqParser::report_error(const char *message)
     }
     context[n] = '\0';
 
-    _snprintf(formatted, 0x100, "%s on line %d - '%s'", message, self->line_number, context);
+    _snprintf(formatted, sizeof(formatted), "%s on line %d - '%s'", message, self->line_number, context);
 
     length = 0;
     while (formatted[length] != '\0') length++;
