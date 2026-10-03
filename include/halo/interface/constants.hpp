@@ -83,4 +83,8 @@ inline constexpr int32_t k_description_text_bytes = 512;
 /** Bit of a saved-item handle that marks a built-in (read-only) game variant. */
 inline constexpr int32_t k_saved_item_builtin_marker = 0x40000000;
 
+/** The pixel shader version (1.1) the device must report for specular and shadows, and the raster capability bits that allow decals. */
+inline constexpr uint32_t k_pixel_shader_version_1_1 = 0xffff0101u;
+inline constexpr uint32_t k_decal_capability_mask = 0x6000000;
+
 }  // namespace halo::interface

@@ -524,7 +524,7 @@ uint8_t UiEventHandlers::event_4bb290(widget_instance *widget, int16_t *event, u
     if ((selected_saved_item & 0xf) != 0) {
         return 0;
     }
-    halo::interface::video_options_menu_populate((uint8_t *)widget, (uint8_t *)&saved_item_working_copy);
+    halo::interface::video_options_menu_populate(widget, &saved_item_working_copy);
     return 1;
 }
 

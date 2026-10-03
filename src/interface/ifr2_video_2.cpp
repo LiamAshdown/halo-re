@@ -9,6 +9,7 @@
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
 #include "halo/interface/constants.hpp"
+#include "halo/core/datum.hpp"
 
 #ifdef interface
 #undef interface
@@ -32,19 +33,19 @@ namespace halo::interface {
 /**
  * @address 0x4baec0
  */
-void VideoOptions::populate(uint8_t *context, uint8_t *settings)
+void VideoOptions::populate(widget_instance *screen, const saved_player_profile *profile)
 {
     int32_t target_refresh;
-    uint8_t *resolution_field;
-    uint8_t *resolution_field2;
-    uint8_t *refresh_field;
+    widget_instance *resolution_field;
+    widget_instance *resolution_field2;
+    widget_instance *refresh_field;
     int32_t resolution_index;
     uint32_t refresh_index;
     int i;
-    uint8_t *node;
+    widget_instance *node;
 
     if (video_force_mode_flag == 0) {
-        target_refresh = ((struct saved_player_profile *)settings)->refresh_rate;
+        target_refresh = profile->refresh_rate;
     } else {
         if (os_platform == 0) {
             halo::shell::os_platform_identify();
@@ -55,16 +56,16 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
         }
     }
 
-    resolution_field = *(uint8_t **)(*(uint8_t **)(context + 0x34) + 0x2c);
-    resolution_field2 = *(uint8_t **)(*(uint8_t **)(*(uint8_t **)(context + 0x34) + 0x34) + 0x2c);
-    refresh_field = *(uint8_t **)(*(uint8_t **)(resolution_field + 0x34) + 0x2c);
+    resolution_field = screen->first_child->next_sibling;
+    resolution_field2 = screen->first_child->first_child->next_sibling;
+    refresh_field = resolution_field->first_child->next_sibling;
 
     halo::interface::video_resolution_list_build();
 
     resolution_index = -1;
     for (i = 0; i < video_resolution_count; i++) {
-        if (video_resolutions[i].width == ((struct saved_player_profile *)settings)->screen_width &&
-            video_resolutions[i].height == ((struct saved_player_profile *)settings)->screen_height) {
+        if (video_resolutions[i].width == profile->screen_width &&
+            video_resolutions[i].height == profile->screen_height) {
             resolution_index = i;
             break;
         }
@@ -78,7 +79,7 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
         }
     }
 
-    refresh_index = 0xffffffffu;
+    refresh_index = halo::k_dword_none;
     if (resolution_index >= 0 && resolution_index < video_resolution_count) {
         for (i = 0; i < (int32_t)video_resolutions[resolution_index].refresh_rate_count; i++) {
             if (video_resolutions[resolution_index].refresh_rates[i] == target_refresh) {
@@ -87,89 +88,86 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
             }
         }
     }
-    if (refresh_index == 0xffffffffu) {
+    if (refresh_index == halo::k_dword_none) {
         refresh_index = halo::interface::video_refresh_rate_find_index(resolution_index, 0x3c);
     }
 
-    *(video_resolution **)(resolution_field2 + 0x44) = video_resolutions;
-    *(int16_t *)(resolution_field2 + 0x40) = (int16_t)resolution_index;
-    *(int16_t *)(resolution_field2 + 0x48) = (int16_t)video_resolution_count;
+    resolution_field2->list_items = video_resolutions;
+    resolution_field2->selection_index = (int16_t)resolution_index;
+    resolution_field2->item_count = (uint16_t)video_resolution_count;
 
-    *(video_resolution **)(refresh_field + 0x44) = video_resolutions;
-    *(int16_t *)(refresh_field + 0x48) = (int16_t)video_resolutions[0].refresh_rate_count;
+    refresh_field->list_items = video_resolutions;
+    refresh_field->item_count = (uint16_t)video_resolutions[0].refresh_rate_count;
     if (os_platform == 0) {
         halo::shell::os_platform_identify();
     }
     if (os_platform < 3) {
-        *(int16_t *)(refresh_field + 0x40) = 0;
-        (*(uint8_t **)(refresh_field + 0x30))[0x12] = 1;
-        *(uint32_t *)(*(uint8_t **)(refresh_field + 0x30) + 0x24) = halo::interface::k_widget_default_scale_bits;
+        refresh_field->selection_index = 0;
+        refresh_field->parent->hidden = 1;
+        *(uint32_t *)&refresh_field->parent->scale = halo::interface::k_widget_default_scale_bits;
     } else if (video_force_mode_flag == 0 && halo::rasterizer::globals().fullscreen != 0 && rasterizer_device != 0) {
-        *(int16_t *)(refresh_field + 0x40) = (int16_t)refresh_index;
-        (*(uint8_t **)(refresh_field + 0x30))[0x12] = 0;
-        *(uint32_t *)(*(uint8_t **)(refresh_field + 0x30) + 0x24) = 0x3f800000;
+        refresh_field->selection_index = (int16_t)refresh_index;
+        refresh_field->parent->hidden = 0;
+        refresh_field->parent->scale = 1.0f;
     } else {
-        *(int16_t *)(refresh_field + 0x40) = (int16_t)refresh_index;
-        (*(uint8_t **)(refresh_field + 0x30))[0x12] = 1;
-        *(uint32_t *)(*(uint8_t **)(refresh_field + 0x30) + 0x24) = halo::interface::k_widget_default_scale_bits;
+        refresh_field->selection_index = (int16_t)refresh_index;
+        refresh_field->parent->hidden = 1;
+        *(uint32_t *)&refresh_field->parent->scale = halo::interface::k_widget_default_scale_bits;
     }
 
     {
-        uint8_t *base = *(uint8_t **)(resolution_field + 0x2c);
+        widget_instance *base = resolution_field->next_sibling;
 
-        for (node = *(uint8_t **)(base + 0x34); node != 0 && *(int16_t *)(node + 0xe) != 2; node = *(uint8_t **)(node + 0x2c)) {}
-        *(uint16_t *)(node + 0x40) = (((struct saved_player_profile *)settings)->frame_rate_mode < 3) ? ((struct saved_player_profile *)settings)->frame_rate_mode : 2;
+        for (node = base->first_child; node != 0 && node->widget_type != uiwidgettype_spinner_list; node = node->next_sibling) {}
+        node->selection_index = (int16_t)((profile->frame_rate_mode < 3) ? profile->frame_rate_mode : 2);
 
-        base = *(uint8_t **)(base + 0x2c);
-        for (node = *(uint8_t **)(base + 0x34); node != 0 && *(int16_t *)(node + 0xe) != 2; node = *(uint8_t **)(node + 0x2c)) {}
-        *(uint16_t *)(node + 0x40) = (*(int8_t *)(settings + 0xa70) != 0) ? 1 : 0;
-        if (rasterizer_device_version < 0xffff0101u || halo::shell::globals().disable_specular != 0) {
-            *(uint16_t *)(node + 0x40) = 0;
-            base[0x12] = 1;
-            *(uint32_t *)(base + 0x24) = halo::interface::k_widget_default_scale_bits;
+        base = base->next_sibling;
+        for (node = base->first_child; node != 0 && node->widget_type != uiwidgettype_spinner_list; node = node->next_sibling) {}
+        node->selection_index = (int16_t)((profile->specular != 0) ? 1 : 0);
+        if (rasterizer_device_version < halo::interface::k_pixel_shader_version_1_1 || halo::shell::globals().disable_specular != 0) {
+            node->selection_index = 0;
+            base->hidden = 1;
+            *(uint32_t *)&base->scale = halo::interface::k_widget_default_scale_bits;
         } else {
-            base[0x12] = 0;
-            *(uint32_t *)(base + 0x24) = 0x3f800000;
+            base->hidden = 0;
+            base->scale = 1.0f;
         }
 
-        base = *(uint8_t **)(base + 0x2c);
-        for (node = *(uint8_t **)(base + 0x34); node != 0 && *(int16_t *)(node + 0xe) != 2; node = *(uint8_t **)(node + 0x2c)) {}
-        *(uint16_t *)(node + 0x40) = (*(int8_t *)(settings + 0xa71) != 0) ? 1 : 0;
-        if (rasterizer_device_version < 0xffff0101u) {
-            *(uint16_t *)(node + 0x40) = 0;
-            base[0x12] = 1;
-            *(uint32_t *)(base + 0x24) = halo::interface::k_widget_default_scale_bits;
+        base = base->next_sibling;
+        for (node = base->first_child; node != 0 && node->widget_type != uiwidgettype_spinner_list; node = node->next_sibling) {}
+        node->selection_index = (int16_t)((profile->shadows != 0) ? 1 : 0);
+        if (rasterizer_device_version < halo::interface::k_pixel_shader_version_1_1) {
+            node->selection_index = 0;
+            base->hidden = 1;
+            *(uint32_t *)&base->scale = halo::interface::k_widget_default_scale_bits;
         } else {
-            base[0x12] = 0;
-            *(uint32_t *)(base + 0x24) = 0x3f800000;
+            base->hidden = 0;
+            base->scale = 1.0f;
         }
 
-        base = *(uint8_t **)(base + 0x2c);
-        for (node = *(uint8_t **)(base + 0x34); node != 0 && *(int16_t *)(node + 0xe) != 2; node = *(uint8_t **)(node + 0x2c)) {}
-        *(uint16_t *)(node + 0x40) = (*(int8_t *)(settings + 0xa72) != 0) ? 1 : 0;
-        if ((rasterizer_capability_007c10e4 & 0x6000000) == 0) {
-            *(uint16_t *)(node + 0x40) = 0;
-            base[0x12] = 1;
-            *(uint32_t *)(base + 0x24) = halo::interface::k_widget_default_scale_bits;
+        base = base->next_sibling;
+        for (node = base->first_child; node != 0 && node->widget_type != uiwidgettype_spinner_list; node = node->next_sibling) {}
+        node->selection_index = (int16_t)((profile->decals != 0) ? 1 : 0);
+        if ((rasterizer_capability_007c10e4 & halo::interface::k_decal_capability_mask) == 0) {
+            node->selection_index = 0;
+            base->hidden = 1;
+            *(uint32_t *)&base->scale = halo::interface::k_widget_default_scale_bits;
         } else {
-            base[0x12] = 0;
-            *(uint32_t *)(base + 0x24) = 0x3f800000;
+            base->hidden = 0;
+            base->scale = 1.0f;
         }
 
-        base = *(uint8_t **)(base + 0x2c);
-        for (node = *(uint8_t **)(base + 0x34); node != 0 && *(int16_t *)(node + 0xe) != 2; node = *(uint8_t **)(node + 0x2c)) {}
-        *(uint16_t *)(node + 0x40) = (((struct saved_player_profile *)settings)->particles < 3) ? ((struct saved_player_profile *)settings)->particles : 2;
+        base = base->next_sibling;
+        for (node = base->first_child; node != 0 && node->widget_type != uiwidgettype_spinner_list; node = node->next_sibling) {}
+        node->selection_index = (int16_t)((profile->particles < 3) ? profile->particles : 2);
 
-        base = *(uint8_t **)(base + 0x2c);
-        for (node = *(uint8_t **)(base + 0x34); node != 0 && *(int16_t *)(node + 0xe) != 2; node = *(uint8_t **)(node + 0x2c)) {}
-        *(uint16_t *)(node + 0x40) = (((struct saved_player_profile *)settings)->texture_quality < 3) ? ((struct saved_player_profile *)settings)->texture_quality : 2;
-
-        base = *(uint8_t **)(base + 0x2c);
-        (void)base;
+        base = base->next_sibling;
+        for (node = base->first_child; node != 0 && node->widget_type != uiwidgettype_spinner_list; node = node->next_sibling) {}
+        node->selection_index = (int16_t)((profile->texture_quality < 3) ? profile->texture_quality : 2);
     }
 
     {
-        uint8_t gamma = *(uint8_t *)(settings + 0xa76);
+        uint8_t gamma = (uint8_t)profile->gamma;
         if (gamma == 0) {
             video_gamma_setting = 1;
             halo::rasterizer::globals().gamma_exponent = 1;
@@ -335,9 +333,9 @@ void VideoOptions::resolution_list_build()
 
 namespace halo::interface {
 
-void video_options_menu_populate(uint8_t *context, uint8_t *settings)
+void video_options_menu_populate(widget_instance *screen, const saved_player_profile *profile)
 {
-    halo::interface::VideoOptions::populate(context, settings);
+    halo::interface::VideoOptions::populate(screen, profile);
 }
 
 uint8_t video_options_menu_update(widget_instance *screen)

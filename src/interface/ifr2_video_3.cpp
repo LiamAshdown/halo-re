@@ -21,12 +21,12 @@ namespace halo::interface {
  */
 uint8_t VideoOptions::reset_to_defaults(widget_instance *button)
 {
-    uint8_t profile[k_saved_player_profile_size];
-    uint8_t result = halo::saved_games::player_profile_set_default_video_options((saved_player_profile *)profile, 0);
+    saved_player_profile profile;
+    uint8_t result = halo::saved_games::player_profile_set_default_video_options(&profile, 0);
 
     if (result != 0) {
-        profile[0xa76] = video_gamma_current;
-        halo::interface::video_options_menu_populate((uint8_t *)button->parent->parent, profile);
+        profile.gamma = video_gamma_current;
+        halo::interface::video_options_menu_populate(button->parent->parent, &profile);
         halo::interface::widget_play_sound_effect(2);
     }
     return result;

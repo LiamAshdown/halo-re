@@ -8,6 +8,7 @@
 #include "game.h"
 #include "networking.h"
 #include "interface.h"
+#include "saved_games.h"
 
 #ifdef interface
 #undef interface
@@ -23,7 +24,7 @@ public:
     VideoOptions() = delete;
 
     static void display_modes_enumerate(uint32_t format);
-    static void populate(uint8_t *context, uint8_t *settings);
+    static void populate(widget_instance *screen, const saved_player_profile *profile);
     static uint8_t update(widget_instance *screen);
     static uint8_t reset_to_defaults(widget_instance *button);
     static uint32_t refresh_rate_compare(const uint32_t *a, const uint32_t *b);

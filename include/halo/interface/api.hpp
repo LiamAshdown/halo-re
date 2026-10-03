@@ -13,6 +13,7 @@ struct heap;
 struct hud_messaging_globals;
 struct hud_unit_meter_globals;
 struct map_list_entry;
+struct saved_player_profile;
 struct virtual_keyboard_globals;
 
 #ifdef interface
@@ -290,8 +291,8 @@ int16_t object_get_hud_text_message_index(datum_index object_index);
 datum_index player_get_vehicle(datum_index player_index);
 void player_help_screen_select_by_name(int16_t value);
 void player_profile_1wide_list_update(widget_instance *widget);
-void player_profile_apply_audio_options(uint8_t *settings);
-uint8_t player_profile_apply_video_options(uint8_t *settings);
+void player_profile_apply_audio_options(saved_player_profile *profile);
+uint8_t player_profile_apply_video_options(saved_player_profile *profile);
 void player_profile_auto_select(void);
 int32_t player_profile_check_storage_and_defaults(void);
 void player_profile_details_widget_refresh(widget_instance *widget, const uint8_t *profile_record);
@@ -565,7 +566,7 @@ void ui_widget_text_ensure_and_refresh(widget_instance *widget);
 void ui_widget_text_from_hud_objective(widget_instance *widget);
 uint8_t unit_get_first_person_marker_transform(datum_index object_index, const char *marker_name, real_point3d *out_position, real_vector3d *out_extents, real_vector3d *out_direction);
 void video_display_modes_enumerate(uint32_t format);
-void video_options_menu_populate(uint8_t *context, uint8_t *settings);
+void video_options_menu_populate(widget_instance *screen, const saved_player_profile *profile);
 uint8_t video_options_menu_update(widget_instance *screen);
 uint8_t video_options_reset_to_defaults(widget_instance *button);
 uint32_t __cdecl video_refresh_rate_compare(const uint32_t *a, const uint32_t *b);

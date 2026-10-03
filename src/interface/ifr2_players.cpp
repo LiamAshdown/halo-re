@@ -65,8 +65,6 @@ extern uint8_t port_overridden;
 extern uint32_t game_cport;
 extern uint32_t network_session_start_game_type;
 extern void player_profile_refresh_settings_cache(int16_t player_index);
-extern uint8_t player_profile_apply_video_options(uint8_t *settings);
-extern void player_profile_apply_audio_options(uint8_t *settings);
 extern player_control_settings input_globals[];
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_disk_copy[k_saved_player_profile_size];
@@ -413,23 +411,23 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
  *
  * @address 0x4957d0
  */
-void PlayerProfiles::apply_audio_options(uint8_t *settings)
+void PlayerProfiles::apply_audio_options(saved_player_profile *settings)
 {
     float gain;
     int32_t environment_enabled;
 
     if (safe_mode != 0) {
-        ((struct saved_player_profile *)settings)->master_volume = 10;
-        ((struct saved_player_profile *)settings)->effects_volume = 10;
-        ((struct saved_player_profile *)settings)->music_volume = 6;
-        ((struct saved_player_profile *)settings)->hardware_acceleration = 0;
-        ((struct saved_player_profile *)settings)->eax_enabled = 0;
-        ((struct saved_player_profile *)settings)->sound_quality = 0;
-        ((struct saved_player_profile *)settings)->unknown_b7e = 0;
-        ((struct saved_player_profile *)settings)->sound_variety = 0;
+        settings->master_volume = 10;
+        settings->effects_volume = 10;
+        settings->music_volume = 6;
+        settings->hardware_acceleration = 0;
+        settings->eax_enabled = 0;
+        settings->sound_quality = 0;
+        settings->unknown_b7e = 0;
+        settings->sound_variety = 0;
     }
 
-    gain = (float)((struct saved_player_profile *)settings)->master_volume * 0.1f;
+    gain = (float)settings->master_volume * 0.1f;
     if (gain < 0.0f) {
         gain = 0.0f;
     } else if (gain > 1.0f) {
@@ -437,7 +435,7 @@ void PlayerProfiles::apply_audio_options(uint8_t *settings)
     }
     halo::sound::sound_set_master_gain(gain);
 
-    gain = (float)((struct saved_player_profile *)settings)->effects_volume * 0.1f;
+    gain = (float)settings->effects_volume * 0.1f;
     if (gain < 0.0f) {
         gain = 0.0f;
     } else if (gain > 1.0f) {
@@ -445,7 +443,7 @@ void PlayerProfiles::apply_audio_options(uint8_t *settings)
     }
     halo::sound::sound_set_effects_gain(gain);
 
-    gain = (float)((struct saved_player_profile *)settings)->music_volume * 0.1f;
+    gain = (float)settings->music_volume * 0.1f;
     if (gain < 0.0f) {
         gain = 0.0f;
     } else if (gain > 1.0f) {
@@ -453,14 +451,14 @@ void PlayerProfiles::apply_audio_options(uint8_t *settings)
     }
     halo::sound::sound_set_music_gain(gain);
 
-    sound_permutation_limit = ((struct saved_player_profile *)settings)->sound_variety;
+    sound_permutation_limit = settings->sound_variety;
     if (directsound_initialized == 0 || directsound_eax_available == 0 ||
-        ((struct saved_player_profile *)settings)->eax_enabled == 0) {
+        settings->eax_enabled == 0) {
         environment_enabled = 0;
     } else {
         environment_enabled = 1;
     }
-    halo::sound::sound_driver_set_quality(environment_enabled, ((struct saved_player_profile *)settings)->hardware_acceleration == 1, ((struct saved_player_profile *)settings)->sound_quality);
+    halo::sound::sound_driver_set_quality(environment_enabled, settings->hardware_acceleration == 1, settings->sound_quality);
 }
 
 /**
@@ -674,8 +672,8 @@ void PlayerProfiles::load(int16_t player_index, void *source_profile, int32_t pr
 
     halo::interface::player_profile_refresh_settings_cache(player_index);
     halo::saved_games::control_profile_reestablish_device_slot_mappings(record);
-    halo::interface::player_profile_apply_video_options((uint8_t *)record);
-    halo::interface::player_profile_apply_audio_options((uint8_t *)record);
+    halo::interface::player_profile_apply_video_options(record);
+    halo::interface::player_profile_apply_audio_options(record);
 
     if (halo::game::globals().current_engine == nullptr && port_overridden == 0 &&
         (halo::networking::globals().game_socket_port != record->server_port ||
@@ -1029,7 +1027,7 @@ void player_profile_1wide_list_update(widget_instance *widget)
     halo::interface::PlayerProfiles::one_wide_list_update(widget);
 }
 
-void player_profile_apply_audio_options(uint8_t *settings)
+void player_profile_apply_audio_options(saved_player_profile *settings)
 {
     halo::interface::PlayerProfiles::apply_audio_options(settings);
 }

@@ -11,6 +11,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
 #include "saved_games.h"
+#include "halo/interface/constants.hpp"
 extern "C" { extern uint32_t config_disable_specular; }
 
 #ifdef interface
@@ -41,7 +42,7 @@ namespace halo::interface {
  *
  * @address 0x495580
  */
-uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
+uint8_t PlayerProfiles::apply_video_options(saved_player_profile *settings)
 {
     rasterizer_display_mode mode;
     win32_rect desktop;
@@ -52,13 +53,13 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
     uint8_t value;
 
     if (safe_mode != 0) {
-        ((struct saved_player_profile *)settings)->specular = 0;
-        ((struct saved_player_profile *)settings)->shadows = 0;
-        ((struct saved_player_profile *)settings)->decals = 0;
-        ((struct saved_player_profile *)settings)->texture_quality = 0;
-        ((struct saved_player_profile *)settings)->particles = 0;
+        settings->specular = 0;
+        settings->shadows = 0;
+        settings->decals = 0;
+        settings->texture_quality = 0;
+        settings->particles = 0;
     }
-    switch (((struct saved_player_profile *)settings)->texture_quality) {
+    switch (settings->texture_quality) {
     case 0: new_mode = 2; break;
     case 1: new_mode = 1; break;
     case 2: new_mode = 0; break;
@@ -70,11 +71,11 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
     }
     state::object_lod_quality = 2;
 
-    mode.width = ((struct saved_player_profile *)settings)->screen_width;
-    mode.height = ((struct saved_player_profile *)settings)->screen_height;
-    mode.refresh_rate = ((struct saved_player_profile *)settings)->refresh_rate;
-    mode.vsync = ((struct saved_player_profile *)settings)->frame_rate_mode != 0;
-    state::frame_rate_limiter_enabled = halo::game::globals().time_force_single_tick != 0 ? 0 : ((struct saved_player_profile *)settings)->frame_rate_mode == 2;
+    mode.width = settings->screen_width;
+    mode.height = settings->screen_height;
+    mode.refresh_rate = settings->refresh_rate;
+    mode.vsync = settings->frame_rate_mode != 0;
+    state::frame_rate_limiter_enabled = halo::game::globals().time_force_single_tick != 0 ? 0 : settings->frame_rate_mode == 2;
 
     if (halo::rasterizer::globals().fullscreen == 0 || halo::rasterizer::globals().device == 0) {
         GetWindowRect(GetDesktopWindow(), &desktop);
@@ -100,18 +101,18 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
         halo::rasterizer::globals().needs_reset = 0;
     }
 
-    value = config_disable_specular != 0 ? 0 : ((struct saved_player_profile *)settings)->specular;
+    value = config_disable_specular != 0 ? 0 : settings->specular;
     halo::rasterizer::fields::specular_lightmap_enabled = value;
     halo::rasterizer::fields::specular_projected_light_enabled = value;
     halo::rasterizer::fields::specular_enabled = value;
-    halo::rasterizer::fields::object_shadows_enabled = rasterizer_device_version < 0xffff0101u ? 0 : ((struct saved_player_profile *)settings)->shadows;
+    halo::rasterizer::fields::object_shadows_enabled = rasterizer_device_version < halo::interface::k_pixel_shader_version_1_1 ? 0 : settings->shadows;
     light_count_enabled = 2;
     state::decals_and_lens_flares_enabled = 1;
     halo::rasterizer::fields::detail_objects_enabled = 1;
-    halo::effects::globals().decals_for_all_responses = (rasterizer_capability_007c10e4 & 0x6000000u) != 0 ? ((struct saved_player_profile *)settings)->decals : 0;
-    halo::effects::globals().particle_spawn_debug_mode = ((struct saved_player_profile *)settings)->particles;
-    particle_systems_enabled = ((struct saved_player_profile *)settings)->particles;
-    halo::rasterizer::globals().gamma_exponent = settings[0xa76];
+    halo::effects::globals().decals_for_all_responses = (rasterizer_capability_007c10e4 & halo::interface::k_decal_capability_mask) != 0 ? settings->decals : 0;
+    halo::effects::globals().particle_spawn_debug_mode = settings->particles;
+    particle_systems_enabled = settings->particles;
+    halo::rasterizer::globals().gamma_exponent = (uint8_t)settings->gamma;
     halo::rasterizer::chimera__gamma();
 
     if (mode_changed) {
@@ -125,7 +126,7 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
 
 namespace halo::interface {
 
-uint8_t player_profile_apply_video_options(uint8_t *settings)
+uint8_t player_profile_apply_video_options(saved_player_profile *settings)
 {
     return halo::interface::PlayerProfiles::apply_video_options(settings);
 }
