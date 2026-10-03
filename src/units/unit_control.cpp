@@ -33,6 +33,10 @@
 #include "halo/core/x87.hpp"
 #include <string.h>
 #include "halo/hs/api.hpp"
+#include <limits>
+#include "halo/game/records.hpp"
+
+static_assert(sizeof(biped_object) == 0x550);
 
 static auto &global_zero_vector3d_pointer = halo::link::ref<const real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
@@ -430,13 +434,10 @@ int32_t UnitView::predict_aim_target_position(real_point3d *out_position)
         delta.j = global_down3d_pointer->j * 2.0f;
         delta.k = global_down3d_pointer->k * 2.0f;
 
-        {
-            uint32_t flt_max_bits = 0x7f7fffff;
-            hit = halo::physics::collision_bsp_query_segment_init(1, &segment_result, (ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
-                nullptr, &base_position, &delta, *(float *)&flt_max_bits);
-        }
+        hit = halo::physics::collision_bsp_query_segment_init(1, &segment_result, (ModelCollisionGeometryBSP *)global_structure_collision_bsp, 0,
+            nullptr, &base_position, &delta, std::numeric_limits<float>::max());
         hit_fraction = segment_result.t;
-        hit_result = *(int32_t *)((uint8_t *)&segment_result + 0x8);
+        hit_result = segment_result.surface_index;
         if (hit != 0) {
             out_position->x = delta.i * hit_fraction + base_position.x;
             out_position->y = delta.j * hit_fraction + base_position.y;
@@ -466,26 +467,26 @@ uint32_t halo::units::unit_predict_movement_delta(real_vector3d *out_position_de
 
     {
         data_iterator iterator;
-        void *entry;
+        player *entry;
 
         iterator.data = halo::game::globals().player_data;
         iterator.next_index = 0;
         iterator.index = k_datum_index_none;
         iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
 
-        entry = halo::memory::data_iterator_next(&iterator);
+        entry = static_cast<player *>(halo::memory::data_iterator_next(&iterator));
         if (entry == 0) {
             return 0;
         }
-        while (*(int16_t *)((uint8_t *)entry + 2) == -1) {
-            entry = halo::memory::data_iterator_next(&iterator);
+        while (entry->local_player_index == -1) {
+            entry = static_cast<player *>(halo::memory::data_iterator_next(&iterator));
             if (entry == 0) {
                 return 0;
             }
         }
 
         {
-            datum_index unit_index = *(datum_index *)((uint8_t *)entry + 0x34);
+            datum_index unit_index = entry->unit;
             if (unit_index == k_datum_index_none) {
                 return 0;
             }
@@ -493,20 +494,20 @@ uint32_t halo::units::unit_predict_movement_delta(real_vector3d *out_position_de
             {
                 object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
                 void *tag_data = halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-                uint8_t working_copy[0x550];
-                object *copy = (object *)working_copy;
-                unit_data *copy_unit = (unit_data *)(working_copy + 0x1f4);
-                biped_data *copy_biped = (biped_data *)(working_copy + 0x4cc);
+                biped_object working_copy;
+                object *copy = &working_copy.base;
+                unit_data *copy_unit = &working_copy.unit;
+                biped_data *copy_biped = &working_copy.biped;
                 uint8_t output_flags[2] = {0, 0};
                 float t;
 
-                memcpy(working_copy, obj, sizeof(working_copy));
+                memcpy(&working_copy, obj, sizeof(working_copy));
 
                 if (copy->parent_object != k_datum_index_none) {
                     return 0;
                 }
 
-                if (test_flag(copy->vitality_flags, objects::vitality_flag::health_frozen) || (*(uint8_t *)((uint8_t *)tag_data + 0x2f4) & 0x44) == 0) {
+                if (test_flag(copy->vitality_flags, objects::vitality_flag::health_frozen) || !test_flag(static_cast<Biped *>(tag_data)->biped_flags, tags::biped_tag_flag::flying | tags::biped_tag_flag::can_climb_any_surface)) {
                     copy_unit->desired_facing_vector.k = 0.0f;
                     if (halo::math::vector3d_normalize_with_length(copy_unit->desired_facing_vector) == 0.0f) {
                         copy_unit->desired_facing_vector = *halo::math::globals().global_forward3d_pointer;
@@ -545,7 +546,7 @@ uint32_t halo::units::unit_predict_movement_delta(real_vector3d *out_position_de
                 output_flags[1] = (uint8_t)(copy_unit->control_flags & 1);
                 output_flags[0] = 0;
 
-                BipedView(unit_index).integrate_movement((::object *)working_copy, (int8_t *)output_flags);
+                BipedView(unit_index).integrate_movement(&working_copy.base, (int8_t *)output_flags);
 
                 t = time_fraction * 29.999998f;
                 if (t > 1.0f) t = 1.0f;
@@ -732,7 +733,7 @@ void UnitView::set_facing_from_index_table()
 
     obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(obj->definition_tag)].data;
-    facing_index = *(int16_t *)((uint8_t *)obj + 0x5b0);
+    facing_index = reinterpret_cast<vehicle_object *>(obj)->vehicle.cinematic_facing_index;
 
     halo::objects::object_reset_velocity_and_wake(object_index);
 
@@ -864,8 +865,7 @@ void UnitView::update_look_delta_controls()
     } else {
         object *parent = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(obj->parent_object)].data;
         Unit *parent_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(parent->definition_tag)].data;
-        UnitSeat *seat = (UnitSeat *)((uint8_t *)*(uint8_t **)&((struct Unit *)parent_tag)->seats.pointer +
-                                       unit->vehicle_seat_index * sizeof(UnitSeat));
+        UnitSeat *seat = &halo::objects::block_element<UnitSeat>(parent_tag->seats, unit->vehicle_seat_index);
         object_marker marker;
         int16_t found = halo::objects::object_get_node_local_transform(obj->parent_object, seat->marker_name.string,
                                                           &marker, 1);
@@ -987,7 +987,7 @@ static int16_t animation_table_lookup(ModelAnimations *graph, int32_t index)
     if (index < 0 || index >= (int32_t)graph->unit_damage.count) {
         return -1;
     }
-    return (*(int16_t **)&graph->unit_damage.pointer)[index];
+    return halo::objects::block_element<int16_t>(graph->unit_damage, index);
 }
 
 }
@@ -1001,7 +1001,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
 {
     using namespace unit_update_stance_and_jump_local;
     uint32_t unit_index = datum_handle;
-    unit_object *obj = reinterpret_cast<unit_object *>(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + halo::datum_slot(unit_index) * 0xc + 8));
+    unit_object *obj = halo::objects::object_as<unit_object>(unit_index);
     Unit *unit_tag = halo::objects::tag_as<Unit>(*(datum_index *)obj);
     uint8_t forced = force_ready;
     uint8_t soft_ping;
