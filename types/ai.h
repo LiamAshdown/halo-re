@@ -2402,7 +2402,9 @@ typedef char ai_communication_target_result_size[sizeof(ai_communication_target_
 // The record ai_communication_gate_line_played @0x42cfe0 inspects.
 typedef struct ai_communication_record {
     datum_index object_index; // 0x00 UNSURE: guessed from context
-    uint8_t unknown_04[6];    // 0x04
+    uint8_t unknown_04[2];    // 0x04
+    int16_t line_row;         // 0x06 the communication event row passed on to ai_communication_record_line_played
+    uint8_t unknown_08[2];    // 0x08
     uint8_t silenced;         // 0x0a
 } ai_communication_record; // size 0x0c, only verified up to 0x0a
 

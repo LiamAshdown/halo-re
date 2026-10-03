@@ -461,7 +461,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
         if (row->required_seat != -1 && row->required_seat != (int16_t)object_b) {
             continue;
         }
-        class_priority = *(uint16_t *)((uint8_t *)ai_communication_class_priority + line_class * 2);
+        class_priority = (uint16_t)ai_communication_class_priority[line_class];
 
         switch (selector) {
         case 0:
@@ -581,10 +581,10 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                 if (type_side != -1) {
                     int32_t index = (line_class + type_side * 8) * 2 + near;
 
-                    if (((uint8_t *)recent)[index]) {
+                    if ((&recent[0][0])[index]) {
                         continue;
                     }
-                    recent_value = (uint16_t)((int16_t *)recent_ticks)[index];
+                    recent_value = (uint16_t)(&recent_ticks[0][0])[index];
                     if ((int16_t)class_word < 7) {
                         ai_line_history *history = &communication_line_history[(int16_t)row_index * 2 + type_side];
 
@@ -857,7 +857,7 @@ void AiCommunication::gate_line_played(int16_t event_id, ai_communication_record
         default:
             if (record->silenced == 0) {
                 halo::ai::ai_communication_record_line_played(object_index, event_id,
-                    *(int16_t *)((uint8_t *)record + 0x6), -1);
+                    record->line_row, -1);
             }
             break;
     }
@@ -1040,8 +1040,7 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
                     continue;
                 }
             } else if (mode == 2 || mode == 4) {
-                struct actor *actor = (struct actor *)(object_actor != k_datum_index_none
-                    ? (uint8_t *)halo::ai::globals().actor_data->data + (object_actor & halo::k_slot_mask) * k_actor_size : 0);
+                struct actor *actor = object_actor != k_datum_index_none ? halo::ai::actor_at(object_actor) : 0;
 
                 if (mode == 2 && actor != 0 && actor->encounter_index != k_datum_index_none) {
                     found = halo::ai::ai_communication_select_speaker_in_reference(9.0f, -1, (uint16_t)class_index,
@@ -1358,7 +1357,7 @@ float AiCommunication::rate_speaker(datum_index actor_index, datum_index object_
                                     reach_mode = (int32_t)static_cast<int8_t>(p->perception_range_class);
                                 }
                                 reach = halo::ai::actor_dispatch_look_handler_by_posture(p->obstruction,
-                                                     actor_index, &a->aim_origin, (uint8_t *)p + 0x104,
+                                                     actor_index, &a->aim_origin, &p->head_position,
                                                      (uint8_t)reach_mode, 1,
                                                      halo::ai::actor_target_get_priority_class(actor_index, prop_index));
                                 if (reach < 2) {
@@ -1520,12 +1519,7 @@ void AiCommunication::reset()
 
     halo::ai::globals().state->conversation_event_count = 0;
     halo::ai::globals().state->conversation_event_cursor = 0;
-    {
-        uint8_t *ring = (uint8_t *)halo::ai::globals().state->conversation_events;
-        for (i = 0; i < 0x100; i++) {
-            ring[i] = 0;
-        }
-    }
+    memset(halo::ai::globals().state->conversation_events, 0, sizeof(halo::ai::globals().state->conversation_events));
 
     halo::ai::globals().conversation_data->next_index = 0;
     halo::ai::globals().conversation_data->last_index = 0;
@@ -1943,10 +1937,9 @@ uint8_t DialogueCondition_42f7f0::test(datum_index object_index, uint32_t param_
  */
 void AiCommunication::dispatch_queued_order(ai_queued_order *order, datum_index prop_index, datum_index actor_index)
 {
-    uint8_t *o = (uint8_t *)order;
-    int16_t count = ((struct ai_queued_order *)o)->target_count;
-    datum_index target = ((struct ai_queued_order *)o)->object_a;
-    int16_t variant = (int16_t)static_cast<uint16_t>(((struct ai_queued_order *)o)->single_target);
+    int16_t count = order->target_count;
+    datum_index target = order->object_a;
+    int16_t variant = (int16_t)static_cast<uint16_t>(order->single_target);
     int16_t line = 9;
 
     if (count <= 0) {
