@@ -1387,8 +1387,8 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, void
 
     if (p->state > 1 && p->state < 4 && old_speed_bucket < 2 && p->speed_class > 1) {
         actor_vocalization_context ctx;
-        ctx.kind = 1;
-        ctx.handle = target_prop_index;
+        ctx.code = 1;
+        ctx.payload.handle = target_prop_index;
         actor_begin_vocalization(actor_index, 2, 1, &ctx);
     }
 

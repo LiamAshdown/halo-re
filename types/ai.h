@@ -1912,15 +1912,9 @@ typedef struct actor_combat_consideration {
     float distance_delta;              // 0x34
 } actor_combat_consideration; // size 0x38
 
-// The 16-byte block actor_begin_vocalization @0x4142d0 is handed and copies wholesale
-// into actor.vocalization_source.
-typedef struct actor_vocalization_context {
-    int16_t kind;          // 0x00 1 means handle below names a prop
-    int16_t unknown_02;    // 0x02
-    datum_index handle;    // 0x04
-    uint32_t unknown_08;   // 0x08
-    uint32_t unknown_0c;   // 0x0c
-} actor_vocalization_context; // size 0x10
+// The 16-byte block actor_begin_vocalization @0x4142d0 is handed and copies wholesale into
+// actor.vocalization_source: an actor_flee_source_reason (code 1 names a prop by handle, code 3 a point).
+typedef actor_flee_source_reason actor_vocalization_context;
 
 // The out-parameter of actor_get_grenade_launch_velocity @0x410980, which
 // actor_commit_grenade_toss @0x411180 passes through.

@@ -365,14 +365,14 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         }
         memset(&context, 0, sizeof(context));
         if (look_prop != k_datum_index_none) {
-            context.kind = 1;
-            context.handle = look_prop;
+            context.code = 1;
+            context.payload.handle = look_prop;
         } else {
-            context.kind = 3;
+            context.code = 3;
             if (look_object != k_datum_index_none) {
-                unit_get_primary_eye_marker_position(look_object, (real_point3d *)&context.handle);
+                unit_get_primary_eye_marker_position(look_object, &context.payload.point);
             } else {
-                *(real_point3d *)&context.handle = *(real_point3d *)&points[(int16_t)look_point].position;
+                context.payload.point = *(real_point3d *)&points[(int16_t)look_point].position;
             }
         }
         actor_begin_vocalization(actor_index, 0xd, variant, &context);

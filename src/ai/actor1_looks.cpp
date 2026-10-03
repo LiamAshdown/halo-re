@@ -120,9 +120,9 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
         return 0;
     }
 
-    if (context->kind == 1) {
+    if (context->code == 1) {
 
-        target = (prop *)datum_get(context->handle, prop_data);
+        target = (prop *)datum_get(context->payload.handle, prop_data);
         if (target == (prop *)0) {
             return 0;
         }
@@ -439,11 +439,11 @@ void halo::ai::look_ops::issue_order_or_vocalize(datum_index prop_index, datum_i
     }
 
     if (prop_index == (datum_index)k_datum_index_none || kind < 2 || 3 < kind) {
-        context.kind = 3;
-        unit_get_primary_eye_marker_position(vehicle_object_index, (real_point3d *)&context.handle);
+        context.code = 3;
+        unit_get_primary_eye_marker_position(vehicle_object_index, &context.payload.point);
     } else {
-        context.kind = 1;
-        context.handle = prop_index;
+        context.code = 1;
+        context.payload.handle = prop_index;
     }
     actor_begin_vocalization(actor_index, line, variant, &context);
 }
