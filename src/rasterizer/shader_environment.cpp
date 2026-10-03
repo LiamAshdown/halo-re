@@ -127,7 +127,6 @@ void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, ui
 }
 
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
@@ -240,7 +239,6 @@ void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t 
 namespace rasterizer_shader_environment_draw_pixel_shader_impl {
 
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 
 
@@ -482,7 +480,6 @@ void rasterizer_shader_environment_draw_pixel_shader(uint8_t *shader, int16_t fr
 namespace rasterizer_shader_environment_draw_single_stream_impl {
 
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
@@ -1419,7 +1416,6 @@ void rasterizer_shader_environment_select_draw_functions(void)
 
 namespace rasterizer_shader_environment_self_illumination_draw_impl {
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
@@ -1622,7 +1618,6 @@ void rasterizer_shader_environment_self_illumination_draw(const ShaderEnvironmen
 namespace rasterizer_shader_environment_self_illumination_draw_single_stream_impl {
 
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
@@ -1719,7 +1714,6 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
 namespace rasterizer_shader_environment_self_illumination_draw_two_stream_impl {
 
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
@@ -1917,7 +1911,6 @@ void rasterizer_shader_environment_technique_draw(rasterizer_vertex_buffer *vert
 
 namespace rasterizer_shader_environment_technique_multipurpose_set_states_impl {
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
@@ -1930,33 +1923,26 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
  */
 void rasterizer_shader_environment_technique_multipurpose_set_states(void)
 {
-    void **vtable;
-    d3d_call2_fn set_render_state;
-    d3d_call3_fn set_sampler_state;
 
     if (console_debug_toggle_6893e4 == 0 && console_debug_toggle_6893f8 != 0 &&
         console_debug_toggle_6893fa != 0 && render_force_flag == 0) {
-        vtable = *(void ***)rasterizer_device;
-        set_render_state = (d3d_call2_fn)vtable[0x39];
-        set_render_state(rasterizer_device, 0x16, 3);
-        set_render_state(rasterizer_device, 0xa8, 8);
-        set_render_state(rasterizer_device, 0x1b, 1);
-        set_render_state(rasterizer_device, 0x13, 7);
-        set_render_state(rasterizer_device, 0x14, 1);
-        set_render_state(rasterizer_device, 0xab, 1);
-        set_render_state(rasterizer_device, 0xf, 0);
-        set_render_state(rasterizer_device, 7, 1);
-        set_render_state(rasterizer_device, 0x17, 3);
-        set_render_state(rasterizer_device, 0xe, 0);
-        set_render_state(rasterizer_device, 0x1c, 0);
+        render_device().set_render_state(0x16, 3);
+        render_device().set_render_state(0xa8, 8);
+        render_device().set_render_state(0x1b, 1);
+        render_device().set_render_state(0x13, 7);
+        render_device().set_render_state(0x14, 1);
+        render_device().set_render_state(0xab, 1);
+        render_device().set_render_state(0xf, 0);
+        render_device().set_render_state(7, 1);
+        render_device().set_render_state(0x17, 3);
+        render_device().set_render_state(0xe, 0);
+        render_device().set_render_state(0x1c, 0);
 
-        vtable = *(void ***)rasterizer_device;
-        set_sampler_state = (d3d_call3_fn)vtable[0x45];
-        set_sampler_state(rasterizer_device, 0, 1, 3);
-        set_sampler_state(rasterizer_device, 0, 2, 3);
-        set_sampler_state(rasterizer_device, 0, 5, 2);
-        set_sampler_state(rasterizer_device, 0, 6, 2);
-        set_sampler_state(rasterizer_device, 0, 7, 2);
+        render_device().set_sampler_state(0, 1, 3);
+        render_device().set_sampler_state(0, 2, 3);
+        render_device().set_sampler_state(0, 5, 2);
+        render_device().set_sampler_state(0, 6, 2);
+        render_device().set_sampler_state(0, 7, 2);
     }
     rasterizer_active_environment_effect = &rasterizer_effects[36];
 }
@@ -1965,7 +1951,6 @@ void rasterizer_shader_environment_technique_multipurpose_set_states(void)
 
 namespace rasterizer_shader_environment_technique_ps2_set_states_impl {
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
@@ -1977,62 +1962,54 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
  */
 void rasterizer_shader_environment_technique_ps2_set_states(void)
 {
-    void **vtable;
-    d3d_call2_fn set_render_state;
-    d3d_call3_fn set_sampler_state;
 
     if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f6 == 0 ||
         rasterizer_caps.pixel_shader_version <= 0xffff0103) {
         return;
     }
 
-    vtable = *(void ***)rasterizer_device;
-    set_render_state = (d3d_call2_fn)vtable[0x39];
-    set_render_state(rasterizer_device, 0x16, 3);
-    set_render_state(rasterizer_device, 0xa8, 7);
-    set_render_state(rasterizer_device, 0x1b, 1);
-    set_render_state(rasterizer_device, 0x13, 7);
-    set_render_state(rasterizer_device, 0x14, 2);
-    set_render_state(rasterizer_device, 0xab, 1);
-    set_render_state(rasterizer_device, 0xf, 1);
-    set_render_state(rasterizer_device, 0x18, 0);
-    set_render_state(rasterizer_device, 7, 1);
-    set_render_state(rasterizer_device, 0x17, 3);
-    set_render_state(rasterizer_device, 0xe, 0);
-    set_render_state(rasterizer_device, 0x1c, 0);
+    render_device().set_render_state(0x16, 3);
+    render_device().set_render_state(0xa8, 7);
+    render_device().set_render_state(0x1b, 1);
+    render_device().set_render_state(0x13, 7);
+    render_device().set_render_state(0x14, 2);
+    render_device().set_render_state(0xab, 1);
+    render_device().set_render_state(0xf, 1);
+    render_device().set_render_state(0x18, 0);
+    render_device().set_render_state(7, 1);
+    render_device().set_render_state(0x17, 3);
+    render_device().set_render_state(0xe, 0);
+    render_device().set_render_state(0x1c, 0);
 
-    vtable = *(void ***)rasterizer_device;
-    set_sampler_state = (d3d_call3_fn)vtable[0x45];
-    set_sampler_state(rasterizer_device, 0, 1, 1);
-    set_sampler_state(rasterizer_device, 0, 2, 1);
-    set_sampler_state(rasterizer_device, 0, 5, 2);
-    set_sampler_state(rasterizer_device, 0, 6, 2);
-    set_sampler_state(rasterizer_device, 0, 7, 2);
-    set_sampler_state(rasterizer_device, 1, 1, 3);
-    set_sampler_state(rasterizer_device, 1, 2, 3);
-    set_sampler_state(rasterizer_device, 1, 3, 3);
-    set_sampler_state(rasterizer_device, 1, 5, 2);
-    set_sampler_state(rasterizer_device, 1, 6, 2);
-    set_sampler_state(rasterizer_device, 1, 7, 2);
-    set_sampler_state(rasterizer_device, 2, 1, 3);
-    set_sampler_state(rasterizer_device, 2, 2, 3);
-    set_sampler_state(rasterizer_device, 2, 3, 3);
-    set_sampler_state(rasterizer_device, 2, 5, 2);
-    set_sampler_state(rasterizer_device, 2, 6, 2);
-    set_sampler_state(rasterizer_device, 2, 7, 2);
-    set_sampler_state(rasterizer_device, 3, 1, 3);
-    set_sampler_state(rasterizer_device, 3, 2, 3);
-    set_sampler_state(rasterizer_device, 3, 3, 3);
-    set_sampler_state(rasterizer_device, 3, 5, 2);
-    set_sampler_state(rasterizer_device, 3, 6, 2);
-    set_sampler_state(rasterizer_device, 3, 7, 2);
+    render_device().set_sampler_state(0, 1, 1);
+    render_device().set_sampler_state(0, 2, 1);
+    render_device().set_sampler_state(0, 5, 2);
+    render_device().set_sampler_state(0, 6, 2);
+    render_device().set_sampler_state(0, 7, 2);
+    render_device().set_sampler_state(1, 1, 3);
+    render_device().set_sampler_state(1, 2, 3);
+    render_device().set_sampler_state(1, 3, 3);
+    render_device().set_sampler_state(1, 5, 2);
+    render_device().set_sampler_state(1, 6, 2);
+    render_device().set_sampler_state(1, 7, 2);
+    render_device().set_sampler_state(2, 1, 3);
+    render_device().set_sampler_state(2, 2, 3);
+    render_device().set_sampler_state(2, 3, 3);
+    render_device().set_sampler_state(2, 5, 2);
+    render_device().set_sampler_state(2, 6, 2);
+    render_device().set_sampler_state(2, 7, 2);
+    render_device().set_sampler_state(3, 1, 3);
+    render_device().set_sampler_state(3, 2, 3);
+    render_device().set_sampler_state(3, 3, 3);
+    render_device().set_sampler_state(3, 5, 2);
+    render_device().set_sampler_state(3, 6, 2);
+    render_device().set_sampler_state(3, 7, 2);
 }
 
 }  // namespace rasterizer_shader_environment_technique_ps2_set_states_impl
 
 namespace rasterizer_shader_environment_technique_self_illumination_set_states_impl {
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
@@ -2045,53 +2022,46 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
  */
 void rasterizer_shader_environment_technique_self_illumination_set_states(void)
 {
-    void **vtable;
-    d3d_call2_fn set_render_state;
-    d3d_call3_fn set_sampler_state;
 
     if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f9 == 0 ||
         rasterizer_window.has_mirror == 0 || rasterizer_window.type != 1) {
         return;
     }
 
-    vtable = *(void ***)rasterizer_device;
-    set_render_state = (d3d_call2_fn)vtable[0x39];
-    set_render_state(rasterizer_device, 0x16, 3);
-    set_render_state(rasterizer_device, 0xa8, 7);
-    set_render_state(rasterizer_device, 0x1b, 1);
-    set_render_state(rasterizer_device, 0x13, 7);
-    set_render_state(rasterizer_device, 0x14, 2);
-    set_render_state(rasterizer_device, 0xab, 1);
-    set_render_state(rasterizer_device, 0xf, 0);
-    set_render_state(rasterizer_device, 7, 1);
-    set_render_state(rasterizer_device, 0x17, 3);
-    set_render_state(rasterizer_device, 0xe, 0);
-    set_render_state(rasterizer_device, 0x1c, 0);
+    render_device().set_render_state(0x16, 3);
+    render_device().set_render_state(0xa8, 7);
+    render_device().set_render_state(0x1b, 1);
+    render_device().set_render_state(0x13, 7);
+    render_device().set_render_state(0x14, 2);
+    render_device().set_render_state(0xab, 1);
+    render_device().set_render_state(0xf, 0);
+    render_device().set_render_state(7, 1);
+    render_device().set_render_state(0x17, 3);
+    render_device().set_render_state(0xe, 0);
+    render_device().set_render_state(0x1c, 0);
 
-    vtable = *(void ***)rasterizer_device;
-    set_sampler_state = (d3d_call3_fn)vtable[0x45];
-    set_sampler_state(rasterizer_device, 0, 1, 1);
-    set_sampler_state(rasterizer_device, 0, 2, 1);
-    set_sampler_state(rasterizer_device, 0, 5, 2);
-    set_sampler_state(rasterizer_device, 0, 6, 2);
-    set_sampler_state(rasterizer_device, 0, 7, 2);
-    set_sampler_state(rasterizer_device, 1, 1, 3);
-    set_sampler_state(rasterizer_device, 1, 2, 3);
-    set_sampler_state(rasterizer_device, 1, 3, 3);
-    set_sampler_state(rasterizer_device, 1, 5, 2);
-    set_sampler_state(rasterizer_device, 1, 6, 1);
-    set_sampler_state(rasterizer_device, 1, 7, 1);
-    set_sampler_state(rasterizer_device, 2, 1, 3);
-    set_sampler_state(rasterizer_device, 2, 2, 3);
-    set_sampler_state(rasterizer_device, 2, 3, 3);
-    set_sampler_state(rasterizer_device, 2, 5, 2);
-    set_sampler_state(rasterizer_device, 2, 6, 1);
-    set_sampler_state(rasterizer_device, 2, 7, 1);
-    set_sampler_state(rasterizer_device, 3, 1, 3);
-    set_sampler_state(rasterizer_device, 3, 2, 3);
-    set_sampler_state(rasterizer_device, 3, 5, 2);
-    set_sampler_state(rasterizer_device, 3, 6, 2);
-    set_sampler_state(rasterizer_device, 3, 7, 2);
+    render_device().set_sampler_state(0, 1, 1);
+    render_device().set_sampler_state(0, 2, 1);
+    render_device().set_sampler_state(0, 5, 2);
+    render_device().set_sampler_state(0, 6, 2);
+    render_device().set_sampler_state(0, 7, 2);
+    render_device().set_sampler_state(1, 1, 3);
+    render_device().set_sampler_state(1, 2, 3);
+    render_device().set_sampler_state(1, 3, 3);
+    render_device().set_sampler_state(1, 5, 2);
+    render_device().set_sampler_state(1, 6, 1);
+    render_device().set_sampler_state(1, 7, 1);
+    render_device().set_sampler_state(2, 1, 3);
+    render_device().set_sampler_state(2, 2, 3);
+    render_device().set_sampler_state(2, 3, 3);
+    render_device().set_sampler_state(2, 5, 2);
+    render_device().set_sampler_state(2, 6, 1);
+    render_device().set_sampler_state(2, 7, 1);
+    render_device().set_sampler_state(3, 1, 3);
+    render_device().set_sampler_state(3, 2, 3);
+    render_device().set_sampler_state(3, 5, 2);
+    render_device().set_sampler_state(3, 6, 2);
+    render_device().set_sampler_state(3, 7, 2);
 }
 
 }  // namespace rasterizer_shader_environment_technique_self_illumination_set_states_impl

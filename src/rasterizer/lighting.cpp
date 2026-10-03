@@ -117,7 +117,6 @@ void rasterizer_light_cone_draw(const ShaderEnvironment *shader, int16_t frame, 
 
 namespace rasterizer_light_cone_set_orientation_constants_impl {
 
-typedef int32_t (__stdcall *d3d_call4v_fn)(void *self, uint32_t start_register, const void *data, uint32_t count);
 
 /**
  * Direct3D 9 back end function rasterizer_light_cone_set_orientation_constants. The original author notes are
@@ -129,9 +128,6 @@ typedef int32_t (__stdcall *d3d_call4v_fn)(void *self, uint32_t start_register, 
  */
 void rasterizer_light_cone_set_orientation_constants(int32_t light_index)
 {
-    void **vtable;
-    d3d_call4v_fn set_vertex_shader_constant_f;
-    d3d_call4v_fn set_pixel_shader_constant_f;
     rasterizer_light *light;
     real yaw, pitch, roll;
     real_matrix4x3 orientation;
@@ -187,27 +183,21 @@ void rasterizer_light_cone_set_orientation_constants(int32_t light_index)
     constants_vs[4][2] = 0.0f;
     constants_vs[4][3] = 1.0f;
 
-    vtable = *(void ***)rasterizer_device;
-    set_vertex_shader_constant_f = (d3d_call4v_fn)vtable[0x5e];
-    set_vertex_shader_constant_f(rasterizer_device, 0xd, constants_vs, 5);
+    render_device().set_vertex_shader_constant_f(0xd, constants_vs, 5);
 
     constants_ps[0][0] = light->color.red;
     constants_ps[0][1] = light->color.green;
     constants_ps[0][2] = light->color.blue;
     constants_ps[0][3] = 1.0f;
 
-    vtable = *(void ***)rasterizer_device;
-    set_pixel_shader_constant_f = (d3d_call4v_fn)vtable[0x6d];
-    set_pixel_shader_constant_f(rasterizer_device, 0, constants_ps, 1);
+    render_device().set_pixel_shader_constant_f(0, constants_ps, 1);
 }
 
 }  // namespace rasterizer_light_cone_set_orientation_constants_impl
 
 namespace rasterizer_light_cone_set_texture_stage_states_impl {
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
-typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 /**
  * Direct3D 9 back end function rasterizer_light_cone_set_texture_stage_states. The original author notes are
@@ -217,66 +207,59 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
  */
 void rasterizer_light_cone_set_texture_stage_states(void)
 {
-    void **vtable;
-    d3d_call3_fn set_sampler_state;
-    d3d_call2_fn set_render_state;
 
     if (console_debug_toggle_6893e4 == 0 && console_debug_toggle_6893f3 != 0 &&
         0xffff0100 < rasterizer_caps.pixel_shader_version &&rasterizer_effects[4].effect != 0) {
 
-        vtable = *(void ***)rasterizer_device;
-        set_sampler_state = (d3d_call3_fn)vtable[0x45];
-        set_sampler_state(rasterizer_device, 0, 1, 1);
-        set_sampler_state(rasterizer_device, 0, 2, 1);
-        set_sampler_state(rasterizer_device, 0, 5, 2);
-        set_sampler_state(rasterizer_device, 0, 6, 2);
-        set_sampler_state(rasterizer_device, 0, 7, 2);
-        set_sampler_state(rasterizer_device, 1, 1, 3);
-        set_sampler_state(rasterizer_device, 1, 2, 3);
-        set_sampler_state(rasterizer_device, 1, 3, 3);
-        set_sampler_state(rasterizer_device, 1, 5, 2);
-        set_sampler_state(rasterizer_device, 1, 6, 2);
-        set_sampler_state(rasterizer_device, 1, 7, 2);
+        render_device().set_sampler_state(0, 1, 1);
+        render_device().set_sampler_state(0, 2, 1);
+        render_device().set_sampler_state(0, 5, 2);
+        render_device().set_sampler_state(0, 6, 2);
+        render_device().set_sampler_state(0, 7, 2);
+        render_device().set_sampler_state(1, 1, 3);
+        render_device().set_sampler_state(1, 2, 3);
+        render_device().set_sampler_state(1, 3, 3);
+        render_device().set_sampler_state(1, 5, 2);
+        render_device().set_sampler_state(1, 6, 2);
+        render_device().set_sampler_state(1, 7, 2);
 
         chimera__rasterizer_set_texture_direct_d3dx(*(uint32_t *)&rasterizer_globals_data->distance_attenuation.tag_id, 2, 0,
                                                     &rasterizer_effects[4]);
         if ((rasterizer_caps.texture_address_caps & 8) == 0) {
-            set_sampler_state(rasterizer_device, 2, 1, 3);
-            set_sampler_state(rasterizer_device, 2, 2, 3);
-            set_sampler_state(rasterizer_device, 2, 3, 3);
+            render_device().set_sampler_state(2, 1, 3);
+            render_device().set_sampler_state(2, 2, 3);
+            render_device().set_sampler_state(2, 3, 3);
         } else {
-            set_sampler_state(rasterizer_device, 2, 4, 0);
-            set_sampler_state(rasterizer_device, 2, 1, 4);
-            set_sampler_state(rasterizer_device, 2, 2, 4);
-            set_sampler_state(rasterizer_device, 2, 3, 4);
+            render_device().set_sampler_state(2, 4, 0);
+            render_device().set_sampler_state(2, 1, 4);
+            render_device().set_sampler_state(2, 2, 4);
+            render_device().set_sampler_state(2, 3, 4);
         }
-        set_sampler_state(rasterizer_device, 2, 5, 2);
-        set_sampler_state(rasterizer_device, 2, 6, 1);
-        set_sampler_state(rasterizer_device, 2, 7, 1);
+        render_device().set_sampler_state(2, 5, 2);
+        render_device().set_sampler_state(2, 6, 1);
+        render_device().set_sampler_state(2, 7, 1);
 
         chimera__rasterizer_set_texture_direct_d3dx(*(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id, 3, 0,
                                                     &rasterizer_effects[4]);
-        set_sampler_state(rasterizer_device, 3, 1, 3);
-        set_sampler_state(rasterizer_device, 3, 2, 3);
-        set_sampler_state(rasterizer_device, 3, 3, 3);
-        set_sampler_state(rasterizer_device, 3, 5, 2);
-        set_sampler_state(rasterizer_device, 3, 6, 1);
-        set_sampler_state(rasterizer_device, 3, 7, 1);
+        render_device().set_sampler_state(3, 1, 3);
+        render_device().set_sampler_state(3, 2, 3);
+        render_device().set_sampler_state(3, 3, 3);
+        render_device().set_sampler_state(3, 5, 2);
+        render_device().set_sampler_state(3, 6, 1);
+        render_device().set_sampler_state(3, 7, 1);
 
-        vtable = *(void ***)rasterizer_device;
-        set_render_state = (d3d_call2_fn)vtable[0x39];
-        set_render_state(rasterizer_device, 0x16, 3);
-        set_render_state(rasterizer_device, 0xa8, 7);
-        set_render_state(rasterizer_device, 0x1b, 1);
-        set_render_state(rasterizer_device, 0x13, 2);
-        set_render_state(rasterizer_device, 0x14, 2);
-        set_render_state(rasterizer_device, 0xab, 1);
-        set_render_state(rasterizer_device, 0xf, 1);
-        set_render_state(rasterizer_device, 0x18, 0);
-        set_render_state(rasterizer_device, 7, 1);
-        set_render_state(rasterizer_device, 0x17, 3);
-        set_render_state(rasterizer_device, 0xe, 0);
-        set_render_state(rasterizer_device, 0x1c, 0);
+        render_device().set_render_state(0x16, 3);
+        render_device().set_render_state(0xa8, 7);
+        render_device().set_render_state(0x1b, 1);
+        render_device().set_render_state(0x13, 2);
+        render_device().set_render_state(0x14, 2);
+        render_device().set_render_state(0xab, 1);
+        render_device().set_render_state(0xf, 1);
+        render_device().set_render_state(0x18, 0);
+        render_device().set_render_state(7, 1);
+        render_device().set_render_state(0x17, 3);
+        render_device().set_render_state(0xe, 0);
+        render_device().set_render_state(0x1c, 0);
     }
 }
 
@@ -443,7 +426,6 @@ void rasterizer_light_set_point_constants(int32_t light_index, int16_t slot, ras
 
 namespace rasterizer_prepare_lighting_constants_impl {
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
 
 typedef struct lighting_constant_block {

@@ -26,7 +26,6 @@ extern void bitmap_data_free(BitmapData *bitmap_data);
 
 namespace halo::rasterizer {
 
-typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 
 /**
  * Configures the framebuffer alpha-blend function (SrcBlend/DestBlend/BlendOp) for the requested blend mode,
@@ -38,19 +37,17 @@ typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t stat
  */
 void chimera__rasterizer_set_framebuffer_blend_function(int16_t mode)
 {
-    void **vtable = *(void ***)rasterizer_device;
-    d3d_set_render_state_fn set_render_state = (d3d_set_render_state_fn)vtable[0xe4 / 4];
 
     if (config_min_max_blend_op_is_broken != 0 && (mode == 5 || mode == 6)) {
-        set_render_state(rasterizer_device, 0x13, 2);
-        set_render_state(rasterizer_device, 0x14, 2);
-        set_render_state(rasterizer_device, 0xab, 1);
+        render_device().set_render_state(0x13, 2);
+        render_device().set_render_state(0x14, 2);
+        render_device().set_render_state(0xab, 1);
         return;
     }
 
-    set_render_state(rasterizer_device, 0x13, rasterizer_blend_src_table[mode]);
-    set_render_state(rasterizer_device, 0x14, rasterizer_blend_dest_table[mode]);
-    set_render_state(rasterizer_device, 0xab, rasterizer_blend_op_table[mode]);
+    render_device().set_render_state(0x13, rasterizer_blend_src_table[mode]);
+    render_device().set_render_state(0x14, rasterizer_blend_dest_table[mode]);
+    render_device().set_render_state(0xab, rasterizer_blend_op_table[mode]);
 }
 
 namespace chimera__rasterizer_set_frustum_z_func_impl {
@@ -1381,9 +1378,7 @@ void rasterizer_service_deferred_windowed_ops(void)
 
 namespace rasterizer_set_default_render_states_impl {
 
-typedef int32_t (__stdcall *d3d_set_render_state_fn)(void *device, uint32_t state, uint32_t value);
 
-typedef int32_t (__stdcall *d3d_set_texture_stage_state_fn)(void *device, uint32_t stage, uint32_t type, uint32_t value);
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
@@ -1406,7 +1401,6 @@ static void set_render_states(const uint32_t pairs[][2], int count)
  */
 void rasterizer_set_default_render_states(void)
 {
-    void **vtable;
     static const uint32_t table1[][2] = {
         {7, 1}, {0xe, 1}, {0x17, 4},
     };
@@ -1441,17 +1435,15 @@ void rasterizer_set_default_render_states(void)
 
     set_render_states(table3, sizeof(table3) / sizeof(table3[0]));
 
-    vtable = *(void ***)rasterizer_device;
     {
-        d3d_set_texture_stage_state_fn set_texture_stage_state = (d3d_set_texture_stage_state_fn)vtable[0x10c / 4];
-        set_texture_stage_state(rasterizer_device, 0, 0xb, 0);
-        set_texture_stage_state(rasterizer_device, 1, 0xb, 1);
-        set_texture_stage_state(rasterizer_device, 2, 0xb, 2);
-        set_texture_stage_state(rasterizer_device, 3, 0xb, 3);
-        set_texture_stage_state(rasterizer_device, 0, 0x18, 0);
-        set_texture_stage_state(rasterizer_device, 1, 0x18, 0);
-        set_texture_stage_state(rasterizer_device, 2, 0x18, 0);
-        set_texture_stage_state(rasterizer_device, 3, 0x18, 0);
+        render_device().set_texture_stage_state(0, 0xb, 0);
+        render_device().set_texture_stage_state(1, 0xb, 1);
+        render_device().set_texture_stage_state(2, 0xb, 2);
+        render_device().set_texture_stage_state(3, 0xb, 3);
+        render_device().set_texture_stage_state(0, 0x18, 0);
+        render_device().set_texture_stage_state(1, 0x18, 0);
+        render_device().set_texture_stage_state(2, 0x18, 0);
+        render_device().set_texture_stage_state(3, 0x18, 0);
     }
 }
 
@@ -1465,7 +1457,6 @@ void rasterizer_set_default_render_states(void)
  */
 void rasterizer_shutdown(void)
 {
-    void **vtable;
     int32_t i;
 
     rasterizer_ksml_ui_shutdown();
@@ -1486,7 +1477,6 @@ void rasterizer_shutdown(void)
     }
 
     if (rasterizer_device != (void *)0 && rasterizer_detail_object_vertex_buffer != (void *)0) {
-        vtable = *(void ***)rasterizer_detail_object_vertex_buffer;
         render_device().release(rasterizer_detail_object_vertex_buffer);
         rasterizer_detail_object_vertex_buffer = (void *)0;
     }
@@ -1496,7 +1486,6 @@ void rasterizer_shutdown(void)
 
     for (i = 0; i < 0x400; i++) {
         if (lens_flare_occlusion_queries[i] != (void *)0) {
-            vtable = *(void ***)lens_flare_occlusion_queries[i];
             render_device().release(lens_flare_occlusion_queries[i]);
             lens_flare_occlusion_queries[i] = (void *)0;
         }
@@ -1518,20 +1507,17 @@ void rasterizer_shutdown(void)
 
     for (i = 0; i < 4; i++) {
         if (rasterizer_capture_surfaces[i] != (void *)0) {
-            vtable = *(void ***)rasterizer_capture_surfaces[i];
             render_device().release(rasterizer_capture_surfaces[i]);
             rasterizer_capture_surfaces[i] = (void *)0;
         }
     }
 
     if (rasterizer_device != (void *)0) {
-        vtable = *(void ***)rasterizer_device;
         render_device().release(rasterizer_device);
     }
     rasterizer_device = (void *)0;
 
     if (rasterizer_direct3d != (void *)0) {
-        vtable = *(void ***)rasterizer_direct3d;
         render_device().release(rasterizer_direct3d);
     }
     rasterizer_direct3d = (void *)0;

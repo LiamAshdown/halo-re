@@ -706,11 +706,9 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
 
     rasterizer_effect_pool_scratch = &unknown_0069da10;
     if (unknown_0069da10 != 0) {
-        void **effect_vt = *(void ***)unknown_0069da10;
         uint32_t pass_count = 0;
         render_device().effect_begin(unknown_0069da10, &pass_count, 3);
 
-        effect_vt = *(void ***)(*(void **)rasterizer_effect_pool_scratch);
         render_device().effect_pass(*(void **)rasterizer_effect_pool_scratch, 0);
     } else {
         set_texture_stage_state(0, 1, 4);
@@ -752,7 +750,6 @@ void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags)
 
 namespace rasterizer_lens_flare_occlusion_queries_create_impl {
 
-typedef int32_t (__stdcall *d3d_create_query_fn)(void *device, uint32_t type, void **out_query);
 
 /**
  * Creates one Direct3D occlusion query per lens-flare slot (up to 1024), used to fade flares based on their
@@ -762,8 +759,6 @@ typedef int32_t (__stdcall *d3d_create_query_fn)(void *device, uint32_t type, vo
  */
 uint8_t rasterizer_lens_flare_occlusion_queries_create(void)
 {
-    void **vt = *(void ***)rasterizer_device;
-    d3d_create_query_fn create_query = (d3d_create_query_fn)vt[0x1d8 / 4];
     uint8_t ok = 1;
     int i;
 
@@ -778,7 +773,7 @@ uint8_t rasterizer_lens_flare_occlusion_queries_create(void)
         if (!ok) {
             break;
         }
-        hr = create_query(rasterizer_device, 9, &query);
+        hr = render_device().create_query(9, &query);
         if (hr < 0) {
             ok = 0;
             if (hr == (int32_t)0x8876086a) {

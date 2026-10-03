@@ -230,6 +230,42 @@ int32_t D3D9Device::get_back_buffer(uint32_t swap_chain, uint32_t index, uint32_
     return com_slot<int32_t (__stdcall *)(void *, uint32_t, uint32_t, uint32_t, void *)>(self, 18)(self, swap_chain, index, type, out_surface.get());
 }
 
+int32_t D3D9Device::set_gamma_ramp(uint32_t swap_chain, uint32_t flags, d3d_arg ramp)
+{
+    void *self = rasterizer_device;
+    return com_slot<int32_t (__stdcall *)(void *, uint32_t, uint32_t, void *)>(self, 21)(self, swap_chain, flags, ramp.get());
+}
+
+int32_t D3D9Device::process_vertices(uint32_t source_start, uint32_t dest_index, uint32_t vertex_count, d3d_arg dest_buffer, d3d_arg declaration, uint32_t flags)
+{
+    void *self = rasterizer_device;
+    return com_slot<int32_t (__stdcall *)(void *, uint32_t, uint32_t, uint32_t, void *, void *, uint32_t)>(self, 85)(self, source_start, dest_index, vertex_count, dest_buffer.get(), declaration.get(), flags);
+}
+
+int32_t D3D9Device::create_vertex_declaration(d3d_arg elements, d3d_arg out_declaration)
+{
+    void *self = rasterizer_device;
+    return com_slot<int32_t (__stdcall *)(void *, void *, void *)>(self, 86)(self, elements.get(), out_declaration.get());
+}
+
+int32_t D3D9Device::create_vertex_shader(d3d_arg function, d3d_arg out_shader)
+{
+    void *self = rasterizer_device;
+    return com_slot<int32_t (__stdcall *)(void *, void *, void *)>(self, 91)(self, function.get(), out_shader.get());
+}
+
+int32_t D3D9Device::create_pixel_shader(d3d_arg function, d3d_arg out_shader)
+{
+    void *self = rasterizer_device;
+    return com_slot<int32_t (__stdcall *)(void *, void *, void *)>(self, 106)(self, function.get(), out_shader.get());
+}
+
+int32_t D3D9Device::create_query(uint32_t type, d3d_arg out_query)
+{
+    void *self = rasterizer_device;
+    return com_slot<int32_t (__stdcall *)(void *, uint32_t, void *)>(self, 118)(self, type, out_query.get());
+}
+
 uint32_t D3D9Device::release(d3d_arg object)
 {
     void *self = object.get();

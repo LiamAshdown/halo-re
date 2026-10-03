@@ -219,6 +219,36 @@ public:
      */
     virtual int32_t get_back_buffer(uint32_t swap_chain, uint32_t index, uint32_t type, d3d_arg out_surface) = 0;
 
+    /**
+     * Loads a gamma ramp (IDirect3DDevice9::SetGammaRamp).
+     */
+    virtual int32_t set_gamma_ramp(uint32_t swap_chain, uint32_t flags, d3d_arg ramp) = 0;
+
+    /**
+     * Transforms vertices into a buffer (IDirect3DDevice9::ProcessVertices).
+     */
+    virtual int32_t process_vertices(uint32_t source_start, uint32_t dest_index, uint32_t vertex_count, d3d_arg dest_buffer, d3d_arg declaration, uint32_t flags) = 0;
+
+    /**
+     * Creates a vertex declaration (IDirect3DDevice9::CreateVertexDeclaration).
+     */
+    virtual int32_t create_vertex_declaration(d3d_arg elements, d3d_arg out_declaration) = 0;
+
+    /**
+     * Creates a vertex shader (IDirect3DDevice9::CreateVertexShader).
+     */
+    virtual int32_t create_vertex_shader(d3d_arg function, d3d_arg out_shader) = 0;
+
+    /**
+     * Creates a pixel shader (IDirect3DDevice9::CreatePixelShader).
+     */
+    virtual int32_t create_pixel_shader(d3d_arg function, d3d_arg out_shader) = 0;
+
+    /**
+     * Creates an occlusion query (IDirect3DDevice9::CreateQuery).
+     */
+    virtual int32_t create_query(uint32_t type, d3d_arg out_query) = 0;
+
 
     /* Resources: lifetime */
 
@@ -447,6 +477,12 @@ public:
     int32_t set_pixel_shader(d3d_arg shader) override;
     int32_t set_pixel_shader_constant_f(uint32_t start_register, d3d_arg data, uint32_t vector4_count) override;
     int32_t get_back_buffer(uint32_t swap_chain, uint32_t index, uint32_t type, d3d_arg out_surface) override;
+    int32_t set_gamma_ramp(uint32_t swap_chain, uint32_t flags, d3d_arg ramp) override;
+    int32_t process_vertices(uint32_t source_start, uint32_t dest_index, uint32_t vertex_count, d3d_arg dest_buffer, d3d_arg declaration, uint32_t flags) override;
+    int32_t create_vertex_declaration(d3d_arg elements, d3d_arg out_declaration) override;
+    int32_t create_vertex_shader(d3d_arg function, d3d_arg out_shader) override;
+    int32_t create_pixel_shader(d3d_arg function, d3d_arg out_shader) override;
+    int32_t create_query(uint32_t type, d3d_arg out_query) override;
     uint32_t release(d3d_arg object) override;
     uint32_t get_adapter_count(d3d_arg object) override;
     int32_t get_adapter_display_mode(d3d_arg object, uint32_t adapter, d3d_arg mode) override;

@@ -18,8 +18,6 @@ extern void md5_hex_digest(const uint8_t *data, int32_t length, char *out);
 
 namespace halo::rasterizer {
 
-typedef int32_t (__stdcall *d3d_create_vertex_buffer_fn)(void *device, uint32_t length, uint32_t usage, uint32_t fvf,
-                                               uint32_t pool, void **out_buffer, void *shared_handle);
 
 /**
  * Creates one Direct3D vertex buffer (register EAX selects the vertex format, whose declaration usage bits are
@@ -37,8 +35,6 @@ void * rasterizer_dx9_create_vertex_buffer(int32_t vertex_type, uint32_t length,
     uint32_t pool;
     void *buffer;
     int32_t hr;
-    void **vt;
-    d3d_create_vertex_buffer_fn create_vertex_buffer;
 
     sw_flag = (rasterizer_software_vertex_processing != 0) ? 0x10u : 0u;
     dynamic_flag = (not_dynamic == 0) ? 0x200u : 0u;
@@ -48,9 +44,7 @@ void * rasterizer_dx9_create_vertex_buffer(int32_t vertex_type, uint32_t length,
            (rasterizer_vertex_declarations[vertex_type].usage & 0x200) != 0 || dynamic_flag != 0) ? 2u : 1u;
 
     buffer = 0;
-    vt = *(void ***)rasterizer_device;
-    create_vertex_buffer = (d3d_create_vertex_buffer_fn)vt[0x68 / 4];
-    hr = create_vertex_buffer(rasterizer_device, length, usage, fvf, pool, &buffer, 0);
+    hr = render_device().create_vertex_buffer(length, usage, fvf, pool, &buffer, 0);
     return (hr >= 0) ? buffer : 0;
 }
 
@@ -355,7 +349,6 @@ uint8_t rasterizer_dx9_vertex_shaders_initialize(void)
 
 namespace rasterizer_dx9_vertex_shaders_load_all_impl {
 
-typedef int32_t (__stdcall *d3d_create_vertex_shader_fn)(void *device, const void *function, void *out_shader);
 
 /**
  * Loads shaders\vsh.bin, then walks it as a run of [int32 chunk_size][chunk_size bytes] records, creating one
@@ -369,8 +362,6 @@ uint32_t rasterizer_dx9_vertex_shaders_load_all(void)
     void *buffer;
     uint32_t size;
     uint8_t *cursor, *end;
-    void **vt;
-    d3d_create_vertex_shader_fn create_vertex_shader;
     int32_t index;
 
     if (rasterizer_load_file_and_verify(&buffer, &size, "shaders\\vsh.bin") == 0) {
@@ -379,8 +370,6 @@ uint32_t rasterizer_dx9_vertex_shaders_load_all(void)
 
     cursor = (uint8_t *)buffer;
     end = (uint8_t *)buffer + size;
-    vt = *(void ***)rasterizer_device;
-    create_vertex_shader = (d3d_create_vertex_shader_fn)vt[0x16c / 4];
 
     for (index = 0; index < k_rasterizer_vertex_shaders; index++) {
         if (rasterizer_vertex_shaders[index].enabled == 0) {
@@ -398,7 +387,7 @@ uint32_t rasterizer_dx9_vertex_shaders_load_all(void)
             if (end < cursor) {
                 break;
             }
-            hr = create_vertex_shader(rasterizer_device, data, &rasterizer_vertex_shaders[index].shader);
+            hr = render_device().create_vertex_shader(data, &rasterizer_vertex_shaders[index].shader);
             if (hr < 0) {
                 break;
             }
@@ -607,8 +596,6 @@ uint32_t rasterizer_load_file_and_verify(void **out_buffer, uint32_t *out_size, 
 
 namespace rasterizer_misc_vertex_buffer_create_impl {
 
-typedef int32_t (__stdcall *d3d_create_vertex_buffer_fn)(void *device, uint32_t length, uint32_t usage, uint32_t fvf,
-                                               uint32_t pool, void **out_buffer, void *shared_handle);
 
 
 

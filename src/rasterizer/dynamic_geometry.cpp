@@ -44,7 +44,6 @@ void chimera__rasterizer_dispose_free_memory(void)
     transparent_geometry_group_count = 0;
 }
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 
 
@@ -96,7 +95,6 @@ void chimera__rasterizer_draw_dynamic_triangles_static_vertices(int32_t primitiv
 
 namespace chimera__rasterizer_draw_dynamic_triangles_static_vertices2_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 
 
@@ -175,7 +173,6 @@ void * chimera__rasterizer_memory_alloc(void *source, uint32_t size)
 
 namespace rasterizer_dynamic_geometry_chain_draw_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 
 
@@ -298,7 +295,6 @@ void rasterizer_dynamic_geometry_draw_dispatch(rasterizer_index_buffer *index_bu
 
 namespace rasterizer_dynamic_index_cache_draw_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 
 
@@ -382,9 +378,7 @@ int32_t rasterizer_dynamic_index_cache_reserve(int32_t count)
 
 namespace rasterizer_dynamic_light_technique_ps2_set_states_impl {
 
-typedef int32_t (__stdcall *d3d_call2_fn)(void *self, uint32_t a, uint32_t b);
 
-typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 /**
  * Direct3D 9 back end function rasterizer_dynamic_light_technique_ps2_set_states. The original author notes
@@ -394,62 +388,53 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
  */
 void rasterizer_dynamic_light_technique_ps2_set_states(void)
 {
-    void **vtable;
-    d3d_call2_fn set_render_state;
-    d3d_call3_fn set_sampler_state;
 
     if (console_debug_toggle_6893e4 != 0 || console_debug_toggle_6893f7 == 0 ||
         render_force_flag != 0 || rasterizer_caps.pixel_shader_version <= 0xffff0103) {
         return;
     }
 
-    vtable = *(void ***)rasterizer_device;
-    set_render_state = (d3d_call2_fn)vtable[0x39];
-    set_render_state(rasterizer_device, 0x16, 3);
-    set_render_state(rasterizer_device, 0xa8, 7);
-    set_render_state(rasterizer_device, 0x1b, 1);
-    set_render_state(rasterizer_device, 0x13, 7);
-    set_render_state(rasterizer_device, 0x14, 2);
-    set_render_state(rasterizer_device, 0xab, 1);
-    set_render_state(rasterizer_device, 0xf, 1);
-    set_render_state(rasterizer_device, 0x18, 0);
-    set_render_state(rasterizer_device, 7, 1);
-    set_render_state(rasterizer_device, 0x17, 3);
-    set_render_state(rasterizer_device, 0xe, 0);
-    set_render_state(rasterizer_device, 0x1c, 0);
+    render_device().set_render_state(0x16, 3);
+    render_device().set_render_state(0xa8, 7);
+    render_device().set_render_state(0x1b, 1);
+    render_device().set_render_state(0x13, 7);
+    render_device().set_render_state(0x14, 2);
+    render_device().set_render_state(0xab, 1);
+    render_device().set_render_state(0xf, 1);
+    render_device().set_render_state(0x18, 0);
+    render_device().set_render_state(7, 1);
+    render_device().set_render_state(0x17, 3);
+    render_device().set_render_state(0xe, 0);
+    render_device().set_render_state(0x1c, 0);
 
-    vtable = *(void ***)rasterizer_device;
-    set_sampler_state = (d3d_call3_fn)vtable[0x45];
-    set_sampler_state(rasterizer_device, 0, 1, 1);
-    set_sampler_state(rasterizer_device, 0, 2, 1);
-    set_sampler_state(rasterizer_device, 0, 5, 2);
-    set_sampler_state(rasterizer_device, 0, 6, 2);
-    set_sampler_state(rasterizer_device, 0, 7, 2);
-    set_sampler_state(rasterizer_device, 1, 1, 3);
-    set_sampler_state(rasterizer_device, 1, 2, 3);
-    set_sampler_state(rasterizer_device, 1, 5, 2);
-    set_sampler_state(rasterizer_device, 1, 6, 2);
-    set_sampler_state(rasterizer_device, 1, 7, 2);
-    set_sampler_state(rasterizer_device, 2, 1, 3);
-    set_sampler_state(rasterizer_device, 2, 2, 3);
-    set_sampler_state(rasterizer_device, 2, 3, 3);
-    set_sampler_state(rasterizer_device, 2, 5, 2);
-    set_sampler_state(rasterizer_device, 2, 6, 2);
-    set_sampler_state(rasterizer_device, 2, 7, 2);
-    set_sampler_state(rasterizer_device, 3, 1, 3);
-    set_sampler_state(rasterizer_device, 3, 2, 3);
-    set_sampler_state(rasterizer_device, 3, 3, 3);
-    set_sampler_state(rasterizer_device, 3, 5, 2);
-    set_sampler_state(rasterizer_device, 3, 6, 2);
-    set_sampler_state(rasterizer_device, 3, 7, 2);
+    render_device().set_sampler_state(0, 1, 1);
+    render_device().set_sampler_state(0, 2, 1);
+    render_device().set_sampler_state(0, 5, 2);
+    render_device().set_sampler_state(0, 6, 2);
+    render_device().set_sampler_state(0, 7, 2);
+    render_device().set_sampler_state(1, 1, 3);
+    render_device().set_sampler_state(1, 2, 3);
+    render_device().set_sampler_state(1, 5, 2);
+    render_device().set_sampler_state(1, 6, 2);
+    render_device().set_sampler_state(1, 7, 2);
+    render_device().set_sampler_state(2, 1, 3);
+    render_device().set_sampler_state(2, 2, 3);
+    render_device().set_sampler_state(2, 3, 3);
+    render_device().set_sampler_state(2, 5, 2);
+    render_device().set_sampler_state(2, 6, 2);
+    render_device().set_sampler_state(2, 7, 2);
+    render_device().set_sampler_state(3, 1, 3);
+    render_device().set_sampler_state(3, 2, 3);
+    render_device().set_sampler_state(3, 3, 3);
+    render_device().set_sampler_state(3, 5, 2);
+    render_device().set_sampler_state(3, 6, 2);
+    render_device().set_sampler_state(3, 7, 2);
 }
 
 }  // namespace rasterizer_dynamic_light_technique_ps2_set_states_impl
 
 namespace rasterizer_dynamic_vertex_cache_lock_impl {
 
-typedef int32_t (__stdcall *d3d_vertex_buffer_lock_fn)(void *self, uint32_t offset, uint32_t size,
-                                              void **out_data, uint32_t flags);
 
 /**
  * Locks the vertex buffer range covered by dynamic vertex slot `slot_index` (see
@@ -465,8 +450,6 @@ void * rasterizer_dynamic_vertex_cache_lock(int32_t slot_index)
     rasterizer_dynamic_vertex_slot *slot;
     rasterizer_dynamic_vertex_cache *cache;
     rasterizer_vertex_buffer_slot *buffer_slot;
-    void **vtable;
-    d3d_vertex_buffer_lock_fn lock;
     void *locked_data;
     int32_t hresult;
     int32_t stride;
@@ -481,10 +464,7 @@ void * rasterizer_dynamic_vertex_cache_lock(int32_t slot_index)
     stride = rasterizer_vertex_sizes[slot->vertex_type];
 
     locked_data = 0;
-    vtable = *(void ***)(void *)buffer_slot->hardware_buffer;
-    lock = (d3d_vertex_buffer_lock_fn)vtable[0xb];
-    hresult = lock((void *)buffer_slot->hardware_buffer, slot->first_vertex * stride,
-                    slot->vertex_count * stride, &locked_data, 0x2000);
+    hresult = render_device().buffer_lock((void *)buffer_slot->hardware_buffer, slot->first_vertex * stride, slot->vertex_count * stride, &locked_data, 0x2000);
 
     slot->locked_vertices = (uint32_t)(hresult < 0 ? 0 : locked_data);
     return (void *)slot->locked_vertices;
@@ -528,9 +508,7 @@ int32_t rasterizer_dynamic_vertex_cache_reserve(int16_t vertex_type, int32_t cou
 namespace rasterizer_dynamic_vertex_draw_impl {
 
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
-typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 
 
@@ -614,7 +592,6 @@ void rasterizer_dynamic_vertex_draw(int32_t first_primitive, int32_t primitive_c
 
 namespace rasterizer_dynamic_vertex_draw_indexed_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 
 
@@ -675,11 +652,8 @@ void rasterizer_dynamic_vertex_draw_indexed(rasterizer_index_buffer *index_buffe
 
 namespace rasterizer_dynamic_vertex_process_and_get_handle_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
-typedef int32_t (__stdcall *d3d_call4_fn)(void *self, uint32_t a, void *b, uint32_t c, uint32_t d);
 
-typedef int32_t (__stdcall *d3d_call6_fn)(void *self, uint32_t a, uint32_t b, uint32_t c, void *d, uint32_t e, uint32_t f);
 
 /**
  * Direct3D 9 back end function rasterizer_dynamic_vertex_process_and_get_handle. The original author notes are
@@ -691,35 +665,21 @@ typedef int32_t (__stdcall *d3d_call6_fn)(void *self, uint32_t a, uint32_t b, ui
  */
 uint32_t rasterizer_dynamic_vertex_process_and_get_handle(rasterizer_vertex_buffer *vertex_buffer)
 {
-    d3d_call1_fn set_software_vertex_processing;
-    d3d_call4_fn set_stream_source;
-    d3d_call6_fn process_vertices;
-    void **vtable;
     int16_t stride;
     uint32_t handle;
 
     stride = rasterizer_vertex_sizes[vertex_buffer->type];
 
-    vtable = *(void ***)rasterizer_device;
-    set_software_vertex_processing = (d3d_call1_fn)vtable[0x4d];
-    set_software_vertex_processing(rasterizer_device,
-        (-(uint32_t)(rasterizer_software_vertex_processing != 0) & 0x10) |
+    render_device().set_software_vertex_processing((-(uint32_t)(rasterizer_software_vertex_processing != 0) & 0x10) |
         (rasterizer_vertex_declarations[vertex_buffer->type].usage & 0x10));
 
-    vtable = *(void ***)rasterizer_device;
-    set_stream_source = (d3d_call4_fn)vtable[0x64];
-    set_stream_source(rasterizer_device, 0, (void *)vertex_buffer->hardware_buffer, 0,
-                       (uint32_t)stride);
+    render_device().set_stream_source(0, (void *)vertex_buffer->hardware_buffer, 0, (uint32_t)stride);
 
     handle = (uint32_t)rasterizer_vertex_buffer_slots[rasterizer_dynamic_vertex_caches[_rasterizer_vertex_type_model_processed].buffer_handle - 1].hardware_buffer;
 
-    vtable = *(void ***)rasterizer_device;
-    process_vertices = (d3d_call6_fn)vtable[0x55];
-    process_vertices(rasterizer_device, 0, 0, (uint32_t)vertex_buffer->count, (void *)handle, 0, 1);
+    render_device().process_vertices(0, 0, (uint32_t)vertex_buffer->count, (void *)handle, 0, 1);
 
-    vtable = *(void ***)rasterizer_device;
-    set_software_vertex_processing = (d3d_call1_fn)vtable[0x4d];
-    set_software_vertex_processing(rasterizer_device, rasterizer_software_vertex_processing);
+    render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
 
     return handle;
 }
@@ -728,7 +688,6 @@ uint32_t rasterizer_dynamic_vertex_process_and_get_handle(rasterizer_vertex_buff
 
 namespace rasterizer_geometry_draw_fixed_function_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 /**
  * Direct3D 9 back end function rasterizer_geometry_draw_fixed_function. The original author notes are in
@@ -761,7 +720,6 @@ void rasterizer_geometry_draw_fixed_function(uint32_t flags, int32_t dynamic_ver
 
 namespace rasterizer_geometry_part_draw_impl {
 
-typedef int32_t (__stdcall *d3d_call1_fn)(void *self, uint32_t a);
 
 /**
  * Direct3D 9 back end function rasterizer_geometry_part_draw. The original author notes are in
