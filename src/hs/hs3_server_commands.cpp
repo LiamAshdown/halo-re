@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/game/legacy_globals.hpp"
 #include "halo/hs/hs3_commands.hpp"
 #include <stdio.h>
@@ -81,7 +82,7 @@ void ServerCommands::evaluate_sv_get_player_action_queue_length(int16_t function
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::game::game_engine_find_player_by_name((char *)arguments[0]);
+        halo::game::game_engine_find_player_by_name(halo::hs::argument_string(arguments[0]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -99,7 +100,7 @@ void ServerCommands::evaluate_sv_kick(int16_t function_index, uint32_t thread_in
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::networking::sv_kick((char *)arguments[0]);
+        halo::networking::sv_kick(halo::hs::argument_string(arguments[0]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }

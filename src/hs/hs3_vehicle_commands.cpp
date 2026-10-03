@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/ai/records.hpp"
 #include "halo/hs/hs3_commands.hpp"
 #include "units.h"
@@ -43,7 +44,7 @@ void VehicleCommands::evaluate_vehicle_hover(int16_t function_index, uint32_t th
 
     if (arguments != 0) {
         datum_index vehicle = (datum_index)arguments[0];
-        uint8_t hover = *(uint8_t *)&arguments[1];
+        uint8_t hover = halo::hs::argument_byte(arguments[1]);
 
         if (vehicle != k_datum_index_none) {
             uint8_t *obj = (uint8_t *)halo::ai::object_at(vehicle);
@@ -72,7 +73,7 @@ void VehicleCommands::evaluate_vehicle_load_magic(int16_t function_index, uint32
 
     if (arguments != 0) {
     halo::hs::hs_thread_return((int32_t)(uint16_t)halo::units::unit_seat_candidates_from_zone_and_enter((uint32_t)arguments[0],
-        (char *)arguments[1], (uint32_t)arguments[2]), thread_index);
+        halo::hs::argument_string(arguments[1]), (uint32_t)arguments[2]), thread_index);
     }
 }
 
@@ -107,7 +108,7 @@ void VehicleCommands::evaluate_vehicle_test_seat_list(int16_t function_index, ui
         definition->parameters, first);
 
     if (arguments != 0) {
-        uint8_t result = halo::units::unit_named_seat_occupant_in_zone((uint32_t)arguments[0], (char *)arguments[1], (uint32_t)arguments[2]);
+        uint8_t result = halo::units::unit_named_seat_occupant_in_zone((uint32_t)arguments[0], halo::hs::argument_string(arguments[1]), (uint32_t)arguments[2]);
         halo::hs::hs_thread_return((int32_t)result, thread_index);
     }
 }
@@ -125,7 +126,7 @@ void VehicleCommands::evaluate_vehicle_unload(int16_t function_index, uint32_t t
         definition->parameters, first);
 
     if (arguments != 0) {
-        int16_t count = halo::units::unit_detach_child_at_named_seat((uint32_t)arguments[0], (char *)arguments[1]);
+        int16_t count = halo::units::unit_detach_child_at_named_seat((uint32_t)arguments[0], halo::hs::argument_string(arguments[1]));
 
         halo::hs::hs_thread_return((int32_t)(uint16_t)count, thread_index);
     }

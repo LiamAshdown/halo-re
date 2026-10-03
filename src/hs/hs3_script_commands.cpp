@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs3_commands.hpp"
 #include "halo/scenario/api.hpp"
 #include "win32.h"
@@ -40,7 +41,7 @@ void ScriptCommands::evaluate_switch_bsp(int16_t function_index, uint32_t thread
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::scenario::structure_bsp_switcher::switch_to(*(int16_t *)&arguments[0]);
+    halo::scenario::structure_bsp_switcher::switch_to(halo::hs::argument_short(arguments[0]));
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -76,7 +77,7 @@ void ScriptCommands::evaluate_track_remote_player_position_updates(int16_t funct
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::networking::player_update_history_log_set_name_filter((char *)arguments[0]);
+        halo::networking::player_update_history_log_set_name_filter(halo::hs::argument_string(arguments[0]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -94,7 +95,7 @@ void ScriptCommands::evaluate_ui_widget_show_path(int16_t function_index, uint32
         definition->parameters, first);
 
     if (arguments != 0) {
-    ui_widget_show_path_flag = *(uint8_t *)&arguments[0];
+    ui_widget_show_path_flag = halo::hs::argument_byte(arguments[0]);
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -112,7 +113,7 @@ void ScriptCommands::evaluate_unbind(int16_t function_index, uint32_t thread_ind
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::input::hs_unbind_control((const char *)arguments[0], (const char *)arguments[1]);
+        halo::input::hs_unbind_control(halo::hs::argument_string(arguments[0]), halo::hs::argument_string(arguments[1]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }

@@ -45,19 +45,19 @@ char ScriptCompiler::add_global(datum_index node_index)
     hs_global_reference existing;
 
     nodes = halo::hs::globals().syntax_data;
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
+    node = halo::hs::syntax_node_at(node_index);
     identifier_index = node->data.first_child;
     if (identifier_index != k_datum_index_none) {
-        identifier_node = (hs_syntax_node *)((uint8_t *)nodes->data + (identifier_index & halo::k_slot_mask) * nodes->size);
+        identifier_node = halo::hs::syntax_node_at(identifier_index);
         type_index = identifier_node->next_node;
         if (type_index != k_datum_index_none) {
-            type_node = (hs_syntax_node *)((uint8_t *)nodes->data + (type_index & halo::k_slot_mask) * nodes->size);
+            type_node = halo::hs::syntax_node_at(type_index);
             name_index = type_node->next_node;
             if (name_index != k_datum_index_none) {
-                name_node = (hs_syntax_node *)((uint8_t *)nodes->data + (name_index & halo::k_slot_mask) * nodes->size);
+                name_node = halo::hs::syntax_node_at(name_index);
                 value_index = name_node->next_node;
                 if (value_index != k_datum_index_none) {
-                    value_node = (hs_syntax_node *)((uint8_t *)nodes->data + (value_index & halo::k_slot_mask) * nodes->size);
+                    value_node = halo::hs::syntax_node_at(value_index);
                     if (value_node->next_node == k_datum_index_none) {
                         type_ordinal = halo::text::string_codec::table_index_of(halo::hs::globals().compiled_source + type_node->source_offset, k_hs_type_count, (const char **)halo::hs::globals().type_names);
                         if ((type_ordinal < 4) || (0x30 < type_ordinal)) {
@@ -128,14 +128,14 @@ char ScriptCompiler::add_script(datum_index node_index)
     char *dest;
 
     nodes = halo::hs::globals().syntax_data;
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
+    node = halo::hs::syntax_node_at(node_index);
     type_index = node->data.first_child;
     if (type_index == k_datum_index_none) {
         halo::hs::globals().compile_error = (char *)"i expected (script <type> <name> <expression(s)>)";
         halo::hs::globals().compile_error_offset = node->source_offset;
         return 0;
     }
-    type_node = (hs_syntax_node *)((uint8_t *)nodes->data + (type_index & halo::k_slot_mask) * nodes->size);
+    type_node = halo::hs::syntax_node_at(type_index);
     script_type = halo::text::string_codec::table_index_of(halo::hs::globals().compiled_source + type_node->source_offset, k_hs_script_type_count, (const char **)halo::hs::globals().script_type_names);
     if (script_type == -1) {
         halo::hs::globals().compile_error = (char *)"script type must be \"startup\", \"dormant\", \"continuous\", or \"static\".";
@@ -150,7 +150,7 @@ char ScriptCompiler::add_script(datum_index node_index)
             halo::hs::globals().compile_error_offset = node->source_offset;
             return 0;
         }
-        return_type_node = (hs_syntax_node *)((uint8_t *)nodes->data + (return_type_index & halo::k_slot_mask) * nodes->size);
+        return_type_node = halo::hs::syntax_node_at(return_type_index);
         return_type = halo::text::string_codec::table_index_of(halo::hs::globals().compiled_source + return_type_node->source_offset, k_hs_type_count, (const char **)halo::hs::globals().type_names);
         name_index = return_type_node->next_node;
         if ((return_type < 4) || (0x30 < return_type)) {
@@ -164,7 +164,7 @@ char ScriptCompiler::add_script(datum_index node_index)
     }
 
     if (name_index != k_datum_index_none) {
-        name_node = (hs_syntax_node *)((uint8_t *)nodes->data + (name_index & halo::k_slot_mask) * nodes->size);
+        name_node = halo::hs::syntax_node_at(name_index);
         body_index = name_node->next_node;
         if (body_index != k_datum_index_none) {
             name_text = halo::hs::globals().compiled_source + name_node->source_offset;
@@ -187,8 +187,8 @@ char ScriptCompiler::add_script(datum_index node_index)
                         return 0;
                     }
                     nodes = halo::hs::globals().syntax_data;
-                    new_root_node = (hs_syntax_node *)((uint8_t *)nodes->data + (new_root & halo::k_slot_mask) * nodes->size);
-                    new_body_holder_node = (hs_syntax_node *)((uint8_t *)nodes->data + (new_body_holder & halo::k_slot_mask) * nodes->size);
+                    new_root_node = halo::hs::syntax_node_at(new_root);
+                    new_body_holder_node = halo::hs::syntax_node_at(new_body_holder);
 
                     new_root_node->data.first_child = new_body_holder;
                     new_root_node->next_node = k_datum_index_none;
@@ -464,9 +464,9 @@ datum_index ScriptCompiler::compile_expression(char *text, uint32_t length, char
                 inspect_index = halo::memory::datum_new(halo::hs::globals().syntax_data);
                 if ((wrap_index != k_datum_index_none) && (inspect_index != k_datum_index_none)) {
                     nodes = halo::hs::globals().syntax_data;
-                    expr_node = (hs_syntax_node *)((uint8_t *)nodes->data + (expr_index & halo::k_slot_mask) * nodes->size);
-                    wrap_node = (hs_syntax_node *)((uint8_t *)nodes->data + (wrap_index & halo::k_slot_mask) * nodes->size);
-                    inspect_node = (hs_syntax_node *)((uint8_t *)nodes->data + (inspect_index & halo::k_slot_mask) * nodes->size);
+                    expr_node = halo::hs::syntax_node_at(expr_index);
+                    wrap_node = halo::hs::syntax_node_at(wrap_index);
+                    inspect_node = halo::hs::syntax_node_at(inspect_index);
 
                     wrap_node->data.first_child = inspect_index;
                     wrap_node->next_node = k_datum_index_none;
@@ -537,7 +537,7 @@ char ScriptCompiler::compile_postprocess(char **error_message, int32_t *error_of
             }
             break;
         }
-        node = (hs_syntax_node *)((uint8_t *)nodes->data + (current & halo::k_slot_mask) * nodes->size);
+        node = halo::hs::syntax_node_at(current);
         node_type = node->type;
 
         if ((node_type < 4) || (0x30 < node_type)) {
@@ -565,7 +565,7 @@ char ScriptCompiler::compile_postprocess(char **error_message, int32_t *error_of
                 halo::hs::globals().compile_error = (char *)"corrupt syntax tree (you need to recompile scripts.)";
                 goto fail;
             }
-            function_name_node = (hs_syntax_node *)((uint8_t *)nodes->data + (node->data.first_child & halo::k_slot_mask) * nodes->size);
+            function_name_node = halo::hs::syntax_node_at(node->data.first_child);
             if (function_name_node->type != 2) {
                 halo::hs::globals().compile_error = (char *)"corrupt syntax tree (you need to recompile scripts.)";
                 goto fail;

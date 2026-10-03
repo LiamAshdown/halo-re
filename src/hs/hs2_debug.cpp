@@ -57,7 +57,7 @@ void DebugCommands::evaluate_help(int16_t function_index, uint32_t thread_index,
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::hs::hs_help_print_function((char *)arguments[0]);
+        halo::hs::hs_help_print_function(halo::hs::argument_string(arguments[0]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -72,7 +72,7 @@ void DebugCommands::evaluate_inspect(int16_t function_index, uint32_t thread_ind
 {
     hs_thread *thread = halo::hs::thread_at(thread_index);
     hs_stack_frame *frame = thread->stack;
-    int32_t *result = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
+    int32_t *result = halo::hs::frame_scratch<int32_t>(frame);
     datum_index argument = syntax_get(syntax_get(frame->syntax_node)->data.first_child)->next_node;
     char buffer[0x400];
 
@@ -130,7 +130,7 @@ void DebugCommands::evaluate_list_get(int16_t function_index, uint32_t thread_in
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::hs::hs_thread_return(halo::hs::object_list_nth_reference((datum_index)arguments[0], *(int16_t *)&arguments[1]), thread_index);
+    halo::hs::hs_thread_return(halo::hs::object_list_nth_reference((datum_index)arguments[0], halo::hs::argument_short(arguments[1])), thread_index);
     }
 }
 
@@ -147,7 +147,7 @@ void DebugCommands::evaluate_message_metrics_dump(int16_t function_index, uint32
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::networking::message_delta_metrics_dump((char *)arguments[0]);
+        halo::networking::message_delta_metrics_dump(halo::hs::argument_string(arguments[0]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -177,7 +177,7 @@ void DebugCommands::evaluate_net_graph_show(int16_t function_index, uint32_t thr
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::hs::hs_thread_return((int32_t)(uint8_t)(halo::networking::network_bandwidth_graph_set_units_command((const char *)arguments[0], (const char *)arguments[1])), thread_index);
+        halo::hs::hs_thread_return((int32_t)(uint8_t)(halo::networking::network_bandwidth_graph_set_units_command(halo::hs::argument_string(arguments[0]), halo::hs::argument_string(arguments[1]))), thread_index);
     }
 }
 
@@ -194,7 +194,7 @@ void DebugCommands::evaluate_print(int16_t function_index, uint32_t thread_index
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::interface::console_printf_verbose((ColorARGB *)actor_mode_default_look_weights, (char *)arguments[0]);
+    halo::interface::console_printf_verbose((ColorARGB *)actor_mode_default_look_weights, halo::hs::argument_string(arguments[0]));
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -287,7 +287,7 @@ void DebugCommands::evaluate_render_lights(int16_t function_index, uint32_t thre
         definition->parameters, first);
 
     if (arguments != 0) {
-    uint8_t value = *(uint8_t *)&arguments[0];
+    uint8_t value = halo::hs::argument_byte(arguments[0]);
 
     *lights_enabled = value;
     halo::hs::hs_thread_return((int32_t)value, thread_index);
@@ -331,7 +331,7 @@ void DebugCommands::evaluate_script_screen_effect_set_value(int16_t function_ind
         definition->parameters, first);
 
     if (arguments != 0) {
-        int16_t slot = *(int16_t *)&arguments[0];
+        int16_t slot = halo::hs::argument_short(arguments[0]);
 
         if (cinematic_screen_effect_state != 0 && slot >= 0 && slot < 4) {
             *(uint32_t *)(cinematic_screen_effect_state + 0x64 + slot * 4) = (uint32_t)arguments[1];

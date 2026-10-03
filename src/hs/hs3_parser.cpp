@@ -59,7 +59,7 @@ char Parser::hs_parse(datum_index node_index, hs_type_t expected_type) const
     char result;
 
     nodes = halo::hs::globals().syntax_data;
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
+    node = halo::hs::syntax_node_at(node_index);
     result = 1;
     if (node->type == 0) {
         node->type = expected_type;
@@ -254,13 +254,13 @@ datum_index Parser::parse_cond_recursive(datum_index cond_node_index, datum_inde
 
     nodes = halo::hs::globals().syntax_data;
     new_index = halo::memory::datum_new(nodes);
-    cond_node = (hs_syntax_node *)((uint8_t *)nodes->data + (cond_node_index & halo::k_slot_mask) * nodes->size);
+    cond_node = halo::hs::syntax_node_at(cond_node_index);
     if (new_index == k_datum_index_none) {
         halo::hs::globals().compile_error = (char *)"i couldn't allocate a syntax node.";
         halo::hs::globals().compile_error_offset = cond_node->source_offset;
         return k_datum_index_none;
     }
-    new_node = (hs_syntax_node *)((uint8_t *)nodes->data + (new_index & halo::k_slot_mask) * nodes->size);
+    new_node = halo::hs::syntax_node_at(new_index);
     new_node->source_offset = cond_node->source_offset;
     new_node->flags = 0;
     new_node->next_node = k_datum_index_none;
@@ -274,28 +274,28 @@ datum_index Parser::parse_cond_recursive(datum_index cond_node_index, datum_inde
         return new_index;
     }
 
-    pair_node = (hs_syntax_node *)((uint8_t *)nodes->data + (pair_index & halo::k_slot_mask) * nodes->size);
+    pair_node = halo::hs::syntax_node_at(pair_index);
     if ((pair_node->flags & _hs_syntax_node_primitive_bit) != 0) {
         halo::hs::globals().compile_error = (char *)"this argument to cond should be a condition/result pair";
         halo::hs::globals().compile_error_offset = pair_node->source_offset;
         return k_datum_index_none;
     }
     condition_index = pair_node->data.first_child;
-    condition_node = (hs_syntax_node *)((uint8_t *)nodes->data + (condition_index & halo::k_slot_mask) * nodes->size);
+    condition_node = halo::hs::syntax_node_at(condition_index);
 
     if ((uint32_t)(condition_node->next_node == 0) != (uint32_t)k_datum_index_none) {
         new_if_index = halo::memory::datum_new(nodes);
         replacement_index = halo::memory::datum_new(nodes);
         if ((new_if_index == k_datum_index_none) || (replacement_index == k_datum_index_none)) {
             nodes = halo::hs::globals().syntax_data;
-            cond_node = (hs_syntax_node *)((uint8_t *)nodes->data + (cond_node_index & halo::k_slot_mask) * nodes->size);
+            cond_node = halo::hs::syntax_node_at(cond_node_index);
             halo::hs::globals().compile_error = (char *)"i couldn't allocate a syntax node.";
             halo::hs::globals().compile_error_offset = cond_node->source_offset;
             return k_datum_index_none;
         }
         nodes = halo::hs::globals().syntax_data;
-        new_if_node = (hs_syntax_node *)((uint8_t *)nodes->data + (new_if_index & halo::k_slot_mask) * nodes->size);
-        replacement_node = (hs_syntax_node *)((uint8_t *)nodes->data + (replacement_index & halo::k_slot_mask) * nodes->size);
+        new_if_node = halo::hs::syntax_node_at(new_if_index);
+        replacement_node = halo::hs::syntax_node_at(replacement_index);
 
         inner_result = halo::hs::hs_parse_cond_recursive(cond_node_index, pair_node->next_node);
         new_if_node->next_node = inner_result;
@@ -466,20 +466,20 @@ char Parser::parse_if(int16_t function_index, datum_index node_index) const
 
     (void)function_index;
     nodes = halo::hs::globals().syntax_data;
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
+    node = halo::hs::syntax_node_at(node_index);
 
     condition_node = 0;
     then_index = k_datum_index_none;
     else_index = k_datum_index_none;
     if (node->data.first_child != k_datum_index_none) {
-        condition_node = (hs_syntax_node *)((uint8_t *)nodes->data + (node->data.first_child & halo::k_slot_mask) * nodes->size);
+        condition_node = halo::hs::syntax_node_at(node->data.first_child);
         then_index = condition_node->next_node;
     }
     if ((condition_node != 0) && (then_index != k_datum_index_none)) {
-        then_node = (hs_syntax_node *)((uint8_t *)nodes->data + (then_index & halo::k_slot_mask) * nodes->size);
+        then_node = halo::hs::syntax_node_at(then_index);
         else_index = then_node->next_node;
         if ((else_index == k_datum_index_none) ||
-            (((hs_syntax_node *)((uint8_t *)nodes->data + (else_index & halo::k_slot_mask) * nodes->size))->next_node == k_datum_index_none)) {
+            ((halo::hs::syntax_node_at(else_index))->next_node == k_datum_index_none)) {
             ok = halo::hs::hs_parse(node->data.first_child, _hs_type_boolean);
             if (ok == 0) {
                 return 0;
@@ -510,7 +510,7 @@ char Parser::parse_if(int16_t function_index, datum_index node_index) const
             if (ok == 0) {
                 return 0;
             }
-            else_node = (hs_syntax_node *)((uint8_t *)nodes->data + (else_index & halo::k_slot_mask) * nodes->size);
+            else_node = halo::hs::syntax_node_at(else_index);
             resolved_type = else_node->type;
             node->type = resolved_type;
             return halo::hs::hs_parse(then_index, resolved_type);
@@ -649,8 +649,8 @@ char Parser::parse_nonprimitive(datum_index node_index) const
     char *identifier_text;
 
     nodes = halo::hs::globals().syntax_data;
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
-    identifier_node = (hs_syntax_node *)((uint8_t *)nodes->data + (node->data.first_child & halo::k_slot_mask) * nodes->size);
+    node = halo::hs::syntax_node_at(node_index);
+    identifier_node = halo::hs::syntax_node_at(node->data.first_child);
 
     if ((identifier_node->flags & _hs_syntax_node_primitive_bit) == 0) {
         message = (char *)"\"script\" or \"global\"";
@@ -980,23 +980,23 @@ char Parser::parse_set(int16_t function_index, datum_index node_index) const
 
     (void)function_index;
     nodes = halo::hs::globals().syntax_data;
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
+    node = halo::hs::syntax_node_at(node_index);
     variable_index = node->data.first_child;
     if (variable_index == k_datum_index_none) {
         halo::hs::globals().compile_error = (char *)"i expected a variable to set and a value.";
         halo::hs::globals().compile_error_offset = node->source_offset;
         return 0;
     }
-    variable_node = (hs_syntax_node *)((uint8_t *)nodes->data + (variable_index & halo::k_slot_mask) * nodes->size);
+    variable_node = halo::hs::syntax_node_at(variable_index);
     value_index = variable_node->next_node;
     if (value_index == k_datum_index_none) {
         halo::hs::globals().compile_error = (char *)"i expected an assignment value.";
         halo::hs::globals().compile_error_offset = node->source_offset;
         return 0;
     }
-    value_node = (hs_syntax_node *)((uint8_t *)nodes->data + (value_index & halo::k_slot_mask) * nodes->size);
+    value_node = halo::hs::syntax_node_at(value_index);
     if (value_node->next_node != k_datum_index_none) {
-        extra_node = (hs_syntax_node *)((uint8_t *)nodes->data + (value_node->next_node & halo::k_slot_mask) * nodes->size);
+        extra_node = halo::hs::syntax_node_at(value_node->next_node);
         halo::hs::globals().compile_error = (char *)"i didn't expect this argument.";
         halo::hs::globals().compile_error_offset = extra_node->source_offset;
         return 0;
@@ -1428,8 +1428,8 @@ void Parser::resolve_identifier_as_function_or_script(datum_index node_index) co
     int16_t script_index;
 
     nodes = halo::hs::globals().syntax_data;
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
-    identifier_node = (hs_syntax_node *)((uint8_t *)nodes->data + (node->data.first_child & halo::k_slot_mask) * nodes->size);
+    node = halo::hs::syntax_node_at(node_index);
+    identifier_node = halo::hs::syntax_node_at(node->data.first_child);
     if (identifier_node->type != _hs_type_function_name) {
         function_index = halo::hs::hs_find_function_by_name(halo::hs::globals().compiled_source + identifier_node->source_offset);
         node->index_union = function_index;

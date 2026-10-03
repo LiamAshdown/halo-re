@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs2_commands.hpp"
 
 #include "objects.h"
@@ -42,7 +43,7 @@ void PlayerCommands::evaluate_player_effect_start(int16_t function_index, uint32
         definition->parameters, first);
 
     if (arguments != 0) {
-    float scaled = *(float *)&arguments[1] * 30.0f;
+    float scaled = halo::hs::argument_real(arguments[1]) * 30.0f;
     int16_t ticks = (int16_t)lrint((double)scaled);
 
     *(int32_t *)&halo::effects::globals().player_effect_state->scripted_shake_intensity = arguments[0];
@@ -66,7 +67,7 @@ void PlayerCommands::evaluate_player_effect_stop(int16_t function_index, uint32_
         definition->parameters, first);
 
     if (arguments != 0) {
-    float scaled = *(float *)&arguments[0] * 30.0f;
+    float scaled = halo::hs::argument_real(arguments[0]) * 30.0f;
     int16_t ticks = (int16_t)lrint((double)scaled);
 
     halo::effects::globals().player_effect_state->scripted_shake_ticks = ticks;

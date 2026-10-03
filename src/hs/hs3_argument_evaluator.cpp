@@ -27,16 +27,16 @@ int32_t *ArgumentEvaluator::typed_arguments(uint32_t thread_index, int16_t param
 
     thread = halo::hs::thread_at(thread_index);
     frame = thread->stack;
-    results = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
+    results = halo::hs::frame_scratch<int32_t>(frame);
     done = results;
     frame->size = frame->size + parameter_count * 4;
 
     frame = thread->stack;
-    index = (int16_t *)((uint8_t *)frame + 0x0e + frame->size);
+    index = halo::hs::frame_scratch<int16_t>(frame);
     frame->size = frame->size + 2;
 
     frame = thread->stack;
-    next_node_slot = (datum_index *)((uint8_t *)frame + 0x0e + frame->size);
+    next_node_slot = halo::hs::frame_scratch<datum_index>(frame);
     frame->size = frame->size + 4;
 
     if (first != 0) {
@@ -76,19 +76,19 @@ char ArgumentEvaluator::variadic_arguments(uint32_t thread_index, int32_t value,
 
     thread = halo::hs::thread_at(thread_index);
     frame = thread->stack;
-    evaluated_count = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
+    evaluated_count = halo::hs::frame_scratch<int32_t>(frame);
     frame->size = frame->size + 4;
 
     frame = thread->stack;
-    values = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
+    values = halo::hs::frame_scratch<int32_t>(frame);
     frame->size = frame->size + 0x80;
 
     frame = thread->stack;
-    argument_count = (int16_t *)((uint8_t *)frame + 0x0e + frame->size);
+    argument_count = halo::hs::frame_scratch<int16_t>(frame);
     frame->size = frame->size + 2;
 
     frame = thread->stack;
-    next_node_slot = (datum_index *)((uint8_t *)frame + 0x0e + frame->size);
+    next_node_slot = halo::hs::frame_scratch<datum_index>(frame);
     frame->size = frame->size + 4;
 
     if ((char)value != 0) {

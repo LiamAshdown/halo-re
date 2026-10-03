@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs1_ai_commands.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
@@ -209,7 +210,7 @@ void AiBehaviourCommands::allegiance(int16_t function_index, uint32_t thread_ind
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::ai::ai_category_matches_wildcard(*(int16_t *)&arguments[0], *(int16_t *)&arguments[1]);
+    halo::ai::ai_category_matches_wildcard(halo::hs::argument_short(arguments[0]), halo::hs::argument_short(arguments[1]));
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -226,8 +227,8 @@ void AiBehaviourCommands::allegiance_broken(int16_t function_index, uint32_t thr
         definition->parameters, first);
 
     if (arguments != 0) {
-        int16_t team_a = *(int16_t *)&arguments[0];
-        int16_t team_b = *(int16_t *)&arguments[1];
+        int16_t team_a = halo::hs::argument_short(arguments[0]);
+        int16_t team_b = halo::hs::argument_short(arguments[1]);
         uint8_t broken = 0;
 
         if (team_a != -1 && team_b != -1 && halo::game::team_pair_flag_test(team_a, team_b) &&
@@ -250,8 +251,8 @@ void AiBehaviourCommands::allegiance_remove(int16_t function_index, uint32_t thr
         definition->parameters, first);
 
     if (arguments != 0) {
-    int16_t first_team = *(int16_t *)&arguments[0];
-    int16_t second_team = *(int16_t *)&arguments[1];
+    int16_t first_team = halo::hs::argument_short(arguments[0]);
+    int16_t second_team = halo::hs::argument_short(arguments[1]);
 
     if (first_team != -1 && second_team != -1) {
         halo::game::team_pair_override_remove(second_team, first_team);
@@ -272,7 +273,7 @@ void AiBehaviourCommands::automatic_migration_target(int16_t function_index, uin
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::ai::ai_reference_squad_set_automatic_migration((uint32_t)arguments[0], *(uint8_t *)&arguments[1]);
+        halo::ai::ai_reference_squad_set_automatic_migration((uint32_t)arguments[0], halo::hs::argument_byte(arguments[1]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -289,7 +290,7 @@ void AiBehaviourCommands::braindead(int16_t function_index, uint32_t thread_inde
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::ai::ai_reference_reset_or_wake_awareness((uint32_t)arguments[0], *(char *)&arguments[1]);
+    halo::ai::ai_reference_reset_or_wake_awareness((uint32_t)arguments[0], halo::hs::argument_char(arguments[1]));
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -306,7 +307,7 @@ void AiBehaviourCommands::braindead_by_unit(int16_t function_index, uint32_t thr
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::ai::ai_object_list_reset_or_wake_awareness((datum_index)arguments[0], *(char *)&arguments[1]);
+        halo::ai::ai_object_list_reset_or_wake_awareness((datum_index)arguments[0], halo::hs::argument_char(arguments[1]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -323,7 +324,7 @@ void AiBehaviourCommands::dialogue_triggers(int16_t function_index, uint32_t thr
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::ai::globals().state->dialogue_triggers_enabled = *(uint8_t *)&arguments[0];
+    halo::ai::globals().state->dialogue_triggers_enabled = halo::hs::argument_byte(arguments[0]);
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -343,7 +344,7 @@ void AiBehaviourCommands::force_active(int16_t function_index, uint32_t thread_i
     uint32_t reference = (uint32_t)arguments[0];
 
     if (halo::ai::globals().state->actors_valid && reference != halo::k_dword_none && (int32_t)(reference & halo::k_slot_mask) < *(int32_t *)&global_scenario->encounters.count) {
-        ((uint8_t *)halo::ai::globals().encounter_data->data)[(reference & halo::k_slot_mask) * 0x6c + 0xc] = *(uint8_t *)&arguments[1];
+        ((uint8_t *)halo::ai::globals().encounter_data->data)[(reference & halo::k_slot_mask) * 0x6c + 0xc] = halo::hs::argument_byte(arguments[1]);
     }
     halo::hs::hs_thread_return(0, thread_index);
     }
@@ -556,7 +557,7 @@ void AiTargetingCommands::allow_dormant(int16_t function_index, uint32_t thread_
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::ai::ai_reference_set_squads_dormancy_allowed((uint32_t)arguments[0], *(char *)&arguments[1]);
+        halo::ai::ai_reference_set_squads_dormancy_allowed((uint32_t)arguments[0], halo::hs::argument_char(arguments[1]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -590,7 +591,7 @@ void AiTargetingCommands::berserk(int16_t function_index, uint32_t thread_index,
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::ai::ai_reference_set_combat_alert_flag((uint32_t)arguments[0], *(uint8_t *)&arguments[1]);
+    halo::ai::ai_reference_set_combat_alert_flag((uint32_t)arguments[0], halo::hs::argument_byte(arguments[1]));
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -624,7 +625,7 @@ void AiTargetingCommands::disregard(int16_t function_index, uint32_t thread_inde
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::ai::ai_object_list_set_unit_flag_400((datum_index)arguments[0], *(char *)&arguments[1]);
+        halo::ai::ai_object_list_set_unit_flag_400((datum_index)arguments[0], halo::hs::argument_char(arguments[1]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -754,7 +755,7 @@ void AiTargetingCommands::grenades(int16_t function_index, uint32_t thread_index
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::ai::globals().state->grenades_enabled = *(uint8_t *)&arguments[0];
+    halo::ai::globals().state->grenades_enabled = halo::hs::argument_byte(arguments[0]);
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -857,7 +858,7 @@ void AiTargetingCommands::maneuver_enable(int16_t function_index, uint32_t threa
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::ai::ai_platoon_range_set_maneuver_enabled((uint32_t)arguments[0], *(char *)&arguments[1]);
+        halo::ai::ai_platoon_range_set_maneuver_enabled((uint32_t)arguments[0], halo::hs::argument_char(arguments[1]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -877,7 +878,7 @@ void AiTargetingCommands::playfight(int16_t function_index, uint32_t thread_inde
     uint32_t reference = (uint32_t)arguments[0];
 
     if (reference != halo::k_dword_none) {
-        ((uint8_t *)halo::ai::globals().encounter_data->data)[(reference & halo::k_slot_mask) * 0x6c + 0x60] = *(uint8_t *)&arguments[1];
+        ((uint8_t *)halo::ai::globals().encounter_data->data)[(reference & halo::k_slot_mask) * 0x6c + 0x60] = halo::hs::argument_byte(arguments[1]);
     }
     halo::hs::hs_thread_return(0, thread_index);
     }
@@ -895,7 +896,7 @@ void AiTargetingCommands::prefer_target(int16_t function_index, uint32_t thread_
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::ai::ai_object_list_set_unit_flag_800((datum_index)arguments[0], *(char *)&arguments[1]);
+        halo::ai::ai_object_list_set_unit_flag_800((datum_index)arguments[0], halo::hs::argument_char(arguments[1]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -930,7 +931,7 @@ void AiTargetingCommands::set_blind(int16_t function_index, uint32_t thread_inde
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none && halo::ai::globals().state->actors_valid != 0) {
-            ((uint8_t *)halo::ai::globals().encounter_data->data)[(arguments[0] & halo::k_slot_mask) * 0x6c + 0x40] = *(uint8_t *)&arguments[1];
+            ((uint8_t *)halo::ai::globals().encounter_data->data)[(arguments[0] & halo::k_slot_mask) * 0x6c + 0x40] = halo::hs::argument_byte(arguments[1]);
         }
         halo::hs::hs_thread_return(0, thread_index);
     }
@@ -949,7 +950,7 @@ void AiTargetingCommands::set_deaf(int16_t function_index, uint32_t thread_index
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none && halo::ai::globals().state->actors_valid != 0) {
-            ((uint8_t *)halo::ai::globals().encounter_data->data)[(arguments[0] & halo::k_slot_mask) * 0x6c + 0x41] = *(uint8_t *)&arguments[1];
+            ((uint8_t *)halo::ai::globals().encounter_data->data)[(arguments[0] & halo::k_slot_mask) * 0x6c + 0x41] = halo::hs::argument_byte(arguments[1]);
         }
         halo::hs::hs_thread_return(0, thread_index);
     }
@@ -1286,7 +1287,7 @@ void AiPlacementCommands::migrate_and_speak(int16_t function_index, uint32_t thr
         definition->parameters, first);
 
     if (arguments != 0) {
-        char *verb = (char *)arguments[2];
+        char *verb = halo::hs::argument_string(arguments[2]);
         char advance = 0;
 
         if (_stricmp(verb, "advance") == 0) {
@@ -1446,7 +1447,7 @@ void AiCommandListCommands::command_list(int16_t function_index, uint32_t thread
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::ai::ai_reference_flee_if_ready((uint32_t)arguments[0], *(uint16_t *)&arguments[1]);
+    halo::ai::ai_reference_flee_if_ready((uint32_t)arguments[0], halo::hs::argument_ushort(arguments[1]));
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -1507,7 +1508,7 @@ void AiCommandListCommands::command_list_by_unit(int16_t function_index, uint32_
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::ai::ai_unit_flee_if_ready((datum_index)arguments[0], *(uint16_t *)&arguments[1]);
+    halo::ai::ai_unit_flee_if_ready((datum_index)arguments[0], halo::hs::argument_ushort(arguments[1]));
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -1559,7 +1560,7 @@ void AiConversationCommands::conversation(int16_t function_index, uint32_t threa
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::hs::hs_thread_return((int32_t)halo::ai::ai_conversation_activate(*(int16_t *)&arguments[0], 1), thread_index);
+    halo::hs::hs_thread_return((int32_t)halo::ai::ai_conversation_activate(halo::hs::argument_short(arguments[0]), 1), thread_index);
     }
 }
 
@@ -1575,7 +1576,7 @@ void AiConversationCommands::conversation_advance(int16_t function_index, uint32
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::ai::ai_conversation_mark_all(*(int16_t *)&arguments[0]);
+    halo::ai::ai_conversation_mark_all(halo::hs::argument_short(arguments[0]));
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -1592,7 +1593,7 @@ void AiConversationCommands::conversation_line(int16_t function_index, uint32_t 
         definition->parameters, first);
 
     if (arguments != 0) {
-        int16_t line = halo::ai::ai_conversation_get_line_index(*(int16_t *)&arguments[0]);
+        int16_t line = halo::ai::ai_conversation_get_line_index(halo::hs::argument_short(arguments[0]));
         halo::hs::hs_thread_return((int32_t)(uint16_t)line, thread_index);
     }
 }
@@ -1609,7 +1610,7 @@ void AiConversationCommands::conversation_status(int16_t function_index, uint32_
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::hs::hs_thread_return((int32_t)(uint16_t)halo::ai::ai_conversation_get_status(*(int16_t *)&arguments[0]), thread_index);
+    halo::hs::hs_thread_return((int32_t)(uint16_t)halo::ai::ai_conversation_get_status(halo::hs::argument_short(arguments[0])), thread_index);
     }
 }
 
@@ -1625,7 +1626,7 @@ void AiConversationCommands::conversation_stop(int16_t function_index, uint32_t 
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::ai::ai_conversation_stop_all(*(int16_t *)&arguments[0]);
+    halo::ai::ai_conversation_stop_all(halo::hs::argument_short(arguments[0]));
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -1678,7 +1679,7 @@ void AiVehicleCommands::go_to_vehicle(int16_t function_index, uint32_t thread_in
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::ai::ai_object_process_nearby_actors((uint32_t)arguments[0], (datum_index)arguments[1], (char *)arguments[2], 0);
+        halo::ai::ai_object_process_nearby_actors((uint32_t)arguments[0], (datum_index)arguments[1], halo::hs::argument_string(arguments[2]), 0);
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -1695,7 +1696,7 @@ void AiVehicleCommands::go_to_vehicle_override(int16_t function_index, uint32_t 
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::ai::ai_object_process_nearby_actors((uint32_t)arguments[0], (datum_index)arguments[1], (char *)arguments[2], 1);
+        halo::ai::ai_object_process_nearby_actors((uint32_t)arguments[0], (datum_index)arguments[1], halo::hs::argument_string(arguments[2]), 1);
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -1750,7 +1751,7 @@ void AiVehicleCommands::vehicle_enterable_actor_type(int16_t function_index, uin
             uint8_t *record = (uint8_t *)halo::ai::ai_object_attention_find_or_create((datum_index)arguments[0]);
 
             if (record != 0) {
-                *(uint16_t *)(record + 0xa) |= (uint16_t)(1u << (*(uint8_t *)&arguments[1] & 0x1f));
+                *(uint16_t *)(record + 0xa) |= (uint16_t)(1u << (halo::hs::argument_byte(arguments[1]) & 0x1f));
             }
         }
         halo::hs::hs_thread_return(0, thread_index);
@@ -1814,7 +1815,7 @@ void AiVehicleCommands::vehicle_enterable_distance(int16_t function_index, uint3
             uint8_t *record = (uint8_t *)halo::ai::ai_object_attention_find_or_create((datum_index)arguments[0]);
 
             if (record != 0) {
-                *(float *)(record + 0x4) = *(float *)&arguments[1];
+                *(float *)(record + 0x4) = halo::hs::argument_real(arguments[1]);
             }
         }
         halo::hs::hs_thread_return(0, thread_index);

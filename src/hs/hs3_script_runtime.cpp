@@ -357,7 +357,7 @@ void ScriptRuntime::syntax_node_garbage_collect() const
             if (current == k_datum_index_none) {
                 return;
             }
-            node = (hs_syntax_node *)((uint8_t *)nodes->data + (current & halo::k_slot_mask) * nodes->size);
+            node = halo::hs::syntax_node_at(current);
             if ((node->flags & _hs_syntax_node_garbage_collectable_bit) == 0) {
                 halo::memory::datum_delete(nodes, current);
             }

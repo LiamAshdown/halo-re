@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs1_system_commands.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
@@ -48,7 +49,7 @@ void SystemCommands::checkpoint_load(int16_t function_index, uint32_t thread_ind
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::saved_games::saved_game_load_checkpoint((char *)arguments[0]);
+        halo::saved_games::saved_game_load_checkpoint(halo::hs::argument_string(arguments[0]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -94,7 +95,7 @@ void SystemCommands::connect(int16_t function_index, uint32_t thread_index, char
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::main::network_game_client_connect_to_address_async((char *)arguments[0], (char *)arguments[1]);
+        halo::main::network_game_client_connect_to_address_async(halo::hs::argument_string(arguments[0]), halo::hs::argument_string(arguments[1]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -183,7 +184,7 @@ void SystemCommands::debug_sounds_enable(int16_t function_index, uint32_t thread
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::sound::sound_class_set_muted_by_name(*(uint8_t *)&arguments[1], (char *)arguments[0]);
+    halo::sound::sound_class_set_muted_by_name(halo::hs::argument_byte(arguments[1]), halo::hs::argument_string(arguments[0]));
     halo::hs::hs_thread_return(0, thread_index);
     }
 }

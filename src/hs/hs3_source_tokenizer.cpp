@@ -169,7 +169,7 @@ datum_index SourceTokenizer::tokenize(char **cursor) const
         halo::hs::globals().compile_error = (char *)"i couldn't allocate a syntax node.";
         return k_datum_index_none;
     }
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (index & halo::k_slot_mask) * nodes->size);
+    node = halo::hs::syntax_node_at(index);
     node->index_union = (int16_t)halo::k_word_none;
     node->next_node = k_datum_index_none;
     node->flags = 0;
@@ -199,7 +199,7 @@ void SourceTokenizer::tokenize_nonprimitive(datum_index node_index, char **curso
     datum_index child_index;
 
     nodes = halo::hs::globals().syntax_data;
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
+    node = halo::hs::syntax_node_at(node_index);
     node->source_offset = (int32_t)(*cursor - halo::hs::globals().compiled_source);
     *cursor = *cursor + 1;
     first_child_slot = &node->data;

@@ -163,15 +163,15 @@ void ScriptFlowCommands::argument_list(uint32_t unused_param_1, uint32_t thread_
 
     thread_record = halo::hs::thread_at(thread_index);
     frame = thread_record->stack;
-    next_node_slot = (datum_index *)((uint8_t *)frame + 0x0e + frame->size);
+    next_node_slot = halo::hs::frame_scratch<datum_index>(frame);
     frame->size = frame->size + 4;
 
     frame = thread_record->stack;
-    count = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
+    count = halo::hs::frame_scratch<int32_t>(frame);
     frame->size = frame->size + 4;
 
     frame = thread_record->stack;
-    values = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
+    values = halo::hs::frame_scratch<int32_t>(frame);
     frame->size = frame->size + 0x80;
 
     if ((char)value != 0) {
@@ -214,19 +214,19 @@ void ScriptFlowCommands::arithmetic_reduce(int16_t opcode, uint32_t thread_index
 
     thread_record = halo::hs::thread_at(thread_index);
     frame = thread_record->stack;
-    term_count = (int16_t *)((uint8_t *)frame + 0x0e + frame->size);
+    term_count = halo::hs::frame_scratch<int16_t>(frame);
     frame->size = frame->size + 2;
 
     frame = thread_record->stack;
-    next_node_slot = (datum_index *)((uint8_t *)frame + 0x0e + frame->size);
+    next_node_slot = halo::hs::frame_scratch<datum_index>(frame);
     frame->size = frame->size + 4;
 
     frame = thread_record->stack;
-    child_value = (float *)((uint8_t *)frame + 0x0e + frame->size);
+    child_value = halo::hs::frame_scratch<float>(frame);
     frame->size = frame->size + 4;
 
     frame = thread_record->stack;
-    accumulator = (float *)((uint8_t *)frame + 0x0e + frame->size);
+    accumulator = halo::hs::frame_scratch<float>(frame);
     frame->size = frame->size + 4;
 
     if (first != 0) {
@@ -274,10 +274,10 @@ void ScriptFlowCommands::begin(int16_t function_index, uint32_t thread_index, ch
     int32_t *result;
 
     frame = thread->stack;
-    next_expression = (datum_index *)((uint8_t *)frame + 0x0e + frame->size);
+    next_expression = halo::hs::frame_scratch<datum_index>(frame);
     frame->size = frame->size + 4;
     frame = thread->stack;
-    result = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
+    result = halo::hs::frame_scratch<int32_t>(frame);
     frame->size = frame->size + 4;
 
     if (first != 0) {
@@ -304,7 +304,7 @@ void ScriptFlowCommands::bind(int16_t function_index, uint32_t thread_index, cha
         definition->parameters, first);
 
     if (arguments != 0) {
-        halo::input::hs_bind_control((const char *)arguments[0], (const char *)arguments[1], (const char *)arguments[2]);
+        halo::input::hs_bind_control(halo::hs::argument_string(arguments[0]), halo::hs::argument_string(arguments[1]), halo::hs::argument_string(arguments[2]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -329,15 +329,15 @@ void ScriptFlowCommands::boolean_and_or(int16_t opcode, uint32_t thread_index, c
 
     thread_record = halo::hs::thread_at(thread_index);
     frame = thread_record->stack;
-    next_node_slot = (datum_index *)((uint8_t *)frame + 0x0e + frame->size);
+    next_node_slot = halo::hs::frame_scratch<datum_index>(frame);
     frame->size = frame->size + 4;
 
     frame = thread_record->stack;
-    child_value = (char *)((uint8_t *)frame + 0x0e + frame->size);
+    child_value = halo::hs::frame_scratch<char>(frame);
     frame->size = frame->size + 4;
 
     frame = thread_record->stack;
-    result = (char *)((uint8_t *)frame + 0x0e + frame->size);
+    result = halo::hs::frame_scratch<char>(frame);
     is_and = (opcode == 5);
     frame->size = frame->size + 1;
 
@@ -399,14 +399,14 @@ void ScriptFlowCommands::comparison(int16_t function_index, uint32_t thread_inde
         return;
     }
     if (hs_comparison_types[0] == 6) {
-        a = *(float *)&arguments[0];
-        b = *(float *)&arguments[1];
+        a = halo::hs::argument_real(arguments[0]);
+        b = halo::hs::argument_real(arguments[1]);
     } else if (hs_comparison_types[0] == 8) {
         a = (double)arguments[0];
         b = (float)arguments[1];
     } else {
-        a = (double)*(int16_t *)&arguments[0];
-        b = (float)*(int16_t *)&arguments[1];
+        a = (double)halo::hs::argument_short(arguments[0]);
+        b = (float)halo::hs::argument_short(arguments[1]);
     }
     switch (function_index - 15) {
     case 0: result = (uint8_t)(a > (double)b); break;

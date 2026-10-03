@@ -52,7 +52,7 @@ void ThreadMachine::evaluate_step(uint32_t thread_index) const
 
         frame = thread->stack;
         frame->size = 0;
-        scratch = (uint8_t *)frame + 0x0e + frame->size;
+        scratch = frame->scratch + frame->size;
         frame->size = frame->size + 4;
         halo::hs::hs_thread_push(script->root_expression_index, thread_index, scratch);
     }
@@ -81,7 +81,7 @@ void ThreadMachine::evaluate_step(uint32_t thread_index) const
 
             called_script = &((ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer)[node->index_union];
             frame = thread->stack;
-            scratch = (uint8_t *)frame + 0x0e + frame->size;
+            scratch = frame->scratch + frame->size;
             frame->size = frame->size + 4;
             if (first != 0) {
                 halo::hs::hs_thread_push(called_script->root_expression_index, thread_index, scratch);
@@ -224,7 +224,7 @@ void ThreadMachine::push(datum_index node, uint32_t thread_index, void *result_a
     if ((syntax_node->flags & _hs_syntax_node_primitive_bit) == 0) {
         thread->stack->result_address = result_address;
         frame = thread->stack;
-        new_frame = (hs_stack_frame *)((uint8_t *)frame + 0x10 + frame->size);
+        new_frame = halo::hs::frame_next(frame);
         new_frame->previous = frame;
         thread->stack = new_frame;
         new_frame->size = 0;

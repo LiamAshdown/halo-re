@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/ai/records.hpp"
 #include "halo/hs/hs3_commands.hpp"
 #include "halo/scenario/api.hpp"
@@ -23,7 +24,7 @@ void VolumeCommands::evaluate_volume_teleport_players_not_inside(int16_t functio
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::hs::hs_reposition_players_outside_trigger_volume(*(uint16_t *)&arguments[0], *(uint16_t *)&arguments[1]);
+    halo::hs::hs_reposition_players_outside_trigger_volume(halo::hs::argument_ushort(arguments[0]), halo::hs::argument_ushort(arguments[1]));
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -46,7 +47,7 @@ void VolumeCommands::evaluate_volume_test_object(int16_t function_index, uint32_
         if ((uint32_t)arguments[1] != halo::k_dword_none) {
             uint8_t *object = (uint8_t *)halo::ai::object_at(arguments[1]);
 
-            inside = halo::scenario::scenario_query::trigger_volume_contains_point(*(int16_t *)&arguments[0], (real_point3d *)(object + 0xa0));
+            inside = halo::scenario::scenario_query::trigger_volume_contains_point(halo::hs::argument_short(arguments[0]), (real_point3d *)(object + 0xa0));
         }
         halo::hs::hs_thread_return((int32_t)inside, thread_index);
     }
@@ -65,7 +66,7 @@ void VolumeCommands::evaluate_volume_test_objects(int16_t function_index, uint32
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::hs::hs_thread_return((int32_t)(uint8_t)halo::hs::hs_object_list_test_trigger_volume(*(int16_t *)&arguments[0], (datum_index)arguments[1], 0),
+    halo::hs::hs_thread_return((int32_t)(uint8_t)halo::hs::hs_object_list_test_trigger_volume(halo::hs::argument_short(arguments[0]), (datum_index)arguments[1], 0),
         thread_index);
     }
 }
@@ -83,7 +84,7 @@ void VolumeCommands::evaluate_volume_test_objects_all(int16_t function_index, ui
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::hs::hs_thread_return((int32_t)(uint8_t)halo::hs::hs_object_list_test_trigger_volume(*(int16_t *)&arguments[0], (datum_index)arguments[1], 1),
+    halo::hs::hs_thread_return((int32_t)(uint8_t)halo::hs::hs_object_list_test_trigger_volume(halo::hs::argument_short(arguments[0]), (datum_index)arguments[1], 1),
         thread_index);
     }
 }

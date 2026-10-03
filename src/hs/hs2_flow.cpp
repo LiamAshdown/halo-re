@@ -125,13 +125,13 @@ void FlowCommands::evaluate_if(int16_t function_index, uint32_t thread_index, ch
     datum_index condition_node;
 
     frame = thread->stack;
-    condition = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
+    condition = halo::hs::frame_scratch<int32_t>(frame);
     frame->size = frame->size + 4;
     frame = thread->stack;
-    branch = (datum_index *)((uint8_t *)frame + 0x0e + frame->size);
+    branch = halo::hs::frame_scratch<datum_index>(frame);
     frame->size = frame->size + 4;
     frame = thread->stack;
-    result = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
+    result = halo::hs::frame_scratch<int32_t>(frame);
     frame->size = frame->size + 4;
 
     condition_node = syntax_get(syntax_get(thread->stack->syntax_node)->data.first_child)->next_node;
@@ -187,7 +187,7 @@ void FlowCommands::evaluate_not(int16_t function_index, uint32_t thread_index, c
         definition->parameters, first);
 
     if (arguments != 0) {
-    halo::hs::hs_thread_return((int32_t)(*(uint8_t *)&arguments[0] == 0), thread_index);
+    halo::hs::hs_thread_return((int32_t)(halo::hs::argument_byte(arguments[0]) == 0), thread_index);
     }
 }
 
@@ -228,13 +228,13 @@ void FlowCommands::evaluate_random(hs_thread *thread, uint32_t thread_index, cha
     thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     frame = thread_record->stack;
 
-    state = (hs_random_state *)((uint8_t *)frame + 0x0e + frame->size);
+    state = halo::hs::frame_scratch<hs_random_state>(frame);
     frame->size = frame->size + 2;
     frame = thread_record->stack;
-    chosen_words = (uint32_t *)((uint8_t *)frame + 0x0e + frame->size);
+    chosen_words = halo::hs::frame_scratch<uint32_t>(frame);
     frame->size = frame->size + 4;
     frame = thread_record->stack;
-    child_value = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
+    child_value = halo::hs::frame_scratch<int32_t>(frame);
     frame->size = frame->size + 4;
 
     if (first != 0) {
@@ -356,23 +356,23 @@ void FlowCommands::evaluate_sleep(uint32_t unused_param_1, uint32_t thread_index
 
     thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     frame = thread_record->stack;
-    condition = (char *)((uint8_t *)frame + 0x0e + frame->size);
+    condition = halo::hs::frame_scratch<char>(frame);
     frame->size = frame->size + 4;
 
     frame = thread_record->stack;
-    ticks = (int16_t *)((uint8_t *)frame + 0x0e + frame->size);
+    ticks = halo::hs::frame_scratch<int16_t>(frame);
     frame->size = frame->size + 4;
 
     frame = thread_record->stack;
-    timeout_ticks = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
+    timeout_ticks = halo::hs::frame_scratch<int32_t>(frame);
     frame->size = frame->size + 4;
 
     frame = thread_record->stack;
-    start_tick = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
+    start_tick = halo::hs::frame_scratch<int32_t>(frame);
     frame->size = frame->size + 4;
 
     frame = thread_record->stack;
-    stage = (int16_t *)((uint8_t *)frame + 0x0e + frame->size);
+    stage = halo::hs::frame_scratch<int16_t>(frame);
     frame->size = frame->size + 2;
 
     frame = thread_record->stack;
@@ -450,13 +450,13 @@ void FlowCommands::evaluate_sleep_ticks(int16_t function_index, uint32_t thread_
     datum_index target = thread_index;
 
     frame = thread->stack;
-    ticks = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
+    ticks = halo::hs::frame_scratch<int32_t>(frame);
     frame->size = frame->size + 4;
     frame = thread->stack;
-    script = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
+    script = halo::hs::frame_scratch<int32_t>(frame);
     frame->size = frame->size + 4;
     frame = thread->stack;
-    state = (int16_t *)((uint8_t *)frame + 0x0e + frame->size);
+    state = halo::hs::frame_scratch<int16_t>(frame);
     frame->size = frame->size + 2;
 
     ticks_node = syntax_get(syntax_get(thread->stack->syntax_node)->data.first_child)->next_node;
