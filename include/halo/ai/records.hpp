@@ -88,6 +88,13 @@ inline ai_communication_target_result &speech_target(unit_speech &speech)
     return *reinterpret_cast<ai_communication_target_result *>(reinterpret_cast<uint8_t *>(&speech) + offsetof(unit_speech, unknown_10));
 }
 
+/** Returns the elements a tag reflexive points at, typed as `T` (the reflexive pointer is a 32 bit address in the loaded tag). */
+template <typename T>
+inline T *reflexive_data(const TagReflexive &reflexive)
+{
+    return reinterpret_cast<T *>(static_cast<uintptr_t>(reflexive.pointer));
+}
+
 /** Returns the datum handle of the tag a tag-reference field names. */
 inline datum_index tag_handle(const TagDependency &reference)
 {

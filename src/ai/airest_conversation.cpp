@@ -246,7 +246,7 @@ uint8_t ConversationView::current_line_is_ready()
 {
     datum_index instance_handle = handle;
     ai_conversation *inst = halo::ai::conversation_at(instance_handle);
-    ActorVariant *definition = (ActorVariant *)(*(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x46c) + inst->definition_index * 0x74);
+    ActorVariant *definition = (ActorVariant *)(halo::ai::reflexive_data<uint8_t>(halo::scenario::globals().scenario->ai_conversations) + inst->definition_index * 0x74);
 
     if (inst->line_finished) {
         return inst->line_finished;
@@ -1216,7 +1216,7 @@ void Conversations::update()
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     for (inst = static_cast<ai_conversation *>(halo::memory::data_iterator_next(&iterator)); inst != 0; inst = static_cast<ai_conversation *>(halo::memory::data_iterator_next(&iterator))) {
         datum_index handle = iterator.index;
-        uint8_t *definition = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x46c) + inst->definition_index * 0x74;
+        uint8_t *definition = halo::ai::reflexive_data<uint8_t>(halo::scenario::globals().scenario->ai_conversations) + inst->definition_index * 0x74;
         int32_t line_count = *(int32_t *)(definition + 0x5c);
 
         bool skip_lines = false;

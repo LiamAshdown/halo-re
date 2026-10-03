@@ -987,7 +987,7 @@ int32_t ActorView::select_move_position(int16_t select_mode, int32_t position_in
 {
     using namespace actor_select_move_position_local;
     struct actor *a = halo::ai::actor_at(actor_index);
-    uint8_t *squad;
+    ScenarioSquad *squad;
     uint8_t *positions;
     int32_t count;
     uint32_t mask = 0;
@@ -1002,16 +1002,15 @@ int32_t ActorView::select_move_position(int16_t select_mode, int32_t position_in
     if (a->encounter_index == k_datum_index_none) {
         return -1;
     }
-    squad = *(uint8_t **)(*(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x430) +
-        (a->encounter_index & halo::k_slot_mask) * 0xb0 + 0x84) + a->squad_index * 0xe8;
+    squad = halo::ai::reflexive_data<ScenarioSquad>(halo::ai::reflexive_data<ScenarioEncounter>(halo::scenario::globals().scenario->encounters)[a->encounter_index & halo::k_slot_mask].squads) + a->squad_index;
     if (select_mode == 1 && current != -1) {
         return position_index;
     }
-    count = *(int32_t *)(squad + 0xc4);
+    count = static_cast<int32_t>(squad->move_positions.count);
     if (count <= 0) {
         return -1;
     }
-    positions = *(uint8_t **)(squad + 0xc8);
+    positions = halo::ai::reflexive_data<uint8_t>(squad->move_positions);
     for (i = 0; (int32_t)i < count; i++) {
         float *pos = (float *)(positions + i * 0x50);
         uint8_t eligible = (i != current);
@@ -1056,7 +1055,7 @@ int32_t ActorView::select_move_position(int16_t select_mode, int32_t position_in
         return -1;
     }
     if (select_mode == 5) {
-        return halo::ai::ai_weighted_random_index(0x10, positions, 0x50, (uint16_t)*(int32_t *)(squad + 0xc4), &mask);
+        return halo::ai::ai_weighted_random_index(0x10, positions, 0x50, (uint16_t)squad->move_positions.count, &mask);
     }
     index = current;
     if (index < 0 || (int32_t)index >= count) {
@@ -1071,7 +1070,7 @@ int32_t ActorView::select_move_position(int16_t select_mode, int32_t position_in
         } else if (select_mode == 3) {
             if (index == 0) {
                 forward = 1;
-            } else if ((int32_t)index == *(int32_t *)(squad + 0xc4) - 1) {
+            } else if ((int32_t)index == static_cast<int32_t>(squad->move_positions.count) - 1) {
                 forward = 0;
             } else if (direction_flag != 0) {
                 forward = *direction_flag;
@@ -1086,13 +1085,13 @@ int32_t ActorView::select_move_position(int16_t select_mode, int32_t position_in
         }
         if (forward) {
             index++;
-            if ((int32_t)index >= *(int32_t *)(squad + 0xc4)) {
+            if ((int32_t)index >= static_cast<int32_t>(squad->move_positions.count)) {
                 index = 0;
             }
         } else {
             index--;
             if (index < 0) {
-                index = (int16_t)(*(int32_t *)(squad + 0xc4) - 1);
+                index = (int16_t)(static_cast<int32_t>(squad->move_positions.count) - 1);
             }
         }
     } while ((&mask)[index >> 5] & (1u << (index & 0x1f)));

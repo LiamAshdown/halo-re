@@ -446,8 +446,8 @@ void Encounters::merge(uint32_t source_reference, uint32_t target_encounter_inde
         }
         squad = (ScenarioSquad *)(*(uint8_t **)&source_definition->squads.pointer + iterator.cursor * 0xe8);
         palette_index = static_cast<int16_t>(squad->actor_type);
-        if (palette_index >= 0 && (int32_t)palette_index < *(int32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x420)) {
-            uint8_t *entry = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x424) + palette_index * 0x10;
+        if (palette_index >= 0 && (int32_t)palette_index < static_cast<int32_t>(halo::scenario::globals().scenario->actor_palette.count)) {
+            uint8_t *entry = halo::ai::reflexive_data<uint8_t>(halo::scenario::globals().scenario->actor_palette) + palette_index * 0x10;
             datum_index variant_tag = *(datum_index *)(entry + 0xc);
 
             if (variant_tag != (datum_index)k_datum_index_none &&
@@ -1514,7 +1514,7 @@ void EncounterView::gather_occupied_clusters(uint32_t *out_clusters, uint8_t rec
     squad_mask = 0;
 
     fill = out_clusters;
-    for (dword_count = (uint32_t)(((*(int32_t *)((uint8_t *)halo::scenario::globals().structure_bsp + 0x134)) + 0x1f) >> 5);
+    for (dword_count = (uint32_t)((static_cast<int32_t>(halo::scenario::globals().structure_bsp->clusters.count) + 0x1f) >> 5);
          dword_count != 0; dword_count = dword_count - 1) {
         *fill = 0;
         fill = fill + 1;
@@ -3396,7 +3396,7 @@ void Encounters::update_activation()
                                                visible_clusters);
 
             overlaps = 0;
-            dword_count = (uint32_t)(((*(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp + 0x134)) + 0x1f) >> 5);
+            dword_count = (uint32_t)((static_cast<int16_t>(halo::scenario::globals().structure_bsp->clusters.count) + 0x1f) >> 5);
             i = (int16_t)dword_count - 1;
             if (0 <= i) {
                 uint32_t n = dword_count & halo::k_slot_mask;

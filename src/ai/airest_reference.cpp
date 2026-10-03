@@ -826,12 +826,12 @@ void ReferenceView::refill_grenades()
             ((unit_object *)unit)->base.body_vitality = (((unit_object *)unit)->base.maximum_body_vitality <= 0.0f) ? k_real_zero : k_real_one;
             ((unit_object *)unit)->base.shield_vitality = (((unit_object *)unit)->base.maximum_shield_vitality <= 0.0f) ? k_real_zero : k_real_one;
 
-            if (*(int16_t *)(variant_data + 0x180) != -1) {
+            if (variant_data->grenade_type != -1) {
                 halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
                 rolled = (int32_t)((uint32_t)(((int32_t)(int16_t)(variant_data->grenade_count[1] + 1) -
-                                     (int32_t)(int16_t)*(uint16_t *)(variant_data + 0x1d0)) *
+                                     (int32_t)(int16_t)variant_data->grenade_count[0]) *
                                     (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10) +
-                         (int32_t)*(uint16_t *)(variant_data + 0x1d0);
+                         (int32_t)(uint16_t)variant_data->grenade_count[0];
 
                 unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)
                     [a->unit_index & halo::k_slot_mask].data;
@@ -843,7 +843,7 @@ void ReferenceView::refill_grenades()
                 }
 
                 if (current < (int16_t)rolled) {
-                    grenade_type = *(int16_t *)(variant_data + 0x180);
+                    grenade_type = variant_data->grenade_type;
                     unit = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)
                         [a->unit_index & halo::k_slot_mask].data;
                     *(int8_t *)(unit + 0x31e + grenade_type) =
@@ -1170,7 +1170,7 @@ void ReferenceView::spawn_starting_location_object(datum_index unit_index, uint3
 
             if (actor_variant_tag != (datum_index)k_datum_index_none) {
                 ActorVariant *actor_variant_data = reinterpret_cast<ActorVariant *>(halo::cache::globals().tag_instances[actor_variant_tag & halo::k_slot_mask].data);
-                datum_index actor_definition_tag = *(datum_index *)(actor_variant_data + 0x10);
+                datum_index actor_definition_tag = *(datum_index *)&actor_variant_data->actor_definition.tag_id;
 
                 if (actor_definition_tag != (datum_index)k_datum_index_none) {
                     Actor *actor_tag_data = halo::ai::tag_data<Actor>(actor_definition_tag);

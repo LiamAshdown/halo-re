@@ -154,7 +154,7 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
     if (((struct object *)source)->parent_object != k_datum_index_none) {
         location = halo::ai::object_bytes(halo::objects::object_get_root_object_index(source_unit_index)) + 0x98;
     }
-    cluster_count = *(int32_t *)(halo::scenario::globals().structure_bsp + 0x134);
+    cluster_count = static_cast<int32_t>(halo::scenario::globals().structure_bsp->clusters.count);
     memset(cluster_bits, 0, sizeof(cluster_bits));
     source_cluster = *(int16_t *)(location + 0x4);
     if (source_cluster != -1) {
@@ -166,9 +166,9 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
             if (source_cluster != i) {
                 int32_t lo = source_cluster < i ? source_cluster : i;
                 int32_t hi = source_cluster < i ? i : source_cluster;
-                int32_t row = (uint16_t)(*(uint16_t *)(halo::scenario::globals().structure_bsp + 0x134) - 1) * lo - ((lo + 1) * lo) / 2;
+                int32_t row = (uint16_t)(static_cast<uint16_t>(halo::scenario::globals().structure_bsp->clusters.count) - 1) * lo - ((lo + 1) * lo) / 2;
 
-                pas = (*(uint8_t **)(halo::scenario::globals().structure_bsp + 0x220))[(int16_t)(row + hi - 1)];
+                pas = (reinterpret_cast<uint8_t *>(static_cast<uintptr_t>(halo::scenario::globals().structure_bsp->sound_pas_data.pointer)))[(int16_t)(row + hi - 1)];
             }
             if (!(pas & 0x80) && (float)(int32_t)(pas & 0x7f) * 2.015748f < 40.0f) {
                 cluster_bits[i >> 5] |= 1u << (i & 0x1f);

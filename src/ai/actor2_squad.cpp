@@ -297,7 +297,7 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
         } else if (entry->atom_type == 0x19) {
             int16_t name = (int16_t)entry->object_name;
 
-            if (name >= 0 && name < *(int32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x204)) {
+            if (name >= 0 && name < static_cast<int32_t>(halo::scenario::globals().scenario->object_names.count)) {
                 datum_index object_index = halo::objects::object_lookup_table_get(name);
 
                 if (halo::objects::object_try_and_get(object_index, 3) != 0) {
@@ -468,10 +468,10 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
     case 0xc: {
         int16_t script = (int16_t)entry->script;
 
-        if (script < 0 || script >= *(int32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x450)) {
+        if (script < 0 || script >= static_cast<int32_t>(halo::scenario::globals().scenario->ai_script_references.count)) {
             return 0;
         }
-        return halo::hs::hs_call_script_by_name(*(char **)((uint8_t *)halo::scenario::globals().scenario + 0x454) + script * 0x28);
+        return halo::hs::hs_call_script_by_name(halo::ai::reflexive_data<char>(halo::scenario::globals().scenario->ai_script_references) + script * 0x28);
     }
 
     case 0xd: {
@@ -485,7 +485,7 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
         if ((int16_t)entry->animation == -1) {
             return 0;
         }
-        reference = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x448) + (int16_t)entry->animation * 0x3c;
+        reference = halo::ai::reflexive_data<uint8_t>(halo::scenario::globals().scenario->ai_animation_references) + (int16_t)entry->animation * 0x3c;
         graph = *(datum_index *)(reference + 0x2c);
         if (graph == k_datum_index_none) {
             graph = *(datum_index *)(halo::ai::tag_bytes(*(datum_index *)halo::ai::object_bytes(check_object_index)) + 0x44);
@@ -515,11 +515,11 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
         int16_t recording = (int16_t)entry->recording;
         int16_t animation_index;
 
-        if (recording < 0 || recording >= *(int32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x45c)) {
+        if (recording < 0 || recording >= static_cast<int32_t>(halo::scenario::globals().scenario->ai_recording_references.count)) {
             return 0;
         }
         animation_index = halo::cutscene::recorded_animation_find_by_name(
-            *(char **)((uint8_t *)halo::scenario::globals().scenario + 0x460) + recording * 0x28, halo::scenario::globals().scenario);
+            halo::ai::reflexive_data<char>(halo::scenario::globals().scenario->ai_recording_references) + recording * 0x28, halo::scenario::globals().scenario);
         if (animation_index == -1) {
             return 0;
         }

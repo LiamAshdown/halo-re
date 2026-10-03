@@ -230,7 +230,7 @@ uint8_t halo::ai::actor_ref::command_list_permits_escalation()
     }
 
     conv = halo::ai::conversation_at(self->conversation_index);
-    definition = (ScenarioAIConversation *)((TagReflexive *)((uint8_t *)halo::scenario::globals().scenario + 0x468))->pointer;
+    definition = (ScenarioAIConversation *)halo::scenario::globals().scenario->ai_conversations.pointer;
     definition = definition + conv->definition_index;
     flags = definition->flags;
 

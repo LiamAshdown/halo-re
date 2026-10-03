@@ -122,13 +122,13 @@ void ActorView::update_firing_state()
             } else {
                 allowed = 1;
             }
-            if (allowed && halo::ai::actor_grenade_behavior_kind_allowed(actor_index, (int16_t)*(uint16_t *)(def + 0x156))) {
+            if (allowed && halo::ai::actor_grenade_behavior_kind_allowed(actor_index, (int16_t)def->special_fire_situation)) {
                 float delay = halo::math::random_real_range(0.0f, 1.5f) + def->special_fire_delay;
                 float roll = halo::math::random_real();
 
                 a->special_fire_timer = (int16_t)(int32_t)(delay * 30.0f);
                 if (roll < def->special_fire_chance &&
-                    halo::ai::actor_target_is_visible_or_object_count_ok(actor_index, (int16_t)*(uint16_t *)(def + 0x156))) {
+                    halo::ai::actor_target_is_visible_or_object_count_ok(actor_index, (int16_t)def->special_fire_situation)) {
                     if (*(int16_t *)((uint8_t *)def + 0x156) == 3) {
                         a->special_fire_strafe_cooldown = 3;
                     }
