@@ -34,7 +34,7 @@ namespace halo::interface {
  */
 void PlayerProfiles::subsystem_initialize()
 {
-    int32_t enumerated_count;
+    uint16_t enumerated_count;
     int32_t enumerated_slot;
     uint8_t profile_data[k_saved_player_profile_size];
     int32_t slot_to_load;
@@ -48,7 +48,7 @@ void PlayerProfiles::subsystem_initialize()
 
     enumerated_count = 1;
     enumerated_slot = -1;
-    halo::saved_games::saved_game_enumerate_by_type(0, &enumerated_slot, 0, (uint16_t *)&enumerated_count);
+    halo::saved_games::saved_game_enumerate_by_type(0, &enumerated_slot, 0, &enumerated_count);
     savegame_index_dirty = 1;
 
     if (last_profile_name[0] == '\0' && halo::saved_games::saved_game_last_profile_read((uint8_t *)last_profile_name) != 0) {
@@ -64,7 +64,7 @@ void PlayerProfiles::subsystem_initialize()
     }
 
     if (!profile_read) {
-        if ((int16_t)enumerated_count <= 0 || enumerated_slot == -1 ||
+        if (static_cast<int16_t>(enumerated_count) <= 0 || enumerated_slot == -1 ||
             halo::saved_games::player_profile_get(enumerated_slot, (saved_player_profile *)profile_data) == 0) {
             halo::saved_games::globals().profile_load_complete = 1;
             return;

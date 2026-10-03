@@ -327,7 +327,7 @@ uint8_t Variants::get_variant_by_name(const char *name, game_variant *out)
         matched = 1;
     } else if (matched == 0 && _stricmp(name, "assault") != 0) {
         int32_t slots[100];
-        int32_t slot_count = 100;
+        uint16_t slot_count = 100;
         uint16_t slot_index;
 
         halo::text::string_convert_ascii_to_unicode(reinterpret_cast<uint16_t *>(requested_name_wide), 0x30, name);
@@ -336,9 +336,9 @@ uint8_t Variants::get_variant_by_name(const char *name, game_variant *out)
             playlist_profiles_need_defaults = 0;
         }
 
-        halo::saved_games::saved_game_enumerate_by_type(1, slots, 1, (uint16_t *)&slot_count);
+        halo::saved_games::saved_game_enumerate_by_type(1, slots, 1, &slot_count);
 
-        for (slot_index = 0; (int32_t)(uint32_t)slot_index < slot_count; slot_index++) {
+        for (slot_index = 0; slot_index < slot_count; slot_index++) {
             if (slots[slot_index] == -1) {
                 halo::game::game_engine_apply_current_custom_variant();
                 continue;

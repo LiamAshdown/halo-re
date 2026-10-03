@@ -276,10 +276,10 @@ uint8_t NetworkSetup::autojoin_from_command_line()
     }
 
     if (halo::shell::command_line_check_flag("-name", &name) && name != 0) {
-        int16_t count = 100;
+        uint16_t count = 100;
 
         halo::text::string_convert_ascii_to_unicode(wide_name, 0x80, name);
-        halo::saved_games::saved_game_enumerate_by_type(0, slots, 0, (uint16_t *)&count);
+        halo::saved_games::saved_game_enumerate_by_type(0, slots, 0, &count);
         while (count > 0) {
             int32_t slot = slots[count - 1];
 

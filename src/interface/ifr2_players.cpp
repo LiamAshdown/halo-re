@@ -475,14 +475,14 @@ void PlayerProfiles::apply_audio_options(saved_player_profile *settings)
  */
 void PlayerProfiles::auto_select()
 {
-    int32_t count;
+    uint16_t count;
     int32_t slot;
     uint8_t profile_data[k_saved_player_profile_size];
 
     count = 1;
     slot = -1;
-    halo::saved_games::saved_game_enumerate_by_type(0, &slot, 0, (uint16_t *)&count);
-    if ((int16_t)count > 0 && slot != -1) {
+    halo::saved_games::saved_game_enumerate_by_type(0, &slot, 0, &count);
+    if (static_cast<int16_t>(count) > 0 && slot != -1) {
         if (halo::saved_games::player_profile_get(slot, (saved_player_profile *)profile_data) == 0) {
             return;
         }
@@ -491,8 +491,8 @@ void PlayerProfiles::auto_select()
     }
 
     count = 1;
-    halo::saved_games::saved_game_enumerate_by_type(0, &slot, 1, (uint16_t *)&count);
-    if ((int16_t)count <= 0 || slot == -1) {
+    halo::saved_games::saved_game_enumerate_by_type(0, &slot, 1, &count);
+    if (static_cast<int16_t>(count) <= 0 || slot == -1) {
         return;
     }
     if (halo::saved_games::player_profile_get(slot, (saved_player_profile *)profile_data) == 0) {
@@ -519,9 +519,9 @@ int32_t PlayerProfiles::check_storage_and_defaults()
             playlist_profiles_need_defaults = 0;
         }
         {
-            uint32_t count = 1;
-            halo::saved_games::saved_game_enumerate_by_type(1, enumeration_scratch, 1, (uint16_t *)&count);
-            halo::saved_games::saved_game_enumerate_by_type(0, enumeration_scratch, 1, (uint16_t *)&count);
+            uint16_t count = 1;
+            halo::saved_games::saved_game_enumerate_by_type(1, enumeration_scratch, 1, &count);
+            halo::saved_games::saved_game_enumerate_by_type(0, enumeration_scratch, 1, &count);
         }
         if (last_profile_name[0] == '\0') {
             if (halo::saved_games::saved_game_last_profile_read((uint8_t *)last_profile_name) != 0) {
