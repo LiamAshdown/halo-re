@@ -38,7 +38,8 @@
 #include <stdlib.h>
 #include "halo/effects/api.hpp"
 
-static_assert(sizeof(UnicodeStringListString) * 0x37 == 0x44c && offsetof(TagDataOffset, pointer) == 0xc, "end-game result string entry");
+static constexpr int32_t k_end_game_result_string = 0x37;
+static_assert(sizeof(UnicodeStringListString) * k_end_game_result_string == 0x44c && offsetof(TagDataOffset, pointer) == 0xc, "end-game result string entry");
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 static auto &game_engine_state_value = halo::link::ref<game_engine_state>(halo::game::vars().game_engine_state_value);
@@ -128,8 +129,8 @@ void Scoreboard::build_end_game_result_text(datum_index player_handle, wchar_t *
             if (tag_id != k_datum_index_none) {
                 UnicodeStringList *list = (UnicodeStringList *)halo::game::tag_data_at(tag_id);
                 text = missing_string_text;
-                if (0x37 < (int32_t)list->strings.count) {
-                    const TagDataOffset &entry = ((UnicodeStringListString *)list->strings.pointer)[0x37].string;
+                if (k_end_game_result_string < (int32_t)list->strings.count) {
+                    const TagDataOffset &entry = ((UnicodeStringListString *)list->strings.pointer)[k_end_game_result_string].string;
                     uint32_t len = entry.size;
                     if (0 < (int32_t)len) {
                         wchar_t *string_data = (wchar_t *)entry.pointer;
