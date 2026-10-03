@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/scenario/api.hpp"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
@@ -16,7 +17,6 @@
 
 extern "C" { extern breakable_surface_globals *breakable_surface_state; }
 extern "C" { extern int16_t global_structure_bsp_index; }
-extern "C" { extern GlobalsMaterial *globals_material_get(int16_t material_type); }
 namespace halo::physics {
 
 /**
@@ -35,7 +35,7 @@ void BreakableSurfaces::apply_damage(damage_data *damage, int32_t surface_index,
         (damage->damage_effect_tag != k_datum_index_none) && (damage->material_type != -1)) {
         extension = &breakable_surface_state->health[global_structure_bsp_index][index];
         if (0.0f < *extension) {
-            material = globals_material_get(damage->material_type);
+            material = halo::scenario::globals_material_get(damage->material_type);
             if ((material != 0) && (0.0f < material->maximum_vitality)) {
                 DamageEffect *effect =
                     (DamageEffect *)halo::cache::globals().tag_instances[(uint16_t)damage->damage_effect_tag].data;

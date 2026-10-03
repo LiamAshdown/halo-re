@@ -1,15 +1,20 @@
 /**
- * @file include/halo/scenario/scenario_c_api.h
- * The C ABI of the scenario module: every original function with its original signature and C linkage.
- * Defined in src/scenario/scenario_c_api.cpp; documented on the halo::scenario C++ API.
+ * @file include/halo/scenario/api.hpp
+ * Functions of the scenario module that other modules and the data tables call (namespace halo::scenario). The record types are
+ * forward-declared, so the header is light enough for every caller and for the data tables.
  */
 #pragma once
 
-#include "halo/scenario/scenario.hpp"
+#include <stdarg.h>
+#include <stdint.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct GlobalsMaterial;
+struct Scenario;
+struct bsp_leaf_reference;
+struct real_point3d;
+struct render_fog;
+
+namespace halo::scenario {
 
 void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point);
 int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point);
@@ -29,6 +34,4 @@ uint8_t scenario_load(char *path);
 int16_t scenario_object_name_find_index(Scenario *scenario, char *name);
 GlobalsMaterial * globals_material_get(int16_t material_index);
 
-#ifdef __cplusplus
 }
-#endif

@@ -1006,7 +1006,6 @@ extern void recorded_animation_v1_begin();
 extern void recorded_animation_v1_update();
 extern void restart_map_dialog_choice_handler();
 extern void scenario_objects_place_for_structure_bsp_on_activate();
-extern void scenario_structure_bsp_switch_after_load();
 extern void scenery_new();
 extern void scenery_update();
 extern void server_browser_back_event();

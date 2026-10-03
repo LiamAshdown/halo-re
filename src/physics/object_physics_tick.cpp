@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/scenario/api.hpp"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
@@ -28,7 +29,6 @@ extern "C" { extern real_vector3d *global_down3d_pointer; }
 extern "C" { extern float k_physics_gravity; }
 extern "C" { extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); }
 extern "C" { extern void object_physics_mass_point_resolve_ground_contact(uint32_t exclude_object_index, mass_point_state *mass_point, PhysicsMassPoint *definition); }
-extern "C" { extern float scenario_location_water_surface_distance(bsp_leaf_reference *location, real_point3d *point); }
 extern "C" { extern void object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale, float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up); }
 extern "C" { extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
 extern "C" { extern void object_unlink_cluster_or_notify_parent(uint32_t object_index); }
@@ -167,7 +167,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
         mp->velocity_k = velocity.k;
 
         halo::physics::object_physics_mass_point_resolve_ground_contact(object_index, mp, mp_def);
-        mp->water_depth = scenario_location_water_surface_distance((bsp_leaf_reference *)((uint8_t *)mp + 0x34),
+        mp->water_depth = halo::scenario::scenario_location_water_surface_distance((bsp_leaf_reference *)((uint8_t *)mp + 0x34),
             (real_point3d *)&mp->position_x);
 
         if (0.0f < mp->ground_depth && 0.0f < definition->ground_depth) {

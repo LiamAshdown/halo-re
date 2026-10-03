@@ -7,6 +7,7 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "code_refs.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/sound/api.hpp"
@@ -208,7 +209,7 @@ void * game_state_revert_proc = &halo::sound::game_sound_revert_scripting_sounds
 
 /* 0x0069e7b4 size 52: game_state_after_load_procs */
 void * game_state_after_load_procs[13] = {
-    scenario_structure_bsp_switch_after_load, &halo::sound::sound_stop_all,
+    &halo::scenario::scenario_structure_bsp_switch_after_load, &halo::sound::sound_stop_all,
     &halo::sound::game_sound_reconcile_scripting_state, observer_initialize,
     update_queues_revert, decal_geometry_cache_restore_procs,
     function_do_nothing, function_do_nothing,

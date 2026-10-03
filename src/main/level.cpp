@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/scenario/api.hpp"
 #include "memory.h"
 #include "interface.h"
 #include "main.h"
@@ -226,7 +227,6 @@ extern "C" { extern void game_start_new_map(void); }
 extern "C" { extern void game_engine_reset_all_players(void); }
 extern "C" { extern void game_engine_init_tick_record_for_mode(void); }
 extern "C" { extern void main_ensure_local_players(void); }
-extern "C" { extern char scenario_load(char *scenario_path); }
 extern "C" { extern void game_state_load_checkpoint(void); }
 extern "C" { extern uint32_t time_query_performance_counter_ms(void); }
 extern "C" { extern int64_t performance_frequency; }
@@ -254,7 +254,7 @@ void LevelControl::scenario_session_begin(network_scenario_load_request *request
 
     memcpy(main_game_globals + 8, request, sizeof(network_scenario_load_request));
 
-    if (scenario_load(request->map_name) == 0) {
+    if (halo::scenario::scenario_load(request->map_name) == 0) {
         if (*main_game_globals == 0) {
             goto after_load;
         }
@@ -636,7 +636,6 @@ void LevelControl::save_map_private(void)
 
 extern "C" { extern HUDGlobals *hud_globals_tag_data; }
 extern "C" { extern uint8_t *hud_messaging; }
-extern "C" { extern uint8_t scenario_structure_bsp_switch(int16_t structure_bsp_index); }
 extern "C" { extern player_globals *local_player_globals; }
 extern "C" { extern uint16_t *hud_get_message_string(int32_t message_index); }
 extern "C" { extern void chimera__hud_message(int16_t local_player_index, const wchar_t *text); }
@@ -655,7 +654,7 @@ void LevelControl::switch_structure_bsp_and_notify(void)
     uint8_t *entry;
     int32_t i;
 
-    scenario_structure_bsp_switch(main_globals_data.switch_structure_bsp_index);
+    halo::scenario::scenario_structure_bsp_switch(main_globals_data.switch_structure_bsp_index);
     main_globals_data.switch_structure_bsp_index = -1;
 
     message_id = (int16_t)hud_globals_tag_data->loading_end_text;

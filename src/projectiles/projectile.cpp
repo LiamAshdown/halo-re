@@ -1,4 +1,5 @@
 #include "halo/projectiles/projectile.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -9,7 +10,6 @@ extern "C" {
 extern data_array *object_data;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern int16_t network_game_mode;
-extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point);
 extern void projectile_compute_rotation(uint32_t object_index);
 extern void projectile_update_function_values(uint32_t object_index);
 extern void projectile_compute_deceleration(uint32_t object_index);
@@ -134,7 +134,7 @@ uint8_t ProjectileHandle::construct()
 
     
     in_water = 0;
-    fog_region = scenario_location_fog_region((bsp_leaf_reference *)&obj->location_leaf_index,
+    fog_region = halo::scenario::scenario_location_fog_region((bsp_leaf_reference *)&obj->location_leaf_index,
                                                &obj->bounding_center);
     if (fog_region != -1) {
         ScenarioStructureBSPFogRegion *region =

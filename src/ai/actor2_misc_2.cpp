@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 
@@ -82,7 +83,7 @@ extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context);
 extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker,
     uint32_t flags);
-extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
+extern uint8_t halo::scenario::scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
     int16_t *weather_index_out);
 extern void *actor_get_actor_definition(datum_index actor_index);
 extern void actor_reset_squad_link_for_type_change(datum_index actor_index, datum_index encounter_index,
@@ -162,7 +163,7 @@ void ActorView::refresh_combat_context()
 
         object_get_node_local_transform(A_I32(0x18), ai_marker_name_b, &marker, 1);
         head = marker.node_transform.position;
-        A_U8(0x15d) = scenario_location_get_water_and_weather(&head, (bsp_leaf_reference *)(self + 0x144), 0);
+        A_U8(0x15d) = halo::scenario::scenario_location_get_water_and_weather(&head, (bsp_leaf_reference *)(self + 0x144), 0);
     }
     A_U8(0x99) = (uint8_t)((*(uint32_t *)actor_tag >> 21) & 1);
 

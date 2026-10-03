@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/scenario/api.hpp"
 #include "memory.h"
 #include "math.h"
 #include "physics.h"
@@ -303,7 +304,6 @@ extern "C" { extern uint8_t material_table_warning_issued; }
 extern "C" { extern int32_t material_table_bad_index; }
 extern "C" { extern uint8_t material_table_fallback[0x374]; }
 extern "C" { extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); }
-extern "C" { extern float scenario_location_water_surface_distance(bsp_leaf_reference *location, real_point3d *point); }
 extern "C" { extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
 namespace halo::physics {
 
@@ -404,7 +404,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
         mp->velocity_k = velocity.k;
 
         halo::physics::object_physics_mass_point_resolve_ground_contact(context->object_index, mp, mp_def);
-        mp->water_depth = scenario_location_water_surface_distance((bsp_leaf_reference *)((uint8_t *)mp + 0x34),
+        mp->water_depth = halo::scenario::scenario_location_water_surface_distance((bsp_leaf_reference *)((uint8_t *)mp + 0x34),
             (real_point3d *)&mp->position_x);
 
         if (0.0f < mp->ground_depth) {

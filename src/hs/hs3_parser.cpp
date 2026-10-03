@@ -1,4 +1,5 @@
 #include "halo/hs/hs3_parser.hpp"
+#include "halo/scenario/api.hpp"
 #include <stdio.h>
 #include <string.h>
 #include "crt.h"
@@ -33,7 +34,6 @@ extern char *hs_type_names[k_hs_type_count];
 extern uint8_t hs_blocking_forbidden;
 extern uint8_t hs_set_forbidden;
 extern char hs_parse_object_name(datum_index node_index);
-extern int16_t scenario_object_name_find_index(Scenario *scenario, char *name);
 extern uint16_t hs_object_type_masks[6];
 extern char hs_parse_variable(datum_index node_index);
 extern uint8_t hs_postprocessing;
@@ -823,7 +823,7 @@ char Parser::parse_object_name(datum_index node_index) const
     scenario = global_scenario;
     node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & 0xffff) * 0x14);
 
-    match_index = scenario_object_name_find_index(scenario, hs_compiled_source + node->source_offset);
+    match_index = halo::scenario::scenario_object_name_find_index(scenario, hs_compiled_source + node->source_offset);
     if (match_index == -1) {
         hs_compile_error = (char *)"this is not a valid object name.";
         hs_compile_error_offset = node->source_offset;

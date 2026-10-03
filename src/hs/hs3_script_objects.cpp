@@ -1,4 +1,5 @@
 #include "halo/hs/hs3_objects.hpp"
+#include "halo/scenario/api.hpp"
 #include "game.h"
 #include "units.h"
 #include <stdint.h>
@@ -48,7 +49,6 @@ extern data_array *object_list_header_data;
 extern data_array *object_list_reference_data;
 extern void object_notify_children_recursive(datum_index object_index);
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
-extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
 extern char hs_object_hierarchy_test(datum_index object_index);
 extern void object_delete(datum_index object_index);
 extern void unit_detach_from_seat(datum_index object_index, int32_t suppress_trigger, int32_t require_client_flag,
@@ -605,7 +605,7 @@ char ScriptObjects::object_list_test_trigger_volume(int32_t trigger_volume_index
     while (object_index != k_datum_index_none) {
         uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
 
-        if (scenario_trigger_volume_contains_point((int16_t)trigger_volume_index, (real_point3d *)(object + 0xa0))) {
+        if (halo::scenario::scenario_trigger_volume_contains_point((int16_t)trigger_volume_index, (real_point3d *)(object + 0xa0))) {
             if (!all_mode) {
                 return 1;
             }

@@ -1,4 +1,5 @@
 #include "halo/ai/actor_view.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -112,7 +113,7 @@ extern char ai_marker_name_b[];
 extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern void object_get_position(real_point3d *out_position, datum_index object_index);
 extern datum_index object_get_root_object_index(uint32_t object_index);
-extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
+extern uint8_t halo::scenario::scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
     int16_t *weather_index_out);
 extern char unit_get_tag_flag_bit7(uint32_t unit_index);
 extern datum_index object_find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index, char stamp_group);
@@ -214,7 +215,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
     target->location_leaf_index = *(float *)&parent_obj->location_leaf_index;
     *(uint32_t *)&target->cluster_index = *(uint32_t *)&parent_obj->location_cluster_index;
 
-    target->in_water = scenario_location_get_water_and_weather(&target->center_of_mass, (bsp_leaf_reference *)&target->location_leaf_index, 0);
+    target->in_water = halo::scenario::scenario_location_get_water_and_weather(&target->center_of_mass, (bsp_leaf_reference *)&target->location_leaf_index, 0);
     target->relationship_object_index = -1;
     target->is_vehicle_gunner = 0;
     target->is_vehicle_driver = 0;
@@ -515,7 +516,6 @@ extern double sqrt(double x);
 static float sqrt_f(float x) { return (float)sqrt((double)x); }
 extern data_array *actor_data;
 extern ScenarioStructureBSP *global_structure_bsp;
-extern uint8_t scenario_location_background_sound_is_deafening_to_ais(bsp_leaf_reference *location);
 }
 }
 
@@ -570,8 +570,8 @@ uint16_t ActorOps::target_hearing_check(void *record, int16_t stance, datum_inde
     } else if (gate == 3) {
         range = range * 0.7f;
     }
-    if (scenario_location_background_sound_is_deafening_to_ais((bsp_leaf_reference *)(listener + 0x24)) ||
-        scenario_location_background_sound_is_deafening_to_ais((bsp_leaf_reference *)record)) {
+    if (halo::scenario::scenario_location_background_sound_is_deafening_to_ais((bsp_leaf_reference *)(listener + 0x24)) ||
+        halo::scenario::scenario_location_background_sound_is_deafening_to_ais((bsp_leaf_reference *)record)) {
         range = range * 0.25f;
     }
     if (stance != 0 && stance != 1) {

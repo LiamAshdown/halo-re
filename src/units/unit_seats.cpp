@@ -1,4 +1,5 @@
 #include <string.h>
+#include "halo/scenario/api.hpp"
 #include "halo/units/unit.hpp"
 #include "game.h"
 #include "hs.h"
@@ -33,7 +34,6 @@ extern real_point3d *global_origin3d_pointer;
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
 extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action_code);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern uint8_t scenario_structure_bsp_locate_point_nudge_up(real_point3d *point);
 extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
 extern void object_recalculate_bounding_radius(uint32_t object_index);
 extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
@@ -603,7 +603,7 @@ void UnitView::detach_reposition_and_nudge()
     push.k = push.k * 0.02f;
     object_snap_to_parent_marker_and_detach(unit_index);
     position = *(real_point3d *)&((unit_object *)self)->base.position.x;
-    scenario_structure_bsp_locate_point_nudge_up(&position);
+    halo::scenario::scenario_structure_bsp_locate_point_nudge_up(&position);
     object = OBJECT_DATA(unit_index);
     object_unlink_cluster_or_notify_parent(unit_index);
     *(real_point3d *)(object + 0x5c) = position;

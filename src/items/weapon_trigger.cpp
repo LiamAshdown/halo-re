@@ -1,4 +1,5 @@
 #include "halo/items/items.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
@@ -28,7 +29,6 @@ extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
 extern int16_t network_game_mode;
 extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code);
-extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
 extern uint8_t projectile_get_aiming_vector(real_point3d *target, real *speed_in, Projectile *tag, real_point3d *origin, void *unused_param_3, real *max_time, real *max_speed_override, uint8_t use_high_arc, real_vector3d *out_direction, real *out_speed, real *out_time_or_fraction, real *out_range_or_length, uint8_t *out_used_straight_line);
 void halo::items::trigger_create_projectiles(uint32_t item_index, int16_t trigger_index, uint32_t role);
 void halo::items::weapon_trigger_become_charged(datum_index item_index, int16_t trigger_index);
@@ -584,7 +584,7 @@ void weapon_trigger_ref::fire_or_reload(int16_t trigger_index, int8_t force)
         ready = 0;
     }
 
-    if (scenario_location_get_water_and_weather((real_point3d *)((uint8_t *)item_obj + 0x5c),
+    if (halo::scenario::scenario_location_get_water_and_weather((real_point3d *)((uint8_t *)item_obj + 0x5c),
             (bsp_leaf_reference *)((uint8_t *)item_obj + 0x98), 0) == 0 && ready) {
         if (force == 0) {
             if (tag_trigger->charging_time > 0.0f) {

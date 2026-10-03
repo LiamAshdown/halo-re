@@ -1,11 +1,11 @@
 #include "halo/hs/hs3_machine.hpp"
+#include "halo/scenario/api.hpp"
 #include "game.h"
 #include "win32.h"
 #include <string.h>
 #include "halo/memory/api.hpp"
 
 extern "C" {
-extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
 extern void hs_object_detach_and_place_at_location(int16_t location_index, datum_index object_index,
     char detach_from_parent, char reorient);
 extern data_array *player_data;
@@ -59,7 +59,7 @@ void ScriptRuntime::reposition_players_outside_trigger_volume(int32_t trigger_vo
         if (unit != k_datum_index_none) {
             uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (unit & 0xffff) * 0xc + 8);
 
-            if (!scenario_trigger_volume_contains_point((int16_t)trigger_volume_index, (real_point3d *)(object + 0xa0))) {
+            if (!halo::scenario::scenario_trigger_volume_contains_point((int16_t)trigger_volume_index, (real_point3d *)(object + 0xa0))) {
                 hs_object_detach_and_place_at_location((int16_t)location_index, unit, 1, 1);
             }
         }

@@ -1,4 +1,5 @@
 #include "halo/hs/hs3_commands.hpp"
+#include "halo/scenario/api.hpp"
 #include "win32.h"
 #include "halo/input/api.hpp"
 
@@ -8,7 +9,6 @@ extern int16_t global_structure_bsp_index;
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first);
-extern uint8_t scenario_structure_bsp_switch(int16_t structure_bsp_index);
 extern void player_update_history_log_set_name_filter(char *name);
 extern uint8_t ui_widget_show_path_flag;
 extern void console_print_error_va(uint8_t clear_first, const char *format, ...);
@@ -44,7 +44,7 @@ void ScriptCommands::evaluate_switch_bsp(int16_t function_index, uint32_t thread
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    scenario_structure_bsp_switch(*(int16_t *)&arguments[0]);
+    halo::scenario::scenario_structure_bsp_switch(*(int16_t *)&arguments[0]);
     hs_thread_return(0, thread_index);
     }
 }

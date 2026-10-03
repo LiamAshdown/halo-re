@@ -1,4 +1,5 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/scenario/api.hpp"
 #include <string.h>
 #include <wchar.h>
 #include <stdint.h>
@@ -79,7 +80,6 @@ extern void game_engine_apply_variant(const game_variant *variant);
 extern void game_engine_init_tick_record_for_mode(void);
 extern void main_menu_music_stop(void);
 extern int32_t network_channel_key_open(network_player_entry *entry);
-extern char scenario_load(char *path);
 extern uint8_t network_channel_table_default_flag;
 extern char network_player_entry_find(network_game_session *session, network_player_entry *key);
 extern int64_t performance_frequency;
@@ -658,7 +658,7 @@ void GameSessionView::generate_unique_random_name(wchar_t *out_name)
  * named)
  * address 0x4de6d0, size 405 bytes
  * name confidence: 0.55   rewrite confidence: 0.25
- * out/phase4/networking_functions.md: "Prepares and issues a scenario_load() request
+ * out/phase4/networking_functions.md: "Prepares and issues a halo::scenario::scenario_load() request
  * for the network game using the requested map name and seed, then, when hosting, opens a
  * channel for every connected machine and returns whether the map is now loaded." session at
  * param_1: server_name (+0x84), unknown_19e (+0x19e) and unknown_3ac (+0x3ac, the map-loaded
@@ -706,7 +706,7 @@ char GameSessionView::scenario_load_request()
     }
     cache_file_switch_map_by_path(request.map_name, 1);
     memcpy(main_game_globals + 8, &request, sizeof(request));
-    loaded = scenario_load(request.map_name);
+    loaded = halo::scenario::scenario_load(request.map_name);
     if (loaded == 0) {
         if (*main_game_globals == 0) {
             return session->map_loaded;

@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_player.hpp"
+#include "halo/scenario/api.hpp"
 #include <string.h>
 #include <stdint.h>
 #include <wchar.h>
@@ -77,7 +78,6 @@ extern int16_t global_structure_bsp_index;
 extern real_vector3d *global_origin3d_pointer;
 extern real_point3d player_placement_ring[9];
 extern uint32_t object_get_root_object_index(uint32_t object_index);
-extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
 extern uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientation_object, real_point3d *out_position, float radius, char grid_mode, char skip_reposition, char scale_radius, uint32_t object_index_a, real_vector3d *reference_direction);
 extern void player_release_unit_and_reset(uint32_t player_index, int32_t previous_unit_override);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
@@ -915,7 +915,7 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
 
             (void)volumes;
             if (*(int16_t *)(volume + 0x2) == global_structure_bsp_index && player_unit != k_datum_index_none &&
-                scenario_trigger_volume_contains_point(*(int16_t *)volume, (real_point3d *)(OBJECT_DATA(player_unit) + 0xa0))) {
+                halo::scenario::scenario_trigger_volume_contains_point(*(int16_t *)volume, (real_point3d *)(OBJECT_DATA(player_unit) + 0xa0))) {
                 placed = 0;
                 break;
             }
@@ -2899,7 +2899,7 @@ void StructureBsp::switch_regroup()
         }
         unit_object = (uint8_t *)((object_header *)object_data->data)[entry->unit & 0xffff].data;
         trigger_volume = *(int16_t *)((uint8_t *)global_scenario->bsp_switch_trigger_volumes.pointer + local_player_globals->bsp_switch_trigger_volume_index * 8);
-        if (!scenario_trigger_volume_contains_point(trigger_volume, (real_point3d *)(unit_object + 0xa0))) {
+        if (!halo::scenario::scenario_trigger_volume_contains_point(trigger_volume, (real_point3d *)(unit_object + 0xa0))) {
             continue;
         }
         unit_get_crouch_height_offset(&probe, entry->unit, &height, &radius);

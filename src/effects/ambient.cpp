@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
@@ -10,7 +11,6 @@ extern int16_t weather_particle_system_count;
 extern weather_particle_system_state weather_wind_states[8];
 extern ScenarioStructureBSP *global_structure_bsp;
 extern const real_point3d *global_origin3d_pointer;
-extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point);
 extern ambient_noise_grid ambient_noise;
 extern void vector3d_catmull_rom_interpolate(real_vector3d *source1, real_vector3d *source3, real_vector3d *source2, real_vector3d *out, real_vector3d *source0, float time0, float dt, float time);
 extern int32_t weather_frame_counter;
@@ -70,7 +70,7 @@ uint8_t ambient_color::marker_visible(bsp_leaf_reference *location, real_point3d
 
     if (cluster != -1) {
         uint32_t skip_non_water = filter_flags & 4;
-        int16_t region = scenario_location_fog_region(location, skip_non_water ? (real_point3d *)0 : position);
+        int16_t region = halo::scenario::scenario_location_fog_region(location, skip_non_water ? (real_point3d *)0 : position);
 
         weather_row = *(int16_t *)((uint8_t *)global_structure_bsp->clusters.pointer + cluster * 0x68 + 8);
         if (region != -1) {

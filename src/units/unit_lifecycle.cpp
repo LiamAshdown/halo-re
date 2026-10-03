@@ -1,4 +1,5 @@
 #include "halo/units/unit.hpp"
+#include "halo/scenario/api.hpp"
 #include "game.h"
 #include "hs.h"
 #include "physics.h"
@@ -26,7 +27,6 @@ extern uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *c
 extern uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, float radius, real_vector3d *delta, collision_result *result);
 extern uint8_t object_collision_context_test_pill(object_collision_context *context, real_point3d *origin, real_vector3d *delta, float radius_scale, object_node_collision_result *out_result);
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags, uint32_t exclude_object_index, collision_result *result);
-extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point);
 extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location);
 extern int16_t network_game_mode;
 extern game_engine_definition *current_game_engine;
@@ -282,7 +282,7 @@ uint32_t unit_find_placement_position(uint32_t anchor_object, uint32_t orientati
                 continue;
             }
         }
-        scenario_location_from_point(&location, &point);
+        halo::scenario::scenario_location_from_point(&location, &point);
         if (!(*(uint32_t *)(tag + 0x2f4) & 0x8)) {
             point.z = point.z - *(float *)(tag + 0x42c);
         }

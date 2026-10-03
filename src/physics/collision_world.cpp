@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/scenario/api.hpp"
 #include "memory.h"
 #include "math.h"
 #include "objects.h"
@@ -201,7 +202,6 @@ extern "C" { extern int32_t object_cluster_stamp; }
 extern "C" { extern datum_index *collideable_cluster_first; }
 extern "C" { extern data_array *collideable_object_references; }
 extern "C" { extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result, ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin, real_vector3d *delta, float max_fraction); }
-extern "C" { extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point); }
 extern "C" { extern breakable_surface_globals *breakable_surface_state; }
 extern "C" { extern int16_t global_structure_bsp_index; }
 extern "C" { extern double fabs(double x); }
@@ -425,7 +425,7 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
                     point->x += result->plane.normal.i * 0.00024414062f;
                     point->y += result->plane.normal.j * 0.00024414062f;
                     point->z += result->plane.normal.k * 0.00024414062f;
-                    scenario_location_from_point((bsp_leaf_reference *)last_leaf_ref, point);
+                    halo::scenario::scenario_location_from_point((bsp_leaf_reference *)last_leaf_ref, point);
                     if (last_leaf_ref->leaf_index == -1) {
                         float facing = delta->i * result->plane.normal.i + delta->j * result->plane.normal.j +
                             delta->k * result->plane.normal.k;

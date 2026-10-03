@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -33,7 +34,6 @@ extern const real_vector3d *global_origin3d_pointer;
 extern void (*particle_creation_physics_table[3])(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker);
 extern int16_t render_local_player_gunner_seat_visible(int16_t local_player_index);
 extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name, object_marker *out, uint32_t maximum);
-extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point);
 extern player_globals *local_player_globals;
 }
 
@@ -812,7 +812,7 @@ void particle_system_view::spawn(int32_t type_index, float dt)
         marker_index = (int16_t)(((halo::math::globals().effect_random_seed >> 0x10) * (uint32_t)(int32_t)marker_count) >> 0x10);
         particle_creation_physics_table[physics](system_record, type_index, (particle_system_particle *)particle,
             &markers[marker_index]);
-        scenario_location_from_point((bsp_leaf_reference *)(particle + 0x14), (real_point3d *)(particle + 0x1c));
+        halo::scenario::scenario_location_from_point((bsp_leaf_reference *)(particle + 0x14), (real_point3d *)(particle + 0x1c));
         if (((struct particle_system_particle *)particle)->location.cluster_index != -1) {
             *(int16_t *)(type_state + 0x3a) += 1;
             ((struct particle_system_particle *)particle)->next_particle = *(datum_index *)(type_state + 0x3c);

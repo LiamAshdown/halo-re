@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/effects/api.hpp"
 
@@ -8,7 +9,6 @@ extern int16_t current_local_player_index;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern weather_instance weather_instances[1];
 extern real_point3d render_camera_global;
-extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
 }
 
 namespace halo::effects {
@@ -30,7 +30,7 @@ void weather_system::update_local_player()
 
         instance->render_cluster_index = halo::structures::globals().render_cluster_index;
         instance->render_leaf_index = halo::structures::globals().render_leaf_index;
-        instance->in_sky = scenario_location_get_water_and_weather(&render_camera_global,
+        instance->in_sky = halo::scenario::scenario_location_get_water_and_weather(&render_camera_global,
             (bsp_leaf_reference *)&instance->render_leaf_index, &instance->cluster_index);
         cluster_index = instance->cluster_index;
 

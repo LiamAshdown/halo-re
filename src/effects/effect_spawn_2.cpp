@@ -1,4 +1,5 @@
 #include "halo/effects/effects.hpp"
+#include "halo/scenario/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
@@ -10,7 +11,6 @@ extern data_array *object_data;
 extern uint8_t *first_person_weapon_interfaces;
 extern const real_point3d *global_origin3d_pointer;
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
-extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
 }
 
 namespace halo::effects {
@@ -217,10 +217,10 @@ void effect_view::spawn_particles()
                     create_ok = 1;
                     break;
                 case 1:
-                    create_ok = !scenario_location_get_water_and_weather(&position, &self->location, 0);
+                    create_ok = !halo::scenario::scenario_location_get_water_and_weather(&position, &self->location, 0);
                     break;
                 case 2:
-                    create_ok = scenario_location_get_water_and_weather(&position, &self->location, 0);
+                    create_ok = halo::scenario::scenario_location_get_water_and_weather(&position, &self->location, 0);
                     break;
                 default:
                     create_ok = 0;

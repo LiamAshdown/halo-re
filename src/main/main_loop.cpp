@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/scenario/api.hpp"
 #include "memory.h"
 #include "math.h"
 #include "interface.h"
@@ -272,7 +273,6 @@ extern "C" { extern uint8_t game_engine_attach_players_to_new_bsp(void); }
 extern "C" { extern uint8_t game_state_queue_write(uint8_t is_checkpoint); }
 extern "C" { extern void hud_display_checkpoint_message(uint8_t is_begin); }
 extern "C" { extern void main_level_transition_update(void); }
-extern "C" { extern uint8_t scenario_structure_bsp_switch(int16_t structure_bsp_index); }
 extern "C" { extern void game_stop_current_map(void); }
 extern "C" { extern void game_start_new_map(void); }
 extern "C" { extern void game_engine_init_tick_record_for_mode(void); }
@@ -458,7 +458,7 @@ void MainLoop::loop(void)
             main_globals_data.revert_map_if_allowed = 0;
         }
         if (main_globals_data.reset_map != 0 && game_time->paused == 0) {
-            scenario_structure_bsp_switch(0);
+            halo::scenario::scenario_structure_bsp_switch(0);
             game_stop_current_map();
             halo::input::input_reset_state_and_axis_configs();
             memset(&input_globals.states[0], 0, sizeof(input_globals.states[0]));

@@ -1,4 +1,5 @@
 #include "halo/objects/object_ref.hpp"
+#include "halo/scenario/api.hpp"
 #include "game.h"
 #include "units.h"
 #include "networking.h"
@@ -61,7 +62,6 @@ extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
 extern data_array *player_data;
 extern int32_t player_index_from_unit_index(datum_index object_index);
 extern void projectile_compute_rotation(uint32_t object_index);
-extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point);
 extern double sqrt(double x);
 extern int32_t time_query_performance_counter_ms(void);
 }
@@ -386,7 +386,7 @@ void halo::objects::ObjectRef::set_cluster_and_parent(bsp_leaf_reference *locati
             location = &local_location;
             if (local_location.cluster_index == -1) {
 
-                scenario_location_from_point(&local_location, (real_point3d *)((uint8_t *)obj + 0x5c));
+                halo::scenario::scenario_location_from_point(&local_location, (real_point3d *)((uint8_t *)obj + 0x5c));
             }
         }
 

@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_player.hpp"
+#include "halo/scenario/api.hpp"
 #include "interface.h"
 #include "main.h"
 #include <string.h>
@@ -77,7 +78,6 @@ extern main_globals main_globals_data;
 extern uint8_t *main_game_globals;
 extern void chimera__kill_feed(datum_index recipient, int32_t hash_key, uint32_t message_type, datum_index subject, char broadcast);
 extern void player_kill_streak_tick(datum_index player_handle);
-extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
 extern void console_print_va(const char *format, ...);
 extern void hud_display_loading_message(uint8_t is_begin);
 extern void player_update_nearby_interactions_primary(datum_index player_handle);
@@ -661,7 +661,7 @@ void StructureBsp::switch_structure_bsp()
                 for (i = 0; i < count; i = i + 1) {
                     ScenarioBSPSwitchTriggerVolume *entry = &volumes[i];
                     if (entry->source == (uint16_t)global_structure_bsp_index && plr->unit != (datum_index)-1 &&
-                        scenario_trigger_volume_contains_point((int16_t)entry->trigger_volume,
+                        halo::scenario::scenario_trigger_volume_contains_point((int16_t)entry->trigger_volume,
                             (real_point3d *)(*(uint8_t **)((uint8_t *)object_data->data + (plr->unit & 0xffff) * 0xc + 8) + 0xa0)) != 0) {
 
                         int16_t destination = (int16_t)entry->destination;
