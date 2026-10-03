@@ -12,6 +12,7 @@
 #include "halo/cseries/cseries.hpp"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
+#include "halo/core/libm.hpp"
 
 namespace c_actor_claim_firing_position {
 }
@@ -75,12 +76,6 @@ namespace c_actor_find_best_firing_position {
 static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &qsort_candidate_count = halo::link::ref<int16_t>(halo::ai::vars().qsort_candidate_count);
 static auto &qsort_candidate_base = halo::link::ref<actor_firing_position_candidate *>(halo::ai::vars().qsort_candidate_base);
-extern "C" {
-
-extern double sqrt(double x);
-
-
-}
 }
 
 
@@ -203,7 +198,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         query->target_prop_index = (datum_index)halo::k_dword_none;
         query->target_relationship_object = -1;
         query->target_danger_radius = 0.0f;
-        query->target_distance = (float)sqrt((double)(delta.i * delta.i + delta.j * delta.j +
+        query->target_distance = (float)halo::libm::sqrt((double)(delta.i * delta.i + delta.j * delta.j +
                                                       delta.k * delta.k));
         halo::units::unit_add_marker_relative_offset(self->unit_index, 1, (float *)&query->target_position, 0, 0,
             &query->target_aim_position);
@@ -367,7 +362,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
                 query->danger_spheres[query->danger_sphere_count].radius = 4.0f;
                 query->danger_sphere_count = query->danger_sphere_count + 1;
             }
-            owner_distance = (float)sqrt((double)(
+            owner_distance = (float)halo::libm::sqrt((double)(
                 (fp->position.x - owner_actor->body_position.x) *
                     (fp->position.x - owner_actor->body_position.x) +
                 (fp->position.y - owner_actor->body_position.y) *
@@ -377,7 +372,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
             if (owner_distance < 1.0f) {
                 continue;
             }
-            self_distance = (float)sqrt((double)(
+            self_distance = (float)halo::libm::sqrt((double)(
                 (fp->position.x - self->body_position.x) *
                     (fp->position.x - self->body_position.x) +
                 (fp->position.y - self->body_position.y) *
@@ -544,9 +539,9 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
                              (query->danger_active != 0) ? &c->direction_from_actor : 0);
             } else {
 
-                c->segment_distance = (float)sqrt((double)halo::math::point3d_distance_squared_to_segment(
+                c->segment_distance = (float)halo::libm::sqrt((double)halo::math::point3d_distance_squared_to_segment(
                     self->body_position, delta, query->target_position));
-                length = (float)sqrt((double)distance_squared);
+                length = (float)halo::libm::sqrt((double)distance_squared);
                 if (length < 0.0001f && length > -0.0001f) {
                     length = 0.0f;
                 } else {

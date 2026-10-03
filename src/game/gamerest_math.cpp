@@ -8,22 +8,14 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double sqrt(double x);
-}
 static auto &response_curve_scale_limit = halo::link::ref<double>(halo::game::vars().response_curve_scale_limit);
-extern "C" {
-extern double fabs(double x);
-}
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 static auto &team_pair_data = halo::link::ref<team_pair_globals *>(halo::ai::vars().team_pair_data);
 static auto &main_game_globals = halo::link::ref<void *>(halo::game::vars().main_game_globals);
 static auto &weapon_zoom_index_substitutions = halo::link::ref<int16_t []>(halo::game::vars().weapon_zoom_index_substitutions);
-extern "C" {
-extern int32_t __ftol(void);
-}
 
 namespace halo::game {
 
@@ -159,7 +151,7 @@ void Vector3dView::clamp_length(real max_length)
     length_squared = v->k * v->k + v->j * v->j + v->i * v->i;
     max_squared = max_length * max_length;
     if (length_squared >= max_squared && length_squared != max_squared) {
-        scale = max_length / (real)sqrt((double)length_squared);
+        scale = max_length / (real)halo::libm::sqrt((double)length_squared);
         v->i = scale * v->i;
         v->j = scale * v->j;
         v->k = scale * v->k;
@@ -208,7 +200,7 @@ void Point3dArray::project_to_xy_plane(Point2D *destination, int32_t count)
 real ResponseCurve::evaluate(int16_t table_count, real x, real *table)
 {
     int32_t max_index = table_count - 1;
-    double scaled = fabs((double)x) * (double)max_index;
+    double scaled = halo::libm::fabs((double)x) * (double)max_index;
     int32_t lower, upper;
     real result;
 

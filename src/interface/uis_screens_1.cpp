@@ -26,6 +26,7 @@
 #include "halo/camera/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/core/x87.hpp"
 
 static auto &chat_window_default_x = halo::link::ref<int32_t>(halo::ui::vars().chat_window_default_x);
 static auto &chat_window_default_y = halo::link::ref<int32_t>(halo::ui::vars().chat_window_default_y);
@@ -49,9 +50,6 @@ static auto &cursor_sensitivity_x = halo::link::ref<float>(halo::ui::vars().curs
 static auto &cursor_sensitivity_y = halo::link::ref<float>(halo::ui::vars().cursor_sensitivity_y);
 static auto &cursor_sensitivity_curve_scale = halo::link::ref<double>(halo::ui::vars().cursor_sensitivity_curve_scale);
 static auto &cursor_sensitivity_curve_bias = halo::link::ref<double>(halo::ui::vars().cursor_sensitivity_curve_bias);
-extern "C" {
-extern int32_t __ftol(double x);
-}
 static auto &widget_memory_pool_valid = halo::link::ref<uint8_t>(halo::ui::vars().widget_memory_pool_valid);
 static auto &ui_root_widget = halo::link::ref<widget_instance *[1]>(halo::ui::vars().ui_root_widget);
 static auto &ui_saved_color = halo::link::ref<float [3]>(halo::ui::vars().ui_saved_color);
@@ -173,11 +171,11 @@ void UiScreens::cursor_update(void)
         raw_x = (double)record[0];
         scaled_x = (raw_x < 0.0 ? -raw_x : raw_x) * (double)cursor_sensitivity_x * cursor_sensitivity_curve_scale +
             cursor_sensitivity_curve_bias;
-        delta_x = __ftol(scaled_x * raw_x);
+        delta_x = halo::x87::__ftol(scaled_x * raw_x);
         raw_y = (double)record[1];
         scaled_y = (raw_y < 0.0 ? -raw_y : raw_y) * (double)cursor_sensitivity_y * cursor_sensitivity_curve_scale +
             cursor_sensitivity_curve_bias;
-        delta_y = __ftol(scaled_y * raw_y);
+        delta_y = halo::x87::__ftol(scaled_y * raw_y);
     }
     halo::interface::interface_update_for_resolution_change(ui_cursor_x + delta_x, ui_cursor_y - delta_y);
 }

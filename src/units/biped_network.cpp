@@ -2,11 +2,8 @@
 #include "halo/math/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/x87.hpp"
 
-extern "C" {
-extern double fcos(double x);
-extern double fsin(double x);
-}
 
 namespace halo::units {
 
@@ -21,8 +18,8 @@ void halo::units::biped_build_update_delta_unit_grenade_count_mod1(uint32_t flag
 
     if ((flags & 0x4100) != 0) {
         double angle = halo::math::random_real_range(0.0, 6.2831855);
-        dir_x = (float)fcos(angle);
-        dir_y = (float)fsin(angle);
+        dir_x = (float)halo::x87::fcos(angle);
+        dir_y = (float)halo::x87::fsin(angle);
         dir_z = 0.0f;
     }
     object_base->angular_velocity.i += dir_x * magnitude;

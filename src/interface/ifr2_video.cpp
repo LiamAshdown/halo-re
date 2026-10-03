@@ -6,6 +6,7 @@
 #include "halo/interface/constants.hpp"
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
+#include <string.h>
 
 #ifdef interface
 #undef interface
@@ -14,9 +15,6 @@
 static auto &rasterizer_direct3d = halo::link::ref<d3d9_interface *>(halo::ui::vars().rasterizer_direct3d);
 static auto &d3d_adapter = halo::link::ref<uint32_t>(halo::ui::vars().d3d_adapter);
 static auto &video_memory = halo::link::ref<uint32_t>(halo::ui::vars().video_memory);
-extern "C" {
-extern int _stricmp(const char *a, const char *b);
-}
 
 namespace halo::interface {
 

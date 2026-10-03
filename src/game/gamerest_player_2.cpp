@@ -20,6 +20,8 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
@@ -33,20 +35,11 @@ extern void object_placement_data_set_change_colors(real *color, object_placemen
 extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index);
 extern void game_engine_apply_player_grenade_counts(uint32_t player_index);
 extern void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index player_handle, int32_t value, int32_t machine_index);
-extern double cos(double x);
-extern double sin(double x);
 }
 static auto &reference_axis_006696728 = halo::link::ref<real_vector3d *>(halo::game::vars().reference_axis_006696728);
 static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);
-extern "C" {
-extern double fcos(double radians);
-extern double fsin(double radians);
-}
 static auto &k_random_scale_65536 = halo::link::ref<float>(halo::ai::vars().k_random_scale_65536);
 static auto &sqrt_pow_exponent = halo::link::ref<double>(halo::game::vars().sqrt_pow_exponent);
-extern "C" {
-extern double pow(double base, double exponent);
-}
 static auto &profile_slot_id = halo::link::ref<int16_t []>(halo::ui::vars().profile_slot_id);
 static auto &local_player_count = halo::link::ref<int16_t>(halo::game::vars().local_player_count);
 static auto &player_control_globals_ptr = halo::link::ref<uint8_t *>(halo::game::vars().player_control_globals_ptr);
@@ -162,8 +155,8 @@ void PlayerView::respawn()
         halo::objects::object_placement_data_initialize(&placement, unit_tag, k_datum_index_none);
         placement.position = *(real_point3d *)location;
         facing = ((struct ScenarioPlayerStartingLocation *)location)->facing;
-        placement.forward.i = (real)cos(facing);
-        placement.forward.j = (real)sin(facing);
+        placement.forward.i = (real)halo::libm::cos(facing);
+        placement.forward.j = (real)halo::libm::sin(facing);
         placement.forward.k = 0.0f;
         placement.up = *halo::math::globals().global_up3d_pointer;
         player_color = halo::game::game_engine_get_player_color(player_index, color_buffer);
@@ -249,9 +242,9 @@ void PlayerView::compute_view_forward_vector(real *yaw_pitch, real_vector3d *out
     real_matrix4x3 basis;
     real length;
 
-    out_forward->i = (float)(fcos(yaw_pitch[1]) * fcos(yaw_pitch[0]));
-    out_forward->j = (float)(fcos(yaw_pitch[1]) * fsin(yaw_pitch[0]));
-    out_forward->k = (float)fsin(yaw_pitch[1]);
+    out_forward->i = (float)(halo::x87::fcos(yaw_pitch[1]) * halo::x87::fcos(yaw_pitch[0]));
+    out_forward->j = (float)(halo::x87::fcos(yaw_pitch[1]) * halo::x87::fsin(yaw_pitch[0]));
+    out_forward->k = (float)halo::x87::fsin(yaw_pitch[1]);
 
     plr = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
     if (plr->unit == (datum_index)-1) {
@@ -333,7 +326,7 @@ int16_t PlayerView::pick_random_starting_location()
             halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
             {
                 float unit_random = (float)(halo::math::globals().random_seed_global >> 0x10) * k_random_scale_65536;
-                float weight = (float)pow((double)unit_random, sqrt_pow_exponent) * suitability;
+                float weight = (float)halo::libm::pow((double)unit_random, sqrt_pow_exponent) * suitability;
                 if (best_score < weight) {
                     best_score = weight;
                     best_index = index;

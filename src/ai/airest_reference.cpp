@@ -19,12 +19,9 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/x87.hpp"
 
 static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_down3d_pointer);
-extern "C" {
-extern double fcos(double angle);
-extern double fsin(double angle);
-}
 static auto &k_real_zero = halo::link::ref<float>(halo::ai::vars().k_real_zero);
 static auto &k_real_one = halo::link::ref<float>(halo::ai::vars().k_real_one);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
@@ -495,8 +492,8 @@ void ReferenceView::face_starting_location(uint8_t idle_only)
                 facing = ((ScenarioActorStartingLocation *)
                     squads[squad_index].starting_locations.pointer)[location_index].facing;
                 forward.k = 0.0f;
-                forward.i = (float)fcos((double)facing);
-                forward.j = (float)fsin((double)facing);
+                forward.i = (float)halo::x87::fcos((double)facing);
+                forward.j = (float)halo::x87::fsin((double)facing);
                 halo::objects::object_set_position_and_orientation(a->unit_index, &forward, 0, 0);
                 halo::objects::object_reset_velocity_and_wake(a->unit_index);
                 halo::ai::actor_movement_action_stop(iterator.actor_index);

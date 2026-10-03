@@ -11,13 +11,11 @@
 #include "halo/networking/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &item_placement_bits_x = halo::link::ref<uint32_t>(halo::networking::vars().item_placement_bits_x);
 static auto &item_placement_bits_y = halo::link::ref<uint32_t>(halo::networking::vars().item_placement_bits_y);
 static auto &item_placement_bits_z = halo::link::ref<uint32_t>(halo::networking::vars().item_placement_bits_z);
-extern "C" {
-extern double floor(double x);
-}
 static auto &message_delta_parameters_enabled = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_enabled);
 
 
@@ -193,7 +191,7 @@ int32_t IndexFieldCodec::item_placement_encode(message_delta_field_type *field_t
     (void)previous;
     {
         uint32_t levels = (uint32_t)((1 << item_placement_bits_x) - 1);
-        uint32_t level = (uint32_t)(int64_t)floor((double)((real)levels * ((position[0] - -5000.0f) * 0.0001f) + 0.5f));
+        uint32_t level = (uint32_t)(int64_t)halo::libm::floor((double)((real)levels * ((position[0] - -5000.0f) * 0.0001f) + 0.5f));
 
         if (level > levels) {
             level = levels;
@@ -202,7 +200,7 @@ int32_t IndexFieldCodec::item_placement_encode(message_delta_field_type *field_t
     }
     {
         uint32_t levels = (uint32_t)((1 << item_placement_bits_y) - 1);
-        uint32_t level = (uint32_t)(int64_t)floor((double)((real)levels * ((position[1] - -5000.0f) * 0.0001f) + 0.5f));
+        uint32_t level = (uint32_t)(int64_t)halo::libm::floor((double)((real)levels * ((position[1] - -5000.0f) * 0.0001f) + 0.5f));
 
         if (level > levels) {
             level = levels;
@@ -211,7 +209,7 @@ int32_t IndexFieldCodec::item_placement_encode(message_delta_field_type *field_t
     }
     {
         uint32_t levels = (uint32_t)((1 << item_placement_bits_z) - 1);
-        uint32_t level = (uint32_t)(int64_t)floor((double)((real)levels * ((position[2] - -5000.0f) * 0.0001f) + 0.5f));
+        uint32_t level = (uint32_t)(int64_t)halo::libm::floor((double)((real)levels * ((position[2] - -5000.0f) * 0.0001f) + 0.5f));
 
         if (level > levels) {
             level = levels;

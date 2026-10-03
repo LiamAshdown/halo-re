@@ -34,6 +34,7 @@
 #include "halo/rasterizer/vars.hpp"
 #include "halo/render/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static_assert(offsetof(first_person_weapon_interface, node_matrices) == 0x108c);
 static_assert(sizeof(real_matrix4x3) == 0x34);
@@ -43,12 +44,6 @@ static_assert(offsetof(Contrail, _pad_84) == 0x84);
 static_assert(offsetof(Particle, _pad_b0) == 0xb0);
 
 extern "C" {
-extern double sin(double x);
-extern double cos(double x);
-extern double fmod(double x, double y);
-extern double atan2(double y, double x);
-extern double sqrt(double x);
-extern double fabs(double x);
 extern int32_t rasterizer_dynamic_index_cache_reserve(int32_t count);
 }
 static auto &build_sprite_screen_coverage = halo::link::ref<float>(halo::render::vars().build_sprite_screen_coverage);
@@ -209,7 +204,7 @@ void halo::render::SpriteBuilder::rotational(uint32_t flags, int16_t first_seque
             count = (int16_t)sequences[first_sequence_index + 1].sprites.count;
 
             if ((flags & 2) != 0) {
-                sprite = (int16_t)(int32_t)(fmod((real)count * rotation * 0.15915494f + 0.5f,
+                sprite = (int16_t)(int32_t)(halo::libm::fmod((real)count * rotation * 0.15915494f + 0.5f,
                                                  (real)count) + (real)sprite_index);
                 quad_rotation = 0.0f;
                 if (d < 0.0f) {
@@ -236,8 +231,8 @@ void halo::render::SpriteBuilder::rotational(uint32_t flags, int16_t first_seque
         bitmap_group = (Bitmap *)halo::cache::globals().tag_instances[(uint16_t)data->bitmap_group_index].data;
         sequences = (BitmapGroupSequence *)bitmap_group->bitmap_group_sequence.pointer;
         count = (int16_t)sequences[first_sequence_index].sprites.count;
-        side_rotation = (real)atan2(transformed_axis.j, transformed_axis.i);
-        sprite = (int16_t)(int32_t)fmod((real)count * rotation * 0.15915494f + 0.5f, (real)count);
+        side_rotation = (real)halo::libm::atan2(transformed_axis.j, transformed_axis.i);
+        sprite = (int16_t)(int32_t)halo::libm::fmod((real)count * rotation * 0.15915494f + 0.5f, (real)count);
         halo::render::build_sprite(data, first_sequence_index, sprite, 0, &transformed_origin, 0, side_rotation,
                      scale, color, side_fade, 1);
     }
@@ -387,8 +382,8 @@ real compute_view_fade(real_vector3d *a, real_vector3d *b, int16_t render_type)
     }
 
     dot = a->i * b->i + a->j * b->j + a->k * b->k;
-    length = (real)sqrt((double)(a->i * a->i + a->j * a->j + a->k * a->k));
-    fade = (real)fabs((double)(dot / length));
+    length = (real)halo::libm::sqrt((double)(a->i * a->i + a->j * a->j + a->k * a->k));
+    fade = (real)halo::libm::fabs((double)(dot / length));
 
     if (render_type == 2) {
         fade = 1.0f - fade;
@@ -468,8 +463,8 @@ void draw(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index,
     sin_rotation = 0.0f;
     cos_rotation = 1.0f;
     if (rotation != 0.0f) {
-        sin_rotation = (real)sin(rotation);
-        cos_rotation = (real)cos(rotation);
+        sin_rotation = (real)halo::libm::sin(rotation);
+        cos_rotation = (real)halo::libm::cos(rotation);
     }
 
     halo::render::render_sprite_transform_point_and_normal(origin, direction, &transformed_direction, data,
@@ -659,9 +654,9 @@ real compute_edge_fade_factor(real_vector3d *direction, real_point3d *point, int
     to_camera.j = render_camera_global.position.y - point->y;
     to_camera.k = render_camera_global.position.z - point->z;
 
-    fade = (float)fabs((double)((to_camera.i * direction->i + to_camera.k * direction->k +
+    fade = (float)halo::libm::fabs((double)((to_camera.i * direction->i + to_camera.k * direction->k +
                                   to_camera.j * direction->j) /
-                                 sqrt((double)(to_camera.k * to_camera.k + to_camera.j * to_camera.j +
+                                 halo::libm::sqrt((double)(to_camera.k * to_camera.k + to_camera.j * to_camera.j +
                                                to_camera.i * to_camera.i))));
 
     if (test_flag(*flags, tags::contrail_tag_flag::edge_effect_fades_slowly)) {

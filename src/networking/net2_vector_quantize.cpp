@@ -8,16 +8,10 @@
 #include "halo/networking/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double sqrt(double x);
-extern double sin(double x);
-extern double cos(double x);
-}
 static auto &message_delta_vector3d_mode = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_vector3d_mode);
 extern "C" {
-extern double acos(double x);
-extern double atan(double x);
 extern int _isnan(double x);
 }
 
@@ -53,7 +47,7 @@ void VectorQuantizer::decode_vector(real *out, uint32_t code)
         }
         code >>= 1;
     }
-    length = (real)sqrt(out[0] * out[0] + out[1] * out[1] + out[2] * out[2]);
+    length = (real)halo::libm::sqrt(out[0] * out[0] + out[1] * out[1] + out[2] * out[2]);
     if ((length < 0.0f ? -length : length) >= 0.0001) {
         real inverse = 1.0f / length;
 
@@ -77,10 +71,10 @@ void VectorQuantizer::from_yaw_pitch(real_vector3d *out_direction, real yaw, rea
 {
     real sin_yaw, sin_pitch, cos_yaw, cos_pitch;
 
-    sin_yaw = (real)sin((double)yaw);
-    sin_pitch = (real)sin((double)pitch);
-    cos_yaw = (real)cos((double)yaw);
-    cos_pitch = (real)cos((double)pitch);
+    sin_yaw = (real)halo::libm::sin((double)yaw);
+    sin_pitch = (real)halo::libm::sin((double)pitch);
+    cos_yaw = (real)halo::libm::cos((double)yaw);
+    cos_pitch = (real)halo::libm::cos((double)pitch);
 
     if (sin_yaw < 0.0001f && -0.0001f < sin_yaw) {
         sin_yaw = 0.0f;
@@ -139,14 +133,14 @@ void VectorQuantizer::to_angles(real *out, real_vector3d vector)
     halo::math::vector3d_normalize_with_length(vector);
     if (!(vector.i > 0.0001f) && !(vector.i != vector.i) && !(vector.i < -0.0001f)) {
         out[1] = vector.j > 0.0f ? 1.5707964f : -1.5707964f;
-        out[0] = (real)acos(vector.k);
+        out[0] = (real)halo::libm::acos(vector.k);
         return;
     }
-    out[1] = (real)atan(vector.j / vector.i);
+    out[1] = (real)halo::libm::atan(vector.j / vector.i);
     if (vector.i < 0.0f) {
         out[1] = out[1] + 3.1415927f;
     }
-    out[0] = (real)acos(vector.k);
+    out[0] = (real)halo::libm::acos(vector.k);
 }
 
 uint8_t VectorQuantizer::quantize_initialize(message_delta_field_type *field_type)

@@ -21,10 +21,9 @@
 #include "halo/hs/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
-extern double cos(double x);
-extern double sin(double x);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_object, void *local_offset);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
@@ -225,9 +224,9 @@ void ScriptObjects::object_detach_and_place_at_location(int16_t location_index, 
         }
     }
 
-    forward.i = (float)(cos((double)*(float *)(flag + 0x30)) * cos((double)*(float *)(flag + 0x34)));
-    forward.j = (float)(sin((double)*(float *)(flag + 0x30)) * cos((double)*(float *)(flag + 0x34)));
-    forward.k = (float)sin((double)*(float *)(flag + 0x34));
+    forward.i = (float)(halo::libm::cos((double)*(float *)(flag + 0x30)) * halo::libm::cos((double)*(float *)(flag + 0x34)));
+    forward.j = (float)(halo::libm::sin((double)*(float *)(flag + 0x30)) * halo::libm::cos((double)*(float *)(flag + 0x34)));
+    forward.k = (float)halo::libm::sin((double)*(float *)(flag + 0x34));
     halo::objects::object_reset_velocity_and_wake(object_index);
 
     unit = halo::objects::object_try_and_get(object_index, 3);

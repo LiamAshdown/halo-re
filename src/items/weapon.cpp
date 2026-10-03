@@ -15,13 +15,12 @@
 #include "halo/items/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
-extern double pow(double x, double y);
 extern void weapon_reset_triggers(datum_index item_index);
 extern void weapon_magazine_reload_tick(datum_index item_index, int16_t magazine_index);
 extern void weapon_notify_reload_cancel(datum_index item_index, int16_t magazine_index);
-extern double floor(double x);
 void halo::items::weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out);
 real halo::items::weapon_clamp_zoom_fov(datum_index item_index, int16_t zoom_level, real base_fov);
 void halo::items::weapon_force_settled_state(datum_index item_index);
@@ -275,7 +274,7 @@ real weapon_ref::get_zoom_magnification(int16_t zoom_level)
         range0 = (weapon_tag->zoom_magnification_range[0] <= 0.0f) ? 1.0f : weapon_tag->zoom_magnification_range[0];
         range1 = (weapon_tag->zoom_magnification_range[1] <= 0.0f) ? 1.0f : weapon_tag->zoom_magnification_range[1];
 
-        return (real)(pow((double)range1 / range0, fraction) * range0);
+        return (real)(halo::libm::pow((double)range1 / range0, fraction) * range0);
     }
     return 1.0f;
 }
@@ -937,7 +936,7 @@ void weapon_ref::set_loaded_ammo_fraction(real fraction)
     if (!is_battery) {
         if (weapon_tag->magazines.count > 0) {
             WeaponMagazine *magazine_tag = (WeaponMagazine *)weapon_tag->magazines.pointer;
-            int16_t new_loaded = (int16_t)(int32_t)floor((double)((real)magazine_tag->rounds_loaded_maximum * fraction) + 0.5);
+            int16_t new_loaded = (int16_t)(int32_t)halo::libm::floor((double)((real)magazine_tag->rounds_loaded_maximum * fraction) + 0.5);
             int16_t old_loaded = wd->magazines[0].rounds_loaded;
 
             wd->magazines[0].rounds_loaded = new_loaded;

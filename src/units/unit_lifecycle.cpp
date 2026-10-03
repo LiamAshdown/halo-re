@@ -27,6 +27,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
 extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius);
@@ -36,7 +37,6 @@ extern uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *c
 extern uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, float radius, real_vector3d *delta, collision_result *result);
 extern uint8_t object_collision_context_test_pill(object_collision_context *context, real_point3d *origin, real_vector3d *delta, float radius_scale, object_node_collision_result *out_result);
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags, uint32_t exclude_object_index, collision_result *result);
-extern double sqrt(double x);
 }
 static auto &global_structure_bsp = halo::link::ref<uint8_t *>(halo::ai::vars().global_structure_bsp);
 static auto &placement_offset_table = halo::link::ref<real_vector3d [27]>(halo::units::vars().placement_offset_table);
@@ -592,7 +592,7 @@ void UnitView::recalculate_position()
     real_point3d midpoint;
     real_point3d nudged;
 
-    if (!(sqrt((anchor.z - previous.z) * (anchor.z - previous.z) + (anchor.y - previous.y) * (anchor.y - previous.y) +
+    if (!(halo::libm::sqrt((anchor.z - previous.z) * (anchor.z - previous.z) + (anchor.y - previous.y) * (anchor.y - previous.y) +
                (anchor.x - previous.x) * (anchor.x - previous.x)) > 5.0) && halo::hs::fields::object_prediction) {
         if (!halo::objects::object_nudge_position_by_velocity(object_index, &nudged)) {
             nudged = anchor;
@@ -607,7 +607,7 @@ void UnitView::recalculate_position()
         }
     }
     halo::objects::object_set_position_and_recalculate(target, object_index);
-    if (sqrt((current->z - previous.z) * (current->z - previous.z) + (current->y - previous.y) * (current->y - previous.y) +
+    if (halo::libm::sqrt((current->z - previous.z) * (current->z - previous.z) + (current->y - previous.y) * (current->y - previous.y) +
              (current->x - previous.x) * (current->x - previous.x)) > 2.0) {
         halo::objects::object_set_position_and_recalculate(&anchor, object_index);
     }

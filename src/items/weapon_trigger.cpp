@@ -12,14 +12,11 @@
 #include "halo/interface/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/items/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
 extern uint32_t camera_observer_update(datum_index player_index, real_point3d *observer_position, real_vector3d *fallback_facing);
 extern void weapon_trigger_barrel_spread_offset(real_vector3d *v, real_vector3d *axis, uint16_t barrel_index, int16_t distribution_function, real distribution_angle, uint32_t flags);
-extern double fabs(double x);
-extern double sqrt(double x);
-extern double cos(double x);
-extern double sin(double x);
 extern int32_t weapon_set_state(datum_index item_index, int16_t new_state, int8_t force);
 extern uint32_t local_player_index_for_weapon(datum_index item_index);
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
@@ -232,11 +229,11 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
             }
             halo::math::vector3d_build_perpendicular(placement.up, placement.forward);
             {
-                double length = sqrt((double)placement.up.i * (double)placement.up.i +
+                double length = halo::libm::sqrt((double)placement.up.i * (double)placement.up.i +
                                      (double)placement.up.j * (double)placement.up.j +
                                      (double)placement.up.k * (double)placement.up.k);
 
-                if (!(fabs(length) < 9.999999747378752e-05)) {
+                if (!(halo::libm::fabs(length) < 9.999999747378752e-05)) {
                     double inverse = 1.0 / length;
 
                     placement.up.i = (float)(placement.up.i * inverse);
@@ -322,8 +319,8 @@ void weapon_trigger_ref::barrel_spread_offset(real_vector3d *v, real_vector3d *a
 
     if (distribution_function == 1) {
         real angle = index * distribution_angle;
-        real sin_angle = (real)sin((double)angle);
-        real cos_angle = (real)cos((double)angle);
+        real sin_angle = (real)halo::libm::sin((double)angle);
+        real cos_angle = (real)halo::libm::cos((double)angle);
         halo::math::vector3d_rotate_about_axis(*v, *axis, sin_angle, cos_angle);
     }
 }

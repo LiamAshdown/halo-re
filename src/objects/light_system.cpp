@@ -25,16 +25,16 @@
 #include "halo/game/vars.hpp"
 #include "halo/objects/vars.hpp"
 #include "halo/render/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern int32_t fistp_round(float x);
 extern char *object_get_attachment_marker_name(uint32_t object_index, int16_t attachment_index);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum);
 extern void object_get_root_location(int32_t *out, uint32_t object_index);
 extern void object_light_recompute_transform(uint32_t light_index);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern double sqrt(double x);
 }
 static auto &game_engine_unknown_aa00 = halo::link::ref<uint8_t>(halo::game::vars().game_engine_unknown_aa00);
 static auto &global_white_color = halo::link::ref<float *>(halo::effects::vars().global_white_color);
@@ -392,11 +392,11 @@ void halo::objects::LightSystem::update_all()
             int16_t salt = (int16_t)(light_handle >> 16);
 
             flare.definition = (uint32_t)tag_data(*(datum_index *)(tag + 0xb8));
-            flare.color = (uint32_t)(fistp_round(color[2] * 255.0f) & 0xff) |
-                          (uint32_t)(fistp_round(color[1] * 255.0f) & 0xff) << 8 |
-                          (uint32_t)(fistp_round(color[0] * 255.0f) & 0xff) << 16 |
-                          (uint32_t)fistp_round(dim * 255.0f) << 24;
-            flare.intensity = (uint8_t)fistp_round(blend * 255.0f);
+            flare.color = (uint32_t)(halo::x87::fistp_round(color[2] * 255.0f) & 0xff) |
+                          (uint32_t)(halo::x87::fistp_round(color[1] * 255.0f) & 0xff) << 8 |
+                          (uint32_t)(halo::x87::fistp_round(color[0] * 255.0f) & 0xff) << 16 |
+                          (uint32_t)halo::x87::fistp_round(dim * 255.0f) << 24;
+            flare.intensity = (uint8_t)halo::x87::fistp_round(blend * 255.0f);
             flare.window_flags = render_window_index;
             flare.visibility_high = (int16_t)light_handle;
             flare.object_index = salt == -1 ? 0 : salt;
@@ -456,7 +456,7 @@ void halo::objects::LightSystem::transient_add(datum_index light_tag, real_vecto
         light_transient *slot = &light_transient_table[light_transient_count];
 
         slot->color = halo::math::color_real_to_argb_pack(1.0f, reinterpret_cast<float *>(color));
-        slot->intensity = (uint8_t)fistp_round(intensity * 255.0f);
+        slot->intensity = (uint8_t)halo::x87::fistp_round(intensity * 255.0f);
         slot->definition = halo::cache::globals().tag_instances[halo::datum_slot(light_tag)].data;
         slot->position = *position;
 
@@ -844,7 +844,7 @@ void halo::objects::LightSystem::gather_nearest(int16_t cluster_index, uint32_t 
                     float dx = probe_point->x - entry->position.x;
                     float dy = probe_point->y - entry->position.y;
                     float dz = probe_point->z - entry->position.z;
-                    float distance = (float)sqrt((double)(dz * dz + dx * dx + dy * dy));
+                    float distance = (float)halo::libm::sqrt((double)(dz * dz + dx * dx + dy * dy));
                     if (distance < search_margin + entry->radius) {
                         int16_t used = *count;
                         float attenuation = 1.0f - (distance * distance) / (entry->radius * entry->radius);

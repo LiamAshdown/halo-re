@@ -44,9 +44,6 @@ static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud
 static auto &text_tab_stops = halo::link::ref<uint32_t>(halo::game::vars().text_tab_stops);
 static auto &hud_text_draw_box_field_474e = halo::link::ref<uint32_t>(halo::game::vars().hud_text_draw_box_field_474e);
 static auto &render_viewport_top = halo::link::ref<int16_t [6]>(halo::ui::vars().render_viewport_top);
-extern "C" {
-extern uint32_t strlen(const char *s);
-}
 static auto &console_input_handle = halo::link::ref<void *>(halo::ui::vars().console_input_handle);
 static auto &controls_input_capture_flags = halo::link::ref<uint8_t>(halo::ui::vars().controls_input_capture_flags);
 static auto &key_event_read_index = halo::link::ref<int16_t>(halo::ui::vars().key_event_read_index);

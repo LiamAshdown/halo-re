@@ -2,11 +2,8 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/cutscene/vars.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double cos(double x);
-extern double sin(double x);
-}
 static auto &recorded_animation_angle_scale = halo::link::ref<float>(halo::cutscene::vars().recorded_animation_angle_scale);
 static auto &unit_control_data_version_layouts = halo::link::ref<unit_control_data_field_layout *[4]>(halo::cutscene::vars().unit_control_data_version_layouts);
 static auto &recorded_animation_compressed_event_handlers = halo::link::ref<recorded_animation_compressed_event_proc [k_recorded_animation_event_type_count]>(halo::cutscene::vars().recorded_animation_compressed_event_handlers);
@@ -28,12 +25,12 @@ void RecordedAngles::angle_to_vector(real_vector3d *out, recorded_animation_angl
     double cos_yaw;
     double sin_yaw;
 
-    cos_pitch = cos((double)angles->pitch * (double)recorded_animation_angle_scale);
-    cos_yaw = cos((double)angles->yaw * (double)recorded_animation_angle_scale);
+    cos_pitch = halo::libm::cos((double)angles->pitch * (double)recorded_animation_angle_scale);
+    cos_yaw = halo::libm::cos((double)angles->yaw * (double)recorded_animation_angle_scale);
     out->i = (float)(cos_yaw * cos_pitch);
-    sin_yaw = sin((double)angles->yaw * (double)recorded_animation_angle_scale);
+    sin_yaw = halo::libm::sin((double)angles->yaw * (double)recorded_animation_angle_scale);
     out->j = (float)(sin_yaw * cos_pitch);
-    out->k = (float)sin((double)angles->pitch * (double)recorded_animation_angle_scale);
+    out->k = (float)halo::libm::sin((double)angles->pitch * (double)recorded_animation_angle_scale);
 }
 
 /**
@@ -283,11 +280,11 @@ void CompressedCodec::decode_char_difference_event(recorded_animation_decoder_st
         state->facing.pitch = state->facing.pitch + (int16_t)delta->pitch;
         yaw = state->facing.yaw;
         pitch = state->facing.pitch;
-        cos_pitch = cos((double)pitch * (double)recorded_animation_angle_scale);
-        cos_yaw = cos((double)yaw * (double)recorded_animation_angle_scale);
+        cos_pitch = halo::libm::cos((double)pitch * (double)recorded_animation_angle_scale);
+        cos_yaw = halo::libm::cos((double)yaw * (double)recorded_animation_angle_scale);
         control->facing_vector.i = (float)(cos_yaw * cos_pitch);
-        control->facing_vector.j = (float)(sin((double)yaw * (double)recorded_animation_angle_scale) * cos_pitch);
-        control->facing_vector.k = (float)sin((double)pitch * (double)recorded_animation_angle_scale);
+        control->facing_vector.j = (float)(halo::libm::sin((double)yaw * (double)recorded_animation_angle_scale) * cos_pitch);
+        control->facing_vector.k = (float)halo::libm::sin((double)pitch * (double)recorded_animation_angle_scale);
     }
 
     if ((mask & 2) != 0) {
@@ -295,11 +292,11 @@ void CompressedCodec::decode_char_difference_event(recorded_animation_decoder_st
             halo::cutscene::recorded_animation_apply_char_difference(&state->aiming, delta);
             yaw = state->aiming.yaw;
             pitch = state->aiming.pitch;
-            cos_pitch = cos((double)pitch * (double)recorded_animation_angle_scale);
-            cos_yaw = cos((double)yaw * (double)recorded_animation_angle_scale);
+            cos_pitch = halo::libm::cos((double)pitch * (double)recorded_animation_angle_scale);
+            cos_yaw = halo::libm::cos((double)yaw * (double)recorded_animation_angle_scale);
             control->aiming_vector.i = (float)(cos_yaw * cos_pitch);
-            control->aiming_vector.j = (float)(sin((double)yaw * (double)recorded_animation_angle_scale) * cos_pitch);
-            control->aiming_vector.k = (float)sin((double)pitch * (double)recorded_animation_angle_scale);
+            control->aiming_vector.j = (float)(halo::libm::sin((double)yaw * (double)recorded_animation_angle_scale) * cos_pitch);
+            control->aiming_vector.k = (float)halo::libm::sin((double)pitch * (double)recorded_animation_angle_scale);
         } else {
             state->aiming = state->facing;
             control->aiming_vector = control->facing_vector;
@@ -376,11 +373,11 @@ void CompressedCodec::decode_short_difference_event(recorded_animation_decoder_s
         state->facing.pitch = state->facing.pitch + delta->pitch;
         yaw = state->facing.yaw;
         pitch = state->facing.pitch;
-        cos_pitch = cos((double)pitch * (double)recorded_animation_angle_scale);
-        cos_yaw = cos((double)yaw * (double)recorded_animation_angle_scale);
+        cos_pitch = halo::libm::cos((double)pitch * (double)recorded_animation_angle_scale);
+        cos_yaw = halo::libm::cos((double)yaw * (double)recorded_animation_angle_scale);
         control->facing_vector.i = (float)(cos_yaw * cos_pitch);
-        control->facing_vector.j = (float)(sin((double)yaw * (double)recorded_animation_angle_scale) * cos_pitch);
-        control->facing_vector.k = (float)sin((double)pitch * (double)recorded_animation_angle_scale);
+        control->facing_vector.j = (float)(halo::libm::sin((double)yaw * (double)recorded_animation_angle_scale) * cos_pitch);
+        control->facing_vector.k = (float)halo::libm::sin((double)pitch * (double)recorded_animation_angle_scale);
     }
 
     if ((mask & 2) != 0) {
@@ -388,11 +385,11 @@ void CompressedCodec::decode_short_difference_event(recorded_animation_decoder_s
             halo::cutscene::recorded_animation_apply_short_difference(&state->aiming, delta);
             yaw = state->aiming.yaw;
             pitch = state->aiming.pitch;
-            cos_pitch = cos((double)pitch * (double)recorded_animation_angle_scale);
-            cos_yaw = cos((double)yaw * (double)recorded_animation_angle_scale);
+            cos_pitch = halo::libm::cos((double)pitch * (double)recorded_animation_angle_scale);
+            cos_yaw = halo::libm::cos((double)yaw * (double)recorded_animation_angle_scale);
             control->aiming_vector.i = (float)(cos_yaw * cos_pitch);
-            control->aiming_vector.j = (float)(sin((double)yaw * (double)recorded_animation_angle_scale) * cos_pitch);
-            control->aiming_vector.k = (float)sin((double)pitch * (double)recorded_animation_angle_scale);
+            control->aiming_vector.j = (float)(halo::libm::sin((double)yaw * (double)recorded_animation_angle_scale) * cos_pitch);
+            control->aiming_vector.k = (float)halo::libm::sin((double)pitch * (double)recorded_animation_angle_scale);
         } else {
             state->aiming = state->facing;
             control->aiming_vector = control->facing_vector;
@@ -556,11 +553,11 @@ void LegacyCodec::decode_angle_vector_event(unit_control_data *control, recorded
     float j;
     float k;
 
-    cos_pitch = cos((double)event->angles.pitch);
-    cos_yaw = cos((double)event->angles.yaw);
+    cos_pitch = halo::libm::cos((double)event->angles.pitch);
+    cos_yaw = halo::libm::cos((double)event->angles.yaw);
     i = (float)(cos_yaw * cos_pitch);
-    j = (float)(sin((double)event->angles.yaw) * cos_pitch);
-    k = (float)sin((double)event->angles.pitch);
+    j = (float)(halo::libm::sin((double)event->angles.yaw) * cos_pitch);
+    k = (float)halo::libm::sin((double)event->angles.pitch);
 
     if (event->header.type != 0x15) {
         control->facing_vector.i = i;

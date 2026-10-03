@@ -22,6 +22,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
 extern int32_t game_engine_get_current_tick(void);
@@ -37,9 +38,6 @@ static auto &team_pair_data = halo::link::ref<uint8_t *>(halo::ai::vars().team_p
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-extern "C" {
-extern double sqrt(double x);
-}
 
 namespace halo::ai {
 
@@ -1322,13 +1320,13 @@ uint8_t ProjectileAim::solve_ballistic_arc(real_point3d *target, real_point3d *o
     distance_sq = (real)d2;
     disc_ext = d2 * (double)qg * 4.0;
     disc = (real)disc_ext;
-    neg_root = -sqrt(disc_ext);
+    neg_root = -halo::libm::sqrt(disc_ext);
     twoqg = qg + qg;
-    shallow_time = (real)sqrt((-1.0 / (double)twoqg) * neg_root);
+    shallow_time = (real)halo::libm::sqrt((-1.0 / (double)twoqg) * neg_root);
     dzg_ext = g * (double)dz;
     dzg = (real)dzg_ext;
     s_ext = dzg_ext - neg_root;
-    shallow_speed_ext = (s_ext < 0.0) ? 0.0 : sqrt(s_ext);
+    shallow_speed_ext = (s_ext < 0.0) ? 0.0 : halo::libm::sqrt(s_ext);
 
     if (max_speed_override != (real *)0) {
         chosen_max = *max_speed_override;
@@ -1338,7 +1336,7 @@ uint8_t ProjectileAim::solve_ballistic_arc(real_point3d *target, real_point3d *o
             double scaled = (double)shallow_time * (double)*max_time;
             double scaled_sq = scaled * scaled;
             double sum = scaled_sq * (double)qg + (double)distance_sq / scaled_sq;
-            double candidate = sqrt((double)dzg + sum);
+            double candidate = halo::libm::sqrt((double)dzg + sum);
 
             if ((double)speed_limit > candidate) {
                 chosen_max = (real)candidate;
@@ -1354,11 +1352,11 @@ uint8_t ProjectileAim::solve_ballistic_arc(real_point3d *target, real_point3d *o
         disc2_ext = a_ext * (double)a - (double)disc;
         disc2 = (real)disc2_ext;
         if ((a < 0.0f) && (0.0f <= disc2)) {
-            double root2_ext = (sqrt((double)disc2) * (double)(int)((use_high_arc != 0) * 2 - 1) - (double)a) / (double)twoqg;
+            double root2_ext = (halo::libm::sqrt((double)disc2) * (double)(int)((use_high_arc != 0) * 2 - 1) - (double)a) / (double)twoqg;
 
             root2 = (real)root2_ext;
             if (root2_ext > 0.0) {
-                t = (real)sqrt((double)root2);
+                t = (real)halo::libm::sqrt((double)root2);
                 goto have_root;
             }
         }
@@ -1374,7 +1372,7 @@ have_root:
     vertical_velocity_ext = inv_t * (double)dz + (double)t * g * 0.5;
     dir.k = (real)vertical_velocity_ext;
     vertical_velocity = (real)vertical_velocity_ext;
-    horizontal_speed = (real)sqrt((double)dir.j * dir.j + (double)dir.i * dir.i);
+    horizontal_speed = (real)halo::libm::sqrt((double)dir.j * dir.j + (double)dir.i * dir.i);
 
     length = halo::math::vector3d_normalize_with_length(dir);
     if (length == 0.0f) {

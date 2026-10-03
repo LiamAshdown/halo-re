@@ -11,6 +11,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/libm.hpp"
 
 #ifdef interface
 #undef interface
@@ -18,9 +19,6 @@
 
 static auto &ui_cursor_x = halo::link::ref<int32_t>(halo::ui::vars().ui_cursor_x);
 static auto &ui_cursor_y = halo::link::ref<int32_t>(halo::ui::vars().ui_cursor_y);
-extern "C" {
-extern double sin(double x);
-}
 static auto &ui_time_milliseconds = halo::link::ref<int32_t>(halo::ui::vars().ui_time_milliseconds);
 static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
 extern "C" {
@@ -263,7 +261,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
                 double td = (double)ui_time_milliseconds;
 
                 if (ui_time_milliseconds < 0) td += 4294967296.0;
-                color.alpha = (float)((sin(td * 0.003) + 1.0) * 0.5 * (double)color.alpha);
+                color.alpha = (float)((halo::libm::sin(td * 0.003) + 1.0) * 0.5 * (double)color.alpha);
             }
 
             halo::text::text_context::set_render_context(*(datum_index *)&tag->text_font.tag_id, &color, -1, justification, 0);

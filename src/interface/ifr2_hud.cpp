@@ -21,6 +21,8 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 #ifdef interface
 #undef interface
@@ -31,24 +33,12 @@ static auto &hud_waypoints = halo::link::ref<hud_waypoint_state *>(halo::ui::var
 static auto &custom_waypoints = halo::link::ref<custom_waypoint [k_maximum_custom_waypoints]>(halo::game::vars().custom_waypoints);
 static auto &hud_weapon_state = halo::link::ref<hud_weapon_interface_state *>(halo::ui::vars().hud_weapon_state);
 static auto &render_viewport_top = halo::link::ref<int16_t>(halo::ui::vars().render_viewport_top);
-extern "C" {
-extern long lrint(double x);
-extern float sqrtf(float x);
-extern double pow(double base, double exponent);
-extern double fmod(double x, double y);
-extern int32_t __ftol(double x);
-}
 static auto &current_local_player_index = halo::link::ref<int16_t>(halo::ui::vars().current_local_player_index);
 static auto &hud_flags = halo::link::ref<hud_globals_flags *>(halo::ui::vars().hud_flags);
 static auto &motion_sensor_override_value = halo::link::ref<uint8_t>(halo::ui::vars().motion_sensor_override_value);
 static auto &motion_sensor_force_moving = halo::link::ref<uint8_t>(halo::ui::vars().motion_sensor_force_moving);
 static auto &motion_sensor_blip_subtype_size = halo::link::ref<float [3]>(halo::ui::vars().motion_sensor_blip_subtype_size);
 static auto &motion_sensor_blip_colors = halo::link::ref<ColorRGB [6]>(halo::ui::vars().motion_sensor_blip_colors);
-extern "C" {
-extern float sinf(float x);
-extern float cosf(float x);
-extern double sin(double x);
-}
 static auto &motion_sensor = halo::link::ref<motion_sensor_globals *>(halo::ui::vars().motion_sensor);
 static auto &motion_sensor_render_local_player = halo::link::ref<int16_t>(halo::ui::vars().motion_sensor_render_local_player);
 static auto &motion_sensor_render_icon_scale = halo::link::ref<float>(halo::ui::vars().motion_sensor_render_icon_scale);
@@ -388,7 +378,7 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
                                     (((unit_object *)unit)->unit.control_flags & _unit_control_flag_grenade) != 0;
                     }
                     if (!triggered) {
-                        int32_t duration = (int32_t)lrint((double)(overlay->flash_period * 30.0f));
+                        int32_t duration = (int32_t)halo::libm::lrint((double)(overlay->flash_period * 30.0f));
                         if (halo::game::globals().game_time->game_time - *state >= duration) {
                             *state = -1;
                             continue;
@@ -542,8 +532,8 @@ void WeaponHud::draw_elements(datum_index hud_tag, int16_t local_player_index, c
 
         numbers[0] = primary->rounds_unloaded;
         numbers[1] = primary->rounds_loaded;
-        numbers[2] = (int16_t)__ftol((double)(ammo->heat * 255.0f));
-        numbers[3] = (int16_t)__ftol((double)((1.0f - ammo->age) * 100.0f));
+        numbers[2] = (int16_t)halo::x87::__ftol((double)(ammo->heat * 255.0f));
+        numbers[3] = (int16_t)halo::x87::__ftol((double)((1.0f - ammo->age) * 100.0f));
         numbers[4] = secondary->rounds_unloaded;
         numbers[5] = secondary->rounds_loaded;
 
@@ -576,7 +566,7 @@ void WeaponHud::draw_elements(datum_index hud_tag, int16_t local_player_index, c
                     float dx = camera.x - position.x;
                     float dy = camera.y - position.y;
                     float dz = camera.z - position.z;
-                    values[6] = sqrtf(dz * dz + dy * dy + dx * dx) * 3.048f;
+                    values[6] = halo::libm::sqrtf(dz * dz + dy * dy + dx * dx) * 3.048f;
                 }
                 values[7] = (position.z - camera.z) * 3.048f;
             } else {
@@ -647,9 +637,9 @@ void WeaponHud::draw_elements(datum_index hud_tag, int16_t local_player_index, c
             if (*(uint32_t *)&values[state] == 0xffc00000) {
                 continue;
             }
-            power = (float)pow(10.0, 4.0);
+            power = (float)halo::libm::pow(10.0, 4.0);
             scaled = power * values[state];
-            fraction = (int16_t)lrint(fmod((double)(scaled < 0.0f ? -scaled : scaled), (double)power));
+            fraction = (int16_t)halo::libm::lrint(halo::libm::fmod((double)(scaled < 0.0f ? -scaled : scaled), (double)power));
             value = (int16_t)halo::interface::ui_real_to_int_truncate(values[state] / (float)divisor);
         } else {
             fraction = -1;
@@ -1198,8 +1188,8 @@ void MotionSensor::plot_blip(const float *position, uint8_t type, const motion_s
 {
     float x = position[0];
     float y = position[1];
-    float sine = sinf(-frame->viewer_facing);
-    float cosine = cosf(-frame->viewer_facing);
+    float sine = halo::libm::sinf(-frame->viewer_facing);
+    float cosine = halo::libm::cosf(-frame->viewer_facing);
     float u = y * cosine + x * sine;
     float v = x * cosine - y * sine;
     float range = hud_globals_tag_data->motion_sensor_range;
@@ -1212,17 +1202,17 @@ void MotionSensor::plot_blip(const float *position, uint8_t type, const motion_s
     if (!(v * v + u * u < range * range)) {
         return;
     }
-    distance = sqrtf(v * v + u * u);
+    distance = halo::libm::sqrtf(v * v + u * u);
     if (distance < 0.015625f) {
         distance = 0.015625f;
     }
-    pulled = (float)pow((double)(distance / range), 0.7) * range;
+    pulled = (float)halo::libm::pow((double)(distance / range), 0.7) * range;
     point[0] = v * (1.0f / distance) * pulled * pixels_per_unit;
     point[1] = u * (1.0f / distance) * pulled * pixels_per_unit;
     size = motion_sensor_blip_subtype_size[subtype];
     pulse = 1.0f;
     if (type == 5) {
-        pulse = (float)((sin((double)((float)halo::game::globals().game_time->game_time * 0.10471973568201065f)) + 1.0) * 0.3333333333333333 + 1.0);
+        pulse = (float)((halo::libm::sin((double)((float)halo::game::globals().game_time->game_time * 0.10471973568201065f)) + 1.0) * 0.3333333333333333 + 1.0);
     }
     halo::rasterizer::rasterizer_motion_sensor_blip_draw(point, (const float *)(&motion_sensor_blip_colors[(int8_t)type]), alpha, pulse * size_factor + size);
 }
@@ -1260,7 +1250,7 @@ void MotionSensor::render(uint8_t splitscreen, const int16_t *screen_center, int
         motion_sensor_frame *frame = &state->history[(int16_t)((motion_sensor->frame_index - k + 10) % 10)];
         float age = (float)(10 - k) * 0.1f;
         float alpha = age * age;
-        float size = (float)(pow((double)(1.0f - age), 3.5) * 7.0 + 1.0);
+        float size = (float)(halo::libm::pow((double)(1.0f - age), 3.5) * 7.0 + 1.0);
         int32_t i;
 
         for (i = 0; i < 0x10; i++) {
@@ -1363,8 +1353,8 @@ void MotionSensor::update_for_player()
         dx = position.x - frame->viewer_x;
         dy = position.y - frame->viewer_y;
         if (detected != 0 && !(range * range < dy * dy + dx * dx)) {
-            frame->blips[i].x = (int8_t)__ftol((double)(dx / range * 127.0f));
-            frame->blips[i].y = (int8_t)__ftol((double)(dy / range * 127.0f));
+            frame->blips[i].x = (int8_t)halo::x87::__ftol((double)(dx / range * 127.0f));
+            frame->blips[i].y = (int8_t)halo::x87::__ftol((double)(dy / range * 127.0f));
         } else {
             frame->blips[i].type = _blip_type_empty;
             state->tracked_objects[i] = (datum_index)-1;
@@ -1390,8 +1380,8 @@ void MotionSensor::update_for_player()
             removed++;
             continue;
         }
-        frame->extra_blips[(i - removed) * 2] = (int8_t)__ftol((double)(waypoints[i][0] / range * 127.0f));
-        frame->extra_blips[(i - removed) * 2 + 1] = (int8_t)__ftol((double)(waypoints[i][1] / range * 127.0f));
+        frame->extra_blips[(i - removed) * 2] = (int8_t)halo::x87::__ftol((double)(waypoints[i][0] / range * 127.0f));
+        frame->extra_blips[(i - removed) * 2 + 1] = (int8_t)halo::x87::__ftol((double)(waypoints[i][1] / range * 127.0f));
     }
     frame->extra_blip_count = (uint8_t)(frame->extra_blip_count - removed);
 }

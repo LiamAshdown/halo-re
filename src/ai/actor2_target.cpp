@@ -17,6 +17,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 namespace halo::ai {
 
@@ -421,8 +422,7 @@ void TargetView::target_get_relationship_object()
 
 namespace actor_target_has_conflicting_neighbor_local {
 extern "C" {
-extern double fabs(double x);
-static float fabs_f(float x) { return (float)fabs((double)x); }
+static float fabs_f(float x) { return (float)halo::libm::fabs((double)x); }
 }
 }
 
@@ -474,8 +474,7 @@ uint8_t ActorView::target_has_conflicting_neighbor(datum_index target_prop_index
 
 namespace actor_target_hearing_check_local {
 extern "C" {
-extern double sqrt(double x);
-static float sqrt_f(float x) { return (float)sqrt((double)x); }
+static float sqrt_f(float x) { return (float)halo::libm::sqrt((double)x); }
 }
 }
 
@@ -546,7 +545,7 @@ uint16_t ActorOps::target_hearing_check(void *record, int16_t stance, datum_inde
     }
     sound_distance = (float)(int32_t)(pas & 0x7f) * 2.0157480f;
     sound_distance = sound_distance + sound_distance;
-    distance = (float)sqrt((double)distance_squared);
+    distance = (float)halo::libm::sqrt((double)distance_squared);
     if (!(sound_distance > distance)) {
         sound_distance = distance;
     }
@@ -1147,8 +1146,7 @@ uint8_t ActorView::target_update_active_flag(datum_index target_prop_index)
 
 namespace actor_target_update_tracking_speed_local {
 extern "C" {
-extern double sqrt(double x);
-static float sqrtf_(float x) { return (float)sqrt((double)x); }
+static float sqrtf_(float x) { return (float)halo::libm::sqrt((double)x); }
 }
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 }

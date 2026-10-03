@@ -5,10 +5,8 @@
 #include "halo/game/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/camera/vars.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double pow(double base, double exponent);
-}
 static auto &mouse_device = halo::link::ref<void *>(halo::camera::vars().mouse_device);
 static auto &live_mouse_state = halo::link::ref<mouse_state>(halo::camera::vars().live_mouse_state);
 static auto &mouse_neutral_state = halo::link::ref<mouse_state>(halo::camera::vars().mouse_neutral_state);
@@ -288,7 +286,7 @@ void DirectorHandle::input_axes_update(uint32_t key_bits, float zoom)
     float look_scale;
     int32_t count;
 
-    look_scale = (float)(pow((double)1.3f, (double)zoom) * director->look_scale);
+    look_scale = (float)(halo::libm::pow((double)1.3f, (double)zoom) * director->look_scale);
     director->look_scale = look_scale;
     if (look_scale < 0.01f) {
         look_scale = 0.01f;

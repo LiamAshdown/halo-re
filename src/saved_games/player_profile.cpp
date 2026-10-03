@@ -36,8 +36,6 @@ static void copy_profile_block(saved_player_profile *destination, const saved_pl
 }
 
 extern "C" {
-extern void *memset(void *dest, int32_t value, uint32_t count);
-extern void *memcpy(void *dest, const void *src, uint32_t count);
 extern uint8_t rasterizer_decal_zbias_active(void);
 extern uint8_t rasterizer_parse_vidmode_commandline(int32_t *width_out, int32_t *height_out, long *refresh_out);
 extern void display_mode_get_current(rasterizer_display_mode *out);

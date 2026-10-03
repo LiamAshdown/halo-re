@@ -4,10 +4,9 @@
 #include "halo/effects/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
-extern double cos(double x);
-extern double sin(double x);
 float effect_distribution_function_evaluate(EffectDistributionFunction_t type, float fraction);
 void effect_random_direction_from_table(real_point3d *out);
 void effect_random_direction_vector(random_seed *seed, real_point3d *out, real min, real max, effect *self, uint32_t a_bitset, uint32_t b_bitset);
@@ -176,9 +175,9 @@ void effect_random::velocity_vector(effect *self, random_seed *seed, real_vector
         real_vector3d axis;
         int16_t index;
 
-        cos_angle = (real)cos(angle);
+        cos_angle = (real)halo::libm::cos(angle);
         *seed = *seed * k_random_multiplier + k_random_increment;
-        sin_angle = (real)sin(angle);
+        sin_angle = (real)halo::libm::sin(angle);
 
         index = (int16_t)(((*seed >> k_random_value_shift) * (uint32_t)(int32_t)halo::math::globals().sphere_point_table_count) >> 16);
         axis.i = halo::math::globals().sphere_point_table[index].x;

@@ -14,6 +14,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
 
 namespace c_actor_attempt_grenade_throw {
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
@@ -580,7 +581,6 @@ namespace c_actor_find_nearest_grenade_ally {
 extern "C" {
 
 
-extern double sqrt(double x);
 
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
@@ -652,7 +652,7 @@ int32_t halo::ai::grenade_ops::find_nearest_grenade_ally(uint8_t widen_search)
                 float dx = other->body_position.x - self->body_position.x;
                 float dy = other->body_position.y - self->body_position.y;
                 float dz = other->body_position.z - self->body_position.z;
-                float distance = (float)sqrt(dz * dz + dx * dx + dy * dy);
+                float distance = (float)halo::libm::sqrt(dz * dz + dx * dx + dy * dy);
 
                 seen++;
                 if (distance < best_distance) {

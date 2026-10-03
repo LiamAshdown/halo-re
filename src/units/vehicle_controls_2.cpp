@@ -2,12 +2,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double fmod(double x, double y);
-extern double cos(double x);
-extern double sin(double x);
-}
 
 namespace halo::units {
 
@@ -31,7 +27,7 @@ void VehicleView::calculate_steering_wheel_controls(void *mass_points, float *po
     float wrapped;
 
     vehicle->wheel_rotation = vehicle->forward_velocity + vehicle->wheel_rotation;
-    wrapped = (float)fmod(vehicle->wheel_rotation, tag->wheel_circumference);
+    wrapped = (float)halo::libm::fmod(vehicle->wheel_rotation, tag->wheel_circumference);
     vehicle->wheel_rotation = wrapped;
     if (wrapped < 0.0f) {
         vehicle->wheel_rotation = wrapped + tag->wheel_circumference;
@@ -44,8 +40,8 @@ void VehicleView::calculate_steering_wheel_controls(void *mass_points, float *po
 
     {
         float turning = vehicle->turning_velocity;
-        float c = (float)cos((double)turning * 0.5);
-        float s = (float)sin((double)turning * 0.5);
+        float c = (float)halo::libm::cos((double)turning * 0.5);
+        float s = (float)halo::libm::sin((double)turning * 0.5);
 
         out_transform[0] = vehicle->forward_velocity;
         out_transform[7] = 0.0f;
@@ -83,14 +79,14 @@ void VehicleView::calculate_turret_controls(void *mass_points, float *powered_st
     float wrapped;
 
     vehicle->left_wheel_rotation = (forward - turning) + vehicle->left_wheel_rotation;
-    wrapped = (float)fmod(vehicle->left_wheel_rotation, tag->wheel_circumference);
+    wrapped = (float)halo::libm::fmod(vehicle->left_wheel_rotation, tag->wheel_circumference);
     vehicle->left_wheel_rotation = wrapped;
     if (wrapped < 0.0f) {
         vehicle->left_wheel_rotation = wrapped + tag->wheel_circumference;
     }
 
     vehicle->right_wheel_rotation = (turning + forward) + vehicle->right_wheel_rotation;
-    wrapped = (float)fmod(vehicle->right_wheel_rotation, tag->wheel_circumference);
+    wrapped = (float)halo::libm::fmod(vehicle->right_wheel_rotation, tag->wheel_circumference);
     vehicle->right_wheel_rotation = wrapped;
     if (wrapped < 0.0f) {
         vehicle->right_wheel_rotation = wrapped + tag->wheel_circumference;

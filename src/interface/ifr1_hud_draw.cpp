@@ -14,20 +14,11 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
-extern "C" {
-extern int32_t ROUND(float x);
-}
 static auto &render_viewport_top = halo::link::ref<uint32_t>(halo::ui::vars().render_viewport_top);
 static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
-extern "C" {
-extern int32_t __ftol(double x);
-extern float sinf(float x);
-extern float cosf(float x);
-extern float sqrtf(float x);
-extern float atan2f(float y, float x);
-extern long lrint(double x);
-}
 static auto &hud_multitexture_effector_counter = halo::link::ref<float>(halo::ui::vars().hud_multitexture_effector_counter);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 
@@ -128,8 +119,8 @@ void HudDraw::anchor_offset_to_screen_position(uint16_t *anchor, uint8_t has_sca
         y = (float)dy * scale + y;
     }
 store:
-    out[0] = (int16_t)(int32_t)ROUND(x);
-    out[1] = (int16_t)(int32_t)ROUND(y);
+    out[0] = (int16_t)(int32_t)halo::x87::ROUND(x);
+    out[1] = (int16_t)(int32_t)halo::x87::ROUND(y);
 }
 
 /**
@@ -292,21 +283,21 @@ void HudDraw::message_icon(const hud_messaging_information *information, Rectang
     if (halo::game::globals().local_player_globals->local_player_count <= 1) {
         scale = 1.0f;
     }
-    x = (int16_t)__ftol((double)((float)information->offset.x * scale + (float)cursor->left));
+    x = (int16_t)halo::x87::__ftol((double)((float)information->offset.x * scale + (float)cursor->left));
     position.x = x;
-    position.y = (int16_t)__ftol((double)((float)cursor->bottom - (float)information->offset.y * scale));
+    position.y = (int16_t)halo::x87::__ftol((double)((float)cursor->bottom - (float)information->offset.y * scale));
     if ((information->flags & 2) != 0) {
         color = *(const uint32_t *)&information->override_icon_color;
     }
     halo::interface::hud_draw_bitmap_at(uv, bitmap, 0, 2, &position, scale, 0.0f, color);
 
     if ((information->flags & 4) != 0) {
-        cursor->left = (int16_t)__ftol((double)((float)information->width_offset * scale + (float)x));
+        cursor->left = (int16_t)halo::x87::__ftol((double)((float)information->width_offset * scale + (float)x));
     } else if (uv != 0) {
-        cursor->left = (int16_t)__ftol((double)(((uv[1] - uv[0]) * (float)(int16_t)bitmap->width +
+        cursor->left = (int16_t)halo::x87::__ftol((double)(((uv[1] - uv[0]) * (float)(int16_t)bitmap->width +
                                                  (float)information->width_offset) * scale + (float)x));
     } else {
-        cursor->left = (int16_t)__ftol((double)((float)((int16_t)bitmap->width + information->width_offset) * scale +
+        cursor->left = (int16_t)halo::x87::__ftol((double)((float)((int16_t)bitmap->width + information->width_offset) * scale +
                                                 (float)x));
     }
 }
@@ -368,8 +359,8 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
     fades[2] = 1.0f;
     geometry_offset[0] = 0.0f;
     geometry_offset[1] = 0.0f;
-    sine = sinf(rotation);
-    cosine = cosf(rotation);
+    sine = halo::libm::sinf(rotation);
+    cosine = halo::libm::cosf(rotation);
 
     halo::interface::hud_player_weapon_ammo_state(
         halo::interface::player_record(hud_local_player_index_to_player(local_player_index)),
@@ -385,9 +376,9 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
 
         x = (corner & 2) != 0 ? extents[1] : extents[0];
         rotated = (x * cosine - y * sine) * scale[0];
-        vertices[i].x = (float)(screen_position->x + (int32_t)lrint(rotated));
+        vertices[i].x = (float)(screen_position->x + (int32_t)halo::libm::lrint(rotated));
         rotated = (y * cosine + x * sine) * scale[1];
-        vertices[i].y = (float)(screen_position->y + (int32_t)lrint(rotated));
+        vertices[i].y = (float)(screen_position->y + (int32_t)halo::libm::lrint(rotated));
         vertices[i].z = 0.0f;
         vertices[i].color = color;
         vertices[i].u = u;
@@ -464,7 +455,7 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
                 unit_index = (halo::interface::player_record(player_index))->unit;
             }
             aim = (const float *)(halo::interface::object_record(unit_index) + 0x23c);
-            value = atan2f(aim[2], sqrtf(aim[0] * aim[0] + aim[1] * aim[1]));
+            value = halo::libm::atan2f(aim[2], halo::libm::sqrtf(aim[0] * aim[0] + aim[1] * aim[1]));
             break;
         }
         case 1:
@@ -740,8 +731,8 @@ void HudDraw::rotated_bitmap_quad(const Point2DInt *screen_position, const float
     float cosine;
     int16_t i;
 
-    sine = sinf(rotation);
-    cosine = cosf(rotation);
+    sine = halo::libm::sinf(rotation);
+    cosine = halo::libm::cosf(rotation);
     for (i = 0; i < 4; i++) {
         int32_t corner = i + 1;
         float u = (corner & 2) != 0 ? uv[1] : uv[0];
@@ -751,9 +742,9 @@ void HudDraw::rotated_bitmap_quad(const Point2DInt *screen_position, const float
         float rotated;
 
         rotated = (x * cosine - y * sine) * scale[0];
-        vertices[i].x = (float)(screen_position->x + (int32_t)lrint(rotated));
+        vertices[i].x = (float)(screen_position->x + (int32_t)halo::libm::lrint(rotated));
         rotated = (y * cosine + x * sine) * scale[1];
-        vertices[i].y = (float)(screen_position->y + (int32_t)lrint(rotated));
+        vertices[i].y = (float)(screen_position->y + (int32_t)halo::libm::lrint(rotated));
         vertices[i].z = 0.0f;
         vertices[i].color = color;
         vertices[i].u = u;

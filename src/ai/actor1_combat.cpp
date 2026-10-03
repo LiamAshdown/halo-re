@@ -13,6 +13,8 @@
 #include "halo/ai/records.hpp"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 namespace c_actor_check_burst_length_exceeded {
 }
@@ -480,10 +482,6 @@ void actor_choose_best_target(datum_index actor_index)
 }
 
 namespace c_actor_choose_random_point_near {
-extern "C" {
-extern double fcos(double x);
-extern double fsin(double x);
-}
 }
 
 
@@ -511,8 +509,8 @@ void halo::ai::combat_ops::choose_random_point_near(real_point3d *inout_point, f
     {
         uint32_t roll = halo::math::globals().random_seed_global >> 0x10;
         double angle = (double)roll * 1.5259022e-05 * 6.2831855 - 3.1415927;
-        cos_angle = (float)fcos(angle);
-        sin_angle = (float)fsin(angle);
+        cos_angle = (float)halo::x87::fcos(angle);
+        sin_angle = (float)halo::x87::fsin(angle);
     }
 
     chosen.x = cos_angle * radius + base.x;
@@ -1001,10 +999,8 @@ uint8_t actor_evaluate_custom_charge_trigger(datum_index actor_index)
 
 namespace c_actor_evaluate_flank_offset {
 extern "C" {
-extern double sqrt(double x);
-static float sqrt_f(float x) { return (float)sqrt((double)x); }
-extern double fabs(double x);
-static float fabs_f(float x) { return (float)fabs((double)x); }
+static float sqrt_f(float x) { return (float)halo::libm::sqrt((double)x); }
+static float fabs_f(float x) { return (float)halo::libm::fabs((double)x); }
 }
 }
 

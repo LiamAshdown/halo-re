@@ -5,10 +5,9 @@
 #include "halo/game/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/effects/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
-extern double cos(double x);
-extern double sin(double x);
 extern void player_effect_random_shake_offset(real_matrix4x3 *out, real magnitude, real angle);
 void player_effect_build_camera_shake_matrix(real_matrix4x3 *out, int16_t local_player_index);
 }
@@ -116,7 +115,7 @@ void player_effect_ref::build_camera_shake_matrix(real_matrix4x3 *out, int16_t l
             self[0xe8] &= 0xfd;
             halo::math::vector3d_cross_product(axis, *(real_vector3d *)self, *halo::math::globals().global_up3d_pointer);
             angle = t * *(real *)(self + 0x58);
-            halo::math::matrix4x3_from_axis_angle(rotation, axis, (real)sin((double)angle), (real)cos((double)angle));
+            halo::math::matrix4x3_from_axis_angle(rotation, axis, (real)halo::libm::sin((double)angle), (real)halo::libm::cos((double)angle));
             k = t * *(real *)(self + 0x5c);
             rotation.position.x = t * *(real *)(self + 0x0c) + k * *(real *)(self + 0x00);
             rotation.position.y = t * *(real *)(self + 0x10) + k * *(real *)(self + 0x04);

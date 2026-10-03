@@ -15,10 +15,9 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
-extern double atan2(double y, double x);
-extern double fabs(double x);
 extern uint8_t physics_scalar_step_to_target_clamped(void *rates, float *value, float target, float step);
 extern uint8_t physics_scalar_move_toward_target(void *range, float *value, uint8_t wrap, float target, float rate);
 extern void object_physics_tick(uint32_t object_index, void *powered_states, void *mass_points, real_vector3d *extra_force, real_vector3d *extra_torque);
@@ -199,7 +198,7 @@ uint32_t VehicleView::update()
         a.j = up->k * forward->i - forward->k * up->i;
         a.k = up->i * forward->j - forward->i * up->j;
         b = a;
-        angle = (float)atan2(b.j * ((struct unit_object *)obj)->unit.desired_facing_vector.j + b.k * ((struct unit_object *)obj)->unit.desired_facing_vector.k + b.i * ((struct unit_object *)obj)->unit.desired_facing_vector.i,
+        angle = (float)halo::libm::atan2(b.j * ((struct unit_object *)obj)->unit.desired_facing_vector.j + b.k * ((struct unit_object *)obj)->unit.desired_facing_vector.k + b.i * ((struct unit_object *)obj)->unit.desired_facing_vector.i,
                              ((struct unit_object *)obj)->unit.desired_facing_vector.k * forward->k + ((struct unit_object *)obj)->unit.desired_facing_vector.j * forward->j + ((struct unit_object *)obj)->unit.desired_facing_vector.i * forward->i);
         if ((((unit_object *)obj)->base.network_role == 2 || ((unit_object *)obj)->base.network_role == 1) && ((struct object *)obj)->network_position_valid == 1) {
             UnitView(object_index).any_flagged_seat_occupied();
@@ -369,7 +368,7 @@ uint32_t VehicleView::update()
         UnitView(object_index).update_animation_state_machine(request);
     }
     {
-        uint8_t over_blur = (uint8_t)(((struct Vehicle *)tag)->blur_speed <= (float)fabs(((struct vehicle_object *)obj)->vehicle.forward_velocity));
+        uint8_t over_blur = (uint8_t)(((struct Vehicle *)tag)->blur_speed <= (float)halo::libm::fabs(((struct vehicle_object *)obj)->vehicle.forward_velocity));
 
         if (over_blur != ((uint8_t)((struct vehicle_object *)obj)->vehicle.flags & 1)) {
             halo::objects::object_set_permutation_by_name(object_index, s_blur_permutation, -1, (char)over_blur);

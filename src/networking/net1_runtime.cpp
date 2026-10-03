@@ -20,6 +20,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/core/x87.hpp"
 
 static auto &network_connection_stats = halo::link::ref<network_connection_statistics [k_network_connection_stats_count]>(halo::networking::vars().network_connection_stats);
 static auto &network_statistics_logging_enabled = halo::link::ref<uint8_t>(halo::networking::vars().network_statistics_logging_enabled);
@@ -56,9 +57,6 @@ extern uint8_t ui_wide_string_has_non_whitespace(void);
 }
 static auto &network_challenge_packet_block = halo::link::ref<uint16_t []>(halo::networking::vars().network_challenge_packet_block);
 static auto &network_random_seeded = halo::link::ref<uint8_t>(halo::networking::vars().network_random_seeded);
-extern "C" {
-extern int32_t __ftol(int32_t value);
-}
 static auto &network_query_socket = halo::link::ref<int32_t>(halo::networking::vars().network_query_socket);
 static auto &network_game_socket = halo::link::ref<int32_t>(halo::networking::vars().network_game_socket);
 static auto &network_summary_log_file = halo::link::ref<void *>(halo::networking::vars().network_summary_log_file);
@@ -543,7 +541,7 @@ int32_t NetworkRuntime::random_offset(int32_t base)
         network_random_seeded = 1;
     }
     value = rand();
-    value = __ftol(value);
+    value = halo::x87::__ftol(value);
     return value + base;
 }
 

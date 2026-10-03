@@ -9,9 +9,9 @@
 #include "halo/game/vars.hpp"
 #include "halo/items/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
-extern double sqrt(double x);
 int32_t halo::items::weapon_add_ammunition(void **message_record);
 void halo::items::weapon_apply_ammo_correction(void **message_record);
 void halo::items::weapon_apply_ammo_correction_and_resync(void **message_record);
@@ -220,7 +220,7 @@ void weapon_ref::apply_network_update(uint32_t *update_record)
         dy = snapshot.position.y - item_obj->position.y;
         dz = snapshot.position.z - item_obj->position.z;
         if ((item_obj->flags & 0x800) != 0 &&
-            (weapon_network_update_position_tolerance < (real)sqrt((double)(dy * dy + dx * dx + dz * dz)) ||
+            (weapon_network_update_position_tolerance < (real)halo::libm::sqrt((double)(dy * dy + dx * dx + dz * dz)) ||
              (item_obj->flags & 0x20) != 0 || header->force_baseline != 0)) {
             halo::objects::object_set_position_and_recalculate(&snapshot.position, item_index);
         }

@@ -14,6 +14,8 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 namespace c_actor_apply_queued_look_to_unit {
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
@@ -206,9 +208,6 @@ void actor_clear_vocalization(datum_index actor_index)
 namespace c_actor_dispatch_look_handler_by_posture {
 extern "C" {
 
-extern double sqrt(double x);
-extern double atan2(double y, double x);
-extern double fabs(double x);
 
 
 static const float k_perception_range_class_scale[4] = {0.4f, 0.6f, 0.8f, 1.0f};
@@ -270,13 +269,13 @@ int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, ui
         float forward = dz * actor->unit_looking_vector.k + dy * actor->unit_looking_vector.j + dx * actor->unit_looking_vector.i;
         float left = dz * actor->looking_left_vector.k + dy * actor->looking_left_vector.j + dx * actor->looking_left_vector.i;
         float up = dz * actor->looking_up_vector.k + dy * actor->looking_up_vector.j + dx * actor->looking_up_vector.i;
-        float elevation = (float)atan2((double)up, sqrt((double)(left * left + forward * forward)));
+        float elevation = (float)halo::libm::atan2((double)up, halo::libm::sqrt((double)(left * left + forward * forward)));
 
         if (elevation > 0.5235988f || !(elevation > -0.78539819f)) {
             range = 0.0f;
             current = 0.0f;
         } else {
-            float azimuth = (float)fabs(atan2((double)left, (double)forward));
+            float azimuth = (float)halo::libm::fabs(halo::libm::atan2((double)left, (double)forward));
 
             halo::ai::unit_get_move_speed_for_range(actor_index, range, scale, azimuth, &range, &scale);
             current = scale;
@@ -433,10 +432,6 @@ void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_ind
 }
 
 namespace c_actor_look_get_wait_ticks {
-extern "C" {
-
-extern int32_t fistp_round(float x);
-}
 }
 
 
@@ -499,7 +494,7 @@ int32_t halo::ai::look_ops::look_get_wait_ticks(int16_t mode, uint32_t flags, fl
     }
 
     ticks = fraction * 30.0f;
-    result = fistp_round(ticks);
+    result = halo::x87::fistp_round(ticks);
     if (result < 2) {
         result = 1;
     }
@@ -514,13 +509,6 @@ int32_t actor_look_get_wait_ticks(datum_index actor_index, int16_t mode, uint32_
 }
 
 namespace c_actor_look_pick_random_point_in_cone {
-extern "C" {
-
-extern double cos(double x);
-extern double sin(double x);
-extern double sqrt(double x);
-
-}
 }
 
 
@@ -559,12 +547,12 @@ uint8_t halo::ai::look_ops::look_pick_random_point_in_cone(void *origin, float y
 
         direction = *base_direction;
 
-        cos_a = (float)cos((double)pitch);
-        sin_a = (float)sin((double)pitch);
+        cos_a = (float)halo::libm::cos((double)pitch);
+        sin_a = (float)halo::libm::sin((double)pitch);
         halo::math::vector3d_rotate_about_axis(direction, right_axis, sin_a, cos_a);
 
-        cos_a = (float)cos((double)yaw);
-        sin_a = (float)sin((double)yaw);
+        cos_a = (float)halo::libm::cos((double)yaw);
+        sin_a = (float)halo::libm::sin((double)yaw);
         halo::math::vector3d_rotate_about_axis(direction, *(real_vector3d *)halo::math::globals().global_up3d_pointer, sin_a, cos_a);
 
         if (!check_obstruction) {
@@ -587,7 +575,7 @@ uint8_t halo::ai::look_ops::look_pick_random_point_in_cone(void *origin, float y
     }
 
     {
-        double length = sqrt((double)(direction.k * direction.k + direction.j * direction.j + direction.i * direction.i));
+        double length = halo::libm::sqrt((double)(direction.k * direction.k + direction.j * direction.j + direction.i * direction.i));
         if ((double)0.0001f <= ((length < 0.0) ? -length : length)) {
             double inv = 1.0 / length;
             direction.i = (float)(direction.i * inv);
@@ -609,11 +597,6 @@ uint8_t actor_look_pick_random_point_in_cone(void *origin, float yaw_min, float 
 }
 
 namespace c_actor_look_randomize_direction {
-extern "C" {
-
-extern double cos(double x);
-
-}
 }
 
 

@@ -29,6 +29,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/libm.hpp"
 
 #define k_degrees_to_radians 0.017453292f
 #define k_seconds_per_tick   0.033333335f
@@ -45,10 +46,6 @@ static auto &look_pitch_rate_setting = halo::link::ref<real [k_maximum_local_pla
 static auto &look_aim_assist_enabled = halo::link::ref<uint8_t>(halo::game::vars().look_aim_assist_enabled);
 static auto &look_rate_doubler_zoom_inverts = halo::link::ref<uint8_t>(halo::game::vars().look_rate_doubler_zoom_inverts);
 static auto &look_rate_doubler_enabled = halo::link::ref<uint8_t>(halo::game::vars().look_rate_doubler_enabled);
-extern "C" {
-extern double sqrt(double x);
-extern double atan2(double y, double x);
-}
 static auto &game_engine_input_source_flag = halo::link::ref<uint8_t>(halo::game::vars().game_engine_input_source_flag);
 static auto &cinematic_globals_ptr = halo::link::ref<uint8_t *>(halo::game::vars().cinematic_globals_ptr);
 static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
@@ -169,7 +166,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
                 b = abs_x / abs_y;
                 a = 1.0f;
             }
-            scale = (real)sqrt((double)(a * a + b * b));
+            scale = (real)halo::libm::sqrt((double)(a * a + b * b));
         }
 
         look_x = scale * input->look_x;
@@ -369,7 +366,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
         real magnitude = out->throttle_x * out->throttle_x + out->throttle_y * out->throttle_y;
 
         if (magnitude > 1.0f) {
-            real inverse = 1.0f / (real)sqrt((double)magnitude);
+            real inverse = 1.0f / (real)halo::libm::sqrt((double)magnitude);
 
             out->throttle_x = inverse * out->throttle_x;
             out->throttle_y = inverse * out->throttle_y;
@@ -409,9 +406,9 @@ void LocalControl::compute_look_angles_from_vector(real_vector3d *facing, int16_
     local_player_control *look = &player_control_globals_ptr->local_players[local_player_index];
     real horizontal;
 
-    look->yaw = (real)atan2((double)facing->j, (double)facing->i);
-    horizontal = (real)sqrt((double)(facing->i * facing->i + facing->j * facing->j));
-    look->pitch = (real)atan2((double)facing->k, (double)horizontal);
+    look->yaw = (real)halo::libm::atan2((double)facing->j, (double)facing->i);
+    horizontal = (real)halo::libm::sqrt((double)(facing->i * facing->i + facing->j * facing->j));
+    look->pitch = (real)halo::libm::atan2((double)facing->k, (double)horizontal);
     if (look->yaw < 0.0f) {
         look->yaw = look->yaw + 6.2831855f;
     }
@@ -613,10 +610,10 @@ void LocalControl::init_player_look_state_from_object(datum_index unit, int16_t 
             (uint32_t)(uint16_t)unit * halo::objects::globals().object_data->size + 8);
         real horizontal;
 
-        look->yaw = (real)atan2((double)u->desired_facing_vector.j, (double)u->desired_facing_vector.i);
-        horizontal = (real)sqrt((double)(u->desired_facing_vector.i * u->desired_facing_vector.i +
+        look->yaw = (real)halo::libm::atan2((double)u->desired_facing_vector.j, (double)u->desired_facing_vector.i);
+        horizontal = (real)halo::libm::sqrt((double)(u->desired_facing_vector.i * u->desired_facing_vector.i +
             u->desired_facing_vector.j * u->desired_facing_vector.j));
-        look->pitch = (real)atan2((double)u->desired_facing_vector.k, (double)horizontal);
+        look->pitch = (real)halo::libm::atan2((double)u->desired_facing_vector.k, (double)horizontal);
         if (look->yaw < 0.0f) {
             look->yaw = look->yaw + 6.2831855f;
         }

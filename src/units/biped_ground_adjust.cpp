@@ -12,13 +12,8 @@
 #include "halo/objects/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double acos(double x);
-extern double sin(double x);
-extern double fabs(double x);
-extern double sqrt(double x);
-}
 static auto &ground_adjust_physics_model = halo::link::ref<physics_model>(halo::units::vars().ground_adjust_physics_model);
 static auto &unit_ground_adjust_node_positions = halo::link::ref<real_point3d [64]>(halo::units::vars().unit_ground_adjust_node_positions);
 
@@ -78,11 +73,11 @@ void BipedView::ground_adjust_apply_node_rotations(real_matrix4x3 *nodes, real_p
         axis.k = current.j * saved.i - saved.j * current.i;
         halo::math::vector3d_normalize_with_length(axis);
         cosine = current.k * saved.k + current.j * saved.j + current.i * saved.i;
-        if (fabs((double)(cosine - 1.0f)) < 9.999999747378752e-05) {
+        if (halo::libm::fabs((double)(cosine - 1.0f)) < 9.999999747378752e-05) {
             continue;
         }
-        angle = (float)acos((double)cosine);
-        if (fabs((double)angle) < 9.999999747378752e-05 || !(fabs((double)angle) < 0.7853981852531433)) {
+        angle = (float)halo::libm::acos((double)cosine);
+        if (halo::libm::fabs((double)angle) < 9.999999747378752e-05 || !(halo::libm::fabs((double)angle) < 0.7853981852531433)) {
             continue;
         }
         {
@@ -90,7 +85,7 @@ void BipedView::ground_adjust_apply_node_rotations(real_matrix4x3 *nodes, real_p
             real sine;
 
             biped_ground_adjust_make_orthonormal(parent);
-            sine = (real)sin((double)angle);
+            sine = (real)halo::libm::sin((double)angle);
             halo::math::vector3d_rotate_about_axis(parent->forward, axis, sine, cosine);
             halo::math::vector3d_rotate_about_axis(parent->up, axis, sine, cosine);
             halo::math::vector3d_normalize_with_length(parent->forward);
@@ -106,7 +101,7 @@ namespace biped_ground_adjust_solve_local {
 
 static int biped_ground_adjust_near_zero(float value)
 {
-    return fabs((double)value) < 9.999999747378752e-05;
+    return halo::libm::fabs((double)value) < 9.999999747378752e-05;
 }
 
 }
@@ -249,7 +244,7 @@ void BipedView::ground_adjust_solve(real_matrix4x3 *nodes)
                     float dy = parent->y - self->y;
                     float dz = parent->z - self->z;
 
-                    current_length = (float)sqrt(dz * dz + dy * dy + dx * dx);
+                    current_length = (float)halo::libm::sqrt(dz * dz + dy * dy + dx * dx);
                 }
                 if (rest_length > 0.0f && rest_length <= 10.0f && !(current_length < 0.0f) &&
                     current_length < 20.0f && !biped_ground_adjust_near_zero(current_length) &&
@@ -301,7 +296,7 @@ static void biped_ground_adjust_mark(uint32_t *success_bits, int32_t node_index)
 
 static int biped_ground_adjust_is_one(float value)
 {
-    return fabs((double)(value - 1.0f)) < 9.999999747378752e-05;
+    return halo::libm::fabs((double)(value - 1.0f)) < 9.999999747378752e-05;
 }
 
 }
@@ -325,7 +320,7 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
     float tolerance = ((ModelAnimations *)graph)->limp_body_node_radius;
     char updated = 0;
 
-    if (fabs((double)tolerance) < 9.999999747378752e-05 || tolerance < 0.0f || tolerance > 0.07f) {
+    if (halo::libm::fabs((double)tolerance) < 9.999999747378752e-05 || tolerance < 0.0f || tolerance > 0.07f) {
         tolerance = 0.03f;
     }
 
@@ -351,7 +346,7 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
         cosine = to_reference.k * to_self.k + to_reference.j * to_self.j + to_reference.i * to_self.i;
 
         if (!biped_ground_adjust_is_one(cosine)) {
-            float angle = (float)acos((double)cosine);
+            float angle = (float)halo::libm::acos((double)cosine);
             float *base = (float *)(parent_node + 0x2c);
             real_matrix4x3 parent_inverse;
             real_matrix4x3 grandparent_inverse;
@@ -394,10 +389,10 @@ char BipedView::ground_adjust_solve_node(real_point3d *reference_position, int32
             } else {
                 float alignment;
 
-                halo::math::vector3d_rotate_about_axis(local_forward, local_axis, (real)sin((double)angle), cosine);
+                halo::math::vector3d_rotate_about_axis(local_forward, local_axis, (real)halo::libm::sin((double)angle), cosine);
                 alignment = local_forward.j * base[1] + local_forward.k * base[2] + local_forward.i * base[0];
                 if (!biped_ground_adjust_is_one(alignment) &&
-                    *(float *)(parent_node + 0x38) > (float)fabs(acos((double)alignment)) &&
+                    *(float *)(parent_node + 0x38) > (float)halo::libm::fabs(halo::libm::acos((double)alignment)) &&
                     own_position->z > reference_position->z) {
                     biped_ground_adjust_mark(success_bits, node_index);
                     *own_position = *reference_position;

@@ -26,6 +26,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/physics/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &breakable_surfaces_enabled = halo::link::ref<uint8_t>(halo::physics::vars().breakable_surfaces_enabled);
 static auto &global_structure_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_structure_collision_bsp);
@@ -34,11 +35,6 @@ static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().glob
 static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 extern "C" { extern void particle_new(particle_creation_data *creation_data); }
 extern "C" { extern datum_index halo::sound::sound_play_new(datum_index definition_index, sound_location *location, datum_index owner_index, sound_location_proc location_proc, void *callback_data, int32_t callback_data_size, uint32_t first_person_hint); }
-extern "C" { extern double sqrt(double x); }
-extern "C" { extern double fabs(double x); }
-extern "C" { extern double floor(double x); }
-extern "C" { extern double ceil(double x); }
-extern "C" { extern double pow(double base, double exponent); }
 #define F(p, o) (*(float *)((uint8_t *)(p) + (o)))
 #define I32(p, o) (*(int32_t *)((uint8_t *)(p) + (o)))
 #define I16(p, o) (*(int16_t *)((uint8_t *)(p) + (o)))
@@ -64,7 +60,7 @@ static int16_t shatter_grid_bound(float value, int round_up)
     } else if (!(value <= 1000.0f)) {
         value = 1000.0f;
     }
-    rounded = round_up ? ceil((double)value) : floor((double)value);
+    rounded = round_up ? halo::libm::ceil((double)value) : halo::libm::floor((double)value);
     return (int16_t)(int32_t)(float)rounded;
 }
 
@@ -78,7 +74,7 @@ static float shatter_falloff(float distance, float radius, float exponent)
         t = 1.0f;
     }
     if (exponent != 0.0f) {
-        t = (float)pow((double)t, (double)exponent);
+        t = (float)halo::libm::pow((double)t, (double)exponent);
     }
     return t;
 }
@@ -151,9 +147,9 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
         }
 
         {
-            float ax = (float)fabs((double)plane[0]);
-            float ay = (float)fabs((double)plane[1]);
-            float az = (float)fabs((double)plane[2]);
+            float ax = (float)halo::libm::fabs((double)plane[0]);
+            float ay = (float)halo::libm::fabs((double)plane[1]);
+            float az = (float)halo::libm::fabs((double)plane[2]);
 
             if (az < ay || az < ax) {
                 axis = (int16_t)(ay < ax ? 0 : 1);
@@ -182,7 +178,7 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
 
                     ((float *)&origin)[u_axis] = pu;
                     ((float *)&origin)[v_axis] = pv;
-                    if (!(fabs((double)plane[axis]) < 0.0001)) {
+                    if (!(halo::libm::fabs((double)plane[axis]) < 0.0001)) {
                         ((float *)&origin)[axis] = ((plane[3] - pu * plane[u_axis]) - pv * plane[v_axis]) / plane[axis];
                     } else {
                         ((float *)&origin)[axis] = 0.0f;
@@ -195,8 +191,8 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                 e_axis.i = b[0] - a[0];
                 e_axis.j = b[1] - a[1];
                 e_axis.k = b[2] - a[2];
-                length = (float)sqrt((double)(e_axis.i * e_axis.i + e_axis.k * e_axis.k + e_axis.j * e_axis.j));
-                if (!(fabs((double)length) < 0.0001)) {
+                length = (float)halo::libm::sqrt((double)(e_axis.i * e_axis.i + e_axis.k * e_axis.k + e_axis.j * e_axis.j));
+                if (!(halo::libm::fabs((double)length) < 0.0001)) {
                     float inverse = 1.0f / length;
 
                     e_axis.i *= inverse;
@@ -331,8 +327,8 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
                         away.i = point.x - F(damage_raw, 0x28);
                         away.j = point.y - F(damage_raw, 0x2c);
                         away.k = point.z - F(damage_raw, 0x30);
-                        distance = (float)sqrt((double)(away.k * away.k + away.j * away.j + away.i * away.i));
-                        if (!(fabs((double)distance) < 0.0001)) {
+                        distance = (float)halo::libm::sqrt((double)(away.k * away.k + away.j * away.j + away.i * away.i));
+                        if (!(halo::libm::fabs((double)distance) < 0.0001)) {
                             float inverse = 1.0f / distance;
 
                             away.i *= inverse;
@@ -404,11 +400,11 @@ void BreakableSurfaces::breakable_surface_shatter(uint16_t breakable_surface_ind
 
                         {
                             real_vector3d *direction = (real_vector3d *)&creation.direction;
-                            float length = (float)sqrt((double)(direction->k * direction->k +
+                            float length = (float)halo::libm::sqrt((double)(direction->k * direction->k +
                                 direction->j * direction->j + direction->i * direction->i));
                             uint8_t random_direction = 1;
 
-                            if (!(fabs((double)length) < 0.0001)) {
+                            if (!(halo::libm::fabs((double)length) < 0.0001)) {
                                 float inverse = 1.0f / length;
 
                                 direction->i *= inverse;

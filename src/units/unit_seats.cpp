@@ -26,11 +26,11 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern double sqrt(double x);
 extern void player_reset_after_unit_change(uint32_t controlling_player);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 }
@@ -865,12 +865,12 @@ uint16_t UnitView::find_best_seat_to_enter(uint32_t vehicle_index, int16_t *out_
             float dx = unit_obj->bounding_center.x - marker_a.i;
             float dy = unit_obj->bounding_center.y - marker_a.j;
             float dz = unit_obj->bounding_center.z - marker_a.k;
-            float dist_a = (float)sqrt((double)(dx * dx + dy * dy + dz * dz));
+            float dist_a = (float)halo::libm::sqrt((double)(dx * dx + dy * dy + dz * dz));
 
             dx = unit_obj->bounding_center.x - marker_b.i;
             dy = unit_obj->bounding_center.y - marker_b.j;
             dz = unit_obj->bounding_center.z - marker_b.k;
-            float dist_b = (float)sqrt((double)(dx * dx + dy * dy + dz * dz));
+            float dist_b = (float)halo::libm::sqrt((double)(dx * dx + dy * dy + dz * dz));
 
             float dist = (dist_b < dist_a) ? dist_b : dist_a;
 

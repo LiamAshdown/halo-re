@@ -25,6 +25,8 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 static auto &hud_messaging_parameters = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_messaging_parameters);
 static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
@@ -46,8 +48,6 @@ static auto &hud_text_unbound = halo::link::ref<const uint16_t []>(halo::ui::var
 static auto &hud_text_unknown = halo::link::ref<const uint16_t []>(halo::ui::vars().hud_text_unknown);
 static auto &hud_text_no_button_icon = halo::link::ref<const uint16_t []>(halo::ui::vars().hud_text_no_button_icon);
 extern "C" {
-extern int32_t __ftol(double x);
-extern double pow(double base, double exponent);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text);
 }
@@ -267,10 +267,10 @@ void HudMessaging::messaging_update(int16_t local_player_index)
 
     if (!objective_shown && !help_shown && (record->message_shown != 0 || record->prompt_changed != 0)) {
         if (split_screen) {
-            y = (int16_t)__ftol((double)((float)(origin.y - hud_splitscreen_message_raise) +
+            y = (int16_t)halo::x87::__ftol((double)((float)(origin.y - hud_splitscreen_message_raise) +
                                          (float)line_height * parameters->text_spacing));
         } else {
-            y = (int16_t)__ftol((double)((float)line_height * parameters->text_spacing + (float)origin.y));
+            y = (int16_t)halo::x87::__ftol((double)((float)line_height * parameters->text_spacing + (float)origin.y));
         }
         max_lines--;
     }
@@ -295,7 +295,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
             } else if (t > 1.0f) {
                 t = 1.0f;
             }
-            color.alpha = (float)pow((double)t, 1.899999976158142) * color.alpha;
+            color.alpha = (float)halo::libm::pow((double)t, 1.899999976158142) * color.alpha;
         }
 
         cursor = screen_safe_area_right;
@@ -303,7 +303,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
         cursor.left = origin.x;
         cursor.top = y;
         cursor.bottom = (int16_t)(line_height + y);
-        y = (int16_t)__ftol((double)((float)line_height * parameters->text_spacing + (float)y));
+        y = (int16_t)halo::x87::__ftol((double)((float)line_height * parameters->text_spacing + (float)y));
         hud_messaging_set_text_state(font, &color);
 
         if (slot->source == -1) {

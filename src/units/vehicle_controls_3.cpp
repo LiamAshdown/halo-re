@@ -11,12 +11,11 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 extern "C" {
 extern void object_physics_tick(uint32_t unit_index, void *node_output, void *contact_points, void *extra_force, void *extra_torque);
-extern double sqrt(double x);
-extern double fabs(double x);
-extern float fabsf(float x);
 }
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &g_006966e4 = halo::link::ref<real_vector3d *>(halo::units::vars().g_006966e4);
@@ -78,7 +77,7 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
             desired.j = accel * unit->throttle.j - local_velocity.j;
             desired.k = 0.0f;
 
-            if (vehicle->landing_ticks != 0 && fabsf(angle) > 0.7853982f) {
+            if (vehicle->landing_ticks != 0 && halo::x87::fabsf(angle) > 0.7853982f) {
                 float t = (float)vehicle->landing_ticks * 0.05f;
                 if (t > 0.98f) t = 0.98f;
                 accel = (1.0f - t) * tag->speed_acceleration;
@@ -98,8 +97,8 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
         }
 
         if (vehicle->ground_lean > 0.0f) {
-            float target = (float)sqrt(fabs((double)angle) * 0.0069813174) * ((angle >= 0.0f) ? 1.0f : -1.0f);
-            if (fabsf(target) > 0.0001f && angle / target < 2.0f) {
+            float target = (float)halo::libm::sqrt(halo::libm::fabs((double)angle) * 0.0069813174) * ((angle >= 0.0f) ? 1.0f : -1.0f);
+            if (halo::x87::fabsf(target) > 0.0001f && angle / target < 2.0f) {
                 target = angle * 0.5f;
             }
             target -= (obj->angular_velocity.i * obj->up.i + obj->angular_velocity.j * obj->up.j +
@@ -119,16 +118,16 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
             right.k = obj->forward.j * obj->up.i - obj->forward.i * obj->up.j;
 
             {
-                float lateral_len = (float)sqrt((double)(obj->forward.j * obj->forward.j + obj->forward.i * obj->forward.i));
-                float right_len = (float)sqrt((double)(right.i * right.i + right.j * right.j));
+                float lateral_len = (float)halo::libm::sqrt((double)(obj->forward.j * obj->forward.j + obj->forward.i * obj->forward.i));
+                float right_len = (float)halo::libm::sqrt((double)(right.i * right.i + right.j * right.j));
                 float fx = obj->forward.i, fy = obj->forward.j;
                 float rx = right.i, ry = right.j;
 
-                if (fabsf(lateral_len) >= 0.0001f) {
+                if (halo::x87::fabsf(lateral_len) >= 0.0001f) {
                     fx *= 1.0f / lateral_len;
                     fy *= 1.0f / lateral_len;
                 }
-                if (fabsf(right_len) >= 0.0001f) {
+                if (halo::x87::fabsf(right_len) >= 0.0001f) {
                     rx *= 1.0f / right_len;
                     ry *= 1.0f / right_len;
                 }
@@ -145,8 +144,8 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
                         ty = (g_006966e4->j - (f + rx * obj->up.j)) -
                              -(fx * obj->angular_velocity.i + fy * obj->angular_velocity.j) * 15.0f;
                         {
-                            float a = fabsf(tx * unit->throttle.i) + 1.0f;
-                            float b = fabsf(ty * unit->throttle.j) + 1.0f;
+                            float a = halo::x87::fabsf(tx * unit->throttle.i) + 1.0f;
+                            float b = halo::x87::fabsf(ty * unit->throttle.j) + 1.0f;
                             if (a < 0.3f) a = 0.3f; else if (a > 2.5f) a = 2.5f;
                             if (b < 0.3f) b = 0.3f; else if (b > 2.5f) b = 2.5f;
                             {

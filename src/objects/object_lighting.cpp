@@ -13,11 +13,8 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/objects/vars.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double pow(double x, double y);
-extern double sqrt(double x);
-}
 static auto &default_axis_b = halo::link::ref<real_vector3d *>(halo::game::vars().default_axis_b);
 static auto &light_data = halo::link::ref<data_array *>(halo::objects::vars().light_data);
 static auto &light_frame_counter = halo::link::ref<int32_t>(halo::objects::vars().light_frame_counter);
@@ -433,14 +430,14 @@ void halo::objects::ObjectLighting::build_effect_parameter_block(uint8_t flags, 
     lighting->reflection_tint.blue = clamp_range(lightmap_color->blue + lightmap_color->blue + 0.25f, 0.0f, 1.0f) *
         lighting->reflection_tint.blue;
 
-    shadow_scale = (float)pow((double)intensity, 0.25);
+    shadow_scale = (float)halo::libm::pow((double)intensity, 0.25);
     x = shadow_scale * lighting->distant_lights[0].direction.i;
     y = shadow_scale * lighting->distant_lights[0].direction.j;
     lighting->shadow_vector.i = x;
     lighting->shadow_vector.j = y;
-    h = (float)sqrt((double)(x * x + y * y));
+    h = (float)halo::libm::sqrt((double)(x * x + y * y));
     if (h < 0.707f) {
-        lighting->shadow_vector.k = -(float)sqrt((double)(1.0f - h * h));
+        lighting->shadow_vector.k = -(float)halo::libm::sqrt((double)(1.0f - h * h));
     } else {
         float rescale = 0.707f / h;
 

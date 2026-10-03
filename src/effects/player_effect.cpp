@@ -18,15 +18,11 @@
 #include "halo/game/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
-extern double sqrt(double x);
 extern void player_effect_apply_continuous_damage(uint32_t tag_reference, int16_t local_player_index, float distance);
-extern double atan2(double y, double x);
-extern double fabs(double x);
 extern void player_effect_mark_damage_direction(datum_index player_index, const damage_data *dd, const real_vector3d *direction, float random_blend, float damage_amount);
-extern double cos(double x);
-extern double sin(double x);
 }
 static auto &player_effect_globals_pointer = halo::link::ref<player_effect_globals *>(halo::effects::vars().player_effect_globals_pointer);
 static auto &global_white_argb = halo::link::ref<const ColorARGB *>(halo::networking::vars().global_white_argb);
@@ -58,7 +54,7 @@ void player_effect_ref::apply_at_object(uint32_t tag_reference, int16_t local_pl
             dy = origin->y - position.y;
             dz = origin->z - position.z;
             halo::effects::player_effect_apply_continuous_damage(tag_reference, local_player_index,
-                (float)sqrt((double)(dy * dy + dx * dx + dz * dz)));
+                (float)halo::libm::sqrt((double)(dy * dy + dx * dx + dz * dz)));
         }
     }
 }
@@ -337,15 +333,15 @@ void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_
             player_effect_reentry_count--;
             return;
         }
-        if (fabs(projected.k) > 0.5) {
+        if (halo::libm::fabs(projected.k) > 0.5) {
             if (projected.k > 0.0f) {
                 self->damage_indicator_alpha[0] = 1;
             } else {
                 self->damage_indicator_alpha[2] = 1;
             }
         }
-        angle = atan2(projected.j, projected.i);
-        abs_angle = (float)fabs(angle);
+        angle = halo::libm::atan2(projected.j, projected.i);
+        abs_angle = (float)halo::libm::fabs(angle);
         if (angle < 0.78539819f || angle > 2.3561945f) {
             if (abs_angle > 1.5707964f) {
                 self->damage_indicator_alpha[1] = 1;
@@ -405,7 +401,7 @@ void player_effect_ref::mark_damage_direction_dispatch(void **context)
 void player_effect_ref::random_shake_offset(real_matrix4x3 *out, real magnitude, real angle)
 {
     if (angle != 0.0f) {
-        real cos_angle = (real)cos((double)angle);
+        real cos_angle = (real)halo::libm::cos((double)angle);
         real_vector3d axis;
         int16_t axis_index;
 
@@ -415,7 +411,7 @@ void player_effect_ref::random_shake_offset(real_matrix4x3 *out, real magnitude,
         axis = *(real_vector3d *)&halo::math::globals().sphere_point_table[axis_index];
 
         {
-            real sin_angle = (real)sin((double)angle);
+            real sin_angle = (real)halo::libm::sin((double)angle);
             halo::math::matrix4x3_from_axis_angle(*out, axis, sin_angle, cos_angle);
         }
     }

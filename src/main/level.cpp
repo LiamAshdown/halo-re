@@ -42,6 +42,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include <io.h>
 
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
@@ -357,7 +358,6 @@ static auto &interface_loading_screen_progress = halo::link::ref<int32_t>(halo::
 static auto &progress_screen_text = halo::link::ref<uint16_t [0x20]>(halo::main::vars().progress_screen_text);
 static auto &progress_screen_subtext = halo::link::ref<uint16_t [0x20]>(halo::main::vars().progress_screen_subtext);
 static auto &interface_loading_screen_request_id = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_request_id);
-extern "C" { extern int32_t _access(const char *path, int32_t mode); }
 namespace halo::main {
 
 /**

@@ -15,6 +15,8 @@
 #include "halo/ai/records.hpp"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 namespace halo::ai {
 
@@ -78,10 +80,6 @@ void ActorView::update_activation_state()
 
 namespace actor_update_aim_wander_local {
 extern "C" {
-extern double fcos(double x);
-extern double fsin(double x);
-extern double ftan(double x);
-extern int32_t fistp_round(float x);
 extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
 static float aim_wander_random_fraction(void)
 {
@@ -232,23 +230,23 @@ void ActorView::update_aim_wander()
         if (!(sweep <= 0.7853982f)) {
             sweep = 0.7853982f;
         }
-        limit = (float)ftan((double)sweep) * a->firing_target_distance;
+        limit = (float)halo::x87::ftan((double)sweep) * a->firing_target_distance;
         if (radius_a > limit) {
             float limit_15 = limit * 1.5f;
 
             if (radius_a >= limit_15) {
-                a->firing_state_timer = (int16_t)fistp_round(ticks * 1.5f);
+                a->firing_state_timer = (int16_t)halo::x87::fistp_round(ticks * 1.5f);
                 radius_b = limit_15 / radius_a * radius_b;
                 radius_a = limit_15;
             } else {
-                a->firing_state_timer = (int16_t)fistp_round(radius_a / limit * ticks);
+                a->firing_state_timer = (int16_t)halo::x87::fistp_round(radius_a / limit * ticks);
             }
         }
     }
 
     {
-        float c1 = (float)fcos((double)angle_1), s1 = (float)fsin((double)angle_1);
-        float c2 = (float)fcos((double)angle_2), s2 = (float)fsin((double)angle_2);
+        float c1 = (float)halo::x87::fcos((double)angle_1), s1 = (float)halo::x87::fsin((double)angle_1);
+        float c2 = (float)halo::x87::fcos((double)angle_2), s2 = (float)halo::x87::fsin((double)angle_2);
 
         wander.i = (side.i * c1 + 0.0f * s1) * radius_a;
         wander.j = (side.j * c1 + 0.0f * s1) * radius_a;
@@ -449,10 +447,6 @@ use_default:
 }
 
 namespace actor_update_crouch_state_local {
-extern "C" {
-extern double exp2(double x);
-extern int32_t __ftol(double x);
-}
 }
 
 /**
@@ -556,7 +550,7 @@ void ActorView::update_crouch_state()
         *threat_level = 0.0f;
     }
 
-    decay = (float)exp2(1.4426950408889634 * -0.04620981216430664);
+    decay = (float)halo::libm::exp2(1.4426950408889634 * -0.04620981216430664);
     *threat_level_smoothed = (*threat_level - *threat_level_smoothed) * (1.0f - decay) +
                              *threat_level_smoothed;
 
@@ -706,7 +700,7 @@ void ActorView::update_crouch_state()
                 if (threshold <= 0.0f) {
                     *crouch_timer = 0x2d;
                 } else {
-                    *crouch_timer = (int16_t)__ftol((double)(threshold * 30.0f));
+                    *crouch_timer = (int16_t)halo::x87::__ftol((double)(threshold * 30.0f));
                 }
             }
         } else if (want_crouch == 0) {
@@ -715,7 +709,7 @@ void ActorView::update_crouch_state()
             if (threshold <= 0.0f) {
                 *crouch_timer = 0x2d;
             } else {
-                *crouch_timer = (int16_t)__ftol((double)(threshold * 30.0f));
+                *crouch_timer = (int16_t)halo::x87::__ftol((double)(threshold * 30.0f));
             }
         }
     }
@@ -927,9 +921,6 @@ flee_check:
 #undef F
 
 namespace actor_update_facing_change_timer_local {
-extern "C" {
-extern int32_t __ftol(double x);
-}
 }
 
 /**
@@ -950,7 +941,7 @@ void ActorView::update_facing_change_timer()
 
     if (*pending_flag != 0 && actor_tag->change_facing_stand_time > 0.0f) {
         *pending_flag = 0;
-        *ticks_field = (int16_t)__ftol((double)(actor_tag->change_facing_stand_time * 30.0f));
+        *ticks_field = (int16_t)halo::x87::__ftol((double)(actor_tag->change_facing_stand_time * 30.0f));
 
         if (self->target_unit_index != (datum_index)k_datum_index_none) {
             prop *target = &((prop *)halo::ai::globals().prop_data->data)[self->target_unit_index & halo::k_slot_mask];
@@ -1037,8 +1028,6 @@ void ActorView::update_idle_stagger()
 namespace actor_update_look_target_local {
 static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 extern "C" {
-extern double cos(double x);
-extern double fabs(double x);
 #define ULT_V3(p) (*(real_point3d *)(p))
 static uint8_t ult_cone(real_point3d *point, uint8_t *reference, float cos_threshold)
 {
@@ -1101,11 +1090,11 @@ void ActorView::update_look_target()
         }
         look_follows = has_weapon;
         if (a->awareness_level == 3) {
-            side_cos[0] = (float)cos((double)*(float *)(definition + 0xbc));
-            side_cos[1] = (float)cos((double)*(float *)(definition + 0xc0));
+            side_cos[0] = (float)halo::libm::cos((double)*(float *)(definition + 0xbc));
+            side_cos[1] = (float)halo::libm::cos((double)*(float *)(definition + 0xc0));
         } else {
-            side_cos[0] = (float)cos((double)*(float *)(definition + 0xb4));
-            side_cos[1] = (float)cos((double)*(float *)(definition + 0xb8));
+            side_cos[0] = (float)halo::libm::cos((double)*(float *)(definition + 0xb4));
+            side_cos[1] = (float)halo::libm::cos((double)*(float *)(definition + 0xb8));
         }
 
         memset(&kind2, 0, sizeof(kind2));
@@ -1404,7 +1393,7 @@ void ActorView::update_look_target()
         }
     }
 
-    if (a->flying == 0 && !(fabs((double)a->desired_facing_vector.z) < 9.999999747378752e-05)) {
+    if (a->flying == 0 && !(halo::libm::fabs((double)a->desired_facing_vector.z) < 9.999999747378752e-05)) {
         a->desired_facing_vector.z = 0.0f;
         if (halo::math::vector2d_normalize_with_length(*(real_vector2d *)cache_a) == 0.0f) {
             ULT_V3(cache_a) = ULT_V3((uint8_t *)a + 0x174);
@@ -1419,7 +1408,7 @@ void ActorView::update_look_target()
                 a->unknown_58c[4] = 1;
             }
         } else if (*(float *)(definition + 0x330) > 0.0f) {
-            float limit = (float)cos((double)*(float *)(definition + 0x330));
+            float limit = (float)halo::libm::cos((double)*(float *)(definition + 0x330));
             uint8_t keep = 0;
 
             if (a->flying != 0) {

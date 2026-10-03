@@ -10,13 +10,12 @@
 #include "halo/game/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/physics/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 extern "C" {
 extern void item_detonation_timer_start(uint32_t object_index);
 extern void item_compute_rotation(uint32_t object_index);
-extern double sqrt(double x);
-extern double fsin(double x);
-extern double fcos(double x);
 void halo::items::item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer);
 void halo::items::item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal, real_point3d *point);
 uint8_t halo::items::item_get_effective_position(datum_index object_index, real_point3d *out_position);
@@ -85,7 +84,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
         (item->flags & _item_at_rest_on_structure_bit) == 0 ||
         0.0001f <= delta->i * delta->i + delta->j * delta->j + delta->k * delta->k) {
         real_vector3d cross_axis;
-        real magnitude = (real)sqrt((double)(delta->i * delta->i + delta->j * delta->j + delta->k * delta->k));
+        real magnitude = (real)halo::libm::sqrt((double)(delta->i * delta->i + delta->j * delta->j + delta->k * delta->k));
         uint32_t seed_snapshot;
         real length;
         real angle;
@@ -162,7 +161,7 @@ void item_ref::align_to_normal_and_point(real_point3d *out_position, real_vector
     up = &marker.node_transform.up;
     forward = &marker.node_transform.forward;
     dot = up->i * normal->i + up->j * normal->j + up->k * normal->k;
-    s = (real)sqrt((double)(2.0f * (dot + 1.0f)));
+    s = (real)halo::libm::sqrt((double)(2.0f * (dot + 1.0f)));
 
     if (s <= 0.01f) {
         real_vector3d cross1;
@@ -202,7 +201,7 @@ void item_ref::compute_rotation()
     uint32_t object_index = datum;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_slot_mask].data;
     item_data *item = (item_data *)((uint8_t *)obj + k_item_data_offset);
-    real magnitude = (real)sqrt((double)obj->angular_velocity.k * (double)obj->angular_velocity.k +
+    real magnitude = (real)halo::libm::sqrt((double)obj->angular_velocity.k * (double)obj->angular_velocity.k +
                                  (double)obj->angular_velocity.j * (double)obj->angular_velocity.j +
                                  (double)obj->angular_velocity.i * (double)obj->angular_velocity.i);
 
@@ -214,8 +213,8 @@ void item_ref::compute_rotation()
             item->rotation_axis.j = inverse * obj->angular_velocity.j;
             item->rotation_axis.k = inverse * obj->angular_velocity.k;
         }
-        item->rotation_sine = (real)fsin((double)magnitude);
-        item->rotation_cosine = (real)fcos((double)magnitude);
+        item->rotation_sine = (real)halo::x87::fsin((double)magnitude);
+        item->rotation_cosine = (real)halo::x87::fcos((double)magnitude);
         return;
     }
     item->flags &= ~_item_rotation_valid_bit;

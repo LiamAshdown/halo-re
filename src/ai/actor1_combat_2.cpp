@@ -11,13 +11,9 @@
 #include "halo/scenario/scenario.hpp"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
+#include "halo/core/libm.hpp"
 
 namespace c_actor_evaluate_engagement_reachability {
-extern "C" {
-extern double sqrt(double x);
-
-
-}
 static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_down3d_pointer);
 }
 
@@ -116,7 +112,7 @@ int32_t halo::ai::combat_ops::evaluate_engagement_reachability(int16_t self_clus
         float dx = target_position->x - self_position->x;
         float dy = target_position->y - self_position->y;
         float dz = target_position->z - self_position->z;
-        float distance = (float)sqrt((double)(dz * dz + dy * dy + dx * dx));
+        float distance = (float)halo::libm::sqrt((double)(dz * dz + dy * dy + dx * dx));
 
         if (distance < 1.0f) {
             return 4;

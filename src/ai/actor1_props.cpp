@@ -15,6 +15,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
 
 namespace c_actor_allocate_paired_prop {
 }
@@ -407,8 +408,7 @@ uint8_t actor_danger_register_point(datum_index actor_index, datum_index source_
 
 namespace c_actor_danger_register_stationary_object {
 extern "C" {
-extern double sqrt(double x);
-static float sqrt_f(float x) { return (float)sqrt((double)x); }
+static float sqrt_f(float x) { return (float)halo::libm::sqrt((double)x); }
 
 
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
@@ -528,8 +528,6 @@ namespace c_actor_find_danger_escape {
 static auto &global_forward2d_pointer = halo::link::ref<const real_vector2d *>(halo::ai::vars().global_forward2d_pointer);
 extern "C" {
 
-extern double sqrt(double x);
-extern double fabs(double x);
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
@@ -578,8 +576,8 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
 
         axis.i = -*(float *)((uint8_t *)act + 0x2bc);
         axis.j = -*(float *)((uint8_t *)act + 0x2c0);
-        length = (float)sqrt(axis.j * axis.j + axis.i * axis.i);
-        if (fabs(length) >= 9.999999747378752e-05) {
+        length = (float)halo::libm::sqrt(axis.j * axis.j + axis.i * axis.i);
+        if (halo::libm::fabs(length) >= 9.999999747378752e-05) {
             float inverse = 1.0f / length;
 
             axis.i *= inverse;
@@ -616,10 +614,10 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
         right_point.z = step * 0.0f + act->body_position.z;
 
         left_hit = halo::ai::actor_check_step_obstruction(actor_index, (real_vector2d *)&left, step, sideways, &left_blocked, extra);
-        left_distance = (float)sqrt(halo::math::point3d_distance_squared_to_segment(act->flee_from_point, path, left_point));
+        left_distance = (float)halo::libm::sqrt(halo::math::point3d_distance_squared_to_segment(act->flee_from_point, path, left_point));
         left_out = (uint8_t)(left_hit && left_distance > act->danger_object_radius);
         right_hit = halo::ai::actor_check_step_obstruction(actor_index, (real_vector2d *)&right, step, sideways, &right_blocked, extra);
-        right_distance = (float)sqrt(halo::math::point3d_distance_squared_to_segment(act->flee_from_point, path, right_point));
+        right_distance = (float)halo::libm::sqrt(halo::math::point3d_distance_squared_to_segment(act->flee_from_point, path, right_point));
         right_out = (uint8_t)(right_hit && right_distance > act->danger_object_radius);
 
         if (left_hit) {

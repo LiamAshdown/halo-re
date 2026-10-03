@@ -12,6 +12,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/physics/vars.hpp"
+#include "halo/core/libm.hpp"
 
 namespace halo::ai {
 
@@ -19,10 +20,6 @@ namespace actor_movement_choose_avoidance_direction_local {
 static auto &global_structure_bsp = halo::link::ref<uint32_t>(halo::ai::vars().global_structure_bsp);
 static auto &global_structure_collision_bsp = halo::link::ref<uint32_t>(halo::physics::vars().global_structure_collision_bsp);
 static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
-extern "C" {
-extern double sqrt(double x);
-extern double fabs(double x);
-}
 static auto &actor_avoidance_samples_a = halo::link::ref<float [16][7]>(halo::ai::vars().actor_avoidance_samples_a);
 static auto &actor_avoidance_circle = halo::link::ref<float [8][3]>(halo::ai::vars().actor_avoidance_circle);
 static auto &actor_avoidance_samples_b = halo::link::ref<float [9][7]>(halo::ai::vars().actor_avoidance_samples_b);
@@ -171,7 +168,7 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
         float vx = ((object *)obj)->angular_velocity.i;
         float vy = ((object *)obj)->angular_velocity.j;
         float vz = ((object *)obj)->angular_velocity.k;
-        float speed = (float)sqrt(vx * vx + vy * vy + vz * vz);
+        float speed = (float)halo::libm::sqrt(vx * vx + vy * vy + vz * vz);
 
         if (speed > 0.02f) {
             float s = (speed - 0.02f) * 12.5f;
@@ -185,8 +182,8 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
             motion.i = 0.0f;
             motion.j = context.up.j * vy + context.up.k * vz + context.up.i * vx;
             motion.k = -(context.left.j * vy + context.left.k * vz + context.left.i * vx);
-            length = (float)sqrt(motion.k * motion.k + motion.j * motion.j);
-            if (fabs(length) >= 9.999999747378752e-05) {
+            length = (float)halo::libm::sqrt(motion.k * motion.k + motion.j * motion.j);
+            if (halo::libm::fabs(length) >= 9.999999747378752e-05) {
                 float inverse = 1.0f / length;
                 float value;
 
@@ -224,9 +221,9 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
     forwardness = 1.0f;
     along = 0.0f;
     {
-        float length = (float)sqrt(d.k * d.k + d.j * d.j + d.i * d.i);
+        float length = (float)halo::libm::sqrt(d.k * d.k + d.j * d.j + d.i * d.i);
 
-        if (fabs(length) >= 9.999999747378752e-05) {
+        if (halo::libm::fabs(length) >= 9.999999747378752e-05) {
             float inverse = 1.0f / length;
 
             d.i *= inverse;
@@ -239,8 +236,8 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
                 forwardness = context.forward.k * d.k + context.forward.j * d.j + context.forward.i * d.i;
                 e.j = d.j * context.left.j + d.k * context.left.k + d.i * context.left.i;
                 e.k = d.j * context.up.j + d.k * context.up.k + d.i * context.up.i;
-                length_2 = (float)sqrt(e.k * e.k + e.j * e.j);
-                if (fabs(length_2) >= 9.999999747378752e-05) {
+                length_2 = (float)halo::libm::sqrt(e.k * e.k + e.j * e.j);
+                if (halo::libm::fabs(length_2) >= 9.999999747378752e-05) {
                     float inverse_2 = 1.0f / length_2;
 
                     e.i = 0.0f * inverse_2;
@@ -296,8 +293,8 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
             axis.i = v.k * desired->j - v.j * desired->k;
             axis.j = v.i * desired->k - v.k * desired->i;
             axis.k = v.j * desired->i - v.i * desired->j;
-            length = (float)sqrt(axis.k * axis.k + axis.j * axis.j + axis.i * axis.i);
-            if (fabs(length) >= 9.999999747378752e-05) {
+            length = (float)halo::libm::sqrt(axis.k * axis.k + axis.j * axis.j + axis.i * axis.i);
+            if (halo::libm::fabs(length) >= 9.999999747378752e-05) {
                 float inverse = 1.0f / length;
 
                 axis.i *= inverse;
@@ -339,8 +336,8 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
         result.i = c->j * context.up.i + result.i;
         result.j = context.up.j * c->j + result.j;
         result.k = context.up.k * c->j + result.k;
-        length = (float)sqrt(result.k * result.k + result.j * result.j + result.i * result.i);
-        if (fabs(length) >= 9.999999747378752e-05) {
+        length = (float)halo::libm::sqrt(result.k * result.k + result.j * result.j + result.i * result.i);
+        if (halo::libm::fabs(length) >= 9.999999747378752e-05) {
             float inverse = 1.0f / length;
 
             result.i *= inverse;
@@ -393,11 +390,6 @@ done:
 namespace actor_movement_update_local {
 static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &global_forward2d_pointer = halo::link::ref<const real_vector2d *>(halo::ai::vars().global_forward2d_pointer);
-extern "C" {
-extern double sin(double x);
-extern double cos(double x);
-extern double sqrt(double x);
-}
 }
 
 /**
@@ -490,12 +482,12 @@ void ActorView::movement_update()
             real_vector3d turn = a->avoidance_direction;
             float length_squared = turn.j * turn.j + turn.k * turn.k + turn.i * turn.i;
             if (0.0001f < length_squared) {
-                double length = sqrt((double)length_squared);
+                double length = halo::libm::sqrt((double)length_squared);
                 float inverse = (float)(1.0 / length);
                 turn.i *= inverse;
                 turn.j *= inverse;
                 turn.k *= inverse;
-                halo::math::vector3d_rotate_about_axis(*((real_vector3d *)&a->desired_movement_vector), turn, (real)sin(length), (real)cos(length));
+                halo::math::vector3d_rotate_about_axis(*((real_vector3d *)&a->desired_movement_vector), turn, (real)halo::libm::sin(length), (real)halo::libm::cos(length));
             }
             avoidance_scale = a->avoidance_scale;
         }

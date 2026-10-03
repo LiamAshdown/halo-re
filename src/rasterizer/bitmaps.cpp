@@ -11,11 +11,11 @@
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/bitmaps/bitmaps.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 extern "C" {
 
-extern int32_t fistp_round(float x);
-extern long lrint(double x);
 
 }  // extern "C"
 
@@ -309,7 +309,7 @@ uint8_t chimera__rasterizer_set_texture_direct_d3dx(uint32_t bitmap_tag_id, int1
  */
 uint8_t color_channel_real_to_byte(float channel)
 {
-    return (uint8_t)fistp_round(channel * 255.0f);
+    return (uint8_t)halo::x87::fistp_round(channel * 255.0f);
 }
 
 
@@ -493,7 +493,7 @@ typedef struct locked_rect {
 static int32_t sample_texel_coordinate(int32_t size, float uv)
 {
     float scaled = (float)size * uv - 0.5f;
-    int32_t texel = (int32_t)lrint((double)scaled);
+    int32_t texel = (int32_t)halo::libm::lrint((double)scaled);
 
     if ((size & (size - 1)) == 0) {
         return texel & (size - 1);
@@ -544,7 +544,7 @@ int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_
     if (mip_bias < 1.0f && remaining > 0 && skip == 0) {
         float mip = (1.0f - mip_bias) * (float)remaining;
 
-        level = (int16_t)lrint((double)mip);
+        level = (int16_t)halo::libm::lrint((double)mip);
     }
     compressed = (uint8_t)((*(uint16_t *)&((struct BitmapData *)data)->flags & 2) != 0);
     width = level_dimension(((struct BitmapData *)data)->width, level, skip, compressed);

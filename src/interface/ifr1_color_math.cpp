@@ -3,10 +3,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/x87.hpp"
 
-extern "C" {
-extern int32_t ROUND(float x);
-}
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 
 namespace halo::interface {
@@ -19,7 +17,7 @@ namespace halo::interface {
  */
 uint32_t ColorMath::argb_scale_alpha(uint32_t packed_color, float scale)
 {
-    return (packed_color & 0xffffff) | (uint32_t)ROUND((float)(packed_color >> 0x18) * scale) << 0x18;
+    return (packed_color & 0xffffff) | (uint32_t)halo::x87::ROUND((float)(packed_color >> 0x18) * scale) << 0x18;
 }
 
 /**
@@ -29,8 +27,8 @@ uint32_t ColorMath::argb_scale_alpha(uint32_t packed_color, float scale)
  */
 uint32_t ColorMath::pack_argb_from_real(ColorARGB *color)
 {
-    return (uint32_t)ROUND(color->blue * 255.0f) | (uint32_t)ROUND(color->green * 255.0f) << 8 |
-           (uint32_t)ROUND(color->red * 255.0f) << 0x10 | (uint32_t)ROUND(color->alpha * 255.0f) << 0x18;
+    return (uint32_t)halo::x87::ROUND(color->blue * 255.0f) | (uint32_t)halo::x87::ROUND(color->green * 255.0f) << 8 |
+           (uint32_t)halo::x87::ROUND(color->red * 255.0f) << 0x10 | (uint32_t)halo::x87::ROUND(color->alpha * 255.0f) << 0x18;
 }
 
 /**
@@ -40,9 +38,9 @@ uint32_t ColorMath::pack_argb_from_real(ColorARGB *color)
  */
 uint32_t ColorMath::rgb_float_to_int(const float *rgb)
 {
-    return ((uint32_t)(int32_t)ROUND(rgb[2] * 255.0f) & 0xff) |
-           (((uint32_t)(int32_t)ROUND(rgb[1] * 255.0f) & 0xff) << 8) |
-           (((uint32_t)(int32_t)ROUND(rgb[0] * 255.0f) & 0xff) << 0x10);
+    return ((uint32_t)(int32_t)halo::x87::ROUND(rgb[2] * 255.0f) & 0xff) |
+           (((uint32_t)(int32_t)halo::x87::ROUND(rgb[1] * 255.0f) & 0xff) << 8) |
+           (((uint32_t)(int32_t)halo::x87::ROUND(rgb[0] * 255.0f) & 0xff) << 0x10);
 }
 
 /**

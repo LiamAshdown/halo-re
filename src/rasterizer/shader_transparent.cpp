@@ -12,14 +12,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/shaders/shaders.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
 
-extern double floor(double x);
-extern double pow(double base, double exponent);
-extern double sin(double x);
-extern double cos(double x);
-extern long lrint(double x);
 
 }  // extern "C"
 
@@ -714,7 +710,7 @@ static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
 
 static int32_t numeric_value(float limit, float value)
 {
-    float rounded = (float)floor(limit * value + 0.5f);
+    float rounded = (float)halo::libm::floor(limit * value + 0.5f);
 
     return (int32_t)rounded;
 }
@@ -1043,7 +1039,7 @@ static void set_sampler_state(uint32_t sampler, uint32_t type, uint32_t value)
 
 static int32_t numeric_value(float limit, float value)
 {
-    float rounded = (float)floor(limit * value + 0.5f);
+    float rounded = (float)halo::libm::floor(limit * value + 0.5f);
 
     return (int32_t)rounded;
 }
@@ -1541,11 +1537,11 @@ void rasterizer_shader_transparent_plasma_draw(transparent_geometry_group *group
         if (function_values != NULL) {
             source = *(const int16_t *)(shader + 0x2c);
             if (source >= 1 && source <= 4) {
-                intensity = (float)pow(function_values[source - 1], PLASMA_FLOAT(0x30));
+                intensity = (float)halo::libm::pow(function_values[source - 1], PLASMA_FLOAT(0x30));
             }
             source = *(const int16_t *)(shader + 0x34);
             if (source >= 1 && source <= 4) {
-                offset = (float)pow(function_values[source - 1], PLASMA_FLOAT(0x3c)) * PLASMA_FLOAT(0x38);
+                offset = (float)halo::libm::pow(function_values[source - 1], PLASMA_FLOAT(0x3c)) * PLASMA_FLOAT(0x38);
             }
         }
     }
@@ -1988,8 +1984,8 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
         memset(vertex_constants, 0, sizeof vertex_constants);
         vertex_constants[0] = *(float *)(water + 0xc4);
         vertex_constants[1] = *(float *)(water + 0xc4);
-        vertex_constants[2] = (float)(cos((double)*(float *)(water + 0xbc)) * *(float *)(water + 0xc0) * rasterizer_time.time);
-        vertex_constants[3] = (float)(sin((double)*(float *)(water + 0xbc)) * *(float *)(water + 0xc0) * rasterizer_time.time);
+        vertex_constants[2] = (float)(halo::libm::cos((double)*(float *)(water + 0xbc)) * *(float *)(water + 0xc0) * rasterizer_time.time);
+        vertex_constants[3] = (float)(halo::libm::sin((double)*(float *)(water + 0xbc)) * *(float *)(water + 0xc0) * rasterizer_time.time);
         render_device().set_vertex_shader_constant_f(10, vertex_constants, 3);
 
         if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
@@ -2310,11 +2306,11 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
             r[0] = frame;
             r[1] = 0.0f;
             r[2] = 0.0f;
-            r[3] = (float)(cos((double)angle) * F(layers[k], 0x2c) * rasterizer_time.time + F(layers[k], 0x30));
+            r[3] = (float)(halo::libm::cos((double)angle) * F(layers[k], 0x2c) * rasterizer_time.time + F(layers[k], 0x30));
             r[4] = 0.0f;
             r[5] = frame;
             r[6] = 0.0f;
-            r[7] = (float)(sin((double)angle) * F(layers[k], 0x2c) * rasterizer_time.time + F(layers[k], 0x34));
+            r[7] = (float)(halo::libm::sin((double)angle) * F(layers[k], 0x2c) * rasterizer_time.time + F(layers[k], 0x34));
         }
         render_device().set_vertex_shader_constant_f(0xd, vertex_constants, 8);
 
@@ -2336,7 +2332,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
             if (*(int16_t *)(water + 0xd8) > 1) {
                 float fraction = (float)(int32_t)pass_index / (float)(int32_t)(*(int16_t *)(water + 0xd8) - 1);
                 float alpha = fraction * F(water, 0xdc);
-                uint32_t packed = ((uint32_t)lrint((double)alpha * 255.0) << 24) | 0x8080ff;
+                uint32_t packed = ((uint32_t)halo::libm::lrint((double)alpha * 255.0) << 24) | 0x8080ff;
 
                 pixel_constants[12] = (float)(int32_t)((packed >> 16) & 0xff) * 0.003921569f;
                 pixel_constants[13] = (float)(int32_t)((packed >> 8) & 0xff) * 0.003921569f;

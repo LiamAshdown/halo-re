@@ -24,22 +24,18 @@
 #include "halo/interface/vars.hpp"
 #include "halo/render/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 static auto &first_person_weapon_interfaces = halo::link::ref<first_person_weapon_interface *>(halo::ui::vars().first_person_weapon_interfaces);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &global_zero_vector3d_pointer = halo::link::ref<void *>(halo::units::vars().global_zero_vector3d_pointer);
 extern "C" {
 extern float effect_random_fraction(void);
-extern double fmod(double x, double y);
-extern double sqrt(double x);
-extern int32_t __ftol(double x);
 }
 static auto &render_camera_global = halo::link::ref<real_point3d>(halo::render::vars().render_camera_global);
 static auto &camera_forward_x = halo::link::ref<real_vector3d>(halo::effects::vars().camera_forward_x);
 static auto &camera_up = halo::link::ref<real_vector3d>(halo::ui::vars().camera_up);
-extern "C" {
-extern double fpatan(double y, double x);
-}
 static auto &current_local_player_index = halo::link::ref<int16_t>(halo::ui::vars().current_local_player_index);
 static auto &zoom_static_tint_r = halo::link::ref<float>(halo::ui::vars().zoom_static_tint_r);
 static auto &zoom_static_tint_g = halo::link::ref<float>(halo::ui::vars().zoom_static_tint_g);
@@ -64,9 +60,9 @@ static ModelAnimationsAnimationGraphFirstPersonWeaponAnimations *first_person_we
 
 static void seed_aim(first_person_weapon_interface *fp)
 {
-    FP_FLOAT(fp, 0x60) = (float)fpatan(camera_forward_x.j, camera_forward_x.i);
-    FP_FLOAT(fp, 0x64) = (float)fpatan(camera_forward_x.k,
-                                       sqrt(camera_forward_x.j * camera_forward_x.j +
+    FP_FLOAT(fp, 0x60) = (float)halo::x87::fpatan(camera_forward_x.j, camera_forward_x.i);
+    FP_FLOAT(fp, 0x64) = (float)halo::x87::fpatan(camera_forward_x.k,
+                                       halo::libm::sqrt(camera_forward_x.j * camera_forward_x.j +
                                             camera_forward_x.i * camera_forward_x.i));
     *(real_point3d *)((uint8_t *)fp + 0x70) = render_camera_global;
 }
@@ -135,7 +131,7 @@ void FirstPersonWeaponController::update()
         {
             real_vector3d *throttle = (real_vector3d *)((uint8_t *)unit_obj + 0x278);
             is_moving = 1;
-            if (!(sqrt(throttle->k * throttle->k + throttle->j * throttle->j +
+            if (!(halo::libm::sqrt(throttle->k * throttle->k + throttle->j * throttle->j +
                        throttle->i * throttle->i) > 0.1f)) {
                 is_moving = 0;
             }
@@ -177,7 +173,7 @@ void FirstPersonWeaponController::update()
             ModelAnimationsAnimation *animation =
                 &((ModelAnimationsAnimation *)animations->animations.pointer)[fp->overcharged_animation];
             float charged_fraction = ((struct weapon_object *)weapon_obj)->weapon.charged_fraction;
-            FP_FLOAT(fp, 0x24) = (float)fmod((charged_fraction + 1.0f) + (charged_fraction + 1.0f) +
+            FP_FLOAT(fp, 0x24) = (float)halo::libm::fmod((charged_fraction + 1.0f) + (charged_fraction + 1.0f) +
                                              FP_FLOAT(fp, 0x24),
                                              (double)(int16_t)animation->frame_count);
         } else {
@@ -231,7 +227,7 @@ void FirstPersonWeaponController::update()
                     GlobalsPlayerInformation *player_information =
                         (GlobalsPlayerInformation *)global_globals->player_information.pointer;
                     if (fp->idle_delay_ticks == 0) {
-                        fp->idle_delay_ticks = (int16_t)__ftol(
+                        fp->idle_delay_ticks = (int16_t)halo::x87::__ftol(
                             halo::math::random_range_real(player_information->first_person_idle_time[0],
                                               player_information->first_person_idle_time[1]) * 30.0f);
                     }
@@ -335,7 +331,7 @@ void FirstPersonWeaponController::update_animation_controls()
                         if (target > (int16_t)magazine_tag->rounds_loaded_maximum) {
                             target = magazine_tag->rounds_loaded_maximum;
                         }
-                        frame += __ftol((double)(target - (int16_t)frame) * fraction);
+                        frame += halo::x87::__ftol((double)(target - (int16_t)frame) * fraction);
                     }
                     halo::models::animation_view(ammunition).overlay_frame_orientations(frame, reinterpret_cast<real_orientation *>(animation_control));
                 } else if (magazine[4] < (int16_t)ammunition->frame_count) {

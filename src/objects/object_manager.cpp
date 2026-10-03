@@ -17,10 +17,10 @@
 #include "halo/networking/vars.hpp"
 #include "halo/objects/vars.hpp"
 #include "halo/physics/vars.hpp"
+#include <stdio.h>
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern int32_t sprintf(char *buffer, const char *format, ...);
 }
 static auto &ai_gc_callback_table = halo::link::ref<void *>(halo::objects::vars().ai_gc_callback_table);
 static auto &collideable_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().collideable_cluster_first);

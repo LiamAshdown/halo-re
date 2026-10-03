@@ -5,12 +5,8 @@
 #include "halo/game/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double fabs(double x);
-extern double cos(double x);
-extern double sin(double x);
-}
 static auto &player_control_globals_ptr = halo::link::ref<int32_t *>(halo::game::vars().player_control_globals_ptr);
 
 namespace halo::effects {
@@ -52,14 +48,14 @@ void player_effect_view::set_camera_impulse(int16_t local_player_index, real *de
         flat_direction.j = direction[1];
         flat_direction.k = 0.0f;
         halo::math::vector3d_normalize_with_length(flat_direction);
-        look.i = (real)cos((double)a) * (real)cos((double)b);
-        look.j = (real)sin((double)a) * (real)cos((double)b);
+        look.i = (real)halo::libm::cos((double)a) * (real)halo::libm::cos((double)b);
+        look.j = (real)halo::libm::sin((double)a) * (real)halo::libm::cos((double)b);
         look.k = 0.0f;
         halo::math::vector3d_normalize_with_length(look);
 
-        if ((real)fabs((double)(flat_direction.i * flat_direction.i + flat_direction.j * flat_direction.j +
+        if ((real)halo::libm::fabs((double)(flat_direction.i * flat_direction.i + flat_direction.j * flat_direction.j +
                                 flat_direction.k * flat_direction.k - 1.0f)) < 9.9999997e-05 &&
-            (real)fabs((double)(look.i * look.i + look.j * look.j + look.k * look.k - 1.0f)) < 9.9999997e-05) {
+            (real)halo::libm::fabs((double)(look.i * look.i + look.j * look.j + look.k * look.k - 1.0f)) < 9.9999997e-05) {
             real angle = halo::math::vector2d_angle_between(*((real_vector2d *)&flat_direction), *((real_vector2d *)&look));
             real magnitude;
             real random_angle;
@@ -73,8 +69,8 @@ void player_effect_view::set_camera_impulse(int16_t local_player_index, real *de
             ((struct player_effect *)fx)->impulse_ticks = (int16_t)(int32_t)impulse[0];
 
             impulse_direction->k = 0.0f;
-            impulse_direction->i = (real)cos((double)angle);
-            impulse_direction->j = (real)sin((double)angle);
+            impulse_direction->i = (real)halo::libm::cos((double)angle);
+            impulse_direction->j = (real)halo::libm::sin((double)angle);
 
             halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
             magnitude = (real)(int32_t)(halo::math::globals().effect_random_seed >> k_random_value_shift) * halo::k_unit_word_scale *
@@ -84,8 +80,8 @@ void player_effect_view::set_camera_impulse(int16_t local_player_index, real *de
 
             halo::math::vector3d_cross_product(*impulse_rotation, *up, *impulse_direction);
             halo::math::vector3d_normalize_with_length(*impulse_rotation);
-            halo::math::vector3d_rotate_about_axis(*impulse_rotation, *impulse_direction, (real)sin((double)random_angle),
-                (real)cos((double)random_angle));
+            halo::math::vector3d_rotate_about_axis(*impulse_rotation, *impulse_direction, (real)halo::libm::sin((double)random_angle),
+                (real)halo::libm::cos((double)random_angle));
             impulse_rotation->i = magnitude * impulse_rotation->i;
             impulse_rotation->j = magnitude * impulse_rotation->j;
             impulse_rotation->k = magnitude * impulse_rotation->k;

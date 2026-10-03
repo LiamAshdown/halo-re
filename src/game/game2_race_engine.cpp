@@ -9,6 +9,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
@@ -16,10 +17,6 @@ static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().glob
 static auto &race_used_locations = halo::link::ref<int32_t [8]>(halo::game::vars().race_used_locations);
 static auto &race_used_location_count = halo::link::ref<int32_t>(halo::game::vars().race_used_location_count);
 static auto &race_vehicle_counts = halo::link::ref<uint32_t [4]>(halo::game::vars().race_vehicle_counts);
-extern "C" {
-extern double cos(double x);
-extern double sin(double x);
-}
 static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
 static auto &game_engine_bucket_scores = halo::link::ref<int32_t [16]>(halo::game::vars().game_engine_bucket_scores);
 static auto &ctf_team_captured_flags_mask = halo::link::ref<uint32_t []>(halo::game::vars().ctf_team_captured_flags_mask);
@@ -137,8 +134,8 @@ void RaceEngine::race_spawn_next_vehicle(datum_index player_index)
     halo::objects::object_placement_data_initialize(&placement, tag, 0xffffffff);
     placement.position = *(real_point3d *)location;
     facing = *(float *)(location + 0x0c);
-    placement.forward.i = (float)cos(facing);
-    placement.forward.j = (float)sin(facing);
+    placement.forward.i = (float)halo::libm::cos(facing);
+    placement.forward.j = (float)halo::libm::sin(facing);
     placement.forward.k = 0.0f;
     vehicle = halo::objects::object_new(&placement);
     *(int16_t *)(*(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (vehicle & 0xffff) * 12 + 8) + 0x5b0) = (int16_t)location_index;

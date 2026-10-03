@@ -6,11 +6,8 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/x87.hpp"
 
-extern "C" {
-extern int64_t __allmul(int32_t a_low, int32_t a_high, int32_t b_low, int32_t b_high);
-extern int32_t __alldiv(int64_t a, int32_t b_low, int32_t b_high);
-}
 static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 
@@ -87,8 +84,8 @@ int32_t VehicleView::encode_network_update(void *buffer, int32_t bit_budget, int
     header.is_delta = (uint8_t)(full_update == 0);
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    header.timestamp_milliseconds = __alldiv(
-        __allmul((int32_t)counter.parts.low_part, counter.parts.high_part, 1000, 0),
+    header.timestamp_milliseconds = halo::x87::__alldiv(
+        halo::x87::__allmul((int32_t)counter.parts.low_part, counter.parts.high_part, 1000, 0),
         (int32_t)halo::cseries::globals().performance_frequency, (int32_t)(halo::cseries::globals().performance_frequency >> 32));
 
     message_type = object_type_definitions[obj->type]->network_delta_message_type;

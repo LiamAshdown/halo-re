@@ -11,11 +11,8 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/x87.hpp"
 
-extern "C" {
-extern int64_t __allmul(int32_t a_low, int32_t a_high, int32_t b_low, int32_t b_high);
-extern int32_t __alldiv(int64_t a, int32_t b_low, int32_t b_high);
-}
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
 static auto &network_object_index_cache = halo::link::ref<uint8_t []>(halo::units::vars().network_object_index_cache);
@@ -182,7 +179,7 @@ int32_t UnitView::submit_periodic_network_update(void *buffer, int32_t bit_budge
     header.shield_update_pending = obj->shield_update_pending;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-    header.timestamp_milliseconds = __alldiv(__allmul(counter.parts.low_part, counter.parts.high_part, 1000, 0),
+    header.timestamp_milliseconds = halo::x87::__alldiv(halo::x87::__allmul(counter.parts.low_part, counter.parts.high_part, 1000, 0),
                                              (int32_t)halo::cseries::globals().performance_frequency,
                                              (int32_t)(halo::cseries::globals().performance_frequency >> 32));
 

@@ -9,6 +9,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &update_client_unknown_ea0 = halo::link::ref<int32_t>(halo::game::vars().update_client_unknown_ea0);
 static auto &update_client_queues = halo::link::ref<data_array *>(halo::game::vars().update_client_queues);
@@ -34,7 +35,6 @@ static auto &local_player_name_filter = halo::link::ref<uint16_t []>(halo::game:
 extern "C" {
 extern uint8_t position_update_queue_find_and_remove(circular_queue *queue, int32_t target_tick, real_point3d *out);
 extern void unit_snap_position_if_far(real_point3d *new_position, object *obj);
-extern double sqrt(double x);
 }
 static auto &vehicle_wait_tick_counter = halo::link::ref<int32_t>(halo::game::vars().vehicle_wait_tick_counter);
 
@@ -632,7 +632,7 @@ void PlayerNetworkState::apply_remote_position_update(object *unit_obj)
         float dx = queued.x - unit_obj->position.x;
         float dy = queued.y - unit_obj->position.y;
         float dz = queued.z - unit_obj->position.z;
-        float dist = (float)sqrt(dx * dx + dy * dy + dz * dz);
+        float dist = (float)halo::libm::sqrt(dx * dx + dy * dy + dz * dz);
 
         halo::networking::player_update_history_log_printf_filtered(plr, 1, "Waited [%d], dist [%f].", wait_tick_counter, (double)dist);
         if (wcscmp((const wchar_t *)((uint16_t *)plr->name), (const wchar_t *)local_player_name_filter) == 0) {
@@ -694,7 +694,7 @@ void PlayerNetworkState::apply_remote_vehicle_position_update(object *unit_obj)
                 float dx = record.body.position.x - parent_obj->position.x;
                 float dy = record.body.position.y - parent_obj->position.y;
                 float dz = record.body.position.z - parent_obj->position.z;
-                float dist = (float)sqrt(dx * dx + dy * dy + dz * dz);
+                float dist = (float)halo::libm::sqrt(dx * dx + dy * dy + dz * dz);
 
                 halo::networking::player_update_history_log_printf_filtered(plr, 1, "Vehicle waited [%d], dist [%f].",
                                                             vehicle_wait_tick_counter, (double)dist);

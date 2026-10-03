@@ -22,6 +22,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &network_index_cache_table = halo::link::ref<void *const>(halo::game::vars().network_index_cache_table);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
@@ -44,8 +45,6 @@ extern void game_engine_notify_player_interaction(uint32_t primary_key, uint32_t
 }
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 extern "C" {
-extern double cos(double x);
-extern double fabs(double x);
 extern void player_update_history_free_all(void *queue);
 }
 static auto &global_origin3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
@@ -62,9 +61,6 @@ static auto &global_006889d4 = halo::link::ref<uint32_t>(halo::game::vars().glob
 static auto &global_007102ec = halo::link::ref<uint32_t>(halo::game::vars().global_007102ec);
 static auto &global_006889d8 = halo::link::ref<uint32_t>(halo::game::vars().global_006889d8);
 static auto &global_006889dc = halo::link::ref<uint32_t>(halo::game::vars().global_006889dc);
-extern "C" {
-extern double sqrt(double x);
-}
 static auto &multikill_medal_threshold = halo::link::ref<int32_t>(halo::game::vars().multikill_medal_threshold);
 static auto &sv_tk_grace_ticks = halo::link::ref<int32_t>(halo::game::vars().sv_tk_grace_ticks);
 static auto &sv_tk_cooldown_ticks = halo::link::ref<int32_t>(halo::game::vars().sv_tk_cooldown_ticks);
@@ -571,7 +567,7 @@ void PlayerView::check_vehicle_interaction(uint32_t candidate_object)
 
     if ((*((uint8_t *)&vehicle->vitality_flags) & 4) == 0) {
         GlobalsPlayerControl *player_control = (GlobalsPlayerControl *)global_globals->player_control.pointer;
-        double flip_threshold = cos(1.5707963705062866 - (double)player_control[0].minimum_angle_for_vehicle_flipping);
+        double flip_threshold = halo::libm::cos(1.5707963705062866 - (double)player_control[0].minimum_angle_for_vehicle_flipping);
 
         if ((double)vehicle->up.k <= flip_threshold) {
             if ((*(uint8_t *)&((vehicle_object *)vehicle)->vehicle.flags & 0x10) == 0 &&
@@ -683,7 +679,7 @@ uint8_t PlayerView::execute_pending_interaction()
 
         ((unit_object *)unit)->unit.last_parent_object_index = target_index;
         ((unit_object *)unit)->unit.last_seat_change_tick = game_time->game_time;
-        if (fabs(((struct object *)target)->forward.k) > 0.7071067690849304) {
+        if (halo::libm::fabs(((struct object *)target)->forward.k) > 0.7071067690849304) {
             direction = (int8_t)((((struct object *)target)->forward.k < 0.0f) ? 4 : 3);
         } else {
             real_matrix4x3 target_matrix;
@@ -1358,7 +1354,7 @@ void PlayerView::set_pending_interaction_action(int16_t priority_type, int16_t s
             float cy = candidate->position.y - unit->position.y;
             float cz = candidate->position.z - unit->position.z;
 
-            if (sqrt(ey * ey + ex * ex + ez * ez) <= sqrt(cx * cx + cy * cy + cz * cz)) {
+            if (halo::libm::sqrt(ey * ey + ex * ex + ez * ez) <= halo::libm::sqrt(cx * cx + cy * cy + cz * cz)) {
                 return;
             }
         } else if (priority_type <= p->interaction_type) {
@@ -1928,7 +1924,7 @@ void ObjectView::snap_position_if_far(real_point3d *new_position)
     float dy = new_position->y - obj->position.y;
     float dz = new_position->z - obj->position.z;
 
-    if (sqrt(dy * dy + dz * dz + dx * dx) > 1.1) {
+    if (halo::libm::sqrt(dy * dy + dz * dz + dx * dx) > 1.1) {
         obj->velocity = reinterpret_cast<real_vector3d &>(halo::math::globals().global_origin3d);
         obj->flags = obj->flags | _object_at_rest_bit;
     }

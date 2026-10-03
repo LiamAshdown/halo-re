@@ -13,9 +13,10 @@
 #include "halo/ai/vars.hpp"
 #include "halo/objects/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 extern "C" {
-extern int32_t __ftol(double);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void flag_pole_get_marker_positions(flag *entry, bsp_leaf_reference *node_ref, real_point3d *marker_positions, uint8_t *row_table, int16_t *row_start_scratch, int16_t *column_marker_index, Flag *tag);
 extern void flag_render(uint32_t *entry, uint32_t *submission_block, Flag *tag, uint8_t *second_geometry);
@@ -26,7 +27,6 @@ extern int32_t rasterizer_dynamic_vertex_cache_reserve(void);
 extern void rasterizer_model_draw_prepare_states(uint32_t flag_arg);
 extern void rasterizer_model_draw_restore_states(void);
 extern void rasterizer_shader_environment_draw_dispatch(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f);
-extern double sqrt(double x);
 }
 static auto &flag_render_device_slot = halo::link::ref<void *const>(halo::objects::vars().flag_render_device_slot);
 static auto &flag_data = halo::link::ref<data_array *>(halo::objects::vars().flag_data);
@@ -395,7 +395,7 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
         for (n0 = 0; n0 < 3; n0++) {
             float fx = (float)neighbour_dcol[n0] * tag->cell_width;
             float fy = (float)neighbour_drow[n0] * tag->cell_height;
-            corner_length[n0] = (float)sqrt(fx * fx + fy * fy);
+            corner_length[n0] = (float)halo::libm::sqrt(fx * fx + fy * fy);
         }
 
         if (tag->width > 0) {
@@ -468,7 +468,7 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                                 float dx = target.x - nvp->x;
                                 float dy = target.y - nvp->y;
                                 float dz = target.z - nvp->z;
-                                float dist = (float)sqrt(dx * dx + dy * dy + dz * dz);
+                                float dist = (float)halo::libm::sqrt(dx * dx + dy * dy + dz * dz);
 
                                 if (dist >= 0.0001f || dist <= -0.0001f) {
                                     float inv = 1.0f / dist;
@@ -621,14 +621,14 @@ void halo::objects::FlagView::pole_get_marker_positions(bsp_leaf_reference *node
         {
             real_point3d new_position = marker_positions[0];
             real_point3d old_position = entry->previous_marker_position;
-            int32_t tx = __ftol((double)(new_position.x - old_position.x));
+            int32_t tx = halo::x87::__ftol((double)(new_position.x - old_position.x));
             int skip = (tx < 0 ? -tx : tx) <= 1;
 
             if (skip) {
-                int32_t ty = __ftol((double)(new_position.y - old_position.y));
+                int32_t ty = halo::x87::__ftol((double)(new_position.y - old_position.y));
                 skip = (ty < 0 ? -ty : ty) <= 1;
                 if (skip) {
-                    int32_t tz = __ftol((double)(new_position.z - old_position.z));
+                    int32_t tz = halo::x87::__ftol((double)(new_position.z - old_position.z));
                     skip = (tz < 0 ? -tz : tz) <= 1;
                 }
             }
@@ -710,7 +710,7 @@ void halo::objects::FlagSystem::render(uint32_t *entry, uint32_t *submission_blo
             ((float *)out)[3] = nx;
             ((float *)out)[4] = ny;
             ((float *)out)[5] = nz;
-            len = (float)sqrt(nz * nz + ny * ny + nx * nx);
+            len = (float)halo::libm::sqrt(nz * nz + ny * ny + nx * nx);
             if (len >= 0.0001f || len <= -0.0001f) {
                 float inv = 1.0f / len;
                 ((float *)out)[3] = inv * nx;

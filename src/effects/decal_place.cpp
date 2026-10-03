@@ -11,14 +11,9 @@
 #include "halo/game/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/effects/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
-extern long lrint(double x);
-extern double floor(double x);
-extern double sqrt(double x);
-extern double fabs(double x);
-extern double cos(double x);
-extern double sin(double x);
 extern datum_index decal_new(datum_index requested_handle, int16_t cluster_index, int16_t layer, datum_index insert_before, uint8_t object_attached);
 extern void decal_build_projection(real_matrix4x3 *placement, real *box, decal_projection *out);
 extern void decal_flood_surfaces(decal_projection *projection, decal_flood_accumulator *accumulator, int32_t surface_index, uint8_t is_first_surface, real radius, int16_t decal_type, int32_t *surface_queue, uint16_t *surface_queue_count, int32_t *fallback_queue, uint16_t *fallback_queue_count);
@@ -51,9 +46,9 @@ static real decal_place_random_fraction(void)
  */
 static void decal_place_normalize_guarded(real_vector3d *v)
 {
-    real length = (real)sqrt((double)(v->k * v->k + v->j * v->j + v->i * v->i));
+    real length = (real)halo::libm::sqrt((double)(v->k * v->k + v->j * v->j + v->i * v->i));
 
-    if (!(fabs((double)length) < (double)1.0e-4f)) {
+    if (!(halo::libm::fabs((double)length) < (double)1.0e-4f)) {
         real inverse = 1.0f / length;
 
         v->i = v->i * inverse;
@@ -187,10 +182,10 @@ static int16_t decal_place_wrap_group(int32_t *fallback_queue, int16_t fallback_
                 (const real_point3d *)&vertices[(&edge->start_vertex)[is_right == 0]].point;
             const real_point3d *near_point =
                 (const real_point3d *)&vertices[(&edge->start_vertex)[is_right]].point;
-            real low = (real)fabs((double)(projection->transformed_j * far_point->y +
+            real low = (real)halo::libm::fabs((double)(projection->transformed_j * far_point->y +
                 projection->transformed_k * far_point->z + projection->transformed_i * far_point->x -
                 projection->transformed_d));
-            real high = (real)fabs((double)(projection->transformed_j * near_point->y +
+            real high = (real)halo::libm::fabs((double)(projection->transformed_j * near_point->y +
                 projection->transformed_k * near_point->z + projection->transformed_i * near_point->x -
                 projection->transformed_d));
 
@@ -218,9 +213,9 @@ static int16_t decal_place_wrap_group(int32_t *fallback_queue, int16_t fallback_
         axis.i = edge_end.x - edge_start.x;
         axis.j = edge_end.y - edge_start.y;
         axis.k = edge_end.z - edge_start.z;
-        length = (real)sqrt((double)(axis.i * axis.i + axis.k * axis.k + axis.j * axis.j));
+        length = (real)halo::libm::sqrt((double)(axis.i * axis.i + axis.k * axis.k + axis.j * axis.j));
 
-        if (fabs((double)length) < (double)1.0e-4f || !(length > 0.0f)) {
+        if (halo::libm::fabs((double)length) < (double)1.0e-4f || !(length > 0.0f)) {
             wrapped = *projection;
         } else {
             real inverse = 1.0f / length;
@@ -242,7 +237,7 @@ static int16_t decal_place_wrap_group(int32_t *fallback_queue, int16_t fallback_
                 sign = -1.0f;
             }
             angle = halo::math::vector3d_angle_between_4cd5e0(*decal_normal, best_plane.normal) * sign;
-            halo::math::matrix4x3_from_axis_angle(rotation, axis, (real)sin((double)angle), (real)cos((double)angle));
+            halo::math::matrix4x3_from_axis_angle(rotation, axis, (real)halo::libm::sin((double)angle), (real)halo::libm::cos((double)angle));
 
             offset.i = matrix->position.x - edge_start.x;
             offset.j = matrix->position.y - edge_start.y;
@@ -351,8 +346,8 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
             } else {
                 real angle = decal_place_random_fraction() * 6.2831855f;
 
-                rotation_cos = (real)cos((double)angle);
-                rotation_sin = (real)sin((double)angle);
+                rotation_cos = (real)halo::libm::cos((double)angle);
+                rotation_sin = (real)halo::libm::sin((double)angle);
                 halo::math::vector3d_build_perpendicular(a, *normal);
                 b.i = a.k * normal->j - a.j * normal->k;
                 b.j = a.i * normal->k - a.k * normal->i;
@@ -532,14 +527,14 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
                 } else if (u > 254.0) {
                     u = 254.0;
                 }
-                u_byte = (int16_t)lrint((double)(real)floor(u + 0.5));
+                u_byte = (int16_t)halo::libm::lrint((double)(real)halo::libm::floor(u + 0.5));
                 v = v * 255.0;
                 if (v < 0.0) {
                     v = 0.0;
                 } else if (v > 254.0) {
                     v = 254.0;
                 }
-                v_byte = (int16_t)lrint((double)(real)floor(v + 0.5));
+                v_byte = (int16_t)halo::libm::lrint((double)(real)halo::libm::floor(v + 0.5));
 
                 local_vertices[i].texcoord = (uint32_t)((((int32_t)u_byte << 8) | (int32_t)v_byte) << 8);
                 local_vertices[i].position.x = lift.i + record->position.x;
@@ -568,10 +563,10 @@ void decal_ref::place(datum_index decal_tag_index, collision_result *placement, 
 
             halo::bitmaps::color_interpolate(&definition->color_upper_bounds, &definition->color_lower_bounds, &color,
                 static_cast<color_interpolation_flags>((uint32_t)((*(const uint8_t *)&definition->flags >> 1) & 3)), fraction);
-            self->color = ((uint32_t)lrint((double)color.blue * 255.0) & 0xff) |
-                (((uint32_t)lrint((double)color.green * 255.0) & 0xff) << 8) |
-                (((uint32_t)lrint((double)color.red * 255.0) & 0xff) << 16) |
-                ((uint32_t)lrint((double)intensity * 255.0) << 24);
+            self->color = ((uint32_t)halo::libm::lrint((double)color.blue * 255.0) & 0xff) |
+                (((uint32_t)halo::libm::lrint((double)color.green * 255.0) & 0xff) << 8) |
+                (((uint32_t)halo::libm::lrint((double)color.red * 255.0) & 0xff) << 16) |
+                ((uint32_t)halo::libm::lrint((double)intensity * 255.0) << 24);
             self->alpha = 0xff;
         }
 

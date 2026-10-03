@@ -14,14 +14,11 @@
 #include "halo/models/models.hpp"
 #include "halo/core/link.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 extern "C" {
-extern double fabs(double x);
-extern float fabsf(float x);
 extern void object_physics_tick(uint32_t object_index, void *powered_states, void *contact_points, real_vector3d *extra_force, real_vector3d *extra_torque);
-extern double sqrt(double x);
-extern double sin(double x);
-extern double cos(double x);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void effect_new_with_color(uint32_t effect, uint32_t creator, void *velocity, int32_t count, char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale, int32_t color, int32_t tint, int32_t force);
 }
@@ -111,7 +108,7 @@ void VehicleView::blend_animations(real_orientation *orientations)
             (double)((unit_object *)obj)->base.velocity.j * ((unit_object *)obj)->base.forward.j +
             (double)((unit_object *)obj)->base.velocity.i * ((unit_object *)obj)->base.forward.i;
 
-        forward_speed = clamp_unit(clamp_unit(forward_speed) / fabs(((struct Vehicle *)vehicle_tag)->maximum_forward_speed));
+        forward_speed = clamp_unit(clamp_unit(forward_speed) / halo::libm::fabs(((struct Vehicle *)vehicle_tag)->maximum_forward_speed));
         blend_fraction((ModelAnimationsAnimation *)(animations + indices[3] * 0xb4), forward_speed, orientations);
     }
     if (count > 5 && indices[5] != -1) {
@@ -156,14 +153,14 @@ void VehicleView::calculate_animation_controls()
     float forward_velocity = ((struct vehicle_object *)obj)->vehicle.forward_velocity;
     float sideways_velocity = ((struct vehicle_object *)obj)->vehicle.sideways_velocity;
     float turning_velocity = ((struct vehicle_object *)obj)->vehicle.turning_velocity;
-    float max_forward = fabsf(tag->maximum_forward_speed);
-    float max_reverse = fabsf(tag->maximum_reverse_speed);
+    float max_forward = halo::x87::fabsf(tag->maximum_forward_speed);
+    float max_reverse = halo::x87::fabsf(tag->maximum_reverse_speed);
     float max_speed = (max_forward > max_reverse) ? max_forward : max_reverse;
-    float max_left_slide = fabsf(tag->maximum_left_slide);
-    float max_right_slide = fabsf(tag->maximum_right_slide);
+    float max_left_slide = halo::x87::fabsf(tag->maximum_left_slide);
+    float max_right_slide = halo::x87::fabsf(tag->maximum_right_slide);
     float max_slide = (max_left_slide > max_right_slide) ? max_left_slide : max_right_slide;
-    float max_left_turn = fabsf(tag->maximum_left_turn);
-    float max_right_turn = fabsf(tag->maximum_right_turn);
+    float max_left_turn = halo::x87::fabsf(tag->maximum_left_turn);
+    float max_right_turn = halo::x87::fabsf(tag->maximum_right_turn);
     float max_turn = (max_left_turn > max_right_turn) ? max_left_turn : max_right_turn;
     int16_t *selectors = (int16_t *)&((struct Vehicle *)tag)->vehicle_a_in;
     float *outputs = (float *)&((struct object *)obj)->function_in_values;
@@ -177,38 +174,38 @@ void VehicleView::calculate_animation_controls()
         }
         switch (selectors[i]) {
         case 1: case 0x1c: case 0x1d: case 0x1e: case 0x1f:
-            value = fabsf(forward_velocity) / max_speed;
+            value = halo::x87::fabsf(forward_velocity) / max_speed;
             break;
         case 2:
             value = !(forward_velocity < 0.0f) ? forward_velocity / max_forward : 0.0f / max_forward;
             break;
         case 3:
-            value = (forward_velocity > 0.0f) ? 0.0f / max_reverse : fabsf(forward_velocity) / max_reverse;
+            value = (forward_velocity > 0.0f) ? 0.0f / max_reverse : halo::x87::fabsf(forward_velocity) / max_reverse;
             break;
         case 4:
-            value = fabsf(sideways_velocity) / max_slide;
+            value = halo::x87::fabsf(sideways_velocity) / max_slide;
             break;
         case 5:
-            value = fabsf(sideways_velocity) / max_left_slide;
+            value = halo::x87::fabsf(sideways_velocity) / max_left_slide;
             break;
         case 6:
-            value = fabsf(sideways_velocity) / max_right_slide;
+            value = halo::x87::fabsf(sideways_velocity) / max_right_slide;
             break;
         case 7: {
-            float a = fabsf(forward_velocity) / max_speed;
-            float b = fabsf(sideways_velocity) / max_slide;
+            float a = halo::x87::fabsf(forward_velocity) / max_speed;
+            float b = halo::x87::fabsf(sideways_velocity) / max_slide;
 
             value = (a > b) ? a : b;
             break;
         }
         case 8:
-            value = fabsf(turning_velocity) / max_turn;
+            value = halo::x87::fabsf(turning_velocity) / max_turn;
             break;
         case 9:
-            value = fabsf(turning_velocity) / max_left_turn;
+            value = halo::x87::fabsf(turning_velocity) / max_left_turn;
             break;
         case 10:
-            value = fabsf(turning_velocity) / max_right_turn;
+            value = halo::x87::fabsf(turning_velocity) / max_right_turn;
             break;
         case 0xb:
             outputs[i] = ((uint8_t)((struct vehicle_object *)obj)->vehicle.flags & 4) ? 1.0f : 0.0f;
@@ -234,10 +231,10 @@ void VehicleView::calculate_animation_controls()
             value = halo::math::vector3d_length(*velocity) / max_speed;
             break;
         case 0x11:
-            value = fabsf(velocity->k * forward->k + velocity->j * forward->j + velocity->i * forward->i) / max_speed;
+            value = halo::x87::fabsf(velocity->k * forward->k + velocity->j * forward->j + velocity->i * forward->i) / max_speed;
             break;
         case 0x12: case 0x13:
-            value = fabsf(up->k * velocity->k + up->j * velocity->j + up->i * velocity->i) / max_speed;
+            value = halo::x87::fabsf(up->k * velocity->k + up->j * velocity->j + up->i * velocity->i) / max_speed;
             break;
         case 0x14:
             value = ((struct vehicle_object *)obj)->vehicle.left_wheel_rotation / tag->wheel_circumference;
@@ -246,10 +243,10 @@ void VehicleView::calculate_animation_controls()
             value = ((struct vehicle_object *)obj)->vehicle.right_wheel_rotation / tag->wheel_circumference;
             break;
         case 0x16:
-            value = fabsf(forward_velocity - turning_velocity) / max_speed;
+            value = halo::x87::fabsf(forward_velocity - turning_velocity) / max_speed;
             break;
         case 0x17:
-            value = fabsf(turning_velocity + forward_velocity) / max_speed;
+            value = halo::x87::fabsf(turning_velocity + forward_velocity) / max_speed;
             break;
         case 0x18: case 0x19: case 0x1a: case 0x1b:
             value = ((struct vehicle_object *)obj)->vehicle.wheel_rotation / tag->wheel_circumference;
@@ -271,8 +268,8 @@ void VehicleView::calculate_animation_controls()
             value = ((struct vehicle_object *)obj)->vehicle.ground_contact_fraction;
             break;
         case 0x23: {
-            float lean = fabsf(forward->k * velocity->k + forward->j * velocity->j + forward->i * velocity->i) / max_speed;
-            float speed = fabsf(forward_velocity) / max_forward;
+            float lean = halo::x87::fabsf(forward->k * velocity->k + forward->j * velocity->j + forward->i * velocity->i) / max_speed;
+            float speed = halo::x87::fabsf(forward_velocity) / max_forward;
             float blend = ((float)((struct vehicle_object *)obj)->vehicle.airborne_ticks * 0.2f + 1.0f) * 0.5f;
 
             if (blend < 0.0f) {
@@ -361,10 +358,10 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     }
     if (*(datum_index *)(rider + 0x1f4) == k_datum_index_none) {
         real pitch = ((struct Vehicle *)tag)->fixed_gun_pitch;
-        halo::math::vector3d_rotate_pair_in_plane(basis[2], basis[0], (real)sin((double)pitch), (real)cos((double)pitch));
+        halo::math::vector3d_rotate_pair_in_plane(basis[2], basis[0], (real)halo::libm::sin((double)pitch), (real)halo::libm::cos((double)pitch));
     }
     angle = (basis[0].i * velocity->j - basis[0].j * velocity->i) / ((struct Vehicle *)tag)->maximum_forward_speed * ((struct Vehicle *)tag)->maximum_left_turn;
-    halo::math::vector3d_rotate_about_axis_perpendicular(basis[2], basis[0], (real)sin((double)angle), (real)cos((double)angle));
+    halo::math::vector3d_rotate_about_axis_perpendicular(basis[2], basis[0], (real)halo::libm::sin((double)angle), (real)halo::libm::cos((double)angle));
     basis[1].i = basis[2].j * basis[0].k - basis[2].k * basis[0].j;
     basis[1].j = basis[2].k * basis[0].i - basis[2].i * basis[0].k;
     basis[1].k = basis[0].j * basis[2].i - basis[2].j * basis[0].i;
@@ -380,7 +377,7 @@ void VehicleView::calculate_ground_contact_lean(void *out_record, void *out_tran
     torque.j = (axis.j * k - angular_velocity->j) * moment * throttle;
     torque.k = (axis.k * k - angular_velocity->k) * moment * throttle;
 
-    spin_rate = (real)sqrt((double)(angular_velocity->i * angular_velocity->i + angular_velocity->j * angular_velocity->j +
+    spin_rate = (real)halo::libm::sqrt((double)(angular_velocity->i * angular_velocity->i + angular_velocity->j * angular_velocity->j +
         angular_velocity->k * angular_velocity->k)) / ((struct Vehicle *)tag)->turn_rate;
     lean = ((struct vehicle_object *)obj)->vehicle.ground_contact_fraction;
     if (spin_rate > lean) {
@@ -456,13 +453,13 @@ void VehicleView::calculate_ground_contact_lean_alt(void *out_record, void *out_
 
     dot = velocity->i * forward->i + velocity->j * forward->j + velocity->k * forward->k;
     x_force = (speed - dot) * *(real *)(physics + 0x8) * 0.05f;
-    y_force = (real)fabs((double)(dot / max_speed)) * 0.0035651792f * *(real *)(physics + 0x8) * 1.05f;
+    y_force = (real)halo::libm::fabs((double)(dot / max_speed)) * 0.0035651792f * *(real *)(physics + 0x8) * 1.05f;
     force.i = object_up->i * y_force + forward->i * x_force;
     force.j = object_up->j * y_force + forward->j * x_force;
     force.k = forward->k * x_force + object_up->k * y_force;
 
-    angle = (velocity->j * facing.i - facing.j * velocity->i) * 1.5707964f / (real)fabs((double)max_speed);
-    halo::math::vector3d_rotate_about_axis_perpendicular(up, facing, (real)sin((double)angle), (real)cos((double)angle));
+    angle = (velocity->j * facing.i - facing.j * velocity->i) * 1.5707964f / (real)halo::libm::fabs((double)max_speed);
+    halo::math::vector3d_rotate_about_axis_perpendicular(up, facing, (real)halo::libm::sin((double)angle), (real)halo::libm::cos((double)angle));
     halo::math::matrix4x3_from_forward_up(*object_up, *forward, current);
     halo::math::matrix4x3_from_forward_up(up, facing, desired);
     halo::math::matrix4x3_inverse(&desired, desired);
@@ -561,14 +558,14 @@ void VehicleView::calculate_ground_lean_controls(uint8_t *out_transform)
 
     dot = velocity->i * forward->i + velocity->j * forward->j + velocity->k * forward->k;
     x_force = (speed - dot) * lean_scale * *(real *)(physics + 0x8) * 0.05f;
-    y_force = ((real)fabs((double)(dot / max_speed)) * 1.05f + ((struct vehicle_object *)obj)->vehicle.ground_lean * 1.3f) *
+    y_force = ((real)halo::libm::fabs((double)(dot / max_speed)) * 1.05f + ((struct vehicle_object *)obj)->vehicle.ground_lean * 1.3f) *
         *(real *)(physics + 0x8) * 0.0035651792f;
     force.i = object_up->i * y_force + forward->i * x_force;
     force.j = object_up->j * y_force + forward->j * x_force;
     force.k = forward->k * x_force + object_up->k * y_force;
 
-    angle = (velocity->j * facing.i - facing.j * velocity->i) * 1.5707964f / (real)fabs((double)max_speed);
-    halo::math::vector3d_rotate_about_axis_perpendicular(up, facing, (real)sin((double)angle), (real)cos((double)angle));
+    angle = (velocity->j * facing.i - facing.j * velocity->i) * 1.5707964f / (real)halo::libm::fabs((double)max_speed);
+    halo::math::vector3d_rotate_about_axis_perpendicular(up, facing, (real)halo::libm::sin((double)angle), (real)halo::libm::cos((double)angle));
     halo::math::matrix4x3_from_forward_up(*object_up, *forward, current);
     halo::math::matrix4x3_from_forward_up(up, facing, desired);
     halo::math::matrix4x3_inverse(&desired, desired);
@@ -639,7 +636,7 @@ void VehicleView::calculate_lean_controls(void *mass_points, float *powered_stat
         return;
     }
 
-    speed_factor = (real)fabs((double)((real)sqrt((double)(velocity->i * velocity->i + velocity->j * velocity->j +
+    speed_factor = (real)halo::libm::fabs((double)((real)halo::libm::sqrt((double)(velocity->i * velocity->i + velocity->j * velocity->j +
         velocity->k * velocity->k)) * 2.5f));
     half_turn = ((struct vehicle_object *)obj)->vehicle.turning_velocity * 0.5f;
     if (!(speed_factor <= 1.0f)) {
@@ -650,8 +647,8 @@ void VehicleView::calculate_lean_controls(void *mass_points, float *powered_stat
     *(uint32_t *)(ps + 0x0c) = 0x3b449ba6;
     *(real *)(ps + 0x1c) = 0.0f;
     *(real *)(ps + 0x20) = 0.0f;
-    *(real *)(ps + 0x24) = (real)sin((double)steer);
-    *(real *)(ps + 0x28) = (real)cos((double)steer);
+    *(real *)(ps + 0x24) = (real)halo::libm::sin((double)steer);
+    *(real *)(ps + 0x28) = (real)halo::libm::cos((double)steer);
     *(uint32_t *)(ps + 0x6c) = 0x3b449ba6;
     *(real *)(ps + 0x7c) = 0.0f;
     *(real *)(ps + 0x80) = 0.0f;
@@ -682,14 +679,14 @@ void VehicleView::calculate_lean_controls(void *mass_points, float *powered_stat
         halo::math::vector3d_cross_product(side, *forward, *up);
         halo::math::vector3d_cross_product(slip, *velocity, *forward);
         angle = (slip.i * world_up->i + slip.j * world_up->j + slip.k * world_up->k) * 6.2831855f;
-        halo::math::vector3d_rotate_about_axis(torque, *forward, (real)sin((double)angle), (real)cos((double)angle));
+        halo::math::vector3d_rotate_about_axis(torque, *forward, (real)halo::libm::sin((double)angle), (real)halo::libm::cos((double)angle));
         angle = halo::math::vector3d_angle_between_4cd4f0(*up, torque);
         if (side.k * torque.k + side.j * torque.j + side.i * torque.i > 0.0f) {
             angle = -angle;
         }
         spin = forward->k * angular_velocity->k + forward->j * angular_velocity->j + forward->i * angular_velocity->i;
         sign = (angle == 0.0f) ? 0 : (angle >= 0.0f ? 1 : -1);
-        w = (real)sqrt(fabs((double)angle) * 0.027925269678235054) * (real)sign - spin;
+        w = (real)halo::libm::sqrt(halo::libm::fabs((double)angle) * 0.027925269678235054) * (real)sign - spin;
         if (!(w >= -0.013962635f)) {
             w = -0.013962635f;
         } else if (!(w <= 0.013962635f)) {

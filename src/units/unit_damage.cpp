@@ -26,14 +26,13 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
 extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
 extern void player_update_history_free_all(void *history);
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
 extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags, real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result);
-extern double sin(double x);
-extern double cos(double x);
 }
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
@@ -932,7 +931,7 @@ void UnitView::update_recoil_decay()
         up = obj->up;
     } else {
         real_matrix4x3 rotation;
-        halo::math::matrix4x3_from_axis_angle(rotation, axis, (real)sin((double)length), (real)cos((double)length));
+        halo::math::matrix4x3_from_axis_angle(rotation, axis, (real)halo::libm::sin((double)length), (real)halo::libm::cos((double)length));
         halo::math::matrix4x3_transform_vector(forward, obj->forward, rotation);
         halo::math::matrix4x3_transform_vector(up, obj->up, rotation);
     }

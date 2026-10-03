@@ -16,18 +16,9 @@
 #include "halo/camera/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
-extern "C" {
-extern double sqrt(double x);
-extern double fabs(double x);
-extern double asin(double x);
-extern double fcos(double angle);
-extern double fsin(double angle);
-extern double cos(double x);
-extern double sin(double x);
-extern int32_t __ftol(double x);
-extern double atan2(double y, double x);
-}
 static auto &director_last_pov_proc = halo::link::ref<director_pov_proc>(halo::camera::vars().director_last_pov_proc);
 static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
@@ -139,13 +130,13 @@ void FirstPersonCamera::apply_weapon_offset(real_point3d *position, datum_index 
     unit_extension = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
     *aiming_direction = unit_extension->aiming_vector;
 
-    pitch_angle = asin((double)aiming_direction->k);
+    pitch_angle = halo::libm::asin((double)aiming_direction->k);
     halo::camera::first_person_camera_track_offset(properties, (float)pitch_angle, &track_offset);
 
     horizontal_i = aiming_direction->i;
     horizontal_j = aiming_direction->j;
-    magnitude = (float)sqrt((double)(horizontal_i * horizontal_i + horizontal_j * horizontal_j));
-    if (0.0001 <= fabs((double)magnitude)) {
+    magnitude = (float)halo::libm::sqrt((double)(horizontal_i * horizontal_i + horizontal_j * horizontal_j));
+    if (0.0001 <= halo::libm::fabs((double)magnitude)) {
         magnitude = 1.0f / magnitude;
         horizontal_i = magnitude * horizontal_i;
         horizontal_j = magnitude * horizontal_j;
@@ -508,17 +499,17 @@ void ThirdPersonCamera::compute_pov(director_camera_data *data, camera_input *in
             pitch = 1.5707964f;
         }
 
-        cos_pitch = (float)fcos((double)pitch);
-        sin_pitch = (float)fsin((double)pitch);
+        cos_pitch = (float)halo::x87::fcos((double)pitch);
+        sin_pitch = (float)halo::x87::fsin((double)pitch);
 
-        command->parameters.forward.i = (float)fcos((double)yaw) * cos_pitch;
-        command->parameters.forward.j = (float)fsin((double)yaw) * cos_pitch;
+        command->parameters.forward.i = (float)halo::x87::fcos((double)yaw) * cos_pitch;
+        command->parameters.forward.j = (float)halo::x87::fsin((double)yaw) * cos_pitch;
         command->parameters.forward.k = sin_pitch;
 
         halo::camera::first_person_camera_track_offset((unit_camera_properties *)basis.marker_offset, pitch,
             &track_offset);
 
-        track_magnitude = (float)sqrt((double)(track_offset.i * track_offset.i +
+        track_magnitude = (float)halo::libm::sqrt((double)(track_offset.i * track_offset.i +
             track_offset.j * track_offset.j + track_offset.k * track_offset.k));
 
         command->parameters.focus_offset.i =
@@ -572,9 +563,9 @@ void TrackCamera::compute_pov(director_camera_data *data, camera_input *input, o
     command->parameters.position = focus_position;
     command->parameters.distance = dead->distance;
 
-    command->parameters.forward.i = (real)cos((double)dead->pitch) * (real)cos((double)dead->yaw);
-    command->parameters.forward.j = (real)cos((double)dead->pitch) * (real)sin((double)dead->yaw);
-    command->parameters.forward.k = (real)sin((double)dead->pitch);
+    command->parameters.forward.i = (real)halo::libm::cos((double)dead->pitch) * (real)halo::libm::cos((double)dead->yaw);
+    command->parameters.forward.j = (real)halo::libm::cos((double)dead->pitch) * (real)halo::libm::sin((double)dead->yaw);
+    command->parameters.forward.k = (real)halo::libm::sin((double)dead->pitch);
 
     halo::camera::vector3d_compute_up_from_forward((Vector3D *)&command->parameters.forward, (Vector3D *)&command->parameters.up);
     command->parameters.field_of_view = dead->field_of_view;
@@ -673,7 +664,7 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
         } else {
             
             
-            real yaw = (real)atan2((double)camera_script.forward.j, (double)camera_script.forward.i);
+            real yaw = (real)halo::libm::atan2((double)camera_script.forward.j, (double)camera_script.forward.i);
             real dot = camera_script.position.x * camera_script.forward.i +
                        camera_script.position.y * camera_script.forward.j +
                        camera_script.position.z * camera_script.forward.k;
@@ -693,10 +684,10 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
             command->interpolation_flags[_observer_parameter_position] = 1;
             command->flags |= 1;
 
-            command->parameters.focus_offset.i = (real)sin((double)yaw) * remaining_y +
-                                                  remaining_x * (real)cos((double)yaw);
-            command->parameters.focus_offset.j = (real)sin((double)yaw) * remaining_x -
-                                                  (real)cos((double)yaw) * remaining_y;
+            command->parameters.focus_offset.i = (real)halo::libm::sin((double)yaw) * remaining_y +
+                                                  remaining_x * (real)halo::libm::cos((double)yaw);
+            command->parameters.focus_offset.j = (real)halo::libm::sin((double)yaw) * remaining_x -
+                                                  (real)halo::libm::cos((double)yaw) * remaining_y;
             command->parameters.focus_offset.k = remaining_z;
         }
         break;
@@ -707,7 +698,7 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
         ModelAnimationsAnimation *anim =
             (ModelAnimationsAnimation *)((uint8_t *)anims->animations.pointer +
                                          (int32_t)camera_script.animation_index * sizeof(ModelAnimationsAnimation));
-        int16_t frame = (int16_t)__ftol(
+        int16_t frame = (int16_t)halo::x87::__ftol(
             (double)anim->frame_count - (double)(camera_script.time_remaining * 30.0f)); 
         int16_t frame_index;
         real_matrix4x3 sample;
@@ -790,18 +781,18 @@ void EditorCamera::compute_pov(director_camera_data *data, camera_input *input, 
     }
 
     command->timer = 0.3f; 
-    cos_pitch = (float)cos(camera->pitch);
-    command->parameters.forward.i = (float)cos(camera->yaw) * cos_pitch;
-    command->parameters.forward.j = (float)sin(camera->yaw) * cos_pitch;
-    command->parameters.forward.k = (float)sin(camera->pitch);
+    cos_pitch = (float)halo::libm::cos(camera->pitch);
+    command->parameters.forward.i = (float)halo::libm::cos(camera->yaw) * cos_pitch;
+    command->parameters.forward.j = (float)halo::libm::sin(camera->yaw) * cos_pitch;
+    command->parameters.forward.k = (float)halo::libm::sin(camera->pitch);
     halo::camera::vector3d_compute_up_from_forward(&command->parameters.forward, &command->parameters.up);
     halo::math::vector3d_rotate_about_axis(*((real_vector3d *)&command->parameters.up),
         *((const real_vector3d *)&command->parameters.forward),
-        (real)sin(camera->roll), (real)cos(camera->roll));
+        (real)halo::libm::sin(camera->roll), (real)halo::libm::cos(camera->roll));
 
     if (input->has_look_input) {
-        float cos_yaw = (float)cos(camera->yaw);
-        float sin_yaw = (float)sin(camera->yaw);
+        float cos_yaw = (float)halo::libm::cos(camera->yaw);
+        float sin_yaw = (float)halo::libm::sin(camera->yaw);
         float move_x = cos_yaw * input->move_forward - sin_yaw * input->move_left;
         float move_y = sin_yaw * input->move_forward + cos_yaw * input->move_left;
 
@@ -832,9 +823,9 @@ void EditorCamera::set_position_and_direction(editor_camera_data *out, Vector3D 
     out->field_of_view = 1.2217305f; 
     out->position = *position;
 
-    out->yaw = (real)atan2((double)direction->j, (double)direction->i);
-    out->pitch = (real)atan2((double)direction->k,
-                              sqrt((double)direction->i * (double)direction->i +
+    out->yaw = (real)halo::libm::atan2((double)direction->j, (double)direction->i);
+    out->pitch = (real)halo::libm::atan2((double)direction->k,
+                              halo::libm::sqrt((double)direction->i * (double)direction->i +
                                    (double)direction->j * (double)direction->j));
 }
 
@@ -884,9 +875,9 @@ void FlyingCamera::compute_pov(director_camera_data *data, camera_input *input, 
         camera = &((flying_render_frame *)flying_camera_render_frame)->camera;
         flying = flying_camera_data;
         flying->position = *(Point3D *)&camera->position;
-        flying->yaw = (float)atan2(camera->forward.j, camera->forward.i);
-        flying->pitch = (float)atan2(camera->forward.k,
-            sqrt(camera->forward.i * camera->forward.i + camera->forward.j * camera->forward.j));
+        flying->yaw = (float)halo::libm::atan2(camera->forward.j, camera->forward.i);
+        flying->pitch = (float)halo::libm::atan2(camera->forward.k,
+            halo::libm::sqrt(camera->forward.i * camera->forward.i + camera->forward.j * camera->forward.j));
         halo::camera::flying_camera_attach_to_object(flying_camera_attached_object);
         if (flying_camera_current_mode != 0) {
             flying_camera_transition_procs[flying_camera_current_mode][1](flying);
@@ -916,9 +907,9 @@ void FlyingCamera::enter_flying(editor_camera_data *data)
     flying_camera_saved_orbiting = *(orbiting_camera_data *)data;
     flying_camera_saved_orbiting_valid = 1;
     data->position = *(Point3D *)&camera->position;
-    data->yaw = (float)atan2(camera->forward.j, camera->forward.i);
-    data->pitch = (float)atan2(camera->forward.k,
-        sqrt(camera->forward.i * camera->forward.i + camera->forward.j * camera->forward.j));
+    data->yaw = (float)halo::libm::atan2(camera->forward.j, camera->forward.i);
+    data->pitch = (float)halo::libm::atan2(camera->forward.k,
+        halo::libm::sqrt(camera->forward.i * camera->forward.i + camera->forward.j * camera->forward.j));
     halo::camera::flying_camera_attach_to_object(flying_camera_attached_object);
 }
 
@@ -944,9 +935,9 @@ void FlyingCamera::enter_orbiting(editor_camera_data *data)
     orbit->unknown_00 = 0.0f;
     orbit->distance = 1.0f;
     orbit->unknown_08 = 0.0f;
-    orbit->yaw = (float)atan2(camera->forward.j, camera->forward.i);
-    orbit->pitch = (float)atan2(camera->forward.k,
-        sqrt(camera->forward.i * camera->forward.i + camera->forward.j * camera->forward.j));
+    orbit->yaw = (float)halo::libm::atan2(camera->forward.j, camera->forward.i);
+    orbit->pitch = (float)halo::libm::atan2(camera->forward.k,
+        halo::libm::sqrt(camera->forward.i * camera->forward.i + camera->forward.j * camera->forward.j));
 }
 
 /**
@@ -980,11 +971,11 @@ void FlyingCamera::initialize(editor_camera_data *data, int16_t local_player_ind
         }
     }
 
-    cos_pitch = (float)cos(flying_camera_home_location.pitch);
+    cos_pitch = (float)halo::libm::cos(flying_camera_home_location.pitch);
     flying_camera_home_initialized = 1;
-    forward_x = (float)cos(flying_camera_home_location.yaw) * cos_pitch;
-    forward_y = (float)sin(flying_camera_home_location.yaw) * cos_pitch;
-    forward_z = (float)sin(flying_camera_home_location.pitch);
+    forward_x = (float)halo::libm::cos(flying_camera_home_location.yaw) * cos_pitch;
+    forward_y = (float)halo::libm::sin(flying_camera_home_location.yaw) * cos_pitch;
+    forward_z = (float)halo::libm::sin(flying_camera_home_location.pitch);
 
     data->position.y = 0.0f;
     data->position.x = 0.0f;
@@ -993,8 +984,8 @@ void FlyingCamera::initialize(editor_camera_data *data, int16_t local_player_ind
     data->roll = 0.0f;
     data->field_of_view = 1.2217305f; 
     data->position = flying_camera_home_location.position;
-    data->yaw = (float)atan2(forward_y, forward_x);
-    data->pitch = (float)atan2(forward_z, sqrt(forward_x * forward_x + forward_y * forward_y));
+    data->yaw = (float)halo::libm::atan2(forward_y, forward_x);
+    data->pitch = (float)halo::libm::atan2(forward_z, halo::libm::sqrt(forward_x * forward_x + forward_y * forward_y));
 
     if (local_player_index == 0) {
         flying_camera_data = data;
@@ -1046,11 +1037,11 @@ void FlyingCamera::update(director_camera_data *data, camera_input *input, obser
     }
 
     command->timer = 0.3f; 
-    cos_pitch = (float)cos(camera->pitch);
+    cos_pitch = (float)halo::libm::cos(camera->pitch);
     right.k = 0.0f;
-    forward->i = (float)cos(camera->yaw) * cos_pitch;
-    forward->j = (float)sin(camera->yaw) * cos_pitch;
-    forward->k = (float)sin(camera->pitch);
+    forward->i = (float)halo::libm::cos(camera->yaw) * cos_pitch;
+    forward->j = (float)halo::libm::sin(camera->yaw) * cos_pitch;
+    forward->k = (float)halo::libm::sin(camera->pitch);
     right.j = -forward->i;
     right.i = forward->j;
     if (halo::math::vector3d_normalize_with_length(right) == 0.0f) {
@@ -1062,10 +1053,10 @@ void FlyingCamera::update(director_camera_data *data, camera_input *input, obser
     up->j = right.k * forward->i - right.i * forward->k;
     up->k = right.i * forward->j - right.j * forward->i;
     halo::math::vector3d_rotate_about_axis(*(real_vector3d *)up, *(const real_vector3d *)forward,
-        (real)sin(camera->roll), (real)cos(camera->roll));
+        (real)halo::libm::sin(camera->roll), (real)halo::libm::cos(camera->roll));
 
-    cos_yaw = (float)cos(camera->yaw);
-    sin_yaw = (float)sin(camera->yaw);
+    cos_yaw = (float)halo::libm::cos(camera->yaw);
+    sin_yaw = (float)halo::libm::sin(camera->yaw);
     move_x = flying_camera_speed * (cos_yaw * input->move_forward - sin_yaw * input->move_left);
     move_y = flying_camera_speed * (sin_yaw * input->move_forward + cos_yaw * input->move_left);
     move_z = flying_camera_speed * input->move_up;
@@ -1134,11 +1125,11 @@ void OrbitingCamera::update(director_camera_data *data, camera_input *input, obs
     orbit->distance = distance;
 
     if (basis.unit != k_datum_index_none) {
-        float cos_pitch = (float)cos(orbit->pitch);
+        float cos_pitch = (float)halo::libm::cos(orbit->pitch);
 
-        command->parameters.forward.i = (float)cos(orbit->yaw) * cos_pitch;
-        command->parameters.forward.j = (float)sin(orbit->yaw) * cos_pitch;
-        command->parameters.forward.k = (float)sin(orbit->pitch);
+        command->parameters.forward.i = (float)halo::libm::cos(orbit->yaw) * cos_pitch;
+        command->parameters.forward.j = (float)halo::libm::sin(orbit->yaw) * cos_pitch;
+        command->parameters.forward.k = (float)halo::libm::sin(orbit->pitch);
         halo::camera::vector3d_compute_up_from_forward(&command->parameters.forward, &command->parameters.up);
         halo::objects::object_get_root_object_velocities(basis.unit, (real_vector3d *)&command->velocity, 0);
         command->flags = _observer_command_valid_bit;

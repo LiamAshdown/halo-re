@@ -6,13 +6,9 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/libm.hpp"
 
 namespace c_actor_compute_grenade_throw_vector {
-extern "C" {
-
-extern double sqrt(double x);
-extern double fabs(double x);
-}
 }
 
 
@@ -49,9 +45,9 @@ uint32_t halo::ai::grenade_ops::compute_grenade_throw_vector(real_point3d *grena
 
     direction = a->grenade_throw_direction;
     if (a->active_unit_index == k_datum_index_none) {
-        real length = (real)sqrt(direction.j * direction.j + direction.i * direction.i);
+        real length = (real)halo::libm::sqrt(direction.j * direction.j + direction.i * direction.i);
 
-        if (!(fabs(length) < 9.999999747378752e-05)) {
+        if (!(halo::libm::fabs(length) < 9.999999747378752e-05)) {
             real inverse = 1.0f / length;
             real flat_i = direction.i * inverse;
             real flat_j = direction.j * inverse;
@@ -65,7 +61,7 @@ uint32_t halo::ai::grenade_ops::compute_grenade_throw_vector(real_point3d *grena
                 real horizontal;
 
                 halo::math::vector3d_rotate_about_axis(turned, *halo::math::globals().global_up3d_pointer, sign * 0.5f, 0.8660254f);
-                horizontal = (real)sqrt(direction.j * direction.j + direction.i * direction.i);
+                horizontal = (real)halo::libm::sqrt(direction.j * direction.j + direction.i * direction.i);
                 direction.i = turned.i * horizontal;
                 direction.j = turned.j * horizontal;
             }

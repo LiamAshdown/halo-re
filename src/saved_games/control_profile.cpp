@@ -25,9 +25,6 @@
 
 static_assert(halo::saved_games::k_input_device_stride_dwords * sizeof(uint32_t) == sizeof(input_device));
 
-extern "C" {
-extern void *memcpy(void *dest, const void *src, uint32_t count);
-}
 static auto &control_keyboard_scan_table = halo::link::ref<int16_t [k_control_keyboard_key_count]>(halo::ui::vars().control_keyboard_scan_table);
 static auto &control_mouse_button_scan_table = halo::link::ref<int16_t [k_control_mouse_button_count]>(halo::ui::vars().control_mouse_button_scan_table);
 static auto &control_mouse_axis_scan_table = halo::link::ref<int16_t [k_control_mouse_axis_count][2]>(halo::saved_games::vars().control_mouse_axis_scan_table);

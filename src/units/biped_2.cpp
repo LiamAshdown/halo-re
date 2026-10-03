@@ -21,12 +21,9 @@
 #include "halo/game/vars.hpp"
 #include "halo/physics/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
-extern double cos(double x);
-extern double sin(double x);
-extern double sqrt(double x);
-extern double fabs(double x);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
 extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags, real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result);
@@ -126,7 +123,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
                 ((Unit *)tag)->stunned_movement_threshold < obj->recent_body_damage) {
                 hurt = 1;
             }
-            if ((float)fabs((double)unit->throttle.j) <= (float)fabs((double)unit->throttle.i)) {
+            if ((float)halo::libm::fabs((double)unit->throttle.j) <= (float)halo::libm::fabs((double)unit->throttle.i)) {
                 state[0] = (int8_t)(hurt * 4 + (0.0f <= unit->throttle.i ? 4 : 5));
             } else {
                 state[0] = (int8_t)(hurt * 4 + (0.0f <= unit->throttle.j ? 6 : 7));
@@ -170,10 +167,10 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
         solve.movement_delta.j = solve.movement_delta.j * speed_scale;
         solve.movement_delta.k = solve.movement_delta.k * speed_scale;
 
-        if (!((float)fabs((double)dyaw) < 0.0001f)) {
+        if (!((float)halo::libm::fabs((double)dyaw) < 0.0001f)) {
             real_vector3d new_forward = obj->forward;
-            float dyaw_cos = (float)cos((double)dyaw);
-            float dyaw_sin = (float)sin((double)dyaw);
+            float dyaw_cos = (float)halo::libm::cos((double)dyaw);
+            float dyaw_sin = (float)halo::libm::sin((double)dyaw);
 
             halo::math::vector3d_rotate_about_axis(new_forward, obj->up, dyaw_sin, dyaw_cos);
 
@@ -287,7 +284,7 @@ void BipedView::integrate_movement(object *obj, int8_t *state)
         float crouch_modifier;
         float sideways_rate;
 
-        throttle_length = (float)sqrt((double)(unit->throttle.k * unit->throttle.k +
+        throttle_length = (float)halo::libm::sqrt((double)(unit->throttle.k * unit->throttle.k +
                                                unit->throttle.j * unit->throttle.j +
                                                unit->throttle.i * unit->throttle.i));
         if (1.0f <= throttle_length) {
@@ -522,7 +519,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
                 ((Unit *)tag)->stunned_movement_threshold < obj->recent_body_damage) {
                 hurt = 1;
             }
-            if ((float)fabs((double)unit->throttle.j) <= (float)fabs((double)unit->throttle.i)) {
+            if ((float)halo::libm::fabs((double)unit->throttle.j) <= (float)halo::libm::fabs((double)unit->throttle.i)) {
                 state[0] = (int8_t)(hurt * 4 + (0.0f <= unit->throttle.i ? 4 : 5));
             } else {
                 state[0] = (int8_t)(hurt * 4 + (0.0f <= unit->throttle.j ? 6 : 7));
@@ -566,10 +563,10 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
         solve.movement_delta.j = solve.movement_delta.j * speed_scale;
         solve.movement_delta.k = solve.movement_delta.k * speed_scale;
 
-        if (!((float)fabs((double)dyaw) < 0.0001f)) {
+        if (!((float)halo::libm::fabs((double)dyaw) < 0.0001f)) {
             real_vector3d new_forward = obj->forward;
-            float dyaw_cos = (float)cos((double)dyaw);
-            float dyaw_sin = (float)sin((double)dyaw);
+            float dyaw_cos = (float)halo::libm::cos((double)dyaw);
+            float dyaw_sin = (float)halo::libm::sin((double)dyaw);
 
             halo::math::vector3d_rotate_about_axis(new_forward, obj->up, dyaw_sin, dyaw_cos);
 
@@ -683,7 +680,7 @@ void BipedView::integrate_movement_with_collision(int8_t *state)
         float throttle_length;
         float crouch_modifier;
 
-        throttle_length = (float)sqrt((double)(unit->throttle.k * unit->throttle.k +
+        throttle_length = (float)halo::libm::sqrt((double)(unit->throttle.k * unit->throttle.k +
                                                unit->throttle.j * unit->throttle.j +
                                                unit->throttle.i * unit->throttle.i));
         if (1.0f <= throttle_length) {
@@ -736,7 +733,7 @@ step_crouch:
             crouch_step = -tag->crouch_camera_velocity;
         }
     }
-    if (0.01f < (float)fabs((double)crouch_step) && test_flag(biped->flags, units::biped_flag::airborne)) {
+    if (0.01f < (float)halo::libm::fabs((double)crouch_step) && test_flag(biped->flags, units::biped_flag::airborne)) {
         solve.height_change = (tag->standing_collision_height - tag->crouching_collision_height) *
                               crouch_step;
     }
@@ -987,7 +984,7 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
         float length;
         float scaled;
 
-        speed = (float)sqrt((double)(solve->movement_delta.i * solve->movement_delta.i +
+        speed = (float)halo::libm::sqrt((double)(solve->movement_delta.i * solve->movement_delta.i +
                                      solve->movement_delta.j * solve->movement_delta.j +
                                      solve->movement_delta.k * solve->movement_delta.k));
         if (test_flag(flags, units::biped_movement_solver_flag::climbs_any_surface)) {
@@ -1178,7 +1175,7 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
             if (!(best_distance_squared > reach * reach) && !(best_dot > 0.053333335f)) {
                 float height = (swept_position.x * best_plane.normal.i + best_plane.normal.k * swept_position.z +
                                 best_plane.normal.j * swept_position.y) - (best_plane.d + solve->pill_radius);
-                if (!(solve->pill_radius * 0.5f < (float)fabs((double)height))) {
+                if (!(solve->pill_radius * 0.5f < (float)halo::libm::fabs((double)height))) {
                     physics_model_contact *contact = &contacts[0];
                     float into = swept_velocity.i * best_plane.normal.i + best_plane.normal.j * swept_velocity.j +
                                  best_plane.normal.k * swept_velocity.k;
@@ -1222,7 +1219,7 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
         uint8_t landed = 0;
 
         if (lateral_squared > 9.999999e-09f) {
-            float inverse = (float)(1.0 / sqrt((double)lateral_squared));
+            float inverse = (float)(1.0 / halo::libm::sqrt((double)lateral_squared));
             lateral_x = lateral_x * inverse;
             lateral_y = inverse * lateral_y;
         }
@@ -1383,7 +1380,7 @@ void halo::units::biped_movement_solve(biped_movement_solver_data *solve)
             float dx = swept_velocity.i - e.i;
             float dy = swept_velocity.j - e.j;
             float dz = swept_velocity.k - e.k;
-            solve->result_blocked_distance = (float)sqrt((double)(dx * dx + dy * dy + dz * dz));
+            solve->result_blocked_distance = (float)halo::libm::sqrt((double)(dx * dx + dy * dy + dz * dz));
         }
         solve->result_velocity.k = solve->result_velocity.k - solve->height_change;
 

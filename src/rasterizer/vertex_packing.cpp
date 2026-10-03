@@ -5,10 +5,10 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
 
-extern double floor(double x);
 
 }  // extern "C"
 
@@ -61,13 +61,13 @@ uint32_t vector3d_pack_normal_11_11_10(real_vector3d *direction)
     int32_t xi, yi, zi;
 
     cx = clamp_unit(direction->i);
-    xi = (int32_t)(float)floor((double)(cx * 1023.5f));
+    xi = (int32_t)(float)halo::libm::floor((double)(cx * 1023.5f));
 
     cy = clamp_unit(direction->j);
-    yi = (int32_t)(float)floor((double)(cy * 1023.5f));
+    yi = (int32_t)(float)halo::libm::floor((double)(cy * 1023.5f));
 
     cz = clamp_unit(direction->k);
-    zi = (int32_t)(float)floor((double)(cz * 511.5f));
+    zi = (int32_t)(float)halo::libm::floor((double)(cz * 511.5f));
 
     return (uint32_t)(((zi << 0xb | (yi & 0x7ff)) << 0xb) | (xi & 0x7ff));
 }

@@ -12,14 +12,11 @@
 #include "halo/render/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 extern "C" {
 
-extern double atan2(double y, double x);
-extern double fpatan(double y, double x);
-extern double floor(double x);
-extern double fcos(double x);
-extern double fsin(double x);
 
 }  // extern "C"
 
@@ -150,7 +147,7 @@ float lens_flare_compute_rotation(lens_flare_instance *flare, int16_t mode)
         break;
     }
     if (mode != 0 && y != 0.0f) {
-        return (float)(atan2((double)y, (double)x) * 0.15915493667125702);
+        return (float)(halo::libm::atan2((double)y, (double)x) * 0.15915493667125702);
     }
     return 0.0f;
 }
@@ -273,7 +270,7 @@ void lens_flare_render_all(void)
 
         rotation = lens_flare_compute_rotation((lens_flare_instance *)instance, *(int16_t *)(definition + 0x80)) *
                    *(float *)(definition + 0x84);
-        angle = (float)fpatan((double)(axis_a[2] * d.k + axis_a[1] * d.j + d.i * axis_a[0]),
+        angle = (float)halo::x87::fpatan((double)(axis_a[2] * d.k + axis_a[1] * d.j + d.i * axis_a[0]),
                               (double)(axis_b[2] * d.k + axis_b[1] * d.j + d.i * axis_b[0])) * 57.29578f;
 
         span = *(float *)(definition + 0x08) - *(float *)(definition + 0x0c);
@@ -895,7 +892,7 @@ static int16_t floor_clamped(float value)
     } else if (value > 32767.0f) {
         value = 32767.0f;
     }
-    return (int16_t)(int32_t)(float)floor((double)value);
+    return (int16_t)(int32_t)(float)halo::libm::floor((double)value);
 }
 
 static void set_vertex(rasterizer_screen_vertex *vertex, int16_t x, int16_t y, float z, float rhw, float u, float v)
@@ -1049,8 +1046,8 @@ void rasterizer_lens_flare_quad_add(const float *scale, uint32_t diffuse, const 
             axis_v = billboard[1];
         } else {
             double angle = (double)rotation_degrees * 0.017453292;
-            double c = fcos(angle);
-            double s = fsin(angle);
+            double c = halo::x87::fcos(angle);
+            double s = halo::x87::fsin(angle);
             axis_u = (float)((double)billboard[0] * c - (double)billboard[1] * s);
             axis_v = (float)((double)billboard[1] * c + (double)billboard[0] * s);
         }

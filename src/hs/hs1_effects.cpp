@@ -7,12 +7,9 @@
 #include "halo/hs/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
+#include "halo/core/x87.hpp"
+#include <string.h>
 
-extern "C" {
-extern void *memset(void *dst, int32_t value, uint32_t size);
-extern double fcos(double x);
-extern double fsin(double x);
-}
 static auto &global_origin3d_pointer = halo::link::ref<void *>(halo::ai::vars().global_origin3d_pointer);
 
 namespace halo::hs {
@@ -106,11 +103,11 @@ void ScriptEffects::effect_spawn_at_location(int16_t location_index, uint32_t ef
 
     location = (ScenarioCutsceneFlag *)((uint8_t *)halo::scenario::globals().scenario->cutscene_flags.pointer +
         location_index * 0x5c);
-    forward.i = (float)(fcos((double)location->facing.yaw) *
-        fcos((double)location->facing.pitch));
-    forward.j = (float)(fsin((double)location->facing.yaw) *
-        fcos((double)location->facing.pitch));
-    forward.k = (float)fsin((double)location->facing.pitch);
+    forward.i = (float)(halo::x87::fcos((double)location->facing.yaw) *
+        halo::x87::fcos((double)location->facing.pitch));
+    forward.j = (float)(halo::x87::fsin((double)location->facing.yaw) *
+        halo::x87::fcos((double)location->facing.pitch));
+    forward.k = (float)halo::x87::fsin((double)location->facing.pitch);
 
     halo::effects::effect_new_with_color(effect, halo::k_dword_none, (const real_vector3d *)global_origin3d_pointer, 1, 0, (real_point3d *)&location->position, (uint32_t)&forward,
         1.0f, 1.0f, 0, 0, 1);

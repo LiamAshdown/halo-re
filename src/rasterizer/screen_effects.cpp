@@ -13,16 +13,12 @@
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/libm.hpp"
+#include <string.h>
 
 extern "C" {
 
-extern double log(double x);
-extern double pow(double base, double exponent);
-extern int __cdecl _stricmp(const char *a, const char *b);
-extern double exp(double x);
 extern float effect_random_fraction(void);
-extern double floor(double x);
-extern double cos(double x);
 
 }  // extern "C"
 
@@ -80,9 +76,9 @@ void chimera__gamma(void)
         return;
     }
 
-    exponent = (float)(log((double)rasterizer_gamma_exponent * 0.003921568859368563) / log(0.5));
+    exponent = (float)(halo::libm::log((double)rasterizer_gamma_exponent * 0.003921568859368563) / halo::libm::log(0.5));
     for (i = 0; i < 0x100; i++) {
-        ramp_value = (int16_t)(int32_t)(pow((double)i * 0.003921568859368563, exponent) * 65535.0);
+        ramp_value = (int16_t)(int32_t)(halo::libm::pow((double)i * 0.003921568859368563, exponent) * 65535.0);
         rasterizer_game_gamma_ramp.red[i] = ramp_value;
         rasterizer_game_gamma_ramp.green[i] = ramp_value;
         rasterizer_game_gamma_ramp.blue[i] = ramp_value;
@@ -306,9 +302,9 @@ void rasterizer_gamma_brightness_to_exponent(rasterizer_gamma_settings *settings
 
     brightness = *(uint16_t *)(settings + 0x100);
     brightness_norm = (double)brightness * 1.5259021896696422e-05;
-    ratio = log(0.5) / log(0.5019607843137255);
-    exponent = log(brightness_norm) * ratio;
-    scaled = exp(exponent) * 255.0;
+    ratio = halo::libm::log(0.5) / halo::libm::log(0.5019607843137255);
+    exponent = halo::libm::log(brightness_norm) * ratio;
+    scaled = halo::libm::exp(exponent) * 255.0;
 
     rasterizer_gamma_exponent = (int32_t)scaled;
     if (0xffff0100 < rasterizer_caps.pixel_shader_version) {
@@ -1991,7 +1987,7 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
     to_flare.j = instance->position.y - rasterizer_window.camera.position.y;
     to_flare.k = instance->position.z - rasterizer_window.camera.position.z;
     halo::math::vector3d_normalize_with_length(to_flare);
-    cone_cosine = (float)cos(0.7853981852531433);
+    cone_cosine = (float)halo::libm::cos(0.7853981852531433);
     falloff = (to_flare.k * rasterizer_window.camera.forward.k + to_flare.j * rasterizer_window.camera.forward.j +
                to_flare.i * rasterizer_window.camera.forward.i - cone_cosine) / (1.0f - cone_cosine);
     if (falloff < 0.0f) {
@@ -2010,8 +2006,8 @@ void rasterizer_sun_glow_render(lens_flare_instance *instance)
         render_device().set_software_vertex_processing(rasterizer_software_vertex_processing);
         return;
     }
-    screen[0] = (float)floor(screen[0] + 0.5f);
-    screen[1] = (float)floor(screen[1] + 0.5f);
+    screen[0] = (float)halo::libm::floor(screen[0] + 0.5f);
+    screen[1] = (float)halo::libm::floor(screen[1] + 0.5f);
     rect[0] = screen[0] - 32.0f;
     rect[2] = screen[1] - 32.0f;
     rect[1] = screen[0] + 32.0f;

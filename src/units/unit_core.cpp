@@ -19,10 +19,8 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double sqrt(double x);
-}
 static auto &global_globals = halo::link::ref<uint8_t *>(halo::game::vars().global_globals);
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 static auto &network_message_scratch = halo::link::ref<uint8_t [halo::k_network_message_scratch_size]>(halo::game::vars().network_message_scratch);
@@ -73,7 +71,7 @@ void UnitView::apply_impulse(real_vector3d *impulse)
         length = halo::math::vector3d_normalize_with_length(jitter_axis);
         halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         {
-            float magnitude = (float)sqrt((double)(impulse->i * impulse->i + impulse->j * impulse->j +
+            float magnitude = (float)halo::libm::sqrt((double)(impulse->i * impulse->i + impulse->j * impulse->j +
                                                      impulse->k * impulse->k));
             float angle = (float)(int32_t)(halo::math::globals().random_seed_global >> halo::k_random_high_shift) * halo::k_unit_word_scale * magnitude * 1.5707964f;
             obj->angular_velocity.i += jitter_axis.i * angle;

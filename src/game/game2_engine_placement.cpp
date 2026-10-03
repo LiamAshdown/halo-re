@@ -16,6 +16,8 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 typedef struct netgame_equipment_spawn_message {
     int32_t object_hash;
@@ -25,20 +27,12 @@ typedef struct netgame_equipment_spawn_message {
 } netgame_equipment_spawn_message;
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
-extern "C" {
-extern double sqrt(double x);
-extern double pow(double base, double exponent);
-}
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);
 static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &game_engine_unknown_aa00 = halo::link::ref<int32_t>(halo::game::vars().game_engine_unknown_aa00);
 static auto &game_engine_map_table_value = halo::link::ref<uint8_t>(halo::game::vars().game_engine_map_table_value);
 static auto &network_object_index_cache = halo::link::ref<uint8_t []>(halo::units::vars().network_object_index_cache);
-extern "C" {
-extern double fcos(double radians);
-extern double fsin(double radians);
-}
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &teleport_message_cooldown = halo::link::ref<int32_t>(halo::game::vars().teleport_message_cooldown);
 static auto &empty_string = halo::link::ref<wchar_t>(halo::game::vars().empty_string);
@@ -51,7 +45,6 @@ static auto &teleport_flash_blue = halo::link::ref<uint32_t>(halo::game::vars().
 static auto &teleport_flash_duration = halo::link::ref<uint32_t>(halo::game::vars().teleport_flash_duration);
 static auto &teleport_flash_fade_function = halo::link::ref<int16_t>(halo::game::vars().teleport_flash_fade_function);
 extern "C" {
-extern double atan2(double y, double x);
 extern int game_engine_find_valid_starting_locations(real_point3d *origin, float max_horizontal_dist, float max_height_delta, int16_t team, int16_t type, int32_t max_results, int32_t *results);
 extern int32_t game_engine_find_one_valid_starting_location(int16_t type, int16_t team, real_point3d *origin, float max_horizontal_dist, float max_height_delta);
 extern void game_engine_queue_multiplayer_sound(int32_t sound_index, datum_index player, uint8_t broadcast);
@@ -95,10 +88,10 @@ float EnginePlacement::rate_location_ally_bonus(uint32_t self_index, real_point3
                 dx = point->x - other_position.x;
                 dy = point->y - other_position.y;
                 dz = point->z - other_position.z;
-                distance = (float)sqrt((double)(dx * dx + dy * dy + dz * dz));
+                distance = (float)halo::libm::sqrt((double)(dx * dx + dy * dy + dz * dz));
 
                 if (1.0f <= distance && distance <= 6.0f) {
-                    bonus = bonus + (float)pow((double)(1.0f - (distance - 1.0f) * 0.2f), (double)0.6f);
+                    bonus = bonus + (float)halo::libm::pow((double)(1.0f - (distance - 1.0f) * 0.2f), (double)0.6f);
                 }
             }
             element = halo::memory::data_iterator_next(&iter);
@@ -144,7 +137,7 @@ float EnginePlacement::rate_location_crowding(uint32_t self_index, real_point3d 
             dx = point->x - other_position.x;
             dy = point->y - other_position.y;
             dz = point->z - other_position.z;
-            distance = (float)sqrt((double)(dx * dx + dy * dy + dz * dz));
+            distance = (float)halo::libm::sqrt((double)(dx * dx + dy * dy + dz * dz));
 
             if ((((no_engine ? 0u : 0xffffffffu) & teams_enabled) == 0) ||
                 (other->team != self->team) || (distance <= 0.25f)) {
@@ -504,8 +497,8 @@ void EnginePlacement::spawn_or_replay_netgame_equipment(int32_t *message)
     placement.position.x = equipment->position.x;
     placement.position.y = equipment->position.y;
     placement.position.z = equipment->position.z;
-    placement.forward.i = (float)fcos(equipment->facing);
-    placement.forward.j = (float)fsin(equipment->facing);
+    placement.forward.i = (float)halo::x87::fcos(equipment->facing);
+    placement.forward.j = (float)halo::x87::fsin(equipment->facing);
     placement.forward.k = 0.0f;
 
     new_object = halo::objects::object_new_with_datum_role_control(&placement, 1);
@@ -571,7 +564,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
                             float dx = existing->position.x - equipment->position.x;
                             float dy = existing->position.y - equipment->position.y;
                             float dz = existing->position.z - equipment->position.z;
-                            float dist = (float)sqrt((double)(dx * dx + dy * dy + dz * dz));
+                            float dist = (float)halo::libm::sqrt((double)(dx * dx + dy * dy + dz * dz));
 
                             if (dist <= 0.5f || (existing->flags & 0x20) == 0) {
                                 ((item_data *)((uint8_t *)existing + sizeof(object)))->held_game_time =
@@ -593,8 +586,8 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
                         placement.position.x = equipment->position.x;
                         placement.position.y = equipment->position.y;
                         placement.position.z = equipment->position.z;
-                        placement.forward.i = (float)fcos(equipment->facing);
-                        placement.forward.j = (float)fsin(equipment->facing);
+                        placement.forward.i = (float)halo::x87::fcos(equipment->facing);
+                        placement.forward.j = (float)halo::x87::fsin(equipment->facing);
                         placement.forward.k = 0.0f;
 
                         new_object = halo::objects::object_new_with_datum_role_control(&placement, 3);
@@ -752,10 +745,10 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
             }
 
             {
-                float yaw = (float)atan2(forward.j, forward.i);
+                float yaw = (float)halo::libm::atan2(forward.j, forward.i);
                 yaw = (yaw + exit_flag->facing) - entrance->facing;
-                forward.i = (float)fcos(yaw);
-                forward.j = (float)fsin(yaw);
+                forward.i = (float)halo::x87::fcos(yaw);
+                forward.j = (float)halo::x87::fsin(yaw);
                 halo::math::vector3d_normalize_with_length(forward);
 
                 halo::objects::object_set_position_and_orientation(unit, &forward, 0, (real_point3d *)(&exit_flag->position));

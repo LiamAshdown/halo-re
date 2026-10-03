@@ -7,6 +7,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/libm.hpp"
 
 #ifdef interface
 #undef interface
@@ -14,9 +15,6 @@
 
 static auto &ui_time_milliseconds = halo::link::ref<int32_t>(halo::ui::vars().ui_time_milliseconds);
 static auto &widget_memory_pool = halo::link::ref<heap *>(halo::ui::vars().widget_memory_pool);
-extern "C" {
-extern double cos(double x);
-}
 static auto &ui_replace_function_table = halo::link::ref<void *[4]>(halo::ui::vars().ui_replace_function_table);
 static auto &ui_invalid_replacement_text = halo::link::ref<uint16_t []>(halo::ui::vars().ui_invalid_replacement_text);
 static auto &ui_out_of_memory_text = halo::link::ref<uint16_t []>(halo::ui::vars().ui_out_of_memory_text);
@@ -128,7 +126,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
             if (ui_time_milliseconds < 0) {
                 time += 4294967296.0;
             }
-            color.alpha = (float)((cos(time * 0.003) + 1.5) * 0.4 * (double)color.alpha);
+            color.alpha = (float)((halo::libm::cos(time * 0.003) + 1.5) * 0.4 * (double)color.alpha);
         }
 
         halo::text::text_context::set_render_context(*(datum_index *)&tag->text_font.tag_id, &color, -1, tag->justification, 0);

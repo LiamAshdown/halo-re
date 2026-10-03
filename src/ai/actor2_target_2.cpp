@@ -9,13 +9,13 @@
 #include "halo/ai/records.hpp"
 #include "halo/core/link.hpp"
 #include "halo/physics/vars.hpp"
+#include "halo/core/libm.hpp"
 
 namespace halo::ai {
 
 namespace actor_target_evaluate_squad_link_local {
 static auto &object_cluster_stamp = halo::link::ref<int32_t>(halo::physics::vars().object_cluster_stamp);
 extern "C" {
-extern double sqrt(double x);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 #define OBJ(i) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(i) & halo::k_slot_mask].data)
 static void squad_link_add_far(uint8_t *list, datum_index object_index, float distance_squared)
@@ -90,7 +90,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
         distance_squared = dz * dz + dy * dy + dx * dx;
     }
     if (radius > 0.0f && (firing || (int8_t)unit[0x2a3] == 0x1e)) {
-        halo::ai::actor_danger_register_point(actor_index, target, radius, (float)sqrt((double)distance_squared), (char)enemies, 0);
+        halo::ai::actor_danger_register_point(actor_index, target, radius, (float)halo::libm::sqrt((double)distance_squared), (char)enemies, 0);
     }
     if (target_actor_index != k_datum_index_none) {
         target_actor = halo::ai::actor_at(target_actor_index);
@@ -217,7 +217,7 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, actor *self, da
         float dy = position.y - block_point->y;
         float dz = position.z - block_point->z;
 
-        distance = (float)sqrt((double)(dz * dz + dy * dy + dx * dx));
+        distance = (float)halo::libm::sqrt((double)(dz * dz + dy * dy + dx * dx));
     }
     if (!(radius + 10.0f > distance)) {
         return;

@@ -26,6 +26,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &local_player_name_filter = halo::link::ref<uint16_t [0x400]>(halo::game::vars().local_player_name_filter);
 static auto &player_update_log_categories_default = halo::link::ref<uint32_t>(halo::networking::vars().player_update_log_categories_default);
@@ -33,9 +34,6 @@ static auto &player_update_log_categories_filtered = halo::link::ref<uint32_t>(h
 static auto &player_update_log_flags = halo::link::ref<uint8_t>(halo::main::vars().player_update_log_flags);
 static auto &player_update_history_log_path = halo::link::ref<char *>(halo::networking::vars().player_update_history_log_path);
 static auto &player_update_log_file_mode_string = halo::link::ref<char []>(halo::networking::vars().player_update_log_file_mode_string);
-extern "C" {
-extern double sqrt(double x);
-}
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
 static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
 
@@ -472,7 +470,7 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
         history->statistics[3] = updates_this_call;
         *(float *)&history->statistics[7] = (float)result;
         dz = end2_z - original_z;
-        distance = (real)sqrt((double)((end2_x - original_x) * (end2_x - original_x) +
+        distance = (real)halo::libm::sqrt((double)((end2_x - original_x) * (end2_x - original_x) +
                         (end2_y - original_y) * (end2_y - original_y) + dz * dz)) +
             *(float *)&history->statistics[5];
         *(float *)&history->statistics[5] = distance;

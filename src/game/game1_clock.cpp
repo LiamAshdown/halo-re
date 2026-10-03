@@ -26,12 +26,10 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &chimera_contrail_scale = halo::link::ref<real>(halo::game::vars().chimera_contrail_scale);
-extern "C" {
-extern double floor(double x);
-}
 static auto &game_time_force_single_tick = halo::link::ref<int32_t>(halo::game::vars().game_time_force_single_tick);
 extern "C" {
 extern void game_simulate_tick(uint32_t predict_pass);
@@ -99,7 +97,7 @@ int32_t SimulationClock::accumulate_simulation_ticks(float elapsed_seconds, char
     scale = scale * 30.0f;
 
     elapsed_seconds = elapsed_seconds + game_time->leftover_time;
-    floor_result = (float)floor((double)(elapsed_seconds * scale));
+    floor_result = (float)halo::libm::floor((double)(elapsed_seconds * scale));
 
     tick_count = (int32_t)((float)floor_result > 1000.0f ? 1000.0f : (float)floor_result);
 

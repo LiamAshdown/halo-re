@@ -24,6 +24,7 @@
 #include "halo/scenario/scenario.hpp"
 #include "halo/core/link.hpp"
 #include "halo/physics/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" { void halo::physics::collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object_index, real_point3d *origin, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
 extern "C" { uint8_t halo::physics::collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
@@ -205,7 +206,6 @@ static auto &object_cluster_stamp = halo::link::ref<int32_t>(halo::physics::vars
 static auto &collideable_object_references = halo::link::ref<data_array *>(halo::physics::vars().collideable_object_references);
 extern "C" { extern uint8_t collision_bsp_query_segment_init(uint32_t flags, collision_bsp_segment_result *result, ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, uint32_t *breakable_surfaces, real_point3d *origin, real_vector3d *delta, float max_fraction); }
 static auto &breakable_surface_state = halo::link::ref<breakable_surface_globals *>(halo::physics::vars().breakable_surface_state);
-extern "C" { extern double fabs(double x); }
 namespace halo::physics {
 
 /**
@@ -337,8 +337,8 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
                     float side_a = (ni * origin->x + nk * origin->z + nj * origin->y) - d;
                     float side_b = ni * delta->i + nk * delta->k + nj * delta->j;
                     if ((0.0f < side_a) != (0.0f < side_b) &&
-                        (float)fabs((double)side_a) < (float)fabs((double)side_b) &&
-                        0.0001f <= (float)fabs((double)side_b) &&
+                        (float)halo::libm::fabs((double)side_a) < (float)halo::libm::fabs((double)side_b) &&
+                        0.0001f <= (float)halo::libm::fabs((double)side_b) &&
                         -(side_a / side_b) < result->t) {
                         result->t = -(side_a / side_b);
                         result->plane.normal.i = ni;
@@ -431,7 +431,7 @@ uint8_t CollisionWorld::test_movement_segment(uint32_t flags, real_point3d *orig
                         float facing = delta->i * result->plane.normal.i + delta->j * result->plane.normal.j +
                             delta->k * result->plane.normal.k;
                         float step = (facing == 0.0f) ? 0.03125f :
-                            0.00024414062f / (float)fabs((double)facing);
+                            0.00024414062f / (float)halo::libm::fabs((double)facing);
 
                         while (1) {
                             float t = result->t - step;

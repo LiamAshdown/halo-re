@@ -19,6 +19,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &global_structure_bsp = halo::link::ref<uint8_t *>(halo::ai::vars().global_structure_bsp);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
@@ -37,8 +38,6 @@ static auto &communication_line_base = halo::link::ref<uint8_t *>(halo::ai::vars
 static auto &actor_mode_definitions = halo::link::ref<actor_mode_definition [16]>(halo::ai::vars().actor_mode_definitions);
 static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
 extern "C" {
-extern double sqrt(double x);
-extern double fabs(double x);
 extern uint32_t team_pair_override_adjust_counter(int16_t index_a, int16_t index_b, int16_t delta_selector, uint8_t *out_flag);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 }
@@ -825,8 +824,8 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                     to = marker.node_transform.position;
                     dx = to.x - from.x;
                     dy = to.y - from.y;
-                    length = (float)sqrt(dy * dy + dx * dx);
-                    if (fabs(length) >= 9.999999747378752e-05) {
+                    length = (float)halo::libm::sqrt(dy * dy + dx * dx);
+                    if (halo::libm::fabs(length) >= 9.999999747378752e-05) {
                         float inverse = 1.0f / length;
 
                         direction.i = inverse * dx;
@@ -1220,7 +1219,7 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
                                 ? 1 : 0;
                     }
 
-                    distance = (float)sqrt((double)distance_squared);
+                    distance = (float)halo::libm::sqrt((double)distance_squared);
                     score = 1.0f;
                     if (distance < 15.0f) {
                         if (3.0f <= distance) {

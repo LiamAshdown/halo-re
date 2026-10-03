@@ -8,14 +8,12 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/x87.hpp"
 
 static auto &hud_messaging = halo::link::ref<hud_messaging_globals *>(halo::ui::vars().hud_messaging);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
 static auto &current_local_player_index = halo::link::ref<int16_t>(halo::ui::vars().current_local_player_index);
-extern "C" {
-extern int32_t __ftol(double x);
-}
 
 namespace halo::interface {
 
@@ -118,7 +116,7 @@ void HudTimer::draw(void)
     digits_tag = *(datum_index *)&interface_bitmaps->hud_digits_definition.tag_id;
     if (digits_tag != (datum_index)-1) {
         HUDNumber *digits = halo::interface::tag_data<HUDNumber>(digits_tag);
-        digit_step = __ftol((double)((float)(int32_t)digits->screen_digit_width + (float)(int32_t)digits->screen_digit_width));
+        digit_step = halo::x87::__ftol((double)((float)(int32_t)digits->screen_digit_width + (float)(int32_t)digits->screen_digit_width));
     }
     switch (messaging->timer_anchor) {
     case 1:
@@ -159,11 +157,11 @@ void HudTimer::draw(void)
                     messaging->timer_start_time, 2.0f);
 
     spacing = (double)(int16_t)digit_step * 2.5;
-    placement.anchor_offset.x = (int16_t)__ftol((double)placement.anchor_offset.x + spacing);
+    placement.anchor_offset.x = (int16_t)halo::x87::__ftol((double)placement.anchor_offset.x + spacing);
     halo::interface::hud_draw_number((void *)(uint32_t)current_local_player_index, anchor, &placement, (int16_t)seconds, -1, flash,
                     messaging->timer_start_time, 2.0f);
 
-    placement.anchor_offset.x = (int16_t)__ftol((double)placement.anchor_offset.x + spacing);
+    placement.anchor_offset.x = (int16_t)halo::x87::__ftol((double)placement.anchor_offset.x + spacing);
     halo::interface::hud_draw_number((void *)(uint32_t)current_local_player_index, anchor, &placement,
                     (int16_t)(sub_second * 100 / 30), -1, flash, messaging->timer_start_time, 2.0f);
 }

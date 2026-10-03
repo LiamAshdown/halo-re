@@ -16,6 +16,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/hs/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include <stdio.h>
 
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 static auto &message_delta_parameters_enabled = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_enabled);
@@ -24,9 +25,6 @@ static auto &message_delta_config_text_buffer = halo::link::ref<char []>(halo::h
 static auto &message_delta_config_write_mode_string = halo::link::ref<char []>(halo::networking::vars().message_delta_config_write_mode_string);
 static auto &message_delta_parameter_count = halo::link::ref<int32_t>(halo::networking::vars().message_delta_parameter_count);
 static auto &message_delta_parameters = halo::link::ref<message_delta_parameter []>(halo::networking::vars().message_delta_parameters);
-extern "C" {
-extern int32_t sprintf(char *buffer, const char *format, ...);
-}
 static auto &message_delta_config_value_delimiters = halo::link::ref<char []>(halo::networking::vars().message_delta_config_value_delimiters);
 extern "C" {
 extern int32_t sscanf(const char *buffer, const char *format, ...);

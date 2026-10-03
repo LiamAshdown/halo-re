@@ -8,14 +8,12 @@
 #include "tags.h"
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &motion_sensor = halo::link::ref<motion_sensor_globals *>(halo::ui::vars().motion_sensor);
 static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
 static auto &motion_sensor_sweep = halo::link::ref<float>(halo::ui::vars().motion_sensor_sweep);
 static auto &motion_sensor_sweep_scale = halo::link::ref<float>(halo::ui::vars().motion_sensor_sweep_scale);
-extern "C" {
-extern double fmod(double x, double y);
-}
 
 static int16_t motion_sensor_next_local_player(int16_t local_player_index)
 {
@@ -37,7 +35,7 @@ void HudMotionSensor::update(void)
     int16_t frame_index;
     int16_t player_count;
 
-    t = (float)fmod((double)((float)halo::game::globals().game_time->game_time * 0.03333333507180214f), 2.0999999046325684);
+    t = (float)halo::libm::fmod((double)((float)halo::game::globals().game_time->game_time * 0.03333333507180214f), 2.0999999046325684);
     if (t < 2.0374999046325684f) {
         motion_sensor_sweep = 1.0f / ((t + 0.0625f) * motion_sensor_sweep_scale);
     } else {

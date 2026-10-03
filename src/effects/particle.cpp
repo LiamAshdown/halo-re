@@ -15,6 +15,7 @@
 #include "halo/effects/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/render/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
 extern uint8_t particle_advance_frame(datum_index particle_handle);
@@ -27,7 +28,6 @@ extern uint16_t effect_random_uint16(void);
 extern int effect_random_int_between(int16_t minimum, int16_t maximum);
 extern real particle_current_radius(datum_index particle_handle);
 extern void particle_impact(datum_index particle_handle);
-extern double sqrt(double x);
 extern void material_effects_play_at_marker(uint32_t material_effects_tag, int16_t material_type, int16_t sub_effect_index, uint32_t *location_bundle, uint32_t sound_param, real_point3d *position, real_vector3d *offset);
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
 extern uint8_t particle_advance_animation(datum_index particle_handle, real delta_time);
@@ -484,7 +484,7 @@ uint8_t particle_ref::update_motion(real delta_time)
         if (collided) {
             if (*(uint32_t *)&tag->collision_effect.tag_id != halo::k_dword_none ||
                 *(uint32_t *)&tag->sir_marty_exchanged_his_children_for_thine.tag_id != 0u) {
-                real speed = (real)sqrt((double)(self->velocity.k * self->velocity.k +
+                real speed = (real)halo::libm::sqrt((double)(self->velocity.k * self->velocity.k +
                     self->velocity.j * self->velocity.j + self->velocity.i * self->velocity.i)) - 0.5f;
                 speed = (speed < 0.0f) ? 0.0f : (speed > 1.0f ? 1.0f : speed);
 

@@ -4,9 +4,7 @@
 #include <string.h>
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
-extern "C" {
-extern int tolower(int c);
-}
+#include <ctype.h>
 
 namespace halo::units {
 

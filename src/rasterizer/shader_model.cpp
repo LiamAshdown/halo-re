@@ -10,11 +10,10 @@
 #include "halo/math/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
 
-extern double sqrt(double x);
-extern double fabs(double x);
 
 }  // extern "C"
 
@@ -769,7 +768,7 @@ void rasterizer_shader_model_draw_fixed_function(uint8_t *shader, int16_t frame,
             dx = context->center.x - rasterizer_window.camera.position.x;
             dy = context->center.y - rasterizer_window.camera.position.y;
             dz = context->center.z - rasterizer_window.camera.position.z;
-            if (!((float)sqrt(dx * dx + dy * dy + dz * dz) > 8.0f)) {
+            if (!((float)halo::libm::sqrt(dx * dx + dy * dy + dz * dz) > 8.0f)) {
                 cull = 1;
             }
         } else {
@@ -964,7 +963,7 @@ void rasterizer_shader_model_draw_limited(uint8_t *shader, int16_t frame, raster
             dx = context->center.x - rasterizer_window.camera.position.x;
             dy = context->center.y - rasterizer_window.camera.position.y;
             dz = context->center.z - rasterizer_window.camera.position.z;
-            if (!((float)sqrt(dx * dx + dy * dy + dz * dz) > 8.0f)) {
+            if (!((float)halo::libm::sqrt(dx * dx + dy * dy + dz * dz) > 8.0f)) {
                 cull = 1;
             }
         } else {
@@ -1218,7 +1217,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
             animated.blue *= source->blue;
             if (model->detail_mask == 0 && model->color_source == 2 &&
                 rasterizer_caps.pixel_shader_version < 0xffff0104) {
-                float distance = (float)fabs(halo::math::vector3d_distance(context->center, rasterizer_window.camera.position));
+                float distance = (float)halo::libm::fabs(halo::math::vector3d_distance(context->center, rasterizer_window.camera.position));
 
                 if (distance < 6.0f) {
                     scale = 1.0f - distance * 0.16666667f;
@@ -1490,7 +1489,7 @@ rasterizer_effect_slot * rasterizer_shader_model_select_technique(const ShaderMo
         }
         if (rasterizer_caps.pixel_shader_version >= 0xffff0101 && rasterizer_caps.pixel_shader_version < 0xffff0104 &&
             shader->color_source == 2 &&
-            fabs(halo::math::vector3d_distance(rasterizer_active_model_context->center, rasterizer_window.camera.position)) < 6.0) {
+            halo::libm::fabs(halo::math::vector3d_distance(rasterizer_active_model_context->center, rasterizer_window.camera.position)) < 6.0) {
             index += 6;
         }
         technique = environment_techniques_plain[index];

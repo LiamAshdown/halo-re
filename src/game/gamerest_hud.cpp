@@ -12,11 +12,9 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
-extern "C" {
-extern double pow(double base, double exponent);
-}
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &hud_text_draw_font_tag_id = halo::link::ref<int32_t>(halo::ui::vars().hud_text_draw_font_tag_id);
 static auto &hud_text_draw_color_or_flags = halo::link::ref<uint16_t>(halo::ui::vars().hud_text_draw_color_or_flags);
@@ -107,7 +105,7 @@ void HudNameplates::draw_teammate_nameplate(datum_index player_handle)
                 wcsncpy(name, (const wchar_t *)tracked->name, 0x0b);
                 name[0x0b] = 0;
 
-                HudNameplates::draw_teammate_nameplate_text(name, (float)pow((double)((float)(p->nameplate_fade_ticks < 10 ? p->nameplate_fade_ticks : 10) * 0.1f), (double)1.9f) * 0.5f);
+                HudNameplates::draw_teammate_nameplate_text(name, (float)halo::libm::pow((double)((float)(p->nameplate_fade_ticks < 10 ? p->nameplate_fade_ticks : 10) * 0.1f), (double)1.9f) * 0.5f);
                 return;
             }
         }
@@ -285,7 +283,7 @@ void HudNameplates::update_teammate_nameplate_fade()
         opacity = 1.0f;
     }
 
-    halo::game::game_engine_rasterize_in_game_score(player_handle, (float)pow((double)opacity, (double)1.9f));
+    halo::game::game_engine_rasterize_in_game_score(player_handle, (float)halo::libm::pow((double)opacity, (double)1.9f));
     game_engine_nameplate_fade_opacity_array[local_player] = opacity;
 }
 

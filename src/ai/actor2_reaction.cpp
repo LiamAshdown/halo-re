@@ -17,6 +17,8 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 namespace halo::ai {
 
@@ -151,9 +153,6 @@ void ActorOps::notify_weapon_pickup_once(datum_index object_index)
 }
 
 namespace actor_pick_dialogue_variant_a_local {
-extern "C" {
-extern int32_t __ftol(double x);
-}
 static auto &k_real_one = halo::link::ref<float>(halo::ai::vars().k_real_one);
 static auto &k_random_scale_65536 = halo::link::ref<float>(halo::ai::vars().k_random_scale_65536);
 static auto &actor_dialogue_variant_offset_1a = halo::link::ref<float>(halo::ai::vars().actor_dialogue_variant_offset_1a);
@@ -191,7 +190,7 @@ int32_t ActorOps::pick_dialogue_variant_a(int16_t category)
               + actor_dialogue_variant_offset_3a;
     }
 
-    ticks = __ftol((double)(value * ticks_per_second));
+    ticks = halo::x87::__ftol((double)(value * ticks_per_second));
     if (ticks > 0xff) {
         return 0xff;
     }
@@ -199,9 +198,6 @@ int32_t ActorOps::pick_dialogue_variant_a(int16_t category)
 }
 
 namespace actor_pick_dialogue_variant_b_local {
-extern "C" {
-extern int32_t __ftol(double x);
-}
 static auto &k_real_one = halo::link::ref<float>(halo::ai::vars().k_real_one);
 static auto &k_random_scale_65536 = halo::link::ref<float>(halo::ai::vars().k_random_scale_65536);
 static auto &actor_dialogue_variant_scale_1b = halo::link::ref<float>(halo::ai::vars().actor_dialogue_variant_scale_1b);
@@ -233,7 +229,7 @@ int32_t ActorOps::pick_dialogue_variant_b(int16_t category)
               + k_real_point_six;
     }
 
-    ticks = __ftol((double)(value * ticks_per_second));
+    ticks = halo::x87::__ftol((double)(value * ticks_per_second));
     if (ticks > 0xff) {
         return 0xff;
     }
@@ -316,9 +312,6 @@ void ActorView::push_recognition_entry(int16_t firing_position_index, uint8_t ty
 }
 
 namespace actor_queue_directional_reaction_event_local {
-extern "C" {
-extern double sqrt(double x);
-}
 static auto &actor_dialogue_variant_table_b = halo::link::ref<int16_t []>(halo::ai::vars().actor_dialogue_variant_table_b);
 }
 
@@ -349,7 +342,7 @@ void ActorOps::queue_directional_reaction_event(const real_vector3d *direction, 
     } else if (direction != 0) {
         float mag2 = direction->k * direction->k + direction->j * direction->j + direction->i * direction->i;
         if (mag2 > 0.25f) {
-            float inv = -1.0f / (float)sqrt((double)mag2);
+            float inv = -1.0f / (float)halo::libm::sqrt((double)mag2);
             normalized.i = inv * direction->i;
             normalized.j = inv * direction->j;
             normalized.k = inv * direction->k;
@@ -774,7 +767,6 @@ void ActorOps::queue_velocity_search_from_prop(datum_index prop_index, datum_ind
 
 namespace actor_react_to_flee_point_local {
 extern "C" {
-extern double fabs(double x);
 extern int8_t teams_are_enemies(int16_t a, int16_t b);
 }
 static auto &actor_dialogue_variant_table_e = halo::link::ref<int16_t []>(halo::ai::vars().actor_dialogue_variant_table_e);
@@ -799,7 +791,7 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
     direction.j = point->y - self->aim_origin.y;
     direction.k = point->z - self->aim_origin.z;
     length = halo::math::vector3d_normalize_with_length(direction);
-    if ((float)fabs((double)length) < 0.0001f) {
+    if ((float)halo::libm::fabs((double)length) < 0.0001f) {
         direction = self->facing;
     }
 
@@ -841,9 +833,6 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
 }
 
 namespace actor_react_to_registered_danger_local {
-extern "C" {
-extern double fabs(double x);
-}
 static auto &actor_dialogue_variant_table_d = halo::link::ref<int16_t []>(halo::ai::vars().actor_dialogue_variant_table_d);
 }
 
@@ -871,7 +860,7 @@ void ActorOps::react_to_registered_danger(const real_point3d *point, datum_index
         direction.j = point->y - self->aim_origin.y;
         direction.k = point->z - self->aim_origin.z;
         length = halo::math::vector3d_normalize_with_length(direction);
-        if ((float)fabs((double)length) < 0.0001f) {
+        if ((float)halo::libm::fabs((double)length) < 0.0001f) {
             direction = self->facing;
         }
 

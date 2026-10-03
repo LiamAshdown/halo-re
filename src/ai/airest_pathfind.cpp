@@ -11,15 +11,10 @@
 #include "halo/ai/vars.hpp"
 #include "halo/physics/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
-extern "C" {
-extern double sqrt(double x);
-extern double fabs(double x);
-}
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
-extern "C" {
-extern int32_t __ftol(double x);
-}
 static auto &breakable_surface_state = halo::link::ref<uint8_t *>(halo::physics::vars().breakable_surface_state);
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 
@@ -84,10 +79,10 @@ uint8_t PathFinder::navigate_around_obstacles(int16_t count, path_find_waypoint 
         direction.j = to->y - from->y;
         direction.k = to->z - from->z;
         {
-            float magnitude = (float)sqrt(direction.j * direction.j + direction.k * direction.k +
+            float magnitude = (float)halo::libm::sqrt(direction.j * direction.j + direction.k * direction.k +
                 direction.i * direction.i);
 
-            if (!((float)fabs(magnitude) < 0.0001f)) {
+            if (!((float)halo::libm::fabs(magnitude) < 0.0001f)) {
                 float scale = 1.0f / magnitude;
 
                 direction.i *= scale;
@@ -159,7 +154,7 @@ uint8_t PathFinder::navigate_around_obstacles(int16_t count, path_find_waypoint 
             point->surface_index = *(int32_t *)&node->z;
             point->position.x = node->position.x;
             point->position.y = node->position.y;
-            if ((float)fabs(plane->normal.k) < 0.0001f) {
+            if ((float)halo::libm::fabs(plane->normal.k) < 0.0001f) {
                 point->position.z = 0.0f;
             } else {
                 point->position.z = (plane->d - node->position.x * plane->normal.i - plane->normal.j * node->position.y) /
@@ -237,7 +232,7 @@ uint8_t PathFinder::compute_heuristic(uint32_t vertex_id, real_point3d *point, f
             float fx = closest_x - ((path_find_request *)context)->avoid_position.x;
             float fy = closest_y - ((path_find_request *)context)->avoid_position.y;
             float fz = closest_z - ((path_find_request *)context)->avoid_position.z;
-            secondary = (float)sqrt(fz * fz + fy * fy + fx * fx);
+            secondary = (float)halo::libm::sqrt(fz * fz + fy * fy + fx * fx);
         }
         if (node->avoid_distance < secondary) {
             secondary = node->avoid_distance;
@@ -247,7 +242,7 @@ uint8_t PathFinder::compute_heuristic(uint32_t vertex_id, real_point3d *point, f
     if (out_secondary != 0) {
         *out_secondary = secondary;
     }
-    *out_distance = (float)sqrt(dz * dz + dx * dx + dy * dy) + leash;
+    *out_distance = (float)halo::libm::sqrt(dz * dz + dx * dx + dy * dy) + leash;
 
     if (out_direction != 0) {
         int16_t prev = -1;
@@ -544,7 +539,7 @@ uint8_t PathFindGeometry::heights_are_close(ScenarioStructureBSP *structure_bsp,
 
     halo::math::decal_plane_solve_third_axis(&position_a, 1, 2, &planes[surfaces[surface_a].plane & 0x7fffffff], *point);
     halo::math::decal_plane_solve_third_axis(&position_b, 1, 2, &planes[surfaces[surface_b].plane & 0x7fffffff], *point);
-    return (uint8_t)(fabs((double)(position_a.z - position_b.z)) < 0.05000000074505806);
+    return (uint8_t)(halo::libm::fabs((double)(position_a.z - position_b.z)) < 0.05000000074505806);
 }
 
 /**
@@ -571,9 +566,9 @@ uint8_t PathFinder::push_start_node()
         double dx = (double)context->goal_position.x - context->start_position.x;
         double dy = (double)context->goal_position.y - context->start_position.y;
         double dz = (double)context->goal_position.z - context->start_position.z;
-        double distance = sqrt(dx * dx + dy * dy + dz * dz);
+        double distance = halo::libm::sqrt(dx * dx + dy * dy + dz * dz);
         value = (float)distance;
-        key = __ftol(distance * 10.0);
+        key = halo::x87::__ftol(distance * 10.0);
         if (0x7ffe < key) {
             return 0;
         }
@@ -770,7 +765,7 @@ static uint8_t path_find_search(path_find_context *context)
                 float length2 = edge->direction_z * edge->direction_z + edge->direction_y * edge->direction_y + dx2;
 
                 if (length2 > 16.0f && length2 > (radius + radius) * (radius + radius)) {
-                    float length = (float)sqrt(length2);
+                    float length = (float)halo::libm::sqrt(length2);
                     float t = ((context->goal_position.x - edge->start_x) * edge->direction_x +
                         (context->goal_position.z - edge->start_z) * edge->direction_z +
                         (context->goal_position.y - edge->start_y) * edge->direction_y) /
@@ -792,7 +787,7 @@ static uint8_t path_find_search(path_find_context *context)
                 float dy = candidate.y - node->position.y;
                 float dz = candidate.z - node->position.z;
 
-                step = (float)sqrt(dz * dz + dy * dy + dx * dx);
+                step = (float)halo::libm::sqrt(dz * dz + dy * dy + dx * dx);
             }
             travelled = step + node->travelled_distance;
             if (request->have_avoid_sphere) {
@@ -812,7 +807,7 @@ static uint8_t path_find_search(path_find_context *context)
                 float dy = context->goal_position.y - candidate.y;
                 float dz = context->goal_position.z - candidate.z;
 
-                goal_distance = (float)sqrt(dz * dz + dy * dy + dx * dx);
+                goal_distance = (float)halo::libm::sqrt(dz * dz + dy * dy + dx * dx);
                 f = goal_distance + g;
             }
             key = (int32_t)(f * 10.0f);
@@ -942,7 +937,7 @@ float PathFinder::score_avoidance_penalty(const real_point3d *segment_start, con
     dz = closest.z - request->avoid_position.z;
     distance2 = dz * dz + dx * dx + dy * dy;
     if (distance2 < request->avoid_radius * request->avoid_radius) {
-        float distance = (float)sqrt(distance2);
+        float distance = (float)halo::libm::sqrt(distance2);
 
         *out_distance = distance;
         return (1.0f - distance / request->avoid_radius) * request->avoid_weight;
@@ -1185,7 +1180,7 @@ uint8_t PathFindGeometry::test_segment_unobstructed(void *map, real_point3d *poi
 {
     float dx = point_b->x - point_a->x;
     float ny_neg = -(point_b->y - point_a->y);
-    float length = (float)sqrt(ny_neg * ny_neg + dx * dx);
+    float length = (float)halo::libm::sqrt(ny_neg * ny_neg + dx * dx);
     float nx;
     float ny;
     real_point3d a_plus;
@@ -1202,7 +1197,7 @@ uint8_t PathFindGeometry::test_segment_unobstructed(void *map, real_point3d *poi
     uint8_t plus_hit;
     uint8_t minus_hit;
 
-    if ((float)fabs(length) < 0.0001f || !(length > 0.0f)) {
+    if ((float)halo::libm::fabs(length) < 0.0001f || !(length > 0.0f)) {
         return 0;
     }
     nx = ny_neg * (1.0f / length);
@@ -1313,7 +1308,7 @@ uint8_t PathFindGeometry::trace_bsp_boundary(void *map, uint8_t ignore_permissio
                         break;
                     }
                     {
-                        float length = (float)sqrt(ey * ey + ex * ex);
+                        float length = (float)halo::libm::sqrt(ey * ey + ex * ex);
                         float t = (ay * ex - ey * ax - length * 0.0078125f) / (dy * ex - ey * dx);
                         real_point2d hit;
 
@@ -1421,7 +1416,7 @@ uint8_t PathFindGeometry::trace_cluster_boundary(void *map, int32_t edge_index, 
         float *v2 = VERTEX(bsp, edge[!first_passable]);
         float ex = v2[0] - v1[0];
         float ey = v2[1] - v1[1];
-        float length = (float)sqrt(ey * ey + ex * ex);
+        float length = (float)halo::libm::sqrt(ey * ey + ex * ex);
         float nx = ey;
         float ny = -ex;
         float w1x;
@@ -1432,7 +1427,7 @@ uint8_t PathFindGeometry::trace_cluster_boundary(void *map, int32_t edge_index, 
         int32_t pivot;
         int32_t rotation_start;
 
-        if (!((float)fabs(length) < 0.0001f)) {
+        if (!((float)halo::libm::fabs(length) < 0.0001f)) {
             float scale = 1.0f / length;
 
             nx = ey * scale;
@@ -1615,7 +1610,7 @@ float PathFindGeometry::vertex_distance(ScenarioStructureBSP *structure_bsp, int
     dx = out_point->x - point_a->x;
     dy = out_point->y - point_a->y;
     dz = out_point->z - point_a->z;
-    return (float)sqrt((double)(dx * dx + dz * dz + dy * dy));
+    return (float)halo::libm::sqrt((double)(dx * dx + dz * dz + dy * dy));
 }
 
 }

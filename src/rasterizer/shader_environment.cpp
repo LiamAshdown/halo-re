@@ -12,10 +12,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/interface/api.hpp"
+#include <stdio.h>
 
 extern "C" {
 
-extern int32_t sprintf(char *buffer, const char *format, ...);
 
 }  // extern "C"
 

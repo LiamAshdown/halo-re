@@ -11,11 +11,8 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double atan2(double y, double x);
-extern double sqrt(double x);
-}
 static auto &global_zero_vector2d_pointer = halo::link::ref<float *>(halo::units::vars().global_zero_vector2d_pointer);
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
@@ -34,8 +31,8 @@ static void aiming_angles_in_unit_frame(uint32_t unit_index, real_vector3d *dire
     halo::math::vector3d_cross_product(frame.left, frame.forward, frame.up);
     frame.position = *global_zero_vector3d_pointer;
     halo::math::matrix4x3_inverse_transform_normal(local, *direction, frame);
-    *yaw = (float)atan2((double)local.j, (double)local.i);
-    *pitch = (float)atan2((double)local.k, sqrt((double)(local.i * local.i + local.j * local.j)));
+    *yaw = (float)halo::libm::atan2((double)local.j, (double)local.i);
+    *pitch = (float)halo::libm::atan2((double)local.k, halo::libm::sqrt((double)(local.i * local.i + local.j * local.j)));
 }
 
 static void aiming_screen_limits(const uint8_t *screen, float *out)

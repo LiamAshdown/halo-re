@@ -14,6 +14,8 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 namespace halo::ai {
 
@@ -128,9 +130,6 @@ uint8_t ActorView::request_path_with_grenade_arc()
 }
 
 namespace actor_schedule_grenade_throw_local {
-extern "C" {
-extern int32_t fistp_round(float x);
-}
 }
 
 /**
@@ -184,7 +183,7 @@ void ActorView::schedule_grenade_throw()
 
         delay = halo::math::random_real_range(lo, hi) * delay;
     }
-    ticks = fistp_round(delay * 30.0f);
+    ticks = halo::x87::fistp_round(delay * 30.0f);
     if (ticks > INT16_MAX) {
         ticks = INT16_MAX;
     }
@@ -242,9 +241,6 @@ uint8_t ActorView::should_throw_grenade(char force)
 
 namespace actor_solve_grenade_lob_local {
 static auto &global_globals = halo::link::ref<::Globals *>(halo::game::vars().global_globals);
-extern "C" {
-extern double sqrt(double x);
-}
 }
 
 /**
@@ -288,7 +284,7 @@ uint32_t ActorView::solve_grenade_lob(real_point3d *point)
         return 0;
     }
 
-    length = (float)sqrt((double)(direction.i * direction.i + direction.j * direction.j));
+    length = (float)halo::libm::sqrt((double)(direction.i * direction.i + direction.j * direction.j));
     if (length < 0.0001f && length > -0.0001f) {
         return 0;
     }

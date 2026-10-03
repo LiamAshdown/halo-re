@@ -21,6 +21,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/libm.hpp"
 
 #ifdef interface
 #undef interface
@@ -48,9 +49,6 @@ static auto &ui_time_milliseconds = halo::link::ref<int32_t>(halo::ui::vars().ui
 static auto &ui_restoring_previous_widget = halo::link::ref<uint8_t>(halo::ui::vars().ui_restoring_previous_widget);
 static auto &split_screen_quit_prompt_string = halo::link::ref<uint16_t>(halo::ui::vars().split_screen_quit_prompt_string);
 static auto &split_screen_quit_prompt_armed = halo::link::ref<uint8_t>(halo::ui::vars().split_screen_quit_prompt_armed);
-extern "C" {
-extern double cos(double x);
-}
 static auto &game_data_input_function_table = halo::link::ref<void *[0x3b]>(halo::ui::vars().game_data_input_function_table);
 static auto &override_color_00879f40 = halo::link::ref<float>(halo::ui::vars().override_color_00879f40);
 static auto &override_color_00879f44 = halo::link::ref<float>(halo::ui::vars().override_color_00879f44);
@@ -1568,7 +1566,7 @@ void WidgetRender::render(Rectangle2D *dest, int32_t offset_xy, uint32_t flag1, 
                 double t = (double)ui_time_milliseconds;
 
                 if (ui_time_milliseconds < 0) t += 4294967296.0;
-                alpha = (float)((cos(t * 0.003) + 1.0) * 0.5 * (double)alpha);
+                alpha = (float)((halo::libm::cos(t * 0.003) + 1.0) * 0.5 * (double)alpha);
             }
 
             halo::interface::ui_draw_screen_quad((int16_t *)&bounds, (int16_t *)&bounds, bitmap_data, (int16_t *)clip_arg,

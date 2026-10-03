@@ -29,6 +29,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/physics/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" { void halo::physics::object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale, float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up); }
 extern "C" { uint8_t halo::physics::object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t candidate_object_index); }
@@ -130,7 +131,6 @@ static auto &k_impact_damage_scale_table = halo::link::ref<float []>(halo::physi
 extern "C" { extern uint32_t object_collision_context_test_point(object_collision_context *context, real_point3d *point); }
 extern "C" { extern uint8_t object_collision_context_gather_sphere_shapes(void *context, real_point3d *origin, float radius_scale, float margin, float thickness, physics_model *model); }
 extern "C" { extern uint8_t physics_shape_test_point(physics_model *model, real_point3d *point, physics_model_contact *out_contact); }
-extern "C" { extern double sqrt(double x); }
 namespace halo::physics {
 
 /**
@@ -187,7 +187,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
     candidate_obj = ((object_header *)halo::objects::globals().object_data->data)[candidate_object_index & halo::k_slot_mask].data;
     self_center = &self_obj->bounding_center;
 
-    relative_speed = (float)sqrt((double)(self_obj->velocity.k * self_obj->velocity.k +
+    relative_speed = (float)halo::libm::sqrt((double)(self_obj->velocity.k * self_obj->velocity.k +
         self_obj->velocity.j * self_obj->velocity.j + self_obj->velocity.i * self_obj->velocity.i));
 
     impulse.i = candidate_obj->bounding_center.x - self_center->x;
@@ -300,7 +300,6 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
 
 }
 
-extern "C" { extern double fabs(double x); }
 static auto &global_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_collision_bsp);
 static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);
 static auto &material_table_warning_issued = halo::link::ref<uint8_t>(halo::physics::vars().material_table_warning_issued);
@@ -533,7 +532,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
 
             if (powered_def != 0) {
                 if ((powered_def->flags & 0x08) != 0 && powered_state->water_lift != 0.0f) {
-                    float lift = (float)fabs((double)(mp->forward_k * mp->velocity_k +
+                    float lift = (float)halo::libm::fabs((double)(mp->forward_k * mp->velocity_k +
                         mp->forward_j * mp->velocity_j + mp->velocity_i * mp->forward_i)) *
                         powered_state->water_lift * definition->mass * water_fade;
                     mp->powered_force_i += lift * mp->up_i;
@@ -584,7 +583,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
                 (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
 
         if (powered_def != 0 && (powered_def->flags & 0x10) != 0 && powered_state->air_lift != 0.0f) {
-            float lift = (float)fabs((double)(mp->forward_k * mp->velocity_k + mp->forward_j * mp->velocity_j +
+            float lift = (float)halo::libm::fabs((double)(mp->forward_k * mp->velocity_k + mp->forward_j * mp->velocity_j +
                 mp->forward_i * mp->velocity_i)) * definition->mass * powered_state->air_lift;
             mp->powered_force_i += lift * mp->up_i;
             mp->powered_force_j += lift * mp->up_j;
@@ -910,7 +909,7 @@ void ObjectPhysics::integrate_and_test_at_rest(object_physics_context *context, 
                 {
                     real dot_delta = best_result.plane.normal.i * best_delta.i + best_result.plane.normal.j * best_delta.j +
                         best_result.plane.normal.k * best_delta.k;
-                    real friction_t = (dot_delta == 0.0f) ? 0.03125f : (0.0078125f / (real)fabs((double)dot_delta));
+                    real friction_t = (dot_delta == 0.0f) ? 0.03125f : (0.0078125f / (real)halo::libm::fabs((double)dot_delta));
                     real remaining_t = best_result.t - friction_t;
                     real dot_velocity;
 
@@ -1047,8 +1046,6 @@ void ObjectPhysics::mass_point_resolve_ground_contact(uint32_t exclude_object_in
 
 }
 
-extern "C" { extern double sin(double x); }
-extern "C" { extern double cos(double x); }
 namespace halo::physics {
 
 /**
@@ -1070,7 +1067,7 @@ void ObjectPhysics::mass_point_update_orientation(real_vector3d *axis, real_vect
 
     if (length != 0.0f) {
         real_matrix4x3 rotation;
-        halo::math::matrix4x3_from_axis_angle(rotation, local_axis, (real)sin((double)length), (real)cos((double)length));
+        halo::math::matrix4x3_from_axis_angle(rotation, local_axis, (real)halo::libm::sin((double)length), (real)halo::libm::cos((double)length));
         halo::math::matrix4x3_transform_vector(*forward, *fallback_forward, rotation);
         halo::math::matrix4x3_transform_vector(*up, *fallback_up, rotation);
         halo::math::vector3d_normalize_with_length(*forward);
@@ -1154,8 +1151,8 @@ uint8_t ObjectPhysics::resolve_mass_point_overlap(object_physics_context *self, 
                 delta_z = (((local_z * other->up_k + local_y * other->left_k) + local_x * other->forward_k) + other->position_z)
                     - self_world_position.z;
 
-                distance = (float)sqrt((double)((delta_z * delta_z + delta_y * delta_y) + delta_x * delta_x));
-                if ((float)fabs((double)distance) < 0.0001f) {
+                distance = (float)halo::libm::sqrt((double)((delta_z * delta_z + delta_y * delta_y) + delta_x * delta_x));
+                if ((float)halo::libm::fabs((double)distance) < 0.0001f) {
                     distance = 0.0f;
                 } else {
                     float inv_distance = 1.0f / distance;
@@ -1167,7 +1164,7 @@ uint8_t ObjectPhysics::resolve_mass_point_overlap(object_physics_context *self, 
                 if (distance < combined_radius && 0.0f < distance) {
                     float penetration_half = (combined_radius - distance) * 0.5f;
                     float impulse = (k_physics_gravity / k_physics_collision_damping) * penetration_half *
-                        (float)sqrt((double)(other_mass * self_mass));
+                        (float)halo::libm::sqrt((double)(other_mass * self_mass));
                     float force_self_x, force_self_y, force_self_z;
                     float force_other_x, force_other_y, force_other_z;
                     float contact_distance, contact_x, contact_y, contact_z;

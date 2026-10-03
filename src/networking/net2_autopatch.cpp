@@ -23,6 +23,7 @@
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/units/vars.hpp"
+#include <stdio.h>
 
 static auto &autopatch_update_check_state = halo::link::ref<int32_t>(halo::networking::vars().autopatch_update_check_state);
 static auto &autopatch_download_slots = halo::link::ref<autopatch_download_slot [2]>(halo::networking::vars().autopatch_download_slots);
@@ -35,7 +36,6 @@ static auto &autopatch_download_pool_stop = halo::link::ref<uint8_t>(halo::netwo
 static auto &autopatch_download_active_count = halo::link::ref<uint8_t>(halo::networking::vars().autopatch_download_active_count);
 extern "C" {
 extern void ghttpStartup(void);
-extern int32_t _snprintf(char *buffer, uint32_t count, const char *format, ...);
 extern int32_t ghttpCleanup(void);
 extern void ghttpThink(void);
 extern void ghttpCancelRequest(int32_t request_id);

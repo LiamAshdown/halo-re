@@ -23,13 +23,9 @@
 #include "halo/effects/vars.hpp"
 #include "halo/render/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
-extern "C" {
-extern double tan(double x);
-extern double fabs(double x);
-extern double ftan(double x);
-extern double sqrt(double x);
-}
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &render_asymmetric_frustum_disabled = halo::link::ref<uint8_t>(halo::render::vars().render_asymmetric_frustum_disabled);
 static auto &render_camera_global = halo::link::ref<float [3]>(halo::render::vars().render_camera_global);
@@ -103,7 +99,7 @@ void build_frustum(float *frustum_bounds, render_camera *camera, render_frustum 
     half_height = (frustum->frustum_bounds[3] - frustum->frustum_bounds[2]) * 0.5f;
     cx = (frustum->frustum_bounds[0] + frustum->frustum_bounds[1]) / half_width * -0.5f;
     cy = (frustum->frustum_bounds[2] + frustum->frustum_bounds[3]) / half_height * -0.5f;
-    t = (real)tan(camera->vertical_field_of_view * 0.5f);
+    t = (real)halo::libm::tan(camera->vertical_field_of_view * 0.5f);
     sx = 1.0f / (half_width / height * width * t);
     sy = 1.0f / (t * half_height);
 
@@ -211,8 +207,8 @@ void build_frustum(float *frustum_bounds, render_camera *camera, render_frustum 
         inverse_k = 1.0f / clip.normal.k;
         e = -(clip.d * inverse_k);
         q = camera->z_far / ((camera->z_far - e) *
-                             ((real)fabs(clip.normal.j * inverse_k) +
-                              (real)fabs(clip.normal.i * inverse_k) + 1.0f));
+                             ((real)halo::libm::fabs(clip.normal.j * inverse_k) +
+                              (real)halo::libm::fabs(clip.normal.i * inverse_k) + 1.0f));
         qi = q * clip.normal.i * inverse_k;
         qj = q * clip.normal.j * inverse_k;
         qd = -(q * e);
@@ -255,7 +251,7 @@ void build_frustum(float *frustum_bounds, render_camera *camera, render_frustum 
 uint32_t compute_frustum_bounds(render_camera *camera, float bounds_out[4], float bounds_in[4])
 {
     if (!render_asymmetric_frustum_disabled && bounds_in[0] < bounds_in[1] && bounds_in[2] < bounds_in[3]) {
-        float inverse_tan_half_fov = 1.0f / (float)ftan((double)(camera->vertical_field_of_view * 0.5f));
+        float inverse_tan_half_fov = 1.0f / (float)halo::x87::ftan((double)(camera->vertical_field_of_view * 0.5f));
         float aspect_scale = ((float)(camera->viewport_bounds.bottom - camera->viewport_bounds.top) /
                                (float)(camera->viewport_bounds.right - camera->viewport_bounds.left)) *
                               inverse_tan_half_fov;
@@ -355,7 +351,7 @@ void mirror(render_camera *source_camera, structure_bsp_mirror_result *mirror, r
         float dot_up;
         float dot_position;
 
-        if ((float)fabs((double)(plane_normal.i * source_camera->forward.i +
+        if ((float)halo::libm::fabs((double)(plane_normal.i * source_camera->forward.i +
                                   plane_normal.j * source_camera->forward.j +
                                   plane_normal.k * source_camera->forward.k)) < 0.0125f) {
             float signed_offset = -((plane_normal.j * source_camera->position.y +
@@ -395,7 +391,7 @@ void mirror(render_camera *source_camera, structure_bsp_mirror_result *mirror, r
         out_camera->up.k = -out_camera->up.k;
     } else {
         float inverse_forward_length =
-            1.0f / (float)sqrt((double)(source_camera->forward.k * source_camera->forward.k +
+            1.0f / (float)halo::libm::sqrt((double)(source_camera->forward.k * source_camera->forward.k +
                                          source_camera->forward.j * source_camera->forward.j +
                                          source_camera->forward.i * source_camera->forward.i));
         float sin_angle = halo::math::vector3d_cross_product_length(plane_normal, source_camera->forward) *
@@ -409,7 +405,7 @@ void mirror(render_camera *source_camera, structure_bsp_mirror_result *mirror, r
                                         plane_normal.j * source_camera->forward.j +
                                         plane_normal.k * source_camera->forward.k;
             shift = -((dot_normal_forward * inverse_forward_length * shift * mirror->shader_mirror_value_1) /
-                      ((float)sqrt((double)(1.0f - shift * shift)) * sin_angle));
+                      ((float)halo::libm::sqrt((double)(1.0f - shift * shift)) * sin_angle));
         }
 
         out_camera->position.x = plane_normal.i * shift + source_camera->position.x;

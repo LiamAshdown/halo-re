@@ -15,6 +15,8 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/render/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 static auto &hud_waypoints = halo::link::ref<hud_waypoint_state *>(halo::ui::vars().hud_waypoints);
 static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
@@ -23,12 +25,6 @@ static auto &render_camera_global = halo::link::ref<uint8_t []>(halo::render::va
 static auto &render_viewport_top = halo::link::ref<int16_t>(halo::ui::vars().render_viewport_top);
 static auto &screen_safe_area_right = halo::link::ref<Rectangle2D>(halo::game::vars().screen_safe_area_right);
 extern "C" {
-extern float sqrtf(float x);
-extern float atan2f(float y, float x);
-extern double pow(double base, double exponent);
-extern double fmod(double x, double y);
-extern long lrint(double x);
-extern int32_t __ftol(double x);
 extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *point, void *frustum,
                                                     void *camera);
 }
@@ -281,12 +277,12 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
         float dx = position->x - camera.x;
         float dy = position->y - camera.y;
         float dz = position->z - camera.z;
-        distance = sqrtf(dz * dz + dy * dy + dx * dx);
+        distance = halo::libm::sqrtf(dz * dz + dy * dy + dx * dx);
     }
     if (distance > 15.0f) {
         scale = 0.5f;
     } else {
-        scale = (float)(pow((double)(1.0f - distance * 0.06666667014360428f), 0.7) + 0.5);
+        scale = (float)(halo::libm::pow((double)(1.0f - distance * 0.06666667014360428f), 0.7) + 0.5);
     }
 
     halo::math::matrix4x3_transform_point(point, point, halo::render::globals().camera_world_to_view);
@@ -308,12 +304,12 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
         float scaled_y = half_width * y;
 
         if (visibility == 1 || !(scaled_y * scaled_y + scaled_x * scaled_x < radius * radius)) {
-            float k = sqrtf((radius * radius) / (scaled_y * scaled_y + scaled_x * scaled_x));
+            float k = halo::libm::sqrtf((radius * radius) / (scaled_y * scaled_y + scaled_x * scaled_x));
             visibility = 1;
             x = x * k;
             y = y * k;
             if (!halo::interface::has_bit(arrow->flags, halo::tags::hud_globals_waypoint_arrow_tag_flag::dont_rotate_when_pointing_offscreen)) {
-                rotation = -atan2f(x, y);
+                rotation = -halo::libm::atan2f(x, y);
             }
         }
     }
@@ -329,8 +325,8 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
         return;
     }
     uv = (const float *)uv_offset;
-    arrow_position.x = (int16_t)__ftol((double)screen.x);
-    arrow_position.y = (int16_t)__ftol((double)screen.y);
+    arrow_position.x = (int16_t)halo::x87::__ftol((double)screen.x);
+    arrow_position.y = (int16_t)halo::x87::__ftol((double)screen.y);
 
     whole = halo::interface::ui_real_to_int_truncate(arrow->opacity);
     if (whole * 0xff < 0) {
@@ -372,14 +368,14 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
         placement.maximum_number_of_digits = 3;
         placement.number_of_fractional_digits = 1;
         placement.flags = 5;
-        number_x = (int16_t)__ftol((double)((uv[1] - uv[0]) * (float)(int16_t)bitmap->width * 0.5f * scale * 0.33f +
+        number_x = (int16_t)halo::x87::__ftol((double)((uv[1] - uv[0]) * (float)(int16_t)bitmap->width * 0.5f * scale * 0.33f +
                                             (float)arrow_position.x));
-        number_y = (int16_t)__ftol((double)((uv[3] - uv[2]) * (float)(int16_t)bitmap->height * 0.5f * scale * 0.66f +
+        number_y = (int16_t)halo::x87::__ftol((double)((uv[3] - uv[2]) * (float)(int16_t)bitmap->height * 0.5f * scale * 0.66f +
                                             (float)arrow_position.y));
         placement.anchor_offset.x = (int16_t)(number_x + (int16_t)(halo::render::globals().viewport_left - screen_safe_area_right.left));
         placement.anchor_offset.y = (int16_t)(number_y + (int16_t)(render_viewport_top - screen_safe_area_right.top));
-        power = (float)pow(10.0, 4.0);
-        whole = (int32_t)lrint(fmod((double)(power * meters < 0.0f ? -(power * meters) : power * meters), (double)power));
+        power = (float)halo::libm::pow(10.0, 4.0);
+        whole = (int32_t)halo::libm::lrint(halo::libm::fmod((double)(power * meters < 0.0f ? -(power * meters) : power * meters), (double)power));
         halo::interface::hud_draw_number((void *)(int32_t)local_player_index, anchor, &placement,
                         (int16_t)halo::interface::ui_real_to_int_truncate(meters), (int16_t)whole, 0, 0, 0.0f);
     }

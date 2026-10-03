@@ -10,6 +10,7 @@
 #include "halo/ai/records.hpp"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
+#include "halo/core/libm.hpp"
 
 namespace halo::ai {
 
@@ -437,11 +438,6 @@ void ActorView::movement_advance_waypoint()
 namespace actor_movement_apply_steering_local {
 static auto &global_origin3d_pointer = halo::link::ref<const real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 extern "C" {
-extern double acos(double x);
-extern double sqrt(double x);
-extern double sin(double x);
-extern double cos(double x);
-extern double fabs(double x);
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
@@ -596,7 +592,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
     }
     halo::ai::actor_movement_get_stopping_distances(actor_index, &max_turn_cos, &stop_distance);
     if (!act->active_movement.cancelled && stop_distance * stop_distance > desired_length_squared) {
-        float distance = (float)sqrt(desired_length_squared);
+        float distance = (float)halo::libm::sqrt(desired_length_squared);
 
         if (!(max_turn_cos + 0.05f < distance) || !(stop_distance > max_turn_cos)) {
             turn_limit = 0.0f;
@@ -638,7 +634,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
         } else if (dot_facing <= -1.0f) {
             target_angle = 3.1415927f;
         } else {
-            target_angle = (float)acos(dot_facing);
+            target_angle = (float)halo::libm::acos(dot_facing);
         }
         angle = target_angle;
         if (steering_maximum > 0.0f) {
@@ -671,12 +667,12 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
         {
             float step = angle - target_angle;
 
-            if (fabs(step) > 9.999999747378752e-05) {
+            if (halo::libm::fabs(step) > 9.999999747378752e-05) {
                 real_vector3d axis;
 
                 halo::math::vector3d_cross_product(axis, aim, *facing);
                 if (halo::math::vector3d_normalize_with_length(axis) > 0.0f) {
-                    halo::math::vector3d_rotate_about_axis(aim, axis, (real)sin(step), (real)cos(step));
+                    halo::math::vector3d_rotate_about_axis(aim, axis, (real)halo::libm::sin(step), (real)halo::libm::cos(step));
                 }
             }
         }
@@ -802,9 +798,6 @@ void ActorOps::movement_choose_strafe_axis(const real_vector3d *direction, uint8
 }
 
 namespace actor_movement_collect_obstacle_candidates_local {
-extern "C" {
-extern double sqrt(double x);
-}
 }
 
 /**
@@ -881,7 +874,7 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
                     }
                     dx = transformed.x - origin_x;
                     dy = transformed.y - origin_y;
-                    reach = (float)sqrt((double)(dy * dy + dx * dx)) + reach;
+                    reach = (float)halo::libm::sqrt((double)(dy * dy + dx * dx)) + reach;
                     if (extent <= reach) {
                         extent = reach;
                     }

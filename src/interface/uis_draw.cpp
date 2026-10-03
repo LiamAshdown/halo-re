@@ -36,13 +36,10 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/x87.hpp"
 
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &ui_button_caption = halo::link::ref<uint16_t *[0x28]>(halo::ui::vars().ui_button_caption);
-extern "C" {
-extern double fsin(double x);
-extern double fcos(double x);
-}
 static auto &ui_network_wait_start_time = halo::link::ref<int32_t>(halo::ui::vars().ui_network_wait_start_time);
 static auto &trouble_brewing_bitmap_tag = halo::link::ref<datum_index>(halo::ui::vars().trouble_brewing_bitmap_tag);
 static auto &formatted_prompt_scratch = halo::link::ref<uint16_t [0x100]>(halo::ui::vars().formatted_prompt_scratch);
@@ -57,7 +54,6 @@ static auto &hud_text_draw_color_g = halo::link::ref<float>(halo::ui::vars().hud
 static auto &hud_text_draw_color_b = halo::link::ref<float>(halo::ui::vars().hud_text_draw_color_b);
 static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
 extern "C" {
-extern int32_t __ftol(double x);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
                                       int32_t unknown_1, const uint16_t *text);
 }
@@ -212,8 +208,8 @@ void UiDraw::draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect)
 void UiDraw::draw_rotated_screen_quad(int16_t *origin, int32_t source_record, float *corner_uvs,
                                   float scale, float rotation_radians, float alpha_fraction)
 {
-    float sin_r = (float)fsin((double)rotation_radians);
-    float cos_r = (float)fcos((double)rotation_radians);
+    float sin_r = (float)halo::x87::fsin((double)rotation_radians);
+    float cos_r = (float)halo::x87::fcos((double)rotation_radians);
     float default_uvs[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
     int32_t alpha = (int32_t)(alpha_fraction * 255.0f);
     int16_t left, right, top, bottom;
@@ -508,7 +504,7 @@ void UiDraw::widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t us
                 text_color.red = hud_text_draw_color_r;
                 text_color.green = hud_text_draw_color_g;
                 text_color.blue = hud_text_draw_color_b;
-                packed_color = (uint32_t)__ftol(text_color.alpha * 255.0f) << 24;
+                packed_color = (uint32_t)halo::x87::__ftol(text_color.alpha * 255.0f) << 24;
                 if (*(uint32_t *)&icon->override_icon_color == 0 || use_text_color != 0) {
                     icon_color = text_color;
                 }

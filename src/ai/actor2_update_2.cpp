@@ -12,13 +12,13 @@
 #include "halo/ai/records.hpp"
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/x87.hpp"
 
 namespace halo::ai {
 
 namespace actor_update_firing_state_local {
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 extern "C" {
-extern int32_t fistp_round(float x);
 extern float halo::game::weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t substitution_check_index);
 #define F(p, o) (*(float *)((uint8_t *)(p) + (o)))
 #define W(p, o) (*(int16_t *)((uint8_t *)(p) + (o)))
@@ -394,7 +394,7 @@ dispatch:
             if (stance_b != 0 && F(stance_b, 0x8) > 0.0f) {
                 rate *= F(stance_b, 0x8);
             }
-            ticks = (int16_t)fistp_round(30.0f / rate);
+            ticks = (int16_t)halo::x87::fistp_round(30.0f / rate);
             a->refire_timer = ticks < 2 ? 2 : ticks;
         }
     } else if (fire_secondary) {

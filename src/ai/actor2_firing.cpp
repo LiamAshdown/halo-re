@@ -10,6 +10,7 @@
 #include "halo/ai/records.hpp"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
+#include "halo/core/libm.hpp"
 
 namespace halo::ai {
 
@@ -422,9 +423,6 @@ void ActorView::score_firing_positions_by_history(actor_firing_position_query *q
 }
 
 namespace actor_score_firing_positions_by_range_local {
-extern "C" {
-extern double sqrt(double x);
-}
 }
 
 /**
@@ -464,7 +462,7 @@ void ActorView::score_firing_positions_by_range(actor_firing_position_query *que
         }
 
         if (query->have_target != 0) {
-            distance = (float)sqrt((double)c->distance_squared_to_target);
+            distance = (float)halo::libm::sqrt((double)c->distance_squared_to_target);
 
             if (variant->maximum_firing_distance > 0.0f) {
                 threshold = variant->maximum_firing_distance * 0.8f;
@@ -519,16 +517,13 @@ void ActorView::score_firing_positions_by_range(actor_firing_position_query *que
                     nearest_plane = dot;
                 }
             }
-            bonus = (nearest_plane < 12.25f) ? (float)sqrt((double)nearest_plane) * 0.25f : 6.0f;
+            bonus = (nearest_plane < 12.25f) ? (float)halo::libm::sqrt((double)nearest_plane) * 0.25f : 6.0f;
             c->score = bonus + c->score;
         }
     }
 }
 
 namespace actor_score_firing_positions_by_standoff_local {
-extern "C" {
-extern double sqrt(double x);
-}
 }
 
 /**
@@ -587,7 +582,7 @@ void ActorView::score_firing_positions_by_standoff(actor_firing_position_query *
             if (!(c->distance_squared_to_target >= 16.0f)) {
                 value = 0.0f;
             } else if (!(c->distance_squared_to_target >= 49.0f)) {
-                value = ((float)sqrt((double)c->distance_squared_to_target) - 4.0f) * 3.3333333f;
+                value = ((float)halo::libm::sqrt((double)c->distance_squared_to_target) - 4.0f) * 3.3333333f;
             } else {
                 value = 10.0f;
             }
@@ -619,9 +614,6 @@ void ActorView::score_firing_positions_by_standoff(actor_firing_position_query *
 }
 
 namespace actor_score_firing_positions_by_threat_local {
-extern "C" {
-extern double sqrt(double x);
-}
 }
 
 /**
@@ -690,7 +682,7 @@ void ActorView::score_firing_positions_by_threat(actor_firing_position_query *qu
                     if (radius * radius <= distance_squared) {
                         bonus = 20.0f;
                     } else {
-                        bonus = ((float)sqrt((double)distance_squared) - self->danger_object_radius) * 8.0f;
+                        bonus = ((float)halo::libm::sqrt((double)distance_squared) - self->danger_object_radius) * 8.0f;
                     }
                 } else {
                     c->rejected = 1;
@@ -746,7 +738,7 @@ void ActorView::score_firing_positions_by_threat(actor_firing_position_query *qu
                     best_ratio = ratio;
                 }
             }
-            bonus = (best_ratio < 1.0f) ? (float)sqrt((double)best_ratio) * 10.0f : 10.0f;
+            bonus = (best_ratio < 1.0f) ? (float)halo::libm::sqrt((double)best_ratio) * 10.0f : 10.0f;
             c->score = bonus + c->score;
         }
 
@@ -776,7 +768,7 @@ next_candidate:
         }
         cosine = (dx * ((vehicle_object *)vehicle)->base.forward.i +
                   dy * ((vehicle_object *)vehicle)->base.forward.j +
-                  dz * ((vehicle_object *)vehicle)->base.forward.k) / (float)sqrt((double)distance_squared);
+                  dz * ((vehicle_object *)vehicle)->base.forward.k) / (float)halo::libm::sqrt((double)distance_squared);
 
         if ((query->vehicle_ignore_velocity == 0 &&
              ((vehicle_object *)vehicle)->base.velocity.k * ((vehicle_object *)vehicle)->base.velocity.k +

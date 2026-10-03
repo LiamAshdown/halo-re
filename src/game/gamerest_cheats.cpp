@@ -10,6 +10,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
@@ -18,11 +19,6 @@ extern "C" {
 extern uint32_t cheat_get_target_object_index(void);
 }
 static auto &object_type_definitions = halo::link::ref<void *[12]>(halo::game::vars().object_type_definitions);
-extern "C" {
-extern double atan2(double y, double x);
-extern double sin(double x);
-extern double cos(double x);
-}
 
 namespace halo::game {
 
@@ -180,14 +176,14 @@ void Cheats::spawn_objects_near_camera(TagDependency *tag_array, int16_t count)
         if (!(spacing <= (double)0.39269909f)) {
             spacing = (double)0.39269909f;
         }
-        angle = atan2((double)unit_forward.i, (double)unit_forward.j) +
+        angle = halo::libm::atan2((double)unit_forward.i, (double)unit_forward.j) +
             (double)(i - (int32_t)count / 2) * spacing;
         halo::objects::object_placement_data_initialize(&placement, tag_handle, k_datum_index_none);
         placement.forward = unit_forward;
         placement.up = unit_up;
         role = 3;
-        placement.position.x = (float)(cos(angle) * (double)1.5f + (double)unit_position.x);
-        placement.position.y = (float)(sin(angle) * (double)1.5f + (double)unit_position.y);
+        placement.position.x = (float)(halo::libm::cos(angle) * (double)1.5f + (double)unit_position.x);
+        placement.position.y = (float)(halo::libm::sin(angle) * (double)1.5f + (double)unit_position.y);
         placement.position.z = unit_position.z + 0.8f;
         if (halo::networking::globals().game_mode == 2) {
             int16_t object_type = *(int16_t *)halo::cache::globals().tag_instances[placement.definition_tag & 0xffff].data;

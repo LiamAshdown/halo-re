@@ -1,10 +1,8 @@
 #include "halo/units/unit.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double sqrt(double x);
-}
 
 namespace halo::units {
 
@@ -34,7 +32,7 @@ int32_t halo::units::object_find_nearest_biped(int32_t reference_object_index)
                 halo::objects::object_get_position(&a, (uint32_t)this_handle);
                 halo::objects::object_get_position(&b, (uint32_t)reference_object_index);
                 float dx = a.x - b.x, dy = a.y - b.y, dz = a.z - b.z;
-                distance = (float)sqrt((double)(dx * dx + dy * dy + dz * dz));
+                distance = (float)halo::libm::sqrt((double)(dx * dx + dy * dy + dz * dz));
             }
             if (distance < best_distance) {
                 best_index = this_handle;

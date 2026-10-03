@@ -12,12 +12,8 @@
 #include "halo/game/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double cos(double x);
-extern double sqrt(double x);
-extern double fmod(double x, double y);
-}
 static auto &hud_unit_meters = halo::link::ref<hud_unit_meter_globals *>(halo::ui::vars().hud_unit_meters);
 static auto &hud_flags = halo::link::ref<hud_globals_flags *>(halo::ui::vars().hud_flags);
 
@@ -208,7 +204,7 @@ uint32_t HudMeters::flash_color_blend(const hud_flash_parameters *flash, int32_t
         return halo::interface::color_pack_argb_from_real(&default_color);
     }
 
-    cycle_time = (float)fmod((float)(halo::game::globals().game_time->game_time - start_time) * (1.0f / 30.0f),
+    cycle_time = (float)halo::libm::fmod((float)(halo::game::globals().game_time->game_time - start_time) * (1.0f / 30.0f),
                              flash->flash_period);
     halo::bitmaps::color_argb_int_to_real(&default_color, *(uint32_t *)&flash->default_color);
     halo::bitmaps::color_argb_int_to_real(&flashing_color, *(uint32_t *)&flash->flashing_color);
@@ -216,20 +212,20 @@ uint32_t HudMeters::flash_color_blend(const hud_flash_parameters *flash, int32_t
     if ((float)flash->number_of_flashes * (flash->flash_delay + flash->flash_length) <= cycle_time) {
         return halo::interface::color_pack_argb_from_real(&default_color);
     }
-    flash_time = (float)fmod(cycle_time, flash->flash_delay + flash->flash_length);
+    flash_time = (float)halo::libm::fmod(cycle_time, flash->flash_delay + flash->flash_length);
 
     if (start_time == 0) {
         return halo::interface::color_pack_argb_from_real((flash->flash_flags & 1) ? &default_color : &flashing_color);
     }
     if (flash_time < flash->flash_length) {
-        double wave = 1.0 - (cos(flash_time / flash->flash_length * 6.283f) + 1.0) * 0.5;
+        double wave = 1.0 - (halo::libm::cos(flash_time / flash->flash_length * 6.283f) + 1.0) * 0.5;
         float s;
         if (wave < 0.0) {
             wave = 0.0;
         } else if (wave > 1.0) {
             wave = 1.0;
         }
-        s = (float)sqrt(wave);
+        s = (float)halo::libm::sqrt(wave);
         if (flash->flash_flags & 1) {
             return hud_flash_blend(&default_color, &flashing_color, s);
         }

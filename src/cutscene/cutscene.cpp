@@ -17,11 +17,10 @@
 #include "halo/cutscene/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/x87.hpp"
 
 extern "C" {
 extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error);
-extern int32_t ROUND(float x);
-extern float fabsf(float x);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
 }
 static auto &cinematic_saved_music_gain = halo::link::ref<float>(halo::cutscene::vars().cinematic_saved_music_gain);
@@ -147,7 +146,7 @@ void CutsceneDirector::title_queue(int16_t title_index, float delay_seconds)
         if (cinematic_globals_ptr->titles[i].title_index == k_cinematic_title_none) {
             cinematic_globals_ptr->titles[i].title_index = title_index;
             cinematic_globals_ptr->titles[i].ticks =
-                -(int16_t)ROUND(delay_seconds * k_cinematic_ticks_per_second);
+                -(int16_t)halo::x87::ROUND(delay_seconds * k_cinematic_ticks_per_second);
             return;
         }
     }
@@ -200,15 +199,15 @@ void CutsceneDirector::letterbox()
                     (float)k_cinematic_letterbox_screen_height;
                 Rectangle2D bar;
 
-                bar.left = (int16_t)ROUND((float)render_viewport_top.left);
-                bar.right = (int16_t)ROUND((float)k_cinematic_letterbox_screen_width);
-                bar.top = (int16_t)ROUND((float)render_viewport_top.top);
-                bar.bottom = (int16_t)ROUND((float)render_viewport_top.top + bar_height);
+                bar.left = (int16_t)halo::x87::ROUND((float)render_viewport_top.left);
+                bar.right = (int16_t)halo::x87::ROUND((float)k_cinematic_letterbox_screen_width);
+                bar.top = (int16_t)halo::x87::ROUND((float)render_viewport_top.top);
+                bar.bottom = (int16_t)halo::x87::ROUND((float)render_viewport_top.top + bar_height);
                 halo::interface::ui_draw_filled_rectangle((uint32_t)k_cinematic_letterbox_color, &bar);
 
-                bar.left = (int16_t)ROUND((float)render_viewport_top.left);
-                bar.right = (int16_t)ROUND((float)k_cinematic_letterbox_screen_width);
-                bar.top = (int16_t)ROUND((float)k_cinematic_letterbox_screen_height - bar_height);
+                bar.left = (int16_t)halo::x87::ROUND((float)render_viewport_top.left);
+                bar.right = (int16_t)halo::x87::ROUND((float)k_cinematic_letterbox_screen_width);
+                bar.top = (int16_t)halo::x87::ROUND((float)k_cinematic_letterbox_screen_height - bar_height);
                 bar.bottom = (int16_t)k_cinematic_letterbox_bottom_edge;
                 halo::interface::ui_draw_filled_rectangle((uint32_t)k_cinematic_letterbox_color, &bar);
             }
@@ -268,8 +267,8 @@ void CutsceneDirector::letterbox()
                 halo::bitmaps::color_codec::argb_int_to_real(&tint, *(uint32_t *)&title->text_color);
                 tint.alpha *= fade;
 
-                if (fabsf(tint.red - 1.0f) < 0.0001f && fabsf(tint.green - 1.0f) < 0.0001f &&
-                    fabsf(tint.blue - 1.0f) < 0.0001f) {
+                if (halo::x87::fabsf(tint.red - 1.0f) < 0.0001f && halo::x87::fabsf(tint.green - 1.0f) < 0.0001f &&
+                    halo::x87::fabsf(tint.blue - 1.0f) < 0.0001f) {
                     
                     if (tint.red > 0.8f) tint.red = 0.8f;
                     if (tint.green > 0.8f) tint.green = 0.8f;
@@ -278,7 +277,7 @@ void CutsceneDirector::letterbox()
 
                 halo::text::text_context::set_render_context(fullscreen_font, &tint, (int16_t)(title->text_style - 1), title->justification, title->text_flags);
 
-                shadow_alpha = ROUND((float)title->shadow_color.alpha * fade);
+                shadow_alpha = halo::x87::ROUND((float)title->shadow_color.alpha * fade);
                 if (shadow_alpha < 0) {
                     shadow_alpha = 0;
                 } else if (shadow_alpha > 0xff) {

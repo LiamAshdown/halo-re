@@ -20,12 +20,10 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/libm.hpp"
 
 #define WCTYPE_SPACE 0x0008
 
-extern "C" {
-extern long lrintf(float x);
-}
 static auto &empty_string = halo::link::ref<uint16_t []>(halo::game::vars().empty_string);
 static auto &ui_player_number_text = halo::link::ref<uint16_t [2]>(halo::ui::vars().ui_player_number_text);
 static auto &ui_product_id_text = halo::link::ref<uint16_t []>(halo::ui::vars().ui_product_id_text);
@@ -45,7 +43,7 @@ namespace halo::ui {
  */
 int32_t UiStrings::real_to_int_truncate(float value)
 {
-    int32_t rounded = (int32_t)lrintf(value);
+    int32_t rounded = (int32_t)halo::libm::lrintf(value);
     float remainder = value - (float)rounded;
     uint32_t value_bits;
     uint32_t remainder_bits;

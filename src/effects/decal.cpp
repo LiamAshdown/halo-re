@@ -13,12 +13,12 @@
 #include "halo/core/link.hpp"
 #include "halo/effects/vars.hpp"
 #include "halo/physics/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
 extern void decal_link(int16_t cluster_index, datum_index decal_index, int16_t layer);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void decal_place(datum_index decal_tag_index, collision_result *placement, real_vector3d *direction, real radius_scale, uint8_t object_attached, int16_t sequence_index);
-extern long lrint(double x);
 }
 static auto &decal_data = halo::link::ref<data_array *>(halo::effects::vars().decal_data);
 static auto &decal_grid_block = halo::link::ref<decal_grid *>(halo::effects::vars().decal_grid_block);
@@ -630,7 +630,7 @@ void decal_ref::update_fade()
             if (remaining < self->decay_time) {
                 real fade = (remaining / self->decay_time) * 255.0f;
 
-                self->alpha = (uint8_t)lrint((double)fade);
+                self->alpha = (uint8_t)halo::libm::lrint((double)fade);
             }
         }
     }

@@ -21,12 +21,12 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/physics/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" { void halo::physics::physics_clamp_value_to_spring_range(float *value, physics_scalar_rates *rates, float step); }
 extern "C" { void halo::physics::physics_scalar_advance_and_wrap(physics_scalar_range *range, float *value, uint8_t wrap, float delta); }
 extern "C" { float halo::physics::physics_scalar_approach_direction(physics_scalar_range *range, float value, uint8_t wrap, float target); }
 
-extern "C" { extern double fabs(double x); }
 namespace halo::physics {
 
 /**
@@ -39,7 +39,7 @@ namespace halo::physics {
  */
 void PhysicsMotion::clamp_value_to_spring_range(float *value, physics_scalar_rates *rates, float step)
 {
-    float magnitude = (float)fabs((double)step);
+    float magnitude = (float)halo::libm::fabs((double)step);
     float accel_positive = magnitude * rates->acceleration_positive;
     float accel_negative = magnitude * rates->acceleration_negative;
 
@@ -169,7 +169,7 @@ float PhysicsMotion::scalar_approach_direction(physics_scalar_range *range, floa
 {
     float delta = target - value;
     if (delta != 0.0f) {
-        if (wrap != 0 && (range->upper - range->lower) * 0.5f < (float)fabs((double)delta)) {
+        if (wrap != 0 && (range->upper - range->lower) * 0.5f < (float)halo::libm::fabs((double)delta)) {
             delta = -delta;
         }
         return (delta > 0.0f) ? 1.0f : -1.0f;

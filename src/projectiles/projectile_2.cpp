@@ -13,12 +13,10 @@
 #include "halo/game/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
-extern double cos(double x);
-extern double sin(double x);
-extern double sqrt(double x);
 extern float sound_definition_maximum_distance(datum_index sound_definition);
 extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
 }
@@ -125,7 +123,7 @@ int ProjectileHandle::update()
             break;
         }
         vel = *velocity;
-        speed = (real)sqrt(vel.i * vel.i + vel.j * vel.j + vel.k * vel.k);
+        speed = (real)halo::libm::sqrt(vel.i * vel.i + vel.j * vel.j + vel.k * vel.k);
         speed_after = speed;
         average_speed = speed;
         step = vel;
@@ -154,7 +152,7 @@ int ProjectileHandle::update()
                 real dy = self->base.bounding_center.y - tracked_object->bounding_center.y;
                 real dz = self->base.bounding_center.z - tracked_object->bounding_center.z;
 
-                distance = (real)sqrt(dx * dx + dy * dy + dz * dz);
+                distance = (real)halo::libm::sqrt(dx * dx + dy * dy + dz * dz);
             }
             if (!(distance <= 10.0f)) {
                 fade = 1.0f;
@@ -174,10 +172,10 @@ int ProjectileHandle::update()
             angle_b = 3.1415927f - halo::math::periodic_function_evaluate(_periodic_function_wander,
                 (double)((real)(int32_t)((tick + salt * 3) & halo::k_datum_slot_mask) * 0.011111111f)) * 1.5707964f;
             {
-                real cos_b = (real)cos(angle_b);
-                real wander_x = (real)cos(angle_a) * cos_b;
-                real wander_y = (real)sin(angle_a) * cos_b;
-                real wander_z = (real)sin(angle_b);
+                real cos_b = (real)halo::libm::cos(angle_b);
+                real wander_x = (real)halo::libm::cos(angle_a) * cos_b;
+                real wander_y = (real)halo::libm::sin(angle_a) * cos_b;
+                real wander_z = (real)halo::libm::sin(angle_b);
 
                 target.x += wander_x * fade;
                 target.y += wander_y * fade;
@@ -189,7 +187,7 @@ int ProjectileHandle::update()
             halo::math::vector3d_cross_product(axis, to_target, *velocity);
             if (to_target.k * velocity->k + to_target.j * velocity->j + to_target.i * velocity->i > 0.0f &&
                 halo::math::vector3d_normalize_with_length(axis) > 0.0f) {
-                halo::math::vector3d_rotate_about_axis(vel, axis, (real)sin(turn), (real)cos(turn));
+                halo::math::vector3d_rotate_about_axis(vel, axis, (real)halo::libm::sin(turn), (real)halo::libm::cos(turn));
             }
         }
 
@@ -313,7 +311,7 @@ int ProjectileHandle::update()
             moved.i = swept.x - self->base.position.x;
             moved.j = swept.y - self->base.position.y;
             moved.k = swept.z - self->base.position.z;
-            self->projectile.distance_travelled = (real)sqrt(moved.k * moved.k + moved.j * moved.j + moved.i * moved.i) + self->projectile.distance_travelled;
+            self->projectile.distance_travelled = (real)halo::libm::sqrt(moved.k * moved.k + moved.j * moved.j + moved.i * moved.i) + self->projectile.distance_travelled;
             if (!flyby_played && *(datum_index *)&definition->flyby_sound.tag_id != k_datum_index_none &&
                 *(datum_index *)halo::game::globals().local_player_globals->local_players != k_datum_index_none) {
                 datum_index local_player = *(datum_index *)halo::game::globals().local_player_globals->local_players;

@@ -6,12 +6,12 @@
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/ai/records.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 namespace c_actor_danger_update_reaction {
 extern "C" {
 
-extern double sqrt(double x);
-extern int32_t fistp_round(float x);
 
 
 #define A_W(o) (*(int16_t *)((uint8_t *)actor + (o)))
@@ -82,7 +82,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         float dy = position->y - block_point->y;
         float dz = position->z - block_point->z;
 
-        actor->danger_distance = (float)sqrt((double)(dz * dz + dy * dy + dx * dx));
+        actor->danger_distance = (float)halo::libm::sqrt((double)(dz * dz + dy * dy + dx * dx));
     }
     actor->danger_segment_end.x = A_F(0x2bc) * 45.0f + position->x;
     actor->danger_segment_end.y = A_F(0x2c0) * 45.0f + position->y;
@@ -95,7 +95,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         float dy = position->y - actor->danger_center.y;
         float dz = position->z - actor->danger_center.z;
 
-        actor->danger_radius = (float)sqrt((double)(dz * dz + dy * dy + dx * dx)) + actor->danger_object_radius;
+        actor->danger_radius = (float)halo::libm::sqrt((double)(dz * dz + dy * dy + dx * dx)) + actor->danger_object_radius;
     }
 
     switch (actor->danger_type) {
@@ -124,7 +124,7 @@ void halo::ai::prop_ops::danger_update_reaction()
             own = 1;
         }
         if (*(float *)(object + 0x240) > 0.0f && *(float *)(object + 0x244) > 0.0f) {
-            A_W(0x2e8) = (int16_t)fistp_round((1.0f - *(float *)(object + 0x240)) / *(float *)(object + 0x244));
+            A_W(0x2e8) = (int16_t)halo::x87::fistp_round((1.0f - *(float *)(object + 0x240)) / *(float *)(object + 0x244));
         } else {
             A_W(0x2e8) = -1;
         }

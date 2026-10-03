@@ -1,11 +1,8 @@
 #include "halo/camera/camera_math.hpp"
 #include "halo/math/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/core/x87.hpp"
 
-extern "C" {
-extern double fsin(double angle);
-extern double fcos(double angle);
-}
 
 namespace halo::camera {
 
@@ -167,8 +164,8 @@ void CameraMath::rotate_basis_by_axis_angle(Vector3D *axis_angle, Vector3D *forw
 
     angle = halo::math::vector3d_normalize_with_length(axis);
     if (angle != 0.0f) {
-        sin_angle = (real)fsin((double)angle);
-        cos_angle = (real)fcos((double)angle);
+        sin_angle = (real)halo::x87::fsin((double)angle);
+        cos_angle = (real)halo::x87::fcos((double)angle);
         halo::math::vector3d_rotate_about_axis(*(real_vector3d *)forward, axis, sin_angle, cos_angle);
         halo::math::vector3d_rotate_about_axis(*(real_vector3d *)up, axis, sin_angle, cos_angle);
     }

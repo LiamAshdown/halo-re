@@ -16,6 +16,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
 
 namespace halo::ai {
 
@@ -277,8 +278,6 @@ attach:
 namespace actor_place_new_unit_local {
 static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
 extern "C" {
-extern double cos(double x);
-extern double sin(double x);
 #define TAG_DATA(h) ((uint8_t *)halo::cache::globals().tag_instances[(h) & halo::k_slot_mask].data)
 }
 }
@@ -316,8 +315,8 @@ datum_index ActorOps::place_new_unit(datum_index actor_variant_or_palette_tag, d
     yaw = ((struct actor_placement_request *)request)->yaw;
     placement.position = *(const real_point3d *)request;
     placement.permutation_group = (int16_t)unit_type_index;
-    placement.forward.i = (float)cos((double)yaw);
-    placement.forward.j = (float)sin((double)yaw);
+    placement.forward.i = (float)halo::libm::cos((double)yaw);
+    placement.forward.j = (float)halo::libm::sin((double)yaw);
     placement.forward.k = 0.0f;
 
     role = 3;
@@ -367,10 +366,6 @@ datum_index ActorOps::place_new_unit(datum_index actor_variant_or_palette_tag, d
 #undef TAG_DATA
 
 namespace actor_point_in_directional_lane_local {
-extern "C" {
-extern double sqrt(double x);
-extern double fabs(double x);
-}
 }
 
 /**
@@ -393,8 +388,8 @@ uint8_t ActorOps::point_in_directional_lane(real_point3d *to_point, real_point3d
     point.j = to_point->y;
     facing.i = forward->x;
     facing.j = forward->y;
-    length = (float)sqrt((double)(point.i * point.i + point.j * point.j));
-    if ((float)fabs((double)length) < 0.0001f) {
+    length = (float)halo::libm::sqrt((double)(point.i * point.i + point.j * point.j));
+    if ((float)halo::libm::fabs((double)length) < 0.0001f) {
         return 0;
     }
     inverse = 1.0f / length;
@@ -1887,9 +1882,6 @@ after_prop_walk:
 
 namespace actor_select_facing_target_prop_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-extern "C" {
-extern double cos(double x);
-}
 }
 
 /**
@@ -1925,13 +1917,13 @@ uint8_t ActorView::select_facing_target_prop(uint8_t require_trust, uint8_t skip
     now = halo::game::globals().game_time->game_time;
 
     if (self->awareness_level == 3) {
-        side_thresholds[0] = (float)cos((double)definition->combat_look_delta_l);
+        side_thresholds[0] = (float)halo::libm::cos((double)definition->combat_look_delta_l);
         delta_r = definition->combat_look_delta_r;
     } else {
-        side_thresholds[0] = (float)cos((double)definition->noncombat_look_delta_l);
+        side_thresholds[0] = (float)halo::libm::cos((double)definition->noncombat_look_delta_l);
         delta_r = definition->noncombat_look_delta_r;
     }
-    side_thresholds[1] = (float)cos((double)delta_r);
+    side_thresholds[1] = (float)halo::libm::cos((double)delta_r);
 
     aiming_cos_threshold = definition->cosine_maximum_aiming_deviation.yaw;
     looking_cos_threshold = definition->cosine_maximum_looking_deviation.yaw;
@@ -2345,10 +2337,6 @@ void ActorView::snapshot_orientation()
 }
 
 namespace actor_spawn_additional_units_local {
-extern "C" {
-extern double cos(double x);
-extern double sin(double x);
-}
 }
 
 /**
@@ -2402,8 +2390,8 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
                 random_bits = halo::math::globals().random_seed_global >> 16;
                 angle = (float)(int32_t)random_bits * 1.5259022e-05f * 6.2831855f;
                 halo::objects::object_placement_data_initialize(&placement, (datum_index)variant[8], (datum_index)k_datum_index_none);
-                placement.forward.i = (float)cos(angle);
-                placement.forward.j = (float)sin(angle);
+                placement.forward.i = (float)halo::libm::cos(angle);
+                placement.forward.j = (float)halo::libm::sin(angle);
                 placement.forward.k = 0.0f;
                 halo::objects::object_get_position(&placement.position, source_actor_index);
                 placement.position.x = placement.forward.i * 0.3f + placement.position.x;

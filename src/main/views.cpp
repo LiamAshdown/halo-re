@@ -43,6 +43,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
@@ -53,8 +54,6 @@ static auto &screenshots = halo::link::ref<int32_t>(halo::main::vars().screensho
 static auto &input_globals = halo::link::ref<input_abstraction_globals>(halo::main::vars().input_globals);
 static auto &global_zero_vector3d_pointer = halo::link::ref<const real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &unknown_00873d30 = halo::link::ref<uint8_t>(halo::main::vars().unknown_00873d30);
-extern "C" { extern double tan(double x); }
-extern "C" { extern double atan2(double y, double x); }
 extern "C" { extern void halo::sound::sound_update(void); }
 namespace halo::main {
 
@@ -146,7 +145,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     view->rasterizer_camera.mirrored = 0;
     view->rasterizer_camera.z_far = halo::rasterizer::globals().default_z_far;
     view->rasterizer_camera.vertical_field_of_view =
-        (float)(2.0 * atan2(tan(0.6981316804885864) * 0.6375f, 1.0));
+        (float)(2.0 * halo::libm::atan2(halo::libm::tan(0.6981316804885864) * 0.6375f, 1.0));
     if (unknown_00873d30 == 0) {
         view->source_camera = view->rasterizer_camera;
     }
@@ -233,7 +232,7 @@ void RenderViews::pregame_view_initialize(void)
     pregame_render_view.nonplayer = 1;
     camera->mirrored = 0;
     camera->vertical_field_of_view =
-        (float)(2.0 * atan2(tan(0.6981316804885864) * 0.6375f, 1.0));
+        (float)(2.0 * halo::libm::atan2(halo::libm::tan(0.6981316804885864) * 0.6375f, 1.0));
 
     halo::main::viewport_split_rect_compute(1, 0, &camera->window_bounds, &camera->viewport_bounds);
 
@@ -282,9 +281,9 @@ void RenderViews::view_camera_fill(observer_camera *observer, render_view *view)
         {
             int32_t width = camera->viewport_bounds.right - camera->viewport_bounds.left;
             int32_t height = camera->viewport_bounds.bottom - camera->viewport_bounds.top;
-            double half_fov_tan = tan((double)observer->field_of_view * 0.5);
+            double half_fov_tan = halo::libm::tan((double)observer->field_of_view * 0.5);
             camera->vertical_field_of_view =
-                (float)(2.0 * atan2(((double)height / (double)width) * half_fov_tan * 0.85f, 1.0));
+                (float)(2.0 * halo::libm::atan2(((double)height / (double)width) * half_fov_tan * 0.85f, 1.0));
         }
 
         if (view->local_player_index != -1 && console_globals_data.active == 0 &&
@@ -307,7 +306,7 @@ void RenderViews::view_camera_fill(observer_camera *observer, render_view *view)
         camera->forward = *halo::math::globals().global_forward3d_pointer;
         camera->up = *halo::math::globals().global_up3d_pointer;
         camera->vertical_field_of_view =
-            (float)(2.0 * atan2(tan(0.6981316804885864) * 0.6375f, 1.0));
+            (float)(2.0 * halo::libm::atan2(halo::libm::tan(0.6981316804885864) * 0.6375f, 1.0));
     }
 
     camera->z_far = halo::rasterizer::globals().default_z_far;

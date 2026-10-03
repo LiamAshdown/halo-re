@@ -15,6 +15,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/physics/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 namespace c_actor_avoid_obstacle_and_project {
 static auto &global_structure_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_structure_collision_bsp);
@@ -22,7 +23,6 @@ static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo
 extern "C" {
 
 
-extern double sqrt(double x);
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
@@ -70,7 +70,7 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
             float dx = hint->x - center.x;
             float dy = hint->y - center.y;
             float dz = hint->z - center.z;
-            float d = (float)sqrt(dz * dz + dy * dy + dx * dx);
+            float d = (float)halo::libm::sqrt(dz * dz + dy * dy + dx * dx);
 
             if (d <= 0.5f) {
                 near_line = 1;
@@ -140,7 +140,7 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
             if (!(distance_squared > 0.0001f) || !(distance_squared <= 4.0f)) {
                 goto project;
             }
-            distance = (float)sqrt(distance_squared);
+            distance = (float)halo::libm::sqrt(distance_squared);
             side.i = -from_target.j;
             side.j = from_target.i;
             if (!(dy * from_target.i + side.i * dx > 0.0f)) {
@@ -190,11 +190,6 @@ uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_index ve
 #undef TAG_DATA
 
 namespace c_actor_avoidance_build_direction_tables {
-extern "C" {
-extern double cos(double x);
-extern double sin(double x);
-
-}
 static auto &actor_avoidance_samples_a = halo::link::ref<float [16][7]>(halo::ai::vars().actor_avoidance_samples_a);
 static auto &actor_avoidance_circle = halo::link::ref<float [8][3]>(halo::ai::vars().actor_avoidance_circle);
 static auto &actor_avoidance_samples_b = halo::link::ref<float [9][7]>(halo::ai::vars().actor_avoidance_samples_b);
@@ -228,11 +223,11 @@ void halo::ai::movement_ops::avoidance_build_direction_tables()
 
     for (i = 0; i < 9; i++) {
         bearing = actor_avoidance_b_bearing[i];
-        sin_bearing = (float)sin((double)bearing);
-        cos_bearing = (float)cos((double)bearing);
+        sin_bearing = (float)halo::libm::sin((double)bearing);
+        cos_bearing = (float)halo::libm::cos((double)bearing);
         elevation = actor_avoidance_b_elevation[i] * 0.05235988f;
-        sin_elevation = (float)sin((double)elevation);
-        cos_elevation = (float)cos((double)elevation);
+        sin_elevation = (float)halo::libm::sin((double)elevation);
+        cos_elevation = (float)halo::libm::cos((double)elevation);
         radius = actor_avoidance_b_radius[i];
 
         actor_avoidance_samples_b[i][0] = 1.0f;
@@ -245,8 +240,8 @@ void halo::ai::movement_ops::avoidance_build_direction_tables()
     }
 
     for (i = 0; i < 2; i++) {
-        sin_elevation = (float)sin((double)actor_avoidance_a_elevation[i]);
-        cos_elevation = (float)cos((double)actor_avoidance_a_elevation[i]);
+        sin_elevation = (float)halo::libm::sin((double)actor_avoidance_a_elevation[i]);
+        cos_elevation = (float)halo::libm::cos((double)actor_avoidance_a_elevation[i]);
         radius = actor_avoidance_a_radius[i];
 
         for (j = 0; j < 8; j++) {
@@ -254,8 +249,8 @@ void halo::ai::movement_ops::avoidance_build_direction_tables()
 
             bearing = actor_avoidance_a_bearing[j];
             actor_avoidance_circle[j][0] = 0.0f;
-            actor_avoidance_circle[j][1] = (float)cos((double)bearing);
-            actor_avoidance_circle[j][2] = (float)sin((double)bearing);
+            actor_avoidance_circle[j][1] = (float)halo::libm::cos((double)bearing);
+            actor_avoidance_circle[j][2] = (float)halo::libm::sin((double)bearing);
 
             row[0] = 0.7f;
             row[1] = radius * actor_avoidance_circle[j][0];
@@ -469,10 +464,6 @@ uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index)
 
 namespace c_actor_compute_swarm_avoidance_offset {
 static auto &global_forward2d_pointer = halo::link::ref<const real_vector2d *>(halo::ai::vars().global_forward2d_pointer);
-extern "C" {
-
-extern double sqrt(double x);
-}
 }
 
 
@@ -560,7 +551,7 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
                         out_offset[1] = y;
                         sum_sq = y * y + x * x + half_gravity * half_gravity;
                         if (!(sum_sq <= radius * radius)) {
-                            float k = radius / (float)sqrt((double)sum_sq);
+                            float k = radius / (float)halo::libm::sqrt((double)sum_sq);
                             out_offset[0] = x * k;
                             out_offset[1] = y * k;
                             out_offset[2] = half_gravity * k;
@@ -683,7 +674,6 @@ void actor_delete_swarm(datum_index actor_index)
 namespace c_actor_evaluate_search_node {
 extern "C" {
 
-extern double sqrt(double x);
 
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
@@ -753,11 +743,11 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
     }
     ax = act->body_position.x;
     ay = act->body_position.y;
-    if (sqrt((seat.y - ay) * (seat.y - ay) + (seat.x - ax) * (seat.x - ax)) <
-        sqrt((entry.y - ay) * (entry.y - ay) + (entry.x - ax) * (entry.x - ax))) {
-        distance = (float)sqrt((seat.y - ay) * (seat.y - ay) + (seat.x - ax) * (seat.x - ax));
+    if (halo::libm::sqrt((seat.y - ay) * (seat.y - ay) + (seat.x - ax) * (seat.x - ax)) <
+        halo::libm::sqrt((entry.y - ay) * (entry.y - ay) + (entry.x - ax) * (entry.x - ax))) {
+        distance = (float)halo::libm::sqrt((seat.y - ay) * (seat.y - ay) + (seat.x - ax) * (seat.x - ax));
     } else {
-        distance = (float)sqrt((entry.y - ay) * (entry.y - ay) + (entry.x - ax) * (entry.x - ax));
+        distance = (float)halo::libm::sqrt((entry.y - ay) * (entry.y - ay) + (entry.x - ax) * (entry.x - ax));
     }
     for (prop_index = act->first_prop; prop_index != k_datum_index_none;) {
         struct prop *prop = halo::ai::prop_at(prop_index);
@@ -1028,11 +1018,6 @@ uint8_t actor_get_cached_wander_position(datum_index actor_index, real_vector3d 
 }
 
 namespace c_actor_get_requested_velocity {
-extern "C" {
-
-extern double sqrt(double x);
-
-}
 }
 
 
@@ -1067,7 +1052,7 @@ uint8_t halo::ai::movement_ops::get_requested_velocity(uint8_t skip_clamp, datum
             out_velocity->k = *(float *)&self->jump_velocity_request[16];
             out_velocity->i = *(float *)&self->jump_velocity_request[4] *
                               *(float *)&self->jump_velocity_request[12];
-            length = (float)sqrt((double)(out_velocity->i * out_velocity->i +
+            length = (float)halo::libm::sqrt((double)(out_velocity->i * out_velocity->i +
                                           out_velocity->j * out_velocity->j +
                                           out_velocity->k * out_velocity->k));
             if (skip_clamp == 0 && speed_limit < length) {

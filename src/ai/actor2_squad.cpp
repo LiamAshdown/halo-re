@@ -16,6 +16,7 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/core/x87.hpp"
 
 namespace halo::ai {
 
@@ -114,10 +115,6 @@ void ActorView::obey_member_tick(datum_index unit_index, uint16_t command_list_i
 }
 
 namespace actor_squad_action_execute_local {
-extern "C" {
-extern double fcos(double x);
-extern double fsin(double x);
-}
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &k_empty_string = halo::link::ref<const char []>(halo::networking::vars().k_empty_string);
 extern "C" {
@@ -217,8 +214,8 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
             }
             angle = entry->parameter2 * 0.017453292f;
             *(float *)(state + 0x14) = 0.0f;
-            *(float *)(state + 0xc) = (float)fcos(angle);
-            *(float *)(state + 0x10) = (float)fsin(angle);
+            *(float *)(state + 0xc) = (float)halo::x87::fcos(angle);
+            *(float *)(state + 0x10) = (float)halo::x87::fsin(angle);
         }
         kind = entry->atom_modifier;
         *(int16_t *)(state + 0x8) = (kind >= 0 && kind <= 3) ? kind : -1;

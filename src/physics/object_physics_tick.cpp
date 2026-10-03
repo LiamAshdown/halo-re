@@ -23,11 +23,8 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/physics/vars.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" { extern double fabs(double x); }
-extern "C" { extern double sqrt(double x); }
-extern "C" { extern double sin(double x); }
-extern "C" { extern double cos(double x); }
 static auto &global_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_collision_bsp);
 static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);
 extern "C" { extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point); }
@@ -256,7 +253,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
                 (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
 
             if (powered_def != 0 && (powered_def->flags & 0x08) != 0 && powered_state->water_lift != 0.0f) {
-                float lift = (float)fabs((double)((mp->forward_k * mp->velocity_k + mp->forward_j * mp->velocity_j) +
+                float lift = (float)halo::libm::fabs((double)((mp->forward_k * mp->velocity_k + mp->forward_j * mp->velocity_j) +
                     mp->forward_i * mp->velocity_i)) * powered_state->water_lift * definition->mass * water_fade;
                 mp->powered_force_i += lift * mp->up_i;
                 mp->powered_force_j += lift * mp->up_j;
@@ -283,7 +280,7 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
             (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
 
         if (powered_def != 0 && (powered_def->flags & 0x10) != 0 && powered_state->air_lift != 0.0f) {
-            float lift = (float)fabs((double)((mp->forward_k * mp->velocity_k + mp->forward_j * mp->velocity_j) +
+            float lift = (float)halo::libm::fabs((double)((mp->forward_k * mp->velocity_k + mp->forward_j * mp->velocity_j) +
                 mp->forward_i * mp->velocity_i)) * definition->mass * powered_state->air_lift;
             mp->powered_force_i += lift * mp->up_i;
             mp->powered_force_j += lift * mp->up_j;
@@ -364,10 +361,10 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
         {
             real_vector3d torque_axis = total_torque;
 
-            float torque_length = (float)sqrt((double)((torque_axis.k * torque_axis.k +
+            float torque_length = (float)halo::libm::sqrt((double)((torque_axis.k * torque_axis.k +
                 torque_axis.j * torque_axis.j) + torque_axis.i * torque_axis.i));
 
-            if (0.0001f <= (float)fabs((double)torque_length) && torque_length != 0.0f) {
+            if (0.0001f <= (float)halo::libm::fabs((double)torque_length) && torque_length != 0.0f) {
                 float inverse_length = 1.0f / torque_length;
                 float moment_sum = 0.0f;
 
@@ -425,17 +422,17 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
 
         {
             real_vector3d axis = self->angular_velocity;
-            float axis_length = (float)sqrt((double)((axis.k * axis.k + axis.j * axis.j) + axis.i * axis.i));
+            float axis_length = (float)halo::libm::sqrt((double)((axis.k * axis.k + axis.j * axis.j) + axis.i * axis.i));
 
-            if (0.0001f <= (float)fabs((double)axis_length)) {
+            if (0.0001f <= (float)halo::libm::fabs((double)axis_length)) {
                 float inverse_length = 1.0f / axis_length;
                 axis.i *= inverse_length;
                 axis.j *= inverse_length;
                 axis.k *= inverse_length;
 
                 if (axis_length != 0.0f) {
-                    float sin_angle = (real)sin((double)axis_length);
-                    float cos_angle = (real)cos((double)axis_length);
+                    float sin_angle = (real)halo::libm::sin((double)axis_length);
+                    float cos_angle = (real)halo::libm::cos((double)axis_length);
                     real_vector3d forward_length_check;
 
                     halo::math::vector3d_rotate_about_axis(self->forward, axis, sin_angle, cos_angle);
@@ -443,10 +440,10 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
 
                     forward_length_check = self->forward;
                     {
-                        float len = (float)sqrt((double)((forward_length_check.i * forward_length_check.i +
+                        float len = (float)halo::libm::sqrt((double)((forward_length_check.i * forward_length_check.i +
                             forward_length_check.j * forward_length_check.j) +
                             forward_length_check.k * forward_length_check.k));
-                        if (0.0001f <= (float)fabs((double)len)) {
+                        if (0.0001f <= (float)halo::libm::fabs((double)len)) {
                             float inv = 1.0f / len;
                             self->forward.i *= inv;
                             self->forward.j *= inv;
@@ -462,9 +459,9 @@ void ObjectPhysics::tick_single_pass(uint32_t object_index, powered_mass_point_s
                         self->up.k += neg_dot * self->forward.k;
 
                         {
-                            float len = (float)sqrt((double)((self->up.i * self->up.i + self->up.j * self->up.j) +
+                            float len = (float)halo::libm::sqrt((double)((self->up.i * self->up.i + self->up.j * self->up.j) +
                                 self->up.k * self->up.k));
-                            if (0.0001f <= (float)fabs((double)len)) {
+                            if (0.0001f <= (float)halo::libm::fabs((double)len)) {
                                 float inv = 1.0f / len;
                                 self->up.i *= inv;
                                 self->up.j *= inv;

@@ -11,19 +11,11 @@
 #include "halo/game/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
-extern "C" {
-extern double sin(double x);
-extern double cos(double x);
-}
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 static auto &player_control_globals_ptr = halo::link::ref<player_control_globals *>(halo::game::vars().player_control_globals_ptr);
-extern "C" {
-extern double atan2(double y, double x);
-extern double sqrt(double x);
-extern double acos(double x);
-}
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 
 namespace halo::game {
@@ -148,8 +140,8 @@ int16_t CameraObserver::generate_target_candidates(observer_target_cone *cone, i
         return 0;
     }
 
-    sin_max_angle = (real)sin((double)max_angle);
-    cos_max_angle = (real)cos((double)max_angle);
+    sin_max_angle = (real)halo::libm::sin((double)max_angle);
+    cos_max_angle = (real)halo::libm::cos((double)max_angle);
 
     collected_clusters = halo::structures::cluster_flood_fill_with_predicate(observer_position, facing, max_distance,
                                       sin_max_angle, cos_max_angle, 0x200, cluster_indices, start_cluster);
@@ -226,16 +218,16 @@ uint32_t CameraObserver::get_target_angles(real *out_weight_primary, real *out_w
 
     *out_weight_primary = candidate.weight_primary;
     *out_weight_secondary = candidate.weight_secondary;
-    out_yaw_pitch[0] = (real)atan2((double)candidate.offset.j, (double)candidate.offset.i);
+    out_yaw_pitch[0] = (real)halo::libm::atan2((double)candidate.offset.j, (double)candidate.offset.i);
     h2 = candidate.offset.i * candidate.offset.i + candidate.offset.j * candidate.offset.j;
-    out_yaw_pitch[1] = (real)atan2((double)candidate.offset.k, sqrt((double)h2));
+    out_yaw_pitch[1] = (real)halo::libm::atan2((double)candidate.offset.k, halo::libm::sqrt((double)h2));
 
     halo::objects::object_get_root_object_velocities(unit_index, &player_velocity, (real_vector3d *)0);
     halo::objects::object_get_root_object_velocities(candidate.object, &target_velocity, (real_vector3d *)0);
     dx = target_velocity.i - player_velocity.i;
     dy = target_velocity.j - player_velocity.j;
     dz = target_velocity.k - player_velocity.k;
-    h = (real)sqrt((double)h2);
+    h = (real)halo::libm::sqrt((double)h2);
     out_yaw_pitch_rate[0] = (dy * candidate.offset.i - dx * candidate.offset.j) / h2;
     out_yaw_pitch_rate[1] = (dz * h - candidate.offset.k * ((dx * candidate.offset.i + dy * candidate.offset.j) / h)) /
                             (candidate.offset.k * candidate.offset.k + h2);
@@ -298,7 +290,7 @@ uint32_t CameraObserver::target_direction(real_point3d *candidate_point, real_ve
             } else if (1.0f < dot) {
                 dot = 1.0f;
             }
-            *out_angle = (real)acos((double)dot);
+            *out_angle = (real)halo::libm::acos((double)dot);
             return 1;
         }
     }
@@ -381,7 +373,7 @@ uint32_t CameraObserver::target_score(real_vector3d *facing, observer_target_con
     } else if (1.0f < dot) {
         dot = 1.0f;
     }
-    angle = (real)acos((double)dot);
+    angle = (real)halo::libm::acos((double)dot);
     out->angle = angle;
 
     if (cone == (observer_target_cone *)0) {

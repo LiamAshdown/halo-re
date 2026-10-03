@@ -26,17 +26,12 @@
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/saved_games/vars.hpp"
+#include <string.h>
 
 static_assert(sizeof(data_array) == halo::saved_games::k_game_state_block_header_size);
 static_assert(sizeof(memory_pool) == halo::saved_games::k_game_state_block_header_size);
 static_assert(sizeof(game_state_header) == k_game_state_header_size);
 
-extern "C" {
-extern char *strcpy(char *dest, const char *source);
-extern uint32_t strlen(const char *str);
-extern void *memset(void *dest, int32_t value, uint32_t count);
-extern void *memcpy(void *dest, const void *src, uint32_t count);
-}
 static auto &game_state_revert_time = halo::link::ref<int32_t>(halo::saved_games::vars().game_state_revert_time);
 static auto &game_state_snapshot_source = halo::link::ref<uint8_t *>(halo::saved_games::vars().game_state_snapshot_source);
 static auto &game_state_write_buffer_allocated = halo::link::ref<uint8_t>(halo::game::vars().game_state_write_buffer_allocated);

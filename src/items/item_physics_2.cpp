@@ -14,13 +14,12 @@
 #include "halo/ai/vars.hpp"
 #include "halo/items/vars.hpp"
 #include "halo/physics/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags, uint32_t exclude_object_index, collision_result *result);
 extern void item_compute_rotation(uint32_t object_index);
 extern uint8_t object_collision_test_cluster_group(uint32_t flags, real_point3d *position, uint32_t exclude_object_index);
-extern double fabs(double x);
-extern double sqrt(double x);
 uint8_t halo::items::item_update(uint32_t item_index);
 }
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
@@ -60,7 +59,7 @@ uint8_t item_ref::update()
     real_vector3d *up = &((item_object *)obj)->base.up;
 
     if ((((item_object *)obj)->base.flags & 0x800) && ((item_object *)obj)->base.parent_object == k_datum_index_none) {
-        if ((((Item *)tag)->item_flags & 1) && !(fabs(((item_object *)obj)->base.up.k - 1.0f) < 9.999999747378752e-05)) {
+        if ((((Item *)tag)->item_flags & 1) && !(halo::libm::fabs(((item_object *)obj)->base.up.k - 1.0f) < 9.999999747378752e-05)) {
             real_vector3d side;
 
             *up = *halo::math::globals().global_up3d_pointer;
@@ -90,7 +89,7 @@ uint8_t item_ref::update()
                 target.x += hit.plane.normal.i * 0.05f;
                 target.y += hit.plane.normal.j * 0.05f;
                 target.z += hit.plane.normal.k * 0.05f;
-                speed_factor = (real)sqrt(velocity.j * velocity.j + velocity.i * velocity.i + velocity.k * velocity.k) * 10.0f;
+                speed_factor = (real)halo::libm::sqrt(velocity.j * velocity.j + velocity.i * velocity.i + velocity.k * velocity.k) * 10.0f;
                 if (!(speed_factor >= 0.0f)) {
                     speed_factor = 0.0f;
                 } else if (!(speed_factor <= 1.0f)) {

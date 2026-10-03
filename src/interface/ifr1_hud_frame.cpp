@@ -22,6 +22,7 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &hud_globals_tag_data = halo::link::ref<HUDGlobals *>(halo::ui::vars().hud_globals_tag_data);
 static auto &render_viewport_top = halo::link::ref<int16_t>(halo::ui::vars().render_viewport_top);
@@ -33,9 +34,6 @@ static auto &current_local_player_index = halo::link::ref<int16_t>(halo::ui::var
 static auto &hud_overshield_layer_count = halo::link::ref<int32_t>(halo::ui::vars().hud_overshield_layer_count);
 static auto &hud_team_icon_bitmap = halo::link::ref<datum_index>(halo::ui::vars().hud_team_icon_bitmap);
 static auto &hud_team_background_bitmap = halo::link::ref<datum_index>(halo::ui::vars().hud_team_background_bitmap);
-extern "C" {
-extern long lrint(double x);
-}
 static auto &hud_flags = halo::link::ref<hud_globals_flags *>(halo::ui::vars().hud_flags);
 static auto &hud_messaging = halo::link::ref<hud_messaging_globals *>(halo::ui::vars().hud_messaging);
 static auto &hud_waypoints = halo::link::ref<hud_waypoint_state *>(halo::ui::vars().hud_waypoints);
@@ -45,7 +43,7 @@ static auto &game_engine_state_value = halo::link::ref<int32_t>(halo::game::vars
 
 static int32_t hud_alpha_round(float value)
 {
-    int32_t rounded = (int32_t)lrint((double)value);
+    int32_t rounded = (int32_t)halo::libm::lrint((double)value);
     if (rounded < 0) {
         return 0;
     }
@@ -690,7 +688,7 @@ void HudFrame::render_unit_interface(player *p)
                         flags |= 1;
                     }
                     *timer = (int16_t)(*timer + halo::game::globals().game_time->ticks_this_frame);
-                    period = (int32_t)lrint((double)(panel->background_flash_period * 30.0f));
+                    period = (int32_t)halo::libm::lrint((double)(panel->background_flash_period * 30.0f));
                     *timer = (int16_t)(*timer % (period * 2));
                     if (background != (datum_index)-1) {
                         halo::interface::hud_draw_static_element(local_player_index, (uint16_t *)hud,
@@ -707,7 +705,7 @@ void HudFrame::render_unit_interface(player *p)
                 } else {
                     if ((blinking_meters & bit) == 0) {
                         if (*timer == -1 ||
-                            (int32_t)*timer >= (int32_t)lrint((double)(panel->background_flash_period * 30.0f))) {
+                            (int32_t)*timer >= (int32_t)halo::libm::lrint((double)(panel->background_flash_period * 30.0f))) {
                             *timer = -1;
                             continue;
                         }
@@ -747,9 +745,9 @@ void HudFrame::render_unit_interface(player *p)
             } else {
                 float rgb_buffer[3];
                 float *rgb = halo::game::game_engine_get_player_color(player_index, rgb_buffer);
-                team_color = ((uint32_t)lrint((double)(rgb[0] * 255.0f)) & 0xff) << 16 |
-                             ((uint32_t)lrint((double)(rgb[1] * 255.0f)) & 0xff) << 8 |
-                             ((uint32_t)lrint((double)(rgb[2] * 255.0f)) & 0xff) | 0xff000000;
+                team_color = ((uint32_t)halo::libm::lrint((double)(rgb[0] * 255.0f)) & 0xff) << 16 |
+                             ((uint32_t)halo::libm::lrint((double)(rgb[1] * 255.0f)) & 0xff) << 8 |
+                             ((uint32_t)halo::libm::lrint((double)(rgb[2] * 255.0f)) & 0xff) | 0xff000000;
             }
             if ((uint32_t)(halo::game::globals().variant.game_engine_index - 1) <= 4) {
                 int32_t engine = halo::game::globals().variant.game_engine_index - 1;

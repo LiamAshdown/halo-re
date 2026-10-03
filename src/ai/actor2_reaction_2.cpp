@@ -17,7 +17,6 @@ extern "C" {
 #define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
 #define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
 #define F(o) (*(float *)((uint8_t *)actor + (o)))
-extern int32_t __ftol(void);
 }
 }
 

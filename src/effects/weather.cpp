@@ -16,6 +16,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/render/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 static auto &camera_forward_x = halo::link::ref<real_vector3d>(halo::effects::vars().camera_forward_x);
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &render_frustum_global = halo::link::ref<render_frustum>(halo::render::vars().render_frustum_global);
@@ -23,13 +24,8 @@ static auto &render_frustum_global = halo::link::ref<render_frustum>(halo::rende
 extern "C" {
 extern datum_index weather_particle_new(int16_t instance_index, int16_t type_index);
 extern void weather_instance_update(int16_t instance_index);
-extern double fmod(double x, double y);
 extern void effect_random_direction_from_table(real_point3d *out);
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
-extern double atan2(double y, double x);
-extern double sqrt(double x);
-extern double cos(double x);
-extern double sin(double x);
 }
 static auto &weather_instances = halo::link::ref<weather_instance [1]>(halo::effects::vars().weather_instances);
 static auto &weather_instance_count = halo::link::ref<int32_t>(halo::effects::vars().weather_instance_count);
@@ -384,7 +380,7 @@ void weather_instance_ref::update()
                 &((weather_particle *)weather_particle_data->data)[(uint16_t)particle_index];
 
             p->frame = p->animation_rate * instance->delta_time + p->frame;
-            p->frame = (float)fmod(p->frame, 1.0f);
+            p->frame = (float)halo::libm::fmod(p->frame, 1.0f);
             p->rotation = (real)((((particle_index & 1) != 0) ? -1 : 1)) * p->rotation_rate *
                 instance->delta_time + p->rotation;
 
@@ -610,18 +606,18 @@ void weather_system::update()
             wind->magnitude = (wind_tag->velocity[1] - wind_tag->velocity[0]) * wind->magnitude_walk +
                 wind_tag->velocity[0];
 
-            yaw_base = (real)atan2((double)row->wind_direction.j, (double)row->wind_direction.i);
-            pitch_base = (real)atan2((double)row->wind_direction.k,
-                (double)sqrt((double)(row->wind_direction.i * row->wind_direction.i +
+            yaw_base = (real)halo::libm::atan2((double)row->wind_direction.j, (double)row->wind_direction.i);
+            pitch_base = (real)halo::libm::atan2((double)row->wind_direction.k,
+                (double)halo::libm::sqrt((double)(row->wind_direction.i * row->wind_direction.i +
                                        row->wind_direction.j * row->wind_direction.j)));
 
             pitch = wind->yaw_walk * wind_tag->variation_area.pitch * 0.5f + pitch_base;
             yaw = wind->pitch_walk * wind_tag->variation_area.yaw * 0.5f + yaw_base;
 
-            cos_pitch = (real)cos((double)pitch);
-            wind->direction_i = (real)cos((double)yaw) * cos_pitch;
-            wind->direction_j = (real)sin((double)yaw) * cos_pitch;
-            wind->direction_k = (real)sin((double)pitch);
+            cos_pitch = (real)halo::libm::cos((double)pitch);
+            wind->direction_i = (real)halo::libm::cos((double)yaw) * cos_pitch;
+            wind->direction_j = (real)halo::libm::sin((double)yaw) * cos_pitch;
+            wind->direction_k = (real)halo::libm::sin((double)pitch);
 
             {
                 real scale = row->wind_magnitude * wind->magnitude;

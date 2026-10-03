@@ -79,7 +79,6 @@ target_compile_options(halo_data PRIVATE /std:c++20 /permissive- /GR- /W3 /Od /G
 set(SUPPORT_SOURCES
     "${SA}/loader.cpp"
     "${SA}/d3dx_compat.cpp"
-    "${CMAKE_SOURCE_DIR}/harness/x87_shims.c"
     "${SA}/bridges.cpp")
 add_executable(halo_rebuilt WIN32 ${SUPPORT_SOURCES}
     $<TARGET_OBJECTS:halo_game> $<TARGET_OBJECTS:halo_data>)

@@ -17,16 +17,14 @@
 #include "halo/core/link.hpp"
 #include "halo/objects/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 extern "C" {
-extern int32_t __ftol(double);
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
 extern void build_sprites_end(build_sprite_data *data);
-extern double cos(double x);
 extern int8_t object_function_get_value(void);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
-extern double sin(double x);
-extern double sqrt(double x);
 }
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &glow_data = halo::link::ref<data_array *>(halo::objects::vars().glow_data);
@@ -292,7 +290,7 @@ void halo::objects::GlowView::update(uint32_t object_index)
                         float dx = b->node_transform.position.x - a->node_transform.position.x;
                         float dy = b->node_transform.position.y - a->node_transform.position.y;
                         float dz = b->node_transform.position.z - a->node_transform.position.z;
-                        float length = (float)sqrt((double)(dx * dx + dy * dy + dz * dz)) + entry->total_length;
+                        float length = (float)halo::libm::sqrt((double)(dx * dx + dy * dy + dz * dz)) + entry->total_length;
 
                         entry->total_length = length;
                         entry->cumulative_length[idx] = length;
@@ -410,7 +408,7 @@ void halo::objects::GlowView::update(uint32_t object_index)
             }
             entry->last_particle = spawned;
 
-            timer = (int16_t)(timer - __ftol((double)threshold));
+            timer = (int16_t)(timer - halo::x87::__ftol((double)threshold));
             *(int16_t *)((uint8_t *)entry + 600) = timer;
         }
     }
@@ -771,7 +769,7 @@ glow_particle * halo::objects::GlowView::particle_spawn()
                (((struct Glow *)tag)->particle_size_bounds[1] - ((struct Glow *)tag)->particle_size_bounds[0]) * glow_next_random_unit();
         *(float *)(pb + 0x20) = size / (float)entry->particle_count;
 
-        ((struct glow_particle *)pb)->lifetime = (int16_t)__ftol((double)*(float *)(pb + 0x20));
+        ((struct glow_particle *)pb)->lifetime = (int16_t)halo::x87::__ftol((double)*(float *)(pb + 0x20));
 
         {
             float t = glow_next_random_unit();
@@ -1020,8 +1018,8 @@ evaluate:
     {
         double angle = (double)phase_rate * (double)(*(float *)(particle + 0x28)) +
                         (double)(*(float *)(particle + 8));
-        double s = sin(angle);
-        double c = cos(angle);
+        double s = halo::libm::sin(angle);
+        double c = halo::libm::cos(angle);
         float scale = *(float *)(particle + 0x1c);
 
         *(float *)(particle + 0x2c) = (float)((out1.x * s + out2.x * c) * scale) + *(float *)(particle + 0x2c);

@@ -19,6 +19,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/physics/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" { uint8_t halo::physics::physics_model_build_from_sphere_query(uint32_t flags, real_point3d *center, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
 extern "C" { int16_t halo::physics::physics_model_slide_along_contacts(real_point3d *start_position, real_vector3d *delta, physics_model *model, real_point3d *out_position, real_vector3d *out_velocity, int16_t max_contacts, physics_model_contact *contacts); }
@@ -131,7 +132,6 @@ uint8_t PhysicsModelOps::model_build_from_sphere_query(uint32_t flags, real_poin
 
 }
 
-extern "C" { extern double fabs(double x); }
 extern "C" { extern void vector3d_project_onto_direction(real_vector3d *out, const real_vector3d *axis, const real_vector3d *v); }
 #define CONTACT_PLANE(c) ((real_plane3d *)&(c)->plane_i)
 static float dot3(const real_vector3d *a, const real_vector3d *b)
@@ -172,7 +172,7 @@ int16_t PhysicsModelOps::model_slide_along_contacts(real_point3d *start_position
         float along;
         int16_t i;
 
-        if (fabs(step.i) < epsilon && fabs(step.j) < epsilon && fabs(step.k) < epsilon) {
+        if (halo::libm::fabs(step.i) < epsilon && halo::libm::fabs(step.j) < epsilon && halo::libm::fabs(step.k) < epsilon) {
             break;
         }
         contact = &contacts[contact_count];
@@ -691,7 +691,6 @@ void PhysicsModelOps::shape_build_proxies_from_query(collision_bsp_sphere_result
 
 }
 
-extern "C" { extern double sqrt(double x); }
 static void append_quad_vertices(physics_model_shape *shape, float quad[4][3],
                                   projection_axis_pair proj)
 {
@@ -752,9 +751,9 @@ void PhysicsModelOps::shape_edge_to_pill_and_quad(physics_model *model, real_poi
         {
             float perp_i = -edge_dir->j;
             float perp_j = edge_dir->i;
-            float perp_len = (float)sqrt((double)(edge_dir->i * edge_dir->i + perp_i * perp_i));
+            float perp_len = (float)halo::libm::sqrt((double)(edge_dir->i * edge_dir->i + perp_i * perp_i));
 
-            if (0.0001 <= (float)fabs((double)perp_len)) {
+            if (0.0001 <= (float)halo::libm::fabs((double)perp_len)) {
                 perp_i = (1.0f / perp_len) * perp_i;
                 perp_j = (1.0f / perp_len) * perp_j;
                 if (perp_len != 0.0f) {
@@ -882,7 +881,7 @@ uint8_t PhysicsModelOps::shape_pill_sweep_test_point(real_point3d *near_vertex, 
                               disc_scale;
 
         if (0.0f <= disc) {
-            float sqrt_disc = (float)sqrt((double)disc);
+            float sqrt_disc = (float)halo::libm::sqrt((double)disc);
             float t = -((sqrt_disc + b) * (1.0f / disc_scale));
 
             if ((t <= 1.0f) && (0.0f <= -((b - sqrt_disc) * (1.0f / disc_scale)))) {
@@ -1020,8 +1019,8 @@ uint8_t PhysicsModelOps::shape_pill_test_ray(real_vector3d *delta, real_point3d 
                          proj_rel_extent * proj_rel_extent) * denom;
 
         if (disc >= 0.0f) {
-            float t0 = (b - (float)sqrt((double)disc)) * (1.0f / denom);
-            float t1 = ((float)sqrt((double)disc) + b) * (1.0f / denom);
+            float t0 = (b - (float)halo::libm::sqrt((double)disc)) * (1.0f / denom);
+            float t1 = ((float)halo::libm::sqrt((double)disc) + b) * (1.0f / denom);
 
             if (t0 <= 1.0f && t1 >= 0.0f) {
                 if (t0 < 0.0f) {
@@ -1288,7 +1287,7 @@ uint8_t PhysicsModelOps::shape_sphere_sweep_test_ray(real_point3d *point, real_p
             float a = delta->i * delta->i + delta->k * delta->k + delta->j * delta->j;
             float disc = b * b - a * c;
             if (0.0f <= disc) {
-                float t = (b - (float)sqrt((double)disc)) / a;
+                float t = (b - (float)halo::libm::sqrt((double)disc)) / a;
 
                 if (t <= 1.0f) {
                     *out_t = t;
@@ -1319,7 +1318,7 @@ uint8_t PhysicsModelOps::shape_sphere_test_point(real_point3d *point, physics_mo
     float dist_sq = dx * dx + dy * dy + dz * dz;
 
     if (dist_sq < sphere->radius * sphere->radius) {
-        float dist = (float)sqrt((double)dist_sq);
+        float dist = (float)halo::libm::sqrt((double)dist_sq);
 
         if (dist <= 0.0f) {
             out_normal->normal.i = 0.0f;
@@ -1380,7 +1379,7 @@ uint8_t PhysicsModelOps::shape_sphere_test_ray(real_point3d *origin, real_vector
             if (disc < 0.0f) {
                 return 0;
             }
-            t = b - (float)sqrt((double)disc);
+            t = b - (float)halo::libm::sqrt((double)disc);
             if (t > delta_len_sq) {
                 return 0;
             }
@@ -1431,10 +1430,10 @@ void PhysicsModelOps::shape_surface_to_polygon(int16_t vertex_count, real_point3
         shape->plane_d = plane->d;
         shape->thickness = thickness;
 
-        if (((float)fabs((double)shape->plane_k) < (float)fabs((double)shape->plane_j)) ||
-            ((float)fabs((double)shape->plane_k) < (float)fabs((double)shape->plane_i))) {
+        if (((float)halo::libm::fabs((double)shape->plane_k) < (float)halo::libm::fabs((double)shape->plane_j)) ||
+            ((float)halo::libm::fabs((double)shape->plane_k) < (float)halo::libm::fabs((double)shape->plane_i))) {
             shape->projection_axis =
-                ((float)fabs((double)shape->plane_j) < (float)fabs((double)shape->plane_i)) ? 0
+                ((float)halo::libm::fabs((double)shape->plane_j) < (float)halo::libm::fabs((double)shape->plane_i)) ? 0
                                                                                               : 1;
         } else {
             shape->projection_axis = 2;
@@ -1733,7 +1732,7 @@ int16_t PhysicsModelOps::sweep_capsule_step(real_point3d *origin, real_vector3d 
     center.x = delta->i * 0.5f + origin->x;
     center.y = delta->j * 0.5f + origin->y;
     center.z = delta->k * 0.5f + origin->z + pill_height * 0.5f;
-    radius = (float)sqrt((double)(delta->i * delta->i + delta->j * delta->j + delta->k * delta->k)) * 0.5f +
+    radius = (float)halo::libm::sqrt((double)(delta->i * delta->i + delta->j * delta->j + delta->k * delta->k)) * 0.5f +
              pill_height * 0.5f + pill_radius;
 
     if (halo::physics::physics_model_build_from_sphere_query(flags, &center, radius, pill_height, pill_radius,

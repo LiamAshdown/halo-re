@@ -37,15 +37,11 @@
 #include "halo/rasterizer/vars.hpp"
 #include "halo/render/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
 extern void light_transient_add(datum_index light_tag, ColorRGB *color, real_point3d *position,
     real_vector3d *direction, real_vector3d *up, float intensity);
-extern double fmod(double x, double y);
-extern double sqrt(double x);
-extern double fabs(double x);
-extern double sin(double x);
-extern double cos(double x);
 extern void player_effect_build_screen_flash(render_screen_flash *out, int16_t local_player_index);
 extern void object_lights_update_all(void);
 extern void lights_apply_spot_falloff(void);
@@ -202,7 +198,7 @@ void sky(void)
                     &((ModelAnimationsAnimation *)graph->animations.pointer)[i];
 
                 if ((int32_t)(int16_t)animation->node_count == (int32_t)model->nodes.count) {
-                    float time = (float)fmod(halo::render::globals().time_since_frame / entry->period +
+                    float time = (float)halo::libm::fmod(halo::render::globals().time_since_frame / entry->period +
                                              sky_animation_times[i], 1.0);
 
                     sky_animation_times[i] = time;
@@ -230,11 +226,11 @@ void sky(void)
             continue;
         }
         if (light->lens_flare_marker_name.string[0] == '\0') {
-            real cos_pitch = (real)cos(light->direction.pitch);
+            real cos_pitch = (real)halo::libm::cos(light->direction.pitch);
 
-            direction.i = (real)cos(light->direction.yaw) * cos_pitch;
-            direction.j = (real)sin(light->direction.yaw) * cos_pitch;
-            direction.k = (real)sin(light->direction.pitch);
+            direction.i = (real)halo::libm::cos(light->direction.yaw) * cos_pitch;
+            direction.j = (real)halo::libm::sin(light->direction.yaw) * cos_pitch;
+            direction.k = (real)halo::libm::sin(light->direction.pitch);
         } else {
             object_marker marker;
 
@@ -244,9 +240,9 @@ void sky(void)
             direction.i = marker.node_transform.position.x - render_camera_global.position.x;
             direction.j = marker.node_transform.position.y - render_camera_global.position.y;
             direction.k = marker.node_transform.position.z - render_camera_global.position.z;
-            length = (real)sqrt(direction.k * direction.k + direction.j * direction.j +
+            length = (real)halo::libm::sqrt(direction.k * direction.k + direction.j * direction.j +
                                 direction.i * direction.i);
-            if (fabs(length) >= 0.0001) {
+            if (halo::libm::fabs(length) >= 0.0001) {
                 real inverse = 1.0f / length;
 
                 direction.i = inverse * direction.i;
@@ -262,8 +258,8 @@ void sky(void)
         toward_camera.j = -direction.j;
         toward_camera.k = -direction.k;
         halo::math::vector3d_build_perpendicular(up, toward_camera);
-        length = (real)sqrt(up.k * up.k + up.j * up.j + up.i * up.i);
-        if (fabs(length) >= 0.0001) {
+        length = (real)halo::libm::sqrt(up.k * up.k + up.j * up.j + up.i * up.i);
+        if (halo::libm::fabs(length) >= 0.0001) {
             real inverse = 1.0f / length;
 
             up.i = up.i * inverse;

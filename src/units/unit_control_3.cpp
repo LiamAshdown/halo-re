@@ -6,10 +6,8 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double sqrt(double x);
-}
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &global_zero_vector3d_pointer = halo::link::ref<const real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 
@@ -40,7 +38,7 @@ void UnitView::update_steering_deviation_effects(real_vector3d *reference_direct
         deviation.i = obj->velocity.i - reference_direction->i;
         deviation.j = obj->velocity.j - reference_direction->j;
         deviation.k = obj->velocity.k - reference_direction->k;
-        length = sqrt((double)(deviation.i * deviation.i + deviation.j * deviation.j +
+        length = halo::libm::sqrt((double)(deviation.i * deviation.i + deviation.j * deviation.j +
                                 deviation.k * deviation.k));
 
         if (length > 0.02) {

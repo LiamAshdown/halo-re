@@ -37,9 +37,6 @@
 #include "halo/rasterizer/vars.hpp"
 #include "halo/saved_games/vars.hpp"
 
-extern "C" {
-extern int32_t strcmp(const char *a, const char *b);
-}
 static auto &savegames_directory = halo::link::ref<char [0x100]>(halo::saved_games::vars().savegames_directory);
 static auto &missing_string_text = halo::link::ref<uint16_t []>(halo::ui::vars().missing_string_text);
 static auto &savegame_index_dirty = halo::link::ref<uint8_t>(halo::saved_games::vars().savegame_index_dirty);

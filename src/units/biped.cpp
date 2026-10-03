@@ -25,10 +25,10 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 extern "C" {
-extern double fcos(double x);
-extern double fsin(double x);
 extern uint8_t collision_bsp_surface_test_point_side_2d(ModelCollisionGeometryBSP *bsp, real_point2d *point, int32_t surface_index, int16_t axis, uint8_t sign);
 extern uint32_t collision_bsp_surface_closest_edge_point_2d(ModelCollisionGeometryBSP *bsp, int32_t surface_index, uint16_t axis, uint8_t sign, real_point2d *point, real_point2d *out_point);
 extern real_point3d *collision_bsp_surface_solve_third_axis(ModelCollisionGeometryBSP *collision_bsp, int32_t surface_index, uint8_t component_sign, real_point3d *out, int32_t dominant_axis, const real_point2d *known);
@@ -36,7 +36,6 @@ extern void weapon_action_notify_for_unit(datum_index unit_index, int32_t action
 extern uint32_t weapon_prevents_melee_attack(datum_index item_index);
 extern int16_t weapon_get_first_person_animation_time(datum_index item_index, int16_t animation_index, int16_t category, int16_t mode);
 extern void weapon_reset_triggers(datum_index item_index);
-extern double sqrt(double x);
 extern int32_t unit_get_local_player_weapon_index(datum_index unit);
 extern void local_player_set_controlled_unit(datum_index new_unit, int16_t local_player_index);
 }
@@ -109,15 +108,15 @@ void BipedView::apply_idle_fidget(uint8_t *state_out)
 
             if (!(obj->up.k <= 0.8f)) {
                 double angle = halo::math::random_real_range(0.0, 6.2831855);
-                impulse_dir.i = (float)fcos(angle);
-                impulse_dir.j = (float)fsin(angle);
+                impulse_dir.i = (float)halo::x87::fcos(angle);
+                impulse_dir.j = (float)halo::x87::fsin(angle);
                 impulse_dir.k = 0.0f;
             } else {
                 halo::math::vector3d_cross_product(impulse_dir, *halo::math::globals().global_up3d_pointer, obj->up);
                 if (!(halo::math::vector3d_normalize_with_length(impulse_dir) > 0.0f)) {
                     double angle = halo::math::random_real_range(0.0, 6.2831855);
-                    impulse_dir.i = (float)fcos(angle);
-                    impulse_dir.j = (float)fsin(angle);
+                    impulse_dir.i = (float)halo::x87::fcos(angle);
+                    impulse_dir.j = (float)halo::x87::fsin(angle);
                     impulse_dir.k = 0.0f;
                 }
             }
@@ -814,7 +813,7 @@ void BipedView::update_scale_function_inputs()
         if (*selector != 0) {
             float value = 0.0f;
             if (*selector == 1) {
-                value = (float)sqrt((double)(obj->velocity.i * obj->velocity.i +
+                value = (float)halo::libm::sqrt((double)(obj->velocity.i * obj->velocity.i +
                                               obj->velocity.j * obj->velocity.j +
                                               obj->velocity.k * obj->velocity.k)) /
                         (tag->max_velocity * 0.033333335f);

@@ -17,16 +17,9 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/objects/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
-extern "C" {
-extern double atan2(double y, double x);
-extern double fabs(double x);
-extern float fabsf(float x);
-extern double floor(double x);
-extern double fmod(double x, double y);
-extern double fpatan(double y, double x);
-extern double pow(double base, double exponent);
-}
 static auto &global_origin3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
 static auto &object_globals_pointer = halo::link::ref<object_globals *>(halo::objects::vars().object_globals_pointer);
@@ -163,12 +156,12 @@ uint8_t halo::objects::ObjectUpdater::update()
 
     if (halo::networking::globals().game_mode == 2) {
         uint8_t *at_rest_flag = (uint8_t *)&obj->at_rest;
-        if ((fabsf(obj->velocity.i - global_origin3d_pointer->i) < 0.0001f) &&
-            (fabsf(obj->velocity.j - global_origin3d_pointer->j) < 0.0001f) &&
-            (fabsf(obj->velocity.k - global_origin3d_pointer->k) < 0.0001f) &&
-            (fabsf(obj->angular_velocity.i - global_origin3d_pointer->i) < 0.0001f) &&
-            (fabsf(obj->angular_velocity.j - global_origin3d_pointer->j) < 0.0001f) &&
-            (fabsf(obj->angular_velocity.k - global_origin3d_pointer->k) < 0.0001f)) {
+        if ((halo::x87::fabsf(obj->velocity.i - global_origin3d_pointer->i) < 0.0001f) &&
+            (halo::x87::fabsf(obj->velocity.j - global_origin3d_pointer->j) < 0.0001f) &&
+            (halo::x87::fabsf(obj->velocity.k - global_origin3d_pointer->k) < 0.0001f) &&
+            (halo::x87::fabsf(obj->angular_velocity.i - global_origin3d_pointer->i) < 0.0001f) &&
+            (halo::x87::fabsf(obj->angular_velocity.j - global_origin3d_pointer->j) < 0.0001f) &&
+            (halo::x87::fabsf(obj->angular_velocity.k - global_origin3d_pointer->k) < 0.0001f)) {
             *at_rest_flag = 1;
             return 1;
         }
@@ -221,10 +214,10 @@ void halo::objects::ObjectUpdater::update_export_functions()
         case 19: {
             float *forward = (float *)(object + ((struct object *)object)->nodes.offset + 4);
 
-            if (!(fabs(forward[2]) < 0.995)) {
+            if (!(halo::libm::fabs(forward[2]) < 0.995)) {
                 value = *output;
             } else {
-                float yaw = (float)fpatan(forward[0], forward[1]);
+                float yaw = (float)halo::x87::fpatan(forward[0], forward[1]);
                 value = halo::game::angle_delta_wrapped(halo::scenario::globals().scenario->local_north, yaw) * 0.15915494f + 0.5f;
                 value = value >= 0.0f ? clamp_to_one(value) : 0.0f;
             }
@@ -309,11 +302,11 @@ store_and_advance:
 
             object *obj = *(object **)((uint8_t *)object_data->data + 8 + object_index_scaled);
             real_matrix4x3 *node = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset);
-            if (0.995f <= fabsf(node->left.i)) {
+            if (0.995f <= halo::x87::fabsf(node->left.i)) {
                 value = *out_values;
                 goto store_and_advance;
             }
-            initial_st0 = (float)atan2((double)node->forward.j, (double)node->forward.k);
+            initial_st0 = (float)halo::libm::atan2((double)node->forward.j, (double)node->forward.k);
             initial_angle_input = *(float *)(global_scenario__as_object_function_evaluate_input + 0x4c);
             value = halo::game::angle_delta_wrapped(initial_angle_input, initial_st0);
             value = value * 0.15915494f + 0.5f;
@@ -606,7 +599,7 @@ void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
 
             double seed = (double)position[2] * (double)744.12415f + (double)position[0] * (double)315.89313f +
                 (double)position[1] * (double)587.12946f + (double)i * (double)431.12894f;
-            float weight = (float)fmod(fabs(seed), 1.0);
+            float weight = (float)halo::libm::fmod(halo::libm::fabs(seed), 1.0);
             int32_t count = (int32_t)((struct ObjectChangeColors *)change_color)->permutations.count;
             int16_t p;
 
@@ -614,7 +607,7 @@ void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
                 uint8_t *permutation = (uint8_t *)((struct ObjectChangeColors *)change_color)->permutations.pointer + p * 0x1c;
 
                 if (weight <= *(float *)permutation) {
-                    float t = (float)fmod(fabs(position[1]) + (double)i * (double)0.71210998f, 1.0);
+                    float t = (float)halo::libm::fmod(halo::libm::fabs(position[1]) + (double)i * (double)0.71210998f, 1.0);
 
                     halo::bitmaps::color_interpolate((ColorRGB *)&((struct ObjectChangeColorsPermutation *)permutation)->color_upper_bound, (ColorRGB *)(permutation + 4), working, (color_interpolation_flags)1, t);
                     break;
@@ -844,10 +837,10 @@ void halo::objects::ObjectUpdater::update_functions()
             value = value > fn->square_wave_threshold ? 1.0f : 0.0f;
         }
         if (fn->step_count > 1) {
-            value = (float)(floor((double)((float)fn->step_count * value)) * fn->inverse_step);
+            value = (float)(halo::libm::floor((double)((float)fn->step_count * value)) * fn->inverse_step);
         }
         if (fn->inverse_sawtooth > 0.0f) {
-            value = (float)fmod((double)value, (double)fn->inverse_sawtooth);
+            value = (float)halo::libm::fmod((double)value, (double)fn->inverse_sawtooth);
         }
         if (fn->add != 0) {
             value = function_scale_input(obj, fn->add) + value;
@@ -884,7 +877,7 @@ void halo::objects::ObjectUpdater::update_functions()
             valid = 0;
         }
         if (fn->flags & 2) {
-            value = (float)fmod((double)(value + *(float *)(obj + 0x134 + i * 4)), 1.0);
+            value = (float)halo::libm::fmod((double)(value + *(float *)(obj + 0x134 + i * 4)), 1.0);
         }
         *(float *)(obj + 0x134 + i * 4) = value;
         if (valid) {
@@ -906,7 +899,7 @@ void halo::objects::ObjectUpdater::update_functions()
 float halo::objects::ObjectUpdater::curve_apply_exponent(float value, float exponent)
 {
     if (exponent != 1.0f) {
-        return (float)pow((double)value, (double)exponent);
+        return (float)halo::libm::pow((double)value, (double)exponent);
     }
     return value;
 }

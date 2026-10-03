@@ -6,10 +6,8 @@
 #include "halo/hs/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern long lrint(double x);
-}
 static auto &player_control_globals_ptr = halo::link::ref<uint8_t *>(halo::game::vars().player_control_globals_ptr);
 
 namespace halo::hs {
@@ -41,7 +39,7 @@ void PlayerCommands::evaluate_player_effect_start(int16_t function_index, uint32
 
     if (arguments != 0) {
     float scaled = *(float *)&arguments[1] * 30.0f;
-    int16_t ticks = (int16_t)lrint((double)scaled);
+    int16_t ticks = (int16_t)halo::libm::lrint((double)scaled);
 
     *(int32_t *)&halo::effects::globals().player_effect_state->scripted_shake_intensity = arguments[0];
     halo::effects::globals().player_effect_state->scripted_shake_ticks = ticks;
@@ -65,7 +63,7 @@ void PlayerCommands::evaluate_player_effect_stop(int16_t function_index, uint32_
 
     if (arguments != 0) {
     float scaled = *(float *)&arguments[0] * 30.0f;
-    int16_t ticks = (int16_t)lrint((double)scaled);
+    int16_t ticks = (int16_t)halo::libm::lrint((double)scaled);
 
     halo::effects::globals().player_effect_state->scripted_shake_ticks = ticks;
     halo::effects::globals().player_effect_state->scripted_shake_duration = ticks;

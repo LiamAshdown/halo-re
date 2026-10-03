@@ -15,14 +15,12 @@
 #include "halo/core/link.hpp"
 #include "halo/objects/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 extern "C" {
-extern int32_t __ftol(double);
 extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
 extern void build_sprites_end(build_sprite_data *data);
-extern double cos(double x);
-extern double sin(double x);
-extern double sqrt(double x);
 }
 static auto &antenna_data = halo::link::ref<data_array *>(halo::objects::vars().antenna_data);
 static auto &antenna_sprite_shader = halo::link::ref<uint8_t []>(halo::objects::vars().antenna_sprite_shader);
@@ -281,7 +279,7 @@ void halo::objects::AntennaView::update_physics(Antenna *antenna_tag, float dt)
                         float dx = new_position.x - anchor.x;
                         float dy = new_position.y - anchor.y;
                         float dz = new_position.z - anchor.z;
-                        rest_scale = (float)(tag_vertex->length / sqrt(dx * dx + dy * dy + dz * dz));
+                        rest_scale = (float)(tag_vertex->length / halo::libm::sqrt(dx * dx + dy * dy + dz * dz));
                         one_minus_blend = 1.0f - blend;
                         new_position.x = bend_delta.i * blend + (rest_scale * dx + anchor.x) * one_minus_blend;
 
@@ -317,8 +315,8 @@ void halo::objects::AntennaView::update_physics(Antenna *antenna_tag, float dt)
 
                         angle = halo::math::vector3d_angle_between_4cd4f0(bend_delta, world_up_z);
                     }
-                    s = (real)sin((double)angle);
-                    c = (real)cos((double)angle);
+                    s = (real)halo::libm::sin((double)angle);
+                    c = (real)halo::libm::cos((double)angle);
                     halo::math::vector3d_rotate_about_axis(offset, axis, s, c);
 
                     anchor.x = new_position.x;
@@ -385,13 +383,13 @@ void halo::objects::AntennaView::apply_marker_delta(real_vector3d *out_forward, 
         delta.j = out_position->y - ant->previous_marker_position.y;
         delta.k = out_position->z - ant->previous_marker_position.z;
 
-        int32_t tx = __ftol((double)delta.i);
+        int32_t tx = halo::x87::__ftol((double)delta.i);
         int skip = (tx < 0 ? -tx : tx) <= 1;
         if (skip) {
-            int32_t ty = __ftol((double)delta.j);
+            int32_t ty = halo::x87::__ftol((double)delta.j);
             skip = (ty < 0 ? -ty : ty) <= 1;
             if (skip) {
-                int32_t tz = __ftol((double)delta.k);
+                int32_t tz = halo::x87::__ftol((double)delta.k);
                 skip = (tz < 0 ? -tz : tz) <= 1;
             }
         }

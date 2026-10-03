@@ -21,16 +21,13 @@
 #include "halo/game/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &network_ack_resend_interval_ms = halo::link::ref<int32_t>(halo::networking::vars().network_ack_resend_interval_ms);
 static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 static auto &network_vehicle_ack_resend_interval_ms = halo::link::ref<int32_t>(halo::networking::vars().network_vehicle_ack_resend_interval_ms);
 static auto &machine_table = halo::link::ref<void *>(halo::game::vars().machine_table);
-extern "C" {
-extern double sin(double x);
-extern double cos(double x);
-}
 static auto &network_broadcast_event_feed_mode = halo::link::ref<uint8_t>(halo::networking::vars().network_broadcast_event_feed_mode);
 static auto &network_action_resend_interval_ms = halo::link::ref<int32_t>(halo::networking::vars().network_action_resend_interval_ms);
 static auto &network_action_resend_interval_ms_alt = halo::link::ref<int32_t>(halo::networking::vars().network_action_resend_interval_ms_alt);
@@ -39,8 +36,6 @@ static auto &network_vehicle_transform_resend_interval_ms_alt = halo::link::ref<
 static auto &network_attachment_transform_resend_interval_ms_alt = halo::link::ref<int32_t>(halo::networking::vars().network_attachment_transform_resend_interval_ms_alt);
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 extern "C" {
-extern double atan2(double y, double x);
-extern double sqrt(double x);
 extern uint8_t circular_queue_push(circular_queue *queue, void *record);
 }
 
@@ -258,9 +253,9 @@ void PlayerUpdateBuilder::remote_player_action_update(uint32_t player_index, uin
         staged[i] = ((uint32_t *)&control)[i];
     }
 
-    direction_x = (real)(cos((double)control.desired_pitch) * cos((double)control.desired_yaw));
-    direction_y = (real)(cos((double)control.desired_pitch) * sin((double)control.desired_yaw));
-    direction_z = (real)sin((double)control.desired_pitch);
+    direction_x = (real)(halo::libm::cos((double)control.desired_pitch) * halo::libm::cos((double)control.desired_yaw));
+    direction_y = (real)(halo::libm::cos((double)control.desired_pitch) * halo::libm::sin((double)control.desired_yaw));
+    direction_z = (real)halo::libm::sin((double)control.desired_pitch);
     *(real *)&staged[9] = direction_x;
     *(real *)&staged[10] = direction_y;
     *(real *)&staged[11] = direction_z;
@@ -459,9 +454,9 @@ int32_t PlayerUpdateBuilder::remote_player_vehicle_attachment_update(uint8_t *ca
         staged[i] = ((uint32_t *)control)[i];
     }
 
-    direction_x = (real)(cos((double)control->desired_pitch) * cos((double)control->desired_yaw));
-    direction_y = (real)(cos((double)control->desired_pitch) * sin((double)control->desired_yaw));
-    direction_z = (real)sin((double)control->desired_pitch);
+    direction_x = (real)(halo::libm::cos((double)control->desired_pitch) * halo::libm::cos((double)control->desired_yaw));
+    direction_y = (real)(halo::libm::cos((double)control->desired_pitch) * halo::libm::sin((double)control->desired_yaw));
+    direction_z = (real)halo::libm::sin((double)control->desired_pitch);
     *(real *)&staged[9] = direction_x;
     *(real *)&staged[10] = direction_y;
     *(real *)&staged[11] = direction_z;
@@ -551,9 +546,9 @@ int32_t PlayerUpdateBuilder::remote_player_vehicle_update(uint8_t *cache, uint8_
         staged[i] = ((uint32_t *)control)[i];
     }
 
-    direction_x = (real)(cos((double)control->desired_pitch) * cos((double)control->desired_yaw));
-    direction_y = (real)(cos((double)control->desired_pitch) * sin((double)control->desired_yaw));
-    direction_z = (real)sin((double)control->desired_pitch);
+    direction_x = (real)(halo::libm::cos((double)control->desired_pitch) * halo::libm::cos((double)control->desired_yaw));
+    direction_y = (real)(halo::libm::cos((double)control->desired_pitch) * halo::libm::sin((double)control->desired_yaw));
+    direction_z = (real)halo::libm::sin((double)control->desired_pitch);
     *(real *)&staged[9] = direction_x;
     *(real *)&staged[10] = direction_y;
     *(real *)&staged[11] = direction_z;
@@ -660,8 +655,8 @@ void PlayerUpdateBuilder::handle_remote_player_action_update(remote_player_actio
         float y = control_source->direction.j;
         float z = control_source->direction.k;
 
-        control_source->yaw = (float)atan2(y, x);
-        control_source->pitch = (float)atan2(z, sqrt(x * x + y * y));
+        control_source->yaw = (float)halo::libm::atan2(y, x);
+        control_source->pitch = (float)halo::libm::atan2(z, halo::libm::sqrt(x * x + y * y));
 
         control_source->unknown_20 = (uint16_t)stride_offset;
         halo::networking::player_update_history_log_printf_filtered(candidate, 2, "Received action [%d]", action_index);

@@ -9,19 +9,14 @@
 #include "halo/networking/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double sqrt(double x);
-}
 static auto &message_delta_vector3d_delta_epsilon = halo::link::ref<real>(halo::networking::vars().message_delta_vector3d_delta_epsilon);
 static auto &message_delta_vector3d_delta_range = halo::link::ref<real>(halo::networking::vars().message_delta_vector3d_delta_range);
 static auto &message_delta_vector3d_mode = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_vector3d_mode);
 static auto &message_delta_vector3d_delta_bits = halo::link::ref<uint32_t>(halo::networking::vars().message_delta_vector3d_delta_bits);
 static auto &message_delta_vector3d_absolute_bits_mode0 = halo::link::ref<uint32_t>(halo::networking::vars().message_delta_vector3d_absolute_bits_mode0);
 static auto &message_delta_vector3d_absolute_bits_mode1 = halo::link::ref<uint32_t>(halo::networking::vars().message_delta_vector3d_absolute_bits_mode1);
-extern "C" {
-extern double floor(double x);
-}
 static auto &message_delta_parameters_enabled = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_enabled);
 static auto &message_delta_unary_ones = halo::link::ref<uint32_t []>(halo::networking::vars().message_delta_unary_ones);
 
@@ -127,7 +122,7 @@ int32_t VectorFieldCodec::encode_vector3d(int32_t unused, real *previous, real *
         delta[0] = values[0] - previous[0];
         delta[1] = values[1] - previous[1];
         delta[2] = values[2] - previous[2];
-        if (sqrt(delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2]) <=
+        if (halo::libm::sqrt(delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2]) <=
             message_delta_vector3d_delta_epsilon) {
             return 0;
         }
@@ -163,7 +158,7 @@ int32_t VectorFieldCodec::encode_vector3d(int32_t unused, real *previous, real *
                 if ((int32_t)level_count < 0) {
                     level_count_as_float = level_count_as_float + 4.2949673e+09f;
                 }
-                scaled = floor((double)(level_count_as_float *
+                scaled = halo::libm::floor((double)(level_count_as_float *
                     (delta[i] / message_delta_vector3d_delta_range) + 0.5));
                 quantized = (uint32_t)(int32_t)scaled;
                 if (level_count < quantized) {
@@ -198,7 +193,7 @@ int32_t VectorFieldCodec::encode_vector3d(int32_t unused, real *previous, real *
         level_count_as_float = level_count_as_float + 4.2949673e+09f;
     }
     for (i = 0; i < 3; i = i + 1) {
-        scaled = floor((double)(level_count_as_float * (values[i] - -5000.0) * 0.0001 + 0.5));
+        scaled = halo::libm::floor((double)(level_count_as_float * (values[i] - -5000.0) * 0.0001 + 0.5));
         quantized = (uint32_t)(int32_t)scaled;
         if (level_count < quantized) {
             quantized = level_count;
@@ -320,11 +315,11 @@ int32_t VectorFieldCodec::normal_encode(message_delta_field_type *field_type, vo
     uint32_t level_b;
 
     halo::networking::vector3d_to_angles(angles, *(real_vector3d *)current);
-    level_a = (uint32_t)(int64_t)floor((double)(angles[0] * 0.31830987f * (real)levels_a + 0.5f));
+    level_a = (uint32_t)(int64_t)halo::libm::floor((double)(angles[0] * 0.31830987f * (real)levels_a + 0.5f));
     if (level_a > levels_a) {
         level_a = levels_a;
     }
-    level_b = (uint32_t)(int64_t)floor((double)((angles[1] - -1.5707964f) * 0.15915494f * (real)levels_b + 0.5f));
+    level_b = (uint32_t)(int64_t)halo::libm::floor((double)((angles[1] - -1.5707964f) * 0.15915494f * (real)levels_b + 0.5f));
     if (level_b > levels_b) {
         level_b = levels_b;
     }
@@ -363,7 +358,7 @@ uint32_t VectorFieldCodec::quantize_float_to_int(uint32_t max_level, real value,
     if ((int32_t)max_level < 0) {
         level_count_as_float = level_count_as_float + 4.2949673e+09f;
     }
-    scaled = floor((double)(level_count_as_float * ((value - minimum) / (maximum - minimum)) + 0.5));
+    scaled = halo::libm::floor((double)(level_count_as_float * ((value - minimum) / (maximum - minimum)) + 0.5));
     result = (uint32_t)(int32_t)scaled;
     if (max_level < result) {
         result = max_level;
@@ -386,7 +381,7 @@ int32_t VectorFieldCodec::quantized_real_encode(message_delta_field_type *field_
 {
     uint32_t *descriptor = (uint32_t *)field_type->array_descriptor;
     uint32_t levels = descriptor[1];
-    uint32_t level = (uint32_t)(int64_t)floor((double)((real)levels * *(real *)current + 0.5f));
+    uint32_t level = (uint32_t)(int64_t)halo::libm::floor((double)((real)levels * *(real *)current + 0.5f));
 
     if (level > levels) {
         level = levels;

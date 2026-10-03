@@ -25,19 +25,13 @@
 #include "halo/hs/vars.hpp"
 #include "halo/physics/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
+#include <string.h>
 
 extern "C" {
-extern double atan2(double y, double x);
-extern double fcos(double x);
-extern double fsin(double x);
-extern double sqrt(double x);
-extern void *memcpy(void *dst, const void *src, uint32_t n);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
-extern double cos(double x);
-extern double sin(double x);
-extern double fabs(double x);
 extern uint32_t weapon_must_be_readied(uint32_t weapon_object_index);
-extern double acos(double x);
 }
 static auto &global_zero_vector3d_pointer = halo::link::ref<const real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
@@ -156,8 +150,8 @@ uint8_t UnitView::clamp_direction_to_aim_or_look_bounds(real_vector3d *world_dir
     x = m.forward.j * world_direction->j + m.forward.k * world_direction->k + m.forward.i * world_direction->i;
     y = m.left.i * world_direction->i + m.left.j * world_direction->j + m.left.k * world_direction->k;
     z = m.up.j * world_direction->j + m.up.k * world_direction->k + m.up.i * world_direction->i;
-    yaw = (float)atan2((double)y, (double)x);
-    pitch = (float)atan2((double)z, sqrt((double)(y * y + x * x)));
+    yaw = (float)halo::libm::atan2((double)y, (double)x);
+    pitch = (float)halo::libm::atan2((double)z, halo::libm::sqrt((double)(y * y + x * x)));
 
     if (!(yaw >= bounds[0])) {
         yaw = bounds[0];
@@ -176,9 +170,9 @@ uint8_t UnitView::clamp_direction_to_aim_or_look_bounds(real_vector3d *world_dir
         return 0;
     }
 
-    local.i = (float)fcos((double)yaw) * (float)fcos((double)pitch);
-    local.j = (float)fsin((double)yaw) * (float)fcos((double)pitch);
-    local.k = (float)fsin((double)pitch);
+    local.i = (float)halo::x87::fcos((double)yaw) * (float)halo::x87::fcos((double)pitch);
+    local.j = (float)halo::x87::fsin((double)yaw) * (float)halo::x87::fcos((double)pitch);
+    local.k = (float)halo::x87::fsin((double)pitch);
     halo::math::matrix4x3_transform_normal(*world_direction, local, m);
     return clamped;
 }
@@ -333,7 +327,7 @@ void UnitView::initialize_random_turn_angle()
 
     real_vector3d direction;
     if (unit->actor_index == k_datum_index_none || halo::ai::actor_resolve_wander_or_look_direction(unit->actor_index, &direction) == 0) {
-        float angle = (float)atan2((double)obj->forward.j, (double)obj->forward.i);
+        float angle = (float)halo::libm::atan2((double)obj->forward.j, (double)obj->forward.i);
         if (angle > 3.1415927f) {
             angle -= 6.2831855f;
         }
@@ -400,7 +394,7 @@ uint8_t halo::units::unit_point_within_look_cone(float cone_angle, uint32_t unit
     halo::math::vector3d_normalize_with_length(to_point);
     dot = to_point.k * unit->looking_vector.k + to_point.j * unit->looking_vector.j +
           to_point.i * unit->looking_vector.i;
-    cos_angle = (float)fcos((double)cone_angle);
+    cos_angle = (float)halo::x87::fcos((double)cone_angle);
     return cos_angle < dot;
 }
 
@@ -640,8 +634,8 @@ void UnitView::rotate_basis_about_axis()
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     real_vector3d axis = obj->angular_velocity;
     float angle = halo::math::vector3d_normalize_with_length(axis);
-    float angle_cos = (float)fcos(angle);
-    float angle_sin = (float)fsin(angle);
+    float angle_cos = (float)halo::x87::fcos(angle);
+    float angle_sin = (float)halo::x87::fsin(angle);
     real_vector3d up;
     real_vector3d right;
 
@@ -753,8 +747,8 @@ void UnitView::set_facing_from_index_table()
             angle = *(float *)((uint8_t *)spawn_position + 0xc);
         }
 
-        forward.i = (float)cos((double)angle);
-        forward.j = (float)sin((double)angle);
+        forward.i = (float)halo::libm::cos((double)angle);
+        forward.j = (float)halo::libm::sin((double)angle);
         forward.k = 0.0f;
         halo::objects::object_set_position_and_orientation(object_index, &forward, halo::math::globals().global_up3d_pointer, spawn_position);
     }
@@ -962,8 +956,8 @@ void UnitView::update_random_turn_angle(real_vector3d *out_axis)
     }
 
     {
-        float c = (float)cos((double)unit->idle_turn_angle);
-        float s = (float)sin((double)unit->idle_turn_angle);
+        float c = (float)halo::libm::cos((double)unit->idle_turn_angle);
+        float s = (float)halo::libm::sin((double)unit->idle_turn_angle);
         halo::math::vector3d_rotate_about_axis(*out_axis, *halo::math::globals().global_up3d_pointer, s, c);
     }
 }
@@ -1032,7 +1026,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
     if (weapon_class_index == -1) {
         weapon_class = 0;
     }
-    turn = fabs(turn_angle);
+    turn = halo::libm::fabs(turn_angle);
     if (turn < 0.78539818525314331) {
         facing = 3;
     } else if (turn > 2.1598450094461441) {
@@ -1220,8 +1214,8 @@ void halo::units::unit_update_up_vector(Biped *biped_tag, object *obj)
             up0 = *halo::math::globals().global_forward3d_pointer;
             side = *halo::math::globals().global_left3d_pointer;
         }
-        c = (float)cos((double)biped->bank_angle);
-        s = (float)sin((double)biped->bank_angle);
+        c = (float)halo::libm::cos((double)biped->bank_angle);
+        s = (float)halo::libm::sin((double)biped->bank_angle);
         up0.i *= c;
         up0.j *= c;
         up0.k *= c;
@@ -1255,8 +1249,8 @@ void halo::units::unit_update_up_vector(Biped *biped_tag, object *obj)
                 }
             }
             if (!use_target) {
-                float c = (float)cos(0.1745329201221466);
-                float s = (float)sin(0.1745329201221466);
+                float c = (float)halo::libm::cos(0.1745329201221466);
+                float s = (float)halo::libm::sin(0.1745329201221466);
                 turned = obj->up;
                 halo::math::vector3d_rotate_about_axis(turned, axis, s, c);
                 halo::math::vector3d_cross_product(check, target, turned);
@@ -1297,10 +1291,10 @@ void halo::units::unit_update_up_vector(Biped *biped_tag, object *obj)
         real_vector3d axis;
         float c, s;
 
-        if ((float)fabs((double)(dot - 1.0f)) < 0.0001f) {
+        if ((float)halo::libm::fabs((double)(dot - 1.0f)) < 0.0001f) {
             return;
         }
-        angle = (float)acos((double)dot);
+        angle = (float)halo::libm::acos((double)dot);
         if (angle == 0.0f) {
             return;
         }
@@ -1308,8 +1302,8 @@ void halo::units::unit_update_up_vector(Biped *biped_tag, object *obj)
         if (halo::math::vector3d_normalize_with_length(axis) == 0.0f) {
             return;
         }
-        c = (float)cos((double)angle);
-        s = (float)sin((double)angle);
+        c = (float)halo::libm::cos((double)angle);
+        s = (float)halo::libm::sin((double)angle);
         halo::math::vector3d_rotate_about_axis(obj->up, axis, s, c);
         halo::math::vector3d_rotate_about_axis(obj->forward, axis, s, c);
         halo::math::vector3d_normalize_with_length(obj->up);

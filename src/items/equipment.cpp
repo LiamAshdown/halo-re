@@ -12,9 +12,9 @@
 #include "halo/game/vars.hpp"
 #include "halo/items/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
-extern double sqrt(double x);
 extern uint32_t sound_play_new(uint32_t sound_tag_id, void *parameters, uint32_t owner_index, int32_t extra_size, void *extra, uint32_t extra_count, uint32_t allow_deferred);
 void halo::items::equipment_apply_network_update(datum_index item_index, uint32_t *update_record);
 int32_t halo::items::equipment_build_network_update(uint32_t item_index, uint32_t unused_arg2, uint32_t unused_arg3, int32_t update_type);
@@ -92,7 +92,7 @@ void equipment_ref::apply_network_update(uint32_t *update_record)
             dx = decoded.position.x - obj->position.x;
             dy = decoded.position.y - obj->position.y;
             dz = decoded.position.z - obj->position.z;
-            if (equipment_network_update_position_tolerance < (real)sqrt(dx * dx + dy * dy + dz * dz) ||
+            if (equipment_network_update_position_tolerance < (real)halo::libm::sqrt(dx * dx + dy * dy + dz * dz) ||
                 (obj->flags & _object_at_rest_bit) != 0) {
                 halo::objects::object_set_position_and_recalculate(&decoded.position, item_index);
             }

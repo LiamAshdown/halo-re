@@ -34,6 +34,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/rasterizer/vars.hpp"
+#include "halo/core/libm.hpp"
 static auto &rasterizer_render_states_dirty = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_render_states_dirty);
 
 static auto &hill_pulse_fade_done = halo::link::ref<uint8_t>(halo::game::vars().hill_pulse_fade_done);
@@ -69,11 +70,6 @@ static auto &king_hill_boundary_min_z = halo::link::ref<float>(halo::game::vars(
 static auto &king_hill_boundary_max_z = halo::link::ref<float>(halo::game::vars().king_hill_boundary_max_z);
 static auto &king_hill_boundary_center = halo::link::ref<real_point3d>(halo::game::vars().king_hill_boundary_center);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
-extern "C" {
-extern double sqrt(double x);
-extern double fabs(double x);
-extern double floor(double x);
-}
 static auto &game_engine_state_value = halo::link::ref<game_engine_state>(halo::game::vars().game_engine_state_value);
 static auto &king_hill_player_in_hill = halo::link::ref<uint8_t [16]>(halo::game::vars().king_hill_player_in_hill);
 static auto &king_bucket_last_credit_tick = halo::link::ref<int32_t [16]>(halo::game::vars().king_bucket_last_credit_tick);
@@ -455,11 +451,11 @@ void Koth::build_hill_boundary_fence(void)
             real_point3d *cur = &king_hill_boundary_points[i];
             real_point3d *nxt = &king_hill_boundary_points[(i + 1 == count) ? 0 : i + 1];
             float dx = nxt->x - cur->x, dy = nxt->y - cur->y, dz = nxt->z - cur->z;
-            total_length = (float)sqrt((double)(dx * dx + dy * dy + dz * dz)) + total_length;
+            total_length = (float)halo::libm::sqrt((double)(dx * dx + dy * dy + dz * dz)) + total_length;
         }
     }
 
-    length_period = floor((double)(total_length + 0.5f));
+    length_period = halo::libm::floor((double)(total_length + 0.5f));
 
     if (count > 0) {
         float inv_scale = (float)(1.0 / length_period);
@@ -481,7 +477,7 @@ void Koth::build_hill_boundary_fence(void)
                 }
             }
 
-            running_length = (float)sqrt((double)((nxt->x - cur->x) * (nxt->x - cur->x) +
+            running_length = (float)halo::libm::sqrt((double)((nxt->x - cur->x) * (nxt->x - cur->x) +
                                     (nxt->y - cur->y) * (nxt->y - cur->y) +
                                     (nxt->z - cur->z) * (nxt->z - cur->z))) + running_length;
             u_end = (float)(length_period / (double)total_length) * running_length;
@@ -489,8 +485,8 @@ void Koth::build_hill_boundary_fence(void)
             nx = -(nxt->y - cur->y) * (z_a - cur->z);
             ny = (nxt->x - cur->x) * (z_a - cur->z);
             nz = 0.0f;
-            nlen = (float)sqrt((double)(nx * nx + ny * ny + nz * nz));
-            if (fabs((double)nlen) >= 0.0001) {
+            nlen = (float)halo::libm::sqrt((double)(nx * nx + ny * ny + nz * nz));
+            if (halo::libm::fabs((double)nlen) >= 0.0001) {
                 float inv = 1.0f / nlen;
                 nx *= inv; ny *= inv; nz *= inv;
             }

@@ -16,11 +16,10 @@
 #include "halo/ai/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/projectiles/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 extern "C" {
-extern double sqrt(double x);
-extern double fsin(double x);
-extern double fcos(double x);
 extern uint8_t collision_test_movement_segment(uint32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t collision_mask, uint32_t ignore_object_index, void *out_record);
 extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind, char **labels, void *position_block, void *direction_block, real fade_in, real fade_out, int32_t color, int32_t tint_source, int32_t force_create);
@@ -246,7 +245,7 @@ void ProjectileHandle::compute_rotation()
 
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
     projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
-    real magnitude = (real)sqrt((double)obj->angular_velocity.k * (double)obj->angular_velocity.k +
+    real magnitude = (real)halo::libm::sqrt((double)obj->angular_velocity.k * (double)obj->angular_velocity.k +
                                  (double)obj->angular_velocity.j * (double)obj->angular_velocity.j +
                                  (double)obj->angular_velocity.i * (double)obj->angular_velocity.i);
 
@@ -256,8 +255,8 @@ void ProjectileHandle::compute_rotation()
         proj->rotation_axis.i = inverse * obj->angular_velocity.i;
         proj->rotation_axis.j = inverse * obj->angular_velocity.j;
         proj->rotation_axis.k = inverse * obj->angular_velocity.k;
-        proj->rotation_sine = (real)fsin((double)magnitude);
-        proj->rotation_cosine = (real)fcos((double)magnitude);
+        proj->rotation_sine = (real)halo::x87::fsin((double)magnitude);
+        proj->rotation_cosine = (real)halo::x87::fcos((double)magnitude);
         return;
     }
     proj->flags &= ~_projectile_rotation_valid_bit;

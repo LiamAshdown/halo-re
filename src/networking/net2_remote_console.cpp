@@ -19,6 +19,7 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &network_join_error_code = halo::link::ref<int16_t>(halo::networking::vars().network_join_error_code);
 static auto &interface_loading_screen_progress = halo::link::ref<int32_t>(halo::networking::vars().interface_loading_screen_progress);
@@ -31,10 +32,6 @@ static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars
 static auto &global_white_argb = halo::link::ref<void *>(halo::networking::vars().global_white_argb);
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);
 static auto &registry_halo_version_buffer = halo::link::ref<char [0x40]>(halo::networking::vars().registry_halo_version_buffer);
-extern "C" {
-extern double sin(double x);
-extern double cos(double x);
-}
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 static auto &update_client_staged = halo::link::ref<uint32_t [8]>(halo::game::vars().update_client_staged);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
@@ -379,16 +376,16 @@ char RemoteConsole::send_update(int32_t tick_count, char frame_time_overflow)
             }
 
             {
-                double cos_pitch = cos((double)control.desired_pitch);
+                double cos_pitch = halo::libm::cos((double)control.desired_pitch);
 
                 record.tick_count = (uint8_t)tick_count;
                 record.update_id = position_packet.update_id;
                 record.control_flags = control.control_flags;
                 record.yaw = control.desired_yaw;
                 record.pitch = control.desired_pitch;
-                record.aim_direction[0] = (float)(cos((double)control.desired_yaw) * cos_pitch);
-                record.aim_direction[1] = (float)(sin((double)control.desired_yaw) * cos_pitch);
-                record.aim_direction[2] = (float)sin((double)control.desired_pitch);
+                record.aim_direction[0] = (float)(halo::libm::cos((double)control.desired_yaw) * cos_pitch);
+                record.aim_direction[1] = (float)(halo::libm::sin((double)control.desired_yaw) * cos_pitch);
+                record.aim_direction[2] = (float)halo::libm::sin((double)control.desired_pitch);
                 record.throttle_x = control.throttle_x;
                 record.throttle_y = control.throttle_y;
                 record.primary_trigger = control.primary_trigger;

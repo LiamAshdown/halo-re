@@ -9,10 +9,8 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double sqrt(double x);
-}
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 static auto &machine_table = halo::link::ref<uint8_t *>(halo::game::vars().machine_table);
 static auto &network_object_index_cache = halo::link::ref<uint8_t []>(halo::units::vars().network_object_index_cache);
@@ -107,7 +105,7 @@ void VehicleView::apply_network_update(void **message, uint8_t *connection)
     dx = baseline.position.x - ((unit_object *)vehicle)->base.position.x;
     dy = baseline.position.y - ((unit_object *)vehicle)->base.position.y;
     dz = baseline.position.z - ((unit_object *)vehicle)->base.position.z;
-    if ((real)sqrt(dx * dx + dy * dy + dz * dz) > 10.0f || test_flag(((unit_object *)vehicle)->base.flags, objects::object_flag::at_rest) ||
+    if ((real)halo::libm::sqrt(dx * dx + dy * dy + dz * dz) > 10.0f || test_flag(((unit_object *)vehicle)->base.flags, objects::object_flag::at_rest) ||
         baseline.up.j * ((real *)&((struct object *)vehicle)->up)[1] + baseline.up.k * ((real *)&((struct object *)vehicle)->up)[2] +
                 baseline.up.i * ((real *)&((struct object *)vehicle)->up)[0] < 0.70710677f) {
         memcpy(vehicle + 0x1c, &baseline.position, 12);

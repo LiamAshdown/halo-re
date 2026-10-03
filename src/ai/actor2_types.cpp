@@ -11,6 +11,7 @@
 #include "halo/ai/records.hpp"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
+#include "halo/core/libm.hpp"
 
 namespace halo::ai {
 
@@ -566,10 +567,6 @@ namespace actor_type_infection_swarm_update_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 extern "C" {
-extern double sqrt(double x);
-extern double sin(double x);
-extern double cos(double x);
-extern double fabs(double x);
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 #define OBJECT(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
@@ -664,7 +661,7 @@ void ActorView::type_infection_swarm_update()
                     float dx = F(component, 0x4) - prop->last_known_position.x;
                     float dy = F(component, 0x8) - prop->last_known_position.y;
                     float dz = F(component, 0xc) - prop->last_known_position.z;
-                    float distance = (float)sqrt((double)(dz * dz + dy * dy + dx * dx));
+                    float distance = (float)halo::libm::sqrt((double)(dz * dz + dy * dy + dx * dx));
                     float score = 0.0f;
 
                     if (distance < radius) {
@@ -810,8 +807,8 @@ void ActorView::type_infection_swarm_update()
                     float angle = halo::math::random_real_range(-0.020943951f, 0.020943951f) + F(component, 0x2c) + damping;
 
                     F(component, 0x2c) = angle;
-                    halo::math::vector3d_rotate_about_axis(*(real_vector3d *)(component + 0x20), up, (float)sin((double)angle),
-                        (float)cos((double)angle));
+                    halo::math::vector3d_rotate_about_axis(*(real_vector3d *)(component + 0x20), up, (float)halo::libm::sin((double)angle),
+                        (float)halo::libm::cos((double)angle));
                 }
             } else {
                 if (component[0x1c] != 0) {
@@ -828,7 +825,7 @@ void ActorView::type_infection_swarm_update()
                     to_goal.k = swarm->aggregate_position.z - F(component, 0xc);
                     distance_squared = to_goal.k * to_goal.k + to_goal.j * to_goal.j + to_goal.i * to_goal.i;
                     if (!(distance_squared < 0.25f)) {
-                        float spread = 0.5f / (float)sqrt((double)distance_squared) * 3.1415927f;
+                        float spread = 0.5f / (float)halo::libm::sqrt((double)distance_squared) * 3.1415927f;
 
                         angle = halo::math::random_real_range(-spread, spread);
                         *(real_vector3d *)(component + 0x20) = to_goal;
@@ -836,8 +833,8 @@ void ActorView::type_infection_swarm_update()
                         angle = halo::math::random_real_range(-3.1415927f, 3.1415927f);
                         copy3((real_vector3d *)(component + 0x20), object + 0x74);
                     }
-                    halo::math::vector3d_rotate_about_axis(*(real_vector3d *)(component + 0x20), up, (float)sin((double)angle),
-                        (float)cos((double)angle));
+                    halo::math::vector3d_rotate_about_axis(*(real_vector3d *)(component + 0x20), up, (float)halo::libm::sin((double)angle),
+                        (float)halo::libm::cos((double)angle));
                     F(component, 0x2c) = 0.0f;
                 }
             }
@@ -900,10 +897,10 @@ void ActorView::type_infection_swarm_update()
         }
 
         {
-            float length = (float)sqrt((double)(desired.k * desired.k + desired.j * desired.j + desired.i * desired.i));
+            float length = (float)halo::libm::sqrt((double)(desired.k * desired.k + desired.j * desired.j + desired.i * desired.i));
             float along_up;
 
-            if (!(fabs((double)length) < 0.0001)) {
+            if (!(halo::libm::fabs((double)length) < 0.0001)) {
                 float inverse = 1.0f / length;
 
                 desired.i *= inverse;
@@ -959,7 +956,7 @@ void ActorView::type_infection_swarm_update()
                     if (!(distance_squared < 0.64000005f)) {
                         continue;
                     }
-                    facing = (dz * desired.k + dy * desired.j + dx * desired.i) / (float)sqrt((double)distance_squared);
+                    facing = (dz * desired.k + dy * desired.j + dx * desired.i) / (float)halo::libm::sqrt((double)distance_squared);
                     if (!(facing > 0.5f)) {
                         continue;
                     }
@@ -977,7 +974,7 @@ void ActorView::type_infection_swarm_update()
                     } else {
                         turn = turn * 1.5707964f;
                     }
-                    halo::math::vector3d_rotate_about_axis(desired, up, (float)sin((double)turn), (float)cos((double)turn));
+                    halo::math::vector3d_rotate_about_axis(desired, up, (float)halo::libm::sin((double)turn), (float)halo::libm::cos((double)turn));
                 }
             }
         }
@@ -989,8 +986,8 @@ void ActorView::type_infection_swarm_update()
             side.i = up.j * desired.k - up.k * desired.j;
             side.j = up.k * desired.i - desired.k * up.i;
             side.k = desired.j * up.i - up.j * desired.i;
-            length = (float)sqrt((double)(side.k * side.k + side.j * side.j + side.i * side.i));
-            if (!(fabs((double)length) < 0.0001) && length != 0.0f) {
+            length = (float)halo::libm::sqrt((double)(side.k * side.k + side.j * side.j + side.i * side.i));
+            if (!(halo::libm::fabs((double)length) < 0.0001) && length != 0.0f) {
                 float inverse = 1.0f / length;
                 float side_k = inverse * side.k;
 

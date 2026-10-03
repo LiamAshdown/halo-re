@@ -28,12 +28,10 @@
 #include "halo/game/vars.hpp"
 #include "halo/objects/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
-extern double atan2(double y, double x);
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
-extern double cos(double x);
-extern double sqrt(double x);
 }
 static auto &ai_marker_name_a = halo::link::ref<char []>(halo::units::vars().ai_marker_name_a);
 static auto &collideable_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().collideable_cluster_first);
@@ -95,7 +93,7 @@ void halo::objects::ObjectRef::apply_impulse_and_spin(real_vector3d *delta_veloc
     sample = halo::math::globals().sphere_point_table[index];
     halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * k_random_multiplier + k_random_increment;
 
-    magnitude = (real)sqrt((double)(delta_velocity->j * delta_velocity->j +
+    magnitude = (real)halo::libm::sqrt((double)(delta_velocity->j * delta_velocity->j +
         delta_velocity->k * delta_velocity->k + delta_velocity->i * delta_velocity->i));
     spin_scale = (real)(halo::math::globals().random_seed_global >> k_random_value_shift) * halo::k_unit_word_scale * magnitude * 1.5707964f;
 
@@ -1237,9 +1235,9 @@ uint8_t halo::objects::ObjectRef::test_in_atmosphere_zone()
                             delta.k = dz;
                             length = halo::math::vector3d_normalize_with_length(delta);
 
-                            angle = atan2((double)search_radius, (double)length);
+                            angle = halo::libm::atan2((double)search_radius, (double)length);
 
-                            c = cos(angle + 0.7853982);
+                            c = halo::libm::cos(angle + 0.7853982);
 
                             if (delta.i * *(float *)(extended + 0x230) +
                                 delta.j * *(float *)(extended + 0x234) +
@@ -1338,7 +1336,7 @@ uint8_t halo::objects::ObjectRef::nudge_position_by_velocity(real_point3d *out)
 
         if (elapsed_ms != 0) {
             real_vector3d velocity = obj->velocity;
-            float speed = (float)sqrt(velocity.i * velocity.i + velocity.j * velocity.j +
+            float speed = (float)halo::libm::sqrt(velocity.i * velocity.i + velocity.j * velocity.j +
                                       velocity.k * velocity.k);
             if (speed > 0.05f) {
                 real_point3d base = obj->network_position;

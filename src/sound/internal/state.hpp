@@ -26,6 +26,7 @@
 #include "halo/shell/vars.hpp"
 #include "halo/sound/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
 
@@ -33,13 +34,8 @@ extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void object_get_root_location(int32_t *out, uint32_t object_index);
 extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern void player_effect_apply_at_object(uint32_t tag_reference, int16_t local_player_index, real_point3d *origin);
-extern double pow(double base, double exponent);
-extern double sqrt(double x);
-extern double cos(double x);
-extern double sin(double x);
 extern int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
-extern double log10(double x);
 }
 inline auto &game_looping_sound_data = halo::link::ref<data_array *>(halo::ui::vars().game_looping_sound_data);
 inline auto &game_sound_globals_ptr = halo::link::ref<game_sound_globals *>(halo::sound::vars().game_sound_globals_ptr);

@@ -20,23 +20,16 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
-extern "C" {
-extern double fabs(double x);
-}
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &actor_type_procs = halo::link::ref<uint8_t *[]>(halo::ai::vars().actor_type_procs);
 static auto &ai_vocalization_line_table = halo::link::ref<int16_t [4]>(halo::ai::vars().ai_vocalization_line_table);
 static auto &ticks_per_second = halo::link::ref<float>(halo::ai::vars().ticks_per_second);
-extern "C" {
-extern int32_t __ftol(double value);
-}
 static auto &team_pair_data = halo::link::ref<team_pair_globals *>(halo::ai::vars().team_pair_data);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &ai_actor_mode_dispatch_table = halo::link::ref<void *>(halo::ai::vars().ai_actor_mode_dispatch_table);
-extern "C" {
-extern double sqrt(double x);
-}
 static auto &k_random_scale_65536 = halo::link::ref<float>(halo::ai::vars().k_random_scale_65536);
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 
@@ -58,7 +51,7 @@ uint8_t EncounterView::drift_zone_bias(int16_t squad_offset, float bias)
     float floor = halo::ai::globals().state->major_upgrade_error * -0.33333334f;
     float step;
 
-    if ((float)fabs((double)floor) <= (float)fabs((double)(-squad->major_upgrade_error))) {
+    if ((float)halo::libm::fabs((double)floor) <= (float)halo::libm::fabs((double)(-squad->major_upgrade_error))) {
         floor = -squad->major_upgrade_error;
     }
 
@@ -1728,7 +1721,7 @@ void Encounters::create(int16_t *squad_cursor, ScenarioEncounter *definition, in
 
             squad_state->timer_started = 0;
             if ((squad_definition->flags & 8) == 0) {
-                squad_state->squad_delay_ticks = (int16_t)__ftol(
+                squad_state->squad_delay_ticks = (int16_t)halo::x87::__ftol(
                     (double)(squad_definition->squad_delay_time * ticks_per_second));
             } else {
                 squad_state->squad_delay_ticks = 999;
@@ -2424,7 +2417,7 @@ have_targets:
             if (best_squad != -1) {
                 if (best_occupied_squad != -1) {
                     float leash = (self->follow_distance <= 0.0f) ? 2.0f : self->follow_distance;
-                    if ((float)sqrt(best_occupied_distance) - leash <= (float)sqrt(best_squad_distance)) {
+                    if ((float)halo::libm::sqrt(best_occupied_distance) - leash <= (float)halo::libm::sqrt(best_squad_distance)) {
                         return;
                     }
                 }

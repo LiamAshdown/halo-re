@@ -11,11 +11,8 @@
 #include "halo/ai/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double sqrt(double x);
-extern double fabs(double x);
-}
 static auto &ai_default_2d_direction = halo::link::ref<real_point2d *>(halo::ai::vars().ai_default_2d_direction);
 
 namespace halo::ai {
@@ -143,8 +140,8 @@ static void ai_search_corner_direction(const real_point2d *point, const real_poi
 
     out->i = point->x - corner->x;
     out->j = point->y - corner->y;
-    length = (float)sqrt(out->j * out->j + out->i * out->i);
-    if (!((float)fabs(length) < 0.0001f)) {
+    length = (float)halo::libm::sqrt(out->j * out->j + out->i * out->i);
+    if (!((float)halo::libm::fabs(length) < 0.0001f)) {
         float scale = 1.0f / length;
 
         out->i *= scale;
@@ -200,9 +197,9 @@ void ObstacleList::compute_point_tangents(int16_t point_index, real_point2d *pos
     real_vector2d direction;
     float dx = point->position.x - position->x;
     float dy = point->position.y - position->y;
-    float distance = (float)sqrt(dx * dx + dy * dy);
+    float distance = (float)halo::libm::sqrt(dx * dx + dy * dy);
 
-    if (fabs(distance) < (double)0.0001f) {
+    if (halo::libm::fabs(distance) < (double)0.0001f) {
         distance = 0.0f;
     } else {
         double inv = 1.0 / distance;
@@ -381,7 +378,7 @@ void AiSearchGeometry::find_circle_portal_crossing(real_point2d *center, real_po
     float denom = (portal[1].y - center->y) * (portal[0].x - center->x) -
                   (portal[0].y - center->y) * (portal[1].x - center->x);
 
-    if (0.0001 <= fabs(denom)) {
+    if (0.0001 <= halo::libm::fabs(denom)) {
         float scale = (radius * radius) / denom;
         float y = ((portal[0].x - center->x) - (portal[1].x - center->x)) * scale + center->y;
         out_point->x = center->x - ((portal[0].y - center->y) - (portal[1].y - center->y)) * scale;
@@ -398,8 +395,8 @@ void AiSearchGeometry::find_circle_portal_crossing(real_point2d *center, real_po
     {
         float dx = portal[0].x - fallback_reference->x;
         float dy = portal[0].y - fallback_reference->y;
-        float len = (float)sqrt(dx * dx + dy * dy);
-        if ((0.0001 <= fabs(len)) && (len != 0.0f)) {
+        float len = (float)halo::libm::sqrt(dx * dx + dy * dy);
+        if ((0.0001 <= halo::libm::fabs(len)) && (len != 0.0f)) {
             dx = dx * (1.0f / len);
             dy = dy * (1.0f / len);
         } else {
@@ -425,7 +422,7 @@ void AiSearchGeometry::find_circle_tangent_point(real_point2d *center, real_poin
     float discriminant = dist2 - radius * radius;
 
     if (0.0f < discriminant) {
-        float root = (float)sqrt(discriminant);
+        float root = (float)halo::libm::sqrt(discriminant);
         float tangent_pts[4];
         float cross_dy = dy * root;
         float cross_dx = dx * root;
@@ -445,8 +442,8 @@ void AiSearchGeometry::find_circle_tangent_point(real_point2d *center, real_poin
     }
 
     {
-        float len = (float)sqrt(dx * dx + dy * dy);
-        if ((0.0001 <= fabs(len)) && (len != 0.0f)) {
+        float len = (float)halo::libm::sqrt(dx * dx + dy * dy);
+        if ((0.0001 <= halo::libm::fabs(len)) && (len != 0.0f)) {
             dx = (1.0f / len) * dx;
             dy = dy * (1.0f / len);
         } else {

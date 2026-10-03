@@ -10,14 +10,12 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, void *result);
-extern double sqrt(double x);
-extern double sin(double x);
-extern double cos(double x);
 }
 
 namespace halo::game {
@@ -84,7 +82,7 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
         dx = camera_position.x - *(real *)(unit_obj + 0x5c);
         dy = camera_position.y - *(real *)(unit_obj + 0x60);
         dz = camera_position.z - *(real *)(unit_obj + 0x64);
-        distance = (real)sqrt((double)(dx * dx + dy * dy + dz * dz));
+        distance = (real)halo::libm::sqrt((double)(dx * dx + dy * dy + dz * dz));
         camera_forward = camera_direction;
         halo::math::vector3d_normalize_with_length(camera_forward);
         probe_origin.x = camera_forward.i * distance + camera_position.x;
@@ -105,8 +103,8 @@ uint32_t CameraObserver::update(datum_index player_index, real_point3d *observer
         blend.j = look_direction.j * (1.0f - fraction) + target_direction.j * fraction;
         blend.k = look_direction.k * (1.0f - fraction) + target_direction.k * fraction;
         halo::math::vector3d_normalize(blend);
-        halo::math::vector3d_rotate_toward(&blend, *fallback_facing, fallback_facing, (real)sin((double)cone[4]),
-            (real)cos((double)cone[4]));
+        halo::math::vector3d_rotate_toward(&blend, *fallback_facing, fallback_facing, (real)halo::libm::sin((double)cone[4]),
+            (real)halo::libm::cos((double)cone[4]));
     }
 
     ((struct player *)player)->observer_target = target;

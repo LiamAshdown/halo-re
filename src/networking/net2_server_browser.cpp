@@ -80,7 +80,6 @@ static auto &server_browser_variant_ticker = halo::link::ref<ticker_text_buffer>
 static auto &string_widen_scratch = halo::link::ref<wchar_t [0x400]>(halo::networking::vars().string_widen_scratch);
 static auto &server_browser_custom_options_text = halo::link::ref<char []>(halo::networking::vars().server_browser_custom_options_text);
 extern "C" {
-extern int32_t sprintf(char *buffer, const char *format, ...);
 extern int32_t sscanf(const char *buffer, const char *format, ...);
 }
 static auto &server_browser_sort_column = halo::link::ref<uint8_t>(halo::ui::vars().server_browser_sort_column);

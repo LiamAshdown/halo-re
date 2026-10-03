@@ -13,12 +13,10 @@
 #include "halo/ai/vars.hpp"
 #include "halo/camera/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 extern "C" {
-extern double sqrt(double x);
-extern double fabs(double x);
 extern uint8_t scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf, int16_t *weather_index_out);
-extern double atan2(double y, double x);
 }
 static auto &observers = halo::link::ref<observer [1]>(halo::camera::vars().observers);
 static auto &observer_dt = halo::link::ref<float>(halo::camera::vars().observer_dt);
@@ -119,8 +117,8 @@ void ObserverHandle::commit()
 
     forward_i = o->parameters.forward.i;
     forward_j = o->parameters.forward.j;
-    horizontal_magnitude = (float)sqrt((double)(forward_i * forward_i + forward_j * forward_j));
-    if (0.0001 <= fabs((double)horizontal_magnitude)) {
+    horizontal_magnitude = (float)halo::libm::sqrt((double)(forward_i * forward_i + forward_j * forward_j));
+    if (0.0001 <= halo::libm::fabs((double)horizontal_magnitude)) {
         float inv = 1.0f / horizontal_magnitude;
         forward_i = inv * forward_i;
         forward_j = inv * forward_j;
@@ -158,7 +156,7 @@ void ObserverHandle::commit()
     }
 
     water_depth = halo::scenario::location_view((bsp_leaf_reference *)&camera->leaf_index).water_surface_distance((real_point3d *)&camera->position);
-    if (fabs((double)water_depth) < 0.05000000074505806) {
+    if (halo::libm::fabs((double)water_depth) < 0.05000000074505806) {
         if (water_depth <= 0.0f) {
             camera->position.z = water_depth + camera->position.z + 0.05f;
         } else {
@@ -433,11 +431,11 @@ void ObserverHandle::evaluate_spline_value_and_orthonormalize()
 
         check = (forward->k * forward->k + forward->j * forward->j + forward->i * forward->i) -
             1.0f;
-        if (_isnan((double)check) == 0 && fabs((double)check) < 0.001) {
+        if (_isnan((double)check) == 0 && halo::libm::fabs((double)check) < 0.001) {
             check = (up->k * up->k + up->j * up->j + up->i * up->i) - 1.0f;
-            if (_isnan((double)check) == 0 && fabs((double)check) < 0.001) {
+            if (_isnan((double)check) == 0 && halo::libm::fabs((double)check) < 0.001) {
                 check = up->j * forward->j + up->k * forward->k + up->i * forward->i;
-                if (_isnan((double)check) == 0 && fabs((double)check) < 0.001) {
+                if (_isnan((double)check) == 0 && halo::libm::fabs((double)check) < 0.001) {
                     return;
                 }
             }
@@ -453,17 +451,17 @@ void ObserverHandle::evaluate_spline_value_and_orthonormalize()
             up->k = right_j * forward->i - right_i * forward->j;
         }
 
-        length = (float)sqrt((double)(forward->k * forward->k + forward->j * forward->j +
+        length = (float)halo::libm::sqrt((double)(forward->k * forward->k + forward->j * forward->j +
             forward->i * forward->i));
-        if (0.0001 <= fabs((double)length)) {
+        if (0.0001 <= halo::libm::fabs((double)length)) {
             length = 1.0f / length;
             forward->i = length * forward->i;
             forward->j = length * forward->j;
             forward->k = length * forward->k;
         }
 
-        length = (float)sqrt((double)(up->k * up->k + up->j * up->j + up->i * up->i));
-        if (fabs((double)length) < 0.0001) {
+        length = (float)halo::libm::sqrt((double)(up->k * up->k + up->j * up->j + up->i * up->i));
+        if (halo::libm::fabs((double)length) < 0.0001) {
             return;
         }
         length = 1.0f / length;
@@ -820,7 +818,7 @@ mark_clear:
             } else {
                 hit_fraction = collision.t;
                 converged_this_time = 1;
-                if (0.1 <= fabs((double)(hit_fraction - last_blocked_fraction))) {
+                if (0.1 <= halo::libm::fabs((double)(hit_fraction - last_blocked_fraction))) {
                     goto mark_clear;
                 }
                 last_blocked_fraction = hit_fraction;
@@ -906,8 +904,8 @@ void ObserverSystem::compute_remaining_offset(float *target, float *current, flo
     axis.j = relative_rotation.j;
     axis.k = relative_rotation.k;
 
-    axis_length = (float)sqrt((double)(axis.j * axis.j + axis.k * axis.k + axis.i * axis.i));
-    if (fabs((double)axis_length) < 9.999999747378752e-05) {
+    axis_length = (float)halo::libm::sqrt((double)(axis.j * axis.j + axis.k * axis.k + axis.i * axis.i));
+    if (halo::libm::fabs((double)axis_length) < 9.999999747378752e-05) {
         axis_length = 0.0f;
     } else {
         float inv_length = 1.0f / axis_length;
@@ -916,7 +914,7 @@ void ObserverSystem::compute_remaining_offset(float *target, float *current, flo
         axis.k = inv_length * axis.k;
     }
 
-    angle = (float)atan2((double)axis_length, (double)relative_rotation.w);
+    angle = (float)halo::libm::atan2((double)axis_length, (double)relative_rotation.w);
     angle = angle + angle;
     if (3.1415927f < angle) {
         axis.i = -axis.i;

@@ -30,6 +30,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/core/libm.hpp"
 
 static auto &ctf_globals_live = halo::link::ref<ctf_globals>(halo::game::vars().ctf_globals_live);
 static auto &ctf_globals_network = halo::link::ref<ctf_globals>(halo::game::vars().ctf_globals_network);
@@ -62,7 +63,6 @@ static auto &ctf_team_return_credit_active = halo::link::ref<uint8_t [2]>(halo::
 static auto &ctf_team_return_credit_ticks = halo::link::ref<int32_t [2]>(halo::game::vars().ctf_team_return_credit_ticks);
 extern "C" {
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
-extern double pow(double x, double y);
 }
 
 namespace halo::game::engine1 {
@@ -980,7 +980,7 @@ float Ctf::unknown_70(datum_index player_index, real_point3d *position)
         return weight;
     }
     if (distance_squared > 1.0f) {
-        weight = (float)pow((double)weight, (double)0.33f);
+        weight = (float)halo::libm::pow((double)weight, (double)0.33f);
     }
     if (weight < 0.5f) {
         return 0.5f;

@@ -5,11 +5,8 @@
 #include "halo/core/flag_bits.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/core/libm.hpp"
 
-extern "C" {
-extern double cos(double x);
-extern double sin(double x);
-}
 
 namespace halo::units {
 
@@ -90,8 +87,8 @@ void BipedView::update_facing(int8_t *out_animation_state)
             }
 
             angle = (double)tag->moving_turning_speed * 0.033333335;
-            turn_cos = (float)cos(angle);
-            turn_sin = (float)sin(angle);
+            turn_cos = (float)halo::libm::cos(angle);
+            turn_sin = (float)halo::libm::sin(angle);
             if (turn_right) {
                 turn_sin = -turn_sin;
             }

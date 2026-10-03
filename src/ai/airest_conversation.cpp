@@ -18,14 +18,12 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/core/libm.hpp"
+#include "halo/core/x87.hpp"
 
 static auto &ticks_per_second = halo::link::ref<float>(halo::ai::vars().ticks_per_second);
-extern "C" {
-extern int32_t __ftol(double x);
-}
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 extern "C" {
-extern double sqrt(double x);
 extern int8_t teams_are_enemies(int16_t a, int16_t b);
 }
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
@@ -126,7 +124,7 @@ uint8_t ConversationView::activate_next_participant()
             instance->sound_index = *(uint32_t *)&variants[variant_selector].tag_id;
         }
 
-        instance->line_delay_ticks = (int16_t)__ftol((double)(line->line_delay_time * ticks_per_second));
+        instance->line_delay_ticks = (int16_t)halo::x87::__ftol((double)(line->line_delay_time * ticks_per_second));
         instance->line_flags = line->flags;
         instance->line_finished = 0;
         instance->line_spoken = 0;
@@ -796,7 +794,7 @@ int8_t Conversations::resolve_participant(int16_t participant_index, uint8_t *ou
                     }
                 }
                 if (nearest < 20.25f) {
-                    score = (1.0f - ((float)sqrt((double)nearest) - 1.5f) * 0.33333334f) + score;
+                    score = (1.0f - ((float)halo::libm::sqrt((double)nearest) - 1.5f) * 0.33333334f) + score;
                 }
             }
 

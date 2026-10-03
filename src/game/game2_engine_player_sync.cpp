@@ -14,6 +14,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/core/libm.hpp"
 
 #define k_uninitialized_fill 0xfafafafau
 
@@ -51,13 +52,6 @@ static auto &local_player_look_frozen = halo::link::ref<uint8_t []>(halo::game::
 static auto &update_client_staged = halo::link::ref<uint32_t [8]>(halo::game::vars().update_client_staged);
 static auto &update_client_staged_count = halo::link::ref<int32_t>(halo::game::vars().update_client_staged_count);
 static auto &update_client_unknown_ec4 = halo::link::ref<int32_t>(halo::game::vars().update_client_unknown_ec4);
-extern "C" {
-extern double atan2(double y, double x);
-extern double cos(double x);
-extern double sin(double x);
-extern double sqrt(double x);
-extern double fabs(double x);
-}
 static auto &player_profile_cache = halo::link::ref<player_profile [16]>(halo::game::vars().player_profile_cache);
 static auto &player_profile_cache_count = halo::link::ref<int32_t>(halo::game::vars().player_profile_cache_count);
 static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
@@ -786,7 +780,7 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
             real base, a, b, span, forward_delta, back_delta;
 
             halo::objects::object_get_node_local_transform(camera.unit, (char *)(seat + 0x24), &marker, 1);
-            base = (real)atan2((double)*(real *)((uint8_t *)&marker + 0x40), (double)*(real *)((uint8_t *)&marker + 0x3c));
+            base = (real)halo::libm::atan2((double)*(real *)((uint8_t *)&marker + 0x40), (double)*(real *)((uint8_t *)&marker + 0x3c));
             a = base + yaw_min;
             b = base + yaw_max;
             span = look_wrap_angle(b - a);
@@ -796,7 +790,7 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
                 span += 6.2831855f;
             }
             if (!((forward_delta >= 0.0f && forward_delta < span) || (back_delta >= 0.0f && back_delta < span))) {
-                if ((real)fabs((double)forward_delta) <= (real)fabs((double)back_delta)) {
+                if ((real)halo::libm::fabs((double)forward_delta) <= (real)halo::libm::fabs((double)back_delta)) {
                     look->yaw = b;
                 } else {
                     look->yaw = a;
@@ -832,8 +826,8 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
                 real_vector3d heading;
                 real adjust;
 
-                heading.i = (real)cos((double)look->yaw) * 1.0f;
-                heading.j = (real)sin((double)look->yaw) * 1.0f;
+                heading.i = (real)halo::libm::cos((double)look->yaw) * 1.0f;
+                heading.j = (real)halo::libm::sin((double)look->yaw) * 1.0f;
                 heading.k = 0.0f;
                 adjust = 1.5707964f - halo::math::vector3d_angle_between_4cd4f0(*(real_vector3d *)(unit + 0x80), heading);
                 pitch_min = pitch_min - adjust;
@@ -852,9 +846,9 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
             }
         }
         if (target_pitch != 0.0f || look->autolevelling_active) {
-            real error = (real)(fabs((double)(look->pitch - target_pitch)) * 0.6366197466850281);
+            real error = (real)(halo::libm::fabs((double)(look->pitch - target_pitch)) * 0.6366197466850281);
             real_vector3d *velocity = (real_vector3d *)(unit + 0x68);
-            real speed = (real)sqrt((double)(velocity->i * velocity->i + velocity->j * velocity->j +
+            real speed = (real)halo::libm::sqrt((double)(velocity->i * velocity->i + velocity->j * velocity->j +
                 velocity->k * velocity->k));
             real step;
 
