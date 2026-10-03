@@ -192,12 +192,6 @@ transparent_geometry_group * rasterizer_transparent_geometry_group_build(transpa
 
 
 
-typedef void (*transparent_geometry_callback)(int32_t argument, int32_t count);
-
-typedef void (*transparent_geometry_draw_procedure)(transparent_geometry_group *group);
-
-typedef void (*transparent_geometry_draw_procedure2)(transparent_geometry_group *group, int16_t kind);
-
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
@@ -387,7 +381,7 @@ static void draw_glass_shader(transparent_geometry_group *group, const Shader *s
     if (reflection_type == 2 && (rasterizer_window.has_mirror == 0 || rasterizer_window.type != 1)) {
 
         if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
-            ((transparent_geometry_draw_procedure2)rasterizer_glass_draw_procedures[2])(group, 2);
+            rasterizer_glass_draw_procedures.reflection(group, 2);
         }
         return;
     }
@@ -395,7 +389,7 @@ static void draw_glass_shader(transparent_geometry_group *group, const Shader *s
         glass->background_tint_color.red != 0.0f ||
         glass->background_tint_color.green != 0.0f ||
         glass->background_tint_color.blue != 0.0f) {
-        ((transparent_geometry_draw_procedure)rasterizer_glass_draw_procedures[1])(group);
+        rasterizer_glass_draw_procedures.tint(group);
     }
     if ((glass->perpendicular_brightness > 0.0f || glass->parallel_brightness > 0.0f) &&
         (has_tag(glass->reflection_map) || reflection_type == 2)) {
@@ -403,10 +397,10 @@ static void draw_glass_shader(transparent_geometry_group *group, const Shader *s
             (halo::test_flag(glass->shader_transparent_glass_flags, halo::tags::shader_transparent_glass_tag_flag::bump_map_is_specular_mask) || !has_tag(glass->bump_map))) {
             reflection_type = 1;
         }
-        ((transparent_geometry_draw_procedure2)rasterizer_glass_draw_procedures[2])(group, reflection_type);
+        rasterizer_glass_draw_procedures.reflection(group, reflection_type);
     }
     if (has_tag(glass->diffuse_map) || has_tag(glass->diffuse_detail_map)) {
-        ((transparent_geometry_draw_procedure)rasterizer_glass_draw_procedures[0])(group);
+        rasterizer_glass_draw_procedures.diffuse(group);
     }
 }
 
@@ -752,7 +746,7 @@ void rasterizer_transparent_geometry_group_draw(transparent_geometry_group *grou
                 rasterizer_shader_transparent_chicago_extended_draw(group, attached);
                 break;
             case 8:
-                ((transparent_geometry_draw_procedure)rasterizer_water_draw_procedure)(group);
+                rasterizer_water_draw_procedure(group);
                 break;
             case 9:
                 draw_glass_shader(group, shader);

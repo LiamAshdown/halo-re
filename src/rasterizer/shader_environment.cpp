@@ -102,9 +102,6 @@ uint8_t rasterizer_shader_environment_build_technique_table(void)
     return ok;
 }
 
-typedef void (*rasterizer_part_draw_procedure)(Shader *shader, int16_t frame, rasterizer_index_buffer *index_buffer,
-                                               int32_t dynamic_index_slot, int32_t primitive_count,
-                                               rasterizer_vertex_buffer *vertex_buffer, int32_t dynamic_vertex_slot);
 
 /**
  * Direct3D 9 back end function rasterizer_shader_environment_draw_dispatch. The original author notes are in
@@ -118,7 +115,7 @@ void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, Sh
     Shader *overlay;
 
     halo::interface::debug_fp_dispatch_note(halo::rasterizer::fields::models_enabled, rasterizer_active_model_mode, shader->shader_type,
-        primitive_count, shader_environment_draw, shader_environment_draw_simple,
+        primitive_count, reinterpret_cast<void *>(shader_environment_draw), reinterpret_cast<void *>(shader_environment_draw_simple),
         rasterizer_active_model_context ? rasterizer_active_model_context->group_parameters.shader : NULL);
 
     if (!halo::rasterizer::fields::models_enabled) {
@@ -155,10 +152,10 @@ void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, Sh
     }
     if (rasterizer_active_model_mode == 0) {
         if (shader->shader_type == static_cast<int16_t>(halo::render::shader_type_id::environment)) {
-            ((rasterizer_part_draw_procedure)shader_environment_draw_simple)(
+            shader_environment_draw_simple(
                 shader, frame, index_buffer, dynamic_index_slot, primitive_count, vertex_buffer, dynamic_vertex_slot);
         } else {
-            ((rasterizer_part_draw_procedure)shader_environment_draw)(
+            shader_environment_draw(
                 shader, frame, index_buffer, dynamic_index_slot, primitive_count, vertex_buffer, dynamic_vertex_slot);
         }
     }
@@ -773,7 +770,7 @@ namespace rasterizer_shader_environment_lightmap_draw_impl {
  *
  * @address 0x51e2a0
  */
-void rasterizer_shader_environment_lightmap_draw(Shader *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, void *vertex_buffer)
+void rasterizer_shader_environment_lightmap_draw(const ShaderEnvironment *shader, int16_t frame, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer)
 {
     rasterizer_effect_slot *slot;
     int16_t index;
@@ -1387,17 +1384,17 @@ void rasterizer_shader_environment_reflection_draw(const ShaderEnvironment *shad
 void rasterizer_shader_environment_select_draw_functions(void)
 {
     if ((int32_t)rasterizer_caps.max_streams <= 1) {
-        shader_environment_draw_simple = (void *)rasterizer_shader_environment_draw_single_stream;
-        shader_environment_draw = (void *)rasterizer_shader_model_draw_limited;
+        shader_environment_draw_simple = rasterizer_shader_environment_draw_single_stream;
+        shader_environment_draw = rasterizer_shader_model_draw_limited;
         return;
     }
     if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
-        shader_environment_draw_simple = (void *)rasterizer_shader_environment_draw_fixed_function;
-        shader_environment_draw = (void *)rasterizer_shader_model_draw_fixed_function;
+        shader_environment_draw_simple = rasterizer_shader_environment_draw_fixed_function;
+        shader_environment_draw = rasterizer_shader_model_draw_fixed_function;
         return;
     }
-    shader_environment_draw_simple = (void *)rasterizer_shader_environment_draw_pixel_shader;
-    shader_environment_draw = (void *)rasterizer_shader_model_draw_pixel_shader;
+    shader_environment_draw_simple = rasterizer_shader_environment_draw_pixel_shader;
+    shader_environment_draw = rasterizer_shader_model_draw_pixel_shader;
 }
 
 namespace rasterizer_shader_environment_self_illumination_draw_impl {

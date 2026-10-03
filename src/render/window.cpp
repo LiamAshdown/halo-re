@@ -473,7 +473,7 @@ void lightmap_begin_0x512010(void *bitmap_data)
 void material_0x511f40(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface,
     int32_t surface_count, void *material_extra)
 {
-    ((void (*)(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra))halo::rasterizer::fields::light_cone_draw)(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
+    halo::rasterizer::fields::light_cone_draw(static_cast<const ShaderEnvironment *>(shader_data), shader_permutation, render_context, first_surface, surface_count, static_cast<rasterizer_vertex_buffer *>(material_extra));
 }
 
 /**
@@ -495,7 +495,7 @@ void material_0x511f50(void *shader_data, int16_t shader_permutation, int32_t re
 void material_0x511f70(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface,
     int32_t surface_count, void *material_extra)
 {
-    ((void (*)(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t first_surface, int32_t surface_count, void *material_extra))halo::rasterizer::fields::environment_lightmap_draw)(shader_data, shader_permutation, render_context, first_surface, surface_count, material_extra);
+    halo::rasterizer::fields::environment_lightmap_draw(static_cast<const ShaderEnvironment *>(shader_data), shader_permutation, render_context, first_surface, surface_count, static_cast<rasterizer_vertex_buffer *>(material_extra));
 }
 
 /**

@@ -239,14 +239,14 @@ void rasterizer_glass_diffuse_draw_fixed_function(transparent_geometry_group *gr
 void rasterizer_glass_draw_procedures_select(void)
 {
     if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
-        rasterizer_glass_draw_procedures[1] = (void *)rasterizer_glass_tint_draw_fixed_function;
-        rasterizer_glass_draw_procedures[2] = (void *)rasterizer_glass_reflection_draw_fixed_function;
-        rasterizer_glass_draw_procedures[0] = (void *)rasterizer_glass_diffuse_draw_fixed_function;
+        rasterizer_glass_draw_procedures.tint = rasterizer_glass_tint_draw_fixed_function;
+        rasterizer_glass_draw_procedures.reflection = rasterizer_glass_reflection_draw_fixed_function;
+        rasterizer_glass_draw_procedures.diffuse = rasterizer_glass_diffuse_draw_fixed_function;
         return;
     }
-    rasterizer_glass_draw_procedures[1] = (void *)rasterizer_glass_tint_draw;
-    rasterizer_glass_draw_procedures[2] = (void *)rasterizer_glass_reflection_draw;
-    rasterizer_glass_draw_procedures[0] = (void *)rasterizer_glass_diffuse_draw;
+    rasterizer_glass_draw_procedures.tint = rasterizer_glass_tint_draw;
+    rasterizer_glass_draw_procedures.reflection = rasterizer_glass_reflection_draw;
+    rasterizer_glass_draw_procedures.diffuse = rasterizer_glass_diffuse_draw;
 }
 
 namespace rasterizer_glass_reflection_draw_impl {
@@ -540,10 +540,10 @@ typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, ui
  *
  * @address 0x523b90
  */
-void rasterizer_glass_reflection_draw_fixed_function(transparent_geometry_group *group, uint32_t reflection_kind)
+void rasterizer_glass_reflection_draw_fixed_function(transparent_geometry_group *group, int16_t reflection_kind)
 {
     if (group_vertex_type_is_model(group)) {
-        rasterizer_glass_reflection_draw(group, (int16_t)reflection_kind);
+        rasterizer_glass_reflection_draw(group, reflection_kind);
         return;
     }
 

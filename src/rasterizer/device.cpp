@@ -1273,6 +1273,15 @@ int32_t rasterizer_round_up_resolution_height(int32_t height)
 }
 
 /**
+ * The light cone draw installed on hardware without pixel shaders: draws nothing.
+ *
+ * @address 0x44ad80
+ */
+static void light_cone_draw_nothing(const ShaderEnvironment *, int16_t, int32_t, int32_t, int32_t, rasterizer_vertex_buffer *)
+{
+}
+
+/**
  * Selects vendor/driver-specific rendering code path function pointers based on the detected GPU capability
  * caps (max_streams, pixel_shader_version).
  *
@@ -1281,11 +1290,11 @@ int32_t rasterizer_round_up_resolution_height(int32_t height)
 void rasterizer_select_hardware_codepaths(void)
 {
     if (rasterizer_caps.max_streams < 2) {
-        halo::rasterizer::fields::environment_self_illumination_draw = (void *)rasterizer_shader_environment_self_illumination_draw_single_stream;
+        halo::rasterizer::fields::environment_self_illumination_draw = rasterizer_shader_environment_self_illumination_draw_single_stream;
     } else {
-        halo::rasterizer::fields::environment_self_illumination_draw = (void *)rasterizer_shader_environment_self_illumination_draw_two_stream;
+        halo::rasterizer::fields::environment_self_illumination_draw = rasterizer_shader_environment_self_illumination_draw_two_stream;
         if (rasterizer_caps.pixel_shader_version > halo::d3d9::k_pixel_shader_version_1_0) {
-            halo::rasterizer::fields::environment_self_illumination_draw = (void *)rasterizer_shader_environment_self_illumination_draw;
+            halo::rasterizer::fields::environment_self_illumination_draw = rasterizer_shader_environment_self_illumination_draw;
         }
     }
 
@@ -1293,22 +1302,22 @@ void rasterizer_select_hardware_codepaths(void)
     rasterizer_shader_environment_select_draw_functions();
 
     if (rasterizer_caps.max_streams < 2) {
-        halo::rasterizer::fields::environment_lightmap_draw = (void *)rasterizer_shader_environment_lightmap_draw_single_stream;
+        halo::rasterizer::fields::environment_lightmap_draw = rasterizer_shader_environment_lightmap_draw_single_stream;
     } else {
-        halo::rasterizer::fields::environment_lightmap_draw = (void *)rasterizer_shader_environment_lightmap_draw_two_stream;
+        halo::rasterizer::fields::environment_lightmap_draw = rasterizer_shader_environment_lightmap_draw_two_stream;
         if (rasterizer_caps.pixel_shader_version > halo::d3d9::k_pixel_shader_version_1_0) {
-            halo::rasterizer::fields::environment_lightmap_draw = (void *)rasterizer_shader_environment_lightmap_draw;
+            halo::rasterizer::fields::environment_lightmap_draw = rasterizer_shader_environment_lightmap_draw;
         }
     }
     if (rasterizer_caps.pixel_shader_version > halo::d3d9::k_pixel_shader_version_1_0) {
-        halo::rasterizer::fields::light_cone_draw = (void *)rasterizer_light_cone_draw;
+        halo::rasterizer::fields::light_cone_draw = rasterizer_light_cone_draw;
     } else {
-        halo::rasterizer::fields::light_cone_draw = (void *)halo::cseries::function_do_nothing;
+        halo::rasterizer::fields::light_cone_draw = light_cone_draw_nothing;
     }
 
-    rasterizer_water_draw_procedure = (void *)rasterizer_water_draw_fixed_function;
+    rasterizer_water_draw_procedure = rasterizer_water_draw_fixed_function;
     if (rasterizer_caps.pixel_shader_version > halo::d3d9::k_pixel_shader_version_1_0) {
-        rasterizer_water_draw_procedure = (void *)rasterizer_water_draw_pixel_shader;
+        rasterizer_water_draw_procedure = rasterizer_water_draw_pixel_shader;
     }
 }
 
