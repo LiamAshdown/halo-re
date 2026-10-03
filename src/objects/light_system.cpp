@@ -293,7 +293,7 @@ void halo::objects::LightSystem::update_all()
     rasterizer_light_count = 0;
     halo::rasterizer::rasterizer_light_disable_all();
     for (i = 0; i < halo::structures::globals().visible_cluster_count; i++) {
-        halo::rasterizer::structure_cluster_add_lens_flares(*(int16_t *)(halo::structures::globals().visible_clusters + i * 0x1a0));
+        halo::rasterizer::structure_cluster_add_lens_flares(*(int16_t *)((uint8_t *)halo::structures::globals().visible_clusters + i * 0x1a0));
     }
 
     for (i = 0; i < light_active_list_count; i++) {

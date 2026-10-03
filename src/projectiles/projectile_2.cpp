@@ -239,7 +239,7 @@ int ProjectileHandle::update()
         }
 
         
-        halo::physics::globals().gravity = halo::physics::k_physics_gravity * ((self->base.flags & to_bits(projectile_object_flag::in_water)) ? definition->water_gravity_scale : definition->air_gravity_scale);
+        gravity = halo::physics::k_physics_gravity * ((self->base.flags & to_bits(projectile_object_flag::in_water)) ? definition->water_gravity_scale : definition->air_gravity_scale);
         vel.k = vel_k - gravity * remaining;
         step_k = step.k - gravity * remaining * 0.5f;
 
