@@ -1,6 +1,0 @@
-?_OptionsStorage@?1??__local_stdio_printf_options@@9@4_KA
-__Avx2WmemEnabledWeakValue
-___local_stdio_printf_options
-__vsnprintf_l
-__vsprintf_l
-_sprintf

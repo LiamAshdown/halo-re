@@ -1,3 +1,0 @@
-__Avx2WmemEnabledWeakValue
-_crc32_update
-_datum_index_invalidate
