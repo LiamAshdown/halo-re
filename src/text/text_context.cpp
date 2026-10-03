@@ -5,6 +5,8 @@
  */
 
 #include "halo/text/text.hpp"
+#include "halo/text/limits.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern datum_index hud_text_draw_font_tag_id;
@@ -54,15 +56,15 @@ void text_context::parse_state_initialize(void *string, int16_t justification, i
 
     resolved_font = font;
     if (style != (int16_t)-1) {
-        Font *base_font = (Font *)tag_instances[font & 0xffff].data;
+        Font *base_font = (Font *)tag_instances[halo::datum_slot(font)].data;
 
         TagDependency *style_dependency = &base_font->bold + style;
         resolved_font = *(datum_index *)&style_dependency->tag_id;
     }
-    if (resolved_font == (datum_index)0xffffffff) {
+    if (resolved_font == (datum_index)k_datum_index_none) {
         resolved_font = font;
     }
-    state->font_definition = (uint32_t)tag_instances[resolved_font & 0xffff].data;
+    state->font_definition = (uint32_t)tag_instances[halo::datum_slot(resolved_font)].data;
 }
 
 void text_context::language_initialize_from_string_list(void)
@@ -76,7 +78,7 @@ void text_context::language_initialize_from_string_list(void)
     text_localization_strings = *(datum_index *)&bitmaps->localization.tag_id;
 
     if (text_localization_strings != (datum_index)k_datum_index_none) {
-        localization = (StringList *)tag_instances[text_localization_strings & 0xffff].data;
+        localization = (StringList *)tag_instances[halo::datum_slot(text_localization_strings)].data;
         encoding_string = missing_string;
         if (localization->strings.count > 0) {
             StringListString *first = (StringListString *)localization->strings.pointer;
@@ -107,7 +109,7 @@ uint16_t * text_context::string_list_get_string(datum_index list_id, int16_t ind
     if (list_id == (datum_index)-1) {
         return missing_string_text;
     }
-    list = (UnicodeStringList *)tag_instances[list_id & 0xffff].data;
+    list = (UnicodeStringList *)tag_instances[halo::datum_slot(list_id)].data;
     if (index < 0 || (int32_t)list->strings.count <= index) {
         return missing_string_text;
     }
@@ -144,22 +146,22 @@ void text_context::measure_string_extents(Rectangle2D *origin_bounds, Rectangle2
     datum_index resolved_font;
     Point2DInt pen;
 
-    text_measure_bounds.top = 0x7fff;
-    text_measure_bounds.left = 0x7fff;
-    text_measure_bounds.bottom = (int16_t)0x8000;
-    text_measure_bounds.right = (int16_t)0x8000;
+    text_measure_bounds.top = k_text_coordinate_max;
+    text_measure_bounds.left = k_text_coordinate_max;
+    text_measure_bounds.bottom = k_text_coordinate_min;
+    text_measure_bounds.right = k_text_coordinate_min;
 
     resolved_font = hud_text_draw_font_tag_id;
     if (hud_text_draw_color_or_flags != (int16_t)-1) {
-        Font *base_font = (Font *)tag_instances[hud_text_draw_font_tag_id & 0xffff].data;
+        Font *base_font = (Font *)tag_instances[halo::datum_slot(hud_text_draw_font_tag_id)].data;
 
         TagDependency *style_dependency = &base_font->bold + hud_text_draw_color_or_flags;
         resolved_font = *(datum_index *)&style_dependency->tag_id;
     }
-    if (resolved_font == (datum_index)0xffffffff) {
+    if (resolved_font == (datum_index)k_datum_index_none) {
         resolved_font = hud_text_draw_font_tag_id;
     }
-    text_measure_font = (uint32_t)tag_instances[resolved_font & 0xffff].data;
+    text_measure_font = (uint32_t)tag_instances[halo::datum_slot(resolved_font)].data;
 
     wide_text_strategy::instance().wrap_and_draw(text_measure_glyph_callback, origin_bounds, &pen, (Rectangle2D *)0, 0, string);
 
