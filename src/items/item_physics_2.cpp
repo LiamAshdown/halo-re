@@ -1,4 +1,5 @@
 #include "halo/core/slot_mask.hpp"
+#include "halo/core/collision_flags.hpp"
 #include "halo/items/items.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -24,6 +25,19 @@ static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::
 static auto &s_ground_point_marker = halo::link::ref<char []>(halo::items::vars().s_ground_point_marker);
 
 namespace halo::items {
+
+namespace {
+
+constexpr uint32_t k_item_collision_mask = halo::to_bits(
+    halo::collision_test_flag::front_face | halo::collision_test_flag::ignore_invisible | halo::collision_test_flag::structure_bsp |
+    halo::collision_test_flag::water_surface | halo::collision_test_flag::nearby_objects | halo::collision_test_flag::object_biped |
+    halo::collision_test_flag::object_vehicle | halo::collision_test_flag::object_garbage | halo::collision_test_flag::object_projectile |
+    halo::collision_test_flag::object_scenery | halo::collision_test_flag::object_machine | halo::collision_test_flag::object_control |
+    halo::collision_test_flag::object_light_fixture | halo::collision_test_flag::object_placeholder |
+    halo::collision_test_flag::object_sound_scenery | halo::collision_test_flag::unstick);
+
+}  // namespace
+
 
 #define F(p, o) (*(float *)((p) + (o)))
 
@@ -53,7 +67,7 @@ uint8_t item_ref::update()
     real_vector3d *forward = &((item_object *)obj)->base.forward;
     real_vector3d *up = &((item_object *)obj)->base.up;
 
-    if ((((item_object *)obj)->base.flags & 0x800) && ((item_object *)obj)->base.parent_object == k_datum_index_none) {
+    if ((((item_object *)obj)->base.flags & _object_needs_cluster_update_bit) && ((item_object *)obj)->base.parent_object == k_datum_index_none) {
         if ((((Item *)tag)->item_flags & 1) && !(halo::libm::fabs(((item_object *)obj)->base.up.k - 1.0f) < 9.999999747378752e-05)) {
             real_vector3d side;
 
@@ -65,7 +79,7 @@ uint8_t item_ref::update()
             }
         }
 
-        if (!(((item_object *)obj)->base.flags & 0x20)) {
+        if (!(((item_object *)obj)->base.flags & _object_at_rest_bit)) {
             real_vector3d velocity = ((item_object *)obj)->base.velocity;
             real_point3d target;
             collision_result hit;
@@ -76,7 +90,7 @@ uint8_t item_ref::update()
             target.x = ((item_object *)obj)->base.position.x + velocity.i;
             target.y = ((item_object *)obj)->base.position.y + velocity.j;
             target.z = ((item_object *)obj)->base.position.z + velocity.k;
-            if (halo::physics::collision_test_movement_segment_between_points(&((item_object *)obj)->base.position, &target, 0x1ff3e9,
+            if (halo::physics::collision_test_movement_segment_between_points(&((item_object *)obj)->base.position, &target, k_item_collision_mask,
                                                                ((item_object *)obj)->item.ignore_object_index, &hit)) {
                 real speed_factor;
                 int16_t hit_type = *(int16_t *)&hit;
@@ -126,14 +140,14 @@ uint8_t item_ref::update()
                     if (halo::game::globals().current_engine == 0 && (datum_index)((item_object *)obj)->base.owner_linkage == k_datum_index_none) {
                         halo::objects::object_list_membership_set(item_index, 1);
                     }
-                    ((item_object *)obj)->base.flags |= 0x20;
+                    ((item_object *)obj)->base.flags |= _object_at_rest_bit;
                     if (hit_type != 2) {
-                        ((item_object *)obj)->item.flags |= 0x10;
+                        ((item_object *)obj)->item.flags |= _item_at_rest_on_object_bit;
                         ((item_object *)obj)->item.resting_object_index = hit.object_index;
                         halo::math::matrix4x3_inverse_transform_point(*halo::objects::object_get_node_marker_address(hit.object_index, 0),
                                                           *(&((item_object *)obj)->item.contact_point), hit.point);
                     } else {
-                        ((item_object *)obj)->item.flags |= 8;
+                        ((item_object *)obj)->item.flags |= _item_at_rest_on_structure_bit;
                         ((item_object *)obj)->item.resting_surface_index = *(int16_t *)((uint8_t *)&hit + 0x44);
                         ((item_object *)obj)->item.resting_bsp_index = halo::scenario::globals().structure_bsp_index;
                     }
@@ -151,12 +165,12 @@ uint8_t item_ref::update()
                     velocity.j += hit.plane.normal.j * impulse;
                     velocity.k += hit.plane.normal.k * impulse;
                     target = hit.point;
-                    if (halo::physics::object_collision_test_cluster_group(0x1ff3e9, &target, item_index)) {
+                    if (halo::physics::object_collision_test_cluster_group(k_item_collision_mask, &target, item_index)) {
                         target.x = hit.plane.normal.i * 0.05f + hit.point.x;
                         target.y = hit.plane.normal.j * 0.05f + hit.point.y;
                         target.z = hit.plane.normal.k * 0.05f + hit.point.z;
                     }
-                    halo::physics::object_collision_test_cluster_group(0x1ff3e9, &target, item_index);
+                    halo::physics::object_collision_test_cluster_group(k_item_collision_mask, &target, item_index);
                 }
             }
             ((item_object *)obj)->base.velocity = velocity;
@@ -166,15 +180,15 @@ uint8_t item_ref::update()
             uint32_t flags = ((item_object *)obj)->item.flags;
 
             halo::objects::object_get_node_local_transform(item_index, s_ground_point_marker, &marker, 1);
-            if ((flags & 8) && ((item_object *)obj)->item.resting_surface_index != -1 && ((item_object *)obj)->item.resting_bsp_index == halo::scenario::globals().structure_bsp_index) {
+            if ((flags & _item_at_rest_on_structure_bit) && ((item_object *)obj)->item.resting_surface_index != -1 && ((item_object *)obj)->item.resting_bsp_index == halo::scenario::globals().structure_bsp_index) {
                 uint8_t *surface = *(uint8_t **)(global_structure_collision_bsp + 0x40) + ((item_object *)obj)->item.resting_surface_index * 0xc;
 
                 if ((surface[8] & 8) && !halo::objects::breakable_surface_is_intact((int16_t)surface[9])) {
-                    ((item_object *)obj)->item.flags = flags & ~8u;
+                    ((item_object *)obj)->item.flags = flags & ~(uint32_t)_item_at_rest_on_structure_bit;
                     ((item_object *)obj)->item.resting_surface_index = -1;
                     item_start_falling(item_index);
                 }
-            } else if (flags & 0x10) {
+            } else if (flags & _item_at_rest_on_object_bit) {
                 datum_index support = ((item_object *)obj)->item.resting_object_index;
 
                 if (halo::objects::object_try_and_get(support, 0xffffffff) != 0) {
@@ -184,7 +198,7 @@ uint8_t item_ref::update()
                                               *halo::objects::object_get_node_marker_address(support, 0));
                     halo::items::item_align_to_normal_and_point(0, item_index, &((item_object *)obj)->item.rotation_axis, &contact);
                 } else {
-                    ((item_object *)obj)->item.flags = flags & ~0x10u;
+                    ((item_object *)obj)->item.flags = flags & ~(uint32_t)_item_at_rest_on_object_bit;
                     item_start_falling(item_index);
                 }
             }
@@ -194,14 +208,14 @@ uint8_t item_ref::update()
             halo::items::item_compute_rotation(item_index);
         }
 
-        if (((item_object *)obj)->item.flags & 4) {
+        if (((item_object *)obj)->item.flags & _item_rotation_valid_bit) {
             real_vector3d *axis = &((item_object *)obj)->item.rotation_axis;
             real sin_angle = ((item_object *)obj)->item.rotation_sine;
             real cos_angle = ((item_object *)obj)->item.rotation_cosine;
             object_marker marker;
             real_vector3d side;
 
-            if (halo::networking::globals().game_mode == 0 && (((item_object *)obj)->base.flags & 0x20) &&
+            if (halo::networking::globals().game_mode == 0 && (((item_object *)obj)->base.flags & _object_at_rest_bit) &&
                 (int16_t)halo::objects::object_get_node_local_transform(item_index, s_ground_point_marker, &marker, 1)) {
                 real_matrix4x3 frame = marker.node_transform;
 
