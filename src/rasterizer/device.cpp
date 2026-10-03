@@ -654,7 +654,7 @@ void rasterizer_end_frame(void)
         if (rasterizer_render_target_vertex_buffer != 0) {
             void *buffer = rasterizer_render_target_vertex_buffer;
 
-            render_device().buffer_lock(buffer, 0, stride * 4, (void **)&vertices, halo::d3d9::k_lock_discard);
+            render_device().buffer_lock(buffer, 0, stride * 4, &vertices, halo::d3d9::k_lock_discard);
             if (vertices != 0) {
                 float right = (float)width - 0.5f;
                 float bottom = (float)height - 0.5f;

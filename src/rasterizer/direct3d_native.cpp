@@ -15,7 +15,7 @@
 namespace halo::rasterizer {
 
 
-static uint32_t get_param(void *effect, const char *name)
+static uint32_t get_param(uint32_t effect, const char *name)
 {
     return (uint32_t)render_device().effect_get_parameter_by_name(effect, 0, name);
 }
@@ -62,7 +62,7 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     for (i = 116; i <= 121; i++) {
-        void *effect = (void *)rasterizer_effects[i].effect;
+        uint32_t effect = rasterizer_effects[i].effect;
         handles = (uint32_t *)GlobalAlloc(0, 0x14);
         rasterizer_effects[i].constant_handles = (uint32_t)handles;
         handles[0] = get_param(effect, "c_primary_change_color");
@@ -73,7 +73,7 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     for (i = 32; i <= 34; i++) {
-        void *effect = (void *)rasterizer_effects[i].effect;
+        uint32_t effect = rasterizer_effects[i].effect;
         handles = (uint32_t *)GlobalAlloc(0, 0xc);
         rasterizer_effects[i].constant_handles = (uint32_t)handles;
         handles[0] = get_param(effect, "c_eye_forward");
@@ -82,7 +82,7 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     for (i = 37; i <= 39; i++) {
-        void *effect = (void *)rasterizer_effects[i].effect;
+        uint32_t effect = rasterizer_effects[i].effect;
         handles = (uint32_t *)GlobalAlloc(0, 0xc);
         rasterizer_effects[i].constant_handles = (uint32_t)handles;
         handles[0] = get_param(effect, "c_eye_forward");
@@ -91,7 +91,7 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     {
-        void *effect = (void *)rasterizer_effects[106].effect;
+        uint32_t effect = rasterizer_effects[106].effect;
         handles = (uint32_t *)GlobalAlloc(0, 0x10);
         rasterizer_effects[106].constant_handles = (uint32_t)handles;
         handles[0] = get_param(effect, "c_eye_forward");
@@ -101,7 +101,7 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     {
-        void *effect = (void *)rasterizer_effects[107].effect;
+        uint32_t effect = rasterizer_effects[107].effect;
         handles = (uint32_t *)GlobalAlloc(0, 0xc);
         rasterizer_effects[107].constant_handles = (uint32_t)handles;
         handles[0] = get_param(effect, "c_eye_forward");
@@ -110,7 +110,7 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     {
-        void *effect = (void *)rasterizer_effects[108].effect;
+        uint32_t effect = rasterizer_effects[108].effect;
         handles = (uint32_t *)GlobalAlloc(0, 0xc);
         rasterizer_effects[108].constant_handles = (uint32_t)handles;
         handles[0] = get_param(effect, "c_eye_forward");
@@ -119,7 +119,7 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     {
-        void *effect = (void *)rasterizer_effects[0].effect;
+        uint32_t effect = rasterizer_effects[0].effect;
         handles = (uint32_t *)GlobalAlloc(0, 0x18);
         rasterizer_effects[0].constant_handles = (uint32_t)handles;
         handles[0] = get_param(effect, "c_material_color");
@@ -131,14 +131,14 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     for (i = 1; i <= 3; i++) {
-        void *effect = (void *)rasterizer_effects[i].effect;
+        uint32_t effect = rasterizer_effects[i].effect;
         handles = (uint32_t *)GlobalAlloc(0, 4);
         rasterizer_effects[i].constant_handles = (uint32_t)handles;
         handles[0] = get_param(effect, "c_material_color");
     }
 
     {
-        void *effect = (void *)rasterizer_effects[114].effect;
+        uint32_t effect = rasterizer_effects[114].effect;
         handles = (uint32_t *)GlobalAlloc(0, 8);
         rasterizer_effects[114].constant_handles = (uint32_t)handles;
         handles[0] = get_param(effect, "c_desaturation_tint");
@@ -146,7 +146,7 @@ uint8_t rasterizer_dx9_shaders_initialize(void)
     }
 
     for (i = 40; i <= 43; i++) {
-        void *effect = (void *)rasterizer_effects[i].effect;
+        uint32_t effect = rasterizer_effects[i].effect;
         handles = (uint32_t *)GlobalAlloc(0, 0x10);
         rasterizer_effects[i].constant_handles = (uint32_t)handles;
         handles[0] = get_param(effect, "c_specular_brightness");
@@ -175,25 +175,25 @@ uint8_t rasterizer_dx9_vertex_declarations_create(void)
     memset(rasterizer_vertex_declarations, 0, sizeof(rasterizer_vertex_declarations));
 
 
-    hr[0] = render_device().create_vertex_declaration(vertex_elements_environment_uncompressed, (void **)&rasterizer_vertex_declarations[0].declaration);
-    hr[1] = render_device().create_vertex_declaration(vertex_elements_environment_uncompressed, (void **)&rasterizer_vertex_declarations[1].declaration);
-    hr[2] = render_device().create_vertex_declaration(vertex_elements_environment_lightmap, (void **)&rasterizer_vertex_declarations[2].declaration);
-    hr[3] = render_device().create_vertex_declaration(vertex_elements_environment_lightmap, (void **)&rasterizer_vertex_declarations[3].declaration);
-    hr[4] = render_device().create_vertex_declaration(vertex_elements_model, (void **)&rasterizer_vertex_declarations[4].declaration);
-    hr[5] = render_device().create_vertex_declaration(vertex_elements_model, (void **)&rasterizer_vertex_declarations[5].declaration);
-    hr[6] = render_device().create_vertex_declaration(vertex_elements_dynamic, (void **)&rasterizer_vertex_declarations[6].declaration);
-    hr[7] = render_device().create_vertex_declaration(vertex_elements_dynamic, (void **)&rasterizer_vertex_declarations[7].declaration);
-    hr[8] = render_device().create_vertex_declaration(vertex_elements_dynamic_screen, (void **)&rasterizer_vertex_declarations[8].declaration);
-    hr[9] = render_device().create_vertex_declaration(vertex_elements_debug, (void **)&rasterizer_vertex_declarations[9].declaration);
-    hr[10] = render_device().create_vertex_declaration(vertex_elements_decal, (void **)&rasterizer_vertex_declarations[10].declaration);
-    hr[11] = render_device().create_vertex_declaration(vertex_elements_detail_object, (void **)&rasterizer_vertex_declarations[11].declaration);
-    hr[12] = render_device().create_vertex_declaration(vertex_elements_environment_uncompressed_ff, (void **)&rasterizer_vertex_declarations[12].declaration);
-    hr[13] = render_device().create_vertex_declaration(vertex_elements_environment_lightmap_ff, (void **)&rasterizer_vertex_declarations[13].declaration);
-    hr[14] = render_device().create_vertex_declaration(vertex_elements_model_ff, (void **)&rasterizer_vertex_declarations[14].declaration);
-    hr[15] = render_device().create_vertex_declaration(vertex_elements_model_processed, (void **)&rasterizer_vertex_declarations[15].declaration);
-    hr[16] = render_device().create_vertex_declaration(vertex_elements_unlit_zsprite, (void **)&rasterizer_vertex_declarations[16].declaration);
-    hr[17] = render_device().create_vertex_declaration(vertex_elements_screen_transformed_lit, (void **)&rasterizer_vertex_declarations[17].declaration);
-    hr[18] = render_device().create_vertex_declaration(vertex_elements_screen_transformed_lit_specular, (void **)&rasterizer_vertex_declarations[18].declaration);
+    hr[0] = render_device().create_vertex_declaration(vertex_elements_environment_uncompressed, &rasterizer_vertex_declarations[0].declaration);
+    hr[1] = render_device().create_vertex_declaration(vertex_elements_environment_uncompressed, &rasterizer_vertex_declarations[1].declaration);
+    hr[2] = render_device().create_vertex_declaration(vertex_elements_environment_lightmap, &rasterizer_vertex_declarations[2].declaration);
+    hr[3] = render_device().create_vertex_declaration(vertex_elements_environment_lightmap, &rasterizer_vertex_declarations[3].declaration);
+    hr[4] = render_device().create_vertex_declaration(vertex_elements_model, &rasterizer_vertex_declarations[4].declaration);
+    hr[5] = render_device().create_vertex_declaration(vertex_elements_model, &rasterizer_vertex_declarations[5].declaration);
+    hr[6] = render_device().create_vertex_declaration(vertex_elements_dynamic, &rasterizer_vertex_declarations[6].declaration);
+    hr[7] = render_device().create_vertex_declaration(vertex_elements_dynamic, &rasterizer_vertex_declarations[7].declaration);
+    hr[8] = render_device().create_vertex_declaration(vertex_elements_dynamic_screen, &rasterizer_vertex_declarations[8].declaration);
+    hr[9] = render_device().create_vertex_declaration(vertex_elements_debug, &rasterizer_vertex_declarations[9].declaration);
+    hr[10] = render_device().create_vertex_declaration(vertex_elements_decal, &rasterizer_vertex_declarations[10].declaration);
+    hr[11] = render_device().create_vertex_declaration(vertex_elements_detail_object, &rasterizer_vertex_declarations[11].declaration);
+    hr[12] = render_device().create_vertex_declaration(vertex_elements_environment_uncompressed_ff, &rasterizer_vertex_declarations[12].declaration);
+    hr[13] = render_device().create_vertex_declaration(vertex_elements_environment_lightmap_ff, &rasterizer_vertex_declarations[13].declaration);
+    hr[14] = render_device().create_vertex_declaration(vertex_elements_model_ff, &rasterizer_vertex_declarations[14].declaration);
+    hr[15] = render_device().create_vertex_declaration(vertex_elements_model_processed, &rasterizer_vertex_declarations[15].declaration);
+    hr[16] = render_device().create_vertex_declaration(vertex_elements_unlit_zsprite, &rasterizer_vertex_declarations[16].declaration);
+    hr[17] = render_device().create_vertex_declaration(vertex_elements_screen_transformed_lit, &rasterizer_vertex_declarations[17].declaration);
+    hr[18] = render_device().create_vertex_declaration(vertex_elements_screen_transformed_lit_specular, &rasterizer_vertex_declarations[18].declaration);
 
     ok = 1;
     for (i = 0; i < 19; i++) {
@@ -245,7 +245,7 @@ uint8_t rasterizer_dx9_vertex_declarations_create(void)
     rasterizer_vertex_declarations[18].fvf = 0x1c4;
 
     if (rasterizer_caps.max_streams < 2) {
-        int32_t hr19 = render_device().create_vertex_declaration(vertex_elements_environment_single_stream_ff, (void **)&rasterizer_vertex_declarations[19].declaration);
+        int32_t hr19 = render_device().create_vertex_declaration(vertex_elements_environment_single_stream_ff, &rasterizer_vertex_declarations[19].declaration);
         ok = (hr19 >= 0) && ok;
         rasterizer_vertex_declarations[19].usage = 8;
     }

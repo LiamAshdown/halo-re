@@ -146,7 +146,7 @@ uint8_t rasterizer_dx9_pixel_shaders_load_all(void)
     if (index < k_rasterizer_pixel_shader_effects) {
         int i;
         for (i = 0; i < k_rasterizer_pixel_shader_effects; i++) {
-            void *effect = (void *)rasterizer_effects[i].effect;
+            uint32_t effect = rasterizer_effects[i].effect;
             if (effect != 0) {
                 render_device().release(effect);
                 rasterizer_effects[i].effect = 0;
@@ -190,7 +190,7 @@ void rasterizer_dx9_pixel_shaders_release(void)
     free_constant_handles(40, 43);
 
     for (i = 0; i < k_rasterizer_pixel_shader_effects; i++) {
-        void *effect = (void *)rasterizer_effects[i].effect;
+        uint32_t effect = rasterizer_effects[i].effect;
         if (effect != 0) {
             render_device().release(effect);
             rasterizer_effects[i].effect = 0;
@@ -912,7 +912,7 @@ uint8_t rasterizer_render_target_initialize(void)
         return 0;
     }
     indices = NULL;
-    if (render_device().buffer_lock(rasterizer_render_target_index_buffer, 0, 8, (void **)&indices, 0) < 0) {
+    if (render_device().buffer_lock(rasterizer_render_target_index_buffer, 0, 8, &indices, 0) < 0) {
         ok = 0;
     }
     if (indices != NULL) {

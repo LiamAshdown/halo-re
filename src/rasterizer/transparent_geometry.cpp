@@ -836,7 +836,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
 
     if (rasterizer_caps_flag_688 == 0 && rasterizer_caps_flag_68a == 0 &&
         rasterizer_caps.pixel_shader_version >= halo::d3d9::k_pixel_shader_version_1_1) {
-        void *effect = (void *)rasterizer_effects[105].effect;
+        uint32_t effect = rasterizer_effects[105].effect;
 
         if (effect != 0) {
             const GlobalsRasterizerData *data = rasterizer_globals_data;

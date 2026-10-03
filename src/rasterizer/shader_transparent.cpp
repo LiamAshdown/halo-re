@@ -351,7 +351,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
         shader_base = 0x32;
         if (effect_slot->constant_handles != 0) {
             const uint32_t *handles = (const uint32_t *)effect_slot->constant_handles;
-            void *effect = (void *)effect_slot->effect;
+            uint32_t effect = effect_slot->effect;
 
             for (i = 0; i < 4; i++) {
                 render_device().effect_set_vector(effect, handles[i], &vectors[i * 4]);
@@ -370,7 +370,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
         shader_base = 0x36;
         if (effect_slot->constant_handles != 0) {
             const uint32_t *handles = (const uint32_t *)effect_slot->constant_handles;
-            void *effect = (void *)effect_slot->effect;
+            uint32_t effect = effect_slot->effect;
 
             for (i = 0; i < 3; i++) {
                 render_device().effect_set_vector(effect, handles[i], &vectors[i * 4]);
@@ -431,7 +431,7 @@ void rasterizer_glass_reflection_draw(transparent_geometry_group *group, int16_t
     }
 
     {
-        void *effect = (void *)effect_slot->effect;
+        uint32_t effect = effect_slot->effect;
         float bump_scale = glass->bump_map_scale;
         uint32_t bump_map_tag = *(const uint32_t *)&glass->bump_map.tag_id;
         uint32_t normalization_tag = *(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id;
@@ -2167,7 +2167,7 @@ namespace rasterizer_water_ripple_draw_impl {
  */
 void rasterizer_water_ripple_draw(rasterizer_vertex_buffer *vertex_buffer, const Shader *shader, int32_t dynamic_index_slot, int32_t first_primitive, int32_t primitive_count)
 {
-    void *effect = (void *)rasterizer_effects[112].effect;
+    uint32_t effect = rasterizer_effects[112].effect;
     const render_fog *fog = &rasterizer_window.fog;
     uint8_t succeeded = 1;
     int16_t permutation;

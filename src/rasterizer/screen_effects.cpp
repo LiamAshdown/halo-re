@@ -1639,7 +1639,7 @@ static void set_quad_vertex(int i, float x, float y, float u, float v)
 int16_t rasterizer_sun_glow_blur(int16_t first, int16_t second, int16_t passes)
 {
     int16_t pass;
-    void *effect = (void *)(uintptr_t)rasterizer_effects[76].effect;
+    uint32_t effect = rasterizer_effects[76].effect;
 
     if (effect == NULL || passes <= 0) {
         return (passes & 1) ? second : first;
@@ -1679,12 +1679,12 @@ int16_t rasterizer_sun_glow_blur(int16_t first, int16_t second, int16_t passes)
         set_quad_vertex(3, -1.015625f, -0.984375f, 0.0f, 1.0f);
         weight[0] = weight[1] = weight[2] = weight[3] = (pass > 0) ? 0.5f : 1.0f;
         render_device().set_pixel_shader_constant_f(0, weight, 1);
-        effect = (void *)(uintptr_t)rasterizer_effects[76].effect;
+        effect = rasterizer_effects[76].effect;
         render_device().effect_begin(effect, &effect_passes, 3);
-        effect = (void *)(uintptr_t)rasterizer_effects[76].effect;
+        effect = rasterizer_effects[76].effect;
         render_device().effect_pass(effect, 1);
         render_device().draw_primitive_up(6, 2, rasterizer_shadow_screen_quad, sizeof(rasterizer_dynamic_screen_vertex));
-        effect = (void *)(uintptr_t)rasterizer_effects[76].effect;
+        effect = rasterizer_effects[76].effect;
         render_device().effect_end(effect);
     }
     rasterizer_render_target_set_active(rasterizer_window.type, 0, 0);
@@ -1722,7 +1722,7 @@ void rasterizer_sun_glow_capture(const float *rect, int16_t target_index)
 {
     float constants[8][4];
     float width, height;
-    void *effect;
+    uint32_t effect;
     int i, j;
 
     render_device().set_texture(0, rasterizer_render_targets[1].texture);
@@ -1762,7 +1762,7 @@ void rasterizer_sun_glow_capture(const float *rect, int16_t target_index)
     render_device().set_vertex_shader_constant_f(0xd, &constants[0][0], 8);
     rasterizer_render_target_set_active(target_index, 0, 0);
 
-    effect = (void *)(uintptr_t)rasterizer_effects[76].effect;
+    effect = rasterizer_effects[76].effect;
     if (effect != NULL) {
         uint32_t passes;
 
@@ -1771,10 +1771,10 @@ void rasterizer_sun_glow_capture(const float *rect, int16_t target_index)
         set_quad_vertex(2, 0.984375f, -0.984375f, 1.0f, 1.0f);
         set_quad_vertex(3, -1.015625f, -0.984375f, 0.0f, 1.0f);
         render_device().effect_begin(effect, &passes, 3);
-        effect = (void *)(uintptr_t)rasterizer_effects[76].effect;
+        effect = rasterizer_effects[76].effect;
         render_device().effect_pass(effect, 0);
         render_device().draw_primitive_up(6, 2, rasterizer_shadow_screen_quad, sizeof(rasterizer_dynamic_screen_vertex));
-        effect = (void *)(uintptr_t)rasterizer_effects[76].effect;
+        effect = rasterizer_effects[76].effect;
         render_device().effect_end(effect);
     }
     rasterizer_render_target_set_active(rasterizer_window.type, 0, 0);
@@ -2339,7 +2339,7 @@ void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *verti
     }
 
     if (ok && slot != NULL && slot->effect != 0) {
-        void *effect = (void *)(uintptr_t)slot->effect;
+        uint32_t effect = slot->effect;
         uint32_t passes;
         uint32_t pass;
 

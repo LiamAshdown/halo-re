@@ -294,7 +294,7 @@ void rasterizer_detail_objects_vertex_buffer_fill(rasterizer_detail_object_batch
 
     scenario = global_scenario;
     buffer = rasterizer_detail_object_vertex_buffer;
-    if (render_device().buffer_lock(buffer, 0, 0x78000, (void **)&vertices, 0) >= 0 && vertices != 0) {
+    if (render_device().buffer_lock(buffer, 0, 0x78000, &vertices, 0) >= 0 && vertices != 0) {
         uint8_t *detail_objects = *(uint32_t *)((uint8_t *)global_structure_bsp + 0x24c) != 0
                                       ? (uint8_t *)*(uint32_t *)((uint8_t *)global_structure_bsp + 0x250) : (uint8_t *)0;
         const uint8_t *instances = (const uint8_t *)*(uint32_t *)(detail_objects + 0x10);

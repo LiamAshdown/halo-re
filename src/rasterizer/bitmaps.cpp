@@ -327,7 +327,7 @@ uint8_t rasterizer_bind_texture_d3d9(int16_t stage, BitmapData *bitmap)
         return 0;
     }
     halo::cache::texture_cache_get(bitmap, 1, 1);
-    if (render_device().set_texture((uint32_t)(int32_t)stage, *(void **)&((struct BitmapData *)bitmap)->hardware_texture) < 0) {
+    if (render_device().set_texture((uint32_t)(int32_t)stage, *&((struct BitmapData *)bitmap)->hardware_texture) < 0) {
         return 0;
     }
     return 1;
@@ -353,7 +353,7 @@ uint8_t rasterizer_bind_texture_d3dx(int16_t stage, BitmapData *bitmap, rasteriz
     }
     halo::cache::texture_cache_get(bitmap, 1, 1);
     effect = (void *)effect_slot->effect;
-    render_device().effect_set_texture(effect, effect_slot->texture_handles[stage], *(void **)&((struct BitmapData *)bitmap)->hardware_texture);
+    render_device().effect_set_texture(effect, effect_slot->texture_handles[stage], *&((struct BitmapData *)bitmap)->hardware_texture);
     return 1;
 }
 

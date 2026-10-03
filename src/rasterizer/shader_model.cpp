@@ -1090,7 +1090,7 @@ static float clamp01(float value)
 static void set_effect_vector(rasterizer_effect_slot *slot, int handle, float x, float y, float z, float w)
 {
     uint32_t *handles = (uint32_t *)(uintptr_t)slot->constant_handles;
-    void *effect = (void *)(uintptr_t)slot->effect;
+    uint32_t effect = slot->effect;
 
     rasterizer_model_effect_vector[0] = x;
     rasterizer_model_effect_vector[1] = y;
@@ -1241,7 +1241,7 @@ void rasterizer_shader_model_draw_pixel_shader(uint8_t *shader, int16_t frame, r
         rasterizer_model_effect_vector[2] = animated.blue * scale;
         if (slot->constant_handles != 0) {
             uint32_t *handles = (uint32_t *)(uintptr_t)slot->constant_handles;
-            void *effect = (void *)(uintptr_t)slot->effect;
+            uint32_t effect = slot->effect;
 
             render_device().effect_set_vector(effect, handles[4], rasterizer_model_effect_vector);
         }
