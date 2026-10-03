@@ -10,6 +10,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern char *shell_command_line;
@@ -95,7 +96,6 @@ extern void *external_00686b5c;
 extern uint32_t external_00686b54;
 
 extern void input_directinput_initialize(void);
-extern uint32_t render_initialize(void);
 extern void game_state_startup(void);
 extern uint32_t sound_initialize(void);
 extern void input_directinput_release_devices(void);
@@ -160,7 +160,7 @@ uint8_t EngineLifecycle::initialize()
     halo::math::math_initialize();
     game_state_startup();
 
-    startup_ok = render_initialize();
+    startup_ok = halo::render::render_initialize();
     if ((uint8_t)startup_ok != 0) {
         halo::input::input_directinput_initialize();
         halo::sound::globals().disabled = (uint8_t)shell_nosound;

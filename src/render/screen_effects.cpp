@@ -21,6 +21,7 @@
 #include "halo/input/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -639,9 +640,9 @@ void draw(void)
     if (delta != 0) {
         sample = 1000 / delta;
     }
-    rasterizer_frame_statistics_graph_init();
-    fg_add_sample(0, (float)sample);
-    fg_render((uint8_t)frame_graph_render_graph, (uint8_t)frame_graph_render_infos);
+    halo::render::rasterizer_frame_statistics_graph_init();
+    halo::render::fg_add_sample(0, (float)sample);
+    halo::render::fg_render((uint8_t)frame_graph_render_graph, (uint8_t)frame_graph_render_infos);
     network_bandwidth_graph_update();
 
     if (!console_debug_toggle_6893e0) {

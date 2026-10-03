@@ -23,6 +23,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -99,7 +100,7 @@ void halo::render::ObjectRenderData::draw()
         real level_of_detail_pixels;
         real luminance_deficit;
 
-        if (render_object_is_camera_unit(data->object_index)) {
+        if (halo::render::render_object_is_camera_unit(data->object_index)) {
             return;
         }
         if ((obj->flags & _object_definition_flag0_bit) != 0) {
@@ -109,11 +110,11 @@ void halo::render::ObjectRenderData::draw()
             return;
         }
 
-        level_of_detail_pixels = object_compute_level_of_detail_pixels(data->object_index);
+        level_of_detail_pixels = halo::render::object_compute_level_of_detail_pixels(data->object_index);
         {
-            render_lighting *lighting = object_get_cached_render_lighting(data->object_index, level_of_detail_pixels);
+            render_lighting *lighting = halo::render::object_get_cached_render_lighting(data->object_index, level_of_detail_pixels);
             data->lighting = (uint32_t)(uintptr_t)lighting;
-            level_of_detail_pixels = object_compute_level_of_detail_pixels(data->object_index);
+            level_of_detail_pixels = halo::render::object_compute_level_of_detail_pixels(data->object_index);
             luminance_deficit = 1.0f - (lighting->shadow_color.red * 0.299f + lighting->shadow_color.green * 0.587f +
                                         lighting->shadow_color.blue * 0.114f);
         }
@@ -140,13 +141,13 @@ void halo::render::ObjectRenderData::draw()
                 darkness_fade = 1.0f;
             }
 
-            if (!render_object_shadow_begin(data, darkness_fade * distance_fade)) {
+            if (!halo::render::render_object_shadow_begin(data, darkness_fade * distance_fade)) {
                 return;
             }
         }
 
-        render_object_list(data, 0, data->object_index);
-        render_object_shadow_end(data);
+        halo::render::render_object_list(data, 0, data->object_index);
+        halo::render::render_object_shadow_end(data);
         return;
     }
 
@@ -170,8 +171,8 @@ void halo::render::ObjectRenderData::draw()
         definition = (Object *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
 
         if (sample_full_lighting) {
-            real level_of_detail_pixels = object_compute_level_of_detail_pixels(data->object_index);
-            render_lighting *lighting = object_get_cached_render_lighting(data->object_index, level_of_detail_pixels);
+            real level_of_detail_pixels = halo::render::object_compute_level_of_detail_pixels(data->object_index);
+            render_lighting *lighting = halo::render::object_get_cached_render_lighting(data->object_index, level_of_detail_pixels);
             data->lighting = (uint32_t)(uintptr_t)lighting;
         } else {
             data->lighting = 0;
@@ -190,7 +191,7 @@ void halo::render::ObjectRenderData::draw()
 
         render_model_effect top_level_effect = {0};
         top_level_effect.type = _render_model_effect_none;
-        render_object_list(data, &top_level_effect, data->object_index);
+        halo::render::render_object_list(data, &top_level_effect, data->object_index);
     }
 }
 
@@ -209,7 +210,7 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
         object *obj = ((object_header *)object_data->data)[(uint16_t)object_index].data;
         render_model_effect effect;
 
-        if (render_object_is_camera_unit(object_index) && !render_camera_global.mirrored) {
+        if (halo::render::render_object_is_camera_unit(object_index) && !render_camera_global.mirrored) {
             goto next_sibling;
         }
 
@@ -225,7 +226,7 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
 
         if ((obj->flags & _object_no_collision_bit) == 0) {
             Object *tag_data = (Object *)halo::cache::globals().tag_instances[(uint16_t)obj->definition_tag].data;
-            real lod = object_compute_level_of_detail_pixels(object_index);
+            real lod = halo::render::object_compute_level_of_detail_pixels(object_index);
 
             if (data->shadow_pass == 0) {
                 if (*(uint32_t *)&tag_data->modifier_shader.tag_id != 0xffffffffu) {
@@ -292,7 +293,7 @@ void halo::render::ObjectRenderData::list(render_model_effect *parent_effect, da
         }
 
         if (obj->first_child_object != k_datum_index_none) {
-            render_object_list(data, data->shadow_pass != 0 ? 0 : &effect,
+            halo::render::render_object_list(data, data->shadow_pass != 0 ? 0 : &effect,
                                obj->first_child_object);
         }
 
@@ -434,7 +435,7 @@ void halo::render::ObjectRenderData::shadows()
 
     for (i = 0; i < rendered_object_count; i++) {
         data->object_index = rendered_objects[i];
-        render_object(data);
+        halo::render::render_object(data);
     }
 }
 
@@ -494,7 +495,7 @@ real compute_level_of_detail_pixels(datum_index object_index)
  */
 render_lighting *get_cached_render_lighting(datum_index object_index, real level_of_detail_pixels)
 {
-    datum_index cache_index = object_get_cached_render_state(object_index, level_of_detail_pixels);
+    datum_index cache_index = halo::render::object_get_cached_render_state(object_index, level_of_detail_pixels);
 
     if (cache_index != k_datum_index_none) {
         return &((cached_object_render_state *)object_render_state_cache->data)[(uint16_t)cache_index].lighting;
@@ -524,7 +525,7 @@ datum_index get_cached_render_state(datum_index object_index, real level_of_deta
     if (cache_index != k_datum_index_none &&
         ((cached_object_render_state *)object_render_state_cache->data)[(uint16_t)cache_index].object_index ==
             object_index) {
-        object_render_state_refresh(cache_index, object_index, level_of_detail_pixels, 0);
+        halo::render::object_render_state_refresh(cache_index, object_index, level_of_detail_pixels, 0);
         return cache_index;
     }
 
@@ -552,7 +553,7 @@ datum_index get_cached_render_state(datum_index object_index, real level_of_deta
         }
     }
 
-    object_render_state_refresh(cache_index, object_index, level_of_detail_pixels, 1);
+    halo::render::object_render_state_refresh(cache_index, object_index, level_of_detail_pixels, 1);
     obj->cached_render_state_index = cache_index;
     return cache_index;
 }
@@ -642,21 +643,21 @@ void render_state_refresh(datum_index cache_index, datum_index object_index, rea
         object_get_root_object_velocities(object_index, &root_velocity, 0);
         if (root_velocity.i != 0.0f || root_velocity.j != 0.0f || root_velocity.k != 0.0f ||
             object_try_and_get(object_index, 0x80) != 0) {
-            render_lighting_step_vector3_toward(&entry->lighting.ambient_color.red,
+            halo::render::render_lighting_step_vector3_toward(&entry->lighting.ambient_color.red,
                                                 &entry->desired_lighting.ambient_color.red, 0.03f);
-            render_lighting_step_vector4_toward(&entry->lighting.reflection_tint.alpha,
+            halo::render::render_lighting_step_vector4_toward(&entry->lighting.reflection_tint.alpha,
                                                 &entry->desired_lighting.reflection_tint.alpha, 0.03f);
-            render_lighting_step_vector3_toward(&entry->lighting.distant_lights[0].color.red,
+            halo::render::render_lighting_step_vector3_toward(&entry->lighting.distant_lights[0].color.red,
                                                 &entry->desired_lighting.distant_lights[0].color.red, 0.03f);
-            render_lighting_step_direction_toward(&entry->lighting.distant_lights[0].direction,
+            halo::render::render_lighting_step_direction_toward(&entry->lighting.distant_lights[0].direction,
                                                   &entry->desired_lighting.distant_lights[0].direction, 0.03f);
-            render_lighting_step_vector3_toward(&entry->lighting.distant_lights[1].color.red,
+            halo::render::render_lighting_step_vector3_toward(&entry->lighting.distant_lights[1].color.red,
                                                 &entry->desired_lighting.distant_lights[1].color.red, 0.03f);
-            render_lighting_step_direction_toward(&entry->lighting.distant_lights[1].direction,
+            halo::render::render_lighting_step_direction_toward(&entry->lighting.distant_lights[1].direction,
                                                   &entry->desired_lighting.distant_lights[1].direction, 0.03f);
-            render_lighting_step_direction_toward(&entry->lighting.shadow_vector,
+            halo::render::render_lighting_step_direction_toward(&entry->lighting.shadow_vector,
                                                   &entry->desired_lighting.shadow_vector, 0.012f);
-            render_lighting_step_vector3_toward(&entry->lighting.shadow_color.red,
+            halo::render::render_lighting_step_vector3_toward(&entry->lighting.shadow_color.red,
                                                 &entry->desired_lighting.shadow_color.red, 0.03f);
         }
     }
@@ -909,7 +910,7 @@ void s(void)
         }
     }
 
-    render_objects_collect();
+    halo::render::render_objects_collect();
 
     data.shadow_pass = 0;
     pass = 0;
@@ -918,7 +919,7 @@ void s(void)
             int16_t i;
             for (i = 0; i < rendered_object_count; i++) {
                 data.object_index = rendered_objects[i];
-                render_object(&data);
+                halo::render::render_object(&data);
             }
         } else {
             first_person_weapon_update_lighting();
@@ -951,7 +952,7 @@ void s_collect(void)
     count = halo::structures::structure_bsp_collect_visible_objects((int32_t *)rendered_objects, 0x100,
         (structure_bsp_object_iterate_begin_fn)object_resolve_collideable_reference,
         (structure_bsp_object_iterate_next_fn)object_cluster_collideable_iterate_next,
-        (structure_bsp_object_get_bounds_fn)render_object_get_cull_sphere,
+        (structure_bsp_object_get_bounds_fn)halo::render::render_object_get_cull_sphere,
         (structure_bsp_object_predicate_fn)object_disconnect_from_map,
         (structure_bsp_object_accept_fn)object_cluster_stamp_mark_visited);
     rendered_object_count = count;
@@ -960,7 +961,7 @@ void s_collect(void)
         (int16_t)(0x100 - rendered_object_count),
         (structure_bsp_object_iterate_begin_fn)object_cluster_noncollideable_iterate_begin,
         (structure_bsp_object_iterate_next_fn)object_cluster_noncollideable_iterate_next,
-        (structure_bsp_object_get_bounds_fn)render_object_get_cull_sphere,
+        (structure_bsp_object_get_bounds_fn)halo::render::render_object_get_cull_sphere,
         (structure_bsp_object_predicate_fn)object_disconnect_from_map,
         (structure_bsp_object_accept_fn)object_cluster_stamp_mark_visited);
 

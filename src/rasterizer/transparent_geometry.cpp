@@ -6,13 +6,13 @@
 
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 
 extern uint8_t shader_is_decal(const Shader *shader);
 extern uint8_t shader_draw_before_water(const void *shader);
 extern void shader_texture_animation_evaluate(const void *function_source, const void *animation, float *out_u, float *out_v, float u_scale, float v_scale, float unused_z, float unused_w, float unused_5, float time);
-extern void render_lighting_disable_workaround(void);
 
 }  // extern "C"
 
@@ -981,7 +981,7 @@ void rasterizer_transparent_geometry_group_draw_active_camouflage(transparent_ge
         rasterizer_model_draw_prepare_states(&context, 1);
         rasterizer_shader_environment_draw_dispatch(group->dynamic_vertex_slot, (uint8_t *)(uintptr_t)group->shader, (int16_t)group->shader_permutation, (rasterizer_index_buffer *)(uintptr_t)group->index_buffer, group->dynamic_index_slot, group->primitive_count, (rasterizer_vertex_buffer *)(uintptr_t)group->vertex_buffer);
         rasterizer_model_draw_restore_states();
-        render_lighting_disable_workaround();
+        halo::render::render_lighting_disable_workaround();
         rasterizer_camouflage_fade_active = 0;
     }
 

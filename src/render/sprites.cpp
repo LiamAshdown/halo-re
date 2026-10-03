@@ -21,6 +21,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern float build_sprite_screen_coverage;
@@ -174,7 +175,7 @@ void halo::render::SpriteBuilder::rotational(uint32_t flags, int16_t first_seque
         color = (ColorARGB *)global_white_argb;
     }
 
-    render_sprite_transform_point_and_normal(origin, axis, &transformed_axis, data,
+    halo::render::render_sprite_transform_point_and_normal(origin, axis, &transformed_axis, data,
                                              (uint8_t)(flags & 1), &transformed_origin);
     d = halo::math::vector3d_angle_between_4cd4f0(transformed_axis, *((real_vector3d *)&transformed_origin)) -
         1.5707964f;
@@ -214,7 +215,7 @@ void halo::render::SpriteBuilder::rotational(uint32_t flags, int16_t first_seque
                     quad_flags = 3;
                 }
             }
-            build_sprite(data, (int16_t)(first_sequence_index + 1), sprite, 0, &transformed_origin,
+            halo::render::build_sprite(data, (int16_t)(first_sequence_index + 1), sprite, 0, &transformed_origin,
                          0, quad_rotation, scale, color, t * fade, quad_flags);
         }
     }
@@ -230,7 +231,7 @@ void halo::render::SpriteBuilder::rotational(uint32_t flags, int16_t first_seque
         count = (int16_t)sequences[first_sequence_index].sprites.count;
         side_rotation = (real)atan2(transformed_axis.j, transformed_axis.i);
         sprite = (int16_t)(int32_t)fmod((real)count * rotation * 0.15915494f + 0.5f, (real)count);
-        build_sprite(data, first_sequence_index, sprite, 0, &transformed_origin, 0, side_rotation,
+        halo::render::build_sprite(data, first_sequence_index, sprite, 0, &transformed_origin, 0, side_rotation,
                      scale, color, side_fade, 1);
     }
 }
@@ -446,7 +447,7 @@ void draw(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index,
     sprite = &((BitmapGroupSprite *)sequence->sprites.pointer)[sprite_index];
     bitmap = &((BitmapData *)bitmap_group->bitmap_data.pointer)[(int16_t)sprite->bitmap_index];
 
-    group_index = build_sprite_get_group(data, bitmap);
+    group_index = halo::render::build_sprite_get_group(data, bitmap);
     if (group_index == -1) {
         return;
     }
@@ -464,16 +465,16 @@ void draw(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index,
         cos_rotation = (real)cos(rotation);
     }
 
-    render_sprite_transform_point_and_normal(origin, direction, &transformed_direction, data,
+    halo::render::render_sprite_transform_point_and_normal(origin, direction, &transformed_direction, data,
                                              (uint8_t)flags, &transformed_origin);
-    render_billboard_build_orientation_basis(data, mode, (real_vector3d *)&transformed_origin,
+    halo::render::render_billboard_build_orientation_basis(data, mode, (real_vector3d *)&transformed_origin,
                                              &transformed_direction, &basis);
-    render_billboard_compute_scale(data, &scale, mode, &transformed_origin, bitmap);
+    halo::render::render_billboard_compute_scale(data, &scale, mode, &transformed_origin, bitmap);
 
     shader = (LightningShader *)data->shader;
     if (shader != 0 && shader->framebuffer_fade_mode != 0 && mode != 0) {
         halo::math::vector3d_cross_product(basis.normal, basis.bitangent, basis.tangent);
-        fade = render_billboard_compute_view_fade((real_vector3d *)&transformed_origin,
+        fade = halo::render::render_billboard_compute_view_fade((real_vector3d *)&transformed_origin,
                                                   &basis.normal,
                                                   shader->framebuffer_fade_mode) * fade;
     }
@@ -559,7 +560,7 @@ void draw(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index,
     data->sprite_count++;
 
     if ((data->flags & _build_sprite_data_screen_space_bit) == 0) {
-        real area = render_frustum_compute_box_overlap_area(&bounds, &render_frustum_global);
+        real area = halo::render::render_frustum_compute_box_overlap_area(&bounds, &render_frustum_global);
 
         build_sprite_screen_coverage = build_sprite_screen_coverage + area;
         if (area > 0.5f) {
@@ -711,7 +712,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
         rasterizer_vertex_buffer_lock_state = 0;
         return;
     }
-    indices = (uint16_t *)rasterizer_dynamic_index_slot_lock(index_slot);
+    indices = (uint16_t *)halo::render::rasterizer_dynamic_index_slot_lock(index_slot);
     vertices = (rasterizer_dynamic_screen_vertex *)rasterizer_dynamic_vertex_cache_lock(vertex_slot);
 
     has_fade = definition->framebuffer_fade_mode != 0;
@@ -861,7 +862,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
             return;
         }
 
-        color.alpha = contrail_compute_edge_fade_factor(&fade_normal, &point->position,
+        color.alpha = halo::render::contrail_compute_edge_fade_factor(&fade_normal, &point->position,
                                                         definition->framebuffer_fade_mode,
                                                         (uint8_t *)&definition->flags) * color.alpha;
         if (color.alpha < 0.0f) {
@@ -943,7 +944,7 @@ void render_all(uint32_t render_type_flags)
         for (i = 0; i < 4; i++) {
             if ((render_type_flags & (1u << ((uint8_t)definition->render_type & 0x1f))) != 0 &&
                 c->point_count[i] >= 2) {
-                render_contrail(c, definition, i);
+                halo::render::render_contrail(c, definition, i);
             }
         }
 
@@ -975,7 +976,7 @@ void particles(void)
         return;
     }
     viewer = current_local_player_index;
-    if (viewer == -1 || !(uint8_t)render_local_player_gunner_seat_visible(viewer)) {
+    if (viewer == -1 || !(uint8_t)halo::render::render_local_player_gunner_seat_visible(viewer)) {
         viewer = 1;
     }
     viewer_value = (int32_t)viewer;
@@ -1005,7 +1006,7 @@ void particles(void)
     if (record_count <= 0) {
         return;
     }
-    sort_introsort_loop(records, records + record_count, record_count, viewer_value);
+    halo::render::sort_introsort_loop(records, records + record_count, record_count, viewer_value);
 
     {
         int16_t group_count = 0;
@@ -1155,7 +1156,7 @@ void particles(void)
                     } else {
                         flags &= ~(uint32_t)_build_sprite_mirror_v_bit;
                     }
-                    build_sprite(&data, p->sequence_index, p->frame_index,
+                    halo::render::build_sprite(&data, p->sequence_index, p->frame_index,
                                  (int16_t)(uint16_t)definition->orientation, &origin, &direction,
                                  p->rotation, scale, &p->color, fade, flags);
                     p->last_update_tick = render_frame_index;
@@ -1168,7 +1169,7 @@ void particles(void)
                 average = 0.0f;
             }
             ((shader_effect *)(uintptr_t)data.shader)->average_particle_radius = average;
-            build_sprites_end(&data);
+            halo::render::build_sprites_end(&data);
         }
     }
 }

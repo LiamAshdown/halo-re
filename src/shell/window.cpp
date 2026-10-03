@@ -5,6 +5,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/render/api.hpp"
 
 typedef struct win32_bitmap {
     int32_t type;
@@ -18,7 +19,6 @@ static_assert(sizeof(win32_bitmap) == 0x18, "win32_bitmap layout");
 extern "C" {
 extern void chat_close(void);
 extern void chat_submit_input(void);
-extern int32_t render_device_is_ready(void);
 extern void rasterizer_capture_and_present(const int16_t *tile, void *bitmap);
 
 extern uint8_t shell_window_proc_bypass;
@@ -185,7 +185,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                 shell_window_minimized = 0;
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
-            if (render_device_is_ready() == 0) {
+            if (halo::render::render_device_is_ready() == 0) {
                 break;
             }
             goto resume_focus_fast_path;
@@ -227,7 +227,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
             break;
 
         case 0xf:
-            if (render_device_is_ready() == 0 && rasterizer_window_requested == 0) {
+            if (halo::render::render_device_is_ready() == 0 && rasterizer_window_requested == 0) {
                 if (rasterizer_device == 0) {
                     if (rasterizer_window_icon_bitmap != 0) {
                         dc = GetDC(hwnd);
@@ -264,7 +264,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
             break;
 
         case 0x20:
-            if (render_device_is_ready() == 0 && rasterizer_window_requested == 0) {
+            if (halo::render::render_device_is_ready() == 0 && rasterizer_window_requested == 0) {
                 if ((int16_t)lparam == 1 && GetForegroundWindow() == hwnd) {
                     SetCursor((HCURSOR)0);
                     return 1;
@@ -303,7 +303,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
         }
-        if (render_device_is_ready() != 1) {
+        if (halo::render::render_device_is_ready() != 1) {
             return 0;
         }
         return 0;

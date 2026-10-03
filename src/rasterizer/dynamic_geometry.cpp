@@ -5,12 +5,12 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 
 extern void debug_fp_draw_state_note(const char *site, int32_t hresult, uint32_t primitive_type, uint32_t vertex_count, uint32_t primitive_count);
 extern void debug_fp_pre_draw(void);
-extern uint16_t *rasterizer_dynamic_index_slot_lock(int32_t dynamic_index_slot);
 
 }  // extern "C"
 
@@ -546,7 +546,7 @@ void rasterizer_dynamic_vertex_draw(int32_t first_primitive, int32_t primitive_c
             if (index_slot == -1) {
                 return;
             }
-            indices = rasterizer_dynamic_index_slot_lock(index_slot);
+            indices = (uint16_t *)halo::render::rasterizer_dynamic_index_slot_lock(index_slot);
             for (triangle = 0; triangle < triangle_count; triangle += 2) {
                 uint16_t base = (uint16_t)((triangle / 2) * 4);
                 uint16_t *quad = indices + triangle * 3;

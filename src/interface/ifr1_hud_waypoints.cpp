@@ -3,6 +3,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -23,8 +24,6 @@ extern long lrint(double x);
 extern int32_t __ftol(double x);
 extern int32_t ui_real_to_int_truncate(float value);
 extern void unit_get_camera_position(datum_index unit_index, real_point3d *out);
-extern uint8_t render_project_world_point_to_screen(real_point2d *out, const real_point3d *point, void *frustum,
-                                                    void *camera);
 extern void color_rgb_int_to_real(ColorRGB *out, uint32_t packed);
 extern uint32_t color_rgb_float_to_int(const float *rgb);
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
@@ -294,7 +293,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
     }
 
     halo::math::matrix4x3_transform_point(point, point, render_camera_world_to_view);
-    if (visibility != 1 && render_project_world_point_to_screen(&screen, &point, render_frustum_global, render_camera_global) != 0) {
+    if (visibility != 1 && halo::render::render_project_world_point_to_screen(&screen, &point, (render_frustum *)render_frustum_global, (render_camera *)render_camera_global) != 0) {
         x = screen.x - (float)(render_viewport_left + 0x140);
         y = screen.y - (float)(render_viewport_top + 0xf0);
     } else {

@@ -21,6 +21,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -379,11 +380,11 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     halo::effects::player_effect_build_screen_flash((uint32_t *)&parameters.screen_flash, local_player_index);
     rasterizer_begin_frame(&parameters);
     first_person_weapon_update_zoom_static_tint(1);
-    billboard_system_frame_init();
-    render_sky();
+    halo::render::billboard_system_frame_init();
+    halo::render::render_sky();
     first_person_weapon_update_active_state();
     object_lights_update_all();
-    render_objects();
+    halo::render::render_objects();
     halo::structures::structure_picked_polygon_refresh();
     halo::structures::structure_picked_polygon_draw();
     lens_flare_update_samples();
@@ -394,7 +395,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
         shadow_data.shadow_pass = 1;
         shadow_data.outside_fog_plane = 1;
         shadow_data.shadow_radius = 0.0f;
-        render_object_shadows(&shadow_data);
+        halo::render::render_object_shadows(&shadow_data);
     }
     lights_apply_spot_falloff();
 
@@ -409,7 +410,7 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
 
     if (halo::structures::globals().picked_surfaces_valid) {
         rasterizer_fog_screen_overlay_set_states();
-        structure_pass(0, (structure_material_callback)render_window_structure_material_0x511f70,
+        structure_pass(0, (structure_material_callback)halo::render::render_window_structure_material_0x511f70,
                        0, 0);
         rasterizer_force_bilinear_filtering();
     }
@@ -430,34 +431,34 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
             render_force_flag = 1;
         }
         rasterizer_dynamic_light_technique_ps2_set_states();
-        structure_pass(render_window_structure_lightmap_begin_0x511f90,
-                       (structure_material_callback)render_window_structure_material_0x511fe0,
+        structure_pass(halo::render::render_window_structure_lightmap_begin_0x511f90,
+                       (structure_material_callback)halo::render::render_window_structure_material_0x511fe0,
                        (structure_lightmap_end_callback)halo::cseries::function_do_nothing, 0);
         render_force_flag = saved_69c67c;
         if (halo::structures::globals().picked_surfaces_valid) {
             rasterizer_shader_environment_technique_multipurpose_set_states();
-            structure_pass(render_window_structure_lightmap_begin_0x512010,
-                           (structure_material_callback)render_window_structure_material_0x512020,
+            structure_pass(halo::render::render_window_structure_lightmap_begin_0x512010,
+                           (structure_material_callback)halo::render::render_window_structure_material_0x512020,
                            (structure_lightmap_end_callback)halo::cseries::function_do_nothing, 0);
             rasterizer_active_environment_effect = 0;
             if (halo::structures::globals().picked_surfaces_valid) {
                 rasterizer_shader_environment_technique_self_illumination_set_states();
-                structure_pass(0, (structure_material_callback)render_window_structure_material_0x512040,
+                structure_pass(0, (structure_material_callback)halo::render::render_window_structure_material_0x512040,
                                0, 0);
                 if (halo::structures::globals().picked_surfaces_valid) {
                     rasterizer_shader_decal_pass_set_states();
                     structure_pass(0,
-                        (structure_material_callback)render_window_structure_material_0x512070, 0, 0);
+                        (structure_material_callback)halo::render::render_window_structure_material_0x512070, 0, 0);
                     if (halo::structures::globals().picked_surfaces_valid) {
                         transparent_geometry_group_last_drawn_key = 0;
                         rasterizer_secondary_groups_drawn = 0;
                         structure_pass(0, 0, 0,
                             (structure_transparent_material_callback)
-                                render_window_structure_transparent_0x512080);
+                                halo::render::render_window_structure_transparent_0x512080);
                         if (halo::structures::globals().picked_surfaces_valid) {
                             rasterizer_water_fade_compute_and_set_states();
                             structure_pass(0,
-                                (structure_material_callback)render_window_structure_material_0x5120c0,
+                                (structure_material_callback)halo::render::render_window_structure_material_0x5120c0,
                                 0, 0);
                         }
                     }
@@ -470,9 +471,9 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
         ((void (*)(void))current_game_engine->post_rasterize)();
     }
     halo::effects::weather_update_local_player();
-    render_particles();
+    halo::render::render_particles();
     halo::effects::particle_systems_render();
-    render_contrails(0xfffffff3);
+    halo::render::render_contrails(0xfffffff3);
     transparent_geometry_group_draw_all(1);
 
     rasterizer_decal_pass_begin(4);
@@ -491,8 +492,8 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     rasterizer_screen_flash_render();
     widget_draw_fullscreen_region(local_player_index);
     if (rasterizer_window.window_index == -1) {
-        rasterizer_frame_statistics_sample(&rasterizer_frame_statistics_state, 0);
-        rasterizer_frame_statistics_draw();
+        halo::render::rasterizer_frame_statistics_sample(&rasterizer_frame_statistics_state, 0);
+        halo::render::rasterizer_frame_statistics_draw();
     }
 }
 

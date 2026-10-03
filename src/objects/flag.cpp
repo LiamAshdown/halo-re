@@ -3,6 +3,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern void *const flag_render_device_slot;
@@ -22,7 +23,6 @@ extern real_point3d *global_zero_vector3d_pointer;
 extern data_array *object_data;
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern int32_t rasterizer_dynamic_index_cache_reserve(void);
-extern void *rasterizer_dynamic_index_slot_lock(void);
 extern void *rasterizer_dynamic_vertex_cache_lock(void);
 extern int32_t rasterizer_dynamic_vertex_cache_reserve(void);
 extern void rasterizer_model_draw_prepare_states(uint32_t flag_arg);
@@ -683,7 +683,7 @@ void halo::objects::FlagSystem::render(uint32_t *entry, uint32_t *submission_blo
         return;
     }
     normal_buffer = rasterizer_dynamic_vertex_cache_lock();
-    index_buffer = rasterizer_dynamic_index_slot_lock();
+    index_buffer = halo::render::rasterizer_dynamic_index_slot_lock(0);
 
     for (col = 0; col < width; col++) {
         for (row = 0; row < height; row++) {

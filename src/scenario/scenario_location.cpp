@@ -9,13 +9,13 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
 extern Scenario *global_scenario;
 extern float sqrtf(float x);
 extern void value_step_toward_target(float *value, float target, float max_step);
-extern void render_lighting_step_vector3_toward(float *current, float *target, float max_delta);
 extern scenario_game_globals *global_scenario_game_globals;
 }
 
@@ -344,7 +344,7 @@ sky_fog_resolved:
             value_step_toward_target(&state->opaque_distance, fog->opaque_distance, distance);
             distance = distance * 0.05f;
             value_step_toward_target(&state->maximum_density, fog->maximum_density, distance);
-            render_lighting_step_vector3_toward((float *)&state->color, (float *)&fog->color, distance);
+            halo::render::render_lighting_step_vector3_toward((float *)&state->color, (float *)&fog->color, distance);
             value_step_toward_target(&state->fog_screen_blend, fog_screen_blend_target, distance);
         }
 

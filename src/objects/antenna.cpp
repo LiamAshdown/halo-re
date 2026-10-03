@@ -6,6 +6,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern int32_t __ftol(double);
@@ -15,8 +16,6 @@ extern void antenna_render_geometry(Antenna *antenna_tag, antenna *ant);
 extern uint8_t antenna_sprite_shader[];
 extern void antenna_update_physics(antenna *ant, Antenna *antenna_tag, float dt);
 extern void *bitmap_group_get_bitmap_data(void);
-extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
-extern void build_sprites_end(build_sprite_data *data);
 extern double cos(double x);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
@@ -455,16 +454,16 @@ void halo::objects::AntennaView::render_geometry(Antenna *antenna_tag)
         direction.k = ant->vertices[i + 1].position.z - vertex->position.z;
         color = *(ColorARGB *)(tag_vertex + 0x2c);
         if (vertex->texture_scale != 0.0f && fade > 0.0f) {
-            build_sprite(&data, *(int16_t *)(tag_vertex + 0x28), 0, 1, &vertex->position, &direction, 0.0f,
+            halo::render::build_sprite(&data, *(int16_t *)(tag_vertex + 0x28), 0, 1, &vertex->position, &direction, 0.0f,
                 vertex->texture_scale, &color, fade, 0);
         }
     }
-    build_sprites_end(&data);
+    halo::render::build_sprites_end(&data);
 }
 
 namespace {
-static void (*const build_sprites_end__as_antenna_render_wire)(void) = reinterpret_cast<void (*)(void)>(&build_sprites_end);
-static void (*const build_sprite__as_antenna_render_wire)(int32_t, uint8_t *, real_vector3d *, int32_t, void *, ColorARGB *, float, int32_t) = reinterpret_cast<void (*)(int32_t, uint8_t *, real_vector3d *, int32_t, void *, ColorARGB *, float, int32_t)>(&build_sprite);
+static void (*const build_sprites_end__as_antenna_render_wire)(void) = reinterpret_cast<void (*)(void)>(&halo::render::build_sprites_end);
+static void (*const build_sprite__as_antenna_render_wire)(int32_t, uint8_t *, real_vector3d *, int32_t, void *, ColorARGB *, float, int32_t) = reinterpret_cast<void (*)(int32_t, uint8_t *, real_vector3d *, int32_t, void *, ColorARGB *, float, int32_t)>(&halo::render::build_sprite);
 }
 
 /**

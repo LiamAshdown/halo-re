@@ -30,6 +30,7 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" { void render_view_camera_fill(observer_camera *observer, render_view *view); }
 extern "C" { void screenshot_render(render_view *views); }
@@ -52,7 +53,6 @@ extern "C" { extern uint8_t unknown_00873d30; }
 extern "C" { extern double tan(double x); }
 extern "C" { extern double atan2(double y, double x); }
 extern "C" { extern void halo::sound::sound_update(void); }
-extern "C" { extern void render_frame(Point2DInt *screenshot_tile, render_view *views, int16_t count, Point2DInt *screenshot_page, float time_since_tick, float time_since_frame); }
 namespace halo::main {
 
 /**
@@ -149,7 +149,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     }
 
     if (screenshots == 0) {
-        render_frame(0, render_views, (int16_t)(view_count + 1), 0, time_since_tick,
+        halo::render::render_frame(0, render_views, (int16_t)(view_count + 1), 0, time_since_tick,
                      time_since_frame);
         halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count - 1;
         return;
@@ -158,7 +158,7 @@ void RenderViews::frame_all_views(float time_since_tick, float time_since_frame)
     if (input_globals.system_key_states[2] == 0 &&
         input_globals.states[0].buttons[0x12] == 0) {
         if (main_globals_data.screenshot_tile_count < 1) {
-            render_frame(0, render_views, (int16_t)(view_count + 1), 0, time_since_tick,
+            halo::render::render_frame(0, render_views, (int16_t)(view_count + 1), 0, time_since_tick,
                          time_since_frame);
             halo::effects::globals().player_effect_reentry_count = halo::effects::globals().player_effect_reentry_count - 1;
             return;
@@ -201,7 +201,6 @@ int RenderViews::local_view_count(void)
 }
 
 extern "C" { extern render_view pregame_render_view; }
-extern "C" { extern void render_pregame_frame(render_view *view); }
 namespace halo::main {
 
 /**
@@ -240,7 +239,7 @@ void RenderViews::pregame_view_initialize(void)
 
     pregame_render_view.source_camera = *camera;
 
-    render_pregame_frame(&pregame_render_view);
+    halo::render::render_pregame_frame(&pregame_render_view);
 }
 
 }
@@ -401,10 +400,10 @@ void RenderViews::screenshot_render(render_view *views)
                         tile.x = sub_col;
                         tile.y = sub_row;
                         if (main_globals_data.screenshot_tile_count < 2 && screenshot_scale < 2) {
-                            render_frame(0, views, 1, 0, 0.0f, 0.0f);
+                            halo::render::render_frame(0, views, 1, 0, 0.0f, 0.0f);
                             rasterizer_capture_and_present(0, bitmap);
                         } else {
-                            render_frame(&tile, views, 1, &page, 0.0f, 0.0f);
+                            halo::render::render_frame(&tile, views, 1, &page, 0.0f, 0.0f);
                             rasterizer_capture_and_present(&tile.x, bitmap);
                         }
                     }

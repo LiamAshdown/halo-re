@@ -5,6 +5,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -39,7 +40,6 @@ extern float camera_position_y;
 extern float camera_position_z;
 extern void hud_meter_permute_node_records(uint8_t *dest, uint8_t *source,
                                             uint32_t target_tag_ref, int16_t *lookup);
-extern void *object_get_cached_render_lighting(datum_index object_index, real level_of_detail_pixels);
 extern void render_model(uint32_t model_tag_ref, uint8_t *node_records,
                           int32_t unknown_0, int32_t unknown_1, ColorRGB *change_colors,
                           float *function_out_values, int32_t light_sample, float *camera_position,
@@ -53,7 +53,6 @@ extern game_engine_definition *current_game_engine;
 extern game_engine_state game_engine_state_value;
 extern int32_t local_player_get_weapon_hud_interface(float *out_intensity);
 extern int16_t render_local_view_count(void);
-extern float cinematic_screen_effect_get_script_value(uint16_t source);
 extern void rasterizer_screen_effect_render(weapon_screen_effect_parameters *parameters);
 extern void rasterizer_screen_effect_render_fixed_function(weapon_screen_effect_parameters *parameters);
 extern void hud_update_player(void);
@@ -74,13 +73,13 @@ static float clamp_unit(float value)
 
 static float script_source_value(uint16_t source)
 {
-    if (cinematic_screen_effect_get_script_value(source) < 0.0f) {
+    if (halo::render::cinematic_screen_effect_get_script_value(source) < 0.0f) {
         return 0.0f;
     }
-    if (cinematic_screen_effect_get_script_value(source) > 1.0f) {
+    if (halo::render::cinematic_screen_effect_get_script_value(source) > 1.0f) {
         return 1.0f;
     }
-    return cinematic_screen_effect_get_script_value(source);
+    return halo::render::cinematic_screen_effect_get_script_value(source);
 }
 
 namespace halo::interface {
@@ -742,7 +741,7 @@ void FirstPersonWeaponController::update_lighting(void)
     }
 
     first_person_interface = (GlobalsFirstPersonInterface *)global_globals->first_person_interface.pointer;
-    light_sample = (int32_t)(uintptr_t)object_get_cached_render_lighting((datum_index)unit_handle, 3.4028235e+38f);
+    light_sample = (int32_t)(uintptr_t)halo::render::object_get_cached_render_lighting((datum_index)unit_handle, 3.4028235e+38f);
     light_params.modifier_shader = 0;
 
     if ((*(uint8_t *)((char *)unit_obj + 0x204) & 0x10) != 0 ||

@@ -30,6 +30,7 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" { void game_engine_flush_pending_simulation_ticks(void); }
 extern "C" { uint32_t game_frame_rate_average_update(void); }
@@ -310,7 +311,6 @@ extern "C" { extern void timedemo_benchmark_update(void); }
 extern "C" { extern void render_frame_all_views(float time_since_tick, float time_since_frame); }
 extern "C" { extern void render_pregame_view_initialize(void); }
 extern "C" { extern void movie_capture_frame_export(void); }
-extern "C" { extern void rasterizer_frame_statistics_sample(rasterizer_frame_statistics *statistics, uint8_t dropped); }
 namespace halo::main {
 
 /**
@@ -719,7 +719,7 @@ void MainLoop::loop(void)
                 (uint32_t)rasterizer_present_counter_low) + 1;
             rasterizer_present_counter_low = (int32_t)(uint32_t)present_counter;
             rasterizer_present_counter_high = (int32_t)(uint32_t)(present_counter >> 32);
-            rasterizer_frame_statistics_sample(&rasterizer_frame_statistics_state, 1);
+            halo::render::rasterizer_frame_statistics_sample(&rasterizer_frame_statistics_state, 1);
             goto frame_end;
         }
 

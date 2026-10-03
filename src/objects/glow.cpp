@@ -6,12 +6,11 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern int32_t __ftol(double);
 extern uint8_t *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag_index, int16_t frame_index, int16_t sequence_index);
-extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
-extern void build_sprites_end(build_sprite_data *data);
 extern double cos(double x);
 extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern game_time_globals *game_time;
@@ -1072,9 +1071,9 @@ void halo::objects::GlowSystem::render(datum_index glow_handle)
     data.centroid = *global_zero_vector3d_pointer;
     data.group_count = 0;
     for (particle = *(uint8_t **)(entry + 0x250); particle != 0; particle = *(uint8_t **)(particle + 0x5c)) {
-        build_sprite(&data, 0, 0, 0, (real_point3d *)(particle + 0x2c),
+        halo::render::build_sprite(&data, 0, 0, 0, (real_point3d *)(particle + 0x2c),
                      (real_vector3d *)(entry + *(int16_t *)(particle + 0x2) * 0x6c + 0x44), 0.0f,
                      *(float *)(particle + 0x24), (ColorARGB *)(particle + 0xc), *(float *)(particle + 0x58), 0);
     }
-    build_sprites_end(&data);
+    halo::render::build_sprites_end(&data);
 }

@@ -2,6 +2,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -14,10 +15,7 @@ extern float camera_script_time_remaining;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t network_join_error_reason;
 extern uint8_t unknown_0071973b;
-extern void cinematic_screen_effect_set_convolution(int16_t convolution_type, int16_t extra_passes, float radius_lower_bound, float radius_upper_bound, float duration);
-extern void cinematic_screen_effect_set_filter(float light_enhancement_lower, float light_enhancement_upper, float desaturation_lower, float desaturation_upper, uint8_t is_additive, float duration);
 extern uint8_t *cinematic_screen_effect_state;
-extern void cinematic_screen_effect_set_video(int16_t overbright_mode, float noise_intensity);
 extern game_time_globals *game_time;
 }
 
@@ -190,7 +188,7 @@ void CinematicCommands::run_cinematic_screen_effect_set_convolution(int16_t func
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    cinematic_screen_effect_set_convolution(*(int16_t *)&arguments[1], *(int16_t *)&arguments[0], *(float *)&arguments[2],
+    halo::render::cinematic_screen_effect_set_convolution(*(int16_t *)&arguments[1], *(int16_t *)&arguments[0], *(float *)&arguments[2],
         *(float *)&arguments[3], *(float *)&arguments[4]);
     hs_thread_return(0, thread_index);
     }
@@ -209,7 +207,7 @@ void CinematicCommands::run_cinematic_screen_effect_set_filter(int16_t function_
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    cinematic_screen_effect_set_filter(*(float *)&arguments[0], *(float *)&arguments[1], *(float *)&arguments[2],
+    halo::render::cinematic_screen_effect_set_filter(*(float *)&arguments[0], *(float *)&arguments[1], *(float *)&arguments[2],
         *(float *)&arguments[3], *(uint8_t *)&arguments[4], *(float *)&arguments[5]);
     hs_thread_return(0, thread_index);
     }
@@ -249,7 +247,7 @@ void CinematicCommands::run_cinematic_screen_effect_set_video(int16_t function_i
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        cinematic_screen_effect_set_video((int16_t)arguments[0], *(float *)&arguments[1]);
+        halo::render::cinematic_screen_effect_set_video((int16_t)arguments[0], *(float *)&arguments[1]);
         hs_thread_return(0, thread_index);
     }
 }

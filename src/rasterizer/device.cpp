@@ -8,10 +8,10 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 
-extern void render_camera_projection_zrange_push_pop_set(render_frustum *frustum, float z_near, float z_far);
 extern void os_platform_identify(void);
 extern uint32_t color_rgb_float_to_int(const ColorRGB *color);
 extern uint16_t *bitmap_data_get_row_address(BitmapData *bitmap, int32_t mip_level, int32_t x, int32_t y);
@@ -76,7 +76,7 @@ void chimera__rasterizer_set_frustum_z_func(uint32_t z_near, uint32_t z_far)
     float rows_1b[2][4];
     int32_t i, j;
 
-    render_camera_projection_zrange_push_pop_set(&rasterizer_window.frustum, *(float *)&z_near, *(float *)&z_far);
+    halo::render::render_camera_projection_zrange_push_pop_set(&rasterizer_window.frustum, *(float *)&z_near, *(float *)&z_far);
 
     for (i = 0; i < 4; i++) {
         for (j = 0; j < 4; j++) {

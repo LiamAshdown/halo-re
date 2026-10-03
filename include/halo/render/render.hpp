@@ -232,4 +232,3 @@ rendered_particle_range *unguarded_partition(rendered_particle_range *result, re
 
 }  // namespace halo::render::particle_sort
 
-#include "halo/render/c_api.h"

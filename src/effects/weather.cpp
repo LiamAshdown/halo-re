@@ -5,6 +5,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern weather_instance weather_instances[1];
@@ -17,10 +18,6 @@ extern float camera_position_y;
 extern float camera_position_z;
 extern const uint32_t k_particle_render_constant[3];
 extern void weather_instance_update(int16_t instance_index);
-extern void render_camera_facing_frame_build(real reference);
-extern int16_t render_frustum_test_bounding_box(uint32_t mode);
-extern void build_sprite();
-extern void build_sprites_end(void);
 extern float render_time_since_frame;
 extern double fmod(double x, double y);
 extern void effect_random_direction_from_table(real_point3d *out);
@@ -153,10 +150,10 @@ void weather_instance_ref::build_render_geometry()
         if (slot->particle_count != 0) {
             uint8_t *regions = structure_weather_polyhedra_find_within_radius_unresolved(slot->field_extent);
             (void)regions;
-            render_camera_facing_frame_build(slot->field_extent);
+            halo::render::render_camera_facing_frame_build(nullptr, slot->field_extent);
             vector3d_positive_modulo_unresolved(slot->field_extent);
 
-            build_sprites_end();
+            halo::render::build_sprites_end(nullptr);
         }
     }
 }

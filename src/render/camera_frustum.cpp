@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include "halo/render/render.hpp"
 #include "halo/math/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern real_point3d *global_zero_vector3d_pointer;
@@ -592,7 +593,7 @@ int16_t test_bounding_box(render_frustum *frustum, real_rectangle3d *box, uint8_
     corners[7].x = box->x.upper; corners[7].y = box->y.upper; corners[7].z = box->z.upper;
 
     for (i = 0; i < 8; i++) {
-        uint8_t flags = render_frustum_classify_point_side_planes(frustum, &corners[i]);
+        uint8_t flags = halo::render::render_frustum_classify_point_side_planes(frustum, &corners[i]);
         all_outside &= flags;
         any_outside |= flags;
     }

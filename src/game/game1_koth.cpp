@@ -19,6 +19,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern uint8_t hill_pulse_fade_done;
@@ -115,7 +116,6 @@ extern void **rasterizer_device;
 extern void *rasterizer_dynamic_index_cache_reserve(void);
 extern int32_t rasterizer_dynamic_vertex_cache_reserve(void);
 extern int32_t rasterizer_dynamic_vertex_cache_lock(void);
-extern void *rasterizer_dynamic_index_slot_lock(void);
 extern void rasterizer_model_draw_prepare_states(int32_t a);
 extern void rasterizer_shader_environment_draw_dispatch(int32_t tag_data, int32_t a, int32_t b, int32_t c, int32_t d, int32_t e);
 extern void rasterizer_transparent_geometry_group_build(int32_t tag_data, int32_t a, int32_t b, int32_t c, int32_t d, int32_t e,
@@ -937,7 +937,7 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
         int32_t i;
 
         base = rasterizer_dynamic_vertex_cache_lock();
-        dest_block = (uint8_t *)rasterizer_dynamic_index_slot_lock();
+        dest_block = (uint8_t *)halo::render::rasterizer_dynamic_index_slot_lock(0);
         offset = (int32_t)vertex_source - base;
         src = vertex_source + 9;
         dst = (uint32_t *)(base + 0xc);

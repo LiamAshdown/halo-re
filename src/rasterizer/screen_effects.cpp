@@ -8,6 +8,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 
@@ -17,7 +18,6 @@ extern int __cdecl _stricmp(const char *a, const char *b);
 extern uint32_t color_rgb_float_to_int(const ColorRGB *color);
 extern double exp(double x);
 extern float effect_random_fraction(void);
-extern weapon_screen_effect_parameters *cinematic_screen_effect_update(weapon_screen_effect_parameters *input);
 extern double floor(double x);
 extern double cos(double x);
 
@@ -940,7 +940,7 @@ void rasterizer_screen_effect_render(weapon_screen_effect_parameters *input)
     uint32_t passes;
     uint32_t effect_pass;
 
-    p = cinematic_screen_effect_update(input);
+    p = (weapon_screen_effect_parameters *)halo::render::cinematic_screen_effect_update((cinematic_screen_effect_globals *)input);
     if (p == NULL) {
         return;
     }
@@ -1188,7 +1188,7 @@ void rasterizer_screen_effect_render_fixed_function(weapon_screen_effect_paramet
     int32_t width, height;
     int i, j;
 
-    p = cinematic_screen_effect_update(input);
+    p = (weapon_screen_effect_parameters *)halo::render::cinematic_screen_effect_update((cinematic_screen_effect_globals *)input);
     if (p == NULL) {
         return;
     }

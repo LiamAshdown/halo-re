@@ -5,6 +5,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/render/api.hpp"
 
 extern "C" {
 extern void effect_random_direction_from_table(real_point3d *out);
@@ -23,15 +24,11 @@ extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryB
 extern uint8_t particle_system_update(float delta_time, datum_index handle);
 extern real_matrix4x3 render_camera_world_to_view;
 extern real_point3d *global_zero_vector3d_pointer;
-extern void build_sprite_rotational(build_sprite_data *data, uint32_t flags, int16_t first_sequence_index, int16_t sprite_index, real_point3d *origin, real_vector3d *axis, float rotation, float scale, ColorARGB *color, float fade);
-extern void build_sprite(build_sprite_data *data, int16_t sequence_index, int16_t sprite_index, int16_t mode, real_point3d *origin, real_vector3d *direction, float rotation, float scale, ColorARGB *color, float fade, uint32_t flags);
-extern void build_sprites_end(build_sprite_data *data);
 extern void object_get_root_location(int32_t *out, uint32_t object_index);
 extern int16_t current_local_player_index;
 extern uint8_t *first_person_weapon_interfaces;
 extern const real_vector3d *global_origin3d_pointer;
 extern void (*particle_creation_physics_table[3])(particle_system *system, int32_t type_index, particle_system_particle *particle, object_marker *marker);
-extern int16_t render_local_player_gunner_seat_visible(int16_t local_player_index);
 extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name, object_marker *out, uint32_t maximum);
 extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point);
 extern player_globals *local_player_globals;
@@ -462,14 +459,14 @@ static void particle_build_state_sprite(uint8_t *type, uint8_t *state_definition
     data.group_count = 0;
     if (*(int16_t *)(type + 0x28) == 1) {
         mode = (type[0x20] & 0x80) ? 3 : 1;
-        build_sprite_rotational(&data, mode, (int16_t)*(uint16_t *)(state_definition + 0x40), (int16_t)frame, position,
+        halo::render::build_sprite_rotational(&data, mode, (int16_t)*(uint16_t *)(state_definition + 0x40), (int16_t)frame, position,
             direction, rotation, scale, color, weight);
     } else {
-        build_sprite(&data, *(int16_t *)(state_definition + 0x40), (int16_t)frame, (int16_t)*(uint16_t *)(type + 0x2a),
+        halo::render::build_sprite(&data, *(int16_t *)(state_definition + 0x40), (int16_t)frame, (int16_t)*(uint16_t *)(type + 0x2a),
             position, direction, rotation, scale, color, weight, 1);
     }
     *(uint32_t *)((uint8_t *)data.shader + 0x98) = *(uint32_t *)(current_state + 0x80);
-    build_sprites_end(&data);
+    halo::render::build_sprites_end(&data);
 }
 
 /**
@@ -733,11 +730,11 @@ void particle_system_view::spawn(int32_t type_index, float dt)
     locality = (int16_t)halo::effects::player_weapon_locality_for_object(object_index);
     if (locality != 0) {
         if (type_flags & 0x20000) {
-            if (locality == -1 || !render_local_player_gunner_seat_visible(current_local_player_index)) {
+            if (locality == -1 || !halo::render::render_local_player_gunner_seat_visible(current_local_player_index)) {
                 return;
             }
         }
-        if ((type_flags & 0x10000) && locality == 1 && render_local_player_gunner_seat_visible(current_local_player_index)) {
+        if ((type_flags & 0x10000) && locality == 1 && halo::render::render_local_player_gunner_seat_visible(current_local_player_index)) {
             return;
         }
     }
