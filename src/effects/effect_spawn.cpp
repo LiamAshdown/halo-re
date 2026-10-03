@@ -1,3 +1,6 @@
+#include "halo/core/flags.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
@@ -25,10 +28,6 @@ static auto &global_down3d_pointer = halo::link::ref<const real_vector3d *>(halo
 
 namespace halo::effects {
 
-#define PART_FIELD(type, offset) (*(type *)((uint8_t *)part + (offset)))
-
-#define SELF_FIELD(type, offset) (*(type *)((uint8_t *)self + (offset)))
-
 /**
  * File-local helper used by effect_event_apply.
  */
@@ -49,85 +48,85 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
 {
     effect * self = record;
     uint32_t group = part->type_class;
-    datum_index tag = PART_FIELD(datum_index, 0x24);
+    datum_index tag = *(datum_index *)&part->type.tag_id;
     real_point3d *marker_position = (real_point3d *)((uint8_t *)marker + 0x30);
     real_vector3d *marker_forward = (real_vector3d *)((uint8_t *)marker + 0x0c);
 
-    if (group == 0x6c696768u) {
+    if (group == halo::groups::light) {
         if (light_count_enabled > 0) {
-            halo::objects::light_new_positioned(tag, (int32_t)SELF_FIELD(datum_index, 0x3c),
+            halo::objects::light_new_positioned(tag, (int32_t)self->object_index,
                 (int16_t)effect_event_apply_marker_index(marker), marker_position, *(uint32_t *)&scale,
                 marker_forward);
         }
-    } else if (group == 0x6a707421u) {
+    } else if (group == halo::groups::damage_effect) {
         damage_data dd;
         uint8_t *raw = (uint8_t *)&dd;
-        uint8_t *creator = (uint8_t *)halo::objects::object_try_and_get(SELF_FIELD(datum_index, 0x40), 0xffffffff);
+        uint8_t *creator = (uint8_t *)halo::objects::object_try_and_get(self->creator_object_index, 0xffffffff);
 
         halo::objects::damage_data_initialize(&dd, tag);
         if (creator != 0) {
             *(uint32_t *)(raw + 0x08) = ((struct object *)creator)->owner_linkage;
-            *(datum_index *)(raw + 0x0c) = SELF_FIELD(datum_index, 0x40);
+            *(datum_index *)(raw + 0x0c) = self->creator_object_index;
             *(int16_t *)(raw + 0x10) = ((struct object *)creator)->owner_team;
         }
         *(real *)(raw + 0x40) = scale;
-        *(uint32_t *)(raw + 0x14) = SELF_FIELD(uint32_t, 0x10);
-        *(uint32_t *)(raw + 0x18) = SELF_FIELD(uint32_t, 0x14);
+        *(uint32_t *)(raw + 0x14) = (uint32_t)self->location.leaf_index;
+        *(uint32_t *)(raw + 0x18) = *(uint32_t *)&self->location.cluster_index;
         *(real_point3d *)(raw + 0x28) = *position;
         *(real_point3d *)(raw + 0x1c) = *position;
         *(real_vector3d *)(raw + 0x34) = *forward;
         halo::objects::damage_apply_area_effect(&dd);
-    } else if (group == 0x64656361u) {
+    } else if (group == halo::groups::decal) {
         real_vector3d out_direction;
         real_vector3d direction;
         real radius;
 
         halo::effects::effect_random_velocity_vector(self, &halo::math::globals().effect_random_seed, forward, &out_direction, &direction,
-            PART_FIELD(real, 0x40), PART_FIELD(real, 0x44), PART_FIELD(real, 0x48), PART_FIELD(uint32_t, 0x60),
-            PART_FIELD(uint8_t, 0x64));
-        radius = halo::math::random_range_real(PART_FIELD(real, 0x54), PART_FIELD(real, 0x58));
+            part->velocity_bounds[0], part->velocity_bounds[1], part->velocity_cone_angle, part->a_scales_values,
+            (uint8_t)part->b_scales_values);
+        radius = halo::math::random_range_real(part->radius_modifier_bounds[0], part->radius_modifier_bounds[1]);
         halo::effects::decal_spawn_for_response(tag, 0, position, &direction, radius, -1);
-    } else if (group == 0x6f626a65u) {
+    } else if (group == halo::groups::object) {
         object_placement_data placement;
         uint8_t *raw = (uint8_t *)&placement;
         real_vector3d out_direction;
         real_vector3d *velocity = (real_vector3d *)(raw + 0x28);
 
-        halo::objects::object_placement_data_initialize(&placement, tag, SELF_FIELD(datum_index, 0x40));
+        halo::objects::object_placement_data_initialize(&placement, tag, self->creator_object_index);
         *(real_point3d *)(raw + 0x18) = *position;
         *(real_vector3d *)(raw + 0x34) = *forward;
         *(real_vector3d *)(raw + 0x40) = *up;
         halo::effects::effect_random_velocity_vector(self, &halo::math::globals().random_seed_global, forward, &out_direction, velocity,
-            PART_FIELD(real, 0x40), PART_FIELD(real, 0x44), PART_FIELD(real, 0x48), PART_FIELD(uint32_t, 0x60),
-            PART_FIELD(uint8_t, 0x64));
-        velocity->i = velocity->i + SELF_FIELD(real, 0x24);
-        velocity->j = velocity->j + SELF_FIELD(real, 0x28);
-        velocity->k = velocity->k + SELF_FIELD(real, 0x2c);
-        halo::effects::effect_random_direction_vector(&halo::math::globals().random_seed_global, (real_point3d *)(raw + 0x4c), PART_FIELD(real, 0x4c),
-            PART_FIELD(real, 0x50), self, PART_FIELD(uint32_t, 0x60), PART_FIELD(uint32_t, 0x64));
+            part->velocity_bounds[0], part->velocity_bounds[1], part->velocity_cone_angle, part->a_scales_values,
+            (uint8_t)part->b_scales_values);
+        velocity->i = velocity->i + self->velocity.i;
+        velocity->j = velocity->j + self->velocity.j;
+        velocity->k = velocity->k + self->velocity.k;
+        halo::effects::effect_random_direction_vector(&halo::math::globals().random_seed_global, (real_point3d *)(raw + 0x4c), part->angular_velocity_bounds[0],
+            part->angular_velocity_bounds[1], self, part->a_scales_values, part->b_scales_values);
         halo::objects::object_new(&placement);
-    } else if (group == 0x7063746cu) {
+    } else if (group == halo::groups::particle_system) {
         ColorARGB color;
         real_vector3d out_direction;
         real_vector3d velocity;
 
         color.alpha = 1.0f;
-        color.red = SELF_FIELD(real, 0x18);
-        color.green = SELF_FIELD(real, 0x1c);
-        color.blue = SELF_FIELD(real, 0x20);
+        color.red = self->color.red;
+        color.green = self->color.green;
+        color.blue = self->color.blue;
         halo::effects::effect_random_velocity_vector(self, &halo::math::globals().effect_random_seed, forward, &out_direction, &velocity,
-            PART_FIELD(real, 0x40), PART_FIELD(real, 0x44), PART_FIELD(real, 0x48), PART_FIELD(uint32_t, 0x60),
-            PART_FIELD(uint8_t, 0x64));
-        velocity.i = velocity.i + SELF_FIELD(real, 0x24);
-        velocity.j = velocity.j + SELF_FIELD(real, 0x28);
-        velocity.k = velocity.k + SELF_FIELD(real, 0x2c);
+            part->velocity_bounds[0], part->velocity_bounds[1], part->velocity_cone_angle, part->a_scales_values,
+            (uint8_t)part->b_scales_values);
+        velocity.i = velocity.i + self->velocity.i;
+        velocity.j = velocity.j + self->velocity.j;
+        velocity.k = velocity.k + self->velocity.k;
         halo::effects::particle_system_new_at_point(tag, position, &velocity, &color, scale);
-    } else if (group == 0x736e6421u) {
-        datum_index object_index = SELF_FIELD(datum_index, 0x3c);
+    } else if (group == halo::groups::sound) {
+        datum_index object_index = self->object_index;
 
         if (object_index != k_datum_index_none) {
             uint8_t first_person = 0;
-            uint8_t *creator = (uint8_t *)halo::objects::object_try_and_get(SELF_FIELD(datum_index, 0x40), 3);
+            uint8_t *creator = (uint8_t *)halo::objects::object_try_and_get(self->creator_object_index, 3);
 
             if (creator != 0) {
                 uint8_t *owner = (uint8_t *)halo::memory::datum_get(*(datum_index *)(creator + 0x218), halo::game::globals().player_data);
@@ -144,8 +143,8 @@ void effect_view::event_apply(EffectPart *part, effect_location_marker *marker, 
             placement.position = *(Point3D *)position;
             placement.forward = *(Vector3D *)forward;
             placement.velocity = *(const Vector3D *)global_origin3d_pointer;
-            *(uint32_t *)&placement.leaf_index = SELF_FIELD(uint32_t, 0x10);
-            *(uint32_t *)&placement.cluster_index = SELF_FIELD(uint32_t, 0x14);
+            *(uint32_t *)&placement.leaf_index = (uint32_t)self->location.leaf_index;
+            *(uint32_t *)&placement.cluster_index = *(uint32_t *)&self->location.cluster_index;
             halo::sound::sound_start_at_location(tag, &placement, scale);
         }
     }
@@ -314,10 +313,10 @@ void effect_view::change_color_evaluate()
 
                     if (create_ok) {
                         real scale = 1.0f;
-                        if ((part->a_scales_values & 0x20) != 0) {
+                        if ((part->a_scales_values & halo::to_bits(halo::tags::effect_part_scales_values_tag_flag::type_specific_scale)) != 0) {
                             scale = self->a_scale;
                         }
-                        if ((part->b_scales_values & 0x20) != 0) {
+                        if ((part->b_scales_values & halo::to_bits(halo::tags::effect_part_scales_values_tag_flag::type_specific_scale)) != 0) {
                             scale = scale * self->b_scale;
                         }
                         halo::effects::effect_event_apply(self, part, entry, &placement[0], &placement[1],
