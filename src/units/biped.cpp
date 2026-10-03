@@ -503,10 +503,10 @@ static void biped_free_local_player_history(uint8_t *self)
     uint8_t *player;
 
     if (network_game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
-        index >= *(int16_t *)((uint8_t *)player_data + 0x20)) {
+        index >= player_data->maximum_count) {
         return;
     }
-    player = (uint8_t *)player_data->data + *(int16_t *)((uint8_t *)player_data + 0x22) * index;
+    player = (uint8_t *)player_data->data + player_data->size * index;
     if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
         return;
     }

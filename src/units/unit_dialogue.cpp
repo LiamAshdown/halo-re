@@ -76,7 +76,7 @@ int32_t UnitView::commit_speech(const unit_speech *source, int16_t mode)
             }
 
             Sound *sound_tag = (Sound *)tag_instances[halo::datum_slot(unit->current_speech.sound_tag)].data;
-            int32_t length = *(int32_t *)((uint8_t *)sound_tag + 0x84) * 0x1e;
+            int32_t length = (int32_t)sound_tag->longest_permutation_length * 0x1e;
             unit->speech_duration_ticks = (int16_t)(length / 1000);
             return (int32_t)((int64_t)length * 0x10624dd3);
         } else if (mode == 1) {

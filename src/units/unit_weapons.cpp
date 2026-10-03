@@ -243,7 +243,7 @@ uint8_t UnitView::check_weapon_use_permission(uint32_t weapon_index)
     if (UnitView(unit_index).set_or_test_seat_and_weapon_label(seat_name, weapon_label, 0) == 0) {
         return 0;
     }
-    if (current_game_engine != 0 && *(void **)((uint8_t *)current_game_engine + 0x60) != (void *)0) {
+    if (current_game_engine != 0 && (void *)current_game_engine->unknown_60 != (void *)0) {
         uint8_t (*permission)(uint32_t, uint32_t) =
             *(uint8_t (**)(uint32_t, uint32_t))((uint8_t *)current_game_engine + 0x60);
 
