@@ -666,20 +666,20 @@ int32_t halo::ai::grenade_ops::find_nearest_grenade_ally(uint8_t widen_search)
         uint8_t *p = PROP(prop_index);
         datum_index current = prop_index;
 
-        prop_index = *(datum_index *)(p + 0x8);
-        if (p[0x60] || p[0x127] || *(datum_index *)(p + 0x1c) == k_datum_index_none) {
+        prop_index = ((struct prop *)p)->next_in_actor;
+        if (p[0x60] || p[0x127] || ((struct prop *)p)->owner_actor_index == k_datum_index_none) {
             continue;
         }
-        if (widen_search && !(*(int16_t *)(p + 0x24) >= 2 && *(int16_t *)(p + 0x24) <= 3)) {
+        if (widen_search && !(((struct prop *)p)->state >= 2 && ((struct prop *)p)->state <= 3)) {
             continue;
         }
-        if (!actor_validate_grenade_ally_candidate(*(datum_index *)(p + 0x1c), widen_search)) {
+        if (!actor_validate_grenade_ally_candidate(((struct prop *)p)->owner_actor_index, widen_search)) {
             continue;
         }
         seen++;
-        if (*(float *)(p + 0x11c) < best_distance) {
+        if (((struct prop *)p)->distance < best_distance) {
             best = current;
-            best_distance = *(float *)(p + 0x11c);
+            best_distance = ((struct prop *)p)->distance;
         }
     }
     if (seen < (int16_t)limit && ((struct actor *)self)->encounter_index != k_datum_index_none) {

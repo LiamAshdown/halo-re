@@ -255,7 +255,7 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
         }
         p = PROP(prop_index);
         if ((int16_t)actor_target_hearing_check(p + 0xfc, (int16_t)*(uint16_t *)(p + 0x38), actor_index, firing_block,
-                gate, (real_point3d *)(p + 0xbc)) < 2) {
+                gate, &((struct prop *)p)->last_known_position) < 2) {
             continue;
         }
         actor_squad_react_to_grenade(actor_index, prop_index, stimulus);
@@ -845,9 +845,9 @@ static uint8_t ai_bsp_actor_should_carry(uint8_t *actor)
         int32_t fired = ((struct actor *)actor)->ticks_since_threatened;
 
         if (*(int16_t *)(target + 0x24) >= 4 && *(int16_t *)(target + 0x24) <= 5) {
-            target = PROP(*(datum_index *)(target + 0xc));
+            target = PROP(((struct prop *)target)->pair_index);
         }
-        return target[0x12e] != 0 && fired != -1 && fired < 0x5a && *(float *)(target + 0x11c) < 10.0f;
+        return target[0x12e] != 0 && fired != -1 && fired < 0x5a && ((struct prop *)target)->distance < 10.0f;
     }
     {
         int16_t team = ((struct actor *)actor)->team;
@@ -873,7 +873,7 @@ static uint8_t ai_bsp_actor_should_carry(uint8_t *actor)
             uint8_t *p = PROP(prop_index);
 
             prop_index = *(datum_index *)(p + 8);
-            if (p[0x12e] != 0 && (*(int16_t *)(p + 0x32) >= 2 || *(float *)(p + 0x11c) < 3.0f)) {
+            if (p[0x12e] != 0 && (((struct prop *)p)->visual_perception >= 2 || ((struct prop *)p)->distance < 3.0f)) {
                 carry = 1;
             }
         }
@@ -1003,11 +1003,11 @@ void AiSystem::reset_fire_group_assignments()
     }
 
     for (actor_index = *(datum_index *)(ai_globals_ptr + 8); actor_index != k_datum_index_none;) {
-        datum_index following = *(datum_index *)(ACTOR(actor_index) + 0x2c);
+        datum_index following = ((struct actor *)ACTOR(actor_index))->next_in_encounter;
         datum_index prop_index;
 
         actor_clear_target_state(actor_index);
-        for (prop_index = *(datum_index *)(ACTOR(actor_index) + 0x50); prop_index != k_datum_index_none;) {
+        for (prop_index = ((struct actor *)ACTOR(actor_index))->first_prop; prop_index != k_datum_index_none;) {
             uint8_t *p = PROP(prop_index);
 
             prop_index = *(datum_index *)(p + 8);

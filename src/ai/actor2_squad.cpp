@@ -325,7 +325,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
                         float distance;
 
                         unit_get_primary_eye_marker_position(player_unit, &eye);
-                        distance = halo::math::vector3d_distance_squared(*(real_point3d *)(act + 0x120), eye);
+                        distance = halo::math::vector3d_distance_squared(((struct actor *)act)->aim_origin, eye);
                         if (distance <= best) {
                             best = distance;
                             look_object = player_unit;
@@ -445,7 +445,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
             float distance;
 
             object_get_position(&position, vehicle_index);
-            distance = halo::math::vector3d_distance_squared(position, *(real_point3d *)(act + 0x12c));
+            distance = halo::math::vector3d_distance_squared(position, ((struct actor *)act)->body_position);
             if (entry->parameter1 == 0.0f || distance <= entry->parameter1 * entry->parameter1) {
                 samples[sample_count].distance_squared = distance;
                 samples[sample_count].vehicle_index = vehicle_index;

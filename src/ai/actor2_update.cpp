@@ -808,8 +808,8 @@ uint8_t ActorView::update_danger_avoidance()
     real_vector3d path_delta;
     float radius_squared;
     float danger_time;
-    real_point3d *position = (real_point3d *)(actor + 0x12c);
-    real_point3d *path_start = (real_point3d *)(actor + 0x2b0);
+    real_point3d *position = &((struct actor *)actor)->body_position;
+    real_point3d *path_start = &((struct actor *)actor)->flee_from_point;
 
     if (W(0x280) == 0 || B(0x287) == 0 || B(0x28a) != 0) {
         return 0;
@@ -1870,7 +1870,7 @@ uint8_t ActorView::update_movement_destination()
 
         if (A_B(0x358) != 0 && (actor_tag[0] & 0x20) != 0) {
             actor_update_target_lead_position(actor_index);
-            follow_lead = actor_firing_position_near_point(actor_index, (real_point3d *)(actor + 0x168),
+            follow_lead = actor_firing_position_near_point(actor_index, &((struct actor *)actor)->pathfinding_point,
                 (int32_t)A_D(0x164), 0);
         }
         if (follow_lead) {
@@ -1947,10 +1947,10 @@ uint8_t ActorView::update_movement_destination()
                 real_point3d *held = actor_held_firing_position(actor);
                 float radius = actor_compute_accuracy_scale(actor_index);
 
-                if (radius * radius < halo::math::vector3d_distance_squared(*held, *(real_point3d *)(actor + 0x12c))) {
+                if (radius * radius < halo::math::vector3d_distance_squared(*held, ((struct actor *)actor)->body_position)) {
                     float range = A_F(0x608);
 
-                    if (range * range > halo::math::vector3d_distance_squared(*(real_point3d *)(target + 0xbc), *held)) {
+                    if (range * range > halo::math::vector3d_distance_squared(((struct prop *)target)->last_known_position, *held)) {
                         engaged = 0;
                     }
                 }
@@ -2231,7 +2231,7 @@ void ActorView::update_target_lead_position()
 {
     using namespace actor_update_target_lead_position_local;
     uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
-    real_point3d *point = (real_point3d *)(a + 0x168);
+    real_point3d *point = &((struct actor *)a)->pathfinding_point;
     datum_index vehicle;
 
     if (((struct actor *)a)->pathfinding_surface_index != -1) {

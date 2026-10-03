@@ -933,7 +933,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
             cursor = iterator.next;
             while (cursor != halo::k_dword_none) {
                 const uint8_t *p = (const uint8_t *)prop_data->data + (cursor & halo::k_slot_mask) * k_prop_size;
-                int16_t kind = *(const int16_t *)(p + 0x24);
+                int16_t kind = ((struct prop *)p)->state;
                 uint32_t owner;
                 const uint8_t *other;
                 float dot;
@@ -942,7 +942,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                 if (kind < 2 || kind > 3 || p[0x60] != 0 || p[0x127] != 0) {
                     continue;
                 }
-                if (*(const float *)(p + 0x11c) >= 15.0f) {
+                if (((struct prop *)p)->distance >= 15.0f) {
                     continue;
                 }
                 owner = *(const uint32_t *)(p + 0x1c);
@@ -990,7 +990,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
 
             while (cursor != halo::k_dword_none) {
                 const uint8_t *p = (const uint8_t *)prop_data->data + (cursor & halo::k_slot_mask) * k_prop_size;
-                int16_t kind = *(const int16_t *)(p + 0x24);
+                int16_t kind = ((struct prop *)p)->state;
                 uint32_t owner;
                 const uint8_t *other;
 
@@ -1003,7 +1003,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
                     continue;
                 }
                 other = (const uint8_t *)actor_data->data + (owner & halo::k_slot_mask) * k_actor_size;
-                if (*(const int16_t *)(other + 0x4) != ((actor *)self)->type ||
+                if (((struct actor *)other)->type != ((actor *)self)->type ||
                     *(const int16_t *)(other + 0x6e) < 5) {
                     continue;
                 }
@@ -1438,7 +1438,7 @@ datum_index halo::ai::combat_ops::get_squad_recent_attacker_target(char require_
             continue;
         }
         p = (uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size;
-        if (*(int16_t *)(p + 0x24) < 2 || *(int16_t *)(p + 0x24) > 3) {
+        if (((struct prop *)p)->state < 2 || ((struct prop *)p)->state > 3) {
             continue;
         }
         if (!p[0x60] && require_is_unit) {

@@ -1404,7 +1404,7 @@ void ActorView::replace_object_reference(uint32_t new_reference, uint32_t old_re
     if (self->idle_major_direction_type == 1 && *(uint32_t *)((uint8_t *)self + 0x570) == old_reference) {
         *(uint32_t *)((uint8_t *)self + 0x570) = new_reference;
     }
-    if (*(int16_t *)((uint8_t *)self + 0x57c) == 1 && *(uint32_t *)((uint8_t *)self + 0x580) == old_reference) {
+    if (((struct actor *)self)->idle_look_direction_type == 1 && *(uint32_t *)((uint8_t *)self + 0x580) == old_reference) {
         *(uint32_t *)((uint8_t *)self + 0x580) = new_reference;
     }
 

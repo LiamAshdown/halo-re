@@ -39,7 +39,7 @@ uint8_t halo::ai::order_builder::build_guard_mode_data(uint8_t *out)
     if (B(0x160) != 0 || B(6) != 0) {
         *(int16_t *)(out + 0x24) = 1;
     } else if (B(0x314) != 0 &&
-               actor_firing_position_near_point(actor_index, (real_point3d *)(actor + 0x318), (int32_t)D(0x324), 1)) {
+               actor_firing_position_near_point(actor_index, &((struct actor *)actor)->search_position, (int32_t)D(0x324), 1)) {
         *(int16_t *)(out + 0x24) = 2;
         memcpy(out + 0x28, actor + 0x318, 12);
         *(uint32_t *)(out + 0x34) = D(0x324);

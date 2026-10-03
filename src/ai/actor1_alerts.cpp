@@ -743,7 +743,7 @@ uint8_t halo::ai::alert_ops::escalate_check_target_close()
     if (((struct actor *)act)->combat_status < 5) {
         return 0;
     }
-    if (!(*(float *)(PROP(((actor *)act)->target_unit_index) + 0x11c) <
+    if (!(((struct prop *)PROP(((actor *)act)->target_unit_index))->distance <
           *(float *)(TAG_DATA(((actor *)act)->actor_definition_tag) + 0x3a0))) {
         return 0;
     }
@@ -795,7 +795,7 @@ uint8_t halo::ai::alert_ops::escalate_check_weapon_range()
     if (*(datum_index *)&((struct actor *)act)->stuck_projectile_index == k_datum_index_none || ((struct actor *)act)->combat_status < 5) {
         return 0;
     }
-    if (!(*(float *)(PROP(((actor *)act)->target_unit_index) + 0x11c) < *(float *)(definition + 0x16c))) {
+    if (!(((struct prop *)PROP(((actor *)act)->target_unit_index))->distance < *(float *)(definition + 0x16c))) {
         return 0;
     }
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);

@@ -440,17 +440,17 @@ void TargetView::target_get_relationship_object()
     datum_index resolved;
 
     target = (prop *)((uint8_t *)prop_data->data + (target_prop_index & halo::k_slot_mask) * sizeof(prop));
-    cache = (int32_t *)((uint8_t *)target + 0xec);
+    cache = &((struct prop *)target)->pathfinding_surface_index;
 
     if (*cache == -1) {
         if (target->relationship_object_index != -1) {
             *cache = unit_predict_aim_target_position(target->relationship_object_index,
-                                                      (real_point3d *)((uint8_t *)target + 0xf0));
+                                                      &((struct prop *)target)->pathfinding_point);
             return;
         }
         resolved = target->object_index;
         if (object_try_and_get(resolved, 1) != (void *)0) {
-            resolved = biped_get_cached_look_at_position(resolved, (real_point3d *)((uint8_t *)target + 0xf0));
+            resolved = biped_get_cached_look_at_position(resolved, &((struct prop *)target)->pathfinding_point);
             *cache = (int32_t)resolved;
         }
     }

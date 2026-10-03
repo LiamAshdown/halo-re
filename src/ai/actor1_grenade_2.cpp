@@ -58,7 +58,7 @@ uint32_t halo::ai::grenade_ops::compute_grenade_throw_vector(real_point3d *grena
             real inverse = 1.0f / length;
             real flat_i = direction.i * inverse;
             real flat_j = direction.j * inverse;
-            real_vector3d *facing = (real_vector3d *)(a + 0x174);
+            real_vector3d *facing = &((struct actor *)a)->facing;
 
             if (length > 0.0f && !(flat_j * facing->j + flat_i * facing->i >= 0.8660254f)) {
 

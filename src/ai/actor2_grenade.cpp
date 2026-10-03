@@ -460,7 +460,7 @@ char ActorView::update_grenade_and_morale_reactions()
     if (act[0x1ca] != 0 && ((Actor *)actor_tag)->evasion_seek_cover_chance > 0.0f && threshold > 1.1f) {
         threshold = 1.1f;
     }
-    if (!(threshold <= *(float *)(act + 0x354))) {
+    if (!(threshold <= ((struct actor *)act)->danger_meter)) {
         return 0;
     }
     if (act[0x504] == 0) {
@@ -500,7 +500,7 @@ char ActorView::update_grenade_and_morale_reactions()
             return 1;
         }
     }
-    if (may_target && *(int16_t *)(act + 0x368) == 0 && actor_evaluate_grenade_target_position(actor_index)) {
+    if (may_target && ((struct actor *)act)->evasion_delay_ticks == 0 && actor_evaluate_grenade_target_position(actor_index)) {
         *(float *)(act + 0x354) = 0.0f;
         *(int16_t *)(act + 0x368) = (int16_t)(int32_t)(((Actor *)actor_tag)->evasion_delay_time * 30.0f);
         act[0x3bb] = 1;

@@ -654,10 +654,10 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
         right_point.z = step * 0.0f + ((actor *)act)->body_position.z;
 
         left_hit = actor_check_step_obstruction(actor_index, (real_vector2d *)&left, step, sideways, &left_blocked, extra);
-        left_distance = (float)sqrt(halo::math::point3d_distance_squared_to_segment(*(real_point3d *)(act + 0x2b0), path, left_point));
+        left_distance = (float)sqrt(halo::math::point3d_distance_squared_to_segment(((struct actor *)act)->flee_from_point, path, left_point));
         left_out = (uint8_t)(left_hit && left_distance > ((actor *)act)->danger_object_radius);
         right_hit = actor_check_step_obstruction(actor_index, (real_vector2d *)&right, step, sideways, &right_blocked, extra);
-        right_distance = (float)sqrt(halo::math::point3d_distance_squared_to_segment(*(real_point3d *)(act + 0x2b0), path, right_point));
+        right_distance = (float)sqrt(halo::math::point3d_distance_squared_to_segment(((struct actor *)act)->flee_from_point, path, right_point));
         right_out = (uint8_t)(right_hit && right_distance > ((actor *)act)->danger_object_radius);
 
         if (left_hit) {
@@ -1207,7 +1207,7 @@ void halo::ai::prop_ops::mark_prop_seen_with_delta(datum_index object_index, dat
     prop_index = actor_find_or_create_shared_prop(object_index, actor_index, 1, 1);
     if (prop_index != k_datum_index_none) {
         uint8_t *p = PROP(prop_index);
-        datum_index pair = *(datum_index *)(p + 0xc);
+        datum_index pair = ((struct prop *)p)->pair_index;
         int16_t kind;
 
         *(int16_t *)(p + 0x6c) = 0;
@@ -1220,7 +1220,7 @@ void halo::ai::prop_ops::mark_prop_seen_with_delta(datum_index object_index, dat
             q[0x74] = 1;
             *(float *)(q + 0x70) = delta + *(float *)(q + 0x70);
         }
-        kind = *(int16_t *)(p + 0x24);
+        kind = ((struct prop *)p)->state;
         if (kind < 2 || kind > 3) {
             prop_index = k_datum_index_none;
         }

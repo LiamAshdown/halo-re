@@ -374,7 +374,7 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
         step_point.y = step_distance * direction->j + self->body_position.y;
         actor_update_target_lead_position(actor_index);
 
-        trace_ok = path_find_test_segment_unobstructed(global_structure_bsp, (real_point3d *)((uint8_t *)self + 0x168),
+        trace_ok = path_find_test_segment_unobstructed(global_structure_bsp, &((struct actor *)self)->pathfinding_point,
             self->ignores_glass, (int32_t)self->pathfinding_surface_index, &step_point, -1, definition->pathfinding_radius, 0,
             (path_find_boundary_crossing *)extra_param);
         if (!trace_ok) {
@@ -556,7 +556,7 @@ void halo::ai::movement_ops::compute_swarm_avoidance_offset(datum_index unit_ind
                     if (!(radius > 0.12f)) {
                         radius = 0.12f;
                     }
-                    if (projectile_solve_ballistic_arc((real_point3d *)(target_prop + 0xc8),
+                    if (projectile_solve_ballistic_arc(&((struct prop *)target_prop)->center_of_mass,
                             (real_point3d *)((uint8_t *)component + 0x4), radius, 1.0f, &max_time, 0,
                             &leap, 0, 0, 0, 0, &half_gravity, &horizontal_speed)) {
                         float x, y, sum_sq;

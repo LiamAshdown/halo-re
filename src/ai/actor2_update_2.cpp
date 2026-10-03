@@ -170,7 +170,7 @@ void ActorView::update_firing_state()
             uint8_t *p = PROP(D(a, 0x610));
 
             F(a, 0x638) = F(p, 0x11c);
-            ((actor *)a)->firing_target_point = *(real_point3d *)(p + 0xc8);
+            ((actor *)a)->firing_target_point = ((struct prop *)p)->center_of_mass;
             W(a, 0x626) = W(p, 0x38);
             a[0x621] = p[0x118];
             a[0x624] = 1;
@@ -181,18 +181,18 @@ void ActorView::update_firing_state()
             }
         } else {
             ((actor *)a)->firing_target_point = *(real_point3d *)&((struct actor *)a)->firing_target_prop_index;
-            F(a, 0x638) = halo::math::vector3d_distance(*(real_point3d *)(a + 0x610), *(real_point3d *)(a + 0x120));
+            F(a, 0x638) = halo::math::vector3d_distance(*(real_point3d *)(a + 0x610), ((struct actor *)a)->aim_origin);
             a[0x621] = 0;
             a[0x624] = 0;
             if (((struct actor *)a)->firing_target_ticks % 10 == 0) {
                 W(a, 0x626) = (int16_t)actor_evaluate_engagement_reachability(W(a, 0x148), -1,
-                    (real_point3d *)(a + 0x62c), (real_point3d *)(a + 0x120), 0, 0, k_datum_index_none,
+                    &((struct actor *)a)->firing_target_point, &((struct actor *)a)->aim_origin, 0, 0, k_datum_index_none,
                     (uint8_t)(D(a, 0x158) != k_datum_index_none));
             }
         }
         a[0x622] = (uint8_t)(F(def, 0x148) > 0.0f && F(a, 0x638) > F(def, 0x148));
         a[0x623] = (uint8_t)(a[0x455] && F(def, 0x14c) > 0.0f);
-        if (!halo::items::weapon_trigger_get_aiming_vector(weapon, 0, (real_point3d *)(a + 0x120), (real_point3d *)(a + 0x62c),
+        if (!halo::items::weapon_trigger_get_aiming_vector(weapon, 0, &((struct actor *)a)->aim_origin, &((struct actor *)a)->firing_target_point,
                                               a[0x622], (real_vector3d *)(a + 0x63c), 0, (real *)(a + 0x648),
                                               &used_straight_line)) {
             W(a, 0x60c) = 0;
@@ -363,7 +363,7 @@ dispatch:
         }
 
         halo::items::weapon_trigger_get_aiming_vector(weapon, (int16_t)(a[0x603] != 0), &origin, final_point, a[0x622],
-                                         (real_vector3d *)(a + 0x68c), 0, 0, &used_straight_line);
+                                         &((struct actor *)a)->firing_vector, 0, 0, &used_straight_line);
         a[0x688] = (uint8_t)(used_straight_line == 0);
         {
             real_vector3d path;

@@ -11,6 +11,7 @@
 #include "objects.h"
 #include "units.h"
 #include "ai.h"
+#include "halo/ai/record_layout.hpp"
 #include "game.h"
 #include "networking.h"
 #include "physics.h"

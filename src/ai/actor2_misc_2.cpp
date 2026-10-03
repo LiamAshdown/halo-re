@@ -283,7 +283,7 @@ void ActorView::refresh_combat_context()
         *(real_vector3d *)&((struct actor *)self)->pathfinding_point = *(real_vector3d *)(unit_object + 0x4e0);
     }
     unit_get_forward_vector_or_marker_normal(A_I16(0x15e) > 0 ? A_I32(0x158) : A_I32(0x18),
-        (real_vector3d *)(self + 0x174));
+        &((struct actor *)self)->facing);
     if (A_U8(0x99) == 0) {
         if (halo::math::vector2d_normalize_with_length(*(real_vector2d *)(self + 0x174)) > 0.0f) {
             ((struct actor *)self)->facing.k = 0.0f;
@@ -296,7 +296,7 @@ void ActorView::refresh_combat_context()
         uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)vehicle & halo::k_slot_mask].data;
 
         if (*(uint32_t *)(vehicle_tag + 0x2f0) & 0x100) {
-            unit_get_forward_vector_or_marker_normal(A_I32(0x18), (real_vector3d *)(self + 0x180));
+            unit_get_forward_vector_or_marker_normal(A_I32(0x18), &((struct actor *)self)->unit_aiming_vector);
         } else {
             *(real_vector3d *)&((struct actor *)self)->unit_aiming_vector.i = *(real_vector3d *)&((vehicle_object *)vehicle)->unit.aiming_vector.i;
         }
@@ -304,9 +304,9 @@ void ActorView::refresh_combat_context()
         *(real_vector3d *)&((struct actor *)self)->unit_aiming_vector.i = *(real_vector3d *)&((unit_object *)unit)->unit.aiming_vector.i;
     }
     *(real_vector3d *)&((struct actor *)self)->unit_looking_vector.i = *(real_vector3d *)&((unit_object *)unit)->unit.looking_vector.i;
-    halo::math::vector3d_cross_product(*(real_vector3d *)(self + 0x198), *(real_vector3d *)(self + 0x18c), *halo::math::globals().global_up3d_pointer);
-    halo::math::vector3d_normalize_with_length(*(real_vector3d *)(self + 0x198));
-    halo::math::vector3d_cross_product(*(real_vector3d *)(self + 0x1a4), *(real_vector3d *)(self + 0x198),
+    halo::math::vector3d_cross_product(((struct actor *)self)->looking_left_vector, ((struct actor *)self)->unit_looking_vector, *halo::math::globals().global_up3d_pointer);
+    halo::math::vector3d_normalize_with_length(((struct actor *)self)->looking_left_vector);
+    halo::math::vector3d_cross_product(((struct actor *)self)->looking_up_vector, ((struct actor *)self)->looking_left_vector,
         *(real_vector3d *)(self + 0x18c));
     A_I32(0x1b8) = *(int32_t *)&((unit_object *)unit)->base.body_vitality;
     A_I32(0x1bc) = *(int32_t *)&((unit_object *)unit)->base.shield_vitality;

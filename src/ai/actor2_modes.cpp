@@ -49,7 +49,7 @@ void ActorView::mode_uncover_tick()
     } else if (kind == 1) {
         if (*(int16_t *)&((Actor *)actor_tag)->defensive_crouch_type == 4 ||
             ((actor_tag[0] & 4) &&
-             halo::math::vector3d_distance_squared(*(&((struct actor *)act)->mode_data.uncover.position), *(real_point3d *)(act + 0x12c)) < 100.0f)) {
+             halo::math::vector3d_distance_squared(*(&((struct actor *)act)->mode_data.uncover.position), ((struct actor *)act)->body_position) < 100.0f)) {
             act[0x9c] = 1;
         }
     }
@@ -64,7 +64,7 @@ void ActorView::mode_uncover_tick()
     kind = ((struct actor *)act)->mode_data.uncover.stage;
     if (kind == 0) {
         if (((actor *)act)->target_unit_index != k_datum_index_none) {
-            target_visible = (uint8_t)(*(int16_t *)(PROP(((actor *)act)->target_unit_index) + 0x32) > 0);
+            target_visible = (uint8_t)(((struct prop *)PROP(((actor *)act)->target_unit_index))->visual_perception > 0);
             keep_going = (uint8_t)!(target_visible && ((actor *)act)->target_combat_status < 5);
         }
     } else {
@@ -115,7 +115,7 @@ void ActorView::mode_uncover_update()
     if (target != k_datum_index_none) {
         uint8_t *p = PROP(target);
         uint8_t forced = 0;
-        int16_t kind = *(int16_t *)(p + 0x38);
+        int16_t kind = ((struct prop *)p)->obstruction;
 
         if (((struct actor *)act)->mode_data.uncover.stage == 0) {
             if (act[0x162]) {

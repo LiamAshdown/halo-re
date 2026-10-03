@@ -76,7 +76,7 @@ uint8_t halo::ai::alert_mode::process()
         int ready = 1;
 
         if (current != -1 && B(0x4a8) != 0) {
-            float distance_squared = halo::math::vector3d_distance_squared(*(real_point3d *)(actor + 0xa8), *(real_point3d *)(actor + 0x12c));
+            float distance_squared = halo::math::vector3d_distance_squared(*(real_point3d *)(actor + 0xa8), ((struct actor *)actor)->body_position);
             float radius = actor_compute_accuracy_scale(actor_index);
 
             if (!(radius > 0.5f)) {
@@ -350,7 +350,7 @@ void halo::ai::converse_mode::exit()
 {
     using namespace c_actor_mode_converse_exit;
     datum_index actor_index = datum;
-    datum_index conversation = *(datum_index *)(ACTOR(actor_index) + 0x1dc);
+    datum_index conversation = ((struct actor *)ACTOR(actor_index))->conversation_index;
 
     if (conversation != k_datum_index_none) {
         ai_conversation_stop(conversation, 0, 0);
@@ -947,12 +947,12 @@ uint8_t halo::ai::search_mode::process()
     ((struct actor *)act)->mode_data.search.reachable = 1;
     if (kind == 0 && ((actor *)act)->target_unit_index != k_datum_index_none) {
         uint8_t *target = PROP(((actor *)act)->target_unit_index);
-        float radius = *(int16_t *)(target + 0x38) == 0 ? 1.7f : 0.7f;
-        float distance_squared = halo::math::vector3d_distance_squared(*(real_point3d *)(act + 0x12c), *(real_point3d *)(target + 0xbc));
+        float radius = ((struct actor *)target)->original_squad_index == 0 ? 1.7f : 0.7f;
+        float distance_squared = halo::math::vector3d_distance_squared(((struct actor *)act)->body_position, *(real_point3d *)(target + 0xbc));
 
         ((struct actor *)act)->mode_data.search.reachable = (uint8_t)(radius * radius > distance_squared);
     } else if (kind == 1 && ((struct actor *)act)->mode_data.search.firing_position != -1) {
-        float distance_squared = halo::math::vector3d_distance_squared(*(real_point3d *)(act + 0x12c), *(&((struct actor *)act)->mode_data.search.position));
+        float distance_squared = halo::math::vector3d_distance_squared(((struct actor *)act)->body_position, *(&((struct actor *)act)->mode_data.search.position));
 
         if (distance_squared < 0.49f) {
             ((struct actor *)act)->mode_data.search.reachable = 1;
@@ -963,7 +963,7 @@ uint8_t halo::ai::search_mode::process()
 
             unit_add_marker_relative_offset(((actor *)act)->unit_index, 1, (float *)(act + 0xb0), 0, 0, &in_view);
             ((struct actor *)act)->mode_data.search.reachable = (uint8_t)(actor_evaluate_engagement_reachability(*(int16_t *)(act + 0x148), ((struct actor *)act)->mode_data.search.target_cluster,
-                                                                         &in_view, (real_point3d *)(act + 0x120), 0, 0, -1,
+                                                                         &in_view, &((struct actor *)act)->aim_origin, 0, 0, -1,
                                                                          (uint8_t)(((actor *)act)->active_unit_index !=
                                                                                    k_datum_index_none)) == 0);
         }
@@ -977,17 +977,17 @@ uint8_t halo::ai::search_mode::process()
         actor_prop_iterator_init(actor_index, &iterator);
         for (prop_index = iterator.next; prop_index != k_datum_index_none;) {
             uint8_t *p = PROP(prop_index);
-            int16_t prop_kind = *(int16_t *)(p + 0x24);
+            int16_t prop_kind = ((struct prop *)p)->state;
 
-            prop_index = *(datum_index *)(p + 0x8);
+            prop_index = ((struct prop *)p)->next_in_actor;
             if (prop_kind >= 2 && prop_kind <= 3 && !p[0x60] && !p[0x127] &&
                 *(datum_index *)(p + 0x1c) != k_datum_index_none &&
-                actor_targets_share_descriptor(actor_index, *(datum_index *)(p + 0x1c))) {
-                uint8_t *other = ACTOR(*(datum_index *)(p + 0x1c));
+                actor_targets_share_descriptor(actor_index, ((struct prop *)p)->owner_actor_index)) {
+                uint8_t *other = ACTOR(((struct prop *)p)->owner_actor_index);
 
                 sharing++;
                 if (!other[0x6] && !other[0x504] &&
-                    halo::math::vector3d_distance_squared(*(real_point3d *)(other + 0x12c), *(real_point3d *)(act + 0x12c)) < 0.64000005f) {
+                    halo::math::vector3d_distance_squared(((struct actor *)other)->body_position, ((struct actor *)act)->body_position) < 0.64000005f) {
                     close_idle++;
                 }
             }

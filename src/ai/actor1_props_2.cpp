@@ -76,7 +76,7 @@ void halo::ai::prop_ops::danger_update_reaction()
     uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *object;
     uint32_t block[14];
-    real_point3d *position = (real_point3d *)(actor + 0x2b0);
+    real_point3d *position = &((struct actor *)actor)->flee_from_point;
     real_point3d *block_point = (real_point3d *)&block[3];
     uint8_t noticed = 0;
     uint8_t own = 0;

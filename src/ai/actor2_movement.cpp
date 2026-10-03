@@ -509,7 +509,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
     using namespace actor_movement_apply_steering_local;
     uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
-    real_vector3d *facing = (real_vector3d *)(act + 0x174);
+    real_vector3d *facing = &((struct actor *)act)->facing;
     float max_turn_cos = 0.8660254f;
     int16_t chosen_axis = -1;
     real_vector3d aim;
@@ -589,7 +589,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
             }
             chosen_axis = 4;
         } else if (act[0x505]) {
-            actor_movement_choose_strafe_axis(desired_direction, keep_z, facing, (real_vector3d *)(act + 0x524), &aim,
+            actor_movement_choose_strafe_axis(desired_direction, keep_z, facing, &((struct actor *)act)->forced_aim_direction, &aim,
                                               &chosen_axis);
         } else {
             aim = *desired_direction;
@@ -628,7 +628,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
                     point.x = probe.i * 0.4f + ((actor *)act)->body_position.x;
                     point.y = probe.j * 0.4f + ((actor *)act)->body_position.y;
                     point.z = ((actor *)act)->body_position.z;
-                    if (path_find_trace_bsp_boundary(global_structure_bsp, act[0x376], (real_point3d *)(act + 0x12c),
+                    if (path_find_trace_bsp_boundary(global_structure_bsp, act[0x376], &((struct actor *)act)->body_position,
                                                      surface, &point, -1, &crossing) &&
                         !(max_turn_cos > 0.95f)) {
                         max_turn_cos = 0.95f;
@@ -684,7 +684,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
     if (steering_maximum > 0.0f || oversteer_max > 0.0f) {
         float target_angle;
         float angle;
-        float *held = (float *)(act + 0x594);
+        float *held = &((struct actor *)act)->oversteer_angle[0];
 
         if (dot_facing >= 1.0f) {
             target_angle = 0.0f;

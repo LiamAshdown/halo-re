@@ -1779,10 +1779,10 @@ uint8_t DialogueCondition_42f4f0::test(datum_index object_index, uint32_t param_
         return 0;
     }
     p = PROP(prop_index);
-    if (*(float *)(p + 0x11c) > 5.0f) {
+    if (((struct prop *)p)->distance > 5.0f) {
         return 1;
     }
-    return (uint8_t)(*(int16_t *)(p + 0x38) != 0 && *(int16_t *)(p + 0x38) != 1);
+    return (uint8_t)(((struct prop *)p)->obstruction != 0 && ((struct prop *)p)->obstruction != 1);
 }
 
 }
@@ -1857,8 +1857,8 @@ uint8_t DialogueCondition_42f5b0::test(datum_index object_index, uint32_t param_
     a = ACTOR(own_actor);
     b = ACTOR(actor_index);
     return (uint8_t)(((actor *)a)->encounter_index != k_datum_index_none &&
-        ((actor *)a)->encounter_index == *(datum_index *)(b + 0x34) &&
-        ((actor *)a)->platoon_index == *(int16_t *)(b + 0x3c));
+        ((actor *)a)->encounter_index == ((struct actor *)b)->encounter_index &&
+        ((actor *)a)->platoon_index == ((struct actor *)b)->platoon_index);
 }
 
 }
@@ -1965,15 +1965,15 @@ uint8_t DialogueCondition_42f6f0::test(datum_index object_index, uint32_t param_
     if (own_actor == k_datum_index_none || actor_index == k_datum_index_none) {
         return 0;
     }
-    a_target = *(datum_index *)(ACTOR(own_actor) + 0x270);
+    a_target = ((struct actor *)ACTOR(own_actor))->target_unit_index;
     if (a_target == k_datum_index_none) {
         return 0;
     }
-    b_target = *(datum_index *)(ACTOR(actor_index) + 0x270);
+    b_target = ((struct actor *)ACTOR(actor_index))->target_unit_index;
     if (b_target == k_datum_index_none) {
         return 0;
     }
-    return (uint8_t)(*(datum_index *)(PROP(a_target) + 0x18) == *(datum_index *)(PROP(b_target) + 0x18));
+    return (uint8_t)(((struct prop *)PROP(a_target))->object_index == ((struct prop *)PROP(b_target))->object_index);
 }
 
 }

@@ -251,7 +251,7 @@ uint8_t ActorView::reject_firing_position_unreachable(actor_firing_position_quer
         const real_point3d *position = (const real_point3d *)candidate->position;
 
         if (actor_movement_flying_needs_steering(actor_index, position, &avoidance_distance) != 0 &&
-            path_find_test_direct_reachability(position, (const real_point3d *)((uint8_t *)self + 0x12c), 0,
+            path_find_test_direct_reachability(position, &((struct actor *)self)->body_position, 0,
                 global_structure_bsp, 0) != 0) {
             candidate->score = candidate->score + 15.0f;
             return candidate->valid;
@@ -305,7 +305,7 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
             unit_add_marker_relative_offset(self->unit_index, 1, (float *)candidate->position, 0, 0, &marker_point);
             candidate->request_result = (int16_t)actor_evaluate_engagement_reachability(
                 *(int16_t *)((uint8_t *)self + 0x148), *(int16_t *)((uint8_t *)candidate->position + 0xe),
-                &marker_point, (real_point3d *)((uint8_t *)self + 0x120), 0, 0, halo::k_dword_none,
+                &marker_point, &((struct actor *)self)->aim_origin, 0, 0, halo::k_dword_none,
                 self->active_unit_index != (datum_index)halo::k_dword_none);
             return;
         }

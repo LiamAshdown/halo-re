@@ -62,8 +62,8 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
     float index_out;
     float delta;
     float scale;
-    int16_t *best_saved = (int16_t *)(act + 0x5d8);
-    int16_t *hold = (int16_t *)(act + 0x5f0);
+    int16_t *best_saved = &((struct actor *)act)->avoidance_last_direction;
+    int16_t *hold = &((struct actor *)act)->avoidance_turn_around_ticks;
     int16_t held;
 
     if (unit_index == k_datum_index_none) {
