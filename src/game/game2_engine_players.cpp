@@ -1030,7 +1030,7 @@ uint8_t EnginePlayers::scores_tracked_individually(void)
             game_engine_variant.engine.slayer.kill_in_order == 0) {
             no_team_mode = 0;
         }
-        result = ((halo::game::variant_flag_set(game_engine_variant.flags, halo::game::game_variant_flags::individual_scoring) ? 1 : 0)) | no_team_mode;
+        result = ((halo::game::variant_flag_set(game_engine_variant.flags, halo::game::game_variant_flags::players_on_radar) ? 1 : 0)) | no_team_mode;
     }
     return result;
 }

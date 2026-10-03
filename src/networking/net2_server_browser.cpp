@@ -655,249 +655,201 @@ void ServerBrowser::column_header_update(network_ui_widget *header, int32_t sort
     down_arrow->visible = (sort_direction < 0);
 }
 
+namespace {
+
+/** Bit positions in the first number of the "%d,%d" custom options text a server announces. */
+constexpr uint32_t k_custom_options_marker = 0x40000000;
+constexpr uint32_t k_lives_shift = 0;
+constexpr uint32_t k_health_shift = 2;
+constexpr uint32_t k_shields_disabled_bit = 5;
+constexpr uint32_t k_respawn_time_shift = 6;
+constexpr uint32_t k_respawn_growth_shift = 8;
+constexpr uint32_t k_odd_man_out_bit = 10;
+constexpr uint32_t k_invisible_players_bit = 11;
+constexpr uint32_t k_suicide_penalty_shift = 12;
+constexpr uint32_t k_maximum_grenades_bit = 14;
+constexpr uint32_t k_weapon_set_shift = 15;
+constexpr uint32_t k_loadout_override_bit = 19;
+constexpr uint32_t k_objective_indicator_shift = 20;
+constexpr uint32_t k_players_on_radar_bit = 22;
+constexpr uint32_t k_hide_radar_blips_bit = 23;
+constexpr uint32_t k_friend_indicators_bit = 24;
+constexpr uint32_t k_friendly_fire_shift = 25;
+constexpr uint32_t k_betrayal_penalty_shift = 27;
+constexpr uint32_t k_team_autobalance_bit = 29;
+
+/** Bit positions in the second number: the vehicle respawn delay and the two vehicle sets. */
+constexpr uint32_t k_vehicle_respawn_shift = 0;
+constexpr uint32_t k_red_vehicle_set_shift = 3;
+constexpr uint32_t k_blue_vehicle_set_shift = 7;
+
+/** The respawn, growth, suicide and betrayal delays: code 0 is none, 1..3 index this table. */
+constexpr int32_t k_duration_ticks[4] = {0, halo::game::seconds_to_ticks(5), 300, halo::game::k_ticks_per_fifteen_seconds};
+
+/** The vehicle respawn delays by code; 0 means the vehicles never respawn. */
+constexpr int32_t k_vehicle_respawn_ticks[7] = {0, 900, halo::game::k_ticks_per_minute, halo::game::seconds_to_ticks(90),
+    halo::game::seconds_to_ticks(120), halo::game::seconds_to_ticks(180), 9000};
+
+constexpr uint32_t k_health_bits[6] = {halo::game::k_float_half_bits, halo::game::k_float_one_bits,
+    halo::game::k_float_one_and_half_bits, halo::game::k_float_two_bits, halo::game::k_float_three_bits,
+    halo::game::k_float_four_bits};
+
+uint32_t pack_duration(int32_t ticks)
+{
+    for (uint32_t code = 1; code < 4; code++) {
+        if (ticks == k_duration_ticks[code]) {
+            return code;
+        }
+    }
+    return 0;
+}
+
+int32_t unpack_duration(uint32_t code)
+{
+    return k_duration_ticks[code];
+}
+
+uint32_t pack_vehicle_respawn(int32_t ticks)
+{
+    for (uint32_t code = 1; code < 7; code++) {
+        if (ticks == k_vehicle_respawn_ticks[code]) {
+            return code;
+        }
+    }
+    return 0;
+}
+
+int32_t unpack_vehicle_respawn(uint32_t code)
+{
+    return (code >= 1 && code <= 6) ? k_vehicle_respawn_ticks[code] : 0;
+}
+
+uint32_t pack_lives(int32_t lives)
+{
+    return lives == 1 ? 1 : lives == 3 ? 2 : lives == 5 ? 3 : 0;
+}
+
+int32_t unpack_lives(uint32_t code)
+{
+    return code == 1 ? 1 : code == 2 ? 3 : code == 3 ? 5 : 0;
+}
+
+uint32_t pack_health(uint32_t bits)
+{
+    for (uint32_t code = 1; code < 6; code++) {
+        if (bits == k_health_bits[code]) {
+            return code;
+        }
+    }
+    return 0;
+}
+
+uint32_t unpack_health(uint32_t code)
+{
+    return (code == 0 || (code >= 2 && code <= 5)) ? k_health_bits[code] : halo::game::k_float_one_bits;
+}
+
+void assign_variant_flag(uint32_t &flags, halo::game::game_variant_flags flag, uint32_t on)
+{
+    flags = on != 0 ? (flags | halo::to_bits(flag)) : (flags & ~halo::to_bits(flag));
+}
+
+}  // namespace
+
 char * ServerBrowser::custom_options_pack(server_browser_custom_options *options)
 {
-    uint32_t low;
-    uint32_t high;
-    uint32_t extra;
+    using halo::game::game_variant_flags;
+    uint32_t code = k_custom_options_marker;
+    uint32_t vehicles = 0;
 
-    low = 0x40000000;
-    if (options->lives_per_round != 0) {
-        if (options->lives_per_round == 1) {
-            low = 0x40000001;
-        } else if (options->lives_per_round == 3) {
-            low = 0x40000002;
-        } else if (options->lives_per_round == 5) {
-            low = 0x40000003;
-        }
-    }
-    if (options->health_bits != halo::game::k_float_half_bits) {
-        if (options->health_bits == halo::game::k_float_one_bits) {
-            low = low | 4;
-        } else if (options->health_bits == halo::game::k_float_one_and_half_bits) {
-            low = low | 8;
-        } else if (options->health_bits == halo::game::k_float_two_bits) {
-            low = low | 0xc;
-        } else if (options->health_bits == halo::game::k_float_three_bits) {
-            low = low | 0x10;
-        } else if (options->health_bits == halo::game::k_float_four_bits) {
-            low = low | 0x14;
-        }
-    }
-    low = low ^ (options->flags * 4 & 0x20);
-    if (options->respawn_time != 0) {
-        if (options->respawn_time == halo::game::seconds_to_ticks(5)) {
-            low = low | 0x40;
-        } else if (options->respawn_time == 300) {
-            low = low | 0x80;
-        } else if (options->respawn_time == halo::game::k_ticks_per_fifteen_seconds) {
-            low = low | 0xc0;
-        }
-    }
-    if (options->respawn_time_growth != 0) {
-        if (options->respawn_time_growth == halo::game::seconds_to_ticks(5)) {
-            low = low | 0x100;
-        } else if (options->respawn_time_growth == 300) {
-            low = low | 0x200;
-        } else if (options->respawn_time_growth == halo::game::k_ticks_per_fifteen_seconds) {
-            low = low | 0x300;
-        }
-    }
-    {
-        uint32_t bit4 = options->flags & 0x10;
-        uint32_t bit3 = (uint32_t)(options->odd_man_out != 0) << 3;
-        high = (bit3 | bit4) << 7 | low;
-        if (options->suicide_penalty == 0) {
-            high = (bit3 | bit4) << 7 | low;
-        } else if (options->suicide_penalty == halo::game::seconds_to_ticks(5)) {
-            high = ((bit3 | bit4) << 7 | low) | 0x1000;
-        } else if (options->suicide_penalty == 300) {
-            high = ((bit3 | bit4) << 7 | low) | 0x2000;
-        } else if (options->suicide_penalty == halo::game::k_ticks_per_fifteen_seconds) {
-            high = high | 0x3000;
-        }
-    }
-    high = high ^ ((options->flags & 4) << 0xc);
+    code |= pack_lives(options->lives_per_round) << k_lives_shift;
+    code |= pack_health(options->health_bits) << k_health_shift;
+    code |= (uint32_t)variant_flag_set(options->flags, game_variant_flags::shields_disabled) << k_shields_disabled_bit;
+    code |= pack_duration(options->respawn_time) << k_respawn_time_shift;
+    code |= pack_duration(options->respawn_time_growth) << k_respawn_growth_shift;
+    code |= (uint32_t)(options->odd_man_out != 0) << k_odd_man_out_bit;
+    code |= (uint32_t)variant_flag_set(options->flags, game_variant_flags::invisible_players) << k_invisible_players_bit;
+    code |= pack_duration(options->suicide_penalty) << k_suicide_penalty_shift;
+    code |= (uint32_t)variant_flag_set(options->flags, game_variant_flags::maximum_grenades) << k_maximum_grenades_bit;
     if ((int32_t)options->weapon_set < 0xe) {
-        high = high ^ ((options->weapon_set & 0xf) << 0xf);
+        code |= (options->weapon_set & 0xf) << k_weapon_set_shift;
     }
-    high = high ^ ((options->flags & 0x20) << 0xe);
+    code |= (uint32_t)variant_flag_set(options->flags, game_variant_flags::loadout_override) << k_loadout_override_bit;
     if ((int32_t)options->objective_indicator < 3) {
-        high = high ^ ((options->objective_indicator & 3) << 0x14);
+        code |= (options->objective_indicator & 3) << k_objective_indicator_shift;
     }
-    high = ((((options->flags & 2) << 1 | (options->flags & 1)) << 5 | (options->flags & 0x40)) << 0x11) | high;
+    code |= (uint32_t)variant_flag_set(options->flags, game_variant_flags::players_on_radar) << k_players_on_radar_bit;
+    code |= (uint32_t)variant_flag_set(options->flags, game_variant_flags::hide_radar_blips) << k_hide_radar_blips_bit;
+    code |= (uint32_t)variant_flag_set(options->flags, game_variant_flags::friend_indicators) << k_friend_indicators_bit;
     if (options->friendly_fire < 4) {
-        high = high ^ ((uint32_t)(options->friendly_fire & 3) << 0x19);
+        code |= (uint32_t)(options->friendly_fire & 3) << k_friendly_fire_shift;
     }
-    if (options->betrayal_penalty != 0) {
-        if (options->betrayal_penalty == halo::game::seconds_to_ticks(5)) {
-            high = high | 0x8000000;
-        } else if (options->betrayal_penalty == 300) {
-            high = high | 0x10000000;
-        } else if (options->betrayal_penalty == halo::game::k_ticks_per_fifteen_seconds) {
-            high = high | 0x18000000;
-        }
-    }
+    code |= pack_duration(options->betrayal_penalty) << k_betrayal_penalty_shift;
+    code |= (uint32_t)(options->team_autobalance != 0) << k_team_autobalance_bit;
 
-    extra = 0;
-    if (options->vehicle_respawn_time == 0) {
-        extra = 0;
-    } else if (options->vehicle_respawn_time == 900) {
-        extra = 1;
-    } else if (options->vehicle_respawn_time == halo::game::k_ticks_per_minute) {
-        extra = 2;
-    } else if (options->vehicle_respawn_time == halo::game::seconds_to_ticks(90)) {
-        extra = 3;
-    } else if (options->vehicle_respawn_time == halo::game::seconds_to_ticks(120)) {
-        extra = 4;
-    } else if (options->vehicle_respawn_time == halo::game::seconds_to_ticks(180)) {
-        extra = 5;
-    } else if (options->vehicle_respawn_time == 9000) {
-        extra = 6;
-    }
+    vehicles |= pack_vehicle_respawn(options->vehicle_respawn_time) << k_vehicle_respawn_shift;
     {
-        uint32_t nibble1 = options->red_vehicle_set & 0xf;
-        if (nibble1 < 9) {
-            extra = extra | (nibble1 << 3);
+        uint32_t red = options->red_vehicle_set & 0xf;
+        if (red < 9) {
+            vehicles |= red << k_red_vehicle_set_shift;
         }
     }
     {
-        uint32_t nibble2 = options->blue_vehicle_set & 0xf;
-        if (nibble2 < 9) {
-            extra = (nibble2 << 7) | extra;
+        uint32_t blue = options->blue_vehicle_set & 0xf;
+        if (blue < 9) {
+            vehicles |= blue << k_blue_vehicle_set_shift;
         }
     }
 
-    sprintf(server_browser_custom_options_text, "%d,%d",
-            high ^ ((uint32_t)(options->team_autobalance != 0) << 0x1d), extra);
+    sprintf(server_browser_custom_options_text, "%d,%d", code, vehicles);
     return server_browser_custom_options_text;
 }
 
 void ServerBrowser::custom_options_unpack(char *text, server_browser_custom_options *out)
 {
-    uint32_t low;
-    uint32_t high;
+    using halo::game::game_variant_flags;
+    uint32_t code;
+    uint32_t vehicles;
 
-    sscanf(text, "%d,%d", &low, &high);
+    sscanf(text, "%d,%d", &code, &vehicles);
 
-    switch (low & 3) {
-    case 1: out->lives_per_round = 1; break;
-    case 2: out->lives_per_round = 3; break;
-    case 3: out->lives_per_round = 5; break;
-    default: out->lives_per_round = 0; break;
-    }
-
-    switch ((low >> 2) & 7) {
-    case 0: out->health_bits = halo::game::k_float_half_bits; break;
-    case 2: out->health_bits = halo::game::k_float_one_and_half_bits; break;
-    case 3: out->health_bits = halo::game::k_float_two_bits; break;
-    case 4: out->health_bits = halo::game::k_float_three_bits; break;
-    case 5: out->health_bits = halo::game::k_float_four_bits; break;
-    default: out->health_bits = halo::game::k_float_one_bits; break;
-    }
-
-    if ((low & 0x20) == 0) {
-        out->flags = out->flags & ~halo::to_bits(halo::game::game_variant_flags::shields_disabled);
-    } else {
-        out->flags = out->flags | halo::to_bits(halo::game::game_variant_flags::shields_disabled);
-    }
-
-    switch ((low >> 6) & 3) {
-    case 1: out->respawn_time = halo::game::seconds_to_ticks(5); break;
-    case 2: out->respawn_time = 300; break;
-    case 3: out->respawn_time = halo::game::k_ticks_per_fifteen_seconds; break;
-    default: out->respawn_time = 0; break;
-    }
-
-    switch ((low >> 8) & 3) {
-    case 1: out->respawn_time_growth = halo::game::seconds_to_ticks(5); break;
-    case 2: out->respawn_time_growth = 300; break;
-    case 3: out->respawn_time_growth = halo::game::k_ticks_per_fifteen_seconds; break;
-    default: out->respawn_time_growth = 0; break;
-    }
-
-    out->odd_man_out = (uint8_t)((low >> 10) & 1);
-
-    if ((low & 0x800) == 0) {
-        out->flags = out->flags & ~halo::to_bits(halo::game::game_variant_flags::invisible_players);
-    } else {
-        out->flags = out->flags | halo::to_bits(halo::game::game_variant_flags::invisible_players);
-    }
-
-    switch ((low >> 0xc) & 3) {
-    case 1: out->suicide_penalty = halo::game::seconds_to_ticks(5); break;
-    case 2: out->suicide_penalty = 300; break;
-    case 3: out->suicide_penalty = halo::game::k_ticks_per_fifteen_seconds; break;
-    default: out->suicide_penalty = 0; break;
-    }
-
-    if ((low & 0x4000) == 0) {
-        out->flags = out->flags & ~halo::to_bits(halo::game::game_variant_flags::maximum_grenades);
-    } else {
-        out->flags = out->flags | halo::to_bits(halo::game::game_variant_flags::maximum_grenades);
-    }
+    out->lives_per_round = unpack_lives((code >> k_lives_shift) & 3);
+    out->health_bits = unpack_health((code >> k_health_shift) & 7);
+    assign_variant_flag(out->flags, game_variant_flags::shields_disabled, (code >> k_shields_disabled_bit) & 1);
+    out->respawn_time = unpack_duration((code >> k_respawn_time_shift) & 3);
+    out->respawn_time_growth = unpack_duration((code >> k_respawn_growth_shift) & 3);
+    out->odd_man_out = (uint8_t)((code >> k_odd_man_out_bit) & 1);
+    assign_variant_flag(out->flags, game_variant_flags::invisible_players, (code >> k_invisible_players_bit) & 1);
+    out->suicide_penalty = unpack_duration((code >> k_suicide_penalty_shift) & 3);
+    assign_variant_flag(out->flags, game_variant_flags::maximum_grenades, (code >> k_maximum_grenades_bit) & 1);
 
     {
-        uint32_t nibble = (low >> 0xf) & 0xf;
-        out->weapon_set = (nibble < 0xe) ? nibble : 0;
+        uint32_t weapon_set = (code >> k_weapon_set_shift) & 0xf;
+        out->weapon_set = (weapon_set < 0xe) ? weapon_set : 0;
     }
 
-    if ((low & 0x80000) == 0) {
-        out->flags = out->flags & ~halo::to_bits(halo::game::game_variant_flags::loadout_override);
-    } else {
-        out->flags = out->flags | halo::to_bits(halo::game::game_variant_flags::loadout_override);
-    }
+    assign_variant_flag(out->flags, game_variant_flags::loadout_override, (code >> k_loadout_override_bit) & 1);
 
     {
-        uint32_t two_bits = (low >> 0x14) & 3;
-        out->objective_indicator = (two_bits <= 2) ? two_bits : 0;
+        uint32_t indicator = (code >> k_objective_indicator_shift) & 3;
+        out->objective_indicator = (indicator <= 2) ? indicator : 0;
     }
 
-    if ((low & 0x400000) == 0) {
-        out->flags = out->flags & ~halo::to_bits(halo::game::game_variant_flags::individual_scoring);
-    } else {
-        out->flags = out->flags | halo::to_bits(halo::game::game_variant_flags::individual_scoring);
-    }
-    if ((low & 0x800000) == 0) {
-        out->flags = out->flags & ~halo::to_bits(halo::game::game_variant_flags::hide_radar_blips);
-    } else {
-        out->flags = out->flags | halo::to_bits(halo::game::game_variant_flags::hide_radar_blips);
-    }
-    if ((low & 0x1000000) == 0) {
-        out->flags = out->flags & ~halo::to_bits(halo::game::game_variant_flags::reserved_1);
-    } else {
-        out->flags = out->flags | halo::to_bits(halo::game::game_variant_flags::reserved_1);
-    }
+    assign_variant_flag(out->flags, game_variant_flags::players_on_radar, (code >> k_players_on_radar_bit) & 1);
+    assign_variant_flag(out->flags, game_variant_flags::hide_radar_blips, (code >> k_hide_radar_blips_bit) & 1);
+    assign_variant_flag(out->flags, game_variant_flags::friend_indicators, (code >> k_friend_indicators_bit) & 1);
+
+    out->friendly_fire = (uint8_t)((code >> k_friendly_fire_shift) & 3);
+    out->betrayal_penalty = unpack_duration((code >> k_betrayal_penalty_shift) & 3);
+    out->team_autobalance = ((code >> k_team_autobalance_bit) & 1) != 0;
+
+    out->vehicle_respawn_time = unpack_vehicle_respawn((vehicles >> k_vehicle_respawn_shift) & 7);
 
     {
-        uint8_t two_bits = (uint8_t)((low >> 0x19) & 3);
-        out->friendly_fire = (two_bits < 4) ? two_bits : 0;
-    }
-
-    switch ((low >> 0x1b) & 3) {
-    case 1: out->betrayal_penalty = halo::game::seconds_to_ticks(5); break;
-    case 2: out->betrayal_penalty = 300; break;
-    case 3: out->betrayal_penalty = halo::game::k_ticks_per_fifteen_seconds; break;
-    default: out->betrayal_penalty = 0; break;
-    }
-
-    out->team_autobalance = (low & 0x20000000) == 0x20000000;
-
-    switch (high & 7) {
-    case 1: out->vehicle_respawn_time = 900; break;
-    case 2: out->vehicle_respawn_time = halo::game::k_ticks_per_minute; break;
-    case 3: out->vehicle_respawn_time = halo::game::seconds_to_ticks(90); break;
-    case 4: out->vehicle_respawn_time = halo::game::seconds_to_ticks(120); break;
-    case 5: out->vehicle_respawn_time = halo::game::seconds_to_ticks(180); break;
-    case 6: out->vehicle_respawn_time = 9000; break;
-    default: out->vehicle_respawn_time = 0; break;
-    }
-
-    {
-        uint32_t nibble1 = (high >> 3) & 0xf;
-        uint32_t nibble2 = (high >> 7) & 0xf;
-        out->red_vehicle_set = (nibble1 < 9) ? nibble1 : 0;
-        out->blue_vehicle_set = (nibble2 < 9) ? nibble2 : 0;
+        uint32_t red = (vehicles >> k_red_vehicle_set_shift) & 0xf;
+        uint32_t blue = (vehicles >> k_blue_vehicle_set_shift) & 0xf;
+        out->red_vehicle_set = (red < 9) ? red : 0;
+        out->blue_vehicle_set = (blue < 9) ? blue : 0;
     }
 }
 
