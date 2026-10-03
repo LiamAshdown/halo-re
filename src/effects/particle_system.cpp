@@ -116,7 +116,7 @@ void particle_system_view::creation_physics_explosion(int32_t type_index, partic
     scaled_x = k0 * direction.x;
     scaled_y = k0 * direction.y;
     scaled_z = k1 * direction.z;
-    if (*(uint8_t *)&system->unknown_54 != 0) {
+    if (*(uint8_t *)&system->burst_mirror_z != 0) {
         scaled_z = (scaled_z < 0.0f) ? -scaled_z : scaled_z;
     }
 

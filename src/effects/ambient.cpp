@@ -15,7 +15,7 @@ extern int16_t sphere_point_table_count;
 extern random_seed random_seed_global;
 extern void vector3d_catmull_rom_interpolate(real_vector3d *source1, real_vector3d *source3, real_vector3d *source2, real_vector3d *out, real_vector3d *source0, float time0, float dt, float time);
 extern int32_t weather_frame_counter;
-extern datum_index effect_new_with_color(datum_index definition_index, datum_index creator_object_index, const real_vector3d *velocity, uint16_t ctx_08, uint32_t ctx_0c, real_point3d *position, uint32_t ctx_14, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source, uint8_t force_create);
+extern datum_index effect_new_with_color(datum_index definition_index, datum_index creator_object_index, const real_vector3d *velocity, uint16_t marker_count, uint32_t marker_names, real_point3d *position, uint32_t marker_forwards, real a_scale, real b_scale, const ColorRGB *color, const effect_tint_source *tint_source, uint8_t force_create);
 extern datum_index sound_start_at_location(datum_index definition_index, sound_placement *placement, float scale);
 uint8_t ambient_color_marker_visible(bsp_leaf_reference *location, real_point3d *position, real_vector3d *out, uint32_t filter_flags);
 void ambient_color_randomize();

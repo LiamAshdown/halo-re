@@ -238,7 +238,7 @@ void decal_ref::evict_object_decals(int16_t cluster_index)
  * edge), that neighbouring surface index is appended to `surface_queue` for the caller to flood
  * into next. On the surfaces the decal actually covers (is_first_surface set, and the surface
  * within maximum_edge_angle of the decal plane) the clipped polygon is appended to
- * `accumulator`. Surfaces that fail the tight angle test but pass the looser unknown_04 one go
+ * `accumulator`. Surfaces that fail the tight angle test but pass the looser fallback_edge_angle one go
  * on `fallback_queue` instead.
  *
  * @address 0x44e730
@@ -423,7 +423,7 @@ void decal_ref::flood_surfaces(decal_projection *projection, decal_flood_accumul
             edge_index = (int32_t)(&edge->forward_edge)[surface_is_right];
         } while (edge_index != (int32_t)surface->first_edge);
 
-        if (angle <= k_decal_type_parameters[decal_type].unknown_04 * 0.017453292f &&
+        if (angle <= k_decal_type_parameters[decal_type].fallback_edge_angle * 0.017453292f &&
             fallback_count < 0x400) {
             fallback_queue[fallback_count] = surface_index;
             fallback_count = fallback_count + 1;
