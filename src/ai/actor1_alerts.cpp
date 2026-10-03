@@ -104,7 +104,7 @@ uint8_t halo::ai::alert_ops::alert_from_disturbance()
     datum_index actor_index = datum;
     struct actor *actor = halo::ai::actor_at(actor_index);
 
-    if (actor->surprise_pending == 0 || (*(uint32_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data & 0x400) == 0) {
+    if (actor->surprise_pending == 0 || (halo::ai::tag_data<Actor>(actor->actor_definition_tag)->flags & 0x400) == 0) {
         return 0;
     }
     actor_raise_alert(actor, 7, actor->look_at_reference);
@@ -629,7 +629,7 @@ uint8_t halo::ai::alert_ops::escalate_check_target_close()
         return 0;
     }
     if (!(((struct prop *)halo::ai::prop_bytes(act->target_unit_index))->distance <
-          *(float *)(halo::ai::tag_bytes(act->actor_definition_tag) + 0x3a0))) {
+          halo::ai::tag_data<Actor>(act->actor_definition_tag)->berserk_proximity)) {
         return 0;
     }
     if (act->escalation_level <= 2) {

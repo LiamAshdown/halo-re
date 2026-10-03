@@ -502,7 +502,7 @@ uint16_t ActorOps::target_hearing_check(void *record, int16_t stance, datum_inde
     if (source_cluster == -1) {
         return 0;
     }
-    range = *(float *)((uint8_t *)halo::cache::globals().tag_instances[a->actor_definition_tag & halo::k_slot_mask].data + 0x4c);
+    range = halo::ai::tag_data<Actor>(a->actor_definition_tag)->hearing_distance;
     dx = listener_position->x - *(float *)(listener + 0x0);
     dy = listener_position->y - *(float *)(listener + 0x4);
     dz = listener_position->z - *(float *)(listener + 0x8);
@@ -1324,8 +1324,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, void
         p->perception_range_class = 2;
 
         if (unit_obj->type == _object_type_biped) {
-            void *own_tag_data = halo::cache::globals().tag_instances[unit_obj->definition_tag & halo::k_slot_mask].data;
-            p->flying = (uint8_t)((*(uint32_t *)((uint8_t *)own_tag_data + 0x2f4)) >> 2) & 1;
+            p->flying = (uint8_t)(halo::ai::tag_data<Biped>(unit_obj->definition_tag)->biped_flags >> 2) & 1;
         } else {
             p->flying = 0;
         }

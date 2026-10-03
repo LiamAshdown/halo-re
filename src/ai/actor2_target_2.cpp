@@ -191,8 +191,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
 }
 static void squad_link_evaluate_projectile(uint32_t actor_index, actor *self, datum_index object_index, projectile_object *object)
 {
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[object->base.definition_tag & halo::k_slot_mask].data;
-    float radius = *(float *)(tag + 0x1a8);
+    float radius = halo::ai::tag_data<Projectile>(object->base.definition_tag)->danger_radius;
     real_point3d position;
     uint32_t block[14];
     real_point3d *block_point = (real_point3d *)&block[3];

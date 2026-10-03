@@ -132,7 +132,7 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
     using namespace actor_squad_action_execute_local;
     actor *act = halo::ai::actor_at(actor_index);
     Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
-    uint8_t *variant_tag = halo::ai::tag_bytes(act->actor_variant_tag);
+    ActorVariant *variant_tag = halo::ai::tag_data<ActorVariant>(act->actor_variant_tag);
     ScenarioCommandList *list = &((ScenarioCommandList *)halo::scenario::globals().scenario->command_lists.pointer)[command_list_index];
     int32_t command_count = (int32_t)list->commands.count;
     int32_t command_index = state->command_index;
@@ -370,7 +370,7 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
         if (aim_state == 0) {
             return 0;
         }
-        grenade_type = *(int16_t *)(variant_tag + 0x180);
+        grenade_type = variant_tag->grenade_type;
         if (grenade_type == -1 || p < 0 || p >= point_count) {
             return 0;
         }
@@ -475,7 +475,7 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
     }
 
     case 0xd: {
-        uint8_t *reference;
+        ScenarioAIAnimationReference *reference;
         datum_index graph;
         uint8_t interpolate = 1;
         uint8_t flag_4 = 0;
@@ -485,10 +485,10 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
         if ((int16_t)entry->animation == -1) {
             return 0;
         }
-        reference = halo::ai::reflexive_data<uint8_t>(halo::scenario::globals().scenario->ai_animation_references) + (int16_t)entry->animation * 0x3c;
-        graph = *(datum_index *)(reference + 0x2c);
+        reference = &halo::ai::reflexive_data<ScenarioAIAnimationReference>(halo::scenario::globals().scenario->ai_animation_references)[(int16_t)entry->animation];
+        graph = halo::ai::tag_handle(reference->animation_graph);
         if (graph == k_datum_index_none) {
-            graph = *(datum_index *)(halo::ai::tag_bytes(*(datum_index *)halo::ai::object_bytes(check_object_index)) + 0x44);
+            graph = halo::ai::tag_handle(halo::ai::tag_data<Object>(halo::ai::object_at(check_object_index)->definition_tag)->animation_graph);
         }
         switch (entry->atom_modifier) {
         case 1: flag_4 = 1; break;
@@ -632,13 +632,13 @@ char ActorOps::squad_action_execute(actor_command_aim *aim_state, uint32_t actor
         if (facing_point >= 0 && facing_point < point_count) {
             real_point3d *facing = (real_point3d *)&points[facing_point].position;
             uint8_t *biped = (uint8_t *)halo::objects::object_try_and_get(check_object_index, 1);
-            uint8_t *biped_tag = biped != 0 ? halo::ai::tag_bytes(*(datum_index *)biped) : 0;
+            Biped *biped_tag = biped != 0 ? halo::ai::tag_data<Biped>(((object *)biped)->definition_tag) : 0;
             float length;
 
             forward.i = facing->x - destination->x;
             forward.j = facing->y - destination->y;
             forward.k = facing->z - destination->z;
-            if (biped_tag != 0 && (biped_tag[0x2f4] & 0x44) != 0) {
+            if (biped_tag != 0 && (biped_tag->biped_flags & 0x44) != 0) {
                 length = halo::math::vector3d_normalize_with_length(forward);
             } else {
                 forward.k = 0.0f;
@@ -776,7 +776,7 @@ uint8_t ActorOps::squad_action_is_complete(actor_command_aim *aim_state, uint32_
         }
         if (act->firing_target_type != 2 ||
             !(halo::math::vector3d_distance_squared(*&act->firing_target_free_point, *&aim_state->shoot_point) < 0.25f)) {
-            int16_t ticks = (int16_t)(int32_t)(*(float *)(halo::ai::tag_bytes(act->actor_variant_tag) + 0x84) * 30.0f);
+            int16_t ticks = (int16_t)(int32_t)(halo::ai::tag_data<ActorVariant>(act->actor_variant_tag)->first_burst_delay_time[1] * 30.0f);
 
             state->timer_ticks = ticks > 0x3c ? ticks : 0x3c;
         }

@@ -34,7 +34,7 @@ void ActorView::update_firing_state()
     Actor *actor_tag = halo::ai::tag_data<Actor>(a->actor_definition_tag);
     ActorVariant *variant = halo::ai::tag_data<ActorVariant>(a->actor_variant_tag);
     ActorVariant *def = reinterpret_cast<ActorVariant *>(halo::ai::actor_get_actor_definition(actor_index));
-    uint8_t *weapon_tag = 0;
+    Weapon *weapon_tag = 0;
     datum_index weapon;
     uint8_t fire_primary = 0;
     uint8_t fire_secondary = 0;
@@ -47,7 +47,7 @@ void ActorView::update_firing_state()
 
     weapon = halo::ai::actor_get_threat_weapon_object_index(actor_index);
     if (weapon != k_datum_index_none) {
-        weapon_tag = halo::ai::tag_bytes(*(datum_index *)halo::ai::object_bytes(weapon));
+        weapon_tag = halo::ai::tag_data<Weapon>(halo::ai::object_at(weapon)->definition_tag);
     }
     weapon = halo::ai::actor_get_threat_weapon_object_index(actor_index);
 
@@ -109,16 +109,16 @@ void ActorView::update_firing_state()
             return false;
         }
 
-        if (*(int16_t *)((uint8_t *)def + 0x154) > 0 && a->firing_state != 2 && !(a->special_fire_timer > 0) && !(a->special_fire_strafe_cooldown > 0)) {
-            uint8_t *threat_tag = halo::ai::tag_bytes(*(datum_index *)halo::ai::object_bytes(weapon));
+        if (def->special_fire_mode > 0 && a->firing_state != 2 && !(a->special_fire_timer > 0) && !(a->special_fire_strafe_cooldown > 0)) {
+            Weapon *threat_tag = halo::ai::tag_data<Weapon>(halo::ai::object_at(weapon)->definition_tag);
             uint8_t allowed;
 
             halo::game::weapon_get_zoom_fov_resolved(0x12, a->team);
-            if (*(int16_t *)((uint8_t *)def + 0x154) == 1) {
+            if (def->special_fire_mode == 1) {
                 halo::game::weapon_get_zoom_fov_resolved(0x11, a->team);
-                allowed = (uint8_t)(*(int32_t *)(threat_tag + 0x4fc) > 0);
-            } else if (*(int16_t *)((uint8_t *)def + 0x154) == 2) {
-                allowed = (uint8_t)(*(int32_t *)(threat_tag + 0x4fc) > 1);
+                allowed = (uint8_t)((int32_t)threat_tag->triggers.count > 0);
+            } else if (def->special_fire_mode == 2) {
+                allowed = (uint8_t)((int32_t)threat_tag->triggers.count > 1);
             } else {
                 allowed = 1;
             }
@@ -132,9 +132,9 @@ void ActorView::update_firing_state()
                     if (*(int16_t *)((uint8_t *)def + 0x156) == 3) {
                         a->special_fire_strafe_cooldown = 3;
                     }
-                    if (*(int16_t *)((uint8_t *)def + 0x154) == 1) {
+                    if (def->special_fire_mode == 1) {
                         a->special_fire_overcharge = 1;
-                    } else if (*(int16_t *)((uint8_t *)def + 0x154) == 2) {
+                    } else if (def->special_fire_mode == 2) {
                         a->special_fire_secondary_pending = 1;
                     }
                 }
@@ -190,7 +190,7 @@ void ActorView::update_firing_state()
                 if (halo::ai::flag_set(actor_tag->more_flags, halo::tags::actor_more_tag_flag::must_stop_to_fire) && a->moving) return true;
             }
             if (a->firing_target_in_water || a->in_water) return true;
-            if (weapon_tag != 0 && *(float *)((uint8_t *)weapon_tag + 0x40c) > 0.0f && a->firing_target_distance < *(float *)((uint8_t *)weapon_tag + 0x40c)) return true;
+            if (weapon_tag != 0 && weapon_tag->minimum_target_range > 0.0f && a->firing_target_distance < weapon_tag->minimum_target_range) return true;
             if (a->flee_reason == 0 || a->flee_source.code != 2 || a->look_claimed) return true;
             if (a->firing_state == 2) {
                 wants_fire = 1;

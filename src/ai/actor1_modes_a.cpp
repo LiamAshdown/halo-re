@@ -186,13 +186,13 @@ void halo::ai::alert_mode::tick()
         return;
     }
     if (actor->mode_data.alert.animation_index != -1) {
-        uint8_t *animation = (uint8_t *)halo::scenario::globals().scenario->ai_animation_references.pointer + actor->mode_data.alert.animation_index * 0x3c;
-        datum_index graph = *(datum_index *)(animation + 0x2c);
+        ScenarioAIAnimationReference *animation = &halo::ai::reflexive_data<ScenarioAIAnimationReference>(halo::scenario::globals().scenario->ai_animation_references)[actor->mode_data.alert.animation_index];
+        datum_index graph = halo::ai::tag_handle(animation->animation_graph);
 
         if (graph == k_datum_index_none) {
             object *unit = (object *)halo::ai::object_at(actor->unit_index);
 
-            graph = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances[unit->definition_tag & halo::k_slot_mask].data + 0x44);
+            graph = halo::ai::tag_handle(halo::ai::tag_data<Object>(unit->definition_tag)->animation_graph);
         }
         halo::units::unit_start_user_animation(actor->unit_index, graph, (const char *)animation, 1);
     }
@@ -224,7 +224,7 @@ void halo::ai::alert_mode::update()
     struct actor *actor = halo::ai::actor_at(actor_index);
 
     actor->look_posture = 1;
-    if (*(uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data & 0x40) {
+    if (halo::ai::tag_data<Actor>(actor->actor_definition_tag)->flags & 0x40) {
         actor->crouch_decision[0] = 1;
         actor->crouch_decision[1] = 1;
     }

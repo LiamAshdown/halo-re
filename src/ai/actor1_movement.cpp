@@ -719,7 +719,7 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
     if (halo::units::unit_is_seat_occupied((int32_t)vehicle_index, seat_index)) {
         return 0;
     }
-    if ((halo::ai::tag_bytes(act->actor_definition_tag)[0x4] & 8) && !halo::units::unit_seat_flag_bit10(vehicle_index, seat_index)) {
+    if ((halo::ai::tag_data<Actor>(act->actor_definition_tag)->more_flags & 8) && !halo::units::unit_seat_flag_bit10(vehicle_index, seat_index)) {
         return 0;
     }
     if (!halo::units::unit_find_weapon_marker_transform(act->unit_index, vehicle_index, seat_index, &entry, &seat,

@@ -91,6 +91,12 @@ static_assert(sizeof(ScenarioActorStartingLocation) == 0x1c && offsetof(Scenario
 static_assert(sizeof(ScenarioPlatoon) == 0xac && offsetof(ScenarioPlatoon, change_attacking_defending_state_when) == 0x30 && offsetof(ScenarioPlatoon, maneuver_when) == 0x3c);
 static_assert(offsetof(ActorVariant, major_variant) + offsetof(TagDependency, tag_id) == 0x30);
 static_assert(offsetof(actor, saved_encounter_index) == 0x44 && offsetof(actor, saved_squad_index) == 0x48);
+static_assert(offsetof(Actor, hearing_distance) == 0x4c && offsetof(Actor, berserk_proximity) == 0x3a0 && offsetof(Actor, more_flags) == 0x4);
+static_assert(offsetof(ActorVariant, first_burst_delay_time) == 0x80 && offsetof(ActorVariant, special_fire_mode) == 0x154 && offsetof(ActorVariant, grenade_type) == 0x180);
+static_assert(offsetof(Biped, biped_flags) == 0x2f4 && offsetof(Projectile, danger_radius) == 0x1a8 && offsetof(Weapon, triggers) == 0x4fc);
+static_assert(offsetof(Equipment, powerup_type) == 0x308);
+static_assert(sizeof(ScenarioAIAnimationReference) == 0x3c && offsetof(ScenarioAIAnimationReference, animation_graph) + offsetof(TagDependency, tag_id) == 0x2c);
+static_assert(offsetof(UnitSeat, built_in_gunner) + offsetof(TagDependency, tag_id) == 0x104);
 static_assert(sizeof(UnitSeat) == 0x11c);
 static_assert(offsetof(Weapon, minimum_target_range) == 0x40c);
 static_assert(offsetof(Vehicle, vehicle_flags) == 0x2f0);

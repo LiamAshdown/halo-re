@@ -116,7 +116,7 @@ static datum_index actor_create_unit_item(datum_index definition_tag, datum_inde
 
     halo::objects::object_placement_data_initialize(&placement, definition_tag, unit_index);
     if (halo::networking::globals().game_mode == 2) {
-        int16_t type = *(int16_t *)halo::cache::globals().tag_instances[placement.definition_tag & halo::k_slot_mask].data;
+        int16_t type = halo::ai::tag_data<Object>(placement.definition_tag)->object_type;
 
         if (object_type_definitions[type]->network_delta_message_type != -1) {
             role = 0;
@@ -186,8 +186,7 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
         object[0x31c] = (uint8_t)type;
     }
     if (*(datum_index *)&variant->equipment.tag_id != k_datum_index_none) {
-        int16_t equipment_kind = *(int16_t *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&variant->equipment.tag_id & halo::k_slot_mask].data
-            + 0x308);
+        int16_t equipment_kind = halo::ai::tag_data<Equipment>(halo::ai::tag_handle(variant->equipment))->powerup_type;
 
         if (equipment_kind != 0 && equipment_kind != 6) {
             datum_index equipment = actor_create_unit_item(*(datum_index *)&variant->equipment.tag_id, unit_index);
@@ -426,7 +425,7 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
     using namespace c_actor_danger_register_stationary_object;
     actor *self;
     object *obj;
-    uint8_t *tag_data;
+    Vehicle *tag_data;
     float bounding_radius;
     float velocity_sq;
     real_point3d fetched_position;
@@ -447,9 +446,9 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
     }
 
     obj = halo::ai::object_at(object_index);
-    tag_data = (uint8_t *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
+    tag_data = halo::ai::tag_data<Vehicle>(obj->definition_tag);
 
-    if ((int8_t)tag_data[0x2f0] < 0) {
+    if ((int8_t)(uint8_t)tag_data->vehicle_flags < 0) {
         velocity_sq = obj->velocity.k * obj->velocity.k + obj->velocity.j * obj->velocity.j +
                       obj->velocity.i * obj->velocity.i;
 
@@ -470,7 +469,7 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
             dz = pz - *(float *)((const uint8_t *)block + 0x14);
             distance = sqrt_f(dx * dx + dy * dy + dz * dz);
 
-            bounding_radius = *(float *)(tag_data + 4);
+            bounding_radius = tag_data->base.base.bounding_radius;
             threshold_distance = bounding_radius + 10.0f;
 
             if (threshold_distance <= distance) {
