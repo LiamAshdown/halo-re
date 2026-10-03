@@ -247,6 +247,292 @@ static auto &update_client_staged_count = halo::link::ref<int32_t>(halo::game::v
 static auto &player_update_log_flags = halo::link::ref<uint32_t>(halo::main::vars().player_update_log_flags);
 static auto &main_render_skip_threshold_ms = halo::link::ref<int32_t>(halo::main::vars().main_render_skip_threshold_ms);
 namespace halo::main {
+namespace {
+
+/**
+ * Services the network client or server connection for one frame. Returns true when the frame loop must stop (film playback).
+ */
+bool frame_update_network(int16_t connection)
+{
+    if (connection == _game_connection_network_client) {
+        if (halo::networking::network_client_update_dispatch() == 0) {
+            if (halo::networking::globals().client->disconnect_reason == 8) {
+                if (halo::networking::globals().join_error_code == -1) {
+                    halo::networking::globals().join_error_code = 4;
+                }
+            } else if (halo::networking::globals().join_error_code == -1) {
+                halo::networking::globals().join_error_code = 6;
+            }
+            halo::networking::globals().host_handoff_requested = 1;
+            halo::interface::chat_close();
+        }
+    } else if (connection == _game_connection_network_server) {
+        if (((halo::networking::globals().server->flags & 4) == 0 && (uint8_t)halo::networking::network_client_update_dispatch() != 1) ||
+            (uint8_t)halo::networking::network_host_shutdown_or_defer() != 1) {
+            if (halo::networking::globals().join_error_code == -1) {
+                halo::networking::globals().join_error_code = 1;
+            }
+            halo::networking::globals().host_handoff_requested = 1;
+            halo::interface::chat_close();
+        }
+    } else if (connection == _game_connection_film_playback) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Refreshes the last activity / gameplay timestamps, or returns to the main menu once the idle timeout has elapsed.
+ */
+void frame_track_idle_time()
+{
+    int64_t counter;
+    int32_t idle_remaining;
+
+    if (input_globals.idle == 0 || console_globals_data.active != 0) {
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        main_globals_data.last_activity_time_ms =
+            (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
+    } else if (halo::game::globals().game_time->initialized != 0 && (halo::game::globals().game_time->active != 0 || halo::game::globals().game_time->paused != 0) &&
+               halo::game::globals().game_time->paused == 0 && halo::cutscene::globals().cinematic_globals->in_progress != 0) {
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        main_globals_data.last_gameplay_time_ms =
+            (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
+    } else if (main_globals_data.idle_timeout_ms > 0) {
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        idle_remaining = main_globals_data.idle_timeout_ms -
+            (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency) +
+            main_globals_data.last_activity_time_ms;
+        QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+        if (idle_remaining <= 0 &&
+            main_globals_data.last_gameplay_time_ms -
+                (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency) +
+                k_main_idle_gameplay_grace_ms <= 0) {
+            if (ui_split_screen != 0) {
+                main_globals_data.return_to_main_menu = 0;
+                main_globals_data.idle_timeout_reached = 1;
+                main_globals_data.level_transition = 1;
+            } else {
+                main_globals_data.switch_structure_bsp_index = -1;
+                main_globals_data.save_map = 0;
+                main_globals_data.return_to_main_menu = 1;
+            }
+            main_globals_data.last_activity_time_ms = (int32_t)halo::cseries::time_query_performance_counter_ms();
+        }
+    }
+}
+
+/**
+ * Logs the first local player's unit position and throttle to the player update history log.
+ */
+void frame_log_player_update_history()
+{
+    data_iterator iterator;
+    player *local_player;
+    player_update_history *update_history;
+    object_header *unit_header;
+    uint8_t *unit;
+
+    if (main_globals_data.game_connection == _game_connection_network_client &&
+        player_update_log_flags != 0) {
+        iterator.data = halo::game::globals().player_data;
+        iterator.next_index = 0;
+        iterator.index = k_datum_index_none;
+        iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+        while ((local_player = (player *)halo::memory::data_iterator_next(&iterator)) != 0) {
+            if (local_player->local_player_index == -1) {
+                continue;
+            }
+            update_history = (player_update_history *)halo::networking::globals().client->update_history;
+            if (local_player->unit != k_datum_index_none && update_history != 0 &&
+                update_history->tail != 0) {
+                unit_header = (object_header *)halo::objects::globals().object_data->data + datum_slot(local_player->unit);
+                unit = (uint8_t *)unit_header->data;
+                halo::networking::player_update_history_log_write(0x10, 0,
+                    "[%d]: Update [%d] ([%d]): ([%f] [%f] [%f]), ([%f] [%f]), ([%f] [%f])\n",
+                    halo::game::globals().game_time->game_time, update_history->tail->update_id,
+                    update_history->tail->tick_count,
+                    (double)((object *)unit)->position.x, (double)((object *)unit)->position.y,
+                    (double)((object *)unit)->position.z, (double)((unit_data *)(unit + k_unit_data_offset))->throttle.i,
+                    (double)((unit_data *)(unit + k_unit_data_offset))->throttle.j, (double)((object *)unit)->velocity.i,
+                    (double)((object *)unit)->velocity.j);
+            }
+            break;
+        }
+    }
+}
+
+/**
+ * Accumulates simulation ticks, sends the client update, advances the simulation and updates the camera and observer.
+ */
+void frame_simulate(uint8_t &render_frame)
+{
+    float delta;
+    int32_t ticks;
+    uint8_t add_bob;
+
+    if (halo::main::console_process_key_events() == 0 || main_globals_data.game_connection != 0) {
+        delta = (float)main_globals_data.time_is_running * main_globals_data.frame_delta_time;
+        ticks = halo::game::game_engine_accumulate_simulation_ticks(delta, 1);
+        memset(update_client_staged, 0, sizeof(update_client_staged));
+        update_client_staged_count = 0;
+        update_client_unknown_ec4 = ticks;
+        halo::game::game_engine_update_local_player_control(0, delta, ticks);
+        if (main_globals_data.game_connection == _game_connection_network_client ||
+            (main_globals_data.game_connection == _game_connection_network_server &&
+             (halo::networking::globals().server->flags & 4) == 0)) {
+            halo::interface::chat_poll_hotkeys();
+            if (halo::networking::update_server_send_update(ticks, main_globals_data.frame_time_overflow) == 0) {
+                if (halo::networking::globals().join_error_code == -1) {
+                    halo::networking::globals().join_error_code = 1;
+                }
+                halo::networking::globals().host_handoff_requested = 1;
+                halo::interface::chat_close();
+            }
+        }
+        halo::game::game_engine_advance_simulation_ticks(delta);
+
+        frame_log_player_update_history();
+
+        render_frame = 0;
+        if (shell_application_inactive == 0 &&
+            (main_globals_data.main_menu_scenario_loaded != 0 ||
+             main_globals_data.time_is_running != 0)) {
+            render_frame = 1;
+        }
+        halo::camera::camera_update((float)main_globals_data.time_is_running * main_globals_data.frame_delta_time);
+        add_bob = halo::camera::camera_is_local_player_default_first_person();
+        halo::camera::observer_update((float)main_globals_data.time_is_running * main_globals_data.frame_delta_time,
+            add_bob);
+        halo::game::game_engine_update_end_game_sequence(
+            (float)main_globals_data.time_is_running * main_globals_data.frame_delta_time);
+    }
+}
+
+/**
+ * Applies the render skip threshold, handles timedemo and skipped frames, then renders all views.
+ */
+void frame_render(uint8_t render_frame, uint32_t frame_average)
+{
+    int64_t counter;
+    int64_t render_time;
+    uint64_t present_counter;
+    float leftover_time;
+    float frame_delta;
+
+    if (main_globals_data.save_map != 0) {
+        halo::main::main_save_map_private();
+    }
+    if (main_render_skip_threshold_ms != -1) {
+        if (main_render_skip_threshold_ms <= k_minimum_render_skip_threshold_ms) {
+            main_render_skip_threshold_ms = k_minimum_render_skip_threshold_ms;
+        }
+        if (frame_average >= (uint32_t)main_render_skip_threshold_ms) {
+            render_frame = 0;
+        }
+    }
+
+    if (halo::game::globals().time_force_single_tick != 0) {
+        if (halo::game::globals().game_time->game_time == timedemo_globals_data.last_game_time) {
+            return;
+        }
+        timedemo_globals_data.last_game_time = halo::game::globals().game_time->game_time;
+        halo::main::timedemo_benchmark_update();
+    } else if (render_frame == 0) {
+        present_counter = ((uint64_t)(uint32_t)halo::rasterizer::globals().present_counter_high << 32 |
+            (uint32_t)halo::rasterizer::globals().present_counter_low) + 1;
+        halo::rasterizer::globals().present_counter_low = (int32_t)(uint32_t)present_counter;
+        halo::rasterizer::globals().present_counter_high = (int32_t)(uint32_t)(present_counter >> 32);
+        halo::render::rasterizer_frame_statistics_sample(&halo::rasterizer::globals().frame_statistics, 1);
+        return;
+    }
+
+    if (main_globals_data.disable_frame_output != 0) {
+        return;
+    }
+    QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+    if (halo::game::globals().game_time->paused == 0 && console_globals_data.active == 0) {
+        leftover_time = halo::game::globals().game_time->leftover_time;
+        render_time = counter - ((int64_t)main_globals_data.render_counter_high << 32 |
+            main_globals_data.render_counter_low);
+        frame_delta = (float)render_time / (float)halo::cseries::globals().performance_frequency;
+        if (halo::game::globals().time_force_single_tick != 0) {
+            frame_delta = 1.0f / 30.0f;
+        }
+        if (main_globals_data.game_connection == _game_connection_local) {
+            if (frame_delta > 1.0f / 30.0f) {
+                frame_delta = 1.0f / 30.0f;
+            }
+        } else if (frame_delta > 1.0f) {
+            frame_delta = 1.0f;
+        }
+    } else {
+        leftover_time = 0.0f;
+        frame_delta = 0.0f;
+    }
+    halo::main::render_frame_all_views(leftover_time, frame_delta);
+    main_globals_data.render_counter_low = (uint32_t)counter;
+    main_globals_data.render_counter_high = (uint32_t)(counter >> 32);
+    if (main_globals_data.disable_frame_output == 0) {
+        halo::main::movie_capture_frame_export();
+    }
+}
+
+/**
+ * Runs one iteration of the frame body: network update, pacing, interface tick, idle tracking, simulation and render.
+ * Returns true when the main loop must stop.
+ */
+bool update_and_render_frame(int16_t connection, uint32_t frame_average)
+{
+    uint8_t render_frame;
+
+    if (shell_application_inactive != 0 && connection != _game_connection_network_client &&
+        connection != _game_connection_network_server) {
+        return false;
+    }
+
+    render_frame = 1;
+    if (frame_update_network(connection)) {
+        return true;
+    }
+
+    halo::main::main_loop_frame_pacer();
+    halo::interface::ui_cursor_update();
+    halo::interface::interface_tick();
+
+    frame_track_idle_time();
+
+    if (halo::game::globals().game_time->initialized == 0 || (halo::game::globals().game_time->active == 0 && halo::game::globals().game_time->paused == 0)) {
+        if (halo::game::globals().time_force_single_tick == 0 && shell_application_inactive == 0) {
+            halo::main::render_pregame_view_initialize();
+        }
+        if (main_globals_data.disable_frame_output == 0) {
+            halo::main::movie_capture_frame_export();
+        }
+        return false;
+    }
+
+    if (terminal_initialized != 0) {
+        halo::interface::console_process_input_events();
+        halo::interface::console_process_queued_input();
+        if (console_globals_data.active == 0) {
+            halo::interface::console_message_expire_old();
+        }
+        halo::interface::console_update_display();
+    }
+    if (halo::main::console_process_key_events() == 0 || main_globals_data.game_connection != 0) {
+        frame_simulate(render_frame);
+    }
+
+    frame_render(render_frame, frame_average);
+    return false;
+}
+
+}
+}
+
+namespace halo::main {
 
 /**
  * The engine main loop. Before the first frame it seeds the default scenario (b30), the timers,
@@ -264,27 +550,13 @@ void MainLoop::loop(void)
 {
     uint8_t local_time[0x10];
     int64_t counter;
-    int64_t render_time;
     uint32_t frame_average;
     uint16_t fpu_control;
     int16_t previous_frames;
     int16_t connection;
-    uint8_t render_frame;
     float progress;
     uint32_t previous_queue_time;
     ui_input_event idle_event;
-    int32_t idle_remaining;
-    int32_t ticks;
-    float delta;
-    uint8_t add_bob;
-    data_iterator iterator;
-    player *local_player;
-    player_update_history *update_history;
-    object_header *unit_header;
-    uint8_t *unit;
-    float leftover_time;
-    float frame_delta;
-    uint64_t present_counter;
     int32_t elapsed_ms;
     int32_t i;
 
@@ -481,214 +753,7 @@ void MainLoop::loop(void)
             halo::networking::network_bandwidth_rate_compute(&network_bandwidth_graph_globals);
         }
 
-        auto update_and_render_frame = [&]() -> bool {
-            if (shell_application_inactive != 0 && connection != _game_connection_network_client &&
-                connection != _game_connection_network_server) {
-                return false;
-            }
-
-            render_frame = 1;
-            if (connection == _game_connection_network_client) {
-                if (halo::networking::network_client_update_dispatch() == 0) {
-                    if (halo::networking::globals().client->disconnect_reason == 8) {
-                        if (halo::networking::globals().join_error_code == -1) {
-                            halo::networking::globals().join_error_code = 4;
-                        }
-                    } else if (halo::networking::globals().join_error_code == -1) {
-                        halo::networking::globals().join_error_code = 6;
-                    }
-                    halo::networking::globals().host_handoff_requested = 1;
-                    halo::interface::chat_close();
-                }
-            } else if (connection == _game_connection_network_server) {
-                if (((halo::networking::globals().server->flags & 4) == 0 && (uint8_t)halo::networking::network_client_update_dispatch() != 1) ||
-                    (uint8_t)halo::networking::network_host_shutdown_or_defer() != 1) {
-                    if (halo::networking::globals().join_error_code == -1) {
-                        halo::networking::globals().join_error_code = 1;
-                    }
-                    halo::networking::globals().host_handoff_requested = 1;
-                    halo::interface::chat_close();
-                }
-            } else if (connection == _game_connection_film_playback) {
-                return true;
-            }
-
-            halo::main::main_loop_frame_pacer();
-            halo::interface::ui_cursor_update();
-            halo::interface::interface_tick();
-
-            if (input_globals.idle == 0 || console_globals_data.active != 0) {
-                QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-                main_globals_data.last_activity_time_ms =
-                    (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
-            } else if (halo::game::globals().game_time->initialized != 0 && (halo::game::globals().game_time->active != 0 || halo::game::globals().game_time->paused != 0) &&
-                       halo::game::globals().game_time->paused == 0 && halo::cutscene::globals().cinematic_globals->in_progress != 0) {
-                QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-                main_globals_data.last_gameplay_time_ms =
-                    (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency);
-            } else if (main_globals_data.idle_timeout_ms > 0) {
-                QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-                idle_remaining = main_globals_data.idle_timeout_ms -
-                    (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency) +
-                    main_globals_data.last_activity_time_ms;
-                QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-                if (idle_remaining <= 0 &&
-                    main_globals_data.last_gameplay_time_ms -
-                        (int32_t)((counter * 1000) / halo::cseries::globals().performance_frequency) +
-                        k_main_idle_gameplay_grace_ms <= 0) {
-                    if (ui_split_screen != 0) {
-                        main_globals_data.return_to_main_menu = 0;
-                        main_globals_data.idle_timeout_reached = 1;
-                        main_globals_data.level_transition = 1;
-                    } else {
-                        main_globals_data.switch_structure_bsp_index = -1;
-                        main_globals_data.save_map = 0;
-                        main_globals_data.return_to_main_menu = 1;
-                    }
-                    main_globals_data.last_activity_time_ms = (int32_t)halo::cseries::time_query_performance_counter_ms();
-                }
-            }
-
-            if (halo::game::globals().game_time->initialized == 0 || (halo::game::globals().game_time->active == 0 && halo::game::globals().game_time->paused == 0)) {
-                if (halo::game::globals().time_force_single_tick == 0 && shell_application_inactive == 0) {
-                    halo::main::render_pregame_view_initialize();
-                }
-                if (main_globals_data.disable_frame_output == 0) {
-                    halo::main::movie_capture_frame_export();
-                }
-                return false;
-            }
-
-            if (terminal_initialized != 0) {
-                halo::interface::console_process_input_events();
-                halo::interface::console_process_queued_input();
-                if (console_globals_data.active == 0) {
-                    halo::interface::console_message_expire_old();
-                }
-                halo::interface::console_update_display();
-            }
-            if (halo::main::console_process_key_events() == 0 || main_globals_data.game_connection != 0) {
-                delta = (float)main_globals_data.time_is_running * main_globals_data.frame_delta_time;
-                ticks = halo::game::game_engine_accumulate_simulation_ticks(delta, 1);
-                memset(update_client_staged, 0, sizeof(update_client_staged));
-                update_client_staged_count = 0;
-                update_client_unknown_ec4 = ticks;
-                halo::game::game_engine_update_local_player_control(0, delta, ticks);
-                if (main_globals_data.game_connection == _game_connection_network_client ||
-                    (main_globals_data.game_connection == _game_connection_network_server &&
-                     (halo::networking::globals().server->flags & 4) == 0)) {
-                    halo::interface::chat_poll_hotkeys();
-                    if (halo::networking::update_server_send_update(ticks, main_globals_data.frame_time_overflow) == 0) {
-                        if (halo::networking::globals().join_error_code == -1) {
-                            halo::networking::globals().join_error_code = 1;
-                        }
-                        halo::networking::globals().host_handoff_requested = 1;
-                        halo::interface::chat_close();
-                    }
-                }
-                halo::game::game_engine_advance_simulation_ticks(delta);
-
-                if (main_globals_data.game_connection == _game_connection_network_client &&
-                    player_update_log_flags != 0) {
-                    iterator.data = halo::game::globals().player_data;
-                    iterator.next_index = 0;
-                    iterator.index = k_datum_index_none;
-                    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-                    while ((local_player = (player *)halo::memory::data_iterator_next(&iterator)) != 0) {
-                        if (local_player->local_player_index == -1) {
-                            continue;
-                        }
-                        update_history = (player_update_history *)halo::networking::globals().client->update_history;
-                        if (local_player->unit != k_datum_index_none && update_history != 0 &&
-                            update_history->tail != 0) {
-                            unit_header = (object_header *)halo::objects::globals().object_data->data + datum_slot(local_player->unit);
-                            unit = (uint8_t *)unit_header->data;
-                            halo::networking::player_update_history_log_write(0x10, 0,
-                                "[%d]: Update [%d] ([%d]): ([%f] [%f] [%f]), ([%f] [%f]), ([%f] [%f])\n",
-                                halo::game::globals().game_time->game_time, update_history->tail->update_id,
-                                update_history->tail->tick_count,
-                                (double)((object *)unit)->position.x, (double)((object *)unit)->position.y,
-                                (double)((object *)unit)->position.z, (double)((unit_data *)(unit + k_unit_data_offset))->throttle.i,
-                                (double)((unit_data *)(unit + k_unit_data_offset))->throttle.j, (double)((object *)unit)->velocity.i,
-                                (double)((object *)unit)->velocity.j);
-                        }
-                        break;
-                    }
-                }
-
-                render_frame = 0;
-                if (shell_application_inactive == 0 &&
-                    (main_globals_data.main_menu_scenario_loaded != 0 ||
-                     main_globals_data.time_is_running != 0)) {
-                    render_frame = 1;
-                }
-                halo::camera::camera_update((float)main_globals_data.time_is_running * main_globals_data.frame_delta_time);
-                add_bob = halo::camera::camera_is_local_player_default_first_person();
-                halo::camera::observer_update((float)main_globals_data.time_is_running * main_globals_data.frame_delta_time,
-                    add_bob);
-                halo::game::game_engine_update_end_game_sequence(
-                    (float)main_globals_data.time_is_running * main_globals_data.frame_delta_time);
-            }
-
-            if (main_globals_data.save_map != 0) {
-                halo::main::main_save_map_private();
-            }
-            if (main_render_skip_threshold_ms != -1) {
-                if (main_render_skip_threshold_ms <= k_minimum_render_skip_threshold_ms) {
-                    main_render_skip_threshold_ms = k_minimum_render_skip_threshold_ms;
-                }
-                if (frame_average >= (uint32_t)main_render_skip_threshold_ms) {
-                    render_frame = 0;
-                }
-            }
-
-            if (halo::game::globals().time_force_single_tick != 0) {
-                if (halo::game::globals().game_time->game_time == timedemo_globals_data.last_game_time) {
-                    return false;
-                }
-                timedemo_globals_data.last_game_time = halo::game::globals().game_time->game_time;
-                halo::main::timedemo_benchmark_update();
-            } else if (render_frame == 0) {
-                present_counter = ((uint64_t)(uint32_t)halo::rasterizer::globals().present_counter_high << 32 |
-                    (uint32_t)halo::rasterizer::globals().present_counter_low) + 1;
-                halo::rasterizer::globals().present_counter_low = (int32_t)(uint32_t)present_counter;
-                halo::rasterizer::globals().present_counter_high = (int32_t)(uint32_t)(present_counter >> 32);
-                halo::render::rasterizer_frame_statistics_sample(&halo::rasterizer::globals().frame_statistics, 1);
-                return false;
-            }
-
-            if (main_globals_data.disable_frame_output != 0) {
-                return false;
-            }
-            QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-            if (halo::game::globals().game_time->paused == 0 && console_globals_data.active == 0) {
-                leftover_time = halo::game::globals().game_time->leftover_time;
-                render_time = counter - ((int64_t)main_globals_data.render_counter_high << 32 |
-                    main_globals_data.render_counter_low);
-                frame_delta = (float)render_time / (float)halo::cseries::globals().performance_frequency;
-                if (halo::game::globals().time_force_single_tick != 0) {
-                    frame_delta = 1.0f / 30.0f;
-                }
-                if (main_globals_data.game_connection == _game_connection_local) {
-                    if (frame_delta > 1.0f / 30.0f) {
-                        frame_delta = 1.0f / 30.0f;
-                    }
-                } else if (frame_delta > 1.0f) {
-                    frame_delta = 1.0f;
-                }
-            } else {
-                leftover_time = 0.0f;
-                frame_delta = 0.0f;
-            }
-            halo::main::render_frame_all_views(leftover_time, frame_delta);
-            main_globals_data.render_counter_low = (uint32_t)counter;
-            main_globals_data.render_counter_high = (uint32_t)(counter >> 32);
-            if (main_globals_data.disable_frame_output == 0) {
-                halo::main::movie_capture_frame_export();
-            }
-            return false;
-        };
-        if (update_and_render_frame()) {
+        if (update_and_render_frame(connection, frame_average)) {
             break;
         }
 
