@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include <cstddef>
 #include "halo/render/d3d9.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
@@ -17,6 +18,16 @@
 
 
 
+
+static_assert(offsetof(Decal, framebuffer_blend_function) == 0xc0, "decal blend function");
+static_assert(offsetof(Decal, map) + offsetof(TagDependency, tag_id) == 0xe4, "decal bitmap id");
+static_assert(sizeof(decal) == 0x38, "decal record size");
+
+namespace {
+
+constexpr int k_decal_grid_columns = 0x200;
+
+}  // namespace
 
 namespace halo::rasterizer {
 
@@ -364,12 +375,12 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
         return;
     }
 
-    decal_index = decal_grid_block[rasterizer_decal_layer * 0x200 + cluster_index];
+    decal_index = decal_grid_block[rasterizer_decal_layer * k_decal_grid_columns + cluster_index];
     while (decal_index != halo::k_dword_none) {
-        uint8_t *decal = (uint8_t *)decal_data->data + (decal_index & 0xffff) * 0x38;
-        uint32_t definition_tag = *(uint32_t *)&((struct decal *)decal)->definition_index;
-        uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[definition_tag & halo::k_slot_mask].data + 0xbc;
-        int16_t type = *(int16_t *)(definition + 4);
+        decal *record = (decal *)((uint8_t *)decal_data->data + (decal_index & halo::k_slot_mask) * sizeof(decal));
+        uint32_t definition_tag = *(uint32_t *)&record->definition_index;
+        Decal *definition = (Decal *)halo::cache::globals().tag_instances[definition_tag & halo::k_slot_mask].data;
+        int16_t type = definition->framebuffer_blend_function;
 
         if (rasterizer_decal_blend_mode != type) {
             rasterizer_decal_blend_mode = type;
@@ -386,8 +397,8 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
             data_array *blocks = cache->entries;
             uint32_t first_offset = (uint32_t)((cache_entry *)((uint8_t *)blocks->data + (decal_index & halo::k_slot_mask) * sizeof(cache_entry)))->offset
                                     << (cache->block_shift & 0x1f);
-            uint32_t color = ((struct decal *)decal)->color;
-            uint32_t alpha = (((struct decal *)decal)->alpha * (color >> 24) + 0x7f) >> 8;
+            uint32_t color = record->color;
+            uint32_t alpha = (record->alpha * (color >> 24) + 0x7f) >> 8;
             int32_t primitive_count;
             int32_t first_vertex;
             int8_t frame;
@@ -454,13 +465,13 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
                 break;
             }
 
-            primitive_count = ((struct decal *)decal)->triangle_count * 2;
+            primitive_count = record->triangle_count * 2;
             first_vertex = (int32_t)(long long)((double)(first_offset >> 4) * 1.5);
 
-            frame = *(int8_t *)&((struct decal *)decal)->sprite_bitmap_index;
-            if (rasterizer_decal_bitmap_tag != *(uint32_t *)(definition + 0x28) ||
+            frame = *(int8_t *)&record->sprite_bitmap_index;
+            if (rasterizer_decal_bitmap_tag != halo::tag_id_bits(definition->map.tag_id) ||
                 rasterizer_decal_bitmap_frame != (int16_t)frame) {
-                rasterizer_decal_bitmap_tag = *(uint32_t *)(definition + 0x28);
+                rasterizer_decal_bitmap_tag = halo::tag_id_bits(definition->map.tag_id);
                 rasterizer_decal_bitmap_frame = (int16_t)frame;
                 chimera__rasterizer_set_texture(rasterizer_decal_bitmap_tag, 0, 0, 1, rasterizer_decal_bitmap_frame);
             }
@@ -492,7 +503,7 @@ void rasterizer_decals_draw_cluster(int16_t cluster_index)
                 succeeded = 0;
             }
         }
-        decal_index = *(uint32_t *)&((struct decal *)decal)->next_decal;
+        decal_index = *(uint32_t *)&record->next_decal;
     }
 }
 
