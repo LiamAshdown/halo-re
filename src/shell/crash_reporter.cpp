@@ -23,6 +23,18 @@ static auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_wi
 static auto &exception_title = halo::link::ref<char [k_shell_exception_string_length]>(halo::shell::vars().exception_title);
 static auto &exception_gathering_text = halo::link::ref<char [k_shell_exception_string_length]>(halo::shell::vars().exception_gathering_text);
 
+namespace {
+
+constexpr int16_t k_gathering_dialog_width = 0xa3;
+constexpr int16_t k_gathering_dialog_height = 0x37;
+constexpr uint16_t k_dialog_item_id_none = 0xffff;
+constexpr uint16_t k_dialog_ordinal_marker = 0xffff;
+constexpr uint16_t k_dialog_static_class_ordinal = 0x0082;
+constexpr int32_t k_additional_files_characters = 1024;
+constexpr uint16_t k_default_fpu_control_word = 0x27f;
+
+}  // namespace
+
 namespace halo::shell {
 
 namespace {
@@ -70,7 +82,7 @@ constexpr WatsonCrashReporter k_watson_crash_reporter{};
  */
 void WatsonCrashReporter::reset_fpu()
 {
-    uint16_t control_word = 0x27f;
+    uint16_t control_word = k_default_fpu_control_word;
     __asm {
         finit
         fldcw control_word
@@ -137,12 +149,12 @@ void WatsonCrashReporter::show_gathering_dialog(CrashSession *session)
     __try {
         session->template_memory = GlobalAlloc(k_gmem_zeroinit, k_crash_dialog_template_allocation);
         dialog_template = (crash_dialog_template *)GlobalLock(session->template_memory);
-        dialog_template->style = 0x80c800c0;
+        dialog_template->style = WS_POPUP | WS_CAPTION | WS_SYSMENU | DS_SETFONT | DS_MODALFRAME;
         dialog_template->item_count = 1;
         dialog_template->x = 0;
         dialog_template->y = 0;
-        dialog_template->cx = 0xa3;
-        dialog_template->cy = 0x37;
+        dialog_template->cx = k_gathering_dialog_width;
+        dialog_template->cy = k_gathering_dialog_height;
         cursor = &dialog_template->menu;
         *cursor++ = 0;
         *cursor++ = 0;
@@ -153,24 +165,24 @@ void WatsonCrashReporter::show_gathering_dialog(CrashSession *session)
         cursor = cursor + count;
 
         item = (crash_dialog_item_template *)((((uint32_t)cursor + 3) >> 2) << 2);
-        item->style = 0x50020000;
-        item->id = 0xffff;
+        item->style = WS_CHILD | WS_VISIBLE | WS_GROUP;
+        item->id = k_dialog_item_id_none;
         item->x = 0x1c;
         item->y = 0x17;
         item->cx = 0x6c;
         item->cy = 8;
         cursor = &item->class_ordinal_marker;
-        *cursor++ = 0xffff;
-        *cursor++ = 0x82;
+        *cursor++ = k_dialog_ordinal_marker;
+        *cursor++ = k_dialog_static_class_ordinal;
         count = MultiByteToWideChar(0, 0, exception_gathering_text, -1, (LPWSTR)cursor, k_crash_dialog_text_characters);
         cursor = cursor + count + 1;
         GlobalUnlock(session->template_memory);
 
         session->dialog = CreateDialogIndirectParamA(GetModuleHandleA(0), (LPCDLGTEMPLATEA)session->template_memory, 0,
                                                      (DLGPROC)((void *)DialogCentering::procedure), 0);
-        ShowWindow((HWND)session->dialog, 5);
-        SetWindowPos((HWND)session->dialog, (HWND)-1, 0, 0, 0, 0, 3);
-        while (PeekMessageA((LPMSG)&message, (HWND)session->dialog, 0, 0, 1)) {
+        ShowWindow((HWND)session->dialog, SW_SHOW);
+        SetWindowPos((HWND)session->dialog, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+        while (PeekMessageA((LPMSG)&message, (HWND)session->dialog, 0, 0, PM_REMOVE)) {
             DispatchMessageA((const MSG *)&message);
         }
     } __except (1) {
@@ -305,7 +317,7 @@ void WatsonCrashReporter::collect_log_files(CrashSession *session)
     strcat(session->file_list, "\\network.log");
     if (session->file_list[0] != 0) {
         _strlwr(session->file_list);
-        MultiByteToWideChar(0, 0, session->file_list, -1, (LPWSTR)session->shared->additional_files, 0x400);
+        MultiByteToWideChar(0, 0, session->file_list, -1, (LPWSTR)session->shared->additional_files, k_additional_files_characters);
     }
 }
 
