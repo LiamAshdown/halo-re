@@ -422,7 +422,7 @@ uint8_t GameRuntime::start_new_server_with_name_and_password(uint32_t unused, ui
                 return 0;
             }
             network_host_handoff_requested = 0;
-            *(int32_t *)((uint8_t *)network_client + 0xf4c) = 4;
+            network_client->connection_rate_index = 4;
         }
         interface_loading_screen_address_a = -1;
         interface_loading_screen_address_b = -1;

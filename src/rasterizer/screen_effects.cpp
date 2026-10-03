@@ -281,6 +281,9 @@ void rasterizer_fog_screen_overlay_set_states(void)
 
 }  // namespace rasterizer_fog_screen_overlay_set_states_impl
 
+/** Byte offset of red[128] in the d3d gamma ramp, the sample the brightness exponent is derived from (settings is a byte pointer). */
+static constexpr size_t k_gamma_ramp_mid_red_byte_offset = 128 * sizeof(uint16_t);
+
 /**
  * inline fldl2e / f2xm1 / fscale
  *
@@ -296,7 +299,7 @@ void rasterizer_gamma_brightness_to_exponent(rasterizer_gamma_settings *settings
     double exponent;
     double scaled;
 
-    brightness = *(uint16_t *)(settings + 0x100);
+    brightness = *(uint16_t *)(settings + k_gamma_ramp_mid_red_byte_offset);
     brightness_norm = (double)brightness * 1.5259021896696422e-05;
     ratio = halo::libm::log(0.5) / halo::libm::log(0.5019607843137255);
     exponent = halo::libm::log(brightness_norm) * ratio;

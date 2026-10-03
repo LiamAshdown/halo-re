@@ -425,7 +425,7 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                         if (!(row_cursor < tag->height)) break;
                     }
 
-                    vertex = &entry->vertices[tag->height * col + row_cursor];
+                    vertex = &entry->vertices[tag->height * col + row_cursor].position;
                     contributor_count = 0;
                     mode = 1;
 
@@ -646,7 +646,8 @@ void halo::objects::FlagView::pole_get_marker_positions(bsp_leaf_reference *node
                 for (r = 0; r < tag->width; r++) {
                     int16_t c;
                     for (c = 0; c < tag->height; c++) {
-                        real_point3d *vertex_position = &entry->vertices[tag->height * r + c].position;
+                        real_point3d *vertex_position =
+                            &entry->vertices[tag->height * r + c].position;
                         vertex_position->x += delta.i;
                         vertex_position->y += delta.j;
                         vertex_position->z += delta.k;
