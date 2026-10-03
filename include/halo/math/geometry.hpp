@@ -82,7 +82,7 @@ real_plane2d * plane2d_from_points(real_plane2d *out_plane, const real_point2d &
  * Original register convention: ECX -> normal, EDX -> point, stack -> out.
  * @address 0x0044d9e0
  */
-void plane3d_from_point_and_normal(real_plane3d &out, const real_vector3d *normal, const real_point3d &point);
+void plane3d_from_point_and_normal(real_plane3d &out, const real_vector3d &normal, const real_point3d &point);
 
 /**
  * out = -in for all four plane components.

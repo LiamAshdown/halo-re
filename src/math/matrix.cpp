@@ -112,14 +112,14 @@ void matrix4x3_from_axis_angle(real_matrix4x3 &out, const real_vector3d &axis, r
     out.up.j = jk - sin_angle * axis.i;
 }
 
-void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 &out)
+void matrix4x3_from_forward_up(const real_vector3d &up, const real_vector3d &forward, real_matrix4x3 &out)
 {
     out.scale = 1.0f;
-    out.forward = *forward;
-    out.left.i = up->j * forward->k - up->k * forward->j;
-    out.left.j = up->k * forward->i - forward->k * up->i;
-    out.left.k = up->i * forward->j - up->j * forward->i;
-    out.up = *up;
+    out.forward = forward;
+    out.left.i = up.j * forward.k - up.k * forward.j;
+    out.left.j = up.k * forward.i - forward.k * up.i;
+    out.left.k = up.i * forward.j - up.j * forward.i;
+    out.up = up;
     out.position.x = 0.0f;
     out.position.y = 0.0f;
     out.position.z = 0.0f;
@@ -153,10 +153,10 @@ void matrix4x3_from_euler_angles(real_matrix4x3 &out, real yaw, real pitch, real
     out.up.k = cp * cy;
 }
 
-void matrix4x3_from_forward_up_position(real_vector3d *up, real_vector3d *forward, real_point3d *position, real_matrix4x3 *out)
+void matrix4x3_from_forward_up_position(real_vector3d *up, real_vector3d *forward, const real_point3d &position, real_matrix4x3 *out)
 {
-    matrix4x3_from_forward_up(up, forward, *out);
-    out->position = *position;
+    matrix4x3_from_forward_up(*up, *forward, *out);
+    out->position = position;
 }
 
 void matrix4x3_extract_forward_up_position(real_vector3d &out_up, real_vector3d &out_forward, const real_matrix4x3 &m, real_point3d &out_position)
@@ -377,13 +377,13 @@ void matrix3x3_transpose(real_matrix3x3 *out, real_matrix3x3 *in)
     out->up.k = in->up.k;
 }
 
-void matrix3x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix3x3 &out)
+void matrix3x3_from_forward_up(const real_vector3d &up, const real_vector3d &forward, real_matrix3x3 &out)
 {
-    out.forward = *forward;
-    out.left.i = up->j * forward->k - up->k * forward->j;
-    out.left.j = up->k * forward->i - forward->k * up->i;
-    out.left.k = up->i * forward->j - up->j * forward->i;
-    out.up = *up;
+    out.forward = forward;
+    out.left.i = up.j * forward.k - up.k * forward.j;
+    out.left.j = up.k * forward.i - forward.k * up.i;
+    out.left.k = up.i * forward.j - up.j * forward.i;
+    out.up = up;
 }
 
 void matrix3x3_multiply(real_matrix3x3 *out, real_matrix3x3 *a, real_matrix3x3 *b)

@@ -93,6 +93,23 @@ GROUP_TITLES = {
     },
 }
 
+# Hand fixes the mechanical pass cannot derive, applied to the generated text: (output file, old, new). Each one is
+# a place where the C files disagreed with each other and the merged C++ file must pick one declaration.
+PATCHES = {
+    "math": [
+        # vector3d_rotate_toward_bounded kept its ramp profiles in uint8_t[0x20] buffers behind a local extern that
+        # took uint8_t *; the typed record is the same 0x20 bytes on the stack
+        ("rotation.cpp", "    uint8_t azimuth_profile[0x20];\n    uint8_t elevation_profile[0x20];",
+         "    bounded_ramp_profile azimuth_profile;\n    bounded_ramp_profile elevation_profile;"),
+        ("rotation.cpp", "max_acceleration, azimuth_profile);", "max_acceleration, &azimuth_profile);"),
+        ("rotation.cpp", "max_acceleration, elevation_profile);", "max_acceleration, &elevation_profile);"),
+        ("rotation.cpp", "bounded_ramp_profile_synchronize(azimuth_profile, elevation_profile,",
+         "bounded_ramp_profile_synchronize(&azimuth_profile, &elevation_profile,"),
+        ("rotation.cpp", "bounded_ramp_profile_evaluate(*azimuth_profile,", "bounded_ramp_profile_evaluate(azimuth_profile,"),
+        ("rotation.cpp", "bounded_ramp_profile_evaluate(*elevation_profile,", "bounded_ramp_profile_evaluate(elevation_profile,"),
+    ],
+}
+
 WRAP_RE = re.compile(r'#ifdef __cplusplus\r?\n(extern "C" \{|\}) /\* (extern "C" )?HALO_CXX_LINKAGE \*/\r?\n#endif\r?\n?')
 IF0_RE = re.compile(r"(?ms)^#if 0[^\n]*\n(.*?)^#endif[^\n]*\n?")
 
@@ -182,8 +199,13 @@ def parse_signature(sig):
     return ret, name, plist
 
 
+def ident(name):
+    """A use of identifier `name` that is not a member access (`x.name`, `x->name`)."""
+    return r"(?<!\.)(?<!->)\b%s\b" % re.escape(name)
+
+
 def is_deref_only(name, body_masked):
-    uses = [mm.start() for mm in re.finditer(r"\b%s\b" % re.escape(name), body_masked)]
+    uses = [mm.start() for mm in re.finditer(ident(name), body_masked)]
     if not uses:
         return False, []
     kinds = []
@@ -199,11 +221,11 @@ def is_deref_only(name, body_masked):
 
 
 def has_write(name, body_masked):
-    if re.search(r"\b%s\b((\s*\.\s*\w+)|(\s*\[[^\]]*\]))*\s*(=(?!=)|[-+*/|&^%%]=|<<=|>>=|\+\+|--)" % re.escape(name), body_masked):
+    if re.search(ident(name) + r"((\s*\.\s*\w+)|(\s*\[[^\]]*\]))*\s*(=(?!=)|[-+*/|&^%]=|<<=|>>=|\+\+|--)", body_masked):
         return True
-    if re.search(r"(\+\+|--|(?<![&\w\)\]])&)\s*\b%s\b" % re.escape(name), body_masked):
+    if re.search(r"(\+\+|--|(?<![&\w\)\]])&)\s*" + ident(name), body_masked):
         return True
-    for mm in re.finditer(r"\b%s\b" % re.escape(name), body_masked):   # whole object passed to a call
+    for mm in re.finditer(ident(name), body_masked):   # whole object passed to a call
         before = body_masked[:mm.start()].rstrip()
         after = body_masked[mm.end():].lstrip()
         if before.endswith(("(", ",")) and after[:1] in (")", ","):
@@ -454,6 +476,28 @@ def main():
         if f.name + ".c" != f.file:
             raise SystemExit("%s defines %s" % (f.file, f.name))
     convert(funcs, names)
+    # the address of a module function taken inside the module (stored in a function pointer, a table, engine data)
+    # must be the C symbol, never the namespace function: emit ::name
+    needs_c_api = set()
+    for f in funcs:
+        mb, edits = mask(f.body), []
+        for g in funcs:
+            for mm in re.finditer(ident(g.name) + r"(?!\s*\()", mb):
+                if mb[max(0, mm.start() - 2):mm.start()] != "::":
+                    edits.append((mm.start(), mm.start(), "::"))
+        if edits:
+            f.body = apply_edits(f.body, edits); needs_c_api.add(f.name)
+    # `#define NAME literal` -> a constexpr constant (the macro was file-scoped in the one-function file)
+    for f in funcs:
+        consts = []
+        for d in f.defines:
+            dm = re.fullmatch(r"#define\s+(\w+)\s+(-?[0-9.]+(?:e-?\d+)?f?)", d.strip())
+            if not dm:
+                raise SystemExit("%s: unhandled #define: %s" % (f.file, d))
+            cname = "k_" + dm.group(1).lower().lstrip("k_") if not dm.group(1).lower().startswith("k_") else dm.group(1).lower()
+            consts.append("constexpr %s %s = %s;" % ("real" if dm.group(2).endswith("f") else "int32_t", cname, dm.group(2)))
+            f.body = re.sub(r"\b%s\b" % dm.group(1), cname, f.body)
+        f.defines = consts
     groups = {n: g for g, s in GROUPS[module].items() for n in s.split()}
     missing = [f.name for f in funcs if f.name not in groups]
     if missing:
@@ -498,20 +542,28 @@ def main():
                     helper_names[hn] = ht; helpers.append(ht)
         L = ["/**", " * @file src/%s/%s.cpp" % (module, g), " * %s." % GROUP_TITLES[module][g].capitalize(),
              " * The original author notes and decompiles are in docs/original/%s/." % module, " */", ""]
-        L += ['#include "halo/%s/%s.hpp"' % (module, module), ""]
-        L += includes + [""]
+        L += ['#include "halo/%s/%s.hpp"' % (module, module)]
+        if any(f.name in needs_c_api for f in fl):
+            L += ['#include "halo/%s/%s_c_api.h"' % (module, module)]
+        L += [""] + includes + [""]
         if externs:
             L += ['extern "C" {'] + list(externs.values()) + ["}", ""]
         L += ["namespace %s {" % ns, ""]
         if helpers:
             L += ["namespace {", ""] + [h + "\n" for h in helpers] + ["}  // namespace", ""]
         for f in fl:
-            for d in f.defines: L.append(d)
+            if f.defines: L += f.defines + [""]
             L.append("%s %s(%s)" % (f.ret, f.name, ", ".join(f.new_params)))
             L.append(strip_comments(f.body).rstrip())
             L.append("")
         L += ["}  // namespace %s" % ns, ""]
-        emit(os.path.join(src_dir, g + ".cpp"), "\n".join(L))
+        text = "\n".join(L)
+        for pfile, old, new in PATCHES.get(module, []):
+            if pfile == g + ".cpp":
+                if old not in text:
+                    raise SystemExit("patch for %s no longer applies: %r" % (pfile, old[:60]))
+                text = text.replace(old, new)
+        emit(os.path.join(src_dir, g + ".cpp"), text)
         H = ["/**", " * @file include/halo/%s/%s.hpp" % (module, g), " * %s." % GROUP_TITLES[module][g].capitalize(),
              " * The C symbols other modules link against are the wrappers in src/%s/%s_c_api.cpp." % (module, module),
              " */", "#pragma once", "", '#include "halo/%s/%s_types.hpp"' % (module, module), "", "namespace %s {" % ns, ""]

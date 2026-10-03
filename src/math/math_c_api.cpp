@@ -125,7 +125,7 @@ extern "C" real_plane2d * plane2d_from_points(real_plane2d *out_plane, const rea
 
 extern "C" void plane3d_from_point_and_normal(real_plane3d *out, const real_vector3d *normal, const real_point3d *point)
 {
-    halo::math::plane3d_from_point_and_normal(*out, normal, *point);
+    halo::math::plane3d_from_point_and_normal(*out, *normal, *point);
 }
 
 extern "C" void plane3d_negate(real_plane3d *out, const real_plane3d *in)
@@ -225,7 +225,7 @@ extern "C" void matrix4x3_from_axis_angle(real_matrix4x3 *out, real_vector3d *ax
 
 extern "C" void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 *out)
 {
-    halo::math::matrix4x3_from_forward_up(up, forward, *out);
+    halo::math::matrix4x3_from_forward_up(*up, *forward, *out);
 }
 
 extern "C" void matrix4x3_from_euler_angles(real_matrix4x3 *out, real yaw, real pitch, real roll)
@@ -245,7 +245,7 @@ extern "C" void quaternion_from_matrix4x3(real_matrix4x3 *m, real_quaternion *ou
 
 extern "C" void matrix4x3_from_forward_up_position(real_vector3d *up, real_vector3d *forward, real_point3d *position, real_matrix4x3 *out)
 {
-    halo::math::matrix4x3_from_forward_up_position(up, forward, position, out);
+    halo::math::matrix4x3_from_forward_up_position(up, forward, *position, out);
 }
 
 extern "C" void matrix4x3_extract_forward_up_position(real_vector3d *out_up, real_vector3d *out_forward, real_matrix4x3 *m, real_point3d *out_position)
@@ -310,7 +310,7 @@ extern "C" void matrix3x3_transpose(real_matrix3x3 *out, real_matrix3x3 *in)
 
 extern "C" void matrix3x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix3x3 *out)
 {
-    halo::math::matrix3x3_from_forward_up(up, forward, *out);
+    halo::math::matrix3x3_from_forward_up(*up, *forward, *out);
 }
 
 extern "C" void matrix3x3_multiply(real_matrix3x3 *out, real_matrix3x3 *a, real_matrix3x3 *b)

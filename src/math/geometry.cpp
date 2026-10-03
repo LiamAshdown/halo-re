@@ -171,11 +171,11 @@ real_plane2d * plane2d_from_points(real_plane2d *out_plane, const real_point2d &
     return 0;
 }
 
-void plane3d_from_point_and_normal(real_plane3d &out, const real_vector3d *normal, const real_point3d &point)
+void plane3d_from_point_and_normal(real_plane3d &out, const real_vector3d &normal, const real_point3d &point)
 {
-    out.normal.i = normal->i;
-    out.normal.j = normal->j;
-    out.normal.k = normal->k;
+    out.normal.i = normal.i;
+    out.normal.j = normal.j;
+    out.normal.k = normal.k;
     out.d = out.normal.i * point.x + out.normal.j * point.y + out.normal.k * point.z;
 }
 

@@ -32,7 +32,7 @@ void matrix4x3_from_axis_angle(real_matrix4x3 &out, const real_vector3d &axis, r
  * Original register convention: EAX -> up, ECX -> forward, stack -> out.
  * @address 0x004cb970
  */
-void matrix4x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix4x3 &out);
+void matrix4x3_from_forward_up(const real_vector3d &up, const real_vector3d &forward, real_matrix4x3 &out);
 
 /**
  * Builds a rotation matrix4x3 (scale 1, no translation) from yaw, pitch and roll.
@@ -48,7 +48,7 @@ void matrix4x3_from_euler_angles(real_matrix4x3 &out, real yaw, real pitch, real
  * Original register convention: EAX -> up, ECX -> forward, ESI -> position, stack -> out.
  * @address 0x004cbd60
  */
-void matrix4x3_from_forward_up_position(real_vector3d *up, real_vector3d *forward, real_point3d *position, real_matrix4x3 *out);
+void matrix4x3_from_forward_up_position(real_vector3d *up, real_vector3d *forward, const real_point3d &position, real_matrix4x3 *out);
 
 /**
  * Copies the forward row, up row and position out of a matrix4x3.
@@ -152,7 +152,7 @@ void matrix3x3_transpose(real_matrix3x3 *out, real_matrix3x3 *in);
  * Original register convention: ECX -> up, EDX -> forward, stack -> out.
  * @address 0x004cc560
  */
-void matrix3x3_from_forward_up(real_vector3d *up, real_vector3d *forward, real_matrix3x3 &out);
+void matrix3x3_from_forward_up(const real_vector3d &up, const real_vector3d &forward, real_matrix3x3 &out);
 
 /**
  * out = a * b for 3x3 rotation matrices; `out` may alias either operand.
