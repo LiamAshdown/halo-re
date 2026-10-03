@@ -1640,6 +1640,19 @@ typedef struct ai_object_attention_record {
     uint8_t unknown_08[0x20];  // 0x08 zeroed on creation, never read inside this module
 } ai_object_attention_record;  // size 0x28
 
+// The view the actor vehicle search takes of an object attention record: a vehicle offered to actors, the radius it
+// is offered within (FLT_MAX for unlimited), the team and actor type bit masks that may take it and up to six packed
+// ai references (encounter / squad / platoon) that may take it.
+typedef struct ai_vehicle_offer {
+    datum_index vehicle;       // 0x00
+    float radius;              // 0x04
+    int16_t team_mask;         // 0x08 bit per team, 0 or less for any
+    int16_t type_mask;         // 0x0a bit per actor type, 0 or less for any
+    int16_t filter_count;      // 0x0c valid entries of filters
+    uint8_t unknown_0e[2];     // 0x0e
+    uint32_t filters[6];       // 0x10 packed ai references
+} ai_vehicle_offer;            // size 0x28
+
 // The "ai pursuit" datum: a per-encounter, per-type ring of recently seen objects.
 typedef struct ai_pursuit {
     int16_t identifier;               // 0x00 datum_header

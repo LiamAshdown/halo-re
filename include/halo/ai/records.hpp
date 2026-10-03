@@ -95,6 +95,7 @@ static_assert(offsetof(Actor, hearing_distance) == 0x4c && offsetof(Actor, berse
 static_assert(offsetof(ActorVariant, first_burst_delay_time) == 0x80 && offsetof(ActorVariant, special_fire_mode) == 0x154 && offsetof(ActorVariant, grenade_type) == 0x180);
 static_assert(offsetof(Biped, biped_flags) == 0x2f4 && offsetof(Projectile, danger_radius) == 0x1a8 && offsetof(Weapon, triggers) == 0x4fc);
 static_assert(offsetof(Equipment, powerup_type) == 0x308);
+static_assert(sizeof(ai_vehicle_offer) == sizeof(ai_object_attention_record) && offsetof(ai_vehicle_offer, filters) == 0x10);
 static_assert(offsetof(ModelCollisionGeometry, pathfinding_spheres) == 0x280 && sizeof(ModelCollisionGeometrySphere) == 0x20 && offsetof(ModelCollisionGeometrySphere, radius) == 0x1c);
 static_assert(offsetof(Object, collision_model) + offsetof(TagDependency, tag_id) == 0x7c && offsetof(DeviceMachine, machine_flags) == 0x292);
 static_assert(sizeof(path_find_result) == 0x5c && offsetof(path_find_result, waypoints) == 0x1c);
