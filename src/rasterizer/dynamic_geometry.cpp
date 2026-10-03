@@ -71,7 +71,7 @@ void chimera__rasterizer_draw_dynamic_triangles_static_vertices(int32_t primitiv
         stride = (uint32_t)(int32_t)rasterizer_vertex_sizes[vertex_buffer->type];
         chunk = primitive_count > k_rasterizer_draw_chunk_size ? k_rasterizer_draw_chunk_size : primitive_count;
 
-        hardware_buffer = (void *)vertex_buffer->hardware_buffer;
+        hardware_buffer = vertex_buffer->hardware_buffer;
         render_device().buffer_get_desc(hardware_buffer, vertex_desc);
         render_device().buffer_get_desc(rasterizer_dynamic_index_buffer, index_desc);
 
@@ -123,7 +123,7 @@ void chimera__rasterizer_draw_dynamic_triangles_static_vertices2(int32_t primiti
                                                     rasterizer_vertex_declarations[vertex_buffer->type].usage) & 0x10);
         render_device().set_stream_source(0, vertex_buffer->hardware_buffer, 0, stride);
         if (halo::shell::globals().safe_mode == 0 && rasterizer_caps.max_streams > 1) {
-            render_device().set_stream_source(1, (void *)second_stream->hardware_buffer, 0, second_stride);
+            render_device().set_stream_source(1, second_stream->hardware_buffer, 0, second_stride);
         }
         render_device().set_indices(rasterizer_dynamic_index_buffer);
         {
@@ -226,18 +226,16 @@ void rasterizer_dynamic_geometry_dispose(void)
     int32_t type_index;
     int32_t handle;
     rasterizer_vertex_buffer_slot *slot;
-    void **object;
-    void (__stdcall **vtable)(void *);
+    void *object;
 
     if (rasterizer_device != 0) {
         for (type_index = 0; type_index < k_rasterizer_vertex_type_count; type_index++) {
             handle = rasterizer_dynamic_vertex_caches[type_index].buffer_handle;
             if (handle != 0) {
                 slot = &rasterizer_vertex_buffer_slots[handle - 1];
-                object = (void **)slot->hardware_buffer;
+                object = slot->hardware_buffer;
                 if (object != 0) {
-                    vtable = *(void (__stdcall ***)(void *))object;
-                    vtable[2](object);
+                    render_device().release(object);
                 }
                 rasterizer_vertex_buffer_slot_count = rasterizer_vertex_buffer_slot_count - 1;
                 slot->hardware_buffer = 0;
@@ -251,9 +249,8 @@ void rasterizer_dynamic_geometry_dispose(void)
             }
         }
         if (rasterizer_dynamic_index_buffer != 0) {
-            object = (void **)rasterizer_dynamic_index_buffer;
-            vtable = *(void (__stdcall ***)(void *))object;
-            vtable[2](object);
+            object = rasterizer_dynamic_index_buffer;
+            render_device().release(object);
             rasterizer_dynamic_index_buffer = 0;
         }
     }
@@ -447,7 +444,7 @@ void * rasterizer_dynamic_vertex_cache_lock(int32_t slot_index)
     stride = rasterizer_vertex_sizes[slot->vertex_type];
 
     locked_data = 0;
-    hresult = render_device().buffer_lock(buffer_slot->hardware_buffer, slot->first_vertex * stride, slot->vertex_count * stride, &locked_data, 0x2000);
+    hresult = render_device().buffer_lock(buffer_slot->hardware_buffer, slot->first_vertex * stride, slot->vertex_count * stride, &locked_data, halo::d3d9::k_lock_discard);
 
     slot->locked_vertices = hresult < 0 ? NULL : locked_data;
     return slot->locked_vertices;

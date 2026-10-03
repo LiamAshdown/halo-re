@@ -6,6 +6,8 @@
 
 #include <cstdint>
 
+#include "halo/render/d3d9.hpp"
+
 namespace halo::rasterizer {
 
 /** Bit pattern of -1.0f; the light tags use it to mark an omni light (no falloff cone). */
@@ -60,5 +62,27 @@ constexpr int16_t high_half(uint32_t packed) noexcept
 /** Frustum depth range the decal and model passes switch to, as the float bit patterns the depth setup takes. */
 inline constexpr float k_decal_frustum_z_near = 1.0f / 256.0f;
 inline constexpr float k_decal_frustum_z_far = 4096.0f;
+
+/** The pool a vertex buffer with the given usage is created in: system memory for dynamic or software-processed buffers. */
+constexpr uint32_t vertex_buffer_pool_for_usage(uint32_t usage) noexcept
+{
+    return ((usage & halo::d3d9::k_usage_software_processing) != 0 || (usage & halo::d3d9::k_usage_dynamic) != 0)
+               ? halo::d3d9::k_pool_system_memory
+               : halo::d3d9::k_pool_managed;
+}
+
+/** Usage word of a dynamic vertex buffer: its declaration's usage, dynamic, and software processing when enabled. */
+constexpr uint32_t dynamic_vertex_buffer_usage(uint32_t declaration_usage, bool software_processing) noexcept
+{
+    return (software_processing ? halo::d3d9::k_usage_software_processing : 0u) | declaration_usage | halo::d3d9::k_usage_dynamic;
+}
+
+/** Sizes of the vertex and index buffers the dynamic geometry systems create once. */
+inline constexpr uint32_t k_dynamic_index_buffer_bytes = 0x30000;
+inline constexpr uint32_t k_decal_vertex_buffer_bytes = 0x3c000;
+inline constexpr uint32_t k_detail_object_vertex_buffer_bytes = 0x78000;
+
+/** D3DFMT_INDEX16. */
+inline constexpr uint32_t k_format_index16 = 101;
 
 }  // namespace halo::rasterizer

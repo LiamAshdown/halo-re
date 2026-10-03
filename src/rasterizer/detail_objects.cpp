@@ -8,6 +8,7 @@
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "internal/state.hpp"
+#include "halo/rasterizer/constants.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/rasterizer/api.hpp"
@@ -27,10 +28,9 @@ namespace halo::rasterizer {
 uint8_t rasterizer_detail_object_vertex_buffer_create(void)
 {
     void *buffer = 0;
-    uint32_t usage = (rasterizer_software_vertex_processing != 0 ? 0x10 : 0) |
-                     rasterizer_vertex_declarations[_rasterizer_vertex_type_detail_object].usage | 0x200;
-    uint32_t pool = (usage & 0x10) != 0 || (usage & 0x200) != 0 ? 2 : 1;
-    int32_t hr = render_device().create_vertex_buffer(0x78000, usage, 0, pool, &buffer, 0);
+    uint32_t usage = dynamic_vertex_buffer_usage(rasterizer_vertex_declarations[_rasterizer_vertex_type_detail_object].usage, rasterizer_software_vertex_processing != 0);
+    uint32_t pool = vertex_buffer_pool_for_usage(usage);
+    int32_t hr = render_device().create_vertex_buffer(k_detail_object_vertex_buffer_bytes, usage, 0, pool, &buffer, 0);
 
     rasterizer_detail_object_vertex_buffer = hr < 0 ? 0 : buffer;
     return (uint8_t)(rasterizer_detail_object_vertex_buffer != 0);
@@ -296,7 +296,7 @@ void rasterizer_detail_objects_vertex_buffer_fill(rasterizer_detail_object_batch
 
     scenario = global_scenario;
     buffer = rasterizer_detail_object_vertex_buffer;
-    if (render_device().buffer_lock(buffer, 0, 0x78000, &vertices, 0) >= 0 && vertices != 0) {
+    if (render_device().buffer_lock(buffer, 0, k_detail_object_vertex_buffer_bytes, &vertices, 0) >= 0 && vertices != 0) {
         uint8_t *detail_objects = *(uint32_t *)((uint8_t *)global_structure_bsp + 0x24c) != 0
                                       ? (uint8_t *)*(uint32_t *)((uint8_t *)global_structure_bsp + 0x250) : nullptr;
         const uint8_t *instances = (const uint8_t *)*(uint32_t *)(detail_objects + 0x10);
