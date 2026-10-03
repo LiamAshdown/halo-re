@@ -1,5 +1,6 @@
 #include "halo/game/gamerest_player.hpp"
 #include "halo/core/cstring.hpp"
+#include "halo/core/tag_block.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/network_constants.hpp"
 #include "halo/game/constants.hpp"
@@ -796,16 +797,15 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
     }
     ((struct player *)player)->bsp_cluster = -1;
     if (placed) {
-        uint8_t *volumes = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x3a0);
         int16_t v;
 
-        for (v = 0; (int32_t)v < *(int32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x39c); v++) {
-            uint8_t *volume = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x3a0) + v * 8;
+        for (v = 0; (int32_t)v < (int32_t)halo::scenario::globals().scenario->bsp_switch_trigger_volumes.count; v++) {
+            const ScenarioBSPSwitchTriggerVolume &volume =
+                halo::tag_block_at<ScenarioBSPSwitchTriggerVolume>(halo::scenario::globals().scenario->bsp_switch_trigger_volumes, v);
             datum_index player_unit = ((struct player *)player)->unit;
 
-            (void)volumes;
-            if (*(int16_t *)(volume + 0x2) == halo::scenario::globals().structure_bsp_index && player_unit != k_datum_index_none &&
-                halo::scenario::scenario_query::trigger_volume_contains_point(*(int16_t *)volume, (real_point3d *)&halo::game::object_at(player_unit)->bounding_center)) {
+            if ((int16_t)volume.source == halo::scenario::globals().structure_bsp_index && player_unit != k_datum_index_none &&
+                halo::scenario::scenario_query::trigger_volume_contains_point((int16_t)volume.trigger_volume, (real_point3d *)&halo::game::object_at(player_unit)->bounding_center)) {
                 placed = 0;
                 break;
             }
@@ -2735,9 +2735,9 @@ void StructureBsp::switch_regroup()
         return;
     }
 
-    flag_index = *(int16_t *)((uint8_t *)halo::scenario::globals().scenario->bsp_switch_trigger_volumes.pointer + volume * 8 + 6);
+    flag_index = (int16_t)halo::tag_block_at<ScenarioBSPSwitchTriggerVolume>(halo::scenario::globals().scenario->bsp_switch_trigger_volumes, volume).unknown;
     if (flag_index != -1) {
-        target = *(real_point3d *)((uint8_t *)halo::scenario::globals().scenario->cutscene_flags.pointer + flag_index * 0x5c + 0x24);
+        target = *(real_point3d *)&halo::tag_block_at<ScenarioCutsceneFlag>(halo::scenario::globals().scenario->cutscene_flags, flag_index).position;
         offset = 0.0f;
         while (halo::physics::object_collision_test_cluster_group(0x4029, &target, halo::k_dword_none)) {
             double sum;
@@ -2771,7 +2771,7 @@ void StructureBsp::switch_regroup()
             continue;
         }
         unit_object = (uint8_t *)halo::game::object_at(entry->unit);
-        trigger_volume = *(int16_t *)((uint8_t *)halo::scenario::globals().scenario->bsp_switch_trigger_volumes.pointer + local_player_globals->bsp_switch_trigger_volume_index * 8);
+        trigger_volume = (int16_t)halo::tag_block_at<ScenarioBSPSwitchTriggerVolume>(halo::scenario::globals().scenario->bsp_switch_trigger_volumes, local_player_globals->bsp_switch_trigger_volume_index).trigger_volume;
         if (!halo::scenario::scenario_query::trigger_volume_contains_point(trigger_volume, (real_point3d *)(unit_object + 0xa0))) {
             continue;
         }
@@ -2779,7 +2779,7 @@ void StructureBsp::switch_regroup()
         offset = radius;
         leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &probe);
         if (leaf == halo::k_dword_none ||
-            *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8) == -1) {
+            halo::tag_block_at<ScenarioStructureBSPLeaf>(halo::scenario::globals().structure_bsp->leaves, leaf & 0x7fffffff).cluster == 0xffff) {
             continue;
         }
         if (!have_flag) {

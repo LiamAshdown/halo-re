@@ -64,7 +64,7 @@ uint8_t ClosedHandler::handle(widget_instance *widget, int16_t *event, uint8_t *
         }
     }
     server_browser_initialized = 0;
-    halo::networking::server_list_reset(0);
+    halo::networking::server_list_reset(nullptr);
     if (server_list != 0) {
         GlobalFree(server_list);
     }

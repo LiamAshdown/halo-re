@@ -1317,7 +1317,8 @@ typedef struct autopatch_download_slot {
     void *data;                // 0x08 GlobalAlloc of size bytes, NUL terminated
     int32_t size;              // 0x0c payload length plus the terminator
     uint8_t local_file;        // 0x10 1 when the source was a file, not a URL
-    uint8_t pad_11[3];         // 0x11
+    uint8_t cancelled;         // 0x11 set when the request is abandoned; the completion callback then drops the payload
+    uint8_t pad_12[2];         // 0x12
 } autopatch_download_slot;     // size 0x14
 // global 0x006ef93c: autopatch_download_slot autopatch_download_slots[2]
 // global 0x007227c0: network_mutex_record *autopatch_download_mutex

@@ -56,7 +56,7 @@ void CacheFileMaps::switch_map_by_path(char *path, uint8_t apply_state)
             return;
         }
         halo::main::globals().game_globals->map_loading_in_progress = 0;
-        *(uint32_t *)&globals->map_load_progress = 0x3f800000;
+        globals->map_load_progress = 1.0f;
     }
 
     if (apply_state != 0) {

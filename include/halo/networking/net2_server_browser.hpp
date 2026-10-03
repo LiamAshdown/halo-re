@@ -289,7 +289,7 @@ public:
      *
      * @address 0x4b65f0
      */
-    static void reset(uint8_t *entry);
+    static void reset(server_list_globals *entry);
 
     /**
      * Thread-safely reads server_list.result_count, returning 0 if the mutex could not be acquired.
@@ -303,7 +303,7 @@ public:
      *
      * @address 0x4ba7c0
      */
-    static void result_reset(uint8_t *entry);
+    static void result_reset(server_list_globals *entry);
 
     /**
      * Original engine function `server_list_scroll_clamp`.

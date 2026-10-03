@@ -150,7 +150,7 @@ uint32_t AutopatchUpdater::download_complete_callback(int32_t request_id, int32_
                 autopatch_download_slots[i].state = k_autopatch_download_error;
                 return 1;
             }
-            if (((uint8_t *)&autopatch_download_slots[i].local_file)[1] == 0) {
+            if (autopatch_download_slots[i].cancelled == 0) {
                 uint8_t *buffer = (uint8_t *)GlobalAlloc(0, size + 1);
                 uint32_t j;
 
@@ -172,7 +172,7 @@ uint8_t AutopatchUpdater::download_get_result(void **out_data, int32_t *out_size
 {
     if (slot_index >= 0 && slot_index < 2 &&
         autopatch_download_slots[slot_index].state == k_autopatch_download_ready &&
-        ((uint8_t *)&autopatch_download_slots[slot_index].local_file)[1] == 0) {
+        autopatch_download_slots[slot_index].cancelled == 0) {
         *out_data = autopatch_download_slots[slot_index].data;
         *out_size = autopatch_download_slots[slot_index].size;
         return 1;
@@ -263,7 +263,7 @@ uint32_t AutopatchUpdater::download_pool_shutdown(void)
 
     for (i = 0; i < 2; i++) {
         if (autopatch_download_slots[i].request_id != -1) {
-            ((uint8_t *)&autopatch_download_slots[i].local_file)[1] = 1;
+            autopatch_download_slots[i].cancelled = 1;
         }
     }
 
@@ -298,7 +298,7 @@ int32_t AutopatchUpdater::download_pool_tick(void)
         if (autopatch_download_slots[i].request_id != -1) {
             active_count = active_count + 1;
         }
-        if (((uint8_t *)&autopatch_download_slots[i].local_file)[1] != 0) {
+        if (autopatch_download_slots[i].cancelled != 0) {
             if (autopatch_download_slots[i].data != 0 && autopatch_download_slots[i].local_file == 0) {
                 GlobalFree(autopatch_download_slots[i].data);
             }

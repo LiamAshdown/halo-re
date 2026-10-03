@@ -427,8 +427,8 @@ void Players::rebind_local_player_after_load()
     control->desired_zoom_level = -1;
     control->nameplate_target = k_datum_index_none;
     control->autolevelling_active = 0;
-    *(uint32_t *)&control->pitch_maximum = 0x3fbf0243;
-    *(uint32_t *)&control->pitch_minimum = 0xbfbf0243;
+    control->pitch_maximum = 1.49225652f;
+    control->pitch_minimum = -1.49225652f;
     control->suppressed_buttons = 0;
     control->suppressed_until_released = 0;
 
