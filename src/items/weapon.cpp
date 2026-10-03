@@ -968,7 +968,7 @@ int32_t weapon_ref::set_state(int16_t new_state, int8_t force)
                 ModelAnimationsAnimationGraphWeaponAnimations *weapon_anims =
                     (ModelAnimationsAnimationGraphWeaponAnimations *)graph->weapons.pointer;
                 if (weapon_anims != 0) {
-                    int16_t animation_index;
+                    int16_t animation_index = -1;
                     switch (new_state) {
                     case 0: animation_index = 0; break;
                     case 1: animation_index = 9; break;
@@ -979,14 +979,14 @@ int32_t weapon_ref::set_state(int16_t new_state, int8_t force)
                     case 7: case 8: animation_index = 8; break;
                     case 9: animation_index = 1; break;
                     case 10: animation_index = 2; break;
-                    default: goto skip_animation;
+                    default: break;
                     }
 
-                    int16_t animation = (animation_index < weapon_anims->animations.count)
+                    int16_t animation = (animation_index >= 0 && animation_index < weapon_anims->animations.count)
                         ? (int16_t)((ModelAnimationsWeaponAnimation *)weapon_anims->animations.pointer)[animation_index].animation
                         : -1;
 
-                    if (animation != -1 || new_state == 0) {
+                    if (animation_index >= 0 && (animation != -1 || new_state == 0)) {
                         item_obj->animation_index = halo::models::animation_choose_random_permutation(graph_tag_id, animation, static_cast<animation_random_stream>(1));
                         item_obj->animation_frame = 0;
                         wd->state = (int8_t)new_state;
@@ -995,7 +995,6 @@ int32_t weapon_ref::set_state(int16_t new_state, int8_t force)
             }
         }
     }
-skip_animation:
     {
         datum_index parent = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)item_index].data->parent_object;
         datum_index unit_index = (datum_index)0xffffffff;
@@ -1148,19 +1147,16 @@ uint32_t weapon_ref::transfer_ammunition(datum_index source_item_index, int16_t 
                                 source_role = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)source_item_index].data->network_role;
                                 if (source_role == 0) {
                                     halo::objects::object_delete_unparented(source_item_index);
-                                } else if (source_role != 3) {
-                                    goto transferred;
                                 }
-                                halo::objects::object_delete_recursive(source_item_index, 0);
-                                goto transferred;
+                                if (source_role == 0 || source_role == 3) {
+                                    halo::objects::object_delete_recursive(source_item_index, 0);
+                                }
+                                any_transferred = 1;
+                                break;
                             }
                         }
                     }
-                    goto advance;
                 }
-            transferred:
-                any_transferred = 1;
-            advance:
                 *target_rounds_unloaded = *target_rounds_unloaded + moved;
                 *out_transferred = moved;
             }

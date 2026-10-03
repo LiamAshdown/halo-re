@@ -257,6 +257,8 @@ int ProjectileHandle::update()
         swept.z = scale * step_k + self->base.position.z;
 
         
+        bool skip_move = false;
+
         {
             uint8_t hit_something = 0;
 
@@ -289,7 +291,7 @@ int ProjectileHandle::update()
                 collisions++;
                 halo::ai::ai_accumulate_repeated_event(projectile_index, &hit.point, 1, (int16_t)definition->impact_noise);
                 if (self->projectile.flags & to_bits(projectile_flag::attached)) {
-                    goto next_step;
+                    skip_move = true;
                 }
             } else {
                 remaining = 0.0f;
@@ -300,91 +302,92 @@ int ProjectileHandle::update()
         }
 
         
-        {
-            real_vector3d moved;    
+        if (!skip_move) {
+            {
+                real_vector3d moved;    
 
-            moved.i = swept.x - self->base.position.x;
-            moved.j = swept.y - self->base.position.y;
-            moved.k = swept.z - self->base.position.z;
-            self->projectile.distance_travelled = (real)halo::libm::sqrt(moved.k * moved.k + moved.j * moved.j + moved.i * moved.i) + self->projectile.distance_travelled;
-            if (!flyby_played && *(datum_index *)&definition->flyby_sound.tag_id != k_datum_index_none &&
-                *(datum_index *)halo::game::globals().local_player_globals->local_players != k_datum_index_none) {
-                datum_index local_player = *(datum_index *)halo::game::globals().local_player_globals->local_players;
-                datum_index listener = ((player *)halo::game::globals().player_data->data)[halo::datum_slot(local_player)].unit;
+                moved.i = swept.x - self->base.position.x;
+                moved.j = swept.y - self->base.position.y;
+                moved.k = swept.z - self->base.position.z;
+                self->projectile.distance_travelled = (real)halo::libm::sqrt(moved.k * moved.k + moved.j * moved.j + moved.i * moved.i) + self->projectile.distance_travelled;
+                if (!flyby_played && *(datum_index *)&definition->flyby_sound.tag_id != k_datum_index_none &&
+                    *(datum_index *)halo::game::globals().local_player_globals->local_players != k_datum_index_none) {
+                    datum_index local_player = *(datum_index *)halo::game::globals().local_player_globals->local_players;
+                    datum_index listener = ((player *)halo::game::globals().player_data->data)[halo::datum_slot(local_player)].unit;
 
-                if (listener != k_datum_index_none && listener != shooter) {
-                    real_point3d *center = &((object *)OBJECT_DATA(listener))->bounding_center;
-                    real radius = halo::sound::sound_definition_maximum_distance(*(datum_index *)&definition->flyby_sound.tag_id);
-                    real_vector3d to_listener;  
-                    real_vector3d projected;    
-                    real_vector3d perpendicular; 
-                    real along;
+                    if (listener != k_datum_index_none && listener != shooter) {
+                        real_point3d *center = &((object *)OBJECT_DATA(listener))->bounding_center;
+                        real radius = halo::sound::sound_definition_maximum_distance(*(datum_index *)&definition->flyby_sound.tag_id);
+                        real_vector3d to_listener;  
+                        real_vector3d projected;    
+                        real_vector3d perpendicular; 
+                        real along;
 
-                    to_listener.i = center->x - self->base.position.x;
-                    to_listener.j = center->y - self->base.position.y;
-                    to_listener.k = center->z - self->base.position.z;
-                    halo::math::vector3d_project_onto_axis(projected, moved, to_listener, perpendicular);
-                    along = projected.k * moved.k + projected.j * moved.j + projected.i * moved.i;
-                    if (!(along < 0.0f) && halo::math::vector3d_magnitude_squared(moved) > along &&
-                        radius * radius > halo::math::vector3d_magnitude_squared(perpendicular)) {
-                        sound_placement placement;  
+                        to_listener.i = center->x - self->base.position.x;
+                        to_listener.j = center->y - self->base.position.y;
+                        to_listener.k = center->z - self->base.position.z;
+                        halo::math::vector3d_project_onto_axis(projected, moved, to_listener, perpendicular);
+                        along = projected.k * moved.k + projected.j * moved.j + projected.i * moved.i;
+                        if (!(along < 0.0f) && halo::math::vector3d_magnitude_squared(moved) > along &&
+                            radius * radius > halo::math::vector3d_magnitude_squared(perpendicular)) {
+                            sound_placement placement;  
 
-                        placement.position.x = center->x - perpendicular.i;
-                        placement.position.y = center->y - perpendicular.j;
-                        placement.position.z = center->z - perpendicular.k;
-                        *(real_vector3d *)&placement.forward = moved;
-                        halo::math::vector3d_normalize_with_length(*((real_vector3d *)&placement.forward));
-                        *(real_vector3d *)&placement.velocity = *global_origin3d_pointer;
-                        placement.leaf_index = *(int32_t *)&hit.leaf;
-                        *(int32_t *)&placement.cluster_index = *(int32_t *)((uint8_t *)&hit.leaf + 4);
-                        halo::sound::sound_start_at_location(*(datum_index *)&definition->flyby_sound.tag_id, &placement, 1.0f);
-                        flyby_played = 1;
+                            placement.position.x = center->x - perpendicular.i;
+                            placement.position.y = center->y - perpendicular.j;
+                            placement.position.z = center->z - perpendicular.k;
+                            *(real_vector3d *)&placement.forward = moved;
+                            halo::math::vector3d_normalize_with_length(*((real_vector3d *)&placement.forward));
+                            *(real_vector3d *)&placement.velocity = *global_origin3d_pointer;
+                            placement.leaf_index = *(int32_t *)&hit.leaf;
+                            *(int32_t *)&placement.cluster_index = *(int32_t *)((uint8_t *)&hit.leaf + 4);
+                            halo::sound::sound_start_at_location(*(datum_index *)&definition->flyby_sound.tag_id, &placement, 1.0f);
+                            flyby_played = 1;
+                        }
                     }
                 }
             }
-        }
 
         
-        if ((definition->projectile_flags & to_bits(projectile_definition_flag::oriented_along_velocity)) &&
-            (velocity->i != 0.0f || velocity->j != 0.0f || velocity->k != 0.0f)) {
-            real_vector3d direction = *velocity;
+            if ((definition->projectile_flags & to_bits(projectile_definition_flag::oriented_along_velocity)) &&
+                (velocity->i != 0.0f || velocity->j != 0.0f || velocity->k != 0.0f)) {
+                real_vector3d direction = *velocity;
 
-            if (halo::math::vector3d_normalize_with_length(direction) > 0.0f) {
+                if (halo::math::vector3d_normalize_with_length(direction) > 0.0f) {
+                    real_vector3d side;
+
+                    *forward = direction;
+                    halo::math::vector3d_cross_product(side, *forward, *up);
+                    halo::math::vector3d_cross_product(*up, side, *forward);
+                    if (halo::math::vector3d_normalize_with_length(*up) == 0.0f) {
+                        halo::math::vector3d_build_perpendicular(*up, *forward);
+                        halo::math::vector3d_normalize_with_length(*up);
+                    }
+                }
+                halo::math::vector3d_rotate_about_axis(*up, *forward, self->projectile.rotation_sine, self->projectile.rotation_cosine);
+            } else if (self->projectile.flags & to_bits(projectile_flag::rotation_valid)) {
+                real_vector3d *axis = &self->projectile.rotation_axis;
                 real_vector3d side;
 
-                *forward = direction;
+                halo::math::vector3d_rotate_about_axis(*forward, *axis, self->projectile.rotation_sine, self->projectile.rotation_cosine);
+                halo::math::vector3d_rotate_about_axis(*up, *axis, self->projectile.rotation_sine, self->projectile.rotation_cosine);
+                halo::math::vector3d_normalize_with_length(*forward);
                 halo::math::vector3d_cross_product(side, *forward, *up);
                 halo::math::vector3d_cross_product(*up, side, *forward);
-                if (halo::math::vector3d_normalize_with_length(*up) == 0.0f) {
-                    halo::math::vector3d_build_perpendicular(*up, *forward);
-                    halo::math::vector3d_normalize_with_length(*up);
-                }
+                halo::math::vector3d_normalize_with_length(*up);
             }
-            halo::math::vector3d_rotate_about_axis(*up, *forward, self->projectile.rotation_sine, self->projectile.rotation_cosine);
-        } else if (self->projectile.flags & to_bits(projectile_flag::rotation_valid)) {
-            real_vector3d *axis = &self->projectile.rotation_axis;
-            real_vector3d side;
-
-            halo::math::vector3d_rotate_about_axis(*forward, *axis, self->projectile.rotation_sine, self->projectile.rotation_cosine);
-            halo::math::vector3d_rotate_about_axis(*up, *axis, self->projectile.rotation_sine, self->projectile.rotation_cosine);
-            halo::math::vector3d_normalize_with_length(*forward);
-            halo::math::vector3d_cross_product(side, *forward, *up);
-            halo::math::vector3d_cross_product(*up, side, *forward);
-            halo::math::vector3d_normalize_with_length(*up);
-        }
 
         
-        halo::objects::object_unlink_cluster_or_notify_parent(projectile_index);
-        self->base.position = swept;
-        halo::objects::object_set_cluster_and_parent(projectile_index, &hit.leaf);
-        *velocity = vel;
-        if (remaining != 0.0f && collisions != 0 && self->projectile.contrail_attachment_index != -1 &&
-            self->base.attachment_handles[self->projectile.contrail_attachment_index] != k_datum_index_none) {
-            halo::objects::object_recalculate_bounding_radius(projectile_index);
-            halo::effects::contrail_advance(self->base.attachment_handles[self->projectile.contrail_attachment_index], 0,
-                             (1.0f - remaining) * k_seconds_per_tick);
+            halo::objects::object_unlink_cluster_or_notify_parent(projectile_index);
+            self->base.position = swept;
+            halo::objects::object_set_cluster_and_parent(projectile_index, &hit.leaf);
+            *velocity = vel;
+            if (remaining != 0.0f && collisions != 0 && self->projectile.contrail_attachment_index != -1 &&
+                self->base.attachment_handles[self->projectile.contrail_attachment_index] != k_datum_index_none) {
+                halo::objects::object_recalculate_bounding_radius(projectile_index);
+                halo::effects::contrail_advance(self->base.attachment_handles[self->projectile.contrail_attachment_index], 0,
+                                 (1.0f - remaining) * k_seconds_per_tick);
+            }
         }
-    next_step:
         if (!(remaining > 0.0f)) {
             break;
         }

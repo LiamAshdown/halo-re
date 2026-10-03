@@ -760,70 +760,65 @@ void particle_system_view::spawn(int32_t type_index, float dt)
     if (particle_systems_enabled == 1) {
         target = (int16_t)(int32_t)((double)target * 0.5);
     }
-    if (((struct particle_system_type_state *)type_state)->particle_count >= target) {
-        goto done;
-    }
+    if (((struct particle_system_type_state *)type_state)->particle_count < target) {
+        if (object_index != k_datum_index_none) {
+            uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8);
+            uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & halo::k_slot_mask].data;
+            char *marker_name = (char *)(*(uint8_t **)&((struct Object *)object_tag)->attachments.pointer + ((struct particle_system *)system)->attachment_index * 0x48 + 0x10);
 
-    if (object_index != k_datum_index_none) {
-        uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8);
-        uint8_t *object_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & halo::k_slot_mask].data;
-        char *marker_name = (char *)(*(uint8_t **)&((struct Object *)object_tag)->attachments.pointer + ((struct particle_system *)system)->attachment_index * 0x48 + 0x10);
+            marker_count = (int16_t)halo::objects::object_get_node_local_transform(object_index, marker_name, markers, 8);
+            halo::objects::object_get_root_location((int32_t *)(system + 0x18), object_index);
+            if (marker_count == 0) {
+                datum_index weapon = *(datum_index *)(first_person_weapon_interfaces + halo::interface::globals().current_local_player_index * 0x1ea0 + 8);
 
-        marker_count = (int16_t)halo::objects::object_get_node_local_transform(object_index, marker_name, markers, 8);
-        halo::objects::object_get_root_location((int32_t *)(system + 0x18), object_index);
-        if (marker_count == 0) {
-            datum_index weapon = *(datum_index *)(first_person_weapon_interfaces + halo::interface::globals().current_local_player_index * 0x1ea0 + 8);
+                if (weapon != k_datum_index_none) {
+                    marker_count = (int16_t)halo::interface::first_person_weapon_get_marker_data(weapon, marker_name, markers, 8);
+                    halo::objects::object_get_root_location((int32_t *)(system + 0x18), weapon);
+                }
+            }
+        } else {
+            markers[0].node_transform.position = *(real_point3d *)&((struct particle_system *)system)->position.x;
+            *(real_vector3d *)((uint8_t *)&markers[0] + 0x3c) = *global_origin3d_pointer;
+            marker_count = 1;
+        }
 
-            if (weapon != k_datum_index_none) {
-                marker_count = (int16_t)halo::interface::first_person_weapon_get_marker_data(weapon, marker_name, markers, 8);
-                halo::objects::object_get_root_location((int32_t *)(system + 0x18), weapon);
+        if (((struct particle_system *)system)->location.cluster_index != -1 && ((struct particle_system_type_state *)type_state)->particle_count < target) {
+            for (spawned = 0; marker_count != 0 && spawned < 0x80; ) {
+                datum_index handle = halo::memory::datum_new(particle_system_particle_data);
+                uint8_t *particle;
+                int16_t physics;
+                int16_t marker_index;
+
+                if (handle == k_datum_index_none) {
+                    break;
+                }
+                particle = (uint8_t *)particle_system_particle_data->data + (handle & halo::k_slot_mask) * 0x80;
+                physics = initial ? *(int16_t *)(type + 0x54) : *(int16_t *)(state + 0xb0);
+                ((struct particle_system_particle *)particle)->state_index = -1;
+                ((struct particle_system_particle *)particle)->next_state_index = -1;
+                particle[3] = 1;
+                particle[2] = 1;
+                ((struct particle_system_particle *)particle)->frame = -1.0f;
+                ((struct particle_system_particle *)particle)->rotation = particle_roll() * 6.2831855f;
+                halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
+                marker_index = (int16_t)(((halo::math::globals().effect_random_seed >> 0x10) * (uint32_t)(int32_t)marker_count) >> 0x10);
+                particle_creation_physics_table[physics](system_record, type_index, (particle_system_particle *)particle,
+                    &markers[marker_index]);
+                halo::scenario::location_view((bsp_leaf_reference *)(particle + 0x14)).from_point((real_point3d *)(particle + 0x1c));
+                if (((struct particle_system_particle *)particle)->location.cluster_index != -1) {
+                    ((struct particle_system_type_state *)type_state)->particle_count += 1;
+                    ((struct particle_system_particle *)particle)->next_particle = ((struct particle_system_type_state *)type_state)->first_particle;
+                    ((struct particle_system_type_state *)type_state)->first_particle = handle;
+                } else {
+                    halo::memory::datum_delete(particle_system_particle_data, handle);
+                }
+                spawned++;
+                if (((struct particle_system_type_state *)type_state)->particle_count >= target) {
+                    break;
+                }
             }
         }
-    } else {
-        markers[0].node_transform.position = *(real_point3d *)&((struct particle_system *)system)->position.x;
-        *(real_vector3d *)((uint8_t *)&markers[0] + 0x3c) = *global_origin3d_pointer;
-        marker_count = 1;
     }
-
-    if (((struct particle_system *)system)->location.cluster_index == -1 || ((struct particle_system_type_state *)type_state)->particle_count >= target) {
-        goto done;
-    }
-    for (spawned = 0; marker_count != 0 && spawned < 0x80; ) {
-        datum_index handle = halo::memory::datum_new(particle_system_particle_data);
-        uint8_t *particle;
-        int16_t physics;
-        int16_t marker_index;
-
-        if (handle == k_datum_index_none) {
-            break;
-        }
-        particle = (uint8_t *)particle_system_particle_data->data + (handle & halo::k_slot_mask) * 0x80;
-        physics = initial ? *(int16_t *)(type + 0x54) : *(int16_t *)(state + 0xb0);
-        ((struct particle_system_particle *)particle)->state_index = -1;
-        ((struct particle_system_particle *)particle)->next_state_index = -1;
-        particle[3] = 1;
-        particle[2] = 1;
-        ((struct particle_system_particle *)particle)->frame = -1.0f;
-        ((struct particle_system_particle *)particle)->rotation = particle_roll() * 6.2831855f;
-        halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
-        marker_index = (int16_t)(((halo::math::globals().effect_random_seed >> 0x10) * (uint32_t)(int32_t)marker_count) >> 0x10);
-        particle_creation_physics_table[physics](system_record, type_index, (particle_system_particle *)particle,
-            &markers[marker_index]);
-        halo::scenario::location_view((bsp_leaf_reference *)(particle + 0x14)).from_point((real_point3d *)(particle + 0x1c));
-        if (((struct particle_system_particle *)particle)->location.cluster_index != -1) {
-            ((struct particle_system_type_state *)type_state)->particle_count += 1;
-            ((struct particle_system_particle *)particle)->next_particle = ((struct particle_system_type_state *)type_state)->first_particle;
-            ((struct particle_system_type_state *)type_state)->first_particle = handle;
-        } else {
-            halo::memory::datum_delete(particle_system_particle_data, handle);
-        }
-        spawned++;
-        if (((struct particle_system_type_state *)type_state)->particle_count >= target) {
-            break;
-        }
-    }
-
-done:
     if ((float)((struct particle_system_type_state *)type_state)->particle_count < ((struct particle_system_type_state *)type_state)->minimum_particle_count) {
         *(float *)(type_state + 4) = *(float *)(type_state + 4) * 0.3f;
     }

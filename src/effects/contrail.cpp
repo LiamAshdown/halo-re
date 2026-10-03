@@ -66,12 +66,15 @@ void contrail_ref::age_points(real delta_time)
             contrail_point *point = &((contrail_point *)contrail_point_data->data)[(uint16_t)current];
 
             if ((point->flags & _contrail_point_expired_bit) == 0) {
+                bool live = false;
+
                 point->age = point->age + delta_time * point->inverse_duration;
 
                 for (;;) {
                     for (;;) {
                         if (point->inverse_duration != 0.0f && point->age <= 1.0f) {
-                            goto render;
+                            live = true;
+                            break;
                         }
                         if ((point->flags & _contrail_point_in_transition_bit) == 0) {
                             break;
@@ -102,7 +105,7 @@ void contrail_ref::age_points(real delta_time)
                         }
                     }
 
-                    if (state_count <= point->state_index + 1) {
+                    if (live || state_count <= point->state_index + 1) {
                         break;
                     }
 
@@ -131,10 +134,11 @@ void contrail_ref::age_points(real delta_time)
                     }
                 }
 
-                point->flags = point->flags | _contrail_point_expired_bit;
+                if (!live) {
+                    point->flags = point->flags | _contrail_point_expired_bit;
+                }
             }
 
-render:
             if ((point->flags & _contrail_point_skip_render_bit) != 0) {
                 point->flags = point->flags & ~_contrail_point_skip_render_bit;
             } else if ((point->flags & _contrail_point_expired_bit) == 0) {

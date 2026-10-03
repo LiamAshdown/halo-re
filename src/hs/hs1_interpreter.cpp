@@ -228,25 +228,23 @@ void ScriptFlowCommands::arithmetic_reduce(int16_t opcode, uint32_t thread_index
         *term_count = 0;
         node = halo::hs::syntax_node_at(frame->syntax_node);
         *next_node_slot = (halo::hs::syntax_node_at(node->data.first_child))->next_node;
-        goto check_continue;
-    }
-
-    value = *child_value;
-    if (*term_count == 0) {
-        *accumulator = value;
     } else {
-        switch (opcode) {
-        case 7: *accumulator = value + *accumulator; break;
-        case 8: *accumulator = *accumulator - value; break;
-        case 9: *accumulator = value * *accumulator; break;
-        case 10: *accumulator = *accumulator / value; break;
-        case 0xb: if (value < *accumulator) *accumulator = value; break;
-        case 0xc: if (*accumulator < value) *accumulator = value; break;
+        value = *child_value;
+        if (*term_count == 0) {
+            *accumulator = value;
+        } else {
+            switch (opcode) {
+            case 7: *accumulator = value + *accumulator; break;
+            case 8: *accumulator = *accumulator - value; break;
+            case 9: *accumulator = value * *accumulator; break;
+            case 10: *accumulator = *accumulator / value; break;
+            case 0xb: if (value < *accumulator) *accumulator = value; break;
+            case 0xc: if (*accumulator < value) *accumulator = value; break;
+            }
         }
+        *term_count = *term_count + 1;
     }
-    *term_count = *term_count + 1;
 
-check_continue:
     if (*next_node_slot == k_datum_index_none) {
         halo::hs::hs_thread_return(*(int32_t *)accumulator, thread_index);
         return;
@@ -340,26 +338,24 @@ void ScriptFlowCommands::boolean_and_or(int16_t opcode, uint32_t thread_index, c
         node = halo::hs::syntax_node_at(frame->syntax_node);
         *next_node_slot = (halo::hs::syntax_node_at(node->data.first_child))->next_node;
         *result = is_and;
-        goto check_continue;
-    }
-
-    child_result = *child_value;
-    if (is_and) {
-        if (*result != 0 && child_result != 0) {
-            child_result = 1;
-        } else {
-            child_result = 0;
-        }
     } else {
-        if (*result == 0 && child_result == 0) {
-            child_result = 0;
+        child_result = *child_value;
+        if (is_and) {
+            if (*result != 0 && child_result != 0) {
+                child_result = 1;
+            } else {
+                child_result = 0;
+            }
         } else {
-            child_result = 1;
+            if (*result == 0 && child_result == 0) {
+                child_result = 0;
+            } else {
+                child_result = 1;
+            }
         }
+        *result = child_result;
     }
-    *result = child_result;
 
-check_continue:
     if (*next_node_slot != k_datum_index_none && (*result != 0) == (is_and != 0)) {
         halo::hs::hs_thread_push(*next_node_slot, thread_index, child_value);
         node = halo::hs::syntax_node_at(*next_node_slot);

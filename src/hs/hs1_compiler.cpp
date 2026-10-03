@@ -325,13 +325,10 @@ char ScriptCompiler::compile_and_evaluate(char *command)
         buffer[0] = 0;
     }
     p = buffer;
-    if (buffer[0] != 0) {
-        while (isspace((unsigned char)*p)) {
-            p = p + 1;
-            if (*p == 0) {
-                goto reload_check;
-            }
-        }
+    while (isspace((unsigned char)*p)) {
+        p = p + 1;
+    }
+    if (*p != 0) {
         hs_compiling = 1;
         halo::hs::globals().compiled_source = 0;
         halo::hs::globals().compiled_source_length = 0;
@@ -393,7 +390,6 @@ char ScriptCompiler::compile_and_evaluate(char *command)
         }
         hs_compiling = 0;
     }
-reload_check:
     if (halo::hs::globals().reload_pending != 0) {
         if (halo::hs::hs_rebuild_source() != 0) {
             halo::hs::hs_compile_source();
@@ -540,15 +536,16 @@ char ScriptCompiler::compile_postprocess(char **error_message, int32_t *error_of
         node = halo::hs::syntax_node_at(current);
         node_type = node->type;
 
+        enum class route { advance, fail, resolve, recheck_global, use_index_union };
+        route next = route::resolve;
+
         if ((node_type < 4) || (0x30 < node_type)) {
+            next = route::advance;
             if (node_type != 2) {
                 halo::hs::globals().compile_error = const_cast<char *>("missing type (you need to recompile scripts.)");
-                goto fail;
+                next = route::fail;
             }
-            goto advance;
-        }
-
-        if ((node->flags & _hs_syntax_node_primitive_bit) == 0) {
+        } else if ((node->flags & _hs_syntax_node_primitive_bit) == 0) {
             if ((node->flags & _hs_syntax_node_script_call_bit) != 0) {
                 node_type = node->index_union;
                 if ((((-1 < node_type) && (node_type < (int32_t)halo::scenario::globals().scenario->scripts.count)) &&
@@ -556,76 +553,80 @@ char ScriptCompiler::compile_postprocess(char **error_message, int32_t *error_of
                       *(int16_t *)(stale_script_pointer + 0x20) == _hs_script_static)) ||
                     (*(int16_t *)(stale_script_pointer + 0x20) == _hs_script_stub)) {
                     node_type = *(int16_t *)(stale_script_pointer + 0x22);
-                    goto resolved;
+                } else {
+                    halo::hs::globals().compile_error = const_cast<char *>("bad script index (you need to recompile.)");
+                    next = route::fail;
                 }
-                halo::hs::globals().compile_error = const_cast<char *>("bad script index (you need to recompile.)");
-                goto fail;
-            }
-            if (node->data.first_child == k_datum_index_none) {
+            } else if (node->data.first_child == k_datum_index_none) {
                 halo::hs::globals().compile_error = const_cast<char *>("corrupt syntax tree (you need to recompile scripts.)");
-                goto fail;
+                next = route::fail;
+            } else {
+                function_name_node = halo::hs::syntax_node_at(node->data.first_child);
+                if (function_name_node->type != 2) {
+                    halo::hs::globals().compile_error = const_cast<char *>("corrupt syntax tree (you need to recompile scripts.)");
+                    next = route::fail;
+                } else {
+                    valid_offset = halo::hs::hs_verify_source_offset(function_name_node->source_offset);
+                    if (valid_offset == 0) {
+                        next = route::fail;
+                    } else {
+                        function_index = halo::hs::hs_find_function_by_name(halo::hs::globals().compiled_source + function_name_node->source_offset);
+                        nodes = halo::hs::globals().syntax_data;
+                        if (function_index == -1) {
+                            halo::hs::globals().compile_error = const_cast<char *>("missing function (you need to recompile scripts.)");
+                            next = route::fail;
+                        } else {
+                            node->index_union = function_index;
+                            node_type = halo::hs::globals().function_definitions[function_index]->return_type;
+                        }
+                    }
+                }
             }
-            function_name_node = halo::hs::syntax_node_at(node->data.first_child);
-            if (function_name_node->type != 2) {
-                halo::hs::globals().compile_error = const_cast<char *>("corrupt syntax tree (you need to recompile scripts.)");
-                goto fail;
+        } else if ((node_type < 9) && ((node->flags & _hs_syntax_node_global_bit) == 0)) {
+            next = route::recheck_global;
+        } else {
+            valid_offset = 1;
+            if ((node->source_offset < 0) || (halo::hs::globals().compiled_source_length <= node->source_offset)) {
+                halo::hs::globals().compile_error = const_cast<char *>("bad source offset (you need to recompile.)");
+                valid_offset = 0;
             }
-            valid_offset = halo::hs::hs_verify_source_offset(function_name_node->source_offset);
-            if (valid_offset == 0) {
-                goto fail;
+            success = 0;
+            next = route::use_index_union;
+            if (valid_offset != 0) {
+                success = halo::hs::hs_parse_primitive(current);
+                nodes = halo::hs::globals().syntax_data;
+                next = route::recheck_global;
             }
-            function_index = halo::hs::hs_find_function_by_name(halo::hs::globals().compiled_source + function_name_node->source_offset);
-            nodes = halo::hs::globals().syntax_data;
-            if (function_index == -1) {
-                halo::hs::globals().compile_error = const_cast<char *>("missing function (you need to recompile scripts.)");
-                goto fail;
+        }
+
+        if (next == route::recheck_global) {
+            if ((success == 0) || ((node->flags & _hs_syntax_node_global_bit) == 0)) {
+                next = route::use_index_union;
+            } else {
+                node_type = halo::hs::hs_global_get_type(node->data.global_reference);
+                next = route::resolve;
             }
-            node->index_union = function_index;
-            node_type = halo::hs::globals().function_definitions[function_index]->return_type;
-            goto resolved;
         }
-
-        if ((node_type < 9) && ((node->flags & _hs_syntax_node_global_bit) == 0)) {
-            goto recheck_global;
+        if (next == route::use_index_union) {
+            node_type = node->index_union;
+            next = route::resolve;
         }
-        valid_offset = 1;
-        if ((node->source_offset < 0) || (halo::hs::globals().compiled_source_length <= node->source_offset)) {
-            halo::hs::globals().compile_error = const_cast<char *>("bad source offset (you need to recompile.)");
-            valid_offset = 0;
-        }
-        success = 0;
-        if (valid_offset != 0) {
-            success = halo::hs::hs_parse_primitive(current);
-            nodes = halo::hs::globals().syntax_data;
-            goto recheck_global;
-        }
-        goto use_index_union;
-
-    recheck_global:
-        if ((success == 0) || ((node->flags & _hs_syntax_node_global_bit) == 0)) {
-            goto use_index_union;
-        }
-        node_type = halo::hs::hs_global_get_type(node->data.global_reference);
-        goto resolved;
-
-    use_index_union:
-        node_type = node->index_union;
-
-    resolved:
-        if (success != 0) {
-            if ((((node_type < 4) || (0x30 < node_type)) && (node_type != 3)) ||
-                ((success = halo::hs::hs_types_are_compatible(node->type, node_type)), success == 0)) {
-                halo::hs::globals().compile_error = const_cast<char *>("type is inconsistent with usage (you need to recompile scripts.)");
-                goto fail;
+        if (next == route::resolve) {
+            next = route::advance;
+            if (success != 0) {
+                if ((((node_type < 4) || (0x30 < node_type)) && (node_type != 3)) ||
+                    ((success = halo::hs::hs_types_are_compatible(node->type, node_type)), success == 0)) {
+                    halo::hs::globals().compile_error = const_cast<char *>("type is inconsistent with usage (you need to recompile scripts.)");
+                    next = route::fail;
+                } else {
+                    success = 1;
+                }
             }
-            success = 1;
         }
-        goto advance;
+        if (next == route::fail) {
+            success = 0;
+        }
 
-    fail:
-        success = 0;
-
-    advance:
         next_start = (int32_t)(current & halo::k_slot_mask) + 1;
         current = k_datum_index_none;
         next_index = (int16_t)next_start;
@@ -701,12 +702,10 @@ char ScriptCompiler::compile_source(void)
             }
             i = i + 1;
         } while (i < count);
-        if (all_ok == 0) {
-            goto cleanup;
-        }
     }
-    halo::main::console_print_error_va(0, "scripts successfully compiled.");
-cleanup:
+    if (all_ok != 0) {
+        halo::main::console_print_error_va(0, "scripts successfully compiled.");
+    }
     if (hs_compile_release_source != 0) {
         if (hs_syntax_data_dirty != 0) {
             halo::memory::data_delete_all(halo::hs::globals().syntax_data);

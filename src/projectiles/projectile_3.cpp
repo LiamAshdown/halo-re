@@ -226,7 +226,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
                 pd->flags |= _projectile_hit_ground_bit | _projectile_at_rest_bit;
                 response_type = projectileresponse_attach;
             }
-            goto fall_back_to_up_vector;
+            *velocity = *(real_vector3d *)global_origin3d_pointer;
         } else {
             real remaining = 1.0f - response->initial_friction;
             velocity->i *= remaining;
@@ -249,7 +249,6 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         velocity->k = (1.0f - response->perpendicular_friction) * perpendicular_component.k -
             (1.0f - response->parallel_friction) * parallel_component.k;
     } else {
-    fall_back_to_up_vector: 
         *velocity = *(real_vector3d *)global_origin3d_pointer;
     }
 

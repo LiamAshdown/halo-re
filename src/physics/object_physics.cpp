@@ -480,9 +480,7 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
                 (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);
         }
 
-        if (mp->water_depth <= 0.0f) {
-            goto powered_air_friction;
-        } else {
+        if (mp->water_depth > 0.0f) {
             float water_fade;
 
             water_fade = (definition->water_depth <= mp->water_depth) ? 1.0f :
@@ -525,12 +523,9 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
                     mp->powered_force_j += lift * mp->up_j;
                     mp->powered_force_k += lift * mp->up_k;
                 }
-                goto object_water_air_friction_common;
             }
         }
-        goto plain_air_friction;
 
-    powered_air_friction:
         if (powered_def != 0 && (powered_def->flags & 0x04) != 0 && powered_state->air_friction != 0.0f) {
             float neg = -powered_state->air_friction;
             float t1 = neg * mp->forward_j + mp->velocity_j;
@@ -539,31 +534,13 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
             mp->air_friction_force[0] = d * (neg * mp->forward_i + mp->velocity_i);
             mp->air_friction_force[1] = t1 * d;
             mp->air_friction_force[2] = t2 * d;
-            goto after_air_friction;
-        }
-        goto plain_air_friction;
-
-    object_water_air_friction_common:
-        if (powered_def != 0 && (powered_def->flags & 0x04) != 0 && powered_state->air_friction != 0.0f) {
-            float neg = -powered_state->air_friction;
-            float t1 = neg * mp->forward_j + mp->velocity_j;
-            float t2 = neg * mp->forward_k + mp->velocity_k;
-            float d = -(mp_def->mass * definition->air_friction);
-            mp->air_friction_force[0] = d * (neg * mp->forward_i + mp->velocity_i);
-            mp->air_friction_force[1] = t1 * d;
-            mp->air_friction_force[2] = t2 * d;
-            goto after_air_friction;
-        }
-
-    plain_air_friction:
-        {
+        } else {
             float d = -(mp_def->mass * definition->air_friction);
             mp->air_friction_force[0] = d * mp->velocity_i;
             mp->air_friction_force[1] = d * mp->velocity_j;
             mp->air_friction_force[2] = d * mp->velocity_k;
         }
 
-    after_air_friction:
         halo::physics::object_physics_blend_friction_axes(mp_def->friction_type, mp_def->friction_parallel_scale,
             mp_def->friction_perpendicular_scale, mp->air_friction_force,
                 (real_vector3d *)&mp->forward_i, (real_vector3d *)&mp->up_i);

@@ -237,14 +237,13 @@ char ScriptRuntime::scripts_compile_and_link(char restore_previous) const
         success = halo::hs::hs_compile_source();
         if ((success != 0) && (halo::hs::hs_compile_postprocess(&error_message, &error_offset) != 0)) {
             success = 1;
-            goto restore;
+        } else {
+            halo::memory::data_delete_all(halo::hs::globals().syntax_data);
+            success = 0;
         }
-        halo::memory::data_delete_all(halo::hs::globals().syntax_data);
-    } else if (0x3ff < (int32_t)scenario->script_string_data.size) {
-        goto restore;
+    } else if (!(0x3ff < (int32_t)scenario->script_string_data.size)) {
+        success = 0;
     }
-    success = 0;
-restore:
     if (restore_previous != 0) {
         halo::hs::globals().syntax_data = saved_syntax_data;
     }
