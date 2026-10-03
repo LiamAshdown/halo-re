@@ -1,0 +1,130 @@
+// hs_compile_expression  (Ghidra: hs_compile_expression, already named)
+// address 0x485540, size 430 bytes
+// name confidence: 0.5   rewrite confidence: 0.55
+// evidence: refuses text of k_hs_maximum_expression_length (0x400) or more; appends it to
+// hs_compiled_source (a fresh GlobalAlloc'd buffer if no scenario is loaded, otherwise the
+// scenario's own script_string_data tail, the same reuse pattern hs_compile_postprocess uses),
+// tokenizes it, and wraps the result in a synthetic "(inspect <expr>)" call node (function
+// index 0x16 == _hs_function_inspect, types/hs.h) so the caller can evaluate it immediately.
+// register convention: text/error_message/error_offset are recognized directly by Ghidra;
+// `length` is unrecognized (in_EAX), which by the blam-cc convention is the first register
+// slot, EAX.
+// UNSURE: the "iVar8 = high dword of datum_new's 64-bit return" pattern Ghidra shows after each
+// datum_new call is read as a leaked hs_syntax_data pointer (identical pattern in
+// hs_parse_cond_recursive); modeled here as a fresh read of the actual global instead.
+
+Original comment above the definition:
+// 0x0087a474
+// VERIFIED against disassembly 0x485540..0x4856ed (2026-09-30): allocation/scenario buffer split, the copy, the error
+//   resets, both datum_new results, the node field writes (wrap +0x10/+0x8/+0xc/+0x6, inspect +0x8/+0xc/+0x2=0x16/+0x6/+0x4=2),
+//   the hs_parse(wrap, 4) call and the error offset rebasing match. Fixed: the empty-expression test looks at the cursor after
+//   skip_whitespace.
+// blam-cc: text length in EAX
+// Tokenizes and wraps a single standalone expression string into a "(inspect <expr>)"
+// syntax-node tree ready for immediate evaluation, returning its root node index or
+// k_datum_index_none on failure (with *error_message/*error_offset set, the latter relative to
+// `text` itself).
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x00486350, this batch | extern void skip_whitespace(char **cursor);
+  // 0x00486120, this batch | extern datum_index hs_tokenize(char **cursor);
+  // memory module, 0x004d0480 | extern datum_index datum_new(data_array *array);
+  // 0x00486420, this batch | extern char hs_parse(datum_index node_index, hs_type_t expected_type);
+  // 0x0069e8d4 | extern datum_index global_scenario_index;
+  // 0x00746f8c | extern Scenario *global_scenario;
+  // 0x006b15dc | extern uint8_t hs_compiled_source_owned;
+  // 0x006b14c0 | extern char *hs_compiled_source;
+  // 0x006b14bc | extern int32_t hs_compiled_source_length;
+  // 0x006b14d4 | extern char *hs_compile_error;
+  // 0x006b14d8 | extern int32_t hs_compile_error_offset;
+  // 0x0087a474 | extern data_array *hs_syntax_data;
+  // 0x4855f7: the cursor AFTER skip_whitespace (the draft tested the first character) | if (*cursor != '\0') {
+
+#if 0
+Original Ghidra decompilation (0x485540):
+
+uint hs_compile_expression(undefined4 *param_1,int *param_2,undefined4 *param_3)
+
+{
+  int iVar1;
+  int iVar2;
+  HGLOBAL pvVar3;
+  char cVar4;
+  uint in_EAX;
+  uint uVar5;
+  uint uVar6;
+  uint uVar7;
+  undefined4 extraout_EDX;
+  int iVar8;
+  int iVar9;
+  undefined4 *puVar10;
+  undefined4 *puVar11;
+  undefined8 uVar12;
+
+  if ((int)in_EAX < 0x400) {
+    if (DAT_0069e8d4 == -1) {
+      iVar9 = 0;
+      DAT_006b14c0 = GlobalAlloc(0,in_EAX + 1);
+      DAT_006b15dc = 1;
+    }
+    else {
+      DAT_006b14c0 = *(HGLOBAL *)(DAT_00746f8c + 0x494);
+      iVar9 = *(int *)(DAT_00746f8c + 0x488) + -0x400;
+    }
+    puVar10 = param_1;
+    puVar11 = (undefined4 *)((int)DAT_006b14c0 + iVar9);
+    for (uVar7 = in_EAX >> 2; uVar7 != 0; uVar7 = uVar7 - 1) {
+      *puVar11 = *puVar10;
+      puVar10 = puVar10 + 1;
+      puVar11 = puVar11 + 1;
+    }
+    for (uVar7 = in_EAX & 3; uVar7 != 0; uVar7 = uVar7 - 1) {
+      *(undefined1 *)puVar11 = *(undefined1 *)puVar10;
+      puVar10 = (undefined4 *)((int)puVar10 + 1);
+      puVar11 = (undefined4 *)((int)puVar11 + 1);
+    }
+    DAT_006b14bc = in_EAX + iVar9;
+    *(undefined1 *)(DAT_006b14bc + (int)DAT_006b14c0) = 0;
+    pvVar3 = DAT_006b14c0;
+    DAT_006b14d4 = 0;
+    *param_2 = 0;
+    *param_3 = 0;
+    DAT_006b14d8 = -1;
+    skip_whitespace();
+    if (*(char *)((int)pvVar3 + iVar9) != '\0') {
+      uVar7 = hs_tokenize(extraout_EDX);
+      if (DAT_006b14d4 == 0) {
+        uVar5 = datum_new();
+        uVar12 = datum_new();
+        iVar8 = (int)((ulonglong)uVar12 >> 0x20);
+        uVar6 = (uint)uVar12;
+        if ((uVar5 != 0xffffffff) && (uVar6 != 0xffffffff)) {
+          iVar2 = *(int *)(iVar8 + 0x34);
+          iVar1 = iVar2 + (uVar5 & 0xffff) * 0x14;
+          *(uint *)(iVar1 + 0x10) = uVar6;
+          iVar2 = iVar2 + (uVar6 & 0xffff) * 0x14;
+          *(undefined4 *)(iVar1 + 8) = 0xffffffff;
+          *(undefined4 *)(iVar1 + 0xc) =
+               *(undefined4 *)(*(int *)(iVar8 + 0x34) + 0xc + (uVar7 & 0xffff) * 0x14);
+          *(undefined2 *)(iVar1 + 6) = 0;
+          *(uint *)(iVar2 + 8) = uVar7;
+          *(undefined4 *)(iVar2 + 0xc) = 0xffffffff;
+          *(undefined2 *)(iVar2 + 2) = 0x16;
+          *(undefined2 *)(iVar2 + 6) = 1;
+          *(undefined2 *)(iVar2 + 4) = 2;
+          cVar4 = hs_parse(uVar5,4);
+          if (cVar4 != '\0') {
+            return uVar5;
+          }
+        }
+      }
+      *param_2 = DAT_006b14d4;
+      if (DAT_006b14d8 != -1) {
+        DAT_006b14d8 = DAT_006b14d8 - iVar9;
+        *param_3 = (undefined1 *)(DAT_006b14d8 + (int)param_1);
+      }
+    }
+  }
+  return 0xffffffff;
+}
+#endif

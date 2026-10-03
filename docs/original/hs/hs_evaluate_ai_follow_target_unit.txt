@@ -1,0 +1,17 @@
+// hs_evaluate_ai_follow_target_unit  (not a Ghidra function; the evaluate handler of hs function 232 "ai_follow_target_unit" (ai, unit -> void))
+// address 0x47e490, size 113 bytes
+// name confidence: 0.9   rewrite confidence: 0.85
+// evidence: the function record's evaluate slot (+0x0c); only reachable through it, so no C meant
+//   unlisted_47e490 trapped.
+// WRITTEN 2026-09-28 from objdump 0x47e490..0x47e500: for a valid encounter: without a unit its follow mode word
+//   (+0x62) becomes 0; with one, 2 and the unit goes to +0x64. Returns 0.
+// blam-cc: stack -> function_index, thread_index, first (cdecl)
+
+Original comment above the definition:
+// 0x008802c8
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x00688b58 | extern hs_function_definition *hs_function_definitions[k_hs_function_count];
+  // 0x48a850 | int16_t *expected_types, char first);
+  // 0x48a640, blam-cc: EAX value, ECX thread | extern void hs_thread_return(int32_t value, uint32_t thread_index);
+  // 0x008802c8 | extern data_array *encounter_data;

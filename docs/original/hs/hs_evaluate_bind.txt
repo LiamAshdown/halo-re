@@ -1,0 +1,17 @@
+// hs_evaluate_bind  (not a Ghidra function; the evaluate handler of hs function 481 "bind" (string, string, string -> void))
+// address 0x4823e0, size 74 bytes
+// name confidence: 0.9   rewrite confidence: 0.85
+// evidence: the function record's evaluate slot (+0x0c); only reachable through it, so no C meant
+//   unlisted_4823e0 trapped.
+// WRITTEN 2026-09-28 from objdump 0x4823e0..0x482429: hs_bind_control (0x48b750) with the device class, input and
+//   action names; returns 0.
+// blam-cc: stack -> function_index, thread_index, first (cdecl)
+
+Original comment above the definition:
+// 0x48b750, blam-cc: EAX device, stack input, action
+
+Inline comments that were in the source (comment | code on that line):
+  // 0x00688b58 | extern hs_function_definition *hs_function_definitions[k_hs_function_count];
+  // 0x48a850 | int16_t *expected_types, char first);
+  // 0x48a640, blam-cc: EAX value, ECX thread | extern void hs_thread_return(int32_t value, uint32_t thread_index);
+  // 0x48b750, blam-cc: EAX device, stack input, action | extern void hs_bind_control(const char *device_class_name, const char *input_name, const char *action_name);
