@@ -38,7 +38,7 @@ static widget_instance *find_row_control(widget_instance *row)
 {
     widget_instance *control;
 
-    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != 2;
+    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != uiwidgettype_spinner_list;
          control = control->next_sibling) {
     }
     return control;
@@ -49,7 +49,7 @@ static widget_instance *find_row_control_until(widget_instance *row, widget_inst
 {
     widget_instance *control;
 
-    for (control = row->first_child; control != stop && control->widget_type != 2;
+    for (control = row->first_child; control != stop && control->widget_type != uiwidgettype_spinner_list;
          control = control->next_sibling) {
     }
     return control;
@@ -293,21 +293,21 @@ void UiControlsMenu::controls_populate_sensitivity_row(widget_instance *widget, 
     widget_instance *control;
     uint8_t value;
 
-    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != 2;
+    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != uiwidgettype_spinner_list;
          control = control->next_sibling) {
     }
     value = profile_record[0x954];
     control->selection_index = (value == 0 || value > 10) ? 0 : (int16_t)(value - 1);
 
     row = row->next_sibling;
-    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != 2;
+    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != uiwidgettype_spinner_list;
          control = control->next_sibling) {
     }
     value = profile_record[0x955];
     control->selection_index = (value == 0 || value > 10) ? 0 : (int16_t)(value - 1);
 
     row = row->next_sibling;
-    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != 2;
+    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != uiwidgettype_spinner_list;
          control = control->next_sibling) {
     }
     control->selection_index = (profile_record[0x12f] != 0) ? 1 : 0;

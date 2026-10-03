@@ -6,6 +6,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/records.hpp"
 
 #ifdef interface
 #undef interface
@@ -37,7 +38,7 @@ void PlayerProfiles::save_495fb0(uint8_t flag)
 
     state::profile_slot_flag = flag;
     if (halo::saved_games::globals().player_profile_slots_handle != -1) {
-        string_list_tag = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\strings\\temp_strings");
+        string_list_tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\strings\\temp_strings");
 
         text = empty_string;
         if (string_list_tag != (datum_index)halo::k_dword_none) {

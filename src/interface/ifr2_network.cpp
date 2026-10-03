@@ -151,7 +151,7 @@ void MenuListView::refresh_3wide()
 void MenuListView::update_item(const uint16_t *record)
 {
     datum_index variant_strings_tag =
-        halo::cache::tag_lookup(halo::groups::unicode_string_list  , (char *)"ui\\shell\\strings\\game_variant_descriptions");
+        halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\strings\\game_variant_descriptions");
     widget_instance *name_widget = widget->first_child;
     widget_instance *desc_widget = name_widget->next_sibling;
     widget_instance *icon_widget = desc_widget->next_sibling;
@@ -172,9 +172,9 @@ void MenuListView::update_item(const uint16_t *record)
 
             desc_widget->text = desc_buf;
             if (desc_buf != nullptr) {
-                datum_index labels_tag = halo::cache::tag_lookup(
-                    halo::groups::unicode_string_list  ,
-                    (char *)"ui\\shell\\main_menu\\player_profiles_select\\profile_description_labels");
+                datum_index labels_tag = halo::interface::lookup_tag(
+                    halo::groups::unicode_string_list,
+                    "ui\\shell\\main_menu\\player_profiles_select\\profile_description_labels");
 
                 desc_buf[0] = 0;
                 if (labels_tag != (datum_index)-1) {

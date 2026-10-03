@@ -32,6 +32,11 @@ inline T *tag_data(uint32_t tag_handle) {
     return static_cast<T *>(halo::cache::globals().tag_instances[tag_handle & halo::k_slot_mask].data);
 }
 
+/** The handle of the tag of `group` loaded under `path` (a read-only view of halo::cache::tag_lookup). */
+inline uint32_t lookup_tag(uint32_t group, const char *path) {
+    return halo::cache::tag_lookup(group, const_cast<char *>(path));
+}
+
 /** The datum handle a loaded tag reference stores: the index in the low half and the identifier in the high half. */
 inline uint32_t tag_handle(const TagID &id) {
     return (static_cast<uint32_t>(id.id) << 16) | id.index;

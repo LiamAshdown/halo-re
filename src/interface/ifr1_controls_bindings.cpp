@@ -70,7 +70,7 @@ static void controls_set_cell_dimmed(widget_instance *cell, uint8_t dimmed)
 
 static widget_instance *controls_find_spinner(widget_instance *child)
 {
-    while (child != 0 && child->widget_type != 2) {
+    while (child != 0 && child->widget_type != uiwidgettype_spinner_list) {
         child = child->next_sibling;
     }
     return child;
@@ -508,8 +508,7 @@ void ControlsBindings::binding_rows_toggle_device_mode(widget_instance *widget, 
 void ControlsBindings::build_device_label_table(void)
 {
     uint8_t *profile = ((selected_saved_item & 0xf) != 0) ? nullptr : saved_item_working_copy;
-    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list,
-        (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_device_labels");
+    datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_device_labels");
     int i;
     const uint16_t *tag_supplied_label = (const uint16_t *)L"<missing string>";
 

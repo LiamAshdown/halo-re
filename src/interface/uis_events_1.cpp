@@ -86,7 +86,7 @@ static widget_instance *first_list_child(widget_instance *widget)
 {
     widget_instance *child = widget->first_child;
 
-    while (child != 0 && child->widget_type != 2) {
+    while (child != 0 && child->widget_type != uiwidgettype_spinner_list) {
         child = child->next_sibling;
     }
     return child;
@@ -472,7 +472,7 @@ uint8_t UiEventHandlers::event_49d7a0(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_49d8b0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     uint8_t grouped = (uint8_t)(widget->first_child != 0 && widget->first_child->first_child != 0 &&
-        widget->first_child->first_child->widget_type == 2);
+        widget->first_child->first_child->widget_type == uiwidgettype_spinner_list);
     int32_t *handles;
     uint16_t count = 0x64;
     int32_t last = -1;

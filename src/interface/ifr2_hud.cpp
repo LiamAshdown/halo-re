@@ -374,13 +374,13 @@ void WeaponHud::crosshairs_draw(datum_index hud_tag, const player *p, const weap
                     break;
                 case 8: case 9: case 14: case 18:
                     if (type == 18) {
-                        triggered = ammo->age == 0.0f && (((unit_object *)unit)->unit.control_flags & 0x800) != 0;
+                        triggered = ammo->age == 0.0f && (((unit_object *)unit)->unit.control_flags & _unit_control_flag_primary_trigger) != 0;
                     } else if (type == 8) {
                         triggered = ammo->magazines[0].rounds_loaded == 0 && ammo->magazines[0].rounds_unloaded == 0 &&
-                                    (((unit_object *)unit)->unit.control_flags & 0x800) != 0;
+                                    (((unit_object *)unit)->unit.control_flags & _unit_control_flag_primary_trigger) != 0;
                     } else if (type == 9) {
                         triggered = unit[0x31e] == 0 && unit[0x31f] == 0 && unit[0x28d] == 0 &&
-                                    (((unit_object *)unit)->unit.control_flags & 0x2000) != 0;
+                                    (((unit_object *)unit)->unit.control_flags & _unit_control_flag_grenade) != 0;
                     }
                     if (!triggered) {
                         int32_t duration = (int32_t)lrint((double)(overlay->flash_period * 30.0f));
@@ -1160,7 +1160,7 @@ uint8_t MotionSensor::object_is_detected(datum_index unit_index)
 
     unit = (unit_data *)(halo::interface::object_record(unit_index)
                           + k_unit_data_offset);
-    if ((unit->control_flags & 0x800) != 0) {
+    if ((unit->control_flags & _unit_control_flag_primary_trigger) != 0) {
         return 1;
     }
     if (unit->throwing_grenade_state != 0 && unit->throwing_grenade_state != 3) {

@@ -31,6 +31,7 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/interface/records.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -70,7 +71,7 @@ static widget_instance *first_list_child(widget_instance *widget)
 {
     widget_instance *child = widget->first_child;
 
-    while (child != 0 && child->widget_type != 2) {
+    while (child != 0 && child->widget_type != uiwidgettype_spinner_list) {
         child = child->next_sibling;
     }
     return child;
@@ -610,7 +611,7 @@ uint8_t UiEventHandlers::event_4a1b60(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_4a1bf0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     if (halo::main::globals().menu_music_pending == 1) {
-        datum_index music = halo::cache::tag_lookup(halo::fourcc('l', 's', 'n', 'd'), (char *)"sound\\music\\title1\\title1");
+        datum_index music = halo::interface::lookup_tag(halo::fourcc('l', 's', 'n', 'd'), "sound\\music\\title1\\title1");
 
         if (music != halo::k_dword_none) {
             halo::sound::sound_looping_stop(music);

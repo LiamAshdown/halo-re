@@ -245,7 +245,7 @@ int32_t VirtualKeyboard::initialize()
     virtual_keyboard.unknown_02 = 0;
     virtual_keyboard.unknown_03 = 0;
 
-    strings_tag = halo::cache::tag_lookup(halo::fourcc('v', 'c', 'k', 'y')  , (char *)"ui\\english");
+    strings_tag = halo::interface::lookup_tag(halo::fourcc('v', 'c', 'k', 'y'), "ui\\english");
     if (strings_tag != halo::k_dword_none) {
         virtual_keyboard.strings_tag_data = halo::interface::tag_data<void>(strings_tag);
         virtual_keyboard.caret = 0;
@@ -259,7 +259,7 @@ int32_t VirtualKeyboard::initialize()
         virtual_keyboard.open_time = 0;
     }
 
-    virtual_keyboard.white_bitmap = halo::cache::tag_lookup(halo::fourcc('b', 'i', 't', 'm')  , (char *)"ui\\shell\\bitmaps\\white");
+    virtual_keyboard.white_bitmap = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), "ui\\shell\\bitmaps\\white");
     return virtual_keyboard.strings_tag_data != 0;
 }
 

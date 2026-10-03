@@ -54,7 +54,7 @@ static widget_instance *first_list_child(widget_instance *widget)
 {
     widget_instance *child = widget->first_child;
 
-    while (child != 0 && child->widget_type != 2) {
+    while (child != 0 && child->widget_type != uiwidgettype_spinner_list) {
         child = child->next_sibling;
     }
     return child;
@@ -835,7 +835,7 @@ uint8_t UiEventHandlers::event_4a0860(widget_instance *widget, int16_t *event, u
     if (indices == 0) {
         return 1;
     }
-    strings = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\color_edit\\colors_list");
+    strings = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\color_edit\\colors_list");
     for (i = 0; i < 0x12; i++) {
         uint16_t *text = missing_string_text;
         uint8_t is_default;

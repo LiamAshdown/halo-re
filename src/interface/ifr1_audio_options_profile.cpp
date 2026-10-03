@@ -11,7 +11,7 @@ static widget_instance *find_row_control(widget_instance *row)
 {
     widget_instance *control;
 
-    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != 2;
+    for (control = row->first_child; control != (widget_instance *)0 && control->widget_type != uiwidgettype_spinner_list;
          control = control->next_sibling) {
     }
     return control;

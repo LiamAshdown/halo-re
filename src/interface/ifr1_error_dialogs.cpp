@@ -28,7 +28,7 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
     int16_t active_player;
     int16_t player_count = 0;
     uint8_t half_screen = 1;
-    char *tag_path;
+    const char *tag_path;
     widget_instance *root;
     datum_index history_source;
     widget_instance *dialog;
@@ -82,26 +82,26 @@ void ErrorDialogs::show(int16_t error_string_index, int32_t player_index, uint8_
     switch (player_count) {
     case 0:
     case 1:
-        tag_path = (modal == 0) ? (char *)"ui\\shell\\error\\error_nonmodal_fullscreen"
-                                 : (char *)"ui\\shell\\error\\error_modal_fullscreen";
+        tag_path = (modal == 0) ? "ui\\shell\\error\\error_nonmodal_fullscreen"
+                                 : "ui\\shell\\error\\error_modal_fullscreen";
         break;
     case 2:
-        tag_path = (modal == 0) ? (char *)"ui\\shell\\error\\error_nonmodal_halfscreen"
-                                 : (char *)"ui\\shell\\error\\error_modal_halfscreen";
+        tag_path = (modal == 0) ? "ui\\shell\\error\\error_nonmodal_halfscreen"
+                                 : "ui\\shell\\error\\error_modal_halfscreen";
         break;
     case 3:
         if (!half_screen) {
-            tag_path = (modal == 0) ? (char *)"ui\\shell\\error\\error_nonmodal_qtrscreen"
-                                     : (char *)"ui\\shell\\error\\error_modal_qtrscreen";
+            tag_path = (modal == 0) ? "ui\\shell\\error\\error_nonmodal_qtrscreen"
+                                     : "ui\\shell\\error\\error_modal_qtrscreen";
         } else if (modal == 0) {
-            tag_path = (char *)"ui\\shell\\error\\error_nonmodal_halfscreen";
+            tag_path = "ui\\shell\\error\\error_nonmodal_halfscreen";
         } else {
-            tag_path = (char *)"ui\\shell\\error\\error_modal_halfscreen";
+            tag_path = "ui\\shell\\error\\error_modal_halfscreen";
         }
         break;
     case 4:
-        tag_path = (modal == 0) ? (char *)"ui\\shell\\error\\error_nonmodal_qtrscreen"
-                                 : (char *)"ui\\shell\\error\\error_modal_qtrscreen";
+        tag_path = (modal == 0) ? "ui\\shell\\error\\error_nonmodal_qtrscreen"
+                                 : "ui\\shell\\error\\error_modal_qtrscreen";
         break;
     default:
         return;

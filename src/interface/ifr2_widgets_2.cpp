@@ -38,9 +38,9 @@ widget_instance * WidgetView::find_at_point(int32_t cursor_x, int32_t cursor_y, 
     widget_instance *first_child = widget->first_child;
     uint8_t eligible =
         (widget->hidden == 0 &&
-         (tag->event_handlers.count > 0 || widget->widget_type == 2 || widget->widget_type == 3)) ||
-        (first_child == (widget_instance *)0 || first_child->widget_type == 2 ||
-         first_child->widget_type == 3) ||
+         (tag->event_handlers.count > 0 || widget->widget_type == uiwidgettype_spinner_list || widget->widget_type == uiwidgettype_column_list)) ||
+        (first_child == (widget_instance *)0 || first_child->widget_type == uiwidgettype_spinner_list ||
+         first_child->widget_type == uiwidgettype_column_list) ||
         ((int8_t)((uint32_t)tag->flags >> 8) < 0);
     widget_instance *result = (widget_instance *)0;
 
@@ -64,7 +64,7 @@ widget_instance * WidgetView::find_at_point(int32_t cursor_x, int32_t cursor_y, 
                 result = halo::interface::widget_instance_find_at_point(child, cursor_x, cursor_y, child_offset);
                 child = child->next_sibling;
             }
-            if (widget->widget_type == 3 || widget->widget_type == 2) {
+            if (widget->widget_type == uiwidgettype_column_list || widget->widget_type == uiwidgettype_spinner_list) {
                 widget = (widget_instance *)0;
             }
             if (result == (widget_instance *)0) {
@@ -290,7 +290,7 @@ void WidgetList::adjust_rect_for_scroll_arrows(Rectangle2D *rect)
 {
     UIWidgetDefinition *tag;
 
-    if (widget->widget_type != 2  ) {
+    if (widget->widget_type != uiwidgettype_spinner_list  ) {
         return;
     }
     tag = halo::interface::tag_data<UIWidgetDefinition>(widget->definition);

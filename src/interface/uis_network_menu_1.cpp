@@ -177,7 +177,7 @@ uint8_t UiNetworkMenu::network_game_options_populate(widget_instance *widget, co
     }
 
     for (control = widget->first_child->first_child;
-         control != (widget_instance *)0 && control->widget_type != 2;
+         control != (widget_instance *)0 && control->widget_type != uiwidgettype_spinner_list;
          control = control->next_sibling) {
     }
     value = options_record[0xfc0];

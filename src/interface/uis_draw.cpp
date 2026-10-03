@@ -381,8 +381,7 @@ void UiDraw::draw_trouble_brewing_indicator(void)
         rect.left = 0x236;
         rect.bottom = 0x1d6;
         rect.right = 0x276;
-        trouble_brewing_bitmap_tag = halo::cache::tag_lookup(halo::fourcc('b', 'i', 't', 'm') ,
-                                                 (char *)"ui\\shell\\bitmaps\\trouble_brewing");
+        trouble_brewing_bitmap_tag = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), "ui\\shell\\bitmaps\\trouble_brewing");
         if (trouble_brewing_bitmap_tag != (datum_index)-1) {
             BitmapData *bitmap_data = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(trouble_brewing_bitmap_tag, 0, 0);
 

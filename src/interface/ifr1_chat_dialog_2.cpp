@@ -12,6 +12,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/records.hpp"
 
 extern "C" {
 extern uint8_t network_message_scratch[0x7ff8];
@@ -207,7 +208,7 @@ void ChatDialog::open(int32_t chat_scope)
     if (chat_scope == 0) {
 all_scope:
         {
-            datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
+            datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\multiplayer_game_text");
             prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                        : (const void *)halo::text::text_string_list_get_string(tag_id, 0xb8);
             chat_scope_active = 0;
@@ -225,7 +226,7 @@ all_scope:
             int32_t unit_index = halo::interface::chat_default_team_channel();
             int32_t player_index = halo::interface::player_get_vehicle((datum_index)unit_index);
             if (player_index != -1) {
-                datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
+                datum_index tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\multiplayer_game_text");
                 prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                            : (const void *)halo::text::text_string_list_get_string(tag_id, 0xba);
                 chat_scope_active = 2;
@@ -236,7 +237,7 @@ team_scope:
         {
             datum_index tag_id;
             chat_scope_active = 1;
-            tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
+            tag_id = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\multiplayer_game_text");
             prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                        : (const void *)halo::text::text_string_list_get_string(tag_id, 0xb9);
             if (chat_scope_active == -1) {

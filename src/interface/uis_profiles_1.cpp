@@ -377,7 +377,7 @@ uint32_t UiProfiles::profile_list_apply_selection_for_player(widget_instance *wi
     uint8_t profile_data[k_saved_player_profile_size];
 
     for (list_widget = widget->first_child;
-         list_widget != (widget_instance *)0 && list_widget->widget_type != 2;
+         list_widget != (widget_instance *)0 && list_widget->widget_type != uiwidgettype_spinner_list;
          list_widget = list_widget->next_sibling) {
     }
 

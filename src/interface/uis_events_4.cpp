@@ -87,7 +87,7 @@ static widget_instance *first_list_child(widget_instance *widget)
 {
     widget_instance *child = widget->first_child;
 
-    while (child != 0 && child->widget_type != 2) {
+    while (child != 0 && child->widget_type != uiwidgettype_spinner_list) {
         child = child->next_sibling;
     }
     return child;
@@ -612,7 +612,7 @@ uint8_t UiEventHandlers::event_4a3540(widget_instance *widget, int16_t *event, u
     int32_t first_visible = *(int16_t *)((uint8_t *)list + 0x3e);
     int32_t committed = *(int16_t *)&((struct widget_instance *)list)->text;
     widget_instance *child = list->first_child;
-    uint8_t header = (uint8_t)(child != 0 && child->first_child != 0 && child->first_child->widget_type == 2);
+    uint8_t header = (uint8_t)(child != 0 && child->first_child != 0 && child->first_child->widget_type == uiwidgettype_spinner_list);
     uint8_t double_click = 0;
     uint8_t fits;
     int32_t shown;

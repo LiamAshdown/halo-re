@@ -100,7 +100,7 @@ void MenuListView::update()
                 wcsncpy((wchar_t *)buf, (const wchar_t *)((const uint16_t *)(entry + 0x1c)), 0xf);
                 ((uint16_t *)row->text)[0xf] = 0;
             } else {
-                datum_index tag = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
+                datum_index tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\multiplayer_game_text");
                 uint16_t *source = missing_string_text;
 
                 if (tag != (datum_index)-1) {

@@ -723,10 +723,10 @@ void HudFrame::render_unit_interface(player *p)
 
         if (halo::game::globals().current_engine != 0) {
             static const float full_uv[4] = {0.0f, 1.0f, 0.0f, 1.0f};
-            static char *icon_paths[5] = {
-                (char *)"ui\\shell\\bitmaps\\team_icon_ctf", (char *)"ui\\shell\\bitmaps\\team_icon_slayer",
-                (char *)"ui\\shell\\bitmaps\\team_icon_oddball", (char *)"ui\\shell\\bitmaps\\team_icon_king",
-                (char *)"ui\\shell\\bitmaps\\team_icon_race"};
+            static const char *icon_paths[5] = {
+                "ui\\shell\\bitmaps\\team_icon_ctf", "ui\\shell\\bitmaps\\team_icon_slayer",
+                "ui\\shell\\bitmaps\\team_icon_oddball", "ui\\shell\\bitmaps\\team_icon_king",
+                "ui\\shell\\bitmaps\\team_icon_race"};
             static const int16_t icon_x[5] = {0x1c8, 0x1c9, 0x1c8, 0x1ca, 0x1c5};
             static const int16_t icon_y[5] = {6, 8, 7, 8, 6};
             static const float icon_scale[5] = {0.55f, 0.5f, 0.55f, 0.53f, 0.6f};
@@ -750,14 +750,14 @@ void HudFrame::render_unit_interface(player *p)
             }
             if ((uint32_t)(halo::game::globals().variant.game_engine_index - 1) <= 4) {
                 int32_t engine = halo::game::globals().variant.game_engine_index - 1;
-                hud_team_icon_bitmap = halo::cache::tag_lookup(halo::fourcc('b', 'i', 't', 'm'), icon_paths[engine]);
+                hud_team_icon_bitmap = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), icon_paths[engine]);
                 icon_position.x = icon_x[engine];
                 icon_position.y = icon_y[engine];
                 icon_scales[0] = icon_scale[engine];
                 icon_scales[1] = icon_scale[engine];
             }
             icon = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(hud_team_icon_bitmap, 0, 0);
-            hud_team_background_bitmap = halo::cache::tag_lookup(halo::fourcc('b', 'i', 't', 'm'), (char *)"ui\\shell\\bitmaps\\team_background");
+            hud_team_background_bitmap = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), "ui\\shell\\bitmaps\\team_background");
             background = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(hud_team_background_bitmap, 0, 0);
             if (icon != 0 && background != 0) {
                 background_position.x = 0x1bd;

@@ -87,7 +87,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
         return 1;
     }
 
-    string_list_tag = halo::cache::tag_lookup(halo::groups::unicode_string_list , (char *)"ui\\shell\\main_menu\\map_list_oneline");
+    string_list_tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\map_list_oneline");
     memset(level_select_entries, 0, sizeof(level_select_entries));
 
     if (halo::saved_games::globals().player_profile_slots_handle != cached_saved_game_something) {

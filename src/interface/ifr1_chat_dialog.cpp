@@ -11,6 +11,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/records.hpp"
 
 extern "C" {
 extern uint8_t chat_dialog_open;
@@ -38,7 +39,7 @@ extern uint8_t network_message_scratch[0x7ff8];
 
 static const wchar_t *chat_prefix_format(int16_t string_index)
 {
-    datum_index tag = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
+    datum_index tag = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\multiplayer_game_text");
     if (tag == (datum_index)-1) {
         return &empty_string;
     }

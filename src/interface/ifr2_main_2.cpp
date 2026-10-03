@@ -252,7 +252,7 @@ shared_tail:
                     if (parent->focused_child != hit) {
                         halo::interface::widget_play_sound_effect(1);
                     }
-                    if (parent->widget_type == 2) {
+                    if (parent->widget_type == uiwidgettype_spinner_list) {
                         if (parent_tag->child_widgets.count > 1) {
                             halo::interface::widget_list_scroll_window((int32_t *)event_scratch, parent);
                             {
@@ -271,7 +271,7 @@ shared_tail:
                                 cursor = cursor->parent;
                             }
                         }
-                    } else if (parent->widget_type == 3) {
+                    } else if (parent->widget_type == uiwidgettype_column_list) {
                         parent->selection_index = (int16_t)halo::interface::widget_get_sibling_index(hit);
                         parent->focused_child = hit;
                         {
@@ -281,7 +281,7 @@ shared_tail:
                                 widget_instance *up = cursor->parent;
 
                                 up->focused_child = cursor;
-                                if (up->widget_type == 3) {
+                                if (up->widget_type == uiwidgettype_column_list) {
                                     up->selection_index = (int16_t)halo::interface::widget_get_sibling_index(cursor);
                                 }
                                 cursor = up;

@@ -124,9 +124,9 @@ void ChimeraBridge::do_show_loading_screen(void)
         }
     }
 
-    font = halo::cache::tag_lookup(halo::fourcc('f', 'o', 'n', 't'), (char *)"ui\\large_ui");
-    background = halo::cache::tag_lookup(halo::fourcc('b', 'i', 't', 'm'), (char *)"ui\\shell\\bitmaps\\background");
-    strings = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\strings\\loading");
+    font = halo::interface::lookup_tag(halo::fourcc('f', 'o', 'n', 't'), "ui\\large_ui");
+    background = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), "ui\\shell\\bitmaps\\background");
+    strings = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\strings\\loading");
     if (font == (datum_index)-1 || background == (datum_index)-1 || strings == (datum_index)-1) {
         return;
     }
@@ -254,17 +254,17 @@ void ChimeraBridge::load_main_menu(void)
  *
  * @address 0x497a70
  */
-widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection)
+widget_instance * ChimeraBridge::load_ui_widget(const char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection)
 {
     widget_instance *widget = (widget_instance *)0;
     int16_t slot = (controller_index == halo::k_word_none) ? 0 : (int16_t)controller_index;
     UIWidgetDefinition *tag;
 
-    ui_cursor_bitmap = halo::cache::tag_lookup(halo::fourcc('b', 'i', 't', 'm'), (char *)"ui\\shell\\bitmaps\\cursor");
+    ui_cursor_bitmap = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), "ui\\shell\\bitmaps\\cursor");
     ui_widget_opened = 1;
 
     if (tag_index == (datum_index)-1) {
-        tag_index = halo::cache::tag_lookup(0x44654c61, tag_path);
+        tag_index = halo::interface::lookup_tag(halo::fourcc('D', 'e', 'L', 'a'), tag_path);
         if (tag_index == (datum_index)-1) {
             return (widget_instance *)0;
         }
@@ -324,7 +324,7 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
 void ChimeraBridge::main_menu_music(uint8_t finalize_render_frame)
 {
     if (halo::main::globals().menu_music_pending == 1) {
-        datum_index sound_tag = halo::cache::tag_lookup(halo::fourcc('l', 's', 'n', 'd'), (char *)"sound\\music\\title1\\title1");
+        datum_index sound_tag = halo::interface::lookup_tag(halo::fourcc('l', 's', 'n', 'd'), "sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
             halo::sound::sound_looping_stop(sound_tag);
         }

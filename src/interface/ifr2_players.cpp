@@ -285,7 +285,7 @@ void LocalPlayers::help_screen_select_by_name(int16_t value)
     if (dialog != (widget_instance *)0) {
         widget_instance *child;
 
-        for (child = dialog->first_child; child != (widget_instance *)0 && child->widget_type != 1;
+        for (child = dialog->first_child; child != (widget_instance *)0 && child->widget_type != uiwidgettype_text_box;
              child = child->next_sibling) {
         }
         if (child != (widget_instance *)0) {
@@ -322,7 +322,7 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                     return;
                 }
                 if (flags & 1) {
-                    datum_index names = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\strings\\default_player_profile_names");
+                    datum_index names = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\strings\\default_player_profile_names");
                     const uint16_t *source = empty_string;
                     if (names != (datum_index)-1) {
                         source = halo::text::text_string_list_get_string(names, (int16_t)(flags >> 8));
@@ -343,16 +343,16 @@ void PlayerProfiles::one_wide_list_update(widget_instance *widget)
                     datum_index joysticks;
                     datum_index buttons;
                     if (*(const uint8_t *)(profile + 0x11c) & 1) {
-                        joysticks = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\main_menu\\player_profiles_select\\joystick_set_defaults_descriptions");
-                        buttons = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\main_menu\\player_profiles_select\\button_set_long_descriptions");
+                        joysticks = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\player_profiles_select\\joystick_set_defaults_descriptions");
+                        buttons = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\player_profiles_select\\button_set_long_descriptions");
                         if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
                             ((uint16_t *)description_row->text)[0] = 0;
                             ((uint16_t *)description_row->text)[0xff] = 0;
                             return;
                         }
                     } else {
-                        joysticks = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\main_menu\\player_profiles_select\\joystick_set_short_descriptions");
-                        buttons = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\shell\\main_menu\\player_profiles_select\\button_set_short_descriptions");
+                        joysticks = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\player_profiles_select\\joystick_set_short_descriptions");
+                        buttons = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\player_profiles_select\\button_set_short_descriptions");
                         if (joysticks == (datum_index)-1 || buttons == (datum_index)-1) {
                             ((uint16_t *)description_row->text)[0xff] = 0;
                             return;
@@ -572,7 +572,7 @@ void PlayerProfiles::details_widget_refresh(widget_instance *widget, const uint8
 
         if ((flags & 1) != 0) {
             datum_index names_tag =
-                halo::cache::tag_lookup(halo::groups::unicode_string_list  , (char *)"ui\\shell\\strings\\default_player_profile_names");
+                halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\strings\\default_player_profile_names");
             const uint16_t *source = names_tag != (datum_index)-1
                 ? halo::text::text_string_list_get_string(names_tag, (int16_t)(flags >> 8))
                 : hud_text_unknown;

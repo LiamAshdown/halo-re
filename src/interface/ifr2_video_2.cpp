@@ -233,7 +233,7 @@ uint8_t VideoOptions::update(widget_instance *screen)
         gamma = gamma->next_sibling;
     }
     gamma = gamma->first_child;
-    while (gamma != 0 && gamma->widget_type != 2) {
+    while (gamma != 0 && gamma->widget_type != uiwidgettype_spinner_list) {
         gamma = gamma->next_sibling;
     }
     if (gamma->selection_direction == -1) {
