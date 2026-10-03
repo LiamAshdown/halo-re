@@ -355,5 +355,5 @@ The one-function-per-file `.c` sources were merged into topic files (`file_syste
 `checkpoint.cpp`, `control_profile.cpp`, `player_profile.cpp`, `saved_game_index.cpp`). Operations on the
 records are member functions of the view classes in `include/halo/saved_games/saved_games.hpp` (`FileReference`,
 `PlayerProfile`, `ControlBinding`, `VariantWriteRequest`); the rest are namespace functions in
-`halo::saved_games::<family>`. `saved_games_c_api.cpp` holds the `extern "C"` shims with the original names.
+`halo::saved_games::<family>`. Callers reach them through `include/halo/saved_games/api.hpp`.
 The old author notes and decompile blocks are in `docs/original/saved_games/`.
