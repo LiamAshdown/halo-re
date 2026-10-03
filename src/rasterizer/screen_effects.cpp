@@ -60,7 +60,7 @@ void chimera__cinematic_screen_effect(rasterizer_frame_time *time_source)
 
     lens_flare_update_visibility();
 
-    *(int32_t *)(halo::cache::globals().texture_cache + 0x30) = *(int32_t *)(halo::cache::globals().texture_cache + 0x30) + 1;
+    *(int32_t *)((uint8_t *)halo::cache::globals().texture_cache + 0x30) += 1;
     if (decals_for_all_responses != 0) {
         *(int32_t *)(rasterizer_decal_vertex_cache_handle + 0x30) = *(int32_t *)(rasterizer_decal_vertex_cache_handle + 0x30) + 1;
         halo::effects::decals_update_fade();

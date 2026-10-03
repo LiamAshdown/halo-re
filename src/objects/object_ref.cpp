@@ -1454,7 +1454,7 @@ void halo::objects::ObjectRef::release_render_cache_slot()
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
     if (obj->render_cache_slot != -1) {
-        int32_t count = *(int32_t *)(halo::scenario::globals().scenario + 0x204);
+        int32_t count = *(int32_t *)((uint8_t *)halo::scenario::globals().scenario + 0x204);
         int16_t i;
 
         obj->render_cache_slot = -1;

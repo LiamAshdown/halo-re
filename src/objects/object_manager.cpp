@@ -543,7 +543,7 @@ void halo::objects::ObjectManager::get_statistics(object_statistics *out)
 void halo::objects::ObjectManager::set_ambient_cluster_override(int16_t local_player_index)
 {
     if (local_player_index != -1) {
-        uint8_t *player_base = *(uint8_t **)(halo::scenario::globals().scenario + 0x4f4);
+        uint8_t *player_base = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x4f4);
         real_point3d *point = (real_point3d *)(player_base + local_player_index * 0x68 + 0x28);
         int32_t leaf = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, point);
 
