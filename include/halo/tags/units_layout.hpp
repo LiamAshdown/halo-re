@@ -30,6 +30,10 @@ static_assert(offsetof(ModelAnimationsAnimationGraphUnitSeat, animations) == 0x4
 static_assert(offsetof(ModelAnimationsAnimationGraphUnitSeat, weapons) == 0x58);
 static_assert(offsetof(ModelAnimationsAnimationGraphWeapon, right_yaw_per_frame) == 0x60);
 static_assert(offsetof(ModelAnimationsAnimationGraphWeapon, animations) == 0x98);
+static_assert(offsetof(ModelAnimationsAnimation, type) == 0x20 && offsetof(ModelAnimationsAnimation, key_frame_index) == 0x34 &&
+              offsetof(ModelAnimationsAnimation, main_animation_index) == 0x42);
+static_assert(offsetof(ModelAnimationsAnimationGraphUnitSeat, ik_points) == 0x4c && offsetof(ModelAnimationsAnimationGraphWeapon, ik_point) == 0xa4);
+static_assert(sizeof(ModelAnimationsAnimationGraphUnitSeat) == 0x64 && sizeof(ModelAnimationsAnimationGraphWeapon) == 0xbc);
 static_assert(offsetof(ModelAnimationsAnimationGraphNode, parent_node_index) == 0x24);
 static_assert(offsetof(ModelAnimationsAnimationGraphNode, node_joint_flags) == 0x28);
 static_assert(offsetof(ModelAnimationsAnimationGraphNode, base_vector) == 0x2c);
