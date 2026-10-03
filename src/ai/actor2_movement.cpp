@@ -1,3 +1,6 @@
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
+#include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -54,7 +57,7 @@ namespace actor_movement_action_complete_local {
 void ActorView::run_movement_action_complete()
 {
     using namespace actor_movement_action_complete_local;
-    actor *self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    actor *self = halo::ai::actor_at(actor_index);
     self->movement_action_complete = 0;
     self->movement_completed = 1;
     self->movement_timer = 0;
@@ -71,7 +74,7 @@ namespace actor_movement_action_in_progress_local {
 uint8_t ActorView::movement_action_in_progress()
 {
     using namespace actor_movement_action_in_progress_local;
-    actor *self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    actor *self = halo::ai::actor_at(actor_index);
     if (self->movement_action_complete != 0 && self->movement_completed == 0) {
         return 0;
     }
@@ -89,7 +92,7 @@ namespace actor_movement_action_is_complete_local {
 uint8_t ActorView::movement_action_is_complete()
 {
     using namespace actor_movement_action_is_complete_local;
-    actor *self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    actor *self = halo::ai::actor_at(actor_index);
     return self->movement_action_complete;
 }
 
@@ -121,7 +124,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
     path_find_request request;
     path_find_context local_context;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     type = self->active_movement.type;
     result = 1;
     have_previous = 0;
@@ -196,12 +199,12 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
             halo::ai::actor_target_get_relationship_object(*(datum_index *)&self->active_movement.destination);
         }
         if (self->flying != 0) {
-            self->destination = *(real_point3d *)&((struct prop *)target)->center_of_mass.x;
+            self->destination = *(real_point3d *)&target->center_of_mass.x;
         } else {
-            self->destination = *(real_point3d *)&((struct prop *)target)->pathfinding_point.x;
+            self->destination = *(real_point3d *)&target->pathfinding_point.x;
         }
-        self->destination_surface_index = *(uint32_t *)&((struct prop *)target)->pathfinding_surface_index;
-        self->destination_radius = *(uint32_t *)&self->active_movement.destination.y;
+        self->destination_surface_index = static_cast<uint32_t>(target->pathfinding_surface_index);
+        self->destination_radius = halo::bit_cast<uint32_t>(self->active_movement.destination.y);
         break;
 
     default:
@@ -211,7 +214,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
     }
 
     if (self->flying == 0) {
-        if (*(float *)&self->destination_radius == 0.0f &&
+        if (halo::bit_cast<float>(self->destination_radius) == 0.0f &&
             self->destination_surface_index == (uint32_t)-1) {
             result = 0;
             halo::ai::actor_movement_action_complete(actor_index);
@@ -235,7 +238,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
         }
     }
 
-    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    actor_definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     distance = halo::math::vector3d_distance(self->destination, self->body_position);
 
     if (self->flying != 0) {
@@ -265,14 +268,14 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
 
     self->path_resolved_this_tick = 1;
     if (record_distance != 0) {
-        *(float *)&self->movement_timer = distance;
+        self->movement_timer = distance;
     }
 
     if (result != 0) {
         if (self->path_remaining_distance <= 0.0f) {
             return result;
         }
-        if (*(float *)&self->destination_radius <= distance) {
+        if (halo::bit_cast<float>(self->destination_radius) <= distance) {
             return result;
         }
         if (distance - self->path_remaining_distance >= 0.5f) {
@@ -297,7 +300,7 @@ void ActorView::movement_action_stop()
     using namespace actor_movement_action_stop_local;
     actor *self;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     if (self->vehicle_driving_type == 4 && self->moving != 0) {
         halo::ai::actor_movement_set_destination_point(&self->body_position, actor_index, self->pathfinding_surface_index, (uint32_t)-1);
@@ -343,7 +346,7 @@ void ActorView::movement_advance_waypoint()
     actor *self;
     uint8_t *waypoints;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     if (self->needs_new_path != 0 && self->path_resolved_this_tick == 0 && self->keep_unit_alive == 0) {
         halo::ai::actor_movement_action_resolve(actor_index, 0, 0);
@@ -698,7 +701,7 @@ uint8_t ActorView::movement_check_arrival()
     float radius;
     float dx, dy, dz;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     if (self->active_movement.type != 0 && self->active_movement.type != 1) {
         radius = halo::ai::actor_compute_accuracy_scale(actor_index);
@@ -827,7 +830,7 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
     int32_t remaining;
     datum_index *cursor;
 
-    unit_object = ((object_header *)halo::objects::globals().object_data->data)[context->unit_index & halo::k_slot_mask].data;
+    unit_object = halo::ai::object_at(context->unit_index);
     found = halo::objects::object_find_in_sphere(1, 0xc2, (uint8_t *)unit_object + 0x98, &context->position,
                                   context->search_radius, candidates, 0x800);
     context->obstacle_count = 0;
@@ -839,16 +842,16 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
     remaining = (int32_t)(uint16_t)found;
     do {
         if (*cursor != (datum_index)k_datum_index_none && *cursor != context->unit_index) {
-            candidate_object = ((object_header *)halo::objects::globals().object_data->data)[*cursor & halo::k_slot_mask].data;
-            candidate_definition = (Object *)halo::cache::globals().tag_instances[candidate_object->definition_tag & halo::k_slot_mask].data;
+            candidate_object = halo::ai::object_at(*cursor);
+            candidate_definition = halo::ai::tag_data<Object>(candidate_object->definition_tag);
             collision_model = (ModelCollisionGeometry *)
                 halo::cache::globals().tag_instances[candidate_definition->collision_model.tag_id.index].data;
             if ((int32_t)collision_model->pathfinding_spheres.count > 0) {
-                candidate_object = ((object_header *)halo::objects::globals().object_data->data)[*cursor & halo::k_slot_mask].data;
-                origin_x = ((struct object *)candidate_object)->bounding_center.x;
-                origin_y = ((struct object *)candidate_object)->bounding_center.y;
-                origin_z = ((struct object *)candidate_object)->bounding_center.z;
-                origin_top = ((struct object *)candidate_object)->bounding_radius;
+                candidate_object = halo::ai::object_at(*cursor);
+                origin_x = candidate_object->bounding_center.x;
+                origin_y = candidate_object->bounding_center.y;
+                origin_z = candidate_object->bounding_center.z;
+                origin_top = candidate_object->bounding_radius;
                 extent = 0.0f;
                 halo::objects::object_get_world_matrix(*cursor, &world_matrix);
 
@@ -861,10 +864,10 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
                                                   world_matrix);
                         reach = world_matrix.scale * sphere->radius;
                     } else {
-                        candidate_object = ((object_header *)halo::objects::globals().object_data->data)[*cursor & halo::k_slot_mask].data;
+                        candidate_object = halo::ai::object_at(*cursor);
                         node_matrix = (const real_matrix4x3 *)
                             ((uint8_t *)candidate_object +
-                             (int32_t)((struct object *)candidate_object)->nodes.offset +
+                             (int32_t)candidate_object->nodes.offset +
                              (int16_t)sphere->node * 0x34);
                         halo::math::matrix4x3_transform_point(transformed, *((const real_point3d *)&sphere->center),
                                                   *node_matrix);
@@ -920,13 +923,13 @@ uint8_t ActorView::movement_flying_needs_steering(const real_point3d *destinatio
     float facing_dot;
     uint8_t needs_steering;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     avoidance_distance = 0.0f;
     needs_steering = 1;
 
     if (self->vehicle_driving_type == 4) {
-        unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
-        vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
+        unit_object = halo::ai::object_at(self->active_unit_index);
+        vehicle_definition = halo::ai::tag_data<Vehicle>(unit_object->definition_tag);
         avoidance_distance = vehicle_definition->ai_avoidance_distance;
         if (avoidance_distance > 0.0f && self->avoidance_emergency > 0.9f) {
             delta.i = destination->x - self->body_position.x;
@@ -969,7 +972,7 @@ void ActorView::movement_get_stopping_distances(float *out_accelerate_stop_dista
     float acceleration;
     float deceleration;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     speed = 0.0f;
     top_speed = 0.083333336f;
     acceleration = 0.016666668f;
@@ -979,11 +982,11 @@ void ActorView::movement_get_stopping_distances(float *out_accelerate_stop_dista
         if (self->unit_index != (datum_index)k_datum_index_none) {
             unit_object = (object *)halo::objects::object_try_and_get(self->unit_index, 1);
             if (unit_object != (object *)0) {
-                biped_definition = (Biped *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
+                biped_definition = halo::ai::tag_data<Biped>(unit_object->definition_tag);
                 speed = unit_object->velocity.i * unit_object->forward.i +
                         unit_object->velocity.j * unit_object->forward.j +
                         unit_object->velocity.k * unit_object->forward.k;
-                if ((biped_definition->biped_flags & 4) != 0) {
+                if (halo::ai::flag_set(biped_definition->biped_flags, halo::tags::biped_tag_flag::flying)) {
                     top_speed = biped_definition->max_velocity * 0.033333335f;
                     acceleration = biped_definition->acceleration * 0.033333335f;
                     deceleration = biped_definition->deceleration * 0.033333335f;
@@ -996,8 +999,8 @@ void ActorView::movement_get_stopping_distances(float *out_accelerate_stop_dista
             }
         }
     } else if (self->vehicle_driving_type > 1 && self->vehicle_driving_type < 4) {
-        unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
-        vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
+        unit_object = halo::ai::object_at(self->active_unit_index);
+        vehicle_definition = halo::ai::tag_data<Vehicle>(unit_object->definition_tag);
         speed = unit_object->velocity.i * unit_object->forward.i +
                 unit_object->velocity.j * unit_object->forward.j +
                 unit_object->velocity.k * unit_object->forward.k;
@@ -1061,7 +1064,7 @@ uint8_t ActorView::movement_set_destination_firing_position(int16_t formation_sl
     using namespace actor_movement_set_destination_firing_position_local;
     actor *self;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     halo::ai::actor_set_units_active(actor_index, 0);
 
     if (self->active_movement.type != 3 || *(int16_t *)&self->active_movement.destination != formation_slot) {
@@ -1092,7 +1095,7 @@ uint8_t ActorView::movement_set_destination_move_position(int16_t move_position_
     using namespace actor_movement_set_destination_move_position_local;
     actor *self;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     self->firing_position_index = -1;
     halo::ai::actor_set_units_active(actor_index, 0);
 
@@ -1125,7 +1128,7 @@ uint8_t TargetView::movement_set_destination_near_target(datum_index actor_index
     prop *target;
     int32_t extra;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     self->firing_position_index = -1;
     halo::ai::actor_set_units_active(actor_index, 0);
 
@@ -1138,7 +1141,7 @@ uint8_t TargetView::movement_set_destination_near_target(datum_index actor_index
         }
     }
 
-    *(uint32_t *)&self->queued_movement.destination.x = (uint32_t)target_prop_index;
+    self->queued_movement.destination.x = halo::bit_cast<float>(static_cast<uint32_t>((uint32_t)target_prop_index));
     target = &((prop *)halo::ai::globals().prop_data->data)[target_prop_index & halo::k_slot_mask];
     self->queued_movement.type = 5;
     self->queued_movement.cancelled = 0;
@@ -1167,7 +1170,7 @@ uint8_t ActorOps::movement_set_destination_point(real_point3d *destination, datu
     float dx, dy, dz;
     float dist2;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     self->firing_position_index = -1;
     halo::ai::actor_set_units_active(actor_index, 0);
 

@@ -13,8 +13,6 @@
 namespace halo::ai {
 
 namespace actor_mode_uncover_tick_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 #define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 
@@ -27,7 +25,7 @@ void ActorView::mode_uncover_tick()
 {
     using namespace actor_mode_uncover_tick_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag;
+    Actor *actor_tag;
     int16_t kind;
     uint8_t keep_going = 1;
     uint8_t target_visible = 0;
@@ -36,19 +34,19 @@ void ActorView::mode_uncover_tick()
     if (act->mode_data.uncover.done) {
         return;
     }
-    actor_tag = TAG_DATA(act->actor_definition_tag);
+    actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     kind = act->mode_data.uncover.stage;
     act->mode_data.uncover.crouch = 0;
     if (kind == 0) {
-        if (*(int16_t *)&((Actor *)actor_tag)->defensive_crouch_type == 4) {
+        if (actor_tag->defensive_crouch_type == 4) {
             act->mode_data.uncover.crouch = (uint8_t)(act->target_combat_status != 6);
-        } else if ((actor_tag[0] & 2) && act->target_combat_status == 5 &&
-                   (int8_t)PROP(act->target_unit_index)[0x121] <= 2) {
+        } else if ((static_cast<uint8_t>(actor_tag->flags) & 2) && act->target_combat_status == 5 &&
+                   (int8_t)halo::ai::prop_at(act->target_unit_index)->distance_class <= 2) {
             act->mode_data.uncover.crouch = 1;
         }
     } else if (kind == 1) {
-        if (*(int16_t *)&((Actor *)actor_tag)->defensive_crouch_type == 4 ||
-            ((actor_tag[0] & 4) &&
+        if (actor_tag->defensive_crouch_type == 4 ||
+            ((static_cast<uint8_t>(actor_tag->flags) & 4) &&
              halo::math::vector3d_distance_squared(*(&act->mode_data.uncover.position), act->body_position) < 100.0f)) {
             act->mode_data.uncover.crouch = 1;
         }
@@ -86,14 +84,9 @@ void ActorView::mode_uncover_tick()
     act->mode_data.uncover.done = done;
 }
 
-#undef ACTOR
-#undef TAG_DATA
 #undef PROP
 
 namespace actor_mode_uncover_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 
 /**
@@ -105,7 +98,7 @@ void ActorView::mode_uncover_update()
 {
     using namespace actor_mode_uncover_update_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     datum_index target = act->target_unit_index;
 
     if (target != k_datum_index_none) {
@@ -119,7 +112,7 @@ void ActorView::mode_uncover_update()
                 act->unknown_455[0] = 1;
                 forced = 1;
             } else {
-                act->wants_to_fire = (uint8_t)(act->target_combat_status >= ((actor_tag[0] & 0x10) ? 5 : 6));
+                act->wants_to_fire = (uint8_t)(act->target_combat_status >= ((static_cast<uint8_t>(actor_tag->flags) & 0x10) ? 5 : 6));
             }
         }
         if ((act->wants_to_fire && (kind == 0 || kind == 1)) || forced) {
@@ -139,20 +132,17 @@ void ActorView::mode_uncover_update()
         }
     }
     act->look_posture = 3;
-    act->unknown_41a[12] = act->mode_data.uncover.crouch;
-    act->unknown_41a[13] = act->mode_data.uncover.crouch;
-    act->unknown_41a[14] = 0;
-    act->unknown_41a[10] = 0;
-    act->unknown_41a[11] = 1;
+    act->crouch_decision[0] = act->mode_data.uncover.crouch;
+    act->crouch_decision[1] = act->mode_data.uncover.crouch;
+    act->crouch_hold = 0;
+    act->unknown_424[0] = 0;
+    act->unknown_424[1] = 1;
 }
 
-#undef ACTOR
-#undef TAG_DATA
-#undef PROP
 
 namespace actor_mode_vehicle_enter_local {
-static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+extern "C" {
+extern game_time_globals *game_time;
 }
 
 /**
@@ -170,10 +160,8 @@ void ActorView::mode_vehicle_enter()
     act->mode_data.vehicle.last_progress_position = *(real_point3d *)&act->body_position.x;
 }
 
-#undef ACTOR
 
 namespace actor_mode_vehicle_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -198,19 +186,18 @@ void ActorView::mode_vehicle_update()
     }
     act->look_posture = 4;
     act->wants_to_fire = 0;
-    act->unknown_41a[12] = 0;
-    act->unknown_41a[13] = 0;
-    act->unknown_41a[14] = 0;
-    act->unknown_41a[10] = 0;
-    act->unknown_41a[11] = 0;
+    act->crouch_decision[0] = 0;
+    act->crouch_decision[1] = 0;
+    act->crouch_hold = 0;
+    act->unknown_424[0] = 0;
+    act->unknown_424[1] = 0;
 }
 
-#undef ACTOR
 
 namespace actor_mode_wait_process_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
+extern "C" {
+extern game_time_globals *game_time;
+}
 }
 
 /**
@@ -276,11 +263,8 @@ decided:
     return act->mode_data.wait.finished;
 }
 
-#undef ACTOR
-#undef TAG_DATA
 
 namespace actor_mode_wait_tick_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -318,10 +302,8 @@ void ActorView::mode_wait_tick()
     }
 }
 
-#undef ACTOR
 
 namespace actor_mode_wait_update_local {
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
 }
 
 /**
@@ -340,20 +322,19 @@ void ActorView::mode_wait_update()
     } else if (!act->grenade_ally_phase_flag && *(int32_t *)&act->nearby_friend_prop_index != -1 && act->mode_data.wait.countdown_0c > 0) {
         act->flee_reason = 5;
         act->flee_source.code = 1;
-        act->flee_source.payload.handle = *(int32_t *)&act->nearby_friend_prop_index;
+        act->flee_source.payload.handle = static_cast<int32_t>(act->nearby_friend_prop_index);
     } else {
         act->flee_reason = 1;
     }
     act->look_posture = 3;
     act->wants_to_fire = 0;
-    act->unknown_41a[12] = 0;
-    act->unknown_41a[13] = 0;
-    act->unknown_41a[14] = 0;
-    act->unknown_41a[10] = 0;
-    act->unknown_41a[11] = 0;
+    act->crouch_decision[0] = 0;
+    act->crouch_decision[1] = 0;
+    act->crouch_hold = 0;
+    act->unknown_424[0] = 0;
+    act->unknown_424[1] = 0;
 }
 
-#undef ACTOR
 
 namespace actor_run_mode_transition_loop_local {
 }
@@ -411,7 +392,7 @@ void ActorView::set_mode(int32_t mode, void *mode_data)
     uint32_t data_size;
     int i;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     const TableActorMode incoming = ActorModeRegistry::get(mode);
     ActorModeRegistry::get(self->mode).exit(*this);
@@ -469,7 +450,7 @@ uint8_t ActorView::update_special_mode()
     actor *self;
     int16_t mode;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     mode = self->mode;
 
     if (mode == 5) {

@@ -13,9 +13,6 @@ namespace c_actor_danger_update_reaction {
 
 
 
-#define A_W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define A_D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define A_F(o) (*(float *)((uint8_t *)actor + (o)))
 
 static uint8_t actor_danger_prop_seen_twice(datum_index actor_index, datum_index object_index)
 {
@@ -82,9 +79,9 @@ void halo::ai::prop_ops::danger_update_reaction()
 
         actor->danger_distance = (float)halo::libm::sqrt((double)(dz * dz + dy * dy + dx * dx));
     }
-    actor->danger_segment_end.x = A_F(0x2bc) * 45.0f + position->x;
-    actor->danger_segment_end.y = A_F(0x2c0) * 45.0f + position->y;
-    actor->danger_segment_end.z = A_F(0x2c4) * 45.0f + position->z;
+    actor->danger_segment_end.x = *(float *)((uint8_t *)actor + 0x2bc) * 45.0f + position->x;
+    actor->danger_segment_end.y = *(float *)((uint8_t *)actor + 0x2c0) * 45.0f + position->y;
+    actor->danger_segment_end.z = *(float *)((uint8_t *)actor + 0x2c4) * 45.0f + position->z;
     actor->danger_center.x = (actor->danger_segment_end.x + position->x) * 0.5f;
     actor->danger_center.y = (position->y + actor->danger_segment_end.y) * 0.5f;
     actor->danger_center.z = (position->z + actor->danger_segment_end.z) * 0.5f;
@@ -110,7 +107,7 @@ void halo::ai::prop_ops::danger_update_reaction()
             }
         }
         frames = halo::units::unit_get_animation_frames_remaining(actor->danger_object_index, &state);
-        A_W(0x2e8) = state == 0x19 ? (int16_t)frames : -1;
+        *(int16_t *)((uint8_t *)actor + 0x2e8) = state == 0x19 ? (int16_t)frames : -1;
         break;
     }
     case 2: {
@@ -122,9 +119,9 @@ void halo::ai::prop_ops::danger_update_reaction()
             own = 1;
         }
         if (*(float *)(object + 0x240) > 0.0f && *(float *)(object + 0x244) > 0.0f) {
-            A_W(0x2e8) = (int16_t)halo::x87::fistp_round((1.0f - *(float *)(object + 0x240)) / *(float *)(object + 0x244));
+            *(int16_t *)((uint8_t *)actor + 0x2e8) = (int16_t)halo::x87::fistp_round((1.0f - *(float *)(object + 0x240)) / *(float *)(object + 0x244));
         } else {
-            A_W(0x2e8) = -1;
+            *(int16_t *)((uint8_t *)actor + 0x2e8) = -1;
         }
         if (actor->danger_reaction_delayed != 0 || own) {
             noticed = 1;
@@ -138,8 +135,8 @@ void halo::ai::prop_ops::danger_update_reaction()
             break;
         }
         cluster = ((struct object *)object)->location_cluster_index;
-        if (*(uint32_t *)&((struct object *)object)->parent_object != halo::k_dword_none) {
-            uint8_t *root = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::objects::object_get_root_object_index(actor->danger_object_index) & halo::k_slot_mask].data;
+        if (((struct object *)object)->parent_object != halo::k_dword_none) {
+            uint8_t *root = (uint8_t *)halo::ai::object_at(halo::objects::object_get_root_object_index(actor->danger_object_index));
 
             cluster = ((struct object *)root)->location_cluster_index;
         }
@@ -179,8 +176,8 @@ void halo::ai::prop_ops::danger_update_reaction()
         }
         asleep = actor_danger_asleep(actor);
         location = object + 0x98;
-        if (*(uint32_t *)&((struct object *)object)->parent_object != halo::k_dword_none) {
-            location = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[halo::objects::object_get_root_object_index(actor->danger_object_index) & halo::k_slot_mask].data + 0x98;
+        if (((struct object *)object)->parent_object != halo::k_dword_none) {
+            location = (uint8_t *)halo::ai::object_at(halo::objects::object_get_root_object_index(actor->danger_object_index)) + 0x98;
         }
         status = (int16_t)halo::ai::actor_evaluate_engagement_reachability(*(int16_t *)((uint8_t *)block + 0x28),
             *(int16_t *)(location + 4), position, (real_point3d *)block, 0, 0, actor->danger_object_index, actor->active_unit_index != halo::k_dword_none);
@@ -219,7 +216,4 @@ void actor_danger_update_reaction(datum_index actor_index)
 }
 }
 
-#undef A_D
-#undef A_F
-#undef A_W
 

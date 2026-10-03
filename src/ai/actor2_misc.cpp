@@ -1,3 +1,8 @@
+#include "halo/objects/flags.hpp"
+#include "halo/units/flags.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
+#include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/models/api.hpp"
 #include "halo/math/api.hpp"
@@ -44,13 +49,13 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
         return (datum_index)k_datum_index_none;
     }
 
-    variant = (ActorVariant *)(halo::cache::globals().tag_instances[actor_variant_tag & halo::k_slot_mask].data);
+    variant = halo::ai::tag_data<ActorVariant>(actor_variant_tag);
     actor_definition_tag = *(datum_index *)&variant->actor_definition.tag_id;
     if (actor_definition_tag == (datum_index)k_datum_index_none) {
         return (datum_index)k_datum_index_none;
     }
 
-    actor_tag = (Actor *)(halo::cache::globals().tag_instances[actor_definition_tag & halo::k_slot_mask].data);
+    actor_tag = halo::ai::tag_data<Actor>(actor_definition_tag);
 
     actor_index = halo::memory::datum_new(halo::ai::globals().actor_data);
     if (actor_index == (datum_index)k_datum_index_none) {
@@ -58,7 +63,7 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
     }
 
     self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    flags = *(uint32_t *)actor_tag;
+    flags = actor_tag->flags;
 
     self->actor_variant_tag = actor_variant_tag;
     self->swarm = (uint8_t)(flags >> 0x1a) & 1;
@@ -110,11 +115,11 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
     memset(&self->threat_level, 0, 0x1a * sizeof(uint32_t));
 
     self->last_cover_attempt_time = (datum_index)k_datum_index_none;
-    *(uint32_t *)&self->search_wait_time = halo::k_dword_none;
-    *(uint32_t *)&self->last_melee_time = halo::k_dword_none;
+    self->search_wait_time = static_cast<int32_t>(halo::k_dword_none);
+    self->last_melee_time = static_cast<int32_t>(halo::k_dword_none);
     self->last_evasion_time = (datum_index)k_datum_index_none;
     self->last_vehicle_search_time = halo::k_dword_none;
-    *(uint32_t *)&self->last_vehicle_charge_time = halo::k_dword_none;
+    self->last_vehicle_charge_time = static_cast<int32_t>(halo::k_dword_none);
     self->last_flee_abort_time = (datum_index)k_datum_index_none;
     self->found_body_time = (datum_index)k_datum_index_none;
     self->retreat_end_time = (datum_index)k_datum_index_none;
@@ -175,8 +180,8 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
 }
 
 namespace actor_new_and_attach_to_unit_local {
-static auto &actor_type_procs = halo::link::ref<void *[16]>(halo::ai::vars().actor_type_procs);
-#define ACTOR_AT(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
+extern "C" {
+extern void *actor_type_procs[16];
 }
 
 /**
@@ -213,9 +218,9 @@ datum_index ActorOps::new_and_attach_to_unit(char reuse_existing, datum_index un
             goto attach;
         }
     } else {
-        uint8_t *unit = (uint8_t *)halo::objects::object_try_and_get(unit_index, 1);
+        object *unit = (object *)halo::objects::object_try_and_get(unit_index, 1);
 
-        if (unit == 0 || (unit[0x106] & 4) != 0) {
+        if (unit == 0 || (static_cast<uint8_t>(unit->vitality_flags) & 4) != 0) {
             return k_datum_index_none;
         }
     }
@@ -231,7 +236,7 @@ datum_index ActorOps::new_and_attach_to_unit(char reuse_existing, datum_index un
         if ((encounter_or_none & 0xffff0000) == 0) {
             encounter *enc = halo::ai::encounter_at(encounter_or_none);
 
-            encounter_or_none = ((uint32_t)(int32_t)*(int16_t *)enc << 0x10) | (encounter_or_none & halo::k_slot_mask);
+            encounter_or_none = ((uint32_t)(int32_t)enc->identifier << 0x10) | (encounter_or_none & halo::k_slot_mask);
         }
         halo::ai::encounter_add_actor(squad_index, actor_index, encounter_or_none, 0);
     }
@@ -252,7 +257,7 @@ datum_index ActorOps::new_and_attach_to_unit(char reuse_existing, datum_index un
     self->command_list_run_immediately = 0;
     self->command_list_delay = 2;
     self->pending_command_list = unknown_90;
-    if (self->swarm != ((uint8_t *)actor_type_procs[*(int16_t *)((uint8_t *)self + 4)])[0xd]) {
+    if (self->swarm != ((uint8_t *)actor_type_procs[self->type])[0xd]) {
         halo::ai::actor_delete(actor_index, 0);
         return k_datum_index_none;
     }
@@ -265,13 +270,12 @@ attach:
     if (halo::ai::actor_link_to_unit_cluster(actor_index, unit_index) != 0) {
         return actor_index;
     }
-    if (*(int16_t *)(ACTOR_AT(actor_index) + 0x1e) == 0) {
+    if (halo::ai::actor_at(actor_index)->cluster_count == 0) {
         halo::ai::actor_delete(actor_index, 0);
     }
     return k_datum_index_none;
 }
 
-#undef ACTOR_AT
 
 namespace actor_place_new_unit_local {
 static auto &object_type_definitions = halo::link::ref<object_type_definition *[k_maximum_object_types]>(halo::game::vars().object_type_definitions);
@@ -331,23 +335,23 @@ datum_index ActorOps::place_new_unit(datum_index actor_variant_or_palette_tag, d
     halo::ai::actor_apply_unit_definition_properties(variant_tag, unit_index);
     if (encounter_index != k_datum_index_none) {
         uint8_t *encounter = *(uint8_t **)((uint8_t *)halo::scenario::globals().scenario + 0x430) + (encounter_index & halo::k_slot_mask) * 0xb0;
-        uint8_t *squad = *(uint8_t **)(encounter + 0x84) + squad_index * 0xe8;
+        ScenarioSquad *squad = (ScenarioSquad *)(*(uint8_t **)(encounter + 0x84) + squad_index * 0xe8);
 
-        initial_state = *(uint16_t *)(squad + 0x24);
-        return_state = *(uint16_t *)(squad + 0x26);
+        initial_state = static_cast<uint16_t>(squad->initial_state);
+        return_state = static_cast<uint16_t>(squad->return_state);
         start_active = (char)((*(uint32_t *)(encounter + 0x20) >> 4) & 1);
     }
     if (((struct actor_placement_request *)request)->initial_state_override > 0) {
-        initial_state = *(uint16_t *)&((struct actor_placement_request *)request)->initial_state_override;
+        initial_state = static_cast<uint16_t>(((struct actor_placement_request *)request)->initial_state_override);
     }
     if (*(const int16_t *)(request + 0x14) > 0) {
         return_state = *(const uint16_t *)(request + 0x14);
     }
     result = halo::ai::actor_new_and_attach_to_unit(swarm, unit_index, variant_tag, encounter_index, squad_index, 0,
         k_datum_index_none, start_active, initial_state, (int16_t)return_state, *(const uint16_t *)(request + 0x1a),
-        (uint8_t)*(int8_t *)&((struct actor_placement_request *)request)->unknown_12);
+        (uint8_t)static_cast<int8_t>(((struct actor_placement_request *)request)->unknown_12));
     if (result == k_datum_index_none) {
-        int32_t kind = *(int32_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data + 0x4);
+        int32_t kind = *(int32_t *)((uint8_t *)halo::ai::object_at(unit_index) + 0x4);
 
         if (kind == 0) {
             halo::objects::object_delete_unparented(unit_index);
@@ -534,8 +538,8 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
 
     case 9:
         if (mode == 6) {
-            if (*(int16_t *)((uint8_t *)act + 0xc0) != 3) {
-                ((uint8_t *)act)[0xaa] = 1;
+            if (act->mode_data.guard.stage != 3) {
+                act->mode_data.flee.engage = 1;
             }
             break;
         }
@@ -574,7 +578,7 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
             order[0x4] = 0;
             order[0x5] = 0;
             if (act->swarm == 0) {
-                halo::ai::actor_check_melee_target_reachable(actor_index, (int16_t *)order);
+                halo::ai::actor_check_melee_target_reachable(actor_index, reinterpret_cast<actor_mode_flee_data *>(order));
                 if (((struct actor_order *)order)->parameter != -1) {
                     halo::ai::actor_set_mode(actor_index, 4, order);
                     return 1;
@@ -614,11 +618,6 @@ uint8_t ActorView::process_order_request(uint16_t order_code)
 }
 
 namespace actor_process_pending_command_list_local {
-#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
 }
 
 /**
@@ -631,7 +630,7 @@ uint8_t ActorView::process_pending_command_list()
     using namespace actor_process_pending_command_list_local;
     struct actor *actor = halo::ai::actor_at(actor_index);
     uint8_t started = 0;
-    int16_t record[0x42];
+    actor_mode_data mode_data;
 
     if (actor->pending_command_list == -1) {
         return 0;
@@ -639,8 +638,8 @@ uint8_t ActorView::process_pending_command_list()
     if (actor->command_list_run_immediately == 0 && (actor->awareness_level == 0 || halo::ai::actor_wants_reload_or_swap(actor_index))) {
         return 0;
     }
-    if (halo::ai::actor_squad_action_status_broadcast(actor_index, (int16_t)actor->pending_command_list, record) != 0) {
-        halo::ai::actor_set_mode(actor_index, 0xb, record);
+    if (halo::ai::actor_squad_action_status_broadcast(actor_index, (int16_t)actor->pending_command_list, &mode_data.obey) != 0) {
+        halo::ai::actor_set_mode(actor_index, 0xb, &mode_data);
         started = 1;
     }
     actor->command_list_run_immediately = 0;
@@ -648,24 +647,22 @@ uint8_t ActorView::process_pending_command_list()
     return started;
 }
 
-#undef ACTOR
-#undef B
-#undef W
-#undef D
-#undef F
 
 namespace actor_process_vehicle_seat_exit_local {
-static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
-static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask].data)
+extern "C" {
+extern data_array *player_data;
+extern game_time_globals *game_time;
+extern network_client_globals *network_client;
+extern void player_update_history_free_all(void *history);
+#define OBJECT_DATA(h) ((uint8_t *)halo::ai::object_at((h)))
 #define OBJECT_HEADER(h) (((object_header *)halo::objects::globals().object_data->data)[(h) & halo::k_slot_mask])
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
 {
     uint8_t *self = OBJECT_DATA(object_index);
-    uint8_t *vehicle = OBJECT_DATA(vehicle_index);
+    unit_object *vehicle = (unit_object *)OBJECT_DATA(vehicle_index);
     uint8_t *nodes = self + ((struct object *)self)->nodes.offset;
-    uint8_t *seat = *(uint8_t **)(TAG_DATA(*(datum_index *)vehicle) + 0x2e8) + *(int16_t *)(self + 0x2f0) * 0x11c;
+    uint8_t *seat = *(uint8_t **)(TAG_DATA(vehicle->base.definition_tag) + 0x2e8) + *(int16_t *)(self + 0x2f0) * 0x11c;
     uint8_t *model_nodes;
     object_marker marker;
     real_point3d offset;
@@ -679,7 +676,7 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     offset.z = *(float *)(nodes + 0x30) - marker.node_transform.position.z;
     model_nodes = *(uint8_t **)(TAG_DATA(*(datum_index *)(TAG_DATA(*(datum_index *)self) + 0x34)) + 0xbc);
     default_translation = *(real_point3d *)(model_nodes + 0x28);
-    if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index && vehicle[0x2a3] != 0x25 &&
+    if (((vehicle_object *)vehicle)->unit.driver_unit_index == object_index && vehicle->unit.animation_state != 0x25 &&
         ((struct object *)self)->parent_object != k_datum_index_none) {
         halo::units::unit_try_set_animation_state(((struct object *)self)->parent_object, 0x25);
     }
@@ -705,14 +702,14 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
     *(real_vector3d *)&((struct object *)self)->forward.i = basis.forward;
     *(real_vector3d *)&((struct object *)self)->up.i = basis.up;
     {
-        uint8_t *object = OBJECT_DATA(object_index);
-        uint8_t *object_tag = TAG_DATA(*(datum_index *)object);
+        unit_object *object = (unit_object *)OBJECT_DATA(object_index);
+        uint8_t *object_tag = TAG_DATA(object->base.definition_tag);
 
-        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (object[0x10] & 1) != 0) {
+        if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1 && (static_cast<uint8_t>(object->base.flags) & 1) != 0) {
             halo::objects::object_for_each_light_attachment(object_index, 0, 1);
         }
         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-            ((struct object *)object)->flags &= ~1u;
+            ((struct object *)object)->flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
             OBJECT_HEADER(object_index).flags |= 2;
         }
     }
@@ -754,19 +751,19 @@ static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_in
         }
     }
 }
-static void biped_free_local_player_history(uint8_t *self)
+static void biped_free_local_player_history(const unit_object *self)
 {
-    datum_index player_index = *(datum_index *)(self + 0x218);
+    datum_index player_index = self->unit.controlling_player;
     int16_t index = (int16_t)player_index;
     int16_t salt = (int16_t)(player_index >> 16);
-    uint8_t *player;
+    data_array *players = halo::game::globals().player_data;
+    player *record;
 
-    if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
-        index >= *(int16_t *)((uint8_t *)halo::game::globals().player_data + 0x20)) {
+    if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 || index >= players->maximum_count) {
         return;
     }
-    player = (uint8_t *)halo::game::globals().player_data->data + *(int16_t *)((uint8_t *)halo::game::globals().player_data + 0x22) * index;
-    if (*(int16_t *)player == 0 || (salt != 0 && *(int16_t *)player != salt) || ((struct player *)player)->local_player_index == -1) {
+    record = reinterpret_cast<player *>(static_cast<uint8_t *>(players->data) + players->size * index);
+    if (record->identifier == 0 || (salt != 0 && record->identifier != salt) || record->local_player_index == -1) {
         return;
     }
     if (halo::networking::globals().client != 0) {
@@ -789,7 +786,7 @@ uint8_t ActorView::process_vehicle_seat_exit()
     uint8_t forced = 0;
     uint8_t result = 0;
     datum_index rider_index;
-    uint8_t *rider;
+    unit_object *rider;
 
     if (driving == k_datum_index_none) {
         act->vehicle_eviction = 0;
@@ -813,7 +810,7 @@ uint8_t ActorView::process_vehicle_seat_exit()
     if (act->vehicle_eviction) {
         wanted = 1;
     }
-    if (act->order_committed && (*(datum_index *)&act->stuck_projectile_index != k_datum_index_none ||
+    if (act->order_committed && (static_cast<datum_index>(act->stuck_projectile_index) != k_datum_index_none ||
                        (act->danger_type == 2 && act->danger_is_own))) {
         forced = 1;
     } else if (!wanted) {
@@ -822,28 +819,28 @@ uint8_t ActorView::process_vehicle_seat_exit()
     }
     act->vehicle_exit_forced = forced;
     rider_index = act->unit_index;
-    rider = (uint8_t *)halo::objects::object_try_and_get(rider_index, 3);
-    if (rider != 0 && halo::networking::globals().game_mode != 1 && *(datum_index *)(rider + 0x11c) != k_datum_index_none &&
-        *(int16_t *)(rider + 0x2f0) != -1) {
-        datum_index vehicle_index = *(datum_index *)(rider + 0x11c);
+    rider = (unit_object *)halo::objects::object_try_and_get(rider_index, 3);
+    if (rider != 0 && halo::networking::globals().game_mode != 1 && rider->base.parent_object != k_datum_index_none &&
+        rider->unit.vehicle_seat_index != -1) {
+        datum_index vehicle_index = rider->base.parent_object;
 
-        if (*(int16_t *)(rider + 0xb4) == 1) {
-            uint8_t *self = OBJECT_DATA(rider_index);
+        if (rider->base.type == 1) {
+            unit_object *self = (unit_object *)OBJECT_DATA(rider_index);
 
-            if (((struct object *)self)->parent_object != k_datum_index_none && *(int16_t *)(self + 0x2f0) != -1) {
+            if (((struct object *)self)->parent_object != k_datum_index_none && self->unit.vehicle_seat_index != -1) {
                 biped_detach_from_seat(rider_index, ((struct object *)self)->parent_object);
             }
             biped_free_local_player_history(self);
-        } else if (!halo::units::unit_state_is_scripted_animation((unit_data *)(rider + 0x1f4))) {
-            uint8_t *rider_tag = TAG_DATA(*(datum_index *)rider);
+        } else if (!halo::units::unit_state_is_scripted_animation(&rider->unit)) {
+            uint8_t *rider_tag = TAG_DATA(rider->base.definition_tag);
             datum_index graph = *(datum_index *)(rider_tag + 0x44);
-            uint8_t *block = *(uint8_t **)(TAG_DATA(graph) + 0x10) + (int8_t)rider[0x2a0] * 0x64;
+            uint8_t *block = *(uint8_t **)(TAG_DATA(graph) + 0x10) + (int8_t)static_cast<uint8_t>(rider->unit.animation_definition_index) * 0x64;
 
             if (*(int32_t *)(block + 0x40) > 8) {
                 int16_t exit_animation = (*(int16_t **)(block + 0x44))[8];
 
                 if (exit_animation != -1) {
-                    uint8_t *object;
+                    unit_object *object;
                     uint8_t *object_tag;
 
                     if (*(datum_index *)(OBJECT_DATA(vehicle_index) + 0x324) == rider_index) {
@@ -851,24 +848,24 @@ uint8_t ActorView::process_vehicle_seat_exit()
                     }
                     halo::units::unit_set_custom_animation(rider_index, graph,
                                               halo::models::animation_choose_random_permutation(graph, exit_animation, static_cast<animation_random_stream>(1)));
-                    object = OBJECT_DATA(rider_index);
-                    object_tag = TAG_DATA(*(datum_index *)object);
+                    object = (unit_object *)OBJECT_DATA(rider_index);
+                    object_tag = TAG_DATA(object->base.definition_tag);
                     if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-                        if (object[0x10] & 1) {
+                        if (static_cast<uint8_t>(object->base.flags) & 1) {
                             halo::objects::object_for_each_light_attachment(rider_index, 0, 1);
                         }
                         if (*(int32_t *)&((struct Object *)object_tag)->model.tag_id != -1) {
-                            ((struct object *)object)->flags &= ~1u;
+                            ((struct object *)object)->flags &= ~halo::to_bits(halo::objects::object_flag::no_collision);
                             OBJECT_HEADER(rider_index).flags |= 2;
                         }
                     }
-                    rider[0x2a3] = 0x1b;
+                    rider->unit.animation_state = 0x1b;
                     halo::ai::actor_notify_weapon_pickup_once(rider_index);
-                    if (*(int32_t *)(rider + 0x4) == 0) {
+                    if (rider->base.network_role == 0) {
                         halo::units::unit_dispatch_scripted_event_9(0, (int32_t)rider_index);
                     }
                     act->exited_vehicle_index = act->active_unit_index;
-                    *(int32_t *)&act->exited_vehicle_reentry_time = game_time->game_time + 180;
+                    act->exited_vehicle_reentry_time = static_cast<datum_index>(game_time->game_time + 180);
                     result = 1;
                 }
             }
@@ -894,7 +891,7 @@ namespace actor_prop_iterator_init_local {
 void ActorView::prop_iterator_init(actor_prop_iterator *out_iterator)
 {
     using namespace actor_prop_iterator_init_local;
-    actor *self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    actor *self = halo::ai::actor_at(actor_index);
     out_iterator->next = self->first_prop;
 }
 
@@ -914,7 +911,7 @@ prop * ActorOps::prop_iterator_next(actor_prop_iterator *iterator)
 
     iterator->current = cur;
     if (cur != (datum_index)halo::k_dword_none) {
-        result = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (cur & halo::k_slot_mask) * sizeof(prop));
+        result = halo::ai::prop_at(cur);
         iterator->next = result->next_in_actor;
     }
     return result;
@@ -936,15 +933,15 @@ void ActorView::propagate_unit_field(int16_t value)
 
     if (self->swarm == 0) {
         if (self->unit_index != (datum_index)k_datum_index_none) {
-            object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->unit_index & halo::k_slot_mask].data;
-            ((struct object *)unit_object)->owner_team = value;
+            object *unit_object = halo::ai::object_at(self->unit_index);
+            unit_object->owner_team = value;
         }
     } else if (self->swarm_index == (datum_index)k_datum_index_none) {
         datum_index unit_index = self->cluster_unit_index;
         if (unit_index != (datum_index)k_datum_index_none) {
             do {
-                object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
-                ((struct object *)unit_object)->owner_team = value;
+                object *unit_object = halo::ai::object_at(unit_index);
+                unit_object->owner_team = value;
                 unit_index = *(datum_index *)((uint8_t *)unit_object + 0x1fc);
             } while (unit_index != (datum_index)k_datum_index_none);
         }
@@ -952,18 +949,13 @@ void ActorView::propagate_unit_field(int16_t value)
         swarm *s = &((swarm *)halo::ai::globals().swarm_data->data)[self->swarm_index & halo::k_slot_mask];
         int16_t i;
         for (i = 0; i < s->component_count; i++) {
-            object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[s->unit_index[i] & halo::k_slot_mask].data;
-            ((struct object *)unit_object)->owner_team = value;
+            object *unit_object = halo::ai::object_at(s->unit_index[i]);
+            unit_object->owner_team = value;
         }
     }
 }
 
 namespace actor_raise_timer_5f6_local {
-#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
 }
 
 /**
@@ -983,11 +975,6 @@ void ActorView::raise_timer_5f6(int32_t ticks)
     }
 }
 
-#undef ACTOR
-#undef B
-#undef W
-#undef D
-#undef F
 
 namespace actor_rate_potential_target_local {
 }
@@ -1014,8 +1001,8 @@ float ActorView::rate_potential_target(datum_index target_prop_index)
     float extra;
     float threshold;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
-    target = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (target_prop_index & halo::k_slot_mask) * sizeof(prop));
+    self = halo::ai::actor_at(actor_index);
+    target = halo::ai::prop_at(target_prop_index);
 
     if (target->disregarded != 0 || target->enemy == 0) {
         return 0.0f;
@@ -1028,8 +1015,8 @@ float ActorView::rate_potential_target(datum_index target_prop_index)
     }
 
     extra = 0.0f;
-    actor_def = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
-    variant_def = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
+    actor_def = halo::ai::tag_data<Actor>(self->actor_definition_tag);
+    variant_def = halo::ai::tag_data<ActorVariant>(self->actor_variant_tag);
     bonus_b = 0;
     bonus_c = 0;
 
@@ -1042,7 +1029,7 @@ float ActorView::rate_potential_target(datum_index target_prop_index)
 
             if (2.0f <= target->distance || (bonus_a = 5, target->state == 5)) {
                 if (target->relationship_object_index == -1) {
-                    if (target->flying == 0 || ((struct Actor *)actor_def)->melee_leap_velocity != 0.0f) {
+                    if (target->flying == 0 || actor_def->melee_leap_velocity != 0.0f) {
                         if (target->in_water == self->in_water) {
                             bonus_a = (target->distance >= threshold) ? 2 : 3;
                         } else {
@@ -1066,7 +1053,7 @@ float ActorView::rate_potential_target(datum_index target_prop_index)
                 if (2.0f <= target->distance || (bonus_a = 5, target->state == 5)) {
                     if (target->distance >= *(const float *)((const uint8_t *)variant_def + 0xa0)) {
                         bonus_a = 2;
-                        if (target->distance >= ((struct ActorVariant *)variant_def)->maximum_firing_distance) {
+                        if (target->distance >= variant_def->maximum_firing_distance) {
                             bonus_a = 1;
                         }
                     } else {
@@ -1198,11 +1185,11 @@ void ActorView::remove_from_unit_cluster(datum_index unit_index)
         if (prev == halo::k_dword_none) {
             self->cluster_unit_index = next;
         } else {
-            object *prev_object = ((object_header *)halo::objects::globals().object_data->data)[prev & halo::k_slot_mask].data;
+            object *prev_object = halo::ai::object_at(prev);
             *(uint32_t *)((uint8_t *)prev_object + 0x1fc) = next;
         }
         if (next != (datum_index)k_datum_index_none) {
-            object *next_object = ((object_header *)halo::objects::globals().object_data->data)[next & halo::k_slot_mask].data;
+            object *next_object = halo::ai::object_at(next);
             *(uint32_t *)((uint8_t *)next_object + 0x200) = prev;
         }
     }
@@ -1269,12 +1256,12 @@ void ActorView::replace_object_reference(uint32_t new_reference, uint32_t old_re
         }
     }
 
-    if (self->active_movement.type == 5 && *(uint32_t *)&((struct actor *)self)->active_movement.destination.x == old_reference) {
+    if (self->active_movement.type == 5 && *(uint32_t *)&self->active_movement.destination.x == old_reference) {
         if (new_reference == halo::k_dword_none) {
             self->active_movement.type = 0;
             self->active_movement.extra = halo::k_dword_none;
         } else {
-            *(uint32_t *)&((struct actor *)self)->active_movement.destination.x = new_reference;
+            self->active_movement.destination.x = halo::bit_cast<float>(static_cast<uint32_t>(new_reference));
         }
     }
 
@@ -1284,7 +1271,7 @@ void ActorView::replace_object_reference(uint32_t new_reference, uint32_t old_re
     if (self->idle_major_direction_type == 1 && self->idle_major_prop_index == old_reference) {
         self->idle_major_prop_index = new_reference;
     }
-    if (((struct actor *)self)->idle_look_direction_type == 1 && self->idle_look_prop_index == old_reference) {
+    if (self->idle_look_direction_type == 1 && self->idle_look_prop_index == old_reference) {
         self->idle_look_prop_index = new_reference;
     }
 
@@ -1358,7 +1345,7 @@ int32_t ActorView::report_command_status()
             if (p->enemy == 0) {
                 target_state = 2;
             } else {
-                target_state = (halo::game::team_pair_flag_test(((actor *)a)->team, ((struct prop *)p)->team) != 0) + 3;
+                target_state = (halo::game::team_pair_flag_test(a->team, p->team) != 0) + 3;
             }
         }
         halo::ai::ai_communication_broadcast(event_code, a->unit_index, target_object, target_state, halo::k_dword_none, halo::k_dword_none, 0);
@@ -1379,7 +1366,7 @@ uint8_t ActorView::request_move_and_face()
 {
     using namespace actor_request_move_and_face_local;
     struct actor *actor = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_definition_tag & halo::k_slot_mask].data;
+    Actor *actor_tag = halo::ai::tag_data<Actor>(actor->actor_definition_tag);
 
     if (actor->swarm != 0) {
         actor->mode_data.guard.stage = 1;
@@ -1427,8 +1414,8 @@ uint8_t ActorView::request_move_and_face()
             actor->mode_data.guard.firing_position = claimed;
         }
     }
-    actor->mode_data.guard.countdown_00 = (int16_t)(int32_t)(halo::math::random_real_range(*(float *)(actor_tag + 0x3b8),
-        *(float *)(actor_tag + 0x3bc)) * 30.0f);
+    actor->mode_data.guard.countdown_00 = (int16_t)(int32_t)(halo::math::random_real_range(actor_tag->guard_position_time[0],
+        actor_tag->guard_position_time[1]) * 30.0f);
     return 0;
 }
 
@@ -1445,7 +1432,7 @@ namespace actor_reseed_movement_pause_timer_local {
 void ActorView::reseed_movement_pause_timer()
 {
     using namespace actor_reseed_movement_pause_timer_local;
-    actor *self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    actor *self = halo::ai::actor_at(actor_index);
     void *definition = halo::ai::actor_get_actor_definition(actor_index);
     uint8_t *entry_a = 0;
     uint8_t *entry_b = 0;
@@ -1457,7 +1444,7 @@ void ActorView::reseed_movement_pause_timer()
     halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     fraction = (float)(int32_t)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
     pause = fraction * (upper - lower) + lower;
-    pause = halo::game::weapon_get_zoom_fov_resolved(0xe, ((struct actor *)self)->team) * pause;
+    pause = halo::game::weapon_get_zoom_fov_resolved(0xe, self->team) * pause;
     if (entry_b != 0 && *(float *)(entry_b + 4) != 0.0f) {
         pause = pause * *(float *)(entry_b + 4);
     }
@@ -1482,7 +1469,7 @@ void ActorOps::reset_perception_scratch(datum_index unit_index)
 {
     using namespace actor_reset_perception_scratch_local;
     uint8_t block[0x40];
-    uint8_t *unit_object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
+    biped_object *unit_object = (biped_object *)halo::ai::object_at(unit_index);
 
     memset(block, 0, sizeof(block));
     block[0] = 1;
@@ -1493,8 +1480,8 @@ void ActorOps::reset_perception_scratch(datum_index unit_index)
     *(int16_t *)(block + 0x8) = -1;
     *(real_vector3d *)(block + 0xc) = *(const real_vector3d *)global_origin3d_pointer;
     halo::units::unit_get_forward_vector_or_marker_normal(unit_index, (real_vector3d *)(block + 0x1c));
-    *(real_vector3d *)(block + 0x28) = *(real_vector3d *)(unit_object + 0x23c);
-    *(real_vector3d *)(block + 0x34) = *(real_vector3d *)(unit_object + 0x260);
+    *(real_vector3d *)(block + 0x28) = *&unit_object->unit.aiming_vector;
+    *(real_vector3d *)(block + 0x34) = *&unit_object->unit.looking_vector;
     halo::units::unit_apply_control_block(unit_index, (const unit_control_data *)block, -1);
     halo::units::unit_refresh_targeting_flag_and_weapons(unit_index, 0);
 }
@@ -1551,8 +1538,8 @@ uint8_t ActorOps::resolve_look_target(real_point3d *preferred_direction, datum_i
     float pitch_center;
     int32_t wait_ticks;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
-    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    self = halo::ai::actor_at(actor_index);
+    definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     out_in_front = 0;
     self->idle_major_active = 0;
 
@@ -1666,18 +1653,18 @@ uint8_t ActorView::scale_value_by_ally_exposure(float *value)
     int16_t alert_count;
     float scale;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     prop_index = self->first_prop;
     exposed_count = 0;
     alert_count = 0;
 
     while (prop_index != k_datum_index_none) {
-        target = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (prop_index & halo::k_slot_mask) * sizeof(prop));
+        target = halo::ai::prop_at(prop_index);
         prop_index = target->next_in_actor;
 
         if (((1 < target->state && target->state < 4) && target->enemy == 0) &&
             (target->actor_type == self->type && target->owner_actor_index != k_datum_index_none)) {
-            ally = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (target->owner_actor_index & halo::k_slot_mask) * sizeof(actor));
+            ally = halo::ai::actor_at(target->owner_actor_index);
 
             if (ally->pending_panic_type < 1 &&
                 (ally->mode != 4 || ally->mode_data.flee.panic < 1)) {
@@ -1730,7 +1717,7 @@ uint8_t ActorView::score_blast_area_clear(float blast_radius, float safety_radiu
     int16_t score;
     prop *p;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     prop_cursor = self->first_prop;
     counted_count = 0;
     clear = 1;
@@ -1745,7 +1732,7 @@ uint8_t ActorView::score_blast_area_clear(float blast_radius, float safety_radiu
                 if (prop_cursor == (datum_index)k_datum_index_none) {
                     goto after_prop_walk;
                 }
-                p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (prop_cursor & halo::k_slot_mask) * sizeof(prop));
+                p = halo::ai::prop_at(prop_cursor);
                 prop_cursor = p->next_in_actor;
                 if (2 <= p->state && p->state <= 3 && p->dead == 0) break;
             }
@@ -1805,10 +1792,10 @@ uint8_t ActorView::score_blast_area_clear(float blast_radius, float safety_radiu
 
 after_prop_walk:
     if (0.0f < blast_radius && self->target_unit_index != (datum_index)k_datum_index_none) {
-        prop *target_prop = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (self->target_unit_index & halo::k_slot_mask) * sizeof(prop));
+        prop *target_prop = halo::ai::prop_at(self->target_unit_index);
         datum_index owner = target_prop->owner_actor_index;
         if (owner != (datum_index)k_datum_index_none) {
-            actor *owner_actor = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (owner & halo::k_slot_mask) * sizeof(actor));
+            actor *owner_actor = halo::ai::actor_at(owner);
             if (owner_actor->encounter_index != (datum_index)k_datum_index_none) {
                 datum_index iterator[3];
                 datum_index cursor;
@@ -1816,7 +1803,7 @@ after_prop_walk:
                 halo::ai::ai_reference_actor_iterator_init_cursor((int32_t)owner_actor->encounter_index, iterator);
                 cursor = iterator[2];
                 while (halo::ai::globals().state->actors_valid != 0 && cursor != (datum_index)k_datum_index_none) {
-                    actor *candidate = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (cursor & halo::k_slot_mask) * sizeof(actor));
+                    actor *candidate = halo::ai::actor_at(cursor);
                     datum_index next = candidate->next_in_encounter;
                     int16_t i;
                     uint8_t already_counted = 0;
@@ -1849,7 +1836,7 @@ after_prop_walk:
         halo::ai::ai_reference_actor_iterator_init_cursor((int32_t)self->encounter_index, iterator);
         cursor = iterator[2];
         while (halo::ai::globals().state->actors_valid != 0 && cursor != (datum_index)k_datum_index_none) {
-            actor *candidate = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (cursor & halo::k_slot_mask) * sizeof(actor));
+            actor *candidate = halo::ai::actor_at(cursor);
             float dx = point->x - candidate->body_position.x;
             float dy = point->y - candidate->body_position.y;
             float dz = point->z - candidate->body_position.z;
@@ -1899,8 +1886,8 @@ uint8_t ActorView::select_facing_target_prop(uint8_t require_trust, uint8_t skip
     uint8_t best_in_front;
     float best_score;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
-    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    self = halo::ai::actor_at(actor_index);
+    definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     now = halo::game::globals().game_time->game_time;
 
     if (self->awareness_level == 3) {
@@ -2003,7 +1990,7 @@ namespace actor_select_stance_offset_pair_local {
 void ActorView::select_stance_offset_pair(uint8_t *base, uint8_t **out_a, uint8_t **out_b)
 {
     using namespace actor_select_stance_offset_pair_local;
-    actor *self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    actor *self = halo::ai::actor_at(actor_index);
 
     *out_a = base + 0xcc;
     if (self->berserking != 0) {
@@ -2038,7 +2025,7 @@ void ActorView::set_combat_alert_flag(uint8_t new_flag)
     datum_index cluster_unit;
     object *cluster_obj;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     if ((char)new_flag == self->berserking) {
         return;
@@ -2047,7 +2034,7 @@ void ActorView::set_combat_alert_flag(uint8_t new_flag)
     self->berserk_announced = 0;
 
     if (self->swarm == 0) {
-        unit_obj = ((object_header *)halo::objects::globals().object_data->data)[self->unit_index & halo::k_slot_mask].data;
+        unit_obj = halo::ai::object_at(self->unit_index);
         if (new_flag == 0) {
             ((unit_data *)((uint8_t *)unit_obj + k_unit_data_offset))->flags &= 0xffffff7f;
         } else {
@@ -2056,8 +2043,8 @@ void ActorView::set_combat_alert_flag(uint8_t new_flag)
     } else {
         cluster_unit = self->cluster_unit_index;
         while (cluster_unit != k_datum_index_none) {
-            cluster_obj = ((object_header *)halo::objects::globals().object_data->data)[cluster_unit & halo::k_slot_mask].data;
-            cluster_obj->vitality_flags |= 0x80;
+            cluster_obj = halo::ai::object_at(cluster_unit);
+            cluster_obj->vitality_flags |= halo::to_bits(halo::objects::vitality_flag::region_response_80);
             cluster_unit = ((unit_data *)((uint8_t *)cluster_obj + k_unit_data_offset))->swarm_next_unit_index;
         }
     }
@@ -2120,10 +2107,10 @@ void TargetView::set_target_alert_stage1(datum_index actor_index)
     actor *self;
 
     if (target_prop_index != k_datum_index_none) {
-        target = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (target_prop_index & halo::k_slot_mask) * sizeof(prop));
+        target = halo::ai::prop_at(target_prop_index);
         target->noticed_a = 1;
 
-        self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+        self = halo::ai::actor_at(actor_index);
         if (target_prop_index == self->target_unit_index) {
             halo::ai::actor_update_target_combat_status(actor_index);
             halo::ai::actor_update_awareness_level(actor_index);
@@ -2147,10 +2134,10 @@ void TargetView::set_target_alert_stage2(datum_index actor_index)
     actor *self;
 
     if (target_prop_index != k_datum_index_none) {
-        target = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (target_prop_index & halo::k_slot_mask) * sizeof(prop));
+        target = halo::ai::prop_at(target_prop_index);
         target->noticed_b = 1;
 
-        self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+        self = halo::ai::actor_at(actor_index);
         if (target_prop_index == self->target_unit_index) {
             halo::ai::actor_update_target_combat_status(actor_index);
             halo::ai::actor_update_awareness_level(actor_index);
@@ -2174,8 +2161,8 @@ void TargetView::set_target_alert_stage3(datum_index actor_index)
     prop *target;
 
     if (target_prop_index == k_datum_index_none) {
-        self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
-        *(int16_t *)&self->pursuit_position_count = 0;
+        self = halo::ai::actor_at(actor_index);
+        self->pursuit_position_count = 0;
         self->target_lost = 0;
         self->unknown_3bd[0] = 0;
         self->minimum_combat_status = 0;
@@ -2184,13 +2171,13 @@ void TargetView::set_target_alert_stage3(datum_index actor_index)
         return;
     }
 
-    target = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (target_prop_index & halo::k_slot_mask) * sizeof(prop));
+    target = halo::ai::prop_at(target_prop_index);
     if (target->state == 4) {
         target->state = 5;
     }
     target->noticed_c = 1;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     if (target_prop_index == self->target_unit_index) {
         halo::ai::actor_update_target_combat_status(actor_index);
         halo::ai::actor_update_awareness_level(actor_index);
@@ -2269,10 +2256,10 @@ namespace actor_should_hold_position_local {
 uint8_t ActorView::should_hold_position(uint8_t *definition)
 {
     using namespace actor_should_hold_position_local;
-    actor *self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    actor *self = halo::ai::actor_at(actor_index);
 
     if (self->firing_target_type == 1) {
-        prop *p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (self->firing_target_prop_index & halo::k_slot_mask) * sizeof(prop));
+        prop *p = halo::ai::prop_at(self->firing_target_prop_index);
         if (3 < p->state && p->state < 6) {
             self->target_lost = 1;
             self->firing_state_timer = 0;
@@ -2343,7 +2330,7 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
     }
 
     {
-        object *source_object = ((object_header *)halo::objects::globals().object_data->data)[source_actor_index & halo::k_slot_mask].data;
+        object *source_object = halo::ai::object_at(source_actor_index);
         unit_data *source_unit = (unit_data *)((uint8_t *)source_object + k_unit_data_offset);
         int16_t encounter_index, squad_index;
 
@@ -2364,7 +2351,7 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
         {
             const uint8_t *variant_tag_data = (const uint8_t *)(halo::cache::globals().tag_instances[actor_variant_tag & halo::k_slot_mask].data);
             const uint32_t *variant = (const uint32_t *)variant_tag_data;
-            const uint8_t *actor_tag_data = (const uint8_t *)(halo::cache::globals().tag_instances[variant[4] & halo::k_slot_mask].data);
+            const Actor *actor_tag_data = halo::ai::tag_data<Actor>(variant[4]);
             int16_t i;
 
             for (i = 0; i < spawn_count; i++) {
@@ -2390,7 +2377,7 @@ int16_t ActorOps::spawn_additional_units(datum_index actor_variant_tag, int16_t 
                     continue;
                 }
                 {
-                    uint8_t *new_obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[new_object & halo::k_slot_mask].data;
+                    uint8_t *new_obj = (uint8_t *)halo::ai::object_at(new_object);
                     char reuse_existing = (char)((*(const uint32_t *)actor_tag_data >> 0x1a) & 1);
                     datum_index new_actor;
 
@@ -2466,13 +2453,13 @@ namespace actor_swarm_for_each_component_local {
  *
  * @address 0x407040
  */
-void ActorView::swarm_for_each_component(char reset_first, actor_swarm_member_callback callback, uint32_t callback_extra, uint16_t *caller_record)
+void ActorView::swarm_for_each_component(char reset_first, actor_swarm_member_callback callback, uint32_t callback_extra, actor_mode_obey_data *obey)
 {
     using namespace actor_swarm_for_each_component_local;
     actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
 
     if (a->swarm == 0) {
-        callback(actor_index, a->unit_index, *caller_record, caller_record + 4, (int32_t)(intptr_t)(caller_record + 0x16), callback_extra);
+        callback(actor_index, a->unit_index, obey->command_list_index, &obey->action, &obey->aim, callback_extra);
         return;
     }
 
@@ -2481,15 +2468,14 @@ void ActorView::swarm_for_each_component(char reset_first, actor_swarm_member_ca
         int16_t i;
 
         for (i = 0; i < sw->component_count; i++) {
-            swarm_component *comp = &((swarm_component *)halo::ai::globals().swarm_component_data->data)[sw->component_index[i] & halo::k_slot_mask];
-            uint8_t *comp_base = (uint8_t *)comp;
+            swarm_component *comp = halo::ai::swarm_component_at(sw->component_index[i]);
 
             if (reset_first != 0) {
-                memset(comp_base + 0x1c, 0, 0x24);
-                *(uint16_t *)&((struct swarm_component *)comp_base)->flags = (*(uint16_t *)&((struct swarm_component *)comp_base)->flags & 0xfffb) | 8;
+                memset(&comp->action, 0, sizeof(comp->action));
+                comp->flags = (uint16_t)((comp->flags & 0xfffb) | 8);
             }
-            if ((comp_base[2] & 8) != 0) {
-                callback(actor_index, sw->unit_index[i], *caller_record, comp_base + 0x1c, 0, callback_extra);
+            if ((comp->flags & 8) != 0) {
+                callback(actor_index, sw->unit_index[i], obey->command_list_index, &comp->action, 0, callback_extra);
             }
         }
     }
@@ -2507,9 +2493,8 @@ void ActorView::swarm_for_each_component_thunk()
 {
     using namespace actor_swarm_for_each_component_thunk_local;
     actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
-    uint16_t *caller_record = (uint16_t *)((uint8_t *)a + 0x9c);
 
-    halo::ai::actor_swarm_for_each_component(actor_index, 0, (actor_swarm_member_callback)halo::ai::actor_obey_member_advance, 0, caller_record);
+    halo::ai::actor_swarm_for_each_component(actor_index, 0, halo::ai::actor_obey_member_advance, 0, &a->mode_data.obey);
 }
 
 namespace actor_take_danger_escape_local {
@@ -2518,8 +2503,7 @@ typedef struct actor_dodge_entry {
     int16_t direction;
     float bias;
 } actor_dodge_entry;
-static auto &actor_dodge_table = halo::link::ref<const actor_dodge_entry []>(halo::ai::vars().actor_dodge_table);
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+extern const actor_dodge_entry actor_dodge_table[];
 }
 
 /**
@@ -2544,7 +2528,7 @@ uint8_t ActorOps::take_danger_escape(real_vector3d *path_delta, datum_index acto
     int16_t best_action = -1;
     int16_t best_direction = -1;
     int32_t i;
-    float payload[2];
+    real_vector2d payload;
     uint8_t queued;
 
     if (act->active_unit_index != k_datum_index_none) {
@@ -2580,20 +2564,19 @@ uint8_t ActorOps::take_danger_escape(real_vector3d *path_delta, datum_index acto
         return 0;
     }
     switch (best_direction) {
-    case 0: payload[0] = b; payload[1] = -a; break;
-    case 1: payload[0] = -b; payload[1] = a; break;
+    case 0: payload.i = b; payload.j = -a; break;
+    case 1: payload.i = -b; payload.j = a; break;
     case 2:
-    case 3: payload[0] = a; payload[1] = b; break;
-    default: payload[0] = 0.0f; payload[1] = 0.0f; break;
+    case 3: payload.i = a; payload.j = b; break;
+    default: payload.i = 0.0f; payload.j = 0.0f; break;
     }
-    queued = halo::ai::actor_queue_secondary_action(actor_index, best_action, (uint32_t *)payload);
+    queued = halo::ai::actor_queue_secondary_action(actor_index, best_action, &payload);
     if (queued) {
         halo::ai::ai_communication_broadcast(0x2c, act->unit_index, -1, -1, -1, -1, 0);
     }
     return queued;
 }
 
-#undef ACTOR
 
 namespace actor_toggle_active_state_local {
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
@@ -2651,19 +2634,19 @@ namespace actor_unlink_prop_local {
 void ActorView::unlink_prop(datum_index prop_to_remove)
 {
     using namespace actor_unlink_prop_local;
-    actor *self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    actor *self = halo::ai::actor_at(actor_index);
     datum_index cur = self->first_prop;
 
     if (cur == prop_to_remove) {
-        prop *removed = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (cur & halo::k_slot_mask) * sizeof(prop));
+        prop *removed = halo::ai::prop_at(cur);
         self->first_prop = removed->next_in_actor;
         return;
     }
 
     for (;;) {
-        prop *p = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (cur & halo::k_slot_mask) * sizeof(prop));
+        prop *p = halo::ai::prop_at(cur);
         if (p->next_in_actor == prop_to_remove) {
-            prop *removed = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (prop_to_remove & halo::k_slot_mask) * sizeof(prop));
+            prop *removed = halo::ai::prop_at(prop_to_remove);
             p->next_in_actor = removed->next_in_actor;
             return;
         }
@@ -2714,10 +2697,8 @@ void ActorView::unlink_unit()
 }
 
 namespace actor_vehicle_not_recently_left_local {
-static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
+extern "C" {
+extern game_time_globals *game_time;
 }
 
 /**
@@ -2733,12 +2714,9 @@ uint8_t ActorView::vehicle_not_recently_left(datum_index vehicle_index)
     if (vehicle_index != act->exited_vehicle_index) {
         return 1;
     }
-    return (uint8_t)(game_time->game_time >= *(int32_t *)&act->exited_vehicle_reentry_time);
+    return (uint8_t)(game_time->game_time >= static_cast<int32_t>(act->exited_vehicle_reentry_time));
 }
 
-#undef ACTOR
-#undef TAG_DATA
-#undef PROP
 
 namespace actor_wants_reload_or_swap_local {
 }

@@ -14,8 +14,11 @@
 namespace halo::ai {
 
 namespace actor_target_evaluate_squad_link_local {
-static auto &object_cluster_stamp = halo::link::ref<int32_t>(halo::physics::vars().object_cluster_stamp);
-#define OBJ(i) ((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(i) & halo::k_slot_mask].data)
+extern "C" {
+extern int32_t object_cluster_stamp;
+extern double halo::libm::sqrt(double x);
+extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
+#define OBJ(i) ((uint8_t *)halo::ai::object_at((i)))
 static void squad_link_add_far(uint8_t *list, datum_index object_index, float distance_squared)
 {
     int16_t count = *(int16_t *)(list + 2);
@@ -30,7 +33,7 @@ static void squad_link_add_far(uint8_t *list, datum_index object_index, float di
     *(float *)(entry + 8) = distance_squared;
     *(int16_t *)(list + 2) = (int16_t)(count + 1);
 }
-static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_index object_index, uint8_t *object,
+static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_index object_index, unit_object *object,
     uint8_t *list_enemy, uint8_t *list_friend)
 {
     real_point3d position;
@@ -38,8 +41,8 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
     real_point3d *block_point = (real_point3d *)&block[3];
     datum_index target = object_index;
     datum_index target_actor_index;
-    uint8_t *unit = object;
-    uint8_t *unit_tag;
+    unit_object *unit = object;
+    Unit *unit_tag;
     actor *target_actor = 0;
     uint8_t controlled;
     uint8_t enemies;
@@ -52,26 +55,26 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
 
     halo::objects::object_get_position(&position, object_index);
     halo::ai::actor_get_firing_positions(actor_index, block, &position);
-    if (*(datum_index *)(object + 0x1f8) != k_datum_index_none) {
-        target_actor_index = *(datum_index *)(object + 0x1f8);
+    if (object->unit.swarm_actor_index != k_datum_index_none) {
+        target_actor_index = object->unit.swarm_actor_index;
         target = halo::ai::object_find_nearest_squad_member(target_actor_index, block, k_datum_index_none, 1);
         if (target == k_datum_index_none) {
             return;
         }
-        unit = OBJ(target);
+        unit = (unit_object *)OBJ(target);
         halo::objects::object_get_position(&position, target);
     } else {
-        target_actor_index = *(datum_index *)(object + 0x1f4);
+        target_actor_index = object->unit.actor_index;
     }
     if (target_actor_index == actor_index) {
         return;
     }
 
-    unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & halo::k_slot_mask].data;
-    controlled = ((unit_object *)unit)->unit.controlling_player != k_datum_index_none;
-    enemies = halo::game::teams_are_enemies(((unit_object *)unit)->base.owner_team, self->team);
-    if ((unit[0x106] & 4) != 0 && ((struct unit_object *)unit)->unit.feign_death_ticks == 0) {
-        int32_t fired = ((struct unit_object *)unit)->unit.death_time;
+    unit_tag = halo::ai::tag_data<Unit>(unit->base.definition_tag);
+    controlled = unit->unit.controlling_player != k_datum_index_none;
+    enemies = halo::game::teams_are_enemies(unit->base.owner_team, self->team);
+    if ((static_cast<uint8_t>(unit->base.vitality_flags) & 4) != 0 && unit->unit.feign_death_ticks == 0) {
+        int32_t fired = unit->unit.death_time;
 
         firing = 1;
         since_fired = fired == -1 ? 0x7fff : (int16_t)((int16_t)halo::game::globals().game_time->game_time - (int16_t)fired);
@@ -79,7 +82,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
         firing = 0;
         since_fired = 0;
     }
-    radius = *(float *)(unit_tag + 0x284);
+    radius = unit_tag->ai_danger_radius;
     {
         float dx = position.x - block_point->x;
         float dy = position.y - block_point->y;
@@ -87,7 +90,7 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
 
         distance_squared = dz * dz + dy * dy + dx * dx;
     }
-    if (radius > 0.0f && (firing || (int8_t)unit[0x2a3] == 0x1e)) {
+    if (radius > 0.0f && (firing || (int8_t)static_cast<uint8_t>(unit->unit.animation_state) == 0x1e)) {
         halo::ai::actor_danger_register_point(actor_index, target, radius, (float)halo::libm::sqrt((double)distance_squared), (char)enemies, 0);
     }
     if (target_actor_index != k_datum_index_none) {
@@ -113,8 +116,8 @@ static void squad_link_evaluate_biped(uint32_t actor_index, actor *self, datum_i
                 uint8_t counts = 1;
                 uint8_t calm;
 
-                if (!(reference > *(int32_t *)&self->found_body_time)) {
-                    reference = *(int32_t *)&self->found_body_time;
+                if (!(reference > static_cast<int32_t>(self->found_body_time))) {
+                    reference = static_cast<int32_t>(self->found_body_time);
                 }
                 if (reference != -1) {
                     int32_t fired = *(int32_t *)(target_unit + 0x41c);
@@ -191,9 +194,9 @@ add:
         }
     }
 }
-static void squad_link_evaluate_projectile(uint32_t actor_index, actor *self, datum_index object_index, uint8_t *object)
+static void squad_link_evaluate_projectile(uint32_t actor_index, actor *self, datum_index object_index, projectile_object *object)
 {
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & halo::k_slot_mask].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[object->base.definition_tag & halo::k_slot_mask].data;
     float radius = *(float *)(tag + 0x1a8);
     real_point3d position;
     uint32_t block[14];
@@ -205,7 +208,7 @@ static void squad_link_evaluate_projectile(uint32_t actor_index, actor *self, da
     if (!(radius > 0.0f)) {
         return;
     }
-    if (((struct object *)object)->parent_object != k_datum_index_none && (object[0x22c] & 0x20) == 0) {
+    if (((struct object *)object)->parent_object != k_datum_index_none && (static_cast<uint8_t>(object->projectile.flags) & 0x20) == 0) {
         return;
     }
     halo::objects::object_get_position(&position, object_index);
@@ -263,7 +266,7 @@ void ActorView::target_evaluate_squad_link(datum_index object_index, int16_t *ca
     actor *self = halo::ai::actor_at(actor_index);
 
     while (object_index != k_datum_index_none) {
-        uint8_t *object = OBJ(object_index);
+        unit_object *object = (unit_object *)OBJ(object_index);
 
         if (((struct object *)object)->cluster_stamp != halo::physics::globals().object_cluster_stamp) {
             ((struct object *)object)->cluster_stamp = halo::physics::globals().object_cluster_stamp;
@@ -273,12 +276,12 @@ void ActorView::target_evaluate_squad_link(datum_index object_index, int16_t *ca
                     (uint8_t *)candidates_b);
                 break;
             case 1:
-                if (*(datum_index *)(object + 0x324) == k_datum_index_none) {
+                if (object->unit.driver_unit_index == k_datum_index_none) {
                     halo::ai::actor_danger_register_stationary_object(0, actor_index, object_index, 0);
                 }
                 break;
             case 5:
-                squad_link_evaluate_projectile(actor_index, self, object_index, object);
+                squad_link_evaluate_projectile(actor_index, self, object_index, reinterpret_cast<projectile_object *>(object));
                 break;
             default:
                 break;

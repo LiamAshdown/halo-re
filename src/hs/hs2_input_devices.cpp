@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs2_commands.hpp"
 #include "halo/input/api.hpp"
 #include "halo/hs/api.hpp"
@@ -28,11 +29,11 @@ void InputDeviceCommands::evaluate_input_activate_joy(int16_t function_index, ui
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-    int32_t joystick = *(int16_t *)&arguments[0];
-    int32_t player = *(int16_t *)&arguments[1];
+    int32_t joystick = halo::hs::argument_short(arguments[0]);
+    int32_t player = halo::hs::argument_short(arguments[1]);
     uint8_t bound = 0;
 
     if (joystick < input_device_count && *(int32_t *)(input_device_to_slot + joystick * 0x240) == -1 &&
@@ -55,10 +56,10 @@ void InputDeviceCommands::evaluate_input_find_default(int16_t function_index, ui
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-        halo::input::test_input_device_defaults_find((char *)arguments[0]);
+        halo::input::test_input_device_defaults_find(halo::hs::argument_string(arguments[0]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -73,7 +74,7 @@ void InputDeviceCommands::evaluate_input_find_joystick(int16_t function_index, u
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::hs::hs_thread_return((int32_t)(uint16_t)(-1), thread_index);
@@ -101,7 +102,7 @@ void InputDeviceCommands::evaluate_input_is_joy_active(int16_t function_index, u
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         int32_t device = (int16_t)arguments[0];

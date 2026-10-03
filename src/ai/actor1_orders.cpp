@@ -1,3 +1,4 @@
+#include "halo/core/bit_cast.hpp"
 #include "halo/ai/actor_orders.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -14,11 +15,6 @@
 #include "halo/ai/vars.hpp"
 
 namespace c_actor_build_guard_mode_data {
-#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
 
 }
 
@@ -78,11 +74,6 @@ uint8_t actor_build_guard_mode_data(datum_index actor_index, uint8_t *out)
 }
 }
 
-#undef ACTOR
-#undef B
-#undef D
-#undef F
-#undef W
 
 namespace c_actor_build_order_default {
 }
@@ -157,10 +148,10 @@ uint32_t halo::ai::order_builder::face_seat_marker(int16_t firing_position_index
 
         *(int16_t *)((uint8_t *)order + 0xa) = firing_position_index;
         *(int16_t *)(order + 2) = 1;
-        order[5] = *(uint32_t *)&fp->position.x;
-        order[6] = *(uint32_t *)&fp->position.y;
-        order[7] = *(uint32_t *)&fp->position.z;
-        order[4] = *(uint32_t *)&fp->surface_index;
+        order[5] = halo::bit_cast<uint32_t>(fp->position.x);
+        order[6] = halo::bit_cast<uint32_t>(fp->position.y);
+        order[7] = halo::bit_cast<uint32_t>(fp->position.z);
+        order[4] = fp->surface_index;
         *(uint16_t *)(order + 3) = fp->cluster_index;
         *((uint8_t *)(order + 8)) = 0;
         *((uint8_t *)order + 3) = 1;
@@ -208,10 +199,10 @@ uint32_t halo::ai::order_builder::face_seat_marker_committed(int16_t firing_posi
         *((uint8_t *)order + 4) = byte_a;
         *(int16_t *)((uint8_t *)order + 0xa) = firing_position_index;
         *(int16_t *)(order + 2) = 1;
-        order[5] = *(uint32_t *)&fp->position.x;
-        order[6] = *(uint32_t *)&fp->position.y;
-        order[7] = *(uint32_t *)&fp->position.z;
-        order[4] = *(uint32_t *)&fp->surface_index;
+        order[5] = halo::bit_cast<uint32_t>(fp->position.x);
+        order[6] = halo::bit_cast<uint32_t>(fp->position.y);
+        order[7] = halo::bit_cast<uint32_t>(fp->position.z);
+        order[4] = fp->surface_index;
         *(uint16_t *)(order + 3) = fp->cluster_index;
         a->search_firing_positions = 1;
         return 1;
@@ -310,7 +301,7 @@ int32_t halo::ai::order_builder::grenade_or_melee(uint32_t resolved_target, uint
         }
     }
     if (a->swarm == 0) {
-        halo::ai::actor_check_melee_target_reachable(actor_index, (int16_t *)order);
+        halo::ai::actor_check_melee_target_reachable(actor_index, reinterpret_cast<actor_mode_flee_data *>(order));
         if (order[4] != halo::k_word_none) {
             return 1;
         }
@@ -394,7 +385,7 @@ uint8_t halo::ai::order_builder::investigate_encounter_point(uint32_t vehicle_in
 {
     using namespace c_actor_build_order_investigate_encounter_point;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *vehicle;
+    object *vehicle;
     real_point3d entry;
     real_vector3d direction;
     real_point3d hint;
@@ -403,8 +394,8 @@ uint8_t halo::ai::order_builder::investigate_encounter_point(uint32_t vehicle_in
     if (act->active_unit_index != k_datum_index_none || act->swarm != 0) {
         return 0;
     }
-    vehicle = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[vehicle_index & halo::k_slot_mask].data;
-    if (((vehicle_object *)vehicle)->base.up.k < 0.5f || (vehicle[0x106] & 4) != 0) {
+    vehicle = (object *)halo::ai::object_at(vehicle_index);
+    if (((vehicle_object *)vehicle)->base.up.k < 0.5f || (static_cast<uint8_t>(vehicle->vitality_flags) & 4) != 0) {
         return 0;
     }
     *(datum_index *)(order + 0x0) = vehicle_index;
@@ -476,7 +467,7 @@ int32_t halo::ai::order_builder::look(actor_order *order, actor_look_request *re
     o[0x0a] = need_random_duration ? 0 : 1;
 
     if (need_random_duration) {
-        Actor *actor_def = (Actor *)halo::cache::globals().tag_instances[a->actor_definition_tag & halo::k_slot_mask].data;
+        Actor *actor_def = halo::ai::tag_data<Actor>(a->actor_definition_tag);
         float min, max;
 
         if (o[0x09] == 0) {
@@ -757,10 +748,10 @@ int32_t halo::ai::order_builder::search_wait(actor_order *order)
 
         halo::ai::actor_target_get_relationship_object(a->post_combat_prop_index);
         *(int16_t *)((uint8_t *)order + 0x24) = 2;
-        *(float *)((uint8_t *)order + 0x28) = ((struct prop *)p)->pathfinding_point.x;
-        *(float *)((uint8_t *)order + 0x2c) = ((struct prop *)p)->pathfinding_point.y;
-        *(float *)((uint8_t *)order + 0x30) = ((struct prop *)p)->pathfinding_point.z;
-        *(int32_t *)((uint8_t *)order + 0x34) = ((struct prop *)p)->pathfinding_surface_index;
+        *(float *)((uint8_t *)order + 0x28) = p->pathfinding_point.x;
+        *(float *)((uint8_t *)order + 0x2c) = p->pathfinding_point.y;
+        *(float *)((uint8_t *)order + 0x30) = p->pathfinding_point.z;
+        *(int32_t *)((uint8_t *)order + 0x34) = p->pathfinding_surface_index;
     }
     return 1;
 }
@@ -834,15 +825,15 @@ void halo::ai::order_builder::build_path_find_request(path_find_request *request
     uint32_t *clear;
     int32_t i;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     unit_index = self->unit_index;
-    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    actor_definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     radius = actor_definition->pathfinding_radius;
 
     if (self->vehicle_driving_type > 0) {
         unit_index = self->active_unit_index;
-        unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
-        vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
+        unit_object = halo::ai::object_at(unit_index);
+        vehicle_definition = halo::ai::tag_data<Vehicle>(unit_object->definition_tag);
         if (vehicle_definition->ai_pathfinding_radius > 0.0f) {
             radius = vehicle_definition->ai_pathfinding_radius;
         }

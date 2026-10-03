@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs3_machine.hpp"
 #include "crt.h"
 #include <string.h>
@@ -24,7 +25,7 @@ int16_t FunctionTable::find_function_by_name(char *name) const
 
     strcpy(alias, "player_effect_set_max_rumble");
     if (_stricmp(name, alias) == 0) {
-        name = (char *)"player_effect_set_max_vibrate";
+        name = const_cast<char *>("player_effect_set_max_vibrate");
     }
     for (index = 0; index < k_hs_function_count; index++) {
         if (_stricmp(halo::hs::globals().function_definitions[index]->name, name) == 0) {
@@ -77,12 +78,12 @@ char FunctionTable::get_parameter_indices(char *function_name, int16_t required_
     char success;
 
     nodes = halo::hs::globals().syntax_data;
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
-    child = ((hs_syntax_node *)((uint8_t *)nodes->data + (node->data.first_child & halo::k_slot_mask) * nodes->size))->next_node;
+    node = halo::hs::syntax_node_at(node_index);
+    child = (halo::hs::syntax_node_at(node->data.first_child))->next_node;
     success = 1;
     for (count = 0; (child != k_datum_index_none) && (count < required_count); count = count + 1) {
         out_indices[count] = child;
-        child = ((hs_syntax_node *)((uint8_t *)nodes->data + (child & halo::k_slot_mask) * nodes->size))->next_node;
+        child = (halo::hs::syntax_node_at(child))->next_node;
     }
     if ((count != required_count) || (child != k_datum_index_none)) {
         sprintf(halo::hs::globals().compile_error_buffer, "the %s call requires %d arguments.", function_name, (int)required_count);

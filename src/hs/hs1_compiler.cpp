@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs1_compiler.hpp"
 #include "halo/text/api.hpp"
 #include <string.h>
@@ -44,23 +45,23 @@ char ScriptCompiler::add_global(datum_index node_index)
     hs_global_reference existing;
 
     nodes = halo::hs::globals().syntax_data;
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
+    node = halo::hs::syntax_node_at(node_index);
     identifier_index = node->data.first_child;
     if (identifier_index != k_datum_index_none) {
-        identifier_node = (hs_syntax_node *)((uint8_t *)nodes->data + (identifier_index & halo::k_slot_mask) * nodes->size);
+        identifier_node = halo::hs::syntax_node_at(identifier_index);
         type_index = identifier_node->next_node;
         if (type_index != k_datum_index_none) {
-            type_node = (hs_syntax_node *)((uint8_t *)nodes->data + (type_index & halo::k_slot_mask) * nodes->size);
+            type_node = halo::hs::syntax_node_at(type_index);
             name_index = type_node->next_node;
             if (name_index != k_datum_index_none) {
-                name_node = (hs_syntax_node *)((uint8_t *)nodes->data + (name_index & halo::k_slot_mask) * nodes->size);
+                name_node = halo::hs::syntax_node_at(name_index);
                 value_index = name_node->next_node;
                 if (value_index != k_datum_index_none) {
-                    value_node = (hs_syntax_node *)((uint8_t *)nodes->data + (value_index & halo::k_slot_mask) * nodes->size);
+                    value_node = halo::hs::syntax_node_at(value_index);
                     if (value_node->next_node == k_datum_index_none) {
                         type_ordinal = halo::text::string_codec::table_index_of(halo::hs::globals().compiled_source + type_node->source_offset, k_hs_type_count, (const char **)halo::hs::globals().type_names);
                         if ((type_ordinal < 4) || (0x30 < type_ordinal)) {
-                            halo::hs::globals().compile_error = (char *)"this is not a valid type.";
+                            halo::hs::globals().compile_error = const_cast<char *>("this is not a valid type.");
                             halo::hs::globals().compile_error_offset = type_node->source_offset;
                             return 0;
                         }
@@ -72,18 +73,18 @@ char ScriptCompiler::add_global(datum_index node_index)
                                 halo::hs::globals().blocking_forbidden = 1;
                                 halo::hs::globals().set_forbidden = 1;
                                 if (halo::hs::hs_parse(value_index, type_ordinal) != 0) {
-                                    halo::hs::globals().compile_error = (char *)"i couldn't allocate space for this global.";
+                                    halo::hs::globals().compile_error = const_cast<char *>("i couldn't allocate space for this global.");
                                     halo::hs::globals().compile_error_offset = node->source_offset;
                                 }
                                 halo::hs::globals().blocking_forbidden = 0;
                                 halo::hs::globals().set_forbidden = 0;
                                 return 0;
                             }
-                            halo::hs::globals().compile_error = (char *)"there is already a variable by this name.";
+                            halo::hs::globals().compile_error = const_cast<char *>("there is already a variable by this name.");
                             halo::hs::globals().compile_error_offset = name_node->source_offset;
                             return 0;
                         }
-                        halo::hs::globals().compile_error = (char *)"i expected a global variable name less than 32 characters.";
+                        halo::hs::globals().compile_error = const_cast<char *>("i expected a global variable name less than 32 characters.");
                         halo::hs::globals().compile_error_offset = name_node->source_offset;
                         return 0;
                     }
@@ -91,7 +92,7 @@ char ScriptCompiler::add_global(datum_index node_index)
             }
         }
     }
-    halo::hs::globals().compile_error = (char *)"i expected (global<type> <name> <initial value>)";
+    halo::hs::globals().compile_error = const_cast<char *>("i expected (global<type> <name> <initial value>)");
     halo::hs::globals().compile_error_offset = node->source_offset;
     return 0;
 }
@@ -127,17 +128,17 @@ char ScriptCompiler::add_script(datum_index node_index)
     char *dest;
 
     nodes = halo::hs::globals().syntax_data;
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
+    node = halo::hs::syntax_node_at(node_index);
     type_index = node->data.first_child;
     if (type_index == k_datum_index_none) {
-        halo::hs::globals().compile_error = (char *)"i expected (script <type> <name> <expression(s)>)";
+        halo::hs::globals().compile_error = const_cast<char *>("i expected (script <type> <name> <expression(s)>)");
         halo::hs::globals().compile_error_offset = node->source_offset;
         return 0;
     }
-    type_node = (hs_syntax_node *)((uint8_t *)nodes->data + (type_index & halo::k_slot_mask) * nodes->size);
+    type_node = halo::hs::syntax_node_at(type_index);
     script_type = halo::text::string_codec::table_index_of(halo::hs::globals().compiled_source + type_node->source_offset, k_hs_script_type_count, (const char **)halo::hs::globals().script_type_names);
     if (script_type == -1) {
-        halo::hs::globals().compile_error = (char *)"script type must be \"startup\", \"dormant\", \"continuous\", or \"static\".";
+        halo::hs::globals().compile_error = const_cast<char *>("script type must be \"startup\", \"dormant\", \"continuous\", or \"static\".");
         halo::hs::globals().compile_error_offset = type_node->source_offset;
         return 0;
     }
@@ -145,15 +146,15 @@ char ScriptCompiler::add_script(datum_index node_index)
     if ((script_type == _hs_script_static) || (script_type == _hs_script_stub)) {
         return_type_index = type_node->next_node;
         if (return_type_index == k_datum_index_none) {
-            halo::hs::globals().compile_error = (char *)"i expected (script local <type> <name> <expression(s)>).";
+            halo::hs::globals().compile_error = const_cast<char *>("i expected (script local <type> <name> <expression(s)>).");
             halo::hs::globals().compile_error_offset = node->source_offset;
             return 0;
         }
-        return_type_node = (hs_syntax_node *)((uint8_t *)nodes->data + (return_type_index & halo::k_slot_mask) * nodes->size);
+        return_type_node = halo::hs::syntax_node_at(return_type_index);
         return_type = halo::text::string_codec::table_index_of(halo::hs::globals().compiled_source + return_type_node->source_offset, k_hs_type_count, (const char **)halo::hs::globals().type_names);
         name_index = return_type_node->next_node;
         if ((return_type < 4) || (0x30 < return_type)) {
-            halo::hs::globals().compile_error = (char *)"this is not a valid return type.";
+            halo::hs::globals().compile_error = const_cast<char *>("this is not a valid return type.");
             halo::hs::globals().compile_error_offset = return_type_node->source_offset;
             return 0;
         }
@@ -163,7 +164,7 @@ char ScriptCompiler::add_script(datum_index node_index)
     }
 
     if (name_index != k_datum_index_none) {
-        name_node = (hs_syntax_node *)((uint8_t *)nodes->data + (name_index & halo::k_slot_mask) * nodes->size);
+        name_node = halo::hs::syntax_node_at(name_index);
         body_index = name_node->next_node;
         if (body_index != k_datum_index_none) {
             name_text = halo::hs::globals().compiled_source + name_node->source_offset;
@@ -171,7 +172,7 @@ char ScriptCompiler::add_script(datum_index node_index)
             if ((name_length != 0) && (name_length < 0x20)) {
                 existing_index = halo::hs::hs_script_find_by_name(name_text);
                 if (existing_index == -1) {
-                    halo::hs::globals().compile_error = (char *)"i couldn't allocate a script.";
+                    halo::hs::globals().compile_error = const_cast<char *>("i couldn't allocate a script.");
                     halo::hs::globals().compile_error_offset = node->source_offset;
                     return 0;
                 }
@@ -182,12 +183,12 @@ char ScriptCompiler::add_script(datum_index node_index)
                     new_root = halo::memory::datum_new(nodes);
                     new_body_holder = halo::memory::datum_new(nodes);
                     if ((new_root == k_datum_index_none) || (new_body_holder == k_datum_index_none)) {
-                        halo::hs::globals().compile_error = (char *)"i couldn't allocate a syntax node.";
+                        halo::hs::globals().compile_error = const_cast<char *>("i couldn't allocate a syntax node.");
                         return 0;
                     }
                     nodes = halo::hs::globals().syntax_data;
-                    new_root_node = (hs_syntax_node *)((uint8_t *)nodes->data + (new_root & halo::k_slot_mask) * nodes->size);
-                    new_body_holder_node = (hs_syntax_node *)((uint8_t *)nodes->data + (new_body_holder & halo::k_slot_mask) * nodes->size);
+                    new_root_node = halo::hs::syntax_node_at(new_root);
+                    new_body_holder_node = halo::hs::syntax_node_at(new_body_holder);
 
                     new_root_node->data.first_child = new_body_holder;
                     new_root_node->next_node = k_datum_index_none;
@@ -216,22 +217,22 @@ char ScriptCompiler::add_script(datum_index node_index)
                     (script_type == _hs_script_stub)) {
                     return 1;
                 }
-                halo::hs::globals().compile_error = (char *)"only static scripts of the same type can override stub scripts.";
+                halo::hs::globals().compile_error = const_cast<char *>("only static scripts of the same type can override stub scripts.");
                 halo::hs::globals().compile_error_offset = node->source_offset;
                 return 0;
             }
-            halo::hs::globals().compile_error = (char *)"i expected a script name less than 32 characters.";
+            halo::hs::globals().compile_error = const_cast<char *>("i expected a script name less than 32 characters.");
             halo::hs::globals().compile_error_offset = name_node->source_offset;
             return 0;
         }
     }
 
     if (script_type == _hs_script_static) {
-        halo::hs::globals().compile_error = (char *)"i expected (script static <type> <name> <expression(s)>)";
+        halo::hs::globals().compile_error = const_cast<char *>("i expected (script static <type> <name> <expression(s)>)");
     } else if (script_type == _hs_script_stub) {
-        halo::hs::globals().compile_error = (char *)"i expected (script stub <type> <name> <expression(s)>)";
+        halo::hs::globals().compile_error = const_cast<char *>("i expected (script stub <type> <name> <expression(s)>)");
     } else {
-        halo::hs::globals().compile_error = (char *)"i expected (script <type> <name> <expression(s)>)";
+        halo::hs::globals().compile_error = const_cast<char *>("i expected (script <type> <name> <expression(s)>)");
     }
     halo::hs::globals().compile_error_offset = node->source_offset;
     return 0;
@@ -254,7 +255,7 @@ void ScriptCompiler::compile(int32_t source_length, char *source_text, char **er
 
     cursor = halo::hs::hs_source_buffer_append(source_text, (uint32_t)source_length);
     if (cursor == 0) {
-        *error_message = (char *)"couldn't allocate memory for compiled source.";
+        *error_message = const_cast<char *>("couldn't allocate memory for compiled source.");
         return;
     }
     halo::hs::globals().compile_error = 0;
@@ -274,7 +275,7 @@ void ScriptCompiler::compile(int32_t source_length, char *source_text, char **er
         if (halo::hs::globals().compile_error != 0) {
             break;
         }
-        node = (hs_syntax_node *)((uint8_t *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask) * halo::hs::globals().syntax_data->size);
+        node = halo::hs::syntax_node_at(node_index);
         success = 1;
         if (node->type == 0) {
             node->type = _hs_type_special_form;
@@ -357,11 +358,11 @@ char ScriptCompiler::compile_and_evaluate(char *command)
             }
         }
         if (mode == 1) {
-            format = (char *)"(%s)";
+            format = const_cast<char *>("(%s)");
             sprintf(formatted, format, buffer);
             command = formatted;
         } else if (mode == 2) {
-            format = (char *)"(set %s)";
+            format = const_cast<char *>("(set %s)");
             sprintf(formatted, format, buffer);
             command = formatted;
         }
@@ -463,9 +464,9 @@ datum_index ScriptCompiler::compile_expression(char *text, uint32_t length, char
                 inspect_index = halo::memory::datum_new(halo::hs::globals().syntax_data);
                 if ((wrap_index != k_datum_index_none) && (inspect_index != k_datum_index_none)) {
                     nodes = halo::hs::globals().syntax_data;
-                    expr_node = (hs_syntax_node *)((uint8_t *)nodes->data + (expr_index & halo::k_slot_mask) * nodes->size);
-                    wrap_node = (hs_syntax_node *)((uint8_t *)nodes->data + (wrap_index & halo::k_slot_mask) * nodes->size);
-                    inspect_node = (hs_syntax_node *)((uint8_t *)nodes->data + (inspect_index & halo::k_slot_mask) * nodes->size);
+                    expr_node = halo::hs::syntax_node_at(expr_index);
+                    wrap_node = halo::hs::syntax_node_at(wrap_index);
+                    inspect_node = halo::hs::syntax_node_at(inspect_index);
 
                     wrap_node->data.first_child = inspect_index;
                     wrap_node->next_node = k_datum_index_none;
@@ -536,12 +537,12 @@ char ScriptCompiler::compile_postprocess(char **error_message, int32_t *error_of
             }
             break;
         }
-        node = (hs_syntax_node *)((uint8_t *)nodes->data + (current & halo::k_slot_mask) * nodes->size);
+        node = halo::hs::syntax_node_at(current);
         node_type = node->type;
 
         if ((node_type < 4) || (0x30 < node_type)) {
             if (node_type != 2) {
-                halo::hs::globals().compile_error = (char *)"missing type (you need to recompile scripts.)";
+                halo::hs::globals().compile_error = const_cast<char *>("missing type (you need to recompile scripts.)");
                 goto fail;
             }
             goto advance;
@@ -557,16 +558,16 @@ char ScriptCompiler::compile_postprocess(char **error_message, int32_t *error_of
                     node_type = *(int16_t *)(stale_script_pointer + 0x22);
                     goto resolved;
                 }
-                halo::hs::globals().compile_error = (char *)"bad script index (you need to recompile.)";
+                halo::hs::globals().compile_error = const_cast<char *>("bad script index (you need to recompile.)");
                 goto fail;
             }
             if (node->data.first_child == k_datum_index_none) {
-                halo::hs::globals().compile_error = (char *)"corrupt syntax tree (you need to recompile scripts.)";
+                halo::hs::globals().compile_error = const_cast<char *>("corrupt syntax tree (you need to recompile scripts.)");
                 goto fail;
             }
-            function_name_node = (hs_syntax_node *)((uint8_t *)nodes->data + (node->data.first_child & halo::k_slot_mask) * nodes->size);
+            function_name_node = halo::hs::syntax_node_at(node->data.first_child);
             if (function_name_node->type != 2) {
-                halo::hs::globals().compile_error = (char *)"corrupt syntax tree (you need to recompile scripts.)";
+                halo::hs::globals().compile_error = const_cast<char *>("corrupt syntax tree (you need to recompile scripts.)");
                 goto fail;
             }
             valid_offset = halo::hs::hs_verify_source_offset(function_name_node->source_offset);
@@ -576,7 +577,7 @@ char ScriptCompiler::compile_postprocess(char **error_message, int32_t *error_of
             function_index = halo::hs::hs_find_function_by_name(halo::hs::globals().compiled_source + function_name_node->source_offset);
             nodes = halo::hs::globals().syntax_data;
             if (function_index == -1) {
-                halo::hs::globals().compile_error = (char *)"missing function (you need to recompile scripts.)";
+                halo::hs::globals().compile_error = const_cast<char *>("missing function (you need to recompile scripts.)");
                 goto fail;
             }
             node->index_union = function_index;
@@ -589,7 +590,7 @@ char ScriptCompiler::compile_postprocess(char **error_message, int32_t *error_of
         }
         valid_offset = 1;
         if ((node->source_offset < 0) || (halo::hs::globals().compiled_source_length <= node->source_offset)) {
-            halo::hs::globals().compile_error = (char *)"bad source offset (you need to recompile.)";
+            halo::hs::globals().compile_error = const_cast<char *>("bad source offset (you need to recompile.)");
             valid_offset = 0;
         }
         success = 0;
@@ -614,7 +615,7 @@ char ScriptCompiler::compile_postprocess(char **error_message, int32_t *error_of
         if (success != 0) {
             if ((((node_type < 4) || (0x30 < node_type)) && (node_type != 3)) ||
                 ((success = halo::hs::hs_types_are_compatible(node->type, node_type)), success == 0)) {
-                halo::hs::globals().compile_error = (char *)"type is inconsistent with usage (you need to recompile scripts.)";
+                halo::hs::globals().compile_error = const_cast<char *>("type is inconsistent with usage (you need to recompile scripts.)");
                 goto fail;
             }
             success = 1;

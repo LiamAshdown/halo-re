@@ -8,6 +8,7 @@
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/ai/records.hpp"
 #include "halo/scenario/scenario.hpp"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
@@ -152,7 +153,7 @@ datum_index halo::ai::combat_ops::get_threat_weapon_object_index()
     datum_index result = (datum_index)k_datum_index_none;
 
     if (self->vehicle_gunner != 0 && self->active_unit_index != (datum_index)k_datum_index_none) {
-        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
+        object *unit_object = halo::ai::object_at(self->active_unit_index);
         int16_t slot = *(int16_t *)((uint8_t *)unit_object + 0x2f2);
 
         result = (datum_index)k_datum_index_none;
@@ -168,7 +169,7 @@ datum_index halo::ai::combat_ops::get_threat_weapon_object_index()
         uint8_t *variant_tag = (uint8_t *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
         if ((*variant_tag & 0x40) == 0) {
 
-            object *own_unit = ((object_header *)halo::objects::globals().object_data->data)[self->unit_index & halo::k_slot_mask].data;
+            object *own_unit = halo::ai::object_at(self->unit_index);
             return halo::units::unit_get_weapon_object_index(self->unit_index, *(int16_t *)((uint8_t *)own_unit + 0x2f2));
         }
     }
@@ -200,7 +201,7 @@ uint8_t halo::ai::combat_ops::has_unshielded_threat_weapon()
     uint8_t has_weapon = halo::ai::actor_get_threat_weapon_object_index(actor_index) != (datum_index)k_datum_index_none;
 
     if (has_weapon && self->unit_index != (datum_index)k_datum_index_none) {
-        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->unit_index & halo::k_slot_mask].data;
+        object *unit_object = halo::ai::object_at(self->unit_index);
         if ((*((uint8_t *)unit_object + 0x107) & 1) != 0) {
             has_weapon = 0;
         }

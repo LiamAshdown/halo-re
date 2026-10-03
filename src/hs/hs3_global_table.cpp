@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs3_machine.hpp"
 #include "crt.h"
 #include "halo/cache/api.hpp"
@@ -100,9 +101,9 @@ int32_t GlobalTable::get_value(hs_global_reference reference) const
     halo::hs::hs_global_read_value(reference);
     index = reference & k_hs_global_index_mask;
     if ((reference & k_hs_global_builtin_bit) != 0) {
-        slot = (hs_global *)((uint8_t *)halo::hs::globals().globals_data->data + index * 8);
+        slot = halo::hs::global_slot(index);
     } else {
-        slot = (hs_global *)((uint8_t *)halo::hs::globals().globals_data->data + (index + k_hs_builtin_global_count) * 8);
+        slot = halo::hs::global_slot(index + k_hs_builtin_global_count);
     }
     return slot->value.long_value;
 }
@@ -124,8 +125,7 @@ void GlobalTable::read_value(hs_global_reference reference) const
     }
 
     definition = halo::hs::globals().global_definitions[reference & k_hs_global_index_mask];
-    slot = (hs_global *)((uint8_t *)halo::hs::globals().globals_data->data +
-        (reference & k_hs_global_index_mask) * 8);
+    slot = halo::hs::global_slot(reference & k_hs_global_index_mask);
 
     switch (definition->type) {
     case _hs_type_boolean:
@@ -175,8 +175,7 @@ void GlobalTable::write_value(hs_global_reference reference) const
     }
 
     definition = halo::hs::globals().global_definitions[reference & k_hs_global_index_mask];
-    slot = (hs_global *)((uint8_t *)halo::hs::globals().globals_data->data +
-        (reference & k_hs_global_index_mask) * 8);
+    slot = halo::hs::global_slot(reference & k_hs_global_index_mask);
 
     switch (definition->type) {
     case _hs_type_boolean:

@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs1_runtime.hpp"
 #include <stdio.h>
 #include <string.h>
@@ -23,7 +24,7 @@ void ScriptRuntime::allocate_script_node_table(void)
 
     scenario = (halo::scenario::globals().scenario_index != k_datum_index_none) ? halo::scenario::globals().scenario : 0;
     if ((scenario == 0) || (scenario->script_syntax_data.size != k_hs_syntax_node_table_size)) {
-        halo::hs::globals().syntax_data = halo::memory::data_new(sizeof(hs_syntax_node), (char *)"script node", k_hs_syntax_node_maximum_count);
+        halo::hs::globals().syntax_data = halo::memory::data_new(sizeof(hs_syntax_node), const_cast<char *>("script node"), k_hs_syntax_node_maximum_count);
         if (halo::hs::globals().syntax_data != 0) {
             halo::hs::globals().syntax_data->valid = 1;
             halo::memory::data_delete_all(halo::hs::globals().syntax_data);
@@ -71,8 +72,7 @@ void ScriptRuntime::dispose_dynamic_globals(void)
         int16_t slot;
         for (slot = k_hs_builtin_global_count; slot < halo::hs::globals().globals_data->last_index; slot++) {
             if (slot != k_datum_index_none && -1 < slot && slot < halo::hs::globals().globals_data->maximum_count) {
-                hs_global *element = (hs_global *)((uint8_t *)halo::hs::globals().globals_data->data +
-                    halo::hs::globals().globals_data->size * slot);
+                hs_global *element = halo::hs::global_slot(slot);
                 if (element->identifier != 0 && (-1 < slot || element->identifier == (slot >> 0xf))) {
                     halo::memory::datum_delete(halo::hs::globals().globals_data, (datum_index)slot);
                 }

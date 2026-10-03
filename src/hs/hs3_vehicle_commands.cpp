@@ -1,3 +1,5 @@
+#include "halo/hs/records.hpp"
+#include "halo/ai/records.hpp"
 #include "halo/hs/hs3_commands.hpp"
 #include "units.h"
 #include "halo/core/datum.hpp"
@@ -19,12 +21,12 @@ void VehicleCommands::evaluate_vehicle_driver(int16_t function_index, uint32_t t
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         uint8_t *unit = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 3);
 
-        halo::hs::hs_thread_return(unit != 0 ? *(int32_t *)&((unit_object *)unit)->unit.driver_unit_index : -1, thread_index);
+        halo::hs::hs_thread_return(unit != 0 ? static_cast<int32_t>(((struct unit_object *)unit)->unit.driver_unit_index) : -1, thread_index);
     }
 }
 
@@ -38,14 +40,14 @@ void VehicleCommands::evaluate_vehicle_hover(int16_t function_index, uint32_t th
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         datum_index vehicle = (datum_index)arguments[0];
-        uint8_t hover = *(uint8_t *)&arguments[1];
+        uint8_t hover = halo::hs::argument_byte(arguments[1]);
 
         if (vehicle != k_datum_index_none) {
-            uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[vehicle & halo::k_slot_mask].data;
+            uint8_t *obj = (uint8_t *)halo::ai::object_at(vehicle);
 
             if (hover != 0) {
                 halo::objects::object_get_position((real_point3d *)(obj + 0x4fc), vehicle);
@@ -67,11 +69,11 @@ void VehicleCommands::evaluate_vehicle_load_magic(int16_t function_index, uint32
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
     halo::hs::hs_thread_return((int32_t)(uint16_t)halo::units::unit_seat_candidates_from_zone_and_enter((uint32_t)arguments[0],
-        (char *)arguments[1], (uint32_t)arguments[2]), thread_index);
+        halo::hs::argument_string(arguments[1]), (uint32_t)arguments[2]), thread_index);
     }
 }
 
@@ -85,7 +87,7 @@ void VehicleCommands::evaluate_vehicle_riders(int16_t function_index, uint32_t t
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         datum_index list = halo::units::unit_build_seat_occupant_zone_list((uint32_t)arguments[0]);
@@ -103,10 +105,10 @@ void VehicleCommands::evaluate_vehicle_test_seat_list(int16_t function_index, ui
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-        uint8_t result = halo::units::unit_named_seat_occupant_in_zone((uint32_t)arguments[0], (char *)arguments[1], (uint32_t)arguments[2]);
+        uint8_t result = halo::units::unit_named_seat_occupant_in_zone((uint32_t)arguments[0], halo::hs::argument_string(arguments[1]), (uint32_t)arguments[2]);
         halo::hs::hs_thread_return((int32_t)result, thread_index);
     }
 }
@@ -121,10 +123,10 @@ void VehicleCommands::evaluate_vehicle_unload(int16_t function_index, uint32_t t
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-        int16_t count = halo::units::unit_detach_child_at_named_seat((uint32_t)arguments[0], (char *)arguments[1]);
+        int16_t count = halo::units::unit_detach_child_at_named_seat((uint32_t)arguments[0], halo::hs::argument_string(arguments[1]));
 
         halo::hs::hs_thread_return((int32_t)(uint16_t)count, thread_index);
     }

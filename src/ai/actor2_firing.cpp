@@ -92,7 +92,7 @@ uint8_t ActorView::reject_firing_position_by_pursuit(actor_firing_position_query
     float bonus;
 
     tick = halo::game::globals().game_time->game_time;
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     last_tick = -1;
     count_out = 0;
@@ -243,7 +243,7 @@ uint8_t ActorView::reject_firing_position_unreachable(actor_firing_position_quer
         const real_point3d *position = (const real_point3d *)candidate->position;
 
         if (halo::ai::actor_movement_flying_needs_steering(actor_index, position, &avoidance_distance) != 0 &&
-            halo::ai::path_find_test_direct_reachability(position, &((struct actor *)self)->body_position, 0,
+            halo::ai::path_find_test_direct_reachability(position, &self->body_position, 0,
                 halo::scenario::globals().structure_bsp, 0) != 0) {
             candidate->score = candidate->score + 15.0f;
             return candidate->valid;
@@ -282,14 +282,14 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
     uint32_t mode;
     uint32_t kind;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     if (query->goal_kind == 5) {
         if (candidate->distance_from_actor < 6.0f) {
             halo::units::unit_add_marker_relative_offset(self->unit_index, 1, (float *)candidate->position, 0, 0, &marker_point);
             candidate->request_result = (int16_t)halo::ai::actor_evaluate_engagement_reachability(
-                *(int16_t *)((uint8_t *)self + 0x148), *(int16_t *)((uint8_t *)candidate->position + 0xe),
-                &marker_point, &((struct actor *)self)->aim_origin, 0, 0, halo::k_dword_none,
+                self->location.cluster_index, *(int16_t *)((uint8_t *)candidate->position + 0xe),
+                &marker_point, &self->aim_origin, 0, 0, halo::k_dword_none,
                 self->active_unit_index != (datum_index)halo::k_dword_none);
             return;
         }
@@ -324,7 +324,7 @@ void ActorView::report_firing_position_request(actor_firing_position_query *quer
 
     kind = (query->goal_kind >= 1 && query->goal_kind <= 3) ? 1 : 0;
     candidate->request_result = (int16_t)halo::ai::actor_evaluate_engagement_reachability(
-        *(int16_t *)((uint8_t *)candidate->position + 0xe), ((struct actor_firing_position_query *)query)->target_cluster_index,
+        *(int16_t *)((uint8_t *)candidate->position + 0xe), query->target_cluster_index,
         (real_point3d *)((uint8_t *)query + 0x61c), &marker_point, (int16_t)kind, 1,
         (uint32_t)query->target_relationship_object, self->active_unit_index != (datum_index)halo::k_dword_none);
 }
@@ -438,7 +438,7 @@ void ActorView::score_firing_positions_by_range(actor_firing_position_query *que
     actor *self;
     ActorVariant *variant;
     actor_firing_position_candidate *c;
-    void *weapon_definition;
+    Weapon *weapon_definition;
     real_point3d *p;
     float distance;
     float threshold;
@@ -452,7 +452,7 @@ void ActorView::score_firing_positions_by_range(actor_firing_position_query *que
     int32_t i;
     int32_t j;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     variant = (ActorVariant *)halo::ai::actor_get_actor_definition(actor_index);
 
     for (i = 0; i < (int16_t)count; i++) {
@@ -474,12 +474,12 @@ void ActorView::score_firing_positions_by_range(actor_firing_position_query *que
                 distance < variant->desired_combat_range[1]) {
                 preferred_range = (self->berserking != 0) ? variant->berserk_firing_ranges[1]
                                                            : variant->desired_combat_range[1];
-                weapon_definition = halo::ai::actor_get_threat_weapon_definition(actor_index);
+                weapon_definition = (Weapon *)halo::ai::actor_get_threat_weapon_definition(actor_index);
                 minimum_range = 0.0f;
                 if (weapon_definition != (void *)0 &&
-                    *(float *)((uint8_t *)weapon_definition + 0x40c) > 0.0f &&
-                    minimum_range <= *(float *)((uint8_t *)weapon_definition + 0x40c)) {
-                    minimum_range = *(float *)((uint8_t *)weapon_definition + 0x40c);
+                    weapon_definition->minimum_target_range > 0.0f &&
+                    minimum_range <= weapon_definition->minimum_target_range) {
+                    minimum_range = weapon_definition->minimum_target_range;
                 }
                 margin = preferred_range - distance;
                 if (minimum_range > 0.0f && distance - minimum_range < margin) {
@@ -643,7 +643,7 @@ void ActorView::score_firing_positions_by_threat(actor_firing_position_query *qu
     int32_t i;
     int32_t j;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     for (i = 0; i < (int16_t)count; i++) {
         c = &candidates[i];
@@ -750,7 +750,7 @@ next_candidate:
         return;
     }
 
-    vehicle = (object *)((object_header *)halo::objects::globals().object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
+    vehicle = (object *)halo::ai::object_at(self->active_unit_index);
     halo::objects::object_get_position(&vehicle_position, self->active_unit_index);
 
     for (i = 0; i < (int16_t)count; i++) {
@@ -901,7 +901,7 @@ int16_t ActorView::select_firing_position(actor_firing_position_query *query, ac
     int16_t result;
     int16_t held;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     if (self->encounter_index == (datum_index)halo::k_dword_none) {
         return -1;
     }

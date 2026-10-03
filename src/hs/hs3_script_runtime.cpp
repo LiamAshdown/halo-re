@@ -1,3 +1,5 @@
+#include "halo/hs/records.hpp"
+#include "halo/ai/records.hpp"
 #include "halo/hs/hs3_machine.hpp"
 #include "halo/scenario/api.hpp"
 #include "game.h"
@@ -42,9 +44,9 @@ void ScriptRuntime::reposition_players_outside_trigger_volume(int32_t trigger_vo
         datum_index unit = *(datum_index *)((uint8_t *)halo::game::globals().player_data->data + (player_index & halo::k_slot_mask) * 0x200 + 0x34);
 
         if (unit != k_datum_index_none) {
-            uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit & halo::k_slot_mask) * 0xc + 8);
+            unit_object *object = (unit_object *)(reinterpret_cast<uint8_t *>(halo::ai::object_at(unit)));
 
-            if (!halo::scenario::scenario_query::trigger_volume_contains_point((int16_t)trigger_volume_index, (real_point3d *)(object + 0xa0))) {
+            if (!halo::scenario::scenario_query::trigger_volume_contains_point((int16_t)trigger_volume_index, &object->base.bounding_center)) {
                 halo::hs::hs_object_detach_and_place_at_location((int16_t)location_index, unit, 1, 1);
             }
         }
@@ -63,8 +65,8 @@ void ScriptRuntime::runtime_initialize() const
 {
     int32_t i;
 
-    halo::hs::globals().thread_data = halo::saved_games::game_state_new((char *)"hs thread", k_hs_thread_maximum_count, 0x218 );
-    halo::hs::globals().globals_data = halo::saved_games::game_state_new((char *)"hs globals", k_hs_global_maximum_count, 0x8 );
+    halo::hs::globals().thread_data = halo::saved_games::game_state_new(const_cast<char *>("hs thread"), k_hs_thread_maximum_count, 0x218 );
+    halo::hs::globals().globals_data = halo::saved_games::game_state_new(const_cast<char *>("hs globals"), k_hs_global_maximum_count, 0x8 );
     if (halo::hs::globals().thread_data != 0 && halo::hs::globals().globals_data != 0) {
         halo::hs::globals().globals_data->valid = 1;
         halo::memory::data_delete_all(halo::hs::globals().globals_data);
@@ -96,7 +98,7 @@ void ScriptRuntime::runtime_update() const
     command_thread_pending = 0;
     thread_handle = halo::memory::datum_next(-1, halo::hs::globals().thread_data);
     while (thread_handle != k_datum_index_none) {
-        thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data + (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
+        thread = halo::hs::thread_at(thread_handle);
         if (thread->type == 2) {
             command_thread_pending = 1;
         }
@@ -145,8 +147,7 @@ void ScriptRuntime::scenario_scripts_initialize() const
     thread_handle = halo::memory::datum_new(halo::hs::globals().thread_data);
     init_thread = 0;
     if (thread_handle != k_datum_index_none) {
-        init_thread = (hs_thread *)((uint8_t *)halo::hs::globals().thread_data->data +
-            (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
+        init_thread = halo::hs::thread_at(thread_handle);
         init_thread->stack = (hs_stack_frame *)&init_thread->stack_data;
         init_thread->stack->previous = 0;
         init_thread->stack->size = 0;
@@ -170,8 +171,7 @@ void ScriptRuntime::scenario_scripts_initialize() const
                    ((reference & k_hs_global_builtin_bit) ? 0 : k_hs_builtin_global_count);
 
             if (-1 < slot && slot < halo::hs::globals().globals_data->maximum_count) {
-                global_slot = (hs_global *)((uint8_t *)halo::hs::globals().globals_data->data +
-                    halo::hs::globals().globals_data->size * slot);
+                global_slot = halo::hs::global_slot(slot);
                 if (global_slot->identifier == 0) {
                     halo::hs::globals().globals_data->actual_count = halo::hs::globals().globals_data->actual_count + 1;
                     if (halo::hs::globals().globals_data->last_index <= slot) {
@@ -186,14 +186,13 @@ void ScriptRuntime::scenario_scripts_initialize() const
             init_thread->stack->size = 0;
 
             halo::hs::hs_thread_push(globals[i].initialization_expression_index, thread_handle,
-                &((hs_global *)halo::hs::globals().globals_data->data)[slot & halo::k_slot_mask].value);
+                &halo::hs::global_at(slot)->value);
             if ((init_thread->flags & 1) != 0) {
                 halo::hs::hs_thread_evaluate_step(thread_handle);
                 if (globals[i].type == 0x17) {
                     list_handle = halo::hs::hs_global_get_value(reference);
                     if (list_handle != -1) {
-                        list_header = (object_list_header *)((uint8_t *)halo::objects::globals().object_list_header_data->data +
-                            (list_handle & halo::k_slot_mask) * 0x0c);
+                        list_header = halo::hs::object_list_header_at(list_handle);
                         list_header->reference_count = list_header->reference_count + 1;
                     }
                 }
@@ -361,7 +360,7 @@ void ScriptRuntime::syntax_node_garbage_collect() const
             if (current == k_datum_index_none) {
                 return;
             }
-            node = (hs_syntax_node *)((uint8_t *)nodes->data + (current & halo::k_slot_mask) * nodes->size);
+            node = halo::hs::syntax_node_at(current);
             if ((node->flags & _hs_syntax_node_garbage_collectable_bit) == 0) {
                 halo::memory::datum_delete(nodes, current);
             }

@@ -26,7 +26,7 @@ public:
     void attach_to_unit(datum_index unit_index);
     int32_t classify_communication_object_type();
     uint8_t command_list_permits_escalation();
-    void command_list_reset_record(datum_index unit_index, uint16_t extra, void *component_record, int32_t secondary_record, uint32_t callback_extra);
+    void command_list_reset_record(datum_index unit_index, uint16_t extra, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra);
     void delete_(uint32_t flag);
     void delete_or_release_unit(uint8_t is_dead);
     void dispatch_perception_reset();
@@ -35,7 +35,7 @@ public:
     void dispatch_type_vtable_0x18();
     void dispatch_type_vtable_0x1c(uint32_t a, uint32_t b, uint32_t c);
     void * get_actor_definition();
-    void get_body_axis_vector(uint32_t unit_index, actor_axis_request *request);
+    void get_body_axis_vector(uint32_t unit_index, actor_squad_action_state *request);
     int16_t get_current_mode_combat_grade();
     static uint8_t get_ranged_attack_vector(datum_index target_prop_index, datum_index actor_index, real_vector3d *out_vector);
     uint8_t handle_death(uint8_t param_2, uint8_t param_3);

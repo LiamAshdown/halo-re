@@ -11,11 +11,9 @@
 namespace halo::ai {
 
 namespace actor_react_to_disturbance_local {
-#define ACTOR(index) ((uint8_t *)halo::ai::globals().actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
-#define B(o) (((uint8_t *)actor)[(o)])
-#define W(o) (*(int16_t *)((uint8_t *)actor + (o)))
-#define D(o) (*(uint32_t *)((uint8_t *)actor + (o)))
-#define F(o) (*(float *)((uint8_t *)actor + (o)))
+extern "C" {
+extern int32_t __ftol(void);
+}
 }
 
 /**
@@ -27,7 +25,7 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
 {
     using namespace actor_react_to_disturbance_local;
     struct actor *actor = halo::ai::actor_at(actor_index);
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[actor->actor_variant_tag & halo::k_slot_mask].data;
+    ActorVariant *definition = halo::ai::tag_data<ActorVariant>(actor->actor_variant_tag);
     real_vector2d direction;
     int16_t action = 4;
     datum_index object = k_datum_index_none;
@@ -51,7 +49,7 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
         direction.j = actor->facing.j;
         halo::math::vector2d_normalize_with_length(direction);
     }
-    halo::ai::actor_queue_secondary_action(actor_index, action, (uint32_t *)&direction);
+    halo::ai::actor_queue_secondary_action(actor_index, action, &direction);
     if (actor->look_at_reference != halo::k_dword_none) {
         struct prop *prop = halo::ai::prop_at(actor->look_at_reference);
 
@@ -59,12 +57,12 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
         reason = (prop->enemy != 0) + 2;
     }
     halo::ai::ai_communication_broadcast(0x29, actor->unit_index, object, reason, halo::k_dword_none, halo::k_dword_none, 0);
-    if (*(float *)(definition + 0x90) > 0.0f) {
+    if (definition->surprise_fire_wildly_time > 0.0f) {
         actor->firing_state = 4;
-        actor->firing_state_timer = (int16_t)(int32_t)(*(float *)(definition + 0x90) * 30.0f);
+        actor->firing_state_timer = (int16_t)(int32_t)(definition->surprise_fire_wildly_time * 30.0f);
     }
-    if (*(float *)(definition + 0x8c) > 0.0f) {
-        halo::ai::actor_raise_timer_5f6(actor_index, (int32_t)(*(float *)(definition + 0x8c) * 30.0f));
+    if (definition->surprise_delay_time > 0.0f) {
+        halo::ai::actor_raise_timer_5f6(actor_index, (int32_t)(definition->surprise_delay_time * 30.0f));
     }
     actor->unknown_2f0[0] = 1;
     if (actor->look_at_reference != halo::k_dword_none) {
@@ -74,11 +72,6 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
     return 1;
 }
 
-#undef ACTOR
-#undef B
-#undef W
-#undef D
-#undef F
 
 namespace actor_react_to_threat_event_local {
 }
@@ -102,7 +95,7 @@ void ActorOps::react_to_threat_event(datum_index self_object_index, datum_index 
     int32_t reason;
     int32_t event_code;
 
-    self_obj = ((object_header *)halo::objects::globals().object_data->data)[self_object_index & halo::k_slot_mask].data;
+    self_obj = halo::ai::object_at(self_object_index);
     relationship_object_index = (datum_index)k_datum_index_none;
     relationship_obj = 0;
 
@@ -123,7 +116,7 @@ void ActorOps::react_to_threat_event(datum_index self_object_index, datum_index 
                     goto no_relationship_object;
                 }
             }
-            relationship_obj = ((object_header *)halo::objects::globals().object_data->data)[relationship_object_index & halo::k_slot_mask].data;
+            relationship_obj = halo::ai::object_at(relationship_object_index);
         }
     }
 no_relationship_object:
@@ -140,7 +133,7 @@ no_relationship_object:
     if (self_object_index == relationship_object_index) {
         reason = 1;
     } else if (relationship_obj != 0) {
-        reason = (halo::game::teams_are_enemies(((struct object *)relationship_obj)->owner_team, ((struct object *)self_obj)->owner_team) != 0) + 2;
+        reason = (halo::game::teams_are_enemies(relationship_obj->owner_team, self_obj->owner_team) != 0) + 2;
     }
 
     if (suppress_vehicle_relay == 0 && reason == 2) {
@@ -156,8 +149,8 @@ no_relationship_object:
                                 event_kind, (datum_index)k_datum_index_none, 0);
 skip_broadcast:
     if (relationship_obj != 0) {
-        halo::game::team_pair_override_refresh(((struct object *)self_obj)->owner_team,
-                                   ((struct object *)relationship_obj)->owner_team);
+        halo::game::team_pair_override_refresh(self_obj->owner_team,
+                                   relationship_obj->owner_team);
     }
 }
 

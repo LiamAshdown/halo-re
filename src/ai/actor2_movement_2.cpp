@@ -72,7 +72,7 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
             return;
         }
     }
-    obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
+    obj = (uint8_t *)halo::ai::object_at(unit_index);
     context.structure_bsp = global_structure_bsp;
     context.collision_bsp = global_structure_collision_bsp;
     context.unit_index = unit_index;
@@ -403,7 +403,7 @@ void ActorView::movement_update()
     using namespace actor_movement_update_local;
     actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & 0xffffu];
     uint8_t *actor_base = (uint8_t *)a;
-    Actor *actor_def = (Actor *)halo::cache::globals().tag_instances[a->actor_definition_tag & halo::k_slot_mask].data;
+    Actor *actor_def = halo::ai::tag_data<Actor>(a->actor_definition_tag);
 
     uint8_t sidestep_mode = 0;
     uint8_t face_along_heading = 0;
@@ -452,7 +452,7 @@ void ActorView::movement_update()
         } else {
             desired = (const real_vector3d *)&a->desired_movement_vector;
         }
-        halo::ai::actor_movement_choose_avoidance_direction(actor_index, (real_vector3d *)desired, &sampled, &sampled_scale);
+        halo::ai::actor_movement_choose_avoidance_direction(actor_index, const_cast<real_vector3d *>(desired), &sampled, &sampled_scale);
 
         if (sampled.j * sampled.j + sampled.k * sampled.k + sampled.i * sampled.i <=
             a->avoidance_direction.k * a->avoidance_direction.k +
@@ -513,7 +513,7 @@ void ActorView::movement_update()
     cached_axis = a->strafe_axis_override;
 
     if (a->movement_action_complete != 0 &&
-        actor_def->stationary_movement_dist <= *(float *)&a->movement_timer) {
+        actor_def->stationary_movement_dist <= a->movement_timer) {
         movement_mode = actor_base[0x427];
     } else {
         movement_mode = actor_base[0x426];
@@ -584,8 +584,8 @@ void ActorView::movement_update()
             }
         }
     } else {
-        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[a->active_unit_index & halo::k_slot_mask].data;
-        Vehicle *vehicle_def = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
+        object *unit_object = halo::ai::object_at(a->active_unit_index);
+        Vehicle *vehicle_def = halo::ai::tag_data<Vehicle>(unit_object->definition_tag);
         uint8_t take_sideslip = 0;
 
         steering_maximum = vehicle_def->ai_steering_maximum;
@@ -723,7 +723,7 @@ void ActorView::movement_update()
                 facing.j = a->facing.j;
             }
         }
-        halo::ai::actor_queue_secondary_action(actor_index, 0, (uint32_t *)&facing);
+        halo::ai::actor_queue_secondary_action(actor_index, 0, &facing);
         halo::ai::ai_communication_broadcast(0x2a, a->unit_index, target_object, 3,
                                    (datum_index)k_datum_index_none,
                                    (datum_index)k_datum_index_none, 0);
@@ -733,7 +733,7 @@ void ActorView::movement_update()
     if (vehicle_stuck) {
         a->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::jump);
     } else if (a->airborne != 0 || a->active_unit_index != (datum_index)k_datum_index_none) {
-        a->jump_velocity_request[0] = 0;
+        a->jump_velocity_request.valid = 0;
     } else if (halo::ai::actor_action_has_queued_secondary(actor_index) == 0 && a->jump_requested != 0) {
         uint8_t handled = 0;
         if (a->jump_is_leap != 0) {
@@ -759,11 +759,11 @@ void ActorView::movement_update()
             halo::ai::actor_set_flag_bit1(actor_index);
         }
         if (a->jump_parameters_valid != 0) {
-            *(float *)&a->jump_velocity_request[4]  = a->jump_facing.i;
-            a->jump_velocity_request[0] = 1;
-            *(float *)&a->jump_velocity_request[8]  = a->jump_facing.j;
-            *(float *)&a->jump_velocity_request[12] = a->jump_horizontal_velocity;
-            *(float *)&a->jump_velocity_request[16] = a->jump_vertical_velocity;
+            a->jump_velocity_request.direction.i = a->jump_facing.i;
+            a->jump_velocity_request.valid = 1;
+            a->jump_velocity_request.direction.j = a->jump_facing.j;
+            a->jump_velocity_request.horizontal_speed = a->jump_horizontal_velocity;
+            a->jump_velocity_request.vertical_speed = a->jump_vertical_velocity;
         }
     }
 

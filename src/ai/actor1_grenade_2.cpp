@@ -27,8 +27,8 @@ uint32_t halo::ai::grenade_ops::compute_grenade_throw_vector(real_point3d *grena
     real_vector3d direction;
     float speed;
 
-    if (*(datum_index *)&a->grenade_target_prop_index != k_datum_index_none) {
-        prop *p = halo::ai::prop_at(*(datum_index *)&a->grenade_target_prop_index);
+    if (static_cast<datum_index>(a->grenade_target_prop_index) != k_datum_index_none) {
+        prop *p = halo::ai::prop_at(static_cast<datum_index>(a->grenade_target_prop_index));
         int16_t kind = p->state;
 
         if (kind >= 2 && kind <= 3) {

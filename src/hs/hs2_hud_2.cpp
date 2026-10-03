@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs2_commands.hpp"
 
 #include "interface.h"
@@ -20,10 +21,10 @@ void HudCommands::evaluate_hud_set_timer_warning_time(int16_t function_index, ui
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-    uint16_t seconds = (uint16_t)(*(uint16_t *)&arguments[0] * 0x3c + *(uint16_t *)&arguments[1]);
+    uint16_t seconds = (uint16_t)(halo::hs::argument_ushort(arguments[0]) * 0x3c + halo::hs::argument_ushort(arguments[1]));
 
     *(uint16_t *)&halo::interface::globals().hud_messaging->timer_warning_ticks = (uint16_t)((uint32_t)seconds * 0x1e);
     halo::hs::hs_thread_return(0, thread_index);

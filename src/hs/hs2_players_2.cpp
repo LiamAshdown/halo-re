@@ -1,7 +1,9 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs2_commands.hpp"
 
 #include "objects.h"
 #include "effects.h"
+#include "game.h"
 #include "halo/effects/api.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/core/link.hpp"
@@ -9,7 +11,14 @@
 #include "halo/core/libm.hpp"
 #include "halo/game/api.hpp"
 
-static auto &player_control_globals_ptr = halo::link::ref<uint8_t *>(halo::game::vars().player_control_globals_ptr);
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern player_control_globals *player_control_globals_ptr;
+extern long halo::libm::lrint(double x);
+#ifdef __cplusplus
+}
+#endif
 
 namespace halo::hs {
 
@@ -21,9 +30,9 @@ namespace halo::hs {
  */
 void PlayerCommands::evaluate_player_action_test_action(int16_t function_index, uint32_t thread_index, char first)
 {
-    *(uint32_t *)(player_control_globals_ptr + 4) |= 1;
-    *(uint32_t *)(player_control_globals_ptr + 8) |= 1;
-    halo::hs::hs_thread_return((int32_t)(player_control_globals_ptr[0] & 1), thread_index);
+    player_control_globals_ptr->action_flags_latched |= 1;
+    player_control_globals_ptr->action_flags_edge |= 1;
+    halo::hs::hs_thread_return((int32_t)(static_cast<uint8_t>(player_control_globals_ptr->action_flags) & 1), thread_index);
 }
 
 /**
@@ -36,10 +45,10 @@ void PlayerCommands::evaluate_player_effect_start(int16_t function_index, uint32
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-    float scaled = *(float *)&arguments[1] * 30.0f;
+    float scaled = halo::hs::argument_real(arguments[1]) * 30.0f;
     int16_t ticks = (int16_t)halo::libm::lrint((double)scaled);
 
     *(int32_t *)&halo::effects::globals().player_effect_state->scripted_shake_intensity = arguments[0];
@@ -60,10 +69,10 @@ void PlayerCommands::evaluate_player_effect_stop(int16_t function_index, uint32_
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-    float scaled = *(float *)&arguments[0] * 30.0f;
+    float scaled = halo::hs::argument_real(arguments[0]) * 30.0f;
     int16_t ticks = (int16_t)halo::libm::lrint((double)scaled);
 
     halo::effects::globals().player_effect_state->scripted_shake_ticks = ticks;
@@ -81,7 +90,7 @@ void PlayerCommands::evaluate_player_effect_stop(int16_t function_index, uint32_
  */
 void PlayerCommands::evaluate_players_unzoom_all(int16_t function_index, uint32_t thread_index, char first)
 {
-    *(int16_t *)(player_control_globals_ptr + 0x34) = -1;
+    *(int16_t *)((uint8_t *)player_control_globals_ptr + 0x34) = -1;
     halo::hs::hs_thread_return(0, thread_index);
 }
 

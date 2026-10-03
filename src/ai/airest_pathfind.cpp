@@ -1,3 +1,4 @@
+#include "halo/core/bit_cast.hpp"
 #include "halo/ai/airest_pathfind.hpp"
 
 #include <stdint.h>
@@ -44,7 +45,7 @@ uint8_t PathFinder::navigate_around_obstacles(int16_t count, path_find_waypoint 
     path_find_request *request = (path_find_request *)context;
     ModelCollisionGeometryBSP *collision_bsp = halo::physics::globals().structure_collision_bsp;
     float radius = (request->pathfinding_radius > 0.2f) ? request->pathfinding_radius : 0.2f;
-    uint8_t *cache = *(uint8_t **)&((struct path_find_context *)context)->obstacle_cache;
+    uint8_t *cache = *(uint8_t **)&context->obstacle_cache;
     ai_search_obstacle_list local_obstacles;
     ai_search_context local_search;
     path_find_waypoint path[0x80];
@@ -141,7 +142,7 @@ uint8_t PathFinder::navigate_around_obstacles(int16_t count, path_find_waypoint 
         } else {
             ai_search_node *best = &search->nodes[search->result_node];
 
-            previous_surface = *(int32_t *)&best->z;
+            previous_surface = halo::bit_cast<int32_t>(best->z);
             halo::math::decal_plane_solve_third_axis(&previous, 1, 2, ai_navigate_surface_plane(collision_bsp, previous_surface),
                 best->position);
         }
@@ -149,10 +150,10 @@ uint8_t PathFinder::navigate_around_obstacles(int16_t count, path_find_waypoint 
         index = search->result_node;
         while (index != 0) {
             ai_search_node *node = &search->nodes[index];
-            real_plane3d *plane = ai_navigate_surface_plane(collision_bsp, *(int32_t *)&node->z);
+            real_plane3d *plane = ai_navigate_surface_plane(collision_bsp, halo::bit_cast<int32_t>(node->z));
             path_find_waypoint *point = &path[length++];
 
-            point->surface_index = *(int32_t *)&node->z;
+            point->surface_index = halo::bit_cast<int32_t>(node->z);
             point->position.x = node->position.x;
             point->position.y = node->position.y;
             if ((float)halo::libm::fabs(plane->normal.k) < 0.0001f) {
@@ -534,7 +535,7 @@ uint8_t PathFindGeometry::heights_are_close(ScenarioStructureBSP *structure_bsp,
     if (surface_a == -1 || surface_b == -1) {
         return 0;
     }
-    collision_bsp = (ModelCollisionGeometryBSP *)(uintptr_t)((struct ScenarioStructureBSP *)structure_bsp)->collision_bsp.pointer;
+    collision_bsp = (ModelCollisionGeometryBSP *)(uintptr_t)structure_bsp->collision_bsp.pointer;
     surfaces = (ModelCollisionGeometryBSPSurface *)(uintptr_t)collision_bsp->surfaces.pointer;
     planes = (real_plane3d *)(uintptr_t)collision_bsp->planes.pointer;
 
@@ -1108,7 +1109,7 @@ uint8_t PathFindGeometry::test_direct_reachability(const real_point3d *point_a, 
         delta.j = point_a->y - point_b->y;
         delta.k = point_a->z - point_b->z;
         hit = halo::physics::collision_bsp_query_segment_init(1, &result, *(ModelCollisionGeometryBSP **)((uint8_t *)context + 0xb4),
-            0, 0, (real_point3d *)point_b, &delta, 3.4028235e+38f);
+            0, 0, const_cast<real_point3d *>(point_b), &delta, 3.4028235e+38f);
         fraction = result.t;
     }
 
@@ -1599,7 +1600,7 @@ uint8_t PathFindGeometry::validate_and_record_goal(ai_path_candidate_goal *candi
 float PathFindGeometry::vertex_distance(ScenarioStructureBSP *structure_bsp, int32_t surface, real_point3d *point_a, real_point3d *out_point)
 {
     ModelCollisionGeometryBSP *collision_bsp =
-        (ModelCollisionGeometryBSP *)(uintptr_t)((struct ScenarioStructureBSP *)structure_bsp)->collision_bsp.pointer;
+        (ModelCollisionGeometryBSP *)(uintptr_t)structure_bsp->collision_bsp.pointer;
     ModelCollisionGeometryBSPSurface *surfaces = (ModelCollisionGeometryBSPSurface *)(uintptr_t)collision_bsp->surfaces.pointer;
     real_plane3d *planes = (real_plane3d *)(uintptr_t)collision_bsp->planes.pointer;
     real_point2d closest;

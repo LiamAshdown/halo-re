@@ -7,6 +7,13 @@
 
 #include <stdint.h>
 
+struct Actor;
+struct actor_command_aim;
+struct actor_mode_obey_data;
+struct actor_squad_action_state;
+struct actor_mode_flee_data;
+struct real_vector2d;
+struct ActorVariant;
 struct ai_globals;
 struct data_array;
 struct encounter_platoon_state;
@@ -17,7 +24,6 @@ struct ScenarioEncounter;
 struct ScenarioSquad;
 struct ScenarioStructureBSP;
 struct actor;
-struct actor_axis_request;
 struct actor_combat_consideration;
 struct actor_firing_position_candidate;
 struct actor_firing_position_query;
@@ -68,7 +74,7 @@ struct real_vector3d;
 struct team;
 typedef uint32_t datum_index;
 typedef float real;
-typedef void (*actor_swarm_member_callback)(uint32_t actor_index, datum_index unit_index, uint16_t extra, void *component_record, int32_t unused, uint32_t callback_extra);
+typedef void (*actor_swarm_member_callback)(uint32_t actor_index, datum_index unit_index, uint16_t extra, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra);
 typedef actor_flee_source_reason actor_vocalization_context;
 
 namespace halo::ai {
@@ -129,12 +135,12 @@ void actor_build_path_find_request(datum_index actor_index, path_find_request *r
 uint8_t actor_can_throw_grenade_at_target(datum_index actor_index);
 uint8_t actor_check_burst_length_exceeded(datum_index actor_index);
 uint8_t actor_check_grenade_facing_and_commit(datum_index actor_index, uint8_t force_commit);
-void actor_check_melee_target_reachable(uint32_t actor_index, int16_t *order);
+void actor_check_melee_target_reachable(uint32_t actor_index, actor_mode_flee_data *record);
 uint8_t actor_check_pain_reaction(uint32_t resolved_target, uint8_t use_alt_base, uint16_t order_code, datum_index actor_index);
 uint8_t actor_check_step_obstruction(datum_index actor_index, real_vector2d *direction, float step_distance, float step_up, uint8_t *out_flag, void *extra_param);
 uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index);
 uint8_t actor_check_vehicle_target_available(datum_index vehicle_object_index, datum_index actor_index, uint8_t flag_pursue);
-uint8_t actor_check_weapon_pickup_reachable(uint32_t actor_index, uint8_t *record);
+uint8_t actor_check_weapon_pickup_reachable(uint32_t actor_index, actor_mode_flee_data *record);
 void actor_choose_best_target(datum_index actor_index);
 void actor_choose_random_point_near(real_point3d *inout_point, float radius);
 int16_t actor_claim_firing_position(datum_index actor_index, datum_index previous_owner, path_find_context *path_context, int16_t firing_position_index, uint8_t path_ok);
@@ -145,7 +151,7 @@ void actor_clear_target_state(datum_index actor_index);
 void actor_clear_vocalization(datum_index actor_index);
 uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
 uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-void actor_command_list_reset_record(uint32_t actor_index, datum_index unit_index, uint16_t extra, void *component_record, int32_t secondary_record, uint32_t callback_extra);
+void actor_command_list_reset_record(uint32_t actor_index, datum_index unit_index, uint16_t extra, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra);
 uint32_t actor_commit_grenade_toss(datum_index actor_index, real_point3d *point, uint32_t object_handle, uint32_t exclude_object_index);
 float actor_compute_accuracy_scale(datum_index actor_index);
 uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point3d *target_point, real_vector3d *out_direction, float *out_698);
@@ -203,7 +209,7 @@ uint8_t actor_gate_jump_traversal(uint32_t actor_index, int16_t threshold, char 
 int16_t actor_gather_nearby_grenade_targets(datum_index source_actor_index, int16_t maximum_count, ai_grenade_avoidance_entry *out_entries);
 void * actor_get_actor_definition(datum_index actor_index);
 void actor_get_aim_from_position(datum_index actor_index, uint32_t out_position[3]);
-void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request);
+void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_squad_action_state *request);
 uint8_t actor_get_cached_wander_position(datum_index actor_index, real_vector3d *out_position);
 float actor_get_consideration_wait_threshold(uint32_t actor_index, int16_t mode, actor_combat_consideration *consideration);
 int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
@@ -324,10 +330,10 @@ void actor_notify_squad_and_flag_danger(datum_index actor_index, uint8_t alterna
 void actor_notify_squad_of_threat_direction(const real_point3d *point, datum_index actor_index, int16_t event_kind, int16_t grenade_type_code);
 void actor_notify_target_engaged(datum_index target_prop_index, datum_index actor_index, uint8_t alternate_event);
 void actor_notify_weapon_pickup_once(datum_index object_index);
-void actor_obey_member_advance(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, void *component_record, int32_t secondary_record, uint32_t callback_extra);
-void actor_obey_member_enter(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, void *component_record, int32_t secondary_record, uint32_t callback_extra);
-void actor_obey_member_exit(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, void *component_record, int32_t secondary_record, uint32_t callback_extra);
-void actor_obey_member_tick(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, void *component_record, int32_t secondary_record, uint32_t callback_extra);
+void actor_obey_member_advance(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra);
+void actor_obey_member_enter(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra);
+void actor_obey_member_exit(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra);
+void actor_obey_member_tick(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra);
 int32_t actor_order_code_is_grenade_throw(int16_t order_code);
 int32_t actor_pick_dialogue_variant_a(int16_t category);
 int32_t actor_pick_dialogue_variant_b(int16_t category);
@@ -347,7 +353,7 @@ void actor_queue_point_reaction_dialogue(const real_point3d *point, datum_index 
 void actor_queue_recognized_target_dialogue(datum_index actor_index, datum_index target_prop_index);
 void actor_queue_search_and_relay_perception(datum_index prop_index, datum_index actor_index);
 void actor_queue_search_position(datum_index actor_index, real_point3d *position, int16_t priority, real_vector3d *velocity, uint32_t surface_index, uint32_t position_extra, uint32_t velocity_ticks, uint32_t prop_index, uint32_t prop_value, uint8_t prop_flag);
-uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, uint32_t payload[2]);
+uint8_t actor_queue_secondary_action(datum_index actor_index, int16_t action, const real_vector2d *direction);
 void actor_queue_sighted_target_dialogue(datum_index actor_index, datum_index target_prop_index, uint8_t already_noticed);
 void actor_queue_velocity_search_from_prop(datum_index prop_index, datum_index actor_index);
 void actor_raise_timer_5f6(datum_index actor_index, int32_t ticks);
@@ -412,15 +418,15 @@ uint8_t actor_should_throw_grenade(uint32_t actor_index, char force);
 void actor_snapshot_orientation(datum_index actor_index);
 uint32_t actor_solve_grenade_lob(datum_index actor_index, real_point3d *point);
 int16_t actor_spawn_additional_units(datum_index actor_variant_tag, int16_t spawn_count, datum_index source_actor_index, float health_scale);
-char actor_squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, uint8_t *state);
-uint8_t actor_squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, uint8_t *state);
-void actor_squad_action_list_process(uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, uint8_t *state, uint8_t *aim_state, uint8_t *out);
-void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_object_index, uint8_t *state, int16_t command_list_index, uint8_t *aim_state, uint8_t *next_action_index_out);
-int32_t actor_squad_action_status_broadcast(uint32_t actor_index, int16_t command_list_index, int16_t *record);
+char actor_squad_action_execute(actor_command_aim *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, actor_squad_action_state *state);
+uint8_t actor_squad_action_is_complete(actor_command_aim *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, actor_squad_action_state *state);
+void actor_squad_action_list_process(uint32_t actor_index, uint32_t check_object_index, uint16_t command_list_index, actor_squad_action_state *state, actor_command_aim *aim_state, uint32_t callback_extra);
+void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_object_index, actor_squad_action_state *state, int16_t command_list_index, actor_command_aim *aim_state, uint8_t *next_action_index_out);
+int32_t actor_squad_action_status_broadcast(uint32_t actor_index, int16_t command_list_index, actor_mode_obey_data *record);
 void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index, int16_t grenade_type);
 void actor_squad_react_to_grenade_for_vehicle_occupants(datum_index vehicle_object_index, datum_index other_object_index);
 void actor_start_search_timer(datum_index actor_index, datum_index prop_index);
-void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback, uint32_t callback_extra, uint16_t *caller_record);
+void actor_swarm_for_each_component(uint32_t actor_index, char reset_first, actor_swarm_member_callback callback, uint32_t callback_extra, actor_mode_obey_data *obey);
 void actor_swarm_for_each_component_thunk(uint32_t actor_index);
 uint8_t actor_take_danger_escape(real_vector3d *path_delta, datum_index actor_index, uint32_t escape, uint32_t extra, float distance);
 uint8_t actor_target_data_acquire(datum_index actor_index, datum_index object_index, datum_index owner_reference, datum_index pair_reference);
@@ -633,7 +639,7 @@ void ai_search_partition_into_groups(ai_search_obstacle_list *list, float radius
 uint8_t ai_search_run(ai_search_context *context, uint8_t ignores_glass, ai_search_obstacle_list *obstacles, uint32_t search_radius_bits, real_point2d *position, int32_t surface_index, real_point2d *origin, uint32_t origin_surface_index, uint8_t final_leg, uint8_t ignore_flagged_obstacles);
 uint8_t ai_search_step(ai_search_context *context);
 int32_t ai_select_communication_target(uint32_t param_a, uint32_t param_b, int16_t line_id, int16_t sub_id, float *out_weight);
-int32_t ai_squad_find_best_matching_member(uint32_t packed_reference, int16_t requested_squad_index, uint8_t *requested_actor_data, uint8_t *requested_actor_variant_data, char match_by_index);
+int32_t ai_squad_find_best_matching_member(uint32_t packed_reference, int16_t requested_squad_index, const Actor *requested_actor_data, const ActorVariant *requested_actor_variant_data, char match_by_index);
 int __cdecl ai_squad_priority_compare(const ai_priority_target_record *record_a, const ai_priority_target_record *record_b);
 int16_t ai_squad_resolve_actor_type(ScenarioSquad *squad);
 void ai_squads_merge(uint32_t source_reference, uint32_t target_encounter_index, char notify, char is_platoon_merge);

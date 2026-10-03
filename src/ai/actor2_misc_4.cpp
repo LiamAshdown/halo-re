@@ -1,3 +1,5 @@
+#include "halo/tags/flags.hpp"
+#include "halo/ai/flags.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -13,11 +15,10 @@
 namespace halo::ai {
 
 namespace actor_seek_vehicle_to_board_local {
-static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-#define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
-#define PROP(h) ((uint8_t *)halo::ai::globals().prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
-static auto &ai_globals_ptr = halo::link::ref<uint8_t *>(halo::ai::vars().ai_globals_ptr);
+extern "C" {
+extern game_time_globals *game_time;
+extern uint8_t *ai_globals_ptr;
+}
 }
 
 /**
@@ -29,7 +30,7 @@ uint8_t ActorView::seek_vehicle_to_board()
 {
     using namespace actor_seek_vehicle_to_board_local;
     actor *act = halo::ai::actor_at(actor_index);
-    uint8_t *actor_tag = TAG_DATA(act->actor_definition_tag);
+    Actor *actor_tag = halo::ai::tag_data<Actor>(act->actor_definition_tag);
     int32_t now = game_time->game_time;
     int16_t mode = act->mode;
     float best_distance = 3.4028235e38f;
@@ -42,18 +43,18 @@ uint8_t ActorView::seek_vehicle_to_board()
     if ((mode == 4 && act->mode_data.flee.panic > 0) || mode == 11) {
         return 0;
     }
-    if (*(int32_t *)&act->last_vehicle_search_time != -1 && *(int32_t *)&act->last_vehicle_search_time + 45 >= now) {
+    if (static_cast<int32_t>(act->last_vehicle_search_time) != -1 && *(int32_t *)&act->last_vehicle_search_time + 45 >= now) {
         return 0;
     }
-    *(int32_t *)&act->last_vehicle_search_time = now;
-    if (*(uint32_t *)actor_tag & 0x1000) {
+    act->last_vehicle_search_time = static_cast<uint32_t>(now);
+    if (halo::ai::flag_set(actor_tag->flags, halo::tags::actor_tag_flag::gets_in_vehicles_with_player)) {
         datum_index prop_index = act->first_prop;
 
         while (prop_index != k_datum_index_none) {
             prop *p = halo::ai::prop_at(prop_index);
             int16_t kind = p->state;
             datum_index vehicle = (uint32_t)p->relationship_object_index;
-            uint8_t *vehicle_object;
+            unit_object *vehicle_object;
             float distance_squared;
 
             prop_index = p->next_in_actor;
@@ -61,8 +62,8 @@ uint8_t ActorView::seek_vehicle_to_board()
                 !halo::ai::actor_vehicle_not_recently_left(actor_index, vehicle)) {
                 continue;
             }
-            vehicle_object = (uint8_t *)halo::objects::object_try_and_get(vehicle, 2);
-            if (vehicle_object == 0 || *(datum_index *)(vehicle_object + 0x324) != p->object_index) {
+            vehicle_object = (unit_object *)halo::objects::object_try_and_get(vehicle, 2);
+            if (vehicle_object == 0 || vehicle_object->unit.driver_unit_index != p->object_index) {
                 continue;
             }
             halo::objects::object_get_position(&position, vehicle);
@@ -129,7 +130,7 @@ uint8_t ActorView::seek_vehicle_to_board()
                     if (filter == halo::k_dword_none) {
                         continue;
                     }
-                    match = (uint8_t)(((*(uint32_t *)&act->encounter_index ^ filter) & halo::k_slot_mask) == 0);
+                    match = (uint8_t)(((act->encounter_index ^ filter) & halo::k_slot_mask) == 0);
                     if (!match) {
                         continue;
                     }
@@ -167,8 +168,5 @@ uint8_t ActorView::seek_vehicle_to_board()
     return 0;
 }
 
-#undef ACTOR
-#undef TAG_DATA
-#undef PROP
 
 }

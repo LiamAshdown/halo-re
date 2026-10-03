@@ -5,6 +5,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/ai/records.hpp"
 #include "halo/game/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
@@ -53,8 +54,8 @@ void ActorView::target_relationship_think()
     datum_index paired_prop;
     struct { int16_t team; int16_t object_type; char is_enemy; } payload;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
-    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    self = halo::ai::actor_at(actor_index);
+    definition = halo::ai::tag_data<Actor>(self->actor_definition_tag);
 
     reaction_ticks = 1;
     danger_reacted = 0;
@@ -146,7 +147,7 @@ restart:
         if (self->target_unit_index == (datum_index)k_datum_index_none) {
             result = best_prop;
         } else {
-            prop *cur = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (self->target_unit_index & halo::k_slot_mask) * sizeof(prop));
+            prop *cur = halo::ai::prop_at(self->target_unit_index);
             if (cur->state < 4 || cur->state > 5) {
                 result = best_prop;
             }
@@ -172,7 +173,7 @@ restart:
         return;
     }
 
-    target = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (cursor & halo::k_slot_mask) * sizeof(prop));
+    target = halo::ai::prop_at(cursor);
     next_prop_index = target->next_in_actor;
     cursor = next_prop_index;
 
@@ -262,11 +263,11 @@ restart:
                                self->vocalization_source.payload.handle == target_prop_index) ||
                               (self->idle_major_active != 0 && self->idle_major_direction_type == 1 &&
                                self->idle_major_prop_index == target_prop_index) ||
-                              (self->idle_look_state[1] != 0 && self->idle_look_direction_type == 1 &&
+                              (self->idle_minor_active != 0 && self->idle_look_direction_type == 1 &&
                                self->idle_look_prop_index == target_prop_index));
                 target->in_use = important;
                 if (target->state > 3 && target->state < 6) {
-                    prop *pair = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (target->pair_index & halo::k_slot_mask) * sizeof(prop));
+                    prop *pair = halo::ai::prop_at(target->pair_index);
                     pair->in_use = important;
                 }
             } else {
@@ -289,7 +290,7 @@ restart:
     case 0:
         if (target->perception_level > 0) {
             new_kind = 1;
-            *(float *)&target->acknowledge_progress = 0.0f;
+            target->acknowledge_progress = 0.0f;
             goto case1_dispatch;
         }
         break;
@@ -310,7 +311,7 @@ restart:
             }
 
             *(float *)&target->acknowledge_progress += rate;
-            if (*(float *)&target->acknowledge_progress >= 1.0f) {
+            if (target->acknowledge_progress >= 1.0f) {
                 new_kind = 3;
             }
             if (new_kind == -1) {
@@ -318,7 +319,7 @@ restart:
             }
             goto apply_new_kind;
         }
-        *(float *)&target->acknowledge_progress = 0.0f;
+        target->acknowledge_progress = 0.0f;
         new_kind = 0;
         goto apply_new_kind;
 
@@ -333,7 +334,7 @@ restart:
             }
             owner = (target->owner_actor_index == (datum_index)k_datum_index_none)
                         ? (actor *)0
-                        : (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (target->owner_actor_index & halo::k_slot_mask) * sizeof(actor));
+                        : halo::ai::actor_at(target->owner_actor_index);
             paired_prop = (datum_index)halo::k_dword_none;
             if (target->enemy != 0 && target->dead == 0 &&
                 (target->is_parented != 0 ||
@@ -358,7 +359,7 @@ restart:
         if (target->perception_level == 0) {
             owner = (target->owner_actor_index == (datum_index)k_datum_index_none)
                         ? (actor *)0
-                        : (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (target->owner_actor_index & halo::k_slot_mask) * sizeof(actor));
+                        : halo::ai::actor_at(target->owner_actor_index);
             if (target->enemy == 0 || target->dead != 0 ||
                 (target->is_parented == 0 &&
                  ((owner != (actor *)0 && (owner->active == 0 || owner->keep_unit_alive != 0)) ||
@@ -462,7 +463,7 @@ tail:
                 (self->ticks_since_engaged != -1 && self->ticks_since_engaged < 0xb4)) {
                 if (self->encounter_index == (datum_index)k_datum_index_none) goto restart;
                 {
-                    encounter *enc = (encounter *)((uint8_t *)halo::ai::globals().encounter_data->data + (self->encounter_index & halo::k_slot_mask) * sizeof(encounter));
+                    encounter *enc = halo::ai::encounter_at(self->encounter_index);
                     if (enc->ticks_since_engaged != (datum_index)k_datum_index_none &&
                         (enc->ticks_since_engaged < 0xb4 || enc->has_live_target == 0)) {
                         goto restart;
@@ -519,7 +520,7 @@ check_cooldown:
     }
 
     {
-        prop *pair = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (target->pair_index & halo::k_slot_mask) * sizeof(prop));
+        prop *pair = halo::ai::prop_at(target->pair_index);
         pair->pair_index = (datum_index)k_datum_index_none;
     }
     halo::ai::actor_replace_object_reference(actor_index, halo::k_dword_none, target_prop_index);

@@ -1,3 +1,4 @@
+#include "halo/hs/records.hpp"
 #include "halo/hs/hs1_system_commands.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
@@ -28,7 +29,7 @@ void SystemCommands::change_team(int16_t function_index, uint32_t thread_index, 
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         halo::game::game_engine_send_team_allegiance_message((char)(uint8_t)arguments[0]);
@@ -45,10 +46,10 @@ void SystemCommands::checkpoint_load(int16_t function_index, uint32_t thread_ind
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-        halo::saved_games::saved_game_load_checkpoint((char *)arguments[0]);
+        halo::saved_games::saved_game_load_checkpoint(halo::hs::argument_string(arguments[0]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -91,10 +92,10 @@ void SystemCommands::connect(int16_t function_index, uint32_t thread_index, char
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-        halo::main::network_game_client_connect_to_address_async((char *)arguments[0], (char *)arguments[1]);
+        halo::main::network_game_client_connect_to_address_async(halo::hs::argument_string(arguments[0]), halo::hs::argument_string(arguments[1]));
         halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -141,7 +142,7 @@ void SystemCommands::crash(int16_t function_index, uint32_t thread_index, char f
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
         *(volatile const char **)0 = "chucky was here! NULL belongs to me!!!!!";
@@ -180,10 +181,10 @@ void SystemCommands::debug_sounds_enable(int16_t function_index, uint32_t thread
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
     int32_t *arguments = halo::hs::hs_evaluate_typed_arguments(thread_index, definition->parameter_count,
-        (int16_t *)definition->parameters, first);
+        definition->parameters, first);
 
     if (arguments != 0) {
-    halo::sound::sound_class_set_muted_by_name(*(uint8_t *)&arguments[1], (char *)arguments[0]);
+    halo::sound::sound_class_set_muted_by_name(halo::hs::argument_byte(arguments[1]), halo::hs::argument_string(arguments[0]));
     halo::hs::hs_thread_return(0, thread_index);
     }
 }

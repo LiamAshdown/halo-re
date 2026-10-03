@@ -27,7 +27,7 @@ uint8_t halo::ai::actor_ref::action_has_queued_secondary()
 {
     using namespace c_actor_action_has_queued_secondary;
     datum_index actor_index = datum;
-    actor *self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    actor *self = halo::ai::actor_at(actor_index);
 
     if (self->secondary_action != (int16_t)-1) {
         return 1;
@@ -128,9 +128,9 @@ void halo::ai::actor_ref::attach_to_unit(datum_index unit_index)
     if (self->encounter_index != (datum_index)k_datum_index_none) {
         encounter *enc = &((encounter *)halo::ai::globals().encounter_data->data)[self->encounter_index & halo::k_slot_mask];
         halo::ai::ai_encounter_stamp_team_from_unit(self->encounter_index, unit_index);
-        ((struct object *)unit_object)->owner_team = enc->team;
+        unit_object->owner_team = enc->team;
     }
-    self->team = ((struct object *)unit_object)->owner_team;
+    self->team = unit_object->owner_team;
 
     if (*(int16_t *)((uint8_t *)unit_object + 0xbe) > 99) {
         self->counts_toward_encounter = 1;
@@ -223,14 +223,13 @@ uint8_t halo::ai::actor_ref::command_list_permits_escalation()
     ScenarioAIConversation *definition;
     ScenarioAIConversationFlags flags;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     if (self->conversation_index == (datum_index)k_datum_index_none) {
         return 1;
     }
 
-    conv = (ai_conversation *)((uint8_t *)halo::ai::globals().conversation_data->data +
-                                (self->conversation_index & halo::k_slot_mask) * sizeof(ai_conversation));
+    conv = halo::ai::conversation_at(self->conversation_index);
     definition = (ScenarioAIConversation *)((TagReflexive *)((uint8_t *)halo::scenario::globals().scenario + 0x468))->pointer;
     definition = definition + conv->definition_index;
     flags = definition->flags;
@@ -260,33 +259,31 @@ namespace c_actor_command_list_reset_record {
  *
  * @address 0x406dd0
  */
-void halo::ai::actor_ref::command_list_reset_record(datum_index unit_index, uint16_t extra, void *component_record, int32_t secondary_record, uint32_t callback_extra)
+void halo::ai::actor_ref::command_list_reset_record(datum_index unit_index, uint16_t command_list_index, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra)
 {
     using namespace c_actor_command_list_reset_record;
     uint32_t actor_index = datum;
-    uint8_t *record = (uint8_t *)component_record;
-    uint8_t *secondary = (uint8_t *)(uintptr_t)secondary_record;
 
     (void)actor_index;
     (void)unit_index;
-    (void)extra;
-    memset(record, 0, 0x24);
-    record[0] = 0xff;
+    (void)command_list_index;
+    memset(action, 0, sizeof(*action));
+    action->command_index = 0xff;
     if (*(uint8_t *)(uintptr_t)callback_extra != 0) {
-        record[4] |= 1;
+        action->flags |= 1;
     } else {
-        record[4] &= 0xfe;
+        action->flags &= 0xfe;
     }
-    if (secondary != 0) {
-        memset(secondary, 0, 0x58);
-        *(int16_t *)(secondary + 2) = -1;
+    if (aim != 0) {
+        memset(aim, 0, sizeof(*aim));
+        aim->movement_style = -1;
     }
 }
 
 namespace halo::ai {
-void actor_command_list_reset_record(uint32_t actor_index, datum_index unit_index, uint16_t extra, void *component_record, int32_t secondary_record, uint32_t callback_extra)
+void actor_command_list_reset_record(uint32_t actor_index, datum_index unit_index, uint16_t command_list_index, actor_squad_action_state *action, actor_command_aim *aim, uint32_t callback_extra)
 {
-    halo::ai::actor_ref(actor_index).command_list_reset_record(unit_index, extra, component_record, secondary_record, callback_extra);
+    halo::ai::actor_ref(actor_index).command_list_reset_record(unit_index, command_list_index, action, aim, callback_extra);
 }
 }
 
@@ -384,7 +381,7 @@ void halo::ai::actor_ref::delete_or_release_unit(uint8_t is_dead)
         }
         halo::ai::actor_remove_from_unit_cluster(actor_index, unit_index);
         if (is_dead == 0) {
-            object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
+            object *unit_object = halo::ai::object_at(unit_index);
             int32_t network_role = unit_object->network_role;
             if (network_role == 0) {
                 halo::objects::object_delete_unparented(unit_index);
@@ -593,16 +590,16 @@ void * halo::ai::actor_ref::get_actor_definition()
     void *default_definition;
     datum_index weapon_object;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
     default_definition = halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
 
     weapon_object = halo::ai::actor_get_threat_weapon_object_index(actor_index);
     if (weapon_object != (datum_index)k_datum_index_none) {
         object_header *hdr = (object_header *)halo::objects::globals().object_data->data + (weapon_object & halo::k_slot_mask);
         object *obj = hdr->data;
-        void *weapon_definition = halo::cache::globals().tag_instances[obj->definition_tag & halo::k_slot_mask].data;
+        Weapon *weapon_definition = halo::ai::tag_data<Weapon>(obj->definition_tag);
         if (weapon_definition != 0) {
-            uint32_t override_index = *(uint32_t *)((uint8_t *)weapon_definition + 0x3c8);
+            uint32_t override_index = static_cast<uint32_t>(halo::ai::tag_handle(weapon_definition->actor_firing_parameters));
             if (override_index != (uint32_t)-1) {
                 return halo::cache::globals().tag_instances[override_index & halo::k_slot_mask].data;
             }
@@ -628,7 +625,7 @@ namespace c_actor_get_body_axis_vector {
  *
  * @address 0x405390
  */
-void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_axis_request *request)
+void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_squad_action_state *request)
 {
     using namespace c_actor_get_body_axis_vector;
     uint32_t actor_index = datum;
@@ -646,12 +643,12 @@ void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_axis_r
 
     switch (request->axis) {
     case 0:
-        request->result = reference;
+        request->direction = reference;
         return;
     case 1:
-        request->result.i = -reference.i;
-        request->result.j = -reference.j;
-        request->result.k = -reference.k;
+        request->direction.i = -reference.i;
+        request->direction.j = -reference.j;
+        request->direction.k = -reference.k;
         return;
     case 2:
     case 3:
@@ -660,7 +657,7 @@ void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_axis_r
 
             halo::math::vector3d_cross_product(perp, reference, *halo::math::globals().global_up3d_pointer);
             if (halo::math::vector3d_normalize_with_length(perp) == 0.0f) {
-                object *obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
+                object *obj = halo::ai::object_at(unit_index);
 
                 halo::math::vector3d_cross_product(perp, reference, obj->up);
                 if (halo::math::vector3d_normalize_with_length(perp) == 0.0f) {
@@ -668,11 +665,11 @@ void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_axis_r
                 }
             }
             if (request->axis == 2) {
-                request->result = perp;
+                request->direction = perp;
             } else {
-                request->result.i = -perp.i;
-                request->result.j = -perp.j;
-                request->result.k = -perp.k;
+                request->direction.i = -perp.i;
+                request->direction.j = -perp.j;
+                request->direction.k = -perp.k;
             }
         }
         return;
@@ -680,7 +677,7 @@ void halo::ai::actor_ref::get_body_axis_vector(uint32_t unit_index, actor_axis_r
 }
 
 namespace halo::ai {
-void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_axis_request *request)
+void actor_get_body_axis_vector(uint32_t actor_index, uint32_t unit_index, actor_squad_action_state *request)
 {
     halo::ai::actor_ref(actor_index).get_body_axis_vector(unit_index, request);
 }
@@ -701,7 +698,7 @@ int16_t halo::ai::actor_ref::get_current_mode_combat_grade()
 {
     using namespace c_actor_get_current_mode_combat_grade;
     datum_index actor_index = datum;
-    actor *self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    actor *self = halo::ai::actor_at(actor_index);
     return actor_mode_definitions[self->mode].combat_grade;
 }
 
@@ -735,8 +732,8 @@ uint8_t halo::ai::actor_ref::get_ranged_attack_vector(datum_index target_prop_in
     float length;
     float dot;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
-    target = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (target_prop_index & halo::k_slot_mask) * sizeof(prop));
+    self = halo::ai::actor_at(actor_index);
+    target = halo::ai::prop_at(target_prop_index);
 
     if (target->swarm_owned != 0) {
         return 0;
@@ -749,14 +746,14 @@ uint8_t halo::ai::actor_ref::get_ranged_attack_vector(datum_index target_prop_in
         return 0;
     }
 
-    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[target->object_index & halo::k_slot_mask].data;
+    unit_obj = halo::ai::object_at(target->object_index);
     unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     *out_vector = unit->aiming_vector;
 
     if (target->shooting == 0 && (int8_t)self->tally.unit_props > 0) {
         prop_index = self->first_prop;
         while (prop_index != k_datum_index_none) {
-            ally = (prop *)((uint8_t *)halo::ai::globals().prop_data->data + (prop_index & halo::k_slot_mask) * sizeof(prop));
+            ally = halo::ai::prop_at(prop_index);
             prop_index = ally->next_in_actor;
 
             if ((1 < ally->state && ally->state < 4) && ally->enemy != 0) {
@@ -804,7 +801,7 @@ uint8_t halo::ai::actor_ref::handle_death(uint8_t param_2, uint8_t param_3)
     uint8_t local_data[0x30];
     int32_t previous_target;
 
-    self = (actor *)((uint8_t *)halo::ai::globals().actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    self = halo::ai::actor_at(actor_index);
 
     if (self->order_committed != 0) {
         return 0;
@@ -826,7 +823,7 @@ uint8_t halo::ai::actor_ref::handle_death(uint8_t param_2, uint8_t param_3)
         halo::ai::actor_consider_target_candidate(actor_index, (datum_index)previous_target);
     }
     if (self->swarm == 0) {
-        halo::ai::actor_check_melee_target_reachable(actor_index, (int16_t *)local_data);
+        halo::ai::actor_check_melee_target_reachable(actor_index, reinterpret_cast<actor_mode_flee_data *>(local_data));
         if (*(int16_t *)(local_data + 8) != -1) {
             halo::ai::actor_set_mode(actor_index, 4, local_data);
             return 1;
@@ -1005,7 +1002,7 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
     unit->swarm_next_unit_index = self->cluster_unit_index;
     *(uint32_t *)((uint8_t *)unit_object + 0x200) = halo::k_dword_none;
     if (self->cluster_unit_index != (datum_index)k_datum_index_none) {
-        object *head_object = ((object_header *)halo::objects::globals().object_data->data)[self->cluster_unit_index & halo::k_slot_mask].data;
+        object *head_object = halo::ai::object_at(self->cluster_unit_index);
         *(uint32_t *)((uint8_t *)head_object + 0x200) = unit_index;
     }
     self->cluster_unit_index = unit_index;
@@ -1020,9 +1017,9 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
     if (self->encounter_index != (datum_index)k_datum_index_none) {
         encounter *enc = &((encounter *)halo::ai::globals().encounter_data->data)[self->encounter_index & halo::k_slot_mask];
         halo::ai::ai_encounter_stamp_team_from_unit(self->encounter_index, unit_index);
-        ((struct object *)unit_object)->owner_team = enc->team;
+        unit_object->owner_team = enc->team;
     }
-    self->team = ((struct object *)unit_object)->owner_team;
+    self->team = unit_object->owner_team;
 
     {
         uint8_t flags_before = header->flags;
@@ -1065,7 +1062,7 @@ void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, dat
     datum_index encounter_index = self->encounter_index;
 
     if (self->swarm == 0) {
-        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[self->unit_index & halo::k_slot_mask].data;
+        object *unit_object = halo::ai::object_at(self->unit_index);
         uint8_t *flags = (uint8_t *)unit_object + 0x106;
         *flags |= use_alternate_flag == 0 ? 0x20 : 0x40;
 
@@ -1076,7 +1073,7 @@ void halo::ai::actor_ref::mark_units_and_release(uint8_t use_alternate_flag, dat
     } else {
         datum_index unit_index = self->cluster_unit_index;
         while (unit_index != (datum_index)k_datum_index_none) {
-            object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data;
+            object *unit_object = halo::ai::object_at(unit_index);
             uint8_t *flags = (uint8_t *)unit_object + 0x106;
             *flags |= use_alternate_flag == 0 ? 0x20 : 0x40;
 
