@@ -1,4 +1,5 @@
 #pragma once
+#include <stddef.h>
 // Blam interface module (halo.exe 1.0.10 retail, 0x44c290..0x4c9c80, 376 functions).
 // Menu/widget system, developer console, HUD runtime state, motion sensor, virtual
 // keyboard, video mode table and the small UI-owned lists. Offsets in comments are
@@ -795,6 +796,30 @@ typedef struct player_control_settings {
     uint8_t look_inverted_driving;     // 0x859 profile+0x131; negates look_y in a driver seat
     uint8_t pad_85a[2];                // 0x85a always zero
 } player_control_settings;     // size 0x85c
+
+// ---------------------------------------------------------------------------
+// controls_edit_buffer  (input_controls_live_006b3a48, 0x890 bytes)
+// The working copy of the binding tables the controls menu edits: the open handler 0x4b4a30
+// copies the tables out of the selected saved_player_profile into it and the close handler
+// 0x4b4af0 copies them back. The members are the same tables as player_control_settings and
+// saved_player_profile hold, for four gamepads, in a different order.
+// ---------------------------------------------------------------------------
+typedef struct controls_edit_buffer {
+    int16_t gamepad_action_button[4][2];  // 0x000 saved_player_profile::gamepad_action_buttons
+    int16_t mouse_button[8];              // 0x010 saved_player_profile::mouse_button_bindings
+    int16_t gamepad_axis[4][0x20][2];     // 0x020 saved_player_profile::gamepad_axis_bindings
+    int16_t keyboard[0x6d];               // 0x220 saved_player_profile::keyboard_bindings
+    uint8_t pad_2fa[2];                   // 0x2fa
+    uint8_t gamepad_rate_a[4];            // 0x2fc saved_player_profile::gamepad_rate_a
+    uint8_t unknown_300[0x80];            // 0x300
+    int16_t gamepad_button[4][0x20];      // 0x380 saved_player_profile::gamepad_button_bindings
+    int16_t gamepad_pov[4][0x10][8];      // 0x480 saved_player_profile::gamepad_pov_bindings
+    int16_t mouse_axis[3][2];             // 0x880 saved_player_profile::mouse_axis_bindings
+    uint8_t gamepad_rate_b[4];            // 0x88c saved_player_profile::gamepad_rate_b
+} controls_edit_buffer;                   // size 0x890
+static_assert(sizeof(controls_edit_buffer) == 0x890, "controls_edit_buffer layout");
+static_assert(offsetof(controls_edit_buffer, gamepad_pov) == 0x480, "controls_edit_buffer layout");
+static_assert(offsetof(controls_edit_buffer, gamepad_rate_b) == 0x88c, "controls_edit_buffer layout");
 
 // ---------------------------------------------------------------------------
 // loading_thread_record  (interface_tick @0x497e80, chimera__load_main_menu @0x4989f0)
