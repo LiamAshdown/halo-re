@@ -4,15 +4,16 @@
  * The original author notes and decompiles are in docs/original/sound/.
  */
 
+#include "halo/sound/directsound.hpp"
 #include "internal/state.hpp"
 #include "halo/math/api.hpp"
 #include "halo/shell/api.hpp"
 
-#define k_probe_pool_capacity 77
-#define VTABLE_SLOT(object, offset) ((*(void ***)(object))[(offset) / 4])
-#define k_sound_channel_type_count 4
-#define k_probe_all_pools 0x116
-#define k_channel_budget_iteration_limit 0x200
+constexpr int k_probe_pool_capacity = 77;
+template <typename T>
+inline void *&vtable_slot(T object, int offset) { return (*(void ***)(object))[offset / 4]; }
+constexpr int k_probe_all_pools = 0x116;
+constexpr int k_channel_budget_iteration_limit = 0x200;
 
 namespace halo::sound {
 
@@ -181,12 +182,12 @@ uint8_t DirectSoundDevice::initialize(sound_driver_parameters *parameters)
 
     if (halo::shell::globals().nosound != 0 ||
         ((direct_sound_create8_proc)direct_sound_create8)((void *)0, &directsound, (void *)0) < 0 ||
-        ((directsound_set_cooperative_level_proc)VTABLE_SLOT(directsound, 0x18))(directsound, halo::shell::globals().window, 2) < 0) {
+        ((directsound_set_cooperative_level_proc)vtable_slot(directsound, halo::sound::dsound_slot::ds_set_cooperative_level))(directsound, halo::shell::globals().window, 2) < 0) {
         goto failed;
     }
 
     caps[0] = 0x60;
-    if (((directsound_get_caps_proc)VTABLE_SLOT(directsound, 0x10))(directsound, caps) < 0) {
+    if (((directsound_get_caps_proc)vtable_slot(directsound, halo::sound::dsound_slot::ds_get_caps))(directsound, caps) < 0) {
         goto failed;
     }
     for (type = 0; type < 0x18; type++) {
@@ -200,7 +201,7 @@ uint8_t DirectSoundDevice::initialize(sound_driver_parameters *parameters)
     description.format = (sound_wave_format *)0;
     description.algorithm_3d[0] = description.algorithm_3d[1] = 0;
     description.algorithm_3d[2] = description.algorithm_3d[3] = 0;
-    if (((directsound_create_sound_buffer_proc)VTABLE_SLOT(directsound, 0x0c))(directsound, &description,
+    if (((directsound_create_sound_buffer_proc)vtable_slot(directsound, halo::sound::dsound_slot::ds_create_sound_buffer))(directsound, &description,
             &directsound_primary_buffer, (void *)0) < 0) {
         goto failed;
     }
@@ -220,7 +221,7 @@ uint8_t DirectSoundDevice::initialize(sound_driver_parameters *parameters)
     format.average_bytes_per_second = sample_rate * 4;
     format.block_align = 4;
     format.bits_per_sample = 16;
-    if (((directsound_buffer_set_format_proc)VTABLE_SLOT(directsound_primary_buffer, 0x38))(directsound_primary_buffer, &format) < 0) {
+    if (((directsound_buffer_set_format_proc)vtable_slot(directsound_primary_buffer, halo::sound::dsound_slot::sb_set_format))(directsound_primary_buffer, &format) < 0) {
         goto failed;
     }
 
@@ -354,14 +355,14 @@ store_counts:
         parameters->slot_counts[type] = (int16_t)counts[type];
     }
 
-    if (((directsound_query_interface_proc)VTABLE_SLOT(directsound_primary_buffer, 0x00))(directsound_primary_buffer,
+    if (((directsound_query_interface_proc)vtable_slot(directsound_primary_buffer, 0x00))(directsound_primary_buffer,
             iid_directsound_3d_listener, &directsound_listener) < 0 ||
-        ((directsound_listener_set_factor_proc)VTABLE_SLOT(directsound_listener, 0x2c))(directsound_listener, 3.048f, 0) < 0 ||
-        ((directsound_listener_set_factor_proc)VTABLE_SLOT(directsound_listener, 0x3c))(directsound_listener,
+        ((directsound_listener_set_factor_proc)vtable_slot(directsound_listener, halo::sound::dsound_slot::lst_set_distance_factor))(directsound_listener, 3.048f, 0) < 0 ||
+        ((directsound_listener_set_factor_proc)vtable_slot(directsound_listener, halo::sound::dsound_slot::lst_set_rolloff_factor))(directsound_listener,
             directsound_rolloff_factor, 0) < 0) {
         goto failed;
     }
-    ((directsound_listener_set_factor_proc)VTABLE_SLOT(directsound_listener, 0x30))(directsound_listener, 0.0f, 0);
+    ((directsound_listener_set_factor_proc)vtable_slot(directsound_listener, halo::sound::dsound_slot::lst_set_doppler_factor))(directsound_listener, 0.0f, 0);
 
     {
         int16_t binding_index = 0;

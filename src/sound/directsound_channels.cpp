@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/sound/.
  */
 
+#include "halo/sound/directsound.hpp"
 #include "internal/state.hpp"
 #include "halo/shell/api.hpp"
 
@@ -23,15 +24,15 @@ void DirectSoundDevice::commit_spatial(int16_t channel_index, uint8_t spatialize
 {
     directsound_channel *channel = &directsound_channels[channel_index];
     void **vtable = *(void ***)channel->buffer_3d;
-    int32_t (__stdcall *set_mode)(void *, uint32_t, uint32_t) = (int32_t (__stdcall *)(void *, uint32_t, uint32_t))vtable[0x48 / 4];
+    int32_t (__stdcall *set_mode)(void *, uint32_t, uint32_t) = (int32_t (__stdcall *)(void *, uint32_t, uint32_t))vtable[halo::sound::dsound_slot::b3d_set_mode];
     int32_t (__stdcall *set_position)(void *, float, float, float, uint32_t) =
-        (int32_t (__stdcall *)(void *, float, float, float, uint32_t))vtable[0x4c / 4];
+        (int32_t (__stdcall *)(void *, float, float, float, uint32_t))vtable[halo::sound::dsound_slot::b3d_set_position];
     int32_t (__stdcall *set_cone_orientation)(void *, float, float, float, uint32_t) =
-        (int32_t (__stdcall *)(void *, float, float, float, uint32_t))vtable[0x38 / 4];
+        (int32_t (__stdcall *)(void *, float, float, float, uint32_t))vtable[halo::sound::dsound_slot::b3d_set_cone_orientation];
     int32_t (__stdcall *set_velocity)(void *, float, float, float, uint32_t) =
-        (int32_t (__stdcall *)(void *, float, float, float, uint32_t))vtable[0x50 / 4];
+        (int32_t (__stdcall *)(void *, float, float, float, uint32_t))vtable[halo::sound::dsound_slot::b3d_set_velocity];
     uint8_t mode_changed = 0;
-    uint8_t dialog_class = (sound_class >= 0x2c && sound_class <= 0x2f);
+    uint8_t dialog_class = (sound_class >= soundclass_scripted_dialog_player && sound_class <= soundclass_scripted_dialog_force_unspatialized);
 
     if (channel->spatialized != spatialized || directsound_initialized == 0) {
         if (halo::shell::globals().head_relative_speech == 0 || spatialized != 0 || !dialog_class) {
@@ -119,7 +120,7 @@ void DirectSoundDevice::commit_parameters(int16_t channel_index, sound_channel_p
 
         {
             void **vtable = *(void ***)channel->buffer;
-            int32_t (__stdcall *set_volume)(void *, int32_t) = (int32_t (__stdcall *)(void *, int32_t))vtable[0x3c / 4];
+            int32_t (__stdcall *set_volume)(void *, int32_t) = (int32_t (__stdcall *)(void *, int32_t))vtable[halo::sound::dsound_slot::sb_set_volume];
             channel->volume = volume;
             set_volume(channel->buffer, volume);
         }
@@ -142,7 +143,7 @@ void DirectSoundDevice::commit_parameters(int16_t channel_index, sound_channel_p
 
             if (directsound_hardware_mode != 3) {
                 void **vtable = *(void ***)channel->buffer;
-                int32_t (__stdcall *set_frequency)(void *, int32_t) = (int32_t (__stdcall *)(void *, int32_t))vtable[0x44 / 4];
+                int32_t (__stdcall *set_frequency)(void *, int32_t) = (int32_t (__stdcall *)(void *, int32_t))vtable[halo::sound::dsound_slot::sb_set_frequency];
                 set_frequency(channel->buffer, frequency);
             }
             channel->pitch = parameters->pitch;
@@ -156,7 +157,7 @@ void DirectSoundDevice::commit_parameters(int16_t channel_index, sound_channel_p
             if (sound_linear_gain_to_attenuation_fabs(parameters->maximum_distance - channel->maximum_distance) >= 0.05f ||
                 directsound_initialized == 0) {
                 int32_t (__stdcall *set_max_distance)(void *, float, uint32_t) =
-                    (int32_t (__stdcall *)(void *, float, uint32_t))vtable_3d[0x40 / 4];
+                    (int32_t (__stdcall *)(void *, float, uint32_t))vtable_3d[halo::sound::dsound_slot::b3d_set_max_distance];
                 set_max_distance(channel->buffer_3d, parameters->maximum_distance, 1);
                 channel->maximum_distance = parameters->maximum_distance;
                 directsound_deferred_dirty = 1;
@@ -165,7 +166,7 @@ void DirectSoundDevice::commit_parameters(int16_t channel_index, sound_channel_p
             if (sound_linear_gain_to_attenuation_fabs(parameters->minimum_distance - channel->minimum_distance) >= 0.05f ||
                 directsound_initialized == 0) {
                 int32_t (__stdcall *set_min_distance)(void *, float, uint32_t) =
-                    (int32_t (__stdcall *)(void *, float, uint32_t))vtable_3d[0x44 / 4];
+                    (int32_t (__stdcall *)(void *, float, uint32_t))vtable_3d[halo::sound::dsound_slot::b3d_set_min_distance];
                 set_min_distance(channel->buffer_3d, parameters->minimum_distance, 1);
                 channel->minimum_distance = parameters->minimum_distance;
                 directsound_deferred_dirty = 1;
@@ -175,7 +176,7 @@ void DirectSoundDevice::commit_parameters(int16_t channel_index, sound_channel_p
                 sound_linear_gain_to_attenuation_fabs(parameters->outer_cone_angle - channel->outer_cone_angle) >= 0.034906585f ||
                 directsound_initialized == 0) {
                 int32_t (__stdcall *set_cone_angles)(void *, uint32_t, uint32_t, uint32_t) =
-                    (int32_t (__stdcall *)(void *, uint32_t, uint32_t, uint32_t))vtable_3d[0x34 / 4];
+                    (int32_t (__stdcall *)(void *, uint32_t, uint32_t, uint32_t))vtable_3d[halo::sound::dsound_slot::b3d_set_cone_angles];
                 uint32_t outer_degrees = (uint32_t)(int32_t)(parameters->outer_cone_angle * 57.29578f);
                 uint32_t inner_degrees = (uint32_t)(int32_t)(parameters->inner_cone_angle * 57.29578f);
                 set_cone_angles(channel->buffer_3d, inner_degrees, outer_degrees, 1);
@@ -187,7 +188,7 @@ void DirectSoundDevice::commit_parameters(int16_t channel_index, sound_channel_p
             if (sound_linear_gain_to_attenuation_fabs(parameters->outer_cone_gain - channel->cone_outside_gain) >= 0.001f ||
                 directsound_initialized == 0) {
                 int32_t (__stdcall *set_cone_outside_volume)(void *, int32_t, uint32_t) =
-                    (int32_t (__stdcall *)(void *, int32_t, uint32_t))vtable_3d[0x3c / 4];
+                    (int32_t (__stdcall *)(void *, int32_t, uint32_t))vtable_3d[halo::sound::dsound_slot::b3d_set_cone_outside_volume];
                 int32_t volume = gain::linear_to_attenuation(parameters->outer_cone_gain, 0);
                 set_cone_outside_volume(channel->buffer_3d, volume, 1);
                 channel->cone_outside_gain = parameters->outer_cone_gain;
@@ -213,7 +214,7 @@ uint32_t DirectSoundDevice::refresh_cursor(int16_t channel_index)
     void *buffer = directsound_channels[channel_index].buffer;
     void **vtable = *(void ***)buffer;
     int32_t (__stdcall *get_current_position)(void *, uint32_t *, uint32_t *) =
-        (int32_t (__stdcall *)(void *, uint32_t *, uint32_t *))vtable[0x10 / 4];
+        (int32_t (__stdcall *)(void *, uint32_t *, uint32_t *))vtable[halo::sound::dsound_slot::sb_get_current_position];
     uint32_t play_cursor;
     uint32_t write_cursor;
 
@@ -236,7 +237,7 @@ void DirectSoundDevice::stream_update(int16_t channel_index, uint8_t unused)
     }
 
     vtable = *(void ***)channel->buffer;
-    ((directsound_buffer_get_current_position_proc)vtable[0x10 / 4])(channel->buffer, &play_cursor, &write_cursor);
+    ((directsound_buffer_get_current_position_proc)vtable[halo::sound::dsound_slot::sb_get_current_position])(channel->buffer, &play_cursor, &write_cursor);
 
     if (channel->streaming == 0) {
         delta = play_cursor - channel->write_cursor;
@@ -280,7 +281,7 @@ uint8_t DirectSoundDevice::lock_and_fill(int16_t channel_index, uint32_t fill_si
     void *ptr2;
     uint32_t bytes2;
 
-    if (((directsound_buffer_lock_proc)vtable[0x2c / 4])(channel->buffer, channel->write_cursor, fill_size,
+    if (((directsound_buffer_lock_proc)vtable[halo::sound::dsound_slot::sb_lock])(channel->buffer, channel->write_cursor, fill_size,
             &ptr1, &bytes1, &ptr2, &bytes2, 0) < 0) {
         return 0;
     }
@@ -292,7 +293,7 @@ uint8_t DirectSoundDevice::lock_and_fill(int16_t channel_index, uint32_t fill_si
     }
 
     vtable = *(void ***)channel->buffer;
-    if (((directsound_buffer_unlock_proc)vtable[0x4c / 4])(channel->buffer, ptr1, bytes1, ptr2, bytes2) < 0) {
+    if (((directsound_buffer_unlock_proc)vtable[halo::sound::dsound_slot::sb_unlock])(channel->buffer, ptr1, bytes1, ptr2, bytes2) < 0) {
         return 0;
     }
     return 1;
@@ -364,7 +365,7 @@ int32_t DirectSoundDevice::restore_buffer(void *buffer, uint8_t *was_restored_ou
     }
 
     vtable = *(void ***)buffer;
-    hr = ((directsound_buffer_get_status_proc)vtable[0x24 / 4])(buffer, &status);
+    hr = ((directsound_buffer_get_status_proc)vtable[halo::sound::dsound_slot::sb_get_status])(buffer, &status);
     if (hr < 0) {
         return hr;
     }
@@ -373,10 +374,10 @@ int32_t DirectSoundDevice::restore_buffer(void *buffer, uint8_t *was_restored_ou
     }
 
     do {
-        if (((directsound_buffer_restore_proc)vtable[0x50 / 4])(buffer) == (int32_t)0x88780096) {
+        if (((directsound_buffer_restore_proc)vtable[halo::sound::dsound_slot::sb_restore])(buffer) == (int32_t)0x88780096) {
             Sleep(0);
         }
-    } while (((directsound_buffer_restore_proc)vtable[0x50 / 4])(buffer) == (int32_t)0x88780096);
+    } while (((directsound_buffer_restore_proc)vtable[halo::sound::dsound_slot::sb_restore])(buffer) == (int32_t)0x88780096);
 
     if (was_restored_out != (uint8_t *)0) {
         *was_restored_out = 1;
@@ -447,7 +448,7 @@ void DirectSoundDevice::queue_source(int16_t channel_index, SoundPermutation *so
             int32_t play_cursor;
             int32_t write_cursor;
 
-            ((directsound_buffer_get_current_position_proc)vtable[0x10 / 4])(channel->buffer, &play_cursor,
+            ((directsound_buffer_get_current_position_proc)vtable[halo::sound::dsound_slot::sb_get_current_position])(channel->buffer, &play_cursor,
                 &write_cursor);
             channel->write_cursor = write_cursor;
             channel->source_end_cursor = -1;
@@ -471,14 +472,14 @@ void DirectSoundDevice::queue_source(int16_t channel_index, SoundPermutation *so
             return;
         }
 
-        ((directsound_listener_commit_proc)(*(void ***)directsound_listener)[0x44 / 4])(directsound_listener);
+        ((directsound_listener_commit_proc)(*(void ***)directsound_listener)[halo::sound::dsound_slot::lst_commit_deferred_settings])(directsound_listener);
         directsound_deferred_dirty = 0;
         channel->streaming = 0;
         if (start_playback) {
             void **vtable = *(void ***)channel->buffer;
             uint8_t restored = 0;
 
-            ((directsound_buffer_set_current_position_proc)vtable[0x34 / 4])(channel->buffer, channel->write_cursor);
+            ((directsound_buffer_set_current_position_proc)vtable[halo::sound::dsound_slot::sb_set_current_position])(channel->buffer, channel->write_cursor);
             if (restore_buffer(channel->buffer, &restored) < 0) {
                 return;
             }
@@ -486,7 +487,7 @@ void DirectSoundDevice::queue_source(int16_t channel_index, SoundPermutation *so
                 lock_and_fill(channel_index, (uint32_t)fill_size);
             }
             vtable = *(void ***)channel->buffer;
-            ((directsound_buffer_play_proc)vtable[0x30 / 4])(channel->buffer, 0, 0, 1);
+            ((directsound_buffer_play_proc)vtable[halo::sound::dsound_slot::sb_play])(channel->buffer, 0, 0, 1);
         }
         return;
     }
@@ -510,7 +511,7 @@ void DirectSoundDevice::reset_channel(int16_t channel_index)
         stream_update(channel_index, 0);
     } else {
         void **vtable = *(void ***)channel->buffer;
-        int32_t (__stdcall *stop)(void *) = (int32_t (__stdcall *)(void *))vtable[0x48 / 4];
+        int32_t (__stdcall *stop)(void *) = (int32_t (__stdcall *)(void *))vtable[halo::sound::dsound_slot::sb_stop];
         stop(channel->buffer);
         channel->streaming_bytes = -1;
         channel->streaming = 0;
@@ -527,7 +528,7 @@ uint32_t DirectSoundDevice::claim_if_finished(int16_t channel_index)
 {
     directsound_channel *channel = &directsound_channels[channel_index];
     void **vtable = *(void ***)channel->buffer;
-    int32_t (__stdcall *get_status)(void *, uint32_t *) = (int32_t (__stdcall *)(void *, uint32_t *))vtable[0x24 / 4];
+    int32_t (__stdcall *get_status)(void *, uint32_t *) = (int32_t (__stdcall *)(void *, uint32_t *))vtable[halo::sound::dsound_slot::sb_get_status];
     uint32_t status;
     int32_t hr = get_status(channel->buffer, &status);
 
@@ -554,7 +555,7 @@ directsound_channel_state DirectSoundDevice::check_loop_boundary(int16_t channel
     if (channel->state != 0 && channel->source_end_cursor != -1) {
         void **vtable = *(void ***)channel->buffer;
         int32_t (__stdcall *get_current_position)(void *, int32_t *, int32_t *) =
-            (int32_t (__stdcall *)(void *, int32_t *, int32_t *))vtable[0x10 / 4];
+            (int32_t (__stdcall *)(void *, int32_t *, int32_t *))vtable[halo::sound::dsound_slot::sb_get_current_position];
         int32_t play_cursor;
         int32_t write_cursor_unused;
         int32_t end = channel->source_end_cursor;
