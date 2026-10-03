@@ -3,6 +3,7 @@
 #include <string.h>
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/cseries/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -42,7 +43,6 @@ extern uint8_t player_profile_get(int32_t slot, void *out_profile);
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 extern uint8_t network_game_client_connect_to_address_async(const char *address, const char *password);
 extern uint8_t local_team_00714dd8;
-extern int32_t time_query_performance_counter_ms(void);
 extern void network_game_settings_ack_send(void *client, int32_t unknown);
 extern uint8_t network_player_entry_validate(void);
 extern uint8_t game_variant_saved_default_valid;
@@ -329,7 +329,7 @@ void NetworkSetup::clear_player_ready_flags()
 
     status = client + 0x76d;
     if (client[0x76d] == 1) {
-        time_query_performance_counter_ms();
+        halo::cseries::time_query_performance_counter_ms();
     }
 
     if (*status != 2) {

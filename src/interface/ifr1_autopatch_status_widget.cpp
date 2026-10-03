@@ -1,4 +1,5 @@
 #include "halo/interface/ifr1_autopatch_status_widget.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern uint8_t autopatch_status_active_00719235;
@@ -8,7 +9,6 @@ extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
-extern int32_t time_query_performance_counter_ms(void);
 extern void widget_instance_close_and_restore_previous(widget_instance *widget);
 extern int32_t security_check_write_access(void);
 extern int32_t autopatch_check_for_update_start(void);
@@ -42,14 +42,14 @@ void AutopatchStatusWidget::widget_update(uint8_t *record)
         row->hidden = 1;
         row->scale = 0.333f;
         if (first_time) {
-            *(int32_t *)(record + 0x18) = time_query_performance_counter_ms();
+            *(int32_t *)(record + 0x18) = halo::cseries::time_query_performance_counter_ms();
             autopatch_status_active_00719235 = 1;
             *(int32_t *)(record + 0x20) = 300;
             *(int32_t *)(record + 0x1c) = 300;
             autopatch_status_flag_00692b11 = 0;
             return;
         }
-        *(int32_t *)(record + 0x18) = time_query_performance_counter_ms();
+        *(int32_t *)(record + 0x18) = halo::cseries::time_query_performance_counter_ms();
         autopatch_status_active_00719235 = 1;
         *(int32_t *)(record + 0x20) = 500;
         *(int32_t *)(record + 0x1c) = 0x2ee;

@@ -19,10 +19,10 @@
 #include "halo/interface/uis_event_handlers.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern uint8_t *network_client;
-extern uint32_t time_query_performance_counter_ms(void);
 extern uint8_t multiplayer_host_session_start(void);
 extern uint8_t input_event_queue_active;
 extern void input_queue_push_event(int16_t queue_index, ui_input_event *record);
@@ -147,7 +147,7 @@ uint8_t UiEventHandlers::event_4a1740(widget_instance *widget, int16_t *event, u
     }
     state = (int16_t *)(network_client + 0xeda);
     if (*state == 1) {
-        time_query_performance_counter_ms();
+        halo::cseries::time_query_performance_counter_ms();
     }
     if (*state != 0) {
         return 0;
@@ -627,7 +627,7 @@ uint8_t UiEventHandlers::event_4a3540(widget_instance *widget, int16_t *event, u
     int32_t position;
 
     if (event[0] == 3 && (((uint8_t *)event)[4] == 0 || ((uint8_t *)event)[4] == 0xc) &&
-        time_query_performance_counter_ms() - (uint32_t)widget->creation_time > 0xfa) {
+        halo::cseries::time_query_performance_counter_ms() - (uint32_t)widget->creation_time > 0xfa) {
         double_click = 1;
     }
     if (header) {

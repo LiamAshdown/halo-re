@@ -5,14 +5,13 @@
  */
 
 #include "internal/state.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 
 extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);
 extern int32_t D3DXCreateEffect(void *device, const void *data, uint32_t size, const void *defines, void *include, uint32_t flags, void *pool, void *out_effect, void **out_error_buffer);
 extern uint32_t __stdcall D3DXGetFVFVertexSize(uint32_t fvf);
-extern void tea_decrypt_buffer(int32_t length, uint8_t *data, const uint32_t *key);
-extern void md5_hex_digest(const uint8_t *data, int32_t length, char *out);
 
 }  // extern "C"
 
@@ -1014,8 +1013,8 @@ uint8_t rasterizer_resource_file_verify_signature(uint8_t *buffer, uint32_t size
         key[1] = 0x7fc3;
         key[2] = 0xe5;
         key[3] = 0x3fffef;
-        tea_decrypt_buffer((int32_t)size, buffer, key);
-        md5_hex_digest(buffer, (int32_t)size - 0x21, reference);
+        halo::cseries::tea_decrypt_buffer((int32_t)size, buffer, key);
+        halo::cseries::md5_hex_digest(buffer, (int32_t)size - 0x21, reference);
     }
 
     matches = 1;

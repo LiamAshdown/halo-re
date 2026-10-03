@@ -6,6 +6,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "memory.h"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern int64_t performance_frequency;
@@ -60,7 +61,7 @@ void *global_memory::release(void *handle)
  *
  * @address 0x449250
  */
-char directory_create_recursive(char *path)
+char halo::cseries::directory_create_recursive(char *path)
 {
     char buffer[k_directory_create_buffer_size];
     uint8_t all_created;
@@ -111,7 +112,7 @@ done:
  *
  * @address 0x4491e0
  */
-char *string_to_lowercase(char *string)
+char *halo::cseries::string_to_lowercase(char *string)
 {
     char *cursor;
 
@@ -128,7 +129,7 @@ char *string_to_lowercase(char *string)
  *
  * @address 0x44ad80
  */
-void function_do_nothing()
+void halo::cseries::function_do_nothing()
 {
 
 }

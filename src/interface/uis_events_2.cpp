@@ -19,13 +19,13 @@
 #include "halo/interface/uis_event_handlers.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern network_server_globals *network_server;
 extern uint8_t *network_client;
 extern char network_player_entry_validate(void *entry);
 extern int32_t network_game_record_message_send(void *client, const uint32_t *source);
-extern uint32_t time_query_performance_counter_ms(void);
 extern char network_game_settings_ack_send(uint8_t *client, int16_t template_row);
 extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
@@ -147,7 +147,7 @@ uint8_t UiEventHandlers::event_49dca0(widget_instance *widget, int16_t *event, u
     }
     state = (int16_t *)(client + 0xeda);
     if (*state == 1) {
-        time_query_performance_counter_ms();
+        halo::cseries::time_query_performance_counter_ms();
     }
     if (*state != 2) {
         return 1;

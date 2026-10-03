@@ -8,6 +8,7 @@ extern "C" input_event_queue input_event_queue_active;
 #include <wchar.h>
 #include <string.h>
 #include "halo/cache/api.hpp"
+#include "halo/cseries/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -16,7 +17,6 @@ extern "C" input_event_queue input_event_queue_active;
 extern "C" {
 extern virtual_keyboard_globals virtual_keyboard;
 extern uint8_t controls_input_capture_flags;
-extern int32_t time_query_performance_counter_ms(void);
 extern void widget_play_sound_effect(int16_t effect_id);
 extern void **keyboard_device;
 extern uint8_t key_frames[0x6d];
@@ -48,7 +48,7 @@ uint8_t VirtualKeyboard::open(uint16_t *destination, uint16_t maximum_length, in
     virtual_keyboard.destination_end = destination + wcslen((const wchar_t *)destination);
     virtual_keyboard.maximum_length = (maximum_length > 0x3f) ? 0x40 : (int16_t)maximum_length;
     virtual_keyboard.selection_start = -1;
-    virtual_keyboard.open_time = time_query_performance_counter_ms();
+    virtual_keyboard.open_time = halo::cseries::time_query_performance_counter_ms();
     virtual_keyboard.field_kind = field_kind;
     virtual_keyboard.unknown_01 = 0;
     virtual_keyboard.unknown_02 = 0;

@@ -29,6 +29,7 @@
 #include "halo/input/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" { void game_engine_flush_pending_simulation_ticks(void); }
 extern "C" { uint32_t game_frame_rate_average_update(void); }
@@ -294,7 +295,6 @@ extern "C" { extern int32_t network_host_shutdown_or_defer(void); }
 extern "C" { extern void chat_close(void); }
 extern "C" { extern void ui_cursor_update(void); }
 extern "C" { extern void interface_tick(void); }
-extern "C" { extern uint32_t time_query_performance_counter_ms(void); }
 extern "C" { extern void console_process_input_events(void); }
 extern "C" { extern uint8_t console_process_queued_input(void); }
 extern "C" { extern void console_message_expire_old(void); }
@@ -612,7 +612,7 @@ void MainLoop::loop(void)
                     main_globals_data.save_map = 0;
                     main_globals_data.return_to_main_menu = 1;
                 }
-                main_globals_data.last_activity_time_ms = (int32_t)time_query_performance_counter_ms();
+                main_globals_data.last_activity_time_ms = (int32_t)halo::cseries::time_query_performance_counter_ms();
             }
         }
 

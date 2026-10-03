@@ -174,7 +174,6 @@ extern void flags_dispose();
 extern void flags_initialize();
 extern void flags_reset_data_pointer();
 extern void flags_update();
-extern void function_do_nothing();
 extern void game_engine_ctf_broadcast_state();
 extern void game_engine_ctf_build_message_text();
 extern void game_engine_ctf_build_player_text();

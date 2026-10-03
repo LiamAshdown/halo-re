@@ -22,6 +22,7 @@
 #include "halo/main/console.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" { void console_autocomplete_command(void); }
 extern "C" { uint32_t console_command_context_mask(uint32_t context_flags); }
@@ -356,7 +357,6 @@ extern "C" { extern datum_index console_message_tail; }
 extern "C" { extern uint8_t error_file_logging_enabled; }
 extern "C" { extern void console_clear_screen(void); }
 extern "C" { extern void chimera__console_out(ColorARGB *color, char *format, ...); }
-extern "C" { extern void write_to_error_file(char *message, char with_timestamp); }
 /**
  * While the console is active: optionally clears the terminal's message history first (when
  * clear_first is set and the terminal has been initialized), then formats a printf-style message
@@ -388,7 +388,7 @@ extern "C" void console_out_printf(uint8_t clear_first, const char *format, ...)
     chimera__console_out(0, (char *)"%s", formatted);
     if (error_file_logging_enabled != 0) {
         strncat(formatted, "\r\n", 0x400);
-        write_to_error_file(formatted, 1);
+        halo::cseries::write_to_error_file(formatted, 1);
     }
 }
 
@@ -448,7 +448,7 @@ extern "C" void console_print_error_va(uint8_t clear_first, const char *format, 
     console_printf_verbose(0, (char *)"%s", formatted);
     if (error_file_logging_enabled != 0) {
         strncat(formatted, "\r\n", 0x400);
-        write_to_error_file(formatted, 1);
+        halo::cseries::write_to_error_file(formatted, 1);
     }
 }
 
@@ -472,7 +472,7 @@ extern "C" void console_print_va(const char *format, ...)
     console_printf_verbose(console_message_default_color, (char *)"%s", formatted);
     if (error_file_logging_enabled != 0) {
         strncat(formatted, "\r\n", 0x400);
-        write_to_error_file(formatted, 1);
+        halo::cseries::write_to_error_file(formatted, 1);
     }
 }
 

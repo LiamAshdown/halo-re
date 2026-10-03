@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern progress_screen_state join_ui_state;
@@ -21,7 +22,6 @@ extern uint8_t network_host_handoff_requested;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t network_join_error_reason;
-extern uint32_t time_query_performance_counter_ms(void);
 extern int32_t bitmap_group_sequence_get_bitmap_data(datum_index bitmap, int16_t sequence,
                                                      int16_t frame);
 extern uint32_t color_argb_scale_alpha(uint32_t packed_color, float scale);
@@ -89,11 +89,11 @@ void ChimeraBridge::do_show_loading_screen(void)
     }
     alpha = 1.0f;
     if (interface_loading_screen_address_b == -1) {
-        interface_loading_screen_address_b = (int32_t)time_query_performance_counter_ms();
+        interface_loading_screen_address_b = (int32_t)halo::cseries::time_query_performance_counter_ms();
     }
 
     if (interface_loading_screen_address_a != 0xffffffffu) {
-        uint32_t now = time_query_performance_counter_ms();
+        uint32_t now = halo::cseries::time_query_performance_counter_ms();
         if (now >= interface_loading_screen_address_a) {
             interface_loading_screen_address_a = 0xffffffffu;
             interface_loading_screen_address_b = -1;

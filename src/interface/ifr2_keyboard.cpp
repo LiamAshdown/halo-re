@@ -3,6 +3,7 @@
 #include <string.h>
 #include <wchar.h>
 #include "halo/cache/api.hpp"
+#include "halo/cseries/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -28,7 +29,6 @@ extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag,
 extern void text_measure_string_extents(Rectangle2D *origin, Rectangle2D *cursor, Rectangle2D *out, const uint16_t *text);
 extern void ui_draw_screen_quad(int16_t *source_rect, int16_t *dest_rect, int32_t bitmap_data, int16_t *clip_rect, uint32_t vertex_color);
 extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0, int32_t unknown_1, const uint16_t *text);
-extern uint32_t time_query_performance_counter_ms(void);
 extern const int16_t *text_get_character_metrics(uint16_t character, const void *font_data);
 extern int16_t key_event_read_index;
 extern int16_t key_event_count;
@@ -204,7 +204,7 @@ void VirtualKeyboard::draw_text(Rectangle2D *bounds)
     chimera__draw_16_bit_text(bounds, bounds, 0, 0, virtual_keyboard.destination);
 
     if (virtual_keyboard.opened == 0 && virtual_keyboard.white_bitmap != (datum_index)-1 &&
-        ((time_query_performance_counter_ms() / 1000) & 1) != 0) {
+        ((halo::cseries::time_query_performance_counter_ms() / 1000) & 1) != 0) {
         int16_t height = (int16_t)(*(const int16_t *)(font_data + 6) + *(const int16_t *)(font_data + 4));
         int16_t advance_before_caret = 0;
         int16_t total_advance = 0;
@@ -450,7 +450,7 @@ finish:
                 continue;
             }
             {
-                uint32_t pick = time_query_performance_counter_ms() % 10;
+                uint32_t pick = halo::cseries::time_query_performance_counter_ms() % 10;
                 if (pick > 9) {
                     pick = 9;
                 }

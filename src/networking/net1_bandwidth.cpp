@@ -1,10 +1,10 @@
 #include "halo/networking/net1_bandwidth.hpp"
 #include <stdio.h>
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern const char *network_bandwidth_direction_label_table[2];
 extern network_bandwidth_graph network_bandwidth_graph_globals;
-extern int32_t time_query_performance_counter_ms(void);
 extern uint32_t network_bandwidth_graph_default_interval_ms;
 extern void network_bandwidth_graph_instance_update_layout(network_bandwidth_graph *graph, uint8_t force_refresh);
 extern uint8_t network_bandwidth_overlay_enabled;
@@ -82,13 +82,13 @@ void BandwidthMonitor::accumulate_received(int32_t byte_count, int32_t packet_co
             network_bandwidth_graph_globals.pending_sample += packet_count;
         }
         if (network_bandwidth_graph_globals.needs_layout != 0) {
-            network_bandwidth_graph_globals.last_sample_ms = time_query_performance_counter_ms();
+            network_bandwidth_graph_globals.last_sample_ms = halo::cseries::time_query_performance_counter_ms();
             network_bandwidth_graph_globals.needs_layout = 0;
         }
     }
     network_bandwidth_graph_globals.bits_received += byte_count * 8;
     if (network_bandwidth_graph_globals.rate_base_ms == 0) {
-        network_bandwidth_graph_globals.rate_base_ms = time_query_performance_counter_ms();
+        network_bandwidth_graph_globals.rate_base_ms = halo::cseries::time_query_performance_counter_ms();
     }
 }
 
@@ -109,13 +109,13 @@ void BandwidthMonitor::accumulate_sent(int32_t byte_count, int32_t packet_count)
             network_bandwidth_graph_globals.pending_sample += packet_count;
         }
         if (network_bandwidth_graph_globals.needs_layout != 0) {
-            network_bandwidth_graph_globals.last_sample_ms = time_query_performance_counter_ms();
+            network_bandwidth_graph_globals.last_sample_ms = halo::cseries::time_query_performance_counter_ms();
             network_bandwidth_graph_globals.needs_layout = 0;
         }
     }
     network_bandwidth_graph_globals.bits_sent += byte_count * 8;
     if (network_bandwidth_graph_globals.rate_base_ms == 0) {
-        network_bandwidth_graph_globals.rate_base_ms = time_query_performance_counter_ms();
+        network_bandwidth_graph_globals.rate_base_ms = halo::cseries::time_query_performance_counter_ms();
     }
 }
 

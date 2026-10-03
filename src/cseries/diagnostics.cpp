@@ -5,6 +5,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern uint8_t debug_log_level;
@@ -20,7 +21,6 @@ extern char error_file_name[];
 extern char error_file_timestamp_format[];
 extern char error_file_no_timestamp[];
 extern char *network_log_path_resolve(char *requested_path);
-extern void write_to_error_file(char *message, uint8_t with_timestamp);
 extern char profile_directory[k_profile_directory_storage_size];
 typedef int32_t (__stdcall *sh_get_folder_path_proc)(void *owner, int32_t csidl, void *token, uint32_t flags, char *out_path);
 extern void *sh_get_folder_path;
@@ -62,7 +62,7 @@ void error_log::write(char *message, uint8_t with_timestamp)
         halo::cseries::error_log::write(error_file_banner, 1);
         sprintf(formatted, error_file_function_format, error_file_function_name);
         halo::cseries::error_log::write(formatted, 1);
-        sprintf(formatted, error_file_address_format, (uint32_t)(size_t)write_to_error_file);
+        sprintf(formatted, error_file_address_format, (uint32_t)(size_t)halo::cseries::write_to_error_file);
         halo::cseries::error_log::write(formatted, 1);
     }
 

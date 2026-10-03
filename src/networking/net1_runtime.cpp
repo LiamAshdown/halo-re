@@ -7,12 +7,12 @@
 #include "units.h"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern uint8_t debug_log_level;
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count];
 extern int32_t network_connection_stats_lookup_or_add(int32_t connection_id, uint16_t connection_key);
-extern int32_t time_query_performance_counter_ms(void);
 extern uint8_t network_statistics_logging_enabled;
 extern uint8_t network_connection_log_needs_open;
 extern void *network_connection_stats_log_file;
@@ -24,7 +24,6 @@ extern network_client_globals *network_client;
 extern network_server_globals *network_server;
 extern char network_summary_log_mode_string[];
 extern char *network_log_path_resolve(char *requested_path);
-extern char directory_create_recursive(char *path);
 extern void network_bandwidth_graph_accumulate_sent(int32_t enabled);
 extern void network_bandwidth_graph_accumulate_received(int32_t enabled);
 extern void *gt2GetConnectionData(void *gamespy_connection);
@@ -114,7 +113,7 @@ void ConnectionStats::end(int32_t connection_id, uint16_t connection_key)
     if (2 < debug_log_level &&
         (index = network_connection_stats_lookup_or_add(connection_id, connection_key), index != -1) &&
         network_connection_stats[index].active != 0) {
-        now = time_query_performance_counter_ms();
+        now = halo::cseries::time_query_performance_counter_ms();
         network_connection_stats[index].connected_duration_ms +=
             now - network_connection_stats[index].active_since_ms;
         network_connection_stats[index].active_since_ms = 0;
@@ -144,7 +143,7 @@ void ConnectionStats::log_tick()
     uint8_t control_char;
 
     if (2 < debug_log_level && network_statistics_logging_enabled == 1) {
-        now = time_query_performance_counter_ms();
+        now = halo::cseries::time_query_performance_counter_ms();
         if (network_connection_log_needs_open == 1) {
             network_connection_log_needs_open = 0;
             network_connection_log_last_row_ms = now;
@@ -156,7 +155,7 @@ void ConnectionStats::log_tick()
 
             base_path = network_log_path_resolve((char *)"Gamespy Metrics");
             strcpy(path_buf, base_path);
-            directory_create_recursive(path_buf);
+            halo::cseries::directory_create_recursive(path_buf);
 
             strcat(path_buf, "\\gamespy ");
             strcat(path_buf, date_buf);
@@ -282,7 +281,7 @@ void ConnectionStats::record_packet(void *gamespy_connection, int32_t payload_le
                     gt2GetRemotePort((int32_t)(uintptr_t)gamespy_connection));
                 *stats_index_field = index;
                 network_connection_stats[index].active = 1;
-                network_connection_stats[*stats_index_field].active_since_ms = time_query_performance_counter_ms();
+                network_connection_stats[*stats_index_field].active_since_ms = halo::cseries::time_query_performance_counter_ms();
             }
             index = *stats_index_field;
             if (is_sent == 1) {
@@ -410,7 +409,7 @@ int16_t NetworkRuntime::initialize()
         }
         CreateThread(0, 0x10400, (LPTHREAD_START_ROUTINE)autopatch_proxy_initialize, 0, 0, (LPDWORD)&thread_id);
 
-        network_initialized_at_ms = time_query_performance_counter_ms();
+        network_initialized_at_ms = halo::cseries::time_query_performance_counter_ms();
         network_winsock_initialized = 1;
         result = (int16_t)wsa_result;
     }
@@ -610,7 +609,7 @@ int32_t NetworkRuntime::shutdown()
         fprintf((FILE *)network_connection_stats_log_file, "\n\n");
         total_sent = 0;
         total_received = 0;
-        now = time_query_performance_counter_ms();
+        now = halo::cseries::time_query_performance_counter_ms();
         total_elapsed_sec = (uint32_t)(now - network_initialized_at_ms) / 1000;
         for (i = 0; i < network_connection_stats_count; i++) {
             total_sent = total_sent + network_connection_stats[i].bytes_sent;
@@ -1060,7 +1059,7 @@ void StatsSummaryLog::open()
 
             base_path = network_log_path_resolve((char *)"Gamespy Metrics");
             strcpy(path_buf, base_path);
-            directory_create_recursive(path_buf);
+            halo::cseries::directory_create_recursive(path_buf);
 
             strcat(path_buf, "\\Game Summary ");
             strcat(path_buf, date_buf);
@@ -1080,7 +1079,7 @@ void StatsSummaryLog::open()
         network_summary_stats.packets_received = 0;
         network_summary_stats.player_count_total = 0;
         network_summary_stats.player_count_samples = 0;
-        network_summary_stats.start_ms = time_query_performance_counter_ms();
+        network_summary_stats.start_ms = halo::cseries::time_query_performance_counter_ms();
     }
 }
 
@@ -1109,7 +1108,7 @@ void StatsSummaryLog::write()
 
     if (2 < debug_log_level && network_statistics_logging_enabled != 0 &&
         network_summary_log_file != 0) {
-        now = time_query_performance_counter_ms();
+        now = halo::cseries::time_query_performance_counter_ms();
         elapsed_ms = (float)(now - network_summary_stats.start_ms);
         if (now - network_summary_stats.start_ms < 0) {
             elapsed_ms = elapsed_ms + 4.2949673e+09f;

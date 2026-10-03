@@ -8,6 +8,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/cseries/api.hpp"
 
 namespace halo::sound {
 
@@ -221,7 +222,7 @@ void fade_out_and_stop_all(void)
             goto stop;
         }
 
-        deadline = (float)time_query_performance_counter_ms();
+        deadline = (float)halo::cseries::time_query_performance_counter_ms();
         index = halo::memory::datum_next(-1, sound_data);
         if (index != k_datum_index_none) {
             do {

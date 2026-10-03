@@ -14,6 +14,7 @@
  */
 #include "tables.h"
 #include "code_refs.hpp"
+#include "halo/cseries/api.hpp"
 #include <stdint.h>
 
 extern "C" {
@@ -349,54 +350,54 @@ __declspec(allocate(".geq$00699f44v")) __declspec(align(4)) uint32_t network_sce
 #pragma section(".geq$0069a2f0v", read, write)
 __declspec(allocate(".geq$0069a2f0v")) __declspec(align(16)) uint32_t message_delta_field_type_table[5] = {
     0x00000000u, 0x00000001u, (uint32_t)message_delta_integer_compute_size, (uint32_t)message_delta_integer_initialize,
-    (uint32_t)function_do_nothing
+    (uint32_t)&halo::cseries::function_do_nothing
 };
 #pragma section(".geq$0069a304v", read, write)
 __declspec(allocate(".geq$0069a304v")) __declspec(align(4)) uint32_t message_delta_unknown_table_0069a304[168] = {
     0x00000000u, 0x00000001u, 0x00000000u, (uint32_t)message_delta_compute_size_32,
-    (uint32_t)object_type_definition_return_true, (uint32_t)function_do_nothing, 0x00000000u, 0x00000002u, 0x00000000u,
+    (uint32_t)object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000002u, 0x00000000u,
     (uint32_t)message_delta_compute_size_1, (uint32_t)object_type_definition_return_true,
-    (uint32_t)function_do_nothing, 0x00000000u, 0x00000003u, 0x00000000u, (uint32_t)message_delta_compute_size_8,
-    (uint32_t)object_type_definition_return_true, (uint32_t)function_do_nothing, 0x00000000u, 0x00000004u, 0x00000000u,
+    (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000003u, 0x00000000u, (uint32_t)message_delta_compute_size_8,
+    (uint32_t)object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000004u, 0x00000000u,
     (uint32_t)message_delta_compute_size_16, (uint32_t)object_type_definition_return_true,
-    (uint32_t)function_do_nothing, 0x00000000u, 0x00000005u, 0x00000001u, (uint32_t)message_delta_string_compute_size,
-    (uint32_t)message_delta_count_initialize, (uint32_t)function_do_nothing, 0x00000000u, 0x00000006u, 0x00000001u,
+    (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000005u, 0x00000001u, (uint32_t)message_delta_string_compute_size,
+    (uint32_t)message_delta_count_initialize, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000006u, 0x00000001u,
     (uint32_t)message_delta_wide_string_compute_size, (uint32_t)message_delta_count_initialize,
-    (uint32_t)function_do_nothing, 0x00000000u, 0x00000007u, 0x00000001u, (uint32_t)message_delta_blob_compute_size,
-    (uint32_t)message_delta_count_initialize, (uint32_t)function_do_nothing, 0x00000000u, 0x00000008u, 0x00000001u,
+    (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000007u, 0x00000001u, (uint32_t)message_delta_blob_compute_size,
+    (uint32_t)message_delta_count_initialize, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000008u, 0x00000001u,
     (uint32_t)message_delta_structure_array_compute_size, (uint32_t)message_delta_structure_array_initialize,
-    (uint32_t)function_do_nothing, 0x00000000u, 0x00000009u, 0x00000001u,
+    (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000009u, 0x00000001u,
     (uint32_t)message_delta_compound_compute_size, (uint32_t)message_delta_compound_initialize,
-    (uint32_t)function_do_nothing, 0x00000000u, 0x0000000au, 0x00000001u, (uint32_t)message_delta_pointer_compute_size,
-    (uint32_t)message_delta_pointer_initialize, (uint32_t)function_do_nothing, 0x00000000u, 0x0000000bu, 0x00000001u,
+    (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x0000000au, 0x00000001u, (uint32_t)message_delta_pointer_compute_size,
+    (uint32_t)message_delta_pointer_initialize, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x0000000bu, 0x00000001u,
     (uint32_t)message_delta_enum_width_compute_size, (uint32_t)message_delta_integer_initialize,
-    (uint32_t)function_do_nothing, 0x00000000u, 0x0000000cu, 0x00000001u, (uint32_t)message_delta_range_compute_size,
-    (uint32_t)message_delta_range_initialize, (uint32_t)function_do_nothing, 0x00000000u, 0x0000000du, 0x00000001u,
+    (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x0000000cu, 0x00000001u, (uint32_t)message_delta_range_compute_size,
+    (uint32_t)message_delta_range_initialize, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x0000000du, 0x00000001u,
     (uint32_t)message_delta_index_compute_size, (uint32_t)message_delta_index_initialize,
     (uint32_t)message_delta_index_teardown, 0x00000000u, 0x0000000eu, 0x00000001u,
     (uint32_t)message_delta_scalar_array_compute_size, (uint32_t)message_delta_count_initialize,
-    (uint32_t)function_do_nothing, 0x00000000u, 0x0000000fu, 0x00000001u,
+    (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x0000000fu, 0x00000001u,
     (uint32_t)message_delta_scalar_array_compute_size, (uint32_t)message_delta_count_initialize,
-    (uint32_t)function_do_nothing, 0x00000000u, 0x00000010u, 0x00000000u, (uint32_t)message_delta_compute_size_32,
-    (uint32_t)object_type_definition_return_true, (uint32_t)function_do_nothing, 0x00000000u, 0x00000011u, 0x00000001u,
+    (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000010u, 0x00000000u, (uint32_t)message_delta_compute_size_32,
+    (uint32_t)object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000011u, 0x00000001u,
     (uint32_t)message_delta_first_dword_compute_size, (uint32_t)message_delta_flags_initialize,
-    (uint32_t)function_do_nothing, 0x00000000u, 0x00000012u, 0x00000000u, (uint32_t)message_delta_compute_size_32,
-    (uint32_t)object_type_definition_return_true, (uint32_t)function_do_nothing, 0x00000000u, 0x00000013u, 0x00000000u,
+    (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000012u, 0x00000000u, (uint32_t)message_delta_compute_size_32,
+    (uint32_t)object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000013u, 0x00000000u,
     (uint32_t)message_delta_compute_size_6, (uint32_t)object_type_definition_return_true,
-    (uint32_t)function_do_nothing, 0x00000000u, 0x00000014u, 0x00000001u,
+    (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000014u, 0x00000001u,
     (uint32_t)message_delta_first_dword_compute_size, (uint32_t)message_delta_quantized_real_initialize,
-    (uint32_t)function_do_nothing, 0x00000000u, 0x00000015u, 0x00000001u, (uint32_t)message_delta_normal_compute_size,
-    (uint32_t)message_delta_normal_initialize, (uint32_t)function_do_nothing, 0x00000000u, 0x00000016u, 0x00000000u,
+    (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000015u, 0x00000001u, (uint32_t)message_delta_normal_compute_size,
+    (uint32_t)message_delta_normal_initialize, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000016u, 0x00000000u,
     (uint32_t)message_delta_locality_compute_size, (uint32_t)message_delta_locality_initialize,
-    (uint32_t)function_do_nothing, 0x00000000u, 0x00000017u, 0x00000000u, (uint32_t)message_delta_compute_size_4,
-    (uint32_t)object_type_definition_return_true, (uint32_t)function_do_nothing, 0x00000000u, 0x00000018u, 0x00000000u,
+    (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000017u, 0x00000000u, (uint32_t)message_delta_compute_size_4,
+    (uint32_t)object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000018u, 0x00000000u,
     (uint32_t)message_delta_compute_size_3, (uint32_t)object_type_definition_return_true,
-    (uint32_t)function_do_nothing, 0x00000000u, 0x00000019u, 0x00000000u, (uint32_t)message_delta_compute_size_2,
-    (uint32_t)object_type_definition_return_true, (uint32_t)function_do_nothing, 0x00000000u, 0x0000001au, 0x00000001u,
+    (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000019u, 0x00000000u, (uint32_t)message_delta_compute_size_2,
+    (uint32_t)object_type_definition_return_true, (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x0000001au, 0x00000001u,
     (uint32_t)message_delta_velocity_compute_size, (uint32_t)waypoint_table_quantize_initialize,
-    (uint32_t)function_do_nothing, 0x00000000u, 0x0000001bu, 0x00000000u,
+    (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x0000001bu, 0x00000000u,
     (uint32_t)message_delta_item_placement_compute_size, (uint32_t)message_delta_item_placement_initialize,
-    (uint32_t)function_do_nothing, 0x00000000u, 0x00000013u, 0x6e657267u, 0x5f656461u, 0x6e756f63u, 0x00007374u
+    (uint32_t)&halo::cseries::function_do_nothing, 0x00000000u, 0x00000013u, 0x6e657267u, 0x5f656461u, 0x6e756f63u, 0x00007374u
 };
 
 /** 0x0069bfdc..0x0069c00c: object_type_definitions, object_type_definitions_ex */

@@ -1,6 +1,7 @@
 #include "halo/ai/actor_firing.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/cseries/api.hpp"
 
 namespace c_actor_claim_firing_position {
 extern "C" {
@@ -96,7 +97,6 @@ extern uint8_t path_find_test_direct_reachability(const real_point3d *point_a, c
 extern uint8_t path_find_compute_heuristic(path_find_context *context, uint32_t vertex_id, real_point3d *point,
     float *out_distance, float *out_secondary, real_vector3d *out_direction);
 extern uint8_t path_find_run(path_find_context *context);
-extern void qsort_dword_array(uint32_t count, int32_t *elements, qsort_dword_compare_proc compare);
 extern void unit_add_marker_relative_offset(uint32_t unit_index, uint32_t mode, float *world_point,
     uint32_t reference_direction, uint32_t offsets, real_point3d *accumulator);
 extern void unit_get_aiming_vector(uint32_t unit_index, real_vector3d *out);
@@ -634,7 +634,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         }
         qsort_candidate_base = candidates;
         qsort_candidate_count = candidate_count;
-        qsort_dword_array((uint32_t)(int32_t)candidate_count, sort_index, actor_firing_position_compare);
+        halo::cseries::qsort_dword_array((uint32_t)(int32_t)candidate_count, sort_index, actor_firing_position_compare);
 
         query->baseline_accept = actor_firing_position_probe_reject_rules(query, actor_index);
 

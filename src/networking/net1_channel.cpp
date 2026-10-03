@@ -3,6 +3,7 @@
 #include "halo/networking/net_state.hpp"
 #include <string.h>
 #include "halo/memory/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern int32_t network_buffer_pair_pool;
@@ -112,7 +113,6 @@ extern char network_game_settings_packet_receive(void *scratch);
 extern int32_t gt2Send(int32_t socket, uint8_t *buffer, int32_t byte_count, int32_t mode);
 extern network_pending_connection network_pending_connections[k_network_pending_connection_count];
 extern void network_channel_gap_441f30(void);
-extern void function_do_nothing(void);
 extern int32_t gt2Accept(int32_t reply_socket, network_listen_accept_config *config);
 extern void network_channel_receive_callback(void *handle, uint8_t *data, int32_t length);
 extern void gt2Reject(int32_t socket, void *buffer, int32_t length);
@@ -2074,7 +2074,7 @@ network_receive_queue * ListenerCallbacks::accept_pending_connection()
         config.result = 0;
         config.receive_callback = (void *)network_channel_receive_callback;
         config.error_callback = (void *)network_channel_gap_441f30;
-        config.connect_callback = (void *)function_do_nothing;
+        config.connect_callback = (void *)halo::cseries::function_do_nothing;
         accepted = gt2Accept(entry->reply_socket, &config);
         if (accepted == 1) {
             queue = network_receive_queue_new();

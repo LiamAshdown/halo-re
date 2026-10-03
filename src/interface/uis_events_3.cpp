@@ -22,6 +22,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -57,7 +58,6 @@ extern int32_t network_staged_message_commit(void *client, int16_t value);
 extern network_server_globals *network_server;
 extern int16_t profile_slot_id[];
 extern void display_error(int16_t error_string_index, int32_t player_index, uint8_t modal, uint8_t is_error);
-extern uint32_t time_query_performance_counter_ms(void);
 extern char network_session_info_packet_send(const uint32_t *source, void *client);
 extern uint8_t local_team_00714dd8[];
 extern uint8_t network_disconnect_timeout_flag;
@@ -505,7 +505,7 @@ uint8_t UiEventHandlers::event_4a1790(widget_instance *widget, int16_t *event, u
     }
     state = (int16_t *)(client + 0xeda);
     if (*state == 1) {
-        time_query_performance_counter_ms();
+        halo::cseries::time_query_performance_counter_ms();
     }
     if (*state != 2) {
         return 1;

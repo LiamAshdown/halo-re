@@ -7,20 +7,19 @@
 #include "halo/structures/structures.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern void **rasterizer_dynamic_index_buffer;
 extern int32_t rasterizer_dynamic_index_cache_reserve(int16_t vertex_count);
 extern void *rasterizer_dynamic_index_slot_lock(int32_t geometry_handle);
 extern ScenarioStructureBSP *global_structure_bsp;
-extern void qsort_dword_array(uint32_t count, int32_t *elements, qsort_dword_compare_proc compare);
 extern breakable_surface_globals *breakable_surface_state;
 extern int16_t global_structure_bsp_index;
 extern const real_point3d *global_origin3d_pointer;
 extern int16_t render_force_flag;
 extern int32_t rasterizer_device_version;
 extern void ***rasterizer_device;
-extern void function_do_nothing(void);
 extern void rasterizer_underwater_tint_set_states(void);
 extern void rasterizer_projected_light_constants_build(void *point);
 extern void render_window_structure_material_0x511f80(void *shader_data, int16_t shader_permutation, int32_t render_context,
@@ -91,7 +90,7 @@ void structure_draw::leaf_faces_gather_list(int16_t face_count, ScenarioStructur
     ScenarioStructureBSPSurface *surfaces = (ScenarioStructureBSPSurface *)global_structure_bsp->surfaces.pointer;
     int32_t i;
 
-    qsort_dword_array((uint32_t)(int32_t)face_count, face_indices, structure_leaf_face_index_compare);
+    halo::cseries::qsort_dword_array((uint32_t)(int32_t)face_count, face_indices, structure_leaf_face_index_compare);
 
     for (i = 0; i < face_count; i = i + 1) {
         out_faces[i] = surfaces[face_indices[i]];
@@ -261,7 +260,7 @@ void structure_draw::picked_polygon_draw(void)
 
     rasterizer_underwater_tint_set_states();
 
-    structure_draw::leaf_faces_for_each(globals().picked_surfaces_geometry, (structure_lightmap_begin_callback)structure_picked_polygon_lightmap_begin, (structure_material_callback)structure_picked_polygon_material, (structure_lightmap_end_callback)function_do_nothing, (structure_transparent_material_callback)0, globals().visible_surface_indices, (int16_t)globals().visible_surface_count);
+    structure_draw::leaf_faces_for_each(globals().picked_surfaces_geometry, (structure_lightmap_begin_callback)structure_picked_polygon_lightmap_begin, (structure_material_callback)structure_picked_polygon_material, (structure_lightmap_end_callback)halo::cseries::function_do_nothing, (structure_transparent_material_callback)0, globals().visible_surface_indices, (int16_t)globals().visible_surface_count);
 
     if (rasterizer_device_version < 0xffff0101) {
         void **device = *rasterizer_device;

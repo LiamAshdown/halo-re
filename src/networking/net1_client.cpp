@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern network_client_globals *network_client;
@@ -22,7 +23,6 @@ extern data_array *player_data;
 extern uint8_t network_stats_enabled_gate;
 extern int64_t main_globals_data;
 extern int64_t performance_frequency;
-extern int32_t time_query_performance_counter_ms(void);
 extern int32_t network_connect_timeout_ms;
 extern int32_t message_delta_decode_begin(message_delta_decode_state *state, bit_stream *stream);
 extern int32_t message_delta_decode_array_field(void **context);
@@ -140,7 +140,6 @@ extern void network_channels_open(void);
 extern int32_t network_random_offset(int32_t base);
 extern void ServerBrowserSendNatNegotiateCookieToServer(void *handle, char *hostname, uint32_t port, int32_t request_id);
 extern void network_join_hostname_resolved_callback(int32_t resolve_failed, uint32_t unused, uint8_t *hostent);
-extern void function_do_nothing(void);
 extern int32_t NNBeginNegotiationWithSocket(int32_t hostname, int32_t request_id, int32_t one, void (*progress_callback)(void), void (*complete_callback)(int32_t, uint32_t, uint8_t *), int32_t zero);
 extern uint32_t network_game_client_connect_to_address(char *address_string, uint16_t *target_string);
 }
@@ -331,7 +330,7 @@ int16_t ClientView::connect_progress_percent(int16_t *out_percent)
     if (out_percent != 0) {
         *out_percent = 0;
         if (client->state == k_network_client_state_connecting) {
-            now = time_query_performance_counter_ms();
+            now = halo::cseries::time_query_performance_counter_ms();
             *out_percent = (int16_t)(((uint32_t)(now - client->connect_attempt.started_ms) * 100)
                                       / network_connect_timeout_ms);
         }
@@ -741,7 +740,7 @@ tail:
         server_base_time = *(int32_t *)endpoint->control_block;
 
         challenge_time = message_delta_sample_ring_buffer_average((message_delta_sample_ring_buffer *)endpoint->control_block);
-        now2 = time_query_performance_counter_ms();
+        now2 = halo::cseries::time_query_performance_counter_ms();
         console_print_error_va(0, "current time delta[%d]  latency[%d]  server time[%d]\n",
             server_base_time, challenge_time, now2 + server_base_time);
     }
@@ -1281,7 +1280,7 @@ void ConnectionView::retransmit_if_overdue(const uint32_t *sender_address, uint3
 
     endpoint = &client->connection;
     if (endpoint->ready != 0 && endpoint->address.ipv4 == *sender_address) {
-        now = time_query_performance_counter_ms();
+        now = halo::cseries::time_query_performance_counter_ms();
         if (deadline_ms <= now) {
             endpoint->retry_count = endpoint->retry_count + 1;
 
@@ -1714,7 +1713,7 @@ uint32_t JoinView::request_resolve_host()
         uint32_t result;
 
         ServerBrowserSendNatNegotiateCookieToServer(master_server_query_engine, hostname, resolve_port, request_id);
-        result = NNBeginNegotiationWithSocket((int32_t)resolve_handle, request_id, 1, function_do_nothing,
+        result = NNBeginNegotiationWithSocket((int32_t)resolve_handle, request_id, 1, halo::cseries::function_do_nothing,
             network_join_hostname_resolved_callback, 0);
         server_browser_join_target = 0;
         if (result == 0) {

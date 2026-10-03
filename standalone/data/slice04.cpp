@@ -7,6 +7,7 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "code_refs.hpp"
+#include "halo/cseries/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/effects/api.hpp"
@@ -202,7 +203,7 @@ uint32_t rasterizer_chicago_color_function_stage_states[39] = {
 };
 
 /* 0x0069e7ac size 4: game_state_before_save_proc */
-void * game_state_before_save_proc = function_do_nothing;
+void * game_state_before_save_proc = &halo::cseries::function_do_nothing;
 
 /* 0x0069e7b0 size 4: game_state_revert_proc */
 void * game_state_revert_proc = &halo::sound::game_sound_revert_scripting_sounds;
@@ -212,7 +213,7 @@ void * game_state_after_load_procs[13] = {
     scenario_structure_bsp_switch_after_load, &halo::sound::sound_stop_all,
     &halo::sound::game_sound_reconcile_scripting_state, &halo::camera::observer_initialize,
     update_queues_revert, decal_geometry_cache_restore_procs,
-    function_do_nothing, function_do_nothing,
+    &halo::cseries::function_do_nothing, &halo::cseries::function_do_nothing,
     halo::structures::detail_objects_invalidate, game_state_after_load_restore_time,
     players_rebind_local_player_after_load, &halo::camera::director_game_state_loaded,
     hud_messaging_clear_after_load,
@@ -275,8 +276,8 @@ void * structure_bsp_activate_procedures[13] = {
 void * structure_bsp_deactivate_procedures[10] = {
     objects_delete_unparented_of_type_mask, object_sweep_refresh_cluster_membership,
     object_lights_detach_from_structure_bsp, ai_reset_fire_group_assignments,
-    function_do_nothing, function_do_nothing,
-    function_do_nothing, function_do_nothing,
+    &halo::cseries::function_do_nothing, &halo::cseries::function_do_nothing,
+    &halo::cseries::function_do_nothing, &halo::cseries::function_do_nothing,
     halo::structures::structure_runtime_decals_evict, halo::effects::decals_detach_from_structure_bsp,
 };
 

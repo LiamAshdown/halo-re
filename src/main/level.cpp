@@ -23,6 +23,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" { int campaign_level_find_index_for_path(char *path); }
 extern "C" { void credits_load_directly_for_endgame(void); }
@@ -224,7 +225,6 @@ extern "C" { extern void game_engine_init_tick_record_for_mode(void); }
 extern "C" { extern void main_ensure_local_players(void); }
 extern "C" { extern char scenario_load(char *scenario_path); }
 extern "C" { extern void game_state_load_checkpoint(void); }
-extern "C" { extern uint32_t time_query_performance_counter_ms(void); }
 extern "C" { extern int64_t performance_frequency; }
 namespace halo::main {
 
@@ -292,7 +292,7 @@ after_load:
 
     ui_pause_pending_count_00718fa0 = 0x1e;
     if (main_globals_data.game_connection == 0 && join_ui_state != 0) {
-        int32_t now = time_query_performance_counter_ms();
+        int32_t now = halo::cseries::time_query_performance_counter_ms();
         uint32_t extra = 0;
 
         if (interface_loading_screen_address_b != -1) {

@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include "halo/networking/net2_remote_console.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern int64_t performance_frequency;
@@ -28,7 +29,6 @@ extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx
     int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern uint8_t network_session_send_to_machine(int32_t machine_index, void *key, int32_t size,
     int32_t reliable, int32_t d, int32_t e, int32_t message_kind);
-extern char * string_to_lowercase(char *string);
 extern void string_trim_whitespace(char **string_ptr);
 extern void chimera__console_out(ColorARGB *color, char *format, ...);
 extern int16_t network_game_mode;
@@ -48,7 +48,6 @@ extern game_time_globals * game_time;
 extern network_server_globals * network_server;
 extern int32_t update_server_last_log_ms;
 extern int32_t update_server_last_tick_ms;
-extern int32_t time_query_performance_counter_ms(void);
 extern void update_server_new(void);
 extern void update_queues_dispose(void);
 extern void update_server_dispose(void);
@@ -186,7 +185,7 @@ void RemoteConsole::bool_get_set(uint32_t argument_count, uint8_t *value, char *
         if (text[0] != '\0') {
             strncpy(buffer, text, 0xff);
             buffer[0xff] = 0;
-            string_to_lowercase(buffer);
+            halo::cseries::string_to_lowercase(buffer);
             cursor = buffer;
             string_trim_whitespace(&cursor);
             if (strncmp(buffer, "0", 2) == 0 || strncmp(buffer, "false", 6) == 0) {
@@ -363,7 +362,7 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
         return result;
     }
     if (network_client->state == 3) {
-        now_ms = time_query_performance_counter_ms();
+        now_ms = halo::cseries::time_query_performance_counter_ms();
         reliable_seq = network_client->last_update_id & 0x7fffffff;
         player_id = local_player_globals->maximum_count;
         memcpy(control, update_client_staged, sizeof(control));
@@ -400,7 +399,7 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
             encoded = message_delta_encode_single_value(message_delta_definition_table, record, control,
                 (uint8_t *)&history_byte, 0x7ff8, 0xd, 0);
             if (update_server_pending_flush == 1) {
-                time_query_performance_counter_ms();
+                halo::cseries::time_query_performance_counter_ms();
             }
             channel = network_client->channel;
             update_server_pending_flush = 0;
@@ -445,7 +444,7 @@ char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
         }
     after_send:
         if (update_server_pending_flush == 0) {
-            update_server_last_log_ms = time_query_performance_counter_ms();
+            update_server_last_log_ms = halo::cseries::time_query_performance_counter_ms();
             update_server_pending_flush = 1;
         }
         update_server_last_tick_ms = now_ms;

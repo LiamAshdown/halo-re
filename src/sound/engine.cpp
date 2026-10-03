@@ -7,6 +7,7 @@
 #include "internal/state.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/cseries/api.hpp"
 
 namespace halo::sound {
 
@@ -54,7 +55,7 @@ void resume(void)
         if (current_sound_driver != 0) {
             audio_device().set_paused(0);
         }
-        sound_time = time_query_performance_counter_ms();
+        sound_time = halo::cseries::time_query_performance_counter_ms();
     }
 }
 
@@ -218,7 +219,7 @@ void update(void)
             if (current_sound_driver != 0) {
                 audio_device().set_paused(0);
             }
-            sound_time = time_query_performance_counter_ms();
+            sound_time = halo::cseries::time_query_performance_counter_ms();
         }
     } else if (sound_paused != 1) {
         sound_paused = 1;

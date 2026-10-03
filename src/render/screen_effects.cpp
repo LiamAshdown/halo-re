@@ -20,6 +20,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -68,7 +69,6 @@ extern uint16_t unknown_006893e2;
 extern uint32_t frame_statistics_times[60];
 extern uint8_t frame_statistics_dropped[60];
 extern int16_t frame_statistics_count;
-extern int32_t time_query_performance_counter_ms(void);
 extern lens_flare_batch_key lens_flare_current_key;
 extern uint32_t lens_flare_vertex_specular;
 extern float text_color_scale;
@@ -821,7 +821,7 @@ void sample(rasterizer_frame_statistics *statistics, uint8_t dropped)
         return;
     }
 
-    now = time_query_performance_counter_ms();
+    now = halo::cseries::time_query_performance_counter_ms();
     count = frame_statistics_count;
 
     if (count != 0) {

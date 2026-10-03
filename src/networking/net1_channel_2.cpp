@@ -1,4 +1,5 @@
 #include "halo/networking/net1_channel.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern int32_t network_query_socket;
@@ -15,7 +16,6 @@ extern int32_t network_connect_timeout_ms;
 extern void network_channel_connected_callback(void *connection, int32_t result, const uint8_t *message, int32_t length);
 extern void network_channel_receive_callback(void *handle, uint8_t *data, int32_t length);
 extern void network_channel_gap_441f30(void *connection);
-extern void function_do_nothing(void);
 extern int32_t network_pending_connection_count;
 extern network_pending_connection network_pending_connections[k_network_pending_connection_count];
 extern void gt2Reject(void *connection, const unsigned char *message, int len);
@@ -51,7 +51,7 @@ int16_t ReceiveQueueView::attempt_connect(s_network_address *address, int32_t un
     callbacks[0] = (void *)network_channel_connected_callback;
     callbacks[1] = (void *)network_channel_receive_callback;
     callbacks[2] = (void *)network_channel_gap_441f30;
-    callbacks[3] = (void *)function_do_nothing;
+    callbacks[3] = (void *)halo::cseries::function_do_nothing;
     network_channels_open();
     socket = network_query_socket;
     if (use_query_socket == 0) {

@@ -1,11 +1,11 @@
 #include "halo/networking/net1_server.hpp"
 #include <string.h>
 #include "halo/memory/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern int64_t performance_frequency;
 extern network_client_globals *network_client;
-extern int32_t time_query_performance_counter_ms(void);
 extern void *network_prepare_challenge_packet(void);
 extern void network_timer_advance(network_timer_pair *timer);
 extern void network_machine_timer_start(network_machine *machine, int32_t duration_ms);
@@ -114,7 +114,7 @@ uint8_t ServerView::heartbeat_tick()
     } else if (*(int32_t *)(base + 0x9c4) != 0) {
         int32_t now2;
 
-        now2 = time_query_performance_counter_ms();
+        now2 = halo::cseries::time_query_performance_counter_ms();
         if ((uint32_t)(now2 - *(int32_t *)(base + 0x9c4)) > 59999) {
             int32_t i;
             char has_client;

@@ -7,6 +7,7 @@
 #include "internal/state.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 
@@ -19,7 +20,6 @@ extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern uint32_t __stdcall D3DXGetFVFVertexSize(uint32_t fvf);
 extern uint8_t command_line_check_flag(const char *flag, const char **out_value);
 extern int32_t shell_parse_config_txt(uint32_t adapter, void *direct3d);
-extern void function_do_nothing(void);
 extern void bitmap_data_free(BitmapData *bitmap_data);
 
 }  // extern "C"
@@ -1339,7 +1339,7 @@ void rasterizer_select_hardware_codepaths(void)
             }
         }
     }
-    unknown_007c0494 = (void *)function_do_nothing;
+    unknown_007c0494 = (void *)halo::cseries::function_do_nothing;
 
 set_vertex_buffer_slot:
     rasterizer_water_draw_procedure = (void *)rasterizer_water_draw_fixed_function;

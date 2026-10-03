@@ -15,6 +15,7 @@
 
 #include "halo/main/timedemo.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern timedemo_globals timedemo_globals_data; }
@@ -47,7 +48,6 @@ extern "C" { extern int16_t renderer_texture_quality; }
 extern "C" { extern int16_t light_count_enabled; }
 extern "C" { extern uint8_t console_debug_toggle_6893f2; }
 extern "C" { extern uint8_t console_debug_toggle_6893fa; }
-extern "C" { extern uint32_t time_query_performance_counter_ms(void); }
 extern "C" { extern void main_queue_map_change(char *map_name); }
 extern "C" { extern char hs_compile_and_evaluate(const char *command); }
 extern "C" { extern uint32_t user_profile_signin_state_is_valid(void); }
@@ -95,7 +95,7 @@ void Timedemo::benchmark_update(void)
     if (rasterizer_present_counter_low != timedemo_last_frame_index ||
         rasterizer_present_counter_high != (timedemo_last_frame_index >> 31)) {
         timedemo_last_frame_index = rasterizer_present_counter_low;
-        timedemo_globals_data.current_time_ms = time_query_performance_counter_ms();
+        timedemo_globals_data.current_time_ms = halo::cseries::time_query_performance_counter_ms();
         frame_time = timedemo_globals_data.current_time_ms - timedemo_globals_data.previous_time_ms;
         timedemo_globals_data.previous_time_ms = timedemo_globals_data.current_time_ms;
         timedemo_globals_data.frame_time_ms = frame_time;

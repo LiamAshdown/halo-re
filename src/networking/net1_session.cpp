@@ -10,6 +10,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern object *object_iterator_next(object_iterator *iterator);
@@ -98,7 +99,6 @@ extern void network_session_host_update(void);
 extern void gcd_shutdown(void);
 extern void qr2_shutdown(void *object);
 extern int32_t network_game_socket;
-extern void function_do_nothing(void);
 extern void network_session_host_natneg_completed(int32_t result, uint32_t socket, const uint8_t *remote_address, void *user_data);
 extern int32_t NNBeginNegotiationWithSocket(uint32_t socket, int32_t cookie, int32_t client_index, void *progress_callback, void *completed_callback, void *user_data);
 extern uint16_t gt2NetworkToHostShort(uint16_t value);
@@ -136,7 +136,6 @@ extern char network_session_start_variant_name[];
 extern void qr2_register_key(int32_t keyid, const char *key);
 extern uint8_t network_session_host_closing;
 extern int32_t network_session_host_last_tick;
-extern int32_t time_query_performance_counter_ms(void);
 extern void qr2_send_statechanged(void *object);
 extern void qr2_think(void *object);
 }
@@ -1296,7 +1295,7 @@ void HostSession::dispose()
  */
 void HostSession::natneg_callback(int32_t cookie)
 {
-    NNBeginNegotiationWithSocket(*(uint32_t *)network_game_socket, cookie, 0, (void *)function_do_nothing,
+    NNBeginNegotiationWithSocket(*(uint32_t *)network_game_socket, cookie, 0, (void *)halo::cseries::function_do_nothing,
         (void *)network_session_host_natneg_completed, 0);
 }
 
@@ -1493,7 +1492,7 @@ void HostSession::update_()
 {
     if (network_session_host_object != 0) {
         if (network_session_host_state != 0) {
-            int32_t now = time_query_performance_counter_ms();
+            int32_t now = halo::cseries::time_query_performance_counter_ms();
             if (network_session_host_state == 2 || (uint32_t)(now - network_session_host_last_tick) > 999) {
                 network_session_host_closing = (network_session_host_state == 2);
                 qr2_send_statechanged(network_session_host_object);

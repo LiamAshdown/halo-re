@@ -6,6 +6,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern uint16_t *network_message_read_sized_buffer(uint16_t *buffer, int32_t capacity, bit_stream *stream);
@@ -147,7 +148,6 @@ extern uint32_t network_game_settings_broadcast_send(uint32_t round, uint32_t *r
 extern void network_machine_check_build_version(const char *remote_version, network_machine *machine);
 extern void network_client_connection_handshake_tick(int16_t state, network_server_globals *owner);
 extern void network_channel_reliable_pool_store(network_channel *channel, uint16_t *packet, uint8_t *reliable_flag, int32_t priority);
-extern int32_t time_query_performance_counter_ms(void);
 extern uint32_t network_game_broadcast_player_set_changed(network_server_globals *session);
 extern uint8_t network_player_entry_update(network_player_entry *incoming, network_game_session *session);
 extern void *message_delta_definition_table;
@@ -1528,7 +1528,7 @@ uint32_t ServerMessageHandlers::ping_timestamp(int32_t **message)
         player = (uint8_t *)datum_get_unresolved();
         if (player != 0) {
             int32_t stored_time = *(int32_t *)((uint8_t *)server + 0x9c0);
-            int32_t now = time_query_performance_counter_ms();
+            int32_t now = halo::cseries::time_query_performance_counter_ms();
             ((struct player *)player)->ping = now - stored_time;
         }
     }
@@ -1794,7 +1794,7 @@ char HostServerView::update_tick()
             }
             service_result = 0;
             if (proceed != 0) {
-                now_ms = time_query_performance_counter_ms();
+                now_ms = halo::cseries::time_query_performance_counter_ms();
                 if ((uint32_t)((int32_t)host->last_stamp_ms + 3000) < now_ms) {
                     network_map_cycle_list_broadcast();
                     host->last_stamp_ms = now_ms;

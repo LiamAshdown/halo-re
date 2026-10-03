@@ -4,6 +4,7 @@
 #include "main.h"
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cseries/api.hpp"
 
 typedef struct win32_bitmap {
     int32_t type;
@@ -15,7 +16,6 @@ typedef struct win32_bitmap {
 static_assert(sizeof(win32_bitmap) == 0x18, "win32_bitmap layout");
 
 extern "C" {
-extern uint32_t time_query_performance_counter_ms(void);
 extern void chat_close(void);
 extern void chat_submit_input(void);
 extern int32_t render_device_is_ready(void);
@@ -145,7 +145,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                             if (halo::sound::globals().current_driver != 0) {
                                 halo::sound::globals().current_driver->set_paused(0);
                             }
-                            halo::sound::globals().time = time_query_performance_counter_ms();
+                            halo::sound::globals().time = halo::cseries::time_query_performance_counter_ms();
                         }
                     }
                 }
@@ -178,7 +178,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                             if (halo::sound::globals().current_driver != 0) {
                                 halo::sound::globals().current_driver->set_paused(0);
                             }
-                            halo::sound::globals().time = time_query_performance_counter_ms();
+                            halo::sound::globals().time = halo::cseries::time_query_performance_counter_ms();
                         }
                     }
                 }
@@ -213,7 +213,7 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                         if (halo::sound::globals().current_driver != 0) {
                             halo::sound::globals().current_driver->set_paused(0);
                         }
-                        halo::sound::globals().time = time_query_performance_counter_ms();
+                        halo::sound::globals().time = halo::cseries::time_query_performance_counter_ms();
                     }
                 }
             }
@@ -456,7 +456,7 @@ void GameWindow::handle_activate_app(uint8_t inactive)
         if (halo::sound::globals().current_driver != 0) {
             halo::sound::globals().current_driver->set_paused(0);
         }
-        halo::sound::globals().time = time_query_performance_counter_ms();
+        halo::sound::globals().time = halo::cseries::time_query_performance_counter_ms();
     }
 }
 

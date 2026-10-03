@@ -1,5 +1,6 @@
 #include "halo/networking/net1_client.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern uint8_t debug_log_level;
@@ -22,7 +23,6 @@ extern void game_engine_reset_all_players(void);
 extern network_server_globals *network_server;
 extern void network_host_full_state_broadcast(network_server_globals *server);
 extern int32_t join_ui_state;
-extern int32_t time_query_performance_counter_ms(void);
 extern int32_t interface_loading_screen_address_b;
 extern int32_t interface_loading_screen_address_a;
 }
@@ -188,7 +188,7 @@ after_search:
             network_host_full_state_broadcast(network_server);
         }
         if (join_ui_state != 0) {
-            int32_t now2 = time_query_performance_counter_ms();
+            int32_t now2 = halo::cseries::time_query_performance_counter_ms();
             uint32_t delay = 0;
 
             if (interface_loading_screen_address_b != -1 &&

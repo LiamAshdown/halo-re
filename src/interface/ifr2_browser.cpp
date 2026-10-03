@@ -1,4 +1,5 @@
 #include "halo/interface/ifr2_browser.hpp"
+#include "halo/cseries/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -29,7 +30,6 @@ extern uint8_t server_browser_player_ticker[0x1c];
 extern void server_list_scroll_page_up(uint8_t jump_to_top);
 extern void server_list_scroll_page_down(uint8_t jump_to_bottom);
 extern uint32_t server_list_result_count_get(void);
-extern uint32_t time_query_performance_counter_ms(void);
 extern void join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t string_index);
 extern void ticker_text_buffer_append(uint16_t *text, int32_t reset_column, void *self);
 }
@@ -252,7 +252,7 @@ uint8_t ListRowHandler::handle(widget_instance *widget, int16_t *event, uint8_t 
         return 1;
     }
     old_selection = server_browser_selected_index;
-    now = (int32_t)time_query_performance_counter_ms();
+    now = (int32_t)halo::cseries::time_query_performance_counter_ms();
     server_browser_selected_index = server_list_scroll_offset + i;
     if (old_selection == server_browser_selected_index && server_browser_last_click_ms != 0 &&
         now - server_browser_last_click_ms < 250) {

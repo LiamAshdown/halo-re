@@ -9,6 +9,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern char *shell_command_line;
@@ -68,8 +69,6 @@ extern uint8_t port_overridden;
 extern uint32_t network_local_address;
 extern uint32_t connect_address;
 
-extern void *memory_global_alloc(uint32_t size);
-extern void memory_global_free(void *block);
 extern void main_loop(void);
 extern void network_session_host_start_info_set(char *game_name, char *secret_key, char *ip_address, int32_t port);
 
@@ -96,8 +95,6 @@ extern void *external_00686b58;
 extern void *external_00686b5c;
 extern uint32_t external_00686b54;
 
-extern void directory_create_recursive(char *path);
-extern void profile_path_initialize(void);
 extern void input_directinput_initialize(void);
 extern uint32_t render_initialize(void);
 extern void game_state_startup(void);
@@ -130,7 +127,7 @@ uint8_t EngineLifecycle::initialize()
         profile_directory[i] = 0;
     }
 
-    profile_path_initialize();
+    halo::cseries::profile_path_initialize();
 
     if (direct3d_create9 == 0) {
         d3d9_module = LoadLibraryA("d3d9.dll");
@@ -151,7 +148,7 @@ uint8_t EngineLifecycle::initialize()
         sh_get_folder_path = GetProcAddress((HMODULE)shfolder_module, "SHGetFolderPathA");
     }
 
-    directory_create_recursive(profile_directory);
+    halo::cseries::directory_create_recursive(profile_directory);
 
     debug_log_level = 0;
     error_file_enabled = 1;
@@ -226,7 +223,7 @@ char *Application::copy_command_line(const char *command_line)
     while (command_line[command_line_length] != 0) {
         command_line_length++;
     }
-    command_line_copy = (char *)memory_global_alloc((uint32_t)command_line_length + 1);
+    command_line_copy = (char *)halo::cseries::memory_global_alloc((uint32_t)command_line_length + 1);
     if (command_line_length > 0) {
         const char *source = command_line;
         char *dest = command_line_copy;
@@ -528,8 +525,8 @@ bool Application::run_session(void *instance, char *command_line, int32_t show_c
         run_engine();
     }
 
-    memory_global_free(command_line_copy);
-    memory_global_free(shell_argv);
+    halo::cseries::memory_global_free(command_line_copy);
+    halo::cseries::memory_global_free(shell_argv);
     KeystoneLibrary::unload();
     if (shell_stack_guard_page != 0) {
         VirtualProtect(shell_stack_guard_page, 1, shell_stack_guard_old_protect, (PDWORD)&shell_stack_guard_old_protect);

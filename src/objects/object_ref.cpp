@@ -8,6 +8,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern int32_t __ftol();
@@ -63,7 +64,6 @@ extern int32_t player_index_from_unit_index(datum_index object_index);
 extern void projectile_compute_rotation(uint32_t object_index);
 extern void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point);
 extern double sqrt(double x);
-extern int32_t time_query_performance_counter_ms(void);
 }
 
 /**
@@ -1358,7 +1358,7 @@ uint8_t halo::objects::ObjectRef::nudge_position_by_velocity(real_point3d *out)
     if (obj->network_position_valid == 1 && obj->network_velocity_valid == 1 &&
         obj->network_timestamp_valid == 1) {
 
-        uint32_t elapsed_ms = (uint32_t)time_query_performance_counter_ms() - obj->network_timestamp;
+        uint32_t elapsed_ms = (uint32_t)halo::cseries::time_query_performance_counter_ms() - obj->network_timestamp;
 
         if (elapsed_ms != 0) {
             real_vector3d velocity = obj->velocity;

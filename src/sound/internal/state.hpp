@@ -61,7 +61,6 @@ extern const real_point3d *global_zero_vector3d_pointer;
 extern void unit_accumulate_clamped_offset(uint32_t object_index, float new_value);
 extern double sqrt(double x);
 extern uint8_t sound_paused;
-extern int32_t time_query_performance_counter_ms(void);
 extern uint8_t sound_stopping_all;
 extern uint8_t debug_sound;
 extern int16_t sound_permutation_limit;

@@ -14,6 +14,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern char savegames_directory[0x100];
@@ -62,7 +63,6 @@ extern variant_write_request variant_write_request_state;
 extern int16_t default_game_variant_count;
 extern uint8_t unknown_0072132a;
 extern int32_t mutex_create(network_mutex_record **out_handle);
-extern char directory_create_recursive(char *path);
 extern uint16_t saved_game_display_name_buffer[0x80];
 extern network_thread_record *variant_write_thread;
 extern int16_t savegame_index_write_count;
@@ -698,17 +698,17 @@ void files_initialize(void)
     _snprintf(saved_game_root_path, 0xff, "%s\\%s\\%s", saved_game_root_directory, "saved", "hdmu.map");
     _snprintf(savegames_directory, 0xff, "%s\\%s", saved_game_root_directory, "savegames");
     _snprintf(saved_directory, 0xff, "%s\\%s", saved_game_root_directory, "saved");
-    directory_create_recursive(saved_directory);
+    halo::cseries::directory_create_recursive(saved_directory);
     _snprintf(player_profiles_directory, 0xff, "%s\\%s", saved_game_root_directory, "saved\\player_profiles");
-    directory_create_recursive(player_profiles_directory);
+    halo::cseries::directory_create_recursive(player_profiles_directory);
     _snprintf(default_player_profiles_directory, 0xff, "%s\\%s", saved_game_root_directory,
         "saved\\player_profiles\\default_profile");
-    directory_create_recursive(default_player_profiles_directory);
+    halo::cseries::directory_create_recursive(default_player_profiles_directory);
     _snprintf(playlists_directory, 0xff, "%s\\%s", saved_game_root_directory, "saved\\playlists");
-    directory_create_recursive(playlists_directory);
+    halo::cseries::directory_create_recursive(playlists_directory);
     _snprintf(default_playlists_directory, 0xff, "%s\\%s", saved_game_root_directory,
         "saved\\playlists\\default_playlist");
-    directory_create_recursive(default_playlists_directory);
+    halo::cseries::directory_create_recursive(default_playlists_directory);
     _snprintf(last_profile_path, 0xff, "%s\\%s", saved_game_root_directory, "lastprof.txt");
     _snprintf(last_game_variant_path, 0xff, "%s\\%s", saved_game_root_directory, "lastmpvr.txt");
     _snprintf(last_multiplayer_map_path, 0xff, "%s\\%s", saved_game_root_directory, "lastmpmp.txt");

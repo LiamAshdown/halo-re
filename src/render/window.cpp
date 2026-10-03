@@ -20,6 +20,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -96,7 +97,6 @@ extern void lens_flare_render_all(void);
 extern void first_person_weapon_update_screen_effects(void);
 extern void rasterizer_screen_flash_render(void);
 extern void widget_draw_fullscreen_region(int16_t controller_index);
-extern void function_do_nothing(void);
 extern uint8_t console_debug_toggle_6893f7;
 extern void *rasterizer_lightmap_bitmap;
 extern uint8_t rasterizer_lightmap_bitmap_missing;
@@ -432,13 +432,13 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
         rasterizer_dynamic_light_technique_ps2_set_states();
         structure_pass(render_window_structure_lightmap_begin_0x511f90,
                        (structure_material_callback)render_window_structure_material_0x511fe0,
-                       (structure_lightmap_end_callback)function_do_nothing, 0);
+                       (structure_lightmap_end_callback)halo::cseries::function_do_nothing, 0);
         render_force_flag = saved_69c67c;
         if (halo::structures::globals().picked_surfaces_valid) {
             rasterizer_shader_environment_technique_multipurpose_set_states();
             structure_pass(render_window_structure_lightmap_begin_0x512010,
                            (structure_material_callback)render_window_structure_material_0x512020,
-                           (structure_lightmap_end_callback)function_do_nothing, 0);
+                           (structure_lightmap_end_callback)halo::cseries::function_do_nothing, 0);
             rasterizer_active_environment_effect = 0;
             if (halo::structures::globals().picked_surfaces_valid) {
                 rasterizer_shader_environment_technique_self_illumination_set_states();
@@ -483,8 +483,8 @@ void window(int16_t local_player_index, render_camera *source_camera, render_fru
     rasterizer_set_shader_stage_config(0);
 
     if (halo::structures::globals().picked_surfaces_valid) {
-        structure_pass(0, (structure_material_callback)function_do_nothing, 0, 0);
-        structure_pass(0, (structure_material_callback)function_do_nothing, 0, 0);
+        structure_pass(0, (structure_material_callback)halo::cseries::function_do_nothing, 0, 0);
+        structure_pass(0, (structure_material_callback)halo::cseries::function_do_nothing, 0, 0);
     }
     lens_flare_render_all();
     first_person_weapon_update_screen_effects();

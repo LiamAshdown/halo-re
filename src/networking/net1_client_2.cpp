@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "halo/memory/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern uint8_t network_disconnect_timeout_flag;
@@ -11,7 +12,6 @@ extern void network_timer_decrement_floored(network_timer_pair *timer, int32_t d
 extern void network_timer_start(network_timer_pair *timer, int32_t duration_ms);
 extern char network_game_all_machines_have_player(network_server_globals *server);
 extern char network_game_any_team_empty(network_server_globals *server);
-extern void time_query_performance_counter_ms(void);
 extern char network_channel_short_disconnect_timeout(void);
 extern int32_t network_server_count_connected_machines(network_server_globals *server);
 extern network_client_globals *network_client;
@@ -129,7 +129,7 @@ void ClientView::connection_handshake_tick(int16_t state, network_server_globals
         char ready;
         int16_t connected_count;
 
-        time_query_performance_counter_ms();
+        halo::cseries::time_query_performance_counter_ms();
         if (state == 3) {
             network_timer_start(timer, 0);
             *(uint8_t *)(base + 0x9d4) = 1;

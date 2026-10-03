@@ -7,6 +7,7 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "code_refs.hpp"
+#include "halo/cseries/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/sound/api.hpp"
 #include <stdint.h>
@@ -373,11 +374,11 @@ __declspec(allocate(".gdat01")) __declspec(align(4)) uint32_t ai_actor_mode_disp
     0, 0, (uint32_t)actor_mode_sleep_update, 0,
     0, 0, 0, 0,
     2, (uint32_t)"alert", (uint32_t)(hud_text_message_hold_color + 0x4), 0x0000005c,
-    0, (uint32_t)function_do_nothing, (uint32_t)actor_mode_alert_process, (uint32_t)actor_mode_alert_tick,
+    0, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)actor_mode_alert_process, (uint32_t)actor_mode_alert_tick,
     (uint32_t)actor_mode_alert_update, 0, 0, 0,
     (uint32_t)actor_mode_alert_movement_cancelled, (uint32_t)actor_mode_alert_target_cleared, 3, (uint32_t)"fight",
-    (uint32_t)&global_white_argb, 4, 4, (uint32_t)function_do_nothing,
-    (uint32_t)actor_update_movement_destination, (uint32_t)actor_mode_fight_tick, (uint32_t)actor_mode_fight_update, (uint32_t)function_do_nothing,
+    (uint32_t)&global_white_argb, 4, 4, (uint32_t)&halo::cseries::function_do_nothing,
+    (uint32_t)actor_update_movement_destination, (uint32_t)actor_mode_fight_tick, (uint32_t)actor_mode_fight_update, (uint32_t)&halo::cseries::function_do_nothing,
     0, 0, 0, 0,
     4, (uint32_t)"flee", (uint32_t)&hud_text_message_normal_color, 0x00000030,
     2, (uint32_t)actor_mode_flee_enter, (uint32_t)actor_mode_flee_process, (uint32_t)actor_mode_flee_tick,
@@ -394,11 +395,11 @@ __declspec(allocate(".gdat01")) __declspec(align(4)) uint32_t ai_actor_mode_disp
     (uint32_t)actor_mode_search_process, (uint32_t)actor_mode_search_tick, (uint32_t)actor_mode_search_update, 0,
     0, 0, (uint32_t)actor_mode_search_movement_cancelled, 0,
     8, (uint32_t)"wait", (uint32_t)(actor_mode_guard_look_weights_idle + 0x8), 0x00000018,
-    3, (uint32_t)function_do_nothing, (uint32_t)actor_mode_wait_process, (uint32_t)actor_mode_wait_tick,
+    3, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)actor_mode_wait_process, (uint32_t)actor_mode_wait_tick,
     (uint32_t)actor_mode_wait_update, 0, 0, 0,
     0, 0, 9, (uint32_t)"vehicle",
     (uint32_t)&console_color_00685214, 0x0000004c, 2, (uint32_t)actor_mode_vehicle_enter,
-    (uint32_t)actor_investigate_disturbance_update, (uint32_t)function_do_nothing, (uint32_t)actor_mode_vehicle_update, 0,
+    (uint32_t)actor_investigate_disturbance_update, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)actor_mode_vehicle_update, 0,
     0, 0, 0, 0,
     0x0000000a, (uint32_t)"charge", (uint32_t)&console_message_default_color, 0x00000038,
     4, (uint32_t)actor_mode_charge_enter, (uint32_t)actor_mode_charge_process, (uint32_t)actor_mode_charge_tick,
@@ -408,11 +409,11 @@ __declspec(allocate(".gdat01")) __declspec(align(4)) uint32_t ai_actor_mode_disp
     (uint32_t)actor_mode_obey_process, (uint32_t)actor_mode_obey_tick_members, (uint32_t)actor_mode_obey_update, (uint32_t)actor_mode_obey_exit,
     0, 0, 0, 0,
     0x0000000c, (uint32_t)"converse", (uint32_t)(actor_mode_guard_look_weights_ambush + 0x4), 0x00000014,
-    2, (uint32_t)function_do_nothing, (uint32_t)actor_mode_converse_process, (uint32_t)function_do_nothing,
+    2, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)actor_mode_converse_process, (uint32_t)&halo::cseries::function_do_nothing,
     (uint32_t)actor_mode_converse_update, (uint32_t)actor_mode_converse_exit, 0, (uint32_t)actor_mode_converse_replace_reference,
     0, 0, 0x0000000d, (uint32_t)"avoid",
-    (uint32_t)(actor_mode_guard_look_weights_ambush + 0x8), 4, 2, (uint32_t)function_do_nothing,
-    (uint32_t)actor_update_path_if_needed, (uint32_t)function_do_nothing, (uint32_t)actor_mode_avoid_update, (uint32_t)function_do_nothing,
+    (uint32_t)(actor_mode_guard_look_weights_ambush + 0x8), 4, 2, (uint32_t)&halo::cseries::function_do_nothing,
+    (uint32_t)actor_update_path_if_needed, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)actor_mode_avoid_update, (uint32_t)&halo::cseries::function_do_nothing,
     0, 0, 0, 0
 };
 SLICE01_SIZE_CHECK(ai_actor_mode_dispatch_table, 736);

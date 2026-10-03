@@ -14,6 +14,7 @@
 
 #include "halo/interface/uis_network_menu.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern int32_t ui_list_current;
@@ -54,7 +55,6 @@ extern uint8_t network_host_name_flag_00719276;
 extern uint8_t ui_network_wait_active;
 extern int32_t ui_network_wait_start_time;
 extern uint8_t ui_network_wait_timed_out;
-extern int32_t time_query_performance_counter_ms(void);
 extern int64_t performance_frequency;
 extern network_client_globals *network_client;
 extern int16_t network_game_mode;
@@ -414,7 +414,7 @@ void UiNetworkMenu::network_wait_timeout_check(void)
         ui_network_wait_start_time = -1;
         ui_network_wait_timed_out = 0;
     } else if (ui_network_wait_start_time != -1 && ui_network_wait_timed_out == 0) {
-        int32_t now = time_query_performance_counter_ms();
+        int32_t now = halo::cseries::time_query_performance_counter_ms();
 
         ui_network_wait_active = 0;
         if ((uint32_t)(now - ui_network_wait_start_time) > 9999) {

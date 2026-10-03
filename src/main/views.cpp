@@ -29,6 +29,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" { void render_view_camera_fill(observer_camera *observer, render_view *view); }
 extern "C" { void screenshot_render(render_view *views); }
@@ -324,7 +325,6 @@ extern "C" { extern Rectangle2D game_window_top_left; }
 extern "C" { extern void console_print_error_va(uint8_t clear_first, const char *format, ...); }
 extern "C" { extern void console_deactivate(void); }
 extern "C" { extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); }
-extern "C" { extern void directory_create_recursive(char *path); }
 extern "C" { extern void path_remove_last_component(uint8_t *path); }
 extern "C" { extern char * targa_export(BitmapData *bitmap, file_reference_record *destination); }
 extern "C" { extern uint32_t bitmap_data_calculate_pixel_data_size(BitmapData *bitmap); }
@@ -413,7 +413,7 @@ void RenderViews::screenshot_render(render_view *views)
                 sprintf(filename, "%s\\%dscreenshot%d%d.tga", "screenshots",
                         (uint32_t)main_globals_data.screenshot_index, (int32_t)page_row,
                         (int32_t)page_col);
-                directory_create_recursive((char *)"screenshots");
+                halo::cseries::directory_create_recursive((char *)"screenshots");
 
                 memset(&request, 0, sizeof(request));
                 request.signature = 0x66696c6f;

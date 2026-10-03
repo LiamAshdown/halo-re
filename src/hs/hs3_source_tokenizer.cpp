@@ -5,6 +5,7 @@
 #include "win32.h"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/cseries/api.hpp"
 
 typedef struct rebuild_file_reference {
     uint32_t signature;
@@ -37,7 +38,6 @@ extern char *hs_compile_error;
 extern datum_index hs_tokenize(char **cursor);
 extern void skip_whitespace(char **cursor);
 extern int32_t hs_compile_error_offset;
-extern char * string_to_lowercase(char *string);
 extern char hs_space_characters[2];
 extern char hs_newline_characters[2];
 extern uint8_t hs_preserve_token_case;
@@ -315,7 +315,7 @@ void SourceTokenizer::tokenize_primitive(char **cursor, datum_index node_index) 
     }
 done:
     if (hs_preserve_token_case == 0) {
-        string_to_lowercase(hs_compiled_source + node->source_offset);
+        halo::cseries::string_to_lowercase(hs_compiled_source + node->source_offset);
     }
 }
 

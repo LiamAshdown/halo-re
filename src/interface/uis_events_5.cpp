@@ -18,6 +18,7 @@
 #include "halo/interface/uis_event_handlers.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/cseries/api.hpp"
 
 extern "C" {
 extern int16_t pending_difficulty;
@@ -80,7 +81,6 @@ extern uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameter
 extern void rasterizer_resize_game_window(int32_t height, int32_t width);
 extern float sound_master_gain;
 extern void display_mode_get_current(rasterizer_display_mode *out);
-extern uint32_t time_query_performance_counter_ms(void);
 }
 
 namespace halo::ui {
@@ -649,7 +649,7 @@ uint8_t UiEventHandlers::event_4bb7e0(widget_instance *widget, int16_t *event, u
             rasterizer_needs_reset = 0;
         }
         halo::sound::sound_set_master_gain(gain);
-        widget->creation_time = (int32_t)time_query_performance_counter_ms();
+        widget->creation_time = (int32_t)halo::cseries::time_query_performance_counter_ms();
     }
     ui_flag_007196d2 = 0;
     if (changed == 1) {
