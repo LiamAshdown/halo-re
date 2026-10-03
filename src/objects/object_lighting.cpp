@@ -44,15 +44,15 @@ real halo::objects::ObjectLighting::sum_attached_light_luminance()
 {
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
-    object *obj = headers[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = headers[halo::datum_slot(object_index)].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     int32_t attachment_count = definition->attachments.count;
     real total = 0.0f;
     int32_t i;
 
     for (i = 0; i < attachment_count; i++) {
         if (obj->attachment_types[i] == _object_attachment_type_light &&
-            obj->attachment_handles[i] != (datum_index)0xffffffff) {
+            obj->attachment_handles[i] != k_datum_index_none) {
             light *l = &((light *)light_data->data)[obj->attachment_handles[i] & 0xffff];
 
             total = (*(float *)((uint8_t *)l + 0x1c) * 0.114f +
@@ -61,10 +61,10 @@ real halo::objects::ObjectLighting::sum_attached_light_luminance()
         }
     }
 
-    if (obj->first_child_object != (datum_index)0xffffffff) {
+    if (obj->first_child_object != k_datum_index_none) {
         total = object_sum_attached_light_luminance(obj->first_child_object) + total;
     }
-    if (obj->next_object != (datum_index)0xffffffff) {
+    if (obj->next_object != k_datum_index_none) {
         total = object_sum_attached_light_luminance(obj->next_object) + total;
     }
 
@@ -125,7 +125,7 @@ void halo::objects::ObjectLighting::sample_total_lighting_at_point(real_point3d 
         light_render_unknown_7c0 = 0;
 
         for (i = 0; i < count; i++) {
-            uint8_t *entry = (uint8_t *)light_data->data + (indices[i] & 0xffff) * 0x7c;
+            uint8_t *entry = (uint8_t *)light_data->data + halo::datum_slot(indices[i]) * 0x7c;
 
             if (*(entry + 2) & _light_always_visible_bit) {
                 color->i += *(float *)(entry + 0x14) * weights[i];
@@ -217,7 +217,7 @@ void halo::objects::ObjectLighting::sample_ambient_lightmap_point(real_point3d *
     lightmap_bitmap = bitmap_group_get_bitmap_data(*(datum_index *)&bsp->lightmaps_bitmap.tag_id,
         (int16_t)lightmap->bitmap);
     base_map = *(datum_index *)(shader + 0x94);
-    base_map_tag = (uint8_t *)tag_instances[base_map & 0xffff].data;
+    base_map_tag = (uint8_t *)tag_instances[halo::datum_slot(base_map)].data;
     base_map_bitmap = bitmap_group_get_bitmap_data(base_map,
         (int16_t)((int32_t)(int16_t)material->shader_permutation % *(int32_t *)(base_map_tag + 0x60)));
 
@@ -265,8 +265,8 @@ static int object_ambient_sample_slot_is_averaged(int index)
 void halo::objects::ObjectLighting::sample_ambient_lighting(float *sample)
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *object_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Object *object_tag = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     uint8_t flags = (int8_t)(obj->flags >> 8) < 0 ? 1 : 0;
     char center_ok;
     int16_t successes;
@@ -347,7 +347,7 @@ void halo::objects::ObjectLighting::sample_ambient_lighting(float *sample)
 void halo::objects::ObjectLighting::gather_light_list(uint8_t *out)
 {
     datum_index object_index = handle;
-    uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+    uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
     real_point3d center = ((struct object *)object)->bounding_center;
     float radius = ((struct object *)object)->bounding_radius;
     int16_t *count = (int16_t *)(out + 0x40);
@@ -364,11 +364,11 @@ void halo::objects::ObjectLighting::gather_light_list(uint8_t *out)
     while (cluster != -1) {
         object_lights_gather_nearest(cluster, object_index, &center, radius, (uint32_t *)(out + 0x44), intensities,
                                      (uint32_t)falloffs, count, 2);
-        if (cursor[1] == 0xffffffff) {
+        if (cursor[1] == k_datum_index_none) {
             cluster = -1;
         } else {
             data_array *references = *(data_array **)((uint8_t *)cursor[0] + 8);
-            uint8_t *element = (uint8_t *)references->data + (cursor[1] & 0xffff) * 0xc;
+            uint8_t *element = (uint8_t *)references->data + halo::datum_slot(cursor[1]) * 0xc;
             cursor[1] = *(uint32_t *)(element + 8);
             cluster = *(int16_t *)(element + 4);
         }
@@ -376,7 +376,7 @@ void halo::objects::ObjectLighting::gather_light_list(uint8_t *out)
     light_render_unknown_7c0 = 0;
     for (i = 0; i < *count; i++) {
         uint32_t *slot = (uint32_t *)(out + 0x44) + i;
-        *slot = *(uint32_t *)((uint8_t *)light_data->data + (*slot & 0xffff) * 0x7c + 8);
+        *slot = *(uint32_t *)((uint8_t *)light_data->data + halo::datum_slot(*slot) * 0x7c + 8);
     }
 }
 
@@ -510,10 +510,10 @@ apply:
 void halo::objects::ObjectLighting::for_each_light_attachment(int32_t register_in_table, int32_t invoke_callback)
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
     if ((obj->flags & 0x100) != 0) {
-        Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+        Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
         int16_t i;
 
         for (i = 0; i < (int16_t)definition->attachments.count; i++) {

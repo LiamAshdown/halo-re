@@ -613,7 +613,7 @@ int16_t halo::objects::ObjectManager::get_ambient_cluster()
             object_globals_pointer->ambient_cluster_mode = _object_ambient_cluster_none;
         } else {
             uint32_t root_index = object_get_root_object_index(handle);
-            object *root = ((object_header *)object_data->data)[root_index & 0xffff].data;
+            object *root = ((object_header *)object_data->data)[halo::datum_slot(root_index)].data;
             if ((root->flags & _object_needs_cluster_update_bit) != 0) {
                 if (root->location_cluster_index != -1) {
                     return root->location_cluster_index;
@@ -677,7 +677,7 @@ void halo::objects::ObjectManager::garbage_collection()
     }
 
     for (handle = object_globals_pointer->first_tracked_object; handle != k_datum_index_none;
-         handle = *(datum_index *)((uint8_t *)((object_header *)object_data->data)[handle & 0xffff].data + 0x110)) {
+         handle = *(datum_index *)((uint8_t *)((object_header *)object_data->data)[halo::datum_slot(handle)].data + 0x110)) {
         list[count++] = handle;
     }
 
@@ -733,7 +733,7 @@ void halo::objects::ObjectManager::garbage_collection()
         uint8_t stale;
         uint32_t last = object_globals_pointer->last_garbage_collection_time;
 
-        stale = (uint8_t)(last == 0xffffffff || !((int32_t)last + 0x96 >= game_time->game_time));
+        stale = (uint8_t)(last == k_datum_index_none || !((int32_t)last + 0x96 >= game_time->game_time));
 
         for (;;) {
             uint8_t significant = 0;
@@ -873,10 +873,10 @@ void halo::objects::ObjectMemoryDumpRecordView::accumulate_stats(uint32_t object
         uint32_t current = object_index;
         while (current != k_datum_index_none) {
             root = current;
-            current = ((object_header *)object_data->data)[root & 0xffff].data->parent_object;
+            current = ((object_header *)object_data->data)[halo::datum_slot(root)].data->parent_object;
         }
         {
-            object *root_obj = ((object_header *)object_data->data)[root & 0xffff].data;
+            object *root_obj = ((object_header *)object_data->data)[halo::datum_slot(root)].data;
             if (((root_obj->flags & _object_outside_map_bit) != 0) || (root_obj->location_cluster_index == -1)) {
                 record->outside_map_count = record->outside_map_count + 1;
             }

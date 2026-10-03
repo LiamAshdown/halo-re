@@ -129,7 +129,7 @@ void halo::objects::LightSystem::dispose_all()
     *lights_enabled = 1;
 
     for (i = 0; i < k_maximum_clusters; i++) {
-        light_cluster_first[i] = (datum_index)0xffffffff;
+        light_cluster_first[i] = k_datum_index_none;
     }
 
     light_object_references->valid = 1;
@@ -149,14 +149,14 @@ void halo::objects::LightSystem::dispose_all()
 datum_index halo::objects::LightSystem::new_attached(datum_index light_tag, datum_index owner_object,
     int16_t marker_index, int16_t marker_index_secondary, int16_t change_color_index)
 {
-    Light *tag = (Light *)tag_instances[light_tag & 0xffff].data;
-    datum_index handle = (datum_index)0xffffffff;
+    Light *tag = (Light *)tag_instances[halo::datum_slot(light_tag)].data;
+    datum_index handle = k_datum_index_none;
 
     if ((tag->flags & 1) != 0 || *(int32_t *)&((struct Light *)tag)->lens_flare.tag_id != -1) {
         handle = datum_new(light_data);
 
-        if (handle != (datum_index)0xffffffff) {
-            light *entry = &((light *)light_data->data)[handle & 0xffff];
+        if (handle != k_datum_index_none) {
+            light *entry = &((light *)light_data->data)[halo::datum_slot(handle)];
             uint8_t always_visible = (uint8_t)(tag->flags & 1);
 
             entry->owner_object = owner_object;
@@ -173,7 +173,7 @@ datum_index halo::objects::LightSystem::new_attached(datum_index light_tag, datu
                 entry->flags = always_visible | _light_attached_bit;
             }
 
-            entry->next_light = (datum_index)0xffffffff;
+            entry->next_light = k_datum_index_none;
             entry->marker_link = -1;
             object_light_recompute_transform(handle);
             entry->creation_tick = light_frame_counter - 1;
@@ -192,7 +192,7 @@ datum_index halo::objects::LightSystem::new_attached(datum_index light_tag, datu
  */
 void halo::objects::LightSystem::destroy(datum_index light_handle)
 {
-    light *entry = (light *)((uint8_t *)light_data->data + (light_handle & 0xffff) * 0x7c);
+    light *entry = (light *)((uint8_t *)light_data->data + halo::datum_slot(light_handle) * 0x7c);
 
     cluster_reference_remove_all(light_handle, &entry->next_light, &light_cluster_first);
     datum_delete(light_data, light_handle);
@@ -210,8 +210,8 @@ datum_index halo::objects::LightSystem::new_positioned(datum_index light_tag, in
 {
     datum_index handle = datum_new(light_data);
 
-    if (handle != (datum_index)0xffffffff) {
-        light *entry = &((light *)light_data->data)[handle & 0xffff];
+    if (handle != k_datum_index_none) {
+        light *entry = &((light *)light_data->data)[halo::datum_slot(handle)];
         uint8_t *raw = (uint8_t *)entry;
 
         entry->flags = 0;
@@ -221,7 +221,7 @@ datum_index halo::objects::LightSystem::new_positioned(datum_index light_tag, in
         entry->transient_color_scale = param_5;
         entry->flags = 3;
 
-        entry->next_light = (datum_index)0xffffffff;
+        entry->next_light = k_datum_index_none;
 
         if (marker_index == -1) {
             *(real_point3d *)&((struct light *)raw)->position.x = *position;
@@ -245,12 +245,12 @@ static lens_flare_instance *const light_transient_table__as_object_lights_update
 static void (*const cluster_reference_remove_all__as_object_lights_update_all)(uint32_t handle, datum_index *link, cluster_reference_group *cluster_list) = reinterpret_cast<void (*)(uint32_t handle, datum_index *link, cluster_reference_group *cluster_list)>(&cluster_reference_remove_all);
 static uint8_t *object_data_get(datum_index handle)
 {
-    return *(uint8_t **)((uint8_t *)object_data->data + (handle & 0xffff) * 0xc + 8);
+    return *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(handle) * 0xc + 8);
 }
 
 static uint8_t *tag_data(datum_index tag)
 {
-    return (uint8_t *)tag_instances[tag & 0xffff].data;
+    return (uint8_t *)tag_instances[halo::datum_slot(tag)].data;
 }
 
 static const char *light_owner_marker_name(uint8_t *light)
@@ -281,7 +281,7 @@ void halo::objects::LightSystem::update_all()
     light_transient_count_or_queue = 0;
     for (handle = datum_next(-1, light_data); handle != k_datum_index_none;
          handle = datum_next((int16_t)handle, light_data)) {
-        uint8_t *light = (uint8_t *)light_data->data + (handle & 0xffff) * 0x7c;
+        uint8_t *light = (uint8_t *)light_data->data + halo::datum_slot(handle) * 0x7c;
 
         light[2] &= ~8;
         *(int32_t *)&((struct rasterizer_light *)light)->position.y = -1;
@@ -292,7 +292,7 @@ void halo::objects::LightSystem::update_all()
                 cluster_reference_remove_all__as_object_lights_update_all(handle, (datum_index *)(light + 0x10), &light_cluster_first__as_object_lights_update_all);
                 datum_delete(light_data, handle);
             } else if (object_try_and_get(((struct light *)light)->owner_object, 0xffffffff) != 0) {
-                light = (uint8_t *)light_data->data + (handle & 0xffff) * 0x7c;
+                light = (uint8_t *)light_data->data + halo::datum_slot(handle) * 0x7c;
                 if ((light[2] & 2) != 0) {
                     cluster_reference_remove_all__as_object_lights_update_all(handle, (datum_index *)(light + 0x10), &light_cluster_first__as_object_lights_update_all);
                     light[2] &= ~4;
@@ -316,7 +316,7 @@ void halo::objects::LightSystem::update_all()
 
     for (i = 0; i < light_active_list_count; i++) {
         datum_index light_handle = light_active_list[i];
-        uint8_t *light = (uint8_t *)light_data->data + (light_handle & 0xffff) * 0x7c;
+        uint8_t *light = (uint8_t *)light_data->data + halo::datum_slot(light_handle) * 0x7c;
         uint8_t *tag = tag_data(((struct light *)light)->definition_tag);
         datum_index owner_handle = ((struct light *)light)->owner_object;
         uint8_t *owner = 0;
@@ -485,7 +485,7 @@ void halo::objects::LightSystem::transient_add(datum_index light_tag, real_vecto
 
         slot->color = color_real_to_argb_pack(1.0f, color);
         slot->intensity = (uint8_t)fistp_round(intensity * 255.0f);
-        slot->definition = tag_instances[light_tag & 0xffff].data;
+        slot->definition = tag_instances[halo::datum_slot(light_tag)].data;
         slot->position = *position;
 
         slot->packed_forward = vector3d_pack_normal_11_11_10((real_vector3d *)direction);
@@ -509,16 +509,16 @@ void halo::objects::LightSystem::transient_add(datum_index light_tag, real_vecto
 int16_t halo::objects::LightSystem::collect_object_references(uint32_t light_handle, int16_t max_count,
     int16_t *out_buffer)
 {
-    light *l = &((light *)light_data->data)[light_handle & 0xffff];
+    light *l = &((light *)light_data->data)[halo::datum_slot(light_handle)];
     uint32_t node = (uint32_t)l->next_light;
     uint32_t next_node;
     int16_t count = 0;
 
-    if (node == 0xffffffff) {
+    if (node == k_datum_index_none) {
         next_node = 0xffffffff;
         node = 0xffffffff;
     } else {
-        uint8_t *ref = (uint8_t *)light_object_references->data + (node & 0xffff) * 0xc;
+        uint8_t *ref = (uint8_t *)light_object_references->data + halo::datum_slot(node) * 0xc;
         next_node = *(uint32_t *)(ref + 8);
         node = *(uint32_t *)(ref + 4);
     }
@@ -531,10 +531,10 @@ int16_t halo::objects::LightSystem::collect_object_references(uint32_t light_han
             out_buffer[count] = (int16_t)node;
             count = count + 1;
 
-            if (next_node == 0xffffffff) {
+            if (next_node == k_datum_index_none) {
                 node = 0xffffffff;
             } else {
-                uint8_t *ref = (uint8_t *)light_object_references->data + (next_node & 0xffff) * 0xc;
+                uint8_t *ref = (uint8_t *)light_object_references->data + halo::datum_slot(next_node) * 0xc;
                 next_node = *(uint32_t *)(ref + 8);
                 node = *(uint32_t *)(ref + 4);
             }
@@ -567,7 +567,7 @@ void halo::objects::LightSystem::apply_spot_falloff()
                 int32_t queue_slot = *(int32_t *)&((struct light *)l)->queue_slot;
 
                 if (queue_slot != -1) {
-                    Light *tag = (Light *)tag_instances[l->definition_tag & 0xffff].data;
+                    Light *tag = (Light *)tag_instances[halo::datum_slot(l->definition_tag)].data;
                     int8_t is_cone = (l->flags & _light_needs_cone_update_bit) != 0 &&
                         (tag->flags & 8) != 0;
                     int16_t marker_count = 0;
@@ -627,7 +627,7 @@ void halo::objects::LightSystem::apply_spot_falloff_specular()
                 int32_t queue_slot = *(int32_t *)&((struct light *)l)->queue_slot;
 
                 if (queue_slot != -1) {
-                    Light *tag = (Light *)tag_instances[l->definition_tag & 0xffff].data;
+                    Light *tag = (Light *)tag_instances[halo::datum_slot(l->definition_tag)].data;
 
                     if (((uint32_t)tag->flags & 2) == 0) {
                         int8_t is_cone = (l->flags & _light_needs_cone_update_bit) != 0 &&
@@ -698,7 +698,7 @@ void halo::objects::LightSystem::clear_dirty_flag(uint32_t light_index)
  */
 void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
 {
-    light *entry = (light *)((uint8_t *)light_data->data + (light_index & 0xffff) * 0x7c);
+    light *entry = (light *)((uint8_t *)light_data->data + halo::datum_slot(light_index) * 0x7c);
     datum_index owner_object = entry->owner_object;
 
     if (entry->marker_link == -1) {
@@ -711,7 +711,7 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
         entry->direction = marker.node_transform.forward;
         *(real_vector3d *)&((struct light *)entry)->up.i = marker.node_transform.up;
     } else if (object_try_and_get(owner_object, _object_mask_all) != 0) {
-        object *owner = ((object_header *)object_data->data)[owner_object & 0xffff].data;
+        object *owner = ((object_header *)object_data->data)[halo::datum_slot(owner_object)].data;
         uint8_t *node = (uint8_t *)owner + owner->nodes.offset + entry->marker_index * 0x34;
 
         real_point3d *local_position = (real_point3d *)&entry->local_position;
@@ -727,7 +727,7 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
     }
 
     if ((entry->flags & _light_attached_bit) != 0) {
-        uint8_t *light_tag = (uint8_t *)tag_instances[entry->definition_tag & 0xffff].data;
+        uint8_t *light_tag = (uint8_t *)tag_instances[halo::datum_slot(entry->definition_tag)].data;
         float attenuation = ((struct Light *)light_tag)->radius_modifer[1] * *(float *)(light_tag + 4);
         bsp_leaf_reference leaf_reference;
         real_point3d position;
@@ -797,7 +797,7 @@ void halo::objects::LightSystem::detach_from_structure_bsp()
 
     for (handle = datum_next(-1, light_data); handle != k_datum_index_none;
          handle = datum_next((int16_t)handle, light_data)) {
-        uint8_t *light = (uint8_t *)light_data->data + (handle & 0xffff) * 0x7c;
+        uint8_t *light = (uint8_t *)light_data->data + halo::datum_slot(handle) * 0x7c;
 
         if (light[2] & 4) {
             if (light[2] & 2) {
@@ -944,7 +944,7 @@ datum_index halo::objects::LightSystem::cluster_iterate_begin(datum_index *curso
     if (reference == k_datum_index_none) {
         return k_datum_index_none;
     }
-    element = (uint8_t *)light_cluster_references->data + (reference & 0xffff) * 0xc;
+    element = (uint8_t *)light_cluster_references->data + halo::datum_slot(reference) * 0xc;
     *cursor = *(datum_index *)(element + 8);
     return *(datum_index *)(element + 4);
 }
@@ -963,7 +963,7 @@ datum_index halo::objects::LightSystem::cluster_iterate_next(datum_index *cursor
     if (*cursor == k_datum_index_none) {
         return k_datum_index_none;
     }
-    element = (uint8_t *)light_cluster_references->data + (*cursor & 0xffff) * 0xc;
+    element = (uint8_t *)light_cluster_references->data + halo::datum_slot(*cursor) * 0xc;
     *cursor = *(datum_index *)(element + 8);
     return *(datum_index *)(element + 4);
 }
@@ -971,7 +971,7 @@ datum_index halo::objects::LightSystem::cluster_iterate_next(datum_index *cursor
 namespace {
 static uint8_t *light_get(datum_index handle)
 {
-    return (uint8_t *)light_data->data + (handle & 0xffff) * 0x7c;
+    return (uint8_t *)light_data->data + halo::datum_slot(handle) * 0x7c;
 }
 
 static void offset_center(real_point3d *out, uint8_t *light, float distance)
@@ -992,7 +992,7 @@ static void offset_center(real_point3d *out, uint8_t *light, float distance)
 void halo::objects::LightSystem::get_render_bounds(datum_index handle, real_point3d *center_out, float *radius_out)
 {
     uint8_t *light = light_get(handle);
-    uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)(light + 4) & 0xffff].data;
+    uint8_t *definition = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)(light + 4))].data;
     float reach = *(float *)(definition + 0xc) * *(float *)(definition + 4);
     float angle = *(float *)(definition + 0x14);
 

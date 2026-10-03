@@ -168,7 +168,7 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
             }
             object = object_new_from_scenario_placement(placement, palette);
             if (object != k_datum_index_none && type == _object_type_vehicle) {
-                uint8_t *vehicle = *(uint8_t **)((uint8_t *)object_data->data + (object & 0xffff) * 0xc + 8);
+                uint8_t *vehicle = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object) * 0xc + 8);
                 ((vehicle_object *)vehicle)->vehicle.cinematic_facing_index = i;
             }
             objects_garbage_collection();
@@ -237,10 +237,10 @@ void halo::objects::ObjectFactory::place_for_structure_bsp(uint8_t place)
                 matrix4x3_from_euler_angles(&basis, *(float *)(placement + 0x14), *(float *)(placement + 0x18),
                                             *(float *)(placement + 0x1c));
                 tag = *(datum_index *)((uint8_t *)palette->pointer + kind * 0x30 + 0xc);
-                definition_data = (uint8_t *)tag_instances[tag & 0xffff].data;
+                definition_data = (uint8_t *)tag_instances[halo::datum_slot(tag)].data;
                 matrix4x3_transform_point(&origin, (real_point3d *)(definition_data + 8), &basis);
-                if (bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)(placement + 8)) == 0xffffffff &&
-                    bsp3d_node_find_leaf(0, global_collision_bsp, &origin) == 0xffffffff) {
+                if (bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)(placement + 8)) == k_datum_index_none &&
+                    bsp3d_node_find_leaf(0, global_collision_bsp, &origin) == k_datum_index_none) {
                     *(uint16_t *)(placement + 0x20) &= (uint16_t)~bsp_bit;
                 } else {
                     *(uint16_t *)(placement + 0x20) |= bsp_bit;
@@ -366,7 +366,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
         return k_datum_index_none;
     }
 
-    tag_inst = &tag_instances[definition_tag & 0xffff];
+    tag_inst = &tag_instances[halo::datum_slot(definition_tag)];
     object_tag = (Object *)tag_inst->data;
 
     new_index = object_block_data_new(-1, object_data,
@@ -441,8 +441,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     if (TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id) == k_datum_index_none) {
         node_count = 1;
     } else {
-        GBXModel *model = (GBXModel *)tag_instances[
-            TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id) & 0xffff].data;
+        GBXModel *model = (GBXModel *)tag_instances[halo::datum_slot(TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id))].data;
         node_count = model->nodes.count;
     }
 
@@ -574,7 +573,7 @@ datum_index halo::objects::ObjectFactory::lookup_by_name(int16_t name_index)
 void halo::objects::ObjectFactory::notify_predicted_resources_if_valid(datum_index definition_tag)
 {
     if (definition_tag != k_datum_index_none) {
-        uint8_t *tag_data = (uint8_t *)tag_instances[definition_tag & 0xffff].data;
+        uint8_t *tag_data = (uint8_t *)tag_instances[halo::datum_slot(definition_tag)].data;
         predicted_resource_list_touch(tag_data + 0x170);
     }
 }
@@ -631,11 +630,11 @@ datum_index halo::objects::ObjectFactory::create_from_scenario_placement(uint8_t
 uint8_t halo::objects::SceneryObject::initialize()
 {
     datum_index object_index = handle;
-    uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
-    uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
+    uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
+    uint8_t *definition = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)object)].data;
     datum_index graph = *(datum_index *)&((struct Object *)definition)->animation_graph.tag_id;
 
-    if (graph != k_datum_index_none && *(int32_t *)((uint8_t *)tag_instances[graph & 0xffff].data + 0x74) > 0) {
+    if (graph != k_datum_index_none && *(int32_t *)((uint8_t *)tag_instances[halo::datum_slot(graph)].data + 0x74) > 0) {
         int16_t animation = animation_choose_random_permutation(graph, 0, 1);
         if (animation != -1) {
             ((struct object *)object)->animation_index = animation;
@@ -650,7 +649,7 @@ uint8_t halo::objects::SceneryObject::initialize()
 namespace {
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+    return *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
 }
 }
 

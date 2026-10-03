@@ -60,12 +60,12 @@ void halo::objects::ObjectLifetime::delete_teardown()
 {
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
-    object *obj = headers[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = headers[halo::datum_slot(object_index)].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     object_set_health_frozen_flag(object_index);
 
-    if (definition->collision_model.tag_id.index != 0xffff) {
+    if (definition->collision_model.tag_id.index != halo::k_word_none) {
 
         effect_new_on_object(object_index,
             *(datum_index *)((uint8_t *)tag_instances[definition->collision_model.tag_id.index].data + 0xc8),
@@ -74,7 +74,7 @@ void halo::objects::ObjectLifetime::delete_teardown()
 
     object_children_recurse_prune(object_index);
 
-    obj = headers[object_index & 0xffff].data;
+    obj = headers[halo::datum_slot(object_index)].data;
     if (obj->network_role == 0 || obj->network_role == 3) {
         if (obj->network_role == 0) {
             object_delete_unparented(object_index);
@@ -93,7 +93,7 @@ void halo::objects::ObjectLifetime::delete_teardown()
 uint8_t halo::objects::ObjectLifetime::datum_consume_pending_flag()
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     uint8_t *raw = (uint8_t *)obj;
     int changed = (obj->flags & _object_changed_bit) != 0;
 
@@ -173,7 +173,7 @@ void halo::objects::ObjectLifetime::delete_recursive(uint8_t recurse_siblings)
 
     header = (object_header *)object_data->data + (object_index & 0xffff);
     obj = header->data;
-    object_tag = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    object_tag = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     if (TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id) != k_datum_index_none &&
         (obj->flags & _object_no_collision_bit) == 0) {
 
@@ -255,7 +255,7 @@ void halo::objects::ObjectLifetime::delete_by_pooled_node_id(int32_t **record)
     if (preconditions_ok != 0 && pooled_node_id != 0) {
         node_table = (int32_t)object_network_id_table->handles;
         object_index = *(uint32_t *)(node_table + pooled_node_id * 4);
-        if (object_index != 0xffffffff) {
+        if (object_index != k_datum_index_none) {
             header = (object_header *)object_data->data + (object_index & 0xffff);
             if ((header->flags & _object_header_delete_pending_bit) == 0) {
                 network_index_cache_remove(&network_object_index_cache, object_index);
@@ -385,8 +385,8 @@ void halo::objects::ObjectLifetime::delete_4f9030(char recurse_siblings)
 void halo::objects::ObjectLifetime::create_attachments()
 {
     uint32_t object_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *definition = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     int16_t i;
 
     for (i = 0; i < *(int32_t *)&((struct Object *)definition)->attachments.count; i++) {
@@ -446,8 +446,8 @@ void halo::objects::ObjectLifetime::create_attachments()
 void halo::objects::ObjectLifetime::delete_attachments()
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     int16_t i;
 
     for (i = 0; i < (int16_t)definition->attachments.count; i++) {
@@ -473,7 +473,7 @@ void halo::objects::ObjectLifetime::delete_attachments()
                     break;
                 case _object_attachment_type_particle_system: {
 
-                    uint8_t *entry = (uint8_t *)particle_system_data->data + (handle & 0xffff) * 0x158;
+                    uint8_t *entry = (uint8_t *)particle_system_data->data + halo::datum_slot(handle) * 0x158;
                     ((particle_system *)entry)->flags &= ~1u;
                     *(int32_t *)&((particle_system *)entry)->object_index = -1;
                     break;

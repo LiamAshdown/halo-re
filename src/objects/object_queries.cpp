@@ -35,7 +35,7 @@ datum_index halo::objects::ObjectQueries::noncollideable_iterate_begin(datum_ind
     if (reference == k_datum_index_none) {
         return k_datum_index_none;
     }
-    element = (uint8_t *)noncollideable_object_references->data + (reference & 0xffff) * 0xc;
+    element = (uint8_t *)noncollideable_object_references->data + halo::datum_slot(reference) * 0xc;
     *cursor = *(datum_index *)(element + 8);
     return *(datum_index *)(element + 4);
 }
@@ -54,7 +54,7 @@ datum_index halo::objects::ObjectQueries::noncollideable_iterate_next(datum_inde
     if (*cursor == k_datum_index_none) {
         return k_datum_index_none;
     }
-    element = (uint8_t *)noncollideable_object_references->data + (*cursor & 0xffff) * 0xc;
+    element = (uint8_t *)noncollideable_object_references->data + halo::datum_slot(*cursor) * 0xc;
     *cursor = *(datum_index *)(element + 8);
     return *(datum_index *)(element + 4);
 }
@@ -95,7 +95,7 @@ datum_index halo::objects::ObjectQueries::collideable_iterate_next(datum_index *
     if (*cursor == k_datum_index_none) {
         return k_datum_index_none;
     }
-    element = (uint8_t *)collideable_object_references->data + (*cursor & 0xffff) * 0xc;
+    element = (uint8_t *)collideable_object_references->data + halo::datum_slot(*cursor) * 0xc;
     *cursor = *(datum_index *)(element + 8);
     return *(datum_index *)(element + 4);
 }
@@ -241,7 +241,7 @@ int16_t halo::objects::ObjectQueries::collect_in_clusters(uint32_t search_mask, 
                 object_cluster_reference *node = (object_cluster_reference *)
                     collideable_object_references->data + (ref & 0xffff);
                 datum_index object_index = node->object_index;
-                object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+                object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
                 if (obj->cluster_stamp != stamp) {
                     obj->cluster_stamp = stamp;
                     if (max_output <= count) {
@@ -261,7 +261,7 @@ int16_t halo::objects::ObjectQueries::collect_in_clusters(uint32_t search_mask, 
                 object_cluster_reference *node = (object_cluster_reference *)
                     noncollideable_object_references->data + (ref & 0xffff);
                 datum_index object_index = node->object_index;
-                object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+                object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
                 if (obj->cluster_stamp != stamp) {
                     obj->cluster_stamp = stamp;
                     if (max_output <= count) {
@@ -283,7 +283,7 @@ int16_t halo::objects::ObjectQueries::collect_in_clusters(uint32_t search_mask, 
 namespace {
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+    return *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
 }
 }
 
@@ -316,7 +316,7 @@ uint8_t halo::objects::ObjectQueries::cluster_stamp_mark_visited(datum_index obj
 int32_t halo::objects::ObjectQueries::tree_collect_matching(uint32_t object_index,
     uint8_t (*filter)(uint32_t, void *), void *filter_context, int32_t count, int32_t max_count, datum_index *out)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
     if (max_count <= count) {
         return count;
@@ -357,7 +357,7 @@ int32_t halo::objects::ObjectQueries::collect_local_player_relevant_objects(real
     int32_t *word;
     int16_t word_index;
 
-    if (leaf == 0xffffffff) {
+    if (leaf == k_datum_index_none) {
         return 0;
     }
     bsp = global_structure_bsp;
@@ -397,14 +397,14 @@ int32_t halo::objects::ObjectQueries::collect_local_player_relevant_objects(real
             if ((row[bit >> 5] & (1u << (bit & 0x1f))) != 0) {
                 datum_index ref = collideable_cluster_first[bit];
 
-                while (ref != 0xffffffff) {
+                while (ref != k_datum_index_none) {
                     object_cluster_reference *node =
                         (object_cluster_reference *)collideable_object_references->data + (ref & 0xffff);
                     datum_index object_index = node->object_index;
                     object *obj;
 
                     ref = node->next_reference;
-                    obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+                    obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
                     if (obj->cluster_stamp != object_cluster_stamp) {
                         obj->cluster_stamp = object_cluster_stamp;
                         count = object_tree_collect_matching(object_index, filter, filter_context, count, max_count,
@@ -440,7 +440,7 @@ int32_t halo::objects::ObjectQueries::collect_by_flag_bits(int32_t bit_index, in
             while (ref != k_datum_index_none) {
                 object_cluster_reference *node = (object_cluster_reference *)
                     collideable_object_references->data + (ref & 0xffff);
-                object *obj = ((object_header *)object_data->data)[node->object_index & 0xffff].data;
+                object *obj = ((object_header *)object_data->data)[halo::datum_slot(node->object_index)].data;
 
                 if (obj->cluster_stamp != cluster_stamp_snapshot) {
                     obj->cluster_stamp = cluster_stamp_snapshot;

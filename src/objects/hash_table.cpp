@@ -20,13 +20,13 @@ void halo::objects::ObjectHashFlags::clear_bit3(uint32_t key)
     uint32_t node = 0xffffffff;
     uint32_t next_node;
 
-    if (key != 0xffffffff) {
+    if (key != k_datum_index_none) {
 
-        node = *(uint32_t *)((uint8_t *)object_list_header_data->data + (key & 0xffff) * 0xc + 8);
-        if (node == 0xffffffff) {
+        node = *(uint32_t *)((uint8_t *)object_list_header_data->data + halo::datum_slot(key) * 0xc + 8);
+        if (node == k_datum_index_none) {
             next_node = 0xffffffff;
         } else {
-            uint8_t *entry = (uint8_t *)object_list_reference_data->data + (node & 0xffff) * 0xc;
+            uint8_t *entry = (uint8_t *)object_list_reference_data->data + halo::datum_slot(node) * 0xc;
             next_node = *(uint32_t *)(entry + 8);
             node = *(uint32_t *)(entry + 4);
         }
@@ -34,14 +34,14 @@ void halo::objects::ObjectHashFlags::clear_bit3(uint32_t key)
         next_node = 0xffffffff;
     }
 
-    while (node != 0xffffffff) {
-        object *obj = headers[node & 0xffff].data;
+    while (node != k_datum_index_none) {
+        object *obj = headers[halo::datum_slot(node)].data;
         *((uint8_t *)obj + 0x107) &= 0xf7;
 
-        if (next_node == 0xffffffff) {
+        if (next_node == k_datum_index_none) {
             node = 0xffffffff;
         } else {
-            uint8_t *entry = (uint8_t *)object_list_reference_data->data + (next_node & 0xffff) * 0xc;
+            uint8_t *entry = (uint8_t *)object_list_reference_data->data + halo::datum_slot(next_node) * 0xc;
             next_node = *(uint32_t *)(entry + 8);
             node = *(uint32_t *)(entry + 4);
         }
@@ -61,13 +61,13 @@ void halo::objects::ObjectHashFlags::set_bit3(uint32_t key)
     uint32_t node = 0xffffffff;
     uint32_t next_node;
 
-    if (key != 0xffffffff) {
+    if (key != k_datum_index_none) {
 
-        node = *(uint32_t *)((uint8_t *)object_list_header_data->data + (key & 0xffff) * 0xc + 8);
-        if (node == 0xffffffff) {
+        node = *(uint32_t *)((uint8_t *)object_list_header_data->data + halo::datum_slot(key) * 0xc + 8);
+        if (node == k_datum_index_none) {
             next_node = 0xffffffff;
         } else {
-            uint8_t *entry = (uint8_t *)object_list_reference_data->data + (node & 0xffff) * 0xc;
+            uint8_t *entry = (uint8_t *)object_list_reference_data->data + halo::datum_slot(node) * 0xc;
             next_node = *(uint32_t *)(entry + 8);
             node = *(uint32_t *)(entry + 4);
         }
@@ -75,14 +75,14 @@ void halo::objects::ObjectHashFlags::set_bit3(uint32_t key)
         next_node = 0xffffffff;
     }
 
-    while (node != 0xffffffff) {
-        object *obj = headers[node & 0xffff].data;
+    while (node != k_datum_index_none) {
+        object *obj = headers[halo::datum_slot(node)].data;
         *((uint8_t *)obj + 0x107) |= 8;
 
-        if (next_node == 0xffffffff) {
+        if (next_node == k_datum_index_none) {
             node = 0xffffffff;
         } else {
-            uint8_t *entry = (uint8_t *)object_list_reference_data->data + (next_node & 0xffff) * 0xc;
+            uint8_t *entry = (uint8_t *)object_list_reference_data->data + halo::datum_slot(next_node) * 0xc;
             next_node = *(uint32_t *)(entry + 8);
             node = *(uint32_t *)(entry + 4);
         }

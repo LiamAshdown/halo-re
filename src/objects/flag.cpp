@@ -1,4 +1,5 @@
 #include "halo/objects/flag.hpp"
+#include "halo/core/lcg.hpp"
 
 extern "C" {
 extern void *const flag_render_device_slot;
@@ -99,14 +100,14 @@ void halo::objects::FlagSystem::reset_data_pointer()
  */
 datum_index halo::objects::FlagSystem::create(datum_index flag_tag)
 {
-    datum_index handle = (datum_index)0xffffffff;
+    datum_index handle = k_datum_index_none;
 
-    if (flag_tag != (datum_index)0xffffffff) {
-        Flag *tag = (Flag *)tag_instances[flag_tag & 0xffff].data;
+    if (flag_tag != k_datum_index_none) {
+        Flag *tag = (Flag *)tag_instances[halo::datum_slot(flag_tag)].data;
 
         handle = datum_new(flag_data);
-        if (handle != (datum_index)0xffffffff) {
-            flag *entry = &((flag *)flag_data->data)[handle & 0xffff];
+        if (handle != k_datum_index_none) {
+            flag *entry = &((flag *)flag_data->data)[halo::datum_slot(handle)];
 
             if (tag->height * tag->width < (int32_t)k_maximum_flag_cloth_vertices &&
                 tag->width < 0x28 && *(int32_t *)&tag->blue_flag_shader.tag_id != -1) {
@@ -115,7 +116,7 @@ datum_index halo::objects::FlagSystem::create(datum_index flag_tag)
                 entry->definition_tag = flag_tag;
                 entry->invalid = 0;
                 entry->unknown_03 = 0;
-                entry->object_index = (datum_index)0xffffffff;
+                entry->object_index = k_datum_index_none;
                 entry->previous_marker_position.x = 0.0f;
                 entry->previous_marker_position.y = 0.0f;
                 entry->previous_marker_position.z = 0.0f;
@@ -294,8 +295,8 @@ void halo::objects::FlagSystem::destroy(datum_index flag_index)
 void halo::objects::FlagSystem::render_callback(datum_index object_index, datum_index flag_index, uint32_t arg3,
     uint32_t arg4)
 {
-    uint8_t *self = (uint8_t *)flag_data->data + (flag_index & 0xffff) * 0x16bc;
-    Flag *tag = (Flag *)tag_instances[(datum_index)((struct object *)self)->network_update_tick & 0xffff].data;
+    uint8_t *self = (uint8_t *)flag_data->data + halo::datum_slot(flag_index) * 0x16bc;
+    Flag *tag = (Flag *)tag_instances[halo::datum_slot((datum_index)((struct object *)self)->network_update_tick)].data;
 
     *(datum_index *)(self + 8) = object_index;
     if (*(int16_t *)(self + 6) > 5 || self[3] == 0) {
@@ -324,25 +325,25 @@ void halo::objects::FlagSystem::update(float dt)
     for (;;) {
         int32_t next_index;
 
-        if (current == (datum_index)0xffffffff) {
+        if (current == k_datum_index_none) {
             return;
         }
 
         {
-            flag *entry = (flag *)((uint8_t *)flags->data + (current & 0xffff) * flags->size);
+            flag *entry = (flag *)((uint8_t *)flags->data + halo::datum_slot(current) * flags->size);
             datum_index object_index = entry->object_index;
-            void *tag_data = tag_instances[entry->definition_tag & 0xffff].data;
+            void *tag_data = tag_instances[halo::datum_slot(entry->definition_tag)].data;
             int16_t *update_counter = (int16_t *)((uint8_t *)entry + 6);
 
             *update_counter = *update_counter + 1;
-            if (object_index != (datum_index)0xffffffff && *update_counter < 5 && dt != 0.0f) {
+            if (object_index != k_datum_index_none && *update_counter < 5 && dt != 0.0f) {
                 flag_cloth_update(entry, (Flag *)tag_data, dt);
                 flags = flag_data;
             }
         }
 
         next_index = (int32_t)(int16_t)((current & 0xffff) + 1);
-        current = (datum_index)0xffffffff;
+        current = k_datum_index_none;
         if (next_index < 0 || flags->last_index <= next_index) {
             return;
 
@@ -439,9 +440,9 @@ void halo::objects::FlagView::cloth_update(Flag *tag, float dt)
                                      tag->wind_noise * 0.00016f;
                     }
 
-                    effect_random_seed = effect_random_seed * 0x19660dU + 0x3c6ef35fU;
+                    effect_random_seed = halo::advance_random_seed(effect_random_seed);
                     {
-                        int16_t idx = (int16_t)(((effect_random_seed >> 16) *
+                        int16_t idx = (int16_t)(((effect_random_seed >> halo::k_random_high_shift) *
                                                   (uint32_t)sphere_point_table_count) >> 16);
                         real_point3d *dir = &sphere_point_table[idx];
                         wind_dir.i = dir->x * wind_scale;

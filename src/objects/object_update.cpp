@@ -1,4 +1,5 @@
 #include "halo/objects/object_update.hpp"
+#include "halo/core/lcg.hpp"
 #include "game.h"
 #include "models.h"
 
@@ -60,8 +61,8 @@ void halo::objects::ObjectUpdater::regions_reset_permutation_lock(int8_t unlock)
 {
     uint32_t object_index = handle;
     object_header *headers = (object_header *)object_data->data;
-    object *obj = headers[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = headers[halo::datum_slot(object_index)].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
     ModelCollisionGeometry *geometry =
         (ModelCollisionGeometry *)tag_instances[definition->collision_model.tag_id.index].data;
     ModelCollisionGeometryRegion *regions = (ModelCollisionGeometryRegion *)geometry->regions.pointer;
@@ -85,15 +86,15 @@ void halo::objects::ObjectUpdater::regions_reset_permutation_lock(int8_t unlock)
 void halo::objects::ObjectUpdater::set_permutation_by_name(char *name, int16_t region_filter, char use_matched_index)
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
-    if (definition->model.tag_id.index == 0xffff) {
+    if (definition->model.tag_id.index == halo::k_word_none) {
         return;
     }
 
     {
-        GBXModel *model = (GBXModel *)tag_instances[definition->model.tag_id.index & 0xffff].data;
+        GBXModel *model = (GBXModel *)tag_instances[halo::datum_slot(definition->model.tag_id.index)].data;
         int16_t region_index;
         for (region_index = 0; region_index < (int16_t)model->regions.count; region_index++) {
             ModelRegion *region;
@@ -133,7 +134,7 @@ uint8_t halo::objects::ObjectUpdater::update()
     uint32_t object_index = handle;
     object_header *header = (object_header *)object_data->data + (object_index & 0xffff);
     object *obj = header->data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     if ((header->flags & _object_header_just_created_bit) != 0) {
         return 1;
@@ -152,7 +153,7 @@ uint8_t halo::objects::ObjectUpdater::update()
 
     object_type_definitions_query_0x34(object_index);
 
-    if (definition->collision_model.tag_id.index != 0xffff) {
+    if (definition->collision_model.tag_id.index != halo::k_word_none) {
         object_update_vitality_and_regeneration(object_index);
     }
 
@@ -166,7 +167,7 @@ uint8_t halo::objects::ObjectUpdater::update()
     object_update_change_colors(object_index);
 
     if (((obj->flags & 0x2000) != 0) &&
-        (((obj->flags & _object_no_collision_bit) == 0) || (definition->model.tag_id.index == 0xffff))) {
+        (((obj->flags & _object_no_collision_bit) == 0) || (definition->model.tag_id.index == halo::k_word_none))) {
         object_for_each_light_attachment(object_index, 1, 1);
     }
 
@@ -213,8 +214,8 @@ static float clamp_to_one(float value)
 void halo::objects::ObjectUpdater::update_export_functions()
 {
     datum_index object_index = handle;
-    uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
-    uint8_t *definition = (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
+    uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object_index) * 0xc + 8);
+    uint8_t *definition = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)object)].data;
     int32_t i;
 
     for (i = 0; i < 4; i++) {
@@ -363,14 +364,14 @@ clamp_to_one:
 void halo::objects::ObjectUpdater::recalculate_bounding_radius_recursive()
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     datum_index child;
 
     object_recalculate_bounding_radius(object_index);
 
     child = obj->first_child_object;
     while (child != k_datum_index_none) {
-        object *child_obj = ((object_header *)object_data->data)[child & 0xffff].data;
+        object *child_obj = ((object_header *)object_data->data)[halo::datum_slot(child)].data;
         object_recalculate_bounding_radius_recursive(child);
         child = child_obj->next_object;
     }
@@ -378,7 +379,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius_recursive()
 
 namespace {
 #define OFS(base, off, type) (*(type *)((uint8_t *)(base) + (off)))
-#define TAG_DATA(id) ((uint8_t *)tag_instances[(uint32_t)(id) & 0xffff].data)
+#define TAG_DATA(id) ((uint8_t *)tag_instances[halo::datum_slot((uint32_t)(id))].data)
 static void matrix4x3_set_translation_only(real_matrix4x3 *m, const real_point3d *position)
 {
     m->scale = 1.0f;
@@ -400,7 +401,7 @@ static void matrix4x3_set_translation_only(real_matrix4x3 *m, const real_point3d
 void halo::objects::ObjectUpdater::recalculate_bounding_radius()
 {
     uint32_t object_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     uint8_t *def = TAG_DATA(OFS(obj, 0x0, uint32_t));
     real_matrix4x3 *nodes = (real_matrix4x3 *)(obj + OFS(obj, 0x1f2, int16_t));
     real_orientation local_orientations[k_maximum_nodes_per_model];
@@ -427,7 +428,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
         int16_t head, tail;
 
         if (OFS(obj, 0x11c, int32_t) != -1) {
-            uint8_t *parent = (uint8_t *)((object_header *)object_data->data)[OFS(obj, 0x11c, uint32_t) & 0xffff].data;
+            uint8_t *parent = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(OFS(obj, 0x11c, uint32_t))].data;
             parent_matrix = (real_matrix4x3 *)(parent + OFS(parent, 0x1f2, int16_t)) + OFS(obj, 0x120, int8_t);
         }
 
@@ -543,7 +544,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
                         }
                         {
                             uint8_t *parent_object = (uint8_t *)((object_header *)object_data->data)
-                                [OFS(obj, 0x11c, uint32_t) & 0xffff].data;
+                                [halo::datum_slot(OFS(obj, 0x11c, uint32_t))].data;
                             if ((OFS(parent_object, 0x10, uint32_t) & 0x1000) != 0) {
                                 if (base != &parent_copy) {
                                     parent_copy = *base;
@@ -611,8 +612,8 @@ static float clamp_unit(float value)
 void halo::objects::ObjectUpdater::initialize_change_colors(ColorRGB *colors)
 {
     uint32_t object_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
     float *position = (float *)&((struct object *)obj)->position;
     int32_t i;
 
@@ -681,7 +682,7 @@ int16_t halo::objects::ObjectUpdater::permutation_find_matching_group(ModelRegio
 uint8_t halo::objects::ObjectUpdater::regions_initialize_permutations(int16_t group, GBXModel *model)
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     uint8_t all_assigned = 1;
     int16_t region_index;
 
@@ -705,8 +706,8 @@ uint8_t halo::objects::ObjectUpdater::regions_initialize_permutations(int16_t gr
         if (match_count == 1) {
             chosen = 0;
         } else {
-            random_seed_global = random_seed_global * 0x19660d + 0x3c6ef35f;
-            chosen = (int16_t)(((int32_t)(random_seed_global >> 0x10) * match_count) >> 0x10);
+            random_seed_global = halo::advance_random_seed(random_seed_global);
+            chosen = (int16_t)(((int32_t)(random_seed_global >> halo::k_random_high_shift) * match_count) >> 0x10);
         }
         obj->region_permutations[region_index] = (uint8_t)matches[chosen];
     }
@@ -722,7 +723,7 @@ uint8_t halo::objects::ObjectUpdater::regions_initialize_permutations(int16_t gr
 int16_t halo::objects::ObjectUpdater::get_first_region_probability_group(GBXModel *model)
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     int16_t group = 0;
     int16_t region_index;
 
@@ -749,11 +750,11 @@ int16_t halo::objects::ObjectUpdater::get_first_region_probability_group(GBXMode
 void halo::objects::ObjectUpdater::refresh_region_permutations()
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
-    if (definition->model.tag_id.index != 0xffff) {
-        GBXModel *model = (GBXModel *)tag_instances[definition->model.tag_id.index & 0xffff].data;
+    if (definition->model.tag_id.index != halo::k_word_none) {
+        GBXModel *model = (GBXModel *)tag_instances[halo::datum_slot(definition->model.tag_id.index)].data;
         int16_t *cached_group = (int16_t *)((uint8_t *)obj + 0xbe);
 
         if ((*cached_group <= 0) || (object_regions_initialize_permutations(object_index, *cached_group, model) == 0)) {
@@ -776,8 +777,8 @@ void halo::objects::ObjectUpdater::refresh_region_permutations()
 void halo::objects::ObjectUpdater::update_change_colors()
 {
     uint32_t object_index = handle;
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     if ((definition->scales_change_colors & 1) != 0) {
         int32_t count = definition->change_colors.count;
@@ -831,9 +832,9 @@ static float function_scale_input(uint8_t *obj, int16_t selector)
 void halo::objects::ObjectUpdater::update_functions()
 {
     uint32_t object_index = handle;
-    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[object_index & 0xffff].data;
-    Object *definition = (Object *)tag_instances[*(datum_index *)obj & 0xffff].data;
-    float phase = (float)(int32_t)((object_index & 0xffff) * 0x39 + game_time->game_time) * 0.033333335f;
+    uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
+    Object *definition = (Object *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data;
+    float phase = (float)(int32_t)(halo::datum_slot(object_index) * 0x39 + game_time->game_time) * 0.033333335f;
     int16_t i;
 
     for (i = 0; i < (int32_t)definition->functions.count; i++) {

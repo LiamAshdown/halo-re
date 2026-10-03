@@ -57,7 +57,7 @@ void halo::objects::ObjectTypeDefinitions::chain_build()
  */
 void halo::objects::ObjectTypeDefinitions::notify_0x24(uint32_t object_index, uint32_t argument)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
 
@@ -79,7 +79,7 @@ void halo::objects::ObjectTypeDefinitions::notify_0x24(uint32_t object_index, ui
  */
 uint8_t halo::objects::ObjectTypeDefinitions::query_0x28(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
 
@@ -107,7 +107,7 @@ uint8_t halo::objects::ObjectTypeDefinitions::query_0x28(uint32_t object_index)
  */
 void halo::objects::ObjectTypeDefinitions::notify_two_args_0x2c(uint32_t object_index, uint32_t event_argument)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
 
@@ -131,7 +131,7 @@ void halo::objects::ObjectTypeDefinitions::notify_two_args_0x2c(uint32_t object_
  */
 void halo::objects::ObjectTypeDefinitions::notify_0x30(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
 
@@ -155,7 +155,7 @@ void halo::objects::ObjectTypeDefinitions::notify_0x30(uint32_t object_index)
  */
 uint8_t halo::objects::ObjectTypeDefinitions::query_0x34(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
     int any_true = 0;
@@ -183,7 +183,7 @@ uint8_t halo::objects::ObjectTypeDefinitions::query_0x34(uint32_t object_index)
  */
 void halo::objects::ObjectTypeDefinitions::notify_0x38(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
 
@@ -207,7 +207,7 @@ void halo::objects::ObjectTypeDefinitions::notify_0x38(uint32_t object_index)
  */
 void halo::objects::ObjectTypeDefinitions::notify_0x3c(uint32_t object_index, uint32_t argument)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
 
@@ -232,7 +232,7 @@ void halo::objects::ObjectTypeDefinitions::notify_0x3c(uint32_t object_index, ui
 void halo::objects::ObjectTypeDefinitions::notify_region_damage(uint32_t object_index, uint32_t argument_1,
     uint32_t argument_2)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
 
@@ -256,7 +256,7 @@ void halo::objects::ObjectTypeDefinitions::notify_region_damage(uint32_t object_
  */
 uint8_t halo::objects::ObjectTypeDefinitions::query_0x44(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
     uint8_t any_true = 0;
@@ -284,7 +284,7 @@ uint8_t halo::objects::ObjectTypeDefinitions::query_0x44(uint32_t object_index)
  */
 void halo::objects::ObjectTypeDefinitions::notify_two_args_0x48(uint32_t object_index, uint32_t event_argument)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
 
@@ -308,7 +308,7 @@ void halo::objects::ObjectTypeDefinitions::notify_two_args_0x48(uint32_t object_
  */
 void halo::objects::ObjectTypeDefinitions::notify_0x4c(uint32_t object_index, uint32_t argument)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
 
@@ -332,7 +332,7 @@ void halo::objects::ObjectTypeDefinitions::notify_0x4c(uint32_t object_index, ui
  */
 void halo::objects::ObjectTypeDefinitions::notify_0x50(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
 
@@ -356,7 +356,7 @@ void halo::objects::ObjectTypeDefinitions::notify_0x50(uint32_t object_index)
  */
 void halo::objects::ObjectTypeDefinitions::notify_0x54(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
 
@@ -380,7 +380,7 @@ void halo::objects::ObjectTypeDefinitions::notify_0x54(uint32_t object_index)
  */
 void halo::objects::ObjectTypeDefinitions::notify_0x5c(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
 
@@ -405,7 +405,7 @@ void halo::objects::ObjectTypeDefinitions::notify_0x5c(uint32_t object_index)
 void halo::objects::ObjectTypeDefinitions::notify_0x58(uint32_t object_index, uint32_t argument_1,
     uint32_t argument_2)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
 
@@ -484,7 +484,7 @@ void halo::objects::ObjectTypeDefinitions::override_call_0x68(uint32_t object_in
 int halo::objects::ObjectTypeDefinitions::override_call_0x6c(uint32_t object_index, void *buffer, int32_t bit_budget,
     int32_t full_update)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
 
@@ -556,7 +556,7 @@ void halo::objects::ObjectTypeDefinitions::override_call_0x70_release_node(int32
  */
 uint8_t halo::objects::ObjectTypeDefinitions::override_call_0x74(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
 
@@ -578,7 +578,7 @@ uint8_t halo::objects::ObjectTypeDefinitions::override_call_0x74(uint32_t object
  */
 void halo::objects::ObjectTypeDefinitions::override_call_0x7c(uint32_t object_index)
 {
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     object_type_definition *def = object_type_definitions[obj->type];
     int16_t i;
 
