@@ -59,6 +59,8 @@ void TickerTextBuffer::advance(uint8_t *widget, ticker_text_buffer *self)
     hud_text_draw_column = 0;
     hud_text_draw_unknown_4730 = 0;
 
+    bool advance = true;
+
     fit_count = halo::text::text_context::measure_string_fit_width(self->text + self->scroll_cursor, max_width);
     if (fit_count == 0) {
         if (self->scroll_cursor == 0) {
@@ -71,7 +73,7 @@ void TickerTextBuffer::advance(uint8_t *widget, ticker_text_buffer *self)
                 wcsncpy(display_text, (const wchar_t *)self->text, self->length);
                 display_text[self->length] = 0;
             }
-            goto wrap_cursor;
+            advance = false;
         } else {
             int32_t tail_length = self->length - self->scroll_cursor;
             int32_t wrap_length;
@@ -89,7 +91,7 @@ void TickerTextBuffer::advance(uint8_t *widget, ticker_text_buffer *self)
                 self->scroll_delay_ms = 100 +
                     (((*(uint16_t *)(self->text + self->scroll_cursor) & 0xff00) != 0) ? 0x52 : 0);
                 self->scroll_cursor = self->scroll_cursor + 1;
-                goto wrap_cursor;
+                advance = false;
             }
         }
     } else {
@@ -102,11 +104,12 @@ void TickerTextBuffer::advance(uint8_t *widget, ticker_text_buffer *self)
         }
     }
 
-    self->scroll_delay_ms = 100 +
-        (((*(uint16_t *)(self->text + self->scroll_cursor) & 0xff00) != 0) ? 0x52 : 0);
-    self->scroll_cursor = self->scroll_cursor + 1;
+    if (advance) {
+        self->scroll_delay_ms = 100 +
+            (((*(uint16_t *)(self->text + self->scroll_cursor) & 0xff00) != 0) ? 0x52 : 0);
+        self->scroll_cursor = self->scroll_cursor + 1;
+    }
 
-wrap_cursor:
     if (self->length <= self->scroll_cursor) {
         self->scroll_cursor = 0;
     }

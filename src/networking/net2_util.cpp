@@ -182,7 +182,7 @@ int32_t NetworkUtil::time_duration_string(char *string, char default_unit, uint8
             while (isdigit((uint8_t)*p)) {
                 p = p + 1;
                 if (*p == 0) {
-                    goto have_unit;
+                    break;
                 }
             }
         }
@@ -193,7 +193,6 @@ int32_t NetworkUtil::time_duration_string(char *string, char default_unit, uint8
                 unit_from_table = resolved_unit;
             }
         }
-    have_unit:
         resolved_unit = unit_from_table;
         if (value == -1) {
             return -1;
