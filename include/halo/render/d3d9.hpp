@@ -352,6 +352,9 @@ inline constexpr uint32_t k_format_x8r8g8b8 = 22;
 /** D3DERR_DEVICENOTRESET. */
 inline constexpr int32_t k_error_device_not_reset = static_cast<int32_t>(0x88760869);
 
+/** Opaque white as a packed ARGB color. */
+inline constexpr uint32_t k_color_white = 0xffffffffu;
+
 /** D3DFMT_A8R8G8B8 and D3DFMT_D24S8. */
 inline constexpr uint32_t k_format_a8r8g8b8 = 21;
 inline constexpr uint32_t k_format_d24s8 = 75;
