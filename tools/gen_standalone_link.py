@@ -1,9 +1,9 @@
 """Standalone link: build/standalone/halo_rebuilt.exe from the rewritten functions and committed sources, in one pass.
 
-Run tools/msvc_build.py first (it compiles src/ into build/obj/). This script compiles and assembles the standalone
+Run tools/msvc_build.py first (it compiles src/ into build/obj/). This script compiles the standalone
 sources and links everything; it generates nothing and reads no retail file:
   standalone/loader.c, d3dx_compat.c, harness/x87_shims.c   the loader and runtime support
-  standalone/image/*.asm, image/pieces.c                     the data image the loader copies to 0x63a000..
+  standalone/image/halo_image_*.c, image/pieces.c                     the data image the loader copies to 0x63a000..
   standalone/generated/image_bindings.c, code_entries.c      code pointers in the image -> C functions, and the
                                                              original address -> C function table
   standalone/data/*.c                                        the engine globals as C definitions
@@ -88,7 +88,7 @@ def main():
              compile_c(os.path.join(SA, "image", "pieces.c"), o("pieces.obj"), [SA]),
              compile_c(os.path.join(SA, "generated", "image_bindings.c"), o("image_bindings.obj"))]
     for p in json.load(open(os.path.join(SA, "image", "pieces.json"))):
-        extra.append(assemble(os.path.join(SA, "image", p["label"] + ".asm"), o("image_%s.obj" % p["label"])))
+        extra.append(compile_c(os.path.join(SA, "image", "halo_image_%s.c" % p["label"]), o("image_%s.obj" % p["label"]), [SA]))
     for c in sorted(glob.glob(os.path.join(SA, "data", "*.c"))):   # the engine globals as C definitions, one file per slice
         extra.append(compile_data_c(c, o("data_" + os.path.splitext(os.path.basename(c))[0] + ".obj")))
     extra += [compile_c(os.path.join(SA, "generated", "code_entries.c"), o("code_entries.obj"), [SA]),

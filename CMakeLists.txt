@@ -14,7 +14,7 @@
 # standalone/data/*.c (tools/update_globals.py lists what a link left unresolved).
 cmake_minimum_required(VERSION 3.21)
 cmake_policy(SET CMP0091 NEW)   # CMAKE_MSVC_RUNTIME_LIBRARY
-project(halo C CXX ASM_MASM)
+project(halo C CXX)
 
 if(NOT MSVC OR NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
     message(FATAL_ERROR "halo_rebuilt is 32-bit MSVC only: use -A Win32 (Visual Studio) or an x86 tools prompt (Ninja)")
@@ -71,7 +71,7 @@ add_custom_target(third_party_import_libs DEPENDS ${THIRD_PARTY_LIBS})
 
 # ---- the standalone exe: loader, data image, link tables
 set(SA "${CMAKE_SOURCE_DIR}/standalone")
-file(GLOB IMAGE_ASM CONFIGURE_DEPENDS "${SA}/image/*.asm")
+file(GLOB IMAGE_C CONFIGURE_DEPENDS "${SA}/image/halo_image_*.c")   # the data image pieces as C data
 # the engine globals as C definitions (standalone/data/*.c), compiled with the game code's flags and headers
 file(GLOB DATA_SOURCES CONFIGURE_DEPENDS "${SA}/data/*.c")
 add_library(halo_data OBJECT ${DATA_SOURCES})
@@ -86,7 +86,7 @@ set(SUPPORT_SOURCES
     "${SA}/generated/image_bindings.c"
     "${SA}/generated/code_entries.c"
     "${SA}/bridges.cpp")
-add_executable(halo_rebuilt WIN32 ${SUPPORT_SOURCES} ${IMAGE_ASM}
+add_executable(halo_rebuilt WIN32 ${SUPPORT_SOURCES} ${IMAGE_C}
     $<TARGET_OBJECTS:halo_game> $<TARGET_OBJECTS:halo_data>)
 add_dependencies(halo_rebuilt third_party_import_libs)
 
