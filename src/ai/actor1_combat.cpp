@@ -805,6 +805,24 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
     const unit_object *unit;
     prop *target = 0;
     uint8_t decision;
+    auto apply_decision = [&]() -> uint8_t {
+        float ticks;
+
+        self->charge_trigger_decision = decision;
+        if (decision != 0) {
+            ticks = halo::math::random_real_range(*(const float *)(variant + 0x54), *(const float *)(variant + 0x58));
+        } else {
+            ticks = halo::math::random_real_range(*(const float *)(variant + 0x5c), *(const float *)(variant + 0x60));
+        }
+        ticks = ticks * 30.0f;
+        if (!(ticks > 31.0f)) {
+            ticks = 31.0f;
+        }
+        self->charge_trigger_ticks = (int16_t)(int32_t)ticks;
+        self->charge_trigger_delay = 0x1e;
+        return self->charge_trigger_decision;
+    };
+    bool flip_decision = false;
     int16_t variant_mode;
 
     if (!halo::units::unit_is_in_busy_animation_state(unit_index) && self->movement_action_complete == 0) {
@@ -921,17 +939,18 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
             if (self->charge_trigger_decision != 0) {
                 if ((int16_t)behind == 0 && (int16_t)ahead > (int16_t)level) {
                     decision = 0;
-                    goto apply_decision;
+                    return apply_decision();
                 }
             } else if ((int16_t)ahead == 0 && (int16_t)behind > (int16_t)level) {
-                goto flip_decision;
+                flip_decision = true;
             }
         }
-        self->charge_trigger_ticks -= 1;
-        if (self->charge_trigger_ticks != 0) {
-            return self->charge_trigger_decision;
+        if (!flip_decision) {
+            self->charge_trigger_ticks -= 1;
+            if (self->charge_trigger_ticks != 0) {
+                return self->charge_trigger_decision;
+            }
         }
-    flip_decision:
         decision = (self->charge_trigger_decision == 0);
     } else {
         float chance = ((ActorVariant *)variant)->initial_crouch_chance;
@@ -976,24 +995,7 @@ uint8_t halo::ai::combat_ops::evaluate_custom_charge_trigger()
         decision = (roll >= chance) ? 0 : 1;
     }
 
-apply_decision:
-    {
-        float ticks;
-
-        self->charge_trigger_decision = decision;
-        if (decision != 0) {
-            ticks = halo::math::random_real_range(*(const float *)(variant + 0x54), *(const float *)(variant + 0x58));
-        } else {
-            ticks = halo::math::random_real_range(*(const float *)(variant + 0x5c), *(const float *)(variant + 0x60));
-        }
-        ticks = ticks * 30.0f;
-        if (!(ticks > 31.0f)) {
-            ticks = 31.0f;
-        }
-        self->charge_trigger_ticks = (int16_t)(int32_t)ticks;
-        self->charge_trigger_delay = 0x1e;
-    }
-    return self->charge_trigger_decision;
+    return apply_decision();
 
 }
 

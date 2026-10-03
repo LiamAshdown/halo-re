@@ -866,7 +866,7 @@ datum_index halo::ai::prop_ops::find_or_create_shared_prop(datum_index object_in
         for (;;) {
             prop *p;
             if (cur == (datum_index)halo::k_dword_none) {
-                goto not_found;
+                break;
             }
             p = halo::ai::prop_at(cur);
             if ((p->object_index == object_index) ||
@@ -877,7 +877,7 @@ datum_index halo::ai::prop_ops::find_or_create_shared_prop(datum_index object_in
             cur = p->next_in_actor;
         }
 
-        {
+        if (cur != (datum_index)halo::k_dword_none) {
             prop *p = halo::ai::prop_at(cur);
             result = cur;
             if (p->pair_index != (datum_index)halo::k_dword_none) {
@@ -886,7 +886,6 @@ datum_index halo::ai::prop_ops::find_or_create_shared_prop(datum_index object_in
         }
 
         if (result == (datum_index)halo::k_dword_none) {
-        not_found:
             if ((create_if_missing != 0) && (self->active != 0)) {
                 uint8_t scratch[56];
 

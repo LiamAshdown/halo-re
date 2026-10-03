@@ -194,6 +194,19 @@ datum_index ActorOps::new_and_attach_to_unit(char reuse_existing, datum_index un
     using namespace actor_new_and_attach_to_unit_local;
     datum_index actor_index = k_datum_index_none;
     struct actor *self;
+    auto attach_existing = [&]() -> datum_index {
+        if (reuse_existing == 0) {
+            halo::ai::actor_attach_to_unit(actor_index, unit_index);
+            return actor_index;
+        }
+        if (halo::ai::actor_link_to_unit_cluster(actor_index, unit_index) != 0) {
+            return actor_index;
+        }
+        if (halo::ai::actor_at(actor_index)->cluster_count == 0) {
+            halo::ai::actor_delete(actor_index, 0);
+        }
+        return k_datum_index_none;
+    };
 
     if (unit_index == k_datum_index_none || actor_variant_tag == k_datum_index_none) {
         return k_datum_index_none;
@@ -215,7 +228,7 @@ datum_index ActorOps::new_and_attach_to_unit(char reuse_existing, datum_index un
                 (ignore_squad == 0 && actor->squad_index != squad_index)) {
                 continue;
             }
-            goto attach;
+            return attach_existing();
         }
     } else {
         object *unit = (object *)halo::objects::object_try_and_get(unit_index, 1);
@@ -262,18 +275,7 @@ datum_index ActorOps::new_and_attach_to_unit(char reuse_existing, datum_index un
         return k_datum_index_none;
     }
 
-attach:
-    if (reuse_existing == 0) {
-        halo::ai::actor_attach_to_unit(actor_index, unit_index);
-        return actor_index;
-    }
-    if (halo::ai::actor_link_to_unit_cluster(actor_index, unit_index) != 0) {
-        return actor_index;
-    }
-    if (halo::ai::actor_at(actor_index)->cluster_count == 0) {
-        halo::ai::actor_delete(actor_index, 0);
-    }
-    return k_datum_index_none;
+    return attach_existing();
 }
 
 
@@ -1721,73 +1723,54 @@ uint8_t ActorView::score_blast_area_clear(float blast_radius, float safety_radiu
     score = 0;
     p = (prop *)0;
 
-    for (;;) {
-        int done_with_hostiles = 0;
-
-        for (;;) {
-            for (;;) {
-                if (prop_cursor == (datum_index)k_datum_index_none) {
-                    goto after_prop_walk;
-                }
-                p = halo::ai::prop_at(prop_cursor);
-                prop_cursor = p->next_in_actor;
-                if (2 <= p->state && p->state <= 3 && p->dead == 0) break;
-            }
-            if (p->enemy == 0) {
-                done_with_hostiles = 1;
-                break;
-            }
-            {
-                float dx = point->x - p->last_known_position.x;
-                float dy = point->y - p->last_known_position.y;
-                float dz = point->z - p->last_known_position.z;
-                if (dx * dx + dy * dy + dz * dz < blast_radius * blast_radius) {
-                    if (p->is_parented == 0) {
-                        if (p->relationship_object_index == -1) {
-                            datum_index owner = p->owner_actor_index;
-                            if (owner != (datum_index)k_datum_index_none) {
-                                if (counted_count < 0x20) {
-                                    counted[counted_count] = owner;
-                                    counted_count++;
-                                }
-                                if (p->swarm_owned == 0) {
-                                    score++;
-                                } else {
-                                    actor *owner_actor = (actor *)((uint8_t *)halo::ai::globals().actor_data->data +
-                                                                    (owner & halo::k_slot_mask) * sizeof(actor));
-                                    score += owner_actor->cluster_count;
-                                }
-                            }
-                        } else {
-                            score += 5;
-                        }
-                    } else {
-                        score += 10;
-                    }
-                }
-            }
-        }
-
-        if (!done_with_hostiles) {
-            break;
-        }
-
-        if (safety_radius <= 0.0f) {
+    while (prop_cursor != (datum_index)k_datum_index_none) {
+        p = halo::ai::prop_at(prop_cursor);
+        prop_cursor = p->next_in_actor;
+        if (!(2 <= p->state && p->state <= 3 && p->dead == 0)) {
             continue;
         }
-        {
+        if (p->enemy == 0) {
+            if (safety_radius <= 0.0f) {
+                continue;
+            }
             float dx = point->x - p->last_known_position.x;
             float dy = point->y - p->last_known_position.y;
             float dz = point->z - p->last_known_position.z;
             if (safety_radius * safety_radius <= dx * dx + dy * dy + dz * dz) {
                 continue;
             }
+            clear = 0;
+            break;
         }
-        clear = 0;
-        break;
+        float dx = point->x - p->last_known_position.x;
+        float dy = point->y - p->last_known_position.y;
+        float dz = point->z - p->last_known_position.z;
+        if (dx * dx + dy * dy + dz * dz < blast_radius * blast_radius) {
+            if (p->is_parented == 0) {
+                if (p->relationship_object_index == -1) {
+                    datum_index owner = p->owner_actor_index;
+                    if (owner != (datum_index)k_datum_index_none) {
+                        if (counted_count < 0x20) {
+                            counted[counted_count] = owner;
+                            counted_count++;
+                        }
+                        if (p->swarm_owned == 0) {
+                            score++;
+                        } else {
+                            actor *owner_actor = (actor *)((uint8_t *)halo::ai::globals().actor_data->data +
+                                                            (owner & halo::k_slot_mask) * sizeof(actor));
+                            score += owner_actor->cluster_count;
+                        }
+                    }
+                } else {
+                    score += 5;
+                }
+            } else {
+                score += 10;
+            }
+        }
     }
 
-after_prop_walk:
     if (0.0f < blast_radius && self->target_unit_index != (datum_index)k_datum_index_none) {
         prop *target_prop = halo::ai::prop_at(self->target_unit_index);
         datum_index owner = target_prop->owner_actor_index;

@@ -651,17 +651,21 @@ void ActorView::score_firing_positions_by_threat(actor_firing_position_query *qu
             continue;
         }
 
+        bool dropped = false;
         if (c->firing_position_index != -1) {
             for (k = 0; k < 4; k++) {
                 if (c->firing_position_index == self->recognition[k].firing_position_index) {
                     c->rejected = 1;
                     if (query->collect_all == 0) {
                         c->valid = 0;
-                        goto next_candidate;
+                        dropped = true;
                     }
                     break;
                 }
             }
+        }
+        if (dropped) {
+            continue;
         }
 
         if (query->danger_active != 0) {
@@ -688,7 +692,7 @@ void ActorView::score_firing_positions_by_threat(actor_firing_position_query *qu
                     c->rejected = 1;
                     if (query->collect_all == 0) {
                         c->valid = 0;
-                        goto next_candidate;
+                        continue;
                     }
                 }
                 c->score = bonus + c->score;
@@ -716,7 +720,7 @@ void ActorView::score_firing_positions_by_threat(actor_firing_position_query *qu
                 c->rejected = 1;
                 if (query->collect_all == 0) {
                     c->valid = 0;
-                    goto next_candidate;
+                    continue;
                 }
             }
         }
@@ -742,8 +746,6 @@ void ActorView::score_firing_positions_by_threat(actor_firing_position_query *qu
             c->score = bonus + c->score;
         }
 
-next_candidate:
-        ;
     }
 
     if (query->check_vehicle_aim_cone == 0 || self->active_unit_index == (datum_index)halo::k_dword_none) {

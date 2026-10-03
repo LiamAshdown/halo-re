@@ -284,7 +284,6 @@ uint8_t halo::ai::charge_mode::process()
                 md->jump_solved = 0;
                 md->turning_to_face = 1;
                 strike = 0;
-                goto strike_done;
             }
         }
         if (strike) {
@@ -301,7 +300,6 @@ uint8_t halo::ai::charge_mode::process()
                 md->strike_started = 1;
             }
         }
-    strike_done:;
     }
 
     now = halo::game::globals().game_time->game_time;
@@ -322,6 +320,7 @@ uint8_t halo::ai::charge_mode::process()
     threshold = halo::ai::actor_get_consideration_wait_threshold(actor_index, md->stage, (actor_combat_consideration *)md);
     md->wait_threshold = threshold;
     if (!act->swarm && act->needs_new_path) {
+        bool approached = false;
         md->approach_failed = 0;
         if (!md->strike_started && !md->jump_started && !md->jump_solved && md->close_in) {
             float radius = md->stage == 3 ? 4.0f : 1.5f;
@@ -331,13 +330,15 @@ uint8_t halo::ai::charge_mode::process()
             }
             if (halo::ai::actor_movement_set_destination_near_target(act->target_unit_index, actor_index, radius)) {
                 halo::ai::actor_movement_actions_cancel(actor_index);
-                goto approach_done;
+                approached = true;
+            } else {
+                md->approach_failed = 1;
+                md->close_in = 0;
             }
-            md->approach_failed = 1;
-            md->close_in = 0;
         }
-        halo::ai::actor_movement_action_stop(actor_index);
-    approach_done:
+        if (!approached) {
+            halo::ai::actor_movement_action_stop(actor_index);
+        }
         if (act->target_combat_status >= 7) {
             datum_index target_index = act->target_unit_index;
             uint8_t far_away = (uint8_t)(((struct prop *)PROP(target_index))->distance > md->wait_threshold);

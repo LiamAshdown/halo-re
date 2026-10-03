@@ -48,6 +48,7 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
     real_vector3d delta;
 
     if ((static_cast<uint8_t>(vehicle_tag->base.unit_flags) & 0x10) == 0) {
+        [&]() {
         real_point3d center = *(real_point3d *)&((vehicle_object *)vehicle)->base.bounding_center.x;
         float radius = ((vehicle_object *)vehicle)->base.bounding_radius;
         float ax = act->body_position.x;
@@ -103,7 +104,7 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
             float ratio;
 
             if (!(length_squared > 0.0f)) {
-                goto project;
+                return;
             }
             ratio = (to_target.j * to_center.j + to_target.i * to_center.i) / length_squared;
             if (ratio > 0.0f && ratio <= 1.2f) {
@@ -115,14 +116,14 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
                 }
             } else {
                 if (near_line) {
-                    goto project;
+                    return;
                 }
                 away.i = -from_target.i;
                 away.j = -from_target.j;
             }
         }
         if (!(halo::math::vector2d_normalize_with_length(away) > 0.0f)) {
-            goto project;
+            return;
         }
         point.x = away.i * (radius * 1.1f) + center.x;
         point.y = away.j * (radius * 1.1f) + center.y;
@@ -135,7 +136,7 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
             real_vector3d side;
 
             if (!(distance_squared > 0.0001f) || !(distance_squared <= 4.0f)) {
-                goto project;
+                return;
             }
             distance = (float)halo::libm::sqrt(distance_squared);
             side.i = -from_target.j;
@@ -146,15 +147,15 @@ uint8_t halo::ai::movement_ops::avoid_obstacle_and_project(datum_index vehicle_i
             }
             side.k = 0.0f;
             if (!(halo::math::vector2d_normalize_with_length(*((real_vector2d *)&side)) > 0.0f)) {
-                goto project;
+                return;
             }
             distance = 2.0f - distance;
             point.x = side.i * distance + point.x;
             point.y = side.j * distance + point.y;
             point.z = side.k * distance + point.z;
         }
+        }();
     }
-project:
     if (in_out_near_line != 0) {
         *in_out_near_line = near_line;
     }
@@ -353,6 +354,7 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
 
     if (self->flying == 0) {
         uint8_t trace_ok;
+        bool trace_done = false;
 
         step_point.x = step_distance * direction->i + self->body_position.x;
         step_point.y = step_distance * direction->j + self->body_position.y;
@@ -367,10 +369,11 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
 
                 float dz = *(float *)((uint8_t *)extra_param + 0xc) - self->body_position.z;
                 if (dz <= step_distance * 0.5f && (step_up != 0.0f || step_distance * -0.5f <= dz)) {
-                    goto done;
+                    trace_done = true;
                 }
             }
         }
+        if (!trace_done) {
         obstructed = 0;
         if (0.0f < step_up) {
             real_point3d mid;
@@ -409,8 +412,8 @@ uint8_t halo::ai::movement_ops::check_step_obstruction(real_vector2d *direction,
                 }
             }
         }
+        }
     }
-done:
     if (out_flag != 0) {
         *out_flag = used_point_check;
     }

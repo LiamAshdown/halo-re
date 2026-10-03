@@ -229,25 +229,22 @@ uint8_t ActorView::mode_wait_process()
             prop *ally = halo::ai::prop_at(act->nearby_friend_prop_index);
             float distance = ally->distance;
             uint8_t follow;
+            bool decided = false;
 
             if (act->mode_data.wait.unknown_02 && !act->mode_data.wait.unknown_04) {
                 follow = 1;
             } else if (ally->visual_perception < 2 || !(distance < 8.0f)) {
                 follow = 0;
-                goto decided;
+                decided = true;
             } else {
                 follow = act->mode_data.wait.unknown_04 == 0;
             }
-            if (follow && distance > 3.5f) {
-                act->mode_data.wait.following_friend = 1;
-                act->mode_data.wait.finished = 0;
-            } else {
-                act->mode_data.wait.following_friend = 0;
+            if (!decided) {
+                act->mode_data.wait.following_friend = (follow && distance > 3.5f) ? 1 : 0;
                 act->mode_data.wait.finished = 0;
             }
         }
     }
-decided:
     if (act->swarm) {
         return act->mode_data.wait.finished;
     }
