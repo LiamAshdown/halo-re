@@ -818,7 +818,7 @@ void rasterizer_shader_model_draw_fixed_function(Shader *shader, int16_t frame, 
             texture_matrix[i][j] = (i == j) ? 1.0f : 0.0f;
         }
     }
-    halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(&context->change_colors), reinterpret_cast<shader_texture_animation *>(shader + 0xfc), texture_matrix[0], texture_matrix[1],
+    halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(&context->change_colors), reinterpret_cast<shader_texture_animation *>(&smodel(shader)->u_animation_source), texture_matrix[0], texture_matrix[1],
                                       context->base_map_u_scale * smodel(shader)->map_u_scale,
                                       context->base_map_v_scale * smodel(shader)->map_v_scale, 0.0f, 0.0f, 0.0f,
                                       (float)rasterizer_time.time);
@@ -1013,7 +1013,7 @@ void rasterizer_shader_model_draw_limited(Shader *shader, int16_t frame, rasteri
             texture_matrix[i][j] = (i == j) ? 1.0f : 0.0f;
         }
     }
-    halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(&context->change_colors), reinterpret_cast<shader_texture_animation *>(shader + 0xfc), texture_matrix[0], texture_matrix[1],
+    halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(&context->change_colors), reinterpret_cast<shader_texture_animation *>(&smodel(shader)->u_animation_source), texture_matrix[0], texture_matrix[1],
                                       context->base_map_u_scale * smodel(shader)->map_u_scale,
                                       context->base_map_v_scale * smodel(shader)->map_v_scale, 0.0f, 0.0f, 0.0f,
                                       (float)rasterizer_time.time);
@@ -1377,7 +1377,7 @@ void rasterizer_shader_model_draw_pixel_shader(Shader *shader, int16_t frame, ra
     detail_constants[2][1] = 1.0f;
     detail_constants[2][2] = 0.0f;
     detail_constants[2][3] = 0.0f;
-    halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(&context->change_colors), reinterpret_cast<shader_texture_animation *>(shader + 0xfc), detail_constants[1], detail_constants[2],
+    halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(&context->change_colors), reinterpret_cast<shader_texture_animation *>(&smodel(shader)->u_animation_source), detail_constants[1], detail_constants[2],
                                       context->base_map_u_scale * model->map_u_scale, context->base_map_v_scale * model->map_v_scale,
                                       0.0f, 0.0f, 0.0f, (float)rasterizer_time.time);
     detail_constants[2][2] = model->translucency;
@@ -1428,7 +1428,7 @@ void rasterizer_shader_model_draw_pixel_shader(Shader *shader, int16_t frame, ra
             detail_constants[2][1] = 1.0f;
             detail_constants[2][2] = 0.0f;
             detail_constants[2][3] = 0.0f;
-            halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(&context->change_colors), reinterpret_cast<shader_texture_animation *>(shader + 0xfc), detail_constants[1], detail_constants[2],
+            halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(&context->change_colors), reinterpret_cast<shader_texture_animation *>(&smodel(shader)->u_animation_source), detail_constants[1], detail_constants[2],
                                               context->base_map_u_scale * model->map_u_scale,
                                               context->base_map_v_scale * model->map_v_scale, 0.0f, 0.0f, 0.0f,
                                               (float)rasterizer_time.time);

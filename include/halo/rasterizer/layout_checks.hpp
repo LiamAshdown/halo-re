@@ -47,6 +47,7 @@ static_assert(offsetof(rasterizer_render_target, texture) == 0x10);
 
 static_assert(sizeof(rasterizer_detail_object_draw) == 0x18);
 static_assert(offsetof(rasterizer_detail_object_draw, z_reference) == 0x14);
+static_assert(sizeof(rasterizer_detail_object_instance) == 0x06);
 static_assert(sizeof(rasterizer_detail_object_batch) == 0x08);
 static_assert(sizeof(rasterizer_detail_object_batches) == 0x08);
 static_assert(sizeof(rasterizer_detail_object_vertex) == 0x14);
