@@ -1,4 +1,5 @@
 #include "halo/camera/pov.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern player_control_globals *player_control_globals_ptr;
@@ -188,7 +189,7 @@ void FirstPersonCamera::apply_weapon_offset(real_point3d *position, datum_index 
 void FirstPersonCamera::command_for_unit(datum_index unit, observer_command *command)
 {
     object_header *headers = (object_header *)object_data->data;
-    object *obj = headers[unit & 0xffff].data;
+    object *obj = headers[halo::datum_slot(unit)].data;
     Vector3D *aiming_vector = (Vector3D *)&((unit_data *)((uint8_t *)obj + k_unit_data_offset))->aiming_vector; 
 
     first_person_camera_for_unit_and_vector(command, aiming_vector, unit);
@@ -206,11 +207,11 @@ void FirstPersonCamera::command_for_unit(datum_index unit, observer_command *com
 void FirstPersonCamera::deterministic(Point3D *out_position, datum_index unit, Vector3D *out_direction)
 {
     object_header *headers = (object_header *)object_data->data;
-    object *unit_object = headers[unit & 0xffff].data;
+    object *unit_object = headers[halo::datum_slot(unit)].data;
     datum_index parent;
 
     unit_get_camera_position(unit, (real_point3d *)out_position);
-    *out_direction = *(Vector3D *)((uint8_t *)unit_object + 0x23c); 
+    *out_direction = *(Vector3D *)&((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))->aiming_vector; 
 
     parent = unit_object->parent_object;
     if (parent == k_datum_index_none) {
@@ -224,7 +225,7 @@ void FirstPersonCamera::deterministic(Point3D *out_position, datum_index unit, V
         }
 
         {
-            Unit *parent_unit_tag = (Unit *)tag_instances[parent_object->definition_tag & 0xffff].data;
+            Unit *parent_unit_tag = (Unit *)tag_instances[halo::datum_slot(parent_object->definition_tag)].data;
             uint8_t *seats = (uint8_t *)parent_unit_tag->seats.pointer;
             int16_t seat_index = ((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))->vehicle_seat_index;
             int8_t seat_flags = *(int8_t *)(seats + (int32_t)seat_index * sizeof(UnitSeat));
@@ -267,7 +268,7 @@ void FirstPersonCamera::for_unit_and_vector(observer_command *command, Vector3D 
 
     {
         object_header *headers = (object_header *)object_data->data;
-        object *unit_object = headers[unit & 0xffff].data;
+        object *unit_object = headers[halo::datum_slot(unit)].data;
         datum_index parent;
         object *parent_object;
 
@@ -287,7 +288,7 @@ void FirstPersonCamera::for_unit_and_vector(observer_command *command, Vector3D 
         }
 
         {
-            Unit *parent_unit_tag = (Unit *)tag_instances[parent_object->definition_tag & 0xffff].data;
+            Unit *parent_unit_tag = (Unit *)tag_instances[halo::datum_slot(parent_object->definition_tag)].data;
             uint8_t *seats = (uint8_t *)parent_unit_tag->seats.pointer;
             int16_t seat_index = ((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))->vehicle_seat_index;
             uint8_t seat_flags = *(uint8_t *)(seats + (int32_t)seat_index * sizeof(UnitSeat));
@@ -367,7 +368,7 @@ void FirstPersonCamera::track_offset(unit_camera_properties *properties, float a
             default_unit_camera_track.tag_id;
     }
 
-    track = (CameraTrack *)tag_instances[track_tag & 0xffff].data;
+    track = (CameraTrack *)tag_instances[halo::datum_slot(track_tag)].data;
     control_point_count = (int32_t)track->control_points.count;
 
     
@@ -417,13 +418,13 @@ unit_camera_properties * FirstPersonCamera::unit_properties(datum_index unit)
     Unit *vehicle_tag;
     UnitSeat *seat;
 
-    unit_object = ((object_header *)object_data->data)[unit & 0xffff].data;
+    unit_object = ((object_header *)object_data->data)[halo::datum_slot(unit)].data;
 
     if (unit_object->parent_object != (datum_index)k_datum_index_none) {
         vehicle_object = object_try_and_get(unit_object->parent_object, _object_mask_vehicle);
         if (vehicle_object != 0) {
             unit_extension = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
-            vehicle_tag = (Unit *)tag_instances[vehicle_object->definition_tag & 0xffff].data;
+            vehicle_tag = (Unit *)tag_instances[halo::datum_slot(vehicle_object->definition_tag)].data;
             seat = &((UnitSeat *)vehicle_tag->seats.pointer)[unit_extension->vehicle_seat_index];
             if ((seat->flags & 0x15) != 0) {
                 
@@ -433,7 +434,7 @@ unit_camera_properties * FirstPersonCamera::unit_properties(datum_index unit)
         }
     }
     return (unit_camera_properties *)
-        ((uint8_t *)tag_instances[unit_object->definition_tag & 0xffff].data + 0x1a8);
+        (&((Unit *)tag_instances[halo::datum_slot(unit_object->definition_tag)].data)->camera_marker_name);
 }
 
 /**
@@ -472,7 +473,7 @@ void ThirdPersonCamera::compute_pov(director_camera_data *data, camera_input *in
     tp->seat_index = basis.seat_index;
 
     if (basis.marker_offset != 0) {
-        unit_object = ((object_header *)object_data->data)[basis.unit & 0xffff].data;
+        unit_object = ((object_header *)object_data->data)[halo::datum_slot(basis.unit)].data;
         crouch_or_jump = (uint8_t)((((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))
             ->control_flags & 3) != 0);
 
@@ -578,7 +579,7 @@ void TrackCamera::compute_pov(director_camera_data *data, camera_input *input, o
     Point3D focus_position;
 
     if (dead->target_unit != k_datum_index_none) {
-        object *target = object_try_and_get(dead->target_unit, 0xffffffff);
+        object *target = object_try_and_get(dead->target_unit, k_all_object_types);
         if (target != (object *)0) {
             focus_position = *(Point3D *)&target->bounding_center;
         } else {
@@ -633,7 +634,7 @@ void TrackCamera::compute_pov(director_camera_data *data, camera_input *input, o
             if (p == (player *)0) {
                 dead->target_player = dead->local_player;
             }
-            p = (player *)((uint8_t *)player_data->data + (dead->target_player & 0xffff) * sizeof(player));
+            p = (player *)((uint8_t *)player_data->data + (halo::datum_slot(dead->target_player)) * sizeof(player));
             new_unit = p->unit;
         }
 
@@ -674,7 +675,7 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
     switch (camera_script.mode) {
     case _camera_script_mode_point: {
         if (camera_script.object != k_datum_index_none) {
-            object *obj = object_try_and_get(camera_script.object, 0xffffffff);
+            object *obj = object_try_and_get(camera_script.object, k_all_object_types);
             if (obj == (object *)0) {
                 break; 
             }
@@ -722,7 +723,7 @@ void DebugCamera::compute_pov(director_camera_data *data, camera_input *input, o
     }
 
     case _camera_script_mode_animation: {
-        ModelAnimations *anims = (ModelAnimations *)tag_instances[camera_script.animation_tag & 0xffff].data;
+        ModelAnimations *anims = (ModelAnimations *)tag_instances[halo::datum_slot(camera_script.animation_tag)].data;
         ModelAnimationsAnimation *anim =
             (ModelAnimationsAnimation *)((uint8_t *)anims->animations.pointer +
                                          (int32_t)camera_script.animation_index * sizeof(ModelAnimationsAnimation));
@@ -870,7 +871,7 @@ void FlyingCamera::attach_to_object(datum_index object_index)
         return;
     }
     if (object_index != k_datum_index_none) {
-        object *attached = ((object_header *)object_data->data)[object_index & 0xffff].data;
+        object *attached = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
         flying_camera_attached_offset.i = flying_camera_data->position.x - attached->bounding_center.x;
         flying_camera_attached_offset.j = flying_camera_data->position.y - attached->bounding_center.y;
@@ -1090,13 +1091,13 @@ void FlyingCamera::update(director_camera_data *data, camera_input *input, obser
     move_z = flying_camera_speed * input->move_up;
 
     if (flying_camera_attached_object != k_datum_index_none &&
-        object_try_and_get(flying_camera_attached_object, 0xffffffff) != 0) {
+        object_try_and_get(flying_camera_attached_object, k_all_object_types) != 0) {
         object *attached;
 
         flying_camera_attached_offset.i = flying_camera_attached_offset.i + move_x;
         flying_camera_attached_offset.j = flying_camera_attached_offset.j + move_y;
         flying_camera_attached_offset.k = flying_camera_attached_offset.k + move_z;
-        attached = ((object_header *)object_data->data)[flying_camera_attached_object & 0xffff].data;
+        attached = ((object_header *)object_data->data)[halo::datum_slot(flying_camera_attached_object)].data;
         position.x = flying_camera_attached_offset.i + attached->bounding_center.x;
         position.y = flying_camera_attached_offset.j + attached->bounding_center.y;
         position.z = flying_camera_attached_offset.k + attached->bounding_center.z;

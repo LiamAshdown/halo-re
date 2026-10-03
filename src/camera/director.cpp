@@ -1,4 +1,5 @@
 #include "halo/camera/director.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern void *mouse_device;
@@ -75,7 +76,7 @@ uint8_t DirectorHandle::build_camera_input(camera_input *input)
         return 0;
     }
     mouse = input_suppressed ? &mouse_neutral_state : &live_mouse_state;
-    result = (input_get_key_state(0x1d) == 1);
+    result = (input_get_key_state(_input_key_backspace) == 1);
 
     if (director->pov_proc == camera_first_person_compute_pov ||
         director->pov_proc == camera_third_person_compute_pov ||
@@ -136,7 +137,7 @@ void DirectorHandle::choose_gameplay_camera(uint8_t reset)
         player_index = local_player_globals->local_players[local_player_index];
     }
     
-    player_record = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    player_record = (player *)((uint8_t *)player_data->data + (halo::datum_slot(player_index)) * sizeof(player));
     player_is_dead = (player_record->unit == k_datum_index_none && player_record->deaths > 0);
 
     if (*hs_camera_control_pointer != 0) {

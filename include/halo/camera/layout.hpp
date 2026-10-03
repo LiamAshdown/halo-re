@@ -1,8 +1,50 @@
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+#include "halo/core/flags.hpp"
+#include "halo/core/datum.hpp"
 
 namespace halo::camera {
 
+/**
+ * collision_test_movement_segment flags the observer uses for its pull-back and obstruction probes.
+ */
+enum class probe_flags : uint32_t {
+    none = 0,
+    front_faces = 0x0001,
+    structure_bsp = 0x0020,
+    water_surface = 0x0040,
+    nearby_objects = 0x0080,
+    object_type_filter = 0x4000,
+};
+
+}
+
+namespace halo {
+template <> struct enable_bit_flags<camera::probe_flags> : std::true_type {};
+}
+
+namespace halo::camera {
+
+constexpr probe_flags k_probe_flags_normal = probe_flags::front_faces | probe_flags::structure_bsp | probe_flags::nearby_objects |
+                                             probe_flags::water_surface | probe_flags::object_type_filter;
+constexpr probe_flags k_probe_flags_alternate = probe_flags::front_faces | probe_flags::structure_bsp | probe_flags::nearby_objects |
+                                                probe_flags::object_type_filter;
+
+/** Mask that strips the "no leaf" sign bit from a BSP leaf index. */
+inline constexpr uint32_t k_leaf_index_mask = 0x7fffffff;
+
+/** Object type mask that accepts every object type. */
+inline constexpr uint32_t k_all_object_types = 0xffffffffu;
+
+}
+
+
+
+namespace halo::camera {
+
+static_assert(offsetof(Unit, camera_marker_name) == 0x1a8);
 static_assert(sizeof(camera_constants) == 4);
 static_assert(sizeof(director_camera_mode) == 4);
 static_assert(sizeof(camera_script_mode) == 4);
