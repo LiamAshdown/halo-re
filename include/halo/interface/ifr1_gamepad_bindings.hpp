@@ -17,7 +17,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original GamepadBindings functions.
+ * Gamepad binding lists: load, refresh, add, find, remove and toggle assignment per widget node.
  */
 class GamepadBindings {
 public:

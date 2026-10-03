@@ -154,12 +154,12 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
 }
 
 /**
- * 0x0087bc14 For every entry in target's element list (target tag data + 0xb8 count, +0xbc pointer to
- * 0x9c-byte name records), searches source's element list (source tag data + 0x68 count, +0x6c pointer to
- * 0x40-byte name records, matched in name order starting after the previous match) for a name match, writing
- * the found source index into out[i] on success. Returns 1 (as the low byte of a value whose upper bits are
- * decompiler noise) only if every target entry found a match; returns 0 as soon as one target entry runs out
- * of source entries to check, but keeps scanning the remaining target entries regardless.
+ * For every entry in target's element list (target tag data + 0xb8 count, +0xbc pointer to 0x9c-byte name
+ * records), searches source's element list (source tag data + 0x68 count, +0x6c pointer to 0x40-byte name
+ * records, matched in name order starting after the previous match) for a name match, writing the found source
+ * index into out[i] on success. Returns 1 (as the low byte of a value whose upper bits are decompiler noise)
+ * only if every target entry found a match; returns 0 as soon as one target entry runs out of source entries
+ * to check, but keeps scanning the remaining target entries regardless.
  * blam-cc: EAX -> source_tag_ref, ECX -> target_tag_ref, stack -> out
  *
  * @address 0x493f00
@@ -249,9 +249,9 @@ uint32_t HudMeters::flash_color_blend(const hud_flash_parameters *flash, int32_t
 }
 
 /**
- * 0x0087bc14 For each of target_tag_ref's element-list entries (target tag data + 0xb8 count, the same
- * reflexive hud_meter_find_matching_elements.c reads), copies one 0x34 byte record from source[lookup[i]] into
- * dest[i] -- i.e. re-orders `source` into `dest` according to a previously-built match table.
+ * For each of target_tag_ref's element-list entries (target tag data + 0xb8 count, the same reflexive
+ * hud_meter_find_matching_elements.c reads), copies one 0x34 byte record from source[lookup[i]] into dest[i]
+ * -- i.e. re-orders `source` into `dest` according to a previously-built match table.
  * blam-cc: EAX -> target_tag_ref, EBX -> lookup, stack -> (dest, source)
  *
  * @address 0x493ea0
@@ -268,7 +268,8 @@ void HudMeters::permute_node_records(uint8_t *dest, uint8_t *source, uint32_t ta
 }
 
 /**
- * 0x4ab630, blam-cc: ECX bitmap_tag, AX sequence_index, DI frame_index
+ * Original engine function hud_meter_resolve_bitmap_frame; the author notes are in
+ * docs/original/interface/hud_meter_resolve_bitmap_frame.txt.
  * blam-cc: EAX -> frame_index, stack -> bitmap_tag, sequence_index, out_data, out_offset
  *
  * @address 0x4ab8d0
@@ -303,9 +304,9 @@ void HudMeters::resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_in
 }
 
 /**
- * 0x0071942c Subtracts damage directly from a local player's displayed (smoothed) shield meter value, so the
- * HUD shows the hit immediately instead of waiting for the next authoritative object update to drive the
- * smoothing in hud_unit_meters_update_for_player.
+ * Subtracts damage directly from a local player's displayed (smoothed) shield meter value, so the HUD shows
+ * the hit immediately instead of waiting for the next authoritative object update to drive the smoothing in
+ * hud_unit_meters_update_for_player.
  * blam-cc: player_index -> ECX, damage -> stack param_1
  *
  * @address 0x4b16e0
@@ -340,7 +341,8 @@ void HudMeters::unit_meter_apply_predictive_damage(datum_index player_index, flo
 }
 
 /**
- * 0x4b0160, blam-cc: DI local_player_index
+ * Original engine function hud_unit_meters_update; the author notes are in
+ * docs/original/interface/hud_unit_meters_update.txt.
  *
  * @address 0x4b0110
  */
@@ -356,7 +358,8 @@ void HudMeters::unit_meters_update(void)
 }
 
 /**
- * 0x4afee0, blam-cc: EAX player
+ * Original engine function hud_unit_meters_update_for_player; the author notes are in
+ * docs/original/interface/hud_unit_meters_update_for_player.txt.
  * blam-cc: local_player_index -> DI
  *
  * @address 0x4b0160

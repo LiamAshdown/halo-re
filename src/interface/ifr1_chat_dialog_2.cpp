@@ -62,9 +62,9 @@ static void chat_relay_iterator_begin(data_iterator *iterator)
 namespace halo::interface {
 
 /**
- * 0x4cf8f0, EAX stream, ECX values, stack bits Encodes a chat message and, for every connected machine whose
- * player is on team_index (or every machine if team_index is -1), queues the message length and payload bits
- * into that machine's outgoing bit stream when there is room (or room can be freed).
+ * Encodes a chat message and, for every connected machine whose player is on team_index (or every machine if
+ * team_index is -1), queues the message length and payload bits into that machine's outgoing bit stream when
+ * there is room (or room can be freed).
  *
  * @address 0x4aade0
  */
@@ -197,9 +197,9 @@ void ChatDialog::server_relay_incoming_message(void **context, void *machine)
 }
 
 /**
- * 0x4ab1e0 Opens the multiplayer chat input dialog for the requested scope: 0 = all, 1 = team (falls back to
- * "all" if teams are disabled), 2 = vehicle (falls back to "team", then "all"), populating its prompt text
- * from the ui\multiplayer_game_text tag when available.
+ * Opens the multiplayer chat input dialog for the requested scope: 0 = all, 1 = team (falls back to "all" if
+ * teams are disabled), 2 = vehicle (falls back to "team", then "all"), populating its prompt text from the
+ * ui\multiplayer_game_text tag when available.
  *
  * @address 0x4aa700
  */
@@ -218,7 +218,7 @@ void ChatDialog::open(int32_t chat_scope)
     if (chat_scope == 0) {
 all_scope:
         {
-            datum_index tag_id = tag_lookup(0x75737472 , (char *)"ui\\multiplayer_game_text");
+            datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                        : (const void *)text_string_list_get_string();
             chat_scope_active = 0;
@@ -236,7 +236,7 @@ all_scope:
             int32_t unit_index = chat_default_team_channel();
             int32_t player_index = player_get_vehicle((datum_index)unit_index);
             if (player_index != -1) {
-                datum_index tag_id = tag_lookup(0x75737472 , (char *)"ui\\multiplayer_game_text");
+                datum_index tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
                 prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                            : (const void *)text_string_list_get_string();
                 chat_scope_active = 2;
@@ -247,7 +247,7 @@ team_scope:
         {
             datum_index tag_id;
             chat_scope_active = 1;
-            tag_id = tag_lookup(0x75737472 , (char *)"ui\\multiplayer_game_text");
+            tag_id = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
             prompt_text = (tag_id == (datum_index)-1) ? (const void *)&empty_string
                                                        : (const void *)text_string_list_get_string();
             if (chat_scope_active == -1) {

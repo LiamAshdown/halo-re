@@ -65,9 +65,9 @@ extern int32_t console_last_cursor_column;
 namespace halo::interface {
 
 /**
- * 0x496e90 Formats `format` with vsnprintf into a fresh console_message (defaulting its color to (1.0, 0.7,
- * 0.7, 0.7) when `color` is NULL), marks it as a command echo if its text contains the console's echo prefix,
- * and mirrors it out via chimera__console_out_copy. Does nothing if the terminal has not been initialized.
+ * Formats `format` with vsnprintf into a fresh console_message (defaulting its color to (1.0, 0.7, 0.7, 0.7)
+ * when `color` is NULL), marks it as a command echo if its text contains the console's echo prefix, and
+ * mirrors it out via chimera__console_out_copy. Does nothing if the terminal has not been initialized.
  * blam-cc: EAX -> color, stack -> format, ...
  *
  * @address 0x496b50
@@ -101,9 +101,9 @@ void ConsoleTerminal::out(ColorARGB *color, char *format, va_list args)
 }
 
 /**
- * 0x496df0 Mirrors one printed console line: forwards it to an active rcon session (reentrancy-guarded), and,
- * if a win32 console is attached, copies the line into a scratch buffer, strips the two internal formatting
- * tokens, clears the console's bottom line and writes the result out followed by the developer-console line
+ * Mirrors one printed console line: forwards it to an active rcon session (reentrancy-guarded), and, if a
+ * win32 console is attached, copies the line into a scratch buffer, strips the two internal formatting tokens,
+ * clears the console's bottom line and writes the result out followed by the developer-console line
  * terminator, then redraws the input line.
  * blam-cc: EAX -> text
  *
@@ -134,8 +134,8 @@ void ConsoleTerminal::out_copy(char *text)
 }
 
 /**
- * 0x006b2dd0 Moves the console cursor to column 0 of the last row; when clear_text is set, also blanks that
- * entire row (character then attribute) in the current attribute.
+ * Moves the console cursor to column 0 of the last row; when clear_text is set, also blanks that entire row
+ * (character then attribute) in the current attribute.
  *
  * @address 0x497010
  */
@@ -161,8 +161,8 @@ void ConsoleTerminal::clear_bottom_line(uint8_t clear_text)
 }
 
 /**
- * 0x006b2dd0 Blanks every cell of the attached win32 console window: fills the whole buffer with spaces in the
- * current attribute, then reapplies that attribute over the same region.
+ * Blanks every cell of the attached win32 console window: fills the whole buffer with spaces in the current
+ * attribute, then reapplies that attribute over the same region.
  *
  * @address 0x496f90
  */
@@ -185,8 +185,8 @@ void ConsoleTerminal::clear_screen(void)
 }
 
 /**
- * 0x006b2dd0, win32 console output handle Deactivates `console` if it is the currently active developer
- * console: hides the win32 console cursor (when one is attached) and clears console_active.
+ * Deactivates `console` if it is the currently active developer console: hides the win32 console cursor (when
+ * one is attached) and clears console_active.
  *
  * @address 0x496580
  */
@@ -208,7 +208,7 @@ void ConsoleTerminal::close(terminal_console *console)
 }
 
 /**
- * 0x4971a0 Draws "<window title> <input line>" over the last row of the attached win32 console window.
+ * Draws "<window title> <input line>" over the last row of the attached win32 console window.
  *
  * @address 0x4970a0
  */
@@ -238,12 +238,11 @@ void ConsoleTerminal::draw_input_line(void)
 }
 
 /**
- * 0x007c3140: [0] top, [1] left, [5] (0x7c314a) right anchor Draws the developer console overlay. When the
- * terminal has been initialized: if a console is active, builds "prompt + input" into a scratch line, splices
- * in a caret glyph (0x7f) at the cursor position when the caret is currently visible, and draws it through the
- * globals font_terminal font; then, if message display is enabled, draws each live console_message (newest
- * first) climbing up the screen one line-height at a time, fading each one's alpha by its age and boxing
- * command-echo messages, until running out of vertical room.
+ * Draws the developer console overlay. When the terminal has been initialized: if a console is active, builds
+ * "prompt + input" into a scratch line, splices in a caret glyph (0x7f) at the cursor position when the caret
+ * is currently visible, and draws it through the globals font_terminal font; then, if message display is
+ * enabled, draws each live console_message (newest first) climbing up the screen one line-height at a time,
+ * fading each one's alpha by its age and boxing command-echo messages, until running out of vertical room.
  *
  * @address 0x496730
  */
@@ -348,8 +347,8 @@ void ConsoleTerminal::draw_overlay(void)
 }
 
 /**
- * 0x4d0510 Unlinks `message` from the newest-to-oldest console_message list, patching the neighbours (or the
- * head/tail globals when it was at an end of the list), then frees its datum.
+ * Unlinks `message` from the newest-to-oldest console_message list, patching the neighbours (or the head/tail
+ * globals when it was at an end of the list), then frees its datum.
  *
  * @address 0x496490
  */
@@ -380,8 +379,8 @@ void ConsoleTerminal::message_delete(datum_index message)
 }
 
 /**
- * 0x496490 Walks every live console_message from newest to oldest, incrementing its age each frame and
- * deleting it once that age passes 150.
+ * Walks every live console_message from newest to oldest, incrementing its age each frame and deleting it once
+ * that age passes 150.
  *
  * @address 0x4966e0
  */
@@ -405,9 +404,8 @@ void ConsoleTerminal::message_expire_old(void)
 }
 
 /**
- * 0x496490 Allocates a new console_message slot, evicting the oldest message first if the terminal output
- * array's high-water mark has reached its capacity, and links the new slot in at the head of the newest-to-
- * oldest list.
+ * Allocates a new console_message slot, evicting the oldest message first if the terminal output array's high-
+ * water mark has reached its capacity, and links the new slot in at the head of the newest-to-oldest list.
  *
  * @address 0x496420
  */
@@ -438,11 +436,11 @@ datum_index ConsoleTerminal::message_new(void)
 }
 
 /**
- * 0x496c20 Lazily activates the developer console for `console` the first time it is opened: wires up its
- * embedded text_edit_state to edit `input` in place, seeds the cursor at the end of whatever text is already
- * there and clears any selection, then restores the win32 console cursor. Returns 1 if this call actually
- * opened the console, 0 if one was already active. FIXED (objdump): every ret sets only AL; the upper bits of
- * EAX are left as they were
+ * Lazily activates the developer console for `console` the first time it is opened: wires up its embedded
+ * text_edit_state to edit `input` in place, seeds the cursor at the end of whatever text is already there and
+ * clears any selection, then restores the win32 console cursor. Returns 1 if this call actually opened the
+ * console, 0 if one was already active. FIXED (objdump): every ret sets only AL; the upper bits of EAX are
+ * left as they were
  *
  * @address 0x496510
  */
@@ -488,10 +486,10 @@ void ConsoleTerminal::position_cursor(void)
 }
 
 /**
- * 0x496e90 Debug/verbose console print: only above verbosity level 3 (and only once the terminal has been
- * initialized), formats `format` with vsnprintf into a fresh console_message (defaulting its color to (1.0,
- * 0.7, 0.7, 0.7) when `color` is NULL), marks it as a command echo if its text contains the console's echo
- * prefix, and mirrors it out via chimera__console_out_copy.
+ * Debug/verbose console print: only above verbosity level 3 (and only once the terminal has been initialized),
+ * formats `format` with vsnprintf into a fresh console_message (defaulting its color to (1.0, 0.7, 0.7, 0.7)
+ * when `color` is NULL), marks it as a command echo if its text contains the console's echo prefix, and
+ * mirrors it out via chimera__console_out_copy.
  * blam-cc: EAX -> color, stack -> format, ...
  *
  * @address 0x496a80
@@ -525,9 +523,9 @@ void ConsoleTerminal::printf_verbose(ColorARGB *color, char *format, va_list arg
 }
 
 /**
- * 0x490d10, input module WM_SYSKEYDOWN, 0x106 WM_SYSCHAR; only the first two are ever produced here) Drains
- * the attached win32 console's input queue and, for every key-down event, forwards it into the input system as
- * a synthetic WM_KEYDOWN followed by a synthetic WM_CHAR.
+ * WM_SYSKEYDOWN, 0x106 WM_SYSCHAR; only the first two are ever produced here) Drains the attached win32
+ * console's input queue and, for every key-down event, forwards it into the input system as a synthetic
+ * WM_KEYDOWN followed by a synthetic WM_CHAR.
  * blam-cc: EAX -> key_or_char, ECX -> message (0x100 WM_KEYDOWN, 0x102 WM_CHAR, 0x104
  *
  * @address 0x496c80
@@ -560,9 +558,9 @@ void ConsoleTerminal::process_input_events(void)
 }
 
 /**
- * 0x44c290 Per-frame developer-console update: while a scripted/queued key stream is active (state byte
- * 0x00712542 is not exactly 1, has bit 0x08 clear and bit 0x04 set) and the ring still has buffered events,
- * drains one event per call into console_active's own key_events log (capped at 0x20) and feeds it to
+ * Per-frame developer-console update: while a scripted/queued key stream is active (state byte 0x00712542 is
+ * not exactly 1, has bit 0x08 clear and bit 0x04 set) and the ring still has buffered events, drains one event
+ * per call into console_active's own key_events log (capped at 0x20) and feeds it to
  * widget_text_edit_process_key against the console's edit state, refreshing the caret-blink timer each time.
  * With nothing left to drain, toggles the caret's visibility once 500ms have passed since the last change.
  * FIXED (objdump): every ret sets only AL; the upper bits of EAX are left as they were
@@ -605,8 +603,8 @@ uint8_t ConsoleTerminal::process_queued_input(void)
 }
 
 /**
- * 0x4970a0 While a win32 console is attached, forces its cursor back to visible, refreshes the window title
- * from the active console's prompt, and redraws the input line.
+ * While a win32 console is attached, forces its cursor back to visible, refreshes the window title from the
+ * active console's prompt, and redraws the input line.
  *
  * @address 0x496c20
  */
@@ -627,9 +625,9 @@ void ConsoleTerminal::restore_cursor(void)
 }
 
 /**
- * 0x4971a0 Per-frame refresh of the attached win32 console window: if the input line text changed since the
- * last draw, redraws the input line and remembers the new text; then, independently, if the cursor column
- * moved, remembers the new column and repositions the caret.
+ * Per-frame refresh of the attached win32 console window: if the input line text changed since the last draw,
+ * redraws the input line and remembers the new text; then, independently, if the cursor column moved,
+ * remembers the new column and repositions the caret.
  *
  * @address 0x496d40
  */

@@ -21,7 +21,8 @@ extern void sound_start_unspatialized(datum_index sound, float gain);
 namespace halo::interface {
 
 /**
- * 0x006b3a40
+ * Original engine function hud_messaging_clear_after_load; the author notes are in
+ * docs/original/interface/hud_messaging_clear_after_load.txt.
  *
  * @address 0x4ae530
  */
@@ -35,8 +36,7 @@ void HudMessaging::messaging_clear_after_load(void)
 }
 
 /**
- * 0x543dd0, plays a 2D sound, blam-cc: EDX sound Client side of the HUD item message: posts the pickup text
- * and plays the pickup feedback.
+ * Client side of the HUD item message: posts the pickup text and plays the pickup feedback.
  * blam-cc: message -> EAX
  *
  * @address 0x4ae200

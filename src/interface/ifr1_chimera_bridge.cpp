@@ -71,7 +71,7 @@ extern void movie_play_bink(const char *movie_path);
 namespace halo::interface {
 
 /**
- * 0x614fc0, UNSURE signature Per-frame progress-screen driver.
+ * Per-frame progress-screen driver.
  *
  * @address 0x497410
  */
@@ -222,10 +222,10 @@ void ChimeraBridge::do_show_loading_screen(void)
 }
 
 /**
- * 0x4a88f0 Loads and opens the main menu UI widget: if a reload is pending, tears down any tracked loading-
- * thread state and resyncs input timing (checking, but not acting on, whether the command line names the demo
- * build); always resets the first-person weapon interface and closes every open widget first, then opens the
- * main menu, surfaces any pending generic UI error, starts the title music if it is not already pending, and
+ * Loads and opens the main menu UI widget: if a reload is pending, tears down any tracked loading-thread state
+ * and resyncs input timing (checking, but not acting on, whether the command line names the demo build);
+ * always resets the first-person weapon interface and closes every open widget first, then opens the main
+ * menu, surfaces any pending generic UI error, starts the title music if it is not already pending, and
  * (re)initializes the virtual keyboard.
  *
  * @address 0x4989f0
@@ -261,10 +261,10 @@ void ChimeraBridge::load_main_menu(void)
 }
 
 /**
- * 0x4d1f10 Opens a UI widget: resolves the widget tag by index or by path, allocates a widget_instance from
- * the widget heap and initializes it. With no parent the widget becomes the controller slot's root widget
- * (closing whatever was there first) and, when history_definition names a widget whose tag does not set bit
- * 0x4000 of definition+0x2c, a go-back record is pushed holding history_definition, history_list_definition,
+ * Opens a UI widget: resolves the widget tag by index or by path, allocates a widget_instance from the widget
+ * heap and initializes it. With no parent the widget becomes the controller slot's root widget (closing
+ * whatever was there first) and, when history_definition names a widget whose tag does not set bit 0x4000 of
+ * definition+0x2c, a go-back record is pushed holding history_definition, history_list_definition,
  * history_selection and the replaced root's controller_index. With a parent the widget is created as that
  * parent's child and the root and history are left alone (widget_initialize_from_tag does the linking). Also
  * re-caches the UI cursor bitmap tag and marks the UI as having opened a widget.
@@ -278,11 +278,11 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
     int16_t slot = (controller_index == 0xffff) ? 0 : (int16_t)controller_index;
     UIWidgetDefinition *tag;
 
-    ui_cursor_bitmap = tag_lookup(0x6269746d , (char *)"ui\\shell\\bitmaps\\cursor");
+    ui_cursor_bitmap = tag_lookup(0x6269746d, (char *)"ui\\shell\\bitmaps\\cursor");
     ui_widget_opened = 1;
 
     if (tag_index == (datum_index)-1) {
-        tag_index = tag_lookup(0x44654c61 , tag_path);
+        tag_index = tag_lookup(0x44654c61, tag_path);
         if (tag_index == (datum_index)-1) {
             return (widget_instance *)0;
         }
@@ -333,16 +333,16 @@ widget_instance * ChimeraBridge::load_ui_widget(char *tag_path, datum_index tag_
 }
 
 /**
- * 0x4993e0 Stops the main menu's looping title theme if it is still marked pending, stops every other sound,
- * plays the "ending.bik" movie (bracketing it with an end-of-frame/device-reset pair when
- * finalize_render_frame is set), and restarts the title music if it was not already stopped.
+ * Stops the main menu's looping title theme if it is still marked pending, stops every other sound, plays the
+ * "ending.bik" movie (bracketing it with an end-of-frame/device-reset pair when finalize_render_frame is set),
+ * and restarts the title music if it was not already stopped.
  *
  * @address 0x4921a0
  */
 void ChimeraBridge::main_menu_music(uint8_t finalize_render_frame)
 {
     if (main_menu_music_pending == 1) {
-        datum_index sound_tag = tag_lookup(0x6c736e64 , (char *)"sound\\music\\title1\\title1");
+        datum_index sound_tag = tag_lookup(0x6c736e64, (char *)"sound\\music\\title1\\title1");
         if (sound_tag != (datum_index)-1) {
             sound_looping_stop(sound_tag);
         }

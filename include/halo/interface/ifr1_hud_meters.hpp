@@ -20,7 +20,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original HudMeters functions.
+ * HUD unit meters: fill drawing, flash colour blend, bitmap frame lookup and predictive damage.
  */
 class HudMeters {
 public:

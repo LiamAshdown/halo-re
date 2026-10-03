@@ -23,8 +23,8 @@ extern uint32_t hud_chat_listbox_remove_oldest(void);
 namespace halo::interface {
 
 /**
- * 0x00721ec8 Removes every row from the chat listbox GUI control (if one exists) and resets the module's own
- * message-count and expiry-timestamp bookkeeping.
+ * Removes every row from the chat listbox GUI control (if one exists) and resets the module's own message-
+ * count and expiry-timestamp bookkeeping.
  *
  * @address 0x4ab400
  */
@@ -55,7 +55,7 @@ void HudChatListbox::clear(void)
 }
 
 /**
- * 0x00721ec8 Removes the row 0 entry from the chat listbox GUI control (if one exists) and shifts the
+ * Removes the row 0 entry from the chat listbox GUI control (if one exists) and shifts the
  * hud_chat_message_expiry timestamps down by one, returning whatever the GUI's own row-removal property call
  * returned (0 if the control could not be reached at all).
  *
@@ -85,8 +85,8 @@ uint32_t HudChatListbox::remove_oldest(void)
 }
 
 /**
- * 0x4ab240 Expires timed-out chat messages (whose stored expiry has passed the current time) from the front of
- * the listbox, then shows or hides the GUI listbox control depending on
+ * Expires timed-out chat messages (whose stored expiry has passed the current time) from the front of the
+ * listbox, then shows or hides the GUI listbox control depending on
  * game_engine_state_value/game_engine_nameplate_fade_opacity_array.
  *
  * @address 0x4ab300

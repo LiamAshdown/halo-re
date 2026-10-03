@@ -17,7 +17,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original BitmapSequenceLookup functions.
+ * Lookup of bitmap offsets inside a bitmap group sequence.
  */
 class BitmapSequenceLookup {
 public:

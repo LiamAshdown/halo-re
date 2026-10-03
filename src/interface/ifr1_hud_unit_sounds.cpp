@@ -20,7 +20,8 @@ extern void hud_unit_sounds_play(uint32_t active_mask, const TagReflexive *sound
 namespace halo::interface {
 
 /**
- * 0x549af0, starts a 2D impulse sound
+ * Original engine function hud_unit_sounds_play; the author notes are in
+ * docs/original/interface/hud_unit_sounds_play.txt.
  *
  * @address 0x4afd30
  */
@@ -78,7 +79,8 @@ void HudUnitSounds::play(uint32_t active_mask, const TagReflexive *sounds, int32
 }
 
 /**
- * 0x4afd30
+ * Original engine function hud_unit_sounds_update; the author notes are in
+ * docs/original/interface/hud_unit_sounds_update.txt.
  * blam-cc: player -> EAX
  *
  * @address 0x4afee0

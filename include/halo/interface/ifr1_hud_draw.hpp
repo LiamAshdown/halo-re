@@ -20,7 +20,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original HudDraw functions.
+ * Low-level HUD drawing primitives: bitmaps, numbers, overlays, anchors and multitexture overlays.
  */
 class HudDraw {
 public:

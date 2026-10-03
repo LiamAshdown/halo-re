@@ -12,7 +12,6 @@ extern "C" void hud_waypoint_activate_for_player(datum_index player_index, datum
 }
 
 /**
- * 0x4af0d0, blam-cc: EAX player_index, EBX target, DX kind
  * C ABI entry point; forwards to halo::interface::HudWaypoints::activate_for_team.
  * blam-cc: target -> EAX
  *
@@ -46,7 +45,6 @@ extern "C" void hud_waypoint_deactivate_for_player(datum_index player_index, dat
 }
 
 /**
- * 0x4af230, blam-cc: EAX player_index, EDI target, SI kind
  * C ABI entry point; forwards to halo::interface::HudWaypoints::deactivate_for_team.
  * blam-cc: kind -> EAX
  *
@@ -69,7 +67,6 @@ extern "C" void hud_waypoint_draw(const real_point3d *position, int16_t local_pl
 }
 
 /**
- * 0x4d05d0, blam-cc: EDI
  * C ABI entry point; forwards to halo::interface::HudWaypoints::draw_all_for_player.
  *
  * @address 0x4aa5f0
@@ -80,7 +77,6 @@ extern "C" void hud_waypoint_draw_all_for_player(void)
 }
 
 /**
- * 0x494d70, blam-cc: EAX origin
  * C ABI entry point; forwards to halo::interface::HudWaypoints::draw_one.
  * blam-cc: player_index -> EAX
  *

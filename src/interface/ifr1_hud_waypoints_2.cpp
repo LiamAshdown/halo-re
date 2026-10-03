@@ -26,7 +26,7 @@ extern void ui_draw_rotated_screen_quad(int16_t *origin, int32_t source_record, 
 namespace halo::interface {
 
 /**
- * 0x494d70, blam-cc: EAX origin Draws the teammate waypoint icon over the head of one player unit.
+ * Draws the teammate waypoint icon over the head of one player unit.
  * blam-cc: player_index -> EAX
  *
  * @address 0x4aa440

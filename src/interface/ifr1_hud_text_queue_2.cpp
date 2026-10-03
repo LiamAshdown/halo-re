@@ -24,7 +24,8 @@ extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *
 namespace halo::interface {
 
 /**
- * 0x514ab0, EAX clip, ECX dest
+ * Original engine function hud_text_message_queue_update_and_draw; the author notes are in
+ * docs/original/interface/hud_text_message_queue_update_and_draw.txt.
  *
  * @address 0x4a3e30
  */

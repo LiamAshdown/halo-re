@@ -245,11 +245,10 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
 }
 
 /**
- * 0x4b3920, UNSURE signature Updates and renders the full player HUD for the currently displayed local player:
- * waypoints and motion sensor first (subject to several unrelated gates), then either the full unit-driving
- * HUD (spectate overlay, weapon message state, unit interface, ammo/name overlay) or, if not currently driving
- * a unit or the camera is in a cutscene/first-person-only mode, just the weapon message state and a bare
- * messaging update.
+ * Updates and renders the full player HUD for the currently displayed local player: waypoints and motion
+ * sensor first (subject to several unrelated gates), then either the full unit-driving HUD (spectate overlay,
+ * weapon message state, unit interface, ammo/name overlay) or, if not currently driving a unit or the camera
+ * is in a cutscene/first-person-only mode, just the weapon message state and a bare messaging update.
  *
  * @address 0x4a99f0
  */

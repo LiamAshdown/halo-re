@@ -17,7 +17,8 @@ extern int32_t autopatch_check_for_update_start(void);
 namespace halo::interface {
 
 /**
- * 0x577240, UNSURE args
+ * Original engine function autopatch_status_widget_update; the author notes are in
+ * docs/original/interface/autopatch_status_widget_update.txt.
  * blam-cc: param_1 is a larger record embedding a widget_instance; see file header.
  *
  * @address 0x4a4880

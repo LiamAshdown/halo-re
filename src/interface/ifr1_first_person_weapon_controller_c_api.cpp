@@ -28,7 +28,7 @@ extern "C" uint32_t first_person_weapon_get_marker_data(datum_index weapon_index
  */
 extern "C" void first_person_weapon_interface_initialize(int16_t local_player_index)
 {
-    halo::interface::FirstPersonWeaponController::interface_initialize(local_player_index);
+    halo::interface::FirstPersonWeaponController(local_player_index).interface_initialize();
 }
 
 /**
@@ -42,7 +42,6 @@ extern "C" void first_person_weapon_interface_tick(void)
 }
 
 /**
- * 0x4449f0, blam-cc: ESI resources
  * C ABI entry point; forwards to halo::interface::FirstPersonWeaponController::interface_tick_reset.
  * blam-cc: AX -> local_player_index
  *
@@ -50,7 +49,7 @@ extern "C" void first_person_weapon_interface_tick(void)
  */
 extern "C" void first_person_weapon_interface_tick_reset(int16_t local_player_index)
 {
-    halo::interface::FirstPersonWeaponController::interface_tick_reset(local_player_index);
+    halo::interface::FirstPersonWeaponController(local_player_index).interface_tick_reset();
 }
 
 /**
@@ -61,7 +60,7 @@ extern "C" void first_person_weapon_interface_tick_reset(int16_t local_player_in
  */
 extern "C" void first_person_weapon_process_action(int16_t local_player_index, int16_t action_code)
 {
-    halo::interface::FirstPersonWeaponController::process_action(local_player_index, action_code);
+    halo::interface::FirstPersonWeaponController(local_player_index).process_action(action_code);
 }
 
 /**
@@ -71,7 +70,7 @@ extern "C" void first_person_weapon_process_action(int16_t local_player_index, i
  */
 extern "C" void first_person_weapon_set_attached(int16_t local_player_index, uint8_t attached)
 {
-    halo::interface::FirstPersonWeaponController::set_attached(local_player_index, attached);
+    halo::interface::FirstPersonWeaponController(local_player_index).set_attached(attached);
 }
 
 /**
@@ -82,7 +81,7 @@ extern "C" void first_person_weapon_set_attached(int16_t local_player_index, uin
  */
 extern "C" void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pose_snapshot, int16_t new_state)
 {
-    halo::interface::FirstPersonWeaponController::set_state(local_player_index, force_pose_snapshot, new_state);
+    halo::interface::FirstPersonWeaponController(local_player_index).set_state(force_pose_snapshot, new_state);
 }
 
 /**
@@ -92,7 +91,7 @@ extern "C" void first_person_weapon_set_state(int16_t local_player_index, uint8_
  */
 extern "C" void first_person_weapon_snapshot_pose(int16_t local_player_index, int16_t blend_gap)
 {
-    halo::interface::FirstPersonWeaponController::snapshot_pose(local_player_index, blend_gap);
+    halo::interface::FirstPersonWeaponController(local_player_index).snapshot_pose(blend_gap);
 }
 
 /**
@@ -102,7 +101,7 @@ extern "C" void first_person_weapon_snapshot_pose(int16_t local_player_index, in
  */
 extern "C" void first_person_weapon_update(int16_t local_player_index)
 {
-    halo::interface::FirstPersonWeaponController::update(local_player_index);
+    halo::interface::FirstPersonWeaponController(local_player_index).update();
 }
 
 /**
@@ -122,7 +121,7 @@ extern "C" void first_person_weapon_update_active_state(void)
  */
 extern "C" void first_person_weapon_update_animation_controls(int16_t local_player_index)
 {
-    halo::interface::FirstPersonWeaponController::update_animation_controls(local_player_index);
+    halo::interface::FirstPersonWeaponController(local_player_index).update_animation_controls();
 }
 
 /**
@@ -154,11 +153,10 @@ extern "C" void first_person_weapon_update_screen_effects(void)
  */
 extern "C" void first_person_weapon_update_state(int16_t local_player_index)
 {
-    halo::interface::FirstPersonWeaponController::update_state(local_player_index);
+    halo::interface::FirstPersonWeaponController(local_player_index).update_state();
 }
 
 /**
- * 0x5121a0; blam-cc: EAX -> index (signed 16-bit: `movsx edx,[+0x8e]`)
  * C ABI entry point; forwards to halo::interface::FirstPersonWeaponController::update_zoom_static_tint.
  * blam-cc: AL -> enabled
  *

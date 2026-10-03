@@ -16,7 +16,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original HudChatListbox functions.
+ * The chat message listbox shown on the HUD: update, clear and expiry of the oldest line.
  */
 class HudChatListbox {
 public:

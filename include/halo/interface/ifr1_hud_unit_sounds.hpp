@@ -21,7 +21,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original HudUnitSounds functions.
+ * HUD sound cues driven by unit state.
  */
 class HudUnitSounds {
 public:

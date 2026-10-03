@@ -19,7 +19,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original HudTextQueue functions.
+ * Queue of timed text messages drawn on the HUD.
  */
 class HudTextQueue {
 public:

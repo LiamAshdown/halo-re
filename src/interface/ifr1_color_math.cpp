@@ -9,8 +9,7 @@ extern tag_instance *tag_instances;
 namespace halo::interface {
 
 /**
- * MSVC round-to-nearest helper Rescales a packed 0xAARRGGBB color's alpha byte by `scale`, leaving RGB
- * untouched.
+ * Rescales a packed 0xAARRGGBB color's alpha byte by `scale`, leaving RGB untouched.
  * blam-cc: EAX -> packed_color, stack -> scale
  *
  * @address 0x497970
@@ -21,8 +20,7 @@ uint32_t ColorMath::argb_scale_alpha(uint32_t packed_color, float scale)
 }
 
 /**
- * MSVC round-to-nearest helper Packs a ColorARGB (float a,r,g,b) into a 0xAARRGGBB uint32_t, rounding each
- * channel to 0..255.
+ * Packs a ColorARGB (float a,r,g,b) into a 0xAARRGGBB uint32_t, rounding each channel to 0..255.
  *
  * @address 0x497900
  */
@@ -33,7 +31,7 @@ uint32_t ColorMath::pack_argb_from_real(ColorARGB *color)
 }
 
 /**
- * MSVC round-to-nearest helper Packs a 3-float {r, g, b} color (0..1 range) into a 0x00RRGGBB integer.
+ * Packs a 3-float {r, g, b} color (0..1 range) into a 0x00RRGGBB integer.
  *
  * @address 0x4ab5d0
  */
@@ -45,11 +43,11 @@ uint32_t ColorMath::rgb_float_to_int(const float *rgb)
 }
 
 /**
- * 0x0087bc14 Resolves the globals interface_bitmaps' table_index'th color-table TagDependency (0 =
- * font_system, 1 = font_terminal, 2 = screen_color_table, 3 = hud_color_table, 4 = editor_color_table, 5 =
- * dialog_color_table -- treating the run of leading TagDependency fields as an array), then writes out the
- * color_index'th entry's color (cycling modulo the table's actual color count) into *out. Leaves *out at
- * opaque white (1,1,1,1) if the table tag isn't assigned or has no colors.
+ * Resolves the globals interface_bitmaps' table_index'th color-table TagDependency (0 = font_system, 1 =
+ * font_terminal, 2 = screen_color_table, 3 = hud_color_table, 4 = editor_color_table, 5 = dialog_color_table
+ * -- treating the run of leading TagDependency fields as an array), then writes out the color_index'th entry's
+ * color (cycling modulo the table's actual color count) into *out. Leaves *out at opaque white (1,1,1,1) if
+ * the table tag isn't assigned or has no colors.
  * blam-cc: stack -> (table_index, color_index), ECX -> out
  *
  * @address 0x494430

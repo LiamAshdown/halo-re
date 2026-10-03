@@ -98,11 +98,12 @@ static void overlay_channel(ModelAnimationsAnimation *animation, float value, in
 namespace halo::interface {
 
 /**
- * TEMPORARY play-test logging, src/interface/debug_play_diagnostics.c
+ * Original engine function first_person_weapon_update; the author notes are in
+ * docs/original/interface/first_person_weapon_update.txt.
  *
  * @address 0x493150
  */
-void FirstPersonWeaponController::update(int16_t local_player_index)
+void FirstPersonWeaponController::update()
 {
     debug_play_diagnostics();
     first_person_weapon_interface *fp = &first_person_weapon_interfaces[local_player_index];
@@ -280,7 +281,7 @@ void FirstPersonWeaponController::update(int16_t local_player_index)
  *
  * @address 0x493740
  */
-void FirstPersonWeaponController::update_animation_controls(int16_t local_player_index)
+void FirstPersonWeaponController::update_animation_controls()
 {
     first_person_weapon_interface *fp = &first_person_weapon_interfaces[local_player_index];
     uint8_t *fp_raw = (uint8_t *)fp;
@@ -392,7 +393,8 @@ void FirstPersonWeaponController::update_animation_controls(int16_t local_player
 }
 
 /**
- * 0x5121a0; blam-cc: EAX -> index (signed 16-bit: `movsx edx,[+0x8e]`)
+ * Original engine function first_person_weapon_update_zoom_static_tint; the author notes are in
+ * docs/original/interface/first_person_weapon_update_zoom_static_tint.txt.
  * blam-cc: AL -> enabled
  *
  * @address 0x494af0

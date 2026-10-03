@@ -92,9 +92,9 @@ static void hud_number_draw_glyph(hud_number_pen *pen, uint16_t glyph, uint8_t a
 namespace halo::interface {
 
 /**
- * 0x007c3140, UNSURE name: packed {int16 x, int16 y} Converts a HUD element's anchor + pixel offset into an
- * absolute 640x480-canvas screen position (anchor 0..3, one per corner) or a camera-viewport-relative position
- * (anchor >= 4, via an unrecovered per-anchor handler when selector is nonzero).
+ * Converts a HUD element's anchor + pixel offset into an absolute 640x480-canvas screen position (anchor 0..3,
+ * one per corner) or a camera-viewport-relative position (anchor >= 4, via an unrecovered per-anchor handler
+ * when selector is nonzero).
  * blam-cc: see header
  *
  * @address 0x4ab690
@@ -211,9 +211,8 @@ void HudDraw::bitmap_anchor_extents(uint8_t pixel_uvs, const BitmapData *bitmap,
 }
 
 /**
- * 0x4acd50, blam-cc: EAX, ESI Draws one HUD bitmap quad whose anchor corner (0..4, see
- * hud_bitmap_anchor_extents) sits at screen_position, scaled by scale on both axes and rotated by rotation
- * radians.
+ * Draws one HUD bitmap quad whose anchor corner (0..4, see hud_bitmap_anchor_extents) sits at screen_position,
+ * scaled by scale on both axes and rotated by rotation radians.
  * blam-cc: uv -> EAX, bitmap -> EDX, pixel_uvs -> CL
  *
  * @address 0x4acbb0
@@ -242,9 +241,9 @@ void HudDraw::bitmap_at(const float *uv, BitmapData *bitmap, uint8_t pixel_uvs, 
 }
 
 /**
- * 0x4acd50, blam-cc: EAX, ESI Draws one HUD bitmap quad placed by a HUD interface element: its anchor offset,
- * width and height scale (times scale) and the anchor corner. uv is {u0, u1, v0, v1}; color is packed ARGB;
- * split_screen asks 0x4ab690 to scale the anchor offset for a split screen view.
+ * Draws one HUD bitmap quad placed by a HUD interface element: its anchor offset, width and height scale
+ * (times scale) and the anchor corner. uv is {u0, u1, v0, v1}; color is packed ARGB; split_screen asks
+ * 0x4ab690 to scale the anchor offset for a split screen view.
  * blam-cc: uv -> EAX, placement -> EDX, pixel_uvs -> BL
  *
  * @address 0x4acad0
@@ -283,8 +282,7 @@ void HudDraw::bitmap_element(const float *uv, const hud_element_placement *place
 }
 
 /**
- * 0x4acbb0, blam-cc: EAX uv, EDX bitmap, CL pixel_uvs Draws the icon of one HUD message icon argument at the
- * text cursor and advances the cursor.
+ * Draws the icon of one HUD message icon argument at the text cursor and advances the cursor.
  * blam-cc: information -> ESI
  *
  * @address 0x4ad970
@@ -337,8 +335,7 @@ void HudDraw::message_icon(const hud_messaging_information *information, Rectang
 }
 
 /**
- * 0x514ab0; blam-cc: EAX clip, ECX bounds Draws one text span of a HUD message line at the cursor and advances
- * the cursor past it.
+ * Draws one text span of a HUD message line at the cursor and advances the cursor past it.
  * blam-cc: cursor -> EAX, origin -> ECX
  *
  * @address 0x4ad8e0
@@ -699,9 +696,9 @@ void HudDraw::number(void *unused, uint16_t *anchor, const hud_number_placement 
 }
 
 /**
- * 0x4acad0, blam-cc: EAX uv, EDX placement, BL pixel_uvs Draws the overlays of one HUD overlay element whose
- * type bits (show on flashing, empty, reload/overheat, default, always) intersect type_mask. draw_flags bit 0
- * allows flashing and frame animation from flash_start_time; split_screen is forwarded to 0x4acad0.
+ * Draws the overlays of one HUD overlay element whose type bits (show on flashing, empty, reload/overheat,
+ * default, always) intersect type_mask. draw_flags bit 0 allows flashing and frame animation from
+ * flash_start_time; split_screen is forwarded to 0x4acad0.
  *
  * @address 0x4ac950
  */
@@ -751,9 +748,9 @@ void HudDraw::overlays(uint16_t *anchor, const hud_overlay_list *list, uint32_t 
 }
 
 /**
- * 0x51c9a0, rasterizer quad submitter, blam-cc: EAX state Draws one rotated HUD quad. uv is {u0, u1, v0, v1},
- * extents {x0, x1, y0, y1} around the screen position (see hud_bitmap_anchor_extents), rotation in radians,
- * color packed ARGB. meter_parameters is the hud_meter_color_block of a meter fill, NULL for a plain bitmap.
+ * Draws one rotated HUD quad. uv is {u0, u1, v0, v1}, extents {x0, x1, y0, y1} around the screen position (see
+ * hud_bitmap_anchor_extents), rotation in radians, color packed ARGB. meter_parameters is the
+ * hud_meter_color_block of a meter fill, NULL for a plain bitmap.
  * blam-cc: screen_position -> EAX, scale -> ESI
  *
  * @address 0x4acd50
@@ -799,9 +796,9 @@ void HudDraw::rotated_bitmap_quad(const Point2DInt *screen_position, const float
 }
 
 /**
- * 0x4acfe0, blam-cc: EAX scale Draws one HUD static element (its bitmap sprite plus every multitexture overlay
- * attached to it) at the element anchor. draw_flags: bit 0 blend in the flashing color from flash_start_time,
- * bit 1 use the disabled color, bit 2 split screen.
+ * Draws one HUD static element (its bitmap sprite plus every multitexture overlay attached to it) at the
+ * element anchor. draw_flags: bit 0 blend in the flashing color from flash_start_time, bit 1 use the disabled
+ * color, bit 2 split screen.
  *
  * @address 0x4ac6f0
  */

@@ -19,7 +19,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original ErrorDialogs functions.
+ * Shows or queues modal and non-modal error dialogs for the local players.
  */
 class ErrorDialogs {
 public:

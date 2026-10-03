@@ -1,7 +1,6 @@
 #include "halo/interface/ifr1_gamepad_bindings.hpp"
 
 /**
- * 0x53b620, blam-cc: EAX profile_record
  * C ABI entry point; forwards to halo::interface::GamepadBindings::bindings_restore.
  *
  * @address 0x4b5a70
@@ -45,7 +44,6 @@ extern "C" uint8_t controls_gamepad_list_remove(const controls_gamepad_record *e
 }
 
 /**
- * 0x4b5850, blam-cc: EDI list
  * C ABI entry point; forwards to halo::interface::GamepadBindings::lists_load.
  *
  * @address 0x4b58d0

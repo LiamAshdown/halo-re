@@ -45,7 +45,6 @@ extern "C" void hud_meter_permute_node_records(uint8_t *dest, uint8_t *source, u
 }
 
 /**
- * 0x4ab630, blam-cc: ECX bitmap_tag, AX sequence_index, DI frame_index
  * C ABI entry point; forwards to halo::interface::HudMeters::resolve_bitmap_frame.
  * blam-cc: EAX -> frame_index, stack -> bitmap_tag, sequence_index, out_data, out_offset
  *
@@ -68,7 +67,6 @@ extern "C" void hud_unit_meter_apply_predictive_damage(datum_index player_index,
 }
 
 /**
- * 0x4b0160, blam-cc: DI local_player_index
  * C ABI entry point; forwards to halo::interface::HudMeters::unit_meters_update.
  *
  * @address 0x4b0110
@@ -79,7 +77,6 @@ extern "C" void hud_unit_meters_update(void)
 }
 
 /**
- * 0x4afee0, blam-cc: EAX player
  * C ABI entry point; forwards to halo::interface::HudMeters::unit_meters_update_for_player.
  * blam-cc: local_player_index -> DI
  *

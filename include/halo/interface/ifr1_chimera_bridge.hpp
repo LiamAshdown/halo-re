@@ -18,7 +18,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original ChimeraBridge functions.
+ * Entry points of the chimera layer that load the main menu, UI widgets and the loading screen.
  */
 class ChimeraBridge {
 public:

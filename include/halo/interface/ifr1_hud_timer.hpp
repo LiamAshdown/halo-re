@@ -17,14 +17,21 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original HudTimer functions.
+ * The script countdown timer shown on the HUD. An instance binds the engine's HUD messaging state and game clock, so
+ * every operation works on the same fields the original free functions read.
  */
 class HudTimer {
 public:
-    static void pause_timer(uint8_t paused);
-    static void set_timer_time(int32_t minutes, int32_t seconds);
-    static void draw(void);
-    static uint32_t get_ticks(void);
+    HudTimer();
+
+    void pause(uint8_t paused);
+    void set_time(int32_t minutes, int32_t seconds);
+    void draw(void);
+    uint32_t ticks(void) const;
+
+private:
+    hud_messaging_globals *messaging;
+    game_time_globals *time;
 };
 
 }

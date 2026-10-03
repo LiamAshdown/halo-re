@@ -102,7 +102,8 @@ static void controls_spinner_set_from_byte(widget_instance *spinner, uint8_t val
 namespace halo::interface {
 
 /**
- * 0x00692ffc, stride 0x18
+ * Original engine function controls_action_column_is_bindable; the author notes are in
+ * docs/original/interface/controls_action_column_is_bindable.txt.
  * blam-cc: ECX -> slot, EDX -> action_index
  *
  * @address 0x4b4df0
@@ -119,7 +120,8 @@ uint8_t ControlsBindings::action_column_is_bindable(int32_t slot, int32_t action
 }
 
 /**
- * 0x625b7a, wcslen
+ * Original engine function controls_action_display_name; the author notes are in
+ * docs/original/interface/controls_action_display_name.txt.
  * blam-cc: device -> EAX, action_name -> EDI
  *
  * @address 0x4b44c0
@@ -186,7 +188,8 @@ uint8_t ControlsBindings::apply_preset(widget_instance *widget)
 }
 
 /**
- * 0x53ad00, blam-cc: ESI record
+ * Original engine function controls_binding_clear; the author notes are in
+ * docs/original/interface/controls_binding_clear.txt.
  * blam-cc: action_index -> EAX
  *
  * @address 0x4b4e20
@@ -231,7 +234,8 @@ uint8_t ControlsBindings::binding_clear(int32_t action_index, int32_t device)
 }
 
 /**
- * 0x4b4520, blam-cc: EAX action_index
+ * Original engine function controls_binding_list_refresh_rows; the author notes are in
+ * docs/original/interface/controls_binding_list_refresh_rows.txt.
  * blam-cc: widget -> EAX
  *
  * @address 0x4b4790
@@ -508,17 +512,17 @@ void ControlsBindings::binding_rows_toggle_device_mode(widget_instance *widget, 
 }
 
 /**
- * 0x4b4830, this module VERIFIED against disassembly 0x4b4890..0x4b4972 (2026-09-30): the profile select, the
- * 0x840-dword clear, the tag string terminator patch (((size & ~1) - 2) bytes in), the default label add, and
- * the four 0x220-byte profile label copies match. The function returns nothing: the EAX difference a difftest
- * shows is leftover register content.
+ * VERIFIED against disassembly 0x4b4890..0x4b4972 (2026-09-30): the profile select, the 0x840-dword clear, the
+ * tag string terminator patch (((size & ~1) - 2) bytes in), the default label add, and the four 0x220-byte
+ * profile label copies match. The function returns nothing: the EAX difference a difftest shows is leftover
+ * register content.
  *
  * @address 0x4b4890
  */
 void ControlsBindings::build_device_label_table(void)
 {
     uint8_t *profile = ((selected_saved_item & 0xf) != 0) ? (uint8_t *)0 : saved_item_working_copy;
-    datum_index tag_id = tag_lookup(0x75737472 ,
+    datum_index tag_id = tag_lookup(0x75737472,
         (char *)"ui\\shell\\main_menu\\settings_select\\player_setup\\player_profile_edit\\controls_setup\\controls_device_labels");
     int i;
     const uint16_t *tag_supplied_label = (const uint16_t *)0x671fac;
@@ -560,7 +564,8 @@ void ControlsBindings::build_device_label_table(void)
 }
 
 /**
- * 0x00719440
+ * Original engine function controls_device_label_add; the author notes are in
+ * docs/original/interface/controls_device_label_add.txt.
  *
  * @address 0x4b4830
  */
@@ -579,7 +584,8 @@ void ControlsBindings::device_label_add(const uint16_t *name, int32_t device_typ
 }
 
 /**
- * 0x53aa20, is the control bound to the action, blam-cc: ECX action_name, ESI binding
+ * Original engine function controls_enumerate_next_assignable_action; the author notes are in
+ * docs/original/interface/controls_enumerate_next_assignable_action.txt.
  * blam-cc: device -> EAX, record -> ECX, action_name -> EDI
  *
  * @address 0x4b43e0
@@ -642,7 +648,7 @@ uint8_t ControlsBindings::enumerate_next_assignable_action(int32_t device, int16
 }
 
 /**
- * 0x0065c15c .. 0x0065c180 Returns 1 (not reserved) unless `action` matches one of the fixed reserved values.
+ * Returns 1 (not reserved) unless `action` matches one of the fixed reserved values.
  * blam-cc: action -> EDX
  *
  * @address 0x4b43c0

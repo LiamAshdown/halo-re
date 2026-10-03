@@ -23,7 +23,6 @@ extern "C" void hud_bitmap_anchor_extents(uint8_t pixel_uvs, const BitmapData *b
 }
 
 /**
- * 0x4acd50, blam-cc: EAX, ESI
  * C ABI entry point; forwards to halo::interface::HudDraw::bitmap_at.
  * blam-cc: uv -> EAX, bitmap -> EDX, pixel_uvs -> CL
  *
@@ -35,7 +34,6 @@ extern "C" void hud_draw_bitmap_at(const float *uv, BitmapData *bitmap, uint8_t 
 }
 
 /**
- * 0x4acd50, blam-cc: EAX, ESI
  * C ABI entry point; forwards to halo::interface::HudDraw::bitmap_element.
  * blam-cc: uv -> EAX, placement -> EDX, pixel_uvs -> BL
  *
@@ -47,7 +45,6 @@ extern "C" void hud_draw_bitmap_element(const float *uv, const hud_element_place
 }
 
 /**
- * 0x4acbb0, blam-cc: EAX uv, EDX bitmap, CL pixel_uvs
  * C ABI entry point; forwards to halo::interface::HudDraw::message_icon.
  * blam-cc: information -> ESI
  *
@@ -59,7 +56,6 @@ extern "C" void hud_draw_message_icon(const hud_messaging_information *informati
 }
 
 /**
- * 0x514ab0; blam-cc: EAX clip, ECX bounds
  * C ABI entry point; forwards to halo::interface::HudDraw::message_text_span.
  * blam-cc: cursor -> EAX, origin -> ECX
  *
@@ -92,7 +88,6 @@ extern "C" void hud_draw_number(void *unused, uint16_t *anchor, const hud_number
 }
 
 /**
- * 0x4acad0, blam-cc: EAX uv, EDX placement, BL pixel_uvs
  * C ABI entry point; forwards to halo::interface::HudDraw::overlays.
  *
  * @address 0x4ac950
@@ -103,7 +98,6 @@ extern "C" void hud_draw_overlays(uint16_t *anchor, const hud_overlay_list *list
 }
 
 /**
- * 0x51c9a0, rasterizer quad submitter, blam-cc: EAX state
  * C ABI entry point; forwards to halo::interface::HudDraw::rotated_bitmap_quad.
  * blam-cc: screen_position -> EAX, scale -> ESI
  *
@@ -115,7 +109,6 @@ extern "C" void hud_draw_rotated_bitmap_quad(const Point2DInt *screen_position, 
 }
 
 /**
- * 0x4acfe0, blam-cc: EAX scale
  * C ABI entry point; forwards to halo::interface::HudDraw::static_element.
  *
  * @address 0x4ac6f0

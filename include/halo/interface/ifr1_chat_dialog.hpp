@@ -21,7 +21,27 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original ChatDialog functions.
+ * Strategy for turning a decoded incoming chat record into a line in the chat listbox. ChatDialog::dispatch_incoming
+ * asks each registered source in order whether it accepts the record, so the precedence of the original branches
+ * (player message first, then localized string, then plain text) is preserved.
+ */
+class ChatLineSource {
+public:
+    virtual bool accepts(const chat_incoming_record &record) const = 0;
+    virtual void deliver(const chat_incoming_record &record, wchar_t *text) const = 0;
+
+    /**
+     * Returns the first registered source that accepts record, or nullptr when the record kind is not shown.
+     */
+    static const ChatLineSource *select(const chat_incoming_record &record);
+
+protected:
+    ~ChatLineSource() = default;
+};
+
+/**
+ * The multiplayer chat input dialog and its incoming-message path: opening, hotkeys, submission and display of
+ * received lines.
  */
 class ChatDialog {
 public:

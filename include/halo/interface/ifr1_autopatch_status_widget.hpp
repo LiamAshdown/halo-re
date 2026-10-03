@@ -16,7 +16,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original AutopatchStatusWidget functions.
+ * Per-frame update of the autopatch (game update) status widget.
  */
 class AutopatchStatusWidget {
 public:

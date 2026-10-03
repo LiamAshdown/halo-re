@@ -51,7 +51,7 @@ extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t 
 
 static const wchar_t *chat_prefix_format(int16_t string_index)
 {
-    datum_index tag = tag_lookup(0x75737472 , (char *)"ui\\multiplayer_game_text");
+    datum_index tag = tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
     if (tag == (datum_index)-1) {
         return &empty_string;
     }
@@ -61,8 +61,8 @@ static const wchar_t *chat_prefix_format(int16_t string_index)
 namespace halo::interface {
 
 /**
- * 0x00721eec Closes the multiplayer chat input dialog: clears the chat-open state, resets the DirectInput
- * keyboard device the same way virtual_keyboard_close does, and releases the GUI dialog object.
+ * Closes the multiplayer chat input dialog: clears the chat-open state, resets the DirectInput keyboard device
+ * the same way virtual_keyboard_close does, and releases the GUI dialog object.
  *
  * @address 0x4aa900
  */
@@ -96,8 +96,8 @@ void ChatDialog::close(void)
 }
 
 /**
- * 0x4d05d0 Scans player_data for the first locally-driven player and returns its desired team index, or -1 if
- * none is found.
+ * Scans player_data for the first locally-driven player and returns its desired team index, or -1 if none is
+ * found.
  *
  * @address 0x4ab1e0
  */
@@ -121,8 +121,101 @@ int32_t ChatDialog::default_team_channel(void)
     return -1;
 }
 
+namespace {
+
+class PlayerChatSource final : public ChatLineSource {
+public:
+    bool accepts(const chat_incoming_record &record) const override;
+    void deliver(const chat_incoming_record &record, wchar_t *text) const override;
+};
+
+class LocalizedChatSource final : public ChatLineSource {
+public:
+    bool accepts(const chat_incoming_record &record) const override;
+    void deliver(const chat_incoming_record &record, wchar_t *text) const override;
+};
+
+class PlainChatSource final : public ChatLineSource {
+public:
+    bool accepts(const chat_incoming_record &record) const override;
+    void deliver(const chat_incoming_record &record, wchar_t *text) const override;
+};
+
+bool PlayerChatSource::accepts(const chat_incoming_record &record) const
+{
+    return record.player_index != 0xff;
+}
+
+void PlayerChatSource::deliver(const chat_incoming_record &record, wchar_t *text) const
+{
+    wchar_t line[0x200];
+    player *sender = (player *)datum_get((datum_index)record.player_index, player_data);
+
+    if (sender == 0) {
+        return;
+    }
+    memset(line, 0, sizeof(line));
+    if (record.kind == 0) {
+        string_format_wide_va(line, chat_prefix_format(0xbb), sender->name);
+        wcslen(line);
+    } else if (record.kind > 0 && record.kind <= 2) {
+        string_format_wide_va(line, chat_prefix_format(0xbc), sender->name);
+        wcslen(line);
+    }
+    wcscat(line, text);
+    chimera__multiplayer_message(line);
+}
+
+bool LocalizedChatSource::accepts(const chat_incoming_record &record) const
+{
+    return record.kind == 4;
+}
+
+void LocalizedChatSource::deliver(const chat_incoming_record &record, wchar_t *) const
+{
+    wchar_t short_line[0x80];
+    char localized[0x400];
+    int32_t string_id = (int32_t)_wtol((const wchar_t *)record.text);
+
+    memset(short_line, 0, sizeof(short_line));
+    if (shell_load_localized_string(string_id, localized) == 0) {
+        return;
+    }
+    string_format_wide_va_bounded(0x7f, (uint16_t *)short_line, (const uint16_t *)L"%S", localized);
+    short_line[0x7f] = 0;
+    chimera__multiplayer_message(short_line);
+}
+
+bool PlainChatSource::accepts(const chat_incoming_record &record) const
+{
+    return record.kind == 3;
+}
+
+void PlainChatSource::deliver(const chat_incoming_record &, wchar_t *text) const
+{
+    chimera__multiplayer_message(text);
+}
+
+const PlayerChatSource k_player_source;
+const LocalizedChatSource k_localized_source;
+const PlainChatSource k_plain_source;
+const ChatLineSource *const k_chat_sources[] = { &k_player_source, &k_localized_source, &k_plain_source };
+
+}
+
+const ChatLineSource *ChatLineSource::select(const chat_incoming_record &record)
+{
+    for (const ChatLineSource *source : k_chat_sources) {
+        if (source->accepts(record)) {
+            return source;
+        }
+    }
+    return nullptr;
+}
+
 /**
- * Decodes one incoming chat network event and appends the resulting line to the chat listbox.
+ * Decodes one incoming chat network event and appends the resulting line to the chat listbox. The decoded record
+ * is routed to the first ChatLineSource that accepts it: a player message, a localized server string or plain text.
  * blam-cc: event -> EAX
  *
  * @address 0x4aaf70
@@ -130,9 +223,8 @@ int32_t ChatDialog::default_team_channel(void)
 void ChatDialog::dispatch_incoming(void *event)
 {
     chat_incoming_record record;
-    wchar_t short_line[0x80];
-    wchar_t line[0x200];
     wchar_t text[0x100];
+    const ChatLineSource *source;
 
     if (*(int32_t *)*(void **)event != 0) {
         message_delta_decode_compound_field_staged(event);
@@ -146,45 +238,15 @@ void ChatDialog::dispatch_incoming(void *event)
         return;
     }
 
-    if (record.player_index != 0xff) {
-        player *sender = (player *)datum_get((datum_index)record.player_index, player_data);
-        if (sender == 0) {
-            return;
-        }
-        memset(line, 0, sizeof(line));
-        if (record.kind == 0) {
-            string_format_wide_va(line, chat_prefix_format(0xbb), sender->name);
-            wcslen(line);
-        } else if (record.kind > 0 && record.kind <= 2) {
-            string_format_wide_va(line, chat_prefix_format(0xbc), sender->name);
-            wcslen(line);
-        }
-        wcscat(line, text);
-        chimera__multiplayer_message(line);
-        return;
-    }
-
-    if (record.kind == 4) {
-        char localized[0x400];
-        int32_t string_id = (int32_t)_wtol((const wchar_t *)record.text);
-        memset(short_line, 0, sizeof(short_line));
-        if (shell_load_localized_string(string_id, localized) == 0) {
-            return;
-        }
-        string_format_wide_va_bounded(0x7f, (uint16_t *)short_line, (const uint16_t *)L"%S", localized);
-        short_line[0x7f] = 0;
-        chimera__multiplayer_message(short_line);
-        return;
-    }
-
-    if (record.kind == 3) {
-        chimera__multiplayer_message(text);
+    source = ChatLineSource::select(record);
+    if (source != nullptr) {
+        source->deliver(record, text);
     }
 }
 
 /**
- * 0x4ab300, the caller reloads AL from 0x006b3858 afterwards Opens the chat dialog for whichever scope hotkey
- * is set (all, team, vehicle, checked in that order), then always refreshes the chat message listbox.
+ * Opens the chat dialog for whichever scope hotkey is set (all, team, vehicle, checked in that order), then
+ * always refreshes the chat message listbox.
  *
  * @address 0x4aaa90
  */
@@ -210,9 +272,8 @@ uint8_t ChatDialog::poll_hotkeys(void)
 }
 
 /**
- * 0x4aa900 Reads the text typed into the open chat editbox and, if the default team channel is valid and the
- * box is non-empty, sends it (truncated to 254 wide characters) via chimera__chat_out before closing the
- * dialog.
+ * Reads the text typed into the open chat editbox and, if the default team channel is valid and the box is
+ * non-empty, sends it (truncated to 254 wide characters) via chimera__chat_out before closing the dialog.
  *
  * @address 0x4aa9b0
  */
@@ -249,9 +310,8 @@ void ChatDialog::submit_input(void)
 }
 
 /**
- * 0x4cf8f0, EAX stream, ECX values, stack bits Encodes a chat text message (type 0xf) for the given channel
- * and, if the session's outgoing buffer has room (or can be flushed to make room), queues its length and
- * payload bits for network transmission.
+ * Encodes a chat text message (type 0xf) for the given channel and, if the session's outgoing buffer has room
+ * (or can be flushed to make room), queues its length and payload bits for network transmission.
  *
  * @address 0x4aab00
  */

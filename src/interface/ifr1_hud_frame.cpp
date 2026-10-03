@@ -122,10 +122,10 @@ static float hud_fraction_clamp(float value)
 namespace halo::interface {
 
 /**
- * 0x4acbb0, blam-cc: EAX uv, EDX bitmap, CL pixel_uvs Draws the local player's four directional damage
- * indicators (edge-of-screen arrows) for every direction whose pre-fade alpha byte is still in its "recently
- * hit" window (1..0x1d); the value 0 means off and >= 0x1e means fully faded/invisible. Called once per frame
- * per local player; hides every indicator in one write when the player currently has no unit.
+ * Draws the local player's four directional damage indicators (edge-of-screen arrows) for every direction
+ * whose pre-fade alpha byte is still in its "recently hit" window (1..0x1d); the value 0 means off and >= 0x1e
+ * means fully faded/invisible. Called once per frame per local player; hides every indicator in one write when
+ * the player currently has no unit.
  * blam-cc: local_player_index -> EAX
  *
  * @address 0x4b14c0
@@ -223,7 +223,8 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
 }
 
 /**
- * 0x4ac950
+ * Original engine function hud_draw_grenade_interface; the author notes are in
+ * docs/original/interface/hud_draw_grenade_interface.txt.
  *
  * @address 0x4b2ac0
  */
@@ -293,7 +294,8 @@ void HudFrame::draw_grenade_interface(int16_t local_player_index, datum_index un
 }
 
 /**
- * 0x4b2ac0
+ * Original engine function hud_draw_weapon_interface; the author notes are in
+ * docs/original/interface/hud_draw_weapon_interface.txt.
  *
  * @address 0x4b1e20
  */
@@ -350,8 +352,8 @@ void HudFrame::draw_weapon_interface(player *p)
 }
 
 /**
- * 0x4c29d0, blam-cc: EAX item_index Fills out with the HUD ammo state of the weapon the player is holding, or
- * of the seat weapon of the vehicle it rides. Returns 0 (out untouched) when there is none.
+ * Fills out with the HUD ammo state of the weapon the player is holding, or of the seat weapon of the vehicle
+ * it rides. Returns 0 (out untouched) when there is none.
  * blam-cc: player -> EAX
  *
  * @address 0x4acef0
@@ -866,9 +868,9 @@ void HudFrame::state_allocate(void)
 }
 
 /**
- * 0x4b3660 Clears and reinitializes the per-round HUD runtime-state buffers to their default values (unit
- * meters snap on the first update via -1.0 displayed values, weapon/waypoint slots start all free), looks up
- * the current hud_globals tag, and resets the motion sensor.
+ * Clears and reinitializes the per-round HUD runtime-state buffers to their default values (unit meters snap
+ * on the first update via -1.0 displayed values, weapon/waypoint slots start all free), looks up the current
+ * hud_globals tag, and resets the motion sensor.
  *
  * @address 0x4a98d0
  */
@@ -914,9 +916,9 @@ void HudFrame::state_reset(void)
 }
 
 /**
- * 0x0087a478, established in src/game/ Runs the weapon HUD, unit meter and waypoint per-frame updates, resets
- * the messaging sequence counter, and conditionally drives a fourth update when a local-player-count-like gate
- * and this build's one local player slot both look valid.
+ * Runs the weapon HUD, unit meter and waypoint per-frame updates, resets the messaging sequence counter, and
+ * conditionally drives a fourth update when a local-player-count-like gate and this build's one local player
+ * slot both look valid.
  *
  * @address 0x4a9990
  */

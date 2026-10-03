@@ -5,11 +5,7 @@ extern "C" {
 extern data_array *player_data;
 extern hud_waypoint_state *hud_waypoints;
 extern void *data_iterator_next(data_iterator *iterator);
-extern void hud_waypoint_activate_for_player(datum_index player_index, datum_index target, int16_t kind,
-                                             int16_t arrow_index, float vertical_offset);
 extern HUDGlobals *hud_globals_tag_data;
-extern void hud_waypoint_deactivate_for_player(datum_index player_index, datum_index target,
-                                               int16_t kind);
 extern player_globals *local_player_globals;
 extern real_matrix4x3 render_camera_world_to_view;
 extern uint8_t render_frustum_global[];
@@ -54,31 +50,45 @@ static float hud_clamp01(float value)
 
 namespace halo::interface {
 
-/**
- * 0x006b3a44 Shows waypoint arrow arrow_index over target (a flag, object or custom waypoint by kind) for the
- * local player of player_index.
- * blam-cc: EAX -> player_index, EBX -> target, DX -> kind, stack -> arrow_index, vertical_offset
- *
- * @address 0x4af0d0
- */
-void HudWaypoints::activate_for_player(datum_index player_index, datum_index target, int16_t kind, int16_t arrow_index, float vertical_offset)
+void LocalPlayerVisitor::for_each_on_team(int16_t team, LocalPlayerVisitor &visitor)
 {
-    hud_waypoint *waypoints;
+    data_iterator iterator;
+    player *p;
+
+    iterator.data = player_data;
+    iterator.next_index = 0;
+    iterator.index = (datum_index)-1;
+    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
+    for (p = (player *)data_iterator_next(&iterator); p != 0;
+         p = (player *)data_iterator_next(&iterator)) {
+        if (p->local_player_index != -1 && (int32_t)team == p->team) {
+            visitor.visit(iterator.index);
+        }
+    }
+}
+
+bool WaypointSlotSet::for_player(datum_index player_index, WaypointSlotSet *out)
+{
     int16_t local_player_index;
-    int16_t free_slot;
-    int16_t i;
 
     if (player_index == (datum_index)-1) {
-        return;
+        return false;
     }
     local_player_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200))->local_player_index;
-    if (local_player_index < 0 || local_player_index >= 1 || target == (datum_index)-1 || arrow_index == -1) {
-        return;
+    if (local_player_index < 0 || local_player_index >= 1) {
+        return false;
     }
-    waypoints = hud_waypoints[local_player_index].waypoints;
-    free_slot = -1;
-    for (i = 0; i < 4; i++) {
-        hud_waypoint *waypoint = &waypoints[i];
+    *out = WaypointSlotSet(hud_waypoints[local_player_index].waypoints);
+    return true;
+}
+
+void WaypointSlotSet::activate(datum_index target, int16_t kind, int16_t arrow_index, float vertical_offset)
+{
+    int16_t free_slot = -1;
+    int16_t i;
+
+    for (i = 0; i < k_slot_count; i++) {
+        hud_waypoint *waypoint = &slots[i];
         int16_t slot_kind = (int16_t)(waypoint->type << 12) >> 12;
 
         if (slot_kind == kind && waypoint->object_index == target) {
@@ -91,7 +101,7 @@ void HudWaypoints::activate_for_player(datum_index player_index, datum_index tar
         }
     }
     if (free_slot != -1) {
-        hud_waypoint *waypoint = &waypoints[free_slot];
+        hud_waypoint *waypoint = &slots[free_slot];
         waypoint->object_index = target;
         waypoint->arrow_index = arrow_index;
         waypoint->type = (int16_t)(waypoint->type ^ ((waypoint->type ^ kind) & 0xf));
@@ -99,31 +109,88 @@ void HudWaypoints::activate_for_player(datum_index player_index, datum_index tar
     }
 }
 
+void WaypointSlotSet::deactivate(datum_index target, int16_t kind)
+{
+    int16_t i;
+
+    for (i = 0; i < k_slot_count; i++) {
+        hud_waypoint *waypoint = &slots[i];
+        if ((int16_t)(waypoint->type << 12) >> 12 == kind && waypoint->object_index == target) {
+            waypoint->type |= 0xf;
+            waypoint->object_index = (datum_index)-1;
+            waypoint->arrow_index = -1;
+            return;
+        }
+    }
+}
+
+namespace {
+
+class ActivateVisitor final : public LocalPlayerVisitor {
+public:
+    ActivateVisitor(datum_index target, int16_t kind, int16_t arrow_index, float vertical_offset)
+        : target(target), kind(kind), arrow_index(arrow_index), vertical_offset(vertical_offset) {}
+
+    void visit(datum_index player_index) override
+    {
+        HudWaypoints::activate_for_player(player_index, target, kind, arrow_index, vertical_offset);
+    }
+
+private:
+    datum_index target;
+    int16_t kind;
+    int16_t arrow_index;
+    float vertical_offset;
+};
+
+class DeactivateVisitor final : public LocalPlayerVisitor {
+public:
+    DeactivateVisitor(datum_index target, int16_t kind) : target(target), kind(kind) {}
+
+    void visit(datum_index player_index) override
+    {
+        HudWaypoints::deactivate_for_player(player_index, target, kind);
+    }
+
+private:
+    datum_index target;
+    int16_t kind;
+};
+
+}
+
 /**
- * 0x4af0d0, blam-cc: EAX player_index, EBX target, DX kind
+ * Shows waypoint arrow arrow_index over target (a flag, object or custom waypoint by kind) for the local
+ * player of player_index.
+ * blam-cc: EAX -> player_index, EBX -> target, DX -> kind, stack -> arrow_index, vertical_offset
+ *
+ * @address 0x4af0d0
+ */
+void HudWaypoints::activate_for_player(datum_index player_index, datum_index target, int16_t kind, int16_t arrow_index, float vertical_offset)
+{
+    WaypointSlotSet slots(nullptr);
+
+    if (!WaypointSlotSet::for_player(player_index, &slots) || target == (datum_index)-1 || arrow_index == -1) {
+        return;
+    }
+    slots.activate(target, kind, arrow_index, vertical_offset);
+}
+
+/**
+ * Shows the waypoint for every local player on the given team.
  * blam-cc: target -> EAX
  *
  * @address 0x4af1b0
  */
 void HudWaypoints::activate_for_team(datum_index target, int16_t arrow_index, int16_t team, int16_t kind, float vertical_offset)
 {
-    data_iterator iterator;
-    player *p;
+    ActivateVisitor visitor(target, kind, arrow_index, vertical_offset);
 
-    iterator.data = player_data;
-    iterator.next_index = 0;
-    iterator.index = (datum_index)-1;
-    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    for (p = (player *)data_iterator_next(&iterator); p != 0;
-         p = (player *)data_iterator_next(&iterator)) {
-        if (p->local_player_index != -1 && (int32_t)team == p->team) {
-            hud_waypoint_activate_for_player(iterator.index, target, kind, arrow_index, vertical_offset);
-        }
-    }
+    LocalPlayerVisitor::for_each_on_team(team, visitor);
 }
 
 /**
- * 0x0071941c Index of the HUD waypoint arrow called name, -1 when there is none or no HUD globals tag.
+ * Index of the HUD waypoint arrow called name, -1 when there is none or no HUD globals tag.
  * blam-cc: name -> EDI
  *
  * @address 0x4af070
@@ -146,58 +213,32 @@ int16_t HudWaypoints::arrow_find(const char *name)
 }
 
 /**
- * 0x006b3a44 FIXED (register inputs, objdump): note phrasing only -- rewritten from the reversed "name -> REG"
- * form the checker cannot parse.
+ * Hides the waypoint of the given kind and target for the local player of player_index.
  * blam-cc: EAX -> player_index, EDI -> target, SI -> kind
  *
  * @address 0x4af230
  */
 void HudWaypoints::deactivate_for_player(datum_index player_index, datum_index target, int16_t kind)
 {
-    hud_waypoint *waypoints;
-    int16_t local_player_index;
-    int16_t i;
+    WaypointSlotSet slots(nullptr);
 
-    if (player_index == (datum_index)-1) {
+    if (!WaypointSlotSet::for_player(player_index, &slots) || target == (datum_index)-1) {
         return;
     }
-    local_player_index = ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200))->local_player_index;
-    if (local_player_index < 0 || local_player_index >= 1 || target == (datum_index)-1) {
-        return;
-    }
-    waypoints = hud_waypoints[local_player_index].waypoints;
-    for (i = 0; i < 4; i++) {
-        hud_waypoint *waypoint = &waypoints[i];
-        if ((int16_t)(waypoint->type << 12) >> 12 == kind && waypoint->object_index == target) {
-            waypoint->type |= 0xf;
-            waypoint->object_index = (datum_index)-1;
-            waypoint->arrow_index = -1;
-            return;
-        }
-    }
+    slots.deactivate(target, kind);
 }
 
 /**
- * 0x4af230, blam-cc: EAX player_index, EDI target, SI kind
+ * Hides the waypoint of the given kind and target for every local player on the given team.
  * blam-cc: kind -> EAX
  *
  * @address 0x4af2b0
  */
 void HudWaypoints::deactivate_for_team(int16_t kind, int16_t team, datum_index target)
 {
-    data_iterator iterator;
-    player *p;
+    DeactivateVisitor visitor(target, kind);
 
-    iterator.data = player_data;
-    iterator.next_index = 0;
-    iterator.index = (datum_index)-1;
-    iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
-    for (p = (player *)data_iterator_next(&iterator); p != 0;
-         p = (player *)data_iterator_next(&iterator)) {
-        if (p->local_player_index != -1 && (int32_t)team == p->team) {
-            hud_waypoint_deactivate_for_player(iterator.index, target, kind);
-        }
-    }
+    LocalPlayerVisitor::for_each_on_team(team, visitor);
 }
 
 /**
@@ -349,8 +390,7 @@ void HudWaypoints::draw(const real_point3d *position, int16_t local_player_index
 }
 
 /**
- * 0x4d05d0, blam-cc: EDI Draws a waypoint over every teammate of the local player that currently drives a
- * unit.
+ * Draws a waypoint over every teammate of the local player that currently drives a unit.
  *
  * @address 0x4aa5f0
  */

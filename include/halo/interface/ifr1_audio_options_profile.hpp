@@ -16,7 +16,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original AudioOptionsProfile functions.
+ * Applies the audio settings stored in a player profile to the sound system.
  */
 class AudioOptionsProfile {
 public:

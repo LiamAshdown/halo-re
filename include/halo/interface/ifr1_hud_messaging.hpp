@@ -22,7 +22,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original HudMessaging functions.
+ * HUD text messaging: item pickup messages, help and objective text, message strings and per-player slots.
  */
 class HudMessaging {
 public:

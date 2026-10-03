@@ -1,7 +1,6 @@
 #include "halo/interface/ifr1_hud_messaging.hpp"
 
 /**
- * 0x4ae480, blam-cc: ESI source
  * C ABI entry point; forwards to halo::interface::HudMessaging::hud_message.
  * blam-cc: local_player_index -> AX
  *
@@ -23,7 +22,6 @@ extern "C" void chimera__multiplayer_message(const wchar_t *text)
 }
 
 /**
- * 0x4ae480, blam-cc: ESI source
  * C ABI entry point; forwards to halo::interface::HudMessaging::add_item_message.
  * blam-cc: EAX -> local_player_index, ECX -> source, BL -> source_kind
  *
@@ -57,7 +55,6 @@ extern "C" void hud_display_loading_message(uint8_t is_begin)
 }
 
 /**
- * 0x5578c0; blam-cc: ECX, DX
  * C ABI entry point; forwards to halo::interface::HudMessaging::get_message_string.
  * blam-cc: message_index -> EDX
  *
@@ -69,7 +66,6 @@ extern "C" uint16_t * hud_get_message_string(int32_t message_index)
 }
 
 /**
- * 0x4ae180, blam-cc: AX local_player_index
  * C ABI entry point; forwards to halo::interface::HudMessaging::message_broadcast_to_local_players.
  *
  * @address 0x495f50
@@ -133,7 +129,6 @@ extern "C" void hud_play_pickup_notification(uint32_t object_or_slot_index, int1
 }
 
 /**
- * 0x4e1930, blam-cc: EAX machine_id, ESI server
  * C ABI entry point; forwards to halo::interface::HudMessaging::post_item_message.
  * blam-cc: count -> EAX, source -> ECX, kind -> DL
  *
@@ -145,7 +140,6 @@ extern "C" void hud_post_item_message(int16_t count, int32_t source, uint8_t kin
 }
 
 /**
- * 0x543dd0, plays a 2D sound, blam-cc: EDX sound
  * C ABI entry point; forwards to halo::interface::HudMessaging::receive_item_message.
  * blam-cc: message -> EAX
  *

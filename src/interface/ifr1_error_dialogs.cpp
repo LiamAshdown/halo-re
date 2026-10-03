@@ -20,9 +20,8 @@ extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_
 namespace halo::interface {
 
 /**
- * 0x497a70, 7 stack args (objdump) Queues or immediately opens the appropriately-sized modal/non-modal error
- * dialog widget for the given error message id, tag'd by how many local players are active and whether it
- * should block input.
+ * Queues or immediately opens the appropriately-sized modal/non-modal error dialog widget for the given error
+ * message id, tag'd by how many local players are active and whether it should block input.
  *
  * @address 0x498f20
  */

@@ -1,7 +1,6 @@
 #include "halo/interface/ifr1_hud_frame.hpp"
 
 /**
- * 0x4acbb0, blam-cc: EAX uv, EDX bitmap, CL pixel_uvs
  * C ABI entry point; forwards to halo::interface::HudFrame::draw_damage_indicators.
  * blam-cc: local_player_index -> EAX
  *
@@ -33,7 +32,6 @@ extern "C" void hud_draw_weapon_interface(player *p)
 }
 
 /**
- * 0x4c29d0, blam-cc: EAX item_index
  * C ABI entry point; forwards to halo::interface::HudFrame::player_weapon_ammo_state.
  * blam-cc: player -> EAX
  *

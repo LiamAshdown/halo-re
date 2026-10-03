@@ -16,7 +16,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original CheckpointListRows functions.
+ * Row construction for the saved checkpoint list widget.
  */
 class CheckpointListRows {
 public:

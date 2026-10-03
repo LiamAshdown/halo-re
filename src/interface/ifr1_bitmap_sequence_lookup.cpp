@@ -7,9 +7,9 @@ extern tag_instance *tag_instances;
 namespace halo::interface {
 
 /**
- * 0x0087bc14 Resolves animation frame frame_index of bitmap_tag's sequence_index'th BitmapGroupSequence to a
- * byte offset 8 bytes into the matching BitmapGroupSprite element, or 0 if any handle is invalid or the
- * sequence has no sprites.
+ * Resolves animation frame frame_index of bitmap_tag's sequence_index'th BitmapGroupSequence to a byte offset
+ * 8 bytes into the matching BitmapGroupSprite element, or 0 if any handle is invalid or the sequence has no
+ * sprites.
  * blam-cc: ECX -> bitmap_tag, AX -> sequence_index, DI -> frame_index
  *
  * @address 0x4ab630

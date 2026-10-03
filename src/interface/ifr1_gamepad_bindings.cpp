@@ -45,7 +45,8 @@ static void controls_gamepad_focus_visible_row(widget_instance *list)
 namespace halo::interface {
 
 /**
- * 0x53b620, blam-cc: EAX profile_record
+ * Original engine function controls_gamepad_bindings_restore; the author notes are in
+ * docs/original/interface/controls_gamepad_bindings_restore.txt.
  *
  * @address 0x4b5a70
  */
@@ -72,7 +73,8 @@ uint8_t GamepadBindings::bindings_restore(void)
 }
 
 /**
- * 0x0071944c
+ * Original engine function controls_gamepad_list_add; the author notes are in
+ * docs/original/interface/controls_gamepad_list_add.txt.
  * blam-cc: EAX -> list
  *
  * @address 0x4b5800
@@ -101,7 +103,8 @@ uint8_t GamepadBindings::list_add(const controls_gamepad_record *entry, controls
 }
 
 /**
- * 0x0071944c
+ * Original engine function controls_gamepad_list_find; the author notes are in
+ * docs/original/interface/controls_gamepad_list_find.txt.
  * blam-cc: EDX -> list, stack -> entry
  *
  * @address 0x4b5760
@@ -120,7 +123,7 @@ int32_t GamepadBindings::list_find(const controls_gamepad_record *entry, control
     }
 
     for (i = 0; i < count; i++) {
-        if (memcmp(&list[i].product_guid, &entry->product_guid, sizeof(input_guid) + sizeof(int32_t))  == 0) {
+        if (memcmp(&list[i].product_guid, &entry->product_guid, sizeof(input_guid) + sizeof(int32_t)) == 0) {
             return i;
         }
     }
@@ -128,8 +131,8 @@ int32_t GamepadBindings::list_find(const controls_gamepad_record *entry, control
 }
 
 /**
- * 0x4b5760, this module FIXED (register inputs, objdump): note phrasing only -- rewritten from the reversed
- * "name -> REG" form the checker cannot parse.
+ * Original engine function controls_gamepad_list_remove; the author notes are in
+ * docs/original/interface/controls_gamepad_list_remove.txt.
  * blam-cc: EDI -> list
  *
  * @address 0x4b5850
@@ -164,7 +167,8 @@ uint8_t GamepadBindings::list_remove(const controls_gamepad_record *entry, contr
 }
 
 /**
- * 0x4b5850, blam-cc: EDI list
+ * Original engine function controls_gamepad_lists_load; the author notes are in
+ * docs/original/interface/controls_gamepad_lists_load.txt.
  *
  * @address 0x4b58d0
  */

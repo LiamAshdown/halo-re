@@ -17,7 +17,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original ColorMath functions.
+ * Packed ARGB colour helpers: alpha scaling, packing from floats and the cyclic globals colour table.
  */
 class ColorMath {
 public:

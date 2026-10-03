@@ -18,7 +18,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original BlipClassifier functions.
+ * Classifies an object as a radar blip type relative to a local player (friendly, enemy, vehicle).
  */
 class BlipClassifier {
 public:

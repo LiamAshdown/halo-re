@@ -33,7 +33,6 @@ extern "C" uint8_t controls_apply_preset(widget_instance *widget)
 }
 
 /**
- * 0x53ad00, blam-cc: ESI record
  * C ABI entry point; forwards to halo::interface::ControlsBindings::binding_clear.
  * blam-cc: action_index -> EAX
  *
@@ -45,7 +44,6 @@ extern "C" uint8_t controls_binding_clear(int32_t action_index, int32_t device)
 }
 
 /**
- * 0x4b4520, blam-cc: EAX action_index
  * C ABI entry point; forwards to halo::interface::ControlsBindings::binding_list_refresh_rows.
  * blam-cc: widget -> EAX
  *
@@ -109,7 +107,6 @@ extern "C" void controls_device_label_add(const uint16_t *name, int32_t device_t
 }
 
 /**
- * 0x53aa20, is the control bound to the action, blam-cc: ECX action_name, ESI binding
  * C ABI entry point; forwards to halo::interface::ControlsBindings::enumerate_next_assignable_action.
  * blam-cc: device -> EAX, record -> ECX, action_name -> EDI
  *

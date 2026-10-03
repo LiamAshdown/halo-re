@@ -18,7 +18,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original ControlsBindings functions.
+ * Control binding screens: preset application, per-device binding rows and bindable action queries.
  */
 class ControlsBindings {
 public:

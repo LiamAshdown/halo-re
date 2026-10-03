@@ -153,7 +153,8 @@ void PlayDiagnostics::fp_render_model_note(uint32_t model_tag, float pixels, int
 }
 
 /**
- * TEMPORARY: scale, forward, left, up, position of the first FP node
+ * Logs the clip-space position of a world point through the current rasterizer view and projection, and remembers the
+ * first first-person node matrix for the draw-state diagnostics.
  */
 void PlayDiagnostics::fp_clip_note(const float *world, int32_t effect_type)
 {

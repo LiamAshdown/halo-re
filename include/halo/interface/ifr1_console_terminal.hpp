@@ -19,7 +19,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original ConsoleTerminal functions.
+ * The developer console: message pool, input handling, display and the verbose printf paths.
  */
 class ConsoleTerminal {
 public:

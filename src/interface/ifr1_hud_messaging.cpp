@@ -57,9 +57,8 @@ extern hud_globals_flags *hud_flags;
 namespace halo::interface {
 
 /**
- * 0x4ae480, blam-cc: ESI source Adds a new timestamped text message into local player `local_player_index`'s
- * HUD message slot array (reusing a free slot or the oldest one through hud_message_find_slot) and clears the
- * reserved action line flag.
+ * Adds a new timestamped text message into local player `local_player_index`'s HUD message slot array (reusing
+ * a free slot or the oldest one through hud_message_find_slot) and clears the reserved action line flag.
  * blam-cc: local_player_index -> AX
  *
  * @address 0x4ae180
@@ -82,9 +81,9 @@ void HudMessaging::hud_message(int16_t local_player_index, const wchar_t *text)
 }
 
 /**
- * 0x4ab240 Appends a new line of text to the on-screen chat/message listbox GUI control, evicting the oldest
- * entry first if 8 or more are already shown, and stamps its expiry 8000 ms past the current performance-
- * counter time.
+ * Appends a new line of text to the on-screen chat/message listbox GUI control, evicting the oldest entry
+ * first if 8 or more are already shown, and stamps its expiry 8000 ms past the current performance-counter
+ * time.
  *
  * @address 0x4ab4b0
  */
@@ -117,7 +116,8 @@ void HudMessaging::multiplayer_message(const wchar_t *text)
 }
 
 /**
- * 0x4ae480, blam-cc: ESI source
+ * Original engine function hud_add_item_message; the author notes are in
+ * docs/original/interface/hud_add_item_message.txt.
  * blam-cc: EAX -> local_player_index, ECX -> source, BL -> source_kind
  *
  * @address 0x4ae400
@@ -146,10 +146,9 @@ void HudMessaging::add_item_message(int16_t local_player_index, int32_t source, 
 }
 
 /**
- * 0x549af0, starts a 2D impulse sound Clears the local player's 4 message-slot active flags, plays the
- * HUDGlobals checkpoint sound when is_begin is set and one is configured, then displays the checkpoint
- * begin/end text (only when is_begin is set and this build's one local player slot is in use) if a string is
- * configured for it.
+ * Clears the local player's 4 message-slot active flags, plays the HUDGlobals checkpoint sound when is_begin
+ * is set and one is configured, then displays the checkpoint begin/end text (only when is_begin is set and
+ * this build's one local player slot is in use) if a string is configured for it.
  * blam-cc: DL -> is_begin
  *
  * @address 0x4aa310
@@ -190,8 +189,8 @@ void HudMessaging::display_checkpoint_message(uint8_t is_begin)
 }
 
 /**
- * 0x0087a478 Clears the local player's 4 message-slot active flags, then displays the HUDGlobals loading
- * begin/end text (picked by is_begin, see header note) if a string is configured for it.
+ * Clears the local player's 4 message-slot active flags, then displays the HUDGlobals loading begin/end text
+ * (picked by is_begin, see header note) if a string is configured for it.
  * blam-cc: AL -> is_begin
  *
  * @address 0x4aa2a0
@@ -213,8 +212,8 @@ void HudMessaging::display_loading_message(uint8_t is_begin)
 }
 
 /**
- * 0x5578c0; blam-cc: ECX, DX Resolves a weapon-HUD message index to its localized string out of the current
- * hud_globals tag's item_message_text string list, or the shared empty string if the index is out of range.
+ * Resolves a weapon-HUD message index to its localized string out of the current hud_globals tag's
+ * item_message_text string list, or the shared empty string if the index is out of range.
  * blam-cc: message_index -> EDX
  *
  * @address 0x4aa3f0
@@ -234,8 +233,7 @@ uint16_t * HudMessaging::get_message_string(int32_t message_index)
 }
 
 /**
- * 0x4ae180, blam-cc: AX local_player_index Posts a HUD message (via chimera__hud_message) once for every local
- * player in player_data.
+ * Posts a HUD message (via chimera__hud_message) once for every local player in player_data.
  *
  * @address 0x495f50
  */
@@ -314,8 +312,8 @@ hud_message_slot * HudMessaging::message_find_slot(int32_t source, hud_player_me
 }
 
 /**
- * 0x543ce0 (same prototype as first_person_weapon_update.c; pushed as sound, -1, 1.0f, flag) Plays a HUD
- * pickup notification (sound/animation) for an equipment/weapon item, gated on: the object actually existing
+ * (same prototype as first_person_weapon_update.c; pushed as sound, -1, 1.0f, flag) Plays a HUD pickup
+ * notification (sound/animation) for an equipment/weapon item, gated on: the object actually existing
  * (object_try_and_get, type mask 4), its tag's "pickup notification" dependency (+0x478) being set, both stage
  * remaps succeeding, and the referenced weapon_hud_interface tag's message table containing a valid entry for
  * the remapped index.
@@ -415,8 +413,7 @@ void HudMessaging::play_pickup_notification(uint32_t object_or_slot_index, int16
 }
 
 /**
- * 0x4e1930, blam-cc: EAX machine_id, ESI server Posts an item pickup message for a local player, over the
- * network when the game is networked.
+ * Posts an item pickup message for a local player, over the network when the game is networked.
  * blam-cc: count -> EAX, source -> ECX, kind -> DL
  *
  * @address 0x4ae350
@@ -449,7 +446,8 @@ void HudMessaging::post_item_message(int16_t count, int32_t source, uint8_t kind
 }
 
 /**
- * 0x006b3a40
+ * Original engine function hud_set_action_text_shown; the author notes are in
+ * docs/original/interface/hud_set_action_text_shown.txt.
  * blam-cc: local_player_index -> EAX, shown -> BL
  *
  * @address 0x4ae110
@@ -470,8 +468,8 @@ void HudMessaging::set_action_text_shown(int16_t local_player_index, uint8_t sho
 }
 
 /**
- * 0x006b3a40 Points the HUD help text at message message_index of the scenario hud_messages tag; ignored
- * unless show_hud_help_text is on and the scenario has a hud_messages tag.
+ * Points the HUD help text at message message_index of the scenario hud_messages tag; ignored unless
+ * show_hud_help_text is on and the scenario has a hud_messages tag.
  *
  * @address 0x4adb30
  */
@@ -492,7 +490,8 @@ void HudMessaging::set_help_text(int16_t message_index)
 }
 
 /**
- * 0x006b3a40
+ * Original engine function hud_set_message_icon_argument; the author notes are in
+ * docs/original/interface/hud_set_message_icon_argument.txt.
  * blam-cc: local_player_index -> EAX, slot -> ESI
  *
  * @address 0x4ae050
@@ -509,7 +508,8 @@ void HudMessaging::set_message_icon_argument(int16_t local_player_index, int16_t
 }
 
 /**
- * 0x006b3a40
+ * Original engine function hud_set_message_string_argument; the author notes are in
+ * docs/original/interface/hud_set_message_string_argument.txt.
  * blam-cc: local_player_index -> EAX, slot -> ESI
  *
  * @address 0x4ae0b0
@@ -529,8 +529,8 @@ void HudMessaging::set_message_string_argument(int16_t local_player_index, int16
 }
 
 /**
- * 0x006b3a40 Shows message message_index of the scenario hud_messages tag as the objective text for the HUD
- * globals objective up time plus fade time.
+ * Shows message message_index of the scenario hud_messages tag as the objective text for the HUD globals
+ * objective up time plus fade time.
  *
  * @address 0x4adb80
  */
@@ -558,8 +558,8 @@ void HudMessaging::set_objective_text(int16_t message_index)
 }
 
 /**
- * 0x0087bc14 Shows HUDGlobals hud_messages message message_index as the action message line of a local player,
- * clearing its substitution argument kinds.
+ * Shows HUDGlobals hud_messages message message_index as the action message line of a local player, clearing
+ * its substitution argument kinds.
  * blam-cc: message_index -> EAX
  *
  * @address 0x4adfc0

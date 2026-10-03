@@ -21,7 +21,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original HudFrame functions.
+ * Per-frame HUD orchestration for the displayed local player: update dispatch, unit interface, weapon and grenade panels.
  */
 class HudFrame {
 public:

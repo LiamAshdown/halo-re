@@ -18,7 +18,7 @@
 namespace halo::interface {
 
 /**
- * Behaviour of the original HudMotionSensor functions.
+ * Motion sensor blips update for the HUD.
  */
 class HudMotionSensor {
 public:

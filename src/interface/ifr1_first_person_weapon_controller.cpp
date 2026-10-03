@@ -89,10 +89,9 @@ static float script_source_value(uint16_t source)
 namespace halo::interface {
 
 /**
- * 0x492ad0, this module If unit_index belongs to a local player with an attached first-person weapon, looks up
- * the weapon model's "flashlight" marker and derives a centered origin (marker position offset back half the
- * marker's forward extent), the raw forward vector as an extents triple, and the marker's up vector as a
- * direction triple.
+ * If unit_index belongs to a local player with an attached first-person weapon, looks up the weapon model's
+ * "flashlight" marker and derives a centered origin (marker position offset back half the marker's forward
+ * extent), the raw forward vector as an extents triple, and the marker's up vector as a direction triple.
  *
  * @address 0x492b80
  */
@@ -176,18 +175,18 @@ uint32_t FirstPersonWeaponController::get_marker_data(datum_index weapon_index, 
 }
 
 /**
- * 0x4942e0, this module -- UNSURE name, see that file (Re)initializes local_player_index's
- * first_person_weapon_interface when its controlled unit's current weapon (and that weapon's hud_interface tag
- * and first-person model) are all valid: if it was already attached, detaches first; resets the
- * animation/pose/blend fields; looks up whether the weapon and device HUD elements match this globals-defined
- * interface's message table (hud_meter_find_matching_elements); and, only if both match, commits weapon_index,
- * clears the remaining scratch fields, enters state 1 and re-attaches. Always finishes by resetting the
- * interface's shutdown countdown (first_person_weapon_interface_tick_reset).
+ * name, see that file (Re)initializes local_player_index's first_person_weapon_interface when its controlled
+ * unit's current weapon (and that weapon's hud_interface tag and first-person model) are all valid: if it was
+ * already attached, detaches first; resets the animation/pose/blend fields; looks up whether the weapon and
+ * device HUD elements match this globals-defined interface's message table (hud_meter_find_matching_elements);
+ * and, only if both match, commits weapon_index, clears the remaining scratch fields, enters state 1 and re-
+ * attaches. Always finishes by resetting the interface's shutdown countdown
+ * (first_person_weapon_interface_tick_reset).
  * blam-cc: stack -> local_player_index
  *
  * @address 0x493c60
  */
-void FirstPersonWeaponController::interface_initialize(int16_t local_player_index)
+void FirstPersonWeaponController::interface_initialize()
 {
     first_person_weapon_interface *fp = &first_person_weapon_interfaces[local_player_index];
     uint8_t was_attached = fp->attached;
@@ -251,7 +250,7 @@ void FirstPersonWeaponController::interface_initialize(int16_t local_player_inde
     }
 
     fp->animation_index = -1;
-    if (node_array_block[4] > 4 ) {
+    if (node_array_block[4] > 4) {
         marker_node_index = *(int16_t *)(*(int32_t *)((char *)node_array_block + 0x14) + 8);
         if (marker_node_index != -1 &&
             *(int16_t *)(*(char **)(hud_interface_tag_data + 0x78) + 0x22 +
@@ -295,9 +294,9 @@ void FirstPersonWeaponController::interface_initialize(int16_t local_player_inde
 }
 
 /**
- * 0x493150, this module Local player 0's per-frame first-person weapon entry point: if the current player slot
- * is empty, does nothing; otherwise re-initializes the cached weapon-interface record whenever the controlled
- * unit changed (or the record has no weapon yet), then runs the main weapon update.
+ * Local player 0's per-frame first-person weapon entry point: if the current player slot is empty, does
+ * nothing; otherwise re-initializes the cached weapon-interface record whenever the controlled unit changed
+ * (or the record has no weapon yet), then runs the main weapon update.
  *
  * @address 0x4923d0
  */
@@ -327,14 +326,13 @@ void FirstPersonWeaponController::interface_tick(void)
 }
 
 /**
- * 0x4449f0, blam-cc: ESI resources If local_player_index's interface currently has a weapon, touches that
- * weapon's predicted resources (forcing them into their streaming caches); either way, reseeds the interface's
- * shutdown countdown to 0x1e.
+ * If local_player_index's interface currently has a weapon, touches that weapon's predicted resources (forcing
+ * them into their streaming caches); either way, reseeds the interface's shutdown countdown to 0x1e.
  * blam-cc: AX -> local_player_index
  *
  * @address 0x4942e0
  */
-void FirstPersonWeaponController::interface_tick_reset(int16_t local_player_index)
+void FirstPersonWeaponController::interface_tick_reset()
 {
     first_person_weapon_interface *fp = &first_person_weapon_interfaces[local_player_index];
 
@@ -349,23 +347,23 @@ void FirstPersonWeaponController::interface_tick_reset(int16_t local_player_inde
 }
 
 /**
- * 0x493c60 Applies weapon HUD action `action_code` to local_player_index's first-person weapon interface: 0
- * nudges the charge float, 9/10 forward to unit_invalidate_local_player_zoom_level (presumably a reload/swap
- * trigger), 12 re-initializes the whole interface, 13 clears the weapon index. Then, unless the weapon index
- * is already clear, validates the action against the weapon's magazine state (only for a "reload-family"
- * animation state or an active magazine) and the weapon tag's +0x4e2 field (first_person_weapon_set_state.c's
- * unresolved weapon-type-shaped enum, required == 1 for actions 9/10); on success, enters animation state 1.
- * Action 12 additionally clears blend_end. REWRITTEN from objdump 0x4940f0..0x4942b4. Jump table
- * 0x4942cc/0x4942b8: 0 -> charge += 0.05, 9/10 -> unit_invalidate_local_player_zoom_level(interface unit), 12
- * -> interface initialize, 13 -> weapon = none. For actions 9/10 on a weapon whose tag +0x4e2 == 1 the reload
- * marker at +0x1e94 is recomputed. Marker -1 enters state 0xd and marker 0 or 2 enters state 0xf. Otherwise
- * (marker 1, other actions or no weapon) the state is item_type_to_message_stage(action) unless that is -1.
- * The draft dropped the zoom-invalidate unit argument and always entered state 0.
+ * Applies weapon HUD action `action_code` to local_player_index's first-person weapon interface: 0 nudges the
+ * charge float, 9/10 forward to unit_invalidate_local_player_zoom_level (presumably a reload/swap trigger), 12
+ * re-initializes the whole interface, 13 clears the weapon index. Then, unless the weapon index is already
+ * clear, validates the action against the weapon's magazine state (only for a "reload-family" animation state
+ * or an active magazine) and the weapon tag's +0x4e2 field (first_person_weapon_set_state.c's unresolved
+ * weapon-type-shaped enum, required == 1 for actions 9/10); on success, enters animation state 1. Action 12
+ * additionally clears blend_end. REWRITTEN from objdump 0x4940f0..0x4942b4. Jump table 0x4942cc/0x4942b8: 0 ->
+ * charge += 0.05, 9/10 -> unit_invalidate_local_player_zoom_level(interface unit), 12 -> interface initialize,
+ * 13 -> weapon = none. For actions 9/10 on a weapon whose tag +0x4e2 == 1 the reload marker at +0x1e94 is
+ * recomputed. Marker -1 enters state 0xd and marker 0 or 2 enters state 0xf. Otherwise (marker 1, other
+ * actions or no weapon) the state is item_type_to_message_stage(action) unless that is -1. The draft dropped
+ * the zoom-invalidate unit argument and always entered state 0.
  * blam-cc: stack -> local_player_index, action_code
  *
  * @address 0x4940f0
  */
-void FirstPersonWeaponController::process_action(int16_t local_player_index, int16_t action_code)
+void FirstPersonWeaponController::process_action(int16_t action_code)
 {
     first_person_weapon_interface *fp;
     uint8_t *fp_raw;
@@ -445,13 +443,13 @@ skip_state_change:
 }
 
 /**
- * 0x455c80, module effects Attaches or detaches the first-person weapon model for one local player's interface
- * record, (re)binding or releasing its particle markers to match, but only when the requested state differs
- * from the record's current attached flag.
+ * Attaches or detaches the first-person weapon model for one local player's interface record, (re)binding or
+ * releasing its particle markers to match, but only when the requested state differs from the record's current
+ * attached flag.
  *
  * @address 0x493e50
  */
-void FirstPersonWeaponController::set_attached(int16_t local_player_index, uint8_t attached)
+void FirstPersonWeaponController::set_attached(uint8_t attached)
 {
     first_person_weapon_interface *fp = &first_person_weapon_interfaces[local_player_index];
 
@@ -467,17 +465,17 @@ void FirstPersonWeaponController::set_attached(int16_t local_player_index, uint8
 }
 
 /**
- * 0x549ee0, ECX Validates and applies a first-person weapon animation state transition. new_state (AX) is
- * first remapped 0x13->2 / 0x14->0x15 while the current weapon is overheated (weapon_data.flags &
- * _weapon_overheated_bit, object+0x22c); a battery of per-state gates then either rejects the transition
- * outright or falls through to look up an animation index via item_type_to_animation_stage and the weapon's
- * hud_interface tag message table, applying the new state (and snapshotting the previous pose first, when
- * force_pose_snapshot is set and no blend is already pending) only if that lookup succeeds.
+ * Validates and applies a first-person weapon animation state transition. new_state (AX) is first remapped
+ * 0x13->2 / 0x14->0x15 while the current weapon is overheated (weapon_data.flags & _weapon_overheated_bit,
+ * object+0x22c); a battery of per-state gates then either rejects the transition outright or falls through to
+ * look up an animation index via item_type_to_animation_stage and the weapon's hud_interface tag message
+ * table, applying the new state (and snapshotting the previous pose first, when force_pose_snapshot is set and
+ * no blend is already pending) only if that lookup succeeds.
  * blam-cc: AX -> new_state, stack -> local_player_index, force_pose_snapshot
  *
  * @address 0x492e60
  */
-void FirstPersonWeaponController::set_state(int16_t local_player_index, uint8_t force_pose_snapshot, int16_t new_state)
+void FirstPersonWeaponController::set_state(uint8_t force_pose_snapshot, int16_t new_state)
 {
     first_person_weapon_interface *fp;
     uint8_t *weapon_obj;
@@ -600,13 +598,13 @@ void FirstPersonWeaponController::set_state(int16_t local_player_index, uint8_t 
 }
 
 /**
- * 0x006b2d98 Copies the live animation_control block into previous_pose (for blending into the next state),
- * with the copy length derived from the first-person animation graph's node count, then extends blend_end to
- * blend_gap (resetting blend_start to 0) if the current blend window is shorter than blend_gap.
+ * Copies the live animation_control block into previous_pose (for blending into the next state), with the copy
+ * length derived from the first-person animation graph's node count, then extends blend_end to blend_gap
+ * (resetting blend_start to 0) if the current blend window is shorter than blend_gap.
  *
  * @address 0x4930b0
  */
-void FirstPersonWeaponController::snapshot_pose(int16_t local_player_index, int16_t blend_gap)
+void FirstPersonWeaponController::snapshot_pose(int16_t blend_gap)
 {
     first_person_weapon_interface *fp;
     uint8_t *weapon_obj;
@@ -641,10 +639,10 @@ void FirstPersonWeaponController::snapshot_pose(int16_t local_player_index, int1
 }
 
 /**
- * 0x493740, this module Each frame, decides whether the local player's first-person weapon model should be
- * attached: only while its unit and current weapon both exist, the active camera is first-person, and the
- * zoom/action lookup above reports no override in progress. Applies that decision through
- * first_person_weapon_set_attached, then refreshes the animation controls if it ends up attached.
+ * Each frame, decides whether the local player's first-person weapon model should be attached: only while its
+ * unit and current weapon both exist, the active camera is first-person, and the zoom/action lookup above
+ * reports no override in progress. Applies that decision through first_person_weapon_set_attached, then
+ * refreshes the animation controls if it ends up attached.
  *
  * @address 0x492430
  */
@@ -687,13 +685,13 @@ void FirstPersonWeaponController::update_active_state(void)
 }
 
 /**
- * 0x4d6fc0 If the local player's first-person weapon is attached with a valid unit and weapon and that
- * weapon's hud_interface tag is assigned: samples the cluster ambient light at the unit's position, builds a
- * small "dynamic light" params block (armed only while the unit has flag 0x10 set or unknown_37c is positive,
- * in which case it carries unknown_37c/380 and the camera position), then for each of the weapon HUD element
- * and (if the globals have first-person hands assigned) the device HUD element, gathers the matching permuted
- * node records and dispatches them to render_model along with the weapon's own
- * change_colors/function_out_values (for the weapon-HUD case) or the unit's (for the device-HUD case).
+ * If the local player's first-person weapon is attached with a valid unit and weapon and that weapon's
+ * hud_interface tag is assigned: samples the cluster ambient light at the unit's position, builds a small
+ * "dynamic light" params block (armed only while the unit has flag 0x10 set or unknown_37c is positive, in
+ * which case it carries unknown_37c/380 and the camera position), then for each of the weapon HUD element and
+ * (if the globals have first-person hands assigned) the device HUD element, gathers the matching permuted node
+ * records and dispatches them to render_model along with the weapon's own change_colors/function_out_values
+ * (for the weapon-HUD case) or the unit's (for the device-HUD case).
  * blam-cc: EAX -> model_tag_ref, ECX -> node_records, 11 stack arguments (objdump 0x492636..0x49266a)
  * blam-cc: none
  *
@@ -896,16 +894,16 @@ post_hud:
 }
 
 /**
- * 0x492e60, this module Looks at the local player's current first-person weapon animation state and either
- * leaves it alone (states 3, 4, and the default case), decrements a countdown in place (state 0x12), or
- * requests a transition via first_person_weapon_set_state: states 0xd/0xe and 0xf each gate on the weapon
- * tag's +0x4e2 field and a device_hud_element entry before either resetting to state 0 or falling through to
- * the shared 0x10/0x11 "ready" transition that every other listed state (0, 5-11, 0x10, 0x11, 0x13, 0x14, 0x16
- * directly; 1, 2, 0x15, 0x17 to state 3 instead) reaches.
+ * Looks at the local player's current first-person weapon animation state and either leaves it alone (states
+ * 3, 4, and the default case), decrements a countdown in place (state 0x12), or requests a transition via
+ * first_person_weapon_set_state: states 0xd/0xe and 0xf each gate on the weapon tag's +0x4e2 field and a
+ * device_hud_element entry before either resetting to state 0 or falling through to the shared 0x10/0x11
+ * "ready" transition that every other listed state (0, 5-11, 0x10, 0x11, 0x13, 0x14, 0x16 directly; 1, 2,
+ * 0x15, 0x17 to state 3 instead) reaches.
  *
  * @address 0x492d20
  */
-void FirstPersonWeaponController::update_state(int16_t local_player_index)
+void FirstPersonWeaponController::update_state()
 {
     first_person_weapon_interface *fp;
     uint8_t *fpb;
