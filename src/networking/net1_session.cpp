@@ -83,6 +83,20 @@ static auto &network_session_start_variant_name = halo::link::ref<char []>(halo:
 static auto &network_session_host_closing = halo::link::ref<uint8_t>(halo::networking::vars().network_session_host_closing);
 static auto &network_session_host_last_tick = halo::link::ref<int32_t>(halo::networking::vars().network_session_host_last_tick);
 
+#pragma pack(push, 1)
+/** The challenge payload (message 0x0f) of a settings acknowledgement: the player entry twice and the profile. */
+struct settings_ack_frame {
+    uint8_t unknown_00[6];       // 0x00
+    network_player_entry player; // 0x06 built from the profile, then copied to payload
+    network_player_entry payload; // 0x26
+    uint8_t profile[0x1ffc];     // 0x46 one profile_globals_block template row
+    uint8_t unused[0x2070 - 0x2042];
+};
+#pragma pack(pop)
+static_assert(offsetof(settings_ack_frame, payload) == 0x26);
+static_assert(offsetof(settings_ack_frame, profile) == 0x46);
+static_assert(sizeof(settings_ack_frame) == 0x2070);
+
 namespace halo::networking {
 
 /**
@@ -271,37 +285,29 @@ int32_t GameRuntime::is_active()
  *
  * @address 0x4d9f50
  */
-char GameRuntime::settings_ack_send(uint8_t *client, int16_t template_row)
+char GameRuntime::settings_ack_send(uint8_t *client_bytes, int16_t template_row)
 {
-
-    uint8_t frame[0x2070];
-    uint32_t *dst, *src;
-    int32_t i;
+    network_client_globals *client = (network_client_globals *)client_bytes;
+    settings_ack_frame frame;
     int32_t mode;
     int32_t *challenge;
-    uint8_t *channel;
+    network_channel *channel;
     int32_t bits_to_send;
     int32_t total_bits;
     int32_t free_bits;
     char result;
 
-    src = &profile_globals_block[(uint32_t)template_row * 0x801];
-    dst = (uint32_t *)(frame + 0x46);
-    for (i = 0x7ff; i != 0; i = i - 1) {
-        *dst = *src;
-        src = src + 1;
-        dst = dst + 1;
-    }
-    *(uint8_t *)(frame + 0x23) = (uint8_t)template_row;
-    *(uint8_t *)(frame + 0x22) = *client;
-    wcsncpy((wchar_t *)(frame + 0x6), (const wchar_t *)(frame + 0x48), 0xb);
-    *(uint16_t *)(frame + 0x1e) = *(uint16_t *)(frame + 0x160);
-    *(uint16_t *)(frame + 0x20) = 0xffff;
-    *(uint8_t *)(frame + 0x24) = 0xff;
-    *(uint8_t *)(frame + 0x25) = 0xff;
-    *(uint16_t *)(frame + 0x1c) = 0;
+    memcpy(frame.profile, &profile_globals_block[(uint32_t)template_row * 0x801], sizeof(frame.profile));
+    frame.player.machine_player_index = (int8_t)template_row;
+    frame.player.machine_index = (int8_t)client->machine_index;
+    wcsncpy((wchar_t *)frame.player.name, (const wchar_t *)(frame.profile + 2), 0xb);
+    frame.player.color_index = *(int16_t *)(frame.profile + 0x11a);
+    frame.player.icon_index = (int16_t)0xffff;
+    frame.player.team_index = (int8_t)0xff;
+    frame.player.slot_index = (int8_t)0xff;
+    frame.player.name[11] = 0;
 
-    mode = *(int16_t *)(client + 0xeda);
+    mode = client->state;
     switch (mode) {
     case 0:
     case 1:
@@ -309,35 +315,33 @@ char GameRuntime::settings_ack_send(uint8_t *client, int16_t template_row)
         return 0;
     case 2:
     case 3:
-        for (i = 0; i < 8; i = i + 1) {
-            ((uint32_t *)(frame + 0x26))[i] = ((uint32_t *)(frame + 0x6))[i];
-        }
+        frame.payload = frame.player;
 
-        challenge = (int32_t *)halo::networking::network_prepare_challenge_packet(0x0f, frame + 0x26);
+        challenge = (int32_t *)halo::networking::network_prepare_challenge_packet(0x0f, &frame.payload);
         if (challenge == 0) {
             return 1;
         }
-        channel = *(uint8_t **)(client + 0xadc);
+        channel = client->channel;
         bits_to_send = (uint32_t)(*(uint16_t *)challenge >> 4) * 8;
         total_bits = bits_to_send + 1;
-        if ((*(uint8_t *)&((network_channel *)channel)->flags & 1) != 0) {
+        if ((*(uint8_t *)&channel->flags & 1) != 0) {
             return 1;
         }
-        free_bits = ((*(int32_t *)&((network_channel *)channel)->outgoing.stream.last_bit + *(int32_t *)&((network_channel *)channel)->outgoing.stream.byte_cursor * -8) -
-                     *(int32_t *)&((network_channel *)channel)->outgoing.stream.bit_cursor) + 1;
+        free_bits = ((*(int32_t *)&channel->outgoing.stream.last_bit + *(int32_t *)&channel->outgoing.stream.byte_cursor * -8) -
+                     *(int32_t *)&channel->outgoing.stream.bit_cursor) + 1;
         break;
     default:
         return 1;
     }
 
     result = 1;
-    if (total_bits <= free_bits || (result = halo::networking::network_channel_stream_flush((network_channel_stream *)(channel + 0x10), (network_channel *)channel, 1), result != 0)) {
+    if (total_bits <= free_bits || (result = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1), result != 0)) {
 
-        ((network_channel *)channel)->send_budget = ((network_channel *)channel)->send_budget + bits_to_send + 1;
-        { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
-        ((network_channel *)channel)->outgoing.empty = 0;
-        halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(challenge), bits_to_send);
-        ((network_channel *)channel)->outgoing.empty = 0;
+        channel->send_budget = channel->send_budget + bits_to_send + 1;
+        { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1); }
+        channel->outgoing.empty = 0;
+        halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)(challenge), bits_to_send);
+        channel->outgoing.empty = 0;
     }
     return result;
 }
