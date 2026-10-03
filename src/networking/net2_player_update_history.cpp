@@ -19,6 +19,7 @@
 #include "halo/networking/net2_player_update_history.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array * player_data;
@@ -34,7 +35,6 @@ extern char player_update_log_file_mode_string[];
 extern double sqrt(double x);
 extern uint8_t unit_updates_suppressed;
 extern void player_compute_view_forward_vector(void);
-extern void object_update(void);
 extern network_client_globals * network_client;
 extern void players_find_local_owned_unclear(void);
 extern network_id_table * machine_table;
@@ -448,7 +448,7 @@ int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
                         halo::units::biped_update(unit_index);
                         halo::units::biped_update(unit_index);
                     } else {
-                        object_update();
+                        halo::objects::object_update(unit_index);
                     }
                     remaining_ticks = remaining_ticks - 1;
                     unit_updates_suppressed = 0;

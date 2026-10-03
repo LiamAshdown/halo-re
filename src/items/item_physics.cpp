@@ -4,6 +4,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -11,16 +12,11 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t *global_structure_collision_bsp;
 extern void item_detonation_timer_start(uint32_t object_index);
 extern void item_compute_rotation(uint32_t object_index);
-extern void object_list_membership_set(uint32_t object_index, char add);
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
-extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location);
 extern void random_get_table_point(real_vector3d *out);
 extern double sqrt(double x);
-extern void object_recompute_basis_from_marker_delta(object *obj, object_marker *marker, real_matrix4x3 *output_matrix);
 extern double fsin(double x);
 extern double fcos(double x);
 extern data_array *player_data;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 void halo::items::item_accelerate(uint32_t item_index, real_vector3d *delta, uint8_t apply_detonation_timer);
 void halo::items::item_align_to_normal_and_point(real_point3d *out_position, uint32_t item_index, real_vector3d *normal, real_point3d *point);
 uint8_t halo::items::item_get_effective_position(datum_index object_index, real_point3d *out_position);
@@ -59,7 +55,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
         obj->flags &= ~(uint32_t)_object_at_rest_bit;
     } else if (0.0001f <= delta->i * delta->i + delta->j * delta->j + delta->k * delta->k) {
         object_marker marker;
-        if (object_get_node_local_transform(item_index, (char *)"ground point", &marker, 1) != 0) {
+        if (halo::objects::object_get_node_local_transform(item_index, (char *)"ground point", &marker, 1) != 0) {
             real_plane3d plane;
             int32_t surface_plane_ref = *(int32_t *)((uint8_t *)((ModelCollisionGeometryBSP *)global_structure_collision_bsp)->surfaces.pointer
                 + (int32_t)(int16_t)item->resting_surface_index * 0x0c);
@@ -74,7 +70,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
             corrected_position.y = plane.normal.j * correction + marker_position.y;
             corrected_position.z = plane.normal.k * correction + marker_position.z;
 
-            object_set_position_and_relink(&corrected_position, item_index, 0);
+            halo::objects::object_set_position_and_relink(&corrected_position, item_index, 0);
         }
         obj->flags &= ~(uint32_t)_object_at_rest_bit;
         item->flags &= ~(uint32_t)_item_at_rest_on_structure_bit;
@@ -116,7 +112,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
         real_vector3d axis;
         real angle;
 
-        if (object_get_node_local_transform(item_index, (char *)"ground point", &marker, 1) != 0) {
+        if (halo::objects::object_get_node_local_transform(item_index, (char *)"ground point", &marker, 1) != 0) {
             axis = marker.node_transform.up;
         } else {
             axis = *halo::math::globals().global_up3d_pointer;
@@ -128,7 +124,7 @@ void item_ref::accelerate(real_vector3d *delta, uint8_t apply_detonation_timer)
     }
 
     halo::items::item_compute_rotation(item_index);
-    object_list_membership_set(item_index, 0);
+    halo::objects::object_list_membership_set(item_index, 0);
 }
 
 /**
@@ -151,7 +147,7 @@ void item_ref::align_to_normal_and_point(real_point3d *out_position, real_vector
     real s;
     real_point3d discard;
 
-    if (object_get_node_local_transform(item_index, (char *)"ground point", &marker, 1) == 0) {
+    if (halo::objects::object_get_node_local_transform(item_index, (char *)"ground point", &marker, 1) == 0) {
         return;
     }
 
@@ -187,7 +183,7 @@ void item_ref::align_to_normal_and_point(real_point3d *out_position, real_vector
     halo::math::matrix4x3_from_forward_up(*normal, rotated_forward, basis);
     basis.position = *point;
 
-    object_recompute_basis_from_marker_delta(obj, &marker, &basis);
+    halo::objects::object_recompute_basis_from_marker_delta(obj, &marker, &basis);
 
     *out_position = obj->position;
 }
@@ -237,7 +233,7 @@ void item_ref::compute_rotation()
 uint8_t item_ref::get_effective_position(real_point3d *out_position)
 {
     datum_index object_index = datum;
-    object *obj = object_try_and_get(object_index, _object_mask_item);
+    object *obj = halo::objects::object_try_and_get(object_index, _object_mask_item);
 
     out_position->x = 0.0f;
     out_position->y = 0.0f;

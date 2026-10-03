@@ -19,6 +19,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -39,7 +40,6 @@ extern network_id_table *machine_table;
 extern network_id_table *object_network_id_table;
 extern uint8_t player_execute_pending_interaction(uint32_t handle);
 extern uint8_t player_swap_to_weapon(uint32_t player_index, datum_index target_weapon);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index);
 extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_index unit_handle,
     uint8_t reset_stats);
@@ -53,7 +53,6 @@ extern void player_set_team_by_color(uint8_t new_team, int8_t target_team_index_
 extern void game_engine_end_game_sequence_stage1(void);
 extern void game_engine_end_game_sequence_stage2(void);
 extern void game_engine_end_game_sequence_stage3(void);
-extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern uint8_t network_object_index_cache[];
 extern int32_t network_index_cache_find_or_allocate_slot(uint8_t *container, int32_t key);
 extern uint8_t network_message_scratch[0x7ff8];
@@ -315,7 +314,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                 datum_index new_unit = (datum_index)((int32_t *)object_network_id_table->handles)[
                     message.unit_pooled_id];
                 if (new_unit != (datum_index)0xffffffff) {
-                    object *unit_obj = object_try_and_get(new_unit, 3);
+                    object *unit_obj = halo::objects::object_try_and_get(new_unit, 3);
                     if (unit_obj != 0) {
                         p->unit = new_unit;
                         p->team = message.team;
@@ -454,7 +453,7 @@ void Notifications::dispatch_item_pickup_event(int32_t machine_id, int32_t picke
 
     fields.slot = 0;
     if (machine_id != -1) {
-        fields.slot = hash_table_get(&object_network_id_table->id_to_index, (int32_t)machine_id);
+        fields.slot = halo::objects::hash_table_get(&object_network_id_table->id_to_index, (int32_t)machine_id);
     }
     if (fields.slot == -1) {
         fields.slot = network_index_cache_find_or_allocate_slot(network_object_index_cache, machine_id);
@@ -586,7 +585,7 @@ uint8_t Notifications::notify_weapon_ready_state_change(datum_index unit_index, 
     if (current_game_engine == 0) {
         return 1;
     }
-    weapon = object_try_and_get(weapon_index, _object_mask_weapon);
+    weapon = halo::objects::object_try_and_get(weapon_index, _object_mask_weapon);
     if (weapon == 0) {
         return 1;
     }

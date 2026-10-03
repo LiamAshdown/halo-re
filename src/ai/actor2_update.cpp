@@ -4,6 +4,7 @@
 #include "halo/items/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
@@ -2102,7 +2103,6 @@ namespace actor_update_swarm_component_position_local {
 extern "C" {
 extern data_array *object_data;
 extern data_array *swarm_component_data;
-extern void object_get_position(real_point3d *out_position, datum_index object_index);
 }
 }
 
@@ -2121,7 +2121,7 @@ void ActorOps::update_swarm_component_position(datum_index component_index, datu
 
     marker = (unit_object->type == 0) ? *(datum_index *)((uint8_t *)unit_object + 0x4d8) : (datum_index)k_datum_index_none;
 
-    object_get_position(&component->position, unit_index);
+    halo::objects::object_get_position(&component->position, unit_index);
     component->marker_index = marker;
 }
 
@@ -2211,7 +2211,6 @@ void ActorView::update_target_combat_status()
 namespace actor_update_target_lead_position_local {
 extern "C" {
 extern data_array *actor_data;
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 }
 
@@ -2245,7 +2244,7 @@ void ActorView::update_target_lead_position()
         }
         return;
     }
-    if (object_try_and_get(((actor *)a)->unit_index, 1) != 0) {
+    if (halo::objects::object_try_and_get(((actor *)a)->unit_index, 1) != 0) {
         ((struct actor *)a)->pathfinding_surface_index = (int32_t)halo::units::biped_get_cached_look_at_position(((actor *)a)->unit_index, point);
     }
 }

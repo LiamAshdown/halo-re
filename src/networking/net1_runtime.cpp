@@ -9,6 +9,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count];
@@ -69,8 +70,6 @@ extern uint8_t network_message_scratch[0x7ff8];
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern void network_event_feed_flush(void);
-extern void hash_table_set_or_remove(hash_table *table, int32_t key, int32_t value);
-extern int32_t hash_table_get(hash_table *table, uint32_t key);
 extern uint8_t network_summary_log_needs_open;
 }
 
@@ -887,7 +886,7 @@ int32_t IndexCache::find_or_allocate_slot(uint8_t *container, int32_t key)
             break;
         }
         if (free_slot != -1) {
-            hash_table_set_or_remove(table, key, free_slot);
+            halo::objects::hash_table_set_or_remove(table, key, free_slot);
             cache->slots[free_slot] = key;
             return free_slot;
         }
@@ -895,7 +894,7 @@ int32_t IndexCache::find_or_allocate_slot(uint8_t *container, int32_t key)
     if (free_slot == -1) {
         return -1;
     }
-    hash_table_set_or_remove(table, key, free_slot);
+    halo::objects::hash_table_set_or_remove(table, key, free_slot);
     cache->slots[free_slot] = key;
     return free_slot;
 }
@@ -910,7 +909,7 @@ int32_t IndexCache::get(hash_table *table, int32_t key)
     if (key == -1) {
         return 0;
     }
-    return hash_table_get(table, key);
+    return halo::objects::hash_table_get(table, key);
 }
 
 /**
@@ -932,9 +931,9 @@ uint8_t IndexCache::insert_if_free(uint8_t *container, int32_t slot, int32_t key
     if (*slot_ptr != -1) {
         return 0;
     }
-    if (hash_table_get(table, key) == -1) {
+    if (halo::objects::hash_table_get(table, key) == -1) {
         *slot_ptr = key;
-        hash_table_set_or_remove(table, key, slot);
+        halo::objects::hash_table_set_or_remove(table, key, slot);
         return 1;
     }
     return 0;
@@ -965,7 +964,7 @@ uint8_t IndexCache::remove(uint8_t *container, int32_t key)
                     return 0;
                 }
                 cache->slots[node->value] = -1;
-                hash_table_set_or_remove(table, key, -1);
+                halo::objects::hash_table_set_or_remove(table, key, -1);
                 return 1;
             }
         }

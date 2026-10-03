@@ -11,10 +11,10 @@
 #include "networking.h"
 
 #include "halo/game/game1_notifications.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern uint8_t shared_hud_text_draw_state;
-extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern uint8_t *machine_table;
 extern uint8_t network_message_scratch[0x7ff8];
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
@@ -45,7 +45,7 @@ void Notifications::notify_object_value_event(uint8_t value_byte, int32_t hash_k
     fields.value_byte = value_byte;
     fields.hash_result = 0;
     if (hash_key != -1) {
-        fields.hash_result = hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)hash_key);
+        fields.hash_result = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)hash_key);
         if (fields.hash_result == -1) {
             fields.hash_result = 0;
         }
@@ -86,7 +86,7 @@ void Notifications::notify_player_interaction(uint32_t primary_key, uint32_t edi
 
     fields.primary_hash = 0;
     if (primary_key != 0xffffffff) {
-        fields.primary_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)primary_key);
+        fields.primary_hash = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)primary_key);
         if (fields.primary_hash == -1) {
             fields.primary_hash = 0;
         }
@@ -94,7 +94,7 @@ void Notifications::notify_player_interaction(uint32_t primary_key, uint32_t edi
     fields.mode = mode;
     fields.edi_hash = 0;
     if (edi_key != 0xffffffff) {
-        fields.edi_hash = hash_table_get(&object_network_id_table->id_to_index, (int32_t)edi_key);
+        fields.edi_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, (int32_t)edi_key);
         if (fields.edi_hash == -1) {
             fields.edi_hash = 0;
         }
@@ -103,7 +103,7 @@ void Notifications::notify_player_interaction(uint32_t primary_key, uint32_t edi
     fields.low_secondary_key = (int16_t)interaction_seat;
     fields.secondary_hash = 0;
     if (secondary_key != -1) {
-        fields.secondary_hash = hash_table_get(&object_network_id_table->id_to_index, (int32_t)secondary_key);
+        fields.secondary_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, (int32_t)secondary_key);
         if (fields.secondary_hash == -1) {
             fields.secondary_hash = 0;
         }

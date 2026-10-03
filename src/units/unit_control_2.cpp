@@ -6,17 +6,15 @@
 #include "halo/units/flags.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/core/flag_bits.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern float *global_zero_vector2d_pointer;
 extern real_point3d *global_zero_vector3d_pointer;
-extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up);
 extern double atan2(double y, double x);
 extern double sqrt(double x);
 extern Globals *global_globals;
-extern object * object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
 }
 
 namespace halo::units {
@@ -29,7 +27,7 @@ static void aiming_angles_in_unit_frame(uint32_t unit_index, real_vector3d *dire
     real_vector3d local;
 
     frame.scale = 1.0f;
-    object_get_orientation(&frame.forward, unit_index, &frame.up);
+    halo::objects::object_get_orientation(&frame.forward, unit_index, &frame.up);
     halo::math::vector3d_cross_product(frame.left, frame.forward, frame.up);
     frame.position = *global_zero_vector3d_pointer;
     halo::math::matrix4x3_inverse_transform_normal(local, *direction, frame);
@@ -177,7 +175,7 @@ void UnitView::update_autoaim_interaction()
     if (tracked != 0) {
         datum_index damage_effect = *(datum_index *)(tracked + 0x78);
         if (damage_effect != k_datum_index_none) {
-            uint8_t *source = (uint8_t *)object_try_and_get(*(datum_index *)&((struct unit_object *)obj)->unit.flaming_responsible_object, k_datum_index_none);
+            uint8_t *source = (uint8_t *)halo::objects::object_try_and_get(*(datum_index *)&((struct unit_object *)obj)->unit.flaming_responsible_object, k_datum_index_none);
             damage_data dd;
 
             memset(&dd, 0, sizeof(dd));
@@ -198,7 +196,7 @@ void UnitView::update_autoaim_interaction()
                 dd.responsible_object = creator;
                 dd.team_index = ((struct object *)source)->owner_team;
             }
-            object_apply_damage(&dd, unit_index, -1, -1, -1, 0);
+            halo::objects::object_apply_damage(&dd, unit_index, -1, -1, -1, 0);
         }
     }
 

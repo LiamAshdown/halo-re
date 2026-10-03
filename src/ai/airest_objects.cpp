@@ -6,6 +6,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -22,13 +23,11 @@ extern data_array *object_list_header_data;
 extern data_array *object_list_reference_data;
 extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters);
 extern void encounters_recompute_dirty(void);
-extern void object_initialize_shield_stun_thresholds(uint32_t object_index, float *override_max_body_vitality, float *override_max_shield_vitality);
 extern game_time_globals *game_time;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
 extern uint32_t ai_actor_type_get_morale_grade(int16_t actor_type_index, uint8_t *command_reference);
 extern datum_index object_list_get_first(datum_index header_index, object_list_iterator *iterator_out);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void ai_unit_remap_actor_to_squad(datum_index unit_index, uint32_t packed_reference, char notify);
 extern void ai_recompute_all_relationship_flags(void);
 extern void actor_clear_perceived_props(datum_index actor_index);
@@ -36,7 +35,6 @@ extern void actor_dispatch_perception_reset(datum_index actor_index);
 extern void actor_set_units_active(datum_index actor_index, uint8_t dormant);
 extern void ai_reference_respawn_member(uint32_t packed_reference, datum_index unit_index);
 extern void ai_reference_spawn_starting_location_object(datum_index unit_index, uint32_t packed_reference);
-extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator);
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator);
 extern uint8_t actor_play_first_valid_vocalization(int16_t *seat_list, datum_index vehicle_index, datum_index actor_index, char *seat_name, int16_t seat_flags, int16_t count);
@@ -468,7 +466,7 @@ void ObjectListView::initialize_shield_stun_thresholds(float override_max_body_v
     while (object_index != (datum_index)k_datum_index_none) {
         object_header *entry = &((object_header *)object_data->data)[(int16_t)object_index & 0xffff];
         if ((entry->data->vitality_flags & _object_health_frozen_bit) == 0) {
-            object_initialize_shield_stun_thresholds((uint32_t)object_index,
+            halo::objects::object_initialize_shield_stun_thresholds((uint32_t)object_index,
                 &override_max_body_vitality, &override_max_shield_vitality);
         }
 
@@ -630,7 +628,7 @@ void ObjectListView::remap_units_and_children(uint32_t packed_reference, char no
         datum_index object_index = object_list_get_first(object_list_header, &iterator);
 
         while (object_index != (datum_index)k_datum_index_none) {
-            object *obj = object_try_and_get(object_index, 3);
+            object *obj = halo::objects::object_try_and_get(object_index, 3);
 
             if (obj != 0) {
                 datum_index child;
@@ -717,7 +715,7 @@ void ObjectListView::reset_or_wake_awareness(char flag)
     }
 
     while (object_index != (datum_index)k_datum_index_none) {
-        object *obj = object_try_and_get(object_index, 3);
+        object *obj = halo::objects::object_try_and_get(object_index, 3);
         if (obj != 0) {
             datum_index child = obj->first_child_object;
             reset_or_wake(object_index, flag);
@@ -807,7 +805,7 @@ void ObjectListView::set_unit_flag_400(char flag)
     }
 
     while (object_index != (datum_index)k_datum_index_none) {
-        object *obj = object_try_and_get(object_index, 3);
+        object *obj = halo::objects::object_try_and_get(object_index, 3);
         if (obj != 0) {
             unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
             if (flag == 0) {
@@ -855,7 +853,7 @@ void ObjectListView::set_unit_flag_800(char flag)
     }
 
     while (object_index != (datum_index)k_datum_index_none) {
-        object *obj = object_try_and_get(object_index, 3);
+        object *obj = halo::objects::object_try_and_get(object_index, 3);
         if (obj != 0) {
             unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
             if (flag == 0) {
@@ -1084,7 +1082,7 @@ void AiObjects::object_process_nearby_actors(uint32_t ai_reference, datum_index 
     if (ai_reference == 0xffffffff) {
         return;
     }
-    obj = object_try_and_get(vehicle_index, 3);
+    obj = halo::objects::object_try_and_get(vehicle_index, 3);
     if (obj != 0) {
         real_point3d reference_position;
         int16_t seat_list[16];
@@ -1092,7 +1090,7 @@ void AiObjects::object_process_nearby_actors(uint32_t ai_reference, datum_index 
         int16_t candidate_count = 0;
         ai_nearby_actor_candidate candidates[0x40];
 
-        object_get_position(&reference_position, vehicle_index);
+        halo::objects::object_get_position(&reference_position, vehicle_index);
         seat_count = halo::units::unit_find_seats_matching_name_and_flags(vehicle_index, seat_name, 0xffff, seat_list, 0x10);
 
         if (seat_count > 0) {
@@ -1287,7 +1285,7 @@ void AiObjects::create_actor(datum_index actor_variant_tag, datum_index unit_ind
         return; // Actor.flags bit 26, "swarm"
     }
 
-    unit_definition = object_try_and_get(unit_index, 1);
+    unit_definition = halo::objects::object_try_and_get(unit_index, 1);
     if (unit_definition == 0) {
         return;
     }
@@ -1344,7 +1342,7 @@ void AiUnitView::dispatch_actor_event_d(int32_t unused)
 void AiUnitView::flee_if_ready(uint32_t readiness_param)
 {
     datum_index unit_index = handle;
-    object *unit_object = object_try_and_get(unit_index, 3);
+    object *unit_object = halo::objects::object_try_and_get(unit_index, 3);
 
     if (unit_object != 0) {
         unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);

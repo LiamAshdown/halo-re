@@ -8,6 +8,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
@@ -63,8 +64,6 @@ extern void encounter_release_stale_props(datum_index encounter_index);
 extern void encounter_choose_vocalizations(datum_index encounter_index);
 extern data_array *player_data;
 extern void *ai_actor_mode_dispatch_table;
-extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void ai_reference_actor_iterator_new(uint32_t packed_reference, ai_reference_actor_iterator *out_iterator);
 extern actor *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator);
 extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters);
@@ -2268,7 +2267,7 @@ void EncounterView::redistribute_squads_toward_targets()
         } while (player_record != 0);
     } else if (target_mode == 2) {
         datum_index cached_target = self->follow_target;
-        if (object_try_and_get(cached_target, 3) == 0) {
+        if (halo::objects::object_try_and_get(cached_target, 3) == 0) {
             self->follow_target = (datum_index)0xffffffff;
             return;
         }
@@ -2364,7 +2363,7 @@ have_targets:
 
     if (target_count == 1) {
         chosen_object = targets[0];
-        object_get_position(&chosen_position, targets[0]);
+        halo::objects::object_get_position(&chosen_position, targets[0]);
     } else {
         int16_t t;
         datum_index next_actor;
@@ -2374,7 +2373,7 @@ have_targets:
             best_distance_to_target[t] = 3.4028235e+38f;
         }
         for (t = 0; t < (int16_t)target_count; t = t + 1) {
-            object_get_position(&target_positions[t], targets[t]);
+            halo::objects::object_get_position(&target_positions[t], targets[t]);
         }
 
         have_target = 0;
@@ -3540,7 +3539,7 @@ datum_index Encounters::find_nearest_squad_member(datum_index actor_index, void 
         do {
             real_point3d position;
             obj = ((object_header *)object_data->data)[cursor & 0xffff].data;
-            object_get_position(&position, cursor);
+            halo::objects::object_get_position(&position, cursor);
             dx = rx - position.x;
             dy = ry - position.y;
             dz = rz - position.z;

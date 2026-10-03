@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
@@ -645,7 +646,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
 extern double sqrt(double x);
-extern void object_get_position(real_point3d *out_position, datum_index object_index);
 }
 }
 
@@ -784,7 +784,7 @@ next_candidate:
     }
 
     vehicle = (object *)((object_header *)object_data->data)[self->active_unit_index & 0xffff].data;
-    object_get_position(&vehicle_position, self->active_unit_index);
+    halo::objects::object_get_position(&vehicle_position, self->active_unit_index);
 
     for (i = 0; i < (int16_t)count; i++) {
         c = &candidates[i];

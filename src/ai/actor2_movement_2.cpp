@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
@@ -14,7 +15,6 @@ extern uint32_t global_structure_collision_bsp;
 extern const real_vector3d *global_origin3d_pointer;
 extern double sqrt(double x);
 extern double fabs(double x);
-extern void object_get_position(real_point3d *out_position, datum_index object_index);
 extern void actor_movement_collect_obstacle_candidates(actor_movement_context *context);
 extern int16_t actor_movement_test_obstacle_ray(real_vector3d *out_elevation, const float *sample,
     real_point3d *out_end_point, actor_movement_context *context, float *out_distance,
@@ -77,7 +77,7 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
     context.structure_bsp = global_structure_bsp;
     context.collision_bsp = global_structure_collision_bsp;
     context.unit_index = unit_index;
-    object_get_position(&context.position, unit_index);
+    halo::objects::object_get_position(&context.position, unit_index);
     context.forward = *(real_vector3d *)&((object *)obj)->forward.i;
     context.up = *(real_vector3d *)&((object *)obj)->up.i;
     context.left.i = context.forward.k * context.up.j - context.up.k * context.forward.j;

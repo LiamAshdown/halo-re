@@ -1,9 +1,8 @@
 #include "halo/hs/hs3_objects.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern char hs_object_hierarchy_test(datum_index object_index);
-extern void object_delete(datum_index object_index);
-extern void object_new_from_scenario_name(int16_t object_name_index);
 extern datum_index *object_name_list;
 }
 
@@ -27,7 +26,7 @@ void ScriptObjects::object_name_cache_validate(int16_t object_name_index) const
         if (object_name_index < 0x200) {
             cached = object_name_list[object_name_index];
             if (cached != k_datum_index_none && hs_object_hierarchy_test(cached) == 0) {
-                object_delete(cached);
+                halo::objects::object_delete(cached);
             }
         }
         if (-1 < object_name_index && object_name_index < 0x200 &&
@@ -35,7 +34,7 @@ void ScriptObjects::object_name_cache_validate(int16_t object_name_index) const
             return;
         }
     }
-    object_new_from_scenario_name(object_name_index);
+    halo::objects::object_new_from_scenario_name(object_name_index);
 }
 
 }

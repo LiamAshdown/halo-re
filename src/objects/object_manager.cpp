@@ -8,6 +8,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern void *ai_gc_callback_table;
@@ -26,50 +27,23 @@ extern datum_index *light_cluster_first;
 extern data_array *light_cluster_references;
 extern data_array *light_data;
 extern data_array *light_object_references;
-extern void lights_dispose_all(void);
-extern void lights_initialize(void);
 extern player_globals *local_player_globals;
 extern uint8_t *main_game_globals;
 extern char network_log_path_format[];
 extern datum_index *noncollideable_cluster_first;
 extern void *noncollideable_cluster_partition;
 extern data_array *noncollideable_object_references;
-extern void object_block_data_free(data_array *array, datum_index object_index);
-extern void object_clear_pending_delete_flag(uint32_t object_index);
 extern data_array *object_data;
-extern void object_delete(uint32_t object_index);
-extern void object_delete_4f9030(uint32_t object_index, char recurse_siblings);
-extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings);
-extern void object_delete_unparented(uint32_t object_index);
-extern void object_dump_accumulate_stats(uint32_t object_index, object_memory_dump_record *record);
-extern int object_dump_compare_by_total_size(const object_memory_dump_record *a, const object_memory_dump_record *b);
-extern void object_dump_write(object_memory_dump_record *record, void *file);
-extern uint32_t object_get_root_object_index(uint32_t object_index);
 extern object_globals *object_globals_pointer;
-extern object *object_iterator_next(object_iterator *iterator);
-extern void object_list_membership_set(uint32_t object_index, char add);
-extern void object_mark_pending_delete(uint32_t object_index);
 extern memory_pool *object_memory_pool;
 extern datum_index *object_name_list;
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
 extern int32_t object_sound_event_last_tick;
-extern uint8_t object_test_in_atmosphere_zone(uint32_t object_index);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void object_type_definition_chain_build(void);
 extern object_type_definition *object_type_definition_list;
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
-extern void object_type_definitions_notify_0x54(uint32_t object_index);
 extern uint32_t object_unknown_006b8c60;
-extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
-extern void object_update(uint32_t object_index);
 extern uint16_t object_visibility_computed_mask;
-extern void objects_garbage_collection(void);
-extern void objects_get_statistics(void *out);
 extern int32_t sprintf(char *buffer, const char *format, ...);
 extern widget_type_definition widget_type_definitions[k_maximum_widget_types];
-extern void widgets_dispose(void);
-extern void widgets_dispose_clear_flag(void);
-extern void widgets_initialize(void);
 }
 
 /**
@@ -90,18 +64,18 @@ void halo::objects::ObjectManager::delete_unparented_of_type_mask()
     iterator.index = 0;
     iterator.handle = k_datum_index_none;
 
-    obj = object_iterator_next(&iterator);
+    obj = halo::objects::object_iterator_next(&iterator);
     while (obj != 0) {
         if (obj->render_cache_slot == -1) {
             role = obj->network_role;
             if (role == 0) {
-                object_delete_unparented(iterator.handle);
+                halo::objects::object_delete_unparented(iterator.handle);
             }
             if (role == 0 || role == 3) {
-                object_delete_recursive(iterator.handle, 0);
+                halo::objects::object_delete_recursive(iterator.handle, 0);
             }
         }
-        obj = object_iterator_next(&iterator);
+        obj = halo::objects::object_iterator_next(&iterator);
     }
 }
 
@@ -123,9 +97,9 @@ void halo::objects::ObjectManager::initialize()
     uint8_t *name_list_region;
     int32_t size;
 
-    widgets_initialize();
-    object_type_definition_chain_build();
-    lights_initialize();
+    halo::objects::widgets_initialize();
+    halo::objects::object_type_definition_chain_build();
+    halo::objects::lights_initialize();
     object_data = game_state_new((char *)"object", k_maximum_objects, 0xc  );
 
     object_memory_pool = game_state_new_pool((char *)"objects", 0x200000);
@@ -161,7 +135,7 @@ void halo::objects::ObjectManager::reset()
 
     object_unknown_006b8c60 = k_datum_index_none;
     object_sound_event_last_tick = 0;
-    widgets_dispose();
+    halo::objects::widgets_dispose();
     object_visibility_computed_mask = 0;
 
     for (def = object_type_definition_list; def != 0; def = def->next) {
@@ -170,7 +144,7 @@ void halo::objects::ObjectManager::reset()
         }
     }
 
-    lights_dispose_all();
+    halo::objects::lights_dispose_all();
 
     object_data->valid = 1;
     halo::memory::data_delete_all(object_data);
@@ -229,7 +203,7 @@ void halo::objects::ObjectManager::flush_dirty_state()
     object_type_definition *def;
     datum_index index;
 
-    widgets_dispose_clear_flag();
+    halo::objects::widgets_dispose_clear_flag();
 
     for (def = object_type_definition_list; def != 0; def = def->next) {
         if (def->flush != 0) {
@@ -248,7 +222,7 @@ void halo::objects::ObjectManager::flush_dirty_state()
     if (object_data->valid != 0) {
         index = halo::memory::datum_next(-1, object_data);
         while (index != k_datum_index_none) {
-            object_block_data_free(object_data, index);
+            halo::objects::object_block_data_free(object_data, index);
             index = halo::memory::datum_next((int16_t)index, object_data);
         }
         object_data->valid = 0;
@@ -388,14 +362,14 @@ void halo::objects::ObjectManager::update()
                 if ((int8_t)flags >= 0 && header->cluster_index != -1 &&
                     (globals->cluster_pvs_current[header->cluster_index >> 5] &
                      (1u << (header->cluster_index & 0x1f))) != 0) {
-                    object_mark_pending_delete(handle);
+                    halo::objects::object_mark_pending_delete(handle);
                 }
             } else if ((globals->cluster_pvs_current[header->cluster_index >> 5] &
                         (1u << (header->cluster_index & 0x1f))) == 0) {
                 if ((header->data->flags & _object_connected_to_map_bit) == 0) {
-                    object_clear_pending_delete_flag(handle);
+                    halo::objects::object_clear_pending_delete_flag(handle);
                 } else {
-                    object_delete(handle);
+                    halo::objects::object_delete(handle);
                 }
             }
         }
@@ -411,7 +385,7 @@ void halo::objects::ObjectManager::update()
             if (!restrict_to_units ||
                 (((1 << (header->type & 0x1f)) & _object_mask_unit) != 0 &&
                  *(int32_t *)((uint8_t *)header->data + 0x218) != -1)) {
-                object_update(((uint32_t)header->identifier << 16) | (uint16_t)i);
+                halo::objects::object_update(((uint32_t)header->identifier << 16) | (uint16_t)i);
             }
         }
     }
@@ -428,15 +402,15 @@ void halo::objects::ObjectManager::update()
             if ((original_flags & _object_header_needs_update_bit) != 0) {
                 header->flags = original_flags &
                     (uint8_t)~(_object_header_needs_update_bit | _object_header_just_created_bit);
-                object_update(handle);
+                halo::objects::object_update(handle);
             }
             if ((header->flags & _object_header_delete_pending_bit) != 0) {
-                object_delete_4f9030(handle, 0);
+                halo::objects::object_delete_4f9030(handle, 0);
             }
         }
     }
 
-    objects_garbage_collection();
+    halo::objects::objects_garbage_collection();
 }
 
 /**
@@ -457,15 +431,15 @@ void halo::objects::ObjectManager::sweep_refresh_cluster_membership()
     iterator.index = 0;
     iterator.handle = k_datum_index_none;
 
-    obj = object_iterator_next(&iterator);
+    obj = halo::objects::object_iterator_next(&iterator);
     while (obj != (object *)0) {
         if (((obj->flags & _object_needs_cluster_update_bit) != 0) &&
             (obj->parent_object == k_datum_index_none)) {
-            object_unlink_cluster_or_notify_parent(iterator.handle);
+            halo::objects::object_unlink_cluster_or_notify_parent(iterator.handle);
             obj->flags |= _object_needs_cluster_update_bit;
         }
-        object_type_definitions_notify_0x54(iterator.handle);
-        obj = object_iterator_next(&iterator);
+        halo::objects::object_type_definitions_notify_0x54(iterator.handle);
+        obj = halo::objects::object_iterator_next(&iterator);
     }
 }
 
@@ -486,7 +460,7 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
     iterator.index = 0;
     iterator.handle = k_datum_index_none;
 
-    obj = object_iterator_next(&iterator);
+    obj = halo::objects::object_iterator_next(&iterator);
     while (obj != (object *)0) {
         if (((obj->flags & _object_needs_cluster_update_bit) != 0) &&
             (obj->parent_object == k_datum_index_none)) {
@@ -517,9 +491,9 @@ void halo::objects::ObjectManager::recompute_cluster_membership()
 
             location.leaf_index = leaf;
             location.cluster_index = cluster;
-            object_set_cluster_and_parent(iterator.handle, &location);
+            halo::objects::object_set_cluster_and_parent(iterator.handle, &location);
         }
-        obj = object_iterator_next(&iterator);
+        obj = halo::objects::object_iterator_next(&iterator);
     }
 }
 
@@ -601,10 +575,10 @@ int16_t halo::objects::ObjectManager::get_ambient_cluster()
 {
     if (object_globals_pointer->ambient_cluster_mode == _object_ambient_cluster_from_tracked_object) {
         datum_index handle = (uint16_t)object_globals_pointer->ambient_cluster_index;
-        if (object_try_and_get(handle, k_datum_index_none) == 0) {
+        if (halo::objects::object_try_and_get(handle, k_datum_index_none) == 0) {
             object_globals_pointer->ambient_cluster_mode = _object_ambient_cluster_none;
         } else {
-            uint32_t root_index = object_get_root_object_index(handle);
+            uint32_t root_index = halo::objects::object_get_root_object_index(handle);
             object *root = ((object_header *)object_data->data)[halo::datum_slot(root_index)].data;
             if ((root->flags & _object_needs_cluster_update_bit) != 0) {
                 if (root->location_cluster_index != -1) {
@@ -700,15 +674,15 @@ void halo::objects::ObjectManager::garbage_collection()
         handle = list[count];
         header = (object_header *)object_data->data + halo::datum_slot(handle);
         eligible = (mode == 1) ? (uint8_t)(header->flags & _object_header_active_bit) : 1;
-        if (object_test_in_atmosphere_zone(handle) != 0 || eligible == 0) {
+        if (halo::objects::object_test_in_atmosphere_zone(handle) != 0 || eligible == 0) {
             continue;
         }
         if ((header->flags & _object_header_active_bit) != 0) {
             object_globals_pointer->active_garbage_object_count--;
         }
-        object_list_membership_set(handle, 0);
-        object_delete_recursive(handle, 0);
-        object_delete_4f9030(handle, 0);
+        halo::objects::object_list_membership_set(handle, 0);
+        halo::objects::object_delete_recursive(handle, 0);
+        halo::objects::object_delete_4f9030(handle, 0);
     }
 
     halo::memory::block_list_compact(object_memory_pool);
@@ -939,7 +913,7 @@ void halo::objects::ObjectManager::dump_memory()
     iterator.index = 0;
     iterator.handle = k_datum_index_none;
 
-    obj = object_iterator_next(&iterator);
+    obj = halo::objects::object_iterator_next(&iterator);
     while (obj != (object *)0) {
         int16_t slot = -1;
         int16_t j;
@@ -971,22 +945,22 @@ void halo::objects::ObjectManager::dump_memory()
         }
 
         if (slot != -1) {
-            object_dump_accumulate_stats(iterator.handle, &by_definition[slot]);
+            halo::objects::object_dump_accumulate_stats(iterator.handle, &by_definition[slot]);
         }
-        object_dump_accumulate_stats(iterator.handle, &by_type[obj->type]);
+        halo::objects::object_dump_accumulate_stats(iterator.handle, &by_type[obj->type]);
 
-        obj = object_iterator_next(&iterator);
+        obj = halo::objects::object_iterator_next(&iterator);
     }
 
-    qsort(by_definition, definition_count, sizeof(object_memory_dump_record), (int (*)(const void *, const void *))object_dump_compare_by_total_size);
-    qsort(by_type, k_maximum_object_types, sizeof(object_memory_dump_record), (int (*)(const void *, const void *))object_dump_compare_by_total_size);
+    qsort(by_definition, definition_count, sizeof(object_memory_dump_record), (int (*)(const void *, const void *))halo::objects::object_dump_compare_by_total_size);
+    qsort(by_type, k_maximum_object_types, sizeof(object_memory_dump_record), (int (*)(const void *, const void *))halo::objects::object_dump_compare_by_total_size);
 
     {
         void *file = fopen("object_memory.txt", "a+b");
         if (file != 0) {
             float fraction;
 
-            objects_get_statistics(stats_buffer);
+            halo::objects::objects_get_statistics((object_statistics *)stats_buffer);
             fraction = *(float *)(stats_buffer + 4);
             overflow_count = *(int16_t *)stats_buffer;
 
@@ -994,7 +968,7 @@ void halo::objects::ObjectManager::dump_memory()
             fprintf((FILE *)file, "OBJECTS BY TYPE\n");
             fprintf((FILE *)file, "number (active) [garbage/   dead/outside/at-rest] maxsize totsize\n");
             for (i = 0; i < k_maximum_object_types; i++) {
-                object_dump_write(&by_type[i], file);
+                halo::objects::object_dump_write(&by_type[i], file);
             }
             fprintf((FILE *)file, "\n");
             fprintf((FILE *)file, "OBJECTS BY DEFINITION\n");

@@ -17,6 +17,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern uint8_t *game_state_base;
@@ -34,24 +35,15 @@ extern game_time_globals *game_time;
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern real_vector3d *global_down3d_pointer;
 extern uint8_t any_local_player_within_10_units(const real_point3d *query_point);
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum);
 extern void ai_communication_record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id);
 extern void console_print_va(const char *format, ...);
-extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count);
-extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
 extern int16_t network_game_mode;
 extern void actor_notify_weapon_pickup_once(datum_index object_index);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
-extern void object_delete_teardown(uint32_t object_index);
-extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out);
-extern void object_set_collision_enabled(uint32_t object_index, uint8_t enable);
 extern real_point3d *global_zero_vector3d_pointer;
 extern datum_index sound_start_at_object_marker(datum_index object_index, Point3D *position, Vector3D *forward, datum_index definition_index, int16_t node_index, float scale, uint32_t first_person_hint);
 extern void ai_communication_gate_line_played(int16_t event_id, ai_communication_record *record, datum_index object_index);
 extern void ai_communication_play_event_line(datum_index object_index, int16_t event_id, uint8_t force, datum_index explicit_speaker_actor_index, uint32_t *event_record);
 extern void ai_propagate_communication_reaction(datum_index object_index, ai_communication_order *order);
-extern void object_solve_two_bone_ik_to_marker(uint32_t object_index, char *marker_a_name, uint32_t marker_b_object_index, char *marker_b_name, uint8_t *node_base);
 }
 
 namespace halo::units {
@@ -549,7 +541,7 @@ void UnitView::fire_animation_sound_trigger(uint32_t trigger_kind, int16_t conta
     if (!any_local_player_within_10_units((real_point3d *)&((struct object *)unit)->bounding_center)) {
         return;
     }
-    if ((int16_t)object_get_node_local_transform(unit_index,
+    if ((int16_t)halo::objects::object_get_node_local_transform(unit_index,
             (char *)(*(uint8_t **)(biped_tag + 0x4ec) + contact_point_index * 0x40 + 0x20), &marker, 1) == 0) {
         return;
     }
@@ -889,7 +881,7 @@ void UnitView::start_seat_overlay_animation_a(int16_t command)
 
     if (animation_index != -1) {
         if (command != 7) {
-            object_copy_default_node_transforms(unit_index, 6);
+            halo::objects::object_copy_default_node_transforms(unit_index, 6);
         }
         unit->overlays[0].animation_index = halo::models::animation_choose_random_permutation(
             *(datum_index *)&obj_tag->animation_graph.tag_id, animation_index, static_cast<animation_random_stream>(1));
@@ -1002,12 +994,12 @@ uint8_t UnitView::start_user_animation(datum_index graph_tag, const char *animat
         }
     }
     if (interpolate) {
-        object_copy_default_node_transforms(unit_index, 6);
+        halo::objects::object_copy_default_node_transforms(unit_index, 6);
     }
     ((struct unit_object *)unit)->unit.animation_state = 0x1c;
     UnitView(unit_index).set_custom_animation(graph_tag, animation);
     set_flag(((struct unit_object *)unit)->unit.animation_state_flags, units::unit_animation_state_flag::action_active);
-    object_recalculate_bounding_radius_recursive(unit_index);
+    halo::objects::object_recalculate_bounding_radius_recursive(unit_index);
     return 1;
 }
 
@@ -1126,9 +1118,9 @@ uint8_t UnitView::try_set_animation_state(int16_t new_state)
 
             ((struct unit_object *)unit)->unit.looking_animation_index = halo::models::animation_choose_random_permutation(graph, idle, static_cast<animation_random_stream>(1));
         }
-        object_copy_default_node_transforms(unit_index, count);
+        halo::objects::object_copy_default_node_transforms(unit_index, count);
     } else if (changed) {
-        object_copy_default_node_transforms(unit_index, transform_count);
+        halo::objects::object_copy_default_node_transforms(unit_index, transform_count);
     }
     ((struct unit_object *)unit)->unit.animation_state = (uint8_t)new_state;
     return 1;
@@ -1171,7 +1163,7 @@ uint8_t UnitView::try_start_scripted_action_animation(int16_t command, const rea
     if (first_animation == -1) {
         return 0;
     }
-    object_copy_default_node_transforms(unit_index, priority);
+    halo::objects::object_copy_default_node_transforms(unit_index, priority);
     animation = halo::models::animation_choose_random_permutation(*(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id, first_animation, (animation_random_stream)1);
     object = (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data;
     ((struct object *)object)->animation_graph = *(datum_index *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id;
@@ -1194,7 +1186,7 @@ uint8_t UnitView::try_start_scripted_action_animation(int16_t command, const rea
  */
 uint8_t halo::units::unit_try_start_seat_exit_animation(uint8_t force_flag, uint32_t unit_index)
 {
-    uint8_t *self = (uint8_t *)object_try_and_get(unit_index, 3);
+    uint8_t *self = (uint8_t *)halo::objects::object_try_and_get(unit_index, 3);
     datum_index vehicle_index;
     uint8_t *self_tag;
     datum_index graph;
@@ -1234,7 +1226,7 @@ uint8_t halo::units::unit_try_start_seat_exit_animation(uint8_t force_flag, uint
     object_tag = TAG_DATA(*(datum_index *)object);
     if (*(int32_t *)&((struct Unit *)object_tag)->base.model.tag_id != -1) {
         if (test_flag(((struct object *)object)->flags, objects::object_flag::no_collision)) {
-            object_for_each_light_attachment(unit_index, 0, 1);
+            halo::objects::object_for_each_light_attachment(unit_index, 0, 1);
         }
         if (*(int32_t *)&((struct Unit *)object_tag)->base.model.tag_id != -1) {
             clear_flag(((struct object *)object)->flags, objects::object_flag::no_collision);
@@ -1340,7 +1332,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
                     }
                 }
                 if (delete_now) {
-                    object_delete_teardown(unit_index);
+                    halo::objects::object_delete_teardown(unit_index);
                     UnitView(unit_index).pick_random_spawned_actor_count();
                     break;
                 }
@@ -1357,7 +1349,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
                 uint8_t *parent_tag = (uint8_t *)halo::cache::globals().tag_instances[halo::datum_slot(*(datum_index *)parent)].data;
                 uint8_t seat_flags = *((uint8_t *)((struct Unit *)parent_tag)->seats.pointer + ((unit_object *)unit)->unit.vehicle_seat_index * 0x11c);
 
-                object_set_collision_enabled(unit_index, (uint8_t)(~seat_flags & 1));
+                halo::objects::object_set_collision_enabled(unit_index, (uint8_t)(~seat_flags & 1));
                 if (((struct unit_object *)parent)->unit.driver_unit_index == unit_index) {
                     halo::units::UnitView((int32_t)((unit_object *)unit)->base.parent_object).notify_weapon_removed_dup();
                 }
@@ -1373,7 +1365,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
 
                 halo::models::model_animation_get_frame_delta(((unit_object *)unit)->base.animation_frame,
                     reinterpret_cast<ModelAnimationsAnimation *>(animations + ((unit_object *)unit)->base.animation_index * 0xb4), &delta, reinterpret_cast<GBXModel *>(model));
-                matrix = object_get_world_matrix(unit_index, &world);
+                matrix = halo::objects::object_get_world_matrix(unit_index, &world);
                 halo::math::matrix4x3_transform_vector(delta, delta, *matrix);
                 UnitView(unit_index).detach_from_seat(1, 1, 1);
                 ((unit_object *)unit)->base.velocity.i = delta.i + ((unit_object *)unit)->base.velocity.i;
@@ -1401,7 +1393,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
         ::halo::units::unit_reset_light_effect((animation_state *)&((struct unit_object *)unit)->unit.overlays, *(uint32_t *)&((struct Unit *)unit_tag)->base.animation_graph.tag_id, unit_index) == 2) {
         uint8_t *reloaded;
 
-        object_copy_default_node_transforms(unit_index, 6);
+        halo::objects::object_copy_default_node_transforms(unit_index, 6);
         reloaded = state_machine_object(unit_index);
         reloaded[0x2a4] = 0;
         *(int16_t *)(reloaded + 0x2aa) = -1;
@@ -1471,7 +1463,7 @@ void UnitView::update_animation_timers()
             Vector3D forward;
             int16_t node = 0;
 
-            if ((int16_t)object_get_node_local_transform(unit_index, (char *)"head", &marker, 1) != 0) {
+            if ((int16_t)halo::objects::object_get_node_local_transform(unit_index, (char *)"head", &marker, 1) != 0) {
                 uint8_t *raw = (uint8_t *)&marker;
 
                 position = *(Point3D *)(raw + 0x2c);
@@ -1633,7 +1625,7 @@ void UnitView::update_ik_detail_nodes(void *node_base)
             int32_t i;
             for (i = 0; i < count; i++) {
                 uint8_t *entry = table + i * 0x40;
-                object_solve_two_bone_ik_to_marker(object_index, (char *)entry,
+                halo::objects::object_solve_two_bone_ik_to_marker(object_index, (char *)entry,
                     obj->parent_object, (char *)(entry + 0x20), (uint8_t *)node_base);
             }
         }
@@ -1651,7 +1643,7 @@ void UnitView::update_ik_detail_nodes(void *node_base)
                 if (current_weapon != -1) {
                     weapon_handle = fresh_unit->weapons[current_weapon];
                 }
-                object_solve_two_bone_ik_to_marker(object_index, (char *)entry,
+                halo::objects::object_solve_two_bone_ik_to_marker(object_index, (char *)entry,
                     weapon_handle, (char *)(entry + 0x20), (uint8_t *)node_base);
             }
             clear_flag(unit->animation_state_flags, units::unit_animation_state_flag::action_active);

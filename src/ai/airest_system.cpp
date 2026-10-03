@@ -9,6 +9,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -23,8 +24,6 @@ extern data_array *prop_data;
 extern data_array *encounter_data;
 extern uint8_t *global_structure_bsp;
 extern actor *actor_iterator_next(actor_iterator_state *iterator);
-extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern uint32_t object_get_root_object_index(uint32_t object_index);
 extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
 extern uint16_t actor_target_hearing_check(void *record, int16_t stance, datum_index actor_index, void *target_ref, int16_t gate, real_point3d *listener_position);
 extern datum_index actor_find_or_create_shared_prop(datum_index object_index, datum_index actor_index, char create_if_missing, uint32_t flag);
@@ -54,8 +53,6 @@ extern player_globals *local_player_globals;
 extern actor_mode_definition actor_mode_definitions[16];
 extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index);
 extern datum_index actor_new_and_attach_to_unit(char reuse_existing, datum_index unit_index, datum_index actor_variant_tag, uint32_t encounter_or_none, int16_t squad_index, char ignore_squad, datum_index exclude_actor, char start_active, uint16_t unknown_60, int16_t unknown_62, uint16_t unknown_90, uint8_t unknown_68);
-extern void object_delete_unparented(uint32_t object_index);
-extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings);
 extern void encounter_remove_actor(datum_index actor_index, uint8_t skip_counters);
 extern void actor_movement_action_cancel(datum_index actor_index);
 extern void actor_clear_target_state(datum_index actor_index);
@@ -197,7 +194,7 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
         owner_actor = *(datum_index *)(source + 0x1f4);
     }
     if (((struct object *)source)->parent_object != k_datum_index_none) {
-        location = OBJECT_DATA(object_get_root_object_index(source_unit_index)) + 0x98;
+        location = OBJECT_DATA(halo::objects::object_get_root_object_index(source_unit_index)) + 0x98;
     }
     cluster_count = *(int32_t *)(global_structure_bsp + 0x134);
     memset(cluster_bits, 0, sizeof(cluster_bits));
@@ -220,7 +217,7 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
             }
         }
     }
-    object_get_position(&source_position, source_unit_index);
+    halo::objects::object_get_position(&source_position, source_unit_index);
     if (ai_globals_ptr->actors_valid) {
         iterator.filter_array = encounter_data;
         iterator.next_index = 0;
@@ -921,10 +918,10 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, uint8_t *actor)
             int32_t kind = *(int32_t *)(OBJ(unit_index) + 4);
 
             if (kind == 0) {
-                object_delete_unparented(unit_index);
-                object_delete_recursive(unit_index, 0);
+                halo::objects::object_delete_unparented(unit_index);
+                halo::objects::object_delete_recursive(unit_index, 0);
             } else if (kind == 3) {
-                object_delete_recursive(unit_index, 0);
+                halo::objects::object_delete_recursive(unit_index, 0);
             }
         }
     }

@@ -21,6 +21,7 @@
 #include "halo/items/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern uint8_t hill_pulse_fade_done;
@@ -91,10 +92,6 @@ extern uint8_t king_hill_player_in_hill[16];
 extern int32_t king_bucket_last_credit_tick[16];
 extern uint8_t game_engine_koth_player_in_hill_bounds(uint32_t player_index);
 extern uint8_t game_engine_get_teams_enabled(void);
-extern void object_placement_data_initialize(object_placement_data *placement,
-    datum_index definition_tag, datum_index role);
-extern datum_index object_new(object_placement_data *placement);
-extern void object_mark_pending_delete(uint32_t object_index);
 extern void game_engine_koth_find_marker_position(real_point3d *out_position, int16_t type_filter);
 extern void ctf_flag_object_clear_carrier(datum_index flag_object_index, real_point3d *position);
 extern const real_vector3d *global_white_color;
@@ -848,17 +845,17 @@ void Koth::relocate_hill_marker(int32_t ball_index)
             object_header *hdr;
             uint8_t header_flags;
 
-            object_placement_data_initialize(&placement, ball_tag, (datum_index)0xffffffff);
+            halo::objects::object_placement_data_initialize(&placement, ball_tag, (datum_index)0xffffffff);
             placement.owner_team = (int16_t)ball_index;
             game_engine_koth_find_marker_position(&placement.position, (int16_t)ball_index);
 
-            new_object = object_new(&placement);
+            new_object = halo::objects::object_new(&placement);
 
             hdr = (object_header *)object_data->data + ((uint32_t)new_object & 0xffff);
             header_flags = hdr->flags;
             hdr->flags = header_flags & ~_object_header_in_pvs_pass_bit;
             if ((header_flags & _object_header_active_bit) == 0) {
-                object_mark_pending_delete((uint32_t)new_object);
+                halo::objects::object_mark_pending_delete((uint32_t)new_object);
             }
         }
     }

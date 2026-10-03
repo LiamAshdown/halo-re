@@ -9,6 +9,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern real_vector3d *default_axis_b;
@@ -16,17 +17,11 @@ extern data_array *light_data;
 extern int32_t light_frame_counter;
 extern uint8_t light_render_unknown_7c0;
 extern real_vector3d *object_ambient_lightmap_default;
-extern void object_color_clamp_to_intensity(float intensity, ColorRGB *color);
 extern data_array *object_data;
-extern int16_t object_get_root_parent_placement(uint32_t object_index, object_placement_cursor *out_cursor);
-extern void object_light_clear_dirty_flag(uint32_t light_index);
-extern void object_light_recompute_transform(uint32_t light_index);
 extern float object_lighting_ambient_bias;
 extern float object_lighting_ambient_scale;
 extern float object_lighting_base_light_scale;
 extern real_vector3d object_lightmap_probe_direction;
-extern void object_lights_gather_nearest(int16_t cluster_index, uint32_t self_object_index, real_point3d *probe_point, float search_margin, uint32_t *out_indices, float *out_intensities, uint32_t out_falloffs, int16_t *count, int16_t max_count);
-extern real object_sum_attached_light_luminance(uint32_t object_index);
 extern double pow(double x, double y);
 extern double sqrt(double x);
 }
@@ -60,10 +55,10 @@ real halo::objects::ObjectLighting::sum_attached_light_luminance()
     }
 
     if (obj->first_child_object != k_datum_index_none) {
-        total = object_sum_attached_light_luminance(obj->first_child_object) + total;
+        total = halo::objects::object_sum_attached_light_luminance(obj->first_child_object) + total;
     }
     if (obj->next_object != k_datum_index_none) {
-        total = object_sum_attached_light_luminance(obj->next_object) + total;
+        total = halo::objects::object_sum_attached_light_luminance(obj->next_object) + total;
     }
 
     return total;
@@ -118,7 +113,7 @@ void halo::objects::ObjectLighting::sample_total_lighting_at_point(real_point3d 
 
         light_frame_counter++;
         light_render_unknown_7c0 = 1;
-        object_lights_gather_nearest(location->cluster_index, k_datum_index_none, point, 0.0f, indices, scores,
+        halo::objects::object_lights_gather_nearest(location->cluster_index, k_datum_index_none, point, 0.0f, indices, scores,
             (uint32_t)(uintptr_t)weights, &count, 2);
         light_render_unknown_7c0 = 0;
 
@@ -358,9 +353,9 @@ void halo::objects::ObjectLighting::gather_light_list(uint8_t *out)
     *count = 0;
     light_frame_counter = light_frame_counter + 1;
     light_render_unknown_7c0 = 1;
-    cluster = object_get_root_parent_placement(object_index, (object_placement_cursor *)cursor);
+    cluster = halo::objects::object_get_root_parent_placement(object_index, (object_placement_cursor *)cursor);
     while (cluster != -1) {
-        object_lights_gather_nearest(cluster, object_index, &center, radius, (uint32_t *)(out + 0x44), intensities,
+        halo::objects::object_lights_gather_nearest(cluster, object_index, &center, radius, (uint32_t *)(out + 0x44), intensities,
                                      (uint32_t)falloffs, count, 2);
         if (cursor[1] == k_datum_index_none) {
             cluster = -1;
@@ -460,10 +455,10 @@ void halo::objects::ObjectLighting::build_effect_parameter_block(uint8_t flags, 
         object_lighting_ambient_bias, 1.0f);
 
     if ((flags & 4) != 0) {
-        object_color_clamp_to_intensity(0.2f, &lighting->ambient_color);
-        object_color_clamp_to_intensity(0.3f, &lighting->distant_lights[0].color);
-        object_color_clamp_to_intensity(0.2f, &lighting->distant_lights[1].color);
-        object_color_clamp_to_intensity(0.5f, (ColorRGB *)&lighting->reflection_tint.red);
+        halo::objects::object_color_clamp_to_intensity(0.2f, &lighting->ambient_color);
+        halo::objects::object_color_clamp_to_intensity(0.3f, &lighting->distant_lights[0].color);
+        halo::objects::object_color_clamp_to_intensity(0.2f, &lighting->distant_lights[1].color);
+        halo::objects::object_color_clamp_to_intensity(0.5f, (ColorRGB *)&lighting->reflection_tint.red);
         lighting->reflection_tint.alpha = 1.0f;
     }
 }
@@ -518,10 +513,10 @@ void halo::objects::ObjectLighting::for_each_light_attachment(int32_t register_i
             if ((obj->attachment_types[i] == _object_attachment_type_light) &&
                 (obj->attachment_handles[i] != k_datum_index_none)) {
                 if (register_in_table != 0) {
-                    object_light_clear_dirty_flag(obj->attachment_handles[i]);
+                    halo::objects::object_light_clear_dirty_flag(obj->attachment_handles[i]);
                 }
                 if (invoke_callback != 0) {
-                    object_light_recompute_transform(obj->attachment_handles[i]);
+                    halo::objects::object_light_recompute_transform(obj->attachment_handles[i]);
                 }
             }
         }

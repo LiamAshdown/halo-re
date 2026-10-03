@@ -1,12 +1,12 @@
 #include "halo/game/gamerest_hsplayer.hpp"
 #include <stdint.h>
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern data_array *object_data;
 }
 
@@ -24,7 +24,7 @@ void HsPlayerFunctions::vehicle_gunner_evaluate(int16_t function_index, uint32_t
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        object *unit_obj = object_try_and_get((datum_index)arguments[0], 3);
+        object *unit_obj = halo::objects::object_try_and_get((datum_index)arguments[0], 3);
         datum_index gunner = (datum_index)0xffffffff;
 
         if (unit_obj != 0) {

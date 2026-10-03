@@ -1,6 +1,7 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
@@ -13,8 +14,6 @@ extern game_time_globals *game_time;
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
 #define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
 extern uint8_t *ai_globals_ptr;
-extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t actor_vehicle_not_recently_left(datum_index actor_index, datum_index vehicle_index);
 extern uint8_t actor_build_order_search_object(uint32_t vehicle_index, uint32_t actor_index, float radius_a,
                                                float radius_b, uint8_t *order);
@@ -63,11 +62,11 @@ uint8_t ActorView::seek_vehicle_to_board()
                 !actor_vehicle_not_recently_left(actor_index, vehicle)) {
                 continue;
             }
-            vehicle_object = (uint8_t *)object_try_and_get(vehicle, 2);
+            vehicle_object = (uint8_t *)halo::objects::object_try_and_get(vehicle, 2);
             if (vehicle_object == 0 || *(datum_index *)(vehicle_object + 0x324) != *(datum_index *)(p + 0x18)) {
                 continue;
             }
-            object_get_position(&position, vehicle);
+            halo::objects::object_get_position(&position, vehicle);
             distance_squared = halo::math::vector3d_distance_squared(position, *(real_point3d *)(act + 0x12c));
             if (distance_squared < 100.0f && distance_squared < best_distance) {
                 float distance = *(float *)(p + 0x11c);
@@ -97,10 +96,10 @@ uint8_t ActorView::seek_vehicle_to_board()
             float dz;
             float distance_squared;
 
-            if (object_try_and_get(vehicle, 2) == 0 || !actor_vehicle_not_recently_left(actor_index, vehicle)) {
+            if (halo::objects::object_try_and_get(vehicle, 2) == 0 || !actor_vehicle_not_recently_left(actor_index, vehicle)) {
                 continue;
             }
-            object_get_position(&position, vehicle);
+            halo::objects::object_get_position(&position, vehicle);
             dx = ((actor *)act)->body_position.x - position.x;
             dy = ((actor *)act)->body_position.y - position.y;
             dz = ((actor *)act)->body_position.z - position.z;

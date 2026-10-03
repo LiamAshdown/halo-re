@@ -8,48 +8,29 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern char ai_marker_name_a[];
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
-    uint32_t maximum);
 extern datum_index *object_name_list;
-extern datum_index object_new_from_scenario_name(int16_t name_index);
 extern data_array *player_data;
 extern int16_t network_game_mode;
 extern game_time_globals *game_time;
 extern uint8_t *network_client;
 extern double cos(double x);
 extern double sin(double x);
-extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
-extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up,
-    real_point3d *position);
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
-    uint32_t maximum_markers);
-extern void object_reset_velocity_and_wake(uint32_t object_index);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern uint8_t player_attach_unit_to_parent(uint32_t player_index, uint32_t target_object, void *local_offset);
-extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
-extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
 extern void player_update_history_free_all(void *history);
 extern void game_engine_compute_look_angles_from_vector(real_vector3d *facing, int16_t local_player_index);
 extern uint32_t player_index_from_unit_index(datum_index object_index);
 extern uint8_t hs_object_angle_predicate_helper(datum_index object_index, datum_index viewer_unit, float angle_degrees);
 extern data_array *object_list_header_data;
 extern data_array *object_list_reference_data;
-extern void object_notify_children_recursive(datum_index object_index);
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
 extern char hs_object_hierarchy_test(datum_index object_index);
-extern void object_delete(datum_index object_index);
-extern void object_delete_unparented(uint32_t object_index);
-extern void object_delete_recursive(datum_index object_index, int32_t recurse_siblings);
-extern void *object_iterator_next(hs_object_iterator_state *iterator);
-extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter,
-    char use_matched_index);
 extern data_array *object_headers;
-extern void objects_garbage_collection(void);
 extern memory_pool *object_memory_pool;
 }
 
@@ -75,7 +56,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
         real_vector3d delta;
         real_point3d position;
         real_matrix4x3 basis;
-        object_get_node_local_transform(parent_index, (char *)(seat + 0x24), &marker, 1);
+        halo::objects::object_get_node_local_transform(parent_index, (char *)(seat + 0x24), &marker, 1);
         delta.i = nodes->position.x - marker.node_transform.position.x;
         delta.j = nodes->position.y - marker.node_transform.position.y;
         delta.k = nodes->position.z - marker.node_transform.position.z;
@@ -91,11 +72,11 @@ static void hs_unit_leave_seat(uint32_t object_index)
         if (((unit_object *)unit)->unit.gunner_unit_index == object_index) {
             ((unit_object *)unit)->unit.gunner_unit_index = k_datum_index_none;
         }
-        object_snap_to_parent_marker_and_detach(object_index);
+        halo::objects::object_snap_to_parent_marker_and_detach(object_index);
         position.x = delta.i + ((unit_object *)unit)->base.position.x;
         position.y = delta.j + ((unit_object *)unit)->base.position.y;
         position.z = delta.k + ((unit_object *)unit)->base.position.z - root_offset.k;
-        object_set_position_and_orientation(object_index, 0, 0, &position);
+        halo::objects::object_set_position_and_orientation(object_index, 0, 0, &position);
         unit = OBJ(object_index);
         halo::math::globals().matrix4x3_multiply_procedure((real_matrix4x3 *)(unit + ((unit_object *)unit)->base.nodes.offset), root_matrix, &basis);
         *(real_vector3d *)&((unit_object *)unit)->base.forward.i = basis.forward;
@@ -104,7 +85,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
         unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data;
         if (*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id != k_datum_index_none) {
             if ((((unit_object *)unit)->base.flags & 1) != 0) {
-                object_for_each_light_attachment(object_index, 0, 1);
+                halo::objects::object_for_each_light_attachment(object_index, 0, 1);
             }
             if (*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id != k_datum_index_none) {
                 ((unit_object *)unit)->base.flags &= ~1u;
@@ -127,9 +108,9 @@ static void hs_unit_leave_seat(uint32_t object_index)
         if (((unit_object *)unit)->base.type == 0) {
             halo::units::unit_reset_orientation_and_find_position(object_index, parent_index);
         }
-        object_recalculate_bounding_radius_recursive(object_index);
+        halo::objects::object_recalculate_bounding_radius_recursive(object_index);
         if (halo::units::unit_all_seats_unoccupied(parent_index) == 1) {
-            uint8_t *vehicle = (uint8_t *)object_try_and_get(parent_index, 2);
+            uint8_t *vehicle = (uint8_t *)halo::objects::object_try_and_get(parent_index, 2);
             if (vehicle != 0) {
                 ((vehicle_object *)vehicle)->vehicle.network_update_tick = game_time->game_time;
             }
@@ -187,10 +168,10 @@ uint8_t ScriptObjects::object_angle_predicate_helper(datum_index object_index, d
     if (object_index == k_datum_index_none) {
         return 0;
     }
-    if (object_try_and_get(object_index, 3) != 0) {
+    if (halo::objects::object_try_and_get(object_index, 3) != 0) {
         object_marker marker;
 
-        object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1);
+        halo::objects::object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1);
         point = *(real_point3d *)((uint8_t *)&marker + 0x60);
     } else {
         uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
@@ -210,7 +191,7 @@ void ScriptObjects::object_create_name_index_if_absent(int32_t name_index) const
     int16_t name = (int16_t)name_index;
 
     if (name != -1 && (name < 0 || name >= 0x200 || object_name_list[name] == k_datum_index_none)) {
-        object_new_from_scenario_name(name);
+        halo::objects::object_new_from_scenario_name(name);
     }
 }
 
@@ -235,8 +216,8 @@ void ScriptObjects::object_detach_and_place_at_location(int16_t location_index, 
     placed = OBJ(object_index);
 
     if (detach_from_parent && *(datum_index *)(placed + 0x11c) != k_datum_index_none) {
-        if (object_try_and_get(object_index, 3) == 0) {
-            object_snap_to_parent_marker_and_detach(object_index);
+        if (halo::objects::object_try_and_get(object_index, 3) == 0) {
+            halo::objects::object_snap_to_parent_marker_and_detach(object_index);
         } else if (network_game_mode != 1) {
             hs_unit_leave_seat(object_index);
         }
@@ -245,9 +226,9 @@ void ScriptObjects::object_detach_and_place_at_location(int16_t location_index, 
     forward.i = (float)(cos((double)*(float *)(flag + 0x30)) * cos((double)*(float *)(flag + 0x34)));
     forward.j = (float)(sin((double)*(float *)(flag + 0x30)) * cos((double)*(float *)(flag + 0x34)));
     forward.k = (float)sin((double)*(float *)(flag + 0x34));
-    object_reset_velocity_and_wake(object_index);
+    halo::objects::object_reset_velocity_and_wake(object_index);
 
-    unit = object_try_and_get(object_index, 3);
+    unit = halo::objects::object_try_and_get(object_index, 3);
     if (unit != 0) {
         uint8_t *unit_bytes = (uint8_t *)unit;
         datum_index player_index = player_index_from_unit_index(object_index);
@@ -279,7 +260,7 @@ void ScriptObjects::object_detach_and_place_at_location(int16_t location_index, 
         }
     }
 
-    object_set_position_and_orientation(object_index,
+    halo::objects::object_set_position_and_orientation(object_index,
         (reorient && player == 0) ? &forward : 0, 0,
         (detach_from_parent && player == 0) ? (real_point3d *)(flag + 0x24) : 0);
 }
@@ -534,7 +515,7 @@ void ScriptObjects::object_list_for_each(datum_index header_index) const
     }
 
     while (object_index != -1) {
-        object_notify_children_recursive(object_index);
+        halo::objects::object_notify_children_recursive(object_index);
         if (next == 0xffffffff) {
             object_index = -1;
             next = 0xffffffff;
@@ -629,7 +610,7 @@ void ScriptObjects::object_name_destroy(int32_t object_name_index) const
     }
     object_index = object_name_list[name];
     if (object_index != k_datum_index_none && !hs_object_hierarchy_test(object_index)) {
-        object_delete(object_index);
+        halo::objects::object_delete(object_index);
     }
 }
 
@@ -687,7 +668,7 @@ void ScriptObjects::object_runtime_cleanup() const
     object_iter.type_filter = -1;
     object_iter.next_index = 0;
     object_iter.index = (datum_index)0xffffffff;
-    object_element = object_iterator_next(&object_iter);
+    object_element = halo::objects::object_iterator_next((object_iterator *)&object_iter);
     for (;;) {
         if (object_element == 0) {
             return;
@@ -698,13 +679,13 @@ void ScriptObjects::object_runtime_cleanup() const
             object = hs_object_record_get(object_index);
 
             if (object->network_role == 0) {
-                object_delete_unparented(object_index);
-                object_delete_recursive(object_index, 0);
+                halo::objects::object_delete_unparented(object_index);
+                halo::objects::object_delete_recursive(object_index, 0);
             } else if (object->network_role == 3) {
-                object_delete_recursive(object_index, 0);
+                halo::objects::object_delete_recursive(object_index, 0);
             }
         }
-        object_element = object_iterator_next(&object_iter);
+        object_element = halo::objects::object_iterator_next((object_iterator *)&object_iter);
     }
 }
 
@@ -773,7 +754,7 @@ void ScriptObjects::hs_object_set_permutation_by_name(datum_index object_index, 
             }
         }
 
-        object_set_permutation_by_name(object_index, (char *)permutation_name, (int16_t)match_index, 1);
+        halo::objects::object_set_permutation_by_name(object_index, (char *)permutation_name, (int16_t)match_index, 1);
     }
 }
 
@@ -793,11 +774,11 @@ void ScriptObjects::objects_delete_by_type(uint32_t tag_id) const
     iter.type_filter = -1;
     iter.next_index = 0;
     iter.index = (datum_index)0xffffffff;
-    element = (hs_object_record *)object_iterator_next(&iter);
+    element = (hs_object_record *)halo::objects::object_iterator_next((object_iterator *)&iter);
     for (;;) {
         object_index = iter.index;
         if (element == 0) {
-            objects_garbage_collection();
+            halo::objects::objects_garbage_collection();
             halo::memory::block_list_compact(object_memory_pool);
             return;
         }
@@ -806,13 +787,13 @@ void ScriptObjects::objects_delete_by_type(uint32_t tag_id) const
                 (object_index & 0xffff) * 0x0c + 8);
 
             if (object->network_role == 0) {
-                object_delete_unparented(object_index);
-                object_delete_recursive(object_index, 0);
+                halo::objects::object_delete_unparented(object_index);
+                halo::objects::object_delete_recursive(object_index, 0);
             } else if (object->network_role == 3) {
-                object_delete_recursive(object_index, 0);
+                halo::objects::object_delete_recursive(object_index, 0);
             }
         }
-        element = (hs_object_record *)object_iterator_next(&iter);
+        element = (hs_object_record *)halo::objects::object_iterator_next((object_iterator *)&iter);
     }
 }
 

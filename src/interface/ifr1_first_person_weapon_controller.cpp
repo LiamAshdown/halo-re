@@ -6,13 +6,13 @@
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
 extern int32_t local_player_index_for_unit(datum_index unit_index);
 extern uint32_t first_person_weapon_get_marker_data(datum_index weapon_index, const char *marker_name,
                                                       object_marker *out, uint32_t name_arg);
-extern void *object_try_and_get(datum_index object_index, uint32_t mask);
 extern int32_t local_player_index_for_weapon(datum_index weapon_index);
 extern data_array *object_data;
 extern Globals *global_globals;
@@ -138,7 +138,7 @@ uint32_t FirstPersonWeaponController::get_marker_data(datum_index weapon_index, 
     first_person_weapon_interface *fp;
     uint8_t *item_tag_data;
 
-    obj = (object *)object_try_and_get(weapon_index, 4);
+    obj = (object *)halo::objects::object_try_and_get(weapon_index, 4);
     if (obj == 0) {
         return 0;
     }

@@ -4,6 +4,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_check_burst_length_exceeded {
 extern "C" {
@@ -1375,7 +1376,6 @@ extern data_array *object_data;
 extern data_array *prop_data;
 
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 }
 
@@ -1411,7 +1411,7 @@ datum_index halo::ai::combat_ops::get_squad_recent_attacker_target(char require_
         if (responsible == k_datum_index_none) {
             continue;
         }
-        unit = (uint8_t *)object_try_and_get(responsible, 3);
+        unit = (uint8_t *)halo::objects::object_try_and_get(responsible, 3);
         if (unit == 0) {
             continue;
         }

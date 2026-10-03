@@ -4,6 +4,7 @@
 #include "halo/items/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -20,7 +21,6 @@ extern void hud_set_action_text_shown(int16_t local_player_index, uint8_t shown)
 extern int16_t object_get_hud_text_message_index(datum_index object_index);
 extern uint8_t weapon_hud_ammo_state_is_empty(const weapon_hud_ammo_state *state);
 extern uint8_t game_engine_pick_hud_hint(datum_index player_index, int32_t maximum_length, uint16_t *out_text);
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern hud_globals_flags *hud_flags;
 extern uint8_t current_game_engine;
 extern uint8_t motion_sensor_override_value;
@@ -114,7 +114,7 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
 
     case 6:
     case 7: {
-        uint8_t *weapon = (uint8_t *)object_try_and_get(p->interaction_object, 4);
+        uint8_t *weapon = (uint8_t *)halo::objects::object_try_and_get(p->interaction_object, 4);
         const int16_t *messaging;
         if (weapon == 0) {
             return;
@@ -224,7 +224,7 @@ void HudFrame::update_interaction_prompt(datum_index player_index)
                     uint8_t *weapon;
                     const int16_t *messaging;
                     hud_set_player_message(5, (uint16_t)local);
-                    weapon = (uint8_t *)object_try_and_get(candidate, 4);
+                    weapon = (uint8_t *)halo::objects::object_try_and_get(candidate, 4);
                     if (weapon != 0) {
                         messaging = weapon_hud_messaging(weapon);
                         if (messaging != 0) {

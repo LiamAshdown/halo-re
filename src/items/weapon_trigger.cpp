@@ -4,20 +4,16 @@
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern data_array *actor_data;
 extern char s_primary_trigger_marker[];
 extern char s_secondary_trigger_marker[];
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *markers, uint32_t max_count);
 extern uint32_t camera_observer_update(datum_index player_index, real_point3d *observer_position, real_vector3d *fallback_facing);
 extern uint32_t actor_compute_grenade_aim_direction(datum_index actor_index, real_point3d *target_point, real_vector3d *out_direction, float *out_698);
-extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
 extern void weapon_trigger_barrel_spread_offset(real_vector3d *v, real_vector3d *axis, uint16_t barrel_index, int16_t distribution_function, real distribution_angle, uint32_t flags);
-extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
-extern uint8_t object_reposition_to_spawn_location(uint32_t object_index, real_point3d *target_position, uint32_t ignore_object_index);
 extern double fabs(double x);
 extern double sqrt(double x);
 extern double cos(double x);
@@ -75,13 +71,13 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
     int16_t marker_count;
     int16_t m;
 
-    if (D(item, 0x11c) != k_datum_index_none && object_try_and_get(D(item, 0x11c), 3) != 0) {
+    if (D(item, 0x11c) != k_datum_index_none && halo::objects::object_try_and_get(D(item, 0x11c), 3) != 0) {
         holder = D(item, 0x11c);
     }
     if ((((struct item_object *)item)->base.flags & 1) && D(item, 0x11c) != k_datum_index_none) {
         marker_object = D(item, 0x11c);
     }
-    marker_count = (int16_t)object_get_node_local_transform(marker_object,
+    marker_count = (int16_t)halo::objects::object_get_node_local_transform(marker_object,
         trigger_index == 0 ? s_primary_trigger_marker : s_secondary_trigger_marker, markers, 0x40);
     if (marker_count == 0) {
         marker_count = 1;
@@ -181,7 +177,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
         }
         {
             datum_index parent = D(OBJECT_DATA(item_index), 0x11c);
-            object *parent_object = parent != k_datum_index_none ? object_try_and_get(parent, 3) : 0;
+            object *parent_object = parent != k_datum_index_none ? halo::objects::object_try_and_get(parent, 3) : 0;
 
             if (parent_object != 0) {
                 owner = parent;
@@ -198,7 +194,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
             datum_index projectile;
             uint8_t *projectile_definition;
 
-            object_placement_data_initialize(&placement, D(trigger, 0xa0), owner);
+            halo::objects::object_placement_data_initialize(&placement, D(trigger, 0xa0), owner);
             placement.position = origin;
             placement.forward = forward;
             if (F(state, 0x10) == 0.0f) {
@@ -266,7 +262,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
             if (from_player) {
                 placement.flags |= 2;
             }
-            projectile = object_new_with_datum_role_control(&placement, role);
+            projectile = halo::objects::object_new_with_datum_role_control(&placement, role);
             if (projectile == k_datum_index_none) {
                 continue;
             }
@@ -274,7 +270,7 @@ void weapon_trigger_ref::create_projectiles(int16_t trigger_index, uint32_t role
                 real_point3d camera;
 
                 halo::units::unit_get_camera_position(holder, &camera);
-                object_reposition_to_spawn_location(projectile, &camera, holder);
+                halo::objects::object_reposition_to_spawn_location(projectile, &camera, holder);
             }
             if (target != k_datum_index_none) {
                 D(OBJECT_DATA(projectile), 0x238) = target;

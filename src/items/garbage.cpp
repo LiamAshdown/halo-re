@@ -1,12 +1,11 @@
 #include "halo/items/items.hpp"
 #include "halo/math/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern object_globals *object_globals_pointer;
-extern void object_delete_unparented(uint32_t object_index);
-extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings);
 uint8_t halo::items::garbage_new(uint32_t object_index);
 int32_t halo::items::garbage_update(uint32_t object_index);
 }
@@ -62,11 +61,11 @@ int32_t garbage_ref::update()
 
     if (!still_alive) {
         if (obj->network_role == 0) {
-            object_delete_unparented(object_index);
+            halo::objects::object_delete_unparented(object_index);
         } else if (obj->network_role != 3) {
             return still_alive;
         }
-        object_delete_recursive(object_index, 0);
+        halo::objects::object_delete_recursive(object_index, 0);
     }
     return still_alive;
 }

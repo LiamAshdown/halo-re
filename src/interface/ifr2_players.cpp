@@ -7,6 +7,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -26,7 +27,6 @@ extern void hud_state_reset(void);
 extern player_globals *local_player_globals;
 extern data_array *player_data;
 extern data_array *object_data;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern int16_t profile_slot_id[];
 extern char player_help_name_a10[];
 extern char player_help_name_a30[];
@@ -254,7 +254,7 @@ datum_index LocalPlayers::get_vehicle(datum_index player_index)
     if (p->identifier == 0 || (salt != 0 && p->identifier != salt)) {
         return (datum_index)-1;
     }
-    unit = object_try_and_get(p->unit, 3);
+    unit = halo::objects::object_try_and_get(p->unit, 3);
     if (unit == 0 || ((unit_object *)unit)->base.parent_object == (datum_index)-1 ||
         ((unit_object *)unit)->unit.vehicle_seat_index == -1) {
         return (datum_index)-1;

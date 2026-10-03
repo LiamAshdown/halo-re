@@ -6,6 +6,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
@@ -111,9 +112,6 @@ extern data_array *object_data;
 extern game_time_globals *game_time;
 extern char ai_marker_name_a[];
 extern char ai_marker_name_b[];
-extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker, uint32_t flags);
-extern void object_get_position(real_point3d *out_position, datum_index object_index);
-extern datum_index object_get_root_object_index(uint32_t object_index);
 extern uint8_t halo::scenario::scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
     int16_t *weather_index_out);
 extern datum_index object_find_nearest_squad_member(datum_index actor_index, void *reference, datum_index exclude_index, char stamp_group);
@@ -193,7 +191,7 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
         }
     }
 
-    object_get_node_local_transform(target->object_index, ai_marker_name_a, (object_marker *)local_transform, 1);
+    halo::objects::object_get_node_local_transform(target->object_index, ai_marker_name_a, (object_marker *)local_transform, 1);
     transform_x = *(uint32_t *)(local_transform + 0x60);
     transform_y = *(uint32_t *)(local_transform + 0x64);
     transform_z = *(uint32_t *)(local_transform + 0x68);
@@ -201,16 +199,16 @@ void ActorView::target_data_refresh(uint32_t target_prop_index, void *reference,
     *(uint32_t *)&target->head_position_y = transform_y;
     *(uint32_t *)&target->head_position_z = transform_z;
 
-    object_get_position(&target->last_known_position, target->object_index);
+    halo::objects::object_get_position(&target->last_known_position, target->object_index);
 
-    object_get_node_local_transform(target->object_index, ai_marker_name_b, (object_marker *)local_transform, 1);
+    halo::objects::object_get_node_local_transform(target->object_index, ai_marker_name_b, (object_marker *)local_transform, 1);
     *(uint32_t *)&target->center_of_mass.x = *(uint32_t *)(local_transform + 0x60);
     *(uint32_t *)&target->center_of_mass.y = *(uint32_t *)(local_transform + 0x64);
     *(uint32_t *)&target->center_of_mass.z = *(uint32_t *)(local_transform + 0x68);
     *(real_vector3d *)&target->velocity = unit_obj->velocity;
     target->pathfinding_surface_index = -1;
 
-    reassigned = object_get_root_object_index(target->object_index);
+    reassigned = halo::objects::object_get_root_object_index(target->object_index);
     parent_obj = ((object_header *)object_data->data)[reassigned & 0xffff].data;
     target->location_leaf_index = *(float *)&parent_obj->location_leaf_index;
     *(uint32_t *)&target->cluster_index = *(uint32_t *)&parent_obj->location_cluster_index;
@@ -418,7 +416,6 @@ uint16_t ActorView::target_get_priority_class(datum_index target_prop_index)
 namespace actor_target_get_relationship_object_local {
 extern "C" {
 extern data_array *prop_data;
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 }
 
@@ -446,7 +443,7 @@ void TargetView::target_get_relationship_object()
             return;
         }
         resolved = target->object_index;
-        if (object_try_and_get(resolved, 1) != (void *)0) {
+        if (halo::objects::object_try_and_get(resolved, 1) != (void *)0) {
             resolved = halo::units::biped_get_cached_look_at_position(resolved, (real_point3d *)((uint8_t *)target + 0xf0));
             *cache = (int32_t)resolved;
         }
@@ -767,8 +764,6 @@ extern data_array *noncollideable_object_references;
 extern object_globals *object_globals_pointer;
 extern int ai_target_distance_qsort_compare(void *record_a, void *record_b);
 extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
-extern int16_t object_get_root_parent_placement(uint32_t object_index,
-    object_placement_cursor *out_cursor);
 extern void actor_target_evaluate_squad_link(uint32_t actor_index, datum_index object_cursor,
     int16_t *candidates_a, int16_t *candidates_b);
 extern datum_index actor_find_or_allocate_prop(uint32_t actor_index, datum_index object_index, char flag);
@@ -942,7 +937,7 @@ merged:
                 accept = 0;
                 {
                     object_placement_cursor cursor;
-                    int16_t ref = object_get_root_parent_placement(p->object_index, &cursor);
+                    int16_t ref = halo::objects::object_get_root_parent_placement(p->object_index, &cursor);
                     while (ref != -1) {
                         if (pvs_bitmap[(int16_t)ref >> 5] & (1u << ((uint8_t)ref & 0x1f))) {
                             accept = 1;
@@ -1239,8 +1234,6 @@ extern data_array *object_data;
 extern data_array *encounter_data;
 extern game_time_globals *game_time;
 extern int16_t actor_get_current_mode_combat_grade(datum_index actor_index);
-extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity,
-    real_vector3d *out_angular_velocity);
 extern void actor_target_mark_engaged(datum_index target_prop_index, datum_index actor_index,
     uint8_t mark_engaged);
 extern uint8_t actor_target_update_active_flag(datum_index actor_index, datum_index target_prop_index);
@@ -1342,7 +1335,7 @@ void ActorView::target_update_tracking_speed(datum_index target_prop_index, void
     }
 
     old_speed_bucket = p->speed_class;
-    object_get_root_object_velocities(p->object_index, &velocity, (real_vector3d *)0);
+    halo::objects::object_get_root_object_velocities(p->object_index, &velocity, (real_vector3d *)0);
     speed = sqrtf_(velocity.i * velocity.i + velocity.j * velocity.j + velocity.k * velocity.k);
     if (speed < 0.0033333334f) {
         p->speed_class = 0;

@@ -16,6 +16,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -46,12 +47,9 @@ extern void *game_state_persistent_storage;
 extern uint8_t game_state_persistent_storage_created;
 extern void hs_dispose_dynamic_globals(void);
 extern void widget_close_all(void);
-extern void objects_dispose(void);
 extern void saved_game_files_dispose(void);
 extern void network_shutdown(void);
 extern data_array *object_data;
-extern object *object_iterator_next(object_iterator *iterator);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t ai_scan_for_recent_combat_activity(uint32_t param);
 extern void player_respawn(datum_index player_handle);
 extern uint8_t player_attach_unit_to_parent(datum_index player_handle, datum_index parent_object,
@@ -150,7 +148,7 @@ void Lifecycle::dispose(void)
         rasterizer_decal_vertex_cache = (void **)0;
     }
     object_render_state_cache = 0;
-    objects_dispose();
+    halo::objects::objects_dispose();
 
     if (console_win32_attached != 0) {
         console_win32_attached = 0;
@@ -210,7 +208,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
         obj_iter.flags_mask = 0;
         obj_iter.index = 0;
         obj_iter.handle = (datum_index)-1;
-        if (object_iterator_next(&obj_iter) != (object *)0 || halo::units::unit_any_dying_or_seat_transition() != 0) {
+        if (halo::objects::object_iterator_next(&obj_iter) != (object *)0 || halo::units::unit_any_dying_or_seat_transition() != 0) {
             local_player_globals->mode = 1;
             return 0;
         }
@@ -241,7 +239,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
                 } while (next != (datum_index)-1);
 
                 if (root == unit_handle) {
-                    root_obj = object_try_and_get(unit_handle, _object_mask_biped);
+                    root_obj = halo::objects::object_try_and_get(unit_handle, _object_mask_biped);
                     if (root_obj != (object *)0) {
                         biped = (biped_data *)((uint8_t *)root_obj + 0x4cc);
                         if ((biped->flags & 1) != 0) {
@@ -250,7 +248,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
                         }
                     }
                 } else {
-                    root_obj = object_try_and_get(root, _object_mask_vehicle);
+                    root_obj = halo::objects::object_try_and_get(root, _object_mask_vehicle);
                     if (root_obj != (object *)0) {
                         vehicle = (vehicle_data *)((uint8_t *)root_obj + 0x4cc);
                         if (vehicle->airborne_ticks != 0) {

@@ -3,6 +3,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -14,8 +15,6 @@ extern int32_t race_used_locations[8];
 extern int32_t race_used_location_count;
 extern uint32_t race_vehicle_counts[4];
 extern int32_t game_engine_find_nearest_unused_type4_location(int32_t *excluded_indices, int32_t excluded_count, real_point3d *reference_point);
-extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
-extern datum_index object_new(object_placement_data *placement);
 extern double cos(double x);
 extern double sin(double x);
 extern wchar_t empty_string;
@@ -145,13 +144,13 @@ void RaceEngine::race_spawn_next_vehicle(datum_index player_index)
     if (tag == 0xffffffff) {
         return;
     }
-    object_placement_data_initialize(&placement, tag, 0xffffffff);
+    halo::objects::object_placement_data_initialize(&placement, tag, 0xffffffff);
     placement.position = *(real_point3d *)location;
     facing = *(float *)(location + 0x0c);
     placement.forward.i = (float)cos(facing);
     placement.forward.j = (float)sin(facing);
     placement.forward.k = 0.0f;
-    vehicle = object_new(&placement);
+    vehicle = halo::objects::object_new(&placement);
     *(int16_t *)(*(uint8_t **)((uint8_t *)object_data->data + (vehicle & 0xffff) * 12 + 8) + 0x5b0) = (int16_t)location_index;
 }
 

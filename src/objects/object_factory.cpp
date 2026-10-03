@@ -17,6 +17,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
@@ -36,42 +37,12 @@ extern char network_log_path_format[];
 extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern int32_t network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
-extern void object_block_data_free(data_array *array, datum_index object_index);
-extern uint8_t object_block_data_grow(uint32_t object_index, int16_t field_offset, int16_t extra_size);
-extern datum_index object_block_data_new(int32_t specific_index, data_array *array, int16_t size);
-extern void object_create_attachments(uint32_t object_index);
 extern data_array *object_data;
-extern void object_delete(uint32_t object_index);
 extern object_globals *object_globals_pointer;
-extern void object_initialize_change_colors(uint32_t object_index, ColorRGB *colors);
-extern void object_initialize_shield_stun_thresholds(uint32_t object_index, float *override_max_body_vitality, float *override_max_shield_vitality);
 extern memory_pool *object_memory_pool;
 extern datum_index *object_name_list;
-extern datum_index object_new(object_placement_data *placement);
-extern datum_index object_new_from_scenario_placement(uint8_t *placement, TagReflexive *palette);
-extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
-extern void object_notify_node_array_if_animated(uint32_t object_index);
-extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
-extern void object_recalculate_bounding_radius(uint32_t object_index);
-extern void object_refresh_region_permutations(uint32_t object_index);
-extern void object_reserve_render_cache_slot(uint32_t object_index, int16_t slot);
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
-extern void object_set_collision_enabled(uint32_t object_index, uint8_t enable);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
-extern void object_type_definitions_notify_0x24(uint32_t object_index, uint32_t argument);
-extern void object_type_definitions_notify_0x30(uint32_t object_index);
-extern void object_type_definitions_notify_0x38(uint32_t object_index);
-extern void object_type_definitions_notify_two_args_0x2c(uint32_t object_index, uint32_t event_argument);
-extern uint8_t object_type_definitions_query_0x28(uint32_t object_index);
-extern void object_type_override_call_0x68(uint32_t object_index);
-extern int object_type_override_get_0x64(uint32_t object_index, void *buffer, int32_t buffer_size);
-extern void object_update_change_colors(uint32_t object_index);
-extern void object_update_functions(uint32_t object_index);
 extern uint16_t object_visibility_computed_mask;
-extern void objects_garbage_collection(void);
-extern void scenario_objects_place_for_structure_bsp(uint8_t place);
-extern void widget_new(uint32_t object_index);
 }
 
 namespace {
@@ -161,15 +132,15 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
             if (placement == 0) {
                 continue;
             }
-            object = object_new_from_scenario_placement(placement, palette);
+            object = halo::objects::object_new_from_scenario_placement(placement, palette);
             if (object != k_datum_index_none && type == _object_type_vehicle) {
                 uint8_t *vehicle = *(uint8_t **)((uint8_t *)object_data->data + halo::datum_slot(object) * 0xc + 8);
                 ((vehicle_object *)vehicle)->vehicle.cinematic_facing_index = i;
             }
-            objects_garbage_collection();
+            halo::objects::objects_garbage_collection();
         }
     }
-    scenario_objects_place_for_structure_bsp(1);
+    halo::objects::scenario_objects_place_for_structure_bsp(1);
 }
 
 /**
@@ -182,7 +153,7 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
 void halo::objects::ObjectFactory::place_for_structure_bsp_on_activate()
 {
     if (halo::cutscene::globals().cinematic_globals->in_progress == 0 || halo::cutscene::globals().cinematic_globals->suppress_bsp_object_creation == 0) {
-        scenario_objects_place_for_structure_bsp(1);
+        halo::objects::scenario_objects_place_for_structure_bsp(1);
     }
 }
 
@@ -243,7 +214,7 @@ void halo::objects::ObjectFactory::place_for_structure_bsp(uint8_t place)
             }
         }
         if (place) {
-            objects_garbage_collection();
+            halo::objects::objects_garbage_collection();
             halo::memory::block_list_compact(object_memory_pool);
             for (i = 0; i < (int32_t)placements->count; i++) {
                 uint8_t *placement = (uint8_t *)placements->pointer + i * size;
@@ -255,8 +226,8 @@ void halo::objects::ObjectFactory::place_for_structure_bsp(uint8_t place)
                 if ((placement[4] & 1) != 0 || (*(uint16_t *)(placement + 0x20) & bsp_bit) == 0) {
                     continue;
                 }
-                object_new_from_scenario_placement(placement, palette);
-                objects_garbage_collection();
+                halo::objects::object_new_from_scenario_placement(placement, palette);
+                halo::objects::objects_garbage_collection();
             }
         }
     }
@@ -285,7 +256,7 @@ void halo::objects::ObjectPlacementDataView::initialize(datum_index definition_t
     placement->up = *halo::math::globals().global_up3d_pointer;
     placement->permutation_group = 0;
 
-    current = object_try_and_get(role, _object_mask_all);
+    current = halo::objects::object_try_and_get(role, _object_mask_all);
     if (current == 0) {
         placement->role = k_datum_index_none;
         placement->owner_linkage = k_datum_index_none;
@@ -317,7 +288,7 @@ datum_index halo::objects::ObjectFactory::create(object_placement_data *placemen
         }
     }
 
-    return object_new_with_datum_role_control(placement, role);
+    return halo::objects::object_new_with_datum_role_control(placement, role);
 }
 
 namespace {
@@ -364,7 +335,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     tag_inst = &halo::cache::globals().tag_instances[halo::datum_slot(definition_tag)];
     object_tag = (Object *)tag_inst->data;
 
-    new_index = object_block_data_new(-1, object_data,
+    new_index = halo::objects::object_block_data_new(-1, object_data,
         object_type_definitions[object_tag->object_type]->object_size);
     if (new_index == k_datum_index_none) {
         goto out_of_objects;
@@ -378,7 +349,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     active = 1;
     obj->type = object_tag->object_type;
 
-    object_type_definitions_notify_0x24(new_index, (uint32_t)placement);
+    halo::objects::object_type_definitions_notify_0x24(new_index, (uint32_t)placement);
 
     obj->network_role = role;
     obj->network_position_valid = 0;
@@ -424,7 +395,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
         obj->flags |= _object_has_collision_model_bit;
     }
 
-    object_set_collision_enabled(new_index,
+    halo::objects::object_set_collision_enabled(new_index,
         (uint8_t)(TAG_ID_AS_DATUM_INDEX(object_tag->model.tag_id) != k_datum_index_none));
 
     obj->owner_team = (int16_t)placement->owner_team;
@@ -440,12 +411,12 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
         node_count = model->nodes.count;
     }
 
-    grew_nodes = object_block_data_grow(new_index, 0x1f0, (int16_t)(node_count * 0x34));
+    grew_nodes = halo::objects::object_block_data_grow(new_index, 0x1f0, (int16_t)(node_count * 0x34));
     if (grew_nodes == 0) {
         active = 0;
     } else if (((1 << (object_tag->object_type & 0x1f)) & _object_mask_no_node_functions) == 0) {
-        grew_nodes = object_block_data_grow(new_index, 0x1ec, (int16_t)(node_count << 5));
-        if (grew_nodes == 0 || (grew_nodes = object_block_data_grow(new_index, 0x1e8, (int16_t)(node_count << 5)),
+        grew_nodes = halo::objects::object_block_data_grow(new_index, 0x1ec, (int16_t)(node_count << 5));
+        if (grew_nodes == 0 || (grew_nodes = halo::objects::object_block_data_grow(new_index, 0x1e8, (int16_t)(node_count << 5)),
                                  grew_nodes == 0)) {
             active = 0;
         }
@@ -454,24 +425,24 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     header = (object_header *)object_data->data + halo::datum_slot(new_index);
     obj = header->data;
 
-    if (active && object_type_definitions_query_0x28(new_index) != 0) {
+    if (active && halo::objects::object_type_definitions_query_0x28(new_index) != 0) {
         int was_connected_to_map = (obj->flags & _object_connected_to_map_bit) != 0;
 
         if (was_connected_to_map && (placement->flags & 2) != 0) {
             obj->flags &= ~(uint32_t)_object_connected_to_map_bit;
         }
 
-        object_initialize_change_colors(new_index, (ColorRGB *)placement->network_vectors);
-        object_refresh_region_permutations(new_index);
-        object_initialize_shield_stun_thresholds(new_index, 0, 0);
-        object_recalculate_bounding_radius(new_index);
-        object_set_cluster_and_parent(new_index, 0);
-        object_notify_node_array_if_animated(new_index);
-        object_type_definitions_notify_0x38(new_index);
-        object_update_functions(new_index);
-        object_update_change_colors(new_index);
-        widget_new(new_index);
-        object_create_attachments(new_index);
+        halo::objects::object_initialize_change_colors(new_index, (ColorRGB *)placement->network_vectors);
+        halo::objects::object_refresh_region_permutations(new_index);
+        halo::objects::object_initialize_shield_stun_thresholds(new_index, 0, 0);
+        halo::objects::object_recalculate_bounding_radius(new_index);
+        halo::objects::object_set_cluster_and_parent(new_index, 0);
+        halo::objects::object_notify_node_array_if_animated(new_index);
+        halo::objects::object_type_definitions_notify_0x38(new_index);
+        halo::objects::object_update_functions(new_index);
+        halo::objects::object_update_change_colors(new_index);
+        halo::objects::widget_new(new_index);
+        halo::objects::object_create_attachments(new_index);
 
         if (!was_connected_to_map) {
             obj->flags &= ~(uint32_t)_object_connected_to_map_bit;
@@ -482,7 +453,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
         if ((header->flags & _object_header_active_bit) == 0 &&
             (obj->flags & _object_connected_to_map_bit) != 0 &&
             ((placement->flags & 2) == 0 || obj->location_cluster_index != -1)) {
-            object_delete(new_index);
+            halo::objects::object_delete(new_index);
         }
     } else {
         active = 0;
@@ -491,8 +462,8 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     if (network_action_apply_active == 0 && active) {
         if (network_game_mode == 2 && obj->network_role == 0) {
             int32_t override_count;
-            object_type_override_call_0x68(new_index);
-            override_count = object_type_override_get_0x64(new_index, network_message_scratch,
+            halo::objects::object_type_override_call_0x68(new_index);
+            override_count = halo::objects::object_type_override_get_0x64(new_index, network_message_scratch,
                                                            sizeof network_message_scratch);
             if (override_count > 0) {
 
@@ -501,8 +472,8 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
             }
         }
     } else if (!active) {
-        object_type_definitions_notify_0x30(new_index);
-        object_block_data_free(object_data, new_index);
+        halo::objects::object_type_definitions_notify_0x30(new_index);
+        halo::objects::object_block_data_free(object_data, new_index);
         new_index = k_datum_index_none;
 out_of_objects:
         tag_path = halo::cache::globals().tag_instances[(uint16_t)(uint32_t)definition_tag].path;
@@ -541,7 +512,7 @@ datum_index halo::objects::ObjectFactory::create_from_scenario_name(int16_t name
     uint8_t *placement = (uint8_t *)placements->pointer +
                          definition->scenario_placement_size * *(int16_t *)(name + 0x22);
 
-    return object_new_from_scenario_placement(placement, palette);
+    return halo::objects::object_new_from_scenario_placement(placement, palette);
 }
 
 /**
@@ -601,15 +572,15 @@ datum_index halo::objects::ObjectFactory::create_from_scenario_placement(uint8_t
     if (tag == k_datum_index_none) {
         return k_datum_index_none;
     }
-    object_placement_data_initialize(&data, tag, k_datum_index_none);
+    halo::objects::object_placement_data_initialize(&data, tag, k_datum_index_none);
     data.position = *(real_point3d *)&((struct object_placement_data *)placement)->owner_linkage;
     halo::math::euler_angles_to_basis_vectors(*(real_euler_angles3d *)(placement + 0x14), data.up, data.forward);
     data.permutation_group = *(int16_t *)(placement + 0x06);
-    object = object_new(&data);
+    object = halo::objects::object_new(&data);
     if (object != k_datum_index_none) {
-        object_type_definitions_notify_two_args_0x2c(object, (uint32_t)placement);
+        halo::objects::object_type_definitions_notify_two_args_0x2c(object, (uint32_t)placement);
         if (name != -1) {
-            object_reserve_render_cache_slot(object, name);
+            halo::objects::object_reserve_render_cache_slot(object, name);
         }
     }
     return object;

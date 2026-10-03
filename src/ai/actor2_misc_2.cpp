@@ -3,13 +3,13 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
 namespace actor_reassign_vehicle_seat_local {
 extern "C" {
 extern data_array *object_data;
-extern void *object_try_and_get(datum_index object_index, int32_t kind);
 extern int8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason, datum_index object_b, datum_index object_c, uint32_t *extra_data);
 extern void ai_conversation_clear_object_references(datum_index object_index, uint8_t force_full_scan);
@@ -34,7 +34,7 @@ int32_t ActorOps::reassign_vehicle_seat(datum_index vehicle_object_index, datum_
 
     occupant = (datum_index)k_datum_index_none;
     if (vehicle_object_index != (datum_index)k_datum_index_none) {
-        vehicle_obj = (object *)object_try_and_get(vehicle_object_index, 3);
+        vehicle_obj = (object *)halo::objects::object_try_and_get(vehicle_object_index, 3);
         if (vehicle_obj != 0) {
             vehicle_unit = (unit_data *)((uint8_t *)vehicle_obj + k_unit_data_offset);
             occupant = (datum_index)k_datum_index_none;
@@ -80,10 +80,7 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t *team_pair_data;
 extern const real_point3d *global_zero_vector3d_pointer;
 extern char ai_marker_name_b[];
-extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void actor_fill_unit_position_context(datum_index unit_index, actor_unit_position_context *out_context);
-extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker,
-    uint32_t flags);
 extern uint8_t halo::scenario::scenario_location_get_water_and_weather(real_point3d *point, bsp_leaf_reference *leaf,
     int16_t *weather_index_out);
 extern void *actor_get_actor_definition(datum_index actor_index);
@@ -129,7 +126,7 @@ void ActorView::refresh_combat_context()
             datum_index vehicle = ((struct object *)creature_object)->type == 0 ?
                 *(datum_index *)(creature_object + 0x4d8) : k_datum_index_none;
 
-            object_get_position((real_point3d *)(creature + 4), creature_unit);
+            halo::objects::object_get_position((real_point3d *)(creature + 4), creature_unit);
             *(datum_index *)(creature + 0x10) = vehicle;
             center->x = *(float *)(creature + 4) + center->x;
             center->y = *(float *)(creature + 8) + center->y;
@@ -161,7 +158,7 @@ void ActorView::refresh_combat_context()
         object_marker marker;
         real_point3d head;
 
-        object_get_node_local_transform(A_I32(0x18), ai_marker_name_b, &marker, 1);
+        halo::objects::object_get_node_local_transform(A_I32(0x18), ai_marker_name_b, &marker, 1);
         head = marker.node_transform.position;
         A_U8(0x15d) = halo::scenario::scenario_location_get_water_and_weather(&head, (bsp_leaf_reference *)(self + 0x144), 0);
     }

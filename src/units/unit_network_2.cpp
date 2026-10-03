@@ -1,12 +1,12 @@
 #include <string.h>
 #include "halo/units/unit.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern network_id_table *object_network_id_table;
 extern uint8_t *machine_table;
 extern uint8_t network_object_index_cache[];
-extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern int32_t network_index_cache_find_or_allocate_slot(uint8_t *container, int32_t key);
 extern int32_t message_delta_encode_message(int32_t buffer, int32_t bit_budget, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 }
@@ -60,16 +60,16 @@ int32_t UnitView::build_network_update(int32_t buffer, int32_t bit_budget)
     int32_t machine = 0;
 
     if (object_index != k_datum_index_none) {
-        key = hash_table_get(keys, (int32_t)object_index);
+        key = halo::objects::hash_table_get(keys, (int32_t)object_index);
     }
     if (*(int32_t *)&((unit_object *)biped)->base.creator_object != -1) {
-        creator = hash_table_get(keys, *(int32_t *)&((unit_object *)biped)->base.creator_object);
+        creator = halo::objects::hash_table_get(keys, *(int32_t *)&((unit_object *)biped)->base.creator_object);
         if (creator == -1) {
             creator = 0;
         }
     }
     if (*(int32_t *)&((unit_object *)biped)->base.owner_linkage != -1) {
-        machine = hash_table_get((hash_table *)(machine_table + 0xc), *(int32_t *)&((unit_object *)biped)->base.owner_linkage);
+        machine = halo::objects::hash_table_get((hash_table *)(machine_table + 0xc), *(int32_t *)&((unit_object *)biped)->base.owner_linkage);
         if (machine == -1) {
             machine = 0;
         }

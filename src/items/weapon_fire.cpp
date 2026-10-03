@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -11,14 +12,12 @@ extern game_engine_definition *current_game_engine;
 extern uint8_t weapon_bottomless_clip;
 extern uint8_t weapon_client_side_projectiles;
 extern game_time_globals *game_time;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern void unit_update_active_camouflage_depower(datum_index player_handle);
 extern uint32_t local_player_index_for_weapon(datum_index item_index);
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
 extern void ai_refresh_unit_stimulus_and_alert(datum_index object_index, int16_t priority, int16_t stimulus_value);
-extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
 uint32_t halo::items::weapon_fire_trigger(datum_index item_index, int16_t trigger_index);
 }
 
@@ -60,7 +59,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
 
     holder_index = (datum_index)0xffffffff;
     if (item_obj->parent_object != (datum_index)0xffffffff &&
-        object_try_and_get(item_obj->parent_object, _object_mask_unit) != 0) {
+        halo::objects::object_try_and_get(item_obj->parent_object, _object_mask_unit) != 0) {
         holder_index = item_obj->parent_object;
     }
 
@@ -292,7 +291,7 @@ uint32_t weapon_ref::fire_trigger(int16_t trigger_index)
         dd.direction.k = -*(real *)(holder_bytes + 0x244);
         dd.epicentre = holder_obj->bounding_center;
         dd.origin = holder_obj->bounding_center;
-        object_apply_damage(&dd, holder_index, -1, -1, -1, 0);
+        halo::objects::object_apply_damage(&dd, holder_index, -1, -1, -1, 0);
     }
 
     if (weapon_tag->weapon_type == 3 && trigger_index == 1) {

@@ -1,6 +1,7 @@
 #include "halo/hs/hs1_world_commands.hpp"
 #include "halo/devices/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -10,7 +11,6 @@ extern datum_index player_index_from_unit_index(datum_index unit_index);
 extern void hud_waypoint_activate_for_player(datum_index player_index, datum_index target, int16_t kind, int16_t arrow_index, float vertical_offset);
 extern void hud_waypoint_activate_for_team(datum_index target, int16_t arrow_index, int16_t team, int16_t kind, float vertical_offset);
 extern uint8_t *breakable_surface_state;
-extern void breakable_surfaces_reset(void);
 extern void cheat_make_selected_object_invincible(void);
 extern void cheat_make_player_invincible(int16_t local_player_slot);
 extern Globals *global_globals;
@@ -24,7 +24,6 @@ extern void hs_damage_apply_with_sound(datum_index object_index, uint32_t damage
 extern void hud_waypoint_deactivate_for_player(datum_index player_index, datum_index target, int16_t kind);
 extern void hud_waypoint_deactivate_for_team(int16_t kind, int16_t team, datum_index target);
 extern data_array *object_data;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 
 namespace halo::hs {
@@ -234,7 +233,7 @@ void WorldStateCommands::run_breakable_surfaces_reset(int16_t function_index, ui
 {
     (void)function_index;
     (void)first;
-    breakable_surfaces_reset();
+    halo::objects::breakable_surfaces_reset();
     hs_thread_return(0, thread_index);
 }
 
@@ -584,7 +583,7 @@ void DeviceCommands::device_one_sided_set(int16_t function_index, uint32_t threa
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        uint8_t *device = (uint8_t *)object_try_and_get((datum_index)arguments[0], 0x80);
+        uint8_t *device = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 0x80);
 
         if (device != 0) {
             if (*(uint8_t *)&arguments[1] != 0) {
@@ -609,7 +608,7 @@ void DeviceCommands::device_operates_automatically_set(int16_t function_index, u
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    uint8_t *device = (uint8_t *)object_try_and_get((datum_index)arguments[0], 0x80);
+    uint8_t *device = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 0x80);
 
     if (device != 0) {
         if (*(uint8_t *)&arguments[1]) {
@@ -635,7 +634,7 @@ void DeviceCommands::device_set_never_appears_locked(int16_t function_index, uin
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != 0xffffffff) {
-            uint8_t *device = (uint8_t *)object_try_and_get((datum_index)arguments[0], 0x80);
+            uint8_t *device = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 0x80);
 
             if (device != 0) {
                 if (*(uint8_t *)&arguments[1] != 0) {

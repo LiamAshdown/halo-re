@@ -5,6 +5,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *contrail_data;
@@ -12,7 +13,6 @@ extern data_array *contrail_point_data;
 extern uint32_t point_physics_tick(real_vector3d *velocity, uint32_t flags_arg, PointPhysics *definition, bsp_leaf_reference *out_leaf, uint32_t unused_param_4, real_point3d *position, real_vector3d *wind, real_vector3d *out_normal, int16_t *out_material_type, real radius, real dt);
 extern data_array *object_data;
 extern real effect_random_scaled_range(uint32_t flags, real scale, real base_min, real base_max, uint8_t bit_index);
-extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name, object_marker *marker, uint32_t flags);
 extern int32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
 extern void contrail_next_sequence(contrail *self);
 extern void contrail_age_points(datum_index contrail_handle, real delta_time);
@@ -234,7 +234,7 @@ void contrail_ref::generate_points(int16_t point_count, uint8_t force)
         ObjectAttachment *attachment = (ObjectAttachment *)owner_tag->attachments.pointer +
             self->attachment_index;
         object_marker markers[4];
-        int16_t marker_count = (int16_t)object_get_node_local_transform(self->object_index,
+        int16_t marker_count = (int16_t)halo::objects::object_get_node_local_transform(self->object_index,
             attachment->marker.string, markers, 4);
 
         if (marker_count > 0) {

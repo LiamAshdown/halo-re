@@ -7,12 +7,12 @@
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
 extern player_globals *local_player_globals;
 extern double sqrt(double x);
-extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void player_effect_apply_continuous_damage(uint32_t tag_reference, int16_t local_player_index, float distance);
 extern player_effect_globals *player_effect_globals_pointer;
 extern game_time_globals *game_time;
@@ -22,7 +22,6 @@ extern int16_t screen_flash_pass[8];
 extern int32_t player_effect_reentry_count;
 extern double atan2(double y, double x);
 extern double fabs(double x);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index local_player_to_player_index(int16_t local_player_index);
 extern network_id_table *object_network_id_table;
 extern uint8_t message_delta_decode_compound_field(void **context, void *destination);
@@ -32,7 +31,6 @@ extern double cos(double x);
 extern double sin(double x);
 extern uint8_t network_message_scratch[0x7ff8];
 extern network_server_globals *network_server;
-extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globals *server, uint32_t status_bit, void *data, uint32_t body_bit_count, uint32_t reliable, uint32_t unknown_a, char force, uint32_t priority);
 extern data_array *object_data;
@@ -56,7 +54,7 @@ void player_effect_ref::apply_at_object(uint32_t tag_reference, int16_t local_pl
             real_point3d position;
             float dx, dy, dz;
 
-            object_get_position(&position, record->unit);
+            halo::objects::object_get_position(&position, record->unit);
             dx = origin->x - position.x;
             dy = origin->y - position.y;
             dz = origin->z - position.z;
@@ -317,8 +315,8 @@ void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_
         controlling_player = local_player_to_player_index(local_player_index);
         unit_index = (controlling_player == k_datum_index_none) ? k_datum_index_none :
             ((player *)player_data->data)[controlling_player & 0xffff].unit;
-        if (object_try_and_get(unit_index, 3) == 0 ||
-            object_try_and_get(dd->responsible_object, 0xffffffff) == 0) {
+        if (halo::objects::object_try_and_get(unit_index, 3) == 0 ||
+            halo::objects::object_try_and_get(dd->responsible_object, 0xffffffff) == 0) {
             player_effect_reentry_count--;
             return;
         }
@@ -328,7 +326,7 @@ void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_
             return;
         }
         halo::units::unit_get_primary_eye_marker_position(unit_index, &eye);
-        object_get_position(&source, dd->responsible_object);
+        halo::objects::object_get_position(&source, dd->responsible_object);
         delta.i = source.x - eye.x;
         delta.j = source.y - eye.y;
         delta.k = source.z - eye.z;
@@ -461,7 +459,7 @@ void player_effect_ref::send_network_update(const real_vector3d *direction, cons
     fields[0] = dd->damage_effect_tag;
     fields[1] = 0;
     if (dd->responsible_object != (datum_index)0xffffffff) {
-        fields[1] = (uint32_t)hash_table_get(&object_network_id_table->id_to_index,
+        fields[1] = (uint32_t)halo::objects::hash_table_get(&object_network_id_table->id_to_index,
             (int32_t)dd->responsible_object);
         if (fields[1] == 0xffffffff) {
             fields[1] = 0;

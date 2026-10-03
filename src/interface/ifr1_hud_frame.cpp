@@ -6,6 +6,7 @@
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -14,7 +15,6 @@ extern HUDGlobals *hud_globals_tag_data;
 extern int16_t render_viewport_top;
 extern int16_t render_viewport_left;
 extern float hud_damage_indicator_screen_center_x;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void hud_meter_resolve_bitmap_frame(datum_index bitmap_tag, int16_t sequence_index, uint16_t frame_index,
                                            void **out_data, int32_t *out_offset);
 extern void hud_draw_bitmap_at(const float *uv, BitmapData *bitmap, uint8_t pixel_uvs, int16_t anchor,
@@ -144,7 +144,7 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
         }
     }
 
-    unit = object_try_and_get(unit_index, 3);
+    unit = halo::objects::object_try_and_get(unit_index, 3);
     if (unit == 0) {
         *(uint32_t *)halo::effects::globals().player_effect_state->players[local_player_index].damage_indicator_alpha = 0;
         return;
@@ -234,7 +234,7 @@ void HudFrame::draw_grenade_interface(int16_t local_player_index, datum_index un
     if (halo::items::weapon_prevents_grenade_throwing(weapon) != 0 || grenade == -1) {
         return;
     }
-    parent = (uint8_t *)object_try_and_get(((unit_object *)unit)->base.parent_object, 3);
+    parent = (uint8_t *)halo::objects::object_try_and_get(((unit_object *)unit)->base.parent_object, 3);
     if (parent != 0 && (*(datum_index *)(parent + 0x324) == unit_index || *(datum_index *)(parent + 0x328) == unit_index)) {
         return;
     }
@@ -475,7 +475,7 @@ void HudFrame::render_unit_interface(player *p)
                 }
                 for (child = ((object *)parent_object)->first_child_object; child != (datum_index)-1 && (uint32_t)count < 18;) {
                     uint8_t *child_data = (uint8_t *)((object_header *)object_data->data)[child & 0xffff].data;
-                    uint8_t *child_object = (uint8_t *)object_try_and_get(child, 3);
+                    uint8_t *child_object = (uint8_t *)halo::objects::object_try_and_get(child, 3);
 
                     if (child_object != 0 && ((struct object *)child_object)->parent_object == parent &&
                         *(int16_t *)(child_object + 0x2f0) != -1) {
@@ -508,7 +508,7 @@ void HudFrame::render_unit_interface(player *p)
         uint32_t flags;
 
         index--;
-        object = (uint8_t *)object_try_and_get(objects[index], 3);
+        object = (uint8_t *)halo::objects::object_try_and_get(objects[index], 3);
         if (object == 0) {
             continue;
         }

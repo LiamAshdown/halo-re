@@ -18,6 +18,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" { void halo::physics::collision_gather_nearby_object_shapes(uint32_t flags, uint32_t start_object_index, real_point3d *origin, float radius, float x_offset, float y_offset, uint32_t exclude_object_index, physics_model *model); }
 extern "C" { uint8_t halo::physics::collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result); }
@@ -760,7 +761,6 @@ uint8_t CollisionWorld::context_test_segment(object_collision_context *context, 
 
 }
 
-extern "C" { extern datum_index object_resolve_collideable_reference(datum_index *next_reference, int16_t cluster_index); }
 namespace halo::physics {
 
 /**
@@ -787,7 +787,7 @@ uint8_t CollisionWorld::test_cluster_group(uint32_t flags, real_point3d *positio
                 (ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer;
             datum_index next_reference;
             datum_index object_index =
-                object_resolve_collideable_reference(&next_reference,
+                halo::objects::object_resolve_collideable_reference(&next_reference,
                     (int16_t)*(uint16_t *)((uint8_t *)leaves + (leaf_index & 0x7fffffff) * 0x10 + 8));
 
             while (object_index != k_datum_index_none) {

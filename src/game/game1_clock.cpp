@@ -17,12 +17,12 @@
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern game_main_globals *main_game_globals;
 extern game_time_globals *game_time;
 extern real chimera_contrail_scale;
-extern void widgets_update_all(real tick_delta_time);
 extern int16_t network_game_mode;
 extern double floor(double x);
 extern int32_t game_time_force_single_tick;
@@ -74,7 +74,7 @@ void SimulationClock::effects_update(real delta_time)
     halo::effects::contrail_update(delta_time);
     halo::effects::particle_systems_update(delta_time);
     if (ticks_this_frame != 0) {
-        widgets_update_all(tick_delta_time);
+        halo::objects::widgets_update_all(tick_delta_time);
     }
     halo::sound::game_sound_update();
     halo::effects::weather_update();

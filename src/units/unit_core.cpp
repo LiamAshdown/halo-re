@@ -13,27 +13,22 @@
 #include "halo/physics/api.hpp"
 #include "halo/devices/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern double sqrt(double x);
 extern uint8_t *global_globals;
-extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
 extern game_engine_definition *current_game_engine;
-extern void object_delete(uint32_t object_index);
 extern uint8_t event9_target;
-extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern network_id_table *object_network_id_table;
 extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern network_server_globals *network_server;
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
-extern void object_get_position(real_point3d *out_position, uint32_t object_index);
 extern player_globals *local_player_globals;
 extern data_array *player_data;
-extern object * object_iterator_next(object_iterator *iterator);
 extern char *unit_base_animation_state_names[6];
-extern object * object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 
 namespace halo::units {
@@ -216,7 +211,7 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
                     dd.random_blend = 1.5f;
                 }
                 if (best_obj->type == 0) {
-                    object_apply_damage(&dd, best_object, -1, -1, -1, 0);
+                    halo::objects::object_apply_damage(&dd, best_object, -1, -1, -1, 0);
                 }
             }
         }
@@ -239,7 +234,7 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
                 dd2.random_blend = 1.0f;
                 dd2.multiplier = 1.0f;
                 dd2.material_type = -1;
-                object_apply_damage(&dd2, unit_index, -1, -1, -1, 0);
+                halo::objects::object_apply_damage(&dd2, unit_index, -1, -1, -1, 0);
             }
         }
         unit->melee_state = 0;
@@ -260,7 +255,7 @@ void UnitView::check_fell_off_level()
     if (current_game_engine == 0 &&
         (test_flag(obj->flags, objects::object_flag::outside_map) || obj->location_cluster_index == -1)) {
         if (obj->position.z < -2000.0f) {
-            object_delete(object_index);
+            halo::objects::object_delete(object_index);
         }
     }
 }
@@ -277,7 +272,7 @@ void halo::units::unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t u
 {
     int32_t unit_hash = 0;
     if (unit_index != k_datum_index_none) {
-        unit_hash = hash_table_get(&object_network_id_table->id_to_index, (int32_t)unit_index);
+        unit_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, (int32_t)unit_index);
         if (unit_hash == -1) {
             unit_hash = 0;
         }
@@ -292,7 +287,7 @@ void halo::units::unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t u
 
     int32_t weapon_hash = 0;
     if (current_weapon != k_datum_index_none) {
-        weapon_hash = hash_table_get(&object_network_id_table->id_to_index, (int32_t)current_weapon);
+        weapon_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, (int32_t)current_weapon);
         if (weapon_hash == -1) {
             weapon_hash = 0;
         }
@@ -394,7 +389,7 @@ void halo::units::unit_get_crouch_height_offset(real_point3d *object_position, u
     biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
 
-    object_get_position(object_position, object_index);
+    halo::objects::object_get_position(object_position, object_index);
 
     if (!test_flag(tag->biped_flags, tags::biped_tag_flag::physics_pill_centered_at_origin)) {
         object_position->z += tag->collision_radius;
@@ -545,7 +540,7 @@ uint8_t halo::units::unit_is_area_clear_of_fast_objects(void)
         iter.handle = k_datum_index_none;
         object *obj;
 
-        while ((obj = object_iterator_next(&iter)) != 0) {
+        while ((obj = halo::objects::object_iterator_next(&iter)) != 0) {
             int32_t i;
             for (i = 0; i < tracked_count; i++) {
                 if (obj->parent_object != k_datum_index_none) {
@@ -573,7 +568,7 @@ uint8_t halo::units::unit_is_area_clear_of_fast_objects(void)
  */
 uint8_t halo::units::unit_point_in_front_and_asleep(real_point3d *world_point, uint32_t unit_index)
 {
-    uint8_t *obj = (uint8_t *)object_try_and_get(unit_index, 3);
+    uint8_t *obj = (uint8_t *)halo::objects::object_try_and_get(unit_index, 3);
     float dot;
 
     if (obj == 0 || ((unit_object *)obj)->base.type != 0) {

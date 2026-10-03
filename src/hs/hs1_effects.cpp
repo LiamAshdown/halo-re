@@ -2,16 +2,13 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern void *memset(void *dst, int32_t value, uint32_t size);
-extern void damage_apply_area_effect(void *request, uint32_t param_2);
-extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern void object_apply_damage(void *dd, uint32_t object_index, int16_t hit_node_index, int16_t hit_region_index, int16_t hit_material_index, uint32_t hit_plane);
 extern double fcos(double x);
 extern double fsin(double x);
 extern void *global_origin3d_pointer;
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum);
 }
 
 namespace halo::hs {
@@ -50,11 +47,11 @@ void ScriptEffects::damage_apply_at_location(int16_t location_index, uint32_t da
     request.sound_impulse = impulse;
     if (impulse == -1) {
         request.sound_index = 0xffff;
-        damage_apply_area_effect(&request, 0xffffffff);
+        halo::objects::damage_apply_area_effect((damage_data *)&request);
         return;
     }
     request.sound_index = ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
-    damage_apply_area_effect(&request, 0xffffffff);
+    halo::objects::damage_apply_area_effect((damage_data *)&request);
 }
 
 /**
@@ -79,7 +76,7 @@ void ScriptEffects::damage_apply_with_sound(datum_index object_index, uint32_t d
         request.scale_b = 1.0f;
         request.material_type = 0xffff;
 
-        object_get_position((real_point3d *)&request.position, object_index);
+        halo::objects::object_get_position((real_point3d *)&request.position, object_index);
         *(Point3D *)&request.direction = *(Point3D *)&request.position;
 
         impulse = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)&request.position);
@@ -89,7 +86,7 @@ void ScriptEffects::damage_apply_with_sound(datum_index object_index, uint32_t d
         } else {
             request.sound_index = ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
         }
-        object_apply_damage(&request, object_index, -1, -1, -1, 0);
+        halo::objects::object_apply_damage((damage_data *)&request, object_index, -1, -1, -1, 0);
     }
 }
 
@@ -127,7 +124,7 @@ void ScriptEffects::effect_spawn_on_marker(datum_index object_index, datum_index
     if (effect == k_datum_index_none || object_index == k_datum_index_none) {
         return;
     }
-    if ((int16_t)object_get_node_local_transform(object_index, marker_name, &marker, 1) == 0) {
+    if ((int16_t)halo::objects::object_get_node_local_transform(object_index, marker_name, &marker, 1) == 0) {
         return;
     }
     halo::effects::effect_new_on_object_with_node_table(k_datum_index_none, effect, object_index, *(uint16_t *)&marker,

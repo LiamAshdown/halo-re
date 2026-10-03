@@ -6,6 +6,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -13,7 +14,6 @@ extern data_array *object_data;
 extern player_control_globals *player_control_globals_ptr;
 extern Globals *global_globals;
 extern void *global_zero_vector3d_pointer;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void first_person_weapon_update_state(int16_t local_player_index);
 extern void first_person_weapon_set_state(int16_t local_player_index, uint8_t force_pose_snapshot,
                                           int16_t new_state);
@@ -88,7 +88,7 @@ void FirstPersonWeaponController::update()
     debug_play_diagnostics();
     first_person_weapon_interface *fp = &first_person_weapon_interfaces[local_player_index];
 
-    if (fp->weapon_index != (datum_index)-1 && object_try_and_get(fp->weapon_index, 4) == 0) {
+    if (fp->weapon_index != (datum_index)-1 && halo::objects::object_try_and_get(fp->weapon_index, 4) == 0) {
         fp->weapon_index = (datum_index)-1;
     }
 
@@ -276,7 +276,7 @@ void FirstPersonWeaponController::update_animation_controls()
     *(real_vector3d *)(fp_raw + 0x54) = camera_forward_x;
     fp->unknown_30[0x20] = 1;
 
-    if (fp->weapon_index != (datum_index)-1 && object_try_and_get(fp->weapon_index, 4) == 0) {
+    if (fp->weapon_index != (datum_index)-1 && halo::objects::object_try_and_get(fp->weapon_index, 4) == 0) {
         fp->weapon_index = (datum_index)-1;
     }
     if (fp->weapon_index == (datum_index)-1) {

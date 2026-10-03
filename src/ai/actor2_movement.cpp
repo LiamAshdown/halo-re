@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::ai {
 
@@ -860,10 +861,6 @@ namespace actor_movement_collect_obstacle_candidates_local {
 extern "C" {
 extern data_array *object_data;
 extern double sqrt(double x);
-extern int16_t object_find_in_sphere(int32_t kind, int32_t type_mask, const void *from,
-                                     const real_point3d *center, float radius,
-                                     datum_index *out_objects, int32_t maximum_count);
-extern real_matrix4x3 *object_get_world_matrix(uint32_t object_index, real_matrix4x3 *out);
 }
 }
 
@@ -897,7 +894,7 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
     datum_index *cursor;
 
     unit_object = ((object_header *)object_data->data)[context->unit_index & 0xffff].data;
-    found = object_find_in_sphere(1, 0xc2, (uint8_t *)unit_object + 0x98, &context->position,
+    found = halo::objects::object_find_in_sphere(1, 0xc2, (uint8_t *)unit_object + 0x98, &context->position,
                                   context->search_radius, candidates, 0x800);
     context->obstacle_count = 0;
     if (found <= 0) {
@@ -919,7 +916,7 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
                 origin_z = ((struct object *)candidate_object)->bounding_center.z;
                 origin_top = ((struct object *)candidate_object)->bounding_radius;
                 extent = 0.0f;
-                object_get_world_matrix(*cursor, &world_matrix);
+                halo::objects::object_get_world_matrix(*cursor, &world_matrix);
 
                 sphere_count = (int32_t)collision_model->pathfinding_spheres.count;
                 spheres = (ModelCollisionGeometrySphere *)collision_model->pathfinding_spheres.pointer;
@@ -1026,7 +1023,6 @@ namespace actor_movement_get_stopping_distances_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 }
 
@@ -1055,7 +1051,7 @@ void ActorView::movement_get_stopping_distances(float *out_accelerate_stop_dista
 
     if (self->active_unit_index == (datum_index)k_datum_index_none) {
         if (self->unit_index != (datum_index)k_datum_index_none) {
-            unit_object = (object *)object_try_and_get(self->unit_index, 1);
+            unit_object = (object *)halo::objects::object_try_and_get(self->unit_index, 1);
             if (unit_object != (object *)0) {
                 biped_definition = (Biped *)halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data;
                 speed = unit_object->velocity.i * unit_object->forward.i +

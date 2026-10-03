@@ -5,6 +5,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_avoid_obstacle_and_project {
 extern "C" {
@@ -601,7 +602,6 @@ extern data_array *swarm_data;
 extern data_array *swarm_component_data;
 extern data_array *object_data;
 
-extern void object_get_position(real_point3d *out_position, datum_index object_index);
 }
 }
 
@@ -649,7 +649,7 @@ datum_index halo::ai::movement_ops::create_swarm()
 
                     marker = (unit_object->type == 0) ? *(datum_index *)((uint8_t *)unit_object + 0x4d8)
                                                        : (datum_index)k_datum_index_none;
-                    object_get_position(&component->position, unit_index);
+                    halo::objects::object_get_position(&component->position, unit_index);
                     component->marker_index = marker;
                 }
 
@@ -713,7 +713,6 @@ extern data_array *prop_data;
 extern data_array *object_data;
 
 extern double sqrt(double x);
-extern void object_get_position(real_point3d *out_position, datum_index object_index);
 
 #define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
 #define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
@@ -775,7 +774,7 @@ uint8_t halo::ai::movement_ops::evaluate_search_node(datum_index vehicle_index, 
                                            &hint)) {
         return 0;
     }
-    object_get_position((real_point3d *)&direction, vehicle_index);
+    halo::objects::object_get_position((real_point3d *)&direction, vehicle_index);
     direction.i = seat.x - entry.x;
     direction.k = 0.0f;
     direction.j = seat.y - entry.y;
@@ -857,11 +856,6 @@ extern "C" {
 extern data_array *object_data;
 extern char ai_marker_name_a[];
 
-extern void object_get_position(real_point3d *out_position, datum_index object_index);
-extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker,
-    uint32_t flags);
-extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity,
-    real_vector3d *out_angular_velocity);
 
 static uint8_t *object_get(datum_index object_index)
 {
@@ -887,11 +881,11 @@ void halo::ai::movement_ops::fill_unit_position_context(datum_index unit_index, 
     datum_index root = k_datum_index_none;
     uint8_t *root_object;
 
-    object_get_position((real_point3d *)(context + 0xc), unit_index);
+    halo::objects::object_get_position((real_point3d *)(context + 0xc), unit_index);
     *(real_vector3d *)&((struct actor_unit_position_context *)context)->forward.i = *(real_vector3d *)&((unit_object *)unit)->base.forward.i;
-    object_get_node_local_transform(unit_index, ai_marker_name_a, &marker, 1);
+    halo::objects::object_get_node_local_transform(unit_index, ai_marker_name_a, &marker, 1);
     *(real_point3d *)context = marker.node_transform.position;
-    object_get_root_object_velocities(unit_index, (real_vector3d *)(context + 0x2c), 0);
+    halo::objects::object_get_root_object_velocities(unit_index, (real_vector3d *)(context + 0x2c), 0);
     if (unit_index != k_datum_index_none) {
         datum_index cursor = unit_index;
 

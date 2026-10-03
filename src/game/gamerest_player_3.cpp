@@ -1,10 +1,9 @@
 #include "halo/game/gamerest_player.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void object_delete(datum_index object_index);
 extern datum_index player_spawn_starting_profile_weapon(TagDependency *weapon_tag, datum_index owner_unit_handle);
 }
 
@@ -35,7 +34,7 @@ void LocalPlayerUnit::apply_starting_profile(int16_t starting_profile_index, uin
         return;
     }
 
-    obj = object_try_and_get(unit_handle, _object_mask_unit);
+    obj = halo::objects::object_try_and_get(unit_handle, _object_mask_unit);
     unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
     if (unit->controlling_player == (datum_index)-1) {
         return;
@@ -56,7 +55,7 @@ void LocalPlayerUnit::apply_starting_profile(int16_t starting_profile_index, uin
         weapon_object = player_spawn_starting_profile_weapon(&profile->primary_weapon, unit_handle);
         if (weapon_object != (datum_index)-1) {
             if (halo::units::unit_pickup_weapon((int16_t)(reset_stats != 0), weapon_object, unit_handle) == 0) {
-                object_delete(weapon_object);
+                halo::objects::object_delete(weapon_object);
             }
         }
     }
@@ -65,7 +64,7 @@ void LocalPlayerUnit::apply_starting_profile(int16_t starting_profile_index, uin
         weapon_object = player_spawn_starting_profile_weapon(&profile->secondary_weapon, unit_handle);
         if (weapon_object != (datum_index)-1) {
             if (halo::units::unit_pickup_weapon(0, weapon_object, unit_handle) == 0) {
-                object_delete(weapon_object);
+                halo::objects::object_delete(weapon_object);
             }
         }
     }

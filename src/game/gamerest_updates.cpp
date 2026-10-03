@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "halo/memory/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern int32_t update_client_unknown_ea0;
@@ -41,7 +42,6 @@ extern void unit_snap_position_if_far(real_point3d *new_position, object *obj);
 extern double sqrt(double x);
 extern int32_t vehicle_wait_tick_counter;
 extern uint8_t vehicle_update_queue_find_and_remove(circular_queue *queue, int32_t target_tick, vehicle_update_record *out);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t player_unit_has_parent(datum_index player_handle);
 extern void apply_remote_player_position_update(player *plr, object *unit_obj);
 extern void apply_remote_player_vehicle_position_update(player *plr, object *unit_obj);
@@ -698,7 +698,7 @@ void PlayerNetworkState::apply_remote_vehicle_position_update(object *unit_obj)
 
     if (found == 1) {
         if (unit_obj->parent_object == (datum_index)record.body.parent_or_tag) {
-            object *parent_obj = object_try_and_get((datum_index)record.body.parent_or_tag, 0xffffffff);
+            object *parent_obj = halo::objects::object_try_and_get((datum_index)record.body.parent_or_tag, 0xffffffff);
             if (parent_obj != (object *)0) {
                 float dx = record.body.position.x - parent_obj->position.x;
                 float dy = record.body.position.y - parent_obj->position.y;
@@ -764,7 +764,7 @@ void PlayerNetworkState::apply_first_position_update(uint32_t field0)
         return;
     }
 
-    unit_obj = object_try_and_get(plr->unit, _object_mask_unit);
+    unit_obj = halo::objects::object_try_and_get(plr->unit, _object_mask_unit);
     if (unit_obj == (object *)0) {
         return;
     }

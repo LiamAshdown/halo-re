@@ -3,27 +3,22 @@
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern real projectile_network_update_position_tolerance;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
 extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination, int32_t changed_offset, uint8_t force);
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
-extern void object_set_position_and_recalculate(real_point3d *position, datum_index object_index);
 extern network_id_table *object_network_id_table;
-extern int32_t hash_table_get(hash_table *table, uint32_t key);
 extern int message_delta_encode_message(int flag, int message_type, int changed_offset, void **items, int type_offset, int count, char force_changed);
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern network_id_table *machine_table;
 extern int32_t network_index_cache_find_or_allocate_slot(uint32_t key);
-extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, int16_t marker_index);
 extern void *network_object_index_cache;
 extern void network_index_cache_insert_if_free(void *pooled_node_globals, datum_index object_index, int32_t object_hash);
-extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
 extern void network_index_cache_remove(void *globals, uint32_t object_index);
-extern void object_delete(uint32_t object_index);
 }
 
 namespace halo::projectiles {
@@ -46,7 +41,7 @@ void ProjectileNetwork::apply_update(uint32_t *update_record)
     projectile_network_update_header *header;
     projectile_network_state decoded;
 
-    obj = object_try_and_get(projectile_index, _object_mask_projectile);
+    obj = halo::objects::object_try_and_get(projectile_index, _object_mask_projectile);
     if (obj == 0) {
         message_delta_decode_compound_field_staged(update_record);
         return;
@@ -88,7 +83,7 @@ void ProjectileNetwork::apply_update(uint32_t *update_record)
             if ((*(int32_t *)update_record[0] != 1 ||
                  projectile_network_update_position_tolerance < halo::math::vector3d_distance(obj->position, decoded.position)) &&
                 (obj->flags & _object_needs_cluster_update_bit) != 0) {
-                object_set_position_and_recalculate(&decoded.position, projectile_index);
+                halo::objects::object_set_position_and_recalculate(&decoded.position, projectile_index);
             }
 
             proj->last_update_valid = 1;
@@ -113,7 +108,7 @@ int32_t ProjectileNetwork::build_update(uint32_t unused_arg2, uint32_t unused_ar
 {
     uint32_t projectile_index = (uint32_t)handle;
 
-    object *obj = object_try_and_get(projectile_index, _object_mask_projectile);
+    object *obj = halo::objects::object_try_and_get(projectile_index, _object_mask_projectile);
     int32_t result;
 
     if (obj == 0) {
@@ -142,7 +137,7 @@ int32_t ProjectileNetwork::build_update(uint32_t unused_arg2, uint32_t unused_ar
 
         header.projectile_hash = 0;
         if (projectile_index != (uint32_t)k_datum_index_none) {
-            header.projectile_hash = hash_table_get(&object_network_id_table->id_to_index, projectile_index);
+            header.projectile_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, projectile_index);
             if (header.projectile_hash == -1) {
                 header.projectile_hash = 0;
             }
@@ -196,7 +191,7 @@ void ProjectileNetwork::baseline_take()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = object_try_and_get(object_index, _object_mask_projectile);
+    object *obj = halo::objects::object_try_and_get(object_index, _object_mask_projectile);
 
     if (obj != 0) {
         projectile_data *proj = (projectile_data *)((uint8_t *)obj + k_projectile_data_offset);
@@ -252,16 +247,16 @@ int32_t ProjectileNetwork::send_creation()
     void *message_ptr;
 
     if (projectile_index != halo::k_dword_none) {
-        projectile_hash = hash_table_get(&object_network_id_table->id_to_index, projectile_index);
+        projectile_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, projectile_index);
     }
     if (obj->creator_object != halo::k_dword_none) {
-        creating_object_hash = hash_table_get(&object_network_id_table->id_to_index, obj->creator_object);
+        creating_object_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, obj->creator_object);
         if (creating_object_hash == -1) {
             creating_object_hash = 0;
         }
     }
     if (obj->owner_linkage != halo::k_dword_none) {
-        owner_hash = hash_table_get(&machine_table->id_to_index, obj->owner_linkage);
+        owner_hash = halo::objects::hash_table_get(&machine_table->id_to_index, obj->owner_linkage);
         if (owner_hash == -1) {
             owner_hash = 0;
         }
@@ -323,8 +318,8 @@ void ProjectileNetwork::attach_apply(void *incoming_record)
         parent_handle = object_network_id_table->handles[decoded.parent_hash];
     }
 
-    self = object_try_and_get(projectile_handle, _object_mask_projectile);
-    if (self == 0 || object_try_and_get(parent_handle, _object_mask_all) == 0) {
+    self = halo::objects::object_try_and_get(projectile_handle, _object_mask_projectile);
+    if (self == 0 || halo::objects::object_try_and_get(parent_handle, _object_mask_all) == 0) {
         return;
     }
 
@@ -362,7 +357,7 @@ void ProjectileNetwork::attach_apply(void *incoming_record)
         self_pd->flags |= _projectile_attached_bit;
         self->flags |= _object_at_rest_bit;
 
-        object_attach_to_object(parent_handle, projectile_handle, decoded.parent_marker_index);
+        halo::objects::object_attach_to_object(parent_handle, projectile_handle, decoded.parent_marker_index);
 
         if ((tag->projectile_flags & _projectile_definition_detonation_max_time_if_attached_bit) != 0) {
             real t = tag->timer[1];
@@ -440,7 +435,7 @@ void ProjectileNetwork::create_from_network(void *incoming_record)
     placement.owner_linkage = owner_material;
     placement.role = role_material;
 
-    new_object_index = object_new_with_datum_role_control(&placement, 1);
+    new_object_index = halo::objects::object_new_with_datum_role_control(&placement, 1);
     if (new_object_index == (datum_index)k_datum_index_none) {
         return;
     }
@@ -456,7 +451,7 @@ void ProjectileNetwork::create_from_network(void *incoming_record)
     proj->network_state_valid = 1;
     proj->network_sequence = 0;
 
-    object_set_position_and_recalculate(&proj->network_state.position, new_object_index);
+    halo::objects::object_set_position_and_recalculate(&proj->network_state.position, new_object_index);
 
     obj->velocity = proj->network_state.velocity;
 }
@@ -498,15 +493,15 @@ void ProjectileNetwork::detonation_message_apply(void *incoming_record)
         network_index_cache_remove(&network_object_index_cache, projectile_index); 
     }
 
-    obj = object_try_and_get(projectile_index, _object_mask_projectile);
+    obj = halo::objects::object_try_and_get(projectile_index, _object_mask_projectile);
     if (obj == 0) {
         return;
     }
     obj->network_role = 3;
-    object_set_position_and_recalculate(&decoded.position, projectile_index);
+    halo::objects::object_set_position_and_recalculate(&decoded.position, projectile_index);
     projectile_detonate(projectile_index, 0, 0);
     projectile_request_state(projectile_index, _projectile_state_disappearing);
-    object_delete(projectile_index);
+    halo::objects::object_delete(projectile_index);
 }
 
 }

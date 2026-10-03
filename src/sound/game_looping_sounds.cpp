@@ -8,6 +8,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::sound {
 
@@ -97,7 +98,7 @@ datum_index create(datum_index object_index, datum_index definition_index, char 
     }
 
     if (object_index != k_datum_index_none) {
-        if ((int16_t)object_get_node_local_transform(object_index, marker_name, &marker, 1) == 0) {
+        if ((int16_t)halo::objects::object_get_node_local_transform(object_index, marker_name, &marker, 1) == 0) {
             return handle;
         }
     }
@@ -193,7 +194,7 @@ void update_sound(datum_index looping_sound_index, int32_t *root_location)
 
         halo::math::matrix4x3_transform_point(*((real_point3d *)&location.position), *((real_point3d *)&self->position), *node_matrix);
         halo::math::matrix4x3_transform_normal(*((real_vector3d *)&location.forward), *((real_vector3d *)&self->forward), *node_matrix);
-        object_get_root_object_velocities(self->object_index, (real_vector3d *)&location.velocity,
+        halo::objects::object_get_root_object_velocities(self->object_index, (real_vector3d *)&location.velocity,
             (real_vector3d *)0);
         location.leaf_index = root_location[0];
         *(int32_t *)&location.cluster_index = root_location[1];
@@ -290,13 +291,13 @@ void update(void)
             if (object_index == k_datum_index_none) {
                 game_looping::update_sound(index, (int32_t *)0);
             } else if ((self->flags & _game_looping_sound_script_gain_bit) == 0 ||
-                       object_try_and_get(object_index, 0xffffffff) != 0) {
+                       halo::objects::object_try_and_get(object_index, 0xffffffff) != 0) {
                 object *obj = (object *)((object_header *)object_data->data)[object_index & 0xffff].data;
 
                 if ((obj->flags & _object_needs_cluster_update_bit) != 0) {
                     int32_t leaf_cluster[2];
 
-                    object_get_root_location(leaf_cluster, object_index);
+                    halo::objects::object_get_root_location(leaf_cluster, object_index);
 
                     if ((int16_t)leaf_cluster[1] != -1 &&
                         (sound_cluster_audible_bitmap[(int16_t)leaf_cluster[1] >> 5] &

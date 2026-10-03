@@ -22,6 +22,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern ctf_globals ctf_globals_live;
@@ -48,11 +49,6 @@ extern Globals *global_globals;
 extern int16_t network_game_mode;
 extern data_array *object_data;
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
-extern void object_placement_data_initialize(object_placement_data *placement,
-    datum_index definition_tag, datum_index role);
-extern datum_index object_new_with_datum_role_control(object_placement_data *placement,
-    uint32_t role);
-extern void object_mark_pending_delete(uint32_t object_index);
 extern int32_t game_engine_ctf_reset_ticks;
 extern game_variant game_engine_variant;
 extern custom_waypoint custom_waypoints[k_maximum_custom_waypoints];
@@ -90,7 +86,6 @@ extern void game_engine_player_profile_cache_sync_all(int32_t commit, void *call
 extern uint32_t players_get_active_by_index(int32_t index);
 extern void qr2_buffer_add_int(void *buffer, int32_t value);
 extern void ctf_flag_object_clear_carrier(datum_index flag_object_index, real_point3d *position);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern double pow(double x, double y);
 }
 
@@ -327,7 +322,7 @@ datum_index Ctf::create_flag_object(real_point3d *position, uint16_t name_index)
 
     flag_tag = (datum_index)(uint32_t)((mp_info->flag.tag_id.id << 16) | mp_info->flag.tag_id.index);
 
-    object_placement_data_initialize(&placement, flag_tag, (datum_index)0xffffffff);
+    halo::objects::object_placement_data_initialize(&placement, flag_tag, (datum_index)0xffffffff);
     placement.position = *position;
     placement.owner_team = (int16_t)name_index;
 
@@ -339,13 +334,13 @@ datum_index Ctf::create_flag_object(real_point3d *position, uint16_t name_index)
         }
     }
 
-    new_object = object_new_with_datum_role_control(&placement, role);
+    new_object = halo::objects::object_new_with_datum_role_control(&placement, role);
 
     hdr = (object_header *)object_data->data + ((uint32_t)new_object & 0xffff);
     header_flags = hdr->flags;
     hdr->flags = header_flags & ~_object_header_in_pvs_pass_bit;
     if ((header_flags & _object_header_active_bit) == 0) {
-        object_mark_pending_delete((uint32_t)new_object);
+        halo::objects::object_mark_pending_delete((uint32_t)new_object);
     }
 
     return new_object;
@@ -940,7 +935,7 @@ uint8_t Ctf::unit_is_flag_holder(player *p)
     if (flag_object == (datum_index)0xffffffff) {
         return 0;
     }
-    flag_obj = object_try_and_get(flag_object, _object_mask_weapon);
+    flag_obj = halo::objects::object_try_and_get(flag_object, _object_mask_weapon);
     if (flag_obj == (object *)0) {
         return 0;
     }
@@ -951,7 +946,7 @@ uint8_t Ctf::unit_is_flag_holder(player *p)
     if (carrier == (player *)0) {
         return 0;
     }
-    unit_obj = object_try_and_get(carrier->unit, _object_mask_unit);
+    unit_obj = halo::objects::object_try_and_get(carrier->unit, _object_mask_unit);
     if (unit_obj == (object *)0 || *(int32_t *)&((struct object *)unit_obj)->parent_object == -1) {
         return 0;
     }

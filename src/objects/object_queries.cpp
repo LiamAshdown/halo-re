@@ -2,6 +2,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
@@ -10,11 +11,8 @@ extern data_array *collideable_object_references;
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern datum_index *noncollideable_cluster_first;
 extern data_array *noncollideable_object_references;
-extern int16_t object_collect_in_clusters(uint32_t search_mask, int16_t cluster_count, int16_t *cluster_indices, int16_t max_output, datum_index *out_objects);
 extern data_array *object_data;
 extern object_globals *object_globals_pointer;
-extern int32_t object_tree_collect_matching(uint32_t object_index, uint8_t (*filter)(uint32_t, void *), void *filter_context, int32_t count, int32_t max_count, datum_index *out);
-extern int32_t object_type_definitions_collect_by_flag_bits(int32_t bit_index, int32_t remaining_bits, int16_t range_index, int16_t range_count, int32_t *bit_array, int32_t cluster_stamp_snapshot, uint8_t (*filter)(uint32_t, void *), void *filter_context, int32_t count, int32_t max_count, datum_index *out);
 }
 
 /**
@@ -184,7 +182,7 @@ int16_t halo::objects::ObjectQueries::find_in_sphere(uint32_t search_mask, uint3
         }
     }
 
-    candidate_count = object_collect_in_clusters(search_mask, cluster_count, clusters, 0x800, candidates);
+    candidate_count = halo::objects::object_collect_in_clusters(search_mask, cluster_count, clusters, 0x800, candidates);
 
     for (i = 0; i < candidate_count; i++) {
         object *obj;
@@ -326,14 +324,14 @@ int32_t halo::objects::ObjectQueries::tree_collect_matching(uint32_t object_inde
     }
 
     if (obj->first_child_object != k_datum_index_none) {
-        count = object_tree_collect_matching(obj->first_child_object, filter, filter_context, count, max_count, out);
+        count = halo::objects::object_tree_collect_matching(obj->first_child_object, filter, filter_context, count, max_count, out);
     }
 
     if (obj->next_object == k_datum_index_none) {
         return count;
     }
 
-    return object_tree_collect_matching(obj->next_object, filter, filter_context, count, max_count, out);
+    return halo::objects::object_tree_collect_matching(obj->next_object, filter, filter_context, count, max_count, out);
 }
 
 /**
@@ -405,7 +403,7 @@ int32_t halo::objects::ObjectQueries::collect_local_player_relevant_objects(real
                     obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
                     if (obj->cluster_stamp != halo::physics::globals().object_cluster_stamp) {
                         obj->cluster_stamp = halo::physics::globals().object_cluster_stamp;
-                        count = object_tree_collect_matching(object_index, filter, filter_context, count, max_count,
+                        count = halo::objects::object_tree_collect_matching(object_index, filter, filter_context, count, max_count,
                             out);
                     }
                 }
@@ -442,7 +440,7 @@ int32_t halo::objects::ObjectQueries::collect_by_flag_bits(int32_t bit_index, in
 
                 if (obj->cluster_stamp != cluster_stamp_snapshot) {
                     obj->cluster_stamp = cluster_stamp_snapshot;
-                    result = object_tree_collect_matching(node->object_index, filter, filter_context, result, max_count, out);
+                    result = halo::objects::object_tree_collect_matching(node->object_index, filter, filter_context, result, max_count, out);
                     cluster_stamp_snapshot = halo::physics::globals().object_cluster_stamp;
                 }
                 ref = node->next_reference;
@@ -470,6 +468,6 @@ int32_t halo::objects::ObjectQueries::collect_by_flag_bits(int32_t bit_index, in
         }
     }
 
-    return object_type_definitions_collect_by_flag_bits(bit_index, remaining_bits, range_index,
+    return halo::objects::object_type_definitions_collect_by_flag_bits(bit_index, remaining_bits, range_index,
         range_count, bit_array, cluster_stamp_snapshot, filter, filter_context, result, max_count, out);
 }

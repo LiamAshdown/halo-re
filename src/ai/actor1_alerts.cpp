@@ -2,6 +2,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_alert_from_damage {
 extern "C" {
@@ -24,7 +25,6 @@ static void actor_raise_alert(uint8_t *actor, int16_t level, uint32_t source)
 }
 
 extern data_array *object_data;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
 }
 }
@@ -52,7 +52,7 @@ uint8_t halo::ai::alert_ops::alert_from_damage()
         datum_index attacker = *(datum_index *)&((struct unit_object *)unit)->unit.flaming_responsible_object;
 
         if (attacker != k_datum_index_none) {
-            uint8_t *attacker_unit = (uint8_t *)object_try_and_get(attacker, 3);
+            uint8_t *attacker_unit = (uint8_t *)halo::objects::object_try_and_get(attacker, 3);
 
             if (attacker_unit != 0) {
                 if (*(datum_index *)(attacker_unit + 0x328) != k_datum_index_none) {
@@ -203,7 +203,6 @@ static void actor_raise_alert(uint8_t *actor, int16_t level, uint32_t source)
     }
 }
 
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
 }
 }
@@ -227,10 +226,10 @@ uint8_t halo::ai::alert_ops::alert_from_projectile()
     if (D(0x1b0) == 0xffffffff) {
         return 0;
     }
-    noticed = (uint8_t *)object_try_and_get(D(0x1b0), 0xffffffff);
+    noticed = (uint8_t *)halo::objects::object_try_and_get(D(0x1b0), 0xffffffff);
     if (noticed != 0 && *(datum_index *)(noticed + 0xc4) != k_datum_index_none) {
         datum_index creator = *(datum_index *)(noticed + 0xc4);
-        uint8_t *creator_unit = (uint8_t *)object_try_and_get(creator, 3);
+        uint8_t *creator_unit = (uint8_t *)halo::objects::object_try_and_get(creator, 3);
 
         if (creator_unit != 0) {
             datum_index who;
@@ -1101,7 +1100,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
 
-extern void object_get_position(real_point3d *out_position, datum_index object_index);
 }
 }
 
@@ -1125,7 +1123,7 @@ uint8_t halo::ai::alert_ops::is_within_alert_range(uint8_t always_in_range, floa
             float radius = (use_radius_b == 0) ? radius_b : radius_a;
             real_point3d obj_position;
 
-            object_get_position(&obj_position, object_index);
+            halo::objects::object_get_position(&obj_position, object_index);
 
             if (vitality_only != 0 ||
 

@@ -1,5 +1,6 @@
 #include "halo/hs/hs1_ai_commands.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -23,7 +24,6 @@ extern void ai_reference_reset_or_wake_awareness(uint32_t packed_reference, char
 extern void ai_object_list_reset_or_wake_awareness(datum_index object_list_header_handle, char flag);
 extern void ai_reference_flee_if_ready(uint32_t packed_reference, uint32_t readiness_param);
 extern void ai_reference_invoke_squad_callback_406f80(uint32_t packed_reference);
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void actor_swarm_for_each_component_thunk(uint32_t actor_index);
 extern void ai_unit_flee_if_ready(datum_index unit_index, uint32_t readiness_param);
 extern int16_t ai_object_list_max_flee_grade(datum_index object_list_header_handle);
@@ -1547,7 +1547,7 @@ void AiCommandListCommands::command_list_advance_by_unit(int16_t function_index,
 
     if (arguments != 0) {
         if (arguments[0] != -1) {
-            uint8_t *unit = (uint8_t *)object_try_and_get((datum_index)arguments[0], 3);
+            uint8_t *unit = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 3);
 
             if (unit != 0) {
                 if (*(int32_t *)&((unit_object *)unit)->unit.actor_index != -1) {

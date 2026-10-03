@@ -9,18 +9,14 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
-extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern object * object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void object_sample_total_lighting_at_point(real_point3d *point, bsp_leaf_reference *location, real_vector3d *out_rgb);
-extern real object_sum_attached_light_luminance(uint32_t object_index);
 extern game_time_globals *game_time;
 extern real_point3d *global_zero_vector3d_pointer;
 extern uint8_t object_physics_context_build(uint32_t object_index, object_physics_context *out_context);
 extern char ai_marker_name_a[];
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers);
 extern char ai_marker_name_b[];
 extern double sqrt(double x);
 }
@@ -53,7 +49,7 @@ void UnitView::add_marker_relative_offset(uint32_t mode, float *world_point, uin
         }
     }
     if (!have_reference) {
-        object_get_position(&reference, unit_index);
+        halo::objects::object_get_position(&reference, unit_index);
     }
     UnitView(unit_index).get_camera_position(accumulator);
     accumulator->x = (world_point[0] - reference.x) + accumulator->x;
@@ -72,13 +68,13 @@ void UnitView::calculate_luminosity()
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     unit_data *unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
-    object *parent = object_try_and_get(obj->parent_object, 3);
+    object *parent = halo::objects::object_try_and_get(obj->parent_object, 3);
 
     if (parent == 0) {
         real_vector3d rgb;
-        object_sample_total_lighting_at_point(&obj->position, (bsp_leaf_reference *)&obj->location_leaf_index, &rgb);
+        halo::objects::object_sample_total_lighting_at_point(&obj->position, (bsp_leaf_reference *)&obj->location_leaf_index, &rgb);
         unit->illumination = rgb.i * 0.299f + rgb.j * 0.587f + rgb.k * 0.114f;
-        unit->attached_light_luminosity = object_sum_attached_light_luminance(object_index);
+        unit->attached_light_luminosity = halo::objects::object_sum_attached_light_luminance(object_index);
         return;
     }
 
@@ -105,7 +101,7 @@ void UnitView::compute_marker_offset_position(real_vector3d *reference_direction
     float fraction;
 
     if (mode == 0) {
-        object_get_position(out_position, object_index);
+        halo::objects::object_get_position(out_position, object_index);
     } else {
         *out_position = *(real_point3d *)base_position;
         if (mode == 3) {
@@ -193,7 +189,7 @@ uint8_t UnitView::get_average_active_marker_direction(real_vector3d *out_directi
     sum.y *= inv;
     sum.z *= inv;
     halo::math::matrix4x3_transform_point(world, sum, *((real_matrix4x3 *)&ctx.scale));
-    object_get_position(&position, unit_index);
+    halo::objects::object_get_position(&position, unit_index);
     out_direction->i = world.x - position.x;
     out_direction->j = world.y - position.y;
     out_direction->k = world.z - position.z;
@@ -243,7 +239,7 @@ void UnitView::get_primary_eye_marker_position(real_point3d *out)
 {
     uint32_t object_index = datum_handle;
     object_marker marker;
-    object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1)  ;
+    halo::objects::object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1)  ;
     *out = marker.node_transform.position;
     return;
 }
@@ -260,7 +256,7 @@ void UnitView::get_secondary_eye_marker_position(real_point3d *out)
 {
     uint32_t object_index = datum_handle;
     object_marker marker;
-    object_get_node_local_transform(object_index, ai_marker_name_b, &marker, 1)  ;
+    halo::objects::object_get_node_local_transform(object_index, ai_marker_name_b, &marker, 1)  ;
     *out = marker.node_transform.position;
     return;
 }

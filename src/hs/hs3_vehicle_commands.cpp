@@ -1,15 +1,14 @@
 #include "halo/hs/hs3_commands.hpp"
 #include "units.h"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count,
     int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern data_array *object_data;
-extern void object_get_position(real_point3d *out, uint32_t object_index);
 }
 
 namespace halo::hs::part3 {
@@ -27,7 +26,7 @@ void VehicleCommands::evaluate_vehicle_driver(int16_t function_index, uint32_t t
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        uint8_t *unit = (uint8_t *)object_try_and_get((datum_index)arguments[0], 3);
+        uint8_t *unit = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 3);
 
         hs_thread_return(unit != 0 ? *(int32_t *)&((unit_object *)unit)->unit.driver_unit_index : -1, thread_index);
     }
@@ -53,7 +52,7 @@ void VehicleCommands::evaluate_vehicle_hover(int16_t function_index, uint32_t th
             uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[vehicle & 0xffff].data;
 
             if (hover != 0) {
-                object_get_position((real_point3d *)(obj + 0x4fc), vehicle);
+                halo::objects::object_get_position((real_point3d *)(obj + 0x4fc), vehicle);
                 obj[0x4cc] |= 2;
             } else {
                 obj[0x4cc] &= 0xfd;

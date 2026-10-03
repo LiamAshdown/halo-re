@@ -12,6 +12,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -28,8 +29,6 @@ extern double fabs(double x);
 extern real weapon_get_zoom_fov(int16_t zoom_table_index, int16_t magnification);
 extern game_main_globals *main_game_globals;
 extern uint8_t actor_check_vehicle_mode_timeout(datum_index actor_index);
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
-extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
 extern uint8_t object_collision_context_build(uint32_t object_index, object_collision_context *out_context);
 extern uint8_t object_collision_context_test_segment(object_collision_context *context, uint32_t flags, real_point3d *origin, real_vector3d *delta, object_node_collision_result *out_result);
 extern int8_t collision_test_movement_segment(int32_t mask, real_point3d *origin, real_vector3d *delta, uint32_t ignore_object_index, void *out_record);
@@ -797,9 +796,9 @@ step_crouch:
             final_position.z = solve.result_position.z - solve.pill_radius;
         }
 
-        object_unlink_cluster_or_notify_parent(object_index);
+        halo::objects::object_unlink_cluster_or_notify_parent(object_index);
         obj->position = final_position;
-        object_set_cluster_and_parent(object_index, 0);
+        halo::objects::object_set_cluster_and_parent(object_index, 0);
 
         result_flags = solve.result_flags;
         obj->velocity = solve.result_velocity;

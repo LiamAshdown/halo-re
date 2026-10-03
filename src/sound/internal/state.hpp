@@ -17,7 +17,6 @@ extern "C" {
 extern data_array *game_looping_sound_data;
 extern game_sound_globals *game_sound_globals_ptr;
 extern data_array *object_data;
-extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
@@ -25,9 +24,6 @@ extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t ele
 extern SoundEnvironment sound_environment;
 extern uint32_t sound_cluster_audible_bitmap[k_sound_cluster_bitmap_words];
 extern int64_t performance_frequency;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void object_get_root_location(int32_t *out, uint32_t object_index);
-extern int32_t object_get_node_local_transform(datum_index object_index, char *marker_name, object_marker *marker, uint32_t flags);
 extern uint8_t sound_looping_audibility_check;
 extern sound_class_definition sound_class_definitions[k_maximum_sound_classes];
 extern data_array *looping_sound_data;
@@ -51,7 +47,6 @@ extern uint8_t sound_dialog_unspatialized;
 extern uint8_t *cinematic_globals_ptr;
 extern const float sound_delay_per_world_unit;
 extern char ai_marker_name_a[];
-extern void object_type_definitions_notify_0x58(uint32_t object_index, datum_index definition_index, datum_index sound_index);
 extern float sound_fade_duration_scale;
 extern float sound_fade_curve_exponent;
 extern double pow(double base, double exponent);

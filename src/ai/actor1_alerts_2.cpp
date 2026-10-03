@@ -1,6 +1,7 @@
 #include "halo/ai/actor_alerts.hpp"
 #include "halo/math/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_investigate_disturbance_update {
 extern "C" {
@@ -16,7 +17,6 @@ extern uint8_t actor_avoid_obstacle_and_project(datum_index actor_index, datum_i
 extern void actor_movement_action_stop(datum_index actor_index);
 extern uint8_t actor_movement_set_destination_point(real_point3d *destination, datum_index actor_index,
                                                     int32_t parameter, uint32_t extra);
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 }
 }
 
@@ -33,7 +33,7 @@ int32_t halo::ai::alert_ops::investigate_disturbance_update()
     using namespace c_actor_investigate_disturbance_update;
     uint32_t actor_index = datum;
     uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    void *vehicle = object_try_and_get(*(datum_index *)&((struct actor *)act)->mode_data, 2);
+    void *vehicle = halo::objects::object_try_and_get(*(datum_index *)&((struct actor *)act)->mode_data, 2);
 
     if (((actor *)act)->active_unit_index != k_datum_index_none) {
         act[0xa5] = 1;

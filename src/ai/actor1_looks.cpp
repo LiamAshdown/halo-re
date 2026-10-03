@@ -4,6 +4,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_apply_queued_look_to_unit {
 extern "C" {
@@ -388,7 +389,6 @@ namespace c_actor_issue_order_or_vocalize {
 extern "C" {
 extern data_array *prop_data;
 
-extern void *object_try_and_get(datum_index object_index, int32_t kind);
 extern datum_index actor_find_prop_for_object(datum_index object_index, datum_index actor_index);
 extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant,
                                         actor_vocalization_context *context);
@@ -420,7 +420,7 @@ void halo::ai::look_ops::issue_order_or_vocalize(datum_index prop_index, datum_i
     if (vehicle_object_index == (datum_index)k_datum_index_none) {
         return;
     }
-    vehicle_obj = object_try_and_get(vehicle_object_index, 3);
+    vehicle_obj = halo::objects::object_try_and_get(vehicle_object_index, 3);
     if (vehicle_obj == 0) {
         return;
     }

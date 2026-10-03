@@ -1,6 +1,7 @@
 #include "halo/hs/hs3_commands.hpp"
 #include "units.h"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -8,11 +9,7 @@ extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t param
     int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern data_array *object_data;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void ai_object_list_set_unit_flag_800000(datum_index object_list_header_handle, char flag);
-extern void object_copy_default_node_transforms(uint32_t object_index, int16_t requested_count);
-extern void object_initialize_shield_stun_thresholds(uint32_t object_index, float *override_max_body_vitality,
-    float *override_max_shield_vitality);
 extern void ai_object_list_update_vitality_fractions(datum_index object_list_header_handle, float body_delta,
     float shield_delta);
 extern void ai_object_list_initialize_shield_stun_thresholds(datum_index object_list_header_handle, float override_max_body_vitality,
@@ -218,7 +215,7 @@ void UnitCommands::evaluate_unit_get_health(int16_t function_index, uint32_t thr
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    uint8_t *object = (uint8_t *)object_try_and_get((datum_index)arguments[0], 0xffffffff);
+    uint8_t *object = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 0xffffffff);
     float result = -1.0f;
 
     if (object != 0) {
@@ -241,7 +238,7 @@ void UnitCommands::evaluate_unit_get_shield(int16_t function_index, uint32_t thr
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    uint8_t *object = (uint8_t *)object_try_and_get((datum_index)arguments[0], 0xffffffff);
+    uint8_t *object = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 0xffffffff);
     float result = -1.0f;
 
     if (object != 0) {
@@ -264,7 +261,7 @@ void UnitCommands::evaluate_unit_get_total_grenade_count(int16_t function_index,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    uint8_t *unit = (uint8_t *)object_try_and_get((datum_index)arguments[0], 3);
+    uint8_t *unit = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], 3);
     int16_t total = 0;
 
     if (unit != 0) {
@@ -453,7 +450,7 @@ void UnitCommands::evaluate_unit_set_emotion(int16_t function_index, uint32_t th
 
     if (unit != k_datum_index_none) {
         *(*(uint8_t **)((uint8_t *)object_data->data + (unit & 0xffff) * 0xc + 8) + 0x2a8) = *(uint8_t *)&arguments[1];
-        object_copy_default_node_transforms(unit, 6);
+        halo::objects::object_copy_default_node_transforms(unit, 6);
     }
     hs_thread_return(0, thread_index);
     }
@@ -523,7 +520,7 @@ void UnitCommands::evaluate_unit_set_maximum_vitality(int16_t function_index, ui
 
     if (unit != k_datum_index_none &&
         (*(*(uint8_t **)((uint8_t *)object_data->data + (unit & 0xffff) * 0xc + 8) + 0x106) & 4) == 0) {
-        object_initialize_shield_stun_thresholds(unit, &body, &shield);
+        halo::objects::object_initialize_shield_stun_thresholds(unit, &body, &shield);
     }
     hs_thread_return(0, thread_index);
     }

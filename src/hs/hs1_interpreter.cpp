@@ -1,12 +1,12 @@
 #include "halo/hs/hs1_interpreter.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
 extern data_array *object_list_header_data;
 extern datum_index *object_name_list;
-extern int32_t object_lookup_table_get(int32_t value);
 extern int32_t (*hs_type_conversion_procedures[k_hs_type_count][k_hs_type_count])(int32_t value);
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
@@ -146,7 +146,7 @@ int32_t ScriptCasts::coerce_value(int32_t value, hs_type_t dest_type, hs_type_t 
         if (dest_type < 0x25 || 0x2a < dest_type) {
             value = hs_type_conversion_procedures[dest_type][source_type](value);
         } else if (0x2a < source_type && source_type < 0x31) {
-            return object_lookup_table_get(value);
+            return halo::objects::object_lookup_table_get(value);
         }
     }
     return value;

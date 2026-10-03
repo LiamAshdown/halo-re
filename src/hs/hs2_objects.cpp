@@ -6,6 +6,7 @@
 #include "cache.h"
 #include "halo/cache/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,41 +20,28 @@ extern void hs_effect_spawn_on_marker(datum_index object_index, datum_index effe
 extern data_array *player_data;
 extern int16_t magic_seat_animation_state_0069fde0;
 extern data_array *object_data;
-extern void object_hash_clear_flag_bit3(uint32_t key);
-extern void object_hash_set_flag_bit3(uint32_t key);
 extern data_array *hs_thread_data;
 extern data_array *hs_syntax_data;
 extern int16_t hs_object_type_masks[];
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
 extern datum_index *object_name_list;
-extern datum_index object_new_from_scenario_name(int16_t name_index);
 extern void hs_object_name_cache_validate(int16_t object_name_index);
 extern void hs_object_names_for_each(void (*callback)(int32_t index), uint32_t predicate_arg);
 extern void hs_object_create_name_index_if_absent(int32_t name_index);
 extern char hs_object_hierarchy_test(datum_index object_index);
-extern void object_delete(datum_index object_index);
 extern void hs_object_runtime_cleanup(void);
 extern void hs_object_name_destroy(int32_t object_name_index);
 extern object_globals *object_globals_pointer;
-extern void objects_set_ambient_cluster_override(int16_t local_player_index);
 extern void hs_object_detach_and_place_at_location(int16_t location_index, datum_index object_index,
     char detach_from_parent, char reorient);
 extern void hs_object_set_permutation_by_name(datum_index object_index, void *permutation_name, char *name);
-extern void object_set_scale_and_refresh_nodes(uint32_t object_index, float scale, int16_t ticks);
 extern void hs_object_set_health_fraction(datum_index object_index, float fraction);
-extern void object_reorient_relative_to_marker(uint32_t parent_index, char *parent_marker_name,
-    uint32_t object_index, char *object_marker_name);
 extern uint32_t hs_object_list_any_angle_match_gated(datum_index header_index, int16_t gate,
     float angle_degrees);
 extern uint32_t hs_object_list_any_angle_match(datum_index header_index, datum_index target_object,
     float angle_degrees);
 extern void hs_objects_delete_by_type(uint32_t tag_id);
-extern void object_snap_to_parent_marker_and_detach(uint32_t object_index);
-extern void objects_dump_memory(void);
 extern void hs_object_list_for_each(datum_index header_index);
-extern void object_start_animation(uint32_t object_index, datum_index graph_tag, char *name,
-    int16_t requested_frame);
-extern uint32_t object_animation_get_frames_remaining(uint32_t object_index);
 #ifdef __cplusplus
 }
 #endif
@@ -169,7 +157,7 @@ void ObjectCommands::evaluate_object_can_take_damage(int16_t function_index, uin
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    object_hash_clear_flag_bit3((uint32_t)arguments[0]);
+    halo::objects::object_hash_clear_flag_bit3((uint32_t)arguments[0]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -187,7 +175,7 @@ void ObjectCommands::evaluate_object_cannot_take_damage(int16_t function_index, 
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    object_hash_set_flag_bit3((uint32_t)arguments[0]);
+    halo::objects::object_hash_set_flag_bit3((uint32_t)arguments[0]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -242,7 +230,7 @@ void ObjectCommands::evaluate_object_create(int16_t function_index, uint32_t thr
     int16_t name = *(int16_t *)&arguments[0];
 
     if (name != -1 && (name < 0 || name >= 0x200 || object_name_list[name] == k_datum_index_none)) {
-        object_new_from_scenario_name(name);
+        halo::objects::object_new_from_scenario_name(name);
     }
     hs_thread_return(0, thread_index);
     }
@@ -318,7 +306,7 @@ void ObjectCommands::evaluate_object_destroy(int16_t function_index, uint32_t th
     datum_index object_index = (datum_index)arguments[0];
 
     if (object_index != k_datum_index_none && !hs_object_hierarchy_test(object_index)) {
-        object_delete(object_index);
+        halo::objects::object_delete(object_index);
     }
     hs_thread_return(0, thread_index);
     }
@@ -379,7 +367,7 @@ void ObjectCommands::evaluate_object_pvs_set_camera(int16_t function_index, uint
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    objects_set_ambient_cluster_override(*(int16_t *)&arguments[0]);
+    halo::objects::objects_set_ambient_cluster_override(*(int16_t *)&arguments[0]);
     hs_thread_return(0, thread_index);
     }
 }
@@ -537,7 +525,7 @@ void ObjectCommands::evaluate_object_set_scale(int16_t function_index, uint32_t 
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    object_set_scale_and_refresh_nodes((uint32_t)arguments[0], *(float *)&arguments[1],
+    halo::objects::object_set_scale_and_refresh_nodes((uint32_t)arguments[0], *(float *)&arguments[1],
         (int16_t)*(uint16_t *)&arguments[2]);
     hs_thread_return(0, thread_index);
     }
@@ -620,7 +608,7 @@ void ObjectCommands::evaluate_objects_attach(int16_t function_index, uint32_t th
     if (parent != k_datum_index_none && child != k_datum_index_none &&
         *(datum_index *)(*(uint8_t **)((uint8_t *)object_data->data + (child & 0xffff) * 0xc + 8) + 0x11c) ==
             k_datum_index_none) {
-        object_reorient_relative_to_marker(parent, (char *)arguments[1], child, (char *)arguments[3]);
+        halo::objects::object_reorient_relative_to_marker(parent, (char *)arguments[1], child, (char *)arguments[3]);
     }
     hs_thread_return(0, thread_index);
     }
@@ -698,7 +686,7 @@ void ObjectCommands::evaluate_objects_detach(int16_t function_index, uint32_t th
 
     if (parent != k_datum_index_none && child != k_datum_index_none &&
         *(datum_index *)(*(uint8_t **)((uint8_t *)object_data->data + (child & 0xffff) * 0xc + 8) + 0x11c) == parent) {
-        object_snap_to_parent_marker_and_detach(child);
+        halo::objects::object_snap_to_parent_marker_and_detach(child);
     }
     hs_thread_return(0, thread_index);
     }
@@ -712,7 +700,7 @@ void ObjectCommands::evaluate_objects_detach(int16_t function_index, uint32_t th
  */
 void ObjectCommands::evaluate_objects_dump_memory(int16_t function_index, uint32_t thread_index, char first)
 {
-    objects_dump_memory();
+    halo::objects::objects_dump_memory();
     hs_thread_return(0, thread_index);
 }
 
@@ -747,7 +735,7 @@ void ObjectCommands::evaluate_scenery_animation_start(int16_t function_index, ui
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        object_start_animation((uint32_t)arguments[0], (datum_index)arguments[1], (char *)arguments[2], 0);
+        halo::objects::object_start_animation((uint32_t)arguments[0], (datum_index)arguments[1], (char *)arguments[2], 0);
         hs_thread_return(0, thread_index);
     }
 }
@@ -765,7 +753,7 @@ void ObjectCommands::evaluate_scenery_animation_start_at_frame(int16_t function_
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        object_start_animation((uint32_t)arguments[0], (datum_index)arguments[1], (char *)arguments[2],
+        halo::objects::object_start_animation((uint32_t)arguments[0], (datum_index)arguments[1], (char *)arguments[2],
                                (int16_t)*(uint16_t *)&arguments[3]);
         hs_thread_return(0, thread_index);
     }
@@ -784,7 +772,7 @@ void ObjectCommands::evaluate_scenery_get_animation_time(int16_t function_index,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        hs_thread_return((int32_t)(uint16_t)(object_animation_get_frames_remaining((uint32_t)arguments[0])), thread_index);
+        hs_thread_return((int32_t)(uint16_t)(halo::objects::object_animation_get_frames_remaining((uint32_t)arguments[0])), thread_index);
     }
 }
 

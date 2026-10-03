@@ -5,6 +5,7 @@
 #include "halo/items/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 #define k_uninitialized_fill 0xfafafafau
 
@@ -40,7 +41,6 @@ extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *s
 extern void network_session_send_to_machine(uint32_t unknown_0, void *unknown_1, int32_t length, uint32_t unknown_3, uint32_t unknown_4, uint32_t unknown_5, uint32_t unknown_6);
 extern network_id_table *object_network_id_table;
 extern uint8_t shared_hud_text_draw_state;
-extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern uint8_t *machine_table;
 extern player_control_globals *player_control_globals_ptr;
 extern Globals *global_globals;
@@ -56,7 +56,6 @@ extern void local_player_set_controlled_unit(datum_index new_unit, int16_t local
 extern uint8_t player_profile_get_flag_by_id(int16_t local_player_index);
 extern void chimera__spectate_fp_camera_position(camera_basis_out *out, int16_t local_player_index);
 extern void value_step_toward_target(float *value, float target, float max_step);
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, void *marker, uint32_t flags);
 extern double atan2(double y, double x);
 extern double cos(double x);
 extern double sin(double x);
@@ -69,10 +68,6 @@ extern void game_engine_capture_player_profile(int32_t slot, int32_t commit);
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern uint8_t netgame_equipment_game_type_matches(int16_t *types, int32_t count, int32_t current_engine_index);
 extern int32_t tag_reflexive_pick_weighted_random_index(datum_index tag_id);
-extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
-extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
-extern void object_delete_recursive(datum_index object_index, uint8_t recurse_siblings);
-extern void object_delete_unparented(datum_index object_index);
 }
 
 namespace halo::game {
@@ -521,7 +516,7 @@ void EnginePlayerSync::send_unit_weapon_loadout(uint32_t unit_index, datum_index
 
     fields.player_hash = 0;
     if (player_handle != (datum_index)0xffffffff) {
-        fields.player_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)player_handle);
+        fields.player_hash = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)player_handle);
         if (fields.player_hash == -1) {
             fields.player_hash = 0;
         }
@@ -529,7 +524,7 @@ void EnginePlayerSync::send_unit_weapon_loadout(uint32_t unit_index, datum_index
 
     fields.unit_hash = 0;
     if (unit_index != 0xffffffff) {
-        fields.unit_hash = hash_table_get(&object_network_id_table->id_to_index, (int32_t)unit_index);
+        fields.unit_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, (int32_t)unit_index);
         if (fields.unit_hash == -1) {
             fields.unit_hash = 0;
         }
@@ -539,7 +534,7 @@ void EnginePlayerSync::send_unit_weapon_loadout(uint32_t unit_index, datum_index
 
     fields.parent_hash = 0;
     if (obj->parent_object != (datum_index)0xffffffff) {
-        fields.parent_hash = hash_table_get(&object_network_id_table->id_to_index, (int32_t)obj->parent_object);
+        fields.parent_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index, (int32_t)obj->parent_object);
         if (fields.parent_hash == -1) {
             fields.parent_hash = 0;
         }
@@ -798,7 +793,7 @@ void EnginePlayerSync::update_local_player_look(int16_t local_player_index, real
             object_marker marker;
             real base, a, b, span, forward_delta, back_delta;
 
-            object_get_node_local_transform(camera.unit, (char *)(seat + 0x24), &marker, 1);
+            halo::objects::object_get_node_local_transform(camera.unit, (char *)(seat + 0x24), &marker, 1);
             base = (real)atan2((double)*(real *)((uint8_t *)&marker + 0x40), (double)*(real *)((uint8_t *)&marker + 0x3c));
             a = base + yaw_min;
             b = base + yaw_max;
@@ -1026,7 +1021,7 @@ void EnginePlayerSync::spawn_player_starting_loadout(uint32_t starting_equipment
                 uint32_t role = 3;
                 datum_index new_object;
 
-                object_placement_data_initialize(&placement, picked_tag, (datum_index)0xffffffff);
+                halo::objects::object_placement_data_initialize(&placement, picked_tag, (datum_index)0xffffffff);
 
                 if (network_game_mode == 2) {
                     tag_instance *tag_inst = &halo::cache::globals().tag_instances[picked_tag & 0xffff];
@@ -1036,18 +1031,18 @@ void EnginePlayerSync::spawn_player_starting_loadout(uint32_t starting_equipment
                     }
                 }
 
-                new_object = object_new_with_datum_role_control(&placement, role);
+                new_object = halo::objects::object_new_with_datum_role_control(&placement, role);
                 if (new_object != (datum_index)0xffffffff) {
                     if (!first_spawn) {
                         datum_index previous = (datum_index)((object_header *)object_data->data)[new_object & 0xffff].data;
                         if (halo::units::unit_has_weapon_of_type(new_object, previous) != 0) {
                             int32_t category = *(int32_t *)((uint8_t *)previous + 4);
                             if (category == 0) {
-                                object_delete_unparented(new_object);
+                                halo::objects::object_delete_unparented(new_object);
                             } else if (category != 3) {
                                 goto next_slot;
                             }
-                            object_delete_recursive(new_object, 0);
+                            halo::objects::object_delete_recursive(new_object, 0);
                             goto next_slot;
                         }
                     }

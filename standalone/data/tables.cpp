@@ -8,6 +8,7 @@
 #include "halo/projectiles/api.hpp"
 #include "halo/bitmaps/api.hpp"
 #include "code_refs.hpp"
+#include "halo/objects/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/camera/api.hpp"
@@ -2025,9 +2026,9 @@ uint32_t message_delta_definitions_0069b1a8[909] = {
     /* +0x0140 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0160 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0180 */ 0, 0, 0, 0, 0, 0, 0, 0,
-    /* +0x01a0 */ 0, 0, 0x1, (uint32_t)object_clear_references_to_object, (uint32_t)ai_clear_object_references, (uint32_t)players_handle_deleted_unit, (uint32_t)"object", 0x6f626a65,
+    /* +0x01a0 */ 0, 0, 0x1, (uint32_t)&halo::objects::object_clear_references_to_object, (uint32_t)ai_clear_object_references, (uint32_t)players_handle_deleted_unit, (uint32_t)"object", 0x6f626a65,
     /* +0x01c0 */ 0xffff01f4u, 0xffffffffu, 0xffffffffu, 0, 0, 0, 0, 0,
-    /* +0x01e0 */ 0, 0, 0, 0, (uint32_t)object_update_export_functions, 0, 0, 0,
+    /* +0x01e0 */ 0, 0, 0, 0, (uint32_t)&halo::objects::object_update_export_functions, 0, 0, 0,
     /* +0x0200 */ 0, 0, 0, 0, 0, (uint32_t)&halo::cseries::function_do_nothing, 0, 0,
     /* +0x0220 */ 0, 0, 0, 0, 0, 0, (uint32_t)&message_delta_definitions_0069b1a8[110], 0,
     /* +0x0240 */ 0, 0, 0, 0, 0, 0, 0, 0,
@@ -2088,7 +2089,7 @@ uint32_t message_delta_definitions_0069b1a8[909] = {
     /* +0x0898 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x08b8 */ 0, 0,
     /* +0x08c0 */ (uint32_t)"scenery", 0x7363656e, 0x21001f8, 0x48021c, 0xffffffffu, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)&halo::cseries::function_do_nothing,
-    /* +0x08e0 */ (uint32_t)&halo::cseries::function_do_nothing, 0, (uint32_t)scenery_new, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)scenery_update, 0, 0,
+    /* +0x08e0 */ (uint32_t)&halo::cseries::function_do_nothing, 0, (uint32_t)&halo::objects::scenery_new, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)&halo::cseries::function_do_nothing, (uint32_t)&halo::objects::scenery_update, 0, 0,
     /* +0x0900 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0920 */ 0, 0, 0, 0, 0, 0, 0, 0,
     /* +0x0940 */ (uint32_t)&message_delta_definitions_0069b1a8[110], (uint32_t)&message_delta_definitions_0069b1a8[560], 0, 0, 0, 0, 0, 0,

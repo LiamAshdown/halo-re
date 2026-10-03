@@ -5,6 +5,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -13,11 +14,6 @@ extern real_point3d *global_origin3d_pointer;
 extern char *projectile_effect_coordinate_system_names[5];
 extern ProjectileMaterialResponse projectile_default_material_response;
 extern int16_t network_game_mode;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
-extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
-extern void object_attach_to_object(uint32_t parent_index, uint32_t child_index, int16_t marker_index);
 extern datum_index effect_new_on_object_with_node_table(datum_index creator_object_index, datum_index definition_index, datum_index object_index, uint16_t node_index, uint16_t ctx_08, uint32_t ctx_0c, uint32_t ctx_10, uint32_t ctx_14, real a_scale, real b_scale, const void *color, const void *tint_source);
 extern void effect_new_with_color(uint32_t effect, uint32_t target_or_index, void *velocity, int32_t kind, char **labels, void *position_block, void *direction_block, real fade_in, real fade_out, int32_t color, int32_t tint_source, int32_t force_create);
 extern void breakable_surface_apply_damage(damage_data *request, uint32_t packed_leaf_and_flags, int32_t surface_index);
@@ -107,7 +103,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
         dd.damage_effect_tag = *(datum_index *)&tag->impact_damage.tag_id;
 
         halo::math::vector3d_normalize_with_length(dd.direction);
-        object_apply_damage(&dd, hit->object_index, hit->node_index, hit->region_index, hit->collision_material_index, (uint32_t)&hit->plane.normal);
+        halo::objects::object_apply_damage(&dd, hit->object_index, hit->node_index, hit->region_index, hit->collision_material_index, (uint32_t)&hit->plane.normal);
 
         
         
@@ -156,7 +152,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
          (alignment_score < response->potential_and[0] ||
           alignment_score > response->potential_and[1])) ||
         ((response->potential_flags & 1) != 0 && 
-         (hit->type != _collision_result_type_object || object_try_and_get(hit->object_index, _object_mask_unit) == 0)) ||
+         (hit->type != _collision_result_type_object || halo::objects::object_try_and_get(hit->object_index, _object_mask_unit) == 0)) ||
         ((real)((halo::math::globals().random_seed_global = advance_random_seed(halo::math::globals().random_seed_global), halo::math::globals().random_seed_global) >> k_random_high_shift) *
              1.5259022e-05f < response->potential_skip_fraction)) {
         response_type = (ProjectileResponse)response->default_response;
@@ -382,7 +378,7 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
     }
 
     if (hit->type == _collision_result_type_object) {
-        object *target = object_try_and_get(hit->object_index, _object_mask_all);
+        object *target = halo::objects::object_try_and_get(hit->object_index, _object_mask_all);
         if (network_game_mode != 0 && target != 0 && target->type == _object_type_biped &&
             (target->vitality_flags & _object_health_frozen_bit) != 0) {
             return;
@@ -421,11 +417,11 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
     pd->flags |= _projectile_attached_bit;
     obj->flags |= _object_at_rest_bit;
 
-    object_unlink_cluster_or_notify_parent(projectile_index);
+    halo::objects::object_unlink_cluster_or_notify_parent(projectile_index);
     obj->position = *out_position;
-    object_set_cluster_and_parent(projectile_index, &hit->leaf);
+    halo::objects::object_set_cluster_and_parent(projectile_index, &hit->leaf);
     if (hit->type == _collision_result_type_object) {
-        object_attach_to_object(hit->object_index, projectile_index, hit->node_index);
+        halo::objects::object_attach_to_object(hit->object_index, projectile_index, hit->node_index);
     }
 
     if ((tag->projectile_flags & _projectile_definition_detonation_max_time_if_attached_bit) != 0) {

@@ -6,6 +6,7 @@
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -18,18 +19,14 @@ extern int32_t k_weapon_minimum_age_ticks;
 extern game_engine_definition *current_game_engine;
 extern int16_t network_game_mode;
 extern uint8_t weapon_bottomless_clip;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern const real_point3d *global_zero_vector3d_pointer;
 extern void weapon_reset_triggers(datum_index item_index);
 extern uint32_t local_player_index_for_weapon(datum_index item_index);
 extern void first_person_weapon_process_action(uint32_t handle, int32_t action);
 extern void hud_play_pickup_notification(uint32_t object_or_slot_index, int16_t item_type_code);
-extern void object_delete_unparented(datum_index object_index);
-extern void object_delete_recursive(datum_index object_index, uint8_t recurse_siblings);
 extern void weapon_magazine_reload_tick(datum_index item_index, int16_t magazine_index);
 extern void weapon_notify_reload_cancel(datum_index item_index, int16_t magazine_index);
 extern double floor(double x);
-extern void object_delete(uint32_t object_index);
 void halo::items::weapon_build_hud_ammo_state(datum_index item_index, weapon_hud_ammo_state *out);
 real halo::items::weapon_clamp_zoom_fov(datum_index item_index, int16_t zoom_level, real base_fov);
 void halo::items::weapon_force_settled_state(datum_index item_index);
@@ -667,7 +664,7 @@ uint32_t weapon_ref::play_trigger_tag_effect(datum_index tag_id, real scale_a, r
         attach_to = item_obj->parent_object;
     }
     if (item_obj->parent_object != (datum_index)0xffffffff &&
-        object_try_and_get(item_obj->parent_object, _object_mask_unit) != 0) {
+        halo::objects::object_try_and_get(item_obj->parent_object, _object_mask_unit) != 0) {
         creator = item_obj->parent_object;
     }
     group = halo::cache::globals().tag_instances[(uint16_t)tag_id].group_tag;
@@ -791,11 +788,11 @@ void weapon_ref::reload_recovery_finish()
         *(datum_index *)&((Weapon *)halo::cache::globals().tag_instances[(uint16_t)item_obj->definition_tag].data)->overheat_detonation.tag_id, 0, 0);
 
     if (item_obj->network_role == 0) {
-        object_delete_unparented(item_index);
+        halo::objects::object_delete_unparented(item_index);
     } else if (item_obj->network_role != 3) {
         return;
     }
-    object_delete_recursive(item_index, 0);
+    halo::objects::object_delete_recursive(item_index, 0);
 }
 
 /**
@@ -1034,10 +1031,10 @@ skip_animation:
         datum_index parent = ((object_header *)object_data->data)[(uint16_t)item_index].data->parent_object;
         datum_index unit_index = (datum_index)0xffffffff;
 
-        if (parent != (datum_index)0xffffffff && object_try_and_get(parent, _object_mask_unit) != 0) {
+        if (parent != (datum_index)0xffffffff && halo::objects::object_try_and_get(parent, _object_mask_unit) != 0) {
             unit_index = parent;
         }
-        if (object_try_and_get(unit_index, _object_mask_unit) != 0) {
+        if (halo::objects::object_try_and_get(unit_index, _object_mask_unit) != 0) {
             halo::units::unit_dispatch_seat_overlay_command(unit_index, new_state);
         }
     }
@@ -1152,7 +1149,7 @@ uint32_t weapon_ref::transfer_ammunition(datum_index source_item_index, int16_t 
                             halo::sound::sound_start_unspatialized(*(datum_index *)&target_tag->pickup_sound.tag_id, 1.0f);
                         }
                         if (*source_rounds_unloaded == 0) {
-                            object_delete(source_item_index);
+                            halo::objects::object_delete(source_item_index);
                         }
                         if (source_obj->network_role == 0 &&
                             source_wd->magazines[magazine_index].state == _weapon_magazine_reloading) {
@@ -1181,11 +1178,11 @@ uint32_t weapon_ref::transfer_ammunition(datum_index source_item_index, int16_t 
                                 }
                                 source_role = ((object_header *)object_data->data)[(uint16_t)source_item_index].data->network_role;
                                 if (source_role == 0) {
-                                    object_delete_unparented(source_item_index);
+                                    halo::objects::object_delete_unparented(source_item_index);
                                 } else if (source_role != 3) {
                                     goto transferred;
                                 }
-                                object_delete_recursive(source_item_index, 0);
+                                halo::objects::object_delete_recursive(source_item_index, 0);
                                 goto transferred;
                             }
                         }

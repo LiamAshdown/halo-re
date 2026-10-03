@@ -5,6 +5,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 static const int8_t k_unit_exit_seat_request[2] = {0x14, 0};
 
@@ -31,17 +32,8 @@ extern real look_pitch_rate_setting[k_maximum_local_players];
 extern real look_yaw_rate_setting[k_maximum_local_players];
 extern player_profile player_profile_cache[16];
 extern data_array *object_data;
-extern object *object_iterator_next(object_iterator *iterator);
-extern void object_delete_unparented(datum_index object_index);
-extern void object_delete_recursive(datum_index object_index, uint8_t recurse_siblings);
 extern player_globals *local_player_globals;
 extern network_client_globals *network_client;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void object_get_node_local_transform(datum_index object_index, int32_t node_index, void *out_transform, int32_t unknown);
-extern void object_snap_to_parent_marker_and_detach(datum_index object_index);
-extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
-extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
-extern void object_recalculate_bounding_radius_recursive(datum_index object_index);
 extern void player_update_history_free_all(void *queue);
 extern uint8_t player_find_placement_position(uint32_t player_index, datum_index target_object, real_point3d *point);
 extern int16_t game_engine_recent_location_count;
@@ -721,17 +713,17 @@ void EnginePlayers::reset_respawns_and_cleanup_bipeds(void)
         obj_iter.index = 0;
         obj_iter.handle = (datum_index)0xffffffff;
 
-        obj = object_iterator_next(&obj_iter);
+        obj = halo::objects::object_iterator_next(&obj_iter);
         while (obj != (object *)0) {
             if ((obj->vitality_flags & _object_health_frozen_bit) != 0) {
                 if (obj->network_role == 0) {
-                    object_delete_unparented(obj_iter.handle);
-                    object_delete_recursive(obj_iter.handle, 0);
+                    halo::objects::object_delete_unparented(obj_iter.handle);
+                    halo::objects::object_delete_recursive(obj_iter.handle, 0);
                 } else if (obj->network_role == 3) {
-                    object_delete_recursive(obj_iter.handle, 0);
+                    halo::objects::object_delete_recursive(obj_iter.handle, 0);
                 }
             }
-            obj = object_iterator_next(&obj_iter);
+            obj = halo::objects::object_iterator_next(&obj_iter);
         }
     }
 }
@@ -779,7 +771,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
 
     unit_handle = *(datum_index *)((uint8_t *)player_data->data +
                                     (player_index & 0xffff) * sizeof(player) + 0x34);
-    target_obj = object_try_and_get((datum_index)target_object, _object_mask_biped);
+    target_obj = halo::objects::object_try_and_get((datum_index)target_object, _object_mask_biped);
     if (target_obj == (object *)0) {
         return;
     }
@@ -814,10 +806,10 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                 Unit *unit_tag;
                 Vehicle *unit_as_vehicle_tag;
 
-                object_get_node_local_transform(
-                    driver, (int32_t)((uint8_t *)driver_tag->seats.pointer + 0x24 +
-                                       *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) * 0x11c),
-                    &local_transform, 1);
+                halo::objects::object_get_node_local_transform(
+                    driver, (char *)((int32_t)((uint8_t *)driver_tag->seats.pointer + 0x24 +
+                                       *((int16_t *)((uint8_t *)unit_obj + 0x2f0)) * 0x11c)),
+                    (object_marker *)&local_transform, 1);
 
                 unit_tag = (Unit *)halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
                 unit_as_vehicle_tag = (Vehicle *)halo::cache::globals().tag_instances[
@@ -839,8 +831,8 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                         unit->gunner_unit_index = (datum_index)-1;
                     }
 
-                    object_snap_to_parent_marker_and_detach(unit_handle);
-                    object_set_position_and_orientation(unit_handle, 0, 0, 0);
+                    halo::objects::object_snap_to_parent_marker_and_detach(unit_handle);
+                    halo::objects::object_set_position_and_orientation(unit_handle, 0, 0, 0);
                     halo::math::matrix4x3_multiply(&local_transform, (real_matrix4x3 *)(unknown_block + 0xac),
                                         &result_transform);
                     unit_obj->forward = result_transform.forward;
@@ -850,7 +842,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                         uint8_t *unit_tag_data = (uint8_t *)halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
                         if (*(int32_t *)(unit_tag_data + 0x34) != -1) {
                             if ((unit_obj->flags & 1) != 0) {
-                                object_for_each_light_attachment(0, 1, 0);
+                                halo::objects::object_for_each_light_attachment(0, 1, 0);
                             }
                             if (*(int32_t *)(unit_tag_data + 0x34) != -1) {
                                 object_header *unit_header = &((object_header *)object_data->data)[unit_handle & 0xffff];
@@ -882,10 +874,10 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                 if (unit_obj->type == _object_type_biped) {
                     halo::units::unit_reset_orientation_and_find_position(unit_handle, driver);
                 }
-                object_recalculate_bounding_radius_recursive(unit_handle);
+                halo::objects::object_recalculate_bounding_radius_recursive(unit_handle);
 
                 if (halo::units::unit_all_seats_unoccupied(unit_handle) == 1) {
-                    object *local_obj = object_try_and_get((datum_index)-1, _object_mask_vehicle);
+                    object *local_obj = halo::objects::object_try_and_get((datum_index)-1, _object_mask_vehicle);
                     if (local_obj != (object *)0) {
                         *(int32_t *)((uint8_t *)local_obj + 0x5ac) = game_time->game_time;
                     }

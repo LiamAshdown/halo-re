@@ -2,6 +2,7 @@
 #include "halo/core/datum.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/devices/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -9,9 +10,6 @@ extern data_array *device_groups;
 extern game_time_globals *game_time;
 extern game_engine_definition *current_game_engine;
 extern void *team_pair_data;
-extern int16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location, real_point3d *center, float radius, datum_index *out_objects, int16_t max_output);
-extern void object_set_cluster_and_parent(uint32_t object_index, bsp_leaf_reference *location);
-extern void object_unlink_cluster_or_notify_parent(uint32_t object_index);
 }
 
 namespace {
@@ -140,7 +138,7 @@ uint32_t MachineHandle::update()
         float radius = (0.0001f <= tag->base.automatic_activation_radius)
             ? tag->base.automatic_activation_radius : obj->bounding_radius;
 
-        candidate_count = object_find_in_sphere(1, 1, &obj->location_leaf_index,
+        candidate_count = halo::objects::object_find_in_sphere(1, 1, &obj->location_leaf_index,
             &obj->bounding_center, radius, candidates, k_device_machine_activation_maximum);
         if (0 < candidate_count) {
             int16_t i;
@@ -220,7 +218,7 @@ uint32_t MachineHandle::update()
 
             if (dx != 0.0f || dy != 0.0f || dz != 0.0f) {
                 datum_index riders[k_device_machine_rider_maximum];
-                int16_t rider_count = object_find_in_sphere(1, 1, &obj->location_leaf_index,
+                int16_t rider_count = halo::objects::object_find_in_sphere(1, 1, &obj->location_leaf_index,
                     &obj->bounding_center, obj->bounding_radius, riders, k_device_machine_rider_maximum);
                 if (0 < rider_count) {
                     int16_t i;
@@ -229,11 +227,11 @@ uint32_t MachineHandle::update()
                         biped_data *rider_biped = (biped_data *)((uint8_t *)rider + k_unit_object_size);
                         if (rider_biped->last_ground_object_index == object_index) { 
                             real_point3d p = rider->position;
-                            object_unlink_cluster_or_notify_parent(riders[i]);
+                            halo::objects::object_unlink_cluster_or_notify_parent(riders[i]);
                             rider->position.x = p.x + dx;
                             rider->position.y = p.y + dy;
                             rider->position.z = p.z + dz;
-                            object_set_cluster_and_parent(riders[i], 0);
+                            halo::objects::object_set_cluster_and_parent(riders[i], 0);
                         }
                     }
                 }
@@ -246,9 +244,9 @@ uint32_t MachineHandle::update()
     
     
     if ((dev->device.flags & (1u << _device_position_changed_bit)) != 0) {
-        object_unlink_cluster_or_notify_parent(object_index);
+        halo::objects::object_unlink_cluster_or_notify_parent(object_index);
         obj->position = obj->position;
-        object_set_cluster_and_parent(object_index, 0);
+        halo::objects::object_set_cluster_and_parent(object_index, 0);
         dev->device.flags &= ~(uint32_t)(1u << _device_position_changed_bit);
     }
 

@@ -10,6 +10,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -20,7 +21,6 @@ extern void object_physics_tick(uint32_t object_index, void *powered_states, voi
 extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, void *marker, uint32_t flags);
 extern uint8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object_index, collision_result *result);
 extern void effect_new_with_color(uint32_t effect, uint32_t creator, void *velocity, int32_t count, char **names, real_point3d *points, real_vector3d *vectors, float a_scale, float b_scale, int32_t color, int32_t tint, int32_t force);
 }
@@ -745,9 +745,9 @@ void VehicleView::create_hover_thruster_effects()
     if (*(int32_t *)&((struct Vehicle *)tag)->effect.tag_id == -1) {
         return;
     }
-    hover_count = (int16_t)object_get_node_local_transform(unit_index, (char *)"hover thrusters", markers, 0xf);
-    total = (int16_t)(hover_count + (int16_t)object_get_node_local_transform(unit_index, (char *)"jet thrusters",
-        markers + hover_count * 0x6c, 0x10 - hover_count));
+    hover_count = (int16_t)halo::objects::object_get_node_local_transform(unit_index, (char *)"hover thrusters", (object_marker *)markers, 0xf);
+    total = (int16_t)(hover_count + (int16_t)halo::objects::object_get_node_local_transform(unit_index, (char *)"jet thrusters",
+        (object_marker *)(markers + hover_count * 0x6c), 0x10 - hover_count));
 
     for (i = 0; i < total; i++) {
         uint8_t *marker = markers + (int32_t)i * 0x6c;
@@ -809,7 +809,7 @@ void VehicleView::create_hover_thruster_midpoint_effects()
     if (*(int32_t *)&((struct Vehicle *)tag)->effect.tag_id == -1 || !(((struct vehicle_object *)obj)->unit.driver_seat_power > 0.0f)) {
         return;
     }
-    count = (int16_t)object_get_node_local_transform(unit_index, (char *)"hover thrusters", markers, 0xf);
+    count = (int16_t)halo::objects::object_get_node_local_transform(unit_index, (char *)"hover thrusters", (object_marker *)markers, 0xf);
     for (i = 0; i < count; i++) {
         uint8_t *marker = markers + (int32_t)i * 0x6c;
         real_point3d *marker_position = (real_point3d *)(marker + 0x60);

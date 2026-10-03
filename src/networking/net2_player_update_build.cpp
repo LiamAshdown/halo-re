@@ -14,6 +14,7 @@
 #include <string.h>
 #include "halo/networking/net2_player_update_build.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern int32_t network_ack_resend_interval_ms;
@@ -25,7 +26,6 @@ extern void network_player_update_history_log_write(const char *format, ...);
 extern data_array * object_data;
 extern network_id_table * object_network_id_table;
 extern int32_t network_vehicle_ack_resend_interval_ms;
-extern int32_t hash_table_get(hash_table *table, uint32_t key);
 extern data_array * player_data;
 extern void * machine_table;
 extern uint8_t network_session_send_to_machine(int32_t machine_id, void *data, int32_t bits,
@@ -43,7 +43,6 @@ extern int32_t network_transform_resend_interval_ms;
 extern int32_t network_vehicle_transform_resend_interval_ms_alt;
 extern int32_t network_attachment_transform_resend_interval_ms_alt;
 extern network_server_globals * network_server;
-extern object * object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t player_unit_has_parent(datum_index player_handle);
 extern double atan2(double y, double x);
 extern double sqrt(double x);
@@ -136,7 +135,7 @@ int32_t PlayerUpdateBuilder::local_player_vehicle_update(uint8_t *out_changed, p
     vehicle_obj = ((object_header *)object_data->data)[parent_object & 0xffff].data;
     network_hash = 0;
     if (parent_object != (datum_index)-1) {
-        network_hash = hash_table_get(&object_network_id_table->id_to_index,
+        network_hash = halo::objects::hash_table_get(&object_network_id_table->id_to_index,
             parent_object);
         if (network_hash == -1) {
             network_hash = 0;
@@ -191,7 +190,7 @@ void PlayerUpdateBuilder::player_full_resync_update(uint32_t player_index)
     header.baseline_id = *(uint8_t *)(cache + 300);
     network_hash = 0;
     if (player_index != 0xffffffff) {
-        network_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), player_index);
+        network_hash = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), player_index);
         if (network_hash == -1) {
             network_hash = 0;
         }
@@ -209,7 +208,7 @@ void PlayerUpdateBuilder::player_full_resync_update(uint32_t player_index)
     header.baseline_id = 0;
     network_hash = 0;
     if (player_index != 0xffffffff) {
-        network_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), player_index);
+        network_hash = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), player_index);
         if (network_hash == -1) {
             network_hash = 0;
         }
@@ -227,7 +226,7 @@ void PlayerUpdateBuilder::player_full_resync_update(uint32_t player_index)
     header.baseline_id = 0;
     network_hash = 0;
     if (player_index != 0xffffffff) {
-        network_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), player_index);
+        network_hash = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), player_index);
         if (network_hash == -1) {
             network_hash = 0;
         }
@@ -269,7 +268,7 @@ void PlayerUpdateBuilder::remote_player_action_update(uint32_t player_index, uin
     if (network_broadcast_event_feed_mode == 0) {
         network_hash = 0;
         if (player_index != 0xffffffff) {
-            network_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), network_key);
+            network_hash = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), network_key);
             if (network_hash == 0xffffffff) {
                 network_hash = 0;
             }
@@ -384,7 +383,7 @@ void PlayerUpdateBuilder::remote_player_transform_update(uint32_t player_index, 
     encoded_size = 0;
 
     if (-1 < update_id && update_id < 0x40) {
-        unit_obj = object_try_and_get(*(datum_index *)(plr + 0x34), _object_mask_unit);
+        unit_obj = halo::objects::object_try_and_get(*(datum_index *)(plr + 0x34), _object_mask_unit);
         if (unit_obj != 0) {
             if (unit_obj->parent_object == (datum_index)-1) {
                 now = (uint32_t)game_time->game_time;
@@ -479,7 +478,7 @@ void PlayerUpdateBuilder::remote_player_vehicle_attachment_update(uint8_t *cache
     staged_update_id = update_id;
     network_hash = 0;
     if (network_key != -1) {
-        network_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), network_key);
+        network_hash = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), network_key);
         if (network_hash == -1) {
             network_hash = 0;
         }
@@ -501,7 +500,7 @@ void PlayerUpdateBuilder::remote_player_vehicle_attachment_update(uint8_t *cache
     vehicle_obj = ((object_header *)object_data->data)[parent_object & 0xffff].data;
     vehicle_hash = 0;
     if (parent_object != (datum_index)-1) {
-        vehicle_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), parent_object);
+        vehicle_hash = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), parent_object);
         if (vehicle_hash == -1) {
             vehicle_hash = 0;
         }
@@ -569,7 +568,7 @@ void PlayerUpdateBuilder::remote_player_vehicle_update(uint8_t *cache, uint8_t u
     staged_update_id = update_id;
     network_hash = 0;
     if (network_key != -1) {
-        network_hash = hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), network_key);
+        network_hash = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0x0c), network_key);
         if (network_hash == -1) {
             network_hash = 0;
         }

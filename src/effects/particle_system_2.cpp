@@ -3,6 +3,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *particle_system_data;
@@ -10,9 +11,6 @@ extern data_array *particle_system_particle_data;
 extern data_array *object_data;
 extern void (*particle_system_update_physics_table[2])(particle_system *self, float delta_time);
 extern void (*particle_update_physics_table[1])(particle_system *self, int32_t type_index, float delta_time, particle_system_particle *particle);
-extern void object_get_position(real_point3d *out, uint32_t object_index);
-extern void object_get_root_object_velocities(uint32_t object_index, real_vector3d *out_velocity, real_vector3d *out_angular_velocity);
-extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
 extern void particle_system_spawn(particle_system *self, int32_t type_index, float dt);
 extern void particle_system_delete(datum_index handle);
 extern void particle_system_advance_type_state(particle_system_type_state *state, ParticleSystemType *type, particle_system *system);
@@ -41,15 +39,15 @@ void particle_system_ref::update(float delta_time)
         float function_value;
 
         if ((obj->flags & _object_needs_cluster_update_bit) != 0 &&
-            object_function_get_value(self->object_index, self->scale_function_index,
+            halo::objects::object_function_get_value(self->object_index, self->scale_function_index,
                                        &function_value)) {
             self->flags |= _particle_system_emitting_bit;
         } else {
             self->flags &= ~(uint32_t)_particle_system_emitting_bit;
         }
 
-        object_get_position(&self->position, self->object_index);
-        object_get_root_object_velocities(self->object_index, &self->velocity, (real_vector3d *)0);
+        halo::objects::object_get_position(&self->position, self->object_index);
+        halo::objects::object_get_root_object_velocities(self->object_index, &self->velocity, (real_vector3d *)0);
         self->velocity.i *= 30.0f;
         self->velocity.j *= 30.0f;
         self->velocity.k *= 30.0f;

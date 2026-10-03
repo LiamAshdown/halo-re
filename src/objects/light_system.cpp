@@ -14,6 +14,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
@@ -33,16 +34,10 @@ extern void lens_flare_add_instance(lens_flare_instance *candidate);
 extern datum_index light_active_list[0x80];
 extern int16_t light_active_list_count;
 extern datum_index *light_cluster_first;
-extern datum_index light_cluster_iterate_begin(datum_index *cursor, int16_t cluster_index);
-extern datum_index light_cluster_iterate_next(datum_index *cursor);
 extern data_array *light_cluster_references;
-extern int16_t light_collect_object_references(uint32_t light_handle, int16_t max_count, int16_t *out_buffer);
 extern int16_t light_count_enabled;
 extern data_array *light_data;
 extern int32_t light_frame_counter;
-extern void light_get_render_bounds(datum_index handle, real_point3d *center_out, float *radius_out);
-extern uint8_t light_mark_this_frame(datum_index handle);
-extern uint8_t light_not_marked_this_frame(datum_index handle);
 extern data_array *light_object_references;
 extern uint8_t light_render_unknown_7c0;
 extern int16_t light_transient_count;
@@ -51,11 +46,6 @@ extern light_transient light_transient_table[k_maximum_transient_lights];
 extern uint8_t *lights_enabled;
 extern int32_t local_player_index_for_weapon(datum_index weapon_index);
 extern data_array *object_data;
-extern char *object_get_attachment_marker_name(uint32_t object_index, int16_t attachment_index);
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum);
-extern void object_get_root_location(int32_t *out, uint32_t object_index);
-extern void object_light_recompute_transform(uint32_t light_index);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void rasterizer_light_cone_set_texture_stage_states(void);
 extern int32_t rasterizer_light_count;
 extern void rasterizer_light_disable_all(void);
@@ -160,7 +150,7 @@ datum_index halo::objects::LightSystem::new_attached(datum_index light_tag, datu
 
             entry->next_light = k_datum_index_none;
             entry->marker_link = -1;
-            object_light_recompute_transform(handle);
+            halo::objects::object_light_recompute_transform(handle);
             entry->creation_tick = light_frame_counter - 1;
         }
     }
@@ -217,7 +207,7 @@ datum_index halo::objects::LightSystem::new_positioned(datum_index light_tag, in
             *(real_vector3d *)&((struct light *)raw)->local_direction.i = *direction;
         }
 
-        object_light_recompute_transform(handle);
+        halo::objects::object_light_recompute_transform(handle);
         entry->creation_tick = light_frame_counter - 1;
     }
 
@@ -276,13 +266,13 @@ void halo::objects::LightSystem::update_all()
             if (!(age <= *(float *)(tag_data(((struct light *)light)->definition_tag) + 0xf4))) {
                 cluster_reference_remove_all__as_object_lights_update_all(handle, (datum_index *)(light + 0x10), &light_cluster_first__as_object_lights_update_all);
                 halo::memory::datum_delete(light_data, handle);
-            } else if (object_try_and_get(((struct light *)light)->owner_object, k_datum_index_none) != 0) {
+            } else if (halo::objects::object_try_and_get(((struct light *)light)->owner_object, k_datum_index_none) != 0) {
                 light = (uint8_t *)light_data->data + halo::datum_slot(handle) * 0x7c;
                 if ((light[2] & 2) != 0) {
                     cluster_reference_remove_all__as_object_lights_update_all(handle, (datum_index *)(light + 0x10), &light_cluster_first__as_object_lights_update_all);
                     light[2] &= ~4;
                 }
-                object_light_recompute_transform(handle);
+                halo::objects::object_light_recompute_transform(handle);
             }
         }
     }
@@ -290,8 +280,8 @@ void halo::objects::LightSystem::update_all()
     light_frame_counter++;
     light_render_unknown_7c0 = 1;
     light_active_list_count = halo::structures::structure_bsp_collect_visible_objects((int32_t *)light_active_list, 0x80,
-        (structure_bsp_object_iterate_begin_fn)light_cluster_iterate_begin, (structure_bsp_object_iterate_next_fn)light_cluster_iterate_next, (structure_bsp_object_get_bounds_fn)light_get_render_bounds,
-        (structure_bsp_object_predicate_fn)light_not_marked_this_frame, (structure_bsp_object_accept_fn)light_mark_this_frame);
+        (structure_bsp_object_iterate_begin_fn)halo::objects::light_cluster_iterate_begin, (structure_bsp_object_iterate_next_fn)halo::objects::light_cluster_iterate_next, (structure_bsp_object_get_bounds_fn)halo::objects::light_get_render_bounds,
+        (structure_bsp_object_predicate_fn)halo::objects::light_not_marked_this_frame, (structure_bsp_object_accept_fn)halo::objects::light_mark_this_frame);
     light_render_unknown_7c0 = 0;
     rasterizer_light_count = 0;
     rasterizer_light_disable_all();
@@ -428,7 +418,7 @@ void halo::objects::LightSystem::update_all()
                     }
                 }
                 if (count == 0) {
-                    count = (int16_t)object_get_node_local_transform(owner_handle, (char *)marker_name, markers, 8);
+                    count = (int16_t)halo::objects::object_get_node_local_transform(owner_handle, (char *)marker_name, markers, 8);
                 }
                 for (j = 0; j < count; j++) {
                     flare.position = markers[j].node_transform.position;
@@ -560,7 +550,7 @@ void halo::objects::LightSystem::apply_spot_falloff()
                     real_point3d position;
 
                     if (!is_cone) {
-                        marker_count = light_collect_object_references(light_active_list[i], 0x200, references);
+                        marker_count = halo::objects::light_collect_object_references(light_active_list[i], 0x200, references);
                     }
 
                     if (1.5707964f <= tag->cutoff_angle) {
@@ -622,7 +612,7 @@ void halo::objects::LightSystem::apply_spot_falloff_specular()
                         real_point3d position;
 
                         if (!is_cone) {
-                            marker_count = light_collect_object_references(light_active_list[i], 0x200, references);
+                            marker_count = halo::objects::light_collect_object_references(light_active_list[i], 0x200, references);
                         }
 
                         if (!test_flag(tag->flags, tags::light_tag_flag::no_specular)) {
@@ -688,14 +678,14 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
 
     if (entry->marker_link == -1) {
         object_marker marker;
-        char *marker_name = object_get_attachment_marker_name(owner_object, entry->marker_index);
+        char *marker_name = halo::objects::object_get_attachment_marker_name(owner_object, entry->marker_index);
 
-        object_get_node_local_transform(owner_object, marker_name, &marker, 1);
+        halo::objects::object_get_node_local_transform(owner_object, marker_name, &marker, 1);
 
         entry->position = marker.node_transform.position;
         entry->direction = marker.node_transform.forward;
         *(real_vector3d *)&((struct light *)entry)->up.i = marker.node_transform.up;
-    } else if (object_try_and_get(owner_object, _object_mask_all) != 0) {
+    } else if (halo::objects::object_try_and_get(owner_object, _object_mask_all) != 0) {
         object *owner = ((object_header *)object_data->data)[halo::datum_slot(owner_object)].data;
         uint8_t *node = (uint8_t *)owner + owner->nodes.offset + entry->marker_index * 0x34;
 
@@ -744,7 +734,7 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
         radius = attenuation;
 
         if (entry->owner_object == k_datum_index_none ||
-            object_try_and_get(entry->owner_object, _object_mask_all) == 0) {
+            halo::objects::object_try_and_get(entry->owner_object, _object_mask_all) == 0) {
             leaf_reference.leaf_index = halo::physics::bsp3d_node_find_leaf(0, (ModelCollisionGeometryBSP *)halo::physics::globals().collision_bsp, &position);
             if (leaf_reference.leaf_index == -1) {
                 leaf_reference.cluster_index = -1;
@@ -755,7 +745,7 @@ void halo::objects::LightSystem::recompute_transform(uint32_t light_index)
             }
         } else {
 
-            object_get_root_location((int32_t *)&leaf_reference, entry->owner_object);
+            halo::objects::object_get_root_location((int32_t *)&leaf_reference, entry->owner_object);
         }
 
         halo::structures::cluster_reference_add_within_radius(light_index, &entry->next_light, &position, radius, &leaf_reference,
@@ -809,7 +799,7 @@ void halo::objects::LightSystem::refresh_transforms()
         light *entry = (light *)light_data->data + halo::datum_slot(index);
         if ((entry->flags & _light_transform_dirty_bit) != 0) {
             entry->flags &= (uint16_t)~_light_transform_dirty_bit;
-            object_light_recompute_transform(index);
+            halo::objects::object_light_recompute_transform(index);
         }
         index = halo::memory::datum_next((int16_t)index, light_data);
     }

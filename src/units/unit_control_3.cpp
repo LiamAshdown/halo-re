@@ -2,11 +2,11 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern Globals *global_globals;
-extern void object_apply_damage(damage_data *dd, uint32_t object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane);
 extern const real_point3d *global_zero_vector3d_pointer;
 extern double sqrt(double x);
 }
@@ -69,7 +69,7 @@ void UnitView::update_steering_deviation_effects(real_vector3d *reference_direct
                     dd.multiplier = 1.0f;
                     dd.material_type = -1;
                     dd.damage_effect_tag = impact_effect_tag;
-                    object_apply_damage(&dd, unit_index, -1, -1, -1, 0);
+                    halo::objects::object_apply_damage(&dd, unit_index, -1, -1, -1, 0);
                 }
 
                 if (*(int32_t *)&((struct Vehicle *)tag)->crash_sound.tag_id != -1) {

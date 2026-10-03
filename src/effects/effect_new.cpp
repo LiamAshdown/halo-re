@@ -4,13 +4,13 @@
 #include "halo/effects/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *effect_data;
 extern void effect_start_event(datum_index effect_handle, int16_t event_index);
 extern const ColorRGB *global_white_color;
 extern int32_t local_player_index_for_object(datum_index object_index);
-extern int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name, object_marker *marker, uint32_t flags);
 extern int32_t first_person_weapon_get_marker_data(uint32_t object_index, const char *location, object_marker *out, uint32_t max_count);
 extern uint8_t first_person_effects_enabled;
 extern data_array *object_data;
@@ -111,7 +111,7 @@ datum_index effect_ref::new_at_texture_coordinate(datum_index definition_index, 
             self->location_markers[i] = k_datum_index_none;
         }
 
-        halo::effects::effect_rebuild_markers(self, object_get_node_local_transform);
+        halo::effects::effect_rebuild_markers(self, (effect_marker_resolver)(halo::objects::object_get_node_local_transform));
         if (self->first_person_weapon_index != -1) {
             halo::effects::effect_rebuild_markers(self, first_person_weapon_get_marker_data);
         }
@@ -149,7 +149,7 @@ datum_index effect_ref::new_on_object(datum_index creator_object_index, datum_in
             self->location_markers[i] = k_datum_index_none;
         }
 
-        halo::effects::effect_rebuild_markers(self, object_get_node_local_transform);
+        halo::effects::effect_rebuild_markers(self, (effect_marker_resolver)(halo::objects::object_get_node_local_transform));
         if (self->first_person_weapon_index != -1) {
             halo::effects::effect_rebuild_markers(self, first_person_weapon_get_marker_data);
         }

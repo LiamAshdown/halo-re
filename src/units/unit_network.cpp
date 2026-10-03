@@ -7,6 +7,7 @@
 #include "networking.h"
 #include "halo/memory/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -15,10 +16,8 @@ extern data_array *player_data;
 extern uint8_t network_object_index_cache[];
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t network_index_cache_remove(uint8_t *container, int32_t key);
 extern uint8_t message_delta_decode_compound_field_forced(void *decode_context, void *destination, int32_t changed_offset, uint8_t force);
-extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern uint8_t network_message_scratch[halo::k_network_message_scratch_size];
 extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type, int32_t changed_offset, void **items, int32_t type_offset, int32_t count, char force_changed);
 extern network_server_globals *network_server;
@@ -72,7 +71,7 @@ void halo::units::unit_apply_network_control_update(unit_network_control_packet 
         return;
     }
     throttle = message.no_throttle == 1 ? (const real_vector2d *)0 : &message.throttle;
-    unit = (uint8_t *)object_try_and_get(unit_index, 3);
+    unit = (uint8_t *)halo::objects::object_try_and_get(unit_index, 3);
     if (unit != 0) {
         set_flag(((struct object *)unit)->vitality_flags, objects::vitality_flag::health_frozen);
         ((unit_object *)unit)->base.body_vitality = 0.0f;
@@ -81,7 +80,7 @@ void halo::units::unit_apply_network_control_update(unit_network_control_packet 
     if (message.update_stance == 1) {
         UnitView(unit_index).update_stance_and_jump(message.stance_flags[0], message.stance_flags[1], message.stance_flags[2], message.stance_flags[3], message.stance_flags[4], message.turn_angle, message.weapon_class_index, throttle, 1);
     }
-    unit = (uint8_t *)object_try_and_get(unit_index, 3);
+    unit = (uint8_t *)halo::objects::object_try_and_get(unit_index, 3);
     if (unit != 0 && ((unit_object *)unit)->unit.controlling_player != k_datum_index_none) {
         uint8_t *player = (uint8_t *)halo::memory::datum_get(((unit_object *)unit)->unit.controlling_player, player_data);
 
@@ -90,7 +89,7 @@ void halo::units::unit_apply_network_control_update(unit_network_control_packet 
         }
     }
     UnitView(unit_index).release_transient_state_and_detach(message.stance_flags[1]);
-    unit = (uint8_t *)object_try_and_get(unit_index, 3);
+    unit = (uint8_t *)halo::objects::object_try_and_get(unit_index, 3);
     if (unit != 0) {
         ((unit_object *)unit)->base.network_role = 3;
     }
@@ -119,7 +118,7 @@ void UnitView::apply_network_health_update(void *message)
 {
     using namespace unit_apply_network_health_update_local;
     uint32_t object_index = datum_handle;
-    uint8_t *unit = (uint8_t *)object_try_and_get((datum_index)object_index, 1);
+    uint8_t *unit = (uint8_t *)halo::objects::object_try_and_get((datum_index)object_index, 1);
     uint8_t *guard;
     uint8_t *record;
     int32_t reliable;
@@ -185,7 +184,7 @@ void halo::units::unit_broadcast_state_change_event(unit_state_change_record rec
     int32_t sent;
 
     if (record.unit != k_datum_index_none) {
-        resolved = hash_table_get((hash_table *)(object_network_id_table + 0xc), (int32_t)record.unit);
+        resolved = halo::objects::hash_table_get((hash_table *)(object_network_id_table + 0xc), (int32_t)record.unit);
         if (resolved == -1) {
             resolved = 0;
         }

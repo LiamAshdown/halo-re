@@ -6,6 +6,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
@@ -47,7 +48,6 @@ extern float ai_communication_rate_player_proximity(uint8_t require_line_of_sigh
 extern void ai_communication_record_line_played(datum_index object_index, int16_t tier, int16_t communication_line_id, int16_t conversation_line_id);
 extern void ai_propagate_communication_reaction(datum_index object_index, ai_communication_order *order);
 extern void ai_communication_play_event_line(datum_index object_index, int16_t event_id, uint8_t force, datum_index explicit_speaker_actor_index, uint32_t *event_record);
-extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t maximum_markers);
 extern void actor_issue_order_or_vocalize(datum_index prop_index, datum_index actor_index, datum_index vehicle_object_index, int16_t line, int16_t variant);
 extern int16_t communication_line_count;
 extern int16_t conversation_line_count;
@@ -58,7 +58,6 @@ extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
 extern float ai_communication_class_repeat_delay[];
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern data_array *player_data;
 extern int8_t collision_test_movement_segment(uint32_t flags, real_point3d *origin, real_vector3d *delta, uint32_t exclude_object, void *scratch);
 extern data_array *prop_data;
@@ -77,7 +76,6 @@ extern void ai_reference_actor_iterator_new(uint32_t reference, ai_reference_act
 extern void *ai_reference_actor_iterator_next(ai_reference_actor_iterator *iterator);
 extern uint8_t actor_target_is_close_and_recognized(datum_index object_index, uint32_t param_2, datum_index actor_index);
 extern void actor_issue_multi_target_vocalization(int16_t line, datum_index actor_index, int16_t variant, datum_index vehicle_object_index);
-extern uint32_t object_get_root_object_index(uint32_t object_index);
 extern void actor_dispatch_squad_order(datum_index prop_index, const actor_squad_order_header *order, datum_index actor_index);
 extern void ai_dispatch_queued_order(ai_queued_order *order, datum_index prop_index, datum_index actor_index);
 }
@@ -850,9 +848,9 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                     float dy;
                     float length;
 
-                    object_get_node_local_transform(speaker_unit, ai_marker_name_a, &marker, 1);
+                    halo::objects::object_get_node_local_transform(speaker_unit, ai_marker_name_a, &marker, 1);
                     from = marker.node_transform.position;
-                    object_get_node_local_transform(other_object, ai_marker_name_a, &marker, 1);
+                    halo::objects::object_get_node_local_transform(other_object, ai_marker_name_a, &marker, 1);
                     to = marker.node_transform.position;
                     dx = to.x - from.x;
                     dy = to.y - from.y;
@@ -1079,7 +1077,7 @@ void AiCommunication::play_event_line(datum_index object_index, int16_t event_id
 
             if (mode == 3) {
                 speaker_unit = event_record[0];
-                if (object_try_and_get(speaker_unit, 3) == 0) {
+                if (halo::objects::object_try_and_get(speaker_unit, 3) == 0) {
                     continue;
                 }
             } else if (mode == 2 || mode == 4) {
@@ -1188,7 +1186,7 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
     best_distance = 3.4028235e+38f;
     saw_any_player = 0;
 
-    object_get_node_local_transform(object_index, ai_marker_name_a, &self_marker, 1);
+    halo::objects::object_get_node_local_transform(object_index, ai_marker_name_a, &self_marker, 1);
     self_position = self_marker.node_transform.position;
 
     iterator.data = player_data;
@@ -1203,7 +1201,7 @@ float AiCommunication::rate_player_proximity(uint8_t require_line_of_sight, datu
                 datum_index player_unit = ((struct player *)player)->unit;
 
                 saw_any_player = 1;
-                object_get_node_local_transform(player_unit, ai_marker_name_a, &player_marker, 1);
+                halo::objects::object_get_node_local_transform(player_unit, ai_marker_name_a, &player_marker, 1);
                 player_position = player_marker.node_transform.position;
                 dx = self_position.x - player_position.x;
                 dy = self_position.y - player_position.y;
@@ -1619,11 +1617,11 @@ datum_index AiCommunication::select_speaker_by_team(int16_t match_mode, datum_in
     best_score = 0.0f;
 
     if (object_a != (datum_index)k_datum_index_none) {
-        object_get_node_local_transform(object_a, ai_marker_name_a, &marker_a, 1);
+        halo::objects::object_get_node_local_transform(object_a, ai_marker_name_a, &marker_a, 1);
         position = marker_a.node_transform.position;
     }
     if (object_b != (datum_index)k_datum_index_none) {
-        object_get_node_local_transform(object_a, ai_marker_name_a, &marker_b, 1);
+        halo::objects::object_get_node_local_transform(object_a, ai_marker_name_a, &marker_b, 1);
         position = marker_b.node_transform.position;
     }
 
@@ -1701,11 +1699,11 @@ datum_index AiCommunication::select_speaker_in_reference(float radius, int16_t a
     }
 
     if (object_a != (datum_index)k_datum_index_none) {
-        object_get_node_local_transform(object_a, ai_marker_name_a, &marker, 1);
+        halo::objects::object_get_node_local_transform(object_a, ai_marker_name_a, &marker, 1);
         position_a = marker.node_transform.position;
     }
     if (object_b != (datum_index)k_datum_index_none) {
-        object_get_node_local_transform(object_b, ai_marker_name_a, &marker, 1);
+        halo::objects::object_get_node_local_transform(object_b, ai_marker_name_a, &marker, 1);
         position_b = marker.node_transform.position;
     }
 
@@ -2099,13 +2097,13 @@ void AiCommunication::propagate_communication_reaction(datum_index object_index,
     obj = OBJECT_DATA(object_index);
     object_team = ((object *)obj)->owner_team;
     location = obj + 0x98;
-    object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1);
+    halo::objects::object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1);
     position = marker.node_transform.position;
     if (row != -1 && *(int16_t *)(ai_communication_lines + row * 0x28 + 0x2) >= 4) {
         gate = 3;
     }
     if (((object *)obj)->parent_object != k_datum_index_none) {
-        location = OBJECT_DATA(object_get_root_object_index(object_index)) + 0x98;
+        location = OBJECT_DATA(halo::objects::object_get_root_object_index(object_index)) + 0x98;
     }
     if (!ai_globals_ptr->actors_valid) {
         return;
@@ -2173,7 +2171,7 @@ void AiCommunication::propagate_communication_reaction(datum_index object_index,
 
 static inline void * object_try_and_get__ai_select_communication_target(datum_index object_index, int32_t kind)
 {
-    return reinterpret_cast<void * (*)(datum_index, int32_t)>(&::object_try_and_get)(object_index, kind);
+    return reinterpret_cast<void * (*)(datum_index, int32_t)>(&halo::objects::object_try_and_get)(object_index, kind);
 }
 #define object_try_and_get object_try_and_get__ai_select_communication_target
 /**

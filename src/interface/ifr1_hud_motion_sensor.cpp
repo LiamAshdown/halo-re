@@ -1,5 +1,6 @@
 #include "halo/interface/ifr1_hud_motion_sensor.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -12,7 +13,6 @@ extern game_engine_definition *current_game_engine;
 extern float motion_sensor_sweep;
 extern float motion_sensor_sweep_scale;
 extern double fmod(double x, double y);
-extern object *object_iterator_next(object_iterator *iterator);
 extern uint8_t motion_sensor_object_is_detected(datum_index unit_index);
 extern void motion_sensor_blip_fill(int16_t local_player_index, datum_index object_index,
                                     motion_sensor_blip *blip);
@@ -107,7 +107,7 @@ void HudMotionSensor::update(void)
         walk.iterator.index = 0;
         walk.iterator.handle = (datum_index)-1;
         walk.signature = 0x86868686;
-        while (object_iterator_next(&walk.iterator) != 0 && !all_full) {
+        while (halo::objects::object_iterator_next(&walk.iterator) != 0 && !all_full) {
             datum_index object_index = walk.iterator.handle;
             uint8_t *header = 0;
             int16_t full_players;

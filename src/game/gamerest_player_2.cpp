@@ -10,6 +10,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -20,21 +21,14 @@ extern int16_t network_game_mode;
 extern Globals *global_globals;
 extern uint8_t network_message_scratch;
 extern network_server_globals *network_server;
-extern void object_mark_pending_delete(uint32_t object_index);
-extern void object_delete(uint32_t object_index);
-extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
 extern void local_player_set_controlled_unit(datum_index new_unit, int16_t local_player_index);
 extern int16_t player_pick_random_starting_location(datum_index player_handle);
 extern ScenarioPlayerStartingLocation *game_get_player_starting_location(int16_t index);
-extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
 extern real *game_engine_get_player_color(uint32_t player_index, real *out_rgb);
 extern void object_placement_data_set_change_colors(real *color, object_placement_data *placement);
-extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern void game_engine_init_player_look_state_from_object(datum_index unit, int16_t local_player_index);
 extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_index unit_handle, uint8_t reset_stats);
 extern void game_engine_apply_player_grenade_counts(uint32_t player_index);
-extern void object_type_override_call_0x68(uint32_t object_index);
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server_globals *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
 extern void game_engine_send_unit_weapon_loadout(uint32_t unit_index, datum_index player_handle, int32_t value, int32_t machine_index);
 extern double cos(double x);
@@ -63,7 +57,6 @@ extern int32_t server_maximum_pending_client_update_ticks;
 extern uint8_t player_update_queue_pop_current(player_update_record *out, player_update_queue *queue);
 extern void player_compute_view_forward_vector(datum_index player_handle, real *yaw_pitch, real_vector3d *out_forward);
 extern uint8_t player_unit_has_parent(datum_index player_handle);
-extern uint8_t object_update(uint32_t object_index);
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t global_007102d8;
 extern uint8_t network_join_error_reason;
@@ -88,7 +81,7 @@ static void player_respawn_drop_lights(datum_index object_index)
         return;
     }
     if (*(uint8_t *)&((object *)obj)->flags & 1) {
-        object_for_each_light_attachment(object_index, 0, 1);
+        halo::objects::object_for_each_light_attachment(object_index, 0, 1);
     }
     if (*(int32_t *)&((Object *)tag)->model.tag_id != -1) {
         ((object *)obj)->flags &= ~1u;
@@ -138,7 +131,7 @@ void PlayerView::respawn()
                 if (weapon_index != -1) {
                     held_weapon = *(datum_index *)(unit + 0x2f8 + weapon_index * 4);
                 }
-                object_mark_pending_delete(existing_unit);
+                halo::objects::object_mark_pending_delete(existing_unit);
                 player_respawn_drop_lights(existing_unit);
                 LocalPlayers::set_controlled_unit(existing_unit, ((player *)p)->local_player_index);
                 if (held_weapon != k_datum_index_none) {
@@ -146,7 +139,7 @@ void PlayerView::respawn()
                 }
                 goto reset_player_state;
             }
-            object_delete(existing_unit);
+            halo::objects::object_delete(existing_unit);
         }
     }
 
@@ -173,7 +166,7 @@ void PlayerView::respawn()
         if (current_game_engine != 0) {
             unit_tag = *(datum_index *)((uint8_t *)global_globals->multiplayer_information.pointer + 0x1c);
         }
-        object_placement_data_initialize(&placement, unit_tag, k_datum_index_none);
+        halo::objects::object_placement_data_initialize(&placement, unit_tag, k_datum_index_none);
         placement.position = *(real_point3d *)location;
         facing = ((struct ScenarioPlayerStartingLocation *)location)->facing;
         placement.forward.i = (real)cos(facing);
@@ -186,11 +179,11 @@ void PlayerView::respawn()
         color[2] = player_color[2];
         object_placement_data_set_change_colors(color, &placement);
 
-        new_unit = object_new_with_datum_role_control(&placement, 3);
+        new_unit = halo::objects::object_new_with_datum_role_control(&placement, 3);
         if (new_unit == k_datum_index_none) {
             goto reset_player_state;
         }
-        unit = (uint8_t *)object_try_and_get(new_unit, 3);
+        unit = (uint8_t *)halo::objects::object_try_and_get(new_unit, 3);
         if (unit == 0) {
             goto reset_player_state;
         }
@@ -218,7 +211,7 @@ void PlayerView::respawn()
 
             game_engine_apply_player_grenade_counts(player_index);
             *(uint32_t *)&((unit_object *)unit)->base.network_role = 0;
-            object_type_override_call_0x68(new_unit);
+            halo::objects::object_type_override_call_0x68(new_unit);
             encoded_bits = halo::units::unit_build_network_update(new_unit, (int32_t)&network_message_scratch, 0x7ff8);
             if (encoded_bits > 0) {
                 network_session_broadcast_to_flagged(encoded_bits, (network_server_globals *)network_server,
@@ -277,7 +270,7 @@ void PlayerView::compute_view_forward_vector(real *yaw_pitch, real_vector3d *out
         return;
     }
 
-    parent_obj = object_try_and_get(unit_obj->parent_object, _object_mask_vehicle);
+    parent_obj = halo::objects::object_try_and_get(unit_obj->parent_object, _object_mask_vehicle);
     if (parent_obj == (object *)0) {
         return;
     }
@@ -560,7 +553,7 @@ void Players::server_catchup_on_client_updates()
             }
 
             if (PlayerView(player_iter.index).unit_has_parent() && network_client_vehicle_ack_enabled != 0) {
-                object_update(unit_obj->parent_object);
+                halo::objects::object_update(unit_obj->parent_object);
             } else {
                 halo::units::unit_update(plr->unit);
                 halo::units::biped_update(plr->unit);

@@ -3,6 +3,7 @@
 #include "halo/math/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern void unit_invalidate_local_player_zoom_level(void);
@@ -12,9 +13,7 @@ extern network_id_table *machine_table;
 extern uint8_t network_object_index_cache[];
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern uint8_t message_delta_decode_compound_field_staged(void *decode_context);
-extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
 extern uint8_t network_index_cache_insert_if_free(uint8_t *container, int32_t slot, int32_t key);
-extern void object_set_position_and_recalculate(real_point3d *position, uint32_t object_index);
 }
 
 namespace halo::units {
@@ -101,7 +100,7 @@ void halo::units::unit_spawn_with_starting_weapons(void *command_record)
     memcpy(placement + 0x18, &message.position, 12);
     memcpy(placement + 0x34, &message.forward, 12);
     memcpy(placement + 0x40, &message.up, 12);
-    vehicle_index = object_new_with_datum_role_control((object_placement_data *)placement, 1);
+    vehicle_index = halo::objects::object_new_with_datum_role_control((object_placement_data *)placement, 1);
     if (vehicle_index == k_datum_index_none) {
         return;
     }
@@ -115,7 +114,7 @@ void halo::units::unit_spawn_with_starting_weapons(void *command_record)
     vehicle[0x526] = message.network_epoch;
     vehicle[0x525] = 1;
     vehicle[0x527] = 0;
-    object_set_position_and_recalculate((real_point3d *)(vehicle + 0x52c), vehicle_index);
+    halo::objects::object_set_position_and_recalculate((real_point3d *)(vehicle + 0x52c), vehicle_index);
     memcpy(vehicle + 0x68, vehicle + 0x538, 12);
     memcpy(vehicle + 0x8c, vehicle + 0x544, 12);
     memcpy(vehicle + 0x74, vehicle + 0x550, 12);

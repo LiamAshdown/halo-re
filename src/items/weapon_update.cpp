@@ -3,12 +3,11 @@
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern uint8_t unit_updates_suppressed;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter, char use_matched_index);
 extern char *weapon_blur_permutation_names[2];
 extern void weapon_action_notify_for_weapon(datum_index weapon_index, int32_t action_code);
 extern game_time_globals *game_time;
@@ -78,7 +77,7 @@ int32_t weapon_ref::update()
         if (item_obj->parent_object == (datum_index)0xffffffff) {
             skip_decrement = 0;
         } else {
-            object *holder = object_try_and_get(item_obj->parent_object, _object_mask_unit);
+            object *holder = halo::objects::object_try_and_get(item_obj->parent_object, _object_mask_unit);
             if (holder == 0) {
                 skip_decrement = 0;
             } else if (holder->definition_tag == (datum_index)0xffffffff) {
@@ -379,7 +378,7 @@ int32_t weapon_ref::update()
                 trigger->firing_rate = (new_rate < 0.0f) ? 0.0f : new_rate;
                 if ((trigger->flags & _weapon_trigger_blur_applied_bit) != 0 &&
                     trigger->firing_rate < tag_trigger->blurred_rate_of_fire) {
-                    object_set_permutation_by_name(weapon_blur_target(item_index), weapon_blur_permutation_names[local_trigger_index],
+                    halo::objects::object_set_permutation_by_name(weapon_blur_target(item_index), weapon_blur_permutation_names[local_trigger_index],
                                                    -1, 0);
                     trigger->flags = trigger->flags & ~(uint32_t)_weapon_trigger_blur_applied_bit;
                 }
@@ -389,7 +388,7 @@ int32_t weapon_ref::update()
                 if (tag_trigger->blurred_rate_of_fire != 0.0f &&
                     (trigger->flags & _weapon_trigger_blur_applied_bit) == 0 &&
                     tag_trigger->blurred_rate_of_fire < trigger->firing_rate) {
-                    object_set_permutation_by_name(weapon_blur_target(item_index), weapon_blur_permutation_names[local_trigger_index],
+                    halo::objects::object_set_permutation_by_name(weapon_blur_target(item_index), weapon_blur_permutation_names[local_trigger_index],
                                                    -1, 1);
                     trigger->flags = trigger->flags | _weapon_trigger_blur_applied_bit;
                 }

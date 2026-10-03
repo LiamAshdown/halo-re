@@ -4,6 +4,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_action_has_queued_secondary {
 extern "C" {
@@ -96,7 +97,6 @@ extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index 
 extern void actor_delete(datum_index actor_index, uint32_t flag);
 extern void actor_refresh_combat_context(datum_index actor_index);
 extern void ai_encounter_stamp_team_from_unit(datum_index encounter_index, datum_index unit_index);
-extern void object_mark_pending_delete(datum_index object_index);
 }
 }
 
@@ -155,10 +155,10 @@ void halo::ai::actor_ref::attach_to_unit(datum_index unit_index)
         uint8_t flags_before = header->flags;
         header->flags = flags_before & ~_object_header_in_pvs_pass_bit;
         if ((flags_before & _object_header_active_bit) == 0) {
-            object_mark_pending_delete(unit_index);
+            halo::objects::object_mark_pending_delete(unit_index);
         }
         if (self->keep_unit_alive == 0) {
-            object_mark_pending_delete(unit_index);
+            halo::objects::object_mark_pending_delete(unit_index);
         } else if ((header->flags & _object_header_active_bit) != 0) {
             header->flags &= ~_object_header_active_bit;
         }
@@ -378,10 +378,6 @@ extern data_array *object_data;
 extern void actor_remove_from_unit_cluster(datum_index actor_index, datum_index unit_index);
 extern void actor_delete(datum_index actor_index, uint32_t flag);
 extern uint8_t actor_attempt_grenade_throw(datum_index actor_index);
-extern void object_delete_recursive(datum_index object_index, uint32_t flag);
-extern void object_delete_unparented(datum_index object_index);
-extern void object_delete(datum_index object_index);
-extern void object_delete_4f9030(datum_index object_index, uint32_t flag);
 }
 }
 
@@ -403,11 +399,11 @@ void halo::ai::actor_ref::delete_or_release_unit(uint8_t is_dead)
         datum_index unit_index = self->unit_index;
         actor_attempt_grenade_throw(actor_index);
         if (is_dead != 0) {
-            object_delete_recursive(unit_index, 0);
-            object_delete_4f9030(unit_index, 0);
+            halo::objects::object_delete_recursive(unit_index, 0);
+            halo::objects::object_delete_4f9030(unit_index, 0);
             return;
         }
-        object_delete(unit_index);
+        halo::objects::object_delete(unit_index);
         return;
     }
 
@@ -422,14 +418,14 @@ void halo::ai::actor_ref::delete_or_release_unit(uint8_t is_dead)
             object *unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
             int32_t network_role = unit_object->network_role;
             if (network_role == 0) {
-                object_delete_unparented(unit_index);
-                object_delete_recursive(unit_index, 0);
+                halo::objects::object_delete_unparented(unit_index);
+                halo::objects::object_delete_recursive(unit_index, 0);
             } else if (network_role == 3) {
-                object_delete_recursive(unit_index, 0);
+                halo::objects::object_delete_recursive(unit_index, 0);
             }
         } else {
-            object_delete_recursive(unit_index, 0);
-            object_delete_4f9030(unit_index, 0);
+            halo::objects::object_delete_recursive(unit_index, 0);
+            halo::objects::object_delete_4f9030(unit_index, 0);
         }
     }
 }
@@ -1059,7 +1055,6 @@ extern void actor_delete(datum_index actor_index, uint32_t flag);
 extern void actor_unlink_unit(datum_index actor_index);
 extern void swarm_add_component(datum_index component_index, uint32_t unit_index, datum_index swarm_index);
 extern void ai_encounter_stamp_team_from_unit(datum_index encounter_index, datum_index unit_index);
-extern void object_mark_pending_delete(datum_index object_index);
 }
 }
 
@@ -1129,10 +1124,10 @@ uint8_t halo::ai::actor_ref::link_to_unit_cluster(datum_index unit_index)
         uint8_t flags_before = header->flags;
         header->flags = flags_before & ~_object_header_in_pvs_pass_bit;
         if ((flags_before & _object_header_active_bit) == 0) {
-            object_mark_pending_delete(unit_index);
+            halo::objects::object_mark_pending_delete(unit_index);
         }
         if (self->keep_unit_alive == 0) {
-            object_mark_pending_delete(unit_index);
+            halo::objects::object_mark_pending_delete(unit_index);
         } else if ((header->flags & _object_header_active_bit) != 0) {
             header->flags &= ~_object_header_active_bit;
         }

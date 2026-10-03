@@ -17,13 +17,11 @@
 #include "halo/physics/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
 extern game_time_globals *game_time;
-extern void object_set_shield_depleted_flag(uint32_t object_index);
-extern void object_delete(uint32_t object_index);
-extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
 extern uint32_t collision_bsp_query_sphere_init(ModelCollisionGeometryBSP *bsp, int16_t breakable_surface_count, collision_bsp_sphere_result *result, uint32_t *breakable_surfaces, real_point3d *center, float radius);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint8_t *global_structure_bsp;
@@ -34,20 +32,16 @@ extern uint8_t physics_point_find_clear_position(uint32_t flags, real_point3d *c
 extern uint8_t collision_test_movement_pill(uint32_t flags, real_point3d *origin, float radius, real_vector3d *delta, collision_result *result);
 extern uint8_t object_collision_context_test_pill(object_collision_context *context, real_point3d *origin, real_vector3d *delta, float radius_scale, object_node_collision_result *out_result);
 extern uint8_t collision_test_movement_segment_between_points(real_point3d *origin, real_point3d *target, uint32_t flags, uint32_t exclude_object_index, collision_result *result);
-extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location);
 extern int16_t network_game_mode;
 extern game_engine_definition *current_game_engine;
 extern ai_globals *ai_globals_ptr;
 extern char *s_stand;
 extern int16_t actor_spawn_additional_units(datum_index actor_variant_tag, int16_t spawn_count, datum_index source_actor_index, float health_scale);
-extern void object_set_position_and_recalculate(real_point3d *position, uint32_t object_index);
-extern uint8_t object_nudge_position_by_velocity(uint32_t object_index, real_point3d *out);
 extern double sqrt(double x);
 extern real_point3d *global_origin3d_pointer;
 extern Globals *global_globals;
 extern uint8_t unit_updates_suppressed;
 extern uint8_t actor_get_requested_velocity(uint8_t skip_clamp, datum_index actor_index, real_vector3d *out_velocity, uint32_t object_index, float speed_limit);
-extern void object_get_position(real_point3d *out, uint32_t object_index);
 }
 
 namespace halo::units {
@@ -76,7 +70,7 @@ void UnitView::apply_scale_change(unit_scale_request *request)
             unit->grenade_counts[0] = 0;
             unit->grenade_counts[1] = 0;
             if (unit->equipment_object_index != k_datum_index_none) {
-                object_delete(unit->equipment_object_index);
+                halo::objects::object_delete(unit->equipment_object_index);
                 unit->equipment_object_index = k_datum_index_none;
             }
             void *graph = halo::cache::globals().tag_instances[obj_tag->animation_graph.tag_id.index].data;
@@ -91,8 +85,8 @@ void UnitView::apply_scale_change(unit_scale_request *request)
             unit->death_time = game_time->game_time;
             obj->body_vitality = 0.0f;
             obj->shield_vitality = 0.0f;
-            object_set_shield_depleted_flag(unit_index);
-            object_recalculate_bounding_radius_recursive(unit_index);
+            halo::objects::object_set_shield_depleted_flag(unit_index);
+            halo::objects::object_recalculate_bounding_radius_recursive(unit_index);
         }
     }
 }
@@ -292,8 +286,8 @@ uint32_t halo::units::unit_find_placement_position(uint32_t anchor_object, uint3
         }
         if (anchor_object != k_datum_index_none && !skip_reposition) {
             *(real_point3d *)&((unit_object *)unit)->base.position.x = point;
-            object_recalculate_bounding_radius_recursive(anchor_object);
-            object_set_position_and_relink(&point, anchor_object, &location);
+            halo::objects::object_recalculate_bounding_radius_recursive(anchor_object);
+            halo::objects::object_set_position_and_relink(&point, anchor_object, &location);
         }
         if (out_position != 0) {
             *out_position = point;
@@ -568,7 +562,7 @@ void halo::units::unit_propagate_position_delta_to_children(real_point3d *new_po
         child = child_obj->next_object;
     }
 
-    object_set_position_and_recalculate(new_position, unit_index);
+    halo::objects::object_set_position_and_recalculate(new_position, unit_index);
 }
 
 namespace unit_recalculate_position_local {
@@ -599,7 +593,7 @@ void UnitView::recalculate_position()
 
     if (!(sqrt((anchor.z - previous.z) * (anchor.z - previous.z) + (anchor.y - previous.y) * (anchor.y - previous.y) +
                (anchor.x - previous.x) * (anchor.x - previous.x)) > 5.0) && halo::hs::globals::object_prediction) {
-        if (!object_nudge_position_by_velocity(object_index, &nudged)) {
+        if (!halo::objects::object_nudge_position_by_velocity(object_index, &nudged)) {
             nudged = anchor;
         }
         midpoint.x = (previous.x + nudged.x) * 0.5f;
@@ -611,10 +605,10 @@ void UnitView::recalculate_position()
             target = &midpoint;
         }
     }
-    object_set_position_and_recalculate(target, object_index);
+    halo::objects::object_set_position_and_recalculate(target, object_index);
     if (sqrt((current->z - previous.z) * (current->z - previous.z) + (current->y - previous.y) * (current->y - previous.y) +
              (current->x - previous.x) * (current->x - previous.x)) > 2.0) {
-        object_set_position_and_recalculate(&anchor, object_index);
+        halo::objects::object_set_position_and_recalculate(&anchor, object_index);
     }
 }
 
@@ -724,7 +718,7 @@ int32_t UnitView::test_placement_candidate(const real_vector3d *direction, real_
     real_point3d origin;
     real_vector3d delta;
 
-    object_get_position(&origin, unit_index);
+    halo::objects::object_get_position(&origin, unit_index);
     origin.x += halo::math::globals().global_up3d_pointer->i * 0.4f;
     origin.y += halo::math::globals().global_up3d_pointer->j * 0.4f;
     origin.z += halo::math::globals().global_up3d_pointer->k * 0.4f;

@@ -4,6 +4,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_evaluate_engagement_reachability {
 extern "C" {
@@ -227,7 +228,6 @@ extern "C" uint8_t actor_has_unshielded_threat_weapon(datum_index actor_index)
 
 namespace c_actor_issue_multi_target_vocalization {
 extern "C" {
-extern void *object_try_and_get(datum_index object_index, int32_t kind);
 extern uint8_t actor_begin_vocalization(datum_index actor_index, int16_t line, int16_t variant,
                                         actor_vocalization_context *context);
 }
@@ -249,7 +249,7 @@ void halo::ai::combat_ops::issue_multi_target_vocalization(int16_t line, datum_i
 
     if (actor_index != (datum_index)k_datum_index_none && 0 < variant &&
         vehicle_object_index != (datum_index)k_datum_index_none) {
-        obj = object_try_and_get(vehicle_object_index, -1);
+        obj = halo::objects::object_try_and_get(vehicle_object_index, -1);
         if (obj != 0) {
             context.code = 0;
             context.payload.handle = (datum_index)k_datum_index_none;

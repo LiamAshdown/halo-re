@@ -10,6 +10,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias);
@@ -20,9 +21,6 @@ extern void bsp_compressed_rendered_vertex_unpack_normal(ScenarioStructureBSPMat
     real_vector3d *out);
 extern void bsp_compressed_lightmap_vertex_unpack_normal(ScenarioStructureBSPMaterialCompressedLightmapVertex *vertex,
     real_vector3d *out);
-extern void object_build_effect_parameter_block(uint8_t flags, real_vector3d *shading_normal, float intensity,
-    ColorRGB *lightmap_color, real_vector3d *lightmap_normal, ColorRGB *base_map_color,
-    render_lighting *lighting);
 }
 
 namespace halo::structures {
@@ -227,7 +225,7 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
     halo::math::vector3d_barycentric_interpolate(lightmap_normal, normals[2], normals[1], normals[0], weight_1, weight_2);
     halo::math::vector3d_normalize_with_length(lightmap_normal);
 
-    object_build_effect_parameter_block(flags, &shading_normal,
+    halo::objects::object_build_effect_parameter_block(flags, &shading_normal,
         (lengths[1] - lengths[0]) * weight_1 + (lengths[2] - lengths[0]) * weight_2 + lengths[0],
         &lightmap_color, &lightmap_normal, &base_map_color, lighting);
     return 1;

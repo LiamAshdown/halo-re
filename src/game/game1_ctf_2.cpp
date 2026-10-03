@@ -18,6 +18,7 @@
 #include "halo/math/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern ctf_globals ctf_globals_live;
@@ -60,7 +61,6 @@ extern void game_engine_send_end_game_notification(uint32_t reason);
 extern int32_t ctf_flag_capture_limit_006b0ea0;
 extern data_array *player_data;
 extern datum_index player_index_from_unit_index(datum_index unit_index);
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern data_array *object_data;
 extern game_engine_definition *current_game_engine;
 extern uint8_t unit_has_must_be_readied_weapon(uint32_t player_index);
@@ -403,7 +403,7 @@ uint8_t Ctf::unknown_60(datum_index unit_index, datum_index item_index)
     if (player == 0xffffffff || item_index == 0xffffffff || network_game_mode != 2) {
         return 1;
     }
-    weapon = (uint8_t *)object_try_and_get(item_index, 4);
+    weapon = (uint8_t *)halo::objects::object_try_and_get(item_index, 4);
     if (weapon != 0 && (uint8_t)halo::items::weapon_must_be_readied(item_index) != 0 && (weapon[0x22c] & 0x40) == 0 &&
         ((struct weapon_object *)weapon)->base.owner_team == *(int32_t *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200) + 0x20)) {
         return 0;

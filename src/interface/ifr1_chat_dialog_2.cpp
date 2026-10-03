@@ -5,6 +5,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern uint8_t network_message_scratch[0x7ff8];
@@ -22,7 +23,6 @@ extern uint8_t network_session_send_to_machine(int32_t machine_id, network_serve
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, network_server_globals *server, int32_t status_bit,
     void *data, int32_t immediate, int32_t flush_after, char force, int32_t unused);
 extern datum_index player_get_vehicle(datum_index player_index);
-extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 extern uint8_t chat_dialog_open;
 extern console_globals console_globals_data;
 extern int32_t chat_scope_active;
@@ -183,7 +183,7 @@ void ChatDialog::server_relay_incoming_message(void **context, void *machine)
         }
         chat_relay_iterator_begin(&iterator);
         while ((entry = (uint8_t *)halo::memory::data_iterator_next(&iterator)) != 0) {
-            uint8_t *unit = (uint8_t *)object_try_and_get(*(datum_index *)(entry + 0x34), 3);
+            uint8_t *unit = (uint8_t *)halo::objects::object_try_and_get(*(datum_index *)(entry + 0x34), 3);
 
             if (unit != 0 && ((unit_object *)unit)->base.parent_object == vehicle && *(int8_t *)(entry + 0x64) != -1) {
                 network_session_send_to_machine(*(int8_t *)(entry + 0x64), network_server, 1, network_message_scratch,

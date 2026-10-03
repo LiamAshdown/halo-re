@@ -9,12 +9,11 @@
 #include "halo/effects/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern int16_t network_game_mode;
 extern uint8_t network_action_apply_active;
-extern void object_delete_by_pooled_node_id(void **context);
-extern void object_type_override_call_0x70_release_node(void **context, network_client_globals *client);
 extern void hud_receive_item_message(void **context);
 extern void game_engine_apply_player_join_message(void **context);
 extern void game_engine_apply_player_spawn_loadout_message(void **context);
@@ -40,8 +39,6 @@ extern void player_update_client_remote_player_vehicle_position_delta_from_netwo
 extern void player_update_client_remote_player_total_biped_update_from_network(void **context);
 extern void player_update_client_remote_player_total_vehicle_update_from_network(void **context);
 extern void game_engine_spawn_or_replay_netgame_equipment(void **context);
-extern void object_apply_linked_impulse(void **context);
-extern void object_apply_shield_charge_and_notify(void **context);
 extern void network_player_ping_field_update_and_report(void **context);
 extern void network_client_handle_server_text_message(void **context);
 extern void network_channel_remote_address_or_default(network_channel *channel, network_resolved_address *out_address);
@@ -149,12 +146,12 @@ void GameClientView::action_apply(void **context)
         return;
     }
     switch (type_id) {
-    case 0x00: object_delete_by_pooled_node_id(context); break;
+    case 0x00: halo::objects::object_delete_by_pooled_node_id((int32_t **)context); break;
     case 0x01:
     case 0x02:
     case 0x03:
     case 0x04:
-    case 0x05: object_type_override_call_0x70_release_node(context, client); break;
+    case 0x05: halo::objects::object_type_override_call_0x70_release_node((int32_t *)context, (uint32_t)client); break;
     case 0x07: game_engine_apply_player_join_message(context); break;
     case 0x08: game_engine_apply_player_spawn_loadout_message(context); break;
     case 0x09: halo::units::unit_dispatch_seat_exit_message((int32_t *)context); break;
@@ -191,8 +188,8 @@ void GameClientView::action_apply(void **context)
     case 0x2e: halo::items::weapon_apply_ammo_correction_and_resync(context); break;
     case 0x2f: game_engine_spawn_or_replay_netgame_equipment(context); break;
     case 0x30: halo::projectiles::projectile_detonation_message_apply(context); break;
-    case 0x31: object_apply_linked_impulse(context); break;
-    case 0x32: object_apply_shield_charge_and_notify(context); break;
+    case 0x31: halo::objects::object_apply_linked_impulse(context); break;
+    case 0x32: halo::objects::object_apply_shield_charge_and_notify(context); break;
     case 0x33: halo::projectiles::projectile_attach_apply(context); break;
     case 0x37: network_client_handle_server_text_message(context); break;
     default: network_game_action_apply_shared(context, client, type_id); break;

@@ -10,6 +10,7 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern float angle_delta_wrapped(float from, float to);
@@ -23,21 +24,7 @@ extern game_time_globals *game_time;
 extern real_vector3d *global_origin3d_pointer;
 extern int16_t network_game_mode;
 extern data_array *object_data;
-extern void object_for_each_light_attachment(uint32_t object_index, int32_t register_in_table, int32_t invoke_callback);
-extern int16_t object_get_first_region_probability_group(uint32_t object_index, GBXModel *model);
 extern object_globals *object_globals_pointer;
-extern void object_notify_node_array_if_animated(uint32_t object_index);
-extern int16_t object_permutation_find_matching_group(ModelRegion *region, int16_t group, int16_t *out);
-extern void object_recalculate_bounding_radius(uint32_t object_index);
-extern void object_recalculate_bounding_radius_recursive(uint32_t object_index);
-extern uint8_t object_regions_initialize_permutations(uint32_t object_index, int16_t group, GBXModel *model);
-extern void object_type_definitions_notify_0x38(uint32_t object_index);
-extern void object_type_definitions_notify_two_args_0x48(uint32_t object_index, uint32_t event_argument);
-extern uint8_t object_type_definitions_query_0x34(uint32_t object_index);
-extern uint8_t object_update(uint32_t object_index);
-extern void object_update_change_colors(uint32_t object_index);
-extern void object_update_functions(uint32_t object_index);
-extern void object_update_vitality_and_regeneration(uint32_t object_index);
 extern double pow(double base, double exponent);
 }
 
@@ -142,34 +129,34 @@ uint8_t halo::objects::ObjectUpdater::update()
         }
     }
 
-    object_type_definitions_query_0x34(object_index);
+    halo::objects::object_type_definitions_query_0x34(object_index);
 
     if (definition->collision_model.tag_id.index != halo::k_word_none) {
-        object_update_vitality_and_regeneration(object_index);
+        halo::objects::object_update_vitality_and_regeneration(object_index);
     }
 
-    object_type_definitions_notify_0x38(object_index);
+    halo::objects::object_type_definitions_notify_0x38(object_index);
 
     if (!test_flag(obj->flags, objects::object_flag::unknown_800000)) {
-        object_recalculate_bounding_radius(object_index);
+        halo::objects::object_recalculate_bounding_radius(object_index);
     }
 
-    object_update_functions(object_index);
-    object_update_change_colors(object_index);
+    halo::objects::object_update_functions(object_index);
+    halo::objects::object_update_change_colors(object_index);
 
     if ((test_flag(obj->flags, objects::object_flag::unknown_2000)) &&
         (((obj->flags & _object_no_collision_bit) == 0) || (definition->model.tag_id.index == halo::k_word_none))) {
-        object_for_each_light_attachment(object_index, 1, 1);
+        halo::objects::object_for_each_light_attachment(object_index, 1, 1);
     }
 
     if (obj->first_child_object != k_datum_index_none) {
-        object_update(obj->first_child_object);
+        halo::objects::object_update(obj->first_child_object);
     }
     if ((obj->parent_object != k_datum_index_none) && (obj->next_object != k_datum_index_none)) {
-        object_update(obj->next_object);
+        halo::objects::object_update(obj->next_object);
     }
 
-    object_notify_node_array_if_animated(object_index);
+    halo::objects::object_notify_node_array_if_animated(object_index);
 
     if (network_game_mode == 2) {
         uint8_t *at_rest_flag = (uint8_t *)&obj->at_rest;
@@ -358,12 +345,12 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius_recursive()
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     datum_index child;
 
-    object_recalculate_bounding_radius(object_index);
+    halo::objects::object_recalculate_bounding_radius(object_index);
 
     child = obj->first_child_object;
     while (child != k_datum_index_none) {
         object *child_obj = ((object_header *)object_data->data)[halo::datum_slot(child)].data;
-        object_recalculate_bounding_radius_recursive(child);
+        halo::objects::object_recalculate_bounding_radius_recursive(child);
         child = child_obj->next_object;
     }
 }
@@ -474,7 +461,7 @@ void halo::objects::ObjectUpdater::recalculate_bounding_radius()
             orientations[0].translation.z *= scale;
         }
         if (*(int32_t *)&((struct Object *)def)->animation_graph.tag_id != -1) {
-            object_type_definitions_notify_two_args_0x48(object_index, (uint32_t)orientations);
+            halo::objects::object_type_definitions_notify_two_args_0x48(object_index, (uint32_t)orientations);
         }
         if (((struct object *)obj)->node_function_count > 0) {
 
@@ -680,12 +667,12 @@ uint8_t halo::objects::ObjectUpdater::regions_initialize_permutations(int16_t gr
     for (region_index = 0; region_index < (int16_t)model->regions.count; region_index++) {
         ModelRegion *region = (ModelRegion *)model->regions.pointer + region_index;
         int16_t matches[32];
-        int16_t match_count = object_permutation_find_matching_group(region, group, matches);
+        int16_t match_count = halo::objects::object_permutation_find_matching_group(region, group, matches);
         int16_t chosen;
 
         if (match_count == 0) {
             if (group != -1) {
-                match_count = object_permutation_find_matching_group(region, 0, matches);
+                match_count = halo::objects::object_permutation_find_matching_group(region, 0, matches);
             }
             if (match_count == 0) {
                 obj->region_permutations[region_index] = 0;
@@ -748,13 +735,13 @@ void halo::objects::ObjectUpdater::refresh_region_permutations()
         GBXModel *model = (GBXModel *)halo::cache::globals().tag_instances[halo::datum_slot(definition->model.tag_id.index)].data;
         int16_t *cached_group = (int16_t *)((uint8_t *)obj + 0xbe);
 
-        if ((*cached_group <= 0) || (object_regions_initialize_permutations(object_index, *cached_group, model) == 0)) {
+        if ((*cached_group <= 0) || (halo::objects::object_regions_initialize_permutations(object_index, *cached_group, model) == 0)) {
             int16_t new_group;
-            object_regions_initialize_permutations(object_index, -1, model);
-            new_group = object_get_first_region_probability_group(object_index, model);
+            halo::objects::object_regions_initialize_permutations(object_index, -1, model);
+            new_group = halo::objects::object_get_first_region_probability_group(object_index, model);
             *cached_group = new_group;
             if (new_group > 0) {
-                object_regions_initialize_permutations(object_index, new_group, model);
+                halo::objects::object_regions_initialize_permutations(object_index, new_group, model);
             }
         }
     }

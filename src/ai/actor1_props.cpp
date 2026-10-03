@@ -4,6 +4,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 namespace c_actor_allocate_paired_prop {
 extern "C" {
@@ -101,15 +102,7 @@ extern int16_t network_game_mode;
 extern object_type_definition *object_type_definitions[12];
 
 
-extern void object_initialize_shield_stun_thresholds(uint32_t object_index, float *override_max_body_vitality,
-    float *override_max_shield_vitality);
-extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag,
-    datum_index role);
-extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
 
-extern void object_delete_unparented(uint32_t object_index);
-extern void object_delete_recursive(uint32_t object_index, uint8_t recurse_siblings);
-extern void object_delete(uint32_t object_index);
 
 static uint8_t *object_get(datum_index object_index)
 {
@@ -121,7 +114,7 @@ static datum_index actor_create_unit_item(datum_index definition_tag, datum_inde
     object_placement_data placement;
     uint32_t role = 3;
 
-    object_placement_data_initialize(&placement, definition_tag, unit_index);
+    halo::objects::object_placement_data_initialize(&placement, definition_tag, unit_index);
     if (network_game_mode == 2) {
         int16_t type = *(int16_t *)halo::cache::globals().tag_instances[placement.definition_tag & 0xffff].data;
 
@@ -129,7 +122,7 @@ static datum_index actor_create_unit_item(datum_index definition_tag, datum_inde
             role = 0;
         }
     }
-    return object_new_with_datum_role_control(&placement, role);
+    return halo::objects::object_new_with_datum_role_control(&placement, role);
 }
 }
 }
@@ -151,7 +144,7 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
     int16_t i;
 
     if (((ActorVariant *)variant)->body_vitality > 0.0f || ((ActorVariant *)variant)->shield_vitality > 0.0f) {
-        object_initialize_shield_stun_thresholds(unit_index, (float *)(variant + 0x200), (float *)(variant + 0x204));
+        halo::objects::object_initialize_shield_stun_thresholds(unit_index, (float *)(variant + 0x200), (float *)(variant + 0x204));
     }
     if (*(int16_t *)&((ActorVariant *)variant)->forced_shader_permutation != 0) {
         *(int16_t *)&((unit_object *)unit)->base.forced_shader_permutation = *(int16_t *)&((ActorVariant *)variant)->forced_shader_permutation;
@@ -175,10 +168,10 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
             int32_t role = *(int32_t *)(object_get(weapon) + 4);
 
             if (role == 0) {
-                object_delete_unparented(weapon);
-                object_delete_recursive(weapon, 0);
+                halo::objects::object_delete_unparented(weapon);
+                halo::objects::object_delete_recursive(weapon, 0);
             } else if (role == 3) {
-                object_delete_recursive(weapon, 0);
+                halo::objects::object_delete_recursive(weapon, 0);
             }
         }
     }
@@ -202,7 +195,7 @@ void halo::ai::prop_ops::apply_unit_definition_properties(datum_index actor_vari
             datum_index equipment = actor_create_unit_item(*(datum_index *)&((ActorVariant *)variant)->equipment.tag_id, unit_index);
 
             if (equipment != k_datum_index_none && !halo::units::unit_try_select_equipment(unit_index, equipment, 1)) {
-                object_delete(equipment);
+                halo::objects::object_delete(equipment);
             }
         }
     }
@@ -360,7 +353,6 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *object_data;
 
-extern void object_get_position(real_point3d *out_position, datum_index object_index);
 }
 }
 
@@ -416,7 +408,7 @@ uint8_t halo::ai::prop_ops::danger_register_point(datum_index source_object_inde
     self->danger_type = 1;
     self->danger_object_index = source_object_index;
 
-    object_get_position(&self->danger_center, source_object_index);
+    halo::objects::object_get_position(&self->danger_center, source_object_index);
 
     self->danger_object_velocity = *(real_vector3d *)&source_obj->velocity.i;
     self->danger_reaction_ticks = 6;
@@ -438,7 +430,6 @@ static float sqrt_f(float x) { return (float)sqrt((double)x); }
 extern data_array *actor_data;
 extern data_array *object_data;
 
-extern void object_get_position(real_point3d *out_position, datum_index object_index);
 extern void actor_get_firing_positions(datum_index actor_index, uint32_t *out_block, real_point3d *query_point);
 extern uint8_t teams_are_enemies(int16_t team_a, int16_t team_b);
 }
@@ -485,7 +476,7 @@ uint8_t halo::ai::prop_ops::danger_register_stationary_object(const float *refer
                       obj->velocity.i * obj->velocity.i;
 
         if (velocity_sq > 0.0011111111f) {
-            object_get_position(&fetched_position, object_index);
+            halo::objects::object_get_position(&fetched_position, object_index);
             px = fetched_position.x;
             py = fetched_position.y;
             pz = fetched_position.z;

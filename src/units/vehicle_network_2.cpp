@@ -1,13 +1,12 @@
 #include "halo/units/unit.hpp"
 #include "win32.h"
 #include "halo/cseries/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern object_type_definition *object_type_definitions[k_maximum_object_types];
 extern network_id_table *object_network_id_table;
 extern uint8_t network_client_vehicle_ack_enabled;
-extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern int32_t hash_table_get(hash_table *table, int32_t key);
 extern int32_t message_delta_encode_message(void *buffer, int32_t bit_budget, int32_t flag, int32_t message_type, void *changed, void *items, void *types, int32_t count, char force_changed);
 extern int64_t __allmul(int32_t a_low, int32_t a_high, int32_t b_low, int32_t b_high);
 extern int32_t __alldiv(int64_t a, int32_t b_low, int32_t b_high);
@@ -66,7 +65,7 @@ int32_t VehicleView::encode_network_update(void *buffer, int32_t bit_budget, int
         return 0;
     }
 
-    obj = object_try_and_get(vehicle_index, 2);
+    obj = halo::objects::object_try_and_get(vehicle_index, 2);
     if (obj == 0) {
         return 0;
     }
@@ -75,7 +74,7 @@ int32_t VehicleView::encode_network_update(void *buffer, int32_t bit_budget, int
 
     key = 0;
     if (vehicle_index != k_datum_index_none) {
-        key = hash_table_get(&object_network_id_table->id_to_index, (int32_t)vehicle_index);
+        key = halo::objects::hash_table_get(&object_network_id_table->id_to_index, (int32_t)vehicle_index);
         if (key == -1) {
             key = 0;
         }

@@ -4,6 +4,7 @@
 #include <string.h>
 #include "halo/cache/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -14,15 +15,10 @@ extern data_array *object_data;
 extern uint32_t cheat_get_target_object_index(void);
 extern int16_t network_game_mode;
 extern void *object_type_definitions[12];
-extern void object_get_position(real_point3d *out, datum_index object_index);
-extern void object_get_orientation(real_vector3d *out_forward, datum_index object_index, real_vector3d *out_up);
 extern double atan2(double y, double x);
 extern double sin(double x);
 extern double cos(double x);
-extern void object_placement_data_initialize(object_placement_data *placement, datum_index definition_tag, datum_index role);
-extern datum_index object_new_with_datum_role_control(object_placement_data *placement, uint32_t role);
 extern void console_printf_verbose(const char *format, ...);
-extern void object_set_position_and_orientation(datum_index object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position);
 }
 
 namespace halo::game {
@@ -164,8 +160,8 @@ void Cheats::spawn_objects_near_camera(TagDependency *tag_array, int16_t count)
         return;
     }
     unit = *(datum_index *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200 + 0x34);
-    object_get_position(&unit_position, unit);
-    object_get_orientation(&unit_forward, unit, &unit_up);
+    halo::objects::object_get_position(&unit_position, unit);
+    halo::objects::object_get_orientation(&unit_forward, unit, &unit_up);
 
     for (i = 0; i < (int32_t)(uint16_t)count; i++) {
         datum_index tag_handle = *(datum_index *)&tag_array[i].tag_id;
@@ -183,7 +179,7 @@ void Cheats::spawn_objects_near_camera(TagDependency *tag_array, int16_t count)
         }
         angle = atan2((double)unit_forward.i, (double)unit_forward.j) +
             (double)(i - (int32_t)count / 2) * spacing;
-        object_placement_data_initialize(&placement, tag_handle, k_datum_index_none);
+        halo::objects::object_placement_data_initialize(&placement, tag_handle, k_datum_index_none);
         placement.forward = unit_forward;
         placement.up = unit_up;
         role = 3;
@@ -197,7 +193,7 @@ void Cheats::spawn_objects_near_camera(TagDependency *tag_array, int16_t count)
                 role = 0;
             }
         }
-        object_new_with_datum_role_control(&placement, role);
+        halo::objects::object_new_with_datum_role_control(&placement, role);
     }
 }
 
@@ -259,7 +255,7 @@ void Cheats::teleport_to_camera()
                     root = unit_index;
                 }
 
-                object_set_position_and_orientation(root, 0, 0, (real_point3d *)camera_row);
+                halo::objects::object_set_position_and_orientation(root, 0, 0, (real_point3d *)camera_row);
                 return;
             }
             console_printf_verbose("Camera is outside BSP... cannot initiate teleportation...");

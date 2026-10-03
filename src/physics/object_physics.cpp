@@ -19,6 +19,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/units/api.hpp"
+#include "halo/objects/api.hpp"
 
 extern "C" { void halo::physics::object_physics_blend_friction_axes(int16_t friction_type, float parallel_scale, float perpendicular_scale, float *friction, real_vector3d *forward, real_vector3d *up); }
 extern "C" { uint8_t halo::physics::object_physics_check_impact_damage(uint32_t *self_object_index, uint32_t candidate_object_index); }
@@ -122,8 +123,6 @@ extern "C" { extern float k_impact_damage_scale_table[]; }
 extern "C" { extern uint32_t object_collision_context_test_point(object_collision_context *context, real_point3d *point); }
 extern "C" { extern uint8_t object_collision_context_gather_sphere_shapes(void *context, real_point3d *origin, float radius_scale, float margin, float thickness, physics_model *model); }
 extern "C" { extern uint8_t physics_shape_test_point(physics_model *model, real_point3d *point, physics_model_contact *out_contact); }
-extern "C" { extern void object_set_position_and_relink(real_point3d *position, uint32_t object_index, bsp_leaf_reference *location); }
-extern "C" { extern void object_apply_damage(damage_data *dd, uint32_t target_object_index, int16_t node_index, int16_t region_index, int16_t material_index, uint32_t plane); }
 extern "C" { extern double sqrt(double x); }
 namespace halo::physics {
 
@@ -211,7 +210,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
         if (recovered) {
             recovered_position.z = recovered_position.z - sample[1];
 
-            object_set_position_and_relink(&recovered_position, candidate_object_index, 0);
+            halo::objects::object_set_position_and_relink(&recovered_position, candidate_object_index, 0);
 
             if (*self_object_index == *(uint32_t *)((uint8_t *)candidate_obj + 0x32c) &&
                 game_time->game_time <=
@@ -263,7 +262,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
             dd.damage_effect_tag = impact_damage_tag_id;
 
             halo::math::vector3d_normalize_with_length(dd.direction);
-            object_apply_damage(&dd, candidate_object_index, -1, -1, -1, 0);
+            halo::objects::object_apply_damage(&dd, candidate_object_index, -1, -1, -1, 0);
         }
 
         breakable_damage_tag_id = *(int32_t *)(collision_damage_tag + 0x58);
@@ -285,7 +284,7 @@ uint8_t ObjectPhysics::check_impact_damage(uint32_t *self_object_index, uint32_t
             dd.direction.k = impulse.k * -1.0f;
             dd.damage_effect_tag = breakable_damage_tag_id;
 
-            object_apply_damage(&dd, *self_object_index, -1, -1, -1, 0);
+            halo::objects::object_apply_damage(&dd, *self_object_index, -1, -1, -1, 0);
         }
     }
 
@@ -658,8 +657,6 @@ void ObjectPhysics::compute_mass_point_forces(object_physics_context *context, p
 
 }
 
-extern "C" { extern void object_get_position(real_point3d *out, uint32_t object_index); }
-extern "C" { extern void object_get_orientation(real_vector3d *out_forward, uint32_t object_index, real_vector3d *out_up); }
 namespace halo::physics {
 
 /**
@@ -687,8 +684,8 @@ uint8_t ObjectPhysics::context_build(uint32_t object_index, object_physics_conte
     out_context->definition = physics_definition;
     out_context->scale = 1.0f;
 
-    object_get_position((real_point3d *)&out_context->position_x, object_index);
-    object_get_orientation((real_vector3d *)&out_context->forward_i, object_index, (real_vector3d *)&out_context->up_i);
+    halo::objects::object_get_position((real_point3d *)&out_context->position_x, object_index);
+    halo::objects::object_get_orientation((real_vector3d *)&out_context->forward_i, object_index, (real_vector3d *)&out_context->up_i);
     halo::math::vector3d_cross_product(*((real_vector3d *)&out_context->left_i), *((const real_vector3d *)&out_context->forward_i),
                            *((const real_vector3d *)&out_context->up_i));
     {
@@ -707,7 +704,6 @@ uint8_t ObjectPhysics::context_build(uint32_t object_index, object_physics_conte
 
 }
 
-extern "C" { extern uint16_t object_find_in_sphere(uint32_t search_mask, uint32_t type_mask, void *location, real_point3d *center, float radius, datum_index *out_objects, int16_t max_output); }
 namespace halo::physics {
 
 /**
@@ -740,7 +736,7 @@ void ObjectPhysics::handle_nearby_object_impacts(uint32_t object_index)
     {
         object *self = ((object_header *)object_data->data)[object_index & 0xffff].data;
 
-        count = (int16_t)object_find_in_sphere(1, (uint32_t)(has_collision_context != 0) + 2, &self->location_leaf_index,
+        count = (int16_t)halo::objects::object_find_in_sphere(1, (uint32_t)(has_collision_context != 0) + 2, &self->location_leaf_index,
             &self->bounding_center, self->bounding_radius, candidates, 0x800);
     }
 
@@ -769,7 +765,6 @@ void ObjectPhysics::handle_nearby_object_impacts(uint32_t object_index)
 }
 
 extern "C" { extern uint8_t physics_disable_integration; }
-extern "C" { extern void object_set_position_and_orientation(uint32_t object_index, real_vector3d *forward, real_vector3d *up, real_point3d *position); }
 namespace halo::physics {
 
 /**
@@ -841,7 +836,7 @@ void ObjectPhysics::integrate_and_test_at_rest(object_physics_context *context, 
         commit_position.z = new_position.k;
 
         if (physics_disable_integration != 0) {
-            object_set_position_and_orientation(context->object_index, &new_forward, &new_up, &commit_position);
+            halo::objects::object_set_position_and_orientation(context->object_index, &new_forward, &new_up, &commit_position);
         } else {
             int32_t substep;
             uint32_t hit_mask = 0;
@@ -903,7 +898,7 @@ void ObjectPhysics::integrate_and_test_at_rest(object_physics_context *context, 
                 }
 
                 if (any_hit == 0) {
-                    object_set_position_and_orientation(context->object_index, &new_forward, &new_up, &commit_position);
+                    halo::objects::object_set_position_and_orientation(context->object_index, &new_forward, &new_up, &commit_position);
                     break;
                 }
 
@@ -985,7 +980,6 @@ void ObjectPhysics::integrate_and_test_at_rest(object_physics_context *context, 
 }
 
 extern "C" { extern float k_default_resting_plane[4]; }
-extern "C" { extern void object_set_shield_depleted_flag(uint32_t object_index); }
 namespace halo::physics {
 
 /**
@@ -1040,7 +1034,7 @@ void ObjectPhysics::mass_point_resolve_ground_contact(uint32_t exclude_object_in
             }
 
             if (contact.object_index != 0xffffffff) {
-                object_set_shield_depleted_flag(contact.object_index);
+                halo::objects::object_set_shield_depleted_flag(contact.object_index);
             }
         }
     }
