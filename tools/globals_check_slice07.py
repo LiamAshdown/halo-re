@@ -9,6 +9,8 @@ For every global defined in standalone/data/slice07.c it checks
 Pointer-valued dwords: none (everything is zero), reported as 0 re-targeted.
 Usage: python tools/globals_check_slice07.py [map file]"""
 import os, re, sys, json
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import globals_asm_history
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SIZES = {"uint8_t": 1, "int8_t": 1, "char": 1, "uint16_t": 2, "int16_t": 2, "wchar_t": 2, "uint32_t": 4, "int32_t": 4,
@@ -44,7 +46,7 @@ def decode(path):
 def main():
     src = open(os.path.join(ROOT, "standalone", "data", "slice07.c")).read()
     equ = {}
-    for l in open(os.path.join(ROOT, "standalone", "globals.asm")):
+    for l in globals_asm_history.current().splitlines():
         m = re.match(r"(_\w+) EQU ([0-9A-Fa-f]+)h", l)
         if m:
             equ[m.group(1)[1:]] = int(m.group(2), 16)

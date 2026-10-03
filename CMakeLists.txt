@@ -10,7 +10,8 @@
 # (python tools/convert_fx.py) in override\shaders\ next to the exe: HALO_FX_OVERRIDE, copied after the build.
 #
 # Same build as tools/msvc_build.py + tools/gen_standalone_link.py. The generated sources it uses are committed:
-# after adding or renaming functions run tools/gen_link_sources.py, after adding globals tools/update_globals.py.
+# after adding or renaming functions run tools/gen_link_sources.py; a new engine global is a C definition in
+# standalone/data/*.c (tools/update_globals.py lists what a link left unresolved).
 cmake_minimum_required(VERSION 3.21)
 cmake_policy(SET CMP0091 NEW)   # CMAKE_MSVC_RUNTIME_LIBRARY
 project(halo C CXX ASM_MASM)
@@ -86,15 +87,14 @@ set(SUPPORT_SOURCES
     "${SA}/generated/code_entries.c"
     "${SA}/bridges.cpp")
 add_executable(halo_rebuilt WIN32 ${SUPPORT_SOURCES} ${IMAGE_ASM}
-    "${SA}/globals.asm"
     $<TARGET_OBJECTS:halo_game> $<TARGET_OBJECTS:halo_data>)
 add_dependencies(halo_rebuilt third_party_import_libs)
 
 # ---- keep the committed link sources in step with src/ (tools/cmake_regen.py): after the game objects compile and
-# before the link, regenerate code_entries.c / image_bindings.c / pieces.c (new or renamed functions) and add new
-# engine globals to globals.asm. Off, or without Python, the committed files are used as they are.
+# before the link, regenerate code_entries.c / image_bindings.c / pieces.c (new or renamed functions). Off, or
+# without Python, the committed files are used as they are.
 find_package(Python3 COMPONENTS Interpreter)
-option(HALO_REGENERATE "Regenerate the link sources and globals.asm from src/ during the build" ${Python3_FOUND})
+option(HALO_REGENERATE "Regenerate the link sources from src/ during the build" ${Python3_FOUND})
 if(HALO_REGENERATE)
     if(CMAKE_CONFIGURATION_TYPES)   # multi-config (Visual Studio): one list per configuration
         set(_objects_list "${CMAKE_CURRENT_BINARY_DIR}/halo_game_objects_$<CONFIG>.txt")
@@ -104,15 +104,15 @@ if(HALO_REGENERATE)
     set(_regen_stamp "${CMAKE_CURRENT_BINARY_DIR}/regen.stamp")
     file(GENERATE OUTPUT "${_objects_list}" CONTENT "$<JOIN:$<TARGET_OBJECTS:halo_game>,\n>\n")
     file(GLOB _regen_tools "${CMAKE_SOURCE_DIR}/tools/cmake_regen.py" "${CMAKE_SOURCE_DIR}/tools/gen_link_sources.py"
-        "${CMAKE_SOURCE_DIR}/tools/gen_standalone.py" "${CMAKE_SOURCE_DIR}/tools/update_globals.py")
+        "${CMAKE_SOURCE_DIR}/tools/gen_standalone.py")
     add_custom_command(OUTPUT "${_regen_stamp}"
         COMMAND "${Python3_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/tools/cmake_regen.py" "${_objects_list}" "${_regen_stamp}"
         DEPENDS halo_game $<TARGET_OBJECTS:halo_game> "${_objects_list}" ${_regen_tools}
         WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-        COMMENT "Regenerating link sources and globals from src/" VERBATIM)
+        COMMENT "Regenerating link sources from src/" VERBATIM)
     add_custom_target(halo_regenerate DEPENDS "${_regen_stamp}")
     add_dependencies(halo_rebuilt halo_regenerate)
-    set_source_files_properties("${SA}/image/pieces.c" "${SA}/generated/image_bindings.c" "${SA}/globals.asm"
+    set_source_files_properties("${SA}/image/pieces.c" "${SA}/generated/image_bindings.c"
         "${SA}/generated/code_entries.c" PROPERTIES OBJECT_DEPENDS "${_regen_stamp}")
 endif()
 set_source_files_properties(${SUPPORT_SOURCES} PROPERTIES COMPILE_OPTIONS "/O2;/GS-")

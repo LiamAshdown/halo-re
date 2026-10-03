@@ -12,6 +12,8 @@ alias pragma target exists. stdlib only; never reads the retail binary.
 usage: python tools/globals_check_slice02.py [build_dir]     (default build/s02)
 """
 import os, re, struct, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import globals_asm_history
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PIECES = [(0x63a000, "rdata"), (0x676000, "data")]
@@ -105,7 +107,7 @@ def main():
         if m:
             syms[m.group(1)] = int(m.group(2), 16)
     mem, defs, pe = load_image(), parse_definitions(), PE(exe)
-    asm = open(os.path.join(ROOT, "standalone", "globals.asm")).read()
+    asm = globals_asm_history.current()
     bad = 0
     retarget = 0
     for addr, name, size, _ in defs:

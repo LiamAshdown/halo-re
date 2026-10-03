@@ -11,6 +11,8 @@ No retail file is read: the initial bytes come from the committed image descript
 Usage: python tools/globals_check_slice10.py [path\\to\\slice10.obj]
 (default: the object of the CMake build in build/s10, or build/standalone/data_slice10.obj)."""
 import glob, json, os, re, struct, subprocess, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import globals_asm_history
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LO, HI = 0x7C04E0, 0x8805A0
@@ -61,7 +63,7 @@ def main():
     if not obj or not os.path.exists(obj):
         sys.exit("no slice10 object found: build first, or pass its path")
     head = subprocess.run(["git", "show", "HEAD:standalone/globals.asm"], cwd=ROOT, capture_output=True, text=True).stdout
-    now = equ_list(open(os.path.join(ROOT, "standalone", "globals.asm")).read())
+    now = equ_list(globals_asm_history.current())
     before = {n: a for n, a in equ_list(head).items() if LO <= a <= HI}
     pieces = json.load(open(os.path.join(ROOT, "standalone", "image", "pieces.json")))
     data = [p for p in pieces if p["label"] == "data"][0]

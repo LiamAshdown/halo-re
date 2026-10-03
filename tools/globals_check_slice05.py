@@ -13,16 +13,14 @@ For every global converted into standalone/data/slice05.c it checks
     do not overlap each other at their new addresses.
 Usage: python tools/globals_check_slice05.py [map file]"""
 import glob, json, os, re, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import globals_asm_history
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SA = os.path.join(ROOT, "standalone")
 
 # (original address, name, sizeof in bytes)
 GLOBALS = [
-    (0x006b1358, "game_engine_bucket_scores_extra",               64),
-    (0x006b139c, "race_used_locations",                           32),
-    (0x006b13bc, "race_used_location_count",                       4),
-    (0x006b13c0, "race_vehicle_counts",                           16),
     (0x006b1458, "game_engine_attribute_enabled",                  4),
     (0x006b145c, "player_control_globals_ptr",                     4),
     (0x006b1460, "machine_to_player",                             64),
@@ -201,7 +199,7 @@ GLOBALS = [
 
 def main():
     errors = []
-    asm = open(os.path.join(SA, "globals.asm")).read()
+    asm = globals_asm_history.current()
     equ = {m.group(1): int(m.group(2), 16) for m in re.finditer(r"^_(\w+) EQU ([0-9A-Fa-f]+)h", asm, re.M)}
     csrc = open(os.path.join(SA, "data", "slice05.c")).read()
     pieces = json.load(open(os.path.join(SA, "image", "pieces.json")))

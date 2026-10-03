@@ -5,8 +5,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-uint8_t controls_input_capture_flags; // 0x00712542
-int32_t controls_current_binding_table[27][3]; // 0x007127d4
 uint32_t input_menu_exit_deadline; // 0x00712918
 uint8_t mouse_axis_frames[3][2]; // 0x0071291c
 uint8_t joystick_axis_frames[4][0x20][2]; // 0x00712928
@@ -17,8 +15,6 @@ uint32_t input_queue_sample_time; // 0x00712c34
 void *map_list; // 0x00712dcc
 int32_t map_list_count; // 0x00712dd0
 int32_t map_list_capacity; // 0x00712dd4
-uint8_t saved_item_disk_copy[0x1ffc]; // 0x00716e7c
-uint8_t profile_load_complete; // 0x00718e78
 char last_profile_name[0x100]; // 0x00718e80
 uint8_t console_rcon_out_reentrant_guard; // 0x00718f80
 uint8_t ui_use_os_cursor; // 0x00718f81

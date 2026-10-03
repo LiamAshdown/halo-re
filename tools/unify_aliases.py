@@ -32,6 +32,9 @@ def rename_outside_literals(text, old, new):
 
 def main():
     dry = "--dry" in sys.argv
+    if not os.path.exists(GLOBALS):
+        raise SystemExit("standalone/globals.asm is gone (every engine global is a C definition in standalone/data); "
+                         "this tool worked on its EQU table and has nothing left to do")
     g = open(GLOBALS, encoding="utf-8").read()
     by_addr = collections.defaultdict(list)
     for m in re.finditer(r"^_(\w+) EQU (0[0-9A-F]+h)$", g, re.M):

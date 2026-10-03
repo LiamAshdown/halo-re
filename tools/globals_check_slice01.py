@@ -16,6 +16,8 @@ from the first one equals its original address difference. Reads no retail file,
 Usage: python tools/globals_check_slice01.py [path\\to\\halo_rebuilt.map]   (default: build/s01/Release, then build/standalone)
 Exit status 0 when every global matches."""
 import os, re, struct, sys, json
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import globals_asm_history
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SA = os.path.join(ROOT, "standalone")
@@ -151,7 +153,7 @@ def main():
     defs = parse_c()
     # original address -> global (every global, converted or still an absolute EQU), for pointer targets
     by_addr = {}
-    for l in open(os.path.join(SA, "globals.asm"), encoding="utf-8"):
+    for l in globals_asm_history.original().splitlines():
         m = re.match(r"(\S+)\s+EQU\s+([0-9A-Fa-f]+)h", l)
         if m: by_addr[int(m.group(2), 16)] = m.group(1)
     mine = {}
@@ -202,7 +204,7 @@ def main():
         if syms["_" + n] - syms["_" + cl[0][0]] != a - cl[0][1]:
             bad.append("cluster: %s is at +0x%x, original +0x%x" % (n, syms["_" + n] - syms["_" + cl[0][0]], a - cl[0][1]))
     # the EQU lines are gone
-    eq = open(os.path.join(SA, "globals.asm"), encoding="utf-8").read()
+    eq = globals_asm_history.current()
     for n, a, size, c in defs:
         if re.search(r"^_%s EQU " % re.escape(n), eq, re.M):
             bad.append("%s: still an EQU in globals.asm" % n)

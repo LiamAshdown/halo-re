@@ -6,12 +6,12 @@ sources and links everything; it generates nothing and reads no retail file:
   standalone/image/*.asm, image/pieces.c                     the data image the loader copies to 0x63a000..
   standalone/generated/image_bindings.c, code_entries.c      code pointers in the image -> C functions, and the
                                                              original address -> C function table
-  standalone/globals.asm                                     the engine globals at their fixed original addresses
+  standalone/data/*.c                                        the engine globals as C definitions
   standalone/bridges.cpp                                     D3DXCreateEffect and the code_address_ thunks
   standalone/libs/*.def                                      import libraries for binkw32 / vorbisfile (delay-loaded)
 Anything unresolved fails the link. When functions or globals are added, regenerate the committed sources:
   python tools/gen_link_sources.py      image_bindings.c, code_entries.c, pieces.c
-  python tools/update_globals.py        globals the failed link reported, from their address comments
+  python tools/update_globals.py        lists the globals the failed link reported (define them in standalone/data)
 CMakeLists.txt builds the same exe without Python.
 Usage: python tools/gen_standalone_link.py [halo folder]"""
 import os, re, sys, glob, json, subprocess
@@ -91,8 +91,7 @@ def main():
         extra.append(assemble(os.path.join(SA, "image", p["label"] + ".asm"), o("image_%s.obj" % p["label"])))
     for c in sorted(glob.glob(os.path.join(SA, "data", "*.c"))):   # the engine globals as C definitions, one file per slice
         extra.append(compile_data_c(c, o("data_" + os.path.splitext(os.path.basename(c))[0] + ".obj")))
-    extra += [assemble(os.path.join(SA, "globals.asm"), o("globals.obj")),
-              compile_c(os.path.join(SA, "generated", "code_entries.c"), o("code_entries.obj"), [SA]),
+    extra += [compile_c(os.path.join(SA, "generated", "code_entries.c"), o("code_entries.obj"), [SA]),
               compile_cpp(os.path.join(SA, "bridges.cpp"), o("bridges.obj"))]
 
     # only objects whose source still exists: a renamed or deleted .c leaves its old object behind

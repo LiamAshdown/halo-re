@@ -9,6 +9,8 @@ For every variable of slice09.c (and every /alternatename alias) it checks that
   3. its EQU line is gone from standalone/globals.asm (no duplicate definition).
 Exit status 0 when everything agrees."""
 import glob, json, os, re, subprocess, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import globals_asm_history
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "standalone", "data", "slice09.c")
@@ -59,7 +61,7 @@ def main():
     for a, t in alias.items():
         if t not in defs:
             bad.append("alias %s -> %s: target not defined" % (a, t))
-    eq = set(re.findall(r"^_(\w+) EQU", open(os.path.join(ROOT, "standalone", "globals.asm")).read(), re.M))
+    eq = set(re.findall(r"^_(\w+) EQU", globals_asm_history.current(), re.M))
     for n in list(defs) + list(alias):
         if n in eq:
             bad.append("%s still has an EQU in globals.asm" % n)

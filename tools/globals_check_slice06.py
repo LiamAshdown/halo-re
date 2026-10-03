@@ -9,6 +9,8 @@ For every global defined in standalone/data/slice06.c (the "// 0x........" comme
   * the objects do not overlap each other and no symbol of the slice is missing from the map.
 Usage: python tools/globals_check_slice06.py [build dir, default build/s06]"""
 import os, re, sys, json, struct
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import globals_asm_history
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 build = sys.argv[1] if len(sys.argv) > 1 else os.path.join("build", "s06")
@@ -63,7 +65,7 @@ for line in open(mapf, errors="replace"):
     if m:
         syms.setdefault(m.group(1), int(m.group(2), 16))
 
-asm = open(os.path.join(ROOT, "standalone", "globals.asm"), errors="replace").read()
+asm = globals_asm_history.current()
 spans = []
 for name, addr, size in defs:
     if addr < data_end:
