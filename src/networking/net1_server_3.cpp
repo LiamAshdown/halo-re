@@ -161,7 +161,12 @@ uint32_t ServerView::resend_challenge_periodic()
 }
 
 /**
- * Original `network_host_full_state_broadcast`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "The first time it runs for a round, sends a
+ * type-0x21 packet to every channel entry flagged as needing a full state refresh, staggering
+ * each send's embedded timestamp by 100ms." host->unknown_a0e (the "run once" latch, cleared
+ * here) and host->game_over (+0xa0f, cleared here) match types/networking.h; the machines[]
+ * iteration (stride 0x60, byte offset +0x3c6 == machines[0]+0xe == flags) matches
+ * network_game_client_game_settings_updated.c's own machines[] loop over the same field.
  *
  * @address 0x4df510
  */

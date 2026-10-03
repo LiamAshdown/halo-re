@@ -5,7 +5,7 @@
 namespace halo::networking {
 
 /**
- * Behaviour group for the original `network_*` functions; every member is the original function body moved unchanged.
+ * Non-owning view of the client globals for in-game message processing.
  */
 class GameClientView {
 public:
@@ -23,7 +23,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_game_*` functions; every member is the original function body moved unchanged.
+ * Decoders for the messages a client receives, one member per message type.
  */
 class ClientMessageDecoder {
 public:

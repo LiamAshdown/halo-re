@@ -5,7 +5,7 @@
 namespace halo::networking {
 
 /**
- * Behaviour group for the original `network_address_*` functions; every member is the original function body moved unchanged.
+ * Parsing, validation and normalisation of textual "host:port" addresses.
  */
 class AddressText {
 public:
@@ -17,7 +17,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_address_*` functions; every member is the original function body moved unchanged.
+ * Non-owning view of a network address record; formats it as text.
  */
 class AddressView {
 public:

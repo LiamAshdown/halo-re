@@ -88,7 +88,9 @@ extern void network_client_timer_schedule(int32_t a, int32_t b);
 namespace halo::networking {
 
 /**
- * Original `network_game_server_handle_join_confirm`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * EAX machine, ECX server, EDX buffer, stack length: while
+ * the host is not in a game, the decoded body is the player to add; failure sends reason 3, success broadcasts the
+ * player set and sends a type 0xa accept. Returns 1.
  *
  * @address 0x4e2400
  */
@@ -123,7 +125,13 @@ char ServerView::handle_join_confirm(network_machine *machine, uint8_t *buffer, 
 }
 
 /**
- * Original `network_game_server_handle_join_password`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * the host's join request handler (message 0xe; EBX machine,
+ * stack server, buffer, length). While the host is not in a game (+4 0 or 1) and the machine is not already joining
+ * (+0xe bit 1): a machine without a connected channel after the game ended gets the full game info. Otherwise the
+ * request (a 0x84 byte body) is decoded; unless the server accepts joins (+6 bit 0, state 0 or 1) it is refused
+ * (0); the CD key response at body +0x22 must pass the host check (else 6); the first 16 bytes must match the
+ * version canary (else 1); the 8-character password at body +0x10 must match a set password (else 2); the machine
+ * is reset and its player (body +0x6e) added (else 3), the player set is broadcast, the channel rate (+0xa88)
  *
  * @address 0x4e21d0
  */
@@ -299,7 +307,13 @@ done:
 }
 
 /**
- * Original `network_server_build_game_info_packet`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "Builds and queues a small 'game info' style
+ * packet (short name plus a game-data snapshot) for the channel referenced by param_2, encoded
+ * as message type 4." param_2+0x0/+0xc match network_machine::channel/machine_id;
+ * param_1+0x88 (server + 0x88 == session + 0x80) copies exactly 0x84 bytes -- session's
+ * unknown_080, server_name[64] and unknown_0c4[0x40] back to back -- into a scratch snapshot.
+ * The free-space/flush sequence on the result matches network_channel::outgoing
+ * (bit_stream last_bit/byte_cursor/bit_cursor at +0x24/+0x1c/+0x20) and
  *
  * @address 0x4e0950
  */
@@ -650,11 +664,17 @@ uint8_t ServerView::send_to_machine(int32_t machine_id, uint32_t status_bit, voi
 }
 
 /**
- * Original `network_game_client_game_settings_updated`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * already named)
+ * address 0x4df2e0, size 541 bytes
+ * name confidence: 0.6   rewrite confidence: 0.15
+ * out/phase4/networking_functions.md: "Handles a game-settings update for a new
+ * network round: resets channel and history tables, applies the current game variant/defaults,
+ * loads the requested map (network_game_server_load_scenario), and kicks off either the host or client path
+ * depending on host->flags bit2." Confirmed field matches: host->flags bit2 (+6), the
  *
  * @address 0x4df2e0
  */
-uint32_t ServerMessageHandlers::game_settings_updated()
+uint32_t ServerMessageHandlers::client_game_settings_updated()
 {
     network_server_globals *host = self;
     int32_t i;

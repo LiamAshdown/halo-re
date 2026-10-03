@@ -245,7 +245,11 @@ primed:
 }
 
 /**
- * Original `network_channel_new_child`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md: "Allocates and initializes a new child network
+ * channel object for a freshly-accepted incoming connection, mirroring the smaller-variant setup
+ * done by the general channel constructor." Same field offsets as network_channel_new.c's plain
+ * (0xa9c-byte) allocation, with flags hard-coded to k_network_channel_transmit_pending (4)
+ * instead of being a parameter.
  *
  * @address 0x4dd430
  */
@@ -275,7 +279,9 @@ network_channel * ChannelFactory::create_child(network_receive_queue *endpoint)
 }
 
 /**
- * Original `network_channels_close`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_types_notes.md names network_query_socket (0x006f14c8) and
+ * network_game_socket (0x006f14c4) directly; this is the exact inverse of
+ * network_channels_open.c, closing both with the same foreign GameSpy transport call.
  *
  * @address 0x441480
  */
@@ -292,7 +298,9 @@ void ChannelFactory::close_all()
 }
 
 /**
- * Original `network_channels_open`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_types_notes.md "network_channel (0xae4 listening / 0xa9c
+ * plain)" section names network_game_socket (0x006f14c4), network_query_socket (0x006f14c8),
+ * network_local_address (0x006869b0) and network_channels_open_ok (0x006869be) directly.
  *
  * @address 0x441300
  */
@@ -525,7 +533,12 @@ int16_t ReceiveQueueView::get_remote_address(s_network_address *address)
 }
 
 /**
- * Original `network_listen_start`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md summary ("puts the shared network channel into
+ * a listening state and installs the incoming-connection-request callback"); the fields
+ * written (+0x04 data_ready, +0x0c flags, +0x0e last_error) match network_receive_queue; only
+ * caller is network_channel_new (0x4dc9b0, out of this session's range, out/phase2/
+ * networking/02.md) which calls this with no visible argument right after constructing the
+ * listening channel's endpoint queue.
  *
  * @address 0x442170
  */
@@ -568,7 +581,12 @@ void ReceiveQueueView::close_socket()
 }
 
 /**
- * Original `network_receive_queue_free`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md summary ("destroys a network receive-queue
+ * object created by network_receive_queue_new: closes its channel, frees the inner buffer and the wrapper,
+ * and cleans up handles"); called from network_channel_delete (0x4dcae0, out/phase2/
+ * networking/02.md) as `if (channel->endpoint != 0) network_receive_queue_free();`, which is
+ * how the EAX-as-queue-pointer convention is confirmed (channel->endpoint is loaded into the
+ * register the comparison just used, and the call follows immediately).
  *
  * @address 0x441c80
  */
@@ -589,11 +607,17 @@ void ReceiveQueueView::release()
 }
 
 /**
- * Original `network_channel_connected_callback`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * WRITTEN 2026-09-28 (retail-independence loop) from the disassembly 0x441e00..0x441ec9. It had no C because it is
+ * reached only as an immediate: network_channel_attempt_connect (0x441f60) stores it as the `connected` member of
+ * the GT2ConnectionCallbacks it hands gt2Connect (with network_channel_receive_callback 0x441ed0,
+ * network_channel_gap_441f30 and function_do_nothing 0x44ad80). gt2 calls it with (connection, result, message,
+ * length) once the connect attempt resolves: the connection's data is the channel's receive queue
+ * (gt2GetConnectionData); the remote address is resolved and formatted (for the log); then
+ * result 0 (connected): no error, flags |= 0x31 (connection oriented, readable, ...)
  *
  * @address 0x441e00
  */
-void ChannelCallbacks::connected_callback(void *connection, int32_t result, const uint8_t *message, int32_t length)
+void ChannelCallbacks::on_connected(void *connection, int32_t result, const uint8_t *message, int32_t length)
 {
     network_receive_queue *queue = (network_receive_queue *)gt2GetConnectionData(connection);
     s_network_address address;
@@ -633,11 +657,13 @@ void ChannelCallbacks::connected_callback(void *connection, int32_t result, cons
 }
 
 /**
- * Original `network_channel_gap_441020`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * the GT2 receive dump callback set by network_channels_open
+ * (socket, connection, ip, port, reset, message, length, reliable, resend): records the packet with is_sent 1 and
+ * the last two arguments as reliable / resend.
  *
  * @address 0x441020
  */
-void ChannelCallbacks::gap_441020(void *socket, void *connection, uint32_t ip, uint16_t port, int32_t reset, const void *message, int32_t length, int32_t reliable, int32_t resend)
+void ChannelCallbacks::on_receive_dump(void *socket, void *connection, uint32_t ip, uint16_t port, int32_t reset, const void *message, int32_t length, int32_t reliable, int32_t resend)
 {
     (void)socket;
     (void)ip;
@@ -648,11 +674,12 @@ void ChannelCallbacks::gap_441020(void *socket, void *connection, uint32_t ip, u
 }
 
 /**
- * Original `network_channel_gap_441040`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * the GT2 send dump callback set by network_channels_open:
+ * records the packet with is_sent, reliable and resend all 0.
  *
  * @address 0x441040
  */
-void ChannelCallbacks::gap_441040(void *socket, void *connection, uint32_t ip, uint16_t port, int32_t reset, const void *message, int32_t length)
+void ChannelCallbacks::on_send_dump(void *socket, void *connection, uint32_t ip, uint16_t port, int32_t reset, const void *message, int32_t length)
 {
     (void)socket;
     (void)ip;
@@ -663,11 +690,14 @@ void ChannelCallbacks::gap_441040(void *socket, void *connection, uint32_t ip, u
 }
 
 /**
- * Original `network_channel_gap_441060`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * the GT2 socket-error callback network_channels_open gives
+ * both sockets: an unset join error (-1) becomes 6, a host handoff is requested, chat closes, every connection on
+ * the socket is closed (gt2CloseAllConnections 0x614740, soft) and the socket global that held it -- the game
+ * socket when it is that one, otherwise the query socket -- is cleared (GT2 frees the socket after this returns).
  *
  * @address 0x441060
  */
-void ChannelCallbacks::gap_441060(void *socket)
+void ChannelCallbacks::on_socket_error(void *socket)
 {
     if (network_join_error_code == -1) {
         network_join_error_code = 6;
@@ -683,11 +713,14 @@ void ChannelCallbacks::gap_441060(void *socket)
 }
 
 /**
- * Original `network_channel_gap_4410b0`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * the game socket's GT2 unrecognized-message callback (socket,
+ * ip, port, message, length): like 0x441200 (copy of at most 0x1fff bytes to 0x006a4140; natneg packets to
+ * NNProcessData and handled) but a query ("\\" or ";" first, or 0xfe 0xfd) also goes to qr2_parse_queryA for the
+ * host record when there is one; queries count as handled, anything else 0.
  *
  * @address 0x4410b0
  */
-int32_t ChannelCallbacks::gap_4410b0(void *socket, uint32_t ip, uint16_t port, const uint8_t *message, uint32_t length)
+int32_t ChannelCallbacks::on_game_socket_unrecognized(void *socket, uint32_t ip, uint16_t port, const uint8_t *message, uint32_t length)
 {
     uint8_t is_natneg = 0;
     uint8_t is_query;
@@ -722,11 +755,14 @@ int32_t ChannelCallbacks::gap_4410b0(void *socket, uint32_t ip, uint16_t port, c
 }
 
 /**
- * Original `network_channel_gap_441200`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * the query socket's GT2 unrecognized-message callback (socket,
+ * ip, port, message, length): the message (at most 0x1fff bytes) is copied to 0x006a6148 and terminated; a natneg
+ * packet (the 6 byte magic at 0x00657208) goes to NNProcessData with the sender as a sockaddr_in and is handled
+ * (1); a query ("\\" or ";" first, or 0xfe 0xfd) counts as handled (1); anything else 0.
  *
  * @address 0x441200
  */
-int32_t ChannelCallbacks::gap_441200(void *socket, uint32_t ip, uint16_t port, const uint8_t *message, uint32_t length)
+int32_t ChannelCallbacks::on_query_socket_unrecognized(void *socket, uint32_t ip, uint16_t port, const uint8_t *message, uint32_t length)
 {
     uint8_t is_natneg = 0;
     uint8_t is_query;
@@ -756,11 +792,14 @@ int32_t ChannelCallbacks::gap_441200(void *socket, uint32_t ip, uint16_t port, c
 }
 
 /**
- * Original `network_channel_gap_441f30`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * the GT2 connection callback set by
+ * network_listen_accept_pending_connection (config.error_callback): the connection's receive queue
+ * (gt2GetConnectionData) gets byte +5 = 1, network_receive_queue_close_socket (ESI queue) and flag 0x40 in +0x0c.
+ * (The name keeps the one its registrant uses.)
  *
  * @address 0x441f30
  */
-void ChannelCallbacks::gap_441f30(void *connection)
+void ChannelCallbacks::on_connection_error(void *connection)
 {
     uint8_t *queue = (uint8_t *)gt2GetConnectionData(connection);
 
@@ -772,11 +811,16 @@ void ChannelCallbacks::gap_441f30(void *connection)
 }
 
 /**
- * Original `network_channel_gap_4ba660`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * the ServerBrowser list callback (sb, reason, server,
+ * instance) registered by server_browser_open, active once the browser is initialized: server added (0) with basic
+ * or full keys, and server updated (1), add the server to the locked list (0x4ba760 / 0x4ba8a0); deleted (2, 3)
+ * removes it (0x4ba870 / 0x4ba940), dropping the selection and refreshing the UI when it was selected; query
+ * complete (4) resets the elapsed time to 9999 when a query was pending (0x00719488). (Named as its registrant
+ * names it.)
  *
  * @address 0x4ba660
  */
-void ChannelCallbacks::gap_4ba660(void *sb, uint32_t reason, void *server, void *instance)
+void ChannelCallbacks::on_server_browser_list(void *sb, uint32_t reason, void *server, void *instance)
 {
     server_list_globals *list;
 
@@ -825,7 +869,13 @@ void ChannelCallbacks::gap_4ba660(void *sb, uint32_t reason, void *server, void 
 }
 
 /**
- * Original `network_channel_delete`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md: "Tears down and frees a network channel object,
+ * recursively closing/freeing any child channels, its buffers, and associated OS handles before
+ * freeing the object itself." Every dword-indexed offset (channel[3]=0x00c, channel+0x2a3(byte)=
+ * 0xa8c, channel+0x2a8=0xaa0, channel[0x2a7]=0xa9c, channel+0xb(byte)=0x02c, channel[4..10]=
+ * 0x010..0x028, channel+0x158(byte)=0x560, channel[0x151..0x157]=0x544..0x55c,
+ * channel[0x29e]/[0x29f]/[0x2a0]=0xa78/0xa7c/0xa80) matches types/networking.h's network_channel
+ * field offsets exactly (incoming, flags, children, listen_list, in.empty, in.stream.*,
  *
  * @address 0x4dcae0
  */
@@ -889,7 +939,13 @@ void ChannelView::destroy()
 }
 
 /**
- * Original `network_channel_incoming_read_item`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md: "Reads one length-prefixed item out of the
+ * channel's incoming ring buffer, used by the incoming-message processing loop before each item
+ * is dispatched." Peeks 2 bytes from channel->incoming, decodes a bit-chunked length prefix from
+ * them, validates the length against both a hidden byte-count bound and the buffer's actual
+ * available bytes, then (on success) consumes the item into `destination` and reports the
+ * decoded length via out_bit_offset/out_remaining_bits, resetting the buffer's cursors to 0 on
+ * any failure path.
  *
  * @address 0x4dcf10
  */
@@ -1091,7 +1147,13 @@ char ChannelView::listen_service(network_channel **out_new_child)
 }
 
 /**
- * Original `network_channel_queue_message`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md: "Queues an outgoing message either for
+ * immediate transmission or, when not marked immediate, into the reliable retransmission buffer
+ * pool, depending on a caller-supplied mode flag." Matches: when immediate (param_4 == 1) and
+ * there is room, writes header then body bits directly into a channel bit_stream via
+ * bit_stream_write_bits_chunked and marks it non-empty; otherwise (or if there is no room even
+ * after one flush attempt via network_channel_stream_flush) falls back to
+ * network_channel_reliable_pool_store (network_channel_reliable_pool_store).
  *
  * @address 0x4dce40
  */
@@ -1131,7 +1193,9 @@ char ChannelView::queue_message(uint32_t header_value, uint32_t body_value, int3
 }
 
 /**
- * Original `network_channel_record_timestamp`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md: "Records the current time (in milliseconds)
+ * into a channel's timestamp field, used elsewhere for timeout comparisons." channel+4 matches
+ * types/networking.h's network_channel.last_activity_ms exactly.
  *
  * @address 0x4dd930
  */
@@ -1209,7 +1273,13 @@ int32_t ChannelView::reliable_pool_ensure_capacity(int32_t body_capacity_needed,
 }
 
 /**
- * Original `network_channel_reliable_pool_store`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md: "Stores a header/body message pair into a
+ * tagged slot of the channel's reliable-message buffer pool for later (re)transmission
+ * tracking." Calls network_channel_reliable_pool_ensure_capacity(channel, body_bytes,
+ * header_bytes) with the byte counts rounded up from bit counts (ceil(bits/8)), matching
+ * types/networking.h's note that this function's argument order is the reverse of that one's.
+ * register/parameter convention: EAX -> header_bits, ECX -> body_bits (both elided from
+ * Ghidra's own signature); stack -> channel, body_data, header_data, priority.
  *
  * @address 0x4dcdb0
  */
@@ -1239,7 +1309,13 @@ void ChannelView::reliable_pool_store(uint8_t *body_data, uint8_t *header_data, 
 }
 
 /**
- * Original `network_channel_remote_address_or_default`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * from the rewriters' network_message_decode_guard)
+ * address 0x4dd390, size 84 bytes
+ * name confidence: 0.6   rewrite confidence: 0.75
+ * the disassembly settles what the decompilation could not. 0x4dd390 is
+ * push esi / mov esi,ecx / test esi,esi / je ret        -> ECX is the out record, may be NULL
+ * mov edi,[eax] / test edi,edi / je default             -> EAX is a network_channel *, and
+ * [eax] is channel->endpoint
  *
  * @address 0x4dd390
  */
@@ -1271,7 +1347,10 @@ void ChannelView::remote_address_or_default(network_resolved_address *out_addres
 }
 
 /**
- * Original `network_channel_remove_child`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md: "Finds a specific child channel in the parent's
+ * child table, closes its socket, deletes the child object, and clears the table entry."
+ * children[] (0xaa0, 16 entries) and connected (0xa98) match types/networking.h's
+ * network_channel exactly.
  *
  * @address 0x4dd090
  */
@@ -1299,7 +1378,13 @@ int32_t ChannelView::remove_child(network_channel *child)
 }
 
 /**
- * Original `network_channel_scan_retransmit_timeouts`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * already named)
+ * address 0x4dd9d0, size 368 bytes
+ * name confidence: 0.5   rewrite confidence: 0.3
+ * out/phase4/networking_functions.md: "Scans the channel's reliable-message buffer
+ * pool for entries that are overdue based on an estimated delivery rate and retransmits them,
+ * then clears the pool's active flags." The free-space formula
+ * (out.stream.last_bit - out.stream.byte_cursor*8 - out.stream.bit_cursor + 1) matches
  *
  * @address 0x4dd9d0
  */
@@ -1356,7 +1441,13 @@ void ChannelView::scan_retransmit_timeouts()
 }
 
 /**
- * Original `network_channel_service`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md: "Per-tick service routine for a network
+ * channel: updates timing/status flags, scans for and retransmits timed-out reliable messages,
+ * and dispatches to the receive or transmit path as needed." channel[1]=+0x004
+ * (last_activity_ms), channel[0x2a3]=+0xa8c (flags), channel[0xb]=+0x02c (in.empty),
+ * channel[0x158]=+0x560 (out.empty), channel[0x2a0]=+0xa80 (send_budget) all match
+ * types/networking.h's network_channel exactly.
+ * `timeout_ms` (EAX, kept in ESI): idle timeout added to last_activity_ms; 0 skips the timing block.
  *
  * @address 0x4dd110
  */
@@ -1409,7 +1500,11 @@ after_timestamp:
 }
 
 /**
- * Original `network_channel_service_close_if_disconnected`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md: "If the channel is in an active
+ * connected/connecting state, flushes pending output and then performs a follow-up
+ * teardown/reconnect step." channel->flags (k_network_channel_client /
+ * k_network_channel_transmit_pending), channel->endpoint and network_receive_queue.flags bit0
+ * (k... connection-oriented) all match types/networking.h.
  *
  * @address 0x4dd3f0
  */
@@ -1472,7 +1567,11 @@ after_timestamp:
 }
 
 /**
- * Original `network_channel_service_retransmit_only`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md: "Runs the retransmit-timeout scan and
+ * pending-flush bookkeeping for a channel without performing an actual receive or transmit
+ * pass." Same in.empty/out.empty/send_budget fields as network_channel_service.c. The Ghidra
+ * decompile's CONCAT31(uVar1,1) return packs garbage high bytes from extraout_EAX/_var with a
+ * fixed low byte of 1; this rewrite just returns 1.
  *
  * @address 0x4dd330
  */
@@ -1622,7 +1721,9 @@ char ChannelView::transmit()
 }
 
 /**
- * Original `network_channel_key_close`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md: "Releases the channel previously obtained for
+ * the given (player,machine) key via player_new_local, recording the returned index at in_EAX+0x1f
+ * if valid." Mirrors network_channel_key_open.c.
  *
  * @address 0x4de8c0
  */
@@ -1644,7 +1745,10 @@ int32_t ChannelKeys::close(network_player_entry *entry, datum_index requested_ha
 }
 
 /**
- * Original `network_channel_key_open`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md: "Opens/obtains a network channel for the given
+ * (player,machine) key via player_new_network, records the resulting index, and notifies network_index_cache_find_or_allocate_slot
+ * of the new channel." entry->machine_index/machine_player_index/slot_index match
+ * types/networking.h's network_player_entry.
  *
  * @address 0x4de870
  */
@@ -1689,7 +1793,10 @@ uint8_t ChannelKeys::resolve_target(network_player_entry *entry)
 }
 
 /**
- * Original `network_channel_key_send_state`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md: "Builds and sends a large state packet (via
+ * FUN_004ec590/network_game_settings_packet_receive) when the connection is mid-game as host or client, otherwise
+ * delegates to FUN_004ec670." client->state (state 2 or 3) matches this cluster's established
+ * field.
  *
  * @address 0x4de950
  */
@@ -1854,7 +1961,13 @@ done_dedup:
 }
 
 /**
- * Original `network_channel_stream_flush`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md: "Register-based (ESI=connection object) helper
+ * that computes an unsent byte length from a bit-position ring buffer, flushes it through
+ * gt2Send (a socket/channel send), then advances the connection." The `stream+8/+0xc/+0x10/
+ * +0x14` fields match bit_stream's first_bit/byte_cursor/bit_cursor/last_bit, and `stream+0x1c`/
+ * `stream+0x1d` match network_channel_stream's empty flag and inline data buffer exactly, so ESI
+ * is a network_channel_stream* -- one of channel->in or channel->out depending on the caller
+ * (unresolvable from this function's own body; see each caller for which one it intends).
  *
  * @address 0x4ddb60
  */
@@ -1914,7 +2027,12 @@ char ChannelStreamView::flush(network_channel *channel, char mode)
 }
 
 /**
- * Original `network_channel_stream_init`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md: "Initializes a small per-direction bookkeeping
+ * record (window sizes, flags) for a newly-created channel and primes the shared output queue
+ * with a default byte count." Every field written (data = this+0x1d, last_bit = 0x287f,
+ * capacity_bits = 0x2880, empty = 1) matches types/networking.h's network_channel_stream and
+ * its k_network_channel_stream_bits constant exactly; network_bit_chunk_size defaults to 11 (0xb)
+ * here, matching the header's own note.
  *
  * @address 0x4dd980
  */
@@ -2019,7 +2137,10 @@ void ListenerCallbacks::connection_request_handler(int32_t listen_handle, int32_
 }
 
 /**
- * Original `network_listen_reject_pending_connection`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md summary ("cancels (rejects) the most recently
+ * queued pending incoming connection request without accepting it"); mirrors
+ * network_listen_accept_pending_connection.c's `network_pending_connections[count - 1]`
+ * derivation from the same `(&DAT_0087bc0c)[count*5]` dword-array indexing.
  *
  * @address 0x442250
  */

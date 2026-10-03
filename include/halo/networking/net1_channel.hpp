@@ -5,7 +5,7 @@
 namespace halo::networking {
 
 /**
- * Behaviour group for the original `network_*` functions; every member is the original function body moved unchanged.
+ * Creation and teardown of channels, receive queues, buffer pools, mutex slots and network threads.
  */
 class ChannelFactory {
 public:
@@ -24,7 +24,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_listen_*` functions; every member is the original function body moved unchanged.
+ * Non-owning view of a connection receive queue: remote address, connect attempt, socket close and release.
  */
 class ReceiveQueueView {
 public:
@@ -40,25 +40,25 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_channel_*` functions; every member is the original function body moved unchanged.
+ * GameSpy transport (GT2) and server browser callbacks registered when the channels are opened.
  */
 class ChannelCallbacks {
 public:
     ChannelCallbacks() = delete;
 
-    static void connected_callback(void *connection, int32_t result, const uint8_t *message, int32_t length);
-    static void gap_441020(void *socket, void *connection, uint32_t ip, uint16_t port, int32_t reset, const void *message, int32_t length, int32_t reliable, int32_t resend);
-    static void gap_441040(void *socket, void *connection, uint32_t ip, uint16_t port, int32_t reset, const void *message, int32_t length);
-    static void gap_441060(void *socket);
-    static int32_t gap_4410b0(void *socket, uint32_t ip, uint16_t port, const uint8_t *message, uint32_t length);
-    static int32_t gap_441200(void *socket, uint32_t ip, uint16_t port, const uint8_t *message, uint32_t length);
-    static void gap_441f30(void *connection);
-    static void gap_4ba660(void *sb, uint32_t reason, void *server, void *instance);
-    static void receive_callback(void *handle, uint8_t *data, int32_t length);
+    static void on_connected(void *connection, int32_t result, const uint8_t *message, int32_t length);
+    static void on_receive_dump(void *socket, void *connection, uint32_t ip, uint16_t port, int32_t reset, const void *message, int32_t length, int32_t reliable, int32_t resend);
+    static void on_send_dump(void *socket, void *connection, uint32_t ip, uint16_t port, int32_t reset, const void *message, int32_t length);
+    static void on_socket_error(void *socket);
+    static int32_t on_game_socket_unrecognized(void *socket, uint32_t ip, uint16_t port, const uint8_t *message, uint32_t length);
+    static int32_t on_query_socket_unrecognized(void *socket, uint32_t ip, uint16_t port, const uint8_t *message, uint32_t length);
+    static void on_connection_error(void *connection);
+    static void on_server_browser_list(void *sb, uint32_t reason, void *server, void *instance);
+    static void on_receive(void *handle, uint8_t *data, int32_t length);
 };
 
 /**
- * Behaviour group for the original `network_channel_*` functions; every member is the original function body moved unchanged.
+ * Non-owning view of a network channel: queueing, servicing, retransmission and transmit.
  */
 class ChannelView {
 public:
@@ -85,7 +85,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_channel_key_*` functions; every member is the original function body moved unchanged.
+ * Per-player channel key handling (open, close, target resolution and state send).
  */
 class ChannelKeys {
 public:
@@ -98,7 +98,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_channel_list_*` functions; every member is the original function body moved unchanged.
+ * Non-owning view of a select-style channel list (readable set plus de-duplicated socket keys).
  */
 class ChannelListView {
 public:
@@ -112,7 +112,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_channel_stream_*` functions; every member is the original function body moved unchanged.
+ * Non-owning view of a channel outgoing stream.
  */
 class ChannelStreamView {
 public:
@@ -125,7 +125,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_session_*` functions; every member is the original function body moved unchanged.
+ * Listen socket handlers: accept, reject and connection-request callbacks.
  */
 class ListenerCallbacks {
 public:

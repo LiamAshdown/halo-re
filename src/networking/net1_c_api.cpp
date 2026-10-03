@@ -402,83 +402,83 @@ void network_receive_queue_free(network_receive_queue *queue)
 }
 
 /**
- * C entry point for halo::networking::ChannelCallbacks::connected_callback; forwards to the C++ implementation unchanged.
+ * C entry point for halo::networking::ChannelCallbacks::on_connected; forwards to the C++ implementation unchanged.
  *
  * @address 0x441e00
  */
 void network_channel_connected_callback(void *connection, int32_t result, const uint8_t *message, int32_t length)
 {
-    halo::networking::ChannelCallbacks::connected_callback(connection, result, message, length);
+    halo::networking::ChannelCallbacks::on_connected(connection, result, message, length);
 }
 
 /**
- * C entry point for halo::networking::ChannelCallbacks::gap_441020; forwards to the C++ implementation unchanged.
+ * C entry point for halo::networking::ChannelCallbacks::on_receive_dump; forwards to the C++ implementation unchanged.
  *
  * @address 0x441020
  */
 void network_channel_gap_441020(void *socket, void *connection, uint32_t ip, uint16_t port, int32_t reset, const void *message, int32_t length, int32_t reliable, int32_t resend)
 {
-    halo::networking::ChannelCallbacks::gap_441020(socket, connection, ip, port, reset, message, length, reliable, resend);
+    halo::networking::ChannelCallbacks::on_receive_dump(socket, connection, ip, port, reset, message, length, reliable, resend);
 }
 
 /**
- * C entry point for halo::networking::ChannelCallbacks::gap_441040; forwards to the C++ implementation unchanged.
+ * C entry point for halo::networking::ChannelCallbacks::on_send_dump; forwards to the C++ implementation unchanged.
  *
  * @address 0x441040
  */
 void network_channel_gap_441040(void *socket, void *connection, uint32_t ip, uint16_t port, int32_t reset, const void *message, int32_t length)
 {
-    halo::networking::ChannelCallbacks::gap_441040(socket, connection, ip, port, reset, message, length);
+    halo::networking::ChannelCallbacks::on_send_dump(socket, connection, ip, port, reset, message, length);
 }
 
 /**
- * C entry point for halo::networking::ChannelCallbacks::gap_441060; forwards to the C++ implementation unchanged.
+ * C entry point for halo::networking::ChannelCallbacks::on_socket_error; forwards to the C++ implementation unchanged.
  *
  * @address 0x441060
  */
 void network_channel_gap_441060(void *socket)
 {
-    halo::networking::ChannelCallbacks::gap_441060(socket);
+    halo::networking::ChannelCallbacks::on_socket_error(socket);
 }
 
 /**
- * C entry point for halo::networking::ChannelCallbacks::gap_4410b0; forwards to the C++ implementation unchanged.
+ * C entry point for halo::networking::ChannelCallbacks::on_game_socket_unrecognized; forwards to the C++ implementation unchanged.
  *
  * @address 0x4410b0
  */
 int32_t network_channel_gap_4410b0(void *socket, uint32_t ip, uint16_t port, const uint8_t *message, uint32_t length)
 {
-    return halo::networking::ChannelCallbacks::gap_4410b0(socket, ip, port, message, length);
+    return halo::networking::ChannelCallbacks::on_game_socket_unrecognized(socket, ip, port, message, length);
 }
 
 /**
- * C entry point for halo::networking::ChannelCallbacks::gap_441200; forwards to the C++ implementation unchanged.
+ * C entry point for halo::networking::ChannelCallbacks::on_query_socket_unrecognized; forwards to the C++ implementation unchanged.
  *
  * @address 0x441200
  */
 int32_t network_channel_gap_441200(void *socket, uint32_t ip, uint16_t port, const uint8_t *message, uint32_t length)
 {
-    return halo::networking::ChannelCallbacks::gap_441200(socket, ip, port, message, length);
+    return halo::networking::ChannelCallbacks::on_query_socket_unrecognized(socket, ip, port, message, length);
 }
 
 /**
- * C entry point for halo::networking::ChannelCallbacks::gap_441f30; forwards to the C++ implementation unchanged.
+ * C entry point for halo::networking::ChannelCallbacks::on_connection_error; forwards to the C++ implementation unchanged.
  *
  * @address 0x441f30
  */
 void network_channel_gap_441f30(void *connection)
 {
-    halo::networking::ChannelCallbacks::gap_441f30(connection);
+    halo::networking::ChannelCallbacks::on_connection_error(connection);
 }
 
 /**
- * C entry point for halo::networking::ChannelCallbacks::gap_4ba660; forwards to the C++ implementation unchanged.
+ * C entry point for halo::networking::ChannelCallbacks::on_server_browser_list; forwards to the C++ implementation unchanged.
  *
  * @address 0x4ba660
  */
 void network_channel_gap_4ba660(void *sb, uint32_t reason, void *server, void *instance)
 {
-    halo::networking::ChannelCallbacks::gap_4ba660(sb, reason, server, instance);
+    halo::networking::ChannelCallbacks::on_server_browser_list(sb, reason, server, instance);
 }
 
 /**
@@ -782,13 +782,13 @@ int32_t network_session_reject_pending_connection_callback(void *unused, int32_t
 }
 
 /**
- * C entry point for halo::networking::ChannelCallbacks::receive_callback; forwards to the C++ implementation unchanged.
+ * C entry point for halo::networking::ChannelCallbacks::on_receive; forwards to the C++ implementation unchanged.
  *
  * @address 0x441ed0
  */
 void network_channel_receive_callback(void *handle, uint8_t *data, int32_t length)
 {
-    halo::networking::ChannelCallbacks::receive_callback(handle, data, length);
+    halo::networking::ChannelCallbacks::on_receive(handle, data, length);
 }
 
 /**
@@ -1092,33 +1092,33 @@ char network_session_broadcast_to_all(network_server_globals *server, int32_t pa
 }
 
 /**
- * C entry point for halo::networking::ServerMessageHandlers::handle_map_data; forwards to the C++ implementation unchanged.
+ * C entry point for halo::networking::ServerMessageHandlers::client_map_data; forwards to the C++ implementation unchanged.
  *
  * @address 0x4e2790
  */
 uint32_t network_game_client_handle_map_data(network_server_globals *server, uint8_t *record, int32_t length)
 {
-    return halo::networking::ServerMessageHandlers(server).handle_map_data(record, length);
+    return halo::networking::ServerMessageHandlers(server).client_map_data(record, length);
 }
 
 /**
- * C entry point for halo::networking::ServerMessageHandlers::handle_retry_schedule; forwards to the C++ implementation unchanged.
+ * C entry point for halo::networking::ServerMessageHandlers::client_retry_schedule; forwards to the C++ implementation unchanged.
  *
  * @address 0x4e2870
  */
 uint32_t network_game_client_handle_retry_schedule(network_server_globals *server, network_machine *machine, uint8_t *record, int32_t length)
 {
-    return halo::networking::ServerMessageHandlers(server).handle_retry_schedule(machine, record, length);
+    return halo::networking::ServerMessageHandlers(server).client_retry_schedule(machine, record, length);
 }
 
 /**
- * C entry point for halo::networking::ServerMessageHandlers::handle_settings_relay; forwards to the C++ implementation unchanged.
+ * C entry point for halo::networking::ServerMessageHandlers::client_settings_relay; forwards to the C++ implementation unchanged.
  *
  * @address 0x4e2810
  */
 uint32_t network_game_client_handle_settings_relay(network_server_globals *server, uint8_t *record, int32_t length)
 {
-    return halo::networking::ServerMessageHandlers(server).handle_settings_relay(record, length);
+    return halo::networking::ServerMessageHandlers(server).client_settings_relay(record, length);
 }
 
 /**
@@ -1402,13 +1402,13 @@ uint8_t network_session_send_to_machine(int32_t machine_id, network_server_globa
 }
 
 /**
- * C entry point for halo::networking::ServerMessageHandlers::game_settings_updated; forwards to the C++ implementation unchanged.
+ * C entry point for halo::networking::ServerMessageHandlers::client_game_settings_updated; forwards to the C++ implementation unchanged.
  *
  * @address 0x4df2e0
  */
 uint32_t network_game_client_game_settings_updated(network_server_globals *host)
 {
-    return halo::networking::ServerMessageHandlers(host).game_settings_updated();
+    return halo::networking::ServerMessageHandlers(host).client_game_settings_updated();
 }
 
 /**

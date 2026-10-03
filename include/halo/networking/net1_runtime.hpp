@@ -5,7 +5,7 @@
 namespace halo::networking {
 
 /**
- * Behaviour group for the original `network_connection_stats_*` functions; every member is the original function body moved unchanged.
+ * Per-connection packet statistics table and its periodic log.
  */
 class ConnectionStats {
 public:
@@ -18,7 +18,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_*` functions; every member is the original function body moved unchanged.
+ * Networking subsystem lifetime and shared helpers: initialise, shutdown, update, hostname lookup, logging and name checks.
  */
 class NetworkRuntime {
 public:
@@ -40,7 +40,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_event_feed_*` functions; every member is the original function body moved unchanged.
+ * Queue of network events flushed to the event feed.
  */
 class EventFeed {
 public:
@@ -51,7 +51,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_index_cache_*` functions; every member is the original function body moved unchanged.
+ * Key to slot index cache over a hash table container.
  */
 class IndexCache {
 public:
@@ -64,7 +64,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_message_*` functions; every member is the original function body moved unchanged.
+ * Building and reading of sized message blocks.
  */
 class MessageBlocks {
 public:
@@ -75,7 +75,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_stats_summary_log_*` functions; every member is the original function body moved unchanged.
+ * Opens and appends to the network statistics summary log.
  */
 class StatsSummaryLog {
 public:

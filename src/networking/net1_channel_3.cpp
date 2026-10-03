@@ -11,11 +11,16 @@ extern uint32_t circular_buffer_write(uint32_t byte_count, circular_buffer *stre
 namespace halo::networking {
 
 /**
- * Original `network_channel_receive_callback`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * out/phase4/networking_functions.md summary ("per-channel data-received handler:
+ * records the sender's address for connectionless channels, or appends the payload to the
+ * channel's receive circular buffer for connection-oriented ones"); the tested flag (+0x0c bit
+ * 0) is network_receive_queue.flags bit0 "connection oriented" per types/networking.h, and the
+ * registered lookup gt2GetConnectionData(gamespy_handle) -> network_receive_queue* is reused from
+ * network_connection_stats_record_packet.c, whose evidence note documents the same callee.
  *
  * @address 0x441ed0
  */
-void ChannelCallbacks::receive_callback(void *handle, uint8_t *data, int32_t length)
+void ChannelCallbacks::on_receive(void *handle, uint8_t *data, int32_t length)
 {
     network_receive_queue *queue;
     uint32_t address;

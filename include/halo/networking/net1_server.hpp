@@ -5,7 +5,7 @@
 namespace halo::networking {
 
 /**
- * Behaviour group for the original `network_channel_*` functions; every member is the original function body moved unchanged.
+ * Non-owning view of the server globals: machines, passwords, challenges, broadcasts and scenario handling.
  */
 class ServerView {
 public:
@@ -58,7 +58,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_game_client_*` functions; every member is the original function body moved unchanged.
+ * Handlers for messages the server receives from machines, one member per message type.
  */
 class ServerMessageHandlers {
 public:
@@ -66,10 +66,10 @@ public:
 
     explicit constexpr ServerMessageHandlers(network_server_globals *record) : self(record) {}
 
-    uint32_t game_settings_updated();
-    uint32_t handle_map_data(uint8_t *record, int32_t length);
-    uint32_t handle_retry_schedule(network_machine *machine, uint8_t *record, int32_t length);
-    uint32_t handle_settings_relay(uint8_t *record, int32_t length);
+    uint32_t client_game_settings_updated();
+    uint32_t client_map_data(uint8_t *record, int32_t length);
+    uint32_t client_retry_schedule(network_machine *machine, uint8_t *record, int32_t length);
+    uint32_t client_settings_relay(uint8_t *record, int32_t length);
     uint32_t build_version(network_machine *machine, uint8_t *record, int32_t length);
     uint32_t handshake_forward(uint8_t *record, int32_t length);
     uint32_t join_finalize_ack_role2(network_machine *machine, uint8_t *record, int32_t length);
@@ -83,7 +83,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_host_*` functions; every member is the original function body moved unchanged.
+ * Host-side operations on the server globals: round reset, full state broadcast and shutdown handling.
  */
 class HostServerView {
 public:
@@ -99,7 +99,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_join_request_*` functions; every member is the original function body moved unchanged.
+ * Non-owning view of a connected machine record.
  */
 class MachineView {
 public:

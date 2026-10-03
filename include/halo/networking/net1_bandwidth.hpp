@@ -5,7 +5,7 @@
 namespace halo::networking {
 
 /**
- * Behaviour group for the original `network_bandwidth_*` functions; every member is the original function body moved unchanged.
+ * Global bandwidth accounting: byte/packet accumulation, unit and direction names and the per-frame graph update.
  */
 class BandwidthMonitor {
 public:
@@ -21,7 +21,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_stats_*` functions; every member is the original function body moved unchanged.
+ * Non-owning view of one bandwidth graph instance: sample history, column layout, rate computation and the debug overlay drawing.
  */
 class BandwidthGraphView {
 public:

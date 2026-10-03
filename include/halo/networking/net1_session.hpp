@@ -5,7 +5,7 @@
 namespace halo::networking {
 
 /**
- * Behaviour group for the original `network_*` functions; every member is the original function body moved unchanged.
+ * Game level networking helpers that do not belong to a single record.
  */
 class GameRuntime {
 public:
@@ -26,7 +26,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_player_*` functions; every member is the original function body moved unchanged.
+ * Non-owning view of the game session: player entries, names and colours.
  */
 class GameSessionView {
 public:
@@ -46,7 +46,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_game_search_*` functions; every member is the original function body moved unchanged.
+ * Non-owning view of a game search result entry.
  */
 class SearchEntryView {
 public:
@@ -59,7 +59,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_object_*` functions; every member is the original function body moved unchanged.
+ * Network ownership bookkeeping for objects.
  */
 class ObjectOwnership {
 public:
@@ -70,7 +70,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_player_entry_*` functions; every member is the original function body moved unchanged.
+ * Non-owning view of a player entry.
  */
 class PlayerEntryView {
 public:
@@ -82,7 +82,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_player_*` functions; every member is the original function body moved unchanged.
+ * Player ping and update history reporting.
  */
 class PlayerReports {
 public:
@@ -93,7 +93,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_session_host_*` functions; every member is the original function body moved unchanged.
+ * Host session lifecycle plus the GameSpy query and NAT negotiation callbacks.
  */
 class HostSession {
 public:

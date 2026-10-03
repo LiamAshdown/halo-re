@@ -15,7 +15,9 @@ extern void network_game_settings_packet_send(network_client_globals *client, co
 namespace halo::networking {
 
 /**
- * Original `network_game_client_decode_connect_rejected`, moved unchanged; recovered notes are in docs/original/networking/net1_decode.md.
+ * out/phase4/networking_functions.md summary ("Decodes a connect-rejected / error
+ * notification from the server and triggers the client disconnect path with the given error
+ * code"). Same guard/decode shape as the rest of this handler cluster.
  *
  * @address 0x4dbd40
  */
@@ -38,7 +40,10 @@ int32_t ClientMessageDecoder::connect_rejected(const uint8_t *buffer, int32_t le
 }
 
 /**
- * Original `network_game_client_decode_settings_or_ack`, moved unchanged; recovered notes are in docs/original/networking/net1_decode.md.
+ * out/phase4/networking_functions.md summary ("Decodes an incoming game-settings/
+ * map-info message during the join handshake and applies it, sending a one-time acknowledgement
+ * when acting purely as a client"). Forwards to network_game_settings_packet_receive.c
+ * (0x4d9800) and network_game_settings_ack_send.c (0x4d9f50), both this task's batch.
  *
  * @address 0x4dbe50
  */
@@ -68,7 +73,13 @@ int32_t ClientMessageDecoder::settings_or_ack(const uint8_t *buffer, int32_t len
 }
 
 /**
- * Original `network_game_decode_settings_request`, moved unchanged; recovered notes are in docs/original/networking/net1_decode.md.
+ * out/phase4/networking_functions.md summary ("Decodes an early-handshake server/map
+ * identification message and compares it against locally cached data, advancing the loading UI
+ * state on a mismatch"); forwards the decoded record straight into
+ * network_game_settings_packet_send.c (0x4d94c0, same task batch), which builds and sends the
+ * full settings/map-data reply -- consistent with this being the *host's* handler for a
+ * newly-joined client's settings request. Follows the same guard/decode shape as
+ * network_game_client_decode_state_update_chunk.c (0x4dc190, same address family).
  *
  * @address 0x4dbc00
  */

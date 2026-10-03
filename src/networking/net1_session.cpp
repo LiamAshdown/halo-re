@@ -284,7 +284,13 @@ void GameRuntime::client_apply_received_update(network_machine *machine, uint32_
 }
 
 /**
- * Original `network_game_get_random_player_name`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * named)
+ * address 0x4dea80, size 112 bytes
+ * name confidence: 0.7   rewrite confidence: 0.45
+ * out/phase4/networking_functions.md: "Looks up the 'ui\random_player_names' tag and,
+ * if it has entries, returns a randomly selected default player name; otherwise returns the
+ * built-in fallback name string." tag_instances (0x0087bc14) and its `(index*0x20+0x14)`
+ * definition-pointer idiom match the same pattern already established throughout src/ai (e.g.
  *
  * @address 0x4dea80
  */
@@ -305,7 +311,10 @@ wchar_t * GameRuntime::get_random_player_name()
 }
 
 /**
- * Original `network_game_is_active`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * out/phase4/networking_functions.md: "Returns whether a network game is currently
+ * active by checking that either the network-game globals or the host globals pointer is
+ * non-null." network_client (0x0071c2d8) and network_server (0x0071c2d4) match
+ * types/networking.h exactly.
  *
  * @address 0x4ddca0
  */
@@ -318,7 +327,12 @@ int32_t GameRuntime::is_active()
 }
 
 /**
- * Original `network_game_settings_ack_send`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * network_game_settings_packet_send.c)
+ * out/phase4/networking_functions.md summary ("Builds and queues a small
+ * acknowledgement message while the local connection is in state 2 or 3 (used right after
+ * receiving the game-settings/map message); a no-op otherwise"); called from
+ * network_game_settings_packet_receive.c (0x4d9800, same task batch) the first time a
+ * game-settings packet is applied.
  *
  * @address 0x4d9f50
  */
@@ -394,7 +408,11 @@ char GameRuntime::settings_ack_send(uint8_t *client, int16_t template_row)
 }
 
 /**
- * Original `network_game_settings_broadcast_send`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * out/phase4/networking_functions.md: "Packages a 32-byte game-settings record
+ * together with the current tick, encodes and broadcasts it as message type 0x18, and records
+ * the send via network_object_record_last_sender." Follows the same data_packet_group_encode_packet /
+ * network_message_block_build / FUN_004e19c0 broadcast idiom as network_prepare_challenge_packet.c and
+ * network_game_server_host_dispose.c's challenge-packet send.
  *
  * @address 0x4df0e0
  */
@@ -571,7 +589,8 @@ void GameRuntime::map_cycle_list_broadcast()
 }
 
 /**
- * Original `network_session_disconnect_with_error`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * out/phase4/networking_functions.md summary ("Records an error code and triggers a
+ * network-session disconnect/cleanup").
  *
  * @address 0x4d97e0
  */
@@ -585,7 +604,13 @@ void GameRuntime::disconnect_with_error(int16_t error_code)
 }
 
 /**
- * Original `network_game_generate_unique_random_name`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * already named)
+ * address 0x4df730, size 96 bytes
+ * name confidence: 0.55   rewrite confidence: 0.45
+ * out/phase4/networking_functions.md: "Picks a random default player name via
+ * network_game_get_random_player_name(), retrying until it doesn't collide with any currently
+ * active player, and copies the result into the output buffer." Same session scan base
+ * (container + 0x1aa == session.players[0].name, stride 0x10 wchars == 0x20 bytes) as
  *
  * @address 0x4df730
  */
@@ -611,7 +636,13 @@ void GameSessionView::generate_unique_random_name(wchar_t *out_name)
 }
 
 /**
- * Original `network_game_scenario_load_request`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * named)
+ * address 0x4de6d0, size 405 bytes
+ * name confidence: 0.55   rewrite confidence: 0.25
+ * out/phase4/networking_functions.md: "Prepares and issues a scenario_load() request
+ * for the network game using the requested map name and seed, then, when hosting, opens a
+ * channel for every connected machine and returns whether the map is now loaded." session at
+ * param_1: server_name (+0x84), unknown_19e (+0x19e) and unknown_3ac (+0x3ac, the map-loaded
  *
  * @address 0x4de6d0
  */
@@ -714,7 +745,13 @@ void GameSessionView::session_reset()
 }
 
 /**
- * Original `network_player_assign_random_color`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * types/networking.h cites this address directly: "network_player_entry (... 0x4df790
+ * colour assignment)". out/phase4/networking_functions.md: "Randomly assigns a player colour
+ * index that isn't already in use by another active player, widening the candidate range after
+ * 10 failed attempts, and stores it at param_1+0x18." param_1+0x18 matches
+ * network_player_entry.color_index; the scanned array (container+0x1c2 == session.players[0]+
+ * 0x20 == session.players[1].color_index, stride 0x10 shorts) matches every active player's own
+ * color_index field.
  *
  * @address 0x4df790
  */
@@ -817,7 +854,11 @@ uint32_t GameSessionView::add(network_player_entry *incoming)
 }
 
 /**
- * Original `network_player_entry_find`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * types/networking.h cites this address directly under network_player_entry: "0x4de900
+ * find". Validates the key record via network_player_entry_validate, then scans session->players[] for a
+ * machine_index/machine_player_index match. Both callers in this batch (network_player_entry_
+ * update.c, network_player_entry_remove.c) only ever test the low byte of this function's
+ * return (truthy/falsy); only AL is defined in the original, so a plain 0/1 return is equivalent.
  *
  * @address 0x4de900
  */
@@ -839,7 +880,10 @@ char GameSessionView::find(network_player_entry *key)
 }
 
 /**
- * Original `network_player_entry_remove`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * types/networking.h cites this address directly under network_player_entry: "0x4de640
+ * remove". After the network_player_entry_find pre-check, re-scans for the same
+ * (machine_index, machine_player_index) key and resets that row to its documented empty state
+ * (matching network_game_session_reset.c's field-by-field evidence), decrementing player_count.
  *
  * @address 0x4de640
  */
@@ -874,7 +918,10 @@ uint32_t GameSessionView::remove(network_player_entry *key)
 }
 
 /**
- * Original `network_player_entry_update`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * types/networking.h cites this address directly under network_player_entry: "0x4de5f0
+ * update". Finds the row via network_player_entry_find (0x4de900) then overwrites it with the
+ * incoming 32-byte record from `in_EAX`, after confirming the found slot's own
+ * machine_player_index/color_index still match (a stale-slot guard).
  *
  * @address 0x4de5f0
  */
@@ -905,7 +952,12 @@ uint8_t GameSessionView::update_(network_player_entry *incoming)
 }
 
 /**
- * Original `network_player_name_collision_check`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * out/phase4/networking_functions.md: "Checks whether the wide-character name pointed
+ * to by unaff_EBX already matches any active player's name in the 16-slot table, returning 0 on
+ * a collision." The scan base (container + 0x1aa) is exactly container->session.players[0].name
+ * when container is a network_client_globals/network_server_globals (session embedded at +8,
+ * players[] at session+0x1a2, name the first field of each 0x20-byte entry) -- 0x008 + 0x1a2 =
+ * 0x1aa.
  *
  * @address 0x4df6f0
  */
@@ -925,7 +977,11 @@ uint8_t GameSessionView::name_collision_check(uint16_t *candidate_name)
 }
 
 /**
- * Original `network_game_search_entry_is_fresh`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * out/phase4/networking_functions.md summary ("Tests whether a single entry in the
+ * 9-slot game-search/pending-connection record table is still within its ~6 second freshness
+ * window"); entry+0x12d and entry+0x18 match types/networking.h's
+ * network_game_search_entry::in_use and ::received_ms exactly, and 0x1771 (6001 ms) matches
+ * k_network_game_search_expiry_ms (6000) plus one.
  *
  * @address 0x4da770
  */
@@ -949,7 +1005,12 @@ uint8_t SearchEntryView::entry_is_fresh()
 }
 
 /**
- * Original `network_game_search_results_add_or_update`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * already named)
+ * address 0x4da7d0, size 582 bytes
+ * name confidence: 0.5   rewrite confidence: 0.45
+ * out/phase4/networking_types_notes.md "network_game_search_entry (0x130)" fully
+ * documents this function's field writes; every offset below is taken directly from that
+ * section and from types/networking.h's network_game_search_entry struct.
  *
  * @address 0x4da7d0
  */
@@ -1159,7 +1220,9 @@ void PlayerReports::update_history_log_write_v(const char *format, va_list args)
 }
 
 /**
- * Original `network_session_host_cd_key_callback`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * the gcd_authenticate_user callback (game id, local id,
+ * authenticated, message, instance): a rejected key sends reason 4 to the machine with that CD key local id (+0x5c
+ * of the 0x60 byte machines at server +0x3b8; NULL when none).
  *
  * @address 0x5760a0
  */
@@ -1205,7 +1268,10 @@ void HostSession::dispose()
 }
 
 /**
- * Original `network_session_host_natneg_callback`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * the query/report NAT negotiation callback (cookie): starts
+ * NNBeginNegotiationWithSocket on the game socket's SOCKET (read through 0x6175f0, folded with ArrayLength) with
+ * that cookie, client index 0, function_do_nothing as the progress callback and
+ * network_session_host_natneg_completed.
  *
  * @address 0x578160
  */
@@ -1216,7 +1282,9 @@ void HostSession::natneg_callback(int32_t cookie)
 }
 
 /**
- * Original `network_session_host_natneg_completed`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * the NAT negotiation completion callback (result, socket,
+ * remote sockaddr_in, user data): on success it formats the remote address into a stack buffer with
+ * gt2AddressToString and does nothing with it (a leftover).
  *
  * @address 0x578120
  */
@@ -1232,7 +1300,8 @@ void HostSession::natneg_completed(int32_t result, uint32_t socket, const uint8_
 }
 
 /**
- * Original `network_session_host_qr2_add_error`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * the qr2 add-error callback (error, message, user data):
+ * "qr2_adderror_callback - %s" to the console in its standard color.
  *
  * @address 0x578100
  */
@@ -1244,7 +1313,9 @@ void HostSession::qr2_add_error(int32_t error, char *message, void *user_data)
 }
 
 /**
- * Original `network_session_host_qr2_count`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * the player / team count callback (key type, user data): 0
+ * outside a game; the game engine's +0xa8 hook when it has one; otherwise players -> the active player count, teams
+ * -> 2 with teams (else 0), anything else 0.
  *
  * @address 0x5780c0
  */
@@ -1270,7 +1341,9 @@ int32_t HostSession::qr2_count(int32_t key_type, void *user_data)
 }
 
 /**
- * Original `network_session_host_qr2_team_key`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * the team key callback (key, index, buffer, user data): the
+ * game engine's +0xa4 hook answers first; key 0x1c is the team name ("Red" for 0, "Blue" for 1 -- as the binary has
+ * it, index 1 is "Blue"); anything else is empty.
  *
  * @address 0x577f40
  */
@@ -1292,7 +1365,11 @@ void HostSession::qr2_team_key(int32_t key_id, int32_t index, void *buffer, void
 }
 
 /**
- * Original `network_session_host_reject_or_cleanup_client`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * the host's CD key check for a joining machine:
+ * gcd_authenticate_user(game id 0x0069fdfc, local id, ip, challenge, response,
+ * network_session_host_cd_key_callback, 0), then the ban list check on the key hash (gcd_getkeyhash, EDI). Not
+ * banned: 1. Banned: reason 6 to the machine with that local id (or NULL), the key is disconnected from gcd (every
+ * key for local id -1), 0. (Name kept; it authenticates.)
  *
  * @address 0x575ff0
  */
@@ -1323,7 +1400,11 @@ uint8_t HostSession::reject_or_cleanup_client(const char *response, const char *
 }
 
 /**
- * Original `network_session_host_start`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * disposes the old session, opens the channels and starts
+ * query/report on the game socket's SOCKET (0x6175f0) with the port, game name and secret key strings, the public
+ * flag byte, natneg on, the six host callbacks (the earlier version passed NULL for five of them and the player key
+ * callback in the wrong slot) and the argument as user data; registers the natneg callback, and initializes the CD
+ * key server with game id 0x319 on the same record. Returns qr2_init_socketA's result.
  *
  * @address 0x577850
  */

@@ -147,7 +147,10 @@ extern char network_build_string[];
 namespace halo::networking {
 
 /**
- * Original `network_channel_dispatch_bitstream_unit`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "Small dispatcher used while draining a
+ * channel's bitstream, routing each unit to either the queued-message processor or the
+ * incoming-packet decoder." network_game_process_incoming_message is already named and in
+ * this batch.
  *
  * @address 0x4e18b0
  */
@@ -170,7 +173,13 @@ char ServerView::dispatch_bitstream_unit(uint32_t unit, bit_stream *stream, netw
 }
 
 /**
- * Original `network_channel_drain_bitstream`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "Drains a shared bitstream buffer one bit at a
+ * time, dispatching each bit through FUN_004e18b0 as part of connecting a new machine."
+ * *param_2 (machine->channel) and channel->incoming (channel+0xc) match
+ * network_channel::endpoint/incoming... wait, channel+0xc is actually ::incoming per
+ * types/networking.h; channel+0x8/+0xc/+0x10 on the *circular_buffer* itself match
+ * read_cursor/write_cursor/capacity. FUN_004dcf10 is functions.md's
+ * "network_channel_incoming_read_item" (already named there, conf 0.4, not renamed here since
  *
  * @address 0x4e1290
  */
@@ -323,7 +332,12 @@ uint32_t ServerView::any_team_empty()
 }
 
 /**
- * Original `network_game_broadcast_player_set_changed`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "Posts a type-0x21 game-engine event and, if
+ * accepted, broadcasts an associated update packet to the whole session -- used whenever the
+ * connected-player set changes." 0x00871de0 is types/networking.h's shared encode scratch
+ * buffer, already named network_message_scratch by
+ * src/networking/network_server_check_machine_timeout.c (same address, "shared with
+ * network_game_broadcast_team_object_updates.c").
  *
  * @address 0x4e1bf0
  */
@@ -510,7 +524,12 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
 }
 
 /**
- * Original `network_game_server_handle_info_request`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "Handles message type 0x1a, sending a full
+ * server-info reply to not-yet-established machines or otherwise forwarding to FUN_004dfc90"
+ * -- network_game_server_handle_client_join, already written. `*unaff_EDI + 0xa98` matches
+ * network_channel::connected via network_machine::channel (offset 0), and
+ * `unaff_ESI + 0xa0f` matches network_server_globals::game_over, exactly as in the type-0xe and
+ * type-0xf handlers.
  *
  * @address 0x4e2700
  */
@@ -642,7 +661,10 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
 }
 
 /**
- * Original `network_game_server_host_create`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "Allocates and installs the network host globals
+ * (DAT_0071c2d4) via network_game_server_host_new and seeds its randomisation salt field from the global PRNG
+ * state, mirroring the salt into the network-game globals when present." network_server
+ * (0x0071c2d4) and network_client (0x0071c2d8) match types/networking.h.
  *
  * @address 0x4ddd40
  */
@@ -665,7 +687,12 @@ int32_t ServerView::host_create()
 }
 
 /**
- * Original `network_game_server_host_dispose`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "Tears down the network host globals block
+ * passed in param_1: disposes each of its 16 team/player sub-entries, frees its allocation,
+ * zeroes the structure, and shuts down the associated transport connection." host->flags bit2
+ * (+6, stats logging), machines[16] at +0x3b8 stride 0x60 with channel/machine_id/flags, and the
+ * final 0x284-dword (0xa10-byte) zero of the whole network_server_globals all match
+ * types/networking.h exactly.
  *
  * @address 0x4deda0
  */
@@ -717,7 +744,13 @@ void ServerView::host_dispose()
 }
 
 /**
- * Original `network_game_server_host_new`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * types/networking.h's own comment cites this address: "network_game_server_host_new
+ * (0x4dec40) zeroes 0x284 dwords of 0x00861340, which is the size of network_server_globals."
+ * Every field this function sets after the zero (flags bit1, session.message_callback,
+ * session.unknown_19e, and the 16-entry machines[] init matching network_machine's
+ * channel/unknown_04/unknown_08/machine_id/flags/unknown_50/unknown_51/unknown_52/unknown_56/
+ * unknown_5c fields, including the header's own "unaligned in the original" note on
+ * unknown_52/unknown_56) matches types/networking.h exactly.
  *
  * @address 0x4dec40
  */
@@ -1017,7 +1050,12 @@ int32_t ServerView::count_connected_machines()
 }
 
 /**
- * Original `network_server_count_machines_and_resolve_address`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "Counts occupied machine-table slots up to the
+ * first free one and, for a new connection, fetches its remote address via
+ * network_channel_get_remote_address." Ghidra's own decompilation removes eleven blocks as
+ * "unreachable", so most of this 438-byte function's body is not available here; only the
+ * surviving control flow is transcribed. param_1+6 matches network_server_globals::flags;
+ * param_1+0x3c4 matches ::machines[0].machine_id.
  *
  * @address 0x4e0d30
  */
@@ -1093,7 +1131,11 @@ void ServerView::handle_rcon_request(network_player_entry *client, void *message
 }
 
 /**
- * Original `network_server_notify_or_resend_challenge`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * CX reason, EDI machine, stack server. For a machine whose
+ * channel is connected (+0xa98): the chat close deadline (0x00718fa4, when unset) becomes reason + 0x2b, the host
+ * hand-off flag is set, chat closes; returns 1. Otherwise a type 6 packet carrying the reason goes to the machine
+ * (reliable, 3) and the machine timer restarts for 1000 ms; returns whether the send worked (0 when no packet was
+ * built). The server argument was missing.
  *
  * @address 0x4e0af0
  */
@@ -1260,11 +1302,17 @@ char ServerView::broadcast_to_all(int32_t param_1, void *data, int32_t param_3, 
 }
 
 /**
- * Original `network_game_client_handle_map_data`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md's summary claims message type 0x1b, but
+ * network_game_process_incoming_message.c's own verified dispatch switch (this batch) shows
+ * `case 0x1c: FUN_004e2790(param_1);` -- type 0x1b is instead handled inline inside the
+ * dispatcher itself (decode + a direct call to network_game_client_apply_position_update). The
+ * dispatcher's literal call table is trusted here instead of the low-confidence (0.3) summary.
+ * This function latches an incoming 32-byte game/map data block into the client's pending-state
+ * fields.
  *
  * @address 0x4e2790
  */
-uint32_t ServerMessageHandlers::handle_map_data(uint8_t *record, int32_t length)
+uint32_t ServerMessageHandlers::client_map_data(uint8_t *record, int32_t length)
 {
     network_server_globals *server = self;
     uint32_t body[8];
@@ -1281,11 +1329,16 @@ uint32_t ServerMessageHandlers::handle_map_data(uint8_t *record, int32_t length)
 }
 
 /**
- * Original `network_game_client_handle_retry_schedule`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md's summary claims message type 0x1d, but
+ * network_game_process_incoming_message.c's own verified dispatch switch (this batch) shows
+ * `case 0x1e: FUN_004e2870();` (case 0x1d instead reaches FUN_004e2810, the settings relay) --
+ * the dispatcher's literal call table is trusted here instead of the low-confidence (0.3)
+ * summary. Forwards to network_machine_timer_start; the client-side counterpart of the
+ * FUN_004e2630 server handler, gated on role == 1 and decode class 5.
  *
  * @address 0x4e2870
  */
-uint32_t ServerMessageHandlers::handle_retry_schedule(network_machine *machine, uint8_t *record, int32_t length)
+uint32_t ServerMessageHandlers::client_retry_schedule(network_machine *machine, uint8_t *record, int32_t length)
 {
     network_server_globals *server = self;
     uint32_t body[1];
@@ -1299,11 +1352,16 @@ uint32_t ServerMessageHandlers::handle_retry_schedule(network_machine *machine, 
 }
 
 /**
- * Original `network_game_client_handle_settings_relay`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md's summary claims message type 0x1c, but
+ * network_game_process_incoming_message.c's own verified dispatch switch (this batch) shows
+ * `case 0x1d: FUN_004e2810();` (case 0x1c instead reaches FUN_004e2790, the map-data latch) --
+ * the dispatcher's literal call table is trusted here instead of the low-confidence (0.3)
+ * summary. Forwards to network_game_settings_broadcast_send, the same forward the server-side
+ * FUN_004e24d0 handler makes, but gated on role == 1 (client) and decode class 5 instead of 3.
  *
  * @address 0x4e2810
  */
-uint32_t ServerMessageHandlers::handle_settings_relay(uint8_t *record, int32_t length)
+uint32_t ServerMessageHandlers::client_settings_relay(uint8_t *record, int32_t length)
 {
     network_server_globals *server = self;
     uint32_t body[8];
@@ -1317,7 +1375,13 @@ uint32_t ServerMessageHandlers::handle_settings_relay(uint8_t *record, int32_t l
 }
 
 /**
- * Original `network_game_message_handle_build_version`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md's summary claims message types 0x14/0x25, but
+ * network_game_process_incoming_message.c's own verified dispatch switch (this batch) shows
+ * `case 0x15: FUN_004e2630();` -- the low-confidence (0.3) summary swapped this function's type
+ * number with FUN_004e26a0's (which the same switch shows at `case 0x14: case 0x25:`); the
+ * dispatcher's literal call table is trusted here instead. Forwards to
+ * network_machine_check_build_version (FUN_004dff20, already written: EAX -> remote_version,
+ * EDI -> machine).
  *
  * @address 0x4e2630
  */
@@ -1335,7 +1399,9 @@ uint32_t ServerMessageHandlers::build_version(network_machine *machine, uint8_t 
 }
 
 /**
- * Original `network_game_message_handle_handshake_forward`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "Handles message type 0x13 by decoding it and
+ * forwarding to FUN_004e0590" -- network_client_connection_handshake_tick, already written in
+ * an earlier batch.
  *
  * @address 0x4e25e0
  */
@@ -1353,7 +1419,13 @@ uint32_t ServerMessageHandlers::handshake_forward(uint8_t *record, int32_t lengt
 }
 
 /**
- * Original `network_game_message_handle_join_finalize_ack_role2`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * rewrite)
+ * address 0x4e2930, size 86 bytes
+ * name confidence: 0.35   rewrite confidence: 0.85 (REWRITTEN; was 0.3)
+ * out/phase4/networking_functions.md's summary claims message type 0x23, but
+ * network_game_process_incoming_message.c's own verified dispatch switch (this batch) shows
+ * `case 0x24: FUN_004e2930();` ('$' is 0x24, not 0x23) -- the dispatcher's literal call table
+ * is trusted here instead of the low-confidence (0.3) summary. The cleared bit
  *
  * @address 0x4e2930
  */
@@ -1437,7 +1509,9 @@ uint32_t ServerMessageHandlers::ping_timestamp(int32_t **message)
 }
 
 /**
- * Original `network_game_message_handle_player_count_broadcast`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "Handles message type 0x11 by decoding it and
+ * triggering a session-wide player-count broadcast" -- network_game_broadcast_player_set_changed
+ * (FUN_004e1bf0, this batch). Same decode shape as every sibling handler.
  *
  * @address 0x4e2530
  */
@@ -1456,7 +1530,11 @@ uint32_t ServerMessageHandlers::player_count_broadcast(uint8_t *record, int32_t 
 }
 
 /**
- * Original `network_game_message_handle_player_entry_update`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "Handles message type 0x12, conditionally
+ * triggering a player-count broadcast after an approval check" -- the approval check is
+ * network_player_entry_update (FUN_004de5f0, already written), whose own signature is
+ * (network_player_entry *incoming, network_game_session *session); on success this broadcasts
+ * the player set change exactly like the type-0x11 handler.
  *
  * @address 0x4e2580
  */
@@ -1475,7 +1553,12 @@ uint32_t ServerMessageHandlers::player_entry_update(uint8_t *record, int32_t len
 }
 
 /**
- * Original `network_game_message_handle_retry_schedule`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md's summary claims message type 0x15, but
+ * network_game_process_incoming_message.c's own verified dispatch switch (this batch) shows
+ * `case 0x14: case 0x25: FUN_004e26a0();` -- the low-confidence (0.3) summary swapped this
+ * function's type number with FUN_004e2630's; the dispatcher's literal call table is trusted
+ * here instead. Forwards to network_machine_timer_start, already written (blam-cc: ESI ->
+ * machine, stack -> duration_ms).
  *
  * @address 0x4e26a0
  */
@@ -1493,7 +1576,10 @@ uint32_t ServerMessageHandlers::retry_schedule(network_machine *machine, uint8_t
 }
 
 /**
- * Original `network_game_message_handle_settings_relay`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "Server-side handler for message type 0x10
+ * that decodes its payload and passes it to FUN_004df0e0" -- the already-written
+ * network_game_settings_broadcast_send. Follows the exact decode-then-forward shape shared by
+ * every sibling handler in this cluster (see network_game_process_incoming_message.c).
  *
  * @address 0x4e24d0
  */
@@ -1511,7 +1597,12 @@ uint32_t ServerMessageHandlers::settings_relay(uint8_t *record, int32_t length)
 }
 
 /**
- * Original `network_game_message_handle_settings_relay_role2`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md's summary claims message type 0x1e, but
+ * network_game_process_incoming_message.c's own verified dispatch switch (this batch) shows
+ * `case 0x23: FUN_004e28d0();` -- the dispatcher's literal call table is trusted here instead
+ * of the low-confidence (0.3) summary. This is the third of three role-gated forwarders to
+ * network_game_settings_broadcast_send (roles 0, 1 and 2 at message types 0x10, 0x1d and 0x23
+ * respectively), gated on role == 2 and decode class 7.
  *
  * @address 0x4e28d0
  */
@@ -1529,7 +1620,11 @@ uint32_t ServerMessageHandlers::settings_relay_role2(uint8_t *record, int32_t le
 }
 
 /**
- * Original `network_host_round_reset`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "Resets the per-round update counters and
+ * completion flags on the object at in_EAX, increments its round counter, and calls network_game_session_reset_defaults
+ * to continue setup." Same host offsets (+0x9b8, +0x9bc-region, +0x3b0) as
+ * network_game_server_host_new.c; see that file's header for the field-matching evidence and the
+ * same "+0x3b0 lands in session.unknown_3a2[10]" UNSURE note.
  *
  * @address 0x4df640
  */
@@ -1550,7 +1645,10 @@ void HostServerView::round_reset()
 }
 
 /**
- * Original `network_host_send_scenario_announcement`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "Sends the one-time scenario/challenge
+ * announcement packets (via FUN_004ec940/FUN_004e19c0 and network_prepare_challenge_packet) the first time it is
+ * called for this game, then latches a done flag." host->unknown_9f9/unknown_9b8 match
+ * network_game_server_host_new.c's established offsets on network_server_globals.
  *
  * @address 0x4df1c0
  */
@@ -1588,7 +1686,13 @@ int32_t HostServerView::send_scenario_announcement()
 }
 
 /**
- * Original `network_host_shutdown_or_defer`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "If a network host is active and not in the
+ * special team-sync case, resets the host's map-load flag and history state and disposes the
+ * host globals; otherwise defers to network_host_update_tick." session->unknown_3ac (the map-loaded flag)
+ * matches types/networking.h's network_game_session exactly when reached through
+ * network_server->session or network_client->session directly (unlike
+ * network_game_server_host_create.c's host-relative offset, which lands elsewhere -- see that
+ * file's UNSURE note).
  *
  * @address 0x4ddd90
  */
@@ -1628,7 +1732,12 @@ int32_t HostServerView::shutdown_or_defer()
 }
 
 /**
- * Original `network_host_update_tick`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "Per-tick client-side network update handler:
+ * pulls the next queued packet, refreshes the map/variant cycle list periodically, and
+ * dispatches processing to one of three state-specific handlers based on [state]." host->flags
+ * bit1 (k_network_server_host, matches network_game_server_host_new.c) and host->unknown_004
+ * (the state dispatched on 0/1/2, matching network_game_server_host_dispose.c's own 0/2 test)
+ * match types/networking.h.
  *
  * @address 0x4def80
  */
@@ -1684,7 +1793,9 @@ char HostServerView::update_tick()
 }
 
 /**
- * Original `network_join_request_reset_state`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * EAX machine, stack response: the CD key check of a joining
+ * machine with its remote ip (the local address 0x006869b0 for loopback 127.0.0.1), its challenge (+0x52) and CD
+ * key local id (+0x5c). (Name kept.)
  *
  * @address 0x4e0ab0
  */
@@ -1733,7 +1844,11 @@ void MachineView::check_build_version(const char *remote_version)
 }
 
 /**
- * Original `network_machine_reset`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * types/networking.h cites this address directly: "network_machine (0x4dec40 init,
+ * 0x4df690 reset, ...)". flags |= k_network_machine_pending, timer_14/timer_18/unknown_50, and
+ * the 0xd-dword (0x34-byte) zero of connect_state[0x34] at +0x1c all match exactly.
+ * The leading network_channel_remote_address_or_default call takes EAX = machine->channel and
+ * ECX = &local scratch; its result is unused (verified 0x4df6a8..0x4df6b9).
  *
  * @address 0x4df690
  */
@@ -1753,7 +1868,10 @@ int32_t MachineView::reset()
 }
 
 /**
- * Original `network_machine_timer_start`, moved unchanged; recovered notes are in docs/original/networking/net1_server.md.
+ * out/phase4/networking_functions.md: "Starts a timer on the object at unaff_ESI:
+ * records the current time, marks it active, and computes its expiry as now plus the given
+ * duration." Fields +0x10/+0x14/+0x18 match network_machine's unknown_10/timer_14/timer_18
+ * exactly (same object network_machine_reset.c clears).
  *
  * @address 0x4df090
  */

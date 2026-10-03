@@ -1,4 +1,5 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/networking/net1_dispatch.hpp"
 #include <string.h>
 #include <wchar.h>
 #include <stdint.h>
@@ -151,7 +152,13 @@ extern uint32_t network_game_client_connect_to_address(char *address_string, uin
 namespace halo::networking {
 
 /**
- * Original `network_client_begin_connect`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md: "Begins a new outgoing connection attempt:
+ * allocates/reuses the client connection object, hands off to chimera__on_connect with the
+ * requested name/options, and marks the network session active on success." Confirmed via
+ * objdump against network_game_client_connect_to_address.c's call site (`lea ecx,[esp+0xc]`
+ * right before `call 0x4dc8d0`) that the elided ECX argument is the caller's local
+ * s_network_address; this function's own body reads it as `in_ECX->ipv4 != 0` and
+ * `in_ECX->port != 0` before proceeding, which is exactly chimera__on_connect's own
  *
  * @address 0x4dc8d0
  */
@@ -279,7 +286,11 @@ uint32_t ClientView::check_connection_quality(uint32_t machine_index, uint8_t un
 }
 
 /**
- * Original `network_client_connect_progress_percent`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Computes the connection-attempt
+ * progress as a percentage of the configured connect timeout, for display while in the
+ * 'connecting' state"); the sole caller (network_client_update_dispatch) assigns its result straight through,
+ * consistent with the mode check against client+0xeda == 1 (the "waiting to join" state per
+ * src/networking/network_client_state_dispatch.c case 1).
  *
  * @address 0x4d8c10
  */
@@ -300,7 +311,12 @@ int16_t ClientView::connect_progress_percent(int16_t *out_percent)
 }
 
 /**
- * Original `network_client_drain_queued_updates`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * the name src/networking/network_channel_dispatch_bitstream_unit.c's own extern already chose
+ * for this address)
+ * address 0x4e1f40, size 288 bytes
+ * name confidence: 0.4   rewrite confidence: 0.85 (REWRITTEN; was 0.25)
+ * out/phase4/networking_functions.md: "Drains the client's queued network-game
+ * update messages, applying each one according to its message-type tag."
  *
  * @address 0x4e1f40
  */
@@ -352,7 +368,10 @@ char ClientView::drain_queued_updates(network_server_globals *server, network_ma
 }
 
 /**
- * Original `network_client_globals_create`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md: "Allocates the primary network-game globals
+ * structure (DAT_0071c2d8) via network_session_create and, if successful, clears the DAT_0071c2de flag."
+ * network_client (0x0071c2d8), network_session_create (0x4d8a80, already rewritten) and
+ * network_host_handoff_requested (0x0071c2de) all match established names in this module.
  *
  * @address 0x4dde50
  */
@@ -366,7 +385,11 @@ int32_t ClientView::globals_create()
 }
 
 /**
- * Original `network_client_globals_dispose`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md: "Tears down the network-game globals
+ * (DAT_0071c2d8): releases its connection sub-allocation, resets related counters/flags and
+ * frees the globals themselves." client->update_history (+0xf48) and client->channel (+0xadc)
+ * match types/networking.h's network_client_globals exactly; network_session_active
+ * (0x0071c2c2) matches the header's own documented name for that address.
  *
  * @address 0x4dde70
  */
@@ -410,7 +433,12 @@ void ClientView::handle_server_text_message(void *message)
 }
 
 /**
- * Original `network_client_identity_tick`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Periodic bookkeeping for the local
+ * client's machine/session identity: expires a stale pending-close flag, then either refreshes
+ * or re-establishes the client's connection identity depending on whether [acting as host]").
+ * client+0xee4/+0xee8/+0xeec/+0xef0/+0xef4 match network_client_globals::timer
+ * (a network_client_timer_record, folded into types/networking.h by the review pass), and
+ * client+0xef8..+0xf0c is network_client_globals::server_address.
  *
  * @address 0x4db310
  */
@@ -515,38 +543,31 @@ void ClientView::send_local_player_updates()
 }
 
 /**
- * Original `network_client_state_dispatch`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Dispatches per-frame processing to the
+ * handler matching the connection's current mode/type field"); the sole caller (network_client_update_dispatch,
+ * out/halo_decompiled.c around line 143483) loads DAT_0071c2d8 (network_client, per
+ * types/networking.h) into EAX before the call and reads network_client+0xedc right after it
+ * returns, confirming in_EAX is network_client here.
  *
  * @address 0x4d8bb0
  */
 int8_t ClientView::state_dispatch()
 {
     network_client_globals *client = self;
-    int8_t result;
+    const ClientStateHandler *state = ClientStateMachine::handler_for(client->state);
 
-    result = 0;
-    switch (client->state) {
-    case 0:
-        result = network_join_handshake_tick(client);
-        return result;
-    case 1:
-        result = network_join_connect_retry_tick(client);
-        return result;
-    case 2:
-        result = network_host_lobby_tick(client);
-        break;
-    case 3:
-        result = network_game_client_update(client);
-        return result;
-    case 4:
-        result = network_host_channel_service_tick(client);
-        return result;
+    if (state == nullptr) {
+        return 0;
     }
-    return result;
+    return state->tick(client);
 }
 
 /**
- * Original `network_client_timer_schedule`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Schedules a delayed network event/timer
+ * to fire after a given number of milliseconds"). The five fields written (byte, dword, byte,
+ * dword, dword at client+0xee4/0xee8/0xeec/0xef0/0xef4) are the first five elements of
+ * network_client_globals::timer, a network_client_timer_record that the review pass folded
+ * into types/networking.h (it occupies the first five dwords of the zeroed run at +0xee4).
  *
  * @address 0x4d9ed0
  */
@@ -571,7 +592,12 @@ void ClientView::timer_schedule(int32_t delay_ms, int32_t context)
 }
 
 /**
- * Original `network_client_update_dispatch`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md: "Either performs the same host shutdown
+ * sequence as network_host_shutdown_or_defer (map-state reset and host dispose) when DAT_0071c2de is set, or
+ * attempts to join/prepare via network_client_state_dispatch/network_client_connect_progress_percent otherwise." network_client_state_dispatch and network_client_connect_progress_percent
+ * are already named (network_client_state_dispatch, network_client_connect_progress_percent) by
+ * an earlier batch covering 0x4d8a80..0x4d9050. See network_host_shutdown_or_defer.c for the
+ * shared shutdown sequence's field evidence.
  *
  * @address 0x4dded0
  */
@@ -620,7 +646,12 @@ char ClientView::update_dispatch()
 }
 
 /**
- * Original `network_game_client_update`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Main per-tick network update for an
+ * actively-connected client: services the channel, processes incoming messages, flushes
+ * outgoing data, and (when a debug flag is set) periodically logs ping/latency/timing"). Reuses
+ * the network_client_globals::connection fields already named in
+ * network_connection_send_keepalive.c (message_count@0xad0, retry_count@0xad2, unknown_20@0xad4,
+ * control_block@0xad8) and the channel-flags bit layout confirmed in network_host_update_tick.c.
  *
  * @address 0x4daf80
  */
@@ -689,7 +720,11 @@ tail:
 }
 
 /**
- * Original `network_game_record_message_send`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Encodes a large (up to 0x600-byte)
+ * outgoing network-game message (type id 0x12) from an 8-dword source record and queues it for
+ * transmission"). This function has zero callers anywhere in the binary (out/functions.json
+ * callers=0); rewritten anyway per the task instructions, since it is not listed as
+ * misattributed/library code in out/phase4/networking_types_notes.md.
  *
  * @address 0x4da130
  */
@@ -749,7 +784,11 @@ int32_t ClientView::record_message_send(const uint32_t *source)
 }
 
 /**
- * Original `network_player_join_finalize`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Creates the game-object datum for a
+ * player once their connection has fully joined, marking it as the local player when
+ * applicable"). `unaff_EDI` is a word-indexed client pointer (word 0x58a / byte 0xb14 is
+ * &client->session, matching the other word-indexed functions in this cluster); word 0x76d
+ * (byte 0xeda) is state; `in_EAX+0x1f` matches network_player_entry::slot_index.
  *
  * @address 0x4d9e30
  */
@@ -787,7 +826,11 @@ char ClientView::join_finalize(network_player_entry *entry)
 }
 
 /**
- * Original `network_session_create`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * types/networking.h "network_client_globals (0x4d8a80 network_session_create,
+ * 0x4d8b70 destroy)" -- every DAT_ global in this function is network_client_storage
+ * (0x00872de0) plus a fixed delta, matched field by field against that struct; the
+ * out/phase4/networking_types_notes.md "network_client_globals (0xf4c)" paragraph confirms the
+ * same deltas and confirms +0xb14 is the session network_game_session_reset receives.
  *
  * @address 0x4d8a80
  */
@@ -846,7 +889,8 @@ network_client_globals * ClientView::create()
 }
 
 /**
- * Original `network_session_info_packet_send`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Encodes and queues a session-info
+ * packet for the connection, when its connection-mode field indicates that one is needed").
  *
  * @address 0x4d9050
  */
@@ -910,7 +954,13 @@ char ClientView::info_packet_send(const uint32_t *source)
 }
 
 /**
- * Original `network_session_player_join_notify`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Records a newly-joined player's index
+ * into the active session state and queues a notification packet announcing the join"). Shares
+ * the challenge/send idiom (channel+0xa8c/+0x24/+0x1c/+0x20/+0xa80/+0x2c) with the other
+ * functions in this cluster. `in_EAX+0x76d` (word index, byte 0xeda) is client->state;
+ * `in_EAX+0x56e` (byte 0xadc) is client->channel; server+0x3ac and client+0xeb8 both land at
+ * session-relative offset 0x3a4 (2 bytes into types/networking.h's opaque
+ * network_game_session::unknown_3a2[10]), confirming both containers embed the same session.
  *
  * @address 0x4d9700
  */
@@ -1000,7 +1050,11 @@ uint8_t ClientView::player_table_index_apply(int32_t table_index, const uint8_t 
 }
 
 /**
- * Original `network_staged_message_commit`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Commits a previously-staged outgoing
+ * message to the send queue while the connection is in state 2; otherwise a no-op"). This
+ * function has zero callers anywhere in the binary (out/functions.json callers=0); rewritten
+ * anyway per the task instructions. Shares the challenge/send idiom with the rest of this
+ * cluster (network_session_info_packet_send.c etc).
  *
  * @address 0x4da250
  */
@@ -1040,7 +1094,8 @@ int32_t ClientView::staged_message_commit(uint16_t message_value)
 }
 
 /**
- * Original `network_connection_endpoint_set`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Sets a connection object's remote
+ * endpoint address fields and (re)allocates its per-endpoint control block").
  *
  * @address 0x4d8c50
  */
@@ -1081,7 +1136,13 @@ int32_t ConnectionView::endpoint_set(const uint32_t *source)
 }
 
 /**
- * Original `network_connection_initiate`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Begins establishing a connection
+ * object to a given address/session, substituting the loopback address 127.0.0.1 when the
+ * target turns out to be the local machine"); connection+0xec4 matches types/networking.h's
+ * network_client_globals::unknown_ec4 exactly; connection+0xadc matches ::channel; the writes
+ * to connection+0xac4/0xac6 as two 16-bit halves of a dword whose low half is set to the literal
+ * 4 (k_network_address_size_ipv4) confirm connection+0xab4 is an s_network_address, which
+ * upgrades the network_connection_endpoint struct first introduced in
  *
  * @address 0x4d8cf0
  */
@@ -1172,7 +1233,13 @@ rebuild_endpoint:
 }
 
 /**
- * Original `network_connection_retransmit_if_overdue`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Checks whether a connection's last
+ * outgoing data has gone unacknowledged past its deadline and, if so, resends it and bumps the
+ * retry counter"). client+0xad6/+0xab4/+0xad8 match network_client_globals::connection
+ * (a network_connection_endpoint in types/networking.h since the review pass)
+ * (ready flag, address.ipv4, control_block); this function additionally shows +0xad2 as a live
+ * int16 retry counter (inside what those files call the raw `unknown_1c` dword, at its upper
+ * half) and +0xad4 as a live int16 (their `unknown_20[2]`, matching that field's size exactly).
  *
  * @address 0x4d93b0
  */
@@ -1199,7 +1266,13 @@ void ConnectionView::retransmit_if_overdue(const uint32_t *sender_address, uint3
 }
 
 /**
- * Original `network_connection_send_keepalive`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Periodically sends a keepalive packet
+ * on an idle connection once more than three seconds have elapsed since the last send").
+ * Confirms and refines network_client_globals::connection, shared with
+ * network_connection_endpoint_set.c / network_connection_initiate.c /
+ * network_connection_retransmit_if_overdue.c: what those files call the raw `unknown_18` dword
+ * (0xacc) is a live millisecond timestamp here, and what network_connection_retransmit_if_overdue.c
+ * calls `unknown_1c_lo` (0xad0) is a live int16 counter this function increments.
  *
  * @address 0x4d9400
  */
@@ -1233,7 +1306,10 @@ void ConnectionView::send_keepalive()
 }
 
 /**
- * Original `network_host_channel_service_tick`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Per-tick network update used while
+ * acting as host/server: services the channel, drains incoming messages, updates per-machine
+ * state, and sends a periodic ping"). Shares the channel-flags bit4 ("not dead") test with
+ * network_host_update_tick.c.
  *
  * @address 0x4db100
  */
@@ -1262,7 +1338,13 @@ char HostClientView::channel_service_tick()
 }
 
 /**
- * Original `network_host_lobby_tick`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md: "Per-tick update for a hosted game: broadcasts
+ * presence, services the network channel, and drains incoming messages while the host's socket
+ * is healthy." It is case 2 of network_client_state_dispatch (0x4d8bb0), which sits between the
+ * two join-side states (0, 1) and the in-game states (3 = network_game_client_update, 4 =
+ * network_host_channel_service_tick), and it is the only caller of
+ * network_host_presence_broadcast_tick (0x4dadb0, the once-a-second LAN announcement), so this
+ * is the state a host runs in while sitting in the pre-game lobby.
  *
  * @address 0x4daef0
  */
@@ -1290,7 +1372,10 @@ char HostClientView::lobby_tick()
 }
 
 /**
- * Original `network_host_presence_broadcast_tick`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Periodically (every second) builds and
+ * queues a short broadcast-style message carrying a global status string, consistent with a
+ * hosted-game LAN presence announcement"). client+0xed4 matches types/networking.h's
+ * network_client_globals::unknown_ed4 exactly.
  *
  * @address 0x4dadb0
  */
@@ -1500,7 +1585,13 @@ retry_limit_check:
 }
 
 /**
- * Original `network_join_request_resolve_host`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase2/results/networking_01.json / symbols/review_queue.txt)
+ * address 0x4ba320, size 819 bytes
+ * name confidence: 0.45   rewrite confidence: 0.35
+ * out/phase4/networking_functions.md summary ("Resolves the host/IP for a pending
+ * 'join server' request and either connects immediately or kicks off an asynchronous hostname
+ * resolution"); out/phase2/results/networking_01.json evidence ("reads a pending connect
+ * request (DAT_00719450), retrieves hostname/IP fields via SBServerGetPublicAddress/00617640/00617650,
  *
  * @address 0x4ba320
  */

@@ -103,7 +103,11 @@ void ConnectionStats::end(int32_t connection_id, uint16_t connection_key)
 }
 
 /**
- * Original `network_connection_stats_log_tick`, moved unchanged; recovered notes are in docs/original/networking/net1_runtime.md.
+ * out/phase4/networking_types_notes.md "network_connection_statistics (0x44)": the
+ * header names interval_packets_sent/interval_bytes_sent/interval_reliable_bytes_sent/
+ * interval_resend_bytes_sent directly from this function's own log header and %d group, and
+ * the player-count accumulation ("network_client + 0xb14 or network_server + 8", reading
+ * +0x1a0) is the cross-check that pinned network_game_session::player_count.
  *
  * @address 0x440d80
  */
@@ -185,7 +189,13 @@ void ConnectionStats::log_tick()
 }
 
 /**
- * Original `network_connection_stats_lookup_or_add`, moved unchanged; recovered notes are in docs/original/networking/net1_runtime.md.
+ * already named)
+ * address 0x440a80, size 160 bytes
+ * name confidence: 0.5   rewrite confidence: 0.65
+ * out/phase4/networking_types_notes.md "network_connection_statistics (0x44) and
+ * network_summary_statistics (0x1c)": the stride is pinned three ways in this exact function
+ * ("(&DAT_0087becc)[i*0x11]" dword array, "(&DAT_0087bed0)[i*0x22]" word array and
+ * "(&DAT_0087bec8)[i*0x44]" byte array all resolve to the same element").
  *
  * @address 0x440a80
  */
@@ -298,7 +308,11 @@ void NetworkRuntime::debug_fill_canary_buffer(uint32_t *buffer)
 }
 
 /**
- * Original `network_dispatch_initialize`, moved unchanged; recovered notes are in docs/original/networking/net1_runtime.md.
+ * out/phase4/networking_functions.md summary ("initializes networking (winsock etc.)
+ * and, on first run, registers the network game-message dispatch group used to route incoming
+ * gameplay packets"); types/networking.h's closing note that 0x006994f8 is the
+ * data_packet_group 0x4414c0 registers (39 types, max decoded size 0x600), reusing
+ * src/memory/struct_definition_table_compute_sizes.c's already-established prototype.
  *
  * @address 0x4414c0
  */
@@ -321,7 +335,9 @@ void NetworkRuntime::dispatch_initialize()
 }
 
 /**
- * Original `network_hostname_thread_proc`, moved unchanged; recovered notes are in docs/original/networking/net1_runtime.md.
+ * out/phase4/networking_functions.md summary ("thread entry point that retrieves the
+ * local machine's hostname into a buffer, signals completion, and exits the thread"); Ghidra
+ * already recovered the full __stdcall signature and both Win32 calls by name.
  *
  * @address 0x441510
  */
@@ -334,7 +350,11 @@ void NetworkRuntime::hostname_thread_proc(char *hostname_buffer)
 }
 
 /**
- * Original `network_initialize`, moved unchanged; recovered notes are in docs/original/networking/net1_runtime.md.
+ * out/phase4/networking_functions.md summary ("one-time networking subsystem
+ * startup: calls WSAStartup, determines the local IP address, and launches the background
+ * network processing thread"); shares network_disabled_flag (0x007196ec) and
+ * network_local_address (0x006869b0, already documented in networking_types_notes.md as
+ * "byte swapped before binding") with network_dispatch_initialize.c / network_channels_open.c.
  *
  * @address 0x4415c0
  */
@@ -379,7 +399,10 @@ int16_t NetworkRuntime::initialize()
 }
 
 /**
- * Original `network_local_hostent_get`, moved unchanged; recovered notes are in docs/original/networking/net1_runtime.md.
+ * out/phase4/networking_functions.md summary ("resolves and returns the local
+ * machine's hostent structure, retrieving the hostname on a watchdog-timed worker thread
+ * first"); Ghidra already recovered the full signature. Shares network_hostname_ready
+ * (0x006f14cc) with network_hostname_thread_proc.c and the hostname buffer with it too.
  *
  * @address 0x441540
  */
@@ -472,7 +495,12 @@ uint8_t NetworkRuntime::name_string_is_valid_for_mode(char *name, void *characte
 }
 
 /**
- * Original `network_password_field_set`, moved unchanged; recovered notes are in docs/original/networking/net1_runtime.md.
+ * out/phase4/networking_functions.md: "Register-based helper that copies a
+ * wide-character string (e.g. a password) into the object at unaff_ESI+8 and clears the field
+ * immediately following it." Neither the object nor the exact fields at +8/+0x86 could be tied
+ * to a specific header-declared struct (network_server_globals.password is 9 wide chars at
+ * +0x9fc, not +8, and the 0x3f-char copy count does not match its size); kept as raw offsets on
+ * a generic object pointer.
  *
  * @address 0x4df070
  */
@@ -483,7 +511,9 @@ void NetworkRuntime::password_field_set(uint8_t *object, wchar_t *source)
 }
 
 /**
- * Original `network_prepare_challenge_packet`, moved unchanged; recovered notes are in docs/original/networking/net1_runtime.md.
+ * out/phase4/networking_functions.md: "Encodes the queued packet group into a freshly
+ * allocated 0x600-byte network buffer, matching the chimera-identified 'prepare challenge
+ * packet' code path."
  *
  * @address 0x4deaf0
  */
@@ -502,7 +532,9 @@ uint16_t * NetworkRuntime::prepare_challenge_packet(int32_t message_type, void *
 }
 
 /**
- * Original `network_random_offset`, moved unchanged; recovered notes are in docs/original/networking/net1_runtime.md.
+ * out/phase4/networking_functions.md summary ("lazily seeds the C runtime random
+ * number generator from the current time, then returns a random value offset by a
+ * caller-supplied base held in ESI"); `python tools/pack.py 0x4403b0`.
  *
  * @address 0x4403b0
  */
@@ -520,7 +552,12 @@ int32_t NetworkRuntime::random_offset(int32_t base)
 }
 
 /**
- * Original `network_shutdown`, moved unchanged; recovered notes are in docs/original/networking/net1_runtime.md.
+ * out/phase4/networking_functions.md summary ("tears down the networking subsystem:
+ * closes channels, flushes and closes both statistics log files with final summary lines, and
+ * clears the initialized flag"); reuses every network_connection_statistics field name from
+ * out/phase4/networking_types_notes.md, confirming connection_id/connection_key double as an
+ * IPv4 address and port pair here (they are fed straight into the same address-formatting
+ * call, gt2AddressToString, that network_channels_open.c uses for socket addresses).
  *
  * @address 0x4416e0
  */
@@ -597,7 +634,12 @@ int32_t NetworkRuntime::shutdown()
 }
 
 /**
- * Original `network_signal_quality_glyph`, moved unchanged; recovered notes are in docs/original/networking/net1_runtime.md.
+ * out/phase4/networking_functions.md summary ("maps a small integer enum value to
+ * a fixed output byte via a lookup switch, purpose unconfirmed"); `python tools/pack.py
+ * 0x440610`. The returned bytes (0x2b '+', 0x37 '7', 0x38 '8', 0x39 '9', 0x2e '.', 0x31 '1')
+ * are plain ASCII digits/punctuation, which in Blam's HUD font mapping typically select
+ * icon glyphs (e.g. connection-quality bar icons); this is a guess and not confirmed by any
+ * caller in this batch.
  *
  * @address 0x440610
  */
@@ -614,7 +656,12 @@ uint8_t NetworkRuntime::signal_quality_glyph(uint32_t code)
 }
 
 /**
- * Original `network_update`, moved unchanged; recovered notes are in docs/original/networking/net1_runtime.md.
+ * out/phase4/networking_functions.md summary ("per-frame networking service
+ * routine: updates the high-resolution clock, drives the connection-statistics log, and pumps
+ * both network channels"); reuses network_game_socket/network_query_socket from
+ * networking_types_notes.md and performance_frequency from
+ * src/math/random_seed_generate.c (same QueryPerformanceCounter/__allmul/__alldiv shape,
+ * folded into plain int64_t arithmetic here for the same reason).
  *
  * @address 0x4418d0
  */
@@ -943,7 +990,13 @@ uint16_t * MessageBlocks::block_build(uint16_t *buffer, uint32_t *source, uint8_
 }
 
 /**
- * Original `network_message_read_sized_buffer`, moved unchanged; recovered notes are in docs/original/networking/net1_runtime.md.
+ * out/phase4/networking_functions.md: "Register-based helper (EDI) that validates a
+ * size/capacity value obtained twice from FUN_004cf950 against param_1 before returning the
+ * buffer pointer, otherwise returns null." Reads a 16-bit chunked header into `buffer` itself,
+ * checks its high 12 bits (a byte count) against the caller's capacity, then reads that many
+ * more bits and confirms the bit count consumed matches exactly, before returning `buffer`.
+ * The 16-bit header carries the total byte count in its high 12 bits; the payload (total*8 - 16
+ * bits) is read into buffer + 2 bytes, after the header.
  *
  * @address 0x4de420
  */
@@ -1013,7 +1066,10 @@ void StatsSummaryLog::open()
 }
 
 /**
- * Original `network_stats_summary_log_write`, moved unchanged; recovered notes are in docs/original/networking/net1_runtime.md.
+ * out/phase4/networking_types_notes.md "bandwidth statistics" section; the fourteen
+ * "%f\t"/"%d\t" writes match, in order, the fourteen columns of the "Game Summary" header
+ * (network_stats_summary_log_open.c) that follow "Map" -- that column is written by this
+ * function's caller, not here.
  *
  * @address 0x440820
  */

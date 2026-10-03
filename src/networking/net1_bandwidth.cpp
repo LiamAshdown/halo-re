@@ -41,7 +41,13 @@ extern void chimera__draw_8_bit_text(int32_t x, int32_t y, const char *text);
 namespace halo::networking {
 
 /**
- * Original `network_bandwidth_direction_name_to_index`, moved unchanged; recovered notes are in docs/original/networking/net1_bandwidth.md.
+ * out/phase4/networking_functions.md summary ("Converts a direction-name string (e.g.
+ * 'sent'/'recv') into the corresponding index for the network bandwidth debug graph"); identical
+ * shape to network_bandwidth_unit_name_to_index (0x4d8a20) one function above it, indexing
+ * network_bandwidth_direction_label_table, already named from
+ * src/networking/network_bandwidth_graph_instance_update_layout.c and
+ * src/networking/network_bandwidth_graph_update.c (0x0065d430, indexed by
+ * network_bandwidth_graph::direction_index). The two extra globals Ghidra lists
  *
  * @address 0x4d8a50
  */
@@ -60,7 +66,10 @@ int32_t BandwidthMonitor::direction_name_to_index(const char *name)
 }
 
 /**
- * Original `network_bandwidth_graph_accumulate_received`, moved unchanged; recovered notes are in docs/original/networking/net1_bandwidth.md.
+ * out/phase4/networking_functions.md summary ("Accumulates incoming (received) byte
+ * counts for the network bandwidth debug graph, updating the displayed total only when
+ * 'received' is the active view"); mirrors network_bandwidth_graph_accumulate_sent.c exactly,
+ * with direction_index == 1 and bits_received instead of direction_index == 0 and bits_sent.
  *
  * @address 0x4d7a50
  */
@@ -84,7 +93,10 @@ void BandwidthMonitor::accumulate_received(int32_t byte_count, int32_t packet_co
 }
 
 /**
- * Original `network_bandwidth_graph_accumulate_sent`, moved unchanged; recovered notes are in docs/original/networking/net1_bandwidth.md.
+ * out/phase4/networking_functions.md summary ("Accumulates outgoing (sent) byte
+ * counts for the network bandwidth debug graph, updating the displayed total only when 'sent'
+ * is the active view"); types/networking.h network_bandwidth_graph (units_index,
+ * direction_index, pending_sample, needs_layout, last_sample_ms, bits_sent, rate_base_ms).
  *
  * @address 0x4d79d0
  */
@@ -108,7 +120,10 @@ void BandwidthMonitor::accumulate_sent(int32_t byte_count, int32_t packet_count)
 }
 
 /**
- * Original `network_bandwidth_graph_reset`, moved unchanged; recovered notes are in docs/original/networking/net1_bandwidth.md.
+ * out/phase4/networking_functions.md summary ("Resets the global network
+ * bandwidth-graph debug overlay's counters and mode selectors to their default state");
+ * types/networking.h network_bandwidth_graph and network_bandwidth_graph_globals /
+ * network_bandwidth_graph_default_interval_ms.
  *
  * @address 0x4d7980
  */
@@ -127,7 +142,13 @@ uint32_t BandwidthMonitor::reset()
 }
 
 /**
- * Original `network_bandwidth_graph_set_units_command`, moved unchanged; recovered notes are in docs/original/networking/net1_bandwidth.md.
+ * out/phase2/results/networking_01.json / symbols/review_queue.txt)
+ * address 0x4d7d90, size 73 bytes
+ * name confidence: 0.45   rewrite confidence: 0.6
+ * out/phase4/networking_functions.md summary ("Parses a units/direction
+ * command-line pair (e.g. 'bytes sent') and, if valid, (re)configures the network bandwidth
+ * debug graph to display them"); out/phase2/results/networking_01.json evidence ("only
+ * proceeds if the overlay is enabled (DAT_00710305), resolves a units token via
  *
  * @address 0x4d7d90
  */
@@ -150,7 +171,13 @@ uint32_t BandwidthMonitor::set_units_command(const char *units_name, const char 
 }
 
 /**
- * Original `network_bandwidth_graph_update`, moved unchanged; recovered notes are in docs/original/networking/net1_bandwidth.md.
+ * out/phase4/networking_functions.md summary ("Recomputes the on-screen layout and
+ * label of the global network bandwidth debug graph whenever the screen size changes, then
+ * redraws it"); every field this function touches is the SAME layout this batch's
+ * network_bandwidth_graph_instance_update_layout.c (0x4d7e20) computes for a per-instance
+ * graph, just inlined against the global singleton's absolute addresses instead of taking a
+ * pointer -- 0x00719cf4 is exactly network_bandwidth_graph_globals + 0x14, and the final
+ * snprintf destination 0x0071c0c0 is exactly network_bandwidth_graph_globals + 0x23e0, the same
  *
  * @address 0x4d7ad0
  */
@@ -246,7 +273,13 @@ void BandwidthMonitor::update_()
 }
 
 /**
- * Original `network_bandwidth_unit_name_to_index`, moved unchanged; recovered notes are in docs/original/networking/net1_bandwidth.md.
+ * already named)
+ * address 0x4d8a20, size 44 bytes
+ * name confidence: 0.55   rewrite confidence: 0.75
+ * out/phase4/networking_functions.md summary ("Converts a 'bytes'/'packets' unit-name
+ * string into the corresponding index for the network bandwidth debug graph"); the two strings
+ * referenced ("bytes", "packets") match network_bandwidth_units_label_table, already named from
+ * src/networking/network_bandwidth_graph_instance_update_layout.c and
  *
  * @address 0x4d8a20
  */
@@ -265,7 +298,13 @@ int32_t BandwidthMonitor::unit_name_to_index(const char *name)
 }
 
 /**
- * Original `network_bandwidth_graph_find_peak_sample`, moved unchanged; recovered notes are in docs/original/networking/net1_bandwidth.md.
+ * out/phase2/results/networking_01.json / symbols/review_queue.txt)
+ * address 0x4d8140, size 114 bytes
+ * name confidence: 0.4   rewrite confidence: 0.75
+ * out/phase4/networking_functions.md summary ("Finds the index of the largest
+ * sample in the bandwidth-graph history, used to rescale the graph's vertical axis");
+ * out/phase2/results/networking_01.json evidence ("scans the graph's sample array in groups
+ * of 5 across its full 0x140-entry length tracking the running maximum value and its index,
  *
  * @address 0x4d8140
  */
@@ -291,7 +330,11 @@ int32_t BandwidthGraphView::find_peak_sample(int32_t *out_peak_countdown)
 }
 
 /**
- * Original `network_bandwidth_graph_instance_history_reset`, moved unchanged; recovered notes are in docs/original/networking/net1_bandwidth.md.
+ * out/phase4/networking_functions.md summary ("Resets a network bandwidth-graph
+ * instance's sample ring buffer and history array to an empty starting state"); every field
+ * this function touches matches types/networking.h network_bandwidth_graph exactly
+ * (columns[].color/x/y, bits_sent/bits_received/rate_base_ms/rate_sent/rate_received/
+ * pending_sample/unknown_00d4, history[320], peak_scale, displayed_rate, last_sample_ms).
  *
  * @address 0x4d8080
  */
@@ -329,7 +372,13 @@ void BandwidthGraphView::instance_history_reset()
 }
 
 /**
- * Original `network_bandwidth_graph_instance_init`, moved unchanged; recovered notes are in docs/original/networking/net1_bandwidth.md.
+ * already named)
+ * address 0x4d7de0, size 58 bytes
+ * name confidence: 0.5   rewrite confidence: 0.75
+ * out/phase4/networking_functions.md summary ("Initializes a per-instance network
+ * bandwidth-graph object with the given units/direction mode and forces its layout to be
+ * recomputed"); types/networking.h network_bandwidth_graph.needs_layout (+0x0),
+ * .last_sample_ms (+0x4), .sample_interval_ms (+0x8), .units_index (+0xc),
  *
  * @address 0x4d7de0
  */
@@ -348,7 +397,13 @@ void BandwidthGraphView::instance_init(int32_t units_index, int32_t direction_in
 }
 
 /**
- * Original `network_bandwidth_graph_instance_update_layout`, moved unchanged; recovered notes are in docs/original/networking/net1_bandwidth.md.
+ * out/phase4/networking_functions.md summary ("Recomputes the on-screen layout and
+ * label text of one network bandwidth-graph instance object when the screen size changes or a
+ * refresh is forced"); types/networking.h network_bandwidth_graph for the named fields
+ * (width/height at +0x14/+0x18 fall inside its documented unknown_0014[0x12], the label/layout
+ * scratch touched here falls inside its documented unknown_002c[0x90]); this function's own
+ * summary's naming hints ("update_for_resolution_change") and symbols/functions.txt
+ * rasterizer_resize_game_window for the 0x0069c634/0x0069c638 screen client-area corners.
  *
  * @address 0x4d7e20
  */
@@ -439,7 +494,13 @@ void BandwidthGraphView::instance_update_layout(uint8_t force_refresh)
 }
 
 /**
- * Original `network_bandwidth_graph_new_sample`, moved unchanged; recovered notes are in docs/original/networking/net1_bandwidth.md.
+ * out/phase2/results/networking_01.json / symbols/review_queue.txt)
+ * address 0x4d8430, size 145 bytes
+ * name confidence: 0.4   rewrite confidence: 0.6
+ * out/phase4/networking_functions.md summary ("Records a new bandwidth sample into
+ * a graph instance, updating its smoothed displayed rate and last-update timestamp");
+ * out/phase2/results/networking_01.json evidence ("calls
+ * network_bandwidth_graph_update_columns (0x4d81c0), averages the five most recent raw sample
  *
  * @address 0x4d8430
  */
@@ -461,7 +522,13 @@ void BandwidthGraphView::new_sample()
 }
 
 /**
- * Original `network_bandwidth_graph_tick`, moved unchanged; recovered notes are in docs/original/networking/net1_bandwidth.md.
+ * out/phase2/results/networking_01.json / symbols/review_queue.txt)
+ * address 0x4d84d0, size 100 bytes
+ * name confidence: 0.45   rewrite confidence: 0.65
+ * out/phase4/networking_functions.md summary ("Advances a network bandwidth-graph
+ * instance forward by any elapsed sampling intervals since it was last updated");
+ * out/phase2/results/networking_01.json evidence ("computes elapsed ms since the instance's
+ * last update (+4) via QueryPerformanceCounter, and while the elapsed time exceeds the
  *
  * @address 0x4d84d0
  */
@@ -485,7 +552,13 @@ void BandwidthGraphView::tick()
 }
 
 /**
- * Original `network_bandwidth_graph_update_columns`, moved unchanged; recovered notes are in docs/original/networking/net1_bandwidth.md.
+ * out/phase2/results/networking_01.json / symbols/review_queue.txt)
+ * address 0x4d81c0, size 605 bytes
+ * name confidence: 0.35   rewrite confidence: 0.45
+ * out/phase4/networking_functions.md summary ("Feeds a new sample into a network
+ * bandwidth-graph instance and recomputes the interpolated column heights used to draw the
+ * scrolling line graph"); out/phase2/results/networking_01.json evidence ("shifts the +0xd8
+ * history window down by one and records the new sample (in_EAX) at +0x5d4; when the current
  *
  * @address 0x4d81c0
  */
@@ -542,7 +615,12 @@ static float as_unsigned_float(int32_t value)
 }
 
 /**
- * Original `network_bandwidth_rate_compute`, moved unchanged; recovered notes are in docs/original/networking/net1_bandwidth.md.
+ * out/phase4/networking_functions.md summary ("Computes the smoothed sent/received
+ * bits-per-second rates for the network bandwidth debug overlay from accumulated byte counters
+ * and elapsed time"); types/networking.h network_bandwidth_graph.rate_base_ms (+0xc4),
+ * .bits_sent (+0xbc), .bits_received (+0xc0), .rate_sent (+0xc8), .rate_received (+0xcc); the
+ * QueryPerformanceCounter/__allmul/__alldiv shape is the same one folded into plain int64_t
+ * arithmetic in src/math/random_seed_generate.c and src/networking/network_update.c.
  *
  * @address 0x4d8540
  */
@@ -608,7 +686,13 @@ static void device_call_mode_ptr_count(void **device, uint32_t vtable_offset, in
 }
 
 /**
- * Original `network_stats_overlay_draw`, moved unchanged; recovered notes are in docs/original/networking/net1_bandwidth.md.
+ * out/phase4/networking_functions.md summary ("Renders the network bandwidth debug
+ * overlay: draws the scrolling line graph via the Direct3D device and overlays the
+ * sent/received bits-per-second text"); types/networking.h network_bandwidth_graph.columns
+ * (+0x5d8), .peak_scale (+0x23d8), .displayed_rate (+0x23dc), .rate_sent (+0xc8),
+ * .rate_received (+0xcc), the label text at +0x23e0 (see network_bandwidth_graph_instance_
+ * update_layout, 0x4d7e20, already committed, for why that offset has no header field).
+ * Ghidra's own decompile of every indirect call through the renderer's vtable
  *
  * @address 0x4d8620
  */

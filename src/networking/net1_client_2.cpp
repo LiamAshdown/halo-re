@@ -58,7 +58,11 @@ extern const char network_ellipsis_dots[];
 namespace halo::networking {
 
 /**
- * Original `network_client_connection_handshake_tick`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md: "State machine that drives the client
+ * connection handshake/timeout: while connected, updates the disconnect-timeout timer per
+ * incoming message id, and while not yet connected, (re)starts the timeout ti[mer]." The four
+ * FUN_004debXX callees are types/networking.h's network_timer_pair helpers, already rewritten
+ * in this repo (network_timer_advance/_start/_increment_clamped/_decrement_floored).
  *
  * @address 0x4e0590
  */
@@ -134,7 +138,13 @@ void ClientView::connection_handshake_tick(int16_t state, network_server_globals
 }
 
 /**
- * Original `network_client_rejoin_check`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md: "Finds the channel-key entry matching the
+ * caller's key and parameter and, unless a follow-up check succeeds, flags DAT_0071c2de and
+ * calls FUN_004aa900 (likely to force a host handoff or disconnect)." The scanned array (client
+ * treated as short*, +0x669 shorts == byte +0xcd2) matches network_client->session.players[]'s
+ * machine_index/machine_player_index fields exactly (same evidence as
+ * network_game_session_reset.c and network_player_entry_add.c). network_session_info_packet_send and
+ * network_send_join_request_packet are already named by the batch covering 0x4d8a80..0x4d9340.
  *
  * @address 0x4de390
  */
@@ -170,7 +180,11 @@ void ClientView::rejoin_check(int8_t machine_player_index)
 }
 
 /**
- * Original `network_client_timer_default_or_disconnect`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Either leaves an already-flagged
+ * session alone or triggers a network disconnect/cleanup after defaulting the retry-limit
+ * field"). client+0xedc matches types/networking.h's network_client_globals::unknown_edc
+ * exactly; network_server+6 bit2 matches network_server_globals::flags's documented
+ * "bit2 stats logging".
  *
  * @address 0x4d9ce0
  */
@@ -188,7 +202,9 @@ void ClientView::timer_default_or_disconnect()
 }
 
 /**
- * Original `network_disconnect_notify_dropped_machines`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Displays a disconnect-notification
+ * error message for each machine that dropped from the session"). client+0xee0 matches
+ * types/networking.h's network_client_globals::unknown_ee0 exactly.
  *
  * @address 0x4d9340
  */
@@ -222,7 +238,13 @@ void ClientView::disconnect_notify_dropped_machines()
 }
 
 /**
- * Original `network_game_client_connect_to_address`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * already named)
+ * address 0x4dc790, size 314 bytes
+ * name confidence: 0.5   rewrite confidence: 0.45
+ * out/phase4/networking_functions.md: "Parses a user-entered address[:port] string,
+ * resolves it to a numeric address, and kicks off the connect handshake." Confirmed against
+ * objdump -d -M intel bin/halo.exe at 0x4dc790..0x4dc8c9: the address-string argument is EAX
+ * (saved into EBX at entry, in_EAX in Ghidra's decompile); the four inet_addr() calls per branch
  *
  * @address 0x4dc790
  */
@@ -272,7 +294,10 @@ uint32_t ClientView::client_connect_to_address(wchar_t *player_name, char *addre
 }
 
 /**
- * Original `network_session_destroy`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * types/networking.h "network_client_globals (0x4d8a80 network_session_create,
+ * 0x4d8b70 destroy)"; the two offsets this function writes (+0xf48, +0xadc) are exactly
+ * update_history and channel, matching out/phase4/networking_types_notes.md's
+ * "network_session_destroy (0x4d8b70) frees the +0xf48 list and deletes the +0xadc channel".
  *
  * @address 0x4d8b70
  */
@@ -292,7 +317,10 @@ void ClientView::destroy()
 }
 
 /**
- * Original `network_send_join_request_packet`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Encodes and queues an outgoing
+ * join-request packet (packet type 0x1e) on the given connection"); shares the channel+0xa8c/
+ * +0x24/+0x1c/+0x20/+0xa80/+0x2c raw-offset idiom already used (and left unresolved) in
+ * network_session_info_packet_send.c and src/game/game_engine_send_team_allegiance_message.c.
  *
  * @address 0x4d9220
  */
@@ -385,7 +413,9 @@ void JoinView::hostname_resolved_callback(int32_t resolve_failed, uint32_t unuse
 }
 
 /**
- * Original `network_join_status_text_update`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * out/phase4/networking_functions.md summary ("Updates the on-screen join/connect
+ * status text ('Loading', 'Connecting', or an animated 'Connecting...') and the associated UI
+ * state machine based on an integer mode selector").
  *
  * @address 0x4db4c0
  */

@@ -31,7 +31,13 @@ extern int32_t interface_loading_screen_address_a;
 namespace halo::networking {
 
 /**
- * Original `network_connection_finalize_join`, moved unchanged; recovered notes are in docs/original/networking/net1_client.md.
+ * unresolved sub-regions; see UNSURE notes)
+ * out/phase4/networking_functions.md summary ("Finalizes a connection's transition
+ * into the joined/in-game state, sending the final join packet and arming post-join bookkeeping
+ * timers"). `connection` is `ushort *` per Ghidra's own recovered signature; every offset below
+ * is a WORD index doubled to a byte offset, matching this module's other word-indexed functions
+ * (network_client_state_dispatch.c's client+0xeda, etc). connection+0x56e (byte 0xadc) is
+ * channel; connection+0x58a (byte 0xb14) is &client->session; connection+0x760 (byte 0xec0) is
  *
  * @address 0x4d9960
  */

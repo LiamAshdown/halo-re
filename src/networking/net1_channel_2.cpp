@@ -79,7 +79,12 @@ int16_t ReceiveQueueView::attempt_connect(s_network_address *address, int32_t un
 }
 
 /**
- * Original `network_session_reject_pending_connection_callback`, moved unchanged; recovered notes are in docs/original/networking/net1_channel.md.
+ * WRITTEN 2026-09-28 (retail-independence loop) from the disassembly 0x4e1410..0x4e1447. Reached only as an
+ * immediate: network_game_server_host_new (0x4dec40) stores it as the host session's message_callback, which the C
+ * did as the literal retail address 0x4e1410. The same work as network_listen_reject_pending_connection (0x442250)
+ * with the reject code as the second argument: while a connection request is pending (count 0x6f16d0), the newest
+ * one (network_pending_connections[count - 1], 0x87bc20) is rejected with the 4-byte code (gt2Reject through its
+ * thunk 0x614590) and the count drops by one. Returns the count as the original leaves it in EAX.
  *
  * @address 0x4e1410
  */

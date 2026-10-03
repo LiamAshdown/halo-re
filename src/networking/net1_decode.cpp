@@ -1,4 +1,5 @@
 #include "halo/networking/net1_decode.hpp"
+#include "halo/networking/net1_dispatch.hpp"
 #include <string.h>
 #include <wchar.h>
 
@@ -138,7 +139,9 @@ static void network_game_action_apply_shared(void **context, network_client_glob
 }
 
 /**
- * Original `network_game_action_apply`, moved unchanged; recovered notes are in docs/original/networking/net1_decode.md.
+ * out/phase4/networking_functions.md summary ("Applies a single queued network-game
+ * action by type id, calling the specific per-type handler (ammo pickups, player/vehicle
+ * network updates, etc.)").
  *
  * @address 0x4da320
  */
@@ -261,7 +264,13 @@ char GameClientView::action_queue_drain(bit_stream *stream, const uint32_t *send
 }
 
 /**
- * Original `network_game_process_incoming_messages`, moved unchanged; recovered notes are in docs/original/networking/net1_decode.md.
+ * already named)
+ * address 0x4db180, size 388 bytes
+ * name confidence: 0.6   rewrite confidence: 0.85 (REWRITTEN; was 0.4)
+ * out/phase4/networking_types_notes.md/header comment: "Drains the channel's
+ * incoming ring buffer, extracting queued items bit-by-bit and dispatching each to the
+ * network-message/action processor." client->channel->incoming matches
+ * types/networking.h's network_channel::incoming (a types/memory.h circular_buffer).
  *
  * @address 0x4db180
  */
@@ -398,7 +407,13 @@ compare_done:
 }
 
 /**
- * Original `network_game_settings_packet_send`, moved unchanged; recovered notes are in docs/original/networking/net1_decode.md.
+ * out/phase4/networking_functions.md summary ("Builds and sends a large
+ * game-settings/map-data packet (including the player's name) to a newly-joining client whose
+ * session id doesn't yet match ours"). Word-indexed offsets on `unaff_EBX` (an `undefined2 *`)
+ * resolve cleanly against types/networking.h's network_client_globals when doubled: word 0x76d
+ * (byte 0xeda) is state, word 0x76f (byte 0xede) is unknown_ede, word 0x5cc (byte 0xb98) is
+ * exactly &client->session.server_name, word 0x56e (byte 0xadc) is channel, word 0x771 (byte
+ * 0xee2) is pad_ee2, word 0x788 (byte 0xf10) is unknown_f10.
  *
  * @address 0x4d94c0
  */
@@ -516,7 +531,10 @@ compare_done:
 }
 
 /**
- * Original `network_game_state_update_receive`, moved unchanged; recovered notes are in docs/original/networking/net1_decode.md.
+ * out/phase4/networking_functions.md summary ("Processes an incoming sequenced
+ * game-state update packet, growing the per-connection reassembly buffer as needed and handing
+ * the payload off for application"). client+0xecc/+0xed0 match types/networking.h's
+ * network_client_globals::unknown_ecc/unknown_ed0 exactly.
  *
  * @address 0x4d9d20
  */
@@ -579,7 +597,9 @@ int32_t GameClientView::state_update_receive(uint8_t *record)
 }
 
 /**
- * Original `network_incoming_item_dispatch`, moved unchanged; recovered notes are in docs/original/networking/net1_decode.md.
+ * out/phase4/networking_functions.md summary ("Dispatches a single incoming queue
+ * entry either to the queued-game-action applier or to the network-message decode switch,
+ * depending on an entry-type flag").
  *
  * @address 0x4db630
  */
@@ -809,7 +829,13 @@ int32_t ClientMessageDecoder::player_config_value(const uint8_t *buffer, int32_t
 }
 
 /**
- * Original `network_game_client_decode_player_join_chunk`, moved unchanged; recovered notes are in docs/original/networking/net1_decode.md.
+ * out/phase4/networking_functions.md: "Decodes another synchronization-phase data
+ * chunk during the join handshake, aborting via the shared cleanup routine on failure." On
+ * success it calls network_player_join_finalize (0x4d9e30, already named, "Creates the
+ * game-object datum for a player once their connection has fully joined"), which gives this
+ * handler its name. Accepted only while client->state == 3; when it is 4 the message is
+ * silently treated as consumed with no decode attempt.
+ * register/parameter convention: see network_game_client_decode_state_update_chunk.c for the
  *
  * @address 0x4dc240
  */
@@ -843,7 +869,13 @@ char ClientMessageDecoder::player_join_chunk(uint8_t *param_1, int32_t param_2, 
 }
 
 /**
- * Original `network_game_client_decode_player_slot_chunk`, moved unchanged; recovered notes are in docs/original/networking/net1_decode.md.
+ * out/phase4/networking_functions.md: "Decodes a third variant of synchronization-phase
+ * data chunk, accepted across a wider range of connection states." On success it calls
+ * network_session_player_table_index_apply, whose own summary ("Finds the player slot matching a given machine id and
+ * records its assigned table index (e.g. team or score-table slot) for that player") gives this
+ * handler its name. Accepted while client->state is 2, 3 or 4.
+ * register/parameter convention: see network_game_client_decode_state_update_chunk.c for the
+ * shared EAX/ESI->client, param_2->remaining_length reconstruction, and
  *
  * @address 0x4dc2e0
  */
@@ -963,40 +995,28 @@ int32_t ClientMessageDecoder::sync_complete(const uint8_t *buffer, int32_t lengt
 }
 
 /**
- * Original `network_game_message_decode_dispatch`, moved unchanged; recovered notes are in docs/original/networking/net1_decode.md.
+ * named)
+ * address 0x4db6b0, size 336 bytes
+ * name confidence: 0.5   rewrite confidence: 0.85 (REWRITTEN; was 0.3)
+ * out/phase4/networking_functions.md summary ("The central switch that dispatches a
+ * decoded incoming network-game message to the correct per-type handler based on a type byte in
+ * the packet").
  *
  * @address 0x4db6b0
  */
 char ClientMessageDecoder::dispatch(uint16_t *record, int32_t record_length, const uint32_t *sender)
 {
     network_client_globals *client = self;
-    network_game_message_handler_proc handler;
+    const ClientMessageHandler *handler;
 
     if ((*record & 3) != 0 || ((*record >> 2) & 3) != 3) {
         return 1;
     }
-    switch (*((uint8_t *)record + record_length - 1)) {
-    case 0x02: handler = (network_game_message_handler_proc)network_game_client_decode_beacon_reply; break;
-    case 0x03: handler = (network_game_message_handler_proc)network_game_client_decode_pong_reply; break;
-    case 0x04: handler = (network_game_message_handler_proc)network_game_decode_settings_request; break;
-    case 0x05: handler = (network_game_message_handler_proc)network_game_client_decode_join_accepted; break;
-    case 0x06: handler = (network_game_message_handler_proc)network_game_client_decode_connect_rejected; break;
-    case 0x07: handler = (network_game_message_handler_proc)network_game_client_decode_join_complete; break;
-    case 0x08: handler = (network_game_message_handler_proc)network_game_client_decode_settings_or_ack; break;
-    case 0x09: handler = (network_game_message_handler_proc)network_game_client_decode_player_config_value; break;
-    case 0x0a: handler = (network_game_message_handler_proc)network_game_client_decode_join_finalize_message; break;
-    case 0x0b: handler = (network_game_message_handler_proc)network_game_client_decode_join_finalize_ack; break;
-    case 0x0c: handler = (network_game_message_handler_proc)network_game_client_decode_and_discard_join_message; break;
-    case 0x0d: handler = (network_game_message_handler_proc)network_game_client_decode_and_discard_ingame_message; break;
-    case 0x16: handler = (network_game_message_handler_proc)network_game_client_decode_state_update_chunk; break;
-    case 0x17: handler = (network_game_message_handler_proc)network_game_client_decode_player_join_chunk; break;
-    case 0x18: handler = (network_game_message_handler_proc)network_game_client_decode_player_slot_chunk; break;
-    case 0x19: handler = (network_game_message_handler_proc)network_game_client_decode_sync_complete; break;
-    case 0x21: handler = (network_game_message_handler_proc)network_game_message_decode_replicated_command; break;
-    case 0x22: handler = (network_game_message_handler_proc)network_game_message_decode_ingame_notification; break;
-    default: return 1;
+    handler = ClientMessageRegistry::find(*((uint8_t *)record + record_length - 1));
+    if (handler == nullptr) {
+        return 1;
     }
-    return (char)handler(client, record, record_length, sender);
+    return (char)handler->handle(client, record, record_length, sender);
 }
 
 /**
@@ -1039,7 +1059,13 @@ int32_t ClientMessageDecoder::ingame_notification(const uint8_t *buffer, int32_t
 }
 
 /**
- * Original `network_game_message_decode_replicated_command`, moved unchanged; recovered notes are in docs/original/networking/net1_decode.md.
+ * out/phase4/networking_functions.md: "Decodes an in-game message and, only when acting
+ * as host, forwards its two payload values to a follow-up handler -- consistent with the host
+ * applying a command replicated by a client." That description does not match the code as
+ * decoded: the follow-up call only runs when network_game_mode == 1, and types/networking.h
+ * documents mode 1 as "client", not host (0 local, 1 client, 2 host, 3 replay). Kept neutral in
+ * this rewrite's name pending resolution; the exact code below is preserved either way. On
+ * success it decodes an 8-byte payload (packet class 6, not 4 like this cluster's other
  *
  * @address 0x4dc410
  */

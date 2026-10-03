@@ -36,7 +36,9 @@ void TimerView::advance()
 }
 
 /**
- * Original `network_timer_decrement_floored`, moved unchanged; recovered notes are in docs/original/networking/net1_timer.md.
+ * out/phase4/networking_functions.md: "Register-based helper that advances the shared
+ * timer via network_timer_advance then decrements *in_EAX by unaff_EDI, floored at zero." Uses the same
+ * [remaining_ms, last_tick_ms] layout as network_timer_advance.c.
  *
  * @address 0x4debd0
  */
@@ -52,7 +54,10 @@ void TimerView::decrement_floored(int32_t decrement)
 }
 
 /**
- * Original `network_timer_increment_clamped`, moved unchanged; recovered notes are in docs/original/networking/net1_timer.md.
+ * out/phase4/networking_functions.md: "Register-based helper that advances the shared
+ * timer via network_timer_advance then adds an increment to *in_EAX, clamping the result to an upper
+ * bound." Uses the same [remaining_ms, last_tick_ms] layout as network_timer_advance.c; `timer`
+ * is passed straight through to that call.
  *
  * @address 0x4debb0
  */
@@ -75,7 +80,9 @@ void TimerView::increment_clamped(int32_t upper_bound, int32_t increment)
 }
 
 /**
- * Original `network_timer_start`, moved unchanged; recovered notes are in docs/original/networking/net1_timer.md.
+ * out/phase4/networking_functions.md: "Initialises a timer pair pointed to by
+ * unaff_ESI with the current performance-counter time and the requested duration parameter."
+ * Uses the same [remaining_ms, last_tick_ms] layout as network_timer_advance.c.
  *
  * @address 0x4debf0
  */

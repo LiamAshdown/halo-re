@@ -32,7 +32,10 @@ extern int32_t network_server_password_is_set(void *server);
 namespace halo::networking {
 
 /**
- * Original `network_session_host_dispatch_message`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * the qr2 player key callback (key, index, buffer, user
+ * data); the earlier version modeled three arguments. The player at that active index (validated: index in range,
+ * live, salt 0 or matching) has key 0x15 its name (at most 0x40 characters, ASCII) and 0x19 its team; the game
+ * engine's +0xa0 hook answers other keys; anything unanswered is empty. (Name kept.)
  *
  * @address 0x577e40
  */
@@ -75,7 +78,12 @@ void HostSession::dispatch_message(int32_t key_id, int32_t index, void *buffer, 
 }
 
 /**
- * Original `network_session_host_qr2_server_key`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * the server key callback (key, buffer, user data). The game
+ * engine's +0x9c hook may answer first. Without a server the value is empty; keys 1 hostname ("HALO SERVER" when
+ * unnamed), 3 game version, 5 map (the file name of the server's map path), 6 game type (CTF / Slayer / Oddball /
+ * King / Race), 7 variant name, 8 players, 10 maximum players (at least 1), 11 mode ("exiting" while closing, else
+ * "openplaying"), 12 team play, 13 score limit, 19 password, 0x33 the server flag bit 2, 0x34 the packed custom
+ * options, 0x35 the packed game type options, 0x36 bit 7 of 0x006f1cc0; every other key is empty.
  *
  * @address 0x5779c0
  */

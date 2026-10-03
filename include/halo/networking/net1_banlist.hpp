@@ -5,7 +5,7 @@
 namespace halo::networking {
 
 /**
- * Behaviour group for the original `network_session_*` functions; every member is the original function body moved unchanged.
+ * Persistent ban list: add, load, save, print and the automatic ban of an offending player.
  */
 class Banlist {
 public:

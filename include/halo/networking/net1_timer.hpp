@@ -5,7 +5,7 @@
 namespace halo::networking {
 
 /**
- * Behaviour group for the original `network_timer_*` functions; every member is the original function body moved unchanged.
+ * Non-owning view of a [remaining_ms, last_tick_ms] millisecond timer pair driven by the performance counter.
  */
 class TimerView {
 public:

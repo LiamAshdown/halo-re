@@ -5,7 +5,7 @@
 namespace halo::networking {
 
 /**
- * Behaviour group for the original `network_*` functions; every member is the original function body moved unchanged.
+ * Non-owning view of the client globals: connection lifecycle, state dispatch and local player updates.
  */
 class ClientView {
 public:
@@ -42,7 +42,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_*` functions; every member is the original function body moved unchanged.
+ * Non-owning view of the client globals as a connection: endpoint, keepalive, retransmit and join handshake.
  */
 class ConnectionView {
 public:
@@ -59,7 +59,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_host_*` functions; every member is the original function body moved unchanged.
+ * Host-side ticks that run against the client globals (lobby, channel service, presence broadcast).
  */
 class HostClientView {
 public:
@@ -73,7 +73,7 @@ public:
 };
 
 /**
- * Behaviour group for the original `network_join_*` functions; every member is the original function body moved unchanged.
+ * Non-owning view of the client globals during joining: host resolution, handshake and retry ticks.
  */
 class JoinView {
 public:

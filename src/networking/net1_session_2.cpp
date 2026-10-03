@@ -1,4 +1,5 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/networking/net1_dispatch.hpp"
 #include <string.h>
 #include <stdint.h>
 #include "units.h"
@@ -46,7 +47,13 @@ extern void qr2_keybuffer_add(void *keybuffer, int32_t key_id);
 namespace halo::networking {
 
 /**
- * Original `network_game_process_incoming_message`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * already named)
+ * address 0x4e1c60, size 614 bytes
+ * name confidence: 0.7   rewrite confidence: 0.85 (REWRITTEN; was 0.35)
+ * out/phase4/networking_functions.md: "Top-level decoder/dispatcher for incoming
+ * 'network game' protocol messages, decoding each message with the network-game message group
+ * and routing it by type byte." The bitstream-header check (`(*record & 3) == 0 && ((*record
+ * >> 2) & 3) == 3`) matches network_game_message_decode_dispatch.c's identical check; `in_ECX`'s
  *
  * @address 0x4e1c60
  */
@@ -55,6 +62,7 @@ uint32_t GameRuntime::process_incoming_message(int32_t length, network_machine *
     uint8_t *bytes = (uint8_t *)record;
     uint8_t type_byte;
     uint8_t machine_flags;
+    const ServerMessageHandler *handler;
 
     if ((*record & 3) != 0 || ((*record >> 2) & 3) != 3) {
         return 1;
@@ -64,48 +72,11 @@ uint32_t GameRuntime::process_incoming_message(int32_t length, network_machine *
     if (((machine_flags >> 1) & 1) == 0 && type_byte != 0x0e && !(((machine_flags >> 4) & 1) != 0 && type_byte == 1)) {
         return 1;
     }
-    switch (type_byte) {
-    case 0x01:
-        if (network_disconnect_timeout_flag != 0) {
-            int32_t body[1];
-            int16_t out_type;
-            uint16_t version_used;
-
-            if (data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body,
-                                                bytes + 2, &out_type, &version_used, 0) != 0) {
-                network_game_message_handle_keepalive((network_channel **)machine, body);
-            }
-        }
+    handler = ServerMessageRegistry::find(type_byte);
+    if (handler == nullptr) {
         return 1;
-    case 0x0e: return (uint8_t)network_game_server_handle_join_password(machine, server, bytes, length);
-    case 0x0f: return (uint8_t)network_game_server_handle_join_confirm(machine, server, bytes, length);
-    case 0x10: return (uint8_t)network_game_message_handle_settings_relay(server, bytes, length);
-    case 0x11: return (uint8_t)network_game_message_handle_player_count_broadcast(server, bytes, length);
-    case 0x12: return (uint8_t)network_game_message_handle_player_entry_update(server, bytes, length);
-    case 0x13: return (uint8_t)network_game_message_handle_handshake_forward(server, bytes, length);
-    case 0x14:
-    case 0x25: return (uint8_t)network_game_message_handle_retry_schedule(server, machine, bytes, length);
-    case 0x15: return (uint8_t)network_game_message_handle_build_version(server, machine, bytes, length);
-    case 0x1a: return (uint8_t)network_game_server_handle_info_request(server, machine, bytes, length);
-    case 0x1b:
-        if (*(int16_t *)((uint8_t *)server + 4) == 1) {
-            uint32_t body[8];
-            int16_t out_type;
-            uint16_t version_used;
-
-            if (data_packet_group_decode_packet((length -= 2, (int16_t *)&length), &network_game_messages_group, body,
-                                                bytes + 2, &out_type, &version_used, 5) != 0) {
-                network_game_client_apply_position_update((uint8_t *)machine, body, (void *)-1, 0);
-            }
-        }
-        return 1;
-    case 0x1c: return (uint8_t)network_game_client_handle_map_data(server, bytes, length);
-    case 0x1d: return (uint8_t)network_game_client_handle_settings_relay(server, bytes, length);
-    case 0x1e: return (uint8_t)network_game_client_handle_retry_schedule(server, machine, bytes, length);
-    case 0x23: return (uint8_t)network_game_message_handle_settings_relay_role2(server, bytes, length);
-    case 0x24: return (uint8_t)network_game_message_handle_join_finalize_ack_role2(server, machine, bytes, length);
     }
-    return 1;
+    return handler->handle(server, machine, bytes, length);
 }
 
 /**
@@ -202,7 +173,9 @@ void PlayerReports::ping_field_update_and_report(void *decode_context)
 }
 
 /**
- * Original `network_session_host_qr2_key_list`, moved unchanged; recovered notes are in docs/original/networking/net1_session.md.
+ * the key list callback (key type, key buffer, user data):
+ * server keys 1 3 4 10 19 5 0x33 11 and, in a game, 0x36 8 6 12 7 13 0x34 0x35; in a game, player keys 0x15 0x16
+ * 0x18 0x19 and team keys 0x1c 0x1d.
  *
  * @address 0x577fb0
  */
