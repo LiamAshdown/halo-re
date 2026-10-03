@@ -11,6 +11,21 @@
 #include "halo/core/link.hpp"
 #include "halo/hs/vars.hpp"
 
+namespace {
+/** The ai_object_attention_record row as the vehicle_enterable_* script commands use it. */
+struct vehicle_enterable_record {
+    datum_index object_index;
+    float distance;
+    uint16_t team_mask;
+    uint16_t actor_type_mask;
+    int16_t actor_count;
+    uint8_t pad_0e[2];
+    int32_t actors[6];
+};
+static_assert(sizeof(vehicle_enterable_record) == sizeof(ai_object_attention_record));
+}
+
+
 static auto &global_scenario = halo::link::ref<Scenario *>(halo::hs::vars().global_scenario);
 
 namespace halo::hs {
@@ -340,8 +355,8 @@ void AiBehaviourCommands::force_active(int16_t function_index, uint32_t thread_i
     if (arguments != 0) {
     uint32_t reference = (uint32_t)arguments[0];
 
-    if (halo::ai::globals().state->actors_valid && reference != halo::k_dword_none && (int32_t)(reference & halo::k_slot_mask) < *(int32_t *)&global_scenario->encounters.count) {
-        ((uint8_t *)halo::ai::globals().encounter_data->data)[(reference & halo::k_slot_mask) * 0x6c + 0xc] = halo::hs::argument_byte(arguments[1]);
+    if (halo::ai::globals().state->actors_valid && reference != halo::k_dword_none && (int32_t)(reference & halo::k_slot_mask) < static_cast<int32_t>(global_scenario->encounters.count)) {
+        halo::ai::encounter_at(reference)->force_active = halo::hs::argument_byte(arguments[1]);
     }
     halo::hs::hs_thread_return(0, thread_index);
     }
@@ -417,10 +432,10 @@ void AiBehaviourCommands::set_respawn(int16_t function_index, uint32_t thread_in
     if (arguments != 0) {
         if (arguments[0] != -1 && halo::ai::globals().state->actors_valid != 0) {
             uint32_t index = (uint32_t)arguments[0] & halo::k_slot_mask;
-            uint8_t *encounter = (uint8_t *)halo::ai::globals().encounter_data->data + index * 0x6c;
+            struct encounter *encounter = halo::ai::encounter_at(index);
 
-            encounter[0x3c] = (uint8_t)arguments[1];
-            *(int16_t *)((uint8_t *)halo::ai::globals().encounter_data->data + index * 0x6c + 0xe) = 0x96;
+            encounter->respawn_enabled = (uint8_t)arguments[1];
+            encounter->activation_delay = 0x96;
             halo::ai::encounter_activate((datum_index)index);
         }
         halo::hs::hs_thread_return(0, thread_index);
@@ -640,7 +655,7 @@ void AiTargetingCommands::follow_distance(int16_t function_index, uint32_t threa
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
-            *(uint32_t *)((uint8_t *)halo::ai::globals().encounter_data->data + (arguments[0] & halo::k_slot_mask) * 0x6c + 0x68) = (uint32_t)arguments[1];
+            halo::ai::encounter_at(arguments[0])->follow_distance = halo::hs::argument_real(arguments[1]);
         }
         halo::hs::hs_thread_return(0, thread_index);
     }
@@ -659,13 +674,13 @@ void AiTargetingCommands::follow_target_ai(int16_t function_index, uint32_t thre
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
-            uint8_t *encounter = (uint8_t *)halo::ai::globals().encounter_data->data + (arguments[0] & halo::k_slot_mask) * 0x6c;
+            struct encounter *encounter = halo::ai::encounter_at(arguments[0]);
 
             if ((uint32_t)arguments[1] == halo::k_dword_none) {
-                ((struct encounter *)encounter)->follow_target_type = 0;
+                encounter->follow_target_type = 0;
             } else {
-                ((struct encounter *)encounter)->follow_target_type = 3;
-                ((struct encounter *)encounter)->follow_target = static_cast<int32_t>((uint32_t)arguments[1]);
+                encounter->follow_target_type = 3;
+                encounter->follow_target = static_cast<int32_t>((uint32_t)arguments[1]);
             }
         }
         halo::hs::hs_thread_return(0, thread_index);
@@ -687,7 +702,7 @@ void AiTargetingCommands::follow_target_disable(int16_t function_index, uint32_t
     uint32_t reference = (uint32_t)arguments[0];
 
     if (reference != halo::k_dword_none) {
-        *(int16_t *)((uint8_t *)halo::ai::globals().encounter_data->data + (reference & halo::k_slot_mask) * 0x6c + 0x62) = 0;
+        halo::ai::encounter_at(reference)->follow_target_type = 0;
     }
     halo::hs::hs_thread_return(0, thread_index);
     }
@@ -708,7 +723,7 @@ void AiTargetingCommands::follow_target_players(int16_t function_index, uint32_t
     uint32_t reference = (uint32_t)arguments[0];
 
     if (reference != halo::k_dword_none) {
-        *(int16_t *)((uint8_t *)halo::ai::globals().encounter_data->data + (reference & halo::k_slot_mask) * 0x6c + 0x62) = 1;
+        halo::ai::encounter_at(reference)->follow_target_type = 1;
     }
     halo::hs::hs_thread_return(0, thread_index);
     }
@@ -727,13 +742,13 @@ void AiTargetingCommands::follow_target_unit(int16_t function_index, uint32_t th
 
     if (arguments != 0) {
         if (arguments[0] != -1) {
-            uint8_t *encounter = (uint8_t *)halo::ai::globals().encounter_data->data + ((uint32_t)arguments[0] & halo::k_slot_mask) * 0x6c;
+            struct encounter *encounter = halo::ai::encounter_at(arguments[0]);
 
             if (arguments[1] == -1) {
-                ((struct encounter *)encounter)->follow_target_type = 0;
+                encounter->follow_target_type = 0;
             } else {
-                ((struct encounter *)encounter)->follow_target_type = 2;
-                ((struct encounter *)encounter)->follow_target = arguments[1];
+                encounter->follow_target_type = 2;
+                encounter->follow_target = arguments[1];
             }
         }
         halo::hs::hs_thread_return(0, thread_index);
@@ -875,7 +890,7 @@ void AiTargetingCommands::playfight(int16_t function_index, uint32_t thread_inde
     uint32_t reference = (uint32_t)arguments[0];
 
     if (reference != halo::k_dword_none) {
-        ((uint8_t *)halo::ai::globals().encounter_data->data)[(reference & halo::k_slot_mask) * 0x6c + 0x60] = halo::hs::argument_byte(arguments[1]);
+        halo::ai::encounter_at(reference)->playfight = halo::hs::argument_byte(arguments[1]);
     }
     halo::hs::hs_thread_return(0, thread_index);
     }
@@ -928,7 +943,7 @@ void AiTargetingCommands::set_blind(int16_t function_index, uint32_t thread_inde
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none && halo::ai::globals().state->actors_valid != 0) {
-            ((uint8_t *)halo::ai::globals().encounter_data->data)[(arguments[0] & halo::k_slot_mask) * 0x6c + 0x40] = halo::hs::argument_byte(arguments[1]);
+            halo::ai::encounter_at(arguments[0])->blind = halo::hs::argument_byte(arguments[1]);
         }
         halo::hs::hs_thread_return(0, thread_index);
     }
@@ -947,7 +962,7 @@ void AiTargetingCommands::set_deaf(int16_t function_index, uint32_t thread_index
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none && halo::ai::globals().state->actors_valid != 0) {
-            ((uint8_t *)halo::ai::globals().encounter_data->data)[(arguments[0] & halo::k_slot_mask) * 0x6c + 0x41] = halo::hs::argument_byte(arguments[1]);
+            halo::ai::encounter_at(arguments[0])->deaf = halo::hs::argument_byte(arguments[1]);
         }
         halo::hs::hs_thread_return(0, thread_index);
     }
@@ -1129,7 +1144,7 @@ void AiPlacementCommands::detach(int16_t function_index, uint32_t thread_index, 
     datum_index unit = (datum_index)arguments[0];
 
     if (unit != k_datum_index_none) {
-        datum_index actor = *(datum_index *)(reinterpret_cast<uint8_t *>(halo::ai::object_at(unit)) + 0x1f4);
+        datum_index actor = reinterpret_cast<unit_object *>(halo::ai::object_at(unit))->unit.actor_index;
 
         if (actor != k_datum_index_none) {
             halo::ai::actor_delete(actor, 0);
@@ -1745,10 +1760,10 @@ void AiVehicleCommands::vehicle_enterable_actor_type(int16_t function_index, uin
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
-            uint8_t *record = (uint8_t *)halo::ai::ai_object_attention_find_or_create((datum_index)arguments[0]);
+            vehicle_enterable_record *record = reinterpret_cast<vehicle_enterable_record *>(halo::ai::ai_object_attention_find_or_create((datum_index)arguments[0]));
 
             if (record != 0) {
-                *(uint16_t *)(record + 0xa) |= (uint16_t)(1u << (halo::hs::argument_byte(arguments[1]) & 0x1f));
+                record->actor_type_mask |= (uint16_t)(1u << (halo::hs::argument_byte(arguments[1]) & 0x1f));
             }
         }
         halo::hs::hs_thread_return(0, thread_index);
@@ -1768,11 +1783,11 @@ void AiVehicleCommands::vehicle_enterable_actors(int16_t function_index, uint32_
 
     if (arguments != 0) {
         if (arguments[0] != -1 && arguments[1] != -1) {
-            uint8_t *record = (uint8_t *)halo::ai::ai_object_attention_find_or_create((datum_index)arguments[0]);
+            vehicle_enterable_record *record = reinterpret_cast<vehicle_enterable_record *>(halo::ai::ai_object_attention_find_or_create((datum_index)arguments[0]));
 
-            if (record != 0 && *(int16_t *)(record + 0xc) < 6) {
-                ((int32_t *)(record + 0x10))[*(int16_t *)(record + 0xc)] = arguments[1];
-                *(int16_t *)(record + 0xc) += 1;
+            if (record != 0 && record->actor_count < 6) {
+                record->actors[record->actor_count] = arguments[1];
+                record->actor_count += 1;
             }
         }
         halo::hs::hs_thread_return(0, thread_index);
@@ -1809,10 +1824,10 @@ void AiVehicleCommands::vehicle_enterable_distance(int16_t function_index, uint3
 
     if (arguments != 0) {
         if ((uint32_t)arguments[0] != halo::k_dword_none) {
-            uint8_t *record = (uint8_t *)halo::ai::ai_object_attention_find_or_create((datum_index)arguments[0]);
+            vehicle_enterable_record *record = reinterpret_cast<vehicle_enterable_record *>(halo::ai::ai_object_attention_find_or_create((datum_index)arguments[0]));
 
             if (record != 0) {
-                *(float *)(record + 0x4) = halo::hs::argument_real(arguments[1]);
+                record->distance = halo::hs::argument_real(arguments[1]);
             }
         }
         halo::hs::hs_thread_return(0, thread_index);
@@ -1832,10 +1847,10 @@ void AiVehicleCommands::vehicle_enterable_team(int16_t function_index, uint32_t 
 
     if (arguments != 0) {
         if (arguments[0] != -1) {
-            uint8_t *record = (uint8_t *)halo::ai::ai_object_attention_find_or_create((datum_index)arguments[0]);
+            vehicle_enterable_record *record = reinterpret_cast<vehicle_enterable_record *>(halo::ai::ai_object_attention_find_or_create((datum_index)arguments[0]));
 
             if (record != 0) {
-                *(uint16_t *)(record + 8) |= (uint16_t)(1u << ((int16_t)arguments[1] & 0x1f));
+                record->team_mask |= (uint16_t)(1u << ((int16_t)arguments[1] & 0x1f));
             }
         }
         halo::hs::hs_thread_return(0, thread_index);
