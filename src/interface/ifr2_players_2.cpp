@@ -5,6 +5,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/shell/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -18,7 +19,6 @@ extern uint8_t rasterizer_fullscreen;
 extern void *rasterizer_device;
 extern uint8_t rasterizer_needs_reset;
 extern uint8_t rasterizer_desktop_display_mode[];
-extern uint32_t config_disable_specular;
 extern uint8_t console_debug_toggle_6893f7;
 extern uint8_t console_debug_toggle_6893f6;
 extern uint8_t console_debug_toggle_6893fa;
@@ -106,7 +106,7 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
         rasterizer_needs_reset = 0;
     }
 
-    value = config_disable_specular != 0 ? 0 : settings[0xa70];
+    value = halo::shell::globals().disable_specular != 0 ? 0 : settings[0xa70];
     console_debug_toggle_6893f7 = value;
     console_debug_toggle_6893f6 = value;
     console_debug_toggle_6893fa = value;

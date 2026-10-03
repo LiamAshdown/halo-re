@@ -6,10 +6,10 @@
 
 #include "internal/state.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 
-extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);
 extern int32_t D3DXCreateEffect(void *device, const void *data, uint32_t size, const void *defines, void *include, uint32_t flags, void *pool, void *out_effect, void **out_error_buffer);
 extern uint32_t __stdcall D3DXGetFVFVertexSize(uint32_t fvf);
 
@@ -96,7 +96,7 @@ int32_t rasterizer_dx9_pixel_shader_effect_load(int32_t effect_index, const void
                           rasterizer_effect_pool, &rasterizer_effects[effect_index].effect, &error_buffer);
     if (hr < 0) {
         rasterizer_shader_file_name = "shaders\\fx.bin";
-        shell_display_fatal_error_dialog(0x69, 0x7e, 1);
+        halo::shell::shell_display_fatal_error_dialog(0x69, 0x7e, 1);
     }
     if (error_buffer != 0) {
         render_device().release(error_buffer);
@@ -231,7 +231,7 @@ int32_t rasterizer_dx9_shaders_init_effect(int32_t effect_index)
     technique = 0;
     found = 0;
 
-    if (config_safe_mode == 0 && config_force_shader != 0x270d) {
+    if (halo::shell::globals().safe_mode == 0 && halo::shell::globals().force_shader != 0x270d) {
         major = (rasterizer_caps.pixel_shader_version >> 8) & 0xff;
         minor = rasterizer_caps.pixel_shader_version & 0xff;
         for (; !found && major >= 0; major--, minor = 9) {
@@ -341,7 +341,7 @@ uint8_t rasterizer_dx9_vertex_shaders_initialize(void)
     ok = rasterizer_dx9_vertex_shaders_load_all();
     if ((ok & 0xff) == 0) {
         rasterizer_shader_file_name = "shaders\\vsh.bin";
-        shell_display_fatal_error_dialog(0x89, 0x7e, 1);
+        halo::shell::shell_display_fatal_error_dialog(0x89, 0x7e, 1);
     }
     return (uint8_t)ok;
 }
@@ -403,7 +403,7 @@ uint32_t rasterizer_dx9_vertex_shaders_load_all(void)
             }
         }
         rasterizer_shader_file_name = "shaders\\vsh.bin";
-        shell_display_fatal_error_dialog(0x69, 0x7e, 1);
+        halo::shell::shell_display_fatal_error_dialog(0x69, 0x7e, 1);
     }
 
     GlobalFree(buffer);
@@ -893,7 +893,7 @@ uint8_t rasterizer_render_target_initialize(void)
                     ok = 0;
                 }
                 if (target->texture == 0) {
-                    shell_display_fatal_error_dialog(0x69, 0x72, 1);
+                    halo::shell::shell_display_fatal_error_dialog(0x69, 0x72, 1);
                 }
                 if (render_device().texture_get_surface_level((void *)(uintptr_t)target->texture, 0, &target->surface) < 0) {
                     ok = 0;

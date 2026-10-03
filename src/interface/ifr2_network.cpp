@@ -5,6 +5,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/shell/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -37,7 +38,6 @@ extern uint16_t missing_string_text[];
 extern uint16_t *text_string_list_get_string(void);
 extern uint8_t default_profile_data[0x1ffc];
 extern char k_empty_string[];
-extern uint8_t command_line_check_flag(const char *flag, const char **out_value);
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source);
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 extern uint8_t network_game_client_connect_to_address_async(const char *address, const char *password);
@@ -281,11 +281,11 @@ uint8_t NetworkSetup::autojoin_from_command_line()
     int32_t slots[100];
     uint8_t profile[0x1ffc];
 
-    if (!command_line_check_flag("-connect", &address) || address == 0) {
+    if (!halo::shell::command_line_check_flag("-connect", &address) || address == 0) {
         return 0;
     }
 
-    if (command_line_check_flag("-name", &name) && name != 0) {
+    if (halo::shell::command_line_check_flag("-name", &name) && name != 0) {
         int16_t count = 100;
 
         string_convert_ascii_to_unicode(wide_name, 0x80, name);
@@ -304,7 +304,7 @@ uint8_t NetworkSetup::autojoin_from_command_line()
         }
     }
 
-    if (!command_line_check_flag("-password", &password) || password == 0) {
+    if (!halo::shell::command_line_check_flag("-password", &password) || password == 0) {
         password = k_empty_string;
     }
     network_game_client_connect_to_address_async(address, password);

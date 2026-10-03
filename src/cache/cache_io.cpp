@@ -6,11 +6,11 @@
 #include "memory.h"
 #include "halo/cache/globals.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 typedef int32_t (*read_file_ex_procedure)(void *file, void *buffer, uint32_t bytes_to_read, cache_io_request *overlapped, void *completion_routine);
 extern int32_t os_platform;
-extern void os_platform_identify(void);
 }
 
 namespace halo::cache {
@@ -298,7 +298,7 @@ void cache_io::thread_start()
     globals().cache_io_event = CreateEventA((LPSECURITY_ATTRIBUTES)((void *)0), 0, 0, (char *)0);
 
     if (os_platform == 0) {
-        os_platform_identify();
+        halo::shell::os_platform_identify();
     }
 
     if (os_platform < 3) {

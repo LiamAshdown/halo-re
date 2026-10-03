@@ -32,6 +32,7 @@
 #include "halo/cseries/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" { void game_engine_flush_pending_simulation_ticks(void); }
 extern "C" { uint32_t game_frame_rate_average_update(void); }
@@ -280,7 +281,6 @@ extern "C" { extern void game_engine_init_tick_record_for_mode(void); }
 extern "C" { extern void game_engine_reset_all_players(void); }
 extern "C" { extern void console_print_error_va(uint8_t clear_first, const char *format, ...); }
 extern "C" { extern void network_game_client_connect_to_resolved_address(void); }
-extern "C" { extern void shell_pump_windows_messages(void); }
 extern "C" { extern void network_session_host_update(void); }
 extern "C" { extern void gcd_think(void); }
 extern "C" { extern uint32_t network_update(void); }
@@ -510,7 +510,7 @@ void MainLoop::loop(void)
         if (game_time_force_single_tick == 0) {
             halo::input::input_update_tick();
         }
-        shell_pump_windows_messages();
+        halo::shell::shell_pump_windows_messages();
         if (main_globals_data.quit != 0) {
             break;
         }

@@ -26,6 +26,7 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 extern uint8_t playlist_profiles_need_defaults;
@@ -112,7 +113,6 @@ extern void * ServerBrowserNew(void *a, void *b, void *c, int32_t d, int32_t e, 
                            void *callback, int32_t h);
 extern void network_channel_gap_4ba660(void);
 extern void autopatch_download_pool_initialize(void);
-extern int32_t shell_load_localized_string(int32_t id, char *out_buffer);
 extern int32_t autopatch_download_start(const char *source);
 extern wchar_t hud_text_unbound[];
 extern char * SBServerGetPlayerStringValue(void *entry, int32_t index, const char *key, const char *default_value);
@@ -1496,7 +1496,7 @@ int32_t ServerBrowser::open(network_ui_widget *root)
     network_join_target_address = 0;
     autopatch_download_pool_initialize();
     if (server_browser_require_valid_entry != 0 && browser_state::motd_download_state == 0) {
-        motd_available = shell_load_localized_string(0x90, motd_string);
+        motd_available = halo::shell::shell_load_localized_string(sizeof(motd_string), halo::shell::globals().module_handle, motd_string, 0x90);
         if (motd_available != 0) {
             browser_state::motd_download_slot = autopatch_download_start(motd_string);
             browser_state::motd_download_state = 1;

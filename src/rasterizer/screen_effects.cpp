@@ -9,6 +9,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 
@@ -158,7 +159,7 @@ void chimera__registry_check_4(void)
         goto set_bit;
     }
     rasterizer_gamma_disabled = 0;
-    if (config_safe_mode != 0) {
+    if (halo::shell::globals().safe_mode != 0) {
         rasterizer_gamma_disabled = 1;
     }
 
@@ -229,7 +230,7 @@ void rasterizer_fog_screen_overlay_set_states(void)
 
     stage5_filter = 2;
     stage6_filter = 2;
-    if (config_use_anisotropic_filter != 0 && (rasterizer_caps.raster_caps & 0x20000) != 0 &&
+    if (halo::shell::globals().use_anisotropic_filter != 0 && (rasterizer_caps.raster_caps & 0x20000) != 0 &&
         1 < rasterizer_caps.max_anisotropy) {
         max_anisotropy = 8;
         if (rasterizer_caps.max_anisotropy < 8) {
@@ -704,7 +705,7 @@ void rasterizer_screen_effect_compute_uv_transform(uint32_t width, uint32_t heig
     frame.depth = 1;
     frame.type = 0;
     frame.format = (BitmapDataFormat_t)0xffff;
-    frame.flags = config_linear_texture_addressing_zoom ? 0x10 : 0;
+    frame.flags = halo::shell::globals().linear_texture_addressing_zoom ? 0x10 : 0;
     frame.registration_point.x = 0;
     frame.registration_point.y = 0;
     frame.mipmap_count = 0;
@@ -1106,7 +1107,7 @@ void rasterizer_screen_effect_render(weapon_screen_effect_parameters *input)
             if (p->mask_bitmap_data != 0) {
                 technique = (pass == pass_count - 1) ? select_filter_technique(p, 4) : 0;
                 if (technique == 0) {
-                    technique = config_use_alternate_convolve_mask ? screen_effect_techniques[3]
+                    technique = halo::shell::globals().use_alternate_convolve_mask ? screen_effect_techniques[3]
                                                                    : screen_effect_techniques[2];
                 }
                 set_technique(technique);
@@ -1452,7 +1453,7 @@ void rasterizer_screen_flash_render(void)
             break;
 
         case 3:
-            if (config_min_max_blend_op_is_broken != 0) {
+            if (halo::shell::globals().min_max_blend_op_is_broken != 0) {
                 uint32_t clamped = pack_argb_bytes_clamped_alpha(color, intensity);
                 set_render_state(0x13, 5);
                 set_render_state(0x14, 6);
@@ -1477,7 +1478,7 @@ void rasterizer_screen_flash_render(void)
             break;
 
         case 4:
-            if (config_min_max_blend_op_is_broken != 0) {
+            if (halo::shell::globals().min_max_blend_op_is_broken != 0) {
                 uint32_t clamped = pack_argb_bytes_clamped_alpha(color, intensity);
                 set_render_state(0x13, 5);
                 set_render_state(0x14, 6);
@@ -1759,7 +1760,7 @@ void rasterizer_sun_glow_capture(const float *rect, int16_t target_index)
     constants[0][3] = rect[0] / width;
     constants[1][1] = (rect[3] - rect[2]) / height;
     constants[1][3] = rect[2] / height;
-    if (config_linear_texture_addressing_sun) {
+    if (halo::shell::globals().linear_texture_addressing_sun) {
         constants[0][0] *= width;
         constants[0][3] = width * constants[0][3];
         constants[1][1] = height * constants[1][1];

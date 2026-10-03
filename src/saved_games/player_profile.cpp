@@ -14,6 +14,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 extern network_thread_record *variant_write_thread;
@@ -46,7 +47,6 @@ extern uint16_t empty_string[];
 extern int32_t rasterizer_gamma_exponent;
 extern uint32_t rasterizer_device_version;
 extern uint32_t video_memory;
-extern uint32_t config_disable_specular;
 extern uint8_t width640;
 extern uint8_t unknown_006894ba;
 extern uint8_t rasterizer_decal_zbias_active(void);
@@ -492,7 +492,7 @@ uint8_t halo::saved_games::PlayerProfile::set_default_video_options(uint8_t allo
         return 1;
     }
 
-    profile->specular = config_disable_specular == 0;
+    profile->specular = halo::shell::globals().disable_specular == 0;
     profile->shadows = 1;
     profile->decals = rasterizer_decal_zbias_active() != 0;
     profile->texture_quality = 2;

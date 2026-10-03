@@ -4,6 +4,7 @@
 #include "halo/cache/api.hpp"
 #include <string.h>
 #include "halo/saved_games/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 extern char *rasterizer_shader_file_name;
@@ -14,7 +15,6 @@ extern int32_t saved_player_profile_slots_handle;
 extern int32_t cached_profile_slot;
 extern char last_profile_name[];
 extern void main_queue_cache_file_open(void);
-extern void shell_display_fatal_error_dialog(uint32_t a, uint32_t b, uint32_t c);
 }
 
 namespace halo::game {
@@ -40,7 +40,7 @@ void CacheFileMaps::switch_map_by_path(char *path, uint8_t apply_state)
                     return;
                 }
                 rasterizer_shader_file_name = path;
-                shell_display_fatal_error_dialog(0x89, 0x7e, 1);
+                halo::shell::shell_display_fatal_error_dialog(0x89, 0x7e, 1);
             }
         } else {
             if (halo::cache::cache_file_download_matches(path) == 0) {

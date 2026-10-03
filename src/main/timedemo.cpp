@@ -16,6 +16,7 @@
 #include "halo/main/timedemo.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern timedemo_globals timedemo_globals_data; }
@@ -30,7 +31,6 @@ extern "C" { extern char timedemo_pixel_shader_version[0x14]; }
 extern "C" { extern d3d_caps9 rasterizer_caps; }
 extern "C" { extern d3d_present_parameters rasterizer_present_parameters; }
 extern "C" { extern int32_t os_platform_refresh_default; }
-extern "C" { extern int32_t config_force_shader; }
 extern "C" { extern char *graphics_vendor_name; }
 extern "C" { extern char *graphics_device_name; }
 extern "C" { extern uint32_t graphics_device_id; }
@@ -171,7 +171,7 @@ void Timedemo::benchmark_update(void)
         GetTimeFormatA(0x400, 0, 0, 0, time, 0x20);
         fprintf(file, "Date / Time: %s %s (%dms)\n", date, time, shell_startup_tick_count);
 
-        if (config_force_shader == 9999) {
+        if (halo::shell::globals().force_shader == 9999) {
             shader = "2.0a";
         } else if (rasterizer_caps.pixel_shader_version < 0xffff0101u) {
             shader = "Fixed Function";

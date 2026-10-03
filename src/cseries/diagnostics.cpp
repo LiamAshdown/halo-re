@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "halo/cseries/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 extern uint8_t debug_log_level;
@@ -24,8 +25,6 @@ extern char *network_log_path_resolve(char *requested_path);
 extern char profile_directory[k_profile_directory_storage_size];
 typedef int32_t (__stdcall *sh_get_folder_path_proc)(void *owner, int32_t csidl, void *token, uint32_t flags, char *out_path);
 extern void *sh_get_folder_path;
-extern uint8_t command_line_check_flag(const char *flag_name, const char **out_value);
-extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t help_text_or_id, int32_t is_fatal);
 }
 
 namespace halo::cseries {
@@ -100,7 +99,7 @@ void profile_path::initialize()
     char documents_path[k_cseries_path_length];
     int32_t result;
 
-    if (command_line_check_flag("-path", &path_argument) != 0 && path_argument != 0) {
+    if (halo::shell::command_line_check_flag("-path", &path_argument) != 0 && path_argument != 0) {
         strncpy(profile_directory, path_argument, k_cseries_path_length);
         return;
     }
@@ -115,7 +114,7 @@ void profile_path::initialize()
     }
 
     strncpy(profile_directory, ".", k_cseries_path_length);
-    shell_display_fatal_error_dialog(k_profile_path_error_title, (uint32_t)((const char *)k_profile_path_error_message), 1);
+    halo::shell::shell_display_fatal_error_dialog(k_profile_path_error_title, (uint32_t)((const char *)k_profile_path_error_message), 1);
 }
 
 } // namespace halo::cseries

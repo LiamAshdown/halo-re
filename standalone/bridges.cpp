@@ -12,4 +12,3 @@
  *   very address of its target and an adapter is the address of the stdcall function below.
  */
 #pragma comment(linker, "/alternatename:_D3DXCreateEffect=_standalone_d3dx_create_effect")
-#pragma comment(linker, "/alternatename:_code_address_shell_window_procedure=_shell_window_procedure@16")

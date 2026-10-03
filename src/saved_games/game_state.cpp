@@ -12,6 +12,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 extern game_time_globals *game_time;
@@ -35,7 +36,6 @@ extern uint32_t cache_file_current_header_crc32;
 extern uint32_t game_state_crc;
 extern void *game_state_persistent_storage;
 extern uint8_t game_state_persistent_storage_created;
-extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);
 extern game_state_proc game_state_after_load_procs[k_game_state_after_load_proc_count];
 extern uint16_t game_time_force_single_tick;
 extern int16_t pending_difficulty;
@@ -163,7 +163,7 @@ void create_persistent_storage_file(void)
         game_state_persistent_storage_created = 1;
         return;
     }
-    shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
+    halo::shell::shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
 }
 
 /**
@@ -351,7 +351,7 @@ void *open_persistent_storage(char *name)
             bytes_written != k_game_state_file_initial_block ||
             SetFilePointer(file, k_game_state_file_size, 0, 0) == 0xffffffff ||
             SetEndOfFile(file) == 0) {
-            shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
+            halo::shell::shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
             if (halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, delete_path) != 0) {
                 DeleteFileA(delete_path);
             }
@@ -466,7 +466,7 @@ uint8_t read_persistent_storage(void)
         bytes_read == game_state_size) {
         return 1;
     }
-    shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
+    halo::shell::shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
     return 0;
 }
 
@@ -491,7 +491,7 @@ void read_persistent_storage_block(int32_t size, void *buffer)
     if (SetFilePointer(file, 0, 0, 0) == 0xffffffff ||
         ReadFile(file, buffer, size, (LPDWORD)&bytes_read, 0) == 0 ||
         bytes_read != (uint32_t)size) {
-        shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
+        halo::shell::shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
         if (halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory) != 0) {
             DeleteFileA(directory);
         }
@@ -516,7 +516,7 @@ void read_profile_file(char *name, int32_t size, void *buffer)
     if (file == (void *)0xffffffff ||
         ReadFile(file, buffer, size, (LPDWORD)&bytes_read, 0) == 0 ||
         bytes_read != (uint32_t)size) {
-        shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
+        halo::shell::shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
     }
     CloseHandle(file);
 }
@@ -581,7 +581,7 @@ void save_thread_proc(void)
         }
 
         if (remaining != 0) {
-            shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
+            halo::shell::shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
             game_state_write_in_progress = 0;
             continue;
         }
@@ -660,7 +660,7 @@ void write_persistent_storage(uint32_t *crc_slot, uint8_t *buffer, int32_t heade
         SetFilePointer(file, 0, 0, 0) == 0xffffffff ||
         WriteFile(file, header_backup, header_size, (LPDWORD)&bytes_written, 0) == 0 ||
         bytes_written != (uint32_t)header_size) {
-        shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
+        halo::shell::shell_display_fatal_error_dialog(0x8b, 0x8c, 1);
         if (halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, directory) != 0) {
             DeleteFileA(directory);
         }

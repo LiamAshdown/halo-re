@@ -9,11 +9,10 @@
 #include "halo/cache/globals.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 extern char map_path_prefix[];
-extern void os_platform_identify(void);
-extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);
 extern void interface_handle_quit_request(void);
 extern int32_t os_platform;
 extern char *rasterizer_shader_file_name;
@@ -415,7 +414,7 @@ uint8_t cache_files::open_by_name(char *name, uint8_t report_fatal_error)
     if (halo::cache::cache_files::exists(basename, &header) == 0) {
         if (report_fatal_error != 0) {
             rasterizer_shader_file_name = name;
-            shell_display_fatal_error_dialog(0x89, 0x7e, 1);
+            halo::shell::shell_display_fatal_error_dialog(0x89, 0x7e, 1);
             interface_handle_quit_request();
         }
         return 0;
@@ -432,7 +431,7 @@ uint8_t cache_files::open_by_name(char *name, uint8_t report_fatal_error)
 
     flags_and_attributes = 0x48000080;
     if (os_platform == 0) {
-        os_platform_identify();
+        halo::shell::os_platform_identify();
     }
     if (os_platform < 3) {
         flags_and_attributes = 0x8000080;
@@ -535,7 +534,7 @@ void cache_files::slot_read_header(int32_t slot_index)
     request.completion.data = (void *)0;
 
     if (os_platform == 0) {
-        os_platform_identify();
+        halo::shell::os_platform_identify();
     }
 
     if (os_platform < 3) {
@@ -580,7 +579,7 @@ validate_header:
     }
 
     rasterizer_shader_file_name = path;
-    shell_display_fatal_error_dialog(0x89, 0x7e, 1);
+    halo::shell::shell_display_fatal_error_dialog(0x89, 0x7e, 1);
     slot->file = (void *)0xffffffff;
     return;
 }

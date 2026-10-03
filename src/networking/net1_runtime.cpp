@@ -8,6 +8,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 extern network_connection_statistics network_connection_stats[k_network_connection_stats_count];
@@ -45,7 +46,6 @@ extern char network_local_hostname_buffer[0x100];
 extern void network_hostname_thread_proc(char *hostname_buffer);
 extern uint8_t network_log_path_buffer[0x104];
 extern char network_log_path_format[];
-extern int32_t security_check_write_access(void);
 extern int32_t text_get_character_metrics(uint8_t ch);
 extern uint8_t virtual_keyboard_character_is_legal(uint8_t ch, void *character);
 extern uint8_t ui_wide_string_has_non_whitespace(void);
@@ -456,7 +456,7 @@ int NetworkRuntime::local_hostent_get(void **out_hostent)
 char * NetworkRuntime::log_path_resolve(char *requested_path)
 {
     network_log_path_buffer[0] = 0;
-    if (security_check_write_access() != 0) {
+    if (halo::shell::security_check_write_access() != 0) {
         _snprintf((char *)network_log_path_buffer, 0x104, network_log_path_format, requested_path);
     }
     if (network_log_path_buffer[0] == 0) {

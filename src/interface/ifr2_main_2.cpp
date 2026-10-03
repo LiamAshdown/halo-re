@@ -11,6 +11,7 @@ extern "C" input_event_queue input_event_queue_active;
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/shell/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -27,7 +28,6 @@ extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
-extern void keystone_library_unload(void);
 extern int32_t ui_time_milliseconds;
 extern loading_thread_record *loading_thread;
 extern int16_t loading_thread_result;
@@ -80,7 +80,7 @@ namespace halo::interface {
 void InterfaceMain::handle_quit_request()
 {
     if (ui_force_quit != 0) {
-        keystone_library_unload();
+        halo::shell::keystone_library_unload();
         ExitProcess(0xffffec7a);
     }
     if (ui_split_screen == 0) {

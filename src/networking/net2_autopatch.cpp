@@ -17,11 +17,11 @@
 #include "main.h"
 #include "halo/networking/net2_autopatch.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 extern int32_t autopatch_update_check_state;
 extern uint8_t * autopatch_update_cfg_directory;
-extern int32_t security_check_write_access(void);
 extern autopatch_download_slot autopatch_download_slots[2];
 extern network_mutex_record network_mutex_table[k_network_mutex_table_count];
 extern int32_t network_mutex_name_counter;
@@ -130,7 +130,7 @@ int32_t AutopatchUpdater::check_for_update_start(void)
         void *thread;
         uint32_t thread_id;
 
-        if (security_check_write_access() != 0) {
+        if (halo::shell::security_check_write_access() != 0) {
             uint32_t *raw = (uint32_t *)&reference;
             int32_t i;
             for (i = 0; i < 0x43; i++) {

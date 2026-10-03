@@ -16,6 +16,7 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" {
 extern char savegames_directory[0x100];
@@ -74,7 +75,6 @@ extern uint32_t cache_file_current_header_crc32;
 extern datum_index global_scenario_index;
 extern char *rasterizer_shader_file_name;
 extern int32_t strcmp(const char *a, const char *b);
-extern void shell_display_fatal_error_dialog(uint32_t string_id, uint32_t title_id, int32_t fatal);
 }
 
 namespace halo::saved_games::saved_game {
@@ -1635,7 +1635,7 @@ uint8_t verify_version_and_checksum(game_state_header *header, uint8_t report_er
             return 0;
         }
         rasterizer_shader_file_name = header->scenario_name;
-        shell_display_fatal_error_dialog(0x89, 0x7e, 1);
+        halo::shell::shell_display_fatal_error_dialog(0x89, 0x7e, 1);
         return 0;
     }
 
@@ -1649,7 +1649,7 @@ uint8_t verify_version_and_checksum(game_state_header *header, uint8_t report_er
 
     if (report_error != 0) {
         rasterizer_shader_file_name = header->scenario_name;
-        shell_display_fatal_error_dialog(0x89, 0x7e, 1);
+        halo::shell::shell_display_fatal_error_dialog(0x89, 0x7e, 1);
     }
     return 0;
 }

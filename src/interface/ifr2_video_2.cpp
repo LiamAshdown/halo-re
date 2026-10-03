@@ -3,6 +3,7 @@
 #include <wchar.h>
 #include <string.h>
 #include "halo/memory/api.hpp"
+#include "halo/shell/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -17,13 +18,11 @@ extern int32_t video_resolution_count;
 extern uint8_t rasterizer_fullscreen;
 extern uint32_t rasterizer_device;
 extern uint32_t rasterizer_device_version;
-extern uint32_t config_disable_specular;
 extern uint32_t rasterizer_capability_007c10e4;
 extern int32_t video_gamma_setting;
 extern int32_t rasterizer_gamma_exponent;
 extern void video_resolution_list_build(void);
 extern uint32_t video_refresh_rate_find_index(int32_t resolution_index, int32_t refresh_rate);
-extern void os_platform_identify(void);
 extern void chimera__gamma(void);
 extern heap *widget_memory_pool;
 extern uint16_t *string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
@@ -54,7 +53,7 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
         target_refresh = *(int16_t *)(settings + 0xa6c);
     } else {
         if (os_platform == 0) {
-            os_platform_identify();
+            halo::shell::os_platform_identify();
         }
         target_refresh = os_platform_refresh_default;
         if (os_platform < 3) {
@@ -105,7 +104,7 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
     *(video_resolution **)(refresh_field + 0x44) = video_resolutions;
     *(int16_t *)(refresh_field + 0x48) = (int16_t)video_resolutions[0].refresh_rate_count;
     if (os_platform == 0) {
-        os_platform_identify();
+        halo::shell::os_platform_identify();
     }
     if (os_platform < 3) {
         *(int16_t *)(refresh_field + 0x40) = 0;
@@ -130,7 +129,7 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
         base = *(uint8_t **)(base + 0x2c);
         for (node = *(uint8_t **)(base + 0x34); node != 0 && *(int16_t *)(node + 0xe) != 2; node = *(uint8_t **)(node + 0x2c)) {}
         *(uint16_t *)(node + 0x40) = (*(int8_t *)(settings + 0xa70) != 0) ? 1 : 0;
-        if (rasterizer_device_version < 0xffff0101u || config_disable_specular != 0) {
+        if (rasterizer_device_version < 0xffff0101u || halo::shell::globals().disable_specular != 0) {
             *(uint16_t *)(node + 0x40) = 0;
             base[0x12] = 1;
             *(uint32_t *)(base + 0x24) = 0x3eaa7efa;

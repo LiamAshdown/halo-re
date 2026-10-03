@@ -88,7 +88,7 @@ target_compile_options(halo_rebuilt PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++20
 
 set_source_files_properties(${SUPPORT_SOURCES} PROPERTIES COMPILE_OPTIONS "/O2;/GS-")
 set_source_files_properties("${SA}/d3dx_compat.cpp" PROPERTIES INCLUDE_DIRECTORIES "${DXSDK_DIR}/Include")
-target_include_directories(halo_rebuilt PRIVATE "${SA}")
+target_include_directories(halo_rebuilt PRIVATE "${SA}" "${CMAKE_SOURCE_DIR}/include")
 
 file(TO_NATIVE_PATH "${HALO_FOLDER}" _halo_folder)
 string(REPLACE "\\" "\\\\" _halo_folder "${_halo_folder}")

@@ -23,6 +23,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/shell/api.hpp"
 
 extern "C" { void console_autocomplete_command(void); }
 extern "C" { uint32_t console_command_context_mask(uint32_t context_flags); }
@@ -34,7 +35,6 @@ extern "C" { char console_process_command(char *command_line, uint32_t context_f
 extern "C" { void console_toggle(void); }
 
 extern "C" { extern int32_t rasterizer_window_requested; }
-extern "C" { extern uint8_t command_line_check_flag(const char *flag_name, const char **out_value); }
 namespace halo::main {
 
 /**
@@ -52,7 +52,7 @@ void Console::chimera__exec_init(void)
     uint8_t exec_flag_present;
     uint8_t ran_script;
 
-    exec_flag_present = command_line_check_flag("-exec", &exec_arg);
+    exec_flag_present = halo::shell::command_line_check_flag("-exec", &exec_arg);
     if (exec_flag_present && exec_arg != 0) {
         strncpy(exec_file_name, exec_arg, 0x7f);
     } else {
@@ -393,7 +393,6 @@ extern "C" void console_out_printf(uint8_t clear_first, const char *format, ...)
 }
 
 extern "C" { extern terminal_console *console_active; }
-extern "C" { extern uint32_t clipboard_get_text(char *buffer, uint32_t capacity); }
 extern "C" { extern void widget_text_edit_insert_string(text_edit_state *state, char *insert_str); }
 namespace halo::main {
 
@@ -409,7 +408,7 @@ uint32_t Console::paste_clipboard_text(void)
     char clipboard_text[0x100];
     uint32_t have_text;
 
-    have_text = clipboard_get_text(clipboard_text, 0xff);
+    have_text = halo::shell::clipboard_get_text(clipboard_text, 0xff);
     if (have_text != 0 && console_active == &console_globals_data.terminal) {
         widget_text_edit_insert_string(&console_active->edit, clipboard_text);
     }
