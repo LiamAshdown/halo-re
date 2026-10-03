@@ -591,8 +591,8 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
                 int32_t now = game_time->game_time;
 
                 if (now % respawn_interval == 0 || force_respawn == 1) {
-                    if (equipment->unknown_ffffffff != 0xffffffff) {
-                        object *existing = object_try_and_get((datum_index)equipment->unknown_ffffffff, _object_mask_item);
+                    if (equipment->spawned_item != 0xffffffff) {
+                        object *existing = object_try_and_get((datum_index)equipment->spawned_item, _object_mask_item);
                         if (existing != 0 && (((item_data *)((uint8_t *)existing + sizeof(object)))->flags & 0x40) != 0) {
                             float dx = existing->position.x - equipment->position.x;
                             float dy = existing->position.y - equipment->position.y;
@@ -604,9 +604,9 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
                                     respawn_interval - 900 + now;
                                 continue;
                             }
-                            object_delete((datum_index)equipment->unknown_ffffffff);
+                            object_delete((datum_index)equipment->spawned_item);
                         }
-                        equipment->unknown_ffffffff = 0xffffffff;
+                        equipment->spawned_item = 0xffffffff;
                     }
 
                     {
@@ -640,7 +640,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
 
                             if (*(int32_t *)tag_instances[item_collection_tag & 0xffff].data == 1) {
                                 item->flags = item->flags | 0x40;
-                                equipment->unknown_ffffffff = new_object;
+                                equipment->spawned_item = new_object;
                             } else {
                                 item->flags = item->flags & ~0x40u;
                             }

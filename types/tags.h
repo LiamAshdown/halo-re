@@ -4686,7 +4686,7 @@ typedef struct ScenarioNetgameEquipment {
     ScenarioSpawnType_t type_3;
     uint16_t team_index;
     int16_t spawn_time;
-    uint32_t unknown_ffffffff;
+    uint32_t spawned_item;     // runtime: datum of the item currently spawned here, -1 when none
     uint8_t _pad_14[44];
     Point3D position;
     float facing;

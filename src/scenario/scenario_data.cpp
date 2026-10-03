@@ -60,7 +60,7 @@ uint8_t scenario_loader::load(char *path)
         ScenarioNetgameEquipment *equipment =
             (ScenarioNetgameEquipment *)global_scenario->netgame_equipment.pointer;
         for (i = 0; i < (int32_t)global_scenario->netgame_equipment.count; i++) {
-            equipment[i].unknown_ffffffff = 0xffffffff;
+            equipment[i].spawned_item = 0xffffffff;
         }
     }
     return 1;
