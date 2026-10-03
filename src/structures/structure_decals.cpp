@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/structures/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/structures/structures.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -11,12 +12,8 @@
 #include "halo/effects/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/structures/globals.hpp"
 
-extern "C" {
-extern uint8_t decals_enabled;
-extern double cos(double x);
-extern double sin(double x);
-}
 
 namespace halo::structures {
 
@@ -76,12 +73,12 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
                     real_vector3d orientation;
                     float yaw = (float)decal->yaw * 0.02473695f;
                     float pitch = (float)decal->pitch * 0.012368475f;
-                    float cos_pitch = (float)cos(pitch);
-                    float cos_yaw = (float)cos(yaw);
+                    float cos_pitch = (float)cos((double)pitch);
+                    float cos_yaw = (float)cos((double)yaw);
 
                     orientation.i = cos_yaw * cos_pitch;
-                    orientation.j = (float)sin(yaw) * cos_pitch;
-                    orientation.k = (float)sin(pitch);
+                    orientation.j = (float)sin((double)yaw) * cos_pitch;
+                    orientation.k = (float)sin((double)pitch);
 
                     if (halo::effects::globals().decals_for_all_responses == 0) {
                         Decal *shader_decal = (Decal *)halo::cache::globals().tag_instances[shader_tag_id.index].data;
@@ -90,7 +87,7 @@ void structure_decals::update_switch_transitions(uint32_t *switch_group_a, uint3
                         }
                     }
 
-                    if (decals_enabled != 0 && spawn_ok) {
+                    if (globals().decals_enabled != 0 && spawn_ok) {
                         collision_result placement;
 
                         halo::math::globals().effect_random_seed = *(uint32_t *)&decal->position.z ^

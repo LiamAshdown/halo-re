@@ -16,8 +16,6 @@
 
 extern "C" {
 extern int32_t sound_decode_dispatch(int16_t channel_count, void *destination, void *source, int32_t source_size);
-extern int32_t sound_cache_size_megabytes;
-extern char file_open_mode_w[];
 }
 
 namespace halo::cache {
@@ -141,7 +139,7 @@ void sound_cache_manager::dump_to_file()
     sound_count = 0;
 
     bitmap = (uint8_t *)GlobalAlloc(0, globals().sound_cache_page_count);
-    file = fopen("sound_cache_dump.txt", file_open_mode_w);
+    file = fopen("sound_cache_dump.txt", globals().file_open_mode_w);
 
     for (scan = line, bit = 0x100; bit != 0; bit--) {
         scan[0] = 0; scan[1] = 0; scan[2] = 0; scan[3] = 0;
@@ -178,7 +176,7 @@ void sound_cache_manager::dump_to_file()
         }
 
         {
-            float mb_total = (float)sound_cache_size_megabytes;
+            float mb_total = (float)globals().sound_cache_size_megabytes;
             float page_count_f = (float)saved_page_count;
             if (saved_page_count < 0) {
                 page_count_f = page_count_f + 4.2949673e+09f;
@@ -187,7 +185,7 @@ void sound_cache_manager::dump_to_file()
 
             sprintf(line,
                 "%d / 512 sounds in cache\n%.2f MB / %.2f MB used %.2f percent free\n%d / %d pages allocated\n%d / %d pages used this frame\n%d / %d pages old\n%d / %d pages locked\n\n",
-                sound_count, (double)(mb_total - free_pages), (double)(int32_t)sound_cache_size_megabytes,
+                sound_count, (double)(mb_total - free_pages), (double)(int32_t)globals().sound_cache_size_megabytes,
                 (double)((free_pages / mb_total) * 100.0f),
                 allocated_pages, saved_page_count, current_pages, saved_page_count,
                 old_pages, saved_page_count, locked_pages, saved_page_count);
@@ -271,7 +269,7 @@ void sound_cache_manager::initialize()
 
     globals().sound_cache_entries = halo::memory::data_array_view::create(sizeof(sound_cache_entry), (char *)"pc sound", k_sound_cache_maximum_entries);
 
-    scaled_megabytes = (int32_t)*(int16_t *)&sound_cache_size_megabytes * 0x100000;
+    scaled_megabytes = (int32_t)*(int16_t *)&globals().sound_cache_size_megabytes * 0x100000;
     globals().sound_cache_page_count = (scaled_megabytes + ((scaled_megabytes >> 0x1f) & 0xfff)) >> k_sound_cache_page_shift;
 
     cache_memory = GlobalAlloc(0, 0x387c);

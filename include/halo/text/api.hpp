@@ -21,6 +21,8 @@ typedef void (*text_glyph_draw_proc)(text_parse_state *state, void *font, void *
     uint32_t color, int16_t x, int16_t y, int16_t source_x, int16_t source_y,
     int16_t width, int16_t height);
 
+struct Globals;
+
 namespace halo::text {
 
 /**
@@ -38,9 +40,28 @@ struct Globals {
     float &color_scale;
     int16_t &ui_prompt_clip_x;
     int16_t &ui_prompt_clip_y;
+    int16_t &text_encoding_state;
+    char (&text_markup_codes)[11];
+    ::Globals *&global_globals;
+    char (&missing_string)[17];
+    uint16_t (&missing_string_text)[];
+    Rectangle2D &text_measure_bounds;
+    uint32_t &text_measure_font;
+    int16_t &text_highlight_start;
+    int16_t &text_highlight_end;
+    int16_t (&text_tab_stops)[16];
 };
 
-Globals &globals();
+/**
+ * The text service singleton. instance() builds the Globals reference table on first use (Meyers singleton); the state it
+ * refers to lives in the data image. globals() is the short form every caller uses.
+ */
+class Service {
+public:
+    static Globals &instance();
+};
+
+inline Globals &globals() { return Service::instance(); }
 
 uint8_t text_char_is_double_byte(uint8_t *string);
 uint16_t text_get_next_character(uint8_t *string, int16_t *cursor);

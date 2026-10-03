@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/structures/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/structures/structures.hpp"
 #include "halo/math/api.hpp"
 #include "halo/physics/api.hpp"
@@ -11,8 +12,6 @@
 
 extern "C" {
 extern uint8_t render_frustum_global[];
-extern ModelCollisionGeometryBSP *global_collision_bsp;
-extern double sqrt(double x);
 }
 
 namespace halo::structures {

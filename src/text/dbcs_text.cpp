@@ -5,11 +5,8 @@
  */
 
 #include "halo/text/text.hpp"
+#include "halo/text/api.hpp"
 
-extern "C" {
-extern int16_t text_encoding_state;
-extern char text_markup_codes[11];
-}
 
 namespace halo::text {
 
@@ -27,11 +24,11 @@ uint8_t dbcs_text::char_is_double_byte(uint8_t *string)
     trail = string[1];
     result = 0;
 
-    if (lead == 0x7c && trail != 0 && strchr((const char *)text_markup_codes, trail) != (const char *)0) {
+    if (lead == 0x7c && trail != 0 && strchr((const char *)globals().text_markup_codes, trail) != (const char *)0) {
         goto mark_double_byte;
     }
 
-    switch (text_encoding_state) {
+    switch (globals().text_encoding_state) {
     case _text_encoding_shift_jis:
         if (lead < 0x81 || 0x9f < lead) {
             if (lead < 0xe0) return 0;

@@ -12,14 +12,11 @@
 #include "halo/scenario/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/structures/globals.hpp"
 
 extern "C" {
-extern void **rasterizer_dynamic_index_buffer;
 extern int32_t rasterizer_dynamic_index_cache_reserve(int16_t vertex_count);
 extern void *rasterizer_dynamic_index_slot_lock(int32_t geometry_handle);
-extern breakable_surface_globals *breakable_surface_state;
-extern const real_point3d *global_origin3d_pointer;
-extern void *unknown_007c048c;
 }
 
 namespace halo::structures {
@@ -39,8 +36,8 @@ int32_t structure_draw::build_visible_surface_geometry(int32_t *visible_surface_
                 structure_draw::leaf_faces_gather_list(visible_surface_count, (ScenarioStructureBSPSurface *)vertex_buffer, visible_surface_indices);
             }
 
-            vtable = *(void (__stdcall ***)(void *))rasterizer_dynamic_index_buffer;
-            vtable[0xc](rasterizer_dynamic_index_buffer);
+            vtable = *(void (__stdcall ***)(void *))halo::rasterizer::globals().dynamic_index_buffer;
+            vtable[0xc](halo::rasterizer::globals().dynamic_index_buffer);
             return geometry_handle;
         }
         if (globals().geometry_buffer_warning != 0) {
@@ -146,7 +143,7 @@ void structure_draw::leaf_faces_for_each(int32_t render_context, structure_light
                                 if (transparent_material_cb != 0) {
                                     void *coplanar_vector = test_flag(material->flags, tags::scenario_structure_bsp_material_tag_flag::fog_plane)
                                         ? (void *)&halo::structures::globals().fog_plane_vector
-                                        : (void *)global_origin3d_pointer;
+                                        : (void *)globals().global_origin3d_pointer;
                                     void *lightmap_vertices = test_flag(material->flags, tags::scenario_structure_bsp_material_tag_flag::coplanar)
                                         ? (void *)&material->plane
                                         : (void *)0;
@@ -231,7 +228,7 @@ void structure_draw::picked_polygon_refresh(void)
     }
 
     globals().fog_plane_vector_valid = 0;
-    globals().fog_plane_vector = *(const real_vector3d *)global_origin3d_pointer;
+    globals().fog_plane_vector = *(const real_vector3d *)globals().global_origin3d_pointer;
 }
 
 void structure_draw::picked_polygon_draw(void)
@@ -280,7 +277,7 @@ void structure_draw::debug_draw_surfaces_in_box(void *render_point, real_point3d
             } else {
                 void *vertex_buffer = halo::render::rasterizer_dynamic_index_slot_lock(geometry_handle);
                 structure_draw::leaf_faces_gather_list(surface_count, (ScenarioStructureBSPSurface *)vertex_buffer, local_surface_indices);
-                (*(void (__stdcall **)(void *))((uint8_t *)*rasterizer_dynamic_index_buffer + 0x30))(rasterizer_dynamic_index_buffer);
+                (*(void (__stdcall **)(void *))((uint8_t *)*(void **)halo::rasterizer::globals().dynamic_index_buffer + 0x30))(halo::rasterizer::globals().dynamic_index_buffer);
             }
         }
     } else {
@@ -316,7 +313,7 @@ void structure_draw::debug_draw_surfaces_in_box_alt(void *render_point, real_poi
             } else {
                 void *vertex_buffer = halo::render::rasterizer_dynamic_index_slot_lock(geometry_handle);
                 structure_draw::leaf_faces_gather_list(surface_count, (ScenarioStructureBSPSurface *)vertex_buffer, local_surface_indices);
-                (*(void (__stdcall **)(void *))((uint8_t *)*rasterizer_dynamic_index_buffer + 0x30))(rasterizer_dynamic_index_buffer);
+                (*(void (__stdcall **)(void *))((uint8_t *)*(void **)halo::rasterizer::globals().dynamic_index_buffer + 0x30))(halo::rasterizer::globals().dynamic_index_buffer);
             }
         }
     } else {
@@ -345,7 +342,7 @@ void structure_draw::debug_draw_surfaces_simple(real_point3d *query_point, float
         } else {
             void *vertex_buffer = halo::render::rasterizer_dynamic_index_slot_lock(geometry_handle);
             structure_draw::leaf_faces_gather_list(surface_count, (ScenarioStructureBSPSurface *)vertex_buffer, local_surface_indices);
-            (*(void (__stdcall **)(void *))((uint8_t *)*rasterizer_dynamic_index_buffer + 0x30))(rasterizer_dynamic_index_buffer);
+            (*(void (__stdcall **)(void *))((uint8_t *)*(void **)halo::rasterizer::globals().dynamic_index_buffer + 0x30))(halo::rasterizer::globals().dynamic_index_buffer);
 
             if (geometry_handle != -1) {
                 structure_draw::leaf_faces_for_each(geometry_handle, (structure_lightmap_begin_callback)0, (structure_material_callback)halo::render::render_window_structure_material_0x511f50, (structure_lightmap_end_callback)0, (structure_transparent_material_callback)0, local_surface_indices, surface_count);
@@ -366,7 +363,7 @@ void structure_picked_polygon_lightmap_begin(void *bitmap_data)
 
 void structure_picked_polygon_material(void *shader_data, int16_t shader_permutation, int32_t render_context, int32_t surface_offset, int16_t surface_count, void *material_extra)
 {
-    ((structure_material_callback)unknown_007c048c)(shader_data, shader_permutation, render_context, surface_offset,
+    ((structure_material_callback)globals().unknown_007c048c)(shader_data, shader_permutation, render_context, surface_offset,
         surface_count, material_extra);
 }
 

@@ -36,7 +36,16 @@ struct Globals {
     uint8_t &binding_secondary_active;
 };
 
-Globals &globals();
+/**
+ * The input service singleton. instance() builds the Globals reference table on first use (Meyers singleton); the state it
+ * refers to lives in the data image. globals() is the short form every caller uses.
+ */
+class Service {
+public:
+    static Globals &instance();
+};
+
+inline Globals &globals() { return Service::instance(); }
 
 void chimera__axis_text(int16_t axis_index, uint8_t direction, uint16_t *out_text);
 void chimera__button_text(int16_t button_index, uint16_t *out_text);

@@ -18,6 +18,9 @@ struct bsp_leaf_reference;
 struct real_point3d;
 struct render_fog;
 
+struct Globals;
+typedef void (*structure_bsp_procedure)(void);
+
 namespace halo::scenario {
 
 /**
@@ -30,9 +33,26 @@ struct Globals {
     ScenarioStructureBSP *&structure_bsp;
     int16_t &structure_bsp_index;
     scenario_game_globals *&game_globals;
+    ::Globals *&global_globals;
+    char (&k_empty_string)[1];
+    uint8_t &material_table_warning_issued;
+    GlobalsMaterial &material_table_fallback;
+    structure_bsp_procedure (&structure_bsp_activate_procedures)[13];
+    structure_bsp_procedure (&structure_bsp_deactivate_procedures)[10];
+    uint8_t &unknown_00719769;
+    uint8_t &unknown_0071976a;
 };
 
-Globals &globals();
+/**
+ * The scenario service singleton. instance() builds the Globals reference table on first use (Meyers singleton); the state it
+ * refers to lives in the data image. globals() is the short form every caller uses.
+ */
+class Service {
+public:
+    static Globals &instance();
+};
+
+inline Globals &globals() { return Service::instance(); }
 
 void scenario_location_from_point(bsp_leaf_reference *out, real_point3d *point);
 int16_t scenario_location_fog_region(bsp_leaf_reference *leaf, real_point3d *point);

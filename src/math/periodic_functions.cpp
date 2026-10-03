@@ -4,20 +4,12 @@
  * The original author notes and decompiles are in docs/original/math/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/math/math.hpp"
 #include "halo/math/globals.hpp"
 
 #include "win32.h"
 #include "tags.h"
-
-extern "C" {
-extern double fmod(double x, double y);
-extern long lrint(double x);
-extern double cos(double x);
-extern double sin(double x);
-extern double pow(double base, double exponent);
-extern int __ftol(double value);
-}
 
 namespace halo::math {
 
@@ -336,7 +328,7 @@ void periodic_function_build_transition_table(transition_function_type type, uin
             value = curve->value(t);
         }
 
-        scaled = __ftol((double)(255.0f * value));
+        scaled = static_cast<int>((double)(255.0f * value));
         if (scaled < 0) {
             scaled = 0;
         } else if (0xff < scaled) {
@@ -392,7 +384,7 @@ void periodic_function_build_table(periodic_function_type type, uint8_t *out)
         if (range != 0.0f) {
             value = (value - minimum) / range;
         }
-        scaled = __ftol((double)(value * 255.0f));
+        scaled = static_cast<int>((double)(value * 255.0f));
         if (scaled < 0) {
             scaled = 0;
         } else if (0xff < scaled) {

@@ -4,18 +4,17 @@
  * The original author notes and decompiles are in docs/original/structures/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/structures/structures.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/structures/globals.hpp"
 
 extern "C" {
-extern player_globals *local_player_globals;
-extern int16_t current_local_player_index;
 extern real_point3d render_camera_global;
-extern long lrint(double x);
 }
 
 namespace halo::structures {
@@ -46,7 +45,7 @@ void detail_object_system::update_render_list(void)
     detail_object_frame *frame = &globals().detail_objects->frames[0];
     int16_t cell_x, cell_y, cell_z;
 
-    if (local_player_globals->local_player_count != 1 || current_local_player_index == -1) {
+    if (globals().local_player_globals->local_player_count != 1 || globals().current_local_player_index == -1) {
         return;
     }
 

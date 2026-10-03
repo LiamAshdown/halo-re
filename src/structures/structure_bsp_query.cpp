@@ -9,14 +9,12 @@
 #include "halo/physics/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/structures/globals.hpp"
 
 extern "C" {
-extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp,
                                       real_point3d *point);
 extern real_point3d render_camera_global;
-extern real_vector3d camera_forward_x;
-extern float k_surface_resolve_step;
 }
 
 namespace halo::structures {
@@ -213,9 +211,9 @@ uint8_t structure_bsp_query::points_within_band(real_point3d *points, int16_t po
 {
     for (int16_t i = 0; i < point_count; i++) {
         real_point3d *p = &points[i];
-        float distance = camera_forward_x.i * (p->x - render_camera_global.x) +
-                          camera_forward_x.j * (p->y - render_camera_global.y) +
-                          camera_forward_x.k * (p->z - render_camera_global.z);
+        float distance = globals().camera_forward_x.i * (p->x - render_camera_global.x) +
+                          globals().camera_forward_x.j * (p->y - render_camera_global.y) +
+                          globals().camera_forward_x.k * (p->z - render_camera_global.z);
         if (distance <= tolerance) {
             return 1;
         }
@@ -313,9 +311,9 @@ uint8_t structure_bsp_query::resolve_position_to_surface(real_point3d *start_pos
         if ((result.surface_flags & 1) == 0) {
             return 0;
         }
-        position->x = direction->i * k_surface_resolve_step + position->x;
-        position->y = direction->j * k_surface_resolve_step + position->y;
-        position->z = direction->k * k_surface_resolve_step + position->z;
+        position->x = direction->i * globals().k_surface_resolve_step + position->x;
+        position->y = direction->j * globals().k_surface_resolve_step + position->y;
+        position->z = direction->k * globals().k_surface_resolve_step + position->z;
     }
 }
 

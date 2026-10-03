@@ -4,14 +4,10 @@
  * The original author notes and decompiles are in docs/original/math/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/math/math.hpp"
 
 #include "tags.h"
-
-extern "C" {
-extern double fabs(double x);
-extern double atan2(double y, double x);
-}
 
 namespace halo::math {
 

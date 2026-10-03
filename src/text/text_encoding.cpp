@@ -8,22 +8,8 @@
 #include "halo/text/limits.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/text/api.hpp"
 
-extern "C" {
-extern datum_index text_localization_strings;
-extern char missing_string[17];
-extern datum_index hud_text_draw_font_tag_id;
-extern int16_t hud_text_draw_color_or_flags;
-extern int16_t hud_text_draw_column;
-extern ColorARGB hud_text_draw_color_a;
-extern int16_t text_highlight_start;
-extern int16_t text_highlight_end;
-extern int16_t hud_text_draw_background_mode;
-extern int16_t text_tab_stops[k_text_maximum_tab_stops];
-extern uint32_t hud_text_draw_unknown_4730;
-extern int16_t ui_prompt_clip_x;
-extern int16_t ui_prompt_clip_y;
-}
 
 namespace halo::text {
 
@@ -104,9 +90,9 @@ int16_t narrow_text_strategy::parse_next_token(text_parse_state *state)
         uint8_t *next_position = (uint8_t *)state->string + state->position;
         uint16_t lookahead_char;
         StringList *localization;
-        char *single_byte_break_characters = missing_string;
-        char *double_byte_no_break_characters = missing_string;
-        char *no_break_characters = missing_string;
+        char *single_byte_break_characters = globals().missing_string;
+        char *double_byte_no_break_characters = globals().missing_string;
+        char *no_break_characters = globals().missing_string;
         int is_break_character;
 
         if (dbcs_text::char_is_double_byte(next_position)) {
@@ -115,8 +101,8 @@ int16_t narrow_text_strategy::parse_next_token(text_parse_state *state)
             lookahead_char = next_position[0];
         }
 
-        if (text_localization_strings != (datum_index)k_datum_index_none) {
-            localization = (StringList *)halo::cache::globals().tag_instances[halo::datum_slot(text_localization_strings)].data;
+        if (globals().localization_strings != (datum_index)k_datum_index_none) {
+            localization = (StringList *)halo::cache::globals().tag_instances[halo::datum_slot(globals().localization_strings)].data;
 
             if (localization->strings.count > _text_localization_single_byte_break_characters) {
                 StringListString *entry = (StringListString *)localization->strings.pointer +
@@ -184,7 +170,7 @@ void narrow_text_strategy::draw_character_range(Rectangle2D *bounds, text_glyph_
     }
 
     if (left < right && top < bottom) {
-        text_context::parse_state_initialize(string, hud_text_draw_column, hud_text_draw_color_or_flags, &state, hud_text_draw_font_tag_id, &hud_text_draw_color_a);
+        text_context::parse_state_initialize(string, globals().hud_text_draw_column, globals().hud_text_draw_color_or_flags, &state, globals().hud_text_draw_font_tag_id, &globals().hud_text_draw_color_a);
         state.position = start_column;
         while (state.position < end_column) {
             uint32_t glyph_color;
@@ -193,8 +179,8 @@ void narrow_text_strategy::draw_character_range(Rectangle2D *bounds, text_glyph_
             int16_t hardware_index;
             FontCharacter *character;
 
-            glyph_color = (state.position < text_highlight_start ||
-                           text_highlight_end <= state.position)
+            glyph_color = (state.position < globals().text_highlight_start ||
+                           globals().text_highlight_end <= state.position)
                               ? color : (color ^ k_text_rgb_mask);
 
             narrow_text_strategy::instance().parse_next_token(&state);
@@ -265,7 +251,7 @@ void narrow_text_strategy::wrap_and_draw(text_glyph_draw_proc callback, Rectangl
     wrapped_sub_line_count = 0;
     max_wrapped_sub_line_count = 0;
 
-    text_context::parse_state_initialize(string, hud_text_draw_column, hud_text_draw_color_or_flags, &state, hud_text_draw_font_tag_id, &hud_text_draw_color_a);
+    text_context::parse_state_initialize(string, globals().hud_text_draw_column, globals().hud_text_draw_color_or_flags, &state, globals().hud_text_draw_font_tag_id, &globals().hud_text_draw_color_a);
     font = (Font *)state.font_definition;
 
     for (;;) {
@@ -281,19 +267,19 @@ void narrow_text_strategy::wrap_and_draw(text_glyph_draw_proc callback, Rectangl
 
         line_bounds = *bounds;
 
-        if (hud_text_draw_background_mode < 1) {
+        if (globals().hud_text_draw_background_mode < 1) {
             line_bounds.left = (int16_t)(line_bounds.left +
-                (line_index == 0 ? ui_prompt_clip_x : ui_prompt_clip_y));
+                (line_index == 0 ? globals().ui_prompt_clip_x : globals().ui_prompt_clip_y));
         } else if (tab_index == 0) {
             line_bounds.left = (int16_t)(line_bounds.left +
-                (line_index == 0 ? ui_prompt_clip_x : ui_prompt_clip_y));
-            if (tab_index < hud_text_draw_background_mode) {
-                line_bounds.right = text_tab_stops[tab_index];
+                (line_index == 0 ? globals().ui_prompt_clip_x : globals().ui_prompt_clip_y));
+            if (tab_index < globals().hud_text_draw_background_mode) {
+                line_bounds.right = globals().text_tab_stops[tab_index];
             }
         } else {
-            line_bounds.left = (&hud_text_draw_background_mode)[tab_index];
-            if (tab_index < hud_text_draw_background_mode) {
-                line_bounds.right = text_tab_stops[tab_index];
+            line_bounds.left = (&globals().hud_text_draw_background_mode)[tab_index];
+            if (tab_index < globals().hud_text_draw_background_mode) {
+                line_bounds.right = globals().text_tab_stops[tab_index];
             }
         }
 
@@ -333,7 +319,7 @@ void narrow_text_strategy::wrap_and_draw(text_glyph_draw_proc callback, Rectangl
                                 previous_token = token;
                                 continue;
                             }
-                            if ((hud_text_draw_unknown_4730 & _text_flag_word_wrap_bit) != 0) {
+                            if ((globals().hud_text_draw_unknown_4730 & _text_flag_word_wrap_bit) != 0) {
                                 if (candidate_position > 0) {
                                     flush_end_position = candidate_position;
                                     span_width = candidate_width;
@@ -367,7 +353,7 @@ void narrow_text_strategy::wrap_and_draw(text_glyph_draw_proc callback, Rectangl
                 line_bounds.left);
         }
 
-        if ((hud_text_draw_unknown_4730 & _text_flag_draw_past_bottom_bit) != 0 || pen_y < bounds->bottom) {
+        if ((globals().hud_text_draw_unknown_4730 & _text_flag_draw_past_bottom_bit) != 0 || pen_y < bounds->bottom) {
             narrow_text_strategy::instance().draw_character_range(&line_bounds, callback, &pen, clip, state.color, string, span_start_position, flush_end_position);
         }
 
@@ -387,7 +373,7 @@ void narrow_text_strategy::wrap_and_draw(text_glyph_draw_proc callback, Rectangl
             }
             break;
         case _text_token_tab:
-            if (tab_index < hud_text_draw_background_mode) {
+            if (tab_index < globals().hud_text_draw_background_mode) {
                 tab_index = (int16_t)(tab_index + 1);
                 wrapped_sub_line_count = 0;
             }
@@ -400,8 +386,8 @@ void narrow_text_strategy::wrap_and_draw(text_glyph_draw_proc callback, Rectangl
         }
 
         if (token == _text_token_end) {
-            text_highlight_end = 0;
-            text_highlight_start = 0;
+            globals().text_highlight_end = 0;
+            globals().text_highlight_start = 0;
             if (out_final_pen != (Point2DInt *)0) {
                 *out_final_pen = pen;
             }
@@ -470,7 +456,7 @@ void wide_text_strategy::draw_character_range(Rectangle2D *bounds, text_glyph_dr
     }
 
     if (left < right && top < bottom) {
-        text_context::parse_state_initialize(string, hud_text_draw_column, hud_text_draw_color_or_flags, &state, hud_text_draw_font_tag_id, &hud_text_draw_color_a);
+        text_context::parse_state_initialize(string, globals().hud_text_draw_column, globals().hud_text_draw_color_or_flags, &state, globals().hud_text_draw_font_tag_id, &globals().hud_text_draw_color_a);
         state.position = start_column;
         while (state.position < end_column) {
             uint32_t glyph_color;
@@ -479,8 +465,8 @@ void wide_text_strategy::draw_character_range(Rectangle2D *bounds, text_glyph_dr
             int16_t hardware_index;
             FontCharacter *character;
 
-            glyph_color = (state.position < text_highlight_start ||
-                           text_highlight_end <= state.position)
+            glyph_color = (state.position < globals().text_highlight_start ||
+                           globals().text_highlight_end <= state.position)
                               ? color : (color ^ k_text_rgb_mask);
 
             wide_text_strategy::instance().parse_next_token(&state);
@@ -551,7 +537,7 @@ void wide_text_strategy::wrap_and_draw(text_glyph_draw_proc callback, Rectangle2
     wrapped_sub_line_count = 0;
     max_wrapped_sub_line_count = 0;
 
-    text_context::parse_state_initialize(string, hud_text_draw_column, hud_text_draw_color_or_flags, &state, hud_text_draw_font_tag_id, &hud_text_draw_color_a);
+    text_context::parse_state_initialize(string, globals().hud_text_draw_column, globals().hud_text_draw_color_or_flags, &state, globals().hud_text_draw_font_tag_id, &globals().hud_text_draw_color_a);
     font = (Font *)state.font_definition;
 
     for (;;) {
@@ -567,19 +553,19 @@ void wide_text_strategy::wrap_and_draw(text_glyph_draw_proc callback, Rectangle2
 
         line_bounds = *bounds;
 
-        if (hud_text_draw_background_mode < 1) {
+        if (globals().hud_text_draw_background_mode < 1) {
             line_bounds.left = (int16_t)(line_bounds.left +
-                (line_index == 0 ? ui_prompt_clip_x : ui_prompt_clip_y));
+                (line_index == 0 ? globals().ui_prompt_clip_x : globals().ui_prompt_clip_y));
         } else if (tab_index == 0) {
             line_bounds.left = (int16_t)(line_bounds.left +
-                (line_index == 0 ? ui_prompt_clip_x : ui_prompt_clip_y));
-            if (tab_index < hud_text_draw_background_mode) {
-                line_bounds.right = text_tab_stops[tab_index];
+                (line_index == 0 ? globals().ui_prompt_clip_x : globals().ui_prompt_clip_y));
+            if (tab_index < globals().hud_text_draw_background_mode) {
+                line_bounds.right = globals().text_tab_stops[tab_index];
             }
         } else {
-            line_bounds.left = (&hud_text_draw_background_mode)[tab_index];
-            if (tab_index < hud_text_draw_background_mode) {
-                line_bounds.right = text_tab_stops[tab_index];
+            line_bounds.left = (&globals().hud_text_draw_background_mode)[tab_index];
+            if (tab_index < globals().hud_text_draw_background_mode) {
+                line_bounds.right = globals().text_tab_stops[tab_index];
             }
         }
 
@@ -619,7 +605,7 @@ void wide_text_strategy::wrap_and_draw(text_glyph_draw_proc callback, Rectangle2
                                 previous_token = token;
                                 continue;
                             }
-                            if ((hud_text_draw_unknown_4730 & _text_flag_word_wrap_bit) != 0) {
+                            if ((globals().hud_text_draw_unknown_4730 & _text_flag_word_wrap_bit) != 0) {
                                 if (candidate_position > 0) {
                                     flush_end_position = candidate_position;
                                     span_width = candidate_width;
@@ -653,7 +639,7 @@ void wide_text_strategy::wrap_and_draw(text_glyph_draw_proc callback, Rectangle2
                 line_bounds.left);
         }
 
-        if ((hud_text_draw_unknown_4730 & _text_flag_draw_past_bottom_bit) != 0 || pen_y < bounds->bottom) {
+        if ((globals().hud_text_draw_unknown_4730 & _text_flag_draw_past_bottom_bit) != 0 || pen_y < bounds->bottom) {
             wide_text_strategy::instance().draw_character_range(&line_bounds, callback, &pen, clip, state.color, string, span_start_position, flush_end_position);
         }
 
@@ -673,7 +659,7 @@ void wide_text_strategy::wrap_and_draw(text_glyph_draw_proc callback, Rectangle2
             }
             break;
         case _text_token_tab:
-            if (tab_index < hud_text_draw_background_mode) {
+            if (tab_index < globals().hud_text_draw_background_mode) {
                 tab_index = (int16_t)(tab_index + 1);
                 wrapped_sub_line_count = 0;
             }
@@ -686,8 +672,8 @@ void wide_text_strategy::wrap_and_draw(text_glyph_draw_proc callback, Rectangle2
         }
 
         if (token == _text_token_end) {
-            text_highlight_end = 0;
-            text_highlight_start = 0;
+            globals().text_highlight_end = 0;
+            globals().text_highlight_start = 0;
             if (out_final_pen != (Point2DInt *)0) {
                 *out_final_pen = pen;
             }

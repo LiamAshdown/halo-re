@@ -4,16 +4,12 @@
  * The original author notes and decompiles are in docs/original/math/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/math/math.hpp"
 #include "halo/math/glm_interop.hpp"
 #include "halo/math/globals.hpp"
 
 #include "tags.h"
-
-extern "C" {
-extern double sqrt(double x);
-extern double fabs(double x);
-}
 
 namespace halo::math {
 

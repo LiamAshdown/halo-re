@@ -4,18 +4,13 @@
  * The original author notes and decompiles are in docs/original/math/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/math/math.hpp"
 #include "halo/math/globals.hpp"
 
 #include "tags.h"
 #include "win32.h"
 #include "halo/cseries/api.hpp"
-
-extern "C" {
-extern int rand(void);
-extern double cos(double x);
-extern double sin(double x);
-}
 
 namespace halo::math {
 

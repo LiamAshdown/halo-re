@@ -11,9 +11,6 @@
 #include "tags.h"
 #include "halo/shell/api.hpp"
 
-extern "C" {
-extern int32_t safe_mode;
-}
 
 namespace halo::math {
 
@@ -33,7 +30,7 @@ void math_initialize()
         }
     }
 
-    if (safe_mode == 0) {
+    if (globals().safe_mode == 0) {
         if (halo::shell::cpu_get_type(0x1d) != 0) {
             globals().matrix4x3_multiply_procedure = matrix4x3_multiply_sse;
             return;

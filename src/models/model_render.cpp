@@ -12,6 +12,7 @@
 #include "halo/scenario/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/models/globals.hpp"
 extern "C" { extern rasterizer_window_parameters rasterizer_window; }
 
 extern "C" {
@@ -26,16 +27,6 @@ extern transparent_geometry_group *rasterizer_transparent_geometry_group_build(
     transparent_geometry_group_link *link, uint8_t *shader, int16_t frame, rasterizer_index_buffer *index_buffer,
     int32_t dynamic_index_slot, int32_t primitive_count, rasterizer_vertex_buffer *vertex_buffer,
     int32_t dynamic_vertex_slot, const real_point3d *position);
-extern uint8_t model_render_first_person;
-extern uint8_t model_render_default_region_permutations[8];
-extern render_model_effect model_render_default_effect;
-extern ColorRGB model_render_default_change_colors[4];
-extern float model_render_default_function_values[4];
-extern int16_t console_model_lod_override;
-extern uint8_t rasterizer_caps_flag_689;
-extern uint8_t console_debug_toggle_6893f2;
-extern rasterizer_model_draw_context *rasterizer_object_shadow_model_context;
-extern uint8_t rasterizer_object_shadow_model_active;
 extern void debug_fp_render_model_note(uint32_t model_tag, float pixels, int32_t lod, const float *node0,
     const float *center, int32_t early_out);
 extern void debug_fp_clip_note(const float *world, int32_t effect_type);
@@ -182,9 +173,9 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
 
     if ((model->node_list_checksum == (int32_t)k_model_first_person_node_list_checksum) &&
         ((halo::scenario::globals().scenario->flags & 1) != 0)) {
-        model_render_first_person = 1;
+        globals().model_render_first_person = 1;
     } else {
-        model_render_first_person = 0;
+        globals().model_render_first_person = 0;
     }
 
     if ((&model->super_high_detail_cutoff)[_model_lod_super_low] > pixels && (flags & _model_render_immediate_bit) == 0) {
@@ -192,21 +183,21 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
             debug_fp_render_model_note(*(uint32_t *)&model_tag_id, pixels, -1, (const float *)node_matrices,
                 (const float *)bounding_center, 1);
         }
-        model_render_first_person = 0;
+        globals().model_render_first_person = 0;
         return;
     }
 
     if (region_permutations == 0) {
-        region_permutations = model_render_default_region_permutations;
+        region_permutations = globals().model_render_default_region_permutations;
     }
     if (effect == 0) {
-        effect = &model_render_default_effect;
+        effect = &globals().model_render_default_effect;
     }
     if (change_colors == 0) {
-        change_colors = model_render_default_change_colors;
+        change_colors = globals().model_render_default_change_colors;
     }
     if (function_out_values == 0) {
-        function_out_values = model_render_default_function_values;
+        function_out_values = globals().model_render_default_function_values;
     }
 
     if (bounding_center == 0) {
@@ -229,11 +220,11 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
     while (lod > _model_lod_super_low && (&model->super_high_detail_cutoff)[lod] > pixels) {
         lod = (model_level_of_detail)(lod - 1);
     }
-    if (console_model_lod_override != -1) {
-        if (console_model_lod_override < 0) {
+    if (globals().console_model_lod_override != -1) {
+        if (globals().console_model_lod_override < 0) {
             lod = _model_lod_super_low;
-        } else if (console_model_lod_override < k_model_level_of_detail_count) {
-            lod = (model_level_of_detail)console_model_lod_override;
+        } else if (globals().console_model_lod_override < k_model_level_of_detail_count) {
+            lod = (model_level_of_detail)globals().console_model_lod_override;
         } else {
             lod = _model_lod_super_high;
         }
@@ -271,11 +262,11 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
 
     if ((flags & _model_render_immediate_bit) == 0) {
         halo::rasterizer::rasterizer_model_draw_prepare_states(&context, 0);
-    } else if (rasterizer_window.type == 1 && rasterizer_caps_flag_689 == 0 && halo::rasterizer::fields::object_shadows_enabled != 0) {
+    } else if (rasterizer_window.type == 1 && globals().rasterizer_caps_flag_689 == 0 && halo::rasterizer::fields::object_shadows_enabled != 0) {
         halo::rasterizer::chimera__rasterizer_set_model_skinning((uint8_t)(~(context.flags >> 8) & 1),
                                                 (rasterizer_node_matrices *)&context.node_matrices);
-        rasterizer_object_shadow_model_context = &context;
-        rasterizer_object_shadow_model_active = 1;
+        globals().rasterizer_object_shadow_model_context = &context;
+        globals().rasterizer_object_shadow_model_active = 1;
     }
 
     if (flags == 8) {
@@ -288,12 +279,12 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
     debug_fp_state_arm(0);
 
     if ((flags & _model_render_immediate_bit) != 0) {
-        rasterizer_object_shadow_model_context = 0;
-        model_render_first_person = 0;
+        globals().rasterizer_object_shadow_model_context = 0;
+        globals().model_render_first_person = 0;
         return;
     }
     halo::rasterizer::rasterizer_model_draw_restore_states();
-    model_render_first_person = 0;
+    globals().model_render_first_person = 0;
 }
 
 }  // namespace halo::models

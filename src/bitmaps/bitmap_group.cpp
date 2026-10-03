@@ -7,11 +7,8 @@
 #include "halo/bitmaps/bitmaps.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
+#include "halo/bitmaps/globals.hpp"
 
-extern "C" {
-extern int8_t bitmap_format_bits_per_pixel[k_bitmap_data_format_count];
-extern uint8_t bitmap_group_debug_dump;
-}
 
 namespace halo::bitmaps {
 
@@ -93,7 +90,7 @@ uint8_t bitmap_group::postprocess(datum_index tag_id, uint8_t skip_hardware_text
             }
         }
 
-        bit_total = (int32_t)bitmap_format_bits_per_pixel[entry->format] * (int32_t)total_pixel_count;
+        bit_total = (int32_t)globals().bitmap_format_bits_per_pixel[entry->format] * (int32_t)total_pixel_count;
         entry->pixel_data_size = (uint32_t)((bit_total + ((bit_total >> 31) & 7)) >> 3);
 
         entry->pointer = (uint32_t)k_datum_index_none;
@@ -154,7 +151,7 @@ uint8_t bitmap_group::postprocess(datum_index tag_id, uint8_t skip_hardware_text
         }
     }
 
-    if (bitmap_group_debug_dump) {
+    if (globals().bitmap_group_debug_dump) {
         int32_t count_a;
         for (count_a = 0; count_a < bitmap_data_count; count_a++) {
         }

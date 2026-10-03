@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/math/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/math/math.hpp"
 #include "halo/math/glm_interop.hpp"
 
@@ -11,10 +12,6 @@
 #include "halo/physics/api.hpp"
 
 extern "C" {
-extern double sqrt(double x);
-extern double fabs(double x);
-extern double fmod(double x, double y);
-extern double acos(double x);
 extern void vector3d_clamp_length(real_vector3d *v, real max_length);
 }
 

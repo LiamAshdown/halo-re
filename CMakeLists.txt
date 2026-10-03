@@ -52,7 +52,7 @@ add_library(halo_game OBJECT ${GAME_SOURCES})
 set(CXX_GAME_SOURCES ${GAME_SOURCES})
 list(FILTER CXX_GAME_SOURCES EXCLUDE REGEX "/src/gamespy/")   # GameSpy stays vendored C
 set_source_files_properties(${CXX_GAME_SOURCES} PROPERTIES LANGUAGE CXX)
-target_include_directories(halo_game PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
+target_include_directories(halo_game PRIVATE "${CMAKE_SOURCE_DIR}/include" "${CMAKE_SOURCE_DIR}/standalone/data" "${CMAKE_SOURCE_DIR}/types" "${DXSDK_DIR}/Include")
 target_compile_options(halo_game PRIVATE $<$<COMPILE_LANGUAGE:CXX>:/std:c++20> $<$<COMPILE_LANGUAGE:CXX>:/permissive-> $<$<COMPILE_LANGUAGE:CXX>:/GR-> /W3 /Od /GS- /Oy- /Gy /wd4996
     "/FI${CMAKE_SOURCE_DIR}/harness/msvc_compat.h")
 

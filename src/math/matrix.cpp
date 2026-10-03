@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/math/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/math/math.hpp"
 #include "halo/math/glm_interop.hpp"
 #include "halo/math/globals.hpp"
@@ -11,11 +12,6 @@
 #include "tags.h"
 #include "memory.h"
 #include "halo/camera/api.hpp"
-
-extern "C" {
-extern double cos(double x);
-extern double sin(double x);
-}
 
 namespace halo::math {
 

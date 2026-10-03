@@ -4,13 +4,9 @@
  * The original author notes and decompiles are in docs/original/shaders/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/shaders/shaders.hpp"
 #include "halo/math/api.hpp"
-
-extern "C" {
-extern double cos(double x);
-extern double sin(double x);
-}
 
 namespace halo::shaders {
 

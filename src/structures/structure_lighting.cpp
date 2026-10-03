@@ -12,12 +12,10 @@
 #include "halo/scenario/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
+#include "halo/structures/globals.hpp"
 
 extern "C" {
 extern int32_t rasterizer_bitmap_sample_texel(BitmapData *bitmap, float *uv, float mip_bias);
-extern render_lighting object_lighting_default;
-extern real_vector3d object_lightmap_probe_direction[1];
-extern real_vector3d object_lighting_probe_sideways[4];
 extern void bsp_compressed_rendered_vertex_unpack_normal(ScenarioStructureBSPMaterialCompressedRenderedVertex *vertex,
     real_vector3d *out);
 extern void bsp_compressed_lightmap_vertex_unpack_normal(ScenarioStructureBSPMaterialCompressedLightmapVertex *vertex,
@@ -139,17 +137,17 @@ uint8_t bsp_lighting::object_lighting_sample_point(uint8_t flags, real_point3d *
     int32_t i;
 
     if (bsp->default_ambient_color.red == 0.0f) {
-        *lighting = object_lighting_default;
+        *lighting = globals().object_lighting_default;
     } else {
         *lighting = *(render_lighting *)&bsp->default_ambient_color;
         lighting->distant_light_count = 2;
     }
 
     if (flags & 1) {
-        directions = object_lighting_probe_sideways;
+        directions = globals().object_lighting_probe_sideways;
         direction_count = 4;
     } else {
-        directions = object_lightmap_probe_direction;
+        directions = globals().object_lightmap_probe_direction;
         direction_count = 1;
     }
 

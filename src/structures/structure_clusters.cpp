@@ -9,12 +9,9 @@
 #include "halo/memory/api.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/structures/globals.hpp"
 
 extern "C" {
-extern float portal_visibility_tolerance;
-extern real_plane3d near_clip_plane;
-extern double k_plane_side_epsilon;
-extern float k_projection_numerator;
 extern real_point3d render_camera_global;
 extern uint8_t render_frustum_global;
 }
@@ -78,7 +75,7 @@ void cluster_flood::camera_portal_flood_recursive(int16_t cluster_index, polygon
             if (project_result != 0 ||
                 (globals().render_cluster_has_sky == 0 &&
 
-                 structure_bsp_query::points_within_band((real_point3d *)portal->vertices.pointer, (int16_t)portal->vertices.count, portal_visibility_tolerance) == 0)) {
+                 structure_bsp_query::points_within_band((real_point3d *)portal->vertices.pointer, (int16_t)portal->vertices.count, globals().portal_visibility_tolerance) == 0)) {
                 continue;
             }
 
@@ -224,7 +221,7 @@ uint8_t cluster_flood::portal_project(real_plane3d *plane, void *camera_ref, rea
     if (*((int8_t *)camera_ref + 0x24) != 0) {
         winding = -winding;
     }
-    if ((side < 0.0f ? -side : side) < k_plane_side_epsilon) {
+    if ((side < 0.0f ? -side : side) < globals().k_plane_side_epsilon) {
         return 2;
     }
     if (side <= 0.0f) {
@@ -236,7 +233,7 @@ uint8_t cluster_flood::portal_project(real_plane3d *plane, void *camera_ref, rea
                                   *(real_matrix4x3 *)((uint8_t *)camera + 0x10));
     }
 
-    clipped_count = halo::math::polygon3d_clip_to_plane(vertex_count, clipped, near_clip_plane, 0x100,
+    clipped_count = halo::math::polygon3d_clip_to_plane(vertex_count, clipped, globals().near_clip_plane, 0x100,
                                             clipped, 0, 9.99999975e-05f, 1);
     out->point_count = clipped_count;
 
@@ -247,7 +244,7 @@ uint8_t cluster_flood::portal_project(real_plane3d *plane, void *camera_ref, rea
     }
     written = 0;
     while (i != stop) {
-        float inverse_z = k_projection_numerator / clipped[i].z;
+        float inverse_z = globals().k_projection_numerator / clipped[i].z;
         out->points[written].x = inverse_z * clipped[i].x;
         out->points[written].y = inverse_z * clipped[i].y;
         i = (int16_t)(i + step);

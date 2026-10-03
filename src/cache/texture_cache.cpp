@@ -15,8 +15,6 @@
 
 extern "C" {
 typedef int32_t (__stdcall *d3d_release_fn)(void *object);
-extern uint8_t debug_texture_cache_prints;
-extern void *texture_cache_base;
 }
 
 namespace halo::cache {
@@ -99,7 +97,7 @@ void *texture_cache_manager::get(BitmapData *bitmap, uint8_t wait, uint8_t alloc
                 (bitmap->pointer & 0xffff) * sizeof(cache_entry)))->age = globals().texture_cache->age;
 
             if (wait != 0 && entry->loaded == 0) {
-                if (debug_texture_cache_prints != 0) {
+                if (globals().debug_texture_cache_prints != 0) {
 
                     halo::main::console_print_va("%s",
                         globals().tag_instances[(int16_t)bitmap->bitmap_tag_id.index].path);
@@ -172,7 +170,7 @@ void texture_cache_manager::initialize()
         halo::memory::view((struct cache *)cache_memory)->initialize((char *)"pc texture cache", k_texture_cache_maximum_entries, k_texture_cache_block_shift, k_texture_cache_maximum_entries, (void *)&texture_cache_manager::entry_release, (void *)&texture_cache_manager::entry_in_use);
     }
     globals().texture_cache = (struct cache *)cache_memory;
-    texture_cache_base = globals().texture_cache_memory;
+    globals().texture_cache_base = globals().texture_cache_memory;
     return;
 }
 

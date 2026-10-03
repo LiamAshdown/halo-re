@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/math/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/math/math.hpp"
 
 #include "crt.h"
@@ -12,10 +13,6 @@
 #include "cache.h"
 #include "objects.h"
 #include "ai.h"
-
-extern "C" {
-extern int32_t ROUND(float x);
-}
 
 namespace halo::math {
 
@@ -50,12 +47,16 @@ int object_sort_by_flag_then_distance(const void *a_record, const void *b_record
     return 0;
 }
 
+namespace {
+inline int32_t round_to_int(float x) { return static_cast<int32_t>(std::lrint(x)); }
+}
+
 uint32_t color_real_to_argb_pack(float alpha, float *rgb)
 {
-    return ((uint32_t)ROUND(rgb[2] * 255.0f) & 0xff) |
-           (((uint32_t)ROUND(rgb[1] * 255.0f) & 0xff) << 8) |
-           (((uint32_t)ROUND(rgb[0] * 255.0f) & 0xff) << 0x10) |
-           ((uint32_t)ROUND(alpha * 255.0f) << 0x18);
+    return ((uint32_t)round_to_int(rgb[2] * 255.0f) & 0xff) |
+           (((uint32_t)round_to_int(rgb[1] * 255.0f) & 0xff) << 8) |
+           (((uint32_t)round_to_int(rgb[0] * 255.0f) & 0xff) << 0x10) |
+           ((uint32_t)round_to_int(alpha * 255.0f) << 0x18);
 }
 
 int32_t uint32_log2_floor(uint32_t value)

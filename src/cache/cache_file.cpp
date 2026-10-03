@@ -13,15 +13,7 @@
 #include "halo/rasterizer/api.hpp"
 
 extern "C" {
-extern char map_path_prefix[];
 extern void interface_handle_quit_request(void);
-extern int32_t os_platform;
-extern int16_t quit_confirm_error_string_index;
-extern int16_t quit_confirm_error_unknown_ae;
-extern uint8_t quit_confirm_error_modal;
-extern uint8_t quit_confirm_error_is_error;
-extern char profile_directory[0x105];
-extern int32_t sound_cache_size_megabytes;
 typedef uint32_t (*get_mapped_file_name_a_t)(void *process, void *address, char *filename, uint32_t size);
 }
 
@@ -208,7 +200,7 @@ uint8_t cache_files::exists(char *name, cache_file_header *header_out)
     char *name_scan;
 
     valid = 0;
-    sprintf(path, "%s%s%s.map", map_path_prefix, "maps\\", name);
+    sprintf(path, "%s%s%s.map", globals().map_path_prefix, "maps\\", name);
     file = CreateFileA(path, 0x80000000, 1, (LPSECURITY_ATTRIBUTES)((void *)0), 3, 0, (void *)0);
     if (file != (void *)0xffffffff) {
         if (ReadFile(file, header_out, k_cache_file_header_size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0)) != 0 &&
@@ -427,13 +419,13 @@ uint8_t cache_files::open_by_name(char *name, uint8_t report_fatal_error)
         *destination++ = 0;
     }
 
-    sprintf(path, "%s%s%s.map", map_path_prefix, "maps\\", basename);
+    sprintf(path, "%s%s%s.map", globals().map_path_prefix, "maps\\", basename);
 
     flags_and_attributes = 0x48000080;
-    if (os_platform == 0) {
+    if (globals().os_platform == 0) {
         halo::shell::os_platform_identify();
     }
-    if (os_platform < 3) {
+    if (globals().os_platform < 3) {
         flags_and_attributes = 0x8000080;
     }
 
@@ -494,11 +486,11 @@ uint8_t cache_files::request_map(char *name, uint8_t quit_on_fail)
 
 resolved:
     if (quit_on_fail == 0) {
-        if (quit_confirm_error_string_index == -1) {
-            quit_confirm_error_string_index = 0x23;
-            quit_confirm_error_unknown_ae = 0;
-            quit_confirm_error_modal = 0;
-            quit_confirm_error_is_error = 0;
+        if (globals().quit_confirm_error_string_index == -1) {
+            globals().quit_confirm_error_string_index = 0x23;
+            globals().quit_confirm_error_unknown_ae = 0;
+            globals().quit_confirm_error_modal = 0;
+            globals().quit_confirm_error_is_error = 0;
         }
         return 0;
     }
@@ -524,7 +516,7 @@ void cache_files::slot_read_header(int32_t slot_index)
     char *name_scan;
 
     slot = &globals().cache_file_slots[slot_index];
-    sprintf(path, "%s\\cache%03d.map", profile_directory, slot_index);
+    sprintf(path, "%s\\cache%03d.map", globals().profile_directory, slot_index);
 
     GetFileTime(slot->file, (LPFILETIME)&slot->last_write_time, (LPFILETIME)((void *)0), (LPFILETIME)((void *)0));
 
@@ -533,11 +525,11 @@ void cache_files::slot_read_header(int32_t slot_index)
     request.completion.procedure = (void (*)(cache_io_completion *))0;
     request.completion.data = (void *)0;
 
-    if (os_platform == 0) {
+    if (globals().os_platform == 0) {
         halo::shell::os_platform_identify();
     }
 
-    if (os_platform < 3) {
+    if (globals().os_platform < 3) {
         if (SetFilePointer(slot->file, 0, (PLONG)((void *)0), 0) != 0xffffffff) {
             if (ReadFile(slot->file, &slot->header, k_cache_file_header_size, (LPDWORD)(&bytes_read), (LPOVERLAPPED)((void *)0)) != 0 &&
                 bytes_read == k_cache_file_header_size) {
@@ -637,7 +629,7 @@ void cache_files::reserve_map_memory()
     globals().map_memory = VirtualAlloc((void *)k_map_memory_base, k_map_memory_size, 0x3000, 4);
     globals().tag_data_base = (void *)k_tag_data_base;
     globals().texture_cache_memory = VirtualAlloc((void *)0, 0x4000, 0x3000, 4);
-    globals().sound_cache_memory = VirtualAlloc((void *)0, (uint32_t)sound_cache_size_megabytes << 0x14, 0x3000, 4);
+    globals().sound_cache_memory = VirtualAlloc((void *)0, (uint32_t)globals().sound_cache_size_megabytes << 0x14, 0x3000, 4);
 
     if (globals().map_memory == (void *)0) {
         memset(path_buffer, 0, sizeof(path_buffer));

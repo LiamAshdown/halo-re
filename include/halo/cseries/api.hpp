@@ -20,9 +20,33 @@ namespace halo::cseries {
 struct Globals {
     int64_t &performance_frequency;
     uint8_t &debug_log_level;
+    uint8_t &error_file_enabled;
+    uint8_t &error_file_needs_header;
+    char (&error_file_spacer)[];
+    char (&error_file_banner)[];
+    char (&error_file_function_name)[];
+    char (&error_file_function_format)[];
+    char (&error_file_address_format)[];
+    char (&error_file_open_mode)[];
+    char (&error_file_name)[];
+    char (&error_file_timestamp_format)[];
+    char (&error_file_no_timestamp)[];
+    char (&profile_directory)[0x105];
+    void *&sh_get_folder_path;
+    const uint8_t (&md5_padding)[64];
+    const char (&md5_hex_byte_format)[];
 };
 
-Globals &globals();
+/**
+ * The cseries service singleton. instance() builds the Globals reference table on first use (Meyers singleton); the state it
+ * refers to lives in the data image. globals() is the short form every caller uses.
+ */
+class Service {
+public:
+    static Globals &instance();
+};
+
+inline Globals &globals() { return Service::instance(); }
 
 void md5_hex_digest(const uint8_t *data, int32_t length, char *out);
 void tea_encrypt_buffer(int32_t length, uint8_t *data, const uint32_t *key);

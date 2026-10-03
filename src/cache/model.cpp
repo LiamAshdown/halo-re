@@ -10,10 +10,6 @@
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
 
-extern "C" {
-extern uint32_t rasterizer_device_version;
-extern int16_t rasterizer_vertex_sizes[];
-}
 
 namespace halo::cache {
 
@@ -136,7 +132,7 @@ void model_vertex_buffers::load(cache_file_tag_header *header)
                 shared_normals_model_shader = (model->flags & 4) != 0 &&
                     shader->shader.tag_fourcc == _tag_group_shader_model;
 
-                if (rasterizer_device_version < 0xffff0101 &&
+                if (halo::rasterizer::globals().device_version < 0xffff0101 &&
                     (shared_normals_model_shader ||
                      shader->shader.tag_fourcc == _tag_group_shader_transparent_water)) {
                     success = halo::rasterizer::rasterizer_vertex_buffer_create((rasterizer_vertex_buffer *)(&part->base.vertex_type), 0xe,
@@ -144,7 +140,7 @@ void model_vertex_buffers::load(cache_file_tag_header *header)
                 } else {
                     success = halo::rasterizer::rasterizer_vertex_buffer_create((rasterizer_vertex_buffer *)(&part->base.vertex_type),
                         part->base.vertex_type, vertex_count, (uint32_t *)vertex_data, 0,
-                        rasterizer_vertex_sizes[part->base.vertex_type] * vertex_count);
+                        globals().rasterizer_vertex_sizes[part->base.vertex_type] * vertex_count);
                 }
 
                 if (success != 0) {

@@ -4,13 +4,10 @@
  * The original author notes and decompiles are in docs/original/models/.
  */
 
+#include "halo/core/crt.hpp"
 #include "halo/models/models.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
-
-extern "C" {
-extern double sqrt(double x);
-}
 
 namespace halo::models {
 

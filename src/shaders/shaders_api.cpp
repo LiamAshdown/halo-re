@@ -7,18 +7,9 @@
 #include "halo/shaders/shaders.hpp"
 #include "halo/shaders/api.hpp"
 
-extern "C" {
-extern int32_t numeric_countdown_timer_remaining_ms;
-extern uint8_t numeric_countdown_timer_running;
-}
 
 namespace halo::shaders {
 
-Globals &globals()
-{
-    static Globals instance{::numeric_countdown_timer_remaining_ms, ::numeric_countdown_timer_running};
-    return instance;
-}
 
 int16_t chimera__shader_get_vertex_shader_permutation(Shader *shader)
 {

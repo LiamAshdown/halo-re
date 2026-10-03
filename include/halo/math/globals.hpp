@@ -36,11 +36,18 @@ struct Globals {
     real_vector3d *&global_left3d_pointer;
     real_vector3d *&global_up3d_pointer;
     real_point3d &global_origin3d;
+    int32_t &safe_mode;
 };
 
-extern const Globals math_globals;
+/**
+ * The math service singleton. instance() builds the Globals reference table on first use (Meyers singleton); the state it
+ * refers to lives in the data image. globals() is the short form every caller uses.
+ */
+class Service {
+public:
+    static const Globals &instance();
+};
 
-/** The math service object (single instance, constant-initialised). */
-inline const Globals &globals() { return math_globals; }
+inline const Globals &globals() { return Service::instance(); }
 
 }  // namespace halo::math

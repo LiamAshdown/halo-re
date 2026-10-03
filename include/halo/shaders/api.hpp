@@ -11,6 +11,7 @@
 
 
 typedef float real;
+struct game_time_globals;
 struct Shader;
 struct ShaderEnvironment;
 struct render_animation;
@@ -25,9 +26,20 @@ namespace halo::shaders {
 struct Globals {
     int32_t &numeric_countdown_timer_remaining_ms;
     uint8_t &numeric_countdown_timer_running;
+    game_time_globals *&game_time;
+    int32_t &numeric_countdown_timer_last_update_ms;
 };
 
-Globals &globals();
+/**
+ * The shaders service singleton. instance() builds the Globals reference table on first use (Meyers singleton); the state it
+ * refers to lives in the data image. globals() is the short form every caller uses.
+ */
+class Service {
+public:
+    static Globals &instance();
+};
+
+inline Globals &globals() { return Service::instance(); }
 
 int16_t chimera__shader_get_vertex_shader_permutation(Shader *shader);
 uint8_t shader_is_decal(Shader *shader);

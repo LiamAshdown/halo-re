@@ -49,11 +49,29 @@ struct Globals {
     void *&sound_decode_buffer;
     int32_t &sound_decode_buffer_size;
     tag_instance *&tag_instances;
+    char (&map_path_prefix)[];
+    int32_t &os_platform;
+    int16_t &quit_confirm_error_string_index;
+    int16_t &quit_confirm_error_unknown_ae;
+    uint8_t &quit_confirm_error_modal;
+    uint8_t &quit_confirm_error_is_error;
+    char (&profile_directory)[0x105];
+    int32_t &sound_cache_size_megabytes;
+    int16_t (&rasterizer_vertex_sizes)[];
+    char (&file_open_mode_w)[];
+    uint8_t &debug_texture_cache_prints;
+    void *&texture_cache_base;
 };
 
-extern const Globals cache_globals;
+/**
+ * The cache service singleton. instance() builds the Globals reference table on first use (Meyers singleton); the state it
+ * refers to lives in the data image. globals() is the short form every caller uses.
+ */
+class Service {
+public:
+    static const Globals &instance();
+};
 
-/** The cache service object (single instance, constant-initialised). */
-inline const Globals &globals() { return cache_globals; }
+inline const Globals &globals() { return Service::instance(); }
 
 }  // namespace halo::cache

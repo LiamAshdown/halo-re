@@ -9,10 +9,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/bitmaps/globals.hpp"
 
-extern "C" {
-extern int8_t bitmap_format_bits_per_pixel[k_bitmap_data_format_count];
-}
 
 namespace halo::bitmaps {
 
@@ -85,7 +83,7 @@ uint32_t bitmap_data_view::calculate_mip_level_byte_size(int32_t level)
     int32_t bits;
 
     pixel_count = (int32_t)bitmap_data_view(self).calculate_mip_level_pixel_count(level);
-    bits = pixel_count * (int32_t)bitmap_format_bits_per_pixel[self->format];
+    bits = pixel_count * (int32_t)globals().bitmap_format_bits_per_pixel[self->format];
     return (uint32_t)(bits / 8);
 }
 
@@ -102,7 +100,7 @@ uint32_t bitmap_data_view::calculate_mip_row_byte_size(int32_t level)
         width = (width + 3) & ~3;
     }
 
-    bits = (int32_t)bitmap_format_bits_per_pixel[self->format] * width;
+    bits = (int32_t)globals().bitmap_format_bits_per_pixel[self->format] * width;
     return (uint32_t)(bits / 8);
 }
 
@@ -121,7 +119,7 @@ uint32_t bitmap_data_view::calculate_pixel_data_size()
         } while (level <= (int16_t)self->mipmap_count);
     }
 
-    bits = total_pixels * (int32_t)bitmap_format_bits_per_pixel[self->format];
+    bits = total_pixels * (int32_t)globals().bitmap_format_bits_per_pixel[self->format];
     return (uint32_t)(bits / 8);
 }
 
@@ -143,7 +141,7 @@ void * bitmap_data_view::get_row_address(int16_t mip_level, int16_t x, int16_t y
     }
 
     pixel_offset += (int32_t)x + (int32_t)width * (int32_t)y;
-    bit_offset = pixel_offset * (int32_t)bitmap_format_bits_per_pixel[self->format];
+    bit_offset = pixel_offset * (int32_t)globals().bitmap_format_bits_per_pixel[self->format];
 
     base = (uint32_t)self->pixel_base;
     return (void *)(base + (uint32_t)((bit_offset + ((bit_offset >> 31) & 7)) >> 3));
@@ -169,7 +167,7 @@ void * bitmap_data_view::get_volume_pixel_address(int16_t x, int16_t y, int16_t 
     }
 
     voxel_offset += (int32_t)x + ((int32_t)height * (int32_t)z + (int32_t)y) * (int32_t)width;
-    bit_offset = voxel_offset * (int32_t)bitmap_format_bits_per_pixel[self->format];
+    bit_offset = voxel_offset * (int32_t)globals().bitmap_format_bits_per_pixel[self->format];
 
     base = (uint32_t)self->pixel_base;
     return (void *)(base + (uint32_t)((bit_offset + ((bit_offset >> 31) & 7)) >> 3));
@@ -198,7 +196,7 @@ void * bitmap_data_view::get_cube_map_pixel_address(int32_t mip_level, int16_t x
 
     pixel_index = (int32_t)x + ((int32_t)face * (int32_t)width + (int32_t)y) * (int32_t)width +
         earlier_levels_pixel_count;
-    bit_offset = pixel_index * (int32_t)bitmap_format_bits_per_pixel[self->format];
+    bit_offset = pixel_index * (int32_t)globals().bitmap_format_bits_per_pixel[self->format];
 
     return *(uint8_t **)&((struct BitmapData *)self)->pixel_base + bit_offset / 8;
 }

@@ -1,3 +1,4 @@
+#include "halo/core/crt.hpp"
 #include "tags.h"
 
 #include "halo/cache/cache.hpp"
@@ -8,10 +9,6 @@
 #include "halo/cache/api.hpp"
 #include "halo/shell/api.hpp"
 
-extern "C" {
-extern int32_t printf(const char *format, ...);
-extern int32_t os_platform;
-}
 
 namespace halo::cache {
 
@@ -110,10 +107,10 @@ void data_files::open()
     sprintf(path, "maps\\%s.map", "bitmaps");
 
     flags = 0x48000080;
-    if (os_platform == 0) {
+    if (globals().os_platform == 0) {
         halo::shell::os_platform_identify();
     }
-    if (os_platform < 3) {
+    if (globals().os_platform < 3) {
         flags = 0x8000080;
     }
     globals().bitmaps_data_file.file = CreateFileA(path, 0x80000000, 1, (LPSECURITY_ATTRIBUTES)((void *)0), 4, flags, (void *)0);
@@ -144,10 +141,10 @@ void data_files::open()
     sprintf(path, "maps\\%s.map", "sounds");
 
     flags = 0x48000080;
-    if (os_platform == 0) {
+    if (globals().os_platform == 0) {
         halo::shell::os_platform_identify();
     }
-    if (os_platform < 3) {
+    if (globals().os_platform < 3) {
         flags = 0x8000080;
     }
     globals().sounds_data_file.file = CreateFileA(path, 0x80000000, 1, (LPSECURITY_ATTRIBUTES)((void *)0), 4, flags, (void *)0);
