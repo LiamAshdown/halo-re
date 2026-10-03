@@ -156,7 +156,6 @@ uint8_t UiEventHandlers::event_4a4110(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a4190(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    halo::networking::autopatch_launch_updater();
     return 1;
 }
 

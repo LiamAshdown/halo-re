@@ -94,13 +94,6 @@ public:
     static char * get_proxy_settings(void);
 
     /**
-     * Writes currentupdate.cfg (game mode, update URL, target version and the command line that relaunches the game), starts haloupdate.exe with this process's id, and asks the main loop to quit. Returns true once the updater process has started.
-     *
-     * @address 0x577310
-     */
-    static uint8_t launch_updater(void);
-
-    /**
      * Detects and installs the proxy configuration used by the autopatch HTTP client, then signals it is ready. FIXED 2026-09-28: a CreateThread routine (network_initialize), __stdcall with the unused thread parameter -- the original ends ret 4 (0x5771d7).
      *
      * @address 0x5771c0

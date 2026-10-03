@@ -501,111 +501,6 @@ char * AutopatchUpdater::get_proxy_settings(void)
     return autopatch_proxy_server;
 }
 
-uint8_t AutopatchUpdater::launch_updater(void)
-{
-    file_reference_record config;
-    file_reference_record module_ref;
-    char module_path[0x105];
-    char line[0x401];
-    char full_path[0x100];
-    char *extension;
-    char *file_name;
-    char *path_start;
-    char *directory;
-    win32_process_information process;
-    win32_startupinfo startup;
-    uint32_t i;
-
-    for (i = 0; i < sizeof(config); i++) {
-        ((uint8_t *)&config)[i] = 0;
-    }
-    config.signature = k_file_reference_signature;
-    config.location = -1;
-    if (config.flags & _file_reference_is_file_bit) {
-        halo::saved_games::path_remove_last_component(config.path);
-    }
-    halo::saved_games::path_append_component(config.path, "currentupdate.cfg");
-    config.flags |= _file_reference_is_file_bit;
-
-    if (!halo::saved_games::file_reference_create(&config) || !halo::saved_games::file_reference_open(&config, _file_open_write) ||
-        !halo::saved_games::file_reference_seek(0, &config)) {
-        return 0;
-    }
-
-    for (i = 0; i < sizeof(module_path); i++) {
-        module_path[i] = 0;
-    }
-    if ((int32_t)GetModuleFileNameA(0, module_path, 0x104) <= 0) {
-        return 0;
-    }
-
-    for (i = 0; i < sizeof(module_ref); i++) {
-        ((uint8_t *)&module_ref)[i] = 0;
-    }
-    module_ref.signature = k_file_reference_signature;
-    module_ref.location = -1;
-    if (module_ref.flags & _file_reference_is_file_bit) {
-        halo::saved_games::path_remove_last_component(module_ref.path);
-    }
-    halo::saved_games::path_append_component(module_ref.path, module_path);
-    module_ref.flags |= _file_reference_is_file_bit;
-
-    for (i = 0; i < sizeof(full_path); i++) {
-        full_path[i] = 0;
-    }
-    halo::saved_games::path_build_full(module_ref.path, full_path, module_ref.location);
-    halo::saved_games::path_split_components(&directory, full_path, &file_name, &path_start, &extension,
-        (uint8_t)(module_ref.flags & _file_reference_is_file_bit));
-    module_path[0] = 0;
-    halo::saved_games::path_append_component(module_path, file_name);
-    halo::saved_games::path_append_extension(module_path, extension);
-
-    _snprintf(line, 0x400, "gamemode 1\n");
-    line[0x400] = 0;
-    if (!halo::saved_games::file_reference_write(&config, line, autopatch_string_length(line))) {
-        return 0;
-    }
-    _snprintf(line, 0x400, "url \"%s\"\n", autopatch_update_url);
-    line[0x400] = 0;
-    if (!halo::saved_games::file_reference_write(&config, line, autopatch_string_length(line))) {
-        return 0;
-    }
-    _snprintf(line, 0x400, "updateversion \"%s\"\n", autopatch_update_version);
-    line[0x400] = 0;
-    if (!halo::saved_games::file_reference_write(&config, line, autopatch_string_length(line))) {
-        return 0;
-    }
-    _snprintf(line, 0x400, "gamecommand \"%s %s\"\n", module_path, halo::shell::globals().command_line);
-    line[0x400] = 0;
-    if (!halo::saved_games::file_reference_write(&config, line, autopatch_string_length(line))) {
-        return 0;
-    }
-    if (!halo::saved_games::file_reference_close(&config)) {
-        return 0;
-    }
-
-    process.process = 0;
-    process.thread = 0;
-    process.process_id = 0;
-    process.thread_id = 0;
-    for (i = 0; i < sizeof(startup); i++) {
-        ((uint8_t *)&startup)[i] = 0;
-    }
-    startup.cb = 0x44;
-    sprintf(line, "%s waitprocessid=%d", "haloupdate.exe", GetCurrentProcessId());
-
-    if (CreateProcessA(0, line, 0, 0, 0, 0x4000020, 0, 0, (LPSTARTUPINFOA)&startup, (LPPROCESS_INFORMATION)&process)) {
-        halo::main::globals().main_globals.return_to_main_menu = 0;
-        halo::main::globals().main_globals.quit = 1;
-        halo::main::globals().movie_playback_abort = 1;
-        return 1;
-    }
-
-    halo::saved_games::file_reference_delete(&config);
-    autopatch_update_check_state = 4;
-    return 0;
-}
-
 uint32_t __stdcall AutopatchUpdater::proxy_initialize(void *parameter)
 {
     (void)parameter;
@@ -737,11 +632,6 @@ uint32_t autopatch_download_worker_thread(void)
 char * autopatch_get_proxy_settings(void)
 {
     return halo::networking::AutopatchUpdater::get_proxy_settings();
-}
-
-uint8_t autopatch_launch_updater(void)
-{
-    return halo::networking::AutopatchUpdater::launch_updater();
 }
 
 uint32_t __stdcall autopatch_proxy_initialize(void *parameter)

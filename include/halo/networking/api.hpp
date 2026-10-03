@@ -96,7 +96,6 @@ void autopatch_download_progress_callback(int32_t request, int32_t state, const 
 int32_t autopatch_download_start(void *path, int32_t local_file);
 uint32_t autopatch_download_worker_thread(void);
 char * autopatch_get_proxy_settings(void);
-uint8_t autopatch_launch_updater(void);
 uint32_t __stdcall autopatch_proxy_initialize(void *parameter);
 char * autopatch_temp_name_generate(void);
 void autopatch_version_check_completed(int32_t available, int32_t mandatory, const char *version_name, int32_t file_id, const char *download_url, void *param);
