@@ -54,9 +54,9 @@ struct render_lighting;
 struct transparent_geometry_group;
 struct transparent_geometry_group_link;
 struct ui_quad_render_state;
+struct d3d_gamma_ramp;
 struct weapon_screen_effect_parameters;
 typedef uint32_t datum_index;
-typedef uint8_t rasterizer_gamma_settings;
 
 namespace halo::rasterizer {
 
@@ -129,7 +129,7 @@ void chimera__registry_check_3(void);
 void chimera__registry_check_4(void);
 namespace rasterizer_fog_screen_overlay_set_states_impl { void rasterizer_fog_screen_overlay_set_states(void); }
 using rasterizer_fog_screen_overlay_set_states_impl::rasterizer_fog_screen_overlay_set_states;
-void rasterizer_gamma_brightness_to_exponent(rasterizer_gamma_settings *settings);
+void rasterizer_gamma_brightness_to_exponent(d3d_gamma_ramp *settings);
 namespace rasterizer_motion_sensor_begin_impl { void rasterizer_motion_sensor_begin(void); }
 using rasterizer_motion_sensor_begin_impl::rasterizer_motion_sensor_begin;
 namespace rasterizer_motion_sensor_blip_draw_impl { void rasterizer_motion_sensor_blip_draw(const float *position, const float *color, float brightness, float size); }

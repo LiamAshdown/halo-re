@@ -639,7 +639,7 @@ void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap)
     ok = 1;
     mip_skip = rasterizer_bitmap_compute_mipmap_skip_count(bitmap, &out_width, &out_height);
 
-    if (rasterizer_device == 0 || *(uint32_t *)&((struct BitmapData *)bitmap)->pixel_base == 0 ||
+    if (rasterizer_device == 0 || bitmap->pixel_base == nullptr ||
         bitmap->hardware_texture == 0) {
         return;
     }
@@ -657,12 +657,12 @@ void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap)
             break;
         }
 
-        source = (uint8_t *)halo::bitmaps::bitmap_data_view(bitmap).get_pixel_address(source_mip);
+        source = static_cast<uint8_t *>(halo::bitmaps::bitmap_data_view(bitmap).get_pixel_address(source_mip));
 
         if ((bitmap->flags & 2) == 0) {
             rows = halo::bitmaps::bitmap_data_view(bitmap).calculate_mip_dimension(source_mip);
             row_size = halo::bitmaps::bitmap_data_view(bitmap).calculate_mip_row_byte_size(source_mip);
-            dest = (uint8_t *)locked.bits;
+            dest = locked.bits;
             for (row = 0; row < rows; row++) {
                 memcpy(dest, source, row_size);
                 source = source + row_size;
@@ -670,7 +670,7 @@ void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap)
             }
         } else {
             level_size = halo::bitmaps::bitmap_data_view(bitmap).calculate_mip_level_byte_size(source_mip);
-            memcpy((void *)locked.bits, source, level_size);
+            memcpy(locked.bits, source, level_size);
         }
 
         hresult = render_device().texture_unlock_rect(bitmap->hardware_texture, (uint32_t)level);
@@ -713,7 +713,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap)
     uint8_t *dest;
     int32_t level_bytes, slice_bytes;
 
-    if (rasterizer_device == 0 || *(uint32_t *)&((struct BitmapData *)bitmap)->pixel_base == 0 || bitmap->hardware_texture == 0) {
+    if (rasterizer_device == 0 || bitmap->pixel_base == nullptr || bitmap->hardware_texture == 0) {
         return;
     }
 
@@ -725,9 +725,9 @@ void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap)
             ok = 0;
             continue;
         }
-        source = (uint8_t *)halo::bitmaps::bitmap_data_view(bitmap).get_pixel_address(level);
+        source = static_cast<uint8_t *>(halo::bitmaps::bitmap_data_view(bitmap).get_pixel_address(level));
         depth = halo::bitmaps::bitmap_data_view(bitmap).calculate_mip_depth(level);
-        dest = (uint8_t *)locked.bits;
+        dest = static_cast<uint8_t *>(locked.bits);
         for (slice = 0; slice < depth; slice++) {
 
             level_bytes = (int32_t)halo::bitmaps::bitmap_data_view(bitmap).calculate_mip_level_pixel_count(level) *
@@ -771,7 +771,7 @@ void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap)
     uint32_t row_size;
     int32_t bytes;
 
-    if (rasterizer_device == 0 || *(uint32_t *)&((struct BitmapData *)bitmap)->pixel_base == 0 || bitmap->hardware_texture == 0) {
+    if (rasterizer_device == 0 || bitmap->pixel_base == nullptr || bitmap->hardware_texture == 0) {
         return;
     }
     max_level = halo::d3d9::has_texture_cap(rasterizer_caps.texture_caps, halo::d3d9::texture_cap::mip_cube_map) ? bitmap->mipmap_count : 0;
@@ -783,8 +783,8 @@ void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap)
                 ok = 0;
                 continue;
             }
-            dest = (uint8_t *)locked.bits;
-            source = (uint8_t *)halo::bitmaps::bitmap_data_view(bitmap).get_cube_map_pixel_address(level, 0, 0, face);
+            dest = locked.bits;
+            source = static_cast<uint8_t *>(halo::bitmaps::bitmap_data_view(bitmap).get_cube_map_pixel_address(level, 0, 0, face));
             if ((bitmap->flags & 2) != 0) {
 
                 bytes = (int32_t)halo::bitmaps::bitmap_data_view(bitmap).calculate_mip_level_pixel_count(level) *

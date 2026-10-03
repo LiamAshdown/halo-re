@@ -102,13 +102,13 @@ int32_t D3D9Device::get_render_target(uint32_t index, d3d_arg out_surface)
 int32_t D3D9Device::begin_scene()
 {
     void *self = rasterizer_device;
-    return com_slot<int32_t (__stdcall *)(void *)>(self, d3d9::device_method::begin_scene)(self);
+    return com_slot<int32_t (__stdcall *)(void *self)>(self, d3d9::device_method::begin_scene)(self);
 }
 
 int32_t D3D9Device::end_scene()
 {
     void *self = rasterizer_device;
-    return com_slot<int32_t (__stdcall *)(void *)>(self, d3d9::device_method::end_scene)(self);
+    return com_slot<int32_t (__stdcall *)(void *self)>(self, d3d9::device_method::end_scene)(self);
 }
 
 int32_t D3D9Device::clear(uint32_t count, d3d_arg rects, uint32_t flags, uint32_t color, float z, uint32_t stencil)
@@ -294,13 +294,13 @@ int32_t D3D9Device::create_query(uint32_t type, d3d_arg out_query)
 uint32_t D3D9Device::release(d3d_arg object)
 {
     void *self = object.get();
-    return com_slot<uint32_t (__stdcall *)(void *)>(self, d3d9::device_method::release)(self);
+    return com_slot<uint32_t (__stdcall *)(void *self)>(self, d3d9::device_method::release)(self);
 }
 
 uint32_t D3D9Device::get_adapter_count(d3d_arg object)
 {
     void *self = object.get();
-    return com_slot<uint32_t (__stdcall *)(void *)>(self, d3d9::direct3d_method::get_adapter_count)(self);
+    return com_slot<uint32_t (__stdcall *)(void *self)>(self, d3d9::direct3d_method::get_adapter_count)(self);
 }
 
 int32_t D3D9Device::get_adapter_display_mode(d3d_arg object, uint32_t adapter, d3d_arg mode)
@@ -342,7 +342,7 @@ int32_t D3D9Device::surface_lock_rect(d3d_arg object, d3d_arg locked_rect, d3d_a
 int32_t D3D9Device::surface_unlock_rect(d3d_arg object)
 {
     void *self = object.get();
-    return com_slot<int32_t (__stdcall *)(void *)>(self, d3d9::surface_method::unlock_rect)(self);
+    return com_slot<int32_t (__stdcall *)(void *self)>(self, d3d9::surface_method::unlock_rect)(self);
 }
 
 int32_t D3D9Device::buffer_lock(d3d_arg object, uint32_t offset, uint32_t size, d3d_arg out_data, uint32_t flags)
@@ -354,7 +354,7 @@ int32_t D3D9Device::buffer_lock(d3d_arg object, uint32_t offset, uint32_t size, 
 int32_t D3D9Device::buffer_unlock(d3d_arg object)
 {
     void *self = object.get();
-    return com_slot<int32_t (__stdcall *)(void *)>(self, d3d9::buffer_method::unlock)(self);
+    return com_slot<int32_t (__stdcall *)(void *self)>(self, d3d9::buffer_method::unlock)(self);
 }
 
 int32_t D3D9Device::buffer_get_desc(d3d_arg object, d3d_arg desc)
@@ -468,7 +468,7 @@ int32_t D3D9Device::effect_pass(d3d_arg object, uint32_t pass)
 int32_t D3D9Device::effect_end(d3d_arg object)
 {
     void *self = object.get();
-    return com_slot<int32_t (__stdcall *)(void *)>(self, d3d9::effect_method::end)(self);
+    return com_slot<int32_t (__stdcall *)(void *self)>(self, d3d9::effect_method::end)(self);
 }
 
 int32_t D3D9Device::effect_get_parameter_by_name(d3d_arg object, d3d_arg parent, d3d_arg name)
