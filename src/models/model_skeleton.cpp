@@ -5,6 +5,7 @@
  */
 
 #include "halo/models/models.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern void quaternion_lerp(real_quaternion *a, real_quaternion *b, real_quaternion *out, real t);
@@ -75,11 +76,11 @@ void model_skeleton::build_matrices(real_point3d *root_position, real_vector3d *
 
         matrix4x3_multiply_procedure(parent_matrix, &local_matrix, &out_matrices[node]);
 
-        if (node_def->next_sibling_node_index != 0xffff) {
+        if (node_def->next_sibling_node_index != halo::k_word_none) {
             queue[write_index] = (int16_t)node_def->next_sibling_node_index;
             write_index = write_index + 1;
         }
-        if (node_def->first_child_node_index != 0xffff) {
+        if (node_def->first_child_node_index != halo::k_word_none) {
             queue[write_index] = (int16_t)node_def->first_child_node_index;
             write_index = write_index + 1;
         }

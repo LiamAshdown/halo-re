@@ -30,6 +30,10 @@ extern int32_t shell_display_fatal_error_dialog(uint32_t resource_id, uint32_t h
 
 namespace halo::cseries {
 
+namespace {
+constexpr int32_t k_error_message_capacity = 1024;
+}
+
 /**
  * Appends message to debug.txt, optionally prefixed with a MM.DD.YY HH:MM:SS timestamp, and does
  * nothing while the shell debug level is below 2 or the error file is disabled. The first logged
@@ -42,7 +46,7 @@ namespace halo::cseries {
  */
 void error_log::write(char *message, uint8_t with_timestamp)
 {
-    char formatted[0x400];
+    char formatted[k_error_message_capacity];
     void *file;
     char *path;
     __time32_t time_value;

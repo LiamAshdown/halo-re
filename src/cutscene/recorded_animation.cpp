@@ -1,4 +1,6 @@
 #include "halo/cutscene/recorded_animation.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/flags.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -70,7 +72,7 @@ uint8_t RecordedAnimationPlayer::start(int16_t scenario_animation_index, uint16_
         if (new_index == (datum_index)k_datum_index_none) {
             return 0;
         }
-        record = &((recorded_animation *)recorded_animations->data)[new_index & 0xffff];
+        record = &((recorded_animation *)recorded_animations->data)[halo::datum_slot(new_index)];
         if (record == (recorded_animation *)0) {
             return 0;
         }
@@ -93,9 +95,9 @@ uint8_t RecordedAnimationPlayer::start(int16_t scenario_animation_index, uint16_
         record->flags = record->flags & ~(uint16_t)_recorded_animation_flag_restore_object_flag_40;
     }
 
-    unit = (unit_data *)((uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data + k_unit_data_offset);
-    unit->flags = unit->flags & ~0x00000040u; 
-    unit = (unit_data *)((uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data + k_unit_data_offset);
+    unit = (unit_data *)((uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data + k_unit_data_offset);
+    unit->flags = unit->flags & ~to_bits(unit_playback_flags::restore_marker);
+    unit = (unit_data *)((uint8_t *)((object_header *)object_data->data)[halo::datum_slot(unit_index)].data + k_unit_data_offset);
     unit->flags = unit->flags | _unit_flag_unknown_8000000;
 
     object_set_in_pvs_pass_flag(unit_index, 0);
@@ -233,21 +235,21 @@ void RecordedAnimationPlayer::update_all()
         if (unit_object == (object *)0) {
             datum_delete(recorded_animations, iterator.index);
         } else if ((record->flags & _recorded_animation_flag_finished) != 0) {
-            object_header *header = &((object_header *)object_data->data)[record->unit_index & 0xffff];
+            object_header *header = &((object_header *)object_data->data)[halo::datum_slot(record->unit_index)];
             unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
 
             if ((record->flags & _recorded_animation_flag_restore_object_flag_40) != 0) {
-                unit->flags = unit->flags | 0x40; 
+                unit->flags = unit->flags | to_bits(unit_playback_flags::restore_marker);
             } else {
                 unit->flags = unit->flags & ~0x00000040u;
             }
-            header = &((object_header *)object_data->data)[record->unit_index & 0xffff];
+            header = &((object_header *)object_data->data)[halo::datum_slot(record->unit_index)];
             unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
-            unit->flags = unit->flags & ~0x08000000u; 
+            unit->flags = unit->flags & ~(uint32_t)_unit_flag_unknown_8000000; 
 
             unit_refresh_targeting_flag_and_weapons(record->unit_index, 0);
 
-            header = &((object_header *)object_data->data)[record->unit_index & 0xffff];
+            header = &((object_header *)object_data->data)[halo::datum_slot(record->unit_index)];
             header->flags = header->flags | _object_header_in_pvs_pass_bit;
             
             
@@ -259,15 +261,16 @@ void RecordedAnimationPlayer::update_all()
                 }
             }
 
-            if (((record->flags & 0x08) != 0) && (record->unit_index != (datum_index)k_datum_index_none)) {
+            if (((record->flags & _recorded_animation_flag_delete_object_when_finished) != 0) && (record->unit_index != (datum_index)k_datum_index_none)) {
                 if (hs_object_hierarchy_test(record->unit_index) == 0) {
                     object_delete(record->unit_index);
                 }
             }
-            if (((record->flags & 0x10) != 0) && (record->unit_index != (datum_index)k_datum_index_none)) {
-                object *obj = ((object_header *)object_data->data)[record->unit_index & 0xffff].data;
-                object_get_position((real_point3d *)((uint8_t *)obj + 0x4fc), record->unit_index);
-                *((uint8_t *)obj + 0x4cc) = *((uint8_t *)obj + 0x4cc) | 0x02;
+            if (((record->flags & _recorded_animation_flag_mark_object_when_finished) != 0) && (record->unit_index != (datum_index)k_datum_index_none)) {
+                object *obj = ((object_header *)object_data->data)[halo::datum_slot(record->unit_index)].data;
+                biped_data *biped = (biped_data *)((uint8_t *)obj + k_unit_object_size);
+                object_get_position((real_point3d *)&biped->bump_object_index, record->unit_index);
+                biped->flags = biped->flags | to_bits(biped_playback_flags::jumping);
             }
             datum_delete(recorded_animations, iterator.index);
         } else {

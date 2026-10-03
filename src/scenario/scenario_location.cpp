@@ -5,6 +5,7 @@
  */
 
 #include "halo/scenario/scenario.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
@@ -35,7 +36,7 @@ void location_view::from_point(real_point3d *point)
     }
 
     leaves = (ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer;
-    self->cluster_index = (int16_t)leaves[self->leaf_index & 0x7fffffff].cluster;
+    self->cluster_index = (int16_t)leaves[self->leaf_index & halo::k_leaf_index_mask].cluster;
 }
 
 int16_t location_view::fog_region(real_point3d *point)
@@ -67,8 +68,8 @@ int16_t location_view::fog_region(real_point3d *point)
 
     water_bias = 0.0f;
     fog_tag = scenario_query::fog_region_resolve_tag(region);
-    if (fog_tag != 0xffffffff) {
-        Fog *fog_data = (Fog *)tag_instances[fog_tag & 0xffff].data;
+    if (fog_tag != halo::k_dword_none) {
+        Fog *fog_data = (Fog *)tag_instances[halo::datum_slot(fog_tag)].data;
         if (fog_data->flags & k_fog_flag_is_water) {
             water_bias = fog_data->distance_to_water_plane;
         }
@@ -114,10 +115,10 @@ float location_view::water_surface_distance(real_point3d *point)
     }
 
     fog_tag = scenario_query::fog_region_resolve_tag(region);
-    if (fog_tag == 0xffffffff) {
+    if (fog_tag == halo::k_dword_none) {
         return -3.4028235e+38f;
     }
-    fog_data = (Fog *)tag_instances[fog_tag & 0xffff].data;
+    fog_data = (Fog *)tag_instances[halo::datum_slot(fog_tag)].data;
     if (!(fog_data->flags & k_fog_flag_is_water)) {
         return -3.4028235e+38f;
     }
@@ -147,8 +148,8 @@ uint8_t location_view::background_sound_is_deafening_to_ais()
         palette = (ScenarioStructureBSPBackgroundSoundPalette *)
             global_structure_bsp->background_sound_palette.pointer;
         sound_tag = *(uint32_t *)&palette[background_sound_index].background_sound.tag_id;
-        if (sound_tag != 0xffffffff) {
-            sound = (SoundLooping *)tag_instances[sound_tag & 0xffff].data;
+        if (sound_tag != halo::k_dword_none) {
+            sound = (SoundLooping *)tag_instances[halo::datum_slot(sound_tag)].data;
             return (sound->flags & k_sound_looping_flag_deafening_to_ais) != 0;
         }
     }
@@ -171,10 +172,10 @@ uint8_t scenario_query::location_get_water_and_weather(real_point3d *point, bsp_
                 [fog_region];
         uint32_t fog_tag = scenario_query::fog_region_resolve_tag(fog_region);
 
-        if (fog_tag == 0xffffffff) {
+        if (fog_tag == halo::k_dword_none) {
             is_water = 0;
         } else {
-            Fog *fog_data = (Fog *)tag_instances[fog_tag & 0xffff].data;
+            Fog *fog_data = (Fog *)tag_instances[halo::datum_slot(fog_tag)].data;
             is_water = (uint8_t)(fog_data->flags & k_fog_flag_is_water);
         }
 
@@ -205,18 +206,18 @@ uint32_t scenario_query::fog_region_resolve_tag(int16_t fog_region)
     ScenarioStructureBSPFogPalette *palette;
 
     if (fog_region == -1) {
-        return 0xffffffff;
+        return halo::k_dword_none;
     }
     region = &((ScenarioStructureBSPFogRegion *)global_structure_bsp->fog_regions.pointer)
                  [fog_region];
     palette_index = (int16_t)region->fog;
     if (palette_index == -1) {
-        return 0xffffffff;
+        return halo::k_dword_none;
     }
     palette = &((ScenarioStructureBSPFogPalette *)global_structure_bsp->fog_palette.pointer)
                   [palette_index];
-    if (*(uint32_t *)&palette->fog.tag_id == 0xffffffff) {
-        return 0xffffffff;
+    if (*(uint32_t *)&palette->fog.tag_id == halo::k_dword_none) {
+        return halo::k_dword_none;
     }
     return *(uint32_t *)&palette->fog.tag_id;
 }
@@ -286,7 +287,7 @@ void scenario_query::sky_fog_state_update(int16_t sky_index, int16_t local_playe
     float distance;
     float fog_screen_blend_target;
 
-    sky_tag = 0xffffffff;
+    sky_tag = halo::k_dword_none;
     if (sky_index == -1) {
         if (0 < (int32_t)global_scenario->skies.count) {
             sky_tag = *(uint32_t *)&((ScenarioSky *)global_scenario->skies.pointer)[0].sky.tag_id;
@@ -296,8 +297,8 @@ void scenario_query::sky_fog_state_update(int16_t sky_index, int16_t local_playe
     }
 
     sky_data = (Sky *)0;
-    if (sky_tag != 0xffffffff) {
-        sky_data = (Sky *)tag_instances[sky_tag & 0xffff].data;
+    if (sky_tag != halo::k_dword_none) {
+        sky_data = (Sky *)tag_instances[halo::datum_slot(sky_tag)].data;
     }
 
     if (local_player_index == -1) {
@@ -310,17 +311,17 @@ void scenario_query::sky_fog_state_update(int16_t sky_index, int16_t local_playe
         if (sky_index == -1) {
             fog = (sky_fog_block *)&sky_data->indoor_fog_color;
 
-            sky_tag = 0xffffffff;
+            sky_tag = halo::k_dword_none;
             if (0 < (int32_t)global_scenario->skies.count) {
                 sky_tag = *(uint32_t *)&((ScenarioSky *)global_scenario->skies.pointer)[0].sky.tag_id;
             }
             sky_data = (Sky *)0;
-            if (sky_tag != 0xffffffff) {
-                sky_data = (Sky *)tag_instances[sky_tag & 0xffff].data;
+            if (sky_tag != halo::k_dword_none) {
+                sky_data = (Sky *)tag_instances[halo::datum_slot(sky_tag)].data;
             }
 
             fog_screen_blend_target = 1.0f;
-            if (*(uint32_t *)&sky_data->indoor_fog_screen.tag_id != 0xffffffff) {
+            if (*(uint32_t *)&sky_data->indoor_fog_screen.tag_id != halo::k_dword_none) {
                 goto sky_fog_resolved;
             }
         } else {

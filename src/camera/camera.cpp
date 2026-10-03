@@ -1,4 +1,5 @@
 #include "halo/camera/camera.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern director_globals camera_director_globals;
@@ -286,16 +287,16 @@ int16_t CameraSystem::get_seat_camera_state(datum_index unit, int16_t *out_state
         return 0;
     }
 
-    unit_object = headers[unit & 0xffff].data;
+    unit_object = headers[halo::datum_slot(unit)].data;
     parent = unit_object->parent_object;
     if (parent == k_datum_index_none) {
         return 0;
     }
 
     {
-        object *parent_object = headers[parent & 0xffff].data;
+        object *parent_object = headers[halo::datum_slot(parent)].data;
         if ((1 << (parent_object->type & 0x1f)) & 3) {
-            Unit *parent_unit_tag = (Unit *)tag_instances[parent_object->definition_tag & 0xffff].data;
+            Unit *parent_unit_tag = (Unit *)tag_instances[halo::datum_slot(parent_object->definition_tag)].data;
             uint8_t *seats = (uint8_t *)parent_unit_tag->seats.pointer;
             int16_t seat_index = ((unit_data *)((uint8_t *)unit_object + k_unit_data_offset))->vehicle_seat_index;
             uint32_t seat_flags = *(uint32_t *)(seats + (int32_t)seat_index * sizeof(UnitSeat));
@@ -341,7 +342,7 @@ void CameraSystem::script_set_animation(datum_index animation_tag, char *name)
     if (animation_tag == k_datum_index_none) {
         return;
     }
-    tag = (ModelAnimations *)tag_instances[animation_tag & 0xffff].data;
+    tag = (ModelAnimations *)tag_instances[halo::datum_slot(animation_tag)].data;
     if (tag->nodes.count != 1) {
         return;
     }
@@ -392,7 +393,7 @@ datum_index CameraSystem::dead_find_next_teammate(datum_index reference_player, 
 
     team = require_same_team
                ? ((player *)((uint8_t *)player_data->data +
-                              (reference_player & 0xffff) * sizeof(player)))->team
+                              (halo::datum_slot(reference_player)) * sizeof(player)))->team
                : -1;
 
     iterator.data = player_data;
@@ -407,7 +408,7 @@ datum_index CameraSystem::dead_find_next_teammate(datum_index reference_player, 
             (!require_same_team || p->team == team)) {
             if (best == k_datum_index_none) {
                 best = iterator.index;
-            } else if ((int32_t)(iterator.index & 0xffff) > (int32_t)(current_target & 0xffff)) {
+            } else if ((int32_t)(halo::datum_slot(iterator.index)) > (int32_t)(halo::datum_slot(current_target))) {
                 best = iterator.index;
                 break;
             }
@@ -435,7 +436,7 @@ uint8_t CameraSystem::dead_player_has_teammate(datum_index reference_player)
     int32_t team;
 
     team = ((player *)((uint8_t *)player_data->data +
-                        (reference_player & 0xffff) * sizeof(player)))->team;
+                        (halo::datum_slot(reference_player)) * sizeof(player)))->team;
 
     iterator.data = player_data;
     iterator.next_index = 0;
@@ -626,7 +627,7 @@ dead_camera_data * DeadCamera::construct(dead_camera_data *self, int16_t local_p
     self->local_player = local_player;
 
     if (unit == k_datum_index_none) {
-        player *p = (player *)((uint8_t *)player_data->data + (local_player & 0xffff) * sizeof(player));
+        player *p = (player *)((uint8_t *)player_data->data + (halo::datum_slot(local_player)) * sizeof(player));
         self->target_unit = p->previous_unit; 
     } else {
         self->target_unit = unit;

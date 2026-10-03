@@ -5,6 +5,8 @@
  */
 
 #include "halo/text/text.hpp"
+#include "halo/text/limits.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern tag_instance *tag_instances;
@@ -42,8 +44,8 @@ int16_t narrow_text_strategy::parse_next_token(text_parse_state *state)
         }
 
         token = -1;
-        if ((ch & 0xff00) == 0x7c00) {
-            switch (tolower(ch & 0xff)) {
+        if ((ch & k_text_high_byte_mask) == k_text_escape_lead) {
+            switch (tolower(ch & k_text_low_byte_mask)) {
             case 'b': state->style = _text_style_bold;      token = _text_token_style; break;
             case 'c': state->justification = _text_justification_center; token = _text_token_justification; break;
             case 'i': state->style = _text_style_italic;    token = _text_token_style; break;
@@ -64,14 +66,14 @@ int16_t narrow_text_strategy::parse_next_token(text_parse_state *state)
         if (token == _text_token_style) {
             datum_index resolved_font = state->font;
             if (state->style != (int16_t)-1) {
-                Font *base_font = (Font *)tag_instances[state->font & 0xffff].data;
+                Font *base_font = (Font *)tag_instances[halo::datum_slot(state->font)].data;
                 TagDependency *style_dependency = &base_font->bold + state->style;
                 resolved_font = *(datum_index *)&style_dependency->tag_id;
-                if (resolved_font == (datum_index)0xffffffff) {
+                if (resolved_font == (datum_index)k_datum_index_none) {
                     resolved_font = state->font;
                 }
             }
-            state->font_definition = (uint32_t)tag_instances[resolved_font & 0xffff].data;
+            state->font_definition = (uint32_t)tag_instances[halo::datum_slot(resolved_font)].data;
         }
 
         if (token != _text_token_style && token != _text_token_unused_5) {
@@ -98,7 +100,7 @@ int16_t narrow_text_strategy::parse_next_token(text_parse_state *state)
     }
 
     {
-        int is_double_byte_char = (ch & 0xff00) != 0;
+        int is_double_byte_char = (ch & k_text_high_byte_mask) != 0;
         uint8_t *next_position = (uint8_t *)state->string + state->position;
         uint16_t lookahead_char;
         StringList *localization;
@@ -114,7 +116,7 @@ int16_t narrow_text_strategy::parse_next_token(text_parse_state *state)
         }
 
         if (text_localization_strings != (datum_index)k_datum_index_none) {
-            localization = (StringList *)tag_instances[text_localization_strings & 0xffff].data;
+            localization = (StringList *)tag_instances[halo::datum_slot(text_localization_strings)].data;
 
             if (localization->strings.count > _text_localization_single_byte_break_characters) {
                 StringListString *entry = (StringListString *)localization->strings.pointer +
@@ -164,10 +166,10 @@ void narrow_text_strategy::draw_character_range(Rectangle2D *bounds, text_glyph_
 
     int16_t left, right, top, bottom;
 
-    left = -0x8000;
-    right = 0x7fff;
-    top = -0x8000;
-    bottom = 0x7fff;
+    left = k_text_coordinate_min;
+    right = k_text_coordinate_max;
+    top = k_text_coordinate_min;
+    bottom = k_text_coordinate_max;
     if (bounds != (void *)0) {
         left = bounds->left;
         right = bounds->right;
@@ -193,7 +195,7 @@ void narrow_text_strategy::draw_character_range(Rectangle2D *bounds, text_glyph_
 
             glyph_color = (state.position < text_highlight_start ||
                            text_highlight_end <= state.position)
-                              ? color : (color ^ 0xffffff);
+                              ? color : (color ^ k_text_rgb_mask);
 
             narrow_text_strategy::instance().parse_next_token(&state);
 
@@ -450,10 +452,10 @@ void wide_text_strategy::draw_character_range(Rectangle2D *bounds, text_glyph_dr
 
     int16_t left, right, top, bottom;
 
-    left = -0x8000;
-    right = 0x7fff;
-    top = -0x8000;
-    bottom = 0x7fff;
+    left = k_text_coordinate_min;
+    right = k_text_coordinate_max;
+    top = k_text_coordinate_min;
+    bottom = k_text_coordinate_max;
     if (bounds != (void *)0) {
         left = bounds->left;
         right = bounds->right;
@@ -479,7 +481,7 @@ void wide_text_strategy::draw_character_range(Rectangle2D *bounds, text_glyph_dr
 
             glyph_color = (state.position < text_highlight_start ||
                            text_highlight_end <= state.position)
-                              ? color : (color ^ 0xffffff);
+                              ? color : (color ^ k_text_rgb_mask);
 
             wide_text_strategy::instance().parse_next_token(&state);
 

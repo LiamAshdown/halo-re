@@ -358,7 +358,7 @@ uint32_t bitmap_data_depth_valid_for_type(int32_t depth, BitmapDataType_t type)
 
 void bitmap_data_block_delete_element(TagReflexive *block, int32_t index)
 {
-    bitmap_data_view((BitmapData *)((uint8_t *)block->pointer + index * 0x30)).free();
+    bitmap_data_view((BitmapData *)((uint8_t *)block->pointer + index * sizeof(BitmapData))).free();
 }
 
 }  // namespace halo::bitmaps

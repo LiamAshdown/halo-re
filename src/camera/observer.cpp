@@ -1,4 +1,5 @@
 #include "halo/camera/observer.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern observer observers[1];
@@ -163,7 +164,7 @@ void ObserverHandle::commit()
     leaf_index = (int32_t)bsp3d_node_find_leaf(0, global_collision_bsp, (real_point3d *)&camera->position);
     if (leaf_index != -1) {
         int16_t new_cluster =
-            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index & 0x7fffffff].cluster;
+            ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[leaf_index & halo::k_leaf_index_mask].cluster;
 
         if (new_cluster != -1) {
             if (new_cluster != camera->cluster_index) {
@@ -661,7 +662,7 @@ void ObserverSystem::update(float dt, uint8_t add_bob)
     }
 
     {
-        player *p = &((player *)player_data->data)[local_player & 0xffff];
+        player *p = &((player *)player_data->data)[halo::datum_slot(local_player)];
         if (p->unit != (datum_index)k_datum_index_none) {
             object *unit_object = object_try_and_get(p->unit, 3  );
             if (unit_object != 0 && unit_object->parent_object != (datum_index)k_datum_index_none) {
@@ -705,7 +706,7 @@ void ObserverSystem::update_location()
         observers[0].camera.cluster_index = -1;
     } else {
         observers[0].camera.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)
-            global_structure_bsp->leaves.pointer)[leaf_index & 0x7fffffff].cluster;
+            global_structure_bsp->leaves.pointer)[leaf_index & halo::k_leaf_index_mask].cluster;
     }
 }
 
@@ -738,7 +739,7 @@ void ObserverSystem::avoid_collision(real_vector3d *forward, real_point3d *posit
         location.cluster_index = -1;
     } else {
         location.cluster_index = (int16_t)((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)
-            [location.leaf_index & 0x7fffffff].cluster;
+            [location.leaf_index & halo::k_leaf_index_mask].cluster;
     }
     use_alternate_mask = scenario_location_get_water_and_weather(position, &location, 0); 
 
@@ -778,14 +779,14 @@ void ObserverSystem::avoid_collision(real_vector3d *forward, real_point3d *posit
         probe.y = sign * offset[1] + pullback_point.y;
         probe.z = sign * offset[2] + pullback_point.z;
 
-        mask = use_alternate_mask ? 0x40a1 : 0x40e1;
+        mask = to_bits(use_alternate_mask ? k_probe_flags_alternate : k_probe_flags_normal);
         {
             real_vector3d delta;
 
             delta.i = probe.x - position->x;
             delta.j = probe.y - position->y;
             delta.k = probe.z - position->z;
-            hit = collision_test_movement_segment(mask, position, &delta, 0xffffffff, &collision);
+            hit = collision_test_movement_segment(mask, position, &delta, k_datum_index_none, &collision);
         }
         if (hit) {
             hit_fraction = collision.t;
@@ -826,11 +827,11 @@ void ObserverSystem::avoid_collision(real_vector3d *forward, real_point3d *posit
             probe.x = mid * offset[0] + pullback_point.x;
             probe.y = mid * offset[1] + pullback_point.y;
             probe.z = mid * offset[2] + pullback_point.z;
-            mask = use_alternate_mask ? 0x40a1 : 0x40e1;
+            mask = to_bits(use_alternate_mask ? k_probe_flags_alternate : k_probe_flags_normal);
             delta.i = probe.x - position->x;
             delta.j = probe.y - position->y;
             delta.k = probe.z - position->z;
-            hit = collision_test_movement_segment(mask, position, &delta, 0xffffffff, &collision);
+            hit = collision_test_movement_segment(mask, position, &delta, k_datum_index_none, &collision);
 
             if (!hit) {
 mark_clear:
@@ -874,7 +875,7 @@ mark_clear:
  */
 uint8_t ObserverSystem::collision_test_ray(real_point3d *origin, uint8_t use_alternate_mask, real_point3d *target, float *out_fraction)
 {
-    uint32_t flags = use_alternate_mask ? 0x40a1 : 0x40e1;
+    uint32_t flags = to_bits(use_alternate_mask ? k_probe_flags_alternate : k_probe_flags_normal);
     real_vector3d delta;
     collision_result collision;
 
@@ -882,7 +883,7 @@ uint8_t ObserverSystem::collision_test_ray(real_point3d *origin, uint8_t use_alt
     delta.j = target->y - origin->y;
     delta.k = target->z - origin->z;
 
-    if (collision_test_movement_segment(flags, origin, &delta, 0xffffffff, &collision) != 0) {
+    if (collision_test_movement_segment(flags, origin, &delta, k_datum_index_none, &collision) != 0) {
         *out_fraction = collision.t;
         return 1;
     }

@@ -1,4 +1,5 @@
 #include "halo/devices/machine.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -28,12 +29,12 @@ namespace {
 
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+    return (uint8_t *)((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 }
 
 static uint8_t *object_definition(uint8_t *object)
 {
-    return (uint8_t *)tag_instances[*(datum_index *)object & 0xffff].data;
+    return (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)object)].data;
 }
 
 }
@@ -52,13 +53,14 @@ uint8_t MachineHandle::create()
 
     uint8_t *object = object_get(object_index);
     uint8_t *definition = object_definition(object);
-    uint32_t *flags = (uint32_t *)(object + 0x10);
+    uint32_t *flags = &((struct object *)object)->flags;
+    constexpr uint32_t elevator_bits = to_bits(machine_object_flags::unknown_4000 | machine_object_flags::unknown_8000);
 
-    *flags |= 0x2000;
-    if ((definition[0x292] & 4) != 0) {
-        *flags |= 0x4000 | 0x8000;
+    *flags |= _object_unknown_2000_bit;
+    if ((((DeviceMachine *)definition)->machine_flags & to_bits(machine_tag_flags::elevator)) != 0) {
+        *flags |= elevator_bits;
     } else {
-        *flags &= ~(uint32_t)(0x4000 | 0x8000);
+        *flags &= ~elevator_bits;
     }
     return 1;
 }
@@ -73,9 +75,10 @@ void MachineHandle::place(uint8_t *placement)
     datum_index object_index = (datum_index)handle;
 
     uint8_t *obj = object_get(object_index);
+    ScenarioMachine *scenario_machine = (ScenarioMachine *)placement;
 
-    device_new(object_index, placement + 0x28);
-    ((device_object *)obj)->device.type_flags |= placement[0x30] & 0xf;
+    device_new(object_index, &scenario_machine->power_group);
+    ((device_object *)obj)->device.type_flags |= scenario_machine->machine_flags & k_machine_placement_flags_mask;
 }
 
 /**
@@ -90,11 +93,11 @@ void MachineHandle::melee_attacked()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     device_machine_data *dev = (device_machine_data *)((uint8_t *)obj + sizeof(object));
 
     if ((dev->device.type_flags & (1u << _device_machine_opened_by_melee_attack_bit)) != 0 &&
-        object_index != 0xffffffff &&
+        object_index != (uint32_t)k_datum_index_none &&
         dev->device.position_group != -1) {
         device_group_set_value_immediate((uint16_t)dev->device.position_group, 1.0f);
     }
@@ -114,9 +117,9 @@ uint32_t MachineHandle::update()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
     device_machine_data *dev = (device_machine_data *)((uint8_t *)obj + sizeof(object));
-    DeviceMachine *tag = (DeviceMachine *)tag_instances[obj->definition_tag & 0xffff].data;
+    DeviceMachine *tag = (DeviceMachine *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     
     
@@ -153,13 +156,13 @@ uint32_t MachineHandle::update()
         if (0 < candidate_count) {
             int16_t i;
             for (i = 0; i < candidate_count; i++) {
-                object *candidate = ((object_header *)object_data->data)[candidates[i] & 0xffff].data;
+                object *candidate = ((object_header *)object_data->data)[halo::datum_slot(candidates[i])].data;
                 int counts = 1;
                 int passes_side_test = 1;
 
                 if (((candidate->vitality_flags & _object_health_frozen_bit) != 0) ||
-                    ((*(uint32_t *)((uint8_t *)tag_instances[candidate->definition_tag & 0xffff].data
-                        + sizeof(Object)) & 0x4000) != 0)) { 
+                    ((((Unit *)tag_instances[halo::datum_slot(candidate->definition_tag)].data)->unit_flags
+                        & to_bits(unit_tag_flags::cannot_open_doors_automatically)) != 0)) { 
                     counts = 0;
                 }
 
@@ -173,7 +176,7 @@ uint32_t MachineHandle::update()
                         if (team < 0 || 9 < team) {
                             exempt = 1;
                         } else {
-                            exempt = (*(uint32_t *)((uint8_t *)team_pair_data + 0xa4 +
+                            exempt = (*(uint32_t *)((uint8_t *)team_pair_data + k_team_pair_matrix_offset +
                                 ((team + 10) >> 5) * 4) & (1u << ((team + 10) & 0x1f))) == 0;
                         }
                     } else {
@@ -216,8 +219,8 @@ uint32_t MachineHandle::update()
     
     
     
-    if ((tag->machine_flags & 0x4) != 0) {
-        if (tag->elevator_node != (uint16_t)0xffff) {
+    if ((tag->machine_flags & to_bits(machine_tag_flags::elevator)) != 0) {
+        if (tag->elevator_node != halo::k_word_none) {
             
             
             real_matrix4x3 *node = (real_matrix4x3 *)((uint8_t *)obj + obj->nodes.offset) +
@@ -233,7 +236,7 @@ uint32_t MachineHandle::update()
                 if (0 < rider_count) {
                     int16_t i;
                     for (i = 0; i < rider_count; i++) {
-                        object *rider = ((object_header *)object_data->data)[riders[i] & 0xffff].data;
+                        object *rider = ((object_header *)object_data->data)[halo::datum_slot(riders[i])].data;
                         biped_data *rider_biped = (biped_data *)((uint8_t *)rider + k_unit_object_size);
                         if (rider_biped->last_ground_object_index == object_index) { 
                             real_point3d p = rider->position;
@@ -273,16 +276,17 @@ void ControlHandle::place(uint8_t *placement)
     datum_index object_index = (datum_index)handle;
 
     uint8_t *obj = object_get(object_index);
+    ScenarioControl *scenario_control = (ScenarioControl *)placement;
 
-    device_new(object_index, placement + 0x28);
-    if ((placement[0x30] & 1) != 0) {
-        ((device_object *)obj)->device.type_flags |= 1;
+    device_new(object_index, &scenario_control->power_group);
+    if ((scenario_control->control_flags & to_bits(scenario_control_flags::usable_from_both_sides)) != 0) {
+        ((device_object *)obj)->device.type_flags |= to_bits(control_type_flags::usable_from_both_sides);
     }
-    if ((placement[0x30] & 0x10) != 0) {
-        ((device_object *)obj)->device.type_flags |= 2;
+    if ((scenario_control->control_flags & to_bits(scenario_control_flags::unknown_10)) != 0) {
+        ((device_object *)obj)->device.type_flags |= to_bits(control_type_flags::unknown_2);
     }
     ((control_object *)obj)->control.custom_name_index =
-        (int16_t)(((ScenarioControl *)placement)->custom_control_name - 1);
+        (int16_t)(scenario_control->custom_control_name - 1);
 }
 
 /**
@@ -298,8 +302,8 @@ void ControlHandle::activate()
 {
     uint32_t object_id = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[object_id & 0xffff].data;
-    DeviceControl *tag = (DeviceControl *)tag_instances[obj->definition_tag & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_id)].data;
+    DeviceControl *tag = (DeviceControl *)tag_instances[halo::datum_slot(obj->definition_tag)].data;
 
     if (tag->triggers_when == devicetriggerswhen_touched_by_player) {
         device_change_power_state(0.0f, object_id); 
@@ -317,7 +321,7 @@ void ControlHandle::touched()
 {
     uint32_t object_index = (uint32_t)handle;
 
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
 
     if (obj->type == _object_type_device_control) {
         device_control_activate(object_index);
@@ -334,15 +338,14 @@ void LightFixtureHandle::place(uint8_t *placement)
     datum_index object_index = (datum_index)handle;
 
     uint8_t *object = object_get(object_index);
-    int32_t i;
+    ScenarioLightFixture *scenario_light = (ScenarioLightFixture *)placement;
+    light_fixture_placement_copy *lights = (light_fixture_placement_copy *)&((device_object *)object)->device.type_flags;
 
-    device_new(object_index, placement + 0x28);
-    for (i = 0; i < 3; i++) {
-        ((uint32_t *)(object + 0x214))[i] = ((uint32_t *)(placement + 0x30))[i];
-    }
-    for (i = 0; i < 3; i++) {
-        ((uint32_t *)(object + 0x220))[i] = ((uint32_t *)(placement + 0x3c))[i];
-    }
+    device_new(object_index, &scenario_light->power_group);
+    lights->color = scenario_light->color;
+    lights->intensity = scenario_light->intensity;
+    lights->falloff_angle = scenario_light->falloff_angle;
+    lights->cutoff_angle = scenario_light->cutoff_angle;
 }
 
 }

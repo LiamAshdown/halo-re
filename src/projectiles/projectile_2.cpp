@@ -1,4 +1,5 @@
 #include "halo/projectiles/projectile.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -42,7 +43,7 @@ int projectile_update(uint32_t projectile_index);
 
 namespace {
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot(h)].data)
 #define F(p, o) (*(float *)((p) + (o)))
 static void projectile_raise_state(uint32_t projectile_index, int16_t state)
 {
@@ -59,7 +60,11 @@ static void projectile_raise_state(uint32_t projectile_index, int16_t state)
 
 namespace halo::projectiles {
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+namespace {
+constexpr int16_t k_guided_zoom_table_index = 19;
+}
+
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[halo::datum_slot(h)].data)
 #define F(p, o) (*(float *)((p) + (o)))
 /**
  * Original function projectile_update; the author notes are in
@@ -72,10 +77,12 @@ int ProjectileHandle::update()
     uint32_t projectile_index = (uint32_t)handle;
 
     uint8_t *obj = OBJECT_DATA(projectile_index);                 
-    uint8_t *tag = (uint8_t *)tag_instances[*(datum_index *)obj & 0xffff].data; 
-    real_vector3d *velocity = (real_vector3d *)(obj + 0x68);
-    real_vector3d *forward = (real_vector3d *)(obj + 0x74);
-    real_vector3d *up = (real_vector3d *)(obj + 0x80);
+    uint8_t *tag = (uint8_t *)tag_instances[halo::datum_slot(*(datum_index *)obj)].data; 
+    projectile_object *self = (projectile_object *)obj;
+    Projectile *definition = (Projectile *)tag;
+    real_vector3d *velocity = &self->base.velocity;
+    real_vector3d *forward = &self->base.forward;
+    real_vector3d *up = &self->base.up;
     real remaining = 1.0f;          
     int16_t collisions = 0;         
     uint8_t flyby_played = 0;       
@@ -84,28 +91,28 @@ int ProjectileHandle::update()
     memset(&hit, 0, sizeof(hit));
 
     
-    if (!(((projectile_object *)obj)->projectile.flags & 2) && ((projectile_object *)obj)->projectile.contrail_attachment_index != -1) {
-        int32_t slot = ((projectile_object *)obj)->projectile.contrail_attachment_index;
+    if (!(self->projectile.flags & to_bits(projectile_flag::tracer)) && self->projectile.contrail_attachment_index != -1) {
+        int32_t slot = self->projectile.contrail_attachment_index;
 
-        if (((projectile_object *)obj)->base.attachment_handles[slot] != k_datum_index_none) {
-            contrail_delete(((projectile_object *)obj)->base.attachment_handles[slot]);
+        if (self->base.attachment_handles[slot] != k_datum_index_none) {
+            contrail_delete(self->base.attachment_handles[slot]);
         }
-        *(datum_index *)(obj + 0x14c + ((projectile_object *)obj)->projectile.contrail_attachment_index * 4) = k_datum_index_none;
-        ((projectile_object *)obj)->projectile.contrail_attachment_index = -1;
+        self->base.attachment_handles[self->projectile.contrail_attachment_index] = k_datum_index_none;
+        self->projectile.contrail_attachment_index = -1;
     }
-    F(obj, 0x248) += F(obj, 0x24c); 
-    F(obj, 0x254) = F(obj, 0x258) + F(obj, 0x254); 
+    self->projectile.arming_timer += self->projectile.arming_timer_rate; 
+    self->projectile.deceleration_delay = self->projectile.deceleration_delay_rate + self->projectile.deceleration_delay; 
     {
-        int16_t starts = ((Projectile *)tag)->detonation_timer_starts;
-        uint8_t condition = (starts == 1 || starts == 2) ? (uint8_t)((((projectile_object *)obj)->projectile.flags >> 4) & 1) : 1;
-        uint32_t flags = ((projectile_object *)obj)->projectile.flags;
+        int16_t starts = definition->detonation_timer_starts;
+        uint8_t condition = (starts == 1 || starts == 2) ? (uint8_t)((self->projectile.flags & to_bits(projectile_flag::at_rest)) != 0) : 1;
+        uint32_t flags = self->projectile.flags;
 
-        if ((flags & 0x20) || (flags & 8) || condition) {
-            if (!(flags & 0x20)) {
-                ((projectile_object *)obj)->projectile.flags = flags | 0x20;
+        if ((flags & to_bits(projectile_flag::detonation_timer_started)) || (flags & to_bits(projectile_flag::attached)) || condition) {
+            if (!(flags & to_bits(projectile_flag::detonation_timer_started))) {
+                self->projectile.flags = flags | to_bits(projectile_flag::detonation_timer_started);
             }
-            F(obj, 0x240) = F(obj, 0x244) + F(obj, 0x240);
-            if (!(F(obj, 0x240) < 1.0f)) {
+            self->projectile.detonation_timer = self->projectile.detonation_timer_rate + self->projectile.detonation_timer;
+            if (!(self->projectile.detonation_timer < 1.0f)) {
                 projectile_raise_state(projectile_index, 1);
             }
         }
@@ -113,7 +120,7 @@ int ProjectileHandle::update()
     projectile_update_function_values(projectile_index);
 
     for (;;) {
-        int16_t state = ((projectile_object *)obj)->projectile.state;
+        int16_t state = self->projectile.state;
         real_vector3d vel;          
         real_vector3d step;         
         real_point3d swept;         
@@ -127,11 +134,11 @@ int ProjectileHandle::update()
         uint8_t collision_attempted = 0; 
         datum_index shooter;        
 
-        if (state != 0 && !(state == 1 && F(obj, 0x24c) != 0.0f && F(obj, 0x248) < 1.0f)) {
+        if (state != 0 && !(state == 1 && self->projectile.arming_timer_rate != 0.0f && self->projectile.arming_timer < 1.0f)) {
             break;
         }
-        if ((((projectile_object *)obj)->projectile.flags & 8) || (((projectile_object *)obj)->base.flags & 0x20) ||
-            ((projectile_object *)obj)->base.parent_object != k_datum_index_none) {
+        if ((self->projectile.flags & to_bits(projectile_flag::attached)) || (self->base.flags & to_bits(projectile_object_flag::at_rest)) ||
+            self->base.parent_object != k_datum_index_none) {
             break;
         }
         vel = *velocity;
@@ -139,13 +146,13 @@ int ProjectileHandle::update()
         speed_after = speed;
         average_speed = speed;
         step = vel;
-        shooter = ((projectile_object *)obj)->projectile.ignore_object_index;
+        shooter = self->projectile.ignore_object_index;
 
         
-        if (((projectile_object *)obj)->projectile.tracked_object_index != k_datum_index_none && ((Projectile *)tag)->guided_angular_velocity > 0.0f) {
-            datum_index tracked_index = ((projectile_object *)obj)->projectile.tracked_object_index;
-            uint8_t *tracked = OBJECT_DATA(tracked_index);
-            real turn = ((Projectile *)tag)->guided_angular_velocity * 0.033333335f;   
+        if (self->projectile.tracked_object_index != k_datum_index_none && definition->guided_angular_velocity > 0.0f) {
+            datum_index tracked_index = self->projectile.tracked_object_index;
+            object *tracked_object = (object *)OBJECT_DATA(tracked_index);
+            real turn = definition->guided_angular_velocity * k_seconds_per_tick;   
             real fade;                                  
             real distance;
             real_point3d target;                        
@@ -156,13 +163,13 @@ int ProjectileHandle::update()
             real angle_a;
             real angle_b;
 
-            if (((1u << (tracked[0xb4] & 0x1f)) & 3) && *(datum_index *)(tracked + 0x218) != k_datum_index_none) {
-                turn *= weapon_get_zoom_fov(0x13, main_game_globals->difficulty);
+            if (((1u << (tracked_object->type & 0x1f)) & 3) && ((unit_data *)((uint8_t *)tracked_object + k_unit_data_offset))->controlling_player != k_datum_index_none) {
+                turn *= weapon_get_zoom_fov(k_guided_zoom_table_index, main_game_globals->difficulty);
             }
             {
-                real dx = F(obj, 0xa0) - F(tracked, 0xa0);
-                real dy = F(obj, 0xa4) - F(tracked, 0xa4);
-                real dz = F(obj, 0xa8) - F(tracked, 0xa8);
+                real dx = self->base.bounding_center.x - tracked_object->bounding_center.x;
+                real dy = self->base.bounding_center.y - tracked_object->bounding_center.y;
+                real dz = self->base.bounding_center.z - tracked_object->bounding_center.z;
 
                 distance = (real)sqrt(dx * dx + dy * dy + dz * dz);
             }
@@ -180,9 +187,9 @@ int ProjectileHandle::update()
             }
             unit_get_secondary_eye_marker_position(tracked_index, &target);
             angle_a = periodic_function_evaluate(_periodic_function_wander,
-                (double)((real)(int32_t)((salt * 7 + tick) & 0xffff) * 0.011111111f)) * 6.2831855f;
+                (double)((real)(int32_t)((salt * 7 + tick) & halo::k_datum_slot_mask) * 0.011111111f)) * 6.2831855f;
             angle_b = 3.1415927f - periodic_function_evaluate(_periodic_function_wander,
-                (double)((real)(int32_t)((tick + salt * 3) & 0xffff) * 0.011111111f)) * 1.5707964f;
+                (double)((real)(int32_t)((tick + salt * 3) & halo::k_datum_slot_mask) * 0.011111111f)) * 1.5707964f;
             {
                 real cos_b = (real)cos(angle_b);
                 real wander_x = (real)cos(angle_a) * cos_b;
@@ -193,9 +200,9 @@ int ProjectileHandle::update()
                 target.y += wander_y * fade;
                 target.z += wander_z * fade;
             }
-            to_target.i = target.x - F(obj, 0x5c);
-            to_target.j = target.y - F(obj, 0x60);
-            to_target.k = target.z - F(obj, 0x64);
+            to_target.i = target.x - self->base.position.x;
+            to_target.j = target.y - self->base.position.y;
+            to_target.k = target.z - self->base.position.z;
             vector3d_cross_product(&axis, &to_target, velocity);
             if (to_target.k * velocity->k + to_target.j * velocity->j + to_target.i * velocity->i > 0.0f &&
                 vector3d_normalize_with_length(&axis) > 0.0f) {
@@ -205,11 +212,11 @@ int ProjectileHandle::update()
 
         
         vel_k = vel.k;
-        if (!(F(obj, 0x254) < 1.0f)) {
-            real final_speed = F(tag, 0x1e8);
+        if (!(self->projectile.deceleration_delay < 1.0f)) {
+            real final_speed = definition->final_velocity;
 
-            if (speed > final_speed && F(obj, 0x25c) != 0.0f) {
-                real drop = remaining * F(obj, 0x25c);
+            if (speed > final_speed && self->projectile.deceleration != 0.0f) {
+                real drop = remaining * self->projectile.deceleration;
 
                 speed_after = speed - drop;
                 if (!(speed_after > final_speed)) {
@@ -239,8 +246,8 @@ int ProjectileHandle::update()
                     step.j = (vel.j + velocity->j) * 0.5f;
                     step.k = (vel_k + velocity->k) * 0.5f;
                 }
-            } else if (F(tag, 0x1c8) == 0.0f && F(tag, 0x1c0) == 0.0f && !(F(tag, 0x1c4) > F(tag, 0x1e8)) &&
-                       (F(obj, 0x25c) != 0.0f || !(F(obj, 0x250) < F(obj, 0x260)))) {
+            } else if (definition->maximum_range == 0.0f && definition->timer[1] == 0.0f && !(definition->minimum_velocity > definition->final_velocity) &&
+                       (self->projectile.deceleration != 0.0f || !(self->projectile.distance_travelled < self->projectile.deceleration_end_range))) {
                 
                 projectile_request_state(projectile_index, 2);
             } else if (speed < final_speed && speed > 0.0f) {
@@ -254,24 +261,24 @@ int ProjectileHandle::update()
         }
 
         
-        gravity = k_physics_gravity * ((((projectile_object *)obj)->base.flags & 0x10) ? ((Projectile *)tag)->water_gravity_scale : ((Projectile *)tag)->air_gravity_scale);
+        gravity = k_physics_gravity * ((self->base.flags & to_bits(projectile_object_flag::in_water)) ? definition->water_gravity_scale : definition->air_gravity_scale);
         vel.k = vel_k - gravity * remaining;
         step_k = step.k - gravity * remaining * 0.5f;
 
         
         scale = 1.0f;
-        if (F(tag, 0x1c8) != 0.0f && !(average_speed * remaining + F(obj, 0x250) <= F(tag, 0x1c8))) {
+        if (definition->maximum_range != 0.0f && !(average_speed * remaining + self->projectile.distance_travelled <= definition->maximum_range)) {
             if (average_speed == 0.0f) {
                 scale = 0.0f;
             } else {
-                scale = (F(tag, 0x1c8) - F(obj, 0x250)) / average_speed * remaining;
+                scale = (definition->maximum_range - self->projectile.distance_travelled) / average_speed * remaining;
             }
             projectile_request_state(projectile_index, 1);
         }
         scale *= remaining;
-        swept.x = step.i * scale + F(obj, 0x5c);
-        swept.y = step.j * scale + F(obj, 0x60);
-        swept.z = scale * step_k + F(obj, 0x64);
+        swept.x = step.i * scale + self->base.position.x;
+        swept.y = step.j * scale + self->base.position.y;
+        swept.z = scale * step_k + self->base.position.z;
 
         
         {
@@ -279,7 +286,7 @@ int ProjectileHandle::update()
 
             if (collisions == 10) {
                 projectile_raise_state(projectile_index, 1);
-            } else if (((projectile_object *)obj)->projectile.state != 2) {
+            } else if (self->projectile.state != 2) {
                 collision_attempted = 1;
                 hit_something = projectile_collision_test(projectile_index, &swept, &hit);
             }
@@ -287,7 +294,7 @@ int ProjectileHandle::update()
                 remaining = 1.0f - hit.t;
                 vel.k += gravity * remaining;
                 if (speed_after != 0.0f) {
-                    real s = remaining * F(obj, 0x25c) + speed_after;
+                    real s = remaining * self->projectile.deceleration + speed_after;
                     real ratio;
 
                     if (!(s <= speed)) {
@@ -299,13 +306,13 @@ int ProjectileHandle::update()
                     vel.k *= ratio;
                 }
                 if (hit.plane.normal.k > 0.3f) {
-                    ((projectile_object *)obj)->projectile.flags |= 4;
+                    self->projectile.flags |= to_bits(projectile_flag::hit_ground);
                 }
-                ((projectile_object *)obj)->projectile.ignore_object_index = k_datum_index_none;
+                self->projectile.ignore_object_index = k_datum_index_none;
                 projectile_response(projectile_index, &hit, &swept, &vel);
                 collisions++;
-                ai_accumulate_repeated_event(projectile_index, &hit.point, 1, ((Projectile *)tag)->impact_noise, 1);
-                if (((projectile_object *)obj)->projectile.flags & 8) {
+                ai_accumulate_repeated_event(projectile_index, &hit.point, 1, definition->impact_noise, 1);
+                if (self->projectile.flags & to_bits(projectile_flag::attached)) {
                     goto next_step;
                 }
             } else {
@@ -320,26 +327,26 @@ int ProjectileHandle::update()
         {
             real_vector3d moved;    
 
-            moved.i = swept.x - F(obj, 0x5c);
-            moved.j = swept.y - F(obj, 0x60);
-            moved.k = swept.z - F(obj, 0x64);
-            F(obj, 0x250) = (real)sqrt(moved.k * moved.k + moved.j * moved.j + moved.i * moved.i) + F(obj, 0x250);
-            if (!flyby_played && *(datum_index *)&((Projectile *)tag)->flyby_sound.tag_id != k_datum_index_none &&
+            moved.i = swept.x - self->base.position.x;
+            moved.j = swept.y - self->base.position.y;
+            moved.k = swept.z - self->base.position.z;
+            self->projectile.distance_travelled = (real)sqrt(moved.k * moved.k + moved.j * moved.j + moved.i * moved.i) + self->projectile.distance_travelled;
+            if (!flyby_played && *(datum_index *)&definition->flyby_sound.tag_id != k_datum_index_none &&
                 *(datum_index *)local_player_globals->local_players != k_datum_index_none) {
-                datum_index player = *(datum_index *)local_player_globals->local_players;
-                datum_index listener = *(datum_index *)((uint8_t *)player_data->data + (player & 0xffff) * 0x200 + 0x34);
+                datum_index local_player = *(datum_index *)local_player_globals->local_players;
+                datum_index listener = ((player *)player_data->data)[halo::datum_slot(local_player)].unit;
 
                 if (listener != k_datum_index_none && listener != shooter) {
-                    real_point3d *center = (real_point3d *)(OBJECT_DATA(listener) + 0xa0);
-                    real radius = sound_definition_maximum_distance(*(datum_index *)&((Projectile *)tag)->flyby_sound.tag_id);
+                    real_point3d *center = &((object *)OBJECT_DATA(listener))->bounding_center;
+                    real radius = sound_definition_maximum_distance(*(datum_index *)&definition->flyby_sound.tag_id);
                     real_vector3d to_listener;  
                     real_vector3d projected;    
                     real_vector3d perpendicular; 
                     real along;
 
-                    to_listener.i = center->x - F(obj, 0x5c);
-                    to_listener.j = center->y - F(obj, 0x60);
-                    to_listener.k = center->z - F(obj, 0x64);
+                    to_listener.i = center->x - self->base.position.x;
+                    to_listener.j = center->y - self->base.position.y;
+                    to_listener.k = center->z - self->base.position.z;
                     vector3d_project_onto_axis(&projected, &moved, &to_listener, &perpendicular);
                     along = projected.k * moved.k + projected.j * moved.j + projected.i * moved.i;
                     if (!(along < 0.0f) && vector3d_magnitude_squared(&moved) > along &&
@@ -354,7 +361,7 @@ int ProjectileHandle::update()
                         *(real_vector3d *)&placement.velocity = *global_origin3d_pointer;
                         placement.leaf_index = *(int32_t *)&hit.leaf;
                         *(int32_t *)&placement.cluster_index = *(int32_t *)((uint8_t *)&hit.leaf + 4);
-                        sound_start_at_location(*(datum_index *)&((Projectile *)tag)->flyby_sound.tag_id, &placement, 1.0f);
+                        sound_start_at_location(*(datum_index *)&definition->flyby_sound.tag_id, &placement, 1.0f);
                         flyby_played = 1;
                     }
                 }
@@ -362,7 +369,7 @@ int ProjectileHandle::update()
         }
 
         
-        if ((((Projectile *)tag)->projectile_flags & 1) &&
+        if ((definition->projectile_flags & to_bits(projectile_definition_flag::oriented_along_velocity)) &&
             (velocity->i != 0.0f || velocity->j != 0.0f || velocity->k != 0.0f)) {
             real_vector3d direction = *velocity;
 
@@ -377,13 +384,13 @@ int ProjectileHandle::update()
                     vector3d_normalize_with_length(up);
                 }
             }
-            vector3d_rotate_about_axis(up, forward, F(obj, 0x270), F(obj, 0x274));
-        } else if (((projectile_object *)obj)->projectile.flags & 1) {
-            real_vector3d *axis = (real_vector3d *)(obj + 0x264);
+            vector3d_rotate_about_axis(up, forward, self->projectile.rotation_sine, self->projectile.rotation_cosine);
+        } else if (self->projectile.flags & to_bits(projectile_flag::rotation_valid)) {
+            real_vector3d *axis = &self->projectile.rotation_axis;
             real_vector3d side;
 
-            vector3d_rotate_about_axis(forward, axis, F(obj, 0x270), F(obj, 0x274));
-            vector3d_rotate_about_axis(up, axis, F(obj, 0x270), F(obj, 0x274));
+            vector3d_rotate_about_axis(forward, axis, self->projectile.rotation_sine, self->projectile.rotation_cosine);
+            vector3d_rotate_about_axis(up, axis, self->projectile.rotation_sine, self->projectile.rotation_cosine);
             vector3d_normalize_with_length(forward);
             vector3d_cross_product(&side, forward, up);
             vector3d_cross_product(up, &side, forward);
@@ -392,14 +399,14 @@ int ProjectileHandle::update()
 
         
         object_unlink_cluster_or_notify_parent(projectile_index);
-        ((projectile_object *)obj)->base.position = swept;
+        self->base.position = swept;
         object_set_cluster_and_parent(projectile_index, &hit.leaf);
         *velocity = vel;
-        if (remaining != 0.0f && collisions != 0 && ((projectile_object *)obj)->projectile.contrail_attachment_index != -1 &&
-            *(datum_index *)(obj + 0x14c + ((projectile_object *)obj)->projectile.contrail_attachment_index * 4) != k_datum_index_none) {
+        if (remaining != 0.0f && collisions != 0 && self->projectile.contrail_attachment_index != -1 &&
+            self->base.attachment_handles[self->projectile.contrail_attachment_index] != k_datum_index_none) {
             object_recalculate_bounding_radius(projectile_index);
-            contrail_advance(*(datum_index *)(obj + 0x14c + ((projectile_object *)obj)->projectile.contrail_attachment_index * 4), 0,
-                             (1.0f - remaining) * 0.033333335f);
+            contrail_advance(self->base.attachment_handles[self->projectile.contrail_attachment_index], 0,
+                             (1.0f - remaining) * k_seconds_per_tick);
         }
     next_step:
         if (!(remaining > 0.0f)) {
@@ -408,21 +415,21 @@ int ProjectileHandle::update()
     }
 
     
-    switch (((projectile_object *)obj)->projectile.state) {
-    case 1:
-        if (F(obj, 0x24c) != 0.0f && F(obj, 0x248) < 1.0f) {
+    switch (self->projectile.state) {
+    case _projectile_state_detonating:
+        if (self->projectile.arming_timer_rate != 0.0f && self->projectile.arming_timer < 1.0f) {
             return 1;
         }
-        if (((projectile_object *)obj)->base.network_role == 1) {
+        if (self->base.network_role == 1) {
             return 1;
         }
-        if (((projectile_object *)obj)->base.network_role == 0 && obj[0x278] == 1) {
+        if (self->base.network_role == 0 && self->projectile.thrown_grenade == 1) {
             projectile_send_detonation(projectile_index);
         }
         projectile_detonate(projectile_index, (char)(collisions == 0), remaining);
         
-    case 2: {
-        int32_t role = *(int32_t *)(OBJECT_DATA(projectile_index) + 0x4);
+    case _projectile_state_disappearing: {
+        int32_t role = ((object *)OBJECT_DATA(projectile_index))->network_role;
 
         if (role == 0) {
             object_delete_unparented(projectile_index);

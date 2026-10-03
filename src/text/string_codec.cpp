@@ -5,6 +5,7 @@
  */
 
 #include "halo/text/text.hpp"
+#include "halo/text/limits.hpp"
 
 namespace halo::text {
 
@@ -37,7 +38,7 @@ uint8_t * string_codec::unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_
         return (uint8_t *)((void *)0);
     }
     for (i = 0; i < length; i++) {
-        if ((source[i] & 0xff00) != 0) {
+        if ((source[i] & k_text_high_byte_mask) != 0) {
             dest[i] = 0x20;
         } else {
             dest[i] = (uint8_t)source[i];
