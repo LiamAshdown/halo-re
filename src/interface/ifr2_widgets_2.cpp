@@ -9,6 +9,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/text/text.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/constants.hpp"
 
 #ifdef interface
 #undef interface
@@ -274,7 +275,7 @@ free_and_return:
         uint32_t size = block->size;
 
         halo::memory::heap_unlink_block(block, widget_memory_pool);
-        widget_memory_pool->bytes_allocated -= (int32_t)(size & 0x7fffffff);
+        widget_memory_pool->bytes_allocated -= (int32_t)(size & halo::interface::k_pool_block_size_mask);
         widget_memory_pool->allocation_count -= 1;
     }
 }

@@ -12,6 +12,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
 #include "halo/interface/records.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern uint8_t chat_dialog_open;
@@ -211,7 +212,7 @@ const ChatLineSource *ChatLineSource::select(const chat_incoming_record &record)
 void ChatDialog::dispatch_incoming(void *event)
 {
     chat_incoming_record record;
-    wchar_t text[0x100];
+    wchar_t text[halo::interface::k_text_buffer_chars];
     const ChatLineSource *source;
 
     if (*(int32_t *)*(void **)event != 0) {

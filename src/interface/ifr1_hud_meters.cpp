@@ -10,6 +10,7 @@
 #include "halo/objects/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern double cos(double x);
@@ -100,9 +101,9 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
         flash.red *= t;
         flash.green *= t;
         flash.blue *= t;
-        block.primary = (*(uint32_t *)&meter->color_at_meter_minimum & 0xffffff) | ((uint32_t)(int16_t)alpha_a << 24);
-        block.secondary = *(uint32_t *)&meter->color_at_meter_maximum & 0xffffff;
-        block.tint = (halo::interface::color_rgb_float_to_int((const float *)&flash) & 0xffffff) | ((uint32_t)(int16_t)alpha_b << 24);
+        block.primary = (*(uint32_t *)&meter->color_at_meter_minimum & halo::interface::k_rgb_mask) | ((uint32_t)(int16_t)alpha_a << 24);
+        block.secondary = *(uint32_t *)&meter->color_at_meter_maximum & halo::interface::k_rgb_mask;
+        block.tint = (halo::interface::color_rgb_float_to_int((const float *)&flash) & halo::interface::k_rgb_mask) | ((uint32_t)(int16_t)alpha_b << 24);
     } else if ((flags & 1) && (meter->flags & 2)) {
         ColorRGB minimum, maximum, blended;
         uint32_t alpha = (uint32_t)(int16_t)alpha_a << 24;
@@ -115,7 +116,7 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
         block.tint = alpha;
     } else {
         uint32_t rgb = *(uint32_t *)(((flags & 1) == 0) ? &meter->color_at_meter_minimum
-                                                         : &meter->color_at_meter_maximum) & 0xffffff;
+                                                         : &meter->color_at_meter_maximum) & halo::interface::k_rgb_mask;
         uint32_t alpha = (uint32_t)(int16_t)alpha_a << 24;
         block.primary = rgb | alpha;
         block.tint = alpha;
@@ -125,7 +126,7 @@ void HudMeters::draw_fill(void *dest, uint8_t value_a, uint8_t value_b, uint32_t
     {
         uint32_t empty = *(uint32_t *)&meter->empty_color;
         float inverse_opacity = 1.0f - meter->opacity;
-        block.empty = ((uint32_t)(-1 - (int32_t)(empty >> 24)) << 24) | (empty & 0xffffff);
+        block.empty = ((uint32_t)(-1 - (int32_t)(empty >> 24)) << 24) | (empty & halo::interface::k_rgb_mask);
         gray.alpha = meter->translucency;
         gray.red = inverse_opacity;
         gray.green = inverse_opacity;

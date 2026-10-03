@@ -8,6 +8,7 @@
 #include <wchar.h>
 #include "halo/cache/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern uint16_t missing_string_text[];
@@ -39,7 +40,7 @@ uint8_t CheckpointListRows::add_row(int32_t index, const char *name, int32_t lev
     datum_index strings = halo::interface::lookup_tag(halo::groups::unicode_string_list, "ui\\shell\\main_menu\\map_list_short");
     uint8_t record[0x68];
     char text[0x10];
-    uint16_t wide[0x100];
+    uint16_t wide[halo::interface::k_text_buffer_chars];
     const uint16_t *level_name = missing_string_text;
     int32_t hours;
     int32_t minutes;

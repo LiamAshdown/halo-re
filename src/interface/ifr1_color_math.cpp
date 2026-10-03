@@ -1,6 +1,7 @@
 #include "halo/interface/ifr1_color_math.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern int32_t ROUND(float x);
@@ -17,7 +18,7 @@ namespace halo::interface {
  */
 uint32_t ColorMath::argb_scale_alpha(uint32_t packed_color, float scale)
 {
-    return (packed_color & 0xffffff) | (uint32_t)ROUND((float)(packed_color >> 0x18) * scale) << 0x18;
+    return (packed_color & halo::interface::k_rgb_mask) | (uint32_t)ROUND((float)(packed_color >> 0x18) * scale) << 0x18;
 }
 
 /**

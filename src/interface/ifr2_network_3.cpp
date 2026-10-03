@@ -112,7 +112,7 @@ void MenuListView::update()
 
                         if ((int32_t)size > 0) {
                             source = (uint16_t *)strings[0x13].string.pointer;
-                            *(uint16_t *)((uint8_t *)source + ((size & 0xfffffffe) - 2)) = 0;
+                            *(uint16_t *)((uint8_t *)source + ((size & ~1u) - 2)) = 0;
                         }
                     }
                 }

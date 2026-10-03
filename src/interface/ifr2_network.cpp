@@ -188,7 +188,7 @@ void MenuListView::update_item(const uint16_t *record)
                         size = *(const uint32_t *)((const uint8_t *)strings + 100);
                         if ((int32_t)size > 0) {
                             source = *(uint16_t **)((const uint8_t *)strings + 0x70);
-                            *(uint16_t *)((uint8_t *)source + ((size & 0xfffffffe) - 2)) = 0;
+                            *(uint16_t *)((uint8_t *)source + ((size & ~1u) - 2)) = 0;
                         }
                     }
                     wcsncpy((wchar_t *)desc_buf, (const wchar_t *)source, 0xff);

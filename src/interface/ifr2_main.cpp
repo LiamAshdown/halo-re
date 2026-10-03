@@ -304,7 +304,7 @@ void InterfaceMain::set_profile_name(widget_instance *widget, const uint16_t *na
                 if ((int32_t)size > 0) {
                     suffix = (uint16_t *)strings[7].string.pointer;
 
-                    *(uint16_t *)((uint8_t *)suffix + ((size & 0xfffffffe) - 2)) = 0;
+                    *(uint16_t *)((uint8_t *)suffix + ((size & ~1u) - 2)) = 0;
                 }
             }
         }

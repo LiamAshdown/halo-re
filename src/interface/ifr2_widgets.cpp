@@ -90,7 +90,7 @@ void WidgetLifecycle::pop(widget_history_node *out, widget_history_node **head)
     block = (heap_block *)((uint8_t *)node - 0x10);
     size = block->size;
     halo::memory::heap_unlink_block(block, widget_memory_pool);
-    widget_memory_pool->bytes_allocated = widget_memory_pool->bytes_allocated - (int32_t)(size & 0x7fffffff);
+    widget_memory_pool->bytes_allocated = widget_memory_pool->bytes_allocated - (int32_t)(size & halo::interface::k_pool_block_size_mask);
     widget_memory_pool->allocation_count = widget_memory_pool->allocation_count - 1;
 }
 
@@ -244,7 +244,7 @@ void WidgetLifecycle::close()
             pool->blocks[slot] = (heap_block *)0;
             pool->next_free_slot = (pool->first_block != (heap_block *)0) ? slot : 0;
             pool->allocation_count = pool->allocation_count - 1;
-            pool->bytes_allocated = pool->bytes_allocated - (int32_t)(size & 0x7fffffff);
+            pool->bytes_allocated = pool->bytes_allocated - (int32_t)(size & halo::interface::k_pool_block_size_mask);
         }
     }
 
@@ -1128,7 +1128,7 @@ after_close_check:
                     goto tab_commit;
                 } else if (event[0] == 1) {
                     if (event[3] != (int16_t)0x8000) {
-                        if (event[3] == 0x7fff) {
+                        if (event[3] == halo::interface::k_action_none) {
                             goto tab_forward;
                         }
                         goto dpad_lr_nav;
@@ -1167,7 +1167,7 @@ after_close_check:
                         halo::interface::widget_focus_previous_child(widget);
                         goto tab_commit;
                     }
-                    if (event[2] == 0x7fff) {
+                    if (event[2] == halo::interface::k_action_none) {
                         halo::interface::widget_focus_next_child(widget);
                         goto tab_commit;
                     }
@@ -1195,7 +1195,7 @@ after_close_check:
                         halo::interface::widget_list_select_next(widget);
                         if (sound_effect == 0) sound_effect = 1;
                         list_nav_done = 1;
-                    } else if (event[3] == 0x7fff) {
+                    } else if (event[3] == halo::interface::k_action_none) {
                         halo::interface::widget_list_select_previous(widget);
                         if (sound_effect == 0) sound_effect = 1;
                         list_nav_done = 1;
@@ -1222,7 +1222,7 @@ after_close_check:
                         halo::interface::widget_list_select_previous(widget);
                         if (sound_effect == 0) sound_effect = 1;
                         list_nav_done = 1;
-                    } else if (event[2] == 0x7fff) {
+                    } else if (event[2] == halo::interface::k_action_none) {
                         halo::interface::widget_list_select_next(widget);
                         if (sound_effect == 0) sound_effect = 1;
                         list_nav_done = 1;
@@ -1253,19 +1253,19 @@ dispatch_to_children:
                 switch (event[0]) {
                 case 1:
                     switch (event_type) {
-                    case 0x10: match = (event[3] == 0x7fff); break;
+                    case 0x10: match = (event[3] == halo::interface::k_action_none); break;
                     case 0x11: match = (event[3] == (int16_t)0x8000); break;
                     case 0x12: match = (event[2] == (int16_t)0x8000); break;
-                    case 0x13: match = (event[2] == 0x7fff); break;
+                    case 0x13: match = (event[2] == halo::interface::k_action_none); break;
                     default: goto scan_next;
                     }
                     break;
                 case 2:
                     switch (event_type) {
-                    case 0x14: match = (event[3] == 0x7fff); break;
+                    case 0x14: match = (event[3] == halo::interface::k_action_none); break;
                     case 0x15: match = (event[3] == (int16_t)0x8000); break;
                     case 0x16: match = (event[2] == (int16_t)0x8000); break;
-                    case 0x17: match = (event[2] == 0x7fff); break;
+                    case 0x17: match = (event[2] == halo::interface::k_action_none); break;
                     default: goto scan_next;
                     }
                     break;
@@ -2140,7 +2140,7 @@ void WidgetLifecycle::pool_list_free_all(widget_history_node **head)
         }
         pool->blocks[slot] = (heap_block *)0;
         pool->next_free_slot = (pool->first_block != (heap_block *)0) ? slot : 0;
-        pool->bytes_allocated = pool->bytes_allocated - (int32_t)(size & 0x7fffffff);
+        pool->bytes_allocated = pool->bytes_allocated - (int32_t)(size & halo::interface::k_pool_block_size_mask);
         pool->allocation_count = pool->allocation_count - 1;
 
         node = *head;

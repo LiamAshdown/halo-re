@@ -27,6 +27,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern uint8_t *network_client;
@@ -71,7 +72,7 @@ static void widget_history_pop(int16_t controller)
     node = ui_widget_history[controller];
     if (node != 0) {
         heap_block *block = (heap_block *)((uint8_t *)node - 0x10);
-        uint32_t size = block->size & 0x7fffffff;
+        uint32_t size = block->size & halo::interface::k_pool_block_size_mask;
 
         ui_widget_history[controller] = node->next;
         halo::memory::heap_unlink_block(block, widget_memory_pool);
@@ -99,7 +100,7 @@ static int32_t list_item_id(int16_t index)
 uint8_t UiEventHandlers::event_49dbc0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
-                  : network_client != 0 ? network_client + 0xb14 : 0;
+                  : network_client != 0 ? network_client + halo::interface::k_client_game_offset : 0;
     int16_t key;
     int32_t i;
 
@@ -147,7 +148,7 @@ uint8_t UiEventHandlers::event_49dca0(widget_instance *widget, int16_t *event, u
     if (*state != 2) {
         return 1;
     }
-    game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8 : network_client != 0 ? network_client + 0xb14 : 0;
+    game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8 : network_client != 0 ? network_client + halo::interface::k_client_game_offset : 0;
     if (network_client != 0 && *(int16_t *)network_client != -1) {
         int16_t key = *(int16_t *)network_client;
         int16_t i;
@@ -174,7 +175,7 @@ uint8_t UiEventHandlers::event_49e7e0(widget_instance *widget, int16_t *event, u
 {
     uint8_t *variant = (selected_saved_item & 0xf) == 1 ? saved_item_working_copy : 0;
     static const int32_t lives[] = {5, 10, 15, 25, 50};
-    static const int32_t times[] = {0, 0x4650, 0x6978, 0x8ca0, 0xafc8, 0xd2f0, 0x13c68};
+    static const int32_t times[] = {0, 10 * halo::interface::k_ticks_per_minute, 15 * halo::interface::k_ticks_per_minute, 20 * halo::interface::k_ticks_per_minute, 25 * halo::interface::k_ticks_per_minute, 30 * halo::interface::k_ticks_per_minute, 45 * halo::interface::k_ticks_per_minute};
     widget_instance *parent = widget->parent->parent;
     widget_instance *group;
     int16_t selection;
@@ -224,7 +225,7 @@ uint8_t UiEventHandlers::event_49ea50(widget_instance *widget, int16_t *event, u
 {
     uint8_t *variant = (selected_saved_item & 0xf) == 1 ? saved_item_working_copy : 0;
     static const int32_t lives[] = {1, 2, 5, 10, 15};
-    static const int32_t times[] = {0, 0x4650, 0x6978, 0x8ca0, 0xafc8, 0xd2f0, 0x13c68};
+    static const int32_t times[] = {0, 10 * halo::interface::k_ticks_per_minute, 15 * halo::interface::k_ticks_per_minute, 20 * halo::interface::k_ticks_per_minute, 25 * halo::interface::k_ticks_per_minute, 30 * halo::interface::k_ticks_per_minute, 45 * halo::interface::k_ticks_per_minute};
     widget_instance *parent = widget->parent->parent;
     widget_instance *group;
     int16_t selection;
@@ -289,7 +290,7 @@ uint8_t UiEventHandlers::event_49edc0(widget_instance *widget, int16_t *event, u
 {
     uint8_t *variant = (selected_saved_item & 0xf) == 1 ? saved_item_working_copy : 0;
     static const int32_t lives[] = {1, 3, 5, 10, 15, 25};
-    static const int32_t times[] = {0, 0x4650, 0x6978, 0x8ca0, 0xafc8, 0xd2f0, 0x13c68};
+    static const int32_t times[] = {0, 10 * halo::interface::k_ticks_per_minute, 15 * halo::interface::k_ticks_per_minute, 20 * halo::interface::k_ticks_per_minute, 25 * halo::interface::k_ticks_per_minute, 30 * halo::interface::k_ticks_per_minute, 45 * halo::interface::k_ticks_per_minute};
     widget_instance *parent = widget->parent->parent;
     widget_instance *group;
     int16_t selection;
@@ -335,7 +336,7 @@ uint8_t UiEventHandlers::event_49f030(widget_instance *widget, int16_t *event, u
     uint8_t *variant = (selected_saved_item & 0xf) == 1 ? saved_item_working_copy : 0;
     static const int32_t kills[] = {0, 1, 3, 5};
     static const float scales[] = {0.5f, 1.0f, 1.5f, 2.0f, 3.0f, 4.0f};
-    static const int32_t times[] = {0, 0x96, 0x12c, 0x1c2};
+    static const int32_t times[] = {0, 5 * halo::interface::k_ticks_per_second, 10 * halo::interface::k_ticks_per_second, 15 * halo::interface::k_ticks_per_second};
     widget_instance *group;
     uint32_t *flags;
     int16_t selection;
@@ -559,8 +560,8 @@ uint8_t UiEventHandlers::event_49f680(widget_instance *widget, int16_t *event, u
     first_list_child(group)->selection_index = (int16_t)(((struct game_variant *)variant)->engine.ctf.assault == 0);
     group = group->next_sibling;
     value = ((struct game_variant *)variant)->engine.ctf.single_flag_time;
-    first_list_child(group)->selection_index = (int16_t)(value == 0x708 ? 1 : value == 0xe10 ? 2 : value == 0x1518 ? 3 :
-        value == 0x2328 ? 4 : value == 0x4650 ? 5 : 0);
+    first_list_child(group)->selection_index = (int16_t)(value == 1 * halo::interface::k_ticks_per_minute ? 1 : value == 2 * halo::interface::k_ticks_per_minute ? 2 : value == 3 * halo::interface::k_ticks_per_minute ? 3 :
+        value == 5 * halo::interface::k_ticks_per_minute ? 4 : value == 10 * halo::interface::k_ticks_per_minute ? 5 : 0);
     group = group->next_sibling;
     first_list_child(group)->selection_index = (int16_t)(((struct game_variant *)variant)->engine.ctf.flag_must_reset == 0);
     group = group->next_sibling;
@@ -570,8 +571,8 @@ uint8_t UiEventHandlers::event_49f680(widget_instance *widget, int16_t *event, u
     first_list_child(group)->selection_index = (int16_t)(value == 3 ? 1 : value == 5 ? 2 : value == 10 ? 3 : value == 15 ? 4 : 0);
     group = group->next_sibling;
     value = ((struct game_variant *)variant)->time_limit;
-    first_list_child(group)->selection_index = (int16_t)(value == 0x4650 ? 1 : value == 0x6978 ? 2 : value == 0x8ca0 ? 3 :
-        value == 0xafc8 ? 4 : value == 0xd2f0 ? 5 : value == 0x13c68 ? 6 : 0);
+    first_list_child(group)->selection_index = (int16_t)(value == 10 * halo::interface::k_ticks_per_minute ? 1 : value == 15 * halo::interface::k_ticks_per_minute ? 2 : value == 20 * halo::interface::k_ticks_per_minute ? 3 :
+        value == 25 * halo::interface::k_ticks_per_minute ? 4 : value == 30 * halo::interface::k_ticks_per_minute ? 5 : value == 45 * halo::interface::k_ticks_per_minute ? 6 : 0);
     return 1;
 }
 
@@ -598,8 +599,8 @@ uint8_t UiEventHandlers::event_49f8f0(widget_instance *widget, int16_t *event, u
     first_list_child(group)->selection_index = (int16_t)(((struct game_variant *)variant)->teams == 0 ? 1 : 0);
     group = group->next_sibling;
     value = ((struct game_variant *)variant)->time_limit;
-    first_list_child(group)->selection_index = (int16_t)(value == 0x4650 ? 1 : value == 0x6978 ? 2 : value == 0x8ca0 ? 3 :
-        value == 0xafc8 ? 4 : value == 0xd2f0 ? 5 : value == 0x13c68 ? 6 : 0);
+    first_list_child(group)->selection_index = (int16_t)(value == 10 * halo::interface::k_ticks_per_minute ? 1 : value == 15 * halo::interface::k_ticks_per_minute ? 2 : value == 20 * halo::interface::k_ticks_per_minute ? 3 :
+        value == 25 * halo::interface::k_ticks_per_minute ? 4 : value == 30 * halo::interface::k_ticks_per_minute ? 5 : value == 45 * halo::interface::k_ticks_per_minute ? 6 : 0);
     return 1;
 }
 
@@ -634,8 +635,8 @@ uint8_t UiEventHandlers::event_49fad0(widget_instance *widget, int16_t *event, u
     first_list_child(group)->selection_index = (int16_t)(((struct game_variant *)variant)->teams == 0);
     group = group->next_sibling;
     value = ((struct game_variant *)variant)->time_limit;
-    first_list_child(group)->selection_index = (int16_t)(value == 0x4650 ? 1 : value == 0x6978 ? 2 : value == 0x8ca0 ? 3 :
-        value == 0xafc8 ? 4 : value == 0xd2f0 ? 5 : value == 0x13c68 ? 6 : 0);
+    first_list_child(group)->selection_index = (int16_t)(value == 10 * halo::interface::k_ticks_per_minute ? 1 : value == 15 * halo::interface::k_ticks_per_minute ? 2 : value == 20 * halo::interface::k_ticks_per_minute ? 3 :
+        value == 25 * halo::interface::k_ticks_per_minute ? 4 : value == 30 * halo::interface::k_ticks_per_minute ? 5 : value == 45 * halo::interface::k_ticks_per_minute ? 6 : 0);
     return 1;
 }
 
@@ -677,8 +678,8 @@ uint8_t UiEventHandlers::event_49fd30(widget_instance *widget, int16_t *event, u
     first_list_child(group)->selection_index = (int16_t)(((struct game_variant *)variant)->teams == 0);
     group = group->next_sibling;
     value = ((struct game_variant *)variant)->time_limit;
-    first_list_child(group)->selection_index = (int16_t)(value == 0x4650 ? 1 : value == 0x6978 ? 2 : value == 0x8ca0 ? 3 :
-        value == 0xafc8 ? 4 : value == 0xd2f0 ? 5 : value == 0x13c68 ? 6 : 0);
+    first_list_child(group)->selection_index = (int16_t)(value == 10 * halo::interface::k_ticks_per_minute ? 1 : value == 15 * halo::interface::k_ticks_per_minute ? 2 : value == 20 * halo::interface::k_ticks_per_minute ? 3 :
+        value == 25 * halo::interface::k_ticks_per_minute ? 4 : value == 30 * halo::interface::k_ticks_per_minute ? 5 : value == 45 * halo::interface::k_ticks_per_minute ? 6 : 0);
     return 1;
 }
 
@@ -709,17 +710,17 @@ uint8_t UiEventHandlers::event_4a02a0(widget_instance *widget, int16_t *event, u
     first_list_child(group)->selection_index = (int16_t)((flags >> 3) & 1);
     group = group->next_sibling;
     value = ((struct game_variant *)variant)->respawn_time;
-    first_list_child(group)->selection_index = (int16_t)(value == 0x96 ? 1 : value == 0x12c ? 2 : value == 0x1c2 ? 3 : 0);
+    first_list_child(group)->selection_index = (int16_t)(value == 5 * halo::interface::k_ticks_per_second ? 1 : value == 10 * halo::interface::k_ticks_per_second ? 2 : value == 15 * halo::interface::k_ticks_per_second ? 3 : 0);
     group = group->next_sibling;
     value = ((struct game_variant *)variant)->respawn_time_growth;
-    first_list_child(group)->selection_index = (int16_t)(value == 0x96 ? 1 : value == 0x12c ? 2 : value == 0x1c2 ? 3 : 0);
+    first_list_child(group)->selection_index = (int16_t)(value == 5 * halo::interface::k_ticks_per_second ? 1 : value == 10 * halo::interface::k_ticks_per_second ? 2 : value == 15 * halo::interface::k_ticks_per_second ? 3 : 0);
     group = group->next_sibling;
     first_list_child(group)->selection_index = (int16_t)(((struct game_variant *)variant)->odd_man_out == 0);
     group = group->next_sibling;
     first_list_child(group)->selection_index = (int16_t)(((flags >> 4) & 1) == 0);
     group = group->next_sibling;
     value = ((struct game_variant *)variant)->suicide_penalty;
-    first_list_child(group)->selection_index = (int16_t)(value == 0x96 ? 1 : value == 0x12c ? 2 : value == 0x1c2 ? 3 : 0);
+    first_list_child(group)->selection_index = (int16_t)(value == 5 * halo::interface::k_ticks_per_second ? 1 : value == 10 * halo::interface::k_ticks_per_second ? 2 : value == 15 * halo::interface::k_ticks_per_second ? 3 : 0);
     return 1;
 }
 

@@ -103,7 +103,7 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
     if (os_platform < 3) {
         *(int16_t *)(refresh_field + 0x40) = 0;
         (*(uint8_t **)(refresh_field + 0x30))[0x12] = 1;
-        *(uint32_t *)(*(uint8_t **)(refresh_field + 0x30) + 0x24) = 0x3eaa7efa;
+        *(uint32_t *)(*(uint8_t **)(refresh_field + 0x30) + 0x24) = halo::interface::k_widget_default_scale_bits;
     } else if (video_force_mode_flag == 0 && halo::rasterizer::globals().fullscreen != 0 && rasterizer_device != 0) {
         *(int16_t *)(refresh_field + 0x40) = (int16_t)refresh_index;
         (*(uint8_t **)(refresh_field + 0x30))[0x12] = 0;
@@ -111,7 +111,7 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
     } else {
         *(int16_t *)(refresh_field + 0x40) = (int16_t)refresh_index;
         (*(uint8_t **)(refresh_field + 0x30))[0x12] = 1;
-        *(uint32_t *)(*(uint8_t **)(refresh_field + 0x30) + 0x24) = 0x3eaa7efa;
+        *(uint32_t *)(*(uint8_t **)(refresh_field + 0x30) + 0x24) = halo::interface::k_widget_default_scale_bits;
     }
 
     {
@@ -126,7 +126,7 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
         if (rasterizer_device_version < 0xffff0101u || halo::shell::globals().disable_specular != 0) {
             *(uint16_t *)(node + 0x40) = 0;
             base[0x12] = 1;
-            *(uint32_t *)(base + 0x24) = 0x3eaa7efa;
+            *(uint32_t *)(base + 0x24) = halo::interface::k_widget_default_scale_bits;
         } else {
             base[0x12] = 0;
             *(uint32_t *)(base + 0x24) = 0x3f800000;
@@ -138,7 +138,7 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
         if (rasterizer_device_version < 0xffff0101u) {
             *(uint16_t *)(node + 0x40) = 0;
             base[0x12] = 1;
-            *(uint32_t *)(base + 0x24) = 0x3eaa7efa;
+            *(uint32_t *)(base + 0x24) = halo::interface::k_widget_default_scale_bits;
         } else {
             base[0x12] = 0;
             *(uint32_t *)(base + 0x24) = 0x3f800000;
@@ -150,7 +150,7 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
         if ((rasterizer_capability_007c10e4 & 0x6000000) == 0) {
             *(uint16_t *)(node + 0x40) = 0;
             base[0x12] = 1;
-            *(uint32_t *)(base + 0x24) = 0x3eaa7efa;
+            *(uint32_t *)(base + 0x24) = halo::interface::k_widget_default_scale_bits;
         } else {
             base[0x12] = 0;
             *(uint32_t *)(base + 0x24) = 0x3f800000;

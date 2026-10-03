@@ -22,6 +22,7 @@
 #include "halo/main/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern int32_t profile_slot_lookup_cache_00692ac8;
@@ -114,7 +115,7 @@ uint32_t UiProfiles::build_profile_list(widget_instance *widget)
             }
         }
 
-        high_bits = 0xffffff;
+        high_bits = halo::interface::k_rgb_mask;
         if (widget->selection_index == -1) {
             widget->selection_index = 0;
         }
@@ -138,7 +139,7 @@ uint32_t UiProfiles::free_profile_list(widget_instance *widget)
 
         halo::memory::heap_unlink_block(block, widget_memory_pool);
         widget_memory_pool->bytes_allocated =
-            widget_memory_pool->bytes_allocated - (int32_t)(size & 0x7fffffff);
+            widget_memory_pool->bytes_allocated - (int32_t)(size & halo::interface::k_pool_block_size_mask);
         widget_memory_pool->allocation_count = widget_memory_pool->allocation_count - 1;
         widget->list_items = nullptr;
     }

@@ -28,6 +28,7 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern uint8_t level_select_entries[0x50];
@@ -103,7 +104,7 @@ static void widget_history_pop(int16_t controller)
     node = ui_widget_history[controller];
     if (node != 0) {
         heap_block *block = (heap_block *)((uint8_t *)node - 0x10);
-        uint32_t size = block->size & 0x7fffffff;
+        uint32_t size = block->size & halo::interface::k_pool_block_size_mask;
 
         ui_widget_history[controller] = node->next;
         halo::memory::heap_unlink_block(block, widget_memory_pool);
@@ -398,7 +399,7 @@ uint8_t UiEventHandlers::event_49d5f0(widget_instance *widget, int16_t *event, u
 {
     int32_t count = map_list_count;
     char last_map[0x104];
-    uint16_t name[0x100];
+    uint16_t name[halo::interface::k_text_buffer_chars];
     int32_t i;
 
     widget->list_items = map_list;
@@ -476,7 +477,7 @@ uint8_t UiEventHandlers::event_49d8b0(widget_instance *widget, int16_t *event, u
     int32_t *handles;
     uint16_t count = 0x64;
     int32_t last = -1;
-    char last_name[0x100];
+    char last_name[halo::interface::k_text_buffer_chars];
     uint32_t variant[0x26];
     int32_t i;
 
@@ -542,7 +543,7 @@ uint8_t UiEventHandlers::event_49d8b0(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_49dab0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     uint32_t variant[0x26];
-    char directory[0x100];
+    char directory[halo::interface::k_text_buffer_chars];
     int32_t id = list_item_id(*(int16_t *)&((struct widget_instance *)widget)->text);
     int32_t item = ((int32_t *)widget->list_items)[id];
 
@@ -680,9 +681,9 @@ uint8_t UiEventHandlers::event_49e2c0(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_49e300(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     uint8_t *variant = (selected_saved_item & 0xf) == 1 ? saved_item_working_copy : 0;
-    static const int32_t delays[] = {0, 0x708, 0xe10, 0x1518, 0x2328, 0x4650};
+    static const int32_t delays[] = {0, 1 * halo::interface::k_ticks_per_minute, 2 * halo::interface::k_ticks_per_minute, 3 * halo::interface::k_ticks_per_minute, 5 * halo::interface::k_ticks_per_minute, 10 * halo::interface::k_ticks_per_minute};
     static const int32_t lives[] = {1, 3, 5, 10, 15};
-    static const int32_t times[] = {0, 0x4650, 0x6978, 0x8ca0, 0xafc8, 0xd2f0, 0x13c68};
+    static const int32_t times[] = {0, 10 * halo::interface::k_ticks_per_minute, 15 * halo::interface::k_ticks_per_minute, 20 * halo::interface::k_ticks_per_minute, 25 * halo::interface::k_ticks_per_minute, 30 * halo::interface::k_ticks_per_minute, 45 * halo::interface::k_ticks_per_minute};
     widget_instance *parent = widget->parent->parent;
     widget_instance *group;
     int16_t selection;
@@ -732,7 +733,7 @@ uint8_t UiEventHandlers::event_49e5d0(widget_instance *widget, int16_t *event, u
 {
     uint8_t *variant = (selected_saved_item & 0xf) == 1 ? saved_item_working_copy : 0;
     static const int32_t lives[] = {1, 2, 5, 10, 15};
-    static const int32_t times[] = {0, 0x4650, 0x6978, 0x8ca0, 0xafc8, 0xd2f0, 0x13c68};
+    static const int32_t times[] = {0, 10 * halo::interface::k_ticks_per_minute, 15 * halo::interface::k_ticks_per_minute, 20 * halo::interface::k_ticks_per_minute, 25 * halo::interface::k_ticks_per_minute, 30 * halo::interface::k_ticks_per_minute, 45 * halo::interface::k_ticks_per_minute};
     widget_instance *parent = widget->parent->parent;
     widget_instance *group;
     int16_t selection;

@@ -16,6 +16,7 @@
 #include "halo/input/ui_events.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern uint8_t controls_row_device_mask_table[];
@@ -366,7 +367,7 @@ uint8_t ControlsBindings::binding_row_handle_input(widget_instance *screen)
             const char *action_name = (const char *)controls_action_table[action_index];
             int16_t action = halo::input::BindingNames::action_name_to_index((char *)action_name);
 
-            if (action == 0x7fff || halo::interface::controls_action_column_is_bindable(kind == 2 ? 1 : device, action_index) == 0) {
+            if (action == halo::interface::k_action_none || halo::interface::controls_action_column_is_bindable(kind == 2 ? 1 : device, action_index) == 0) {
                 sound = 4;
                 goto finish_capture;
             }
@@ -533,7 +534,7 @@ void ControlsBindings::build_device_label_table(void)
             if ((int32_t)count > 0) {
                 uint16_t *string_data = (uint16_t *)item[3];
                 tag_supplied_label = string_data;
-                *(uint16_t *)((uint8_t *)string_data + ((count & 0xfffffffe) - 2)) = 0;
+                *(uint16_t *)((uint8_t *)string_data + ((count & ~1u) - 2)) = 0;
             }
         }
     }

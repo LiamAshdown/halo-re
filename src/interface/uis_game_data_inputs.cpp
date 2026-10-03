@@ -25,6 +25,7 @@
 #include "halo/networking/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern uint8_t ui_split_screen;
@@ -60,7 +61,7 @@ static void set_option_text(widget_instance *row, uint32_t value, uint8_t hidden
     }
     if (hidden) {
         row->hidden = 1;
-        *(uint32_t *)&row->scale = 0x3eaa7efa;
+        *(uint32_t *)&row->scale = halo::interface::k_widget_default_scale_bits;
     } else {
         row->hidden = 0;
         row->scale = 1.0f;
@@ -163,7 +164,7 @@ void UiGameDataInputs::input_4a4c70(widget_instance *widget)
 void UiGameDataInputs::input_4a5740(widget_instance *widget)
 {
     uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
-                  : network_client != 0 ? network_client + 0xb14 : 0;
+                  : network_client != 0 ? network_client + halo::interface::k_client_game_offset : 0;
     widget_instance *first;
     widget_instance *second;
     widget_instance *countdown;
@@ -345,7 +346,7 @@ void UiGameDataInputs::input_4a6ab0(widget_instance *widget)
 void UiGameDataInputs::input_4a6b70(widget_instance *widget)
 {
     uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
-                  : network_client != 0 ? network_client + 0xb14 : 0;
+                  : network_client != 0 ? network_client + halo::interface::k_client_game_offset : 0;
     static const char *const maps[] = {
         "beavercreek", "sidewinder", "damnation", "ratrace", "prisoner",
         "hangemhigh", "chillout", "carousel", "boardingaction", "bloodgulch",
@@ -373,7 +374,7 @@ void UiGameDataInputs::input_4a6b70(widget_instance *widget)
 void UiGameDataInputs::input_4a6d50(widget_instance *widget)
 {
     uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
-                  : network_client != 0 ? network_client + 0xb14 : 0;
+                  : network_client != 0 ? network_client + halo::interface::k_client_game_offset : 0;
 
     if (game == 0) {
         return;
@@ -422,7 +423,7 @@ void UiGameDataInputs::input_4a6d50(widget_instance *widget)
 void UiGameDataInputs::input_4a6e50(widget_instance *widget)
 {
     uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
-                  : network_client != 0 ? network_client + 0xb14 : 0;
+                  : network_client != 0 ? network_client + halo::interface::k_client_game_offset : 0;
 
     if (game != 0) {
         widget->selection_index = (int16_t)((((struct network_game_session *)game)->variant.teams != 1) + 0xc);
@@ -437,7 +438,7 @@ void UiGameDataInputs::input_4a6e50(widget_instance *widget)
 void UiGameDataInputs::input_4a6e90(widget_instance *widget)
 {
     uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
-                  : network_client != 0 ? network_client + 0xb14 : 0;
+                  : network_client != 0 ? network_client + halo::interface::k_client_game_offset : 0;
     uint16_t *text;
 
     if (game == 0) {
@@ -459,7 +460,7 @@ void UiGameDataInputs::input_4a6e90(widget_instance *widget)
 void UiGameDataInputs::input_4a6f00(widget_instance *widget)
 {
     uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
-                  : network_client != 0 ? network_client + 0xb14 : 0;
+                  : network_client != 0 ? network_client + halo::interface::k_client_game_offset : 0;
 
     if (game == 0) {
         return;
@@ -491,7 +492,7 @@ void UiGameDataInputs::input_4a6f00(widget_instance *widget)
 void UiGameDataInputs::input_4a6fa0(widget_instance *widget)
 {
     uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
-                  : network_client != 0 ? network_client + 0xb14 : 0;
+                  : network_client != 0 ? network_client + halo::interface::k_client_game_offset : 0;
     static const char *const maps[] = {
         "beavercreek", "sidewinder", "damnation", "ratrace", "prisoner",
         "hangemhigh", "chillout", "carousel", "boardingaction", "bloodgulch",
@@ -519,7 +520,7 @@ void UiGameDataInputs::input_4a6fa0(widget_instance *widget)
 void UiGameDataInputs::input_4a7180(widget_instance *widget)
 {
     uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
-                  : network_client != 0 ? network_client + 0xb14 : 0;
+                  : network_client != 0 ? network_client + halo::interface::k_client_game_offset : 0;
 
     if (game == 0) {
         return;
@@ -554,7 +555,7 @@ void UiGameDataInputs::input_4a7180(widget_instance *widget)
 void UiGameDataInputs::input_4a7210(widget_instance *widget)
 {
     uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
-                  : network_client != 0 ? network_client + 0xb14 : 0;
+                  : network_client != 0 ? network_client + halo::interface::k_client_game_offset : 0;
     uint16_t *text;
 
     if (game == 0) {
@@ -592,7 +593,7 @@ void UiGameDataInputs::input_4a7280(widget_instance *widget)
 void UiGameDataInputs::input_4a7300(widget_instance *widget)
 {
     uint8_t *game = halo::networking::globals().server != 0 ? (uint8_t *)halo::networking::globals().server + 8
-                  : network_client != 0 ? network_client + 0xb14 : 0;
+                  : network_client != 0 ? network_client + halo::interface::k_client_game_offset : 0;
 
     if (game != 0) {
         widget->background_bitmap_frame = (int16_t)(((struct network_game_session *)game)->variant.teams != 1);
@@ -632,7 +633,7 @@ void UiGameDataInputs::input_4a73d0(widget_instance *widget)
         widget->scale = 1.0f;
         return;
     }
-    *(uint32_t *)&widget->scale = 0x3eaa7efa;
+    *(uint32_t *)&widget->scale = halo::interface::k_widget_default_scale_bits;
 }
 
 /**
@@ -675,7 +676,7 @@ void UiGameDataInputs::input_4a7660(widget_instance *widget)
  */
 void UiGameDataInputs::input_4a7880(widget_instance *widget)
 {
-    static const uint32_t delays[] = {0, 0x384, 0x708, 0xa8c, 0xe10, 0x1518, 0x2328};
+    static const uint32_t delays[] = {0, 0x384, 1 * halo::interface::k_ticks_per_minute, 0xa8c, 2 * halo::interface::k_ticks_per_minute, 3 * halo::interface::k_ticks_per_minute, 5 * halo::interface::k_ticks_per_minute};
     widget_instance *group = widget->first_child;
     int16_t selection = first_list_child(group)->selection_index;
     uint8_t changed = 0;

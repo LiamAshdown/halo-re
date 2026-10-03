@@ -27,6 +27,7 @@
 #include "halo/hs/api.hpp"
 #include "halo/interface/api.hpp"
 #include "halo/interface/flags.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern uint8_t ui_list_has_default;
@@ -779,7 +780,7 @@ void UiLists::widget_list_item_activate(widget_instance *widget, UIWidgetDefinit
                     widget_memory_pool->blocks[slot] = (heap_block *)0;
                     widget_memory_pool->next_free_slot =
                         (widget_memory_pool->first_block != (heap_block *)0) ? slot : 0;
-                    widget_memory_pool->bytes_allocated -= (int32_t)(size & 0x7fffffff);
+                    widget_memory_pool->bytes_allocated -= (int32_t)(size & halo::interface::k_pool_block_size_mask);
                     widget_memory_pool->allocation_count -= 1;
                     node = ui_widget_history[0];
                 }

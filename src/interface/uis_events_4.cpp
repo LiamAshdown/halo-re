@@ -491,7 +491,7 @@ uint8_t UiEventHandlers::event_4a3000(widget_instance *widget, int16_t *event, u
         child->scale = 1.0f;
     } else {
         child->hidden = 1;
-        *(uint32_t *)&child->scale = 0x3eaa7efa;
+        *(uint32_t *)&child->scale = halo::interface::k_widget_default_scale_bits;
     }
     return 1;
 }
@@ -511,7 +511,7 @@ uint8_t UiEventHandlers::event_4a3050(widget_instance *widget, int16_t *event, u
         child->scale = 1.0f;
     } else {
         child->hidden = 1;
-        *(uint32_t *)&child->scale = 0x3eaa7efa;
+        *(uint32_t *)&child->scale = halo::interface::k_widget_default_scale_bits;
         child->parent->focused_child = child->parent->first_child->next_sibling;
     }
     for (i = 0; i < 2; i++) {
@@ -521,7 +521,7 @@ uint8_t UiEventHandlers::event_4a3050(widget_instance *widget, int16_t *event, u
             child->scale = 1.0f;
         } else {
             child->hidden = 1;
-            *(uint32_t *)&child->scale = 0x3eaa7efa;
+            *(uint32_t *)&child->scale = halo::interface::k_widget_default_scale_bits;
         }
     }
     return 1;
@@ -571,8 +571,8 @@ uint8_t UiEventHandlers::event_4a33a0(widget_instance *widget, int16_t *event, u
     halo::interface::state::vehicle_options_respawn_time = (uint32_t)time;
     halo::interface::ui_controls_populate_bind_rows(widget, ((struct game_variant *)variant)->red_vehicle_set);
     first = widget->first_child;
-    first_list_child(first)->selection_index = (int16_t)(time == 0x384 ? 1 : time == 0x708 ? 2 : time == 0xa8c ? 3 :
-        time == 0xe10 ? 4 : time == 0x1518 ? 5 : time == 0x2328 ? 6 : 0);
+    first_list_child(first)->selection_index = (int16_t)(time == 0x384 ? 1 : time == 1 * halo::interface::k_ticks_per_minute ? 2 : time == 0xa8c ? 3 :
+        time == 2 * halo::interface::k_ticks_per_minute ? 4 : time == 3 * halo::interface::k_ticks_per_minute ? 5 : time == 5 * halo::interface::k_ticks_per_minute ? 6 : 0);
     second = first->next_sibling;
     second_list = first_list_child(second);
     if (variant_teams_enabled_0071920c != 0) {
@@ -693,7 +693,7 @@ uint8_t UiEventHandlers::event_4a3790(widget_instance *widget, int16_t *event, u
     first_list_child(group)->selection_index = (int16_t)(((struct game_variant *)variant)->friendly_fire <= 3 ? ((struct game_variant *)variant)->friendly_fire : 1);
     group = group->next_sibling;
     time = ((struct game_variant *)variant)->betrayal_penalty;
-    first_list_child(group)->selection_index = (int16_t)(time == 0x96 ? 1 : time == 0x12c ? 2 : time == 0x1c2 ? 3 : 0);
+    first_list_child(group)->selection_index = (int16_t)(time == 5 * halo::interface::k_ticks_per_second ? 1 : time == 10 * halo::interface::k_ticks_per_second ? 2 : time == 15 * halo::interface::k_ticks_per_second ? 3 : 0);
     first_list_child(group->next_sibling)->selection_index = (int16_t)(((struct game_variant *)variant)->team_autobalance != 0);
     return 1;
 }
@@ -718,13 +718,13 @@ uint8_t UiEventHandlers::event_4a3870(widget_instance *widget, int16_t *event, u
     group = group->next_sibling;
     switch (first_list_child(group)->selection_index) {
     case 1:
-        ((struct game_variant *)variant)->betrayal_penalty = 0x96;
+        ((struct game_variant *)variant)->betrayal_penalty = 5 * halo::interface::k_ticks_per_second;
         break;
     case 2:
-        ((struct game_variant *)variant)->betrayal_penalty = 0x12c;
+        ((struct game_variant *)variant)->betrayal_penalty = 10 * halo::interface::k_ticks_per_second;
         break;
     case 3:
-        ((struct game_variant *)variant)->betrayal_penalty = 0x1c2;
+        ((struct game_variant *)variant)->betrayal_penalty = 15 * halo::interface::k_ticks_per_second;
         break;
     default:
         ((struct game_variant *)variant)->betrayal_penalty = 0;

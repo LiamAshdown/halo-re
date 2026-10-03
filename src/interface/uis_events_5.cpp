@@ -32,6 +32,7 @@
 #include "halo/interface/api.hpp"
 #include "halo/game/api.hpp"
 #include "saved_games.h"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern int16_t pending_difficulty;
@@ -82,7 +83,7 @@ static void show(widget_instance *child, uint8_t visible)
         child->scale = 1.0f;
         child->hidden = 0;
     } else {
-        *(uint32_t *)&child->scale = 0x3eaa7efa;
+        *(uint32_t *)&child->scale = halo::interface::k_widget_default_scale_bits;
         child->hidden = 1;
     }
 }

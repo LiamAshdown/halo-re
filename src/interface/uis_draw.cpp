@@ -33,6 +33,7 @@
 #include "halo/input/ui_events.hpp"
 #include "halo/text/text.hpp"
 #include "halo/interface/api.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern Globals *global_globals;
@@ -41,7 +42,7 @@ extern double fsin(double x);
 extern double fcos(double x);
 extern int32_t ui_network_wait_start_time;
 extern datum_index trouble_brewing_bitmap_tag;
-extern uint16_t formatted_prompt_scratch[0x100];
+extern uint16_t formatted_prompt_scratch[halo::interface::k_text_buffer_chars];
 extern uint16_t prompt_percent_text[];
 extern uint16_t hud_text_quote[];
 extern uint16_t hud_text_unbound[];
@@ -239,7 +240,7 @@ void UiDraw::draw_rotated_screen_quad(int16_t *origin, int32_t source_record, fl
         vert[0] = (local_x * cos_r + (float)origin_x) - local_y * sin_r;
         vert[1] = local_x * sin_r + local_y * cos_r + (float)origin_y;
         vert[2] = 0.0f;
-        *(int32_t *)&vert[3] = (alpha << 0x18) | 0xffffff;
+        *(int32_t *)&vert[3] = (alpha << 0x18) | halo::interface::k_rgb_mask;
         vert[4] = u;
         vert[5] = v;
     }

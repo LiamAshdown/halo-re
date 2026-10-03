@@ -19,6 +19,7 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/interface/constants.hpp"
 
 #ifdef interface
 #undef interface
@@ -768,7 +769,7 @@ void PlayerProfiles::refresh_settings_cache(int16_t player_index)
  */
 uint8_t PlayerProfiles::save()
 {
-    char name[0x100];
+    char name[halo::interface::k_text_buffer_chars];
     int32_t item;
     int32_t new_slot;
     uint8_t result;

@@ -151,7 +151,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
 
                 if ((int32_t)size > 0) {
                     entry_name = (uint16_t *)strings[i].string.pointer;
-                    *(uint16_t *)((uint8_t *)entry_name + ((size & 0xfffffffe) - 2)) = 0;
+                    *(uint16_t *)((uint8_t *)entry_name + ((size & ~1u) - 2)) = 0;
                 }
             }
         }

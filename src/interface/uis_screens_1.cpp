@@ -265,7 +265,7 @@ void UiScreens::handler_4a68f0(uint8_t *widget)
     if (network_disabled_flag != 0) {
         record = *(uint8_t **)(*(uint8_t **)(widget + 0x34) + 0x2c);
         record[0x12] = 1;
-        *(uint32_t *)(record + 0x24) = 0x3eaa7efa;
+        *(uint32_t *)(record + 0x24) = halo::interface::k_widget_default_scale_bits;
     }
 }
 

@@ -46,7 +46,7 @@ extern uint8_t controls_input_capture_flags;
 extern int16_t key_event_read_index;
 extern int16_t key_event_count;
 extern ui_key_event key_events[];
-extern char console_last_line[0x100];
+extern char console_last_line[halo::interface::k_text_buffer_chars];
 extern int32_t console_last_cursor_column;
 }
 

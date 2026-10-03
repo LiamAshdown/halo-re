@@ -18,6 +18,7 @@
 #include "halo/game/api.hpp"
 #include "halo/interface/api.hpp"
 #include "saved_games.h"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern uint8_t profile_globals_block[0x60a4];
@@ -102,7 +103,7 @@ uint32_t UiControlsMenu::controls_options_free_list(widget_instance *widget)
 
         halo::memory::heap_unlink_block(block, widget_memory_pool);
         widget_memory_pool->bytes_allocated =
-            widget_memory_pool->bytes_allocated - (int32_t)(size & 0x7fffffff);
+            widget_memory_pool->bytes_allocated - (int32_t)(size & halo::interface::k_pool_block_size_mask);
         widget_memory_pool->allocation_count = widget_memory_pool->allocation_count - 1;
         widget->list_items = nullptr;
     }
