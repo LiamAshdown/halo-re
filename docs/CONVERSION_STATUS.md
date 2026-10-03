@@ -43,3 +43,5 @@ Launched: ai_actor_1 = a816627a3d7da40e7, ai_actor_2 = ab96a7b6b4db18803
 
 - Also pending after build 1: a9d9f7699c4305c1b (sound). Watch the audio path in the smoke test.
 - Wave 2 batch 2 launched: game_game_1 = adf15f46e5ca3f177, game_game_2 = a8e668d413881d3cf, game_rest = ad3b932c3cbff9f0b, interface_ui = a484a43168222aa00. Pending merges now also include a58adc644eb7b93a4 (memory, cseries, cache).
+
+- Merged into cxx-phase1 after build 1 (all symbol checks 0 missing/0 extra): saved_games, render, objects, structures, scenario, bitmaps, models, text, shaders, ai (actor slice 1), sound, memory, cseries, cache, hs (slice 2, a19b5ccfa208639bd, Command pattern groups). INTEGRATION BUILD #2 in progress (log build/cxx_wave2_build.log; retail files hidden as *.hidden; do not merge or touch them until this says finished).
