@@ -38,7 +38,6 @@ static auto &zoom_static_tint_r = halo::link::ref<float>(halo::ui::vars().zoom_s
 static auto &zoom_static_tint_g = halo::link::ref<float>(halo::ui::vars().zoom_static_tint_g);
 static auto &zoom_static_tint_b = halo::link::ref<float>(halo::ui::vars().zoom_static_tint_b);
 
-#define FP_FLOAT(fp, offset) (*(float *)((uint8_t *)(fp) + (offset)))
 
 static object *object_get(datum_index object_index)
 {
@@ -57,11 +56,13 @@ static ModelAnimationsAnimationGraphFirstPersonWeaponAnimations *first_person_we
 
 static void seed_aim(first_person_weapon_interface *fp)
 {
-    FP_FLOAT(fp, 0x60) = (float)halo::x87::fpatan(camera_forward_x.j, camera_forward_x.i);
-    FP_FLOAT(fp, 0x64) = (float)halo::x87::fpatan(camera_forward_x.k,
+    fp->aim_yaw = (float)halo::x87::fpatan(camera_forward_x.j, camera_forward_x.i);
+    fp->aim_pitch = (float)halo::x87::fpatan(camera_forward_x.k,
                                        halo::libm::sqrt(camera_forward_x.j * camera_forward_x.j +
                                             camera_forward_x.i * camera_forward_x.i));
-    *(real_point3d *)((uint8_t *)fp + 0x70) = render_camera_global;
+    fp->previous_camera_x = render_camera_global.x;
+    fp->previous_camera_y = render_camera_global.y;
+    fp->previous_camera_z = render_camera_global.z;
 }
 
 static void overlay_channel(ModelAnimationsAnimation *animation, float value, int32_t positive,
@@ -159,7 +160,7 @@ void FirstPersonWeaponController::update()
         if (fp->overcharged_animation == -1) {
             if (fp->state == 4) {
                 list = first_person_weapon_list(animations);
-                FP_FLOAT(fp, 0x24) = 0.0f;
+                fp->overcharge_frame = 0.0f;
                 if ((int32_t)list->animations.count > 0xf) {
                     fp->overcharged_animation = ((int16_t *)list->animations.pointer)[0xf];
                 } else {
@@ -170,20 +171,20 @@ void FirstPersonWeaponController::update()
             ModelAnimationsAnimation *animation =
                 &((ModelAnimationsAnimation *)animations->animations.pointer)[fp->overcharged_animation];
             float charged_fraction = ((struct weapon_object *)weapon_obj)->weapon.charged_fraction;
-            FP_FLOAT(fp, 0x24) = (float)halo::libm::fmod((charged_fraction + 1.0f) + (charged_fraction + 1.0f) +
-                                             FP_FLOAT(fp, 0x24),
+            fp->overcharge_frame = (float)halo::libm::fmod((charged_fraction + 1.0f) + (charged_fraction + 1.0f) +
+                                             fp->overcharge_frame,
                                              (double)(int16_t)animation->frame_count);
         } else {
             fp->overcharged_animation = -1;
         }
 
-        if (fp->unknown_30[0x20] != 0) {
-            halo::math::real_seek_toward_clamped(0, FP_FLOAT(fp, 0x38), FP_FLOAT(fp, 0x30),
+        if (fp->aim_seeded != 0) {
+            halo::math::real_seek_toward_clamped(0, fp->move_sway_x_velocity, fp->move_sway_x,
                                      ((struct unit_object *)unit_obj)->unit.throttle.i, 0.08f, 0.5f, -1.0f, 1.0f);
-            halo::math::real_seek_toward_clamped(0, FP_FLOAT(fp, 0x3c), FP_FLOAT(fp, 0x34),
+            halo::math::real_seek_toward_clamped(0, fp->move_sway_y_velocity, fp->move_sway_y,
                                      ((struct unit_object *)unit_obj)->unit.throttle.j, 0.08f, 0.5f, -1.0f, 1.0f);
-            target_yaw = halo::game::angle_delta_wrapped(FP_FLOAT(fp, 0x68), FP_FLOAT(fp, 0x60)) * 30.0f;
-            target_pitch = halo::game::angle_delta_wrapped(FP_FLOAT(fp, 0x6c), FP_FLOAT(fp, 0x64)) * -30.0f;
+            target_yaw = halo::game::angle_delta_wrapped(fp->previous_aim_yaw, fp->aim_yaw) * 30.0f;
+            target_pitch = halo::game::angle_delta_wrapped(fp->previous_aim_pitch, fp->aim_pitch) * -30.0f;
             if (target_yaw < -1.0f) {
                 target_yaw = -1.0f;
             } else if (target_yaw > 1.0f) {
@@ -194,9 +195,9 @@ void FirstPersonWeaponController::update()
             } else if (target_pitch > 1.0f) {
                 target_pitch = 1.0f;
             }
-            halo::math::real_seek_toward_clamped(0, FP_FLOAT(fp, 0x48), FP_FLOAT(fp, 0x40), target_yaw,
+            halo::math::real_seek_toward_clamped(0, fp->aim_sway_yaw_velocity, fp->aim_sway_yaw, target_yaw,
                                      0.03f, 0.2f, -1.0f, 1.0f);
-            halo::math::real_seek_toward_clamped(0, FP_FLOAT(fp, 0x4c), FP_FLOAT(fp, 0x44), target_pitch,
+            halo::math::real_seek_toward_clamped(0, fp->aim_sway_pitch_velocity, fp->aim_sway_pitch, target_pitch,
                                      0.03f, 0.2f, -1.0f, 1.0f);
         }
         halo::math::real_seek_toward_clamped(0, fp->charge, fp->recoil, 0.0f, 0.01f, 0.2f, 0.0f, 1.0f);
@@ -218,8 +219,8 @@ void FirstPersonWeaponController::update()
             if (control->nameplate_weight == 0.0f &&
                 (local_player_index == -1 || control->desired_zoom_level == -1) &&
                 fp->recoil == 0.0f &&
-                FP_FLOAT(fp, 0x30) == 0.0f && FP_FLOAT(fp, 0x34) == 0.0f &&
-                FP_FLOAT(fp, 0x40) == 0.0f && FP_FLOAT(fp, 0x44) == 0.0f) {
+                fp->move_sway_x == 0.0f && fp->move_sway_y == 0.0f &&
+                fp->aim_sway_yaw == 0.0f && fp->aim_sway_pitch == 0.0f) {
                 if (fp->state == 0) {
                     GlobalsPlayerInformation *player_information =
                         (GlobalsPlayerInformation *)global_globals->player_information.pointer;
@@ -265,15 +266,15 @@ void FirstPersonWeaponController::update_animation_controls()
     first_person_weapon_interface *fp = &first_person_weapon_interfaces[local_player_index];
     uint8_t *fp_raw = (uint8_t *)fp;
 
-    if (fp->unknown_30[0x20] == 0) {
+    if (fp->aim_seeded == 0) {
         seed_aim(fp);
     }
-    FP_FLOAT(fp, 0x68) = FP_FLOAT(fp, 0x60);
-    FP_FLOAT(fp, 0x6c) = FP_FLOAT(fp, 0x64);
+    fp->previous_aim_yaw = fp->aim_yaw;
+    fp->previous_aim_pitch = fp->aim_pitch;
     *(real_point3d *)(fp_raw + 0x7c) = *(real_point3d *)(fp_raw + 0x70);
     seed_aim(fp);
     *(real_vector3d *)(fp_raw + 0x54) = camera_forward_x;
-    fp->unknown_30[0x20] = 1;
+    fp->aim_seeded = 1;
 
     if (fp->weapon_index != (datum_index)-1 && halo::objects::object_try_and_get(fp->weapon_index, 4) == 0) {
         fp->weapon_index = (datum_index)-1;
@@ -339,17 +340,17 @@ void FirstPersonWeaponController::update_animation_controls()
                 halo::models::animation_view(&animation_block[fp->moving_animation]).overlay_frame_orientations((uint16_t)*(int16_t *)fp->unknown_1c, reinterpret_cast<real_orientation *>(animation_control));
             }
             if (fp->overcharged_animation != -1) {
-                halo::models::animation_view(&animation_block[fp->overcharged_animation]).overlay_interpolated_frame_orientations_weighted(FP_FLOAT(fp, 0x24),
+                halo::models::animation_view(&animation_block[fp->overcharged_animation]).overlay_interpolated_frame_orientations_weighted(fp->overcharge_frame,
                              ((struct weapon_object *)weapon_obj)->weapon.charged_fraction + 0.5f, reinterpret_cast<real_orientation *>(animation_control));
             }
 
             if ((int32_t)list->animations.count > 4 && (index = list_entries[4]) != -1 &&
                 (int16_t)animation_block[index].frame_count >= 9) {
                 ModelAnimationsAnimation *overlays = &animation_block[index];
-                overlay_channel(overlays, FP_FLOAT(fp, 0x30), 0, 1, animation_control);
-                overlay_channel(overlays, FP_FLOAT(fp, 0x34), 3, 2, animation_control);
-                overlay_channel(overlays, FP_FLOAT(fp, 0x40), 4, 5, animation_control);
-                overlay_channel(overlays, FP_FLOAT(fp, 0x44), 7, 6, animation_control);
+                overlay_channel(overlays, fp->move_sway_x, 0, 1, animation_control);
+                overlay_channel(overlays, fp->move_sway_y, 3, 2, animation_control);
+                overlay_channel(overlays, fp->aim_sway_yaw, 4, 5, animation_control);
+                overlay_channel(overlays, fp->aim_sway_pitch, 7, 6, animation_control);
                 if (fp->recoil > 0.0f) {
                     halo::models::animation_view(overlays).overlay_frame_orientations_weighted(8, fp->recoil, reinterpret_cast<real_orientation *>(animation_control));
                 }

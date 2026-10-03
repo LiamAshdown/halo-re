@@ -59,8 +59,6 @@ static auto &map_list_capacity = halo::link::ref<int32_t>(halo::ui::vars().map_l
 static auto &product_id_read = halo::link::ref<uint8_t>(halo::ui::vars().product_id_read);
 static auto &cached_product_id = halo::link::ref<uint32_t>(halo::ui::vars().cached_product_id);
 
-#define HKEY_LOCAL_MACHINE ((HKEY)(uintptr_t)halo::interface::k_hkey_local_machine)
-
 namespace halo::interface {
 
 /**
@@ -386,7 +384,7 @@ void * InterfaceMain::registry_get_product_id()
     if (product_id_read == 0) {
         size = 0x20;
         product_id_read = 1;
-        status = RegOpenKeyExA(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Microsoft Games\\Halo", 0,
+        status = RegOpenKeyExA(reinterpret_cast<HKEY>(static_cast<uintptr_t>(halo::interface::k_hkey_local_machine)), "Software\\Microsoft\\Microsoft Games\\Halo", 0,
                                 halo::interface::k_key_read_32bit_view, (PHKEY)&key);
         if (status == 0) {
             status = RegQueryValueExA(key, "PID", 0, 0, (uint8_t *)&cached_product_id, &size);

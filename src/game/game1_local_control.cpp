@@ -35,9 +35,9 @@
 #include "halo/core/libm.hpp"
 #include "halo/ai/api.hpp"
 
-#define k_degrees_to_radians 0.017453292f
-#define k_seconds_per_tick   0.033333335f
-#define k_look_epsilon       9.999999747378752e-05f
+static constexpr float k_degrees_to_radians = 0.017453292f;
+static constexpr float k_seconds_per_tick = 0.033333335f;
+static constexpr float k_look_epsilon = 9.999999747378752e-05f;
 
 static auto &local_player_globals = halo::link::ref<player_globals *>(halo::game::vars().local_player_globals);
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);

@@ -285,7 +285,7 @@ void FirstPersonWeaponController::interface_tick(void)
         unit_index = record->unit;
 
         if (fp->unit_index != unit_index) {
-            fp->unknown_30[0x20] = 0;
+            fp->aim_seeded = 0;
             fp->unit_index = unit_index;
             halo::interface::first_person_weapon_interface_initialize(0);
         }
