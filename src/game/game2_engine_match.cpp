@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_match.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/objects/api.hpp"
@@ -76,7 +77,7 @@ void EngineMatch::send_message(datum_index target, uint32_t message_type, datum_
  */
 void EngineMatch::message_players(datum_index killer, uint32_t message_type, datum_index victim, wchar_t *buffer)
 {
-    if (killer != (datum_index)0xffffffff) {
+    if (killer != (datum_index)halo::k_dword_none) {
         send_message(killer, message_type, victim, buffer);
     } else {
         data_iterator iter;
@@ -84,7 +85,7 @@ void EngineMatch::message_players(datum_index killer, uint32_t message_type, dat
 
         iter.data = player_data;
         iter.next_index = 0;
-        iter.index = (datum_index)0xffffffff;
+        iter.index = (datum_index)halo::k_dword_none;
         iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
         element = halo::memory::data_iterator_next(&iter);
         while (element != 0) {
@@ -112,7 +113,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
         return;
     }
 
-    v = (player *)((uint8_t *)player_data->data + (victim & 0xffff) * sizeof(player));
+    v = (player *)((uint8_t *)player_data->data + (victim & halo::k_datum_slot_mask) * sizeof(player));
     v->last_death_tick = game_time->game_time;
 
     if (current_game_engine->on_player_death != 0) {
@@ -121,7 +122,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
     }
 
     {
-        uint8_t clean_kill = killer != (datum_index)0xffffffff && victim != (datum_index)0xffffffff;
+        uint8_t clean_kill = killer != (datum_index)halo::k_dword_none && victim != (datum_index)halo::k_dword_none;
         clean_kill = (is_suicide == 0 && clean_kill && killer != victim);
 
         v->respawn_timer = v->respawn_time_growth + game_engine_variant.respawn_time;
@@ -131,8 +132,8 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
             int32_t cap = game_engine_variant.respawn_time_growth * 5;
             v->respawn_time_growth = (grown <= cap) ? grown : cap;
 
-            if (clean_kill && killer != (datum_index)0xffffffff) {
-                player *k = (player *)((uint8_t *)player_data->data + (killer & 0xffff) * sizeof(player));
+            if (clean_kill && killer != (datum_index)halo::k_dword_none) {
+                player *k = (player *)((uint8_t *)player_data->data + (killer & halo::k_datum_slot_mask) * sizeof(player));
                 int32_t refunded = k->respawn_time_growth - game_engine_variant.respawn_time_growth;
                 k->respawn_time_growth = (refunded < 1) ? 0 : refunded;
             }
@@ -154,21 +155,21 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
     }
 
     if (halo::networking::globals().game_mode == 2) {
-        halo::game::game_engine_player_profile_cache_sync_all(1, (void *)0xffffffff);
+        halo::game::game_engine_player_profile_cache_sync_all(1, (void *)halo::k_dword_none);
     }
 
     if (v->marked_for_deletion != 0) {
         return;
     }
 
-    if (killer != (datum_index)0xffffffff) {
+    if (killer != (datum_index)halo::k_dword_none) {
         if (killer == victim) {
             halo::game::game_engine_broadcast_kill_feed_gated(6, -1, victim, killer, 1);
             return;
         }
         message_category = (is_suicide != 0) + 4;
-    } else if (death_object != (datum_index)0xffffffff) {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[death_object & 0xffff].data;
+    } else if (death_object != (datum_index)halo::k_dword_none) {
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[death_object & halo::k_datum_slot_mask].data;
         if (obj->type == 0) {
             message_category = 2;
         } else if (obj->type == 1) {
@@ -184,7 +185,7 @@ void EngineMatch::on_player_death(datum_index killer, datum_index death_object, 
     if (message_category == 5) {
         message_players(killer, 0x0d, victim, kill_feed_buffer);
     } else if (message_category == 4) {
-        player *k = (player *)((uint8_t *)player_data->data + (killer & 0xffff) * sizeof(player));
+        player *k = (player *)((uint8_t *)player_data->data + (killer & halo::k_datum_slot_mask) * sizeof(player));
         int32_t spree_type = 0;
         int32_t send_spree = 1;
 
@@ -230,7 +231,7 @@ void EngineMatch::tick(void)
         halo::game::game_engine_update_netgame_equipment(0);
     }
     if (halo::networking::globals().game_mode == 2) {
-        halo::game::game_engine_player_profile_cache_sync_all(1, (void *)0xffffffff);
+        halo::game::game_engine_player_profile_cache_sync_all(1, (void *)halo::k_dword_none);
     }
 
     {
@@ -239,7 +240,7 @@ void EngineMatch::tick(void)
 
         player_iter.data = player_data;
         player_iter.next_index = 0;
-        player_iter.index = (datum_index)0xffffffff;
+        player_iter.index = (datum_index)halo::k_dword_none;
         player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
         player_element = halo::memory::data_iterator_next(&player_iter);
 
@@ -265,7 +266,7 @@ void EngineMatch::tick(void)
                 int16_t index = (int16_t)handle;
                 int16_t salt = (int16_t)((uint32_t)handle >> 16);
 
-                if (handle != (datum_index)0xffffffff && index >= 0 && index < player_data->maximum_count) {
+                if (handle != (datum_index)halo::k_dword_none && index >= 0 && index < player_data->maximum_count) {
                     player *q = (player *)((uint8_t *)player_data->data + player_data->size * index);
 
                     if (q->identifier != 0 && (salt == 0 || q->identifier == salt) && q->medal_streak_count != 0) {

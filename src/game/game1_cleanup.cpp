@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/core/datum.hpp"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
@@ -54,7 +55,7 @@ void ObjectCleanup::cleanup_dropped_objects(void)
             uint8_t wake_flag = 0;
 
             if (hdr != 0) {
-                tag_instance *ti = &halo::cache::globals().tag_instances[obj->definition_tag & 0xffff];
+                tag_instance *ti = &halo::cache::globals().tag_instances[obj->definition_tag & halo::k_datum_slot_mask];
                 wake_flag = (uint8_t)((*(uint32_t *)((uint8_t *)ti->data + 0x308) >> 3) & 1);
             }
 
@@ -101,14 +102,14 @@ void ObjectCleanup::cleanup_stray_items(void)
     iter.flags_mask = 0;
     iter.unknown_05 = 0;
     iter.index = 0;
-    iter.handle = (datum_index)0xffffffff;
+    iter.handle = (datum_index)halo::k_dword_none;
 
     obj = halo::objects::object_iterator_next(&iter);
     while (obj != (object *)0) {
         if (halo::networking::globals().game_mode != 1 || obj->network_role == 3) {
             int16_t index16 = (int16_t)(uint32_t)iter.handle;
 
-            if (iter.handle != (datum_index)0xffffffff && index16 >= 0 &&
+            if (iter.handle != (datum_index)halo::k_dword_none && index16 >= 0 &&
                 index16 < halo::objects::globals().object_data->maximum_count) {
                 object_header *hdr = (object_header *)
                     ((uint8_t *)halo::objects::globals().object_data->data + (int32_t)halo::objects::globals().object_data->size * index16);
@@ -118,7 +119,7 @@ void ObjectCleanup::cleanup_stray_items(void)
                     (salt == 0 || hdr->identifier == salt) &&
                     ((1 << (hdr->type & 0x1f)) & _object_mask_weapon) != 0) {
                     if (hdr->data != (object *)0) {
-                        uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+                        uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_datum_slot_mask].data;
 
                         if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0 &&
                             game_engine_variant.game_engine_index != _game_engine_oddball) {
@@ -160,7 +161,7 @@ void ObjectCleanup::cleanup_stray_projectiles(void)
     iter.flags_mask = 0;
     iter.unknown_05 = 0;
     iter.index = 0;
-    iter.handle = (datum_index)0xffffffff;
+    iter.handle = (datum_index)halo::k_dword_none;
 
     obj = halo::objects::object_iterator_next(&iter);
     while (obj != (object *)0) {
@@ -186,17 +187,17 @@ void ObjectCleanup::clear_unit_shields_when_disabled(datum_index player_handle)
     player *p;
     object *unit_obj;
 
-    if (current_game_engine == 0 || player_handle == (datum_index)0xffffffff ||
+    if (current_game_engine == 0 || player_handle == (datum_index)halo::k_dword_none ||
         (game_engine_variant.flags & 0x08) == 0) {
         return;
     }
 
-    p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
-    if (p->unit == (datum_index)0xffffffff) {
+    p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+    if (p->unit == (datum_index)halo::k_dword_none) {
         return;
     }
 
-    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data;
     unit_obj->shield_vitality = 0.0f;
     unit_obj->maximum_shield_vitality = 0.0f;
 }
@@ -232,7 +233,7 @@ void ObjectCleanup::flag_local_player_units(void)
                     iterator.index = k_datum_index_none;
                     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
                 } else {
-                    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data;
+                    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data;
                     *((uint8_t *)unit_obj + 0x107) |= 0x20;
                 }
             }

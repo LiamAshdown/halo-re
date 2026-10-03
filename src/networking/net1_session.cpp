@@ -1,4 +1,6 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/text/api.hpp"
 #include "halo/scenario/api.hpp"
 #include <string.h>
@@ -118,10 +120,10 @@ void GameRuntime::broadcast_team_object_updates(int32_t *object_count, uint32_t 
     int32_t encoded_bits;
 
     (void)param_1;
-    iterator.type_mask = 0xffffffff;
+    iterator.type_mask = halo::k_dword_none;
     iterator.flags_mask = 0;
     iterator.index = 0;
-    iterator.handle = 0xffffffff;
+    iterator.handle = halo::k_dword_none;
 
     obj = halo::objects::object_iterator_next(&iterator);
     while (obj != 0) {
@@ -165,11 +167,11 @@ void GameRuntime::client_apply_position_update(network_machine *machine, const c
     }
 
     player_datum = machine_to_player[(uint16_t)machine->machine_id];
-    if (player_datum == (datum_index)0xffffffff) {
+    if (player_datum == (datum_index)halo::k_dword_none) {
         return;
     }
     plr = (player *)halo::memory::datum_get(player_datum, halo::game::globals().player_data);
-    if (plr == 0 || plr->unit == (datum_index)0xffffffff) {
+    if (plr == 0 || plr->unit == (datum_index)halo::k_dword_none) {
         return;
     }
 
@@ -254,10 +256,10 @@ wchar_t * GameRuntime::get_random_player_name()
     void *definition;
 
     tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\random_player_names");
-    if (tag_id != 0xffffffff) {
-        definition = *(void **)((uint8_t *)halo::cache::globals().tag_instances + (tag_id & 0xffff) * 0x20 + 0x14);
+    if (tag_id != halo::k_dword_none) {
+        definition = *(void **)((uint8_t *)halo::cache::globals().tag_instances + (tag_id & halo::k_datum_slot_mask) * 0x20 + 0x14);
         if (definition != 0 && *(int32_t *)definition != 0) {
-            halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
             return reinterpret_cast<wchar_t *>(halo::text::text_string_list_get_string((int32_t)tag_id, 0));
         }
     }
@@ -711,7 +713,7 @@ void GameSessionView::assign_random_color(network_player_entry *entry)
     attempt = 0;
     seed = halo::math::globals().effect_random_seed;
     for (;;) {
-        seed = seed * 0x19660d + 0x3c6ef35f;
+        seed = halo::advance_random_seed(seed);
         if (attempt < 10) {
             candidate = (int16_t)((int32_t)(seed >> 0x10) * 3 >> 0x10);
         } else {
@@ -1073,7 +1075,7 @@ int32_t ObjectOwnership::owner_team_index_desired(object *obj)
     player *plr;
 
     slot = *(uint16_t *)&((struct object *)obj)->network_update_tick;
-    if (slot != 0xffff && &machine_to_player[slot] != 0 && machine_to_player[slot] != (datum_index)0xffffffff) {
+    if (slot != 0xffff && &machine_to_player[slot] != 0 && machine_to_player[slot] != (datum_index)halo::k_dword_none) {
         resolved = machine_to_player[slot];
         plr = (player *)halo::memory::datum_get(resolved, halo::game::globals().player_data);
         if (plr != 0) {
@@ -1097,7 +1099,7 @@ void ObjectOwnership::release_ownership_claim(uint8_t slot_index)
     player *plr;
 
     datum = halo::networking::player_data_iterator_advance(slot_index);
-    if (datum == 0xffffffff) {
+    if (datum == halo::k_dword_none) {
         return;
     }
     player_index = (int16_t)datum;

@@ -1,4 +1,6 @@
 #include "halo/game/gamerest_math.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include <stdint.h>
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -331,7 +333,7 @@ void RandomTable::get_table_point(real_point3d *out)
 {
     int16_t index;
 
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     index = (int16_t)(((halo::math::globals().random_seed_global >> 16) *
                        (uint32_t)(int32_t)(int16_t)halo::math::globals().sphere_point_table_count) >> 16);
     *out = halo::math::globals().sphere_point_table[index];
@@ -347,14 +349,14 @@ void RandomTable::get_table_point(real_point3d *out)
  */
 int32_t RandomTable::pick_weighted_random_index(datum_index tag_id)
 {
-    TagReflexive *reflexive = (TagReflexive *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+    TagReflexive *reflexive = (TagReflexive *)halo::cache::globals().tag_instances[tag_id & halo::k_datum_slot_mask].data;
     int32_t count = (int32_t)reflexive->count;
     int16_t total = (int16_t)RandomTable::advance_draws(reflexive);
     uint8_t *element;
     int32_t remaining;
     int32_t i;
 
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     remaining = (int16_t)(((halo::math::globals().random_seed_global >> 0x10) * (uint32_t)(int32_t)total) >> 0x10);
     element = (uint8_t *)reflexive->pointer;
     for (i = 0; i < count; i++) {

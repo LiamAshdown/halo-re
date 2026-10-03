@@ -1,4 +1,6 @@
 #include "halo/networking/net1_server.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include <string.h>
 #include <stdint.h>
 #include <wchar.h>
@@ -415,7 +417,7 @@ void ServerView::handle_client_join(int32_t *object_count_passthrough, network_m
 
                                     halo::memory::datum_new_at_index_with_salt((datum_index)slot_handle, halo::game::globals().update_client_queues);
                                     queue_handle = halo::memory::datum_new_at_index_with_salt((datum_index)slot_handle, halo::game::globals().update_server_queues);
-                                    halo::game::player_update_queue_create(&((update_server_queue *)halo::game::globals().update_server_queues->data)[queue_handle & 0xffff].queue);
+                                    halo::game::player_update_queue_create(&((update_server_queue *)halo::game::globals().update_server_queues->data)[queue_handle & halo::k_datum_slot_mask].queue);
                                 }
                             }
                         }
@@ -556,7 +558,7 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
         if (do_transfer && owner != 0 && (owner->flags & 0x04) != 0) {
 
             datum = halo::networking::player_data_iterator_advance((uint8_t)entry->slot_index) ;
-            if (datum != 0xffffffff) {
+            if (datum != halo::k_dword_none) {
                 player_index = (int16_t)datum;
                 if (player_index >= 0 && player_index < halo::game::globals().player_data->maximum_count) {
                     plr = (player *)((uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * player_index);
@@ -571,8 +573,8 @@ void ServerView::handoff_object_ownership(int32_t *object_count_passthrough, net
                             if (profile_slot != -1) {
                                 halo::game::game_engine_capture_player_profile(profile_slot, 0);
                             }
-                            if ((uint32_t)unit != 0xffffffff) {
-                                hdr = &((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff];
+                            if ((uint32_t)unit != halo::k_dword_none) {
+                                hdr = &((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask];
                                 unit_obj = hdr->data;
                                 if ((unit_obj->vitality_flags & 0x04) == 0) {
                                     halo::game::game_engine_send_unit_weapon_loadout((uint32_t)unit, (datum_index)datum, (int32_t)team, machine_id);
@@ -612,7 +614,7 @@ int32_t ServerView::host_create()
     host = (network_server_globals *)halo::networking::network_game_server_host_new();
     network_server = host;
     if (host != 0) {
-        halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().effect_random_seed = halo::advance_random_seed(halo::math::globals().effect_random_seed);
         salt = halo::math::globals().effect_random_seed >> 0x10;
         *(uint32_t *)((uint8_t *)host + 0x3ac) = salt;
         if (network_client != 0) {
@@ -841,7 +843,7 @@ uint32_t ServerView::session_finalize_and_add_player(network_player_entry *entry
     reserved[2] = L'|';
     reserved[3] = L'\0';
     if (entry->team_index == -1) {
-        entry->team_index = (int8_t)halo::game::game_engine_team_is_leading(0xffffffff);
+        entry->team_index = (int8_t)halo::game::game_engine_team_is_leading(halo::k_dword_none);
     }
     if (entry->name[0] == L'\0') {
         halo::networking::network_game_generate_unique_random_name((network_game_session *)server, (wchar_t *)entry->name);

@@ -1,4 +1,5 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/core/datum.hpp"
 #include "interface.h"
 #include "main.h"
 #include "halo/networking/net_state.hpp"
@@ -141,7 +142,7 @@ uint32_t ClientView::check_connection_quality(int16_t machine_id, client_update_
     int16_t salt;
 
     resolved = machine_to_player[(uint16_t)machine_id];
-    if (resolved == (datum_index)0xffffffff) {
+    if (resolved == (datum_index)halo::k_dword_none) {
         return 0;
     }
     player_index = (int16_t)resolved;
@@ -975,7 +976,7 @@ uint8_t ClientView::player_table_index_apply(int32_t table_index, const uint8_t 
     }
 
     player_slot = halo::networking::player_data_iterator_advance((int8_t)client->session.players[i].slot_index);
-    if (client->session.map_loaded != 0 && player_slot != 0 && (uint32_t)player_slot != 0xffffffff &&
+    if (client->session.map_loaded != 0 && player_slot != 0 && (uint32_t)player_slot != halo::k_dword_none &&
         table_index != -1) {
         player_base = *(uint8_t **)((uint8_t *)halo::game::globals().player_data + 0x34);
         *(int32_t *)(player_base + ((uint32_t)player_slot & 0xffff) * 0x200 + 0xd0) = table_index;

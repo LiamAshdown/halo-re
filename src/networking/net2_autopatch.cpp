@@ -3,6 +3,7 @@
  * Auto-patch version check, download pool and updater launch.
  */
 #include "win32.h"
+#include "halo/core/datum.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -127,7 +128,7 @@ int32_t AutopatchUpdater::check_for_update_start(void)
         }
 
         thread = CreateThread(0, 0x10400, (LPTHREAD_START_ROUTINE)halo::networking::autopatch_version_check_request, 0, 0, (LPDWORD)&thread_id);
-        if (thread != (void *)0xffffffff) {
+        if (thread != (void *)halo::k_dword_none) {
             autopatch_update_check_state = 1;
             CloseHandle(thread);
             return autopatch_update_check_state;
@@ -241,7 +242,7 @@ uint8_t AutopatchUpdater::download_pool_initialize(void)
                 autopatch_download_thread = thread_slot;
                 if (thread_slot->handle != 0) {
                     if (SetThreadPriority(thread_slot->handle, 0) != 0 &&
-                        ResumeThread(thread_slot->handle) != 0xffffffff) {
+                        ResumeThread(thread_slot->handle) != halo::k_dword_none) {
                         autopatch_download_pool_stop = 1;
                         autopatch_download_active_count = 0;
                         return 1;

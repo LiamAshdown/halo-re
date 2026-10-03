@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_updates.hpp"
+#include "halo/core/datum.hpp"
 #include <stdint.h>
 #include "halo/memory/api.hpp"
 #include "halo/game/api.hpp"
@@ -93,7 +94,7 @@ void UpdateServer::push_player_tick_history()
             ((uint32_t *)(slot + 8 + *count * 0x20))[i] = ((uint32_t *)(queue + 8))[i];
         }
         summary[0] = 0;
-        summary[1] = 0xffffffff;
+        summary[1] = halo::k_dword_none;
         summary[2] = 0;
         summary[3] = 0;
         *count += 1;

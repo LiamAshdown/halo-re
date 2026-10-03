@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/core/datum.hpp"
 #include "halo/shaders/api.hpp"
 #include "memory.h"
 #include "math.h"
@@ -218,7 +219,7 @@ announce:
 
     iterator.data = player_data;
     iterator.next_index = 0;
-    iterator.index = (datum_index)0xffffffff;
+    iterator.index = (datum_index)halo::k_dword_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     unused_checksum = (uint32_t)player_data ^ 0x69746572;
 
@@ -245,7 +246,7 @@ void SimulationClock::apply_catchup_speed_boost(void)
 
     iter.data = player_data;
     iter.next_index = 0;
-    iter.index = (datum_index)0xffffffff;
+    iter.index = (datum_index)halo::k_dword_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     p = (player *)halo::memory::data_iterator_next(&iter);
@@ -259,7 +260,7 @@ void SimulationClock::apply_catchup_speed_boost(void)
 
     iter.data = player_data;
     iter.next_index = 0;
-    iter.index = (datum_index)0xffffffff;
+    iter.index = (datum_index)halo::k_dword_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     p = (player *)halo::memory::data_iterator_next(&iter);

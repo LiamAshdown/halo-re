@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_savegame.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include <wchar.h>
 #include <stdint.h>
@@ -67,13 +68,13 @@ uint32_t SaveGameFiles::create(const uint16_t *save_game_name, const char *root_
     sprintf(slot_file_no_slash, "%s\\%s", root_path, name);
 
     root_attrs = GetFileAttributesA(root_path);
-    if (root_attrs == 0xffffffff && CreateDirectoryA(root_path, 0) == 0) {
+    if (root_attrs == halo::k_dword_none && CreateDirectoryA(root_path, 0) == 0) {
         return 0x80004005;
     }
 
     slot_attrs = GetFileAttributesA(slot_file_no_slash);
     have_slot = 1;
-    if (slot_attrs == 0xffffffff) {
+    if (slot_attrs == halo::k_dword_none) {
         have_slot = bytes_written;
     }
 
@@ -83,7 +84,7 @@ uint32_t SaveGameFiles::create(const uint16_t *save_game_name, const char *root_
                 return 0x80004005;
             }
             file = CreateFileA(slot_path, 0, 0, 0, 2, 0x80, 0);
-            if (file == (void *)0xffffffff) {
+            if (file == (void *)halo::k_dword_none) {
                 return 0x80004005;
             }
             CloseHandle(file);
@@ -118,7 +119,7 @@ uint32_t SaveGameFiles::create(const uint16_t *save_game_name, const char *root_
     }
 
     file = CreateFileA(slot_path, 0xc0000000, 0, 0, 2, 0x80, 0);
-    if (file != (void *)0xffffffff) {
+    if (file != (void *)halo::k_dword_none) {
         int32_t length = 0;
         while (slot_path[length] != '\0') {
             length = length + 1;
@@ -166,7 +167,7 @@ uint32_t SaveGameFiles::remove_files(const uint16_t *save_game_name, const char 
     sprintf(pattern, "%s*.*", root_with_slash);
     last_delete_ok = 0;
     find_handle = FindFirstFileA(pattern, (LPWIN32_FIND_DATAA)&find_data);
-    if (find_handle != (void *)0xffffffff) {
+    if (find_handle != (void *)halo::k_dword_none) {
         do {
             if (find_data.cFileName[0] != '.') {
                 {
@@ -197,7 +198,7 @@ uint32_t SaveGameFiles::remove_files(const uint16_t *save_game_name, const char 
     result = 0;
     if (last_delete_ok != 0) {
         find_handle = FindFirstFileA(pattern, (LPWIN32_FIND_DATAA)&find_data);
-        if (find_handle != (void *)0xffffffff) {
+        if (find_handle != (void *)halo::k_dword_none) {
             uint32_t has_more;
             do {
                 if (find_data.cFileName[0] != '.') {
@@ -262,7 +263,7 @@ int32_t SaveGameFiles::find_first(char *root_path, win32_find_dataa *find_data)
 
     sprintf(pattern, "%s\\*.*", root_path);
     handle = FindFirstFileA(pattern, (LPWIN32_FIND_DATAA)find_data);
-    if (handle == (void *)0xffffffff) {
+    if (handle == (void *)halo::k_dword_none) {
         return (int32_t)handle;
     }
 
@@ -732,7 +733,7 @@ wchar_t * UnicodeStringLists::get_string(char *path, int16_t index)
     source = missing_string_text;
 
     if (tag_id != k_datum_index_none && index >= 0) {
-        list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+        list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & halo::k_datum_slot_mask].data;
         if (index < (int32_t)list->strings.count) {
             entry = (UnicodeStringListString *)list->strings.pointer + index;
             char_count = (int32_t)entry->string.size;

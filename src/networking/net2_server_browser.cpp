@@ -3,6 +3,7 @@
  * Server browser filters, sorting, list rows and join latch.
  */
 #include "tags.h"
+#include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "memory.h"
 #include <stdio.h>
@@ -337,7 +338,7 @@ int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
             row_entry = col_headers[idx];
             row_entry->highlight_flag = (row_entry->parent->selected_child == row_entry);
             halo::networking::server_browser_list_row_populate(row_entry, 0, 0, k_empty_string, empty_string, k_empty_string, 0,
-                                              0xffffffff, 0xffffffff, 0xffffffff);
+                                              halo::k_dword_none, halo::k_dword_none, halo::k_dword_none);
             idx = idx + 1;
             row_entry->hidden = 1;
         } while (idx < 0xf);
@@ -1323,7 +1324,7 @@ void ServerBrowser::list_row_gather(network_ui_widget *row, uint8_t flag, void *
         row->hidden = 0;
         return;
     }
-    halo::networking::server_browser_list_row_populate(row, 0, 0, 0, empty_string, 0, 0, 0xffffffff, 0xffffffff, 0xffffffff);
+    halo::networking::server_browser_list_row_populate(row, 0, 0, 0, empty_string, 0, 0, halo::k_dword_none, halo::k_dword_none, halo::k_dword_none);
     row->hidden = 1;
 }
 

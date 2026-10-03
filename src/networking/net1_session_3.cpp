@@ -1,4 +1,5 @@
 #include "halo/networking/net1_session.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include <string.h>
 #include <wchar.h>
@@ -41,7 +42,7 @@ void HostSession::dispatch_message(int32_t key_id, int32_t index, void *buffer, 
     uint8_t *player;
 
     (void)user_data;
-    if (handle == 0xffffffff || player_index < 0 || player_index >= *(int16_t *)(player_data + 0x20)) {
+    if (handle == halo::k_dword_none || player_index < 0 || player_index >= *(int16_t *)(player_data + 0x20)) {
         qr2_buffer_add(buffer, "");
         return;
     }

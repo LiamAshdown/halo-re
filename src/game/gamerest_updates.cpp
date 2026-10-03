@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_updates.hpp"
+#include "halo/core/datum.hpp"
 #include <string.h>
 #include <stdint.h>
 #include "halo/memory/api.hpp"
@@ -398,7 +399,7 @@ void UpdateServer::queue_create_entry(datum_index requested_handle)
 {
     datum_index handle = halo::memory::datum_new_at_index_with_salt(requested_handle, update_server_queues);
     update_server_queue *entry = (update_server_queue *)
-        ((uint8_t *)update_server_queues->data + ((uint32_t)handle & 0xffff) * sizeof(update_server_queue));
+        ((uint8_t *)update_server_queues->data + ((uint32_t)handle & halo::k_datum_slot_mask) * sizeof(update_server_queue));
     halo::game::player_update_queue_create(&entry->queue);
 }
 
@@ -461,7 +462,7 @@ void UpdateServer::queue_push_history(int16_t machine_index, int32_t tick_count,
     if (player == k_datum_index_none) {
         return;
     }
-    entry = (update_server_queue *)((uint8_t *)update_server_queues->data + (player & 0xffff) * 0x64);
+    entry = (update_server_queue *)((uint8_t *)update_server_queues->data + (player & halo::k_datum_slot_mask) * 0x64);
     q = &entry->queue.queue;
     for (i = 0; i < 8; i++) {
         record[3 + i] = source[i];
@@ -686,7 +687,7 @@ void PlayerNetworkState::apply_remote_vehicle_position_update(object *unit_obj)
 
     if (found == 1) {
         if (unit_obj->parent_object == (datum_index)record.body.parent_or_tag) {
-            object *parent_obj = halo::objects::object_try_and_get((datum_index)record.body.parent_or_tag, 0xffffffff);
+            object *parent_obj = halo::objects::object_try_and_get((datum_index)record.body.parent_or_tag, halo::k_dword_none);
             if (parent_obj != (object *)0) {
                 float dx = record.body.position.x - parent_obj->position.x;
                 float dy = record.body.position.y - parent_obj->position.y;

@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_hud.hpp"
+#include "halo/core/datum.hpp"
 #include <string.h>
 #include <wchar.h>
 #include "halo/cache/api.hpp"
@@ -66,13 +67,13 @@ void HudNameplates::draw_teammate_nameplate(datum_index player_handle)
     player *tracked;
     wchar_t name[12];
 
-    p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
-    found = (datum_index)0xffffffff;
+    p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+    found = (datum_index)halo::k_dword_none;
 
-    if (p->local_player_index != -1 && p->unit != (datum_index)0xffffffff) {
+    if (p->local_player_index != -1 && p->unit != (datum_index)halo::k_dword_none) {
         found = HudNameplates::find_nearby_teammate_for_nameplate(player_handle);
         if (found == player_handle) {
-            found = (datum_index)0xffffffff;
+            found = (datum_index)halo::k_dword_none;
         }
     }
 
@@ -89,7 +90,7 @@ void HudNameplates::draw_teammate_nameplate(datum_index player_handle)
         }
     }
 
-    if (p->nameplate_target_player != (datum_index)0xffffffff) {
+    if (p->nameplate_target_player != (datum_index)halo::k_dword_none) {
         int16_t index = (int16_t)p->nameplate_target_player;
         if (-1 < index && index < player_data->maximum_count) {
             tracked = (player *)((uint8_t *)player_data->data + player_data->size * index);
@@ -104,7 +105,7 @@ void HudNameplates::draw_teammate_nameplate(datum_index player_handle)
                 return;
             }
         }
-        p->nameplate_target_player = (datum_index)0xffffffff;
+        p->nameplate_target_player = (datum_index)halo::k_dword_none;
     }
 }
 
@@ -153,8 +154,8 @@ void HudNameplates::draw_teammate_nameplate_text(wchar_t *text, int32_t value)
  */
 datum_index HudNameplates::find_nearby_teammate_for_nameplate(datum_index player_handle)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
-    datum_index best = (datum_index)0xffffffff;
+    player *p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+    datum_index best = (datum_index)halo::k_dword_none;
     real_point3d camera;
     real_vector3d look;
     real_vector3d direction;
@@ -171,8 +172,8 @@ datum_index HudNameplates::find_nearby_teammate_for_nameplate(datum_index player
         if (track->nameplate_weight > 0.0f) {
             datum_index target = track->nameplate_target;
 
-            best = halo::objects::object_try_and_get(target, 0xffffffff) != 0 ? target : (datum_index)0xffffffff;
-            if (best != (datum_index)0xffffffff) {
+            best = halo::objects::object_try_and_get(target, halo::k_dword_none) != 0 ? target : (datum_index)halo::k_dword_none;
+            if (best != (datum_index)halo::k_dword_none) {
                 return halo::game::player_index_from_unit_index(best);
             }
         }
@@ -187,7 +188,7 @@ datum_index HudNameplates::find_nearby_teammate_for_nameplate(datum_index player
     }
 
     for (i = 0; i < candidate_count; i++) {
-        uint8_t *candidate = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[candidates[i] & 0xffff].data;
+        uint8_t *candidate = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[candidates[i] & halo::k_datum_slot_mask].data;
         real dx = ((struct object *)candidate)->position.x - camera.x;
         real dy = ((struct object *)candidate)->position.y - camera.y;
         real dz = ((struct object *)candidate)->position.z - camera.z;
@@ -206,7 +207,7 @@ datum_index HudNameplates::find_nearby_teammate_for_nameplate(datum_index player
         }
     }
 
-    if (best == (datum_index)0xffffffff) {
+    if (best == (datum_index)halo::k_dword_none) {
         return best;
     }
     return halo::game::player_index_from_unit_index(best);
@@ -220,7 +221,7 @@ datum_index HudNameplates::find_nearby_teammate_for_nameplate(datum_index player
 uint8_t HudNameplates::nameplate_candidate_filter(uint32_t object_index, void *context)
 {
     datum_index player_handle = *(datum_index *)context;
-    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+    uint8_t *obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_datum_slot_mask].data;
 
     if ((obj[0x10] & 1) != 0) {
         return 0;
@@ -248,13 +249,13 @@ void HudNameplates::update_teammate_nameplate_fade()
     float opacity;
 
     if (local_player == -1 || 0 < local_player) {
-        player_handle = (datum_index)0xffffffff;
+        player_handle = (datum_index)halo::k_dword_none;
     } else {
         player_handle = ((datum_index *)((uint8_t *)local_player_globals + 4))[local_player];
     }
 
     if (current_game_engine != 0 &&
-        (player_handle & 0xffff) * sizeof(player) + (uint32_t)player_data->data != 0) {
+        (player_handle & halo::k_datum_slot_mask) * sizeof(player) + (uint32_t)player_data->data != 0) {
         HudNameplates::draw_teammate_nameplate(player_handle);
     }
 
@@ -409,7 +410,7 @@ int32_t Scoreboard::select_players_to_display(int32_t mode, int32_t max_count, s
             do {
                 remaining_to_scan = remaining;
                 player *candidate = (player *)((uint8_t *)player_data->data +
-                    (scan->player & 0xffff) * sizeof(player));
+                    (scan->player & halo::k_datum_slot_mask) * sizeof(player));
 
                 if (candidate != 0 && candidate->local_player_index != -1) {
                     if (debug) {
@@ -433,7 +434,7 @@ int32_t Scoreboard::select_players_to_display(int32_t mode, int32_t max_count, s
                     scoreboard_entry *victim = &entries[slot];
 
                     while (((player *)((uint8_t *)player_data->data +
-                                (victim->player & 0xffff) * sizeof(player)))->local_player_index != -1) {
+                                (victim->player & halo::k_datum_slot_mask) * sizeof(player)))->local_player_index != -1) {
                         slot = slot - 1;
                         victim = victim - 1;
                         if (slot < 0) {
@@ -505,7 +506,7 @@ int32_t Scoreboard::compare(const scoreboard_entry *a, const scoreboard_entry *b
 uint32_t Scoreboard::compare_by_unknown_04(const scoreboard_entry *a, const scoreboard_entry *b)
 {
     if (b->single_sort_key < a->single_sort_key) {
-        return 0xffffffff;
+        return halo::k_dword_none;
     }
     return (uint32_t)(a->single_sort_key < b->single_sort_key);
 }
@@ -536,16 +537,16 @@ uint8_t CustomWaypoints::matches_filter(int32_t candidate, player *reference_pla
     }
 
     if (current_game_engine->index == _game_engine_ctf && slot->active != 0) {
-        if ((slot->player == (datum_index)0xffffffff || candidate == (int32_t)slot->player) &&
+        if ((slot->player == (datum_index)halo::k_dword_none || candidate == (int32_t)slot->player) &&
             (slot->team == -1 || reference_player->team == (int32_t)slot->team)) {
-            if (slot->owner == (datum_index)0xffffffff || candidate != (int32_t)slot->owner) {
+            if (slot->owner == (datum_index)halo::k_dword_none || candidate != (int32_t)slot->owner) {
                 return 1;
             }
         }
         if (reference_player->team == (int32_t)slot->team) {
             return 0;
         }
-        if (slot->owner == (datum_index)0xffffffff) {
+        if (slot->owner == (datum_index)halo::k_dword_none) {
             return 0;
         }
         return halo::game::game_engine_ctf_unit_is_flag_holder(reference_player) != 0;
@@ -560,13 +561,13 @@ uint8_t CustomWaypoints::matches_filter(int32_t candidate, player *reference_pla
     if (slot->active == 0) {
         return 0;
     }
-    if (slot->player != (datum_index)0xffffffff && candidate != (int32_t)slot->player) {
+    if (slot->player != (datum_index)halo::k_dword_none && candidate != (int32_t)slot->player) {
         return 0;
     }
     if (slot->team != -1 && reference_player->team != (int32_t)slot->team) {
         return 0;
     }
-    if (slot->owner == (datum_index)0xffffffff) {
+    if (slot->owner == (datum_index)halo::k_dword_none) {
         return 1;
     }
     return candidate != (int32_t)slot->owner;
@@ -608,7 +609,7 @@ void ChimeraHooks::kill_feed(datum_index recipient, int32_t hash_key, uint32_t m
 {
     int16_t index = (int16_t)recipient;
 
-    if (recipient == (datum_index)0xffffffff || index < 0 || player_data->maximum_count <= index) {
+    if (recipient == (datum_index)halo::k_dword_none || index < 0 || player_data->maximum_count <= index) {
         return;
     }
     {
@@ -710,7 +711,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
-                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & halo::k_datum_slot_mask].data;
                 if (list->strings.count > 0) {
                     UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer;
                     int32_t char_count = (int32_t)entry->string.size;
@@ -790,7 +791,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
-                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & halo::k_datum_slot_mask].data;
                 if (list->strings.count > 0) {
                     UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer;
                     int32_t char_count = (int32_t)entry->string.size;
@@ -847,7 +848,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
-                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & halo::k_datum_slot_mask].data;
                 if (list->strings.count > 0) {
                     UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer;
                     int32_t char_count = (int32_t)entry->string.size;
@@ -938,7 +939,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
-                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & halo::k_datum_slot_mask].data;
                 if (list->strings.count > 0) {
                     UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer;
                     int32_t char_count = (int32_t)entry->string.size;
@@ -981,7 +982,7 @@ void VariantDescription::generate(char *variant_name, ticker_text_buffer *ticker
                 (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_rules_strings");
             wchar_t *rules_text = missing_string_text;
             if (tag_id != k_datum_index_none) {
-                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+                UnicodeStringList *list = (UnicodeStringList *)halo::cache::globals().tag_instances[tag_id & halo::k_datum_slot_mask].data;
                 if (list->strings.count > 0) {
                     UnicodeStringListString *entry = (UnicodeStringListString *)list->strings.pointer;
                     int32_t char_count = (int32_t)entry->string.size;

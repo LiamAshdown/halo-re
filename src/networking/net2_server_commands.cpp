@@ -3,6 +3,7 @@
  * Server console commands.
  */
 #include "tags.h"
+#include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "memory.h"
 #include "math.h"
@@ -371,7 +372,7 @@ void ServerCommands::map_reset(void)
         if (halo::game::globals().state == _game_engine_state_not_started) {
             halo::game::game_engine_reset_round_objects();
             halo::game::game_engine_send_round_reset_message();
-            halo::game::game_engine_player_profile_cache_sync_all(0, (void *)0xffffffff);
+            halo::game::game_engine_player_profile_cache_sync_all(0, (void *)halo::k_dword_none);
             halo::interface::chimera__console_out((ColorARGB *)console_message_default_color, (char *)"Map reset.");
             return;
         }
@@ -506,12 +507,12 @@ void ServerCommands::players(void)
             uint16_t *score_display;
             char *team_color;
 
-            if (found != 0xffffffff) {
+            if (found != halo::k_dword_none) {
                 p = sv_players_resolve_player(found);
             }
 
             score_text[0] = 0;
-            if (found != 0xffffffff) {
+            if (found != halo::k_dword_none) {
                 void (*resolve_score_text)(uint32_t, uint16_t *) =
                     *(void (**)(uint32_t, uint16_t *))((uint8_t *)halo::game::globals().current_engine + 0x54);
                 resolve_score_text(found, score_text);
@@ -561,7 +562,7 @@ uint32_t ServerCommands::players_find_by_team_index_desired(int8_t team_index_de
         }
         p = (player *)halo::memory::data_iterator_next(&iterator);
     }
-    return 0xffffffff;
+    return halo::k_dword_none;
 }
 
 void ServerCommands::rcon_password(uint32_t argument_count, int32_t *arguments)

@@ -1,4 +1,5 @@
 #include "halo/networking/net1_server.hpp"
+#include "halo/core/datum.hpp"
 #include <string.h>
 #include <wchar.h>
 #include <stdio.h>
@@ -192,11 +193,11 @@ uint32_t ServerView::record_last_sender(int32_t player_index, int32_t quit_tick)
     uint32_t resolved;
 
     resolved = halo::networking::player_data_iterator_advance((int16_t)player_index);
-    if (resolved == 0xffffffff) {
+    if (resolved == halo::k_dword_none) {
         return 0;
     }
     if (server->session.map_loaded != 0 && resolved != 0 && quit_tick != -1) {
-        ((player *)player_data->data)[resolved & 0xffff].quit_tick = quit_tick;
+        ((player *)player_data->data)[resolved & halo::k_datum_slot_mask].quit_tick = quit_tick;
     }
     return 1;
 }

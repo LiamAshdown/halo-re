@@ -1,4 +1,5 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -36,7 +37,7 @@ const uint16_t * SlayerEngine::game_text(int16_t index)
 {
     datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
-    return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : halo::text::text_string_list_get_string(tag_id, index);
+    return tag_id == halo::k_dword_none ? (const uint16_t *)&empty_string : halo::text::text_string_list_get_string(tag_id, index);
 }
 
 /**
@@ -48,7 +49,7 @@ uint8_t * SlayerEngine::player_if_valid(datum_index handle)
     int16_t salt = (int16_t)(handle >> 16);
     uint8_t *player;
 
-    if (handle == 0xffffffff || index < 0 || index >= *(int16_t *)((uint8_t *)player_data + 0x20)) {
+    if (handle == halo::k_dword_none || index < 0 || index >= *(int16_t *)((uint8_t *)player_data + 0x20)) {
         return 0;
     }
     player = (uint8_t *)player_data->data + index * *(int16_t *)((uint8_t *)player_data + 0x22);
@@ -77,9 +78,9 @@ uint8_t SlayerEngine::build_message_text(datum_index recipient, int32_t message_
             return 0;
         }
         place = (const uint16_t *)halo::game::game_engine_get_multiplayer_text_list(halo::game::game_engine_compare_score_to_others(recipient, 1));
-        team = *(int32_t *)(((uint8_t *)player_data->data + ((recipient) & 0xffff) * 0x200) + 0x20);
+        team = *(int32_t *)(((uint8_t *)player_data->data + ((recipient) & halo::k_datum_slot_mask) * 0x200) + 0x20);
         if (game_engine_teams_enabled_flag != 0) {
-            halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xb5), place, slayer_player_score[recipient & 0xffff],
+            halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xb5), place, slayer_player_score[recipient & halo::k_datum_slot_mask],
                 slayer_team_score[team], game_engine_variant.score_limit);
         } else {
             halo::text::string_format_wide_va_bounded(count, (uint16_t *)text, game_text(0xb6), place, slayer_team_score[team],
@@ -129,9 +130,9 @@ wchar_t * SlayerEngine::build_team_score_text(int32_t team, wchar_t *buffer)
 int32_t SlayerEngine::get_score(datum_index player, int32_t team_mode)
 {
     if (team_mode == 1) {
-        return slayer_team_score[*(int32_t *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200) + 0x20)];
+        return slayer_team_score[*(int32_t *)(((uint8_t *)player_data->data + ((player) & halo::k_datum_slot_mask) * 0x200) + 0x20)];
     }
-    return slayer_player_score[player & 0xffff];
+    return slayer_player_score[player & halo::k_datum_slot_mask];
 }
 
 /**
@@ -166,8 +167,8 @@ void SlayerEngine::add_score(datum_index player_index, int32_t delta)
     if (halo::networking::globals().game_mode == 1) {
         return;
     }
-    slayer_team_score[*(int32_t *)(((uint8_t *)player_data->data + ((player_index) & 0xffff) * 0x200) + 0x20)] += delta;
-    slayer_player_score[player_index & 0xffff] += delta;
+    slayer_team_score[*(int32_t *)(((uint8_t *)player_data->data + ((player_index) & halo::k_datum_slot_mask) * 0x200) + 0x20)] += delta;
+    slayer_player_score[player_index & halo::k_datum_slot_mask] += delta;
 }
 
 /**
@@ -181,10 +182,10 @@ void SlayerEngine::player_killed(datum_index killer, datum_index death_object, d
     uint8_t *killer_player;
 
     (void)death_object;
-    if (*(((uint8_t *)player_data->data + ((victim) & 0xffff) * 0x200) + 0xd5) != 0 || killer == 0xffffffff) {
+    if (*(((uint8_t *)player_data->data + ((victim) & halo::k_datum_slot_mask) * 0x200) + 0xd5) != 0 || killer == halo::k_dword_none) {
         return;
     }
-    killer_player = ((uint8_t *)player_data->data + ((killer) & 0xffff) * 0x200);
+    killer_player = ((uint8_t *)player_data->data + ((killer) & halo::k_datum_slot_mask) * 0x200);
     if (is_suicide != 0) {
         add_score(killer, -1);
         return;
@@ -206,13 +207,13 @@ void SlayerEngine::player_killed(datum_index killer, datum_index death_object, d
  */
 void SlayerEngine::player_new_life(datum_index player_index)
 {
-    uint8_t *player = ((uint8_t *)player_data->data + ((player_index) & 0xffff) * 0x200);
+    uint8_t *player = ((uint8_t *)player_data->data + ((player_index) & halo::k_datum_slot_mask) * 0x200);
 
     ((struct player *)player)->slayer_target = -1;
     if (halo::networking::globals().game_mode != 2) {
         return;
     }
-    slayer_player_score[player_index & 0xffff] = 0;
+    slayer_player_score[player_index & halo::k_datum_slot_mask] = 0;
     if (current_game_engine == 0 || game_engine_teams_enabled_flag == 0) {
         slayer_team_score[((struct player *)player)->team] = 0;
     }
@@ -234,10 +235,10 @@ void SlayerEngine::player_round_reset(datum_index player_index)
         return;
     }
     ((struct player *)player)->slayer_target = -1;
-    slayer_player_score[player_index & 0xffff] = 0;
+    slayer_player_score[player_index & halo::k_datum_slot_mask] = 0;
     iterator.data = player_data;
     iterator.next_index = 0;
-    iterator.index = 0xffffffff;
+    iterator.index = halo::k_dword_none;
     iterator.signature = (uint32_t)player_data ^ 0x69746572;
     for (other = (uint8_t *)halo::memory::data_iterator_next(&iterator); other != 0; other = (uint8_t *)halo::memory::data_iterator_next(&iterator)) {
         if (*(datum_index *)(other + 0x88) == player_index) {
@@ -353,7 +354,7 @@ uint8_t SlayerEngine::query_player_score(int32_t key, int32_t index, void *buffe
     if (player == 0 || key != 0x16) {
         return 0;
     }
-    qr2_buffer_add_int(buffer, slayer_player_score[handle & 0xffff]);
+    qr2_buffer_add_int(buffer, slayer_player_score[handle & halo::k_datum_slot_mask]);
     return 1;
 }
 
@@ -395,7 +396,7 @@ void SlayerEngine::reset_round(void)
     uint8_t teams = current_game_engine != 0 ? game_engine_teams_enabled_flag : 0;
 
     (void)teams;
-    halo::game::game_engine_queue_multiplayer_sound(teams ? 0x23 : 0x15, 0xffffffff, 0);
+    halo::game::game_engine_queue_multiplayer_sound(teams ? 0x23 : 0x15, halo::k_dword_none, 0);
 }
 
 /**
@@ -418,7 +419,7 @@ uint8_t SlayerEngine::unknown_84(int32_t kind)
  */
 void SlayerEngine::update(datum_index player_index)
 {
-    uint8_t *player = ((uint8_t *)player_data->data + ((player_index) & 0xffff) * 0x200);
+    uint8_t *player = ((uint8_t *)player_data->data + ((player_index) & halo::k_datum_slot_mask) * 0x200);
     datum_index target;
 
     if (game_engine_variant.engine.slayer.kill_penalty != 0 && ((struct player *)player)->speed > 1.0f) {
@@ -434,22 +435,22 @@ void SlayerEngine::update(datum_index player_index)
     if (game_engine_variant.engine.slayer.kill_in_order != 0) {
         memset(custom_waypoints + (int16_t)player_index * 0x20, 0, 0x20);
         target = *(datum_index *)&((struct player *)player)->slayer_target;
-        if (target != 0xffffffff) {
-            datum_index unit_index = *(datum_index *)(((uint8_t *)player_data->data + ((target) & 0xffff) * 0x200) + 0x34);
+        if (target != halo::k_dword_none) {
+            datum_index unit_index = *(datum_index *)(((uint8_t *)player_data->data + ((target) & halo::k_datum_slot_mask) * 0x200) + 0x34);
 
-            if (unit_index != 0xffffffff) {
-                uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & 0xffff) * 12 + 8);
+            if (unit_index != halo::k_dword_none) {
+                uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & halo::k_datum_slot_mask) * 12 + 8);
 
                 halo::game::custom_waypoint_register(0xffffffff, (int16_t)player_index, (real_point3d *)(unit + 0xa0), "target_blue", 0.0f,
                     player_index, -1);
             }
         }
         if (halo::networking::globals().game_mode == 2) {
-            if (((struct player *)player)->unit != 0xffffffff && *(datum_index *)&((struct player *)player)->slayer_target == 0xffffffff) {
+            if (((struct player *)player)->unit != halo::k_dword_none && *(datum_index *)&((struct player *)player)->slayer_target == halo::k_dword_none) {
                 halo::game::game_engine_player_select_random_target(player_index);
             }
             target = *(datum_index *)&((struct player *)player)->slayer_target;
-            if (target != 0xffffffff && halo::game::game_engine_player_respawn_priority_gate(target) != 0) {
+            if (target != halo::k_dword_none && halo::game::game_engine_player_respawn_priority_gate(target) != 0) {
                 halo::game::game_engine_player_select_random_target(player_index);
             }
         }

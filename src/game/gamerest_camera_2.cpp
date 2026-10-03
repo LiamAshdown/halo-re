@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_camera.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/units/unit.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/units/api.hpp"
@@ -37,21 +38,21 @@ uint32_t CameraObserver::get_target_id(datum_index *out_id, int16_t local_player
 
     *out_id = 0;
     if (camera_type != 0 && camera_type != 1) {
-        return 0xffffffff;
+        return halo::k_dword_none;
     }
     player_index = (local_player_slot != -1 && local_player_slot < 1)
         ? local_player_globals->local_players[local_player_slot] : k_datum_index_none;
-    player_record = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
+    player_record = (uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200;
     exclude_object = halo::units::UnitView(*(uint32_t *)(player_record + 0x34)).resolve_camera_object();
     if (local_player_slot != -1) {
         zoom_requirement = *(int16_t *)(*(uint8_t **)&player_control_globals_ptr + local_player_slot * 0x40 + 0x34);
     }
     if (!halo::game::unit_get_current_weapon_autoaim_cone(*(uint32_t *)(player_record + 0x34), zoom_requirement, cone_buffer)) {
-        return 0xffffffff;
+        return halo::k_dword_none;
     }
     observer_camera = local_player_slot == -1 ? 0 : (uint8_t *)halo::camera::globals().observers + local_player_slot * 0x29c + 0x74;
     if (!CameraObserver::find_best_target((real_point3d *)observer_camera, (observer_target_cone *)cone_buffer, (real_vector3d *)(observer_camera + 0x20), exclude_object, *(int16_t *)(player_record + 0x20), &candidate)) {
-        return 0xffffffff;
+        return halo::k_dword_none;
     }
     *out_id = *(datum_index *)&candidate.weight_primary;
     return candidate.object;

@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/core/datum.hpp"
 #include "memory.h"
 #include "math.h"
 #include "cache.h"
@@ -107,7 +108,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     }
 
     control = &player_control_globals_ptr->local_players[local_player_index];
-    plr = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * k_player_size);
+    plr = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * k_player_size);
     player_control = (GlobalsPlayerControl *)global_globals->player_control.pointer;
     player_information = (GlobalsPlayerInformation *)global_globals->player_information.pointer;
     input = &local_player_input_states[plr->local_player_index];
@@ -120,7 +121,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     yaw_rate = 0.0f;
     pitch_rate = 0.0f;
     if (plr->unit != (datum_index)-1) {
-        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data;
+        object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & halo::k_datum_slot_mask].data;
         unit_data *unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
 
         yaw_rate = look_yaw_rate_setting[local_player_index] *
@@ -130,9 +131,9 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
 
         if (unit_object->parent_object != (datum_index)-1 && unit->vehicle_seat_index != -1) {
             object *parent =
-                ((object_header *)halo::objects::globals().object_data->data)[unit_object->parent_object & 0xffff].data;
+                ((object_header *)halo::objects::globals().object_data->data)[unit_object->parent_object & halo::k_datum_slot_mask].data;
             Unit *parent_definition =
-                (Unit *)halo::cache::globals().tag_instances[parent->definition_tag & 0xffff].data;
+                (Unit *)halo::cache::globals().tag_instances[parent->definition_tag & halo::k_datum_slot_mask].data;
             UnitSeat *seat =
                 &((UnitSeat *)parent_definition->seats.pointer)[unit->vehicle_seat_index];
 
@@ -183,7 +184,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
             }
             if (plr->unit != (datum_index)-1) {
                 unit_data *unit = (unit_data *)((uint8_t *)
-                    ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data +
+                    ((object_header *)halo::objects::globals().object_data->data)[plr->unit & halo::k_datum_slot_mask].data +
                     k_unit_data_offset);
 
                 scale = (1.0f - unit->stun * player_information->stun_turning_penalty) * scale;
@@ -224,7 +225,7 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
             }
             if (plr->unit != (datum_index)-1) {
                 unit_data *unit = (unit_data *)((uint8_t *)
-                    ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data +
+                    ((object_header *)halo::objects::globals().object_data->data)[plr->unit & halo::k_datum_slot_mask].data +
                     k_unit_data_offset);
                 real stun_scale =
                     1.0f - unit->stun * player_information->stun_turning_penalty;
@@ -345,11 +346,11 @@ void LocalControl::build_local_player_control_input(int16_t local_player_index, 
     if (halo::networking::globals().game_mode == 1 && (out->control_flags & 0x800u) != 0 &&
         plr->unit != (datum_index)-1) {
         unit_data *unit = (unit_data *)((uint8_t *)
-            ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data + k_unit_data_offset);
+            ((object_header *)halo::objects::globals().object_data->data)[plr->unit & halo::k_datum_slot_mask].data + k_unit_data_offset);
 
         if (unit->current_weapon_index != -1) {
             object *weapon_object = ((object_header *)halo::objects::globals().object_data->data)
-                [unit->weapons[unit->current_weapon_index] & 0xffff].data;
+                [unit->weapons[unit->current_weapon_index] & halo::k_datum_slot_mask].data;
             weapon_data *weapon =
                 (weapon_data *)((uint8_t *)weapon_object + k_item_extension_offset);
 

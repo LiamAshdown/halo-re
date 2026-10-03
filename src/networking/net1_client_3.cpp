@@ -1,4 +1,5 @@
 #include "halo/networking/net1_client.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/networking/api.hpp"
@@ -95,12 +96,12 @@ int32_t ConnectionView::finalize_join(uint16_t *connection)
         if (-1 < (int8_t)*((uint8_t *)puVar7 + 0xcd3) && sVar9 < 1) {
             puVar2 = (uint32_t *)&halo::game::globals().local_player_globals->local_players[sVar9];
             uVar3 = *puVar2;
-            if (uVar3 != 0xffffffff) {
+            if (uVar3 != halo::k_dword_none) {
                 *(uint16_t *)((uVar3 & 0xffff) * 0x200 + 2 + *(int32_t *)((uint8_t *)halo::game::globals().player_data + 0x34)) = 0xffff;
                 iVar6 = (int32_t)(uint32_t)halo::game::globals().player_data;
             }
             *puVar2 = uVar8;
-            if (uVar8 != 0xffffffff) {
+            if (uVar8 != halo::k_dword_none) {
                 *(int16_t *)((uVar8 & 0xffff) * 0x200 + 2 + *(int32_t *)((uint8_t *)halo::game::globals().player_data + 0x34)) = sVar9;
             }
         }

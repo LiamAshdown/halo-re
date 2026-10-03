@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/core/datum.hpp"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
@@ -76,7 +77,7 @@ void Notifications::apply_player_join_message(void **envelope)
     p->kill_streak[0] = 0;
     p->kill_streak[1] = 0;
     p->interaction_type = 0;
-    p->interaction_object = (datum_index)0xffffffff;
+    p->interaction_object = (datum_index)halo::k_dword_none;
 
     halo::game::game_engine_player_new_life(message.join_key);
     }

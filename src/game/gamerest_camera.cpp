@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_camera.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
@@ -46,7 +47,7 @@ uint16_t CameraObserver::collect_target_candidates(observer_target_cone *cone, d
     count = 0;
     object_index = start_object;
     do {
-        obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+        obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_datum_slot_mask].data;
         type_bit = 1u << (obj->type & 0x1f);
         if ((type_bit & _object_mask_unit) != 0 && (obj->flags & 1) == 0 &&
             *(real *)((uint8_t *)obj + 0x37c) < 1.0f) {
@@ -60,7 +61,7 @@ uint16_t CameraObserver::collect_target_candidates(observer_target_cone *cone, d
                     (void)candidate_team_player;
                     candidate_team = obj->owner_team;
                     if (halo::game::teams_are_enemies(candidate_team, observer_team) != 0) {
-                        tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+                        tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_datum_slot_mask].data;
                         if ((tag->item_flags & 0x200000) == 0) {
                             if (CameraObserver::target_score(facing, cone, object_index, &temp, observer_position)  != 0 &&
                                 count < (uint16_t)capacity) {
@@ -196,7 +197,7 @@ uint32_t CameraObserver::get_target_angles(real *out_weight_primary, real *out_w
     out_yaw_pitch_rate[1] = 0.0f;
     out_yaw_pitch_rate[0] = 0.0f;
     if (camera_type != 0 && camera_type != 1) {
-        return 0xffffffff;
+        return halo::k_dword_none;
     }
 
     if (local_player_slot == -1 || 0 < local_player_slot) {
@@ -204,7 +205,7 @@ uint32_t CameraObserver::get_target_angles(real *out_weight_primary, real *out_w
     } else {
         player_index = local_player_globals->local_players[local_player_slot];
     }
-    p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
     unit_index = p->unit;
 
     zoom_level = -1;
@@ -212,12 +213,12 @@ uint32_t CameraObserver::get_target_angles(real *out_weight_primary, real *out_w
         zoom_level = player_control_globals_ptr->local_players[local_player_slot].desired_zoom_level;
     }
     if (halo::game::unit_get_current_weapon_autoaim_cone(unit_index, zoom_level, cone_buffer) == 0) {
-        return 0xffffffff;
+        return halo::k_dword_none;
     }
 
     row = (local_player_slot == -1) ? (uint8_t *)0 : (uint8_t *)&halo::camera::globals().observers[local_player_slot].camera;
     if (CameraObserver::find_best_target((real_point3d *)row, (observer_target_cone *)cone_buffer, (real_vector3d *)(row + 0x20), unit_index, (int16_t)p->team, &candidate) == 0) {
-        return 0xffffffff;
+        return halo::k_dword_none;
     }
 
     *out_weight_primary = candidate.weight_primary;
@@ -262,7 +263,7 @@ int32_t CameraObserver::target_compare(const observer_target_candidate *a, const
                     return -1;
                 }
                 if (a->angle <= b->angle) {
-                    return (int32_t)((a->object & 0xffff) - (b->object & 0xffff));
+                    return (int32_t)((a->object & halo::k_datum_slot_mask) - (b->object & halo::k_datum_slot_mask));
                 }
             }
         }
@@ -322,7 +323,7 @@ char CameraObserver::target_is_valid(datum_index exclude_object, real_point3d *o
     if (current != k_datum_index_none) {
         do {
             root = current;
-            current = ((object_header *)halo::objects::globals().object_data->data)[current & 0xffff].data->parent_object;
+            current = ((object_header *)halo::objects::globals().object_data->data)[current & halo::k_datum_slot_mask].data->parent_object;
         } while (current != k_datum_index_none);
     }
 
@@ -389,8 +390,8 @@ uint32_t CameraObserver::target_score(real_vector3d *facing, observer_target_con
         out->weight_secondary = halo::game::distance_falloff_fraction(angle, cone->angle_b) *
                                  halo::game::distance_falloff_fraction(out->distance, cone->distance_b);
         if (0.0f < out->weight_secondary) {
-            target_object = ((object_header *)halo::objects::globals().object_data->data)[target & 0xffff].data;
-            target_tag = (Unit *)halo::cache::globals().tag_instances[target_object->definition_tag & 0xffff].data;
+            target_object = ((object_header *)halo::objects::globals().object_data->data)[target & halo::k_datum_slot_mask].data;
+            target_tag = (Unit *)halo::cache::globals().tag_instances[target_object->definition_tag & halo::k_datum_slot_mask].data;
             if ((target_tag->unit_flags & 0x80000) != 0) {
                 out->weight_secondary = out->weight_secondary *
                     ((GlobalsPlayerControl *)global_globals->player_control.pointer)

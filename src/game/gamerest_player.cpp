@@ -1,4 +1,6 @@
 #include "halo/game/gamerest_player.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/scenario/api.hpp"
 #include <string.h>
 #include <stdint.h>
@@ -243,9 +245,9 @@ namespace halo::game {
  */
 void PlayerView::apply_pickup_effect(uint32_t pickup_object)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
-    object *pickup = (object *)((object_header *)halo::objects::globals().object_data->data)[pickup_object & 0xffff].data;
-    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[pickup->definition_tag & 0xffff].data;
+    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    object *pickup = (object *)((object_header *)halo::objects::globals().object_data->data)[pickup_object & halo::k_datum_slot_mask].data;
+    uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[pickup->definition_tag & halo::k_datum_slot_mask].data;
     int16_t amount = (int16_t)(int32_t)(*(float *)(tag + 0x30c) * 30.0f);
     int16_t discriminator;
 
@@ -301,7 +303,7 @@ void PlayerView::apply_pickup_effect(uint32_t pickup_object)
  */
 uint8_t PlayerView::attach_unit_to_parent(uint32_t target_object, void *local_offset)
 {
-    uint32_t unit_index = *(datum_index *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200 + 0x34);
+    uint32_t unit_index = *(datum_index *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200 + 0x34);
     uint8_t *biped = (uint8_t *)halo::objects::object_try_and_get(unit_index, 1);
 
     if (biped == 0) {
@@ -348,9 +350,9 @@ uint8_t PlayerView::attach_unit_to_parent(uint32_t target_object, void *local_of
  */
 void PlayerView::check_assassination_opportunity(uint32_t candidate_object)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
-    object *unit = (object *)((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data;
-    object *candidate = (object *)((object_header *)halo::objects::globals().object_data->data)[candidate_object & 0xffff].data;
+    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    object *unit = (object *)((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data;
+    object *candidate = (object *)((object_header *)halo::objects::globals().object_data->data)[candidate_object & halo::k_datum_slot_mask].data;
     real_point3d camera_position;
 
     halo::units::unit_get_camera_position(p->unit, &camera_position);
@@ -359,7 +361,7 @@ void PlayerView::check_assassination_opportunity(uint32_t candidate_object)
             *(&((unit_data *)((uint8_t *)unit + k_unit_data_offset))->aiming_vector), candidate->bounding_radius)) {
         if (halo::devices::device_frontfacing(candidate_object, &((unit_data *)((uint8_t *)unit + k_unit_data_offset))->aiming_vector)) {
             if (halo::devices::device_can_change_position(candidate_object)) {
-                PlayerView(player_index).set_pending_interaction_action(10, (int16_t)0xffff, candidate_object);
+                PlayerView(player_index).set_pending_interaction_action(10, (int16_t)halo::k_word_none, candidate_object);
             }
         }
     }
@@ -372,7 +374,7 @@ void PlayerView::check_assassination_opportunity(uint32_t candidate_object)
  */
 void PlayerView::check_vehicle_boarding_interaction(uint32_t candidate_object)
 {
-    uint8_t *record = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
+    uint8_t *record = (uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200;
     datum_index unit_index = ((player *)record)->unit;
     uint8_t *unit = OBJECT_DATA(unit_index);
     uint8_t *item = OBJECT_DATA(candidate_object);
@@ -491,10 +493,10 @@ void PlayerView::check_vehicle_boarding_interaction(uint32_t candidate_object)
  */
 void PlayerView::check_vehicle_boarding_interaction_lightweight(uint32_t candidate_object)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
     datum_index unit_handle = p->unit;
-    uint8_t *unit_obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_handle & 0xffff].data;
-    uint8_t *candidate = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[candidate_object & 0xffff].data;
+    uint8_t *unit_obj = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_handle & halo::k_datum_slot_mask].data;
+    uint8_t *candidate = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[candidate_object & halo::k_datum_slot_mask].data;
     object *weapon_candidate;
     uint8_t *weapon_tag;
     uint8_t unit_flag_1800;
@@ -503,7 +505,7 @@ void PlayerView::check_vehicle_boarding_interaction_lightweight(uint32_t candida
     uint8_t holds_exclusive = 0;
     object *current_weapon_obj;
 
-    if (((object *)candidate)->parent_object != (datum_index)0xffffffff ||
+    if (((object *)candidate)->parent_object != (datum_index)halo::k_dword_none ||
         *(uint32_t *)(candidate + 0x200) == (uint32_t)unit_handle) {
         return;
     }
@@ -511,16 +513,16 @@ void PlayerView::check_vehicle_boarding_interaction_lightweight(uint32_t candida
     if (weapon_candidate == 0 || halo::units::unit_check_weapon_use_permission((uint32_t)unit_handle, candidate_object) == 0) {
         return;
     }
-    weapon_tag = (uint8_t *)halo::cache::globals().tag_instances[weapon_candidate->definition_tag & 0xffff].data;
+    weapon_tag = (uint8_t *)halo::cache::globals().tag_instances[weapon_candidate->definition_tag & halo::k_datum_slot_mask].data;
     unit_flag_1800 = (uint8_t)((*(uint32_t *)(unit_obj + 0x208) & 0x1800) != 0);
 
     current_weapon = halo::units::unit_get_weapon_object_index((uint32_t)p->unit,
         *(int16_t *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data + 0x2f2));
     weapon_count = halo::units::unit_count_deployed_weapons((uint32_t)p->unit);
-    if (weapon_count >= 2 && current_weapon != (datum_index)0xffffffff && (weapon_tag[0x308] & 0x10) == 0) {
-        object *held = ((object_header *)halo::objects::globals().object_data->data)[current_weapon & 0xffff].data;
+    if (weapon_count >= 2 && current_weapon != (datum_index)halo::k_dword_none && (weapon_tag[0x308] & 0x10) == 0) {
+        object *held = ((object_header *)halo::objects::globals().object_data->data)[current_weapon & halo::k_datum_slot_mask].data;
 
-        if ((((uint8_t *)halo::cache::globals().tag_instances[held->definition_tag & 0xffff].data)[0x308] & 0x10) != 0) {
+        if ((((uint8_t *)halo::cache::globals().tag_instances[held->definition_tag & halo::k_datum_slot_mask].data)[0x308] & 0x10) != 0) {
             holds_exclusive = 1;
         }
     }
@@ -536,9 +538,9 @@ void PlayerView::check_vehicle_boarding_interaction_lightweight(uint32_t candida
     current_weapon_obj = halo::objects::object_try_and_get(current_weapon, 4);
     if (weapon_count == 1 && current_weapon_obj != 0 &&
         current_weapon_obj->definition_tag != weapon_candidate->definition_tag) {
-        PlayerView(player_index).set_pending_interaction_action(7, (int16_t)0xffff, candidate_object);
+        PlayerView(player_index).set_pending_interaction_action(7, (int16_t)halo::k_word_none, candidate_object);
     } else {
-        PlayerView(player_index).set_pending_interaction_action(6, (int16_t)0xffff, candidate_object);
+        PlayerView(player_index).set_pending_interaction_action(6, (int16_t)halo::k_word_none, candidate_object);
     }
 }
 
@@ -554,7 +556,7 @@ void PlayerView::check_vehicle_boarding_interaction_lightweight(uint32_t candida
  */
 void PlayerView::check_vehicle_interaction(uint32_t candidate_object)
 {
-    object *vehicle = (object *)((object_header *)halo::objects::globals().object_data->data)[candidate_object & 0xffff].data;
+    object *vehicle = (object *)((object_header *)halo::objects::globals().object_data->data)[candidate_object & halo::k_datum_slot_mask].data;
 
     if ((*((uint8_t *)&vehicle->vitality_flags) & 4) == 0) {
         GlobalsPlayerControl *player_control = (GlobalsPlayerControl *)global_globals->player_control.pointer;
@@ -564,14 +566,14 @@ void PlayerView::check_vehicle_interaction(uint32_t candidate_object)
             if ((*(uint8_t *)&((vehicle_object *)vehicle)->vehicle.flags & 0x10) == 0 &&
                 *(int32_t *)&((vehicle_object *)vehicle)->unit.driver_unit_index == -1) {
 
-                PlayerView(player_index).set_pending_interaction_action(0xb, (int16_t)0xffff, candidate_object);
+                PlayerView(player_index).set_pending_interaction_action(0xb, (int16_t)halo::k_word_none, candidate_object);
             }
         } else {
-            player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+            player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
             uint32_t unit_index = (uint32_t)p->unit;
 
             if (halo::units::unit_current_weapon_type_is_2_or_3(unit_index) == 0) {
-                object *unit_obj = (object *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
+                object *unit_obj = (object *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_datum_slot_mask].data;
                 float unit_speed_sq = unit_obj->velocity.k * unit_obj->velocity.k +
                     unit_obj->velocity.j * unit_obj->velocity.j + unit_obj->velocity.i * unit_obj->velocity.i;
                 float vehicle_spin_sq = vehicle->angular_velocity.k * vehicle->angular_velocity.k +
@@ -579,7 +581,7 @@ void PlayerView::check_vehicle_interaction(uint32_t candidate_object)
                     vehicle->angular_velocity.i * vehicle->angular_velocity.i;
 
                 if (unit_speed_sq < 0.01f && vehicle_spin_sq < 0.01f) {
-                    uint32_t seat = 0xffffffff;
+                    uint32_t seat = halo::k_dword_none;
                     int16_t result = halo::units::unit_find_best_seat_to_enter(unit_index, candidate_object, (int16_t *)&seat);
                     if (result == 1) {
                         PlayerView(player_index).set_pending_interaction_action(9, (int16_t)seat, candidate_object);
@@ -602,7 +604,7 @@ void PlayerView::check_vehicle_interaction(uint32_t candidate_object)
  */
 uint8_t PlayerView::execute_pending_interaction()
 {
-    uint8_t *record = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
+    uint8_t *record = (uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200;
     datum_index unit_index = ((player *)record)->unit;
     uint8_t *unit = OBJECT_DATA(unit_index);
     datum_index target_index = ((player *)record)->interaction_object;
@@ -712,7 +714,7 @@ notify:
  */
 uint8_t PlayerView::execute_weapon_drop_interaction()
 {
-    uint8_t *record = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
+    uint8_t *record = (uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200;
     datum_index unit_index = ((player *)record)->unit;
     uint8_t *unit = OBJECT_DATA(unit_index);
     datum_index held_weapon = k_datum_index_none;
@@ -764,7 +766,7 @@ uint8_t PlayerView::execute_weapon_drop_interaction()
  */
 uint8_t PlayerView::find_placement_position(datum_index target_object, real_point3d *point)
 {
-    uint8_t *player = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
+    uint8_t *player = (uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200;
     uint32_t unit_index = ((struct player *)player)->unit;
     uint8_t *unit = OBJECT_DATA(unit_index);
     uint8_t placed = 0;
@@ -790,7 +792,7 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
                 facing = *(real_vector3d *)&((struct object *)root_object)->forward.i;
             }
         }
-        collision_radius = *(float *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data + 0x42c);
+        collision_radius = *(float *)((uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & halo::k_datum_slot_mask].data + 0x42c);
         facing.k = 0.0f;
         facing.i = -facing.i;
         facing.j = -facing.j;
@@ -809,7 +811,7 @@ uint8_t PlayerView::find_placement_position(datum_index target_object, real_poin
                 real_point3d jittered;
                 int16_t index;
 
-                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
                 index = (int16_t)(((halo::math::globals().random_seed_global >> 16) * (int32_t)halo::math::globals().sphere_point_table_count) >> 16);
                 facing = *(real_vector3d *)&halo::math::globals().sphere_point_table[index];
                 jittered.x = facing.i * collision_radius + spot.x;
@@ -898,7 +900,7 @@ void PlayerView::kill_and_release_unit(int32_t respawn_timer_override)
         return;
     }
 
-    plr = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    plr = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
     unit_handle = plr->unit;
     if (unit_handle == (datum_index)-1) {
         return;
@@ -913,7 +915,7 @@ void PlayerView::kill_and_release_unit(int32_t respawn_timer_override)
     }
 
     {
-        object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_handle & 0xffff].data;
+        object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_handle & halo::k_datum_slot_mask].data;
         unit_obj->body_vitality = 0.0f;
     }
     halo::objects::object_set_health_frozen_flag(unit_handle);
@@ -938,7 +940,7 @@ void PlayerView::release_unit_and_reset(int32_t previous_unit_override)
     player *plr;
     datum_index saved_unit;
 
-    plr = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    plr = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
     if (plr->unit == (datum_index)-1) {
         return;
     }
@@ -952,7 +954,7 @@ void PlayerView::release_unit_and_reset(int32_t previous_unit_override)
 
     saved_unit = local_player_globals->local_player_units[plr->local_player_index];
     {
-        object_header *unit_header = &((object_header *)halo::objects::globals().object_data->data)[saved_unit & 0xffff];
+        object_header *unit_header = &((object_header *)halo::objects::globals().object_data->data)[saved_unit & halo::k_datum_slot_mask];
         object *unit_obj = unit_header->data;
         unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
         datum_index weapon_handle = (datum_index)-1;
@@ -966,7 +968,7 @@ void PlayerView::release_unit_and_reset(int32_t previous_unit_override)
             unit_header->flags = unit_header->flags & ~1;
         }
         {
-            uint8_t *unit_tag_data = (uint8_t *)halo::cache::globals().tag_instances[unit_obj->definition_tag & 0xffff].data;
+            uint8_t *unit_tag_data = (uint8_t *)halo::cache::globals().tag_instances[unit_obj->definition_tag & halo::k_datum_slot_mask].data;
             if (*(int32_t *)(unit_tag_data + 0x34) != -1 && (unit_obj->flags & 1) == 0) {
                 halo::objects::object_for_each_light_attachment(1, 0, 0);
             }
@@ -975,9 +977,9 @@ void PlayerView::release_unit_and_reset(int32_t previous_unit_override)
         unit_header->flags = unit_header->flags & ~2;
 
         if (weapon_handle != (datum_index)-1) {
-            object_header *weapon_header = &((object_header *)halo::objects::globals().object_data->data)[weapon_handle & 0xffff];
+            object_header *weapon_header = &((object_header *)halo::objects::globals().object_data->data)[weapon_handle & halo::k_datum_slot_mask];
             object *weapon_obj = weapon_header->data;
-            uint8_t *weapon_tag_data = (uint8_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
+            uint8_t *weapon_tag_data = (uint8_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & halo::k_datum_slot_mask].data;
             if (*(int32_t *)(weapon_tag_data + 0x34) != -1 && (weapon_obj->flags & 1) == 0) {
                 halo::objects::object_for_each_light_attachment(1, 0, 0);
             }
@@ -1011,7 +1013,7 @@ void PlayerView::reset_after_unit_change()
     data_iterator iter;
     player *scan;
 
-    plr = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    plr = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
     plr->previous_unit = plr->unit;
     plr->unit = (datum_index)-1;
 
@@ -1085,9 +1087,9 @@ void PlayerView::reset_after_unit_change()
  */
 void PlayerView::trigger_full_health_effect()
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
 
-    if (player_index != 0xffffffff && p->local_player_index != -1) {
+    if (player_index != halo::k_dword_none && p->local_player_index != -1) {
         uint8_t buffer[0x38];
         int32_t i;
         for (i = 0; i < 0x38; i++) {
@@ -1118,9 +1120,9 @@ void PlayerView::trigger_full_health_effect()
  */
 void PlayerView::trigger_shield_recharge_effect()
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
 
-    if (player_index != 0xffffffff && p->local_player_index != -1) {
+    if (player_index != halo::k_dword_none && p->local_player_index != -1) {
         uint8_t buffer[0x38];
         int32_t i;
         for (i = 0; i < 0x38; i++) {
@@ -1149,7 +1151,7 @@ void PlayerView::trigger_shield_recharge_effect()
  */
 uint8_t PlayerView::swap_to_weapon(datum_index target_weapon)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200);
+    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200);
     uint8_t *record = (uint8_t *)p;
     datum_index unit_index = ((struct player *)record)->unit;
     datum_index interaction_object = ((struct player *)record)->interaction_object;
@@ -1202,24 +1204,24 @@ uint8_t PlayerView::swap_to_weapon(datum_index target_weapon)
  */
 void PlayerView::update_nearby_interactions_primary()
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
     datum_index unit_index = p->unit;
 
-    if (unit_index == (datum_index)0xffffffff) {
+    if (unit_index == (datum_index)halo::k_dword_none) {
         return;
     }
 
     {
-        object *unit = (object *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
+        object *unit = (object *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_datum_slot_mask].data;
 
-        if (unit->parent_object == (datum_index)0xffffffff) {
+        if (unit->parent_object == (datum_index)halo::k_dword_none) {
             datum_index candidates[16];
             int16_t count = halo::objects::object_find_in_sphere(0, 0x11f, &unit->location_leaf_index,
                 &unit->bounding_center, unit->bounding_radius, candidates, 0x10);
             int16_t i;
 
             for (i = 0; i < count; i++) {
-                object *candidate = (object *)((object_header *)halo::objects::globals().object_data->data)[candidates[i] & 0xffff].data;
+                object *candidate = (object *)((object_header *)halo::objects::globals().object_data->data)[candidates[i] & halo::k_datum_slot_mask].data;
                 switch (candidate->type) {
                 case 1:
                     PlayerView(player_index).check_vehicle_interaction(candidates[i]);
@@ -1246,24 +1248,24 @@ void PlayerView::update_nearby_interactions_primary()
  */
 void PlayerView::update_nearby_interactions_secondary()
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
     datum_index unit_index = p->unit;
 
-    if (unit_index == (datum_index)0xffffffff) {
+    if (unit_index == (datum_index)halo::k_dword_none) {
         return;
     }
 
     {
-        object *unit = (object *)((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
+        object *unit = (object *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_datum_slot_mask].data;
 
-        if (unit->parent_object == (datum_index)0xffffffff) {
+        if (unit->parent_object == (datum_index)halo::k_dword_none) {
             datum_index candidates[16];
             int16_t count = halo::objects::object_find_in_sphere(0, 0x11f, &unit->location_leaf_index,
                 &unit->bounding_center, unit->bounding_radius, candidates, 0x10);
             int16_t i;
 
             for (i = 0; i < count; i++) {
-                object *candidate = (object *)((object_header *)halo::objects::globals().object_data->data)[candidates[i] & 0xffff].data;
+                object *candidate = (object *)((object_header *)halo::objects::globals().object_data->data)[candidates[i] & halo::k_datum_slot_mask].data;
                 switch (candidate->type) {
                 case 1:
                     PlayerView(player_index).check_vehicle_interaction(candidates[i]);
@@ -1330,13 +1332,13 @@ uint8_t PlayerView::unit_has_parent()
  */
 void PlayerView::set_pending_interaction_action(int16_t priority_type, int16_t seat, uint32_t candidate_object)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
 
     if (priority_type != 0xb) {
         if (priority_type == p->interaction_type) {
-            object *unit = (object *)((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data;
-            object *existing = (object *)((object_header *)halo::objects::globals().object_data->data)[p->interaction_object & 0xffff].data;
-            object *candidate = (object *)((object_header *)halo::objects::globals().object_data->data)[candidate_object & 0xffff].data;
+            object *unit = (object *)((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data;
+            object *existing = (object *)((object_header *)halo::objects::globals().object_data->data)[p->interaction_object & halo::k_datum_slot_mask].data;
+            object *candidate = (object *)((object_header *)halo::objects::globals().object_data->data)[candidate_object & halo::k_datum_slot_mask].data;
 
             float ex = existing->position.x - unit->position.x;
             float ey = existing->position.y - unit->position.y;
@@ -1375,7 +1377,7 @@ uint8_t PlayerView::is_busy_with_interaction(uint32_t candidate_object)
         object *tag_data = halo::objects::object_try_and_get(candidate_object, 4);
 
         datum_index definition_tag = *(datum_index *)tag_data;
-        uint8_t *weapon_tag_data = (uint8_t *)halo::cache::globals().tag_instances[definition_tag & 0xffff].data;
+        uint8_t *weapon_tag_data = (uint8_t *)halo::cache::globals().tag_instances[definition_tag & halo::k_datum_slot_mask].data;
         if ((weapon_tag_data[0x308] & 0x10) != 0) {
             return 1;
         }
@@ -1413,16 +1415,16 @@ uint8_t PlayerView::current_weapon_prevents_camo_depower()
     object *weapon_obj;
     Weapon *weapon_tag;
 
-    if (player_handle == (datum_index)0xffffffff) {
+    if (player_handle == (datum_index)halo::k_dword_none) {
         return 0;
     }
 
-    p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
-    if (p->unit == (datum_index)0xffffffff) {
+    p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
+    if (p->unit == (datum_index)halo::k_dword_none) {
         return 0;
     }
 
-    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data;
     unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     weapon_slot = unit->current_weapon_index;
     if (weapon_slot == -1) {
@@ -1430,16 +1432,16 @@ uint8_t PlayerView::current_weapon_prevents_camo_depower()
     }
 
     weapon_handle = unit->weapons[weapon_slot];
-    if (weapon_handle == (datum_index)0xffffffff) {
+    if (weapon_handle == (datum_index)halo::k_dword_none) {
         return 0;
     }
 
-    weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon_handle & 0xffff].data;
-    if (weapon_obj->definition_tag == (datum_index)0xffffffff) {
+    weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon_handle & halo::k_datum_slot_mask].data;
+    if (weapon_obj->definition_tag == (datum_index)halo::k_dword_none) {
         return 0;
     }
 
-    weapon_tag = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
+    weapon_tag = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & halo::k_datum_slot_mask].data;
     return (uint8_t)((weapon_tag->weapon_flags >> 13) & 1);
 }
 
@@ -1454,21 +1456,21 @@ uint8_t PlayerView::has_must_be_readied_weapon()
     unit_data *unit;
     int32_t i;
 
-    if (player_index == 0xffffffff) {
+    if (player_index == halo::k_dword_none) {
         return 0;
     }
-    p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
-    if (p->unit == (datum_index)0xffffffff) {
+    p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    if (p->unit == (datum_index)halo::k_dword_none) {
         return 0;
     }
 
-    unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data);
+    unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data);
 
     for (i = 0; i < 4; i++) {
         datum_index weapon = *(datum_index *)((uint8_t *)unit + 0x2f8 + i * 4);
-        if (weapon != (datum_index)0xffffffff) {
-            object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon & 0xffff].data;
-            uint8_t *weapon_tag_data = (uint8_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
+        if (weapon != (datum_index)halo::k_dword_none) {
+            object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon & halo::k_datum_slot_mask].data;
+            uint8_t *weapon_tag_data = (uint8_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & halo::k_datum_slot_mask].data;
             if (((*(uint32_t *)(weapon_tag_data + 0x308) >> 3) & 1) != 0) {
                 return 1;
             }
@@ -1487,16 +1489,16 @@ void PlayerView::reset_gauge_if_flagged()
     player *p;
     unit_data *unit;
 
-    if (player_index == 0xffffffff) {
+    if (player_index == halo::k_dword_none) {
         return;
     }
-    p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
-    if (p->unit == (datum_index)0xffffffff) {
+    p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
+    if (p->unit == (datum_index)halo::k_dword_none) {
         return;
     }
 
     unit = (unit_data *)((uint8_t *)
-        ((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data + k_unit_data_offset);
+        ((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data + k_unit_data_offset);
     if ((unit->flags & _unit_flag_unknown_10) != 0) {
         unit->active_camouflage_power = 0.5f;
     }
@@ -1523,17 +1525,17 @@ void PlayerView::update_active_camouflage_depower()
     uint8_t prevents_depower;
     float rate;
 
-    if (current_game_engine == 0 || player_handle == (datum_index)0xffffffff) {
+    if (current_game_engine == 0 || player_handle == (datum_index)halo::k_dword_none) {
         return;
     }
 
-    p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
+    p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
     unit_handle = p->unit;
-    if (unit_handle == (datum_index)0xffffffff) {
+    if (unit_handle == (datum_index)halo::k_dword_none) {
         return;
     }
 
-    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_handle & 0xffff].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_handle & halo::k_datum_slot_mask].data;
     unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     weapon_slot = unit->current_weapon_index;
 
@@ -1543,9 +1545,9 @@ void PlayerView::update_active_camouflage_depower()
     rate = 0.1f;
     if (prevents_depower) {
         rate = 0.0f;
-    } else if (weapon_handle != (datum_index)0xffffffff) {
-        object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon_handle & 0xffff].data;
-        Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
+    } else if (weapon_handle != (datum_index)halo::k_dword_none) {
+        object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon_handle & halo::k_datum_slot_mask].data;
+        Weapon *weapon_tag = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & halo::k_datum_slot_mask].data;
         if (weapon_tag->active_camo_ding != 0.0f) {
             rate = weapon_tag->active_camo_ding;
         }
@@ -1577,7 +1579,7 @@ uint8_t KillStreak::add_kill_streak(int32_t slot, int16_t amount)
     int16_t index;
     player *p;
 
-    if (player_handle == 0xffffffff) {
+    if (player_handle == halo::k_dword_none) {
         return 0;
     }
     index = (int16_t)player_handle;
@@ -1617,7 +1619,7 @@ uint8_t KillStreak::add_kill_streak(int32_t slot, int16_t amount)
     }
 
     if (halo::networking::globals().game_mode == 2) {
-        object *owner_unit = (object *)((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data;
+        object *owner_unit = (object *)((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data;
         if (owner_unit->network_role == 0) {
             KillStreak(player_handle).notify_kill_streak_update(slot, amount);
         }
@@ -1640,7 +1642,7 @@ void KillStreak::advance_multikill_medal()
     int16_t index;
     player *p;
 
-    if (player_handle == 0xffffffff) {
+    if (player_handle == halo::k_dword_none) {
         return;
     }
     index = (int16_t)player_handle;
@@ -1686,11 +1688,11 @@ void KillStreak::advance_multikill_medal()
 void KillStreak::set_max(int16_t slot, int16_t value)
 {
     uint32_t player_index = player_handle;
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
     int16_t *streak = &p->kill_streak[slot];
 
     if (*streak == 0 && slot == 0) {
-        unit_data *unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data + k_unit_data_offset);
+        unit_data *unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data + k_unit_data_offset);
         unit->flags = unit->flags | _unit_flag_unknown_10;
         unit->active_camouflage_regrowth = slot;
     }
@@ -1710,14 +1712,14 @@ void KillStreak::set_max(int16_t slot, int16_t value)
 void KillStreak::tick()
 {
     uint32_t player_index = player_handle;
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
     int32_t slot;
 
     for (slot = 0; slot < 2; slot++) {
         if (0 < p->kill_streak[slot]) {
             p->kill_streak[slot] = p->kill_streak[slot] - 1;
             if (p->kill_streak[slot] == 0 && slot == 0) {
-                unit_data *unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data + k_unit_data_offset);
+                unit_data *unit = (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data + k_unit_data_offset);
                 unit->flags = unit->flags & ~_unit_flag_unknown_10;
             }
         }
@@ -1738,7 +1740,7 @@ void KillStreak::notify_kill_streak_update(int32_t slot, int16_t amount)
     int32_t encoded_bits;
 
     fields.hash_result = 0;
-    if (player_handle != 0xffffffff) {
+    if (player_handle != halo::k_dword_none) {
         fields.hash_result = halo::objects::hash_table_get((hash_table *)((uint8_t *)machine_table + 0xc), (int32_t)player_handle);
         if (fields.hash_result == -1) {
             fields.hash_result = 0;
@@ -1762,9 +1764,9 @@ void KillStreak::notify_kill_streak_update(int32_t slot, int16_t amount)
 void KillStreak::trigger_kill_streak_effect()
 {
     uint32_t player_index = player_handle;
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
 
-    if (player_index != 0xffffffff && p->local_player_index != -1) {
+    if (player_index != halo::k_dword_none && p->local_player_index != -1) {
         uint8_t buffer[0x38];
         int32_t i;
         for (i = 0; i < 0x38; i++) {
@@ -1876,7 +1878,7 @@ uint8_t LocalPlayerUnit::get_current_weapon_autoaim_cone(int16_t require_zoomed,
     if (unit_index == k_datum_index_none) {
         return 0;
     }
-    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & 0xffff].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_datum_slot_mask].data;
     unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
     if (unit->current_weapon_index == -1) {
         return 0;
@@ -1885,8 +1887,8 @@ uint8_t LocalPlayerUnit::get_current_weapon_autoaim_cone(int16_t require_zoomed,
     if (weapon_index == k_datum_index_none) {
         return 0;
     }
-    weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon_index & 0xffff].data;
-    weapon = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
+    weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon_index & halo::k_datum_slot_mask].data;
+    weapon = (Weapon *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & halo::k_datum_slot_mask].data;
     if (require_zoomed == -1 && (weapon->weapon_flags & 0x20) != 0) {
         return 0;
     }
@@ -1952,7 +1954,7 @@ datum_index Players::new_local(datum_index requested_handle, uint32_t machine_in
     }
 
     if (result != (datum_index)-1) {
-        p = (player *)((uint8_t *)player_data->data + (result & 0xffff) * sizeof(player));
+        p = (player *)((uint8_t *)player_data->data + (result & halo::k_datum_slot_mask) * sizeof(player));
 
         name_source = &empty_string;
         if (identifier_record != (uint16_t *)0) {
@@ -2011,8 +2013,8 @@ datum_index Players::new_local(datum_index requested_handle, uint32_t machine_in
         }
     }
 
-    if (machine_to_player[machine_index & 0xffff] == (datum_index)-1) {
-        machine_to_player[machine_index & 0xffff] = result;
+    if (machine_to_player[machine_index & halo::k_datum_slot_mask] == (datum_index)-1) {
+        machine_to_player[machine_index & halo::k_datum_slot_mask] = result;
     }
     return result;
 }
@@ -2045,7 +2047,7 @@ datum_index Players::new_network(datum_index requested_index, uint32_t machine_i
     }
 
     if (result != (datum_index)-1) {
-        p = (player *)((uint8_t *)player_data->data + (result & 0xffff) * sizeof(player));
+        p = (player *)((uint8_t *)player_data->data + (result & halo::k_datum_slot_mask) * sizeof(player));
 
         name_source = &empty_string;
         if (identifier_record != (uint16_t *)0) {
@@ -2110,8 +2112,8 @@ datum_index Players::new_network(datum_index requested_index, uint32_t machine_i
         }
     }
 
-    if (machine_to_player[machine_index & 0xffff] == (datum_index)-1) {
-        machine_to_player[machine_index & 0xffff] = result;
+    if (machine_to_player[machine_index & halo::k_datum_slot_mask] == (datum_index)-1) {
+        machine_to_player[machine_index & halo::k_datum_slot_mask] = result;
     }
     return result;
 }
@@ -2160,8 +2162,8 @@ void Players::delete_player(uint32_t machine_index, datum_index player_handle)
         halo::networking::network_machine_clear_flag_by_id((network_server_globals *)halo::networking::globals().server, (int32_t)machine_index);
     }
 
-    if (update_machine_slot && machine_to_player[machine_index & 0xffff] == player_handle) {
-        machine_to_player[machine_index & 0xffff] = (datum_index)-1;
+    if (update_machine_slot && machine_to_player[machine_index & halo::k_datum_slot_mask] == player_handle) {
+        machine_to_player[machine_index & halo::k_datum_slot_mask] = (datum_index)-1;
     }
     halo::memory::datum_delete(player_data, player_handle);
 }
@@ -2271,8 +2273,8 @@ datum_index Players::spawn_starting_profile_weapon(TagDependency *weapon_depende
     object_placement_data placement;
     datum_index new_object;
 
-    new_object = (datum_index)0xffffffff;
-    if (*(datum_index *)&weapon_dependency->tag_id != (datum_index)0xffffffff) {
+    new_object = (datum_index)halo::k_dword_none;
+    if (*(datum_index *)&weapon_dependency->tag_id != (datum_index)halo::k_dword_none) {
         halo::objects::object_placement_data_initialize(&placement, *(datum_index *)&weapon_dependency->tag_id, (datum_index)role);
 
         {
@@ -2288,8 +2290,8 @@ datum_index Players::spawn_starting_profile_weapon(TagDependency *weapon_depende
             new_object = halo::objects::object_new_with_datum_role_control(&placement, datum_role);
         }
 
-        if (new_object != (datum_index)0xffffffff) {
-            weapon_data *weapon = (weapon_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[new_object & 0xffff].data +
+        if (new_object != (datum_index)halo::k_dword_none) {
+            weapon_data *weapon = (weapon_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[new_object & halo::k_datum_slot_mask].data +
                 k_item_extension_offset);
             weapon->magazines[0].rounds_unloaded = *(int16_t *)((uint8_t *)weapon_dependency + 0x12);
             weapon->magazines[0].rounds_loaded = *(int16_t *)((uint8_t *)weapon_dependency + 0x10);
@@ -2346,7 +2348,7 @@ uint8_t Players::any_pending_seat_or_respawn()
     plr = (player *)halo::memory::data_iterator_next(&iter);
     while (plr != (player *)0) {
         if (plr->unit != (datum_index)-1) {
-            object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data;
+            object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & halo::k_datum_slot_mask].data;
             datum_index walk = plr->unit;
             datum_index root;
             object *root_obj;
@@ -2354,9 +2356,9 @@ uint8_t Players::any_pending_seat_or_respawn()
 
             do {
                 root = walk;
-                walk = ((object_header *)halo::objects::globals().object_data->data)[root & 0xffff].data->parent_object;
+                walk = ((object_header *)halo::objects::globals().object_data->data)[root & halo::k_datum_slot_mask].data->parent_object;
             } while (walk != (datum_index)-1);
-            root_obj = ((object_header *)halo::objects::globals().object_data->data)[root & 0xffff].data;
+            root_obj = ((object_header *)halo::objects::globals().object_data->data)[root & halo::k_datum_slot_mask].data;
             if ((root_obj->flags & 0x200000) != 0) {
                 return 1;
             }
@@ -2383,7 +2385,7 @@ uint8_t Players::any_pending_seat_or_respawn()
                 }
                 if (parent_header != 0 && (1u << (parent_header->type & 0x1f) & _object_mask_vehicle) != 0 &&
                     parent_header->data != 0) {
-                    Item *parent_tag = (Item *)halo::cache::globals().tag_instances[parent_header->data->definition_tag & 0xffff].data;
+                    Item *parent_tag = (Item *)halo::cache::globals().tag_instances[parent_header->data->definition_tag & halo::k_datum_slot_mask].data;
                     if ((parent_tag->item_flags & 0x40) != 0) {
                         airborne_check_obj = parent_header->data;
                     }
@@ -2413,7 +2415,7 @@ uint8_t Players::any_with_local_player_index(int16_t local_player_index)
 
     iter.data = player_data;
     iter.next_index = 0;
-    iter.index = (datum_index)0xffffffff;
+    iter.index = (datum_index)halo::k_dword_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     p = (player *)halo::memory::data_iterator_next(&iter);
@@ -2500,7 +2502,7 @@ void Players::client_catchup_on_server_updates()
                     }
                 }
 
-                record.field0 = 0xffffffff;
+                record.field0 = halo::k_dword_none;
                 record.references_remaining = -1;
                 record.reference_count = -1;
 
@@ -2552,7 +2554,7 @@ void Players::client_catchup_on_server_updates()
                 }
 
                 {
-                    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & 0xffff].data;
+                    object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[plr->unit & halo::k_datum_slot_mask].data;
                     unit_data *unit = (unit_data *)((uint8_t *)unit_obj + k_unit_data_offset);
                     unit_control_data control;
                     uint8_t apply = 0;
@@ -2697,7 +2699,7 @@ uint32_t Players::get_active_by_index(int32_t index)
         index = index - 1;
         p = (player *)halo::memory::data_iterator_next(&iterator);
     }
-    return 0xffffffff;
+    return halo::k_dword_none;
 }
 
 /**
@@ -2707,7 +2709,7 @@ uint32_t Players::get_active_by_index(int32_t index)
  */
 void Players::handle_deleted_unit(uint32_t object_index)
 {
-    uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & 0xffff) * 0xc + 8);
+    uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & halo::k_datum_slot_mask) * 0xc + 8);
     data_iterator iterator;
     uint8_t *player;
 
@@ -2782,7 +2784,7 @@ void StructureBsp::switch_regroup()
     if (flag_index != -1) {
         target = *(real_point3d *)((uint8_t *)halo::scenario::globals().scenario->cutscene_flags.pointer + flag_index * 0x5c + 0x24);
         offset = 0.0f;
-        while (halo::physics::object_collision_test_cluster_group(0x4029, &target, 0xffffffff)) {
+        while (halo::physics::object_collision_test_cluster_group(0x4029, &target, halo::k_dword_none)) {
             double sum;
 
             target.z = target.z + 0.05f;
@@ -2813,7 +2815,7 @@ void StructureBsp::switch_regroup()
         if (entry->unit == k_datum_index_none || local_player_globals->bsp_switch_trigger_volume_index == -1) {
             continue;
         }
-        unit_object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[entry->unit & 0xffff].data;
+        unit_object = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[entry->unit & halo::k_datum_slot_mask].data;
         trigger_volume = *(int16_t *)((uint8_t *)halo::scenario::globals().scenario->bsp_switch_trigger_volumes.pointer + local_player_globals->bsp_switch_trigger_volume_index * 8);
         if (!halo::scenario::scenario_query::trigger_volume_contains_point(trigger_volume, (real_point3d *)(unit_object + 0xa0))) {
             continue;
@@ -2821,7 +2823,7 @@ void StructureBsp::switch_regroup()
         halo::units::unit_get_crouch_height_offset(&probe, entry->unit, &height, &radius);
         offset = radius;
         leaf = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, &probe);
-        if (leaf == 0xffffffff ||
+        if (leaf == halo::k_dword_none ||
             *(int16_t *)((uint8_t *)halo::scenario::globals().structure_bsp->leaves.pointer + (leaf & 0x7fffffff) * 0x10 + 8) == -1) {
             continue;
         }
@@ -2836,11 +2838,11 @@ void StructureBsp::switch_regroup()
 
     if (found && local_player_globals->local_players[0] != k_datum_index_none) {
         datum_index player_index = local_player_globals->local_players[0];
-        player *local = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200);
+        player *local = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200);
 
         if (local->unit != k_datum_index_none && local->unit != chosen_unit) {
             halo::game::game_engine_reattach_player_unit_unused(player_index, chosen_unit, &target);
-            ((player *)((uint8_t *)player_data->data + (player_index & 0xffff) * 0x200))->bsp_cluster = -1;
+            ((player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * 0x200))->bsp_cluster = -1;
         }
     }
     local_player_globals->bsp_switch_trigger_volume_index = -1;
@@ -2906,14 +2908,14 @@ void LocalPlayers::set_controlled_unit(datum_index new_unit, int16_t local_playe
     player *plr;
 
     if (old_unit != (datum_index)-1) {
-        obj = ((object_header *)halo::objects::globals().object_data->data)[old_unit & 0xffff].data;
+        obj = ((object_header *)halo::objects::globals().object_data->data)[old_unit & halo::k_datum_slot_mask].data;
         unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
         unit->controlling_player = (datum_index)-1;
         halo::units::unit_refresh_targeting_flag_and_weapons(old_unit, 0);
     }
 
     if (new_unit != (datum_index)-1) {
-        obj = ((object_header *)halo::objects::globals().object_data->data)[new_unit & 0xffff].data;
+        obj = ((object_header *)halo::objects::globals().object_data->data)[new_unit & halo::k_datum_slot_mask].data;
         halo::units::unit_refresh_targeting_flag_and_weapons(new_unit, 1);
         owner = (datum_index)-1;
         if (local_player_index != -1 && local_player_index <= 0) {
@@ -2927,7 +2929,7 @@ void LocalPlayers::set_controlled_unit(datum_index new_unit, int16_t local_playe
     if (local_player_index != -1 && local_player_index <= 0) {
         owner = local_player_globals->local_players[local_player_index];
     }
-    plr = (player *)((uint8_t *)player_data->data + (owner & 0xffff) * sizeof(player));
+    plr = (player *)((uint8_t *)player_data->data + (owner & halo::k_datum_slot_mask) * sizeof(player));
     plr->unit = new_unit;
     plr->previous_unit = (datum_index)-1;
 

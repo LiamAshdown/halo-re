@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_hud.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/networking/api.hpp"
@@ -93,13 +94,13 @@ void EngineHud::post_rasterize_post_game(void)
         ? (GlobalsInterfaceBitmaps *)0
         : (GlobalsInterfaceBitmaps *)global_globals->interface_bitmaps.pointer;
     hud_globals = (uint8_t *)halo::cache::globals().tag_instances[interface_bitmaps->hud_globals.tag_id.index].data;
-    quad_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(hud_globals + 0x3d4) & 0xffff].data;
+    quad_tag = (uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(hud_globals + 0x3d4) & halo::k_datum_slot_mask].data;
     rect.top = 0;
     rect.left = 0;
     rect.bottom = 0x1e0;
     rect.right = 0x280;
     if (quad_tag != 0 && *(int32_t *)(quad_tag + 0x60) > 0 && *(int32_t *)(quad_tag + 0x64) != 0) {
-        halo::interface::ui_draw_screen_quad((int16_t *)&rect, (int16_t *)&rect, *(int32_t *)(quad_tag + 0x64), 0, 0xffffffffu);
+        halo::interface::ui_draw_screen_quad((int16_t *)&rect, (int16_t *)&rect, *(int32_t *)(quad_tag + 0x64), 0, halo::k_dword_none);
     }
 
     if (game_engine_variant.teams != 0) {
@@ -145,7 +146,7 @@ void EngineHud::post_rasterize_post_game(void)
     row = 8;
     for (i = 0; i < visible_count; i++) {
         datum_index player_handle = visible[i].player;
-        player *p = (player *)((uint8_t *)player_data->data + (player_handle & 0xffff) * sizeof(player));
+        player *p = (player *)((uint8_t *)player_data->data + (player_handle & halo::k_datum_slot_mask) * sizeof(player));
         int32_t place_index;
         wchar_t *place_text;
 

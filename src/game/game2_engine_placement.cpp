@@ -1,4 +1,6 @@
 #include "halo/game/game2_engine_placement.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "halo/text/api.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -65,21 +67,21 @@ namespace halo::game {
  */
 float EnginePlacement::rate_location_ally_bonus(uint32_t self_index, real_point3d *point)
 {
-    player *self = (player *)((uint8_t *)player_data->data + (self_index & 0xffff) * sizeof(player));
+    player *self = (player *)((uint8_t *)player_data->data + (self_index & halo::k_datum_slot_mask) * sizeof(player));
     float bonus = 0.0f;
     data_iterator iter;
     void *element;
 
     iter.data = player_data;
     iter.next_index = 0;
-    iter.index = (datum_index)0xffffffff;
+    iter.index = (datum_index)halo::k_dword_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     element = halo::memory::data_iterator_next(&iter);
     if (element != 0) {
         do {
             player *other = (player *)element;
-            if (other->team == self->team && other->unit != (datum_index)0xffffffff) {
+            if (other->team == self->team && other->unit != (datum_index)halo::k_dword_none) {
                 real_point3d other_position;
                 float dx, dy, dz, distance;
 
@@ -113,7 +115,7 @@ float EnginePlacement::rate_location_ally_bonus(uint32_t self_index, real_point3
 float EnginePlacement::rate_location_crowding(uint32_t self_index, real_point3d *point)
 {
     uint8_t no_engine = (current_game_engine == 0);
-    player *self = (player *)((uint8_t *)player_data->data + (self_index & 0xffff) * sizeof(player));
+    player *self = (player *)((uint8_t *)player_data->data + (self_index & halo::k_datum_slot_mask) * sizeof(player));
     uint8_t teams_enabled = (uint8_t)game_engine_variant.teams;
     float scale = 1.0f;
     data_iterator iter;
@@ -121,14 +123,14 @@ float EnginePlacement::rate_location_crowding(uint32_t self_index, real_point3d 
 
     iter.data = player_data;
     iter.next_index = 0;
-    iter.index = (datum_index)0xffffffff;
+    iter.index = (datum_index)halo::k_dword_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     element = halo::memory::data_iterator_next(&iter);
     while (element != 0) {
         player *other = (player *)element;
 
-        if (other->unit != (datum_index)0xffffffff) {
+        if (other->unit != (datum_index)halo::k_dword_none) {
             real_point3d other_position;
             float dx, dy, dz, distance;
 
@@ -138,7 +140,7 @@ float EnginePlacement::rate_location_crowding(uint32_t self_index, real_point3d 
             dz = point->z - other_position.z;
             distance = (float)sqrt((double)(dx * dx + dy * dy + dz * dz));
 
-            if ((((no_engine ? 0u : 0xffffffffu) & teams_enabled) == 0) ||
+            if ((((no_engine ? 0u : halo::k_dword_none) & teams_enabled) == 0) ||
                 (other->team != self->team) || (distance <= 0.25f)) {
                 if (0.25f <= distance) {
                     if (distance < 1.0f) {
@@ -174,7 +176,7 @@ float EnginePlacement::rate_location_crowding(uint32_t self_index, real_point3d 
 real EnginePlacement::rate_player_starting_location(ScenarioPlayerStartingLocation *location, datum_index player_handle)
 {
     player *p = (player *)((uint8_t *)player_data->data
-                           + ((uint32_t)player_handle & 0xffff) * sizeof(player));
+                           + ((uint32_t)player_handle & halo::k_datum_slot_mask) * sizeof(player));
     real score;
 
     if (current_game_engine == 0 || current_game_engine->unknown_84 == 0 ||
@@ -210,10 +212,10 @@ uint32_t EnginePlacement::remap_placement_by_type(uint32_t handle)
 {
     int16_t type;
 
-    if (current_game_engine == 0 || handle == 0xffffffff) {
+    if (current_game_engine == 0 || handle == halo::k_dword_none) {
         return handle;
     }
-    type = **(int16_t **)&halo::cache::globals().tag_instances[handle & 0xffff].data;
+    type = **(int16_t **)&halo::cache::globals().tag_instances[handle & halo::k_datum_slot_mask].data;
     if (type == 2) {
         return (uint32_t)halo::game::game_engine_resolve_netgame_flag_role(handle);
     }
@@ -237,7 +239,7 @@ uint32_t EnginePlacement::resolve_multiplayer_placement(uint32_t handle)
     int32_t index;
     int32_t i;
 
-    tag_data = (handle == 0xffffffff) ? 0 : (uint8_t *)halo::cache::globals().tag_instances[handle & 0xffff].data;
+    tag_data = (handle == halo::k_dword_none) ? 0 : (uint8_t *)halo::cache::globals().tag_instances[handle & halo::k_datum_slot_mask].data;
 
     weapon_list_count = (int32_t)global_globals->weapon_list.count;
     weapon_list = (weapon_list_count == 0) ? 0
@@ -257,12 +259,12 @@ uint32_t EnginePlacement::resolve_multiplayer_placement(uint32_t handle)
             return handle;
         }
         if (*(int16_t *)(tag_data + 0x308) == 2) {
-            return ((game_engine_variant.flags & 8) == 0) ? handle : 0xffffffff;
+            return ((game_engine_variant.flags & 8) == 0) ? handle : halo::k_dword_none;
         }
         if (*(int16_t *)(tag_data + 0x308) != 3) {
             return handle;
         }
-        return ((game_engine_variant.flags & 0x10) == 0) ? handle : 0xffffffff;
+        return ((game_engine_variant.flags & 0x10) == 0) ? handle : halo::k_dword_none;
     }
 
     switch (game_engine_variant.weapon_set) {
@@ -287,7 +289,7 @@ uint32_t EnginePlacement::resolve_multiplayer_placement(uint32_t handle)
     if ((game_engine_unknown_aa00 & 8) == 0) {
         if ((game_engine_unknown_aa00 & 4) != 0) {
             float roll;
-            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
             roll = (float)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
             if (!(roll < 0.55f) && roll != 0.55f) {
                 index = -1;
@@ -295,7 +297,7 @@ uint32_t EnginePlacement::resolve_multiplayer_placement(uint32_t handle)
         }
     } else {
         float roll;
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         roll = (float)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f;
         if (!(roll < 0.3f) && roll != 0.3f) {
             index = -1;
@@ -303,7 +305,7 @@ uint32_t EnginePlacement::resolve_multiplayer_placement(uint32_t handle)
     }
 
     if (index == -1) {
-        return 0xffffffff;
+        return halo::k_dword_none;
     }
     return *(uint32_t *)((uint8_t *)global_globals->weapon_list.pointer + 0xc + index * 0x10);
 }
@@ -501,8 +503,8 @@ void EnginePlacement::spawn_or_replay_netgame_equipment(int32_t *message)
     placement.forward.k = 0.0f;
 
     new_object = halo::objects::object_new_with_datum_role_control(&placement, 1);
-    if (new_object != (datum_index)0xffffffff) {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[new_object & 0xffff].data;
+    if (new_object != (datum_index)halo::k_dword_none) {
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[new_object & halo::k_datum_slot_mask].data;
 
         halo::networking::network_index_cache_insert_if_free(network_object_index_cache, decoded.object_hash, (int32_t)new_object);
         halo::objects::object_list_membership_set(new_object, 0);
@@ -544,7 +546,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
 
             if (equipment->spawn_time != 0) {
                 respawn_interval = equipment->spawn_time * 0x1e;
-            } else if (item_collection_tag != (datum_index)0xffffffff) {
+            } else if (item_collection_tag != (datum_index)halo::k_dword_none) {
                 int16_t permutation_count =
                     *(int16_t *)((uint8_t *)halo::cache::globals().tag_instances[item_collection_tag & 0xffff].data + 0x0c);
                 if (permutation_count != 0) {
@@ -557,7 +559,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
                 int32_t now = game_time->game_time;
 
                 if (now % respawn_interval == 0 || force_respawn == 1) {
-                    if (equipment->spawned_item != 0xffffffff) {
+                    if (equipment->spawned_item != halo::k_dword_none) {
                         object *existing = halo::objects::object_try_and_get((datum_index)equipment->spawned_item, _object_mask_item);
                         if (existing != 0 && (((item_data *)((uint8_t *)existing + sizeof(object)))->flags & 0x40) != 0) {
                             float dx = existing->position.x - equipment->position.x;
@@ -572,7 +574,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
                             }
                             halo::objects::object_delete((datum_index)equipment->spawned_item);
                         }
-                        equipment->spawned_item = 0xffffffff;
+                        equipment->spawned_item = halo::k_dword_none;
                     }
 
                     {
@@ -590,8 +592,8 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
                         placement.forward.k = 0.0f;
 
                         new_object = halo::objects::object_new_with_datum_role_control(&placement, 3);
-                        if (new_object != (datum_index)0xffffffff) {
-                            object *obj = ((object_header *)halo::objects::globals().object_data->data)[new_object & 0xffff].data;
+                        if (new_object != (datum_index)halo::k_dword_none) {
+                            object *obj = ((object_header *)halo::objects::globals().object_data->data)[new_object & halo::k_datum_slot_mask].data;
                             item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
 
                             halo::objects::object_list_membership_set(new_object, 0);
@@ -604,7 +606,7 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
 
                             item->held_game_time = item->held_game_time + respawn_interval - 900;
 
-                            if (*(int32_t *)halo::cache::globals().tag_instances[item_collection_tag & 0xffff].data == 1) {
+                            if (*(int32_t *)halo::cache::globals().tag_instances[item_collection_tag & halo::k_datum_slot_mask].data == 1) {
                                 item->flags = item->flags | 0x40;
                                 equipment->spawned_item = new_object;
                             } else {
@@ -626,24 +628,24 @@ void EnginePlacement::update_netgame_equipment(char force_respawn)
  */
 void EnginePlacement::update_teleporter(uint32_t player_index)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
     datum_index unit = p->unit;
     object *unit_object;
     int32_t found_index;
 
-    if (unit == (datum_index)0xffffffff) {
+    if (unit == (datum_index)halo::k_dword_none) {
         return;
     }
-    unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff].data;
+    unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask].data;
 
-    if (p->teleporter_flag_index != (datum_index)0xffffffff) {
+    if (p->teleporter_flag_index != (datum_index)halo::k_dword_none) {
         ScenarioNetgameFlags *cached = (ScenarioNetgameFlags *)halo::scenario::globals().scenario->netgame_flags.pointer
             + (int32_t)p->teleporter_flag_index;
         float dx = unit_object->position.x - cached->position.x;
         float dy = unit_object->position.y - cached->position.y;
         float dz = unit_object->position.z - cached->position.z;
         if (1.0f < dx * dx + dy * dy + dz * dz) {
-            p->teleporter_flag_index = (datum_index)0xffffffff;
+            p->teleporter_flag_index = (datum_index)halo::k_dword_none;
         }
     }
 
@@ -670,9 +672,9 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
             physics_model_contact contact;
             uint8_t blocked;
 
-            unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff].data;
+            unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask].data;
             forward = unit_object->forward;
-            p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+            p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
             halo::units::unit_get_crouch_height_offset(&destination_position, p->unit, &pill_height, &pill_radius);
 
             destination_position.x = exit_flag->position.x;
@@ -680,7 +682,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
             destination_position.z = exit_flag->position.z;
 
             blocked = halo::physics::physics_model_build_from_sphere_query(0x200380, &destination_position,
-                pill_radius + pill_radius + pill_height, pill_height, pill_radius, 0xffffffff, &candidates);
+                pill_radius + pill_radius + pill_height, pill_height, pill_radius, halo::k_dword_none, &candidates);
 
             if (blocked != 0) {
                 blocked = halo::physics::physics_shape_test_point(&candidates, &destination_position, &contact);
@@ -689,15 +691,15 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
             if (blocked != 0) {
                 datum_index obstruction = contact.object_index;
 
-                if (obstruction != (datum_index)0xffffffff) {
-                    object *blocker = ((object_header *)halo::objects::globals().object_data->data)[obstruction & 0xffff].data;
+                if (obstruction != (datum_index)halo::k_dword_none) {
+                    object *blocker = ((object_header *)halo::objects::globals().object_data->data)[obstruction & halo::k_datum_slot_mask].data;
                     if (((1 << blocker->type) & _object_mask_unit) != 0) {
                         datum_index controller =
                             ((unit_data *)((uint8_t *)blocker +
                                            k_unit_data_offset))->controlling_player;
-                        if (controller != (datum_index)0xffffffff) {
+                        if (controller != (datum_index)halo::k_dword_none) {
                             player *other = (player *)((uint8_t *)player_data->data +
-                                (controller & 0xffff) * sizeof(player));
+                                (controller & halo::k_datum_slot_mask) * sizeof(player));
                             other->telefrag_danger = 1;
                             *(int32_t *)((uint8_t *)other + 0xcc) =
                                 *(int32_t *)((uint8_t *)other + 0xcc) + 1;
@@ -720,7 +722,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
             }
 
             if (p->local_player_index != -1) {
-                halo::game::game_engine_queue_multiplayer_sound(0x1b, 0xffffffff, 0);
+                halo::game::game_engine_queue_multiplayer_sound(0x1b, halo::k_dword_none, 0);
                 if (p->local_player_index != -1) {
                     player_screen_flash flash;
                     uint8_t *flash_bytes = (uint8_t *)&flash;
@@ -813,7 +815,7 @@ void EnginePlacement::touch_tag_if_valid(int32_t tag_id)
 {
     uint8_t *tag_data;
     if (tag_id != -1) {
-        tag_data = (uint8_t *)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
+        tag_data = (uint8_t *)halo::cache::globals().tag_instances[tag_id & halo::k_datum_slot_mask].data;
         halo::cache::predicted_resource_list_touch((TagReflexive *)(tag_data + 0x170));
     }
 }
@@ -919,7 +921,7 @@ void EnginePlacement::update_item_scale_and_pickup(void)
         item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
 
         if ((item->flags & _item_in_inventory_bit) == 0) {
-            Item *tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data;
+            Item *tag = (Item *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_datum_slot_mask].data;
             obj->scale = (tag->scale == 0.0f) ? 1.0f : tag->scale;
         } else {
             obj->scale = 1.0f;
@@ -929,7 +931,7 @@ void EnginePlacement::update_item_scale_and_pickup(void)
             object_header *hdr = (object_header *)halo::memory::datum_get(iterator.handle, halo::objects::globals().object_data);
 
             if (hdr != 0 && (1u << hdr->type) == _object_mask_weapon && hdr->data != 0 &&
-                ((*(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[obj->definition_tag & 0xffff].data + 0x308) >> 3) & 1) != 0) {
+                ((*(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[obj->definition_tag & halo::k_datum_slot_mask].data + 0x308) >> 3) & 1) != 0) {
                 halo::game::game_engine_notify_item_expired(iterator.handle);
                 ((void (*)(datum_index, object *))current_game_engine->object_in_play_update)(
                     iterator.handle, hdr->data);
@@ -979,7 +981,7 @@ void EnginePlacement::reset_vehicles_or_race_cleanup(void)
     iter.flags_mask = 0;
     iter.unknown_05 = 0;
     iter.index = 0;
-    iter.handle = (datum_index)0xffffffff;
+    iter.handle = (datum_index)halo::k_dword_none;
 
     if (game_engine_variant.game_engine_index == _game_engine_race) {
         obj = halo::objects::object_iterator_next(&iter);

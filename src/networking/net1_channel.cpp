@@ -1,4 +1,5 @@
 #include "halo/networking/net1_channel.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/networking/browser_state.hpp"
 #include "halo/networking/net_state.hpp"
 #include <string.h>
@@ -364,7 +365,7 @@ network_receive_queue * ChannelFactory::create_receive_queue()
         queue->socket = 0;
         queue->data_ready = 0;
         queue->connection_failed = 0;
-        queue->socket_key = 0xffffffff;
+        queue->socket_key = halo::k_dword_none;
         queue->flags = 0;
         queue->unknown_0d = 0x14;
         queue->last_error = 0;
@@ -382,7 +383,7 @@ network_receive_queue * ChannelFactory::create_receive_queue()
             buffer->data = (uint8_t *)buffer + 0x18;
         }
         queue->incoming = buffer;
-        queue->unknown_14 = 0xffffffff;
+        queue->unknown_14 = halo::k_dword_none;
         queue->reject_reason = 0;
     }
     return queue;
@@ -418,7 +419,7 @@ int32_t ChannelFactory::create_thread(uint8_t flags, void *start_address, void *
                     priority = -1;
                 }
                 if (SetThreadPriority(slot->handle, priority) != 0) {
-                    if (ResumeThread(slot->handle) != 0xffffffff) {
+                    if (ResumeThread(slot->handle) != halo::k_dword_none) {
                         return 1;
                     }
                 }

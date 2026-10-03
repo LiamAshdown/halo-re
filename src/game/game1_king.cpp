@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "memory.h"
 #include "math.h"
@@ -57,7 +58,7 @@ const uint16_t *King::game_text(int16_t index)
 {
     datum_index tag_id = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
-    return tag_id == 0xffffffff ? (const uint16_t *)&empty_string : halo::text::text_string_list_get_string(tag_id, index);
+    return tag_id == halo::k_dword_none ? (const uint16_t *)&empty_string : halo::text::text_string_list_get_string(tag_id, index);
 }
 
 /**
@@ -110,7 +111,7 @@ uint8_t King::build_message_text(datum_index recipient, int32_t message_type, da
  */
 wchar_t *King::build_player_text(datum_index player, wchar_t *buffer)
 {
-    halo::game::game_time_format_minutes_seconds((uint32_t)((int32_t)*(int16_t *)(((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200) + 0xc4)), 0x100, buffer);
+    halo::game::game_time_format_minutes_seconds((uint32_t)((int32_t)*(int16_t *)(((uint8_t *)player_data->data + ((player) & halo::k_datum_slot_mask) * 0x200) + 0xc4)), 0x100, buffer);
     return buffer;
 }
 
@@ -121,11 +122,11 @@ uint16_t *King::multiplayer_text(int16_t index)
 {
     datum_index list = halo::cache::tag_lookup(0x75737472, (char *)"ui\\multiplayer_game_text");
 
-    if (list == 0xffffffff) {
+    if (list == halo::k_dword_none) {
         return (uint16_t *)L"";
     }
     {
-        uint8_t *strings = (uint8_t *)halo::cache::globals().tag_instances[list & 0xffff].data;
+        uint8_t *strings = (uint8_t *)halo::cache::globals().tag_instances[list & halo::k_datum_slot_mask].data;
 
         if (*(int32_t *)strings > index) {
             uint8_t *element = *(uint8_t **)(strings + 4) + index * 0x14;
@@ -171,7 +172,7 @@ wchar_t *King::build_team_score_text(int32_t team, wchar_t *buffer)
  */
 int32_t King::get_score(datum_index player, int32_t team_mode)
 {
-    uint8_t *p = ((uint8_t *)player_data->data + ((player) & 0xffff) * 0x200);
+    uint8_t *p = ((uint8_t *)player_data->data + ((player) & halo::k_datum_slot_mask) * 0x200);
 
     if (team_mode != 0) {
         return king_bucket_credit_ticks[*(int32_t *)(p + 0x20)];
@@ -239,7 +240,7 @@ uint8_t King::initialize_for_new_game(void)
 void King::player_new_life(datum_index player_index)
 {
     if (halo::networking::globals().game_mode == 2 && (current_game_engine == 0 || game_engine_teams_enabled_flag == 0)) {
-        int32_t team = *(int32_t *)(((uint8_t *)player_data->data + ((player_index) & 0xffff) * 0x200) + 0x20);
+        int32_t team = *(int32_t *)(((uint8_t *)player_data->data + ((player_index) & halo::k_datum_slot_mask) * 0x200) + 0x20);
 
         king_bucket_credit_ticks[team] = 0;
         king_bucket_last_credit_tick[team] = 0;
@@ -400,7 +401,7 @@ void King::reset_round(void)
     uint8_t teams = current_game_engine != 0 ? game_engine_teams_enabled_flag : 0;
 
     (void)teams;
-    halo::game::game_engine_queue_multiplayer_sound(teams ? 0x20 : 0x24, 0xffffffff, 0);
+    halo::game::game_engine_queue_multiplayer_sound(teams ? 0x20 : 0x24, halo::k_dword_none, 0);
 }
 
 /**
@@ -415,11 +416,11 @@ void King::unknown_48(void)
         king_hill_move_ticks_006b1068 = 0x708;
         king_starting_location_type = halo::game::game_engine_pick_random_recent_location(king_starting_location_type, king_starting_location_type);
         halo::game::game_engine_koth_build_hill_boundary();
-        halo::game::game_engine_queue_multiplayer_sound(0x1e, 0xffffffff, 1);
+        halo::game::game_engine_queue_multiplayer_sound(0x1e, halo::k_dword_none, 1);
         while (king_starting_location_count == 0 && king_starting_location_type != 0) {
             king_starting_location_type = halo::game::game_engine_pick_random_recent_location(king_starting_location_type, king_starting_location_type);
             halo::game::game_engine_koth_build_hill_boundary();
-            halo::game::game_engine_queue_multiplayer_sound(0x1e, 0xffffffff, 1);
+            halo::game::game_engine_queue_multiplayer_sound(0x1e, halo::k_dword_none, 1);
         }
     }
     if (king_starting_location_count > 0) {
@@ -441,7 +442,7 @@ void King::unknown_48(void)
  */
 uint8_t King::waypoint_filter(datum_index player)
 {
-    return (uint8_t)(king_hill_player_in_hill[player & 0xffff] == 0);
+    return (uint8_t)(king_hill_player_in_hill[player & halo::k_datum_slot_mask] == 0);
 }
 
 }

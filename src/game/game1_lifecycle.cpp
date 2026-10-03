@@ -3,6 +3,7 @@
  */
 
 #include "win32.h"
+#include "halo/core/datum.hpp"
 #include "tags.h"
 #include "memory.h"
 #include "math.h"
@@ -227,7 +228,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
                 walk = unit_handle;
                 do {
                     root = walk;
-                    next = ((object_header *)halo::objects::globals().object_data->data)[walk & 0xffff].data->parent_object;
+                    next = ((object_header *)halo::objects::globals().object_data->data)[walk & halo::k_datum_slot_mask].data->parent_object;
                     walk = next;
                 } while (next != (datum_index)-1);
 
@@ -270,7 +271,7 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
                     if (plr->unit == (datum_index)-1) {
                         success = 0;
                     } else {
-                        root_obj = ((object_header *)halo::objects::globals().object_data->data)[best_root & 0xffff].data;
+                        root_obj = ((object_header *)halo::objects::globals().object_data->data)[best_root & halo::k_datum_slot_mask].data;
                         success = halo::game::player_attach_unit_to_parent(player_handle, best_root, (uint8_t *)root_obj + 0xa0);
                     }
                 }
@@ -302,7 +303,7 @@ void Lifecycle::begin_end_game_sequence(void)
         *((uint8_t *)network_server + 0xa0f) = 1;
         game_engine_state_value = _game_engine_state_ending;
         game_engine_end_game_timer = 7.0f;
-        halo::game::game_engine_queue_multiplayer_sound(1, 0xffffffff, 0);
+        halo::game::game_engine_queue_multiplayer_sound(1, halo::k_dword_none, 0);
         halo::interface::widget_close_all();
         halo::game::game_engine_send_end_game_notification(1);
     }
@@ -318,7 +319,7 @@ void Lifecycle::end_game_sequence_stage1(void)
 {
     game_engine_state_value = _game_engine_state_ending;
     game_engine_end_game_timer = 7.0f;
-    halo::game::game_engine_queue_multiplayer_sound(1, 0xffffffff, 0);
+    halo::game::game_engine_queue_multiplayer_sound(1, halo::k_dword_none, 0);
     halo::interface::widget_close_all();
 }
 
@@ -340,14 +341,14 @@ void Lifecycle::end_game_sequence_stage2(void)
 
     iterator.data = player_data;
     iterator.next_index = 0;
-    iterator.index = (datum_index)0xffffffff;
+    iterator.index = (datum_index)halo::k_dword_none;
     iterator.signature = (uint32_t)(uintptr_t)iterator.data ^ k_data_iterator_signature;
     unused_checksum = (uint32_t)player_data ^ 0x69746572;
 
     p = (player *)halo::memory::data_iterator_next(&iterator);
     while (p != (player *)0) {
-        if (p->unit != (datum_index)0xffffffff) {
-            object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & 0xffff].data;
+        if (p->unit != (datum_index)halo::k_dword_none) {
+            object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[p->unit & halo::k_datum_slot_mask].data;
             unit_obj->vitality_flags = unit_obj->vitality_flags | 0x0020;
         }
         p = (player *)halo::memory::data_iterator_next(&iterator);
@@ -416,7 +417,7 @@ void Lifecycle::initialize_for_new_game(void)
             *dst = 0;
             dst = dst + 1;
         }
-        multiplayer_sound_queue[0].player = (datum_index)0xffffffff;
+        multiplayer_sound_queue[0].player = (datum_index)halo::k_dword_none;
         multiplayer_sound_queue[0].sound_index = -1;
 
         dst = (uint32_t *)custom_waypoints;

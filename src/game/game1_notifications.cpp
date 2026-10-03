@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/core/datum.hpp"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
@@ -100,7 +101,7 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
     plasma_count = grenades[1].mp_spawn_default;
     frag_max = grenades[0].maximum_count;
 
-    p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
     unit = p->unit;
 
     if ((game_engine_unknown_aa00 & 8) == 0) {
@@ -114,7 +115,7 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
     }
 
     if ((game_engine_variant.flags & 0x20) == 0) {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask].data;
         if (obj->network_role == 0 || obj->network_role == 3) {
             halo::game::game_engine_spawn_player_starting_loadout(unit, &frag_count, &plasma_count);
         }
@@ -129,11 +130,11 @@ void Notifications::apply_player_grenade_counts(uint32_t player_index)
             frag_result = frag_max;
         }
 
-        if (unit == (datum_index)0xffffffff) {
+        if (unit == (datum_index)halo::k_dword_none) {
             return;
         }
         {
-            object *obj = ((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff].data;
+            object *obj = ((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask].data;
 
             if (obj->network_role != 0 && obj->network_role != 3) {
                 return;
@@ -204,7 +205,7 @@ uint8_t Notifications::apply_player_interaction_message(void **envelope)
     }
 
     {
-        uint32_t primary_handle = 0xffffffff;
+        uint32_t primary_handle = halo::k_dword_none;
         if (message.machine_id != 0) {
             primary_handle = (uint32_t)(*(int32_t **)&machine_table->handles)[message.machine_id];
         }
@@ -216,8 +217,8 @@ uint8_t Notifications::apply_player_interaction_message(void **envelope)
             }
 
             {
-                datum_index interaction_object = (datum_index)0xffffffff;
-                uint32_t secondary_handle = 0xffffffff;
+                datum_index interaction_object = (datum_index)halo::k_dword_none;
+                uint32_t secondary_handle = halo::k_dword_none;
 
                 if (message.interaction_pooled_id != 0) {
                     interaction_object = (datum_index)((int32_t *)object_network_id_table->handles)[
@@ -228,7 +229,7 @@ uint8_t Notifications::apply_player_interaction_message(void **envelope)
                         message.secondary_pooled_id];
                 }
 
-                if (interaction_object == (datum_index)0xffffffff && message.interaction_pooled_id != -1) {
+                if (interaction_object == (datum_index)halo::k_dword_none && message.interaction_pooled_id != -1) {
                     return 0;
                 }
 
@@ -275,7 +276,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
     }
 
     {
-        datum_index owner_handle = (datum_index)0xffffffff;
+        datum_index owner_handle = (datum_index)halo::k_dword_none;
         uint32_t player_handle;
         if (message.machine_id != 0) {
             owner_handle = (datum_index)(*(int32_t **)&machine_table->handles)[message.machine_id];
@@ -287,7 +288,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
             if (p != 0 && message.unit_pooled_id != 0) {
                 datum_index new_unit = (datum_index)((int32_t *)object_network_id_table->handles)[
                     message.unit_pooled_id];
-                if (new_unit != (datum_index)0xffffffff) {
+                if (new_unit != (datum_index)halo::k_dword_none) {
                     object *unit_obj = halo::objects::object_try_and_get(new_unit, 3);
                     if (unit_obj != 0) {
                         p->unit = new_unit;
@@ -319,7 +320,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                         p->kill_streak[0] = 0;
                         p->kill_streak[1] = 0;
                         p->interaction_type = 0;
-                        p->interaction_object = (datum_index)0xffffffff;
+                        p->interaction_object = (datum_index)halo::k_dword_none;
                         halo::game::game_engine_apply_player_grenade_counts(player_handle);
 
                         {
@@ -330,7 +331,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                                     ? ((int32_t *)object_network_id_table->handles)[message.weapon_pooled_ids[i]]
                                     : -1;
                                 if (weapon == -1) {
-                                    unit->weapons[i] = (datum_index)0xffffffff;
+                                    unit->weapons[i] = (datum_index)halo::k_dword_none;
                                 } else {
                                     halo::units::unit_pickup_weapon(0, (uint32_t)weapon, new_unit);
                                 }
@@ -342,7 +343,7 @@ void Notifications::apply_player_spawn_loadout_message(void **envelope)
                         if (message.seat_vehicle_pooled_id != -1 && message.seat_vehicle_pooled_id != 0) {
                             datum_index vehicle = (datum_index)((int32_t *)object_network_id_table->handles)[
                                 message.seat_vehicle_pooled_id];
-                            if (vehicle != (datum_index)0xffffffff) {
+                            if (vehicle != (datum_index)halo::k_dword_none) {
                                 halo::units::unit_enter_vehicle_seat(vehicle, (int16_t)message.seat_number, p->unit);
                             }
                         }
@@ -462,10 +463,10 @@ int32_t Notifications::get_multiplayer_sound_duration_ticks(int32_t sound_index)
         return 0;
     }
     tag_id = *(uint32_t *)(sound + 0xc);
-    if (tag_id == 0xffffffff) {
+    if (tag_id == halo::k_dword_none) {
         return 0;
     }
-    return (*(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[tag_id & 0xffff].data + 0x84) * 30) / 1000;
+    return (*(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[tag_id & halo::k_datum_slot_mask].data + 0x84) * 30) / 1000;
 }
 
 /**
@@ -515,7 +516,7 @@ void Notifications::multiplayer_sound_queue_tick(void)
             multiplayer_sound_queue_count--;
             if (multiplayer_sound_queue_count != 0) {
                 halo::game::game_engine_play_multiplayer_sound(multiplayer_sound_queue[0].sound_index,
-                    (datum_index)0xffffffff, multiplayer_sound_queue[0].broadcast);
+                    (datum_index)halo::k_dword_none, multiplayer_sound_queue[0].broadcast);
             }
         }
     }
@@ -530,11 +531,11 @@ void Notifications::multiplayer_sound_queue_tick(void)
  */
 void Notifications::notify_item_expired(datum_index object_index)
 {
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_datum_slot_mask].data;
     item_data *item = (item_data *)((uint8_t *)obj + sizeof(object));
     uint32_t *extension_flags = (uint32_t *)((uint8_t *)obj + 0x22c);
 
-    if (obj->parent_object == (datum_index)0xffffffff &&
+    if (obj->parent_object == (datum_index)halo::k_dword_none &&
         (item->flags & _item_in_inventory_bit) == 0 &&
         (*extension_flags & 0x20) != 0) {
         *extension_flags = *extension_flags & 0xffffffdf;
@@ -564,7 +565,7 @@ uint8_t Notifications::notify_weapon_ready_state_change(datum_index unit_index, 
         return 1;
     }
     weapon_definition = (Object *)halo::cache::globals().tag_instances[
-        (((object_header *)halo::objects::globals().object_data->data)[weapon_index & 0xffff].data->definition_tag) & 0xffff
+        (((object_header *)halo::objects::globals().object_data->data)[weapon_index & halo::k_datum_slot_mask].data->definition_tag) & halo::k_datum_slot_mask
     ].data;
     if (((*(uint32_t *)((uint8_t *)weapon_definition + 0x308) >> 3) & 1) == 0) {
         return 1;

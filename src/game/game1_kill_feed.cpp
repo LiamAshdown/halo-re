@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/core/datum.hpp"
 #include "halo/text/api.hpp"
 #include "memory.h"
 #include "math.h"
@@ -62,7 +63,7 @@ uint8_t KillFeed::apply_kill_streak_message(int32_t **envelope)
     }
 
     {
-        uint32_t player_handle = 0xffffffff;
+        uint32_t player_handle = halo::k_dword_none;
         if (decoded.machine_id != 0) {
             player_handle = *(uint32_t *)(*(uint8_t **)&machine_table->handles + decoded.machine_id * 4);
         }
@@ -303,7 +304,7 @@ void KillFeed::broadcast_kill_feed_by_relationship(uint32_t source_player, int32
 
     iter.data = player_data;
     iter.next_index = 0;
-    iter.index = (datum_index)0xffffffff;
+    iter.index = (datum_index)halo::k_dword_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     element = halo::memory::data_iterator_next(&iter);
@@ -311,10 +312,10 @@ void KillFeed::broadcast_kill_feed_by_relationship(uint32_t source_player, int32
         player *p = (player *)element;
         int32_t message = no_source_message;
 
-        if (source_player != (uint32_t)0xffffffff) {
+        if (source_player != (uint32_t)halo::k_dword_none) {
             int16_t their_team = p->team;
             int16_t source_team = ((player *)((uint8_t *)player_data->data +
-                (source_player & 0xffff) * sizeof(player)))->team;
+                (source_player & halo::k_datum_slot_mask) * sizeof(player)))->team;
 
             message = message_b;
 
@@ -354,7 +355,7 @@ void KillFeed::broadcast_kill_feed_gated(int32_t broadcast_enabled, int32_t excl
 
     iter.data = player_data;
     iter.next_index = 0;
-    iter.index = (datum_index)0xffffffff;
+    iter.index = (datum_index)halo::k_dword_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     element = halo::memory::data_iterator_next(&iter);
@@ -381,13 +382,13 @@ void KillFeed::broadcast_kill_feed_or_direct(datum_index recipient_or_all, int32
 {
     int32_t forwarded_param_1 = (hash_key == -1) ? -1 : hash_key;
 
-    if (recipient_or_all == (datum_index)0xffffffff) {
+    if (recipient_or_all == (datum_index)halo::k_dword_none) {
         data_iterator iter;
         void *element;
 
         iter.data = player_data;
         iter.next_index = 0;
-        iter.index = (datum_index)0xffffffff;
+        iter.index = (datum_index)halo::k_dword_none;
         iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
         element = halo::memory::data_iterator_next(&iter);
@@ -418,7 +419,7 @@ void KillFeed::broadcast_kill_feed_to_team(int32_t message_type, int32_t team, u
 
     iter.data = player_data;
     iter.next_index = 0;
-    iter.index = (datum_index)0xffffffff;
+    iter.index = (datum_index)halo::k_dword_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     element = halo::memory::data_iterator_next(&iter);
@@ -426,7 +427,7 @@ void KillFeed::broadcast_kill_feed_to_team(int32_t message_type, int32_t team, u
         player *p = (player *)element;
 
         if (p->team == team && message_type != -1) {
-            halo::game::chimera__kill_feed(iter.index, (int32_t)iter.index, (uint32_t)message_type, 0xffffffff, (char)broadcast);
+            halo::game::chimera__kill_feed(iter.index, (int32_t)iter.index, (uint32_t)message_type, halo::k_dword_none, (char)broadcast);
         }
         element = halo::memory::data_iterator_next(&iter);
     }
@@ -533,7 +534,7 @@ uint8_t KillFeed::build_kill_feed_message_text(datum_index recipient, wchar_t *o
             {
                 static const uint8_t arm_sound[5] = { 0x10, 0x0f, 0x0e, 0x11, 0x12 };
 
-                halo::game::game_engine_queue_multiplayer_sound(arm_sound[adjusted_type - 0x0e], 0xffffffff, 0);
+                halo::game::game_engine_queue_multiplayer_sound(arm_sound[adjusted_type - 0x0e], halo::k_dword_none, 0);
             }
             break;
         }
@@ -639,7 +640,7 @@ void KillFeed::handle_kill_feed_network_event(int32_t **message)
 
     if (**message == 0) {
         if (halo::networking::message_delta_decode_compound_field((void **)message, decoded) != 0) {
-            datum_index killer = (datum_index)0xffffffff;
+            datum_index killer = (datum_index)halo::k_dword_none;
             if (decoded[0] != 0) {
                 killer = *(datum_index *)(*(uint8_t **)&machine_table->handles + decoded[0] * 4);
             }

@@ -4,6 +4,8 @@
  */
 
 #include "tags.h"
+#include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
 #include "memory.h"
 #include "math.h"
 #include "game.h"
@@ -142,18 +144,18 @@ void Koth::animate_hill_pulse_icons(datum_index fading_player, datum_index growi
  */
 void Koth::alt_scorer_tick(uint32_t player_index)
 {
-    player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
 
     if (halo::networking::globals().game_mode == 2) {
-        king_alt_player_score[player_index & 0xffff]++;
+        king_alt_player_score[player_index & halo::k_datum_slot_mask]++;
         king_alt_team_score[p->team]++;
         if (king_alt_score_target - king_alt_team_score[p->team] == 900) {
             halo::game::game_engine_queue_multiplayer_sound(current_game_engine != 0 && game_engine_teams_enabled_flag != 0
-                ? 5 + 2 * (p->team != 0) : 3, 0xffffffff, 1);
+                ? 5 + 2 * (p->team != 0) : 3, halo::k_dword_none, 1);
         }
         if (king_alt_score_target - king_alt_team_score[p->team] == 0x708) {
             halo::game::game_engine_queue_multiplayer_sound(current_game_engine != 0 && game_engine_teams_enabled_flag != 0
-                ? 4 + 2 * (p->team != 0) : 2, 0xffffffff, 1);
+                ? 4 + 2 * (p->team != 0) : 2, halo::k_dword_none, 1);
         }
     }
 
@@ -180,20 +182,20 @@ void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
         return;
     }
 
-    hdr = (object_header *)halo::objects::globals().object_data->data + (object_handle & 0xffff);
+    hdr = (object_header *)halo::objects::globals().object_data->data + (object_handle & halo::k_datum_slot_mask);
     if ((hdr->flags & 0x08) != 0) {
         return;
     }
 
     halo::game::custom_waypoint_register((datum_index)0xffffffff, (int16_t)0, &position, "ball_blue", 0.0f,
-        (datum_index)0xffffffff, (int16_t)0xffffffff);
+        (datum_index)halo::k_dword_none, (int16_t)halo::k_dword_none);
 
     tick = game_time->game_time;
     if ((uint32_t)(game_time->game_time - item->held_game_time) > 0x4b0) {
         if (halo::networking::globals().game_mode != 2) {
             return;
         }
-        if (halo::items::weapon_must_be_readied((datum_index)object_handle) == 0 || (obj->flags >> 0xb & 1) == 0 || obj->parent_object != (datum_index)0xffffffff) {
+        if (halo::items::weapon_must_be_readied((datum_index)object_handle) == 0 || (obj->flags >> 0xb & 1) == 0 || obj->parent_object != (datum_index)halo::k_dword_none) {
             goto check_relocation;
         }
         if ((*(uint8_t *)((uint8_t *)obj + 0x22c) & 0x40) != 0) {
@@ -201,11 +203,11 @@ void Koth::ball_idle_tick(uint32_t object_handle, object *obj)
             void *element;
             iter.data = halo::objects::globals().object_data;
             iter.next_index = 0;
-            iter.index = (datum_index)0xffffffff;
+            iter.index = (datum_index)halo::k_dword_none;
             iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
             element = halo::memory::data_iterator_next(&iter);
             while (element != 0) {
-                halo::game::chimera__kill_feed((datum_index)0xffffffff, 0x26, (uint32_t)0xffffffff, 1, 0);
+                halo::game::chimera__kill_feed((datum_index)halo::k_dword_none, 0x26, (uint32_t)halo::k_dword_none, 1, 0);
                 element = halo::memory::data_iterator_next(&iter);
             }
         }
@@ -220,7 +222,7 @@ check_relocation:
         int16_t team = ((object *)obj)->owner_team;
         if (king_hill_occupant_last_tick[team] == -1 ||
             king_hill_occupant_last_tick[team] + king_hill_idle_timeout < tick) {
-            if (obj->parent_object == (datum_index)0xffffffff && (obj->flags & _object_at_rest_bit) != 0) {
+            if (obj->parent_object == (datum_index)halo::k_dword_none && (obj->flags & _object_at_rest_bit) != 0) {
                 obj->flags |= _object_changed_bit;
             }
             king_hill_occupant_last_tick[team] = tick;
@@ -521,14 +523,14 @@ void Koth::build_hill_boundary_fence(void)
  */
 uint32_t Koth::dispatch_player_scoring(uint32_t player_index)
 {
-    uint32_t idx = player_index & 0xffff;
+    uint32_t idx = player_index & halo::k_datum_slot_mask;
     player *p = (player *)((uint8_t *)player_data->data + idx * sizeof(player));
     int32_t occupied_slots;
     int32_t i;
     uint32_t result = 0;
 
-    p->hud_message_index = (datum_index)0xffffffff;
-    p->hud_message_player = (datum_index)0xffffffff;
+    p->hud_message_index = (datum_index)halo::k_dword_none;
+    p->hud_message_player = (datum_index)halo::k_dword_none;
 
     halo::game::game_engine_koth_update_occupant_table(player_index);
 
@@ -574,19 +576,19 @@ uint32_t Koth::dispatch_player_scoring(uint32_t player_index)
         p->hud_message_player = (datum_index)player_index;
     }
 
-    if (p->unit != (datum_index)0xffffffff) {
+    if (p->unit != (datum_index)halo::k_dword_none) {
         unit_data *unit = (unit_data *)((uint8_t *)
-            ((object_header *)halo::objects::globals().object_data->data)[(uint32_t)p->unit & 0xffff].data +
+            ((object_header *)halo::objects::globals().object_data->data)[(uint32_t)p->unit & halo::k_datum_slot_mask].data +
             k_unit_data_offset);
         if (unit->current_weapon_index != -1) {
             datum_index weapon = unit->weapons[unit->current_weapon_index];
-            if (weapon != (datum_index)0xffffffff) {
-                object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon & 0xffff].data;
-                uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
+            if (weapon != (datum_index)halo::k_dword_none) {
+                object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon & halo::k_datum_slot_mask].data;
+                uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & halo::k_datum_slot_mask].data;
                 if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0) {
                     int32_t score = king_alt_player_score[idx];
                     if (score > 0 && score % 0x96 == 0 && score < king_alt_score_target) {
-                        halo::game::game_engine_queue_multiplayer_sound(0x2a, 0xffffffff, 0);
+                        halo::game::game_engine_queue_multiplayer_sound(0x2a, halo::k_dword_none, 0);
                     }
 
                     *(int16_t *)((uint8_t *)weapon_obj + 0x2b8) = (int16_t)(score / 30);
@@ -630,7 +632,7 @@ void Koth::find_marker_position(real_point3d *out_position, int16_t type_filter)
 
         if (matching != 0) {
             int32_t pick;
-            halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+            halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
             pick = (int16_t)(((halo::math::globals().random_seed_global >> 0x10) *
                               (uint32_t)(int32_t)(int16_t)matching) >> 0x10);
 
@@ -666,7 +668,7 @@ void Koth::find_marker_position(real_point3d *out_position, int16_t type_filter)
  */
 uint8_t Koth::player_eligible_to_score(uint32_t object_handle, uint32_t player_index)
 {
-    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_handle & 0xffff].data;
+    object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_handle & halo::k_datum_slot_mask].data;
 
     if (game_engine_variant.engine.oddball.ball_type > 0 && game_engine_variant.engine.oddball.ball_type < 3) {
         halo::game::game_engine_broadcast_kill_feed_by_relationship(player_index, 0x20, 0x21, 0x22, player_index, 0);
@@ -674,9 +676,9 @@ uint8_t Koth::player_eligible_to_score(uint32_t object_handle, uint32_t player_i
     }
 
     {
-        player *p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+        player *p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
         uint8_t eligible = 1;
-        if (p->unit != (datum_index)0xffffffff) {
+        if (p->unit != (datum_index)halo::k_dword_none) {
             uint16_t found = halo::units::unit_find_weapon_index_by_flag((uint32_t)p->unit, 3);
             eligible = 1 - (found != 0);
             if (eligible != 0) {
@@ -701,15 +703,15 @@ uint8_t Koth::player_in_hill_bounds(uint32_t player_index)
     object *unit_obj;
     float z;
 
-    if (player_index == 0xffffffff) {
+    if (player_index == halo::k_dword_none) {
         return 0;
     }
-    p = (player *)((uint8_t *)player_data->data + (player_index & 0xffff) * sizeof(player));
+    p = (player *)((uint8_t *)player_data->data + (player_index & halo::k_datum_slot_mask) * sizeof(player));
     unit = p->unit;
-    if (unit == (datum_index)0xffffffff) {
+    if (unit == (datum_index)halo::k_dword_none) {
         return 0;
     }
-    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff].data;
+    unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask].data;
     z = unit_obj->bounding_center.z;
     if (z >= king_hill_boundary_min_z && z < king_hill_boundary_max_z) {
         real_point2d point;
@@ -728,14 +730,14 @@ uint8_t Koth::player_in_hill_bounds(uint32_t player_index)
  */
 void Koth::player_tick(uint32_t player_index)
 {
-    uint32_t idx = player_index & 0xffff;
+    uint32_t idx = player_index & halo::k_datum_slot_mask;
     player *p = (player *)((uint8_t *)player_data->data + idx * sizeof(player));
 
     *(uint32_t *)&((struct player *)p)->hud_message_index = 0xffffffff;
     *(uint32_t *)&((struct player *)p)->hud_message_player = 0xffffffff;
     king_hill_player_in_hill[idx] = 0;
 
-    if (p->unit != (datum_index)0xffffffff &&
+    if (p->unit != (datum_index)halo::k_dword_none &&
         (current_game_engine == 0 || game_engine_state_value == 0) &&
         halo::game::game_engine_koth_player_in_hill_bounds(player_index) != 0) {
         uint8_t hosting = (halo::networking::globals().game_mode == 2);
@@ -755,11 +757,11 @@ void Koth::player_tick(uint32_t player_index)
 
             if (limit_ticks - bucket == 900) {
                 halo::game::game_engine_queue_multiplayer_sound(halo::game::game_engine_get_teams_enabled() != 0
-                    ? 5 + 2 * (p->team != 0) : 3, 0xffffffff, 1);
+                    ? 5 + 2 * (p->team != 0) : 3, halo::k_dword_none, 1);
             }
             if (limit_ticks - bucket == 0x708) {
                 halo::game::game_engine_queue_multiplayer_sound(halo::game::game_engine_get_teams_enabled() != 0
-                    ? 4 + 2 * (p->team != 0) : 2, 0xffffffff, 1);
+                    ? 4 + 2 * (p->team != 0) : 2, halo::k_dword_none, 1);
             }
             bucket = king_bucket_credit_ticks[p->team];
             if (bucket > 0 && bucket % 0x96 == 0 && bucket < limit_ticks) {
@@ -796,13 +798,13 @@ void Koth::relocate_hill_marker(int32_t ball_index)
             object_header *hdr;
             uint8_t header_flags;
 
-            halo::objects::object_placement_data_initialize(&placement, ball_tag, (datum_index)0xffffffff);
+            halo::objects::object_placement_data_initialize(&placement, ball_tag, (datum_index)halo::k_dword_none);
             placement.owner_team = (int16_t)ball_index;
             halo::game::game_engine_koth_find_marker_position(&placement.position, (int16_t)ball_index);
 
             new_object = halo::objects::object_new(&placement);
 
-            hdr = (object_header *)halo::objects::globals().object_data->data + ((uint32_t)new_object & 0xffff);
+            hdr = (object_header *)halo::objects::globals().object_data->data + ((uint32_t)new_object & halo::k_datum_slot_mask);
             header_flags = hdr->flags;
             hdr->flags = header_flags & ~_object_header_in_pvs_pass_bit;
             if ((header_flags & _object_header_active_bit) == 0) {
@@ -823,13 +825,13 @@ void Koth::relocate_hill_marker(int32_t ball_index)
 void Koth::relocate_object_hill(uint32_t object_index)
 {
     if (halo::networking::globals().game_mode == 2) {
-        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & 0xffff].data;
+        object *obj = ((object_header *)halo::objects::globals().object_data->data)[object_index & halo::k_datum_slot_mask].data;
         real_point3d discarded_position;
 
         halo::game::game_engine_koth_find_marker_position(&discarded_position, ((object *)obj)->owner_team);
 
         if (game_engine_variant.engine.oddball.ball_count < 3) {
-            halo::game::game_engine_queue_multiplayer_sound(0x1e, 0xffffffff, 1);
+            halo::game::game_engine_queue_multiplayer_sound(0x1e, halo::k_dword_none, 1);
         }
         halo::game::ctf_flag_object_clear_carrier(object_index, &discarded_position);
         *(uint32_t *)((uint8_t *)obj + 0x22c) &= 0xffffffbf;
@@ -934,7 +936,7 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
             }
         }
 
-        tag_data = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[tag_handle_as_uint & 0xffff].data + 0);
+        tag_data = *(int32_t *)((uint8_t *)halo::cache::globals().tag_instances[tag_handle_as_uint & halo::k_datum_slot_mask].data + 0);
         local_f0 = (vertex_source[0x33] + vertex_source[0x22] + vertex_source[0x11] + vertex_source[0]) * 0.25f;
         fStack_ec = (vertex_source[0x34] + vertex_source[0x23] + vertex_source[0x12] + vertex_source[1]) * 0.25f;
         {
@@ -1030,7 +1032,7 @@ void Koth::update_hill_occupancy_state(void)
 
     iter.data = player_data;
     iter.next_index = 0;
-    iter.index = (datum_index)0xffffffff;
+    iter.index = (datum_index)halo::k_dword_none;
     iter.signature = (uint32_t)(uintptr_t)iter.data ^ k_data_iterator_signature;
 
     if (current_game_engine == 0 || game_engine_variant.teams == 0) {
@@ -1053,12 +1055,12 @@ void Koth::update_hill_occupancy_state(void)
                 if (king_hill_state_globals.hill_ticks < 0x12d) {
                     king_hill_state_globals.hill_state = _king_hill_contested;
                     king_hill_state_globals.hill_ticks = 0;
-                    king_hill_state_globals.occupant = (datum_index)0xffffffff;
+                    king_hill_state_globals.occupant = (datum_index)halo::k_dword_none;
                     return;
                 }
-                halo::game::game_engine_queue_multiplayer_sound(0x27, 0xffffffff, 1);
+                halo::game::game_engine_queue_multiplayer_sound(0x27, halo::k_dword_none, 1);
                 king_hill_state_globals.hill_ticks = 0;
-                king_hill_state_globals.occupant = (datum_index)0xffffffff;
+                king_hill_state_globals.occupant = (datum_index)halo::k_dword_none;
                 return;
             }
             if (count != 0) {
@@ -1075,7 +1077,7 @@ void Koth::update_hill_occupancy_state(void)
         }
         king_hill_state_globals.hill_state = _king_hill_empty;
         king_hill_state_globals.hill_ticks = 0;
-        king_hill_state_globals.occupant = (datum_index)0xffffffff;
+        king_hill_state_globals.occupant = (datum_index)halo::k_dword_none;
         return;
     }
     {
@@ -1116,7 +1118,7 @@ void Koth::update_hill_occupancy_state(void)
             if (team0_count != 0) {
                 king_hill_state_globals.hill_state = _king_hill_contested;
                 if (king_hill_state_globals.hill_ticks > 300) {
-                    halo::game::game_engine_queue_multiplayer_sound(0x27, 0xffffffff, 1);
+                    halo::game::game_engine_queue_multiplayer_sound(0x27, halo::k_dword_none, 1);
                 }
                 king_hill_state_globals.hill_ticks = 0;
                 return;
@@ -1133,7 +1135,7 @@ void Koth::update_hill_occupancy_state(void)
     }
 check_streak:
     if (king_hill_state_globals.hill_ticks == 300) {
-        halo::game::game_engine_queue_multiplayer_sound(0x28, 0xffffffff, 1);
+        halo::game::game_engine_queue_multiplayer_sound(0x28, halo::k_dword_none, 1);
     }
 }
 
@@ -1157,21 +1159,21 @@ void Koth::update_occupant_table(uint32_t index)
 
     for (i = 0; i < 16; i++) {
         if (king_hill_occupant_table[i] == index) {
-            king_hill_occupant_table[i] = 0xffffffff;
+            king_hill_occupant_table[i] = halo::k_dword_none;
         }
     }
 
-    p = (player *)((uint8_t *)player_data->data + (index & 0xffff) * sizeof(player));
+    p = (player *)((uint8_t *)player_data->data + (index & halo::k_datum_slot_mask) * sizeof(player));
     unit = p->unit;
-    if (unit != (datum_index)0xffffffff) {
+    if (unit != (datum_index)halo::k_dword_none) {
         unit_data *unit_obj = (unit_data *)((uint8_t *)
-            ((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff].data + k_unit_data_offset);
+            ((object_header *)halo::objects::globals().object_data->data)[unit & halo::k_datum_slot_mask].data + k_unit_data_offset);
         int16_t slot = unit_obj->current_weapon_index;
         if (slot != -1) {
             datum_index weapon = unit_obj->weapons[slot];
-            if (weapon != (datum_index)0xffffffff) {
-                object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon & 0xffff].data;
-                uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & 0xffff].data;
+            if (weapon != (datum_index)halo::k_dword_none) {
+                object *weapon_obj = ((object_header *)halo::objects::globals().object_data->data)[weapon & halo::k_datum_slot_mask].data;
+                uint32_t *tag_data = (uint32_t *)halo::cache::globals().tag_instances[weapon_obj->definition_tag & halo::k_datum_slot_mask].data;
                 if ((*(uint32_t *)((uint8_t *)tag_data + 0x308) >> 3 & 1) != 0) {
                     int16_t team = ((struct object *)weapon_obj)->owner_team;
                     king_hill_occupant_table[team] = index;

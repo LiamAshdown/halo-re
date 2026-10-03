@@ -1,4 +1,5 @@
 #include "halo/networking/net1_bandwidth.hpp"
+#include "halo/core/datum.hpp"
 #include <stdio.h>
 #include "halo/cseries/api.hpp"
 #include "rasterizer.h"
@@ -345,7 +346,7 @@ void BandwidthGraphView::instance_history_reset()
     for (i = 0; i < 320; i++) {
         int32_t x_step = accumulator / 320;
 
-        graph->columns[i].color = 0xffffffff;
+        graph->columns[i].color = halo::k_dword_none;
         accumulator = accumulator + ((int32_t)right - (int32_t)left);
         graph->columns[i].x = (float)(x_step + left);
         graph->columns[i].y = (float)(int32_t)baseline;

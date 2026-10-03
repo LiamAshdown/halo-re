@@ -1,4 +1,5 @@
 #include "halo/game/game2_game_lifecycle.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/game/legacy_globals.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -240,7 +241,7 @@ void GameLifecycle::start_new_map(void)
         *dst = 0xffffffff;
         dst = dst + 1;
     }
-    dst[0] = 0xffffffff;
+    dst[0] = halo::k_dword_none;
     dst[1] = 0;
     dst[2] = 0;
     halo::effects::globals().decal_data->valid = 1;
@@ -284,7 +285,7 @@ void GameLifecycle::start_new_map(void)
     if (halo::sound::globals().game_looping_sound_data != (data_array *)0) {
         halo::sound::globals().game_looping_sound_data->valid = 1;
         halo::memory::data_delete_all(halo::sound::globals().game_looping_sound_data);
-        ((uint32_t *)halo::sound::globals().game_sound_state)[1] = 0xffffffff;
+        ((uint32_t *)halo::sound::globals().game_sound_state)[1] = halo::k_dword_none;
         ((uint32_t *)halo::sound::globals().game_sound_state)[0] = 0;
         ((uint32_t *)halo::sound::globals().game_sound_state)[2] = 0;
     }
@@ -315,10 +316,10 @@ void GameLifecycle::start_new_map(void)
     dst[0] = 0;
     dst[1] = 0;
     dst[2] = 0;
-    dst[3] = 0xffffffff;
-    dst[4] = 0xffffffff;
-    dst[5] = 0xffffffff;
-    dst[6] = 0xffffffff;
+    dst[3] = halo::k_dword_none;
+    dst[4] = halo::k_dword_none;
+    dst[5] = halo::k_dword_none;
+    dst[6] = halo::k_dword_none;
 
     cinematic_saved_music_gain = 0xbf800000;
     halo::hs::hs_scripts_reload();
@@ -377,7 +378,7 @@ void GameLifecycle::stop_current_map(void)
     halo::camera::globals().directors[0].look_scale = 1.0f;
     halo::camera::globals().directors[0].unknown_c0 = 0;
     *halo::camera::globals().hs_camera_control_pointer = 0;
-    text_localization_strings = 0xffffffff;
+    text_localization_strings = halo::k_dword_none;
     player_data->valid = 0;
     team_data->valid = 0;
     halo::effects::globals().contrail_point_data->valid = 0;
@@ -434,7 +435,7 @@ void GameLifecycle::unload_map(void)
     if (halo::main::globals().game_globals->map_loaded != 0) {
         halo::cache::cache_file_unload();
         halo::scenario::globals().game_globals->structure_bsp_index = -1;
-        global_scenario_index = 0xffffffff;
+        global_scenario_index = halo::k_dword_none;
         global_structure_bsp_index = 0xffff;
         halo::scenario::globals().scenario = (Scenario *)0;
         global_structure_bsp = (void *)0;
