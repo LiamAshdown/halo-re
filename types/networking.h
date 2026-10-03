@@ -1178,11 +1178,16 @@ typedef struct network_bandwidth_graph {
     uint32_t sample_interval_ms; // 0x0008 seeded from 0x006894b0
     int32_t units_index;         // 0x000c 0 bytes, 1 packets (0x4d8a20)
     int32_t direction_index;     // 0x0010 0 sent, 1 received (0x4d8a50)
-    uint8_t unknown_0014[0x12];  // 0x0014
+    int32_t width;               // 0x0014 window width the layout was computed for
+    int32_t height;              // 0x0018 window height the layout was computed for
+    float x_scale;               // 0x001c width * 0.2, the graph's horizontal extent
+    float y_scale;               // 0x0020 height * 0.4, the graph's vertical extent
+    int16_t window_left;         // 0x0024 left edge of the graph in window pixels
     int16_t left;                // 0x0026 screen bounds, recomputed on a resize
     int16_t baseline;            // 0x0028
     int16_t right;               // 0x002a
-    uint8_t unknown_002c[0x90];  // 0x002c label text and layout scratch
+    int16_t layout[12];          // 0x002c the label and unit rectangles in 640x480 units
+    network_graph_vertex border[5]; // 0x0044 the frame quad, vertex colour 0xffffff00
     int32_t bits_sent;           // 0x00bc accumulated by 0x4d79d0
     int32_t bits_received;       // 0x00c0 accumulated by 0x4d7a50
     int32_t rate_base_ms;        // 0x00c4
