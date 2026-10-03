@@ -219,7 +219,7 @@ static int32_t key_order(const void *a, const void *b, const char *key)
 
 namespace halo::networking {
 
-void ServerBrowser::game_variant_list_matching_substring(uint32_t argument_count, char **arguments)
+void ServerBrowser::matching_substring(uint32_t argument_count, char **arguments)
 {
     uint16_t filter[32];
     int32_t saved_game_ids[100];
@@ -279,7 +279,7 @@ void ServerBrowser::game_variant_list_matching_substring(uint32_t argument_count
     } while (1);
 }
 
-int32_t ServerBrowser::run_join_game_server_browser_tick(network_ui_widget *browser_widget)
+int32_t ServerBrowser::server_browser_tick(network_ui_widget *browser_widget)
 {
     void (*const server_browser_player_list_populate)(void *entry) = reinterpret_cast<void (*)(void *entry)>(&::server_browser_player_list_populate);
     void (*const string_format_wide_va_bounded)(uint32_t count, uint16_t *dest, const uint16_t *format, ...) = reinterpret_cast<void (*)(uint32_t count, uint16_t *dest, const uint16_t *format, ...)>(&::string_format_wide_va_bounded);
@@ -669,7 +669,7 @@ scroll_fade_settled:
     }
 }
 
-void ServerBrowser::run_join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t string_index)
+void ServerBrowser::ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t string_index)
 {
     int32_t tag_index;
     uint16_t *source;
@@ -722,7 +722,7 @@ void ServerBrowser::map_list_matching_substring(uint32_t argument_count, char **
     }
 }
 
-void ServerBrowser::run_server_browser_column_header_update(network_ui_widget *header, int32_t sort_direction)
+void ServerBrowser::column_header_update(network_ui_widget *header, int32_t sort_direction)
 {
     network_ui_widget *icon;
     network_ui_widget *up_arrow;
@@ -750,7 +750,7 @@ void ServerBrowser::run_server_browser_column_header_update(network_ui_widget *h
     down_arrow->visible = (sort_direction < 0);
 }
 
-char * ServerBrowser::server_browser_custom_options_pack(server_browser_custom_options *options)
+char * ServerBrowser::custom_options_pack(server_browser_custom_options *options)
 {
     uint32_t low;
     uint32_t high;
@@ -868,7 +868,7 @@ char * ServerBrowser::server_browser_custom_options_pack(server_browser_custom_o
     return server_browser_custom_options_text;
 }
 
-void ServerBrowser::server_browser_custom_options_unpack(char *text, server_browser_custom_options *out)
+void ServerBrowser::custom_options_unpack(char *text, server_browser_custom_options *out)
 {
     uint32_t low;
     uint32_t high;
@@ -996,7 +996,7 @@ void ServerBrowser::server_browser_custom_options_unpack(char *text, server_brow
     }
 }
 
-void ServerBrowser::run_server_browser_filter_headers_refresh(network_ui_widget *row)
+void ServerBrowser::filter_headers_refresh(network_ui_widget *row)
 {
     network_ui_widget *password_check;
     network_ui_widget *dedicated_check;
@@ -1060,7 +1060,7 @@ void ServerBrowser::run_server_browser_filter_headers_refresh(network_ui_widget 
     *(uint32_t *)&mark->alpha = 0x3f400000;
 }
 
-void ServerBrowser::server_browser_filter_panel_set_mode(network_ui_widget *panel, uint8_t internet_mode)
+void ServerBrowser::filter_panel_set_mode(network_ui_widget *panel, uint8_t internet_mode)
 {
     network_ui_widget *w;
     network_ui_widget *control;
@@ -1146,7 +1146,7 @@ void ServerBrowser::server_browser_filter_panel_set_mode(network_ui_widget *pane
     server_browser_filter_panel_mode = internet_mode;
 }
 
-int32_t ServerBrowser::server_browser_filter_widget_clicked(network_ui_widget *clicked)
+int32_t ServerBrowser::filter_widget_clicked(network_ui_widget *clicked)
 {
     void (*const widget_play_sound_effect)(void) = reinterpret_cast<void (*)(void)>(&::widget_play_sound_effect);
     network_ui_widget *w1;
@@ -1226,7 +1226,7 @@ play_and_set_query_mode:
     return 1;
 }
 
-uint32_t ServerBrowser::server_browser_gametype1_flags_pack(server_browser_gametype1_options *options)
+uint32_t ServerBrowser::gametype1_flags_pack(server_browser_gametype1_options *options)
 {
     uint8_t *flags = options->flags;
     int32_t time_limit = options->time_limit;
@@ -1253,7 +1253,7 @@ uint32_t ServerBrowser::server_browser_gametype1_flags_pack(server_browser_gamet
     return bits << 3 | 1;
 }
 
-void ServerBrowser::server_browser_gametype1_flags_unpack(uint32_t code, server_browser_gametype1_decoded *out)
+void ServerBrowser::gametype1_flags_unpack(uint32_t code, server_browser_gametype1_decoded *out)
 {
     out->flags[0] = (uint8_t)(code >> 3) & 1;
     out->flags[1] = (uint8_t)(code >> 4) & 1;
@@ -1269,13 +1269,13 @@ void ServerBrowser::server_browser_gametype1_flags_unpack(uint32_t code, server_
     }
 }
 
-uint32_t ServerBrowser::server_browser_gametype2_flags_pack(uint8_t *flags)
+uint32_t ServerBrowser::gametype2_flags_pack(uint8_t *flags)
 {
     return (((uint32_t)(flags[2] != 0) << 1 | (uint32_t)(flags[1] != 0)) << 1 |
             (uint32_t)(flags[0] != 0)) << 3 | 2;
 }
 
-uint32_t ServerBrowser::server_browser_gametype3_flags_pack(server_browser_gametype3_options *options)
+uint32_t ServerBrowser::gametype3_flags_pack(server_browser_gametype3_options *options)
 {
     return (((((((((uint32_t)options->value_14 & 0x1f) << 2 | ((uint32_t)options->value_10 & 3)) << 2 |
                  ((uint32_t)options->value_0c & 3)) << 2 | ((uint32_t)options->value_08 & 3)) << 2 |
@@ -1283,7 +1283,7 @@ uint32_t ServerBrowser::server_browser_gametype3_flags_pack(server_browser_gamet
              (uint32_t)(options->flag0 != 0)) << 3 | 3);
 }
 
-void ServerBrowser::server_browser_gametype3_flags_unpack(uint32_t code, server_browser_gametype3_options *out)
+void ServerBrowser::gametype3_flags_unpack(uint32_t code, server_browser_gametype3_options *out)
 {
     out->flag0 = (uint8_t)(code >> 3) & 1;
     out->flag1 = (uint8_t)(code >> 4) & 1;
@@ -1294,7 +1294,7 @@ void ServerBrowser::server_browser_gametype3_flags_unpack(uint32_t code, server_
     out->value_14 = (int32_t)((code >> 0xd) & 0x1f);
 }
 
-uint32_t ServerBrowser::server_browser_gametype5_flags_pack(int32_t *values)
+uint32_t ServerBrowser::gametype5_flags_pack(int32_t *values)
 {
     uint32_t code = 5;
     if (values[0] < 3) {
@@ -1306,7 +1306,7 @@ uint32_t ServerBrowser::server_browser_gametype5_flags_pack(int32_t *values)
     return code;
 }
 
-void ServerBrowser::server_browser_gametype5_flags_unpack(uint32_t code, int32_t *out)
+void ServerBrowser::gametype5_flags_unpack(uint32_t code, int32_t *out)
 {
     uint32_t a = (code >> 3) & 3;
     uint32_t b = (code >> 5) & 3;
@@ -1314,7 +1314,7 @@ void ServerBrowser::server_browser_gametype5_flags_unpack(uint32_t code, int32_t
     out[1] = (b <= 2) ? (int32_t)b : 0;
 }
 
-void ServerBrowser::server_browser_latch_join_target(void)
+void ServerBrowser::latch_join_target(void)
 {
     uint32_t wait_result;
 
@@ -1341,7 +1341,7 @@ void ServerBrowser::server_browser_latch_join_target(void)
     }
 }
 
-void ServerBrowser::run_server_browser_list_row_gather(network_ui_widget *row, uint8_t flag, void *entry)
+void ServerBrowser::list_row_gather(network_ui_widget *row, uint8_t flag, void *entry)
 {
     char *hostname;
     char *mapname;
@@ -1413,7 +1413,7 @@ void ServerBrowser::run_server_browser_list_row_gather(network_ui_widget *row, u
     row->hidden = 1;
 }
 
-void ServerBrowser::run_server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uint8_t flag2,
+void ServerBrowser::list_row_populate(network_ui_widget *row, uint8_t flag1, uint8_t flag2,
                                         const char *server_name, wchar_t *map_name,
                                         const char *gametype_name,
                                         uint8_t flag3, int32_t count_a, int32_t count_b, int32_t ping)
@@ -1479,7 +1479,7 @@ void ServerBrowser::run_server_browser_list_row_populate(network_ui_widget *row,
     }
 }
 
-int32_t ServerBrowser::server_browser_open(network_ui_widget *root)
+int32_t ServerBrowser::open(network_ui_widget *root)
 {
     uint8_t &network_join_target_address = reinterpret_cast<uint8_t &>(::network_join_target_address);
     uint8_t &DAT_00719698 = reinterpret_cast<uint8_t &>(::DAT_00719698);
@@ -1623,7 +1623,7 @@ int32_t ServerBrowser::server_browser_open(network_ui_widget *root)
     return 1;
 }
 
-int32_t ServerBrowser::run_server_browser_player_list_populate(void *entry)
+int32_t ServerBrowser::player_list_populate(void *entry)
 {
     int32_t probe;
     int32_t player_count;
@@ -1664,7 +1664,7 @@ int32_t ServerBrowser::run_server_browser_player_list_populate(void *entry)
     return 1;
 }
 
-void ServerBrowser::run_server_browser_query_results_ingest(server_list_globals *list)
+void ServerBrowser::query_results_ingest(server_list_globals *list)
 {
     if (server_browser_initialized != 0 && master_server_query_engine != 0) {
         int32_t result_count = ServerBrowserCount(master_server_query_engine);
@@ -1688,7 +1688,7 @@ void ServerBrowser::run_server_browser_query_results_ingest(server_list_globals 
     }
 }
 
-void ServerBrowser::run_server_browser_result_array_sort(server_list_globals *array)
+void ServerBrowser::result_array_sort(server_list_globals *array)
 {
     void (*const server_list_scroll_clamp)(void) = reinterpret_cast<void (*)(void)>(&::server_list_scroll_clamp);
     if (0 < array->result_count) {
@@ -1735,7 +1735,7 @@ void ServerBrowser::run_server_browser_result_array_sort(server_list_globals *ar
     }
 }
 
-int32_t ServerBrowser::run_server_browser_selected_variant_description_build(void *entry)
+int32_t ServerBrowser::selected_variant_description_build(void *entry)
 {
     char *player_flags;
     int32_t game_flags;
@@ -1760,7 +1760,7 @@ int32_t ServerBrowser::run_server_browser_selected_variant_description_build(voi
     return 1;
 }
 
-uint8_t ServerBrowser::server_browser_server_passes_filter(void *entry)
+uint8_t ServerBrowser::server_passes_filter(void *entry)
 {
     int32_t probe;
     int32_t ping;
@@ -1897,7 +1897,7 @@ skip_gametype_check:
     return 0;
 }
 
-server_browser_sort_comparator ServerBrowser::run_server_browser_sort_comparator_select(void)
+server_browser_sort_comparator ServerBrowser::sort_comparator_select(void)
 {
     int32_t (*const server_list_scroll_clamp)(const void *, const void *) = reinterpret_cast<int32_t (*)(const void *, const void *)>(&::server_list_scroll_clamp);
     int32_t (*const server_list_compare_by_ping_then_hostname)(const void *, const void *) = reinterpret_cast<int32_t (*)(const void *, const void *)>(&::server_list_compare_by_ping_then_hostname);
@@ -1918,7 +1918,7 @@ server_browser_sort_comparator ServerBrowser::run_server_browser_sort_comparator
     }
 }
 
-void ServerBrowser::run_server_browser_total_players_compute(server_list_globals *array)
+void ServerBrowser::total_players_compute(server_list_globals *array)
 {
     int32_t i = 0;
 
@@ -1945,14 +1945,14 @@ next:
     }
 }
 
-void ServerBrowser::run_server_browser_ui_refresh(void)
+void ServerBrowser::ui_refresh(void)
 {
     ticker_text_buffer_append(0, 2, &server_browser_player_ticker);
     ticker_text_buffer_append(0, 1, &server_browser_variant_ticker);
     ticker_text_buffer_append(DAT_00719498, 0, &server_browser_player_ticker);
 }
 
-int32_t ServerBrowser::run_server_list_compare_by_gametype(const void *a, const void *b)
+int32_t ServerBrowser::compare_by_gametype(const void *a, const void *b)
 {
     const char * (*const SBServerGetStringValue)(void *server, const char *key, const char *default_value) = reinterpret_cast<const char * (*)(void *server, const char *key, const char *default_value)>(&::SBServerGetStringValue);
     int32_t (*const SBServerGetIntValue)(void *server, const char *key, int32_t default_value) = reinterpret_cast<int32_t (*)(void *server, const char *key, int32_t default_value)>(&::SBServerGetIntValue);
@@ -1968,7 +1968,7 @@ int32_t ServerBrowser::run_server_list_compare_by_gametype(const void *a, const 
     return address_order(a, b);
 }
 
-int32_t ServerBrowser::run_server_list_compare_by_hostname(const void *a, const void *b)
+int32_t ServerBrowser::compare_by_hostname(const void *a, const void *b)
 {
     const char * (*const SBServerGetStringValue)(void *server, const char *key, const char *default_value) = reinterpret_cast<const char * (*)(void *server, const char *key, const char *default_value)>(&::SBServerGetStringValue);
     int32_t (*const SBServerGetIntValue)(void *server, const char *key, int32_t default_value) = reinterpret_cast<int32_t (*)(void *server, const char *key, int32_t default_value)>(&::SBServerGetIntValue);
@@ -1984,7 +1984,7 @@ int32_t ServerBrowser::run_server_list_compare_by_hostname(const void *a, const 
     return address_order(a, b);
 }
 
-int32_t ServerBrowser::run_server_list_compare_by_mapname(void **a, void **b)
+int32_t ServerBrowser::compare_by_mapname(void **a, void **b)
 {
     void *entry_a;
     void *entry_b;
@@ -2009,7 +2009,7 @@ int32_t ServerBrowser::run_server_list_compare_by_mapname(void **a, void **b)
     return result;
 }
 
-int32_t ServerBrowser::server_list_compare_by_mapname_then_hostname(void **a, void **b)
+int32_t ServerBrowser::compare_by_mapname_then_hostname(void **a, void **b)
 {
     int32_t mapname_diff;
     char *hostname_a;
@@ -2041,7 +2041,7 @@ int32_t ServerBrowser::server_list_compare_by_mapname_then_hostname(void **a, vo
     return mapname_diff;
 }
 
-int32_t ServerBrowser::run_server_list_compare_by_ping_then_hostname(void **a, void **b)
+int32_t ServerBrowser::compare_by_ping_then_hostname(void **a, void **b)
 {
     int32_t ping_a;
     int32_t ping_b;
@@ -2086,7 +2086,7 @@ int32_t ServerBrowser::run_server_list_compare_by_ping_then_hostname(void **a, v
     return ping_diff;
 }
 
-int32_t ServerBrowser::run_server_list_compare_by_players(const void *a, const void *b)
+int32_t ServerBrowser::compare_by_players(const void *a, const void *b)
 {
     const char * (*const SBServerGetStringValue)(void *server, const char *key, const char *default_value) = reinterpret_cast<const char * (*)(void *server, const char *key, const char *default_value)>(&::SBServerGetStringValue);
     int32_t (*const SBServerGetIntValue)(void *server, const char *key, int32_t default_value) = reinterpret_cast<int32_t (*)(void *server, const char *key, int32_t default_value)>(&::SBServerGetIntValue);
@@ -2111,7 +2111,7 @@ int32_t ServerBrowser::run_server_list_compare_by_players(const void *a, const v
     return server_browser_sort_ascending != 0 ? result : -result;
 }
 
-int32_t ServerBrowser::run_server_list_compare_by_string_key(void **a, void **b, const char *key)
+int32_t ServerBrowser::compare_by_string_key(void **a, void **b, const char *key)
 {
     char *string_b;
     char *string_a;
@@ -2126,7 +2126,7 @@ int32_t ServerBrowser::run_server_list_compare_by_string_key(void **a, void **b,
     return result;
 }
 
-server_list_globals * ServerBrowser::run_server_list_mutex_try_lock(uint32_t timeout_ms)
+server_list_globals * ServerBrowser::mutex_try_lock(uint32_t timeout_ms)
 {
     if (server_list_thread != 0) {
         uint32_t wait_result = WaitForSingleObject(server_list_mutex->handle, timeout_ms);
@@ -2138,7 +2138,7 @@ server_list_globals * ServerBrowser::run_server_list_mutex_try_lock(uint32_t tim
     return &server_list;
 }
 
-void ServerBrowser::server_list_mutex_unlock(server_list_globals **list_slot)
+void ServerBrowser::mutex_unlock(server_list_globals **list_slot)
 {
     *list_slot = 0;
     if (server_list_thread != 0) {
@@ -2146,7 +2146,7 @@ void ServerBrowser::server_list_mutex_unlock(server_list_globals **list_slot)
     }
 }
 
-void ServerBrowser::run_server_list_reset(uint8_t *entry)
+void ServerBrowser::reset(uint8_t *entry)
 {
     server_list_scroll_offset = 0;
     server_browser_selected_index = -1;
@@ -2161,7 +2161,7 @@ void ServerBrowser::run_server_list_reset(uint8_t *entry)
     ticker_text_buffer_append(DAT_00719498, 0, &server_browser_player_ticker);
 }
 
-uint32_t ServerBrowser::run_server_list_result_count_get(void)
+uint32_t ServerBrowser::result_count_get(void)
 {
     uint32_t result;
 
@@ -2181,7 +2181,7 @@ uint32_t ServerBrowser::run_server_list_result_count_get(void)
     return result;
 }
 
-void ServerBrowser::run_server_list_result_reset(uint8_t *entry)
+void ServerBrowser::result_reset(uint8_t *entry)
 {
     if (entry != 0) {
         *(uint32_t *)(entry + 4) = 0;
@@ -2205,7 +2205,7 @@ void ServerBrowser::run_server_list_result_reset(uint8_t *entry)
     }
 }
 
-void ServerBrowser::run_server_list_scroll_clamp(server_list_globals *results)
+void ServerBrowser::scroll_clamp(server_list_globals *results)
 {
     int32_t (*const server_list_result_count_get)(void) = reinterpret_cast<int32_t (*)(void)>(&::server_list_result_count_get);
     int32_t count;
@@ -2226,7 +2226,7 @@ void ServerBrowser::run_server_list_scroll_clamp(server_list_globals *results)
     }
 }
 
-void ServerBrowser::run_server_list_scroll_page_down(uint8_t jump_to_bottom)
+void ServerBrowser::scroll_page_down(uint8_t jump_to_bottom)
 {
     int32_t (*const server_list_result_count_get)(void) = reinterpret_cast<int32_t (*)(void)>(&::server_list_result_count_get);
     int32_t old_offset;
@@ -2260,7 +2260,7 @@ after_clamp:
     }
 }
 
-void ServerBrowser::run_server_list_scroll_page_up(uint8_t jump_to_top)
+void ServerBrowser::scroll_page_up(uint8_t jump_to_top)
 {
     int32_t (*const server_list_result_count_get)(void) = reinterpret_cast<int32_t (*)(void)>(&::server_list_result_count_get);
     int32_t old_offset;
@@ -2298,17 +2298,17 @@ after_clamp:
 extern "C" {
 void game_variant_list_matching_substring(uint32_t argument_count, char **arguments)
 {
-    halo::networking::ServerBrowser::game_variant_list_matching_substring(argument_count, arguments);
+    halo::networking::ServerBrowser::matching_substring(argument_count, arguments);
 }
 
 int32_t join_game_server_browser_tick(network_ui_widget *browser_widget)
 {
-    return halo::networking::ServerBrowser::run_join_game_server_browser_tick(browser_widget);
+    return halo::networking::ServerBrowser::server_browser_tick(browser_widget);
 }
 
 void join_game_ticker_string_copy(uint16_t *buffer, int32_t capacity, int32_t string_index)
 {
-    halo::networking::ServerBrowser::run_join_game_ticker_string_copy(buffer, capacity, string_index);
+    halo::networking::ServerBrowser::ticker_string_copy(buffer, capacity, string_index);
 }
 
 void map_list_matching_substring(uint32_t argument_count, char **arguments)
@@ -2318,77 +2318,77 @@ void map_list_matching_substring(uint32_t argument_count, char **arguments)
 
 void server_browser_column_header_update(network_ui_widget *header, int32_t sort_direction)
 {
-    halo::networking::ServerBrowser::run_server_browser_column_header_update(header, sort_direction);
+    halo::networking::ServerBrowser::column_header_update(header, sort_direction);
 }
 
 char * server_browser_custom_options_pack(server_browser_custom_options *options)
 {
-    return halo::networking::ServerBrowser::server_browser_custom_options_pack(options);
+    return halo::networking::ServerBrowser::custom_options_pack(options);
 }
 
 void server_browser_custom_options_unpack(char *text, server_browser_custom_options *out)
 {
-    halo::networking::ServerBrowser::server_browser_custom_options_unpack(text, out);
+    halo::networking::ServerBrowser::custom_options_unpack(text, out);
 }
 
 void server_browser_filter_headers_refresh(network_ui_widget *row)
 {
-    halo::networking::ServerBrowser::run_server_browser_filter_headers_refresh(row);
+    halo::networking::ServerBrowser::filter_headers_refresh(row);
 }
 
 void server_browser_filter_panel_set_mode(network_ui_widget *panel, uint8_t internet_mode)
 {
-    halo::networking::ServerBrowser::server_browser_filter_panel_set_mode(panel, internet_mode);
+    halo::networking::ServerBrowser::filter_panel_set_mode(panel, internet_mode);
 }
 
 int32_t server_browser_filter_widget_clicked(network_ui_widget *clicked)
 {
-    return halo::networking::ServerBrowser::server_browser_filter_widget_clicked(clicked);
+    return halo::networking::ServerBrowser::filter_widget_clicked(clicked);
 }
 
 uint32_t server_browser_gametype1_flags_pack(server_browser_gametype1_options *options)
 {
-    return halo::networking::ServerBrowser::server_browser_gametype1_flags_pack(options);
+    return halo::networking::ServerBrowser::gametype1_flags_pack(options);
 }
 
 void server_browser_gametype1_flags_unpack(uint32_t code, server_browser_gametype1_decoded *out)
 {
-    halo::networking::ServerBrowser::server_browser_gametype1_flags_unpack(code, out);
+    halo::networking::ServerBrowser::gametype1_flags_unpack(code, out);
 }
 
 uint32_t server_browser_gametype2_flags_pack(uint8_t *flags)
 {
-    return halo::networking::ServerBrowser::server_browser_gametype2_flags_pack(flags);
+    return halo::networking::ServerBrowser::gametype2_flags_pack(flags);
 }
 
 uint32_t server_browser_gametype3_flags_pack(server_browser_gametype3_options *options)
 {
-    return halo::networking::ServerBrowser::server_browser_gametype3_flags_pack(options);
+    return halo::networking::ServerBrowser::gametype3_flags_pack(options);
 }
 
 void server_browser_gametype3_flags_unpack(uint32_t code, server_browser_gametype3_options *out)
 {
-    halo::networking::ServerBrowser::server_browser_gametype3_flags_unpack(code, out);
+    halo::networking::ServerBrowser::gametype3_flags_unpack(code, out);
 }
 
 uint32_t server_browser_gametype5_flags_pack(int32_t *values)
 {
-    return halo::networking::ServerBrowser::server_browser_gametype5_flags_pack(values);
+    return halo::networking::ServerBrowser::gametype5_flags_pack(values);
 }
 
 void server_browser_gametype5_flags_unpack(uint32_t code, int32_t *out)
 {
-    halo::networking::ServerBrowser::server_browser_gametype5_flags_unpack(code, out);
+    halo::networking::ServerBrowser::gametype5_flags_unpack(code, out);
 }
 
 void server_browser_latch_join_target(void)
 {
-    halo::networking::ServerBrowser::server_browser_latch_join_target();
+    halo::networking::ServerBrowser::latch_join_target();
 }
 
 void server_browser_list_row_gather(network_ui_widget *row, uint8_t flag, void *entry)
 {
-    halo::networking::ServerBrowser::run_server_browser_list_row_gather(row, flag, entry);
+    halo::networking::ServerBrowser::list_row_gather(row, flag, entry);
 }
 
 void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uint8_t flag2,
@@ -2396,127 +2396,127 @@ void server_browser_list_row_populate(network_ui_widget *row, uint8_t flag1, uin
                                         const char *gametype_name,
                                         uint8_t flag3, int32_t count_a, int32_t count_b, int32_t ping)
 {
-    halo::networking::ServerBrowser::run_server_browser_list_row_populate(row, flag1, flag2, server_name, map_name, gametype_name, flag3, count_a, count_b, ping);
+    halo::networking::ServerBrowser::list_row_populate(row, flag1, flag2, server_name, map_name, gametype_name, flag3, count_a, count_b, ping);
 }
 
 int32_t server_browser_open(network_ui_widget *root)
 {
-    return halo::networking::ServerBrowser::server_browser_open(root);
+    return halo::networking::ServerBrowser::open(root);
 }
 
 int32_t server_browser_player_list_populate(void *entry)
 {
-    return halo::networking::ServerBrowser::run_server_browser_player_list_populate(entry);
+    return halo::networking::ServerBrowser::player_list_populate(entry);
 }
 
 void server_browser_query_results_ingest(server_list_globals *list)
 {
-    halo::networking::ServerBrowser::run_server_browser_query_results_ingest(list);
+    halo::networking::ServerBrowser::query_results_ingest(list);
 }
 
 void server_browser_result_array_sort(server_list_globals *array)
 {
-    halo::networking::ServerBrowser::run_server_browser_result_array_sort(array);
+    halo::networking::ServerBrowser::result_array_sort(array);
 }
 
 int32_t server_browser_selected_variant_description_build(void *entry)
 {
-    return halo::networking::ServerBrowser::run_server_browser_selected_variant_description_build(entry);
+    return halo::networking::ServerBrowser::selected_variant_description_build(entry);
 }
 
 uint8_t server_browser_server_passes_filter(void *entry)
 {
-    return halo::networking::ServerBrowser::server_browser_server_passes_filter(entry);
+    return halo::networking::ServerBrowser::server_passes_filter(entry);
 }
 
 server_browser_sort_comparator server_browser_sort_comparator_select(void)
 {
-    return halo::networking::ServerBrowser::run_server_browser_sort_comparator_select();
+    return halo::networking::ServerBrowser::sort_comparator_select();
 }
 
 void server_browser_total_players_compute(server_list_globals *array)
 {
-    halo::networking::ServerBrowser::run_server_browser_total_players_compute(array);
+    halo::networking::ServerBrowser::total_players_compute(array);
 }
 
 void server_browser_ui_refresh(void)
 {
-    halo::networking::ServerBrowser::run_server_browser_ui_refresh();
+    halo::networking::ServerBrowser::ui_refresh();
 }
 
 int32_t server_list_compare_by_gametype(const void *a, const void *b)
 {
-    return halo::networking::ServerBrowser::run_server_list_compare_by_gametype(a, b);
+    return halo::networking::ServerBrowser::compare_by_gametype(a, b);
 }
 
 int32_t server_list_compare_by_hostname(const void *a, const void *b)
 {
-    return halo::networking::ServerBrowser::run_server_list_compare_by_hostname(a, b);
+    return halo::networking::ServerBrowser::compare_by_hostname(a, b);
 }
 
 int32_t server_list_compare_by_mapname(void **a, void **b)
 {
-    return halo::networking::ServerBrowser::run_server_list_compare_by_mapname(a, b);
+    return halo::networking::ServerBrowser::compare_by_mapname(a, b);
 }
 
 int32_t server_list_compare_by_mapname_then_hostname(void **a, void **b)
 {
-    return halo::networking::ServerBrowser::server_list_compare_by_mapname_then_hostname(a, b);
+    return halo::networking::ServerBrowser::compare_by_mapname_then_hostname(a, b);
 }
 
 int32_t server_list_compare_by_ping_then_hostname(void **a, void **b)
 {
-    return halo::networking::ServerBrowser::run_server_list_compare_by_ping_then_hostname(a, b);
+    return halo::networking::ServerBrowser::compare_by_ping_then_hostname(a, b);
 }
 
 int32_t server_list_compare_by_players(const void *a, const void *b)
 {
-    return halo::networking::ServerBrowser::run_server_list_compare_by_players(a, b);
+    return halo::networking::ServerBrowser::compare_by_players(a, b);
 }
 
 int32_t server_list_compare_by_string_key(void **a, void **b, const char *key)
 {
-    return halo::networking::ServerBrowser::run_server_list_compare_by_string_key(a, b, key);
+    return halo::networking::ServerBrowser::compare_by_string_key(a, b, key);
 }
 
 server_list_globals * server_list_mutex_try_lock(uint32_t timeout_ms)
 {
-    return halo::networking::ServerBrowser::run_server_list_mutex_try_lock(timeout_ms);
+    return halo::networking::ServerBrowser::mutex_try_lock(timeout_ms);
 }
 
 void server_list_mutex_unlock(server_list_globals **list_slot)
 {
-    halo::networking::ServerBrowser::server_list_mutex_unlock(list_slot);
+    halo::networking::ServerBrowser::mutex_unlock(list_slot);
 }
 
 void server_list_reset(uint8_t *entry)
 {
-    halo::networking::ServerBrowser::run_server_list_reset(entry);
+    halo::networking::ServerBrowser::reset(entry);
 }
 
 uint32_t server_list_result_count_get(void)
 {
-    return halo::networking::ServerBrowser::run_server_list_result_count_get();
+    return halo::networking::ServerBrowser::result_count_get();
 }
 
 void server_list_result_reset(uint8_t *entry)
 {
-    halo::networking::ServerBrowser::run_server_list_result_reset(entry);
+    halo::networking::ServerBrowser::result_reset(entry);
 }
 
 void server_list_scroll_clamp(server_list_globals *results)
 {
-    halo::networking::ServerBrowser::run_server_list_scroll_clamp(results);
+    halo::networking::ServerBrowser::scroll_clamp(results);
 }
 
 void server_list_scroll_page_down(uint8_t jump_to_bottom)
 {
-    halo::networking::ServerBrowser::run_server_list_scroll_page_down(jump_to_bottom);
+    halo::networking::ServerBrowser::scroll_page_down(jump_to_bottom);
 }
 
 void server_list_scroll_page_up(uint8_t jump_to_top)
 {
-    halo::networking::ServerBrowser::run_server_list_scroll_page_up(jump_to_top);
+    halo::networking::ServerBrowser::scroll_page_up(jump_to_top);
 }
 
 }

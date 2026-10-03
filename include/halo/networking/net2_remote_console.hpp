@@ -20,7 +20,7 @@ public:
      *
      * @address 0x4d8ed0
      */
-    static int8_t chimera__on_connect(const uint32_t *target_address, network_client_globals *client,
+    static int8_t on_connect(const uint32_t *target_address, network_client_globals *client,
                             const uint32_t *session_info);
 
     /**
@@ -28,14 +28,14 @@ public:
      *
      * @address 0x4e50c0
      */
-    static void chimera__rcon_out(char *text, int32_t unused_machine_id);
+    static void rcon_out(char *text, int32_t unused_machine_id);
 
     /**
      * 0x496b50, EAX color (NULL = default) Shared get/set implementation for boolean sv_* console commands: with no argument, reports the current value; with one, accepts "0"/"false" or "1"/"true" (case-insensitive, trimmed) and stores it through `value`, then reports the new value the same way.
      *
      * @address 0x4e2990
      */
-    static void console_command_bool_get_set(uint32_t argument_count, uint8_t *value, char **arguments, const char *name);
+    static void bool_get_set(uint32_t argument_count, uint8_t *value, char **arguments, const char *name);
 
     /**
      * 0x496b50, EAX color (NULL = default) Console command: packages the password (first argument) and the remaining arguments -- the rcon command bare, every argument after it individually quoted -- into one command line, and sends it to the server via rcon_send_request. Client-only; refuses on a dedicated/listen server, on fewer than 2 arguments, on a password outside 1-8 characters, or if the rebuilt command line would exceed 64 characters.
@@ -56,21 +56,21 @@ public:
      *
      * @address 0x577760
      */
-    static uint32_t registry_get_dist_id(void);
+    static uint32_t dist_id(void);
 
     /**
      * 0x006ef968 Reads the installed game's "Version" value from the Halo registry key and returns it as a string (empty if the key or value could not be read).
      *
      * @address 0x5776d0
      */
-    static char * registry_get_halo_version(void);
+    static char * halo_version(void);
 
     /**
      * 0x4ec450, outside this batch, elided args
      *
      * @address 0x4ddfb0
      */
-    static char update_server_send_update(uint32_t *tick_count, char frame_time_overflow);
+    static char send_update(uint32_t *tick_count, char frame_time_overflow);
 
 };
 

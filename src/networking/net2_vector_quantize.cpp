@@ -36,7 +36,7 @@ static real unsigned_int_to_float(int32_t value)
 
 namespace halo::networking {
 
-void VectorQuantizer::digital_throttle_decode_vector(real *out, uint32_t code)
+void VectorQuantizer::decode_vector(real *out, uint32_t code)
 {
     int32_t i;
     real length;
@@ -67,7 +67,7 @@ void VectorQuantizer::digital_throttle_decode_vector(real *out, uint32_t code)
     }
 }
 
-int32_t VectorQuantizer::digital_throttle_encode_vector(real_vector3d vector)
+int32_t VectorQuantizer::encode_vector(real_vector3d vector)
 {
     uint32_t code = vector.i > 0.0001f ? 1 : 0;
 
@@ -77,7 +77,7 @@ int32_t VectorQuantizer::digital_throttle_encode_vector(real_vector3d vector)
     return (int32_t)((code << 1) >> 1);
 }
 
-void VectorQuantizer::vector3d_from_yaw_pitch(real_vector3d *out_direction, real yaw, real pitch)
+void VectorQuantizer::from_yaw_pitch(real_vector3d *out_direction, real yaw, real pitch)
 {
     real sin_yaw, sin_pitch, cos_yaw, cos_pitch;
 
@@ -104,7 +104,7 @@ void VectorQuantizer::vector3d_from_yaw_pitch(real_vector3d *out_direction, real
     out_direction->k = cos_yaw;
 }
 
-void VectorQuantizer::vector3d_lerp_by_mode_denominator(vector3d_lerp_table *table, real_vector3d *out_point,
+void VectorQuantizer::lerp_by_mode_denominator(vector3d_lerp_table *table, real_vector3d *out_point,
     int32_t *ratios)
 {
     int32_t denom_field;
@@ -126,7 +126,7 @@ void VectorQuantizer::vector3d_lerp_by_mode_denominator(vector3d_lerp_table *tab
     out_point->k = (table->maximum - table->minimum) * (numerator / denom) + table->minimum;
 }
 
-void VectorQuantizer::run_vector3d_quantize(int32_t *out_indices, int32_t *descriptor, real *point)
+void VectorQuantizer::quantize(int32_t *out_indices, int32_t *descriptor, real *point)
 {
     uint32_t &message_delta_vector3d_mode = reinterpret_cast<uint32_t &>(::message_delta_vector3d_mode);
     uint32_t levels = message_delta_vector3d_mode != 0 ? (uint32_t)descriptor[3] : (uint32_t)descriptor[5];
@@ -138,7 +138,7 @@ void VectorQuantizer::run_vector3d_quantize(int32_t *out_indices, int32_t *descr
     out_indices[2] = (int32_t)message_delta_quantize_float_to_int(levels, point[2], minimum, maximum);
 }
 
-void VectorQuantizer::vector3d_to_angles(real *out, real_vector3d vector)
+void VectorQuantizer::to_angles(real *out, real_vector3d vector)
 {
     vector3d_normalize_with_length(&vector);
     if (!(vector.i > 0.0001f) && !(vector.i != vector.i) && !(vector.i < -0.0001f)) {
@@ -153,7 +153,7 @@ void VectorQuantizer::vector3d_to_angles(real *out, real_vector3d vector)
     out[0] = (real)acos(vector.k);
 }
 
-uint8_t VectorQuantizer::waypoint_table_quantize_initialize(message_delta_field_type *field_type)
+uint8_t VectorQuantizer::quantize_initialize(message_delta_field_type *field_type)
 {
     int32_t *descriptor = (int32_t *)field_type->array_descriptor;
     int32_t i;
@@ -182,38 +182,38 @@ uint8_t VectorQuantizer::waypoint_table_quantize_initialize(message_delta_field_
 extern "C" {
 void digital_throttle_decode_vector(real *out, uint32_t code)
 {
-    halo::networking::VectorQuantizer::digital_throttle_decode_vector(out, code);
+    halo::networking::VectorQuantizer::decode_vector(out, code);
 }
 
 int32_t digital_throttle_encode_vector(real_vector3d vector)
 {
-    return halo::networking::VectorQuantizer::digital_throttle_encode_vector(vector);
+    return halo::networking::VectorQuantizer::encode_vector(vector);
 }
 
 void vector3d_from_yaw_pitch(real_vector3d *out_direction, real yaw, real pitch)
 {
-    halo::networking::VectorQuantizer::vector3d_from_yaw_pitch(out_direction, yaw, pitch);
+    halo::networking::VectorQuantizer::from_yaw_pitch(out_direction, yaw, pitch);
 }
 
 void vector3d_lerp_by_mode_denominator(vector3d_lerp_table *table, real_vector3d *out_point,
     int32_t *ratios)
 {
-    halo::networking::VectorQuantizer::vector3d_lerp_by_mode_denominator(table, out_point, ratios);
+    halo::networking::VectorQuantizer::lerp_by_mode_denominator(table, out_point, ratios);
 }
 
 void vector3d_quantize(int32_t *out_indices, int32_t *descriptor, real *point)
 {
-    halo::networking::VectorQuantizer::run_vector3d_quantize(out_indices, descriptor, point);
+    halo::networking::VectorQuantizer::quantize(out_indices, descriptor, point);
 }
 
 void vector3d_to_angles(real *out, real_vector3d vector)
 {
-    halo::networking::VectorQuantizer::vector3d_to_angles(out, vector);
+    halo::networking::VectorQuantizer::to_angles(out, vector);
 }
 
 uint8_t waypoint_table_quantize_initialize(message_delta_field_type *field_type)
 {
-    return halo::networking::VectorQuantizer::waypoint_table_quantize_initialize(field_type);
+    return halo::networking::VectorQuantizer::quantize_initialize(field_type);
 }
 
 }

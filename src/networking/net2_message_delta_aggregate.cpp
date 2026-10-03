@@ -5,6 +5,7 @@
 #include "message_delta_codec.h"
 #include <stdint.h>
 #include "halo/networking/net2_message_delta_aggregate.hpp"
+#include "halo/networking/field_codec.hpp"
 
 extern "C" {
 extern uint32_t bit_stream_read_bit(uint8_t *out_bit, bit_stream *stream);
@@ -249,7 +250,7 @@ int32_t AggregateFieldCodec::compound_compute_size(message_delta_field_type *fie
     int32_t i;
 
     for (i = 0; i < list->count; i++) {
-        int32_t bits = MESSAGE_DELTA_COMPUTE_SIZE(list->fields[i].field_type);
+        int32_t bits = FieldCodecRegistry::get(list->fields[i].field_type).compute_size();
 
         total += bits;
         list->fields[i].field_type->size_bits = bits;
@@ -267,8 +268,7 @@ int32_t AggregateFieldCodec::compound_decode(message_delta_field_type *field_typ
 
     if (previous == 0) {
         for (i = 0; i < list->count; i++) {
-            total += MESSAGE_DELTA_DECODE(list->fields[i].field_type, 0,
-                (uint8_t *)current + list->fields[i].destination_offset, stream);
+            total += FieldCodecRegistry::get(list->fields[i].field_type).decode(0, (uint8_t *)current + list->fields[i].destination_offset, stream);
         }
         return total;
     }
@@ -283,8 +283,7 @@ int32_t AggregateFieldCodec::compound_decode(message_delta_field_type *field_typ
         bit_stream_read_bit(&changed, stream);
         message_delta_stream_seek(stream, stream->first_bit, data);
         if (changed) {
-            total += MESSAGE_DELTA_DECODE(binding->field_type, (uint8_t *)previous + binding->source_offset,
-                (uint8_t *)current + binding->destination_offset, stream);
+            total += FieldCodecRegistry::get(binding->field_type).decode((uint8_t *)previous + binding->source_offset, (uint8_t *)current + binding->destination_offset, stream);
         }
         flag++;
     }
@@ -297,7 +296,7 @@ int32_t AggregateFieldCodec::compound_decode(message_delta_field_type *field_typ
 uint8_t AggregateFieldCodec::compound_initialize(message_delta_field_type *field_type)
 {
     message_delta_array_field_list *list = (message_delta_array_field_list *)field_type->array_descriptor;
-    uint8_t result = message_delta_field_type_table[9].kind_flag != 1;
+    uint8_t result = FieldCodecRegistry::kind_flag(9) != 1;
     int32_t i;
 
     if (list->count <= 0) {
@@ -309,7 +308,7 @@ uint8_t AggregateFieldCodec::compound_initialize(message_delta_field_type *field
         if (binding == 0 || binding->field_type == 0) {
             return 0;
         }
-        result = MESSAGE_DELTA_INITIALIZE(binding->field_type);
+        result = FieldCodecRegistry::get(binding->field_type).initialize();
         if (result != 1) {
             return 0;
         }
@@ -681,7 +680,7 @@ int32_t AggregateFieldCodec::structure_array_compute_size(message_delta_field_ty
 {
     message_delta_array_descriptor *descriptor = (message_delta_array_descriptor *)field_type->array_descriptor;
     int32_t count = descriptor->count;
-    int32_t element_bits = MESSAGE_DELTA_COMPUTE_SIZE(descriptor->field_type);
+    int32_t element_bits = FieldCodecRegistry::get(descriptor->field_type).compute_size();
 
     descriptor->field_type->size_bits = element_bits;
     field_type->reserved_bits = count;
@@ -698,8 +697,7 @@ int32_t AggregateFieldCodec::structure_array_encode(message_delta_field_type *fi
 
     if (previous == 0) {
         for (i = 0; i < descriptor->count; i++) {
-            total += MESSAGE_DELTA_ENCODE(descriptor->field_type, 0, (uint8_t *)current + descriptor->element_size * i,
-                stream);
+            total += FieldCodecRegistry::get(descriptor->field_type).encode(0, (uint8_t *)current + descriptor->element_size * i, stream);
         }
         return total;
     }
@@ -708,8 +706,7 @@ int32_t AggregateFieldCodec::structure_array_encode(message_delta_field_type *fi
     flag = block;
     for (i = 0; i < descriptor->count; i++) {
         int32_t offset = descriptor->element_size * i;
-        int32_t bits = MESSAGE_DELTA_ENCODE(descriptor->field_type, (uint8_t *)previous + offset,
-            (uint8_t *)current + offset, stream);
+        int32_t bits = FieldCodecRegistry::get(descriptor->field_type).encode((uint8_t *)previous + offset, (uint8_t *)current + offset, stream);
         int32_t data;
 
         total += bits;
@@ -733,7 +730,7 @@ uint8_t AggregateFieldCodec::structure_array_initialize(message_delta_field_type
     if (descriptor->count <= 0 || descriptor->element_size <= 0 || descriptor->field_type == 0) {
         return 0;
     }
-    return MESSAGE_DELTA_INITIALIZE(descriptor->field_type) == 1;
+    return FieldCodecRegistry::get(descriptor->field_type).initialize() == 1;
 }
 
 }  // namespace halo::networking

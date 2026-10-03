@@ -20,28 +20,28 @@ public:
      *
      * @address 0x4e81e0
      */
-    static int32_t build_local_player_position_update(uint8_t *out_changed, player *plr);
+    static int32_t local_player_position_update(uint8_t *out_changed, player *plr);
 
     /**
      * this module, 0x4e7f90 If plr's queued vehicle-ack sequence number is valid (0..63), stages a local_player_vehicle_update_ack from plr's cached fields and plr's vehicle object's transform, and, unless the previous ack is still within the resend interval, encodes and logs a rate-limited message-0x24 acknowledgement. Returns the encoded message size, or 0 if nothing was sent.
      *
      * @address 0x4e82f0
      */
-    static int32_t build_local_player_vehicle_update(uint8_t *out_changed, player *plr);
+    static int32_t local_player_vehicle_update(uint8_t *out_changed, player *plr);
 
     /**
      * 0x4e1930 Re-encodes and sends player_index's three cached broadcast records (message 0x25's action staging at cache+0x130, 0x27's staging at cache+0x170, and 0x28's staging at cache+0x188) as three fresh baseline (non-delta) messages to machine 1, likely to resync a newly joined client.
      *
      * @address 0x4e7d90
      */
-    static void build_player_full_resync_update(uint32_t player_index);
+    static void player_full_resync_update(uint32_t player_index);
 
     /**
      * 0x4e1930 Builds a message-0x25 (remote-player orientation/action) update for player_index's broadcast cache from control, rate-limiting or staging it exactly as the vehicle-update siblings do, then (depending on network_broadcast_event_feed_mode) either queues it into the event feed or encodes and broadcasts it immediately to every other connected, established machine.
      *
      * @address 0x4e7890
      */
-    static void run_build_remote_player_action_update(uint32_t player_index, uint32_t network_key,
+    static void remote_player_action_update(uint32_t player_index, uint32_t network_key,
     uint8_t update_id_byte, player_action control);
 
     /**
@@ -49,7 +49,7 @@ public:
      *
      * @address 0x4e7b50
      */
-    static void build_remote_player_transform_update(uint32_t player_index, player_action *control,
+    static void remote_player_transform_update(uint32_t player_index, player_action *control,
     int32_t network_key);
 
     /**
@@ -57,7 +57,7 @@ public:
      *
      * @address 0x4e86f0
      */
-    static void run_build_remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t update_id,
+    static void remote_player_vehicle_attachment_update(uint8_t *cache, uint8_t update_id,
     uint8_t flags, char is_full, player_action *control, int32_t network_key);
 
     /**
@@ -65,7 +65,7 @@ public:
      *
      * @address 0x4e84d0
      */
-    static void run_build_remote_player_vehicle_update(uint8_t *cache, uint8_t update_id, uint8_t flags,
+    static void remote_player_vehicle_update(uint8_t *cache, uint8_t update_id, uint8_t flags,
     char is_full, player_action *control, int32_t network_key);
 
     /**

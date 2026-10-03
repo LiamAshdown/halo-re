@@ -81,7 +81,7 @@ typedef struct rcon_request_record {
 
 namespace halo::networking {
 
-int8_t RemoteConsole::chimera__on_connect(const uint32_t *target_address, network_client_globals *client,
+int8_t RemoteConsole::on_connect(const uint32_t *target_address, network_client_globals *client,
                             const uint32_t *session_info)
 {
     network_connection_attempt_state *attempt;
@@ -156,7 +156,7 @@ retry_limit_check:
     return 0;
 }
 
-void RemoteConsole::chimera__rcon_out(char *text, int32_t unused_machine_id)
+void RemoteConsole::rcon_out(char *text, int32_t unused_machine_id)
 {
     char buf[81];
     void *fields[2];
@@ -172,7 +172,7 @@ void RemoteConsole::chimera__rcon_out(char *text, int32_t unused_machine_id)
     }
 }
 
-void RemoteConsole::console_command_bool_get_set(uint32_t argument_count, uint8_t *value, char **arguments, const char *name)
+void RemoteConsole::bool_get_set(uint32_t argument_count, uint8_t *value, char **arguments, const char *name)
 {
     char buffer[256];
     char *cursor;
@@ -292,7 +292,7 @@ void RemoteConsole::run_rcon_send_request(char *command, char *password)
     }
 }
 
-uint32_t RemoteConsole::registry_get_dist_id(void)
+uint32_t RemoteConsole::dist_id(void)
 {
     uint32_t dist_id = 0;
     uint32_t size = 4;
@@ -308,7 +308,7 @@ uint32_t RemoteConsole::registry_get_dist_id(void)
     return dist_id;
 }
 
-char * RemoteConsole::registry_get_halo_version(void)
+char * RemoteConsole::halo_version(void)
 {
     void *key;
     int32_t i;
@@ -334,7 +334,7 @@ char * RemoteConsole::registry_get_halo_version(void)
     return registry_halo_version_buffer;
 }
 
-char RemoteConsole::update_server_send_update(uint32_t *tick_count, char frame_time_overflow)
+char RemoteConsole::send_update(uint32_t *tick_count, char frame_time_overflow)
 {
     char result;
     char flush_ok;
@@ -461,17 +461,17 @@ extern "C" {
 int8_t chimera__on_connect(const uint32_t *target_address, network_client_globals *client,
                             const uint32_t *session_info)
 {
-    return halo::networking::RemoteConsole::chimera__on_connect(target_address, client, session_info);
+    return halo::networking::RemoteConsole::on_connect(target_address, client, session_info);
 }
 
 void chimera__rcon_out(char *text, int32_t unused_machine_id)
 {
-    halo::networking::RemoteConsole::chimera__rcon_out(text, unused_machine_id);
+    halo::networking::RemoteConsole::rcon_out(text, unused_machine_id);
 }
 
 void console_command_bool_get_set(uint32_t argument_count, uint8_t *value, char **arguments, const char *name)
 {
-    halo::networking::RemoteConsole::console_command_bool_get_set(argument_count, value, arguments, name);
+    halo::networking::RemoteConsole::bool_get_set(argument_count, value, arguments, name);
 }
 
 void rcon(int32_t argument_count, char **arguments)
@@ -486,17 +486,17 @@ void rcon_send_request(char *command, char *password)
 
 uint32_t registry_get_dist_id(void)
 {
-    return halo::networking::RemoteConsole::registry_get_dist_id();
+    return halo::networking::RemoteConsole::dist_id();
 }
 
 char * registry_get_halo_version(void)
 {
-    return halo::networking::RemoteConsole::registry_get_halo_version();
+    return halo::networking::RemoteConsole::halo_version();
 }
 
 char update_server_send_update(uint32_t *tick_count, char frame_time_overflow)
 {
-    return halo::networking::RemoteConsole::update_server_send_update(tick_count, frame_time_overflow);
+    return halo::networking::RemoteConsole::send_update(tick_count, frame_time_overflow);
 }
 
 }

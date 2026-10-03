@@ -8,6 +8,7 @@
 #include "game.h"
 #include "networking.h"
 #include "halo/networking/net2_message_delta_driver.hpp"
+#include "halo/networking/field_codec.hpp"
 
 extern "C" {
 extern message_delta_definition * message_delta_definitions[56];
@@ -515,7 +516,7 @@ void DeltaMessageDriver::field_bindings_invoke(message_delta_static_fields *list
             if (binding->destination_offset == 0 && binding->source_offset == 0 && binding->field_type == 0) {
                 return;
             }
-            message_delta_field_type_table[*(int32_t *)binding->field_type].initialize(binding->field_type);
+            FieldCodecRegistry::get(binding->field_type).initialize();
         }
     }
 }
@@ -547,9 +548,9 @@ uint8_t DeltaMessageDriver::field_bindings_lazy_init(message_delta_static_fields
                 field_type = binding->field_type;
                 type_flag = (uint8_t *)field_type + 0x64;
                 if (*type_flag == 0) {
-                    message_delta_field_type_table[*(int32_t *)field_type].initialize((message_delta_field_type *)field_type);
+                    FieldCodecRegistry::get((message_delta_field_type *)field_type).initialize();
                     *(int32_t *)((uint8_t *)field_type + 0x5c) =
-                        message_delta_field_type_table[*(int32_t *)field_type].compute_size((message_delta_field_type *)field_type);
+                        FieldCodecRegistry::get((message_delta_field_type *)field_type).compute_size();
                     *type_flag = 1;
                 }
                 *binding_flag = 1;
@@ -579,7 +580,7 @@ void DeltaMessageDriver::field_bindings_teardown(message_delta_static_fields *li
             if (*binding_flag == 1) {
                 type_flag = (uint8_t *)binding->field_type + 0x64;
                 if (*type_flag == 1) {
-                    message_delta_field_type_table[*(int32_t *)binding->field_type].teardown(binding->field_type);
+                    FieldCodecRegistry::get(binding->field_type).teardown();
                     *type_flag = 0;
                 }
                 *binding_flag = 0;

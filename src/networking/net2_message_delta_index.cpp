@@ -5,6 +5,7 @@
 #include "message_delta_codec.h"
 #include "win32.h"
 #include "halo/networking/net2_message_delta_index.hpp"
+#include "halo/networking/field_codec.hpp"
 
 extern "C" {
 extern uint8_t message_delta_item_count_bits[];
@@ -175,7 +176,7 @@ uint8_t IndexFieldCodec::index_initialize(message_delta_field_type *field_type)
 
 void IndexFieldCodec::index_teardown(message_delta_field_type *field_type)
 {
-    int32_t *descriptor = message_delta_field_type_table[13].kind_flag == 1 ? (int32_t *)field_type->array_descriptor : 0;
+    int32_t *descriptor = FieldCodecRegistry::kind_flag(13) == 1 ? (int32_t *)field_type->array_descriptor : 0;
 
     GlobalFree((void *)descriptor[10]);
     hash_table_dispose((hash_table *)(descriptor + 3));
@@ -258,7 +259,7 @@ uint8_t IndexFieldCodec::item_placement_initialize(message_delta_field_type *fie
 int32_t IndexFieldCodec::pointer_compute_size(message_delta_field_type *field_type)
 {
     message_delta_field_type **descriptor = (message_delta_field_type **)field_type->array_descriptor;
-    int32_t bits = MESSAGE_DELTA_COMPUTE_SIZE(descriptor[0]);
+    int32_t bits = FieldCodecRegistry::get(descriptor[0]).compute_size();
 
     descriptor[0]->size_bits = bits;
     return bits;
@@ -269,7 +270,7 @@ int32_t IndexFieldCodec::pointer_decode(message_delta_field_type *field_type, vo
     message_delta_field_type *pointed = *(message_delta_field_type **)field_type->array_descriptor;
     void *previous_value = previous != 0 ? *(void **)previous : 0;
 
-    return MESSAGE_DELTA_DECODE(pointed, previous_value, *(void **)current, stream);
+    return FieldCodecRegistry::get(pointed).decode(previous_value, *(void **)current, stream);
 }
 
 int32_t IndexFieldCodec::pointer_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
@@ -277,7 +278,7 @@ int32_t IndexFieldCodec::pointer_encode(message_delta_field_type *field_type, vo
     message_delta_field_type *pointed = *(message_delta_field_type **)field_type->array_descriptor;
     void *previous_value = previous != 0 ? *(void **)previous : 0;
 
-    return MESSAGE_DELTA_ENCODE(pointed, previous_value, *(void **)current, stream);
+    return FieldCodecRegistry::get(pointed).encode(previous_value, *(void **)current, stream);
 }
 
 uint8_t IndexFieldCodec::pointer_initialize(message_delta_field_type *field_type)
@@ -287,7 +288,7 @@ uint8_t IndexFieldCodec::pointer_initialize(message_delta_field_type *field_type
     if (pointed == 0) {
         return 0;
     }
-    return MESSAGE_DELTA_INITIALIZE(pointed) == 1;
+    return FieldCodecRegistry::get(pointed).initialize() == 1;
 }
 
 int32_t IndexFieldCodec::range_compute_size(message_delta_field_type *field_type)

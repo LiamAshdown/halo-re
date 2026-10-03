@@ -70,7 +70,7 @@ void player_update_remote_player_action_update_apply(int32_t **decode_context);
 
 namespace halo::networking {
 
-int32_t PlayerUpdateHistory::player_data_iterator_advance(int16_t step_count)
+int32_t PlayerUpdateHistory::advance(int16_t step_count)
 {
     data_iterator iter;
     void *element;
@@ -93,7 +93,7 @@ int32_t PlayerUpdateHistory::player_data_iterator_advance(int16_t step_count)
     return -1;
 }
 
-uint8_t PlayerUpdateHistory::history_add(datum_index unit_index, player_update_history *history,
+uint8_t PlayerUpdateHistory::add(datum_index unit_index, player_update_history *history,
     int32_t tick_count, player_action control, int32_t *out_update_id)
 {
     player_update_history_node *node;
@@ -217,7 +217,7 @@ uint8_t PlayerUpdateHistory::history_add(datum_index unit_index, player_update_h
     return 1;
 }
 
-void PlayerUpdateHistory::history_destroy(player_update_history *history)
+void PlayerUpdateHistory::destroy(player_update_history *history)
 {
     player_update_history_node *node;
     player_update_history_node *next;
@@ -233,7 +233,7 @@ void PlayerUpdateHistory::history_destroy(player_update_history *history)
     GlobalFree(history);
 }
 
-player_update_history_node * PlayerUpdateHistory::history_find_and_prune(player_update_history *history,
+player_update_history_node * PlayerUpdateHistory::find_and_prune(player_update_history *history,
     int32_t target_id, uint8_t prune)
 {
     player_update_history_node *node;
@@ -277,7 +277,7 @@ player_update_history_node * PlayerUpdateHistory::history_find_and_prune(player_
     return after_match;
 }
 
-void PlayerUpdateHistory::history_free_all(player_update_history *history)
+void PlayerUpdateHistory::free_all(player_update_history *history)
 {
     player_update_history_node *node;
     player_update_history_node *next;
@@ -292,7 +292,7 @@ void PlayerUpdateHistory::history_free_all(player_update_history *history)
     history->tail = 0;
 }
 
-void PlayerUpdateHistory::history_log_set_name_filter(char *name)
+void PlayerUpdateHistory::log_set_name_filter(char *name)
 {
     int32_t length;
     int32_t i;
@@ -309,7 +309,7 @@ void PlayerUpdateHistory::history_log_set_name_filter(char *name)
     }
 }
 
-int32_t PlayerUpdateHistory::history_play(uint8_t prune, int32_t prune_target_id,
+int32_t PlayerUpdateHistory::play(uint8_t prune, int32_t prune_target_id,
     player_update_history *history, datum_index unit_index, float server_x, float server_y,
     float server_z, local_player_vehicle_update_ack *vehicle_ack)
 {
@@ -512,7 +512,7 @@ int32_t PlayerUpdateHistory::history_play(uint8_t prune, int32_t prune_target_id
     return result;
 }
 
-void PlayerUpdateHistory::history_play_for_update_index(datum_index player_index)
+void PlayerUpdateHistory::play_for_update_index(datum_index player_index)
 {
     player *plr;
 
@@ -522,7 +522,7 @@ void PlayerUpdateHistory::history_play_for_update_index(datum_index player_index
 
 }
 
-void PlayerUpdateHistory::history_play_local_player(int32_t target_update_id)
+void PlayerUpdateHistory::play_local_player(int32_t target_update_id)
 {
     void (*const player_update_history_play)(uint8_t prune, int32_t prune_target_id,
     player_update_history *history, datum_index unit_index, float server_x, float server_y,
@@ -575,7 +575,7 @@ void PlayerUpdateHistory::history_play_local_player(int32_t target_update_id)
     }
 }
 
-void PlayerUpdateHistory::queue_flush_by_name(char *name)
+void PlayerUpdateHistory::flush_by_name(char *name)
 {
     uint16_t filter_name[0x400];
     int32_t length;
@@ -613,7 +613,7 @@ void PlayerUpdateHistory::queue_flush_by_name(char *name)
     }
 }
 
-int32_t PlayerUpdateHistory::queue_offset_from_head(player *plr, int32_t new_update_id)
+int32_t PlayerUpdateHistory::offset_from_head(player *plr, int32_t new_update_id)
 {
     circular_queue *queue;
     int32_t used;
@@ -758,61 +758,61 @@ void player_update_history_log_write(uint32_t category_flags, int32_t use_filter
 
 int32_t player_data_iterator_advance(int16_t step_count)
 {
-    return halo::networking::PlayerUpdateHistory::player_data_iterator_advance(step_count);
+    return halo::networking::PlayerUpdateHistory::advance(step_count);
 }
 
 uint8_t player_update_history_add(datum_index unit_index, player_update_history *history,
     int32_t tick_count, player_action control, int32_t *out_update_id)
 {
-    return halo::networking::PlayerUpdateHistory::history_add(unit_index, history, tick_count, control, out_update_id);
+    return halo::networking::PlayerUpdateHistory::add(unit_index, history, tick_count, control, out_update_id);
 }
 
 void player_update_history_destroy(player_update_history *history)
 {
-    halo::networking::PlayerUpdateHistory::history_destroy(history);
+    halo::networking::PlayerUpdateHistory::destroy(history);
 }
 
 player_update_history_node * player_update_history_find_and_prune(player_update_history *history,
     int32_t target_id, uint8_t prune)
 {
-    return halo::networking::PlayerUpdateHistory::history_find_and_prune(history, target_id, prune);
+    return halo::networking::PlayerUpdateHistory::find_and_prune(history, target_id, prune);
 }
 
 void player_update_history_free_all(player_update_history *history)
 {
-    halo::networking::PlayerUpdateHistory::history_free_all(history);
+    halo::networking::PlayerUpdateHistory::free_all(history);
 }
 
 void player_update_history_log_set_name_filter(char *name)
 {
-    halo::networking::PlayerUpdateHistory::history_log_set_name_filter(name);
+    halo::networking::PlayerUpdateHistory::log_set_name_filter(name);
 }
 
 int32_t player_update_history_play(uint8_t prune, int32_t prune_target_id,
     player_update_history *history, datum_index unit_index, float server_x, float server_y,
     float server_z, local_player_vehicle_update_ack *vehicle_ack)
 {
-    return halo::networking::PlayerUpdateHistory::history_play(prune, prune_target_id, history, unit_index, server_x, server_y, server_z, vehicle_ack);
+    return halo::networking::PlayerUpdateHistory::play(prune, prune_target_id, history, unit_index, server_x, server_y, server_z, vehicle_ack);
 }
 
 void player_update_history_play_for_update_index(datum_index player_index)
 {
-    halo::networking::PlayerUpdateHistory::history_play_for_update_index(player_index);
+    halo::networking::PlayerUpdateHistory::play_for_update_index(player_index);
 }
 
 void player_update_history_play_local_player(int32_t target_update_id)
 {
-    halo::networking::PlayerUpdateHistory::history_play_local_player(target_update_id);
+    halo::networking::PlayerUpdateHistory::play_local_player(target_update_id);
 }
 
 void player_update_queue_flush_by_name(char *name)
 {
-    halo::networking::PlayerUpdateHistory::queue_flush_by_name(name);
+    halo::networking::PlayerUpdateHistory::flush_by_name(name);
 }
 
 int32_t player_update_queue_offset_from_head(player *plr, int32_t new_update_id)
 {
-    return halo::networking::PlayerUpdateHistory::queue_offset_from_head(plr, new_update_id);
+    return halo::networking::PlayerUpdateHistory::offset_from_head(plr, new_update_id);
 }
 
 void player_update_remote_player_action_update_apply(int32_t **decode_context)

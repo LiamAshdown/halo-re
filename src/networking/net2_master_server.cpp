@@ -66,17 +66,17 @@ uint32_t __stdcall sig__setup_master_server_connection_sig(void *parameter);
 
 namespace halo::networking {
 
-int32_t MasterServerConnection::run_gamespy_array_length(void *array)
+int32_t MasterServerConnection::array_length(void *array)
 {
     return *(int32_t *)array;
 }
 
-void * MasterServerConnection::run_gamespy_array_nth(void *array, int32_t index)
+void * MasterServerConnection::array_nth(void *array, int32_t index)
 {
     return *(uint8_t **)((uint8_t *)array + 0x14) + index * *(int32_t *)((uint8_t *)array + 0x08);
 }
 
-void MasterServerConnection::gamespy_think_all(void)
+void MasterServerConnection::think_all(void)
 {
     int32_t i;
 
@@ -88,7 +88,7 @@ void MasterServerConnection::gamespy_think_all(void)
     }
 }
 
-int32_t MasterServerConnection::master_server_connection_start(void)
+int32_t MasterServerConnection::connection_start(void)
 {
     int32_t mutex_ok;
     int32_t thread_ok;
@@ -114,7 +114,7 @@ int32_t MasterServerConnection::master_server_connection_start(void)
     return 0;
 }
 
-void MasterServerConnection::master_server_connection_wait_thread(void)
+void MasterServerConnection::connection_wait_thread(void)
 {
     int32_t exited;
     uint32_t exit_code;
@@ -146,7 +146,7 @@ void MasterServerConnection::master_server_connection_wait_thread(void)
     server_list_mutex = 0;
 }
 
-void MasterServerConnection::master_server_ensure_list_connection(void)
+void MasterServerConnection::ensure_list_connection(void)
 {
     int32_t state;
     int32_t connect_result;
@@ -169,7 +169,7 @@ void MasterServerConnection::master_server_ensure_list_connection(void)
     }
 }
 
-void MasterServerConnection::run_master_server_list_refresh_request(void)
+void MasterServerConnection::list_refresh_request(void)
 {
     large_integer counter;
     int32_t now_ms;
@@ -181,7 +181,7 @@ void MasterServerConnection::run_master_server_list_refresh_request(void)
     DAT_00719488 = 1;
 }
 
-void MasterServerConnection::run_master_server_process_pending_requests(void)
+void MasterServerConnection::process_pending_requests(void)
 {
     uint32_t flags;
     int32_t last_result;
@@ -262,14 +262,14 @@ void MasterServerConnection::run_master_server_process_pending_requests(void)
     }
 }
 
-void MasterServerConnection::qr2_register_key(int32_t keyid, const char *key)
+void MasterServerConnection::register_key(int32_t keyid, const char *key)
 {
     if (keyid >= 50 && keyid <= 254) {
         qr2_registered_key_list[keyid] = key;
     }
 }
 
-uint32_t __stdcall MasterServerConnection::run_sig__setup_master_server_connection_sig(void *parameter)
+uint32_t __stdcall MasterServerConnection::setup_master_server_connection_sig(void *parameter)
 {
     (void)parameter;
     server_browser_join_requested = 1;
@@ -293,52 +293,52 @@ uint32_t __stdcall MasterServerConnection::run_sig__setup_master_server_connecti
 extern "C" {
 int32_t gamespy_array_length(void *array)
 {
-    return halo::networking::MasterServerConnection::run_gamespy_array_length(array);
+    return halo::networking::MasterServerConnection::array_length(array);
 }
 
 void * gamespy_array_nth(void *array, int32_t index)
 {
-    return halo::networking::MasterServerConnection::run_gamespy_array_nth(array, index);
+    return halo::networking::MasterServerConnection::array_nth(array, index);
 }
 
 void gamespy_think_all(void)
 {
-    halo::networking::MasterServerConnection::gamespy_think_all();
+    halo::networking::MasterServerConnection::think_all();
 }
 
 int32_t master_server_connection_start(void)
 {
-    return halo::networking::MasterServerConnection::master_server_connection_start();
+    return halo::networking::MasterServerConnection::connection_start();
 }
 
 void master_server_connection_wait_thread(void)
 {
-    halo::networking::MasterServerConnection::master_server_connection_wait_thread();
+    halo::networking::MasterServerConnection::connection_wait_thread();
 }
 
 void master_server_ensure_list_connection(void)
 {
-    halo::networking::MasterServerConnection::master_server_ensure_list_connection();
+    halo::networking::MasterServerConnection::ensure_list_connection();
 }
 
 void master_server_list_refresh_request(void)
 {
-    halo::networking::MasterServerConnection::run_master_server_list_refresh_request();
+    halo::networking::MasterServerConnection::list_refresh_request();
 }
 
 void master_server_process_pending_requests(void)
 {
-    halo::networking::MasterServerConnection::run_master_server_process_pending_requests();
+    halo::networking::MasterServerConnection::process_pending_requests();
 }
 
 void qr2_register_key(int32_t keyid, const char *key)
 {
-    halo::networking::MasterServerConnection::qr2_register_key(keyid, key);
+    halo::networking::MasterServerConnection::register_key(keyid, key);
 }
 
 uint32_t __stdcall sig__setup_master_server_connection_sig(void *parameter)
 {
-    return halo::networking::MasterServerConnection::run_sig__setup_master_server_connection_sig(parameter);
+    return halo::networking::MasterServerConnection::setup_master_server_connection_sig(parameter);
 }
 
 }

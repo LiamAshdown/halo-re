@@ -37,7 +37,7 @@ void string_trim_whitespace(char **string_ptr);
 
 namespace halo::networking {
 
-int32_t NetworkUtil::dynamic_pointer_array_add_unique(void *value, server_list_globals *array)
+int32_t NetworkUtil::add_unique(void *value, server_list_globals *array)
 {
     int32_t index;
 
@@ -84,7 +84,7 @@ int32_t NetworkUtil::dynamic_pointer_array_add_unique(void *value, server_list_g
     return 1;
 }
 
-int32_t NetworkUtil::dynamic_pointer_array_find_index(server_list_globals *array, void *value)
+int32_t NetworkUtil::find_index(server_list_globals *array, void *value)
 {
     int32_t index = -1;
 
@@ -103,7 +103,7 @@ int32_t NetworkUtil::dynamic_pointer_array_find_index(server_list_globals *array
     return index;
 }
 
-void NetworkUtil::dynamic_pointer_array_remove_at(int32_t index, server_list_globals *array)
+void NetworkUtil::remove_at(int32_t index, server_list_globals *array)
 {
     if (index < array->result_count - 1) {
         void **dst = array->list + index;
@@ -113,7 +113,7 @@ void NetworkUtil::dynamic_pointer_array_remove_at(int32_t index, server_list_glo
     array->result_count = array->result_count - 1;
 }
 
-void NetworkUtil::format_local_time_and_date(char *date_dest, int32_t max_len, int32_t time_value, char *time_dest)
+void NetworkUtil::local_time_and_date(char *date_dest, int32_t max_len, int32_t time_value, char *time_dest)
 {
     time_t t = time_value;
     struct tm zero_tm;
@@ -135,7 +135,7 @@ void NetworkUtil::format_local_time_and_date(char *date_dest, int32_t max_len, i
     format_time_and_date_strings(date_dest, tm_now, max_len, time_dest);
 }
 
-void NetworkUtil::run_format_time_and_date_strings(char *date_dest, struct tm *time_value, int32_t max_len,
+void NetworkUtil::time_and_date_strings(char *date_dest, struct tm *time_value, int32_t max_len,
     char *time_dest)
 {
     if (time_dest != 0 && max_len != 0) {
@@ -148,7 +148,7 @@ void NetworkUtil::run_format_time_and_date_strings(char *date_dest, struct tm *t
     }
 }
 
-int32_t NetworkUtil::mutex_create(network_mutex_record **out_handle)
+int32_t NetworkUtil::create(network_mutex_record **out_handle)
 {
     network_mutex_record *slot;
     int32_t name_index;
@@ -170,7 +170,7 @@ int32_t NetworkUtil::mutex_create(network_mutex_record **out_handle)
     return 0;
 }
 
-int32_t NetworkUtil::parse_time_duration_string(char *string, char default_unit, uint8_t *unit_table)
+int32_t NetworkUtil::time_duration_string(char *string, char default_unit, uint8_t *unit_table)
 {
     char resolved_unit;
     char unit_from_table;
@@ -219,7 +219,7 @@ int32_t NetworkUtil::parse_time_duration_string(char *string, char default_unit,
     }
 }
 
-uint8_t NetworkUtil::string_is_numeric(char *string)
+uint8_t NetworkUtil::is_numeric(char *string)
 {
     while (1) {
         if (string == 0 || *string == 0) {
@@ -233,7 +233,7 @@ uint8_t NetworkUtil::string_is_numeric(char *string)
     return 0;
 }
 
-void NetworkUtil::string_trim_whitespace(char **string_ptr)
+void NetworkUtil::trim_whitespace(char **string_ptr)
 {
     char *end = *string_ptr;
     char *p;
@@ -260,48 +260,48 @@ void NetworkUtil::string_trim_whitespace(char **string_ptr)
 extern "C" {
 int32_t dynamic_pointer_array_add_unique(void *value, server_list_globals *array)
 {
-    return halo::networking::NetworkUtil::dynamic_pointer_array_add_unique(value, array);
+    return halo::networking::NetworkUtil::add_unique(value, array);
 }
 
 int32_t dynamic_pointer_array_find_index(server_list_globals *array, void *value)
 {
-    return halo::networking::NetworkUtil::dynamic_pointer_array_find_index(array, value);
+    return halo::networking::NetworkUtil::find_index(array, value);
 }
 
 void dynamic_pointer_array_remove_at(int32_t index, server_list_globals *array)
 {
-    halo::networking::NetworkUtil::dynamic_pointer_array_remove_at(index, array);
+    halo::networking::NetworkUtil::remove_at(index, array);
 }
 
 void format_local_time_and_date(char *date_dest, int32_t max_len, int32_t time_value, char *time_dest)
 {
-    halo::networking::NetworkUtil::format_local_time_and_date(date_dest, max_len, time_value, time_dest);
+    halo::networking::NetworkUtil::local_time_and_date(date_dest, max_len, time_value, time_dest);
 }
 
 void format_time_and_date_strings(char *date_dest, struct tm *time_value, int32_t max_len,
     char *time_dest)
 {
-    halo::networking::NetworkUtil::run_format_time_and_date_strings(date_dest, time_value, max_len, time_dest);
+    halo::networking::NetworkUtil::time_and_date_strings(date_dest, time_value, max_len, time_dest);
 }
 
 int32_t mutex_create(network_mutex_record **out_handle)
 {
-    return halo::networking::NetworkUtil::mutex_create(out_handle);
+    return halo::networking::NetworkUtil::create(out_handle);
 }
 
 int32_t parse_time_duration_string(char *string, char default_unit, uint8_t *unit_table)
 {
-    return halo::networking::NetworkUtil::parse_time_duration_string(string, default_unit, unit_table);
+    return halo::networking::NetworkUtil::time_duration_string(string, default_unit, unit_table);
 }
 
 uint8_t string_is_numeric(char *string)
 {
-    return halo::networking::NetworkUtil::string_is_numeric(string);
+    return halo::networking::NetworkUtil::is_numeric(string);
 }
 
 void string_trim_whitespace(char **string_ptr)
 {
-    halo::networking::NetworkUtil::string_trim_whitespace(string_ptr);
+    halo::networking::NetworkUtil::trim_whitespace(string_ptr);
 }
 
 }
