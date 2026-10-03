@@ -1,4 +1,5 @@
 #include "halo/networking/net1_decode.hpp"
+#include "halo/networking/channel_queue.hpp"
 #include "halo/core/cstring.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/networking/game_mode.hpp"
@@ -370,10 +371,7 @@ void GameClientView::settings_packet_send(const uint8_t *request)
 
     join_request_frame frame;
     int32_t cmp;
-    int32_t *challenge;
-    network_channel *channel;
-    int32_t bits_to_send;
-    char retransmit_ok;
+    uint16_t *challenge;
 
     if ((client->flags & 2) != 0) {
         return;
@@ -413,25 +411,10 @@ void GameClientView::settings_packet_send(const uint8_t *request)
     frame.header.player.slot_index = (int8_t)0xff;
     client->settings_ack_sent = 1;
 
-    challenge = (int32_t *)halo::networking::network_prepare_challenge_packet(0x0e, &frame);
+    challenge = halo::networking::network_prepare_challenge_packet(0x0e, &frame);
     if (challenge != 0) {
-        channel = client->channel;
-        bits_to_send = (uint32_t)(*(uint16_t *)challenge >> 4) * 8;
-        if ((channel->flags & 1) == 0) {
-            if ((((*(int32_t *)&channel->outgoing.stream.last_bit +
-                   *(int32_t *)&channel->outgoing.stream.byte_cursor * -8) -
-                  *(int32_t *)&channel->outgoing.stream.bit_cursor) + 1 < bits_to_send + 1) &&
-                (retransmit_ok = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1), retransmit_ok == 0)) {
-                return;
-            }
-            {
-
-                channel->send_budget = channel->send_budget + bits_to_send + 1;
-                { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1); }
-                channel->outgoing.empty = 0;
-                halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)(challenge), bits_to_send);
-                channel->outgoing.empty = 0;
-            }
+        if (!halo::networking::channel_queue_packet(client->channel, challenge)) {
+            return;
         }
         client->flags = client->flags | 2;
     }
