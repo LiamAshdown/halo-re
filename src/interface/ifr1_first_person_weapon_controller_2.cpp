@@ -41,7 +41,7 @@ extern float zoom_static_tint_b;
 
 static object *object_get(datum_index object_index)
 {
-    return *(object **)((char *)halo::objects::globals().object_data->data + 8 + (object_index & halo::k_slot_mask) * 0xc);
+    return halo::interface::object_record<object>(object_index);
 }
 
 static ModelAnimationsAnimationGraphFirstPersonWeaponAnimations *first_person_weapon_list(
@@ -282,8 +282,7 @@ void FirstPersonWeaponController::update_animation_controls()
     }
 
     {
-        object *weapon_obj = *(object **)((char *)halo::objects::globals().object_data->data + 8 +
-                                          (fp->weapon_index & halo::k_slot_mask) * 0xc);
+        object *weapon_obj = halo::interface::object_record<object>(fp->weapon_index);
         Weapon *weapon_tag = halo::interface::tag_data<Weapon>(weapon_obj->definition_tag);
         void *model = halo::cache::globals().tag_instances[weapon_tag->first_person_model.tag_id.index].data;
         ModelAnimations *animations =

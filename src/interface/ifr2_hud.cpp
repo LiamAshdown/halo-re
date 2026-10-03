@@ -86,7 +86,7 @@ uint16_t WeaponHud::hud_overlay_type_bits(uint16_t bits)
 
 object * WeaponHud::object_get(datum_index object_index)
 {
-    return *(object **)((char *)halo::objects::globals().object_data->data + 8 + (object_index & halo::k_slot_mask) * 0xc);
+    return halo::interface::object_record<object>(object_index);
 }
 
 /**
@@ -702,7 +702,7 @@ void WeaponHud::meters_evaluate(datum_index hud_interface_tag_id, int16_t local_
     {
         datum_index unit_idx = player_record->unit;
         object *unit_object = ((object_header *)halo::objects::globals().object_data->data)[unit_idx & halo::k_slot_mask].data;
-        unit = (unit_data *)((uint8_t *)unit_object + k_unit_data_offset);
+        unit = &((struct unit_object *)unit_object)->unit;
     }
 
     out_array = hud_weapon_state->meters[player_record->local_player_index].values;
@@ -1160,8 +1160,7 @@ uint8_t MotionSensor::object_is_detected(datum_index unit_index)
 
     }
 
-    unit = (unit_data *)(halo::interface::object_record(unit_index)
-                          + k_unit_data_offset);
+    unit = &halo::interface::object_record<unit_object>(unit_index)->unit;
     if ((unit->control_flags & _unit_control_flag_primary_trigger) != 0) {
         return 1;
     }
@@ -1421,15 +1420,13 @@ int16_t WeaponHud::text_message_index(datum_index object_index)
 void WeaponHud::notify_for_unit(datum_index unit_index, int32_t action_code)
 {
     int32_t local_player;
-    object_header *header;
     unit_data *u;
 
     local_player = halo::interface::local_player_index_for_unit(unit_index);
     halo::interface::first_person_weapon_process_action(local_player, action_code);
 
     if (local_player == -1) {
-        header = &((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask];
-        u = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
+        u = &halo::interface::object_record<unit_object>(unit_index)->unit;
         if (u->current_weapon_index != -1) {
             halo::interface::hud_play_pickup_notification((uint32_t)(uint16_t)u->current_weapon_index, (int16_t)action_code);
         }

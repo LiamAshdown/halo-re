@@ -52,6 +52,12 @@ extern char console_last_line[halo::interface::k_text_buffer_chars];
 extern int32_t console_last_cursor_column;
 }
 
+static console_message *console_message_at(datum_index handle)
+{
+    return reinterpret_cast<console_message *>(static_cast<uint8_t *>(halo::main::globals().terminal_messages->data) +
+                                               (uint16_t)handle * sizeof(console_message));
+}
+
 namespace halo::interface {
 
 /**
@@ -77,8 +83,7 @@ void ConsoleTerminal::out(ColorARGB *color, char *format, va_list args)
         return;
     }
 
-    message = (console_message *)((char *)halo::main::globals().terminal_messages->data +
-                                   (uint16_t)message_handle * sizeof(console_message));
+    message = console_message_at(message_handle);
     message->age = 0;
     if (color == (ColorARGB *)0) {
         color = (ColorARGB *)&k_default_color;
@@ -299,8 +304,7 @@ void ConsoleTerminal::draw_overlay(void)
         y = halo::interface::k_base_screen_height - line_height;
         message_handle = halo::main::globals().console_message_head;
         while (message_handle != (datum_index)halo::k_dword_none && y != line_height && y - line_height >= 0) {
-            message = (console_message *)((char *)halo::main::globals().terminal_messages->data +
-                                           (uint16_t)message_handle * sizeof(console_message));
+            message = console_message_at(message_handle);
             hud_text_draw_color_r = message->color.red;
             hud_text_draw_color_g = message->color.green;
             hud_text_draw_color_b = message->color.blue;
@@ -348,19 +352,16 @@ void ConsoleTerminal::message_delete(datum_index message)
     datum_index next;
     datum_index previous;
 
-    record = (console_message *)((char *)halo::main::globals().terminal_messages->data +
-                                  (uint16_t)message * sizeof(console_message));
+    record = console_message_at(message);
     next = record->next;
     previous = record->previous;
     if (next == (datum_index)halo::k_dword_none) {
         halo::main::globals().console_message_tail = previous;
     } else {
-        ((console_message *)((char *)halo::main::globals().terminal_messages->data +
-                              (uint16_t)next * sizeof(console_message)))->previous = previous;
+        (console_message_at(next))->previous = previous;
     }
     if (previous != (datum_index)halo::k_dword_none) {
-        ((console_message *)((char *)halo::main::globals().terminal_messages->data +
-                              (uint16_t)previous * sizeof(console_message)))->next = next;
+        (console_message_at(previous))->next = next;
         halo::memory::datum_delete(halo::main::globals().terminal_messages, message);
         return;
     }
@@ -382,8 +383,7 @@ void ConsoleTerminal::message_expire_old(void)
 
     current = halo::main::globals().console_message_head;
     while (current != (datum_index)halo::k_dword_none) {
-        record = (console_message *)((char *)halo::main::globals().terminal_messages->data +
-                                      (uint16_t)current * sizeof(console_message));
+        record = console_message_at(current);
         next = record->next;
         record->age = record->age + 1;
         if (record->age > 0x96) {
@@ -410,14 +410,12 @@ datum_index ConsoleTerminal::message_new(void)
     }
     new_message = halo::memory::datum_new(halo::main::globals().terminal_messages);
     old_head = halo::main::globals().console_message_head;
-    record = (console_message *)((char *)halo::main::globals().terminal_messages->data +
-                                  (uint16_t)new_message * sizeof(console_message));
+    record = console_message_at(new_message);
     record->next = halo::main::globals().console_message_head;
     record->previous = (datum_index)halo::k_dword_none;
     halo::main::globals().console_message_head = new_message;
     if (old_head != (datum_index)halo::k_dword_none) {
-        ((console_message *)((char *)halo::main::globals().terminal_messages->data +
-                              (uint16_t)old_head * sizeof(console_message)))->previous =
+        (console_message_at(old_head))->previous =
             new_message;
     } else {
         halo::main::globals().console_message_tail = new_message;
@@ -499,8 +497,7 @@ void ConsoleTerminal::printf_verbose(ColorARGB *color, char *format, va_list arg
         return;
     }
 
-    message = (console_message *)((char *)halo::main::globals().terminal_messages->data +
-                                   (uint16_t)message_handle * sizeof(console_message));
+    message = console_message_at(message_handle);
     message->age = 0;
     if (color == (ColorARGB *)0) {
         color = (ColorARGB *)&k_default_color;

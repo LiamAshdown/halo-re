@@ -188,7 +188,6 @@ int32_t LocalPlayers::index_for_weapon(datum_index weapon_index)
 {
     int32_t i;
     player *record;
-    object_header *header;
     unit_data *u;
     int16_t slot;
 
@@ -200,8 +199,7 @@ int32_t LocalPlayers::index_for_weapon(datum_index weapon_index)
         if (record->unit == (datum_index)halo::k_dword_none) {
             continue;
         }
-        header = &((object_header *)halo::objects::globals().object_data->data)[record->unit & halo::k_slot_mask];
-        u = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
+        u = &halo::interface::object_record<unit_object>(record->unit)->unit;
         slot = u->current_weapon_index;
         if (slot != -1 && weapon_index == u->weapons[slot]) {
             return i;
@@ -225,7 +223,7 @@ datum_index LocalPlayers::get_vehicle(datum_index player_index)
     if (player_index == (datum_index)-1 || index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return (datum_index)-1;
     }
-    p = (player *)((uint8_t *)halo::game::globals().player_data->data + (int32_t)halo::game::globals().player_data->size * index);
+    p = halo::interface::player_record(index);
     if (p->identifier == 0 || (salt != 0 && p->identifier != salt)) {
         return (datum_index)-1;
     }
@@ -961,7 +959,7 @@ uint8_t LocalPlayers::get_first_person_marker_transform(datum_index object_index
     obj = header->data;
 
     parent_header = &((object_header *)halo::objects::globals().object_data->data)[obj->parent_object & halo::k_slot_mask];
-    parent_unit = (unit_data *)((uint8_t *)parent_header->data + k_unit_data_offset);
+    parent_unit = &((unit_object *)parent_header->data)->unit;
     controlling_player = parent_unit->controlling_player;
 
     if (controlling_player == (datum_index)halo::k_dword_none) {

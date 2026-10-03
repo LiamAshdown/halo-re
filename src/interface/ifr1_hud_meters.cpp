@@ -314,7 +314,7 @@ void HudMeters::unit_meter_apply_predictive_damage(datum_index player_index, flo
     if (index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    p = (player *)((uint8_t *)halo::game::globals().player_data->data + halo::game::globals().player_data->size * index);
+    p = halo::interface::player_record(index);
     if (p->identifier == 0) {
         return;
     }
