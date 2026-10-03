@@ -1,3 +1,10 @@
+#include "halo/game/records.hpp"
+#include <cstring>
+#include "halo/core/bit_cast.hpp"
+#include "halo/core/flag_bits.hpp"
+#include "halo/core/network_constants.hpp"
+#include "halo/objects/record_access.hpp"
+#include "halo/tags/flags.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
@@ -25,9 +32,20 @@ static auto &global_white_argb = halo::link::ref<const ColorARGB *>(halo::networ
 static auto &screen_flash_pass = halo::link::ref<int16_t [8]>(halo::effects::vars().screen_flash_pass);
 static auto &player_effect_reentry_count = halo::link::ref<int32_t>(halo::effects::vars().player_effect_reentry_count);
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
-static auto &network_message_scratch = halo::link::ref<uint8_t [0x7ff8]>(halo::game::vars().network_message_scratch);
+static auto &network_message_scratch = halo::link::ref<uint8_t [halo::k_network_message_scratch_size]>(halo::game::vars().network_message_scratch);
 
 namespace halo::effects {
+
+namespace {
+/** The 0x18-byte screen flash record player_effect_build_screen_flash hands to the renderer. */
+struct screen_flash_output {
+    uint16_t pass;
+    uint16_t pad_02;
+    float intensity;
+    ColorARGB color;
+};
+static_assert(sizeof(screen_flash_output) == 0x18);
+}
 
 /**
  * Member form of the original player_effect_apply_at_object: apply at object.
@@ -120,12 +138,12 @@ void player_effect_ref::apply_generic_damage_feedback(float fraction)
     if (local_player_index != -1) {
         player_effect *self = &player_effect_globals_pointer->players[local_player_index];
 
-        *(float *)&shake_descriptor.random_translation = (float)((double)fraction * 0.01);
+        shake_descriptor.random_translation = (float)((double)fraction * 0.01);
         shake_descriptor.duration = 1.0f;
         flash_descriptor.type = 1;
         flash_descriptor.priority = 2;
         flash_descriptor.duration = 1.0f;
-        *(float *)&flash_descriptor.maximum_intensity = fraction;
+        flash_descriptor.maximum_intensity = halo::bit_cast<uint32_t>(fraction);
         flash_descriptor.intensity = 0.0f;
         flash_descriptor.color = *global_white_argb;
 
@@ -142,9 +160,10 @@ void player_effect_ref::apply_generic_damage_feedback(float fraction)
  *
  * @address 0x457000
  */
-void player_effect_ref::build_screen_flash(uint32_t *out, int16_t local_player_index)
+void player_effect_ref::build_screen_flash(uint32_t *out_words, int16_t local_player_index)
 {
     player_effect_globals *globals = player_effect_globals_pointer;
+    screen_flash_output *out = reinterpret_cast<screen_flash_output *>(out_words);
 
     if (halo::main::globals().console_globals.active != 0) {
         return;
@@ -155,9 +174,11 @@ void player_effect_ref::build_screen_flash(uint32_t *out, int16_t local_player_i
          halo::game::globals().game_time->game_time - globals->scripted_flash_start_tick <= (int32_t)globals->scripted_flash_ticks)) {
         float fraction;
 
-        *(uint16_t *)out = 1;
-        *(ColorRGB *)&out[3] = globals->scripted_flash_color;
-        *(float *)&out[2] = 1.0f;
+        out->pass = 1;
+        out->color.red = globals->scripted_flash_color.red;
+        out->color.green = globals->scripted_flash_color.green;
+        out->color.blue = globals->scripted_flash_color.blue;
+        out->color.alpha = 1.0f;
         if (globals->scripted_flash_ticks < 1) {
             fraction = 1.0f;
         } else {
@@ -171,14 +192,14 @@ void player_effect_ref::build_screen_flash(uint32_t *out, int16_t local_player_i
             }
             fraction = halo::math::transition_function_evaluate(5, t);
         }
-        *(float *)&out[1] = fraction;
+        out->intensity = fraction;
         if (globals->scripted_flash_fade_in == 0) {
-            *(float *)&out[1] = 1.0f - fraction;
+            out->intensity = 1.0f - fraction;
         }
-        if (!(*(float *)&out[1] >= 0.0f)) {
-            *(float *)&out[1] = 0.0f;
-        } else if (!(*(float *)&out[1] <= 1.0f)) {
-            *(float *)&out[1] = 1.0f;
+        if (!(out->intensity >= 0.0f)) {
+            out->intensity = 0.0f;
+        } else if (!(out->intensity <= 1.0f)) {
+            out->intensity = 1.0f;
         }
         return;
     }
@@ -189,14 +210,14 @@ void player_effect_ref::build_screen_flash(uint32_t *out, int16_t local_player_i
         globals->scripted_flash_ticks = -1;
         if (0 < self->flash_ticks || (self->flags & 1) != 0) {
             self->flags &= ~(uint32_t)1;
-            *(uint16_t *)out = (uint16_t)screen_flash_pass[self->flash.type];
-            *(ColorARGB *)&out[2] = self->flash.color;
+            out->pass = (uint16_t)screen_flash_pass[self->flash.type];
+            out->color = self->flash.color;
             if (self->flash.duration > 0.0f) {
                 float fraction = ((float)(int32_t)self->flash_ticks / self->flash.duration) * self->flash.intensity;
 
-                *(float *)&out[1] = halo::math::transition_function_evaluate(*(int16_t *)&self->flash.fade_function, fraction);
+                out->intensity = halo::math::transition_function_evaluate(static_cast<int16_t>(self->flash.fade_function), fraction);
             } else {
-                *(float *)&out[1] = self->flash.intensity;
+                out->intensity = self->flash.intensity;
             }
             self->flash_ticks = (int16_t)(self->flash_ticks - halo::game::globals().game_time->ticks_this_frame);
         }
@@ -242,7 +263,7 @@ void player_effect_ref::fade_damage_indicators(int16_t local_player_index, uint3
     int16_t delta = halo::game::globals().game_time->ticks_this_frame;
     int i;
 
-    *out_previous_indicators = *(uint32_t *)indicators;
+    std::memcpy(out_previous_indicators, indicators, sizeof(*out_previous_indicators));
 
     for (i = 0; i < 4; i++) {
         if (indicators[i] != 0) {
@@ -265,26 +286,26 @@ void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_
     datum_index player_index = datum;
     int16_t local_player_index = ((player *)halo::game::globals().player_data->data)[player_index & halo::k_slot_mask].local_player_index;
     player_effect *self;
-    uint8_t *tag;
+    DamageEffect *tag;
 
     player_effect_reentry_count++;
     if (local_player_index == -1) {
         player_effect_reentry_count--;
         return;
     }
-    self = (player_effect *)((uint8_t *)player_effect_globals_pointer + local_player_index * 0xec);
-    tag = (uint8_t *)halo::cache::globals().tag_instances[dd->damage_effect_tag & halo::k_slot_mask].data;
-    halo::effects::player_effect_set_screen_flash(self, (player_screen_flash *)(tag + 0x24), random_blend, 1.0f);
-    halo::effects::player_effect_set_camera_impulse(self, local_player_index, (real *)(tag + 0x98), (real *)direction,
+    self = &player_effect_globals_pointer->players[local_player_index];
+    tag = halo::objects::tag_as<DamageEffect>(dd->damage_effect_tag);
+    halo::effects::player_effect_set_screen_flash(self, reinterpret_cast<player_screen_flash *>(&tag->type), random_blend, 1.0f);
+    halo::effects::player_effect_set_camera_impulse(self, local_player_index, reinterpret_cast<real *>(&tag->temporary_camera_impulse_duration), (real *)direction,
         random_blend, 1.0f);
-    halo::effects::player_effect_set_camera_shake(self, (player_camera_shake *)(tag + 0xcc), random_blend, 1.0f);
-    if (*(datum_index *)(tag + 0x120) != k_datum_index_none) {
+    halo::effects::player_effect_set_camera_shake(self, reinterpret_cast<player_camera_shake *>(&tag->camera_shaking_duration), random_blend, 1.0f);
+    if (halo::objects::tag_handle(tag->sound) != k_datum_index_none) {
         sound_location location;
 
         memset(&location, 0, sizeof(location));
         location.scale = 1.0f;
         location.gain = 1.0f;
-        halo::sound::sound_play_new(*(datum_index *)(tag + 0x120), &location, k_datum_index_none, 0, 0, 0, 0);
+        halo::sound::sound_play_new(halo::objects::tag_handle(tag->sound), &location, k_datum_index_none, 0, 0, 0, 0);
     }
     if (damage_amount > 0.0f && dd->responsible_object != k_datum_index_none) {
         datum_index controlling_player;
@@ -298,7 +319,7 @@ void player_effect_ref::mark_damage_direction(const damage_data *dd, const real_
         double angle;
         float abs_angle;
 
-        if (*(uint32_t *)(tag + 0x1c8) & 0x100) {
+        if (test_flag(tag->damage_flags, tags::damage_effect_damage_tag_flag::damage_indicators_always_point_down)) {
             self->damage_indicator_alpha[2] = 1;
             player_effect_reentry_count--;
             return;
@@ -381,7 +402,7 @@ void player_effect_ref::mark_damage_direction_dispatch(void **context)
                 object_network_id_table->handles[fields[1]] : k_datum_index_none;
             dd.flags = fields[2];
             halo::effects::player_effect_mark_damage_direction(iterator.index, &dd, (const real_vector3d *)&fields[3],
-                *(float *)&fields[6], *(float *)&fields[7]);
+                halo::bit_cast<float>(fields[6]), halo::bit_cast<float>(fields[7]));
             return;
         }
     }
@@ -443,7 +464,7 @@ void player_effect_ref::send_network_update(const real_vector3d *direction, cons
     if (player_handle == k_datum_index_none || index < 0 || index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
-    record = (player *)((uint8_t *)halo::game::globals().player_data->data + index * halo::game::globals().player_data->size);
+    record = halo::game::player_at(index);
     if (record->identifier == 0 || (salt != 0 && record->identifier != salt) || record->marked_for_deletion != 0) {
         return;
     }
@@ -457,14 +478,14 @@ void player_effect_ref::send_network_update(const real_vector3d *direction, cons
         }
     }
     fields[2] = dd->flags;
-    fields[3] = *(const uint32_t *)&direction->i;
-    fields[4] = *(const uint32_t *)&direction->j;
-    fields[5] = *(const uint32_t *)&direction->k;
-    *(float *)&fields[6] = random_blend;
-    *(float *)&fields[7] = damage_amount;
+    fields[3] = halo::bit_cast<uint32_t>(direction->i);
+    fields[4] = halo::bit_cast<uint32_t>(direction->j);
+    fields[5] = halo::bit_cast<uint32_t>(direction->k);
+    fields[6] = halo::bit_cast<uint32_t>(random_blend);
+    fields[7] = halo::bit_cast<uint32_t>(damage_amount);
     items[0] = fields;
     items[1] = 0;
-    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, 0x7ff8, 0, 0xb, 0, items, 0, 1, 0);
+    encoded_bits = halo::networking::message_delta_encode_message((int32_t)network_message_scratch, halo::k_network_message_scratch_size, 0, 0xb, 0, items, 0, 1, 0);
     if (encoded_bits > 0 && (int8_t)record->machine_index != -1) {
         halo::networking::network_session_send_to_machine((int8_t)record->machine_index, halo::networking::globals().server, 1, network_message_scratch,
             (uint32_t)encoded_bits, 1, 0, 1, 3);
@@ -523,7 +544,7 @@ void player_effect_view::set_screen_flash(player_screen_flash *descriptor, float
 
         {
             double weight = descriptor->intensity;
-            double maximum = *(float *)&descriptor->maximum_intensity;
+            double maximum = halo::bit_cast<float>(descriptor->maximum_intensity);
 
             blended = (1.0 - weight) * (double)intensity_falloff + weight;
             if (blended < 0.0) {
@@ -593,8 +614,7 @@ int32_t player_effect_ref::locality_for_object(datum_index weapon_object_index)
                         ((1 << (header->type & 0x1f)) & 3) != 0 &&
                         header->data != 0) {
                         unit_data *held_unit =
-                            (unit_data *)((uint8_t *)((object_header *)halo::objects::globals().object_data->data)[unit_index & halo::k_slot_mask].data +
-                                          k_unit_data_offset);
+                            &halo::objects::object_as<unit_object>(unit_index)->unit;
                         int16_t current_weapon = held_unit->current_weapon_index;
                         datum_index current_weapon_object = k_datum_index_none;
 
