@@ -3,6 +3,7 @@
  * Server browser filters, sorting, list rows and join latch.
  */
 #include "tags.h"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/game/variant_flags.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/game/constants.hpp"
@@ -572,7 +573,7 @@ scroll_fade_settled:
                 browser_state::motd_download_slot = -1;
                 browser_state::motd_download_state = 2;
                 browser_state::ticker_message[0] = 0;
-                tag_idx = halo::cache::tag_lookup(0x75737472, (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
+                tag_idx = halo::cache::tag_lookup(0x75737472, halo::tag_paths::join_game_ticker_labels);
                 if (tag_idx != -1) {
                     src = halo::text::text_string_list_get_string(tag_idx, 5);
                     wcsncpy(browser_state::ticker_message, (const wchar_t *)src, 0xff);
@@ -595,7 +596,7 @@ void ServerBrowser::ticker_string_copy(uint16_t *buffer, int32_t capacity, int32
 
     *buffer = 0;
     tag_index = halo::cache::tag_lookup(halo::groups::unicode_string_list,
-        (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
+        halo::tag_paths::join_game_ticker_labels);
     if (tag_index != -1) {
         source = halo::text::text_string_list_get_string(tag_index, (int16_t)string_index);
         wcsncpy((wchar_t *)buffer, (const wchar_t *)source, capacity - 1);
@@ -1435,7 +1436,7 @@ int32_t ServerBrowser::open(network_ui_widget *root)
     if (browser_state::ticker_message[0] == 0) {
         browser_state::ticker_message[0] = 0;
         tag_index = halo::cache::tag_lookup(halo::groups::unicode_string_list,
-            (char *)"ui\\shell\\main_menu\\multiplayer_type_select\\join_game\\join_game_ticker_labels");
+            halo::tag_paths::join_game_ticker_labels);
         if (tag_index != -1) {
             source = halo::text::text_string_list_get_string(tag_index, 0);
             wcsncpy(browser_state::ticker_message, (const wchar_t *)source, 0xff);

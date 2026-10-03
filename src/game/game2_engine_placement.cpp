@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_placement.hpp"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/game/variant_flags.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/game/constants.hpp"
@@ -712,7 +713,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
 
                 if (teleport_message_cooldown < 1) {
                     wchar_t *text;
-                    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
+                    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
 
                     teleport_message_cooldown = 0x78;
                     text = (tag_id == k_datum_index_none) ? &empty_string

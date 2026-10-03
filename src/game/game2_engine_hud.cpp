@@ -1,4 +1,5 @@
 #include "halo/game/game2_engine_hud.hpp"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/core/network_constants.hpp"
@@ -53,7 +54,7 @@ namespace halo::game {
  */
 wchar_t * EngineHud::multiplayer_game_text_string(int16_t index)
 {
-    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
 
     if (tag_id == k_datum_index_none) {
         return &empty_string;

@@ -1,4 +1,5 @@
 #include "halo/game/game2_engines.hpp"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/core/network_constants.hpp"
@@ -41,7 +42,7 @@ namespace halo::game {
  */
 const uint16_t * SlayerEngine::game_text(int16_t index)
 {
-    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
 
     return tag_id == halo::k_dword_none ? (const uint16_t *)&empty_string : halo::text::text_string_list_get_string(tag_id, index);
 }

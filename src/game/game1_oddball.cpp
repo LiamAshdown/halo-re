@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/game/constants.hpp"
 #include "halo/core/datum.hpp"
@@ -34,7 +35,7 @@ namespace halo::game::engine1 {
  */
 const uint16_t *Oddball::game_text(int16_t index)
 {
-    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
 
     return tag_id == halo::k_dword_none ? (const uint16_t *)&empty_string : halo::text::text_string_list_get_string(tag_id, index);
 }
@@ -117,7 +118,7 @@ wchar_t *Oddball::build_player_text(datum_index player, wchar_t *buffer)
  */
 uint16_t *Oddball::multiplayer_text(int16_t index)
 {
-    datum_index list = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
+    datum_index list = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
 
     return list == 0xffffffff ? (uint16_t *)L"" : halo::text::text_string_list_get_string(list, index);
 }

@@ -3,6 +3,7 @@
  */
 
 #include "tags.h"
+#include "halo/core/ui_tag_paths.hpp"
 #include "halo/networking/game_mode.hpp"
 #include "halo/core/tag_groups.hpp"
 #include "halo/core/network_constants.hpp"
@@ -67,7 +68,7 @@ namespace halo::game::engine1 {
  */
 wchar_t *Scoreboard::multiplayer_game_text_string(int16_t index)
 {
-    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
+    datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
 
     if (tag_id == k_datum_index_none) {
         return &empty_string;
@@ -117,7 +118,7 @@ void Scoreboard::build_end_game_result_text(datum_index player_handle, wchar_t *
         }
 
         if (result == -1) {
-            datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
+            datum_index tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
             wchar_t *text = &empty_string;
 
             if (tag_id != k_datum_index_none) {
@@ -652,7 +653,7 @@ wchar_t *Scoreboard::get_default_multiplayer_string(const scoreboard_entry *entr
     int32_t place = entry->place & 0x7f;
     int32_t index = (place > 0xf) ? 0xf : place;
 
-    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
     if (tag_id == k_datum_index_none) {
         return &empty_string;
     }
@@ -687,7 +688,7 @@ wchar_t *Scoreboard::get_multiplayer_text_list(uint32_t rank)
             index += 0x10;
         }
     }
-    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\multiplayer_game_text");
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
     if (tag_id == k_datum_index_none) {
         return &empty_string;
     }
