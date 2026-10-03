@@ -279,7 +279,7 @@ dispatch:
             if (!(f <= 0.0f && f < 1.0f) && !a->unknown_620[3]) {
                 real_vector3d delta;
 
-                delta.i = F(p, 0xc8) - F(a, 0x64c);
+                delta.i = p->center_of_mass.x - a->aim_target_point.x;
                 delta.j = p->center_of_mass.y - a->aim_target_point.y;
                 delta.k = p->center_of_mass.z - a->aim_target_point.z;
                 halo::math::point3d_add_scaled(*aim_point, delta, *aim_point, F(def, 0xbc));
@@ -289,15 +289,15 @@ dispatch:
                 float lead = F(def, 0xc0);
                 real t = halo::items::weapon_trigger_projectile_time_fraction(weapon, (int16_t)(a->special_fire_secondary != 0), F(a, 0x648));
 
-                aim_point->x += t * F(p, 0xd4) * lead;
+                aim_point->x += t * p->velocity.x * lead;
                 aim_point->y += t * p->velocity.y * lead;
                 aim_point->z += t * p->velocity.z * lead;
             }
         }
-        F(a, 0x664) = F(a, 0x670) + F(a, 0x664);
+        a->aim_wander_offset.i = a->aim_recoil_per_tick.i + a->aim_wander_offset.i;
         a->aim_wander_offset.j = a->aim_recoil_per_tick.j + a->aim_wander_offset.j;
         a->aim_wander_offset.k = a->aim_recoil_per_tick.k + a->aim_wander_offset.k;
-        final_point->x = F(a, 0x664) + aim_point->x;
+        final_point->x = a->aim_wander_offset.i + aim_point->x;
         final_point->y = aim_point->y + a->aim_wander_offset.j;
         final_point->z = aim_point->z + a->aim_wander_offset.k;
 
@@ -328,7 +328,7 @@ dispatch:
             } else {
                 real_vector3d facing;
 
-                facing.i = F(a, 0x12c) - final_point->x;
+                facing.i = a->body_position.x - final_point->x;
                 facing.j = a->body_position.y - final_point->y;
                 facing.k = a->body_position.z - final_point->z;
                 if (halo::math::vector2d_normalize_with_length(*((real_vector2d *)&facing)) > 0.0f) {
