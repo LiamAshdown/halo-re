@@ -15,6 +15,7 @@
 #include "halo/interface/uis_network_menu.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern int32_t ui_list_current;
@@ -36,7 +37,6 @@ extern uint8_t saved_item_has_unsaved_changes(void);
 extern uint8_t player_profile_save(void);
 extern uint32_t network_game_option_a_00719210;
 extern uint32_t network_game_option_b_00719214;
-extern void player_profile_set_default_server_options(void);
 extern void widget_play_sound_effect(int16_t effect_id);
 extern uint8_t ui_network_game_options_populate(widget_instance *widget, const uint8_t *options_record);
 extern uint16_t network_host_name_00719170[144];
@@ -208,7 +208,7 @@ uint8_t UiNetworkMenu::network_game_options_populate(widget_instance *widget, co
  */
 void UiNetworkMenu::network_game_options_refresh(widget_instance *widget, const uint8_t *options_record)
 {
-    player_profile_set_default_server_options();
+    halo::saved_games::player_profile_set_default_server_options((saved_player_profile *)profile_globals_block);
     widget_play_sound_effect(0);
     ui_network_game_options_populate(widget, options_record);
 }
@@ -387,7 +387,7 @@ uint32_t UiNetworkMenu::network_name_fields_reset(void)
     uint16_t unused_name_source[2077];
 
     if (saved_player_profile_slots_handle == -1) {
-        player_profile_set_default_server_options();
+        halo::saved_games::player_profile_set_default_server_options((saved_player_profile *)profile_globals_block);
     } else {
         uint8_t profile_copy[0x2000];
 

@@ -7,6 +7,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern int32_t __ftol(double);
@@ -17,7 +18,6 @@ extern uint8_t antenna_sprite_shader[];
 extern void antenna_update_physics(antenna *ant, Antenna *antenna_tag, float dt);
 extern void *bitmap_group_get_bitmap_data(void);
 extern double cos(double x);
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern real_point3d *global_zero_vector3d_pointer;
@@ -35,7 +35,7 @@ extern double sqrt(double x);
  */
 void halo::objects::AntennaSystem::initialize()
 {
-    antenna_data = game_state_new((char *)"antenna", k_maximum_antennas, 0x2bc  );
+    antenna_data = halo::saved_games::game_state_new((char *)"antenna", k_maximum_antennas, 0x2bc  );
 }
 
 /**

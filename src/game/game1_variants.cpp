@@ -14,6 +14,7 @@
 
 #include "halo/game/game1_variants.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 typedef void (*game_engine_variant_defaults_fn)(game_variant *out);
 typedef void (*profile_post_update_proc)(uint32_t arg_edx, uint32_t arg_ecx);
@@ -84,10 +85,6 @@ extern game_variant *game_engine_variant_defaults_stalker(game_variant *out);
 extern void game_engine_variant_defaults_crazy_king(game_variant *out);
 extern void game_engine_variant_defaults_assault(game_variant *out);
 extern void string_convert_ascii_to_unicode(wchar_t *out_name, int32_t max_chars);
-extern void playlist_profile_create_default_profiles_on_disk(void);
-extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
-    uint16_t *capacity_and_count);
-extern uint8_t saved_game_get_variant(int32_t slot, game_variant *out);
 extern game_engine_definition *current_game_engine;
 extern int32_t map_list_count;
 extern map_list_entry *map_list;
@@ -379,18 +376,18 @@ uint8_t Variants::get_variant_by_name(const char *name, game_variant *out)
 
         string_convert_ascii_to_unicode(requested_name_wide, 0x30);
         if (playlist_profiles_need_defaults == 1) {
-            playlist_profile_create_default_profiles_on_disk();
+            halo::saved_games::playlist_profile_create_default_profiles_on_disk();
             playlist_profiles_need_defaults = 0;
         }
 
-        saved_game_enumerate_by_type(1, slots, 1, (uint16_t *)&slot_count);
+        halo::saved_games::saved_game_enumerate_by_type(1, slots, 1, (uint16_t *)&slot_count);
 
         for (slot_index = 0; (int32_t)(uint32_t)slot_index < slot_count; slot_index++) {
             if (slots[slot_index] == -1) {
                 game_engine_apply_current_custom_variant();
                 continue;
             }
-            if (saved_game_get_variant(slots[slot_index], &staging) != 0 &&
+            if (halo::saved_games::saved_game_get_variant(slots[slot_index], &staging) != 0 &&
                 _wcsicmp((const wchar_t *)staging.name, requested_name_wide) == 0) {
                 if (out == 0) {
                     return 1;

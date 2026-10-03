@@ -20,6 +20,7 @@
 
 #include "halo/interface/uis_event_handlers.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern uint8_t level_select_entries[0x50];
@@ -57,7 +58,6 @@ extern void main_menu_play_title_music(void);
 extern void network_dispatch_initialize(void);
 extern uint8_t *map_list;
 extern int32_t map_list_count;
-extern uint8_t saved_game_last_mp_map_read(uint8_t *out_data);
 extern growable_array ui_lists[3];
 extern int32_t ui_list_current;
 extern uint8_t ui_list_has_default;
@@ -66,18 +66,11 @@ extern int32_t profile_slot_lookup_cache_00692ac8;
 extern uint8_t variant_carousel_slots[0x1d4];
 extern heap *widget_memory_pool;
 extern uint8_t playlist_profiles_need_defaults;
-extern void playlist_profile_create_default_profiles_on_disk(void);
-extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only, uint16_t *capacity_and_count);
-extern uint8_t saved_game_last_mp_variant_read(uint8_t *out_data);
-extern int32_t saved_game_find_by_name(char *name, int16_t type);
-extern uint8_t saved_game_get_variant(int32_t handle, void *out);
 extern void ui_list_add_entry(int32_t group_index, const uint16_t *name, int32_t id, const void *data_blob, uint32_t data_size, uint8_t is_default);
 extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
-extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory);
-extern void saved_game_last_mp_variant_clear(const void *data);
 extern uint8_t game_variant_saved_default[0x98];
 extern uint8_t game_variant_saved_default_valid;
 extern void widget_close_all(void);
@@ -428,7 +421,7 @@ uint8_t UiEventHandlers::event_49d5f0(widget_instance *widget, int16_t *event, u
 
     widget->list_items = map_list;
     widget->item_count = (uint16_t)count;
-    if (saved_game_last_mp_map_read((uint8_t *)last_map) != 0) {
+    if (halo::saved_games::saved_game_last_mp_map_read((uint8_t *)last_map) != 0) {
         widget->selection_index = 0;
         if (count > 0) {
             while (_stricmp(last_map, *(char **)(map_list + widget->selection_index * 0xc)) != 0) {
@@ -511,10 +504,10 @@ uint8_t UiEventHandlers::event_49d8b0(widget_instance *widget, int16_t *event, u
     widget->list_items = handles;
     if (handles != 0) {
         if (playlist_profiles_need_defaults == 1) {
-            playlist_profile_create_default_profiles_on_disk();
+            halo::saved_games::playlist_profile_create_default_profiles_on_disk();
             playlist_profiles_need_defaults = 0;
         }
-        saved_game_enumerate_by_type(1, handles, 1, &count);
+        halo::saved_games::saved_game_enumerate_by_type(1, handles, 1, &count);
         for (; count < 3; count++) {
             handles[count] = -1;
         }
@@ -526,8 +519,8 @@ uint8_t UiEventHandlers::event_49d8b0(widget_instance *widget, int16_t *event, u
         }
         ui_list_current = -1;
         ui_list_has_default = 0;
-        if (saved_game_last_mp_variant_read((uint8_t *)last_name) != 0) {
-            last = saved_game_find_by_name(last_name, 1);
+        if (halo::saved_games::saved_game_last_mp_variant_read((uint8_t *)last_name) != 0) {
+            last = halo::saved_games::saved_game_find_by_name(last_name, 1);
             if (last != -1) {
                 uint16_t row;
 
@@ -542,7 +535,7 @@ uint8_t UiEventHandlers::event_49d8b0(widget_instance *widget, int16_t *event, u
         for (i = 0; i < count; i++) {
             if (handles[i] == -1) {
                 game_engine_apply_current_custom_variant();
-            } else if (saved_game_get_variant(handles[i], variant) != 0) {
+            } else if (halo::saved_games::saved_game_get_variant(handles[i], (game_variant *)variant) != 0) {
                 int32_t group = 0;
 
                 if (grouped) {
@@ -581,11 +574,11 @@ uint8_t UiEventHandlers::event_49dab0(widget_instance *widget, int16_t *event, u
         widget_play_sound_effect(4);
         return 0;
     }
-    if (saved_game_get_variant(item, variant) == 0) {
+    if (halo::saved_games::saved_game_get_variant(item, (game_variant *)variant) == 0) {
         return 0;
     }
-    if (saved_game_get_directory_by_handle(item, directory) != 0) {
-        saved_game_last_mp_variant_clear(directory);
+    if (halo::saved_games::saved_game_get_directory_by_handle(item, directory) != 0) {
+        halo::saved_games::saved_game_last_mp_variant_clear(directory);
     }
     memcpy(game_variant_saved_default, variant, sizeof(variant));
     game_variant_saved_default_valid = 1;

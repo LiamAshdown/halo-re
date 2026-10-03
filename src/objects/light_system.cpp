@@ -10,6 +10,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
@@ -24,7 +25,6 @@ extern uint8_t game_engine_unknown_aa00;
 extern uint8_t *game_state_base;
 extern uint32_t game_state_crc;
 extern int32_t game_state_cursor;
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern game_time_globals *game_time;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern float *global_white_color;
@@ -81,7 +81,7 @@ static cluster_reference_group &light_cluster_first__as_lights_initialize = rein
  */
 void halo::objects::LightSystem::initialize()
 {
-    data_array *new_light_data = game_state_new((char *)"lights", k_maximum_lights, 0x7c  );
+    data_array *new_light_data = halo::saved_games::game_state_new((char *)"lights", k_maximum_lights, 0x7c  );
     uint8_t *checksum_slot = game_state_base + game_state_cursor;
     uint32_t size_marker = 4;
 

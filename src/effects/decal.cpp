@@ -5,6 +5,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern data_array *decal_data;
@@ -25,7 +26,6 @@ extern long lrint(double x);
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern void rasterizer_decals_initialize(void);
 }
 
@@ -687,7 +687,7 @@ void decal_ref::initialize()
 {
     uint32_t block_size = sizeof(decal_grid);
 
-    decal_data = (data_array *)game_state_new((char *)"decals", k_maximum_decals, sizeof(decal));
+    decal_data = (data_array *)halo::saved_games::game_state_new((char *)"decals", k_maximum_decals, sizeof(decal));
     ((uint8_t *)decal_data)[0x25] = 1;
 
     decal_grid_block = (decal_grid *)(game_state_base + game_state_cursor);

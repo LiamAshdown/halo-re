@@ -31,6 +31,7 @@
 #include "halo/camera/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" { void game_engine_flush_pending_simulation_ticks(void); }
 extern "C" { uint32_t game_frame_rate_average_update(void); }
@@ -268,10 +269,8 @@ extern "C" { extern void game_start_new_single_player_map(void); }
 extern "C" { extern uint8_t network_autojoin_from_command_line(void); }
 extern "C" { extern void movie_play_bink(const char *movie_path); }
 extern "C" { extern void main_switch_structure_bsp_and_notify(void); }
-extern "C" { extern void game_state_perform_revert(void); }
 extern "C" { extern void campaign_level_advance(void); }
 extern "C" { extern uint8_t game_engine_attach_players_to_new_bsp(void); }
-extern "C" { extern uint8_t game_state_queue_write(uint8_t is_checkpoint); }
 extern "C" { extern void hud_display_checkpoint_message(uint8_t is_begin); }
 extern "C" { extern void main_level_transition_update(void); }
 extern "C" { extern uint8_t scenario_structure_bsp_switch(int16_t structure_bsp_index); }
@@ -279,9 +278,7 @@ extern "C" { extern void game_stop_current_map(void); }
 extern "C" { extern void game_start_new_map(void); }
 extern "C" { extern void game_engine_init_tick_record_for_mode(void); }
 extern "C" { extern void game_engine_reset_all_players(void); }
-extern "C" { extern uint8_t game_state_write_profile_file(int32_t size, char *name, const void *buffer); }
 extern "C" { extern void console_print_error_va(uint8_t clear_first, const char *format, ...); }
-extern "C" { extern void game_state_load_core(char *name); }
 extern "C" { extern void network_game_client_connect_to_resolved_address(void); }
 extern "C" { extern void shell_pump_windows_messages(void); }
 extern "C" { extern void network_session_host_update(void); }
@@ -413,7 +410,7 @@ void MainLoop::loop(void)
             if (previous_frames > k_main_revert_delay_frames) {
                 main_globals_data.lost_map = 0;
                 main_globals_data.lost_map_frames = 0;
-                game_state_perform_revert();
+                halo::saved_games::game_state_perform_revert();
             }
         }
         if (main_globals_data.won_map != 0) {
@@ -433,7 +430,7 @@ void MainLoop::loop(void)
             game_state_before_save_proc();
             main_globals_data.time_is_running = 0;
             main_globals_data.reset_frame_timers = 0;
-            game_state_revert_available = game_state_queue_write(1) != 0;
+            game_state_revert_available = halo::saved_games::game_state_queue_write(1) != 0;
             main_globals_data.reset_frame_timers = 1;
             hud_display_checkpoint_message(0);
             main_globals_data.save_map_write_pending = 0;
@@ -442,13 +439,13 @@ void MainLoop::loop(void)
             main_level_transition_update();
         }
         if (main_globals_data.revert_map != 0) {
-            game_state_perform_revert();
+            halo::saved_games::game_state_perform_revert();
             ui_pause_pending_count_00718fa0 = 0x1e;
             main_globals_data.revert_map = 0;
         }
         if (main_globals_data.revert_map_if_allowed != 0) {
             if (game_state_write_in_progress == 0 && halo::cutscene::globals().cinematic_globals->skip_in_progress != 0) {
-                game_state_perform_revert();
+                halo::saved_games::game_state_perform_revert();
                 ui_pause_pending_count_00718fa0 = 0x1e;
                 main_globals_data.revert_map = 0;
             }
@@ -471,7 +468,7 @@ void MainLoop::loop(void)
             main_globals_data.reset_map = 0;
         }
         if (main_globals_data.save_core != 0) {
-            if (game_state_write_profile_file(0x440000, (char *)"core.bin", game_state_base) != 0) {
+            if (halo::saved_games::game_state_write_profile_file(0x440000, (char *)"core.bin", game_state_base) != 0) {
                 console_print_error_va(0, "saved '%s'", "core.bin");
             } else {
                 console_print_error_va(0, "error writing '%s'", "core.bin");
@@ -479,7 +476,7 @@ void MainLoop::loop(void)
             main_globals_data.save_core = 0;
         }
         if (main_globals_data.load_core != 0) {
-            game_state_load_core((char *)"core.bin");
+            halo::saved_games::game_state_load_core((char *)"core.bin");
             main_globals_data.load_core = 0;
         }
         if (main_globals_data.return_to_main_menu != 0) {

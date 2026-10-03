@@ -1,12 +1,12 @@
 #include "halo/hs/hs3_objects.hpp"
 #include "crt.h"
 #include "halo/memory/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern data_array *object_list_header_data;
 extern data_array *object_list_reference_data;
 extern void object_list_reference_chain_delete(data_array *reference_array, datum_index chain_head);
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 }
 
 namespace halo::hs::part3 {
@@ -163,9 +163,9 @@ void ObjectLists::initialize() const
 {
     char name[256];
 
-    object_list_header_data = game_state_new((char *)"object list header", k_hs_object_list_header_count, 0xc );
+    object_list_header_data = halo::saved_games::game_state_new((char *)"object list header", k_hs_object_list_header_count, 0xc );
     sprintf(name, "%s reference", "list object");
-    object_list_reference_data = game_state_new(name, k_hs_object_list_reference_count, 0xc );
+    object_list_reference_data = halo::saved_games::game_state_new(name, k_hs_object_list_reference_count, 0xc );
 }
 
 }

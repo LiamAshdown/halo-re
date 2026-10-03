@@ -4,6 +4,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern void *const flag_render_device_slot;
@@ -16,7 +17,6 @@ extern void flag_cloth_update(flag *entry, Flag *tag, float dt);
 extern data_array *flag_data;
 extern void flag_pole_get_marker_positions(flag *entry, bsp_leaf_reference *node_ref, real_point3d *marker_positions, uint8_t *row_table, int16_t *row_start_scratch, int16_t *column_marker_index, Flag *tag);
 extern void flag_render(uint32_t *entry, uint32_t *submission_block, Flag *tag, uint8_t *second_geometry);
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern real_point3d *global_origin3d_pointer;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern real_point3d *global_zero_vector3d_pointer;
@@ -42,7 +42,7 @@ extern double sqrt(double x);
  */
 void halo::objects::FlagSystem::initialize()
 {
-    flag_data = game_state_new((char *)"flag", k_maximum_flags, 0x16bc  );
+    flag_data = halo::saved_games::game_state_new((char *)"flag", k_maximum_flags, 0x16bc  );
 }
 
 /**

@@ -7,6 +7,7 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "code_refs.hpp"
+#include "halo/saved_games/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/structures/api.hpp"
@@ -214,7 +215,7 @@ void * game_state_after_load_procs[13] = {
     &halo::sound::game_sound_reconcile_scripting_state, &halo::camera::observer_initialize,
     update_queues_revert, decal_geometry_cache_restore_procs,
     &halo::cseries::function_do_nothing, &halo::cseries::function_do_nothing,
-    halo::structures::detail_objects_invalidate, game_state_after_load_restore_time,
+    halo::structures::detail_objects_invalidate, &halo::saved_games::game_state_after_load_restore_time,
     players_rebind_local_player_after_load, &halo::camera::director_game_state_loaded,
     hud_messaging_clear_after_load,
 };

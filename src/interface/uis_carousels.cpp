@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "halo/interface/uis_carousels.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
@@ -23,7 +24,6 @@ extern int8_t level_select_flags_0071916a;
 extern uint8_t level_select_flags_0071916b;
 extern map_list_entry *map_list;
 extern variant_carousel_slot variant_carousel_slots[3];
-extern uint8_t saved_game_get_variant(int32_t variant_id, void *out_slot_body);
 }
 
 namespace halo::ui {
@@ -207,7 +207,7 @@ void UiCarousels::variant_carousel_slot_cache_populate(int32_t *candidate_ids, i
                 while (free_slot < 3 && slot_filled[free_slot] == 1) {
                     free_slot = free_slot + 1;
                 }
-                if (saved_game_get_variant(id, variant_carousel_slots[free_slot].unknown)) {
+                if (halo::saved_games::saved_game_get_variant(id, (game_variant *)variant_carousel_slots[free_slot].unknown)) {
                     variant_carousel_slots[free_slot].id = id;
                     slot_filled[free_slot] = 1;
                 }

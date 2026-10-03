@@ -24,6 +24,7 @@
 #include "halo/input/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" { int campaign_level_find_index_for_path(char *path); }
 extern "C" { void credits_load_directly_for_endgame(void); }
@@ -33,7 +34,6 @@ extern "C" { void main_queue_map_change(char *map_name); }
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern char *campaign_level_paths[k_main_campaign_level_count]; }
 extern "C" { extern int16_t local_player_count; }
-extern "C" { extern void player_profile_mark_level_visited_and_select(int16_t local_player_index); }
 namespace halo::main {
 
 /**
@@ -58,7 +58,7 @@ void LevelControl::campaign_level_advance(void)
     }
 
     for (i = 0; i < local_player_count; i++) {
-        player_profile_mark_level_visited_and_select(i);
+        halo::saved_games::player_profile_mark_level_visited_and_select(i);
     }
 
     if (next_index == -1) {
@@ -182,7 +182,6 @@ void LevelControl::chimera__load_ui_map(char play_title_music)
 
 extern "C" { extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles]; }
 extern "C" { extern int32_t hud_text_message_cycle_state_00719230; }
-extern "C" { extern void player_profile_write_data(int32_t handle, saved_player_profile *profile); }
 extern "C" { extern void main_menu_return_and_reset(void); }
 extern "C" { extern widget_instance *chimera__load_ui_widget(char *tag_path, datum_index tag_index, widget_instance *parent, uint16_t controller_index, datum_index history_definition, datum_index history_list_definition, int16_t history_selection); }
 namespace halo::main {
@@ -201,7 +200,7 @@ void LevelControl::credits_load_directly_for_endgame(void)
 
     profile_globals_block[0].profile.flags = profile_globals_block[0].profile.flags | _saved_player_profile_end_credits_reached_bit;
     if (profile_globals_block[0].handle != -1) {
-        player_profile_write_data(profile_globals_block[0].handle, &profile_globals_block[0].profile);
+        halo::saved_games::player_profile_write_data(profile_globals_block[0].handle, &profile_globals_block[0].profile);
     }
     main_menu_return_and_reset();
     main_menu_tag = halo::cache::tag_lookup(0x44654c61 , (char *)"ui\\shell\\main_menu\\main_menu");
@@ -224,7 +223,6 @@ extern "C" { extern void game_engine_reset_all_players(void); }
 extern "C" { extern void game_engine_init_tick_record_for_mode(void); }
 extern "C" { extern void main_ensure_local_players(void); }
 extern "C" { extern char scenario_load(char *scenario_path); }
-extern "C" { extern void game_state_load_checkpoint(void); }
 namespace halo::main {
 
 /**
@@ -286,7 +284,7 @@ after_load:
     main_globals_data.last_activity_time_ms = (int32_t)(counter_ms / halo::cseries::globals().performance_frequency);
 
     if (main_globals_data.restore_checkpoint_on_load != 0) {
-        game_state_load_checkpoint();
+        halo::saved_games::game_state_load_checkpoint();
     }
 
     ui_pause_pending_count_00718fa0 = 0x1e;
@@ -361,7 +359,6 @@ extern "C" { extern game_time_globals *game_time; }
 extern "C" { extern int32_t _access(const char *path, int32_t mode); }
 extern "C" { extern void main_menu_music_stop(void); }
 extern "C" { extern void main_menu_on_shown(int32_t fade_milliseconds); }
-extern "C" { extern void player_profile_select_local_slot(int16_t local_player_index); }
 namespace halo::main {
 
 /**
@@ -453,7 +450,7 @@ after_fade:
             game_scenario_session_begin(&request);
 
             for (i = 0; i < local_player_count; i++) {
-                player_profile_select_local_slot(i);
+                halo::saved_games::player_profile_select_local_slot(i);
             }
         }
         main_globals_data.level_transition_fade_end_ms = 0;

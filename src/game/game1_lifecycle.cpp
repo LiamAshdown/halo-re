@@ -15,6 +15,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/effects/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -46,7 +47,6 @@ extern uint8_t game_state_persistent_storage_created;
 extern void hs_dispose_dynamic_globals(void);
 extern void widget_close_all(void);
 extern void objects_dispose(void);
-extern void saved_game_files_dispose(void);
 extern void network_shutdown(void);
 extern data_array *object_data;
 extern object *object_iterator_next(object_iterator *iterator);
@@ -165,7 +165,7 @@ void Lifecycle::dispose(void)
         GlobalFree(terminal_messages);
     }
     terminal_initialized = 0;
-    saved_game_files_dispose();
+    halo::saved_games::saved_game_files_dispose();
 
     for (i = 0; i < 0x43; i = i + 1) {
         input_event_queue_active[i] = 0;

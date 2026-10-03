@@ -7,12 +7,12 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern int32_t __ftol(double);
 extern uint8_t *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag_index, int16_t frame_index, int16_t sequence_index);
 extern double cos(double x);
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern game_time_globals *game_time;
 extern real_point3d *global_zero_vector3d_pointer;
 extern void glow_chain_build(glow *entry);
@@ -60,9 +60,9 @@ void halo::objects::GlowSystem::initialize()
     if (glow_data != 0) {
         return;
     }
-    glow_data = game_state_new((char *)"glow", 8, 0x25c);
+    glow_data = halo::saved_games::game_state_new((char *)"glow", 8, 0x25c);
     if (glow_data != 0 && glow_particle_data == 0) {
-        glow_particle_data = game_state_new((char *)"glow particles", 0x200, 0x64);
+        glow_particle_data = halo::saved_games::game_state_new((char *)"glow particles", 0x200, 0x64);
     }
 }
 

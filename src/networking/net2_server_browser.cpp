@@ -25,13 +25,11 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern uint8_t playlist_profiles_need_defaults;
 extern void string_format_wide_va_bounded(uint16_t *dest, const char *format, ...);
-extern void playlist_profile_create_default_profiles_on_disk(void);
-extern void saved_game_enumerate_by_type(int32_t type, int32_t *out_ids, int32_t flag);
-extern uint8_t saved_game_get_variant(int32_t saved_game_id, uint16_t *out_name);
 extern void game_engine_apply_current_custom_variant(void);
 extern void * console_color_00685214;
 extern void * actor_mode_default_look_weights;
@@ -209,6 +207,7 @@ void ServerBrowser::matching_substring(uint32_t argument_count, char **arguments
 {
     uint16_t filter[32];
     int32_t saved_game_ids[100];
+    uint16_t saved_game_capacity = 100;
     int32_t i;
 
     filter[0] = 0;
@@ -221,13 +220,13 @@ void ServerBrowser::matching_substring(uint32_t argument_count, char **arguments
     }
     chimera__console_out((ColorARGB *)console_color_00685214, (char *)"Game types matching substring \"%ls\" :", filter);
     if (playlist_profiles_need_defaults == 1) {
-        playlist_profile_create_default_profiles_on_disk();
+        halo::saved_games::playlist_profile_create_default_profiles_on_disk();
         playlist_profiles_need_defaults = 0;
     }
     for (i = 0; i < 100; i = i + 1) {
         saved_game_ids[i] = -1;
     }
-    saved_game_enumerate_by_type(1, saved_game_ids, 1);
+    halo::saved_games::saved_game_enumerate_by_type(1, saved_game_ids, 1, &saved_game_capacity);
     i = 0;
     do {
         char line[256];
@@ -239,7 +238,7 @@ void ServerBrowser::matching_substring(uint32_t argument_count, char **arguments
                 game_engine_apply_current_custom_variant();
             } else {
                 uint16_t variant_name[64];
-                if (saved_game_get_variant(saved_game_ids[i], variant_name) != 0) {
+                if (halo::saved_games::saved_game_get_variant(saved_game_ids[i], (game_variant *)variant_name) != 0) {
                     uint16_t lowered[64];
                     wcsncpy((wchar_t *)lowered, (const wchar_t *)variant_name, 0x3f);
                     lowered[0x3f] = 0;

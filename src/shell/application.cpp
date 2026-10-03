@@ -11,6 +11,7 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern char *shell_command_line;
@@ -96,7 +97,6 @@ extern void *external_00686b5c;
 extern uint32_t external_00686b54;
 
 extern void input_directinput_initialize(void);
-extern void game_state_startup(void);
 extern uint32_t sound_initialize(void);
 extern void input_directinput_release_devices(void);
 extern void rasterizer_shutdown(void);
@@ -158,7 +158,7 @@ uint8_t EngineLifecycle::initialize()
 
     halo::cache::data_file_open();
     halo::math::math_initialize();
-    game_state_startup();
+    halo::saved_games::game_state_startup();
 
     startup_ok = halo::render::render_initialize();
     if ((uint8_t)startup_ok != 0) {

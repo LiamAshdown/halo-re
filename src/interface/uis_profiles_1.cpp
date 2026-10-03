@@ -17,6 +17,7 @@
 
 #include "halo/interface/uis_profiles.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern int32_t profile_slot_lookup_cache_00692ac8;
@@ -28,11 +29,6 @@ extern int32_t ui_list_current;
 extern uint8_t ui_list_has_default;
 extern uint8_t default_profile_data[0x1ffc];
 extern heap *widget_memory_pool;
-extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only,
-    uint16_t *capacity_and_count);
-extern uint8_t saved_game_last_profile_read(char *name_buffer);
-extern int32_t saved_game_find_by_name(char *name, int32_t unknown);
-extern uint8_t player_profile_get(int32_t slot, void *out_profile);
 extern void ui_list_add_entry(int32_t group_index, const uint16_t *name, int32_t id, const void *data_blob,
                                uint32_t data_size, uint8_t is_default);
 extern void ui_list_free_all(void);
@@ -50,9 +46,6 @@ extern uint8_t quit_confirm_error_is_error;
 extern uint16_t split_screen_quit_prompt_string;
 extern uint8_t split_screen_quit_prompt_armed;
 extern uint8_t network_join_error_reason;
-extern int32_t saved_game_create_default_profile(int16_t player_index);
-extern uint8_t player_profile_get_or_cached_default(void);
-extern void saved_game_allocate_new_slot(uint16_t *out_default_name);
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 extern void saved_item_select(int32_t selection_id);
 extern void main_queue_map_change(void);
@@ -92,7 +85,7 @@ uint32_t UiProfiles::build_profile_list(widget_instance *widget)
 
         {
             uint32_t count = 0x64;
-            saved_game_enumerate_by_type(0, (int32_t *)slot_ids, 0, (uint16_t *)&count);
+            halo::saved_games::saved_game_enumerate_by_type(0, (int32_t *)slot_ids, 0, (uint16_t *)&count);
         }
         widget->item_count = 100;
 
@@ -108,8 +101,8 @@ uint32_t UiProfiles::build_profile_list(widget_instance *widget)
         ui_list_current = -1;
         ui_list_has_default = 0;
 
-        if (last_profile_name[0] == '\0' && saved_game_last_profile_read(last_profile_name) != 0) {
-            cached_profile_slot = saved_game_find_by_name(last_profile_name, 0);
+        if (last_profile_name[0] == '\0' && halo::saved_games::saved_game_last_profile_read((uint8_t *)last_profile_name) != 0) {
+            cached_profile_slot = halo::saved_games::saved_game_find_by_name(last_profile_name, 0);
         }
 
         matched_profile = cached_profile_slot;
@@ -123,7 +116,7 @@ uint32_t UiProfiles::build_profile_list(widget_instance *widget)
             }
             if (slot_id == -1) {
                 memcpy(profile_buffer, default_profile_data, sizeof(profile_buffer));
-            } else if (player_profile_get(slot_id, profile_buffer) != 0) {
+            } else if (halo::saved_games::player_profile_get(slot_id, (saved_player_profile *)profile_buffer) != 0) {
                 ui_list_add_entry(1, (const uint16_t *)(profile_buffer + 2), i, profile_buffer, 0x1ffc, 0);
             }
         }
@@ -183,17 +176,17 @@ uint32_t UiProfiles::new_profile_name_entry_commit(void)
         uint16_t default_name[4220];
 
         profile_slot_id[0] = new_profile_name_entry_player_00692b00;
-        profile_id = saved_game_create_default_profile(new_profile_name_entry_player_00692b00);
+        profile_id = halo::saved_games::saved_game_create_default_profile((uint16_t *)new_profile_name_buffer_006b37f4);
         if (profile_id == -1) {
-            saved_game_allocate_new_slot(default_name);
+            halo::saved_games::saved_game_allocate_new_slot(default_name);
             wcsncpy((wchar_t *)new_profile_name_buffer_006b37f4, (const wchar_t *)default_name, 0xb);
             new_profile_name_terminator_006b380a = 0;
-            profile_id = saved_game_create_default_profile(new_profile_name_entry_player_00692b00);
+            profile_id = halo::saved_games::saved_game_create_default_profile((uint16_t *)new_profile_name_buffer_006b37f4);
             if (profile_id == -1) {
                 goto fail;
             }
         }
-        if (player_profile_get_or_cached_default() != 0) {
+        if (halo::saved_games::player_profile_get_or_cached_default((saved_player_profile *)default_profile_data, (int32_t)profile_id) != 0) {
             player_profile_load((int16_t)profile_id, (void *)0, profile_id);
             if (new_profile_name_flag_0071916e != 0) {
                 saved_item_select(-1);
@@ -306,7 +299,7 @@ void UiProfiles::profile_carousel_slot_cache_populate(int32_t count, const int32
         }
         for (free_slot = 0; free_slot < 3 && slot_kept[free_slot] == 1; free_slot++) {
         }
-        if (player_profile_get(id, profile_carousel_slots[free_slot].profile)) {
+        if (halo::saved_games::player_profile_get(id, (saved_player_profile *)profile_carousel_slots[free_slot].profile)) {
             profile_carousel_slots[free_slot].profile_id = candidate_ids[i];
             slot_kept[free_slot] = 1;
         }
@@ -366,7 +359,7 @@ uint8_t UiProfiles::profile_list_apply_selection(widget_instance *widget, int16_
         return 0;
     }
 
-    if (player_profile_get(entry_id, profile_data) != 0) {
+    if (halo::saved_games::player_profile_get(entry_id, (saved_player_profile *)profile_data) != 0) {
         int32_t player_index = player_profile_find_index_by_id((int16_t)entry_id);
 
         player_profile_load((int16_t)player_index, profile_data, entry_id);
@@ -399,7 +392,7 @@ uint32_t UiProfiles::profile_list_apply_selection_for_player(widget_instance *wi
     entry_id = slot_ids[list_widget->selection_index];
 
     if (entry_id < 0) {
-        if (entry_id != -1 && player_profile_get(entry_id, profile_data) != 0) {
+        if (entry_id != -1 && halo::saved_games::player_profile_get(entry_id, (saved_player_profile *)profile_data) != 0) {
             player_profile_load((int16_t)entry_id, profile_data, entry_id);
             return 1;
         }
@@ -427,7 +420,7 @@ uint8_t UiProfiles::profile_require_existing(void *widget, int16_t *event, uint8
     int16_t count = 1;
     int32_t slot;
 
-    saved_game_enumerate_by_type(0, &slot, 0, (uint16_t *)&count);
+    halo::saved_games::saved_game_enumerate_by_type(0, &slot, 0, (uint16_t *)&count);
     if (count > 0) {
         return 1;
     }

@@ -7,6 +7,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern void *ai_gc_callback_table;
@@ -17,8 +18,6 @@ extern void console_print_error_va(const char *format, ...);
 extern uint8_t *game_state_base;
 extern uint32_t game_state_crc;
 extern int32_t game_state_cursor;
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
-extern memory_pool *game_state_new_pool(char *name, int32_t pool_size);
 extern game_time_globals *game_time;
 extern uint8_t *global_scenario;
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -127,9 +126,9 @@ void halo::objects::ObjectManager::initialize()
     widgets_initialize();
     object_type_definition_chain_build();
     lights_initialize();
-    object_data = game_state_new((char *)"object", k_maximum_objects, 0xc  );
+    object_data = halo::saved_games::game_state_new((char *)"object", k_maximum_objects, 0xc  );
 
-    object_memory_pool = game_state_new_pool((char *)"objects", 0x200000);
+    object_memory_pool = halo::saved_games::game_state_new_pool((char *)"objects", 0x200000);
 
     globals_region = game_state_base + game_state_cursor;
     game_state_cursor = game_state_cursor + 0x98;

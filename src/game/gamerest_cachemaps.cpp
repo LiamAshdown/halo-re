@@ -3,6 +3,7 @@
 #include "main.h"
 #include "halo/cache/api.hpp"
 #include <string.h>
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern char *rasterizer_shader_file_name;
@@ -11,10 +12,8 @@ extern main_globals main_globals_data;
 extern int16_t local_player_count;
 extern int32_t saved_player_profile_slots_handle;
 extern int32_t cached_profile_slot;
-extern uint8_t last_profile_name;
+extern char last_profile_name[];
 extern void main_queue_cache_file_open(void);
-extern void saved_game_get_directory_by_handle(void);
-extern void saved_game_last_profile_clear(void);
 extern void shell_display_fatal_error_dialog(uint32_t a, uint32_t b, uint32_t c);
 }
 
@@ -73,12 +72,12 @@ void CacheFileMaps::switch_map_by_path(char *path, uint8_t apply_state)
         if (local_player_count == 1) {
             if (cached_profile_slot != saved_player_profile_slots_handle) {
                 if (saved_player_profile_slots_handle != -1) {
-                    saved_game_get_directory_by_handle();
+                    halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, last_profile_name);
                 }
                 cached_profile_slot = saved_player_profile_slots_handle;
             }
-            if (last_profile_name != 0) {
-                saved_game_last_profile_clear();
+            if (last_profile_name[0] != 0) {
+                halo::saved_games::saved_game_last_profile_clear(last_profile_name);
             }
         }
     }

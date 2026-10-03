@@ -8,6 +8,7 @@
 #include "halo/effects/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -72,7 +73,6 @@ extern void scenario_objects_place(Scenario *scenario);
 extern void objects_reset(void);
 extern void breakable_surfaces_reset(void);
 extern void decal_and_font_system_reset(void);
-extern void game_state_build_header(void);
 extern uint32_t rasterizer_globals_data;
 extern data_array *ai_conversation_data;
 extern data_array *encounter_data;
@@ -207,7 +207,7 @@ void GameLifecycle::start_new_map(void)
     game_engine_load_from_variant(&game_engine_active_variant);
     _control87(0x9001f, 0xfffff);
     decal_and_font_system_reset();
-    game_state_build_header();
+    halo::saved_games::game_state_build_header();
 
     {
         uint32_t *game_time_dwords = (uint32_t *)game_time;

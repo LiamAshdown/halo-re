@@ -23,6 +23,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -37,20 +38,14 @@ extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
 extern int32_t saved_player_profile_slots_handle;
-extern uint8_t saved_game_delete_by_handle(int32_t handle);
 extern void player_profile_auto_select(void);
 extern char pending_delete_saved_game_name_00718fd0[];
-extern void saved_game_allocate_new_slot(uint16_t *out_name);
-extern uint32_t saved_game_create_custom_variant(uint32_t unused, uint16_t *name);
 extern void saved_item_select(int32_t item);
 extern int32_t ui_list_get_id(int32_t index);
 extern void *ui_list_get_data(int32_t index);
 extern void *game_engine_variant_defaults_classic_slayer(void *out);
 extern uint8_t virtual_keyboard_open(uint16_t *destination, uint16_t maximum_length, int16_t field_kind);
 extern int32_t network_host_edit_field_00719410;
-extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory);
-extern void saved_game_last_mp_variant_clear(const void *data);
-extern uint32_t saved_game_create_default_profile(uint16_t *name);
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 extern network_client_globals *network_client;
 extern char network_player_entry_validate(void *entry);
@@ -221,7 +216,7 @@ uint8_t UiEventHandlers::event_4a1280(widget_instance *widget, int16_t *event, u
     }
     current = saved_player_profile_slots_handle;
     if (handle != -1) {
-        saved_game_delete_by_handle(handle);
+        halo::saved_games::saved_game_delete_by_handle(handle);
         handle = profile_slot_lookup_cache_00692ac8;
     }
     if (handle == current) {
@@ -243,7 +238,7 @@ uint8_t UiEventHandlers::event_4a12c0(widget_instance *widget, int16_t *event, u
         return 0;
     }
     if (handle != -1) {
-        saved_game_delete_by_handle(handle);
+        halo::saved_games::saved_game_delete_by_handle(handle);
     }
     return 1;
 }
@@ -272,9 +267,9 @@ uint8_t UiEventHandlers::event_4a1310(widget_instance *widget, int16_t *event, u
     uint8_t scratch[0x100];
     uint32_t handle;
 
-    saved_game_allocate_new_slot(name);
+    halo::saved_games::saved_game_allocate_new_slot(name);
     if (name[0] != 0) {
-        handle = saved_game_create_custom_variant((uint32_t)(uint16_t)widget->controller_index, name);
+        handle = halo::saved_games::saved_game_create_custom_variant((uint32_t)(uint16_t)widget->controller_index, name);
         if (handle != 0xffffffff) {
             saved_item_select((int32_t)handle);
             if ((selected_saved_item & 0xf) == 1) {
@@ -291,8 +286,8 @@ uint8_t UiEventHandlers::event_4a1310(widget_instance *widget, int16_t *event, u
                 opened = virtual_keyboard_open((uint16_t *)saved_item_working_copy, 0x30, 9);
                 if (opened == 1) {
                     network_host_edit_field_00719410 = 2;
-                    if (saved_game_get_directory_by_handle((int32_t)handle, (char *)scratch) != 0) {
-                        saved_game_last_mp_variant_clear(scratch);
+                    if (halo::saved_games::saved_game_get_directory_by_handle((int32_t)handle, (char *)scratch) != 0) {
+                        halo::saved_games::saved_game_last_mp_variant_clear(scratch);
                     }
                     return 1;
                 }
@@ -324,9 +319,9 @@ uint8_t UiEventHandlers::event_4a1480(widget_instance *widget, int16_t *event, u
     uint16_t name[0x82];
     uint32_t handle;
 
-    saved_game_allocate_new_slot(name);
+    halo::saved_games::saved_game_allocate_new_slot(name);
     if (name[0] != 0) {
-        handle = saved_game_create_default_profile(name);
+        handle = halo::saved_games::saved_game_create_default_profile(name);
         if (handle != 0xffffffff) {
             uint8_t *profile;
 

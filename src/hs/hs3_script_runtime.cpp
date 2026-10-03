@@ -3,6 +3,7 @@
 #include "win32.h"
 #include <string.h>
 #include "halo/memory/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern uint8_t scenario_trigger_volume_contains_point(int16_t trigger_volume_index, real_point3d *point);
@@ -10,7 +11,6 @@ extern void hs_object_detach_and_place_at_location(int16_t location_index, datum
     char detach_from_parent, char reorient);
 extern data_array *player_data;
 extern data_array *object_data;
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern data_array *hs_thread_data;
 extern data_array *hs_globals_data;
 extern void hs_thread_evaluate_step(datum_index thread_handle);
@@ -78,8 +78,8 @@ void ScriptRuntime::runtime_initialize() const
 {
     int32_t i;
 
-    hs_thread_data = game_state_new((char *)"hs thread", k_hs_thread_maximum_count, 0x218 );
-    hs_globals_data = game_state_new((char *)"hs globals", k_hs_global_maximum_count, 0x8 );
+    hs_thread_data = halo::saved_games::game_state_new((char *)"hs thread", k_hs_thread_maximum_count, 0x218 );
+    hs_globals_data = halo::saved_games::game_state_new((char *)"hs globals", k_hs_global_maximum_count, 0x8 );
     if (hs_thread_data != 0 && hs_globals_data != 0) {
         hs_globals_data->valid = 1;
         halo::memory::data_delete_all(hs_globals_data);

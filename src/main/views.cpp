@@ -31,6 +31,7 @@
 #include "halo/camera/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" { void render_view_camera_fill(observer_camera *observer, render_view *view); }
 extern "C" { void screenshot_render(render_view *views); }
@@ -324,7 +325,6 @@ extern "C" { extern Rectangle2D game_window_top_left; }
 extern "C" { extern void console_print_error_va(uint8_t clear_first, const char *format, ...); }
 extern "C" { extern void console_deactivate(void); }
 extern "C" { extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); }
-extern "C" { extern void path_remove_last_component(uint8_t *path); }
 extern "C" { extern char * targa_export(BitmapData *bitmap, file_reference_record *destination); }
 extern "C" { extern uint32_t bitmap_data_calculate_pixel_data_size(BitmapData *bitmap); }
 extern "C" { extern void bitmap_data_free(BitmapData *bitmap); }
@@ -418,7 +418,7 @@ void RenderViews::screenshot_render(render_view *views)
                 request.signature = 0x66696c6f;
                 request.location = -1;
                 if ((request.flags & 1) != 0) {
-                    path_remove_last_component((uint8_t *)&request.path);
+                    halo::saved_games::path_remove_last_component((char *)((uint8_t *)&request.path));
                 }
                 if (filename[0] != 0) {
                     strncpy(request.path, filename, 0xff);

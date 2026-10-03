@@ -19,28 +19,24 @@
 #include "halo/sound/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern int16_t pending_difficulty;
 extern void widget_play_sound_effect(int16_t effect_id);
 extern uint32_t ui_restart_saved_game(void);
 extern uint8_t autopatch_launch_updater(void);
-extern uint8_t saved_game_file_exists(char *name);
-extern int32_t game_checkpoint_enumerate_files(uint8_t include_autosaves, uint8_t sort_newest_first, void *callback, void *user_data);
 extern uint8_t ui_restoring_previous_widget;
 extern void widget_instance_close_and_restore_previous(widget_instance *widget);
 extern char *campaign_level_paths[];
 extern void main_queue_map_change(char *map_name);
 extern uint8_t network_wait_flag_00719739;
-extern uint8_t saved_game_load_checkpoint_by_name(char *name);
 extern growable_array ui_lists[3];
 extern int32_t ui_list_current;
 extern uint8_t ui_list_has_default;
 extern uint8_t checkpoint_list_add_row(int32_t index, const char *name, int32_t level_index, int32_t difficulty, int32_t game_time, const void *time, void *user_data);
 extern char pending_delete_saved_game_name_00718fd0[];
 extern void ui_list_free_all(void);
-extern uint8_t saved_game_delete_files(char *name);
-extern uint8_t game_checkpoint_save_new(void);
 extern uint8_t autopatch_status_state_00719234;
 extern uint16_t network_host_name_field_00719238[32];
 extern uint16_t network_host_subname_007191f0[9];
@@ -178,8 +174,8 @@ uint8_t UiEventHandlers::event_4a4190(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a41a0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    uint8_t has_save = saved_game_file_exists((char *)"savegame");
-    uint8_t has_checkpoints = (uint8_t)(game_checkpoint_enumerate_files(1, 1, 0, 0) > 0);
+    uint8_t has_save = halo::saved_games::saved_game_file_exists((char *)"savegame");
+    uint8_t has_checkpoints = (uint8_t)(halo::saved_games::game_checkpoint_enumerate_files(1, 1, 0, 0) > 0);
     widget_instance *child = widget->first_child;
 
     show(child, has_save);
@@ -210,7 +206,7 @@ uint8_t UiEventHandlers::event_4a41a0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a4270(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    return saved_game_load_checkpoint_by_name((char *)"savegame");
+    return halo::saved_games::saved_game_load_checkpoint_by_name((char *)"savegame");
 }
 
 /**
@@ -230,7 +226,7 @@ uint8_t UiEventHandlers::event_4a44f0(widget_instance *widget, int16_t *event, u
     }
     ui_list_current = -1;
     ui_list_has_default = 0;
-    count = game_checkpoint_enumerate_files(1, 1, (void *)checkpoint_list_add_row, 0);
+    count = halo::saved_games::game_checkpoint_enumerate_files(1, 1, (checkpoint_enumerate_proc)((void *)checkpoint_list_add_row), 0);
     pending_delete_saved_game_name_00718fd0[0] = 0;
     if (count == 0) {
         widget_instance_close_and_restore_previous(widget);
@@ -270,7 +266,7 @@ uint8_t UiEventHandlers::event_4a4580(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_4a45d0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     if (pending_delete_saved_game_name_00718fd0[0] != 0) {
-        saved_game_delete_files(pending_delete_saved_game_name_00718fd0);
+        halo::saved_games::saved_game_delete_files(pending_delete_saved_game_name_00718fd0);
     }
     return 1;
 }
@@ -286,7 +282,7 @@ uint8_t UiEventHandlers::event_4a45f0(widget_instance *widget, int16_t *event, u
     char name[0x40];
 
     sprintf(name, "checkpoints\\%s", (char *)(data + 0x48));
-    return saved_game_load_checkpoint_by_name(name);
+    return halo::saved_games::saved_game_load_checkpoint_by_name(name);
 }
 
 /**
@@ -296,7 +292,7 @@ uint8_t UiEventHandlers::event_4a45f0(widget_instance *widget, int16_t *event, u
  */
 uint8_t UiEventHandlers::event_4a47b0(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
-    game_checkpoint_save_new();
+    halo::saved_games::game_checkpoint_save_new();
     return 1;
 }
 

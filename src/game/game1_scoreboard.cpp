@@ -17,6 +17,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -70,7 +71,6 @@ extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dst, uint32_t capacit
 extern data_array *object_data;
 extern real *default_color_a;
 extern real *default_color_b;
-extern real *player_color_get_rgb(real *out_rgb, int32_t color_index);
 extern int32_t game_engine_build_sorted_player_list(uint8_t invert_low_stat,
     scoreboard_entry entries[16], int32_t mode);
 extern uint8_t game_engine_players_ready_for_bsp_switch(void);
@@ -731,7 +731,7 @@ real *Scoreboard::get_player_color(uint32_t player_index, real *out_rgb)
     real *color;
 
     if (game_engine_variant.teams == 0) {
-        color = player_color_get_rgb(scratch, (int32_t)*(int16_t *)&p->color_index);
+        color = halo::saved_games::player_color_get_rgb(scratch, (int32_t)*(int16_t *)&p->color_index);
     } else if (p->team == 0) {
         color = default_color_a;
     } else {

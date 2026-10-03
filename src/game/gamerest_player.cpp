@@ -10,6 +10,7 @@
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/devices/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern void *const network_index_cache_table;
@@ -167,7 +168,6 @@ extern data_array *team_data;
 extern int32_t game_state_cursor;
 extern uint8_t *game_state_base;
 extern uint32_t game_state_crc;
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern ModelCollisionGeometryBSP *global_collision_bsp;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out);
@@ -2821,8 +2821,8 @@ void Players::initialize()
 {
     uint32_t size;
 
-    player_data = (data_array *)game_state_new((char *)"players", k_maximum_players, k_player_size);
-    team_data = (data_array *)game_state_new((char *)"teams", k_maximum_teams, k_team_size);
+    player_data = (data_array *)halo::saved_games::game_state_new((char *)"players", k_maximum_players, k_player_size);
+    team_data = (data_array *)halo::saved_games::game_state_new((char *)"teams", k_maximum_teams, k_team_size);
 
     local_player_globals = (player_globals *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + k_player_globals_size;

@@ -19,6 +19,7 @@
 #include "halo/input/bindings.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" { extern uint8_t game_engine_teams_enabled_flag; }
 extern "C" { extern uint8_t g_control_binding_state; }
@@ -412,9 +413,6 @@ uint8_t Bindings::apply_control_binding(control_binding_descriptor *binding, int
 
 }
 
-extern "C" { extern uint32_t saved_game_create_default_profile(uint16_t *name); }
-extern "C" { extern uint8_t player_profile_get(int32_t index, saved_player_profile *out_buffer); }
-extern "C" { extern void player_profile_save_539bf0(int32_t handle, saved_player_profile *profile); }
 namespace halo::input {
 
 /**
@@ -455,13 +453,13 @@ void Bindings::apply_named_device_default_profile(uint16_t *device_name)
         }
     }
 
-    profile_handle = saved_game_create_default_profile(tag_profile_name);
+    profile_handle = halo::saved_games::saved_game_create_default_profile(tag_profile_name);
     if (profile_handle != 0xffffffff) {
-        if (player_profile_get((int32_t)profile_handle, &profile) != 0) {
+        if (halo::saved_games::player_profile_get((int32_t)profile_handle, &profile) != 0) {
             if (halo::input::input_profile_copy_bindings_by_device(2, &profile,
                     (saved_player_profile *)defaults->profile.pointer) != 0) {
                 profile.flags |= 0x0006;
-                player_profile_save_539bf0((int32_t)profile_handle, &profile);
+                halo::saved_games::player_profile_save_539bf0((int32_t)profile_handle, &profile);
             }
         }
     }

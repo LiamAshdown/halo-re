@@ -9,6 +9,7 @@
 #include <string.h>
 #include "halo/saved_games/saved_games.hpp"
 #include "halo/input/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern int32_t selected_saved_item;
@@ -101,10 +102,10 @@ uint8_t halo::saved_games::PlayerProfile::copy_gamepad_bindings_by_key(controls_
     int32_t dest_slot;
     int32_t source_slot;
 
-    dest_slot = control_profile_gamepad_slot_find(dest, key);
-    source_slot = control_profile_gamepad_slot_find(source, key);
+    dest_slot = halo::saved_games::control_profile_gamepad_slot_find(dest, key);
+    source_slot = halo::saved_games::control_profile_gamepad_slot_find(source, key);
     if (dest_slot != -1 && source_slot != -1) {
-        if (control_profile_is_customized(source, source_slot)) {
+        if (halo::saved_games::control_profile_is_customized(source, source_slot)) {
             memcpy(dest->gamepad_button_bindings[dest_slot], source->gamepad_button_bindings[source_slot],
                    sizeof(dest->gamepad_button_bindings[dest_slot]));
             memcpy(dest->gamepad_action_buttons[dest_slot], source->gamepad_action_buttons[source_slot],
@@ -526,7 +527,7 @@ pass1_try_add:
                     key = entry.product_guid;
                     tag_index = halo::input::input_device_default_profile_tag_find(key, tag_scratch);
                     if (tag_index != -1) {
-                        added = control_profile_find_or_create_gamepad_slot(&entry, profile);
+                        added = halo::saved_games::control_profile_find_or_create_gamepad_slot(&entry, profile);
                         if (added != 0) {
                             used_count = used_count + 1;
                         }
@@ -549,7 +550,7 @@ pass1_try_add:
                     memcpy(&entry, input_devices + (int16_t)i * 0x240, sizeof(entry));
                     have_entry = 1;
 pass2_try_add:
-                    added = control_profile_find_or_create_gamepad_slot(&entry, profile);
+                    added = halo::saved_games::control_profile_find_or_create_gamepad_slot(&entry, profile);
                     if (added != 0) {
                         used_count = used_count + 1;
                     }
@@ -588,7 +589,7 @@ uint8_t finalize_slot(saved_player_profile *profile, int32_t gamepad_index)
     guid.words[2] = slot->product_guid.words[2];
     guid.words[3] = slot->product_guid.words[3];
     if (halo::input::input_device_default_profile_tag_find(guid, (uint8_t *)&template_profile) != -1) {
-        return (uint8_t)control_profile_copy_gamepad_bindings_by_key(slot, profile, &template_profile);
+        return (uint8_t)halo::saved_games::control_profile_copy_gamepad_bindings_by_key(slot, profile, &template_profile);
     }
     return 0;
 }
@@ -605,15 +606,15 @@ uint8_t find_or_create_gamepad_slot(controls_gamepad_record *source, saved_playe
 {
     int32_t i;
 
-    if (profile == 0 || control_profile_gamepad_slot_find(profile, source) != -1) {
+    if (profile == 0 || halo::saved_games::control_profile_gamepad_slot_find(profile, source) != -1) {
         return 0;
     }
 
     for (i = 0; i < k_control_gamepad_count; i = i + 1) {
         if (profile->gamepads[i].name[0] == 0) {
-            control_profile_reset_slot(profile, i);
+            halo::saved_games::control_profile_reset_slot(profile, i);
             profile->gamepads[i] = *source;
-            control_profile_finalize_slot(profile, i);
+            halo::saved_games::control_profile_finalize_slot(profile, i);
             return 1;
         }
     }
@@ -677,7 +678,7 @@ void reestablish_device_slot_mappings(saved_player_profile *profile)
     if (profile == 0) {
         return;
     }
-    control_profile_clear_device_slot_mappings(profile);
+    halo::saved_games::control_profile_clear_device_slot_mappings(profile);
 
     for (slot = 0; slot < k_control_gamepad_count; slot = slot + 1) {
         if (profile->gamepads[slot].name[0] != 0) {

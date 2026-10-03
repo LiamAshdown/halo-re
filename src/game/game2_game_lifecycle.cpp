@@ -7,6 +7,7 @@
 #include "halo/items/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern Scenario *global_scenario;
@@ -38,8 +39,6 @@ extern void interface_globals_allocate(void);
 extern void player_profile_subsystem_initialize(void);
 extern void widget_memory_pool_initialize(void);
 extern void objects_initialize(void);
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
-extern void saved_game_files_initialize(void);
 extern void game_sound_initialize(void);
 extern object *object_iterator_next(object_iterator *iterator);
 extern uint8_t players_any_without_unit(void);
@@ -116,7 +115,7 @@ void GameLifecycle::initialize(void)
     halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
     *halo::camera::globals().hs_camera_control_pointer = 0;
 
-    object_render_state_cache = (data_array *)game_state_new((char *)"cached object render states", 0x100, 0x100);
+    object_render_state_cache = (data_array *)halo::saved_games::game_state_new((char *)"cached object render states", 0x100, 0x100);
     objects_initialize();
     halo::structures::detail_objects_globals_allocate();
 
@@ -134,12 +133,12 @@ void GameLifecycle::initialize(void)
     players_initialize();
     halo::effects::contrails_initialize();
 
-    halo::effects::globals().particle_data = (data_array *)game_state_new((char *)"particle", 0x400, 0x70);
-    halo::effects::globals().effect_data = (data_array *)game_state_new((char *)"effect", 0x100, 0xfc);
-    halo::effects::globals().effect_location_data = (data_array *)game_state_new((char *)"effect location", 0x200, 0x3c);
+    halo::effects::globals().particle_data = (data_array *)halo::saved_games::game_state_new((char *)"particle", 0x400, 0x70);
+    halo::effects::globals().effect_data = (data_array *)halo::saved_games::game_state_new((char *)"effect", 0x100, 0xfc);
+    halo::effects::globals().effect_location_data = (data_array *)halo::saved_games::game_state_new((char *)"effect location", 0x200, 0x3c);
     halo::effects::globals().weather_particle_data = halo::memory::data_new(0x54, (char *)"weather particles", 0x200);
-    particle_system_data = game_state_new((char *)"particle systems", 0x40, 0x158);
-    halo::effects::globals().particle_system_particle_data = (data_array *)game_state_new((char *)"particle system particles", 0x200, 0x80);
+    particle_system_data = halo::saved_games::game_state_new((char *)"particle systems", 0x40, 0x158);
+    halo::effects::globals().particle_system_particle_data = (data_array *)halo::saved_games::game_state_new((char *)"particle system particles", 0x200, 0x80);
 
     size = 0x264;
     sound_class_gains = (void *)(game_state_cursor + game_state_base);
@@ -158,13 +157,13 @@ void GameLifecycle::initialize(void)
     hs_runtime_initialize();
     hs_scripts_reload();
 
-    recorded_animations = game_state_new((char *)"recorded animations", 0x40, 0x64);
+    recorded_animations = halo::saved_games::game_state_new((char *)"recorded animations", 0x40, 0x64);
 
     size = 0x1c;
     cinematic_globals_ptr = (uint32_t *)(game_state_cursor + game_state_base);
     game_state_cursor = game_state_cursor + 0x1c;
     halo::memory::crc32_update(&game_state_crc, (uint8_t *)&size, 4);
-    saved_game_files_initialize();
+    halo::saved_games::saved_game_files_initialize();
 
     halo::input::input_queue_initialize();
     halo::input::input_state_initialize();

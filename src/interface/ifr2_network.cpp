@@ -4,6 +4,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -38,8 +39,6 @@ extern uint8_t default_profile_data[0x1ffc];
 extern char k_empty_string[];
 extern uint8_t command_line_check_flag(const char *flag, const char **out_value);
 extern uint16_t *string_convert_ascii_to_unicode(uint16_t *dest, int32_t dest_bytes, const char *source);
-extern void saved_game_enumerate_by_type(uint16_t type, int32_t *out_handles, uint8_t builtin_only, uint16_t *capacity_and_count);
-extern uint8_t player_profile_get(int32_t slot, void *out_profile);
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 extern uint8_t network_game_client_connect_to_address_async(const char *address, const char *password);
 extern uint8_t local_team_00714dd8;
@@ -290,13 +289,13 @@ uint8_t NetworkSetup::autojoin_from_command_line()
         int16_t count = 100;
 
         string_convert_ascii_to_unicode(wide_name, 0x80, name);
-        saved_game_enumerate_by_type(0, slots, 0, (uint16_t *)&count);
+        halo::saved_games::saved_game_enumerate_by_type(0, slots, 0, (uint16_t *)&count);
         while (count > 0) {
             int32_t slot = slots[count - 1];
 
             if (slot == -1) {
                 memcpy(profile, default_profile_data, sizeof(profile));
-            } else if (player_profile_get(slot, profile) != 0 &&
+            } else if (halo::saved_games::player_profile_get(slot, (saved_player_profile *)profile) != 0 &&
                        wcscmp((const wchar_t *)wide_name, (const wchar_t *)((const uint16_t *)(profile + 2))) == 0) {
                 player_profile_load(0, profile, slot);
                 break;

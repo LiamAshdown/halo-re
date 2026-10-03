@@ -4,6 +4,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern uint8_t controls_row_device_mask_table[];
@@ -18,13 +19,9 @@ extern uint8_t saved_item_working_copy[0x1ffc];
 extern uint8_t control_keyboard_scan_table[0xda];
 extern uint32_t control_mouse_button_scan_table[7];
 extern uint32_t input_default_profile_guid[4];
-extern void control_profile_reset_digital_bindings(uint8_t *profile);
-extern void control_profile_reset_analog_bindings(uint8_t *profile);
-extern uint8_t control_profile_finalize_slot(uint8_t *profile, int32_t preset_index);
 extern void widget_play_sound_effect(int16_t effect_id);
 extern uint8_t controls_action_table[][0x18];
 extern int32_t controls_current_binding_table[][3];
-extern void control_profile_clear_binding(const int16_t *record);
 extern controls_device_label controls_device_labels[0x10];
 extern void controls_binding_row_widget_update(int32_t action_index, widget_instance *row, int32_t device);
 extern heap *widget_memory_pool;
@@ -37,14 +34,12 @@ extern int32_t controls_binding_list_refresh_rows(widget_instance *widget, int32
 extern uint8_t controls_key_is_bindable(int32_t control);
 extern uint8_t controls_binding_clear(int32_t action_index, int32_t device);
 extern uint8_t controls_action_column_is_bindable(int32_t slot, int32_t action_index);
-extern void control_profile_set_binding(const int16_t *record, int32_t action);
 extern uint16_t *controls_action_display_name(int32_t device, const char *action_name);
 extern uint8_t controls_device_sensitivity_a[];
 extern uint8_t controls_device_sensitivity_b[];
 extern int32_t controls_device_label_count;
 extern void controls_device_label_add(const uint16_t *name, int32_t device_type);
 extern int32_t controls_reserved_action_table[9];
-extern uint8_t control_profile_find_binding_for_action(const char *action_name, const int16_t *binding);
 }
 
 static widget_instance *controls_find_child_of_type(widget_instance *child, int16_t type)
@@ -160,7 +155,7 @@ uint8_t ControlsBindings::apply_preset(widget_instance *widget)
             }
             selection -= 2;
             if (selection >= 0 && selection <= 4) {
-                result = control_profile_finalize_slot(saved_item_working_copy, selection);
+                result = halo::saved_games::control_profile_finalize_slot((saved_player_profile *)saved_item_working_copy, selection);
                 widget_play_sound_effect(2);
                 return result;
             }
@@ -173,8 +168,8 @@ uint8_t ControlsBindings::apply_preset(widget_instance *widget)
                 memcpy(control_keyboard_scan_table, profile + 0x134, 0xda);
                 memcpy(control_mouse_button_scan_table, profile + 0x20e, sizeof(control_mouse_button_scan_table));
             } else {
-                control_profile_reset_digital_bindings(saved_item_working_copy);
-                control_profile_reset_analog_bindings(saved_item_working_copy);
+                halo::saved_games::control_profile_reset_digital_bindings((saved_player_profile *)saved_item_working_copy);
+                halo::saved_games::control_profile_reset_analog_bindings((saved_player_profile *)saved_item_working_copy);
             }
             result = 1;
         }
@@ -225,7 +220,7 @@ uint8_t ControlsBindings::binding_clear(int32_t action_index, int32_t device)
             current[2] = 0;
         }
     }
-    control_profile_clear_binding(record);
+    halo::saved_games::control_profile_clear_binding((const control_binding_descriptor *)record);
     return 1;
 }
 
@@ -377,11 +372,11 @@ uint8_t ControlsBindings::binding_row_handle_input(widget_instance *screen)
             if (kind != 3 || (controls_action_table[action_index][0x14] & 4) == 0) {
                 int16_t previous[6];
                 if (controls_enumerate_next_assignable_action(kind == 2 ? 1 : device, previous, action_name, 0) != 0) {
-                    control_profile_clear_binding(previous);
+                    halo::saved_games::control_profile_clear_binding((const control_binding_descriptor *)previous);
                 }
-                control_profile_clear_binding(record);
+                halo::saved_games::control_profile_clear_binding((const control_binding_descriptor *)record);
             }
-            control_profile_set_binding(record, action);
+            halo::saved_games::control_profile_set_binding((const control_binding_descriptor *)record, action);
             halo::input::input_last_used_binding_copy(action, (control_binding_descriptor *)record);
             sound = 2;
         }
@@ -601,7 +596,7 @@ uint8_t ControlsBindings::enumerate_next_assignable_action(int32_t device, int16
         record[1] = 0;
         for (;;) {
             record[3] = 0;
-            while (control_profile_find_binding_for_action(action_name, record) != 0) {
+            while (halo::saved_games::control_profile_find_binding_for_action(action_name, (control_binding_descriptor *)record) != 0) {
                 int32_t i;
                 uint8_t reserved = 0;
 
@@ -637,7 +632,7 @@ uint8_t ControlsBindings::enumerate_next_assignable_action(int32_t device, int16
         record[0] = 3;
         record[1] = (int16_t)(device - 2);
     }
-    if (control_profile_find_binding_for_action(action_name, record) != 0) {
+    if (halo::saved_games::control_profile_find_binding_for_action(action_name, (control_binding_descriptor *)record) != 0) {
         return 1;
     }
     return found;

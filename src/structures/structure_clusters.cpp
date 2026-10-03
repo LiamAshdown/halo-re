@@ -7,6 +7,7 @@
 #include "halo/structures/structures.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern ScenarioStructureBSP *global_structure_bsp;
@@ -19,7 +20,6 @@ extern uint8_t render_frustum_global;
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 }
 
 namespace halo::structures {
@@ -308,11 +308,11 @@ void cluster_references::partition_new(cluster_reference_group *out, char *name)
 
     sprintf(format_buffer, "cluster %s", name);
     sprintf(pool_name, "%s reference", format_buffer);
-    out->cluster_object_references = game_state_new(pool_name, 0x800, sizeof(object_cluster_reference));
+    out->cluster_object_references = halo::saved_games::game_state_new(pool_name, 0x800, sizeof(object_cluster_reference));
 
     sprintf(format_buffer, "%s cluster", name);
     sprintf(pool_name, "%s reference", format_buffer);
-    out->object_cluster_references = game_state_new(pool_name, 0x800, sizeof(object_cluster_reference));
+    out->object_cluster_references = halo::saved_games::game_state_new(pool_name, 0x800, sizeof(object_cluster_reference));
 }
 
 void cluster_references::add_within_radius(uint32_t light_or_object_handle, datum_index *placement_slot, real_point3d *position, float radius, bsp_leaf_reference *leaf_and_cluster, cluster_reference_group *cluster_list)

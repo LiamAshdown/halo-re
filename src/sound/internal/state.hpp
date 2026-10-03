@@ -21,7 +21,6 @@ extern void object_get_root_object_velocities(uint32_t object_index, real_vector
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern SoundEnvironment sound_environment;
 extern uint32_t sound_cluster_audible_bitmap[k_sound_cluster_bitmap_words];
 extern int64_t performance_frequency;

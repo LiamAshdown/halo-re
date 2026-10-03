@@ -2,14 +2,13 @@
 #include "halo/memory/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
 extern int32_t *hs_evaluate_typed_arguments(uint32_t thread_index, int16_t parameter_count, int16_t *expected_types, char first);
 extern void hs_thread_return(int32_t value, uint32_t thread_index);
 extern void game_engine_send_team_allegiance_message(char broadcast);
-extern uint8_t saved_game_load_checkpoint(char *name);
-extern uint8_t game_checkpoint_save_new(void);
 extern uint8_t terminal_initialized;
 extern data_array *terminal_messages;
 extern int32_t console_message_head;
@@ -52,7 +51,7 @@ void SystemCommands::checkpoint_load(int16_t function_index, uint32_t thread_ind
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        saved_game_load_checkpoint((char *)arguments[0]);
+        halo::saved_games::saved_game_load_checkpoint((char *)arguments[0]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -64,7 +63,7 @@ void SystemCommands::checkpoint_load(int16_t function_index, uint32_t thread_ind
  */
 void SystemCommands::checkpoint_save(int16_t function_index, uint32_t thread_index, char first)
 {
-    game_checkpoint_save_new();
+    halo::saved_games::game_checkpoint_save_new();
     hs_thread_return(0, thread_index);
 }
 

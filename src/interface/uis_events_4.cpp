@@ -20,6 +20,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern uint8_t *network_client;
@@ -33,11 +34,9 @@ extern int32_t selected_saved_item;
 extern uint8_t saved_item_working_copy[0x1ffc];
 extern void ui_controls_populate_sensitivity_row(widget_instance *widget, const uint8_t *profile_record);
 extern void ui_controls_populate_input_row(widget_instance *widget, const uint8_t *profile_record);
-extern uint8_t player_profile_set_default_audio_options(void *profile);
 extern int32_t profile_slot_lookup_cache_00692ac8;
 extern int32_t ui_list_current;
 extern growable_array ui_lists[3];
-extern uint8_t player_profile_get(int32_t index, void *out_buffer);
 extern void player_profile_load(int16_t player_index, void *source_profile, int32_t profile_id);
 extern int16_t quit_confirm_error_string_index;
 extern int16_t quit_confirm_error_unknown_ae;
@@ -373,7 +372,7 @@ uint8_t UiEventHandlers::event_4a2950(widget_instance *widget, int16_t *event, u
     uint8_t ok;
 
     memset(profile, 0, sizeof(profile));
-    ok = player_profile_set_default_audio_options(profile);
+    ok = halo::saved_games::player_profile_set_default_audio_options((saved_player_profile *)profile);
     if (ok != 0) {
         ui_controls_populate_input_row(widget->parent->parent, profile);
         widget_play_sound_effect(2);
@@ -398,7 +397,7 @@ uint8_t UiEventHandlers::event_4a2a00(widget_instance *widget, int16_t *event, u
         return 0;
     }
     if (item < 0) {
-        if (player_profile_get(item, profile) == 0) {
+        if (halo::saved_games::player_profile_get(item, (saved_player_profile *)profile) == 0) {
             return 0;
         }
         player_profile_load(0, profile, item);

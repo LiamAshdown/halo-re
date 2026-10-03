@@ -21,11 +21,10 @@
 #include <stdint.h> 
 
 #include "halo/main/movie.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" { extern main_globals main_globals_data; }
 extern "C" { extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); }
-extern "C" { extern void path_append_component(char *destination, const char *component); }
-extern "C" { extern void path_remove_last_component(uint8_t *path); }
 extern "C" { extern char * targa_export(BitmapData *bitmap, file_reference_record *destination); }
 namespace halo::main {
 
@@ -54,9 +53,9 @@ void MoviePlayer::capture_frame_export(void)
         request.location = -1;
 
         if ((request.flags & 1) != 0) {
-            path_remove_last_component((uint8_t *)&request.path);
+            halo::saved_games::path_remove_last_component((char *)((uint8_t *)&request.path));
         }
-        path_append_component(request.path, path);
+        halo::saved_games::path_append_component(request.path, path);
         request.flags = request.flags | 1;
 
         targa_export(movie_frame_bitmap, &request);

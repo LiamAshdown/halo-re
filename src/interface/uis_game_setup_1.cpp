@@ -18,6 +18,7 @@
 #include "halo/interface/uis_game_setup.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern int16_t local_player_count;
@@ -42,10 +43,6 @@ extern int16_t quit_confirm_error_unknown_ae;
 extern uint8_t quit_confirm_error_modal;
 extern uint8_t quit_confirm_error_is_error;
 extern void ui_build_level_select_list_coop(widget_instance *widget, void *param_2, void *param_3);
-extern uint8_t game_state_read_checkpoint_summary(uint8_t *corrupt_flag, int16_t *out_difficulty,
-    char *out_scenario_name);
-extern void player_profile_scan_campaign_progress(int16_t *out_type, void *profile,
-    int16_t *out_level);
 extern uint8_t coop_profile_globals_block_00714ddc[0x1ffc];
 extern void ui_list_widget_rebuild_rows(widget_instance *widget, ui_list_item_format_function format_item);
 extern uint8_t ui_list_default_item_format(void *item_buffer, int32_t item_index, void *list_items);
@@ -53,16 +50,12 @@ extern void multiplayer_settings_select_list_update_item(widget_instance *descri
 extern map_list_entry *map_list;
 extern int32_t map_list_count;
 extern void main_queue_map_change_by_name_or_clear(char *name);
-extern void saved_game_last_mp_map_clear(const void *data);
 extern void widget_play_sound_effect(int16_t effect_id);
 extern uint8_t save_in_progress_00719010;
 extern int32_t cached_profile_slot;
 extern int16_t network_game_mode;
 extern uint8_t network_wait_flag_00719739;
 extern char last_profile_name[];
-extern void saved_game_delete_files(void);
-extern uint8_t saved_game_get_directory_by_handle(int32_t slot, char *out_name);
-extern void saved_game_last_profile_clear(char *name);
 extern uint8_t * string_convert_unicode_to_ascii(uint8_t *dest, uint16_t *source, int32_t capacity);
 extern uint8_t game_engine_get_variant_by_name(const char *name, game_variant *out);
 }
@@ -97,7 +90,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
 
     if (saved_player_profile_slots_handle != cached_saved_game_something) {
         memset(level_select_current_path_00719068, 0, sizeof(level_select_current_path_00719068));
-        level_select_flags_0071916b = game_state_read_checkpoint_summary(&level_select_flags_0071916c,
+        level_select_flags_0071916b = halo::saved_games::game_state_read_checkpoint_summary(&level_select_flags_0071916c,
             &level_select_frame_00719168, level_select_current_path_00719068);
         cached_saved_game_something = saved_player_profile_slots_handle;
     }
@@ -105,7 +98,7 @@ uint32_t UiGameSetup::build_level_select_list(widget_instance *widget, void *par
     memcpy(profile_copy, profile_globals_block, sizeof(profile_copy) < sizeof(profile_globals_block)
                                                      ? sizeof(profile_copy)
                                                      : sizeof(profile_globals_block));
-    player_profile_scan_campaign_progress(&scan_type, profile_copy, &scan_level);
+    halo::saved_games::player_profile_scan_campaign_progress(&scan_type, (saved_player_profile *)profile_copy, &scan_level);
 
     ui_lists[0].element_size = 0x10;
     ui_lists[1].element_size = 0x10;
@@ -246,12 +239,12 @@ void UiGameSetup::build_level_select_list_coop(widget_instance *widget, void *pa
     memcpy(profile_copy_a, profile_globals_block,
            sizeof(profile_copy_a) < sizeof(profile_globals_block) ? sizeof(profile_copy_a)
                                                                     : sizeof(profile_globals_block));
-    player_profile_scan_campaign_progress(&type_a, profile_copy_a, &level_a);
+    halo::saved_games::player_profile_scan_campaign_progress(&type_a, (saved_player_profile *)profile_copy_a, &level_a);
     memcpy(profile_copy_b, coop_profile_globals_block_00714ddc,
            sizeof(profile_copy_b) < sizeof(coop_profile_globals_block_00714ddc)
                ? sizeof(profile_copy_b)
                : sizeof(coop_profile_globals_block_00714ddc));
-    player_profile_scan_campaign_progress(&type_b, profile_copy_b, &level_b);
+    halo::saved_games::player_profile_scan_campaign_progress(&type_b, (saved_player_profile *)profile_copy_b, &level_b);
 
     for (i = 0; i < 10; i++) {
         uint8_t flag_a = profile_copy_a[0x11e + i];
@@ -359,7 +352,7 @@ uint8_t UiGameSetup::map_select_confirm_choice(widget_instance *widget)
     main_queue_map_change_by_name_or_clear(path);
     for (i = 0; i < count; i++) {
         if (_stricmp(path, map_list[i].path) == 0) {
-            saved_game_last_mp_map_clear(map_list[i].path);
+            halo::saved_games::saved_game_last_mp_map_clear(map_list[i].path);
             return exists;
         }
     }
@@ -376,17 +369,17 @@ uint32_t UiGameSetup::restart_saved_game(void)
     if (save_in_progress_00719010 != 0) {
         return 0;
     }
-    saved_game_delete_files();
+    halo::saved_games::saved_game_delete_files(last_profile_name);
     network_game_mode = 0;
     network_wait_flag_00719739 = 1;
     if (cached_profile_slot != saved_player_profile_slots_handle) {
         if (saved_player_profile_slots_handle != -1) {
-            saved_game_get_directory_by_handle(saved_player_profile_slots_handle, last_profile_name);
+            halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, last_profile_name);
         }
         cached_profile_slot = saved_player_profile_slots_handle;
     }
     if (last_profile_name[0] != '\0') {
-        saved_game_last_profile_clear(last_profile_name);
+        halo::saved_games::saved_game_last_profile_clear(last_profile_name);
     }
     return 1;
 }

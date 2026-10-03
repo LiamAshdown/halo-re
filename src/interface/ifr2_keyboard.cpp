@@ -4,6 +4,7 @@
 #include <wchar.h>
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -39,7 +40,6 @@ extern void virtual_keyboard_backspace(void);
 extern uint8_t ui_wide_string_has_non_whitespace(const uint16_t *text);
 extern uint8_t ui_variant_name_is_available(const uint16_t *name);
 extern uint8_t virtual_keyboard_character_is_legal(int32_t validation_mode, uint8_t character);
-extern uint8_t saved_game_name_is_available(const uint16_t *name);
 extern uint8_t saved_item_name_matches(const uint16_t *text);
 extern uint16_t fortune_easter_egg_text[];
 extern uint16_t missing_string_text[];
@@ -312,7 +312,7 @@ void VirtualKeyboard::process_input()
                     !vk_trim_trailing_whitespace()) {
                     goto invalid;
                 }
-                if (saved_game_name_is_available(virtual_keyboard.destination)) {
+                if (halo::saved_games::saved_game_name_is_available(virtual_keyboard.destination)) {
                     goto commit_ok;
                 }
                 name_ok = saved_item_name_matches(virtual_keyboard.destination);
@@ -325,7 +325,7 @@ void VirtualKeyboard::process_input()
                 if (saved_item_name_matches(virtual_keyboard.destination)) {
                     goto commit_ok;
                 }
-                if (!saved_game_name_is_available(virtual_keyboard.destination)) {
+                if (!halo::saved_games::saved_game_name_is_available(virtual_keyboard.destination)) {
                     goto name_taken;
                 }
                 name_ok = ui_variant_name_is_available(virtual_keyboard.destination);

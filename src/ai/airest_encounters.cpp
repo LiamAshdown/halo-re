@@ -7,6 +7,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern ai_globals *ai_globals_ptr;
@@ -89,7 +90,6 @@ extern data_array *ai_pursuit_data;
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern void encounter_new(int16_t *squad_cursor, ScenarioEncounter *definition, int16_t *platoon_cursor);
 extern void encounter_spawn_squads(datum_index encounter_index, int16_t squad_filter, int16_t platoon_filter);
 extern void encounter_advance_grenade_timers(datum_index encounter_index);
@@ -3047,7 +3047,7 @@ void Encounters::initialize()
 {
     uint32_t reserved_size;
 
-    encounter_data = (data_array *)game_state_new((char *)"encounter", k_encounter_data_maximum_count, k_encounter_size);
+    encounter_data = (data_array *)halo::saved_games::game_state_new((char *)"encounter", k_encounter_data_maximum_count, k_encounter_size);
 
     encounter_squad_states = (encounter_squad_state *)(game_state_base + game_state_cursor);
     game_state_cursor = game_state_cursor + 0x8000;
@@ -3059,7 +3059,7 @@ void Encounters::initialize()
     reserved_size = 0x1000;
     halo::memory::crc32_update(&game_state_crc, &reserved_size, 4);
 
-    ai_pursuit_data = (data_array *)game_state_new((char *)"ai pursuit", k_ai_pursuit_data_maximum_count, k_ai_pursuit_size);
+    ai_pursuit_data = (data_array *)halo::saved_games::game_state_new((char *)"ai pursuit", k_ai_pursuit_data_maximum_count, k_ai_pursuit_size);
 }
 
 /**

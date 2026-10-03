@@ -1,6 +1,7 @@
 #include "halo/interface/ifr2_players.hpp"
 #include "halo/interface/engine_state.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -14,7 +15,6 @@ extern const uint16_t empty_string[];
 extern const uint16_t missing_string_text[];
 extern void player_profile_refresh_settings_cache(int16_t player_index);
 extern void console_out_printf(uint8_t unknown, const char *format, ...);
-extern void player_profile_write_data(int32_t slot, void *profile_data);
 }
 
 namespace halo::interface {
@@ -58,7 +58,7 @@ void PlayerProfiles::save_495fb0(uint8_t flag)
             player_profile_refresh_settings_cache(0);
             return;
         }
-        player_profile_write_data(saved_player_profile_slots_handle, profile_globals_block);
+        halo::saved_games::player_profile_write_data(saved_player_profile_slots_handle, (saved_player_profile *)profile_globals_block);
     }
     player_profile_refresh_settings_cache(0);
 }

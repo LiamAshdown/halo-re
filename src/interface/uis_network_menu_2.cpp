@@ -15,6 +15,7 @@
 #include "units.h"
 
 #include "halo/interface/uis_network_menu.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern saved_player_profile_slot profile_globals_block[k_maximum_local_player_profiles];
@@ -32,7 +33,6 @@ extern int32_t resolution_row_count_table_0065bfb4[5];
 extern int32_t resolution_index_table_0065bf74[];
 extern int32_t sv_maxplayers_value;
 extern uint8_t network_game_info_packet_flag;
-extern void player_profile_set_default_server_options(uint8_t *out_profile);
 }
 
 namespace halo::ui {
@@ -89,7 +89,7 @@ uint8_t UiNetworkMenu::network_host_setup_defaults_init(widget_instance *widget)
     if (saved_player_profile_slots_handle != -1) {
         memcpy(profile, &profile_globals_block[0].profile, sizeof(profile));
     } else {
-        player_profile_set_default_server_options(profile);
+        halo::saved_games::player_profile_set_default_server_options((saved_player_profile *)profile);
     }
 
     wcslen((const wchar_t *)((const uint16_t *)(profile + 0xd8c)));

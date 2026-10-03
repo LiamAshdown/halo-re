@@ -310,7 +310,6 @@ extern void game_engine_variant_defaults_team_king();
 extern void game_engine_variant_defaults_team_oddball();
 extern void game_engine_variant_defaults_team_race();
 extern void game_engine_variant_defaults_team_slayer();
-extern void game_state_after_load_restore_time();
 extern void game_variant_list_matching_substring_evaluate();
 extern void glow_clear_disposing_flag();
 extern void glow_delete();

@@ -6,6 +6,7 @@
 #include <wchar.h>
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern data_packet_group network_game_messages_group;
@@ -28,7 +29,6 @@ extern uint32_t network_game_message_handle_settings_relay_role2(network_server_
 extern uint32_t network_game_message_handle_join_finalize_ack_role2(network_server_globals *server, network_machine *machine, uint8_t *record, int32_t length);
 extern int32_t saved_player_profile_slots_handle;
 extern uint32_t profile_globals_block[0x7ff];
-extern void player_profile_set_default_server_options(void *dest);
 extern void network_game_start_new_server_with_name_and_password(uint32_t unused, uint16_t *name, uint16_t *password);
 extern uint8_t message_delta_decode_compound_field(void *decode_context, void *destination);
 extern data_array *player_data;
@@ -89,7 +89,7 @@ void GameRuntime::start_new_server_from_profile(uint32_t param_1)
     uint32_t profile[0x7ff];
 
     if (saved_player_profile_slots_handle == -1) {
-        player_profile_set_default_server_options(profile);
+        halo::saved_games::player_profile_set_default_server_options((saved_player_profile *)profile);
     } else {
         memcpy(profile, profile_globals_block, sizeof(profile));
     }

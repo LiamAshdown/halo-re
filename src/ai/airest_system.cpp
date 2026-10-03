@@ -7,12 +7,12 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern data_array *actor_data;
 extern data_array *swarm_data;
 extern data_array *swarm_component_data;
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern ai_globals *ai_globals_ptr;
 extern int32_t game_engine_get_current_tick(void);
 extern void ai_broadcast_communication_event(int16_t gate, real_point3d *point, int32_t source_object, int16_t event_type, int16_t unused);
@@ -86,9 +86,9 @@ namespace halo::ai {
  */
 void AiSystem::actors_initialize()
 {
-    actor_data = (data_array *)game_state_new((char *)"actor", k_actor_data_maximum_count, k_actor_size);
-    swarm_data = (data_array *)game_state_new((char *)"swarm", k_swarm_data_maximum_count, k_swarm_size);
-    swarm_component_data = (data_array *)game_state_new((char *)"swarm component", k_swarm_component_data_maximum_count, k_swarm_component_size);
+    actor_data = (data_array *)halo::saved_games::game_state_new((char *)"actor", k_actor_data_maximum_count, k_actor_size);
+    swarm_data = (data_array *)halo::saved_games::game_state_new((char *)"swarm", k_swarm_data_maximum_count, k_swarm_size);
+    swarm_component_data = (data_array *)halo::saved_games::game_state_new((char *)"swarm component", k_swarm_component_data_maximum_count, k_swarm_component_size);
 }
 
 /**
@@ -482,7 +482,7 @@ void AiSystem::initialize_for_new_map()
     memset(globals, 0, k_ai_globals_size);
 
     actors_initialize();
-    prop_data = (data_array *)game_state_new(prop_array_name, k_prop_data_maximum_count, k_prop_size);
+    prop_data = (data_array *)halo::saved_games::game_state_new(prop_array_name, k_prop_data_maximum_count, k_prop_size);
     encounters_initialize();
     ai_communication_initialize();
     actor_avoidance_build_direction_tables();

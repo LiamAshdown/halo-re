@@ -1,18 +1,10 @@
 #include "halo/game/gamerest_savegame.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern char saved_game_root_path[];
 extern file_reference_record savegame_index_file;
 extern network_mutex_record *savegame_index_mutex;
-extern uint8_t file_reference_open(file_reference_record *ref, uint8_t mode);
-extern uint8_t file_reference_close(file_reference_record *ref);
-extern uint8_t file_reference_seek(int32_t offset, file_reference_record *ref);
-extern uint8_t file_reference_read(file_reference_record *ref, void *buffer, uint32_t size);
-extern uint8_t file_reference_write(file_reference_record *ref, const void *buffer, uint32_t size);
-extern uint8_t file_reference_set_length(int32_t offset, file_reference_record *ref);
-extern void path_append_component(char *destination, const char *component);
-extern void path_remove_last_component(char *path);
-extern uint8_t file_reference_get_size_by_path(file_reference_record *ref, uint32_t *out_size);
 }
 
 namespace halo::game {
@@ -45,33 +37,33 @@ uint8_t SaveGameIndex::remove_slot(uint16_t slot)
         raw[0] = 0x66696c6f;
         *(uint16_t *)((uint8_t *)ref + 6) = 2;
         if ((*((uint8_t *)ref + 4) & 1) != 0) {
-            path_remove_last_component((char *)ref + 8);
+            halo::saved_games::path_remove_last_component((char *)ref + 8);
         }
-        path_append_component((char *)ref + 8, saved_game_root_path);
+        halo::saved_games::path_append_component((char *)ref + 8, saved_game_root_path);
         *((uint8_t *)ref + 4) |= 1;
     }
 
-    if (file_reference_get_size_by_path(ref, &size) != 0) {
+    if (halo::saved_games::file_reference_get_size_by_path(ref, &size) != 0) {
         write_offset = (uint32_t)slot * 0x206;
         read_offset = write_offset + 0x206;
-        if (read_offset <= size && file_reference_open(ref, 3) != 0) {
-            result = file_reference_seek((int32_t)write_offset, ref);
+        if (read_offset <= size && halo::saved_games::file_reference_open(ref, 3) != 0) {
+            result = halo::saved_games::file_reference_seek((int32_t)write_offset, ref);
             if (result == 1) {
                 for (; read_offset < size; read_offset += 0x206, write_offset += 0x206) {
-                    if (file_reference_seek((int32_t)read_offset, ref) == 0 ||
-                        file_reference_read(ref, record, 0x206) == 0 ||
-                        file_reference_seek((int32_t)write_offset, ref) == 0 ||
-                        file_reference_write(ref, record, 0x206) == 0) {
+                    if (halo::saved_games::file_reference_seek((int32_t)read_offset, ref) == 0 ||
+                        halo::saved_games::file_reference_read(ref, record, 0x206) == 0 ||
+                        halo::saved_games::file_reference_seek((int32_t)write_offset, ref) == 0 ||
+                        halo::saved_games::file_reference_write(ref, record, 0x206) == 0) {
                         result = 0;
                         goto close_file;
                     }
                 }
-                result = file_reference_set_length((int32_t)(size - 0x206), ref);
+                result = halo::saved_games::file_reference_set_length((int32_t)(size - 0x206), ref);
             } else if (result != 0) {
-                result = file_reference_set_length((int32_t)(size - 0x206), ref);
+                result = halo::saved_games::file_reference_set_length((int32_t)(size - 0x206), ref);
             }
         close_file:
-            if (file_reference_close(ref) == 0) {
+            if (halo::saved_games::file_reference_close(ref) == 0) {
                 result = 0;
             }
         }

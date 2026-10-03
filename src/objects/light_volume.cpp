@@ -4,6 +4,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern void antenna_tip_jitter(real_vector3d *amplitude, real_point3d *position, real_matrix4x3 *m);
@@ -15,7 +16,6 @@ extern float camera_position_z;
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, color_interpolation_flags flags, float t);
 extern uint32_t color_pack_argb_from_real(ColorARGB *color);
 extern float curve_apply_exponent(float value, float exponent);
-extern data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size);
 extern real_vector3d *global_white_color;
 extern data_array *light_volume_instances;
 extern void light_volume_render_procedure(uint32_t object_index, datum_index light_volume_handle);
@@ -54,7 +54,7 @@ static int32_t texture_cache_get_unresolved(uint32_t a, uint32_t b)
  */
 void halo::objects::LightVolumeSystem::initialize()
 {
-    light_volume_instances = game_state_new((char *)"light volumes", 0x100, 8);
+    light_volume_instances = halo::saved_games::game_state_new((char *)"light volumes", 0x100, 8);
 }
 
 /**
@@ -317,7 +317,7 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
  */
 void halo::objects::LightningSystem::initialize()
 {
-    lightning_instances = game_state_new((char *)"lightnings", 0x100, 8);
+    lightning_instances = halo::saved_games::game_state_new((char *)"lightnings", 0x100, 8);
 }
 
 /**

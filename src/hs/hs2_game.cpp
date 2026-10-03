@@ -4,6 +4,7 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "halo/saved_games/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,10 +44,8 @@ extern uint8_t *object_globals_pointer;
 extern void main_queue_map_change(char *map_name);
 extern uint8_t unknown_00719738;
 extern uint8_t main_queue_map_change_by_name_or_clear(char *name);
-extern void saved_game_delete_by_display_name(const char *name);
 extern uint8_t profile_globals_block[0x60a4];
 extern int32_t saved_player_profile_slots_handle;
-extern void player_profile_write_data(int32_t handle, void *profile);
 extern uint8_t ui_event_byte_0071975b;
 extern int32_t movie_playback_abort;
 extern uint8_t split_screen_quit_prompt_armed;
@@ -514,7 +513,7 @@ void GameCommands::evaluate_profile_load(int16_t function_index, uint32_t thread
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        saved_game_delete_by_display_name((const char *)arguments[0]);
+        halo::saved_games::saved_game_delete_by_display_name((const char *)arguments[0]);
         hs_thread_return(0, thread_index);
     }
 }
@@ -534,7 +533,7 @@ void GameCommands::evaluate_profile_unlock_solo_levels(int16_t function_index, u
     }
     profile_globals_block[0x11c] |= 4;
     if (saved_player_profile_slots_handle != -1) {
-        player_profile_write_data(saved_player_profile_slots_handle, profile_globals_block);
+        halo::saved_games::player_profile_write_data(saved_player_profile_slots_handle, (saved_player_profile *)profile_globals_block);
     }
     hs_thread_return(0, thread_index);
 }

@@ -16,6 +16,7 @@
 #include "units.h"
 
 #include "halo/interface/uis_game_setup.hpp"
+#include "halo/saved_games/api.hpp"
 
 extern "C" {
 extern int32_t ui_list_current;
@@ -31,9 +32,6 @@ extern uint8_t selected_level_active_00719878;
 extern uint8_t selected_level_pending_00719778;
 extern uint8_t network_wait_flag_00719739;
 extern void widget_play_sound_effect(int16_t effect_id);
-extern void player_profile_scan_campaign_progress(int16_t *out_type, saved_player_profile *profile, int16_t *out_level);
-extern uint8_t saved_game_get_directory_by_handle(int32_t handle, char *out_directory);
-extern void saved_game_last_profile_clear(char *name);
 }
 
 namespace halo::ui {
@@ -48,7 +46,7 @@ static uint8_t level_unlocked_for(int16_t player, int32_t level_id)
     int16_t last_level;
 
     memcpy(profile_copy, profile_globals_block + player * 0x2004, sizeof(profile_copy));
-    player_profile_scan_campaign_progress(&type, (saved_player_profile *)profile_copy, &last_level);
+    halo::saved_games::player_profile_scan_campaign_progress(&type, (saved_player_profile *)profile_copy, &last_level);
     return profile_copy[0x11e + level_id] != 0 || level_id == last_level + 1 || level_id == 0;
 }
 
@@ -74,12 +72,12 @@ uint8_t UiGameSetup::level_select_confirm_choice(widget_instance *widget)
         unlocked = level_unlocked_for(0, level_id);
         if (cached_profile_slot != saved_player_profile_slots_handle) {
             if (saved_player_profile_slots_handle != -1) {
-                saved_game_get_directory_by_handle(saved_player_profile_slots_handle, last_profile_name);
+                halo::saved_games::saved_game_get_directory_by_handle(saved_player_profile_slots_handle, last_profile_name);
             }
             cached_profile_slot = saved_player_profile_slots_handle;
         }
         if (last_profile_name[0] != 0) {
-            saved_game_last_profile_clear(last_profile_name);
+            halo::saved_games::saved_game_last_profile_clear(last_profile_name);
         }
     } else if (local_player_count == 2) {
         for (player = 0; player <= 1 && !unlocked; player++) {
