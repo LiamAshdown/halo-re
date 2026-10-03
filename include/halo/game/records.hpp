@@ -107,6 +107,25 @@ static_assert(offsetof(remote_player_update_cache, vehicle_baseline) == 0x188 - 
 static_assert(sizeof(remote_player_update_cache) == 0x1c8 - 0x120);
 
 static_assert(sizeof(player) == 0x200);
+static_assert(offsetof(Unit, seats) == 0x2e4);
+static_assert(offsetof(UnitSeat, marker_name) == 0x24);
+static_assert(offsetof(UnitSeat, yaw_minimum) == 0xf0);
+static_assert(offsetof(UnitSeat, yaw_maximum) == 0xf4);
+static_assert(offsetof(Model, nodes) == 0xb8);
+static_assert(offsetof(ModelNode, default_translation) == 0x28);
+static_assert(offsetof(ModelNode, scale) == 0x68);
+static_assert(offsetof(HUDGlobals, fullscreen_font) + offsetof(TagDependency, tag_id) == 0x54);
+static_assert(offsetof(HUDGlobals, splitscreen_font) + offsetof(TagDependency, tag_id) == 0x64);
+static_assert(offsetof(HUDGlobals, icon_color) == 0x70);
+static_assert(offsetof(HUDGlobals, carnage_report_bitmap) + offsetof(TagDependency, tag_id) == 0x3d4);
+static_assert(offsetof(Bitmap, bitmap_data) == 0x60);
+static_assert(offsetof(ScenarioPlayerStartingLocation, team_index) == 0x10);
+static_assert(offsetof(ScenarioPlayerStartingLocation, type_0) == 0x14);
+static_assert(offsetof(ScenarioNetgameFlags, type) == 0x10);
+static_assert(offsetof(ScenarioNetgameFlags, usage_id) == 0x12);
+static_assert(offsetof(vehicle_object, vehicle) == 0x4cc);
+static_assert(offsetof(biped_object, biped) == 0x4cc);
+static_assert(offsetof(update_client_queue_entry, held_control_flags) == 0x08);
 static_assert(offsetof(unit_object, unit.weapons) == 0x2f8);
 static_assert(offsetof(unit_object, unit.current_weapon_index) == 0x2f2);
 

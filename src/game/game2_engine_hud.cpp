@@ -69,10 +69,11 @@ wchar_t * EngineHud::multiplayer_game_text_string(int16_t index)
  */
 int32_t EngineHud::scoreboard_text_font(void)
 {
-    int32_t font = *(int32_t *)((uint8_t *)hud_messaging_parameters + 0x54);
+    HUDGlobals *messaging = (HUDGlobals *)hud_messaging_parameters;
+    int32_t font = *(int32_t *)&messaging->fullscreen_font.tag_id;
 
     if (local_player_globals->local_player_count > 1) {
-        int32_t preferred = *(int32_t *)((uint8_t *)hud_messaging_parameters + 0x64);
+        int32_t preferred = *(int32_t *)&messaging->splitscreen_font.tag_id;
 
         if (preferred != -1) {
             font = preferred;
@@ -147,9 +148,9 @@ void EngineHud::rasterize_in_game_score(datum_index subject_player, float opacit
     halo::game::hud_draw_world_relative_text(&params_result, 0, result_text, 0);
 
     params_default.alpha = opacity;
-    params_default.red = *(float *)((uint8_t *)hud_messaging_parameters + 0x74);
-    params_default.green = *(float *)((uint8_t *)hud_messaging_parameters + 0x78);
-    params_default.blue = *(float *)((uint8_t *)hud_messaging_parameters + 0x7c);
+    params_default.red = ((HUDGlobals *)hud_messaging_parameters)->icon_color.red;
+    params_default.green = ((HUDGlobals *)hud_messaging_parameters)->icon_color.green;
+    params_default.blue = ((HUDGlobals *)hud_messaging_parameters)->icon_color.blue;
     team_params[0].alpha = opacity;
     team_params[0].red = 0.6f;
     team_params[0].green = 0.3f;
