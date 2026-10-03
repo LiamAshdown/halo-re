@@ -156,12 +156,12 @@ network_channel * ChannelFactory::create_channel(uint32_t flags)
          (halo::networking::network_listen_start(channel->endpoint) == 0 &&
           halo::networking::network_channel_list_add(channel->endpoint, channel->listen_list) == 0))) {
         channel->incoming = halo::memory::circular_buffer_new(halo::mutable_literal("transport-incoming"), 0);
-        if (channel->incoming != 0) {
-            goto primed;
+        if (channel->incoming == 0) {
+            ok = 0;
         }
+    } else {
+        ok = 0;
     }
-    ok = 0;
-primed:
     channel->reliable_count = 0;
     channel->reliable = 0;
     channel->send_budget = 0xe0;
@@ -1000,22 +1000,21 @@ char ChannelView::listen_service(network_channel **out_new_child)
             return result;
         }
 
-        if (entry->data_ready == 1 && network_pending_connection_count > 0) {
-            goto handle_readable;
-        }
-        incoming = entry->incoming;
-        if (incoming != 0) {
-            available = incoming->write_cursor - incoming->read_cursor;
-            if (available < 0) {
-                available = available + incoming->capacity;
-            }
-            if (available > 0) {
-                goto handle_readable;
+        bool readable = (entry->data_ready == 1 && network_pending_connection_count > 0);
+        if (!readable) {
+            incoming = entry->incoming;
+            if (incoming != 0) {
+                available = incoming->write_cursor - incoming->read_cursor;
+                if (available < 0) {
+                    available = available + incoming->capacity;
+                }
+                readable = available > 0;
             }
         }
-        continue;
+        if (!readable) {
+            continue;
+        }
 
-    handle_readable:
         if (entry == channel->endpoint) {
             if (channel->listen_list->last_index + 1 < 0x11) {
                 if (channel->listening == 0) {
@@ -1398,20 +1397,21 @@ char ChannelView::service(int32_t timeout_ms, network_channel **out_new_child)
 
     flags = channel->flags;
     channel->flags = flags & 0xffffffdf;
+    bool stamp = true;
     if (timeout_ms != 0) {
         if ((uint32_t)(channel->last_activity_ms + 5000) < (uint32_t)now_ms) {
             channel->flags = (flags & 0xffffffdf) | k_network_channel_timed_out;
         }
         if ((uint32_t)now_ms <= (uint32_t)(channel->last_activity_ms + timeout_ms)) {
-            goto after_timestamp;
-        }
-        if (network_channel_service_backoff_bypass == 0 &&
+            stamp = false;
+        } else if (network_channel_service_backoff_bypass == 0 &&
             (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < halo::game::globals().game_time->game_time || network_game_mode == halo::networking::k_game_mode_client)) {
             return 0;
         }
     }
-    channel->last_activity_ms = now_ms;
-after_timestamp:
+    if (stamp) {
+        channel->last_activity_ms = now_ms;
+    }
     halo::networking::network_channel_scan_retransmit_timeouts(channel);
 
     if (channel->outgoing.empty == 0) {
@@ -1474,20 +1474,21 @@ char ChannelView::service_light(int32_t timeout_ms, network_channel **out_new_ch
 
     flags = channel->flags;
     channel->flags = flags & 0xffffffdf;
+    bool stamp = true;
     if (timeout_ms != 0) {
         if ((uint32_t)(channel->last_activity_ms + 5000) < (uint32_t)now_ms) {
             channel->flags = (flags & 0xffffffdf) | k_network_channel_timed_out;
         }
         if ((uint32_t)now_ms <= (uint32_t)(channel->last_activity_ms + timeout_ms)) {
-            goto after_timestamp;
-        }
-        if (network_channel_service_backoff_bypass == 0 &&
+            stamp = false;
+        } else if (network_channel_service_backoff_bypass == 0 &&
             (halo::networking::net_state::channel_timeout_grace_seconds * 0x1e < halo::game::globals().game_time->game_time || network_game_mode == halo::networking::k_game_mode_client)) {
             return 0;
         }
     }
-    channel->last_activity_ms = now_ms;
-after_timestamp:
+    if (stamp) {
+        channel->last_activity_ms = now_ms;
+    }
     if (channel->flags & k_network_channel_listening) {
         return halo::networking::network_channel_listen_service(channel, out_new_child);
     }
@@ -1595,52 +1596,55 @@ char ChannelView::transmit()
         }
         chunk = (free_space < 0x5000) ? free_space : 0x5000;
 
+        bool drained = false;
         source = queue->incoming;
         source_available = transmit_circular_buffer_used(source);
         if (queue->connection_failed == 1) {
             if (source_available == 0) {
                 channel->flags = channel->flags | k_network_channel_dead;
                 done = 0;
-                goto refresh;
+                drained = true;
             }
         } else if (source_available == 0) {
             break;
         }
 
-        count = (source_available > chunk) ? chunk : source_available;
+        if (!drained) {
 
-        read_cursor = source->read_cursor;
-        scratch_cursor = scratch;
-        remaining = count;
-        if (count <= transmit_circular_buffer_used(source)) {
-            int32_t tail_room = source->capacity - read_cursor;
-            if (count >= tail_room) {
-                memcpy(scratch, source->data + read_cursor, (uint32_t)tail_room);
-                read_cursor = 0;
-                scratch_cursor = scratch + tail_room;
-                remaining = count - tail_room;
-            }
-            if (remaining > 0) {
-                memcpy(scratch_cursor, source->data + read_cursor, (uint32_t)remaining);
-                read_cursor = read_cursor + remaining;
-            }
-            source->read_cursor = read_cursor;
-        }
+            count = (source_available > chunk) ? chunk : source_available;
 
-        if (count > 0) {
-            QueryPerformanceCounter((LARGE_INTEGER *)&counter);
-            channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
-            halo::memory::circular_buffer_write((uint32_t)count, channel->incoming, scratch);
-        } else {
-            if (count == -4) {
-                break;
+            read_cursor = source->read_cursor;
+            scratch_cursor = scratch;
+            remaining = count;
+            if (count <= transmit_circular_buffer_used(source)) {
+                int32_t tail_room = source->capacity - read_cursor;
+                if (count >= tail_room) {
+                    memcpy(scratch, source->data + read_cursor, (uint32_t)tail_room);
+                    read_cursor = 0;
+                    scratch_cursor = scratch + tail_room;
+                    remaining = count - tail_room;
+                }
+                if (remaining > 0) {
+                    memcpy(scratch_cursor, source->data + read_cursor, (uint32_t)remaining);
+                    read_cursor = read_cursor + remaining;
+                }
+                source->read_cursor = read_cursor;
             }
-            if (count == -3) {
-                channel->flags = channel->flags | k_network_channel_dead;
+
+            if (count > 0) {
+                QueryPerformanceCounter((LARGE_INTEGER *)&counter);
+                channel->last_activity_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
+                halo::memory::circular_buffer_write((uint32_t)count, channel->incoming, scratch);
+            } else {
+                if (count == -4) {
+                    break;
+                }
+                if (count == -3) {
+                    channel->flags = channel->flags | k_network_channel_dead;
+                }
+                done = 0;
             }
-            done = 0;
         }
-    refresh:
         destination = channel->incoming;
         free_space = destination->capacity - transmit_circular_buffer_used(destination) - 1;
         if (done == 0) {
@@ -1873,17 +1877,18 @@ int32_t ChannelListView::remove(network_receive_queue *entry)
         while (list->fd_array[dedup_index] != (uint32_t)entry->socket_key) {
             dedup_index = dedup_index + 1;
             if (list->fd_count <= dedup_index) {
-                goto done_dedup;
+                break;
             }
         }
-        if (dedup_index < list->fd_count - 1) {
-            for (i = dedup_index; i < list->fd_count - 1; i++) {
-                list->fd_array[i] = list->fd_array[i + 1];
+        if (dedup_index < list->fd_count) {
+            if (dedup_index < list->fd_count - 1) {
+                for (i = dedup_index; i < list->fd_count - 1; i++) {
+                    list->fd_array[i] = list->fd_array[i + 1];
+                }
             }
+            list->fd_count = list->fd_count - 1;
         }
-        list->fd_count = list->fd_count - 1;
     }
-done_dedup:
     entry->flags = entry->flags & 0xf7;
     list->entries[found_index] = list->entries[list->last_index];
     list->entries[list->last_index] = 0;

@@ -241,6 +241,8 @@ char ServerView::build_full_game_info_packet(network_machine *machine)
         if ((channel->flags & 0x01) == 0) {
             int32_t free_bits;
 
+            bool flush_failed = false;
+
             free_bits = (int32_t)(channel->outgoing.stream.last_bit -
                                   channel->outgoing.stream.byte_cursor * 8) -
                         (int32_t)channel->outgoing.stream.bit_cursor + 1;
@@ -250,20 +252,21 @@ char ServerView::build_full_game_info_packet(network_machine *machine)
                 flushed = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
                 ok = 0;
                 if (flushed == 0) {
-                    goto done;
+                    flush_failed = true;
                 }
             }
-            channel->send_budget = channel->send_budget + total_bits;
-            { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), &item_flag, 1); }
-            channel->outgoing.empty = 0;
-            halo::memory::bit_stream_write_bits_chunked((bit_stream *)((uint8_t *)channel + 0x10), (const uint32_t *)(encoded_buffer), bit_len);
-            channel->outgoing.empty = 0;
-            ok = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
+            if (!flush_failed) {
+                channel->send_budget = channel->send_budget + total_bits;
+                { uint32_t item_flag = 0; halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, &item_flag, 1); }
+                channel->outgoing.empty = 0;
+                halo::memory::bit_stream_write_bits_chunked(&channel->outgoing.stream, (const uint32_t *)(encoded_buffer), bit_len);
+                channel->outgoing.empty = 0;
+                ok = halo::networking::network_channel_stream_flush(&channel->outgoing, channel, 1);
+            }
         } else {
             ok = 1;
         }
     }
-done:
     if (ok == 0) {
         return 0;
     }
@@ -362,18 +365,13 @@ int32_t ServerView::check_machine_timeout(network_machine *machine)
     result = 0;
 
     if (timer_14 <= timer_18) {
-        if (timer_18 <= now_ms || now_ms < timer_14) {
-            goto not_timed_out;
-        }
-        if (timer_14 <= timer_18) {
+        if (!(timer_18 <= now_ms || now_ms < timer_14)) {
             return 1;
         }
-    }
-    if (now_ms < timer_18 || timer_14 <= now_ms) {
+    } else if (now_ms < timer_18 || timer_14 <= now_ms) {
         return 1;
     }
 
-not_timed_out:
     if (machine->player_joined == 0) {
         int16_t machine_id;
 

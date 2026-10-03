@@ -689,6 +689,7 @@ void * ServerView::host_new()
     network_server_globals *host;
     int32_t i;
     network_machine *machine;
+    bool started = false;
 
     memset(&network_server_storage, 0, sizeof(network_server_storage));
     host = &network_server_storage;
@@ -733,12 +734,13 @@ void * ServerView::host_new()
         *(uint32_t *)&host->handshake_state = 0;
         if (halo::networking::network_game_session_reset_defaults(host) != 0) {
             halo::networking::network_session_host_start(0);
-            goto done;
+            started = true;
         }
     }
-    halo::networking::network_game_server_host_dispose(host);
-    host = 0;
-done:
+    if (!started) {
+        halo::networking::network_game_server_host_dispose(host);
+        host = 0;
+    }
     if (host != 0 && ((host->flags >> 2) & 1) != 0) {
         halo::networking::message_delta_protocol_initialize();
         halo::networking::network_stats_summary_log_open();
