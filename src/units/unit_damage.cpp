@@ -400,7 +400,7 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
         return;
     }
 
-    found = halo::objects::object_get_node_local_transform(unit_index, (char *)"melee", &melee_marker, 1);
+    found = halo::objects::object_get_node_local_transform(unit_index, "melee", &melee_marker, 1);
     if (found == 1) {
         real_vector3d delta;
         uint8_t scratch[0x54];

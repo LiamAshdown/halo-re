@@ -1270,7 +1270,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
             base_state = 5;
         }
         if ((int8_t)(uint8_t)unit->unit.base_animation_state != base_state && ::halo::units::unit_animation_state_is_compatible(reinterpret_cast<uint8_t *>(unit) + 0x298, requested)) {
-            char *weapon_label = UnitView(unit_index).get_current_weapon_label();
+            const char *weapon_label = UnitView(unit_index).get_current_weapon_label();
 
             UnitView(unit_index).set_or_test_seat_and_weapon_label(unit_base_animation_state_names[base_state], weapon_label, 1);
         }
@@ -1441,7 +1441,7 @@ void UnitView::update_animation_timers()
                 Vector3D forward;
                 int16_t node = 0;
 
-                if ((int16_t)halo::objects::object_get_node_local_transform(unit_index, (char *)"head", &marker, 1) != 0) {
+                if ((int16_t)halo::objects::object_get_node_local_transform(unit_index, "head", &marker, 1) != 0) {
                     position = *(Point3D *)&marker.transform.position;
                     forward = *(Vector3D *)&marker.transform.forward;
                     node = marker.node_index;

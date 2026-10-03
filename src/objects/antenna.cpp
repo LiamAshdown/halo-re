@@ -33,7 +33,7 @@ static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo
  */
 void halo::objects::AntennaSystem::initialize()
 {
-    antenna_data = halo::saved_games::game_state_new((char *)"antenna", k_maximum_antennas, 0x2bc  );
+    antenna_data = halo::saved_games::game_state_new("antenna", k_maximum_antennas, 0x2bc  );
 }
 
 /**

@@ -45,7 +45,7 @@ static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo
  */
 void halo::objects::FlagSystem::initialize()
 {
-    flag_data = halo::saved_games::game_state_new((char *)"flag", k_maximum_flags, 0x16bc  );
+    flag_data = halo::saved_games::game_state_new("flag", k_maximum_flags, 0x16bc  );
 }
 
 /**

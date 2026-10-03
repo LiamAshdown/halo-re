@@ -79,7 +79,7 @@ static cluster_reference_group &light_cluster_first__as_lights_initialize = rein
  */
 void halo::objects::LightSystem::initialize()
 {
-    data_array *new_light_data = halo::saved_games::game_state_new((char *)"lights", k_maximum_lights, 0x7c  );
+    data_array *new_light_data = halo::saved_games::game_state_new("lights", k_maximum_lights, 0x7c  );
     uint8_t *checksum_slot = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
     uint32_t size_marker = 4;
 
@@ -90,7 +90,7 @@ void halo::objects::LightSystem::initialize()
     *checksum_slot = 1;
 
     if (new_light_data != 0) {
-        halo::structures::cluster_partition_new(&light_cluster_first__as_lights_initialize, (char *)"light");
+        halo::structures::cluster_partition_new(&light_cluster_first__as_lights_initialize, "light");
     }
 }
 

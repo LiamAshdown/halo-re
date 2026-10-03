@@ -40,9 +40,9 @@ void halo::objects::GlowSystem::initialize()
     if (glow_data != 0) {
         return;
     }
-    glow_data = halo::saved_games::game_state_new((char *)"glow", 8, 0x25c);
+    glow_data = halo::saved_games::game_state_new("glow", 8, 0x25c);
     if (glow_data != 0 && glow_particle_data == 0) {
-        glow_particle_data = halo::saved_games::game_state_new((char *)"glow particles", 0x200, 0x64);
+        glow_particle_data = halo::saved_games::game_state_new("glow particles", 0x200, 0x64);
     }
 }
 

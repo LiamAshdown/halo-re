@@ -22,7 +22,7 @@ void halo::objects::WidgetSystem::initialize()
 {
     int32_t i;
 
-    widget_data = halo::saved_games::game_state_new((char *)"widget", k_maximum_widgets, 0xc  );
+    widget_data = halo::saved_games::game_state_new("widget", k_maximum_widgets, 0xc  );
     for (i = 0; i < k_maximum_widget_types; i++) {
         if (widget_type_definitions[i].initialize != 0) {
             ((void (*)(void))widget_type_definitions[i].initialize)();

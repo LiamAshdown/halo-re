@@ -30,7 +30,7 @@ public:
      *
      * @address 0x004f6c60
      */
-    void set_permutation_by_name(char *name, int16_t region_filter, char use_matched_index);
+    void set_permutation_by_name(const char *name, int16_t region_filter, char use_matched_index);
 
     /**
      * Per-tick update of one object; returns nonzero when the object is still alive.

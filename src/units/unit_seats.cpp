@@ -471,7 +471,7 @@ uint32_t halo::units::unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t se
     delta.j = position.y - marker.node_transform.position.y;
     delta.k = position.z - marker.node_transform.position.z;
     halo::math::matrix4x3_inverse_transform_vector(delta, delta, marker.node_transform);
-    halo::objects::object_reorient_relative_to_marker(vehicle_index, marker_name, unit_index, (char *)"");
+    halo::objects::object_reorient_relative_to_marker(vehicle_index, marker_name, unit_index, "");
 
     unit = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(unit_index));
     unit->unit.vehicle_seat_index = seat_index;

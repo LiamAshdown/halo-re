@@ -249,7 +249,7 @@ void load_core(char *name)
  *
  * @address 0x005380d0
  */
-data_array *make(char *name, int16_t maximum_count, int16_t element_size)
+data_array *make(const char *name, int16_t maximum_count, int16_t element_size)
 {
     data_array *array;
     int32_t block_size;
@@ -284,7 +284,7 @@ data_array *make(char *name, int16_t maximum_count, int16_t element_size)
  *
  * @address 0x00538150
  */
-memory_pool *new_pool(char *name, int32_t pool_size)
+memory_pool *new_pool(const char *name, int32_t pool_size)
 {
     memory_pool *pool;
     int32_t block_size;

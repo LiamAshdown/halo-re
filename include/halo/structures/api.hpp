@@ -40,7 +40,7 @@ inline int16_t structure_weather_polyhedra_find_within_radius(int16_t *out, floa
     return halo::structures::cluster_flood::weather_polyhedra_find_within_radius(out, radius);
 }
 
-inline void cluster_partition_new(cluster_reference_group *out, char *name)
+inline void cluster_partition_new(cluster_reference_group *out, const char *name)
 {
     halo::structures::cluster_references::partition_new(out, name);
 }

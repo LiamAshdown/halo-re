@@ -230,7 +230,7 @@ void UnitView::get_camera_position(real_point3d *out)
             return;
         }
         if (unit->gunner_unit_index == k_datum_index_none) {
-            halo::objects::object_get_node_local_transform(unit_index, (char *)"head", &marker, 1);
+            halo::objects::object_get_node_local_transform(unit_index, "head", &marker, 1);
         } else {
             object *gunner = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit->gunner_unit_index)].data;
             Unit *unit_tag = (Unit *)halo::cache::globals().tag_instances[halo::datum_slot(unit_obj->definition_tag)].data;

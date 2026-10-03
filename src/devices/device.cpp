@@ -380,7 +380,7 @@ uint8_t DeviceHandle::frontfacing(real_vector3d *forward)
 
         if ((dev->device.type_flags & (1u << _device_control_usable_from_both_sides_bit)) == 0) {
             object_marker marker;
-            if (halo::objects::object_get_node_local_transform(device_index, (char *)"front", &marker, 1) == 1) {
+            if (halo::objects::object_get_node_local_transform(device_index, "front", &marker, 1) == 1) {
                 real_vector3d *marker_forward = &marker.node_transform.forward;
                 if (0.0f < marker_forward->i * forward->i + marker_forward->j * forward->j +
                     marker_forward->k * forward->k) {
@@ -639,7 +639,7 @@ void DeviceGroupHandle::set_value_immediate(float value)
  */
 void DeviceGroupPool::allocate()
 {
-    device_groups = halo::saved_games::game_state_new((char *)"device groups", k_device_group_maximum_count, k_device_group_element_size);
+    device_groups = halo::saved_games::game_state_new("device groups", k_device_group_maximum_count, k_device_group_element_size);
 }
 
 /**

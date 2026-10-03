@@ -177,7 +177,7 @@ public:
     uint8_t find_weapon_marker_transform(uint32_t vehicle_index, int16_t seat_index, real_point3d *out_entry, real_point3d *out_seat, real_point3d *out_hint);
     float get_active_weapon_scale(int16_t zoom_level);
     int8_t get_current_grenade_index();
-    char * get_current_weapon_label();
+    const char *get_current_weapon_label();
     int32_t get_grenade_count(int16_t grenade_type);
     uint8_t get_weapon_marker_indices(uint8_t use_alternate, uint32_t out_dx_to_key_frame, uint32_t out_dx_total, int16_t *out_frame_count, int16_t *out_key_frame_index);
     datum_index get_weapon_object_index(int16_t slot_index);
@@ -443,7 +443,7 @@ uint32_t unit_get_biped_specific_value(uint32_t object_index);
 void unit_get_camera_position(uint32_t unit_index, real_point3d *out);
 void unit_get_crouch_height_offset(real_point3d *object_position, uint32_t object_index, float *pill_height, float *pill_radius_out);
 int8_t unit_get_current_grenade_index(uint32_t unit_index);
-char * unit_get_current_weapon_label(uint32_t unit_index);
+const char *unit_get_current_weapon_label(uint32_t unit_index);
 int32_t unit_get_custom_animation_time_remaining(uint32_t object_index);
 uint32_t unit_get_flag_bit6(uint32_t unit_index);
 void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_vector3d *out);

@@ -786,7 +786,7 @@ int8_t UnitView::get_current_grenade_index()
  *
  * @address 0x56dfd0
  */
-char * UnitView::get_current_weapon_label()
+const char *UnitView::get_current_weapon_label()
 {
     uint32_t unit_index = datum_handle;
     object *unit_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
@@ -799,7 +799,7 @@ char * UnitView::get_current_weapon_label()
             return halo::objects::tag_as<Weapon>(weapon_obj->definition_tag)->label.string;
         }
     }
-    return (char *)"unarmed";
+    return "unarmed";
 }
 
 /**
@@ -1121,7 +1121,7 @@ void UnitView::ready_desired_weapon(uint8_t force)
         return;
     }
     if (desired_weapon == k_datum_index_none) {
-        UnitView(unit_index).set_or_test_seat_and_weapon_label(UnitView(unit_index).get_seat_or_state_name(), (char *)"unarmed", 1);
+        UnitView(unit_index).set_or_test_seat_and_weapon_label(UnitView(unit_index).get_seat_or_state_name(), "unarmed", 1);
         unit->unit.current_weapon_index = -1;
         UnitView(unit_index).validate_and_clear_weapon_switch();
         return;
@@ -1468,7 +1468,7 @@ void UnitView::throw_grenade_move_to_hand()
     }
 
     object_marker hand_marker;
-    halo::objects::object_get_node_local_transform(unit_index, (char *)"left hand", &hand_marker, 1);
+    halo::objects::object_get_node_local_transform(unit_index, "left hand", &hand_marker, 1);
 
     object_placement_data placement;
     halo::objects::object_placement_data_initialize(&placement, halo::objects::tag_handle(grenade_table[grenade_type].projectile),

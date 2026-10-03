@@ -1254,7 +1254,7 @@ char * object_get_attachment_marker_name(uint32_t object_index, int16_t attachme
  *
  * @address 0x004f6080
  */
-int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker,
+int32_t object_get_node_local_transform(uint32_t object_index, const char *marker_name, object_marker *marker,
     uint32_t maximum_markers)
 {
     return halo::objects::ObjectRef(object_index).get_node_local_transform(marker_name, marker, maximum_markers);
@@ -1265,8 +1265,8 @@ int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name
  *
  * @address 0x004f6180
  */
-void object_reorient_relative_to_marker(uint32_t parent_index, char *parent_marker_name,
-    uint32_t object_index, char *object_marker_name)
+void object_reorient_relative_to_marker(uint32_t parent_index, const char *parent_marker_name,
+    uint32_t object_index, const char *object_marker_name)
 {
     halo::objects::ObjectRef(object_index).reorient_relative_to_marker(parent_index, parent_marker_name, object_marker_name);
 }
@@ -1398,7 +1398,7 @@ void object_offset_node_translation(uint32_t object_index, real_vector3d *delta)
  *
  * @address 0x004f6c60
  */
-void object_set_permutation_by_name(uint32_t object_index, char *name, int16_t region_filter,
+void object_set_permutation_by_name(uint32_t object_index, const char *name, int16_t region_filter,
     char use_matched_index)
 {
     halo::objects::ObjectUpdater(object_index).set_permutation_by_name(name, region_filter, use_matched_index);

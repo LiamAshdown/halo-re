@@ -718,13 +718,13 @@ void VehicleView::create_hover_thruster_effects()
     int16_t hover_count;
     int16_t total;
     int16_t i;
-    static char *names[3] = { (char *)"incident", (char *)"normal", (char *)"reflected" };
+    static const char *names[3] = { "incident", "normal", "reflected" };
 
     if ((int32_t)halo::objects::tag_handle(tag->effect) == -1) {
         return;
     }
-    hover_count = (int16_t)halo::objects::object_get_node_local_transform(unit_index, (char *)"hover thrusters", (object_marker *)markers, 0xf);
-    total = (int16_t)(hover_count + (int16_t)halo::objects::object_get_node_local_transform(unit_index, (char *)"jet thrusters",
+    hover_count = (int16_t)halo::objects::object_get_node_local_transform(unit_index, "hover thrusters", (object_marker *)markers, 0xf);
+    total = (int16_t)(hover_count + (int16_t)halo::objects::object_get_node_local_transform(unit_index, "jet thrusters",
         (object_marker *)(markers + hover_count * 0x6c), 0x10 - hover_count));
 
     for (i = 0; i < total; i++) {
@@ -782,12 +782,12 @@ void VehicleView::create_hover_thruster_midpoint_effects()
     uint8_t markers[15 * 0x6c];
     int16_t count;
     int16_t i;
-    static char *names[4] = { (char *)"incident", (char *)"normal", (char *)"reflected", (char *)"midpoint" };
+    static const char *names[4] = { "incident", "normal", "reflected", "midpoint" };
 
     if ((int32_t)halo::objects::tag_handle(tag->effect) == -1 || !(obj->unit.driver_seat_power > 0.0f)) {
         return;
     }
-    count = (int16_t)halo::objects::object_get_node_local_transform(unit_index, (char *)"hover thrusters", (object_marker *)markers, 0xf);
+    count = (int16_t)halo::objects::object_get_node_local_transform(unit_index, "hover thrusters", (object_marker *)markers, 0xf);
     for (i = 0; i < count; i++) {
         uint8_t *marker = markers + (int32_t)i * 0x6c;
         real_point3d *marker_position = (real_point3d *)(marker + 0x60);

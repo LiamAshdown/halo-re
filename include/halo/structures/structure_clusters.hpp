@@ -79,7 +79,7 @@ struct cluster_references {
      *
      * @address 0x551e30
      */
-    static void partition_new(cluster_reference_group *out, char *name);
+    static void partition_new(cluster_reference_group *out, const char *name);
 
     /**
      * Finds every cluster within the radius of the position (only the location's own cluster for a non-positive radius)

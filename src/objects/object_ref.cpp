@@ -539,7 +539,7 @@ char * halo::objects::ObjectRef::get_attachment_marker_name(int16_t attachment_i
  *
  * @address 0x004f6080
  */
-int32_t halo::objects::ObjectRef::get_node_local_transform(char *marker_name, object_marker *marker,
+int32_t halo::objects::ObjectRef::get_node_local_transform(const char *marker_name, object_marker *marker,
     uint32_t maximum_markers)
 {
     uint32_t object_index = handle;
@@ -589,8 +589,8 @@ int32_t halo::objects::ObjectRef::get_node_local_transform(char *marker_name, ob
  *
  * @address 0x004f6180
  */
-void halo::objects::ObjectRef::reorient_relative_to_marker(uint32_t parent_index, char *parent_marker_name,
-    char *object_marker_name)
+void halo::objects::ObjectRef::reorient_relative_to_marker(uint32_t parent_index, const char *parent_marker_name,
+    const char *object_marker_name)
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;

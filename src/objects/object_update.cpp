@@ -68,7 +68,7 @@ void halo::objects::ObjectUpdater::regions_reset_permutation_lock(int8_t unlock)
  *
  * @address 0x004f6c60
  */
-void halo::objects::ObjectUpdater::set_permutation_by_name(char *name, int16_t region_filter, char use_matched_index)
+void halo::objects::ObjectUpdater::set_permutation_by_name(const char *name, int16_t region_filter, char use_matched_index)
 {
     uint32_t object_index = handle;
     object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;

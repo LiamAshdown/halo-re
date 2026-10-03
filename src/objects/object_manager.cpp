@@ -122,9 +122,9 @@ void halo::objects::ObjectManager::initialize()
     halo::objects::widgets_initialize();
     halo::objects::object_type_definition_chain_build();
     halo::objects::lights_initialize();
-    object_data = halo::saved_games::game_state_new((char *)"object", k_maximum_objects, sizeof(object_header));
+    object_data = halo::saved_games::game_state_new("object", k_maximum_objects, sizeof(object_header));
 
-    object_memory_pool = halo::saved_games::game_state_new_pool((char *)"objects", k_object_memory_pool_size);
+    object_memory_pool = halo::saved_games::game_state_new_pool("objects", k_object_memory_pool_size);
 
     globals_region = halo::saved_games::globals().game_state_base + halo::saved_games::globals().game_state_cursor;
     halo::saved_games::globals().game_state_cursor = halo::saved_games::globals().game_state_cursor + k_object_globals_state_size;
@@ -138,8 +138,8 @@ void halo::objects::ObjectManager::initialize()
     halo::memory::crc32_update(&halo::saved_games::globals().game_state_crc, (uint8_t *)&size, 4);
     object_name_list = (datum_index *)name_list_region;
 
-    halo::structures::cluster_partition_new(&collideable_cluster_first__as_objects_initialize, (char *)"collideable object");
-    halo::structures::cluster_partition_new(&noncollideable_cluster_first__as_objects_initialize, (char *)"noncollideable object");
+    halo::structures::cluster_partition_new(&collideable_cluster_first__as_objects_initialize, "collideable object");
+    halo::structures::cluster_partition_new(&noncollideable_cluster_first__as_objects_initialize, "noncollideable object");
 }
 
 /**

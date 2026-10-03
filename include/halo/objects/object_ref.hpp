@@ -145,7 +145,7 @@ public:
      *
      * @address 0x004f6080
      */
-    int32_t get_node_local_transform(char *marker_name, object_marker *marker, uint32_t maximum_markers);
+    int32_t get_node_local_transform(const char *marker_name, object_marker *marker, uint32_t maximum_markers);
 
     /**
      * Reorients an object relative to a named marker of its parent.
@@ -156,7 +156,7 @@ public:
      *
      * @address 0x004f6180
      */
-    void reorient_relative_to_marker(uint32_t parent_index, char *parent_marker_name, char *object_marker_name);
+    void reorient_relative_to_marker(uint32_t parent_index, const char *parent_marker_name, const char *object_marker_name);
 
     /**
      * Attaches a child object to a marker of a parent object.

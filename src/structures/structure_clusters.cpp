@@ -285,7 +285,7 @@ int16_t cluster_flood::weather_polyhedra_find_within_radius(int16_t *out, float 
     return found;
 }
 
-void cluster_references::partition_new(cluster_reference_group *out, char *name)
+void cluster_references::partition_new(cluster_reference_group *out, const char *name)
 {
     char format_buffer[256];
     char pool_name[256];

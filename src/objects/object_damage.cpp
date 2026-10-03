@@ -1600,7 +1600,7 @@ void halo::objects::ObjectDamage::destroy_region(int32_t region_index)
 
             halo::effects::effect_new_on_object(object_index, halo::objects::tag_handle(((struct ModelCollisionGeometryRegion *)region)->destroyed_effect), object_index, -1,
                 0.0f, 0.0f, 0, 0);
-            halo::objects::object_set_permutation_by_name(object_index, (char *)"~damaged", (int16_t)region_index, 1);
+            halo::objects::object_set_permutation_by_name(object_index, "~damaged", (int16_t)region_index, 1);
 
             if (test_flag(region->flags, tags::model_collision_geometry_region_tag_flag::inhibits_melee_attack)) {
                 obj->vitality_flags |= _object_region_response_80_bit;

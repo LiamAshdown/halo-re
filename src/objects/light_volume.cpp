@@ -40,7 +40,7 @@ static auto &shared_constant_vector_696704 = halo::link::ref<real_vector3d *>(ha
  */
 void halo::objects::LightVolumeSystem::initialize()
 {
-    light_volume_instances = halo::saved_games::game_state_new((char *)"light volumes", 0x100, 8);
+    light_volume_instances = halo::saved_games::game_state_new("light volumes", 0x100, 8);
 }
 
 /**
@@ -270,7 +270,7 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
  */
 void halo::objects::LightningSystem::initialize()
 {
-    lightning_instances = halo::saved_games::game_state_new((char *)"lightnings", 0x100, 8);
+    lightning_instances = halo::saved_games::game_state_new("lightnings", 0x100, 8);
 }
 
 /**

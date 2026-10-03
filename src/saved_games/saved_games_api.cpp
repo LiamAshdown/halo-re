@@ -263,12 +263,12 @@ void game_state_load_core(char *name)
     halo::saved_games::game_state::load_core(name);
 }
 
-data_array *game_state_new(char *name, int16_t maximum_count, int16_t element_size)
+data_array *game_state_new(const char *name, int16_t maximum_count, int16_t element_size)
 {
     return halo::saved_games::game_state::make(name, maximum_count, element_size);
 }
 
-memory_pool *game_state_new_pool(char *name, int32_t pool_size)
+memory_pool *game_state_new_pool(const char *name, int32_t pool_size)
 {
     return halo::saved_games::game_state::new_pool(name, pool_size);
 }

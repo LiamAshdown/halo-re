@@ -206,7 +206,7 @@ void FirstPersonCamera::deterministic(Point3D *out_position, datum_index unit, V
 
             if (seat_flags < 0) { 
                 object_marker marker; 
-                int16_t ok = halo::objects::object_get_node_local_transform(parent, (char *)("primary trigger"), &marker, 1);
+                int16_t ok = halo::objects::object_get_node_local_transform(parent, "primary trigger", &marker, 1);
                 if (ok != 0) {
                     real_matrix4x3 *m = &marker.node_transform; 
                     *out_position = *(Point3D *)&m->position;
@@ -269,7 +269,7 @@ void FirstPersonCamera::for_unit_and_vector(observer_command *command, Vector3D 
 
             if ((seat_flags & 0x80) != 0) { 
                 object_marker marker; 
-                int16_t ok = halo::objects::object_get_node_local_transform(parent, (char *)("primary trigger"), &marker, 1);
+                int16_t ok = halo::objects::object_get_node_local_transform(parent, "primary trigger", &marker, 1);
                 if (ok != 0) {
                     real_matrix4x3 *m = &marker.node_transform; 
                     command->parameters.position = *(Point3D *)&m->position;
