@@ -4,6 +4,7 @@
 #include "halo/sound/api.hpp"
 #include "halo/cutscene/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -86,7 +87,7 @@ void CameraCommands::camera_set_dead(int16_t function_index, uint32_t thread_ind
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if ((uint32_t)arguments[0] != 0xffffffff) {
+        if ((uint32_t)arguments[0] != halo::k_dword_none) {
             director_camera_mode = 3;
             halo::hs::globals::director_camera_target_changed = 1;
             director_camera_target = (datum_index)arguments[0];
@@ -107,7 +108,7 @@ void CameraCommands::camera_set_first_person(int16_t function_index, uint32_t th
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if ((uint32_t)arguments[0] != 0xffffffff) {
+        if ((uint32_t)arguments[0] != halo::k_dword_none) {
             director_camera_mode = 2;
             halo::hs::globals::director_camera_target_changed = 1;
             director_camera_target = (datum_index)arguments[0];
@@ -171,7 +172,7 @@ const ScriptCommandGroup &CameraCommands::commands()
  */
 void CinematicCommands::cinematic_abort(int16_t function_index, uint32_t thread_index, char first)
 {
-    split_screen_quit_prompt_string = 0xffff;
+    split_screen_quit_prompt_string = halo::k_word_none;
     network_join_error_reason = 0;
     halo::main::fields::revert_map_if_allowed = 1;
     hs_thread_return(0, thread_index);

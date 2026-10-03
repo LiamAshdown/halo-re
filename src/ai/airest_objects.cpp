@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -69,7 +71,7 @@ namespace halo::ai {
 int32_t AiActorView::get_activity_stage()
 {
     datum_index actor_index = handle;
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
+    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
 
     if (a->active == 0) {
         return 0;
@@ -101,7 +103,7 @@ void AiActorView::link_to_unassigned_list()
 {
     datum_index actor_index = handle;
     if (ai_globals_ptr->actors_valid != 0) {
-        actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
+        actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
 
         a->next_in_encounter = ai_globals_ptr->first_encounterless_actor;
         ai_globals_ptr->first_encounterless_actor = actor_index;
@@ -138,11 +140,11 @@ void AiActorView::unlink_from_unassigned_list()
 {
     datum_index actor_index = handle;
     if (ai_globals_ptr->actors_valid != 0) {
-        actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
+        actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
         datum_index *link = &ai_globals_ptr->first_encounterless_actor;
 
         while (*link != actor_index) {
-            actor *node = &((actor *)actor_data->data)[*link & 0xffff];
+            actor *node = &((actor *)actor_data->data)[*link & halo::k_slot_mask];
             link = &node->next_in_encounter;
         }
 
@@ -170,7 +172,7 @@ void AiObjects::clear_object_references(datum_index object_index)
     if (!ai_globals_ptr->actors_valid) {
         return;
     }
-    obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    obj = ((object_header *)object_data->data)[object_index & halo::k_slot_mask].data;
     if (((1 << (obj->type & 0x1f)) & 3) == 0) {
         return;
     }
@@ -189,7 +191,7 @@ void AiObjects::clear_object_references(datum_index object_index)
     p = (prop *)halo::memory::data_iterator_next(&iterator);
     while (p != 0) {
         if (p->object_index == object_index) {
-            actor_replace_object_reference(p->actor_index, 0xffffffff, iterator.index);
+            actor_replace_object_reference(p->actor_index, halo::k_dword_none, iterator.index);
             actor_unlink_prop(p->actor_index, iterator.index);
             halo::memory::datum_delete(prop_data, iterator.index);
         } else if (p->relationship_object_index == (int32_t)object_index) {
@@ -316,11 +318,11 @@ void ObjectListView::clear_orders_with_weapon()
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
-            (object_list_header *)((uint8_t *)object_list_header_data->data + (object_list_header_handle & 0xffff) * 0x0c);
+            (object_list_header *)((uint8_t *)object_list_header_data->data + (object_list_header_handle & halo::k_slot_mask) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
+                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & halo::k_slot_mask) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         } else {
@@ -329,7 +331,7 @@ void ObjectListView::clear_orders_with_weapon()
     }
 
     while (object_index != (datum_index)k_datum_index_none) {
-        object_header *header = &((object_header *)object_data->data)[object_index & 0xffff];
+        object_header *header = &((object_header *)object_data->data)[object_index & halo::k_slot_mask];
         unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
 
         if (unit->actor_index != (datum_index)k_datum_index_none) {
@@ -340,7 +342,7 @@ void ObjectListView::clear_orders_with_weapon()
             object_index = (datum_index)k_datum_index_none;
         } else {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
+                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & halo::k_slot_mask) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
         }
@@ -372,13 +374,13 @@ void ObjectListView::detach_actors_from_encounters()
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         header = (object_list_header *)((uint8_t *)object_list_header_data->data +
-            (object_list_header_handle & 0xffff) * 0x0c);
+            (object_list_header_handle & halo::k_slot_mask) * 0x0c);
         node_index = header->first_reference;
         if (node_index == (datum_index)k_datum_index_none) {
             object_index = (datum_index)k_datum_index_none;
         } else {
             node = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                (node_index & 0xffff) * 0x0c);
+                (node_index & halo::k_slot_mask) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         }
@@ -406,7 +408,7 @@ void ObjectListView::detach_actors_from_encounters()
             obj = entry->data;
             unit = (unit_data *)((uint8_t *)obj + k_unit_data_offset);
             if (unit->actor_index != (datum_index)k_datum_index_none &&
-                ((actor *)actor_data->data)[unit->actor_index & 0xffff].encounter_index !=
+                ((actor *)actor_data->data)[unit->actor_index & halo::k_slot_mask].encounter_index !=
                     (datum_index)k_datum_index_none) {
 
                 actor_index = unit->actor_index;
@@ -414,7 +416,7 @@ void ObjectListView::detach_actors_from_encounters()
                 encounter_remove_actor(actor_index, 0);
 
                 if (ai_globals_ptr->actors_valid != 0) {
-                    a = &((actor *)actor_data->data)[actor_index & 0xffff];
+                    a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
                     a->next_in_encounter = ai_globals_ptr->first_encounterless_actor;
                     ai_globals_ptr->first_encounterless_actor = actor_index;
                     a->encounterless = 1;
@@ -430,7 +432,7 @@ void ObjectListView::detach_actors_from_encounters()
             object_index = (datum_index)k_datum_index_none;
         } else {
             node = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                (node_index & 0xffff) * 0x0c);
+                (node_index & halo::k_slot_mask) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         }
@@ -456,19 +458,19 @@ void ObjectListView::initialize_shield_stun_thresholds(float override_max_body_v
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
             (object_list_header *)((uint8_t *)object_list_header_data->data +
-                                    (object_list_header_handle & 0xffff) * 0x0c);
+                                    (object_list_header_handle & halo::k_slot_mask) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
                 (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                                           (node_index & 0xffff) * 0x0c);
+                                           (node_index & halo::k_slot_mask) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         }
     }
 
     while (object_index != (datum_index)k_datum_index_none) {
-        object_header *entry = &((object_header *)object_data->data)[(int16_t)object_index & 0xffff];
+        object_header *entry = &((object_header *)object_data->data)[(int16_t)object_index & halo::k_slot_mask];
         if ((entry->data->vitality_flags & _object_health_frozen_bit) == 0) {
             object_initialize_shield_stun_thresholds((uint32_t)object_index,
                 &override_max_body_vitality, &override_max_shield_vitality);
@@ -479,7 +481,7 @@ void ObjectListView::initialize_shield_stun_thresholds(float override_max_body_v
         } else {
             object_list_reference *node =
                 (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                                           (node_index & 0xffff) * 0x0c);
+                                           (node_index & halo::k_slot_mask) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
         }
@@ -518,13 +520,13 @@ int16_t ObjectListView::max_flee_grade()
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         header = (object_list_header *)((uint8_t *)object_list_header_data->data +
-            (object_list_header_handle & 0xffff) * 0x0c);
+            (object_list_header_handle & halo::k_slot_mask) * 0x0c);
         node_index = header->first_reference;
         if (node_index == (datum_index)k_datum_index_none) {
             object_index = (datum_index)k_datum_index_none;
         } else {
             node = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                (node_index & 0xffff) * 0x0c);
+                (node_index & halo::k_slot_mask) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         }
@@ -553,10 +555,10 @@ int16_t ObjectListView::max_flee_grade()
 
             if (unit->actor_index == (datum_index)k_datum_index_none) {
                 if (unit->swarm_actor_index != (datum_index)k_datum_index_none) {
-                    a = &((actor *)actor_data->data)[unit->swarm_actor_index & 0xffff];
+                    a = &((actor *)actor_data->data)[unit->swarm_actor_index & halo::k_slot_mask];
                     if (a->mode == _actor_mode_flee &&
                         a->swarm_index != (datum_index)k_datum_index_none) {
-                        sw = &((swarm *)swarm_data->data)[a->swarm_index & 0xffff];
+                        sw = &((swarm *)swarm_data->data)[a->swarm_index & halo::k_slot_mask];
                         component_count = sw->component_count;
                         component_index = 0;
                         if (0 < component_count) {
@@ -569,17 +571,17 @@ int16_t ObjectListView::max_flee_grade()
                         }
                         if (component_index < component_count &&
                             (((swarm_component *)swarm_component_data->data)
-                                 [sw->component_index[component_index] & 0xffff].flags & 8) != 0) {
+                                 [sw->component_index[component_index] & halo::k_slot_mask].flags & 8) != 0) {
                             grade = (uint32_t)(uint16_t)ai_actor_type_get_morale_grade(*(int16_t *)&((struct actor *)a)->mode_data,
                                 (uint8_t *)&((swarm_component *)swarm_component_data->data)
-                                    [sw->component_index[component_index] & 0xffff] + 0x1c);
+                                    [sw->component_index[component_index] & halo::k_slot_mask] + 0x1c);
                             goto have_grade;
                         }
                     }
                     goto recently_hurt;
                 }
             } else {
-                a = &((actor *)actor_data->data)[unit->actor_index & 0xffff];
+                a = &((actor *)actor_data->data)[unit->actor_index & halo::k_slot_mask];
                 if (a->mode == _actor_mode_flee) {
                     command_list = &((ScenarioCommandList *)global_scenario->command_lists.pointer)
                         [*(int16_t *)(a->mode_data.raw + 0x00)];
@@ -610,7 +612,7 @@ keep_best:
             object_index = (datum_index)k_datum_index_none;
         } else {
             node = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                (node_index & 0xffff) * 0x0c);
+                (node_index & halo::k_slot_mask) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         }
@@ -640,7 +642,7 @@ void ObjectListView::remap_units_and_children(uint32_t packed_reference, char no
 
                 child = obj->first_child_object;
                 while (child != (datum_index)k_datum_index_none) {
-                    object_header *child_header = &((object_header *)object_data->data)[child & 0xffff];
+                    object_header *child_header = &((object_header *)object_data->data)[child & halo::k_slot_mask];
                     if ((1 << (child_header->type & 0x1f) & 3) != 0) {
                         ai_unit_remap_actor_to_squad(child, packed_reference, 0);
                     }
@@ -653,7 +655,7 @@ void ObjectListView::remap_units_and_children(uint32_t packed_reference, char no
             } else {
                 object_list_reference *node =
                     (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                                               (iterator & 0xffff) * 0x0c);
+                                               (iterator & halo::k_slot_mask) * 0x0c);
                 iterator = node->next;
                 object_index = node->object_index;
             }
@@ -668,7 +670,7 @@ namespace {
 
 static void reset_or_wake(datum_index unit_index, char flag)
 {
-    object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+    object_header *header = &((object_header *)object_data->data)[unit_index & halo::k_slot_mask];
     unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
     datum_index actor_index = unit->actor_index;
 
@@ -676,7 +678,7 @@ static void reset_or_wake(datum_index unit_index, char flag)
         actor_index = unit->swarm_actor_index;
     }
     if (actor_index != (datum_index)k_datum_index_none) {
-        actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
+        actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
         if (flag == 0) {
             if (a->awareness_level == 0) {
                 a->awareness_level = 2;
@@ -707,12 +709,12 @@ void ObjectListView::reset_or_wake_awareness(char flag)
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
             (object_list_header *)((uint8_t *)object_list_header_data->data +
-                                    (object_list_header_handle & 0xffff) * 0x0c);
+                                    (object_list_header_handle & halo::k_slot_mask) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
                 (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                                           (node_index & 0xffff) * 0x0c);
+                                           (node_index & halo::k_slot_mask) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         }
@@ -724,7 +726,7 @@ void ObjectListView::reset_or_wake_awareness(char flag)
             datum_index child = obj->first_child_object;
             reset_or_wake(object_index, flag);
             while (child != (datum_index)k_datum_index_none) {
-                object_header *child_header = &((object_header *)object_data->data)[child & 0xffff];
+                object_header *child_header = &((object_header *)object_data->data)[child & halo::k_slot_mask];
                 if ((1 << (child_header->type & 0x1f) & 3) != 0) {
                     reset_or_wake(child, flag);
                 }
@@ -737,7 +739,7 @@ void ObjectListView::reset_or_wake_awareness(char flag)
         } else {
             object_list_reference *node =
                 (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                                           (node_index & 0xffff) * 0x0c);
+                                           (node_index & halo::k_slot_mask) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
         }
@@ -757,11 +759,11 @@ void ObjectListView::respawn_members(uint32_t packed_reference)
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
-            (object_list_header *)((uint8_t *)object_list_header_data->data + (object_list_header_handle & 0xffff) * 0x0c);
+            (object_list_header *)((uint8_t *)object_list_header_data->data + (object_list_header_handle & halo::k_slot_mask) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
+                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & halo::k_slot_mask) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         } else {
@@ -776,7 +778,7 @@ void ObjectListView::respawn_members(uint32_t packed_reference)
             object_index = (datum_index)k_datum_index_none;
         } else {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
+                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & halo::k_slot_mask) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
         }
@@ -797,12 +799,12 @@ void ObjectListView::set_unit_flag_400(char flag)
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
             (object_list_header *)((uint8_t *)object_list_header_data->data +
-                                    (object_list_header_handle & 0xffff) * 0x0c);
+                                    (object_list_header_handle & halo::k_slot_mask) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
                 (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                                           (node_index & 0xffff) * 0x0c);
+                                           (node_index & halo::k_slot_mask) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         }
@@ -824,7 +826,7 @@ void ObjectListView::set_unit_flag_400(char flag)
         } else {
             object_list_reference *node =
                 (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                                           (node_index & 0xffff) * 0x0c);
+                                           (node_index & halo::k_slot_mask) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
         }
@@ -845,12 +847,12 @@ void ObjectListView::set_unit_flag_800(char flag)
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
             (object_list_header *)((uint8_t *)object_list_header_data->data +
-                                    (object_list_header_handle & 0xffff) * 0x0c);
+                                    (object_list_header_handle & halo::k_slot_mask) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
                 (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                                           (node_index & 0xffff) * 0x0c);
+                                           (node_index & halo::k_slot_mask) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         }
@@ -872,7 +874,7 @@ void ObjectListView::set_unit_flag_800(char flag)
         } else {
             object_list_reference *node =
                 (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                                           (node_index & 0xffff) * 0x0c);
+                                           (node_index & halo::k_slot_mask) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
         }
@@ -893,12 +895,12 @@ void ObjectListView::set_unit_flag_800000(char flag)
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
             (object_list_header *)((uint8_t *)object_list_header_data->data +
-                                    (object_list_header_handle & 0xffff) * 0x0c);
+                                    (object_list_header_handle & halo::k_slot_mask) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
                 (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                                           (node_index & 0xffff) * 0x0c);
+                                           (node_index & halo::k_slot_mask) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         }
@@ -928,7 +930,7 @@ void ObjectListView::set_unit_flag_800000(char flag)
         } else {
             object_list_reference *node =
                 (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                                           (node_index & 0xffff) * 0x0c);
+                                           (node_index & halo::k_slot_mask) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
         }
@@ -948,11 +950,11 @@ void ObjectListView::spawn_members(uint32_t packed_reference)
 
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
-            (object_list_header *)((uint8_t *)object_list_header_data->data + (object_list_header_handle & 0xffff) * 0x0c);
+            (object_list_header *)((uint8_t *)object_list_header_data->data + (object_list_header_handle & halo::k_slot_mask) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
+                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & halo::k_slot_mask) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         } else {
@@ -967,7 +969,7 @@ void ObjectListView::spawn_members(uint32_t packed_reference)
             object_index = (datum_index)k_datum_index_none;
         } else {
             object_list_reference *node =
-                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & 0xffff) * 0x0c);
+                (object_list_reference *)((uint8_t *)object_list_reference_data->data + (node_index & halo::k_slot_mask) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
         }
@@ -991,12 +993,12 @@ uint8_t ObjectListView::start_user_animation_until_failure(datum_index graph_tag
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
             (object_list_header *)((uint8_t *)object_list_header_data->data +
-                                    (object_list_header_handle & 0xffff) * 0x0c);
+                                    (object_list_header_handle & halo::k_slot_mask) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
                 (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                                           (node_index & 0xffff) * 0x0c);
+                                           (node_index & halo::k_slot_mask) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         }
@@ -1026,7 +1028,7 @@ uint8_t ObjectListView::start_user_animation_until_failure(datum_index graph_tag
         } else {
             object_list_reference *node =
                 (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                                           (node_index & 0xffff) * 0x0c);
+                                           (node_index & halo::k_slot_mask) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
         }
@@ -1048,12 +1050,12 @@ void ObjectListView::update_vitality_fractions(float body_delta, float shield_de
     if (object_list_header_handle != (datum_index)k_datum_index_none) {
         object_list_header *header =
             (object_list_header *)((uint8_t *)object_list_header_data->data +
-                                    (object_list_header_handle & 0xffff) * 0x0c);
+                                    (object_list_header_handle & halo::k_slot_mask) * 0x0c);
         node_index = header->first_reference;
         if (node_index != (datum_index)k_datum_index_none) {
             object_list_reference *node =
                 (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                                           (node_index & 0xffff) * 0x0c);
+                                           (node_index & halo::k_slot_mask) * 0x0c);
             node_index = node->next;
             object_index = node->object_index;
         }
@@ -1067,7 +1069,7 @@ void ObjectListView::update_vitality_fractions(float body_delta, float shield_de
         } else {
             object_list_reference *node =
                 (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                                           (node_index & 0xffff) * 0x0c);
+                                           (node_index & halo::k_slot_mask) * 0x0c);
             object_index = node->object_index;
             node_index = node->next;
         }
@@ -1083,7 +1085,7 @@ void AiObjects::object_process_nearby_actors(uint32_t ai_reference, datum_index 
 {
     object *obj;
 
-    if (ai_reference == 0xffffffff) {
+    if (ai_reference == halo::k_dword_none) {
         return;
     }
     obj = object_try_and_get(vehicle_index, 3);
@@ -1095,7 +1097,7 @@ void AiObjects::object_process_nearby_actors(uint32_t ai_reference, datum_index 
         ai_nearby_actor_candidate candidates[0x40];
 
         object_get_position(&reference_position, vehicle_index);
-        seat_count = unit_find_seats_matching_name_and_flags(vehicle_index, seat_name, 0xffff, seat_list, 0x10);
+        seat_count = unit_find_seats_matching_name_and_flags(vehicle_index, seat_name, halo::k_word_none, seat_list, 0x10);
 
         if (seat_count > 0) {
             ai_reference_actor_iterator iterator;
@@ -1146,7 +1148,7 @@ uint8_t AiObjects::pursuit_check_object(datum_index object_index, datum_index en
     datum_index handle = squad_recent_object_get_or_create(encounter_index, type, min_last_tick, create_if_missing);
 
     if (handle != (datum_index)k_datum_index_none) {
-        ai_pursuit *pursuit = &((ai_pursuit *)ai_pursuit_data->data)[handle & 0xffff];
+        ai_pursuit *pursuit = &((ai_pursuit *)ai_pursuit_data->data)[handle & halo::k_slot_mask];
         count = pursuit->count;
         last_tick = *(uint32_t *)&pursuit->last_tick;
 
@@ -1183,7 +1185,7 @@ uint8_t AiObjects::pursuit_note_object(datum_index object_index, datum_index enc
     datum_index handle = squad_recent_object_get_or_create(encounter_index, type, min_last_tick, 1);
 
     if (handle != (datum_index)k_datum_index_none) {
-        ai_pursuit *pursuit = &((ai_pursuit *)ai_pursuit_data->data)[handle & 0xffff];
+        ai_pursuit *pursuit = &((ai_pursuit *)ai_pursuit_data->data)[handle & halo::k_slot_mask];
         int16_t i;
 
         for (i = 0; i < k_ai_pursuit_object_count; i++) {
@@ -1204,7 +1206,7 @@ uint8_t AiObjects::pursuit_note_object(datum_index object_index, datum_index enc
     return added;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 /**
  * Behaviour of ai refresh unit stimulus and alert, moved unchanged from the original free function.
  *
@@ -1251,11 +1253,11 @@ void AiObjects::refresh_unit_stimulus_and_alert(datum_index object_index, int16_
 void AiUnitView::clear_actor_vocalization()
 {
     datum_index unit_index = handle;
-    object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+    object_header *header = &((object_header *)object_data->data)[unit_index & halo::k_slot_mask];
     unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
 
     if (unit->actor_index != (datum_index)k_datum_index_none) {
-        actor *a = &((actor *)actor_data->data)[unit->actor_index & 0xffff];
+        actor *a = &((actor *)actor_data->data)[unit->actor_index & halo::k_slot_mask];
         ((actor *)a)->vocalization_variant = 0;
         ((actor *)a)->vocalization_line = 0;
         ((actor *)a)->vocalization_state = 0;
@@ -1281,11 +1283,11 @@ void AiObjects::create_actor(datum_index actor_variant_tag, datum_index unit_ind
     }
 
     actor_definition_tag = *(datum_index *)((uint8_t *)halo::cache::globals().tag_instances
-        [actor_variant_tag & 0xffff].data + 0x10);
+        [actor_variant_tag & halo::k_slot_mask].data + 0x10);
     if (actor_definition_tag == (datum_index)k_datum_index_none) {
         return;
     }
-    if ((**(uint32_t **)&halo::cache::globals().tag_instances[actor_definition_tag & 0xffff].data & 0x4000000) != 0) {
+    if ((**(uint32_t **)&halo::cache::globals().tag_instances[actor_definition_tag & halo::k_slot_mask].data & 0x4000000) != 0) {
         return; // Actor.flags bit 26, "swarm"
     }
 
@@ -1302,7 +1304,7 @@ void AiObjects::create_actor(datum_index actor_variant_tag, datum_index unit_ind
         return;
     }
 
-    a = &((actor *)actor_data->data)[actor_index & 0xffff];
+    a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
     ai_actor_link_to_unassigned_list(actor_index);
     a->awareness_level = 2;
     a->pending_order_request = 2;
@@ -1327,7 +1329,7 @@ void AiObjects::create_actor(datum_index actor_variant_tag, datum_index unit_ind
 void AiUnitView::dispatch_actor_event_d(int32_t unused)
 {
     datum_index unit_index = handle;
-    object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+    object_header *header = &((object_header *)object_data->data)[unit_index & halo::k_slot_mask];
     unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
 
     if (unused != -1 && unit->actor_index != (datum_index)k_datum_index_none) {
@@ -1368,7 +1370,7 @@ void AiUnitView::flee_if_ready(uint32_t readiness_param)
 void AiUnitView::remap_actor_to_squad(uint32_t packed_reference, char notify)
 {
     datum_index unit_index = handle;
-    object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+    object_header *header = &((object_header *)object_data->data)[unit_index & halo::k_slot_mask];
     unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
     datum_index actor_index = unit->actor_index;
 
@@ -1377,15 +1379,15 @@ void AiUnitView::remap_actor_to_squad(uint32_t packed_reference, char notify)
     }
 
     if (actor_index != (datum_index)k_datum_index_none && packed_reference != (uint32_t)k_datum_index_none) {
-        actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-        char already_in_target = (a->encounter_index & 0xffff) == (packed_reference & 0xffff);
-        uint8_t *actor_tag_data = (uint8_t *)halo::cache::globals().tag_instances[a->actor_definition_tag & 0xffff].data;
-        uint8_t *actor_variant_data = (uint8_t *)halo::cache::globals().tag_instances[a->actor_variant_tag & 0xffff].data;
+        actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+        char already_in_target = (a->encounter_index & halo::k_slot_mask) == (packed_reference & halo::k_slot_mask);
+        uint8_t *actor_tag_data = (uint8_t *)halo::cache::globals().tag_instances[a->actor_definition_tag & halo::k_slot_mask].data;
+        uint8_t *actor_variant_data = (uint8_t *)halo::cache::globals().tag_instances[a->actor_variant_tag & halo::k_slot_mask].data;
         int32_t best_squad = ai_squad_find_best_matching_member(packed_reference, a->squad_index, actor_tag_data,
                                                                   actor_variant_data, already_in_target);
 
         if ((int16_t)best_squad != -1 && (already_in_target == 0 || (int16_t)best_squad != a->squad_index)) {
-            actor_reset_squad_link_for_type_change(actor_index, (datum_index)(packed_reference & 0xffff),
+            actor_reset_squad_link_for_type_change(actor_index, (datum_index)(packed_reference & halo::k_slot_mask),
                 (int16_t)best_squad);
             if (notify != 0) {
                 actor_notify_squad_and_flag_danger(actor_index, (uint8_t)notify, 0);
@@ -1402,12 +1404,12 @@ void AiUnitView::remap_actor_to_squad(uint32_t packed_reference, char notify)
 void AiUnitView::set_actor_force_active(uint8_t value)
 {
     datum_index unit_index = handle;
-    object_header *header = &((object_header *)object_data->data)[unit_index & 0xffff];
+    object_header *header = &((object_header *)object_data->data)[unit_index & halo::k_slot_mask];
     unit_data *unit = (unit_data *)((uint8_t *)header->data + k_unit_data_offset);
     datum_index actor_index = unit->actor_index;
 
     if (actor_index != (datum_index)k_datum_index_none) {
-        actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
+        actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
         if (a->encounterless != 0) {
             a->force_active = value;
         }
@@ -1435,13 +1437,13 @@ void AiObjects::set_squad_reference(datum_index object_index, uint32_t packed_re
     if (object_index == (datum_index)k_datum_index_none) {
         return;
     }
-    obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    obj = ((object_header *)object_data->data)[object_index & halo::k_slot_mask].data;
 
     out_encounter = -1;
-    out_squad = 0xffff;
+    out_squad = halo::k_word_none;
 
     encounter_index = (int16_t)packed_reference;
-    if (packed_reference == 0xffffffff || encounter_index < 0 ||
+    if (packed_reference == halo::k_dword_none || encounter_index < 0 ||
         global_scenario->encounters.count <= (int32_t)encounter_index) {
         goto store;
     }
@@ -1487,7 +1489,7 @@ void AiObjects::set_squad_reference(datum_index object_index, uint32_t packed_re
             while (ai_globals_ptr->actors_valid != 0 &&
                    actor_index != (datum_index)k_datum_index_none) {
                 datum_index current = actor_index;
-                a = &((actor *)actor_data->data)[current & 0xffff];
+                a = &((actor *)actor_data->data)[current & halo::k_slot_mask];
                 actor_index = a->next_in_encounter;
                 if (a->active_unit_index == object_index) {
                     actor_reset_squad_link_for_type_change(current, (datum_index)(int32_t)encounter_index,
@@ -1509,10 +1511,10 @@ store:
  */
 void AiObjects::add_component(datum_index component_index, uint32_t unit_index, datum_index swarm_index)
 {
-    swarm *s = &((swarm *)swarm_data->data)[swarm_index & 0xffff];
-    swarm_component *component = &((swarm_component *)swarm_component_data->data)[component_index & 0xffff];
+    swarm *s = &((swarm *)swarm_data->data)[swarm_index & halo::k_slot_mask];
+    swarm_component *component = &((swarm_component *)swarm_component_data->data)[component_index & halo::k_slot_mask];
 
-    component->leap_target_index = 0xffffffff;
+    component->leap_target_index = halo::k_dword_none;
     s->unit_index[s->component_count] = unit_index;
     s->component_index[s->component_count] = component_index;
     s->component_count = s->component_count + 1;
@@ -1537,8 +1539,8 @@ void AiActorView::get_move_speed_for_range(float param_a, float param_b, float p
     float low_break;
     float low_break_08;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
 
     if (definition->peripheral_vision_angle < param_dist) {
         *out_b = 0.0f;

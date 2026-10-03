@@ -1,5 +1,7 @@
 #include "halo/hs/hs1_world_commands.hpp"
 #include "halo/devices/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -467,7 +469,7 @@ void DeviceCommands::device_get_position(int16_t function_index, uint32_t thread
     int32_t result = 0;
 
     if (device != k_datum_index_none) {
-        result = *(int32_t *)(*(uint8_t **)((uint8_t *)object_data->data + (device & 0xffff) * 0xc + 8) + 0x208);
+        result = *(int32_t *)(*(uint8_t **)((uint8_t *)object_data->data + (device & halo::k_slot_mask) * 0xc + 8) + 0x208);
     }
     hs_thread_return(result, thread_index);
     }
@@ -487,8 +489,8 @@ void DeviceCommands::device_get_power(int16_t function_index, uint32_t thread_in
     if (arguments != 0) {
         int32_t power = 0;
 
-        if ((uint32_t)arguments[0] != 0xffffffff) {
-            power = *(int32_t *)((uint8_t *)((object_header *)object_data->data)[arguments[0] & 0xffff].data + 0x1fc);
+        if ((uint32_t)arguments[0] != halo::k_dword_none) {
+            power = *(int32_t *)((uint8_t *)((object_header *)object_data->data)[arguments[0] & halo::k_slot_mask].data + 0x1fc);
         }
         hs_thread_return(power, thread_index);
     }
@@ -634,7 +636,7 @@ void DeviceCommands::device_set_never_appears_locked(int16_t function_index, uin
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if ((uint32_t)arguments[0] != 0xffffffff) {
+        if ((uint32_t)arguments[0] != halo::k_dword_none) {
             uint8_t *device = (uint8_t *)object_try_and_get((datum_index)arguments[0], 0x80);
 
             if (device != 0) {

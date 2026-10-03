@@ -1,5 +1,7 @@
 #include "halo/hs/hs3_commands.hpp"
 #include "units.h"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -54,7 +56,7 @@ void VehicleCommands::evaluate_vehicle_hover(int16_t function_index, uint32_t th
         uint8_t hover = *(uint8_t *)&arguments[1];
 
         if (vehicle != k_datum_index_none) {
-            uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[vehicle & 0xffff].data;
+            uint8_t *obj = (uint8_t *)((object_header *)object_data->data)[vehicle & halo::k_slot_mask].data;
 
             if (hover != 0) {
                 object_get_position((real_point3d *)(obj + 0x4fc), vehicle);

@@ -3,6 +3,8 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 namespace halo::ai {
 
@@ -45,7 +47,7 @@ void ActorView::obey_member_enter(datum_index unit_index, uint16_t command_list_
     (void)secondary_record;
     (void)callback_extra;
     if (list[0x20] & 0x10) {
-        uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+        uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & halo::k_slot_mask].data;
 
         ((unit_object *)unit)->unit.flags |= 0x1000;
     }
@@ -67,7 +69,7 @@ extern void actor_squad_action_reset_entry(uint32_t actor_index, uint32_t check_
 void ActorView::obey_member_exit(datum_index unit_index, uint16_t command_list_index, void *component_record, int32_t secondary_record, uint32_t callback_extra)
 {
     using namespace actor_obey_member_exit_local;
-    uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & halo::k_slot_mask].data;
     uint8_t *record = (uint8_t *)component_record;
 
     (void)callback_extra;
@@ -153,8 +155,8 @@ extern int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_
 extern uint8_t unit_start_user_animation(uint32_t unit_index, datum_index graph_tag, const char *animation_name,
     uint8_t interpolate);
 extern const char k_empty_string[];
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
 
@@ -167,7 +169,7 @@ extern const char k_empty_string[];
 char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, uint8_t *state)
 {
     using namespace actor_squad_action_execute_local;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
     uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
     uint8_t *variant_tag = TAG_DATA(((actor *)act)->actor_variant_tag);
     ScenarioCommandList *list = &((ScenarioCommandList *)global_scenario->command_lists.pointer)[command_list_index];
@@ -204,7 +206,7 @@ char ActorOps::squad_action_execute(uint8_t *aim_state, uint32_t actor_index, ui
         *(real_point3d *)(aim_state + 0x8) = *(real_point3d *)&point->position;
         *(int32_t *)(aim_state + 0x14) = (int32_t)point->surface_index;
         result = (char)actor_movement_set_destination_point((real_point3d *)(aim_state + 0x8), actor_index,
-                                                            (int32_t)point->surface_index, 0xffffffff);
+                                                            (int32_t)point->surface_index, halo::k_dword_none);
         if (!result) {
             return 0;
         }
@@ -716,8 +718,8 @@ extern float actor_compute_accuracy_scale(datum_index actor_index);
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern uint8_t unit_is_in_busy_animation_state(uint32_t unit_index);
 extern uint32_t unit_get_biped_specific_value(uint32_t object_index);
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
 
@@ -729,7 +731,7 @@ extern uint32_t unit_get_biped_specific_value(uint32_t object_index);
 uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_index, uint32_t check_object_index, int16_t command_list_index, uint8_t *state)
 {
     using namespace actor_squad_action_is_complete_local;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
     ScenarioCommandList *list = &((ScenarioCommandList *)global_scenario->command_lists.pointer)[command_list_index];
     datum_index unit_index = ((actor *)act)->unit_index;
     ScenarioCommand *entry;
@@ -849,7 +851,7 @@ uint8_t ActorOps::squad_action_is_complete(uint8_t *aim_state, uint32_t actor_in
         if (!unit_is_in_busy_animation_state(check_object_index)) {
             real_point3d target = *(real_point3d *)(aim_state + 0x4c);
 
-            if (actor_commit_grenade_toss(actor_index, &target, 0xffffffff, 0xffffffff)) {
+            if (actor_commit_grenade_toss(actor_index, &target, halo::k_dword_none, halo::k_dword_none)) {
                 aim_state[0x48] = 1;
             }
         }
@@ -985,7 +987,7 @@ extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
 void ActorView::squad_action_reset_entry(uint32_t check_object_index, uint8_t *state, int16_t command_list_index, uint8_t *aim_state, uint8_t *next_action_index_out)
 {
     using namespace actor_squad_action_reset_entry_local;
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
+    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
     ScenarioCommandList *lists = (ScenarioCommandList *)global_scenario->command_lists.pointer;
     ScenarioCommandList *list = &lists[command_list_index];
     uint32_t current_action_index = state[0];
@@ -1086,7 +1088,7 @@ extern void actor_command_list_reset_record(uint32_t actor_index, datum_index un
 int32_t ActorView::squad_action_status_broadcast(int16_t command_list_index, int16_t *record)
 {
     using namespace actor_squad_action_status_broadcast_local;
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
+    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
     int16_t *zero_cursor = record;
     int32_t i;
 
@@ -1105,7 +1107,7 @@ int32_t ActorView::squad_action_status_broadcast(int16_t command_list_index, int
         ScenarioCommandList *list = &lists[command_list_index];
 
         if (a->swarm == 0 || a->swarm_index != (datum_index)k_datum_index_none) {
-            if (list->precomputed_bsp_index == 0xffff || list->precomputed_bsp_index == global_structure_bsp_index) {
+            if (list->precomputed_bsp_index == halo::k_word_none || list->precomputed_bsp_index == global_structure_bsp_index) {
                 uint8_t allow_initiative = (uint8_t)(list->flags & 1);
                 uint8_t allow_look = (uint8_t)(~(list->flags >> 2)) & 1;
                 uint8_t allow_communication = (uint8_t)(~(list->flags >> 3)) & 1;
@@ -1153,12 +1155,12 @@ extern uint32_t actor_target_data_release(datum_index target_prop_index, uint32_
 void ActorView::squad_react_to_grenade(datum_index target_prop_index, int16_t grenade_type)
 {
     using namespace actor_squad_react_to_grenade_local;
-    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    prop *target = &((prop *)prop_data->data)[target_prop_index & 0xffff];
+    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    prop *target = &((prop *)prop_data->data)[target_prop_index & halo::k_slot_mask];
     uint8_t encounter_forbids = 0;
 
     if (self->encounter_index != (datum_index)k_datum_index_none) {
-        encounter *enc = &((encounter *)encounter_data->data)[self->encounter_index & 0xffff];
+        encounter *enc = &((encounter *)encounter_data->data)[self->encounter_index & halo::k_slot_mask];
         encounter_forbids = *((uint8_t *)enc + 0x41) != 0;
     }
 
@@ -1220,7 +1222,7 @@ extern datum_index actor_find_or_create_shared_prop(datum_index object_index, da
     char create_if_missing, uint32_t flag);
 extern void actor_squad_react_to_grenade(datum_index actor_index, datum_index target_prop_index,
     int16_t grenade_type);
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 }
 }
 

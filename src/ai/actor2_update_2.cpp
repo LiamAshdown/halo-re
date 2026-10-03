@@ -2,6 +2,8 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 namespace halo::ai {
 
@@ -39,9 +41,9 @@ extern int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_
 #define F(p, o) (*(float *)((p) + (o)))
 #define W(p, o) (*(int16_t *)((p) + (o)))
 #define D(p, o) (*(datum_index *)((p) + (o)))
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
 
@@ -53,7 +55,7 @@ extern int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_
 void ActorView::update_firing_state()
 {
     using namespace actor_update_firing_state_local;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
     uint8_t *actor_tag = TAG_DATA(D(a, 0x58));
     uint8_t *variant = TAG_DATA(D(a, 0x5c));
     uint8_t *def = actor_get_actor_definition(actor_index);

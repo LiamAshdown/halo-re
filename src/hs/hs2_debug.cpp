@@ -2,6 +2,8 @@
 #include "halo/hs/hs2_commands.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 
 #ifdef __cplusplus
@@ -43,7 +45,7 @@ extern void chimera__gamma(void);
 
 static hs_syntax_node *syntax_get(datum_index node)
 {
-    return (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node & 0xffff) * 0x14);
+    return (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node & halo::k_slot_mask) * 0x14);
 }
 
 namespace halo::hs {
@@ -74,7 +76,7 @@ void DebugCommands::evaluate_help(int16_t function_index, uint32_t thread_index,
  */
 void DebugCommands::evaluate_inspect(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread *thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218);
+    hs_thread *thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * 0x218);
     hs_stack_frame *frame = thread->stack;
     int32_t *result = (int32_t *)((uint8_t *)frame + 0x0e + frame->size);
     datum_index argument = syntax_get(syntax_get(frame->syntax_node)->data.first_child)->next_node;
@@ -115,7 +117,7 @@ void DebugCommands::evaluate_list_count(int16_t function_index, uint32_t thread_
     uint16_t count = 0;
 
     if (list != k_datum_index_none) {
-        count = *(uint16_t *)((uint8_t *)object_list_header_data->data + (list & 0xffff) * 0xc + 6);
+        count = *(uint16_t *)((uint8_t *)object_list_header_data->data + (list & halo::k_slot_mask) * 0xc + 6);
     }
     hs_thread_return((int32_t)count, thread_index);
     }

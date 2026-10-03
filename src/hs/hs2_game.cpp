@@ -5,6 +5,7 @@
 #include "units.h"
 #include "game.h"
 #include "networking.h"
+#include "halo/core/datum.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -248,7 +249,7 @@ void GameCommands::evaluate_game_revert(int16_t function_index, uint32_t thread_
 {
     network_join_error_reason = 0;
     halo::main::fields::lost_map = 0;
-    split_screen_quit_prompt_string = 0xffff;
+    split_screen_quit_prompt_string = halo::k_word_none;
     main_globals_byte_0071973a = 1;
     hs_thread_return(0, thread_index);
 }
@@ -477,7 +478,7 @@ void GameCommands::evaluate_map_reset(int16_t function_index, uint32_t thread_in
 {
     network_join_error_reason = 0;
     halo::main::fields::lost_map = 0;
-    split_screen_quit_prompt_string = 0xffff;
+    split_screen_quit_prompt_string = halo::k_word_none;
     halo::main::fields::reset_map = 1;
     hs_thread_return(0, thread_index);
 }

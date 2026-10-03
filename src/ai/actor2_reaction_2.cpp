@@ -1,13 +1,15 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 namespace halo::ai {
 
 namespace actor_react_to_disturbance_local {
 extern "C" {
 extern data_array *actor_data;
-#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
+#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * 0x724)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
@@ -31,7 +33,7 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
 {
     using namespace actor_react_to_disturbance_local;
     uint8_t *actor = ACTOR(actor_index);
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[D(0x5c) & 0xffff].data;
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[D(0x5c) & halo::k_slot_mask].data;
     real_vector2d direction;
     int16_t action = 4;
     datum_index object = k_datum_index_none;
@@ -56,13 +58,13 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
         halo::math::vector2d_normalize_with_length(direction);
     }
     actor_queue_secondary_action(actor_index, action, (uint32_t *)&direction);
-    if (D(0x2f4) != 0xffffffff) {
-        uint8_t *prop = (uint8_t *)prop_data->data + (D(0x2f4) & 0xffff) * 0x138;
+    if (D(0x2f4) != halo::k_dword_none) {
+        uint8_t *prop = (uint8_t *)prop_data->data + (D(0x2f4) & halo::k_slot_mask) * 0x138;
 
         object = ((struct prop *)prop)->object_index;
         reason = (prop[0x60] != 0) + 2;
     }
-    ai_communication_broadcast(0x29, D(0x18), object, reason, 0xffffffff, 0xffffffff, 0);
+    ai_communication_broadcast(0x29, D(0x18), object, reason, halo::k_dword_none, halo::k_dword_none, 0);
     if (*(float *)(definition + 0x90) > 0.0f) {
         W(0x5f2) = 4;
         W(0x5f4) = (int16_t)(int32_t)(*(float *)(definition + 0x90) * 30.0f);
@@ -71,7 +73,7 @@ uint8_t ActorView::react_to_disturbance(int16_t threshold)
         actor_raise_timer_5f6(actor_index, (int32_t)(*(float *)(definition + 0x8c) * 30.0f));
     }
     B(0x2f0) = 1;
-    if (D(0x2f4) != 0xffffffff) {
+    if (D(0x2f4) != halo::k_dword_none) {
         actor_consider_target_candidate(actor_index, D(0x2f4));
     }
     W(0x2ee) = 0;
@@ -115,7 +117,7 @@ void ActorOps::react_to_threat_event(datum_index self_object_index, datum_index 
     int32_t reason;
     int32_t event_code;
 
-    self_obj = ((object_header *)object_data->data)[self_object_index & 0xffff].data;
+    self_obj = ((object_header *)object_data->data)[self_object_index & halo::k_slot_mask].data;
     relationship_object_index = (datum_index)k_datum_index_none;
     relationship_obj = 0;
 
@@ -136,7 +138,7 @@ void ActorOps::react_to_threat_event(datum_index self_object_index, datum_index 
                     goto no_relationship_object;
                 }
             }
-            relationship_obj = ((object_header *)object_data->data)[relationship_object_index & 0xffff].data;
+            relationship_obj = ((object_header *)object_data->data)[relationship_object_index & halo::k_slot_mask].data;
         }
     }
 no_relationship_object:

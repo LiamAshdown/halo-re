@@ -1,6 +1,8 @@
 #include "halo/ai/actor_grenade.hpp"
 #include "halo/math/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 namespace c_actor_compute_grenade_throw_vector {
 extern "C" {
@@ -26,13 +28,13 @@ uint32_t halo::ai::grenade_ops::compute_grenade_throw_vector(real_point3d *grena
 {
     using namespace c_actor_compute_grenade_throw_vector;
     datum_index actor_index = datum;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint32_t target_object = 0xffffffff;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint32_t target_object = halo::k_dword_none;
     real_vector3d direction;
     float speed;
 
     if (*(datum_index *)&((struct actor *)a)->grenade_target_prop_index != k_datum_index_none) {
-        uint8_t *p = (uint8_t *)prop_data->data + (*(datum_index *)&((struct actor *)a)->grenade_target_prop_index & 0xffff) * 0x138;
+        uint8_t *p = (uint8_t *)prop_data->data + (*(datum_index *)&((struct actor *)a)->grenade_target_prop_index & halo::k_slot_mask) * 0x138;
         int16_t kind = ((prop *)p)->state;
 
         if (kind >= 2 && kind <= 3) {

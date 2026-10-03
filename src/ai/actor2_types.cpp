@@ -1,6 +1,8 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 namespace halo::ai {
 
@@ -38,10 +40,10 @@ extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
 void ActorView::type_crew_update()
 {
     using namespace actor_type_crew_update_local;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
 
     if (((struct actor *)actor)->mode == 0 && ((struct actor *)actor)->awareness_level != 0) {
-        actor_process_order_request(actor_index, 0xffff);
+        actor_process_order_request(actor_index, halo::k_word_none);
     }
     actor_process_pending_command_list(actor_index);
     actor_react_to_disturbance(actor_index, 1);
@@ -95,7 +97,7 @@ void ActorView::type_crew_update()
         actor_update_combat_behavior(actor_index, actor[0x9e], actor[0xa1]);
         return;
     case 12: {
-        uint8_t forced = (actor[0xa0] != 0 || *(uint32_t *)&((struct actor *)actor)->conversation_index == 0xffffffff) ? 1 : 0;
+        uint8_t forced = (actor[0xa0] != 0 || *(uint32_t *)&((struct actor *)actor)->conversation_index == halo::k_dword_none) ? 1 : 0;
 
         actor_update_combat_behavior(actor_index, actor_command_list_permits_escalation(actor_index), forced);
         return;
@@ -142,7 +144,7 @@ extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t 
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
 }
 }
 
@@ -155,10 +157,10 @@ void ActorView::type_elite_update()
 {
     using namespace actor_type_elite_update_local;
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((actor *)act)->actor_definition_tag & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((actor *)act)->actor_definition_tag & halo::k_slot_mask].data;
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, 0xffff);
+        actor_process_order_request(actor_index, halo::k_word_none);
     }
     actor_process_pending_command_list(actor_index);
     actor_react_to_disturbance(actor_index, 4);
@@ -267,7 +269,7 @@ extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t 
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
 }
 }
 
@@ -282,7 +284,7 @@ void ActorView::type_engineer_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, 0xffff);
+        actor_process_order_request(actor_index, halo::k_word_none);
     }
     actor_process_pending_command_list(actor_index);
     actor_react_to_disturbance(actor_index, 1);
@@ -364,7 +366,7 @@ extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index);
 extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
 }
 }
 
@@ -379,7 +381,7 @@ void ActorView::type_flood_carrier_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, 0xffff);
+        actor_process_order_request(actor_index, halo::k_word_none);
     }
     actor_process_pending_command_list(actor_index);
     actor_react_to_disturbance(actor_index, 4);
@@ -445,7 +447,7 @@ extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index);
 extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
 }
 }
 
@@ -460,7 +462,7 @@ void ActorView::type_flood_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, 0xffff);
+        actor_process_order_request(actor_index, halo::k_word_none);
     }
     actor_process_pending_command_list(actor_index);
     actor_react_to_disturbance(actor_index, 4);
@@ -543,7 +545,7 @@ extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t 
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
 extern int32_t actor_order_code_is_grenade_throw(int16_t order_code);
 extern uint8_t actor_consider_grenade_throw(datum_index actor_index);
 }
@@ -562,7 +564,7 @@ void ActorView::type_grunt_update()
     uint8_t panics = (uint8_t)((int8_t)act[0x247] > 0);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, 0xffff);
+        actor_process_order_request(actor_index, halo::k_word_none);
     }
     actor_process_pending_command_list(actor_index);
     actor_react_to_disturbance(actor_index, 1);
@@ -655,7 +657,7 @@ extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t par
 extern uint8_t actor_conditional_state_transition_check(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
 }
 }
 
@@ -670,7 +672,7 @@ void ActorView::type_hunter_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, 0xffff);
+        actor_process_order_request(actor_index, halo::k_word_none);
     }
     actor_process_pending_command_list(actor_index);
     if (!actor_wants_reload_or_swap(actor_index)) {
@@ -734,11 +736,11 @@ extern double sqrt(double x);
 extern double sin(double x);
 extern double cos(double x);
 extern double fabs(double x);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
-#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define SWARM(h) ((uint8_t *)swarm_data->data + ((h) & 0xffff) * 0x98)
-#define COMPONENT(h) ((uint8_t *)swarm_component_data->data + ((h) & 0xffff) * 0x40)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
+#define OBJECT(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define SWARM(h) ((uint8_t *)swarm_data->data + ((h) & halo::k_slot_mask) * 0x98)
+#define COMPONENT(h) ((uint8_t *)swarm_component_data->data + ((h) & halo::k_slot_mask) * 0x40)
 #define F(p, o) (*(float *)((uint8_t *)(p) + (o)))
 #define U16(p, o) (*(uint16_t *)((uint8_t *)(p) + (o)))
 #define I16(p, o) (*(int16_t *)((uint8_t *)(p) + (o)))
@@ -766,7 +768,7 @@ void ActorView::type_infection_swarm_update()
 {
     using namespace actor_type_infection_swarm_update_local;
     uint8_t *actor = ACTOR(actor_index);
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[U32(actor, 0x5c) & 0xffff].data;
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[U32(actor, 0x5c) & halo::k_slot_mask].data;
     uint8_t *swarm = SWARM(U32(actor, 0x28));
     int32_t picked = -1;
     int16_t member;
@@ -923,7 +925,7 @@ void ActorView::type_infection_swarm_update()
                     detach = 1;
                 }
             } else {
-                uint8_t *parent_tag = (uint8_t *)halo::cache::globals().tag_instances[U32(parent, 0x0) & 0xffff].data;
+                uint8_t *parent_tag = (uint8_t *)halo::cache::globals().tag_instances[U32(parent, 0x0) & halo::k_slot_mask].data;
 
                 if ((I16(parent, 0xb4) != 0 || (int8_t)parent_tag[0x17d] < 0) && component[0x18] > 0x2d) {
                     component[0x1a] = 0x2d;
@@ -1242,7 +1244,7 @@ extern char actor_update_grenade_and_morale_reactions(uint32_t actor_index);
 extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t threshold_a, int16_t threshold_b);
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
 }
 }
 
@@ -1257,7 +1259,7 @@ void ActorView::type_infection_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, 0xffff);
+        actor_process_order_request(actor_index, halo::k_word_none);
     }
     actor_process_pending_command_list(actor_index);
     if (!actor_wants_reload_or_swap(actor_index)) {
@@ -1330,7 +1332,7 @@ extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t 
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
 }
 }
 
@@ -1343,10 +1345,10 @@ void ActorView::type_jackal_update()
 {
     using namespace actor_type_jackal_update_local;
     uint8_t *act = ACTOR(actor_index);
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((actor *)act)->actor_definition_tag & 0xffff].data;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((actor *)act)->actor_definition_tag & halo::k_slot_mask].data;
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, 0xffff);
+        actor_process_order_request(actor_index, halo::k_word_none);
     }
     actor_process_pending_command_list(actor_index);
     actor_react_to_disturbance(actor_index, 1);
@@ -1454,7 +1456,7 @@ extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t 
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
 }
 }
 
@@ -1469,7 +1471,7 @@ void ActorView::type_marine_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, 0xffff);
+        actor_process_order_request(actor_index, halo::k_word_none);
     }
     actor_process_pending_command_list(actor_index);
     actor_react_to_disturbance(actor_index, 1);
@@ -1550,7 +1552,7 @@ extern uint8_t actor_escalate_to_guard_or_combat(datum_index actor_index);
 extern uint8_t actor_update_combat_behavior(datum_index actor_index, uint8_t param_1, uint8_t param_2);
 extern uint8_t actor_conditional_state_transition_check(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
 }
 }
 
@@ -1565,7 +1567,7 @@ void ActorView::type_mounted_weapon_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, 0xffff);
+        actor_process_order_request(actor_index, halo::k_word_none);
     }
     actor_process_pending_command_list(actor_index);
     if (actor_wants_reload_or_swap(actor_index) == 0) {
@@ -1614,7 +1616,7 @@ extern uint8_t actor_combat_status_should_hold(datum_index actor_index, int16_t 
 extern uint32_t actor_flee_look_away(datum_index actor_index);
 extern uint8_t actor_update_special_mode(datum_index actor_index);
 extern uint8_t actor_command_list_permits_escalation(datum_index actor_index);
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
 }
 }
 
@@ -1629,7 +1631,7 @@ void ActorView::type_sentinel_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (((actor *)act)->mode == 0 && ((actor *)act)->awareness_level != 0) {
-        actor_process_order_request(actor_index, 0xffff);
+        actor_process_order_request(actor_index, halo::k_word_none);
     }
     actor_process_pending_command_list(actor_index);
     actor_react_to_disturbance(actor_index, 1);

@@ -1,6 +1,8 @@
 #include "halo/ai/actor_behavior.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 namespace halo::ai {
 
@@ -8,9 +10,9 @@ namespace actor_mode_uncover_tick_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
 extern void actor_push_recognition_entry(datum_index actor_index, int16_t firing_position_index, uint8_t type);
 }
 }
@@ -91,9 +93,9 @@ namespace actor_mode_uncover_update_local {
 extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
 }
 }
 
@@ -155,7 +157,7 @@ namespace actor_mode_vehicle_enter_local {
 extern "C" {
 extern data_array *actor_data;
 extern game_time_globals *game_time;
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
 }
 }
 
@@ -179,7 +181,7 @@ void ActorView::mode_vehicle_enter()
 namespace actor_mode_vehicle_update_local {
 extern "C" {
 extern data_array *actor_data;
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
 }
 }
 
@@ -217,8 +219,8 @@ void ActorView::mode_vehicle_update()
 namespace actor_mode_wait_process_local {
 extern "C" {
 extern data_array *actor_data;
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 extern int32_t actor_find_nearest_grenade_ally(datum_index actor_index, uint8_t widen_search);
@@ -254,7 +256,7 @@ uint8_t ActorView::mode_wait_process()
     } else {
         act[0x9c] = 1;
         if (((struct actor *)act)->nearby_friend_prop_index != k_datum_index_none) {
-            uint8_t *ally = (uint8_t *)prop_data->data + (((struct actor *)act)->nearby_friend_prop_index & 0xffff) * 0x138;
+            uint8_t *ally = (uint8_t *)prop_data->data + (((struct actor *)act)->nearby_friend_prop_index & halo::k_slot_mask) * 0x138;
             float distance = ((prop *)ally)->distance;
             uint8_t follow;
 
@@ -297,7 +299,7 @@ decided:
 namespace actor_mode_wait_tick_local {
 extern "C" {
 extern data_array *actor_data;
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
 extern void ai_communication_broadcast(int32_t event_code, datum_index unit_index, datum_index object_a, int32_t reason,
     datum_index object_b, datum_index object_c, uint32_t *extra_data);
 }
@@ -343,7 +345,7 @@ void ActorView::mode_wait_tick()
 namespace actor_mode_wait_update_local {
 extern "C" {
 extern data_array *actor_data;
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
 }
 }
 
@@ -395,7 +397,7 @@ extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_dat
 void ActorView::run_mode_transition_loop()
 {
     using namespace actor_run_mode_transition_loop_local;
-    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
     uint8_t keep_going = 0;
     int iterations = 0;
 
@@ -441,7 +443,7 @@ void ActorView::set_mode(int32_t mode, void *mode_data)
     uint32_t data_size;
     int i;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     const TableActorMode incoming = ActorModeRegistry::get(mode);
     ActorModeRegistry::get(self->mode).exit(*this);
@@ -506,7 +508,7 @@ uint8_t ActorView::update_special_mode()
     actor *self;
     int16_t mode;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     mode = self->mode;
 
     if (mode == 5) {

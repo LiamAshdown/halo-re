@@ -1,6 +1,8 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 namespace halo::ai {
 
@@ -30,7 +32,7 @@ uint8_t ActorOps::resolve_flee_source_point(actor_flee_source_reason *reason, re
     object *target_object;
     float length;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     switch (reason->code) {
     case 0:
@@ -64,7 +66,7 @@ uint8_t ActorOps::resolve_flee_source_point(actor_flee_source_reason *reason, re
         if (self->target_unit_index == (datum_index)k_datum_index_none) {
             return 0;
         }
-        target_prop = &((prop *)prop_data->data)[self->target_unit_index & 0xffff];
+        target_prop = &((prop *)prop_data->data)[self->target_unit_index & halo::k_slot_mask];
         out->i = target_prop->center_of_mass.x - self->aim_origin.x;
         out->j = target_prop->center_of_mass.y - self->aim_origin.y;
         out->k = target_prop->center_of_mass.z - self->aim_origin.z;
@@ -92,7 +94,7 @@ uint8_t ActorOps::resolve_flee_source_point(actor_flee_source_reason *reason, re
     case 6: {
         real_point3d source_position;
 
-        target_object = (object *)object_try_and_get(reason->payload.handle, 0xffffffff);
+        target_object = (object *)object_try_and_get(reason->payload.handle, halo::k_dword_none);
         if (target_object == 0) {
             return 0;
         }

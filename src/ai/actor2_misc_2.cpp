@@ -1,6 +1,8 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 namespace halo::ai {
 
@@ -53,8 +55,8 @@ int32_t ActorOps::reassign_vehicle_seat(datum_index vehicle_object_index, datum_
     } else if (occupant == (datum_index)k_datum_index_none) {
         reason = 0;
     } else {
-        object *occupant_obj = ((object_header *)object_data->data)[occupant & 0xffff].data;
-        object *self_obj = ((object_header *)object_data->data)[self_object_index & 0xffff].data;
+        object *occupant_obj = ((object_header *)object_data->data)[occupant & halo::k_slot_mask].data;
+        object *self_obj = ((object_header *)object_data->data)[self_object_index & halo::k_slot_mask].data;
         reason = teams_are_enemies(((struct object *)occupant_obj)->owner_team,
                                ((struct object *)self_obj)->owner_team) ? 3 : 2;
     }
@@ -93,7 +95,7 @@ extern void unit_get_forward_vector_or_marker_normal(uint32_t unit_index, real_v
 #define A_I32(offset) (*(int32_t *)(self + (offset)))
 static uint8_t *object_get(datum_index object_index)
 {
-    return *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+    return *(uint8_t **)((uint8_t *)object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8);
 }
 }
 }
@@ -106,15 +108,15 @@ static uint8_t *object_get(datum_index object_index)
 void ActorView::refresh_combat_context()
 {
     using namespace actor_refresh_combat_context_local;
-    uint8_t *self = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)self)->actor_definition_tag & 0xffff].data;
+    uint8_t *self = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * 0x724;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)self)->actor_definition_tag & halo::k_slot_mask].data;
     uint8_t *unit;
     uint8_t *parent = 0;
     datum_index parent_index;
     datum_index child;
 
     if (A_U8(0x06)) {
-        uint8_t *swarm = (uint8_t *)swarm_data->data + (((struct actor *)self)->swarm_index & 0xffff) * 0x98;
+        uint8_t *swarm = (uint8_t *)swarm_data->data + (((struct actor *)self)->swarm_index & halo::k_slot_mask) * 0x98;
         real_point3d *center = (real_point3d *)(swarm + 0xc);
         int16_t count = ((struct swarm *)swarm)->component_count;
         int16_t i;
@@ -122,7 +124,7 @@ void ActorView::refresh_combat_context()
         *center = *global_zero_vector3d_pointer;
         for (i = 0; i < count; i++) {
             uint8_t *creature = (uint8_t *)swarm_component_data->data +
-                (*(datum_index *)(swarm + 0x58 + i * 4) & 0xffff) * 0x40;
+                (*(datum_index *)(swarm + 0x58 + i * 4) & halo::k_slot_mask) * 0x40;
             datum_index creature_unit = *(datum_index *)(swarm + 0x18 + i * 4);
             uint8_t *creature_object = object_get(creature_unit);
             datum_index vehicle = ((struct object *)creature_object)->type == 0 ?
@@ -167,7 +169,7 @@ void ActorView::refresh_combat_context()
     A_U8(0x99) = (uint8_t)((*(uint32_t *)actor_tag >> 21) & 1);
 
     if (parent != 0 && *(int16_t *)(parent + 0xb4) == 1) {
-        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)parent & 0xffff].data;
+        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)parent & halo::k_slot_mask].data;
         uint32_t vehicle_flags;
 
         A_U8(0x161) = 0;
@@ -197,11 +199,11 @@ void ActorView::refresh_combat_context()
             int16_t wanted_squad = *(int16_t *)(parent + 0x336);
             uint8_t move = 1;
 
-            if ((encounter & 0xffff) == (uint32_t)(int32_t)wanted_encounter) {
+            if ((encounter & halo::k_slot_mask) == (uint32_t)(int32_t)wanted_encounter) {
                 if (wanted_squad == -1 || A_I16(0x3a) == wanted_squad) {
                     move = 0;
                 } else {
-                    uint8_t *encounter_record = (uint8_t *)encounter_data->data + (encounter & 0xffff) * 0x6c;
+                    uint8_t *encounter_record = (uint8_t *)encounter_data->data + (encounter & halo::k_slot_mask) * 0x6c;
 
                     if (((struct encounter *)encounter_record)->follow_target_type > 0) {
                         int16_t first = ((struct encounter *)encounter_record)->first_squad;
@@ -220,7 +222,7 @@ void ActorView::refresh_combat_context()
                     A_I16(0x48) = A_I16(0x3a);
                     A_U8(0x40) = 1;
                     if (encounter != k_datum_index_none) {
-                        *((uint8_t *)encounter_data->data + (encounter & 0xffff) * 0x6c + 0x1e) = 1;
+                        *((uint8_t *)encounter_data->data + (encounter & halo::k_slot_mask) * 0x6c + 0x1e) = 1;
                     }
                 }
                 actor_reset_squad_link_for_type_change(actor_index, wanted_encounter, wanted_squad);
@@ -291,7 +293,7 @@ void ActorView::refresh_combat_context()
     }
     if (A_U8(0x161)) {
         uint8_t *vehicle = object_get(A_I32(0x158));
-        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)vehicle & 0xffff].data;
+        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)vehicle & halo::k_slot_mask].data;
 
         if (*(uint32_t *)(vehicle_tag + 0x2f0) & 0x100) {
             unit_get_forward_vector_or_marker_normal(A_I32(0x18), (real_vector3d *)(self + 0x180));
@@ -335,7 +337,7 @@ uint8_t ActorView::reset_queued_look_vector()
     using namespace actor_reset_queued_look_vector_local;
     actor *self;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     if (self->secondary_action != (int16_t)-1) {
         return 0;

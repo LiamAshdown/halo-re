@@ -1,6 +1,8 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 namespace halo::ai {
 
@@ -9,9 +11,9 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * 0x724)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * 0x138)
 extern uint8_t *ai_globals_ptr;
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
@@ -128,10 +130,10 @@ uint8_t ActorView::seek_vehicle_to_board()
                 for (j = 0; j < filter_count; j++) {
                     uint32_t filter = *(uint32_t *)(offer + 0x10 + j * 4);
 
-                    if (filter == 0xffffffff) {
+                    if (filter == halo::k_dword_none) {
                         continue;
                     }
-                    match = (uint8_t)(((*(uint32_t *)&((actor *)act)->encounter_index ^ filter) & 0xffff) == 0);
+                    match = (uint8_t)(((*(uint32_t *)&((actor *)act)->encounter_index ^ filter) & halo::k_slot_mask) == 0);
                     if (!match) {
                         continue;
                     }

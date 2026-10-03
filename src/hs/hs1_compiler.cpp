@@ -3,6 +3,8 @@
 #include <ctype.h>
 #include <stdio.h>
 #include "halo/memory/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 extern "C" {
 extern int16_t string_table_index_of(const char *search, int16_t count, const char **table);
@@ -72,19 +74,19 @@ char ScriptCompiler::add_global(datum_index node_index)
     hs_global_reference existing;
 
     nodes = hs_syntax_data;
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & 0xffff) * nodes->size);
+    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
     identifier_index = node->data.first_child;
     if (identifier_index != k_datum_index_none) {
-        identifier_node = (hs_syntax_node *)((uint8_t *)nodes->data + (identifier_index & 0xffff) * nodes->size);
+        identifier_node = (hs_syntax_node *)((uint8_t *)nodes->data + (identifier_index & halo::k_slot_mask) * nodes->size);
         type_index = identifier_node->next_node;
         if (type_index != k_datum_index_none) {
-            type_node = (hs_syntax_node *)((uint8_t *)nodes->data + (type_index & 0xffff) * nodes->size);
+            type_node = (hs_syntax_node *)((uint8_t *)nodes->data + (type_index & halo::k_slot_mask) * nodes->size);
             name_index = type_node->next_node;
             if (name_index != k_datum_index_none) {
-                name_node = (hs_syntax_node *)((uint8_t *)nodes->data + (name_index & 0xffff) * nodes->size);
+                name_node = (hs_syntax_node *)((uint8_t *)nodes->data + (name_index & halo::k_slot_mask) * nodes->size);
                 value_index = name_node->next_node;
                 if (value_index != k_datum_index_none) {
-                    value_node = (hs_syntax_node *)((uint8_t *)nodes->data + (value_index & 0xffff) * nodes->size);
+                    value_node = (hs_syntax_node *)((uint8_t *)nodes->data + (value_index & halo::k_slot_mask) * nodes->size);
                     if (value_node->next_node == k_datum_index_none) {
                         type_ordinal = string_table_index_of(hs_compiled_source + type_node->source_offset,
                                                      k_hs_type_count, (const char **)hs_type_names);
@@ -156,14 +158,14 @@ char ScriptCompiler::add_script(datum_index node_index)
     char *dest;
 
     nodes = hs_syntax_data;
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & 0xffff) * nodes->size);
+    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
     type_index = node->data.first_child;
     if (type_index == k_datum_index_none) {
         hs_compile_error = (char *)"i expected (script <type> <name> <expression(s)>)";
         hs_compile_error_offset = node->source_offset;
         return 0;
     }
-    type_node = (hs_syntax_node *)((uint8_t *)nodes->data + (type_index & 0xffff) * nodes->size);
+    type_node = (hs_syntax_node *)((uint8_t *)nodes->data + (type_index & halo::k_slot_mask) * nodes->size);
     script_type = string_table_index_of(hs_compiled_source + type_node->source_offset,
                                 k_hs_script_type_count, (const char **)hs_script_type_names);
     if (script_type == -1) {
@@ -179,7 +181,7 @@ char ScriptCompiler::add_script(datum_index node_index)
             hs_compile_error_offset = node->source_offset;
             return 0;
         }
-        return_type_node = (hs_syntax_node *)((uint8_t *)nodes->data + (return_type_index & 0xffff) * nodes->size);
+        return_type_node = (hs_syntax_node *)((uint8_t *)nodes->data + (return_type_index & halo::k_slot_mask) * nodes->size);
         return_type = string_table_index_of(hs_compiled_source + return_type_node->source_offset,
                                     k_hs_type_count, (const char **)hs_type_names);
         name_index = return_type_node->next_node;
@@ -194,7 +196,7 @@ char ScriptCompiler::add_script(datum_index node_index)
     }
 
     if (name_index != k_datum_index_none) {
-        name_node = (hs_syntax_node *)((uint8_t *)nodes->data + (name_index & 0xffff) * nodes->size);
+        name_node = (hs_syntax_node *)((uint8_t *)nodes->data + (name_index & halo::k_slot_mask) * nodes->size);
         body_index = name_node->next_node;
         if (body_index != k_datum_index_none) {
             name_text = hs_compiled_source + name_node->source_offset;
@@ -217,8 +219,8 @@ char ScriptCompiler::add_script(datum_index node_index)
                         return 0;
                     }
                     nodes = hs_syntax_data;
-                    new_root_node = (hs_syntax_node *)((uint8_t *)nodes->data + (new_root & 0xffff) * nodes->size);
-                    new_body_holder_node = (hs_syntax_node *)((uint8_t *)nodes->data + (new_body_holder & 0xffff) * nodes->size);
+                    new_root_node = (hs_syntax_node *)((uint8_t *)nodes->data + (new_root & halo::k_slot_mask) * nodes->size);
+                    new_body_holder_node = (hs_syntax_node *)((uint8_t *)nodes->data + (new_body_holder & halo::k_slot_mask) * nodes->size);
 
                     new_root_node->data.first_child = new_body_holder;
                     new_root_node->next_node = k_datum_index_none;
@@ -305,7 +307,7 @@ void ScriptCompiler::compile(int32_t source_length, char *source_text, char **er
         if (hs_compile_error != 0) {
             break;
         }
-        node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & 0xffff) * hs_syntax_data->size);
+        node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * hs_syntax_data->size);
         success = 1;
         if (node->type == 0) {
             node->type = _hs_type_special_form;
@@ -494,9 +496,9 @@ datum_index ScriptCompiler::compile_expression(char *text, uint32_t length, char
                 inspect_index = halo::memory::datum_new(hs_syntax_data);
                 if ((wrap_index != k_datum_index_none) && (inspect_index != k_datum_index_none)) {
                     nodes = hs_syntax_data;
-                    expr_node = (hs_syntax_node *)((uint8_t *)nodes->data + (expr_index & 0xffff) * nodes->size);
-                    wrap_node = (hs_syntax_node *)((uint8_t *)nodes->data + (wrap_index & 0xffff) * nodes->size);
-                    inspect_node = (hs_syntax_node *)((uint8_t *)nodes->data + (inspect_index & 0xffff) * nodes->size);
+                    expr_node = (hs_syntax_node *)((uint8_t *)nodes->data + (expr_index & halo::k_slot_mask) * nodes->size);
+                    wrap_node = (hs_syntax_node *)((uint8_t *)nodes->data + (wrap_index & halo::k_slot_mask) * nodes->size);
+                    inspect_node = (hs_syntax_node *)((uint8_t *)nodes->data + (inspect_index & halo::k_slot_mask) * nodes->size);
 
                     wrap_node->data.first_child = inspect_index;
                     wrap_node->next_node = k_datum_index_none;
@@ -567,7 +569,7 @@ char ScriptCompiler::compile_postprocess(char **error_message, int32_t *error_of
             }
             break;
         }
-        node = (hs_syntax_node *)((uint8_t *)nodes->data + (current & 0xffff) * nodes->size);
+        node = (hs_syntax_node *)((uint8_t *)nodes->data + (current & halo::k_slot_mask) * nodes->size);
         node_type = node->type;
 
         if ((node_type < 4) || (0x30 < node_type)) {
@@ -595,7 +597,7 @@ char ScriptCompiler::compile_postprocess(char **error_message, int32_t *error_of
                 hs_compile_error = (char *)"corrupt syntax tree (you need to recompile scripts.)";
                 goto fail;
             }
-            function_name_node = (hs_syntax_node *)((uint8_t *)nodes->data + (node->data.first_child & 0xffff) * nodes->size);
+            function_name_node = (hs_syntax_node *)((uint8_t *)nodes->data + (node->data.first_child & halo::k_slot_mask) * nodes->size);
             if (function_name_node->type != 2) {
                 hs_compile_error = (char *)"corrupt syntax tree (you need to recompile scripts.)";
                 goto fail;
@@ -656,7 +658,7 @@ char ScriptCompiler::compile_postprocess(char **error_message, int32_t *error_of
         success = 0;
 
     advance:
-        next_start = (int32_t)(current & 0xffff) + 1;
+        next_start = (int32_t)(current & halo::k_slot_mask) + 1;
         current = k_datum_index_none;
         next_index = (int16_t)next_start;
         if (0 <= next_index && next_index < nodes->last_index) {

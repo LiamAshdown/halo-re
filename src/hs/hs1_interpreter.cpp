@@ -1,6 +1,8 @@
 #include "halo/hs/hs1_interpreter.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/input/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 extern "C" {
 extern void object_list_reference_add(datum_index header_index, datum_index object_index);
@@ -19,7 +21,7 @@ extern int16_t hs_comparison_types[2];
 
 static hs_syntax_node *syntax_get(datum_index node)
 {
-    return (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node & 0xffff) * 0x14);
+    return (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node & halo::k_slot_mask) * 0x14);
 }
 
 namespace halo::hs {
@@ -89,7 +91,7 @@ datum_index ScriptCasts::object_name_to_object_list(int32_t name_index)
     header_index = halo::memory::datum_new(object_list_header_data);
     if (header_index != k_datum_index_none) {
         object_list_header *header = (object_list_header *)((uint8_t *)object_list_header_data->data +
-            (header_index & 0xffff) * 0x0c);
+            (header_index & halo::k_slot_mask) * 0x0c);
 
         header->count = 0;
         header->first_reference = k_datum_index_none;
@@ -167,7 +169,7 @@ void ScriptFlowCommands::argument_list(uint32_t unused_param_1, uint32_t thread_
     int32_t *values;
     int32_t i;
 
-    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218);
+    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * 0x218);
     frame = thread_record->stack;
     next_node_slot = (datum_index *)((uint8_t *)frame + 0x0e + frame->size);
     frame->size = frame->size + 4;
@@ -182,8 +184,8 @@ void ScriptFlowCommands::argument_list(uint32_t unused_param_1, uint32_t thread_
 
     if ((char)value != 0) {
         node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
-            (frame->syntax_node & 0xffff) * 0x14);
-        *next_node_slot = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node->data.first_child & 0xffff) * 0x14))->next_node;
+            (frame->syntax_node & halo::k_slot_mask) * 0x14);
+        *next_node_slot = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node->data.first_child & halo::k_slot_mask) * 0x14))->next_node;
         *count = 0;
         for (i = 0; i < 0x20; i++) {
             values[i] = 0;
@@ -192,7 +194,7 @@ void ScriptFlowCommands::argument_list(uint32_t unused_param_1, uint32_t thread_
 
     if (*next_node_slot != k_datum_index_none && *count < 0x20) {
         hs_thread_push(*next_node_slot, thread_index, &value);
-        node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (*next_node_slot & 0xffff) * 0x14);
+        node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (*next_node_slot & halo::k_slot_mask) * 0x14);
         *next_node_slot = node->next_node;
         values[*count] = value;
         *count = *count + 1;
@@ -219,7 +221,7 @@ void ScriptFlowCommands::arithmetic_reduce(int16_t opcode, uint32_t thread_index
     float *accumulator;
     float value;
 
-    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218);
+    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * 0x218);
     frame = thread_record->stack;
     term_count = (int16_t *)((uint8_t *)frame + 0x0e + frame->size);
     frame->size = frame->size + 2;
@@ -239,8 +241,8 @@ void ScriptFlowCommands::arithmetic_reduce(int16_t opcode, uint32_t thread_index
     if (first != 0) {
         *term_count = 0;
         node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
-            (frame->syntax_node & 0xffff) * 0x14);
-        *next_node_slot = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node->data.first_child & 0xffff) * 0x14))->next_node;
+            (frame->syntax_node & halo::k_slot_mask) * 0x14);
+        *next_node_slot = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node->data.first_child & halo::k_slot_mask) * 0x14))->next_node;
         goto check_continue;
     }
 
@@ -265,7 +267,7 @@ check_continue:
         return;
     }
     hs_thread_push(*next_node_slot, thread_index, child_value);
-    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (*next_node_slot & 0xffff) * 0x14);
+    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (*next_node_slot & halo::k_slot_mask) * 0x14);
     *next_node_slot = node->next_node;
 }
 
@@ -276,7 +278,7 @@ check_continue:
  */
 void ScriptFlowCommands::begin(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread *thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218);
+    hs_thread *thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * 0x218);
     hs_stack_frame *frame;
     datum_index *next_expression;
     int32_t *result;
@@ -335,7 +337,7 @@ void ScriptFlowCommands::boolean_and_or(int16_t opcode, uint32_t thread_index, c
     char is_and;
     char child_result;
 
-    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218);
+    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * 0x218);
     frame = thread_record->stack;
     next_node_slot = (datum_index *)((uint8_t *)frame + 0x0e + frame->size);
     frame->size = frame->size + 4;
@@ -351,8 +353,8 @@ void ScriptFlowCommands::boolean_and_or(int16_t opcode, uint32_t thread_index, c
 
     if (first != 0) {
         node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
-            (frame->syntax_node & 0xffff) * 0x14);
-        *next_node_slot = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node->data.first_child & 0xffff) * 0x14))->next_node;
+            (frame->syntax_node & halo::k_slot_mask) * 0x14);
+        *next_node_slot = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node->data.first_child & halo::k_slot_mask) * 0x14))->next_node;
         *result = is_and;
         goto check_continue;
     }
@@ -376,7 +378,7 @@ void ScriptFlowCommands::boolean_and_or(int16_t opcode, uint32_t thread_index, c
 check_continue:
     if (*next_node_slot != k_datum_index_none && (*result != 0) == (is_and != 0)) {
         hs_thread_push(*next_node_slot, thread_index, child_value);
-        node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (*next_node_slot & 0xffff) * 0x14);
+        node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (*next_node_slot & halo::k_slot_mask) * 0x14);
         *next_node_slot = node->next_node;
         return;
     }
@@ -391,10 +393,10 @@ check_continue:
 void ScriptFlowCommands::comparison(int16_t function_index, uint32_t thread_index, char first)
 {
     uint8_t *syntax = (uint8_t *)hs_syntax_data->data;
-    uint8_t *frame = *(uint8_t **)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218 + 0x10);
-    uint32_t call_node = *(uint32_t *)(frame + 4) & 0xffff;
-    uint32_t name_node = *(uint32_t *)(syntax + call_node * 0x14 + 0x10) & 0xffff;
-    uint32_t first_argument = *(uint32_t *)(syntax + name_node * 0x14 + 8) & 0xffff;
+    uint8_t *frame = *(uint8_t **)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * 0x218 + 0x10);
+    uint32_t call_node = *(uint32_t *)(frame + 4) & halo::k_slot_mask;
+    uint32_t name_node = *(uint32_t *)(syntax + call_node * 0x14 + 0x10) & halo::k_slot_mask;
+    uint32_t first_argument = *(uint32_t *)(syntax + name_node * 0x14 + 8) & halo::k_slot_mask;
     int16_t type = *(int16_t *)(syntax + first_argument * 0x14 + 4);
     int32_t *arguments;
     double a;

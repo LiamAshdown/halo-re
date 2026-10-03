@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include "halo/cache/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 extern "C" {
 extern char hs_evaluate_variadic_arguments(uint32_t thread_index, int32_t value, uint32_t *out_count, int32_t **out_values);
@@ -185,7 +187,7 @@ void ScriptAutocomplete::autocomplete_add_hud_message_names(void)
     datum_index hud_messages = *(datum_index *)&global_scenario->hud_messages.tag_id;
 
     if (hud_messages != k_datum_index_none) {
-        hs_autocomplete_scan_globals((TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_messages & 0xffff].data + 0x20),
+        hs_autocomplete_scan_globals((TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_messages & halo::k_slot_mask].data + 0x20),
             0, 0x40);
     }
 }
@@ -202,7 +204,7 @@ void ScriptAutocomplete::autocomplete_add_navpoint_names(void)
     datum_index hud_globals = *(datum_index *)(interface_bitmaps + 0x6c);
 
     if (hud_globals != k_datum_index_none) {
-        hs_autocomplete_scan_globals((TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_globals & 0xffff].data + 0x160),
+        hs_autocomplete_scan_globals((TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[hud_globals & halo::k_slot_mask].data + 0x160),
             0, 0x68);
     }
 }

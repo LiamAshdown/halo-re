@@ -2,6 +2,8 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 namespace halo::ai {
 
@@ -76,8 +78,8 @@ void ActorView::target_relationship_think()
     datum_index paired_prop;
     struct { int16_t team; int16_t object_type; char is_enemy; } payload;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
 
     reaction_ticks = 1;
     danger_reacted = 0;
@@ -169,7 +171,7 @@ restart:
         if (self->target_unit_index == (datum_index)k_datum_index_none) {
             result = best_prop;
         } else {
-            prop *cur = (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & 0xffff) * sizeof(prop));
+            prop *cur = (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & halo::k_slot_mask) * sizeof(prop));
             if (cur->state < 4 || cur->state > 5) {
                 result = best_prop;
             }
@@ -195,7 +197,7 @@ restart:
         return;
     }
 
-    target = (prop *)((uint8_t *)prop_data->data + (cursor & 0xffff) * sizeof(prop));
+    target = (prop *)((uint8_t *)prop_data->data + (cursor & halo::k_slot_mask) * sizeof(prop));
     next_prop_index = target->next_in_actor;
     cursor = next_prop_index;
 
@@ -289,7 +291,7 @@ restart:
                                self->idle_look_prop_index == target_prop_index));
                 target->in_use = important;
                 if (target->state > 3 && target->state < 6) {
-                    prop *pair = (prop *)((uint8_t *)prop_data->data + (target->pair_index & 0xffff) * sizeof(prop));
+                    prop *pair = (prop *)((uint8_t *)prop_data->data + (target->pair_index & halo::k_slot_mask) * sizeof(prop));
                     pair->in_use = important;
                 }
             } else {
@@ -356,8 +358,8 @@ restart:
             }
             owner = (target->owner_actor_index == (datum_index)k_datum_index_none)
                         ? (actor *)0
-                        : (actor *)((uint8_t *)actor_data->data + (target->owner_actor_index & 0xffff) * sizeof(actor));
-            paired_prop = (datum_index)0xffffffff;
+                        : (actor *)((uint8_t *)actor_data->data + (target->owner_actor_index & halo::k_slot_mask) * sizeof(actor));
+            paired_prop = (datum_index)halo::k_dword_none;
             if (target->enemy != 0 && target->dead == 0 &&
                 (target->is_parented != 0 ||
                  ((owner == (actor *)0 || (owner->active != 0 && owner->keep_unit_alive == 0)) &&
@@ -370,7 +372,7 @@ restart:
             new_kind = 0;
             goto apply_new_kind;
         replace_and_idle:
-            actor_replace_object_reference(actor_index, 0xffffffff, target_prop_index);
+            actor_replace_object_reference(actor_index, halo::k_dword_none, target_prop_index);
             new_kind = 0;
         } else {
             new_kind = 3;
@@ -381,7 +383,7 @@ restart:
         if (target->perception_level == 0) {
             owner = (target->owner_actor_index == (datum_index)k_datum_index_none)
                         ? (actor *)0
-                        : (actor *)((uint8_t *)actor_data->data + (target->owner_actor_index & 0xffff) * sizeof(actor));
+                        : (actor *)((uint8_t *)actor_data->data + (target->owner_actor_index & halo::k_slot_mask) * sizeof(actor));
             if (target->enemy == 0 || target->dead != 0 ||
                 (target->is_parented == 0 &&
                  ((owner != (actor *)0 && (owner->active == 0 || owner->keep_unit_alive != 0)) ||
@@ -485,7 +487,7 @@ tail:
                 (self->ticks_since_engaged != -1 && self->ticks_since_engaged < 0xb4)) {
                 if (self->encounter_index == (datum_index)k_datum_index_none) goto restart;
                 {
-                    encounter *enc = (encounter *)((uint8_t *)encounter_data->data + (self->encounter_index & 0xffff) * sizeof(encounter));
+                    encounter *enc = (encounter *)((uint8_t *)encounter_data->data + (self->encounter_index & halo::k_slot_mask) * sizeof(encounter));
                     if (enc->ticks_since_engaged != (datum_index)k_datum_index_none &&
                         (enc->ticks_since_engaged < 0xb4 || enc->has_live_target == 0)) {
                         goto restart;
@@ -542,10 +544,10 @@ check_cooldown:
     }
 
     {
-        prop *pair = (prop *)((uint8_t *)prop_data->data + (target->pair_index & 0xffff) * sizeof(prop));
+        prop *pair = (prop *)((uint8_t *)prop_data->data + (target->pair_index & halo::k_slot_mask) * sizeof(prop));
         pair->pair_index = (datum_index)k_datum_index_none;
     }
-    actor_replace_object_reference(actor_index, 0xffffffff, target_prop_index);
+    actor_replace_object_reference(actor_index, halo::k_dword_none, target_prop_index);
     actor_unlink_prop(actor_index, target_prop_index);
     halo::memory::datum_delete(prop_data, target_prop_index);
     goto restart;
