@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/render/d3d9.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -200,55 +201,55 @@ void rasterizer_light_cone_set_texture_stage_states(void)
     if (halo::rasterizer::fields::rasterizer_debug_mode == 0 && halo::rasterizer::fields::environment_diffuse_lights_enabled != 0 &&
         0xffff0100 < rasterizer_caps.pixel_shader_version &&rasterizer_effects[4].effect != 0) {
 
-        render_device().set_sampler_state(0, 1, 1);
-        render_device().set_sampler_state(0, 2, 1);
-        render_device().set_sampler_state(0, 5, 2);
-        render_device().set_sampler_state(0, 6, 2);
-        render_device().set_sampler_state(0, 7, 2);
-        render_device().set_sampler_state(1, 1, 3);
-        render_device().set_sampler_state(1, 2, 3);
-        render_device().set_sampler_state(1, 3, 3);
-        render_device().set_sampler_state(1, 5, 2);
-        render_device().set_sampler_state(1, 6, 2);
-        render_device().set_sampler_state(1, 7, 2);
+        render_device().set_sampler_state(0, halo::d3d9::ss::address_u, 1);
+        render_device().set_sampler_state(0, halo::d3d9::ss::address_v, 1);
+        render_device().set_sampler_state(0, halo::d3d9::ss::mag_filter, 2);
+        render_device().set_sampler_state(0, halo::d3d9::ss::min_filter, 2);
+        render_device().set_sampler_state(0, halo::d3d9::ss::mip_filter, 2);
+        render_device().set_sampler_state(1, halo::d3d9::ss::address_u, 3);
+        render_device().set_sampler_state(1, halo::d3d9::ss::address_v, 3);
+        render_device().set_sampler_state(1, halo::d3d9::ss::address_w, 3);
+        render_device().set_sampler_state(1, halo::d3d9::ss::mag_filter, 2);
+        render_device().set_sampler_state(1, halo::d3d9::ss::min_filter, 2);
+        render_device().set_sampler_state(1, halo::d3d9::ss::mip_filter, 2);
 
         chimera__rasterizer_set_texture_direct_d3dx(*(uint32_t *)&rasterizer_globals_data->distance_attenuation.tag_id, 2, 0,
                                                     &rasterizer_effects[4]);
         if ((rasterizer_caps.texture_address_caps & 8) == 0) {
-            render_device().set_sampler_state(2, 1, 3);
-            render_device().set_sampler_state(2, 2, 3);
-            render_device().set_sampler_state(2, 3, 3);
+            render_device().set_sampler_state(2, halo::d3d9::ss::address_u, 3);
+            render_device().set_sampler_state(2, halo::d3d9::ss::address_v, 3);
+            render_device().set_sampler_state(2, halo::d3d9::ss::address_w, 3);
         } else {
-            render_device().set_sampler_state(2, 4, 0);
-            render_device().set_sampler_state(2, 1, 4);
-            render_device().set_sampler_state(2, 2, 4);
-            render_device().set_sampler_state(2, 3, 4);
+            render_device().set_sampler_state(2, halo::d3d9::ss::border_color, 0);
+            render_device().set_sampler_state(2, halo::d3d9::ss::address_u, 4);
+            render_device().set_sampler_state(2, halo::d3d9::ss::address_v, 4);
+            render_device().set_sampler_state(2, halo::d3d9::ss::address_w, 4);
         }
-        render_device().set_sampler_state(2, 5, 2);
-        render_device().set_sampler_state(2, 6, 1);
-        render_device().set_sampler_state(2, 7, 1);
+        render_device().set_sampler_state(2, halo::d3d9::ss::mag_filter, 2);
+        render_device().set_sampler_state(2, halo::d3d9::ss::min_filter, 1);
+        render_device().set_sampler_state(2, halo::d3d9::ss::mip_filter, 1);
 
         chimera__rasterizer_set_texture_direct_d3dx(*(uint32_t *)&rasterizer_globals_data->vector_normalization.tag_id, 3, 0,
                                                     &rasterizer_effects[4]);
-        render_device().set_sampler_state(3, 1, 3);
-        render_device().set_sampler_state(3, 2, 3);
-        render_device().set_sampler_state(3, 3, 3);
-        render_device().set_sampler_state(3, 5, 2);
-        render_device().set_sampler_state(3, 6, 1);
-        render_device().set_sampler_state(3, 7, 1);
+        render_device().set_sampler_state(3, halo::d3d9::ss::address_u, 3);
+        render_device().set_sampler_state(3, halo::d3d9::ss::address_v, 3);
+        render_device().set_sampler_state(3, halo::d3d9::ss::address_w, 3);
+        render_device().set_sampler_state(3, halo::d3d9::ss::mag_filter, 2);
+        render_device().set_sampler_state(3, halo::d3d9::ss::min_filter, 1);
+        render_device().set_sampler_state(3, halo::d3d9::ss::mip_filter, 1);
 
-        render_device().set_render_state(0x16, 3);
-        render_device().set_render_state(0xa8, 7);
-        render_device().set_render_state(0x1b, 1);
-        render_device().set_render_state(0x13, 2);
-        render_device().set_render_state(0x14, 2);
-        render_device().set_render_state(0xab, 1);
-        render_device().set_render_state(0xf, 1);
-        render_device().set_render_state(0x18, 0);
-        render_device().set_render_state(7, 1);
-        render_device().set_render_state(0x17, 3);
-        render_device().set_render_state(0xe, 0);
-        render_device().set_render_state(0x1c, 0);
+        render_device().set_render_state(halo::d3d9::rs::cull_mode, 3);
+        render_device().set_render_state(halo::d3d9::rs::color_write_enable, 7);
+        render_device().set_render_state(halo::d3d9::rs::alpha_blend_enable, 1);
+        render_device().set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::one);
+        render_device().set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::one);
+        render_device().set_render_state(halo::d3d9::rs::blend_op, 1);
+        render_device().set_render_state(halo::d3d9::rs::alpha_test_enable, 1);
+        render_device().set_render_state(halo::d3d9::rs::alpha_ref, 0);
+        render_device().set_render_state(halo::d3d9::rs::z_enable, 1);
+        render_device().set_render_state(halo::d3d9::rs::z_func, 3);
+        render_device().set_render_state(halo::d3d9::rs::z_write_enable, 0);
+        render_device().set_render_state(halo::d3d9::rs::fog_enable, 0);
     }
 }
 
@@ -492,7 +493,7 @@ void rasterizer_prepare_lighting_constants(render_lighting *lighting)
         uint32_t green = (uint32_t)(int32_t)(clamp01(zoom_static_tint_r.green + boost + ambient_green) * 255.0f);
         uint32_t blue = (uint32_t)(int32_t)(clamp01(zoom_static_tint_r.blue + boost + ambient_blue) * 255.0f);
 
-        render_device().set_render_state(0x8b, (((red & 0xff) << 8 | (green & 0xff)) << 8) | (blue & 0xff));
+        render_device().set_render_state(halo::d3d9::rs::ambient, (((red & 0xff) << 8 | (green & 0xff)) << 8) | (blue & 0xff));
     }
     render_device().set_vertex_shader_constant_f(0xf, (const float *)&block, 0xb);
 }
@@ -723,18 +724,18 @@ void rasterizer_set_fog_constants(const render_fog *fog)
     render_device().set_vertex_shader_constant_f(6, constants, 4);
 
     rasterizer_fog_enabled = console_debug_toggle_6893fc;
-    rasterizer_set_render_state(0x1c, rasterizer_fog_enabled);
-    rasterizer_set_render_state(0x22, halo::interface::color_rgb_float_to_int((const float *)(&window_fog->atmospheric_color)));
-    rasterizer_set_render_state(0x23, 0);
-    rasterizer_set_render_state(0x8c, 3);
-    rasterizer_set_render_state(0x24, real_bits(window_fog->atmospheric_minimum_distance));
+    rasterizer_set_render_state(halo::d3d9::rs::fog_enable, rasterizer_fog_enabled);
+    rasterizer_set_render_state(halo::d3d9::rs::fog_color, halo::interface::color_rgb_float_to_int((const float *)(&window_fog->atmospheric_color)));
+    rasterizer_set_render_state(halo::d3d9::rs::fog_table_mode, 0);
+    rasterizer_set_render_state(halo::d3d9::rs::fog_vertex_mode, 3);
+    rasterizer_set_render_state(halo::d3d9::rs::fog_start, real_bits(window_fog->atmospheric_minimum_distance));
     if (rasterizer_caps.pixel_shader_version < 0xffff0101) {
 
         float z_far = rasterizer_window.frustum.z_far;
-        rasterizer_set_render_state(0x25, real_bits((z_far - window_fog->atmospheric_maximum_density * z_far) +
+        rasterizer_set_render_state(halo::d3d9::rs::fog_end, real_bits((z_far - window_fog->atmospheric_maximum_density * z_far) +
                                                     window_fog->atmospheric_maximum_distance));
     } else {
-        rasterizer_set_render_state(0x25, real_bits(window_fog->atmospheric_maximum_distance));
+        rasterizer_set_render_state(halo::d3d9::rs::fog_end, real_bits(window_fog->atmospheric_maximum_distance));
     }
 }
 

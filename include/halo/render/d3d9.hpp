@@ -170,6 +170,73 @@ enum class texture_stage_state : uint32_t {
     texture_transform_flags = 24,
 };
 
+/** Plain-integer D3DRENDERSTATETYPE ids for call sites that pass them as `uint32_t`. */
+namespace rs {
+inline constexpr uint32_t z_enable = 7;
+inline constexpr uint32_t fill_mode = 8;
+inline constexpr uint32_t z_write_enable = 14;
+inline constexpr uint32_t alpha_test_enable = 15;
+inline constexpr uint32_t src_blend = 19;
+inline constexpr uint32_t dest_blend = 20;
+inline constexpr uint32_t cull_mode = 22;
+inline constexpr uint32_t z_func = 23;
+inline constexpr uint32_t alpha_ref = 24;
+inline constexpr uint32_t alpha_func = 25;
+inline constexpr uint32_t alpha_blend_enable = 27;
+inline constexpr uint32_t fog_enable = 28;
+inline constexpr uint32_t fog_color = 34;
+inline constexpr uint32_t fog_table_mode = 35;
+inline constexpr uint32_t fog_start = 36;
+inline constexpr uint32_t fog_end = 37;
+inline constexpr uint32_t texture_factor = 60;
+inline constexpr uint32_t lighting = 137;
+inline constexpr uint32_t ambient = 139;
+inline constexpr uint32_t fog_vertex_mode = 140;
+inline constexpr uint32_t color_write_enable = 168;
+inline constexpr uint32_t blend_op = 171;
+inline constexpr uint32_t slope_scale_depth_bias = 175;
+inline constexpr uint32_t depth_bias = 195;
+}  // namespace rs
+
+/** Plain-integer D3DTEXTURESTAGESTATETYPE ids. */
+namespace ts {
+inline constexpr uint32_t color_op = 1;
+inline constexpr uint32_t color_arg1 = 2;
+inline constexpr uint32_t color_arg2 = 3;
+inline constexpr uint32_t alpha_op = 4;
+inline constexpr uint32_t alpha_arg1 = 5;
+inline constexpr uint32_t alpha_arg2 = 6;
+inline constexpr uint32_t texcoord_index = 11;
+inline constexpr uint32_t texture_transform_flags = 24;
+inline constexpr uint32_t color_arg0 = 26;
+}  // namespace ts
+
+/** Plain-integer D3DSAMPLERSTATETYPE ids. */
+namespace ss {
+inline constexpr uint32_t address_u = 1;
+inline constexpr uint32_t address_v = 2;
+inline constexpr uint32_t address_w = 3;
+inline constexpr uint32_t border_color = 4;
+inline constexpr uint32_t mag_filter = 5;
+inline constexpr uint32_t min_filter = 6;
+inline constexpr uint32_t mip_filter = 7;
+inline constexpr uint32_t max_anisotropy = 10;
+}  // namespace ss
+
+/** D3DBLEND values. */
+namespace blend {
+inline constexpr uint32_t zero = 1;
+inline constexpr uint32_t one = 2;
+inline constexpr uint32_t src_color = 3;
+inline constexpr uint32_t inv_src_color = 4;
+inline constexpr uint32_t src_alpha = 5;
+inline constexpr uint32_t inv_src_alpha = 6;
+inline constexpr uint32_t dest_alpha = 7;
+inline constexpr uint32_t inv_dest_alpha = 8;
+inline constexpr uint32_t dest_color = 9;
+inline constexpr uint32_t inv_dest_color = 10;
+}  // namespace blend
+
 /** D3DTEXTUREOP values. */
 enum class texture_op : uint32_t {
     disable = 1,

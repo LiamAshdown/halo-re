@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/render/d3d9.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/bitmaps/api.hpp"
@@ -35,15 +36,15 @@ void chimera__rasterizer_set_framebuffer_blend_function(int16_t mode)
 {
 
     if (halo::shell::globals().min_max_blend_op_is_broken != 0 && (mode == 5 || mode == 6)) {
-        render_device().set_render_state(0x13, 2);
-        render_device().set_render_state(0x14, 2);
-        render_device().set_render_state(0xab, 1);
+        render_device().set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::one);
+        render_device().set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::one);
+        render_device().set_render_state(halo::d3d9::rs::blend_op, 1);
         return;
     }
 
-    render_device().set_render_state(0x13, rasterizer_blend_src_table[mode]);
-    render_device().set_render_state(0x14, rasterizer_blend_dest_table[mode]);
-    render_device().set_render_state(0xab, rasterizer_blend_op_table[mode]);
+    render_device().set_render_state(halo::d3d9::rs::src_blend, rasterizer_blend_src_table[mode]);
+    render_device().set_render_state(halo::d3d9::rs::dest_blend, rasterizer_blend_dest_table[mode]);
+    render_device().set_render_state(halo::d3d9::rs::blend_op, rasterizer_blend_op_table[mode]);
 }
 
 namespace chimera__rasterizer_set_frustum_z_func_impl {
@@ -187,7 +188,7 @@ void rasterizer_begin_frame(rasterizer_window_parameters *source)
 
     chimera__rasterizer_set_frustum_z_func(0xbf800000, 0xbf800000);
 
-    render_device().set_render_state(8, 3 - (uint32_t)(halo::rasterizer::fields::rasterizer_wireframe != 0));
+    render_device().set_render_state(halo::d3d9::rs::fill_mode, 3 - (uint32_t)(halo::rasterizer::fields::rasterizer_wireframe != 0));
 }
 
 /**
@@ -608,29 +609,29 @@ void rasterizer_end_frame(void)
         render_device().set_viewport(&viewport);
 
         if (halo::rasterizer::fields::rasterizer_wireframe != 0) {
-            rasterizer_set_render_state(8, 3);
+            rasterizer_set_render_state(halo::d3d9::rs::fill_mode, 3);
         }
 
         stride = halo::rasterizer::d3dx::fvf_vertex_size(0x144);
         render_device().set_pixel_shader(0);
         render_device().set_texture(0, (void *)rasterizer_render_targets[1].texture);
-        rasterizer_set_sampler_state(0, 1, 3);
-        rasterizer_set_sampler_state(0, 2, 3);
-        rasterizer_set_sampler_state(0, 5, 1);
-        rasterizer_set_sampler_state(0, 6, 1);
-        rasterizer_set_sampler_state(0, 7, 1);
-        rasterizer_set_render_state(0x16, 3);
-        rasterizer_set_render_state(0xa8, 7);
-        rasterizer_set_render_state(0x1b, 0);
-        rasterizer_set_render_state(0xf, 0);
-        rasterizer_set_render_state(7, 0);
-        rasterizer_set_render_state(0x1c, 0);
-        rasterizer_set_texture_stage_state(0, 1, 2);
-        rasterizer_set_texture_stage_state(0, 2, 2);
-        rasterizer_set_texture_stage_state(0, 4, 2);
-        rasterizer_set_texture_stage_state(0, 5, 2);
-        rasterizer_set_texture_stage_state(1, 1, 1);
-        rasterizer_set_texture_stage_state(1, 4, 1);
+        rasterizer_set_sampler_state(0, halo::d3d9::ss::address_u, 3);
+        rasterizer_set_sampler_state(0, halo::d3d9::ss::address_v, 3);
+        rasterizer_set_sampler_state(0, halo::d3d9::ss::mag_filter, 1);
+        rasterizer_set_sampler_state(0, halo::d3d9::ss::min_filter, 1);
+        rasterizer_set_sampler_state(0, halo::d3d9::ss::mip_filter, 1);
+        rasterizer_set_render_state(halo::d3d9::rs::cull_mode, 3);
+        rasterizer_set_render_state(halo::d3d9::rs::color_write_enable, 7);
+        rasterizer_set_render_state(halo::d3d9::rs::alpha_blend_enable, 0);
+        rasterizer_set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
+        rasterizer_set_render_state(halo::d3d9::rs::z_enable, 0);
+        rasterizer_set_render_state(halo::d3d9::rs::fog_enable, 0);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
+        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
+        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
 
         if (rasterizer_render_target_vertex_buffer != 0) {
             void *buffer = rasterizer_render_target_vertex_buffer;
@@ -663,7 +664,7 @@ void rasterizer_end_frame(void)
         }
 
         if (halo::rasterizer::fields::rasterizer_wireframe != 0) {
-            rasterizer_set_render_state(8, 2);
+            rasterizer_set_render_state(halo::d3d9::rs::fill_mode, 2);
         }
     }
 
@@ -680,9 +681,9 @@ void rasterizer_end_frame(void)
     if (render_device().set_software_vertex_processing(rasterizer_software_vertex_processing) < 0) {
         succeeded = 0;
     }
-    rasterizer_set_render_state(0x13, 5);
-    rasterizer_set_render_state(0x14, 6);
-    rasterizer_set_render_state(0xab, 1);
+    rasterizer_set_render_state(halo::d3d9::rs::src_blend, halo::d3d9::blend::src_alpha);
+    rasterizer_set_render_state(halo::d3d9::rs::dest_blend, halo::d3d9::blend::inv_src_alpha);
+    rasterizer_set_render_state(halo::d3d9::rs::blend_op, 1);
 
     if (chat_gui_root_handle != 0 && rasterizer_ui_render_failed == 0 &&
         halo::rasterizer::fields::keystone_update(chat_gui_root_handle) < 0) {
@@ -1389,10 +1390,10 @@ void rasterizer_set_default_render_states(void)
     set_render_states(table1, sizeof(table1) / sizeof(table1[0]));
 
     if ((rasterizer_caps.raster_caps & 0x4000000) != 0) {
-        set_render_state(0xc3, 0);
+        set_render_state(halo::d3d9::rs::depth_bias, 0);
     }
     if ((rasterizer_caps.raster_caps & 0x2000000) != 0) {
-        set_render_state(0xaf, 0);
+        set_render_state(halo::d3d9::rs::slope_scale_depth_bias, 0);
     }
 
     set_render_states(table2, sizeof(table2) / sizeof(table2[0]));
@@ -1402,14 +1403,14 @@ void rasterizer_set_default_render_states(void)
     set_render_states(table3, sizeof(table3) / sizeof(table3[0]));
 
     {
-        render_device().set_texture_stage_state(0, 0xb, 0);
-        render_device().set_texture_stage_state(1, 0xb, 1);
-        render_device().set_texture_stage_state(2, 0xb, 2);
-        render_device().set_texture_stage_state(3, 0xb, 3);
-        render_device().set_texture_stage_state(0, 0x18, 0);
-        render_device().set_texture_stage_state(1, 0x18, 0);
-        render_device().set_texture_stage_state(2, 0x18, 0);
-        render_device().set_texture_stage_state(3, 0x18, 0);
+        render_device().set_texture_stage_state(0, halo::d3d9::ts::texcoord_index, 0);
+        render_device().set_texture_stage_state(1, halo::d3d9::ts::texcoord_index, 1);
+        render_device().set_texture_stage_state(2, halo::d3d9::ts::texcoord_index, 2);
+        render_device().set_texture_stage_state(3, halo::d3d9::ts::texcoord_index, 3);
+        render_device().set_texture_stage_state(0, halo::d3d9::ts::texture_transform_flags, 0);
+        render_device().set_texture_stage_state(1, halo::d3d9::ts::texture_transform_flags, 0);
+        render_device().set_texture_stage_state(2, halo::d3d9::ts::texture_transform_flags, 0);
+        render_device().set_texture_stage_state(3, halo::d3d9::ts::texture_transform_flags, 0);
     }
 }
 

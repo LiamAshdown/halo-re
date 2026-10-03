@@ -4,6 +4,7 @@
  * The original author notes and decompiles are in docs/original/rasterizer/.
  */
 
+#include "halo/render/d3d9.hpp"
 #include "halo/rasterizer/globals.hpp"
 #include "internal/state.hpp"
 #include "halo/cseries/api.hpp"
@@ -729,23 +730,23 @@ void rasterizer_render_target_capture_frame(void)
         render_device().set_vertex_shader((void *)rasterizer_vertex_shaders[35].shader);
         render_device().set_pixel_shader(0);
         render_device().set_texture(0, (void *)rasterizer_render_targets[1].texture);
-        rasterizer_set_sampler_state(0, 1, 3);
-        rasterizer_set_sampler_state(0, 2, 3);
-        rasterizer_set_sampler_state(0, 5, 2);
-        rasterizer_set_sampler_state(0, 6, 2);
-        rasterizer_set_sampler_state(0, 7, 1);
-        rasterizer_set_render_state(0x16, 3);
-        rasterizer_set_render_state(0xa8, 7);
-        rasterizer_set_render_state(0x1b, 0);
-        rasterizer_set_render_state(0xf, 0);
-        rasterizer_set_render_state(7, 0);
-        rasterizer_set_render_state(0x1c, 0);
-        rasterizer_set_texture_stage_state(0, 1, 2);
-        rasterizer_set_texture_stage_state(0, 2, 2);
-        rasterizer_set_texture_stage_state(0, 4, 2);
-        rasterizer_set_texture_stage_state(0, 5, 2);
-        rasterizer_set_texture_stage_state(1, 1, 1);
-        rasterizer_set_texture_stage_state(1, 4, 1);
+        rasterizer_set_sampler_state(0, halo::d3d9::ss::address_u, 3);
+        rasterizer_set_sampler_state(0, halo::d3d9::ss::address_v, 3);
+        rasterizer_set_sampler_state(0, halo::d3d9::ss::mag_filter, 2);
+        rasterizer_set_sampler_state(0, halo::d3d9::ss::min_filter, 2);
+        rasterizer_set_sampler_state(0, halo::d3d9::ss::mip_filter, 1);
+        rasterizer_set_render_state(halo::d3d9::rs::cull_mode, 3);
+        rasterizer_set_render_state(halo::d3d9::rs::color_write_enable, 7);
+        rasterizer_set_render_state(halo::d3d9::rs::alpha_blend_enable, 0);
+        rasterizer_set_render_state(halo::d3d9::rs::alpha_test_enable, 0);
+        rasterizer_set_render_state(halo::d3d9::rs::z_enable, 0);
+        rasterizer_set_render_state(halo::d3d9::rs::fog_enable, 0);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_op, 2);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::color_arg1, 2);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_op, 2);
+        rasterizer_set_texture_stage_state(0, halo::d3d9::ts::alpha_arg1, 2);
+        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::color_op, 1);
+        rasterizer_set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
 
         width = (float)(int16_t)(rasterizer_window.camera.viewport_bounds.right - rasterizer_window.camera.viewport_bounds.left);
         height = (float)(int16_t)(rasterizer_window.camera.viewport_bounds.bottom - rasterizer_window.camera.viewport_bounds.top);
