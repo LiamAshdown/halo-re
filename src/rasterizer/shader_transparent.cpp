@@ -13,7 +13,30 @@
 #include "halo/cache/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/shaders/shaders.hpp"
+#include <cstddef>
 #include "halo/core/libm.hpp"
+#include "halo/tags/flags.hpp"
+
+namespace {
+
+constexpr uint32_t k_extra_flag_dont_fade_active_camouflage =
+    static_cast<uint32_t>(halo::tags::shader_transparent_chicago_extra_tag_flag::don_t_fade_active_camouflage);
+constexpr uint32_t k_extra_flag_numeric_countdown_timer =
+    static_cast<uint32_t>(halo::tags::shader_transparent_chicago_extra_tag_flag::numeric_countdown_timer);
+constexpr uint16_t k_map_unfiltered = static_cast<uint16_t>(halo::tags::shader_transparent_chicago_map_tag_flag::unfiltered);
+constexpr uint16_t k_map_u_clamped = static_cast<uint16_t>(halo::tags::shader_transparent_chicago_map_tag_flag::u_clamped);
+constexpr uint16_t k_map_v_clamped = static_cast<uint16_t>(halo::tags::shader_transparent_chicago_map_tag_flag::v_clamped);
+
+}  // namespace
+
+static_assert(offsetof(ShaderTransparentChicagoMap, map) + offsetof(TagDependency, tag_id) == 0x78, "chicago map bitmap id");
+static_assert(offsetof(ShaderTransparentChicagoMap, map_u_scale) == 0x54, "chicago map scale");
+static_assert(offsetof(ShaderTransparentChicagoMap, u_animation_source) == 0xa4, "chicago map animation");
+static_assert(sizeof(ShaderTransparentChicagoMap) == 0xdc, "chicago map size");
+static_assert(offsetof(ShaderTransparentChicago, extra_flags) == 0x60, "chicago extra flags");
+static_assert(offsetof(ShaderTransparentChicagoExtended, extra_flags) == 0x6c, "chicago extended extra flags");
+static_assert(offsetof(ShaderTransparentChicago, shader_transparent_chicago_flags) == 0x29, "chicago flags");
+static_assert(offsetof(ShaderTransparentChicago, numeric_counter_limit) == 0x28, "chicago numeric limit");
 
 
 
@@ -722,8 +745,8 @@ static int32_t numeric_value(float limit, float value)
  */
 void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *group, uint8_t attached)
 {
-    uint8_t *shader = (uint8_t *)(uintptr_t)group->shader;
-    uint8_t *maps;
+    ShaderTransparentChicago *shader = (ShaderTransparentChicago *)(uintptr_t)group->shader;
+    ShaderTransparentChicagoMap *maps;
     uint8_t ok = 1;
     int16_t permutation;
     int16_t vertex_type;
@@ -737,7 +760,7 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
     float map_constants[8][4];
     float fade_constants[3][4];
 
-    permutation = halo::shaders::shader_view(const_cast<Shader *>((const Shader *)shader)).vertex_shader_permutation();
+    permutation = halo::shaders::shader_view(const_cast<Shader *>(&shader->base)).vertex_shader_permutation();
     vertex_type = -1;
     if (group->vertex_buffer != 0) {
         vertex_type = *(int16_t *)(uintptr_t)group->vertex_buffer;
@@ -745,8 +768,8 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
         vertex_type = rasterizer_dynamic_vertex_slots[group->dynamic_vertex_slot].vertex_type;
     }
     frame = (int16_t)group->shader_permutation;
-    maps = (uint8_t *)(uintptr_t)((struct ShaderTransparentChicago *)shader)->maps.pointer;
-    if (maps == NULL || *(uint32_t *)(maps + 0x70) == 0) {
+    maps = (ShaderTransparentChicagoMap *)(uintptr_t)shader->maps.pointer;
+    if (maps == NULL || maps->map.path_pointer == 0) {
         return;
     }
     if (render_device().set_vertex_shader(rasterizer_vertex_shaders[rasterizer_transparent_vertex_shader_table[vertex_type * 6 + permutation]].shader) < 0) {
@@ -759,33 +782,33 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
         ok = 0;
     }
 
-    for (layer = 0; layer < *(int32_t *)&((struct ShaderTransparentChicago *)shader)->extra_layers.count; layer++) {
+    for (layer = 0; layer < (int32_t)shader->extra_layers.count; layer++) {
         transparent_geometry_group copy = *group;
-        const uint8_t *layers = (const uint8_t *)(uintptr_t)((struct ShaderTransparentChicago *)shader)->extra_layers.pointer;
-        uint32_t tag_id = *(uint32_t *)(layers + layer * 0x10 + 0xc);
+        const ShaderTransparentExtraLayer *layers = (const ShaderTransparentExtraLayer *)(uintptr_t)shader->extra_layers.pointer;
+        uint32_t tag_id = *(const uint32_t *)&layers[layer].shader.tag_id;
 
         copy.sorted_index = -1;
         copy.shader = (uint32_t)(uintptr_t)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
         rasterizer_transparent_geometry_group_draw(&copy, attached);
     }
 
-    set_render_state(halo::d3d9::rs::cull_mode, (shader[0x29] & 4) ? 1 : 3);
+    set_render_state(halo::d3d9::rs::cull_mode, (shader->shader_transparent_chicago_flags & _shader_transparent_two_sided_bit) ? 1 : 3);
     set_render_state(halo::d3d9::rs::color_write_enable, 7);
     set_render_state(halo::d3d9::rs::alpha_blend_enable, 1);
-    set_render_state(halo::d3d9::rs::alpha_test_enable, shader[0x29] & 1);
+    set_render_state(halo::d3d9::rs::alpha_test_enable, shader->shader_transparent_chicago_flags & _shader_transparent_alpha_tested_bit);
     set_render_state(halo::d3d9::rs::alpha_ref, 0x7f);
     set_render_state(halo::d3d9::rs::fog_enable, 0);
-    chimera__rasterizer_set_framebuffer_blend_function(*(int16_t *)&((struct ShaderTransparentChicago *)shader)->framebuffer_blend_function);
+    chimera__rasterizer_set_framebuffer_blend_function(shader->framebuffer_blend_function);
 
-    if ((int8_t)shader[0x29] < 0 && group->lighting_extra != 0 && *(int32_t *)&((struct ShaderTransparentChicago *)shader)->maps.count > 0) {
-        const uint8_t *bitmap = (const uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(maps + 0x78) & 0xffff].data;
-        int16_t base = *(int16_t *)(bitmap + 0x60);
+    if ((shader->shader_transparent_chicago_flags & _shader_transparent_numeric_bit) != 0 && group->lighting_extra != 0 && (int32_t)shader->maps.count > 0) {
+        const Bitmap *bitmap = (const Bitmap *)halo::cache::globals().tag_instances[*(const uint32_t *)&maps->map.tag_id & 0xffff].data;
+        int16_t base = (int16_t)bitmap->bitmap_data.count;
 
-        if (shader[0x60] & 2) {
+        if (shader->extra_flags & k_extra_flag_numeric_countdown_timer) {
             frame = halo::shaders::numeric_countdown_timer::get_digit((int16_t)group->shader_permutation);
         } else {
             const float *function_values = *(const float **)(uintptr_t)(group->lighting_extra + 4);
-            int32_t limit = (int16_t)shader[0x28];
+            int32_t limit = (int16_t)shader->numeric_counter_limit;
             int value_index = (base != 8) ? 0 : 3;
             int16_t value;
             int16_t digit;
@@ -804,22 +827,22 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
         }
     }
 
-    first_map_type = *(int16_t *)&((struct ShaderTransparentChicago *)shader)->first_map_type;
+    first_map_type = shader->first_map_type;
     for (map = 0; map < 4; map++) {
-        map_count = *(int32_t *)&((struct ShaderTransparentChicago *)shader)->maps.count;
+        map_count = (int32_t)shader->maps.count;
         if (map < map_count) {
-            uint8_t *entry = maps + map * 0xdc;
+            ShaderTransparentChicagoMap *entry = &maps[map];
             int16_t bitmap_type = (map != 0) ? 0 : rasterizer_first_map_bitmap_types[first_map_type];
             uint32_t address_u, address_v, address_w;
-            uint32_t filter = (entry[0] & 1) ? 1 : 2;
+            uint32_t filter = (entry->flags & k_map_unfiltered) ? 1 : 2;
 
-            chimera__rasterizer_set_texture(*(uint32_t *)(entry + 0x78), map, bitmap_type, 0, frame);
-            if (bitmap_type == 0 && (entry[0] & 4)) {
+            chimera__rasterizer_set_texture(*(const uint32_t *)&entry->map.tag_id, map, bitmap_type, 0, frame);
+            if (bitmap_type == 0 && (entry->flags & k_map_u_clamped)) {
                 address_u = 3;
             } else {
                 address_u = (map != 0) ? 1 : rasterizer_first_map_address_modes[first_map_type];
             }
-            if (bitmap_type == 0 && (entry[0] & 8)) {
+            if (bitmap_type == 0 && (entry->flags & k_map_v_clamped)) {
                 address_v = 3;
             } else {
                 address_v = (map != 0) ? 1 : rasterizer_first_map_address_modes[first_map_type];
@@ -832,18 +855,18 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
             set_sampler_state(map, halo::d3d9::ss::min_filter, filter);
             set_sampler_state(map, halo::d3d9::ss::mip_filter, filter);
         }
-        map_count = *(int32_t *)&((struct ShaderTransparentChicago *)shader)->maps.count;
+        map_count = (int32_t)shader->maps.count;
         if (map < map_count && (map > 0 || first_map_type == 0)) {
-            uint8_t *entry = maps + map * 0xdc;
-            float u_scale = *(float *)(entry + 0x54);
-            float v_scale = *(float *)(entry + 0x58);
+            ShaderTransparentChicagoMap *entry = &maps[map];
+            float u_scale = entry->map_u_scale;
+            float v_scale = entry->map_v_scale;
 
             if (map == 0) {
-                if (shader[0x29] & 0x40) {
+                if (shader->shader_transparent_chicago_flags & _shader_transparent_scale_first_map_with_distance_bit) {
                     u_scale = -(u_scale * group->depth);
                     v_scale = -(v_scale * group->depth);
                 }
-                if (!(shader[0x29] & 8)) {
+                if (!(shader->shader_transparent_chicago_flags & _shader_transparent_first_map_is_in_screenspace_bit)) {
                     u_scale *= group->base_map_u_scale;
                     v_scale *= group->base_map_v_scale;
                 }
@@ -851,11 +874,11 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
                 u_scale *= group->base_map_u_scale;
                 v_scale *= group->base_map_v_scale;
             }
-            halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(const_cast<void *>((const void *)(uintptr_t)group->lighting_extra)), reinterpret_cast<shader_texture_animation *>(entry + 0xa4),
+            halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(const_cast<void *>((const void *)(uintptr_t)group->lighting_extra)), reinterpret_cast<shader_texture_animation *>(&entry->u_animation_source),
                                               map_constants[map * 2], map_constants[map * 2 + 1], u_scale, v_scale,
-                                              *(float *)(entry + 0x5c), *(float *)(entry + 0x60),
-                                              *(float *)(entry + 0x64), (float)rasterizer_time.time);
-        } else if (map < map_count && (shader[0x29] & 8)) {
+                                              entry->map_u_offset, entry->map_v_offset,
+                                              entry->map_rotation, (float)rasterizer_time.time);
+        } else if (map < map_count && (shader->shader_transparent_chicago_flags & _shader_transparent_first_map_is_in_screenspace_bit)) {
 
             const real_matrix4x3 *view_to_world = &rasterizer_window.frustum.view_to_world;
 
@@ -882,128 +905,126 @@ void rasterizer_shader_transparent_chicago_draw(transparent_geometry_group *grou
         rasterizer_shader_transparent_chicago_set_texture_stages((const ShaderTransparentChicago *)shader);
     }
 
-    stage = (int16_t)*(int32_t *)&((struct ShaderTransparentChicago *)shader)->maps.count;
-    if ((group->flags & 0x10) && *(int16_t *)&((struct ShaderTransparentChicago *)shader)->framebuffer_blend_function == 0) {
-        goto draw;
-    }
-    {
-        int16_t fade_source = *(int16_t *)&((struct ShaderTransparentChicago *)shader)->framebuffer_fade_source;
-        int i;
+    stage = (int16_t)(int32_t)shader->maps.count;
+    if (!((group->flags & 0x10) && shader->framebuffer_blend_function == 0)) {
+        {
+            int16_t fade_source = shader->framebuffer_fade_source;
+            int i;
 
-        for (i = 0; i < 3; i++) {
-            fade_constants[i][0] = 0.0f;
-            fade_constants[i][1] = 0.0f;
-            fade_constants[i][2] = 0.0f;
-            fade_constants[i][3] = 0.0f;
-        }
-        fade_constants[2][2] = 1.0f;
-        if (group->parameters.mode == 1 && !(shader[0x60] & 1)) {
-            float fade = 1.0f - group->parameters.blend_factor;
-
-            fade_constants[2][2] = fade < 0.0f ? 0.0f : (fade > 1.0f ? 1.0f : fade);
-        }
-        if (fade_source > 0 && group->lighting_extra != 0) {
-            const float *function_values = *(const float **)(uintptr_t)(group->lighting_extra + 4);
-
-            if (function_values != NULL) {
-                const float *value = &function_values[fade_source - 1];
-
-                if (*value == 0.0f && rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
-                    return;
-                }
-                fade_constants[2][2] *= *value;
+            for (i = 0; i < 3; i++) {
+                fade_constants[i][0] = 0.0f;
+                fade_constants[i][1] = 0.0f;
+                fade_constants[i][2] = 0.0f;
+                fade_constants[i][3] = 0.0f;
             }
-        }
-        render_device().set_vertex_shader_constant_f(10, &fade_constants[0][0], 3);
-    }
-    switch (*(int16_t *)&((struct ShaderTransparentChicago *)shader)->framebuffer_fade_mode) {
-    case 0: fade_argument = 0x20; break;
-    case 1: fade_argument = 0x24; break;
-    case 2: fade_argument = 4; break;
-    default: fade_argument = (uint32_t)(uint16_t)first_map_type; break;
-    }
+            fade_constants[2][2] = 1.0f;
+            if (group->parameters.mode == 1 && !(shader->extra_flags & k_extra_flag_dont_fade_active_camouflage)) {
+                float fade = 1.0f - group->parameters.blend_factor;
 
-    map_count = *(int32_t *)&((struct ShaderTransparentChicago *)shader)->maps.count;
-    switch (*(int16_t *)&((struct ShaderTransparentChicago *)shader)->framebuffer_blend_function) {
-    case 0:
-        if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
-            stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
-            tss(0, 4, 4);
-            tss(0, 6, fade_argument);
-        } else {
-            stage = (int16_t)map_count;
-            tss(stage, 1, 2);
-            tss(stage, 2, 1);
-            tss(stage, 4, 4);
-            tss(stage, 5, 1);
-            tss(stage, 6, fade_argument);
+                fade_constants[2][2] = fade < 0.0f ? 0.0f : (fade > 1.0f ? 1.0f : fade);
+            }
+            if (fade_source > 0 && group->lighting_extra != 0) {
+                const float *function_values = *(const float **)(uintptr_t)(group->lighting_extra + 4);
+
+                if (function_values != NULL) {
+                    const float *value = &function_values[fade_source - 1];
+
+                    if (*value == 0.0f && rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
+                        return;
+                    }
+                    fade_constants[2][2] *= *value;
+                }
+            }
+            render_device().set_vertex_shader_constant_f(10, &fade_constants[0][0], 3);
         }
-        stage++;
-        break;
-    case 1:
-    case 5:
-        stage = (int16_t)(rasterizer_caps.max_simultaneous_textures > 2 ? map_count
-                                                                       : (map_count - 1 > 1 ? map_count - 1 : 1));
-        tss(stage, 1, 0x19);
-        tss(stage, 2, fade_argument | 0x10);
-        tss(stage, 3, 1);
-        tss(stage, 0x1a, fade_argument);
-        tss(stage, 4, 2);
-        tss(stage, 5, 1);
-        stage++;
-        break;
-    case 2:
-        stage = (int16_t)(rasterizer_caps.max_simultaneous_textures > 2 ? map_count
-                                                                       : (map_count - 1 > 1 ? map_count - 1 : 1));
-        set_render_state(halo::d3d9::rs::texture_factor, 0x7f7f7f7f);
-        tss(stage, 1, 0x1a);
-        tss(stage, 2, fade_argument);
-        tss(stage, 3, 1);
-        tss(stage, 0x1a, 3);
-        tss(stage, 4, 2);
-        tss(stage, 5, 1);
-        stage++;
-        break;
-    case 3:
-    case 4:
-    case 6:
-        if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
-            stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
-            tss(0, 1, 4);
-            tss(0, 3, fade_argument);
-        } else {
-            stage = (int16_t)map_count;
-            tss(stage, 1, 4);
-            tss(stage, 2, 1);
-            tss(stage, 3, fade_argument);
+        switch (shader->framebuffer_fade_mode) {
+        case 0: fade_argument = 0x20; break;
+        case 1: fade_argument = 0x24; break;
+        case 2: fade_argument = 4; break;
+        default: fade_argument = (uint32_t)(uint16_t)first_map_type; break;
+        }
+
+        map_count = (int32_t)shader->maps.count;
+        switch (shader->framebuffer_blend_function) {
+        case 0:
+            if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
+                stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
+                tss(0, 4, 4);
+                tss(0, 6, fade_argument);
+            } else {
+                stage = (int16_t)map_count;
+                tss(stage, 1, 2);
+                tss(stage, 2, 1);
+                tss(stage, 4, 4);
+                tss(stage, 5, 1);
+                tss(stage, 6, fade_argument);
+            }
+            stage++;
+            break;
+        case 1:
+        case 5:
+            stage = (int16_t)(rasterizer_caps.max_simultaneous_textures > 2 ? map_count
+                                                                           : (map_count - 1 > 1 ? map_count - 1 : 1));
+            tss(stage, 1, 0x19);
+            tss(stage, 2, fade_argument | 0x10);
+            tss(stage, 3, 1);
+            tss(stage, 0x1a, fade_argument);
             tss(stage, 4, 2);
             tss(stage, 5, 1);
-        }
-        stage++;
-        break;
-    case 7:
-        if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
-            stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
-            tss(0, 1, 4);
-            tss(0, 3, fade_argument);
-            tss(0, 4, 4);
-            tss(0, 6, fade_argument);
-        } else {
-            stage = (int16_t)map_count;
-            tss(stage, 1, 4);
-            tss(stage, 2, 1);
-            tss(stage, 3, fade_argument);
-            tss(stage, 4, 4);
+            stage++;
+            break;
+        case 2:
+            stage = (int16_t)(rasterizer_caps.max_simultaneous_textures > 2 ? map_count
+                                                                           : (map_count - 1 > 1 ? map_count - 1 : 1));
+            set_render_state(halo::d3d9::rs::texture_factor, 0x7f7f7f7f);
+            tss(stage, 1, 0x1a);
+            tss(stage, 2, fade_argument);
+            tss(stage, 3, 1);
+            tss(stage, 0x1a, 3);
+            tss(stage, 4, 2);
             tss(stage, 5, 1);
-            tss(stage, 6, fade_argument);
+            stage++;
+            break;
+        case 3:
+        case 4:
+        case 6:
+            if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
+                stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
+                tss(0, 1, 4);
+                tss(0, 3, fade_argument);
+            } else {
+                stage = (int16_t)map_count;
+                tss(stage, 1, 4);
+                tss(stage, 2, 1);
+                tss(stage, 3, fade_argument);
+                tss(stage, 4, 2);
+                tss(stage, 5, 1);
+            }
+            stage++;
+            break;
+        case 7:
+            if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
+                stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
+                tss(0, 1, 4);
+                tss(0, 3, fade_argument);
+                tss(0, 4, 4);
+                tss(0, 6, fade_argument);
+            } else {
+                stage = (int16_t)map_count;
+                tss(stage, 1, 4);
+                tss(stage, 2, 1);
+                tss(stage, 3, fade_argument);
+                tss(stage, 4, 4);
+                tss(stage, 5, 1);
+                tss(stage, 6, fade_argument);
+            }
+            stage++;
+            break;
+        default:
+            break;
         }
-        stage++;
-        break;
-    default:
-        break;
     }
 
-draw:
     render_device().set_texture((uint32_t)(int32_t)stage, 0);
     tss((uint32_t)(int32_t)stage, 1, 1);
     tss((uint32_t)(int32_t)stage, 4, 1);
@@ -1051,9 +1072,9 @@ static int32_t numeric_value(float limit, float value)
  */
 void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_group *group, uint8_t attached)
 {
-    uint8_t *shader = (uint8_t *)(uintptr_t)group->shader;
-    uint8_t *maps;
-    uint8_t *map_list[4];
+    ShaderTransparentChicagoExtended *shader = (ShaderTransparentChicagoExtended *)(uintptr_t)group->shader;
+    ShaderTransparentChicagoMap *maps;
+    ShaderTransparentChicagoMap *map_list[4];
     uint8_t ok = 1;
     int16_t permutation;
     int16_t vertex_type;
@@ -1067,7 +1088,7 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
     float map_constants[8][4];
     float fade_constants[3][4];
 
-    permutation = halo::shaders::shader_view(const_cast<Shader *>((const Shader *)shader)).vertex_shader_permutation();
+    permutation = halo::shaders::shader_view(const_cast<Shader *>(&shader->base)).vertex_shader_permutation();
     vertex_type = -1;
     if (group->vertex_buffer != 0) {
         vertex_type = *(int16_t *)(uintptr_t)group->vertex_buffer;
@@ -1076,11 +1097,11 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
     }
     frame = (int16_t)group->shader_permutation;
     if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
-        maps = (uint8_t *)(uintptr_t)((struct ShaderTransparentChicagoExtended *)shader)->maps_2_stage.pointer;
+        maps = (ShaderTransparentChicagoMap *)(uintptr_t)shader->maps_2_stage.pointer;
     } else {
-        maps = (uint8_t *)(uintptr_t)((struct ShaderTransparentChicagoExtended *)shader)->maps_4_stage.pointer;
+        maps = (ShaderTransparentChicagoMap *)(uintptr_t)shader->maps_4_stage.pointer;
     }
-    if (maps == NULL || *(uint32_t *)(maps + 0x70) == 0) {
+    if (maps == NULL || maps->map.path_pointer == 0) {
         return;
     }
     if (render_device().set_vertex_shader(rasterizer_vertex_shaders[rasterizer_transparent_extended_vertex_shader_table[vertex_type * 6 + permutation]].shader) < 0) {
@@ -1093,34 +1114,34 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
         ok = 0;
     }
 
-    for (layer = 0; layer < *(int32_t *)&((struct ShaderTransparentChicagoExtended *)shader)->extra_layers.count; layer++) {
+    for (layer = 0; layer < (int32_t)shader->extra_layers.count; layer++) {
         transparent_geometry_group copy = *group;
-        const uint8_t *layers = (const uint8_t *)(uintptr_t)((struct ShaderTransparentChicagoExtended *)shader)->extra_layers.pointer;
-        uint32_t tag_id = *(uint32_t *)(layers + layer * 0x10 + 0xc);
+        const ShaderTransparentExtraLayer *layers = (const ShaderTransparentExtraLayer *)(uintptr_t)shader->extra_layers.pointer;
+        uint32_t tag_id = *(const uint32_t *)&layers[layer].shader.tag_id;
 
         copy.sorted_index = -1;
         copy.shader = (uint32_t)(uintptr_t)halo::cache::globals().tag_instances[tag_id & 0xffff].data;
         rasterizer_transparent_geometry_group_draw(&copy, attached);
     }
 
-    set_render_state(halo::d3d9::rs::cull_mode, (shader[0x29] & 4) ? 1 : 3);
+    set_render_state(halo::d3d9::rs::cull_mode, (shader->shader_transparent_chicago_extended_flags & _shader_transparent_two_sided_bit) ? 1 : 3);
     set_render_state(halo::d3d9::rs::color_write_enable, 7);
     set_render_state(halo::d3d9::rs::alpha_blend_enable, 1);
-    set_render_state(halo::d3d9::rs::alpha_test_enable, shader[0x29] & 1);
+    set_render_state(halo::d3d9::rs::alpha_test_enable, shader->shader_transparent_chicago_extended_flags & _shader_transparent_alpha_tested_bit);
     set_render_state(halo::d3d9::rs::alpha_ref, 0x7f);
     set_render_state(halo::d3d9::rs::fog_enable, 0);
-    chimera__rasterizer_set_framebuffer_blend_function(*(int16_t *)&((struct ShaderTransparentChicagoExtended *)shader)->framebuffer_blend_function);
+    chimera__rasterizer_set_framebuffer_blend_function(shader->framebuffer_blend_function);
 
-    if ((int8_t)shader[0x29] < 0 && group->lighting_extra != 0 && *(int32_t *)&((struct ShaderTransparentChicagoExtended *)shader)->maps_4_stage.count > 0) {
-        const uint8_t *maps_4_stage = (const uint8_t *)(uintptr_t)((struct ShaderTransparentChicagoExtended *)shader)->maps_4_stage.pointer;
-        const uint8_t *bitmap = (const uint8_t *)halo::cache::globals().tag_instances[*(uint32_t *)(maps_4_stage + 0x78) & 0xffff].data;
-        int16_t base = *(int16_t *)(bitmap + 0x60);
+    if ((shader->shader_transparent_chicago_extended_flags & _shader_transparent_numeric_bit) != 0 && group->lighting_extra != 0 && (int32_t)shader->maps_4_stage.count > 0) {
+        const ShaderTransparentChicagoMap *maps_4_stage = (const ShaderTransparentChicagoMap *)(uintptr_t)shader->maps_4_stage.pointer;
+        const Bitmap *bitmap = (const Bitmap *)halo::cache::globals().tag_instances[*(const uint32_t *)&maps_4_stage->map.tag_id & 0xffff].data;
+        int16_t base = (int16_t)bitmap->bitmap_data.count;
 
-        if (shader[0x6c] & 2) {
+        if (shader->extra_flags & k_extra_flag_numeric_countdown_timer) {
             frame = halo::shaders::numeric_countdown_timer::get_digit((int16_t)group->shader_permutation);
         } else {
             const float *function_values = *(const float **)(uintptr_t)(group->lighting_extra + 4);
-            int32_t limit = (int16_t)shader[0x28];
+            int32_t limit = (int16_t)shader->numeric_counter_limit;
             int value_index = (base != 8) ? 0 : 3;
             int16_t value;
             int16_t digit;
@@ -1140,30 +1161,30 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
     }
 
     if (rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
-        map_count = (int16_t)*(int32_t *)&((struct ShaderTransparentChicagoExtended *)shader)->maps_2_stage.count;
-        maps = (uint8_t *)(uintptr_t)((struct ShaderTransparentChicagoExtended *)shader)->maps_2_stage.pointer;
+        map_count = (int16_t)(int32_t)shader->maps_2_stage.count;
+        maps = (ShaderTransparentChicagoMap *)(uintptr_t)shader->maps_2_stage.pointer;
     } else {
-        map_count = (int16_t)*(int32_t *)&((struct ShaderTransparentChicagoExtended *)shader)->maps_4_stage.count;
-        maps = (uint8_t *)(uintptr_t)((struct ShaderTransparentChicagoExtended *)shader)->maps_4_stage.pointer;
+        map_count = (int16_t)(int32_t)shader->maps_4_stage.count;
+        maps = (ShaderTransparentChicagoMap *)(uintptr_t)shader->maps_4_stage.pointer;
     }
     for (map = 0; map < map_count; map++) {
-        map_list[map] = maps + map * 0xdc;
+        map_list[map] = &maps[map];
     }
 
-    first_map_type = *(int16_t *)&((struct ShaderTransparentChicagoExtended *)shader)->first_map_type;
+    first_map_type = shader->first_map_type;
     for (map = 0; map < map_count; map++) {
-        uint8_t *entry = map_list[map];
+        ShaderTransparentChicagoMap *entry = map_list[map];
         int16_t bitmap_type = (map != 0) ? 0 : rasterizer_extended_first_map_bitmap_types[first_map_type];
         uint32_t address_u, address_v, address_w;
-        uint32_t filter = (entry[0] & 1) ? 1 : 2;
+        uint32_t filter = (entry->flags & k_map_unfiltered) ? 1 : 2;
 
-        chimera__rasterizer_set_texture(*(uint32_t *)(entry + 0x78), map, bitmap_type, 0, frame);
-        if (bitmap_type == 0 && (entry[0] & 4)) {
+        chimera__rasterizer_set_texture(*(const uint32_t *)&entry->map.tag_id, map, bitmap_type, 0, frame);
+        if (bitmap_type == 0 && (entry->flags & k_map_u_clamped)) {
             address_u = 3;
         } else {
             address_u = (map != 0) ? 1 : rasterizer_extended_first_map_address_modes[first_map_type];
         }
-        if (bitmap_type == 0 && (entry[0] & 8)) {
+        if (bitmap_type == 0 && (entry->flags & k_map_v_clamped)) {
             address_v = 3;
         } else {
             address_v = (map != 0) ? 1 : rasterizer_extended_first_map_address_modes[first_map_type];
@@ -1177,15 +1198,15 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
         set_sampler_state(map, halo::d3d9::ss::mip_filter, filter);
 
         if (map > 0 || first_map_type == 0) {
-            float u_scale = *(float *)(entry + 0x54);
-            float v_scale = *(float *)(entry + 0x58);
+            float u_scale = entry->map_u_scale;
+            float v_scale = entry->map_v_scale;
 
             if (map == 0) {
-                if (shader[0x29] & 0x40) {
+                if (shader->shader_transparent_chicago_extended_flags & _shader_transparent_scale_first_map_with_distance_bit) {
                     u_scale = -(u_scale * group->depth);
                     v_scale = -(v_scale * group->depth);
                 }
-                if (!(shader[0x29] & 8)) {
+                if (!(shader->shader_transparent_chicago_extended_flags & _shader_transparent_first_map_is_in_screenspace_bit)) {
                     u_scale *= group->base_map_u_scale;
                     v_scale *= group->base_map_v_scale;
                 }
@@ -1193,11 +1214,11 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
                 u_scale *= group->base_map_u_scale;
                 v_scale *= group->base_map_v_scale;
             }
-            halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(const_cast<void *>((const void *)(uintptr_t)group->lighting_extra)), reinterpret_cast<shader_texture_animation *>(entry + 0xa4),
+            halo::shaders::shader_texture_animation_evaluate(reinterpret_cast<render_animation *>(const_cast<void *>((const void *)(uintptr_t)group->lighting_extra)), reinterpret_cast<shader_texture_animation *>(&entry->u_animation_source),
                                               map_constants[map * 2], map_constants[map * 2 + 1], u_scale, v_scale,
-                                              *(float *)(entry + 0x5c), *(float *)(entry + 0x60),
-                                              *(float *)(entry + 0x64), (float)rasterizer_time.time);
-        } else if (shader[0x29] & 8) {
+                                              entry->map_u_offset, entry->map_v_offset,
+                                              entry->map_rotation, (float)rasterizer_time.time);
+        } else if (shader->shader_transparent_chicago_extended_flags & _shader_transparent_first_map_is_in_screenspace_bit) {
             const real_matrix4x3 *view_to_world = &rasterizer_window.frustum.view_to_world;
 
             map_constants[0][0] = view_to_world->forward.i;
@@ -1224,126 +1245,124 @@ void rasterizer_shader_transparent_chicago_extended_draw(transparent_geometry_gr
     }
 
     stage = (int16_t)map_count;
-    if ((group->flags & 0x10) && *(int16_t *)&((struct ShaderTransparentChicagoExtended *)shader)->framebuffer_blend_function == 0) {
-        goto draw;
-    }
-    {
-        int16_t fade_source = *(int16_t *)&((struct ShaderTransparentChicagoExtended *)shader)->framebuffer_fade_source;
-        int i;
+    if (!((group->flags & 0x10) && shader->framebuffer_blend_function == 0)) {
+        {
+            int16_t fade_source = shader->framebuffer_fade_source;
+            int i;
 
-        for (i = 0; i < 3; i++) {
-            fade_constants[i][0] = 0.0f;
-            fade_constants[i][1] = 0.0f;
-            fade_constants[i][2] = 0.0f;
-            fade_constants[i][3] = 0.0f;
-        }
-        fade_constants[2][2] = 1.0f;
-        if (group->parameters.mode == 1 && !(shader[0x6c] & 1)) {
-            float fade = 1.0f - group->parameters.blend_factor;
-
-            fade_constants[2][2] = fade < 0.0f ? 0.0f : (fade > 1.0f ? 1.0f : fade);
-        }
-        if (fade_source > 0 && group->lighting_extra != 0) {
-            const float *function_values = *(const float **)(uintptr_t)(group->lighting_extra + 4);
-
-            if (function_values != NULL) {
-                const float *value = &function_values[fade_source - 1];
-
-                if (*value == 0.0f && rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
-                    return;
-                }
-                fade_constants[2][2] *= *value;
+            for (i = 0; i < 3; i++) {
+                fade_constants[i][0] = 0.0f;
+                fade_constants[i][1] = 0.0f;
+                fade_constants[i][2] = 0.0f;
+                fade_constants[i][3] = 0.0f;
             }
-        }
-        render_device().set_vertex_shader_constant_f(10, &fade_constants[0][0], 3);
-    }
-    switch (*(int16_t *)&((struct ShaderTransparentChicagoExtended *)shader)->framebuffer_fade_mode) {
-    case 0: fade_argument = 0x20; break;
-    case 1: fade_argument = 0x24; break;
-    case 2: fade_argument = 4; break;
-    default: fade_argument = (uint32_t)(uintptr_t)shader; break;
-    }
+            fade_constants[2][2] = 1.0f;
+            if (group->parameters.mode == 1 && !(shader->extra_flags & k_extra_flag_dont_fade_active_camouflage)) {
+                float fade = 1.0f - group->parameters.blend_factor;
 
-    switch (*(int16_t *)&((struct ShaderTransparentChicagoExtended *)shader)->framebuffer_blend_function) {
-    case 0:
-        if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
-            stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
-            tss(0, 4, 4);
-            tss(0, 6, fade_argument);
-        } else {
-            stage = (int16_t)map_count;
-            tss(stage, 1, 2);
-            tss(stage, 2, 1);
-            tss(stage, 4, 4);
-            tss(stage, 5, 1);
-            tss(stage, 6, fade_argument);
+                fade_constants[2][2] = fade < 0.0f ? 0.0f : (fade > 1.0f ? 1.0f : fade);
+            }
+            if (fade_source > 0 && group->lighting_extra != 0) {
+                const float *function_values = *(const float **)(uintptr_t)(group->lighting_extra + 4);
+
+                if (function_values != NULL) {
+                    const float *value = &function_values[fade_source - 1];
+
+                    if (*value == 0.0f && rasterizer_caps.pixel_shader_version < halo::d3d9::k_pixel_shader_version_1_1) {
+                        return;
+                    }
+                    fade_constants[2][2] *= *value;
+                }
+            }
+            render_device().set_vertex_shader_constant_f(10, &fade_constants[0][0], 3);
         }
-        stage++;
-        break;
-    case 1:
-    case 5:
-        stage = (int16_t)(rasterizer_caps.max_simultaneous_textures > 2 ? map_count
-                                                                       : (map_count - 1 > 1 ? map_count - 1 : 1));
-        tss(stage, 1, 0x19);
-        tss(stage, 2, fade_argument | 0x10);
-        tss(stage, 3, 1);
-        tss(stage, 0x1a, fade_argument);
-        tss(stage, 4, 2);
-        tss(stage, 5, 1);
-        stage++;
-        break;
-    case 2:
-        stage = (int16_t)(rasterizer_caps.max_simultaneous_textures > 2 ? map_count
-                                                                       : (map_count - 1 > 1 ? map_count - 1 : 1));
-        set_render_state(halo::d3d9::rs::texture_factor, 0x7f7f7f7f);
-        tss(stage, 1, 0x1a);
-        tss(stage, 2, fade_argument);
-        tss(stage, 3, 1);
-        tss(stage, 0x1a, 3);
-        tss(stage, 4, 2);
-        tss(stage, 5, 1);
-        stage++;
-        break;
-    case 3:
-    case 4:
-    case 6:
-        if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
-            stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
-            tss(0, 1, 4);
-            tss(0, 3, fade_argument);
-        } else {
-            stage = (int16_t)map_count;
-            tss(stage, 1, 4);
-            tss(stage, 2, 1);
-            tss(stage, 3, fade_argument);
+        switch (shader->framebuffer_fade_mode) {
+        case 0: fade_argument = 0x20; break;
+        case 1: fade_argument = 0x24; break;
+        case 2: fade_argument = 4; break;
+        default: fade_argument = (uint32_t)(uintptr_t)shader; break;
+        }
+
+        switch (shader->framebuffer_blend_function) {
+        case 0:
+            if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
+                stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
+                tss(0, 4, 4);
+                tss(0, 6, fade_argument);
+            } else {
+                stage = (int16_t)map_count;
+                tss(stage, 1, 2);
+                tss(stage, 2, 1);
+                tss(stage, 4, 4);
+                tss(stage, 5, 1);
+                tss(stage, 6, fade_argument);
+            }
+            stage++;
+            break;
+        case 1:
+        case 5:
+            stage = (int16_t)(rasterizer_caps.max_simultaneous_textures > 2 ? map_count
+                                                                           : (map_count - 1 > 1 ? map_count - 1 : 1));
+            tss(stage, 1, 0x19);
+            tss(stage, 2, fade_argument | 0x10);
+            tss(stage, 3, 1);
+            tss(stage, 0x1a, fade_argument);
             tss(stage, 4, 2);
             tss(stage, 5, 1);
-        }
-        stage++;
-        break;
-    case 7:
-        if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
-            stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
-            tss(0, 1, 4);
-            tss(0, 3, fade_argument);
-            tss(0, 4, 4);
-            tss(0, 6, fade_argument);
-        } else {
-            stage = (int16_t)map_count;
-            tss(stage, 1, 4);
-            tss(stage, 2, 1);
-            tss(stage, 3, fade_argument);
-            tss(stage, 4, 4);
+            stage++;
+            break;
+        case 2:
+            stage = (int16_t)(rasterizer_caps.max_simultaneous_textures > 2 ? map_count
+                                                                           : (map_count - 1 > 1 ? map_count - 1 : 1));
+            set_render_state(halo::d3d9::rs::texture_factor, 0x7f7f7f7f);
+            tss(stage, 1, 0x1a);
+            tss(stage, 2, fade_argument);
+            tss(stage, 3, 1);
+            tss(stage, 0x1a, 3);
+            tss(stage, 4, 2);
             tss(stage, 5, 1);
-            tss(stage, 6, fade_argument);
+            stage++;
+            break;
+        case 3:
+        case 4:
+        case 6:
+            if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
+                stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
+                tss(0, 1, 4);
+                tss(0, 3, fade_argument);
+            } else {
+                stage = (int16_t)map_count;
+                tss(stage, 1, 4);
+                tss(stage, 2, 1);
+                tss(stage, 3, fade_argument);
+                tss(stage, 4, 2);
+                tss(stage, 5, 1);
+            }
+            stage++;
+            break;
+        case 7:
+            if (rasterizer_caps.max_simultaneous_textures == 2 && map_count >= 2) {
+                stage = (int16_t)(map_count - 1 > 1 ? map_count - 1 : 1);
+                tss(0, 1, 4);
+                tss(0, 3, fade_argument);
+                tss(0, 4, 4);
+                tss(0, 6, fade_argument);
+            } else {
+                stage = (int16_t)map_count;
+                tss(stage, 1, 4);
+                tss(stage, 2, 1);
+                tss(stage, 3, fade_argument);
+                tss(stage, 4, 4);
+                tss(stage, 5, 1);
+                tss(stage, 6, fade_argument);
+            }
+            stage++;
+            break;
+        default:
+            break;
         }
-        stage++;
-        break;
-    default:
-        break;
     }
 
-draw:
     render_device().set_texture((uint32_t)(int32_t)stage, 0);
     tss((uint32_t)(int32_t)stage, 1, 1);
     tss((uint32_t)(int32_t)stage, 4, 1);
