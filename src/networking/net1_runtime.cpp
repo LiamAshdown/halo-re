@@ -66,6 +66,17 @@ static auto &network_summary_log_needs_open = halo::link::ref<uint8_t>(halo::net
 
 namespace halo::networking {
 
+namespace {
+
+/** Per-connection user data the game attaches to a GameSpy transport connection (gt2GetConnectionData). */
+struct gamespy_connection_data {
+    uint8_t transport_fields[0x14];
+    int32_t stats_index;
+};
+static_assert(offsetof(gamespy_connection_data, stats_index) == 0x14, "connection statistics slot");
+
+}
+
 /**
  * network_connection_stats_lookup_or_add
  *
@@ -240,7 +251,7 @@ void ConnectionStats::record_packet(void *gamespy_connection, int32_t payload_le
         }
         if (network_statistics_logging_enabled == 1 && gamespy_connection != 0 &&
             (gamespy_connection = gt2GetConnectionData(gamespy_connection), gamespy_connection != 0)) {
-            stats_index_field = (int32_t *)((uint8_t *)gamespy_connection + 0x14);
+            stats_index_field = &static_cast<gamespy_connection_data *>(gamespy_connection)->stats_index;
             if (*stats_index_field == -1) {
                 index = halo::networking::network_connection_stats_lookup_or_add(
                     (int32_t)halo::networking::gamespy_array_length((void *)((int32_t)(uintptr_t)gamespy_connection)),
@@ -349,7 +360,7 @@ int16_t NetworkRuntime::initialize()
     void *hostent;
     uint32_t thread_id;
     uint32_t raw_address;
-    uint8_t wsa_data[400];
+    WSADATA wsa_data;
 
     result = 0;
     hostent = 0;
@@ -358,14 +369,14 @@ int16_t NetworkRuntime::initialize()
         return 0;
     }
     if (network_winsock_initialized == 0) {
-        memset(wsa_data, 0, sizeof(wsa_data));
-        wsa_result = WSAStartup(2, (LPWSADATA)wsa_data);
+        memset(&wsa_data, 0, sizeof(wsa_data));
+        wsa_result = WSAStartup(2, &wsa_data);
         if ((int16_t)wsa_result == 0) {
             if (network_local_address == 0) {
                 if (halo::networking::network_local_hostent_get(&hostent) == 0) {
                     return -0x10;
                 }
-                raw_address = *(uint32_t *)**(uint32_t **)((uint8_t *)hostent + 0xc);
+                raw_address = *reinterpret_cast<uint32_t *>(static_cast<struct hostent *>(hostent)->h_addr_list[0]);
                 network_resolved_local_address =
                     (raw_address & 0xff0000 | raw_address >> 0x10) >> 8 |
                     (raw_address << 0x10 | raw_address & 0xff00) << 8;
@@ -801,6 +812,22 @@ void EventFeed::queue_append(uint8_t *queue, uint32_t *key, uint32_t *payload)
     }
 }
 
+namespace {
+
+/** Owner records that carry an object-to-network-index cache keep its pointer at +0x58. */
+struct network_index_container {
+    uint8_t owner_fields[0x58];
+    network_index_cache *cache;
+};
+static_assert(offsetof(network_index_container, cache) == 0x58, "index cache pointer in the owner record");
+
+network_index_cache *network_index_cache_of(uint8_t *container)
+{
+    return reinterpret_cast<network_index_container *>(container)->cache;
+}
+
+}
+
 /**
  * Looks up key in container's index cache; if present, returns its cached slot. Otherwise scans
  * forward from the cache's rotating cursor for a slot whose value is -1 (evicting/reusing it),
@@ -820,7 +847,7 @@ int32_t IndexCache::find_or_allocate_slot(uint8_t *container, int32_t key)
     int32_t cursor;
     int32_t free_slot;
 
-    cache = *(network_index_cache **)(container + 0x58);
+    cache = network_index_cache_of(container);
 
     table = (hash_table *)cache->table;
     slot = -1;
@@ -892,7 +919,7 @@ uint8_t IndexCache::insert_if_free(uint8_t *container, int32_t slot, int32_t key
     hash_table *table;
     int32_t *slot_ptr;
 
-    cache = *(network_index_cache **)(container + 0x58);
+    cache = network_index_cache_of(container);
 
     table = (hash_table *)cache->table;
     slot_ptr = &cache->slots[slot];
@@ -920,7 +947,7 @@ uint8_t IndexCache::remove(uint8_t *container, int32_t key)
     int32_t abs_key;
     hash_node *node;
 
-    cache = *(network_index_cache **)(container + 0x58);
+    cache = network_index_cache_of(container);
 
     table = (hash_table *)cache->table;
     if (table->initialized == 1 && key != -1) {
