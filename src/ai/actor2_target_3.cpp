@@ -131,7 +131,7 @@ void ActorView::target_relationship_think()
 
             if (self->danger_reacting != 0) {
                 if (self->danger_is_own == 0) {
-                    if (self->danger_unknown_282 == 0 && danger_type != 3 && danger_type != 1) {
+                    if (self->danger_owner_relation == 0 && danger_type != 3 && danger_type != 1) {
                         self->danger_dive = (uint8_t)(halo::math::random_real() < definition->dive_from_grenade_chance);
                     } else {
                         self->danger_dive = 1;

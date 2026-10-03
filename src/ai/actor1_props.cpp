@@ -652,10 +652,10 @@ uint8_t halo::ai::prop_ops::find_danger_escape(uint32_t *out_word, uint8_t *out_
 
         left_hit = actor_check_step_obstruction(actor_index, (real_vector2d *)&left, step, sideways, &left_blocked, extra);
         left_distance = (float)sqrt(halo::math::point3d_distance_squared_to_segment(*(real_point3d *)(act + 0x2b0), path, left_point));
-        left_out = (uint8_t)(left_hit && left_distance > ((actor *)act)->danger_unknown_294);
+        left_out = (uint8_t)(left_hit && left_distance > ((actor *)act)->danger_object_radius);
         right_hit = actor_check_step_obstruction(actor_index, (real_vector2d *)&right, step, sideways, &right_blocked, extra);
         right_distance = (float)sqrt(halo::math::point3d_distance_squared_to_segment(*(real_point3d *)(act + 0x2b0), path, right_point));
-        right_out = (uint8_t)(right_hit && right_distance > ((actor *)act)->danger_unknown_294);
+        right_out = (uint8_t)(right_hit && right_distance > ((actor *)act)->danger_object_radius);
 
         if (left_hit) {
             if (right_hit) {

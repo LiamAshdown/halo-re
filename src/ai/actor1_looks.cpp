@@ -123,7 +123,7 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
 
     if (context->code == 1) {
 
-        target = (prop *)halo::memory::datum_get(context->handle, prop_data);
+        target = (prop *)halo::memory::datum_get(context->payload.handle, prop_data);
         if (target == (prop *)0) {
             return 0;
         }

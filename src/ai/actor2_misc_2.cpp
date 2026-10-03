@@ -301,7 +301,7 @@ void ActorView::refresh_combat_context()
     } else {
         *(real_vector3d *)&((struct actor *)self)->unit_aiming_vector.i = *(real_vector3d *)&((unit_object *)unit)->unit.aiming_vector.i;
     }
-    *(real_vector3d *)&((struct actor *)self)->facing_unknown_18c.i = *(real_vector3d *)&((unit_object *)unit)->unit.looking_vector.i;
+    *(real_vector3d *)&((struct actor *)self)->unit_looking_vector.i = *(real_vector3d *)&((unit_object *)unit)->unit.looking_vector.i;
     halo::math::vector3d_cross_product(*(real_vector3d *)(self + 0x198), *(real_vector3d *)(self + 0x18c), *halo::math::globals().global_up3d_pointer);
     halo::math::vector3d_normalize_with_length(*(real_vector3d *)(self + 0x198));
     halo::math::vector3d_cross_product(*(real_vector3d *)(self + 0x1a4), *(real_vector3d *)(self + 0x198),

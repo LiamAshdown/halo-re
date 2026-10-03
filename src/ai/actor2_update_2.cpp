@@ -178,7 +178,7 @@ void ActorView::update_firing_state()
                 a[0x624] = (uint8_t)!(*(uint32_t *)&local_player_globals->cluster_pvs[(bit >> 5)] & (1u << (bit & 0x1f)));
             }
         } else {
-            *(real_point3d *)&((actor *)a)->wander_unknown_62c = *(real_point3d *)&((struct actor *)a)->firing_target_prop_index;
+            ((actor *)a)->firing_target_point = *(real_point3d *)&((struct actor *)a)->firing_target_prop_index;
             F(a, 0x638) = halo::math::vector3d_distance(*(real_point3d *)(a + 0x610), *(real_point3d *)(a + 0x120));
             a[0x621] = 0;
             a[0x624] = 0;

@@ -513,7 +513,7 @@ void ActorView::queue_recognized_target_dialogue(datum_index target_prop_index)
 
     if (self->awareness_level > 1 && self->vocalization_line < 6 &&
         (self->mode != 11 || self->mode_data.raw[3] != 0)) {
-        int16_t recent = self->vocalization_unknown_3e8;
+        int16_t recent = self->flee_reason;
         prop *target = (prop *)halo::memory::datum_get(target_prop_index, prop_data);
 
         if (target != 0) {
@@ -1278,7 +1278,7 @@ void ActorView::scan_allies_for_backup_request()
 
             if (claimant->shots_fired > 0) {
                 if (claimant->shots_hit == 0) {
-                    claimant->shots_unknown_ae = (int16_t)(halo::math::random_real_range(
+                    claimant->danger_trigger_ticks = (int16_t)(halo::math::random_real_range(
                         actor_def->danger_trigger_time[0], actor_def->danger_trigger_time[1]) *
                         30.0f);
                 }

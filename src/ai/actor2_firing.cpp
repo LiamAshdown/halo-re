@@ -738,8 +738,8 @@ void ActorView::score_firing_positions_by_threat(actor_firing_position_query *qu
             dz = self->body_position.z - self->danger_center.z;
             radius = self->danger_radius + 3.0f;
             if (dx * dx + dy * dy + dz * dz < radius * radius &&
-                self->danger_unknown_294 < self->danger_unknown_2d4 &&
-                self->danger_unknown_294 * self->danger_unknown_294 <
+                self->danger_object_radius < self->danger_distance &&
+                self->danger_object_radius * self->danger_object_radius <
                     halo::math::point3d_distance_squared_to_segment(self->flee_from_point, segment, self->body_position) &&
                 0.0001f < (c->direction_from_actor.i * 3.0f) * (c->direction_from_actor.i * 3.0f) +
                           (c->direction_from_actor.j * 3.0f) * (c->direction_from_actor.j * 3.0f) +

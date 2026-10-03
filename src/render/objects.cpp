@@ -27,7 +27,6 @@
 
 extern "C" {
 extern data_array *object_data;
-extern int32_t unknown_00689450;
 extern render_frustum render_frustum_global;
 extern data_array *object_render_state_cache;
 extern render_lighting render_uncached_object_lighting;
