@@ -6,6 +6,7 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/ai/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern uint8_t rasterizer_window[];

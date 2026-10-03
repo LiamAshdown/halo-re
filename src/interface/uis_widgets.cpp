@@ -19,6 +19,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/interface/api.hpp"
 
 extern "C" {
 extern int16_t profile_slot_id[];

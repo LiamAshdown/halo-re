@@ -339,7 +339,7 @@ void FirstPersonWeaponController::update_animation_controls()
                 halo::models::animation_view(&animation_block[fp->moving_animation]).overlay_frame_orientations((uint16_t)*(int16_t *)fp->unknown_1c, reinterpret_cast<real_orientation *>(animation_control));
             }
             if (fp->overcharged_animation != -1) {
-                halo::models::animation_overlay_interpolated_frame_orientations_weighted(&animation_block[fp->overcharged_animation], FP_FLOAT(fp, 0x24),
+                halo::models::animation_view(&animation_block[fp->overcharged_animation]).overlay_interpolated_frame_orientations_weighted(FP_FLOAT(fp, 0x24),
                              ((struct weapon_object *)weapon_obj)->weapon.charged_fraction + 0.5f, reinterpret_cast<real_orientation *>(animation_control));
             }
 
@@ -356,13 +356,13 @@ void FirstPersonWeaponController::update_animation_controls()
             }
 
             if (fp->blend_end > 0) {
-                halo::models::model_nodes_blend_transforms(reinterpret_cast<real_orientation *>(animation_control), (int16_t)animations->nodes.count,
+                halo::models::model_skeleton::blend_transforms(reinterpret_cast<real_orientation *>(animation_control), (int16_t)animations->nodes.count,
                                              reinterpret_cast<real_orientation *>(((struct first_person_weapon_interface *)fp_raw)->previous_pose), (uint16_t)fp->blend_start,
                                              (uint16_t)fp->blend_end);
             }
         }
 
-        halo::models::animation_graph_nodes_build_matrices(
+        halo::models::animation_graph::nodes_build_matrices(
             *(datum_index *)&weapon_tag->first_person_animations.tag_id, &render_camera_global,
             reinterpret_cast<real_matrix4x3 *>(((struct first_person_weapon_interface *)fp_raw)->node_matrices), reinterpret_cast<real_orientation *>(((struct first_person_weapon_interface *)fp_raw)->animation_control), &camera_forward_x, &camera_up);
     }

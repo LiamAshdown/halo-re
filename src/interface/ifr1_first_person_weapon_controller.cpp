@@ -139,7 +139,7 @@ uint32_t FirstPersonWeaponController::get_marker_data(datum_index weapon_index, 
 
     if (fp->weapon_hud_valid != 0 && halo::interface::tag_handle(item_tag_data->first_person_model.tag_id) != halo::k_dword_none &&
         halo::interface::tag_handle(item_tag_data->first_person_animations.tag_id) != halo::k_dword_none) {
-        return (uint32_t)halo::models::model_markers_get_by_name(halo::interface::tag_handle(item_tag_data->first_person_model.tag_id), marker_name,
+        return (uint32_t)halo::models::model_markers::get_by_name(halo::interface::tag_handle(item_tag_data->first_person_model.tag_id), marker_name,
             nullptr, fp->weapon_hud_element, (real_matrix4x3 *)fp->node_matrices, 0, out, (int16_t)maximum);
     }
     return 0;

@@ -2,6 +2,7 @@
 #include "halo/interface/records.hpp"
 #include "halo/core/slot_mask.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/interface/api.hpp"
 
 
 namespace halo::interface {

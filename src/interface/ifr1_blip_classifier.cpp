@@ -5,6 +5,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/objects/api.hpp"
 #include "halo/game/api.hpp"
+#include "halo/interface/api.hpp"
 
 
 static player *blip_player(datum_index player_index)
