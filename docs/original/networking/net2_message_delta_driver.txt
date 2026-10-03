@@ -1,0 +1,2121 @@
+====================================================================================================
+message_delta_decode_begin.c
+====================================================================================================
+// message_delta_decode_begin  (Ghidra: FUN_004ec490; named per this rewrite)
+// address 0x4ec490, size 120 bytes
+// name confidence: 0.4   rewrite confidence: 0.6
+// evidence: objdump -d -M intel bin/halo.exe @0x4ec490: `esi = eax` (the decode_state output
+// pointer), a genuine `push edi` / `call 0x4ece70` (message_delta_decode_message_header) whose
+// only recognized parameter is the stream, and on success writes decode_state.bits_read (+0xc),
+// .unknown_14 (+0x14), .stream (+0x10) and .processed_count (+0x18) exactly as
+// types/networking.h documents message_delta_decode_state. message_delta_decode_message_header
+// itself reads and writes the same decode_state through ESI, which is only valid because this
+// function leaves it live in that register across the call (x86 cdecl callees preserve ESI) --
+// exposed here as an explicit second parameter instead of an implicit register pin.
+// register convention: decode_state output in EAX (recognized parameter), stream in EDI
+// (unaff_EDI).
+// blam-cc: EAX -> state, EDI -> stream
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern int32_t message_delta_decode_message_header(bit_stream *stream, message_delta_decode_state *state); // 0x4ece70, this module
+
+// blam-cc: EAX -> state, EDI -> stream
+// Begins decoding a message-delta message: decodes the header into *state and, on success,
+// seeds the rest of the decode state (bits_read, stream, processed_count) for the field-decode
+// loop that follows. On failure, rewinds the stream to where it started and marks state as
+// stateless (baseline).
+int32_t message_delta_decode_begin(message_delta_decode_state *state, bit_stream *stream)
+{
+    int32_t initial_offset;
+    int32_t header_bits;
+    uint32_t target;
+
+    initial_offset = (int32_t)(stream->bit_cursor + stream->byte_cursor * 8) - (int32_t)stream->first_bit;
+    header_bits = message_delta_decode_message_header(stream, state);
+    if (0 < header_bits) {
+        state->bits_read = header_bits;
+        state->start_bit_offset = initial_offset;
+        state->stream = stream;
+        state->processed_count = 1;
+        return 1;
+    }
+    state->incremental = 0;
+    target = (uint32_t)stream->first_bit + (uint32_t)initial_offset;
+    if ((initial_offset >= 0 || target <= stream->first_bit) &&
+        (initial_offset <= 0 || stream->first_bit <= target) &&
+        ((stream->first_bit <= target && target <= stream->last_bit) || target == stream->last_bit + 1)) {
+        stream->bit_cursor = target & 7;
+        stream->byte_cursor = target >> 3;
+    }
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x4ec490):
+
+uint FUN_004ec490(void)
+
+{
+  undefined4 *in_EAX;
+  int iVar1;
+  int iVar2;
+  uint uVar3;
+  uint uVar4;
+  int unaff_EDI;
+
+  iVar1 = (*(int *)(unaff_EDI + 0x10) + *(int *)(unaff_EDI + 0xc) * 8) - *(int *)(unaff_EDI + 8);
+  iVar2 = message_delta_decode_message_header();
+  if (iVar2 < 1) {
+    *in_EAX = 0;
+    uVar4 = *(uint *)(unaff_EDI + 8);
+    uVar3 = uVar4 + iVar1;
+    if ((((-1 < iVar1) || (uVar3 <= uVar4)) && ((iVar1 < 1 || (uVar4 <= uVar3)))) &&
+       (((uVar4 <= uVar3 && (uVar3 <= *(uint *)(unaff_EDI + 0x14))) ||
+        (uVar3 == *(int *)(unaff_EDI + 0x14) + 1U)))) {
+      uVar4 = uVar3 & 7;
+      uVar3 = uVar3 >> 3;
+      *(uint *)(unaff_EDI + 0x10) = uVar4;
+      *(uint *)(unaff_EDI + 0xc) = uVar3;
+    }
+    return uVar3 & 0xffffff00;
+  }
+  in_EAX[3] = iVar2;
+  in_EAX[5] = iVar1;
+  in_EAX[4] = unaff_EDI;
+  in_EAX[6] = 1;
+  return 1;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_decode_field_changed_flags.c
+====================================================================================================
+// message_delta_decode_field_changed_flags  (Ghidra: FUN_004ed070; named per this rewrite)
+// address 0x4ed070, size 341 bytes
+// name confidence: 0.4   rewrite confidence: 0.45
+// evidence: objdump -d -M intel bin/halo.exe @0x4ed070: reads a per-field "changed" byte array
+// into the decode context's slot-1 region (context+4, up to 0x40 bytes -- matching
+// types/networking.h's note that "context slot 1 onward is the field-binding list handed to
+// message_delta_read_changed_subfields as (context + 1)"), then decodes the definition's static
+// fields into context[0x11] (a remote_player_update_header*, per the same header note) via
+// message_delta_decode_static_fields, and finally copies the changed-flags buffer into the
+// shared scratch array at 0x006b89c0.
+// register convention: the decode context as the recognized parameter (param_1); definition
+// bounds/offsets computed from *context (message_delta_decode_state*).
+// UNSURE: why the baseline (incremental == 0) path checks room for definition->statics's own
+// size_bits while the incremental path checks definition->header_and_static_bits instead -- both
+// are transcribed exactly as decompiled/disassembled.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
+extern uint8_t message_delta_field_changed_flags[0x40];         // 0x006b89c0, shared scratch copy
+
+extern uint32_t bit_stream_read_bit(uint8_t *out_bit, bit_stream *stream);
+extern int32_t message_delta_decode_static_fields(int32_t message_type, bit_stream *stream, int32_t offset); // 0x4ed290, this module
+
+// Decodes the per-field "changed" flags for a message's array/compound field: on a baseline
+// (non-incremental) message every field is simply marked changed; otherwise each flag is read
+// bit by bit. Either way, if the definition has static fields it decodes them immediately after
+// into context[0x11], and always leaves a full 0x40-byte changed-flags snapshot in the shared
+// scratch buffer. Returns the number of bits consumed, or 0 on failure.
+int32_t message_delta_decode_field_changed_flags(void **context)
+{
+    message_delta_decode_state *state;
+    message_delta_definition *definition;
+    bit_stream *stream;
+    int32_t field_count;
+    uint8_t *changed_flags;
+    int32_t bits_consumed;
+    uint8_t ok;
+    int32_t i;
+
+    state = (message_delta_decode_state *)context[0];
+    definition = message_delta_definitions[state->message_type];
+    field_count = definition->field_count;
+    stream = (bit_stream *)state->stream;
+    changed_flags = (uint8_t *)context + 4;
+    bits_consumed = 0;
+
+    if (state->incremental == 0) {
+        if (definition->statics->count < 1) {
+            ok = 1;
+        } else {
+            uint32_t last = (uint32_t)(stream->bit_cursor + stream->byte_cursor * 8) - 1 +
+                             definition->statics->size_bits;
+            ok = (uint8_t)!(last < stream->first_bit || stream->last_bit < last);
+        }
+        if (ok) {
+            for (i = 0; i < field_count; i++) {
+                changed_flags[i] = 1;
+            }
+        }
+    } else {
+        uint32_t last = (uint32_t)(stream->bit_cursor + stream->byte_cursor * 8) - 1 +
+                         definition->header_and_static_bits;
+        ok = (uint8_t)!(last < stream->first_bit || stream->last_bit < last);
+        if (ok) {
+            for (i = 0; i < field_count; i++) {
+                if (bit_stream_read_bit(&changed_flags[i], stream) != 1) {
+                    ok = 0;
+                    break;
+                }
+                bits_consumed = bits_consumed + 1;
+            }
+        }
+    }
+
+    if (ok && 0 < definition->statics->count) {
+        int32_t static_bits = message_delta_decode_static_fields(
+            state->message_type, stream, (int32_t)(int32_t)context[0x11]);
+        if (static_bits < 1) {
+            ok = 0;
+        } else {
+            bits_consumed = bits_consumed + static_bits;
+        }
+    }
+
+    for (i = field_count; i < 0x40; i++) {
+        changed_flags[i] = 0;
+    }
+    if (!ok) {
+        bits_consumed = 0;
+    }
+    for (i = 0; i < 0x40; i++) {
+        message_delta_field_changed_flags[i] = changed_flags[i];
+    }
+    return bits_consumed;
+}
+
+#if 0
+Original Ghidra decompilation (0x4ed070):
+
+int FUN_004ed070(int *param_1)
+
+{
+  undefined *puVar1;
+  int iVar2;
+  uint uVar3;
+  uint uVar4;
+  char cVar5;
+  int *piVar6;
+  int iVar7;
+  int *piVar8;
+  undefined4 *puVar9;
+  int *piVar10;
+
+  piVar6 = param_1;
+  piVar10 = (int *)*param_1;
+  puVar1 = (&PTR_DAT_0065d440)[piVar10[1]];
+  uVar4 = *(uint *)(puVar1 + 0x20);
+  param_1 = (int *)0x0;
+  if (*piVar10 == 0) {
+    if (**(int **)(puVar1 + 0x1c) < 1) {
+      cVar5 = '\x01';
+    }
+    else {
+      iVar7 = piVar10[4];
+      uVar3 = *(int *)(iVar7 + 0x10) + *(int *)(iVar7 + 0xc) * 8 + -1 +
+              *(int *)(*(int *)(puVar1 + 0x1c) + 4);
+      if ((uVar3 < *(uint *)(iVar7 + 8)) || (*(uint *)(iVar7 + 0x14) < uVar3)) {
+        cVar5 = '\0';
+      }
+      else {
+        cVar5 = '\x01';
+      }
+      if (cVar5 == '\0') goto LAB_004ed185;
+    }
+    piVar8 = piVar6;
+    for (uVar3 = uVar4 >> 2; piVar8 = piVar8 + 1, uVar3 != 0; uVar3 = uVar3 - 1) {
+      *piVar8 = 0x1010101;
+    }
+    for (uVar3 = uVar4 & 3; uVar3 != 0; uVar3 = uVar3 - 1) {
+      *(undefined1 *)piVar8 = 1;
+      piVar8 = (int *)((int)piVar8 + 1);
+    }
+  }
+  else {
+    iVar7 = piVar10[4];
+    uVar3 = *(int *)(iVar7 + 0x10) + *(int *)(iVar7 + 0xc) * 8 + -1 + *(int *)(puVar1 + 4);
+    if ((uVar3 < *(uint *)(iVar7 + 8)) || (*(uint *)(iVar7 + 0x14) < uVar3)) {
+      cVar5 = '\0';
+    }
+    else {
+      cVar5 = '\x01';
+    }
+    if (cVar5 == '\0') goto LAB_004ed185;
+    iVar7 = 0;
+    if (0 < (int)uVar4) {
+      do {
+        iVar2 = bit_stream_read_bit((undefined1 *)(iVar7 + 4 + (int)piVar6));
+        cVar5 = '\x01' - (iVar2 != 1);
+        if (cVar5 == '\0') goto LAB_004ed185;
+        param_1 = (int *)((int)param_1 + 1);
+        iVar7 = iVar7 + 1;
+      } while (iVar7 < (int)uVar4);
+    }
+  }
+  if (0 < **(int **)((&PTR_DAT_0065d440)[piVar10[1]] + 0x1c)) {
+    iVar7 = FUN_004ed290(piVar10[4],piVar6[0x11]);
+    if (iVar7 < 1) {
+      cVar5 = '\0';
+    }
+    else {
+      param_1 = (int *)((int)param_1 + iVar7);
+      cVar5 = '\x01';
+    }
+  }
+LAB_004ed185:
+  puVar9 = (undefined4 *)(uVar4 + 4 + (int)piVar6);
+  for (uVar3 = 0x40 - uVar4 >> 2; uVar3 != 0; uVar3 = uVar3 - 1) {
+    *puVar9 = 0;
+    puVar9 = puVar9 + 1;
+  }
+  for (uVar4 = 0x40 - uVar4 & 3; uVar4 != 0; uVar4 = uVar4 - 1) {
+    *(undefined1 *)puVar9 = 0;
+    puVar9 = (undefined4 *)((int)puVar9 + 1);
+  }
+  if (cVar5 == '\0') {
+    param_1 = (int *)0x0;
+  }
+  piVar10 = &DAT_006b89c0;
+  for (iVar7 = 0x10; piVar6 = piVar6 + 1, iVar7 != 0; iVar7 = iVar7 + -1) {
+    *piVar10 = *piVar6;
+    piVar10 = piVar10 + 1;
+  }
+  return (int)param_1;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_decode_message_header.c
+====================================================================================================
+// message_delta_decode_message_header  (Ghidra: message_delta_decode_message_header, already named)
+// address 0x4ece70, size 504 bytes
+// name confidence: 0.5   rewrite confidence: 0.55
+// evidence: objdump -d -M intel bin/halo.exe @0x4ece70: `push esi` (state) then `mov edx,edi`
+// (stream) immediately before `call bit_stream_read_bit`, confirming the "incremental" bit is
+// read straight into state+0x00 (state cast to uint8_t*, since bit_stream_read_bit only writes
+// one byte -- the dword was zeroed just before); `mov ecx,ebx` / `mov eax,6` /
+// `push edi` / `call bit_stream_read_bits_chunked` reads the 6-bit message type into
+// state->message_type; the item-count read increments the raw wire value by one into
+// state->item_count, matching message_delta_encode_message_header's own item-count bias.
+// register convention: stream as the recognized parameter (param_1), decode_state output
+// pinned in ESI (unaff_ESI) by the sole caller, message_delta_decode_begin (0x4ec490), across
+// the call -- exposed here as an explicit second parameter.
+// blam-cc: stack -> stream, ESI -> state
+// UNSURE: state+0x20, +0x24 and +0x28 (a per-message item-count bit width, a header-variant tag,
+// and a constant 6/3) and state+0x2c (always set to 1) are all written past the end of the
+// documented 0x20-byte message_delta_decode_state -- the object message_delta_decode_begin's
+// own caller (outside this module) hands in is evidently larger than what
+// message_delta_read_changed_subfields alone pins. Accessed here via raw byte offsets rather
+// than invented struct fields.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
+extern uint8_t message_delta_item_count_bits[];                 // 0x0065d51f
+extern uint8_t message_delta_parameters_enabled;                // 0x0071cfa8
+extern int32_t message_delta_parameters_protocol_sequence;      // 0x0071cfac
+
+extern uint32_t bit_stream_read_bit(uint8_t *out_bit, bit_stream *stream);
+extern int32_t bit_stream_read_bits_chunked(int32_t total_bit_count, uint32_t *buffer, bit_stream *stream);
+
+// blam-cc: stack -> stream, ESI -> state
+// Decodes the header of a message-delta message: the "incremental" bit, the 6-bit message type,
+// under protocol v2 a parameters-in-progress bit and a 2-bit rolling sequence number, and
+// (whenever the message type allows more than one item) a variable-width item count biased by
+// one. Returns the total header bit count on success, 0 on any decode or range failure.
+int32_t message_delta_decode_message_header(bit_stream *stream, message_delta_decode_state *state)
+{
+    uint32_t position;
+    int32_t header_bits;
+    uint8_t incremental_read_ok;
+    uint8_t message_type_read_ok;
+    uint8_t sequence_bit;
+    uint8_t item_count_ok;
+    int32_t sequence_value;
+    uint8_t *raw_state = (uint8_t *)state; // for the fields past the documented struct
+
+    header_bits = 7;
+    if (message_delta_parameters_enabled == 1) {
+        header_bits = 10;
+    }
+    position = stream->bit_cursor + stream->byte_cursor * 8 + 3 + header_bits;
+    if (position < stream->first_bit || stream->last_bit < position) {
+        return 0;
+    }
+
+    state->incremental = 0;
+    state->message_type = 0;
+    state->item_count = 0;
+    sequence_bit = 0;
+    sequence_value = 0;
+
+    incremental_read_ok = (uint8_t)bit_stream_read_bit((uint8_t *)state, stream);
+    *(int32_t *)(raw_state + 0x2c) = 1; // UNSURE: past the documented struct
+    message_type_read_ok = incremental_read_ok != 0 && state->incremental >= 0 && state->incremental < 2;
+
+    message_type_read_ok = (uint8_t)(bit_stream_read_bits_chunked(6, (uint32_t *)&state->message_type, stream) != 0) && message_type_read_ok;
+    header_bits = 7;
+    *(int32_t *)(raw_state + 0x28) = 6; // UNSURE: past the documented struct
+
+    {
+        uint8_t range_ok = state->message_type >= 0 && state->message_type <= 0x37 && message_type_read_ok;
+
+        if (message_delta_parameters_enabled == 1) {
+            incremental_read_ok = (uint8_t)bit_stream_read_bit(&sequence_bit, stream);
+            message_type_read_ok = incremental_read_ok != 0 && range_ok;
+            incremental_read_ok = (uint8_t)(bit_stream_read_bits_chunked(2, (uint32_t *)&sequence_value, stream) != 0);
+            range_ok = incremental_read_ok != 0 && message_type_read_ok;
+            header_bits = 10;
+            *(int32_t *)(raw_state + 0x24) = 3; // UNSURE: past the documented struct
+        } else {
+            *(int32_t *)(raw_state + 0x24) = 0; // UNSURE: past the documented struct
+        }
+
+        if (range_ok) {
+            message_delta_definition *definition = message_delta_definitions[state->message_type];
+            int32_t maximum_items = definition->maximum_items;
+            if (maximum_items < 2) {
+                state->item_count = 1;
+                *(int32_t *)(raw_state + 0x20) = 0; // UNSURE: past the documented struct
+            } else {
+                int32_t item_bits = message_delta_item_count_bits[maximum_items];
+                item_count_ok = (uint8_t)(bit_stream_read_bits_chunked(item_bits, (uint32_t *)&state->item_count, stream) != 0);
+                header_bits += item_bits;
+                state->item_count += 1;
+                *(int32_t *)(raw_state + 0x20) = item_bits; // UNSURE: past the documented struct
+                range_ok = state->item_count >= 1 && state->item_count <= maximum_items && item_count_ok;
+            }
+        }
+
+        if ((message_delta_parameters_enabled != 1 || sequence_value == message_delta_parameters_protocol_sequence ||
+             sequence_bit != 0) && range_ok) {
+            return header_bits;
+        }
+    }
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x4ece70):
+
+int message_delta_decode_message_header(int param_1)
+
+{
+  int *piVar1;
+  int *piVar2;
+  uint uVar3;
+  byte bVar4;
+  bool bVar5;
+  bool bVar6;
+  int iVar7;
+  int iVar8;
+  int iVar9;
+  int *unaff_ESI;
+  char local_9;
+  int local_8;
+  int local_4;
+
+  iVar7 = 7;
+  if (DAT_0071cfa8 == '\x01') {
+    iVar7 = 10;
+  }
+  uVar3 = *(int *)(param_1 + 0x10) + *(int *)(param_1 + 0xc) * 8 + 3 + iVar7;
+  if ((*(uint *)(param_1 + 8) <= uVar3) && (uVar3 <= *(uint *)(param_1 + 0x14))) {
+    piVar1 = unaff_ESI + 1;
+    piVar2 = unaff_ESI + 2;
+    *unaff_ESI = 0;
+    *piVar1 = 0;
+    *piVar2 = 0;
+    local_9 = '\0';
+    local_4 = 0;
+    iVar7 = bit_stream_read_bit();
+    unaff_ESI[0xb] = 1;
+    if ((*unaff_ESI < 0) || ((1 < *unaff_ESI || (bVar5 = true, iVar7 == 0)))) {
+      bVar5 = false;
+    }
+    iVar7 = FUN_004cf950(param_1);
+    if ((iVar7 == 0) || (!bVar5)) {
+      bVar5 = false;
+    }
+    else {
+      bVar5 = true;
+    }
+    local_8 = 7;
+    unaff_ESI[10] = 6;
+    if (((*piVar1 < 0) || (0x37 < *piVar1)) || (bVar6 = true, !bVar5)) {
+      bVar6 = false;
+    }
+    if (DAT_0071cfa8 == '\x01') {
+      iVar7 = bit_stream_read_bit(&local_9);
+      if ((iVar7 == 0) || (bVar5 = true, !bVar6)) {
+        bVar5 = false;
+      }
+      iVar7 = FUN_004cf950(param_1);
+      if ((iVar7 == 0) || (bVar6 = true, !bVar5)) {
+        bVar6 = false;
+      }
+      local_8 = 10;
+      unaff_ESI[9] = 3;
+    }
+    else {
+      unaff_ESI[9] = 0;
+    }
+    if (bVar6) {
+      iVar7 = *(int *)((&PTR_DAT_0065d440)[*piVar1] + 0x14);
+      if (iVar7 < 2) {
+        *piVar2 = 1;
+        unaff_ESI[8] = 0;
+      }
+      else {
+        bVar4 = (&DAT_0065d51f)[iVar7];
+        iVar8 = FUN_004cf950(param_1);
+        local_8 = local_8 + (uint)bVar4;
+        iVar9 = *piVar2 + 1;
+        *piVar2 = iVar9;
+        unaff_ESI[8] = (uint)bVar4;
+        if (((iVar9 < 1) || (iVar7 < iVar9)) || (iVar8 == 0)) {
+          bVar6 = false;
+        }
+        else {
+          bVar6 = true;
+        }
+      }
+    }
+    if ((((DAT_0071cfa8 != '\x01') || (local_4 == DAT_0071cfac)) || (local_9 != '\0')) && (bVar6)) {
+      return local_8;
+    }
+  }
+  return 0;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_decode_static_fields.c
+====================================================================================================
+// message_delta_decode_static_fields  (Ghidra: FUN_004ed290; named per this rewrite)
+// address 0x4ed290, size 117 bytes
+// name confidence: 0.4   rewrite confidence: 0.55
+// evidence: objdump -d -M intel bin/halo.exe @0x4ed290: walks definition->statics->fields[],
+// calling each field type's decode callback at field_type+0x54 (the same slot
+// message_delta_read_changed_subfields calls) as (field_type, 0, fields[i].destination_offset + offset,
+// stream), stopping and returning 0 on the first non-positive result.
+// register convention: message type index in EBX (unaff_EBX), stream and offset as the two
+// __cdecl stack parameters (param_1, param_2).
+// blam-cc: EBX -> message_type, stack -> stream, offset
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
+
+typedef int32_t (*message_delta_field_decode_fn)(void *field_type, int32_t changed, int32_t offset, bit_stream *stream);
+
+// blam-cc: EBX -> message_type, stack -> stream, offset
+// Decodes every unconditional (non-optional) static field of a message type into the
+// destination at `offset`, always passing "not changed" (0) to each field's decode callback.
+// Returns the total bits consumed, or 0 on the first field that fails to decode.
+int32_t message_delta_decode_static_fields(int32_t message_type, bit_stream *stream, int32_t offset)
+{
+    message_delta_definition *definition;
+    message_delta_static_fields *statics;
+    int32_t total_bits;
+    int32_t i;
+    message_delta_field_binding *binding;
+    int32_t field_bits;
+
+    definition = message_delta_definitions[message_type];
+    statics = definition->statics;
+    total_bits = 0;
+    if (0 < statics->count) {
+        for (i = 0; i < statics->count; i++) {
+            message_delta_field_decode_fn decode;
+
+            binding = &statics->fields[i];
+            decode = *(message_delta_field_decode_fn *)((uint8_t *)binding->field_type + 0x54);
+            field_bits = decode(binding->field_type, 0, binding->destination_offset + offset, stream);
+            if (field_bits < 1) {
+                return 0;
+            }
+            total_bits = total_bits + field_bits;
+        }
+    }
+    return total_bits;
+}
+
+#if 0
+Original Ghidra decompilation (0x4ed290):
+
+int FUN_004ed290(undefined4 param_1,int param_2)
+
+{
+  undefined *puVar1;
+  int iVar2;
+  int unaff_EBX;
+  int iVar3;
+  int iVar4;
+  int local_4;
+
+  puVar1 = (&PTR_DAT_0065d440)[unaff_EBX];
+  local_4 = 0;
+  if (0 < **(int **)(puVar1 + 0x1c)) {
+    iVar3 = 0;
+    iVar4 = 0;
+    while (iVar2 = *(int *)(*(int *)((&PTR_DAT_0065d440)[unaff_EBX] + 0x1c) + 8 + iVar3),
+          iVar2 = (**(code **)(iVar2 + 0x54))
+                            (iVar2,0,*(int *)(*(int *)((&PTR_DAT_0065d440)[unaff_EBX] + 0x1c) +
+                                              iVar3 + 0xc) + param_2,param_1), 0 < iVar2) {
+      local_4 = local_4 + iVar2;
+      iVar4 = iVar4 + 1;
+      iVar3 = iVar3 + 0x10;
+      if (**(int **)(puVar1 + 0x1c) <= iVar4) {
+        return local_4;
+      }
+    }
+  }
+  return 0;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_definitions_invoke_field_bindings.c
+====================================================================================================
+// message_delta_definitions_invoke_field_bindings  (Ghidra: FUN_004ec390; named per this rewrite)
+// address 0x4ec390, size 43 bytes
+// name confidence: 0.35   rewrite confidence: 0.55
+// evidence: objdump -d -M intel bin/halo.exe @0x4ec390: for every entry of
+// message_delta_definitions[56], loads `ebx = definition->statics` and calls
+// message_delta_field_bindings_invoke (0x4ec700), then `ebx = &definition->field_count` (the
+// inline field list at definition+0x20) and calls it again -- the same two field-binding lists
+// message_delta_field_layout_compute_size (0x4ec790) walks. Its only caller is the message-type
+// 0x22 case of the network game message dispatcher (out of this module's range, 0x4da320),
+// immediately after message_delta_parameters_protocol_receive_update runs.
+// register convention: no register-passed arguments.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
+extern void message_delta_field_bindings_invoke(message_delta_static_fields *list); // 0x4ec700, this module
+
+// Runs message_delta_field_bindings_invoke over both field-binding lists (the separately
+// allocated statics list and the definition's own inline field list) of every registered
+// message type.
+void message_delta_definitions_invoke_field_bindings(void)
+{
+    int32_t i;
+    message_delta_definition *definition;
+
+    for (i = 0; i < k_network_message_definition_count; i++) {
+        definition = message_delta_definitions[i];
+        message_delta_field_bindings_invoke(definition->statics);
+        message_delta_field_bindings_invoke((message_delta_static_fields *)&definition->field_count);
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x4ec390):
+
+void FUN_004ec390(void)
+
+{
+  undefined **ppuVar1;
+
+  ppuVar1 = &PTR_DAT_0065d440;
+  do {
+    FUN_004ec700();
+    FUN_004ec700();
+    ppuVar1 = ppuVar1 + 1;
+  } while ((int)ppuVar1 < 0x65d520);
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_definitions_teardown_field_bindings.c
+====================================================================================================
+// message_delta_definitions_teardown_field_bindings  (Ghidra: FUN_004ec750; named per this rewrite)
+// address 0x4ec750, size 45 bytes
+// name confidence: 0.3   rewrite confidence: 0.6
+// evidence: objdump -d -M intel bin/halo.exe @0x4ec750: mirrors
+// message_delta_definitions_invoke_field_bindings (0x4ec390) but calls
+// message_delta_field_bindings_teardown (0x4ec900) on both lists and additionally clears
+// definition->initialized (definition+0x18, matching types/networking.h
+// message_delta_definition::initialized) for every entry.
+// register convention: no register-passed arguments.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
+extern void message_delta_field_bindings_teardown(message_delta_static_fields *list); // 0x4ec900, this module
+
+// Runs message_delta_field_bindings_teardown over both field-binding lists of every registered
+// message type and clears each definition's initialized flag, undoing
+// message_delta_field_layout_compute_size.
+void message_delta_definitions_teardown_field_bindings(void)
+{
+    int32_t i;
+    message_delta_definition *definition;
+
+    for (i = 0; i < k_network_message_definition_count; i++) {
+        definition = message_delta_definitions[i];
+        message_delta_field_bindings_teardown(definition->statics);
+        message_delta_field_bindings_teardown((message_delta_static_fields *)&definition->field_count);
+        definition->initialized = 0;
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x4ec750):
+
+void FUN_004ec750(void)
+
+{
+  undefined *puVar1;
+  undefined **ppuVar2;
+
+  ppuVar2 = &PTR_DAT_0065d440;
+  do {
+    puVar1 = *ppuVar2;
+    FUN_004ec900();
+    FUN_004ec900();
+    ppuVar2 = ppuVar2 + 1;
+    puVar1[0x18] = 0;
+  } while ((int)ppuVar2 < 0x65d520);
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_encode_all_fields.c
+====================================================================================================
+// message_delta_encode_all_fields  (Ghidra: message_delta_encode_all_fields, already named)
+// address 0x4ecc00, size 246 bytes
+// name confidence: 0.5   rewrite confidence: 0.35
+// evidence: out/phase4/networking_functions.md summary; walks a message type's static fields via
+// each field type's encode callback at field_type+0x50 (the encode-side counterpart of the
+// decode callback at +0x54 used throughout the decode half of this subsystem), then every
+// top-level field via message_delta_encode_field.
+// register convention: encode (sub-)context as the recognized parameter (in_EAX); two further
+// __cdecl stack parameters (param_1, param_2).
+// UNSURE: this receives a pointer 0xc bytes into the larger context
+// message_delta_encode_message builds (see message_delta_encode_prepare_item.c), so its own +4
+// here is NOT the same byte offset as that function's message_type field; transcribed using this
+// function's own offsets exactly as decompiled, per networking_types_notes.md's acknowledgement
+// that the message-delta encode/decode context layout is only partly resolved.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
+extern uint8_t message_delta_field_changed_flags[0x40];      // 0x006b89c0, shared scratch (16 dwords)
+
+typedef int32_t (*message_delta_field_encode_fn)(void *field_type, int32_t changed, int32_t offset, void *stream_or_ctx);
+extern uint8_t message_delta_encode_field(int32_t changed_offset, uint8_t *ctx, int32_t field_index, int32_t type_offset); // 0x4ecde0, EAX changed_offset, ESI ctx
+
+// Encodes all of one item's static fields (unconditionally, via each field type's own encode
+// callback) and then every top-level field (via message_delta_encode_field), aggregating whether
+// any field actually changed. Returns that combined changed flag in the low byte.
+// REWRITTEN from objdump 0x4ecc00..0x4eccf5. EAX = the encoder context; stack (static_base, item, type_base) --
+// the encoder pushes its per-item (baseline, item, type) values (0x4eca3b). Static fields: each binding's encode proc
+// (field_type+0x50) gets (field_type, 0, static_base + binding->destination_offset, ctx+0x64); positive sizes add to
+// ctx+0x40, a non-positive one marks failure but the loop goes on (the draft returned at once and used source_offset).
+// A failure there returns 0. Then the 16 changed-flag dwords are cleared and every field is encoded with
+// message_delta_encode_field(EAX = type_base, ESI = ctx, stack i, item); in flag mode (ctx+8 == 1) any change sets the
+// result, otherwise all must succeed -- with no early exit in either case (the draft broke out of the loop). AL result.
+// blam-cc: EAX -> ctx, stack -> static_base, item, type_base
+uint8_t message_delta_encode_all_fields(uint8_t *ctx, int32_t static_base, int32_t item, int32_t type_base)
+{
+    #define CTXD(off) (*(int32_t *)(ctx + (off)))
+    message_delta_definition *definition = message_delta_definitions[CTXD(4)];
+    message_delta_static_fields *statics = definition->statics;
+    int32_t field_count;
+    int32_t i;
+    uint8_t ok;
+
+    if (0 < statics->count) {
+        int32_t count = statics->count;
+        ok = 1;
+        for (i = 0; i < count; i++) {
+            message_delta_field_binding *binding =
+                &message_delta_definitions[CTXD(4)]->statics->fields[i];     // re-read each pass, as compiled
+            message_delta_field_encode_fn encode =
+                *(message_delta_field_encode_fn *)((uint8_t *)binding->field_type + 0x50);
+            int32_t field_bits = encode(binding->field_type, 0, static_base + binding->destination_offset, ctx + 0x64);
+            if (field_bits > 0) {
+                CTXD(0x40) = CTXD(0x40) + field_bits;
+                ok = ok ? 1 : 0;
+            } else {
+                ok = 0;
+            }
+        }
+        if (!ok) {
+            return 0;
+        }
+    }
+
+    field_count = definition->field_count; // +0x20
+    for (i = 0; i < 0x10; i++) {
+        ((int32_t *)message_delta_field_changed_flags)[i] = 0;
+    }
+    ok = (uint8_t)(CTXD(8) != 1);
+    for (i = 0; i < field_count; i++) {
+        uint8_t changed = message_delta_encode_field(type_base, ctx, i, item);
+        if (CTXD(8) == 1) {
+            ok = (ok || changed) ? 1 : 0;
+        } else {
+            ok = (ok && changed) ? 1 : 0;
+        }
+    }
+    return ok;
+    #undef CTXD
+}
+
+#if 0
+Original Ghidra decompilation (0x4ecc00):
+
+undefined4 message_delta_encode_all_fields(int param_1,undefined4 param_2)
+
+{
+  undefined *puVar1;
+  int *piVar2;
+  bool bVar3;
+  char cVar4;
+  int in_EAX;
+  int iVar5;
+  int iVar6;
+  undefined4 *puVar7;
+  int iVar8;
+  bool bVar9;
+  int local_8;
+
+  puVar1 = (&PTR_DAT_0065d440)[*(int *)(in_EAX + 4)];
+  piVar2 = *(int **)(puVar1 + 0x1c);
+  if (0 < *piVar2) {
+    local_8 = *piVar2;
+    bVar3 = true;
+    if (0 < local_8) {
+      iVar6 = 0;
+      do {
+        iVar5 = *(int *)(*(int *)((&PTR_DAT_0065d440)[*(int *)(in_EAX + 4)] + 0x1c) + 8 + iVar6);
+        iVar5 = (**(code **)(iVar5 + 0x50))
+                          (iVar5,0,*(int *)(*(int *)((&PTR_DAT_0065d440)[*(int *)(in_EAX + 4)] +
+                                                    0x1c) + iVar6 + 0xc) + param_1,in_EAX + 100);
+        if ((iVar5 < 1) || (*(int *)(in_EAX + 0x40) = *(int *)(in_EAX + 0x40) + iVar5, !bVar3)) {
+          bVar3 = false;
+        }
+        else {
+          bVar3 = true;
+        }
+        iVar6 = iVar6 + 0x10;
+        local_8 = local_8 + -1;
+      } while (local_8 != 0);
+      bVar9 = false;
+      iVar6 = 0;
+      if (!bVar3) goto LAB_004eccec;
+    }
+  }
+  iVar5 = *(int *)(puVar1 + 0x20);
+  puVar7 = &DAT_006b89c0;
+  for (iVar6 = 0x10; iVar6 != 0; iVar6 = iVar6 + -1) {
+    *puVar7 = 0;
+    puVar7 = puVar7 + 1;
+  }
+  bVar9 = *(int *)(in_EAX + 8) != 1;
+  iVar8 = 0;
+  iVar6 = 0;
+  if (0 < iVar5) {
+    do {
+      cVar4 = message_delta_encode_field(iVar8,param_2);
+      if (*(int *)(in_EAX + 8) == 1) {
+        if ((bVar9 == false) && (cVar4 == '\0')) {
+LAB_004ecce1:
+          bVar9 = false;
+        }
+        else {
+          bVar9 = true;
+        }
+      }
+      else {
+        if ((bVar9 == false) || (cVar4 == '\0')) goto LAB_004ecce1;
+        bVar9 = true;
+      }
+      iVar8 = iVar8 + 1;
+      iVar6 = iVar5;
+    } while (iVar8 < iVar5);
+  }
+LAB_004eccec:
+  return CONCAT31((int3)((uint)iVar6 >> 8),bVar9);
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_encode_field.c
+====================================================================================================
+// message_delta_encode_field  (Ghidra: message_delta_encode_field, already named)
+// address 0x4ecde0, size 140 bytes
+// name confidence: 0.5   rewrite confidence: 0.35
+// evidence: out/phase4/networking_functions.md summary; calls a field type's encode callback at
+// field_type+0x50 (the encode-side counterpart of the decode callback at +0x54 used throughout
+// this subsystem's decode half) and, for a stateless (non-incremental) message, records the
+// per-field changed flag by writing a single bit through bit_stream_write_bit.
+// register convention: encode (sub-)context in ESI (unaff_ESI, matching
+// message_delta_encode_all_fields's own context), a changed-offset value in EAX (in_EAX,
+// unresolved register read, forwarded from message_delta_encode_all_fields's own such value),
+// field index and type_offset as the two __cdecl stack parameters.
+// UNSURE: same context-layout caveat as message_delta_encode_all_fields.c and
+// message_delta_encode_prepare_item.c.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
+extern uint8_t message_delta_field_changed_flags[0x40];         // 0x006b89c0
+
+typedef int32_t (*message_delta_field_encode_fn)(void *field_type, int32_t changed, int32_t offset, void *stream_or_ctx);
+extern uint8_t bit_stream_write_bit(int32_t bit_value, bit_stream *stream); // UNSURE: stream argument
+
+// blam-cc: ESI -> ctx, EAX -> changed_offset, stack -> field_index, type_offset
+// Encodes one top-level message field via its type-specific callback. For an incremental
+// message, reports the field's changed bit through the bit stream; for a stateless message,
+// simply reports whether it encoded any bits. Accumulates the field's bit count into the
+// context's running total and records its changed flag into the shared scratch array.
+uint8_t message_delta_encode_field(int32_t changed_offset, uint8_t *ctx, int32_t field_index, int32_t type_offset)
+{
+    #define CTXD(off) (*(int32_t *)(ctx + (off)))
+    message_delta_definition *definition;
+    message_delta_field_binding *binding;
+    int32_t src_offset;
+    int32_t field_bits;
+    uint8_t changed;
+
+    definition = message_delta_definitions[CTXD(4)];
+    binding = &definition->fields[field_index];
+    src_offset = (changed_offset == 0) ? 0 : (binding->source_offset + changed_offset);
+    {
+        message_delta_field_encode_fn encode =
+            *(message_delta_field_encode_fn *)((uint8_t *)binding->field_type + 0x50);
+        field_bits = encode(binding->field_type, src_offset, binding->destination_offset + type_offset, ctx + 100);
+    }
+
+    changed = 0;
+    if (CTXD(8) == 1) {
+        if (bit_stream_write_bit(field_bits != 0, 0) != 0) { // UNSURE: stream argument
+            changed = 1;
+        }
+    } else if (0 < field_bits) {
+        changed = 1;
+    }
+    CTXD(0x44) = CTXD(0x44) + field_bits;
+    message_delta_field_changed_flags[field_index] = (uint8_t)(field_bits != 0);
+    return changed;
+    #undef CTXD
+}
+
+#if 0
+Original Ghidra decompilation (0x4ecde0):
+
+undefined1 message_delta_encode_field(int param_1,int param_2)
+
+{
+  int *piVar1;
+  char cVar2;
+  int in_EAX;
+  int iVar3;
+  undefined1 uVar4;
+  int unaff_ESI;
+
+  piVar1 = (int *)((&PTR_DAT_0065d440)[*(int *)(unaff_ESI + 4)] + param_1 * 0x10 + 0x28);
+  uVar4 = 0;
+  if (in_EAX == 0) {
+    iVar3 = 0;
+  }
+  else {
+    iVar3 = piVar1[2] + in_EAX;
+  }
+  iVar3 = (**(code **)(*piVar1 + 0x50))(*piVar1,iVar3,piVar1[1] + param_2,unaff_ESI + 100);
+  if (*(int *)(unaff_ESI + 8) == 1) {
+    uVar4 = 0;
+    cVar2 = bit_stream_write_bit(iVar3 != 0);
+    if (cVar2 != '\0') {
+      uVar4 = 1;
+    }
+  }
+  else if (0 < iVar3) {
+    uVar4 = 1;
+  }
+  *(int *)(unaff_ESI + 0x44) = *(int *)(unaff_ESI + 0x44) + iVar3;
+  *(bool *)((int)&DAT_006b89c0 + param_1) = iVar3 != 0;
+  return uVar4;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_encode_message.c
+====================================================================================================
+// message_delta_encode_message  (Ghidra: message_delta_encode_message, already named)
+// address 0x4ec940, size 536 bytes
+// name confidence: 0.6   rewrite confidence: 0.3
+// evidence: objdump -d -M intel bin/halo.exe @0x4ec940..0x4ecb60 pins the encode context's base
+// address (a ~0x94-byte scratch block built on this function's own stack) and its +0x00, +0x04,
+// +0x08, +0x0c, +0x10, +0x18, +0x30, +0x34, +0x38, +0x3c fields, and confirms
+// message_delta_encode_prepare_item (0x4ecb60) and message_delta_encode_message_header
+// (0x4ecd00) both receive that same base, while message_delta_encode_all_fields (0x4ecc00)
+// receives a pointer 0xc bytes into it.
+// register convention: the __cdecl stack parameters Ghidra recognized (flag, message_type,
+// changed_offset, items, type_offset, count, force_changed), plus two further hidden register
+// parameters (in_EDX, and an EAX value saved into the context at +0x0c/+0x20) whose exact
+// meaning is unresolved -- see UNSURE notes on the sibling files in this cluster.
+// UNSURE: this is the least-resolved function in the message-delta cluster; the per-item loop's
+// exact use of changed_offset/items/type_offset against the two hidden register inputs could not
+// be fully pinned down from the decompilation and disassembly available here. Preserved as a
+// direct, offset-for-offset transliteration of the Ghidra decompilation rather than a
+// re-derivation, so control flow and arithmetic match exactly even where field names do not.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
+extern uint8_t message_delta_item_count_bits[];                 // 0x0065d51f
+
+extern uint8_t message_delta_encode_prepare_item(uint8_t *ctx); // 0x4ecb60, EAX ctx
+extern uint8_t message_delta_encode_all_fields(uint8_t *ctx, int32_t static_base, int32_t item, int32_t type_base); // 0x4ecc00, EAX ctx
+extern uint8_t message_delta_encode_message_header(uint8_t *ctx); // 0x4ecd00, ESI ctx
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
+
+// REWRITTEN from objdump 0x4ec940..0x4ecb57 (EAX = output buffer, EDX = its size in bits; stack as declared).
+// The context (0x94 bytes, zeroed) holds: +0 "started" byte, +4 message type, +8 flag, +0xc buffer, +0x10 size,
+// +0x14 total item bits, +0x18 remaining budget, +0x1c an inline bit_stream {0, buffer, 0, 0, 0, header_bits - 1},
+// +0x34 header bits, +0x38 item count, +0x3c running bit offset, then per-item blocks the helpers fill (+0x40 static
+// bits, +0x44 field bits, +0x48.. and +0x64.. reset after every item). Each item passes (baseline, item, type) --
+// baseline/type from the parallel arrays when given -- to message_delta_encode_all_fields; items that changed (or all,
+// when force_changed) are counted. A multi-item message then writes (item count - 1) in the definition's count width.
+// Returns header bits + item bits, or 0 when nothing was encoded.
+// blam-cc: EAX -> extra_eax, EDX -> extra_edx, stack -> flag, message_type, changed_offset, items, type_offset, count, force_changed
+int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx, int32_t flag, int32_t message_type,
+                                      int32_t changed_offset, void **items, int32_t type_offset, int32_t count,
+                                      char force_changed)
+{
+    uint32_t ctx_storage[0x98 / 4];
+    uint8_t *ctx = (uint8_t *)ctx_storage;
+    #define CTXD(off) (*(int32_t *)(ctx + (off)))
+    message_delta_definition *definition;
+    int32_t header_bits;
+    int32_t i;
+
+    for (i = 0; i < 0x98 / 4; i++) {
+        ctx_storage[i] = 0;
+    }
+    header_bits = message_delta_definitions[message_type]->header_bits; // +0xc
+    CTXD(4) = message_type;
+    CTXD(8) = flag;
+    CTXD(0xc) = extra_eax;
+    CTXD(0x10) = extra_edx;
+    CTXD(0x18) = extra_edx - header_bits;
+    CTXD(0x20) = extra_eax;              // the inline stream's data
+    CTXD(0x30) = header_bits - 1;        // ...its last bit
+    CTXD(0x34) = header_bits;
+    CTXD(0x3c) = header_bits;
+    ctx[0] = 1;
+    message_delta_encode_message_header(ctx);
+
+    if (0 < count) {
+        void **cursor = items;
+        int32_t remaining = count;
+        do {
+            int32_t baseline = (changed_offset == 0) ? 0
+                : *(int32_t *)((uint8_t *)cursor + (changed_offset - (int32_t)items));
+            void *item = *cursor;
+            int32_t type = (flag == 0) ? 0
+                : *(int32_t *)((uint8_t *)cursor + (type_offset - (int32_t)items));
+
+            message_delta_encode_prepare_item(ctx);
+            message_delta_encode_all_fields(ctx, baseline, (int32_t)item, type);
+            if (0 < CTXD(0x44) || force_changed != 0) {
+                int32_t bits = CTXD(0x44) + CTXD(0x40);
+                CTXD(0x14) = CTXD(0x14) + bits;
+                CTXD(0x18) = CTXD(0x18) - bits;
+                CTXD(0x3c) = CTXD(0x3c) + bits;
+                CTXD(0x38) = CTXD(0x38) + 1;
+            }
+            if (CTXD(8) == 1) {
+                CTXD(0x48) = -1;
+                CTXD(0x4c) = 0; CTXD(0x50) = 0; CTXD(0x54) = 0; CTXD(0x58) = 0; CTXD(0x5c) = 0; CTXD(0x60) = 0;
+            }
+            CTXD(0x64) = -1;
+            CTXD(0x68) = 0; CTXD(0x6c) = 0; CTXD(0x70) = 0; CTXD(0x74) = 0; CTXD(0x78) = 0; CTXD(0x7c) = 0;
+            cursor = cursor + 1;
+            remaining = remaining - 1;
+        } while (remaining != 0);
+    }
+
+    definition = message_delta_definitions[CTXD(4)];
+    if (CTXD(0x14) <= 0) {
+        return 0;
+    }
+    if (1 < definition->maximum_items) { // +0x14
+        int32_t count_bits = message_delta_item_count_bits[definition->maximum_items];
+        uint32_t value = (uint32_t)(CTXD(0x38) - 1);
+        bit_stream_write_bits_chunked((bit_stream *)(ctx + 0x1c), &value, count_bits);
+        CTXD(0x88) = count_bits;
+    }
+    return definition->header_bits + CTXD(0x14);
+    #undef CTXD
+}
+
+#if 0
+Original Ghidra decompilation (0x4ec940):
+
+int __cdecl
+message_delta_encode_message
+          (int flag,int message_type,int changed_offset,void **items,int type_offset,int count,
+          char force_changed)
+
+{
+  void *pvVar1;
+  undefined *puVar2;
+  int iVar3;
+  int in_EDX;
+  undefined4 uVar4;
+  int *piVar5;
+  undefined4 uVar6;
+  void **local_a4;
+  int local_9c;
+  int local_90 [4];
+  int local_80;
+  int local_7c;
+  undefined4 local_78;
+  undefined4 local_70;
+  undefined4 local_6c;
+  undefined4 local_68;
+  int local_64;
+  int local_60;
+  int local_5c;
+  int local_58;
+  int local_54;
+  int local_50;
+  undefined4 local_4c;
+  undefined4 local_48;
+  undefined4 local_44;
+  undefined4 local_40;
+  undefined4 local_3c;
+  undefined4 local_38;
+  undefined4 local_34;
+  undefined4 local_30;
+  undefined4 local_2c;
+  undefined4 local_28;
+  undefined4 local_24;
+  undefined4 local_20;
+  undefined4 local_1c;
+  undefined4 local_18;
+
+  piVar5 = local_90;
+  for (iVar3 = 0x24; iVar3 != 0; iVar3 = iVar3 + -1) {
+    *piVar5 = 0;
+    piVar5 = piVar5 + 1;
+  }
+  local_60 = *(int *)((&PTR_DAT_0065d440)[message_type] + 0xc);
+  local_7c = in_EDX - local_60;
+  local_90[0] = message_type;
+  local_64 = local_60 + -1;
+  local_90[1] = flag;
+  local_80 = 0;
+  local_5c = 0;
+  local_68 = 0;
+  local_6c = 0;
+  local_78 = 0;
+  local_70 = 0;
+  local_58 = local_60;
+  message_delta_encode_message_header();
+  if (0 < count) {
+    local_a4 = items;
+    local_9c = count;
+    do {
+      if (changed_offset == 0) {
+        uVar6 = 0;
+      }
+      else {
+        uVar6 = *(undefined4 *)((changed_offset - (int)items) + (int)local_a4);
+      }
+      pvVar1 = *local_a4;
+      if (flag == 0) {
+        uVar4 = 0;
+      }
+      else {
+        uVar4 = *(undefined4 *)((type_offset - (int)items) + (int)local_a4);
+      }
+      FUN_004ecb60();
+      message_delta_encode_all_fields(uVar6,pvVar1,uVar4);
+      if ((0 < local_50) || (force_changed != '\0')) {
+        iVar3 = local_50 + local_54;
+        local_80 = local_80 + iVar3;
+        local_7c = local_7c - iVar3;
+        local_58 = local_58 + iVar3;
+        local_5c = local_5c + 1;
+      }
+      if (local_90[1] == 1) {
+        local_4c = 0xffffffff;
+        local_48 = 0;
+        local_44 = 0;
+        local_40 = 0;
+        local_3c = 0;
+        local_38 = 0;
+        local_34 = 0;
+      }
+      local_a4 = local_a4 + 1;
+      local_9c = local_9c + -1;
+      local_30 = 0xffffffff;
+      local_2c = 0;
+      local_28 = 0;
+      local_24 = 0;
+      local_20 = 0;
+      local_1c = 0;
+      local_18 = 0;
+    } while (local_9c != 0);
+  }
+  puVar2 = (&PTR_DAT_0065d440)[local_90[0]];
+  iVar3 = 0;
+  if (0 < local_80) {
+    iVar3 = *(int *)(puVar2 + 0x14);
+    if (1 < iVar3) {
+      bit_stream_write_bits_chunked((&DAT_0065d51f)[iVar3]);
+    }
+    iVar3 = *(int *)(puVar2 + 0xc) + local_80;
+  }
+  return iVar3;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_encode_message_header.c
+====================================================================================================
+// message_delta_encode_message_header  (Ghidra: message_delta_encode_message_header, already named)
+// address 0x4ecd00, size 210 bytes
+// name confidence: 0.5   rewrite confidence: 0.4
+// evidence: objdump -d -M intel bin/halo.exe @0x4ec997/0x4ec9c8: message_delta_encode_message
+// leaves the encode context's address live in ESI from its own setup all the way to this call,
+// matching the same context base FUN_004ecb60 (0x4ecb60) receives via EAX.
+// register convention: encode context pinned in ESI (unaff_ESI).
+// UNSURE: see message_delta_encode_prepare_item.c -- the encode context is only partly resolved;
+// fields +0x80..+0x88 are used solely by this function and are not cross-referenced elsewhere.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern uint8_t message_delta_parameters_enabled;           // 0x0071cfa8
+extern uint8_t message_delta_parameters_sending;            // 0x0071cfb4
+
+extern uint8_t bit_stream_write_bit(uint8_t bit, bit_stream *stream); // 0x4cf9a0, EDX stream, stack bit
+extern int32_t bit_stream_write_bits_chunked(bit_stream *stream, const uint32_t *values, int32_t total_bit_count); // 0x4cf8f0, EAX stream, ECX values
+extern int32_t message_delta_parameters_protocol_sequence; // 0x0071cfac, written as the 2-bit parameter field
+
+// Writes the leading header bit(s) of a message-delta message: whether the message is
+// incremental, then (under protocol v2) the parameters-in-progress bit, using the encode
+// context's own scratch counters at +0x80..+0x88 as running bit-position state.
+// REWRITTEN from objdump 0x4ecd00..0x4ecdd1. ESI is the encoder context; its bit stream is INLINE at ctx+0x1c (the draft
+// read a pointer at +0xc). Writes: the flag bit (ctx+8); the message type -- the dword at ctx+4, passed by address --
+// in ctx+0x84 + 6 bits (ctx+0x84 updated, ctx+0x80 = 1); and, when message-delta parameters are enabled, the "sending"
+// bit and the 2-bit parameter field from 0x71cfac (ctx+0x88 = 2, then incremented). Returns AL: every write succeeded.
+// blam-cc: ESI -> ctx
+uint8_t message_delta_encode_message_header(uint8_t *ctx)
+{
+    #define CTXD(off) (*(int32_t *)(ctx + (off)))
+    bit_stream *stream = (bit_stream *)(ctx + 0x1c);
+    uint32_t parameters = (uint32_t)message_delta_parameters_protocol_sequence;   // 0x4ecd01: read before anything else
+    uint8_t ok;
+    int32_t written;
+
+    ok = bit_stream_write_bit((uint8_t)CTXD(8), stream) != 0;
+    CTXD(0x80) = 1;
+    CTXD(0x84) = CTXD(0x84) + 6;
+    written = bit_stream_write_bits_chunked(stream, (const uint32_t *)(ctx + 4), CTXD(0x84));
+    ok = (written != 0 && ok) ? 1 : 0;
+    if (message_delta_parameters_enabled != 1) {
+        return ok;
+    }
+    CTXD(0x88) = 2;
+    ok = (bit_stream_write_bit(message_delta_parameters_sending, stream) != 0 && ok) ? 1 : 0;
+    written = bit_stream_write_bits_chunked(stream, &parameters, CTXD(0x88));
+    CTXD(0x88) = CTXD(0x88) + 1;
+    return (written != 0 && ok) ? 1 : 0;
+    #undef CTXD
+}
+
+#if 0
+Original Ghidra decompilation (0x4ecd00):
+
+char message_delta_encode_message_header(void)
+
+{
+  bool bVar1;
+  undefined1 uVar2;
+  char cVar3;
+  char cVar4;
+  int iVar5;
+  int unaff_ESI;
+
+  cVar3 = bit_stream_write_bit(*(undefined4 *)(unaff_ESI + 8));
+  iVar5 = *(int *)(unaff_ESI + 0x84) + 6;
+  *(undefined4 *)(unaff_ESI + 0x80) = 1;
+  *(int *)(unaff_ESI + 0x84) = iVar5;
+  iVar5 = FUN_004cf8f0(iVar5);
+  uVar2 = DAT_0071cfb4;
+  if ((iVar5 == 0) || (cVar3 == '\0')) {
+    cVar3 = '\0';
+  }
+  else {
+    cVar3 = '\x01';
+  }
+  if (DAT_0071cfa8 != '\x01') {
+    return cVar3;
+  }
+  *(undefined4 *)(unaff_ESI + 0x88) = 2;
+  cVar4 = bit_stream_write_bit(uVar2);
+  if ((cVar4 == '\0') || (cVar3 == '\0')) {
+    bVar1 = false;
+  }
+  else {
+    bVar1 = true;
+  }
+  iVar5 = FUN_004cf8f0(*(undefined4 *)(unaff_ESI + 0x88));
+  if ((iVar5 != 0) && (bVar1)) {
+    *(int *)(unaff_ESI + 0x88) = *(int *)(unaff_ESI + 0x88) + 1;
+    return '\x01';
+  }
+  *(int *)(unaff_ESI + 0x88) = *(int *)(unaff_ESI + 0x88) + 1;
+  return '\0';
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_encode_prepare_item.c
+====================================================================================================
+// message_delta_encode_prepare_item  (Ghidra: FUN_004ecb60; named per this rewrite)
+// address 0x4ecb60, size 160 bytes
+// name confidence: 0.45   rewrite confidence: 0.35
+// evidence: objdump -d -M intel bin/halo.exe @0x4eca36 (the call site in
+// message_delta_encode_message): `lea eax,[esp+0x20]` immediately before `call 0x4ecb60`, so this
+// receives the encode context at the SAME base address message_delta_encode_message built,
+// confirming its offsets +0x04 (message_type), +0x08 (flag) and +0x0c (an unnamed value carried
+// in EAX at message_delta_encode_message's own entry) line up with that function's own setup.
+// register convention: encode context as the recognized parameter (in_EAX).
+// UNSURE: the encode context is a large (at least 0x80-byte), only partially resolved scratch
+// block private to the message_delta_encode_* cluster; it is accessed here by raw byte offset
+// exactly as decompiled rather than through invented field names, per
+// out/phase4/networking_types_notes.md's own admission that this subsystem is only partly
+// resolved.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
+
+// Initializes per-item bit-offset state within the message-delta encode context before encoding
+// one item's fields: when the message is flagged, precomputes the item's static-field bit range;
+// either way, computes the item's total (static + array) bit range against the message's
+// remaining budget.
+// FIXED (objdump 0x4ecb60): the context arrives in EAX and the result is AL only (mov al,1); the body already matched.
+// blam-cc: EAX -> ctx
+uint8_t message_delta_encode_prepare_item(uint8_t *ctx)
+{
+    #define CTXW(off) (*(int32_t *)(ctx + (off)))
+
+    CTXW(0x40) = 0;
+    CTXW(0x44) = 0;
+    if (CTXW(8) == 1) {
+        uint32_t bit_offset = (uint32_t)CTXW(0x3c);
+        int32_t field_bits = message_delta_definitions[CTXW(4)]->field_bits; // +0x20
+        CTXW(0x58) = bit_offset & 7;
+        CTXW(0x50) = (int32_t)bit_offset;
+        CTXW(0x5c) = (int32_t)(bit_offset - 1) + field_bits;
+        CTXW(0x54) = (int32_t)(bit_offset >> 3);
+        CTXW(0x48) = 0;
+        CTXW(0x4c) = CTXW(0xc);
+        CTXW(0x60) = field_bits;
+        CTXW(0x40) = CTXW(0x40) + field_bits;
+    } else {
+        CTXW(0x48) = 0;
+        CTXW(0x4c) = 0;
+        CTXW(0x50) = 0;
+        CTXW(0x54) = 0;
+        CTXW(0x58) = 0;
+        CTXW(0x5c) = 0;
+        CTXW(0x60) = 0;
+    }
+    {
+        uint32_t total_offset = (uint32_t)(CTXW(0x3c) + CTXW(0x40));
+        int32_t remaining = CTXW(0x18) - CTXW(0x40);
+        CTXW(0x74) = total_offset & 7;
+        CTXW(0x64) = 0;
+        CTXW(0x6c) = (int32_t)total_offset;
+        CTXW(0x68) = CTXW(0xc);
+        CTXW(0x70) = (int32_t)(total_offset >> 3);
+        CTXW(0x78) = (remaining - 1) + (int32_t)total_offset;
+        CTXW(0x7c) = remaining;
+    }
+    #undef CTXW
+    return 1;
+}
+
+#if 0
+Original Ghidra decompilation (0x4ecb60):
+
+undefined4 FUN_004ecb60(void)
+
+{
+  int in_EAX;
+  uint uVar1;
+  int iVar2;
+
+  *(undefined4 *)(in_EAX + 0x40) = 0;
+  *(undefined4 *)(in_EAX + 0x44) = 0;
+  if (*(int *)(in_EAX + 8) == 1) {
+    uVar1 = *(uint *)(in_EAX + 0x3c);
+    iVar2 = *(int *)((&PTR_DAT_0065d440)[*(int *)(in_EAX + 4)] + 0x20);
+    *(uint *)(in_EAX + 0x58) = uVar1 & 7;
+    *(uint *)(in_EAX + 0x50) = uVar1;
+    *(uint *)(in_EAX + 0x5c) = (uVar1 - 1) + iVar2;
+    *(uint *)(in_EAX + 0x54) = uVar1 >> 3;
+    *(undefined4 *)(in_EAX + 0x48) = 0;
+    *(undefined4 *)(in_EAX + 0x4c) = *(undefined4 *)(in_EAX + 0xc);
+    *(int *)(in_EAX + 0x60) = iVar2;
+    *(int *)(in_EAX + 0x40) = *(int *)(in_EAX + 0x40) + iVar2;
+  }
+  else {
+    *(undefined4 *)(in_EAX + 0x48) = 0;
+    *(undefined4 *)(in_EAX + 0x4c) = 0;
+    *(undefined4 *)(in_EAX + 0x50) = 0;
+    *(undefined4 *)(in_EAX + 0x54) = 0;
+    *(undefined4 *)(in_EAX + 0x58) = 0;
+    *(undefined4 *)(in_EAX + 0x5c) = 0;
+    *(undefined4 *)(in_EAX + 0x60) = 0;
+  }
+  uVar1 = *(int *)(in_EAX + 0x3c) + *(int *)(in_EAX + 0x40);
+  iVar2 = *(int *)(in_EAX + 0x18) - *(int *)(in_EAX + 0x40);
+  *(uint *)(in_EAX + 0x74) = uVar1 & 7;
+  *(undefined4 *)(in_EAX + 100) = 0;
+  *(uint *)(in_EAX + 0x6c) = uVar1;
+  *(undefined4 *)(in_EAX + 0x68) = *(undefined4 *)(in_EAX + 0xc);
+  *(uint *)(in_EAX + 0x70) = uVar1 >> 3;
+  *(uint *)(in_EAX + 0x78) = iVar2 + -1 + uVar1;
+  *(int *)(in_EAX + 0x7c) = iVar2;
+  return 1;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_encode_single_value.c
+====================================================================================================
+// message_delta_encode_single_value  (Ghidra: FUN_004ec450; named per this rewrite)
+// address 0x4ec450, size 52 bytes
+// name confidence: 0.35   rewrite confidence: 0.3
+// evidence: out/phase4/networking_functions.md summary: "Convenience wrapper that builds a
+// message-delta message for a single value via message_delta_encode_message." The call passes
+// `&stack0x0000000c` (this function's own param_2 storage) as the one-element items array and
+// `&stack0x00000010` -- four bytes further into this function's own frame, immediately past its
+// two recognized parameters -- as type_offset, which message_delta_encode_message only ever uses
+// relative to each item's own address. That relative offset (+4) is reproduced here directly.
+// register convention: message_type and value as the __cdecl stack parameters Ghidra recognized,
+// force_changed in DL (in_DL, unresolved register read).
+// blam-cc: stack -> message_type, value; DL -> force_changed
+// UNSURE: whether a genuine third stack parameter exists at the "+4 past value" slot, or this is
+// reading uninitialized/caller-frame data; message_delta_encode_message's flag argument is
+// hardcoded to 1 by this wrapper, so *some* per-item "type" dword is expected to be there.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern int32_t message_delta_encode_message(int32_t flag, int32_t message_type, int32_t changed_offset,
+                                             void **items, int32_t type_offset, int32_t count,
+                                             char force_changed); // 0x4ec940, this module
+
+// blam-cc: stack -> message_type, value; DL -> force_changed
+// Builds a message-delta message carrying a single value: the one-element items array points at
+// `value` itself, and the field is reported "changed" (changed_offset = &value) whenever value is
+// non-zero.
+int32_t message_delta_encode_single_value(int32_t message_type, int32_t value, int32_t type_value, char force_changed)
+{
+    struct {
+        int32_t value;
+        int32_t type_value; // UNSURE: see file header
+    } item;
+    void *items[1];
+
+    item.value = value;
+    item.type_value = type_value;
+    items[0] = &item;
+    return message_delta_encode_message(1, message_type, value != 0 ? (int32_t)(int32_t)&item : 0,
+                                         items, (int32_t)(int32_t)&item.type_value, 1, force_changed);
+}
+
+#if 0
+Original Ghidra decompilation (0x4ec450):
+
+void FUN_004ec450(int param_1,int param_2)
+
+{
+  char in_DL;
+
+  message_delta_encode_message
+            (1,param_1,-(uint)(param_2 != 0) & (uint)&param_2,(void **)&stack0x0000000c,
+             (int)&stack0x00000010,1,in_DL);
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_field_bindings_invoke.c
+====================================================================================================
+// message_delta_field_bindings_invoke  (Ghidra: FUN_004ec700; named per this rewrite)
+// address 0x4ec700, size 66 bytes
+// name confidence: 0.3   rewrite confidence: 0.55
+// evidence: objdump -d -M intel bin/halo.exe @0x4ec700: `mov eax,[ebx]` (count), `lea
+// esi,[ebx+8]` (fields[] start, matching message_delta_static_fields in types/networking.h),
+// per-entry `lea ecx,[ecx+ecx*2]` / `call [ecx*8+0x69a2fc]` -- kind*3*8 == kind*0x18, the same
+// stride out/phase4/networking_types_notes.md documents for the per-field-type callback record.
+// The stop condition (destination_offset==0 && source_offset==0 && field_type==0) is an all-zero padding
+// entry at the end of a message type's static field-binding array.
+// register convention: the field-binding list header in EBX (unaff_EBX).
+// blam-cc: EBX -> list
+// UNSURE: what this per-type "init" callback (the 0x69a2fc table slot) actually does; only that
+// it is the same slot message_delta_field_bindings_lazy_init (0x4ec840) also calls before
+// caching a field type's bit size.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern message_delta_field_type_vtable message_delta_field_type_table[]; // 0x0069a2f0
+
+// blam-cc: EBX -> list
+// Walks a message type's field-binding list, calling each field type's callback (the same slot
+// message_delta_field_bindings_lazy_init calls) with the field type pointer, until every entry
+// has been visited or an all-zero sentinel entry is reached.
+void message_delta_field_bindings_invoke(message_delta_static_fields *list)
+{
+    int32_t i;
+    message_delta_field_binding *binding;
+
+    if (0 < list->count) {
+        binding = list->fields;
+        for (i = 0; i < list->count; i++, binding++) {
+            if (binding->destination_offset == 0 && binding->source_offset == 0 && binding->field_type == 0) {
+                return;
+            }
+            message_delta_field_type_table[*(int32_t *)binding->field_type].initialize(binding->field_type);
+        }
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x4ec700):
+
+void FUN_004ec700(void)
+
+{
+  int *unaff_EBX;
+  int *piVar1;
+  int iVar2;
+
+  iVar2 = 0;
+  if (0 < *unaff_EBX) {
+    piVar1 = unaff_EBX + 2;
+    do {
+      if (((piVar1[1] == 0) && (piVar1[2] == 0)) && (*piVar1 == 0)) {
+        return;
+      }
+      (**(code **)(&DAT_0069a2fc + *(int *)*piVar1 * 0x18))((int *)*piVar1);
+      iVar2 = iVar2 + 1;
+      piVar1 = piVar1 + 4;
+    } while (iVar2 < *unaff_EBX);
+  }
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_field_bindings_lazy_init.c
+====================================================================================================
+// message_delta_field_bindings_lazy_init  (Ghidra: FUN_004ec840; named per this rewrite)
+// address 0x4ec840, size 184 bytes
+// name confidence: 0.4   rewrite confidence: 0.55
+// evidence: objdump -d -M intel bin/halo.exe @0x4ec840: per-entry test of the same
+// message_delta_field_binding::initialized low byte message_delta_field_bindings_teardown clears,
+// and of field_type+0x64 (an "already initialized" byte); on the first visit it calls the
+// per-type "init" (0x0069a2fc, base+0xc) and "compute size" (0x0069a2f8, base+0x8) callbacks and
+// caches the size at field_type+0x5c, matching "carrying its own bit size at +0x5c" in
+// out/phase4/networking_types_notes.md.
+// register convention: the field-binding list header in EBX (unaff_EBX).
+// blam-cc: EBX -> list
+// UNSURE: the trailing consistency check (return 1 only when every entry up to `count` was
+// processed and the entry at `count` is itself an all-zero sentinel) is transcribed exactly;
+// its return value is discarded by every caller in this module (message_delta_field_layout_compute_size
+// calls this twice and never reads the result), so this is not independently exercised here.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern message_delta_field_type_vtable message_delta_field_type_table[]; // 0x0069a2f0
+
+// blam-cc: EBX -> list
+// Lazily initializes each not-yet-initialized field type used by a message type's field-binding
+// list (a field type's init/compute-size pair only ever runs once, cached via field_type+0x64),
+// then marks every visited binding. Returns 1 only if the whole list was walked without hitting
+// an early sentinel and the entry immediately after it is itself all-zero.
+uint8_t message_delta_field_bindings_lazy_init(message_delta_static_fields *list)
+{
+    int32_t count;
+    int32_t i;
+    int32_t processed;
+    message_delta_field_binding *binding;
+    void *field_type;
+    uint8_t *binding_flag;
+    uint8_t *type_flag;
+
+    count = list->count;
+    if (count >= 0x41) {
+        return 0;
+    }
+    i = 0;
+    processed = 0;
+    if (0 < count) {
+        binding = list->fields;
+        for (; i < count; i++, binding++) {
+            if (binding->destination_offset == 0 && binding->source_offset == 0 && binding->field_type == 0) {
+                break;
+            }
+            binding_flag = &binding->initialized;
+            if (*binding_flag == 0) {
+                field_type = binding->field_type;
+                type_flag = (uint8_t *)field_type + 0x64;
+                if (*type_flag == 0) {
+                    message_delta_field_type_table[*(int32_t *)field_type].initialize((message_delta_field_type *)field_type);
+                    *(int32_t *)((uint8_t *)field_type + 0x5c) =
+                        message_delta_field_type_table[*(int32_t *)field_type].compute_size((message_delta_field_type *)field_type);
+                    *type_flag = 1;
+                }
+                *binding_flag = 1;
+            }
+            processed = processed + 1;
+        }
+    }
+    binding = &list->fields[i];
+    if (processed == count &&
+        binding->destination_offset == 0 && binding->source_offset == 0 && binding->field_type == 0) {
+        return 1;
+    }
+    return 0;
+}
+
+#if 0
+Original Ghidra decompilation (0x4ec840):
+
+uint FUN_004ec840(void)
+
+{
+  int *piVar1;
+  int iVar2;
+  uint3 uVar4;
+  uint uVar3;
+  uint *unaff_EBX;
+  int iVar5;
+  uint *puVar6;
+  uint local_4;
+
+  uVar3 = *unaff_EBX;
+  if ((int)uVar3 < 0x41) {
+    iVar5 = 0;
+    local_4 = 0;
+    if (0 < (int)uVar3) {
+      puVar6 = unaff_EBX + 5;
+      do {
+        if (((puVar6[-2] == 0) && (puVar6[-1] == 0)) && (puVar6[-3] == 0)) break;
+        if ((char)*puVar6 == '\0') {
+          piVar1 = (int *)puVar6[-3];
+          if ((char)piVar1[0x19] == '\0') {
+            (**(code **)(&DAT_0069a2fc + *piVar1 * 0x18))(piVar1);
+            iVar2 = (**(code **)(*piVar1 * 0x18 + 0x69a2f8))(piVar1);
+            piVar1[0x17] = iVar2;
+            *(undefined1 *)(piVar1 + 0x19) = 1;
+          }
+          *(undefined1 *)puVar6 = 1;
+        }
+        local_4 = local_4 + 1;
+        iVar5 = iVar5 + 1;
+        puVar6 = puVar6 + 4;
+      } while (iVar5 < (int)*unaff_EBX);
+    }
+    puVar6 = unaff_EBX + iVar5 * 4 + 2;
+    uVar4 = (uint3)((uint)puVar6 >> 8);
+    if (((unaff_EBX[iVar5 * 4 + 3] == 0) && (puVar6[2] == 0)) && (*puVar6 == 0)) {
+      uVar3 = CONCAT31(uVar4,1);
+    }
+    else {
+      uVar3 = (uint)uVar4 << 8;
+    }
+    if ((local_4 == *unaff_EBX) && ((char)uVar3 != '\0')) {
+      return CONCAT31((int3)(uVar3 >> 8),1);
+    }
+  }
+  return uVar3 & 0xffffff00;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_field_bindings_teardown.c
+====================================================================================================
+// message_delta_field_bindings_teardown  (Ghidra: FUN_004ec900; named per this rewrite)
+// address 0x4ec900, size 63 bytes
+// name confidence: 0.35   rewrite confidence: 0.6
+// evidence: objdump -d -M intel bin/halo.exe @0x4ec900: per-entry `cmp byte [edi],1` tests the
+// low byte of message_delta_field_binding::initialized (edi = &fields[i].initialized, i.e.
+// fields[i]+0xc); when set, tests field_type+0x64 (the same "already initialized" byte
+// message_delta_field_bindings_lazy_init, 0x4ec840, writes), calls the per-type callback at
+// table slot 0x0069a300 (0x0069a2f0+0x10, one slot further than that function's init callback),
+// clears field_type+0x64, then clears the binding's own flag byte.
+// register convention: the field-binding list header in ECX (in_ECX).
+// blam-cc: ECX -> list
+// UNSURE: whether 0x0069a300 is really "teardown" as opposed to some other per-message reset;
+// it is only ever seen paired with message_delta_field_bindings_lazy_init's init/size slots.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern message_delta_field_type_vtable message_delta_field_type_table[]; // 0x0069a2f0
+
+// blam-cc: ECX -> list
+// Tears down every field type in a message type's field-binding list that
+// message_delta_field_bindings_lazy_init marked initialized, then clears both the per-type
+// "initialized" byte and the per-binding flag byte this pass tests.
+void message_delta_field_bindings_teardown(message_delta_static_fields *list)
+{
+    int32_t i;
+    message_delta_field_binding *binding;
+    uint8_t *binding_flag;
+    uint8_t *type_flag;
+
+    if (0 < list->count) {
+        binding = list->fields;
+        for (i = 0; i < list->count; i++, binding++) {
+            binding_flag = &binding->initialized;
+            if (*binding_flag == 1) {
+                type_flag = (uint8_t *)binding->field_type + 0x64;
+                if (*type_flag == 1) {
+                    message_delta_field_type_table[*(int32_t *)binding->field_type].teardown(binding->field_type);
+                    *type_flag = 0;
+                }
+                *binding_flag = 0;
+            }
+        }
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x4ec900):
+
+void FUN_004ec900(void)
+
+{
+  int *piVar1;
+  int *in_ECX;
+  int iVar2;
+  int *piVar3;
+
+  iVar2 = *in_ECX;
+  if (0 < iVar2) {
+    piVar3 = in_ECX + 5;
+    do {
+      if ((char)*piVar3 == '\x01') {
+        piVar1 = (int *)piVar3[-3];
+        if ((char)piVar1[0x19] == '\x01') {
+          (**(code **)(&DAT_0069a300 + *piVar1 * 0x18))(piVar1);
+          *(undefined1 *)(piVar1 + 0x19) = 0;
+        }
+        *(char *)piVar3 = '\0';
+      }
+      piVar3 = piVar3 + 4;
+      iVar2 = iVar2 + -1;
+    } while (iVar2 != 0);
+  }
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_field_layout_compute_size.c
+====================================================================================================
+// message_delta_field_layout_compute_size  (Ghidra: message_delta_field_layout_compute_size, already named)
+// address 0x4ec790, size 165 bytes
+// name confidence: 0.5   rewrite confidence: 0.6
+// evidence: objdump -d -M intel bin/halo.exe @0x4ec790: calls message_delta_field_bindings_lazy_init
+// once with EBX = definition->statics and once with EBX = &definition->field_count, then sums
+// each field type's cached bit size (field_type+0x5c, set by that same lazy-init pass) over both
+// lists and writes exactly the five cached fields types/networking.h documents on
+// message_delta_definition (header_and_static_bits, item_bits, header_bits, maximum_bits,
+// field_bits) plus statics->size_bits and the initialized flag.
+// register convention: the message type definition in ESI (unaff_ESI).
+// blam-cc: ESI -> definition
+// UNSURE: definition->field_count (+0x20) is added directly into header_and_static_bits as if it
+// were itself a bit count, alongside the summed static-field sizes; transcribed exactly.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
+extern uint8_t message_delta_item_count_bits[];                 // 0x0065d51f
+extern uint8_t message_delta_parameters_enabled;                // 0x0071cfa8
+
+extern uint8_t message_delta_field_bindings_lazy_init(message_delta_static_fields *list); // 0x4ec840, this module
+
+// blam-cc: ESI -> definition
+// Computes and caches a message type's total encoded size (header, static fields, and array
+// fields) for later use during encode/decode, first lazily initializing every field type the
+// definition's two field-binding lists reference.
+void message_delta_field_layout_compute_size(message_delta_definition *definition)
+{
+    int32_t fields_bit_sum;
+    int32_t statics_bit_sum;
+    int32_t i;
+    int32_t header_bits;
+    int32_t item_count_extra_bits;
+    int32_t header_and_static_bits;
+    int32_t item_bits;
+
+    message_delta_field_bindings_lazy_init(definition->statics);
+    message_delta_field_bindings_lazy_init((message_delta_static_fields *)&definition->field_count);
+
+    fields_bit_sum = 0;
+    for (i = 0; i < definition->field_count; i++) {
+        fields_bit_sum += *(int32_t *)((uint8_t *)definition->fields[i].field_type + 0x5c);
+    }
+
+    statics_bit_sum = 0;
+    for (i = 0; i < definition->statics->count; i++) {
+        statics_bit_sum += *(int32_t *)((uint8_t *)definition->statics->fields[i].field_type + 0x5c);
+    }
+
+    header_bits = 7;
+    if (message_delta_parameters_enabled == 1) {
+        header_bits = 10;
+    }
+    item_count_extra_bits = 0;
+    if (1 < definition->maximum_items) {
+        item_count_extra_bits = message_delta_item_count_bits[definition->maximum_items];
+    }
+
+    header_and_static_bits = definition->field_count + statics_bit_sum; // UNSURE: see header note
+    item_bits = header_and_static_bits + fields_bit_sum;
+    header_bits = item_count_extra_bits + header_bits;
+
+    definition->field_bits = fields_bit_sum;
+    definition->statics->size_bits = statics_bit_sum;
+    definition->item_bits = item_bits;
+    definition->header_and_static_bits = header_and_static_bits;
+    definition->header_bits = header_bits;
+    definition->maximum_bits = definition->maximum_items * item_bits + header_bits;
+    definition->initialized = 1;
+}
+
+#if 0
+Original Ghidra decompilation (0x4ec790):
+
+void message_delta_field_layout_compute_size(void)
+
+{
+  int iVar1;
+  int iVar2;
+  int *piVar3;
+  int iVar4;
+  uint uVar5;
+  int iVar6;
+  int iVar7;
+  int iVar8;
+  int *unaff_ESI;
+
+  FUN_004ec840();
+  FUN_004ec840();
+  iVar4 = unaff_ESI[8];
+  iVar7 = 0;
+  if (0 < iVar4) {
+    piVar3 = unaff_ESI + 10;
+    do {
+      iVar7 = iVar7 + *(int *)(*piVar3 + 0x5c);
+      piVar3 = piVar3 + 4;
+      iVar4 = iVar4 + -1;
+    } while (iVar4 != 0);
+  }
+  iVar4 = *(int *)unaff_ESI[7];
+  iVar8 = 0;
+  if (0 < iVar4) {
+    piVar3 = (int *)unaff_ESI[7] + 2;
+    do {
+      iVar8 = iVar8 + *(int *)(*piVar3 + 0x5c);
+      piVar3 = piVar3 + 4;
+      iVar4 = iVar4 + -1;
+    } while (iVar4 != 0);
+  }
+  iVar4 = *(int *)((&PTR_DAT_0065d440)[*unaff_ESI] + 0x20);
+  iVar2 = unaff_ESI[5];
+  iVar6 = 7;
+  if (DAT_0071cfa8 == '\x01') {
+    iVar6 = 10;
+  }
+  uVar5 = 0;
+  if (1 < iVar2) {
+    uVar5 = (uint)(byte)(&DAT_0065d51f)[iVar2];
+  }
+  iVar1 = iVar4 + iVar8 + iVar7;
+  unaff_ESI[9] = iVar7;
+  *(int *)(unaff_ESI[7] + 4) = iVar8;
+  unaff_ESI[2] = iVar1;
+  unaff_ESI[1] = iVar4 + iVar8;
+  unaff_ESI[3] = uVar5 + iVar6;
+  unaff_ESI[4] = iVar2 * iVar1 + uVar5 + iVar6;
+  *(undefined1 *)(unaff_ESI + 6) = 1;
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_protocol_initialize.c
+====================================================================================================
+// message_delta_protocol_initialize  (Ghidra: message_delta_protocol_initialize, already named)
+// address 0x4ec2f0, size 60 bytes
+// name confidence: 0.5   rewrite confidence: 0.7
+// evidence: out/phase4/networking_types_notes.md "message delta protocol": iterates the
+// definition pointer table 0x0065d440..0x0065d520 (56 entries) and the 28-record, 0x18-stride
+// table at 0x0069a304 whose first byte this sets to 1 (contents otherwise unresolved).
+// register convention: no register-passed arguments.
+
+#include "tags.h"
+#include "memory.h"
+#include "math.h"
+#include "game.h"
+#include "networking.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+extern uint8_t message_delta_parameters_enabled;                // 0x0071cfa8
+extern uint8_t message_delta_unknown_table_0069a304[28][0x18];  // 0x0069a304, UNSURE: contents beyond byte 0
+extern message_delta_definition *message_delta_definitions[56]; // 0x0065d440
+
+extern void message_delta_parameters_protocol_reload_from_config_file(void); // 0x4ebda0, this module
+extern void message_delta_field_layout_compute_size(message_delta_definition *definition); // 0x4ec790, this module
+
+// One-time message-delta protocol startup: reloads parameters.cfg (when the parameters protocol
+// is enabled), marks every entry of an unresolved 28-record table, and computes each registered
+// message type's encoded layout size.
+void message_delta_protocol_initialize(void)
+{
+    int32_t i;
+
+    if (message_delta_parameters_enabled == 1) {
+        message_delta_parameters_protocol_reload_from_config_file();
+    }
+    for (i = 0; i < 28; i++) {
+        message_delta_unknown_table_0069a304[i][0] = 1;
+    }
+    for (i = 0; i < k_network_message_definition_count; i++) {
+        message_delta_field_layout_compute_size(message_delta_definitions[i]);
+    }
+}
+
+#if 0
+Original Ghidra decompilation (0x4ec2f0):
+
+void message_delta_protocol_initialize(void)
+
+{
+  undefined1 *puVar1;
+  undefined **ppuVar2;
+
+  if (DAT_0071cfa8 == '\x01') {
+    message_delta_parameters_protocol_reload_from_config_file();
+  }
+  puVar1 = &DAT_0069a304;
+  do {
+    *puVar1 = 1;
+    puVar1 = puVar1 + 0x18;
+  } while ((int)puVar1 < 0x69a5a4);
+  ppuVar2 = &PTR_DAT_0065d440;
+  do {
+    message_delta_field_layout_compute_size();
+    ppuVar2 = ppuVar2 + 1;
+  } while ((int)ppuVar2 < 0x65d520);
+  return;
+}
+#endif
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+

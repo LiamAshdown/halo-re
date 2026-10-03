@@ -1,0 +1,648 @@
+====================================================================================================
+message_delta_boolean_decode.c
+====================================================================================================
+// message_delta_boolean_decode  (reached only through a .data code pointer; no C existed)
+// address 0x4e8d00, size 21 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4e8d00..0x4e8d14: clears the byte and reads one bit into it.
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_boolean_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
+{
+    (void)field_type;
+    (void)previous;
+    *(uint8_t *)current = 0;
+    return (int32_t)bit_stream_read_bit((uint8_t *)current, stream);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_boolean_encode.c
+====================================================================================================
+// message_delta_boolean_encode  (reached only through a .data code pointer; no C existed)
+// address 0x4e8cc0, size 52 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4e8cc0..0x4e8cf3: an unchanged byte: 0; else the byte as one bit (1 when
+//   written).
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_boolean_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
+{
+    uint8_t value = *(uint8_t *)current;
+
+    (void)field_type;
+    if (previous != 0 && *(uint8_t *)previous == value) {
+        return 0;
+    }
+    return bit_stream_write_bit(value, stream) ? 1 : 0;
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_byte_decode.c
+====================================================================================================
+// message_delta_byte_decode  (reached only through a .data code pointer; no C existed)
+// address 0x4e8d60, size 23 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4e8d60..0x4e8d76: 8 bits into the byte.
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_byte_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
+{
+    (void)field_type;
+    (void)previous;
+    return bit_stream_read_bits_chunked(8, (uint32_t *)current, stream);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_byte_encode.c
+====================================================================================================
+// message_delta_byte_encode  (reached only through a .data code pointer; no C existed)
+// address 0x4e8d30, size 35 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4e8d30..0x4e8d52: an unchanged byte: 0; else 8 bits.
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_byte_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
+{
+    (void)field_type;
+    if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
+        return 0;
+    }
+    return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 8);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_compute_size_1.c
+====================================================================================================
+// message_delta_compute_size_1  (reached only through a .data code pointer; no C existed)
+// address 0x4e8cb0, size 6 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4e8cb0..0x4e8cb5: 1 bits (the boolean kind).
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_compute_size_1(message_delta_field_type *field_type)
+{
+    (void)field_type;
+    return 1;
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_compute_size_16.c
+====================================================================================================
+// message_delta_compute_size_16  (reached only through a .data code pointer; no C existed)
+// address 0x4e8d80, size 6 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4e8d80..0x4e8d85: 16 bits (the short kind).
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_compute_size_16(message_delta_field_type *field_type)
+{
+    (void)field_type;
+    return 16;
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_compute_size_2.c
+====================================================================================================
+// message_delta_compute_size_2  (reached only through a .data code pointer; no C existed)
+// address 0x4eb2c0, size 6 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4eb2c0..0x4eb2c5: 2 bits (grenade index).
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_compute_size_2(message_delta_field_type *field_type)
+{
+    (void)field_type;
+    return 2;
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_compute_size_3.c
+====================================================================================================
+// message_delta_compute_size_3  (reached only through a .data code pointer; no C existed)
+// address 0x4eb210, size 6 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4eb210..0x4eb215: 3 bits (weapon index).
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_compute_size_3(message_delta_field_type *field_type)
+{
+    (void)field_type;
+    return 3;
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_compute_size_32.c
+====================================================================================================
+// message_delta_compute_size_32  (reached only through a .data code pointer; no C existed)
+// address 0x4e8c60, size 6 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4e8c60..0x4e8c65: 32 bits (real, time and the 32-bit kinds).
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_compute_size_32(message_delta_field_type *field_type)
+{
+    (void)field_type;
+    return 32;
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_compute_size_4.c
+====================================================================================================
+// message_delta_compute_size_4  (reached only through a .data code pointer; no C existed)
+// address 0x4eb150, size 6 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4eb150..0x4eb155: 4 bits (digital throttle).
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_compute_size_4(message_delta_field_type *field_type)
+{
+    (void)field_type;
+    return 4;
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_compute_size_6.c
+====================================================================================================
+// message_delta_compute_size_6  (reached only through a .data code pointer; no C existed)
+// address 0x4ea600, size 6 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4ea600..0x4ea605: 6 bits (the grenade counts kind).
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_compute_size_6(message_delta_field_type *field_type)
+{
+    (void)field_type;
+    return 6;
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_compute_size_8.c
+====================================================================================================
+// message_delta_compute_size_8  (reached only through a .data code pointer; no C existed)
+// address 0x4e8d20, size 6 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4e8d20..0x4e8d25: 8 bits (the byte kind).
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_compute_size_8(message_delta_field_type *field_type)
+{
+    (void)field_type;
+    return 8;
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_flags_decode.c
+====================================================================================================
+// message_delta_flags_decode  (reached only through a .data code pointer; no C existed)
+// address 0x4ea3b0, size 116 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4ea3b0..0x4ea423: each masked flag read as one bit into the dword (set or
+//   cleared); the bits read.
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_flags_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
+{
+    int32_t *descriptor = (int32_t *)field_type->array_descriptor;
+    uint8_t *mask = (uint8_t *)(descriptor + 1);
+    uint32_t value = *(uint32_t *)current;
+    int32_t total = 0;
+    int32_t i;
+
+    (void)previous;
+    for (i = 0; i < descriptor[0]; i++) {
+        if (mask[i] == 1) {
+            uint8_t bit = 0;
+
+            total += (int32_t)bit_stream_read_bit(&bit, stream);
+            if (bit) {
+                value |= 1u << i;
+            } else {
+                value &= ~(1u << i);
+            }
+        }
+    }
+    *(uint32_t *)current = value;
+    return total;
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_flags_encode.c
+====================================================================================================
+// message_delta_flags_encode  (reached only through a .data code pointer; no C existed)
+// address 0x4ea2b0, size 256 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4ea2b0..0x4ea3af: every masked flag is written as one bit; when none differs
+//   from the previous value (with one) the cursor rewinds to where it started and 0 comes back, else the bits
+//   written.
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_flags_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
+{
+    int32_t *descriptor = (int32_t *)field_type->array_descriptor;
+    uint8_t *mask = (uint8_t *)(descriptor + 1);
+    uint32_t value = *(uint32_t *)current;
+    int32_t start = (int32_t)(message_delta_stream_position(stream) - stream->first_bit);
+    int32_t total = 0;
+    uint8_t changed = 0;
+    int32_t i;
+
+    for (i = 0; i < descriptor[0]; i++) {
+        if (mask[i] != 1) {
+            continue;
+        }
+        if (previous == 0 || changed ||
+            ((*(uint32_t *)previous & (1u << i)) != 0) != ((value & (1u << i)) != 0)) {
+            changed = 1;
+        }
+        total += bit_stream_write_bit((value & (1u << i)) != 0, stream) ? 1 : 0;
+    }
+    if (changed) {
+        return total;
+    }
+    message_delta_stream_seek(stream, stream->first_bit, start);
+    return 0;
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_flags_initialize.c
+====================================================================================================
+// message_delta_flags_initialize  (reached only through a .data code pointer; no C existed)
+// address 0x4ea260, size 67 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4ea260..0x4ea2a2: 1..32 flags, each mask byte 0 or 1.
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+uint8_t message_delta_flags_initialize(message_delta_field_type *field_type)
+{
+    int32_t *descriptor = (int32_t *)field_type->array_descriptor;
+    uint8_t *mask = (uint8_t *)(descriptor + 1);
+    int32_t i;
+
+    if (descriptor[0] <= 0 || descriptor[0] > 0x20) {
+        return 0;
+    }
+    for (i = 0; i < descriptor[0]; i++) {
+        if (mask[i] != 1 && mask[i] != 0) {
+            return 0;
+        }
+    }
+    return 1;
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_integer_compute_size.c
+====================================================================================================
+// message_delta_integer_compute_size  (reached only through a .data code pointer; no C existed)
+// address 0x4e89c0, size 58 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4e89c0..0x4e89f9: bits by the descriptor  subtype (no range check): 0 byte 8, 1
+//   short 16, 2 long 32, 3..6 packed 1, 3, 5, 6.
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_integer_compute_size(message_delta_field_type *field_type)
+{
+    switch (*(int32_t *)field_type->array_descriptor) {
+    case 0:
+        return 8;
+    case 1:
+        return 0x10;
+    case 2:
+        return 0x20;
+    case 3:
+        return 1;
+    case 4:
+        return 3;
+    case 5:
+        return 5;
+    default:
+        return 6;
+    }
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_integer_decode.c
+====================================================================================================
+// message_delta_integer_decode  (reached only through a .data code pointer; no C existed)
+// address 0x4e8b70, size 200 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4e8b70..0x4e8c37: reads the subtype width into the destination (the packed
+//   widths clear the byte first); subtypes above 6: 0.
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_integer_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
+{
+    (void)previous;
+    switch (*(int32_t *)field_type->array_descriptor) {
+    case 0:
+        return bit_stream_read_bits_chunked(8, (uint32_t *)current, stream);
+    case 1:
+        return bit_stream_read_bits_chunked(16, (uint32_t *)current, stream);
+    case 2:
+        return bit_stream_read_bits_chunked(32, (uint32_t *)current, stream);
+    case 3:
+        *(uint8_t *)current = 0;
+        return bit_stream_read_bits_chunked(1, (uint32_t *)current, stream);
+    case 4:
+        *(uint8_t *)current = 0;
+        return bit_stream_read_bits_chunked(3, (uint32_t *)current, stream);
+    case 5:
+        *(uint8_t *)current = 0;
+        return bit_stream_read_bits_chunked(5, (uint32_t *)current, stream);
+    case 6:
+        *(uint8_t *)current = 0;
+        return bit_stream_read_bits_chunked(6, (uint32_t *)current, stream);
+    }
+    return 0;
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_integer_encode.c
+====================================================================================================
+// message_delta_integer_encode  (reached only through a .data code pointer; no C existed)
+// address 0x4e8a40, size 272 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4e8a40..0x4e8b4f: unchanged from the previous value (compared at its width): 0;
+//   else the value at the subtype width. Subtypes above 6: 0.
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_integer_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
+{
+    switch (*(int32_t *)field_type->array_descriptor) {
+    case 0:
+        if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
+            return 0;
+        }
+        return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 8);
+    case 1:
+        if (previous != 0 && *(uint16_t *)previous == *(uint16_t *)current) {
+            return 0;
+        }
+        return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 16);
+    case 2:
+        if (previous != 0 && *(uint32_t *)previous == *(uint32_t *)current) {
+            return 0;
+        }
+        return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 32);
+    case 3:
+        if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
+            return 0;
+        }
+        return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 1);
+    case 4:
+        if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
+            return 0;
+        }
+        return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 3);
+    case 5:
+        if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
+            return 0;
+        }
+        return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 5);
+    case 6:
+        if (previous != 0 && *(uint8_t *)previous == *(uint8_t *)current) {
+            return 0;
+        }
+        return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 6);
+    }
+    return 0;
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_integer_initialize.c
+====================================================================================================
+// message_delta_integer_initialize  (reached only through a .data code pointer; no C existed)
+// address 0x4e8a20, size 24 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4e8a20..0x4e8a37: a subtype in 0..27 is valid (also the initializer of kind
+//   11).
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+uint8_t message_delta_integer_initialize(message_delta_field_type *field_type)
+{
+    int32_t subtype = *(int32_t *)field_type->array_descriptor;
+
+    return subtype >= 0 && subtype < 0x1c;
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_long_decode.c
+====================================================================================================
+// message_delta_long_decode  (reached only through a .data code pointer; no C existed)
+// address 0x4ea460, size 23 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4ea460..0x4ea476: 32 bits into the dword.
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_long_decode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
+{
+    (void)field_type;
+    (void)previous;
+    return bit_stream_read_bits_chunked(0x20, (uint32_t *)current, stream);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
+
+====================================================================================================
+message_delta_long_encode.c
+====================================================================================================
+// message_delta_long_encode  (reached only through a .data code pointer; no C existed)
+// address 0x4ea430, size 35 bytes
+// name confidence: 0.6   rewrite confidence: 0.85
+// WRITTEN 2026-09-28 from objdump 0x4ea430..0x4ea452: an unchanged dword: 0; else 32 bits.
+// blam-cc: cdecl
+
+#include "message_delta_codec.h"
+
+#ifdef __cplusplus
+extern "C" { /* HALO_CXX_LINKAGE */
+#endif
+int32_t message_delta_long_encode(message_delta_field_type *field_type, void *previous, void *current, bit_stream *stream)
+{
+    (void)field_type;
+    if (previous != 0 && *(uint32_t *)previous == *(uint32_t *)current) {
+        return 0;
+    }
+    return bit_stream_write_bits_chunked(stream, (const uint32_t *)current, 0x20);
+}
+#ifdef __cplusplus
+} /* HALO_CXX_LINKAGE */
+#endif
+
