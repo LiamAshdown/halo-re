@@ -6,6 +6,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -29,11 +30,6 @@ extern int16_t light_count_enabled;
 extern uint8_t console_debug_toggle_689404;
 extern uint8_t particle_systems_enabled;
 extern int32_t rasterizer_gamma_exponent;
-extern uint8_t rasterizer_display_mode_differs(rasterizer_display_mode *requested);
-extern void rasterizer_build_present_parameters(void *dest, rasterizer_display_mode *source);
-extern uint8_t rasterizer_device_reset(void *present_parameters);
-extern void rasterizer_resize_game_window(int32_t height, int32_t width);
-extern void chimera__gamma(void);
 }
 
 typedef int32_t (__stdcall *d3d_get_display_mode_fn)(void *device, uint32_t swap_chain, void *mode);
@@ -94,15 +90,15 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
             }
         }
     }
-    if (rasterizer_needs_reset == 0 && rasterizer_display_mode_differs(&mode)) {
+    if (rasterizer_needs_reset == 0 && halo::rasterizer::rasterizer_display_mode_differs(&mode)) {
         void **vtable;
 
-        rasterizer_build_present_parameters(present_parameters, &mode);
-        rasterizer_device_reset(present_parameters);
+        halo::rasterizer::rasterizer_build_present_parameters((d3d_present_parameters *)present_parameters, &mode);
+        halo::rasterizer::rasterizer_device_reset((d3d_present_parameters *)present_parameters);
         vtable = *(void ***)rasterizer_device;
         ((d3d_get_display_mode_fn)vtable[0x20 / 4])(rasterizer_device, 0, rasterizer_desktop_display_mode);
         reset = 1;
-        rasterizer_resize_game_window(mode.height, mode.width);
+        halo::rasterizer::rasterizer_resize_game_window(mode.height, mode.width);
         rasterizer_needs_reset = 0;
     }
 
@@ -118,7 +114,7 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
     halo::effects::globals().particle_spawn_debug_mode = settings[0xa73];
     particle_systems_enabled = settings[0xa73];
     rasterizer_gamma_exponent = settings[0xa76];
-    chimera__gamma();
+    halo::rasterizer::chimera__gamma();
 
     if (mode_changed) {
         halo::cache::globals().texture_cache->age = halo::cache::globals().texture_cache->age + 1;

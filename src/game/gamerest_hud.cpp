@@ -2,6 +2,7 @@
 #include <string.h>
 #include <wchar.h>
 #include "halo/cache/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern data_array *player_data;
@@ -18,7 +19,6 @@ extern float hud_text_draw_color_r;
 extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
 extern int16_t hud_text_draw_background_mode;
-extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
 extern player_control_globals *player_control_globals_ptr;
 extern data_array *object_data;
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
@@ -153,7 +153,7 @@ void HudNameplates::draw_teammate_nameplate_text(wchar_t *text, int32_t value)
     bounds.bottom = 0x5e;
     bounds.right = 0x278;
 
-    chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
+    halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
 
     hud_text_draw_color_or_flags = 0xffffu;
     hud_text_draw_column = 0;
@@ -322,7 +322,7 @@ void HudText::scoreboard_row_text(int16_t row, wchar_t *text, int16_t column)
     bounds.bottom = (int16_t)(row * 0x12 + 0x1a);
     bounds.right = (int16_t)((screen_safe_area_bottom >> 16) - (uint16_t)safe_left);
 
-    chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
+    halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
 }
 
 /**
@@ -389,7 +389,7 @@ int32_t HudText::world_relative_text(hud_world_text_params *params, int16_t row,
         hud_text_draw_font_tag_id = font_terminal_id;
         hud_text_draw_color_a = params->alpha;
 
-        chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
+        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
     }
 
     hud_text_draw_background_mode = 0;

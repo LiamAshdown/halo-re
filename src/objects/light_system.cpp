@@ -11,6 +11,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern uint32_t bsp3d_node_find_leaf(int32_t node_index, ModelCollisionGeometryBSP *bsp, real_point3d *point);
@@ -28,7 +29,6 @@ extern int32_t game_state_cursor;
 extern game_time_globals *game_time;
 extern ScenarioStructureBSP *global_structure_bsp;
 extern float *global_white_color;
-extern void lens_flare_add_instance(lens_flare_instance *candidate);
 extern datum_index light_active_list[0x80];
 extern int16_t light_active_list_count;
 extern datum_index *light_cluster_first;
@@ -55,17 +55,11 @@ extern int32_t object_get_node_local_transform(uint32_t object_index, char *mark
 extern void object_get_root_location(int32_t *out, uint32_t object_index);
 extern void object_light_recompute_transform(uint32_t light_index);
 extern object *object_try_and_get(datum_index object_index, uint32_t type_mask);
-extern void rasterizer_light_cone_set_texture_stage_states(void);
 extern int32_t rasterizer_light_count;
-extern void rasterizer_light_disable_all(void);
-extern void rasterizer_light_set(rasterizer_light *light);
 extern rasterizer_light rasterizer_lights[0x80];
-extern void rasterizer_shader_environment_technique_ps2_set_states(void);
 extern uint8_t render_window_index;
 extern double sqrt(double x);
-extern void structure_cluster_add_lens_flares(int16_t cluster_index);
 extern uint8_t unit_get_first_person_marker_transform(datum_index object_index, const char *marker_name, real_point3d *out_position, real_vector3d *out_extents, real_vector3d *out_direction);
-extern uint32_t vector3d_pack_normal_11_11_10(real_vector3d *direction);
 }
 
 namespace {
@@ -293,9 +287,9 @@ void halo::objects::LightSystem::update_all()
         (structure_bsp_object_predicate_fn)light_not_marked_this_frame, (structure_bsp_object_accept_fn)light_mark_this_frame);
     light_render_unknown_7c0 = 0;
     rasterizer_light_count = 0;
-    rasterizer_light_disable_all();
+    halo::rasterizer::rasterizer_light_disable_all();
     for (i = 0; i < halo::structures::globals().visible_cluster_count; i++) {
-        structure_cluster_add_lens_flares(*(int16_t *)(halo::structures::globals().visible_clusters + i * 0x1a0));
+        halo::rasterizer::structure_cluster_add_lens_flares(*(int16_t *)(halo::structures::globals().visible_clusters + i * 0x1a0));
     }
 
     for (i = 0; i < light_active_list_count; i++) {
@@ -390,7 +384,7 @@ void halo::objects::LightSystem::update_all()
                     slot = rasterizer_light_count;
                     rasterizer_lights[slot] = record;
                     rasterizer_light_count = slot + 1;
-                    rasterizer_light_set(&record);
+                    halo::rasterizer::rasterizer_light_set(&record);
                 }
                 *(int32_t *)&((struct rasterizer_light *)light)->position.y = slot;
                 light_transient_count_or_queue = (int16_t)(slot + 1);
@@ -431,23 +425,23 @@ void halo::objects::LightSystem::update_all()
                 }
                 for (j = 0; j < count; j++) {
                     flare.position = markers[j].node_transform.position;
-                    flare.packed_direction = vector3d_pack_normal_11_11_10(&markers[j].node_transform.forward);
-                    flare.packed_up = vector3d_pack_normal_11_11_10(&markers[j].node_transform.up);
+                    flare.packed_direction = halo::rasterizer::vector3d_pack_normal_11_11_10(&markers[j].node_transform.forward);
+                    flare.packed_up = halo::rasterizer::vector3d_pack_normal_11_11_10(&markers[j].node_transform.up);
                     flare.visibility_low = j;
-                    lens_flare_add_instance(&flare);
+                    halo::rasterizer::lens_flare_add_instance(&flare);
                 }
             } else {
                 flare.position = *(real_point3d *)&((struct light *)light)->position.x;
-                flare.packed_direction = vector3d_pack_normal_11_11_10((real_vector3d *)(light + 0x3c));
-                flare.packed_up = vector3d_pack_normal_11_11_10((real_vector3d *)(light + 0x48));
+                flare.packed_direction = halo::rasterizer::vector3d_pack_normal_11_11_10((real_vector3d *)(light + 0x3c));
+                flare.packed_up = halo::rasterizer::vector3d_pack_normal_11_11_10((real_vector3d *)(light + 0x48));
                 flare.visibility_low = 0;
-                lens_flare_add_instance(&flare);
+                halo::rasterizer::lens_flare_add_instance(&flare);
             }
         }
     }
 
     for (i = 0; i < light_transient_count; i++) {
-        lens_flare_add_instance(&light_transient_table__as_object_lights_update_all[i]);
+        halo::rasterizer::lens_flare_add_instance(&light_transient_table__as_object_lights_update_all[i]);
     }
     light_transient_count = 0;
 }
@@ -472,8 +466,8 @@ void halo::objects::LightSystem::transient_add(datum_index light_tag, real_vecto
         slot->definition = halo::cache::globals().tag_instances[light_tag & 0xffff].data;
         slot->position = *position;
 
-        slot->packed_forward = vector3d_pack_normal_11_11_10((real_vector3d *)direction);
-        slot->packed_up = vector3d_pack_normal_11_11_10((real_vector3d *)param_3);
+        slot->packed_forward = halo::rasterizer::vector3d_pack_normal_11_11_10((real_vector3d *)direction);
+        slot->packed_up = halo::rasterizer::vector3d_pack_normal_11_11_10((real_vector3d *)param_3);
         slot->render_window_index = render_window_index;
         slot->unknown_1e = -1;
         slot->unknown_1c = -1;
@@ -538,7 +532,7 @@ void halo::objects::LightSystem::apply_spot_falloff()
 {
     int16_t references[0x200];
 
-    rasterizer_light_cone_set_texture_stage_states();
+    halo::rasterizer::rasterizer_light_cone_set_texture_stage_states();
 
     if (*lights_enabled != 0 &&
         (current_game_engine == 0 || ((game_engine_unknown_aa00 & 1) == 0 && 1 < light_count_enabled))) {
@@ -598,7 +592,7 @@ void halo::objects::LightSystem::apply_spot_falloff_specular()
 {
     int16_t references[0x200];
 
-    rasterizer_shader_environment_technique_ps2_set_states();
+    halo::rasterizer::rasterizer_shader_environment_technique_ps2_set_states();
 
     if (*lights_enabled != 0 &&
         (current_game_engine == 0 || ((game_engine_unknown_aa00 & 1) == 0 && 1 < light_count_enabled))) {

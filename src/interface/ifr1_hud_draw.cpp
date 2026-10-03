@@ -1,6 +1,7 @@
 #include "halo/interface/ifr1_hud_draw.hpp"
 #include <string.h>
 #include "halo/cache/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern int32_t ROUND(float x);
@@ -27,8 +28,6 @@ extern void text_measure_string_extents(Rectangle2D *origin, Rectangle2D *cursor
                          const uint16_t *text);
 extern void ui_widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t use_text_color,
                                                    const uint16_t *text);
-extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
-                                      int32_t unknown_1, const uint16_t *text);
 extern float sinf(float x);
 extern float cosf(float x);
 extern float sqrtf(float x);
@@ -41,7 +40,6 @@ extern float hud_multitexture_effector_counter;
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
 extern ColorRGB *color_interpolate(ColorRGB *color1, ColorRGB *color0, ColorRGB *dest, uint32_t flags, float t);
 extern uint8_t hud_player_weapon_ammo_state(const player *p, weapon_hud_ammo_state *out);
-extern void rasterizer_ui_quad_draw(ui_quad_render_state *state, hud_quad_vertex *vertices);
 extern Globals *global_globals;
 extern uint32_t hud_meter_flash_color_blend(const hud_flash_parameters *flash, int32_t start_time);
 extern void hud_draw_bitmap_element(const float *uv, const hud_element_placement *placement, uint8_t pixel_uvs,
@@ -351,7 +349,7 @@ void HudDraw::message_text_span(Rectangle2D *cursor, Rectangle2D *origin, const 
     if (allow_button_prompts != 0 && current_game_engine != 0) {
         ui_widget_draw_formatted_prompt_string(&bounds, 1, text);
     } else {
-        chimera__draw_16_bit_text(0, &bounds, 0, 0, text);
+        halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
     }
     origin->top = cursor->top;
 }
@@ -560,7 +558,7 @@ void HudDraw::multitexture_overlay(const float *scale, const HUDInterfaceMultite
         }
     }
 
-    rasterizer_ui_quad_draw(&state, vertices);
+    halo::rasterizer::rasterizer_ui_quad_draw(&state, vertices);
 }
 
 /**
@@ -791,7 +789,7 @@ void HudDraw::rotated_bitmap_quad(const Point2DInt *screen_position, const float
     state.single_local_player = 0;
     state.framebuffer_blend_function = 7;
     state.maps[0] = bitmap;
-    rasterizer_ui_quad_draw(&state, vertices);
+    halo::rasterizer::rasterizer_ui_quad_draw(&state, vertices);
 }
 
 /**

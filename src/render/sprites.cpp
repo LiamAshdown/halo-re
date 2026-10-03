@@ -22,6 +22,7 @@
 #include "halo/structures/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern float build_sprite_screen_coverage;
@@ -36,16 +37,11 @@ extern double sin(double x);
 extern double cos(double x);
 extern int16_t rasterizer_vertex_buffer_lock_state;
 extern uint8_t build_sprite_group_warning;
-extern int32_t rasterizer_dynamic_vertex_cache_reserve(int16_t vertex_type, int32_t count);
-extern void *rasterizer_dynamic_vertex_cache_lock(int32_t slot_index);
 extern double fmod(double x, double y);
 extern double atan2(double y, double x);
 extern rasterizer_dynamic_vertex_slot rasterizer_dynamic_vertex_slots[k_rasterizer_dynamic_vertex_slots];
 extern rasterizer_dynamic_vertex_cache rasterizer_dynamic_vertex_caches[k_rasterizer_vertex_type_count];
 extern rasterizer_vertex_buffer_slot rasterizer_vertex_buffer_slots[k_rasterizer_vertex_buffer_slots];
-extern void rasterizer_transparent_object_append(uint32_t lightmap_bitmap, int32_t dynamic_index_slot,
-    int32_t dynamic_vertex_slot, int32_t primitive_count, uint32_t flags, real_point3d *world_position,
-    Shader *shader);
 extern double sqrt(double x);
 extern double fabs(double x);
 extern render_camera render_camera_global;
@@ -55,7 +51,6 @@ extern data_array *object_data;
 extern real_point3d *global_zero_vector3d_pointer;
 extern void *rasterizer_dynamic_index_buffer;
 extern BitmapData *bitmap_group_sequence_get_bitmap_data(datum_index bitmap_tag, int16_t frame, int16_t sequence);
-extern int32_t rasterizer_dynamic_index_cache_reserve(int32_t count);
 extern data_array *contrail_data;
 extern uint8_t particle_spawn_debug_mode;
 extern int16_t current_local_player_index;
@@ -131,7 +126,7 @@ int16_t halo::render::SpriteBuilder::get_group(BitmapData *bitmap)
             int32_t slot;
 
             rasterizer_vertex_buffer_lock_state = 0x10;
-            slot = rasterizer_dynamic_vertex_cache_reserve(vertex_type, vertex_count);
+            slot = halo::rasterizer::rasterizer_dynamic_vertex_cache_reserve(vertex_type, vertex_count);
             group->vertex_slot = slot;
             if (slot == -1) {
                 if (build_sprite_group_warning == 0) {
@@ -140,7 +135,7 @@ int16_t halo::render::SpriteBuilder::get_group(BitmapData *bitmap)
                 group->vertices = 0;
                 rasterizer_vertex_buffer_lock_state = 0;
             } else {
-                group->vertices = (uint32_t)(uintptr_t)rasterizer_dynamic_vertex_cache_lock(slot);
+                group->vertices = (uint32_t)(uintptr_t)halo::rasterizer::rasterizer_dynamic_vertex_cache_lock(slot);
                 rasterizer_vertex_buffer_lock_state = 0;
             }
         }
@@ -616,7 +611,7 @@ void sprites_end(build_sprite_data *data)
         }
 
         if (group->quad_count != 0 && (data->flags & _build_sprite_data_screen_space_bit) == 0) {
-            rasterizer_transparent_object_append(group->bitmap, -4, group->vertex_slot,
+            halo::rasterizer::rasterizer_transparent_object_append(group->bitmap, -4, group->vertex_slot,
                                                  (int32_t)group->quad_count * 2,
                                                  ((data->flags & 0xff & 2) << 6) | 0x20,
                                                  &data->centroid,
@@ -704,16 +699,16 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
 
     segment_count = (int16_t)(c->point_count[instance] - 1);
     primitive_count = (int32_t)(int16_t)(segment_count * 2);
-    index_slot = rasterizer_dynamic_index_cache_reserve(primitive_count);
+    index_slot = halo::rasterizer::rasterizer_dynamic_index_cache_reserve(primitive_count);
     vertex_count = (int32_t)(int16_t)(segment_count * 2 + 2);
-    vertex_slot = rasterizer_dynamic_vertex_cache_reserve(_rasterizer_vertex_type_dynamic_unlit,
+    vertex_slot = halo::rasterizer::rasterizer_dynamic_vertex_cache_reserve(_rasterizer_vertex_type_dynamic_unlit,
                                                           vertex_count);
     if (index_slot == -1 || vertex_slot == -1) {
         rasterizer_vertex_buffer_lock_state = 0;
         return;
     }
     indices = (uint16_t *)halo::render::rasterizer_dynamic_index_slot_lock(index_slot);
-    vertices = (rasterizer_dynamic_screen_vertex *)rasterizer_dynamic_vertex_cache_lock(vertex_slot);
+    vertices = (rasterizer_dynamic_screen_vertex *)halo::rasterizer::rasterizer_dynamic_vertex_cache_lock(vertex_slot);
 
     has_fade = definition->framebuffer_fade_mode != 0;
     centroid = *global_zero_vector3d_pointer;
@@ -919,7 +914,7 @@ void draw(contrail *c, Contrail *definition, int16_t instance)
             vertex_buffer = (void *)(uintptr_t)rasterizer_vertex_buffer_slots[buffer_handle - 1].hardware_buffer;
             ((d3d_unlock_fn)(*(void ***)vertex_buffer)[0x30 / 4])(vertex_buffer);
         }
-        rasterizer_transparent_object_append((uint32_t)(uintptr_t)bitmap, index_slot, vertex_slot,
+        halo::rasterizer::rasterizer_transparent_object_append((uint32_t)(uintptr_t)bitmap, index_slot, vertex_slot,
                                              primitive_count, 0, &centroid, shader);
     }
     rasterizer_vertex_buffer_lock_state = 0;

@@ -11,17 +11,12 @@
 #include "halo/memory/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 typedef int32_t (__stdcall *d3d_release_fn)(void *object);
 extern uint8_t debug_texture_cache_prints;
-extern uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap);
-extern void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap);
-extern void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap);
-extern void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap);
-extern void *rasterizer_get_capture_surface(uint8_t *object, void *fallback);
 extern void *texture_cache_base;
-extern uint32_t bitmap_compute_texture_data_size(BitmapData *bitmap);
 }
 
 namespace halo::cache {
@@ -116,14 +111,14 @@ void *texture_cache_manager::get(BitmapData *bitmap, uint8_t wait, uint8_t alloc
                 if (entry->loaded != 0) {
                     if (entry->converted == 0) {
                         entry->converted = 1;
-                        rasterizer_bitmap_create_hardware_texture(bitmap);
+                        halo::rasterizer::rasterizer_bitmap_create_hardware_texture(bitmap);
                         bitmap_type = bitmap->type;
                         if (bitmap_type == 0) {
-                            rasterizer_bitmap_upload_2d_mipmaps(bitmap);
+                            halo::rasterizer::rasterizer_bitmap_upload_2d_mipmaps(bitmap);
                         } else if (bitmap_type == 1) {
-                            rasterizer_bitmap_upload_cubemap_mipmaps(bitmap);
+                            halo::rasterizer::rasterizer_bitmap_upload_cubemap_mipmaps(bitmap);
                         } else if (bitmap_type == 2) {
-                            rasterizer_bitmap_upload_cubemap_mipmaps_by_face(bitmap);
+                            halo::rasterizer::rasterizer_bitmap_upload_cubemap_mipmaps_by_face(bitmap);
                         }
                         if (bitmap->pixel_base != (void *)0) {
                             GlobalFree(bitmap->pixel_base);
@@ -154,7 +149,7 @@ void *texture_cache_manager::get(BitmapData *bitmap, uint8_t wait, uint8_t alloc
 
     if (wait != 0 && result == (void *)0) {
 
-        result = rasterizer_get_capture_surface((uint8_t *)bitmap, (void *)0);
+        result = halo::rasterizer::rasterizer_get_capture_surface((uint8_t *)bitmap, (void *)0);
         return result;
     }
     return result;
@@ -198,7 +193,7 @@ uint32_t texture_cache_manager::page_allocate(BitmapData *bitmap, uint8_t priori
     uint8_t data_file_index;
     cache_io_completion completion;
 
-    computed_size = bitmap_compute_texture_data_size(bitmap);
+    computed_size = halo::rasterizer::bitmap_compute_texture_data_size(bitmap);
     cache_slot = halo::memory::view(globals().texture_cache)->allocate_block(4);
     if (cache_slot == (datum_index)0xffffffff) {
         return 0;

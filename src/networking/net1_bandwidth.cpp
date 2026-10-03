@@ -1,6 +1,7 @@
 #include "halo/networking/net1_bandwidth.hpp"
 #include <stdio.h>
 #include "halo/cseries/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern const char *network_bandwidth_direction_label_table[2];
@@ -32,9 +33,7 @@ extern float hud_text_draw_color_g;
 extern float hud_text_draw_color_b;
 extern uint16_t hud_text_draw_background_mode;
 extern const char decimal_format_string[];
-extern void rasterizer_set_shader_stage_config(int32_t stage);
 extern int32_t hud_text_draw_configure(int32_t a, int32_t b, int32_t c, int32_t d, int32_t e, int32_t f);
-extern void chimera__draw_8_bit_text(int32_t x, int32_t y, const char *text);
 }
 
 namespace halo::networking {
@@ -721,7 +720,7 @@ void BandwidthGraphView::overlay_draw()
     device_call_mode_ptr_count(device, 0x178, 5, label_quad, 0xd);
 
     device_call1(device, 0x1ac, 0);
-    rasterizer_set_shader_stage_config(0);
+    halo::rasterizer::rasterizer_set_shader_stage_config(0);
 
     device_set_render_state(device, 0x16, 1);
     device_set_render_state(device, 0xa8, 0xf);
@@ -759,13 +758,13 @@ void BandwidthGraphView::overlay_draw()
 
         sprintf(text, "%s|n%.2f bps sent|n%.2f bps recv", (char *)graph + 0x23e0,
             (double)graph->rate_sent, (double)graph->rate_received);
-        chimera__draw_8_bit_text(0, 0, text);
+        halo::rasterizer::chimera__draw_8_bit_text(0, 0, 0, 0, text);
 
         sprintf(text, decimal_format_string, graph->peak_scale);
-        chimera__draw_8_bit_text(0, 0, text);
+        halo::rasterizer::chimera__draw_8_bit_text(0, 0, 0, 0, text);
 
         sprintf(text, decimal_format_string, (int32_t)graph->displayed_rate);
-        chimera__draw_8_bit_text(0, 0, text);
+        halo::rasterizer::chimera__draw_8_bit_text(0, 0, 0, 0, text);
     }
 
     device_call1(device, 0x134, (int32_t)rasterizer_software_vertex_processing);

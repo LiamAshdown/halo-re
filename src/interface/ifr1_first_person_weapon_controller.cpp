@@ -7,6 +7,7 @@
 #include "halo/camera/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern first_person_weapon_interface *first_person_weapon_interfaces;
@@ -53,8 +54,6 @@ extern uint8_t rasterizer_caps_flag_68a;
 extern game_engine_definition *current_game_engine;
 extern game_engine_state game_engine_state_value;
 extern int32_t local_player_get_weapon_hud_interface(float *out_intensity);
-extern void rasterizer_screen_effect_render(weapon_screen_effect_parameters *parameters);
-extern void rasterizer_screen_effect_render_fixed_function(weapon_screen_effect_parameters *parameters);
 extern void hud_update_player(void);
 extern void game_engine_post_rasterize_post_game(void);
 extern void hud_update_teammate_nameplate_fade(void);
@@ -802,9 +801,9 @@ void FirstPersonWeaponController::update_screen_effects(void)
     if (hud_interface == -1 ||
         (int32_t)((WeaponHUDInterface *)halo::cache::globals().tag_instances[hud_interface & 0xffff].data)->screen_effect.count < 1) {
         if (rasterizer_device_version >= 0xffff0101u && rasterizer_caps_flag_68a == 0) {
-            rasterizer_screen_effect_render((weapon_screen_effect_parameters *)0);
+            halo::rasterizer::rasterizer_screen_effect_render((weapon_screen_effect_parameters *)0);
         } else {
-            rasterizer_screen_effect_render_fixed_function((weapon_screen_effect_parameters *)0);
+            halo::rasterizer::rasterizer_screen_effect_render_fixed_function((weapon_screen_effect_parameters *)0);
         }
         goto post_hud;
     }
@@ -873,9 +872,9 @@ void FirstPersonWeaponController::update_screen_effects(void)
     }
 
     if (rasterizer_device_version >= 0xffff0101u && rasterizer_caps_flag_68a == 0) {
-        rasterizer_screen_effect_render(&parameters);
+        halo::rasterizer::rasterizer_screen_effect_render(&parameters);
     } else {
-        rasterizer_screen_effect_render_fixed_function(&parameters);
+        halo::rasterizer::rasterizer_screen_effect_render_fixed_function(&parameters);
     }
 
 post_hud:

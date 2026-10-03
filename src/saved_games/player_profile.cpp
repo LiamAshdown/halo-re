@@ -16,6 +16,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern network_thread_record *variant_write_thread;
@@ -48,9 +49,6 @@ extern uint32_t rasterizer_device_version;
 extern uint32_t video_memory;
 extern uint8_t width640;
 extern uint8_t unknown_006894ba;
-extern uint8_t rasterizer_decal_zbias_active(void);
-extern uint8_t rasterizer_parse_vidmode_commandline(int32_t *width_out, int32_t *height_out, long *refresh_out);
-extern void display_mode_get_current(rasterizer_display_mode *out);
 extern char default_player_profiles_directory[0x100];
 extern int16_t default_game_variant_count;
 extern uint8_t savegame_index_dirty;
@@ -493,7 +491,7 @@ uint8_t halo::saved_games::PlayerProfile::set_default_video_options(uint8_t allo
 
     profile->specular = halo::shell::globals().disable_specular == 0;
     profile->shadows = 1;
-    profile->decals = rasterizer_decal_zbias_active() != 0;
+    profile->decals = halo::rasterizer::rasterizer_decal_zbias_active() != 0;
     profile->texture_quality = 2;
     profile->particles = 2;
     profile->frame_rate_mode = 2;
@@ -508,14 +506,14 @@ uint8_t halo::saved_games::PlayerProfile::set_default_video_options(uint8_t allo
     override_width = -1;
     override_height = -1;
     override_refresh = -1;
-    if (rasterizer_parse_vidmode_commandline(&override_width, &override_height, &override_refresh) == 0) {
+    if (halo::rasterizer::rasterizer_parse_vidmode_commandline(&override_width, &override_height, &override_refresh) == 0) {
         if (allow_display_query == 0) {
             profile->screen_width = 800;
             profile->screen_height = 600;
             profile->refresh_rate = 0x3c;
             return 1;
         }
-        display_mode_get_current(&mode);
+        halo::rasterizer::display_mode_get_current(&mode);
         profile->screen_height = (int16_t)mode.height;
         profile->screen_width = (int16_t)mode.width;
         profile->refresh_rate = (int16_t)mode.refresh_rate;

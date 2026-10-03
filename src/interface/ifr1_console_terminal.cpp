@@ -6,6 +6,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern uint8_t terminal_initialized;
@@ -39,8 +40,6 @@ extern float hud_text_draw_color_b;
 extern int16_t hud_text_draw_background_mode;
 extern uint32_t text_tab_stops;
 extern uint32_t hud_text_draw_box_field_474e;
-extern void chimera__draw_8_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override,
-    uint32_t position_or_color1, uint32_t position_or_color2, const char *text);
 extern int16_t render_viewport_top[6];
 extern datum_index console_message_tail;
 extern void console_message_delete(datum_index message);
@@ -297,7 +296,7 @@ void ConsoleTerminal::draw_overlay(void)
             rect.left = (int16_t)(render_viewport_top[5] - render_viewport_top[1]);
             rect.bottom = (int16_t)(0x1e0 - render_viewport_top[0]);
             rect.right = (int16_t)(0x280 - render_viewport_top[1]);
-            chimera__draw_8_bit_text(0, (int32_t *)&rect, 0, 0, line);
+            halo::rasterizer::chimera__draw_8_bit_text(0, (int32_t *)&rect, 0, 0, line);
         }
     }
 
@@ -334,7 +333,7 @@ void ConsoleTerminal::draw_overlay(void)
                 rect.left = (int16_t)(render_viewport_top[5] - render_viewport_top[1]);
                 rect.bottom = (int16_t)(y + line_height - render_viewport_top[0]);
                 rect.right = (int16_t)(0x280 - render_viewport_top[1]);
-                chimera__draw_8_bit_text(0, (int32_t *)&rect, 0, 0, message->text);
+                halo::rasterizer::chimera__draw_8_bit_text(0, (int32_t *)&rect, 0, 0, message->text);
             }
             hud_text_draw_background_mode = 0;
             message_handle = message->next;

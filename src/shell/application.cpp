@@ -13,6 +13,7 @@
 #include "halo/render/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern char *shell_command_line;
@@ -98,7 +99,6 @@ extern uint32_t external_00686b54;
 extern void input_directinput_initialize(void);
 extern uint32_t sound_initialize(void);
 extern void input_directinput_release_devices(void);
-extern void rasterizer_shutdown(void);
 }
 
 typedef int32_t (__cdecl *eula_show_fn)(const char *registry_path, const char *eula_file, int32_t unknown_2, int32_t unknown_3);
@@ -188,7 +188,7 @@ void EngineLifecycle::shutdown()
     global_globals = 0;
 
     halo::input::input_directinput_release_devices();
-    rasterizer_shutdown();
+    halo::rasterizer::rasterizer_shutdown();
     GlobalFree(halo::math::globals().sphere_point_table);
     halo::math::periodic_function_tables_free();
     halo::cache::data_file_close();

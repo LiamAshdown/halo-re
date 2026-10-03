@@ -22,9 +22,9 @@
 
 #include "halo/main/movie.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" { extern main_globals main_globals_data; }
-extern "C" { extern void rasterizer_capture_and_present(const int16_t *tile, BitmapData *bitmap); }
 extern "C" { extern char * targa_export(BitmapData *bitmap, file_reference_record *destination); }
 namespace halo::main {
 
@@ -40,7 +40,7 @@ void MoviePlayer::capture_frame_export(void)
     char path[0x200];
     BitmapData *movie_frame_bitmap = (BitmapData *)main_globals_data.movie_frame_bitmap;
 
-    rasterizer_capture_and_present(0, movie_frame_bitmap);
+    halo::rasterizer::rasterizer_capture_and_present(0, movie_frame_bitmap);
 
     if (main_globals_data.screenshot_tile_count < 1 && movie_frame_bitmap != 0) {
         file_reference_record request;
@@ -68,7 +68,6 @@ extern "C" { extern int32_t movie_playback_abort; }
 extern "C" { extern void *rasterizer_device; }
 extern "C" { extern d3d_present_parameters rasterizer_present_parameters; }
 extern "C" { extern uint8_t rasterizer_device_lost; }
-extern "C" { extern uint8_t rasterizer_device_reset(d3d_present_parameters *present_parameters); }
 typedef int32_t (__stdcall *d3d_test_cooperative_level_fn)(void *device);
 
 typedef int32_t (__stdcall *d3d_create_offscreen_plain_surface_fn)(void *device, uint32_t width,
@@ -174,7 +173,7 @@ void MoviePlayer::play_bink(const char *movie_path)
                     offscreen_surface = 0;
                 }
                 present_parameters = rasterizer_present_parameters;
-                rasterizer_device_reset(&present_parameters);
+                halo::rasterizer::rasterizer_device_reset(&present_parameters);
                 rasterizer_device_lost = 0;
                 ((d3d_create_offscreen_plain_surface_fn)D3D_VTABLE(rasterizer_device)[0x90 / 4])(
                     rasterizer_device, 0x280, 0x1e0, 0x16, 0, &offscreen_surface, 0);
@@ -201,7 +200,7 @@ void MoviePlayer::play_bink(const char *movie_path)
                     BinkNextFrame(bink);
                     ((d3d_stretch_rect_fn)D3D_VTABLE(rasterizer_device)[0x88 / 4])(
                         rasterizer_device, offscreen_surface, 0, render_target, 0, 0);
-                    rasterizer_capture_and_present(0, 0);
+                    halo::rasterizer::rasterizer_capture_and_present(0, 0);
                 }
             }
         } while (bink->frame_index != bink->frame_count && movie_playback_abort == 0);

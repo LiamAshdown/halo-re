@@ -6,14 +6,11 @@
 
 #include "halo/bitmaps/bitmaps.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern int8_t bitmap_format_bits_per_pixel[k_bitmap_data_format_count];
 extern uint8_t bitmap_group_debug_dump;
-extern uint8_t rasterizer_bitmap_create_hardware_texture(BitmapData *bitmap);
-extern void rasterizer_bitmap_upload_2d_mipmaps(BitmapData *bitmap);
-extern void rasterizer_bitmap_upload_cubemap_mipmaps(BitmapData *bitmap);
-extern void rasterizer_bitmap_upload_cubemap_mipmaps_by_face(BitmapData *bitmap);
 }
 
 namespace halo::bitmaps {
@@ -123,17 +120,17 @@ uint8_t bitmap_group::postprocess(datum_index tag_id, uint8_t skip_hardware_text
             BitmapData *entry = bitmap_data_array + i;
             if (bitmap->type != bitmaptype_interface_bitmaps) {
                 if (*(void **)&entry->hardware_texture == 0) {
-                    rasterizer_bitmap_create_hardware_texture(entry);
+                    halo::rasterizer::rasterizer_bitmap_create_hardware_texture(entry);
                 }
                 switch (entry->type) {
                 case bitmapdatatype_2d_texture:
-                    rasterizer_bitmap_upload_2d_mipmaps(entry);
+                    halo::rasterizer::rasterizer_bitmap_upload_2d_mipmaps(entry);
                     break;
                 case bitmapdatatype_3d_texture:
-                    rasterizer_bitmap_upload_cubemap_mipmaps(entry);
+                    halo::rasterizer::rasterizer_bitmap_upload_cubemap_mipmaps(entry);
                     break;
                 case bitmapdatatype_cube_map:
-                    rasterizer_bitmap_upload_cubemap_mipmaps_by_face(entry);
+                    halo::rasterizer::rasterizer_bitmap_upload_cubemap_mipmaps_by_face(entry);
                     break;
                 default:
                     break;

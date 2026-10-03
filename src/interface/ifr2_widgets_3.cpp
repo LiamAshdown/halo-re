@@ -1,6 +1,7 @@
 #include "halo/interface/ifr2_widgets.hpp"
 #include "halo/memory/api.hpp"
 #include <wchar.h>
+#include "halo/rasterizer/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -20,7 +21,6 @@ extern float widget_instance_get_cumulative_scale(widget_instance *widget);
 extern ColorARGB *ui_get_saved_pulse_color(ColorARGB *out);
 extern void text_set_render_context(datum_index font, ColorARGB *color, int32_t unknown_0, int32_t justification, int32_t unknown_1);
 extern uint8_t ui_string_has_button_prompt_token(uint16_t *text);
-extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0, int32_t unknown_1, const uint16_t *text);
 extern void ui_widget_draw_formatted_prompt_string(Rectangle2D *bounds, uint8_t use_text_color, const uint16_t *text);
 }
 
@@ -136,7 +136,7 @@ void WidgetRender::render_text_box(UIWidgetDefinition *tag, Rectangle2D *dest, i
 
         text_set_render_context(*(datum_index *)&tag->text_font.tag_id, &color, -1, tag->justification, 0);
         if (ui_string_has_button_prompt_token((uint16_t *)widget->text) == 0) {
-            chimera__draw_16_bit_text(&rects[1], &rects[0], 0, 0, (uint16_t *)widget->text);
+            halo::rasterizer::chimera__draw_16_bit_text(&rects[1], (int32_t *)(&rects[0]), 0, 0, (const int16_t *)((uint16_t *)widget->text));
             return;
         }
         ui_widget_draw_formatted_prompt_string(&rects[0], 0, (uint16_t *)widget->text);

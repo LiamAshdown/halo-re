@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern player_globals *local_player_globals;
@@ -47,8 +48,6 @@ extern void hud_draw_message_icon(const hud_messaging_information *information, 
 extern int32_t hud_message_compare(const void *a, const void *b);
 extern void text_measure_string_extents(Rectangle2D *origin, Rectangle2D *cursor, Rectangle2D *out_bounds,
                          const uint16_t *text);
-extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0,
-                                      int32_t unknown_1, const uint16_t *text);
 extern uint16_t *text_string_list_get_string(datum_index string_list_tag, int16_t index);
 extern wchar_t *string_format_wide_va(wchar_t *dest, const wchar_t *format, ...);
 }
@@ -223,7 +222,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                     text_measure_string_extents(&line, &cursor, &bounds, text);
                     cursor.left = (int16_t)(cursor.left - 3);
                     bounds.left = line.left;
-                    chimera__draw_16_bit_text(0, &bounds, 0, 0, text);
+                    halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&bounds, 0, 0, (const int16_t *)text);
                     line.top = cursor.top;
                     text_offset = (uint16_t)(text_offset + data);
                 } else if (data <= 0x11) {
@@ -308,7 +307,7 @@ void HudMessaging::messaging_update(int16_t local_player_index)
         hud_messaging_set_text_state(font, &color);
 
         if (slot->source == -1) {
-            chimera__draw_16_bit_text(0, &cursor, 0, 0, slot->text);
+            halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&cursor, 0, 0, (const int16_t *)slot->text);
         } else {
             Item *item;
             const uint16_t *text;
@@ -337,9 +336,9 @@ void HudMessaging::messaging_update(int16_t local_player_index)
                     value_scale = 1;
                 }
                 string_format_wide_va(formatted, (const wchar_t *)text, slot->count / value_scale);
-                chimera__draw_16_bit_text(0, &cursor, 0, 0, (const uint16_t *)formatted);
+                halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&cursor, 0, 0, (const int16_t *)((const uint16_t *)formatted));
             } else {
-                chimera__draw_16_bit_text(0, &cursor, 0, 0, text);
+                halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)&cursor, 0, 0, (const int16_t *)text);
             }
         }
 

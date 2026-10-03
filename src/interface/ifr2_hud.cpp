@@ -4,6 +4,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/camera/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -62,15 +63,12 @@ extern ColorRGB motion_sensor_blip_colors[6];
 extern float sinf(float x);
 extern float cosf(float x);
 extern double sin(double x);
-extern void rasterizer_motion_sensor_blip_draw(const float *point, const ColorRGB *color, float alpha, float size);
 extern motion_sensor_globals *motion_sensor;
 extern game_variant game_engine_variant;
 extern int16_t motion_sensor_render_local_player;
 extern float motion_sensor_render_icon_scale;
 extern float motion_sensor_render_center[2];
 extern float motion_sensor_sweep;
-extern void rasterizer_motion_sensor_begin(void);
-extern void rasterizer_motion_sensor_end(const float *center, float sweep);
 extern void motion_sensor_plot_blip(const float *position, uint8_t type, const motion_sensor_frame *frame, int8_t subtype, float pixels_per_unit, float alpha, float size_factor);
 extern uint8_t motion_sensor_object_is_detected(datum_index unit_index);
 extern int16_t game_engine_collect_matching_waypoints(int32_t candidate, float *out_positions, uint8_t *out_slots, int32_t max_count);
@@ -1256,7 +1254,7 @@ void MotionSensor::plot_blip(const float *position, uint8_t type, const motion_s
     if (type == 5) {
         pulse = (float)((sin((double)((float)game_time->game_time * 0.10471973568201065f)) + 1.0) * 0.3333333333333333 + 1.0);
     }
-    rasterizer_motion_sensor_blip_draw(point, &motion_sensor_blip_colors[(int8_t)type], alpha, pulse * size_factor + size);
+    halo::rasterizer::rasterizer_motion_sensor_blip_draw(point, (const float *)(&motion_sensor_blip_colors[(int8_t)type]), alpha, pulse * size_factor + size);
 }
 
 /**
@@ -1285,7 +1283,7 @@ void MotionSensor::render(uint8_t splitscreen, const int16_t *screen_center, int
     }
     motion_sensor_render_center[0] = (float)screen_center[0];
     motion_sensor_render_center[1] = (float)screen_center[1];
-    rasterizer_motion_sensor_begin();
+    halo::rasterizer::rasterizer_motion_sensor_begin();
 
     for (k = 0; k < 10; k++) {
         motion_sensor_player_state *state = &motion_sensor->players[local_player_index];
@@ -1321,7 +1319,7 @@ void MotionSensor::render(uint8_t splitscreen, const int16_t *screen_center, int
             motion_sensor_plot_blip(position, 5, frame, 0, pixels_per_unit, alpha, size);
         }
     }
-    rasterizer_motion_sensor_end(motion_sensor_render_center, motion_sensor_sweep);
+    halo::rasterizer::rasterizer_motion_sensor_end(motion_sensor_render_center, motion_sensor_sweep);
 }
 
 /**

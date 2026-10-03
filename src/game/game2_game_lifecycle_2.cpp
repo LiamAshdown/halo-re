@@ -10,6 +10,7 @@
 #include "halo/camera/api.hpp"
 #include "halo/saved_games/api.hpp"
 #include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 typedef struct ai_update_stagger_state { int16_t threshold; int16_t highest; uint8_t claimed; } ai_update_stagger_state;
 
@@ -73,7 +74,6 @@ extern void interface_local_player_state_reset(void);
 extern void scenario_objects_place(Scenario *scenario);
 extern void objects_reset(void);
 extern void breakable_surfaces_reset(void);
-extern void decal_and_font_system_reset(void);
 extern uint32_t rasterizer_globals_data;
 extern data_array *ai_conversation_data;
 extern data_array *encounter_data;
@@ -90,7 +90,6 @@ extern uint32_t text_localization_strings;
 extern void update_queues_dispose(void);
 extern void hs_scripts_free(void);
 extern void objects_flush_dirty_state(void);
-extern void font_glyph_cache_clear_all(void);
 extern void widget_close_all(void);
 extern uint32_t global_scenario_index;
 extern uint16_t global_structure_bsp_index;
@@ -205,7 +204,7 @@ void GameLifecycle::start_new_map(void)
 
     game_engine_load_from_variant(&game_engine_active_variant);
     _control87(0x9001f, 0xfffff);
-    decal_and_font_system_reset();
+    halo::rasterizer::decal_and_font_system_reset();
     halo::saved_games::game_state_build_header();
 
     {
@@ -360,7 +359,7 @@ void GameLifecycle::stop_current_map(void)
 {
     uint8_t had_network_predicted_globals;
 
-    font_glyph_cache_clear_all();
+    halo::rasterizer::font_glyph_cache_clear_all();
     rasterizer_globals_data = 0;
     ((data_array *)recorded_animations)->valid = 0;
     hs_scripts_free();

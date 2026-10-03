@@ -6,6 +6,7 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 typedef struct win32_bitmap {
     int32_t type;
@@ -19,7 +20,6 @@ static_assert(sizeof(win32_bitmap) == 0x18, "win32_bitmap layout");
 extern "C" {
 extern void chat_close(void);
 extern void chat_submit_input(void);
-extern void rasterizer_capture_and_present(const int16_t *tile, void *bitmap);
 
 extern uint8_t shell_window_proc_bypass;
 extern uint8_t shell_application_inactive;
@@ -243,12 +243,12 @@ int32_t __stdcall GameWindow::procedure(HWND hwnd, uint32_t message, uint32_t wp
                     ValidateRect(hwnd, (win32_rect *)0);
                     return 0;
                 }
-                rasterizer_capture_and_present((const int16_t *)0, (void *)0);
+                halo::rasterizer::rasterizer_capture_and_present((const int16_t *)0, (BitmapData *)((void *)0));
                 ValidateRect(hwnd, (win32_rect *)0);
                 return 0;
             }
             if (rasterizer_device != 0) {
-                rasterizer_capture_and_present((const int16_t *)0, (void *)0);
+                halo::rasterizer::rasterizer_capture_and_present((const int16_t *)0, (BitmapData *)((void *)0));
                 return DefWindowProcA(hwnd, message, wparam, lparam);
             }
             break;

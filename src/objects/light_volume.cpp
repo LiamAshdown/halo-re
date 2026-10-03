@@ -5,6 +5,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern void antenna_tip_jitter(real_vector3d *amplitude, real_point3d *position, real_matrix4x3 *m);
@@ -23,12 +24,6 @@ extern data_array *lightning_instances;
 extern uint8_t *object_attachment_get_blended_marker(uint32_t object_index, uint8_t *instance);
 extern uint8_t object_function_get_value(uint32_t object_index, int16_t selector, float *out_value);
 extern int32_t object_get_node_local_transform(uint32_t object_index, char *marker_name, object_marker *marker, uint32_t flags);
-extern void *rasterizer_dynamic_vertex_cache_lock(void);
-extern int32_t rasterizer_dynamic_vertex_cache_reserve(void);
-extern void rasterizer_lens_flare_batching_select_mode(int16_t mode, uint32_t flags);
-extern void rasterizer_lens_flare_occlusion_sample_add(void *procedure, const real_point3d *position, uint32_t id_1, uint32_t id_2);
-extern void rasterizer_lens_flare_quad_add(const float *scale, uint32_t diffuse, const real_point3d *position, float radius, float rotation_degrees);
-extern void rasterizer_transparent_object_append(uint32_t a, int32_t b, int32_t c, int32_t d, uint32_t e);
 extern int16_t rasterizer_vertex_buffer_lock_state;
 extern float render_camera_global;
 extern real_vector3d *shared_constant_vector_696704;
@@ -187,7 +182,7 @@ void halo::objects::LightVolumeSystem::render(uint32_t object_index, datum_index
                 camera_forward_z * (marker.node_transform.position.z - camera_position_z) <
                 *(float *)(tag + 0x38)) {
 
-                rasterizer_lens_flare_occlusion_sample_add((void *)light_volume_render_procedure,
+                halo::rasterizer::rasterizer_lens_flare_occlusion_sample_add((void *)light_volume_render_procedure,
                     &marker.node_transform.position, object_index, light_volume_handle);
             }
         }
@@ -277,7 +272,7 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
         return;
     }
 
-    rasterizer_lens_flare_batching_select_mode(5, 1);
+    halo::rasterizer::rasterizer_lens_flare_batching_select_mode(5, 1);
     if (halo::render::rasterizer_lens_flare_set_current_key(*(int32_t *)(tag + 0x68), 0, (int16_t)*(uint16_t *)(tag + 0x6c)) == 0 &&
         *(int16_t *)(tag + 0x6e) > 0) {
         int16_t count = *(int16_t *)(tag + 0x6e);
@@ -302,7 +297,7 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
                 (color_interpolation_flags)(tag[0x22] & 3), color_t);
             color.alpha = ((1.0f - alpha_t) * *(float *)(frame + 0x68) + alpha_t * *(float *)(frame + 0x78)) *
                 brightness;
-            rasterizer_lens_flare_quad_add(0, color_pack_argb_from_real(&color), &point, radius, 0.0f);
+            halo::rasterizer::rasterizer_lens_flare_quad_add(0, color_pack_argb_from_real(&color), &point, radius, 0.0f);
         }
     }
     halo::render::rasterizer_effect_slot_release_active();
@@ -516,9 +511,9 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                     rasterizer_vertex_buffer_lock_state = 0xc;
                     if (node_count > 2) {
                         int32_t n = node_count + 1;
-                        int32_t frame = rasterizer_dynamic_vertex_cache_reserve();
+                        int32_t frame = halo::rasterizer::rasterizer_dynamic_vertex_cache_reserve(0, 0);
                         if (frame != -1) {
-                            float *out = (float *)rasterizer_dynamic_vertex_cache_lock();
+                            float *out = (float *)halo::rasterizer::rasterizer_dynamic_vertex_cache_lock(frame);
                             float t_bias = glow_random_unit_for_lightning();
                             float alpha_scale = 1.0f, color_scale_extra = 1.0f;
                             real_vector3d *color_scale = global_white_color;
@@ -588,7 +583,7 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                                 }
                             }
 
-                            rasterizer_transparent_object_append(shader_something, n * -2, frame, n * 2 - 2, 0);
+                            halo::rasterizer::rasterizer_transparent_object_append(shader_something, n * -2, frame, n * 2 - 2, 0, 0, 0);
                         }
                         first_marker = 1;
                     }

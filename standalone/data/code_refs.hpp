@@ -134,7 +134,6 @@ extern void controls_gamepad_bindings_restore();
 extern void controls_gamepad_lists_load();
 extern void controls_gamepad_toggle_assignment();
 extern void ctf_engine_flag_tick();
-extern void decal_geometry_cache_restore_procs();
 extern void decal_rehash_object_decals();
 extern void decals_detach_from_structure_bsp();
 extern void flag_delete();

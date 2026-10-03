@@ -6,6 +6,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/saved_games/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern data_array *decal_data;
@@ -26,7 +27,6 @@ extern long lrint(double x);
 extern uint8_t *game_state_base;
 extern int32_t game_state_cursor;
 extern uint32_t game_state_crc;
-extern void rasterizer_decals_initialize(void);
 }
 
 namespace halo::effects {
@@ -694,7 +694,7 @@ void decal_ref::initialize()
     game_state_cursor = game_state_cursor + sizeof(decal_grid);
     halo::memory::crc32_update(&game_state_crc, (uint8_t *)&block_size, 4);
 
-    rasterizer_decals_initialize();
+    halo::rasterizer::rasterizer_decals_initialize();
 }
 
 /**

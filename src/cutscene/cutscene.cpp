@@ -3,6 +3,7 @@
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
 #include "halo/cutscene/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern void game_engine_cleanup_stray_projectiles(void);
@@ -27,7 +28,6 @@ extern void ui_draw_filled_rectangle(uint32_t packed_color, Rectangle2D *rect);
 extern void color_argb_int_to_real(ColorARGB *out, uint32_t packed);
 extern void text_set_render_context(datum_index font, ColorARGB *color, int16_t style, int16_t justification, uint32_t flags);
 extern uint16_t *text_string_list_get_string(datum_index list_id, int16_t index);
-extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
 }
 
 namespace halo::cutscene {
@@ -288,7 +288,7 @@ void CutsceneDirector::letterbox()
                              title->text_bounds.bottom == title->text_bounds.top)
                     ? &hud_globals_tag_data->default_chapter_title_bounds
                     : &title->text_bounds;
-                chimera__draw_16_bit_text((Rectangle2D *)0, (int32_t *)dest_rect, 0, 0,
+                halo::rasterizer::chimera__draw_16_bit_text((Rectangle2D *)0, (int32_t *)dest_rect, 0, 0,
                     (const int16_t *)help_text);
                 text_shadow_color_argb = 0;
 

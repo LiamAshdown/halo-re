@@ -6,6 +6,7 @@
 
 #include "halo/structures/structures.hpp"
 #include "halo/memory/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern uint8_t *game_state_base;
@@ -16,9 +17,6 @@ extern ScenarioStructureBSP *global_structure_bsp;
 extern int16_t current_local_player_index;
 extern real_point3d render_camera_global;
 extern long lrint(double x);
-extern void rasterizer_detail_objects_begin(void);
-extern void rasterizer_detail_objects_vertex_buffer_fill(detail_object_render_list *render_list);
-extern void rasterizer_detail_objects_draw(detail_object_render_list *render_list);
 }
 
 namespace halo::structures {
@@ -62,7 +60,7 @@ void detail_object_system::update_render_list(void)
     cell_z = (int16_t)(int32_t)lrint((double)(render_camera_global.z * 0.125f - 0.5f));
 
     if (detail_data->bullshit != 0) {
-        rasterizer_detail_objects_begin();
+        halo::rasterizer::rasterizer_detail_objects_begin();
 
         if (cell_x != frame->cell_x || cell_y != frame->cell_y || cell_z != frame->cell_z ||
             frame->valid == 0 || (detail_data->bullshit & 2) != 0) {
@@ -165,10 +163,10 @@ void detail_object_system::update_render_list(void)
                     frame->render_list.layer_count = frame->render_list.layer_count + 1;
                 }
             }
-            rasterizer_detail_objects_vertex_buffer_fill(&frame->render_list);
+            halo::rasterizer::rasterizer_detail_objects_vertex_buffer_fill((rasterizer_detail_object_batches *)(&frame->render_list));
         }
 
-        rasterizer_detail_objects_draw(&frame->render_list);
+        halo::rasterizer::rasterizer_detail_objects_draw((const rasterizer_detail_object_batches *)(&frame->render_list));
     }
 }
 

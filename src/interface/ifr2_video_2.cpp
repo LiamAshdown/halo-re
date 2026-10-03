@@ -4,6 +4,7 @@
 #include <string.h>
 #include "halo/memory/api.hpp"
 #include "halo/shell/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -23,7 +24,6 @@ extern int32_t video_gamma_setting;
 extern int32_t rasterizer_gamma_exponent;
 extern void video_resolution_list_build(void);
 extern uint32_t video_refresh_rate_find_index(int32_t resolution_index, int32_t refresh_rate);
-extern void chimera__gamma(void);
 extern heap *widget_memory_pool;
 extern uint16_t *string_format_wide_va(uint16_t *dest, const uint16_t *format, ...);
 extern void widget_play_sound_effect(int16_t effect_id);
@@ -186,7 +186,7 @@ void VideoOptions::populate(uint8_t *context, uint8_t *settings)
             video_gamma_setting = gamma;
             rasterizer_gamma_exponent = gamma;
         }
-        chimera__gamma();
+        halo::rasterizer::chimera__gamma();
     }
 }
 
@@ -256,7 +256,7 @@ uint8_t VideoOptions::update(widget_instance *screen)
         }
     }
     rasterizer_gamma_exponent = video_gamma_setting;
-    chimera__gamma();
+    halo::rasterizer::chimera__gamma();
     widget_extended_description_sync_selection(screen);
     return 1;
 }

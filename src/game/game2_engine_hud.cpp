@@ -3,6 +3,7 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/sound/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern game_engine_definition *current_game_engine;
@@ -34,7 +35,6 @@ extern void game_engine_build_end_game_result_text(datum_index player, wchar_t *
 extern wchar_t *game_engine_get_default_multiplayer_string(const scoreboard_entry *entry);
 extern int32_t hud_draw_world_relative_text(hud_world_text_params *params, int16_t row, wchar_t *text, uint8_t highlighted);
 extern int32_t game_engine_multiplayer_ui_state_id(void);
-extern void chimera__draw_16_bit_text(Rectangle2D *clip_rect_override, int32_t *dest_rect_override, uint32_t position_or_color1, uint32_t position_or_color2, const int16_t *text);
 extern uint16_t unit_find_weapon_index_by_flag(uint32_t unit_index, uint8_t flag_bit);
 extern char *network_address_to_string(s_network_address *addr);
 extern int16_t network_channel_get_remote_address(s_network_address *address, network_receive_queue *queue);
@@ -110,7 +110,7 @@ void EngineHud::scoreboard_draw_white_line(Rectangle2D *rect, wchar_t *text, flo
     hud_text_draw_color_or_flags = 0xffffu;
     hud_text_draw_column = 1;
     hud_text_draw_unknown_4730 = 0;
-    chimera__draw_16_bit_text(0, (int32_t *)rect, 0, 0, (const int16_t *)text);
+    halo::rasterizer::chimera__draw_16_bit_text(0, (int32_t *)rect, 0, 0, (const int16_t *)text);
 }
 
 /**

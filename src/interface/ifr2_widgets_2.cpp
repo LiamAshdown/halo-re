@@ -2,6 +2,7 @@
 #include "halo/memory/api.hpp"
 #include <wchar.h>
 #include "halo/cache/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 #ifdef interface
 #undef interface
@@ -27,7 +28,6 @@ extern void ui_string_replace_all(const uint16_t *search, const uint16_t *replac
 extern ColorRGB *ui_get_saved_color(ColorRGB *out);
 extern int32_t widget_cursor_side_of_midpoint(widget_instance *widget);
 extern void text_set_render_context(datum_index font, ColorARGB *color, int32_t unknown_0, int32_t justification, int32_t unknown_1);
-extern void chimera__draw_16_bit_text(Rectangle2D *clip, Rectangle2D *bounds, int32_t unknown_0, int32_t unknown_1, const uint16_t *text);
 extern widget_instance * widget_instance_find_at_point(widget_instance *widget, int32_t cursor_x, int32_t cursor_y, int32_t offset_xy);
 }
 
@@ -271,7 +271,7 @@ void WidgetRender::render_list_head(UIWidgetDefinition *tag, Rectangle2D *dest, 
             }
 
             text_set_render_context(*(datum_index *)&tag->text_font.tag_id, &color, -1, justification, 0);
-            chimera__draw_16_bit_text(&clip, &rect, 0, 0, text);
+            halo::rasterizer::chimera__draw_16_bit_text(&clip, (int32_t *)&rect, 0, 0, (const int16_t *)text);
         }
     }
 

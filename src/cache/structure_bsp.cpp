@@ -7,10 +7,10 @@
 #include "rasterizer.h"
 #include "halo/cache/globals.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern void *rasterizer_device;
-extern int8_t rasterizer_vertex_buffer_create(void *fields, int32_t format, int32_t vertex_count, void *rendered_data, void *lightmap_data, int32_t size);
 extern d3d_caps9 rasterizer_caps;
 }
 
@@ -143,29 +143,29 @@ void structure_bsp_loader::load_material_vertex_buffers(ScenarioStructureBSPComp
                  material->shader.tag_fourcc == _tag_group_shader_transparent_water ||
                  material->shader.tag_fourcc == _tag_group_shader_transparent_glass)) {
                 if ((int32_t)rasterizer_caps.max_streams < 2 && material->lightmap_vertices_count != 0) {
-                    rasterizer_vertex_buffer_create(&material->rendered_vertices_type, 0x13,
+                    halo::rasterizer::rasterizer_vertex_buffer_create((rasterizer_vertex_buffer *)(&material->rendered_vertices_type), 0x13,
                         material->rendered_vertices_count,
-                        (void *)material->uncompressed_vertices.pointer, lightmap_vertex_data,
+                        (uint32_t *)((void *)material->uncompressed_vertices.pointer), (int32_t)lightmap_vertex_data,
                         (int16_t)material->lightmap_vertices_count * 0x28);
                 } else {
-                    rasterizer_vertex_buffer_create(&material->rendered_vertices_type, 0xc,
+                    halo::rasterizer::rasterizer_vertex_buffer_create((rasterizer_vertex_buffer *)(&material->rendered_vertices_type), 0xc,
                         material->rendered_vertices_count,
-                        (void *)material->uncompressed_vertices.pointer, 0,
+                        (uint32_t *)((void *)material->uncompressed_vertices.pointer), 0,
                         (int16_t)material->rendered_vertices_count << 5);
                     if (material->lightmap_vertices_count != 0) {
-                        rasterizer_vertex_buffer_create(&material->lightmap_vertices_type, 0xd,
-                            (int16_t)material->lightmap_vertices_count, lightmap_vertex_data, 0,
+                        halo::rasterizer::rasterizer_vertex_buffer_create((rasterizer_vertex_buffer *)(&material->lightmap_vertices_type), 0xd,
+                            (int16_t)material->lightmap_vertices_count, (uint32_t *)lightmap_vertex_data, 0,
                             (int16_t)material->lightmap_vertices_count * 8);
                     }
                 }
             } else {
-                rasterizer_vertex_buffer_create(&material->rendered_vertices_type, 0,
+                halo::rasterizer::rasterizer_vertex_buffer_create((rasterizer_vertex_buffer *)(&material->rendered_vertices_type), 0,
                     (int16_t)material->rendered_vertices_count,
-                    (void *)material->uncompressed_vertices.pointer, 0,
+                    (uint32_t *)((void *)material->uncompressed_vertices.pointer), 0,
                     (int16_t)material->rendered_vertices_count * 0x38);
                 if (material->lightmap_vertices_count != 0) {
-                    rasterizer_vertex_buffer_create(&material->lightmap_vertices_type, 2,
-                        (int16_t)material->lightmap_vertices_count, lightmap_vertex_data, 0,
+                    halo::rasterizer::rasterizer_vertex_buffer_create((rasterizer_vertex_buffer *)(&material->lightmap_vertices_type), 2,
+                        (int16_t)material->lightmap_vertices_count, (uint32_t *)lightmap_vertex_data, 0,
                         (int16_t)material->lightmap_vertices_count * 0x14);
                 }
             }

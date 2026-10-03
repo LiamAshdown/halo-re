@@ -25,6 +25,7 @@
 #include "halo/cutscene/api.hpp"
 #include "halo/camera/api.hpp"
 #include "halo/render/api.hpp"
+#include "halo/rasterizer/api.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -56,13 +57,10 @@ extern void render_model(TagID model_tag_id, void *node_matrices, float level_of
     uint8_t *region_permutations, ColorRGB *change_colors, float *function_out_values, render_lighting *lighting,
     real_point3d *bounding_center, float bounding_radius, render_model_effect *effect, datum_index object_index,
     uint16_t forced_shader_permutation, uint32_t flags);
-extern uint8_t rasterizer_object_shadow_begin(real_matrix4x3 *projection, ColorRGB *color, float radius,
-    float *out_radius);
 extern rasterizer_window_parameters rasterizer_window;
 extern uint8_t rasterizer_caps_flag_689;
 extern uint8_t console_debug_toggle_6893f2;
 extern uint8_t rasterizer_object_shadow_window_restored;
-extern void rasterizer_render_target_set_active(int16_t target_index, uint32_t clear_color, uint8_t clear);
 extern int16_t rendered_object_count;
 extern datum_index rendered_objects[0x100];
 extern uint8_t rasterizer_render_states_dirty;
@@ -343,7 +341,7 @@ uint8_t halo::render::ObjectRenderData::shadow_begin(float fade)
     color.green = color.green * t + (1.0f - t);
     color.blue = color.blue * t + (1.0f - t);
 
-    return rasterizer_object_shadow_begin(&data->shadow_matrix, &color, radius, &data->shadow_radius);
+    return halo::rasterizer::rasterizer_object_shadow_begin(&data->shadow_matrix, &color, radius, &data->shadow_radius);
 }
 
 /**
@@ -414,7 +412,7 @@ void halo::render::ObjectRenderData::shadow_end()
 
     if (rasterizer_window.type == 1 && rasterizer_caps_flag_689 == 0 && console_debug_toggle_6893f2 != 0 &&
         rasterizer_object_shadow_window_restored == 0) {
-        rasterizer_render_target_set_active(1, 0, 0);
+        halo::rasterizer::rasterizer_render_target_set_active(1, 0, 0);
         rasterizer_object_shadow_window_restored = 1;
     }
 }
