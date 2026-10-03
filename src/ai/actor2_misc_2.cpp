@@ -128,7 +128,7 @@ void ActorView::refresh_combat_context()
             center->z = scale * center->z;
         }
         memset((uint8_t *)self + 0x120, 0, 0x2a * 4);
-        A_I32(0x158) = -1;
+        self->active_unit_index = -1;
         self->pathfinding_surface_index = -1;
         if (self->cluster_unit_index != -1) {
             halo::ai::actor_fill_unit_position_context((int32_t)self->cluster_unit_index, (actor_unit_position_context *)((uint8_t *)self + 0x120));
@@ -159,7 +159,7 @@ void ActorView::refresh_combat_context()
         self->vehicle_gunner = 0;
         self->vehicle_gunner_bombards[0] = 0;
         self->vehicle_driving_type = 0;
-        A_I32(0x158) = parent_index;
+        self->active_unit_index = parent_index;
         if (*(int32_t *)(parent + 0x324) == self->unit_index) {
             self->vehicle_driving_type = 1;
             vehicle_flags = *(uint32_t *)(vehicle_tag + 0x2f0);
@@ -213,7 +213,7 @@ void ActorView::refresh_combat_context()
             }
         }
     } else {
-        A_I32(0x158) = -1;
+        self->active_unit_index = -1;
         self->vehicle_driving_type = 0;
         self->order_committed = 0;
         self->vehicle_gunner = 0;
