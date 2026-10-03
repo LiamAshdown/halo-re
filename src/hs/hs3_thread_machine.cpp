@@ -3,6 +3,8 @@
 #include "crt.h"
 #include "halo/memory/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 extern "C" {
 extern void hs_thread_push(datum_index node, uint32_t thread_index, void *result_address);
@@ -45,7 +47,7 @@ void ThreadMachine::evaluate_step(uint32_t thread_index) const
     char first;
     hs_function_definition *definition;
 
-    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218);
+    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     script = 0;
     hs_current_thread_index = (int16_t)thread_index;
 
@@ -73,7 +75,7 @@ void ThreadMachine::evaluate_step(uint32_t thread_index) const
         }
 
         frame = thread->stack;
-        node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (frame->syntax_node & 0xffff) * 0x14);
+        node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (frame->syntax_node & halo::k_slot_mask) * 0x14);
         saved_flags = thread->flags;
         frame->size = 0;
         thread->flags = thread->flags & 0xfe;
@@ -124,7 +126,7 @@ datum_index ThreadMachine::find_by_script_index(int16_t script_index) const
 
     thread_handle = halo::memory::datum_next(-1, hs_thread_data);
     while (thread_handle != k_datum_index_none) {
-        thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_handle & 0xffff) * 0x218);
+        thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
         if (thread->script_index == script_index) {
             return thread_handle;
         }
@@ -148,7 +150,7 @@ datum_index ThreadMachine::find_by_script_name(char *name) const
     scripts = (ScenarioScript *)halo::scenario::globals().scenario->scripts.pointer;
     thread_handle = halo::memory::datum_next(-1, hs_thread_data);
     while (thread_handle != k_datum_index_none) {
-        thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_handle & 0xffff) * 0x218);
+        thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
         if (thread->script_index != -1 &&
             _stricmp(scripts[thread->script_index].name.string, name) == 0) {
             return thread_handle;
@@ -173,7 +175,7 @@ datum_index ThreadMachine::create(int32_t script_index, uint8_t type) const
 
     handle = halo::memory::datum_new(hs_thread_data);
     if (handle != k_datum_index_none) {
-        thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (handle & 0xffff) * 0x218);
+        thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (handle & halo::k_slot_mask) * sizeof(hs_thread));
         thread->stack = (hs_stack_frame *)&thread->stack_data;
         thread->stack->previous = 0;
         thread->stack->size = 0;
@@ -201,7 +203,7 @@ void ThreadMachine::pop_frame(uint32_t thread_index) const
 {
     hs_thread *thread;
 
-    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218);
+    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     thread->stack = thread->stack->previous;
 }
 
@@ -224,8 +226,8 @@ void ThreadMachine::push(datum_index node, uint32_t thread_index, void *result_a
     uint16_t index;
     hs_type_t source_type;
 
-    syntax_node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node & 0xffff) * 0x14);
-    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218);
+    syntax_node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node & halo::k_slot_mask) * 0x14);
+    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
 
     if ((syntax_node->flags & _hs_syntax_node_primitive_bit) == 0) {
         thread->stack->result_address = result_address;
@@ -272,7 +274,7 @@ void ThreadMachine::restart(uint32_t thread_index) const
     hs_stack_frame *parent_frame;
     datum_index syntax_node;
 
-    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218);
+    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     if (thread->wake_tick == -1) {
         return;
     }
@@ -286,7 +288,7 @@ void ThreadMachine::restart(uint32_t thread_index) const
 
     syntax_node = thread->stack->syntax_node;
     if (syntax_node != k_datum_index_none) {
-        node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (syntax_node & 0xffff) * 0x14);
+        node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (syntax_node & halo::k_slot_mask) * 0x14);
         if (node->index_union == _hs_function_sleep_until) {
             thread->stack = thread->stack->previous;
             return;
@@ -298,7 +300,7 @@ void ThreadMachine::restart(uint32_t thread_index) const
         syntax_node = parent_frame->syntax_node;
         if (syntax_node != k_datum_index_none) {
             node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
-                (syntax_node & 0xffff) * 0x14);
+                (syntax_node & halo::k_slot_mask) * 0x14);
             if (node->index_union == _hs_function_sleep_until) {
                 hs_thread_pop_frame(thread_index);
                 hs_thread_pop_frame(thread_index);
@@ -326,9 +328,9 @@ void ThreadMachine::return_value(int32_t value, uint32_t thread_index) const
     hs_type_t expected_type;
     ScenarioScript *scripts;
 
-    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218);
+    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     frame = thread->stack;
-    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (frame->syntax_node & 0xffff) * 0x14);
+    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (frame->syntax_node & halo::k_slot_mask) * 0x14);
 
     if ((node->flags & _hs_syntax_node_script_call_bit) == 0) {
         actual_type = hs_function_definitions[node->index_union]->return_type;

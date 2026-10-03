@@ -2,6 +2,7 @@
 #include "halo/physics/api.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern void *memset(void *dst, int32_t value, uint32_t size);
@@ -36,25 +37,25 @@ void ScriptEffects::damage_apply_at_location(int16_t location_index, uint32_t da
 
     memset(&request, 0, sizeof(request));
     request.damage_effect = damage_effect;
-    request.team_index = 0xffff;
-    request.causer = 0xffffffff;
-    request.attacker = 0xffffffff;
-    request.sound_index = 0xffff;
+    request.team_index = halo::k_word_none;
+    request.causer = halo::k_dword_none;
+    request.attacker = halo::k_dword_none;
+    request.sound_index = halo::k_word_none;
     request.scale_a = 1.0f;
     request.scale_b = 1.0f;
-    request.material_type = 0xffff;
+    request.material_type = halo::k_word_none;
     *(Point3D *)&request.position = location->position;
     *(Point3D *)&request.direction = location->position;
 
     impulse = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)&location->position);
     request.sound_impulse = impulse;
     if (impulse == -1) {
-        request.sound_index = 0xffff;
-        damage_apply_area_effect(&request, 0xffffffff);
+        request.sound_index = halo::k_word_none;
+        damage_apply_area_effect(&request, halo::k_dword_none);
         return;
     }
-    request.sound_index = ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
-    damage_apply_area_effect(&request, 0xffffffff);
+    request.sound_index = ((ScenarioStructureBSPLeaf *)global_structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
+    damage_apply_area_effect(&request, halo::k_dword_none);
 }
 
 /**
@@ -71,13 +72,13 @@ void ScriptEffects::damage_apply_with_sound(datum_index object_index, uint32_t d
     if (object_index != k_datum_index_none) {
         memset(&request, 0, sizeof(request));
         request.damage_effect = damage_effect;
-        request.team_index = 0xffff;
-        request.causer = 0xffffffff;
-        request.attacker = 0xffffffff;
-        request.sound_index = 0xffff;
+        request.team_index = halo::k_word_none;
+        request.causer = halo::k_dword_none;
+        request.attacker = halo::k_dword_none;
+        request.sound_index = halo::k_word_none;
         request.scale_a = 1.0f;
         request.scale_b = 1.0f;
-        request.material_type = 0xffff;
+        request.material_type = halo::k_word_none;
 
         object_get_position((real_point3d *)&request.position, object_index);
         *(Point3D *)&request.direction = *(Point3D *)&request.position;
@@ -85,7 +86,7 @@ void ScriptEffects::damage_apply_with_sound(datum_index object_index, uint32_t d
         impulse = halo::physics::bsp3d_node_find_leaf(0, halo::physics::globals().collision_bsp, (real_point3d *)&request.position);
         request.sound_impulse = impulse;
         if (impulse == -1) {
-            request.sound_index = 0xffff;
+            request.sound_index = halo::k_word_none;
         } else {
             request.sound_index = ((ScenarioStructureBSPLeaf *)halo::scenario::globals().structure_bsp->leaves.pointer)[impulse & 0x7fffffff].cluster;
         }
@@ -111,7 +112,7 @@ void ScriptEffects::effect_spawn_at_location(int16_t location_index, uint32_t ef
         fcos((double)location->facing.pitch));
     forward.k = (float)fsin((double)location->facing.pitch);
 
-    halo::effects::effect_new_with_color(effect, 0xffffffff, (const real_vector3d *)global_origin3d_pointer, 1, 0, (real_point3d *)&location->position, (uint32_t)&forward,
+    halo::effects::effect_new_with_color(effect, halo::k_dword_none, (const real_vector3d *)global_origin3d_pointer, 1, 0, (real_point3d *)&location->position, (uint32_t)&forward,
         1.0f, 1.0f, 0, 0, 1);
 }
 

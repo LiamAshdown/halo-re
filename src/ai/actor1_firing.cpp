@@ -3,6 +3,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/tags/flags.hpp"
 
 namespace c_actor_claim_firing_position {
 extern "C" {
@@ -31,7 +35,7 @@ int16_t halo::ai::firing_position_ops::claim_firing_position(datum_index previou
     actor *self;
     actor *other;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     if (firing_position_index == -1) {
         actor_movement_action_stop(actor_index);
@@ -41,8 +45,8 @@ int16_t halo::ai::firing_position_ops::claim_firing_position(datum_index previou
             actor_push_recognition_entry(actor_index, self->firing_position_index, 1);
         }
 
-        if (previous_owner != (datum_index)0xffffffff) {
-            other = (actor *)((uint8_t *)actor_data->data + (previous_owner & 0xffff) * sizeof(actor));
+        if (previous_owner != (datum_index)halo::k_dword_none) {
+            other = (actor *)((uint8_t *)actor_data->data + (previous_owner & halo::k_slot_mask) * sizeof(actor));
             actor_movement_action_stop(previous_owner);
             other->firing_position_index = -1;
         }
@@ -148,25 +152,25 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
     int32_t n;
     int16_t k;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    best_index = 0xffffffff;
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    best_index = halo::k_dword_none;
     best_score = 0.0f;
 
-    if (self->encounter_index == (datum_index)0xffffffff) {
-        return 0xffffffff;
+    if (self->encounter_index == (datum_index)halo::k_dword_none) {
+        return halo::k_dword_none;
     }
 
-    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
-    variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & 0xffff].data;
-    encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
-                                [self->encounter_index & 0xffff];
+    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
+    variant = (ActorVariant *)halo::cache::globals().tag_instances[self->actor_variant_tag & halo::k_slot_mask].data;
+    encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+                                [self->encounter_index & halo::k_slot_mask];
 
     candidate_count = 0;
     any_in_range = 0;
 
     encounter_build_firing_position_claims(self->encounter_index, (datum_index *)claims);
     if (self->firing_position_index != -1) {
-        claims[self->firing_position_index] = 0xffffffff;
+        claims[self->firing_position_index] = halo::k_dword_none;
     }
 
     query->maximum_distance = (self->vehicle_driving_type == 0) ? 15.0f : 80.0f;
@@ -177,14 +181,14 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
     query->have_target = 0;
 
     if (query->have_explicit_target == 0) {
-        prop_index = (datum_index)0xffffffff;
-        if (self->mode == 4 && *(uint32_t *)&self->mode_data.raw[0x1c] != 0xffffffff) {
+        prop_index = (datum_index)halo::k_dword_none;
+        if (self->mode == 4 && *(uint32_t *)&self->mode_data.raw[0x1c] != halo::k_dword_none) {
             prop_index = *(datum_index *)&self->mode_data.raw[0x1c];
         } else {
             prop_index = (datum_index)self->target_unit_index;
         }
-        if (prop_index != (datum_index)0xffffffff) {
-            target = &((prop *)prop_data->data)[prop_index & 0xffff];
+        if (prop_index != (datum_index)halo::k_dword_none) {
+            target = &((prop *)prop_data->data)[prop_index & halo::k_slot_mask];
             if (query->unknown_42 != 0 && target->state > 1 && target->state < 4) {
                 actor_target_get_relationship_object(prop_index);
             }
@@ -222,7 +226,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         delta.i = query->target_position.x - self->body_position.x;
         delta.j = query->target_position.y - self->body_position.y;
         delta.k = query->target_position.z - self->body_position.z;
-        query->target_prop_index = (datum_index)0xffffffff;
+        query->target_prop_index = (datum_index)halo::k_dword_none;
         query->target_relationship_object = -1;
         query->target_danger_radius = 0.0f;
         query->target_distance = (float)sqrt((double)(delta.i * delta.i + delta.j * delta.j +
@@ -287,8 +291,8 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
     if (actor_definition->friend_avoid_dist > 0.0f &&
         (query->goal_kind == 0 || query->goal_kind == 3 || query->goal_kind == 6)) {
         datum_index p = self->first_prop;
-        while (query->danger_sphere_count < 0x20 && p != (datum_index)0xffffffff) {
-            prop *pr = &((prop *)prop_data->data)[p & 0xffff];
+        while (query->danger_sphere_count < 0x20 && p != (datum_index)halo::k_dword_none) {
+            prop *pr = &((prop *)prop_data->data)[p & halo::k_slot_mask];
             p = pr->next_in_actor;
             if (pr->state > 1 && pr->state < 4 && pr->enemy == 0 && pr->dead == 0 &&
                 pr->is_parented == 0) {
@@ -306,7 +310,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
     query->hazard_count_kind_2 = 0;
     {
         uint8_t gather_hazards = 0;
-        if ((actor_definition->flags & 0x80000000u) != 0  && self->combat_status > 2 &&
+        if (halo::has(static_cast<halo::tags::actor_tag_flag>(actor_definition->flags), halo::tags::actor_tag_flag::avoid_friends_line_of_fire)  && self->combat_status > 2 &&
             (int8_t)self->tally.group_a_total > 0) {
             gather_hazards = 1;
         }
@@ -322,10 +326,10 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
                 prop *pr;
                 int16_t kind;
                 datum_index current = p;
-                if (p == (datum_index)0xffffffff) {
+                if (p == (datum_index)halo::k_dword_none) {
                     break;
                 }
-                pr = &((prop *)prop_data->data)[p & 0xffff];
+                pr = &((prop *)prop_data->data)[p & halo::k_slot_mask];
                 kind = pr->state;
                 p = pr->next_in_actor;
                 if (kind > 1 && kind < 4 && pr->dead == 0) {
@@ -370,7 +374,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         if ((query->group_mask & (1u << (((uint8_t)fp->group_index) & 0x1f))) == 0) {
             continue;
         }
-        if (query->flying == 0 && fp->surface_index == 0xffffffff) {
+        if (query->flying == 0 && fp->surface_index == halo::k_dword_none) {
             continue;
         }
         if (query->goal_kind == 5 &&
@@ -380,9 +384,9 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         }
 
         owner = claims[i];
-        if (owner != 0xffffffff) {
+        if (owner != halo::k_dword_none) {
             actor *owner_actor = (actor *)((uint8_t *)actor_data->data +
-                                           (owner & 0xffff) * sizeof(actor));
+                                           (owner & halo::k_slot_mask) * sizeof(actor));
             if (query->goal_kind == 4 && query->danger_sphere_count < 0x20) {
                 query->danger_spheres[query->danger_sphere_count].position =
                     *(real_point3d *)fp;
@@ -448,20 +452,20 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         if (self->recognition_valid != 0) {
             self->recognition_valid = 0;
         }
-        return best_index & 0xffff;
+        return best_index & halo::k_slot_mask;
     }
 
     if (query->have_target != 0 && query->unknown_42 != 0) {
         if (query->flying == 0) {
-            if (query->target_surface_index != 0xffffffff) {
+            if (query->target_surface_index != halo::k_dword_none) {
                 clear = (uint32_t *)&request;
                 for (n = 0; n < 0x12; n++) {
                     clear[n] = 0;
                 }
                 request.pathfinding_radius = actor_definition->pathfinding_radius;
                 request.ignores_glass = self->ignores_glass;
-                request.exclude_object_index_a = (datum_index)0xffffffff;
-                request.exclude_object_index_b = (datum_index)0xffffffff;
+                request.exclude_object_index_a = (datum_index)halo::k_dword_none;
+                request.exclude_object_index_b = (datum_index)halo::k_dword_none;
                 request.start_position = query->target_surface_point;
                 request.start_surface_index = query->target_surface_index;
                 request.have_start = 1;
@@ -511,16 +515,16 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         request.limit_distance = query->search_radius;
 
         if (query->unknown_36 != 0 && query->have_target != 0) {
-            request.avoid_object_index = (datum_index)0xffffffff;
-            if (query->target_prop_index != (datum_index)0xffffffff) {
+            request.avoid_object_index = (datum_index)halo::k_dword_none;
+            if (query->target_prop_index != (datum_index)halo::k_dword_none) {
                 request.avoid_object_index =
-                    ((prop *)prop_data->data)[query->target_prop_index & 0xffff].object_index;
+                    ((prop *)prop_data->data)[query->target_prop_index & halo::k_slot_mask].object_index;
             }
             request.avoid_position = query->target_position;
             request.avoid_radius = query->avoid_radius;
             request.avoid_weight = query->avoid_weight;
             request.have_avoid_sphere = 1;
-        } else if (self->danger_type > 0 && (actor_definition->more_flags & 0x10) == 0 ) {
+        } else if (self->danger_type > 0 && !halo::has(static_cast<halo::tags::actor_more_tag_flag>(actor_definition->more_flags), halo::tags::actor_more_tag_flag::pathfinding_ignores_danger) ) {
             request.avoid_position = self->flee_from_point;
             request.avoid_radius = self->danger_object_radius;
             request.avoid_object_index = self->danger_object_index;
@@ -595,7 +599,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         actor_firing_position_candidate *c;
         uint32_t roll;
 
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         roll = ((halo::math::globals().random_seed_global >> 0x10) * (uint32_t)(int32_t)candidate_count) >> 0x10;
         *out_path_ok = 0;
         best_index = roll;
@@ -615,7 +619,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         c->valid = 1;
         actor_firing_position_run_score_rules(actor_index, 1, query, c);
         if (c->valid == 0) {
-            return 0xffffffff;
+            return halo::k_dword_none;
         }
         if (query->have_target != 0) {
             actor_report_firing_position_request(actor_index, query, c);
@@ -623,7 +627,7 @@ uint32_t halo::ai::firing_position_ops::find_best_firing_position(actor_firing_p
         c->score_before_rejects = c->score;
         c->valid = actor_firing_position_run_reject_rules(actor_index, query, c);
         if (c->valid == 0) {
-            return 0xffffffff;
+            return halo::k_dword_none;
         }
     } else {
         actor_firing_position_run_score_rules(actor_index, (uint16_t)candidate_count, query,
@@ -792,16 +796,16 @@ uint8_t halo::ai::firing_position_ops::firing_position_near_point(real_point3d *
     uint32_t *clear;
     int32_t n;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
 
     if ((self->flying == 0 && start_surface_index == -1) ||
-        self->encounter_index == (datum_index)0xffffffff) {
+        self->encounter_index == (datum_index)halo::k_dword_none) {
         return 0;
     }
 
-    encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
-                                [self->encounter_index & 0xffff];
+    encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+                                [self->encounter_index & halo::k_slot_mask];
     group_mask = actor_get_firing_position_group_mask(actor_index, kind, 0);
 
     if (self->flying == 0) {
@@ -811,8 +815,8 @@ uint8_t halo::ai::firing_position_ops::firing_position_near_point(real_point3d *
         }
         request.pathfinding_radius = actor_definition->pathfinding_radius;
         request.ignores_glass = 1;
-        request.exclude_object_index_a = (datum_index)0xffffffff;
-        request.exclude_object_index_b = (datum_index)0xffffffff;
+        request.exclude_object_index_a = (datum_index)halo::k_dword_none;
+        request.exclude_object_index_b = (datum_index)halo::k_dword_none;
         request.have_start = 1;
         request.start_position.x = point->x;
         request.start_position.y = point->y;
@@ -1019,13 +1023,13 @@ uint32_t halo::ai::firing_position_ops::get_firing_position_group_mask(int16_t k
     uint32_t *groups;
     uint8_t searching;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    if (self->encounter_index == (datum_index)0xffffffff) {
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    if (self->encounter_index == (datum_index)halo::k_dword_none) {
         return 0;
     }
 
-    encounters = (ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer;
-    squad = &((ScenarioSquad *)encounters[self->encounter_index & 0xffff].squads.pointer)
+    encounters = (ScenarioEncounter *)global_scenario->encounters.pointer;
+    squad = &((ScenarioSquad *)encounters[self->encounter_index & halo::k_slot_mask].squads.pointer)
                  [self->squad_index];
     groups = &squad->attacking;
 
@@ -1088,7 +1092,7 @@ void halo::ai::firing_position_ops::get_firing_positions(uint32_t *out_block, re
     float distance_squared;
     float min_distance_squared;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     if (self->swarm == 0) {
         src = (uint32_t *)&self->aim_origin;
@@ -1100,7 +1104,7 @@ void halo::ai::firing_position_ops::get_firing_positions(uint32_t *out_block, re
         return;
     }
 
-    group = (swarm *)((uint8_t *)swarm_data->data + (self->swarm_index & 0xffff) * sizeof(swarm));
+    group = (swarm *)((uint8_t *)swarm_data->data + (self->swarm_index & halo::k_slot_mask) * sizeof(swarm));
     component_count = group->component_count;
     min_distance_squared = 3.4028235e+38f;
     {
@@ -1109,7 +1113,7 @@ void halo::ai::firing_position_ops::get_firing_positions(uint32_t *out_block, re
     if (0 < component_count) {
         for (i = 0; i < component_count; i++) {
             component = (swarm_component *)((uint8_t *)swarm_component_data->data +
-                                            (group->component_index[i] & 0xffff) * sizeof(swarm_component));
+                                            (group->component_index[i] & halo::k_slot_mask) * sizeof(swarm_component));
             dx = query_point->x - component->position.x;
             dy = query_point->y - component->position.y;
             dz = query_point->z - component->position.z;

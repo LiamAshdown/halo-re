@@ -8,6 +8,10 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/ai/ai_constants.hpp"
 
 extern "C" {
 extern data_array *actor_data;
@@ -114,7 +118,7 @@ void AiSystem::accumulate_repeated_event(int32_t event_type, real_point3d *posit
 
     found = 0;
     just_reset = 1;
-    free_slot = 0xffff;
+    free_slot = halo::k_word_none;
 
     for (cursor = ai_globals_ptr->recent_event_head; cursor != ai_globals_ptr->recent_event_tail;
          cursor = (cursor + 1) & 0x1f) {
@@ -152,7 +156,7 @@ void AiSystem::accumulate_repeated_event(int32_t event_type, real_point3d *posit
 
     if (found == 0) {
         uint16_t slot;
-        if (free_slot == 0xffff) {
+        if (free_slot == halo::k_word_none) {
             slot = ai_globals_ptr->recent_event_tail;
             ai_globals_ptr->recent_event_tail = (ai_globals_ptr->recent_event_tail + 1) & 0x1f;
             if (ai_globals_ptr->recent_event_tail == ai_globals_ptr->recent_event_head) {
@@ -173,8 +177,8 @@ void AiSystem::accumulate_repeated_event(int32_t event_type, real_point3d *posit
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 /**
  * Behaviour of ai alert actors in grenade radius, moved unchanged from the original free function.
  *
@@ -225,7 +229,7 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
         iterator.filter_array = encounter_data;
         iterator.next_index = 0;
         iterator.cursor = -1;
-        iterator.signature = (uint32_t)encounter_data ^ 0x69746572;
+        iterator.signature = (uint32_t)encounter_data ^ halo::ai::k_iterator_signature_key;
         iterator.encounterless_done = 0;
         iterator.active = 1;
         iterator.actor_index = k_datum_index_none;
@@ -251,7 +255,7 @@ void AiSystem::alert_actors_in_grenade_radius(datum_index source_unit_index, int
         }
         p = PROP(prop_index);
         if ((int16_t)actor_target_hearing_check(p + 0xfc, (int16_t)*(uint16_t *)(p + 0x38), actor_index, firing_block,
-                gate, (real_point3d *)(p + 0xbc)) < 2) {
+                gate, &((struct prop *)p)->last_known_position) < 2) {
             continue;
         }
         actor_squad_react_to_grenade(actor_index, prop_index, stimulus);
@@ -275,7 +279,7 @@ void AiSystem::build_priority_target_list(ai_priority_target_list *out_list)
 
     actor_index = ai_globals_ptr->actors_valid ? ai_globals_ptr->first_encounterless_actor : (datum_index)k_datum_index_none;
     while (ai_globals_ptr->actors_valid != 0 && actor_index != (datum_index)k_datum_index_none) {
-        actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
+        actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
         datum_index next = a->next_in_encounter;
 
         if (out_list->count > 0xff) {
@@ -533,7 +537,7 @@ void AiSystem::mark_recognized_objects_for_reaction(int16_t team_a, int16_t team
         iterator.filter_array = encounter_data;
         iterator.next_index = 0;
         iterator.cursor = -1;
-        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
+        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ halo::ai::k_iterator_signature_key;
         iterator.encounterless_done = 0;
         iterator.active = 1;
         iterator.actor_index = -1;
@@ -552,7 +556,7 @@ void AiSystem::mark_recognized_objects_for_reaction(int16_t team_a, int16_t team
             prop_cursor = a->first_prop;
             while (prop_cursor != (datum_index)k_datum_index_none) {
                 current_prop_index = prop_cursor;
-                p = &((prop *)prop_data->data)[current_prop_index & 0xffff];
+                p = &((prop *)prop_data->data)[current_prop_index & halo::k_slot_mask];
                 prop_cursor = p->next_in_actor;
                 if (p->team == other_team) {
                     p->allegiance = 1;
@@ -588,7 +592,7 @@ void AiSystem::notify_actors_of_encounter_state_change(int16_t zone_a, int16_t z
         iterator.filter_array = encounter_data;
         iterator.next_index = 0;
         iterator.cursor = -1;
-        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
+        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ halo::ai::k_iterator_signature_key;
         iterator.encounterless_done = 0;
         iterator.active = 1;
         iterator.actor_index = -1;
@@ -608,7 +612,7 @@ void AiSystem::notify_actors_of_encounter_state_change(int16_t zone_a, int16_t z
             prop_cursor = a->first_prop;
             while (prop_cursor != (datum_index)k_datum_index_none) {
                 current_prop_index = prop_cursor;
-                p = &((prop *)prop_data->data)[current_prop_index & 0xffff];
+                p = &((prop *)prop_data->data)[current_prop_index & halo::k_slot_mask];
                 prop_cursor = p->next_in_actor;
                 if (p->team == other_zone) {
                     if (force_update == 0) {
@@ -657,7 +661,7 @@ int16_t AiSystem::pick_weighted_candidate(ai_scored_candidate *table, ai_scored_
 
     chosen = last_valid;
     if (1 < valid_count) {
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         running = 0.0f;
         for (i = 0; i < 4; i = i + 1) {
             entry = &table[i * 2];
@@ -683,7 +687,7 @@ int16_t AiSystem::pick_weighted_candidate(ai_scored_candidate *table, ai_scored_
     return chosen;
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 /**
  * Behaviour of ai process vehicle entry queue, moved unchanged from the original free function.
  *
@@ -695,7 +699,7 @@ void AiSystem::process_vehicle_entry_queue()
 
     for (queue_index = 0; queue_index < ai_globals_ptr->vehicle_entry_count; queue_index++) {
         datum_index vehicle_index = ai_globals_ptr->vehicle_entry_queue[queue_index];
-        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)OBJECT_DATA(vehicle_index) & 0xffff].data;
+        uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)OBJECT_DATA(vehicle_index) & halo::k_slot_mask].data;
         int16_t seat_index;
 
         for (seat_index = 0; seat_index < *(int32_t *)(vehicle_tag + 0x2e4); seat_index++) {
@@ -721,7 +725,7 @@ void AiSystem::process_vehicle_entry_queue()
             actor_index = actor_place_new_unit(gunner_tag, k_datum_index_none, -1, 0, 0, &request);
             if (actor_index != k_datum_index_none) {
                 unit_enter_vehicle_seat(vehicle_index, seat_index,
-                    *(datum_index *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724 + 0x18));
+                    *(datum_index *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size + 0x18));
             }
         }
     }
@@ -753,7 +757,7 @@ void AiSystem::recompute_all_relationship_flags()
         iterator.filter_array = encounter_data;
         iterator.next_index = 0;
         iterator.cursor = -1;
-        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
+        iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ halo::ai::k_iterator_signature_key;
         iterator.encounterless_done = 0;
         iterator.active = 1;
         iterator.actor_index = -1;
@@ -766,10 +770,10 @@ void AiSystem::recompute_all_relationship_flags()
         prop_cursor = a->first_prop;
         while (prop_cursor != (datum_index)k_datum_index_none) {
             current_prop_index = prop_cursor;
-            p = &((prop *)prop_data->data)[current_prop_index & 0xffff];
+            p = &((prop *)prop_data->data)[current_prop_index & halo::k_slot_mask];
             prop_cursor = p->next_in_actor;
 
-            tracked_object = ((object_header *)object_data->data)[p->object_index & 0xffff].data;
+            tracked_object = ((object_header *)object_data->data)[p->object_index & halo::k_slot_mask].data;
             object_team = ((struct object *)tracked_object)->owner_team;
             p->team = object_team;
             actor_team = a->team;
@@ -814,7 +818,7 @@ void AiSystem::reset_all_actors_perception()
     iterator.filter_array = encounter_data;
     iterator.next_index = 0;
     iterator.cursor = -1;
-    iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ 0x69746572;
+    iterator.signature = (uint32_t)(uintptr_t)encounter_data ^ halo::ai::k_iterator_signature_key;
     iterator.encounterless_done = 0;
     iterator.active = 1;
     iterator.actor_index = -1;
@@ -828,9 +832,9 @@ void AiSystem::reset_all_actors_perception()
     }
 }
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
-#define OBJ(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
+#define OBJ(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 #define ai_globals_ptr (*reinterpret_cast<uint8_t * *>(&ai_globals_ptr))
 namespace {
 
@@ -841,9 +845,9 @@ static uint8_t ai_bsp_actor_should_carry(uint8_t *actor)
         int32_t fired = ((struct actor *)actor)->ticks_since_threatened;
 
         if (*(int16_t *)(target + 0x24) >= 4 && *(int16_t *)(target + 0x24) <= 5) {
-            target = PROP(*(datum_index *)(target + 0xc));
+            target = PROP(((struct prop *)target)->pair_index);
         }
-        return target[0x12e] != 0 && fired != -1 && fired < 0x5a && *(float *)(target + 0x11c) < 10.0f;
+        return target[0x12e] != 0 && fired != -1 && fired < 0x5a && ((struct prop *)target)->distance < 10.0f;
     }
     {
         int16_t team = ((struct actor *)actor)->team;
@@ -869,7 +873,7 @@ static uint8_t ai_bsp_actor_should_carry(uint8_t *actor)
             uint8_t *p = PROP(prop_index);
 
             prop_index = *(datum_index *)(p + 8);
-            if (p[0x12e] != 0 && (*(int16_t *)(p + 0x32) >= 2 || *(float *)(p + 0x11c) < 3.0f)) {
+            if (p[0x12e] != 0 && (((struct prop *)p)->visual_perception >= 2 || ((struct prop *)p)->distance < 3.0f)) {
                 carry = 1;
             }
         }
@@ -888,7 +892,7 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, uint8_t *actor)
     if (((struct actor *)actor)->swarm_index == k_datum_index_none) {
         return 0;
     }
-    swarm = (uint8_t *)swarm_data->data + (((struct actor *)actor)->swarm_index & 0xffff) * 0x98;
+    swarm = (uint8_t *)swarm_data->data + (((struct actor *)actor)->swarm_index & halo::k_slot_mask) * k_swarm_size;
     count = *(int16_t *)(swarm + 2);
     for (i = 0; i < count; i++) {
         datum_index unit_index = *(datum_index *)(swarm + 0x18 + i * 4);
@@ -917,7 +921,7 @@ static uint8_t ai_bsp_split_swarm(datum_index actor_index, uint8_t *actor)
         actor_remove_from_unit_cluster(actor_index, unit_index);
         actor = ACTOR(actor_index);
         if (actor_new_and_attach_to_unit(1, unit_index, ((struct actor *)actor)->actor_variant_tag, *(uint32_t *)&((struct actor *)actor)->encounter_index,
-                ((struct actor *)actor)->squad_index, 0, actor_index, 0, 2, 0, 0xffff, 0) == k_datum_index_none) {
+                ((struct actor *)actor)->squad_index, 0, actor_index, 0, 2, 0, halo::k_word_none, 0) == k_datum_index_none) {
             int32_t kind = *(int32_t *)(OBJ(unit_index) + 4);
 
             if (kind == 0) {
@@ -945,7 +949,7 @@ void AiSystem::reset_fire_group_assignments()
     datum_index actor_index;
 
     for (e = 0; e < encounter_count; e++) {
-        uint8_t *encounter = (uint8_t *)encounter_data->data + (e & 0xffff) * 0x6c;
+        uint8_t *encounter = (uint8_t *)encounter_data->data + (e & halo::k_slot_mask) * k_encounter_size;
         datum_index next;
 
         if (encounter[0xd] == 0 || ((struct encounter *)encounter)->living_count <= 0) {
@@ -993,17 +997,17 @@ void AiSystem::reset_fire_group_assignments()
             *(int16_t *)(actor + 0x10) = actor[8] != 0 ? 0x5a : 0;
             actor_movement_action_cancel(actor_index);
         }
-        encounter = (uint8_t *)encounter_data->data + (e & 0xffff) * 0x6c;
+        encounter = (uint8_t *)encounter_data->data + (e & halo::k_slot_mask) * k_encounter_size;
         ((struct encounter *)encounter)->activation_delay = 0;
         encounter_deactivate((datum_index)(int32_t)e);
     }
 
     for (actor_index = *(datum_index *)(ai_globals_ptr + 8); actor_index != k_datum_index_none;) {
-        datum_index following = *(datum_index *)(ACTOR(actor_index) + 0x2c);
+        datum_index following = ((struct actor *)ACTOR(actor_index))->next_in_encounter;
         datum_index prop_index;
 
         actor_clear_target_state(actor_index);
-        for (prop_index = *(datum_index *)(ACTOR(actor_index) + 0x50); prop_index != k_datum_index_none;) {
+        for (prop_index = ((struct actor *)ACTOR(actor_index))->first_prop; prop_index != k_datum_index_none;) {
             uint8_t *p = PROP(prop_index);
 
             prop_index = *(datum_index *)(p + 8);
@@ -1090,14 +1094,14 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
 
     while (p != 0) {
         if (p->is_parented && p->enemy) {
-            tracked_object = ((object_header *)object_data->data)[p->object_index & 0xffff].data;
+            tracked_object = ((object_header *)object_data->data)[p->object_index & halo::k_slot_mask].data;
             if (((unit_data *)((uint8_t *)tracked_object + k_unit_data_offset))->controlling_player !=
                 (datum_index)k_datum_index_none) {
-                a = &((actor *)actor_data->data)[p->actor_index & 0xffff];
+                a = &((actor *)actor_data->data)[p->actor_index & halo::k_slot_mask];
                 linked_unit_index = a->swarm ? a->cluster_unit_index : a->unit_index;
 
-                linked_object = ((object_header *)object_data->data)[linked_unit_index & 0xffff].data;
-                linked_unit_tag = (Unit *)halo::cache::globals().tag_instances[linked_object->definition_tag & 0xffff].data;
+                linked_object = ((object_header *)object_data->data)[linked_unit_index & halo::k_slot_mask].data;
+                linked_unit_tag = (Unit *)halo::cache::globals().tag_instances[linked_object->definition_tag & halo::k_slot_mask].data;
 
                 skip_close_check = 0;
                 if ((linked_unit_tag->unit_flags & 0x80000) != 0) { // "inconsequential"
@@ -1130,7 +1134,7 @@ int32_t AiSystem::scan_for_recent_combat_activity(uint8_t hard_difficulty)
                                 return 1;
                             }
                             if (kind == 4 && p->distance < 12.0f) {
-                                prop *pair = &((prop *)prop_data->data)[p->pair_index & 0xffff];
+                                prop *pair = &((prop *)prop_data->data)[p->pair_index & halo::k_slot_mask];
                                 if (halo::math::vector3d_distance_squared(p->last_known_position, pair->last_known_position) < 16.0f) {
                                     return 1;
                                 }
@@ -1198,12 +1202,12 @@ void AiSystem::unassigned_actors_attach_to_structure_bsp()
     datum_index actor_index = ai_globals_ptr->first_encounterless_actor;
 
     while (actor_index != k_datum_index_none) {
-        actor *entry = &((actor *)actor_data->data)[actor_index & 0xffff];
+        actor *entry = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
         datum_index encounter_index = entry->original_encounter_index;
         datum_index next = entry->next_in_encounter;
 
         if (encounter_index != k_datum_index_none &&
-            *(int16_t *)((uint8_t *)halo::scenario::globals().scenario->encounters.pointer + (encounter_index & 0xffff) * 0xb0 + 0x7e) ==
+            *(int16_t *)((uint8_t *)global_scenario->encounters.pointer + (encounter_index & halo::k_slot_mask) * 0xb0 + 0x7e) ==
                 bsp_index) {
             ai_actor_unlink_from_unassigned_list(actor_index);
             encounter_add_actor(entry->original_squad_index, actor_index, entry->original_encounter_index, 1);
@@ -1242,7 +1246,7 @@ int32_t AiSystem::weighted_random_index(int16_t weight_offset, void *base, int16
         int16_t chosen = 0;
 
         cursor = (uint8_t *)base + weight_offset;
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         roll = (float)(halo::math::globals().random_seed_global >> 0x10) * 1.5259022e-05f * total;
 
         while ((exclude_mask[chosen >> 5] & (1u << (chosen & 0x1f))) != 0 ||

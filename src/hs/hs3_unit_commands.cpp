@@ -1,5 +1,7 @@
 #include "halo/hs/hs3_commands.hpp"
 #include "units.h"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -49,7 +51,7 @@ void UnitCommands::evaluate_unit_aim_without_turning(int16_t function_index, uin
 
     if (arguments != 0) {
         if (arguments[0] != -1) {
-            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[arguments[0] & 0xffff].data;
+            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[arguments[0] & halo::k_slot_mask].data;
 
             if ((uint8_t)arguments[1]) {
                 ((unit_object *)unit)->unit.flags |= 0x4000;
@@ -75,7 +77,7 @@ void UnitCommands::evaluate_unit_can_blink(int16_t function_index, uint32_t thre
 
     if (arguments != 0) {
         if (arguments[0] != -1) {
-            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[arguments[0] & 0xffff].data;
+            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[arguments[0] & halo::k_slot_mask].data;
 
             if (!(uint8_t)arguments[1]) {
                 ((unit_object *)unit)->unit.flags |= 0x400000;
@@ -194,7 +196,7 @@ void UnitCommands::evaluate_unit_get_current_flashlight_state(int16_t function_i
         uint8_t on = 0;
 
         if (arguments[0] != -1) {
-            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[arguments[0] & 0xffff].data;
+            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[arguments[0] & halo::k_slot_mask].data;
 
             on = (uint8_t)((((unit_object *)unit)->unit.flags >> 0x13) & 1);
         }
@@ -232,7 +234,7 @@ void UnitCommands::evaluate_unit_get_health(int16_t function_index, uint32_t thr
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    uint8_t *object = (uint8_t *)object_try_and_get((datum_index)arguments[0], 0xffffffff);
+    uint8_t *object = (uint8_t *)object_try_and_get((datum_index)arguments[0], halo::k_dword_none);
     float result = -1.0f;
 
     if (object != 0) {
@@ -255,7 +257,7 @@ void UnitCommands::evaluate_unit_get_shield(int16_t function_index, uint32_t thr
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-    uint8_t *object = (uint8_t *)object_try_and_get((datum_index)arguments[0], 0xffffffff);
+    uint8_t *object = (uint8_t *)object_try_and_get((datum_index)arguments[0], halo::k_dword_none);
     float result = -1.0f;
 
     if (object != 0) {
@@ -362,7 +364,7 @@ void UnitCommands::evaluate_unit_is_playing_custom_animation(int16_t function_in
         uint8_t playing = 0;
 
         if (arguments[0] != -1) {
-            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[arguments[0] & 0xffff].data;
+            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[arguments[0] & halo::k_slot_mask].data;
 
             playing = (uint8_t)(unit[0x2a3] == 0x1c);
         }
@@ -383,7 +385,7 @@ void UnitCommands::evaluate_unit_kill_silent(int16_t function_index, uint32_t th
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[arguments[0] & 0xffff].data;
+        uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[arguments[0] & halo::k_slot_mask].data;
 
         unit[0x106] |= 0x40;
         hs_thread_return(0, thread_index);
@@ -442,7 +444,7 @@ void UnitCommands::evaluate_unit_set_desired_flashlight_state(int16_t function_i
 
     if (arguments != 0) {
         if (arguments[0] != -1) {
-            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[arguments[0] & 0xffff].data;
+            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[arguments[0] & halo::k_slot_mask].data;
 
             ((unit_object *)unit)->unit.flags |= (uint8_t)arguments[1] ? 0x10000000 : 0x20000000;
         }
@@ -466,7 +468,7 @@ void UnitCommands::evaluate_unit_set_emotion(int16_t function_index, uint32_t th
     datum_index unit = (datum_index)arguments[0];
 
     if (unit != k_datum_index_none) {
-        *(*(uint8_t **)((uint8_t *)object_data->data + (unit & 0xffff) * 0xc + 8) + 0x2a8) = *(uint8_t *)&arguments[1];
+        *(*(uint8_t **)((uint8_t *)object_data->data + (unit & halo::k_slot_mask) * 0xc + 8) + 0x2a8) = *(uint8_t *)&arguments[1];
         object_copy_default_node_transforms(unit, 6);
     }
     hs_thread_return(0, thread_index);
@@ -505,8 +507,8 @@ void UnitCommands::evaluate_unit_set_enterable_by_player(int16_t function_index,
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if ((uint32_t)arguments[0] != 0xffffffff) {
-            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[arguments[0] & 0xffff].data;
+        if ((uint32_t)arguments[0] != halo::k_dword_none) {
+            uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[arguments[0] & halo::k_slot_mask].data;
 
             if (*(uint8_t *)&arguments[1] == 0) {
                 ((unit_object *)unit)->unit.flags |= 0x10000;
@@ -536,7 +538,7 @@ void UnitCommands::evaluate_unit_set_maximum_vitality(int16_t function_index, ui
     float shield = *(float *)&arguments[2];
 
     if (unit != k_datum_index_none &&
-        (*(*(uint8_t **)((uint8_t *)object_data->data + (unit & 0xffff) * 0xc + 8) + 0x106) & 4) == 0) {
+        (*(*(uint8_t **)((uint8_t *)object_data->data + (unit & halo::k_slot_mask) * 0xc + 8) + 0x106) & 4) == 0) {
         object_initialize_shield_stun_thresholds(unit, &body, &shield);
     }
     hs_thread_return(0, thread_index);
@@ -559,7 +561,7 @@ void UnitCommands::evaluate_unit_set_seat(int16_t function_index, uint32_t threa
     datum_index unit = (datum_index)arguments[0];
 
     if (unit != k_datum_index_none) {
-        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (unit & 0xffff) * 0xc + 8);
+        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (unit & halo::k_slot_mask) * 0xc + 8);
 
         object[0x20f] = (uint8_t)unit_base_animation_state_from_name((const char *)arguments[1]);
     }
@@ -598,7 +600,7 @@ void UnitCommands::evaluate_unit_stop_custom_animation(int16_t function_index, u
     datum_index unit = (datum_index)arguments[0];
 
     if (unit != k_datum_index_none &&
-        *(*(uint8_t **)((uint8_t *)object_data->data + (unit & 0xffff) * 0xc + 8) + 0x2a3) == 0x1c) {
+        *(*(uint8_t **)((uint8_t *)object_data->data + (unit & halo::k_slot_mask) * 0xc + 8) + 0x2a3) == 0x1c) {
         unit_try_set_animation_state(unit, 0);
     }
     hs_thread_return(0, thread_index);

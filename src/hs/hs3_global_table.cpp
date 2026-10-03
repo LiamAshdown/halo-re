@@ -2,6 +2,8 @@
 #include "crt.h"
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 extern "C" {
 extern hs_global_definition *hs_global_definitions[k_hs_builtin_global_count];
@@ -147,7 +149,7 @@ void GlobalTable::read_value(hs_global_reference reference) const
     case 10: case 11: case 12: case 13: case 14: case 15: case 16:
     case 18: case 19: case 20: case 21: case 22:
     case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x2b:
-        slot->value.short_value = definition->address ? *(int16_t *)definition->address : (int16_t)0xffff;
+        slot->value.short_value = definition->address ? *(int16_t *)definition->address : (int16_t)halo::k_word_none;
         break;
     case 17:
     case 0x17: case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1c:
@@ -230,13 +232,13 @@ float *GlobalTable::sound_get_gain_reference(char *name) const
 
     tag_id = halo::cache::tag_lookup(0x736e6421, name);
     if (tag_id != k_datum_index_none) {
-        sound_data = (uint8_t *)halo::cache::globals().tag_instances[(tag_id & 0xffff) & 0xffff].data;
+        sound_data = (uint8_t *)halo::cache::globals().tag_instances[(tag_id & halo::k_slot_mask) & halo::k_slot_mask].data;
         return (float *)(sound_data + 0x28);
     }
 
     tag_id = halo::cache::tag_lookup(0x6c736e64, name);
     if (tag_id != k_datum_index_none) {
-        looping_data = (uint8_t *)halo::cache::globals().tag_instances[(tag_id & 0xffff) & 0xffff].data;
+        looping_data = (uint8_t *)halo::cache::globals().tag_instances[(tag_id & halo::k_slot_mask) & halo::k_slot_mask].data;
         if (0 < *(int32_t *)(looping_data + 0x3c)) {
             return (float *)(*(uint32_t *)(looping_data + 0x40) + 4);
         }

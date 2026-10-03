@@ -1,5 +1,7 @@
 #include "halo/ai/actor_props.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 namespace c_actor_danger_update_reaction {
 extern "C" {
@@ -37,22 +39,22 @@ static uint8_t actor_danger_prop_seen_twice(datum_index actor_index, datum_index
     if (prop_index == k_datum_index_none) {
         return 0xff;
     }
-    return *(int16_t *)((uint8_t *)prop_data->data + (prop_index & 0xffff) * 0x138 + 0x30) >= 2;
+    return *(int16_t *)((uint8_t *)prop_data->data + (prop_index & halo::k_slot_mask) * k_prop_size + 0x30) >= 2;
 }
 
 static uint8_t actor_danger_asleep(uint8_t *actor)
 {
     uint8_t *encounter = 0;
 
-    if (A_D(0x34) != 0xffffffff) {
-        encounter = (uint8_t *)encounter_data->data + (A_D(0x34) & 0xffff) * 0x6c;
+    if (A_D(0x34) != halo::k_dword_none) {
+        encounter = (uint8_t *)encounter_data->data + (A_D(0x34) & halo::k_slot_mask) * k_encounter_size;
     }
     return A_W(0x6a) == 1 || (encounter != 0 && encounter[0x40] != 0);
 }
 
 static uint8_t actor_danger_stance(datum_index actor_index)
 {
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
 
     return A_W(0x6e) >= 2 ? 2 : (A_W(0x6a) >= 3);
 }
@@ -71,10 +73,10 @@ void halo::ai::prop_ops::danger_update_reaction()
 {
     using namespace c_actor_danger_update_reaction;
     datum_index actor_index = datum;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *object;
     uint32_t block[14];
-    real_point3d *position = (real_point3d *)(actor + 0x2b0);
+    real_point3d *position = &((struct actor *)actor)->flee_from_point;
     real_point3d *block_point = (real_point3d *)&block[3];
     uint8_t noticed = 0;
     uint8_t own = 0;
@@ -82,7 +84,7 @@ void halo::ai::prop_ops::danger_update_reaction()
     if (A_W(0x280) <= 0) {
         return;
     }
-    object = (uint8_t *)object_try_and_get(A_D(0x28c), 0xffffffff);
+    object = (uint8_t *)object_try_and_get(A_D(0x28c), halo::k_dword_none);
     if (object == 0) {
         A_W(0x280) = 0;
         return;
@@ -133,7 +135,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         int16_t cluster;
         int16_t status;
 
-        if (A_D(0x18) != 0xffffffff && *(uint32_t *)&((struct object *)object)->parent_object == A_D(0x18)) {
+        if (A_D(0x18) != halo::k_dword_none && *(uint32_t *)&((struct object *)object)->parent_object == A_D(0x18)) {
             own = 1;
         }
         if (*(float *)(object + 0x240) > 0.0f && *(float *)(object + 0x244) > 0.0f) {
@@ -148,19 +150,19 @@ void halo::ai::prop_ops::danger_update_reaction()
         if (actor_danger_asleep(actor)) {
             break;
         }
-        tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & 0xffff].data;
+        tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & halo::k_slot_mask].data;
         if (!(A_F(0x2d4) < *(float *)(tag + 0x19c))) {
             break;
         }
         cluster = ((struct object *)object)->location_cluster_index;
-        if (*(uint32_t *)&((struct object *)object)->parent_object != 0xffffffff) {
-            uint8_t *root = (uint8_t *)((object_header *)object_data->data)[object_get_root_object_index(A_D(0x28c)) & 0xffff].data;
+        if (*(uint32_t *)&((struct object *)object)->parent_object != halo::k_dword_none) {
+            uint8_t *root = (uint8_t *)((object_header *)object_data->data)[object_get_root_object_index(A_D(0x28c)) & halo::k_slot_mask].data;
 
             cluster = ((struct object *)root)->location_cluster_index;
         }
         status = (int16_t)actor_evaluate_engagement_reachability(*(int16_t *)((uint8_t *)block + 0x28), cluster,
-            position, (real_point3d *)block, 0, 0, A_D(0x28c), A_D(0x158) != 0xffffffff);
-        actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+            position, (real_point3d *)block, 0, 0, A_D(0x28c), A_D(0x158) != halo::k_dword_none);
+        actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
         if (actor_dispatch_look_handler_by_posture(status, actor_index, block, position, 0, 1,
                 actor_danger_stance(actor_index)) >= 2) {
             noticed = 1;
@@ -168,7 +170,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         break;
     }
     case 3: {
-        uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & 0xffff].data;
+        uint8_t *tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)object & halo::k_slot_mask].data;
         float vi = ((struct object *)object)->velocity.i;
         float vj = ((struct object *)object)->velocity.j;
         float vk = ((struct object *)object)->velocity.k;
@@ -184,7 +186,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         if (noticed) {
             break;
         }
-        if (*(uint32_t *)(object + 0x324) != 0xffffffff) {
+        if (*(uint32_t *)(object + 0x324) != halo::k_dword_none) {
             uint8_t seen = actor_danger_prop_seen_twice(actor_index, *(uint32_t *)(object + 0x324));
 
             if (seen != 0xff) {
@@ -194,11 +196,11 @@ void halo::ai::prop_ops::danger_update_reaction()
         }
         asleep = actor_danger_asleep(actor);
         location = object + 0x98;
-        if (*(uint32_t *)&((struct object *)object)->parent_object != 0xffffffff) {
-            location = (uint8_t *)((object_header *)object_data->data)[object_get_root_object_index(A_D(0x28c)) & 0xffff].data + 0x98;
+        if (*(uint32_t *)&((struct object *)object)->parent_object != halo::k_dword_none) {
+            location = (uint8_t *)((object_header *)object_data->data)[object_get_root_object_index(A_D(0x28c)) & halo::k_slot_mask].data + 0x98;
         }
         status = (int16_t)actor_evaluate_engagement_reachability(*(int16_t *)((uint8_t *)block + 0x28),
-            *(int16_t *)(location + 4), position, (real_point3d *)block, 0, 0, A_D(0x28c), A_D(0x158) != 0xffffffff);
+            *(int16_t *)(location + 4), position, (real_point3d *)block, 0, 0, A_D(0x28c), A_D(0x158) != halo::k_dword_none);
         if (!asleep &&
             actor_dispatch_look_handler_by_posture(status, actor_index, block, position, 0, 1,
                 actor_danger_stance(actor_index)) >= 2) {
@@ -215,7 +217,7 @@ void halo::ai::prop_ops::danger_update_reaction()
         break;
     }
 
-    actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     if (noticed && actor[0x286] == 0) {
         uint8_t payload[0x10];
 

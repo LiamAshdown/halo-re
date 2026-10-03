@@ -5,6 +5,8 @@
 #include "game.h"
 #include "cache.h"
 #include "halo/cache/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -145,7 +147,7 @@ void ObjectCommands::evaluate_object_beautify(int16_t function_index, uint32_t t
     datum_index object_index = (datum_index)arguments[0];
 
     if (object_index != k_datum_index_none) {
-        uint32_t *flags = (uint32_t *)(*(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8) + 0x10);
+        uint32_t *flags = (uint32_t *)(*(uint8_t **)((uint8_t *)object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8) + 0x10);
 
         if (*(uint8_t *)&arguments[1]) {
             *flags |= 0x400000;
@@ -201,7 +203,7 @@ void ObjectCommands::evaluate_object_cannot_take_damage(int16_t function_index, 
  */
 void ObjectCommands::evaluate_object_cast(int16_t function_index, uint32_t thread_index, char first)
 {
-    uint8_t *frame = *(uint8_t **)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218 + 0x10);
+    uint8_t *frame = *(uint8_t **)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread) + 0x10);
     uint16_t size = *(uint16_t *)(frame + 0xc);
     datum_index *slot = (datum_index *)(frame + 0xe + (int16_t)size);
     datum_index object_index;
@@ -209,15 +211,15 @@ void ObjectCommands::evaluate_object_cast(int16_t function_index, uint32_t threa
     *(uint16_t *)(frame + 0xc) = (uint16_t)(size + 4);
     if (first) {
         uint8_t *syntax = (uint8_t *)hs_syntax_data->data;
-        uint32_t call_node = *(uint32_t *)(frame + 4) & 0xffff;
-        uint32_t name_node = *(uint32_t *)(syntax + call_node * 0x14 + 0x10) & 0xffff;
+        uint32_t call_node = *(uint32_t *)(frame + 4) & halo::k_slot_mask;
+        uint32_t name_node = *(uint32_t *)(syntax + call_node * 0x14 + 0x10) & halo::k_slot_mask;
 
         hs_thread_push(*(datum_index *)(syntax + name_node * 0x14 + 8), thread_index, slot);
         return;
     }
     object_index = *slot;
     if (object_index != k_datum_index_none) {
-        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8);
 
         if ((int32_t)hs_object_type_masks[(int16_t)(function_index - 0x16)] & (1 << (object[0xb4] & 0x1f))) {
             hs_thread_return((int32_t)object_index, thread_index);
@@ -423,8 +425,8 @@ void ObjectCommands::evaluate_object_set_collideable(int16_t function_index, uin
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if ((uint32_t)arguments[0] != 0xffffffff) {
-            uint8_t *object = (uint8_t *)((object_header *)object_data->data)[arguments[0] & 0xffff].data;
+        if ((uint32_t)arguments[0] != halo::k_dword_none) {
+            uint8_t *object = (uint8_t *)((object_header *)object_data->data)[arguments[0] & halo::k_slot_mask].data;
 
 
             if (*(uint8_t *)&arguments[1] == 0) {
@@ -468,8 +470,8 @@ void ObjectCommands::evaluate_object_set_melee_attack_inhibited(int16_t function
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if ((uint32_t)arguments[0] != 0xffffffff) {
-            uint8_t *object = (uint8_t *)((object_header *)object_data->data)[arguments[0] & 0xffff].data;
+        if ((uint32_t)arguments[0] != halo::k_dword_none) {
+            uint8_t *object = (uint8_t *)((object_header *)object_data->data)[arguments[0] & halo::k_slot_mask].data;
 
             if (*(uint8_t *)&arguments[1] != 0) {
                 object[0x106] |= 0x80;
@@ -512,8 +514,8 @@ void ObjectCommands::evaluate_object_set_ranged_attack_inhibited(int16_t functio
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if ((uint32_t)arguments[0] != 0xffffffff) {
-            uint8_t *object = (uint8_t *)((object_header *)object_data->data)[arguments[0] & 0xffff].data;
+        if ((uint32_t)arguments[0] != halo::k_dword_none) {
+            uint8_t *object = (uint8_t *)((object_header *)object_data->data)[arguments[0] & halo::k_slot_mask].data;
 
             if (*(uint8_t *)&arguments[1] != 0) {
                 object[0x107] |= 1;
@@ -596,7 +598,7 @@ void ObjectCommands::evaluate_object_type_predict(int16_t function_index, uint32
     datum_index tag = (datum_index)arguments[0];
 
     if (tag != k_datum_index_none) {
-        halo::cache::predicted_resource_list_touch((TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[tag & 0xffff].data + 0x170));
+        halo::cache::predicted_resource_list_touch((TagReflexive *)((uint8_t *)halo::cache::globals().tag_instances[tag & halo::k_slot_mask].data + 0x170));
     }
     hs_thread_return(0, thread_index);
     }
@@ -619,7 +621,7 @@ void ObjectCommands::evaluate_objects_attach(int16_t function_index, uint32_t th
     datum_index child = (datum_index)arguments[2];
 
     if (parent != k_datum_index_none && child != k_datum_index_none &&
-        *(datum_index *)(*(uint8_t **)((uint8_t *)object_data->data + (child & 0xffff) * 0xc + 8) + 0x11c) ==
+        *(datum_index *)(*(uint8_t **)((uint8_t *)object_data->data + (child & halo::k_slot_mask) * 0xc + 8) + 0x11c) ==
             k_datum_index_none) {
         object_reorient_relative_to_marker(parent, (char *)arguments[1], child, (char *)arguments[3]);
     }
@@ -698,7 +700,7 @@ void ObjectCommands::evaluate_objects_detach(int16_t function_index, uint32_t th
     datum_index child = (datum_index)arguments[1];
 
     if (parent != k_datum_index_none && child != k_datum_index_none &&
-        *(datum_index *)(*(uint8_t **)((uint8_t *)object_data->data + (child & 0xffff) * 0xc + 8) + 0x11c) == parent) {
+        *(datum_index *)(*(uint8_t **)((uint8_t *)object_data->data + (child & halo::k_slot_mask) * 0xc + 8) + 0x11c) == parent) {
         object_snap_to_parent_marker_and_detach(child);
     }
     hs_thread_return(0, thread_index);

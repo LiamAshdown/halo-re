@@ -1,12 +1,15 @@
 #include "halo/ai/actor_alerts.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
+#include "halo/core/slot_mask.hpp"
 
 namespace c_actor_alert_from_damage {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
+#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
@@ -14,7 +17,7 @@ extern data_array *actor_data;
 
 static void actor_raise_alert(uint8_t *actor, int16_t level, uint32_t source)
 {
-    if (W(0x308) == 0 || D(0x30c) == 0xffffffff) {
+    if (W(0x308) == 0 || D(0x30c) == halo::k_dword_none) {
         D(0x30c) = source;
     }
     if (W(0x308) <= level) {
@@ -41,13 +44,13 @@ uint8_t halo::ai::alert_ops::alert_from_damage()
     using namespace c_actor_alert_from_damage;
     datum_index actor_index = datum;
     uint8_t *actor = ACTOR(actor_index);
-    uint32_t source = 0xffffffff;
+    uint32_t source = halo::k_dword_none;
 
     if (B(0x1b5) == 0) {
         return 0;
     }
-    if (D(0x18) != 0xffffffff) {
-        uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[D(0x18) & 0xffff].data;
+    if (D(0x18) != halo::k_dword_none) {
+        uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[D(0x18) & halo::k_slot_mask].data;
         datum_index attacker = *(datum_index *)&((struct unit_object *)unit)->unit.flaming_responsible_object;
 
         if (attacker != k_datum_index_none) {
@@ -84,7 +87,7 @@ namespace c_actor_alert_from_disturbance {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
+#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
@@ -92,7 +95,7 @@ extern data_array *actor_data;
 
 static void actor_raise_alert(uint8_t *actor, int16_t level, uint32_t source)
 {
-    if (W(0x308) == 0 || D(0x30c) == 0xffffffff) {
+    if (W(0x308) == 0 || D(0x30c) == halo::k_dword_none) {
         D(0x30c) = source;
     }
     if (W(0x308) <= level) {
@@ -116,7 +119,7 @@ uint8_t halo::ai::alert_ops::alert_from_disturbance()
     datum_index actor_index = datum;
     uint8_t *actor = ACTOR(actor_index);
 
-    if (B(0x2f0) == 0 || (*(uint32_t *)halo::cache::globals().tag_instances[D(0x58) & 0xffff].data & 0x400) == 0) {
+    if (B(0x2f0) == 0 || (*(uint32_t *)halo::cache::globals().tag_instances[D(0x58) & halo::k_slot_mask].data & 0x400) == 0) {
         return 0;
     }
     actor_raise_alert(actor, 7, D(0x2f4));
@@ -139,7 +142,7 @@ namespace c_actor_alert_from_flag_1b4 {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
+#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
@@ -167,7 +170,7 @@ uint8_t halo::ai::alert_ops::alert_from_flag_1b4()
     if (W(0x308) <= 0xb) {
         W(0x308) = 0xb;
     }
-    D(0x30c) = 0xffffffff;
+    D(0x30c) = halo::k_dword_none;
     return 1;
 }
 
@@ -186,7 +189,7 @@ namespace c_actor_alert_from_projectile {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
+#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
@@ -194,7 +197,7 @@ extern data_array *actor_data;
 
 static void actor_raise_alert(uint8_t *actor, int16_t level, uint32_t source)
 {
-    if (W(0x308) == 0 || D(0x30c) == 0xffffffff) {
+    if (W(0x308) == 0 || D(0x30c) == halo::k_dword_none) {
         D(0x30c) = source;
     }
     if (W(0x308) <= level) {
@@ -220,13 +223,13 @@ uint8_t halo::ai::alert_ops::alert_from_projectile()
     using namespace c_actor_alert_from_projectile;
     datum_index actor_index = datum;
     uint8_t *actor = ACTOR(actor_index);
-    uint32_t source = 0xffffffff;
+    uint32_t source = halo::k_dword_none;
     uint8_t *noticed;
 
-    if (D(0x1b0) == 0xffffffff) {
+    if (D(0x1b0) == halo::k_dword_none) {
         return 0;
     }
-    noticed = (uint8_t *)object_try_and_get(D(0x1b0), 0xffffffff);
+    noticed = (uint8_t *)object_try_and_get(D(0x1b0), halo::k_dword_none);
     if (noticed != 0 && *(datum_index *)(noticed + 0xc4) != k_datum_index_none) {
         datum_index creator = *(datum_index *)(noticed + 0xc4);
         uint8_t *creator_unit = (uint8_t *)object_try_and_get(creator, 3);
@@ -265,7 +268,7 @@ namespace c_actor_alert_from_squad_attack {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
+#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
@@ -273,7 +276,7 @@ extern data_array *actor_data;
 
 static void actor_raise_alert(uint8_t *actor, int16_t level, uint32_t source)
 {
-    if (W(0x308) == 0 || D(0x30c) == 0xffffffff) {
+    if (W(0x308) == 0 || D(0x30c) == halo::k_dword_none) {
         D(0x30c) = source;
     }
     if (W(0x308) <= level) {
@@ -303,11 +306,11 @@ uint8_t halo::ai::alert_ops::alert_from_squad_attack()
     if (B(0x2ec) == 0) {
         return 0;
     }
-    definition = (uint8_t *)halo::cache::globals().tag_instances[D(0x58) & 0xffff].data;
+    definition = (uint8_t *)halo::cache::globals().tag_instances[D(0x58) & halo::k_slot_mask].data;
     if (!(F(0x1c0) > *(float *)(definition + 0x2ac))) {
         return 0;
     }
-    if (W(0x308) == 0 || D(0x30c) == 0xffffffff) {
+    if (W(0x308) == 0 || D(0x30c) == halo::k_dword_none) {
         D(0x30c) = actor_get_squad_recent_attacker_target(actor_index, 1);
     }
     if (W(0x308) <= 1) {
@@ -382,7 +385,7 @@ uint8_t halo::ai::alert_ops::combat_status_should_hold(int16_t threshold_a, int1
     datum_index actor_index = datum;
     actor *self;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     if (self->mode_data.raw[8] != 0) {
         return (uint8_t)(threshold_b <= self->combat_status);
@@ -422,7 +425,7 @@ uint8_t halo::ai::alert_ops::conditional_state_transition_check()
     int16_t sub_state;
     uint8_t flag;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     if (self->mode != _actor_mode_vehicle) {
         return 0;
@@ -479,8 +482,8 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
 {
     using namespace c_actor_consider_combat_mode;
     uint32_t actor_index = datum;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & halo::k_slot_mask].data;
     uint8_t *record = (uint8_t *)out;
     int16_t mode = consideration_mode;
     uint8_t result = 1;
@@ -507,11 +510,11 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
         if (actor[6] != 0) {
             goto done;
         }
-        unit = (uint8_t *)((object_header *)object_data->data)[((struct actor *)actor)->unit_index & 0xffff].data;
+        unit = (uint8_t *)((object_header *)object_data->data)[((struct actor *)actor)->unit_index & halo::k_slot_mask].data;
         if ((unit[0x106] & 0x80) != 0 || ((struct actor *)actor)->target_unit_index == k_datum_index_none) {
             goto done;
         }
-        target = (uint8_t *)prop_data->data + (((struct actor *)actor)->target_unit_index & 0xffff) * 0x138;
+        target = (uint8_t *)prop_data->data + (((struct actor *)actor)->target_unit_index & halo::k_slot_mask) * k_prop_size;
         if (*(float *)(actor_tag + 0x388) == 0.0f || ((Actor *)actor_tag)->melee_leap_chance == 0.0f) {
             record[0xa] = 0;
         } else if (target[0x130] != 0 || *(int16_t *)(target + 0x9c) > 0) {
@@ -576,9 +579,9 @@ extern data_array *actor_data;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 
 extern void actor_set_combat_alert_flag(datum_index actor_index, uint8_t new_flag);
 extern char actor_evaluate_combat_state_transition(uint32_t actor_index);
@@ -625,9 +628,9 @@ extern data_array *actor_data;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 }
 
@@ -670,9 +673,9 @@ extern data_array *actor_data;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 }
 
@@ -717,9 +720,9 @@ extern data_array *actor_data;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 }
 }
 
@@ -740,7 +743,7 @@ uint8_t halo::ai::alert_ops::escalate_check_target_close()
     if (((struct actor *)act)->combat_status < 5) {
         return 0;
     }
-    if (!(*(float *)(PROP(((actor *)act)->target_unit_index) + 0x11c) <
+    if (!(((struct prop *)PROP(((actor *)act)->target_unit_index))->distance <
           *(float *)(TAG_DATA(((actor *)act)->actor_definition_tag) + 0x3a0))) {
         return 0;
     }
@@ -765,9 +768,9 @@ extern data_array *actor_data;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
 
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 
 extern void *actor_get_actor_definition(datum_index actor_index);
 }
@@ -792,10 +795,10 @@ uint8_t halo::ai::alert_ops::escalate_check_weapon_range()
     if (*(datum_index *)&((struct actor *)act)->stuck_projectile_index == k_datum_index_none || ((struct actor *)act)->combat_status < 5) {
         return 0;
     }
-    if (!(*(float *)(PROP(((actor *)act)->target_unit_index) + 0x11c) < *(float *)(definition + 0x16c))) {
+    if (!(((struct prop *)PROP(((actor *)act)->target_unit_index))->distance < *(float *)(definition + 0x16c))) {
         return 0;
     }
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     if (!((float)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f < ((Actor *)actor_tag)->berserk_grenade_chance)) {
         return 0;
     }
@@ -818,7 +821,7 @@ namespace c_actor_escalate_to_guard_or_combat {
 extern "C" {
 extern data_array *actor_data;
 
-#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & 0xffff) * 0x724)
+#define ACTOR(index) ((uint8_t *)actor_data->data + ((index) & halo::k_slot_mask) * k_actor_size)
 #define B(o) (actor[(o)])
 #define W(o) (*(int16_t *)(actor + (o)))
 #define D(o) (*(uint32_t *)(actor + (o)))
@@ -886,8 +889,8 @@ extern uint8_t actor_consider_combat_mode(uint32_t actor_index, int16_t consider
     actor_combat_consideration *out);
 extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_data);
 
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
 }
 }
 
@@ -903,7 +906,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
 {
     using namespace c_actor_evaluate_combat_state_transition;
     uint32_t actor_index = datum;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *actor_tag = TAG_DATA(((actor *)a)->actor_definition_tag);
     uint8_t *variant = TAG_DATA(((actor *)a)->actor_variant_tag);
     uint8_t *definition = (uint8_t *)actor_get_actor_definition(actor_index);
@@ -916,7 +919,7 @@ char halo::ai::alert_ops::evaluate_combat_state_transition()
     uint8_t hold;
 
     if (((actor *)a)->target_unit_index != k_datum_index_none) {
-        p = (uint8_t *)prop_data->data + (((actor *)a)->target_unit_index & 0xffff) * 0x138;
+        p = (uint8_t *)prop_data->data + (((actor *)a)->target_unit_index & halo::k_slot_mask) * k_prop_size;
         distance = *(float *)(p + 0x11c);
 
         if (((actor *)a)->mode == 0xa && *(int16_t *)(a + 0xa0) == 1) {
@@ -1117,8 +1120,8 @@ extern "C" uint8_t actor_is_within_alert_range(uint8_t always_in_range, float ra
 uint8_t halo::ai::alert_ops::is_within_alert_range(uint8_t always_in_range, float radius_a, float radius_b, uint8_t vitality_only, uint8_t use_radius_b, uint32_t actor_index, uint32_t object_index)
 {
     using namespace c_actor_is_within_alert_range;
-    actor *a = &((actor *)actor_data->data)[actor_index & 0xffff];
-    object *obj = ((object_header *)object_data->data)[object_index & 0xffff].data;
+    actor *a = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    object *obj = ((object_header *)object_data->data)[object_index & halo::k_slot_mask].data;
     uint8_t result = 0;
 
     if ((obj->vitality_flags & _object_health_frozen_bit) == 0) {

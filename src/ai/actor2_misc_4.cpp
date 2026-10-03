@@ -1,6 +1,8 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 namespace halo::ai {
 
@@ -9,9 +11,9 @@ extern "C" {
 extern data_array *actor_data;
 extern data_array *prop_data;
 extern game_time_globals *game_time;
-#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & 0xffff) * 0x724)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
+#define ACTOR(h) ((uint8_t *)actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
 extern uint8_t *ai_globals_ptr;
 extern void object_get_position(real_point3d *out, uint32_t object_index);
 extern void *object_try_and_get(datum_index object_index, uint32_t type_mask);
@@ -53,24 +55,24 @@ uint8_t ActorView::seek_vehicle_to_board()
 
         while (prop_index != k_datum_index_none) {
             uint8_t *p = PROP(prop_index);
-            int16_t kind = *(int16_t *)(p + 0x24);
+            int16_t kind = ((struct prop *)p)->state;
             datum_index vehicle = *(datum_index *)(p + 0x110);
             uint8_t *vehicle_object;
             float distance_squared;
 
-            prop_index = *(datum_index *)(p + 0x8);
+            prop_index = ((struct prop *)p)->next_in_actor;
             if (kind < 2 || kind > 3 || !p[0x12e] || p[0x60] || vehicle == k_datum_index_none ||
                 !actor_vehicle_not_recently_left(actor_index, vehicle)) {
                 continue;
             }
             vehicle_object = (uint8_t *)object_try_and_get(vehicle, 2);
-            if (vehicle_object == 0 || *(datum_index *)(vehicle_object + 0x324) != *(datum_index *)(p + 0x18)) {
+            if (vehicle_object == 0 || *(datum_index *)(vehicle_object + 0x324) != ((struct prop *)p)->object_index) {
                 continue;
             }
             object_get_position(&position, vehicle);
-            distance_squared = halo::math::vector3d_distance_squared(position, *(real_point3d *)(act + 0x12c));
+            distance_squared = halo::math::vector3d_distance_squared(position, ((struct actor *)act)->body_position);
             if (distance_squared < 100.0f && distance_squared < best_distance) {
-                float distance = *(float *)(p + 0x11c);
+                float distance = ((struct prop *)p)->distance;
 
                 best_vehicle = *(datum_index *)(p + 0x110);
                 radius_a = 8.0f;
@@ -128,10 +130,10 @@ uint8_t ActorView::seek_vehicle_to_board()
                 for (j = 0; j < filter_count; j++) {
                     uint32_t filter = *(uint32_t *)(offer + 0x10 + j * 4);
 
-                    if (filter == 0xffffffff) {
+                    if (filter == halo::k_dword_none) {
                         continue;
                     }
-                    match = (uint8_t)(((*(uint32_t *)&((actor *)act)->encounter_index ^ filter) & 0xffff) == 0);
+                    match = (uint8_t)(((*(uint32_t *)&((actor *)act)->encounter_index ^ filter) & halo::k_slot_mask) == 0);
                     if (!match) {
                         continue;
                     }

@@ -3,6 +3,9 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
+#include "halo/core/slot_mask.hpp"
 
 namespace c_actor_apply_queued_look_to_unit {
 extern "C" {
@@ -29,9 +32,9 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
 {
     using namespace c_actor_apply_queued_look_to_unit;
     datum_index actor_index = datum;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint32_t unit_index = *(uint32_t *)&((struct actor *)actor)->unit_index;
-    uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    uint8_t *unit = (uint8_t *)((object_header *)object_data->data)[unit_index & halo::k_slot_mask].data;
     unit_control_data control;
 
     control.animation_state = (int8_t)actor_control_animation_state_table[((struct actor *)actor)->control_animation_mode * 2];
@@ -47,7 +50,7 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
     control.aiming_vector = *(real_vector3d *)&((struct actor *)actor)->aiming_vector_snapshot.i;
     control.looking_vector = *(real_vector3d *)&((struct actor *)actor)->looking_vector_snapshot.i;
 
-    if (*(uint32_t *)&((unit_object *)unit)->unit.controlling_player != 0xffffffff && local_player_globals->input_disabled == 0) {
+    if (*(uint32_t *)&((unit_object *)unit)->unit.controlling_player != halo::k_dword_none && local_player_globals->input_disabled == 0) {
         return;
     }
     if (actor[0x07] != 0) {
@@ -60,7 +63,7 @@ void halo::ai::look_ops::apply_queued_look_to_unit()
             (const real_vector2d *)(actor + 0x6f0));
     }
     if (((struct actor *)actor)->persistent_control_ticks > 0) {
-        uint8_t *object = (uint8_t *)((object_header *)object_data->data)[*(uint32_t *)&((struct actor *)actor)->unit_index & 0xffff].data;
+        uint8_t *object = (uint8_t *)((object_header *)object_data->data)[*(uint32_t *)&((struct actor *)actor)->unit_index & halo::k_slot_mask].data;
 
         *(int32_t *)(object + 0x210) = ((struct actor *)actor)->persistent_control_ticks;
         *(uint32_t *)(object + 0x214) = ((struct actor *)actor)->persistent_control_flags;
@@ -106,9 +109,9 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
     float high;
     int32_t ticks;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     awareness = self->awareness_level;
-    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
+    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
 
     if ((awareness < 2 && line < 13) || line < self->vocalization_line) {
         return 0;
@@ -155,8 +158,8 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
     }
 
     ticks = (int32_t)(duration * 30.0f + 0.5f);
-    if (ticks > 0x7fff) {
-        ticks = 0x7fff;
+    if (ticks > INT16_MAX) {
+        ticks = INT16_MAX;
     }
 
     if (variant == 1) {
@@ -195,7 +198,7 @@ void halo::ai::look_ops::clear_vocalization()
     datum_index actor_index = datum;
     actor *self;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     self->vocalization_variant = 0;
     self->vocalization_line = 0;
     self->vocalization_state = 0;
@@ -233,8 +236,8 @@ extern "C" int16_t actor_dispatch_look_handler_by_posture(int16_t posture, uint3
 int16_t halo::ai::look_ops::dispatch_look_handler_by_posture(int16_t posture, uint32_t actor_index, void *origin, void *target, uint8_t stance_a, uint8_t check_facing, uint16_t range_class)
 {
     using namespace c_actor_dispatch_look_handler_by_posture;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & 0xffff].data;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[((struct actor *)actor)->actor_definition_tag & halo::k_slot_mask].data;
     uint8_t *definition;
     float *from = (float *)origin;
     float *to = (float *)target;
@@ -327,7 +330,7 @@ uint32_t halo::ai::look_ops::flee_look_away()
     actor *self;
     uint32_t result;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     result = 0;
     if (self->mode == _actor_mode_death && self->mode_data.raw[0xab - 0x9c] != 0) {
 
@@ -368,9 +371,9 @@ float * halo::ai::look_ops::get_idle_facing_range()
     Actor *definition;
     int16_t state;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     state = self->look_posture;
-    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
+    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
 
     if (state == 2) {
         return definition->guard_idle_facing;
@@ -433,7 +436,7 @@ void halo::ai::look_ops::issue_order_or_vocalize(datum_index prop_index, datum_i
     }
     kind = -1;
     if (prop_index != (datum_index)k_datum_index_none) {
-        p = &((prop *)prop_data->data)[prop_index & 0xffff];
+        p = &((prop *)prop_data->data)[prop_index & halo::k_slot_mask];
         kind = p->state;
     }
 
@@ -500,7 +503,7 @@ int32_t halo::ai::look_ops::look_get_wait_ticks(int16_t mode, uint32_t flags, fl
     }
 
     if (((lo < 0.0f) == (lo == 0.0f)) || ((hi < 0.0f) == (hi == 0.0f))) {
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         rng = halo::math::globals().random_seed_global;
         fraction = (hi - lo) * (float)(rng >> 0x10) * 1.5259022e-05f + lo;
     } else {
@@ -511,7 +514,7 @@ int32_t halo::ai::look_ops::look_get_wait_ticks(int16_t mode, uint32_t flags, fl
         datum_index weapon = actor_get_threat_weapon_object_index(actor_index);
 
         weapon_definition = weapon == k_datum_index_none ? 0 :
-            halo::cache::globals().tag_instances[*(datum_index *)((object_header *)object_data->data)[weapon & 0xffff].data & 0xffff].data;
+            halo::cache::globals().tag_instances[*(datum_index *)((object_header *)object_data->data)[weapon & halo::k_slot_mask].data & halo::k_slot_mask].data;
     }
     if (weapon_definition != 0 && 0.0f < *(float *)((uint8_t *)weapon_definition + 0x410)) {
         fraction = fraction * *(float *)((uint8_t *)weapon_definition + 0x410);
@@ -572,11 +575,11 @@ uint8_t halo::ai::look_ops::look_pick_random_point_in_cone(void *origin, float y
     }
 
     for (attempt = 0; attempt < 10; attempt++) {
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         rng = halo::math::globals().random_seed_global;
         yaw = (float)(rng >> 0x10) * 1.5259022e-05f * (yaw_max - yaw_min) + yaw_min;
 
-        halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+        halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
         rng = halo::math::globals().random_seed_global;
         pitch = (float)(rng >> 0x10) * 1.5259022e-05f * (pitch_max - pitch_min) + pitch_min;
 
@@ -665,8 +668,8 @@ void halo::ai::look_ops::look_randomize_direction(float *deviation_table, real_v
     int32_t wait_ticks;
     real_point3d look_point;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
     out_in_front = 0;
     self->idle_look_state[1] = 0;
 

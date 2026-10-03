@@ -7,6 +7,8 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 extern "C" {
 extern data_array *object_data;
@@ -63,7 +65,7 @@ extern memory_pool *object_memory_pool;
 }
 
 #undef OBJ
-#define OBJ(i) ((uint8_t *)((object_header *)object_data->data)[(i) & 0xffff].data)
+#define OBJ(i) ((uint8_t *)((object_header *)object_data->data)[(i) & halo::k_slot_mask].data)
 static const int8_t k_unit_exit_seat_request[2] = {0x14, 0};
 
 static void hs_unit_leave_seat(uint32_t object_index)
@@ -72,11 +74,11 @@ static void hs_unit_leave_seat(uint32_t object_index)
     datum_index parent_index = ((unit_object *)unit)->base.parent_object;
     if (parent_index != k_datum_index_none && ((unit_object *)unit)->unit.vehicle_seat_index != -1) {
         uint8_t *parent = OBJ(parent_index);
-        uint8_t *parent_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)parent & 0xffff].data;
+        uint8_t *parent_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)parent & halo::k_slot_mask].data;
         uint8_t *seat = *(uint8_t **)(parent_tag + 0x2e8) + ((unit_object *)unit)->unit.vehicle_seat_index * 0x11c;
         real_matrix4x3 *nodes = (real_matrix4x3 *)(unit + ((unit_object *)unit)->base.nodes.offset);
-        uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data;
-        uint8_t *model = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id & 0xffff].data;
+        uint8_t *unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & halo::k_slot_mask].data;
+        uint8_t *model = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id & halo::k_slot_mask].data;
         uint8_t *root_node = *(uint8_t **)(model + 0xbc);
         real_vector3d root_offset = *(real_vector3d *)(root_node + 0x28);
         real_matrix4x3 *root_matrix = (real_matrix4x3 *)(root_node + 0x68);
@@ -110,14 +112,14 @@ static void hs_unit_leave_seat(uint32_t object_index)
         *(real_vector3d *)&((unit_object *)unit)->base.forward.i = basis.forward;
         *(real_vector3d *)&((unit_object *)unit)->base.up.i = basis.up;
         unit = OBJ(object_index);
-        unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & 0xffff].data;
+        unit_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)unit & halo::k_slot_mask].data;
         if (*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id != k_datum_index_none) {
             if ((((unit_object *)unit)->base.flags & 1) != 0) {
                 object_for_each_light_attachment(object_index, 0, 1);
             }
             if (*(datum_index *)&((struct Unit *)unit_tag)->base.model.tag_id != k_datum_index_none) {
                 ((unit_object *)unit)->base.flags &= ~1u;
-                ((uint8_t *)&((object_header *)object_data->data)[object_index & 0xffff])[2] |= 2;
+                ((uint8_t *)&((object_header *)object_data->data)[object_index & halo::k_slot_mask])[2] |= 2;
             }
         }
         ((unit_object *)unit)->unit.vehicle_seat_index = -1;
@@ -179,7 +181,7 @@ static void hs_unit_leave_seat(uint32_t object_index)
 static hs_object_record *hs_object_record_get(datum_index object_index)
 {
     return *(hs_object_record **)((uint8_t *)object_data->data +
-        (object_index & 0xffff) * 0x0c + 8);
+        (object_index & halo::k_slot_mask) * 0x0c + 8);
 }
 
 namespace halo::hs::part3 {
@@ -202,7 +204,7 @@ uint8_t ScriptObjects::object_angle_predicate_helper(datum_index object_index, d
         object_get_node_local_transform(object_index, ai_marker_name_a, &marker, 1);
         point = *(real_point3d *)((uint8_t *)&marker + 0x60);
     } else {
-        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8);
 
         point = *(real_point3d *)(object + 0xa0);
     }
@@ -278,9 +280,9 @@ void ScriptObjects::object_detach_and_place_at_location(int16_t location_index, 
             *(real_vector3d *)(unit_bytes + 0x254) = forward;
         }
         if (player_index != k_datum_index_none) {
-            player = (uint8_t *)player_data->data + (player_index & 0xffff) * 0x200;
+            player = (uint8_t *)player_data->data + (player_index & halo::k_slot_mask) * 0x200;
             if (detach_from_parent) {
-                player_attach_unit_to_parent(player_index, 0xffffffff, flag + 0x24);
+                player_attach_unit_to_parent(player_index, halo::k_dword_none, flag + 0x24);
             }
             if (reorient && ((struct player *)player)->local_player_index != -1) {
                 game_engine_compute_look_angles_from_vector(&local_forward, ((struct player *)player)->local_player_index);
@@ -308,7 +310,7 @@ char ScriptObjects::object_hierarchy_test(datum_index object_index) const
     datum_index ancestor;
 
     object = hs_object_record_get(object_index);
-    if (player_index_from_unit_index(object_index) != 0xffffffff) {
+    if (player_index_from_unit_index(object_index) != halo::k_dword_none) {
         return 1;
     }
 
@@ -324,7 +326,7 @@ char ScriptObjects::object_hierarchy_test(datum_index object_index) const
     ancestor = object->parent;
     while (ancestor != k_datum_index_none) {
         node = hs_object_record_get(ancestor);
-        if (player_index_from_unit_index(ancestor) != 0xffffffff) {
+        if (player_index_from_unit_index(ancestor) != halo::k_dword_none) {
             return 1;
         }
         ancestor = node->parent;
@@ -354,17 +356,17 @@ uint32_t ScriptObjects::object_list_any_angle_match(datum_index header_index, da
     int16_t salt;
 
     object_index = -1;
-    next = 0xffffffff;
+    next = halo::k_dword_none;
     if (header_index != k_datum_index_none) {
         header = (object_list_header *)((uint8_t *)object_list_header_data->data +
-            (header_index & 0xffff) * 0x0c);
+            (header_index & halo::k_slot_mask) * 0x0c);
         next = header->first_reference;
         if (next == k_datum_index_none) {
             object_index = -1;
-            next = 0xffffffff;
+            next = halo::k_dword_none;
         } else {
             reference = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                (next & 0xffff) * 0x0c);
+                (next & halo::k_slot_mask) * 0x0c);
             next = reference->next;
             object_index = reference->object_index;
         }
@@ -389,11 +391,11 @@ uint32_t ScriptObjects::object_list_any_angle_match(datum_index header_index, da
                 }
             }
         }
-        if (next == 0xffffffff) {
+        if (next == halo::k_dword_none) {
             object_index = -1;
         } else {
             reference = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                (next & 0xffff) * 0x0c);
+                (next & halo::k_slot_mask) * 0x0c);
             next = reference->next;
             object_index = reference->object_index;
         }
@@ -418,17 +420,17 @@ uint32_t ScriptObjects::object_list_any_angle_match_gated(datum_index header_ind
     int16_t salt;
 
     object_index = -1;
-    next = 0xffffffff;
+    next = halo::k_dword_none;
     if (header_index != k_datum_index_none) {
         header = (object_list_header *)((uint8_t *)object_list_header_data->data +
-            (header_index & 0xffff) * 0x0c);
+            (header_index & halo::k_slot_mask) * 0x0c);
         next = header->first_reference;
         if (next == k_datum_index_none) {
             object_index = -1;
-            next = 0xffffffff;
+            next = halo::k_dword_none;
         } else {
             reference = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                (next & 0xffff) * 0x0c);
+                (next & halo::k_slot_mask) * 0x0c);
             object_index = reference->object_index;
             next = reference->next;
         }
@@ -454,11 +456,11 @@ uint32_t ScriptObjects::object_list_any_angle_match_gated(datum_index header_ind
                 }
             }
         }
-        if (next == 0xffffffff) {
+        if (next == halo::k_dword_none) {
             object_index = -1;
         } else {
             reference = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                (next & 0xffff) * 0x0c);
+                (next & halo::k_slot_mask) * 0x0c);
             next = reference->next;
             object_index = reference->object_index;
         }
@@ -485,7 +487,7 @@ datum_index ScriptObjects::object_list_collect_player_units() const
     header_index = halo::memory::datum_new(object_list_header_data);
     if (header_index != k_datum_index_none) {
         header = (object_list_header *)((uint8_t *)object_list_header_data->data +
-            (header_index & 0xffff) * 0x0c);
+            (header_index & halo::k_slot_mask) * 0x0c);
         header->count = 0;
         header->first_reference = k_datum_index_none;
     }
@@ -493,14 +495,14 @@ datum_index ScriptObjects::object_list_collect_player_units() const
     player_index = halo::memory::datum_next(-1, player_data);
     while (player_index != k_datum_index_none) {
         unit = ((hs_player_record *)((uint8_t *)player_data->data +
-            (player_index & 0xffff) * 0x200))->unit;
+            (player_index & halo::k_slot_mask) * 0x200))->unit;
         if (unit != k_datum_index_none) {
             header = (object_list_header *)((uint8_t *)object_list_header_data->data +
-                (header_index & 0xffff) * 0x0c);
+                (header_index & halo::k_slot_mask) * 0x0c);
             reference_index = halo::memory::datum_new(object_list_reference_data);
             if (reference_index != k_datum_index_none) {
                 reference = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                    (reference_index & 0xffff) * 0x0c);
+                    (reference_index & halo::k_slot_mask) * 0x0c);
                 reference->object_index = unit;
                 reference->next = header->first_reference;
                 header->first_reference = reference_index;
@@ -526,17 +528,17 @@ void ScriptObjects::object_list_for_each(datum_index header_index) const
     int32_t object_index;
 
     object_index = -1;
-    next = 0xffffffff;
+    next = halo::k_dword_none;
     if (header_index != k_datum_index_none) {
         header = (object_list_header *)((uint8_t *)object_list_header_data->data +
-            (header_index & 0xffff) * 0x0c);
+            (header_index & halo::k_slot_mask) * 0x0c);
         next = header->first_reference;
         if (next == k_datum_index_none) {
             object_index = -1;
-            next = 0xffffffff;
+            next = halo::k_dword_none;
         } else {
             reference = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                (next & 0xffff) * 0x0c);
+                (next & halo::k_slot_mask) * 0x0c);
             object_index = reference->object_index;
             next = reference->next;
         }
@@ -544,12 +546,12 @@ void ScriptObjects::object_list_for_each(datum_index header_index) const
 
     while (object_index != -1) {
         object_notify_children_recursive(object_index);
-        if (next == 0xffffffff) {
+        if (next == halo::k_dword_none) {
             object_index = -1;
-            next = 0xffffffff;
+            next = halo::k_dword_none;
         } else {
             reference = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                (next & 0xffff) * 0x0c);
+                (next & halo::k_slot_mask) * 0x0c);
             object_index = reference->object_index;
             next = reference->next;
         }
@@ -572,7 +574,7 @@ datum_index ScriptObjects::object_list_new_singleton(datum_index object_index) c
         header_index = halo::memory::datum_new(object_list_header_data);
         if (header_index != k_datum_index_none) {
             header = (object_list_header *)((uint8_t *)object_list_header_data->data +
-                (header_index & 0xffff) * 0x0c);
+                (header_index & halo::k_slot_mask) * 0x0c);
             header->count = 0;
             header->first_reference = k_datum_index_none;
         }
@@ -592,17 +594,17 @@ char ScriptObjects::object_list_test_trigger_volume(int32_t trigger_volume_index
     datum_index next = k_datum_index_none;
 
     if (header_index != k_datum_index_none) {
-        datum_index first = *(datum_index *)((uint8_t *)object_list_header_data->data + (header_index & 0xffff) * 0xc + 8);
+        datum_index first = *(datum_index *)((uint8_t *)object_list_header_data->data + (header_index & halo::k_slot_mask) * 0xc + 8);
 
         if (first != k_datum_index_none) {
-            uint8_t *reference = (uint8_t *)object_list_reference_data->data + (first & 0xffff) * 0xc;
+            uint8_t *reference = (uint8_t *)object_list_reference_data->data + (first & halo::k_slot_mask) * 0xc;
 
             next = *(datum_index *)(reference + 8);
             object_index = *(datum_index *)(reference + 4);
         }
     }
     while (object_index != k_datum_index_none) {
-        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & 0xffff) * 0xc + 8);
+        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (object_index & halo::k_slot_mask) * 0xc + 8);
 
         if (halo::scenario::scenario_trigger_volume_contains_point((int16_t)trigger_volume_index, (real_point3d *)(object + 0xa0))) {
             if (!all_mode) {
@@ -612,7 +614,7 @@ char ScriptObjects::object_list_test_trigger_volume(int32_t trigger_volume_index
             return 0;
         }
         if (next != k_datum_index_none) {
-            uint8_t *reference = (uint8_t *)object_list_reference_data->data + (next & 0xffff) * 0xc;
+            uint8_t *reference = (uint8_t *)object_list_reference_data->data + (next & halo::k_slot_mask) * 0xc;
 
             next = *(datum_index *)(reference + 8);
             object_index = *(datum_index *)(reference + 4);
@@ -675,7 +677,7 @@ void ScriptObjects::object_runtime_cleanup() const
 
     player_iter.data = player_data;
     player_iter.next_index = 0;
-    player_iter.index = (datum_index)0xffffffff;
+    player_iter.index = (datum_index)halo::k_dword_none;
     player_iter.signature = (uint32_t)(uintptr_t)player_iter.data ^ k_data_iterator_signature;
     player_element = halo::memory::data_iterator_next(&player_iter);
     while (player_element != 0) {
@@ -695,7 +697,7 @@ void ScriptObjects::object_runtime_cleanup() const
 
     object_iter.type_filter = -1;
     object_iter.next_index = 0;
-    object_iter.index = (datum_index)0xffffffff;
+    object_iter.index = (datum_index)halo::k_dword_none;
     object_element = object_iterator_next(&object_iter);
     for (;;) {
         if (object_element == 0) {
@@ -730,7 +732,7 @@ void ScriptObjects::object_set_health_fraction(datum_index object_index, float f
 
     if (object_index != k_datum_index_none) {
         object = *(hs_object_record **)((uint8_t *)object_data->data +
-            (object_index & 0xffff) * 0x0c + 8);
+            (object_index & halo::k_slot_mask) * 0x0c + 8);
         if (fraction < 0.0f) {
             object->current_health = object->maximum_health * 0.0f;
             return;
@@ -762,11 +764,11 @@ void ScriptObjects::hs_object_set_permutation_by_name(datum_index object_index, 
         match_index = -1;
         if (name[0] != '\0') {
             object_data = *(void ***)((uint8_t *)object_headers->data +
-                (object_index & 0xffff) * 0x0c + 8);
+                (object_index & halo::k_slot_mask) * 0x0c + 8);
             referenced_tag_id = *(uint32_t *)((uint8_t *)halo::cache::globals().tag_instances[
-                (*(uint32_t *)object_data & 0xffff) & 0xffff].data + 0x34);
-            if (referenced_tag_id != 0xffffffff) {
-                definition = (uint8_t *)halo::cache::globals().tag_instances[(referenced_tag_id & 0xffff) & 0xffff].data;
+                (*(uint32_t *)object_data & halo::k_slot_mask) & halo::k_slot_mask].data + 0x34);
+            if (referenced_tag_id != halo::k_dword_none) {
+                definition = (uint8_t *)halo::cache::globals().tag_instances[(referenced_tag_id & halo::k_slot_mask) & halo::k_slot_mask].data;
                 permutation_count = *(int32_t *)(definition + 0xc4);
                 index = 0;
                 if (0 < permutation_count) {
@@ -801,7 +803,7 @@ void ScriptObjects::objects_delete_by_type(uint32_t tag_id) const
 
     iter.type_filter = -1;
     iter.next_index = 0;
-    iter.index = (datum_index)0xffffffff;
+    iter.index = (datum_index)halo::k_dword_none;
     element = (hs_object_record *)object_iterator_next(&iter);
     for (;;) {
         object_index = iter.index;
@@ -812,7 +814,7 @@ void ScriptObjects::objects_delete_by_type(uint32_t tag_id) const
         }
         if (element->tag_id == tag_id) {
             object = *(hs_object_record **)((uint8_t *)object_data->data +
-                (object_index & 0xffff) * 0x0c + 8);
+                (object_index & halo::k_slot_mask) * 0x0c + 8);
 
             if (object->network_role == 0) {
                 object_delete_unparented(object_index);

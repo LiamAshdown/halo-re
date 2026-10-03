@@ -7,6 +7,9 @@
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
+#include "halo/core/slot_mask.hpp"
 
 extern "C" {
 extern encounter_platoon_state *encounter_platoon_states;
@@ -102,7 +105,7 @@ void ReferenceView::clear_defending()
     ai_reference_expand_to_platoon_range(packed_reference, &range);
 
     while (range.encounter_index != -1 && range.platoon_start <= range.platoon_end) {
-        encounter *enc = &((encounter *)encounter_data->data)[range.encounter_index & 0xffff];
+        encounter *enc = &((encounter *)encounter_data->data)[range.encounter_index & halo::k_slot_mask];
         encounter_platoon_state *state =
             &encounter_platoon_states[(int16_t)(enc->first_platoon + (int16_t)range.platoon_start)];
         range.platoon_start = range.platoon_start + 1;
@@ -137,7 +140,7 @@ uint8_t ReferenceView::has_available()
             return 0;
         }
 
-        enc = &((encounter *)encounter_data->data)[range.encounter_index & 0xffff];
+        enc = &((encounter *)encounter_data->data)[range.encounter_index & halo::k_slot_mask];
         state = &encounter_platoon_states[(int16_t)(enc->first_platoon + (int16_t)range.platoon_start)];
         range.platoon_start = range.platoon_start + 1;
         if (state == 0) {
@@ -166,7 +169,7 @@ void ReferenceView::set_defending()
     ai_reference_expand_to_platoon_range(packed_reference, &range);
 
     while (range.encounter_index != -1 && range.platoon_start <= range.platoon_end) {
-        encounter *enc = &((encounter *)encounter_data->data)[range.encounter_index & 0xffff];
+        encounter *enc = &((encounter *)encounter_data->data)[range.encounter_index & halo::k_slot_mask];
         encounter_platoon_state *state =
             &encounter_platoon_states[(int16_t)(enc->first_platoon + (int16_t)range.platoon_start)];
         range.platoon_start = range.platoon_start + 1;
@@ -194,7 +197,7 @@ void ReferenceView::set_maneuvering()
     ai_reference_expand_to_platoon_range(packed_reference, &range);
 
     while (range.encounter_index != -1 && range.platoon_start <= range.platoon_end) {
-        encounter *enc = &((encounter *)encounter_data->data)[range.encounter_index & 0xffff];
+        encounter *enc = &((encounter *)encounter_data->data)[range.encounter_index & halo::k_slot_mask];
         encounter_platoon_state *state =
             &encounter_platoon_states[(int16_t)(enc->first_platoon + (int16_t)range.platoon_start)];
         range.platoon_start = range.platoon_start + 1;
@@ -223,7 +226,7 @@ void ReferenceView::set_maneuver_enabled(char flag)
     ai_reference_expand_to_platoon_range(packed_reference, &range);
 
     while (range.encounter_index != -1 && range.platoon_start <= range.platoon_end) {
-        encounter *enc = &((encounter *)encounter_data->data)[range.encounter_index & 0xffff];
+        encounter *enc = &((encounter *)encounter_data->data)[range.encounter_index & halo::k_slot_mask];
         encounter_platoon_state *state =
             &encounter_platoon_states[(int16_t)(enc->first_platoon + (int16_t)range.platoon_start)];
         range.platoon_start = range.platoon_start + 1;
@@ -246,11 +249,11 @@ void ReferenceView::activate_squads()
         int32_t squad_filter = (packed_reference >> 0x1e == 2) ? (int32_t)(int8_t)(packed_reference >> 0x10) : -1;
 
         if (packed_reference >> 0x1e == 1) {
-            encounter_spawn_squads(packed_reference & 0xffff, (int32_t)(int8_t)(packed_reference >> 0x10),
+            encounter_spawn_squads(packed_reference & halo::k_slot_mask, (int32_t)(int8_t)(packed_reference >> 0x10),
                                                squad_filter);
             return;
         }
-        encounter_spawn_squads(packed_reference & 0xffff, -1, squad_filter);
+        encounter_spawn_squads(packed_reference & halo::k_slot_mask, -1, squad_filter);
     }
 }
 
@@ -273,7 +276,7 @@ void ReferenceView::actor_iterator_init_cursor(int32_t encounter_index, datum_in
         return;
     }
 
-    cursor[2] = ((encounter *)encounter_data->data)[(uint32_t)encounter_index & 0xffff].first_actor;
+    cursor[2] = ((encounter *)encounter_data->data)[(uint32_t)encounter_index & halo::k_slot_mask].first_actor;
 }
 
 /**
@@ -285,7 +288,7 @@ void ReferenceView::actor_iterator_init_cursor(int32_t encounter_index, datum_in
 void ReferenceView::actor_iterator_new(ai_reference_actor_iterator *out_iterator)
 {
     uint32_t packed_reference = handle;
-    int32_t encounter_index = (int32_t)(packed_reference & 0xffff);
+    int32_t encounter_index = (int32_t)(packed_reference & halo::k_slot_mask);
     int32_t *field0 = (int32_t *)(out_iterator->unknown_00 + 0x00);
     int32_t *squad_filter = (int32_t *)(out_iterator->unknown_00 + 0x04);
     int32_t *platoon_filter = (int32_t *)(out_iterator->unknown_00 + 0x08);
@@ -343,7 +346,7 @@ actor * ReferenceView::actor_iterator_next(ai_reference_actor_iterator *iterator
             return 0;
         }
 
-        candidate = &base[next & 0xffff];
+        candidate = &base[next & halo::k_slot_mask];
         *(datum_index *)iterator->unknown_14 = candidate->next_in_encounter;
 
         if (*squad_filter == -1 || *squad_filter == candidate->squad_index) {
@@ -368,7 +371,7 @@ datum_index ReferenceView::build_object_list()
         header_index = halo::memory::datum_new(object_list_header_data);
         if (header_index != (datum_index)k_datum_index_none) {
             object_list_header *header =
-                (object_list_header *)((uint8_t *)object_list_header_data->data + (header_index & 0xffff) * 0x0c);
+                (object_list_header *)((uint8_t *)object_list_header_data->data + (header_index & halo::k_slot_mask) * 0x0c);
             ai_reference_actor_iterator iterator;
             actor *a;
 
@@ -386,7 +389,7 @@ datum_index ReferenceView::build_object_list()
 
                 passenger = a->cluster_unit_index;
                 while (passenger != (datum_index)k_datum_index_none) {
-                    object_header *passenger_header = &((object_header *)object_data->data)[passenger & 0xffff];
+                    object_header *passenger_header = &((object_header *)object_data->data)[passenger & halo::k_slot_mask];
                     object_list_reference_add(header_index, passenger);
                     passenger = *(datum_index *)((uint8_t *)passenger_header->data + 0x1fc);
                 }
@@ -431,7 +434,7 @@ void ReferenceView::detach_actors_from_encounters()
     actor *a;
     actor *self;
 
-    if (packed_reference == 0xffffffff) {
+    if (packed_reference == halo::k_dword_none) {
         return;
     }
 
@@ -441,7 +444,7 @@ void ReferenceView::detach_actors_from_encounters()
         actor_movement_action_cancel(iterator.actor_index);
         encounter_remove_actor(iterator.actor_index, 0);
         if (ai_globals_ptr->actors_valid != 0) {
-            self = &((actor *)actor_data->data)[iterator.actor_index & 0xffff];
+            self = &((actor *)actor_data->data)[iterator.actor_index & halo::k_slot_mask];
             self->next_in_encounter = ai_globals_ptr->first_encounterless_actor;
             ai_globals_ptr->first_encounterless_actor = iterator.actor_index;
             self->encounterless = 1;
@@ -462,7 +465,7 @@ void ReferenceView::detach_actors_from_encounters()
 void ReferenceView::expand_to_platoon_range(ai_reference_platoon_range *out_range)
 {
     uint32_t packed_reference = handle;
-    uint32_t encounter_index = packed_reference & 0xffff;
+    uint32_t encounter_index = packed_reference & halo::k_slot_mask;
     ScenarioEncounter *encounter_definition;
     uint32_t kind;
     uint32_t platoon_index;
@@ -536,8 +539,8 @@ void ReferenceView::face_starting_location(uint8_t idle_only)
             a->encounter_index != (datum_index)k_datum_index_none) {
 
             squad_index = a->squad_index;
-            definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
-                [a->encounter_index & 0xffff];
+            definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+                [a->encounter_index & halo::k_slot_mask];
             squads = (ScenarioSquad *)definition->squads.pointer;
 
             location_index = squad_pick_random_starting_location(a->encounter_index, squad_index);
@@ -616,7 +619,7 @@ uint32_t ReferenceView::get_stat_pair(int16_t stat_kind, int32_t *out_member_cou
 
     if (packed_reference != (uint32_t)k_datum_index_none) {
         uint32_t kind = packed_reference >> 0x1e;
-        uint32_t encounter_index = packed_reference & 0xffff;
+        uint32_t encounter_index = packed_reference & halo::k_slot_mask;
 
         if (kind == 0) {
             if ((int32_t)encounter_index < halo::scenario::globals().scenario->encounters.count) {
@@ -704,7 +707,7 @@ void ReferenceView::invoke_squad_callback_406f80()
     a = ai_reference_actor_iterator_next(&iterator);
     while (a != 0) {
         actor_swarm_for_each_component(iterator.actor_index, 0, (actor_swarm_member_callback)actor_obey_member_advance, 0,
-            (uint16_t *)((uint8_t *)actor_data->data + (iterator.actor_index & 0xffff) * 0x724 + 0x9c));
+            (uint16_t *)((uint8_t *)actor_data->data + (iterator.actor_index & halo::k_slot_mask) * k_actor_size + 0x9c));
         a = ai_reference_actor_iterator_next(&iterator);
     }
 }
@@ -790,7 +793,7 @@ void ReferenceView::notify_squad_index()
         int32_t squad_index = (kind == 2) ? sub_index : -1;
         int32_t platoon_index = (kind == 1) ? sub_index : -1;
 
-        ai_release_actors_filtered((datum_index)(packed_reference & 0xffff), platoon_index, squad_index, 0);
+        ai_release_actors_filtered((datum_index)(packed_reference & halo::k_slot_mask), platoon_index, squad_index, 0);
     }
 }
 
@@ -801,11 +804,11 @@ void ReferenceView::notify_squad_index()
  */
 uint8_t ReferenceView::parse(char *reference_string, Scenario *scenario, uint32_t *out_packed_reference)
 {
-    uint32_t packed = 0xffffffff;
+    uint32_t packed = halo::k_dword_none;
     char *slash;
 
     if (_stricmp(reference_string, "none") == 0) {
-        *out_packed_reference = 0xffffffff;
+        *out_packed_reference = halo::k_dword_none;
         return 1;
     }
 
@@ -813,7 +816,7 @@ uint8_t ReferenceView::parse(char *reference_string, Scenario *scenario, uint32_
     if (slash == 0) {
         int32_t encounter_index = scenario_find_encounter_index_by_name(scenario, reference_string);
         if (encounter_index != -1) {
-            packed = (uint32_t)encounter_index & 0xffff;
+            packed = (uint32_t)encounter_index & halo::k_slot_mask;
         }
     } else {
         int32_t name_length = (int32_t)(slash - reference_string);
@@ -841,14 +844,14 @@ uint8_t ReferenceView::parse(char *reference_string, Scenario *scenario, uint32_
                     }
                     high = ((uint32_t)platoon_index & 0xff) | 0x4000;
                 }
-                packed = (high << 0x10) | ((uint32_t)encounter_index & 0xffff);
+                packed = (high << 0x10) | ((uint32_t)encounter_index & halo::k_slot_mask);
             }
         }
     }
 
 done:
     *out_packed_reference = packed;
-    return packed != 0xffffffff;
+    return packed != halo::k_dword_none;
 }
 
 /**
@@ -871,21 +874,21 @@ void ReferenceView::refill_grenades()
     a = ai_reference_actor_iterator_next(&iterator);
     while (a != 0) {
         if (a->unit_index != (datum_index)k_datum_index_none) {
-            variant_data = (uint8_t *)halo::cache::globals().tag_instances[a->actor_variant_tag & 0xffff].data;
-            unit = (uint8_t *)((object_header *)object_data->data)[a->unit_index & 0xffff].data;
+            variant_data = (uint8_t *)halo::cache::globals().tag_instances[a->actor_variant_tag & halo::k_slot_mask].data;
+            unit = (uint8_t *)((object_header *)object_data->data)[a->unit_index & halo::k_slot_mask].data;
 
             ((unit_object *)unit)->base.body_vitality = (((unit_object *)unit)->base.maximum_body_vitality <= 0.0f) ? k_real_zero : k_real_one;
             ((unit_object *)unit)->base.shield_vitality = (((unit_object *)unit)->base.maximum_shield_vitality <= 0.0f) ? k_real_zero : k_real_one;
 
             if (*(int16_t *)(variant_data + 0x180) != -1) {
-                halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+                halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
                 rolled = (int32_t)((uint32_t)(((int32_t)(int16_t)(*(int16_t *)(variant_data + 0x1d2) + 1) -
                                      (int32_t)(int16_t)*(uint16_t *)(variant_data + 0x1d0)) *
                                     (int32_t)(halo::math::globals().random_seed_global >> 0x10)) >> 0x10) +
                          (int32_t)*(uint16_t *)(variant_data + 0x1d0);
 
                 unit = (uint8_t *)((object_header *)object_data->data)
-                    [a->unit_index & 0xffff].data;
+                    [a->unit_index & halo::k_slot_mask].data;
                 current = (int16_t)((unit_object *)unit)->unit.current_grenade_index;
                 if (current == -1) {
                     current = 0;
@@ -896,7 +899,7 @@ void ReferenceView::refill_grenades()
                 if (current < (int16_t)rolled) {
                     grenade_type = *(int16_t *)(variant_data + 0x180);
                     unit = (uint8_t *)((object_header *)object_data->data)
-                        [a->unit_index & 0xffff].data;
+                        [a->unit_index & halo::k_slot_mask].data;
                     *(int8_t *)(unit + 0x31e + grenade_type) =
                         (int8_t)(*(int8_t *)(unit + 0x31e + grenade_type) +
                                  ((int8_t)rolled - (int8_t)current));
@@ -950,16 +953,16 @@ int32_t ReferenceView::resolve_squad_datum()
 
     if (ai_globals_ptr->actors_valid != 0 && packed_reference != (uint32_t)k_datum_index_none) {
         if (packed_reference >> 0x1e == 2) {
-            return (int32_t)encounter_squad_spawn_reinforcement(packed_reference & 0xffff,
+            return (int32_t)encounter_squad_spawn_reinforcement(packed_reference & halo::k_slot_mask,
                 (int16_t)((packed_reference >> 0x10) & 0xff));
         }
         if (packed_reference >> 0x1e == 1) {
             ScenarioEncounter *encounter_definition =
-                &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[packed_reference & 0xffff];
+                &((ScenarioEncounter *)global_scenario->encounters.pointer)[packed_reference & halo::k_slot_mask];
             int32_t squad_count = encounter_definition->squads.count;
 
             if (squad_count <= 0) {
-                return (int32_t)((packed_reference & 0xffff) * sizeof(ScenarioEncounter));
+                return (int32_t)((packed_reference & halo::k_slot_mask) * sizeof(ScenarioEncounter));
             }
             if (squad_count > 0) {
                 ScenarioSquad *squads = (ScenarioSquad *)encounter_definition->squads.pointer;
@@ -969,7 +972,7 @@ int32_t ReferenceView::resolve_squad_datum()
                         if ((int16_t)squad_index == -1) {
                             return squad_index;
                         }
-                        return (int32_t)encounter_squad_spawn_reinforcement(packed_reference & 0xffff,
+                        return (int32_t)encounter_squad_spawn_reinforcement(packed_reference & halo::k_slot_mask,
                             (int16_t)squad_index);
                     }
                     squad_index = squad_index + 1;
@@ -1024,7 +1027,7 @@ void ReferenceView::respawn_member(datum_index unit_index)
             datum_index respawned;
 
             if (a->encounter_index != (datum_index)k_datum_index_none) {
-                encounter *enc = &((encounter *)encounter_data->data)[a->encounter_index & 0xffff];
+                encounter *enc = &((encounter *)encounter_data->data)[a->encounter_index & halo::k_slot_mask];
                 *(int16_t *)&enc->activation_delay = 0x96;
                 encounter_activate(a->encounter_index);
             }
@@ -1184,8 +1187,8 @@ void ReferenceView::spawn_starting_location_object(datum_index unit_index, uint3
         return;
     }
 
-    encounter_index = packed_reference & 0xffff;
-    if ((int32_t)encounter_index >= halo::scenario::globals().scenario->encounters.count) {
+    encounter_index = packed_reference & halo::k_slot_mask;
+    if ((int32_t)encounter_index >= global_scenario->encounters.count) {
         return;
     }
     encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[encounter_index];
@@ -1221,11 +1224,11 @@ void ReferenceView::spawn_starting_location_object(datum_index unit_index, uint3
 
             if (actor_variant_tag != (datum_index)k_datum_index_none) {
                 uint8_t *actor_variant_data =
-                    (uint8_t *)halo::cache::globals().tag_instances[actor_variant_tag & 0xffff].data;
+                    (uint8_t *)halo::cache::globals().tag_instances[actor_variant_tag & halo::k_slot_mask].data;
                 datum_index actor_definition_tag = *(datum_index *)(actor_variant_data + 0x10);
 
                 if (actor_definition_tag != (datum_index)k_datum_index_none) {
-                    uint8_t *actor_tag_data = (uint8_t *)halo::cache::globals().tag_instances[actor_definition_tag & 0xffff].data;
+                    uint8_t *actor_tag_data = (uint8_t *)halo::cache::globals().tag_instances[actor_definition_tag & halo::k_slot_mask].data;
                     uint32_t actor_tag_flags = *(uint32_t *)actor_tag_data;
                     char reuse_existing = (char)((actor_tag_flags >> 0x1a) & 1); // Actor.flags bit 26, "swarm"
                     char start_active =
@@ -1233,7 +1236,7 @@ void ReferenceView::spawn_starting_location_object(datum_index unit_index, uint3
 
                     actor_new_and_attach_to_unit(reuse_existing, unit_index, actor_variant_tag, encounter_index,
                         (int16_t)squad_index, 0, (datum_index)k_datum_index_none, start_active,
-                        (uint16_t)squad->initial_state, (int16_t)squad->return_state, 0xffff, 0);
+                        (uint16_t)squad->initial_state, (int16_t)squad->return_state, halo::k_word_none, 0);
                     encounters_recompute_dirty();
                 }
             }
@@ -1249,7 +1252,7 @@ void ReferenceView::spawn_starting_location_object(datum_index unit_index, uint3
 void ReferenceView::squad_iterator_new(ai_reference_squad_iterator *out_iterator)
 {
     uint32_t packed_reference = handle;
-    uint32_t encounter_index = packed_reference & 0xffff;
+    uint32_t encounter_index = packed_reference & halo::k_slot_mask;
     ScenarioEncounter *encounter_definition;
     uint32_t kind;
 
@@ -1302,9 +1305,9 @@ encounter_squad_state * ReferenceView::squad_iterator_next(ai_reference_squad_it
         return 0;
     }
 
-    enc = &((encounter *)encounter_data->data)[iterator->encounter_index & 0xffff];
+    enc = &((encounter *)encounter_data->data)[iterator->encounter_index & halo::k_slot_mask];
     encounter_definition =
-        &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)[iterator->encounter_index & 0xffff];
+        &((ScenarioEncounter *)global_scenario->encounters.pointer)[iterator->encounter_index & halo::k_slot_mask];
     squads = (ScenarioSquad *)encounter_definition->squads.pointer;
 
     if (iterator->squad_start > iterator->squad_end) {
@@ -1346,9 +1349,9 @@ void ReferenceView::squad_set_automatic_migration(uint8_t value)
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & 0xffff])
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define OBJECT_HEADER(h) (((object_header *)object_data->data)[(h) & halo::k_slot_mask])
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 namespace {
 
 static void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
@@ -1572,10 +1575,10 @@ void ReferenceView::assign_team_and_request_order(int16_t value)
     a = ai_reference_actor_iterator_next(&iterator);
     while (a != 0) {
         grade = actor_mode_definitions[
-            ((actor *)actor_data->data)[iterator.actor_index & 0xffff].mode].combat_grade;
+            ((actor *)actor_data->data)[iterator.actor_index & halo::k_slot_mask].mode].combat_grade;
         a->standing_order_request = value;
         if (a->combat_status == 0 && (grade == 0 || grade == 1 || grade == 2)) {
-            actor_process_order_request(iterator.actor_index, 0xffffffff);
+            actor_process_order_request(iterator.actor_index, halo::k_dword_none);
         }
         a = ai_reference_actor_iterator_next(&iterator);
     }

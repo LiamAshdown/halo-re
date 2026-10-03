@@ -1,5 +1,7 @@
 #include "halo/hs/hs2_commands.hpp"
 #include "halo/devices/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 
 #ifdef __cplusplus
@@ -33,10 +35,10 @@ void DeviceCommands::evaluate_device_set_position(int16_t function_index, uint32
     uint8_t result = 0;
 
     if (device != k_datum_index_none) {
-        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (device & 0xffff) * 0xc + 8);
+        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (device & halo::k_slot_mask) * 0xc + 8);
         uint16_t group = *(uint16_t *)(object + 0x204);
 
-        if (group != 0xffff) {
+        if (group != halo::k_word_none) {
             result = halo::devices::device_group_set_value(group, *(float *)&arguments[1]);
         }
     }
@@ -60,9 +62,9 @@ void DeviceCommands::evaluate_device_set_position_immediate(int16_t function_ind
     datum_index device = (datum_index)arguments[0];
 
     if (device != k_datum_index_none) {
-        uint16_t group = *(uint16_t *)(*(uint8_t **)((uint8_t *)object_data->data + (device & 0xffff) * 0xc + 8) + 0x204);
+        uint16_t group = *(uint16_t *)(*(uint8_t **)((uint8_t *)object_data->data + (device & halo::k_slot_mask) * 0xc + 8) + 0x204);
 
-        if (group != 0xffff) {
+        if (group != halo::k_word_none) {
             halo::devices::device_group_set_value_immediate(group, *(float *)&arguments[1]);
         }
     }
@@ -87,7 +89,7 @@ void DeviceCommands::evaluate_device_set_power(int16_t function_index, uint32_t 
     float power = *(float *)&arguments[1];
 
     if (device != k_datum_index_none) {
-        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (device & 0xffff) * 0xc + 8);
+        uint8_t *object = *(uint8_t **)((uint8_t *)object_data->data + (device & halo::k_slot_mask) * 0xc + 8);
 
         *(uint32_t *)(object + 0x1f4) |= 4;
         *(float *)(object + 0x1fc) = power;

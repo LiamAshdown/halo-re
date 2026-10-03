@@ -5,6 +5,7 @@
 #include "halo/math/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/core/datum.hpp"
 
 extern "C" {
 extern double sqrt(double x);
@@ -574,7 +575,7 @@ uint8_t PathFinder::push_start_node()
     int16_t node_index;
     path_find_node *node;
 
-    if ((context->start_vertex_id == 0xffffffff) || (context->start_position.z <= -1000.0f)) {
+    if ((context->start_vertex_id == halo::k_dword_none) || (context->start_position.z <= -1000.0f)) {
         return 0;
     }
 
@@ -830,7 +831,7 @@ static uint8_t path_find_search(path_find_context *context)
                 f = goal_distance + g;
             }
             key = (int32_t)(f * 10.0f);
-            if (key >= 0x7fff) {
+            if (key >= INT16_MAX) {
                 continue;
             }
             if (request->have_limit && travelled > request->limit_distance) {
@@ -1598,11 +1599,11 @@ uint8_t PathFindGeometry::validate_and_record_goal(ai_path_candidate_goal *candi
                                            &reachable) != 0) {
         candidate->alt_position = reached;
         candidate->flag_19 = 1;
-        candidate->unknown_1c = 0xffffffff;
+        candidate->unknown_1c = halo::k_dword_none;
         candidate->flag_1a = 0;
         candidate->reachable = reachable;
         candidate->position = *position;
-        candidate->unknown_10 = 0xffffffff;
+        candidate->unknown_10 = halo::k_dword_none;
         candidate->unknown_14 = 0;
         candidate->valid = 1;
     }

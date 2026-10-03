@@ -3,6 +3,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/physics/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 namespace halo::ai {
 
@@ -21,13 +23,13 @@ extern actor_mode_definition actor_mode_definitions[16];
 void ActorView::movement_action_cancel()
 {
     using namespace actor_movement_action_cancel_local;
-    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
     int16_t movement_type = self->active_movement.type;
 
     self->firing_position_index = -1;
     if (movement_type == 3 || movement_type == 4) {
         self->active_movement.type = 0;
-        self->active_movement.extra = 0xffffffff;
+        self->active_movement.extra = halo::k_dword_none;
     }
 
     {
@@ -52,7 +54,7 @@ extern data_array *actor_data;
 void ActorView::run_movement_action_complete()
 {
     using namespace actor_movement_action_complete_local;
-    actor *self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    actor *self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     self->movement_action_complete = 0;
     self->movement_completed = 1;
     self->movement_timer = 0;
@@ -72,7 +74,7 @@ extern data_array *actor_data;
 uint8_t ActorView::movement_action_in_progress()
 {
     using namespace actor_movement_action_in_progress_local;
-    actor *self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    actor *self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     if (self->movement_action_complete != 0 && self->movement_completed == 0) {
         return 0;
     }
@@ -93,7 +95,7 @@ extern data_array *actor_data;
 uint8_t ActorView::movement_action_is_complete()
 {
     using namespace actor_movement_action_is_complete_local;
-    actor *self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    actor *self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     return self->movement_action_complete;
 }
 
@@ -144,7 +146,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
     path_find_request request;
     path_find_context local_context;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     type = self->active_movement.type;
     result = 1;
     have_previous = 0;
@@ -182,8 +184,8 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
             actor_movement_action_complete(actor_index);
             return result;
         }
-        encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
-                                   [self->encounter_index & 0xffff];
+        encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+                                   [self->encounter_index & halo::k_slot_mask];
         firing_position = &((ScenarioFiringPosition *)encounter_definition->firing_positions.pointer)
                               [*(int16_t *)&self->active_movement.destination];
         self->destination = *(real_point3d *)&firing_position->position;
@@ -197,8 +199,8 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
             actor_movement_action_complete(actor_index);
             return result;
         }
-        encounter_definition = &((ScenarioEncounter *)halo::scenario::globals().scenario->encounters.pointer)
-                                   [self->encounter_index & 0xffff];
+        encounter_definition = &((ScenarioEncounter *)global_scenario->encounters.pointer)
+                                   [self->encounter_index & halo::k_slot_mask];
         squad_definition = &((ScenarioSquad *)encounter_definition->squads.pointer)
                                [self->squad_index];
         index = *(int16_t *)&self->active_movement.destination;
@@ -214,7 +216,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
         break;
 
     case 5:
-        target = &((prop *)prop_data->data)[*(uint32_t *)&self->active_movement.destination & 0xffff];
+        target = &((prop *)prop_data->data)[*(uint32_t *)&self->active_movement.destination & halo::k_slot_mask];
         if (target->state < 4 || target->state > 5) {
             actor_target_get_relationship_object(*(datum_index *)&self->active_movement.destination);
         }
@@ -258,7 +260,7 @@ uint8_t ActorView::movement_action_resolve(uint8_t record_distance, path_find_co
         }
     }
 
-    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
+    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
     distance = halo::math::vector3d_distance(self->destination, self->body_position);
 
     if (self->flying != 0) {
@@ -325,7 +327,7 @@ void ActorView::movement_action_stop()
     using namespace actor_movement_action_stop_local;
     actor *self;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     if (self->vehicle_driving_type == 4 && self->moving != 0) {
         actor_movement_set_destination_point(&self->body_position, actor_index, self->pathfinding_surface_index, (uint32_t)-1);
@@ -354,7 +356,7 @@ extern data_array *actor_data;
 void ActorView::movement_actions_cancel()
 {
     using namespace actor_movement_actions_cancel_local;
-    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
 
     self->queued_movement.cancelled = 1;
     self->active_movement.cancelled = 1;
@@ -379,7 +381,7 @@ void ActorView::movement_advance_waypoint()
     actor *self;
     uint8_t *waypoints;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     if (self->needs_new_path != 0 && self->path_resolved_this_tick == 0 && self->keep_unit_alive == 0) {
         actor_movement_action_resolve(actor_index, 0, 0);
@@ -491,7 +493,7 @@ extern void actor_movement_project_into_frame(uint8_t use_3d, const real_vector3
                                               const real_vector3d *v, real_vector3d *out);
 extern uint8_t path_find_trace_bsp_boundary(void *map, uint8_t ignore_permission, real_point3d *start, int32_t start_surface,
     real_point3d *end, int32_t target_surface, path_find_boundary_crossing *out_result);
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
 
@@ -503,9 +505,9 @@ extern uint8_t path_find_trace_bsp_boundary(void *map, uint8_t ignore_permission
 void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datum_index actor_index, uint8_t want_avoid_check, float avoid_threshold, uint8_t order_failed, float steering_maximum, float oversteer_min, float oversteer_max, float avoidance_scale, float throttle_maximum, real_vector3d *desired_direction, real_vector3d *out_direction, int16_t *out_axis, real_vector3d *out_heading, uint8_t *out_flag_507, uint8_t *out_flag_506)
 {
     using namespace actor_movement_apply_steering_local;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *actor_tag = TAG_DATA(((actor *)act)->actor_definition_tag);
-    real_vector3d *facing = (real_vector3d *)(act + 0x174);
+    real_vector3d *facing = &((struct actor *)act)->facing;
     float max_turn_cos = 0.8660254f;
     int16_t chosen_axis = -1;
     real_vector3d aim;
@@ -585,7 +587,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
             }
             chosen_axis = 4;
         } else if (act[0x505]) {
-            actor_movement_choose_strafe_axis(desired_direction, keep_z, facing, (real_vector3d *)(act + 0x524), &aim,
+            actor_movement_choose_strafe_axis(desired_direction, keep_z, facing, &((struct actor *)act)->forced_aim_direction, &aim,
                                               &chosen_axis);
         } else {
             aim = *desired_direction;
@@ -624,7 +626,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
                     point.x = probe.i * 0.4f + ((actor *)act)->body_position.x;
                     point.y = probe.j * 0.4f + ((actor *)act)->body_position.y;
                     point.z = ((actor *)act)->body_position.z;
-                    if (path_find_trace_bsp_boundary(halo::scenario::globals().structure_bsp, act[0x376], (real_point3d *)(act + 0x12c),
+                    if (path_find_trace_bsp_boundary(global_structure_bsp, act[0x376], &((struct actor *)act)->body_position,
                                                      surface, &point, -1, &crossing) &&
                         !(max_turn_cos > 0.95f)) {
                         max_turn_cos = 0.95f;
@@ -680,7 +682,7 @@ void ActorOps::movement_apply_steering(int16_t cached_axis, uint8_t keep_z, datu
     if (steering_maximum > 0.0f || oversteer_max > 0.0f) {
         float target_angle;
         float angle;
-        float *held = (float *)(act + 0x594);
+        float *held = &((struct actor *)act)->oversteer_angle[0];
 
         if (dot_facing >= 1.0f) {
             target_angle = 0.0f;
@@ -757,7 +759,7 @@ uint8_t ActorView::movement_check_arrival()
     float radius;
     float dx, dy, dz;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     if (self->active_movement.type != 0 && self->active_movement.type != 1) {
         radius = actor_compute_accuracy_scale(actor_index);
@@ -896,7 +898,7 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
     int32_t remaining;
     datum_index *cursor;
 
-    unit_object = ((object_header *)object_data->data)[context->unit_index & 0xffff].data;
+    unit_object = ((object_header *)object_data->data)[context->unit_index & halo::k_slot_mask].data;
     found = object_find_in_sphere(1, 0xc2, (uint8_t *)unit_object + 0x98, &context->position,
                                   context->search_radius, candidates, 0x800);
     context->obstacle_count = 0;
@@ -908,12 +910,12 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
     remaining = (int32_t)(uint16_t)found;
     do {
         if (*cursor != (datum_index)k_datum_index_none && *cursor != context->unit_index) {
-            candidate_object = ((object_header *)object_data->data)[*cursor & 0xffff].data;
-            candidate_definition = (Object *)halo::cache::globals().tag_instances[candidate_object->definition_tag & 0xffff].data;
+            candidate_object = ((object_header *)object_data->data)[*cursor & halo::k_slot_mask].data;
+            candidate_definition = (Object *)halo::cache::globals().tag_instances[candidate_object->definition_tag & halo::k_slot_mask].data;
             collision_model = (ModelCollisionGeometry *)
                 halo::cache::globals().tag_instances[candidate_definition->collision_model.tag_id.index].data;
             if ((int32_t)collision_model->pathfinding_spheres.count > 0) {
-                candidate_object = ((object_header *)object_data->data)[*cursor & 0xffff].data;
+                candidate_object = ((object_header *)object_data->data)[*cursor & halo::k_slot_mask].data;
                 origin_x = ((struct object *)candidate_object)->bounding_center.x;
                 origin_y = ((struct object *)candidate_object)->bounding_center.y;
                 origin_z = ((struct object *)candidate_object)->bounding_center.z;
@@ -930,7 +932,7 @@ void ActorOps::movement_collect_obstacle_candidates(actor_movement_context *cont
                                                   world_matrix);
                         reach = world_matrix.scale * sphere->radius;
                     } else {
-                        candidate_object = ((object_header *)object_data->data)[*cursor & 0xffff].data;
+                        candidate_object = ((object_header *)object_data->data)[*cursor & halo::k_slot_mask].data;
                         node_matrix = (const real_matrix4x3 *)
                             ((uint8_t *)candidate_object +
                              (int32_t)((struct object *)candidate_object)->nodes.offset +
@@ -993,13 +995,13 @@ uint8_t ActorView::movement_flying_needs_steering(const real_point3d *destinatio
     float facing_dot;
     uint8_t needs_steering;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     avoidance_distance = 0.0f;
     needs_steering = 1;
 
     if (self->vehicle_driving_type == 4) {
-        unit_object = ((object_header *)object_data->data)[self->active_unit_index & 0xffff].data;
-        vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data;
+        unit_object = ((object_header *)object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
+        vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
         avoidance_distance = vehicle_definition->ai_avoidance_distance;
         if (avoidance_distance > 0.0f && self->avoidance_emergency > 0.9f) {
             delta.i = destination->x - self->body_position.x;
@@ -1047,7 +1049,7 @@ void ActorView::movement_get_stopping_distances(float *out_accelerate_stop_dista
     float acceleration;
     float deceleration;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     speed = 0.0f;
     top_speed = 0.083333336f;
     acceleration = 0.016666668f;
@@ -1057,7 +1059,7 @@ void ActorView::movement_get_stopping_distances(float *out_accelerate_stop_dista
         if (self->unit_index != (datum_index)k_datum_index_none) {
             unit_object = (object *)object_try_and_get(self->unit_index, 1);
             if (unit_object != (object *)0) {
-                biped_definition = (Biped *)halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data;
+                biped_definition = (Biped *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
                 speed = unit_object->velocity.i * unit_object->forward.i +
                         unit_object->velocity.j * unit_object->forward.j +
                         unit_object->velocity.k * unit_object->forward.k;
@@ -1074,8 +1076,8 @@ void ActorView::movement_get_stopping_distances(float *out_accelerate_stop_dista
             }
         }
     } else if (self->vehicle_driving_type > 1 && self->vehicle_driving_type < 4) {
-        unit_object = ((object_header *)object_data->data)[self->active_unit_index & 0xffff].data;
-        vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data;
+        unit_object = ((object_header *)object_data->data)[self->active_unit_index & halo::k_slot_mask].data;
+        vehicle_definition = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
         speed = unit_object->velocity.i * unit_object->forward.i +
                 unit_object->velocity.j * unit_object->forward.j +
                 unit_object->velocity.k * unit_object->forward.k;
@@ -1144,7 +1146,7 @@ uint8_t ActorView::movement_set_destination_firing_position(int16_t formation_sl
     using namespace actor_movement_set_destination_firing_position_local;
     actor *self;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     actor_set_units_active(actor_index, 0);
 
     if (self->active_movement.type != 3 || *(int16_t *)&self->active_movement.destination != formation_slot) {
@@ -1180,7 +1182,7 @@ uint8_t ActorView::movement_set_destination_move_position(int16_t move_position_
     using namespace actor_movement_set_destination_move_position_local;
     actor *self;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     self->firing_position_index = -1;
     actor_set_units_active(actor_index, 0);
 
@@ -1219,7 +1221,7 @@ uint8_t TargetView::movement_set_destination_near_target(datum_index actor_index
     prop *target;
     int32_t extra;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     self->firing_position_index = -1;
     actor_set_units_active(actor_index, 0);
 
@@ -1233,7 +1235,7 @@ uint8_t TargetView::movement_set_destination_near_target(datum_index actor_index
     }
 
     *(uint32_t *)&self->queued_movement.destination.x = (uint32_t)target_prop_index;
-    target = &((prop *)prop_data->data)[target_prop_index & 0xffff];
+    target = &((prop *)prop_data->data)[target_prop_index & halo::k_slot_mask];
     self->queued_movement.type = 5;
     self->queued_movement.cancelled = 0;
     self->queued_movement.destination.y = radius;
@@ -1266,7 +1268,7 @@ uint8_t ActorOps::movement_set_destination_point(real_point3d *destination, datu
     float dx, dy, dz;
     float dist2;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     self->firing_position_index = -1;
     actor_set_units_active(actor_index, 0);
 

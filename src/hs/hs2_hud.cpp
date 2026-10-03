@@ -3,6 +3,7 @@
 
 #include "game.h"
 #include "interface.h"
+#include "halo/core/datum.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -163,8 +164,8 @@ void HudCommands::evaluate_hud_get_timer_ticks(int16_t function_index, uint32_t 
     if (hud_messaging[0x487]) {
         uint16_t stored = *(uint16_t *)(hud_messaging + 0x47c);
 
-        if (stored == 0xffff) {
-            ticks = 0xffff;
+        if (stored == halo::k_word_none) {
+            ticks = halo::k_word_none;
         } else if (hud_messaging[0x486]) {
             ticks = stored;
         } else {

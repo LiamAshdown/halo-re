@@ -1,5 +1,7 @@
 #include "halo/hs/hs3_commands.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -46,8 +48,8 @@ void VolumeCommands::evaluate_volume_test_object(int16_t function_index, uint32_
     if (arguments != 0) {
         uint8_t inside = 0;
 
-        if ((uint32_t)arguments[1] != 0xffffffff) {
-            uint8_t *object = (uint8_t *)((object_header *)object_data->data)[arguments[1] & 0xffff].data;
+        if ((uint32_t)arguments[1] != halo::k_dword_none) {
+            uint8_t *object = (uint8_t *)((object_header *)object_data->data)[arguments[1] & halo::k_slot_mask].data;
 
             inside = halo::scenario::scenario_trigger_volume_contains_point(*(int16_t *)&arguments[0], (real_point3d *)(object + 0xa0));
         }

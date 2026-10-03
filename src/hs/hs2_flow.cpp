@@ -3,6 +3,9 @@
 #include "game.h"
 #include "halo/math/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
+#include "halo/core/slot_mask.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,7 +34,7 @@ extern datum_index hs_thread_find_by_script_index(int16_t script_index);
 
 static hs_syntax_node *syntax_get(datum_index node)
 {
-    return (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node & 0xffff) * 0x14);
+    return (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node & halo::k_slot_mask) * 0x14);
 }
 
 static void object_list_adjust_references(hs_global_reference reference, int16_t delta)
@@ -39,13 +42,13 @@ static void object_list_adjust_references(hs_global_reference reference, int16_t
     int32_t list = hs_global_get_value(reference);
 
     if (list != k_datum_index_none) {
-        *(int16_t *)((uint8_t *)object_list_header_data->data + (list & 0xffff) * 0xc + 4) += delta;
+        *(int16_t *)((uint8_t *)object_list_header_data->data + (list & halo::k_slot_mask) * 0xc + 4) += delta;
     }
 }
 
 static hs_thread *thread_get(datum_index thread_index)
 {
-    return (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218);
+    return (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
 }
 
 namespace halo::hs {
@@ -59,10 +62,10 @@ namespace halo::hs {
 void FlowCommands::evaluate_equality(int16_t function_index, uint32_t thread_index, char first)
 {
     uint8_t *syntax = (uint8_t *)hs_syntax_data->data;
-    uint8_t *frame = *(uint8_t **)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218 + 0x10);
-    uint32_t call_node = *(uint32_t *)(frame + 4) & 0xffff;
-    uint32_t name_node = *(uint32_t *)(syntax + call_node * 0x14 + 0x10) & 0xffff;
-    uint32_t first_argument = *(uint32_t *)(syntax + name_node * 0x14 + 8) & 0xffff;
+    uint8_t *frame = *(uint8_t **)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread) + 0x10);
+    uint32_t call_node = *(uint32_t *)(frame + 4) & halo::k_slot_mask;
+    uint32_t name_node = *(uint32_t *)(syntax + call_node * 0x14 + 0x10) & halo::k_slot_mask;
+    uint32_t first_argument = *(uint32_t *)(syntax + name_node * 0x14 + 8) & halo::k_slot_mask;
     int16_t type = *(int16_t *)(syntax + first_argument * 0x14 + 4);
     int16_t types[2];
     uint8_t *arguments;
@@ -108,7 +111,7 @@ int32_t FlowCommands::evaluate_expression(datum_index node)
     if (thread_handle == k_datum_index_none) {
         return -1;
     }
-    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_handle & 0xffff) * 0x218);
+    thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_handle & halo::k_slot_mask) * sizeof(hs_thread));
     hs_thread_push(node, thread_handle, &thread->result);
     if ((thread->flags & 1) != 0) {
         hs_thread_evaluate_step(thread_handle);
@@ -125,7 +128,7 @@ int32_t FlowCommands::evaluate_expression(datum_index node)
  */
 void FlowCommands::evaluate_if(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread *thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218);
+    hs_thread *thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     hs_stack_frame *frame;
     int32_t *condition;
     datum_index *branch;
@@ -233,7 +236,7 @@ void FlowCommands::evaluate_random(hs_thread *thread, uint32_t thread_index, cha
     int16_t chosen_index;
     datum_index chosen_child;
 
-    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218);
+    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     frame = thread_record->stack;
 
     state = (hs_random_state *)((uint8_t *)frame + 0x0e + frame->size);
@@ -247,11 +250,11 @@ void FlowCommands::evaluate_random(hs_thread *thread, uint32_t thread_index, cha
 
     if (first != 0) {
         node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
-            (frame->syntax_node & 0xffff) * 0x14);
-        child = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node->data.first_child & 0xffff) * 0x14))->next_node;
+            (frame->syntax_node & halo::k_slot_mask) * 0x14);
+        child = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node->data.first_child & halo::k_slot_mask) * 0x14))->next_node;
         state->child_count = 0;
         while (child != k_datum_index_none) {
-            node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (child & 0xffff) * 0x14);
+            node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (child & halo::k_slot_mask) * 0x14);
             child = node->next_node;
             state->child_count = state->child_count + 1;
         }
@@ -261,7 +264,7 @@ void FlowCommands::evaluate_random(hs_thread *thread, uint32_t thread_index, cha
         }
     }
 
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     scan = 0;
     child_count = state->child_count;
     chosen_index = child_count;
@@ -272,17 +275,17 @@ void FlowCommands::evaluate_random(hs_thread *thread, uint32_t thread_index, cha
             chosen_index = (int16_t)candidate;
             if ((chosen_words[(int16_t)candidate >> 5] & (1 << (candidate & 0x1f))) == 0) {
                 if (0 < chosen_index) {
-                    uint32_t dead = candidate & 0xffff;
+                    uint32_t dead = candidate & halo::k_slot_mask;
                     do {
                         dead = dead - 1;
                     } while (dead != 0);
                 }
                 node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
-                    (frame->syntax_node & 0xffff) * 0x14);
-                chosen_child = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node->data.first_child & 0xffff) * 0x14))->next_node;
+                    (frame->syntax_node & halo::k_slot_mask) * 0x14);
+                chosen_child = ((hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node->data.first_child & halo::k_slot_mask) * 0x14))->next_node;
                 for (i = 0; i < (uint32_t)chosen_index; i++) {
                     node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
-                        (chosen_child & 0xffff) * 0x14);
+                        (chosen_child & halo::k_slot_mask) * 0x14);
                     chosen_child = node->next_node;
                 }
                 /* 0x488e0f: `mov ebx,[esp+0x14]` -- scratch slot 3, the 4 bytes that
@@ -308,7 +311,7 @@ void FlowCommands::evaluate_random(hs_thread *thread, uint32_t thread_index, cha
  */
 void FlowCommands::evaluate_set(int16_t function_index, uint32_t thread_index, char first)
 {
-    hs_thread *thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218);
+    hs_thread *thread = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     hs_syntax_node *variable;
     hs_global_reference reference;
     uint16_t index;
@@ -331,7 +334,7 @@ void FlowCommands::evaluate_set(int16_t function_index, uint32_t thread_index, c
         }
         slot = (reference & k_hs_global_builtin_bit) != 0 ? index : index + k_hs_builtin_global_count;
         hs_thread_push(variable->next_node, thread_index,
-            (uint8_t *)hs_globals_data->data + (slot & 0xffff) * 8 + 4);
+            (uint8_t *)hs_globals_data->data + (slot & halo::k_slot_mask) * 8 + 4);
         return;
     }
     hs_global_write_value(reference);
@@ -365,7 +368,7 @@ void FlowCommands::evaluate_sleep(uint32_t unused_param_1, uint32_t thread_index
     int32_t wake_tick;
     int32_t capped;
 
-    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & 0xffff) * 0x218);
+    thread_record = (hs_thread *)((uint8_t *)hs_thread_data->data + (thread_index & halo::k_slot_mask) * sizeof(hs_thread));
     frame = thread_record->stack;
     condition = (char *)((uint8_t *)frame + 0x0e + frame->size);
     frame->size = frame->size + 4;
@@ -387,12 +390,12 @@ void FlowCommands::evaluate_sleep(uint32_t unused_param_1, uint32_t thread_index
     frame->size = frame->size + 2;
 
     frame = thread_record->stack;
-    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (frame->syntax_node & 0xffff) * 0x14);
+    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (frame->syntax_node & halo::k_slot_mask) * 0x14);
     /* no none-guards here: retail walks all three links unconditionally (0x4898c4..0x4898e4) */
     name_node = node->data.first_child;
-    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (name_node & 0xffff) * 0x14);
+    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (name_node & halo::k_slot_mask) * 0x14);
     condition_node = node->next_node;
-    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (condition_node & 0xffff) * 0x14);
+    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (condition_node & halo::k_slot_mask) * 0x14);
     ticks_node = node->next_node;
 
     if (first != 0) {
@@ -411,7 +414,7 @@ void FlowCommands::evaluate_sleep(uint32_t unused_param_1, uint32_t thread_index
         *stage = 1;
         if (ticks_node != k_datum_index_none) {
             node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data +
-                (ticks_node & 0xffff) * 0x14);
+                (ticks_node & halo::k_slot_mask) * 0x14);
             timeout_node = node->next_node;
             if (timeout_node != k_datum_index_none) {
                 hs_thread_push(timeout_node, thread_index, timeout_ticks);

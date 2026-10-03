@@ -1,5 +1,7 @@
 #include "halo/hs/hs1_ai_commands.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -408,8 +410,8 @@ void AiBehaviourCommands::force_active(int16_t function_index, uint32_t thread_i
     if (arguments != 0) {
     uint32_t reference = (uint32_t)arguments[0];
 
-    if (ai_globals_ptr->actors_valid && reference != 0xffffffff && (int32_t)(reference & 0xffff) < *(int32_t *)&halo::scenario::globals().scenario->encounters.count) {
-        ((uint8_t *)encounter_data->data)[(reference & 0xffff) * 0x6c + 0xc] = *(uint8_t *)&arguments[1];
+    if (ai_globals_ptr->actors_valid && reference != halo::k_dword_none && (int32_t)(reference & halo::k_slot_mask) < *(int32_t *)&global_scenario->encounters.count) {
+        ((uint8_t *)encounter_data->data)[(reference & halo::k_slot_mask) * 0x6c + 0xc] = *(uint8_t *)&arguments[1];
     }
     hs_thread_return(0, thread_index);
     }
@@ -447,8 +449,8 @@ void AiBehaviourCommands::link_activation(int16_t function_index, uint32_t threa
     uint32_t first_reference = (uint32_t)arguments[0];
     uint32_t second_reference = (uint32_t)arguments[1];
 
-    if (first_reference != 0xffffffff && second_reference != 0xffffffff) {
-        ai_encounter_record_recent_zone(first_reference & 0xffff, (int16_t)second_reference);
+    if (first_reference != halo::k_dword_none && second_reference != halo::k_dword_none) {
+        ai_encounter_record_recent_zone(first_reference & halo::k_slot_mask, (int16_t)second_reference);
     }
     hs_thread_return(0, thread_index);
     }
@@ -484,7 +486,7 @@ void AiBehaviourCommands::set_respawn(int16_t function_index, uint32_t thread_in
 
     if (arguments != 0) {
         if (arguments[0] != -1 && ai_globals_ptr->actors_valid != 0) {
-            uint32_t index = (uint32_t)arguments[0] & 0xffff;
+            uint32_t index = (uint32_t)arguments[0] & halo::k_slot_mask;
             uint8_t *encounter = (uint8_t *)encounter_data->data + index * 0x6c;
 
             encounter[0x3c] = (uint8_t)arguments[1];
@@ -707,8 +709,8 @@ void AiTargetingCommands::follow_distance(int16_t function_index, uint32_t threa
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if ((uint32_t)arguments[0] != 0xffffffff) {
-            *(uint32_t *)((uint8_t *)encounter_data->data + (arguments[0] & 0xffff) * 0x6c + 0x68) = (uint32_t)arguments[1];
+        if ((uint32_t)arguments[0] != halo::k_dword_none) {
+            *(uint32_t *)((uint8_t *)encounter_data->data + (arguments[0] & halo::k_slot_mask) * 0x6c + 0x68) = (uint32_t)arguments[1];
         }
         hs_thread_return(0, thread_index);
     }
@@ -726,10 +728,10 @@ void AiTargetingCommands::follow_target_ai(int16_t function_index, uint32_t thre
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if ((uint32_t)arguments[0] != 0xffffffff) {
-            uint8_t *encounter = (uint8_t *)encounter_data->data + (arguments[0] & 0xffff) * 0x6c;
+        if ((uint32_t)arguments[0] != halo::k_dword_none) {
+            uint8_t *encounter = (uint8_t *)encounter_data->data + (arguments[0] & halo::k_slot_mask) * 0x6c;
 
-            if ((uint32_t)arguments[1] == 0xffffffff) {
+            if ((uint32_t)arguments[1] == halo::k_dword_none) {
                 ((struct encounter *)encounter)->follow_target_type = 0;
             } else {
                 ((struct encounter *)encounter)->follow_target_type = 3;
@@ -754,8 +756,8 @@ void AiTargetingCommands::follow_target_disable(int16_t function_index, uint32_t
     if (arguments != 0) {
     uint32_t reference = (uint32_t)arguments[0];
 
-    if (reference != 0xffffffff) {
-        *(int16_t *)((uint8_t *)encounter_data->data + (reference & 0xffff) * 0x6c + 0x62) = 0;
+    if (reference != halo::k_dword_none) {
+        *(int16_t *)((uint8_t *)encounter_data->data + (reference & halo::k_slot_mask) * 0x6c + 0x62) = 0;
     }
     hs_thread_return(0, thread_index);
     }
@@ -775,8 +777,8 @@ void AiTargetingCommands::follow_target_players(int16_t function_index, uint32_t
     if (arguments != 0) {
     uint32_t reference = (uint32_t)arguments[0];
 
-    if (reference != 0xffffffff) {
-        *(int16_t *)((uint8_t *)encounter_data->data + (reference & 0xffff) * 0x6c + 0x62) = 1;
+    if (reference != halo::k_dword_none) {
+        *(int16_t *)((uint8_t *)encounter_data->data + (reference & halo::k_slot_mask) * 0x6c + 0x62) = 1;
     }
     hs_thread_return(0, thread_index);
     }
@@ -795,7 +797,7 @@ void AiTargetingCommands::follow_target_unit(int16_t function_index, uint32_t th
 
     if (arguments != 0) {
         if (arguments[0] != -1) {
-            uint8_t *encounter = (uint8_t *)encounter_data->data + ((uint32_t)arguments[0] & 0xffff) * 0x6c;
+            uint8_t *encounter = (uint8_t *)encounter_data->data + ((uint32_t)arguments[0] & halo::k_slot_mask) * 0x6c;
 
             if (arguments[1] == -1) {
                 ((struct encounter *)encounter)->follow_target_type = 0;
@@ -942,8 +944,8 @@ void AiTargetingCommands::playfight(int16_t function_index, uint32_t thread_inde
     if (arguments != 0) {
     uint32_t reference = (uint32_t)arguments[0];
 
-    if (reference != 0xffffffff) {
-        ((uint8_t *)encounter_data->data)[(reference & 0xffff) * 0x6c + 0x60] = *(uint8_t *)&arguments[1];
+    if (reference != halo::k_dword_none) {
+        ((uint8_t *)encounter_data->data)[(reference & halo::k_slot_mask) * 0x6c + 0x60] = *(uint8_t *)&arguments[1];
     }
     hs_thread_return(0, thread_index);
     }
@@ -995,8 +997,8 @@ void AiTargetingCommands::set_blind(int16_t function_index, uint32_t thread_inde
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if ((uint32_t)arguments[0] != 0xffffffff && ai_globals_ptr->actors_valid != 0) {
-            ((uint8_t *)encounter_data->data)[(arguments[0] & 0xffff) * 0x6c + 0x40] = *(uint8_t *)&arguments[1];
+        if ((uint32_t)arguments[0] != halo::k_dword_none && ai_globals_ptr->actors_valid != 0) {
+            ((uint8_t *)encounter_data->data)[(arguments[0] & halo::k_slot_mask) * 0x6c + 0x40] = *(uint8_t *)&arguments[1];
         }
         hs_thread_return(0, thread_index);
     }
@@ -1014,8 +1016,8 @@ void AiTargetingCommands::set_deaf(int16_t function_index, uint32_t thread_index
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if ((uint32_t)arguments[0] != 0xffffffff && ai_globals_ptr->actors_valid != 0) {
-            ((uint8_t *)encounter_data->data)[(arguments[0] & 0xffff) * 0x6c + 0x41] = *(uint8_t *)&arguments[1];
+        if ((uint32_t)arguments[0] != halo::k_dword_none && ai_globals_ptr->actors_valid != 0) {
+            ((uint8_t *)encounter_data->data)[(arguments[0] & halo::k_slot_mask) * 0x6c + 0x41] = *(uint8_t *)&arguments[1];
         }
         hs_thread_return(0, thread_index);
     }
@@ -1197,7 +1199,7 @@ void AiPlacementCommands::detach(int16_t function_index, uint32_t thread_index, 
     datum_index unit = (datum_index)arguments[0];
 
     if (unit != k_datum_index_none) {
-        datum_index actor = *(datum_index *)(*(uint8_t **)((uint8_t *)object_data->data + (unit & 0xffff) * 0xc + 8) + 0x1f4);
+        datum_index actor = *(datum_index *)(*(uint8_t **)((uint8_t *)object_data->data + (unit & halo::k_slot_mask) * 0xc + 8) + 0x1f4);
 
         if (actor != k_datum_index_none) {
             actor_delete(actor, 0);
@@ -1251,7 +1253,7 @@ void AiPlacementCommands::erase_all(int16_t function_index, uint32_t thread_inde
 {
     (void)function_index;
     (void)first;
-    ai_release_actors_filtered(0xffffffff, -1, -1, 0);
+    ai_release_actors_filtered(halo::k_dword_none, -1, -1, 0);
     hs_thread_return(0, thread_index);
 }
 
@@ -1812,7 +1814,7 @@ void AiVehicleCommands::vehicle_enterable_actor_type(int16_t function_index, uin
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if ((uint32_t)arguments[0] != 0xffffffff) {
+        if ((uint32_t)arguments[0] != halo::k_dword_none) {
             uint8_t *record = (uint8_t *)ai_object_attention_find_or_create((datum_index)arguments[0]);
 
             if (record != 0) {
@@ -1876,7 +1878,7 @@ void AiVehicleCommands::vehicle_enterable_distance(int16_t function_index, uint3
         (int16_t *)definition->parameters, first);
 
     if (arguments != 0) {
-        if ((uint32_t)arguments[0] != 0xffffffff) {
+        if ((uint32_t)arguments[0] != halo::k_dword_none) {
             uint8_t *record = (uint8_t *)ai_object_attention_find_or_create((datum_index)arguments[0]);
 
             if (record != 0) {

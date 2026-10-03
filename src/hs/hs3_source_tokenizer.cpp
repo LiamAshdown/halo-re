@@ -7,6 +7,8 @@
 #include "halo/cache/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 typedef struct rebuild_file_reference {
     uint32_t signature;
@@ -183,8 +185,8 @@ datum_index SourceTokenizer::tokenize(char **cursor) const
         hs_compile_error = (char *)"i couldn't allocate a syntax node.";
         return k_datum_index_none;
     }
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (index & 0xffff) * nodes->size);
-    node->index_union = (int16_t)0xffff;
+    node = (hs_syntax_node *)((uint8_t *)nodes->data + (index & halo::k_slot_mask) * nodes->size);
+    node->index_union = (int16_t)halo::k_word_none;
     node->next_node = k_datum_index_none;
     node->flags = 0;
     node->type = 0;
@@ -213,7 +215,7 @@ void SourceTokenizer::tokenize_nonprimitive(datum_index node_index, char **curso
     datum_index child_index;
 
     nodes = hs_syntax_data;
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & 0xffff) * nodes->size);
+    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
     node->source_offset = (int32_t)(*cursor - hs_compiled_source);
     *cursor = *cursor + 1;
     first_child_slot = &node->data;
@@ -240,7 +242,7 @@ void SourceTokenizer::tokenize_nonprimitive(datum_index node_index, char **curso
         child_index = hs_tokenize(cursor);
         *(datum_index *)child_slot = child_index;
         if (child_index != k_datum_index_none) {
-            child_slot = (uint8_t *)hs_syntax_data->data + 8 + (child_index & 0xffff) * hs_syntax_data->size;
+            child_slot = (uint8_t *)hs_syntax_data->data + 8 + (child_index & halo::k_slot_mask) * hs_syntax_data->size;
         }
         continue;
     empty_check:
@@ -266,7 +268,7 @@ void SourceTokenizer::tokenize_primitive(char **cursor, datum_index node_index) 
     char c;
     int16_t i;
 
-    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & 0xffff) * hs_syntax_data->size);
+    node = (hs_syntax_node *)((uint8_t *)hs_syntax_data->data + (node_index & halo::k_slot_mask) * hs_syntax_data->size);
     start = *cursor;
     if (*start == '"') {
         *cursor = start + 1;

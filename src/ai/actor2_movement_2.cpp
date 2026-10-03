@@ -1,6 +1,10 @@
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/units/flags.hpp"
 
 namespace halo::ai {
 
@@ -37,7 +41,7 @@ extern const float actor_avoidance_ray_weights[2];
 void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real_vector3d *out_direction, float *out_scale)
 {
     using namespace actor_movement_choose_avoidance_direction_local;
-    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *act = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     const real_vector3d *zero = global_origin3d_pointer;
     real_vector3d result = *zero;
     float out = 0.0f;
@@ -60,8 +64,8 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
     float index_out;
     float delta;
     float scale;
-    int16_t *best_saved = (int16_t *)(act + 0x5d8);
-    int16_t *hold = (int16_t *)(act + 0x5f0);
+    int16_t *best_saved = &((struct actor *)act)->avoidance_last_direction;
+    int16_t *hold = &((struct actor *)act)->avoidance_turn_around_ticks;
     int16_t held;
 
     if (unit_index == k_datum_index_none) {
@@ -72,7 +76,7 @@ void ActorView::movement_choose_avoidance_direction(real_vector3d *desired, real
             return;
         }
     }
-    obj = (uint8_t *)((object_header *)object_data->data)[unit_index & 0xffff].data;
+    obj = (uint8_t *)((object_header *)object_data->data)[unit_index & halo::k_slot_mask].data;
     context.structure_bsp = global_structure_bsp;
     context.collision_bsp = global_structure_collision_bsp;
     context.unit_index = unit_index;
@@ -434,7 +438,7 @@ void ActorView::movement_update()
     using namespace actor_movement_update_local;
     actor *a = &((actor *)actor_data->data)[actor_index & 0xffffu];
     uint8_t *actor_base = (uint8_t *)a;
-    Actor *actor_def = (Actor *)halo::cache::globals().tag_instances[a->actor_definition_tag & 0xffff].data;
+    Actor *actor_def = (Actor *)halo::cache::globals().tag_instances[a->actor_definition_tag & halo::k_slot_mask].data;
 
     uint8_t sidestep_mode = 0;
     uint8_t face_along_heading = 0;
@@ -597,7 +601,7 @@ void ActorView::movement_update()
         } else {
             clear_recognition = 1;
             if (movement_style == 2 &&
-                ((movement_mode == 0 && (actor_def->flags & 0x4000) == 0) ||
+                ((movement_mode == 0 && !halo::has(static_cast<halo::tags::actor_tag_flag>(actor_def->flags), halo::tags::actor_tag_flag::standing_must_move_forward)) ||
                  (movement_mode != 0 && (int8_t)(actor_def->flags >> 8) >= 0))) {
             } else {
                 a->forced_aim = 0;
@@ -605,7 +609,7 @@ void ActorView::movement_update()
             if (movement_style == 4) {
                 face_along_heading = 1;
             }
-            if ((actor_def->flags & 0x200000) != 0) {
+            if (halo::has(static_cast<halo::tags::actor_tag_flag>(actor_def->flags), halo::tags::actor_tag_flag::flying)) {
                 avoid_threshold = actor_def->free_flying_sidestep * actor_def->free_flying_sidestep;
                 sidestep_mode = 1;
                 want_avoid_check = 1;
@@ -615,8 +619,8 @@ void ActorView::movement_update()
             }
         }
     } else {
-        object *unit_object = ((object_header *)object_data->data)[a->active_unit_index & 0xffff].data;
-        Vehicle *vehicle_def = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & 0xffff].data;
+        object *unit_object = ((object_header *)object_data->data)[a->active_unit_index & halo::k_slot_mask].data;
+        Vehicle *vehicle_def = (Vehicle *)halo::cache::globals().tag_instances[unit_object->definition_tag & halo::k_slot_mask].data;
         uint8_t take_sideslip = 0;
 
         steering_maximum = vehicle_def->ai_steering_maximum;
@@ -721,18 +725,18 @@ void ActorView::movement_update()
         actor_clear_recognition_history(actor_index, 1);
     }
 
-    if (a->moving != 0 && (actor_def->flags & 0x10000000) != 0) {
+    if (a->moving != 0 && halo::has(static_cast<halo::tags::actor_tag_flag>(actor_def->flags), halo::tags::actor_tag_flag::cannot_move_while_crouching)) {
         movement_mode = 0;
     }
     actor_base[0x58f] = 0;
-    if (movement_mode != 0 && (actor_def->flags & 0x20000000) != 0) {
+    if (movement_mode != 0 && halo::has(static_cast<halo::tags::actor_tag_flag>(actor_def->flags), halo::tags::actor_tag_flag::fixed_crouch_facing)) {
         actor_base[0x58f] = 1;
     }
     a->crouching = movement_mode;
     if (movement_mode != 0) {
-        a->control_flags |= 1u;
+        a->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::crouch);
     } else {
-        a->control_flags &= ~1u;
+        a->control_flags &= ~halo::units::to_bits(halo::units::unit_control_flag::crouch);
     }
 
     if (a->secondary_action == -1 &&
@@ -745,7 +749,7 @@ void ActorView::movement_update()
         facing.i = a->facing.i;
         facing.j = a->facing.j;
         if (a->target_unit_index != (datum_index)k_datum_index_none) {
-            prop *target_prop = &((prop *)prop_data->data)[a->target_unit_index & 0xffff];
+            prop *target_prop = &((prop *)prop_data->data)[a->target_unit_index & halo::k_slot_mask];
             target_object = target_prop->object_index;
             facing.i = target_prop->direction.x;
             facing.j = target_prop->direction.y;
@@ -762,7 +766,7 @@ void ActorView::movement_update()
     }
 
     if (vehicle_stuck) {
-        a->control_flags |= 2u;
+        a->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::jump);
     } else if (a->airborne != 0 || a->active_unit_index != (datum_index)k_datum_index_none) {
         a->jump_velocity_request[0] = 0;
     } else if (actor_action_has_queued_secondary(actor_index) == 0 && a->jump_requested != 0) {

@@ -2,6 +2,9 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/units/flags.hpp"
 
 namespace halo::ai {
 
@@ -39,9 +42,9 @@ extern int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_
 #define F(p, o) (*(float *)((p) + (o)))
 #define W(p, o) (*(int16_t *)((p) + (o)))
 #define D(p, o) (*(datum_index *)((p) + (o)))
-#define PROP(h) ((uint8_t *)prop_data->data + ((h) & 0xffff) * 0x138)
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
+#define PROP(h) ((uint8_t *)prop_data->data + ((h) & halo::k_slot_mask) * k_prop_size)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 }
 }
 
@@ -53,7 +56,7 @@ extern int32_t unit_set_grenade_type_and_count_delta(uint32_t unit_index, int16_
 void ActorView::update_firing_state()
 {
     using namespace actor_update_firing_state_local;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *actor_tag = TAG_DATA(D(a, 0x58));
     uint8_t *variant = TAG_DATA(D(a, 0x5c));
     uint8_t *def = actor_get_actor_definition(actor_index);
@@ -119,7 +122,7 @@ void ActorView::update_firing_state()
         if (grenade != -1 && *(int8_t *)(OBJECT_DATA(D(a, 0x18)) + 0x31e + grenade) == 0) {
             unit_set_grenade_type_and_count_delta(D(a, 0x18), grenade, 1);
         }
-        ((actor *)a)->control_flags |= 0x2000;
+        ((actor *)a)->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::grenade);
         ai_communication_broadcast(9, D(a, 0x18), k_datum_index_none, -1, k_datum_index_none, k_datum_index_none, 0);
         goto idle;
     }
@@ -168,7 +171,7 @@ void ActorView::update_firing_state()
             uint8_t *p = PROP(D(a, 0x610));
 
             F(a, 0x638) = F(p, 0x11c);
-            ((actor *)a)->firing_target_point = *(real_point3d *)(p + 0xc8);
+            ((actor *)a)->firing_target_point = ((struct prop *)p)->center_of_mass;
             W(a, 0x626) = W(p, 0x38);
             a[0x621] = p[0x118];
             a[0x624] = 1;
@@ -179,18 +182,18 @@ void ActorView::update_firing_state()
             }
         } else {
             ((actor *)a)->firing_target_point = *(real_point3d *)&((struct actor *)a)->firing_target_prop_index;
-            F(a, 0x638) = halo::math::vector3d_distance(*(real_point3d *)(a + 0x610), *(real_point3d *)(a + 0x120));
+            F(a, 0x638) = halo::math::vector3d_distance(*(real_point3d *)(a + 0x610), ((struct actor *)a)->aim_origin);
             a[0x621] = 0;
             a[0x624] = 0;
             if (((struct actor *)a)->firing_target_ticks % 10 == 0) {
                 W(a, 0x626) = (int16_t)actor_evaluate_engagement_reachability(W(a, 0x148), -1,
-                    (real_point3d *)(a + 0x62c), (real_point3d *)(a + 0x120), 0, 0, k_datum_index_none,
+                    &((struct actor *)a)->firing_target_point, &((struct actor *)a)->aim_origin, 0, 0, k_datum_index_none,
                     (uint8_t)(D(a, 0x158) != k_datum_index_none));
             }
         }
         a[0x622] = (uint8_t)(F(def, 0x148) > 0.0f && F(a, 0x638) > F(def, 0x148));
         a[0x623] = (uint8_t)(a[0x455] && F(def, 0x14c) > 0.0f);
-        if (!halo::items::weapon_trigger_get_aiming_vector(weapon, 0, (real_point3d *)(a + 0x120), (real_point3d *)(a + 0x62c),
+        if (!halo::items::weapon_trigger_get_aiming_vector(weapon, 0, &((struct actor *)a)->aim_origin, &((struct actor *)a)->firing_target_point,
                                               a[0x622], (real_vector3d *)(a + 0x63c), 0, (real *)(a + 0x648),
                                               &used_straight_line)) {
             W(a, 0x60c) = 0;
@@ -361,7 +364,7 @@ dispatch:
         }
 
         halo::items::weapon_trigger_get_aiming_vector(weapon, (int16_t)(a[0x603] != 0), &origin, final_point, a[0x622],
-                                         (real_vector3d *)(a + 0x68c), 0, 0, &used_straight_line);
+                                         &((struct actor *)a)->firing_vector, 0, 0, &used_straight_line);
         a[0x688] = (uint8_t)(used_straight_line == 0);
         {
             real_vector3d path;
@@ -425,9 +428,9 @@ dispatch:
     }
     actor_set_override_target(actor_index, enable, *(datum_index *)&value);
     if (secondary_flag) {
-        ((actor *)a)->control_flags |= 0x1000;
+        ((actor *)a)->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::secondary_trigger);
     } else {
-        ((actor *)a)->control_flags &= ~0x1000u;
+        ((actor *)a)->control_flags &= ~halo::units::to_bits(halo::units::unit_control_flag::secondary_trigger);
     }
 }
 

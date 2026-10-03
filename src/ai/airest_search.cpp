@@ -5,6 +5,8 @@
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 extern "C" {
 extern void ai_search_heap_sift_up(ai_search_context *context, int16_t index);
@@ -569,8 +571,8 @@ void ObstacleList::flood_fill_group(float radius, uint32_t *out_bitmask, int16_t
     }
 }
 
-#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
-#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & 0xffff].data)
+#define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & halo::k_slot_mask].data)
+#define TAG_DATA(t) ((uint8_t *)halo::cache::globals().tag_instances[(t) & halo::k_slot_mask].data)
 /**
  * Behaviour of ai search gather obstacles, moved unchanged from the original free function.
  *

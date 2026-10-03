@@ -3,6 +3,11 @@
 #include "halo/cache/api.hpp"
 #include "halo/items/api.hpp"
 #include "halo/scenario/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/lcg.hpp"
+#include "halo/core/slot_mask.hpp"
+#include "halo/tags/flags.hpp"
+#include "halo/units/flags.hpp"
 
 namespace halo::ai {
 
@@ -41,7 +46,7 @@ extern void actor_apply_queued_look_to_unit(datum_index actor_index);
 void ActorView::update_activation_state()
 {
     using namespace actor_update_activation_state_local;
-    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
 
     if (actor_update_squad_link_state(actor_index) == 0) {
         return;
@@ -105,7 +110,7 @@ extern float weapon_get_zoom_fov_resolved(int16_t zoom_table_index, int16_t subs
 extern float weapon_trigger_get_average_damage(datum_index weapon_tag_id, float *out_max_rate_of_fire);
 static float aim_wander_random_fraction(void)
 {
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     return (float)(int32_t)(halo::math::globals().random_seed_global >> 16) * 1.5259022e-05f;
 }
 }
@@ -119,7 +124,7 @@ static float aim_wander_random_fraction(void)
 void ActorView::update_aim_wander()
 {
     using namespace actor_update_aim_wander_local;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *variant = (uint8_t *)actor_get_actor_definition(actor_index);
     int16_t team = ((actor *)a)->team;
     uint8_t *burst = 0;
@@ -145,7 +150,7 @@ void ActorView::update_aim_wander()
     if (((actor *)a)->active_unit_index == k_datum_index_none) {
         moving = (a[0x15c] != 0 || a[0x504] != 0) ? 1 : 0;
     } else {
-        uint8_t *vehicle = (uint8_t *)((object_header *)object_data->data)[((actor *)a)->active_unit_index & 0xffff].data;
+        uint8_t *vehicle = (uint8_t *)((object_header *)object_data->data)[((actor *)a)->active_unit_index & halo::k_slot_mask].data;
         real_vector3d *velocity = (real_vector3d *)(vehicle + 0x68);
 
         moving = (velocity->i * velocity->i + velocity->j * velocity->j + velocity->k * velocity->k > 1.0f) ? 1 : 0;
@@ -188,7 +193,7 @@ void ActorView::update_aim_wander()
         if (weapon != k_datum_index_none) {
             float rate;
             float damage = halo::items::weapon_trigger_get_average_damage(
-                *(datum_index *)((object_header *)object_data->data)[weapon & 0xffff].data, &rate);
+                *(datum_index *)((object_header *)object_data->data)[weapon & halo::k_slot_mask].data, &rate);
 
             if (((ActorVariant *)variant)->rate_of_fire > 0.0f && rate > ((ActorVariant *)variant)->rate_of_fire) {
                 rate = ((ActorVariant *)variant)->rate_of_fire;
@@ -207,7 +212,7 @@ void ActorView::update_aim_wander()
     }
 
     if (((ActorVariant *)variant)->bombardment_range > 0.0f && ((struct actor *)a)->firing_target_type == 1) {
-        uint8_t *prop = (uint8_t *)prop_data->data + (((struct actor *)a)->firing_target_prop_index & 0xffff) * 0x138;
+        uint8_t *prop = (uint8_t *)prop_data->data + (((struct actor *)a)->firing_target_prop_index & halo::k_slot_mask) * k_prop_size;
         int16_t kind = ((struct prop *)prop)->state;
 
         bombard = (kind < 2 || kind > 3 || ((struct prop *)prop)->visual_perception == 0) ? 1 : 0;
@@ -226,7 +231,7 @@ void ActorView::update_aim_wander()
         side.k = dx * 0.0f - dy * 0.0f;
     }
     halo::math::vector3d_normalize_with_length(side);
-    halo::math::globals().random_seed_global = halo::math::globals().random_seed_global * 0x19660d + 0x3c6ef35f;
+    halo::math::globals().random_seed_global = halo::advance_random_seed(halo::math::globals().random_seed_global);
     if ((uint16_t)(halo::math::globals().random_seed_global >> 16) > 0x8000) {
         side.i = -side.i;
         side.j = -side.j;
@@ -297,7 +302,7 @@ void ActorView::update_aim_wander()
         int32_t code;
 
         if (((struct actor *)a)->firing_target_type == 1) {
-            uint8_t *prop = (uint8_t *)prop_data->data + (((struct actor *)a)->firing_target_prop_index & 0xffff) * 0x138;
+            uint8_t *prop = (uint8_t *)prop_data->data + (((struct actor *)a)->firing_target_prop_index & halo::k_slot_mask) * k_prop_size;
 
             prop_flag = prop[0x61];
             object = ((struct prop *)prop)->object_index;
@@ -339,7 +344,7 @@ void ActorView::update_awareness_level()
     int16_t old_grade;
     int16_t new_grade;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     event = self->perception_event;
     if (0 < event) {
@@ -419,7 +424,7 @@ uint8_t ActorView::update_combat_behavior(uint8_t param_1, uint8_t param_2)
     uint8_t use_param_1;
     prop *target_prop;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     result = 0;
     use_param_1 = 1;
     if (param_2 == 0) {
@@ -445,7 +450,7 @@ uint8_t ActorView::update_combat_behavior(uint8_t param_1, uint8_t param_2)
                 if (self->target_unit_index == (datum_index)k_datum_index_none) {
                     goto use_default;
                 }
-                target_prop = (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & 0xffff) * sizeof(prop));
+                target_prop = (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & halo::k_slot_mask) * sizeof(prop));
                 if (self->target_unit_index == self->pursuit_target_prop_index &&
                     (target_prop->noticed_a != 0 || (self->mode == 5 && *(int16_t *)(self->mode_data.raw + 8) == 0)) &&
                     (target_prop->noticed_b != 0 ||
@@ -536,8 +541,8 @@ void ActorView::update_crouch_state()
     uint8_t platoon_flag;
     uint8_t want_crouch;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
-    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data;
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
+    actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
 
     threat_level           = &self->unknown_350;
     threat_level_smoothed  = &self->danger_meter;
@@ -565,13 +570,13 @@ void ActorView::update_crouch_state()
         }
     }
 
-    if (self->berserking == 0 && (actor_definition->flags & 0x800) == 0) {
+    if (self->berserking == 0 && !halo::has(static_cast<halo::tags::actor_tag_flag>(actor_definition->flags), halo::tags::actor_tag_flag::always_charge_at_enemies)) {
         self->always_charge = 0;
     } else {
         self->always_charge = 1;
     }
     if (self->active_unit_index == (datum_index)k_datum_index_none) {
-        if ((actor_definition->flags & 0x1000000) != 0 && self->defending == 0) {
+        if (halo::has(static_cast<halo::tags::actor_tag_flag>(actor_definition->flags), halo::tags::actor_tag_flag::always_charge_in_attacking_mode) && self->defending == 0) {
             self->always_charge = 1;
         }
     } else {
@@ -616,11 +621,11 @@ void ActorView::update_crouch_state()
 
             if (combat_status > 8) {
                 target_direction = *(real_vector3d *)((uint8_t *)prop_data->data +
-                                                      (self->target_unit_index & 0xffff) * sizeof(prop) + 0xe0);
+                                                      (self->target_unit_index & halo::k_slot_mask) * sizeof(prop) + 0xe0);
             }
             for (prop_index = self->first_prop; prop_index != (datum_index)k_datum_index_none;
                  prop_index = p->next_in_actor) {
-                p = &((prop *)prop_data->data)[prop_index & 0xffff];
+                p = &((prop *)prop_data->data)[prop_index & halo::k_slot_mask];
 
                 if (p->state > 1 && p->state < 4 && p->enemy == 0 && p->dead == 0 &&
                     p->swarm_owned == 0 &&
@@ -731,7 +736,7 @@ void ActorView::update_crouch_state()
             break;
         }
 
-        if ((actor_definition->flags & 0x40000000u) != 0) {
+        if (halo::has(static_cast<halo::tags::actor_tag_flag>(actor_definition->flags), halo::tags::actor_tag_flag::crouch_when_in_line_of_fire)) {
             if (*flag_35c != 0) {
                 want_crouch = 1;
             } else if (*flag_35e != 0) {
@@ -797,7 +802,7 @@ extern void actor_set_mode(datum_index actor_index, int32_t mode, void *mode_dat
 uint8_t ActorView::update_danger_avoidance()
 {
     using namespace actor_update_danger_avoidance_local;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t result = 0;
     uint8_t crossing = 0;
     uint8_t in_danger;
@@ -806,8 +811,8 @@ uint8_t ActorView::update_danger_avoidance()
     real_vector3d path_delta;
     float radius_squared;
     float danger_time;
-    real_point3d *position = (real_point3d *)(actor + 0x12c);
-    real_point3d *path_start = (real_point3d *)(actor + 0x2b0);
+    real_point3d *position = &((struct actor *)actor)->body_position;
+    real_point3d *path_start = &((struct actor *)actor)->flee_from_point;
 
     if (W(0x280) == 0 || B(0x287) == 0 || B(0x28a) != 0) {
         return 0;
@@ -911,7 +916,7 @@ uint8_t ActorView::update_danger_avoidance()
         default: reason = -1; break;
         }
         if (W(0x280) == 2) {
-            ai_communication_broadcast(0xc, D(0x18), 0xffffffff, reason, 0xffffffff, 0xffffffff, 0);
+            ai_communication_broadcast(0xc, D(0x18), halo::k_dword_none, reason, halo::k_dword_none, halo::k_dword_none, 0);
         }
         B(0x289) = 1;
     }
@@ -921,7 +926,7 @@ uint8_t ActorView::update_danger_avoidance()
         uint8_t escape_position[0x40];
         uint8_t found = actor_find_danger_escape(actor_index, &escape, escape_position, &path_delta, &in_danger);
 
-        if ((int16_t)escape != -1 && B(0x288) != 0 && D(0x158) == 0xffffffff) {
+        if ((int16_t)escape != -1 && B(0x288) != 0 && D(0x158) == halo::k_dword_none) {
             int take = 0;
 
             switch (W(0x280)) {
@@ -938,7 +943,7 @@ uint8_t ActorView::update_danger_avoidance()
                 goto flee_check;
             }
             if (take || reacting) {
-                uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[D(0x58) & 0xffff].data;
+                uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[D(0x58) & halo::k_slot_mask].data;
                 float distance = (*(uint32_t *)definition & 0x2000000) ? 8.0f : 0.0f;
 
                 result = actor_take_danger_escape(&path_delta, actor_index, escape, *(uint32_t *)escape_position,
@@ -997,8 +1002,8 @@ extern int32_t __ftol(double x);
 void ActorView::update_facing_change_timer()
 {
     using namespace actor_update_facing_change_timer_local;
-    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
-    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data);
+    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
+    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data);
     uint8_t *pending_flag = &self->unknown_358;
     int16_t *ticks_field = &self->unknown_35a;
     float *smoothing_field = &self->danger_meter;
@@ -1008,7 +1013,7 @@ void ActorView::update_facing_change_timer()
         *ticks_field = (int16_t)__ftol((double)(actor_tag->change_facing_stand_time * 30.0f));
 
         if (self->target_unit_index != (datum_index)k_datum_index_none) {
-            prop *target = &((prop *)prop_data->data)[self->target_unit_index & 0xffff];
+            prop *target = &((prop *)prop_data->data)[self->target_unit_index & halo::k_slot_mask];
             if (target->distance < 4.0f) {
                 if (*smoothing_field <= 1.8f) {
                     *smoothing_field = 1.8f;
@@ -1039,7 +1044,7 @@ uint8_t ActorView::update_flee_response()
     actor *self;
     uint8_t result;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     result = 0;
 
@@ -1077,7 +1082,7 @@ extern ai_globals *ai_globals_ptr;
 void ActorView::update_idle_stagger()
 {
     using namespace actor_update_idle_stagger_local;
-    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
     int16_t vehicle_substate = *(int16_t *)&self->mode_data.raw[4];
     int fast = self->mode == _actor_mode_vehicle &&
                (vehicle_substate == 2 || vehicle_substate == 3 || vehicle_substate == 4 || vehicle_substate == 5);
@@ -1137,8 +1142,8 @@ static uint8_t ult_lane(real_point3d *point, uint8_t *forward, uint8_t *axis, fl
 void ActorView::update_look_target()
 {
     using namespace actor_update_look_target_local;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[((actor *)a)->actor_definition_tag & 0xffff].data;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *definition = (uint8_t *)halo::cache::globals().tag_instances[((actor *)a)->actor_definition_tag & halo::k_slot_mask].data;
     uint8_t *cache_a = a + 0x5a4;
     uint8_t *cache_b = a + 0x5b0;
     uint8_t *cache_c = a + 0x5bc;
@@ -1532,9 +1537,9 @@ void ActorView::update_look_target()
     ULT_V3(a + 0x708) = ULT_V3(cache_b);
     ULT_V3(a + 0x714) = ULT_V3(cache_c);
     if (a[0x591] != 0) {
-        ((actor *)a)->control_flags |= 0x20;
+        ((actor *)a)->control_flags |= halo::units::to_bits(halo::units::unit_control_flag::exact_facing);
     } else {
-        ((actor *)a)->control_flags &= ~0x20u;
+        ((actor *)a)->control_flags &= ~halo::units::to_bits(halo::units::unit_control_flag::exact_facing);
     }
 
     aim_speed_zero = 1;
@@ -1616,11 +1621,11 @@ static uint8_t actor_combat_commit_position(datum_index actor_index, uint8_t *a,
 uint8_t ActorView::update_melee_combat_action()
 {
     using namespace actor_update_melee_combat_action_local;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[D(a, 0x58) & 0xffff].data;
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    uint8_t *actor_tag = (uint8_t *)halo::cache::globals().tag_instances[D(a, 0x58) & halo::k_slot_mask].data;
     datum_index encounter_index = D(a, 0x34);
     uint8_t *encounter = encounter_index != k_datum_index_none
-        ? (uint8_t *)encounter_data->data + (encounter_index & 0xffff) * 0x6c : 0;
+        ? (uint8_t *)encounter_data->data + (encounter_index & halo::k_slot_mask) * k_encounter_size : 0;
     uint8_t result = 0;
     uint8_t regroup = 0;
     uint8_t searching = 0;
@@ -1647,7 +1652,7 @@ uint8_t ActorView::update_melee_combat_action()
             }
         }
         if (regroup) {
-            result = actor_process_order_request(actor_index, 0xffff);
+            result = actor_process_order_request(actor_index, halo::k_word_none);
             if (result) {
                 return result;
             }
@@ -1660,7 +1665,7 @@ uint8_t ActorView::update_melee_combat_action()
 
     {
         uint8_t *target = D(a, 0x270) != k_datum_index_none
-            ? (uint8_t *)prop_data->data + (D(a, 0x270) & 0xffff) * 0x138 : 0;
+            ? (uint8_t *)prop_data->data + (D(a, 0x270) & halo::k_slot_mask) * k_prop_size : 0;
         uint8_t hold = 0;
         uint8_t advance = 0;
         uint8_t pressed = 0;
@@ -1837,7 +1842,7 @@ extern float actor_compute_accuracy_scale(datum_index actor_index);
 #define A_F(o) (*(float *)(actor + (o)))
 static real_point3d *actor_held_firing_position(uint8_t *actor)
 {
-    uint8_t *encounter = (uint8_t *)halo::scenario::globals().scenario->encounters.pointer + (A_D(0x34) & 0xffff) * 0xb0;
+    uint8_t *encounter = (uint8_t *)global_scenario->encounters.pointer + (A_D(0x34) & halo::k_slot_mask) * 0xb0;
 
     return (real_point3d *)(*(uint8_t **)(encounter + 0x9c) + A_W(0x3b8) * 0x18);
 }
@@ -1852,14 +1857,14 @@ static real_point3d *actor_held_firing_position(uint8_t *actor)
 uint8_t ActorView::update_movement_destination()
 {
     using namespace actor_update_movement_destination_local;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     uint8_t *actor_tag;
     uint8_t *definition;
 
     if (A_B(0x4c) == 0) {
         return 0;
     }
-    actor_tag = (uint8_t *)halo::cache::globals().tag_instances[A_D(0x58) & 0xffff].data;
+    actor_tag = (uint8_t *)halo::cache::globals().tag_instances[A_D(0x58) & halo::k_slot_mask].data;
     definition = (uint8_t *)actor_get_actor_definition(actor_index);
 
     if (A_B(0x160) == 0) {
@@ -1867,14 +1872,14 @@ uint8_t ActorView::update_movement_destination()
 
         if (A_B(0x358) != 0 && (actor_tag[0] & 0x20) != 0) {
             actor_update_target_lead_position(actor_index);
-            follow_lead = actor_firing_position_near_point(actor_index, (real_point3d *)(actor + 0x168),
+            follow_lead = actor_firing_position_near_point(actor_index, &((struct actor *)actor)->pathfinding_point,
                 (int32_t)A_D(0x164), 0);
         }
         if (follow_lead) {
             uint8_t at_position = 0;
             uint8_t drop = 0;
 
-            if (A_D(0x34) != 0xffffffff && A_W(0x3b8) != -1) {
+            if (A_D(0x34) != halo::k_dword_none && A_W(0x3b8) != -1) {
                 float radius = actor_compute_accuracy_scale(actor_index);
 
                 if (radius * radius > halo::math::vector3d_distance_squared(*actor_held_firing_position(actor),
@@ -1883,8 +1888,8 @@ uint8_t ActorView::update_movement_destination()
                 }
             }
             if (A_B(0x504) != 0 && A_B(0x1fc) == 0) {
-                if (A_D(0x270) != 0xffffffff) {
-                    uint8_t *target = (uint8_t *)prop_data->data + (A_D(0x270) & 0xffff) * 0x138;
+                if (A_D(0x270) != halo::k_dword_none) {
+                    uint8_t *target = (uint8_t *)prop_data->data + (A_D(0x270) & halo::k_slot_mask) * k_prop_size;
 
                     drop = ((prop *)target)->distance < *(float *)(definition + 0xa0);
                 }
@@ -1899,7 +1904,7 @@ uint8_t ActorView::update_movement_destination()
             static actor_firing_position_query query;
             static path_find_context path_context;
             actor_firing_position_candidate candidate;
-            uint32_t previous_owner = 0xffffffff;
+            uint32_t previous_owner = halo::k_dword_none;
             uint8_t path_ok = 0;
             int16_t previous = A_W(0x3b8);
             int16_t selected;
@@ -1910,15 +1915,15 @@ uint8_t ActorView::update_movement_destination()
             selected = actor_select_firing_position(actor_index, &query, &candidate, &previous_owner, &path_context,
                 &path_ok);
             claimed = actor_claim_firing_position(actor_index, previous_owner, &path_context, selected, path_ok);
-            actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+            actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
             if (claimed == -1) {
                 A_W(0x9c) = 0;
             } else if (claimed != previous) {
                 float wait = halo::math::random_real_range(*(float *)(actor_tag + 0x3c0), *(float *)(actor_tag + 0x3c4));
 
                 if (A_W(0x15e) > 0) {
-                    uint8_t *vehicle = (uint8_t *)((object_header *)object_data->data)[A_D(0x158) & 0xffff].data;
-                    uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)vehicle & 0xffff].data;
+                    uint8_t *vehicle = (uint8_t *)((object_header *)object_data->data)[A_D(0x158) & halo::k_slot_mask].data;
+                    uint8_t *vehicle_tag = (uint8_t *)halo::cache::globals().tag_instances[*(datum_index *)vehicle & halo::k_slot_mask].data;
                     float cap = *(float *)(vehicle_tag + 0x3a8);
 
                     if (cap > 0.0f && wait > cap) {
@@ -1934,20 +1939,20 @@ uint8_t ActorView::update_movement_destination()
         return 0;
     }
     {
-        uint8_t *target = (uint8_t *)prop_data->data + (A_D(0x270) & 0xffff) * 0x138;
+        uint8_t *target = (uint8_t *)prop_data->data + (A_D(0x270) & halo::k_slot_mask) * k_prop_size;
         uint8_t engaged = 1;
 
         if (actor_has_unshielded_threat_weapon(actor_index)) {
             if (((prop *)target)->distance < A_F(0x608)) {
                 engaged = 0;
-            } else if (A_D(0x34) != 0xffffffff && A_W(0x3b8) != -1) {
+            } else if (A_D(0x34) != halo::k_dword_none && A_W(0x3b8) != -1) {
                 real_point3d *held = actor_held_firing_position(actor);
                 float radius = actor_compute_accuracy_scale(actor_index);
 
-                if (radius * radius < halo::math::vector3d_distance_squared(*held, *(real_point3d *)(actor + 0x12c))) {
+                if (radius * radius < halo::math::vector3d_distance_squared(*held, ((struct actor *)actor)->body_position)) {
                     float range = A_F(0x608);
 
-                    if (range * range > halo::math::vector3d_distance_squared(*(real_point3d *)(target + 0xbc), *held)) {
+                    if (range * range > halo::math::vector3d_distance_squared(((struct prop *)target)->last_known_position, *held)) {
                         engaged = 0;
                     }
                 }
@@ -1982,13 +1987,13 @@ extern int16_t actor_claim_firing_position(datum_index actor_index, datum_index 
 uint8_t ActorView::update_path_if_needed()
 {
     using namespace actor_update_path_if_needed_local;
-    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+    uint8_t *actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
 
     if (actor[0x4c] != 0) {
         static actor_firing_position_query query;
         static path_find_context path_context;
         actor_firing_position_candidate candidate;
-        uint32_t previous_owner = 0xffffffff;
+        uint32_t previous_owner = halo::k_dword_none;
         uint8_t path_ok = 0;
         int16_t selected;
 
@@ -1998,7 +2003,7 @@ uint8_t ActorView::update_path_if_needed()
         selected = actor_select_firing_position(actor_index, &query, &candidate, &previous_owner, &path_context,
             &path_ok);
         actor_claim_firing_position(actor_index, previous_owner, &path_context, selected, path_ok);
-        actor = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
+        actor = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
     }
     return ((struct actor *)actor)->danger_type == 0;
 }
@@ -2024,7 +2029,7 @@ extern void actor_delete_or_release_unit(datum_index actor_index, uint8_t is_dea
 uint8_t ActorView::update_squad_link_state()
 {
     using namespace actor_update_squad_link_state_local;
-    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
     encounter *enc = 0;
     uint8_t combined_flag;
 
@@ -2046,7 +2051,7 @@ uint8_t ActorView::update_squad_link_state()
     }
 
     if (self->encounter_index != (datum_index)k_datum_index_none) {
-        enc = &((encounter *)encounter_data->data)[self->encounter_index & 0xffff];
+        enc = &((encounter *)encounter_data->data)[self->encounter_index & halo::k_slot_mask];
     }
 
     combined_flag = self->force_active;
@@ -2062,7 +2067,7 @@ uint8_t ActorView::update_squad_link_state()
 
         if (combat_grade != 2) {
             if (self->target_unit_index != (datum_index)k_datum_index_none) {
-                prop *target = &((prop *)prop_data->data)[self->target_unit_index & 0xffff];
+                prop *target = &((prop *)prop_data->data)[self->target_unit_index & halo::k_slot_mask];
                 if (target->is_parented != 0 && target->enemy != 0 && target->dead == 0) {
                     int16_t kind = target->state;
                     if ((kind >= 2 && kind <= 3) || (kind >= 4 && kind <= 5 && combat_grade == 3)) {
@@ -2082,7 +2087,7 @@ uint8_t ActorView::update_squad_link_state()
                         return 1;
                     }
                 } else if (self->active_movement.type == 5) {
-                    prop *p = &((prop *)prop_data->data)[*(datum_index *)&((struct actor *)self)->active_movement.destination.x & 0xffff];
+                    prop *p = &((prop *)prop_data->data)[*(datum_index *)&((struct actor *)self)->active_movement.destination.x & halo::k_slot_mask];
                     if (p->is_parented != 0) {
                         return 1;
                     }
@@ -2115,8 +2120,8 @@ extern void object_get_position(real_point3d *out_position, datum_index object_i
 void ActorOps::update_swarm_component_position(datum_index component_index, datum_index unit_index)
 {
     using namespace actor_update_swarm_component_position_local;
-    object *unit_object = ((object_header *)object_data->data)[unit_index & 0xffff].data;
-    swarm_component *component = &((swarm_component *)swarm_component_data->data)[component_index & 0xffff];
+    object *unit_object = ((object_header *)object_data->data)[unit_index & halo::k_slot_mask].data;
+    swarm_component *component = &((swarm_component *)swarm_component_data->data)[component_index & halo::k_slot_mask];
     datum_index marker;
 
     marker = (unit_object->type == 0) ? *(datum_index *)((uint8_t *)unit_object + 0x4d8) : (datum_index)k_datum_index_none;
@@ -2147,7 +2152,7 @@ void ActorView::update_target_combat_status()
     object *target_obj;
     int16_t status;
 
-    self = (actor *)((uint8_t *)actor_data->data + (actor_index & 0xffff) * sizeof(actor));
+    self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
 
     if (self->target_unit_index == k_datum_index_none) {
         self->target_combat_status = 0;
@@ -2156,8 +2161,8 @@ void ActorView::update_target_combat_status()
         return;
     }
 
-    target = (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & 0xffff) * sizeof(prop));
-    target_obj = ((object_header *)object_data->data)[target->object_index & 0xffff].data;
+    target = (prop *)((uint8_t *)prop_data->data + (self->target_unit_index & halo::k_slot_mask) * sizeof(prop));
+    target_obj = ((object_header *)object_data->data)[target->object_index & halo::k_slot_mask].data;
 
     switch (target->state) {
     case 0:
@@ -2227,8 +2232,8 @@ extern int32_t unit_predict_aim_target_position(uint32_t unit_index, real_point3
 void ActorView::update_target_lead_position()
 {
     using namespace actor_update_target_lead_position_local;
-    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & 0xffff) * 0x724;
-    real_point3d *point = (real_point3d *)(a + 0x168);
+    uint8_t *a = (uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * k_actor_size;
+    real_point3d *point = &((struct actor *)a)->pathfinding_point;
     datum_index vehicle;
 
     if (((struct actor *)a)->pathfinding_surface_index != -1) {

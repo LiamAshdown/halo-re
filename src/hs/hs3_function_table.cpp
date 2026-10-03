@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdio.h>
 #include "halo/scenario/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 extern "C" {
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -84,12 +86,12 @@ char FunctionTable::get_parameter_indices(char *function_name, int16_t required_
     char success;
 
     nodes = hs_syntax_data;
-    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & 0xffff) * nodes->size);
-    child = ((hs_syntax_node *)((uint8_t *)nodes->data + (node->data.first_child & 0xffff) * nodes->size))->next_node;
+    node = (hs_syntax_node *)((uint8_t *)nodes->data + (node_index & halo::k_slot_mask) * nodes->size);
+    child = ((hs_syntax_node *)((uint8_t *)nodes->data + (node->data.first_child & halo::k_slot_mask) * nodes->size))->next_node;
     success = 1;
     for (count = 0; (child != k_datum_index_none) && (count < required_count); count = count + 1) {
         out_indices[count] = child;
-        child = ((hs_syntax_node *)((uint8_t *)nodes->data + (child & 0xffff) * nodes->size))->next_node;
+        child = ((hs_syntax_node *)((uint8_t *)nodes->data + (child & halo::k_slot_mask) * nodes->size))->next_node;
     }
     if ((count != required_count) || (child != k_datum_index_none)) {
         sprintf(hs_compile_error_buffer, "the %s call requires %d arguments.", function_name, (int)required_count);

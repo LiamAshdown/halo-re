@@ -1,6 +1,8 @@
 #include "halo/hs/hs3_objects.hpp"
 #include "crt.h"
 #include "halo/memory/api.hpp"
+#include "halo/core/datum.hpp"
+#include "halo/core/slot_mask.hpp"
 
 extern "C" {
 extern data_array *object_list_header_data;
@@ -25,12 +27,12 @@ int32_t ObjectLists::get_first(datum_index header_index, object_list_iterator *i
 
     if (header_index != k_datum_index_none) {
         header = (object_list_header *)((uint8_t *)object_list_header_data->data +
-            (header_index & 0xffff) * 0x0c);
+            (header_index & halo::k_slot_mask) * 0x0c);
         first = header->first_reference;
         *iterator_out = first;
         if (first != k_datum_index_none) {
             node = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                (first & 0xffff) * 0x0c);
+                (first & halo::k_slot_mask) * 0x0c);
             *iterator_out = node->next;
             return node->object_index;
         }
@@ -54,17 +56,17 @@ int32_t ObjectLists::nth_reference(datum_index header_index, int16_t n) const
     int16_t remaining;
 
     object_index = -1;
-    next = 0xffffffff;
+    next = halo::k_dword_none;
     if (header_index != k_datum_index_none) {
         header = (object_list_header *)((uint8_t *)object_list_header_data->data +
-            (header_index & 0xffff) * 0x0c);
+            (header_index & halo::k_slot_mask) * 0x0c);
         next = header->first_reference;
         if (next == k_datum_index_none) {
             object_index = -1;
-            next = 0xffffffff;
+            next = halo::k_dword_none;
         } else {
             reference = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                (next & 0xffff) * 0x0c);
+                (next & halo::k_slot_mask) * 0x0c);
             object_index = reference->object_index;
             next = reference->next;
         }
@@ -72,12 +74,12 @@ int32_t ObjectLists::nth_reference(datum_index header_index, int16_t n) const
 
     remaining = n;
     while (0 < remaining && object_index != -1) {
-        if (next == 0xffffffff) {
+        if (next == halo::k_dword_none) {
             object_index = -1;
-            next = 0xffffffff;
+            next = halo::k_dword_none;
         } else {
             reference = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-                (next & 0xffff) * 0x0c);
+                (next & halo::k_slot_mask) * 0x0c);
             object_index = reference->object_index;
             next = reference->next;
         }
@@ -99,11 +101,11 @@ void ObjectLists::reference_add(datum_index header_index, datum_index object_ind
     object_list_reference *node;
 
     header = (object_list_header *)((uint8_t *)object_list_header_data->data +
-        (header_index & 0xffff) * 0x0c);
+        (header_index & halo::k_slot_mask) * 0x0c);
     node_index = halo::memory::datum_new(object_list_reference_data);
     if (node_index != k_datum_index_none) {
         node = (object_list_reference *)((uint8_t *)object_list_reference_data->data +
-            (node_index & 0xffff) * 0x0c);
+            (node_index & halo::k_slot_mask) * 0x0c);
         node->object_index = object_index;
         node->next = header->first_reference;
         header->first_reference = node_index;
@@ -123,7 +125,7 @@ void ObjectLists::reference_chain_delete(data_array *reference_array, datum_inde
 
     while (chain_head != k_datum_index_none) {
         node = (object_list_reference *)((uint8_t *)reference_array->data +
-            (chain_head & 0xffff) * 0x0c);
+            (chain_head & halo::k_slot_mask) * 0x0c);
         next = node->next;
         halo::memory::datum_delete(reference_array, chain_head);
         chain_head = next;
@@ -144,7 +146,7 @@ void ObjectLists::dispose_empty() const
     header_index = halo::memory::datum_next(-1, object_list_header_data);
     while (header_index != k_datum_index_none) {
         header = (object_list_header *)((uint8_t *)object_list_header_data->data +
-            (header_index & 0xffff) * 0x0c);
+            (header_index & halo::k_slot_mask) * 0x0c);
         if (header->reference_count == 0) {
             object_list_reference_chain_delete(object_list_reference_data, header->first_reference);
             halo::memory::datum_delete(object_list_header_data, header_index);
