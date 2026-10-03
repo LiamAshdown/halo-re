@@ -1793,8 +1793,8 @@ uint8_t ChannelKeys::resolve_target(network_player_entry *entry)
 
 /**
  * out/phase4/networking_functions.md: "Builds and sends a large state packet (via
- * FUN_004ec590/network_game_settings_packet_receive) when the connection is mid-game as host or client, otherwise
- * delegates to FUN_004ec670." client->state (state 2 or 3) matches this cluster's established
+ * AggregateFieldCodec::decode_compound_field/network_game_settings_packet_receive) when the connection is mid-game as host or client, otherwise
+ * delegates to AggregateFieldCodec::decode_compound_field_staged." client->state (state 2 or 3) matches this cluster's established
  * field.
  *
  * @address 0x4de950

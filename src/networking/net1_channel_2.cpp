@@ -31,7 +31,7 @@ namespace halo::networking {
  * blocking); the previous C passed only the socket. On success the connection's data is the queue.
  * unused_param_1/use_query_socket are ordinary stack parameters
  * Picks the query or game socket (use_query_socket != 0 selects query), and if that socket
- * exists and reports a successful connect (FUN_006145a0 returns 0), clears the queue's
+ * exists and reports a successful connect (gt2Connect returns 0), clears the queue's
  * disconnect flag and error. Otherwise marks the queue disconnected, arms the host-handoff
  * retry state, closes chat, and reports error 0xfff0.
  *

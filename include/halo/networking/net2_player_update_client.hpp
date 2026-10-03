@@ -52,7 +52,7 @@ public:
     int32_t update_id, int32_t control_sequence, real x, real y, real z);
 
     /**
-     * Client-side handler for a combined ("total") remote-player biped update: remaps the wire player index in place, refuses anything that is not a live remote player, decodes the message either stateless (zeroed staging buffer, FUN_004ec590) or incrementally (staging buffer seeded from the player own control record and position, then message_delta_read_changed_subfields), then...
+     * Client-side handler for a combined ("total") remote-player biped update: remaps the wire player index in place, refuses anything that is not a live remote player, decodes the message either stateless (zeroed staging buffer, AggregateFieldCodec::decode_compound_field) or incrementally (staging buffer seeded from the player own control record and position, then message_delta_read_changed_subfields), then...
      *
      * @address 0x4e5870
      */

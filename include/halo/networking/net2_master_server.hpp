@@ -44,7 +44,7 @@ public:
     static int32_t connection_start(void);
 
     /**
-     * Polls the master-server connection thread every 20ms until it exits, pumping FUN_00549960 (roughly every 132ms) while waiting, then closes and clears both the thread handle and the server-list mutex.
+     * Polls the master-server connection thread every 20ms until it exits, pumping sound idle_update (roughly every 132ms) while waiting, then closes and clears both the thread handle and the server-list mutex.
      *
      * @address 0x4b6070
      */
