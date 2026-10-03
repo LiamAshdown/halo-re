@@ -1,4 +1,5 @@
 #include "halo/core/flags.hpp"
+#include "halo/effects/local_views.hpp"
 #include "halo/scenario/leaf.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/core/lcg.hpp"
@@ -19,7 +20,7 @@
 
 static auto &effect_data = halo::link::ref<data_array *>(halo::effects::vars().effect_data);
 static auto &effect_location_data = halo::link::ref<data_array *>(halo::effects::vars().effect_location_data);
-static auto &first_person_weapon_interfaces = halo::link::ref<uint8_t *>(halo::ui::vars().first_person_weapon_interfaces);
+static auto &first_person_weapon_interfaces = halo::link::ref<first_person_weapon_interface *>(halo::ui::vars().first_person_weapon_interfaces);
 
 static_assert(sizeof(effect) == 0xfc);
 static_assert(sizeof(EffectEvent) == 0x44);
@@ -94,13 +95,11 @@ uint32_t effect_ref::check_object_collisions()
                         uint16_t node_index = entry->marker_index & 0x7fff;
 
                         if ((entry->marker_index & 0x8000) != 0) {
-                            node = (real_matrix4x3 *)(first_person_weapon_interfaces + 0x108c +
-                                self->first_person_weapon_index * 0x1ea0 + node_index * 0x34);
+                            node = first_person_marker_node(first_person_weapon_interfaces, self->first_person_weapon_index, node_index);
                         } else {
                             object *owner =
                                 ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)self->object_index].data;
-                            node = (real_matrix4x3 *)((uint8_t *)owner + owner->nodes.offset +
-                                node_index * 0x34);
+                            node = object_marker_node(owner, node_index);
                         }
 
                         float x = entry->transform.position.x;
@@ -339,7 +338,7 @@ void effect_ref::update(real dt)
             }
             halo::objects::object_function_get_value(self->object_index, self->b_scale_function_index, &self->b_scale);
             if (self->change_color_index != -1) {
-                self->color = *(ColorRGB *)(obj + 0x1b8 + self->change_color_index * 0xc);
+                self->color = ((object *)obj)->change_colors[self->change_color_index];
             }
         }
     }
@@ -349,7 +348,8 @@ void effect_ref::update(real dt)
         uint8_t visible = 0;
 
         if (cluster != -1) {
-            uint32_t *bits = (uint32_t *)((uint8_t *)halo::game::globals().local_player_globals + ((tag->flags & halo::to_bits(halo::tags::effect_tag_flag::must_be_deterministic_pc)) ? 0x18 : 0x58));
+            uint32_t *bits = cluster_visibility_bits(halo::game::globals().local_player_globals,
+                (tag->flags & halo::to_bits(halo::tags::effect_tag_flag::must_be_deterministic_pc)) ? cluster_visibility::deterministic : cluster_visibility::local_view);
 
             visible = (bits[cluster >> 5] & (1u << (cluster & 0x1f))) != 0;
         }
@@ -437,7 +437,7 @@ void effect_ref::update(real dt)
                 self->particle_counts[particle] = count;
                 if (count > 6) {
                     self->particle_counts[particle] = (uint8_t)(int32_t)(((real)count - 6.0f) /
-                        (real)*(int16_t *)((uint8_t *)halo::game::globals().local_player_globals + 0xc) + 6.0f);
+                        (real)halo::game::globals().local_player_globals->local_player_count + 6.0f);
                 }
             }
             if ((self->flags & _effect_hidden_bit) == 0) {

@@ -1,4 +1,5 @@
 #include "halo/core/flags.hpp"
+#include "halo/effects/local_views.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/datum.hpp"
@@ -20,7 +21,7 @@ using particle_scale = halo::tags::effect_particle_scales_values_tag_flag;
 using particle_flag = halo::tags::effect_particle_tag_flag;
 
 static auto &particle_spawn_debug_mode = halo::link::ref<uint8_t>(halo::effects::vars().particle_spawn_debug_mode);
-static auto &first_person_weapon_interfaces = halo::link::ref<uint8_t *>(halo::ui::vars().first_person_weapon_interfaces);
+static auto &first_person_weapon_interfaces = halo::link::ref<first_person_weapon_interface *>(halo::ui::vars().first_person_weapon_interfaces);
 static auto &global_origin3d_pointer = halo::link::ref<const real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 
 namespace halo::effects {
@@ -138,7 +139,7 @@ void effect_view::spawn_particles()
             uint16_t remaining;
 
             if (entry->marker_index != halo::k_word_none && (entry->marker_index & 0x8000) != 0 &&
-                *(int32_t *)(first_person_weapon_interfaces + self->first_person_weapon_index * 0x1ea0 + 8) == -1) {
+                first_person_weapon_interfaces[self->first_person_weapon_index].weapon_index == k_datum_index_none) {
                 continue;
             }
             remaining = (uint16_t)spawn_count;
@@ -203,12 +204,11 @@ void effect_view::spawn_particles()
                     int16_t node_index = (int16_t)(entry->marker_index & 0x7fff);
 
                     if ((entry->marker_index & 0x8000) != 0) {
-                        node = (real_matrix4x3 *)(first_person_weapon_interfaces + 0x108c +
-                            self->first_person_weapon_index * 0x1ea0 + node_index * 0x34);
+                        node = first_person_marker_node(first_person_weapon_interfaces, self->first_person_weapon_index, node_index);
                     } else {
-                        uint8_t *owner = (uint8_t *)((object_header *)halo::objects::globals().object_data->data)[(uint16_t)self->object_index].data;
+                        object *owner = ((object_header *)halo::objects::globals().object_data->data)[(uint16_t)self->object_index].data;
 
-                        node = (real_matrix4x3 *)(owner + ((object *)owner)->nodes.offset + node_index * 0x34);
+                        node = object_marker_node(owner, node_index);
                     }
                     effect_spawn_particles_transform_point(&position, record.position.x, record.position.y,
                         record.position.z, node);

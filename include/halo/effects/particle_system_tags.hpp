@@ -30,11 +30,31 @@ enum class particle_type_flag : uint32_t {
     do_not_draw_in_third_person = 1u << 17,
 };
 
+/**
+ * Bits of Particle.flags (the tag bitfield), in tag order.
+ */
+enum class particle_tag_flag : uint32_t {
+    can_animate_backwards = 1u << 0,
+    animation_stops_at_rest = 1u << 1,
+    animation_starts_on_random_frame = 1u << 2,
+    animate_once_per_frame = 1u << 3,
+    dies_at_rest = 1u << 4,
+    dies_on_contact_with_structure = 1u << 5,
+    tint_from_diffuse_texture = 1u << 6,
+    dies_on_contact_with_water = 1u << 7,
+    dies_on_contact_with_air = 1u << 8,
+    self_illuminated = 1u << 9,
+    random_horizontal_mirroring = 1u << 10,
+    random_vertical_mirroring = 1u << 11,
+};
+
 }  // namespace halo::effects
 
 namespace halo {
 template <>
 struct enable_bit_flags<effects::particle_type_flag> : std::true_type {};
+template <>
+struct enable_bit_flags<effects::particle_tag_flag> : std::true_type {};
 }  // namespace halo
 
 namespace halo::effects {
@@ -42,6 +62,11 @@ namespace halo::effects {
 inline bool particle_type_has(const ParticleSystemType *type, particle_type_flag flag) noexcept
 {
     return has(static_cast<particle_type_flag>(type->flags), flag);
+}
+
+inline bool particle_tag_has(uint32_t tag_flags, particle_tag_flag flag) noexcept
+{
+    return has(static_cast<particle_tag_flag>(tag_flags), flag);
 }
 
 inline ParticleSystemType *particle_system_type_at(const ParticleSystem *definition, int32_t type_index) noexcept
