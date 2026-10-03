@@ -510,7 +510,7 @@ void EngineHud::queue_status_sound_message(int32_t sound_index, datum_index reci
         if (recipient_player == (datum_index)halo::k_dword_none) {
             halo::networking::network_session_broadcast_to_flagged(encoded_bits, halo::networking::globals().server, 1, network_message_scratch, 1, 0, 0, 3);
         } else {
-            int32_t machine_id = (int8_t)*((uint8_t *)halo::game::player_at(recipient_player) + 0x64);
+            int32_t machine_id = (int8_t)halo::game::player_at(recipient_player)->machine_index;
             network_machine *machine = halo::networking::network_machine_find_by_id(halo::networking::globals().server, machine_id);
 
             if (machine != 0) {
