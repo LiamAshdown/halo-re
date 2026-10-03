@@ -799,14 +799,14 @@ network_client_globals * ClientView::create()
     } else {
         halo::networking::network_game_session_reset(&client->session);
         client->flags = client->flags & 0xfff9;
-        client->machine_index = 0xffff;
+        client->machine_index = halo::k_word_none;
         client->state = 0;
         client->disconnect_reason = 0;
         client->unknown_ec8 = 0;
         client->last_update_id = 0;
         client->last_update_received_ms = 0;
         client->connection_stalled = 0;
-        client->game_start_countdown_seconds = 0xffff;
+        client->game_start_countdown_seconds = halo::k_word_none;
         client->network_error_displayed = 0;
 
         run = (int32_t *)&client->timer;

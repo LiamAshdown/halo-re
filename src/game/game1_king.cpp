@@ -431,7 +431,7 @@ void King::unknown_48(void)
     if (king_starting_location_count > 0) {
         real_point3d position = king_hill_boundary_center;
 
-        halo::game::custom_waypoint_register(0xffffffff, 0, &position, "crown_blue", 0.0f, 0xffffffff, -1);
+        halo::game::custom_waypoint_register(halo::k_dword_none, 0, &position, "crown_blue", 0.0f, halo::k_dword_none, -1);
     } else {
         halo::main::console_print_error_va(0, "FAILED TO FIND HILL");
     }

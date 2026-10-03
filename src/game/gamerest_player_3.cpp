@@ -1,4 +1,5 @@
 #include "halo/game/gamerest_player.hpp"
+#include "halo/core/datum.hpp"
 #include "halo/scenario/api.hpp"
 #include "halo/units/api.hpp"
 #include "halo/objects/api.hpp"
@@ -51,7 +52,7 @@ void LocalPlayerUnit::apply_starting_profile(int16_t starting_profile_index, uin
         unit->grenade_counts[1] = 0;
     }
 
-    if (profile->primary_weapon.tag_id.index != 0xffff || profile->primary_weapon.tag_id.id != 0xffff) {
+    if (profile->primary_weapon.tag_id.index != halo::k_word_none || profile->primary_weapon.tag_id.id != halo::k_word_none) {
         weapon_object = halo::game::player_spawn_starting_profile_weapon(&profile->primary_weapon, unit_handle);
         if (weapon_object != (datum_index)-1) {
             if (halo::units::unit_pickup_weapon((int16_t)(reset_stats != 0), weapon_object, unit_handle) == 0) {
@@ -60,7 +61,7 @@ void LocalPlayerUnit::apply_starting_profile(int16_t starting_profile_index, uin
         }
     }
 
-    if (profile->secondary_weapon.tag_id.index != 0xffff || profile->secondary_weapon.tag_id.id != 0xffff) {
+    if (profile->secondary_weapon.tag_id.index != halo::k_word_none || profile->secondary_weapon.tag_id.id != halo::k_word_none) {
         weapon_object = halo::game::player_spawn_starting_profile_weapon(&profile->secondary_weapon, unit_handle);
         if (weapon_object != (datum_index)-1) {
             if (halo::units::unit_pickup_weapon(0, weapon_object, unit_handle) == 0) {

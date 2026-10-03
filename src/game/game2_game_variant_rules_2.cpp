@@ -1,4 +1,5 @@
 #include "halo/game/game2_variants.hpp"
+#include "halo/core/datum.hpp"
 #include "interface.h"
 #include "main.h"
 #include "halo/main/api.hpp"
@@ -40,7 +41,7 @@ void GameVariantRules::sync_variant_defaults(void)
     }
 
     if (halo::networking::globals().client == 0 && session == 0) {
-        split_screen_quit_prompt_string = 0xffff;
+        split_screen_quit_prompt_string = halo::k_word_none;
         halo::networking::globals().join_error_reason = 0;
         halo::main::globals().main_globals.reset_map = 1;
         halo::main::globals().main_globals.lost_map = 0;

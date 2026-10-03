@@ -64,7 +64,7 @@ void UpdateClient::advance_read_cursor(int32_t target_tick, const uint32_t *reco
     if (target_tick > update_client_unknown_ea0) {
         for (tick = update_client_unknown_ea0 + 1; tick < target_tick; tick++) {
             UpdateClient::queue_get_slot(tick);
-            ((struct update_record *)slot)->player_count = 0xffff;
+            ((struct update_record *)slot)->player_count = halo::k_word_none;
         }
         update_client_unknown_ea0 = target_tick;
     }

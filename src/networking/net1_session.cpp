@@ -1079,7 +1079,7 @@ int32_t ObjectOwnership::owner_team_index_desired(object *obj)
     player *plr;
 
     slot = *(uint16_t *)&((struct object *)obj)->network_update_tick;
-    if (slot != 0xffff && &machine_to_player[slot] != 0 && machine_to_player[slot] != (datum_index)halo::k_dword_none) {
+    if (slot != halo::k_word_none && &machine_to_player[slot] != 0 && machine_to_player[slot] != (datum_index)halo::k_dword_none) {
         resolved = machine_to_player[slot];
         plr = (player *)halo::memory::datum_get(resolved, halo::game::globals().player_data);
         if (plr != 0) {

@@ -120,7 +120,7 @@ uint16_t *Oddball::multiplayer_text(int16_t index)
 {
     datum_index list = halo::cache::tag_lookup(halo::groups::unicode_string_list, halo::tag_paths::multiplayer_game_text);
 
-    return list == 0xffffffff ? (uint16_t *)L"" : halo::text::text_string_list_get_string(list, index);
+    return list == halo::k_dword_none ? (uint16_t *)L"" : halo::text::text_string_list_get_string(list, index);
 }
 
 /**

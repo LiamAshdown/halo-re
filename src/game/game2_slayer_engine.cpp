@@ -448,7 +448,7 @@ void SlayerEngine::update(datum_index player_index)
             if (unit_index != halo::k_dword_none) {
                 uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & halo::k_datum_slot_mask) * 12 + 8);
 
-                halo::game::custom_waypoint_register(0xffffffff, (int16_t)player_index, (real_point3d *)(unit + 0xa0), "target_blue", 0.0f,
+                halo::game::custom_waypoint_register(halo::k_dword_none, (int16_t)player_index, (real_point3d *)(unit + 0xa0), "target_blue", 0.0f,
                     player_index, -1);
             }
         }

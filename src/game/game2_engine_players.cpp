@@ -124,7 +124,7 @@ uint8_t EnginePlayers::player_has_respawn_priority(uint32_t player_index)
                     if (other->unit == (datum_index)halo::k_dword_none && other != self &&
                         (self->last_death_tick < other->last_death_tick ||
                          (other->last_death_tick == self->last_death_tick &&
-                          (player_index & halo::k_datum_slot_mask) < 0xffff))) {
+                          (player_index & halo::k_datum_slot_mask) < halo::k_word_none))) {
                         result = 0;
                     }
                     element = halo::memory::data_iterator_next(&iter);

@@ -437,7 +437,7 @@ void GameLifecycle::unload_map(void)
         halo::cache::cache_file_unload();
         halo::scenario::globals().game_globals->structure_bsp_index = -1;
         global_scenario_index = halo::k_dword_none;
-        global_structure_bsp_index = 0xffff;
+        global_structure_bsp_index = halo::k_word_none;
         halo::scenario::globals().scenario = (Scenario *)0;
         global_structure_bsp = (void *)0;
         global_structure_collision_bsp = (void *)0;

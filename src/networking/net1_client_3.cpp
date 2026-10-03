@@ -60,7 +60,7 @@ int32_t ConnectionView::finalize_join(uint16_t *connection)
     }
 
     iVar6 = *(int32_t *)((uint8_t *)connection + 0xadc);
-    connection[0x76c] = 0xffff;
+    connection[0x76c] = halo::k_word_none;
 
     QueryPerformanceCounter((LARGE_INTEGER *)&counter);
     now_ms = (int32_t)((counter.quad_part * 1000) / halo::cseries::globals().performance_frequency);
