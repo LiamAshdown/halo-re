@@ -327,6 +327,18 @@ typedef union actor_mode_data {
 } actor_mode_data;                      // size 0x84
 typedef char actor_mode_data_size[sizeof(actor_mode_data) == 0x84 ? 1 : -1];
 
+// The ad hoc {code, payload} record every caller of actor_resolve_flee_source_point @0x4146c0
+// builds on its own stack. The code selects which of seven source kinds to resolve; the
+// payload is either a datum handle or a point, never both.
+typedef struct actor_flee_source_reason {
+    int16_t code;              // 0x00 selects which of the 7 source kinds to resolve
+    uint8_t unused_02[2];      // 0x02 padding
+    union {
+        uint32_t handle;       // 0x04 reason 1: prop_data datum; reason 6: object_data datum
+        real_point3d point;    // 0x04 reason 3 (relative to the actor) or 4 (absolute)
+    } payload;
+} actor_flee_source_reason; // size 0x10
+
 typedef struct actor {
     int16_t identifier;               // 0x00 datum_header
     uint8_t unknown_02[2];            // 0x02
@@ -719,10 +731,12 @@ typedef struct actor {
     uint8_t recognition_type;         // 0x3d9
     uint8_t unknown_3da[2];           // 0x3da
     real_point3d recognition_position;// 0x3dc copied out of the encounter ScenarioFiringPosition block (stride 0x18)
-    int16_t vocalization_unknown_3e8; // 0x3e8
+    int16_t flee_reason;              // 0x3e8 why the actor wants to move away from flee_source: 0 none, 3..7 rising
+                                      //    urgency (avoid 5, overwhelmed 7); cleared with the rest of the per-tick
+                                      //    control block (0x3e8..0x46b) every update
     uint8_t unknown_3ea[2];           // 0x3ea
-    int16_t vocalization_unknown_3ec; // 0x3ec
-    uint8_t unknown_3ee[14];          // 0x3ee
+    actor_flee_source_reason flee_source;// 0x3ec what the actor flees from or looks at: code 1 prop, 2 firing target,
+                                      //    3 point relative to the actor, 4 absolute point (0x4146c0 resolves it)
     int16_t look_posture;             // 0x3fc per-tick control, set by every actor_mode_*_update (0 sleep,1
                                       //    noncombat,2 guard,3 search,4 combat); 0x4150f0 picks
                                       //    noncombat/guard/combat_idle_facing by it
@@ -824,10 +838,8 @@ typedef struct actor {
     int16_t vocalization_variant;     // 0x546
     int16_t vocalization_state;       // 0x548
     uint8_t unknown_54a[2];           // 0x54a
-    uint32_t vocalization_unknown_54c;// 0x54c
-    uint32_t vocalization_unknown_550;// 0x550
-    uint32_t vocalization_unknown_554;// 0x554
-    uint32_t vocalization_unknown_558;// 0x558
+    actor_flee_source_reason vocalization_source;// 0x54c the prop or point the pending vocalization is about
+                                      //    (copied wholesale from the context actor_begin_vocalization is handed)
     uint8_t idle_major_active;        // 0x55c 0x414d00 (CEA actor_look_idle_new_major_direction) sets it once idle
                                       //    major direction+timer armed; 0x415480 clears/tests it; relationship_think
                                       //    keeps its prop
@@ -1905,7 +1917,7 @@ typedef struct actor_combat_consideration {
 } actor_combat_consideration; // size 0x38
 
 // The 16-byte block actor_begin_vocalization @0x4142d0 is handed and copies wholesale
-// into actor.vocalization_unknown_54c..558.
+// into actor.vocalization_source.
 typedef struct actor_vocalization_context {
     int16_t kind;          // 0x00 1 means handle below names a prop
     int16_t unknown_02;    // 0x02
@@ -1960,17 +1972,6 @@ typedef struct actor_recognition_scan_result {
     datum_index candidate;    // 0x04 the winning prop datum handle
 } actor_recognition_scan_result; // size 0x08
 
-// The ad hoc {code, payload} record every caller of actor_resolve_flee_source_point @0x4146c0
-// builds on its own stack. The code selects which of seven source kinds to resolve; the
-// payload is either a datum handle or a point, never both.
-typedef struct actor_flee_source_reason {
-    int16_t code;              // 0x00 selects which of the 7 source kinds to resolve
-    uint8_t unused_02[2];      // 0x02 padding
-    union {
-        uint32_t handle;       // 0x04 reason 1: prop_data datum; reason 6: object_data datum
-        real_point3d point;    // 0x04 reason 3 (relative to the actor) or 4 (absolute)
-    } payload;
-} actor_flee_source_reason; // size 0x10
 
 // One bucket of the call-for-help grouping table ai_group_bucket_find_or_add @0x420de0
 // maintains on the caller stack for actor_scan_allies_for_backup_request @0x420ec0.

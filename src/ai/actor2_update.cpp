@@ -49,7 +49,7 @@ void ActorView::update_activation_state()
     actor_choose_best_target(actor_index);
     actor_update_crouch_state(actor_index);
 
-    memset(&self->vocalization_unknown_3e8, 0, 0x21 * sizeof(uint32_t));
+    memset(&self->flee_reason, 0, 0x21 * sizeof(uint32_t));
     self->secondary_action = -1;
     *(int16_t *)((uint8_t *)self + 0x42c) = -1;
     *(int16_t *)((uint8_t *)self + 0x42e) = -1;
@@ -1052,12 +1052,12 @@ uint8_t ActorView::update_flee_response()
 
     result = 0;
 
-    if (self->vocalization_unknown_3ec == 0 && self->movement_action_complete == 0) {
-        self->vocalization_unknown_3e8 = 0;
+    if (self->flee_source.code == 0 && self->movement_action_complete == 0) {
+        self->flee_reason = 0;
     }
 
-    if (self->vocalization_unknown_3e8 > 2 && self->vocalization_unknown_3ec != 0) {
-        result = actor_resolve_flee_source_point((actor_flee_source_reason *)((uint8_t *)self + 0x3ec),
+    if (self->flee_reason > 2 && self->flee_source.code != 0) {
+        result = actor_resolve_flee_source_point(&self->flee_source,
             &self->forced_aim_direction, actor_index);
         if (result != 0) {
             self->forced_aim = 1;
@@ -1206,11 +1206,11 @@ void ActorView::update_look_target()
             reason = 7;
             flee_look = 1;
         } else {
-            reason = (int16_t)*(uint16_t *)&((actor *)a)->vocalization_unknown_3e8;
+            reason = (int16_t)*(uint16_t *)&((actor *)a)->flee_reason;
             if (reason != 0 && reason != 1) {
-                if (actor_resolve_flee_source_point((actor_flee_source_reason *)(a + 0x3ec),
+                if (actor_resolve_flee_source_point(&((actor *)a)->flee_source,
                         (real_vector3d *)&flee_point, actor_index)) {
-                    flee_look = ((actor *)a)->vocalization_unknown_3ec == 2;
+                    flee_look = ((actor *)a)->flee_source.code == 2;
                 } else {
                     reason = 0;
                 }
@@ -1218,7 +1218,7 @@ void ActorView::update_look_target()
         }
 
         if (((actor *)a)->vocalization_line >= 0 && ((actor *)a)->vocalization_state > 0 &&
-            actor_resolve_flee_source_point((actor_flee_source_reason *)(a + 0x54c), (real_vector3d *)&voc_point,
+            actor_resolve_flee_source_point(&((actor *)a)->vocalization_source, (real_vector3d *)&voc_point,
                 actor_index)) {
             priority = (int16_t)*(uint16_t *)&((actor *)a)->vocalization_variant;
         }

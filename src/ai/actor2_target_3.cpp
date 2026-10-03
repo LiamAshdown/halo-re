@@ -281,8 +281,8 @@ restart:
                               (self->nearest_orphan_prop_index == target_prop_index) ||
                               (self->retreat_prop_index == target_prop_index) ||
                               (self->nearby_friend_prop_index == target_prop_index) ||
-                              (self->vocalization_line != 0 && *(int16_t *)&self->vocalization_unknown_54c == 1 &&
-                               self->vocalization_unknown_550 == target_prop_index) ||
+                              (self->vocalization_line != 0 && self->vocalization_source.code == 1 &&
+                               self->vocalization_source.payload.handle == target_prop_index) ||
                               (self->idle_major_active != 0 && self->idle_major_direction_type == 1 &&
                                self->idle_major_prop_index == target_prop_index) ||
                               (self->idle_look_state[1] != 0 && self->idle_look_direction_type == 1 &&

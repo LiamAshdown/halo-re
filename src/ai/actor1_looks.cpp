@@ -113,7 +113,7 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
         return 0;
     }
 
-    urgent = (uint8_t)(self->vocalization_unknown_3e8 > 6);
+    urgent = (uint8_t)(self->flee_reason > 6);
 
     if ((line < 13 && self->mode == _actor_mode_flee && self->mode_data.raw[3] == 0) ||
         (urgent != 0 && line < 4)) {
@@ -165,10 +165,7 @@ uint8_t halo::ai::look_ops::begin_vocalization(int16_t line, int16_t variant, ac
     self->vocalization_line = line;
     self->vocalization_state = (int16_t)ticks;
     self->vocalization_variant = variant;
-    self->vocalization_unknown_54c = ((uint32_t *)context)[0];
-    self->vocalization_unknown_550 = ((uint32_t *)context)[1];
-    self->vocalization_unknown_554 = ((uint32_t *)context)[2];
-    self->vocalization_unknown_558 = ((uint32_t *)context)[3];
+    memcpy(&self->vocalization_source, context, sizeof(self->vocalization_source));
     return 1;
 }
 

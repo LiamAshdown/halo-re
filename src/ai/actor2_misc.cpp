@@ -120,7 +120,7 @@ datum_index ActorOps::run_new(datum_index actor_variant_tag)
         self->ignores_glass = random_real() < actor_tag->glass_ignorance_chance;
     }
 
-    self->vocalization_unknown_3e8 = 0;
+    self->flee_reason = 0;
     self->secondary_action = 0;
     self->movement_completed = 0;
     self->destination_surface_index = 0xffffffff;
@@ -1406,8 +1406,8 @@ void ActorView::replace_object_reference(uint32_t new_reference, uint32_t old_re
         }
     }
 
-    if (self->vocalization_unknown_54c == 1 && self->vocalization_unknown_550 == old_reference) {
-        self->vocalization_unknown_550 = new_reference;
+    if (self->vocalization_source.code == 1 && self->vocalization_source.payload.handle == old_reference) {
+        self->vocalization_source.payload.handle = new_reference;
     }
     if (self->idle_major_direction_type == 1 && *(uint32_t *)((uint8_t *)self + 0x570) == old_reference) {
         *(uint32_t *)((uint8_t *)self + 0x570) = new_reference;

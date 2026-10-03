@@ -125,18 +125,18 @@ void ActorView::mode_uncover_update()
             }
         }
         if ((act[0x454] && (kind == 0 || kind == 1)) || forced) {
-            ((actor *)act)->vocalization_unknown_3e8 = 7;
+            ((actor *)act)->flee_reason = 7;
         } else if (((actor *)act)->target_combat_status < 5) {
-            ((actor *)act)->vocalization_unknown_3e8 = 3;
+            ((actor *)act)->flee_reason = 3;
         } else if (kind == 2 || kind == 4) {
-            ((actor *)act)->vocalization_unknown_3e8 = 2;
+            ((actor *)act)->flee_reason = 2;
         } else {
-            ((actor *)act)->vocalization_unknown_3e8 = 5;
+            ((actor *)act)->flee_reason = 5;
         }
         if (((struct actor *)act)->mode_data.uncover.stage == 0) {
-            ((actor *)act)->vocalization_unknown_3ec = 2;
+            ((actor *)act)->flee_source.code = 2;
         } else if (((struct actor *)act)->mode_data.uncover.stage == 1) {
-            ((actor *)act)->vocalization_unknown_3ec = 3;
+            ((actor *)act)->flee_source.code = 3;
             *(real_point3d *)(act + 0x3f0) = ((struct actor *)act)->mode_data.uncover.position;
         }
     }
@@ -195,14 +195,14 @@ void ActorView::mode_vehicle_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (act[0xc8]) {
-        ((actor *)act)->vocalization_unknown_3e8 = 4;
-        ((actor *)act)->vocalization_unknown_3ec = 4;
+        ((actor *)act)->flee_reason = 4;
+        ((actor *)act)->flee_source.code = 4;
         *(real_vector3d *)(act + 0x3f0) = *(real_vector3d *)(act + 0xd8);
     } else if (act[0x4a8]) {
-        ((actor *)act)->vocalization_unknown_3e8 = 3;
-        ((actor *)act)->vocalization_unknown_3ec = 0;
+        ((actor *)act)->flee_reason = 3;
+        ((actor *)act)->flee_source.code = 0;
     } else {
-        ((actor *)act)->vocalization_unknown_3e8 = 0;
+        ((actor *)act)->flee_reason = 0;
     }
     ((struct actor *)act)->look_posture = 4;
     act[0x454] = 0;
@@ -361,14 +361,14 @@ void ActorView::mode_wait_update()
     uint8_t *act = ACTOR(actor_index);
 
     if (act[0x504]) {
-        ((actor *)act)->vocalization_unknown_3e8 = 3;
-        ((actor *)act)->vocalization_unknown_3ec = 0;
+        ((actor *)act)->flee_reason = 3;
+        ((actor *)act)->flee_source.code = 0;
     } else if (!act[0x1cc] && *(int32_t *)&((struct actor *)act)->nearby_friend_prop_index != -1 && ((struct actor *)act)->mode_data.wait.countdown_0c > 0) {
-        ((actor *)act)->vocalization_unknown_3e8 = 5;
-        ((actor *)act)->vocalization_unknown_3ec = 1;
+        ((actor *)act)->flee_reason = 5;
+        ((actor *)act)->flee_source.code = 1;
         *(int32_t *)(act + 0x3f0) = *(int32_t *)&((struct actor *)act)->nearby_friend_prop_index;
     } else {
-        ((actor *)act)->vocalization_unknown_3e8 = 1;
+        ((actor *)act)->flee_reason = 1;
     }
     ((struct actor *)act)->look_posture = 3;
     act[0x454] = 0;
