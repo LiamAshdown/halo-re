@@ -45,6 +45,14 @@ enum bsp_edge_word : int32_t {
 
 constexpr uint32_t k_bsp_plane_index_mask = 0x7fffffff;
 
+/** The vertex hash of a path_find_context: 512 buckets of 8 entries, probed linearly across all 4096 slots. */
+constexpr uint32_t k_vertex_hash_bucket_mask = 0x1ff;
+constexpr uint32_t k_vertex_hash_slot_mask = 0xfff;
+constexpr int32_t k_vertex_hash_slot_count = 0x1000;
+
+/** Capacity of the node array and of the (one-based) open heap of a path_find_context. */
+constexpr int32_t k_path_node_capacity = 0x400;
+
 template <typename T>
 inline T *bsp_reflexive_at(const TagReflexive &reflexive, int32_t index)
 {
@@ -469,12 +477,12 @@ int16_t PathFindGeometry::gather_adjacent_edges(void *context, int32_t vertex_id
 int16_t PathFinder::hash_lookup_vertex(uint32_t vertex_id)
 {
     path_find_context * context = ptr;
-    uint32_t slot = (vertex_id & 0x1ff) << 3;
+    uint32_t slot = (vertex_id & k_vertex_hash_bucket_mask) << 3;
     int16_t node;
 
     for (;;) {
         node = context->vertex_hash[slot];
-        slot = (slot + 1) & 0xfff;
+        slot = (slot + 1) & k_vertex_hash_slot_mask;
         if (node == -1) {
             return node;
         }
@@ -601,8 +609,8 @@ uint8_t PathFindGeometry::heights_are_close(ScenarioStructureBSP *structure_bsp,
     surfaces = (ModelCollisionGeometryBSPSurface *)(uintptr_t)collision_bsp->surfaces.pointer;
     planes = (real_plane3d *)(uintptr_t)collision_bsp->planes.pointer;
 
-    halo::math::decal_plane_solve_third_axis(&position_a, 1, 2, &planes[surfaces[surface_a].plane & 0x7fffffff], *point);
-    halo::math::decal_plane_solve_third_axis(&position_b, 1, 2, &planes[surfaces[surface_b].plane & 0x7fffffff], *point);
+    halo::math::decal_plane_solve_third_axis(&position_a, 1, 2, &planes[surfaces[surface_a].plane & k_bsp_plane_index_mask], *point);
+    halo::math::decal_plane_solve_third_axis(&position_b, 1, 2, &planes[surfaces[surface_b].plane & k_bsp_plane_index_mask], *point);
     return (uint8_t)(halo::libm::fabs((double)(position_a.z - position_b.z)) < 0.05000000074505806);
 }
 
@@ -663,7 +671,7 @@ uint8_t PathFinder::push_start_node()
         context->best_position.z = context->start_position.z;
     }
 
-    context->vertex_hash[(node->vertex_id & 0x1ff) * 8] = node_index;
+    context->vertex_hash[(node->vertex_id & k_vertex_hash_bucket_mask) * 8] = node_index;
     halo::ai::path_find_heap_push(context, node_index, (int16_t)key);
     return 1;
 }
@@ -883,7 +891,7 @@ static uint8_t path_find_search(path_find_context *context)
             }
 
             // 0x43aced: the vertex hash
-            slot = (int16_t)((edge->edge_id & 0x1ff) << 3);
+            slot = (int16_t)((edge->edge_id & k_vertex_hash_bucket_mask) << 3);
             while (context->vertex_hash[slot] != -1) {
                 path_find_node *existing = &context->nodes[context->vertex_hash[slot]];
 
@@ -895,13 +903,13 @@ static uint8_t path_find_search(path_find_context *context)
                     }
                     break;
                 }
-                slot = (int16_t)((slot + 1) & 0xfff);
+                slot = (int16_t)((slot + 1) & k_vertex_hash_slot_mask);
             }
             if (index == -2) {
                 continue;
             }
             if (index == -1) {
-                if (context->node_count >= 0x400) {
+                if (context->node_count >= k_path_node_capacity) {
                     continue;
                 }
                 index = context->node_count++;
@@ -924,7 +932,7 @@ static uint8_t path_find_search(path_find_context *context)
             if (next->heap_index != -1) {
                 context->heap[next->heap_index].key = (int16_t)key;
                 halo::ai::path_find_heap_sift_up(context, next->heap_index);
-            } else if (context->heap_count < 0x400) {
+            } else if (context->heap_count < k_path_node_capacity) {
                 int16_t heap_slot = context->heap_count++;
 
                 context->heap[heap_slot].key = (int16_t)key;
@@ -970,7 +978,7 @@ uint8_t PathFinder::run()
 
     context->node_count = 0;
     context->heap_count = 1;
-    for (i = 0; i < 0x1000; i++) {
+    for (i = 0; i < k_vertex_hash_slot_count; i++) {
         context->vertex_hash[i] = -1;
     }
     context->best_node = -1;
@@ -1652,7 +1660,7 @@ float PathFindGeometry::vertex_distance(ScenarioStructureBSP *structure_bsp, int
     float dx, dy, dz;
 
     halo::physics::collision_bsp_surface_closest_edge_point_2d(collision_bsp, surface, 2, 1, (real_point2d *)point_a, &closest);
-    halo::math::decal_plane_solve_third_axis(out_point, 1, 2, &planes[surfaces[surface].plane & 0x7fffffff], closest);
+    halo::math::decal_plane_solve_third_axis(out_point, 1, 2, &planes[surfaces[surface].plane & k_bsp_plane_index_mask], closest);
 
     dx = out_point->x - point_a->x;
     dy = out_point->y - point_a->y;
