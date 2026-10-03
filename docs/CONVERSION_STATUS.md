@@ -13,7 +13,7 @@ fails, revert the latest merges one by one until it is green and log the offende
 |---|---|---|---|
 | a58adc644eb7b93a4 | memory, cseries, cache | running | no |
 | a8c68560df27ca293 | structures, scenario, bitmaps, models, text, shaders | running | no |
-| a690688f77ce90677 | camera, cutscene, devices, dialogs, projectiles | running | no |
+| a690688f77ce90677 | camera, cutscene, devices, dialogs, projectiles | done | yes (e92165ab; all 5 checks 0 missing/0 extra; handle classes, no registry because dispatch tables are fixed data in standalone/data) |
 | a30d258f6c14fe84c | input, main, physics | running | no |
 | a48cce8b581c8e3c3 | items, effects | done | yes (e93f959d; check items 115/115, effects 162/162; classes in anonymous namespaces, no Strategy/State patterns yet) |
 | a18f610ee74d844a2 | saved_games, render (relaunched after stale-base stop) | running | no |
@@ -32,3 +32,6 @@ Launched: ai_actor_1 = a816627a3d7da40e7, ai_actor_2 = ab96a7b6b4db18803
 
 ## Log
 - 2026-10-03: C++ phase 1 done (all src compiles as C++20, extern "C" wrapping, link and smoke test OK on cxx-phase1).
+
+- Note: concurrent `git merge --ff-only` into an agent worktree by both the lead and the agent causes an index.lock race; the lead does it once right after spawning and the agent only verifies.
+- harness/gen_link.py scans src/*/*.c for extern address comments; converted modules no longer appear there (standalone link tables are not affected). Revisit if the regenerate tools are needed.
