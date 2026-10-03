@@ -117,7 +117,7 @@ void PlayerUpdateClient::local_player_vehicle_update_from_network(message_delta_
         candidate->unknown_f4 = halo::bit_cast<int32_t>(ack.vehicle.position.y);
         candidate->unknown_f8 = halo::bit_cast<int32_t>(ack.vehicle.position.z);
         halo::networking::player_update_history_play(1, candidate->baseline_update_id,
-            (player_update_history *)network_client->update_history, candidate->unit,
+            network_client->update_history, candidate->unit,
             ack.vehicle.position.x, ack.vehicle.position.y, ack.vehicle.position.z, &ack);
         return;
     }

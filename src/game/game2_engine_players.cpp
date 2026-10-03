@@ -900,7 +900,7 @@ void EnginePlayers::reattach_player_unit_unused(uint32_t player_index, uint32_t 
                         int16_t salt = (int16_t)(controlling_player >> 16);
                         if (plr->identifier != 0 && (salt == 0 || plr->identifier == salt) &&
                             plr->local_player_index == -1 && halo::networking::globals().client != 0) {
-                            halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
+                            halo::networking::player_update_history_free_all(halo::networking::globals().client->update_history);
                         }
                     }
                 }

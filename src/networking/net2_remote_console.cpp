@@ -342,7 +342,7 @@ char RemoteConsole::send_update(int32_t tick_count, char frame_time_overflow)
         if (local_player != 0 && local_player->unit != k_datum_index_none) {
             if (network_game_mode == halo::networking::k_game_mode_client) {
                 char added = halo::networking::player_update_history_add(local_player->unit,
-                    (player_update_history *)network_client->update_history, tick_count, control, &history_update_id);
+                    network_client->update_history, tick_count, control, &history_update_id);
 
                 history_byte = (uint8_t)history_update_id;
                 if (added != 1) {

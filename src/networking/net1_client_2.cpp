@@ -292,7 +292,7 @@ void ClientView::destroy()
     network_client_globals *client = self;
     halo::networking::message_delta_parameters_protocol_dump_to_config_file();
     if (client != 0) {
-        halo::networking::player_update_history_destroy((player_update_history *)client->update_history);
+        halo::networking::player_update_history_destroy(client->update_history);
         client->update_history = 0;
         if (client->channel != 0) {
             halo::networking::network_channel_delete(client->channel);

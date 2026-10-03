@@ -760,7 +760,7 @@ void EnginePlacement::update_teleporter(uint32_t player_index)
 
                 if ((unit_object->network_role == 1 || unit_object->network_role == 2) &&
                     p->local_player_index != -1 && halo::networking::globals().client != 0) {
-                    halo::networking::player_update_history_free_all((player_update_history *)(*(void **)&halo::networking::globals().client->update_history));
+                    halo::networking::player_update_history_free_all(halo::networking::globals().client->update_history);
                     return;
                 }
             }
