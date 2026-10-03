@@ -23,6 +23,9 @@
 
 #include "halo/game/game1_koth.hpp"
 #include "halo/rasterizer/globals.hpp"
+#include "halo/rasterizer/render_device.hpp"
+#include "halo/render/d3d9.hpp"
+#include "rasterizer.h"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -44,7 +47,6 @@
 #include "halo/core/libm.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/effects/api.hpp"
-static auto &rasterizer_render_states_dirty = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_render_states_dirty);
 
 static auto &hill_pulse_fade_done = halo::link::ref<uint8_t>(halo::game::vars().hill_pulse_fade_done);
 static auto &hill_pulse_grow_done = halo::link::ref<uint8_t>(halo::game::vars().hill_pulse_grow_done);
@@ -81,15 +83,17 @@ static auto &king_hill_player_in_hill = halo::link::ref<uint8_t [16]>(halo::game
 static auto &king_bucket_last_credit_tick = halo::link::ref<int32_t [16]>(halo::game::vars().king_bucket_last_credit_tick);
 static auto &global_white_color = halo::link::ref<const real_vector3d *>(halo::effects::vars().global_white_color);
 static auto &king_hill_markers = halo::link::ref<king_hill_marker_history>(halo::game::vars().king_hill_markers);
-static auto &rasterizer_dynamic_index_buffer = halo::link::ref<void **>(halo::rasterizer::vars().rasterizer_dynamic_index_buffer);
-static auto &rasterizer_dynamic_vertex_slots = halo::link::ref<int16_t []>(halo::game::vars().rasterizer_dynamic_vertex_slots);
-static auto &render_unknown_d98f0 = halo::link::ref<int32_t []>(halo::game::vars().render_unknown_d98f0);
-static auto &render_unknown_7bf04c = halo::link::ref<uint8_t []>(halo::game::vars().render_unknown_7bf04c);
+static auto &rasterizer_dynamic_vertex_slots = halo::link::ref<rasterizer_dynamic_vertex_slot [k_rasterizer_dynamic_vertex_slots]>(halo::game::vars().rasterizer_dynamic_vertex_slots);
+static auto &rasterizer_dynamic_vertex_caches = halo::link::ref<rasterizer_dynamic_vertex_cache [k_rasterizer_vertex_type_count]>(halo::rasterizer::vars().rasterizer_dynamic_vertex_caches);
+static auto &rasterizer_vertex_buffer_slots = halo::link::ref<rasterizer_vertex_buffer_slot [k_rasterizer_vertex_buffer_slots]>(halo::rasterizer::vars().rasterizer_vertex_buffer_slots);
+namespace {
+constexpr size_t k_hill_marker_vertex_size = 0x44;
+constexpr size_t k_hill_marker_vertex_copy_size = 0x3c;
+}
+
 static auto &k_render_identity_matrix_ptr = halo::link::ref<void *>(halo::effects::vars().k_render_identity_matrix_ptr);
 static auto &global_white_argb = halo::link::ref<const ColorARGB *>(halo::networking::vars().global_white_argb);
-static auto &default_axis_b = halo::link::ref<real_vector3d>(halo::game::vars().default_axis_b);
-static auto &rasterizer_device_version = halo::link::ref<uint32_t>(halo::ui::vars().rasterizer_device_version);
-static auto &rasterizer_device = halo::link::ref<void **>(halo::game::vars().rasterizer_device);
+static auto &default_axis_b = halo::link::ref<const real_vector3d *>(halo::game::vars().default_axis_b);
 static auto &king_hill_single_occupant_flag = halo::link::ref<uint8_t>(halo::game::vars().king_hill_single_occupant_flag);
 static auto &king_hill_state_globals = halo::link::ref<king_globals>(halo::game::vars().king_hill_state_globals);
 
@@ -862,167 +866,137 @@ void Koth::reset_hill_marker_history(void)
 }
 
 /**
- * Assembles and submits a small render/decal geometry batch (positions, colors, default hill-marker placement)
- * to draw the moving King-of-the-Hill marker.
+ * Draws one quad of the moving King-of-the-Hill marker with the given shader tag. The four source vertices
+ * (model vertices, 0x44 bytes each) are copied into the dynamic vertex cache with the last two floats set to 0.5,
+ * the two triangles of the quad are written into the dynamic index cache, both caches are unlocked, and the
+ * shader is drawn through a model draw context whose sort position is the centre of the quad.
  *
- * Original register convention: stack -> tag_handle_as_uint, position_override, orientation_override, param_4,
- * param_5;.
+ * The lighting override (or a white, unlit default) and the animation override (or the marker history, which
+ * supplies the change colours and function values) fill the draw context; param_4 and param_5 are the float
+ * bit patterns of the base map u and v scales. Transparent shader types are batched through the transparent
+ * geometry group, all others are drawn directly.
  *
  * @address 0x46b2f0
  */
 void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *position_override, uint32_t *orientation_override, uint32_t param_4, uint32_t param_5, float *vertex_source)
 {
-    float fVar5;
-    int32_t iVar6;
-    float local_f0;
-    float fStack_ec;
-    float fStack_e8;
-    int32_t iStack_fc = 0;
+    const int32_t k_vertex_count = 4;
+    const int32_t k_triangle_count = 2;
+    const render_lighting *lighting_override = (const render_lighting *)position_override;
+    int32_t index_slot;
+    int32_t vertex_slot;
 
     halo::rasterizer::globals().vertex_buffer_lock_state = 9;
-    fVar5 = *(float *)halo::rasterizer::rasterizer_dynamic_index_cache_reserve(0);
-    local_f0 = fVar5;
-    iVar6 = halo::rasterizer::rasterizer_dynamic_vertex_cache_reserve(0, 0);
-    if (fVar5 == fVar5 && iVar6 != -1) {
-        uint8_t *dest_block;
-        int32_t base;
-        int32_t offset;
-        float *src;
-        uint32_t *dst;
-        int32_t count;
-        int32_t tag_data;
-        int32_t i;
-
-        base = (int32_t)halo::rasterizer::rasterizer_dynamic_vertex_cache_lock(iVar6);
-        dest_block = (uint8_t *)halo::render::rasterizer_dynamic_index_slot_lock(0);
-        offset = (int32_t)vertex_source - base;
-        src = vertex_source + 9;
-        dst = (uint32_t *)(base + 0xc);
-        count = 4;
-        do {
-            dst[-3] = ((uint32_t *)src)[-9];
-            dst[-2] = ((uint32_t *)src)[-8];
-            dst[-1] = ((uint32_t *)src)[-7];
-            {
-                uint32_t *from = (uint32_t *)(offset + (int32_t)dst);
-                dst[0] = from[0];
-                dst[1] = from[1];
-                dst[2] = from[2];
-            }
-            dst[3] = ((uint32_t *)src)[-3];
-            dst[4] = ((uint32_t *)src)[-2];
-            dst[5] = ((uint32_t *)src)[-1];
-            dst[6] = ((uint32_t *)src)[0];
-            dst[7] = ((uint32_t *)src)[1];
-            dst[8] = ((uint32_t *)src)[2];
-            dst[9] = ((uint32_t *)src)[3];
-            dst[10] = ((uint32_t *)src)[4];
-            *(uint16_t *)(dst + 0xb) = *(uint16_t *)(src + 5);
-            *(uint16_t *)((uint8_t *)dst + 0x2e) = *(uint16_t *)((uint8_t *)src + 0x16);
-            dst[0xc] = halo::game::k_float_half_bits;
-            dst[0xd] = halo::game::k_float_half_bits;
-            src = src + 0x11;
-            dst = dst + 0x11;
-            count--;
-        } while (count != 0);
-
-        *(uint16_t *)dest_block = 0;
-        *(uint16_t *)(dest_block + 2) = 1;
-        *(uint16_t *)(dest_block + 4) = 2;
-        *(uint16_t *)(dest_block + 6) = 2;
-        *(uint16_t *)(dest_block + 8) = 3;
-        *(uint16_t *)(dest_block + 10) = 0;
-
-        ((void (__stdcall *)(void **))(*(void ***)((uint8_t *)*rasterizer_dynamic_index_buffer + 0x30)))(rasterizer_dynamic_index_buffer);
-
-        {
-            int16_t sub_index = rasterizer_dynamic_vertex_slots[iStack_fc * 8];
-            if (render_unknown_d98f0[sub_index * 3] != 0) {
-                void **sub = (void **)(render_unknown_7bf04c + render_unknown_d98f0[sub_index * 3] * 10);
-                ((void (__stdcall *)(void **))(*(void ***)((uint8_t *)*sub + 0x30)))(sub);
-            }
-        }
-
-        tag_data = *(int32_t *)((uint8_t *)halo::game::tag_data_at(tag_handle_as_uint) + 0);
-        local_f0 = (vertex_source[0x33] + vertex_source[0x22] + vertex_source[0x11] + vertex_source[0]) * 0.25f;
-        fStack_ec = (vertex_source[0x34] + vertex_source[0x23] + vertex_source[0x12] + vertex_source[1]) * 0.25f;
-        {
-            float fVar1 = vertex_source[0x35];
-            float fVar2 = vertex_source[0x24];
-            float fVar3 = vertex_source[0x13];
-            float fVar4 = vertex_source[2];
-            fStack_e8 = (fVar1 + fVar2 + fVar3 + fVar4) * 0.25f;
-        }
-
-        {
-            uint8_t record[0xd8];
-            for (i = 0; i < (int32_t)sizeof(record); i++) record[i] = 0;
-
-            *(uint32_t *)(record + 4) = 1;
-            *(uint16_t *)(record + 8) = 1;
-            *(void **)(record + 0xa) = k_render_identity_matrix_ptr;
-
-            if (position_override == (uint32_t *)0) {
-                *(real_vector3d *)(record + 0xe) = *global_white_color;
-                *(uint16_t *)(record + 0x1a) = 0;
-                *(uint16_t *)(record + 0x50) = 0;
-                for (i = 0; i < 16; i++) {
-                    (record + 0x54)[i] = ((const uint8_t *)global_white_argb)[i];
-                }
-                *(real_vector3d *)(record + 0x64) = default_axis_b;
-                *(uint32_t *)(record + 0x70) = 0;
-                *(uint32_t *)(record + 0x74) = 0x3f800000;
-                *(uint32_t *)(record + 0x78) = 0;
-            } else {
-                uint32_t *dstp = (uint32_t *)(record + 0xe);
-                uint32_t *srcp = position_override;
-                for (i = 0; i < 0x1d; i++) {
-                    dstp[i] = srcp[i];
-                }
-            }
-
-            if (orientation_override == (uint32_t *)0) {
-                *(void **)(record + 0xc8) = &king_hill_markers.position[0];
-                *(void **)(record + 0xcc) = &king_hill_markers.state[0];
-            } else {
-                *(void **)(record + 0xc8) = (void *)orientation_override[0];
-                *(void **)(record + 0xcc) = (void *)orientation_override[1];
-            }
-            *(uint32_t *)(record + 0xd0) = param_4;
-            *(uint32_t *)(record + 0xd4) = param_5;
-            *(float *)(record + 0x98) = local_f0;
-            *(float *)(record + 0x9c) = fStack_ec;
-            *(float *)(record + 0xa0) = fStack_e8;
-
-            if (halo::rasterizer::fields::models_enabled != 0) {
-                rasterizer_render_states_dirty = 1;
-                halo::rasterizer::fields::sky_pass_active = 0;
-                if (rasterizer_device_version < 0xffff0101) {
-                    ((void (__stdcall *)(void **, int32_t, int32_t))(*(void ***)((uint8_t *)*rasterizer_device + 0xe4)))(
-                        rasterizer_device, 0x89, 1);
-                }
-            }
-
-            halo::rasterizer::rasterizer_model_draw_prepare_states(0, 1);
-
-            {
-                int16_t kind = *(int16_t *)((uint8_t *)tag_data + 0x24);
-                if (kind == 1 || (4 < kind && kind < 0xc)) {
-                    halo::rasterizer::rasterizer_transparent_geometry_group_build((transparent_geometry_group_link *)tag_data, 0, 0, 0, 2, 0, (rasterizer_vertex_buffer *)iStack_fc, 0, (const real_point3d *)&local_f0);
-                } else {
-                    halo::rasterizer::rasterizer_shader_environment_draw_dispatch(tag_data, 0, 0, 0, 2, 0, 0);
-                }
-            }
-            halo::rasterizer::rasterizer_model_draw_restore_states();
-
-            if (halo::rasterizer::fields::models_enabled != 0 && rasterizer_device_version < 0xffff0101) {
-                ((void (__stdcall *)(void **, int32_t, int32_t))(*(void ***)((uint8_t *)*rasterizer_device + 0xe4)))(
-                    rasterizer_device, 0x89, 0);
-            }
-        }
-
+    index_slot = halo::rasterizer::rasterizer_dynamic_index_cache_reserve(k_triangle_count);
+    vertex_slot = halo::rasterizer::rasterizer_dynamic_vertex_cache_reserve(_rasterizer_vertex_type_model_uncompressed, k_vertex_count);
+    if (index_slot == -1 || vertex_slot == -1) {
         halo::rasterizer::globals().vertex_buffer_lock_state = 0;
         return;
+    }
+
+    {
+        uint8_t *vertices = (uint8_t *)halo::rasterizer::rasterizer_dynamic_vertex_cache_lock(vertex_slot);
+        uint16_t *indices = (uint16_t *)halo::render::rasterizer_dynamic_index_slot_lock(index_slot);
+        int32_t vertex;
+        size_t word;
+
+        for (vertex = 0; vertex < k_vertex_count; vertex++) {
+            const uint8_t *source = (const uint8_t *)vertex_source + vertex * k_hill_marker_vertex_size;
+            uint8_t *destination = vertices + vertex * k_hill_marker_vertex_size;
+            float *tail = (float *)(destination + k_hill_marker_vertex_copy_size);
+
+            for (word = 0; word < k_hill_marker_vertex_copy_size / sizeof(uint32_t); word++) {
+                ((uint32_t *)destination)[word] = ((const uint32_t *)source)[word];
+            }
+            tail[0] = 0.5f;
+            tail[1] = 0.5f;
+        }
+
+        indices[0] = 0;
+        indices[1] = 1;
+        indices[2] = 2;
+        indices[3] = 2;
+        indices[4] = 3;
+        indices[5] = 0;
+    }
+
+    {
+        rasterizer_dynamic_vertex_slot &slot = rasterizer_dynamic_vertex_slots[vertex_slot];
+        int32_t buffer_handle = rasterizer_dynamic_vertex_caches[slot.vertex_type].buffer_handle;
+
+        halo::rasterizer::render_device().buffer_unlock(halo::rasterizer::globals().dynamic_index_buffer);
+        if (buffer_handle != 0) {
+            halo::rasterizer::render_device().buffer_unlock(
+                (void *)(uintptr_t)rasterizer_vertex_buffer_slots[buffer_handle - 1].hardware_buffer);
+        }
+    }
+
+    {
+        Shader *shader = (Shader *)halo::game::tag_data_at(tag_handle_as_uint);
+        const float *corner = vertex_source;
+        const size_t stride = k_hill_marker_vertex_size / sizeof(float);
+        real_point3d center;
+        rasterizer_model_draw_context context;
+        uint32_t *context_words = (uint32_t *)&context;
+        size_t word;
+
+        center.x = (corner[3 * stride] + corner[2 * stride] + corner[stride] + corner[0]) * 0.25f;
+        center.y = (corner[3 * stride + 1] + corner[2 * stride + 1] + corner[stride + 1] + corner[1]) * 0.25f;
+        center.z = (corner[3 * stride + 2] + corner[2 * stride + 2] + corner[stride + 2] + corner[2]) * 0.25f;
+
+        for (word = 0; word < sizeof(context) / sizeof(uint32_t); word++) {
+            context_words[word] = 0;
+        }
+        context.object_index = 1;
+        context.node_matrices = (uint32_t)(uintptr_t)k_render_identity_matrix_ptr;
+        context.node_count = 1;
+
+        if (lighting_override != (const render_lighting *)0) {
+            context.lighting = *lighting_override;
+        } else {
+            context.lighting.ambient_color = *(const ColorRGB *)global_white_color;
+            context.lighting.distant_light_count = 0;
+            context.lighting.point_light_count = 0;
+            context.lighting.reflection_tint = *global_white_argb;
+            context.lighting.shadow_vector.i = 0.0f;
+            context.lighting.shadow_vector.j = 1.0f;
+            context.lighting.shadow_vector.k = 0.0f;
+            context.lighting.shadow_color = *(const ColorRGB *)default_axis_b;
+        }
+
+        if (orientation_override != (uint32_t *)0) {
+            context.change_colors = orientation_override[0];
+            context.function_values = orientation_override[1];
+        } else {
+            context.change_colors = (uint32_t)(uintptr_t)&king_hill_markers.position[0];
+            context.function_values = (uint32_t)(uintptr_t)&king_hill_markers.state[0];
+        }
+        context.center = center;
+        context.base_map_u_scale = *(float *)&param_4;
+        context.base_map_v_scale = *(float *)&param_5;
+
+        if (halo::rasterizer::fields::models_enabled != 0) {
+            halo::rasterizer::globals().render_states_dirty = 1;
+            halo::rasterizer::fields::sky_pass_active = 0;
+            if ((uint32_t)halo::rasterizer::globals().device_version < halo::d3d9::k_pixel_shader_version_1_1) {
+                halo::rasterizer::render_device().set_render_state((uint32_t)halo::d3d9::render_state::lighting, 1);
+            }
+        }
+
+        halo::rasterizer::rasterizer_model_draw_prepare_states(&context, 1);
+        if (shader->shader_type == 1 || (4 < shader->shader_type && shader->shader_type < 0xc)) {
+            halo::rasterizer::rasterizer_transparent_geometry_group_build(nullptr, (uint8_t *)shader, 0, nullptr,
+                index_slot, k_triangle_count, nullptr, vertex_slot, &center);
+        } else {
+            halo::rasterizer::rasterizer_shader_environment_draw_dispatch(vertex_slot, (uint8_t *)shader, 0, nullptr,
+                index_slot, k_triangle_count, nullptr);
+        }
+        halo::rasterizer::rasterizer_model_draw_restore_states();
+
+        if (halo::rasterizer::fields::models_enabled != 0 &&
+            (uint32_t)halo::rasterizer::globals().device_version < halo::d3d9::k_pixel_shader_version_1_1) {
+            halo::rasterizer::render_device().set_render_state((uint32_t)halo::d3d9::render_state::lighting, 0);
+        }
     }
     halo::rasterizer::globals().vertex_buffer_lock_state = 0;
 }
