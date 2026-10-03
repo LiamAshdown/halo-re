@@ -4,8 +4,6 @@
 // the declared type's size). The 0x... comment is the original address.
 #include <stdint.h>
 
-uint32_t renderer_unknown_6e1af8 = 0;                                  // 0x006e1af8  uint32_t
-uint32_t unknown_006e1b58 = 0;                                         // 0x006e1b58  uint32_t
 __declspec(align(4)) unsigned char rasterizer_object_shadow_blur_quad[96] = {0}; // 0x006e1b80  struct rasterizer_dynamic_screen_vertex
 __declspec(align(4)) unsigned char rasterizer_object_shadow_border_lines[224] = {0}; // 0x006e1be0  struct rasterizer_screen_vertex
 __declspec(align(4)) unsigned char rasterizer_object_shadow_color[12] = {0}; // 0x006e1cc0  struct ColorRGB

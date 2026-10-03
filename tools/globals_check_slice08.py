@@ -17,6 +17,8 @@ build/standalone/data_slice08.obj; pass another path as argv[1]):
 If a linked map exists (build/s08/Release/halo_rebuilt.map with the public symbols) the same offsets are also compared
 there. Exit status 1 on any mismatch."""
 import os, re, sys, json, struct
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import globals_asm_history
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "standalone", "data", "slice08.c")
@@ -83,7 +85,7 @@ def main():
     pieces = json.load(open(os.path.join(ROOT, "standalone", "image", "pieces.json")))
     data = next(p for p in pieces if p["label"] == "data")
     data_end = data["va"] + data["size"]
-    asm = open(os.path.join(ROOT, "standalone", "globals.asm")).read()
+    asm = globals_asm_history.current()
     bad = []
 
     def where(n):

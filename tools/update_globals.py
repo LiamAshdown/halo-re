@@ -1,68 +1,16 @@
-"""Maintenance tool: keeps standalone/globals.asm, the committed list of the engine globals the C uses at their fixed
-original addresses, up to date. Not part of the build.
+"""Maintenance tool: lists the engine globals a link left unresolved, with the original address their declaration's
+comment gives (`// 0x0087a480`). Not part of the build.
 
-The standalone exe keeps the game's data at its original addresses (the loader copies the data image there), so a
-global such as `extern data_array *player_data;` is the absolute symbol `_player_data EQU 087A480h`. Those symbols are
-committed source in standalone/globals.asm, which tools/gen_standalone_link.py assembles and links like any object.
-
-When new C references a global that is not in the file yet, the link fails with it unresolved; this tool adds each
-such global at the address its declaration's comment gives (`// 0x0087a480`):
-  python tools/update_globals.py          add the globals the last link left unresolved (build/standalone/link.log)
-  python tools/update_globals.py --check  compare every address comment on a data declaration in src/ with the file
+Every engine global is a C definition in standalone/data/*.c (the globals->C slices and eq_*.c); there is no table of
+absolute symbols any more, so a new global gets a definition there by hand: zero-initialised when its original address
+lies past the initialised .data piece (standalone/image/pieces.json), otherwise with the image's bytes, and inside the
+run of its neighbours when the code reaches it as part of a larger object (see standalone/data/eq_bss.c).
+  python tools/update_globals.py          list the globals the last link left unresolved (build/standalone/link.log)
 """
 import os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-GLOBALS = os.path.join(ROOT, "standalone", "globals.asm")
 LINK_LOG = os.path.join(ROOT, "build", "standalone", "link.log")
-EQU = re.compile(r"^(\S+) EQU 0*([0-9A-Fa-f]+)h\s*$", re.M)
-
-HEADER = """; standalone/globals.asm -- the engine globals the C uses at their fixed original addresses.
-;
-; The standalone exe keeps the game's data where the original executable had it: at start-up its loader copies the
-; data image (standalone/image/*.asm) back to 0x63a000.., so every global the C declares, e.g.
-;     extern data_array *player_data; // 0x0087a480
-; is the absolute symbol below. Standard C cannot give a variable a fixed address, so they live here; the link
-; (tools/gen_standalone_link.py, CMakeLists.txt) assembles this file like any other source. New globals are added
-; by tools/update_globals.py (from the address comments of what a link left unresolved); --check compares the
-; address comments in src/ with this file. Sorted by symbol.
-
-.386
-.model flat
-option casemap:none
-"""
-
-
-def read_equ(path):
-    if not os.path.exists(path):
-        return {}
-    return {m.group(1): int(m.group(2), 16) for m in EQU.finditer(open(path, encoding="utf-8").read())}
-
-
-def write(globals_):
-    lines = [HEADER]
-    for name in sorted(globals_, key=str.lower):
-        lines.append("PUBLIC %s\n%s EQU 0%Xh" % (name, name, globals_[name]))
-    lines.append("\nEND\n")
-    with open(GLOBALS, "w", encoding="utf-8", newline="\n") as f:
-        f.write("\n".join(lines))
-
-
-def check():
-    sys.path.insert(0, os.path.join(ROOT, "harness"))
-    import gen_link as gl
-    addr, kind = gl.extern_map()
-    have = read_equ(GLOBALS)
-    bad = 0
-    for sym, a in sorted(have.items()):
-        n = sym[1:]
-        if n in addr and addr[n]:
-            seen = sorted(addr[n])
-            if a not in seen:
-                bad += 1
-                print("%s: globals.asm 0x%x, address comments %s" % (sym, a, ", ".join("0x%x" % x for x in seen)))
-    print("%d globals, %d disagree with an address comment in src/" % (len(have), bad))
-    return bad
 
 
 def unresolved_globals():
@@ -72,7 +20,7 @@ def unresolved_globals():
     addr, kind = gl.extern_map()
     out = {}
     log = open(LINK_LOG, encoding="utf-8", errors="replace").read() if os.path.exists(LINK_LOG) else ""
-    for s in sorted(set(re.findall(r"unresolved external symbol (_\w+)", log))):
+    for s in sorted(set(re.findall(r"unresolved external symbol (_\w+)", log))):
         n = s[1:]
         m = re.fullmatch(r"(?:PTR_)?DAT_([0-9a-fA-F]{8})", n)
         if m:
@@ -88,17 +36,12 @@ def unresolved_globals():
 
 
 def main():
-    if "--check" in sys.argv:
-        sys.exit(1 if check() else 0)
-    have = read_equ(GLOBALS)
     new = unresolved_globals()
-    added = {k: v for k, v in new.items() if k not in have}
-    changed = {k: (have[k], v) for k, v in new.items() if k in have and have[k] != v}
-    for k, (old, a) in sorted(changed.items()):
-        print("CONFLICT %s: globals.asm 0x%x, address comment 0x%x (left as is; fix the C or the file)" % (k, old, a))
-    have.update(added)
-    write(have)
-    print("%d globals in %s (%d added)" % (len(have), os.path.relpath(GLOBALS, ROOT), len(added)))
+    for k, v in sorted(new.items(), key=lambda t: t[1]):
+        print("%s 0x%08x" % (k[1:], v))
+    if new:
+        print("%d unresolved globals: define each in standalone/data/*.c" % len(new))
+    sys.exit(1 if new else 0)
 
 
 if __name__ == "__main__":

@@ -22,10 +22,6 @@
 #include "structures.h"
 #include "text.h"
 
-int32_t game_engine_bucket_scores_extra[16];                           // 0x006b1358
-int32_t race_used_locations[8];                                        // 0x006b139c
-int32_t race_used_location_count;                                      // 0x006b13bc
-uint32_t race_vehicle_counts[4];                                       // 0x006b13c0
 uint32_t game_engine_attribute_enabled;                                // 0x006b1458
 player_control_globals * player_control_globals_ptr;                   // 0x006b145c
 datum_index machine_to_player[16];                                     // 0x006b1460
