@@ -994,8 +994,8 @@ typedef struct player_effect_globals {
     int16_t scripted_flash_ticks;   // 0x0fc -1 when no scripted flash is running
     uint8_t scripted_flash_fade_in; // 0x0fe 0 fades the intensity out instead of in
     uint8_t unknown_0ff;            // 0x0ff padding
-    float scripted_shake_rotation[3];// 0x100 per axis random rotation amplitudes
-    float scripted_shake_translation[3];// 0x10c per axis random translation amplitudes
+    float scripted_shake_translation[3];// 0x100 per axis random translation amplitudes (hs player_effect_set_max_translation)
+    float scripted_shake_rotation[3];// 0x10c per axis random rotation amplitudes in radians (hs player_effect_set_max_rotation)
     float scripted_shake_intensity; // 0x118
     int16_t scripted_shake_ticks;   // 0x11c counted down by the tick length at 0x006f1d6c +0x10
     int16_t scripted_shake_duration;// 0x11e the value scripted_shake_ticks started at

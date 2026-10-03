@@ -37,11 +37,6 @@ extern uint8_t *cinematic_screen_effect_state;
 }
 #endif
 
-static hs_syntax_node *syntax_get(datum_index node)
-{
-    return halo::hs::syntax_node_at(node);
-}
-
 namespace halo::hs {
 
 /**
@@ -73,7 +68,7 @@ void DebugCommands::evaluate_inspect(int16_t function_index, uint32_t thread_ind
     hs_thread *thread = halo::hs::thread_at(thread_index);
     hs_stack_frame *frame = thread->stack;
     int32_t *result = halo::hs::frame_scratch<int32_t>(frame);
-    datum_index argument = syntax_get(syntax_get(frame->syntax_node)->data.first_child)->next_node;
+    datum_index argument = halo::hs::syntax_node_at(halo::hs::syntax_node_at(frame->syntax_node)->data.first_child)->next_node;
     char buffer[0x400];
 
     frame->size = frame->size + 4;
@@ -82,7 +77,7 @@ void DebugCommands::evaluate_inspect(int16_t function_index, uint32_t thread_ind
         return;
     }
     {
-        int16_t type = syntax_get(argument)->type;
+        int16_t type = halo::hs::syntax_node_at(argument)->type;
 
         if (hs_type_inspectors[type] != 0) {
             hs_type_inspectors[type](type, *result, buffer);

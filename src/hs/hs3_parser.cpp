@@ -20,16 +20,9 @@ extern uint32_t hs_tag_group_for_type[8];
 extern hs_enum_definition hs_enum_definitions[5];
 }
 
-#undef HS_NODE
-#define HS_NODE(index) ((uint8_t *)halo::hs::globals().syntax_data->data + ((index) & halo::k_slot_mask) * 0x14)
-static hs_syntax_node *syntax_node(datum_index node_index)
-{
-    return (hs_syntax_node *)halo::hs::globals().syntax_data->data + (node_index & halo::k_slot_mask);
-}
-
 static char parse_typed_argument(datum_index argument, hs_type_t type)
 {
-    hs_syntax_node *node = syntax_node(argument);
+    hs_syntax_node *node = halo::hs::syntax_node_at(argument);
     if (node->type != 0) {
         return 1;
     }
@@ -108,12 +101,12 @@ char Parser::parse_ai_command_list(datum_index node_index) const
  */
 char Parser::parse_arithmetic(int16_t function_index, datum_index node_index) const
 {
-    hs_syntax_node *call = syntax_node(node_index);
-    datum_index argument = syntax_node(*(datum_index *)&call->data)->next_node;
+    hs_syntax_node *call = halo::hs::syntax_node_at(node_index);
+    datum_index argument = halo::hs::syntax_node_at(*(datum_index *)&call->data)->next_node;
     int16_t count = 0;
     char ok = 1;
 
-    for (; argument != halo::k_dword_none; argument = syntax_node(argument)->next_node) {
+    for (; argument != halo::k_dword_none; argument = halo::hs::syntax_node_at(argument)->next_node) {
         ok = parse_typed_argument(argument, 6);
         count++;
         if (!ok) {
@@ -124,7 +117,7 @@ char Parser::parse_arithmetic(int16_t function_index, datum_index node_index) co
         sprintf(halo::hs::globals().compile_error_buffer, "the %s call requires %s2 arguments.", halo::hs::globals().function_definitions[function_index]->name,
             function_index == 0xa ? "" : "at least ");
         halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
-        halo::hs::globals().compile_error_offset = syntax_node(node_index)->source_offset;
+        halo::hs::globals().compile_error_offset = halo::hs::syntax_node_at(node_index)->source_offset;
         return 0;
     }
     return ok;
@@ -137,24 +130,24 @@ char Parser::parse_arithmetic(int16_t function_index, datum_index node_index) co
  */
 char Parser::parse_begin(int16_t function_index, datum_index node_index) const
 {
-    hs_syntax_node *call = syntax_node(node_index);
-    datum_index argument = syntax_node(*(datum_index *)&call->data)->next_node;
+    hs_syntax_node *call = halo::hs::syntax_node_at(node_index);
+    datum_index argument = halo::hs::syntax_node_at(*(datum_index *)&call->data)->next_node;
     int16_t count = 0;
     char ok = 1;
 
     while (argument != halo::k_dword_none) {
-        hs_syntax_node *node = syntax_node(argument);
+        hs_syntax_node *node = halo::hs::syntax_node_at(argument);
         datum_index next = node->next_node;
 
         if (function_index == 0) {
             ok = halo::hs::hs_parse(argument, next == halo::k_dword_none ? call->type : 4);
             if (next == halo::k_dword_none && call->type == 0 && ok) {
-                call->type = syntax_node(argument)->type;
+                call->type = halo::hs::syntax_node_at(argument)->type;
             }
         } else {
             ok = halo::hs::hs_parse(argument, call->type);
             if (call->type == 0 && ok) {
-                call->type = syntax_node(argument)->type;
+                call->type = halo::hs::syntax_node_at(argument)->type;
             }
         }
         argument = next;
@@ -209,8 +202,8 @@ char Parser::parse_boolean(datum_index node_index) const
  */
 char Parser::parse_cond(int16_t function_index, datum_index node_index) const
 {
-    hs_syntax_node *call = syntax_node(node_index);
-    datum_index rewritten = halo::hs::hs_parse_cond_recursive(node_index, syntax_node(*(datum_index *)&call->data)->next_node);
+    hs_syntax_node *call = halo::hs::syntax_node_at(node_index);
+    datum_index rewritten = halo::hs::hs_parse_cond_recursive(node_index, halo::hs::syntax_node_at(*(datum_index *)&call->data)->next_node);
     hs_syntax_node *replacement;
     datum_index next;
     hs_type_t type;
@@ -219,11 +212,11 @@ char Parser::parse_cond(int16_t function_index, datum_index node_index) const
     if (rewritten == halo::k_dword_none) {
         return 0;
     }
-    call = syntax_node(node_index);
+    call = halo::hs::syntax_node_at(node_index);
     next = call->next_node;
     type = call->type;
     identifier = call->identifier;
-    replacement = syntax_node(rewritten);
+    replacement = halo::hs::syntax_node_at(rewritten);
     replacement->next_node = next;
     *call = *replacement;
     call->identifier = identifier;
@@ -402,14 +395,14 @@ char Parser::parse_device_group(datum_index node_index) const
 char Parser::parse_function_arguments(int16_t function_index, datum_index node_index) const
 {
     hs_function_definition *definition = halo::hs::globals().function_definitions[function_index];
-    uint8_t *node = HS_NODE(node_index);
-    datum_index argument = *(datum_index *)(HS_NODE(*(datum_index *)(node + 0x10)) + 0x8);
+    hs_syntax_node *node = halo::hs::syntax_node_at(node_index);
+    datum_index argument = halo::hs::syntax_node_at(node->data.first_child)->next_node;
     char ok = 1;
     int16_t i = 0;
 
     while (i < definition->parameter_count && argument != k_datum_index_none) {
         if (halo::hs::hs_parse(argument, (hs_type_t)(uint16_t)definition->parameters[i])) {
-            argument = *(datum_index *)(HS_NODE(argument) + 0x8);
+            argument = halo::hs::syntax_node_at(argument)->next_node;
         } else {
             ok = 0;
         }
@@ -425,7 +418,7 @@ char Parser::parse_function_arguments(int16_t function_index, datum_index node_i
         sprintf(halo::hs::globals().compile_error_buffer, "the \"%s\" call requires exactly %d arguments.", definition->name,
             (int32_t)definition->parameter_count);
         halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
-        halo::hs::globals().compile_error_offset = *(int32_t *)(HS_NODE(node_index) + 0xc);
+        halo::hs::globals().compile_error_offset = halo::hs::syntax_node_at(node_index)->source_offset;
         return 0;
     }
     return 1;
@@ -587,11 +580,11 @@ char Parser::parse_integer(datum_index node_index) const
  */
 char Parser::parse_logical(int16_t function_index, datum_index node_index) const
 {
-    hs_syntax_node *call = syntax_node(node_index);
-    datum_index argument = syntax_node(*(datum_index *)&call->data)->next_node;
+    hs_syntax_node *call = halo::hs::syntax_node_at(node_index);
+    datum_index argument = halo::hs::syntax_node_at(*(datum_index *)&call->data)->next_node;
     int16_t count = 0;
 
-    for (; argument != halo::k_dword_none; argument = syntax_node(argument)->next_node) {
+    for (; argument != halo::k_dword_none; argument = halo::hs::syntax_node_at(argument)->next_node) {
         char ok = parse_typed_argument(argument, 5);
 
         count++;
@@ -602,7 +595,7 @@ char Parser::parse_logical(int16_t function_index, datum_index node_index) const
     if (count < 2) {
         sprintf(halo::hs::globals().compile_error_buffer, "the %s call requires at least 2 arguments.", halo::hs::globals().function_definitions[function_index]->name);
         halo::hs::globals().compile_error = halo::hs::globals().compile_error_buffer;
-        halo::hs::globals().compile_error_offset = syntax_node(node_index)->source_offset;
+        halo::hs::globals().compile_error_offset = halo::hs::syntax_node_at(node_index)->source_offset;
         return 0;
     }
     return 1;
@@ -1035,8 +1028,8 @@ char Parser::parse_set(int16_t function_index, datum_index node_index) const
  */
 char Parser::parse_sleep(int16_t function_index, datum_index node_index) const
 {
-    hs_syntax_node *call = syntax_node(node_index);
-    datum_index time = syntax_node(*(datum_index *)&call->data)->next_node;
+    hs_syntax_node *call = halo::hs::syntax_node_at(node_index);
+    datum_index time = halo::hs::syntax_node_at(*(datum_index *)&call->data)->next_node;
     datum_index script;
 
     if (time == halo::k_dword_none) {
@@ -1047,7 +1040,7 @@ char Parser::parse_sleep(int16_t function_index, datum_index node_index) const
     if (!halo::hs::hs_parse(time, 7)) {
         return 0;
     }
-    script = syntax_node(time)->next_node;
+    script = halo::hs::syntax_node_at(time)->next_node;
     if (script != halo::k_dword_none && !halo::hs::hs_parse(script, 0xa)) {
         return 0;
     }
@@ -1061,8 +1054,8 @@ char Parser::parse_sleep(int16_t function_index, datum_index node_index) const
  */
 char Parser::parse_sleep_until(int16_t function_index, datum_index node_index) const
 {
-    hs_syntax_node *call = syntax_node(node_index);
-    datum_index condition = syntax_node(*(datum_index *)&call->data)->next_node;
+    hs_syntax_node *call = halo::hs::syntax_node_at(node_index);
+    datum_index condition = halo::hs::syntax_node_at(*(datum_index *)&call->data)->next_node;
     datum_index period;
     datum_index timeout;
     char ok;
@@ -1072,12 +1065,12 @@ char Parser::parse_sleep_until(int16_t function_index, datum_index node_index) c
         halo::hs::globals().compile_error_offset = call->source_offset;
         return 0;
     }
-    period = syntax_node(condition)->next_node;
+    period = halo::hs::syntax_node_at(condition)->next_node;
     ok = halo::hs::hs_parse(condition, 5);
     if (!ok || period == halo::k_dword_none) {
         return ok;
     }
-    timeout = syntax_node(period)->next_node;
+    timeout = halo::hs::syntax_node_at(period)->next_node;
     ok = halo::hs::hs_parse(period, 7);
     if (!ok || timeout == halo::k_dword_none) {
         return ok;
@@ -1114,9 +1107,9 @@ char Parser::parse_string(datum_index node_index) const
  */
 char Parser::parse_string_arguments(int16_t function_index, datum_index node_index) const
 {
-    datum_index argument = syntax_node(*(datum_index *)&syntax_node(node_index)->data)->next_node;
+    datum_index argument = halo::hs::syntax_node_at(*(datum_index *)&halo::hs::syntax_node_at(node_index)->data)->next_node;
 
-    for (; argument != halo::k_dword_none; argument = syntax_node(argument)->next_node) {
+    for (; argument != halo::k_dword_none; argument = halo::hs::syntax_node_at(argument)->next_node) {
         if (!parse_typed_argument(argument, 9)) {
             return 0;
         }
@@ -1343,7 +1336,7 @@ char Parser::parse_wake(int16_t function_index, datum_index node_index) const
     if (!halo::hs::hs_get_parameter_indices(halo::hs::globals().function_definitions[function_index]->name, 1, node_index, &argument)) {
         return 0;
     }
-    node = syntax_node(argument);
+    node = halo::hs::syntax_node_at(argument);
     if (!halo::hs::hs_parse(argument, 0xa)) {
         return 0;
     }

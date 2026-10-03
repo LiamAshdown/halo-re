@@ -12,11 +12,6 @@ extern int32_t (*hs_type_conversion_procedures[k_hs_type_count][k_hs_type_count]
 extern int16_t hs_comparison_types[2];
 }
 
-static hs_syntax_node *syntax_get(datum_index node)
-{
-    return halo::hs::syntax_node_at(node);
-}
-
 namespace halo::hs {
 
 /**
@@ -281,12 +276,12 @@ void ScriptFlowCommands::begin(int16_t function_index, uint32_t thread_index, ch
     frame->size = frame->size + 4;
 
     if (first != 0) {
-        *next_expression = syntax_get(syntax_get(thread->stack->syntax_node)->data.first_child)->next_node;
+        *next_expression = halo::hs::syntax_node_at(halo::hs::syntax_node_at(thread->stack->syntax_node)->data.first_child)->next_node;
         *result = 0;
     }
     if (*next_expression != k_datum_index_none) {
         halo::hs::hs_thread_push(*next_expression, thread_index, result);
-        *next_expression = syntax_get(*next_expression)->next_node;
+        *next_expression = halo::hs::syntax_node_at(*next_expression)->next_node;
         return;
     }
     halo::hs::hs_thread_return(*result, thread_index);

@@ -180,9 +180,9 @@ void ObjectCommands::evaluate_object_cast(int16_t function_index, uint32_t threa
     }
     object_index = *slot;
     if (object_index != k_datum_index_none) {
-        uint8_t *object = reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index));
+        unit_object *object = (unit_object *)(reinterpret_cast<uint8_t *>(halo::ai::object_at(object_index)));
 
-        if ((int32_t)hs_object_type_masks[(int16_t)(function_index - 0x16)] & (1 << (object[0xb4] & 0x1f))) {
+        if ((int32_t)hs_object_type_masks[(int16_t)(function_index - 0x16)] & (1 << (static_cast<uint8_t>(object->base.type) & 0x1f))) {
             halo::hs::hs_thread_return((int32_t)object_index, thread_index);
             return;
         }

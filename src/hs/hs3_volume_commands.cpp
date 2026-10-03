@@ -45,9 +45,9 @@ void VolumeCommands::evaluate_volume_test_object(int16_t function_index, uint32_
         uint8_t inside = 0;
 
         if ((uint32_t)arguments[1] != halo::k_dword_none) {
-            uint8_t *object = (uint8_t *)halo::ai::object_at(arguments[1]);
+            unit_object *object = (unit_object *)halo::ai::object_at(arguments[1]);
 
-            inside = halo::scenario::scenario_query::trigger_volume_contains_point(halo::hs::argument_short(arguments[0]), (real_point3d *)(object + 0xa0));
+            inside = halo::scenario::scenario_query::trigger_volume_contains_point(halo::hs::argument_short(arguments[0]), &object->base.bounding_center);
         }
         halo::hs::hs_thread_return((int32_t)inside, thread_index);
     }

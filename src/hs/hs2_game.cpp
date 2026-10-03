@@ -5,6 +5,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "effects.h"
 #include "networking.h"
 #include "halo/core/datum.hpp"
 #include "halo/saved_games/api.hpp"
@@ -21,7 +22,7 @@ extern "C" {
 extern network_client_globals *network_client;
 extern void network_client_rejoin_check(int8_t machine_player_index);
 extern uint8_t console_debug_flag_4;
-extern uint8_t *player_effect_globals_pointer;
+extern player_effect_globals *player_effect_globals_pointer;
 extern int16_t pending_difficulty;
 extern int16_t local_player_count;
 extern uint16_t split_screen_quit_prompt_string;
@@ -91,12 +92,12 @@ void GameCommands::evaluate_fade_in(int16_t function_index, uint32_t thread_inde
         definition->parameters, first);
 
     if (arguments != 0) {
-    *(int32_t *)(player_effect_globals_pointer + 0xf0) = arguments[1];
-    *(int16_t *)(player_effect_globals_pointer + 0xfc) = halo::hs::argument_short(arguments[3]);
-    *(int32_t *)(player_effect_globals_pointer + 0xf4) = arguments[2];
-    *(int32_t *)(player_effect_globals_pointer + 0xec) = arguments[0];
-    player_effect_globals_pointer[0xfe] = 0;
-    *(int32_t *)(player_effect_globals_pointer + 0xf8) = halo::game::globals().game_time->game_time;
+    player_effect_globals_pointer->scripted_flash_color.green = halo::hs::argument_real(arguments[1]);
+    player_effect_globals_pointer->scripted_flash_ticks = halo::hs::argument_short(arguments[3]);
+    player_effect_globals_pointer->scripted_flash_color.blue = halo::hs::argument_real(arguments[2]);
+    player_effect_globals_pointer->scripted_flash_color.red = halo::hs::argument_real(arguments[0]);
+    player_effect_globals_pointer->scripted_flash_fade_in = 0;
+    player_effect_globals_pointer->scripted_flash_start_tick = halo::game::globals().game_time->game_time;
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -114,12 +115,12 @@ void GameCommands::evaluate_fade_out(int16_t function_index, uint32_t thread_ind
         definition->parameters, first);
 
     if (arguments != 0) {
-    *(int32_t *)(player_effect_globals_pointer + 0xf0) = arguments[1];
-    *(int16_t *)(player_effect_globals_pointer + 0xfc) = halo::hs::argument_short(arguments[3]);
-    *(int32_t *)(player_effect_globals_pointer + 0xf4) = arguments[2];
-    *(int32_t *)(player_effect_globals_pointer + 0xec) = arguments[0];
-    player_effect_globals_pointer[0xfe] = 1;
-    *(int32_t *)(player_effect_globals_pointer + 0xf8) = halo::game::globals().game_time->game_time;
+    player_effect_globals_pointer->scripted_flash_color.green = halo::hs::argument_real(arguments[1]);
+    player_effect_globals_pointer->scripted_flash_ticks = halo::hs::argument_short(arguments[3]);
+    player_effect_globals_pointer->scripted_flash_color.blue = halo::hs::argument_real(arguments[2]);
+    player_effect_globals_pointer->scripted_flash_color.red = halo::hs::argument_real(arguments[0]);
+    player_effect_globals_pointer->scripted_flash_fade_in = 1;
+    player_effect_globals_pointer->scripted_flash_start_tick = halo::game::globals().game_time->game_time;
     halo::hs::hs_thread_return(0, thread_index);
     }
 }

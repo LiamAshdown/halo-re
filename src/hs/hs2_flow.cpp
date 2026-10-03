@@ -21,11 +21,6 @@ extern game_time_globals *game_time;
 }
 #endif
 
-static hs_syntax_node *syntax_get(datum_index node)
-{
-    return halo::hs::syntax_node_at(node);
-}
-
 static void object_list_adjust_references(hs_global_reference reference, int16_t delta)
 {
     int32_t list = halo::hs::hs_global_get_value(reference);
@@ -133,7 +128,7 @@ void FlowCommands::evaluate_if(int16_t function_index, uint32_t thread_index, ch
     result = halo::hs::frame_scratch<int32_t>(frame);
     frame->size = frame->size + 4;
 
-    condition_node = syntax_get(syntax_get(thread->stack->syntax_node)->data.first_child)->next_node;
+    condition_node = halo::hs::syntax_node_at(halo::hs::syntax_node_at(thread->stack->syntax_node)->data.first_child)->next_node;
     if (first != 0) {
         *condition = 0;
         *branch = k_datum_index_none;
@@ -145,9 +140,9 @@ void FlowCommands::evaluate_if(int16_t function_index, uint32_t thread_index, ch
         return;
     }
     if (*(uint8_t *)condition != 0) {
-        *branch = syntax_get(condition_node)->next_node;
+        *branch = halo::hs::syntax_node_at(condition_node)->next_node;
     } else {
-        *branch = syntax_get(syntax_get(condition_node)->next_node)->next_node;
+        *branch = halo::hs::syntax_node_at(halo::hs::syntax_node_at(condition_node)->next_node)->next_node;
         if (*branch == k_datum_index_none) {
             halo::hs::hs_thread_return(0, thread_index);
             return;
@@ -303,7 +298,7 @@ void FlowCommands::evaluate_set(int16_t function_index, uint32_t thread_index, c
     hs_type_t type;
     uint32_t slot;
 
-    variable = syntax_get(syntax_get(syntax_get(thread->stack->syntax_node)->data.first_child)->next_node);
+    variable = halo::hs::syntax_node_at(halo::hs::syntax_node_at(halo::hs::syntax_node_at(thread->stack->syntax_node)->data.first_child)->next_node);
     thread->stack->size = thread->stack->size + 4;
     reference = (hs_global_reference)variable->data.global_reference;
     index = reference & k_hs_global_index_mask;
@@ -458,14 +453,14 @@ void FlowCommands::evaluate_sleep_ticks(int16_t function_index, uint32_t thread_
     state = halo::hs::frame_scratch<int16_t>(frame);
     frame->size = frame->size + 2;
 
-    ticks_node = syntax_get(syntax_get(thread->stack->syntax_node)->data.first_child)->next_node;
+    ticks_node = halo::hs::syntax_node_at(halo::hs::syntax_node_at(thread->stack->syntax_node)->data.first_child)->next_node;
     if (first != 0) {
         halo::hs::hs_thread_push(ticks_node, thread_index, ticks);
         *state = 0;
         return;
     }
     if (*state == 0) {
-        datum_index script_node = syntax_get(ticks_node)->next_node;
+        datum_index script_node = halo::hs::syntax_node_at(ticks_node)->next_node;
 
         *state = 1;
         if (script_node != k_datum_index_none) {

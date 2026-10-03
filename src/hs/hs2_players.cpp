@@ -4,6 +4,7 @@
 #include "objects.h"
 #include "units.h"
 #include "game.h"
+#include "effects.h"
 #include "halo/hs/api.hpp"
 #include "halo/game/api.hpp"
 
@@ -12,7 +13,7 @@ extern "C" {
 #endif
 extern player_control_globals *player_control_globals_ptr;
 extern void unit_apply_starting_profile(int16_t starting_profile_index, datum_index unit_handle, uint8_t reset_stats);
-extern uint8_t *player_effect_globals_pointer;
+extern player_effect_globals *player_effect_globals_pointer;
 extern player_globals *local_player_globals;
 #ifdef __cplusplus
 }
@@ -227,9 +228,9 @@ void PlayerCommands::evaluate_player_effect_set_max_rotation(int16_t function_in
         definition->parameters, first);
 
     if (arguments != 0) {
-    *(float *)(player_effect_globals_pointer + 0x10c) = halo::hs::argument_real(arguments[0]) * 0.017453292f;
-    *(float *)(player_effect_globals_pointer + 0x110) = halo::hs::argument_real(arguments[1]) * 0.017453292f;
-    *(float *)(player_effect_globals_pointer + 0x114) = halo::hs::argument_real(arguments[2]) * 0.017453292f;
+    player_effect_globals_pointer->scripted_shake_rotation[0] = halo::hs::argument_real(arguments[0]) * 0.017453292f;
+    player_effect_globals_pointer->scripted_shake_rotation[1] = halo::hs::argument_real(arguments[1]) * 0.017453292f;
+    player_effect_globals_pointer->scripted_shake_rotation[2] = halo::hs::argument_real(arguments[2]) * 0.017453292f;
     halo::hs::hs_thread_return(0, thread_index);
     }
 }
@@ -247,9 +248,9 @@ void PlayerCommands::evaluate_player_effect_set_max_translation(int16_t function
         definition->parameters, first);
 
     if (arguments != 0) {
-    *(int32_t *)(player_effect_globals_pointer + 0x104) = arguments[1];
-    *(int32_t *)(player_effect_globals_pointer + 0x100) = arguments[0];
-    *(int32_t *)(player_effect_globals_pointer + 0x108) = arguments[2];
+    player_effect_globals_pointer->scripted_shake_translation[1] = halo::hs::argument_real(arguments[1]);
+    player_effect_globals_pointer->scripted_shake_translation[0] = halo::hs::argument_real(arguments[0]);
+    player_effect_globals_pointer->scripted_shake_translation[2] = halo::hs::argument_real(arguments[2]);
     halo::hs::hs_thread_return(0, thread_index);
     }
 }

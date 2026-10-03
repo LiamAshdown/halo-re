@@ -3,13 +3,14 @@
 
 #include "objects.h"
 #include "effects.h"
+#include "game.h"
 #include "halo/effects/api.hpp"
 #include "halo/hs/api.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern uint8_t *player_control_globals_ptr;
+extern player_control_globals *player_control_globals_ptr;
 extern long lrint(double x);
 #ifdef __cplusplus
 }
@@ -25,9 +26,9 @@ namespace halo::hs {
  */
 void PlayerCommands::evaluate_player_action_test_action(int16_t function_index, uint32_t thread_index, char first)
 {
-    *(uint32_t *)(player_control_globals_ptr + 4) |= 1;
-    *(uint32_t *)(player_control_globals_ptr + 8) |= 1;
-    halo::hs::hs_thread_return((int32_t)(player_control_globals_ptr[0] & 1), thread_index);
+    player_control_globals_ptr->action_flags_latched |= 1;
+    player_control_globals_ptr->action_flags_edge |= 1;
+    halo::hs::hs_thread_return((int32_t)(static_cast<uint8_t>(player_control_globals_ptr->action_flags) & 1), thread_index);
 }
 
 /**
@@ -85,7 +86,7 @@ void PlayerCommands::evaluate_player_effect_stop(int16_t function_index, uint32_
  */
 void PlayerCommands::evaluate_players_unzoom_all(int16_t function_index, uint32_t thread_index, char first)
 {
-    *(int16_t *)(player_control_globals_ptr + 0x34) = -1;
+    *(int16_t *)((uint8_t *)player_control_globals_ptr + 0x34) = -1;
     halo::hs::hs_thread_return(0, thread_index);
 }
 

@@ -209,11 +209,11 @@ void UnitCommands::evaluate_unit_get_health(int16_t function_index, uint32_t thr
         definition->parameters, first);
 
     if (arguments != 0) {
-    uint8_t *object = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], halo::k_dword_none);
+    unit_object *object = (unit_object *)halo::objects::object_try_and_get((datum_index)arguments[0], halo::k_dword_none);
     float result = -1.0f;
 
     if (object != 0) {
-        result = (object[0x106] & 4) ? 0.0f : *(float *)(object + 0xe0);
+        result = (static_cast<uint8_t>(object->base.vitality_flags) & 4) ? 0.0f : object->base.body_vitality;
     }
     halo::hs::hs_thread_return(*(int32_t *)&result, thread_index);
     }
@@ -232,11 +232,11 @@ void UnitCommands::evaluate_unit_get_shield(int16_t function_index, uint32_t thr
         definition->parameters, first);
 
     if (arguments != 0) {
-    uint8_t *object = (uint8_t *)halo::objects::object_try_and_get((datum_index)arguments[0], halo::k_dword_none);
+    unit_object *object = (unit_object *)halo::objects::object_try_and_get((datum_index)arguments[0], halo::k_dword_none);
     float result = -1.0f;
 
     if (object != 0) {
-        result = (object[0x106] & 4) ? 0.0f : *(float *)(object + 0xe4);
+        result = (static_cast<uint8_t>(object->base.vitality_flags) & 4) ? 0.0f : object->base.shield_vitality;
     }
     halo::hs::hs_thread_return(*(int32_t *)&result, thread_index);
     }
@@ -339,9 +339,9 @@ void UnitCommands::evaluate_unit_is_playing_custom_animation(int16_t function_in
         uint8_t playing = 0;
 
         if (arguments[0] != -1) {
-            uint8_t *unit = (uint8_t *)halo::ai::object_at(arguments[0]);
+            unit_object *unit = (unit_object *)halo::ai::object_at(arguments[0]);
 
-            playing = (uint8_t)(unit[0x2a3] == 0x1c);
+            playing = (uint8_t)(static_cast<uint8_t>(unit->unit.animation_state) == 0x1c);
         }
         halo::hs::hs_thread_return((int32_t)(uint8_t)(playing), thread_index);
     }
@@ -536,9 +536,9 @@ void UnitCommands::evaluate_unit_set_seat(int16_t function_index, uint32_t threa
     datum_index unit = (datum_index)arguments[0];
 
     if (unit != k_datum_index_none) {
-        uint8_t *object = reinterpret_cast<uint8_t *>(halo::ai::object_at(unit));
+        unit_object *object = (unit_object *)(reinterpret_cast<uint8_t *>(halo::ai::object_at(unit)));
 
-        object[0x20f] = (uint8_t)halo::units::unit_base_animation_state_from_name(halo::hs::argument_string(arguments[1]));
+        object->unit.scripted_base_animation_state = (uint8_t)halo::units::unit_base_animation_state_from_name(halo::hs::argument_string(arguments[1]));
     }
     halo::hs::hs_thread_return(0, thread_index);
     }
