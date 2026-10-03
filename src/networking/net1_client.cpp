@@ -1,4 +1,6 @@
 #include "halo/networking/net1_client.hpp"
+#include "interface.h"
+#include "main.h"
 #include "halo/networking/net_state.hpp"
 #include "halo/networking/net1_dispatch.hpp"
 #include <string.h>
@@ -22,7 +24,7 @@ extern uint32_t chat_close(void);
 extern datum_index machine_to_player[16];
 extern data_array *player_data;
 extern uint8_t network_stats_enabled_gate;
-extern int64_t main_globals_data;
+extern main_globals main_globals_data;
 extern int32_t network_connect_timeout_ms;
 extern int32_t message_delta_decode_begin(message_delta_decode_state *state, bit_stream *stream);
 extern int32_t message_delta_decode_array_field(void **context);
@@ -141,39 +143,6 @@ extern int32_t NNBeginNegotiationWithSocket(int32_t hostname, int32_t request_id
 extern uint32_t network_game_client_connect_to_address(char *address_string, uint16_t *target_string);
 }
 
-/**
- * Calls halo::cache::cache_file_request_map with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static char cache_file_request_map_unresolved(int32_t unknown)
-{
-    using call_t = char (*)(int32_t unknown);
-    return reinterpret_cast<call_t>(&halo::cache::cache_file_request_map)(unknown);
-}
-
-/**
- * Calls halo::memory::datum_get with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static void * datum_get_unresolved(datum_index index)
-{
-    using call_t = void * (*)(datum_index index);
-    return reinterpret_cast<call_t>(&halo::memory::datum_get)(index);
-}
-
-/**
- * Calls halo::memory::data_packet_group_encode_packet with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static int32_t data_packet_group_encode_packet_unresolved(uint8_t *buffer, data_packet_group *group, void *payload, int32_t *capacity, int32_t message_type, int32_t flag)
-{
-    using call_t = int32_t (*)(uint8_t *buffer, data_packet_group *group, void *payload, int32_t *capacity, int32_t message_type, int32_t flag);
-    return reinterpret_cast<call_t>(&halo::memory::data_packet_group_encode_packet)(buffer, group, payload, capacity, message_type, flag);
-}
-
 namespace halo::networking {
 
 /**
@@ -256,7 +225,7 @@ uint32_t ClientView::check_connection_quality(uint32_t machine_index, uint8_t un
         float loss_ratio;
         float latency;
 
-        now_ms = (int32_t)((main_globals_data * 1000) / halo::cseries::globals().performance_frequency);
+        now_ms = (int32_t)(((int64_t)(((uint64_t)main_globals_data.frame_counter_high << 32) | main_globals_data.frame_counter_low) * 1000) / halo::cseries::globals().performance_frequency);
         added = units;
 
         if (plr->connection_quality_started == 0) {
@@ -500,7 +469,7 @@ int32_t ClientView::identity_tick()
 
         if (network_server == 0) {
             if (*(int32_t *)local_player_globals->local_players != -1) {
-                void *player = datum_get_unresolved(*(datum_index *)local_player_globals->local_players);
+                void *player = halo::memory::datum_get(*(datum_index *)local_player_globals->local_players, player_data);
                 if (player != 0) {
                     local_player_id = ((struct player *)player)->team;
                 }
@@ -760,7 +729,7 @@ int32_t ClientView::record_message_send(const uint32_t *source)
     uint8_t encoded[0x600];
     uint32_t *dst;
     int32_t i;
-    int32_t capacity;
+    int16_t capacity;
     uint16_t *record;
     network_channel *channel;
     int32_t bits_to_send;
@@ -778,7 +747,7 @@ int32_t ClientView::record_message_send(const uint32_t *source)
     }
 
     capacity = 0x600;
-    if ((char)data_packet_group_encode_packet_unresolved(encoded, &network_game_messages_group, record_copy, &capacity, 0x12, 1) == 0) {
+    if (halo::memory::data_packet_group_encode_packet(&network_game_messages_group, encoded, record_copy, &capacity, 0x12, 1) == 0) {
         return 0;
     }
 
@@ -1420,7 +1389,7 @@ void HostClientView::presence_broadcast_tick()
 
     if (client->last_presence_broadcast_ms + 1000 < now_ms) {
         client->last_presence_broadcast_ms = now_ms;
-        if (cache_file_request_map_unresolved(1) != 0) {
+        if (halo::cache::cache_file_request_map(main_globals_data.multiplayer_map_name, 1) != 0) {
             memset(buffer, 0, sizeof(buffer));
             strncpy((char *)buffer, network_build_string, 0x100);
 

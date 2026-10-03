@@ -17,27 +17,6 @@ extern double fabs(double x);
 extern float fabsf(float x);
 }
 
-/**
- * Calls halo::math::matrix4x3_inverse_transform_vector with the single matrix argument the vehicle code was reversed
- * with; the function also takes the output and input vectors, which the original passed in EAX and EDX and the
- * reversal has not identified yet.
- */
-static void matrix4x3_inverse_transform_vector_unresolved(real_matrix4x3 *m)
-{
-    using call_t = void (*)(real_matrix4x3 *);
-    reinterpret_cast<call_t>(&halo::math::matrix4x3_inverse_transform_vector)(m);
-}
-
-/**
- * Calls halo::math::matrix4x3_transform_vector with the single matrix argument the vehicle code was reversed with;
- * the output and input vectors (EAX and EDX in the original) have not been identified yet.
- */
-static void matrix4x3_transform_vector_unresolved(real_matrix4x3 *m)
-{
-    using call_t = void (*)(real_matrix4x3 *);
-    reinterpret_cast<call_t>(&halo::math::matrix4x3_transform_vector)(m);
-}
-
 namespace halo::units {
 
 /**
@@ -78,10 +57,11 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
 
     {
         real_matrix4x3 basis;
+        real_vector3d local_velocity;
 
         halo::math::matrix4x3_from_forward_up(obj->up, obj->forward, basis);
         basis.position = obj->position;
-        matrix4x3_inverse_transform_vector_unresolved(&basis);
+        halo::math::matrix4x3_inverse_transform_vector(local_velocity, obj->velocity, basis);
 
         if (vehicle->ground_lean > 0.0f) {
             float accel = tag->maximum_forward_speed;
@@ -90,8 +70,8 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
             if (test_flag(vehicle->flags, units::vehicle_flag::hovering)) {
                 accel *= 0.8f;
             }
-            desired.i = accel * unit->throttle.i;
-            desired.j = accel * unit->throttle.j;
+            desired.i = accel * unit->throttle.i - local_velocity.i;
+            desired.j = accel * unit->throttle.j - local_velocity.j;
             desired.k = 0.0f;
 
             if (vehicle->landing_ticks != 0 && fabsf(angle) > 0.7853982f) {
@@ -102,8 +82,8 @@ void VehicleView::calculate_wing_flex_controls(float angle, uint8_t *node_output
                 accel = tag->speed_acceleration;
             }
 
-            vector3d_clamp_length(accel);
-            matrix4x3_transform_vector_unresolved(&basis);
+            vector3d_clamp_length(&desired, accel);
+            halo::math::matrix4x3_transform_vector(desired, desired, basis);
 
             {
                 float scale = *(float *)(physics_tag + 8) * vehicle->ground_lean;

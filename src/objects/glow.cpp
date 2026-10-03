@@ -32,17 +32,6 @@ extern double sqrt(double x);
 }
 
 /**
- * Calls halo::math::vector3d_cubic_interpolate with the seven arguments the glow code was reversed with (output,
- * control points, four knots, parameter); the function takes ten, so p1..p3 are whatever the caller left behind.
- * Unresolved: the glow particle code still has to be reversed to name the real control points.
- */
-static void vector3d_cubic_interpolate_unresolved(real_point3d *out, real_point3d *control_points, float t0, float t1, float t2, float t3, float t)
-{
-    using call_t = void (*)(real_point3d *, real_point3d *, float, float, float, float, float);
-    reinterpret_cast<call_t>(&halo::math::vector3d_cubic_interpolate)(out, control_points, t0, t1, t2, t3, t);
-}
-
-/**
  * Creates the glow and glow particle data arrays.
  *
  * Original register convention: none.
@@ -1013,9 +1002,17 @@ void halo::objects::GlowView::particle_reposition(uint8_t *particle, float phase
 
 evaluate:
 
-    vector3d_cubic_interpolate_unresolved((real_point3d *)(particle + 0x2c), c0, t0, t1, t2, t3, *(float *)(particle + 0x28));
-    vector3d_cubic_interpolate_unresolved(&out1, c1, t0, t1, t2, t3, *(float *)(particle + 0x28));
-    vector3d_cubic_interpolate_unresolved(&out2, c2, t0, t1, t2, t3, *(float *)(particle + 0x28));
+    {
+        auto interpolate = [&](void *out, real_point3d *control) {
+            halo::math::vector3d_cubic_interpolate(*(real_vector3d *)out, *(real_vector3d *)&control[0], *(real_vector3d *)&control[1],
+                                                   *(real_vector3d *)&control[2], *(real_vector3d *)&control[3], t0, t1, t2, t3,
+                                                   *(float *)(particle + 0x28));
+        };
+
+        interpolate(particle + 0x2c, c0);
+        interpolate(&out1, c1);
+        interpolate(&out2, c2);
+    }
 
     {
         double angle = (double)phase_rate * (double)(*(float *)(particle + 0x28)) +

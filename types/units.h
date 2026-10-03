@@ -1,3 +1,4 @@
+#pragma once
 // Blam units module (halo.exe 1.0.10 retail, 0x5579e0..0x575e30, 249 functions).
 // The unit layer of the object hierarchy: the unit_data extension that every biped and
 // vehicle carries on top of the common object record, the control-input record the player
@@ -629,8 +630,8 @@ typedef struct unit_data {
                                         //    unit_detach_reposition_and_nudge; cleared by both network update
                                         //    encoders
                                         //       bits 0x2800, cleared once the delta is sent
-    int8_t unknown_475;                 // 0x475 set by the network create and update paths
-                                        //       and by the scripted spawn
+    int8_t network_update_applied;      // 0x475 write-only flag: unit_new clears it; the network create/update apply paths
+                                        //       and the scripted spawn set it
     int8_t unknown_476[2];              // 0x476 alignment
     unit_control_data saved_control;    // 0x478 the server-side copy 0x5639f0 block-moves
     int8_t control_update_id_valid;     // 0x4b8 unit_apply_control_block: 1 with a source update id;
@@ -843,7 +844,7 @@ typedef struct vehicle_data {
                                         //       averages the positions of the set ones
     uint8_t collision_update_pending;   // 0x524 0x524 set when mass-point overlap applies force to the vehicle;
                                         //    cleared by vehicle_encode_network_update and player_update_history_play
-    uint8_t unknown_525;                // 0x525 the scripted spawn seeds it with 1
+    uint8_t network_position_pending;   // 0x525 write-only flag (biped_data reuses the byte as ground-adjust limit): the scripted spawn and vehicle reset set 1, the reset clears it in network games
     uint8_t network_epoch;              // 0x526 incremented by the vehicle reset at 0x572410 (which also sets 0x525 and 0x528 to 1); sent in every
                                         //    vehicle network update header; the receiver compares it with its own epoch (0x572742) and takes a different path on a mismatch
     uint8_t network_update_sequence;    // 0x527 0x5724d0 increments it and wraps it at 0xff

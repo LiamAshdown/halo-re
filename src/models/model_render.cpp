@@ -5,6 +5,7 @@
  */
 
 #include "halo/models/models.hpp"
+#include "halo/rasterizer/globals.hpp"
 #include "halo/models/flags.hpp"
 #include "halo/math/api.hpp"
 #include "halo/cache/api.hpp"
@@ -269,7 +270,7 @@ void render_model(TagID model_tag_id, void *node_matrices, float pixels, uint8_t
 
     if ((flags & _model_render_immediate_bit) == 0) {
         halo::rasterizer::rasterizer_model_draw_prepare_states(&context, 0);
-    } else if (halo::rasterizer::globals().window.type == 1 && rasterizer_caps_flag_689 == 0 && console_debug_toggle_6893f2 != 0) {
+    } else if (rasterizer_window.type == 1 && rasterizer_caps_flag_689 == 0 && halo::rasterizer::fields::object_shadows_enabled != 0) {
         halo::rasterizer::chimera__rasterizer_set_model_skinning((uint8_t)(~(context.flags >> 8) & 1),
                                                 (rasterizer_node_matrices *)&context.node_matrices);
         rasterizer_object_shadow_model_context = &context;

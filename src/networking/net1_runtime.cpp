@@ -8,6 +8,7 @@
 #include "units.h"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/objects/api.hpp"
@@ -72,28 +73,6 @@ extern int32_t message_delta_encode_message(int32_t extra_eax, int32_t extra_edx
 extern char network_session_broadcast_to_flagged(int32_t body_bit_count, void *server, int32_t status_bit, void *data, int32_t immediate, int32_t flush_after, int32_t force, int32_t unused);
 extern void network_event_feed_flush(void);
 extern uint8_t network_summary_log_needs_open;
-}
-
-/**
- * Calls halo::cache::tag_lookup with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static void * tag_lookup_unresolved(const char *tag_path)
-{
-    using call_t = void * (*)(const char *tag_path);
-    return reinterpret_cast<call_t>(&halo::cache::tag_lookup)(tag_path);
-}
-
-/**
- * Calls halo::memory::data_packet_group_encode_packet with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static int32_t data_packet_group_encode_packet_unresolved(uint8_t *buffer, data_packet_group *group, void *payload, int32_t *capacity, int32_t message_type, int32_t flag)
-{
-    using call_t = int32_t (*)(uint8_t *buffer, data_packet_group *group, void *payload, int32_t *capacity, int32_t message_type, int32_t flag);
-    return reinterpret_cast<call_t>(&halo::memory::data_packet_group_encode_packet)(buffer, group, payload, capacity, message_type, flag);
 }
 
 namespace halo::networking {
@@ -478,8 +457,7 @@ uint8_t NetworkRuntime::name_string_is_valid_for_mode(char *name, void *characte
     int32_t len;
     int32_t i;
 
-    datum_index small_ui_font_tag = halo::cache::tag_lookup(0x666f6e74, (char *)"ui\\small_ui");
-    Font *small_ui_font = (Font *)halo::cache::globals().tag_instances[small_ui_font_tag & 0xffff].data;
+    halo::cache::tag_lookup(halo::groups::font, (char *)"ui\\small_ui");
     len = strlen(name);
     if (mode == 3) {
         ok = *name != 0;
@@ -537,11 +515,11 @@ void NetworkRuntime::password_field_set(uint8_t *object, wchar_t *source)
 uint16_t * NetworkRuntime::prepare_challenge_packet(int32_t message_type, void *payload)
 {
     uint8_t buffer[0x600];
-    int32_t length;
+    int16_t length;
 
     length = 0x600;
-    if (data_packet_group_encode_packet_unresolved(buffer, &network_game_messages_group, payload, &length,
-                                        message_type, 1) != 0) {
+    if (halo::memory::data_packet_group_encode_packet(&network_game_messages_group, buffer, payload, &length,
+                                        (int16_t)message_type, 1) != 0) {
         return network_message_block_build(network_challenge_packet_block, (uint32_t *)buffer, 3,
                                            (uint32_t)length);
     }

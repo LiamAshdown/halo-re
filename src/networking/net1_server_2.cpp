@@ -29,7 +29,8 @@ extern char network_build_string[];
 extern char network_game_scenario_load_request(network_game_session *session);
 extern data_array *player_data;
 extern uint32_t player_data_iterator_advance(int16_t step_count);
-extern uint16_t *network_message_block_build(uint32_t size);
+extern uint16_t *network_message_block_build(uint16_t *dest, uint32_t *buffer, uint8_t flags, uint32_t length);
+extern uint16_t network_challenge_packet_block[];
 extern char network_channel_stream_flush(network_channel_stream *stream, network_channel *channel, char mode);
 extern char *autopatch_temp_name_generate(void);
 typedef struct network_game_info_record {
@@ -42,27 +43,6 @@ typedef struct network_game_info_record {
     uint8_t scratch[0x600];
 } network_game_info_record;
 
-/**
- * Calls halo::memory::data_packet_group_encode_packet with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static char data_packet_group_encode_packet_unresolved(void *header, uint32_t *size_in_out, int32_t group, int32_t message_type)
-{
-    using call_t = char (*)(void *header, uint32_t *size_in_out, int32_t group, int32_t message_type);
-    return reinterpret_cast<call_t>(&halo::memory::data_packet_group_encode_packet)(header, size_in_out, group, message_type);
-}
-
-/**
- * Calls halo::memory::datum_get with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static datum_index datum_get_unresolved(data_array *array, datum_index index)
-{
-    using call_t = datum_index (*)(data_array *array, datum_index index);
-    return reinterpret_cast<call_t>(&halo::memory::datum_get)(array, index);
-}
 extern network_client_globals *network_client;
 extern int32_t network_console_connection_id;
 extern uint8_t network_message_scratch[0x7ff8];
@@ -80,7 +60,7 @@ extern void network_machine_timer_start(network_machine *machine, int32_t durati
 extern char network_server_check_machine_timeout(network_server_globals *server, network_machine *machine);
 extern char network_channel_drain_bitstream(network_server_globals *server, network_machine *machine);
 extern char network_channel_queue_message(network_channel *channel, uint32_t header_value, uint32_t body_value, int32_t header_bit_count, char immediate, char flush_after, int32_t body_bit_count);
-extern data_array *local_player_globals;
+extern player_globals *local_player_globals;
 extern void *variant_defaults_source;
 extern uint8_t game_engine_pending_variant[0x98];
 extern int32_t join_ui_state;
@@ -266,8 +246,9 @@ uint32_t ServerView::record_last_sender(int32_t sender, int16_t step_count)
  */
 char ServerView::build_full_game_info_packet(network_machine *machine)
 {
-    uint8_t record[1540];
-    uint32_t size;
+    uint8_t record[0x600];
+    uint32_t payload = 0;
+    int16_t size;
     char encoded;
     uint16_t *encoded_buffer;
     int32_t bit_len;
@@ -275,11 +256,11 @@ char ServerView::build_full_game_info_packet(network_machine *machine)
     network_channel *channel;
 
     size = 0x600;
-    encoded = data_packet_group_encode_packet_unresolved(record, &size, 7, 1);
+    encoded = halo::memory::data_packet_group_encode_packet(&network_game_messages_group, record, &payload, &size, 7, 1);
     if (encoded == 0) {
         return 0;
     }
-    encoded_buffer = network_message_block_build(size);
+    encoded_buffer = network_message_block_build(network_challenge_packet_block, (uint32_t *)record, 3, (uint32_t)size);
     if (encoded_buffer == 0) {
         return 0;
     }
@@ -339,7 +320,7 @@ char ServerView::build_game_info_packet(network_machine *machine)
 {
     network_server_globals *server = self;
     network_game_info_record record;
-    uint32_t size;
+    int16_t size;
     char *source_name;
     char encoded;
 
@@ -354,11 +335,11 @@ char ServerView::build_game_info_packet(network_machine *machine)
     record.machine_id = (int32_t)machine->machine_id;
 
     size = 0x600;
-    encoded = data_packet_group_encode_packet_unresolved(&record, &size, 4, 1);
+    encoded = halo::memory::data_packet_group_encode_packet(&network_game_messages_group, record.scratch, &record, &size, 4, 1);
     if (encoded != 0) {
         uint16_t *encoded_buffer;
 
-        encoded_buffer = network_message_block_build(size);
+        encoded_buffer = network_message_block_build(network_challenge_packet_block, (uint32_t *)record.scratch, 3, (uint32_t)size);
         if (encoded_buffer != 0) {
             network_channel *channel;
 
@@ -698,7 +679,6 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
     int32_t i;
     network_machine *machine;
     network_player_entry *player;
-    datum_index item;
     uint32_t result;
     int is_host;
 
@@ -706,10 +686,10 @@ uint32_t ServerMessageHandlers::client_game_settings_updated()
 
     is_host = (host->flags >> 2) & 1;
     if (!is_host) {
-        if (local_player_globals->maximum_count != (int16_t)-1) {
-            item = datum_get_unresolved(local_player_globals, 0);
-            if (item != 0) {
-                network_client->team_index = *(int32_t *)((uint8_t *)(uint32_t)item + 0x20);
+        if (local_player_globals->local_players[0] != (datum_index)-1) {
+            struct player *local_player = (struct player *)halo::memory::datum_get(local_player_globals->local_players[0], player_data);
+            if (local_player != 0) {
+                network_client->team_index = *(int32_t *)((uint8_t *)local_player + 0x20);
             }
         }
     } else {

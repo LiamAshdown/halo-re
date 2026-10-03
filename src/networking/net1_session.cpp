@@ -11,6 +11,7 @@
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
+#include "halo/core/tag_groups.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/main/api.hpp"
@@ -136,28 +137,6 @@ extern uint8_t network_session_host_closing;
 extern int32_t network_session_host_last_tick;
 extern void qr2_send_statechanged(void *object);
 extern void qr2_think(void *object);
-}
-
-/**
- * Calls halo::cache::tag_lookup with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static int32_t tag_lookup_unresolved(const char *path)
-{
-    using call_t = int32_t (*)(const char *path);
-    return reinterpret_cast<call_t>(&halo::cache::tag_lookup)(path);
-}
-
-/**
- * Calls halo::memory::data_packet_group_encode_packet with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static int32_t data_packet_group_encode_packet_unresolved(uint8_t *buffer, int32_t *capacity, int32_t packet_type, int32_t version)
-{
-    using call_t = int32_t (*)(uint8_t *buffer, int32_t *capacity, int32_t packet_type, int32_t version);
-    return reinterpret_cast<call_t>(&halo::memory::data_packet_group_encode_packet)(buffer, capacity, packet_type, version);
 }
 
 namespace halo::networking {
@@ -315,7 +294,7 @@ wchar_t * GameRuntime::get_random_player_name()
     uint32_t tag_id;
     void *definition;
 
-    tag_id = tag_lookup_unresolved("ui\\random_player_names");
+    tag_id = halo::cache::tag_lookup(halo::groups::unicode_string_list, (char *)"ui\\random_player_names");
     if (tag_id != 0xffffffff) {
         definition = *(void **)((uint8_t *)halo::cache::globals().tag_instances + (tag_id & 0xffff) * 0x20 + 0x14);
         if (definition != 0 && *(int32_t *)definition != 0) {
@@ -434,21 +413,18 @@ char GameRuntime::settings_ack_send(uint8_t *client, int16_t template_row)
  */
 uint32_t GameRuntime::settings_broadcast_send(uint32_t round, uint32_t *record)
 {
-    uint8_t buffer[0x604];
-    int32_t capacity;
-    int32_t tick_plus_offset;
-    uint32_t *dest;
+    uint8_t buffer[0x600];
+    int16_t capacity;
+    uint32_t payload[9];
     int32_t i;
     int32_t send_result;
 
-    dest = (uint32_t *)buffer;
     for (i = 0; i < 8; i++) {
-        dest[i] = record[i];
+        payload[i] = record[i];
     }
-    tick_plus_offset = game_time->game_time + 0x21;
-    (void)tick_plus_offset;
+    payload[8] = (uint32_t)(game_time->game_time + 0x21);
     capacity = 0x600;
-    if (data_packet_group_encode_packet_unresolved(buffer, &capacity, 0x18, 1) != 0) {
+    if (halo::memory::data_packet_group_encode_packet(&network_game_messages_group, buffer, payload, &capacity, 0x18, 1) != 0) {
 
         send_result = (int32_t)network_message_block_build(network_challenge_packet_block,
                                                            (uint32_t *)buffer, 3, (uint32_t)capacity);

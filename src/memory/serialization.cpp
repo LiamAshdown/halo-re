@@ -655,25 +655,21 @@ int32_t data_packet_group_view::decode_packet(int16_t *remaining_length, void *d
 }
 
 /**
- * Encodes one packet: the body through encode_packet_body of definition, then the header byte through
- * append_packet_header. Failures leave an error string in data_packet_group_error. Returns 1 on
- * success.
+ * Encodes one packet of the given type into buffer: the body through the type's definition, then the type as
+ * the trailing header byte. length_inout receives the body length and is advanced past the header byte. Failures
+ * leave an error string in data_packet_group_error. Returns 1 on success.
  *
  * @address 0x4d0ae0
  */
-int32_t data_packet_group_view::encode_packet(int16_t version, struct_definition *definition, uint8_t *version_byte_dest, byte_stream *output, uint8_t *buffer, int16_t *cursor, void *source, int16_t *out_wrote_version_byte, uint8_t packet_type)
+int32_t data_packet_group_view::encode_packet(uint8_t *buffer, void *source, int16_t *length_inout, int16_t type, int16_t version)
 {
     char *error = 0;
-    int32_t ok;
+    struct_definition *definition = this->types[(int)type].definition;
 
-    ok = halo::memory::view(definition)->encode_packet_body(version, version_byte_dest, output, source, out_wrote_version_byte, (int16_t)this->maximum_encoded_size);
-    if (ok == 0) {
+    if (halo::memory::view(definition)->encode_packet_body(buffer, source, length_inout, (int16_t)(uint16_t)this->maximum_encoded_size, version) == 0) {
         error = (char *)"couldn't encode packet";
-    } else {
-        ok = this->append_packet_header(buffer, cursor, packet_type);
-        if (ok == 0) {
-            return globals().data_packet_group_error == 0;
-        }
+    } else if (this->append_packet_header(buffer, length_inout, (uint8_t)type) == 0) {
+        return globals().data_packet_group_error == 0;
     }
     globals().data_packet_group_error = error;
     return error == 0;
@@ -731,38 +727,42 @@ uint8_t struct_definition_view::decode_packet_body(uint8_t *buffer, int16_t rema
 }
 
 /**
- * Encodes the body of a packet into output: computes the field sizes on first use, writes the version
- * byte when this definition is versioned and encodes the fields. The wrote-version flag is reported
- * through out_wrote_version_byte.
+ * Encodes the body of a packet into buffer: computes the field sizes on first use, writes the version byte when
+ * this definition is versioned (a version of -1 selects the definition's own) and encodes the fields. The number
+ * of bytes produced is stored in out_length; the result is 0 when the buffer overflowed.
  *
  * @address 0x4d0bc0
  */
-int32_t struct_definition_view::encode_packet_body(int16_t version, uint8_t *version_byte_dest, byte_stream *output, void *source, int16_t *out_wrote_version_byte, int16_t capacity_check)
+int32_t struct_definition_view::encode_packet_body(uint8_t *buffer, void *source, int16_t *out_length, int16_t capacity, int16_t version)
 {
-    int32_t out_of_room = 0;
-    int16_t wrote_version_byte = 0;
+    byte_stream stream;
 
     if (this->size_computed == 0) {
         this->compute_size(0, this->fields, 0);
         this->size_computed = 1;
     }
 
+    stream.data = buffer;
+    stream.cursor = 0;
+    stream.size = (int32_t)capacity;
+    stream.overflow = 0;
+
     if (version == -1) {
         version = this->version;
     }
     if (0 < this->version) {
-        if (capacity_check < 1) {
-            out_of_room = 1;
+        if (stream.cursor + 1 > stream.size || stream.overflow != 0) {
+            stream.overflow = 1;
         } else {
-            *version_byte_dest = (uint8_t)version;
-            wrote_version_byte = 1;
+            buffer[stream.cursor] = (uint8_t)version;
+            stream.cursor = stream.cursor + 1;
         }
     }
 
-    this->encode(output, version, source, 0, this->fields, 0);
+    this->encode(&stream, version, source, 0, this->fields, 0);
 
-    *out_wrote_version_byte = wrote_version_byte;
-    return !out_of_room;
+    *out_length = (int16_t)stream.cursor;
+    return stream.overflow == 0;
 }
 
 /**

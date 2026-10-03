@@ -1,7 +1,11 @@
 #include "halo/networking/net1_bandwidth.hpp"
 #include <stdio.h>
 #include "halo/cseries/api.hpp"
-#include "halo/rasterizer/api.hpp"
+#include "rasterizer.h"
+
+namespace {
+constexpr int k_screen_vertex_shader = 35;
+}
 
 extern "C" {
 extern const char *network_bandwidth_direction_label_table[2];
@@ -700,15 +704,15 @@ void BandwidthGraphView::overlay_draw()
     float delta_y, delta_x;
     float label_quad[13] = { 0 };
 
-    device_call1(device, 0x15c, (int32_t)renderer_unknown_6e1af0);
+    device_call1(device, 0x15c, (int32_t)rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].declaration);
 
     {
-        uint32_t flag = ((halo::rasterizer::globals().software_vertex_processing != 0) ? 0x10u : 0u) & 0x10u;
-        flag = (flag | renderer_unknown_6e1af8) & 0x10u;
+        uint32_t flag = ((rasterizer_software_vertex_processing != 0) ? 0x10u : 0u) & 0x10u;
+        flag = (flag | rasterizer_vertex_declarations[_rasterizer_vertex_type_dynamic_screen].usage) & 0x10u;
         device_call1(device, 0x134, (int32_t)flag);
     }
 
-    device_call1(device, 0x170, (int32_t)renderer_unknown_69e468);
+    device_call1(device, 0x170, (int32_t)rasterizer_vertex_shaders[k_screen_vertex_shader].shader);
 
     delta_y = (float)(int16_t)(network_stats_overlay_text_rect_max.y - network_stats_overlay_text_rect_min.y);
     delta_x = (float)(int16_t)(network_stats_overlay_text_rect_max.x - network_stats_overlay_text_rect_min.x);

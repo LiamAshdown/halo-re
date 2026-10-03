@@ -28,7 +28,6 @@ extern "C" {
 extern uint8_t actor_apply_perception_scale(datum_index actor_index, const uint8_t *zone, float *in_out_value);
 extern game_engine_definition *current_game_engine;
 extern ModelCollisionGeometryMaterial default_collision_material;
-extern uint8_t g_00689481;
 extern uint8_t g_006f1cf4;
 extern void game_engine_attribute_player_death(datum_index victim_unit, datum_index killer, datum_index death_object, int32_t killer_team, char credit_kills);
 extern float game_engine_compute_time_scale(int32_t param_a, int32_t param_b);

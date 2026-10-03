@@ -15,6 +15,7 @@
 #include "cache.h"
 
 #include "halo/game/game1_koth.hpp"
+#include "halo/rasterizer/globals.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
 #include "halo/cache/api.hpp"
@@ -110,17 +111,6 @@ extern uint32_t rasterizer_device_version;
 extern void **rasterizer_device;
 extern uint8_t king_hill_single_occupant_flag;
 extern king_globals king_hill_state_globals;
-}
-
-/**
- * Calls halo::math::polygon2d_point_inside_margin with the three arguments the koth code was reversed with (count,
- * point, margin); the function also takes the vertex array, which the original passed in ECX and the reversal has
- * not identified yet.
- */
-static uint8_t polygon2d_point_inside_margin_unresolved(int16_t count, Point2D *point, int32_t margin)
-{
-    using call_t = uint8_t (*)(int16_t, Point2D *, int32_t);
-    return reinterpret_cast<call_t>(&halo::math::polygon2d_point_inside_margin)(count, point, margin);
 }
 
 namespace halo::game::engine1 {
@@ -751,10 +741,10 @@ uint8_t Koth::player_in_hill_bounds(uint32_t player_index)
     unit_obj = ((object_header *)halo::objects::globals().object_data->data)[unit & 0xffff].data;
     z = unit_obj->bounding_center.z;
     if (z >= king_hill_boundary_min_z && z < king_hill_boundary_max_z) {
-        Point2D point;
+        real_point2d point;
         point.x = unit_obj->bounding_center.x;
         point.y = unit_obj->bounding_center.y;
-        return polygon2d_point_inside_margin_unresolved((int16_t)king_starting_location_count, &point, 0);
+        return halo::math::polygon2d_point_inside_margin((real_point2d *)king_hill_boundary_extra, (int16_t)king_starting_location_count, point, 0.0f);
     }
     return 0;
 }
@@ -1024,9 +1014,9 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
             *(float *)(record + 0x9c) = fStack_ec;
             *(float *)(record + 0xa0) = fStack_e8;
 
-            if (console_debug_toggle_6893ec != 0) {
-                halo::rasterizer::globals().render_states_dirty = 1;
-                unknown_0071d1fa = 0;
+            if (halo::rasterizer::fields::models_enabled != 0) {
+                rasterizer_render_states_dirty = 1;
+                halo::rasterizer::fields::sky_pass_active = 0;
                 if (rasterizer_device_version < 0xffff0101) {
                     ((void (__stdcall *)(void **, int32_t, int32_t))(*(void ***)((uint8_t *)*rasterizer_device + 0xe4)))(
                         rasterizer_device, 0x89, 1);
@@ -1045,7 +1035,7 @@ void Koth::submit_hill_marker_geometry(uint32_t tag_handle_as_uint, uint32_t *po
             }
             halo::rasterizer::rasterizer_model_draw_restore_states();
 
-            if (console_debug_toggle_6893ec != 0 && rasterizer_device_version < 0xffff0101) {
+            if (halo::rasterizer::fields::models_enabled != 0 && rasterizer_device_version < 0xffff0101) {
                 ((void (__stdcall *)(void **, int32_t, int32_t))(*(void ***)((uint8_t *)*rasterizer_device + 0xe4)))(
                     rasterizer_device, 0x89, 0);
             }

@@ -54,17 +54,6 @@ extern int32_t interface_loading_screen_request_id;
 extern const char network_ellipsis_dots[];
 }
 
-/**
- * Calls halo::memory::data_packet_group_encode_packet with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static int32_t data_packet_group_encode_packet_unresolved(uint8_t *buffer, data_packet_group *group, void *payload, int32_t *capacity, int32_t message_type, int32_t flag)
-{
-    using call_t = int32_t (*)(uint8_t *buffer, data_packet_group *group, void *payload, int32_t *capacity, int32_t message_type, int32_t flag);
-    return reinterpret_cast<call_t>(&halo::memory::data_packet_group_encode_packet)(buffer, group, payload, capacity, message_type, flag);
-}
-
 namespace halo::networking {
 
 /**
@@ -339,7 +328,7 @@ int32_t ConnectionView::send_join_request_packet()
     network_client_globals *connection = self;
     uint8_t encoded[0x600];
     uint32_t payload;
-    int32_t capacity;
+    int16_t capacity;
     uint16_t *record;
     network_channel *channel;
     int32_t bits_to_send;
@@ -353,7 +342,7 @@ int32_t ConnectionView::send_join_request_packet()
     }
 
     capacity = 0x600;
-    if ((char)data_packet_group_encode_packet_unresolved(encoded, &network_game_messages_group, &payload, &capacity, 0x1e, 1) == 0) {
+    if (halo::memory::data_packet_group_encode_packet(&network_game_messages_group, encoded, &payload, &capacity, 0x1e, 1) == 0) {
         return 0;
     }
 

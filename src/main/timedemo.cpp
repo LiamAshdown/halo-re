@@ -14,6 +14,7 @@
 #include <stdio.h>
 
 #include "halo/main/timedemo.hpp"
+#include "halo/rasterizer/globals.hpp"
 #include "halo/effects/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/main/layout.hpp"
@@ -281,8 +282,8 @@ void Timedemo::benchmark_update(void)
             particles = "Off";
         }
         decals = halo::effects::globals().decals_for_all_responses != 0 ? "Yes" : "No";
-        shadows = console_debug_toggle_6893f2 != 0 ? "Yes" : "No";
-        specular = console_debug_toggle_6893fa != 0 ? "Yes" : "No";
+        shadows = halo::rasterizer::fields::object_shadows_enabled != 0 ? "Yes" : "No";
+        specular = halo::rasterizer::fields::specular_enabled != 0 ? "Yes" : "No";
         fprintf(file,
             "###Video Options###\nResolution= %d x %d\nRefresh rate= %d Hz\n"
             "Framerate throttle= No Vsync\nSpecular= %s\nShadows= %s\nDecals= %s\nParticles= %s\n"

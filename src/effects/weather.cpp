@@ -31,28 +31,6 @@ extern double cos(double x);
 extern double sin(double x);
 }
 
-/**
- * Calls halo::structures::structure_weather_polyhedra_find_within_radius with the argument list this file was reversed with; the function itself takes a
- * different list, so the call reads whatever the original left in the registers it takes the rest in.
- * Unresolved until the callers are reversed.
- */
-static uint8_t * structure_weather_polyhedra_find_within_radius_unresolved(real radius)
-{
-    using call_t = uint8_t * (*)(real radius);
-    return reinterpret_cast<call_t>(&halo::structures::structure_weather_polyhedra_find_within_radius)(radius);
-}
-
-/**
- * Calls halo::math::vector3d_positive_modulo with the single float argument the weather code was reversed with;
- * the function takes (vector, out, period), so the call reads whatever the caller left behind.
- * Unresolved: the weather code still has to be reversed to name the real arguments.
- */
-static void vector3d_positive_modulo_unresolved(real reference)
-{
-    using call_t = void (*)(real);
-    reinterpret_cast<call_t>(&halo::math::vector3d_positive_modulo)(reference);
-}
-
 namespace halo::effects {
 
 /**
@@ -125,9 +103,12 @@ void weather_instance_ref::adjust_count(int16_t type_index, real target_value)
 }
 
 /**
- * See file header: a very low confidence, offset-for-offset transliteration of the rasterizer
- * facing weather render geometry builder. Behaviour is not guaranteed to be preserved past the
- * outer per-particle-type loop structure and the update/skip calls each type makes.
+ * Builds the sprites of one weather instance for the current view. For every particle type with live particles it
+ * takes the weather polyhedra (shelters) near the camera, builds the camera facing frustum planes out to the
+ * type's field extent and tiles the extent-sized particle box around the camera cell: the cells of the 3x3x3
+ * block that intersect the view frustum. Each particle is placed in the first visible cell whose copy of the box
+ * puts it inside the frustum, dropped when it is outside the type's fade distances or inside a shelter, and
+ * submitted as a sprite faded by its distance.
  *
  * @address 0x458bf0
  */
@@ -137,6 +118,7 @@ void weather_instance_ref::build_render_geometry()
     weather_instance *instance = &weather_instances[instance_index];
     WeatherParticleSystem *tag =
         (WeatherParticleSystem *)halo::cache::globals().tag_instances[(uint16_t)instance->definition_index].data;
+    ScenarioStructureBSP *bsp = global_structure_bsp;
     int32_t type_index;
 
     halo::effects::weather_instance_update(instance_index);
@@ -144,16 +126,177 @@ void weather_instance_ref::build_render_geometry()
     for (type_index = 0; type_index < (int32_t)tag->particle_types.count; type_index++) {
         WeatherParticleSystemParticleType *type =
             (WeatherParticleSystemParticleType *)tag->particle_types.pointer + type_index;
-        weather_instance_type *slot = &instance->types[type_index];
+        weather_instance_type *state = &instance->types[type_index];
+        float extent;
+        int16_t shelter_indices[8];
+        int16_t shelter_count;
+        real_plane3d planes[5];
+        real_vector3d camera_remainder;
+        real_point3d cell_origin;
+        float cell_offsets[3];
+        float box_min[3];
+        float box_max[3];
+        real_point3d cells[27];
+        float cell_plane_distance[27][5];
+        int16_t cell_count;
+        int32_t plane_index;
+        build_sprite_data sprites;
+        datum_index particle_index;
 
-        if (slot->particle_count != 0) {
-            uint8_t *regions = structure_weather_polyhedra_find_within_radius_unresolved(slot->field_extent);
-            (void)regions;
-            halo::render::render_camera_facing_frame_build(nullptr, slot->field_extent);
-            vector3d_positive_modulo_unresolved(slot->field_extent);
-
-            halo::render::build_sprites_end(nullptr);
+        if (state->particle_count == 0) {
+            continue;
         }
+
+        extent = state->field_extent;
+        shelter_count = halo::structures::structure_weather_polyhedra_find_within_radius(shelter_indices, extent);
+        render_camera_facing_frame_build((float *)planes, extent);
+        halo::math::vector3d_positive_modulo(*(real_vector3d *)&render_camera_global, camera_remainder, extent);
+
+        cell_origin.x = render_camera_global.x - camera_remainder.i;
+        cell_origin.y = render_camera_global.y - camera_remainder.j;
+        cell_origin.z = render_camera_global.z - camera_remainder.k;
+        for (plane_index = 0; plane_index < 5; plane_index++) {
+            cell_plane_distance[0][plane_index] = cell_origin.z * planes[plane_index].normal.k +
+                cell_origin.x * planes[plane_index].normal.i + cell_origin.y * planes[plane_index].normal.j;
+        }
+        cells[0] = cell_origin;
+        cell_count = 1;
+
+        cell_offsets[0] = -extent;
+        cell_offsets[1] = 0.0f;
+        cell_offsets[2] = extent;
+        box_min[0] = cell_origin.x;
+        box_min[1] = cell_origin.y;
+        box_min[2] = cell_origin.z;
+        box_max[0] = cell_origin.x + extent;
+        box_max[1] = cell_origin.y + extent;
+        box_max[2] = cell_origin.z + extent;
+
+        for (int16_t x = 0; x < 3; x++) {
+            for (int16_t y = 0; y < 3; y++) {
+                for (int16_t z = 0; z < 3; z++) {
+                    real_rectangle3d box;
+
+                    if (x == 1 && y == 1 && z == 1) {
+                        continue;
+                    }
+                    box.x.lower = cell_offsets[x] + box_min[0];
+                    box.x.upper = box_max[0] + cell_offsets[x];
+                    box.y.lower = box_min[1] + cell_offsets[y];
+                    box.y.upper = box_max[1] + cell_offsets[y];
+                    box.z.lower = cell_offsets[z] + box_min[2];
+                    box.z.upper = cell_offsets[z] + box_max[2];
+                    if (render_frustum_test_bounding_box(&render_frustum_global, &box, 1) != 0) {
+                        cells[cell_count].x = box.x.lower;
+                        cells[cell_count].y = box.y.lower;
+                        cells[cell_count].z = box.z.lower;
+                        for (plane_index = 0; plane_index < 5; plane_index++) {
+                            cell_plane_distance[cell_count][plane_index] = planes[plane_index].normal.k * cells[cell_count].z +
+                                planes[plane_index].normal.i * cells[cell_count].x +
+                                planes[plane_index].normal.j * cells[cell_count].y;
+                        }
+                        cell_count++;
+                    }
+                }
+            }
+        }
+
+        sprites.bitmap_group_index = *(datum_index *)((uint8_t *)type + 0x1a0);
+        sprites.maximum_sprite_count = state->particle_count;
+        sprites.shader = (uint32_t)(uintptr_t)((uint8_t *)type + 0x1a8);
+        sprites.sprite_count = 0;
+        sprites.flags = 4;
+        sprites.centroid = *global_zero_vector3d_pointer;
+        sprites.group_count = 0;
+
+        for (particle_index = state->first_particle; particle_index != (datum_index)0xffffffff;) {
+            weather_particle *particle = &((weather_particle *)weather_particle_data->data)[particle_index & 0xffff];
+            float particle_plane_distance[5];
+            int16_t cell;
+
+            for (plane_index = 0; plane_index < 5; plane_index++) {
+                particle_plane_distance[plane_index] = planes[plane_index].normal.i * particle->position.x +
+                    planes[plane_index].normal.k * particle->position.z +
+                    planes[plane_index].normal.j * particle->position.y - planes[plane_index].d;
+            }
+
+            for (cell = 0; cell < cell_count; cell++) {
+                bool inside_frustum = true;
+
+                for (plane_index = 0; plane_index < 5 && inside_frustum; plane_index++) {
+                    inside_frustum = cell_plane_distance[cell][plane_index] + particle_plane_distance[plane_index] < 0.0f;
+                }
+                if (inside_frustum) {
+                    break;
+                }
+            }
+
+            if (cell < cell_count) {
+                real_point3d position;
+                float depth;
+                float fade_out_limit;
+                float fade_in;
+                float fade_out;
+
+                fade_out_limit = (type->fade_out_end_distance <= extent) ? type->fade_out_end_distance : extent;
+                position.x = cells[cell].x + particle->position.x;
+                position.y = cells[cell].y + particle->position.y;
+                position.z = cells[cell].z + particle->position.z;
+                depth = (position.z - render_camera_global.z) * camera_forward_x.k +
+                    (position.y - render_camera_global.y) * camera_forward_x.j +
+                    (position.x - render_camera_global.x) * camera_forward_x.i;
+
+                if (depth > type->fade_in_start_distance && depth < fade_out_limit) {
+                    int16_t shelter;
+                    bool sheltered = false;
+
+                    fade_in = (depth - type->fade_in_start_distance) / (type->fade_in_end_distance - type->fade_in_start_distance);
+                    fade_in = (fade_in < 0.0f) ? 0.0f : ((fade_in > 1.0f) ? 1.0f : fade_in);
+                    fade_out = (depth - type->fade_out_start_distance) / (fade_out_limit - type->fade_out_start_distance);
+                    fade_out = (fade_out < 0.0f) ? 0.0f : ((fade_out > 1.0f) ? 1.0f : fade_out);
+                    fade_out = 1.0f - fade_out;
+
+                    for (shelter = 0; shelter < shelter_count && !sheltered; shelter++) {
+                        ScenarioStructureBSPWeatherPolyhedron *polyhedron =
+                            (ScenarioStructureBSPWeatherPolyhedron *)(uintptr_t)bsp->weather_polyhedra.pointer + shelter_indices[shelter];
+                        ScenarioStructureBSPWeatherPolyhedronPlane *shelter_planes =
+                            (ScenarioStructureBSPWeatherPolyhedronPlane *)(uintptr_t)polyhedron->planes.pointer;
+                        int32_t plane_count = (int32_t)polyhedron->planes.count;
+                        int16_t passed = 0;
+
+                        while (passed < plane_count) {
+                            float distance = position.z * shelter_planes[passed].plane.vector.k +
+                                position.y * shelter_planes[passed].plane.vector.j +
+                                position.x * shelter_planes[passed].plane.vector.i - shelter_planes[passed].plane.w;
+                            if (distance < 0.0f) {
+                                break;
+                            }
+                            passed++;
+                        }
+                        sheltered = passed == plane_count;
+                    }
+
+                    if (!sheltered) {
+                        real_vector3d *direction = (type->render_direction_source == 1)
+                            ? &particle->acceleration : &particle->velocity;
+                        uint16_t mode = (uint16_t)type->render_mode;
+
+                        if (mode != 0 &&
+                            direction->k * direction->k + direction->j * direction->j + direction->i * direction->i == 0.0f) {
+                            direction = global_up3d_pointer;
+                        }
+                        build_sprite(&sprites, particle->sequence_index, (int16_t)(int32_t)particle->frame, (int16_t)mode,
+                                     &position, direction, particle->rotation,
+                                     (particle->radius + particle->radius) * type->sprite_size,
+                                     (ColorARGB *)&particle->alpha, fade_out * fade_in, 0);
+                    }
+                }
+            }
+
+            particle_index = particle->next_particle;
+        }
+
+        build_sprites_end(&sprites);
     }
 }
 
@@ -407,7 +550,7 @@ void weather_particle_ref::update(int16_t type_index, int16_t instance_index)
         p->position.z = direction->z * 0.001f + p->position.z;
     }
 
-    vector3d_positive_modulo_unresolved(instance->types[type_index].field_extent);
+    halo::math::vector3d_positive_modulo(*(real_vector3d *)&p->position, *(real_vector3d *)&p->position, instance->types[type_index].field_extent);
 }
 
 /**

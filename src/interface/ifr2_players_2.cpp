@@ -1,5 +1,6 @@
 #include "win32.h"
 #include "halo/interface/engine_state.hpp"
+#include "halo/rasterizer/globals.hpp"
 #include "halo/interface/ifr2_players.hpp"
 #include "rasterizer.h"
 #include "halo/memory/api.hpp"
@@ -21,10 +22,8 @@ extern uint8_t console_debug_toggle_6893f7;
 extern uint8_t console_debug_toggle_6893f6;
 extern uint8_t console_debug_toggle_6893fa;
 extern uint32_t rasterizer_device_version;
-extern uint8_t console_debug_toggle_6893f2;
 extern uint32_t rasterizer_capability_007c10e4;
 extern int16_t light_count_enabled;
-extern uint8_t console_debug_toggle_689404;
 extern uint8_t particle_systems_enabled;
 }
 
@@ -98,14 +97,14 @@ uint8_t PlayerProfiles::apply_video_options(uint8_t *settings)
         halo::rasterizer::globals().needs_reset = 0;
     }
 
-    value = halo::shell::globals().disable_specular != 0 ? 0 : settings[0xa70];
-    console_debug_toggle_6893f7 = value;
-    console_debug_toggle_6893f6 = value;
-    console_debug_toggle_6893fa = value;
-    console_debug_toggle_6893f2 = rasterizer_device_version < 0xffff0101u ? 0 : settings[0xa71];
+    value = config_disable_specular != 0 ? 0 : settings[0xa70];
+    halo::rasterizer::fields::specular_lightmap_enabled = value;
+    halo::rasterizer::fields::specular_projected_light_enabled = value;
+    halo::rasterizer::fields::specular_enabled = value;
+    halo::rasterizer::fields::object_shadows_enabled = rasterizer_device_version < 0xffff0101u ? 0 : settings[0xa71];
     light_count_enabled = 2;
     state::decals_and_lens_flares_enabled = 1;
-    console_debug_toggle_689404 = 1;
+    halo::rasterizer::fields::detail_objects_enabled = 1;
     halo::effects::globals().decals_for_all_responses = (rasterizer_capability_007c10e4 & 0x6000000u) != 0 ? settings[0xa72] : 0;
     halo::effects::globals().particle_spawn_debug_mode = settings[0xa73];
     particle_systems_enabled = settings[0xa73];

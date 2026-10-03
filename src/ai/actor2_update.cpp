@@ -545,15 +545,15 @@ void ActorView::update_crouch_state()
     self = (actor *)((uint8_t *)actor_data->data + (actor_index & halo::k_slot_mask) * sizeof(actor));
     actor_definition = (Actor *)halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data;
 
-    threat_level           = &self->unknown_350;
+    threat_level           = &self->threat_level;
     threat_level_smoothed  = &self->danger_meter;
-    crouching              = &self->unknown_358;
-    crouch_timer           = &self->unknown_35a;
-    flag_35c               = &self->unknown_35c[0];
-    flag_35d               = &self->unknown_35c[1];
-    flag_35e               = &self->unknown_35c[2];
-    flag_35f               = &self->unknown_35c[3];
-    countdown_360          = &self->unknown_360;
+    crouching              = &self->crouch_active;
+    crouch_timer           = &self->crouch_ticks;
+    flag_35c               = &self->crouch_cover_flags[0];
+    flag_35d               = &self->crouch_cover_flags[1];
+    flag_35e               = &self->crouch_cover_flags[2];
+    flag_35f               = &self->crouch_cover_flags[3];
+    countdown_360          = &self->incoming_fire_ticks;
     countdown_368          = &self->evasion_delay_ticks;
 
     if (self->berserking != 0 &&
@@ -1003,10 +1003,10 @@ extern int32_t __ftol(double x);
 void ActorView::update_facing_change_timer()
 {
     using namespace actor_update_facing_change_timer_local;
-    actor *self = &((actor *)actor_data->data)[actor_index & halo::k_slot_mask];
-    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & halo::k_slot_mask].data);
-    uint8_t *pending_flag = &self->unknown_358;
-    int16_t *ticks_field = &self->unknown_35a;
+    actor *self = &((actor *)actor_data->data)[actor_index & 0xffff];
+    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data);
+    uint8_t *pending_flag = &self->crouch_active;
+    int16_t *ticks_field = &self->crouch_ticks;
     float *smoothing_field = &self->danger_meter;
 
     if (*pending_flag != 0 && actor_tag->change_facing_stand_time > 0.0f) {

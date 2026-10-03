@@ -1,3 +1,4 @@
+#include "halo/game/legacy_globals.hpp"
 #include "halo/hs/hs3_commands.hpp"
 #include <stdio.h>
 #include "halo/memory/api.hpp"
@@ -9,7 +10,6 @@ extern void sv_ban(uint32_t argument_count, int32_t *arguments);
 extern void network_banlist_print(void);
 extern void chimera__console_out(void *color, char *format, ...);
 extern int16_t network_game_mode;
-extern uint8_t g_006f1d25;
 extern void game_engine_begin_end_game_sequence(void);
 extern void *global_white_argb;
 extern hs_function_definition *hs_function_definitions[k_hs_function_count];
@@ -82,7 +82,7 @@ void ServerCommands::evaluate_sv_banlist(int16_t function_index, uint32_t thread
 void ServerCommands::evaluate_sv_end_game(int16_t function_index, uint32_t thread_index, char first) const
 {
     if (network_game_mode == 2) {
-        g_006f1d25 = 1;
+        halo::game::fields::server_end_game_requested = 1;
         game_engine_begin_end_game_sequence();
         chimera__console_out(global_white_argb, (char *)"Server is stopping the game...");
     } else {

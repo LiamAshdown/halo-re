@@ -5,6 +5,7 @@
 
 #include "crt.h"
 #include "halo/interface/engine_state.hpp"
+#include "halo/main/main_globals_fields.hpp"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"
@@ -32,9 +33,7 @@ extern int16_t local_player_count;
 extern uint8_t save_in_progress_00719010;
 extern uint32_t ui_start_campaign_from_level_one(void *widget, int16_t *event);
 extern uint8_t network_join_error_reason;
-extern uint8_t main_globals_byte_0071974f;
 extern uint16_t split_screen_quit_prompt_string;
-extern uint8_t main_globals_byte_0071973a;
 extern uint8_t split_screen_quit_prompt_armed;
 extern void network_client_globals_dispose(void);
 extern network_server_globals *network_server;
@@ -185,9 +184,9 @@ uint8_t UiEventHandlers::event_49d0d0(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_49d100(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     network_join_error_reason = 0;
-    main_globals_byte_0071974f = 0;
+    halo::main::fields::lost_map = 0;
     split_screen_quit_prompt_string = 0xffff;
-    main_globals_byte_0071973a = 1;
+    halo::main::fields::revert_map = 1;
     return 1;
 }
 
@@ -199,7 +198,7 @@ uint8_t UiEventHandlers::event_49d100(widget_instance *widget, int16_t *event, u
 uint8_t UiEventHandlers::event_49d120(widget_instance *widget, int16_t *event, uint8_t *out_handled)
 {
     network_join_error_reason = 0;
-    main_globals_byte_0071974f = 0;
+    halo::main::fields::lost_map = 0;
     split_screen_quit_prompt_string = 0xffff;
     halo::interface::state::round_reset_pending = 1;
     return 1;

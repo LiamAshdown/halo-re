@@ -590,7 +590,7 @@ void ActorView::movement_update()
                 actor_base[0x58e] = 0;
                 a->turn_required = 1;
             }
-        } else if (a->unknown_360 >= 1) {
+        } else if (a->incoming_fire_ticks >= 1) {
             a->moving = 0;
             actor_base[0x58d] = 1;
             movement_mode = (uint8_t)((actor_def->flags >> 0x1e) & 1);

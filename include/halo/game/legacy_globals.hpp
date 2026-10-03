@@ -4,6 +4,8 @@
 
 extern "C" {
 extern uint8_t DAT_0087ab18;
+extern uint8_t g_006f1d25;
+extern int32_t g_006f1d28;
 extern uint8_t unknown_00699f40[];
 extern uint8_t unknown_0071cc20[];
 extern float unknown_0069c530;
@@ -52,5 +54,21 @@ inline float &water_density_base = ::unknown_0069c530;
  * @address 0x0069c534
  */
 inline float &air_density_base = ::unknown_0069c534;
+
+/**
+ * Set by the server console command sv_end_game before it begins the end game sequence; the post game stage then
+ * cancels the dedicated server idle timer instead of arming it.
+ *
+ * @address 0x006f1d25
+ */
+inline uint8_t &server_end_game_requested = ::g_006f1d25;
+
+/**
+ * The console global sv_mapcycle_timeout: seconds the dedicated server idles in the post game state before it moves
+ * on to the next map, 0 to disable.
+ *
+ * @address 0x006f1d28
+ */
+inline int32_t &mapcycle_timeout = ::g_006f1d28;
 
 }
