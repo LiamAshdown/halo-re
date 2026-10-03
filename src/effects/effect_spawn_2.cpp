@@ -1,3 +1,5 @@
+#include "halo/core/flags.hpp"
+#include "halo/tags/flags.hpp"
 #include "halo/core/lcg.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/effects/effects.hpp"
@@ -13,6 +15,9 @@
 #include "halo/effects/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/ai/api.hpp"
+
+using particle_scale = halo::tags::effect_particle_scales_values_tag_flag;
+using particle_flag = halo::tags::effect_particle_tag_flag;
 
 static auto &particle_spawn_debug_mode = halo::link::ref<uint8_t>(halo::effects::vars().particle_spawn_debug_mode);
 static auto &first_person_weapon_interfaces = halo::link::ref<uint8_t *>(halo::ui::vars().first_person_weapon_interfaces);
@@ -99,10 +104,10 @@ void effect_view::spawn_particles()
     current_fraction = (self->event_duration > 0.0f) ? self->event_time / self->event_duration : 1.0f;
 
     for (type_index = 0; (int32_t)type_index < (int32_t)event->particles.count; type_index++) {
-        uint8_t *pt = (uint8_t *)event->particles.pointer + (int32_t)type_index * 0xe8;
-        int16_t location = *(int16_t *)(pt + 0x08);
-        int16_t violence_mode = *(int16_t *)(pt + 0x02);
-        uint16_t create = *(uint16_t *)(pt + 0x04);
+        EffectParticle *pt = &((EffectParticle *)event->particles.pointer)[type_index];
+        int16_t location = (int16_t)pt->location;
+        int16_t violence_mode = pt->violence_mode;
+        uint16_t create = (uint16_t)pt->create;
         real count_scale;
         int16_t current_count;
         int16_t spawn_count;
@@ -117,9 +122,9 @@ void effect_view::spawn_particles()
         }
         count_scale = (real)(int32_t)self->particle_counts[type_index];
         current_count = (int16_t)(int32_t)(halo::effects::effect_distribution_function_evaluate(
-            (EffectDistributionFunction_t)*(uint16_t *)(pt + 0x68), current_fraction) * count_scale);
+            pt->distribution_function, current_fraction) * count_scale);
         spawn_count = (int16_t)((uint16_t)current_count - (int32_t)(halo::effects::effect_distribution_function_evaluate(
-            (EffectDistributionFunction_t)*(uint16_t *)(pt + 0x68), previous_fraction) * count_scale));
+            pt->distribution_function, previous_fraction) * count_scale));
         if (particle_spawn_debug_mode == 1) {
             spawn_count = (int16_t)(int32_t)((real)(int32_t)spawn_count * 0.5f);
         }
@@ -138,9 +143,9 @@ void effect_view::spawn_particles()
             }
             remaining = (uint16_t)spawn_count;
             do {
-                uint32_t a_bits = *(uint32_t *)(pt + 0xe0);
-                uint32_t b_bits = *(uint32_t *)(pt + 0xe4);
-                real radius0 = *(real *)(pt + 0x70);
+                uint32_t a_bits = pt->a_scales_values;
+                uint32_t b_bits = pt->b_scales_values;
+                real radius0 = pt->distribution_radius[0];
                 real base_radius = radius0;
                 real radius_span;
                 real radius;
@@ -156,17 +161,17 @@ void effect_view::spawn_particles()
                 real frac;
                 uint32_t flags;
 
-                if ((a_bits & 0x80) != 0) {
+                if ((a_bits & halo::to_bits(particle_scale::distribution_radius)) != 0) {
                     base_radius *= self->a_scale;
                 }
-                if ((b_bits & 0x80) != 0) {
+                if ((b_bits & halo::to_bits(particle_scale::distribution_radius)) != 0) {
                     base_radius *= self->b_scale;
                 }
-                radius_span = *(real *)(pt + 0x74) - radius0;
-                if ((a_bits & 0x100) != 0) {
+                radius_span = pt->distribution_radius[1] - radius0;
+                if ((a_bits & halo::to_bits(particle_scale::distribution_radius_delta)) != 0) {
                     radius_span *= self->a_scale;
                 }
-                if ((b_bits & 0x100) != 0) {
+                if ((b_bits & halo::to_bits(particle_scale::distribution_radius_delta)) != 0) {
                     radius_span *= self->b_scale;
                 }
                 halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
@@ -176,17 +181,17 @@ void effect_view::spawn_particles()
                 sample = halo::math::globals().sphere_point_table[sample_index];
                 radius = (real)(int32_t)(radius_word >> 16) * halo::k_unit_word_scale * radius_span + base_radius;
 
-                effect_spawn_particles_transform_point(&record.position, *(real *)(pt + 0x14),
-                    *(real *)(pt + 0x18), *(real *)(pt + 0x1c), m);
+                effect_spawn_particles_transform_point(&record.position, pt->relative_offset.x,
+                    pt->relative_offset.y, pt->relative_offset.z, m);
                 record.position.x += sample.x * radius;
                 record.position.y += sample.y * radius;
                 record.position.z += sample.z * radius;
                 {
                     real_vector3d raw_direction, raw_velocity;
 
-                    halo::effects::effect_random_velocity_vector(self, &halo::math::globals().effect_random_seed, (real_vector3d *)(pt + 0x20),
-                        &raw_direction, &raw_velocity, *(real *)(pt + 0x84), *(real *)(pt + 0x88),
-                        *(real *)(pt + 0x8c), a_bits, (uint8_t)b_bits);
+                    halo::effects::effect_random_velocity_vector(self, &halo::math::globals().effect_random_seed, (real_vector3d *)&pt->relative_direction_vector,
+                        &raw_direction, &raw_velocity, pt->velocity[0], pt->velocity[1],
+                        pt->velocity_cone_angle, a_bits, (uint8_t)b_bits);
                     effect_spawn_particles_rotate_unscaled((real_vector3d *)&record.direction, raw_direction.i, raw_direction.j,
                         raw_direction.k, m);
                     effect_spawn_particles_transform_normal(&record.velocity, raw_velocity.i, raw_velocity.j,
@@ -217,7 +222,7 @@ void effect_view::spawn_particles()
                     velocity = record.velocity;
                 }
 
-                switch (*(int16_t *)(pt + 0x00)) {
+                switch (pt->create_in) {
                 case 0:
                     create_ok = 1;
                     break;
@@ -235,9 +240,9 @@ void effect_view::spawn_particles()
                     continue;
                 }
 
-                record.definition_index = *(datum_index *)(pt + 0x60);
-                flags = *(uint32_t *)(pt + 0x64);
-                if ((flags & 1) != 0) {
+                record.definition_index = *(datum_index *)&pt->particle_type.tag_id;
+                flags = pt->flags;
+                if ((flags & halo::to_bits(particle_flag::stay_attached_to_marker)) != 0) {
                     record.object_index = self->object_index;
                     record.marker_index = (entry->marker_index == halo::k_word_none) ? -1 : (int16_t)(entry->marker_index & 0x7fff);
                     record.gravity = *(real_vector3d *)global_origin3d_pointer;
@@ -258,29 +263,29 @@ void effect_view::spawn_particles()
                     record.velocity.k = self->velocity.k * 30.0f + velocity.k;
                 }
                 record.scale = halo::effects::effect_property_random_value(9, self, a_bits, b_bits, &halo::math::globals().effect_random_seed,
-                    *(real *)(pt + 0xa0), *(real *)(pt + 0xa4));
-                record.angular_velocity = halo::effects::effect_property_random_value(3, self, *(uint32_t *)(pt + 0xe0),
-                    *(uint32_t *)(pt + 0xe4), &halo::math::globals().effect_random_seed, *(real *)(pt + 0x90), *(real *)(pt + 0x94));
-                if ((pt[0x64] & 2) != 0) {
+                    pt->radius[0], pt->radius[1]);
+                record.angular_velocity = halo::effects::effect_property_random_value(3, self, pt->a_scales_values,
+                    pt->b_scales_values, &halo::math::globals().effect_random_seed, pt->angular_velocity[0], pt->angular_velocity[1]);
+                if ((pt->flags & halo::to_bits(particle_flag::random_initial_angle)) != 0) {
                     halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
                     record.rotation = (real)(int32_t)(halo::math::globals().effect_random_seed >> 16) * halo::k_unit_word_scale * 6.2831855f;
                 } else {
                     record.rotation = 0.0f;
                 }
-                if ((*(uint32_t *)(pt + 0xe0) & 0x800) == 0 && (*(uint32_t *)(pt + 0xe4) & 0x800) == 0) {
+                if ((pt->a_scales_values & halo::to_bits(particle_scale::tint)) == 0 && (pt->b_scales_values & halo::to_bits(particle_scale::tint)) == 0) {
                     halo::math::globals().effect_random_seed = halo::math::globals().effect_random_seed * k_random_multiplier + k_random_increment;
                     frac = (real)(int32_t)(halo::math::globals().effect_random_seed >> 16) * halo::k_unit_word_scale;
                 } else {
-                    frac = ((*(uint32_t *)(pt + 0xe0) & 0x800) != 0) ? self->a_scale : 1.0f;
-                    if ((*(uint32_t *)(pt + 0xe4) & 0x800) != 0) {
+                    frac = ((pt->a_scales_values & halo::to_bits(particle_scale::tint)) != 0) ? self->a_scale : 1.0f;
+                    if ((pt->b_scales_values & halo::to_bits(particle_scale::tint)) != 0) {
                         frac *= self->b_scale;
                     }
                 }
-                flags = *(uint32_t *)(pt + 0x64);
-                halo::bitmaps::color_interpolate((ColorRGB *)(pt + 0xc4), (ColorRGB *)(pt + 0xb4),
+                flags = pt->flags;
+                halo::bitmaps::color_interpolate((ColorRGB *)&pt->tint_upper_bound.red, (ColorRGB *)&pt->tint_lower_bound.red,
                     (ColorRGB *)&record.color.red, static_cast<color_interpolation_flags>((flags >> 3) & 3), frac);
-                record.color.alpha = (1.0f - frac) * *(real *)(pt + 0xb0) + frac * *(real *)(pt + 0xc0);
-                if ((flags & 4) != 0) {
+                record.color.alpha = (1.0f - frac) * pt->tint_lower_bound.alpha + frac * pt->tint_upper_bound.alpha;
+                if ((flags & halo::to_bits(particle_flag::tint_from_object_color)) != 0) {
                     record.color.red *= self->color.red;
                     record.color.green *= self->color.green;
                     record.color.blue *= self->color.blue;
