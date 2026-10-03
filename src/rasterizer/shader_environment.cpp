@@ -128,8 +128,6 @@ void rasterizer_shader_environment_draw_dispatch(int32_t dynamic_vertex_slot, ui
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-#undef DEVICE_CALL
-#define DEVICE_CALL(offset) ((*(void ***)rasterizer_device)[(offset) / 4])
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
@@ -231,7 +229,6 @@ void rasterizer_shader_environment_draw_fixed_function(uint8_t *shader, int16_t 
     }
     rasterizer_clear_decal_zbias();
 }
-#undef DEVICE_CALL
 
 namespace rasterizer_shader_environment_draw_pixel_shader_impl {
 
@@ -473,8 +470,6 @@ namespace rasterizer_shader_environment_draw_single_stream_impl {
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-#undef DEVICE_CALL
-#define DEVICE_CALL(offset) ((*(void ***)rasterizer_device)[(offset) / 4])
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
@@ -565,7 +560,6 @@ void rasterizer_shader_environment_draw_single_stream(uint8_t *shader, int16_t f
         rasterizer_clear_decal_zbias();
     }
 }
-#undef DEVICE_CALL
 
 }  // namespace rasterizer_shader_environment_draw_single_stream_impl
 
@@ -811,8 +805,6 @@ namespace rasterizer_shader_environment_lightmap_draw_single_stream_impl {
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-#undef DEVICE_CALL
-#define DEVICE_CALL(offset) ((*(void ***)rasterizer_device)[(offset) / 4])
 
 /**
  * Direct3D 9 back end function rasterizer_shader_environment_lightmap_draw_single_stream. The original author
@@ -831,7 +823,7 @@ void rasterizer_shader_environment_lightmap_draw_single_stream(const ShaderEnvir
     render_device().set_vertex_shader(0);
     render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[19].declaration);
     render_device().set_pixel_shader(0);
-    set_texture_stage_state = (d3d_call3_fn)DEVICE_CALL(0x10c);
+    set_texture_stage_state = halo::d3d9::device_function<d3d_call3_fn>(rasterizer_device, halo::d3d9::device_method::set_texture_stage_state);
     set_texture_stage_state(rasterizer_device, 0, 1, 2);
     set_texture_stage_state(rasterizer_device, 0, 2, 2);
     set_texture_stage_state(rasterizer_device, 0, 4, 2);
@@ -840,7 +832,6 @@ void rasterizer_shader_environment_lightmap_draw_single_stream(const ShaderEnvir
     set_texture_stage_state(rasterizer_device, halo::d3d9::ts::color_op, 4, 1);
     chimera__rasterizer_draw_dynamic_triangles_static_vertices(primitive_count, (rasterizer_vertex_buffer *)vertex_buffer, dynamic_index_slot, first_primitive);
 }
-#undef DEVICE_CALL
 
 }  // namespace rasterizer_shader_environment_lightmap_draw_single_stream_impl
 
@@ -849,8 +840,6 @@ namespace rasterizer_shader_environment_lightmap_draw_two_stream_impl {
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-#undef DEVICE_CALL
-#define DEVICE_CALL(offset) ((*(void ***)rasterizer_device)[(offset) / 4])
 
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
@@ -922,7 +911,6 @@ void rasterizer_shader_environment_lightmap_draw_two_stream(const ShaderEnvironm
     set_texture_stage_state(1, halo::d3d9::ts::alpha_op, 1);
     chimera__rasterizer_draw_dynamic_triangles_static_vertices(primitive_count, (rasterizer_vertex_buffer *)vertex_buffer, dynamic_index_slot, first_primitive);
 }
-#undef DEVICE_CALL
 
 }  // namespace rasterizer_shader_environment_lightmap_draw_two_stream_impl
 
@@ -1573,8 +1561,6 @@ namespace rasterizer_shader_environment_self_illumination_draw_single_stream_imp
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-#undef DEVICE_CALL
-#define DEVICE_CALL(offset) ((*(void ***)rasterizer_device)[(offset) / 4])
 
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
@@ -1659,7 +1645,6 @@ void rasterizer_shader_environment_self_illumination_draw_single_stream(const Sh
     render_device().set_vertex_declaration((uint32_t)rasterizer_vertex_declarations[19].declaration);
     chimera__rasterizer_draw_dynamic_triangles_static_vertices(primitive_count, (rasterizer_vertex_buffer *)vertex_buffer, dynamic_index_slot, first_primitive);
 }
-#undef DEVICE_CALL
 
 }  // namespace rasterizer_shader_environment_self_illumination_draw_single_stream_impl
 
@@ -1668,8 +1653,6 @@ namespace rasterizer_shader_environment_self_illumination_draw_two_stream_impl {
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-#undef DEVICE_CALL
-#define DEVICE_CALL(offset) ((*(void ***)rasterizer_device)[(offset) / 4])
 
 static void set_texture_stage_state(uint32_t stage, uint32_t type, uint32_t value)
 {
@@ -1755,7 +1738,6 @@ void rasterizer_shader_environment_self_illumination_draw_two_stream(const Shade
     chimera__rasterizer_draw_dynamic_triangles_static_vertices2(primitive_count, vertex_buffer, dynamic_index_slot,
         first_primitive, (rasterizer_vertex_buffer *)((uint8_t *)vertex_buffer + (halo::rasterizer::fields::environment_effect_variant == 0 ? 20 : 0)));
 }
-#undef DEVICE_CALL
 
 }  // namespace rasterizer_shader_environment_self_illumination_draw_two_stream_impl
 

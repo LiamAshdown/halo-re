@@ -1649,8 +1649,6 @@ namespace rasterizer_water_draw_fixed_function_impl {
 
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
-#undef DEVICE_CALL
-#define DEVICE_CALL(index) ((*(void ***)rasterizer_device)[(index) / 4])
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
@@ -1659,7 +1657,7 @@ static void set_render_state(uint32_t state, uint32_t value)
 
 static void set_stage0_samplers(uint32_t filter)
 {
-    d3d_call3_fn set_sampler_state = (d3d_call3_fn)DEVICE_CALL(0x114);
+    d3d_call3_fn set_sampler_state = halo::d3d9::device_function<d3d_call3_fn>(rasterizer_device, halo::d3d9::device_method::set_sampler_state);
 
     set_sampler_state(rasterizer_device, 0, 1, filter);
     set_sampler_state(rasterizer_device, 0, 2, filter);
@@ -1727,7 +1725,7 @@ void rasterizer_water_draw_fixed_function(transparent_geometry_group *group)
         render_device().set_vertex_shader(0);
         render_device().set_pixel_shader(0);
         set_render_state(halo::d3d9::rs::texture_factor, 0xffffffff);
-        set_texture_stage_state = (d3d_call3_fn)DEVICE_CALL(0x10c);
+        set_texture_stage_state = halo::d3d9::device_function<d3d_call3_fn>(rasterizer_device, halo::d3d9::device_method::set_texture_stage_state);
         set_texture_stage_state(rasterizer_device, 0, 1, 2);
         set_texture_stage_state(rasterizer_device, 0, 2, 3);
         set_texture_stage_state(rasterizer_device, 0, 4, 2);
@@ -1795,7 +1793,6 @@ void rasterizer_water_draw_fixed_function(transparent_geometry_group *group)
         effect_draw(effect, -1, group);
     }
 }
-#undef DEVICE_CALL
 
 }  // namespace rasterizer_water_draw_fixed_function_impl
 
@@ -1806,8 +1803,6 @@ namespace rasterizer_water_draw_pixel_shader_impl {
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 
-#undef DEVICE_CALL
-#define DEVICE_CALL(index) ((*(void ***)rasterizer_device)[(index) / 4])
 
 static void set_render_state(uint32_t state, uint32_t value)
 {
@@ -2029,7 +2024,6 @@ void rasterizer_water_draw_pixel_shader(transparent_geometry_group *group)
         }
     }
 }
-#undef DEVICE_CALL
 
 }  // namespace rasterizer_water_draw_pixel_shader_impl
 
@@ -2198,8 +2192,6 @@ namespace rasterizer_water_update_ripple_texture_impl {
 typedef int32_t (__stdcall *d3d_call3_fn)(void *self, uint32_t a, uint32_t b, uint32_t c);
 
 
-#undef DEVICE_CALL
-#define DEVICE_CALL(index) ((*(void ***)rasterizer_device)[(index) / 4])
 
 #undef F
 #define F(p, o) (*(float *)((uint8_t *)(p) + (o)))
@@ -2211,7 +2203,7 @@ static void set_render_state(uint32_t state, uint32_t value)
 
 static void set_linear_clamped_stage(uint32_t stage)
 {
-    d3d_call3_fn set_sampler_state = (d3d_call3_fn)DEVICE_CALL(0x114);
+    d3d_call3_fn set_sampler_state = halo::d3d9::device_function<d3d_call3_fn>(rasterizer_device, halo::d3d9::device_method::set_sampler_state);
 
     set_sampler_state(rasterizer_device, stage, 1, 1);
     set_sampler_state(rasterizer_device, stage, 2, 1);
@@ -2402,7 +2394,7 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
                 render_device().effect_begin(effect, &passes, 3);
                 for (pass = 0; pass < passes; pass++) {
                     render_device().effect_pass(effect, pass);
-                    ((int32_t (__stdcall *)(void *, uint32_t, uint32_t, const void *, uint32_t))DEVICE_CALL(0x14c))(
+                    halo::d3d9::device_function<int32_t (__stdcall *)(void *, uint32_t, uint32_t, const void *, uint32_t)>(rasterizer_device, halo::d3d9::device_method::draw_primitive_up)(
                         rasterizer_device, 6, 2, rasterizer_water_ripple_quad, 0x18);
                 }
                 render_device().effect_end(effect);
@@ -2413,7 +2405,6 @@ void rasterizer_water_update_ripple_texture(void *water_shader)
     rasterizer_render_target_set_active(rasterizer_window.type, 0, 0);
     rasterizer_set_shader_stage_config(2);
 }
-#undef DEVICE_CALL
 #undef F
 
 }  // namespace rasterizer_water_update_ripple_texture_impl
