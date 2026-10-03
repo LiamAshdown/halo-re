@@ -1,3 +1,4 @@
+#include "halo/networking/game_mode.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/objects/tag_layout.hpp"
 #include "halo/hs/script_globals.hpp"
@@ -219,7 +220,7 @@ void halo::objects::ObjectDamage::update_vitality_and_regeneration()
             object_decay_damage_timer((int32_t *)&obj->base.shield_damage_ticks, (float *)&obj->base.current_shield_damage, (float *)&obj->base.recent_shield_damage);
         }
     }
-    if (obj->base.type == 0 && obj->base.network_role == 0) {
+    if (obj->base.type == _object_type_biped && obj->base.network_role == 0) {
         uint8_t *object = halo::objects::object_record_bytes(object_index);
 
         if ((uint32_t)(((struct object *)object)->shield_stun_ticks > 0) != (uint32_t)object[0x538]) {
@@ -761,7 +762,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
         list[count++] = target->base.damage_owner;
     }
 
-    if ((flags & 1) == 0 && target->base.type == 1) {
+    if ((flags & 1) == 0 && target->base.type == _object_type_vehicle) {
         float rider_fraction = (1.0f - effect_block->damage_vehicle_passthrough_penalty) * target_tag->rider_damage_fraction;
         datum_index child;
 
@@ -773,7 +774,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
                  child = object_get(child)->base.next_object) {
                 unit_object *rider = object_get(child);
 
-                if (rider->base.type == 0 && rider->unit.controlling_player != k_datum_index_none) {
+                if (rider->base.type == _object_type_biped && rider->unit.controlling_player != k_datum_index_none) {
                     players++;
                 }
             }
@@ -785,7 +786,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
              child = object_get(child)->base.next_object) {
             unit_object *rider = object_get(child);
 
-            if (rider->base.type != 0) {
+            if (rider->base.type != _object_type_biped) {
                 continue;
             }
             if (rider->unit.controlling_player == k_datum_index_none) {
@@ -853,9 +854,9 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
             } else if (halo::hs::fields::reflexive_damage_effects) {
                 datum_index first_local = halo::game::globals().local_player_globals->local_players[0];
 
-                if (halo::networking::globals().game_mode == 0) {
+                if (halo::networking::globals().game_mode == halo::networking::k_game_mode_local) {
                     halo::effects::player_effect_mark_damage_direction(first_local, dd, &dd->direction, dd->random_blend, amount);
-                } else if (halo::networking::globals().game_mode == 2) {
+                } else if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
                     halo::effects::player_effect_send_network_update(first_local, &dd->direction, dd, dd->random_blend, amount);
                 }
             }
@@ -1009,7 +1010,7 @@ void halo::objects::ObjectDamage::apply_damage(damage_data *dd, int16_t hit_node
                 reported = 1;
             }
             halo::objects::object_notify_pickup_or_refresh_probe(id, dd->responsible_player);
-            if (shield_damage > 0.0f && obj->base.type == 0) {
+            if (shield_damage > 0.0f && obj->base.type == _object_type_biped) {
                 obj->base.shield_update_pending = 1;
             }
         }
@@ -1054,7 +1055,7 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
     float taken;
     uint8_t unscaled = 0;
 
-    if ((geometry->flags & 0x40) && obj->base.type == 1 && obj->unit.driver_unit_index == k_datum_index_none) {
+    if ((geometry->flags & 0x40) && obj->base.type == _object_type_vehicle && obj->unit.driver_unit_index == k_datum_index_none) {
         body = 0.0f;
     }
     if (halo::game::globals().current_engine == 0 && effect_block->damage_category == 1 && obj->base.owner_team == 1) {
@@ -1087,7 +1088,7 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
             uint32_t effect_flags = effect_block->damage_flags;
 
             if (effect_flags & 2) {
-                if (!(halo::game::globals().current_engine == 0 && obj->base.type == 0 &&
+                if (!(halo::game::globals().current_engine == 0 && obj->base.type == _object_type_biped &&
                       obj->unit.controlling_player != k_datum_index_none)) {
                     if (is_local == 1) {
                         *vitality = 0.0f;
@@ -1143,7 +1144,7 @@ void halo::objects::ObjectDamage::apply_body_damage(int32_t region_index, int32_
     if (g_0087abc0 && *vitality < 0.0f && ((1u << ((uint8_t)obj->base.type & 0x1f)) & 3)) {
         if (obj->unit.controlling_player != k_datum_index_none) {
             *vitality = 0.0f;
-        } else if (obj->base.type == 1) {
+        } else if (obj->base.type == _object_type_vehicle) {
             datum_index child = obj->base.first_child_object;
 
             while (child != k_datum_index_none) {
@@ -1418,10 +1419,10 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
         impulse.j = direction.j * scale;
         impulse.k = scale * direction.k;
         switch (type) {
-        case 0:
-        case 1:
+        case _object_type_biped:
+        case _object_type_vehicle:
             if (effect->damage_instantaneous_acceleration.i > 0.0001f && (obj->unit.flags & 0x800000) == 0) {
-                if (type == 0) {
+                if (type == _object_type_biped) {
                     halo::units::unit_apply_impulse(target_index, &impulse);
                 } else {
                     if (effect->damage_flags & 0x20) {
@@ -1435,9 +1436,9 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
                 }
             }
             break;
-        case 2:
-        case 3:
-        case 4: {
+        case _object_type_weapon:
+        case _object_type_equipment:
+        case _object_type_garbage: {
             uint8_t significant = 0;
             int32_t role;
 
@@ -1455,7 +1456,7 @@ void halo::objects::ObjectDamage::notify_and_impulse(damage_data *dd, uint32_t n
             }
             break;
         }
-        case 5:
+        case _object_type_projectile:
             halo::objects::object_apply_impulse_and_spin(target_index, &impulse);
             break;
         default:

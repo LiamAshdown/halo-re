@@ -81,7 +81,7 @@ void UnitView::melee_attack_scan()
                 object *cand = reinterpret_cast<object *>(halo::objects::object_record_bytes(candidate));
                 int16_t type;
 
-                if (cand->type != 2 && cand->parent_object != k_datum_index_none) {
+                if (cand->type != _object_type_weapon && cand->parent_object != k_datum_index_none) {
                     candidate = cand->parent_object;
                     cand = reinterpret_cast<object *>(halo::objects::object_record_bytes(candidate));
                 }
@@ -124,7 +124,7 @@ void UnitView::melee_attack_scan()
     if (best_object != k_datum_index_none) {
         object *best = reinterpret_cast<object *>(halo::objects::object_record_bytes(best_object));
 
-        if (best->type == 1 && best->network_role != 1) {
+        if (best->type == _object_type_vehicle && best->network_role != 1) {
             float scale = halo::objects::tag_as<Unit>(*(datum_index *)best)->base.acceleration_scale * 0.035f;
 
             side.i = scale * aim->i;
@@ -159,7 +159,7 @@ void UnitView::melee_attack_scan()
         } else {
             float speed_scale = *(float *)(&halo::objects::block_element<GlobalsPlayerInformation>(global_globals->player_information, 0).run_forward);
 
-            if (((struct object *)halo::objects::object_record_bytes(best_object))->type == 7) {
+            if (((struct object *)halo::objects::object_record_bytes(best_object))->type == _object_type_device_machine) {
                 halo::devices::device_machine_melee_attacked(best_object);
             }
             if (speed_scale > 0.0f) {
@@ -174,10 +174,10 @@ void UnitView::melee_attack_scan()
                 }
                 dd.random_blend = f;
             }
-            if (obj->base.type == 0 && halo::units::biped_data_of(obj)->airborne_ticks > 0x0f) {
+            if (obj->base.type == _object_type_biped && halo::units::biped_data_of(obj)->airborne_ticks > 0x0f) {
                 dd.random_blend = 1.5f;
             }
-            if (((struct object *)halo::objects::object_record_bytes(best_object))->type == 0) {
+            if (((struct object *)halo::objects::object_record_bytes(best_object))->type == _object_type_biped) {
                 halo::objects::object_apply_damage(&dd, best_object, -1, -1, -1, 0);
             }
         }
@@ -206,7 +206,7 @@ void UnitView::melee_attack_scan()
             halo::objects::object_apply_damage(&dd, unit_index, -1, -1, -1, 0);
         }
     }
-    obj->unit.melee_state = 0;
+    obj->unit.melee_state = _unit_melee_state_none;
 }
 
 }

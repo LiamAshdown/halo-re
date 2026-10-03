@@ -363,7 +363,7 @@ void halo::objects::LightSystem::update_all()
                     if (test_flag(tag->flags, tags::light_tag_flag::first_person_flashlight)) {
                         halo::interface::first_person_weapon_center_flashlight(owner_handle, &record.position, &record.forward, &record.up);
                         light->flags |= _light_needs_cone_update_bit;
-                    } else if (owner->type == 2 && owner->parent_object != k_datum_index_none &&
+                    } else if (owner->type == _object_type_weapon && owner->parent_object != k_datum_index_none &&
                                halo::interface::unit_get_first_person_marker_transform(owner_handle, light_owner_marker_name(light),
                                                                       &record.position, &record.forward, &record.up)) {
                         light->flags |= _light_needs_cone_update_bit;
@@ -402,7 +402,7 @@ void halo::objects::LightSystem::update_all()
                 int16_t count = 0;
                 int16_t j;
 
-                if (owner->type == 2 && owner->parent_object != k_datum_index_none &&
+                if (owner->type == _object_type_weapon && owner->parent_object != k_datum_index_none &&
                     (int16_t)halo::interface::local_player_index_for_weapon(owner_handle) == halo::interface::globals().current_local_player_index) {
                     count = (int16_t)halo::interface::first_person_weapon_get_marker_data(owner_handle, marker_name, markers, 8);
                     if (count > 0) {

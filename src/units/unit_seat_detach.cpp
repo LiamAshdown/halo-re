@@ -1,3 +1,4 @@
+#include "halo/networking/game_mode.hpp"
 #include "halo/units/seat_detach.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/units/records.hpp"
@@ -34,7 +35,7 @@ void biped_free_local_player_history(unit_object *self)
     int16_t index = (int16_t)player_index;
     int16_t salt = (int16_t)(player_index >> 16);
 
-    if (halo::networking::globals().game_mode != 1 || player_index == k_datum_index_none || index < 0 ||
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_client || player_index == k_datum_index_none || index < 0 ||
         index >= halo::game::globals().player_data->maximum_count) {
         return;
     }
@@ -123,7 +124,7 @@ void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
         UnitView(object_index).update_animation_state_machine(request);
     }
     halo::objects::object_block<real_orientation>(self->base, self->base.node_function_values)->translation = default_translation;
-    if (self->base.type == 0) {
+    if (self->base.type == _object_type_biped) {
         UnitView(object_index).reset_orientation_and_find_position(vehicle_index);
     }
     halo::objects::object_recalculate_bounding_radius_recursive(object_index);
@@ -134,7 +135,7 @@ void biped_detach_from_seat(uint32_t object_index, datum_index vehicle_index)
             empty->vehicle.network_update_tick = halo::game::globals().game_time->game_time;
         }
     }
-    if (halo::networking::globals().game_mode == 1) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client) {
         player *record = reinterpret_cast<player *>(halo::memory::datum_get(self->unit.controlling_player, halo::game::globals().player_data));
 
         if (record != 0 && record->local_player_index == -1) {

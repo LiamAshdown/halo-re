@@ -1,3 +1,4 @@
+#include "halo/networking/game_mode.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/game/records.hpp"
 #include "halo/tags/flags.hpp"
@@ -83,7 +84,7 @@ void UnitView::add_initial_weapons()
         }
         halo::objects::object_placement_data_initialize(&placement, weapon_tag, unit_index);
         role = 3;
-        if (halo::networking::globals().game_mode == 2 &&
+        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host &&
             object_type_definitions[((Object *)halo::cache::globals().tag_instances[halo::datum_slot(placement.definition_tag)].data)->object_type]
                 ->network_delta_message_type != -1) {
             role = 0;
@@ -155,7 +156,7 @@ uint8_t UnitView::begin_throw_grenade(const real_vector2d *direction)
         return 0;
     }
 
-    unit->throwing_grenade_state = 1;
+    unit->throwing_grenade_state = _unit_throwing_grenade_state_begin;
     unit->throwing_grenade_counter = 0;
     ModelAnimations *graph = halo::objects::tag_as<ModelAnimations>(unit_tag->base.animation_graph.tag_id.index);
     ModelAnimationsAnimation *animations = (ModelAnimationsAnimation *)(halo::objects::block_elements<ModelAnimationsAnimation>(graph->animations));
@@ -368,7 +369,7 @@ uint8_t UnitView::drop_current_weapon(uint8_t force)
             unit->weapons[unit->current_weapon_index] = k_datum_index_none;
             unit->current_weapon_index = -1;
             unit->desired_weapon_index = UnitView(unit_index).find_next_zone_permitted_weapon_slot(-1, 0);
-            if (((uint8_t)halo::items::weapon_is_out_of_ammo(current_weapon) == 0) && (halo::networking::globals().game_mode == 0)) {
+            if (((uint8_t)halo::items::weapon_is_out_of_ammo(current_weapon) == 0) && (halo::networking::globals().game_mode == halo::networking::k_game_mode_local)) {
                 halo::objects::object_delete(current_weapon);
             }
             return 1;
@@ -404,7 +405,7 @@ void UnitView::drop_grenades()
 
             halo::objects::object_placement_data_initialize(&placement, projectile_tag, unit_index);
 
-            if (halo::networking::globals().game_mode == 2) {
+            if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
                 Object *proj_tag = (Object *)halo::cache::globals().tag_instances[halo::datum_slot(placement.definition_tag)].data;
                 object_type_definition *type_def = object_type_definitions[proj_tag->object_type];
                 if (((struct object_type_definition *)type_def)->network_delta_message_type != -1) {
@@ -453,7 +454,7 @@ void UnitView::drop_inventory_weapons()
             }
             *weapon = k_datum_index_none;
 
-            if (halo::items::weapon_is_out_of_ammo(dropped) == 0 && halo::networking::globals().game_mode == 0) {
+            if (halo::items::weapon_is_out_of_ammo(dropped) == 0 && halo::networking::globals().game_mode == halo::networking::k_game_mode_local) {
                 halo::objects::object_delete(dropped);
             }
         }
@@ -1030,7 +1031,7 @@ uint8_t halo::units::unit_pickup_weapon(int16_t pickup_mode, uint32_t weapon_ind
     object *weapon_obj = halo::objects::object_try_and_get(weapon_index, _object_mask_weapon);
     unit_data *unit = halo::units::unit_data_of(unit_obj);
 
-    if (halo::networking::globals().game_mode == 1) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client) {
         char *seat_name = UnitView(unit_index).get_seat_or_state_name();
         char *weapon_label = k_empty_string;
         if (weapon_index != k_datum_index_none) {
@@ -1250,12 +1251,12 @@ void UnitView::release_thrown_grenade(uint8_t early)
     datum_index grenade;
     real_vector3d velocity;
 
-    if ((uint8_t)unit->unit.throwing_grenade_state != 2) {
+    if ((uint8_t)unit->unit.throwing_grenade_state != _unit_throwing_grenade_state_in_hand) {
         return;
     }
     grenade = unit->unit.throwing_grenade_projectile;
     if (grenade == k_datum_index_none) {
-        unit->unit.throwing_grenade_state = 3;
+        unit->unit.throwing_grenade_state = _unit_throwing_grenade_state_released;
         return;
     }
     halo::objects::object_snap_to_parent_marker_and_detach(grenade);
@@ -1319,14 +1320,14 @@ void UnitView::release_thrown_grenade(uint8_t early)
         delta.k = velocity.k - ((struct object *)object)->velocity.k;
         halo::objects::object_apply_impulse_and_spin(grenade, &delta);
         unit->unit.throwing_grenade_projectile = k_datum_index_none;
-        unit->unit.throwing_grenade_state = 3;
+        unit->unit.throwing_grenade_state = _unit_throwing_grenade_state_released;
         UnitView(object_index).get_camera_position(&camera);
         if (!halo::objects::object_reposition_to_spawn_location(grenade, &camera, k_datum_index_none)) {
             halo::objects::object_delete(grenade);
             return;
         }
     }
-    if (unit->base.network_role == 0 && halo::networking::globals().game_mode == 2 && !halo::objects::object_is_delete_pending(grenade)) {
+    if (unit->base.network_role == 0 && halo::networking::globals().game_mode == halo::networking::k_game_mode_host && !halo::objects::object_is_delete_pending(grenade)) {
         ((struct object *)halo::objects::object_record_bytes(grenade))->network_role = 0;
         halo::objects::object_type_override_call_0x68(grenade);
         int32_t bits = halo::projectiles::projectile_send_creation(grenade);
@@ -1464,9 +1465,9 @@ void UnitView::throw_grenade_move_to_hand()
         unit->grenade_counts[grenade_type] -= 1;
     }
 
-    if ((halo::networking::globals().game_mode != 2) && (halo::networking::globals().game_mode != 0)) {
+    if ((halo::networking::globals().game_mode != halo::networking::k_game_mode_host) && (halo::networking::globals().game_mode != halo::networking::k_game_mode_local)) {
         unit->throwing_grenade_projectile = k_datum_index_none;
-        unit->throwing_grenade_state = 2;
+        unit->throwing_grenade_state = _unit_throwing_grenade_state_in_hand;
         return;
     }
 
@@ -1486,12 +1487,12 @@ void UnitView::throw_grenade_move_to_hand()
     if (projectile_index != k_datum_index_none) {
         halo::objects::object_attach_to_object(unit_index, projectile_index, hand_marker.node_index);
         unit->throwing_grenade_projectile = projectile_index;
-        unit->throwing_grenade_state = 2;
+        unit->throwing_grenade_state = _unit_throwing_grenade_state_in_hand;
         object *projectile_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(projectile_index)].data;
         *((uint8_t *)projectile_obj + 0x278) = 1;
         return;
     }
-    unit->throwing_grenade_state = 3;
+    unit->throwing_grenade_state = _unit_throwing_grenade_state_released;
     return;
 }
 
@@ -1566,7 +1567,7 @@ uint8_t UnitView::try_ready_weapon(uint8_t forced, const real_vector2d *directio
     if (!unit_animation_state_allows_melee(state)) {
         return 0;
     }
-    if (unit->base.type == 0) {
+    if (unit->base.type == _object_type_biped) {
         airborne = test_flag(halo::units::biped_data_of(unit)->flags, units::biped_flag::airborne);
     }
     if (forced) {
@@ -1586,11 +1587,11 @@ uint8_t UnitView::try_ready_weapon(uint8_t forced, const real_vector2d *directio
         UnitView(unit_index).set_throw_aim_direction(direction);
     }
     if (forced) {
-        unit->unit.melee_state = 4;
+        unit->unit.melee_state = _unit_melee_state_lunge;
         unit->unit.melee_damage_countdown = 0;
         return 1;
     }
-    unit->unit.melee_state = 1;
+    unit->unit.melee_state = _unit_melee_state_ready;
     return 1;
 }
 
@@ -1620,7 +1621,7 @@ uint8_t UnitView::try_ready_weapon_variant(const real_vector2d *direction)
     if (!unit_animation_state_allows_melee((int8_t)(uint8_t)unit->unit.animation_state)) {
         return 0;
     }
-    if (unit->base.type == 0 && test_flag(halo::units::biped_data_of(unit)->flags, units::biped_flag::airborne)) {
+    if (unit->base.type == _object_type_biped && test_flag(halo::units::biped_data_of(unit)->flags, units::biped_flag::airborne)) {
         return 0;
     }
     if (!UnitView(unit_index).try_set_animation_state(animation_state_value(unit_animation_state_id::unknown_27))) {

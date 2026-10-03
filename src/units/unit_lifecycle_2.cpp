@@ -1,3 +1,4 @@
+#include "halo/networking/game_mode.hpp"
 #include "halo/units/seat_detach.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/objects/record_access.hpp"
@@ -94,7 +95,7 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
     if (obj->base.parent_object != k_datum_index_none) {
         if (obj->unit.vehicle_seat_index == -1) {
             UnitView(unit_index).detach_reposition_and_nudge();
-        } else if (halo::networking::globals().game_mode != 1) {
+        } else if (halo::networking::globals().game_mode != halo::networking::k_game_mode_client) {
             unit_object *me = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(unit_index));
 
             if (me->base.parent_object != k_datum_index_none && me->unit.vehicle_seat_index != -1) {
@@ -119,9 +120,9 @@ void UnitView::release_transient_state(uint8_t is_light_reset)
     }
     obj->unit.overlays[1].animation_index = -1;
     obj->unit.overlays[0].animation_index = -1;
-    obj->unit.melee_state = 0;
-    if ((uint8_t)obj->unit.throwing_grenade_state == 1) {
-        obj->unit.throwing_grenade_state = 0;
+    obj->unit.melee_state = _unit_melee_state_none;
+    if ((uint8_t)obj->unit.throwing_grenade_state == _unit_throwing_grenade_state_begin) {
+        obj->unit.throwing_grenade_state = _unit_throwing_grenade_state_none;
     }
 }
 

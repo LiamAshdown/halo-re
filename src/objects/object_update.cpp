@@ -1,3 +1,4 @@
+#include "halo/networking/game_mode.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/objects/object_update.hpp"
 #include "halo/tags/flags.hpp"
@@ -156,7 +157,7 @@ uint8_t halo::objects::ObjectUpdater::update()
 
     halo::objects::object_notify_node_array_if_animated(object_index);
 
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         uint8_t *at_rest_flag = (uint8_t *)&obj->at_rest;
         if ((halo::x87::fabsf(obj->velocity.i - global_origin3d_pointer->i) < 0.0001f) &&
             (halo::x87::fabsf(obj->velocity.j - global_origin3d_pointer->j) < 0.0001f) &&

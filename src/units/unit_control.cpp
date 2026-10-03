@@ -1,3 +1,4 @@
+#include "halo/networking/game_mode.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/units/records.hpp"
@@ -80,7 +81,7 @@ void UnitView::apply_control_block(const unit_control_data *control, int32_t sou
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(unit_index)].data;
     unit_data *unit = halo::units::unit_data_of(obj);
 
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         unit->network_update_forced = test_flag(control->control_flags, units::unit_control_flag::primary_trigger | units::unit_control_flag::grenade);
         unit->saved_control = *control;
     }
@@ -420,7 +421,7 @@ int32_t UnitView::predict_aim_target_position(real_point3d *out_position)
     halo::objects::object_get_position(&base_position, unit_index);
 
     switch (tag->vehicle_type) {
-    case 0: case 1: case 4: case 6:
+    case vehicletype_human_tank: case vehicletype_human_jeep: case vehicletype_alien_scout: case vehicletype_turret:
         halo::objects::object_get_position(&base_position, unit_index);
         base_position.x += halo::math::globals().global_up3d_pointer->i * 0.4f;
         base_position.y += halo::math::globals().global_up3d_pointer->j * 0.4f;
@@ -1095,7 +1096,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
     if (forced) {
         UnitView(unit_index).set_or_test_seat_and_weapon_label(s_stand, UnitView(unit_index).get_current_weapon_label(), 1);
     }
-    if (new_state == animation_state_value(unit_animation_state_id::ready_weapon) && obj->base.type == 0 && test_flag(halo::units::biped_data_of(obj)->flags, units::biped_flag::airborne) &&
+    if (new_state == animation_state_value(unit_animation_state_id::ready_weapon) && obj->base.type == _object_type_biped && test_flag(halo::units::biped_data_of(obj)->flags, units::biped_flag::airborne) &&
         !test_flag(reinterpret_cast<const Biped *>(unit_tag)->biped_flags, tags::biped_tag_flag::has_no_dying_airborne)) {
         new_state = animation_state_value(unit_animation_state_id::unknown_18);
         if (UnitView(unit_index).try_set_animation_state(animation_state_value(unit_animation_state_id::unknown_18))) {
@@ -1127,7 +1128,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
             if (forced) {
                 uint8_t keep_still = suppress_shield_check || allow_death_reaction;
 
-                if (!keep_still && halo::networking::globals().game_mode != 0) {
+                if (!keep_still && halo::networking::globals().game_mode != halo::networking::k_game_mode_local) {
                     datum_index weapon = UnitView(unit_index).get_weapon_object_index(obj->unit.current_weapon_index);
 
                     if (halo::objects::object_try_and_get(weapon, 4) != 0 && halo::items::weapon_must_be_readied(weapon) == 1) {
@@ -1158,7 +1159,7 @@ void UnitView::update_stance_and_jump(uint8_t force_ready, uint8_t allow_death_r
             }
         }
     }
-    if (throttle == 0 || (test_flag(unit_tag->unit_flags, tags::unit_tag_flag::don_t_reface_during_pings)) || obj->base.type != 0 ||
+    if (throttle == 0 || (test_flag(unit_tag->unit_flags, tags::unit_tag_flag::don_t_reface_during_pings)) || obj->base.type != _object_type_biped ||
         (int32_t)obj->base.parent_object != -1 || (!hard_ping && !forced)) {
         return;
     }

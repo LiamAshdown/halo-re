@@ -1,3 +1,4 @@
+#include "halo/networking/game_mode.hpp"
 #include "halo/units/seat_detach.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/game/records.hpp"
@@ -119,12 +120,12 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
                 return true;
             }
             self = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get(unit_index, 3));
-            if (self == 0 || halo::networking::globals().game_mode == 1 ||
+            if (self == 0 || halo::networking::globals().game_mode == halo::networking::k_game_mode_client ||
                 (vehicle_index = self->base.parent_object) == k_datum_index_none ||
                 self->unit.vehicle_seat_index == -1) {
                 return false;
             }
-            if (self->base.type == 1) {
+            if (self->base.type == _object_type_vehicle) {
                 unit_object *me = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(unit_index));
 
                 if (me->base.parent_object != k_datum_index_none && me->unit.vehicle_seat_index != -1) {
@@ -255,7 +256,7 @@ void UnitView::apply_damage_effects(damage_data *dd, uint32_t flags, float shiel
     if (body_damage > 0.0f || shield_damage > 0.0f) {
         UnitView(unit_index).validate_and_clear_weapon_switch();
     }
-    if (is_local == 1 && obj->base.type == 0) {
+    if (is_local == 1 && obj->base.type == _object_type_biped) {
         if (killed) {
             halo::ai::actor_reassign_vehicle_seat(dd->responsible_object, unit_index, *(uint16_t *)(effect_block + 0x2));
         } else if (!test_flag(obj->base.vitality_flags, objects::vitality_flag::health_frozen)) {
@@ -394,7 +395,7 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
 
     if ((int32_t)halo::objects::tag_handle(tag->melee_damage) == -1) {
         unit_data *unit0 = halo::units::unit_data_of(obj);
-        unit0->melee_state = 0;
+        unit0->melee_state = _unit_melee_state_none;
         return;
     }
 
@@ -453,7 +454,7 @@ void UnitView::cause_melee_damage(uint8_t suppress_effect, uint32_t target_objec
             ::halo::units::unit_trigger_material_hit_effect(dd.material_type, damage_effect, unit_index);
         }
 
-        unit->melee_state = 0;
+        unit->melee_state = _unit_melee_state_none;
     }
 }
 
@@ -511,7 +512,7 @@ void UnitView::melee_lunge_damage_tick()
     object_node_collision_result record;
     damage_data dd;
 
-    if ((uint8_t)obj->unit.melee_state != 4 || target == k_datum_index_none || halo::objects::tag_handle(tag->melee_damage) == k_datum_index_none) {
+    if ((uint8_t)obj->unit.melee_state != _unit_melee_state_lunge || target == k_datum_index_none || halo::objects::tag_handle(tag->melee_damage) == k_datum_index_none) {
         return;
     }
     if ((uint8_t)obj->unit.melee_damage_countdown == 0 && halo::physics::object_collision_context_build(target, &context)) {
@@ -574,7 +575,7 @@ void halo::units::unit_process_melee_special_interaction(uint32_t attacker_index
     uint32_t unit_flags = halo::objects::tag_as<Unit>(*(datum_index *)attacker)->unit_flags;
     object *target = reinterpret_cast<object *>(halo::objects::object_record_bytes(target_index));
 
-    if ((unit_flags & 0x2000) && target->type == 0 && target->shield_vitality > 0.0f &&
+    if ((unit_flags & 0x2000) && target->type == _object_type_biped && target->shield_vitality > 0.0f &&
         (test_flag(halo::objects::tag_as<Unit>(*(datum_index *)target)->unit_flags, tags::unit_tag_flag::shields_fry_infection_forms))) {
         UnitView(attacker_index).cause_melee_damage(1, target_index, (int16_t)node_pair, (int16_t)region_pair, (int16_t)material, (uint32_t)contact_plane);
         halo::objects::object_set_health_frozen_flag(attacker_index);
@@ -590,7 +591,7 @@ void halo::units::unit_process_melee_special_interaction(uint32_t attacker_index
         while (parent != k_datum_index_none) {
             object *p = reinterpret_cast<object *>(halo::objects::object_record_bytes(parent));
 
-            if (parent == attacker_index || p->type != 1) {
+            if (parent == attacker_index || p->type != _object_type_vehicle) {
                 return;
             }
             parent = p->parent_object;

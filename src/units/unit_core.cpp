@@ -135,13 +135,13 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
                 object *cand_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(candidate)].data;
                 uint32_t candidate_index = candidate;
 
-                if (cand_obj->type != 2 && cand_obj->parent_object != k_datum_index_none) {
+                if (cand_obj->type != _object_type_weapon && cand_obj->parent_object != k_datum_index_none) {
                     candidate_index = cand_obj->parent_object;
                     cand_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(candidate_index)].data;
                 }
 
                 if (best_object == k_datum_index_none ||
-                    (cand_obj->type == 0 &&
+                    (cand_obj->type == _object_type_biped &&
                      ((best_object_type == 0 && *(float *)(scratch + 0x14) < best_object_fraction) ||
                       best_object_type != 0))) {
                     best_object_type = cand_obj->type;
@@ -171,7 +171,7 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
 
         if (best_object != k_datum_index_none) {
             object *best_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(best_object)].data;
-            if (best_obj->type == 1 && best_obj->network_role != 1) {
+            if (best_obj->type == _object_type_vehicle && best_obj->network_role != 1) {
                 UnitView(best_object).apply_impulse_to_seat(target_direction);
             }
         }
@@ -199,7 +199,7 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
                 }
             } else {
                 object *best_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(best_object)].data;
-                if (best_obj->type == 7) {
+                if (best_obj->type == _object_type_device_machine) {
                     halo::devices::device_machine_melee_attacked(best_object);
                 }
                 if (*(float *)(global_globals + 0x174 + 0x34) > 0.0f) {
@@ -208,10 +208,10 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
                               *(float *)(global_globals + 0x174 + 0x34);
                     dd.random_blend = (f < 0.0f) ? 0.0f : (f > 1.0f ? 1.0f : f);
                 }
-                if (obj->type == 0 && *(int8_t *)((uint8_t *)obj + 0x501) > 0x0f) {
+                if (obj->type == _object_type_biped && *(int8_t *)((uint8_t *)obj + 0x501) > 0x0f) {
                     dd.random_blend = 1.5f;
                 }
-                if (best_obj->type == 0) {
+                if (best_obj->type == _object_type_biped) {
                     halo::objects::object_apply_damage(&dd, best_object, -1, -1, -1, 0);
                 }
             }
@@ -238,7 +238,7 @@ void UnitView::can_see_point(real_vector3d *target_direction, real_vector3d *per
                 halo::objects::object_apply_damage(&dd2, unit_index, -1, -1, -1, 0);
             }
         }
-        unit->melee_state = 0;
+        unit->melee_state = _unit_melee_state_none;
     }
 }
 
@@ -368,7 +368,7 @@ uint32_t UnitView::get_biped_specific_value()
     uint32_t object_index = datum_handle;
     object *obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(object_index)].data;
 
-    if (obj->type == 0) {
+    if (obj->type == _object_type_biped) {
         return BipedView(object_index).is_idle_eligible();
     }
     return 0;
@@ -569,7 +569,7 @@ uint8_t halo::units::unit_point_in_front_and_asleep(real_point3d *world_point, u
     unit_object *obj = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get(unit_index, 3));
     float dot;
 
-    if (obj == 0 || obj->base.type != 0) {
+    if (obj == 0 || obj->base.type != _object_type_biped) {
         return 0;
     }
     if (*(uint32_t *)(halo::objects::tag_record_bytes(*(datum_index *)obj) + 0x17c) & 0x10000) {

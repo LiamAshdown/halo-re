@@ -1,3 +1,4 @@
+#include "halo/networking/game_mode.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/objects/object_factory.hpp"
 #include "halo/tags/flags.hpp"
@@ -75,7 +76,7 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
         joining = 1;
     } else {
         halo::input::control_binding_table_initialize();
-        if (halo::networking::globals().game_mode == 2) {
+        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
             object_type_definition *vehicle = object_type_definitions[_object_type_vehicle];
             int32_t size = vehicle->scenario_placement_size;
             TagReflexive *placements = (TagReflexive *)(scenario + vehicle->scenario_placement_offset);
@@ -108,7 +109,7 @@ void halo::objects::ObjectFactory::place_scenario(uint8_t *scenario)
         int32_t size;
         int16_t i;
 
-        if (halo::networking::globals().game_mode == 1 && type == _object_type_vehicle) {
+        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client && type == _object_type_vehicle) {
             continue;
         }
         if (((1 << type) & 0x240) != 0) {
@@ -282,7 +283,7 @@ datum_index halo::objects::ObjectFactory::create(object_placement_data *placemen
 {
     uint32_t role = 3;
 
-    if (halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         Object *definition = (Object *)halo::cache::globals().tag_instances[(uint16_t)placement->definition_tag].data;
         if (object_type_definitions[definition->object_type]->network_delta_message_type != -1) {
             role = 0;
@@ -471,7 +472,7 @@ datum_index halo::objects::ObjectFactory::create_with_role_control(object_placem
     }
 
     if (network_action_apply_active == 0 && active) {
-        if (halo::networking::globals().game_mode == 2 && obj->network_role == 0) {
+        if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host && obj->network_role == 0) {
             int32_t override_count;
             halo::objects::object_type_override_call_0x68(new_index);
             override_count = halo::objects::object_type_override_get_0x64(new_index, network_message_scratch,

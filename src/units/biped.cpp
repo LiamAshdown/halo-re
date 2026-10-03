@@ -1,3 +1,4 @@
+#include "halo/networking/game_mode.hpp"
 #include "halo/units/seat_detach.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/units/records.hpp"
@@ -230,7 +231,7 @@ uint8_t BipedView::create()
     ::halo::units::unit_update_up_vector((Biped *)definition, (::object *)object);
     ((struct biped_object *)object)->biped.last_ground_object_ticks = 0;
     ((struct biped_object *)object)->biped.last_ground_object_index = -1;
-    if (halo::networking::globals().game_mode == 1 || halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client || halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         ((struct biped_object *)object)->biped.unknown_526 = 0;
         ((struct biped_object *)object)->biped.network_update_sequence = 0;
         ((struct biped_object *)object)->biped.network_delta_sequence = 0;
@@ -414,20 +415,20 @@ uint8_t BipedView::update()
     if (((unit_object *)obj)->base.parent_object != k_datum_index_none) {
         object *parent = reinterpret_cast<object *>(halo::objects::object_record_bytes(((unit_object *)obj)->base.parent_object));
 
-        if (parent->type != 1) {
-            if (parent->type == 0) {
+        if (parent->type != _object_type_vehicle) {
+            if (parent->type == _object_type_biped) {
                 state[0] = (int8_t)(((uint8_t)parent->vitality_flags & 4) | 0x20);
             }
             return finish();
         }
         UnitView(object_index).evaluate_flee_reaction();
-        if (test_flag(((struct unit_object *)obj)->unit.control_flags, units::unit_control_flag::action) && halo::networking::globals().game_mode != 1) {
+        if (test_flag(((struct unit_object *)obj)->unit.control_flags, units::unit_control_flag::action) && halo::networking::globals().game_mode != halo::networking::k_game_mode_client) {
             unit_object *self = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get(object_index, 3));
             datum_index vehicle_index;
 
             if (self != 0 && (vehicle_index = self->base.parent_object) != k_datum_index_none &&
                 self->unit.vehicle_seat_index != -1) {
-                if (self->base.type == 1) {
+                if (self->base.type == _object_type_vehicle) {
                     biped_detach_from_seat(object_index, vehicle_index);
                     biped_free_local_player_history(self);
                 } else if (!::halo::units::unit_state_is_scripted_animation((unit_data *)(reinterpret_cast<uint8_t *>(self) + k_unit_data_offset))) {
@@ -465,7 +466,7 @@ uint8_t BipedView::update()
             }
         }
         if (biped_detach_from_flipped_vehicle && parent->up.k < 0.0f && test_flag(parent->flags, objects::object_flag::unknown_2) &&
-            halo::networking::globals().game_mode != 1) {
+            halo::networking::globals().game_mode != halo::networking::k_game_mode_client) {
             unit_object *self = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(object_index));
             datum_index vehicle_index = self->base.parent_object;
 
@@ -746,7 +747,7 @@ void halo::units::biped_update_target_lock_timer(datum_index target, uint32_t ob
     if ((int8_t)biped->bump_ticks <= 3) {
         return;
     }
-    if (target_obj->type == 0 && halo::hs::fields::bump_possession != 0) {
+    if (target_obj->type == _object_type_biped && halo::hs::fields::bump_possession != 0) {
         int32_t local_player = halo::game::unit_get_local_player_weapon_index(object_index);
         if ((int16_t)local_player != -1) {
             biped_data *target_biped = halo::units::biped_data_of(target_obj);

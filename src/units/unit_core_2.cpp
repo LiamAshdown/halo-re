@@ -226,7 +226,7 @@ uint8_t UnitView::update()
                     UnitView(unit_index).set_or_test_seat_and_weapon_label(s_stand, 0, 1);
                     UnitView(unit_index).try_set_animation_state(state);
                     clear_flag(obj->unit.animation_state_flags, units::unit_animation_state_flag::unknown_4);
-                    if (obj->base.type == 0) {
+                    if (obj->base.type == _object_type_biped) {
                         UnitView(unit_index).clear_ground_adjust_dirty();
                     }
                     UnitView(unit_index).dispatch_reaction_animation(5);
@@ -356,25 +356,25 @@ uint8_t UnitView::update()
             uint8_t throwing = (uint8_t)((obj->unit.control_flags >> 13) & 1);
 
             switch ((int8_t)(uint8_t)obj->unit.throwing_grenade_state) {
-            case 0:
+            case _unit_throwing_grenade_state_none:
                 if (throwing) {
                     UnitView(unit_index).begin_throw_grenade(0);
                 }
                 break;
-            case 1:
+            case _unit_throwing_grenade_state_begin:
                 if (obj->base.animation_frame >= 2) {
                     UnitView(unit_index).throw_grenade_move_to_hand();
                 }
                 break;
-            case 2:
+            case _unit_throwing_grenade_state_in_hand:
                 (obj->unit.throwing_grenade_counter)++;
                 if ((uint8_t)obj->unit.animation_state != animation_state_value(unit_animation_state_id::throwing_grenade)) {
                     UnitView(unit_index).release_thrown_grenade(1);
                 }
                 break;
-            case 3:
+            case _unit_throwing_grenade_state_released:
                 if ((uint8_t)obj->unit.animation_state != animation_state_value(unit_animation_state_id::throwing_grenade) && !throwing) {
-                    obj->unit.throwing_grenade_state = 0;
+                    obj->unit.throwing_grenade_state = _unit_throwing_grenade_state_none;
                 }
                 break;
             default:
@@ -408,7 +408,7 @@ uint8_t UnitView::update()
                 if (::halo::units::unit_state_is_scripted_animation((unit_data *)(reinterpret_cast<uint8_t *>(obj) + k_unit_data_offset)) && !flashing) {
                     control |= 0x10;
                 }
-                if (obj->base.type == 0 && (int8_t)halo::units::biped_data_of(obj)->melee_ticks > 0) {
+                if (obj->base.type == _object_type_biped && (int8_t)halo::units::biped_data_of(obj)->melee_ticks > 0) {
                     control |= 0x10;
                 }
                 if ((uint8_t)obj->unit.zoom_level != 0xff) {

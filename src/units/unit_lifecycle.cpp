@@ -1,3 +1,4 @@
+#include "halo/networking/game_mode.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/units/records.hpp"
 #include "halo/objects/record_access.hpp"
@@ -420,7 +421,7 @@ uint8_t UnitView::new_()
 
     UnitView(object_index).set_or_test_seat_and_weapon_label(s_stand, (const char *)0, 1);
 
-    if (halo::networking::globals().game_mode != 1) {
+    if (halo::networking::globals().game_mode != halo::networking::k_game_mode_client) {
         UnitView(object_index).add_initial_weapons();
     }
 

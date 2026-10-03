@@ -1,3 +1,4 @@
+#include "halo/networking/game_mode.hpp"
 #include "halo/units/seat_detach.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/units/records.hpp"
@@ -74,7 +75,7 @@ uint8_t halo::units::unit_any_dying_or_seat_transition(void)
     object *obj = halo::objects::object_iterator_next(&iter);
     while (obj != (object *)0) {
         unit_data *unit = halo::units::unit_data_of(obj);
-        if (((unit->animation_state == animation_state_value(unit_animation_state_id::throwing_grenade)) && (unit->throwing_grenade_state != 3)) ||
+        if (((unit->animation_state == animation_state_value(unit_animation_state_id::throwing_grenade)) && (unit->throwing_grenade_state != _unit_throwing_grenade_state_released)) ||
             (((unit->animation_state == animation_state_value(unit_animation_state_id::ready_weapon)) || (unit->animation_state == animation_state_value(unit_animation_state_id::unknown_18))) &&
              (!test_flag(unit->animation_state_flags, units::unit_animation_state_flag::unknown_4)))) {
             return 1;
@@ -215,7 +216,7 @@ void UnitView::detach_and_enter_named_seat(uint32_t target_parent_index, char *s
         return;
     }
     if (obj->base.parent_object != k_datum_index_none && obj->unit.vehicle_seat_index != -1 &&
-        halo::networking::globals().game_mode != 1) {
+        halo::networking::globals().game_mode != halo::networking::k_game_mode_client) {
         if (obj->base.parent_object != k_datum_index_none && obj->unit.vehicle_seat_index != -1) {
             biped_detach_from_seat(unit_index, obj->base.parent_object);
         }
@@ -237,7 +238,7 @@ void UnitView::detach_and_enter_named_seat(uint32_t target_parent_index, char *s
         if (::halo::units::unit_is_seat_occupied((int32_t)target_parent_index, i)) {
             continue;
         }
-        if (obj->base.type == 1 || UnitView(unit_index).set_or_test_seat_and_weapon_label(seat_label, 0, 0)) {
+        if (obj->base.type == _object_type_vehicle || UnitView(unit_index).set_or_test_seat_and_weapon_label(seat_label, 0, 0)) {
             ::halo::units::unit_enter_vehicle_seat(target_parent_index, i, unit_index);
             return;
         }
@@ -278,7 +279,7 @@ void UnitView::detach_from_seat(uint8_t suppress_trigger, uint8_t require_client
     uint32_t unit_index = datum_handle;
     unit_object *obj;
 
-    if (halo::networking::globals().game_mode == 1 && require_client_flag != 1) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client && require_client_flag != 1) {
         return;
     }
     obj = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(unit_index));
@@ -1153,9 +1154,9 @@ void UnitView::release_transient_state_and_detach(uint8_t is_light_reset)
     }
     unit->overlays[1].animation_index = -1;
     unit->overlays[0].animation_index = -1;
-    unit->melee_state = 0;
-    if (unit->throwing_grenade_state == 1) {
-        unit->throwing_grenade_state = 0;
+    unit->melee_state = _unit_melee_state_none;
+    if (unit->throwing_grenade_state == _unit_throwing_grenade_state_begin) {
+        unit->throwing_grenade_state = _unit_throwing_grenade_state_none;
     }
     return;
 }
@@ -1215,12 +1216,12 @@ int16_t halo::units::unit_seat_candidates_from_zone_and_enter(datum_index vehicl
             if (seat == -1) {
                 continue;
             }
-            if (candidate->type != 1 &&
+            if (candidate->type != _object_type_vehicle &&
                 !UnitView(candidate_index).set_or_test_seat_and_weapon_label((char *)(halo::objects::block_element<UnitSeat>(vehicle_tag->seats, seat).label.string), 0, 0)) {
                 continue;
             }
             if (candidate->parent_object != k_datum_index_none) {
-                if (halo::units::unit_data_of(candidate)->vehicle_seat_index != -1 && halo::networking::globals().game_mode != 1) {
+                if (halo::units::unit_data_of(candidate)->vehicle_seat_index != -1 && halo::networking::globals().game_mode != halo::networking::k_game_mode_client) {
                     unit_object *self = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(candidate_index));
 
                     if (self->base.parent_object != k_datum_index_none && self->unit.vehicle_seat_index != -1) {
@@ -1319,7 +1320,7 @@ uint8_t halo::units::unit_seat_index_is_valid(uint32_t other_object_index, uint3
 
     if (-1 < seat_index && seat_index < (int32_t)unit_tag->seats.count) {
         object *other_obj = ((object_header *)halo::objects::globals().object_data->data)[halo::datum_slot(other_object_index)].data;
-        if (other_obj->type == 1) {
+        if (other_obj->type == _object_type_vehicle) {
             return 1;
         }
         UnitSeat *seat = (UnitSeat *)(&halo::objects::block_element<UnitSeat>(unit_tag->seats, seat_index));
@@ -1475,11 +1476,11 @@ void UnitView::try_exit_controlled_seat()
         return;
     }
     self = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get(unit_index, 3));
-    if (self == 0 || halo::networking::globals().game_mode == 1 || self->base.parent_object == k_datum_index_none ||
+    if (self == 0 || halo::networking::globals().game_mode == halo::networking::k_game_mode_client || self->base.parent_object == k_datum_index_none ||
         self->unit.vehicle_seat_index == -1) {
         return;
     }
-    if (self->base.type == 1) {
+    if (self->base.type == _object_type_vehicle) {
         vehicle_index = obj->base.parent_object;
         if (vehicle_index != k_datum_index_none && obj->unit.vehicle_seat_index != -1) {
             biped_detach_from_seat(unit_index, vehicle_index);

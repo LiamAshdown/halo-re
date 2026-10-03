@@ -1,3 +1,4 @@
+#include "halo/networking/game_mode.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/units/records.hpp"
 #include "halo/objects/record_access.hpp"
@@ -66,7 +67,7 @@ uint8_t VehicleView::create()
         clear_flag(((struct object *)object)->flags, objects::object_flag::at_rest);
         ((struct object *)object)->position.z += *(float *)(definition + 4) * 0.5f;
     }
-    if (halo::networking::globals().game_mode == 1 || halo::networking::globals().game_mode == 2) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client || halo::networking::globals().game_mode == halo::networking::k_game_mode_host) {
         ((struct vehicle_object *)object)->vehicle.network_position_pending = 0;
         ((struct vehicle_object *)object)->vehicle.network_epoch = 0;
         ((struct vehicle_object *)object)->vehicle.network_update_sequence = 0;
@@ -153,7 +154,7 @@ uint32_t VehicleView::update()
     static uint8_t node_output[0xc00];
     static uint8_t contact_points[0x2600];
 
-    if (halo::networking::globals().game_mode == 2 && ((struct vehicle_object *)obj)->vehicle.network_update_tick != -1 && vehicle_network_update_period != 0 &&
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_host && ((struct vehicle_object *)obj)->vehicle.network_update_tick != -1 && vehicle_network_update_period != 0 &&
         halo::game::globals().game_time->game_time >= ((struct vehicle_object *)obj)->vehicle.network_update_tick + vehicle_network_update_period) {
         if (halo::math::vector3d_distance(*((real_point3d *)&((struct vehicle_object *)obj)->vehicle.unknown_5b2[2]), *((real_point3d *)&((struct object *)obj)->position)) > 1.5f &&
             UnitView(object_index).get_recently_updated_flag() == 1 && !UnitView(object_index).has_child_of_type5()) {
@@ -232,13 +233,13 @@ uint32_t VehicleView::update()
                 ((struct object *)obj)->angular_velocity.i = a.i * spin;
                 ((struct object *)obj)->angular_velocity.j = a.j * spin;
                 ((struct object *)obj)->angular_velocity.k = a.k * spin;
-                if (tag->vehicle_type == 0) {
+                if (tag->vehicle_type == vehicletype_human_tank) {
                     float along = forward->k * ((struct object *)obj)->velocity.k + forward->j * ((struct object *)obj)->velocity.j + ((struct object *)obj)->velocity.i * forward->i;
 
                     ((struct object *)obj)->velocity.i = along * forward->i;
                     ((struct object *)obj)->velocity.j = along * forward->j;
                     ((struct object *)obj)->velocity.k = along * forward->k;
-                } else if (tag->vehicle_type == 5) {
+                } else if (tag->vehicle_type == vehicletype_alien_fighter) {
                     if (-0.01f <= ((struct object *)obj)->velocity.k) {
                         ((struct object *)obj)->velocity.k = -0.01f;
                     }
@@ -257,7 +258,7 @@ uint32_t VehicleView::update()
             halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(reinterpret_cast<uint8_t *>(tag) + 0x2f8), (float *)&((struct vehicle_object *)obj)->vehicle.forward_velocity, ((struct unit_object *)obj)->unit.throttle.i, 1.0f);
             halo::physics::physics_scalar_step_to_target_clamped((physics_scalar_rates *)(reinterpret_cast<uint8_t *>(tag) + 0x330), (float *)&((struct vehicle_object *)obj)->vehicle.sideways_velocity, ((struct unit_object *)obj)->unit.throttle.j, 1.0f);
         }
-        if (tag->vehicle_type != 0) {
+        if (tag->vehicle_type != vehicletype_human_tank) {
             float target = ((struct vehicle_object *)obj)->vehicle.forward_velocity >= 0.0f ? angle : -angle;
             float low = tag->maximum_right_turn * 0.017453292f;
 
@@ -297,13 +298,13 @@ uint32_t VehicleView::update()
         if (halo::objects::tag_handle(tag->base.base.physics) != k_datum_index_none && !(test_flag(((unit_object *)obj)->base.flags, objects::object_flag::at_rest))) {
             b = *(real_vector3d *)&((unit_object *)obj)->base.velocity.i;
             switch (tag->vehicle_type) {
-            case 0: VehicleView(object_index).calculate_turret_controls(contact_points, (float *)node_output); break;
-            case 1: VehicleView(object_index).calculate_steering_wheel_controls(contact_points, (float *)node_output); break;
-            case 2: VehicleView(object_index).calculate_lean_controls(contact_points, (float *)node_output); break;
-            case 3: VehicleView(object_index).calculate_ground_lean_controls(contact_points); break;
-            case 4: VehicleView(object_index).calculate_wing_flex_controls(angle, node_output, contact_points); break;
-            case 5: VehicleView(object_index).calculate_mounted_controls_dispatch(contact_points, node_output); break;
-            case 6: halo::physics::object_physics_tick(object_index, 0, (uint32_t)contact_points, 0, 0); break;
+            case vehicletype_human_tank: VehicleView(object_index).calculate_turret_controls(contact_points, (float *)node_output); break;
+            case vehicletype_human_jeep: VehicleView(object_index).calculate_steering_wheel_controls(contact_points, (float *)node_output); break;
+            case vehicletype_human_boat: VehicleView(object_index).calculate_lean_controls(contact_points, (float *)node_output); break;
+            case vehicletype_human_plane: VehicleView(object_index).calculate_ground_lean_controls(contact_points); break;
+            case vehicletype_alien_scout: VehicleView(object_index).calculate_wing_flex_controls(angle, node_output, contact_points); break;
+            case vehicletype_alien_fighter: VehicleView(object_index).calculate_mounted_controls_dispatch(contact_points, node_output); break;
+            case vehicletype_turret: halo::physics::object_physics_tick(object_index, 0, (uint32_t)contact_points, 0, 0); break;
             default: break;
             }
             if (!unit_updates_suppressed) {
@@ -317,7 +318,7 @@ uint32_t VehicleView::update()
                 ((struct vehicle_object *)obj)->vehicle.decay_ticks_remaining = 15;
             }
             if (!(test_flag(((unit_object *)obj)->base.flags, objects::object_flag::unknown_1000000)) &&
-                ((1u << ((uint8_t)tag->vehicle_type & 0x1f)) & 0x28)) {
+                ((1u << ((uint8_t)tag->vehicle_type & 0x1f)) & ((1u << vehicletype_human_plane) | (1u << vehicletype_alien_fighter)))) {
                 float floor_z = *(float *)(global_structure_bsp + 0x10);
                 float ceiling_z = *(float *)(global_structure_bsp + 0x14);
 

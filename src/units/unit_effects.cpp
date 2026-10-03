@@ -40,14 +40,14 @@ void UnitView::add_marker_relative_offset(uint32_t mode, float *world_point, uin
     int have_reference = 0;
 
     if (parent_index == k_datum_index_none && !test_flag(unit->base.vitality_flags, objects::vitality_flag::health_frozen)) {
-        if (unit->base.type == 0) {
+        if (unit->base.type == _object_type_biped) {
             UnitView(unit_index).compute_marker_offset_position((real_vector3d *)reference_direction, (int16_t)mode, accumulator, world_point, (float *)offsets);
             return;
         }
-    } else if (unit->base.type == 0 && parent_index != k_datum_index_none) {
+    } else if (unit->base.type == _object_type_biped && parent_index != k_datum_index_none) {
         object *parent = reinterpret_cast<object *>(halo::objects::object_record_bytes(parent_index));
 
-        if (parent->type == 1 && UnitView(parent_index).predict_aim_target_position(&reference) != -1) {
+        if (parent->type == _object_type_vehicle && UnitView(parent_index).predict_aim_target_position(&reference) != -1) {
             have_reference = 1;
         }
     }

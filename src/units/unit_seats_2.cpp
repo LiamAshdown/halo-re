@@ -1,3 +1,4 @@
+#include "halo/networking/game_mode.hpp"
 #include "halo/units/seat_detach.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/objects/record_access.hpp"
@@ -84,11 +85,11 @@ int16_t UnitView::detach_child_at_named_seat(char *seat_marker_name)
         }
         child_index = iterator.handle;
         self = reinterpret_cast<unit_object *>(halo::objects::object_try_and_get(child_index, 3));
-        if (self == 0 || halo::networking::globals().game_mode == 1 || self->base.parent_object == k_datum_index_none ||
+        if (self == 0 || halo::networking::globals().game_mode == halo::networking::k_game_mode_client || self->base.parent_object == k_datum_index_none ||
             self->unit.vehicle_seat_index == -1) {
             continue;
         }
-        if (self->base.type == 1) {
+        if (self->base.type == _object_type_vehicle) {
             unit_object *obj = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(child_index));
             datum_index vehicle_index = obj->base.parent_object;
 

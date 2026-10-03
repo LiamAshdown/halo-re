@@ -1,3 +1,4 @@
+#include "halo/networking/game_mode.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/units/records.hpp"
 #include "halo/objects/record_access.hpp"
@@ -1168,7 +1169,7 @@ uint8_t UnitView::try_start_scripted_action_animation(int16_t command, const rea
     ((struct object *)object)->animation_frame = 0;
     set_flag(unit->unit.animation_state_flags, units::unit_animation_state_flag::action_active);
     unit->unit.animation_state = animation_state_value(unit_animation_state_id::scripted_action);
-    if (direction != 0 && unit->base.type == 0 && unit->base.parent_object == k_datum_index_none) {
+    if (direction != 0 && unit->base.type == _object_type_biped && unit->base.parent_object == k_datum_index_none) {
         UnitView(unit_index).set_throw_aim_direction(direction);
     }
     return 1;
@@ -1193,14 +1194,14 @@ uint8_t halo::units::unit_try_start_seat_exit_animation(uint8_t force_flag, uint
     if (self == 0) {
         return 0;
     }
-    if (halo::networking::globals().game_mode == 1 && force_flag != 1) {
+    if (halo::networking::globals().game_mode == halo::networking::k_game_mode_client && force_flag != 1) {
         return 0;
     }
     vehicle_index = self->base.parent_object;
     if (vehicle_index == k_datum_index_none || self->unit.vehicle_seat_index == -1) {
         return 0;
     }
-    if (self->base.type == 1) {
+    if (self->base.type == _object_type_vehicle) {
         UnitView(unit_index).detach_from_seat(1, force_flag, 1);
         return 0;
     }
@@ -1317,7 +1318,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
                 if ((uint8_t)unit_tag->unit_flags & 2) {
                     if ((uint8_t)unit->base.flags & 0x20) {
                         delete_now = 1;
-                    } else if (unit->base.type == 0) {
+                    } else if (unit->base.type == _object_type_biped) {
                         uint8_t *biped = state_machine_object(unit_index);
                         Biped *biped_tag = halo::objects::tag_as<Biped>(*(datum_index *)biped);
 
@@ -1331,7 +1332,7 @@ uint16_t UnitView::update_animation_state_machine(const int8_t *request)
                     UnitView(unit_index).pick_random_spawned_actor_count();
                     break;
                 }
-                if (unit->base.type == 0) {
+                if (unit->base.type == _object_type_biped) {
                     UnitView(unit_index).reset_ground_adjust_state();
                 }
                 set_flag(unit->unit.animation_state_flags, units::unit_animation_state_flag::unknown_4);
