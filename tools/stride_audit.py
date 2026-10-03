@@ -2,7 +2,7 @@
 Usage: python tools/stride_audit.py [--all] [paths...]   (default: src/)
 Flags (1) `name + 0xNN` / `name[0xNN]` where name is declared as a non-byte pointer in the same file,
 (2) `((T *)expr)[0xNN]` and `(T *)expr + 0xNN` with T wider than a byte. Byte-typed pointers are fine.
-Add `// stride-ok` on a line to silence a verified hit; --all prints silenced hits too."""
+Hits reviewed against retail/struct layouts are listed in tools/stride_audit_ok.txt (`path|hit`); --all prints them too."""
 import re, sys, os
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BYTE = {"char", "uint8_t", "int8_t", "byte", "void", "BYTE", "uchar", "u8"}
@@ -11,6 +11,8 @@ decl = re.compile(r"\b((?:const\s+)?(?:struct\s+|enum\s+)?[A-Za-z_][\w:]*)\s*\*+
 cast_idx = re.compile(r"\(\s*\(\s*(?:const\s+)?([\w: ]+?)\s*\*+\s*\)[^;\n]*?\)\s*\[\s*(" + HEX + r")\s*\]")
 cast_add = re.compile(r"\(\s*(?:const\s+)?([\w: ]+?)\s*\*+\s*\)\s*[\w.>-]+\s*\+\s*(" + HEX + r")")
 bytecast = re.compile(r"\(\s*(?:const\s+)?(?:" + "|".join(BYTE) + r")\s*\*\s*\)\s*$")
+_ok = os.path.join(ROOT, "tools", "stride_audit_ok.txt")
+ALLOW = set(l.strip() for l in open(_ok)) if os.path.exists(_ok) else set()
 SKIP = {"return", "sizeof", "else", "case", "delete", "new"}
 
 
@@ -29,8 +31,10 @@ def scan(path, show_ok):
     if wide:
         use = re.compile(r"(?<![\w.>])(" + "|".join(map(re.escape, sorted(wide))) + r")\s*(?:\+\s*(" + HEX + r")|\[\s*(" + HEX + r")\s*\])")
     for i, l in enumerate(lines, 1):
+        if re.match(r"\s*(\*(?![\w(&*])|/\*|//)", l):
+            continue
         s = l.split("//")[0]
-        ok = "stride-ok" in l
+        ok = False
         hits = []
         for m in cast_idx.finditer(s):
             if m.group(1).split()[-1] not in BYTE:
@@ -45,9 +49,11 @@ def scan(path, show_ok):
                 off = "+ " + m.group(2) if m.group(2) else "[" + m.group(3) + "]"
                 hits.append(f"{m.group(1)} ({'/'.join(sorted(names[m.group(1)]))}*) {off}")
         for h in hits:
+            rel = os.path.relpath(path, ROOT).replace(os.sep, "/")
+            ok = f"{rel}|{h}" in ALLOW
             if ok and not show_ok:
                 continue
-            out.append(f"{os.path.relpath(path, ROOT)}:{i}: {h}{' [ok]' if ok else ''}")
+            out.append(f"{rel}:{i}: {h}{' [ok]' if ok else ''}")
     return out
 
 
