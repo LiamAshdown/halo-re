@@ -455,7 +455,7 @@ void OddballEngine::unknown_48(void)
         if (unit_index == halo::k_dword_none) {
             continue;
         }
-        unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (unit_index & halo::k_datum_slot_mask) * 12 + 8);
+        unit = (uint8_t *)halo::game::object_at(unit_index);
         waypoint->owner = carrier;
         waypoint->icon = halo::interface::hud_waypoint_arrow_find("target_blue");
         waypoint->active = 1;

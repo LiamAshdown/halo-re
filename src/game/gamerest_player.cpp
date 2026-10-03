@@ -2664,11 +2664,11 @@ uint32_t Players::get_active_by_index(int32_t index)
  */
 void Players::handle_deleted_unit(uint32_t object_index)
 {
-    uint8_t *object = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (object_index & halo::k_datum_slot_mask) * 0xc + 8);
+    object *obj = halo::game::object_at(object_index);
     data_iterator iterator;
     uint8_t *player;
 
-    if (((1u << (object[0xb4] & 0x1f)) & 3) == 0) {
+    if (((1u << (obj->type & 0x1f)) & 3) == 0) {
         return;
     }
     iterator.data = player_data;

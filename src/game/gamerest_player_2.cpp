@@ -55,20 +55,18 @@ static auto &main_game_globals = halo::link::ref<uint8_t *>(halo::game::vars().m
 namespace {
 static void player_respawn_drop_lights(datum_index object_index)
 {
-    uint8_t *header = (uint8_t *)halo::objects::globals().object_data->data + (object_index & halo::k_datum_slot_mask) * 0xc;
-    uint8_t *obj = *(uint8_t **)(header + 8);
-    uint8_t *tag = (uint8_t *)halo::game::tag_data_at(*(datum_index *)obj);
+    object *obj = halo::game::object_at(object_index);
+    Object *tag = (Object *)halo::game::tag_data_at(obj->definition_tag);
 
-    if (*(int32_t *)&((Object *)tag)->model.tag_id == -1) {
+    if (*(int32_t *)&tag->model.tag_id == -1) {
         return;
     }
-    if (*(uint8_t *)&((object *)obj)->flags & 1) {
+    if (obj->flags & 1) {
         halo::objects::object_for_each_light_attachment(object_index, 0, 1);
     }
-    if (*(int32_t *)&((Object *)tag)->model.tag_id != -1) {
-        ((object *)obj)->flags &= ~1u;
-        header = (uint8_t *)halo::objects::globals().object_data->data + (object_index & halo::k_datum_slot_mask) * 0xc;
-        header[2] |= 2;
+    if (*(int32_t *)&tag->model.tag_id != -1) {
+        obj->flags &= ~1u;
+        halo::game::object_header_at(object_index).flags |= 2;
     }
 }
 static object *object_from_index(datum_index object_index)
@@ -113,7 +111,7 @@ void PlayerView::respawn()
 
         *slot = k_datum_index_none;
         if (existing_unit != k_datum_index_none) {
-            uint8_t *unit = *(uint8_t **)((uint8_t *)halo::objects::globals().object_data->data + (existing_unit & halo::k_datum_slot_mask) * 0xc + 8);
+            uint8_t *unit = (uint8_t *)halo::game::object_at(existing_unit);
 
             if ((unit[0x106] & 4) == 0) {
                 datum_index held_weapon = k_datum_index_none;
