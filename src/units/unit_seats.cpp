@@ -1,4 +1,5 @@
 #include "halo/networking/game_mode.hpp"
+#include "halo/networking/delta_message_types.hpp"
 #include "halo/units/seat_detach.hpp"
 #include "halo/units/animation_states.hpp"
 #include "halo/units/records.hpp"
@@ -37,7 +38,7 @@
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
-static auto &object_network_id_table = halo::link::ref<uint8_t *>(halo::units::vars().object_network_id_table);
+static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 static auto &network_object_index_cache = halo::link::ref<uint8_t []>(halo::units::vars().network_object_index_cache);
 static auto &unit_base_animation_state_names = halo::link::ref<char *[6]>(halo::units::vars().unit_base_animation_state_names);
 
@@ -155,7 +156,7 @@ void UnitView::apply_impulse_to_seat(real_vector3d *impulse)
     }
 
     clear_flag(obj->flags, objects::object_flag::at_rest);
-    *((uint8_t *)obj + 0x524) = 1;
+    halo::units::vehicle_data_of(obj)->collision_update_pending = 1;
 }
 
 /**
@@ -383,20 +384,20 @@ typedef struct unit_seat_exit_message {
  *
  * @address 0x56c400
  */
-void halo::units::unit_dispatch_seat_exit_message(int32_t *message)
+void halo::units::unit_dispatch_seat_exit_message(message_delta_context *context)
 {
     using namespace unit_dispatch_seat_exit_message_local;
     unit_seat_exit_message decoded;
     int32_t unit_index;
 
-    if (*(int32_t *)*message != 0) {
-        halo::networking::message_delta_decode_compound_field_staged((void **)message);
+    if (context->state->incremental != 0) {
+        halo::networking::message_delta_decode_compound_field_staged(halo::networking::raw_context(context));
         return;
     }
-    if (halo::networking::message_delta_decode_compound_field((void **)message, &decoded) == 0 || decoded.unit_key == 0) {
+    if (halo::networking::message_delta_decode_compound_field(halo::networking::raw_context(context), &decoded) == 0 || decoded.unit_key == 0) {
         return;
     }
-    unit_index = (*(int32_t **)(object_network_id_table + 0x28))[decoded.unit_key];
+    unit_index = object_network_id_table->handles[decoded.unit_key];
     if (unit_index == -1) {
         return;
     }
@@ -480,7 +481,7 @@ uint32_t halo::units::unit_enter_vehicle_seat(uint32_t vehicle_index, int16_t se
 
     unit = reinterpret_cast<unit_object *>(halo::objects::object_record_bytes(unit_index));
     unit->unit.desired_weapon_index =
-        UnitView(unit_index).find_next_zone_permitted_weapon_slot(*(uint16_t *)&unit->unit.current_weapon_index, 0);
+        UnitView(unit_index).find_next_zone_permitted_weapon_slot(static_cast<uint16_t>(unit->unit.current_weapon_index), 0);
     UnitView(unit_index).ready_desired_weapon(1);
     if (UnitView(unit_index).set_or_test_seat_and_weapon_label(seat->label.string, UnitView(unit_index).get_current_weapon_label(), 1) == 0) {
         UnitView(unit_index).set_or_test_seat_and_weapon_label(seat->label.string, 0, 1);

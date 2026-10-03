@@ -108,7 +108,7 @@ void GameClientView::action_apply(void **context)
     case halo::networking::delta_message::object_release_node_5: halo::objects::object_type_override_call_0x70_release_node((int32_t *)context, (uint32_t)client); break;
     case halo::networking::delta_message::object_value_event: halo::game::game_engine_apply_player_join_message(context); break;
     case halo::networking::delta_message::unit_weapon_loadout: halo::game::game_engine_apply_player_spawn_loadout_message(context); break;
-    case halo::networking::delta_message::unit_seat_exit: halo::units::unit_dispatch_seat_exit_message((int32_t *)context); break;
+    case halo::networking::delta_message::unit_seat_exit: halo::units::unit_dispatch_seat_exit_message(halo::networking::delta_context(context)); break;
     case halo::networking::delta_message::player_interaction: halo::game::game_engine_apply_player_interaction_message(context); break;
     case halo::networking::delta_message::unit_control_update: halo::units::unit_apply_network_control_update((unit_network_control_packet *)context); break;
     case halo::networking::delta_message::kill_streak_update: halo::game::game_engine_apply_kill_streak_message((int32_t **)context); break;
@@ -122,7 +122,7 @@ void GameClientView::action_apply(void **context)
     case halo::networking::delta_message::round_reset: halo::game::game_engine_apply_partial_round_reset_message(context); break;
     case halo::networking::delta_message::kill_event: halo::game::game_engine_handle_kill_feed_network_event((int32_t **)context); break;
     case halo::networking::delta_message::status_sound: halo::game::game_engine_handle_sound_status_event(context); break;
-    case halo::networking::delta_message::unit_weapon_script: halo::units::unit_scripting_set_or_drop_weapon((int32_t *)context); break;
+    case halo::networking::delta_message::unit_weapon_script: halo::units::unit_scripting_set_or_drop_weapon(halo::networking::delta_context(context)); break;
     case halo::networking::delta_message::unit_spawn_starting_weapons: halo::units::unit_spawn_with_starting_weapons(context); break;
     case halo::networking::delta_message::unit_create_update: halo::units::unit_network_create_update_apply(context); break;
     case halo::networking::delta_message::projectile_create: halo::projectiles::projectile_create_from_network(context); break;

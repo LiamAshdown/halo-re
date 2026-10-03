@@ -10,6 +10,7 @@
 
 
 struct Biped;
+struct message_delta_context;
 struct TagID;
 struct Unit;
 struct animation_state;
@@ -99,7 +100,7 @@ void unit_detach_reposition_and_nudge(uint32_t unit_index);
 uint8_t unit_dispatch_reaction_animation(int32_t unit_index, int16_t reaction_code);
 void unit_dispatch_scripted_event_1b(uint8_t event_byte, uint32_t unit_index);
 void unit_dispatch_scripted_event_9(uint8_t event_byte, int32_t hash_key);
-void unit_dispatch_seat_exit_message(int32_t *message);
+void unit_dispatch_seat_exit_message(message_delta_context *context);
 void unit_dispatch_seat_overlay_command(uint32_t unit_index, int16_t command);
 uint8_t unit_drop_current_weapon(uint32_t unit_index, uint8_t force);
 void unit_drop_inventory_weapons_except_current(uint32_t unit_index);
@@ -132,7 +133,7 @@ void unit_get_primary_eye_marker_position(uint32_t object_index, real_point3d *o
 TagID unit_get_seat_hud_interface_tag_id(Unit *unit_tag, int16_t seat_index, uint8_t use_second);
 void unit_get_secondary_eye_marker_position(uint32_t object_index, real_point3d *out);
 uint32_t unit_get_tag_flag_bit7(uint32_t unit_index);
-uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternate, uint32_t out_dx_to_key_frame, uint32_t out_dx_total, int16_t *out_frame_count, int16_t *out_key_frame_index);
+uint8_t unit_get_weapon_marker_indices(uint32_t unit_index, uint8_t use_alternate, float *out_dx_to_key_frame, float *out_dx_total, int16_t *out_frame_count, int16_t *out_key_frame_index);
 datum_index unit_get_weapon_object_index(uint32_t unit_index, int16_t slot_index);
 uint8_t unit_has_weapon_of_type(uint32_t unit_index, int32_t weapon_group_tag);
 void unit_initialize_random_turn_angle(uint32_t object_index);
@@ -174,7 +175,7 @@ void unit_reset_velocity_and_ground_flag(uint32_t unit_index, uint8_t set_flag);
 void unit_sample_camera_shake_from_velocity(uint32_t unit_index);
 uint8_t unit_scripted_action_animation_exists(uint32_t unit_index, int16_t command);
 void unit_scripting_set_emotion_animation(uint32_t unit_index, const char *emotion_name);
-void unit_scripting_set_or_drop_weapon(int32_t *message);
+void unit_scripting_set_or_drop_weapon(message_delta_context *context);
 int16_t unit_seat_candidates_from_zone_and_enter(datum_index vehicle_index, char *seat_name, datum_index object_list);
 uint8_t unit_seat_flag_bit10(uint32_t unit_index, int16_t seat_index);
 uint8_t unit_seat_flag_bit2(uint32_t unit_index, int16_t seat_index);

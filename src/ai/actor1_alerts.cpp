@@ -449,8 +449,8 @@ uint8_t halo::ai::alert_ops::consider_combat_mode(int16_t consideration_mode, ac
                 mode = 3;
             }
         }
-        if (!halo::units::unit_get_weapon_marker_indices(actor->unit_index, leap, (uint32_t)&dx_to_key_frame,
-                (uint32_t)&dx_total, &frame_count, &key_frame)) {
+        if (!halo::units::unit_get_weapon_marker_indices(actor->unit_index, leap, &dx_to_key_frame,
+                &dx_total, &frame_count, &key_frame)) {
             ((struct actor_combat_consideration *)record)->mode = mode;
             return result;
         }
