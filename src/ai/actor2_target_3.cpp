@@ -1,3 +1,4 @@
+#include "halo/ai/ai_constants.hpp"
 #include "halo/ai/actor_view.hpp"
 #include "halo/math/api.hpp"
 #include "halo/memory/api.hpp"
@@ -193,7 +194,7 @@ void ActorView::target_relationship_think()
             if (target->friends_killed_timer == 0) {
                 target->friends_killed -= 1;
                 if (target->friends_killed > 0) {
-                    target->friends_killed_timer = 0x2ee;
+                    target->friends_killed_timer = halo::ai::k_friends_killed_timer_ticks;
                 }
             }
         }

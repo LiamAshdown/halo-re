@@ -1,3 +1,4 @@
+#include "halo/ai/ai_constants.hpp"
 #include "halo/objects/flags.hpp"
 #include "halo/units/flags.hpp"
 #include "halo/ai/flags.hpp"
@@ -541,7 +542,7 @@ void ActorOps::queue_search_and_relay_perception(datum_index prop_index, datum_i
     if (owner_index != (datum_index)k_datum_index_none) {
         actor *owner = &((actor *)halo::ai::globals().actor_data->data)[owner_index & halo::k_slot_mask];
         if (owner->suspicion_status > 0) {
-            halo::ai::actor_record_perception_event(actor_index, owner->suspicion_status, 0x1c2);
+            halo::ai::actor_record_perception_event(actor_index, owner->suspicion_status, halo::ai::k_owner_suspicion_event_ticks);
         }
     }
 }
@@ -801,7 +802,7 @@ void ActorView::react_to_flee_point(int32_t flee_source_object, const real_point
     if (flee_source_object != -1) {
         object *source = halo::ai::object_at(flee_source_object);
         if (halo::game::teams_are_enemies(source->owner_team , self->team) != 0) {
-            halo::ai::actor_record_perception_event(actor_index, 2, 0x384);
+            halo::ai::actor_record_perception_event(actor_index, 2, halo::ai::k_hostile_flee_event_ticks);
         }
     }
 
@@ -1321,7 +1322,7 @@ void TargetView::scan_backup_and_panic_reaction(datum_index actor_index)
 
             if (ally->engaged != 0) {
                 ally->friends_killed = ally->friends_killed + 1;
-                ally->friends_killed_timer = 0x2ee;
+                ally->friends_killed_timer = halo::ai::k_friends_killed_timer_ticks;
             }
         }
     }

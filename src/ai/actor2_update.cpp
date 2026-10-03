@@ -940,8 +940,8 @@ namespace actor_update_facing_change_timer_local {
 void ActorView::update_facing_change_timer()
 {
     using namespace actor_update_facing_change_timer_local;
-    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & 0xffff];
-    Actor *actor_tag = (Actor *)(halo::cache::globals().tag_instances[self->actor_definition_tag & 0xffff].data);
+    actor *self = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
+    Actor *actor_tag = halo::ai::tag_data<Actor>(self->actor_definition_tag);
     uint8_t *pending_flag = &self->crouch_active;
     int16_t *ticks_field = &self->crouch_ticks;
     float *smoothing_field = &self->danger_meter;

@@ -2080,7 +2080,7 @@ void EncounterView::recompute_morale()
     if (enc->engaged == 0 &&
         (retreat_timer == -1 || 0x3b < retreat_timer) &&
         ((enc->has_live_target == 0 && ((int32_t)enc->ticks_since_live_target == -1 || 0x3b < (int32_t)enc->ticks_since_live_target)) ||
-         retreat_timer == -1 || 0x1c1 < retreat_timer)) {
+         retreat_timer == -1 || retreat_timer >= halo::ai::k_encounter_engaged_expiry_ticks)) {
         if (enc->stood_down == 0) {
             bool skip_release = false;
 

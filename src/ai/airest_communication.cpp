@@ -265,7 +265,7 @@ void AiCommunication::broadcast(int32_t event_code, datum_index unit_index, datu
                         if (unit_encounter != 0) {
                             int32_t since = (int32_t)unit_encounter->ticks_since_engaged;
 
-                            hostile = (uint8_t)!(unit_encounter->unknown_46 == 0 && since != -1 && since < 0x10e);
+                            hostile = (uint8_t)!(unit_encounter->unknown_46 == 0 && since != -1 && since < halo::ai::k_encounter_hostile_memory_ticks);
                         }
                         cached_speaker = halo::ai::ai_communication_select_speaker_by_team(0, unit_index, object_a, 18.0f, 0, 6,
                                                                                  halo::k_dword_none, halo::k_dword_none, -1, 0,

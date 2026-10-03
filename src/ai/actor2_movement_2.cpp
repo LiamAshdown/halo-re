@@ -408,7 +408,7 @@ static auto &global_forward2d_pointer = halo::link::ref<const real_vector2d *>(h
 void ActorView::movement_update()
 {
     using namespace actor_movement_update_local;
-    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & 0xffffu];
+    actor *a = &((actor *)halo::ai::globals().actor_data->data)[actor_index & halo::k_slot_mask];
     Actor *actor_def = halo::ai::tag_data<Actor>(a->actor_definition_tag);
 
     uint8_t sidestep_mode = 0;
