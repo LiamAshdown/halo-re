@@ -34,4 +34,18 @@ inline constexpr int k_text_buffer_chars = 256;
 inline constexpr int32_t k_ticks_per_second = 30;
 inline constexpr int32_t k_ticks_per_minute = 60 * k_ticks_per_second;
 
+/** Alpha byte of a fully opaque packed ARGB colour. */
+inline constexpr uint32_t k_argb_alpha_opaque = 0xff000000;
+
+/** Packed ARGB tints of the team icon in team games (blue team and red team). */
+inline constexpr uint32_t k_team_color_blue = 0xb00201e3;
+inline constexpr uint32_t k_team_color_red = 0xb0fe0000;
+
+/** Packed RGB colours of the shield meter layers. */
+inline constexpr uint32_t k_rgb_black = 0x000000;
+inline constexpr uint32_t k_rgb_red = 0xff0000;
+inline constexpr uint32_t k_rgb_green = 0x00ff00;
+inline constexpr uint32_t k_rgb_yellow = 0xffff00;
+inline constexpr uint32_t k_rgb_purple = 0x7f00ff;
+
 }  // namespace halo::interface

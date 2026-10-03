@@ -11,6 +11,7 @@
 #include "halo/core/flags.hpp"
 #include "halo/tags/flags.hpp"
 #include "halo/units/flags.hpp"
+#include "halo/objects/flags.hpp"
 
 namespace halo::interface {
 

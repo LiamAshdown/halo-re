@@ -19,6 +19,7 @@
 #include "units.h"
 #include "objects.h"
 #include "halo/interface/flags.hpp"
+#include "halo/interface/constants.hpp"
 
 extern "C" {
 extern HUDGlobals *hud_globals_tag_data;
@@ -117,19 +118,18 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
     }
 
     {
-        uint8_t *hud = (uint8_t *)hud_globals_tag_data;
-        uint8_t *edge_offsets = hud + 0x310;
-        datum_index icon_bitmap = *(datum_index *)(hud + 0x344);
+        const HUDGlobals *hud = hud_globals_tag_data;
+        datum_index icon_bitmap = *(datum_index *)&hud->hud_damage_indicator_bitmap.tag_id;
         uint16_t sequence_index = (halo::game::globals().local_player_globals->local_player_count <= 1)
-            ? *(uint16_t *)(hud + 0x348)
-            : *(uint16_t *)(hud + 0x34a);
-        uint32_t icon_color = *(uint32_t *)(hud + 0x34c);
+            ? hud->hud_damage_sequence_index
+            : hud->hud_damage_multiplayer_sequence_index;
+        uint32_t icon_color = *(const uint32_t *)&hud->hud_damage_color;
 
         halo::effects::player_effect_fade_damage_indicators(local_player_index, &previous_indicators);
 
         for (direction = 0; direction < 4; direction++) {
             float x, y;
-            uint32_t rotation_bits;
+            float rotation;
             void *bitmap_data = 0;
             int32_t sprite_rect = 0;
             Point2DInt position;
@@ -140,24 +140,24 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
 
             switch (direction) {
             case 1:
-                x = (float)(*(int16_t *)(edge_offsets + 4) + 8);
+                x = (float)(hud->hud_damage_left_offset + 8);
                 y = 240.0f;
-                rotation_bits = 0x3fc90fdb;
+                rotation = 1.5707964f;
                 break;
             case 2:
                 x = hud_damage_indicator_screen_center_x;
-                y = (float)(0x1d8 - *(int16_t *)(edge_offsets + 2));
-                rotation_bits = 0;
+                y = (float)(halo::interface::k_base_screen_height - 8 - hud->hud_damage_bottom_offset);
+                rotation = 0.0f;
                 break;
             case 3:
-                x = (float)(0x278 - *(int16_t *)(edge_offsets + 6));
+                x = (float)(halo::interface::k_base_screen_width - 8 - hud->hud_damage_right_offset);
                 y = 240.0f;
-                rotation_bits = 0x4096cbe4;
+                rotation = 4.712389f;
                 break;
             default:
                 x = hud_damage_indicator_screen_center_x;
-                y = (float)(*(int16_t *)edge_offsets + 8);
-                rotation_bits = 0x40490fdb;
+                y = (float)(hud->hud_damage_top_offset + 8);
+                rotation = 3.1415927f;
                 break;
             }
             x -= (float)halo::render::globals().viewport_left;
@@ -173,7 +173,7 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
             position.x = (int16_t)(int32_t)x;
             position.y = (int16_t)(int32_t)y;
             halo::interface::hud_draw_bitmap_at((const float *)sprite_rect, (BitmapData *)bitmap_data, 0, 4, &position, 1.0f,
-                               *(float *)&rotation_bits, icon_color);
+                               rotation, icon_color);
         }
     }
 }
@@ -186,11 +186,11 @@ void HudFrame::draw_damage_indicators(int16_t local_player_index)
  */
 void HudFrame::draw_grenade_interface(int16_t local_player_index, datum_index unit_index)
 {
-    uint8_t *unit = halo::interface::object_record(unit_index);
-    int16_t slot = ((unit_object *)unit)->unit.current_weapon_index;
-    datum_index weapon = slot != -1 ? *(datum_index *)(unit + 0x2f8 + slot * 4) : (datum_index)-1;
-    int8_t grenade = ((unit_object *)unit)->unit.current_grenade_index;
-    uint8_t *parent;
+    unit_object *unit = halo::interface::object_record<unit_object>(unit_index);
+    int16_t slot = unit->unit.current_weapon_index;
+    datum_index weapon = slot != -1 ? unit->unit.weapons[slot] : (datum_index)-1;
+    int8_t grenade = unit->unit.current_grenade_index;
+    unit_object *parent;
     datum_index hud_tag;
     GrenadeHUDInterface *hud;
     int32_t *flash_start_time;
@@ -200,18 +200,18 @@ void HudFrame::draw_grenade_interface(int16_t local_player_index, datum_index un
     if (halo::items::weapon_prevents_grenade_throwing(weapon) != 0 || grenade == -1) {
         return;
     }
-    parent = (uint8_t *)halo::objects::object_try_and_get(((unit_object *)unit)->base.parent_object, 3);
-    if (parent != 0 && (*(datum_index *)(parent + 0x324) == unit_index || *(datum_index *)(parent + 0x328) == unit_index)) {
+    parent = (unit_object *)halo::objects::object_try_and_get(unit->base.parent_object, 3);
+    if (parent != 0 && (parent->unit.driver_unit_index == unit_index || parent->unit.gunner_unit_index == unit_index)) {
         return;
     }
-    hud_tag = *(datum_index *)(*(uint8_t **)((uint8_t *)global_globals + 0x12c) + grenade * 0x44 + 0x20);
+    hud_tag = *(datum_index *)&halo::interface::reflexive_elements<GlobalsGrenade>(global_globals->grenades)[grenade].hud_interface.tag_id;
     flash_start_time = &hud_weapon_state->players[local_player_index].grenade_flash_start_time;
     if (hud_tag == (datum_index)-1) {
         return;
     }
     hud = halo::interface::tag_data<GrenadeHUDInterface>(hud_tag);
 
-    count = *(int8_t *)(unit + 0x31e + grenade);
+    count = unit->unit.grenade_counts[grenade];
     flags = (count <= hud->flash_cutoff ? 1 : 0) | (count == 0 ? 2 : 0) | (halo::game::globals().local_player_globals->local_player_count > 1 ? 4 : 0);
     if ((flags & 1) != 0) {
         if (*flash_start_time == -1) {
@@ -240,7 +240,7 @@ void HudFrame::draw_grenade_interface(int16_t local_player_index, datum_index un
     if (*(datum_index *)&hud->total_grenades_overlay_bitmap.tag_id != (datum_index)-1) {
         uint16_t types;
 
-        count = *(int8_t *)(unit + 0x31e + ((unit_object *)unit)->unit.current_grenade_index);
+        count = unit->unit.grenade_counts[unit->unit.current_grenade_index];
         types = (uint16_t)((count <= hud->flash_cutoff ? 1 : 0) | (count == 0 ? 2 : 0));
         types = types == 0 ? 4 : (uint16_t)(types & 0xfffb);
         halo::interface::hud_draw_overlays((uint16_t *)hud, (const hud_overlay_list *)&hud->total_grenades_overlay_bitmap,
@@ -259,7 +259,7 @@ void HudFrame::draw_weapon_interface(player *p)
 {
     uint8_t *unit = halo::interface::object_record(p->unit);
     int16_t slot = ((unit_object *)unit)->unit.current_weapon_index;
-    datum_index weapon = slot != -1 ? *(datum_index *)(unit + 0x2f8 + slot * 4) : (datum_index)-1;
+    datum_index weapon = slot != -1 ? ((unit_object *)unit)->unit.weapons[slot] : (datum_index)-1;
     uint8_t no_weapon = 0;
     weapon_hud_ammo_state ammo;
 
@@ -324,7 +324,7 @@ uint8_t HudFrame::player_weapon_ammo_state(const player *p, weapon_hud_ammo_stat
     slot = ((unit_object *)unit)->unit.current_weapon_index;
     weapon = (datum_index)-1;
     if (slot != -1) {
-        weapon = *(datum_index *)(unit + 0x2f8 + slot * 4);
+        weapon = ((unit_object *)unit)->unit.weapons[slot];
     }
     if (weapon == (datum_index)-1) {
         datum_index parent;
@@ -458,8 +458,8 @@ void HudFrame::render_unit_interface(player *p)
 
         enabled_meters = (valid_team_player != 0 && ((struct unit_object *)unit_object)->unit.integrated_light_power == 1.0f) ? 1 : 0;
         blinking_meters = 0;
-        if ((((struct unit_object *)unit_object)->unit.flags & 0x80000) == 0 && ((struct unit_object *)unit_object)->unit.integrated_light_energy < 0.2f &&
-            (*(uint8_t *)(unit_object + 0x208) & 0x10) != 0) {
+        if (!halo::interface::has_bit(((struct unit_object *)unit_object)->unit.flags, halo::units::unit_flag::unknown_80000) && ((struct unit_object *)unit_object)->unit.integrated_light_energy < 0.2f &&
+            halo::interface::has_bit(((struct unit_object *)unit_object)->unit.control_flags, halo::units::unit_control_flag::unknown_10)) {
             blinking_meters = 1;
         }
         meter_values[0] = ((struct unit_object *)unit_object)->unit.integrated_light_energy;
@@ -485,7 +485,7 @@ void HudFrame::render_unit_interface(player *p)
         hud = halo::interface::tag_data<UnitHUDInterface>(hud_tag);
 
         if (*(datum_index *)&hud->hud_background_interface_bitmap.tag_id != (datum_index)-1) {
-            flags = (uint32_t)((*(uint8_t *)(object + 0x106) >> 1) & 2);
+            flags = (uint32_t)((((struct object *)object)->vitality_flags >> 1) & 2);
             if (halo::game::globals().local_player_globals->local_player_count > 1) {
                 flags |= 4;
             }
@@ -498,7 +498,7 @@ void HudFrame::render_unit_interface(player *p)
             (hud_unit_meters->flags & 4) == 0) {
             float shield = ((struct object *)object)->shield_vitality;
             flags = (shield < 0.25f || (hud_unit_meters->flags & 8) != 0) ? 1 : 0;
-            if ((*(uint8_t *)(object + 0x106) & 4) != 0) {
+            if (halo::interface::has_bit(((struct object *)object)->vitality_flags, halo::objects::vitality_flag::health_frozen)) {
                 flags |= 2;
             }
             if (halo::game::globals().local_player_globals->local_player_count > 1) {
@@ -514,7 +514,7 @@ void HudFrame::render_unit_interface(player *p)
                 }
             }
             if (*(datum_index *)&hud->shield_panel_meter_meter_bitmap.tag_id != (datum_index)-1) {
-                static const uint32_t layer_colors[5] = {0x000000, 0xff0000, 0x00ff00, 0xffff00, 0x7f00ff};
+                static const uint32_t layer_colors[5] = {halo::interface::k_rgb_black, halo::interface::k_rgb_red, halo::interface::k_rgb_green, halo::interface::k_rgb_yellow, halo::interface::k_rgb_purple};
                 hud_meter_placement layer_placement;
                 float value = index == 0 ? state->displayed_shield : shield;
                 int32_t value_scale = (uint16_t)hud->shield_panel_meter_value_scale;
@@ -658,7 +658,7 @@ void HudFrame::render_unit_interface(player *p)
                     continue;
                 }
                 if (halo::interface::has_bit(overlay->flags, halo::tags::unit_hud_interface_auxiliary_overlay_tag_flag::use_team_color)) {
-                    *(uint32_t *)&overlay->default_color = halo::interface::color_rgb_float_to_int((const float *)(((struct object *)object)->unknown_188)) | 0xff000000;
+                    *(uint32_t *)&overlay->default_color = halo::interface::color_rgb_float_to_int((const float *)(((struct object *)object)->unknown_188)) | halo::interface::k_argb_alpha_opaque;
                 }
                 halo::interface::hud_draw_static_element(local_player_index, (uint16_t *)&hud->auxiliary_overlay_anchor,
                                         (const hud_static_element_placement *)overlay, flags, -1);
@@ -727,7 +727,7 @@ void HudFrame::render_unit_interface(player *p)
                 "ui\\shell\\bitmaps\\team_icon_ctf", "ui\\shell\\bitmaps\\team_icon_slayer",
                 "ui\\shell\\bitmaps\\team_icon_oddball", "ui\\shell\\bitmaps\\team_icon_king",
                 "ui\\shell\\bitmaps\\team_icon_race"};
-            static const int16_t icon_x[5] = {0x1c8, 0x1c9, 0x1c8, 0x1ca, 0x1c5};
+            static const int16_t icon_x[5] = {456, 457, 456, 458, 453};
             static const int16_t icon_y[5] = {6, 8, 7, 8, 6};
             static const float icon_scale[5] = {0.55f, 0.5f, 0.55f, 0.53f, 0.6f};
             static Point2DInt icon_position;
@@ -740,13 +740,13 @@ void HudFrame::render_unit_interface(player *p)
             float extents[4];
 
             if (halo::game::globals().variant.teams != 0) {
-                team_color = p->team != 0 ? 0xb00201e3 : 0xb0fe0000;
+                team_color = p->team != 0 ? halo::interface::k_team_color_blue : halo::interface::k_team_color_red;
             } else {
                 float rgb_buffer[3];
                 float *rgb = halo::game::game_engine_get_player_color(player_index, rgb_buffer);
                 team_color = ((uint32_t)lrint((double)(rgb[0] * 255.0f)) & 0xff) << 16 |
                              ((uint32_t)lrint((double)(rgb[1] * 255.0f)) & 0xff) << 8 |
-                             ((uint32_t)lrint((double)(rgb[2] * 255.0f)) & 0xff) | 0xff000000;
+                             ((uint32_t)lrint((double)(rgb[2] * 255.0f)) & 0xff) | halo::interface::k_argb_alpha_opaque;
             }
             if ((uint32_t)(halo::game::globals().variant.game_engine_index - 1) <= 4) {
                 int32_t engine = halo::game::globals().variant.game_engine_index - 1;
@@ -760,7 +760,7 @@ void HudFrame::render_unit_interface(player *p)
             hud_team_background_bitmap = halo::interface::lookup_tag(halo::fourcc('b', 'i', 't', 'm'), "ui\\shell\\bitmaps\\team_background");
             background = halo::bitmaps::bitmap_group_sequence_get_bitmap_data(hud_team_background_bitmap, 0, 0);
             if (icon != 0 && background != 0) {
-                background_position.x = 0x1bd;
+                background_position.x = 445;
                 background_position.y = 6;
                 background_scale[0] = 0.6f;
                 background_scale[1] = 0.64f;
