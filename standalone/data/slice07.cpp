@@ -4,7 +4,6 @@
    as absolute symbols in globals.asm; see the slice 7 report.
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
-#include "code_refs.hpp"
 #include <stdint.h>
 #include <stddef.h>
 

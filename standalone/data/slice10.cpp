@@ -7,7 +7,6 @@
    here without the matching extern declaration in src/.
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
-#include "code_refs.hpp"
 #include <stdint.h>
 #include "tags.h"
 #include "memory.h"

@@ -7,7 +7,6 @@
 #include "tables.h"
 #include "halo/projectiles/api.hpp"
 #include "halo/bitmaps/api.hpp"
-#include "code_refs.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/networking/api.hpp"

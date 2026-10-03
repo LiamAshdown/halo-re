@@ -6,7 +6,6 @@
    is the original one (tools/globals_check_slice01.py verifies it from the link map).
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
-#include "code_refs.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/shell/api.hpp"

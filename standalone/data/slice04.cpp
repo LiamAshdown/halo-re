@@ -6,7 +6,6 @@
    commit message / PLAN notes.
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
-#include "code_refs.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/rasterizer/api.hpp"
 #include "halo/shell/api.hpp"

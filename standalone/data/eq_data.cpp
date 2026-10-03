@@ -14,7 +14,6 @@
  */
 #include "tables.h"
 #include "halo/projectiles/api.hpp"
-#include "code_refs.hpp"
 #include "halo/ai/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/shell/api.hpp"

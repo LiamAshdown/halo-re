@@ -1,5 +1,4 @@
 /* standalone/data/slice08.cpp -- All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
-#include "code_refs.hpp"
 #include <stdint.h>
 #include "crt.h"
 #include "win32.h"

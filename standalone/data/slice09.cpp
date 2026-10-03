@@ -5,7 +5,6 @@
    weather_particle_system_count, weather_wind_states, weather_frame_counter), see the slice 9 notes.
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
-#include "code_refs.hpp"
 #include "win32.h"
 #include "tags.h"
 #include "memory.h"

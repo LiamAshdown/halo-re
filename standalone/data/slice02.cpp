@@ -6,7 +6,6 @@
 
    All definitions sit in one extern "C" block: the ordered sections, the /alternatename pragmas and src/ reach these objects by their unmangled C names. */
 #include "tables.h"
-#include "code_refs.hpp"
 #include "halo/hs/api.hpp"
 #include "halo/networking/api.hpp"
 #include "halo/shell/api.hpp"
