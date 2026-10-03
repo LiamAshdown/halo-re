@@ -16,6 +16,8 @@
 #include "halo/objects/flags.hpp"
 struct Antenna;
 struct DamageEffect;
+struct LightVolume;
+struct LightVolumeFrame;
 struct ModelCollisionGeometry;
 struct ModelCollisionGeometryMaterial;
 struct ColorRGB;

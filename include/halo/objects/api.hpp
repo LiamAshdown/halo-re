@@ -12,6 +12,8 @@ struct object_globals;
 
 struct Antenna;
 struct DamageEffect;
+struct LightVolume;
+struct LightVolumeFrame;
 struct ModelCollisionGeometry;
 struct ModelCollisionGeometryMaterial;
 struct ColorRGB;
@@ -300,7 +302,7 @@ void light_volumes_dispose();
 void light_volumes_clear_disposing_flag();
 datum_index light_volume_new(datum_index definition_tag);
 void light_volume_delete(datum_index light_volume_index);
-uint8_t * object_attachment_get_blended_marker(uint32_t object_index, uint8_t *instance);
+LightVolumeFrame *object_attachment_get_blended_marker(uint32_t object_index, const LightVolume *tag);
 void light_volume_render(uint32_t object_index, datum_index light_volume_handle, uint32_t unused, uint8_t *function_context);
 float curve_apply_exponent(float value, float exponent);
 void light_volume_render_procedure(uint32_t object_index, datum_index light_volume_handle);

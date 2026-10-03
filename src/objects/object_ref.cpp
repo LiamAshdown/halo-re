@@ -1544,42 +1544,49 @@ uint32_t halo::objects::ObjectRef::animation_get_frames_remaining()
  *
  * @address 0x004fe740
  */
-uint8_t * halo::objects::ObjectRef::attachment_get_blended_marker(uint8_t *instance)
+LightVolumeFrame *halo::objects::ObjectRef::attachment_get_blended_marker(const LightVolume *tag)
 {
     uint32_t object_index = handle;
-    uint8_t *source = *(uint8_t **)(instance + 0x124);
+    LightVolumeFrame *source = halo::objects::block_elements<LightVolumeFrame>(tag->frames);
 
-    if (*(int32_t *)(instance + 0x120) < 2) {
+    if ((int32_t)tag->frames.count < 2) {
         return source;
     }
 
     {
         object *obj = ((object_header *)object_data->data)[halo::datum_slot(object_index)].data;
-        int16_t selector = *(int16_t *)(instance + 0xb8) - 1;
+        int16_t selector = (int16_t)tag->frame_animation_source - 1;
         float weight;
 
         if (selector == -1) {
             weight = 1.0f;
         } else {
-            weight = *(float *)((uint8_t *)obj + 0x134 + selector * 4);
-            if (((1 << (selector & 0x1f)) & ((struct object *)obj)->function_valid_flags) == 0) {
+            weight = obj->function_out_values[selector];
+            if (((1 << (selector & 0x1f)) & obj->function_valid_flags) == 0) {
                 return source;
             }
         }
 
         {
             float inv = 1.0f - weight;
-            static const int offsets[16] = {
-                0x10, 0x14, 0x18, 0x3c, 0x40, 0x44, 0x68, 0x6c,
-                0x70, 0x74, 0x78, 0x7c, 0x80, 0x84, 0x88, 0x8c
+            static constexpr size_t k_blended_offsets[16] = {
+                offsetof(LightVolumeFrame, offset_from_marker), offsetof(LightVolumeFrame, offset_exponent),
+                offsetof(LightVolumeFrame, length), offsetof(LightVolumeFrame, radius_hither),
+                offsetof(LightVolumeFrame, radius_yon), offsetof(LightVolumeFrame, radius_exponent),
+                offsetof(LightVolumeFrame, tint_color_hither) + 0, offsetof(LightVolumeFrame, tint_color_hither) + 4,
+                offsetof(LightVolumeFrame, tint_color_hither) + 8, offsetof(LightVolumeFrame, tint_color_hither) + 12,
+                offsetof(LightVolumeFrame, tint_color_yon) + 0, offsetof(LightVolumeFrame, tint_color_yon) + 4,
+                offsetof(LightVolumeFrame, tint_color_yon) + 8, offsetof(LightVolumeFrame, tint_color_yon) + 12,
+                offsetof(LightVolumeFrame, tint_color_exponent), offsetof(LightVolumeFrame, brightness_exponent),
             };
+            LightVolumeFrame *scratch = reinterpret_cast<LightVolumeFrame *>(object_marker_scratch);
             int i;
             for (i = 0; i < 16; i++) {
-                float v = *(float *)(source + offsets[i]);
+                float v = halo::raw_at<float>(source, k_blended_offsets[i]);
 
-                *(float *)(object_marker_scratch + offsets[i]) = weight * v + inv * v;
+                halo::raw_at<float>(scratch, k_blended_offsets[i]) = weight * v + inv * v;
             }
         }
     }
-    return object_marker_scratch;
+    return reinterpret_cast<LightVolumeFrame *>(object_marker_scratch);
 }

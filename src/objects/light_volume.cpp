@@ -1,3 +1,5 @@
+#include "halo/tags/flags.hpp"
+#include "halo/core/flag_bits.hpp"
 #include "halo/objects/record_access.hpp"
 #include "halo/objects/light_volume.hpp"
 #include "halo/core/lcg.hpp"
@@ -99,7 +101,7 @@ datum_index halo::objects::LightVolumeSystem::create(datum_index definition_tag)
     datum_index index = halo::memory::datum_new(light_volume_instances);
 
     if (index != k_datum_index_none) {
-        *(datum_index *)((uint8_t *)datum_try_get(light_volume_instances, index) + 4) = definition_tag;
+        static_cast<effect_widget_instance *>(datum_try_get(light_volume_instances, index))->definition_tag = definition_tag;
     }
     return index;
 }
@@ -118,10 +120,6 @@ void halo::objects::LightVolumeSystem::destroy(datum_index light_volume_index)
     }
 }
 
-namespace {
-static uint8_t * &light_volume_instances__as_light_volume_render = reinterpret_cast<uint8_t * &>(light_volume_instances);
-}
-
 /**
  * Widget render hook for a light volume.
  *
@@ -133,43 +131,27 @@ static uint8_t * &light_volume_instances__as_light_volume_render = reinterpret_c
 void halo::objects::LightVolumeSystem::render(uint32_t object_index, datum_index light_volume_handle, uint32_t unused,
     uint8_t *function_context)
 {
-    uint8_t *instance;
-
     if (object_index == k_datum_index_none || light_volume_handle == k_datum_index_none) {
         return;
     }
 
-    {
-        int16_t index = (int16_t)light_volume_handle;
-        instance = 0;
-
-        if (index >= 0 && index < *(int16_t *)(light_volume_instances__as_light_volume_render + 0x2e)) {
-            int32_t off = *(int16_t *)(light_volume_instances__as_light_volume_render + 0x22) * index;
-            int16_t identifier = *(int16_t *)(off + *(int32_t *)(light_volume_instances__as_light_volume_render + 0x34));
-            int16_t salt = (int16_t)(light_volume_handle >> 16);
-
-            off = off + *(int32_t *)(light_volume_instances__as_light_volume_render + 0x34);
-            if (identifier != 0 && (salt == 0 || salt == identifier)) {
-                instance = (uint8_t *)off;
-            }
-        }
-    }
+    effect_widget_instance *instance = static_cast<effect_widget_instance *>(datum_try_get(light_volume_instances, light_volume_handle));
 
     {
-        uint8_t *tag = halo::objects::tag_record_bytes(*(uint32_t *)(instance + 4));
+        LightVolume *tag = halo::objects::tag_as<LightVolume>(instance->definition_tag);
 
-        if (*(int16_t *)(tag + 0x6e) > 0 && *(int32_t *)(tag + 0x120) > 0 &&
-            (*(int16_t *)(tag + 0x44) == 0 || function_context == 0 ||
-             *(float *)(*(int32_t *)(function_context + 4) - 4 + *(int16_t *)(tag + 0x44) * 4) > 0.0f)) {
+        if (tag->count > 0 && tag->frames.count > 0 &&
+            (tag->brightness_scale_source == 0 || function_context == 0 ||
+             *(float *)(*(int32_t *)(function_context + 4) - 4 + tag->brightness_scale_source * 4) > 0.0f)) {
             object_marker marker;
 
-            halo::objects::object_get_node_local_transform(object_index, (char *)tag, &marker, 1);
+            halo::objects::object_get_node_local_transform(object_index, tag->attachment_marker.string, &marker, 1);
 
-            if (*(float *)(tag + 0x38) == 0.0f ||
+            if (tag->far_fade_distance == 0.0f ||
                 camera_forward_y * (marker.node_transform.position.y - camera_position_y) +
                 camera_forward_x * (marker.node_transform.position.x - render_camera_global) +
                 camera_forward_z * (marker.node_transform.position.z - camera_position_z) <
-                *(float *)(tag + 0x38)) {
+                tag->far_fade_distance) {
 
                 halo::rasterizer::rasterizer_lens_flare_occlusion_sample_add((void *)halo::objects::light_volume_render_procedure,
                     &marker.node_transform.position, object_index, light_volume_handle);
@@ -179,7 +161,6 @@ void halo::objects::LightVolumeSystem::render(uint32_t object_index, datum_index
 }
 
 namespace {
-static uint8_t * &light_volume_instances__as_light_volume_render_procedure = reinterpret_cast<uint8_t * &>(light_volume_instances);
 static float clamp01(float value)
 {
     if (value < 0.0f) {
@@ -201,9 +182,9 @@ static float clamp01(float value)
  */
 void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, datum_index light_volume_handle)
 {
-    uint8_t *instance = 0;
-    uint8_t *tag;
-    uint8_t *frame;
+    effect_widget_instance *instance;
+    LightVolume *tag;
+    LightVolumeFrame *frame;
     object_marker marker;
     real_vector3d *forward;
     real_point3d *origin;
@@ -215,25 +196,13 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
     if (object_index == k_datum_index_none || light_volume_handle == k_datum_index_none) {
         return;
     }
-    {
-        int16_t index = (int16_t)light_volume_handle;
-        int16_t salt = (int16_t)(light_volume_handle >> 16);
-
-        if (index >= 0 && index < *(int16_t *)(light_volume_instances__as_light_volume_render_procedure + 0x2e)) {
-            uint8_t *slot = *(uint8_t **)(light_volume_instances__as_light_volume_render_procedure + 0x34) +
-                *(int16_t *)(light_volume_instances__as_light_volume_render_procedure + 0x22) * index;
-
-            if (*(int16_t *)slot != 0 && (salt == 0 || salt == *(int16_t *)slot)) {
-                instance = slot;
-            }
-        }
-    }
-    tag = halo::objects::tag_record_bytes(*(uint32_t *)(instance + 4));
-    if (*(int16_t *)(tag + 0x6e) <= 0 || *(int32_t *)(tag + 0x120) <= 0) {
+    instance = static_cast<effect_widget_instance *>(datum_try_get(light_volume_instances, light_volume_handle));
+    tag = halo::objects::tag_as<LightVolume>(instance->definition_tag);
+    if (tag->count <= 0 || tag->frames.count <= 0) {
         return;
     }
     frame = halo::objects::object_attachment_get_blended_marker(object_index, tag);
-    halo::objects::object_get_node_local_transform(object_index, (char *)tag, &marker, 1);
+    halo::objects::object_get_node_local_transform(object_index, tag->attachment_marker.string, &marker, 1);
     forward = &marker.node_transform.forward;
     origin = &marker.node_transform.position;
 
@@ -241,39 +210,39 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
     if (facing < 0.0f) {
         facing = -facing;
     }
-    if (*(float *)(tag + 0x38) > 0.0f) {
+    if (tag->far_fade_distance > 0.0f) {
         float distance = (origin->z - camera_position_z) * camera_forward_z +
             (origin->x - render_camera_global) * camera_forward_x + camera_forward_y * (origin->y - camera_position_y);
 
-        fade = clamp01((distance - *(float *)(tag + 0x38)) / (*(float *)(tag + 0x34) - *(float *)(tag + 0x38)));
+        fade = clamp01((distance - tag->far_fade_distance) / (tag->near_fade_distance - tag->far_fade_distance));
     }
-    brightness = clamp01((1.0f - facing) * *(float *)(tag + 0x3c) + facing * *(float *)(tag + 0x40)) * fade;
-    if (halo::objects::object_function_get_value(object_index, (int16_t)(*(uint16_t *)(tag + 0x44) - 1), &function_value)) {
+    brightness = clamp01((1.0f - facing) * tag->perpendicular_brightness_scale + facing * tag->parallel_brightness_scale) * fade;
+    if (halo::objects::object_function_get_value(object_index, (int16_t)(tag->brightness_scale_source - 1), &function_value)) {
         brightness *= function_value;
     }
     if (brightness <= 0.0f) {
         return;
     }
-    if (*(float *)(frame + 0x68) <= 0.0f && *(float *)(frame + 0x78) <= 0.0f) {
+    if (frame->tint_color_hither.alpha <= 0.0f && frame->tint_color_yon.alpha <= 0.0f) {
         return;
     }
-    if (*(float *)(frame + 0x3c) <= 0.0f && *(float *)(frame + 0x40) <= 0.0f) {
+    if (frame->radius_hither <= 0.0f && frame->radius_yon <= 0.0f) {
         return;
     }
 
     halo::rasterizer::rasterizer_lens_flare_batching_select_mode(5, 1);
-    if (halo::render::rasterizer_lens_flare_set_current_key(*(int32_t *)(tag + 0x68), 0, (int16_t)*(uint16_t *)(tag + 0x6c)) == 0 &&
-        *(int16_t *)(tag + 0x6e) > 0) {
-        int16_t count = *(int16_t *)(tag + 0x6e);
+    if (halo::render::rasterizer_lens_flare_set_current_key(halo::objects::tag_handle(tag->map), 0, (int16_t)tag->sequence_index) == 0 &&
+        tag->count > 0) {
+        int16_t count = tag->count;
         float last = (float)(count - 1);
         int32_t i;
 
         for (i = 0; i < count; i++) {
-            float t = halo::objects::curve_apply_exponent((float)i / last, *(float *)(frame + 0x14));
-            float radius_t = halo::objects::curve_apply_exponent(t, *(float *)(frame + 0x44));
-            float radius = (1.0f - radius_t) * *(float *)(frame + 0x3c) + radius_t * *(float *)(frame + 0x40);
-            float alpha_t = halo::objects::curve_apply_exponent(t, *(float *)(frame + 0x8c));
-            float along = t * *(float *)(frame + 0x18) + *(float *)(frame + 0x10);
+            float t = halo::objects::curve_apply_exponent((float)i / last, frame->offset_exponent);
+            float radius_t = halo::objects::curve_apply_exponent(t, frame->radius_exponent);
+            float radius = (1.0f - radius_t) * frame->radius_hither + radius_t * frame->radius_yon;
+            float alpha_t = halo::objects::curve_apply_exponent(t, frame->brightness_exponent);
+            float along = t * frame->length + frame->offset_from_marker;
             real_point3d point;
             ColorARGB color;
             float color_t;
@@ -281,10 +250,10 @@ void halo::objects::LightVolumeSystem::render_procedure(uint32_t object_index, d
             point.x = forward->i * along + origin->x;
             point.y = forward->j * along + origin->y;
             point.z = forward->k * along + origin->z;
-            color_t = halo::objects::curve_apply_exponent(t, *(float *)(frame + 0x88));
-            halo::bitmaps::color_interpolate((ColorRGB *)(frame + 0x7c), (ColorRGB *)(frame + 0x6c), (ColorRGB *)&color.red,
-                (color_interpolation_flags)(tag[0x22] & 3), color_t);
-            color.alpha = ((1.0f - alpha_t) * *(float *)(frame + 0x68) + alpha_t * *(float *)(frame + 0x78)) *
+            color_t = halo::objects::curve_apply_exponent(t, frame->tint_color_exponent);
+            halo::bitmaps::color_interpolate((ColorRGB *)(reinterpret_cast<uint8_t *>(frame) + 0x7c), (ColorRGB *)(reinterpret_cast<uint8_t *>(frame) + 0x6c), (ColorRGB *)&color.red,
+                (color_interpolation_flags)(tag->flags & 3), color_t);
+            color.alpha = ((1.0f - alpha_t) * frame->tint_color_hither.alpha + alpha_t * frame->tint_color_yon.alpha) *
                 brightness;
             halo::rasterizer::rasterizer_lens_flare_quad_add(0, halo::interface::color_pack_argb_from_real(&color), &point, radius, 0.0f);
         }
@@ -345,7 +314,7 @@ datum_index halo::objects::LightningSystem::create(datum_index definition_tag)
     datum_index index = halo::memory::datum_new(lightning_instances);
 
     if (index != k_datum_index_none) {
-        *(datum_index *)((uint8_t *)datum_try_get(lightning_instances, index) + 4) = definition_tag;
+        static_cast<effect_widget_instance *>(datum_try_get(lightning_instances, index))->definition_tag = definition_tag;
     }
     return index;
 }
@@ -365,7 +334,6 @@ void halo::objects::LightningSystem::destroy(datum_index lightning_index)
 }
 
 namespace {
-static uint8_t * &lightning_instances__as_lightning_render = reinterpret_cast<uint8_t * &>(lightning_instances);
 static uint32_t (*const color_pack_argb_from_real__as_lightning_render)(float *argb) = reinterpret_cast<uint32_t (*)(float *argb)>(&halo::interface::color_pack_argb_from_real);
 static float glow_random_unit_for_lightning(void)
 {
@@ -385,37 +353,26 @@ static float glow_random_unit_for_lightning(void)
 void halo::objects::LightningSystem::render(uint32_t object_index, datum_index lightning_handle, uint32_t unused,
     int32_t *function_context)
 {
-    uint8_t *tag;
+    Lightning *tag;
 
     if (object_index == k_datum_index_none || lightning_handle == k_datum_index_none) {
         return;
     }
 
     {
-        int16_t index = (int16_t)lightning_handle;
-        uint8_t *instance = 0;
+        effect_widget_instance *instance = static_cast<effect_widget_instance *>(datum_try_get(lightning_instances, lightning_handle));
 
-        if (index >= 0 && index < *(int16_t *)(lightning_instances__as_lightning_render + 0x2e)) {
-            int32_t off = *(int16_t *)(lightning_instances__as_lightning_render + 0x22) * index;
-            int16_t identifier = *(int16_t *)(off + *(int32_t *)(lightning_instances__as_lightning_render + 0x34));
-            int16_t salt = (int16_t)(lightning_handle >> 16);
-
-            off = off + *(int32_t *)(lightning_instances__as_lightning_render + 0x34);
-            if (identifier != 0 && (salt == 0 || salt == identifier)) {
-                instance = (uint8_t *)off;
-            }
-        }
-        tag = halo::objects::tag_record_bytes(*(uint32_t *)(instance + 4));
+        tag = halo::objects::tag_as<Lightning>(instance->definition_tag);
     }
 
-    if (*(int32_t *)(tag + 0x98) <= 0) {
+    if (tag->markers.count <= 0) {
         return;
     }
 
     {
         object_marker root_marker;
         int16_t markers_ok = (int16_t)halo::objects::object_get_node_local_transform(
-            object_index, (char *)*(uint32_t *)(tag + 0x9c), &root_marker, 1);
+            object_index, halo::objects::block_elements<LightningMarker>(tag->markers)->attachment_marker.string, &root_marker, 1);
         if (markers_ok <= 0) {
             return;
         }
@@ -423,14 +380,14 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
 
     {
         uint32_t shader_something = *(uint32_t *)(
-            halo::objects::tag_record_bytes(*(uint32_t *)(tag + 0x40)) + 100);
+            halo::objects::tag_record_bytes(halo::objects::tag_handle(tag->bitmap)) + 100);
         int32_t device = (int32_t)(uintptr_t)halo::cache::texture_cache_get((BitmapData *)(uintptr_t)shader_something, 0, 1);
 
         int16_t shard;
         if (device == 0) {
             return;
         }
-        for (shard = 0; shard < *(int16_t *)(tag + 2); shard++) {
+        for (shard = 0; shard < tag->count; shard++) {
 
             static float verts[32776];
 
@@ -440,19 +397,19 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
             int32_t marker_index;
 
             if (function_context != 0 && function_context[1] != 0) {
-                int16_t sel = *(int16_t *)(tag + 0x2c);
+                int16_t sel = tag->jitter_scale_source;
                 if (sel > 0 && sel < 5) {
                     brightness_scale = *(float *)(function_context[1] - 4 + sel * 4);
                 }
             }
 
-            for (marker_index = 0; marker_index < *(int32_t *)(tag + 0x98); marker_index++) {
-                uint8_t *marker_tag = *(uint8_t **)(tag + 0x9c) + marker_index * 0xe4;
+            for (marker_index = 0; marker_index < tag->markers.count; marker_index++) {
+                LightningMarker *marker_tag = &halo::objects::block_element<LightningMarker>(tag->markers, marker_index);
 
                 if (first_marker) {
                     object_marker m;
                     real_point3d pos;
-                    halo::objects::object_get_node_local_transform(object_index, (char *)marker_tag, &m, 1);
+                    halo::objects::object_get_node_local_transform(object_index, marker_tag->attachment_marker.string, &m, 1);
                     pos = m.node_transform.position;
                     verts[1] = pos.y;
                     verts[2] = pos.z;
@@ -462,26 +419,26 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                     first_marker = 0;
                 }
 
-                if ((marker_tag[0x20] & 1) == 0 && marker_index != *(int32_t *)(tag + 0x98) - 1) {
-                    uint16_t octaves = *(uint16_t *)(marker_tag + 0x24);
-                    uint8_t *next_marker_tag = marker_tag + 0xe4;
+                if (!test_flag(marker_tag->flags, tags::lightning_marker_flag_tag_flag::not_connected_to_next_marker) && marker_index != tag->markers.count - 1) {
+                    uint16_t octaves = marker_tag->octaves_to_next_marker;
+                    LightningMarker *next_marker_tag = reinterpret_cast<LightningMarker *>(reinterpret_cast<uint8_t *>(marker_tag) + 0xe4);
                     object_marker m;
                     real_point3d pos;
                     int32_t base = node_count;
                     int32_t end = base + (1 << (octaves & 0x1f));
 
-                    halo::objects::object_get_node_local_transform(object_index, (char *)next_marker_tag, &m, 1);
+                    halo::objects::object_get_node_local_transform(object_index, next_marker_tag->attachment_marker.string, &m, 1);
                     pos = m.node_transform.position;
 
                     verts[end * 8 + 0] = pos.x;
                     verts[end * 8 + 1] = pos.y;
                     verts[end * 8 + 2] = pos.z;
                     halo::objects::antenna_tip_jitter((real_vector3d *)((uint8_t *)&m + 0x1c), &pos, &m.node_transform);
-                    verts[end * 8 + 3] = *(float *)(next_marker_tag + 0x84);
-                    verts[end * 8 + 4] = *(float *)(next_marker_tag + 0x88);
-                    verts[end * 8 + 5] = *(float *)(next_marker_tag + 0x8c);
-                    verts[end * 8 + 6] = *(float *)(next_marker_tag + 0x90);
-                    verts[end * 8 + 7] = *(float *)(next_marker_tag + 0x94);
+                    verts[end * 8 + 3] = next_marker_tag->thickness;
+                    verts[end * 8 + 4] = next_marker_tag->tint.alpha;
+                    verts[end * 8 + 5] = next_marker_tag->tint.red;
+                    verts[end * 8 + 6] = next_marker_tag->tint.green;
+                    verts[end * 8 + 7] = next_marker_tag->tint.blue;
 
                     {
                         real_vector3d axis;
@@ -495,7 +452,7 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                         }
 
                     }
-                    node_count = node_count + (1 << (marker_tag[0x24] & 0x1f));
+                    node_count = node_count + (1 << (marker_tag->octaves_to_next_marker & 0x1f));
                 } else {
                     halo::rasterizer::globals().vertex_buffer_lock_state = 0xc;
                     if (node_count > 2) {
@@ -512,13 +469,13 @@ void halo::objects::LightningSystem::render(uint32_t object_index, datum_index l
                             if (function_context != 0) {
                                 int32_t p1 = function_context[1];
                                 int16_t s;
-                                if (p1 != 0 && (s = *(int16_t *)(tag + 0x2e)) > 0 && s < 5) {
+                                if (p1 != 0 && (s = tag->thickness_scale_source) > 0 && s < 5) {
                                     alpha_scale = *(float *)(p1 - 4 + s * 4);
                                 }
-                                if (function_context[0] != 0 && (s = *(int16_t *)(tag + 0x30)) > 0 && s < 5) {
+                                if (function_context[0] != 0 && (s = tag->tint_modulation_source) > 0 && s < 5) {
                                     color_scale = (real_vector3d *)(function_context[0] - 0xc + s * 0xc);
                                 }
-                                if (p1 != 0 && (s = *(int16_t *)(tag + 0x32)) > 0 && s < 5) {
+                                if (p1 != 0 && (s = tag->brightness_scale_source) > 0 && s < 5) {
                                     color_scale_extra = *(float *)(p1 - 4 + s * 4);
                                 }
                             }

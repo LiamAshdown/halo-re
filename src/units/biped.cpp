@@ -698,11 +698,11 @@ tail:
  *
  * @address 0x55eaa0
  */
-void halo::units::biped_update_animation_frame_trigger(float threshold, uint8_t *timing_table, object *object_base)
+void halo::units::biped_update_animation_frame_trigger(float threshold, const Biped *timing_table, object *object_base)
 {
     biped_object *biped = reinterpret_cast<biped_object *>(object_base);
-    float t0 = *(float *)(timing_table + 0x3dc) * 0.033333335f;
-    float t1 = *(float *)(timing_table + 0x3e0) * 0.033333335f;
+    float t0 = timing_table->minimum_soft_landing_velocity * 0.033333335f;
+    float t1 = timing_table->minimum_hard_landing_velocity * 0.033333335f;
     float numerator;
     float span;
     float value;
@@ -715,12 +715,12 @@ void halo::units::biped_update_animation_frame_trigger(float threshold, uint8_t 
     if (!(threshold >= t1)) {
         numerator = threshold - t0;
         span = t1 - t0;
-        value = *(float *)(timing_table + 0x3d4);
+        value = timing_table->maximum_soft_landing_time;
         phase = 0;
     } else {
         numerator = threshold;
-        span = *(float *)(timing_table + 0x3e4) * 0.033333335f - t1;
-        value = *(float *)(timing_table + 0x3d8);
+        span = timing_table->maximum_hard_landing_velocity * 0.033333335f - t1;
+        value = timing_table->maximum_hard_landing_time;
         phase = 1;
     }
     value = value * 30.0f;

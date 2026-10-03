@@ -2498,9 +2498,9 @@ void light_volume_delete(datum_index light_volume_index)
  *
  * @address 0x004fe740
  */
-uint8_t * object_attachment_get_blended_marker(uint32_t object_index, uint8_t *instance)
+LightVolumeFrame *object_attachment_get_blended_marker(uint32_t object_index, const LightVolume *tag)
 {
-    return halo::objects::ObjectRef(object_index).attachment_get_blended_marker(instance);
+    return halo::objects::ObjectRef(object_index).attachment_get_blended_marker(tag);
 }
 
 /**

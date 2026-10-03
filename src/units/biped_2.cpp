@@ -404,7 +404,7 @@ step_crouch:
     biped->ground_plane_distance = solve.ground_plane;
 
     if (0.0f < solve.result_impact_speed) {
-        ::halo::units::biped_update_animation_frame_trigger(solve.result_impact_speed, (uint8_t *)tag, obj);
+        ::halo::units::biped_update_animation_frame_trigger(solve.result_impact_speed, tag, obj);
     }
 
     if ((solve.flags & _biped_movement_solver_flying) == 0 && !test_flag(biped->flags, units::biped_flag::airborne)) {
@@ -818,7 +818,7 @@ step_crouch:
     biped->ground_plane_distance = solve.ground_plane;
 
     if (0.0f < solve.result_impact_speed) {
-        ::halo::units::biped_update_animation_frame_trigger(solve.result_impact_speed, (uint8_t *)tag, obj);
+        ::halo::units::biped_update_animation_frame_trigger(solve.result_impact_speed, tag, obj);
     }
     if ((result_flags & _biped_movement_result_landed) == 0) {
         UnitView(object_index).track_target_lock_timeout();
