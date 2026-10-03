@@ -286,7 +286,7 @@ void HudNameplates::update_teammate_nameplate_fade()
  * blam-cc: CX -> row, stack -> text, column (original stack order)
  * Draws `text` right-aligned near the top of the screen, `row` line-heights (0x12 px) down from
  * a 0x1a px top margin, using the shared 16-bit text drawing state (`column` selects which of
- * several preset color/size slots that state holds -- see the UNSURE above).
+ * several preset color/size slots that state holds).
  *
  * @address 0x45d670
  */

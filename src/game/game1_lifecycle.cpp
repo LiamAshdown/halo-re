@@ -182,7 +182,7 @@ void Lifecycle::dispose(void)
  * After a structure-BSP switch, attempts to give every player without a unit a valid unit and attach it to the
  * new BSP's parent object, retrying as needed.
  *
- * Original register convention: stack -> param; UNSURE purpose.
+ * The candidate parent is the player's own unit when its root is a grounded vehicle, as in retail.
  *
  * @address 0x473e90
  */
@@ -250,7 +250,11 @@ uint8_t Lifecycle::attach_players_to_new_bsp(void)
                         if (vehicle->airborne_ticks != 0) {
                             local_player_globals->mode = 3;
                             root = best_root;
+                        } else {
+                            root = unit_handle;
                         }
+                    } else {
+                        root = unit_handle;
                     }
                 }
             }

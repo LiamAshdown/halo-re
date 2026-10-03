@@ -86,7 +86,6 @@ namespace halo::game {
  * C entry point for halo::game::LocalPlayerUnit::apply_starting_profile; forwards to the C++ implementation.
  * register convention: EAX -> starting_profile_index, ECX -> unit_handle, stack -> reset_stats.
  * // blam-cc: EAX -> starting_profile_index, ECX -> unit_handle
- * blam-cc: EAX -> unit_handle; UNSURE full behavior (resets vitality when reset_stats is set)
  * blam-cc: ESI -> weapon_tag, stack -> owner_unit_handle;
  * blam-cc: EAX -> starting_profile_index, ECX -> unit_handle, stack -> reset_stats
  *
