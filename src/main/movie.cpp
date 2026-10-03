@@ -27,6 +27,7 @@
 #include "halo/saved_games/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/main/vars.hpp"
+#include "halo/main/api.hpp"
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);
 namespace halo::main {

@@ -34,6 +34,7 @@
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "halo/ai/api.hpp"
 static auto &network_game_messages_group = halo::link::ref<data_packet_group>(halo::networking::vars().network_game_messages_group);
 
 static auto &object_type_definitions = halo::link::ref<void *[12]>(halo::game::vars().object_type_definitions);

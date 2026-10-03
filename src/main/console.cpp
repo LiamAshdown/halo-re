@@ -41,6 +41,7 @@
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/shell/standalone.hpp"
+#include "halo/networking/api.hpp"
 
 
 namespace halo::main {

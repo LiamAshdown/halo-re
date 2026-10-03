@@ -16,6 +16,8 @@
 #include "halo/networking/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "halo/main/api.hpp"
+#include "halo/units/api.hpp"
 
 static auto &network_object_index_cache = halo::link::ref<uint8_t []>(halo::units::vars().network_object_index_cache);
 static auto &network_buffer_pair_pool = halo::link::ref<int32_t>(halo::main::vars().network_buffer_pair_pool);

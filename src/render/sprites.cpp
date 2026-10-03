@@ -35,6 +35,9 @@
 #include "halo/render/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/game/api.hpp"
+#include "halo/networking/api.hpp"
+#include "halo/units/api.hpp"
 
 static_assert(offsetof(first_person_weapon_interface, node_matrices) == 0x108c);
 static_assert(sizeof(real_matrix4x3) == 0x34);

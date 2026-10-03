@@ -5,6 +5,7 @@
 
 #include "halo/interface/vars.hpp"
 #include "link/interface_vars.hpp"
+#include "halo/interface/api.hpp"
 
 namespace halo::ui {
 

@@ -24,6 +24,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/physics/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &global_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_collision_bsp);
 static auto &global_down3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_down3d_pointer);

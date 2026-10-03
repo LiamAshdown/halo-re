@@ -10,6 +10,8 @@
 #include "halo/items/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/game/api.hpp"
+#include "halo/units/api.hpp"
 
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 static auto &weapon_network_update_position_tolerance = halo::link::ref<real>(halo::items::vars().weapon_network_update_position_tolerance);

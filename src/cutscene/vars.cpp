@@ -5,6 +5,7 @@
 
 #include "halo/cutscene/vars.hpp"
 #include "link/cutscene_vars.hpp"
+#include "halo/cutscene/api.hpp"
 
 namespace halo::cutscene {
 

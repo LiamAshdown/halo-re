@@ -12,6 +12,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/effects/vars.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &weather_particle_system_count = halo::link::ref<int16_t>(halo::effects::vars().weather_particle_system_count);
 static auto &weather_wind_states = halo::link::ref<weather_particle_system_state [8]>(halo::effects::vars().weather_wind_states);

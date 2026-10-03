@@ -28,6 +28,7 @@
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
 #include <string.h>
+#include "halo/hs/api.hpp"
 
 static auto &global_zero_vector3d_pointer = halo::link::ref<const real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);

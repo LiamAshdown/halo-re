@@ -30,6 +30,7 @@
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/main/api.hpp"
 
 static auto &local_player_name_filter = halo::link::ref<uint16_t [0x400]>(halo::game::vars().local_player_name_filter);
 static auto &player_update_log_categories_default = halo::link::ref<uint32_t>(halo::networking::vars().player_update_log_categories_default);

@@ -21,6 +21,8 @@
 #include "halo/saved_games/vars.hpp"
 #include "halo/shell/vars.hpp"
 #include "halo/hs/vars.hpp"
+#include "halo/effects/api.hpp"
+#include "halo/shell/api.hpp"
 
 static auto &main_globals_byte_0071973d = halo::link::ref<uint8_t>(halo::hs::vars().main_globals_byte_0071973d);
 static auto &main_globals_byte_0071973e = halo::link::ref<uint8_t>(halo::hs::vars().main_globals_byte_0071973e);

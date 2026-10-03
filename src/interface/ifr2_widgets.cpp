@@ -22,6 +22,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/ai/api.hpp"
 
 #ifdef interface
 #undef interface

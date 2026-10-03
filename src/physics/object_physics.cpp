@@ -30,6 +30,7 @@
 #include "halo/physics/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/ai/api.hpp"
 
 
 namespace halo::physics {

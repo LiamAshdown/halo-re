@@ -5,6 +5,7 @@
 
 #include "halo/saved_games/vars.hpp"
 #include "link/saved_games_vars.hpp"
+#include "halo/saved_games/api.hpp"
 
 namespace halo::saved_games {
 

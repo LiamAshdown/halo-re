@@ -5,6 +5,7 @@
 
 #include "halo/sound/vars.hpp"
 #include "link/sound_vars.hpp"
+#include "halo/sound/api.hpp"
 
 namespace halo::sound {
 

@@ -12,6 +12,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/rasterizer/vars.hpp"
 #include "halo/shell/standalone.hpp"
+#include "halo/shell/api.hpp"
 
 static auto &rasterizer_window = halo::link::ref<uint8_t []>(halo::rasterizer::vars().rasterizer_window);
 static auto &first_person_weapon_interfaces = halo::link::ref<first_person_weapon_interface *>(halo::ui::vars().first_person_weapon_interfaces);

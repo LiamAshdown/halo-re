@@ -27,6 +27,8 @@
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/camera/api.hpp"
+#include "halo/networking/api.hpp"
 
 static auto &chat_window_default_x = halo::link::ref<int32_t>(halo::ui::vars().chat_window_default_x);
 static auto &chat_window_default_y = halo::link::ref<int32_t>(halo::ui::vars().chat_window_default_y);

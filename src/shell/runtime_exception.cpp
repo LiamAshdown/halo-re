@@ -2,6 +2,7 @@
 #include "halo/shell/layout.hpp"
 #include "halo/core/link.hpp"
 #include "halo/shell/vars.hpp"
+#include "halo/shell/api.hpp"
 
 static auto &std_exception_vtable = halo::link::ref<void *>(halo::shell::vars().std_exception_vtable);
 static auto &length_error_vtable = halo::link::ref<void *>(halo::shell::vars().length_error_vtable);

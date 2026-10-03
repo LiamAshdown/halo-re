@@ -4,6 +4,7 @@
 #include "halo/shell/layout.hpp"
 #include "halo/core/link.hpp"
 #include "halo/shell/vars.hpp"
+#include "halo/shell/api.hpp"
 
 static auto &hwreq_quoted_string = halo::link::ref<char [k_hwreq_quoted_string_length]>(halo::shell::vars().hwreq_quoted_string);
 

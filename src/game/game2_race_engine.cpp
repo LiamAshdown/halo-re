@@ -17,6 +17,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &game_engine_variant = halo::link::ref<game_variant>(halo::game::vars().game_engine_variant);

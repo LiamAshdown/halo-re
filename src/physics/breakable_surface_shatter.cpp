@@ -27,6 +27,9 @@
 #include "halo/game/vars.hpp"
 #include "halo/physics/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/ai/api.hpp"
+#include "halo/game/api.hpp"
+#include "halo/physics/api.hpp"
 
 static auto &breakable_surfaces_enabled = halo::link::ref<uint8_t>(halo::physics::vars().breakable_surfaces_enabled);
 static auto &global_structure_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_structure_collision_bsp);

@@ -13,6 +13,7 @@
 #include "halo/core/link.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/units/api.hpp"
 
 static auto &ground_adjust_physics_model = halo::link::ref<physics_model>(halo::units::vars().ground_adjust_physics_model);
 static auto &unit_ground_adjust_node_positions = halo::link::ref<real_point3d [64]>(halo::units::vars().unit_ground_adjust_node_positions);

@@ -8,6 +8,7 @@
 #include "halo/core/link.hpp"
 #include "halo/effects/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/effects/api.hpp"
 
 static auto &player_control_globals_ptr = halo::link::ref<player_control_globals *>(halo::game::vars().player_control_globals_ptr);
 static auto &player_effect_globals_pointer = halo::link::ref<uint8_t *>(halo::effects::vars().player_effect_globals_pointer);

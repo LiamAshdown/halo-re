@@ -17,6 +17,7 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/units/api.hpp"
 
 static auto &antenna_data = halo::link::ref<data_array *>(halo::objects::vars().antenna_data);
 static auto &antenna_sprite_shader = halo::link::ref<uint8_t []>(halo::objects::vars().antenna_sprite_shader);

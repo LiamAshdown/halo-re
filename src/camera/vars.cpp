@@ -5,6 +5,7 @@
 
 #include "halo/camera/vars.hpp"
 #include "link/camera_vars.hpp"
+#include "halo/camera/api.hpp"
 
 namespace halo::camera {
 

@@ -10,6 +10,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/effects/vars.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &effect_data = halo::link::ref<data_array *>(halo::effects::vars().effect_data);
 static auto &global_white_color = halo::link::ref<const ColorRGB *>(halo::effects::vars().global_white_color);

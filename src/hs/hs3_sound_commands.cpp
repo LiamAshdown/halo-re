@@ -4,6 +4,7 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/hs/vars.hpp"
+#include "halo/game/api.hpp"
 
 static auto &global_sound_effect_object = halo::link::ref<void *>(halo::game::vars().global_sound_effect_object);
 static auto &directsound_listener = halo::link::ref<void *>(halo::hs::vars().directsound_listener);

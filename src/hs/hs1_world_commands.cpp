@@ -11,6 +11,7 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/physics/vars.hpp"
+#include "halo/physics/api.hpp"
 
 static auto &breakable_surface_state = halo::link::ref<uint8_t *>(halo::physics::vars().breakable_surface_state);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);

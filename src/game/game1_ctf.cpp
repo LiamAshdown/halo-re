@@ -41,6 +41,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &ctf_globals_live = halo::link::ref<ctf_globals>(halo::game::vars().ctf_globals_live);
 static auto &ctf_globals_network = halo::link::ref<ctf_globals>(halo::game::vars().ctf_globals_network);

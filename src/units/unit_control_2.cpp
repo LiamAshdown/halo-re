@@ -12,6 +12,8 @@
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/game/api.hpp"
+#include "halo/units/api.hpp"
 
 static auto &global_zero_vector2d_pointer = halo::link::ref<float *>(halo::units::vars().global_zero_vector2d_pointer);
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);

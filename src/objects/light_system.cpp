@@ -27,6 +27,8 @@
 #include "halo/render/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/effects/api.hpp"
+#include "halo/render/api.hpp"
 
 static auto &game_engine_unknown_aa00 = halo::link::ref<uint8_t>(halo::game::vars().game_engine_unknown_aa00);
 static auto &global_white_color = halo::link::ref<float *>(halo::effects::vars().global_white_color);

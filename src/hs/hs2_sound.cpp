@@ -14,6 +14,7 @@
 #include "halo/hs/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/sound/vars.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &global_sound_effect_object = halo::link::ref<uint8_t *>(halo::game::vars().global_sound_effect_object);
 static auto &sound_effects_gain = halo::link::ref<float>(halo::sound::vars().sound_effects_gain);

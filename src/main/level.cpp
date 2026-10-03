@@ -43,6 +43,7 @@
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include <io.h>
+#include "halo/networking/api.hpp"
 
 
 static auto &main_globals_data = halo::link::ref<main_globals>(halo::main::vars().main_globals_data);

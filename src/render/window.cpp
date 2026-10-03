@@ -38,6 +38,7 @@
 #include "halo/render/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/units/api.hpp"
 
 static auto &sky_animation_times = halo::link::ref<float [9]>(halo::render::vars().sky_animation_times);
 static auto &render_camera_global = halo::link::ref<render_camera>(halo::render::vars().render_camera_global);

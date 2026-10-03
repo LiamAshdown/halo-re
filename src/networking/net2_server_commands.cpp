@@ -31,6 +31,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/saved_games/vars.hpp"
+#include "halo/saved_games/api.hpp"
 
 static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);
 static auto &sv_ban_penalty_arg_buffer = halo::link::ref<char []>(halo::networking::vars().sv_ban_penalty_arg_buffer);

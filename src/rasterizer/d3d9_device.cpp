@@ -6,6 +6,7 @@
 #include "halo/rasterizer/render_device.hpp"
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/game/api.hpp"
 
 static auto &rasterizer_device = halo::link::ref<void *>(halo::game::vars().rasterizer_device);
 

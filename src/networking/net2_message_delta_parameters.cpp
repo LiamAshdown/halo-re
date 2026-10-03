@@ -20,6 +20,8 @@
 #include "halo/hs/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include <stdio.h>
+#include "halo/game/api.hpp"
+#include "halo/hs/api.hpp"
 
 static auto &network_server = halo::link::ref<network_server_globals *>(halo::networking::vars().network_server);
 static auto &message_delta_parameters_enabled = halo::link::ref<uint8_t>(halo::networking::vars().message_delta_parameters_enabled);

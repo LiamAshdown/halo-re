@@ -5,6 +5,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/ai/api.hpp"
 
 float effect_distribution_function_evaluate(EffectDistributionFunction_t type, float fraction);
 void effect_random_direction_from_table(real_point3d *out);

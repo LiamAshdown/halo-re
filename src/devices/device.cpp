@@ -14,6 +14,7 @@
 #include "halo/core/link.hpp"
 #include "halo/devices/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/units/api.hpp"
 
 static auto &device_groups = halo::link::ref<data_array *>(halo::devices::vars().device_groups);
 static auto &global_zero_vector3d_pointer = halo::link::ref<void *>(halo::units::vars().global_zero_vector3d_pointer);

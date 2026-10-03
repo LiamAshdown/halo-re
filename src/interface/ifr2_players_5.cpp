@@ -8,6 +8,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/saved_games/vars.hpp"
 #include "halo/shell/vars.hpp"
+#include "halo/shell/api.hpp"
 
 #ifdef interface
 #undef interface

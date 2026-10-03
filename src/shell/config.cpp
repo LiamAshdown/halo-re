@@ -7,6 +7,9 @@
 #include "halo/main/vars.hpp"
 #include "halo/rasterizer/vars.hpp"
 #include "halo/shell/vars.hpp"
+#include "halo/main/api.hpp"
+#include "halo/rasterizer/api.hpp"
+#include "halo/shell/api.hpp"
 
 static auto &config_maximum_resolution = halo::link::ref<int32_t>(halo::shell::vars().config_maximum_resolution);
 static auto &config_linear_texture_addressing = halo::link::ref<int32_t>(halo::shell::vars().config_linear_texture_addressing);

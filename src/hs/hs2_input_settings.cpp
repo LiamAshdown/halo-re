@@ -12,6 +12,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/hs/vars.hpp"
+#include "halo/main/api.hpp"
 
 
 static auto &player_control_look_rates_0070facc = halo::link::ref<uint8_t []>(halo::hs::vars().player_control_look_rates_0070facc);

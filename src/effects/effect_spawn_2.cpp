@@ -12,6 +12,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/effects/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &particle_spawn_debug_mode = halo::link::ref<uint8_t>(halo::effects::vars().particle_spawn_debug_mode);
 static auto &first_person_weapon_interfaces = halo::link::ref<uint8_t *>(halo::ui::vars().first_person_weapon_interfaces);

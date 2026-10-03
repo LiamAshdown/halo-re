@@ -12,6 +12,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/hs/vars.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &hs_type_sizes = halo::link::ref<int16_t []>(halo::hs::vars().hs_type_sizes);
 static auto &hs_thread_data = halo::link::ref<data_array *>(halo::hs::vars().hs_thread_data);

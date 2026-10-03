@@ -21,6 +21,7 @@
 #include "halo/main/vars.hpp"
 #include "halo/rasterizer/vars.hpp"
 #include "halo/shell/vars.hpp"
+#include "halo/shell/api.hpp"
 
 typedef struct win32_bitmap {
     int32_t type;

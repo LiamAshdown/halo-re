@@ -22,6 +22,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/physics/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/game/api.hpp"
 
 
 namespace halo::physics {

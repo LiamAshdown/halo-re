@@ -9,6 +9,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/core/x87.hpp"
 #include <string.h>
+#include "halo/ai/api.hpp"
 
 static auto &global_origin3d_pointer = halo::link::ref<void *>(halo::ai::vars().global_origin3d_pointer);
 

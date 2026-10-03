@@ -35,6 +35,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include <stdlib.h>
+#include "halo/effects/api.hpp"
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &current_game_engine = halo::link::ref<game_engine_definition *>(halo::game::vars().current_game_engine);

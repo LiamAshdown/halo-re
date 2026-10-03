@@ -14,6 +14,8 @@
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "halo/game/api.hpp"
+#include "halo/main/api.hpp"
 
 static auto &network_disconnect_timeout_flag = halo::link::ref<uint8_t>(halo::networking::vars().network_disconnect_timeout_flag);
 static auto &network_client = halo::link::ref<network_client_globals *>(halo::networking::vars().network_client);

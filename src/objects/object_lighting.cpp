@@ -14,6 +14,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/objects/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/game/api.hpp"
 
 static auto &default_axis_b = halo::link::ref<real_vector3d *>(halo::game::vars().default_axis_b);
 static auto &light_data = halo::link::ref<data_array *>(halo::objects::vars().light_data);

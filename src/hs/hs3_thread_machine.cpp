@@ -11,6 +11,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/hs/vars.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &hs_type_conversion_procedures = halo::link::ref<int32_t (*[k_hs_type_count][k_hs_type_count])(int32_t value)>(halo::hs::vars().hs_type_conversion_procedures);

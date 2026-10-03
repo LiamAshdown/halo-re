@@ -35,6 +35,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &machine_table = halo::link::ref<network_id_table *>(halo::game::vars().machine_table);
 static auto &game_engine_attribute_enabled = halo::link::ref<uint8_t>(halo::game::vars().game_engine_attribute_enabled);

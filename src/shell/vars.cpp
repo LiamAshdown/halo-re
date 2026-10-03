@@ -5,6 +5,7 @@
 
 #include "halo/shell/vars.hpp"
 #include "link/shell_vars.hpp"
+#include "halo/shell/api.hpp"
 
 namespace halo::shell {
 

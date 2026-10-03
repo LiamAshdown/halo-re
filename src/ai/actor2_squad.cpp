@@ -17,6 +17,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/networking/api.hpp"
 
 namespace halo::ai {
 

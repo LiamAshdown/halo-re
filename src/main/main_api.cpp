@@ -44,6 +44,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
+#include "halo/game/api.hpp"
 
 static auto &main_game_globals = halo::link::ref<game_main_globals *>(halo::game::vars().main_game_globals);
 static auto &main_menu_music_pending = halo::link::ref<uint8_t>(halo::main::vars().main_menu_music_pending);

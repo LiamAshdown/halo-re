@@ -12,6 +12,7 @@
 #include "halo/hs/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "halo/game/api.hpp"
 
 static auto &hs_autocomplete_maximum_count = halo::link::ref<int16_t>(halo::hs::vars().hs_autocomplete_maximum_count);
 static auto &hs_autocomplete_prefix = halo::link::ref<char *>(halo::hs::vars().hs_autocomplete_prefix);

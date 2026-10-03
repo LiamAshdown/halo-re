@@ -6,6 +6,7 @@
 #include "halo/core/link.hpp"
 #include "halo/effects/vars.hpp"
 #include "halo/render/vars.hpp"
+#include "halo/render/api.hpp"
 
 static auto &weather_enabled = halo::link::ref<uint8_t>(halo::effects::vars().weather_enabled);
 static auto &weather_instances = halo::link::ref<weather_instance [1]>(halo::effects::vars().weather_instances);

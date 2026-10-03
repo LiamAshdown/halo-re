@@ -22,6 +22,7 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/game/api.hpp"
 
 static auto &console_echo_prefix = halo::link::ref<char []>(halo::ui::vars().console_echo_prefix);
 static auto &console_rcon_out_reentrant_guard = halo::link::ref<uint8_t>(halo::ui::vars().console_rcon_out_reentrant_guard);

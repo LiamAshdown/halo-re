@@ -5,6 +5,8 @@
 #include "halo/game/vars.hpp"
 #include "halo/objects/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/game/api.hpp"
+#include "halo/units/api.hpp"
 
 static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);

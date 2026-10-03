@@ -18,6 +18,7 @@
 #include "halo/objects/vars.hpp"
 #include "halo/physics/vars.hpp"
 #include <stdio.h>
+#include "halo/networking/api.hpp"
 
 static auto &ai_gc_callback_table = halo::link::ref<void *>(halo::objects::vars().ai_gc_callback_table);
 static auto &collideable_cluster_first = halo::link::ref<datum_index *>(halo::objects::vars().collideable_cluster_first);

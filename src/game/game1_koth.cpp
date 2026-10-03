@@ -42,6 +42,8 @@
 #include "halo/networking/vars.hpp"
 #include "halo/rasterizer/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/ai/api.hpp"
+#include "halo/effects/api.hpp"
 static auto &rasterizer_render_states_dirty = halo::link::ref<uint8_t>(halo::rasterizer::vars().rasterizer_render_states_dirty);
 
 static auto &hill_pulse_fade_done = halo::link::ref<uint8_t>(halo::game::vars().hill_pulse_fade_done);

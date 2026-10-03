@@ -35,6 +35,9 @@
 #include "halo/rasterizer/vars.hpp"
 #include "halo/saved_games/vars.hpp"
 #include "halo/shell/vars.hpp"
+#include "halo/hs/api.hpp"
+#include "halo/physics/api.hpp"
+#include "halo/shell/api.hpp"
 
 static auto &shell_command_line = halo::link::ref<char *>(halo::shell::vars().shell_command_line);
 static auto &shell_window = halo::link::ref<void *>(halo::shell::vars().shell_window);

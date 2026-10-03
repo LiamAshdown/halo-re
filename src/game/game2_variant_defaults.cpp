@@ -1,6 +1,7 @@
 #include "halo/game/game2_variants.hpp"
 #include "halo/game/variant_flags.hpp"
 #include "halo/game/constants.hpp"
+#include "halo/game/api.hpp"
 
 
 namespace halo::game {

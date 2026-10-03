@@ -15,6 +15,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/objects/vars.hpp"
 #include "halo/render/vars.hpp"
+#include "halo/effects/api.hpp"
 
 static auto &camera_forward_x = halo::link::ref<float>(halo::effects::vars().camera_forward_x);
 static auto &camera_forward_y = halo::link::ref<float>(halo::objects::vars().camera_forward_y);

@@ -4,6 +4,8 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/rasterizer/vars.hpp"
+#include "halo/effects/api.hpp"
+#include "halo/game/api.hpp"
 
 static auto &rasterizer_device = halo::link::ref<void *>(halo::game::vars().rasterizer_device);
 static auto &rasterizer_device_version = halo::link::ref<int32_t>(halo::ui::vars().rasterizer_device_version);

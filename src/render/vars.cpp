@@ -5,6 +5,7 @@
 
 #include "halo/render/vars.hpp"
 #include "link/render_vars.hpp"
+#include "halo/render/api.hpp"
 
 namespace halo::render {
 

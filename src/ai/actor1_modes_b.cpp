@@ -13,6 +13,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
+#include "halo/networking/api.hpp"
 
 namespace c_actor_mode_charge_enter {
 #define ACTOR(h) ((uint8_t *)halo::ai::globals().actor_data->data + ((h) & halo::k_slot_mask) * k_actor_size)

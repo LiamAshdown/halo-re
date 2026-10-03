@@ -12,6 +12,7 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
+#include "halo/game/api.hpp"
 
 #ifdef interface
 #undef interface

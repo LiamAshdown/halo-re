@@ -13,6 +13,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &update_client_unknown_ea0 = halo::link::ref<int32_t>(halo::game::vars().update_client_unknown_ea0);
 static auto &update_client_queues = halo::link::ref<data_array *>(halo::game::vars().update_client_queues);

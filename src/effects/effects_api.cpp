@@ -3,6 +3,7 @@
 #include "halo/core/link.hpp"
 #include "halo/effects/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/game/api.hpp"
 
 static auto &effect_random_seed = halo::link::ref<random_seed>(halo::effects::vars().effect_random_seed);
 static auto &contrail_data = halo::link::ref<data_array *>(halo::effects::vars().contrail_data);

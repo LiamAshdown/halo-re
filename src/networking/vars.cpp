@@ -5,6 +5,7 @@
 
 #include "halo/networking/vars.hpp"
 #include "link/networking_vars.hpp"
+#include "halo/networking/api.hpp"
 
 namespace halo::networking {
 

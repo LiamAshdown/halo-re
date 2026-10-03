@@ -5,6 +5,7 @@
 
 #include "halo/projectiles/vars.hpp"
 #include "link/projectiles_vars.hpp"
+#include "halo/projectiles/api.hpp"
 
 namespace halo::projectiles {
 

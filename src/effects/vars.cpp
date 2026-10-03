@@ -5,6 +5,7 @@
 
 #include "halo/effects/vars.hpp"
 #include "link/effects_vars.hpp"
+#include "halo/effects/api.hpp"
 
 namespace halo::effects {
 

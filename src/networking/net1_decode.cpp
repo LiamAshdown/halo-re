@@ -23,6 +23,7 @@
 #include "halo/networking/vars.hpp"
 #include "halo/objects/vars.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &network_game_mode = halo::link::ref<int16_t>(halo::networking::vars().network_game_mode);
 static auto &network_action_apply_active = halo::link::ref<uint8_t>(halo::objects::vars().network_action_apply_active);

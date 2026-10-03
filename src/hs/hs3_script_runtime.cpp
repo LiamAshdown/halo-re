@@ -16,6 +16,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/hs/vars.hpp"
 #include "halo/objects/vars.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &player_data = halo::link::ref<data_array *>(halo::game::vars().player_data);
 static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);

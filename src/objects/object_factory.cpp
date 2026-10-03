@@ -28,6 +28,7 @@
 #include "halo/networking/vars.hpp"
 #include "halo/objects/vars.hpp"
 #include "halo/physics/vars.hpp"
+#include "halo/hs/api.hpp"
 
 static auto &global_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_collision_bsp);
 static auto &global_scenario = halo::link::ref<uint8_t *>(halo::hs::vars().global_scenario);

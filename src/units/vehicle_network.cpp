@@ -10,6 +10,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/game/api.hpp"
 
 static auto &object_network_id_table = halo::link::ref<network_id_table *>(halo::units::vars().object_network_id_table);
 static auto &machine_table = halo::link::ref<uint8_t *>(halo::game::vars().machine_table);

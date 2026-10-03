@@ -22,6 +22,8 @@
 #include "halo/ai/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
+#include "halo/ai/api.hpp"
+#include "halo/main/api.hpp"
 
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &ui_split_screen = halo::link::ref<uint8_t>(halo::ui::vars().ui_split_screen);

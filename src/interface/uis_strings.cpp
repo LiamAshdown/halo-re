@@ -21,6 +21,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/game/api.hpp"
 
 #define WCTYPE_SPACE 0x0008
 

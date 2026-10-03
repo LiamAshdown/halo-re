@@ -10,6 +10,7 @@
 #include "halo/core/link.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/saved_games/vars.hpp"
+#include "halo/saved_games/api.hpp"
 
 
 static auto &input_device_count = halo::link::ref<int32_t>(halo::ui::vars().input_device_count);

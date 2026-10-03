@@ -33,6 +33,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/render/vars.hpp"
+#include "halo/main/api.hpp"
 
 static auto &render_frame_index = halo::link::ref<int32_t>(halo::render::vars().render_frame_index);
 static auto &render_time_since_tick = halo::link::ref<float>(halo::render::vars().render_time_since_tick);

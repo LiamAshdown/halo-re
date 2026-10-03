@@ -5,6 +5,7 @@
 
 #include "halo/rasterizer/d3dx.hpp"
 #include "link/d3dx.hpp"
+#include "halo/rasterizer/api.hpp"
 
 namespace halo::rasterizer::d3dx {
 

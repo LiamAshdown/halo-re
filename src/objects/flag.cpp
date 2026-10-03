@@ -15,6 +15,8 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/ai/api.hpp"
+#include "halo/units/api.hpp"
 
 static auto &flag_render_device_slot = halo::link::ref<void *const>(halo::objects::vars().flag_render_device_slot);
 static auto &flag_data = halo::link::ref<data_array *>(halo::objects::vars().flag_data);

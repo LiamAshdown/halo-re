@@ -21,6 +21,7 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/units/api.hpp"
 
 static auto &shared_hud_text_draw_state = halo::link::ref<uint8_t>(halo::game::vars().shared_hud_text_draw_state);
 static auto &machine_table = halo::link::ref<uint8_t *>(halo::game::vars().machine_table);

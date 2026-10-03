@@ -22,6 +22,8 @@
 #include "halo/objects/vars.hpp"
 #include "halo/rasterizer/vars.hpp"
 #include "halo/hs/vars.hpp"
+#include "halo/cutscene/api.hpp"
+#include "halo/main/api.hpp"
 
 
 static auto &hs_type_inspectors = halo::link::ref<void (*[])(int16_t type, int32_t value, char *buffer)>(halo::hs::vars().hs_type_inspectors);

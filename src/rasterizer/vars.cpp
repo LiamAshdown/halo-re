@@ -5,6 +5,7 @@
 
 #include "halo/rasterizer/vars.hpp"
 #include "link/rasterizer_vars.hpp"
+#include "halo/rasterizer/api.hpp"
 
 namespace halo::rasterizer {
 

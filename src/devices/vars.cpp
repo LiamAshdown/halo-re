@@ -5,6 +5,7 @@
 
 #include "halo/devices/vars.hpp"
 #include "link/devices_vars.hpp"
+#include "halo/devices/api.hpp"
 
 namespace halo::devices {
 

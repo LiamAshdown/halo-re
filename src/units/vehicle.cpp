@@ -16,6 +16,8 @@
 #include "halo/game/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/ai/api.hpp"
+#include "halo/units/api.hpp"
 
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &k_vehicle_minimum_age_ticks = halo::link::ref<int32_t>(halo::units::vars().k_vehicle_minimum_age_ticks);

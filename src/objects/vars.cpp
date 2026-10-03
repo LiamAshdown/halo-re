@@ -5,6 +5,7 @@
 
 #include "halo/objects/vars.hpp"
 #include "link/objects_vars.hpp"
+#include "halo/objects/api.hpp"
 
 namespace halo::objects {
 

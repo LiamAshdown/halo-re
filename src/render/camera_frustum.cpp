@@ -25,6 +25,8 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/effects/api.hpp"
+#include "halo/units/api.hpp"
 
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &render_asymmetric_frustum_disabled = halo::link::ref<uint8_t>(halo::render::vars().render_asymmetric_frustum_disabled);

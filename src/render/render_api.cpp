@@ -20,6 +20,7 @@
 #include "halo/core/link.hpp"
 #include "halo/rasterizer/vars.hpp"
 #include "halo/render/vars.hpp"
+#include "halo/rasterizer/api.hpp"
 
 static auto &render_camera_world_to_view = halo::link::ref<real_matrix4x3>(halo::render::vars().render_camera_world_to_view);
 static auto &render_viewport_left = halo::link::ref<int16_t>(halo::render::vars().render_viewport_left);

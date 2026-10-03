@@ -5,6 +5,7 @@
 
 #include "halo/game/vars.hpp"
 #include "link/game_vars.hpp"
+#include "halo/game/api.hpp"
 
 namespace halo::game {
 

@@ -10,6 +10,8 @@
 #include "halo/core/link.hpp"
 #include "halo/main/vars.hpp"
 #include "halo/shell/vars.hpp"
+#include "halo/main/api.hpp"
+#include "halo/shell/api.hpp"
 
 static auto &shell_module_handle = halo::link::ref<void *>(halo::shell::vars().shell_module_handle);
 static auto &fatal_error_text = halo::link::ref<char [k_shell_fatal_error_text_length]>(halo::shell::vars().fatal_error_text);

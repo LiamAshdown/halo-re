@@ -36,6 +36,7 @@
 #include "halo/networking/vars.hpp"
 #include "halo/rasterizer/vars.hpp"
 #include "halo/render/vars.hpp"
+#include "halo/main/api.hpp"
 
 static_assert(offsetof(Bitmap, bitmap_data) + offsetof(TagReflexive, pointer) == halo::render::k_bitmap_data_pointer_offset);
 

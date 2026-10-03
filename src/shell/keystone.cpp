@@ -4,6 +4,8 @@
 #include "halo/interface/vars.hpp"
 #include "halo/rasterizer/vars.hpp"
 #include "halo/shell/vars.hpp"
+#include "halo/rasterizer/api.hpp"
+#include "halo/shell/api.hpp"
 
 static auto &default_locale_name = halo::link::ref<uint8_t [2]>(halo::shell::vars().default_locale_name);
 static auto &locale_codepage_format = halo::link::ref<char [4]>(halo::shell::vars().locale_codepage_format);

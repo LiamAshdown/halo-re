@@ -19,6 +19,7 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/units/api.hpp"
 
 static auto &global_zero_vector3d_pointer = halo::link::ref<real_point3d *>(halo::units::vars().global_zero_vector3d_pointer);
 static auto &glow_data = halo::link::ref<data_array *>(halo::objects::vars().glow_data);

@@ -13,6 +13,8 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/ai/api.hpp"
+#include "halo/units/api.hpp"
 
 static auto &global_origin3d_pointer = halo::link::ref<real_point3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &g_006966e4 = halo::link::ref<real_vector3d *>(halo::units::vars().g_006966e4);

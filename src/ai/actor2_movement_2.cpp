@@ -13,6 +13,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/physics/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/physics/api.hpp"
 
 namespace halo::ai {
 

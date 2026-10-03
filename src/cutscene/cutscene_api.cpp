@@ -2,6 +2,7 @@
 #include "halo/core/link.hpp"
 #include "halo/cutscene/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/game/api.hpp"
 
 static auto &cinematic_globals_ptr = halo::link::ref<cinematic_globals *>(halo::game::vars().cinematic_globals_ptr);
 static auto &cinematic_saved_music_gain = halo::link::ref<float>(halo::cutscene::vars().cinematic_saved_music_gain);

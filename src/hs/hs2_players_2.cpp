@@ -7,6 +7,7 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/game/api.hpp"
 
 static auto &player_control_globals_ptr = halo::link::ref<uint8_t *>(halo::game::vars().player_control_globals_ptr);
 

@@ -2,6 +2,7 @@
 #include "halo/hs/api.hpp"
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
+#include "halo/ai/api.hpp"
 
 
 static auto &game_time = halo::link::ref<uint8_t *>(halo::ai::vars().game_time);

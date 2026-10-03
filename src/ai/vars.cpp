@@ -5,6 +5,7 @@
 
 #include "halo/ai/vars.hpp"
 #include "link/ai_vars.hpp"
+#include "halo/ai/api.hpp"
 
 namespace halo::ai {
 

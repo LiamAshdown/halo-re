@@ -30,6 +30,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &game_time = halo::link::ref<game_time_globals *>(halo::ai::vars().game_time);
 static auto &chimera_contrail_scale = halo::link::ref<real>(halo::game::vars().chimera_contrail_scale);

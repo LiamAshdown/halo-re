@@ -2,6 +2,7 @@
 #include "halo/shell/layout.hpp"
 #include "halo/core/link.hpp"
 #include "halo/shell/vars.hpp"
+#include "halo/shell/api.hpp"
 
 static auto &hwreq_parser_vtable_instance = halo::link::ref<hwreq_parser_vtable>(halo::shell::vars().hwreq_parser_vtable_instance);
 static auto &hwreq_open_error_text = halo::link::ref<char []>(halo::shell::vars().hwreq_open_error_text);

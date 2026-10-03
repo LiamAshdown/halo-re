@@ -25,6 +25,7 @@
 #include "halo/main/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/shell/vars.hpp"
+#include "halo/shell/api.hpp"
 
 #ifdef interface
 #undef interface

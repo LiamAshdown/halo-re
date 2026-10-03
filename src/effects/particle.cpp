@@ -16,6 +16,8 @@
 #include "halo/interface/vars.hpp"
 #include "halo/render/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/ai/api.hpp"
+#include "halo/render/api.hpp"
 
 void particle_new(particle_creation_data *creation_data);
 void particles_delete_by_first_person_weapon(uint8_t first_person_weapon_index);

@@ -27,6 +27,7 @@
 #include "halo/core/link.hpp"
 #include "halo/objects/vars.hpp"
 #include "halo/physics/vars.hpp"
+#include "halo/objects/api.hpp"
 
 static auto &global_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_collision_bsp);
 static auto &global_structure_collision_bsp = halo::link::ref<ModelCollisionGeometryBSP *>(halo::physics::vars().global_structure_collision_bsp);

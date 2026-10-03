@@ -12,6 +12,7 @@
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &response_curve_scale_limit = halo::link::ref<double>(halo::game::vars().response_curve_scale_limit);
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);

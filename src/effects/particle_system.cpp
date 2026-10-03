@@ -20,6 +20,9 @@
 #include "halo/interface/vars.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/units/vars.hpp"
+#include "halo/ai/api.hpp"
+#include "halo/networking/api.hpp"
+#include "halo/units/api.hpp"
 
 static auto &particle_system_data = halo::link::ref<data_array *>(halo::effects::vars().particle_system_data);
 static auto &particle_system_particle_data = halo::link::ref<data_array *>(halo::effects::vars().particle_system_particle_data);

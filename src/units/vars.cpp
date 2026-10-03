@@ -5,6 +5,7 @@
 
 #include "halo/units/vars.hpp"
 #include "link/units_vars.hpp"
+#include "halo/units/api.hpp"
 
 namespace halo::units {
 

@@ -5,6 +5,7 @@
 #include <dsound.h>
 #include "halo/core/link.hpp"
 #include "halo/shell/vars.hpp"
+#include "halo/shell/api.hpp"
 
 static auto &physical_memory = halo::link::ref<uint32_t>(halo::shell::vars().physical_memory);
 static auto &cpu_speed = halo::link::ref<uint32_t>(halo::shell::vars().cpu_speed);

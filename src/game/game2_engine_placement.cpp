@@ -25,6 +25,7 @@
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/ai/api.hpp"
 
 typedef struct netgame_equipment_spawn_message {
     int32_t object_hash;

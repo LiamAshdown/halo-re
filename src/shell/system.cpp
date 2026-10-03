@@ -3,6 +3,8 @@
 #include "halo/core/link.hpp"
 #include "halo/networking/vars.hpp"
 #include "halo/shell/vars.hpp"
+#include "halo/networking/api.hpp"
+#include "halo/shell/api.hpp"
 
 static auto &shell_argv = halo::link::ref<char **>(halo::shell::vars().shell_argv);
 static auto &shell_argc = halo::link::ref<int32_t>(halo::shell::vars().shell_argc);

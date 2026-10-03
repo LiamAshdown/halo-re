@@ -14,6 +14,7 @@
 #include "halo/camera/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &observers = halo::link::ref<observer [1]>(halo::camera::vars().observers);
 static auto &observer_dt = halo::link::ref<float>(halo::camera::vars().observer_dt);

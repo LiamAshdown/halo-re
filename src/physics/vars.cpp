@@ -5,6 +5,7 @@
 
 #include "halo/physics/vars.hpp"
 #include "link/physics_vars.hpp"
+#include "halo/physics/api.hpp"
 
 namespace halo::physics {
 
@@ -19,7 +20,7 @@ const Vars &vars()
         k_impact_damage_scale_table,
         k_physics_collision_damping,
         k_physics_displacement_directions,
-        k_physics_gravity,
+        ::k_physics_gravity,
         material_table_bad_index,
         material_table_fallback,
         material_table_warning_issued,

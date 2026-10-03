@@ -14,6 +14,7 @@
 #include "halo/core/link.hpp"
 #include "halo/game/vars.hpp"
 #include "halo/hs/vars.hpp"
+#include "halo/game/api.hpp"
 
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &hs_parse_primitive_procedures = halo::link::ref<void *[k_hs_type_count]>(halo::hs::vars().hs_parse_primitive_procedures);

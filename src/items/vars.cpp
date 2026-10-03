@@ -5,6 +5,7 @@
 
 #include "halo/items/vars.hpp"
 #include "link/items_vars.hpp"
+#include "halo/items/api.hpp"
 
 namespace halo::items {
 

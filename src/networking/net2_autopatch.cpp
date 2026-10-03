@@ -28,6 +28,7 @@
 #include "../gamespy/gamespy_calls.hpp"
 #include "../gamespy/gamespy_calls.hpp"
 #include "../gamespy/gamespy_calls.hpp"
+#include "halo/units/api.hpp"
 
 static auto &autopatch_update_check_state = halo::link::ref<int32_t>(halo::networking::vars().autopatch_update_check_state);
 static auto &autopatch_download_slots = halo::link::ref<autopatch_download_slot [2]>(halo::networking::vars().autopatch_download_slots);

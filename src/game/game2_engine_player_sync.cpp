@@ -21,6 +21,7 @@
 #include "halo/interface/vars.hpp"
 #include "halo/units/vars.hpp"
 #include "halo/core/libm.hpp"
+#include "halo/ai/api.hpp"
 
 #define k_uninitialized_fill 0xfafafafau
 

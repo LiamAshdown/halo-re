@@ -37,6 +37,7 @@
 #include "halo/game/vars.hpp"
 #include "halo/interface/vars.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/game/api.hpp"
 
 static auto &global_globals = halo::link::ref<Globals *>(halo::game::vars().global_globals);
 static auto &ui_button_caption = halo::link::ref<uint16_t *[0x28]>(halo::ui::vars().ui_button_caption);

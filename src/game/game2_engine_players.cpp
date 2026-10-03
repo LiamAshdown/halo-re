@@ -19,6 +19,7 @@
 #include "halo/core/link.hpp"
 #include "halo/ai/vars.hpp"
 #include "halo/game/vars.hpp"
+#include "halo/ai/api.hpp"
 
 static const int8_t k_unit_exit_seat_request[2] = {0x14, 0};
 

@@ -19,6 +19,7 @@
 #include "halo/objects/vars.hpp"
 #include "halo/core/libm.hpp"
 #include "halo/core/x87.hpp"
+#include "halo/ai/api.hpp"
 
 static auto &global_origin3d_pointer = halo::link::ref<real_vector3d *>(halo::ai::vars().global_origin3d_pointer);
 static auto &object_data = halo::link::ref<data_array *>(halo::objects::vars().object_data);

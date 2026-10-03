@@ -5,6 +5,7 @@
 
 #include "halo/hs/vars.hpp"
 #include "link/hs_vars.hpp"
+#include "halo/hs/api.hpp"
 
 namespace halo::hs {
 
