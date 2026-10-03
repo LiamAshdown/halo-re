@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "math.h"
 #include "rasterizer.h"
+#include "halo/rasterizer/layout_checks.hpp"
 #include "render.h"
 #include "interface.h"
 #include <string.h>
