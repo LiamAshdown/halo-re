@@ -35,7 +35,6 @@ void recorded_animation_decode_weapon_index_event_v1(unit_control_data *control,
 }
 
 namespace halo::cutscene {
-namespace {
 
 /**
  * Original function recorded_animation_angle_to_vector; the author notes are in
@@ -739,7 +738,6 @@ void LegacyCodec::decode_weapon_index_event(unit_control_data *control, recorded
     *cursor += sizeof(recorded_animation_weapon_index_set_event_v1);
 }
 
-}
 }
 
 extern "C" {

@@ -34,7 +34,6 @@ void chimera__letterbox(void);
 }
 
 namespace halo::cutscene {
-namespace {
 
 /**
  * Begins a cutscene: saves the current music gain (once, if nothing is already saved), forces
@@ -302,7 +301,6 @@ void CutsceneDirector::letterbox()
     }
 }
 
-}
 }
 
 extern "C" {

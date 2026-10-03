@@ -81,7 +81,6 @@ void orbiting_camera_update(director_camera_data *data, camera_input *input, obs
 }
 
 namespace halo::camera {
-namespace {
 
 /**
  * Original function camera_first_person_compute_pov; the author notes are in
@@ -1170,7 +1169,6 @@ void OrbitingCamera::update(director_camera_data *data, camera_input *input, obs
     command->timer = 0.5f;
 }
 
-}
 }
 
 extern "C" {

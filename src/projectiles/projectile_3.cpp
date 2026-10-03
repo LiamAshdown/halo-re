@@ -29,7 +29,6 @@ void projectile_response(datum_index projectile_index, collision_result *hit, re
 }
 
 namespace halo::projectiles {
-namespace {
 
 /**
  * The whole ProjectileResponse state machine: applies object damage on a direct hit, looks up
@@ -460,7 +459,6 @@ void ProjectileHandle::response(collision_result *hit, real_point3d *out_positio
     obj->flags |= _object_changed_bit; 
 }
 
-}
 }
 
 extern "C" {

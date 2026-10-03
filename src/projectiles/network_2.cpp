@@ -15,7 +15,6 @@ void projectile_send_detonation(datum_index projectile_index);
 }
 
 namespace halo::projectiles {
-namespace {
 
 /**
  * Broadcasts a projectile-attach network event: the projectile's own hash, the hash of the
@@ -88,7 +87,6 @@ void ProjectileNetwork::send_detonation()
     }
 }
 
-}
 }
 
 extern "C" {

@@ -11,9 +11,9 @@
 #include "input.h"
 #include "camera.h"
 #include <wchar.h>
+#include "halo/camera/layout.hpp"
 
 namespace halo::camera {
-namespace {
 
 /**
  * View of the director for one local player: chooses the gameplay camera mode, builds the
@@ -40,5 +40,4 @@ public:
     static void game_state_loaded();
 };
 
-}
 }

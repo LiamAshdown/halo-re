@@ -9,9 +9,9 @@
 #include "game.h"
 #include "networking.h"
 #include "cache.h"
+#include "halo/projectiles/layout.hpp"
 
 namespace halo::projectiles {
-namespace {
 
 /**
  * Network replication of one projectile addressed by its object handle: baselines, creation,
@@ -35,5 +35,4 @@ public:
     datum_index handle;
 };
 
-}
 }

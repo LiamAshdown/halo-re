@@ -9,9 +9,9 @@
 #include "units.h"
 #include "cache.h"
 #include "rasterizer.h"
+#include "halo/camera/layout.hpp"
 
 namespace halo::camera {
-namespace {
 
 /**
  * First-person camera: point-of-view computation, weapon offsets and per-unit camera
@@ -83,5 +83,4 @@ public:
     static void update(director_camera_data *data, camera_input *input, observer_command *command);
 };
 
-}
 }

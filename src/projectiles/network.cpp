@@ -37,7 +37,6 @@ void projectile_detonation_message_apply(void *incoming_record);
 }
 
 namespace halo::projectiles {
-namespace {
 
 /**
  * Original function projectile_apply_network_update; the author notes are in
@@ -520,7 +519,6 @@ void ProjectileNetwork::detonation_message_apply(void *incoming_record)
     object_delete(projectile_index);
 }
 
-}
 }
 
 extern "C" {

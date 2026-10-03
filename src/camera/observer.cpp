@@ -50,7 +50,6 @@ void observer_update_location(void);
 }
 
 namespace halo::camera {
-namespace {
 
 /**
  * Original function observer_advance; the author notes are in
@@ -950,7 +949,6 @@ void ObserverSystem::compute_remaining_offset(float *target, float *current, flo
     out[10] = angle * axis.k;
 }
 
-}
 }
 
 extern "C" {

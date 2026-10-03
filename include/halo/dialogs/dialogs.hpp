@@ -8,9 +8,9 @@
 #include "math.h"
 #include "rasterizer.h"
 #include "shell.h"
+#include "halo/dialogs/layout.hpp"
 
 namespace halo::dialogs {
-namespace {
 
 /**
  * Turns a static text control into an underlined, clickable hyperlink by subclassing the
@@ -45,5 +45,4 @@ public:
     static int32_t __stdcall proc(void *dialog, uint32_t message, uint32_t wparam, int32_t lparam);
 };
 
-}
 }

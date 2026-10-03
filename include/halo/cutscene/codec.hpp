@@ -5,9 +5,9 @@
 #include "math.h"
 #include "units.h"
 #include "cutscene.h"
+#include "halo/cutscene/layout.hpp"
 
 namespace halo::cutscene {
-namespace {
 
 /**
  * Angle helpers shared by the recorded animation codecs: converting packed angles to a vector
@@ -66,5 +66,4 @@ public:
     static void decode_weapon_index_event(unit_control_data *control, recorded_animation_event_v1 *event, uint8_t **cursor);
 };
 
-}
 }

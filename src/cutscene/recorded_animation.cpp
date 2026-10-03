@@ -25,7 +25,6 @@ void recorded_animations_update(void);
 }
 
 namespace halo::cutscene {
-namespace {
 
 /**
  * Original function recorded_animation_start; the author notes are in
@@ -291,7 +290,6 @@ void RecordedAnimationPlayer::update_all()
     }
 }
 
-}
 }
 
 extern "C" {

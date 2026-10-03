@@ -20,10 +20,11 @@ extern uint32_t video_memory;
 extern void *shell_window;
 extern int32_t fatal_error_remember_choice;
 extern char fatal_error_system_specs[0x100];
+int32_t dialog_box_show_localized(dialog_window_proc_fn dialog_proc, void *module, const char *template_name, void *parent_window);
+int32_t __stdcall fatal_error_dialog_proc(void *dialog, uint32_t message, uint32_t wparam, int32_t lparam);
 }
 
 namespace halo::dialogs {
-namespace {
 
 /**
  * Converts a static text control (`control`) into a clickable, underlined hyperlink-style
@@ -340,7 +341,6 @@ int32_t __stdcall FatalErrorDialog::proc(void *dialog, uint32_t message, uint32_
     return 0;
 }
 
-}
 }
 
 extern "C" {

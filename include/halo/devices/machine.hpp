@@ -8,9 +8,9 @@
 #include "devices.h"
 #include "game.h"
 #include "units.h"
+#include "halo/devices/layout.hpp"
 
 namespace halo::devices {
-namespace {
 
 /**
  * View of one machine device (doors, elevators, power-driven machinery) addressed by its
@@ -52,5 +52,4 @@ public:
     datum_index handle;
 };
 
-}
 }

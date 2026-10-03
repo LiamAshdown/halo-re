@@ -47,7 +47,6 @@ static uint8_t *object_get(datum_index object_index)
 }
 
 namespace halo::devices {
-namespace {
 
 /**
  * Original function device_new; the author notes are in
@@ -713,7 +712,6 @@ void DeviceGroupPool::initialize()
     }
 }
 
-}
 }
 
 extern "C" {

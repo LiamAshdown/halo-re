@@ -12,9 +12,9 @@
 #include "physics.h"
 #include "units.h"
 #include <string.h>
+#include "halo/projectiles/layout.hpp"
 
 namespace halo::projectiles {
-namespace {
 
 /**
  * View of one projectile object addressed by its object handle. The projectile object stays in
@@ -51,5 +51,4 @@ public:
     static uint8_t return_true();
 };
 
-}
 }

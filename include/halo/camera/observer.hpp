@@ -13,9 +13,9 @@
 #include "game.h"
 #include "projectiles.h"
 #include <string.h>
+#include "halo/camera/layout.hpp"
 
 namespace halo::camera {
-namespace {
 
 /**
  * View of the observer (the camera simulation state) of one local player: per-tick advance,
@@ -51,5 +51,4 @@ public:
     static void compute_remaining_offset(float *target, float *current, float *out);
 };
 
-}
 }

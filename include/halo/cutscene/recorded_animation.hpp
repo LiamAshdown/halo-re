@@ -9,9 +9,9 @@
 #include "cutscene.h"
 #include "crt.h"
 #include <stdint.h>
+#include "halo/cutscene/layout.hpp"
 
 namespace halo::cutscene {
-namespace {
 
 /**
  * Playback of scenario recorded animations on one unit addressed by its object handle, plus
@@ -29,5 +29,4 @@ public:
     datum_index unit_handle;
 };
 
-}
 }

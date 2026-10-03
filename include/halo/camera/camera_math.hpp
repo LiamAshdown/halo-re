@@ -5,9 +5,9 @@
 #include "memory.h"
 #include "camera.h"
 #include "math.h"
+#include "halo/camera/layout.hpp"
 
 namespace halo::camera {
-namespace {
 
 /**
  * Numeric helpers used by the camera code: validity and tolerance tests, Catmull-Rom
@@ -24,5 +24,4 @@ public:
     static void rotate_basis_by_axis_angle(Vector3D *axis_angle, Vector3D *forward, Vector3D *up);
 };
 
-}
 }

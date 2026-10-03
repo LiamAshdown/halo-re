@@ -44,7 +44,6 @@ static uint8_t camera_input_key_held(uint32_t key_bits, int16_t bit)
 }
 
 namespace halo::camera {
-namespace {
 
 /**
  * Original function director_build_camera_input; the author notes are in
@@ -375,7 +374,6 @@ void DirectorEvents::game_state_loaded()
     camera_control(*hs_camera_control_pointer);
 }
 
-}
 }
 
 extern "C" {

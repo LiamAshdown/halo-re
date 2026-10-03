@@ -39,7 +39,6 @@ static uint8_t *object_definition(uint8_t *object)
 }
 
 namespace halo::devices {
-namespace {
 
 /**
  * Original function machine_create; the author notes are in
@@ -346,7 +345,6 @@ void LightFixtureHandle::place(uint8_t *placement)
     }
 }
 
-}
 }
 
 extern "C" {

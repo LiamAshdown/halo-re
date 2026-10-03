@@ -49,7 +49,6 @@ dead_camera_data *dead_camera_new(dead_camera_data *self, int16_t local_player_i
 }
 
 namespace halo::camera {
-namespace {
 
 /**
  * Resets the camera subsystem to its default state: following mode, first person as the active
@@ -637,7 +636,6 @@ dead_camera_data * DeadCamera::construct(dead_camera_data *self, int16_t local_p
     return self;
 }
 
-}
 }
 
 extern "C" {

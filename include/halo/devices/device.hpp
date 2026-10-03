@@ -8,9 +8,9 @@
 #include "cache.h"
 #include "models.h"
 #include "effects.h"
+#include "halo/devices/layout.hpp"
 
 namespace halo::devices {
-namespace {
 
 /**
  * View of one device object addressed by its object handle. The device object itself stays in
@@ -60,5 +60,4 @@ public:
     static void initialize();
 };
 
-}
 }

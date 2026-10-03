@@ -10,9 +10,9 @@
 #include "cache.h"
 #include "crt.h"
 #include <stdint.h>
+#include "halo/camera/layout.hpp"
 
 namespace halo::camera {
-namespace {
 
 /**
  * Top-level camera subsystem entry points: initialisation, the per-frame update, the debug
@@ -41,5 +41,4 @@ public:
     static dead_camera_data * construct(dead_camera_data *self, int16_t local_player_index, datum_index unit);
 };
 
-}
 }

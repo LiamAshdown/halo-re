@@ -15,7 +15,6 @@ void vector3d_rotate_basis_by_axis_angle(Vector3D *axis_angle, Vector3D *forward
 }
 
 namespace halo::camera {
-namespace {
 
 /**
  * Returns whether a and b are equal within a small epsilon (0.001), guarding against NaN.
@@ -182,7 +181,6 @@ void CameraMath::rotate_basis_by_axis_angle(Vector3D *axis_angle, Vector3D *forw
     }
 }
 
-}
 }
 
 extern "C" {

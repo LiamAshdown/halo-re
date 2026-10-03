@@ -12,9 +12,9 @@
 #include "networking.h"
 #include "cache.h"
 #include "interface.h"
+#include "halo/cutscene/layout.hpp"
 
 namespace halo::cutscene {
-namespace {
 
 /**
  * Cutscene mode switching: entering and leaving cutscene state, queueing title cards and
@@ -28,5 +28,4 @@ public:
     static void letterbox();
 };
 
-}
 }

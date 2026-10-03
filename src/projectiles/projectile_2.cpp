@@ -58,7 +58,6 @@ static void projectile_raise_state(uint32_t projectile_index, int16_t state)
 }
 
 namespace halo::projectiles {
-namespace {
 
 #define OBJECT_DATA(h) ((uint8_t *)((object_header *)object_data->data)[(h) & 0xffff].data)
 #define F(p, o) (*(float *)((p) + (o)))
@@ -441,7 +440,6 @@ int ProjectileHandle::update()
 #undef OBJECT_DATA
 #undef F
 
-}
 }
 
 extern "C" {

@@ -49,7 +49,6 @@ uint8_t object_type_definition_return_true(void);
 }
 
 namespace halo::projectiles {
-namespace {
 
 /**
  * The projectile row's query_create hook (object_type_definition +0x28). Establishes a freshly
@@ -650,7 +649,6 @@ uint8_t ObjectTypeStubs::return_true()
     return 1;
 }
 
-}
 }
 
 extern "C" {
