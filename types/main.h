@@ -6,7 +6,7 @@
 // the developer console front end (0x4c6390..0x4c6bc0), the connect-by-address staging with its
 // hostname worker thread (0x4c8340..0x4c8660), the per frame view setup (0x4c8da0..0x4c9260),
 // the -timedemo benchmark (0x4c6f30), screenshots and movie frame capture (0x4c9530, 0x4ca1a0)
-// and the intro Bink player (0x43ed20).
+// (the intro movie player was removed).
 //
 // Offsets in comments are byte offsets from the struct base. Almost every global here is reached
 // through an absolute address, never through a base pointer, so the struct groupings below are
@@ -339,21 +339,6 @@ typedef struct multiplayer_map_table_entry {
 static_assert(sizeof(multiplayer_map_table_entry) == 0xc, "multiplayer_map_table_entry layout");
 
 // ---------------------------------------------------------------------------
-// bink_movie_prefix  (movie_play_bink 0x43ed20)
-// The leading part of the RAD Bink handle returned by _BinkOpen@8. This is library data, so
-// only the fields the engine reads are named; the real structure is larger than 0x100.
-// ---------------------------------------------------------------------------
-typedef struct bink_movie_prefix {
-    uint32_t width;                   // 0x00 not read here (RAD layout)
-    uint32_t height;                  // 0x04 not read here (RAD layout)
-    uint32_t frame_count;             // 0x08 playback stops when frame_index reaches it
-    uint32_t frame_index;             // 0x0c
-    uint8_t unknown_10[0xfc - 0x10];  // 0x10
-    int32_t paused;                   // 0xfc toggled with _BinkPause@8 around device loss
-} bink_movie_prefix;                  // size 0x100 (prefix only)
-static_assert(sizeof(bink_movie_prefix) == 0x100, "bink_movie_prefix layout");
-
-// ---------------------------------------------------------------------------
 // globals this module owns
 // ---------------------------------------------------------------------------
 // global 0x00719700: main_globals main_globals
@@ -385,7 +370,7 @@ static_assert(sizeof(bink_movie_prefix) == 0x100, "bink_movie_prefix layout");
 // ---------------------------------------------------------------------------
 // globals this module reads or writes but does not own
 // ---------------------------------------------------------------------------
-// 0x007196d4  int32_t (UNSURE owner) nonzero skips or aborts movie_play_bink; hs quit writes it
+// 0x007196d4  int32_t (UNSURE owner) nonzero aborts movie playback; hs quit writes it
 // 0x007196d8  int32_t -timedemo frame counter (types/game.h game_time_force_single_tick);
 //             written by shell_winmain, advanced by timedemo_benchmark_update
 // 0x007196e0 / 0x007196e4 / 0x007196e8 / 0x007196f4  shell command line BOOLs (types/shell.h)

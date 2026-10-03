@@ -77,7 +77,6 @@ void main_loop_shutdown_cleanup();
 void main_menu_music_stop();
 void main_menu_return_and_reset();
 void movie_capture_frame_export();
-void movie_play_bink(const char *movie_path);
 uint32_t __stdcall network_game_client_connect_by_hostname(char *host_port_string);
 uint8_t network_game_client_connect_to_address_async(char *address, char *password);
 void network_game_client_connect_to_resolved_address();

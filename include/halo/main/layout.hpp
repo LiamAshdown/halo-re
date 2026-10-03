@@ -59,14 +59,6 @@ inline constexpr char k_main_menu_widget_name[] = "the_main_menu";
 /** Join error code shown when a connection attempt fails without a more specific reason. */
 inline constexpr int16_t k_join_error_connection_failed = 0x35;
 
-/** Size of the fixed frame of a movie (Bink output surface). */
-inline constexpr uint32_t k_movie_surface_width = 0x280;
-inline constexpr uint32_t k_movie_surface_height = 0x1e0;
-
-/** Flag word of BinkCopyToBuffer: surface format 3 (32 bit) plus "copy all" in the top bit. */
-inline constexpr uint32_t k_bink_copy_format_32bit = 3;
-inline constexpr uint32_t k_bink_copy_all = 0x80000000u;
-
 /** Offset of the first address pointer array inside a hostent record. */
 inline constexpr size_t k_hostent_address_list_offset = 0xc;
 

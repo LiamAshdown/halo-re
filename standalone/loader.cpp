@@ -4,7 +4,7 @@
  * The game is C++ linked into this exe: its globals are extern "C" objects and the data tables are ordinary arrays
  * (standalone/data/tables.cpp) whose internal pointers are linker relocations. The loader installs the diagnostics,
  * preloads the system dinput8, redirects data files to override\ where present, changes to the Halo install folder
- * (maps\, binkw32.dll, vorbis.dll live there) and calls the rewritten shell_winmain, as the original CRT entry did.
+ * (maps\ lives there) and calls the rewritten shell_winmain, as the original CRT entry did.
  *
  * The names other files link against (standalone_log, standalone_devmode, standalone_halo_folder, WinMain) are
  * declared in the single extern "C" block below; everything else lives in halo::standalone.
@@ -135,7 +135,7 @@ HANDLE WINAPI standalone_create_file_a(LPCSTR name, DWORD access, DWORD share, L
 
 /**
  * The Halo folder holds the hook harness's dinput8.dll proxy (it loads halo_rewrite.dll). The folder has to be on the
- * DLL path for binkw32/vorbis/Keystone, so the system dinput8.dll is loaded by full path first: later
+ * DLL path for Keystone, so the system dinput8.dll is loaded by full path first: later
  * LoadLibraryA("DINPUT8.dll") calls then return that module instead of the proxy.
  */
 void preload_system_dinput8()
@@ -364,7 +364,7 @@ int run(HINSTANCE instance, HINSTANCE previous, LPSTR command_line, int show)
 }  // namespace halo::standalone
 
 /**
- * The Halo install folder: the maps, the third-party DLLs (binkw32, vorbisfile) and the game's working directory.
+ * The Halo install folder: the maps, Keystone.dll and the game's working directory.
  * Override at build time with cmake -DHALO_FOLDER=D:/Games/Halo.
  */
 const char standalone_halo_folder[] = HALO_FOLDER;

@@ -28,7 +28,6 @@
 #include "render.h"
 #include "objects.h"
 #include <wchar.h>
-#include "bink.h"
 #include "shell.h"
 #include <stdlib.h>
 
@@ -231,11 +230,6 @@ void main_menu_return_and_reset()
 void movie_capture_frame_export()
 {
     halo::main::MoviePlayer::capture_frame_export();
-}
-
-void movie_play_bink(const char *movie_path)
-{
-    halo::main::MoviePlayer::play_bink(movie_path);
 }
 
 uint32_t __stdcall network_game_client_connect_by_hostname(char *host_port_string)

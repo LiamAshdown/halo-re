@@ -629,12 +629,6 @@ void MainLoop::loop(void)
     halo::main::game_timer_reset();
     halo::interface::network_autojoin_from_command_line();
     halo::sound::globals().disabled = (uint8_t)halo::shell::globals().nosound;
-    if (halo::game::globals().time_force_single_tick == 0 && novideo_or_connect == 0 && safe_mode == 0 &&
-        halo::rasterizer::globals().window_requested == 0) {
-        halo::main::movie_play_bink("bungie.bik");
-        halo::main::movie_play_bink("gearbox.bik");
-        halo::main::movie_play_bink("mgs.bik");
-    }
     main_unknown_696570 = 0;
 
     for (;;) {

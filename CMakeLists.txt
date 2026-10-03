@@ -6,7 +6,7 @@
 #   cmake -S . -B build/cmake-ninja -G Ninja && cmake --build build/cmake-ninja
 #
 # Needs Visual Studio 2022 (C and MASM, x86) and the DirectX SDK (June 2010) for d3dx9. The exe runs against an
-# installed Halo PC (maps, binkw32.dll): HALO_FOLDER. Graphics need the converted shaders\fx.bin
+# installed Halo PC (maps, Keystone.dll): HALO_FOLDER. Graphics need the converted shaders\fx.bin
 # (python tools/convert_fx.py) in override\shaders\ next to the exe: HALO_FX_OVERRIDE, copied after the build.
 #
 # A new engine global is bound through halo::<module>::vars() (standalone/data/link/<module>_vars.hpp names the link
@@ -59,18 +59,6 @@ add_library(stb_vorbis STATIC third_party/stb/stb_vorbis.c)
 target_compile_definitions(stb_vorbis PRIVATE STB_VORBIS_NO_STDIO STB_VORBIS_NO_PUSHDATA_API _CRT_SECURE_NO_WARNINGS)
 target_compile_options(stb_vorbis PRIVATE /W0 /GS-)
 
-# ---- import libraries for the third-party DLLs in the Halo folder (no .lib ships with them), delay-loaded
-set(THIRD_PARTY_DLLS binkw32)
-set(THIRD_PARTY_LIBS)
-foreach(dll ${THIRD_PARTY_DLLS})
-    set(lib "${CMAKE_CURRENT_BINARY_DIR}/${dll}.lib")
-    add_custom_command(OUTPUT "${lib}"
-        COMMAND "${CMAKE_AR}" /nologo /machine:x86 "/def:${CMAKE_SOURCE_DIR}/standalone/libs/${dll}.def" "/out:${lib}"
-        DEPENDS "${CMAKE_SOURCE_DIR}/standalone/libs/${dll}.def" VERBATIM)
-    list(APPEND THIRD_PARTY_LIBS "${lib}")
-endforeach()
-add_custom_target(third_party_import_libs DEPENDS ${THIRD_PARTY_LIBS})
-
 # ---- the standalone exe: loader, data image, link tables
 set(SA "${CMAKE_SOURCE_DIR}/standalone")
 # the engine globals as extern "C" definitions (standalone/data/*.cpp), compiled with the game code's flags and headers
@@ -100,10 +88,10 @@ target_link_directories(halo_rebuilt PRIVATE "${DXSDK_DIR}/Lib/x86")
 target_link_libraries(halo_rebuilt PRIVATE
     kernel32 user32 gdi32 advapi32 ole32 oleaut32 winmm ws2_32 shell32 version shlwapi comdlg32
     dsound dinput8 dxguid d3d9 d3dx9 legacy_stdio_definitions wininet
-    ${THIRD_PARTY_LIBS} stb_vorbis delayimp)
+    stb_vorbis)
 # the data image sits at the original addresses (0x400000..0x891000), so the exe must load elsewhere, unrelocated
 target_link_options(halo_rebuilt PRIVATE /FIXED /DYNAMICBASE:NO /BASE:0x10000000 /SAFESEH:NO /OPT:NOREF /OPT:NOICF
-    /LARGEADDRESSAWARE:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcpmt.lib /DELAYLOAD:binkw32.dll /MAP)
+    /LARGEADDRESSAWARE:NO /NODEFAULTLIB:msvcrt.lib /NODEFAULTLIB:libcpmt.lib /MAP)
 
 if(EXISTS "${HALO_FX_OVERRIDE}")
     add_custom_command(TARGET halo_rebuilt POST_BUILD

@@ -342,7 +342,6 @@ void ChimeraBridge::main_menu_music(uint8_t finalize_render_frame)
     if (finalize_render_frame != 0) {
         halo::rasterizer::rasterizer_end_frame();
     }
-    halo::main::movie_play_bink("ending.bik");
     if (finalize_render_frame != 0) {
         halo::rasterizer::rasterizer_reset_device_if_needed();
     }
