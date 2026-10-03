@@ -1,5 +1,5 @@
 /**
- * C linkage shims for the game module: one extern "C" function per original symbol, forwarding to the
+ * Entry functions for the game module: one function per original symbol, forwarding to the
  * C++ classes in namespace halo::game::engine1.
  */
 

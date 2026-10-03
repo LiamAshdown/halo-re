@@ -1,6 +1,6 @@
 /**
- * C linkage shims for the game module slice converted in wave 2 (game engines, variants, lifecycle): one
- * extern "C" function per original symbol, forwarding to the C++ classes in namespace halo::game.
+ * Entry functions for the game module slice converted in wave 2 (game engines, variants, lifecycle): one
+ * function per original symbol, forwarding to the C++ classes in namespace halo::game.
  */
 
 #include "halo/game/game2_engines.hpp"

@@ -24,7 +24,7 @@ struct EvaluateCommandTable {
 
 /**
  * Command group for the hs evaluate handlers "devices". Each static member is the handler of one hs function and
- * is reached through the extern "C" shim that keeps the original symbol name.
+ * is reached through the entry function that keeps the original name.
  */
 class DeviceCommands {
 public:
@@ -37,7 +37,7 @@ public:
 
 /**
  * Command group for the hs evaluate handlers "game". Each static member is the handler of one hs function and
- * is reached through the extern "C" shim that keeps the original symbol name.
+ * is reached through the entry function that keeps the original name.
  */
 class GameCommands {
 public:
@@ -81,7 +81,7 @@ public:
 
 /**
  * Command group for the hs evaluate handlers "hud". Each static member is the handler of one hs function and
- * is reached through the extern "C" shim that keeps the original symbol name.
+ * is reached through the entry function that keeps the original name.
  */
 class HudCommands {
 public:
@@ -116,7 +116,7 @@ public:
 
 /**
  * Command group for the hs evaluate handlers "objects". Each static member is the handler of one hs function and
- * is reached through the extern "C" shim that keeps the original symbol name.
+ * is reached through the entry function that keeps the original name.
  */
 class ObjectCommands {
 public:
@@ -163,7 +163,7 @@ public:
 
 /**
  * Command group for the hs evaluate handlers "flow". Each static member is the handler of one hs function and
- * is reached through the extern "C" shim that keeps the original symbol name.
+ * is reached through the entry function that keeps the original name.
  */
 class FlowCommands {
 public:
@@ -185,7 +185,7 @@ public:
 
 /**
  * Command group for the hs evaluate handlers "input_settings". Each static member is the handler of one hs function and
- * is reached through the extern "C" shim that keeps the original symbol name.
+ * is reached through the entry function that keeps the original name.
  */
 class InputSettingsCommands {
 public:
@@ -223,7 +223,7 @@ public:
 
 /**
  * Command group for the hs evaluate handlers "debug". Each static member is the handler of one hs function and
- * is reached through the extern "C" shim that keeps the original symbol name.
+ * is reached through the entry function that keeps the original name.
  */
 class DebugCommands {
 public:
@@ -250,7 +250,7 @@ public:
 
 /**
  * Command group for the hs evaluate handlers "input_devices". Each static member is the handler of one hs function and
- * is reached through the extern "C" shim that keeps the original symbol name.
+ * is reached through the entry function that keeps the original name.
  */
 class InputDeviceCommands {
 public:
@@ -267,7 +267,7 @@ public:
 
 /**
  * Command group for the hs evaluate handlers "recording". Each static member is the handler of one hs function and
- * is reached through the extern "C" shim that keeps the original symbol name.
+ * is reached through the entry function that keeps the original name.
  */
 class RecordingCommands {
 public:
@@ -284,7 +284,7 @@ public:
 
 /**
  * Command group for the hs evaluate handlers "players". Each static member is the handler of one hs function and
- * is reached through the extern "C" shim that keeps the original symbol name.
+ * is reached through the entry function that keeps the original name.
  */
 class PlayerCommands {
 public:
@@ -317,7 +317,7 @@ public:
 
 /**
  * Command group for the hs evaluate handlers "sound". Each static member is the handler of one hs function and
- * is reached through the extern "C" shim that keeps the original symbol name.
+ * is reached through the entry function that keeps the original name.
  */
 class SoundCommands {
 public:

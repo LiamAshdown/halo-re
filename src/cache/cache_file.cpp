@@ -11,7 +11,6 @@
 #include "halo/memory/api.hpp"
 #include "halo/shell/api.hpp"
 #include "halo/rasterizer/api.hpp"
-#include "link/calls.hpp"
 #include "halo/core/win32_constants.hpp"
 #include "halo/core/datum.hpp"
 #include "halo/interface/api.hpp"

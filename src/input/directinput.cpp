@@ -21,7 +21,6 @@
 #include "halo/input/api.hpp"
 #include "halo/cseries/api.hpp"
 #include "halo/shell/api.hpp"
-#include "link/calls.hpp"
 #include "halo/input/state.hpp"
 #include "halo/input/directinput_constants.hpp"
 #include "halo/core/win32_constants.hpp"

@@ -1,5 +1,5 @@
 /**
- * C linkage shims for the interface UI functions: one extern "C" function per original symbol, forwarding to
+ * Entry functions for the interface UI functions: one function per original symbol, forwarding to
  * the behaviour classes in namespace halo::ui.
  */
 

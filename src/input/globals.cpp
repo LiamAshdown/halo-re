@@ -21,7 +21,6 @@
 #include "halo/cache/api.hpp"
 #include "halo/input/api.hpp"
 #include "halo/input/state.hpp"
-#include "link/calls.hpp"
 #include "ai.h"
 #include "halo/input/bindings.hpp"
 #include "halo/saved_games/api.hpp"

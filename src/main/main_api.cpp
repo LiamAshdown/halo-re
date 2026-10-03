@@ -1,5 +1,5 @@
 /**
- * C linkage shims for the main module: one extern "C" function per original symbol, forwarding to the
+ * Entry functions for the main module: one function per original symbol, forwarding to the
  * C++ implementation in namespace halo::main or to the member function of the record it operates on.
  */
 

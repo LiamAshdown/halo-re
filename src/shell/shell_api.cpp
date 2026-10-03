@@ -1,5 +1,5 @@
 /**
- * C linkage shims for the shell module: one extern "C" function per original symbol, forwarding to the
+ * Entry functions for the shell module: one function per original symbol, forwarding to the
  * C++ classes in namespace halo::shell (the std/hwreq view classes, Application, GameWindow,
  * CrashReporter, Config and the rest).
  */

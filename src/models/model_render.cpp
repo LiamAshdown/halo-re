@@ -13,7 +13,6 @@
 #include "halo/rasterizer/api.hpp"
 #include "halo/render/api.hpp"
 #include "halo/models/globals.hpp"
-#include "link/calls.hpp"
 #include "halo/interface/api.hpp"
 
 
